@@ -58,7 +58,19 @@ architecture tb of Pgp3Tb is
       TUSER_BITS_C  => 8,
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
 
+   constant RX_AXIS_CFG_C : AxiStreamConfigType := (
+      TSTRB_EN_C    => false,
+      TDATA_BYTES_C => 4,
+      TDEST_BITS_C  => 8,
+      TID_BITS_C    => 8,
+      TKEEP_MODE_C  => TKEEP_COMP_C,
+      TUSER_BITS_C  => 2,
+      TUSER_MODE_C  => TUSER_FIRST_LAST_C);
+
    -- Clocking
+   signal rxClk : sl;
+   signal rxRst : sl;
+
    signal axisClk : sl;                 -- [in]
    signal axisRst : sl;                 -- [in]
 
@@ -168,12 +180,54 @@ begin
          remRxLinkReady   => remRxLinkReady,  -- [out]
          locRxLinkReady   => locRxLinkReady,  -- [out]
          phyRxClk         => '0',             -- [in]
+         phyRxReady       => '1',             -- [in]
+         phyRxInit        => open,            -- [out]
          phyRxHeaderValid => '1',             -- [in]
          phyRxHeader      => phyRxHeader,     -- [in]
          phyRxDataValid   => "11",            -- [in]
          phyRxData        => phyRxData,       -- [in]
          phyRxStartSeq    => '0',             -- [in]
          phyRxSlip        => open);           -- [out]
+
+
+   U_ClkRst_2 : entity work.ClkRst
+      generic map (
+         CLK_PERIOD_G      => 40 ns,
+         CLK_DELAY_G       => 1 ns,
+         RST_START_DELAY_G => 0 ns,
+         RST_HOLD_TIME_G   => 5 us,
+         SYNC_RESET_G      => true)
+      port map (
+         clkP => rxClk,
+         rst  => rxRst);
+
+
+   RX_BUFERS : for i in NUM_VC_G-1 downto 0 generate
+      U_AxiStreamFifoV2_1 : entity work.AxiStreamFifoV2
+         generic map (
+            TPD_G               => TPD_G,
+            SLAVE_READY_EN_G    => false,
+--            VALID_THOLD_G          => VALID_THOLD_G,
+--            VALID_BURST_MODE_G     => VALID_BURST_MODE_G,
+            BRAM_EN_G           => false,
+            GEN_SYNC_FIFO_G     => false,
+            FIFO_ADDR_WIDTH_G   => 5,
+--            FIFO_FIXED_THRESH_G    => FIFO_FIXED_THRESH_G,
+            FIFO_PAUSE_THRESH_G => 16,
+            INT_WIDTH_SELECT_G  => "WIDE",
+            SLAVE_AXI_CONFIG_G  => PGP3_AXIS_CONFIG_C,
+            MASTER_AXI_CONFIG_G => RX_AXIS_CFG_C)
+         port map (
+            sAxisClk    => axisClk,                    -- [in]
+            sAxisRst    => axisRst,                    -- [in]
+            sAxisMaster => pgpRxMasters(i),            -- [in]
+            sAxisSlave  => open,                       -- [out]
+            sAxisCtrl   => pgpRxCtrl(i),               -- [out]
+            mAxisClk    => rxClk,                      -- [in]
+            mAxisRst    => rxRst,                      -- [in]
+            mAxisMaster => open,                       -- [out]
+            mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);  -- [in]
+   end generate RX_BUFERS;
 
 end architecture tb;
 

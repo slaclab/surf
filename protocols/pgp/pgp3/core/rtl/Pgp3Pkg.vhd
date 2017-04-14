@@ -45,6 +45,22 @@ package Pgp3Pkg is
    constant SKP_C  : slv(7 downto 0)   := X"66";
    constant USER_C : Slv8Array(0 to 7) := (X"78", X"87", X"2D", X"D2", X"1E", X"E1", X"B4", X"4B");
 
+   constant VALID_BTF_ARRAY_C : Slv8Array := (
+      0  => IDLE_C,
+      1  => SOF_C,
+      2  => EOF_C,
+      3  => SOC_C,
+      4  => EOF_C,
+      5  => SKP_C,
+      6  => USER_C(0),
+      7  => USER_C(1),
+      8  => USER_C(2),
+      9  => USER_C(3),
+      10 => USER_C(4),
+      11 => USER_C(5),
+      12 => USER_C(6),
+      13 => USER_C(7));
+
    constant D_HEADER_C : slv(1 downto 0) := "01";
    constant K_HEADER_C : slv(1 downto 0) := "10";
 
@@ -88,6 +104,14 @@ package Pgp3Pkg is
       frameTx     : sl;                 -- A good frame was transmitted
       frameTxErr  : sl;                 -- An errored frame was transmitted
    end record;
+
+   constant PGP3_TX_OUT_INIT_C : Pgp3TxOutType := (
+      locOverflow => (others => '0'),
+      locPause    => (others => '0'),
+      phyTxReady  => '0',
+      linkReady   => '0',
+      frameTx     => '0',
+      frameTxErr  => '0');
 
    type Pgp3RxInType is record
       loopback : slv(2 downto 0);

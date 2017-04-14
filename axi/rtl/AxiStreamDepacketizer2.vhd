@@ -26,14 +26,15 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
+use work.AxiStreamPacketizer2Pkg.all;
 
 entity AxiStreamDepacketizer2 is
 
    generic (
-      TPD_G                : time             := 1 ns;
-      CRC_EN_G             : boolean          := true;
-      CRC_POLY_G           : slv(31 downto 0) := x"04C11DB7";
-      INPUT_PIPE_STAGES_G  : integer          := 0);
+      TPD_G               : time             := 1 ns;
+      CRC_EN_G            : boolean          := true;
+      CRC_POLY_G          : slv(31 downto 0) := x"04C11DB7";
+      INPUT_PIPE_STAGES_G : integer          := 0);
    port (
       -- AXI-Lite Interface for local registers 
       axisClk : in sl;
@@ -41,6 +42,8 @@ entity AxiStreamDepacketizer2 is
 
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
+
+      debug : out Packetizer2DebugType;
 
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType);
@@ -73,6 +76,7 @@ architecture rtl of AxiStreamDepacketizer2 is
       crcDataValid     : sl;
       crcDataWidth     : slv(2 downto 0);
       crcReset         : sl;
+      debug            : Packetizer2DebugType;
       inputAxisSlave   : AxiStreamSlaveType;
       outputAxisMaster : AxiStreamMasterArray(1 downto 0);
    end record RegType;
@@ -88,15 +92,16 @@ architecture rtl of AxiStreamDepacketizer2 is
       crcDataValid     => '0',
       crcDataWidth     => "111",
       crcReset         => '1',
+      debug            => PACKETIZER2_DEBUG_INIT_C,
       inputAxisSlave   => AXI_STREAM_SLAVE_INIT_C,
       outputAxisMaster => (others => axiStreamMasterInit(AXIS_CONFIG_C)));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal packetNumberOut : slv(15 downto 0);
-   signal packetActiveOut : sl;
-   signal frameErrorOut   : sl;
+   signal packetNumberRam : slv(15 downto 0);
+   signal packetActiveRam : sl;
+   signal frameErrorRam   : sl;
 
    signal crcOut : slv(31 downto 0);
 
@@ -163,9 +168,9 @@ begin
          clkb               => axisClk,                             -- [in]
          rstb               => axisRst,                             -- [in]
          addrb              => inputAxisMaster.tData(15 downto 8),  -- [in]
-         doutb(15 downto 0) => packetNumberOut,                     -- [out]
-         doutb(16)          => packetActiveOut,                     -- [out]
-         doutb(17)          => frameErrorOut);                      -- [out]
+         doutb(15 downto 0) => packetNumberRam,                     -- [out]
+         doutb(16)          => packetActiveRam,                     -- [out]
+         doutb(17)          => frameErrorRam);                      -- [out]
 
    U_Crc32_1 : entity work.Crc32
       generic map (
@@ -182,13 +187,15 @@ begin
          crcIn        => inputAxisMaster.tData(63 downto 0),  -- [in]
          crcReset     => rin.crcReset);                       -- [in]
 
-   comb : process (axisRst, crcOut, frameErrorOut, inputAxisMaster, outputAxisSlave,
-                   packetActiveOut, packetNumberOut, r) is
+   comb : process (axisRst, crcOut, frameErrorRam, inputAxisMaster, outputAxisSlave,
+                   packetActiveRam, packetNumberRam, r) is
       variable v         : RegType;
       variable sof       : sl;
       variable lastBytes : integer;
    begin
       v := r;
+
+      v.debug := PACKETIZER2_DEBUG_INIT_C;
 
       v.ramWe := '0';
 
@@ -234,7 +241,7 @@ begin
                   axiStreamSetUserBit(AXIS_CONFIG_C, v.outputAxisMaster(1), SSI_SOF_C, sof, 0);  -- SOF
 
 
-                  if (sof = not packetActiveOut and v.packetNumber = packetNumberOut and frameErrorOut = '0') then
+                  if (sof = not packetActiveRam and v.packetNumber = packetNumberRam and frameErrorRam = '0') then
                      -- Header metadata as expected
                      v.state        := MOVE_S;
                      v.sideband     := '1';
@@ -244,19 +251,24 @@ begin
                      v.packetActive := '1';
                      v.frameError   := '0';  -- Clear any frame error
                      v.ramWe        := '1';
+                     v.debug.sop    := '1';
+                     v.debug.sof    := sof;
                   else
                      -- There was a missing packet!
-                     if (frameErrorOut = '0') then
+                     if (frameErrorRam = '0') then
                         -- Haven't yet sent an EOFE for this frame. Do so now.
                         ssiSetUserEofe(AXIS_CONFIG_C, v.outputAxisMaster(1), '1');
                         v.outputAxisMaster(1).tLast  := '1';
                         v.outputAxisMaster(1).tValid := '1';
+                        v.debug.eof                  := '1';
+                        v.debug.eofe                 := '1';
                      end if;
-                     v.activeTDest  := v.outputAxisMaster(1).tDest(7 downto 0);
-                     v.packetNumber := (others => '0');
-                     v.packetActive := '0';
-                     v.frameError   := '1';
-                     v.ramWe        := '1';
+                     v.activeTDest       := v.outputAxisMaster(1).tDest(7 downto 0);
+                     v.packetNumber      := (others => '0');
+                     v.packetActive      := '0';
+                     v.frameError        := '1';
+                     v.ramWe             := '1';
+                     v.debug.packetError := '1';
                   end if;
 
                end if;
@@ -307,13 +319,18 @@ begin
                      v.packetNumber := (others => '0');
                      v.frameError   := '0';
                      v.ramWe        := '1';
+                     v.debug.eof    := '1';
+                     v.debug.eop    := '1';
                   else
                      -- else increment packetNumber and set packetActive
                      v.packetActive := '1';
                      v.packetNumber := r.packetNumber + 1;
                      v.frameError   := axiStreamGetUserBit(AXIS_CONFIG_C, v.outputAxisMaster(0), SSI_EOFE_C, lastBytes);
                      v.ramWe        := '1';
+                     v.debug.eop    := '1';
                   end if;
+
+                  v.debug.packetError := axiStreamGetUserBit(AXIS_CONFIG_C, v.outputAxisMaster(0), SSI_EOFE_C, lastBytes);
 
                end if;
             end if;
@@ -331,8 +348,8 @@ begin
 
       inputAxisSlave <= v.inputAxisSlave;
 
-      -- Hold each out tvalid until next in tvalid arrives
       outputAxisMaster <= r.outputAxisMaster(0);
+      debug            <= r.debug;
 
    end process comb;
 

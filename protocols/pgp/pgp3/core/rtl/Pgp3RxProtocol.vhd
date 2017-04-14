@@ -50,17 +50,20 @@ entity Pgp3RxProtocol is
       locRxLinkReady : out sl;
 
       -- Received data from descramber/CC FIFO
-      phyRxValid  : in sl;
-      phyRxData   : in slv(63 downto 0);
-      phyRxHeader : in slv(1 downto 0));
+      phyRxValid  : in  sl;
+      phyRxInit   : out sl;
+      phyRxData   : in  slv(63 downto 0);
+      phyRxHeader : in  slv(1 downto 0));
 
 end entity Pgp3RxProtocol;
 
 architecture rtl of Pgp3RxProtocol is
 
    type RegType is record
+      count          : slv(15 downto 0);
       pgpRxMaster    : AxiStreamMasterType;
       pgpRxOut       : Pgp3RxOutType;
+      phyRxInit      : sl;
       remRxFifoCtrl  : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
       remRxLinkReady : sl;
       locRxLinkReady : sl;              -- This might come from aligner instead?
@@ -68,9 +71,11 @@ architecture rtl of Pgp3RxProtocol is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      count          => (others => '0'),
       pgpRxMaster    => axiStreamMasterInit(PGP3_AXIS_CONFIG_C),
       pgpRxOut       => PGP3_RX_OUT_INIT_C,
-      remRxFifoCtrl  => (others => AXI_STREAM_CTRL_INIT_C),  -- maybe init paused?
+      phyRxInit      => '1',
+      remRxFifoCtrl  => (others => AXI_STREAM_CTRL_INIT_C),  -- init paused
       remRxLinkReady => '0',
       locRxLinkReady => '0',
       version        => (others => '0'));
@@ -91,54 +96,95 @@ begin
 
       v.pgpRxMaster       := REG_INIT_C.pgpRxMaster;
       v.pgpRxOut.opCodeEn := '0';
+      v.phyRxInit         := '0';
 
 
       -- Just translate straight to AXI-Stream packetizer2 format
       -- and let the depacketizer handle any errors?
       if (phyRxValid = '1') then
-         if (phyRxHeader = K_HEADER_C) then
-            if (btf = IDLE_C) then
-               extractLinkInfo(
-                  phyRxData(39 downto 0),
-                  v.remRxFifoCtrl,
-                  v.remRxLinkReady,
-                  v.version);
-            elsif (btf = SOF_C or btf = SOC_C) then
-               v.pgpRxMaster.tValid              := '1';
-               v.pgpRxMaster.tData               := (others => '0');
-               v.pgpRxMaster.tData(24)           := ite(btf = SOF_C, '1', '0');  -- packetizer SOC bit
-               v.pgpRxMaster.tData(11 downto 8)  := phyRxData(43 downto 40);     -- VC
-               v.pgpRxMaster.tData(43 downto 32) := phyRxData(55 downto 44);     -- packet number
-               axiStreamSetUserBit(PGP3_AXIS_CONFIG_C, v.pgpRxMaster, SSI_SOF_C, '1', 0);  -- Set SOF
-               extractLinkInfo(
-                  phyRxData(39 downto 0),
-                  v.remRxFifoCtrl,
-                  v.remRxLinkReady,
-                  v.version);
-            elsif (btf = EOF_C or btf = EOC_C) then
-               v.pgpRxMaster.tValid              := '1';
-               v.pgpRxMaster.tLast               := '1';
-               v.pgpRxMaster.tData               := (others => '0');
-               v.pgpRxMaster.tData(8)            := toSl(btf = EOF_C);           -- EOF bit
-               v.pgpRxMaster.tData(7 downto 0)   := phyRxData(7 downto 0);       -- TUSER LAST
-               v.pgpRxMaster.tData(19 downto 16) := phyRxData(19 downto 16);     -- Last byte count
-               v.pgpRxMaster.tData(63 downto 32) := phyRxData(55 downto 24);     -- CRC
-            else
-               for i in USER_C'range loop
-                  if (btf = USER_C(i)) then
-                     v.pgpRxOut.opCodeEn     := '1';
-                     v.pgpRxOut.opCodeNumber := toSlv(i, 3);
-                     v.pgpRxOut.opCodeData   := phyRxData(55 downto 0);
+         if (r.pgpRxOut.linkReady = '0') then
+            -- Unlinked
+            -- Need N valid headers in a row. Data is ignored.
+            v.count := (others => '0');
+            if (phyRxHeader = K_HEADER_C) then
+               for i in VALID_BTF_ARRAY_C'range loop
+                  if (btf = VALID_BTF_ARRAY_C(i)) then
+                     -- Valid header, increment count
+                     v.count := r.count + 1;
                   end if;
                end loop;
+            elsif (phyRxHeader = D_HEADER_C) then
+               -- Ignore data
+               v.count := r.count;
             end if;
-         -- Unknown opcodes silently dropped
-         elsif (phyRxHeader = D_HEADER_C) then
-            -- Normal Data
-            v.pgpRxMaster.tValid             := '1';
-            v.pgpRxMaster.tData(63 downto 0) := phyRxData;
+
+         else
+            -- Linked
+
+            -- Increment count on every incomming word
+            -- reset when IDLE or SOF or SOC seen
+            v.count := r.count + 1;
+
+            if (phyRxHeader = K_HEADER_C) then
+               if (btf = IDLE_C) then
+                  extractLinkInfo(
+                     phyRxData(39 downto 0),
+                     v.remRxFifoCtrl,
+                     v.remRxLinkReady,
+                     v.version);
+                  if (v.version = PGP3_VERSION_C) then
+                     v.count := (others => '0');
+                  end if;
+               elsif (btf = SOF_C or btf = SOC_C) then
+                  v.pgpRxMaster.tValid              := r.pgpRxOut.linkReady;  -- Hold Everything until
+                  v.pgpRxMaster.tData               := (others => '0');
+                  v.pgpRxMaster.tData(24)           := ite(btf = SOF_C, '1', '0');  -- packetizer SOC bit
+                  v.pgpRxMaster.tData(11 downto 8)  := phyRxData(43 downto 40);  -- VC
+                  v.pgpRxMaster.tData(43 downto 32) := phyRxData(55 downto 44);  -- packet number
+                  axiStreamSetUserBit(PGP3_AXIS_CONFIG_C, v.pgpRxMaster, SSI_SOF_C, '1', 0);  -- Set SOF
+                  extractLinkInfo(
+                     phyRxData(39 downto 0),
+                     v.remRxFifoCtrl,
+                     v.pgpRxOut.remRxLinkReady,
+                     v.version);
+                  if (v.version = PGP3_VERSION_C) then
+                     v.count := (others => '0');
+                  end if;
+               elsif (btf = EOF_C or btf = EOC_C) then
+                  v.pgpRxMaster.tValid              := r.pgpRxOut.linkReady;
+                  v.pgpRxMaster.tLast               := '1';
+                  v.pgpRxMaster.tData               := (others => '0');
+                  v.pgpRxMaster.tData(8)            := toSl(btf = EOF_C);     -- EOF bit
+                  v.pgpRxMaster.tData(7 downto 0)   := phyRxData(7 downto 0);    -- TUSER LAST
+                  v.pgpRxMaster.tData(19 downto 16) := phyRxData(19 downto 16);  -- Last byte count
+                  v.pgpRxMaster.tData(63 downto 32) := phyRxData(55 downto 24);  -- CRC
+               else
+                  for i in USER_C'range loop
+                     if (btf = USER_C(i)) then
+                        v.pgpRxOut.opCodeEn     := '1';
+                        v.pgpRxOut.opCodeNumber := toSlv(i, 3);
+                        v.pgpRxOut.opCodeData   := phyRxData(55 downto 0);
+                     end if;
+                  end loop;
+               end if;
+            -- Unknown opcodes silently dropped
+            elsif (phyRxHeader = D_HEADER_C) then
+               -- Normal Data
+               v.pgpRxMaster.tValid             := r.pgpRxOut.linkReady;
+               v.pgpRxMaster.tData(63 downto 0) := phyRxData;
+            end if;
          end if;
       end if;
+
+      -- Count reaching max indicates that link state needs to toggle
+      -- When not linked, r.count counts consecutive valid k-chars
+      -- When linked, r.count counts consecutive chars without a valid k-char
+      if (r.count = 1000) then
+         v.pgpRxOut.linkReady := not r.pgpRxOut.linkReady;
+         v.phyRxInit          := r.pgpRxOut.linkReady;  -- Init phy when ready drops
+         v.count              := (others => '0');
+      end if;
+
 
       if (pgpRxRst = '1') then
          v := REG_INIT_C;
@@ -146,6 +192,8 @@ begin
 
       rin <= v;
 
+      pgpRxOut       <= r.pgpRxOut;
+      phyRxInit      <= r.phyRxInit;
       pgpRxMaster    <= r.pgpRxMaster;
       remRxFifoCtrl  <= r.remRxFifoCtrl;
       remRxLinkReady <= r.remRxLinkReady;

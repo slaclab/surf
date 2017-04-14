@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-07
--- Last update: 2017-04-11
+-- Last update: 2017-04-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -27,6 +27,7 @@ use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
 use work.Pgp3Pkg.all;
+use work.AxiStreamPacketizer2Pkg.all;
 
 entity Pgp3Rx is
 
@@ -35,12 +36,12 @@ entity Pgp3Rx is
       NUM_VC_G : integer range 1 to 16 := 4);
    port (
       -- User Transmit interface
-      pgpRxClk    : in  sl;
-      pgpRxRst    : in  sl;
-      pgpRxIn     : in  Pgp3RxInType;
-      pgpRxOut    : out Pgp3RxOutType;
+      pgpRxClk     : in  sl;
+      pgpRxRst     : in  sl;
+      pgpRxIn      : in  Pgp3RxInType;
+      pgpRxOut     : out Pgp3RxOutType;
       pgpRxMasters : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
-      pgpRxCtrl   : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
+      pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
 
       -- Status of local receive fifos
       -- Should these all be on pgpRxOut?
@@ -50,6 +51,8 @@ entity Pgp3Rx is
 
       -- Phy interface
       phyRxClk         : in  sl;
+      phyRxReady       : in  sl;
+      phyRxInit        : out sl;
       phyRxHeaderValid : in  sl;
       phyRxHeader      : in  slv(1 downto 0);
       phyRxDataValid   : in  slv(1 downto 0);
@@ -71,6 +74,9 @@ architecture rtl of Pgp3Rx is
    signal pgpRawRxSlave          : AxiStreamSlaveType;
    signal depacketizedAxisMaster : AxiStreamMasterType;
    signal depacketizedAxisSlave  : AxiStreamSlaveType;
+
+   signal pgpRxOutProtocol  : Pgp3RxOutType;
+   signal depacketizerDebug : Packetizer2DebugType;
 
 begin
 
@@ -105,13 +111,15 @@ begin
          pgpRxClk       => pgpRxClk,           -- [in]
          pgpRxRst       => pgpRxRst,           -- [in]
          pgpRxIn        => pgpRxIn,            -- [in]
-         pgpRxOut       => pgpRxOut,           -- [out]
+         pgpRxOut       => pgpRxOutProtocol,   -- [out]
          pgpRxMaster    => pgpRawRxMaster,     -- [out]
          pgpRxSlave     => pgpRawRxSlave,      -- [in]
          remRxFifoCtrl  => remRxFifoCtrl,      -- [out]
          remRxLinkReady => remRxLinkReady,     -- [out]
          locRxLinkReady => locRxLinkReady,     -- [out]
          phyRxValid     => unscramblerValid,   -- [in]
+--         phyRxReady     => phyRxReady,         -- [in]
+         phyRxInit      => phyRxInit,          -- [out]
          phyRxData      => unscrambledData,    -- [in]
          phyRxHeader    => unscrambedHeader);  -- [in]
 
@@ -125,6 +133,7 @@ begin
       port map (
          axisClk     => pgpRxClk,                -- [in]
          axisRst     => pgpRxRst,                -- [in]
+         debug       => depacketizerDebug,       -- [out]
          sAxisMaster => pgpRawRxMaster,          -- [in]
          sAxisSlave  => pgpRawRxSlave,           -- [out]
          mAxisMaster => depacketizedAxisMaster,  -- [out]
@@ -147,5 +156,16 @@ begin
          sAxisSlave   => depacketizedAxisSlave,                  -- [out]
          mAxisMasters => pgpRxMasters,                           -- [out]
          mAxisSlaves  => (others => AXI_STREAM_SLAVE_FORCE_C));  -- [in]
+
+   pgpRxOut.phyRxReady   <= phyRxReady;
+   pgpRxOut.linkReady    <= pgpRxOutProtocol.linkReady;
+   pgpRxOut.frameRx      <= depacketizerDebug.eof;
+   pgpRxOut.frameRxErr   <= depacketizerDebug.eofe;
+   pgpRxOut.cellError    <= depacketizerDebug.packetError;
+   pgpRxOut.opCodeEn     <= pgpRxOutProtocol.opCodeEn;
+   pgpRxOut.opCodeNumber <= pgpRxOutProtocol.opCodeNumber;
+   pgpRxOut.opCodeData   <= pgpRxOutProtocol.opCodeData;
+
+
 
 end architecture rtl;

@@ -59,7 +59,6 @@ entity Pgp3Tx is
       remRxLinkReady : in sl;
 
       -- PHY interface
---      phyTxClk    : in  sl;
       phyTxReady  : in  sl;
       phyTxData   : out slv(63 downto 0);
       phyTxHeader : out slv(1 downto 0));
@@ -200,6 +199,7 @@ begin
          pgpTxSlave     => packetizedTxSlave,     -- [out]
          locRxFifoCtrl  => syncLocRxFifoCtrl,     -- [in]
          locRxLinkReady => syncLocRxLinkReady,    -- [in]
+         phyTxReady     => phyTxReady,            -- [in]
          phyTxData      => unscrambledTxData,     -- [out]
          phyTxHeader    => unscrambledTxHeader);  -- [out]
 
