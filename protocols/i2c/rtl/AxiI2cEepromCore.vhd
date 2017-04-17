@@ -1,14 +1,11 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
 -- File       : AxiI2cEepromCore.vhd
--- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-07-11
 -- Last update: 2016-09-20
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
+-- Description: AXI-Lite Read/ModifyWrite for standard EEPROM Module
+--
 -- Supported Devices:   
 --    24AA01F/24LC01F/24FC01F    (1kb:   ADDR_WIDTH_G = 7)
 --    24AA02F/24LC02F/24FC02F    (2kb:   ADDR_WIDTH_G = 8)

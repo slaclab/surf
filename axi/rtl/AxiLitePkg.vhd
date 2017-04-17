@@ -1,11 +1,10 @@
 -------------------------------------------------------------------------------
--- Title         : ARM Based RCE Generation 3, Package File
--- File          : AxiLitePkg.vhd
--- Author        : Ryan Herbst, rherbst@slac.stanford.edu
--- Created       : 04/02/2013
+-- File       : AxiLitePkg.vhd
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2013-04-02
+-- Last update: 2016-04-26
 -------------------------------------------------------------------------------
--- Description:
--- Package file for ARM based rce generation 3 processor core.
+-- Description: AXI-Lite Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -15,9 +14,7 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
--- Modification history:
--- 04/02/2013: created.
--------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.NUMERIC_STD.all;
@@ -378,7 +375,11 @@ package AxiLitePkg is
       data                  : out slv;
       debug                 : in  boolean := false);
 
-
+   function ite(i : boolean; t : AxiLiteReadMasterType;  e : AxiLiteReadMasterType)  return AxiLiteReadMasterType;
+   function ite(i : boolean; t : AxiLiteReadSlaveType;   e : AxiLiteReadSlaveType)   return AxiLiteReadSlaveType;
+   function ite(i : boolean; t : AxiLiteWriteMasterType; e : AxiLiteWriteMasterType) return AxiLiteWriteMasterType;
+   function ite(i : boolean; t : AxiLiteWriteSlaveType;  e : AxiLiteWriteSlaveType)  return AxiLiteWriteSlaveType;
+   
 end AxiLitePkg;
 
 package body AxiLitePkg is
@@ -924,5 +925,26 @@ package body AxiLitePkg is
 
    end procedure axiLiteBusSimRead;
 
+   function ite (i : boolean; t : AxiLiteReadMasterType; e : AxiLiteReadMasterType) return AxiLiteReadMasterType is
+   begin
+      if (i) then return t; else return e; end if;
+   end function ite;
+
+   function ite (i : boolean; t : AxiLiteReadSlaveType; e : AxiLiteReadSlaveType) return AxiLiteReadSlaveType is
+   begin
+      if (i) then return t; else return e; end if;
+   end function ite;
+
+   function ite (i : boolean; t : AxiLiteWriteMasterType; e : AxiLiteWriteMasterType) return AxiLiteWriteMasterType is
+   begin
+      if (i) then return t; else return e; end if;
+   end function ite;
+
+   function ite (i : boolean; t : AxiLiteWriteSlaveType; e : AxiLiteWriteSlaveType) return AxiLiteWriteSlaveType is
+   begin
+      if (i) then return t; else return e; end if;
+   end function ite;
+   
+   
 end package body AxiLitePkg;
 

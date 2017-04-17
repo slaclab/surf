@@ -1,31 +1,19 @@
 -------------------------------------------------------------------------------
--- Title         : Pretty Good Protocol, V2, Cell Transmit Interface
--- Project       : General Purpose Core
--------------------------------------------------------------------------------
--- File          : Pgp2bTxCell.vhd
--- Author        : Ryan Herbst, rherbst@slac.stanford.edu
--- Created       : 05/18/2009
+-- File       : Pgp2bTxCell.vhd
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2009-05-27
+-- Last update: 2017-03-28
 -------------------------------------------------------------------------------
 -- Description:
 -- Cell Transmit interface module for the Pretty Good Protocol core. 
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC PGP2B Core'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC PGP2B Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
--------------------------------------------------------------------------------
--- Modification history:
--- 05/18/2009: created.
--- 11/23/2009: Renamed package.
--- 06/25/2010: Added payload size config as generic.
--- 05/18/2012: Added VC transmit timeout
--- 04/04/2014: Changed to Pgp2b.
--- 07/10/2014: Change all ASYNC resets to SYNC resets.
--- 08/10/2015: Added clock enable support
--- 09/17/2015: Added almost full provisions
 -------------------------------------------------------------------------------
 
 LIBRARY ieee;

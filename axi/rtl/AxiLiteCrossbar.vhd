@@ -1,13 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
--- File       : MainAxiCrossbarWrapper.vhd
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
+-- File       : AxiLiteCrossbar.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-24
 -- Last update: 2016-01-13
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Wrapper around Xilinx generated Main AXI Crossbar for HPS Front End
 -------------------------------------------------------------------------------

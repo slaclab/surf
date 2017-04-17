@@ -1,15 +1,12 @@
 -------------------------------------------------------------------------------
--- Title      : Axi-lite interface for register access  
--------------------------------------------------------------------------------
 -- File       : AxiLiteTxRegItf.vhd
--- Author     : Uros Legat  <ulegat@slac.stanford.edu>
--- Company    : SLAC National Accelerator Laboratory (Cosylab)
+-- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-15
 -- Last update: 2016-02-12
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description:  Register decoding for JESD TX core
+-- Description: AXI-Lite interface for register access  
+--
+--             Register decoding for JESD TX core
 --               0x00 (RW)- Enable TX lanes (L_G downto 1)
 --               0x01 (RW)- SYSREF delay (5 bit)
 --               0x02 (RW)- Enable AXI Stream transfer (L_G downto 1) (Not used-Reserved)
@@ -27,6 +24,7 @@
 --                   bit 15-0:  Ramp step (Clock cycles)
 --               0x06 (RW)- Square wave test signal amplitude low
 --               0x07 (RW)- Square wave test signal amplitude high
+--               0x08 (RW)- Mask Enable the ADC data inversion. 1-Inverted, 0-normal.
 --               0x1X (R) - Lane X status
 --                   bit 0: GT Reset done
 --                   bit 1: Transmuting valid data
@@ -46,11 +44,11 @@
 --                         "10" - AXI Stream data source 
 --                         "11" - Test signal
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC JESD204b Core'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC JESD204b Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
@@ -101,6 +99,7 @@ entity AxiLiteTxRegItf is
       enableTx_o      : out slv(L_G-1 downto 0);
       replEnable_o    : out sl;
       scrEnable_o     : out sl;
+      invertData_o    : out slv(L_G-1 downto 0);   
       swTrigger_o     : out slv(L_G-1 downto 0);
       rampStep_o      : out slv(PER_STEP_WIDTH_C-1 downto 0);
       squarePeriod_o  : out slv(PER_STEP_WIDTH_C-1 downto 0);
@@ -122,6 +121,7 @@ architecture rtl of AxiLiteTxRegItf is
    type RegType is record
       -- JESD Control (RW)
       enableTx        : slv(L_G-1 downto 0);
+      invertData      : slv(L_G-1 downto 0);      
       commonCtrl      : slv(6 downto 0);
       sysrefDlyTx     : slv(SYSRF_DLY_WIDTH_C-1 downto 0);
       swTrigger       : slv(L_G-1 downto 0);
@@ -138,6 +138,7 @@ architecture rtl of AxiLiteTxRegItf is
 
    constant REG_INIT_C : RegType := (
       enableTx        => (others => '0'),
+      invertData     => (others => '0'),      
       commonCtrl      => "0110011",
       sysrefDlyTx     => (others => '0'),
       swTrigger       => (others => '0'),
@@ -217,22 +218,24 @@ begin
       if (axilStatus.writeEnable = '1') then
          axilWriteResp := ite(axilWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
          case (s_WrAddr) is
-            when 16#00# =>              -- ADDR (0)
+            when 16#00# =>              -- ADDR (0x0)
                v.enableTx := axilWriteMaster.wdata(L_G-1 downto 0);
-            when 16#01# =>              -- ADDR (4)
+            when 16#01# =>              -- ADDR (0x4)
                v.sysrefDlyTx := axilWriteMaster.wdata(SYSRF_DLY_WIDTH_C-1 downto 0);
-            when 16#02# =>              -- ADDR (8)
+            when 16#02# =>              -- ADDR (0x8)
                v.swTrigger := axilWriteMaster.wdata(L_G-1 downto 0);
-            when 16#03# =>              -- ADDR (12)
+            when 16#03# =>              -- ADDR (0xC)
                v.axisPacketSize := axilWriteMaster.wdata(23 downto 0);
-            when 16#04# =>              -- ADDR (16)
+            when 16#04# =>              -- ADDR (0x10)
                v.commonCtrl := axilWriteMaster.wdata(6 downto 0);
-            when 16#05# =>              -- ADDR (20)
+            when 16#05# =>              -- ADDR (0x14)
                v.periodStep := axilWriteMaster.wdata;
-            when 16#06# =>              -- ADDR (24)
+            when 16#06# =>              -- ADDR (0x18)
                v.negAmplitude := axilWriteMaster.wdata(F_G*8-1 downto 0);
-            when 16#07# =>              -- ADDR (28)
+            when 16#07# =>              -- ADDR (0x1C)
                v.posAmplitude := axilWriteMaster.wdata(F_G*8-1 downto 0);
+            when 16#08# =>              -- ADDR (0x20)
+               v.invertData  := axilWriteMaster.wdata(L_G-1 downto 0);            
             when 16#20# to 16#2F# =>
                for I in (L_G-1) downto 0 loop
                   if (axilWriteMaster.awaddr(5 downto 2) = I) then
@@ -249,22 +252,24 @@ begin
          axilReadResp          := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
          v.axilReadSlave.rdata := (others => '0');
          case (s_RdAddr) is
-            when 16#00# =>              -- ADDR (0)
+            when 16#00# =>              -- ADDR (0x0)
                v.axilReadSlave.rdata(L_G-1 downto 0) := r.enableTx;
-            when 16#01# =>              -- ADDR (4)
+            when 16#01# =>              -- ADDR (0x4)
                v.axilReadSlave.rdata(SYSRF_DLY_WIDTH_C-1 downto 0) := r.sysrefDlyTx;
-            when 16#02# =>              -- ADDR (8)
+            when 16#02# =>              -- ADDR (0x8)
                v.axilReadSlave.rdata(L_G-1 downto 0) := r.swTrigger;
-            when 16#03# =>              -- ADDR (12)
+            when 16#03# =>              -- ADDR (0xC)
                v.axilReadSlave.rdata(23 downto 0) := r.axisPacketSize;
-            when 16#04# =>              -- ADDR (16)
+            when 16#04# =>              -- ADDR (0x10)
                v.axilReadSlave.rdata(6 downto 0) := r.commonCtrl;
-            when 16#05# =>              -- ADDR (20)
+            when 16#05# =>              -- ADDR (0x14)
                v.axilReadSlave.rdata := r.periodStep;
-            when 16#06# =>              -- ADDR (24)
+            when 16#06# =>              -- ADDR (0x18)
                v.axilReadSlave.rdata(F_G*8-1 downto 0) := r.negAmplitude;
-            when 16#07# =>              -- ADDR (28)
+            when 16#07# =>              -- ADDR (0x1C)
                v.axilReadSlave.rdata(F_G*8-1 downto 0) := r.posAmplitude;
+            when 16#08# =>              -- ADDR (0x20)
+               v.axilReadSlave.rdata(L_G-1 downto 0) := r.invertData;
             when 16#10# to 16#1F# =>
                for I in (L_G-1) downto 0 loop
                   if (axilReadMaster.araddr(5 downto 2) = I) then
@@ -501,6 +506,17 @@ begin
          rd_clk => devClk_i,
          dout   => negAmplitude_o
          );
+   SyncFifo_OUT14 : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         DATA_WIDTH_G => L_G
+         )
+      port map (
+         wr_clk => axiClk_i,
+         din    => r.invertData,
+         rd_clk => devClk_i,
+         dout   => invertData_o
+         );  
 
    GEN_1 : for I in L_G-1 downto 0 generate
       SyncFifo_OUT0 : entity work.SynchronizerFifo

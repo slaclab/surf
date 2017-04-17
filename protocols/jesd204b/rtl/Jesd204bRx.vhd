@@ -1,15 +1,11 @@
 -------------------------------------------------------------------------------
--- Title      : JESD204b multi-lane receiver module
--------------------------------------------------------------------------------
 -- File       : Jesd204bRx.vhd
--- Author     : Uros Legat  <ulegat@slac.stanford.edu>
--- Company    : SLAC National Accelerator Laboratory (Cosylab)
+-- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-14
 -- Last update: 2016-02-12
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Receiver JESD204b module.
+-- Description: JESD204b multi-lane receiver module
+--              Receiver JESD204b module.
 --              Supports a subset of features from JESD204b standard.
 --              Supports sub-class 1 deterministic latency.
 --              Supports sub-class 0 non deterministic latency.
@@ -24,14 +20,15 @@
 --                First sample in time:  sampleData_o(15 downto 0) 
 --                Second sample in time: sampleData_o(31 downto 16)
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC JESD204b Core'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC JESD204b Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
@@ -143,6 +140,8 @@ architecture rtl of Jesd204bRx is
    signal s_enableRx    : slv(L_G-1 downto 0);
    signal s_replEnable  : sl;
    signal s_scrEnable   : sl;
+   signal s_invertData  : slv(L_G-1 downto 0); 
+   
    -- JESD subclass selection (from AXI lite register)
    signal s_subClass    : sl;
    -- User reset (from AXI lite register)
@@ -170,6 +169,7 @@ architecture rtl of Jesd204bRx is
 
    -- Record containing GT signals
    signal s_jesdGtRxArr : jesdGtRxLaneTypeArray(L_G-1 downto 0);
+   signal s_rawData     : slv32Array(L_G-1 downto 0);
 
    -- Generate pause signal logic OR
    signal s_pauseVec : slv(L_G-1 downto 0);
@@ -185,7 +185,11 @@ begin
    -----------------------------------------------------------
    -- AXI Lite AXI clock domain crossed
    -----------------------------------------------------------
-
+   
+   GEN_rawData : for I in L_G-1 downto 0 generate
+      s_rawData(I) <= s_jesdGtRxArr(I).data;
+   end generate GEN_rawData;
+   
    -- axiLite register interface
    AxiLiteRegItf_INST : entity work.AxiLiteRxRegItf
       generic map (
@@ -204,6 +208,7 @@ begin
          devClk_i          => devClk_i,
          devRst_i          => devRst_i,
          statusRxArr_i     => s_statusRxArr,
+         rawData_i         => s_rawData,
          linkErrMask_o     => s_linkErrMask,
          sysrefDlyRx_o     => s_sysrefDlyRx,
          enableRx_o        => s_enableRx,
@@ -216,6 +221,7 @@ begin
          gtReset_o         => s_gtReset,
          clearErr_o        => s_clearErr,
          invertSync_o      => s_invertSync,
+         invertData_o      => s_invertData,        
          thresoldHighArr_o => s_thresoldHighArr,
          thresoldLowArr_o  => s_thresoldLowArr,
          axisPacketSize_o  => s_axisPacketSizeReg
@@ -357,6 +363,7 @@ begin
             linkErrMask_i=> s_linkErrMask,
             replEnable_i => s_replEnable,
             scrEnable_i  => s_scrEnable,
+            inv_i        => s_invertData(I), 
             status_o     => s_statusRxArr(I),
             r_jesdGtRx   => s_jesdGtRxArr(I),
             lmfc_i       => s_lmfc,

@@ -1,21 +1,16 @@
 -------------------------------------------------------------------------------
--- Title      : SLAC Asynchronous Logic Transceiver (SALT)
--------------------------------------------------------------------------------
 -- File       : SaltUltraScale.vhd
--- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-15
 -- Last update: 2017-02-10
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: SALT Core
+-- Description: SLAC Asynchronous Logic Transceiver (SALT) UltraScale Core
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC Asynchronous Logic Transceiver'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Asynchronous Logic Transceiver', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------

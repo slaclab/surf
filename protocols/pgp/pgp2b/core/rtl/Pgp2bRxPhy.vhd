@@ -1,31 +1,19 @@
----------------------------------------------------------------------------------
--- Title         : Pretty Good Protocol V2, Physical Interface Receive Module
--- Project       : General Purpose Core
----------------------------------------------------------------------------------
--- File          : Pgp2bRxPhy.vhd
--- Author        : Ryan Herbst, rherbst@slac.stanford.edu
--- Created       : 05/18/2009
----------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-- File       : Pgp2bRxPhy.vhd
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2009-05-27
+-- Last update: 2017-03-28
+-------------------------------------------------------------------------------
 -- Description:
 -- Physical interface receive module for the Pretty Good Protocol version 2 core. 
----------------------------------------------------------------------------------
--- This file is part of 'SLAC PGP2B Core'.
+-------------------------------------------------------------------------------
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC PGP2B Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
----------------------------------------------------------------------------------
--- Modification history:
--- 05/18/2009: created.
--- 11/23/2009: Renamed package.
--- 01/13/2010: Added init of reset controller if failed to link after 1023 clocks.
---             fixed bug in dealing with an inverted receive link.
--- 02/01/2011: Rem data and rem link not updated if EOF fields don't match.
--- 04/04/2014: Changed to Pgp2b. Removed debug.
--- 07/10/2014: Change all ASYNC resets to SYNC resets.
--- 08/10/2015: Added clock enable support
 -------------------------------------------------------------------------------
 
 library ieee;

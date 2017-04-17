@@ -139,7 +139,16 @@ JesdTx: &JesdTx
       name: HighAmplitudeVal
       mode: RW
       description: High value of the square waveform amplitude
-    #########################################################      
+    #########################################################
+    InvertDacData:   
+      at:
+        offset: 0x20
+      class: IntField
+      name: InvertDacData
+      sizeBits: *numTxLanes
+      mode: RW
+      description: "Mask Enable the DAC data inversion. 1-Inverted, 0-normal."
+    #########################################################       
     GTReady:
       at:
         offset: 0x040

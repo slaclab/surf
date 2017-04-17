@@ -1,3 +1,10 @@
+-------------------------------------------------------------------------------
+-- File       : TextUtilPkg.vhd
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2013-05-01
+-- Last update: 2017-02-23
+-------------------------------------------------------------------------------
+-- Description: Provides functions for handling text.
 ------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -7,9 +14,7 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 ------------------------------------------------------------------------------
--------------------------------------------------------------------------------
--- Description: Provides functions for handling text.
--------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use std.textio.all;

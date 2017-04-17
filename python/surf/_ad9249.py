@@ -1,3 +1,23 @@
+#!/usr/bin/env python
+#-----------------------------------------------------------------------------
+# Title      : PyRogue _ad9249 Module
+#-----------------------------------------------------------------------------
+# File       : _ad9249.py
+# Created    : 2017-01-17
+# Last update: 2017-01-17
+#-----------------------------------------------------------------------------
+# Description:
+# PyRogue _ad9249 Module
+#-----------------------------------------------------------------------------
+# This file is part of 'SLAC Firmware Standard Library'.
+# It is subject to the license terms in the LICENSE.txt file found in the 
+# top-level directory of this distribution and at: 
+#    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+# No part of 'SLAC Firmware Standard Library', including this file, 
+# may be copied, modified, propagated, or distributed except according to 
+# the terms contained in the LICENSE.txt file.
+#-----------------------------------------------------------------------------
+
 import pyrogue as pr
 import math
 
@@ -77,14 +97,16 @@ class Ad9249Config(pr.Device):
             self.add(Ad9249ConfigGroup(name="BankConfig[1]", offset=0x0800));
         else:
             for i in range(chips):
-                self.add(pr.Variable(name = "Pdwn" + chip,
-                                     description = "Power down chip " + chip,
+                self.add(pr.Variable(name = "Pdwn" + str(i),
+                                     description = "Power down chip " + str(i),
                                      offset = PDWN_ADDR + (i*4),
                                      bitSize = 1,
                                      bitOffset = 0,
                                      base = 'bool',
                                      mode = "RW"))
-                self.add(Ad9249ChipConfig(name="Ad9249Chip[{:d}]".format(chip), offset=(i*(0x800))))
+                self.add(Ad9249ConfigGroup(name="Ad9249Chip["+str(i)+"].BankConfig[0]", offset=i*0x1000));
+                self.add(Ad9249ConfigGroup(name="Ad9249Chip["+str(i)+"].BankConfig[1]", offset=i*0x1000+0x0800));
+                #self.add(Ad9249ChipConfig(name="Ad9249Chip[{:d}]".format(i), offset=(i*(0x800))))
   
 
 class Ad9249ReadoutGroup(pr.Device):

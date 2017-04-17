@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
--- Title      : AXI-4 DMA Controller Package File
--- Project    : General Purpose Core
--------------------------------------------------------------------------------
 -- File       : AxiStreamDmaRead.vhd
+-- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-06
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------

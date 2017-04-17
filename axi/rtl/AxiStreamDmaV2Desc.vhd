@@ -1,11 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : AXI Stream DMA V2, Descriptor Engine
--- Project    : General Purpose Core
--------------------------------------------------------------------------------
 -- File       : AxiStreamDmaV2Desc.vhd
--- Created    : 2017-02-01
--- Platform   : 
--- Standard   : VHDL'93/02
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2017-02-02
+-- Last update: 2017-02-02
 -------------------------------------------------------------------------------
 -- Description:
 -- Descriptor manager for AXI DMA read and write engines.
@@ -266,7 +263,7 @@ begin
          TPD_G              => TPD_G,
          NUM_SLAVE_SLOTS_G  => 1,
          NUM_MASTER_SLOTS_G => CB_COUNT_C,
-         DEC_ERROR_RESP_G   => AXI_RESP_OK_C,
+         DEC_ERROR_RESP_G   => AXI_ERROR_RESP_G,
          MASTERS_CONFIG_G   => AXI_CROSSBAR_MASTERS_CONFIG_C) 
       port map (
          axiClk              => axiClk,

@@ -8,8 +8,7 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 #schemaversion 3.0.0
-#once
-#schemaversion 3.0.0
+#once Lmk04828.yaml
 
 Lmk04828: &Lmk04828
   class: MMIODev

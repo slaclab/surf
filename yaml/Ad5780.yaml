@@ -1,0 +1,107 @@
+##############################################################################
+## This file is part of 'SLAC Firmware Standard Library'.
+## It is subject to the license terms in the LICENSE.txt file found in the 
+## top-level directory of this distribution and at: 
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+## No part of 'SLAC Firmware Standard Library', including this file, 
+## may be copied, modified, propagated, or distributed except according to 
+## the terms contained in the LICENSE.txt file.
+##############################################################################
+#schemaversion 3.0.0
+#once Ad5780.yaml
+
+Ad5780: &Ad5780
+class: MMIODev
+configPrio: 1
+description: Ad5780 Module
+size: 0x200
+children:
+  #########################################################
+  dacRefreshRate:
+    at:
+      offset: 0x400
+    sizeBits: 32
+    lsBit: 0
+    mode: RO
+    description: DAC Rate (in units of Hz
+  #########################################################
+  dacData:
+    at:
+      offset: 0x0C0
+    sizeBits: 18
+    lsBit: 0
+    mode: RO
+    description: DAC Data
+  ######################################################### 
+  debugMux:
+    at:
+      offset: 0x200
+    sizeBits: 1
+    lsBit: 0
+    mode: RW
+    description: debugMux
+  ######################################################### 
+  debugData:
+    at:
+      offset: 0x240
+    sizeBits: 18
+    lsBit: 0
+    mode: RW
+    description: debugData
+  ######################################################### 
+  sdoDisable:
+    at:
+      offset: 0x280
+    sizeBits: 1
+    lsBit: 0
+    mode: RW
+    description: sdoDisable
+  ######################################################### 
+  binaryOffset:
+    at:
+      offset: 0x284
+    sizeBits: 1
+    lsBit: 0
+    mode: RW
+    description: binaryOffset
+  ######################################################### 
+  dacTriState:
+    at:
+      offset: 0x288
+    sizeBits: 1
+    lsBit: 0
+    mode: RW
+    description: dacTriState
+  ######################################################### 
+  opGnd:
+    at:
+      offset: 0x28C
+    sizeBits: 1
+    lsBit: 0
+    mode: RW
+    description: opGnd
+  ######################################################### 
+  rbuf:
+    at:
+      offset: 0x290
+    sizeBits: 1
+    lsBit: 0
+    mode: RW
+    description: rbuf
+  ######################################################### 
+  halfSckPeriod:
+    at:
+      offset: 0x294
+    sizeBits: 32
+    lsBit: 0
+    mode: RW
+    description: halfSckPeriod
+  ######################################################### 
+  hardReset:
+    at:
+      offset: 0x3F8
+    sizeBits: 1
+    lsBit: 0
+    mode: WO
+    description: HardReset
+  ######################################################### 

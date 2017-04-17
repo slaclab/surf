@@ -1,15 +1,10 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
 -- File       : GthUltraScaleQuadPll.vhd
--- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
 -- Last update: 2016-03-08
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Wrapper for Ultrascale GTH QPLL primitive
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC MGT Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

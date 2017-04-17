@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
--- Title         : AXI Lite Empty End Point
--- File          : AxiLiteAsync.vhd
--- Author        : Ryan Herbst, rherbst@slac.stanford.edu
--- Created       : 03/10/2014
+-- File       : AxiLiteAsync.vhd
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2013-04-02
+-- Last update: 2016-04-26
 -------------------------------------------------------------------------------
 -- Description:
 -- Asynchronous bridge for AXI Lite bus. Allows AXI transactions to cross 
@@ -16,9 +16,7 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
--- Modification history:
--- 03/10/2014: created.
--------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;

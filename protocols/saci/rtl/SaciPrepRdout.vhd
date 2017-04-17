@@ -1,13 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : SaciPrepRdout
--- Project    : Multipixel SACI interface
--------------------------------------------------------------------------------
 -- File       : SaciPrepRdout.vhd
--- Author     : Maciej Kwiatkowski, mkwiatko@slac.stanford.edu
+-- Company    : SLAC National Accelerator Laboratory
 -- Created    : 07/21/2016
 -- Last update: 07/21/2016
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: The AXI lite master to issue SACI prepare for readout command
 -------------------------------------------------------------------------------
@@ -18,9 +13,6 @@
 -- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
--------------------------------------------------------------------------------
--- Modification history:
--- 07/21/2016: created.
 -------------------------------------------------------------------------------
 
 library ieee;

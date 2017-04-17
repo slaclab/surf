@@ -1,15 +1,12 @@
 -------------------------------------------------------------------------------
--- Title      : Axi-lite interface for register access  
--------------------------------------------------------------------------------
 -- File       : AxiLiteRxRegItf.vhd
--- Author     : Uros Legat  <ulegat@slac.stanford.edu>
--- Company    : SLAC National Accelerator Laboratory (Cosylab)
+-- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-15
 -- Last update: 2016-09-23
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description:  Register decoding for JESD RX core
+-- Description:  AXI-Lite interface for register access 
+--
+--             Register decoding for JESD RX core
 --               0x00 (RW)- Enable RX lanes (L_G downto 1)
 --               0x01 (RW)- SYSREF delay (5 bit)
 --               0x02 (RW)- Enable AXI Stream transfer (L_G downto 1)
@@ -23,6 +20,7 @@
 --                   bit 5: Scrambling support enable (Default '0'- Disabled) 
 --               0x05 (RW)- LinkErrorMask
 --                   bit 5-0: positionErr & s_bufOvf & s_bufUnf & dispErr & decErr & s_alignErr                     
+--               0x06 (RW)- Mask Enable the ADC data inversion. 1-Inverted, 0-normal.
 --               0x1X (R) - Lane X status
 --                   bit 0: GT Reset done
 --                   bit 1: Received data valid
@@ -46,14 +44,15 @@
 --                   bit 15-0:  Low threshold
 --               0x4X (RO) - Status valid counters 
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC JESD204b Core'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC JESD204b Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
@@ -91,12 +90,14 @@ entity AxiLiteRxRegItf is
       -- JESD registers
       -- Status
       statusRxArr_i : in rxStatuRegisterArray(L_G-1 downto 0);
-
+      rawData_i     : in slv32Array(L_G-1 downto 0);
+      
       -- Control
       sysrefDlyRx_o     : out slv(SYSRF_DLY_WIDTH_C-1 downto 0);
       enableRx_o        : out slv(L_G-1 downto 0);
       replEnable_o      : out sl;
       scrEnable_o       : out sl;
+      invertData_o      : out slv(L_G-1 downto 0);   
       dlyTxArr_o        : out Slv4Array(L_G-1 downto 0);     -- 1 to 16 clock cycles
       alignTxArr_o      : out alignTxArray(L_G-1 downto 0);  -- 0001, 0010, 0100, 1000
       thresoldLowArr_o  : out Slv16Array(L_G-1 downto 0);    -- Test signal threshold low
@@ -116,6 +117,7 @@ architecture rtl of AxiLiteRxRegItf is
    type RegType is record
       -- JESD Control (RW)
       enableRx       : slv(L_G-1 downto 0);
+      invertData     : slv(L_G-1 downto 0);    
       commonCtrl     : slv(5 downto 0);
       linkErrMask    : slv(5 downto 0);
       sysrefDlyRx    : slv(SYSRF_DLY_WIDTH_C-1 downto 0);
@@ -131,6 +133,7 @@ architecture rtl of AxiLiteRxRegItf is
 
    constant REG_INIT_C : RegType := (
       enableRx       => (others => '0'),
+      invertData     => (others => '0'),  
       commonCtrl     => "010111",
       linkErrMask    => "111111",
       sysrefDlyRx    => (others => '0'),
@@ -151,8 +154,10 @@ architecture rtl of AxiLiteRxRegItf is
 
    -- Synced status signals
    signal s_statusRxArr : rxStatuRegisterArray(L_G-1 downto 0);
+   signal s_rawData     : slv32Array(L_G-1 downto 0);
    signal s_statusCnt   : SlVectorArray(L_G-1 downto 0, 31 downto 0);
    signal s_adcValids   : slv(L_G-1 downto 0);
+   
 
 begin
 
@@ -188,7 +193,7 @@ begin
    s_WrAddr <= slvToInt(axilWriteMaster.awaddr(AXI_ADDR_WIDTH_G-1 downto 2));
 
    comb : process (axiRst_i, axilReadMaster, axilWriteMaster, r, s_RdAddr,
-                   s_WrAddr, s_statusRxArr, s_statusCnt) is
+                   s_WrAddr, s_statusRxArr, s_statusCnt, s_rawData) is
       variable v             : RegType;
       variable axilStatus    : AxiLiteStatusType;
       variable axilWriteResp : slv(1 downto 0);
@@ -217,6 +222,8 @@ begin
                v.commonCtrl := axilWriteMaster.wdata(5 downto 0);
             when 16#05# =>              -- ADDR (0x14)
                v.linkErrMask := axilWriteMaster.wdata(5 downto 0);
+            when 16#06# =>              -- ADDR (0x18)
+               v.invertData  := axilWriteMaster.wdata(L_G-1 downto 0);
             when 16#20# to 16#2F# =>
                for I in (L_G-1) downto 0 loop
                   if (axilWriteMaster.awaddr(5 downto 2) = I) then
@@ -251,6 +258,8 @@ begin
                v.axilReadSlave.rdata(5 downto 0) := r.commonCtrl;
             when 16#05# =>              -- ADDR (0x14)
                v.axilReadSlave.rdata(5 downto 0) := r.linkErrMask;
+            when 16#06# =>              -- ADDR (0x18)
+               v.axilReadSlave.rdata(L_G-1 downto 0) := r.invertData;
             when 16#10# to 16#1F# =>
                for I in (L_G-1) downto 0 loop
                   if (axilReadMaster.araddr(5 downto 2) = I) then
@@ -275,6 +284,12 @@ begin
                      for J in 31 downto 0 loop
                         v.axilReadSlave.rdata(J) := s_statusCnt(I, J);
                      end loop;
+                  end if;
+               end loop;
+            when 16#50# to 16#5F# =>
+               for I in (L_G-1) downto 0 loop
+                  if (axilReadMaster.araddr(5 downto 2) = I) then
+                     v.axilReadSlave.rdata := s_rawData(I);
                   end if;
                end loop;
             when others =>
@@ -317,7 +332,23 @@ begin
             rd_clk => axiClk_i,
             dout   => s_statusRxArr(I)
             );
+            
+            
+      SyncFifo_IN1 : entity work.SynchronizerFifo
+         generic map (
+            TPD_G        => TPD_G,
+            DATA_WIDTH_G => 32
+            )
+         port map (
+            wr_clk => devClk_i,
+            din    => rawData_i(I),
+            rd_clk => axiClk_i,
+            dout   => s_rawData(I)
+            );
    end generate GEN_0;
+   
+   
+   
 
    -- Output assignment and synchronisation
 
@@ -435,9 +466,7 @@ begin
          dataIn  => r.linkErrMask,
          dataOut => linkErrMask_o
          );
-   
-   
-   
+
    SyncFifo_OUT8 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
@@ -450,6 +479,17 @@ begin
          dout   => axisTrigger_o
          );
 
+   SyncFifo_OUT9 : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         DATA_WIDTH_G => L_G
+         )
+      port map (
+         wr_clk => axiClk_i,
+         din    => r.invertData,
+         rd_clk => devClk_i,
+         dout   => invertData_o
+         );      
 
    GEN_1 : for I in L_G-1 downto 0 generate
       SyncFifo_OUT0 : entity work.SynchronizerFifo
@@ -500,6 +540,5 @@ begin
             dout   => thresoldLowArr_o(I)
             );
    end generate GEN_1;
-
 ---------------------------------------------------------------------
 end rtl;

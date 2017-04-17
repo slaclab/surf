@@ -1,21 +1,16 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
 -- File       : AxiMicronP30Reg.vhd
--- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-10-21
--- Last update: 2016-09-20
--- Platform   : 
--- Standard   : VHDL'93/02
+-- Last update: 2017-03-24
 -------------------------------------------------------------------------------
 -- Description: This controller is designed around the Micron PC28F FLASH IC.
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC Micron P30 Support Core'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Micron P30 Support Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
@@ -44,6 +39,9 @@ entity AxiMicronP30Reg is
    port (
       -- FLASH Interface 
       flashAddr      : out slv(30 downto 0);
+      flashAdv       : out sl;
+      flashClk       : out sl;
+      flashRstL      : out sl;
       flashCeL       : out sl;
       flashOeL       : out sl;
       flashWeL       : out sl;
@@ -69,12 +67,12 @@ architecture rtl of AxiMicronP30Reg is
 
    constant HALF_CYCLE_PERIOD_C : real := 128.0E-9;  -- units of seconds
 
-   constant HALF_CYCLE_FREQ_C : real := 1.0 / HALF_CYCLE_PERIOD_C;  -- units of Hz
+   constant HALF_CYCLE_FREQ_C : real := (1.0 / HALF_CYCLE_PERIOD_C);  -- units of Hz
 
    constant MAX_CNT_C : natural := getTimeRatio(AXI_CLK_FREQ_G, HALF_CYCLE_FREQ_C);
 
    constant AXI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4);  -- 32-bit interface
-   
+
    type stateType is (
       IDLE_S,
       RX_ADDR_S,
@@ -96,7 +94,7 @@ architecture rtl of AxiMicronP30Reg is
       oeL           : sl;
       RnW           : sl;
       weL           : sl;
-      cnt           : natural range 0 to MAX_CNT_C;
+      cnt           : natural range 0 to (MAX_CNT_C+1);
       din           : slv(15 downto 0);
       dataReg       : slv(15 downto 0);
       addr          : slv(30 downto 0);
@@ -128,7 +126,7 @@ architecture rtl of AxiMicronP30Reg is
       -- Status Machine
       state         : StateType;
    end record RegType;
-   
+
    constant REG_INIT_C : RegType := (
       -- PROM Control Signals
       tristate      => '1',
@@ -183,7 +181,8 @@ architecture rtl of AxiMicronP30Reg is
 
 begin
 
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, flashDout, r, ramDout, rxMaster, txCtrl) is
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, flashDout, r,
+                   ramDout, rxMaster, txCtrl) is
       variable v            : RegType;
       variable axiStatus    : AxiLiteStatusType;
       variable axiWriteResp : slv(1 downto 0);
@@ -673,6 +672,9 @@ begin
       for i in 0 to 30 loop
          flashAddr(i) <= r.addr(i) or MEM_ADDR_MASK_G(i);
       end loop;
+      flashAdv      <= '0';
+      flashClk      <= '1';
+      flashRstL     <= not(axiRst);
       flashCeL      <= r.ceL;
       flashOeL      <= r.oeL;
       flashWeL      <= r.weL;
@@ -680,7 +682,7 @@ begin
       flashTri      <= r.tristate;
       axiReadSlave  <= r.axiReadSlave;
       axiWriteSlave <= r.axiWriteSlave;
-      
+
    end process comb;
 
    seq : process (axiClk) is
@@ -707,7 +709,7 @@ begin
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => 8,
          SLAVE_AXI_CONFIG_G  => AXI_CONFIG_G,
-         MASTER_AXI_CONFIG_G => AXI_CONFIG_C)     
+         MASTER_AXI_CONFIG_G => AXI_CONFIG_C)
       port map (
          -- Slave Port
          sAxisClk    => axiClk,
@@ -718,7 +720,7 @@ begin
          mAxisClk    => axiClk,
          mAxisRst    => axiRst,
          mAxisMaster => rxMaster,
-         mAxisSlave  => r.rxSlave);      
+         mAxisSlave  => r.rxSlave);
 
    TX_FIFO : entity work.AxiStreamFifo
       generic map (
@@ -737,7 +739,7 @@ begin
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => 8,
          SLAVE_AXI_CONFIG_G  => AXI_CONFIG_C,
-         MASTER_AXI_CONFIG_G => AXI_CONFIG_G)     
+         MASTER_AXI_CONFIG_G => AXI_CONFIG_G)
       port map (
          -- Slave Port
          sAxisClk    => axiClk,
@@ -748,7 +750,7 @@ begin
          mAxisClk    => axiClk,
          mAxisRst    => axiRst,
          mAxisMaster => mAxisMaster,
-         mAxisSlave  => mAxisSlave);     
+         mAxisSlave  => mAxisSlave);
 
    SimpleDualPortRam_Inst : entity work.SimpleDualPortRam
       generic map(
@@ -764,6 +766,6 @@ begin
          -- Port B
          clkb  => axiClk,
          addrb => r.ramAddr,
-         doutb => ramDout);             
+         doutb => ramDout);
 
 end rtl;

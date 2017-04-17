@@ -8,7 +8,7 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 #schemaversion 3.0.0
-#once
+#once AxiCdcm6208.yaml
 
 AxiCdcm6208: &AxiCdcm6208 
   class: MMIODev
@@ -27,8 +27,9 @@ AxiCdcm6208: &AxiCdcm6208
       class: IntField
       at:
         offset: 0x000
+        stride: 4
         nelms: 21
-      sizeBits: 16
+      sizeBits: 32
       mode: RW
       description: "Cdcm6208 Control Registers"
     #########################################################

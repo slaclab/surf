@@ -1,13 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : AXI Stream DMA Write
--- Project    : General Purpose Core
--------------------------------------------------------------------------------
 -- File       : AxiStreamDmaWrite.vhd
--- Author     : Ryan Herbst, rherbst@slac.stanford.edu
+-- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
 -- Last update: 2016-12-02
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to transfer a single AXI Stream frame into memory using an AXI

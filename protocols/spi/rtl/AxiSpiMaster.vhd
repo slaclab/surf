@@ -1,16 +1,11 @@
 -------------------------------------------------------------------------------
--- Title      : Axi lite interface for a single chip SPI master
--------------------------------------------------------------------------------
 -- File       : AxiSpiMaster.vhd
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
---            : Uros Legat Modified <ulegat@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-01-12
 -- Last update: 2016-06-15
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description:   For multiple chips on single bus connect multiple cores
+-- Description: Axi lite interface for a single chip "generic SPI master"
+--                For multiple chips on single bus connect multiple cores
 --                to multiple AXI crossbar slaves and use Chip select outputs
 --                (coreCsb) to multiplex select the addressed outputs (coreSDout and
 --                coreSclk).
@@ -28,6 +23,7 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;

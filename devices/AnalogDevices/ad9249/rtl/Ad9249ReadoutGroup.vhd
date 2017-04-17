@@ -1,25 +1,19 @@
 -------------------------------------------------------------------------------
--- Title      : AD9249 Readout Deserializer
--------------------------------------------------------------------------------
 -- File       : Ad9249ReadoutGroup.vhd
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2017-03-03
--- Platform   : 
--- Standard   : VHDL'93/02
+-- Last update: 2017-03-07
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
 -- Receives ADC Data from an AD9592 chip.
 -- Designed specifically for Xilinx 7 series FPGAs
--- 
 -------------------------------------------------------------------------------
--- This file is part of 'AXI-Lite AD9249 Core Firmware'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'AXI-Lite AD9249 Core Firmware', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
@@ -410,7 +404,7 @@ begin
             v.fifoWrData(i) := "00" & adcData(i);
          else
             -- Not locked
-            v.fifoWrData(i) := "10" & "00000000000000";
+            v.fifoWrData(i) := (others => '1'); --"10" & "00000000000000";
          end if;
       end loop;
 

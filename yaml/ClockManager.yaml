@@ -1,0 +1,245 @@
+##############################################################################
+## This file is part of 'SLAC Firmware Standard Library'.
+## It is subject to the license terms in the LICENSE.txt file found in the 
+## top-level directory of this distribution and at: 
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+## No part of 'SLAC Firmware Standard Library', including this file, 
+## may be copied, modified, propagated, or distributed except according to 
+## the terms contained in the LICENSE.txt file.
+##############################################################################
+#schemaversion 3.0.0
+#once ClockManager.yaml
+
+ClockManager: &ClockManager 
+  description: "MMCM DRP"
+  class: MMIODev
+  configPrio: 1
+  size: 0x1000 
+  #########
+  children:
+  #########
+    #########################################################
+    ClkOut5Reg1:
+      class: IntField
+      sizeBits: 16
+      at:
+        offset: 0x00C
+        nelms: 1
+      mode: RW
+      description: "ClkReg1"
+    #########################################################
+    ClkOut5Reg2:
+      class: IntField
+      sizeBits: 16
+      at:
+        offset: 0x010
+        nelms: 1
+      mode: RW
+      description: "ClkReg2"
+    #########################################################
+    ClkOut0Reg1:
+      class: IntField
+      sizeBits: 16
+      at:
+        offset: 0x014
+        nelms: 1
+      mode: RW
+      description: "ClkReg1"
+    #########################################################
+    ClkOut0Reg2:
+      class: IntField
+      sizeBits: 16
+      at:
+        offset: 0x018
+        nelms: 1
+      mode: RW
+      description: "ClkReg2"
+    #########################################################
+    ClkOut1Reg1:
+      class: IntField
+      sizeBits: 16
+      at:
+        offset: 0x01C
+        nelms: 1
+      mode: RW
+      description: "ClkReg1"
+    #########################################################
+    ClkOut1Reg2:
+      class: IntField
+      sizeBits: 16
+      at:
+        offset: 0x020
+        nelms: 1
+      mode: RW
+      description: "ClkReg2"
+    #########################################################
+    ClkOut2Reg1:
+      class: IntField
+      sizeBits: 16
+      at:
+        offset: 0x024
+        nelms: 1
+      mode: RW
+      description: "ClkReg1"
+    #########################################################
+    ClkOut2Reg2:
+      class: IntField
+      sizeBits: 16
+      at:
+        offset: 0x028
+        nelms: 1
+      mode: RW
+      description: "ClkReg2"
+    #########################################################
+    ClkOut3Reg1:
+      class: IntField
+      sizeBits: 16
+      at:
+        offset: 0x02C
+        nelms: 1
+      mode: RW
+      description: "ClkReg1"
+    #########################################################
+    ClkOut3Reg2:
+      class: IntField
+      sizeBits: 16
+      at:
+        offset: 0x030
+        nelms: 1
+      mode: RW
+      description: "ClkReg2"
+    #########################################################
+    ClkOut4Reg1:
+      class: IntField
+      sizeBits: 16
+      at:
+        offset: 0x034
+        nelms: 1
+      mode: RW
+      description: "ClkReg1"
+    #########################################################
+    ClkOut4Reg2:
+      class: IntField
+      sizeBits: 16
+      at:
+        offset: 0x038
+        nelms: 1
+      mode: RW
+      description: "ClkReg2"
+    #########################################################
+    ClkOut6Reg1:
+      class: IntField
+      sizeBits: 16
+      at:
+        offset: 0x03C
+        nelms: 1
+      mode: RW
+      description: "ClkReg1"
+    #########################################################
+    ClkOut6Reg2:
+      class: IntField
+      sizeBits: 16
+      at:
+        offset: 0x040
+        nelms: 1
+      mode: RW
+      description: "ClkReg2"
+    #########################################################
+    ClkFbOutReg1:
+      class: IntField
+      sizeBits: 16
+      at:
+        offset: 0x044
+        nelms: 1
+      mode: RW
+      description: "ClkReg1"
+    #########################################################
+    ClkFbOutReg2:
+      class: IntField
+      sizeBits: 16
+      at:
+        offset: 0x048
+        nelms: 1
+      mode: RW
+      description: "ClkReg2"
+    #########################################################
+    DivClk:
+      class: IntField
+      sizeBits: 16
+      at:
+        offset: 0x04C
+        nelms: 1
+      mode: RW
+      description: "DIVCLK Register"
+    #########################################################
+    LockReg1:
+      class: IntField
+      sizeBits: 16
+      at:
+        offset: 0x050
+        nelms: 1
+      mode: RW
+      description: "Lock Register 1"
+    #########################################################
+    LockReg2:
+      class: IntField
+      sizeBits: 16
+      at:
+        offset: 0x054
+        nelms: 1
+      mode: RW
+      description: "Lock Register 2"
+    #########################################################
+    LockReg3:
+      class: IntField
+      sizeBits: 16
+      at:
+        offset: 0x058
+        nelms: 1
+      mode: RW
+      description: "Lock Register 3"
+    #########################################################
+    LockReg4:
+      class: IntField
+      sizeBits: 16
+      at:
+        offset: 0x05C
+        nelms: 1
+      mode: RW
+      description: "Lock Register 4"
+    #########################################################
+    PowerRegUltrascale:
+      class: IntField
+      sizeBits: 16
+      at:
+        offset: 0x060
+        nelms: 1
+      mode: RW
+      description: "Power Register Ultrascale"
+    #########################################################
+    PowerReg7series:
+      class: IntField
+      sizeBits: 16
+      at:
+        offset: 0x064
+        nelms: 1
+      mode: RW
+      description: "Power Register 7 series"
+    #########################################################
+    FilterReg1:
+      class: IntField
+      sizeBits: 16
+      at:
+        offset: 0x068
+        nelms: 1
+      mode: RW
+      description: "Filter Register 1"
+    #########################################################
+    FilterReg2:
+      class: IntField
+      sizeBits: 16
+      at:
+        offset: 0x06C
+        nelms: 1
+      mode: RW
+      description: "Filter Register 2"

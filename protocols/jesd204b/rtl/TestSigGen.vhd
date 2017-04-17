@@ -1,22 +1,18 @@
 -------------------------------------------------------------------------------
--- Title      : Outputs a digital signal depending on thresholds
--------------------------------------------------------------------------------
 -- File       : TestSigGen.vhd
--- Author     : Uros Legat  <ulegat@slac.stanford.edu>
--- Company    : SLAC National Accelerator Laboratory (Cosylab)
+-- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-15
 -- Last update: 2015-04-15
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: This is a test module so only F_G = 2 
+-- Description: Outputs a digital signal depending on thresholds
+--              This is a test module so only F_G = 2 
 --              and is GT_WORD_SIZE_C = 4 is supported.          
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC JESD204b Core'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC JESD204b Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------

@@ -1,15 +1,10 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
--- File       : AxiStreamPacker.vhd
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
+-- File       : AxiStreamPacker
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-09-26
--- Last update: 2016-03-23
--- Platform   : 
--- Standard   : VHDL'93/02
+-- Created    : 2015-09-29
+-- Last update: 2016-07-13
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: AXI stream Packer Module 
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

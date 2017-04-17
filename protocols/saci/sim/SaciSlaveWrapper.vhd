@@ -1,4 +1,11 @@
-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-- File       : SaciSlaveWrapper.vhd
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2016-06-17
+-- Last update: 2016-06-17
+-------------------------------------------------------------------------------
+-- Description: Simulation testbed for SaciSlaveWrapper
+-------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
@@ -6,7 +13,8 @@
 -- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;

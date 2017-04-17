@@ -1,3 +1,10 @@
+-------------------------------------------------------------------------------
+-- File       : StdRtlPkg.vhd
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2013-05-01
+-- Last update: 2017-02-23
+-------------------------------------------------------------------------------
+-- Description: Standard RTL Package File
 ------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -7,18 +14,6 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 ------------------------------------------------------------------------------
--------------------------------------------------------------------------------
--- Title      : Standard RTL Package
--------------------------------------------------------------------------------
--- File       : StdRtlPkg.vhd
--- Author     : Benjamin Reese 
--- Standard   : VHDL'93/02, Math Packages
--------------------------------------------------------------------------------
--- Description: This package defines "sl" and "slv" shorthand subtypes for
---              std_logic and std_logic_vector receptively.  It also defines
---              many handy utility functions. Nearly every .vhd file should
---              use this package.
--------------------------------------------------------------------------------
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;

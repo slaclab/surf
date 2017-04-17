@@ -1,52 +1,79 @@
 ##############################################################################
-## This file is part of 'SLAC Micron P30 Support Core'.
+## This file is part of 'SLAC Firmware Standard Library'.
 ## It is subject to the license terms in the LICENSE.txt file found in the 
 ## top-level directory of this distribution and at: 
 ##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-## No part of 'SLAC Micron P30 Support Core', including this file, 
+## No part of 'SLAC Firmware Standard Library', including this file, 
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+#schemaversion 3.0.0
+#once AxiMicronP30.yaml
 
 AxiMicronP30: &AxiMicronP30 
   name: AxiMicronP30
   description: AXI-Lite Micron P30 PROM
+  class: MMIODev
   size: 0x100
   registers:
+  #########
+  children:
+  #########
     #########################################################
-    - address: 0x00 
+    WrData:
+      at:
+        offset: 0x00 
+      class: IntField
       name: WrData
-      size: 16      
+      sizeBits: 16
       mode: RW
       description: Write Data
-    #########################################################
-    - address: 0x02
-      name: WrCmd
-      size: 16        
+    ##########################################################
+    WrData:
+      at:
+        offset: 0x00 
+      class: IntField
+      sizeBits: 16
       mode: RW
-      description: Write Command      
-    #########################################################
-    - address: 0x04 
-      name: Address
-      size: 31
+      description: Write Data
+    ##########################################################
+    WrCmd:
+      at:
+        offset: 0x02 
+      class: IntField
+      sizeBits: 16
+      mode: RW
+      description: Write Command
+    ##########################################################
+    Address:
+      at:
+        offset: 0x04
+      class: IntField
+      sizeBits: 31
       mode: RW
       description: Read/Write Address
-    #########################################################
-    - address: 0x07
-      name: RnW
-      size: 1     
-      lsBit: 7
+    ##########################################################
+    RnW:
+      at:
+        offset: 0x07
+      class: IntField
+      sizeBits: 1
+      lsBits: 7
       mode: RW
-      description: Read/Write operation bit      
-    #########################################################
-    - address: 0x08 
-      name: RdData
-      size: 16          
+      description: Read/Write operation bit
+    ##########################################################
+    RdData:
+      at:
+        offset: 0x08
+      class: IntField
+      sizeBits: 16
       mode: RO
-      description: Read Data      
-    #########################################################    
-    - address: 0x0C 
-      name: Test
+      description: Read Data
+    ##########################################################
+    Test:
+      at:
+        offset: 0x0C
+      class: IntField
       mode: RW
       description: Scratch Pad tester register
-    #########################################################
+    ##########################################################

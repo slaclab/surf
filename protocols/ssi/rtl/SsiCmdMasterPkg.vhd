@@ -1,15 +1,10 @@
 -------------------------------------------------------------------------------
--- Title      : SsiCmdMasterPkg
--------------------------------------------------------------------------------
 -- File       : SsiCmdMasterPkg.vhd
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
 -- Last update: 2014-04-30
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Support package for SsiCmdMaster module. Defines IO records.
+-- Description: SSI Command Master Pulser Module Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -19,8 +14,6 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
-
-
 
 library ieee;
 use ieee.std_logic_1164.all;

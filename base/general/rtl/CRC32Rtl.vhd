@@ -1,10 +1,8 @@
 -------------------------------------------------------------------------------
--- Title         : Pretty Good Protocol, CRC32 implementation for Xilinx 7 FPGA
--- Project       : General Purpose Core
--------------------------------------------------------------------------------
--- File          : CRC32Rtl.vhd
--- Author        : Leonid Sapozhnikov, leosap@slac.stanford.edu
--- Created       : 08/18/2009
+-- File       : CRC32Rtl.vhd
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2013-05-01
+-- Last update: 2017-02-23
 -------------------------------------------------------------------------------
 -- Description:
 -- VHDL source file for CRC32 calculation to replace macro of Virtex5 in Virtex6 and Spartan6.
@@ -23,13 +21,6 @@
 -- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
--------------------------------------------------------------------------------
--- Modification history:
--- 02/08/2012: created.
--- 04/21/2014: Kurtis Nishimura - modified to register the data valid signal.
---             Using the raw version would have caused errors for dynamically
---             changing data widths.
--- 08/10/2015: Added clock enable support
 -------------------------------------------------------------------------------
 
 library ieee;

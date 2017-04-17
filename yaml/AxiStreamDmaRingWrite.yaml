@@ -8,7 +8,7 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 #schemaversion 3.0.0
-#once
+#once AxiStreamDmaRingWrite.yaml
 
 AxiStreamDmaRingWrite: &AxiStreamDmaRingWrite
   class: MMIODev
@@ -142,6 +142,18 @@ AxiStreamDmaRingWrite: &AxiStreamDmaRingWrite
       mode: RW
       lsBit: 0
       sizeBits: 16
+    #########################################################
+    Status:
+      at:
+        offset: 0xA00
+        nelms: *numBuffers
+        stride: 4
+      class: IntField
+      name: Status
+      mode: RO
+      sizeBits: 32
+      lsBit: 0
+      description: Include all of the status bits in one access
     #########################################################
     Empty:
       at:

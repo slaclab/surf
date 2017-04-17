@@ -1,15 +1,10 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
--- File       : 
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
+-- File       : SaciMaster.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-08-10
 -- Last update: 2013-03-01
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Saci Master Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -23,8 +18,8 @@
 library IEEE;
 use IEEE.std_logic_1164.all;
 use ieee.numeric_std.all;
+
 use work.StdRtlPkg.all;
--- use work.SynchronizePkg.all;
 use work.SaciMasterPkg.all;
 
 entity SaciMaster is

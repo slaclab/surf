@@ -1,13 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : AXI Stream Re-sizer
--- Project    : General Purpose Core
--------------------------------------------------------------------------------
 -- File       : AxiStreamResize.vhd
--- Author     : Ryan Herbst, rherbst@slac.stanford.edu
+-- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-16
 -- Last update: 2016-06-16
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to resize AXI Streams. Re-sizing is always little endian. 

@@ -1,27 +1,23 @@
 -------------------------------------------------------------------------------
--- Title      : Connection FSM and parameter negotiation.
--------------------------------------------------------------------------------
 -- File       : ConnFSM.vhd
--- Author     : Uros Legat  <ulegat@slac.stanford.edu>
--- Company    : SLAC National Accelerator Laboratory (Cosylab)
+-- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-09
 -- Last update: 2016-06-23
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Connection establishment mechanism:
 --                - Connection open/close request,
 --                - Parameter negotiation,
 --                - Server-client mode (More comments below).
 -------------------------------------------------------------------------------
--- This file is part of 'Reliable SLAC Streaming Interface Core'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'Reliable SLAC Streaming Interface Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;

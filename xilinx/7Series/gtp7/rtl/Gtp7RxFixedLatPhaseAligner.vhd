@@ -1,13 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
--- File       : 
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
+-- File       : Gtp7RxFixedLatPhaseAligner.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-06
 -- Last update: 2016-12-16
--- Platform   : Xilinx 7 Series
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:
 -- Used in conjunction for a Xilinx 7 Series GTX.
@@ -21,11 +16,11 @@
 -- purpose is to obtain an output clock that exactly matches the phase of the
 -- commas. 
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC MGT Library'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC MGT Library', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------

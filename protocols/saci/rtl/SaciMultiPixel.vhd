@@ -1,13 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : SaciMultiPixel
--- Project    : Multipixel SACI interface
--------------------------------------------------------------------------------
--- File       : SaciMultiPixel.vhd
--- Author     : Maciej Kwiatkowski, mkwiatko@slac.stanford.edu
+-- File       : PgpParallelSimModel.vhd
+-- Company    : SLAC National Accelerator Laboratory
 -- Created    : 07/21/2016
 -- Last update: 07/21/2016
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -16,9 +11,6 @@
 -- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
--------------------------------------------------------------------------------
--- Modification history:
--- 07/21/2016: created.
 -------------------------------------------------------------------------------
 
 library ieee;

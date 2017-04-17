@@ -1,3 +1,10 @@
+-------------------------------------------------------------------------------
+-- File       : AxiSimMaster.vhd
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2016-07-21
+-- Last update: 2016-07-21
+-------------------------------------------------------------------------------
+-- Description: AXI Master Simulation Module 
 ------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

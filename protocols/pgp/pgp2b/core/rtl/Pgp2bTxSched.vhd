@@ -1,28 +1,19 @@
 -------------------------------------------------------------------------------
--- Title         : Pretty Good Protocol, V2, Transmit Scheduler
--- Project       : General Purpose Core
--------------------------------------------------------------------------------
--- File          : Pgp2bTxSched.vhd
--- Author        : Ryan Herbst, rherbst@slac.stanford.edu
--- Created       : 05/18/2009
+-- File       : Pgp2bTxSched.vhd
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2009-05-27
+-- Last update: 2017-03-28
 -------------------------------------------------------------------------------
 -- Description:
 -- Transmit scheduler interface module for the Pretty Good Protocol core. 
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC PGP2B Core'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC PGP2B Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
--------------------------------------------------------------------------------
--- Modification history:
--- 05/18/2009: created.
--- 05/18/2012: Added VC transmit timeout
--- 07/10/2014: Change all ASYNC resets to SYNC resets.
--- 08/10/2015: Added clock enable support
--- 09/17/2015: Added flow control support
 -------------------------------------------------------------------------------
 
 library ieee;

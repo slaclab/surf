@@ -1,13 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
--- File       : 
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
+-- File       : SaciMaster2.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-08-10
 -- Last update: 2016-06-17
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: New and improved version of the SaciMaster.
 -------------------------------------------------------------------------------

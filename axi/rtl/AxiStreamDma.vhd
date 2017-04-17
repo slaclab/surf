@@ -1,13 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : AXI Stream DMA Controller
--- Project    : General Purpose Core
--------------------------------------------------------------------------------
 -- File       : AxiStreamDma.vhd
--- Author     : Ryan Herbst, rherbst@slac.stanford.edu
+-- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
 -- Last update: 2016-10-27
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:
 -- Generic AXI Stream DMA block for frame at a time transfers.

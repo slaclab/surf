@@ -1,4 +1,11 @@
-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-- File       : dma_read_tb.vhd
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2014-05-02
+-- Last update: 2016-09-06
+-------------------------------------------------------------------------------
+-- Description: Simulation Testbed for DMA read
+-------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
@@ -7,6 +14,7 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 ------------------------------------------------------------------------------
+
 library ieee;
 use work.all;
 use ieee.std_logic_1164.all;

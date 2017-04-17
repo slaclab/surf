@@ -1,36 +1,33 @@
 -------------------------------------------------------------------------------
--- Title      : JESD204b multi-lane transmitter module
--------------------------------------------------------------------------------
 -- File       : Jesd204bTx.vhd
--- Author     : Uros Legat  <ulegat@slac.stanford.edu>
--- Company    : SLAC National Accelerator Laboratory (Cosylab)
+-- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-14
 -- Last update: 2015-04-14
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Transmitter JESD204b module.
+-- Description: JESD204b multi-lane transmitter module
+--              Transmitter JESD204b module.
 --              Supports a subset of features from JESD204b standard.
 --              Supports sub-class 1 deterministic latency.
 --              Supports sub-class 0 non deterministic latency.
 --              Features:
---              - Synchronisation of LMFC to SYSREF
+--              - Synchronization of LMFC to SYSREF
 --              - Multi-lane operation (L_G: 1-8)
 --
 --          Warning: Scrambling support has not been tested on the TX module yet.
 --
---          Note: extSampleDataArray_i should be little endian and not byteswapped
+--          Note: extSampleDataArray_i should be little endian and not byte swapped
 --                First sample in time:  sampleData_i(15 downto 0)
 --                Second sample in time: sampleData_i(31 downto 16)
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC JESD204b Core'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC JESD204b Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
@@ -121,6 +118,7 @@ architecture rtl of Jesd204bTx is
    signal s_statusTxArr  : txStatuRegisterArray(L_G-1 downto 0);
    signal s_dataValid    : slv(L_G-1 downto 0);
    signal s_swTriggerReg : slv(L_G-1 downto 0);
+   signal s_invertData   : slv(L_G-1 downto 0);   
    
    -- JESD subclass selection (from AXI lite register)
    signal s_subClass    : sl;
@@ -193,6 +191,7 @@ begin
       enableTx_o      => s_enableTx,
       replEnable_o    => s_replEnable,
       scrEnable_o     => s_scrEnable,
+      invertData_o    => s_invertData,
       subClass_o      => s_subClass,
       gtReset_o       => s_gtReset,
       clearErr_o      => s_clearErr,
@@ -338,24 +337,25 @@ begin
    -- JESD Transmitter modules (one module per Lane)
    generateTxLanes : for I in L_G-1 downto 0 generate
       JesdTxLane_INST: entity work.JesdTxLane
-      generic map (
-         TPD_G       => TPD_G,
-         F_G         => F_G,
-         K_G         => K_G)
-      port map (
-         devClk_i     => devClk_i,
-         devRst_i     => devRst_i,
-         subClass_i   => s_subClass,    -- From AXI lite
-         enable_i     => s_enableTx(I), -- From AXI lite
-         replEnable_i => s_replEnable,  -- From AXI lite
-         scrEnable_i  => s_scrEnable,   -- From AXI lite
-         lmfc_i       => s_lmfc,
-         nSync_i      => s_nSyncSync,
-         gtTxReady_i  => gtTxReady_i(I),
-         sysRef_i     => s_sysrefRe,
-         status_o     => s_statusTxArr(I), -- To AXI lite
-         sampleData_i => s_sampleDataArr(I),
-         r_jesdGtTx   => r_jesdGtTxArr(I));
+         generic map (
+            TPD_G       => TPD_G,
+            F_G         => F_G,
+            K_G         => K_G)
+         port map (
+            devClk_i     => devClk_i,
+            devRst_i     => devRst_i,
+            subClass_i   => s_subClass,     -- From AXI lite
+            enable_i     => s_enableTx(I),  -- From AXI lite
+            replEnable_i => s_replEnable,   -- From AXI lite
+            scrEnable_i  => s_scrEnable,    -- From AXI lite
+            inv_i        => s_invertData(I),-- From AXI lite
+            lmfc_i       => s_lmfc,
+            nSync_i      => s_nSyncSync,
+            gtTxReady_i  => gtTxReady_i(I),
+            sysRef_i     => s_sysrefRe,
+            status_o     => s_statusTxArr(I), -- To AXI lite
+            sampleData_i => s_sampleDataArr(I),
+            r_jesdGtTx   => r_jesdGtTxArr(I));
    end generate generateTxLanes;
     
    -- Output assignment

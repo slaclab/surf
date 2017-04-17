@@ -1,19 +1,15 @@
 -------------------------------------------------------------------------------
--- Title      : JesdRx single lane module 
--------------------------------------------------------------------------------
 -- File       : JesdRxLane.vhd
--- Author     : Uros Legat  <ulegat@slac.stanford.edu>
--- Company    : SLAC National Accelerator Laboratory (Cosylab)
+-- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-14
 -- Last update: 2016-02-12
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Receiver JESD204b standard.
+-- Description: JesdRx single lane module
+--              Receiver JESD204b standard.
 --              Supports sub-class 1 deterministic latency.
 --              Supports sub-class 0 non deterministic latency
 --              Features:
---              - Comma synchronisation
+--              - Comma synchronization
 --              - Internal buffer to align the lanes.
 --              - Sample data alignment (Sample extraction from GT word - barrel shifter).
 --              - Alignment character replacement.
@@ -22,7 +18,7 @@
 --                bit 0: GT Reset done
 --                bit 1: Received data valid
 --                bit 2: Received data is misaligned
---                bit 3: Synchronisation output status 
+--                bit 3: Synchronization output status 
 --                bit 4: Rx buffer overflow
 --                bit 5: Rx buffer underflow
 --                bit 6: Comma position not as expected during alignment
@@ -31,20 +27,27 @@
 --                bit 9: Comma (K28.5) detected
 --                bit 10-13: Disparity error
 --                bit 14-17: Not in table Error
+--                bit 18-25: 8-bit buffer latency
+--                bit 26: CDR Status of the GTH (Not used in yaml)
 --
---
---          Note: sampleData_o is little endian and not byteswapped
+--          Note: sampleData_o is little endian and not byte swapped
 --                First sample in time:  sampleData_o(15 downto 0) 
 --                Second sample in time: sampleData_o(31 downto 16)
+--
+--          Note: The output ADC sample data can be inverted.
+--                     inv_i:     '1' Inverted,      '0' Normal
+--                If inverted the mode can be chosen:
+--                     invMode_i: '1' Offset binary, '0' Twos complement 
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC JESD204b Core'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC JESD204b Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
@@ -97,7 +100,10 @@ entity JesdRxLane is
       -- One or more RX modules requested synchronisation
       nSyncAny_i   : in sl;
       nSyncAnyD1_i : in sl;
-
+      
+      -- Invert ADC data
+      inv_i     : in sl:='0';
+      
       -- Synchronisation request output 
       nSync_o : out sl;
 
@@ -114,13 +120,17 @@ architecture rtl of JesdRxLane is
 
 -- Register
    type RegType is record
-      bufWeD1 : sl;
-      errReg  : slv(ERR_REG_WIDTH_C-1 downto 0);
+      bufWeD1        : sl;
+      errReg         : slv(ERR_REG_WIDTH_C-1 downto 0);
+      sampleData     : slv(sampleData_o'range);
+      sampleDataValid: sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      bufWeD1 => '0',
-      errReg  => (others => '0')
+      bufWeD1        => '0',
+      errReg         => (others => '0'),
+      sampleData     => (others => '0'),
+      sampleDataValid=> '0'
       );
 
    signal r   : RegType := REG_INIT_C;
@@ -266,10 +276,12 @@ begin
 
    -- Synchronous process function:
    -- - Registering of errors
-   -- - Delay the s_bufWe to use it for s_bufRe 
+   -- - Delay the s_bufWe to use it for s_bufRe
+   -- - Inverting ADC data
    -------------------------------------------------------------------------------
    -------------------------------------------------------------------------------
-   comb : process (devRst_i, clearErr_i, r, s_bufWe, s_errComb, r_jesdGtRx, s_nSync) is
+   comb : process (devRst_i, clearErr_i, r, s_bufWe, s_errComb, r_jesdGtRx, s_nSync,
+                   s_sampleData, s_sampleDataValid, inv_i) is
       variable v : RegType;
    begin
       v := r;
@@ -289,7 +301,17 @@ begin
       if (clearErr_i = '1') then
          v.errReg := REG_INIT_C.errReg;
       end if;
-
+      
+      -- Invert sample data
+      v.sampleDataValid := s_sampleDataValid;
+      
+      if (inv_i = '1') then
+      -- Invert sample data      
+         v.sampleData :=  invData(s_sampleData, F_G, GT_WORD_SIZE_C);
+      else
+         v.sampleData :=  s_sampleData;
+      end if;
+      
       -- Reset registers
       if (devRst_i = '1') then
          v := REG_INIT_C;
@@ -306,10 +328,9 @@ begin
    end process seq;
 
    -- Output assignment
-   -- nSync_o      <= s_nSync or not enable_i;
    nSync_o      <= s_nSync;
-   dataValid_o  <= s_sampleDataValid;
-   sampleData_o <= endianSwapSlv(s_sampleData, GT_WORD_SIZE_C);
+   dataValid_o  <= r.sampleDataValid;
+   sampleData_o <= endianSwapSlv(r.sampleData, GT_WORD_SIZE_C);
    status_o     <= r_jesdGtRx.cdrStable & s_buffLatency & r.errReg(r.errReg'high downto 4) & s_kDetected & s_refDetected & enable_i & r.errReg(2 downto 0) & s_nSync & r.errReg(3) & s_dataValid & r_jesdGtRx.rstDone;
 -----------------------------------------------------------------------------------------
 end rtl;

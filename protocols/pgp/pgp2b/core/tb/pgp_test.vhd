@@ -1,12 +1,20 @@
-------------------------------------------------------------------------------
--- This file is part of 'SLAC PGP2B Core'.
+-------------------------------------------------------------------------------
+-- File       : pgp_test.vhd
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2009-05-27
+-- Last update: 2017-03-28
+-------------------------------------------------------------------------------
+-- Description: Simulation Testbed for PGP
+-------------------------------------------------------------------------------
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC PGP2B Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+
 LIBRARY ieee;
 USE work.ALL;
 use ieee.std_logic_1164.all;

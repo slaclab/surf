@@ -1,11 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : AXI Stream DMA Write, Version 2
--- Project    : General Purpose Core
--------------------------------------------------------------------------------
 -- File       : AxiStreamDmaV2Write.vhd
--- Created    : 2017-02-09
--- Platform   : 
--- Standard   : VHDL'93/02
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2017-02-02
+-- Last update: 2017-02-02
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to transfer a single AXI Stream frame into memory using an AXI
@@ -32,11 +29,12 @@ use work.AxiDmaPkg.all;
 
 entity AxiStreamDmaV2Write is
    generic (
-      TPD_G             : time                := 1 ns;
-      AXI_READY_EN_G    : boolean             := false;
-      AXIS_CONFIG_G     : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      AXI_CONFIG_G      : AxiConfigType       := AXI_CONFIG_INIT_C;
-      ACK_WAIT_BVALID_G : boolean             := true);
+      TPD_G             : time                    := 1 ns;
+      AXI_READY_EN_G    : boolean                 := false;
+      AXIS_CONFIG_G     : AxiStreamConfigType     := AXI_STREAM_CONFIG_INIT_C;
+      AXI_CONFIG_G      : AxiConfigType           := AXI_CONFIG_INIT_C;
+      BURST_BYTES_G     : integer range 1 to 4096 := 4096;
+      ACK_WAIT_BVALID_G : boolean                 := true);
    port (
       -- Clock/Reset
       axiClk          : in  sl;
@@ -62,7 +60,7 @@ architecture rtl of AxiStreamDmaV2Write is
 
    constant DATA_BYTES_C      : integer         := AXIS_CONFIG_G.TDATA_BYTES_C;
    constant ADDR_LSB_C        : integer         := bitSize(DATA_BYTES_C-1);
-   constant AWLEN_C           : slv(7 downto 0) := getAxiLen(AXI_CONFIG_G, 4096);
+   constant AWLEN_C           : slv(7 downto 0) := getAxiLen(AXI_CONFIG_G, BURST_BYTES_G);
    constant FIFO_ADDR_WIDTH_C : natural         := (AXI_CONFIG_G.LEN_BITS_C+1);
 
    type StateType is (

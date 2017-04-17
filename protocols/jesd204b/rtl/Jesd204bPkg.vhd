@@ -1,12 +1,20 @@
-------------------------------------------------------------------------------
--- This file is part of 'SLAC JESD204b Core'.
+-------------------------------------------------------------------------------
+-- File       : Jesd204bPkg.vhd
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2016-07-11
+-- Last update: 2016-07-11
+-------------------------------------------------------------------------------
+-- Description: JESD204B Package File
+-------------------------------------------------------------------------------
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC JESD204b Core', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 
@@ -118,7 +126,12 @@ package Jesd204bPkg is
 
    -- Output offset binary zero
    function outSampleZero(F_int : positive; bytes_int : positive) return std_logic_vector;
-
+   
+   -- Invert functions
+   
+   -- Invert signed 
+   function invSigned(input : slv) return std_logic_vector;
+   function invData(data : slv; F_int : positive; bytes_int : positive) return std_logic_vector;
    
 end Jesd204bPkg;
 
@@ -299,9 +312,6 @@ package body Jesd204bPkg is
       end if;
    end endianSwapSlv;
 
-
-
-
    -- Align the data within the data buffer according to the position of the byte alignment word
    function JesdDataAlign(data_slv : slv; position_slv : slv; bytes_int : positive) return std_logic_vector is
    begin
@@ -367,11 +377,37 @@ package body Jesd204bPkg is
       vSlv := (others => '0');
 
       for I in (SAMPLES_IN_WORD_C-1) downto 0 loop
-         vSlv(I*8*F_int+15) := '1';
+         vSlv(I*8*F_int+8*F_int-1) := '1';
       end loop;
 
       return vSlv;
 
    end outSampleZero;
+   
+   -- Invert Signed
+   function invSigned(input : slv) return std_logic_vector is
+      variable vOutput : signed(input'range);
+   begin
+      vOutput := - signed(input);
+      return std_logic_vector(vOutput);
+   end invSigned;
+   
+   -- Output zero sample data depending on word size and Frame size
+   function invData(data : slv; F_int : positive; bytes_int : positive) return std_logic_vector is
+      constant SAMPLES_IN_WORD_C : positive := (bytes_int/F_int);
+      variable vSlv              : slv((bytes_int*8)-1 downto 0);
+   begin
+      
+      vSlv := data;
+
+      for I in (SAMPLES_IN_WORD_C-1) downto 0 loop
+         vSlv(I*8*F_int+8*F_int-1 downto I*8*F_int) := invSigned(vSlv(I*8*F_int+8*F_int-1 downto I*8*F_int));      
+      end loop;
+
+      return vSlv;
+
+   end invData;
+   
+   
 --------------------------------------------------------------------------------------------
 end package body Jesd204bPkg;

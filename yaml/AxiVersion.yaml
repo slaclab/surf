@@ -8,7 +8,7 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 #schemaversion 3.0.0
-#once
+#once AxiVersion.yaml
 
 AxiVersion: &AxiVersion 
   class: MMIODev
@@ -112,7 +112,7 @@ AxiVersion: &AxiVersion
     BuildStamp:
       at:
         offset: 0x800
-        nelms: 64
+        nelms: 256
       class: IntField
       sizeBits: 8
       mode: RO

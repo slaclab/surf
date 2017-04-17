@@ -1,13 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : I2C Slave RAM Interface
--------------------------------------------------------------------------------
 -- File       : I2cRegSlave.vhd
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-01-16
 -- Last update: 2014-03-13
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Implements an I2C slave attached to a generic RAM interface.
 -- Protocol is simple: Address of configurable size, followed by data of
@@ -21,12 +16,13 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+
 use work.StdRtlPkg.all;
 use work.I2cPkg.all;
-
 
 entity I2cRegSlave is
    generic (

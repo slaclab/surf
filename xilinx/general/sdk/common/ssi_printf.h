@@ -7,6 +7,7 @@
 // may be copied, modified, propagated, or distributed except according to 
 // the terms contained in the LICENSE.txt file.
 //////////////////////////////////////////////////////////////////////////////
+
 #ifndef __SSI_PRINTF__
 #define __SSI_PRINTF__
 

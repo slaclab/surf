@@ -126,7 +126,16 @@ JesdRx: &JesdRx
       sizeBits: 6
       mode: RW
       description: "Mask Enable the errors that are required to brake the link. bit 5-0: positionErr - s_bufOvf - s_bufUnf - dispErr - decErr - s_alignErr"
-    #########################################################      
+    #########################################################
+    InvertAdcData:   
+      at:
+        offset: 0x18
+      class: IntField
+      name: InvertAdcData
+      sizeBits: *numRxLanes
+      mode: RW
+      description: "Mask Enable the ADC data inversion. 1-Inverted, 0-normal."
+    #########################################################  
     GTReady:
       at:
         offset: 0x040
@@ -282,19 +291,7 @@ JesdRx: &JesdRx
       lsBit: 2
       mode: RO
       description: "Jesd204b elastic buffer latency in c-c. Can be adjusted by Sysref delay."
-    #########################################################
-    CDRStable:        
-      at:
-        offset: 0x043
-        stride: 4
-        nelms: *numRxLanes
-      class: IntField
-      name: CDRStable
-      sizeBits: 1
-      lsBit: 2
-      mode: RO
-      description: "GT CDR stable status."
-    #########################################################     
+    ########################################################     
     ThresholdLow:     
       at:
         offset: 0xC0
@@ -327,7 +324,18 @@ JesdRx: &JesdRx
       sizeBits: 32
       mode: RO
       description: "StatusValidCnt. Shows stability of JESD lanes. Counts number of JESD re-syncronisations."
-    #########################################################    
+    ######################################################### 
+    RawData:   
+      at:
+        offset: 0x140
+        stride: 4
+        nelms: *numRxLanes
+      class: IntField
+      name: RawData
+      sizeBits: 32
+      mode: RO
+      description: "Raw data from GT."
+    #########################################################  
     ClearRxErrors:
       name: ClearRxErrors
       class: SequenceCommand

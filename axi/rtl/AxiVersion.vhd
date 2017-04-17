@@ -1,13 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
--- File       : 
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
+-- File       : AxiVersion.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-20
 -- Last update: 2017-02-15
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Creates AXI accessible registers containing configuration
 -- information.
