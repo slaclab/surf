@@ -197,7 +197,7 @@ begin
       pgpRxMaster    <= r.pgpRxMaster;
       remRxFifoCtrl  <= r.remRxFifoCtrl;
       remRxLinkReady <= r.remRxLinkReady;
-      locRxLinkReady <= r.locRxLinkReady;
+      locRxLinkReady <= r.pgpRxOut.linkReady;
 
    end process comb;
 

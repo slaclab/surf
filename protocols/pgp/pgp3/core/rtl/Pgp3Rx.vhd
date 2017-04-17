@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-07
--- Last update: 2017-04-14
+-- Last update: 2017-04-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -78,7 +78,10 @@ architecture rtl of Pgp3Rx is
    signal pgpRxOutProtocol  : Pgp3RxOutType;
    signal depacketizerDebug : Packetizer2DebugType;
 
+   signal locRxLinkReadyInt : sl;
+
 begin
+   locRxLinkReady <= locRxLinkReadyInt;
 
    -- Gearbox aligner
 
@@ -116,7 +119,7 @@ begin
          pgpRxSlave     => pgpRawRxSlave,      -- [in]
          remRxFifoCtrl  => remRxFifoCtrl,      -- [out]
          remRxLinkReady => remRxLinkReady,     -- [out]
-         locRxLinkReady => locRxLinkReady,     -- [out]
+         locRxLinkReady => locRxLinkReadyInt,  -- [out]
          phyRxValid     => unscramblerValid,   -- [in]
 --         phyRxReady     => phyRxReady,         -- [in]
          phyRxInit      => phyRxInit,          -- [out]
@@ -133,6 +136,7 @@ begin
       port map (
          axisClk     => pgpRxClk,                -- [in]
          axisRst     => pgpRxRst,                -- [in]
+         linkGood    => locRxLinkReadyInt,       -- [in]
          debug       => depacketizerDebug,       -- [out]
          sAxisMaster => pgpRawRxMaster,          -- [in]
          sAxisSlave  => pgpRawRxSlave,           -- [out]
