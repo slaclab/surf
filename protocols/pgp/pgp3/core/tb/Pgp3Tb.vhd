@@ -98,6 +98,16 @@ architecture tb of Pgp3Tb is
 
 begin
 
+   process is
+   begin
+      wait for 600 us;
+      pgpTxIn.disable <= '1';
+      wait for 100 us;
+      pgpTxIn.disable <= '0';
+      wait;
+   end process;
+              
+
    U_ClkRst_1 : entity work.ClkRst
       generic map (
          CLK_PERIOD_G      => 10 ns,
