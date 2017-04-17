@@ -50,7 +50,7 @@ package Pgp3Pkg is
       1  => SOF_C,
       2  => EOF_C,
       3  => SOC_C,
-      4  => EOF_C,
+      4  => EOC_C,
       5  => SKP_C,
       6  => USER_C(0),
       7  => USER_C(1),
@@ -85,12 +85,14 @@ package Pgp3Pkg is
 
 
    type Pgp3TxInType is record
+      disable : sl;
       opCodeEn     : sl;
       opCodeNumber : slv(2 downto 0);
       opCodeData   : slv(55 downto 0);
    end record Pgp3TxInType;
 
    constant PGP3_TX_IN_INIT_C : Pgp3TxInType := (
+      disable => '0',
       opCodeEn     => '0',
       opCodeNumber => (others => '0'),
       opCodeData   => (others => '0'));
