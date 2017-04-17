@@ -199,6 +199,7 @@ begin
          pgpTxSlave     => packetizedTxSlave,     -- [out]
          locRxFifoCtrl  => syncLocRxFifoCtrl,     -- [in]
          locRxLinkReady => syncLocRxLinkReady,    -- [in]
+         remRxLinkReady => syncRemRxLinkReady,    -- [in]
          phyTxReady     => phyTxReady,            -- [in]
          phyTxData      => unscrambledTxData,     -- [out]
          phyTxHeader    => unscrambledTxHeader);  -- [out]

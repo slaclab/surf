@@ -35,7 +35,7 @@ entity Pgp3TxProtocol is
    generic (
       TPD_G            : time                  := 1 ns;
       NUM_VC_G         : integer range 1 to 16 := 4;
-      STARTUP_HOLD_G   : integer               := 10000;
+      STARTUP_HOLD_G   : integer               := 6000;
       SKP_INTERVAL_G   : integer               := 5000;
       SKP_BURST_SIZE_G : integer               := 8);
 
@@ -52,6 +52,7 @@ entity Pgp3TxProtocol is
       -- These get synchronized by the Pgp3Tx parent
       locRxFifoCtrl  : in AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
       locRxLinkReady : in sl;
+      remRxLinkReady : in sl;
 
       -- Phy Interface
       phyTxReady  : in  sl;
@@ -84,7 +85,8 @@ architecture rtl of Pgp3TxProtocol is
 
 begin
 
-   comb : process (locRxFifoCtrl, locRxLinkReady, pgpTxIn, pgpTxMaster, pgpTxRst, r) is
+   comb : process (locRxFifoCtrl, locRxLinkReady, pgpTxIn, pgpTxMaster, pgpTxRst, phyTxReady, r,
+                   remRxLinkReady) is
       variable v        : RegType;
       variable linkInfo : slv(39 downto 0);
    begin
@@ -173,6 +175,13 @@ begin
          if (r.skpCount = SKP_INTERVAL_G-1) then
             v.skpCount := r.skpCount;
          end if;
+      end if;
+
+      if (pgpTxIn.disable = '1') then
+         v.pgpTxOut.linkReady := '0';
+         v.startupCount       := 0;         
+         v.phyTxData          := (others => '0');
+         v.phyTxHeader        := (others => '0');
       end if;
 
       if (pgpTxRst = '1') then
