@@ -2,7 +2,7 @@
 -- File       : Encoder12b14bTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-10-11
--- Last update: 2016-10-18
+-- Last update: 2017-04-24
 -------------------------------------------------------------------------------
 -- Description: Testbench for design "Encoder12b14b"
 -------------------------------------------------------------------------------
@@ -202,7 +202,7 @@ begin
 
       end loop;
 
-      stop(0);
+--      stop(0);
 
    end process;
 

@@ -2,7 +2,7 @@
 -- File       : Code12b14bPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-10-05
--- Last update: 2017-04-19
+-- Last update: 2017-04-24
 -------------------------------------------------------------------------------
 -- Description: 12B14B Package File
 -------------------------------------------------------------------------------
@@ -82,7 +82,7 @@ package Code12b14bPkg is
 
    type EncodeTableType is record
       k78    : Encode7b8bArray(0 to 0);
-      k56    : Encode5b6bArray(0 to 16);
+      k56    : Encode5b6bArray(0 to 15);
       data78 : Encode7b8bArray(0 to 127);
       data56 : Encode5b6bArray(0 to 31);
    end record;
