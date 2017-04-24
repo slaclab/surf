@@ -34,14 +34,16 @@ entity Scrambler is
       TAPS_G           : IntegerArray := (0 => 39, 1 => 58));
 
    port (
-      clk         : in  sl;
-      rst         : in  sl;
-      inputEn     : in  sl := '1';
-      dataIn      : in  slv(DATA_WIDTH_G-1 downto 0);
-      sidebandIn  : in  slv(SIDEBAND_WIDTH_G-1 downto 0);
-      outputValid : out sl;
-      dataOut     : out slv(DATA_WIDTH_G-1 downto 0);
-      sidebandOut : out slv(SIDEBAND_WIDTH_G-1 downto 0));
+      clk           : in  sl;
+      rst           : in  sl;
+      inputValid    : in  sl := '1';
+      inputReady    : out sl;
+      inputData     : in  slv(DATA_WIDTH_G-1 downto 0);
+      inputSideband : in  slv(SIDEBAND_WIDTH_G-1 downto 0);
+      outputValid   : out sl;
+      outputReady   : in  sl := '1';
+      outputData    : out slv(DATA_WIDTH_G-1 downto 0);
+      ouputSideband : out slv(SIDEBAND_WIDTH_G-1 downto 0));
 
 end entity Scrambler;
 
@@ -50,43 +52,52 @@ architecture rtl of Scrambler is
    constant SCRAMBLER_WIDTH_C : integer := maximum(TAPS_G);
 
    type RegType is record
-      scrambler   : slv(SCRAMBLER_WIDTH_C-1 downto 0);
-      outputValid : sl;
-      dataOut     : slv(DATA_WIDTH_G-1 downto 0);
-      sidebandOut : slv(SIDEBAND_WIDTH_G-1 downto 0);
+      inputReady    : sl;
+      outputValid   : sl;
+      scrambler     : slv(SCRAMBLER_WIDTH_C-1 downto 0);
+      outputData    : slv(DATA_WIDTH_G-1 downto 0);
+      ouputSideband : slv(SIDEBAND_WIDTH_G-1 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      scrambler   => (others => '0'),
-      outputValid => '0',
-      dataOut     => (others => '0'),
-      sidebandOut => (others => '0'));
+      inputReady    => '0',
+      outputValid   => '0',
+      scrambler     => (others => '0'),
+      outputData    => (others => '0'),
+      ouputSideband => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
 
-   comb : process (dataIn, inputEn, r, rst, sidebandIn) is
+   comb : process (inputData, inputEn, r, rst, inputSideband) is
       variable v : RegType;
    begin
-      v             := r;
-      v.outputValid := '0';
-      if (inputEn = '1') then
-         v.outputValid := '1';
-         v.sidebandOut := sidebandIn;
+      v := r;
 
+      -- Default flow control values
+      v.inputReady := '0';
+      if (outputReady = '1') then
+         v.outputValid := '0';
+      end if;
+
+      -- Advance pipeline
+      if (inputValid = '1' and v.outputValid = '0') then
+         v.outputValid := '1';
+         v.inputReady  := '1';
+
+         v.ouputSideband := inputSideband;
          for i in 0 to DATA_WIDTH_G-1 loop
-            v.dataOut(i) := dataIn(i);
+            v.outputData(i) := inputData(i);
             for j in TAPS_G'range loop
-               v.dataOut(i) := v.dataOut(i) xor v.scrambler(TAPS_G(j)-1);
+               v.outputData(i) := v.outputData(i) xor v.scrambler(TAPS_G(j)-1);
             end loop;
             if (DIRECTION_G = "SCRAMBLER") then
-               v.scrambler := v.scrambler(SCRAMBLER_WIDTH_C-2 downto 0) & v.dataOut(i);
+               v.scrambler := v.scrambler(SCRAMBLER_WIDTH_C-2 downto 0) & v.outputData(i);
             elsif (DIRECTION_G = "DESCRAMBLER") then
-               v.scrambler := v.scrambler(SCRAMBLER_WIDTH_C-2 downto 0) & dataIn(i);
+               v.scrambler := v.scrambler(SCRAMBLER_WIDTH_C-2 downto 0) & inputData(i);
             end if;
-
          end loop;
       end if;
 
@@ -94,10 +105,11 @@ begin
          v := REG_INIT_C;
       end if;
 
-      rin         <= v;
-      outputValid <= r.outputValid;
-      dataOut     <= r.dataOut;
-      sidebandOut <= r.sidebandOut;
+      rin           <= v;
+      outputValid   <= r.outputValid;
+      inputReady    <= v.inputReady;
+      outputData    <= r.outputData;
+      ouputSideband <= r.ouputSideband;
 
    end process comb;
 
