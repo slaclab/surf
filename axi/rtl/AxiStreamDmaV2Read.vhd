@@ -29,12 +29,13 @@ use work.AxiDmaPkg.all;
 
 entity AxiStreamDmaV2Read is
    generic (
-      TPD_G           : time                := 1 ns;
-      AXIS_READY_EN_G : boolean             := false;
-      AXIS_CONFIG_G   : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      AXI_CONFIG_G    : AxiConfigType       := AXI_CONFIG_INIT_C;
-      PIPE_STAGES_G   : natural             := 1;
-      PEND_THRESH_G   : natural             := 0);  -- In units of bytes
+      TPD_G           : time                    := 1 ns;
+      AXIS_READY_EN_G : boolean                 := false;
+      AXIS_CONFIG_G   : AxiStreamConfigType     := AXI_STREAM_CONFIG_INIT_C;
+      AXI_CONFIG_G    : AxiConfigType           := AXI_CONFIG_INIT_C;
+      PIPE_STAGES_G   : natural                 := 1;
+      BURST_BYTES_G   : integer range 1 to 4096 := 4096;
+      PEND_THRESH_G   : natural                 := 0);  -- In units of bytes
    port (
       -- Clock/Reset
       axiClk          : in  sl;
@@ -60,7 +61,7 @@ architecture rtl of AxiStreamDmaV2Read is
 
    constant DATA_BYTES_C : integer         := AXIS_CONFIG_G.TDATA_BYTES_C;
    constant ADDR_LSB_C   : integer         := bitSize(DATA_BYTES_C-1);
-   constant ARLEN_C      : slv(7 downto 0) := getAxiLen(AXI_CONFIG_G, 4096);
+   constant ARLEN_C      : slv(7 downto 0) := getAxiLen(AXI_CONFIG_G, BURST_BYTES_G);
 
    type ReqStateType is (
       IDLE_S,
@@ -74,7 +75,7 @@ architecture rtl of AxiStreamDmaV2Read is
 
    type RegType is record
       idle         : sl;
-      pendBytes    : slv(31 downto 0);
+      --pendBytes    : slv(31 downto 0);
       size         : slv(31 downto 0); -- Decrementing counter used in data collection engine
       reqSize      : slv(31 downto 0); -- Decrementing counter used in request engine
       reqCnt       : slv(31 downto 0); -- Total bytes requested
@@ -92,7 +93,7 @@ architecture rtl of AxiStreamDmaV2Read is
 
    constant REG_INIT_C : RegType := (
       idle         => '0',
-      pendBytes    => (others => '0'),
+      --pendBytes    => (others => '0'),
       size         => (others => '0'),
       reqSize      => (others => '0'),
       reqCnt       => (others => '0'),
@@ -127,6 +128,7 @@ begin
    comb : process (axiReadSlave, axiRst, dmaRdDescReq, dmaRdDescRetAck,  pause, r, sSlave, axiCache) is
       variable v        : RegType;
       variable reqLen   : natural;
+      variable pendBytes: natural;
       variable pending  : boolean;
    begin
       -- Latch the current value   
@@ -149,7 +151,8 @@ begin
       end if;
 
       -- Calculate the pending bytes
-      v.pendBytes := r.reqCnt - r.ackCnt;
+      --v.pendBytes := r.reqCnt - r.ackCnt;
+      pendBytes := conv_integer(r.reqCnt - r.ackCnt);
 
       -- Update variables
       reqLen  := 0;
@@ -157,11 +160,13 @@ begin
 
       -- Check for the threshold = zero case
       if (PEND_THRESH_G = 0) then
-         if (r.pendBytes = 0) then
+         --if (r.pendBytes = 0) then
+         if (pendBytes = 0) then
             pending := false;
          end if;
       else
-         if (r.pendBytes < PEND_THRESH_G) then
+         --if (r.pendBytes < PEND_THRESH_G) then
+         if (pendBytes < PEND_THRESH_G) then
             pending := false;
          end if;
       end if;
@@ -251,10 +256,14 @@ begin
             v.rMaster.rready := '1';
          ----------------------------------------------------------------------
          when MOVE_S =>
+
+            -- Flow control
+            if (v.sMaster.tValid = '0') then
+               v.rMaster.rready := '1';
+            end if;
+
             -- Check if ready to move data
             if (v.sMaster.tValid = '0') and (axiReadSlave.rvalid = '1') then
-               -- Accept the data 
-               v.rMaster.rready := '1';
                -- Move the data
                v.sMaster.tValid                             := '1';
                v.sMaster.tData((DATA_BYTES_C*8)-1 downto 0) := axiReadSlave.rdata((DATA_BYTES_C*8)-1 downto 0);

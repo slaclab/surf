@@ -2,7 +2,7 @@
 -- File       : Code12b14bPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-10-05
--- Last update: 2016-10-17
+-- Last update: 2017-04-19
 -------------------------------------------------------------------------------
 -- Description: 12B14B Package File
 -------------------------------------------------------------------------------
@@ -33,12 +33,6 @@ package Code12b14bPkg is
    subtype BlockDisparityType is integer;
    subtype RunDisparityType is slv(1 downto 0);
 
---    constant DISP_N4_S : integer := -4;
---    constant DISP_N2_S : integer := -2;
---    constant DISP_Z_S  : integer := 0;
---    constant DISP_P2_S : integer := 2;
---    constant DISP_P4_S : integer := 4;
-
    function toSlv (d : BlockDisparityType) return slv;
 
    function toBlockDisparityType (d : slv(1 downto 0)) return BlockDisparityType;
@@ -54,23 +48,6 @@ package Code12b14bPkg is
 
    type KCodeArray is array (natural range <>) of KCodeEntryType;
 
-
-   -- These are depricated
---    type K78EntryType is record
---       b7   : slv(6 downto 0);
---       b8   : slv(7 downto 0);
---       disp : BlockDisparityType;
---    end record K78EntryType;
-
---    type K78Array is array (natural range <>) of K78EntryType;
-
---    type K56EntryType is record
---       b5   : slv(4 downto 0);
---       b6   : slv(5 downto 0);
---       disp : BlockDisparityType;
---    end record;
-
---    type K56Array is array (natural range <>) of K56EntryType;
 
    function toString (code : slv(11 downto 0); k : sl) return string;
 
@@ -88,20 +65,6 @@ package Code12b14bPkg is
    function makeEncode7b8bTable(a : slv8Array(0 to 127)) return Encode7b8bArray;
 
 
---    type Decode7b8bType is record
---       valid : sl;
---       out7b : slv(6 downto 0);
---       k     : sl;
---       din   : BlockDisparityType;
---       dout  : BlockDisparityType;
---    end record Decode7b8bType;
-
---    type Decode7b8bArray is array (0 to 255) of Decode7b8bType;
-
---    function makeDecode7b8bTable return Decode7b8bArray;
-
---    constant DECODE_7B8B_TABLE_C : Decode7b8bArray := makeDecode7b8bTable;
-
    -------------------------------------------------------------------------------------------------
    -- 5B6B Code Constants
    -------------------------------------------------------------------------------------------------
@@ -117,27 +80,12 @@ package Code12b14bPkg is
 
    function makeEncode5b6bTable(a : slv6Array(0 to 31)) return Encode5b6bArray;
 
---    type Decode5b6bType is record
---       valid : sl;
---       out5b : slv(4 downto 0);
---       k     : sl;
---       din   : BlockDisparityType;
---       dout  : BlockDisparityType;
---    end record Decode5b6bType;
-
---   type Decode5b6bArray is array (0 to 255) of Decode5b6bType;
-
---    function makeDecode5b6bArray return Decode5b6bArray;
-
-
-
    type EncodeTableType is record
       k78    : Encode7b8bArray(0 to 0);
       k56    : Encode5b6bArray(0 to 16);
       data78 : Encode7b8bArray(0 to 127);
       data56 : Encode5b6bArray(0 to 31);
    end record;
-
 
 
    procedure encode12b14b (
@@ -234,59 +182,6 @@ package body Code12b14bPkg is
    -- determine whether the selected code needs to be complimented, and what the out disparity is
    -- Should maybe implement DisparityType as a constrained integer and just use math here
    -- instead of this state machine. Not sure which is better.
---    procedure disparityControl (
---       prevDisp   : in    DisparityOutType;
---       blockDisp  : in    DisparityType;
---       compliment : inout sl;
---       nextDisp   : inout DisparityOutType) is
---    begin
---       compliment := '0';
---       case prevDisp is
---          when DISP_N2_S =>
---             if (blockDisp = DISP_N2_S) then
---                compliment := '1';
---                nextDisp   := DISP_Z_S;
---             elsif (blockDisp = DISP_N4_S) then
---                compliment := '1';
---                nextDisp   := DISP_P2_S;
---             else
---                nextDisp := DisparityOutType'leftof(blockDisp);
---             end if;
-
---          when DISP_Z_S =>
---             if (blockDisp = DISP_N4_S) then
---                compliment := '1';
---                nextDisp   := DISP_P4_S;
---             else
---                nextDisp := blockDisp;
---             end if;
-
---          when DISP_P2_S =>
---             if (blockDisp = DISP_P4_S) then
---                compliment := '1';
---                nextDisp   := DISP_N2_S;
---             elsif (blockDisp = DISP_P2_S) then
---                compliment := '1';
---                nextDisp   := DISP_Z_S;
---             else
---                nextDisp := DisparityType'rightof(blockDisp);
---             end if;
-
---          when DISP_P4_S =>
---             if (blockDisp = DISP_P4_S) then
---                compliment := '1';
---                nextDisp   := DISP_Z_S;
---             elsif (blockDisp = DISP_P2_S) then
---                compliment := '1';
---                nextDisp   := DISP_P2_S;
---             else
---                nextDisp := DisparityType'rightof(blockDisp);
---                nextDisp := DisparityType'rightof(nextDisp);
---             end if;
-
---       end case;
---    end procedure disparityControl;
-
    procedure disparityControl (
       prevDisp   : in    RunDisparityType;
       blockDisp  : in    BlockDisparityType;
@@ -328,23 +223,6 @@ package body Code12b14bPkg is
       return ret;
    end function makeEncode7b8bTable;
 
-   -- Make the decode table
---    function makeDecode7b8bArray return Decode7b8bArray is
---       variable ret : Decode7b8bArray := (others => DECODE_7B8B_INIT_C);
---       variable tmp : integer;
---    begin
---       for i in ENCODE_7B8B_TABLE_C'range loop
---          tmp            := conv_integer(ENCODE_7B8B_TABLE_C(i).out8b);
---          ret(tmp).valid := '1'
---          ret(tmp).out7b := conv_std_logic_vector(i, 7);
-
---          tmp            := conv_integer(ENCODE_7B8B_TABLE_C(i).alt8b);
---          ret(tmp).valid := '1';
---          ret(tmp).out7b := conv_std_logic_vector(i, 7);
---       end loop;
---       return ret;
---    end function makeDecode7b8bArray;
-
    -------------------------------------------------------------------------------------------------
    -- Make the encode table
    function makeEncode5b6bTable (a : slv6Array(0 to 31)) return Encode5b6bArray is
@@ -366,25 +244,6 @@ package body Code12b14bPkg is
       end loop;
       return ret;
    end function makeEncode5b6bTable;
-
-   -- Make the decode table
---    function makeDecode5b6bArray return Decode5b6bArray is
---       variable ret : Decode5b6bArray := (others => DECODE_5B6B_INIT_C);
---       variable tmp : integer;
---    begin
---       for i in ENCODE_5B6B_TABLE_C'range loop
---          tmp            := conv_integer(ENCODE_5B6B_TABLE_C(i).out6b);
---          ret(tmp).valid := '1'
---          ret(tmp).out5b := conv_std_logic_vector(i, 7);
-
---          tmp            := conv_integer(ENCODE_5B6B_TABLE_C(i).alt6b);
---          ret(tmp).valid := '1';
---          ret(tmp).out5b := conv_std_logic_vector(i, 7);
---       end loop;
---       return ret;
---    end function makeDecode5b6bArray;
-
-
 
    procedure encode12b14b (
       constant CODES_C : in  EncodeTableType;
@@ -410,8 +269,6 @@ package body Code12b14bPkg is
       variable debug : boolean := false;
       variable tmp   : integer;
    begin
-
-
 
       -- First, split in input word in two
       dataIn5 := dataIn(11 downto 7);
@@ -446,45 +303,11 @@ package body Code12b14bPkg is
          data8       := tmp78.alt8b;
       end if;
 
-      -- Special case for D15
---       if (dataIn7 = "0001111" and (dispIn = DISP_P2_S or dispIn = DISP_P4_S)) then
---          compliment := '1';
---       end if;
-
-
       -- Now repeat for the 5b6b
       tmp56       := CODES_C.data56(conv_integer(dataIn5));
       data6       := tmp56.out6b;
       blockDisp56 := tmp56.outDisp;
 
-
-      -- Hard code the K codes
---       if (dataKIn = '1' and invalidK = '0') then
---          invalidk := '1';
-
---          -- If on a K.120.y, check for valid y
---          if (dataIn7 = K_120_C) then      -- K.120
---             -- Search for a valid K.120.y
---             for i in K_5B6B_TABLE_C'range loop
---                if (dataIn5 = K_5B6B_TABLE_C(i).b6) then
---                   data6     := K_5B6B_TABLE_C(i).b6;
---                   blockDisp := K_5B6B_TABLE_C(i).outDisp;
---                   invalidK  := '0';
---                end if;
---             end loop;
---          end if;
-
---          -- If on a K.x.15, check for valid x
---          if (dataIn5 = K_X_15_C) then     -- K.x.15
---             data6     := K_X_15_CODE_C;
---             blockDisp := K_X_15_DISP_C;
---             for i in K_7B8B_TABLE_C'range loop
---                if (dataIn7 = K_7B8B_TABLE_C(i).b7) then
---                   invalidK := '0';
---                end if;
---             end loop;
---          end if;
---       end if;
 
       -- Decide whether to invert the output
       if ((blockDisp78 > 0 and blockDisp56 > 0) or
@@ -507,26 +330,6 @@ package body Code12b14bPkg is
       dataOut(7 downto 0)  := data8;
       dataOut(13 downto 8) := data6;
       dispOut              := toSlv(blockDispIn + blockDisp56 + blockDisp78);
-
-      -- If k-code being sent, override everything above and select the proper code
-      -- from the K_CODE_TABLE_C.
---       if (dataKIn = '1')495 then
---          invalidK := '1';
---          -- Search table of KCODES
---          for i in CODES_C.codeK'range loop
---             if (dataIn = CODES_C.codeK(i).k12) then
---                dataOut   := CODES_C.codeK(i).k14;
---                blockDisp := CODES_C.codeK(i).outDisp;
---                disparityControl(dispIn, dispIn, blockDisp, compliment, dispK);
---                if (compliment = '1') then
---                   dataOut := not CODES_C.codeK(i).k14;
---                end if;
---                dispOut  := dispK;
---                invalidK := '0';
---             end if;
---          end loop;
---       end if;
-
 
    end;
 

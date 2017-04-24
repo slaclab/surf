@@ -203,9 +203,6 @@ begin
          when S_MOVE_C =>
             v.dataAck  := '0';
 
-            -- Pass ready
-            v.slaves(conv_integer(r.dataAckNum)).wready := mAxiWriteSlave.wready;
-
             -- Advance pipeline 
             if r.master.wvalid = '0' or mAxiWriteSlave.wready = '1' then
                v.master.wdata  := selData.wdata;
@@ -213,6 +210,9 @@ begin
                v.master.wvalid := selData.wvalid;
                v.master.wstrb  := selData.wstrb;
                v.master.wid    := selData.wid;
+
+               -- Ready
+               v.slaves(conv_integer(r.dataAckNum)).wready := '1';
 
                -- wlast to be presented
                if selData.wlast = '1' and selData.wvalid = '1' then

@@ -29,18 +29,19 @@ use work.AxiDmaPkg.all;
 
 entity AxiStreamDmaV2 is
    generic (
-      TPD_G             : time                   := 1 ns;
-      DESC_AWIDTH_G     : integer range 4 to 12  := 12;
-      AXIL_BASE_ADDR_G  : slv(31 downto 0)       := x"00000000";
-      AXI_ERROR_RESP_G  : slv(1 downto 0)        := AXI_RESP_OK_C;
-      AXI_READY_EN_G    : boolean                := false;
-      AXIS_READY_EN_G   : boolean                := false;
-      AXIS_CONFIG_G     : AxiStreamConfigType    := AXI_STREAM_CONFIG_INIT_C;
-      AXI_DESC_CONFIG_G : AxiConfigType          := AXI_CONFIG_INIT_C;
-      AXI_DMA_CONFIG_G  : AxiConfigType          := AXI_CONFIG_INIT_C;
-      CHAN_COUNT_G      : integer range 1 to 16  := 1;
-      RD_PIPE_STAGES_G  : natural                := 1;
-      RD_PEND_THRESH_G  : natural                := 0);  -- In units of bytes
+      TPD_G             : time                    := 1 ns;
+      DESC_AWIDTH_G     : integer range 4 to 12   := 12;
+      AXIL_BASE_ADDR_G  : slv(31 downto 0)        := x"00000000";
+      AXI_ERROR_RESP_G  : slv(1 downto 0)         := AXI_RESP_OK_C;
+      AXI_READY_EN_G    : boolean                 := false;
+      AXIS_READY_EN_G   : boolean                 := false;
+      AXIS_CONFIG_G     : AxiStreamConfigType     := AXI_STREAM_CONFIG_INIT_C;
+      AXI_DESC_CONFIG_G : AxiConfigType           := AXI_CONFIG_INIT_C;
+      AXI_DMA_CONFIG_G  : AxiConfigType           := AXI_CONFIG_INIT_C;
+      CHAN_COUNT_G      : integer range 1 to 16   := 1;
+      BURST_BYTES_G     : integer range 1 to 4096 := 4096;
+      RD_PIPE_STAGES_G  : natural                 := 1;
+      RD_PEND_THRESH_G  : natural                 := 0);  -- In units of bytes
    port (
       -- Clock/Reset
       axiClk          : in  sl;
@@ -117,6 +118,9 @@ begin
          axiWriteSlave      => axiWriteSlave(0),
          axiWriteCtrl       => axiWriteCtrl(0));
 
+   -- Read channel 0 unused.
+   axiReadMaster(0) <= AXI_READ_MASTER_INIT_C;
+
    U_ChanGen: for i in 0 to CHAN_COUNT_G-1 generate
 
       U_DmaRead: entity work.AxiStreamDmaV2Read 
@@ -126,6 +130,7 @@ begin
             AXIS_CONFIG_G   => AXIS_CONFIG_G,
             AXI_CONFIG_G    => AXI_DMA_CONFIG_G,
             PIPE_STAGES_G   => RD_PIPE_STAGES_G,
+            BURST_BYTES_G   => BURST_BYTES_G,
             PEND_THRESH_G   => RD_PEND_THRESH_G)
          port map (
             axiClk             => axiClk,
@@ -149,6 +154,7 @@ begin
             AXI_READY_EN_G    => AXI_READY_EN_G,
             AXIS_CONFIG_G     => AXIS_CONFIG_G,
             AXI_CONFIG_G      => AXI_DMA_CONFIG_G,
+            BURST_BYTES_G     => BURST_BYTES_G,
             ACK_WAIT_BVALID_G => true)
          port map (
             axiClk           => axiClk,
