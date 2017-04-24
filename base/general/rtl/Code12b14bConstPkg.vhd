@@ -2,7 +2,7 @@
 -- File       : Code12b14bPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-10-05
--- Last update: 2017-04-19
+-- Last update: 2017-04-24
 -------------------------------------------------------------------------------
 -- Description: 12B14B Constant Package File
 -------------------------------------------------------------------------------
@@ -209,9 +209,9 @@ package Code12b14bConstPkg is
    -------------------------------------------------------------------------------------------------
    -- 7B8B Code Constants
    -------------------------------------------------------------------------------------------------
-  type Code8bArray is array (0 to 127) of slv(7 downto 0);
+   type Code8bArray is array (0 to 127) of slv(7 downto 0);
 
-   Array of codes for 7b/8b D codes
+   -- Array of codes for 7b/8b D codes
    constant CODE_8B_C : Code8bArray := (
       "00011010", "11110001", "10101110", "00100011", "00001101", "00010101",
       "00100110", "10000111", "00010011", "00100101", "00101001", "10001011",
