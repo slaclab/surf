@@ -112,7 +112,7 @@ begin
          v.protTxValid := '0';
       end if;
 
-      if (pgpTxMaster.tValid = '1' and v.protTxValid := '0') then
+      if (pgpTxMaster.tValid = '1' and v.protTxValid = '0') then
          v.protTxValid := '1';
 
          -- Send only IDLE and SKP for STARTUP_HOLD_G cycles after reset
