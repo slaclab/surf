@@ -60,6 +60,7 @@ entity Pgp3Tx is
 
       -- PHY interface
       phyTxReady  : in  sl;
+      phyTxStart  : out sl;
       phyTxData   : out slv(63 downto 0);
       phyTxHeader : out slv(1 downto 0));
 end entity Pgp3Tx;
@@ -73,14 +74,17 @@ architecture rtl of Pgp3Tx is
    signal syncRemRxLinkReady : sl;
 
    -- Pipeline signals
-   signal disableSel          : slv(NUM_VC_G-1 downto 0);
-   signal rearbitrate         : sl := '0';
-   signal muxedTxMaster       : AxiStreamMasterType;
-   signal muxedTxSlave        : AxiStreamSlaveType;
-   signal packetizedTxMaster  : AxiStreamMasterType;
-   signal packetizedTxSlave   : AxiStreamSlaveType;
-   signal unscrambledTxData   : slv(63 downto 0);
-   signal unscrambledTxHeader : slv(1 downto 0);
+   signal disableSel         : slv(NUM_VC_G-1 downto 0);
+   signal rearbitrate        : sl := '0';
+   signal muxedTxMaster      : AxiStreamMasterType;
+   signal muxedTxSlave       : AxiStreamSlaveType;
+   signal packetizedTxMaster : AxiStreamMasterType;
+   signal packetizedTxSlave  : AxiStreamSlaveType;
+
+   signal protTxValid  : sl;
+   signal protTxReady  : sl;
+   signal protTxData   : slv(63 downto 0);
+   signal protTxHeader : slv(1 downto 0);
 
 
 begin
@@ -191,18 +195,19 @@ begin
          SKP_INTERVAL_G   => SKP_INTERVAL_G,
          SKP_BURST_SIZE_G => SKP_BURST_SIZE_G)
       port map (
-         pgpTxClk       => pgpTxClk,              -- [in]
-         pgpTxRst       => pgpTxRst,              -- [in]
-         pgpTxIn        => pgpTxIn,               -- [in]
-         pgpTxOut       => pgpTxOut,              -- [out]
-         pgpTxMaster    => packetizedTxMaster,    -- [in]
-         pgpTxSlave     => packetizedTxSlave,     -- [out]
-         locRxFifoCtrl  => syncLocRxFifoCtrl,     -- [in]
-         locRxLinkReady => syncLocRxLinkReady,    -- [in]
-         remRxLinkReady => syncRemRxLinkReady,    -- [in]
-         phyTxReady     => phyTxReady,            -- [in]
-         phyTxData      => unscrambledTxData,     -- [out]
-         phyTxHeader    => unscrambledTxHeader);  -- [out]
+         pgpTxClk       => pgpTxClk,            -- [in]
+         pgpTxRst       => pgpTxRst,            -- [in]
+         pgpTxIn        => pgpTxIn,             -- [in]
+         pgpTxOut       => pgpTxOut,            -- [out]
+         pgpTxMaster    => packetizedTxMaster,  -- [in]
+         pgpTxSlave     => packetizedTxSlave,   -- [out]
+         locRxFifoCtrl  => syncLocRxFifoCtrl,   -- [in]
+         locRxLinkReady => syncLocRxLinkReady,  -- [in]
+         remRxLinkReady => syncRemRxLinkReady,  -- [in]
+         phyTxReady     => protTxReady,         -- [in]
+         phyTxValid     => protTxValid,         -- [out]
+         phyTxData      => protTxData,          -- [out]
+         phyTxHeader    => protTxHeader);       -- [out]
 
    -- Scramble the data for 64b66b
    U_Scrambler_1 : entity work.Scrambler
@@ -213,13 +218,16 @@ begin
          SIDEBAND_WIDTH_G => 2,
          TAPS_G           => SCRAMBLER_TAPS_C)
       port map (
-         clk         => pgpTxClk,             -- [in]
-         rst         => pgpTxRst,             -- [in]
-         dataIn      => unscrambledTxData,    -- [in]
-         sidebandIn  => unscrambledTxHeader,  -- [in]
-         inputEn     => '1',                  -- [in]
-         dataOut     => phyTxData,            -- [out]
-         sidebandOut => phyTxHeader);         -- [out]
-
+         clk                        => pgpTxClk,      -- [in]
+         rst                        => pgpTxRst,      -- [in]
+         inputValid                 => protTxValid,   -- [in]
+         inputReady                 => protTxReady,   -- [out]
+         inputData                  => protTxData,    -- [in]
+         inputSideband(1 downto 0)  => protTxHeader,  -- [in]
+         inputSideband(2)           => protTxStart,   -- [in]
+         outputReady                => phyTxReady,    -- [in]
+         outputData                 => phyTxData,     -- [out]
+         outputSideband(1 downto 0) => phyTxHeader,   -- [out]
+         outputSideband(2)          => phyTxStart);
 
 end architecture rtl;

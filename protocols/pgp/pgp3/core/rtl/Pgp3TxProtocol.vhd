@@ -54,10 +54,12 @@ entity Pgp3TxProtocol is
       locRxLinkReady : in sl;
       remRxLinkReady : in sl;
 
-      -- Phy Interface
-      phyTxReady  : in  sl;
-      phyTxData   : out slv(63 downto 0);
-      phyTxHeader : out slv(1 downto 0));
+      -- Output Interface
+      protTxReady  : in  sl;
+      protTxValid  : out sl;
+      protTxStart  : out sl;
+      protTxData   : out slv(63 downto 0);
+      protTxHeader : out slv(1 downto 0));
 
 end entity Pgp3TxProtocol;
 
@@ -68,8 +70,10 @@ architecture rtl of Pgp3TxProtocol is
       startupCount : integer;
       pgpTxSlave   : AxiStreamSlaveType;
       pgpTxOut     : Pgp3TxOutType;
-      phyTxData    : slv(63 downto 0);
-      phyTxHeader  : slv(1 downto 0);
+      protTxValid  : sl;
+      protTxStart  : sl;
+      protTxData   : slv(63 downto 0);
+      protTxHeader : slv(1 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -77,16 +81,17 @@ architecture rtl of Pgp3TxProtocol is
       startupCount => 0,
       pgpTxSlave   => AXI_STREAM_SLAVE_INIT_C,
       pgpTxOut     => PGP3_TX_OUT_INIT_C,
-      phyTxData    => (others => '0'),
-      phyTxHeader  => (others => '0'));
+      protTxValid  => '0',
+      protTxStart  => '0',
+      protTxData   => (others => '0'),
+      protTxHeader => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
 
-   comb : process (locRxFifoCtrl, locRxLinkReady, pgpTxIn, pgpTxMaster, pgpTxRst, phyTxReady, r,
-                   remRxLinkReady) is
+   comb : process (locRxFifoCtrl, locRxLinkReady, pgpTxIn, pgpTxMaster, pgpTxRst, protTxReady, r) is
       variable v        : RegType;
       variable linkInfo : slv(39 downto 0);
    begin
@@ -103,85 +108,91 @@ begin
       v.pgpTxOut.frameTx    := '0';
       v.pgpTxOut.frameTxErr := '0';
 
-      -- Send only IDLE and SKP for STARTUP_HOLD_G cycles
-      -- after phyTxReady
-      v.startupCount := r.startupCount + 1;
-      if (r.startupCount = STARTUP_HOLD_G) then
-         v.startupCount       := r.startupCount;
-         v.pgpTxOut.linkReady := '1';
-      end if;
-      -- Reset starup count and linkReady if phyTxReady drops
-      if (phyTxReady = '0') then
-         v.startupCount       := 0;
-         v.pgpTxOut.linkReady := '0';
+      if (protTxReady = '1') then
+         v.protTxValid := '0';
       end if;
 
-      -- Decide whether to send IDLE, SKP, USER or data frames.
-      -- Coded in reverse order of priority
+      if (pgpTxMaster.tValid = '1' and v.protTxValid := '0') then
+         v.protTxValid := '1';
 
-      -- Send idle chars by default
-      v.phyTxData(39 downto 0)  := linkInfo;
-      v.phyTxData(55 downto 40) := (others => '0');
-      v.phyTxData(63 downto 56) := IDLE_C;
-      v.phyTxHeader             := K_HEADER_C;
-
-      -- Send data if there is data to send
-      if (pgpTxMaster.tValid = '1' and r.pgpTxOut.linkReady = '1') then
-         v.pgpTxSlave.tReady := '1';    -- Accept the data
-
-         if (ssiGetUserSof(PGP3_AXIS_CONFIG_C, pgpTxMaster) = '1') then
-            -- SOF/SOC, format SOF/SOC char from data
-            v.phyTxData               := (others => '0');
-            v.phyTxData(63 downto 56) := ite(pgpTxMaster.tData(24) = '1', SOF_C, SOC_C);
-            v.phyTxData(39 downto 0)  := linkInfo;
-            v.phyTxData(43 downto 40) := pgpTxMaster.tData(11 downto 8);   -- Virtual Channel
-            v.phyTxData(55 downto 44) := pgpTxMaster.tData(43 downto 32);  -- Packet number
-            v.phyTxHeader             := K_HEADER_C;
-
-         elsif (pgpTxMaster.tLast = '1') then
-            -- EOF/EOC
-            v.phyTxData               := (others => '0');
-            v.phyTxData(63 downto 56) := ite(pgpTxMaster.tData(8) = '1', EOF_C, EOC_C);
-            v.phyTxData(7 downto 0)   := pgpTxMaster.tData(7 downto 0);    -- TUSER LAST
-            v.phyTxData(19 downto 16) := pgpTxMaster.tData(19 downto 16);  -- Last byte count
-            v.phyTxData(55 downto 24) := pgpTxMaster.tData(63 downto 32);  -- CRC
-            v.phyTxHeader             := K_HEADER_C;
-            -- Debug output
-            v.pgpTxOut.frameTx        := pgpTxMaster.tData(8);
-            v.pgpTxOut.frameTxErr     := pgpTxMaster.tData(8) and pgpTxMaster.tData(0);
-         else
-            -- Normal data
-            v.phyTxData(63 downto 0) := pgpTxMaster.tData(63 downto 0);
-            v.phyTxHeader            := D_HEADER_C;
+         -- Send only IDLE and SKP for STARTUP_HOLD_G cycles after reset
+         v.startupCount := r.startupCount + 1;
+         if (r.startupCount = 0) then
+            v.protTxStart := '1';
          end if;
-      end if;
+         if (r.startupCount = STARTUP_HOLD_G) then
+            v.startupCount       := r.startupCount;
+            v.pgpTxOut.linkReady := '1';
+         end if;
 
-      -- 
-      if (r.skpCount = SKP_INTERVAL_G-1) then
-         v.skpCount                := (others => '0');
-         v.pgpTxSlave.tReady       := '0';  -- Override any data acceptance.
-         v.phyTxData               := (others => '0');
-         v.phyTxData(63 downto 56) := SKP_C;
-         v.phyTxHeader             := K_HEADER_C;
-      end if;
+         -- Decide whether to send IDLE, SKP, USER or data frames.
+         -- Coded in reverse order of priority
 
+         -- Send idle chars by default
+         v.protTxData(39 downto 0)  := linkInfo;
+         v.protTxData(55 downto 40) := (others => '0');
+         v.protTxData(63 downto 56) := IDLE_C;
+         v.protTxHeader             := K_HEADER_C;
 
-      -- USER codes override data and delay SKP if they happen to coincide
-      if (pgpTxIn.opCodeEn = '1' and r.pgpTxOut.linkReady = '1') then
-         v.pgpTxSlave.tReady       := '0';  -- Override any data acceptance.
-         v.phyTxData(63 downto 56) := USER_C(conv_integer(pgpTxIn.opCodeNumber));
-         v.phyTxData(55 downto 0)  := pgpTxIn.opCodeData;
-         -- If skip was interrupted, hold it for next cycle
+         -- Send data if there is data to send
+         if (r.pgpTxOut.linkReady = '1') then
+            v.pgpTxSlave.tReady := '1';  -- Accept the data
+
+            if (ssiGetUserSof(PGP3_AXIS_CONFIG_C, pgpTxMaster) = '1') then
+               -- SOF/SOC, format SOF/SOC char from data
+               v.protTxData               := (others => '0');
+               v.protTxData(63 downto 56) := ite(pgpTxMaster.tData(24) = '1', SOF_C, SOC_C);
+               v.protTxData(39 downto 0)  := linkInfo;
+               v.protTxData(43 downto 40) := pgpTxMaster.tData(11 downto 8);   -- Virtual Channel
+               v.protTxData(55 downto 44) := pgpTxMaster.tData(43 downto 32);  -- Packet number
+               v.protTxHeader             := K_HEADER_C;
+
+            elsif (pgpTxMaster.tLast = '1') then
+               -- EOF/EOC
+               v.protTxData               := (others => '0');
+               v.protTxData(63 downto 56) := ite(pgpTxMaster.tData(8) = '1', EOF_C, EOC_C);
+               v.protTxData(7 downto 0)   := pgpTxMaster.tData(7 downto 0);    -- TUSER LAST
+               v.protTxData(19 downto 16) := pgpTxMaster.tData(19 downto 16);  -- Last byte count
+               v.protTxData(55 downto 24) := pgpTxMaster.tData(63 downto 32);  -- CRC
+               v.protTxHeader             := K_HEADER_C;
+               -- Debug output
+               v.pgpTxOut.frameTx         := pgpTxMaster.tData(8);
+               v.pgpTxOut.frameTxErr      := pgpTxMaster.tData(8) and pgpTxMaster.tData(0);
+            else
+               -- Normal data
+               v.protTxData(63 downto 0) := pgpTxMaster.tData(63 downto 0);
+               v.protTxHeader            := D_HEADER_C;
+            end if;
+         end if;
+
+         -- 
          if (r.skpCount = SKP_INTERVAL_G-1) then
-            v.skpCount := r.skpCount;
+            v.skpCount                 := (others => '0');
+            v.pgpTxSlave.tReady        := '0';  -- Override any data acceptance.
+            v.protTxData               := (others => '0');
+            v.protTxData(63 downto 56) := SKP_C;
+            v.protTxHeader             := K_HEADER_C;
          end if;
-      end if;
 
-      if (pgpTxIn.disable = '1') then
-         v.pgpTxOut.linkReady := '0';
-         v.startupCount       := 0;         
-         v.phyTxData          := (others => '0');
-         v.phyTxHeader        := (others => '0');
+
+         -- USER codes override data and delay SKP if they happen to coincide
+         if (pgpTxIn.opCodeEn = '1' and r.pgpTxOut.linkReady = '1') then
+            v.pgpTxSlave.tReady        := '0';  -- Override any data acceptance.
+            v.protTxData(63 downto 56) := USER_C(conv_integer(pgpTxIn.opCodeNumber));
+            v.protTxData(55 downto 0)  := pgpTxIn.opCodeData;
+            -- If skip was interrupted, hold it for next cycle
+            if (r.skpCount = SKP_INTERVAL_G-1) then
+               v.skpCount := r.skpCount;
+            end if;
+         end if;
+
+         if (pgpTxIn.disable = '1') then
+            v.pgpTxOut.linkReady := '0';
+            v.startupCount       := 0;
+            v.protTxData         := (others => '0');
+            v.protTxHeader       := (others => '0');
+         end if;
+
       end if;
 
       if (pgpTxRst = '1') then
@@ -190,9 +201,9 @@ begin
 
       rin <= v;
 
-      pgpTxSlave  <= v.pgpTxSlave;
-      phyTxData   <= r.phyTxData;
-      phyTxHeader <= r.phyTxHeader;
+      pgpTxSlave   <= v.pgpTxSlave;
+      protTxData   <= r.protTxData;
+      protTxHeader <= r.protTxHeader;
 
    end process comb;
 

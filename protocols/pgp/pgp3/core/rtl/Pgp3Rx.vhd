@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-07
--- Last update: 2017-04-17
+-- Last update: 2017-04-18
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -50,15 +50,14 @@ entity Pgp3Rx is
       locRxLinkReady : out sl;
 
       -- Phy interface
-      phyRxClk         : in  sl;
-      phyRxReady       : in  sl;
-      phyRxInit        : out sl;
-      phyRxHeaderValid : in  sl;
-      phyRxHeader      : in  slv(1 downto 0);
-      phyRxDataValid   : in  slv(1 downto 0);
-      phyRxData        : in  slv(63 downto 0);
-      phyRxStartSeq    : in  sl;
-      phyRxSlip        : out sl);
+      phyRxClk      : in  sl;
+      phyRxRst      : in  sl;
+      phyRxInit     : out sl;
+      phyRxValid    : in  sl;
+      phyRxHeader   : in  slv(1 downto 0);
+      phyRxData     : in  slv(63 downto 0);
+      phyRxStartSeq : in  sl;
+      phyRxSlip     : out sl);
 
 
 
@@ -79,13 +78,28 @@ architecture rtl of Pgp3Rx is
    signal depacketizerDebug : Packetizer2DebugType;
 
    signal locRxLinkReadyInt : sl;
+   signal rxAligned         : sl;
 
 begin
    locRxLinkReady <= locRxLinkReadyInt;
 
    -- Gearbox aligner
+   U_Pgp3RxGearboxAligner_1 : entity work.Pgp3RxGearboxAligner
+      generic map (
+         TPD_G        => TPD_G,
+         GOOD_COUNT_G => GOOD_COUNT_G,
+         BAD_COUNT_G  => BAD_COUNT_G,
+         SLIP_WAIT_G  => SLIP_WAIT_G)
+      port map (
+         clk           => phyRxClk,     -- [in]
+         rst           => phyRxRst,     -- [in]
+         rxHeader      => phyRxHeader,  -- [in]
+         rxHeaderValid => phyRxValid,   -- [in]
+         slip          => phyRxSlip,    -- [out]
+         locked        => rxAligned);   -- [out]
 
    -- Unscramble the data for 64b66b
+   unscramblerInputValid <= gearboxAligned and phyRxValid;
    U_Scrambler_1 : entity work.Scrambler
       generic map (
          TPD_G            => TPD_G,
@@ -94,14 +108,14 @@ begin
          SIDEBAND_WIDTH_G => 2,
          TAPS_G           => SCRAMBLER_TAPS_C)
       port map (
-         clk         => pgpRxClk,           -- [in]
-         rst         => '0',                -- [in]
-         inputEn     => gearboxAligned,     -- [in]         
-         dataIn      => phyRxData,          -- [in]
-         sidebandIn  => phyRxHeader,        -- [in]
-         outputValid => unscramblerValid,   -- [out]
-         dataOut     => unscrambledData,    -- [out]
-         sidebandOut => unscrambedHeader);  -- [out]
+         clk            => phyRxClk,           -- [in]
+         rst            => phyRxRst,           -- [in]
+         inputValid     => phyRxValid,         -- [in]         
+         inputData      => phyRxData,          -- [in]
+         inputSideband  => phyRxHeader,        -- [in]
+         outputValid    => unscramblerValid,   -- [out]
+         outputData     => unscrambledData,    -- [out]
+         outputSideband => unscrambedHeader);  -- [out]
 
    -- Elastic Buffer
 
@@ -120,11 +134,10 @@ begin
          remRxFifoCtrl  => remRxFifoCtrl,      -- [out]
          remRxLinkReady => remRxLinkReady,     -- [out]
          locRxLinkReady => locRxLinkReadyInt,  -- [out]
-         phyRxValid     => unscramblerValid,   -- [in]
---         phyRxReady     => phyRxReady,         -- [in]
-         phyRxInit      => phyRxInit,          -- [out]
-         phyRxData      => unscrambledData,    -- [in]
-         phyRxHeader    => unscrambedHeader);  -- [in]
+         protRxValid    => ebValid,            -- [in]
+         protRxPhyInit  => phyRxInit,          -- [out]
+         protRxData     => ebData,             -- [in]
+         protRxHeader   => ebHeader);          -- [in]
 
    -- Depacketize the RX data frames
    U_AxiStreamDepacketizer2_1 : entity work.AxiStreamDepacketizer2
@@ -161,7 +174,7 @@ begin
          mAxisMasters => pgpRxMasters,                           -- [out]
          mAxisSlaves  => (others => AXI_STREAM_SLAVE_FORCE_C));  -- [in]
 
-   pgpRxOut.phyRxReady   <= phyRxReady;
+   pgpRxOut.protRxReady  <= protRxReady;
    pgpRxOut.linkReady    <= pgpRxOutProtocol.linkReady;
    pgpRxOut.frameRx      <= depacketizerDebug.eof;
    pgpRxOut.frameRxErr   <= depacketizerDebug.eofe;

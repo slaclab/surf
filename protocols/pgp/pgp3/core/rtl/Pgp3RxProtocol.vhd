@@ -50,10 +50,10 @@ entity Pgp3RxProtocol is
       locRxLinkReady : out sl;
 
       -- Received data from descramber/CC FIFO
-      phyRxValid  : in  sl;
-      phyRxInit   : out sl;
-      phyRxData   : in  slv(63 downto 0);
-      phyRxHeader : in  slv(1 downto 0));
+      protRxValid   : in  sl;
+      protRxPhyInit : out sl;
+      protRxData    : in  slv(63 downto 0);
+      protRxHeader  : in  slv(1 downto 0));
 
 end entity Pgp3RxProtocol;
 
@@ -63,7 +63,7 @@ architecture rtl of Pgp3RxProtocol is
       count          : slv(15 downto 0);
       pgpRxMaster    : AxiStreamMasterType;
       pgpRxOut       : Pgp3RxOutType;
-      phyRxInit      : sl;
+      protRxPhyInit  : sl;
       remRxFifoCtrl  : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
       remRxLinkReady : sl;
       locRxLinkReady : sl;              -- This might come from aligner instead?
@@ -74,7 +74,7 @@ architecture rtl of Pgp3RxProtocol is
       count          => (others => '0'),
       pgpRxMaster    => axiStreamMasterInit(PGP3_AXIS_CONFIG_C),
       pgpRxOut       => PGP3_RX_OUT_INIT_C,
-      phyRxInit      => '1',
+      protRxPhyInit  => '1',
       remRxFifoCtrl  => (others => AXI_STREAM_CTRL_INIT_C),  -- init paused
       remRxLinkReady => '0',
       locRxLinkReady => '0',
@@ -85,35 +85,35 @@ architecture rtl of Pgp3RxProtocol is
 
 begin
 
-   comb : process (pgpRxRst, phyRxData, phyRxHeader, phyRxValid, r) is
+   comb : process (pgpRxRst, protRxData, protRxHeader, protRxValid, r) is
       variable v        : RegType;
       variable linkInfo : slv(39 downto 0);
       variable btf      : slv(7 downto 0);
    begin
       v := r;
 
-      btf := phyRxData(63 downto 56);
+      btf := protRxData(63 downto 56);
 
       v.pgpRxMaster       := REG_INIT_C.pgpRxMaster;
       v.pgpRxOut.opCodeEn := '0';
-      v.phyRxInit         := '0';
+      v.protRxPhyInit     := '0';
 
 
       -- Just translate straight to AXI-Stream packetizer2 format
       -- and let the depacketizer handle any errors?
-      if (phyRxValid = '1') then
+      if (protRxValid = '1') then
          if (r.pgpRxOut.linkReady = '0') then
             -- Unlinked
             -- Need N valid headers in a row. Data is ignored.
             v.count := (others => '0');
-            if (phyRxHeader = K_HEADER_C) then
+            if (protRxHeader = K_HEADER_C) then
                for i in VALID_BTF_ARRAY_C'range loop
                   if (btf = VALID_BTF_ARRAY_C(i)) then
                      -- Valid header, increment count
                      v.count := r.count + 1;
                   end if;
                end loop;
-            elsif (phyRxHeader = D_HEADER_C) then
+            elsif (protRxHeader = D_HEADER_C) then
                -- Ignore data
                v.count := r.count;
             end if;
@@ -125,10 +125,10 @@ begin
             -- reset when IDLE or SOF or SOC seen
             v.count := r.count + 1;
 
-            if (phyRxHeader = K_HEADER_C) then
+            if (protRxHeader = K_HEADER_C) then
                if (btf = IDLE_C) then
                   extractLinkInfo(
-                     phyRxData(39 downto 0),
+                     protRxData(39 downto 0),
                      v.remRxFifoCtrl,
                      v.remRxLinkReady,
                      v.version);
@@ -139,11 +139,11 @@ begin
                   v.pgpRxMaster.tValid              := r.pgpRxOut.linkReady;  -- Hold Everything until
                   v.pgpRxMaster.tData               := (others => '0');
                   v.pgpRxMaster.tData(24)           := ite(btf = SOF_C, '1', '0');  -- packetizer SOC bit
-                  v.pgpRxMaster.tData(11 downto 8)  := phyRxData(43 downto 40);  -- VC
-                  v.pgpRxMaster.tData(43 downto 32) := phyRxData(55 downto 44);  -- packet number
+                  v.pgpRxMaster.tData(11 downto 8)  := protRxData(43 downto 40);  -- VC
+                  v.pgpRxMaster.tData(43 downto 32) := protRxData(55 downto 44);  -- packet number
                   axiStreamSetUserBit(PGP3_AXIS_CONFIG_C, v.pgpRxMaster, SSI_SOF_C, '1', 0);  -- Set SOF
                   extractLinkInfo(
-                     phyRxData(39 downto 0),
+                     protRxData(39 downto 0),
                      v.remRxFifoCtrl,
                      v.pgpRxOut.remRxLinkReady,
                      v.version);
@@ -155,23 +155,23 @@ begin
                   v.pgpRxMaster.tLast               := '1';
                   v.pgpRxMaster.tData               := (others => '0');
                   v.pgpRxMaster.tData(8)            := toSl(btf = EOF_C);     -- EOF bit
-                  v.pgpRxMaster.tData(7 downto 0)   := phyRxData(7 downto 0);    -- TUSER LAST
-                  v.pgpRxMaster.tData(19 downto 16) := phyRxData(19 downto 16);  -- Last byte count
-                  v.pgpRxMaster.tData(63 downto 32) := phyRxData(55 downto 24);  -- CRC
+                  v.pgpRxMaster.tData(7 downto 0)   := protRxData(7 downto 0);    -- TUSER LAST
+                  v.pgpRxMaster.tData(19 downto 16) := protRxData(19 downto 16);  -- Last byte count
+                  v.pgpRxMaster.tData(63 downto 32) := protRxData(55 downto 24);  -- CRC
                else
                   for i in USER_C'range loop
                      if (btf = USER_C(i)) then
                         v.pgpRxOut.opCodeEn     := '1';
                         v.pgpRxOut.opCodeNumber := toSlv(i, 3);
-                        v.pgpRxOut.opCodeData   := phyRxData(55 downto 0);
+                        v.pgpRxOut.opCodeData   := protRxData(55 downto 0);
                      end if;
                   end loop;
                end if;
             -- Unknown opcodes silently dropped
-            elsif (phyRxHeader = D_HEADER_C) then
+            elsif (protRxHeader = D_HEADER_C) then
                -- Normal Data
                v.pgpRxMaster.tValid             := r.pgpRxOut.linkReady;
-               v.pgpRxMaster.tData(63 downto 0) := phyRxData;
+               v.pgpRxMaster.tData(63 downto 0) := protRxData;
             end if;
          end if;
       end if;
@@ -181,7 +181,7 @@ begin
       -- When linked, r.count counts consecutive chars without a valid k-char
       if (r.count = 1000) then
          v.pgpRxOut.linkReady := not r.pgpRxOut.linkReady;
-         v.phyRxInit          := r.pgpRxOut.linkReady;  -- Init phy when ready drops
+         v.protRxPhyInit      := r.pgpRxOut.linkReady;  -- Init phy when ready drops
          v.count              := (others => '0');
       end if;
 
@@ -193,7 +193,7 @@ begin
       rin <= v;
 
       pgpRxOut       <= r.pgpRxOut;
-      phyRxInit      <= r.phyRxInit;
+      protRxPhyInit  <= r.protRxPhyInit;
       pgpRxMaster    <= r.pgpRxMaster;
       remRxFifoCtrl  <= r.remRxFifoCtrl;
       remRxLinkReady <= r.remRxLinkReady;
