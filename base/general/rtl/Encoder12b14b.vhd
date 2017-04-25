@@ -2,7 +2,7 @@
 -- File       : Encode12b14b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-10-07
--- Last update: 2016-10-12
+-- Last update: 2017-04-24
 -------------------------------------------------------------------------------
 -- Description: 12B14B Encoder Module
 -------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ entity Encoder12b14b is
       clkEn    : in  sl := '1';                 -- Optional Clock Enable
       rst      : in  sl := not RST_POLARITY_G;  -- Optional Reset
       dataIn   : in  slv(11 downto 0);
-      dispIn   : in  slv(1 downto 0);
+      dispIn   : in  slv(1 downto 0) := "00";
       dataKIn  : in  sl;
       dataOut  : out slv(13 downto 0);
       dispOut  : out slv(1 downto 0));
@@ -49,7 +49,7 @@ architecture rtl of Encoder12b14b is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      dispOut  => "01",
+      dispOut  => "00",
       dataOut  => (others => '0'));
 --      invalidK => '0');
 
