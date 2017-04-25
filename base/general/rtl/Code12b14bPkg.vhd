@@ -158,7 +158,7 @@ package Code12b14bPkg is
       "01111000", "01100001", "01111011", "01110011", "01111100", "01111101", "01111110", "11101110");  -- 127
 
 
-   constant ENCODE_7B8B_TABLE_C : Encode7b8bArray;  -- := makeEncode7b8bTable(CODE_8B_C);
+   constant ENCODE_7B8B_TABLE_C : Encode7b8bArray;  
 
    -- 7/8 K-code constants
 --    constant K_55_C  : slv(6 downto 0) := "0110111";
@@ -175,14 +175,7 @@ package Code12b14bPkg is
 --    constant K_117_CODE_C : slv(7 downto 0) := "11110101";
    constant K_120_CODE_C : slv(7 downto 0) := "11111000";
 
-   constant K78_TABLE_C : Encode7b8bArray(0 to 0);-- := (
---       0          => (
---          in7b    => K_120_C,
---          out8b   => K_120_CODE_C,
---          outDisp => getDisparity(K_120_CODE_C),
---          alt8b   => not K_120_CODE_C,
---          altDisp => getDisparity(not K_120_CODE_C)));
-
+   constant K78_TABLE_C : Encode7b8bArray(0 to 0);
 
    -------------------------------------------------------------------------------------------------
    -- Structure for holding 5/6 code table
@@ -205,7 +198,7 @@ package Code12b14bPkg is
       "110110", "110001", "110010", "010011", "110100", "010101", "010110", "010111",
       "001100", "011001", "011010", "011011", "011100", "011101", "011110", "110101");
 
-   constant ENCODE_5B6B_TABLE_C : Encode5b6bArray;  -- := makeEncode5b6bTable(CODE_6B_C);
+   constant ENCODE_5B6B_TABLE_C : Encode5b6bArray; 
 
    -- 5b/6b K Codes
    constant K_X_0_C  : slv(4 downto 0) := "00000";
@@ -247,26 +240,7 @@ package Code12b14bPkg is
    constant K_X_30_CODE_C : slv(5 downto 0) := "100001";
    constant K_X_31_CODE_C : slv(5 downto 0) := "001010";
 
-   constant K56_TABLE_C : Encode5b6bArray(0 to 15);-- := (
---       (in5b => K_X_0_C, out6b => K_X_0_CODE_C, outDisp => getDisparity(K_X_0_CODE_C), alt6b => not K_X_0_CODE_C, altDisp => getDisparity(not K_X_0_CODE_C)),
---       (in5b => K_X_1_C, out6b => K_X_1_CODE_C, outDisp => getDisparity(K_X_1_CODE_C), alt6b => not K_X_1_CODE_C, altDisp => getDisparity(not K_X_1_CODE_C)),
---       (in5b => K_X_2_C, out6b => K_X_2_CODE_C, outDisp => getDisparity(K_X_2_CODE_C), alt6b => not K_X_2_CODE_C, altDisp => getDisparity(not K_X_2_CODE_C)),
---       (in5b => K_X_3_C, out6b => K_X_3_CODE_C, outDisp => getDisparity(K_X_3_CODE_C), alt6b => not K_X_3_CODE_C, altDisp => getDisparity(not K_X_3_CODE_C)),
---       (in5b => K_X_4_C, out6b => K_X_4_CODE_C, outDisp => getDisparity(K_X_4_CODE_C), alt6b => not K_X_4_CODE_C, altDisp => getDisparity(not K_X_4_CODE_C)),
---       (in5b => K_X_7_C, out6b => K_X_7_CODE_C, outDisp => getDisparity(K_X_7_CODE_C), alt6b => not K_X_7_CODE_C, altDisp => getDisparity(not K_X_7_CODE_C)),
---       (in5b => K_X_8_C, out6b => K_X_8_CODE_C, outDisp => getDisparity(K_X_8_CODE_C), alt6b => not K_X_8_CODE_C, altDisp => getDisparity(not K_X_8_CODE_C)),
---       (in5b => K_X_11_C, out6b => K_X_11_CODE_C, outDisp => getDisparity(K_X_11_CODE_C), alt6b => not K_X_11_CODE_C, altDisp => getDisparity(not K_X_11_CODE_C)),
--- --      (in5b => K_X_15_C, out6b => K_X_15_CODE_C, outDisp => getDisparity(K_X_15_CODE_C), alt6b => not K_X_15_CODE_C, altDisp => getDisparity(not K_X_15_CODE_C)),
---       (in5b => K_X_16_C, out6b => K_X_16_CODE_C, outDisp => getDisparity(K_X_16_CODE_C), alt6b => not K_X_16_CODE_C, altDisp => getDisparity(not K_X_16_CODE_C)),
---       (in5b => K_X_19_C, out6b => K_X_19_CODE_C, outDisp => getDisparity(K_X_19_CODE_C), alt6b => not K_X_19_CODE_C, altDisp => getDisparity(not K_X_19_CODE_C)),
---       (in5b => K_X_23_C, out6b => K_X_23_CODE_C, outDisp => getDisparity(K_X_23_CODE_C), alt6b => not K_X_23_CODE_C, altDisp => getDisparity(not K_X_23_CODE_C)),
---       (in5b => K_X_24_C, out6b => K_X_24_CODE_C, outDisp => getDisparity(K_X_24_CODE_C), alt6b => not K_X_24_CODE_C, altDisp => getDisparity(not K_X_24_CODE_C)),
---       (in5b => K_X_27_C, out6b => K_X_27_CODE_C, outDisp => getDisparity(K_X_27_CODE_C), alt6b => not K_X_27_CODE_C, altDisp => getDisparity(not K_X_27_CODE_C)),
---       (in5b => K_X_29_C, out6b => K_X_29_CODE_C, outDisp => getDisparity(K_X_29_CODE_C), alt6b => not K_X_29_CODE_C, altDisp => getDisparity(not K_X_29_CODE_C)),
---       (in5b => K_X_30_C, out6b => K_X_30_CODE_C, outDisp => getDisparity(K_X_30_CODE_C), alt6b => not K_X_30_CODE_C, altDisp => getDisparity(not K_X_30_CODE_C)),
---       (in5b => K_X_31_C, out6b => K_X_31_CODE_C, outDisp => getDisparity(K_X_31_CODE_C), alt6b => not K_X_31_CODE_C, altDisp => getDisparity(not K_X_31_CODE_C)));
-
-
+   constant K56_TABLE_C : Encode5b6bArray(0 to 15);
 
    -------------------------------------------------------------------------------------------------
    -- Structure for full encode table
@@ -278,12 +252,8 @@ package Code12b14bPkg is
       data56 : Encode5b6bArray(0 to 31);
    end record;
 
-   constant ENCODE_TABLE_C : EncodeTableType;  -- := (
---       data78 => ENCODE_7B8B_TABLE_C,
---       data56 => ENCODE_5B6B_TABLE_C,
---       k78    => K78_TABLE_C,
---       k56    => K56_TABLE_C);
-
+   constant ENCODE_TABLE_C : EncodeTableType;
+   
    -------------------------------------------------------------------------------------------------
    -- Procedures for encoding and decoding
    -------------------------------------------------------------------------------------------------
