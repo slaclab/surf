@@ -2,7 +2,7 @@
 -- File       : Encode12b14b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-10-07
--- Last update: 2017-04-24
+-- Last update: 2017-04-25
 -------------------------------------------------------------------------------
 -- Description: 12B14B Encoder Module
 -------------------------------------------------------------------------------
@@ -60,7 +60,7 @@ begin
 
    comb : process (dataIn, dataKIn, dispIn, r, rst) is
       variable v          : RegType;
-      variable dispInTmp  : RunDisparityType;
+      variable dispInTmp  : slv(1 downto 0);
       variable invalidK : sl;
    begin
       v := r;

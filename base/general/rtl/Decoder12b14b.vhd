@@ -2,7 +2,7 @@
 -- File       : Decoder12b14b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-10-07
--- Last update: 2016-10-14
+-- Last update: 2017-04-25
 -------------------------------------------------------------------------------
 -- Description: 12B14B Decoder Module
 -------------------------------------------------------------------------------
@@ -66,7 +66,7 @@ begin
 
    comb : process (dataIn, dispIn, r, rst) is
       variable v         : RegType;
-      variable dispInTmp : RunDisparityType;
+      variable dispInTmp : slv(1 downto 0);
    begin
       v := r;
 

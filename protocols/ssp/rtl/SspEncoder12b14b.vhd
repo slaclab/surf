@@ -2,7 +2,7 @@
 -- File       : SspEncoder12b14b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-07-14
--- Last update: 2017-04-24
+-- Last update: 2017-04-25
 -------------------------------------------------------------------------------
 -- Description: SimpleStreamingProtocol - A simple protocol layer for inserting
 -- idle and framing control characters into a raw data stream. This module
@@ -23,7 +23,7 @@ use IEEE.STD_LOGIC_UNSIGNED.all;
 use IEEE.STD_LOGIC_ARITH.all;
 
 use work.StdRtlPkg.all;
-use work.Code12b14bConstPkg.all;
+use work.Code12b14bPkg.all;
 
 entity SspEncoder12b14b is
 

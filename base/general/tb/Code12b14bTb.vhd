@@ -22,7 +22,6 @@ use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
 use work.Code12b14bPkg.all;
-use work.Code12b14bConstPkg.all;
 use work.TextUtilPkg.all;
 
 
@@ -156,7 +155,7 @@ begin
          return boolean is
       begin
          for i in K_CODE_TABLE_C'range loop
-            if (K_CODE_TABLE_C(i).k12 = d) then
+            if (K_CODE_TABLE_C(i) = d) then
 --                 d /= K_120_3_C and
 --                 d /= K_120_11_C and
 --                 d /= K_120_19_C) then
