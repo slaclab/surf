@@ -78,8 +78,7 @@ begin
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G    => RST_ASYNC_G,
-         USE_CLK_EN_G   => false)
+         RST_ASYNC_G    => RST_ASYNC_G)
       port map (
          clk     => clk,
          rst     => rst,
