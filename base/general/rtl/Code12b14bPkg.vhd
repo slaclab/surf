@@ -2,7 +2,7 @@
 -- File       : Code12b14bPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-10-05
--- Last update: 2017-04-25
+-- Last update: 2017-04-26
 -------------------------------------------------------------------------------
 -- Description: 12B14B Package File
 -------------------------------------------------------------------------------
@@ -76,23 +76,7 @@ package Code12b14bPkg is
 --    constant K_93_15_CODE_C  : slv(13 downto 0) := "00001111011101";
 --    constant K_117_15_CODE_C : slv(13 downto 0) := "00001111110101";
 
-   constant K_CODE_TABLE_C : slv12Array := (
-      K_120_0_C,
-      K_120_1_C,
-      K_120_2_C,
-      K_120_3_C,
-      K_120_4_C,
-      K_120_7_C,
-      K_120_8_C,
-      K_120_11_C,
-      K_120_16_C,
-      K_120_19_C,
-      K_120_23_C,
-      K_120_24_C,
-      K_120_27_C,
-      K_120_29_C,
-      K_120_30_C,
-      K_120_31_C);
+
 
    -------------------------------------------------------------------------------------------------
    -- Disparity types and helper functions
@@ -104,6 +88,19 @@ package Code12b14bPkg is
 
    -- Convert a 12 bit code into "D/K.x.y" form
    function toString (code : slv(11 downto 0); k : sl) return string;
+
+   -------------------------------------------------------------------------------------------------
+   -- K-Code table
+   -------------------------------------------------------------------------------------------------
+   type KCodeEntryType is record
+      k12  : slv(11 downto 0);
+      k14  : slv(13 downto 0);
+      disp : BlockDisparityType;
+   end record KCodeEntryType;
+
+   type KCodeArray is array (natural range <>) of KCodeEntryType;
+
+   constant K_CODE_TABLE_C : KCodeArray;
 
    -------------------------------------------------------------------------------------------------
    -- Structures for holding 7/8 code table
@@ -158,7 +155,7 @@ package Code12b14bPkg is
       "01111000", "01100001", "01111011", "01110011", "01111100", "01111101", "01111110", "11101110");  -- 127
 
 
-   constant ENCODE_7B8B_TABLE_C : Encode7b8bArray;  
+   constant ENCODE_7B8B_TABLE_C : Encode7b8bArray;
 
    -- 7/8 K-code constants
 --    constant K_55_C  : slv(6 downto 0) := "0110111";
@@ -198,7 +195,7 @@ package Code12b14bPkg is
       "110110", "110001", "110010", "010011", "110100", "010101", "010110", "010111",
       "001100", "011001", "011010", "011011", "011100", "011101", "011110", "110101");
 
-   constant ENCODE_5B6B_TABLE_C : Encode5b6bArray; 
+   constant ENCODE_5B6B_TABLE_C   : Encode5b6bArray;
 
    -- 5b/6b K Codes
    constant K_X_0_C  : slv(4 downto 0) := "00000";
@@ -246,14 +243,13 @@ package Code12b14bPkg is
    -- Structure for full encode table
    -------------------------------------------------------------------------------------------------
    type EncodeTableType is record
-      k78    : Encode7b8bArray(0 to 0);
-      k56    : Encode5b6bArray(0 to 15);
       data78 : Encode7b8bArray(0 to 127);
       data56 : Encode5b6bArray(0 to 31);
+      kTable : KCodeArray(0 to 15);
    end record;
 
    constant ENCODE_TABLE_C : EncodeTableType;
-   
+
    -------------------------------------------------------------------------------------------------
    -- Procedures for encoding and decoding
    -------------------------------------------------------------------------------------------------
@@ -262,12 +258,12 @@ package Code12b14bPkg is
       dataIn           : in  slv(11 downto 0);
       dataKIn          : in  sl;
       dispIn           : in  slv(1 downto 0);
-      dataOut          : out slv(13 downto 0);
-      dispOut          : out slv(1 downto 0);
+      dataOut          : inout slv(13 downto 0);
+      dispOut          : inout slv(1 downto 0);
       invalidK         : out sl);
 
    procedure decode12b14b (
-      constant CODES_C : in    EnCodeTableType;
+      constant CODES_C : in    EncodeTableType;
       dataIn           : in    slv(13 downto 0);
       dispIn           : in    slv(1 downto 0);
       dataOut          : out   slv(11 downto 0);
@@ -415,13 +411,13 @@ package body Code12b14bPkg is
    end function makeEncode5b6bTable;
 
    procedure encode12b14b (
-      constant CODES_C : in  EncodeTableType;
-      dataIn           : in  slv(11 downto 0);
-      dataKIn          : in  sl;
-      dispIn           : in  slv(1 downto 0);
-      dataOut          : out slv(13 downto 0);
-      dispOut          : out slv(1 downto 0);
-      invalidK         : out sl)
+      constant CODES_C : in    EncodeTableType;
+      dataIn           : in    slv(11 downto 0);
+      dataKIn          : in    sl;
+      dispIn           : in    slv(1 downto 0);
+      dataOut          : inout slv(13 downto 0);
+      dispOut          : inout slv(1 downto 0);
+      invalidK         : out   sl)
    is
       variable blockDispIn : BlockDisparityType;
 
@@ -429,14 +425,15 @@ package body Code12b14bPkg is
       variable tmp78       : Encode7b8bType;
       variable data8       : slv(7 downto 0);
       variable blockDisp78 : BlockDisparityType;
+      variable alt78       : boolean;
 
       variable dataIn5     : slv(4 downto 0);
       variable tmp56       : Encode5b6bType;
       variable data6       : slv(5 downto 0);
       variable blockDisp56 : BlockDisparityType;
 
-      variable debug : boolean := false;
-      variable tmp   : integer;
+      variable debug   : boolean := false;
+      variable tmpDisp : integer;
    begin
 
       -- First, split in input word in two
@@ -448,35 +445,23 @@ package body Code12b14bPkg is
       tmp78       := CODES_C.data78(conv_integer(dataIn7));
       data8       := tmp78.out8b;
       blockDisp78 := tmp78.outDisp;
+      alt78       := false;
 
-      -- Override normal table lookup for control codes
-      if (dataKIn = '1') then
-         invalidK := '1';
-         -- Search the table for valid K.x
-         for i in CODES_C.k78'range loop
-            if (dataIn7 = CODES_C.k78(i).in7b) then
-               tmp78       := CODES_C.k78(i);
-               data8       := tmp78.out8b;
-               blockDisp78 := tmp78.outDisp;
-               invalidK    := '0';
-            end if;
-         end loop;
-      end if;
 
       -- Decide whether to invert
       blockDispIn := toBlockDisparityType(dispIn);
-      tmp         := blockDispIn + tmp78.outDisp;
+      tmpDisp     := blockDispIn + tmp78.outDisp;
 
-      if ((dispIn = "10" and tmp = 4) or tmp > 4 or tmp <= -4) then
+      if ((dispIn = "10" and tmpDisp = 4) or tmpDisp > 4 or tmpDisp <= -4) then
          blockDisp78 := tmp78.altDisp;
          data8       := tmp78.alt8b;
+         alt78       := true;
       end if;
 
       -- Now repeat for the 5b6b
       tmp56       := CODES_C.data56(conv_integer(dataIn5));
       data6       := tmp56.out6b;
       blockDisp56 := tmp56.outDisp;
-
 
       -- Decide whether to invert the output
       if ((blockDisp78 > 0 and blockDisp56 > 0) or
@@ -486,7 +471,6 @@ package body Code12b14bPkg is
          blockDisp56 := tmp56.altDisp;
          data6       := tmp56.alt6b;
       end if;
-
 
       -- Special case for D/K.x.7
       -- Code is balanced but need to invert to avoid run length limits
@@ -499,6 +483,27 @@ package body Code12b14bPkg is
       dataOut(7 downto 0)  := data8;
       dataOut(13 downto 8) := data6;
       dispOut              := toSlv(blockDispIn + blockDisp56 + blockDisp78);
+
+      -- Control table overrides everything
+      if (dataKIn = '1') then
+         invalidK := '1';
+         -- Search the table for valid K.x
+         for i in CODES_C.kTable'range loop
+            if (dataIn = CODES_C.kTable(i).k12) then
+               dataOut  := CODES_C.kTable(i).k14;
+               tmpDisp  := CODES_C.kTable(i).disp;
+               invalidK := '0';
+            end if;
+         end loop;
+
+         if (blockDispIn = 0 or blockDispIn = 2 or blockDispIn = 4) then
+            dataOut := not dataOut;
+            tmpDisp := getDisparity(dataOut);
+         end if;
+
+         dispOut := toSlv(blockDispIn + tmpDisp);
+      end if;
+
 
    end;
 
@@ -543,9 +548,10 @@ package body Code12b14bPkg is
 
       -- Check the running disparity
       runDisp := inputDisp + toBlockDisparityType(dispIn);
-      if (runDisp > 4 or runDisp < -2) then
+      if (runDisp > 4 or runDisp < -4) then
 --          print("Run Disp Error");
---          print("dataIn: " & str(dataIn));
+--          print("dataIn: " & str(dataIn) & " " & hstr(dataIn));
+--          print("dispIn: " & str(toBlockDisparityType(dispIn)));
 --          print("inputDisp: " & str(inputDisp));
 --          print("runDisp: " & str(runDisp));         
          dispError := '1';
@@ -553,7 +559,7 @@ package body Code12b14bPkg is
 
       -- This probably isn't correct
       -- Need to figure out what to do when running disparity is out of range
-      dispOut := toSlv(runDisp);
+      dispOut := toSlv(inputDisp);
 --       if (dispError = '1') then
 --          dispOut := toSlv(0);
 --       end if;
@@ -567,29 +573,16 @@ package body Code12b14bPkg is
       dataOut5 := dataIn6(4 downto 0);
 
       -- Check for a k-code
-      for i in CODES_C.k78'range loop
-         if (dataIn8 = CODES_C.k78(i).out8b or
-             dataIn8 = CODES_C.k78(i).alt8b) then
-            dataOut7 := CODES_C.k78(i).in7b;
+      for i in CODES_C.kTable'range loop
+         if (dataIn = CODES_C.kTable(i).k14 or
+             dataIn = not CODES_C.kTable(i).k14) then
+            dataOut := CODES_C.kTable(i).k12;
             dataKOut := '1';
-            valid78  := '1';
+            valid56 := '1';
+            valid78 := '1';
             exit;
          end if;
       end loop;
-
-      -- Need to check for valid k5/6 code
-      if (dataKout = '1') then
-         for i in CODES_C.k56'range loop
-            if (dataIn6 = CODES_C.k56(i).out6b or
-                dataIn6 = CODES_C.k56(i).alt6b) then
-               dataOut5  := CODES_C.k56(i).in5b;
-               dataKOut  := '1';
-               valid56   := '1';
-               codeError := '0';
-               exit;
-            end if;
-         end loop;
-      end if;
 
       if (dataKOut = '0') then
          -- Decode 7/8
@@ -597,6 +590,7 @@ package body Code12b14bPkg is
             if (dataIn8 = CODES_C.data78(i).out8b or
                 dataIn8 = CODES_C.data78(i).alt8b) then
                dataOut7 := CODES_C.data78(i).in7b;
+               dataOut(6 downto 0)  := dataOut7;               
                valid78  := '1';
                exit;
             end if;
@@ -606,6 +600,7 @@ package body Code12b14bPkg is
             if (dataIn6 = CODES_C.data56(i).out6b or
                 dataIn6 = CODES_C.data56(i).alt6b) then
                dataOut5 := CODES_C.data56(i).in5b;
+               dataOut(11 downto 7) := dataOut5;               
                valid56  := '1';
                exit;
             end if;
@@ -617,49 +612,42 @@ package body Code12b14bPkg is
          codeError := '0';
       end if;
 
-      dataOut(6 downto 0)  := dataOut7;
-      dataOut(11 downto 7) := dataOut5;
-
    end procedure decode12b14b;
 
    -------------------------------------------------------------------------------------------------
    -- Differed constants from above
    -------------------------------------------------------------------------------------------------
+   constant K_CODE_TABLE_C : KCodeArray := (
+      (k12 => K_120_0_C, k14 => K_120_0_CODE_C, disp => getDisparity(K_120_0_CODE_C)),
+      (k12 => K_120_1_C, k14 => K_120_1_CODE_C, disp => getDisparity(K_120_1_CODE_C)),
+      (k12 => K_120_2_C, k14 => K_120_2_CODE_C, disp => getDisparity(K_120_2_CODE_C)),
+      (k12 => K_120_3_C, k14 => K_120_3_CODE_C, disp => getDisparity(K_120_3_CODE_C)),
+      (k12 => K_120_4_C, k14 => K_120_4_CODE_C, disp => getDisparity(K_120_4_CODE_C)),
+      (k12 => K_120_7_C, k14 => K_120_7_CODE_C, disp => getDisparity(K_120_7_CODE_C)),
+      (k12 => K_120_8_C, k14 => K_120_8_CODE_C, disp => getDisparity(K_120_8_CODE_C)),
+      (k12 => K_120_11_C, k14 => K_120_11_CODE_C, disp => getDisparity(K_120_11_CODE_C)),
+--      (k12 => K_120_15_C, k14 => K_120_15_CODE_C, disp => getDisparity(K_120_15_CODE_C)),
+      (k12 => K_120_16_C, k14 => K_120_16_CODE_C, disp => getDisparity(K_120_16_CODE_C)),
+      (k12 => K_120_19_C, k14 => K_120_19_CODE_C, disp => getDisparity(K_120_19_CODE_C)),
+      (k12 => K_120_23_C, k14 => K_120_23_CODE_C, disp => getDisparity(K_120_23_CODE_C)),
+      (k12 => K_120_24_C, k14 => K_120_24_CODE_C, disp => getDisparity(K_120_24_CODE_C)),
+      (k12 => K_120_27_C, k14 => K_120_27_CODE_C, disp => getDisparity(K_120_27_CODE_C)),
+      (k12 => K_120_29_C, k14 => K_120_29_CODE_C, disp => getDisparity(K_120_29_CODE_C)),
+      (k12 => K_120_30_C, k14 => K_120_30_CODE_C, disp => getDisparity(K_120_30_CODE_C)),
+      (k12 => K_120_31_C, k14 => K_120_31_CODE_C, disp => getDisparity(K_120_31_CODE_C)));
+--       (k12 => K_55_15_C, k14 => K_55_15_CODE_C, disp => getDisparity(K_55_15_CODE_C)),
+--       (k12 => K_57_15_C, k14 => K_57_15_CODE_C, disp => getDisparity(K_57_15_CODE_C)),
+--       (k12 => K_87_15_C, k14 => K_87_15_CODE_C, disp => getDisparity(K_87_15_CODE_C)),
+--       (k12 => K_93_15_C, k14 => K_93_15_CODE_C, disp => getDisparity(K_93_15_CODE_C)),
+--       (k12 => K_117_15_C, k14 => K_117_15_CODE_C, disp => getDisparity(K_117_15_CODE_C)));
+
+
    constant ENCODE_7B8B_TABLE_C : Encode7b8bArray := makeEncode7b8bTable(CODE_8B_C);
    constant ENCODE_5B6B_TABLE_C : Encode5b6bArray := makeEncode5b6bTable(CODE_6B_C);
 
-   constant K78_TABLE_C : Encode7b8bArray(0 to 0) := (
-      0          => (
-         in7b    => K_120_C,
-         out8b   => K_120_CODE_C,
-         outDisp => getDisparity(K_120_CODE_C),
-         alt8b   => not K_120_CODE_C,
-         altDisp => getDisparity(not K_120_CODE_C)));
-
-   constant K56_TABLE_C : Encode5b6bArray(0 to 15) := (
-      (in5b => K_X_0_C, out6b => K_X_0_CODE_C, outDisp => getDisparity(K_X_0_CODE_C), alt6b => not K_X_0_CODE_C, altDisp => getDisparity(not K_X_0_CODE_C)),
-      (in5b => K_X_1_C, out6b => K_X_1_CODE_C, outDisp => getDisparity(K_X_1_CODE_C), alt6b => not K_X_1_CODE_C, altDisp => getDisparity(not K_X_1_CODE_C)),
-      (in5b => K_X_2_C, out6b => K_X_2_CODE_C, outDisp => getDisparity(K_X_2_CODE_C), alt6b => not K_X_2_CODE_C, altDisp => getDisparity(not K_X_2_CODE_C)),
-      (in5b => K_X_3_C, out6b => K_X_3_CODE_C, outDisp => getDisparity(K_X_3_CODE_C), alt6b => not K_X_3_CODE_C, altDisp => getDisparity(not K_X_3_CODE_C)),
-      (in5b => K_X_4_C, out6b => K_X_4_CODE_C, outDisp => getDisparity(K_X_4_CODE_C), alt6b => not K_X_4_CODE_C, altDisp => getDisparity(not K_X_4_CODE_C)),
-      (in5b => K_X_7_C, out6b => K_X_7_CODE_C, outDisp => getDisparity(K_X_7_CODE_C), alt6b => not K_X_7_CODE_C, altDisp => getDisparity(not K_X_7_CODE_C)),
-      (in5b => K_X_8_C, out6b => K_X_8_CODE_C, outDisp => getDisparity(K_X_8_CODE_C), alt6b => not K_X_8_CODE_C, altDisp => getDisparity(not K_X_8_CODE_C)),
-      (in5b => K_X_11_C, out6b => K_X_11_CODE_C, outDisp => getDisparity(K_X_11_CODE_C), alt6b => not K_X_11_CODE_C, altDisp => getDisparity(not K_X_11_CODE_C)),
---      (in5b => K_X_15_C, out6b => K_X_15_CODE_C, outDisp => getDisparity(K_X_15_CODE_C), alt6b => not K_X_15_CODE_C, altDisp => getDisparity(not K_X_15_CODE_C)),
-      (in5b => K_X_16_C, out6b => K_X_16_CODE_C, outDisp => getDisparity(K_X_16_CODE_C), alt6b => not K_X_16_CODE_C, altDisp => getDisparity(not K_X_16_CODE_C)),
-      (in5b => K_X_19_C, out6b => K_X_19_CODE_C, outDisp => getDisparity(K_X_19_CODE_C), alt6b => not K_X_19_CODE_C, altDisp => getDisparity(not K_X_19_CODE_C)),
-      (in5b => K_X_23_C, out6b => K_X_23_CODE_C, outDisp => getDisparity(K_X_23_CODE_C), alt6b => not K_X_23_CODE_C, altDisp => getDisparity(not K_X_23_CODE_C)),
-      (in5b => K_X_24_C, out6b => K_X_24_CODE_C, outDisp => getDisparity(K_X_24_CODE_C), alt6b => not K_X_24_CODE_C, altDisp => getDisparity(not K_X_24_CODE_C)),
-      (in5b => K_X_27_C, out6b => K_X_27_CODE_C, outDisp => getDisparity(K_X_27_CODE_C), alt6b => not K_X_27_CODE_C, altDisp => getDisparity(not K_X_27_CODE_C)),
-      (in5b => K_X_29_C, out6b => K_X_29_CODE_C, outDisp => getDisparity(K_X_29_CODE_C), alt6b => not K_X_29_CODE_C, altDisp => getDisparity(not K_X_29_CODE_C)),
-      (in5b => K_X_30_C, out6b => K_X_30_CODE_C, outDisp => getDisparity(K_X_30_CODE_C), alt6b => not K_X_30_CODE_C, altDisp => getDisparity(not K_X_30_CODE_C)),
-      (in5b => K_X_31_C, out6b => K_X_31_CODE_C, outDisp => getDisparity(K_X_31_CODE_C), alt6b => not K_X_31_CODE_C, altDisp => getDisparity(not K_X_31_CODE_C)));
-   
-   
    constant ENCODE_TABLE_C : EncodeTableType := (
       data78 => ENCODE_7B8B_TABLE_C,
       data56 => ENCODE_5B6B_TABLE_C,
-      k78    => K78_TABLE_C,
-      k56    => K56_TABLE_C);
+      kTable => K_CODE_TABLE_C);
 
 end package body Code12b14bPkg;
