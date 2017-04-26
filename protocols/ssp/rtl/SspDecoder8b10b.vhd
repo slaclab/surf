@@ -33,19 +33,21 @@ entity SspDecoder8b10b is
       RST_ASYNC_G    : boolean := true);
 
    port (
-      clk     : in  sl;
-      rst     : in  sl := RST_POLARITY_G;
-      dataIn  : in  slv(19 downto 0);
-      dataOut : out slv(15 downto 0);
-      valid   : out sl;
-      sof     : out sl;
-      eof     : out sl;
-      eofe    : out sl);
+      clk         : in  sl;
+      rst         : in  sl := RST_POLARITY_G;
+      dataIn      : in  slv(19 downto 0);
+      dataInValid : in  sl;
+      dataOut     : out slv(15 downto 0);
+      valid       : out sl;
+      sof         : out sl;
+      eof         : out sl;
+      eofe        : out sl);
 
 end entity SspDecoder8b10b;
 
 architecture rtl of SspDecoder8b10b is
 
+   signal framedDataV : sl;
    signal framedData  : slv(15 downto 0);
    signal framedDataK : slv(1 downto 0);
 
@@ -59,14 +61,25 @@ begin
          RST_ASYNC_G    => RST_ASYNC_G)
       port map (
          clk      => clk,
-         clkEn    => '1',
+         clkEn    => dataInValid,
          rst      => rst,
          dataIn   => dataIn,
          dataOut  => framedData,
          dataKOut => framedDataK,
          codeErr  => open,
          dispErr  => open);
-
+   
+   seq : process (clk) is
+   begin
+      if (rising_edge(clk)) then
+         if (rst = RST_POLARITY_G) then
+            framedDataV <= '0' after TPD_G;
+         else
+            framedDataV <= dataInValid after TPD_G;
+         end if;
+      end if;
+   end process seq;
+   
    SspDeframer_1 : entity work.SspDeframer
       generic map (
          TPD_G          => TPD_G,
@@ -81,15 +94,16 @@ begin
          SSP_EOF_CODE_G  => D_10_2_C & K_29_7_C,
          SSP_EOF_K_G     => "01")
       port map (
-         clk     => clk,
-         rst     => rst,
-         dataIn  => framedData,
-         dataKIn => framedDataK,
-         dataOut => dataOut,
-         valid   => valid,
-         sof     => sof,
-         eof     => eof,
-         eofe    => eofe);
+         clk         => clk,
+         rst         => rst,
+         dataIn      => framedData,
+         dataKIn     => framedDataK,
+         dataInValid => framedDataV,
+         dataOut     => dataOut,
+         valid       => valid,
+         sof         => sof,
+         eof         => eof,
+         eofe        => eofe);
 
 
 
