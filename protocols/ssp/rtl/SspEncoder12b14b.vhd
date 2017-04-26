@@ -2,7 +2,7 @@
 -- File       : SspEncoder12b14b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-07-14
--- Last update: 2017-04-25
+-- Last update: 2017-04-26
 -------------------------------------------------------------------------------
 -- Description: SimpleStreamingProtocol - A simple protocol layer for inserting
 -- idle and framing control characters into a raw data stream. This module
@@ -45,8 +45,8 @@ end entity SspEncoder12b14b;
 
 architecture rtl of SspEncoder12b14b is
 
-   signal framedData  : slv(11 downto 0);
-   signal framedDataK : slv(0 downto 0);
+   signal framedData  : slv(11 downto 0) := (others => '0');
+   signal framedDataK : slv(0 downto 0) := (others => '0');
 
 begin
 

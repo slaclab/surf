@@ -2,7 +2,7 @@
 -- File       : Encode12b14b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-10-07
--- Last update: 2017-04-25
+-- Last update: 2017-04-26
 -------------------------------------------------------------------------------
 -- Description: 12B14B Encoder Module
 -------------------------------------------------------------------------------
@@ -19,7 +19,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 use work.Code12b14bPkg.all;
-use work.Code12b14bConstPkg.all;
 
 entity Encoder12b14b is
 
@@ -93,7 +92,7 @@ begin
 
    seq : process (clk, rst) is
    begin
-      if (rst = RST_POLARITY_G) then
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif (rising_edge(clk)) then
          if clkEn = '1' then

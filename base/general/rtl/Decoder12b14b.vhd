@@ -2,7 +2,7 @@
 -- File       : Decoder12b14b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-10-07
--- Last update: 2017-04-25
+-- Last update: 2017-04-26
 -------------------------------------------------------------------------------
 -- Description: 12B14B Decoder Module
 -------------------------------------------------------------------------------
@@ -19,7 +19,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 use work.Code12b14bPkg.all;
-use work.Code12b14bConstPkg.all;
 
 entity Decoder12b14b is
 
@@ -33,7 +32,7 @@ entity Decoder12b14b is
       clkEn     : in  sl := '1';                 -- Optional Clock Enable
       rst       : in  sl := not RST_POLARITY_G;  -- Optional Reset
       dataIn    : in  slv(13 downto 0);
-      dispIn    : in  slv(1 downto 0);
+      dispIn    : in  slv(1 downto 0) := "00";
       dataOut   : out slv(11 downto 0);
       dataKOut  : out sl;
       dispOut   : out slv(1 downto 0);
@@ -101,7 +100,7 @@ begin
 
    seq : process (clk, rst) is
    begin
-      if (rst = RST_POLARITY_G) then
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif (rising_edge(clk)) then
          if clkEn = '1' then
