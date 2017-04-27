@@ -2,7 +2,7 @@
 -- File       : Code12b14bPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-10-05
--- Last update: 2017-04-26
+-- Last update: 2017-04-27
 -------------------------------------------------------------------------------
 -- Description: 12B14B Package File
 -------------------------------------------------------------------------------
@@ -172,7 +172,7 @@ package Code12b14bPkg is
 --    constant K_117_CODE_C : slv(7 downto 0) := "11110101";
    constant K_120_CODE_C : slv(7 downto 0) := "11111000";
 
-   constant K78_TABLE_C : Encode7b8bArray(0 to 0);
+--   constant K78_TABLE_C : Encode7b8bArray(0 to 0);
 
    -------------------------------------------------------------------------------------------------
    -- Structure for holding 5/6 code table
@@ -195,7 +195,7 @@ package Code12b14bPkg is
       "110110", "110001", "110010", "010011", "110100", "010101", "010110", "010111",
       "001100", "011001", "011010", "011011", "011100", "011101", "011110", "110101");
 
-   constant ENCODE_5B6B_TABLE_C   : Encode5b6bArray;
+   constant ENCODE_5B6B_TABLE_C : Encode5b6bArray;
 
    -- 5b/6b K Codes
    constant K_X_0_C  : slv(4 downto 0) := "00000";
@@ -237,7 +237,7 @@ package Code12b14bPkg is
    constant K_X_30_CODE_C : slv(5 downto 0) := "100001";
    constant K_X_31_CODE_C : slv(5 downto 0) := "001010";
 
-   constant K56_TABLE_C : Encode5b6bArray(0 to 15);
+--   constant K56_TABLE_C : Encode5b6bArray(0 to 15);
 
    -------------------------------------------------------------------------------------------------
    -- Structure for full encode table
@@ -254,19 +254,19 @@ package Code12b14bPkg is
    -- Procedures for encoding and decoding
    -------------------------------------------------------------------------------------------------
    procedure encode12b14b (
-      constant CODES_C : in  EncodeTableType;
-      dataIn           : in  slv(11 downto 0);
-      dataKIn          : in  sl;
-      dispIn           : in  slv(1 downto 0);
+      constant CODES_C : in    EncodeTableType;
+      dataIn           : in    slv(11 downto 0);
+      dataKIn          : in    sl;
+      dispIn           : in    slv(1 downto 0);
       dataOut          : inout slv(13 downto 0);
       dispOut          : inout slv(1 downto 0);
-      invalidK         : out sl);
+      invalidK         : out   sl);
 
    procedure decode12b14b (
       constant CODES_C : in    EncodeTableType;
       dataIn           : in    slv(13 downto 0);
       dispIn           : in    slv(1 downto 0);
-      dataOut          : out   slv(11 downto 0);
+      dataOut          : inout slv(11 downto 0);
       dataKOut         : inout sl;
       dispOut          : inout slv(1 downto 0);
       codeError        : out   sl;
@@ -425,7 +425,6 @@ package body Code12b14bPkg is
       variable tmp78       : Encode7b8bType;
       variable data8       : slv(7 downto 0);
       variable blockDisp78 : BlockDisparityType;
-      variable alt78       : boolean;
 
       variable dataIn5     : slv(4 downto 0);
       variable tmp56       : Encode5b6bType;
@@ -445,7 +444,6 @@ package body Code12b14bPkg is
       tmp78       := CODES_C.data78(conv_integer(dataIn7));
       data8       := tmp78.out8b;
       blockDisp78 := tmp78.outDisp;
-      alt78       := false;
 
 
       -- Decide whether to invert
@@ -455,8 +453,9 @@ package body Code12b14bPkg is
       if ((dispIn = "10" and tmpDisp = 4) or tmpDisp > 4 or tmpDisp <= -4) then
          blockDisp78 := tmp78.altDisp;
          data8       := tmp78.alt8b;
-         alt78       := true;
       end if;
+
+      tmpDisp := blockDispIn + blockDisp78;
 
       -- Now repeat for the 5b6b
       tmp56       := CODES_C.data56(conv_integer(dataIn5));
@@ -466,8 +465,8 @@ package body Code12b14bPkg is
       -- Decide whether to invert the output
       if ((blockDisp78 > 0 and blockDisp56 > 0) or
           (blockDisp78 < 0 and blockDisp56 < 0) or
-          (blockDisp78 = 0 and blockDispIn > 0 and blockDisp56 > 0) or
-          (blockDisp78 = 0 and blockDispIn < 0 and blockDisp56 < 0)) then
+          (blockDisp78 = 0 and tmpDisp > 0 and blockDisp56 > 0) or
+          (blockDisp78 = 0 and tmpDisp < 0 and blockDisp56 < 0)) then
          blockDisp56 := tmp56.altDisp;
          data6       := tmp56.alt6b;
       end if;
@@ -504,14 +503,13 @@ package body Code12b14bPkg is
          dispOut := toSlv(blockDispIn + tmpDisp);
       end if;
 
-
    end;
 
    procedure decode12b14b (
       constant CODES_C : in    EncodeTableType;
       dataIn           : in    slv(13 downto 0);
       dispIn           : in    slv(1 downto 0);
-      dataOut          : out   slv(11 downto 0);
+      dataOut          : inout slv(11 downto 0);
       dataKOut         : inout sl;
       dispOut          : inout slv(1 downto 0);
       codeError        : out   sl;
@@ -549,17 +547,18 @@ package body Code12b14bPkg is
       -- Check the running disparity
       runDisp := inputDisp + toBlockDisparityType(dispIn);
       if (runDisp > 4 or runDisp < -4) then
+         runDisp := minimum(4, maximum(-4, runDisp));
 --          print("Run Disp Error");
 --          print("dataIn: " & str(dataIn) & " " & hstr(dataIn));
 --          print("dispIn: " & str(toBlockDisparityType(dispIn)));
 --          print("inputDisp: " & str(inputDisp));
---          print("runDisp: " & str(runDisp));         
+--          print("runDisp: " & str(runDisp));
          dispError := '1';
       end if;
 
       -- This probably isn't correct
       -- Need to figure out what to do when running disparity is out of range
-      dispOut := toSlv(inputDisp);
+      dispOut := toSlv(runDisp);
 --       if (dispError = '1') then
 --          dispOut := toSlv(0);
 --       end if;
@@ -569,17 +568,20 @@ package body Code12b14bPkg is
       dataIn8 := dataIn(7 downto 0);
       dataIn6 := dataIn(13 downto 8);
 
-      dataOut7 := dataIn8(6 downto 0);
-      dataOut5 := dataIn6(4 downto 0);
+--       dataOut7 := dataIn8(6 downto 0);
+--       dataOut5 := dataIn6(4 downto 0);
+
+      dataOut(6 downto 0)  := dataIn(6 downto 0);
+      dataOut(11 downto 7) := dataIn(12 downto 8);
 
       -- Check for a k-code
       for i in CODES_C.kTable'range loop
          if (dataIn = CODES_C.kTable(i).k14 or
              dataIn = not CODES_C.kTable(i).k14) then
-            dataOut := CODES_C.kTable(i).k12;
+            dataOut  := CODES_C.kTable(i).k12;
             dataKOut := '1';
-            valid56 := '1';
-            valid78 := '1';
+            valid56  := '1';
+            valid78  := '1';
             exit;
          end if;
       end loop;
@@ -589,9 +591,9 @@ package body Code12b14bPkg is
          for i in CODES_C.data78'range loop
             if (dataIn8 = CODES_C.data78(i).out8b or
                 dataIn8 = CODES_C.data78(i).alt8b) then
-               dataOut7 := CODES_C.data78(i).in7b;
-               dataOut(6 downto 0)  := dataOut7;               
-               valid78  := '1';
+               dataOut7            := CODES_C.data78(i).in7b;
+               dataOut(6 downto 0) := CODES_C.data78(i).in7b;
+               valid78             := '1';
                exit;
             end if;
          end loop;
@@ -599,9 +601,9 @@ package body Code12b14bPkg is
          for i in CODES_C.data56'range loop
             if (dataIn6 = CODES_C.data56(i).out6b or
                 dataIn6 = CODES_C.data56(i).alt6b) then
-               dataOut5 := CODES_C.data56(i).in5b;
-               dataOut(11 downto 7) := dataOut5;               
-               valid56  := '1';
+                dataOut5             := CODES_C.data56(i).in5b;
+               dataOut(11 downto 7) := CODES_C.data56(i).in5b;
+               valid56              := '1';
                exit;
             end if;
          end loop;
@@ -611,6 +613,7 @@ package body Code12b14bPkg is
       if (valid56 = '1' and valid78 = '1') then
          codeError := '0';
       end if;
+
 
    end procedure decode12b14b;
 
