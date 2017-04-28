@@ -258,7 +258,7 @@ begin
                -- Determine transfer size aligned to 4k boundaries
                v.wMaster.awlen := getAxiLen(AXI_CONFIG_G,BURST_BYTES_G,conv_integer(r.dmaWrTrack.maxSize),r.dmaWrTrack.address);
                -- Latch AXI awlen value
-               v.awlen := v.wMaster.awlen;
+               v.awlen := v.wMaster.awlen(AXI_CONFIG_G.LEN_BITS_C-1 downto 0);
                -- Check if enough room
                if pause = '0' then
                   -- Set the flag
