@@ -352,7 +352,6 @@ package body AxiPkg is
       totalBytes : positive;
       address    : slv)
       return slv is
-      variable ret  : slv(7  downto 0);
       variable max  : natural;
       variable req  : natural;
    begin
