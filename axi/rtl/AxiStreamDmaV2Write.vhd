@@ -58,10 +58,9 @@ end AxiStreamDmaV2Write;
 
 architecture rtl of AxiStreamDmaV2Write is
 
-   constant DATA_BYTES_C      : integer         := AXIS_CONFIG_G.TDATA_BYTES_C;
-   constant ADDR_LSB_C        : integer         := bitSize(DATA_BYTES_C-1);
-   constant AWLEN_C           : slv(7 downto 0) := getAxiLen(AXI_CONFIG_G, BURST_BYTES_G);
-   constant FIFO_ADDR_WIDTH_C : natural         := (AXI_CONFIG_G.LEN_BITS_C+1);
+   constant DATA_BYTES_C      : integer := AXIS_CONFIG_G.TDATA_BYTES_C;
+   constant ADDR_LSB_C        : integer := bitSize(DATA_BYTES_C-1);
+   constant FIFO_ADDR_WIDTH_C : natural := (AXI_CONFIG_G.LEN_BITS_C+1);
 
    type StateType is (
       RESET_S,
@@ -256,19 +255,10 @@ begin
                -- Set the memory address
                v.wMaster.awaddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := 
                   r.dmaWrTrack.address(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0);
-               -- Determine transfer size to align address to AXI_BURST_BYTES_G boundaries
-               -- This will ensure that we never cross a 4k boundary
-               if (AWLEN_C > 0) then
-                  -- Set the burst length
-                  v.wMaster.awlen := AWLEN_C - r.dmaWrTrack.address(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C);
-                  -- Limit write burst size
-                  if r.dmaWrTrack.maxSize(31 downto ADDR_LSB_C) < v.wMaster.awlen then
-                     v.wMaster.awlen := 
-                        resize(r.dmaWrTrack.maxSize(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C)-1, 8);
-                  end if;
-               end if;
+               -- Determine transfer size aligned to 4k boundaries
+               v.wMaster.awlen := getAxiLen(AXI_CONFIG_G,BURST_BYTES_G,r.reqSize,r.dmaRdDescReq.address);
                -- Latch AXI awlen value
-               v.awlen := v.wMaster.awlen(AXI_CONFIG_G.LEN_BITS_C-1 downto 0);
+               v.awlen := getAxiLen(AXI_CONFIG_G,BURST_BYTES_G,r.reqSize,r.dmaRdDescReq.address);
                -- Check if enough room
                if pause = '0' then
                   -- Set the flag
@@ -330,14 +320,14 @@ begin
                         axiStreamGetUserField(AXIS_CONFIG_G, intAxisMaster);
                      v.dmaWrTrack.inUse := '0';
                      -- Pad write if transaction is not done, return will following PAD because inUse = 0
-                     if (AWLEN_C = 0) or (r.awlen = 0) then
-                        v.state   := RETURN_S;
+                     if r.awlen = 0 then
+                        v.state := RETURN_S;
                      else
                         v.state := PAD_S;
                      end if;
                   end if;
                   -- Check for last AXI transfer
-                  if (AWLEN_C = 0) or (r.awlen = 0) then
+                  if r.awlen = 0 then
                      -- Set the flag
                      v.wMaster.wlast := '1';
                      -- If next state has not already been updated go to idle
@@ -363,7 +353,7 @@ begin
                v.wMaster.wvalid := '1';
                v.wMaster.wstrb := (others=>'0');
                -- Check for last AXI transfer
-               if (AWLEN_C = 0) or (r.awlen = 0) then
+               if r.awlen = 0 then
                   -- Set the flag
                   v.wMaster.wlast := '1';
                   -- Frame is done. Go to return. Otherwise go to idle.
