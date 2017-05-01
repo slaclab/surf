@@ -26,7 +26,8 @@ entity Encoder12b14b is
       TPD_G          : time    := 1 ns;
       RST_POLARITY_G : sl      := '0';
       RST_ASYNC_G    : boolean := false;
-      DEBUG_DISP_G   : boolean := false);
+      DEBUG_DISP_G   : boolean := false;
+      FLOW_CTRL_EN_G : boolean := false);
    port (
       clk      : in  sl;
       clkEn    : in  sl              := '1';                 -- Optional Clock Enable
@@ -54,7 +55,7 @@ architecture rtl of Encoder12b14b is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      validOut => '0',
+      validOut => toSl(not FLOW_CTRL_EN_G),
       readyIn  => '0',
       dispOut  => "00",
       dataOut  => (others => '0'));
@@ -79,11 +80,11 @@ begin
       end if;
 
       v.readyIn := readyOut;
-      if (readyOut = '1') then
+      if (readyOut = '1' and FLOW_CTRL_EN_G) then
          v.validOut := '0';
       end if;
 
-      if (v.validOut = '0') then
+      if (v.validOut = '0' or FLOW_CTRL_EN_G = false) then
          v.validOut := '1';
          encode12b14b(
             CODES_C  => ENCODE_TABLE_C,
