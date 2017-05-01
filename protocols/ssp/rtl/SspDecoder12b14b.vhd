@@ -94,7 +94,6 @@ begin
          dataKIn  => framedDataK,
          validOut => validOut,
          dataOut  => dataOut,
-         valid    => valid,
          sof      => sof,
          eof      => eof,
          eofe     => eofe);
