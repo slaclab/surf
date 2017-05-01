@@ -2,7 +2,7 @@
 -- File       : Code12b14bPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-10-05
--- Last update: 2017-04-27
+-- Last update: 2017-05-01
 -------------------------------------------------------------------------------
 -- Description: 12B14B Package File
 -------------------------------------------------------------------------------
@@ -81,7 +81,7 @@ package Code12b14bPkg is
    -------------------------------------------------------------------------------------------------
    -- Disparity types and helper functions
    -------------------------------------------------------------------------------------------------
-   subtype BlockDisparityType is integer;
+   subtype BlockDisparityType is integer range -4 to 4;
    function toSlv (d                : BlockDisparityType) return slv;
    function toBlockDisparityType (d : slv(1 downto 0)) return BlockDisparityType;
    function getDisparity (vec       : slv) return BlockDisparityType;
@@ -315,28 +315,28 @@ package body Code12b14bPkg is
    begin
       case d is
          when -2 =>
-            ret := "00";
-         when 0 =>
-            ret := "01";
-         when 2 =>
             ret := "10";
-         when 4 =>
+         when 0 =>
             ret := "11";
-         when others =>
+         when 2 =>
+            ret := "00";
+         when 4 =>
             ret := "01";
+         when others =>
+            ret := "11";
       end case;
       return ret;
    end function;
 
    function toBlockDisparityType (d : slv(1 downto 0)) return BlockDisparityType is
    begin
-      if (d = "00") then
+      if (d = "10") then
          return -2;
-      elsif (d = "01") then
-         return 0;
-      elsif (d = "10") then
-         return 2;
       elsif (d = "11") then
+         return 0;
+      elsif (d = "00") then
+         return 2;
+      elsif (d = "01") then
          return 4;
       end if;
       return 0;
@@ -350,23 +350,33 @@ package body Code12b14bPkg is
    procedure disparityControl (
       prevDisp   : in    slv(1 downto 0);
       blockDisp  : in    BlockDisparityType;
-      compliment : inout sl;
-      runDisp    : inout slv(1 downto 0))
-   is
-      variable tmp : integer;
-      variable b   : BlockDisparityType;
+      compliment : inout sl) is
+      variable dispInt : BlockDisparityType;
    begin
       compliment := '0';
+      dispInt := toBlockDisparityType(prevDisp);
 
-      tmp := toBlockDisparityType(prevDisp) + blockDisp;
+      case prevDisp is
+         when "10" =>                   -- -2
+            if (blockDisp = -2 or blockDisp = -4) then
+               compliment := '1';
+            end if;
+         when "11" =>                   -- 0
+            if (blockDisp = -4) then
+               compliment := '1';
+            end if;
+         when "00" =>                   -- 2
+            if (blockDisp = 2 or blockDisp = 4) then
+               compliment := '1';
+            end if;
+         when "01" =>                   -- 4
+            if (blockDisp = 2 or blockDisp = 4) then
+               compliment := '1';
+            end if;
+         when others =>
+            null;
+      end case;
 
-      if ((prevDisp = "10" and tmp = 4) or
-          tmp > 4 or tmp <= -4) then
-         compliment := '1';
-         tmp        := toBlockDisparityType(prevDisp) - blockDisp;
-      end if;
-      b       := tmp;
-      runDisp := toSlv(b);
    end procedure;
 
    -------------------------------------------------------------------------------------------------
@@ -432,7 +442,8 @@ package body Code12b14bPkg is
       variable blockDisp56 : BlockDisparityType;
 
       variable debug   : boolean := false;
-      variable tmpDisp : integer;
+      variable tmpDisp : integer range -8 to 8;
+      variable compliment : sl;
    begin
 
       -- First, split in input word in two
@@ -448,14 +459,22 @@ package body Code12b14bPkg is
 
       -- Decide whether to invert
       blockDispIn := toBlockDisparityType(dispIn);
-      tmpDisp     := blockDispIn + tmp78.outDisp;
 
-      if ((dispIn = "10" and tmpDisp = 4) or tmpDisp > 4 or tmpDisp <= -4) then
+      disparityControl(dispIn, blockDisp78, compliment);
+
+      if (compliment = '1') then
          blockDisp78 := tmp78.altDisp;
          data8       := tmp78.alt8b;
       end if;
 
-      tmpDisp := blockDispIn + blockDisp78;
+--       tmpDisp     := blockDispIn + tmp78.outDisp;
+
+--       if ((dispIn = "10" and tmpDisp = 4) or tmpDisp > 4 or tmpDisp <= -4) then
+--          blockDisp78 := tmp78.altDisp;
+--          data8       := tmp78.alt8b;
+--       end if;
+
+--       tmpDisp := blockDispIn + blockDisp78;
 
       -- Now repeat for the 5b6b
       tmp56       := CODES_C.data56(conv_integer(dataIn5));
@@ -465,8 +484,8 @@ package body Code12b14bPkg is
       -- Decide whether to invert the output
       if ((blockDisp78 > 0 and blockDisp56 > 0) or
           (blockDisp78 < 0 and blockDisp56 < 0) or
-          (blockDisp78 = 0 and tmpDisp > 0 and blockDisp56 > 0) or
-          (blockDisp78 = 0 and tmpDisp < 0 and blockDisp56 < 0)) then
+          (blockDisp78 = 0 and blockDispIn > 0 and blockDisp56 > 0) or
+          (blockDisp78 = 0 and blockDispIn < 0 and blockDisp56 < 0)) then
          blockDisp56 := tmp56.altDisp;
          data6       := tmp56.alt6b;
       end if;
@@ -547,7 +566,7 @@ package body Code12b14bPkg is
       -- Check the running disparity
       runDisp := inputDisp + toBlockDisparityType(dispIn);
       if (runDisp > 4 or runDisp < -4) then
-         runDisp := minimum(4, maximum(-4, runDisp));
+         runDisp   := minimum(4, maximum(-4, runDisp));
 --          print("Run Disp Error");
 --          print("dataIn: " & str(dataIn) & " " & hstr(dataIn));
 --          print("dispIn: " & str(toBlockDisparityType(dispIn)));
@@ -601,7 +620,7 @@ package body Code12b14bPkg is
          for i in CODES_C.data56'range loop
             if (dataIn6 = CODES_C.data56(i).out6b or
                 dataIn6 = CODES_C.data56(i).alt6b) then
-                dataOut5             := CODES_C.data56(i).in5b;
+               dataOut5             := CODES_C.data56(i).in5b;
                dataOut(11 downto 7) := CODES_C.data56(i).in5b;
                valid56              := '1';
                exit;
