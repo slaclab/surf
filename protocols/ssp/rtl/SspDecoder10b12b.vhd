@@ -2,7 +2,7 @@
 -- File       : SspDecoder10b12b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-07-14
--- Last update: 2016-10-24
+-- Last update: 2017-05-01
 -------------------------------------------------------------------------------
 -- Description: SimpleStreamingProtocol - A simple protocol layer for inserting
 -- idle and framing control characters into a raw data stream. This module
@@ -36,8 +36,9 @@ entity SspDecoder10b12b is
       clk       : in  sl;
       rst       : in  sl := RST_POLARITY_G;
       dataIn    : in  slv(11 downto 0);
+      validIn   : in  sl := '1';
       dataOut   : out slv(9 downto 0);
-      valid     : out sl;
+      validOut  : out sl;
       sof       : out sl;
       eof       : out sl;
       eofe      : out sl;
@@ -48,8 +49,10 @@ end entity SspDecoder10b12b;
 
 architecture rtl of SspDecoder10b12b is
 
-   signal framedData  : slv(9 downto 0);
-   signal framedDataK : slv(0 downto 0);
+   signal validDec     : sl;
+   signal codeErrorInt : sl;
+   signal framedData   : slv(9 downto 0);
+   signal framedDataK  : slv(0 downto 0);
 
 begin
 
@@ -62,11 +65,15 @@ begin
          clk       => clk,
          clkEn     => '1',
          rst       => rst,
+         validIn   => validIn,
          dataIn    => dataIn,
          dataOut   => framedData,
          dataKOut  => framedDataK(0),
-         codeError => codeError,
+         validOut  => validDec,
+         codeError => codeErrorInt,
          dispError => dispError);
+
+   codeError <= codeErrorInt;
 
    SspDeframer_1 : entity work.SspDeframer
       generic map (
@@ -82,15 +89,16 @@ begin
          SSP_EOF_CODE_G  => K_28_21_C,
          SSP_EOF_K_G     => "1")
       port map (
-         clk     => clk,
-         rst     => rst,
-         dataIn  => framedData,
-         dataKIn => framedDataK,
-         dataOut => dataOut,
-         valid   => valid,
-         sof     => sof,
-         eof     => eof,
-         eofe    => eofe);
+         clk      => clk,
+         rst      => rst,
+         validIn  => validDec,
+         dataIn   => framedData,
+         dataKIn  => framedDataK,
+         dataOut  => dataOut,
+         validOut => validOut,
+         sof      => sof,
+         eof      => eof,
+         eofe     => eofe);
 
 
 

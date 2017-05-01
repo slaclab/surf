@@ -125,7 +125,7 @@ architecture rtl of ClockManagerUltraScale is
 
 begin
    
-   assert (TYPE_G = "MMCM" or (TYPE_G = "PLL" and NUM_CLOCKS_G < 2))
+   assert (TYPE_G = "MMCM" or (TYPE_G = "PLL" and NUM_CLOCKS_G <= 2))
       report "ClockManager7: Cannot have 2 clocks if TYPE_G is PLL" severity failure;
 
    assert(TYPE_G = "MMCM" or TYPE_G = "PLL")

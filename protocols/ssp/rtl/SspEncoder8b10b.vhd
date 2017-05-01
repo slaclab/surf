@@ -85,7 +85,7 @@ begin
          clkEn   => '1',
          rst     => rst,
          dataIn  => framedData,
-         dataKIn => framedDataK(0),
+         dataKIn => framedDataK,
          dataOut => dataOut);
 
 end architecture rtl;
