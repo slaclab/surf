@@ -2,7 +2,7 @@
 -- File       : SspDecoder12b14b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-07-14
--- Last update: 2017-04-26
+-- Last update: 2017-05-01
 -------------------------------------------------------------------------------
 -- Description: SimpleStreamingProtocol - A simple protocol layer for inserting
 -- idle and framing control characters into a raw data stream. This module
@@ -34,7 +34,9 @@ entity SspDecoder12b14b is
    port (
       clk       : in  sl;
       rst       : in  sl := RST_POLARITY_G;
+      validIn   : in  sl := '1';
       dataIn    : in  slv(13 downto 0);
+      validOut  : out sl;
       dataOut   : out slv(11 downto 0);
       valid     : out sl;
       sof       : out sl;
@@ -47,8 +49,10 @@ end entity SspDecoder12b14b;
 
 architecture rtl of SspDecoder12b14b is
 
-   signal framedData  : slv(11 downto 0);
-   signal framedDataK : slv(0 downto 0);
+   signal validInt     : sl;
+   signal codeErrorInt : sl;
+   signal framedData   : slv(11 downto 0);
+   signal framedDataK  : slv(0 downto 0);
 
 begin
 
@@ -61,7 +65,9 @@ begin
          clk       => clk,
          clkEn     => '1',
          rst       => rst,
+         validIn   => validIn,
          dataIn    => dataIn,
+         validOut  => validInt,
          dataOut   => framedData,
          dataKOut  => framedDataK(0),
          codeError => codeError,
@@ -81,15 +87,17 @@ begin
          SSP_EOF_CODE_G  => K_120_1_C,
          SSP_EOF_K_G     => "1")
       port map (
-         clk     => clk,
-         rst     => rst,
-         dataIn  => framedData,
-         dataKIn => framedDataK,
-         dataOut => dataOut,
-         valid   => valid,
-         sof     => sof,
-         eof     => eof,
-         eofe    => eofe);
+         clk      => clk,
+         rst      => rst,
+         validIn  => validInt,
+         dataIn   => framedData,
+         dataKIn  => framedDataK,
+         validOut => validOut,
+         dataOut  => dataOut,
+         valid    => valid,
+         sof      => sof,
+         eof      => eof,
+         eofe     => eofe);
 
 
 

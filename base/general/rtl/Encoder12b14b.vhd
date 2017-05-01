@@ -2,7 +2,7 @@
 -- File       : Encode12b14b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-10-07
--- Last update: 2017-04-26
+-- Last update: 2017-05-01
 -------------------------------------------------------------------------------
 -- Description: 12B14B Encoder Module
 -------------------------------------------------------------------------------
@@ -23,17 +23,21 @@ use work.Code12b14bPkg.all;
 entity Encoder12b14b is
 
    generic (
-      TPD_G          : time     := 1 ns;
-      RST_POLARITY_G : sl       := '0';
-      RST_ASYNC_G    : boolean  := false;
-      DEBUG_DISP_G   : boolean  := false);
+      TPD_G          : time    := 1 ns;
+      RST_POLARITY_G : sl      := '0';
+      RST_ASYNC_G    : boolean := false;
+      DEBUG_DISP_G   : boolean := false);
    port (
       clk      : in  sl;
-      clkEn    : in  sl := '1';                 -- Optional Clock Enable
-      rst      : in  sl := not RST_POLARITY_G;  -- Optional Reset
+      clkEn    : in  sl              := '1';                 -- Optional Clock Enable
+      rst      : in  sl              := not RST_POLARITY_G;  -- Optional Reset
+      validIn  : in  sl              := '1';
+      readyIn  : out sl;
       dataIn   : in  slv(11 downto 0);
       dispIn   : in  slv(1 downto 0) := "00";
       dataKIn  : in  sl;
+      validOut : out sl;
+      readyOut : in  sl              := '1';
       dataOut  : out slv(13 downto 0);
       dispOut  : out slv(1 downto 0));
 
@@ -42,12 +46,16 @@ end entity Encoder12b14b;
 architecture rtl of Encoder12b14b is
 
    type RegType is record
+      validOut : sl;
+      readyIn  : sl;
       dispOut  : slv(1 downto 0);
       dataOut  : slv(13 downto 0);
 --      invalidK : sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      validOut => '0',
+      readyIn  => '0',
       dispOut  => "00",
       dataOut  => (others => '0'));
 --      invalidK => '0');
@@ -58,9 +66,9 @@ architecture rtl of Encoder12b14b is
 begin
 
    comb : process (dataIn, dataKIn, dispIn, r, rst) is
-      variable v          : RegType;
-      variable dispInTmp  : slv(1 downto 0);
-      variable invalidK : sl;
+      variable v         : RegType;
+      variable dispInTmp : slv(1 downto 0);
+      variable invalidK  : sl;
    begin
       v := r;
 
@@ -70,24 +78,34 @@ begin
          dispInTmp := dispIn;
       end if;
 
-      encode12b14b(
-         CODES_C  => ENCODE_TABLE_C,
-         dataIn   => dataIn,
-         dataKIn  => dataKIn,
-         dispIn   => dispInTmp,
-         dataOut  => v.dataOut,
-         dispOut  => v.dispOut,
-         invalidK => invalidK);
+      v.readyIn := readyOut;
+      if (readyOut = '1') then
+         v.validOut := '0';
+      end if;
+
+      if (v.validOut = '0') then
+         v.validOut := '1';
+         encode12b14b(
+            CODES_C  => ENCODE_TABLE_C,
+            dataIn   => dataIn,
+            dataKIn  => dataKIn,
+            dispIn   => dispInTmp,
+            dataOut  => v.dataOut,
+            dispOut  => v.dispOut,
+            invalidK => invalidK);
+      end if;
 
       -- Synchronous reset
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
-      rin     <= v;
-      dataOut <= r.dataOut;
-      dispOut <= r.dispOut;
+      rin      <= v;
+      dataOut  <= r.dataOut;
+      dispOut  <= r.dispOut;
 --      invalidK <= r.invalidK;
+      readyIn  <= v.readyIn;
+      validOut <= r.validOut;
    end process comb;
 
    seq : process (clk, rst) is

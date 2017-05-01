@@ -2,7 +2,7 @@
 -- File       : Decoder12b14b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-10-07
--- Last update: 2017-04-26
+-- Last update: 2017-05-01
 -------------------------------------------------------------------------------
 -- Description: 12B14B Decoder Module
 -------------------------------------------------------------------------------
@@ -29,10 +29,12 @@ entity Decoder12b14b is
       DEBUG_DISP_G   : boolean := false);
    port (
       clk       : in  sl;
-      clkEn     : in  sl := '1';                 -- Optional Clock Enable
-      rst       : in  sl := not RST_POLARITY_G;  -- Optional Reset
+      clkEn     : in  sl              := '1';                 -- Optional Clock Enable
+      rst       : in  sl              := not RST_POLARITY_G;  -- Optional Reset
+      validIn   : in  sl              := '1';
       dataIn    : in  slv(13 downto 0);
       dispIn    : in  slv(1 downto 0) := "00";
+      validOut  : out sl;
       dataOut   : out slv(11 downto 0);
       dataKOut  : out sl;
       dispOut   : out slv(1 downto 0);
@@ -44,6 +46,7 @@ end entity Decoder12b14b;
 architecture rtl of Decoder12b14b is
 
    type RegType is record
+      validOut  : sl;
       dispOut   : slv(1 downto 0);
       dataOut   : slv(11 downto 0);
       dataKOut  : sl;
@@ -52,6 +55,7 @@ architecture rtl of Decoder12b14b is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      validOut  => '0',
       dispOut   => "01",
       dataOut   => (others => '0'),
       dataKOut  => '0',
@@ -75,15 +79,19 @@ begin
          dispInTmp := dispIn;
       end if;
 
-      decode12b14b(
-         CODES_C   => ENCODE_TABLE_C,
-         dataIn    => dataIn,
-         dispIn    => dispInTmp,
-         dataOut   => v.dataOut,
-         dataKOut  => v.dataKOut,
-         dispOut   => v.dispOut,
-         codeError => v.codeError,
-         dispError => v.dispError);
+      v.validOut := validIn;
+
+      if (validIn = '1') then
+         decode12b14b(
+            CODES_C   => ENCODE_TABLE_C,
+            dataIn    => dataIn,
+            dispIn    => dispInTmp,
+            dataOut   => v.dataOut,
+            dataKOut  => v.dataKOut,
+            dispOut   => v.dispOut,
+            codeError => v.codeError,
+            dispError => v.dispError);
+      end if;
 
       -- Synchronous reset
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
@@ -91,6 +99,7 @@ begin
       end if;
 
       rin       <= v;
+      validOut  <= r.validOut;
       dataOut   <= r.dataOut;
       dataKOut  <= r.dataKOut;
       dispOut   <= r.dispOut;
