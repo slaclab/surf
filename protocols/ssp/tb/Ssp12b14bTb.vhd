@@ -141,18 +141,21 @@ begin
 
 
       for i in 0 to 2**12-1 loop
-         wait until decValid = '1';         
+         wait until decValid = '1';
+         print("i: " & str(i));
          for j in 0 to 2**12-1 loop
             wait until clk = '1';
             assert (decSof = '1' or j /= 0) report "No SOF" severity failure;
             assert (decDataOut = conv_std_logic_vector(i, 12)) report "Bad decode" severity failure;
-            assert (decDispError = '0') report "Bad disparity" severity failure;
-            print("Expected " & str(conv_std_logic_vector(i, 12)) & " got " & str(decDataOut));
+            assert (decDispError = '0') report "Bad disparity" severity warning;
+            assert (decCodeError = '0') report "Bad Code" severity warning;            
+--            print("Expected " & str(conv_std_logic_vector(i, 12)) & " got " & str(decDataOut));
             wait until clk = '1';
             assert (decDataOut = conv_std_logic_vector(j, 12)) report "Bad decode" severity failure;
             assert (decEof = '1' or j /= (2**12-1)) report "No EOF" severity failure;
-            assert (decDispError = '0') report "Bad disparity" severity failure;            
-            print("Expected " & str(conv_std_logic_vector(j, 12)) & " got " & str(decDataOut));
+            assert (decDispError = '0') report "Bad disparity" severity warning;
+            assert (decCodeError = '0') report "Bad Code" severity warning;                        
+--            print("Expected " & str(conv_std_logic_vector(j, 12)) & " got " & str(decDataOut));
          end loop;
       end loop;
    end process check;
