@@ -2,7 +2,7 @@
 -- File       : Decoder8b10b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-11-15
--- Last update: 2016-12-15
+-- Last update: 2017-05-01
 -------------------------------------------------------------------------------
 -- Description: 8B10B Decoder Module
 -------------------------------------------------------------------------------
@@ -21,7 +21,7 @@ use work.StdRtlPkg.all;
 use work.Code8b10bPkg.all;
 
 entity Decoder8b10b is
-   
+
    generic (
       TPD_G          : time     := 1 ns;
       NUM_BYTES_G    : positive := 2;
@@ -29,11 +29,13 @@ entity Decoder8b10b is
       RST_ASYNC_G    : boolean  := false);
    port (
       clk      : in  sl;
-      clkEn    : in  sl := '1';  -- Optional Clock Enable
+      clkEn    : in  sl := '1';                 -- Optional Clock Enable
       rst      : in  sl := not RST_POLARITY_G;  -- Optional Reset
+      validIn  : in  sl := '1';
       dataIn   : in  slv(NUM_BYTES_G*10-1 downto 0);
       dataOut  : out slv(NUM_BYTES_G*8-1 downto 0);
       dataKOut : out slv(NUM_BYTES_G-1 downto 0);
+      validOut : out sl;
       codeErr  : out slv(NUM_BYTES_G-1 downto 0);
       dispErr  : out slv(NUM_BYTES_G-1 downto 0));
 
@@ -45,6 +47,7 @@ architecture rtl of Decoder8b10b is
       runDisp  : sl;
       dataOut  : slv(NUM_BYTES_G*8-1 downto 0);
       dataKOut : slv(NUM_BYTES_G-1 downto 0);
+      validOut : sl;
       codeErr  : slv(NUM_BYTES_G-1 downto 0);
       dispErr  : slv(NUM_BYTES_G-1 downto 0);
    end record RegType;
@@ -53,6 +56,7 @@ architecture rtl of Decoder8b10b is
       runDisp  => '0',
       dataOut  => (others => '0'),
       dataKOut => (others => '0'),
+      validOut => '0',
       codeErr  => (others => '0'),
       dispErr  => (others => '0'));
 
@@ -61,7 +65,7 @@ architecture rtl of Decoder8b10b is
 
 begin
 
-   comb : process (r, dataIn, rst) is
+   comb : process (dataIn, r, rst, validIn) is
       variable v            : RegType;
       variable dispChainVar : sl;
    begin
@@ -76,7 +80,8 @@ begin
                      codeErr  => v.codeErr(i),
                      dispErr  => v.dispErr(i));
       end loop;
-      v.runDisp := dispChainVar;
+      v.runDisp  := dispChainVar;
+      v.validOut := validIn;            -- Pass through pipeline
 
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
@@ -85,6 +90,7 @@ begin
       rin      <= v;
       dataOut  <= r.dataOut;
       dataKOut <= r.dataKOut;
+      validOut <= r.validOut;
       codeErr  <= r.codeErr;
       dispErr  <= r.dispErr;
    end process comb;

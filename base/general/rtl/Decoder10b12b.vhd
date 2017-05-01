@@ -2,7 +2,7 @@
 -- File       : Decoder10b12b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-10-07
--- Last update: 2016-10-26
+-- Last update: 2017-05-01
 -------------------------------------------------------------------------------
 -- Description: 10B12B Decoder Module
 -------------------------------------------------------------------------------
@@ -31,9 +31,11 @@ entity Decoder10b12b is
       clk       : in  sl;
       clkEn     : in  sl := '1';                 -- Optional Clock Enable
       rst       : in  sl := not RST_POLARITY_G;  -- Optional Reset
+      validIn   : in  sl := '1';
       dataIn    : in  slv(11 downto 0);
       dataOut   : out slv(9 downto 0);
       dataKOut  : out sl;
+      validOut  : out sl;
       dispOut   : out sl;
       codeError : out sl;
       dispError : out sl);
@@ -46,6 +48,7 @@ architecture rtl of Decoder10b12b is
       dispOut   : sl;
       dataOut   : slv(9 downto 0);
       dataKOut  : sl;
+      validOut  : sl;
       codeError : sl;
       dispError : sl;
    end record RegType;
@@ -54,6 +57,7 @@ architecture rtl of Decoder10b12b is
       dispOut   => '0',
       dataOut   => (others => '0'),
       dataKOut  => '0',
+      validOut  => '0',
       codeError => '0',
       dispError => '0');
 
@@ -63,7 +67,7 @@ architecture rtl of Decoder10b12b is
 begin
 
    comb : process (dataIn, r, rst) is
-      variable v         : RegType;
+      variable v : RegType;
    begin
       v := r;
 
@@ -76,6 +80,8 @@ begin
          codeError => v.codeError,
          dispError => v.dispError);
 
+      v.validOut := validIn;
+
       -- Synchronous reset
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
@@ -84,6 +90,7 @@ begin
       rin       <= v;
       dataOut   <= r.dataOut;
       dataKOut  <= r.dataKOut;
+      validOut  <= r.validOut;
       dispOut   <= r.dispOut;
       codeError <= r.codeError;
       dispError <= r.dispError;

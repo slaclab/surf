@@ -2,7 +2,7 @@
 -- File       : SspDecoder8b10bTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-08-27
--- Last update: 2016-09-06
+-- Last update: 2017-05-01
 -------------------------------------------------------------------------------
 -- Description: Testbench for design "SspDecoder8b10b"
 -------------------------------------------------------------------------------
@@ -36,86 +36,86 @@ architecture sim of SspDecoder8b10bTb is
    constant RST_ASYNC_G    : boolean := true;
 
    -- component ports
-   signal clkDiv2       : sl               := '0';
-   signal clk           : sl               := '0';
-   signal rst           : sl               := RST_POLARITY_G;
-   signal dataIn        : slv(19 downto 0) := (others => '0');
-   signal dataInValid   : sl;
-   signal dataOut       : slv(15 downto 0);
-   signal valid         : sl;
-   signal sof           : sl;
-   signal eof           : sl;
-   signal eofe          : sl;
+   signal clkDiv2  : sl               := '0';
+   signal clk      : sl               := '0';
+   signal rst      : sl               := RST_POLARITY_G;
+   signal dataIn   : slv(19 downto 0) := (others => '0');
+   signal validIn  : sl;
+   signal dataOut  : slv(15 downto 0);
+   signal validOut : sl;
+   signal sof      : sl;
+   signal eof      : sl;
+   signal eofe     : sl;
 
-   signal dataInEnc     : slv(15 downto 0);
-   signal dataValidEnc  : sl;
-   signal dataOutEnc    : slv(19 downto 0);
+   signal dataInEnc    : slv(15 downto 0);
+   signal dataValidEnc : sl;
+   signal dataOutEnc   : slv(19 downto 0);
 
 begin
 
    -- component instantiation
-   
+
    -- encoded data gen
    Stimuli : entity work.SspEncoder8b10b
-   generic map (
-      RST_POLARITY_G => '1'
-   )
-   port map (
-      clk     => clkDiv2,
-      rst     => rst,
-      valid   => dataValidEnc,
-      dataIn  => dataInEnc,
-      dataOut => dataOutEnc
-   );
-   
-   -- async fifo for dataInValid simulation
-   Fifo: entity work.FifoCascade
-   generic map (
-      GEN_SYNC_FIFO_G   => false,
-      FWFT_EN_G         => true,
-      DATA_WIDTH_G      => 20
-   )
-   port map (
-      -- Resets
-      rst           => rst,
-      wr_clk        => clkDiv2,
-      wr_en         => '1',
-      din           => dataOutEnc,
-      --Read Ports (rd_clk domain)
-      rd_clk        => clk,
-      rd_en         => dataInValid,
-      dout          => dataIn,
-      valid         => dataInValid
-   );
-   
+      generic map (
+         RST_POLARITY_G => '1'
+         )
+      port map (
+         clk     => clkDiv2,
+         rst     => rst,
+         valid   => dataValidEnc,
+         dataIn  => dataInEnc,
+         dataOut => dataOutEnc
+         );
+
+   -- async fifo for validIn simulation
+   Fifo : entity work.FifoCascade
+      generic map (
+         GEN_SYNC_FIFO_G => false,
+         FWFT_EN_G       => true,
+         DATA_WIDTH_G    => 20
+         )
+      port map (
+         -- Resets
+         rst    => rst,
+         wr_clk => clkDiv2,
+         wr_en  => '1',
+         din    => dataOutEnc,
+         --Read Ports (rd_clk domain)
+         rd_clk => clk,
+         rd_en  => validIn,
+         dout   => dataIn,
+         valid  => validIn
+         );
+
    -- unit under test
    UUT : entity work.SspDecoder8b10b
-   generic map (
-      RST_POLARITY_G => '1'
-   )
-   port map (
-      clk         => clk,
-      rst         => rst,
-      dataIn      => dataIn,
-      dataInValid => dataInValid,
-      dataOut     => dataOut,
-      valid       => valid,
-      sof         => sof,
-      eof         => eof,
-      eofe        => eofe
-   );
+      generic map (
+         RST_POLARITY_G => '1'
+         )
+      port map (
+         clk      => clk,
+         rst      => rst,
+         dataIn   => dataIn,
+         validIn  => validIn,
+         dataOut  => dataOut,
+         validOut => validOut,
+         sof      => sof,
+         eof      => eof,
+         eofe     => eofe
+         );
 
    -- clock generation
-   clk <= not clk after 10 ns;
+   clk     <= not clk     after 10 ns;
    clkDiv2 <= not clkDiv2 after 20 ns;
 
    -- waveform generation
    WaveGen_Proc : process
    begin
-      
+
       dataValidEnc <= '0';
-      dataInEnc <= x"0000";
-      
+      dataInEnc    <= x"0000";
+
       -- insert signal assignments here
       wait until clkDiv2 = '1';
       wait until clkDiv2 = '1';
@@ -123,7 +123,7 @@ begin
       wait until clkDiv2 = '1';
 
       rst <= not RST_POLARITY_G;
-      
+
       wait until clkDiv2 = '1';
       wait until clkDiv2 = '1';
       wait until clkDiv2 = '1';
@@ -138,47 +138,47 @@ begin
       wait until clkDiv2 = '1';
       wait until clkDiv2 = '1';
       wait until clkDiv2 = '1';
-      
-      
-      wait until clkDiv2 = '1';
-      dataValidEnc <= '1';
-      dataInEnc <= x"0001";
-      
+
+
       wait until clkDiv2 = '1';
       dataValidEnc <= '1';
-      dataInEnc <= x"0002";
-      
+      dataInEnc    <= x"0001";
+
       wait until clkDiv2 = '1';
       dataValidEnc <= '1';
-      dataInEnc <= x"0003";
-      
+      dataInEnc    <= x"0002";
+
       wait until clkDiv2 = '1';
       dataValidEnc <= '1';
-      dataInEnc <= x"0004";
-      
+      dataInEnc    <= x"0003";
+
       wait until clkDiv2 = '1';
       dataValidEnc <= '1';
-      dataInEnc <= x"0005";
-      
+      dataInEnc    <= x"0004";
+
       wait until clkDiv2 = '1';
       dataValidEnc <= '1';
-      dataInEnc <= x"0006";
-      
+      dataInEnc    <= x"0005";
+
       wait until clkDiv2 = '1';
       dataValidEnc <= '1';
-      dataInEnc <= x"0007";
-      
+      dataInEnc    <= x"0006";
+
       wait until clkDiv2 = '1';
       dataValidEnc <= '1';
-      dataInEnc <= x"0008";
-      
+      dataInEnc    <= x"0007";
+
+      wait until clkDiv2 = '1';
+      dataValidEnc <= '1';
+      dataInEnc    <= x"0008";
+
       wait until clkDiv2 = '1';
       dataValidEnc <= '0';
-      
+
       wait;
    end process WaveGen_Proc;
 
-   
+
 
 end architecture sim;
 
