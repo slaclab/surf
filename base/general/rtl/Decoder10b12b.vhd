@@ -66,7 +66,7 @@ architecture rtl of Decoder10b12b is
 
 begin
 
-   comb : process (dataIn, r, rst) is
+   comb : process (dataIn, r, rst, validIn) is
       variable v : RegType;
    begin
       v := r;
