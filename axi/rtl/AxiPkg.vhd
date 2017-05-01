@@ -251,6 +251,17 @@ package AxiPkg is
       burstBytes : integer range 1 to 4096 := 4096)
       return slv;
 
+   -- Calculate number of txns in a burst based upon burst size, total remaining bytes,
+   -- current address and bus configuration.
+   -- Address is used to set a transaction size aligned to 4k boundaries
+   -- Returned value is number of txns-1, so can be assigned to AWLEN/ARLEN
+   function getAxiLen (
+      axiConfig  : AxiConfigType;
+      burstBytes : integer range 1 to 4096 := 4096;
+      totalBytes : positive;
+      address    : slv)
+      return slv;
+
    -- Caclulate the byte count for a read request
    function getAxiReadBytes (
       axiConfig  : AxiConfigType;
@@ -320,11 +331,31 @@ package body AxiPkg is
       return slv is
    begin
       -- burstBytes / data bytes width is number of txns required.
-      -- Subtract by 1 for A*LEN value.
+      -- Subtract by 1 for A*LEN value for even divides.
       -- Convert to SLV and truncate to size of A*LEN port for this AXI bus
       -- This limits number of txns approraiately based on size of len port
       -- Then resize to 8 bits because our records define A*LEN as 8 bits always.
-      return resize(toSlv(burstBytes/axiConfig.DATA_BYTES_C-1, axiConfig.LEN_BITS_C), 8);
+      return resize(toSlv(wordCount(burstBytes,axiConfig.DATA_BYTES_C), axiConfig.LEN_BITS_C), 8);
+   end function getAxiLen;
+
+   -- Calculate number of txns in a burst based upon burst size, total remaining bytes,
+   -- current address and bus configuration.
+   -- Address is used to set a transaction size aligned to 4k boundaries
+   -- Returned value is number of txns-1, so can be assigned to AWLEN/ARLEN
+   function getAxiLen (
+      axiConfig  : AxiConfigType;
+      burstBytes : integer range 1 to 4096 := 4096;
+      totalBytes : positive;
+      address    : slv)
+      return slv is
+      variable max  : natural;
+      variable req  : natural;
+   begin
+      max  := 4096 - conv_integer(address(11 downto 0));
+      req  := minimum(totalBytes,burstBytes);
+
+      return getAxiLen(axiConfig,minimum(req,max));
+
    end function getAxiLen;
 
    -- Calculate the byte count for a read request
