@@ -2,7 +2,7 @@
 -- File       : Ssp12b14bTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-10-26
--- Last update: 2016-10-26
+-- Last update: 2017-05-01
 -------------------------------------------------------------------------------
 -- Description: Simulation testbed for Ssp12b14b
 -------------------------------------------------------------------------------
@@ -37,6 +37,7 @@ architecture tb of Ssp12b14bTb is
    constant RST_POLARITY_G : sl      := '0';
    constant RST_ASYNC_G    : boolean := true;
    constant AUTO_FRAME_G   : boolean := true;
+   constant FLOW_CTRL_EN_G : boolean := false;
 
    -- component ports
    signal clk : sl;                     -- [in]
@@ -65,11 +66,12 @@ begin
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
-         AUTO_FRAME_G   => AUTO_FRAME_G)
+         AUTO_FRAME_G   => AUTO_FRAME_G,
+         FLOW_CTRL_EN_G => FLOW_CTRL_EN_G)
       port map (
          clk     => clk,                -- [in]
          rst     => rst,                -- [in]
-         valid   => encValid,           -- [in]
+         validIn => encValid,           -- [in]
          sof     => encSof,             -- [in]
          eof     => encEof,             -- [in]
          dataIn  => encDataIn,          -- [in]
@@ -86,7 +88,7 @@ begin
          rst       => rst,              -- [in]
          dataIn    => decDataIn,        -- [in]
          dataOut   => decDataOut,       -- [out]
-         valid     => decValid,         -- [out]
+         validOut  => decValid,         -- [out]
          sof       => decSof,           -- [out]
          eof       => decEof,           -- [out]
          eofe      => decEofe,          -- [out]
@@ -148,13 +150,13 @@ begin
             assert (decSof = '1' or j /= 0) report "No SOF" severity failure;
             assert (decDataOut = conv_std_logic_vector(i, 12)) report "Bad decode" severity failure;
             assert (decDispError = '0') report "Bad disparity" severity warning;
-            assert (decCodeError = '0') report "Bad Code" severity warning;            
+            assert (decCodeError = '0') report "Bad Code" severity warning;
 --            print("Expected " & str(conv_std_logic_vector(i, 12)) & " got " & str(decDataOut));
             wait until clk = '1';
             assert (decDataOut = conv_std_logic_vector(j, 12)) report "Bad decode" severity failure;
             assert (decEof = '1' or j /= (2**12-1)) report "No EOF" severity failure;
             assert (decDispError = '0') report "Bad disparity" severity warning;
-            assert (decCodeError = '0') report "Bad Code" severity warning;                        
+            assert (decCodeError = '0') report "Bad Code" severity warning;
 --            print("Expected " & str(conv_std_logic_vector(j, 12)) & " got " & str(decDataOut));
          end loop;
       end loop;
