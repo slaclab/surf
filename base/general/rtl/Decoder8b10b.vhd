@@ -69,19 +69,23 @@ begin
       variable v            : RegType;
       variable dispChainVar : sl;
    begin
-      v            := r;
-      dispChainVar := r.runDisp;
-      for i in 0 to NUM_BYTES_G-1 loop
-         decode8b10b(dataIn   => dataIn(i*10+9 downto i*10),
-                     dispIn   => dispChainVar,
-                     dataOut  => v.dataOut(i*8+7 downto i*8),
-                     dataKOut => v.dataKOut(i),
-                     dispOut  => dispChainVar,
-                     codeErr  => v.codeErr(i),
-                     dispErr  => v.dispErr(i));
-      end loop;
-      v.runDisp  := dispChainVar;
-      v.validOut := validIn;            -- Pass through pipeline
+      v := r;
+
+      v.validOut := validIn;
+
+      if (validIn = '1') then
+         dispChainVar := r.runDisp;
+         for i in 0 to NUM_BYTES_G-1 loop
+            decode8b10b(dataIn   => dataIn(i*10+9 downto i*10),
+                        dispIn   => dispChainVar,
+                        dataOut  => v.dataOut(i*8+7 downto i*8),
+                        dataKOut => v.dataKOut(i),
+                        dispOut  => dispChainVar,
+                        codeErr  => v.codeErr(i),
+                        dispErr  => v.dispErr(i));
+         end loop;
+         v.runDisp := dispChainVar;
+      end if;
 
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;

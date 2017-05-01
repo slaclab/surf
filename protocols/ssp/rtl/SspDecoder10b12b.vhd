@@ -91,7 +91,7 @@ begin
       port map (
          clk      => clk,
          rst      => rst,
-         validIn  => vaidDec,
+         validIn  => validDec,
          dataIn   => framedData,
          dataKIn  => framedDataK,
          dataOut  => dataOut,

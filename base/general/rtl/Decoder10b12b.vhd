@@ -71,16 +71,18 @@ begin
    begin
       v := r;
 
-      decode10b12b(
-         dataIn    => dataIn,
-         dispIn    => r.dispOut,
-         dataOut   => v.dataOut,
-         dataKOut  => v.dataKOut,
-         dispOut   => v.dispOut,
-         codeError => v.codeError,
-         dispError => v.dispError);
-
       v.validOut := validIn;
+
+      if (validIn = '1') then
+         decode10b12b(
+            dataIn    => dataIn,
+            dispIn    => r.dispOut,
+            dataOut   => v.dataOut,
+            dataKOut  => v.dataKOut,
+            dispOut   => v.dispOut,
+            codeError => v.codeError,
+            dispError => v.dispError);
+      end if;
 
       -- Synchronous reset
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
