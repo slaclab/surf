@@ -31,6 +31,7 @@ entity SsiPrbsRateGen is
       AXI_ERROR_RESP_G           : slv(1 downto 0)            := AXI_RESP_SLVERR_C;
       -- PRBS TX FIFO Configurations
       VALID_THOLD_G              : integer range 0 to (2**24) := 1;
+      VALID_BURST_MODE_G         : boolean                    := false;
       BRAM_EN_G                  : boolean                    := true;
       XIL_DEVICE_G               : string                     := "7SERIES";
       USE_BUILT_IN_G             : boolean                    := false;
@@ -58,15 +59,12 @@ architecture rtl of SsiPrbsRateGen is
       axilWriteSlave : AxiLiteWriteSlaveType;
       trig           : sl;
       packetLength   : slv(31 downto 0);
-      bpTrans        : slv(31 downto 0);
-      bpCount        : slv(31 downto 0);
       genPeriod      : slv(31 downto 0);
       genEnable      : sl;
       genOne         : sl;
       genMissed      : slv(31 downto 0);
       genCount       : slv(31 downto 0);
-      bpDetect       : sl;
-      validReg       : sl;
+      frameCount     : slv(31 downto 0);
       statReset      : sl;
    end record RegType;
 
@@ -75,15 +73,12 @@ architecture rtl of SsiPrbsRateGen is
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       trig           => '0',
       packetLength   => (others=>'0'),
-      bpTrans        => (others=>'0'),
-      bpCount        => (others=>'0'),
       genPeriod      => (others=>'0'),
       genEnable      => '0',
       genOne         => '0',
       genMissed      => (others=>'0'),
       genCount       => (others=>'0'),
-      bpDetect       => '0',
-      validReg       => '0',
+      frameCount     => (others=>'0'),
       statReset      => '1');
 
    signal r   : RegType := REG_INIT_C;
@@ -108,6 +103,7 @@ begin
       generic map (
          TPD_G                      => TPD_G,
          VALID_THOLD_G              => VALID_THOLD_G,
+         VALID_BURST_MODE_G         => VALID_BURST_MODE_G,
          BRAM_EN_G                  => BRAM_EN_G,
          XIL_DEVICE_G               => XIL_DEVICE_G,
          USE_BUILT_IN_G             => USE_BUILT_IN_G,
@@ -159,7 +155,7 @@ begin
       v := r;
 
       -- Clear
-      v.statReset := '0';
+      --v.statReset := '0';
       v.trig      := '0';
       v.genOne    := '0';
 
@@ -178,12 +174,10 @@ begin
       axiSlaveRegisterR(axilEp, x"018", 0, frameRateMax);
       axiSlaveRegisterR(axilEp, x"01C", 0, frameRateMin);
       axiSlaveRegisterR(axilEp, x"020", 0, bandwidth);
-      axiSlaveRegisterR(axilEp, x"024", 0, bandwidthMax);
-      axiSlaveRegisterR(axilEp, x"028", 0, bandwidthMin);
+      axiSlaveRegisterR(axilEp, x"028", 0, bandwidthMax);
+      axiSlaveRegisterR(axilEp, x"030", 0, bandwidthMin);
 
-      axiSlaveRegisterR(axilEp, x"030", 0, r.bpTrans);
-      axiSlaveRegisterR(axilEp, x"034", 0, r.bpCount);
-
+      axiSlaveRegisterR(axilEp, x"040", 0, r.frameCount);
 
       -- End transaction block
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_OK_C);
@@ -205,26 +199,14 @@ begin
             if busy = '1' then
                v.trig      := '0';
                v.genMissed := r.genMissed + 1;
+            else
+               v.frameCount := r.frameCount + 1;
             end if;
-         end if;
-      end if;
-
-      -- Backpressure counting
-      v.validReg := iAxisMaster.tValid;
-      v.bpDetect := iAxisMaster.tValid and r.validReg and (not iAxisSlave.tReady);
-
-      if v.bpDetect = '1' then
-         v.bpCount := r.bpCount + 1;
-
-         if r.bpDetect = '0' then
-            v.bpTrans := r.bpTrans + 1;
          end if;
       end if;
 
       if r.statReset = '1' then
          v.genMissed := (others=>'0');
-         v.bpTrans   := (others=>'0');
-         v.bpCount   := (others=>'0');
       end if;
 
       -- Reset      
