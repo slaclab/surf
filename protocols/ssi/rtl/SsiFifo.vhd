@@ -35,6 +35,7 @@ entity SsiFifo is
       EN_FRAME_FILTER_G   : boolean               := true;
       OR_DROP_FLAGS_G     : boolean               := false;
       VALID_THOLD_G       : natural               := 1;
+      VALID_BURST_MODE_G  : boolean               := false;
       -- FIFO configurations
       BRAM_EN_G           : boolean               := true;
       XIL_DEVICE_G        : string                := "7SERIES";
@@ -125,6 +126,7 @@ begin
          PIPE_STAGES_G       => PIPE_STAGES_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
          VALID_THOLD_G       => VALID_THOLD_G,
+         VALID_BURST_MODE_G  => VALID_BURST_MODE_G,
          -- FIFO configurations
          BRAM_EN_G           => BRAM_EN_G,
          XIL_DEVICE_G        => XIL_DEVICE_G,
