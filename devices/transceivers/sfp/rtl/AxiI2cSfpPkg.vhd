@@ -2,7 +2,7 @@
 -- File       : AxiI2cSfpPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-18
--- Last update: 2016-09-20
+-- Last update: 2017-05-02
 -------------------------------------------------------------------------------
 -- Description: AxiI2cSfp Package File
 -------------------------------------------------------------------------------
@@ -23,9 +23,9 @@ use work.StdRtlPkg.all;
 package AxiI2cSfpPkg is
    
    type AxiI2cSfpInType is record
-      rxLoss     : sl;  -- Loss of Signal – High indicates loss of received optical signal 
-      moduleDetL : sl;  -- Module Definition 0 (MOD-DEF0) – Grounded in module (module present indicator) 
-      txFault    : sl;  -- Transmitter Fault Indication – High indicates a fault condition 
+      rxLoss     : sl;  -- Loss of Signal - High indicates loss of received optical signal 
+      moduleDetL : sl;  -- Module Definition 0 (MOD-DEF0) - Grounded in module (module present indicator) 
+      txFault    : sl;  -- Transmitter Fault Indication - High indicates a fault condition 
    end record;
    type AxiI2cSfpInArray is array (natural range <>) of AxiI2cSfpInType;
    type AxiI2cSfpInVectorArray is array (integer range<>, integer range<>)of AxiI2cSfpInType;
@@ -36,8 +36,8 @@ package AxiI2cSfpPkg is
 
    type AxiI2cSfpInOutType is record
       rateSel : slv(1 downto 0);        -- Bit Rate Parametric Optimization 
-      scl     : sl;  -- Module Definition 1 (MOD-DEF1) – Two wire serial ID interface clock line (SCL) 
-      sda     : sl;  -- Module Definition 2 (MOD-DEF2) – Two wire serial ID interface data line (SDA) 
+      scl     : sl;  -- Module Definition 1 (MOD-DEF1) - Two wire serial ID interface clock line (SCL) 
+      sda     : sl;  -- Module Definition 2 (MOD-DEF2) - Two wire serial ID interface data line (SDA) 
    end record;
    type AxiI2cSfpInOutArray is array (natural range <>) of AxiI2cSfpInOutType;
    type AxiI2cSfpInOutVectorArray is array (integer range<>, integer range<>)of AxiI2cSfpInOutType;
@@ -47,12 +47,11 @@ package AxiI2cSfpPkg is
       'Z');       
 
    type AxiI2cSfpOutType is record
-      txDisable : sl;  -- Transmitter Disable – Module electrical input disables on high or open 
+      txDisable : sl;  -- Transmitter Disable - Module electrical input disables on high or open 
    end record;
    type AxiI2cSfpOutArray is array (natural range <>) of AxiI2cSfpOutType;
    type AxiI2cSfpOutVectorArray is array (integer range<>, integer range<>)of AxiI2cSfpOutType;
-   constant AXI_SFP_OUT_INIT_C : AxiI2cSfpOutType := (
-      (others => '0'));  
+   constant AXI_SFP_OUT_INIT_C : AxiI2cSfpOutType := (txDisable => '0');  
 
    type AxiI2cSfpStatusType is record
       rxLoss     : sl;

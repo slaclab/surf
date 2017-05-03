@@ -2,7 +2,7 @@
 -- File       : AxiLitePkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-02
--- Last update: 2016-04-26
+-- Last update: 2017-05-02
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite Package File
 -------------------------------------------------------------------------------
@@ -37,7 +37,7 @@ package AxiLitePkg is
    --
    --          1) Any accesses with AWSIZE information other than 32-bit receives a SLVERR response.
    --          2) Any accesses with AWLEN information other than zero receives a SLVERR response.
-   --          3) Any access that is unaligned, for example, where AWADDRP[1:0] is not equal to 2’b00, 
+   --          3) Any access that is unaligned, for example, where AWADDRP[1:0] is not equal to 2'b00, 
    --             returns a SLVERR response where a read access returns all zeros and a write access 
    --             does not modify the address location.
    --          4) Any write access that attempts to make use of the WSTRB lines, 

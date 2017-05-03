@@ -2,7 +2,7 @@
 -- File       : AxiI2cMasterCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-22
--- Last update: 2016-09-20
+-- Last update: 2017-05-03
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to generic I2C master controller
 -------------------------------------------------------------------------------
@@ -33,7 +33,6 @@ entity AxiI2cMasterCore is
       AXI_CLK_FREQ_G      : real            := 200.0E+6;  -- units of Hz
       I2C_SCL_FREQ_G      : real            := 100.0E+3;  -- units of Hz
       I2C_MIN_PULSE_G     : real            := 100.0E-9;  -- units of seconds
-      I2C_REG_ADDR_SIZE_G : integer         := 8;
       AXI_ERROR_RESP_G    : slv(1 downto 0) := AXI_RESP_SLVERR_C);
    port (
       -- DAC Ports
@@ -81,7 +80,6 @@ begin
    I2cRegMasterAxiBridge_Inst : entity work.I2cRegMasterAxiBridge
       generic map (
          TPD_G               => TPD_G,
-         I2C_REG_ADDR_SIZE_G => I2C_REG_ADDR_SIZE_G,
          DEVICE_MAP_G        => DEVICE_MAP_G,
          EN_USER_REG_G       => false,
          AXI_ERROR_RESP_G    => AXI_ERROR_RESP_G)      

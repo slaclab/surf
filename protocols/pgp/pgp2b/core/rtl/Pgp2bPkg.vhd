@@ -2,7 +2,7 @@
 -- File       : Pgp2bPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2009-05-27
--- Last update: 2017-03-28
+-- Last update: 2017-05-02
 -------------------------------------------------------------------------------
 -- Description:
 -- PGP ID and other global constants.
@@ -160,9 +160,7 @@ package Pgp2bPkg is
 
    type Pgp2bRxPhyLaneOutArray is array (natural range <>) of Pgp2bRxPhyLaneOutType;
 
-   constant PGP2B_RX_PHY_LANE_OUT_INIT_C : Pgp2bRxPhyLaneOutType := (
-      (others => '0')
-   );   
+   constant PGP2B_RX_PHY_LANE_OUT_INIT_C : Pgp2bRxPhyLaneOutType := (polarity => '0');   
 
    type Pgp2bRxPhyLaneInType is record
       data    : slv(15 downto 0);       -- PHY receive data

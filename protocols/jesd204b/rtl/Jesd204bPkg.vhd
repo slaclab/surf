@@ -2,7 +2,7 @@
 -- File       : Jesd204bPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-07-11
--- Last update: 2016-07-11
+-- Last update: 2017-05-03
 -------------------------------------------------------------------------------
 -- Description: JESD204B Package File
 -------------------------------------------------------------------------------
@@ -57,21 +57,21 @@ package Jesd204bPkg is
 -- Sub-types 
 -------------------------------------------------------------------------- 
    type jesdGtRxLaneType is record
-      data    : slv((GT_WORD_SIZE_C*8)-1 downto 0);  -- PHY receive data
-      dataK   : slv(GT_WORD_SIZE_C-1 downto 0);      -- PHY receive data is K character
-      dispErr : slv(GT_WORD_SIZE_C-1 downto 0);      -- PHY receive data has disparity error
-      decErr  : slv(GT_WORD_SIZE_C-1 downto 0);      -- PHY receive data not in table
-      rstDone : sl;
+      data      : slv((GT_WORD_SIZE_C*8)-1 downto 0);  -- PHY receive data
+      dataK     : slv(GT_WORD_SIZE_C-1 downto 0);      -- PHY receive data is K character
+      dispErr   : slv(GT_WORD_SIZE_C-1 downto 0);      -- PHY receive data has disparity error
+      decErr    : slv(GT_WORD_SIZE_C-1 downto 0);      -- PHY receive data not in table
+      rstDone   : sl;
       cdrStable : sl;
    end record jesdGtRxLaneType;
-   
+
    constant JESD_GT_RX_LANE_INIT_C : jesdGtRxLaneType := (
-      data        => (others => '0'),
-      dataK       => (others => '0'),
-      dispErr     => (others => '0'),
-      decErr      => (others => '0'),
-      rstDone     => '0',
-      cdrStable   => '0'      
+      data      => (others => '0'),
+      dataK     => (others => '0'),
+      dispErr   => (others => '0'),
+      decErr    => (others => '0'),
+      rstDone   => '0',
+      cdrStable => '0'
       );
 
    type jesdGtTxLaneType is record
@@ -80,7 +80,7 @@ package Jesd204bPkg is
    end record jesdGtTxLaneType;
    constant JESD_GT_TX_LANE_INIT_C : jesdGtTxLaneType := (
       data  => (others => '0'),
-      dataK => (others => '0'));   
+      dataK => (others => '0'));
 
    -- Arrays
    type jesdGtRxLaneTypeArray is array (natural range <>) of jesdGtRxLaneType;
@@ -126,13 +126,13 @@ package Jesd204bPkg is
 
    -- Output offset binary zero
    function outSampleZero(F_int : positive; bytes_int : positive) return std_logic_vector;
-   
+
    -- Invert functions
-   
+
    -- Invert signed 
    function invSigned(input : slv) return std_logic_vector;
-   function invData(data : slv; F_int : positive; bytes_int : positive) return std_logic_vector;
-   
+   function invData(data    : slv; F_int : positive; bytes_int : positive) return std_logic_vector;
+
 end Jesd204bPkg;
 
 package body Jesd204bPkg is
@@ -174,7 +174,7 @@ package body Jesd204bPkg is
       -- Return the index
       i := to_integer(unsigned(index_slv));
       return shft_slv(i);
-      
+
    end varIndexOutFunc;
 
    -- Detect position of first non K character
@@ -316,19 +316,25 @@ package body Jesd204bPkg is
    function JesdDataAlign(data_slv : slv; position_slv : slv; bytes_int : positive) return std_logic_vector is
    begin
       if(bytes_int = 2) then
-         case position_slv(1 downto 0) is
-            when "01"   => return data_slv (31 downto 16);
-            when "10"   => return data_slv (31-8 downto 16-8);
-            when others => return data_slv (31 downto 16);
-         end case;
+         if (position_slv(1 downto 0) = "01") then
+            return data_slv (31 downto 16);
+         elsif (position_slv(1 downto 0) = "10") then
+            return data_slv (31-8 downto 16-8);
+         else
+            return data_slv (31 downto 16);
+         end if;
       elsif(bytes_int = 4) then
-         case position_slv(3 downto 0) is
-            when "0001" => return data_slv(63 downto 32);
-            when "0010" => return data_slv(63-1*8 downto 32-1*8);
-            when "0100" => return data_slv(63-2*8 downto 32-2*8);
-            when "1000" => return data_slv(63-3*8 downto 32-3*8);
-            when others => return data_slv(63 downto 32);
-         end case;
+         if (position_slv(3 downto 0) = "0001") then
+            return data_slv(63 downto 32);
+         elsif (position_slv(3 downto 0) = "0010") then
+            return data_slv(63-1*8 downto 32-1*8);
+         elsif (position_slv(3 downto 0) = "0100") then
+            return data_slv(63-2*8 downto 32-2*8);
+         elsif (position_slv(3 downto 0) = "1000") then
+            return data_slv(63-3*8 downto 32-3*8);
+         else
+            return data_slv(63 downto 32);
+         end if;
       else
          return data_slv;
       end if;
@@ -338,19 +344,25 @@ package body Jesd204bPkg is
    function JesdCharAlign(char_slv : slv; position_slv : slv; bytes_int : positive) return std_logic_vector is
    begin
       if(bytes_int = 2) then
-         case position_slv(1 downto 0) is
-            when "01"   => return char_slv (3 downto 2);
-            when "10"   => return char_slv (3-1 downto 2-1);
-            when others => return char_slv (3 downto 2);
-         end case;
+         if (position_slv(1 downto 0) = "01") then
+            return char_slv (3 downto 2);
+         elsif (position_slv(1 downto 0) = "10") then
+            return char_slv (3-1 downto 2-1);
+         else
+            return char_slv (3 downto 2);
+         end if;
       elsif(bytes_int = 4) then
-         case position_slv(3 downto 0) is
-            when "0001" => return char_slv(7 downto 4);
-            when "0010" => return char_slv(7-1 downto 4-1);
-            when "0100" => return char_slv(7-2 downto 4-2);
-            when "1000" => return char_slv(7-3 downto 4-3);
-            when others => return char_slv(7 downto 4);
-         end case;
+         if (position_slv(3 downto 0) = "0001") then
+            return char_slv(7 downto 4);
+         elsif (position_slv(3 downto 0) = "0010") then
+            return char_slv(7-1 downto 4-1);
+         elsif (position_slv(3 downto 0) = "0100") then
+            return char_slv(7-2 downto 4-2);
+         elsif (position_slv(3 downto 0) = "1000") then
+            return char_slv(7-3 downto 4-3);
+         else
+            return char_slv(7 downto 4);
+         end if;
       else
          return char_slv;
       end if;
@@ -373,7 +385,7 @@ package body Jesd204bPkg is
       constant SAMPLES_IN_WORD_C : positive := (bytes_int/F_int);
       variable vSlv              : slv((bytes_int*8)-1 downto 0);
    begin
-      
+
       vSlv := (others => '0');
 
       for I in (SAMPLES_IN_WORD_C-1) downto 0 loop
@@ -383,7 +395,7 @@ package body Jesd204bPkg is
       return vSlv;
 
    end outSampleZero;
-   
+
    -- Invert Signed
    function invSigned(input : slv) return std_logic_vector is
       variable vOutput : signed(input'range);
@@ -391,23 +403,23 @@ package body Jesd204bPkg is
       vOutput := - signed(input);
       return std_logic_vector(vOutput);
    end invSigned;
-   
+
    -- Output zero sample data depending on word size and Frame size
    function invData(data : slv; F_int : positive; bytes_int : positive) return std_logic_vector is
       constant SAMPLES_IN_WORD_C : positive := (bytes_int/F_int);
       variable vSlv              : slv((bytes_int*8)-1 downto 0);
    begin
-      
+
       vSlv := data;
 
       for I in (SAMPLES_IN_WORD_C-1) downto 0 loop
-         vSlv(I*8*F_int+8*F_int-1 downto I*8*F_int) := invSigned(vSlv(I*8*F_int+8*F_int-1 downto I*8*F_int));      
+         vSlv(I*8*F_int+8*F_int-1 downto I*8*F_int) := invSigned(vSlv(I*8*F_int+8*F_int-1 downto I*8*F_int));
       end loop;
 
       return vSlv;
 
    end invData;
-   
-   
+
+
 --------------------------------------------------------------------------------------------
 end package body Jesd204bPkg;
