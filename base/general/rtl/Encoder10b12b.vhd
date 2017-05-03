@@ -26,7 +26,8 @@ entity Encoder10b12b is
       TPD_G          : time    := 1 ns;
       RST_POLARITY_G : sl      := '0';
       RST_ASYNC_G    : boolean := true;
-      USE_CLK_EN_G   : boolean := false);
+      USE_CLK_EN_G   : boolean := false;
+      FLOW_CTRL_EN_G : boolean := false);
    port (
       clk      : in  sl;
       clkEn    : in  sl := '1';                 -- Optional Clock Enable
@@ -52,7 +53,7 @@ architecture rtl of Encoder10b12b is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      validOut => '0',
+      validOut => toSl(not FLOW_CTRL_EN_G),
       readyIn  => '0',
       dispOut  => '0',
       dataOut  => (others => '0'));
@@ -68,11 +69,11 @@ begin
       v := r;
 
       v.readyIn := readyOut;
-      if (readyOut = '1') then
+      if (readyOut = '1' and FLOW_CTRL_EN_G) then
          v.validOut := '0';
       end if;
 
-      if (v.validOut = '0') then
+      if (v.validOut = '0' or FLOW_CTRL_EN_G = false) then
          v.validOut := '1';
          encode10b12b(
             dataIn  => dataIn,

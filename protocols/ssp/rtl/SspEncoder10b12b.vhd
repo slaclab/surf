@@ -31,7 +31,8 @@ entity SspEncoder10b12b is
       TPD_G          : time    := 1 ns;
       RST_POLARITY_G : sl      := '0';
       RST_ASYNC_G    : boolean := true;
-      AUTO_FRAME_G   : boolean := true);
+      AUTO_FRAME_G   : boolean := true;
+      FLOW_CTRL_EN_G : boolean := false);
    port (
       clk      : in  sl;
       rst      : in  sl := RST_POLARITY_G;
@@ -61,6 +62,7 @@ begin
          RST_POLARITY_G  => RST_POLARITY_G,
          RST_ASYNC_G     => RST_ASYNC_G,
          AUTO_FRAME_G    => AUTO_FRAME_G,
+         FLOW_CTRL_EN_G  => FLOW_CTRL_EN_G,
          WORD_SIZE_G     => 10,
          K_SIZE_G        => 1,
          SSP_IDLE_CODE_G => K_28_3_C,
@@ -87,7 +89,8 @@ begin
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
-         USE_CLK_EN_G   => false)
+         USE_CLK_EN_G   => false,
+         FLOW_CTRL_EN_G => FLOW_CTRL_EN_G)
       port map (
          clk      => clk,
          rst      => rst,
