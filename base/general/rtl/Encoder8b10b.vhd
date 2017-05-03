@@ -26,7 +26,8 @@ entity Encoder8b10b is
       TPD_G          : time     := 1 ns;
       NUM_BYTES_G    : positive := 2;
       RST_POLARITY_G : sl       := '0';
-      RST_ASYNC_G    : boolean  := true);
+      RST_ASYNC_G    : boolean  := true;
+      FLOW_CTRL_EN_G : boolean := false);
    port (
       clk      : in  sl;
       clkEn    : in  sl := '1';                 -- Optional Clock Enable
@@ -51,7 +52,7 @@ architecture rtl of Encoder8b10b is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      validOut => '0',
+      validOut => toSl(not FLOW_CTRL_EN_G),
       readyIn  => '0',
       runDisp  => '0',
       dataOut  => (others => '0'));
@@ -68,11 +69,11 @@ begin
       v := r;
 
       v.readyIn := readyOut;
-      if (readyOut = '1') then
+      if (readyOut = '1' and FLOW_CTRL_EN_G) then
          v.validOut := '0';
       end if;
 
-      if (v.validOut = '0') then
+      if (v.validOut = '0' or FLOW_CTRL_EN_G = false) then
          v.validOut := '1';
 
          dispChainVar := r.runDisp;

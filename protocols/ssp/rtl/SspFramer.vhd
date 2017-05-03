@@ -31,6 +31,7 @@ entity SspFramer is
       RST_POLARITY_G  : sl      := '0';
       RST_ASYNC_G     : boolean := true;
       AUTO_FRAME_G    : boolean := true;
+      FLOW_CTRL_EN_G : boolean := false;
       WORD_SIZE_G     : integer := 16;
       K_SIZE_G        : integer := 2;
       SSP_IDLE_CODE_G : slv;
@@ -74,7 +75,7 @@ architecture rtl of SspFramer is
 
    constant REG_INIT_C : RegType := (
       readyIn     => '0',
-      validOut    => '0',
+      validOut    => toSl(not FLOW_CTRL_EN_G),
       mode        => '0',
       eofLast     => '0',
       eof         => '0',
@@ -95,11 +96,11 @@ begin
 
       v.readyIn := readyOut;
 
-      if (readyOut = '1') then
+      if (readyOut = '1' and FLOW_CTRL_EN_G) then
          v.validOut := '0';
       end if;
 
-      if (v.validOut = '0') then
+      if (v.validOut = '0' or FLOW_CTRL_EN_G = false) then
          v.validOut    := '1';
          v.dataInLast  := dataIn;
          v.validInLast := validIn;
