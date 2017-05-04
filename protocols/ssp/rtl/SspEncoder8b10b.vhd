@@ -2,7 +2,7 @@
 -- File       : SspEncoder8b10b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-07-14
--- Last update: 2017-05-01
+-- Last update: 2017-05-04
 -------------------------------------------------------------------------------
 -- Description: SimpleStreamingProtocol - A simple protocol layer for inserting
 -- idle and framing control characters into a raw data stream. This module
@@ -34,20 +34,26 @@ entity SspEncoder8b10b is
       AUTO_FRAME_G   : boolean := true;
       FLOW_CTRL_EN_G : boolean := false);
    port (
-      clk     : in  sl;
-      rst     : in  sl := RST_POLARITY_G;
-      valid   : in  sl;
-      sof     : in  sl := '0';
-      eof     : in  sl := '0';
-      dataIn  : in  slv(15 downto 0);
-      dataOut : out slv(19 downto 0));
+      clk      : in  sl;
+      rst      : in  sl := RST_POLARITY_G;
+      validIn  : in  sl;
+      readyIn  : out sl;
+      sof      : in  sl := '0';
+      eof      : in  sl := '0';
+      dataIn   : in  slv(15 downto 0);
+      validOut : out sl;
+      readyOut : in  sl := '1';
+      dataOut  : out slv(19 downto 0));
 
 end entity SspEncoder8b10b;
 
 architecture rtl of SspEncoder8b10b is
 
+   signal readyOutInt : sl;
    signal framedData  : slv(15 downto 0);
    signal framedDataK : slv(1 downto 0);
+   signal validInt    : sl;
+   signal readyInt    : sl;
 
 begin
 
@@ -69,10 +75,13 @@ begin
       port map (
          clk      => clk,
          rst      => rst,
-         valid    => valid,
+         validIn  => validIn,
+         readyInt => readyIn,
          sof      => sof,
          eof      => eof,
          dataIn   => dataIn,
+         validOut => validInt,
+         readyOut => readyInt,
          dataOut  => framedData,
          dataKOut => framedDataK);
 
@@ -84,11 +93,14 @@ begin
          RST_ASYNC_G    => RST_ASYNC_G,
          FLOW_CTRL_EN_G => FLOW_CTRL_EN_G)
       port map (
-         clk     => clk,
-         clkEn   => '1',
-         rst     => rst,
-         dataIn  => framedData,
-         dataKIn => framedDataK,
-         dataOut => dataOut);
+         clk      => clk,
+         rst      => rst,
+         validIn  => validInt,
+         readyIn  => readyInt,
+         dataIn   => framedData,
+         dataKIn  => framedDataK,
+         validOut => validOut,
+         readyOut => readyOutInt,
+         dataOut  => dataOut);
 
 end architecture rtl;
