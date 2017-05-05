@@ -17,11 +17,15 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
+# Comment added by rherbst for demonstration purposes.
+
 import pyrogue as pr
 
 # Another comment added by rherbst for demonstration.
 
 class AxiVersion(pr.Device):
+
+    # Last comment added by rherbst for demonstration.
     def __init__(   self,       
                     name        = "AxiVersion",
                     description = "AXI-Lite Version Module",
