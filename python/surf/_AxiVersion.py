@@ -17,6 +17,8 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
+# Comment added by rherbst for demonstration purposes.
+
 import pyrogue as pr
 
 class AxiVersion(pr.Device):
