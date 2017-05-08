@@ -19,7 +19,7 @@
 
 import pyrogue as pr
 
-class SsiPrbsTx(pr.Device):
+class SsiPrbsRateGen(pr.Device):
     def __init__(   self,       
                     name        = "SsiPrbsRateGen",
                     description = "SsiPrbsRateGen",
@@ -33,17 +33,17 @@ class SsiPrbsTx(pr.Device):
         # Variables
         ##############################
 
-        self.Command (      name         = "StatReset",
+        self.addVariable (  name         = "statReset",
                             description  = "",
                             offset       =  0x00,
                             bitSize      =  1,
                             bitOffset    =  0x00,
                             base         = "hex",
-                            mode         = "WO",
-                            function     = pr.Command.toggle
+                            mode         = "RW" #,
+                            #function     = pr.Command.toggle
                         )
 
-        self.addVariable(   name         = "PacketLength",
+        self.addVariable(   name         = "packetLength",
                             description  = "",
                             offset       =  0x04,
                             bitSize      =  32,
@@ -52,7 +52,7 @@ class SsiPrbsTx(pr.Device):
                             mode         = "RW",
                         )
 
-        self.addVariable(   name         = "Period",
+        self.addVariable(   name         = "period",
                             description  = "",
                             offset       =  0x08,
                             bitSize      =  32,
@@ -61,16 +61,16 @@ class SsiPrbsTx(pr.Device):
                             mode         = "RW",
                         )
 
-        self.addVariable(   name         = "TxEn",
+        self.addVariable(   name         = "txEn",
                             description  = "",
                             offset       =  0x0C,
                             bitSize      =  1,
                             bitOffset    =  0x00,
-                            base         = "hex",
+                            base         = "bool",
                             mode         = "RW",
                         )
 
-        self.Command (      name         = "OneShot",
+        self.addCommand (   name         = "oneShot",
                             description  = "",
                             offset       =  0x0C,
                             bitSize      =  1,
@@ -80,84 +80,83 @@ class SsiPrbsTx(pr.Device):
                             function     = pr.Command.toggle
                         )
 
-        self.addVariable(   name         = "Missed",
+        self.addVariable(   name         = "missed",
                             description  = "",
                             offset       =  0x10,
                             bitSize      =  32,
                             bitOffset    =  0x00,
                             base         = "int",
-                            mode         = "RW",
+                            pollInterval = 1,
+                            mode         = "RO",
                         )
 
-        self.addVariable(   name         = "FrameRate",
+        self.addVariable(   name         = "frameRate",
                             description  = "",
                             offset       =  0x14,
                             bitSize      =  32,
                             bitOffset    =  0x00,
                             base         = "int",
-                            mode         = "RW",
+                            pollInterval = 1,
+                            mode         = "RO",
                         )
 
-        self.addVariable(   name         = "FrameRateMax",
+        self.addVariable(   name         = "frameRateMax",
                             description  = "",
                             offset       =  0x18,
                             bitSize      =  32,
                             bitOffset    =  0x00,
                             base         = "int",
-                            mode         = "RW",
+                            pollInterval = 1,
+                            mode         = "RO",
                         )
 
-        self.addVariable(   name         = "FrameRateMin",
+        self.addVariable(   name         = "frameRateMin",
                             description  = "",
                             offset       =  0x1C,
                             bitSize      =  32,
                             bitOffset    =  0x00,
                             base         = "int",
-                            mode         = "RW",
+                            pollInterval = 1,
+                            mode         = "RO",
                         )
 
-        self.addVariable(   name         = "Bandewidth",
+        self.addVariable(   name         = "bandWidth",
                             description  = "",
                             offset       =  0x20,
-                            bitSize      =  32,
+                            bitSize      =  64,
                             bitOffset    =  0x00,
                             base         = "int",
-                            mode         = "RW",
+                            pollInterval = 1,
+                            mode         = "RO",
                         )
 
-        self.addVariable(   name         = "BandewidthMax",
-                            description  = "",
-                            offset       =  0x24,
-                            bitSize      =  32,
-                            bitOffset    =  0x00,
-                            base         = "int",
-                            mode         = "RW",
-                        )
-
-        self.addVariable(   name         = "BandwidthMin",
+        self.addVariable(   name         = "bandWidthMax",
                             description  = "",
                             offset       =  0x28,
-                            bitSize      =  32,
+                            bitSize      =  64,
                             bitOffset    =  0x00,
                             base         = "int",
-                            mode         = "RW",
+                            pollInterval = 1,
+                            mode         = "RO",
                         )
 
-        self.addVariable(   name         = "BackPressureCnt",
+        self.addVariable(   name         = "bandWidthMin",
                             description  = "",
                             offset       =  0x30,
-                            bitSize      =  32,
+                            bitSize      =  64,
                             bitOffset    =  0x00,
                             base         = "int",
-                            mode         = "RW",
+                            pollInterval = 1,
+                            mode         = "RO",
                         )
 
-        self.addVariable(   name         = "BackPressureTrans",
+        self.addVariable(   name         = "frameCount",
                             description  = "",
-                            offset       =  0x34,
-                            bitSize      =  32,
+                            offset       =  0x40,
+                            bitSize      =  64,
                             bitOffset    =  0x00,
                             base         = "int",
-                            mode         = "RW",
+                            pollInterval = 1,
+                            mode         = "RO",
                         )
 
