@@ -33,14 +33,13 @@ class SsiPrbsRateGen(pr.Device):
         # Variables
         ##############################
 
-        self.addVariable (  name         = "statReset",
+        self.addCommand  (  name         = "statReset",
                             description  = "",
                             offset       =  0x00,
                             bitSize      =  1,
                             bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW" #,
-                            #function     = pr.Command.toggle
+                            mode         = "RW",
+                            function     = pr.Command.toggle
                         )
 
         self.addVariable(   name         = "packetLength",
