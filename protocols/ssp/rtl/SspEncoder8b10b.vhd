@@ -2,7 +2,7 @@
 -- File       : SspEncoder8b10b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-07-14
--- Last update: 2017-05-04
+-- Last update: 2017-05-05
 -------------------------------------------------------------------------------
 -- Description: SimpleStreamingProtocol - A simple protocol layer for inserting
 -- idle and framing control characters into a raw data stream. This module
@@ -76,7 +76,7 @@ begin
          clk      => clk,
          rst      => rst,
          validIn  => validIn,
-         readyInt => readyIn,
+         readyIn  => readyIn,
          sof      => sof,
          eof      => eof,
          dataIn   => dataIn,
