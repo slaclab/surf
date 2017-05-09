@@ -8,6 +8,5 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
-from surf.xilinx._xadc import *
-from surf.xilinx._AxiSysMonUltraScale import *
-from surf.xilinx._Gthe3Channel import *
+from surf.misc._genericmemory import *
+from surf.misc._GenericMemory import *
