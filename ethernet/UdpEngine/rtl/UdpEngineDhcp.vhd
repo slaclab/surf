@@ -2,7 +2,7 @@
 -- File       : UdpEngineDhcp.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-08-12
--- Last update: 2016-09-16
+-- Last update: 2017-05-10
 -------------------------------------------------------------------------------
 -- Description: DHCP Engine
 -------------------------------------------------------------------------------
@@ -31,7 +31,7 @@ entity UdpEngineDhcp is
       TPD_G          : time     := 1 ns;
       -- UDP ARP/DHCP Generics
       CLK_FREQ_G     : real     := 156.25E+06;  -- In units of Hz
-      COMM_TIMEOUT_G : positive := 30);  
+      COMM_TIMEOUT_G : positive := 30);
    port (
       -- Local Configurations
       localMac     : in  slv(47 downto 0);      --  big-Endian configuration
@@ -66,7 +66,7 @@ architecture rtl of UdpEngineDhcp is
    type DecodeType is (
       CODE_S,
       LEN_S,
-      DATA_S);      
+      DATA_S);
 
    type RegType is record
       heartbeat  : sl;
@@ -151,7 +151,7 @@ begin
          FIFO_ADDR_WIDTH_G   => 4,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => DHCP_CONFIG_C)          
+         MASTER_AXI_CONFIG_G => DHCP_CONFIG_C)
       port map (
          -- Slave Port
          sAxisClk    => clk,
@@ -162,7 +162,7 @@ begin
          mAxisClk    => clk,
          mAxisRst    => rst,
          mAxisMaster => rxMaster,
-         mAxisSlave  => rxSlave);  
+         mAxisSlave  => rxSlave);
 
    comb : process (localIp, localMac, r, rst, rxMaster, txSlave) is
       variable v     : RegType;
@@ -342,7 +342,7 @@ begin
                      v.cnt                         := 0;
                      -- Next state
                      v.state                       := IDLE_S;
-                  when others=>
+                  when others =>
                      null;
                end case;
             end if;
@@ -400,7 +400,7 @@ begin
                         -- Next state
                         v.state  := DHCP_S;
                      end if;
-                  when others=>
+                  when others =>
                      null;
                end case;
                -- Check for early packet termination
@@ -446,37 +446,36 @@ begin
                         v.decode := CODE_S;
                      end if;
                      -- Check the Code
-                     case r.opCode is   -- Note: Assuming zero padding
+                     if (r.opCode = 53) then                      -- Note: Assuming zero padding
                         -- Check for DHCP Message Type
-                        when toSlv(53, 8) =>
-                           if (r.len = 1) then
-                              -- Set the flag
-                              v.valid(0) := '1';
-                              -- Save the message
-                              v.msgType  := tData;
-                           end if;
-                        -- Check for IP address Lease Time
-                        when toSlv(51, 8) =>
-                           if r.len = 4 then
-                              -- Set the flag
-                              v.valid(1)                := '1';
-                              v.leaseTime(31 downto 24) := tData;
-                           elsif r.len = 3 then
-                              -- Set the flag
-                              v.valid(2)                := '1';
-                              v.leaseTime(23 downto 16) := tData;
-                           elsif r.len = 2 then
-                              -- Set the flag
-                              v.valid(3)               := '1';
-                              v.leaseTime(15 downto 8) := tData;
-                           elsif r.len = 1 then
-                              -- Set the flag
-                              v.valid(4)              := '1';
-                              v.leaseTime(7 downto 0) := tData;
-                           end if;
-                        when others =>
-                           null;
-                     end case;
+
+                        if (r.len = 1) then
+                           -- Set the flag
+                           v.valid(0) := '1';
+                           -- Save the message
+                           v.msgType  := tData;
+                        end if;
+                     -- Check for IP address Lease Time
+                     elsif (r.opcode = 51) then
+                        if r.len = 4 then
+                           -- Set the flag
+                           v.valid(1)                := '1';
+                           v.leaseTime(31 downto 24) := tData;
+                        elsif r.len = 3 then
+                           -- Set the flag
+                           v.valid(2)                := '1';
+                           v.leaseTime(23 downto 16) := tData;
+                        elsif r.len = 2 then
+                           -- Set the flag
+                           v.valid(3)               := '1';
+                           v.leaseTime(15 downto 8) := tData;
+                        elsif r.len = 1 then
+                           -- Set the flag
+                           v.valid(4)              := '1';
+                           v.leaseTime(7 downto 0) := tData;
+                        end if;
+                     end if;
+
                ----------------------------------------------------------------
                end case;
                -- Check the counter
@@ -525,7 +524,7 @@ begin
             end if;
             -- Next state
             v.state := IDLE_S;
-      ----------------------------------------------------------------------
+----------------------------------------------------------------------
       end case;
 
       -- Reset
@@ -540,7 +539,7 @@ begin
       rxSlave  <= v.rxSlave;
       txMaster <= r.txMaster;
       dhcpIp   <= r.dhcpIp;
-      
+
    end process comb;
 
    seq : process (clk) is
@@ -566,7 +565,7 @@ begin
          FIFO_ADDR_WIDTH_G   => 4,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => DHCP_CONFIG_C,
-         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)        
+         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)
       port map (
          -- Slave Port
          sAxisClk    => clk,
@@ -577,6 +576,6 @@ begin
          mAxisClk    => clk,
          mAxisRst    => rst,
          mAxisMaster => obDhcpMaster,
-         mAxisSlave  => obDhcpSlave);       
+         mAxisSlave  => obDhcpSlave);
 
 end rtl;

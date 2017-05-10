@@ -2,7 +2,7 @@
 -- File       : EthMacTxExport.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-09-08
--- Last update: 2016-10-06
+-- Last update: 2017-05-10
 -------------------------------------------------------------------------------
 -- Description: Mapping for 1GbE/10GbE/40GbE ETH MAC TX path
 -------------------------------------------------------------------------------
@@ -59,7 +59,7 @@ begin
    assert ((PHY_TYPE_G = "XLGMII") or (PHY_TYPE_G = "XGMII") or (PHY_TYPE_G = "GMII")) report "EthMacTxExport: PHY_TYPE_G must be either GMII, XGMII, XLGMII" severity failure;
 
    U_40G : if (PHY_TYPE_G = "XLGMII") generate
-      U_XLGMII : entity work.EthMacTxImportXlgmii
+      U_XLGMII : entity work.EthMacTxExportXlgmii
          generic map (
             TPD_G => TPD_G) 
          port map (
