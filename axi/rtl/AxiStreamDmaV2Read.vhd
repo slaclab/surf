@@ -215,7 +215,7 @@ begin
                -- Set the memory address 
                v.rMaster.araddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := r.dmaRdDescReq.address(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0);
                -- Determine transfer size aligned to 4k boundaries
-               v.rMaster.arlen := getAxiLen(AXI_CONFIG_G,BURST_BYTES_G,conv_integer(r.reqSize),r.dmaRdDescReq.address);
+               v.rMaster.arlen := getAxiLen(AXI_CONFIG_G,BURST_BYTES_G,r.reqSize,r.dmaRdDescReq.address);
                -- Check for the following:
                --    1) There is enough room in the FIFO for a burst 
                --    2) pending flag
