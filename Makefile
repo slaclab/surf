@@ -12,25 +12,46 @@ axi/rtl/*.vhd \
 devices/*/*/rtl/*.vhd  devices/*/rtl/*.vhd \
 protocols/*/rtl/*.vhd protocols/*/*/rtl/*.vhd \
 xilinx/*/*/rtl/*.vhd xilinx/*/rtl/*.vhd \
-ethernet/*/*/*/rtl/*.vhd ethernet/*/*/rtl/*.vhd ethernet/*/rtl/*.vhd 
+ethernet/*/*/*/rtl/*.vhd ethernet/*/*/rtl/*.vhd ethernet/*/rtl/*.vhd \
 
 EXCLUDE = $(wildcard protocols/i2c/rtl/orig/*) \
 $(wildcard ethernet/XauiCore/gth7/rtl/*.vhd) \
 $(wildcard ethernet/XauiCore/gtx7/rtl/*.vhd) \
-$(wildcard xilinx/Virtex5/gtp/rtl/*.vhd)
+$(wildcard xilinx/Virtex5/gtp/rtl/*.vhd) \
+$(shell find ethernet/GigEthCore/gth7/ -type f -name '*.vhd') \
+$(shell find ethernet/GigEthCore/gtp7/ -type f -name '*.vhd') \
+$(shell find ethernet/GigEthCore/gtx7/ -type f -name '*.vhd') \
+$(shell find ethernet/GigEthCore/gthUltraScale/ -type f -name '*.vhd') \
+$(shell find ethernet/TenGigEthCore/gth7/ -type f -name '*.vhd') \
+$(shell find ethernet/TenGigEthCore/gtx7/ -type f -name '*.vhd') \
+$(shell find ethernet/TenGigEthCore/gthUltraScale/ -type f -name '*.vhd') \
+$(shell find ethernet/XauiCore/gth7/ -type f -name '*.vhd') \
+$(shell find ethernet/XauiCore/gtx7/ -type f -name '*.vhd') \
+$(shell find ethernet/XauiCore/gthUltraScale/ -type f -name '*.vhd') \
+$(shell find ethernet/XlauiCore/gth7/ -type f -name '*.vhd') \
+$(shell find ethernet/XlauiCore/gtx7/ -type f -name '*.vhd') \
+$(shell find ethernet/XlauiCore/gthUltraScale/ -type f -name '*.vhd')
 
 FILES = $(filter-out $(EXCLUDE),$(wildcard $(PATHS)))
 #FILES = $(shell find . -type f -wholename '*/rtl/*.vhd' -not -wholename '*/orig/*.vhd')
 #PATHS=base/*/rtl/*.vhd axi/rtl/*.vhd ethernet/**/rtl/*.vhd protocols/*/**/rtl/*.vhd
-ENTITIES := $(filter-out stdlib,$(patsubst %Pkg,,$(patsubst %.vhd,%,$(notdir $(wildcard $(PATHS))))))
+
+ENTITY_EXCLUDES = stdlib TenGigEthGth7 TenGigEthGth7Wrapper
+
+ENTITIES := $(filter-out $(ENTITY_EXCLUDES),$(patsubst %Pkg,,$(patsubst %.vhd,%,$(notdir $(FILES)))))
 MAKEFILES = $(patsubst %,%.mk,$(ENTITIES))
 
 $(info EXCLUDE="$(EXCLUDE)")
-#$(info FILES="$(FILES)")
-#$(info ENTITIES="$(ENTITIES)")
+$(info "")
+$(info FILES="$(FILES)")
+$(info "")
+$(info ENTITIES="$(ENTITIES)")
+$(info "")
 
 
 all: $(ENTITIES) $(MAKEFILES)
+
+makefiles: $(MAKEFILES)
 
 force:
 
@@ -42,10 +63,10 @@ import : $(FILES)
 
 
 $(ENTITIES) : import
-	$(GHDL) -m $(GHDLFLAGS) $@
+	$(GHDL) -m -b $(GHDLFLAGS) $@
 
 html : $(FILES)
 	$(GHDL) --xref-html $(GHDLFLAGS) $(FILES)
 
 $(MAKEFILES) : import
-	$(GHDL) --gen-makefile $(GHDLFLAGS) $(patsubst %.mk,%,$@)
+	$(GHDL) --gen-makefile $(GHDLFLAGS) $(patsubst %.mk,%,$@) > work/$@
