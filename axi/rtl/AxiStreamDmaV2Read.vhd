@@ -64,7 +64,8 @@ architecture rtl of AxiStreamDmaV2Read is
 
    type ReqStateType is (
       IDLE_S,
-      ADDR_S);
+      ADDR_S,
+      NEXT_S);
 
    type StateType is (
       IDLE_S,
@@ -223,15 +224,20 @@ begin
                if (pause = '0') and (pending = false) and (r.reqCnt < r.dmaRdDescReq.size) then
                   -- Set the flag
                   v.rMaster.arvalid := '1';
-                  -- Update the request size
-                  v.reqCnt  := r.reqCnt  + getAxiReadBytes(AXI_CONFIG_G,v.rMaster);
-                  v.reqSize := r.reqSize - getAxiReadBytes(AXI_CONFIG_G,v.rMaster);
-                  -- Update next address
-                  v.dmaRdDescReq.address := r.dmaRdDescReq.address + getAxiReadBytes(AXI_CONFIG_G,v.rMaster);
                   -- Next state
-                  v.state := MOVE_S;
+                  v.state    := MOVE_S;
+                  v.reqState := NEXT_S;
                end if;
             end if;
+         ----------------------------------------------------------------------
+         when NEXT_S =>
+            -- Update the request size
+            v.reqCnt  := r.reqCnt  + getAxiReadBytes(AXI_CONFIG_G,r.rMaster);
+            v.reqSize := r.reqSize - getAxiReadBytes(AXI_CONFIG_G,r.rMaster);
+            -- Update next address
+            v.dmaRdDescReq.address := r.dmaRdDescReq.address + getAxiReadBytes(AXI_CONFIG_G,r.rMaster);
+            -- Back to address state
+            v.reqState := ADDR_S;
       ----------------------------------------------------------------------
       end case;
 

@@ -440,7 +440,6 @@ begin
 
       axiSlaveRegisterR(regCon, x"05C", 0, r.wrReqMissed);
 
-
       -- End transaction block
       axiSlaveDefault(regCon,v.axilWriteSlave, v.axilReadSlave, AXI_ERROR_RESP_G);
 
@@ -497,6 +496,10 @@ begin
          -- Aribrate between requesters
          if r.enable = '1' and r.wrFifoRd = '0' and r.wrAddrValid = '1' then
             arbitrate(wrReqList, r.wrReqNum, v.wrReqNum, v.wrReqValid, v.wrReqAcks);
+         end if;
+
+         if r.enable = '0' then
+            v.wrReqMissed := (others=>'0');
          elsif wrReqList /= 0 and wrFifoValid = '0' then
             v.wrReqMissed := r.wrReqMissed + 1;
          end if;
@@ -516,6 +519,7 @@ begin
          v.wrReqValid := '0';
 
       end if;
+
 
       --------------------------------------
       -- Read/Write Descriptor Returns
