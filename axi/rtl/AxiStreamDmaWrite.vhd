@@ -59,7 +59,16 @@ end AxiStreamDmaWrite;
 
 architecture rtl of AxiStreamDmaWrite is
 
-   constant DATA_BYTES_C      : integer         := AXIS_CONFIG_G.TDATA_BYTES_C;
+   constant LOC_AXIS_CONFIG_C : AxiStreamConfigType := (
+      TSTRB_EN_C    => AXIS_CONFIG_G.TSTRB_EN_C,
+      TDATA_BYTES_C => AXIS_CONFIG_G.TDATA_BYTES_C,
+      TDEST_BITS_C  => AXIS_CONFIG_G.TDEST_BITS_C,
+      TID_BITS_C    => AXIS_CONFIG_G.TID_BITS_C,
+      TKEEP_MODE_C  => TKEEP_NORMAL_C,  -- Override
+      TUSER_BITS_C  => AXIS_CONFIG_G.TUSER_BITS_C, 
+      TUSER_MODE_C  => TUSER_NORMAL_C); -- Override
+
+   constant DATA_BYTES_C      : integer         := LOC_AXIS_CONFIG_C.TDATA_BYTES_C;
    constant ADDR_LSB_C        : integer         := bitSize(DATA_BYTES_C-1);
    constant AWLEN_C           : slv(7 downto 0) := getAxiLen(AXI_CONFIG_G, 4096);
    constant FIFO_ADDR_WIDTH_C : natural         := (AXI_CONFIG_G.LEN_BITS_C+1);
@@ -123,8 +132,8 @@ architecture rtl of AxiStreamDmaWrite is
    
 begin
 
-   assert AXIS_CONFIG_G.TDATA_BYTES_C = AXI_CONFIG_G.DATA_BYTES_C
-      report "AXIS (" & integer'image(AXIS_CONFIG_G.TDATA_BYTES_C) & ") and AXI ("
+   assert LOC_AXIS_CONFIG_C.TDATA_BYTES_C = AXI_CONFIG_G.DATA_BYTES_C
+      report "AXIS (" & integer'image(LOC_AXIS_CONFIG_C.TDATA_BYTES_C) & ") and AXI ("
       & integer'image(AXI_CONFIG_G.DATA_BYTES_C) & ") must have equal data widths" severity failure;
 
    pause <= '0' when (AXI_READY_EN_G) else axiWriteCtrl.pause;
@@ -133,7 +142,7 @@ begin
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => PIPE_STAGES_G,
-         AXIS_CONFIG_G => AXIS_CONFIG_G,
+         LOC_AXIS_CONFIG_C => LOC_AXIS_CONFIG_C,
          BYP_SHIFT_G   => BYP_SHIFT_G) 
       port map (
          axisClk     => axiClk,
@@ -160,8 +169,8 @@ begin
             CASCADE_SIZE_G      => 1,
             FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
             FIFO_FIXED_THRESH_G => false,  -- Using r.threshold
-            SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_G,
-            MASTER_AXI_CONFIG_G => AXIS_CONFIG_G) 
+            SLAVE_AXI_CONFIG_G  => LOC_AXIS_CONFIG_C,
+            MASTER_AXI_CONFIG_G => LOC_AXIS_CONFIG_C) 
          port map (
             -- Slave Port
             sAxisClk        => axiClk,
@@ -389,14 +398,14 @@ begin
                   -- Latch the tDest/tId/tUser values
                   v.dmaAck.dest                                             := intAxisMaster.tDest;
                   v.dmaAck.id                                               := intAxisMaster.tId;
-                  v.dmaAck.firstUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0) := axiStreamGetUserField(AXIS_CONFIG_G, intAxisMaster, conv_integer(r.shift));
+                  v.dmaAck.firstUser(LOC_AXIS_CONFIG_C.TUSER_BITS_C-1 downto 0) := axiStreamGetUserField(LOC_AXIS_CONFIG_C, intAxisMaster, conv_integer(r.shift));
                end if;
                -- -- Check for last AXIS word
                if (intAxisMaster.tLast = '1') and (r.last = '0') then
                   -- Set the flag
                   v.last                                                   := '1';
                   -- Latch the tUser value
-                  v.dmaAck.lastUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0) := axiStreamGetUserField(AXIS_CONFIG_G, intAxisMaster);
+                  v.dmaAck.lastUser(LOC_AXIS_CONFIG_C.TUSER_BITS_C-1 downto 0) := axiStreamGetUserField(LOC_AXIS_CONFIG_C, intAxisMaster);
                end if;
                -- Check if done
                if (r.last = '1') then
@@ -449,12 +458,12 @@ begin
                   -- Latch the tDest/tId/tUser values
                   v.dmaAck.dest                                             := intAxisMaster.tDest;
                   v.dmaAck.id                                               := intAxisMaster.tId;
-                  v.dmaAck.firstUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0) := axiStreamGetUserField(AXIS_CONFIG_G, intAxisMaster, conv_integer(r.shift));
+                  v.dmaAck.firstUser(LOC_AXIS_CONFIG_C.TUSER_BITS_C-1 downto 0) := axiStreamGetUserField(LOC_AXIS_CONFIG_C, intAxisMaster, conv_integer(r.shift));
                end if;
                -- Check for last AXIS word
                if (intAxisMaster.tLast = '1') then
                   -- Latch the tUser value
-                  v.dmaAck.lastUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0) := axiStreamGetUserField(AXIS_CONFIG_G, intAxisMaster);
+                  v.dmaAck.lastUser(LOC_AXIS_CONFIG_C.TUSER_BITS_C-1 downto 0) := axiStreamGetUserField(LOC_AXIS_CONFIG_C, intAxisMaster);
                   -- Next state
                   v.state                                                  := WAIT_S;
                end if;
