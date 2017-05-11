@@ -140,10 +140,10 @@ begin
 
    U_AxiStreamShift : entity work.AxiStreamShift
       generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => PIPE_STAGES_G,
-         LOC_AXIS_CONFIG_C => LOC_AXIS_CONFIG_C,
-         BYP_SHIFT_G   => BYP_SHIFT_G) 
+         TPD_G             => TPD_G,
+         PIPE_STAGES_G     => PIPE_STAGES_G,
+         AXIS_CONFIG_G     => LOC_AXIS_CONFIG_C,
+         BYP_SHIFT_G       => BYP_SHIFT_G) 
       port map (
          axisClk     => axiClk,
          axisRst     => axiRst,
