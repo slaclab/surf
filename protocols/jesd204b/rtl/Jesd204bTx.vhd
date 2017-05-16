@@ -386,7 +386,7 @@ begin
             sysRef_i     => s_sysrefRe,
             status_o     => s_statusTxArr(I), -- To AXI lite
             sampleData_i => s_sampleDataArr(I),
-            r_jesdGtTx   => r_jesdGtTxArr(I));
+            r_jesdGtTx   => s_jesdGtTxArr(I));
    end generate generateTxLanes;
    
    -----------------------------------------------------------
