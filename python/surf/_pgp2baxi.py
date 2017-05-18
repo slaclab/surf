@@ -56,11 +56,11 @@ class Pgp2bAxi(pr.Device):
         self.add(pr.Variable(name="RxLocalLinkReady", offset = 0x20, bitSize = 1, bitOffset = 2, mode = "RO", base = 'bool', description = "Rx Local Link Ready"));
         self.add(pr.Variable(name="RxRemLinkReady",   offset = 0x20, bitSize = 1, bitOffset = 3, mode = "RO", base = 'bool', description = "Rx Remote Link Ready"));
         self.add(pr.Variable(name="TxLinkReady",      offset = 0x20, bitSize = 1, bitOffset = 4, mode = "RO", base = 'bool', description = "Tx Link Ready"));
-        self.add(pr.Variable(name="RxLinkPolarity",   offset = 0x20, bitSize = 2, bitOffset = 8, mode = "RO", base = 'bool', description = "Rx Link Polarity"));
-        self.add(pr.Variable(name="RxRemPause",       offset = 0x20, bitSize = 4, bitOffset = 12, mode = "RO", base = 'bool', description = "RX Remote Pause Asserted"));
-        self.add(pr.Variable(name="TxLocPause",       offset = 0x20, bitSize = 4, bitOffset = 16, mode = "RO", base = 'bool', description = "Tx Local Pause Asserted"));
-        self.add(pr.Variable(name="RxRemOverflow",    offset = 0x20, bitSize = 4, bitOffset = 20, mode = "RO", base = 'bool', description = "Received remote overflow flag"));
-        self.add(pr.Variable(name="TxLocOverflow",    offset = 0x20, bitSize = 4, bitOffset = 24, mode = "RO", base = 'bool', description = "Received local overflow flag"));
+        self.add(pr.Variable(name="RxLinkPolarity",   offset = 0x20, bitSize = 2, bitOffset = 8, mode = "RO", base = 'bin', description = "Rx Link Polarity"));
+        self.add(pr.Variable(name="RxRemPause",       offset = 0x20, bitSize = 4, bitOffset = 12, mode = "RO", base = 'bin', description = "RX Remote Pause Asserted"));
+        self.add(pr.Variable(name="TxLocPause",       offset = 0x20, bitSize = 4, bitOffset = 16, mode = "RO", base = 'bin', description = "Tx Local Pause Asserted"));
+        self.add(pr.Variable(name="RxRemOverflow",    offset = 0x20, bitSize = 4, bitOffset = 20, mode = "RO", base = 'bin', description = "Received remote overflow flag"));
+        self.add(pr.Variable(name="TxLocOverflow",    offset = 0x20, bitSize = 4, bitOffset = 24, mode = "RO", base = 'bin', description = "Received local overflow flag"));
 
 
         self.add(pr.Variable(name="RxRemLinkData", offset = 0x24, bitSize = 8, bitOffset = 0, mode = "RO", base = 'hex', description = ""));
@@ -83,9 +83,9 @@ class Pgp2bAxi(pr.Device):
         
         self.add(pr.Variable(name="RxOpCodeCount", offset = 0x7C, bitSize = 8, bitOffset = 0, mode = "RO", base = 'hex', description = ""));
 
-        self.add(pr.Command(name='CountReset', offset=0x00, bitSize=1, bitOffset=0, mode='RW', function=pr.BaseCommand.toggle))
-        self.add(pr.Command(name="ResetRx", offset=0x04, bitSize=1, bitOffset=0, mode='RW',  function=pr.BaseCommand.toggle))
-        self.add(pr.Command(name="Flush", offset=0x08, bitSize=1, bitOffset=0, mode='RW',  function=pr.BaseCommand.toggle))
+        self.add(pr.Command(name='CountReset', offset=0x00, bitSize=1, bitOffset=0, mode='RW', function=pr.Command.toggle))
+        self.add(pr.Command(name="ResetRx", offset=0x04, bitSize=1, bitOffset=0, mode='RW',  function=pr.Command.toggle))
+        self.add(pr.Command(name="Flush", offset=0x08, bitSize=1, bitOffset=0, mode='RW',  function=pr.Command.toggle))
 
         def _resetFunc(dev, rstType):
             """Application specific reset function"""
@@ -101,8 +101,8 @@ class Pgp2bAxi(pr.Device):
             self.add(pr.RemoteVariable(name="RxClkFreqRaw", offset = 0x64, bitSize = 32, mode = "RO", base = pr.UInt, hidden=True, pollInterval=5));
             self.add(pr.RemoteVariable(name="TxClkFreqRaw", offset = 0x68, bitSize = 32, mode = "RO", base = pr.UInt, hidden=True, pollInterval=5));
 
-            self.add(pr.LinkVariable(name="RxClkFreq", mode = "RW", dependencies=[self.RxClkFreqRaw], linkGet=_convertFrequency))
-            self.add(pr.LinkVariable(name="TxClkFreq", mode = "RW", dependencies=[self.TxClkFreqRaw], linkGet=_convertFrequency))
+            self.add(pr.LinkVariable(name="RxClkFreq", mode = "RO", value=0.0, dependencies=[self.RxClkFreqRaw], linkGet=_convertFrequency))
+            self.add(pr.LinkVariable(name="TxClkFreq", mode = "RO", value=0.0, dependencies=[self.TxClkFreqRaw], linkGet=_convertFrequency))
 
         else:
             self.add(pr.Variable(name="RxClkFreq", offset = 0x64, bitSize = 32, bitOffset = 0, mode = "RO", base = 'string', description = "",
