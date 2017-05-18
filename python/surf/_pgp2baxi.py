@@ -100,7 +100,26 @@ class Pgp2bAxi(pr.Device):
                 self.ResetRx()
             elif rstType == 'count':
                 self.CountReset()
-                                        
-def _convertFrequency(dev, var):
-    return '{:f} Mhz'.format(var.block.getUInt(var.bitOffset, var.bitSize) * 1e-6)
+
+        if hasattr(rogue,'Version') and rogue.Version.greaterThanEqual('2.0.0'):
+
+            self.add(pr.RemoteVariable(name="RxClkFreqRaw", offset = 0x64, bitSize = 32, mode = "RO", base = 'uint', hidden=True, pollInterval=5));
+            self.add(pr.RemoteVariable(name="TxClkFreqRaw", offset = 0x68, bitSize = 32, mode = "RO", base = 'uint', hidden=True, pollInterval=5));
+
+            self.add(pr.LinkVariable(name="RxClkFreq", mode = "RW", base = 'string', dependencies=[self.RxClkFreqRaw], linkGet=_convertFrequency))
+            self.add(pr.LinkVariable(name="TxClkFreq", mode = "RW", base = 'string', dependencies=[self.TxClkFreqRaw], linkGet=_convertFrequency))
+
+        else:
+            self.add(pr.Variable(name="RxClkFreq", offset = 0x64, bitSize = 32, bitOffset = 0, mode = "RO", base = 'string', description = "",
+                                 getFunction = _convertFrequency, pollInterval=5));
+
+            self.add(pr.Variable(name="TxClkFreq", offset = 0x68, bitSize = 32, bitOffset = 0, mode = "RO", base = 'string', description = "",
+                                 getFunction = _convertFrequency, pollInterval=5));
+
+
+def _convertFrequency(dev, var, read=True):
+    if hasattr(rogue,'Version') and rogue.Version.greaterThanEqual('2.0.0'):
+        return '{:f} Mhz'.format(var.depdendencies[0].get(read) * 1e-6)
+    else:
+        return '{:f} Mhz'.format(var.block.getUInt(var.bitOffset, var.bitSize) * 1e-6)
     
