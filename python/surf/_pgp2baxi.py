@@ -19,6 +19,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import rogue
 
 class Pgp2bAxi(pr.Device):
     def __init__(self, **kwargs):
@@ -82,9 +83,9 @@ class Pgp2bAxi(pr.Device):
         
         self.add(pr.Variable(name="RxOpCodeCount", offset = 0x7C, bitSize = 8, bitOffset = 0, mode = "RO", base = 'hex', description = ""));
 
-        self.add(pr.Command(name='CountReset', offset=0x00, bitSize=1, bitOffset=0, mode='RW', function=pr.Command.toggle))
-        self.add(pr.Command(name="ResetRx", offset=0x04, bitSize=1, bitOffset=0, mode='RW',  function=pr.Command.toggle))
-        self.add(pr.Command(name="Flush", offset=0x08, bitSize=1, bitOffset=0, mode='RW',  function=pr.Command.toggle))
+        self.add(pr.Command(name='CountReset', offset=0x00, bitSize=1, bitOffset=0, mode='RW', function=pr.BaseCommand.toggle))
+        self.add(pr.Command(name="ResetRx", offset=0x04, bitSize=1, bitOffset=0, mode='RW',  function=pr.BaseCommand.toggle))
+        self.add(pr.Command(name="Flush", offset=0x08, bitSize=1, bitOffset=0, mode='RW',  function=pr.BaseCommand.toggle))
 
         def _resetFunc(dev, rstType):
             """Application specific reset function"""
@@ -97,11 +98,11 @@ class Pgp2bAxi(pr.Device):
 
         if hasattr(rogue,'Version') and rogue.Version.greaterThanEqual('2.0.0'):
 
-            self.add(pr.RemoteVariable(name="RxClkFreqRaw", offset = 0x64, bitSize = 32, mode = "RO", base = 'uint', hidden=True, pollInterval=5));
-            self.add(pr.RemoteVariable(name="TxClkFreqRaw", offset = 0x68, bitSize = 32, mode = "RO", base = 'uint', hidden=True, pollInterval=5));
+            self.add(pr.RemoteVariable(name="RxClkFreqRaw", offset = 0x64, bitSize = 32, mode = "RO", base = pr.UInt, hidden=True, pollInterval=5));
+            self.add(pr.RemoteVariable(name="TxClkFreqRaw", offset = 0x68, bitSize = 32, mode = "RO", base = pr.UInt, hidden=True, pollInterval=5));
 
-            self.add(pr.LinkVariable(name="RxClkFreq", mode = "RW", base = 'string', dependencies=[self.RxClkFreqRaw], linkGet=_convertFrequency))
-            self.add(pr.LinkVariable(name="TxClkFreq", mode = "RW", base = 'string', dependencies=[self.TxClkFreqRaw], linkGet=_convertFrequency))
+            self.add(pr.LinkVariable(name="RxClkFreq", mode = "RW", dependencies=[self.RxClkFreqRaw], linkGet=_convertFrequency))
+            self.add(pr.LinkVariable(name="TxClkFreq", mode = "RW", dependencies=[self.TxClkFreqRaw], linkGet=_convertFrequency))
 
         else:
             self.add(pr.Variable(name="RxClkFreq", offset = 0x64, bitSize = 32, bitOffset = 0, mode = "RO", base = 'string', description = "",
