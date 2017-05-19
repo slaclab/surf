@@ -50,8 +50,7 @@ def create(name='axiVersion', offset=0, memBase=None, hidden=False, expand=True,
     # function the scope is relative to the location of the function defintion. A pointer to the variable
     # and passed value are provided as args. See UserConstants below for an alernative method.
     dev.add(pyrogue.Variable(name='scratchPad', description='Register to test read and writes',
-                             offset=0x004, bitSize=32, bitOffset=0, base='hex', mode='RW', 
-                             setFunction=setVariableExample, getFunction=getVariableExample))
+                             offset=0x004, bitSize=32, bitOffset=0, base='hex', mode='RW' ))
                              
     dev.add(pyrogue.Variable(name='upTimeCnt', description='Number of seconds since reset', pollInterval=1,
                              offset=0x008, bitSize=32, bitOffset=0, base='uint', units="seconds", mode='RO'))
@@ -142,21 +141,15 @@ def cmdFpgaReload(dev,cmd,arg):
     """Example command function"""
     dev.fpgaReload.post(1)
 
-def setVariableExample(dev,var,value):
-    """Example set variable function"""
-    var._block.setUInt(var.bitOffset,var.bitSize,value)
-
-def getVariableExample(dev,var):
-    """Example get variable function"""
-    return(var._block.getUInt(var.bitOffset,var.bitSize))
-
 def resetFunc(dev,rstType):
     """Application specific reset function"""
     if rstType == 'soft':
-        dev.counter.set(0)
+        #dev.counter.post(0)
+        pass
     elif rstType == 'hard':
         dev.masterResetVar.post(1)
     elif rstType == 'count':
         print('AxiVersion countReset')
-        dev.counter.set(0)
+        #dev.counter.set(0)
+        pass
 
