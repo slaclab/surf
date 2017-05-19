@@ -2,7 +2,7 @@
 #-----------------------------------------------------------------------------
 # Title      : PyRogue AxiEmpty Module as a placeholder for future module
 #-----------------------------------------------------------------------------
-# File       : AxiEmpty.py
+# File       : AxiLiteEmpty.py
 # Created    : 2017-04-12
 #-----------------------------------------------------------------------------
 # Description:
@@ -19,7 +19,7 @@
 
 import pyrogue as pr
 
-class AxiEmpty(pr.Device):
+class AxiLiteEmpty(pr.Device):
     def __init__(   self,       
                     name        = "AxiEmpty",
                     description = "AxiEmpty Module as a placeholder for future module",

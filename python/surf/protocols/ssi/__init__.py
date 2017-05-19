@@ -8,3 +8,6 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+from surf.protocols.ssi._SsiPrbsRx import *
+from surf.protocols.ssi._SsiPrbsTx import *
+from surf.protocols.ssi._SsiPrbsRateGen import *
