@@ -169,7 +169,7 @@ class Ad9249ReadoutGroup(pr.Device):
             
         self.add(pr.Command(name="LostLockCountReset",
                             description = "Reset LostLockCount",
-                            function = pr.Command.toggle,
+                            function = pr.BaseCommand.toggle,
                             offset = 0x38,
                             bitSize = 1,
                             bitOffset = 0))
