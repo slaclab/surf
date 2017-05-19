@@ -105,14 +105,14 @@ class SsiPrbsTx(pr.Device):
                             mode         = "RW",
                         )
 
-        self.addVariable(   name         = "tId",
-                            description  = "",
-                            offset       =  0x09,
-                            bitSize      =  8,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                        )
+#        self.addVariable(   name         = "tId",
+#                            description  = "",
+#                            offset       =  0x09,
+#                            bitSize      =  8,
+#                            bitOffset    =  0x00,
+#                            base         = "hex",
+#                            mode         = "RW",
+#                        )
 
         self.addVariable(   name         = "DataCount",
                             description  = "",

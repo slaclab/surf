@@ -8,3 +8,7 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+from surf.axi._AxiLiteEmpty           import *
+from surf.axi._AxiMemTester           import *
+from surf.axi._AxiStreamDmaRingWrite  import *
+from surf.axi._AxiVersion             import *

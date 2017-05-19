@@ -65,6 +65,7 @@ class AxiVersion(pr.Device):
                             bitOffset    =  0x00,
                             base         = "hex",
                             mode         = "RO",
+                            pollInterval = 1
                         )
 
         self.addVariable(   name         = "FpgaReloadHalt",
