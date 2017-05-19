@@ -64,7 +64,8 @@ architecture rtl of AxiStreamDmaV2Read is
 
    type ReqStateType is (
       IDLE_S,
-      ADDR_S);
+      ADDR_S,
+      NEXT_S);
 
    type StateType is (
       IDLE_S,
@@ -215,7 +216,7 @@ begin
                -- Set the memory address 
                v.rMaster.araddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := r.dmaRdDescReq.address(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0);
                -- Determine transfer size aligned to 4k boundaries
-               v.rMaster.arlen := getAxiLen(AXI_CONFIG_G,BURST_BYTES_G,conv_integer(r.reqSize),r.dmaRdDescReq.address);
+               v.rMaster.arlen := getAxiLen(AXI_CONFIG_G,BURST_BYTES_G,r.reqSize,r.dmaRdDescReq.address);
                -- Check for the following:
                --    1) There is enough room in the FIFO for a burst 
                --    2) pending flag
@@ -223,15 +224,20 @@ begin
                if (pause = '0') and (pending = false) and (r.reqCnt < r.dmaRdDescReq.size) then
                   -- Set the flag
                   v.rMaster.arvalid := '1';
-                  -- Update the request size
-                  v.reqCnt  := r.reqCnt  + getAxiReadBytes(AXI_CONFIG_G,v.rMaster);
-                  v.reqSize := r.reqSize - getAxiReadBytes(AXI_CONFIG_G,v.rMaster);
-                  -- Update next address
-                  v.dmaRdDescReq.address := r.dmaRdDescReq.address + getAxiReadBytes(AXI_CONFIG_G,v.rMaster);
                   -- Next state
-                  v.state := MOVE_S;
+                  v.state    := MOVE_S;
+                  v.reqState := NEXT_S;
                end if;
             end if;
+         ----------------------------------------------------------------------
+         when NEXT_S =>
+            -- Update the request size
+            v.reqCnt  := r.reqCnt  + getAxiReadBytes(AXI_CONFIG_G,r.rMaster);
+            v.reqSize := r.reqSize - getAxiReadBytes(AXI_CONFIG_G,r.rMaster);
+            -- Update next address
+            v.dmaRdDescReq.address := r.dmaRdDescReq.address + getAxiReadBytes(AXI_CONFIG_G,r.rMaster);
+            -- Back to address state
+            v.reqState := ADDR_S;
       ----------------------------------------------------------------------
       end case;
 

@@ -258,7 +258,7 @@ package AxiPkg is
    function getAxiLen (
       axiConfig  : AxiConfigType;
       burstBytes : integer range 1 to 4096 := 4096;
-      totalBytes : positive;
+      totalBytes : slv;
       address    : slv)
       return slv;
 
@@ -335,7 +335,7 @@ package body AxiPkg is
       -- Convert to SLV and truncate to size of A*LEN port for this AXI bus
       -- This limits number of txns approraiately based on size of len port
       -- Then resize to 8 bits because our records define A*LEN as 8 bits always.
-      return resize(toSlv(wordCount(burstBytes,axiConfig.DATA_BYTES_C), axiConfig.LEN_BITS_C), 8);
+      return resize(toSlv(wordCount(burstBytes,axiConfig.DATA_BYTES_C)-1, axiConfig.LEN_BITS_C), 8);
    end function getAxiLen;
 
    -- Calculate number of txns in a burst based upon burst size, total remaining bytes,
@@ -345,14 +345,16 @@ package body AxiPkg is
    function getAxiLen (
       axiConfig  : AxiConfigType;
       burstBytes : integer range 1 to 4096 := 4096;
-      totalBytes : positive;
+      totalBytes : slv;
       address    : slv)
       return slv is
       variable max  : natural;
       variable req  : natural;
+      variable maxLen : slv(7 downto 0);
    begin
+
       max  := 4096 - conv_integer(address(11 downto 0));
-      req  := minimum(totalBytes,burstBytes);
+      req  := minimum(conv_integer(totalBytes),burstBytes);
 
       return getAxiLen(axiConfig,minimum(req,max));
 
