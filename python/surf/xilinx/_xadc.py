@@ -309,17 +309,12 @@ class Xadc(pr.Device):
                              voltage reference. When this bit is a logic 0, the external 
                              reference is being used."""))
 
-        if hasattr(rogue,'Version') and rogue.Version.greaterThanEqual('2.0.0'):
-            var = pr.RemoteVariable(name='OT LimitRaw', offset=(0x200+(0x53*4)), bitSize=12, bitOffset=4, base='uint', mode='RW')
-            self.add(var)
+        var = pr.RemoteVariable(name='OT LimitRaw', offset=(0x200+(0x53*4)), bitSize=12, bitOffset=4, base='uint', mode='RW')
+        self.add(var)
 
-            self.add(pr.LinkVariable(name='OT Limit', units='degC', base='string', mode='RW',
-                                     linkGet=Xadc.getTemp, linkSet=Xadc.setTemp, dependencies=[var]))
+        self.add(pr.LinkVariable(name='OT Limit', units='degC', base='string', mode='RW',
+                                 linkGet=Xadc.getTemp, linkSet=Xadc.setTemp, dependencies=[var]))
 
-        else:
-            self.add(pr.Variable(name='OT Limit', units='degC', offset=(0x200+(0x53*4)), bitSize=12, bitOffset=4, base='string', mode='RW',
-                                 getFunction=Xadc.getTemp, setFunction=Xadc.setTemp))
-        
         # Default to simple view
         self.simpleView()
         
@@ -332,10 +327,7 @@ class Xadc(pr.Device):
 
     @staticmethod
     def getTemp(dev, var, read=False):
-        if hasattr(rogue,'Version') and rogue.Version.greaterThanEqual('2.0.0'):
-            value =  var.depdendencies[0].get(read)
-        else:
-            value   = var._block.getUInt(var.bitOffset, var.bitSize)
+        value =  var.depdendencies[0].get(read)
         fpValue = value*(503.975/4096.0)
         fpValue -= 273.15
         return '%0.1f'%(fpValue)
@@ -344,11 +336,7 @@ class Xadc(pr.Device):
     def setTemp(dev, var, value, write=False):
         ivalue = int((int(value) + 273.15)*(4096/503.975))
         print( 'Setting Temp thresh to {:x}'.format(ivalue) )
-
-        if hasattr(rogue,'Version') and rogue.Version.greaterThanEqual('2.0.0'):
-            var.depdendencies[0].set(ivalue,write)
-        else:
-            var._block.setUInt(var.bitOffset, var.bitSize, ivalue)
+        var.depdendencies[0].set(ivalue,write)
 
     @staticmethod
     def convVoltage(dev, var):

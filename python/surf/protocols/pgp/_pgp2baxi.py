@@ -96,25 +96,12 @@ class Pgp2bAxi(pr.Device):
             elif rstType == 'count':
                 self.CountReset()
 
-        if hasattr(rogue,'Version') and rogue.Version.greaterThanEqual('2.0.0'):
+        self.add(pr.RemoteVariable(name="RxClkFreqRaw", offset = 0x64, bitSize = 32, mode = "RO", base = pr.UInt, hidden=True, pollInterval=5));
+        self.add(pr.RemoteVariable(name="TxClkFreqRaw", offset = 0x68, bitSize = 32, mode = "RO", base = pr.UInt, hidden=True, pollInterval=5));
 
-            self.add(pr.RemoteVariable(name="RxClkFreqRaw", offset = 0x64, bitSize = 32, mode = "RO", base = pr.UInt, hidden=True, pollInterval=5));
-            self.add(pr.RemoteVariable(name="TxClkFreqRaw", offset = 0x68, bitSize = 32, mode = "RO", base = pr.UInt, hidden=True, pollInterval=5));
-
-            self.add(pr.LinkVariable(name="RxClkFreq", mode = "RO", value=0.0, dependencies=[self.RxClkFreqRaw], linkGet=_convertFrequency))
-            self.add(pr.LinkVariable(name="TxClkFreq", mode = "RO", value=0.0, dependencies=[self.TxClkFreqRaw], linkGet=_convertFrequency))
-
-        else:
-            self.add(pr.Variable(name="RxClkFreq", offset = 0x64, bitSize = 32, bitOffset = 0, mode = "RO", base = 'string', description = "",
-                                 getFunction = _convertFrequency, pollInterval=5));
-
-            self.add(pr.Variable(name="TxClkFreq", offset = 0x68, bitSize = 32, bitOffset = 0, mode = "RO", base = 'string', description = "",
-                                 getFunction = _convertFrequency, pollInterval=5));
-
+        self.add(pr.LinkVariable(name="RxClkFreq", mode = "RO", value=0.0, dependencies=[self.RxClkFreqRaw], linkGet=_convertFrequency))
+        self.add(pr.LinkVariable(name="TxClkFreq", mode = "RO", value=0.0, dependencies=[self.TxClkFreqRaw], linkGet=_convertFrequency))
 
 def _convertFrequency(dev, var, read=True):
-    if hasattr(rogue,'Version') and rogue.Version.greaterThanEqual('2.0.0'):
-        return '{:f} Mhz'.format(var.depdendencies[0].get(read) * 1e-6)
-    else:
-        return '{:f} Mhz'.format(var.block.getUInt(var.bitOffset, var.bitSize) * 1e-6)
+    return '{:f} Mhz'.format(var.depdendencies[0].get(read) * 1e-6)
     
