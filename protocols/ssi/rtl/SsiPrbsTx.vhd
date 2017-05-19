@@ -33,6 +33,7 @@ entity SsiPrbsTx is
       AXI_ERROR_RESP_G           : slv(1 downto 0)            := AXI_RESP_SLVERR_C;
       -- FIFO Configurations
       VALID_THOLD_G              : integer range 0 to (2**24) := 1;
+      VALID_BURST_MODE_G         : boolean                    := false;
       BRAM_EN_G                  : boolean                    := true;
       XIL_DEVICE_G               : string                     := "7SERIES";
       USE_BUILT_IN_G             : boolean                    := false;
@@ -357,7 +358,7 @@ begin
       end if;
    end process seq;
 
-   AxiStreamFifo_Inst : entity work.AxiStreamFifo
+   AxiStreamFifo_Inst : entity work.AxiStreamFifoV2
       generic map(
          -- General Configurations
          TPD_G               => TPD_G,
@@ -365,6 +366,7 @@ begin
          PIPE_STAGES_G       => MASTER_AXI_PIPE_STAGES_G,
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => VALID_THOLD_G,
+         VALID_BURST_MODE_G  => VALID_BURST_MODE_G,
          -- FIFO configurations
          BRAM_EN_G           => BRAM_EN_G,
          XIL_DEVICE_G        => XIL_DEVICE_G,

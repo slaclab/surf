@@ -38,6 +38,7 @@ from surf._JesdTx import *
 from surf._Lmk04828 import *
 from surf._SsiPrbsRx import *
 from surf._SsiPrbsTx import *
+from surf._SsiPrbsRateGen import *
 from surf._TenGigEthReg import *
 from surf._XauiReg import *
 from surf._GenericMemory import *

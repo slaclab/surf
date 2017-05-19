@@ -2,7 +2,7 @@
 -- File       : GigEthGtx7.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-02-07
--- Last update: 2016-09-29
+-- Last update: 2017-05-12
 -------------------------------------------------------------------------------
 -- Description: 1000BASE-X Ethernet for Gtx7
 -------------------------------------------------------------------------------
@@ -31,7 +31,7 @@ entity GigEthGtx7 is
       EN_AXI_REG_G     : boolean             := false;
       AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C); 
+      AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
@@ -60,7 +60,7 @@ entity GigEthGtx7 is
       gtTxP              : out sl;
       gtTxN              : out sl;
       gtRxP              : in  sl;
-      gtRxN              : in  sl);  
+      gtRxN              : in  sl);
 end GigEthGtx7;
 
 architecture mapping of GigEthGtx7 is
@@ -85,7 +85,7 @@ architecture mapping of GigEthGtx7 is
 
    signal areset  : sl;
    signal coreRst : sl;
-   
+
 begin
 
    ------------------
@@ -108,21 +108,18 @@ begin
          mAxiReadMaster  => mAxiReadMaster,
          mAxiReadSlave   => mAxiReadSlave,
          mAxiWriteMaster => mAxiWriteMaster,
-         mAxiWriteSlave  => mAxiWriteSlave);    
+         mAxiWriteSlave  => mAxiWriteSlave);
 
    areset <= extRst or config.softRst or sysRst125;
 
-   U_SysRst : entity work.RstSync
+   U_PwrUpRst : entity work.PwrUpRst
       generic map (
-         TPD_G           => TPD_G,
-         IN_POLARITY_G   => '1',
-         OUT_POLARITY_G  => '1',
-         BYPASS_SYNC_G   => false,
-         RELEASE_DELAY_G => 3)
+         TPD_G      => TPD_G,
+         DURATION_G => 1000)
       port map (
-         clk      => sysClk125,
-         asyncRst => areset,
-         syncRst  => coreRst);         
+         clk    => sysClk125,
+         arst   => areset,
+         rstOut => coreRst);
 
    --------------------
    -- Ethernet MAC core
@@ -152,7 +149,7 @@ begin
          gmiiRxd         => gmiiRxd,
          gmiiTxEn        => gmiiTxEn,
          gmiiTxEr        => gmiiTxEr,
-         gmiiTxd         => gmiiTxd);            
+         gmiiTxd         => gmiiTxd);
 
    ------------------
    -- 1000BASE-X core
@@ -194,7 +191,7 @@ begin
          -- Configuration and Status
          configuration_vector   => config.coreConfig,
          status_vector          => status.coreStatus,
-         signal_detect          => sigDet); 
+         signal_detect          => sigDet);
 
    status.phyReady <= status.coreStatus(0);
    phyReady        <= status.phyReady;
@@ -220,6 +217,6 @@ begin
          axiWriteSlave  => mAxiWriteSlave,
          -- Configuration and Status Interface
          config         => config,
-         status         => status); 
+         status         => status);
 
 end mapping;

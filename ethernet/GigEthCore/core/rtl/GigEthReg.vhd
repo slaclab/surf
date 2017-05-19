@@ -2,7 +2,7 @@
 -- File       : GigEthReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-20
--- Last update: 2016-10-06
+-- Last update: 2017-05-12
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite 1GbE Register Interface
 -------------------------------------------------------------------------------
@@ -42,12 +42,12 @@ entity GigEthReg is
       axiWriteSlave  : out AxiLiteWriteSlaveType;
       -- Configuration and Status Interface
       config         : out GigEthConfigType;
-      status         : in  GigEthStatusType);   
+      status         : in  GigEthStatusType);
 end GigEthReg;
 
 architecture rtl of GigEthReg is
 
-   constant STATUS_SIZE_C : positive := 32;
+   constant STATUS_SIZE_C  : positive := 32;
 
    type RegType is record
       hardRst       : sl;
@@ -57,7 +57,7 @@ architecture rtl of GigEthReg is
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
    end record RegType;
-   
+
    constant REG_INIT_C : RegType := (
       hardRst       => '0',
       cntRst        => '1',
@@ -72,8 +72,18 @@ architecture rtl of GigEthReg is
    signal statusOut    : slv(STATUS_SIZE_C-1 downto 0);
    signal cntOut       : SlVectorArray(STATUS_SIZE_C-1 downto 0, 31 downto 0);
    signal localMacSync : slv(47 downto 0);
-   
+   signal wdtRst       : sl;
+
 begin
+
+   U_WatchDogRst : entity work.WatchDogRst
+      generic map(
+         TPD_G      => TPD_G,
+         DURATION_G => getTimeRatio(125.0E+6, 0.5))
+      port map (
+         clk    => clk,
+         monIn  => status.phyReady,
+         rstOut => wdtRst);
 
    GEN_BYPASS : if (EN_AXI_REG_G = false) generate
 
@@ -96,13 +106,14 @@ begin
          port map (
             clk     => clk,
             dataIn  => localMac,
-            dataOut => localMacSync);             
+            dataOut => localMacSync);
 
-      process (localMacSync) is
+      process (localMacSync, wdtRst) is
          variable retVar : GigEthConfigType;
       begin
          retVar                      := GIG_ETH_CONFIG_INIT_C;
          retVar.macConfig.macAddress := localMacSync;
+         retVar.softRst              := wdtRst;
          config                      <= retVar;
       end process;
 
@@ -117,7 +128,7 @@ begin
             CNT_RST_EDGE_G => false,
             COMMON_CLK_G   => true,
             CNT_WIDTH_G    => 32,
-            WIDTH_G        => STATUS_SIZE_C)     
+            WIDTH_G        => STATUS_SIZE_C)
          port map (
             -- Input Status bit Signals (wrClk domain)
             statusIn(0)           => status.phyReady,
@@ -143,7 +154,8 @@ begin
       -------------------------------
       -- Configuration Register
       -------------------------------  
-      comb : process (axiReadMaster, axiWriteMaster, cntOut, localMac, r, rst, status, statusOut) is
+      comb : process (axiReadMaster, axiWriteMaster, cntOut, localMac, r, rst,
+                      status, statusOut, wdtRst) is
          variable v      : RegType;
          variable regCon : AxiLiteEndPointType;
          variable rdPntr : natural;
@@ -156,8 +168,8 @@ begin
 
          -- Reset strobe signals
          v.cntRst         := '0';
-         v.config.softRst := '0';
          v.hardRst        := '0';
+         v.config.softRst := wdtRst;
 
          -- Calculate the read pointer
          rdPntr := conv_integer(axiReadMaster.araddr(9 downto 2));
@@ -222,5 +234,5 @@ begin
       end process seq;
 
    end generate;
-   
+
 end rtl;

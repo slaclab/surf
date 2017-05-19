@@ -256,7 +256,7 @@ begin
                v.wMaster.awaddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := 
                   r.dmaWrTrack.address(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0);
                -- Determine transfer size aligned to 4k boundaries
-               v.wMaster.awlen := getAxiLen(AXI_CONFIG_G,BURST_BYTES_G,conv_integer(r.dmaWrTrack.maxSize),r.dmaWrTrack.address);
+               v.wMaster.awlen := getAxiLen(AXI_CONFIG_G,BURST_BYTES_G,r.dmaWrTrack.maxSize,r.dmaWrTrack.address);
                -- Latch AXI awlen value
                v.awlen := v.wMaster.awlen(AXI_CONFIG_G.LEN_BITS_C-1 downto 0);
                -- Check if enough room
