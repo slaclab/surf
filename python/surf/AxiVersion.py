@@ -144,10 +144,12 @@ def cmdFpgaReload(dev,cmd,arg):
 def resetFunc(dev,rstType):
     """Application specific reset function"""
     if rstType == 'soft':
-        dev.counter.set(0)
+        #dev.counter.post(0)
+        pass
     elif rstType == 'hard':
         dev.masterResetVar.post(1)
     elif rstType == 'count':
         print('AxiVersion countReset')
-        dev.counter.set(0)
+        #dev.counter.set(0)
+        pass
 
