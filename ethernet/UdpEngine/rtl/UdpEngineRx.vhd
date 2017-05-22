@@ -2,7 +2,7 @@
 -- File       : UdpEngineRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2016-09-16
+-- Last update: 2017-05-22
 -------------------------------------------------------------------------------
 -- Description: UDP RX Engine Module
 -- Note: UDP checksum checked in EthMac core
@@ -68,12 +68,12 @@ architecture rtl of UdpEngineRx is
 
    constant SERVER_PORTS_C : Slv16Array(SERVER_SIZE_G-1 downto 0) := EthPortArrayBigEndian(SERVER_PORTS_G, SERVER_SIZE_G);
    constant CLIENT_PORTS_C : Slv16Array(CLIENT_SIZE_G-1 downto 0) := EthPortArrayBigEndian(CLIENT_PORTS_G, CLIENT_SIZE_G);
-   
+
    type RouteType is (
       NULL_S,
       SERVER_S,
       CLIENT_S,
-      DHCP_S);   
+      DHCP_S);
 
    type StateType is (
       IDLE_S,
@@ -89,6 +89,7 @@ architecture rtl of UdpEngineRx is
       byteCnt          : slv(15 downto 0);
       tData            : slv(127 downto 0);
       sof              : sl;
+      localHost        : sl;
       route            : RouteType;
       rxSlave          : AxiStreamSlaveType;
       dhcpMaster       : AxiStreamMasterType;
@@ -104,6 +105,7 @@ architecture rtl of UdpEngineRx is
       byteCnt          => (others => '0'),
       tData            => (others => '0'),
       sof              => '1',
+      localHost        => '0',
       route            => NULL_S,
       rxSlave          => AXI_STREAM_SLAVE_INIT_C,
       dhcpMaster       => AXI_STREAM_MASTER_INIT_C,
@@ -138,7 +140,8 @@ begin
          mAxisMaster => rxMaster,
          mAxisSlave  => rxSlave);
 
-   comb : process (clientSlave, dhcpSlave, localIp, r, rst, rxMaster, serverSlave) is
+   comb : process (clientSlave, dhcpSlave, localIp, r, rst, rxMaster,
+                   serverSlave) is
       variable v : RegType;
       variable i : natural;
    begin
@@ -247,6 +250,12 @@ begin
                v.tData(31 downto 0)   := rxMaster.tData(127 downto 96);
                -- Set the flag
                v.sof                  := '1';
+               -- Check if localhost
+               if (localIp = r.tData(95 downto 64)) then
+                  v.localHost := '1';
+               else
+                  v.localHost := '0';
+               end if;
                -- Check for non-NULL route type
                if (v.route /= NULL_S) then
                   -- Check for leftovers
@@ -285,16 +294,31 @@ begin
                      v.byteCnt                               := r.byteCnt - 16;
                      -- Check for tLast or the byte counter
                      if (rxMaster.tLast = '1') or (r.byteCnt <= 16) or (v.byteCnt <= 4) then
-                        -- Check for leftovers
-                        if (v.byteCnt <= 4) and (r.byteCnt /= 16) then
-                           -- Next state
-                           v.state := LAST_S;
+                        -- Check if not localhost
+                        if (r.localHost = '0') then
+                           -- Check for leftovers
+                           if (v.byteCnt <= 4) and (r.byteCnt /= 16) then
+                              -- Next state
+                              v.state := LAST_S;
+                           else
+                              -- Terminate the packet
+                              v.serverMaster.tKeep := genTKeep(conv_integer(r.byteCnt));
+                              v.serverMaster.tLast := '1';
+                              -- Next state
+                              v.state              := IDLE_S;
+                           end if;
                         else
-                           -- Terminate the packet
-                           v.serverMaster.tKeep := genTKeep(conv_integer(r.byteCnt));
-                           v.serverMaster.tLast := '1';
-                           -- Next state
-                           v.state              := IDLE_S;
+                           -- Else localhost communication
+                           if (rxMaster.tKeep(15 downto 12) /= 0) then
+                              v.byteCnt := (x"00" & "000" & onesCount(x"000" & rxMaster.tKeep(15 downto 12)));
+                              -- Next state
+                              v.state   := LAST_S;
+                           else
+                              v.serverMaster.tKeep := rxMaster.tKeep(11 downto 0) & x"F";
+                              v.serverMaster.tLast := '1';
+                              -- Next state
+                              v.state              := IDLE_S;
+                           end if;
                         end if;
                      end if;
                   end if;
@@ -317,16 +341,31 @@ begin
                      v.byteCnt                               := r.byteCnt - 16;
                      -- Check for tLast or the byte counter
                      if (rxMaster.tLast = '1') or (r.byteCnt <= 16) or (v.byteCnt <= 4) then
-                        -- Check for leftovers
-                        if (v.byteCnt <= 4) and (r.byteCnt /= 16) then
-                           -- Next state
-                           v.state := LAST_S;
+                        -- Check if not localhost
+                        if (r.localHost = '0') then
+                           -- Check for leftovers
+                           if (v.byteCnt <= 4) and (r.byteCnt /= 16) then
+                              -- Next state
+                              v.state := LAST_S;
+                           else
+                              -- Terminate the packet
+                              v.clientMaster.tKeep := genTKeep(conv_integer(r.byteCnt));
+                              v.clientMaster.tLast := '1';
+                              -- Next state
+                              v.state              := IDLE_S;
+                           end if;
                         else
-                           -- Terminate the packet
-                           v.clientMaster.tKeep := genTKeep(conv_integer(r.byteCnt));
-                           v.clientMaster.tLast := '1';
-                           -- Next state
-                           v.state              := IDLE_S;
+                           -- Else localhost communication
+                           if (rxMaster.tKeep(15 downto 12) /= 0) then
+                              v.byteCnt := (x"00" & "000" & onesCount(x"000" & rxMaster.tKeep(15 downto 12)));
+                              -- Next state
+                              v.state   := LAST_S;
+                           else
+                              v.clientMaster.tKeep := rxMaster.tKeep(11 downto 0) & x"F";
+                              v.clientMaster.tLast := '1';
+                              -- Next state
+                              v.state              := IDLE_S;
+                           end if;
                         end if;
                      end if;
                   end if;
@@ -458,7 +497,7 @@ begin
          sAxisSlave   => serverSlave,
          -- Masters
          mAxisMasters => obServerMasters,
-         mAxisSlaves  => obServerSlaves);  
+         mAxisSlaves  => obServerSlaves);
 
    U_Clients : entity work.AxiStreamDeMux
       generic map (
@@ -474,7 +513,7 @@ begin
          sAxisSlave   => clientSlave,
          -- Masters
          mAxisMasters => obClientMasters,
-         mAxisSlaves  => obClientSlaves);           
+         mAxisSlaves  => obClientSlaves);
 
    U_Dhcp : entity work.AxiStreamPipeline
       generic map (
@@ -486,6 +525,6 @@ begin
          sAxisMaster => r.dhcpMaster,
          sAxisSlave  => dhcpSlave,
          mAxisMaster => ibDhcpMaster,
-         mAxisSlave  => ibDhcpSlave);      
+         mAxisSlave  => ibDhcpSlave);
 
 end rtl;
