@@ -122,6 +122,7 @@ class AxiVersion(pr.Device):
                             mode         = "RO",
                             number       =  64,
                             stride       =  4,
+                            hidden       = True,
                         )
 
         self.addVariable(   name         = "DeviceId",
