@@ -268,12 +268,19 @@ begin
          positionErr_o => s_positionErr
          );
 
-   -- Link error masked by the mask from register and ORed
-   s_linkErrVec <= s_positionErr & s_bufOvf & s_bufUnf & uOr(r.jesdGtRx.dispErr) & uOr(r.jesdGtRx.decErr) & s_alignErr;
-   s_linkErr    <= uOr(s_linkErrVec and linkErrMask_i);
-   
-   -- Combine errors that need registering
-   s_errComb <= r.jesdGtRx.decErr & r.jesdGtRx.dispErr & s_alignErr & s_positionErr & s_bufOvf & s_bufUnf;
+   process(devClk_i)
+   begin
+      if rising_edge(devClk_i) then
+         
+         -- Link error masked by the mask from register and ORed
+         s_linkErrVec <= s_positionErr & s_bufOvf & s_bufUnf & uOr(r.jesdGtRx.dispErr) & uOr(r.jesdGtRx.decErr) & s_alignErr after TPD_G;
+         s_linkErr    <= uOr(s_linkErrVec and linkErrMask_i) after TPD_G;
+         
+         -- Combine errors that need registering
+         s_errComb <= r.jesdGtRx.decErr & r.jesdGtRx.dispErr & s_alignErr & s_positionErr & s_bufOvf & s_bufUnf after TPD_G;
+         
+      end if;
+   end process;
 
    -- Synchronous process function:
    -- - Registering of errors
