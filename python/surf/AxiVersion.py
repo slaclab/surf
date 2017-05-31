@@ -22,6 +22,7 @@ import collections
 
 def create(name='axiVersion', offset=0, memBase=None, hidden=False, expand=True, enabled=True):
     """Create the axiVersion device"""
+    print("WARNING: Creating {} through this method is no longer supported. Please use class based version.".format(name))
 
     # Creation. memBase is either the register bus server (srp, rce mapped memory, etc) or the device which
     # contains this object. In most cases the parent and memBase are the same but they can be 

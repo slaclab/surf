@@ -25,6 +25,7 @@ import functools as ft
 class AxiStreamDmaRingWrite(pr.Device):
     def __init__(self, numBuffers, msgDestEnum=None, **kwargs):
         super(self.__class__, self).__init__(description='DMA Ring Buffer Manager', **kwargs)
+        print("WARNING: Creating {} through this method is no longer supported. Please use class based version.".format(name))
 
         assert 2 <= numBuffers <= 64, "numBuffers ({:d}) must be between 2 and 64 (inclusive)".format(numBuffers)
 

@@ -22,6 +22,7 @@
 import pyrogue
 
 def create(name='gthe3Channel', offset=0, memBase=None, hidden=False):
+    print("WARNING: Creating {} through this method is no longer supported. Please use class based version.".format(name))
 
     dev = pyrogue.Device(name=name,memBase=memBase,offset=offset,
                          hidden=hidden,size=0x400,
