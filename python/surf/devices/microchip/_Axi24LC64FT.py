@@ -36,11 +36,8 @@ class Axi24LC64FT(pr.Device):
         ##############################
         # Variables
         ##############################
-        if (instantiate):
-            digits = len(str(abs(nelms-1))) 
-            for i in range(nelms):            
-    	        self.add(GenericMemory(
-                                        name         = "Mem_%.*i" % (digits, i),
-                                        description  = "Memory Array: Element %.*i" % (digits, i),
-                                        offset       =  i * 0x04,
-    	        					))
+        self.add(GenericMemory(
+                                offset      = 0x00,
+                                nelms       = nelms,
+                                instantiate = instantiate,
+                              ))
