@@ -16,7 +16,7 @@ JesdTx: &JesdTx
   description: JESD TX Module
   size: 0x200
   metadata:
-    numTxLanes: &numTxLanes 2
+    numTxLanes: &numTxLanes 8
   #########
   children:
     #########################################################

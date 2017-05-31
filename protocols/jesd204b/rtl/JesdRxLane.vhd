@@ -61,8 +61,8 @@ entity JesdRxLane is
       TPD_G : time := 1 ns;
 
       -- Number of bytes in a frame
-      F_G : positive := 2;
-
+      F_G            : positive := 2;
+      
       -- Number of frames in a multi frame
       K_G : positive := 32
       );
@@ -124,13 +124,15 @@ architecture rtl of JesdRxLane is
       errReg         : slv(ERR_REG_WIDTH_C-1 downto 0);
       sampleData     : slv(sampleData_o'range);
       sampleDataValid: sl;
+      jesdGtRx       : jesdGtRxLaneType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       bufWeD1        => '0',
       errReg         => (others => '0'),
       sampleData     => (others => '0'),
-      sampleDataValid=> '0'
+      sampleDataValid=> '0',
+      jesdGtRx       => JESD_GT_RX_LANE_INIT_C
       );
 
    signal r   : RegType := REG_INIT_C;
@@ -151,7 +153,7 @@ architecture rtl of JesdRxLane is
    signal s_bufRe  : sl;
 
    -- Datapath
-   signal s_charAndData     : slv(((GT_WORD_SIZE_C*8)+GT_WORD_SIZE_C)-1 downto 0);
+   signal s_charAndData     : slv(((GT_WORD_SIZE_C*8)+GT_WORD_SIZE_C)-1 downto 0);    
    signal s_charAndDataBuff : slv(s_charAndData'range);
    signal s_sampleData      : slv(sampleData_o'range);
    signal s_sampleDataValid : sl;
@@ -170,10 +172,9 @@ architecture rtl of JesdRxLane is
    signal s_buffLatency : slv(7 downto 0);
 
 begin
-
-   -- Input assignment
-   s_charAndData <= r_jesdGtRx.dataK & r_jesdGtRx.data;
-
+   
+   s_charAndData <= r.jesdGtRx.dataK & r.jesdGtRx.data;
+   
    -- Buffer control
    s_bufRst <= devRst_i or not s_nSync or not enable_i;
    s_bufWe  <= not s_bufRst and not s_bufFull;
@@ -229,9 +230,9 @@ begin
          rst           => devRst_i,
          enable_i      => enable_i,
          sysRef_i      => sysRef_i,
-         dataRx_i      => r_jesdGtRx.data,
-         chariskRx_i   => r_jesdGtRx.dataK,
-         gtReady_i     => r_jesdGtRx.rstDone,
+         dataRx_i      => r.jesdGtRx.data,
+         chariskRx_i   => r.jesdGtRx.dataK,
+         gtReady_i     => r.jesdGtRx.rstDone,
          lmfc_i        => lmfc_i,
          nSyncAnyD1_i  => nSyncAnyD1_i,
          nSyncAny_i    => nSyncAny_i,
@@ -267,12 +268,19 @@ begin
          positionErr_o => s_positionErr
          );
 
-   -- Link error masked by the mask from register and ORed
-   s_linkErrVec <= s_positionErr & s_bufOvf & s_bufUnf & uOr(r_jesdGtRx.dispErr) & uOr(r_jesdGtRx.decErr) & s_alignErr;
-   s_linkErr    <= uOr(s_linkErrVec and linkErrMask_i);
-   
-   -- Combine errors that need registering
-   s_errComb <= r_jesdGtRx.decErr & r_jesdGtRx.dispErr & s_alignErr & s_positionErr & s_bufOvf & s_bufUnf;
+   process(devClk_i)
+   begin
+      if rising_edge(devClk_i) then
+         
+         -- Link error masked by the mask from register and ORed
+         s_linkErrVec <= s_positionErr & s_bufOvf & s_bufUnf & uOr(r.jesdGtRx.dispErr) & uOr(r.jesdGtRx.decErr) & s_alignErr after TPD_G;
+         s_linkErr    <= uOr(s_linkErrVec and linkErrMask_i) after TPD_G;
+         
+         -- Combine errors that need registering
+         s_errComb <= r.jesdGtRx.decErr & r.jesdGtRx.dispErr & s_alignErr & s_positionErr & s_bufOvf & s_bufUnf after TPD_G;
+         
+      end if;
+   end process;
 
    -- Synchronous process function:
    -- - Registering of errors
@@ -285,11 +293,13 @@ begin
       variable v : RegType;
    begin
       v := r;
-
+      
+      v.jesdGtRx := r_jesdGtRx;
+      
       v.bufWeD1 := s_bufWe;
 
       -- Register errors (store until reset)
-      if (r_jesdGtRx.rstDone = '1' and s_nSync = '1') then
+      if (r.jesdGtRx.rstDone = '1' and s_nSync = '1') then
          for I in 0 to(ERR_REG_WIDTH_C-1) loop
             if (s_errComb(I) = '1') then
                v.errReg(I) := '1';
@@ -331,6 +341,6 @@ begin
    nSync_o      <= s_nSync;
    dataValid_o  <= r.sampleDataValid;
    sampleData_o <= endianSwapSlv(r.sampleData, GT_WORD_SIZE_C);
-   status_o     <= r_jesdGtRx.cdrStable & s_buffLatency & r.errReg(r.errReg'high downto 4) & s_kDetected & s_refDetected & enable_i & r.errReg(2 downto 0) & s_nSync & r.errReg(3) & s_dataValid & r_jesdGtRx.rstDone;
+   status_o     <= r.jesdGtRx.cdrStable & s_buffLatency & r.errReg(r.errReg'high downto 4) & s_kDetected & s_refDetected & enable_i & r.errReg(2 downto 0) & s_nSync & r.errReg(3) & s_dataValid & r.jesdGtRx.rstDone;
 -----------------------------------------------------------------------------------------
 end rtl;

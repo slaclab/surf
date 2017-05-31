@@ -355,6 +355,7 @@ begin
    SyncFifo_OUT0 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         PIPE_STAGES_G => 1,
          DATA_WIDTH_G => SYSRF_DLY_WIDTH_C
          )
       port map (
@@ -367,6 +368,7 @@ begin
    SyncFifo_OUT1 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         PIPE_STAGES_G => 1,
          DATA_WIDTH_G => L_G
          )
       port map (
@@ -380,6 +382,7 @@ begin
    SyncFifo_OUT2 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         PIPE_STAGES_G => 1,
          DATA_WIDTH_G => 24
          )
       port map (
@@ -470,6 +473,7 @@ begin
    SyncFifo_OUT8 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         PIPE_STAGES_G => 1,
          DATA_WIDTH_G => L_G
          )
       port map (
@@ -482,6 +486,7 @@ begin
    SyncFifo_OUT9 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         PIPE_STAGES_G => 1,
          DATA_WIDTH_G => L_G
          )
       port map (
@@ -495,6 +500,7 @@ begin
       SyncFifo_OUT0 : entity work.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
+            PIPE_STAGES_G => 1,
             DATA_WIDTH_G => 4
             )
          port map (
@@ -507,6 +513,7 @@ begin
       SyncFifo_OUT1 : entity work.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
+            PIPE_STAGES_G => 1,
             DATA_WIDTH_G => GT_WORD_SIZE_C
             )
          port map (
@@ -519,6 +526,7 @@ begin
       SyncFifo_OUT2 : entity work.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
+            PIPE_STAGES_G => 1,
             DATA_WIDTH_G => 16
             )
          port map (
@@ -531,6 +539,7 @@ begin
       SyncFifo_OUT3 : entity work.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
+            PIPE_STAGES_G => 1,
             DATA_WIDTH_G => 16
             )
          port map (
