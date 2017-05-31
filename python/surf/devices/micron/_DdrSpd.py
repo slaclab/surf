@@ -19,7 +19,7 @@
 
 import pyrogue as pr
 
-from surf._GenericMemory import *
+from surf.misc._GenericMemory import *
 
 class DdrSpd(pr.Device):
     def __init__(   self, 
