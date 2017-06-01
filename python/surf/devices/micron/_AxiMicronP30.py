@@ -26,9 +26,10 @@ class AxiMicronP30(pr.Device):
                     memBase     =  None,
                     offset      =  0x00,
                     hidden      =  False,
+                    expand	    =  True,
                 ):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, )
-
+        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, expand=expand)   
+        
         ##############################
         # Variables
         ##############################
@@ -36,48 +37,36 @@ class AxiMicronP30(pr.Device):
         self.addVariable(   name         = "WrData",
                             description  = "Write Data",
                             offset       =  0x00,
-                            bitSize      =  16,
-                            bitOffset    =  0x00,
+                            bitSize      =  32,
+                            bitOffset    =  0,
                             base         = "hex",
                             mode         = "RW",
+                            hidden       =  True,                            
+                            verify       =  False,
                         )
 
-        self.addVariable(   name         = "WrCmd",
-                            description  = "Write Command",
-                            offset       =  0x02,
-                            bitSize      =  16,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                        )
-
-        self.addVariable(   name         = "Address",
-                            description  = "Read/Write Address",
+        self.addVariable(   name         = "Addr",
+                            description  = "Address",
                             offset       =  0x04,
-                            bitSize      =  31,
+                            bitSize      =  32,
                             bitOffset    =  0x00,
                             base         = "hex",
                             mode         = "RW",
-                        )
-
-        self.addVariable(   name         = "RnW",
-                            description  = "Read/Write operation bit",
-                            offset       =  0x07,
-                            bitSize      =  1,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
+                            hidden       =  True,                            
+                            verify       =  False,
                         )
 
         self.addVariable(   name         = "RdData",
                             description  = "Read Data",
                             offset       =  0x08,
                             bitSize      =  16,
-                            bitOffset    =  0x00,
+                            bitOffset    =  0,
                             base         = "hex",
                             mode         = "RO",
-                        )
-
+                            hidden       =  True,                            
+                            verify       =  False,
+                        )                  
+                        
         self.addVariable(   name         = "Test",
                             description  = "Scratch Pad tester register",
                             offset       =  0x0C,
@@ -86,4 +75,4 @@ class AxiMicronP30(pr.Device):
                             base         = "hex",
                             mode         = "RW",
                         )
-
+                        

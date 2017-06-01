@@ -29,9 +29,10 @@ class DdrSpd(pr.Device):
                     offset      =  0x0, 
                     hidden      =  False, 
                     nelms       =  0x100, 
-                    instantiate =  True
+                    instantiate =  True,
+                    expand	    =  True,
                 ):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden)
+        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, expand=expand)   
 
         ##############################
         # Variables

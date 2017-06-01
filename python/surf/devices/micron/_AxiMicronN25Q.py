@@ -26,8 +26,9 @@ class AxiMicronN25Q(pr.Device):
                     memBase     =  None,
                     offset      =  0x00,
                     hidden      =  False,
+                    expand	    =  True,
                 ):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, )
+        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, expand=expand)  
 
         ##############################
         # Variables
@@ -49,6 +50,7 @@ class AxiMicronN25Q(pr.Device):
                             bitOffset    =  0x00,
                             base         = "hex",
                             mode         = "RW",
+                            hidden       =  True,
                         )
 
         self.addVariable(   name         = "Addr",
@@ -58,6 +60,7 @@ class AxiMicronN25Q(pr.Device):
                             bitOffset    =  0x00,
                             base         = "hex",
                             mode         = "RW",
+                            hidden       =  True,
                         )
 
         self.addVariable(   name         = "Cmd",
@@ -67,6 +70,7 @@ class AxiMicronN25Q(pr.Device):
                             bitOffset    =  0x00,
                             base         = "hex",
                             mode         = "RW",
+                            hidden       =  True,
                         )
 
         self.addVariables(  name         = "Data",
@@ -78,5 +82,6 @@ class AxiMicronN25Q(pr.Device):
                             mode         = "RW",
                             number       =  64,
                             stride       =  4,
+                            hidden       =  True,
                         )
 
