@@ -30,13 +30,14 @@ $(shell find ethernet/XauiCore/gtx7/ -type f -name '*.vhd') \
 $(shell find ethernet/XauiCore/gthUltraScale/ -type f -name '*.vhd') \
 $(shell find ethernet/XlauiCore/gth7/ -type f -name '*.vhd') \
 $(shell find ethernet/XlauiCore/gtx7/ -type f -name '*.vhd') \
-$(shell find ethernet/XlauiCore/gthUltraScale/ -type f -name '*.vhd')
+$(shell find ethernet/XlauiCore/gthUltraScale/ -type f -name '*.vhd') \
+$(shell find xilinx/Virtex5/ -type f -name '*.vhd')
 
 FILES = $(filter-out $(EXCLUDE),$(wildcard $(PATHS)))
 #FILES = $(shell find . -type f -wholename '*/rtl/*.vhd' -not -wholename '*/orig/*.vhd')
 #PATHS=base/*/rtl/*.vhd axi/rtl/*.vhd ethernet/**/rtl/*.vhd protocols/*/**/rtl/*.vhd
 
-ENTITY_EXCLUDES = stdlib TenGigEthGth7 TenGigEthGth7Wrapper
+ENTITY_EXCLUDES = stdlib 
 
 ENTITIES := $(filter-out $(ENTITY_EXCLUDES),$(patsubst %Pkg,,$(patsubst %.vhd,%,$(notdir $(FILES)))))
 MAKEFILES = $(patsubst %,%.mk,$(ENTITIES))
@@ -49,9 +50,14 @@ $(info ENTITIES="$(ENTITIES)")
 $(info "")
 
 
-all: $(ENTITIES) $(MAKEFILES)
+all: elaborate
+
+syntax: $(FILES)
+	ghdl -s $(GHDLFLAGS) $(FILES)
 
 makefiles: $(MAKEFILES)
+
+elaborate: $(ENTITIES)
 
 force:
 

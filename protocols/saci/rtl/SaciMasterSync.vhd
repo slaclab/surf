@@ -2,7 +2,7 @@
 -- File       : SaciMasterSync.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-08-10
--- Last update: 2013-03-01
+-- Last update: 2017-05-10
 -------------------------------------------------------------------------------
 -- Description: Saci Master Synchronization Wrapper
 -------------------------------------------------------------------------------

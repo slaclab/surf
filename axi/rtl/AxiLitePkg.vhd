@@ -2,7 +2,7 @@
 -- File       : AxiLitePkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-02
--- Last update: 2017-05-02
+-- Last update: 2017-05-09
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite Package File
 -------------------------------------------------------------------------------
@@ -198,6 +198,20 @@ package AxiLitePkg is
    end record;
 
    type AxiLiteCrossbarMasterConfigArray is array (natural range <>) of AxiLiteCrossbarMasterConfigType;
+
+   constant AXIL_XBAR_CFG_DEFAULT_C : AxiLiteCrossbarMasterConfigArray(0 to 3) := (
+      0 => (baseAddr => X"00000000",
+            addrBits => 16,
+            connectivity => X"FFFF"),
+      1 => (baseAddr => X"00010000",
+            addrBits => 16,
+            connectivity => X"FFFF"),
+      2 => (baseAddr => X"00020000",
+            addrBits => 16,
+            connectivity => X"FFFF"),
+      3 => (baseAddr => X"00030000",
+            addrBits => 16,
+            connectivity => X"FFFF"));
 
    -------------------------------------------------------------------------------------------------
    -- Initilize masters with uppder address bits already set to configuration base address
