@@ -46,6 +46,10 @@ entity Jesd204bTx is
           
    -- AXI Lite and stream generics
       AXI_ERROR_RESP_G  : slv(1 downto 0)             := AXI_RESP_SLVERR_C;
+    
+   -- Register sample data at input and/or output 
+      INPUT_REG_G   : boolean := false;
+      OUTPUT_REG_G  : boolean := false;
       
    -- JESD generics
    
@@ -140,6 +144,9 @@ architecture rtl of Jesd204bTx is
    signal s_axiDataArr        : sampleDataArray(L_G-1 downto 0);
    signal s_extDataArraySwap  : sampleDataArray(L_G-1 downto 0);
    
+   signal s_regSampleDataIn   : sampleDataArray(L_G-1 downto 0); 
+   signal s_regSampleDataOut  : sampleDataArray(L_G-1 downto 0);
+   
    signal s_sampleDataArr : sampleDataArray(L_G-1 downto 0);  
 
    -- Sysref conditioning
@@ -154,7 +161,11 @@ architecture rtl of Jesd204bTx is
    
    -- Select output 
    signal  s_muxOutSelArr  : Slv3Array(L_G-1 downto 0);
-   signal  s_testEn : slv(L_G-1 downto 0);
+   signal  s_testEn        : slv(L_G-1 downto 0);
+   signal  s_jesdGtTxArr   : jesdGtTxLaneTypeArray(L_G-1 downto 0);
+   
+   
+   
 begin
    -- Check generics TODO add others
    assert (1 <= L_G and L_G <= 8)  report "L_G must be between 1 and 8"   severity failure;
@@ -164,6 +175,26 @@ begin
       s_dataValid(I) <= s_statusTxArr(I)(1);
    end generate generateValid;
    
+   -----------------------------------------------------------
+   -- Input data register
+   -----------------------------------------------------------   
+   GEN_REG : if (INPUT_REG_G = true) generate
+      generateTxLanes : for I in L_G-1 downto 0 generate
+         SyncRe_INST: entity work.SyncRegister
+            generic map (
+               TPD_G   => TPD_G,
+               WIDTH_G => (GT_WORD_SIZE_C*8))
+            port map (
+               clk   => devClk_i,
+               rst   => devRst_i,
+               sig_i => extSampleDataArray_i(I),
+               reg_o => s_regSampleDataIn(I));
+      end generate generateTxLanes;
+   end generate GEN_REG;
+
+   GEN_N_REG : if (INPUT_REG_G = false) generate
+      s_regSampleDataIn <= extSampleDataArray_i;
+   end generate GEN_N_REG;   
    -----------------------------------------------------------
    -- AXI lite registers
    -----------------------------------------------------------  
@@ -231,7 +262,7 @@ begin
    
       s_testEn(I) <= s_dataValid(I) and s_enableTestSig;
       
-      TestStreamTx_INST: entity work.TestStreamTx
+   testStreamTx_INST: entity work.TestStreamTx
       generic map (
          TPD_G => TPD_G,
          F_G   => F_G)
@@ -251,7 +282,7 @@ begin
    -- Sample data mux
    generateMux : for I in L_G-1 downto 0 generate
       -- Swap endians (the module is built to use big endian data but the interface is little endian)
-      s_extDataArraySwap(I) <= endianSwapSlv(extSampleDataArray_i(I), GT_WORD_SIZE_C);
+      s_extDataArraySwap(I) <= endianSwapSlv(s_regSampleDataIn(I), GT_WORD_SIZE_C);
 
       -- Separate mux for separate lane
       with s_muxOutSelArr(I) select 
@@ -355,9 +386,41 @@ begin
             sysRef_i     => s_sysrefRe,
             status_o     => s_statusTxArr(I), -- To AXI lite
             sampleData_i => s_sampleDataArr(I),
-            r_jesdGtTx   => r_jesdGtTxArr(I));
+            r_jesdGtTx   => s_jesdGtTxArr(I));
    end generate generateTxLanes;
-    
+   
+   -----------------------------------------------------------
+   -- Output register
+   -----------------------------------------------------------   
+   
+   GEN_REG_O : if (OUTPUT_REG_G = true) generate
+      generateTxLanes : for I in L_G-1 downto 0 generate
+         SyncRe_Data: entity work.SyncRegister
+            generic map (
+               TPD_G   => TPD_G,
+               WIDTH_G => (GT_WORD_SIZE_C*8))
+            port map (
+               clk   => devClk_i,
+               rst   => devRst_i,
+               sig_i => s_jesdGtTxArr(I).data,
+               reg_o => r_jesdGtTxArr(I).data);
+            
+         SyncRe_K: entity work.SyncRegister
+            generic map (
+               TPD_G   => TPD_G,
+               WIDTH_G => (GT_WORD_SIZE_C))
+            port map (
+               clk   => devClk_i,
+               rst   => devRst_i,
+               sig_i => s_jesdGtTxArr(I).dataK,
+               reg_o => r_jesdGtTxArr(I).dataK);
+      end generate  generateTxLanes;
+   end generate GEN_REG_O;
+
+   GEN_N_REG_O : if (OUTPUT_REG_G = false) generate
+      r_jesdGtTxArr <= s_jesdGtTxArr;
+   end generate GEN_N_REG_O; 
+   
    -- Output assignment
    gtTxReset_o  <= (others=> s_gtReset);
    

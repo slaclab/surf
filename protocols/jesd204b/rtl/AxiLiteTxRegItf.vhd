@@ -337,6 +337,7 @@ begin
    SyncFifo_OUT0 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         PIPE_STAGES_G => 1,
          DATA_WIDTH_G => SYSRF_DLY_WIDTH_C
          )
       port map (
@@ -349,6 +350,7 @@ begin
    SyncFifo_OUT1 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         PIPE_STAGES_G => 1,
          DATA_WIDTH_G => L_G
          )
       port map (
@@ -361,6 +363,7 @@ begin
    SyncFifo_OUT2 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         PIPE_STAGES_G => 1,
          DATA_WIDTH_G => L_G
          )
       port map (
@@ -373,6 +376,7 @@ begin
    SyncFifo_OUT3 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         PIPE_STAGES_G => 1,
          DATA_WIDTH_G => 24
          )
       port map (
@@ -462,6 +466,7 @@ begin
    SyncFifo_OUT10 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         PIPE_STAGES_G => 1,
          DATA_WIDTH_G => PER_STEP_WIDTH_C
          )
       port map (
@@ -474,6 +479,7 @@ begin
    SyncFifo_OUT11 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         PIPE_STAGES_G => 1,
          DATA_WIDTH_G => PER_STEP_WIDTH_C
          )
       port map (
@@ -486,6 +492,7 @@ begin
    SyncFifo_OUT12 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         PIPE_STAGES_G => 1,
          DATA_WIDTH_G => F_G*8
          )
       port map (
@@ -498,6 +505,7 @@ begin
    SyncFifo_OUT13 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         PIPE_STAGES_G => 1,
          DATA_WIDTH_G => F_G*8
          )
       port map (
@@ -509,6 +517,7 @@ begin
    SyncFifo_OUT14 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         PIPE_STAGES_G => 1,
          DATA_WIDTH_G => L_G
          )
       port map (
@@ -522,6 +531,7 @@ begin
       SyncFifo_OUT0 : entity work.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
+            PIPE_STAGES_G => 1,
             DATA_WIDTH_G => 3
             )
          port map (
@@ -534,6 +544,7 @@ begin
       SyncFifo_OUT1 : entity work.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
+            PIPE_STAGES_G => 1,
             DATA_WIDTH_G => 2
             )
          port map (

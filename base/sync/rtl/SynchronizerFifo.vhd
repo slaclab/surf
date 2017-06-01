@@ -30,6 +30,7 @@ entity SynchronizerFifo is
       ALTERA_SYN_G  : boolean                    := false;
       ALTERA_RAM_G  : string                     := "M9K";
       SYNC_STAGES_G : integer range 3 to (2**24) := 3;
+      PIPE_STAGES_G : natural range 0 to 16      := 0;
       DATA_WIDTH_G  : integer range 1 to (2**24) := 16;
       ADDR_WIDTH_G  : integer range 2 to 48      := 4;
       INIT_G        : slv                        := "0");
@@ -66,6 +67,7 @@ begin
             ALTERA_SYN_G  => ALTERA_SYN_G,
             ALTERA_RAM_G  => ALTERA_RAM_G,
             SYNC_STAGES_G => SYNC_STAGES_G,
+            PIPE_STAGES_G => PIPE_STAGES_G,
             DATA_WIDTH_G  => DATA_WIDTH_G,
             ADDR_WIDTH_G  => ADDR_WIDTH_G,
             INIT_G        => INIT_C)
@@ -89,7 +91,6 @@ begin
             prog_empty    => open,
             almost_empty  => open,
             empty         => open);
-
    end generate;
 
    GEN_SYNC : if (COMMON_CLK_G = true) generate
