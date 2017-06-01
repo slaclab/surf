@@ -9,3 +9,4 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 from surf.misc._GenericMemory import *
+from surf.misc._mcsreader import *
