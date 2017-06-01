@@ -27,8 +27,9 @@ class Dac38J84(pr.Device):
                     offset      =  0x00,
                     hidden      =  False,
                     numTxLanes  =  2,
+                    expand      =  True,
                 ):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, )
+        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, expand=expand)
 
         ##############################
         # Variables
@@ -251,14 +252,23 @@ class Dac38J84(pr.Device):
                             mode         = "RO",
                         )
 
-        self.addVariable(   name         = "ID",
-                            description  = "Serials and IDs",
+        self.addVariable(   name         = "VendorId",
+                            description  = "Vendor ID",
                             offset       =  0x1FC,
-                            bitSize      =  16,
-                            bitOffset    =  0x00,
+                            bitSize      =  2,
+                            bitOffset    =  3,
                             base         = "hex",
                             mode         = "RO",
                         )
+                        
+        self.addVariable(   name         = "VersionId",
+                            description  = "Version ID",
+                            offset       =  0x1FC,
+                            bitSize      =  3,
+                            bitOffset    =  0,
+                            base         = "hex",
+                            mode         = "RO",
+                        )                        
 
         self.addVariable(   name         = "EnableTx",
                             description  = "EnableTx",
