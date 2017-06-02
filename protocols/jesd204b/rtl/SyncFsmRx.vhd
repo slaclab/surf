@@ -117,6 +117,7 @@ architecture rtl of SyncFsmRx is
       kDetectRegD2: sl;
       kDetectRegD3: sl;
       
+      linkErr     : sl;      
       nSync       : sl;
       readBuff    : sl;
       alignFrame  : sl;
@@ -135,6 +136,7 @@ architecture rtl of SyncFsmRx is
       kDetectRegD2 => '0',
       kDetectRegD3 => '0',
    
+      linkErr      => '0',
       nSync        => '0',
       readBuff     => '0',
       alignFrame   => '0',
@@ -171,7 +173,9 @@ begin
       v.kDetectRegD1 := detKcharFunc(dataRx_i, chariskRx_i, GT_WORD_SIZE_C);       
       v.kDetectRegD2 := r.kDetectRegD1;
       v.kDetectRegD3 := r.kDetectRegD2;      
-
+      --
+      v.linkErr := linkErr_i;
+      
       -- State Machine
       case r.state is
          ----------------------------------------------------------------------
@@ -306,7 +310,7 @@ begin
             v.cntLatency := r.cntLatency;
             
             -- Next state condition
-            if  nSyncAny_i = '0' or linkErr_i = '1' or enable_i = '0' or s_kStable = '1' or gtReady_i = '0' then  
+            if  nSyncAny_i = '0' or r.linkErr = '1' or enable_i = '0' or s_kStable = '1' or gtReady_i = '0' then  
                v.state   := IDLE_S;            
             end if;
          ----------------------------------------------------------------------      
