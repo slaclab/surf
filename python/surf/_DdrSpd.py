@@ -36,13 +36,10 @@ class DdrSpd(pr.Device):
         ##############################
         # Variables
         ##############################
-        if (instantiate):
-            digits = len(str(abs(nelms-1))) 
-            for i in range(nelms): 
-                self.add(GenericMemory(
-                                        name         = "GenericMemory_%.*i" % (digits, i), 
-                                        description  = "Generic Memory Array: Element %.*i" % (digits, i),
-                                        offset       =  i * 0x04,
-                                        bitSize      =  8,
-                                        mode         = "RO"
-                                    ))
+        self.add(GenericMemory(
+                                offset      = 0x00,
+                                nelms       = nelms,
+                                instantiate = instantiate,
+                                bitSize     = 8,
+                                mode        = "RO",
+                              ))
