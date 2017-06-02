@@ -25,10 +25,11 @@ class AxiStreamDmaRingWrite(pr.Device):
                     description = "DMA Ring Buffer Manager",
                     memBase     =  None,
                     offset      =  0x00,
-                    hidden      =  False,
                     numBuffers  =  4,
+                    hidden      =  False,
+                    expand	    =  True,
                 ):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, )
+        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, expand=expand)    
 
         ##############################
         # Variables
@@ -143,9 +144,9 @@ class AxiStreamDmaRingWrite(pr.Device):
 
         self.addVariables(  name         = "FramesAfterTrigger",
                             description  = "",
-                            offset       =  0x802,
+                            offset       =  0x800,
                             bitSize      =  16,
-                            bitOffset    =  0x00,
+                            bitOffset    =  16,
                             base         = "hex",
                             mode         = "RW",
                             number       =  numBuffers,
@@ -220,18 +221,18 @@ class AxiStreamDmaRingWrite(pr.Device):
 
         self.addVariable(   name         = "BurstSize",
                             description  = "",
-                            offset       =  0xA01,
+                            offset       =  0xA00,
                             bitSize      =  4,
-                            bitOffset    =  0x00,
+                            bitOffset    =  8,
                             base         = "hex",
                             mode         = "RO",
                         )
 
         self.addVariables(  name         = "FramesSinceTrigger",
                             description  = "",
-                            offset       =  0xA02,
+                            offset       =  0xA00,
                             bitSize      =  16,
-                            bitOffset    =  0x00,
+                            bitOffset    =  16,
                             base         = "hex",
                             mode         = "RO",
                             number       =  numBuffers,

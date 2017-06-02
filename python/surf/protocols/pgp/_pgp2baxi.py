@@ -19,6 +19,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import rogue
 
 class Pgp2bAxi(pr.Device):
     def __init__(self, **kwargs):
@@ -55,11 +56,11 @@ class Pgp2bAxi(pr.Device):
         self.add(pr.Variable(name="RxLocalLinkReady", offset = 0x20, bitSize = 1, bitOffset = 2, mode = "RO", base = 'bool', description = "Rx Local Link Ready"));
         self.add(pr.Variable(name="RxRemLinkReady",   offset = 0x20, bitSize = 1, bitOffset = 3, mode = "RO", base = 'bool', description = "Rx Remote Link Ready"));
         self.add(pr.Variable(name="TxLinkReady",      offset = 0x20, bitSize = 1, bitOffset = 4, mode = "RO", base = 'bool', description = "Tx Link Ready"));
-        self.add(pr.Variable(name="RxLinkPolarity",   offset = 0x20, bitSize = 2, bitOffset = 8, mode = "RO", base = 'bool', description = "Rx Link Polarity"));
-        self.add(pr.Variable(name="RxRemPause",       offset = 0x20, bitSize = 4, bitOffset = 12, mode = "RO", base = 'bool', description = "RX Remote Pause Asserted"));
-        self.add(pr.Variable(name="TxLocPause",       offset = 0x20, bitSize = 4, bitOffset = 16, mode = "RO", base = 'bool', description = "Tx Local Pause Asserted"));
-        self.add(pr.Variable(name="RxRemOverflow",    offset = 0x20, bitSize = 4, bitOffset = 20, mode = "RO", base = 'bool', description = "Received remote overflow flag"));
-        self.add(pr.Variable(name="TxLocOverflow",    offset = 0x20, bitSize = 4, bitOffset = 24, mode = "RO", base = 'bool', description = "Received local overflow flag"));
+        self.add(pr.Variable(name="RxLinkPolarity",   offset = 0x20, bitSize = 2, bitOffset = 8, mode = "RO", base = 'bin', description = "Rx Link Polarity"));
+        self.add(pr.Variable(name="RxRemPause",       offset = 0x20, bitSize = 4, bitOffset = 12, mode = "RO", base = 'bin', description = "RX Remote Pause Asserted"));
+        self.add(pr.Variable(name="TxLocPause",       offset = 0x20, bitSize = 4, bitOffset = 16, mode = "RO", base = 'bin', description = "Tx Local Pause Asserted"));
+        self.add(pr.Variable(name="RxRemOverflow",    offset = 0x20, bitSize = 4, bitOffset = 20, mode = "RO", base = 'bin', description = "Received remote overflow flag"));
+        self.add(pr.Variable(name="TxLocOverflow",    offset = 0x20, bitSize = 4, bitOffset = 24, mode = "RO", base = 'bin', description = "Received local overflow flag"));
 
 
         self.add(pr.Variable(name="RxRemLinkData", offset = 0x24, bitSize = 8, bitOffset = 0, mode = "RO", base = 'hex', description = ""));
@@ -74,12 +75,14 @@ class Pgp2bAxi(pr.Device):
         for offset, name in enumerate(countVars):
             self.add(pr.Variable(name=name, offset=((offset*4)+0x28), bitSize=32, bitOffset=0, mode="RO", base='hex'))
 
+	# Remove for V2
         self.add(pr.Variable(name="RxClkFreq", offset = 0x64, bitSize = 32, bitOffset = 0, mode = "RO", base = 'string', description = "",
                              getFunction = _convertFrequency, pollInterval=5));
 
         self.add(pr.Variable(name="TxClkFreq", offset = 0x68, bitSize = 32, bitOffset = 0, mode = "RO", base = 'string', description = "",
                              getFunction = _convertFrequency, pollInterval=5));
-        
+	# End Remove        
+
         self.add(pr.Variable(name="LastTxOpCode", offset = 0x70, bitSize = 8, bitOffset = 0, mode = "RO", base = 'hex', description = ""));
 
         self.add(pr.Variable(name="LastRxOpCode", offset = 0x74, bitSize = 8, bitOffset = 0, mode = "RO", base = 'hex', description = ""));
@@ -100,7 +103,20 @@ class Pgp2bAxi(pr.Device):
                 self.ResetRx()
             elif rstType == 'count':
                 self.CountReset()
-                                        
+
+	#Add back for V2
+        #self.add(pr.RemoteVariable(name="RxClkFreqRaw", offset = 0x64, bitSize = 32, mode = "RO", base = pr.UInt, hidden=True, pollInterval=5));
+        #self.add(pr.RemoteVariable(name="TxClkFreqRaw", offset = 0x68, bitSize = 32, mode = "RO", base = pr.UInt, hidden=True, pollInterval=5));
+
+        #self.add(pr.LinkVariable(name="RxClkFreq", mode = "RO", value=0.0, dependencies=[self.RxClkFreqRaw], linkGet=_convertFrequency))
+        #self.add(pr.LinkVariable(name="TxClkFreq", mode = "RO", value=0.0, dependencies=[self.TxClkFreqRaw], linkGet=_convertFrequency))
+	# End add
+
+# V1
 def _convertFrequency(dev, var):
     return '{:f} Mhz'.format(var.block.getUInt(var.bitOffset, var.bitSize) * 1e-6)
+
+# V2
+#def _convertFrequency(dev, var, read=True):
+#    return '{:f} Mhz'.format(var.depdendencies[0].get(read) * 1e-6)
     

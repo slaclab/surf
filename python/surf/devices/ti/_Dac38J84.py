@@ -27,8 +27,9 @@ class Dac38J84(pr.Device):
                     offset      =  0x00,
                     hidden      =  False,
                     numTxLanes  =  2,
+                    expand      =  True,
                 ):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, )
+        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, expand=expand)
 
         ##############################
         # Variables
@@ -56,9 +57,9 @@ class Dac38J84(pr.Device):
 
         self.addVariable(   name         = "Temperature",
                             description  = "Temperature",
-                            offset       =  0x1D,
+                            offset       =  0x1C,
                             bitSize      =  8,
-                            bitOffset    =  0x00,
+                            bitOffset    =  8,
                             base         = "hex",
                             mode         = "RO",
                         )
@@ -120,9 +121,9 @@ class Dac38J84(pr.Device):
 
         self.addVariables(  name         = "DispErr",
                             description  = "DispErr",
-                            offset       =  0x191,
+                            offset       =  0x190,
                             bitSize      =  1,
-                            bitOffset    =  0x00,
+                            bitOffset    =  8,
                             base         = "hex",
                             mode         = "RO",
                             number       =  numTxLanes,
@@ -131,9 +132,9 @@ class Dac38J84(pr.Device):
 
         self.addVariables(  name         = "NotitableErr",
                             description  = "NotitableErr",
-                            offset       =  0x191,
+                            offset       =  0x190,
                             bitSize      =  1,
-                            bitOffset    =  0x01,
+                            bitOffset    =  9,
                             base         = "hex",
                             mode         = "RO",
                             number       =  numTxLanes,
@@ -142,9 +143,9 @@ class Dac38J84(pr.Device):
 
         self.addVariables(  name         = "CodeSyncErr",
                             description  = "CodeSyncErr",
-                            offset       =  0x191,
+                            offset       =  0x190,
                             bitSize      =  1,
-                            bitOffset    =  0x02,
+                            bitOffset    =  10,
                             base         = "hex",
                             mode         = "RO",
                             number       =  numTxLanes,
@@ -153,9 +154,9 @@ class Dac38J84(pr.Device):
 
         self.addVariables(  name         = "FirstDataMatchErr",
                             description  = "FirstDataMatchErr",
-                            offset       =  0x191,
+                            offset       =  0x190,
                             bitSize      =  1,
-                            bitOffset    =  0x03,
+                            bitOffset    =  11,
                             base         = "hex",
                             mode         = "RO",
                             number       =  numTxLanes,
@@ -164,9 +165,9 @@ class Dac38J84(pr.Device):
 
         self.addVariables(  name         = "ElasticBuffOverflow",
                             description  = "ElasticBuffOverflow",
-                            offset       =  0x191,
+                            offset       =  0x190,
                             bitSize      =  1,
-                            bitOffset    =  0x04,
+                            bitOffset    =  12,
                             base         = "hex",
                             mode         = "RO",
                             number       =  numTxLanes,
@@ -175,9 +176,9 @@ class Dac38J84(pr.Device):
 
         self.addVariables(  name         = "LinkConfigErr",
                             description  = "LinkConfigErr",
-                            offset       =  0x191,
+                            offset       =  0x190,
                             bitSize      =  1,
-                            bitOffset    =  0x05,
+                            bitOffset    =  13,
                             base         = "hex",
                             mode         = "RO",
                             number       =  numTxLanes,
@@ -186,9 +187,9 @@ class Dac38J84(pr.Device):
 
         self.addVariables(  name         = "FrameAlignErr",
                             description  = "FrameAlignErr",
-                            offset       =  0x191,
+                            offset       =  0x190,
                             bitSize      =  1,
-                            bitOffset    =  0x06,
+                            bitOffset    =  14,
                             base         = "hex",
                             mode         = "RO",
                             number       =  numTxLanes,
@@ -197,9 +198,9 @@ class Dac38J84(pr.Device):
 
         self.addVariables(  name         = "MultiFrameAlignErr",
                             description  = "MultiFrameAlignErr",
-                            offset       =  0x191,
+                            offset       =  0x190,
                             bitSize      =  1,
-                            bitOffset    =  0x07,
+                            bitOffset    =  15,
                             base         = "hex",
                             mode         = "RO",
                             number       =  numTxLanes,
@@ -226,9 +227,9 @@ class Dac38J84(pr.Device):
 
         self.addVariable(   name         = "SysRefAlarms",
                             description  = "SysRefAlarms",
-                            offset       =  0x1B1,
+                            offset       =  0x1B0,
                             bitSize      =  4,
-                            bitOffset    =  0x04,
+                            bitOffset    =  12,
                             base         = "hex",
                             mode         = "RO",
                         )
@@ -244,21 +245,30 @@ class Dac38J84(pr.Device):
 
         self.addVariable(   name         = "LaneAlarm",
                             description  = "LaneAlarm",
-                            offset       =  0x1B5,
+                            offset       =  0x1B4,
                             bitSize      =  8,
-                            bitOffset    =  0x00,
+                            bitOffset    =  8,
                             base         = "hex",
                             mode         = "RO",
                         )
 
-        self.addVariable(   name         = "ID",
-                            description  = "Serials and IDs",
+        self.addVariable(   name         = "VendorId",
+                            description  = "Vendor ID",
                             offset       =  0x1FC,
-                            bitSize      =  32,
-                            bitOffset    =  0x00,
+                            bitSize      =  2,
+                            bitOffset    =  3,
                             base         = "hex",
                             mode         = "RO",
                         )
+                        
+        self.addVariable(   name         = "VersionId",
+                            description  = "Version ID",
+                            offset       =  0x1FC,
+                            bitSize      =  3,
+                            bitOffset    =  0,
+                            base         = "hex",
+                            mode         = "RO",
+                        )                        
 
         self.addVariable(   name         = "EnableTx",
                             description  = "EnableTx",

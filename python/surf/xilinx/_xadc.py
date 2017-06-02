@@ -309,9 +309,18 @@ class Xadc(pr.Device):
                              voltage reference. When this bit is a logic 0, the external 
                              reference is being used."""))
 
-        self.add(pr.Variable(name='OT Limit', units='degC', offset=(0x200+(0x53*4)), bitSize=12, bitOffset=4, base='string', mode='RW',
+	#V1
+	self.add(pr.Variable(name='OT Limit', units='degC', offset=(0x200+(0x53*4)), bitSize=12, bitOffset=4, base='string', mode='RW',
                              getFunction=Xadc.getTemp, setFunction=Xadc.setTemp))
         
+
+	#V2
+        #var = pr.RemoteVariable(name='OT LimitRaw', offset=(0x200+(0x53*4)), bitSize=12, bitOffset=4, base='uint', mode='RW')
+        #self.add(var)
+
+        #self.add(pr.LinkVariable(name='OT Limit', units='degC', base='string', mode='RW',
+        #                         linkGet=Xadc.getTemp, linkSet=Xadc.setTemp, dependencies=[var]))
+
         # Default to simple view
         self.simpleView()
         
@@ -322,6 +331,7 @@ class Xadc(pr.Device):
         fpValue -= 273.15
         return '%0.1f'%(fpValue)
 
+    #V1
     @staticmethod
     def getTemp(dev, var):
         value   = var._block.getUInt(var.bitOffset, var.bitSize)
@@ -335,6 +345,21 @@ class Xadc(pr.Device):
         print( 'Setting Temp thresh to {:x}'.format(ivalue) )
         var._block.setUInt(var.bitOffset, var.bitSize, ivalue)
 
+    #V2
+    #@staticmethod
+    #def getTemp(dev, var, read=False):
+    #    value =  var.depdendencies[0].get(read)
+    #    fpValue = value*(503.975/4096.0)
+    #    fpValue -= 273.15
+    #    return '%0.1f'%(fpValue)
+    
+    #@staticmethod
+    #def setTemp(dev, var, value, write=False):
+    #    ivalue = int((int(value) + 273.15)*(4096/503.975))
+    #    print( 'Setting Temp thresh to {:x}'.format(ivalue) )
+    #    var.depdendencies[0].set(ivalue,write)
+    #End V2
+
     @staticmethod
     def convVoltage(dev, var):
         value   = var.dependencies[0].get(read=False)
@@ -347,4 +372,4 @@ class Xadc(pr.Device):
         # Then unhide the most interesting ones
         vars = ["Temperature", "VccInt", "VccAux", "VccBram"]
         self.hideVariables(hidden=False, variables=vars)
-        
+       

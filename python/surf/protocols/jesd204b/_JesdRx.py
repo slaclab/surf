@@ -28,8 +28,9 @@ class JesdRx(pr.Device):
                     hidden      =  False,
                     numRxLanes  =  6,
                     instantiate =  True,
+                    expand	    =  True,
                 ):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, )
+        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, expand=expand)  
 
         ##############################
         # Variables

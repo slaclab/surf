@@ -19,7 +19,7 @@
 
 import pyrogue as pr
 
-from surf._GenericMemory import *
+from surf.misc._GenericMemory import *
 
 class Axi24LC64FT(pr.Device):
     def __init__(   self, 
@@ -29,9 +29,10 @@ class Axi24LC64FT(pr.Device):
                     offset      =  0x0, 
                     hidden      =  False, 
                     nelms       =  0x800,
-                    instantiate =  True
+                    instantiate =  True,
+                    expand	    =  True,
                 ):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden)
+        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, expand=expand)  
 
         ##############################
         # Variables
