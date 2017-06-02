@@ -2,7 +2,7 @@
 -- File       : AxiLitePkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-02
--- Last update: 2016-04-26
+-- Last update: 2017-05-09
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite Package File
 -------------------------------------------------------------------------------
@@ -37,7 +37,7 @@ package AxiLitePkg is
    --
    --          1) Any accesses with AWSIZE information other than 32-bit receives a SLVERR response.
    --          2) Any accesses with AWLEN information other than zero receives a SLVERR response.
-   --          3) Any access that is unaligned, for example, where AWADDRP[1:0] is not equal to 2’b00, 
+   --          3) Any access that is unaligned, for example, where AWADDRP[1:0] is not equal to 2'b00, 
    --             returns a SLVERR response where a read access returns all zeros and a write access 
    --             does not modify the address location.
    --          4) Any write access that attempts to make use of the WSTRB lines, 
@@ -198,6 +198,20 @@ package AxiLitePkg is
    end record;
 
    type AxiLiteCrossbarMasterConfigArray is array (natural range <>) of AxiLiteCrossbarMasterConfigType;
+
+   constant AXIL_XBAR_CFG_DEFAULT_C : AxiLiteCrossbarMasterConfigArray(0 to 3) := (
+      0 => (baseAddr => X"00000000",
+            addrBits => 16,
+            connectivity => X"FFFF"),
+      1 => (baseAddr => X"00010000",
+            addrBits => 16,
+            connectivity => X"FFFF"),
+      2 => (baseAddr => X"00020000",
+            addrBits => 16,
+            connectivity => X"FFFF"),
+      3 => (baseAddr => X"00030000",
+            addrBits => 16,
+            connectivity => X"FFFF"));
 
    -------------------------------------------------------------------------------------------------
    -- Initilize masters with uppder address bits already set to configuration base address

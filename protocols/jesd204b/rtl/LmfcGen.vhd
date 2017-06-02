@@ -2,7 +2,7 @@
 -- File       : LmfcGen.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-15
--- Last update: 2015-04-15
+-- Last update: 2017-05-02
 -------------------------------------------------------------------------------
 -- Description: LMFC Generator
 --              Local Multi Frame Clock Generator
@@ -88,7 +88,7 @@ begin
       -- Period counter 
 
       -- LMFC is aligned to sysref on rising edge of sysref_i. 
-      -- The alignment is only done when nSync_i=‘0‘    
+      -- The alignment is only done when nSync_i='0'    
       if (r.sysrefRe = '1' and nSync_i = '0' ) then
          v.cnt  := (others => '0');
          v.lmfc := '1';

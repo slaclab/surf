@@ -2,7 +2,7 @@
 -- File       : Jesd204bTxGtx7.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-14
--- Last update: 2015-04-14
+-- Last update: 2017-05-09
 -------------------------------------------------------------------------------
 -- Description: JESD204b module containing the gtx7 MGT transmitter module
 --              Framework module for JESD.
@@ -132,7 +132,7 @@ entity Jesd204bTxGtx7 is
       txAxisSlaveArr_o  : out AxiStreamSlaveArray(L_G-1 downto 0); 
 
       -- External sample data input
-      extSampleDataArray_i : in sampleDataArray;      
+      extSampleDataArray_i : in sampleDataArray(L_G-1 downto 0);      
       
    -- JESD
    ------------------------------------------------------------------------------------------------   

@@ -2,7 +2,7 @@
 -- File       : SsiObFrameFilter.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2016-10-17
+-- Last update: 2017-06-01
 -------------------------------------------------------------------------------
 -- Description:   This module is used to filter out bad SSI frames.
 --
@@ -29,10 +29,10 @@ use work.SsiPkg.all;
 
 entity SsiObFrameFilter is
    generic (
-      TPD_G             : time    := 1 ns;
-      VALID_THOLD_G     : natural := 1;
-      EN_FRAME_FILTER_G : boolean := true;
-      AXIS_CONFIG_G     : AxiStreamConfigType);        
+      TPD_G             : time                := 1 ns;
+      VALID_THOLD_G     : natural             := 1;
+      EN_FRAME_FILTER_G : boolean             := true;
+      AXIS_CONFIG_G     : AxiStreamConfigType := ssiAxiStreamConfig(16));
    port (
       -- Slave Port (AXIS FIFO Read Interface)
       sAxisMaster    : in  AxiStreamMasterType;
@@ -55,7 +55,7 @@ architecture rtl of SsiObFrameFilter is
       IDLE_S,
       BLOWOFF_S,
       MOVE_S,
-      TERM_S);        
+      TERM_S);
 
    type RegType is record
       wordDropped  : sl;
@@ -65,7 +65,7 @@ architecture rtl of SsiObFrameFilter is
       slave        : AxiStreamSlaveType;
       state        : StateType;
    end record RegType;
-   
+
    constant REG_INIT_C : RegType := (
       wordDropped  => '0',
       frameDropped => '0',
@@ -76,7 +76,7 @@ architecture rtl of SsiObFrameFilter is
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-   
+
 begin
 
    assert (AXIS_CONFIG_G.TUSER_BITS_C >= 2) report "SsiObFrameFilter:  AXIS_CONFIG_G.TUSER_BITS_C must be >= 2" severity failure;
@@ -88,7 +88,7 @@ begin
 
       mAxisDropWrite <= '0';
       mAxisTermFrame <= '0';
-      
+
    end generate;
 
    ADD_FILTER : if (EN_FRAME_FILTER_G = true) generate
@@ -247,7 +247,7 @@ begin
          mAxisMaster    <= r.master;
          mAxisDropWrite <= r.wordDropped;
          mAxisTermFrame <= r.frameDropped;
-         
+
       end process comb;
 
       seq : process (axisClk) is
@@ -256,7 +256,7 @@ begin
             r <= rin after TPD_G;
          end if;
       end process seq;
-      
+
    end generate;
 
 end rtl;
