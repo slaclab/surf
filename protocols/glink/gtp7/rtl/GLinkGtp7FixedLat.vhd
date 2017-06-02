@@ -2,7 +2,7 @@
 -- File       : GLinkGtp7FixedLat.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-30
--- Last update: 2014-06-04
+-- Last update: 2017-05-08
 -------------------------------------------------------------------------------
 -- Description: G-Link wrapper for GTP7 transceiver
 -------------------------------------------------------------------------------
@@ -60,13 +60,11 @@ entity GLinkGtp7FixedLat is
       -- MGT Clocking
       gLinkTxRefClk    : in  sl;                                       -- G-Link TX clock reference
       stableClk        : in  sl;
-      gtCPllRefClk     : in  sl := '0';
-      gtCPllLock       : out sl;
-      gtQPllRefClk     : in  sl := '0';
-      gtQPllClk        : in  sl := '0';
-      gtQPllLock       : in  sl := '0';
-      gtQPllRefClkLost : in  sl := '0';
-      gtQPllReset      : out sl;
+      gtQPllRefClk     : in  slv(1 downto 0);
+      gtQPllClk        : in  slv(1 downto 0);
+      gtQPllLock       : in  slv(1 downto 0);
+      gtQPllRefClkLost : in  slv(1 downto 0);
+      gtQPllReset      : out slv(1 downto 0);
       -- MGT loopback control
       loopback         : in  slv(2 downto 0);
       -- MGT Serial IO
@@ -78,7 +76,7 @@ entity GLinkGtp7FixedLat is
 end GLinkGtp7FixedLat;
 
 architecture rtl of GLinkGtp7FixedLat is
-   
+
    constant FIXED_ALIGN_COMMA_0_C : slv(19 downto 0) := bitReverse((GLINK_VALID_IDLE_WORDS_C(0) & GLINK_CONTROL_WORD_C));  -- FF0
    constant FIXED_ALIGN_COMMA_1_C : slv(19 downto 0) := bitReverse((GLINK_VALID_IDLE_WORDS_C(1) & GLINK_CONTROL_WORD_C));  -- FF1A
    constant FIXED_ALIGN_COMMA_2_C : slv(19 downto 0) := bitReverse((GLINK_VALID_IDLE_WORDS_C(2) & GLINK_CONTROL_WORD_C));  -- FF1B
@@ -104,9 +102,9 @@ architecture rtl of GLinkGtp7FixedLat is
    signal gLinkRxSync : GLinkRxType;
 
 begin
-   
+
    SYNTH_TX : if (SYNTH_TX_G = true) generate
-      
+
       txClk <= gLinkTxRefClk;
 
       Synchronizer_0 : entity work.Synchronizer
@@ -115,7 +113,7 @@ begin
          port map (
             clk     => gLinkTxClk,
             dataIn  => gtTxRstDone,
-            dataOut => txReady);  
+            dataOut => txReady);
 
       SyncFifo_TX : entity work.SynchronizerFifo
          generic map (
@@ -130,7 +128,7 @@ begin
             --Read Ports (rd_clk domain)
             rd_clk => txClk,
             valid  => txFifoValid,
-            dout   => txFifoDout); 
+            dout   => txFifoDout);
 
       gLinkTxSync <= toGLinkTx(txFifoDout) when(txFifoValid = '1') else GLINK_TX_UNUSED_C;
 
@@ -140,27 +138,27 @@ begin
          generic map (
             TPD_G          => TPD_G,
             FLAGSEL_G      => FLAGSEL_G,
-            RST_POLARITY_G => '1')  
+            RST_POLARITY_G => '1')
          port map (
             clk         => txClk,
             rst         => gtTxRst,
             gLinkTx     => gLinkTxSync,
-            encodedData => gtTxData);      
+            encodedData => gtTxData);
 
    end generate;
 
    DISABLE_SYNTH_TX : if (SYNTH_TX_G = false) generate
-      
+
       txClk       <= '0';
       txReady     <= '1';
       gLinkTxSync <= GLINK_TX_UNUSED_C;
       gtTxRst     <= '0';
       gtTxData    <= (GLINK_IDLE_WORD_FF0_C & GLINK_CONTROL_WORD_C);
-      
+
    end generate;
 
    SYNTH_RX : if (SYNTH_RX_G = true) generate
-      
+
       rxClk <= rxRecClk;
 
       Synchronizer_1 : entity work.Synchronizer
@@ -169,7 +167,7 @@ begin
          port map (
             clk     => gLinkRxClk,
             dataIn  => gtRxRstDone,
-            dataOut => rxReady); 
+            dataOut => rxReady);
 
       SyncFifo_RX : entity work.SynchronizerFifo
          generic map (
@@ -187,7 +185,7 @@ begin
             rd_clk => gLinkRxClk,
             rd_en  => gLinkRxClkEn,
             valid  => rxFifoValid,
-            dout   => rxFifoDout); 
+            dout   => rxFifoDout);
 
       gLinkRx <= toGLinkRx(rxFifoDout);
 
@@ -198,7 +196,7 @@ begin
          generic map (
             TPD_G          => TPD_G,
             FLAGSEL_G      => FLAGSEL_G,
-            RST_POLARITY_G => '1')  
+            RST_POLARITY_G => '1')
          port map (
             clk           => rxClk,
             rst           => gtRxRst,
@@ -206,19 +204,19 @@ begin
             rxReady       => gtRxRstDone,
             txReady       => gtTxRstDone,
             gLinkRx       => gLinkRxSync,
-            decoderErrorL => dataValid);   
+            decoderErrorL => dataValid);
 
    end generate;
 
    DISABLE_SYNTH_RX : if (SYNTH_RX_G = false) generate
-      
+
       rxClk     <= '0';
       rxReady   <= '1';
       gLinkRx   <= GLINK_RX_INIT_C;
       rxRst     <= '0';
       gtRxRst   <= '0';
       dataValid <= '1';
-      
+
    end generate;
 
    gtTxDataReversed <= bitReverse(gtTxData);
@@ -267,8 +265,8 @@ begin
          FIXED_ALIGN_COMMA_3_G => "XXXXXXXXXXXXXXXXXXXX")
       port map (
          stableClkIn      => stableClk,
-         qPllRefClkIn     => gtQPllOutRefClk,
-         qPllClkIn        => gtQPllOutClk,
+         qPllRefClkIn     => gtQPllRefClk,
+         qPllClkIn        => gtQPllClk,
          qPllLockIn       => gtQPllLock,
          qPllRefClkLostIn => gtQPllRefClkLost,
          qPllResetOut     => gtQPllReset,

@@ -2,7 +2,7 @@
 -- File       : GLinkEncoder.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-04-19
--- Last update: 2014-05-22
+-- Last update: 2017-05-05
 -------------------------------------------------------------------------------
 -- Description: Encodes 16 bit data raw words into 20 bit GLink words.
 -------------------------------------------------------------------------------
@@ -17,7 +17,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
+use ieee.NUMERIC_STD.all;
 
 use work.StdRtlPkg.all;
 use work.GLinkPkg.all;
@@ -33,7 +33,7 @@ entity GLinkEncoder is
       clk         : in  sl;
       rst         : in  sl;
       gLinkTx     : in  GLinkTxType;
-      encodedData : out slv(19 downto 0));    
+      encodedData : out slv(19 downto 0));
 end GLinkEncoder;
 
 architecture rtl of GLinkEncoder is
@@ -42,7 +42,7 @@ architecture rtl of GLinkEncoder is
       variable onesCountVar : unsigned(4 downto 0);
       variable disparityVar : signed(5 downto 0);
    begin
-      onesCountVar := onesCount(vec);
+      onesCountVar := onesCountU(vec);
       disparityVar := (signed('0' & onesCountVar) - 10);
       return disparityVar(4 downto 0);
    end function;
@@ -52,15 +52,15 @@ architecture rtl of GLinkEncoder is
       encodedData      : slv(19 downto 0);
       runningDisparity : signed(4 downto 0);
    end record;
-   
+
    constant REG_INIT_C : RegType := (
       '0',
       (GLINK_IDLE_WORD_FF0_C & GLINK_CONTROL_WORD_C),
-      (others => '0'));    
+      (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-   
+
 begin
 
    comb : process (gLinkTx, r, rst)
@@ -77,7 +77,7 @@ begin
 
       -- Check for idle or control
       if (gLinkTx.idle = '1') or (gLinkTx.control = '1') then
-         glinkWordVar.c := GLINK_CONTROL_WORD_C; 
+         glinkWordVar.c := GLINK_CONTROL_WORD_C;
       else
          -- Check for flag select enabled
          if (FLAGSEL_G = true) then
@@ -96,10 +96,10 @@ begin
                glinkWordVar.c := GLINK_DATA_WORD_FLAG_LOW_C;
                -- Toggle the bit
                v.toggle       := '1';
-            end if;         
+            end if;
          end if;
       end if;
-      
+
       -- Latch the reversed word
       glinkWordVar.w := rawBufferflyVar;
 
@@ -144,7 +144,7 @@ begin
 
       -- Outputs      
       encodedData <= r.encodedData;
-      
+
    end process comb;
 
    seq : process (clk, rst) is

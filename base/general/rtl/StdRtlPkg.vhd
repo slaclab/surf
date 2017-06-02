@@ -2,7 +2,7 @@
 -- File       : StdRtlPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-01
--- Last update: 2017-02-23
+-- Last update: 2017-05-05
 -------------------------------------------------------------------------------
 -- Description: Standard RTL Package File
 ------------------------------------------------------------------------------
@@ -86,7 +86,7 @@ package StdRtlPkg is
    function oddParity (vec  : slv) return sl;
   
    -- Functions for counting the number of '1' in a slv bus
---   function onesCount (vec : slv) return unsigned;
+   function onesCountU (vec : slv) return unsigned;
    function onesCount (vec : slv) return slv;   
 
    -- Gray Code functions
@@ -924,8 +924,8 @@ package body StdRtlPkg is
    -- Functions for counting the number of '1' in a slv bus
    -----------------------------------------------------------------------------
    -- New Non-recursive onesCount Function
-   function onesCount (vec : slv)
-      return slv is
+   function onesCountU (vec : slv)
+      return unsigned is
       variable retVar : unsigned((bitSize(vec'length)-1) downto 0) := to_unsigned(0,bitSize(vec'length));
    begin
       for i in vec'range loop
@@ -933,8 +933,15 @@ package body StdRtlPkg is
             retVar := retVar + 1;
          end if;
       end loop;
-      return slv(retVar);
-   end function;     
+      return retVar;
+   end function;
+
+   function onesCount (
+      vec : slv)
+      return slv is
+   begin
+      return slv(onesCountU(vec));
+   end function onesCount;
    
    -- -- Old Recursive onesCount Function
 --    function onesCount (vec : slv) return unsigned is

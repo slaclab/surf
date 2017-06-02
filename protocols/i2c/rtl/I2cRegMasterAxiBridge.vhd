@@ -2,7 +2,7 @@
 -- File       : I2cRegMasterAxiBridge.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-23
--- Last update: 2016-07-11
+-- Last update: 2017-05-10
 -------------------------------------------------------------------------------
 -- Description: Maps a number of I2C devices on an I2C bus onto an AXI Bus.
 -------------------------------------------------------------------------------
@@ -25,14 +25,14 @@ use work.AxiLitePkg.all;
 use work.I2cPkg.all;
 
 entity I2cRegMasterAxiBridge is
-   
+
    generic (
-      TPD_G               : time                   := 1 ns;
-      DEVICE_MAP_G        : I2cAxiLiteDevArray;
-      EN_USER_REG_G       : boolean                := false;
-      NUM_WRITE_REG_G     : integer range 1 to 128 := 1;
-      NUM_READ_REG_G      : integer range 1 to 128 := 1;
-      AXI_ERROR_RESP_G    : slv(1 downto 0)        := AXI_RESP_SLVERR_C);      
+      TPD_G            : time                   := 1 ns;
+      DEVICE_MAP_G     : I2cAxiLiteDevArray     := I2C_AXIL_DEV_ARRAY_DEFAULT_C;
+      EN_USER_REG_G    : boolean                := false;
+      NUM_WRITE_REG_G  : integer range 1 to 128 := 1;
+      NUM_READ_REG_G   : integer range 1 to 128 := 1;
+      AXI_ERROR_RESP_G : slv(1 downto 0)        := AXI_RESP_SLVERR_C);
 
    port (
       axiClk : in sl;
@@ -86,7 +86,7 @@ architecture rtl of I2cRegMasterAxiBridge is
 
    subtype I2C_DEV_AXI_ADDR_RANGE_C is natural range
       I2C_DEV_AXI_ADDR_HIGH_C downto I2C_DEV_AXI_ADDR_LOW_C;
-   
+
    constant USER_AXI_ADDR_HIGH_C : natural := I2C_DEV_AXI_ADDR_HIGH_C+1;
    constant USER_AXI_ADDR_LOW_C  : natural := I2C_DEV_AXI_ADDR_HIGH_C+1;
 
@@ -161,7 +161,7 @@ begin
          ret.repeatStart := DEVICE_MAP_G(i).repeatStart;
          return ret;
       end function;
-      
+
    begin
       v := r;
 
@@ -262,7 +262,7 @@ begin
       axiWriteSlave  <= r.axiWriteSlave;
       i2cRegMasterIn <= r.i2cRegMasterIn;
       writeRegister  <= r.writeRegister;
-      
+
    end process comb;
 
    -------------------------------------------------------------------------------------------------

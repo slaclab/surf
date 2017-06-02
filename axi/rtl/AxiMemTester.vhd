@@ -2,7 +2,7 @@
 -- File       : AxiMemTester.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-07-28
--- Last update: 2016-07-13
+-- Last update: 2017-05-09
 -------------------------------------------------------------------------------
 -- Description: General Purpose AXI4 memory tester
 -------------------------------------------------------------------------------
@@ -28,10 +28,10 @@ entity AxiMemTester is
    generic (
       TPD_G            : time                     := 1 ns;
       AXI_ERROR_RESP_G : slv(1 downto 0)          := AXI_RESP_DECERR_C;
-      START_ADDR_G     : slv;
-      STOP_ADDR_G      : slv;
+      START_ADDR_G     : slv := X"00000000";
+      STOP_ADDR_G      : slv := X"FFFFFFFF";
       BURST_LEN_G      : positive range 1 to 4096 := 4096;
-      AXI_CONFIG_G     : AxiConfigType);
+      AXI_CONFIG_G     : AxiConfigType := AXI_CONFIG_INIT_C);
    port (
       -- AXI-Lite Interface
       axilClk         : in  sl;
