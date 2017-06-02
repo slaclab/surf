@@ -2,7 +2,7 @@
 -- File       : Jesd204bTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-14
--- Last update: 2015-04-14
+-- Last update: 2017-06-02
 -------------------------------------------------------------------------------
 -- Description: JESD204b multi-lane transmitter module
 --              Transmitter JESD204b module.
@@ -180,7 +180,7 @@ begin
    -----------------------------------------------------------   
    GEN_REG : if (INPUT_REG_G = true) generate
       generateTxLanes : for I in L_G-1 downto 0 generate
-         SyncRe_INST: entity work.SyncRegister
+         SyncRe_INST: entity work.RegisterVector
             generic map (
                TPD_G   => TPD_G,
                WIDTH_G => (GT_WORD_SIZE_C*8))
@@ -395,7 +395,7 @@ begin
    
    GEN_REG_O : if (OUTPUT_REG_G = true) generate
       generateTxLanes : for I in L_G-1 downto 0 generate
-         SyncRe_Data: entity work.SyncRegister
+         SyncRe_Data: entity work.RegisterVector
             generic map (
                TPD_G   => TPD_G,
                WIDTH_G => (GT_WORD_SIZE_C*8))
@@ -405,7 +405,7 @@ begin
                sig_i => s_jesdGtTxArr(I).data,
                reg_o => r_jesdGtTxArr(I).data);
             
-         SyncRe_K: entity work.SyncRegister
+         SyncRe_K: entity work.RegisterVector
             generic map (
                TPD_G   => TPD_G,
                WIDTH_G => (GT_WORD_SIZE_C))

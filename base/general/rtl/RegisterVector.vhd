@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
--- File       : SyncRegister.vhd
+-- File       : RegisterVector.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-15
--- Last update: 2017-04-15
+-- Last update: 2017-06-02
 -------------------------------------------------------------------------------
 -- Description: 1 c-c register delay 
 -------------------------------------------------------------------------------
@@ -22,7 +22,7 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 
-entity SyncRegister is
+entity RegisterVector is
    generic (
       TPD_G        : time       := 1 ns;
       WIDTH_G      : positive   := 1);
@@ -34,9 +34,9 @@ entity SyncRegister is
       sig_i  : in  slv(WIDTH_G-1 downto 0);
       reg_o  : out slv(WIDTH_G-1 downto 0)
    );
-end entity SyncRegister;
+end entity RegisterVector;
 
-architecture rtl of SyncRegister is
+architecture rtl of RegisterVector is
    
    type RegType is record
       reg : slv(WIDTH_G-1 downto 0);
