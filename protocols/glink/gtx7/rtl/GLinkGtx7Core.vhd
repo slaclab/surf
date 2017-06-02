@@ -2,7 +2,7 @@
 -- File       : Gtx7Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-12-17
--- Last update: 2014-11-10
+-- Last update: 2017-05-08
 -------------------------------------------------------------------------------
 -- Description: G-Link wrapper for GTX7 primitive
 -------------------------------------------------------------------------------
@@ -365,17 +365,17 @@ architecture rtl of GLinkGtx7Core is
       txCharDispMode,
       txCharDispVal : slv(7 downto 0) := (others => '0');
    
-   attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of
-      Gtx7RxRst_Inst,
-      RstSync_RxResetDone,
-      Gtx7RecClkMonitor_Inst,
-      Gtx7AutoPhaseAligner_Rx,
-      Gtx7RxFixedLatPhaseAligner_Inst,
-      Gtx7TxRst_Inst,
-      RstSync_Tx,
-      PhaseAlign_Tx,
-      Gtx7TxManualPhaseAligner_1 : label is "TRUE";
+--    attribute KEEP_HIERARCHY : string;
+--    attribute KEEP_HIERARCHY of
+--       Gtx7RxRst_Inst,
+--       RstSync_RxResetDone,
+--       Gtx7RecClkMonitor_Inst,
+--       Gtx7AutoPhaseAligner_Rx,
+--       Gtx7RxFixedLatPhaseAligner_Inst,
+--       Gtx7TxRst_Inst,
+--       RstSync_Tx,
+--       PhaseAlign_Tx,
+--       Gtx7TxManualPhaseAligner_1 : label is "TRUE";
    
 begin
 

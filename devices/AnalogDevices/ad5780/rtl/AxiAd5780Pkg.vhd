@@ -2,7 +2,7 @@
 -- File       : AxiAd5780Pkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-18
--- Last update: 2014-05-18
+-- Last update: 2017-05-02
 -------------------------------------------------------------------------------
 -- Description: AD5780 Package File
 -------------------------------------------------------------------------------
@@ -27,8 +27,7 @@ package AxiAd5780Pkg is
    end record;
    type AxiAd5780InArray is array (natural range <>) of AxiAd5780InType;
    type AxiAd5780InVectorArray is array (integer range<>, integer range<>)of AxiAd5780InType;
-   constant AXI_AD5780_IN_INIT_C : AxiAd5780InType := (
-      (others => '1'));     
+   constant AXI_AD5780_IN_INIT_C : AxiAd5780InType := (dacSdo => '1');     
 
    type AxiAd5780OutType is record
       dacSync : sl;

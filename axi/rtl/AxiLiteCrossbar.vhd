@@ -2,7 +2,7 @@
 -- File       : AxiLiteCrossbar.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-24
--- Last update: 2016-01-13
+-- Last update: 2017-05-09
 -------------------------------------------------------------------------------
 -- Description: Wrapper around Xilinx generated Main AXI Crossbar for HPS Front End
 -------------------------------------------------------------------------------
@@ -27,12 +27,12 @@ use work.TextUtilPkg.all;
 entity AxiLiteCrossbar is
 
    generic (
-      TPD_G              : time                  := 1 ns;
-      NUM_SLAVE_SLOTS_G  : natural range 1 to 16 := 4;
-      NUM_MASTER_SLOTS_G : natural range 1 to 64 := 4;
-      DEC_ERROR_RESP_G   : slv(1 downto 0)       := AXI_RESP_DECERR_C;
-      MASTERS_CONFIG_G   : AxiLiteCrossbarMasterConfigArray;
-      DEBUG_G : boolean := false);
+      TPD_G              : time                             := 1 ns;
+      NUM_SLAVE_SLOTS_G  : natural range 1 to 16            := 4;
+      NUM_MASTER_SLOTS_G : natural range 1 to 64            := 4;
+      DEC_ERROR_RESP_G   : slv(1 downto 0)                  := AXI_RESP_DECERR_C;
+      MASTERS_CONFIG_G   : AxiLiteCrossbarMasterConfigArray := AXIL_XBAR_CFG_DEFAULT_C;
+      DEBUG_G            : boolean                          := false);
    port (
       axiClk    : in sl;
       axiClkRst : in sl;
@@ -133,10 +133,10 @@ begin
          "MASTERS_CONFIG_G:");
 
    printCfg : for i in MASTERS_CONFIG_G'range generate
-      print(DEBUG_G, 
-         "  baseAddr: " & hstr(MASTERS_CONFIG_G(i).baseAddr) & LF &
-         "  addrBits: " & str(MASTERS_CONFIG_G(i).addrBits) & LF &
-         "  connectivity: " & hstr(MASTERS_CONFIG_G(i).connectivity));
+      print(DEBUG_G,
+            "  baseAddr: " & hstr(MASTERS_CONFIG_G(i).baseAddr) & LF &
+            "  addrBits: " & str(MASTERS_CONFIG_G(i).addrBits) & LF &
+            "  connectivity: " & hstr(MASTERS_CONFIG_G(i).connectivity));
    end generate printCfg;
 
    comb : process (axiClkRst, mAxiReadSlaves, mAxiWriteSlaves, r, sAxiReadMasters, sAxiWriteMasters) is

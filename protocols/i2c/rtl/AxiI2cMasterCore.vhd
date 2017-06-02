@@ -2,7 +2,7 @@
 -- File       : AxiI2cMasterCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-22
--- Last update: 2016-09-20
+-- Last update: 2017-05-09
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to generic I2C master controller
 -------------------------------------------------------------------------------
@@ -28,13 +28,12 @@ use unisim.vcomponents.all;
 
 entity AxiI2cMasterCore is
    generic (
-      TPD_G               : time            := 1 ns;
-      DEVICE_MAP_G        : I2cAxiLiteDevArray;
-      AXI_CLK_FREQ_G      : real            := 200.0E+6;  -- units of Hz
-      I2C_SCL_FREQ_G      : real            := 100.0E+3;  -- units of Hz
-      I2C_MIN_PULSE_G     : real            := 100.0E-9;  -- units of seconds
-      I2C_REG_ADDR_SIZE_G : integer         := 8;
-      AXI_ERROR_RESP_G    : slv(1 downto 0) := AXI_RESP_SLVERR_C);
+      TPD_G            : time               := 1 ns;
+      DEVICE_MAP_G     : I2cAxiLiteDevArray := I2C_AXIL_DEV_ARRAY_DEFAULT_C;
+      AXI_CLK_FREQ_G   : real               := 200.0E+6;  -- units of Hz
+      I2C_SCL_FREQ_G   : real               := 100.0E+3;  -- units of Hz
+      I2C_MIN_PULSE_G  : real               := 100.0E-9;  -- units of seconds
+      AXI_ERROR_RESP_G : slv(1 downto 0)    := AXI_RESP_SLVERR_C);
    port (
       -- DAC Ports
       i2cInOut       : inout AxiI2cMasterInOutType;
@@ -61,9 +60,9 @@ architecture mapping of AxiI2cMasterCore is
 
    signal i2ci : i2c_in_type;
    signal i2co : i2c_out_type;
-   
+
 begin
-   
+
    IOBUF_SCL : IOBUF
       port map (
          O  => i2ci.scl,                -- Buffer output
@@ -80,11 +79,10 @@ begin
 
    I2cRegMasterAxiBridge_Inst : entity work.I2cRegMasterAxiBridge
       generic map (
-         TPD_G               => TPD_G,
-         I2C_REG_ADDR_SIZE_G => I2C_REG_ADDR_SIZE_G,
-         DEVICE_MAP_G        => DEVICE_MAP_G,
-         EN_USER_REG_G       => false,
-         AXI_ERROR_RESP_G    => AXI_ERROR_RESP_G)      
+         TPD_G            => TPD_G,
+         DEVICE_MAP_G     => DEVICE_MAP_G,
+         EN_USER_REG_G    => false,
+         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
       port map (
          -- I2C Interface
          i2cRegMasterIn  => i2cRegMasterIn,
@@ -96,7 +94,7 @@ begin
          axiWriteSlave   => axiWriteSlave,
          -- Clock and Reset
          axiClk          => axiClk,
-         axiRst          => axiRst);   
+         axiRst          => axiRst);
 
    I2cRegMaster_Inst : entity work.I2cRegMaster
       generic map(
@@ -113,6 +111,6 @@ begin
          regOut => i2cRegMasterOut,
          -- Clock and Reset
          clk    => axiClk,
-         srst   => axiRst);           
+         srst   => axiRst);
 
 end mapping;
