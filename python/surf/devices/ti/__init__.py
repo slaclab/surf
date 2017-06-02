@@ -8,3 +8,7 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+from surf.devices.ti._Adc16Dx370 import *
+from surf.devices.ti._AxiCdcm6208 import *
+from surf.devices.ti._Dac38J84 import *
+from surf.devices.ti._Lmk04828 import *

@@ -8,3 +8,5 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+from surf.protocols.jesd204b._JesdRx import *
+from surf.protocols.jesd204b._JesdTx import *
