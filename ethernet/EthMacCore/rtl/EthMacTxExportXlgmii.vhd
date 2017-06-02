@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
--- File       : EthMacTxImportXlgmii.vhd
+-- File       : EthMacTxExportXlgmii.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-09-13
--- Last update: 2016-09-14
+-- Last update: 2017-05-10
 -------------------------------------------------------------------------------
 -- Description: 40GbE Export MAC core with XLGMII interface
 -------------------------------------------------------------------------------
@@ -24,7 +24,7 @@ use work.AxiStreamPkg.all;
 use work.StdRtlPkg.all;
 use work.EthMacPkg.all;
 
-entity EthMacTxImportXlgmii is
+entity EthMacTxExportXlgmii is
    generic (
       TPD_G : time := 1 ns);
    port (
@@ -44,9 +44,9 @@ entity EthMacTxImportXlgmii is
       txCountEn      : out sl;
       txUnderRun     : out sl;
       txLinkNotReady : out sl);
-end EthMacTxImportXlgmii;
+end EthMacTxExportXlgmii;
 
-architecture rtl of EthMacTxImportXlgmii is
+architecture rtl of EthMacTxExportXlgmii is
 
 begin
    -- Place holder for future code

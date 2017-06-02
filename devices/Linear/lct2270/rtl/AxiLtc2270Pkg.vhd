@@ -2,7 +2,7 @@
 -- File       : AxiLtc2270Pkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-21
--- Last update: 2014-04-21
+-- Last update: 2017-05-02
 -------------------------------------------------------------------------------
 -- Description: AxiLtc2270 Package File
 -------------------------------------------------------------------------------
@@ -42,8 +42,7 @@ package AxiLtc2270Pkg is
       sdo : sl;
    end record;
    type AxiLtc2270InOutArray is array (natural range <>) of AxiLtc2270InOutType;
-   constant AXI_LTC2270_IN_OUT_INIT_C : AxiLtc2270InOutType := (
-      (others => 'Z'));        
+   constant AXI_LTC2270_IN_OUT_INIT_C : AxiLtc2270InOutType := (sdo => 'Z');        
 
    type AxiLtc2270OutType is record
       cs   : sl;

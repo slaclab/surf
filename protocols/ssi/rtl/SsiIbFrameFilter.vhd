@@ -2,7 +2,7 @@
 -- File       : SsiIbFrameFilter.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2016-10-17
+-- Last update: 2017-06-01
 -------------------------------------------------------------------------------
 -- Description:   This module is used to filter out bad SSI frames.
 --
@@ -29,10 +29,10 @@ use work.SsiPkg.all;
 
 entity SsiIbFrameFilter is
    generic (
-      TPD_G             : time    := 1 ns;
-      SLAVE_READY_EN_G  : boolean := true;
-      EN_FRAME_FILTER_G : boolean := true;
-      AXIS_CONFIG_G     : AxiStreamConfigType);      
+      TPD_G             : time                := 1 ns;
+      SLAVE_READY_EN_G  : boolean             := true;
+      EN_FRAME_FILTER_G : boolean             := true;
+      AXIS_CONFIG_G     : AxiStreamConfigType := ssiAxiStreamConfig(16));
    port (
       -- Slave Port
       sAxisMaster    : in  AxiStreamMasterType;
@@ -55,7 +55,7 @@ architecture rtl of SsiIbFrameFilter is
       INIT_S,
       IDLE_S,
       BLOWOFF_S,
-      MOVE_S);        
+      MOVE_S);
 
    type RegType is record
       wordDropped  : sl;
@@ -65,7 +65,7 @@ architecture rtl of SsiIbFrameFilter is
       slave        : AxiStreamSlaveType;
       state        : StateType;
    end record RegType;
-   
+
    constant REG_INIT_C : RegType := (
       wordDropped  => '0',
       frameDropped => '0',
@@ -76,7 +76,7 @@ architecture rtl of SsiIbFrameFilter is
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-   
+
 begin
 
    assert (AXIS_CONFIG_G.TUSER_BITS_C >= 2) report "SsiIbFrameFilter:  AXIS_CONFIG_G.TUSER_BITS_C must be >= 2" severity failure;
@@ -90,7 +90,7 @@ begin
 
       sAxisDropWrite <= '0';
       sAxisTermFrame <= '0';
-      
+
    end generate;
 
    ADD_FILTER : if (EN_FRAME_FILTER_G = true) generate
@@ -207,7 +207,7 @@ begin
          mAxisMaster    <= r.master;
          sAxisDropWrite <= r.wordDropped;
          sAxisTermFrame <= r.frameDropped;
-         
+
       end process comb;
 
       seq : process (axisClk) is

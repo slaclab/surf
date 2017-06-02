@@ -2,7 +2,6 @@
 -- File       : Jesd204bTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-14
--- Last update: 2017-06-02
 -------------------------------------------------------------------------------
 -- Description: JESD204b multi-lane transmitter module
 --              Transmitter JESD204b module.
@@ -52,7 +51,7 @@ entity Jesd204bTx is
       OUTPUT_REG_G : boolean := false;
 
       -- JESD generics
-
+      
       -- Number of bytes in a frame
       F_G : positive := 2;
 
@@ -135,7 +134,6 @@ architecture rtl of Jesd204bTx is
    signal s_squarePeriod  : slv(PER_STEP_WIDTH_C-1 downto 0);
    signal s_enableTestSig : sl;
 
-
    signal s_posAmplitude : slv(F_G*8-1 downto 0);
    signal s_negAmplitude : slv(F_G*8-1 downto 0);
 
@@ -164,8 +162,6 @@ architecture rtl of Jesd204bTx is
    signal s_testEn       : slv(L_G-1 downto 0);
    signal s_jesdGtTxArr  : jesdGtTxLaneTypeArray(L_G-1 downto 0);
 
-
-
 begin
    -- Check generics TODO add others
    assert (1 <= L_G and L_G <= 8) report "L_G must be between 1 and 8" severity failure;
@@ -174,6 +170,7 @@ begin
    generateValid : for I in L_G-1 downto 0 generate
       s_dataValid(I) <= s_statusTxArr(I)(1);
    end generate generateValid;
+
 
    -----------------------------------------------------------
    -- Input data register
@@ -195,6 +192,7 @@ begin
    GEN_N_REG : if (INPUT_REG_G = false) generate
       s_regSampleDataIn <= extSampleDataArray_i;
    end generate GEN_N_REG;
+   
    -----------------------------------------------------------
    -- AXI lite registers
    -----------------------------------------------------------  
@@ -262,7 +260,8 @@ begin
 
       s_testEn(I) <= s_dataValid(I) and s_enableTestSig;
 
-      testStreamTx_INST : entity work.TestStreamTx
+
+      TestStreamTx_INST : entity work.TestStreamTx
          generic map (
             TPD_G => TPD_G,
             F_G   => F_G)
@@ -285,11 +284,12 @@ begin
       s_extDataArraySwap(I) <= endianSwapSlv(s_regSampleDataIn(I), GT_WORD_SIZE_C);
 
       -- Separate mux for separate lane
-      with s_muxOutSelArr(I) select
-         s_sampleDataArr(I) <= outSampleZero(F_G, GT_WORD_SIZE_C)when "000",
-                                                s_extDataArraySwap(I) when "001",
-                                                s_axiDataArr(I)       when "010",
-                                                s_testDataArr(I)      when others;
+
+      s_sampleDataArr(I) <= ite(s_muxOutSelArr(I) = "000", outSampleZero(F_G, GT_WORD_SIZE_C),
+                                ite(s_muxOutSelArr(I) = "001", s_extDataArraySwap(I),
+                                    ite(s_muxOutSelArr(i) = "010", s_axiDataArr(I),
+                                        s_testDataArr(I))));
+
    end generate generateMux;
 
    -----------------------------------------------------------
@@ -388,6 +388,7 @@ begin
             sampleData_i => s_sampleDataArr(I),
             r_jesdGtTx   => s_jesdGtTxArr(I));
    end generate generateTxLanes;
+
 
    -----------------------------------------------------------
    -- Output register
