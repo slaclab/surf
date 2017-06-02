@@ -8,3 +8,5 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+from surf.devices.microchip._Axi24LC64FT import *
+from surf.devices.microchip._AxiSy56040 import *

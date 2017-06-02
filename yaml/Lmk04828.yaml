@@ -16,6 +16,23 @@ Lmk04828: &Lmk04828
   description: LMK04828 Module
   size: 0x800
   children:
+    LmkReg_0x0000:
+      at:
+        offset: 0x000
+      class: IntField
+      name: LmkReg_0x0000
+      sizeBits: 8
+      mode: RW
+      description: LMK Registers
+    LmkReg_0x0002:
+    #########################################################
+      at:
+        offset: 0x008
+      class: IntField
+      name: LmkReg_0x0002
+      sizeBits: 8
+      mode: RW
+      description: LMK Registers
     LmkReg_0x0100:
       at:
         offset: 0x400
@@ -877,6 +894,60 @@ Lmk04828: &Lmk04828
       sizeBits: 8
       mode: RW
       description: LMK Registers
+    LmkReg_0x0171:
+    #########################################################
+      at:
+        offset: 0x5C4
+      class: IntField
+      name: LmkReg_0x0171
+      sizeBits: 8
+      mode: RW
+      description: LMK Registers
+    LmkReg_0x0172:
+    #########################################################
+      at:
+        offset: 0x5C8
+      class: IntField
+      name: LmkReg_0x0172
+      sizeBits: 8
+      mode: RW
+      description: LMK Registers    
+    LmkReg_0x0173:
+    #########################################################
+      at:
+        offset: 0x5CC
+      class: IntField
+      name: LmkReg_0x0173
+      sizeBits: 8
+      mode: RW
+      description: LMK Registers
+    LmkReg_0x0174:
+    #########################################################
+      at:
+        offset: 0x5D0
+      class: IntField
+      name: LmkReg_0x0174
+      sizeBits: 8
+      mode: RW
+      description: LMK Registers
+    LmkReg_0x017C:
+    #########################################################
+      at:
+        offset: 0x5F0
+      class: IntField
+      name: LmkReg_0x017C
+      sizeBits: 8
+      mode: RW
+      description: LMK Registers
+    LmkReg_0x017D:
+    #########################################################
+      at:
+        offset: 0x5F4
+      class: IntField
+      name: LmkReg_0x017D
+      sizeBits: 8
+      mode: RW
+      description: LMK Registers
     LmkReg_0x0166:
     #########################################################
       at:
@@ -922,6 +993,45 @@ Lmk04828: &Lmk04828
       sizeBits: 8
       mode: RW
       description: LMK Registers
+    LmkReg_0x016B:
+    #########################################################
+      at:
+        offset: 0x5AC
+      class: IntField
+      name: LmkReg_0x016B
+      sizeBits: 8
+      mode: RW
+      description: LMK Registers        
+    LmkReg_0x016C:
+    #########################################################
+      at:
+        offset: 0x5B0
+      class: IntField
+      name: LmkReg_0x016C
+      sizeBits: 8
+      mode: RW
+      description: LMK Registers      
+    LmkReg_0x016D:
+    #########################################################
+      at:
+        offset: 0x5B4
+      class: IntField
+      name: LmkReg_0x016D
+      sizeBits: 8
+      mode: RW
+      description: LMK Registers      
+    LmkReg_0x016E:
+    #########################################################
+      at:
+        offset: 0x5B8
+      class: IntField
+      name: LmkReg_0x016E
+      sizeBits: 8
+      mode: RW
+      description: LMK Registers
+    #########################################################
+    # Commands
+    #########################################################
     PwrDwnSysRef:
       name: PwrDwnSysRef
       class: SequenceCommand
@@ -1065,12 +1175,6 @@ Lmk04828: &Lmk04828
       description: ID_PROD_UPPER
     ID_DEVICE_TYPE:
     #########################################################       
-
-    #########################################################
-    #
-    #   Status registers
-    #
-    ######################################################### 
       at:
         offset: 0x00C
       class: IntField
@@ -1078,75 +1182,3 @@ Lmk04828: &Lmk04828
       sizeBits: 8
       mode: RO
       description: ID_DEVICE_TYPE
-    LmkReg_0x017D:
-    #########################################################
-      at:
-        offset: 0x5F4
-      class: IntField
-      name: LmkReg_0x017D
-      sizeBits: 8
-      mode: RW
-      description: LMK Registers
-    LmkReg_0x017C:
-    #########################################################
-      at:
-        offset: 0x5F0
-      class: IntField
-      name: LmkReg_0x017C
-      sizeBits: 8
-      mode: RW
-      description: LMK Registers
-    LmkReg_0x0174:
-    #########################################################
-      at:
-        offset: 0x5D0
-      class: IntField
-      name: LmkReg_0x0174
-      sizeBits: 8
-      mode: RW
-      description: LMK Registers
-    LmkReg_0x0173:
-    #########################################################
-      at:
-        offset: 0x5CC
-      class: IntField
-      name: LmkReg_0x0173
-      sizeBits: 8
-      mode: RW
-      description: LMK Registers
-    LmkReg_0x016E:
-    #########################################################
-      at:
-        offset: 0x5B8
-      class: IntField
-      name: LmkReg_0x016E
-      sizeBits: 8
-      mode: RW
-      description: LMK Registers
-    LmkReg_0x016D:
-    #########################################################
-      at:
-        offset: 0x5B4
-      class: IntField
-      name: LmkReg_0x016D
-      sizeBits: 8
-      mode: RW
-      description: LMK Registers
-    LmkReg_0x016C:
-    #########################################################
-      at:
-        offset: 0x5B0
-      class: IntField
-      name: LmkReg_0x016C
-      sizeBits: 8
-      mode: RW
-      description: LMK Registers
-    LmkReg_0x016B:
-    #########################################################
-      at:
-        offset: 0x5AC
-      class: IntField
-      name: LmkReg_0x016B
-      sizeBits: 8
-      mode: RW
-      description: LMK Registers

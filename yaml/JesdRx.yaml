@@ -15,7 +15,7 @@ JesdRx: &JesdRx
   description: JESD RX Module
   size: 0x200
   metadata:
-    numRxLanes: &numRxLanes 6
+    numRxLanes: &numRxLanes 8
   #########
   children:
     #########################################################

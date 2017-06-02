@@ -8,3 +8,5 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+from surf.ethernet.udp._UdpEngineClient import *
+from surf.ethernet.udp._UdpEngineServer import *
