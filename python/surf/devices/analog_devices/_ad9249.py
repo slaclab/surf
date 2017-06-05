@@ -19,6 +19,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import rogue
 import math
 
 class Ad9249ConfigGroup(pr.Device):

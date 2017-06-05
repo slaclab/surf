@@ -18,6 +18,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import rogue
 
 class SsiPrbsRateGen(pr.Device):
     def __init__(   self,       
