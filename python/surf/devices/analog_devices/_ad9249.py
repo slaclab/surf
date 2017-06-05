@@ -166,18 +166,15 @@ class Ad9249ReadoutGroup(pr.Device):
                                  bitOffset = 0,
                                  base = 'hex',
                                  mode = "RO"))
-            
+
+        if hasattr(rogue,'Version') and rogue.Version.greaterThanEqual('2.0.0'):
+            tcmd = pr.BaseCommand.toggle # Rogue V2
+        else:
+            tcmd = pr.Command.toggle # Legacy V1
+
         self.add(pr.Command(name="LostLockCountReset",
                             description = "Reset LostLockCount",
-		            #function = pr.BaseCommand.toggle, #RogueV2
-                            function = pr.Command.toggle,
+                            function = tcmd,
                             offset = 0x38,
                             bitSize = 1,
                             bitOffset = 0))
-
-        
-
-        
-                             
-        
-        
