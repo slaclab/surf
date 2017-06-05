@@ -83,14 +83,9 @@ class Pgp2bAxi(pr.Device):
         
         self.add(pr.Variable(name="RxOpCodeCount", offset = 0x7C, bitSize = 8, bitOffset = 0, mode = "RO", base = 'hex', description = ""));
 
-        if hasattr(rogue,'Version') and rogue.Version.greaterThanEqual('2.0.0'):
-            tcmd = pr.BaseCommand.toggle # Rogue V2
-        else:
-            tcmd = pr.Command.toggle # Legacy V1
-
-        self.add(pr.Command(name='CountReset', offset=0x00, bitSize=1, bitOffset=0, mode='RW', function=tcmd))
-        self.add(pr.Command(name="ResetRx", offset=0x04, bitSize=1, bitOffset=0, mode='RW',  function=tcmd))
-        self.add(pr.Command(name="Flush", offset=0x08, bitSize=1, bitOffset=0, mode='RW',  function=tcmd))
+        self.add(pr.Command(name='CountReset', offset=0x00, bitSize=1, bitOffset=0, mode='RW', function=pr.Command.toggle))
+        self.add(pr.Command(name="ResetRx", offset=0x04, bitSize=1, bitOffset=0, mode='RW', function=pr.Command.toggle))
+        self.add(pr.Command(name="Flush", offset=0x08, bitSize=1, bitOffset=0, mode='RW',  function=pr.Command.toggle))
 
         def _resetFunc(dev, rstType):
             """Application specific reset function"""
