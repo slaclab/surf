@@ -83,7 +83,6 @@ class Pgp2bAxi(pr.Device):
         
         self.add(pr.Variable(name="RxOpCodeCount", offset = 0x7C, bitSize = 8, bitOffset = 0, mode = "RO", base = 'hex', description = ""));
 
-        # LEGACY
         if hasattr(rogue,'Version') and rogue.Version.greaterThanEqual('2.0.0'):
             tcmd = pr.BaseCommand.toggle # Rogue V2
         else:
