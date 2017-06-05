@@ -33,13 +33,18 @@ class SsiPrbsRateGen(pr.Device):
         # Variables
         ##############################
 
+        if hasattr(rogue,'Version') and rogue.Version.greaterThanEqual('2.0.0'):
+            tcmd = pr.BaseCommand.toggle # Rogue V2
+        else:
+            tcmd = pr.Command.toggle # Legacy V1
+
         self.addCommand  (  name         = "statReset",
                             description  = "",
                             offset       =  0x00,
                             bitSize      =  1,
                             bitOffset    =  0x00,
                             mode         = "RW",
-                            function     = pr.Command.toggle
+                            function     = tcmd
                         )
 
         self.addVariable(   name         = "packetLength",
@@ -76,7 +81,7 @@ class SsiPrbsRateGen(pr.Device):
                             bitOffset    =  0x01,
                             base         = "hex",
                             mode         = "WO",
-                            function     = pr.Command.toggle
+                            function     = tcmd
                         )
 
         self.addVariable(   name         = "missed",
