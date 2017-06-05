@@ -77,7 +77,7 @@ class SsiPrbsRateGen(pr.Device):
                             bitOffset    =  0x01,
                             base         = "hex",
                             mode         = "WO",
-                            function     = tcmd
+                            function     = pr.Command.toggle
                         )
 
         self.addVariable(   name         = "missed",
