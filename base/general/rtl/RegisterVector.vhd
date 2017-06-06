@@ -2,7 +2,7 @@
 -- File       : RegisterVector.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-15
--- Last update: 2017-06-02
+-- Last update: 2017-06-05
 -------------------------------------------------------------------------------
 -- Description: 1 c-c register delay 
 -------------------------------------------------------------------------------
@@ -24,47 +24,54 @@ use work.StdRtlPkg.all;
 
 entity RegisterVector is
    generic (
-      TPD_G        : time       := 1 ns;
-      WIDTH_G      : positive   := 1);
+      TPD_G          : time     := 1 ns;
+      RST_POLARITY_G : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      WIDTH_G        : positive := 1;
+      INIT_G         : slv      := "0");
    port (
-      clk      : in  sl;
-      rst      : in  sl;
-      
-      -- Synchronisation inputs
-      sig_i  : in  slv(WIDTH_G-1 downto 0);
-      reg_o  : out slv(WIDTH_G-1 downto 0)
-   );
+      clk   : in  sl;
+      rst   : in  sl := not RST_POLARITY_G;  -- Optional reset
+      en    : in  sl := '1';            -- Optional clock enable
+      sig_i : in  slv(WIDTH_G-1 downto 0);
+      reg_o : out slv(WIDTH_G-1 downto 0));
 end entity RegisterVector;
 
 architecture rtl of RegisterVector is
-   
+
+   constant INIT_C : slv(WIDTH_G-1 downto 0) := ite(INIT_G = "0", slvZero(WIDTH_G), INIT_G);
+
    type RegType is record
       reg : slv(WIDTH_G-1 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      reg  => (others => '0')
-   );
+      reg => INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-   
+
 begin
 
-   comb : process (r, rst, sig_i) is
+   comb : process (en, r, rst, sig_i) is
       variable v : RegType;
    begin
+      -- Latch the current value
       v := r;
-      
-      -- Register/Delay for 1 clock cycle 
-      v.reg := sig_i;
-      
+
+      -- Check the clock enable
+      if en = '1' then
+         -- Register/Delay for 1 clock cycle 
+         v.reg := sig_i;
+      end if;
+
       if (rst = '1') then
          v := REG_INIT_C;
       end if;
-      
-      -- Output assignment
-      rin   <= v;
+
+      -- Register the variable for next clock cycle
+      rin <= v;
+
+      -- Outputs  
       reg_o <= r.reg;
    end process comb;
 
@@ -74,7 +81,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-   
 
----------------------------------------   
 end architecture rtl;

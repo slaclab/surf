@@ -19,6 +19,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import rogue
 import math
 
 class Ad9249ConfigGroup(pr.Device):
@@ -166,18 +167,11 @@ class Ad9249ReadoutGroup(pr.Device):
                                  bitOffset = 0,
                                  base = 'hex',
                                  mode = "RO"))
-            
+
         self.add(pr.Command(name="LostLockCountReset",
                             description = "Reset LostLockCount",
-		            #function = pr.BaseCommand.toggle, #RogueV2
                             function = pr.Command.toggle,
                             offset = 0x38,
                             bitSize = 1,
                             bitOffset = 0))
 
-        
-
-        
-                             
-        
-        

@@ -32,8 +32,12 @@ class Xadc(pr.Device):
             self.add(pr.Variable(name=name+"Raw", offset=offset, bitSize=bitSize, bitOffset=bitOffset,
                                  base='hex', mode='RO', description=description))
             
-            self.add(pr.Variable(name=name, mode = 'RO', base='string', units=units,
-                                 getFunction=function, dependencies=[self.variables[name+"Raw"]]))
+            if hasattr(rogue,'Version') and rogue.Version.greaterThanEqual('2.0.0'):
+                self.add(pr.LinkVariable(name=name, mode = 'RO', base='string', units=units,
+                                         linkGet=function, dependencies=[self.variables[name+"Raw"]]))
+            else:
+                self.add(pr.Variable(name=name, mode = 'RO', base='string', units=units,
+                                     getFunction=function, dependencies=[self.variables[name+"Raw"]]))
 
         #Temperature
         addPair(name='Temperature',offset=0x200, bitSize=12, bitOffset=4, units="degC", function=Xadc.convTemp,
@@ -309,18 +313,17 @@ class Xadc(pr.Device):
                              voltage reference. When this bit is a logic 0, the external 
                              reference is being used."""))
 
-	#V1
-	self.add(pr.Variable(name='OT Limit', units='degC', offset=(0x200+(0x53*4)), bitSize=12, bitOffset=4, base='string', mode='RW',
-                             getFunction=Xadc.getTemp, setFunction=Xadc.setTemp))
+        if hasattr(rogue,'Version') and rogue.Version.greaterThanEqual('2.0.0'):
+            var = pr.RemoteVariable(name='OT LimitRaw', offset=(0x200+(0x53*4)), bitSize=12, bitOffset=4, base='uint', mode='RW')
+            self.add(var)
+
+            self.add(pr.LinkVariable(name='OT Limit', units='degC', base='string', mode='RW',
+                                     linkGet=Xadc.getTemp, linkSet=Xadc.setTemp, dependencies=[var]))
+        else:
+
+            self.add(pr.Variable(name='OT Limit', units='degC', offset=(0x200+(0x53*4)), bitSize=12, bitOffset=4, base='string', mode='RW',
+                                 getFunction=Xadc.getTemp, setFunction=Xadc.setTemp))
         
-
-	#V2
-        #var = pr.RemoteVariable(name='OT LimitRaw', offset=(0x200+(0x53*4)), bitSize=12, bitOffset=4, base='uint', mode='RW')
-        #self.add(var)
-
-        #self.add(pr.LinkVariable(name='OT Limit', units='degC', base='string', mode='RW',
-        #                         linkGet=Xadc.getTemp, linkSet=Xadc.setTemp, dependencies=[var]))
-
         # Default to simple view
         self.simpleView()
         
@@ -331,10 +334,13 @@ class Xadc(pr.Device):
         fpValue -= 273.15
         return '%0.1f'%(fpValue)
 
-    #V1
     @staticmethod
     def getTemp(dev, var):
-        value   = var._block.getUInt(var.bitOffset, var.bitSize)
+        if hasattr(rogue,'Version') and rogue.Version.greaterThanEqual('2.0.0'):
+            value = var.depdendencies[0].get(read)
+        else:
+            value = var._block.getUInt(var.bitOffset, var.bitSize)
+
         fpValue = value*(503.975/4096.0)
         fpValue -= 273.15
         return '%0.1f'%(fpValue)
@@ -343,22 +349,11 @@ class Xadc(pr.Device):
     def setTemp(dev, var, value):
         ivalue = int((int(value) + 273.15)*(4096/503.975))
         print( 'Setting Temp thresh to {:x}'.format(ivalue) )
-        var._block.setUInt(var.bitOffset, var.bitSize, ivalue)
 
-    #V2
-    #@staticmethod
-    #def getTemp(dev, var, read=False):
-    #    value =  var.depdendencies[0].get(read)
-    #    fpValue = value*(503.975/4096.0)
-    #    fpValue -= 273.15
-    #    return '%0.1f'%(fpValue)
-    
-    #@staticmethod
-    #def setTemp(dev, var, value, write=False):
-    #    ivalue = int((int(value) + 273.15)*(4096/503.975))
-    #    print( 'Setting Temp thresh to {:x}'.format(ivalue) )
-    #    var.depdendencies[0].set(ivalue,write)
-    #End V2
+        if hasattr(rogue,'Version') and rogue.Version.greaterThanEqual('2.0.0'):
+            var.depdendencies[0].set(ivalue,write)
+        else:
+            var._block.setUInt(var.bitOffset, var.bitSize, ivalue)
 
     @staticmethod
     def convVoltage(dev, var):

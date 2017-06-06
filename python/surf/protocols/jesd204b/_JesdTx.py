@@ -124,9 +124,9 @@ class JesdTx(pr.Device):
     
             self.addVariable(   name         = "SquarePeriod",
                                 description  = "Ramp increment step and a period of the wave in c-c",
-                                offset       =  0x16,
+                                offset       =  0x14,
                                 bitSize      =  16,
-                                bitOffset    =  0x00,
+                                bitOffset    =  16,
                                 base         = "hex",
                                 mode         = "RW",
                             )

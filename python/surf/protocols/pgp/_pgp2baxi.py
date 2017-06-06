@@ -75,14 +75,6 @@ class Pgp2bAxi(pr.Device):
         for offset, name in enumerate(countVars):
             self.add(pr.Variable(name=name, offset=((offset*4)+0x28), bitSize=32, bitOffset=0, mode="RO", base='hex'))
 
-	# Remove for V2
-        self.add(pr.Variable(name="RxClkFreq", offset = 0x64, bitSize = 32, bitOffset = 0, mode = "RO", base = 'string', description = "",
-                             getFunction = _convertFrequency, pollInterval=5));
-
-        self.add(pr.Variable(name="TxClkFreq", offset = 0x68, bitSize = 32, bitOffset = 0, mode = "RO", base = 'string', description = "",
-                             getFunction = _convertFrequency, pollInterval=5));
-	# End Remove        
-
         self.add(pr.Variable(name="LastTxOpCode", offset = 0x70, bitSize = 8, bitOffset = 0, mode = "RO", base = 'hex', description = ""));
 
         self.add(pr.Variable(name="LastRxOpCode", offset = 0x74, bitSize = 8, bitOffset = 0, mode = "RO", base = 'hex', description = ""));
@@ -92,7 +84,7 @@ class Pgp2bAxi(pr.Device):
         self.add(pr.Variable(name="RxOpCodeCount", offset = 0x7C, bitSize = 8, bitOffset = 0, mode = "RO", base = 'hex', description = ""));
 
         self.add(pr.Command(name='CountReset', offset=0x00, bitSize=1, bitOffset=0, mode='RW', function=pr.Command.toggle))
-        self.add(pr.Command(name="ResetRx", offset=0x04, bitSize=1, bitOffset=0, mode='RW',  function=pr.Command.toggle))
+        self.add(pr.Command(name="ResetRx", offset=0x04, bitSize=1, bitOffset=0, mode='RW', function=pr.Command.toggle))
         self.add(pr.Command(name="Flush", offset=0x08, bitSize=1, bitOffset=0, mode='RW',  function=pr.Command.toggle))
 
         def _resetFunc(dev, rstType):
@@ -104,19 +96,23 @@ class Pgp2bAxi(pr.Device):
             elif rstType == 'count':
                 self.CountReset()
 
-	#Add back for V2
-        #self.add(pr.RemoteVariable(name="RxClkFreqRaw", offset = 0x64, bitSize = 32, mode = "RO", base = pr.UInt, hidden=True, pollInterval=5));
-        #self.add(pr.RemoteVariable(name="TxClkFreqRaw", offset = 0x68, bitSize = 32, mode = "RO", base = pr.UInt, hidden=True, pollInterval=5));
+        if hasattr(rogue,'Version') and rogue.Version.greaterThanEqual('2.0.0'):
+            self.add(pr.RemoteVariable(name="RxClkFreqRaw", offset = 0x64, bitSize = 32, mode = "RO", base = pr.UInt, hidden=True, pollInterval=5));
+            self.add(pr.RemoteVariable(name="TxClkFreqRaw", offset = 0x68, bitSize = 32, mode = "RO", base = pr.UInt, hidden=True, pollInterval=5));
 
-        #self.add(pr.LinkVariable(name="RxClkFreq", mode = "RO", value=0.0, dependencies=[self.RxClkFreqRaw], linkGet=_convertFrequency))
-        #self.add(pr.LinkVariable(name="TxClkFreq", mode = "RO", value=0.0, dependencies=[self.TxClkFreqRaw], linkGet=_convertFrequency))
-	# End add
+            self.add(pr.LinkVariable(name="RxClkFreq", mode = "RO", value=0.0, dependencies=[self.RxClkFreqRaw], linkGet=_convertFrequency))
+            self.add(pr.LinkVariable(name="TxClkFreq", mode = "RO", value=0.0, dependencies=[self.TxClkFreqRaw], linkGet=_convertFrequency))
+        else:
+            self.add(pr.Variable(name="RxClkFreq", offset = 0x64, bitSize = 32, bitOffset = 0, mode = "RO", base = 'string', description = "",
+                                 getFunction = _convertFrequency, pollInterval=5));
 
-# V1
+            self.add(pr.Variable(name="TxClkFreq", offset = 0x68, bitSize = 32, bitOffset = 0, mode = "RO", base = 'string', description = "",
+                                 getFunction = _convertFrequency, pollInterval=5));
+
+
 def _convertFrequency(dev, var):
-    return '{:f} Mhz'.format(var.block.getUInt(var.bitOffset, var.bitSize) * 1e-6)
+    if hasattr(rogue,'Version') and rogue.Version.greaterThanEqual('2.0.0'):
+        return '{:f} Mhz'.format(var.depdendencies[0].get(read) * 1e-6)
+    else:
+        return '{:f} Mhz'.format(var.block.getUInt(var.bitOffset, var.bitSize) * 1e-6)
 
-# V2
-#def _convertFrequency(dev, var, read=True):
-#    return '{:f} Mhz'.format(var.depdendencies[0].get(read) * 1e-6)
-    
