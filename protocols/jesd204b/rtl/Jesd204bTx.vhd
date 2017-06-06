@@ -177,15 +177,16 @@ begin
    -----------------------------------------------------------   
    GEN_REG : if (INPUT_REG_G = true) generate
       generateTxLanes : for I in L_G-1 downto 0 generate
-         SyncRe_INST : entity work.RegisterVector
+         U_Register: entity work.SlvDelay
             generic map (
-               TPD_G   => TPD_G,
-               WIDTH_G => (GT_WORD_SIZE_C*8))
+               TPD_G          => TPD_G,
+               WIDTH_G        => (GT_WORD_SIZE_C*8))
             port map (
                clk   => devClk_i,
                rst   => devRst_i,
-               sig_i => extSampleDataArray_i(I),
-               reg_o => s_regSampleDataIn(I));
+               delay => "1",
+               din   => extSampleDataArray_i(I),
+               dout  => s_regSampleDataIn(I));     
       end generate generateTxLanes;
    end generate GEN_REG;
 
@@ -389,32 +390,32 @@ begin
             r_jesdGtTx   => s_jesdGtTxArr(I));
    end generate generateTxLanes;
 
-
    -----------------------------------------------------------
    -- Output register
    -----------------------------------------------------------   
-
    GEN_REG_O : if (OUTPUT_REG_G = true) generate
       generateTxLanes : for I in L_G-1 downto 0 generate
-         SyncRe_Data : entity work.RegisterVector
+         U_RegisterData: entity work.SlvDelay
             generic map (
-               TPD_G   => TPD_G,
-               WIDTH_G => (GT_WORD_SIZE_C*8))
+               TPD_G          => TPD_G,
+               WIDTH_G        => (GT_WORD_SIZE_C*8))
             port map (
                clk   => devClk_i,
                rst   => devRst_i,
-               sig_i => s_jesdGtTxArr(I).data,
-               reg_o => r_jesdGtTxArr(I).data);
+               delay => "1",
+               din   => s_jesdGtTxArr(I).data,
+               dout  => r_jesdGtTxArr(I).data);
 
-         SyncRe_K : entity work.RegisterVector
+         U_RegisterK: entity work.SlvDelay
             generic map (
-               TPD_G   => TPD_G,
-               WIDTH_G => (GT_WORD_SIZE_C))
+               TPD_G          => TPD_G,
+               WIDTH_G        => (GT_WORD_SIZE_C))
             port map (
                clk   => devClk_i,
                rst   => devRst_i,
-               sig_i => s_jesdGtTxArr(I).dataK,
-               reg_o => r_jesdGtTxArr(I).dataK);
+               delay => "1",
+               din   => s_jesdGtTxArr(I).dataK,
+               dout  => r_jesdGtTxArr(I).dataK);
       end generate generateTxLanes;
    end generate GEN_REG_O;
 
