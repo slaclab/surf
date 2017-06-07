@@ -153,9 +153,11 @@ begin
             end if;
 
          when WAIT_CYCLE_S =>
-            -- Wait 1 cycle for rdEn to drop
-            v.wrEn  := '0';
-            v.state := WAIT_SPI_TXN_DONE_S;
+            -- Wait for rdEn to drop
+            if (rdEn = '0') then
+               v.wrEn  := '0';
+               v.state := WAIT_SPI_TXN_DONE_S;
+            end if;
 
          when WAIT_SPI_TXN_DONE_S =>
 
