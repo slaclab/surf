@@ -162,3 +162,16 @@ class AxiVersion(pr.Device):
                             mode         = "RO",
                         )
 
+        self.setResetFunc(self.resetFunc)
+
+    def resetFunc(self,type):
+        if type == 'hard':
+            print("AxiVersion hard reset called")
+        elif type == 'soft':
+            print("AxiVersion soft reset called")
+        elif type == 'count':
+            print("AxiVersion count reset called")
+
+
+
+
