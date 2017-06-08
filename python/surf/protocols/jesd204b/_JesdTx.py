@@ -273,19 +273,19 @@ class JesdTx(pr.Device):
             # Commands
             ##############################
     
-            self.addCommand(    name         = "ClearTxStatus",
-                                description  = "Clear the status valid counter of TX lanes.",
-                                function     = """\
-                                               self.ClearErrors.set(1)
-                                               self.ClearErrors.set(0)
-                                               """
-                            )
     
-            self.addCommand(    name         = "ResetTxGTs",
-                                description  = "Toggle the reset of all TX MGTs",
-                                function     = """\
-                                               self.ResetGTs.set(1)
-                                               self.ResetGTs.set(0)
-                                               """
+            def clearErrors(dev, cmd, arg):
+                dev.ClearErrors.set(1)
+                dev.ClearErrors.set(0)
+            self.addCommand(    name         = "CmdClearErrors",
+                                description  = "Clear the status valid counter of TX lanes.",
+                                function     = clearErrors
                             )
 
+            def resetGTs(dev, cmd, arg):
+                dev.ResetGTs.set(1)
+                dev.ResetGTs.set(0)                            
+            self.addCommand(    name         = "CmdResetGTs",
+                                description  = "Toggle the reset of all RX MGTs",
+                                function     = resetGTs
+                            )    

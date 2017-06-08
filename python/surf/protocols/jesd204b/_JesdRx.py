@@ -330,19 +330,19 @@ class JesdRx(pr.Device):
             # Commands
             ##############################
 
-            self.addCommand(    name         = "ClearRxErrors",
+            def clearErrors(dev, cmd, arg):
+                dev.ClearErrors.set(1)
+                dev.ClearErrors.set(0)
+            self.addCommand(    name         = "CmdClearRxErrors",
                                 description  = "Clear the registered errors of all RX lanes",
-                                function     = """\
-                                               self.ClearErrors.set(1)
-                                               self.ClearErrors.set(0)
-                                               """
+                                function     = clearErrors
                             )
 
-            self.addCommand(    name         = "ResetRxGTs",
+            def resetGTs(dev, cmd, arg):
+                dev.ResetGTs.set(1)
+                dev.ResetGTs.set(0)                            
+            self.addCommand(    name         = "CmdResetGTs",
                                 description  = "Toggle the reset of all RX MGTs",
-                                function     = """\
-                                               self.ResetGTs.set(1)
-                                               self.ResetGTs.set(0)
-                                               """
+                                function     = resetGTs
                             )
 

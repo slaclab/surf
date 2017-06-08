@@ -18,6 +18,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import time
 
 class Lmk04828(pr.Device):
     def __init__(   self,       
@@ -1091,31 +1092,31 @@ class Lmk04828(pr.Device):
         # Commands
         ##############################
 
+        def pwrDwnSysRef(dev, cmd, arg):
+            dev.EnableSysRef.set(0)        
         self.addCommand(    name         = "PwrDwnSysRef",
                             description  = "Powerdown the sysref lines",
-                            function     = """\
-                                           self.EnableSysRef.set(0)
-                                           """
+                            function     = pwrDwnSysRef
                         )
 
+        def pwrUpSysRef(dev, cmd, arg):
+            dev.EnableSysRef.set(3)                         
         self.addCommand(    name         = "PwrUpSysRef",
                             description  = "Powerup the sysref lines",
-                            function     = """\
-                                           self.EnableSysRef.set(3)
-                                           """
+                            function     = pwrUpSysRef
                         )
 
+        def initLmk(dev, cmd, arg):
+            dev.EnableSysRef.set(0)
+            dev.EnableSync.set(0)
+            time.sleep(1.0)
+            dev.SyncBit.set(1)
+            dev.SyncBit.set(0)
+            time.sleep(1.0)
+            dev.EnableSysRef.set(3)
+            dev.EnableSync.set(255)                       
         self.addCommand(    name         = "InitLmk",
                             description  = "Synchronise LMK internal counters. Warning this function will power off and power on all the system clocks",
-                            function     = """\
-                                           self.EnableSysRef.set(0)
-                                           self.EnableSync.set(0)
-                                           self.usleep.set(1000000)
-                                           self.SyncBit.set(1)
-                                           self.SyncBit.set(0)
-                                           self.usleep.set(1000000)
-                                           self.EnableSysRef.set(3)
-                                           self.EnableSync.set(255)
-                                           """
+                            function     = initLmk
                         )
 

@@ -34,7 +34,7 @@ class Dac38J84(pr.Device):
         ##############################
         # Variables
         ##############################
-
+        
         self.addVariables(  name         = "DacReg",
                             description  = "DAC Registers[125:0]",
                             offset       =  0x00,
@@ -44,6 +44,7 @@ class Dac38J84(pr.Device):
                             mode         = "RW",
                             number       =  126,
                             stride       =  4,
+                            verify       =  False,   
                         )
 
         self.addVariable(   name         = "LaneBufferDelay",
@@ -291,29 +292,28 @@ class Dac38J84(pr.Device):
         ##############################
         # Commands
         ##############################
-
+        def clearAlarms(dev, cmd, arg): 
+            dev.DacReg[100].set(0)
+            dev.DacReg[101].set(0)
+            dev.DacReg[102].set(0)
+            dev.DacReg[103].set(0)
+            dev.DacReg[104].set(0)
+            dev.DacReg[105].set(0)
+            dev.DacReg[106].set(0)
+            dev.DacReg[107].set(0)
+            dev.DacReg[108].set(0)
         self.addCommand(    name         = "ClearAlarms",
                             description  = "Clear all the DAC alarms",
-                            function     = """\
-                                           self.DacReg[100].set(0)
-                                           self.DacReg[101].set(0)
-                                           self.DacReg[102].set(0)
-                                           self.DacReg[103].set(0)
-                                           self.DacReg[104].set(0)
-                                           self.DacReg[105].set(0)
-                                           self.DacReg[106].set(0)
-                                           self.DacReg[107].set(0)
-                                           self.DacReg[108].set(0)
-                                           """
+                            function     = clearAlarms
                         )
 
+        def initDac(dev, cmd, arg):         
+            dev.EnableTx.set(0)
+            dev.InitJesd.set(30)
+            dev.InitJesd.set(1)
+            dev.EnableTx.set(1)        
         self.addCommand(    name         = "InitDac",
                             description  = "Initialization sequence for the DAC JESD core",
-                            function     = """\
-                                           self.EnableTx.set(0)
-                                           self.InitJesd.set(30)
-                                           self.InitJesd.set(1)
-                                           self.EnableTx.set(1)
-                                           """
+                            function     = initDac
                         )
 
