@@ -89,7 +89,7 @@ class AxiStreamDmaRingWrite(pr.Device):
                             number       =  numBuffers,
                             stride       =  4,
                         )
-
+ 
         self.addVariables(  name         = "Mode",
                             description  = "",
                             offset       =  0x800,
@@ -246,29 +246,16 @@ class AxiStreamDmaRingWrite(pr.Device):
         self.addCommand(    name         = "Initialize",
                             description  = "Initialize the buffer. Reset the write pointer to StartAddr. Clear the Done field.",
                             function     = """\
-                                           self.Init[0].set(1)
-                                           self.Init[1].set(1)
-                                           self.Init[2].set(1)
-                                           self.Init[3].set(1)
-                                           self.Init[0].set(0)
-                                           self.Init[1].set(0)
-                                           self.Init[2].set(0)
-                                           self.Init[3].set(0)
-                                           """
-                        )
-
-        self.addCommand(    name         = "C_SoftTrigger",
-                            description  = "Send a trigger to the buffer",
-                            function     = """\
-                                           self.SoftTrigger.set(1)
-                                           self.SoftTrigger.set(0)
-                                           """
+                                           for i in range(%d):
+                                             dev.Init[i].set(1)
+                                           """ % numBuffers
                         )
 
         self.addCommand(    name         = "SoftTriggerAll",
                             description  = "Send a trigger to the buffer",
                             function     = """\
-                                           self.SoftTrigger.set(1)
-                                           """
+                                           for i in range(%d):
+                                             dev.SoftTrigger[i].set(1)
+                                             dev.SoftTrigger[i].set(0)
+                                           """ % numBuffers
                         )
-
