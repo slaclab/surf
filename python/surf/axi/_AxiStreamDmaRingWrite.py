@@ -27,7 +27,7 @@ class AxiStreamDmaRingWrite(pr.Device):
                     offset      =  0x00,
                     numBuffers  =  4,
                     hidden      =  False,
-                    expand	    =  True,
+                    expand	=  True,
                 ):
         super(self.__class__, self).__init__(name, description, memBase, offset, hidden, expand=expand)    
 
