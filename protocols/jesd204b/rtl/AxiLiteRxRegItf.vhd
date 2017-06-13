@@ -69,9 +69,8 @@ entity AxiLiteRxRegItf is
       AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C;
       AXI_ADDR_WIDTH_G : positive        := 10;
       -- JESD 
-      -- Number of RX lanes (1 to 8)
-      L_G              : positive        := 2
-      );
+      -- Number of RX lanes (1 to 32)
+      L_G : positive range 1 to 32 := 2);
    port (
       -- AXI Clk
       axiClk_i : in sl;

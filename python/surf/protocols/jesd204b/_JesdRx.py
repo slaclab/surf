@@ -29,6 +29,7 @@ class JesdRx(pr.Device):
                     numRxLanes  =  6,
                     instantiate =  True,
                     expand	    =  True,
+                    debug	    =  False,
                 ):
         super(self.__class__, self).__init__(name, description, memBase, offset, hidden, expand=expand)  
 
@@ -281,28 +282,28 @@ class JesdRx(pr.Device):
                                 number       =  numRxLanes,
                                 stride       =  4,
                             )
+            if (debug):
+                self.addVariables(  name         = "ThresholdLow",
+                                    description  = "Threshold_Low. Debug funtionality. Threshold for generating a digital signal from the ADC data.",
+                                    offset       =  0xC0,
+                                    bitSize      =  16,
+                                    bitOffset    =  0x00,
+                                    base         = "hex",
+                                    mode         = "RW",
+                                    number       =  numRxLanes,
+                                    stride       =  4,
+                                )
 
-            self.addVariables(  name         = "ThresholdLow",
-                                description  = "Threshold_Low. Debug funtionality. Threshold for generating a digital signal from the ADC data.",
-                                offset       =  0xC0,
-                                bitSize      =  16,
-                                bitOffset    =  0x00,
-                                base         = "hex",
-                                mode         = "RW",
-                                number       =  numRxLanes,
-                                stride       =  4,
-                            )
-
-            self.addVariables(  name         = "ThresholdHigh",
-                                description  = "Threshold_High. Debug funtionality. Threshold for generating a digital signal from the ADC data.",
-                                offset       =  0xC0,
-                                bitSize      =  16,
-                                bitOffset    =  16,
-                                base         = "hex",
-                                mode         = "RW",
-                                number       =  numRxLanes,
-                                stride       =  4,
-                            )
+                self.addVariables(  name         = "ThresholdHigh",
+                                    description  = "Threshold_High. Debug funtionality. Threshold for generating a digital signal from the ADC data.",
+                                    offset       =  0xC0,
+                                    bitSize      =  16,
+                                    bitOffset    =  16,
+                                    base         = "hex",
+                                    mode         = "RW",
+                                    number       =  numRxLanes,
+                                    stride       =  4,
+                                )
 
             self.addVariables(  name         = "StatusValidCnt",
                                 description  = "StatusValidCnt. Shows stability of JESD lanes. Counts number of JESD re-syncronisations.",

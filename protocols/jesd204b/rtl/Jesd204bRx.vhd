@@ -59,9 +59,8 @@ entity Jesd204bRx is
       -- Number of frames in a multi frame (32)
       K_G : positive := 32;
 
-      --Number of lanes (1 to 16)
-      L_G : positive := 2
-      );
+      -- Number of RX lanes (1 to 32)
+      L_G : positive range 1 to 32 := 2);
 
    port (
       -- AXI interface      
@@ -178,7 +177,6 @@ architecture rtl of Jesd204bRx is
 
 begin
    -- Check JESD generics
-   assert (1 <= L_G and L_G <= 16) report "L_G must be between 1 and 16" severity failure;
    assert (((K_G * F_G) mod GT_WORD_SIZE_C) = 0) report "K_G setting is incorrect" severity failure;
    assert (F_G = 1 or F_G = 2 or (F_G = 4 and GT_WORD_SIZE_C = 4)) report "F_G setting must be 1,2,or 4*" severity failure;
 

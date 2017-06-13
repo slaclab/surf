@@ -58,9 +58,8 @@ entity Jesd204bTx is
       -- Number of frames in a multi frame
       K_G : positive := 32;
 
-      --Number of lanes (1 to 8)
-      L_G : positive := 2
-      );
+      -- Number of TX lanes (1 to 32)
+      L_G : positive range 1 to 32 := 2);
 
    port (
       -- AXI interface      
@@ -163,10 +162,7 @@ architecture rtl of Jesd204bTx is
    signal s_jesdGtTxArr  : jesdGtTxLaneTypeArray(L_G-1 downto 0);
 
 begin
-   -- Check generics TODO add others
-   assert (1 <= L_G and L_G <= 8) report "L_G must be between 1 and 8" severity failure;
 
-   -- 
    generateValid : for I in L_G-1 downto 0 generate
       s_dataValid(I) <= s_statusTxArr(I)(1);
    end generate generateValid;

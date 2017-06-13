@@ -68,8 +68,8 @@ entity AxiLiteTxRegItf is
       TPD_G            : time            := 1 ns;
       AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C;
       -- JESD 
-      -- Number of TX lanes (1 to 16)
-      L_G              : positive        := 2;
+      -- Number of TX lanes (1 to 32)
+      L_G : positive range 1 to 32 := 2;
 
       F_G : positive := 2
       );
