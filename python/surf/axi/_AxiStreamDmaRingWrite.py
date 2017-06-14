@@ -248,6 +248,7 @@ class AxiStreamDmaRingWrite(pr.Device):
                             function     = """\
                                            for i in range(%d):
                                              dev.Init[i].set(1)
+                                             dev.Init[i].set(0)
                                            """ % numBuffers
                         )
 
