@@ -87,7 +87,7 @@ JesdTx: &JesdTx
       sizeBits: 1
       lsBit: 5
       mode: RW
-      description: "Invert Sync. Sync output has to be inverted in some systems depending on signal polarities on the PCB."
+      description: "Enable test signal. Note: Has to be toggled if test signal type is changed to align the lanes (Default '1')."
     #########################################################    
     ScrambleEnable:
       at:

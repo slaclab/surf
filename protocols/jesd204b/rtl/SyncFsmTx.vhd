@@ -46,22 +46,22 @@ entity SyncFsmTx is
       -- Local multi frame clock
       lmfc_i         : in  sl;
    
-      -- Synchronisation request
+      -- Synchronization request
       nSync_i        : in  sl;
       
       -- GT is ready to transmit data after reset
       gtTxReady_i    : in  sl;
       
-      -- SYSREF for subcalss 1 fixed latency
+      -- SYSREF for subclass 1 fixed latency
       sysRef_i       : in  sl; 
 
-      -- Synchronisation process is complete start sending data 
+      -- Synchronization process is complete start sending data 
       dataValid_o    : out sl;
       
       -- sysref received     
       sysref_o       : out   sl;
       
-      -- Initial lane synchronisation sequence indicator
+      -- Initial lane synchronization sequence indicator
       ila_o          : out sl
    );
 end SyncFsmTx;

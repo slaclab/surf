@@ -10,13 +10,13 @@
 --              Supports sub-class 1 deterministic latency.
 --              Supports sub-class 0 non deterministic latency.
 --              Features:
---              - Synchronisation of LMFC to SYSREF
+--              - Synchronization of LMFC to SYSREF
 --              - Multi-lane operation (L_G: 1-16)
 --              - Lane alignment using RX buffers
 --              - Serial lane error check
 --              - Alignment character replacement and alignment check
 --               
---          Note: sampleDataArr_o is little endian and not byteswapped
+--          Note: sampleDataArr_o is little endian and not byte-swapped
 --                First sample in time:  sampleData_o(15 downto 0) 
 --                Second sample in time: sampleData_o(31 downto 16)
 -------------------------------------------------------------------------------
@@ -87,7 +87,7 @@ entity Jesd204bRx is
       devClk_i : in sl;
       devRst_i : in sl;
 
-      -- SYSREF for subcalss 1 fixed latency
+      -- SYSREF for subclass 1 fixed latency
       sysRef_i : in sl;
 
       -- SYSREF output for debug
@@ -97,7 +97,7 @@ entity Jesd204bRx is
       r_jesdGtRxArr : in  jesdGtRxLaneTypeArray(L_G-1 downto 0);
       gtRxReset_o   : out slv(L_G-1 downto 0);
 
-      -- Synchronisation output combined from all receivers 
+      -- Synchronization output combined from all receivers 
       nSync_o : out sl;
       
       -- Debug signals
@@ -125,7 +125,7 @@ architecture rtl of Jesd204bRx is
    -- Local Multi Frame Clock 
    signal s_lmfc : sl;
 
-   -- Synchronisation output generation
+   -- Synchronization output generation
    signal s_nSyncVec     : slv(L_G-1 downto 0);
    signal s_nSyncVecEn   : slv(L_G-1 downto 0);
    signal s_dataValidVec : slv(L_G-1 downto 0);

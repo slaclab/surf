@@ -69,13 +69,13 @@ entity JesdTxLane is
       -- Local multi frame clock
       lmfc_i         : in  sl;
 
-      -- Synchronisation request input 
+      -- Synchronization request input 
       nSync_i        : in  sl;
            
       -- GT is ready to transmit data after reset
       gtTxReady_i    : in  sl;
       
-      -- SYSREF for subcalss 1 fixed latency
+      -- SYSREF for subclass 1 fixed latency
       sysRef_i       : in    sl;
 
       -- Status of the transmitter
@@ -110,7 +110,7 @@ architecture rtl of JesdTxLane is
    
 begin
      
-   -- Synchronisation FSM
+   -- Synchronization FSM
    syncFSM_INST : entity work.SyncFsmTx
       generic map (
       TPD_G         => TPD_G,
@@ -137,7 +137,7 @@ begin
    end generate COMMA_GEN;
    
    ----------------------------------------------------     
-   -- Initial Synchronisation Data Sequence (ILAS)
+   -- Initial Synchronization Data Sequence (ILAS)
    ilasGen_INST: entity work.IlasGen
       generic map (
          TPD_G => TPD_G,
@@ -152,7 +152,7 @@ begin
          ilasK_o    => s_ilaKMux);
       
    ----------------------------------------------------     
-   -- Sample data with added synchronisation characters TODO
+   -- Sample data with added synchronization characters TODO
    AlignChGen_INST: entity work.AlignChGen
       generic map (
          TPD_G => TPD_G,

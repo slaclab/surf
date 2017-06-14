@@ -29,7 +29,7 @@
 --                   bit 0: GT Reset done
 --                   bit 1: Transmuting valid data
 --                   bit 2: Transmitting ILA sequence
---                   bit 3: Synchronisation input status 
+--                   bit 3: Synchronization input status 
 --                   bit 4: TX lane enabled status
 --                   bit 5: SysRef detected (active only when the TX lane is enabled)
 --               0x2X (RW) - Lane X signal select (Mux control)
@@ -317,7 +317,7 @@ begin
       end if;
    end process seq;
 
-   -- Input assignment and synchronisation
+   -- Input assignment and synchronization
    GEN_0 : for I in L_G-1 downto 0 generate
       SyncFifo_IN0 : entity work.SynchronizerFifo
          generic map (
@@ -333,7 +333,7 @@ begin
    end generate GEN_0;
 
 
-   -- Output assignment and synchronisation
+   -- Output assignment and synchronization
    SyncFifo_OUT0 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,

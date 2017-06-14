@@ -45,7 +45,7 @@ entity JesdTxTest is
       -- Local multi frame clock
       lmfc_i         : in  sl;
 
-      -- Synchronisation request input 
+      -- Synchronization request input 
       nSync_i        : in  sl;
       
       -- Lane delay inputs
@@ -119,7 +119,7 @@ begin
       sysref_o => s_nsync_dly
    );
 
-   -- Synchronisation FSM
+   -- Synchronization FSM
    syncFSM_INST : entity work.SyncFsmTxTest
       generic map (
          TPD_G          => TPD_G)

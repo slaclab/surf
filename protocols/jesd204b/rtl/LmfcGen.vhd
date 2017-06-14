@@ -39,7 +39,7 @@ entity LmfcGen is
       clk      : in  sl;
       rst      : in  sl;
       
-      -- Synchronisation inputs
+      -- Synchronization inputs
       nSync_i  : in  sl; 
       sysref_i : in  sl;
       

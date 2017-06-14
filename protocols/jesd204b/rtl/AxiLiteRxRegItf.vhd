@@ -25,7 +25,7 @@
 --                   bit 0: GT Reset done
 --                   bit 1: Received data valid
 --                   bit 2: Received data is misaligned
---                   bit 3: Synchronisation output status 
+--                   bit 3: Synchronization output status 
 --                   bit 4: Rx buffer overflow
 --                   bit 5: Rx buffer underflow
 --                   bit 6: Comma position not as expected during alignment
@@ -318,7 +318,7 @@ begin
       end if;
    end process seq;
 
-   -- Input assignment and synchronisation
+   -- Input assignment and synchronization
    GEN_0 : for I in L_G-1 downto 0 generate
       SyncFifo_IN0 : entity work.SynchronizerFifo
          generic map (
@@ -349,7 +349,7 @@ begin
    
    
 
-   -- Output assignment and synchronisation
+   -- Output assignment and synchronization
 
    SyncFifo_OUT0 : entity work.SynchronizerFifo
       generic map (

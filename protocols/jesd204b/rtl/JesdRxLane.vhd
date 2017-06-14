@@ -76,7 +76,7 @@ entity JesdRxLane is
       -- JESD subclass selection: '0' or '1'(default)     
       subClass_i : in sl;
 
-      -- SYSREF for subcalss 1 fixed latency
+      -- SYSREF for subclass 1 fixed latency
       sysRef_i : in sl;
 
       -- Clear registered errors     
@@ -97,17 +97,17 @@ entity JesdRxLane is
       -- Error mask
       linkErrMask_i : in slv(5 downto 0):= (others=>'1');
 
-      -- One or more RX modules requested synchronisation
+      -- One or more RX modules requested synchronization
       nSyncAny_i   : in sl;
       nSyncAnyD1_i : in sl;
       
       -- Invert ADC data
       inv_i     : in sl:='0';
       
-      -- Synchronisation request output 
+      -- Synchronization request output 
       nSync_o : out sl;
 
-      -- Synchronisation process is complete and data is valid
+      -- Synchronization process is complete and data is valid
       dataValid_o  : out sl;
       sampleData_o : out slv((GT_WORD_SIZE_C*8)-1 downto 0)
       );
@@ -219,7 +219,7 @@ begin
          empty        => open
          );
 
-   -- Synchronisation FSM
+   -- Synchronization FSM
    syncFSM_INST : entity work.SyncFsmRx
       generic map (
          TPD_G => TPD_G,

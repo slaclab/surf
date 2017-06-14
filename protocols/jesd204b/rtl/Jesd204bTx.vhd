@@ -251,7 +251,7 @@ begin
             sampleData_o   => s_axiDataArr(I));
    end generate generateAxiStreamLanes;
 
-   -- Different test sihnals   
+   -- Different test signals   
    generateTestStreamLanes : for I in L_G-1 downto 0 generate
 
       s_testEn(I) <= s_dataValid(I) and s_enableTestSig;
@@ -276,7 +276,7 @@ begin
 
    -- Sample data mux
    generateMux : for I in L_G-1 downto 0 generate
-      -- Swap endians (the module is built to use big endian data but the interface is little endian)
+      -- Swap endian (the module is built to use big endian data but the interface is little endian)
       s_extDataArraySwap(I) <= endianSwapSlv(s_regSampleDataIn(I), GT_WORD_SIZE_C);
 
       -- Separate mux for separate lane
@@ -292,7 +292,7 @@ begin
    -- SYSREF, SYNC, and LMFC
    -----------------------------------------------------------
 
-   -- Synchronise SYSREF input to devClk_i
+   -- Synchronize SYSREF input to devClk_i
    Synchronizer_sysref_INST : entity work.Synchronizer
       generic map (
          TPD_G          => TPD_G,
@@ -312,7 +312,7 @@ begin
    -- Invert/or not nSync signal (control from axil) 
    s_nSync <= nSync_i when s_invertSync = '0' else not nSync_i;
 
-   -- Synchronise nSync input to devClk_i
+   -- Synchronize nSync input to devClk_i
    Synchronizer_nsync_INST : entity work.Synchronizer
       generic map (
          TPD_G          => TPD_G,

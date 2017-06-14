@@ -61,7 +61,7 @@ entity SyncFsmRx is
       -- Local multi frame clock
       lmfc_i         : in    sl;
           
-      -- One or more RX modules requested synchronisation
+      -- One or more RX modules requested synchronization
       nSyncAny_i     : in    sl;
       nSyncAnyD1_i   : in    sl;
       
@@ -70,7 +70,7 @@ entity SyncFsmRx is
       
    -- Synchronous FSM control outputs
    
-      -- Synchronisation request
+      -- Synchronization request
       nSync_o        : out   sl;
       
       -- Elastic buffer latency in clock cycles

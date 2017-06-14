@@ -43,7 +43,7 @@ package Jesd204bPkg is
    constant RX_STAT_WIDTH_C   : positive := 19 + 2*GT_WORD_SIZE_C;
    constant TX_STAT_WIDTH_C   : positive := 6;
 
-   -- AXI packet size at powerup
+   -- AXI packet size at power up
    constant AXI_PACKET_SIZE_DEFAULT_C : slv(23 downto 0) := x"00_01_00";
 
    -- TX specific
@@ -299,7 +299,7 @@ package body Jesd204bPkg is
       end if;
    end byteSwapSlv;
 
-   -- Swap little or big endians (bytes int 2 or 4)
+   -- Swap little or big endian (bytes int 2 or 4)
    function endianSwapSlv(data_slv : slv; bytes_int : positive) return std_logic_vector is
    begin
 

@@ -9,7 +9,7 @@
 --     Inverts incoming data if enabled
 --
 --     Replaces data with F and A characters.
---     A(K28.3) - x"7C" - Inserted at the end of a multiframe.   
+--     A(K28.3) - x"7C" - Inserted at the end of a multi-frame.   
 --     F(K28.7) - x"FC" - Inserted at the end of a frame.
 --     
 --     Note: Character replacement mechanism is different weather scrambler is enabled or disabled.

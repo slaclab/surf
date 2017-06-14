@@ -94,13 +94,13 @@ entity Jesd204bRxGthUltra is
    -- JESD
    ------------------------------------------------------------------------------------------------   
 
-      -- SYSREF for subcalss 1 fixed latency
+      -- SYSREF for subclass 1 fixed latency
       sysRef_i       : in    sl;
       
       -- SYSREF out when it is generated internally SYSREF_GEN_G=True     
       sysRef_o       : out    sl;
 
-      -- Synchronisation output combined from all receivers 
+      -- Synchronization output combined from all receivers 
       nSync_o        : out   sl;
       
       -- Out to led
