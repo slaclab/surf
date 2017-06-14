@@ -12,3 +12,4 @@ from surf.devices.ti._Adc16Dx370 import *
 from surf.devices.ti._AxiCdcm6208 import *
 from surf.devices.ti._Dac38J84 import *
 from surf.devices.ti._Lmk04828 import *
+from surf.devices.ti._Adc32Rf45 import *
