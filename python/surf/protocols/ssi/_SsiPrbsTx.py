@@ -148,7 +148,7 @@ class SsiPrbsTx(pr.Device):
         self.addCommand(    name         = "C_OneShot",
                             description  = "",
                             function     = """\
-                                           self.OneShot.set(1)
+                                           dev.OneShot.set(1)
                                            """
                         )
 

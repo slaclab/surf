@@ -29,6 +29,7 @@ class GenericMemory(pr.Device):
                     nelms       =  1, 
                     bitSize     =  32, 
                     bitOffset   =  0, 
+                    stride      =  4,
                     base        = "hex", 
                     mode        = "RW", 
                     instantiate =  True,
@@ -48,5 +49,5 @@ class GenericMemory(pr.Device):
                                 base         =  base,
                                 mode         =  mode,
                                 number       =  nelms,
-                                stride       =  4,
+                                stride       =  stride,
                             )
