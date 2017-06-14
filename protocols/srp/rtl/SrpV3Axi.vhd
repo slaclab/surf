@@ -35,6 +35,7 @@ entity SrpV3Axi is
       TPD_G               : time                    := 1 ns;
       PIPE_STAGES_G       : natural range 0 to 16   := 0;
       FIFO_PAUSE_THRESH_G : positive range 1 to 511 := 256;
+      TX_VALID_THOLD_G    : positive                := 1;
       SLAVE_READY_EN_G    : boolean                 := true;
       GEN_SYNC_FIFO_G     : boolean                 := false;
       ALTERA_SYN_G        : boolean                 := false;
@@ -113,6 +114,7 @@ begin
          TPD_G               => TPD_G,
          PIPE_STAGES_G       => PIPE_STAGES_G,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
+         TX_VALID_THOLD_G    => TX_VALID_THOLD_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          ALTERA_SYN_G        => ALTERA_SYN_G,
