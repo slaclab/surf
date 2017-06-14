@@ -10,7 +10,7 @@
 --              Supports sub-class 0 non deterministic latency.
 --              Features:
 --              - Synchronization of LMFC to SYSREF
---              - Multi-lane operation (L_G: 1-8)
+--              - Multi-lane operation (L_G: 1-32)
 --
 --          Warning: Scrambling support has not been tested on the TX module yet.
 --
@@ -41,26 +41,17 @@ use work.Jesd204bPkg.all;
 
 entity Jesd204bTx is
    generic (
-      TPD_G : time := 1 ns;
-
-      -- AXI Lite and stream generics
-      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C;
-
+      TPD_G            : time                   := 1 ns;
+      AXI_ERROR_RESP_G : slv(1 downto 0)        := AXI_RESP_SLVERR_C;
       -- Register sample data at input and/or output 
-      INPUT_REG_G  : boolean := false;
-      OUTPUT_REG_G : boolean := false;
-
-      -- JESD generics
-      
+      INPUT_REG_G      : boolean                := false;
+      OUTPUT_REG_G     : boolean                := false;
       -- Number of bytes in a frame
-      F_G : positive := 2;
-
+      F_G              : positive               := 2;
       -- Number of frames in a multi frame
-      K_G : positive := 32;
-
+      K_G              : positive               := 32;
       -- Number of TX lanes (1 to 32)
-      L_G : positive range 1 to 32 := 2);
-
+      L_G              : positive range 1 to 32 := 2);
    port (
       -- AXI interface      
       -- Clocks and Resets
@@ -73,7 +64,7 @@ entity Jesd204bTx is
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
 
-      -- AXI Streaming Interface
+      -- Legacy Interface that we will remove in the future
       txAxisMasterArr_i : in  AxiStreamMasterArray(L_G-1 downto 0);
       txAxisSlaveArr_o  : out AxiStreamSlaveArray(L_G-1 downto 0);
 
@@ -82,10 +73,10 @@ entity Jesd204bTx is
       devClk_i : in sl;
       devRst_i : in sl;
 
-      -- SYSREF for subcalss 1 fixed latency
+      -- SYSREF for subclass 1 fixed latency
       sysRef_i : in sl;
 
-      -- Synchronisation input combined from all receivers 
+      -- Synchronization input combined from all receivers 
       nSync_i : in sl;
 
       -- External sample data input
@@ -100,8 +91,7 @@ entity Jesd204bTx is
 
       -- Debug signals
       pulse_o : out slv(L_G-1 downto 0);
-      leds_o  : out slv(1 downto 0)
-      );
+      leds_o  : out slv(1 downto 0));
 end Jesd204bTx;
 
 architecture rtl of Jesd204bTx is
@@ -113,14 +103,13 @@ architecture rtl of Jesd204bTx is
 
    -- Control and status from AxiLite
    ------------------------------------------------------------
-   signal s_sysrefDlyTx  : slv(SYSRF_DLY_WIDTH_C-1 downto 0);
-   signal s_enableTx     : slv(L_G-1 downto 0);
-   signal s_replEnable   : sl;
-   signal s_scrEnable    : sl;
-   signal s_statusTxArr  : txStatuRegisterArray(L_G-1 downto 0);
-   signal s_dataValid    : slv(L_G-1 downto 0);
-   signal s_swTriggerReg : slv(L_G-1 downto 0);
-   signal s_invertData   : slv(L_G-1 downto 0);
+   signal s_sysrefDlyTx : slv(SYSRF_DLY_WIDTH_C-1 downto 0);
+   signal s_enableTx    : slv(L_G-1 downto 0);
+   signal s_replEnable  : sl;
+   signal s_scrEnable   : sl;
+   signal s_statusTxArr : txStatuRegisterArray(L_G-1 downto 0);
+   signal s_dataValid   : slv(L_G-1 downto 0);
+   signal s_invertData  : slv(L_G-1 downto 0);
 
    -- JESD subclass selection (from AXI lite register)
    signal s_subClass      : sl;
@@ -138,7 +127,6 @@ architecture rtl of Jesd204bTx is
 
    -- Data out multiplexer
    signal s_testDataArr      : sampleDataArray(L_G-1 downto 0);
-   signal s_axiDataArr       : sampleDataArray(L_G-1 downto 0);
    signal s_extDataArraySwap : sampleDataArray(L_G-1 downto 0);
 
    signal s_regSampleDataIn  : sampleDataArray(L_G-1 downto 0);
@@ -163,50 +151,47 @@ architecture rtl of Jesd204bTx is
 
 begin
 
-   generateValid : for I in L_G-1 downto 0 generate
-      s_dataValid(I) <= s_statusTxArr(I)(1);
-   end generate generateValid;
+   -- Legacy Interface that we will remove in the future
+   txAxisSlaveArr_o <= (others => AXI_STREAM_SLAVE_FORCE_C);
 
-
-   -----------------------------------------------------------
+   ----------------------
    -- Input data register
-   -----------------------------------------------------------   
-   GEN_REG : if (INPUT_REG_G = true) generate
-      generateTxLanes : for I in L_G-1 downto 0 generate
-         SyncRe_INST : entity work.RegisterVector
-            generic map (
-               TPD_G   => TPD_G,
-               WIDTH_G => (GT_WORD_SIZE_C*8))
-            port map (
-               clk   => devClk_i,
-               rst   => devRst_i,
-               sig_i => extSampleDataArray_i(I),
-               reg_o => s_regSampleDataIn(I));
-      end generate generateTxLanes;
-   end generate GEN_REG;
+   ----------------------
+   GEN_REG_I : if (INPUT_REG_G = true) generate
+      GEN_LANE : for I in L_G-1 downto 0 generate
+         process(devClk_i)
+         begin
+            if rising_edge(devClk_i) then
+               s_regSampleDataIn(I) <= extSampleDataArray_i(I) after TPD_G;
+            end if;
+         end process;
+      end generate GEN_LANE;
+   end generate GEN_REG_I;
 
-   GEN_N_REG : if (INPUT_REG_G = false) generate
+   GEN_N_REG_I : if (INPUT_REG_G = false) generate
       s_regSampleDataIn <= extSampleDataArray_i;
-   end generate GEN_N_REG;
-   
-   -----------------------------------------------------------
-   -- AXI lite registers
-   -----------------------------------------------------------  
-   -- axiLite register interface
-   AxiLiteRegItf_INST : entity work.AxiLiteTxRegItf
+   end generate GEN_N_REG_I;
+
+   GEN_VALID : for I in L_G-1 downto 0 generate
+      s_dataValid(I) <= s_statusTxArr(I)(1);
+   end generate GEN_VALID;
+
+   ---------------------
+   -- AXI-Lite registers
+   ---------------------
+   U_Reg : entity work.JesdTxReg
       generic map (
          TPD_G            => TPD_G,
          AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
          L_G              => L_G,
          F_G              => F_G)
       port map (
-         axiClk_i        => axiClk,
-         axiRst_i        => axiRst,
-         axilReadMaster  => axilReadMaster,
-         axilReadSlave   => axilReadSlave,
-         axilWriteMaster => axilWriteMaster,
-         axilWriteSlave  => axilWriteSlave,
-
+         axiClk_i         => axiClk,
+         axiRst_i         => axiRst,
+         axilReadMaster   => axilReadMaster,
+         axilReadSlave    => axilReadSlave,
+         axilWriteMaster  => axilWriteMaster,
+         axilWriteSlave   => axilWriteSlave,
          -- DevClk domain
          devClk_i         => devClk_i,
          devRst_i         => devRst_i,
@@ -223,41 +208,19 @@ begin
          sigTypeArr_o     => s_sigTypeArr,
          posAmplitude_o   => s_posAmplitude,
          negAmplitude_o   => s_negAmplitude,
-         swTrigger_o      => s_swTriggerReg,
+         swTrigger_o      => open,
          rampStep_o       => s_rampStep,
          squarePeriod_o   => s_squarePeriod,
          enableTestSig_o  => s_enableTestSig,
          invertSync_o     => s_invertSync,
-         axisPacketSize_o => open
-         );
+         axisPacketSize_o => open);
 
-   -----------------------------------------------------------
-   -- Data sources
-   -----------------------------------------------------------
+   GEN_TEST : for I in L_G-1 downto 0 generate
 
-   -- AXI stream tx interface one module per lane
-   generateAxiStreamLanes : for I in L_G-1 downto 0 generate
-      AxiStreamLaneTx_INST : entity work.AxiStreamLaneTx
-         generic map (
-            TPD_G => TPD_G,
-            F_G   => F_G)
-         port map (
-            devClk_i       => devClk_i,
-            devRst_i       => devRst_i,
-            txAxisMaster_i => txAxisMasterArr_i(I),
-            txAxisSlave_o  => txAxisSlaveArr_o(I),
-            jesdReady_i    => s_dataValid(I),
-            enable_i       => s_swTriggerReg(I),
-            sampleData_o   => s_axiDataArr(I));
-   end generate generateAxiStreamLanes;
-
-   -- Different test signals   
-   generateTestStreamLanes : for I in L_G-1 downto 0 generate
-
+      -- Check the test pattern enable bit 
       s_testEn(I) <= s_dataValid(I) and s_enableTestSig;
 
-
-      TestStreamTx_INST : entity work.TestStreamTx
+      U_TestStream : entity work.JesdTestStreamTx
          generic map (
             TPD_G => TPD_G,
             F_G   => F_G)
@@ -272,21 +235,32 @@ begin
             type_i         => s_sigTypeArr(I),
             pulse_o        => pulse_o(I),
             sampleData_o   => s_testDataArr(I));
-   end generate generateTestStreamLanes;
+
+   end generate GEN_TEST;
 
    -- Sample data mux
-   generateMux : for I in L_G-1 downto 0 generate
+   GEN_MUX : for I in L_G-1 downto 0 generate
+
       -- Swap endian (the module is built to use big endian data but the interface is little endian)
       s_extDataArraySwap(I) <= endianSwapSlv(s_regSampleDataIn(I), GT_WORD_SIZE_C);
 
       -- Separate mux for separate lane
+      process(devClk_i)
+      begin
+         if rising_edge(devClk_i) then
+            if (s_muxOutSelArr(I) = "000") then
+               s_sampleDataArr(I) <= outSampleZero(F_G, GT_WORD_SIZE_C) after TPD_G;
+            elsif (s_muxOutSelArr(I) = "001") then
+               s_sampleDataArr(I) <= s_extDataArraySwap(I) after TPD_G;
+            elsif (s_muxOutSelArr(I) = "010") then
+               s_sampleDataArr(I) <= (others => '1') after TPD_G;
+            else
+               s_sampleDataArr(I) <= s_testDataArr(I) after TPD_G;
+            end if;
+         end if;
+      end process;
 
-      s_sampleDataArr(I) <= ite(s_muxOutSelArr(I) = "000", outSampleZero(F_G, GT_WORD_SIZE_C),
-                                ite(s_muxOutSelArr(I) = "001", s_extDataArraySwap(I),
-                                    ite(s_muxOutSelArr(i) = "010", s_axiDataArr(I),
-                                        s_testDataArr(I))));
-
-   end generate generateMux;
+   end generate GEN_MUX;
 
    -----------------------------------------------------------
    -- SYSREF, SYNC, and LMFC
@@ -306,8 +280,7 @@ begin
          clk     => devClk_i,
          rst     => devRst_i,
          dataIn  => sysref_i,
-         dataOut => s_sysrefSync
-         );
+         dataOut => s_sysrefSync);
 
    -- Invert/or not nSync signal (control from axil) 
    s_nSync <= nSync_i when s_invertSync = '0' else not nSync_i;
@@ -326,11 +299,10 @@ begin
          clk     => devClk_i,
          rst     => devRst_i,
          dataIn  => s_nSync,
-         dataOut => s_nSyncSync
-         );
+         dataOut => s_nSyncSync);
 
    -- Delay SYSREF input (for 1 to 32 c-c)
-   SysrefDly_INST : entity work.SysrefDly
+   U_SysrefDly : entity work.JesdSysrefDly
       generic map (
          TPD_G       => TPD_G,
          DLY_WIDTH_G => SYSRF_DLY_WIDTH_C)
@@ -343,7 +315,7 @@ begin
          );
 
    -- LMFC period generator aligned to SYSREF input
-   LmfcGen_INST : entity work.LmfcGen
+   U_LmfcGen : entity work.JesdLmfcGen
       generic map (
          TPD_G => TPD_G,
          K_G   => K_G,
@@ -354,16 +326,14 @@ begin
          nSync_i    => s_nSyncSync,
          sysref_i   => s_sysrefD,
          sysrefRe_o => s_sysrefRe,      -- Rising-edge of SYSREF OUT 
-         lmfc_o     => s_lmfc
-         );
+         lmfc_o     => s_lmfc);
 
-   -----------------------------------------------------------
+   ----------------------------
    -- Transmitter modules (L_G)
-   ----------------------------------------------------------- 
-
-   -- JESD Transmitter modules (one module per Lane)
-   generateTxLanes : for I in L_G-1 downto 0 generate
-      JesdTxLane_INST : entity work.JesdTxLane
+   ----------------------------
+   GEN_TX : for I in L_G-1 downto 0 generate
+      -- JESD Transmitter modules (one module per Lane)
+      U_JesdTxLane : entity work.JesdTxLane
          generic map (
             TPD_G => TPD_G,
             F_G   => F_G,
@@ -383,35 +353,21 @@ begin
             status_o     => s_statusTxArr(I),  -- To AXI lite
             sampleData_i => s_sampleDataArr(I),
             r_jesdGtTx   => s_jesdGtTxArr(I));
-   end generate generateTxLanes;
+   end generate GEN_TX;
 
-
-   -----------------------------------------------------------
+   ------------------
    -- Output register
-   -----------------------------------------------------------   
-
+   ------------------
    GEN_REG_O : if (OUTPUT_REG_G = true) generate
-      generateTxLanes : for I in L_G-1 downto 0 generate
-         SyncRe_Data : entity work.RegisterVector
-            generic map (
-               TPD_G   => TPD_G,
-               WIDTH_G => (GT_WORD_SIZE_C*8))
-            port map (
-               clk   => devClk_i,
-               rst   => devRst_i,
-               sig_i => s_jesdGtTxArr(I).data,
-               reg_o => r_jesdGtTxArr(I).data);
-
-         SyncRe_K : entity work.RegisterVector
-            generic map (
-               TPD_G   => TPD_G,
-               WIDTH_G => (GT_WORD_SIZE_C))
-            port map (
-               clk   => devClk_i,
-               rst   => devRst_i,
-               sig_i => s_jesdGtTxArr(I).dataK,
-               reg_o => r_jesdGtTxArr(I).dataK);
-      end generate generateTxLanes;
+      GEN_LANE : for I in L_G-1 downto 0 generate
+         process(devClk_i)
+         begin
+            if rising_edge(devClk_i) then
+               r_jesdGtTxArr(I).data  <= s_jesdGtTxArr(I).data  after TPD_G;
+               r_jesdGtTxArr(I).dataK <= s_jesdGtTxArr(I).dataK after TPD_G;
+            end if;
+         end process;
+      end generate GEN_LANE;
    end generate GEN_REG_O;
 
    GEN_N_REG_O : if (OUTPUT_REG_G = false) generate
@@ -420,7 +376,6 @@ begin
 
    -- Output assignment
    gtTxReset_o <= (others => s_gtReset);
+   leds_o      <= uOr(s_dataValid) & s_nSyncSync;
 
-   leds_o <= uOr(s_dataValid) & s_nSyncSync;
------------------------------------------------------
 end rtl;

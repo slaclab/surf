@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : TestStreamTx.vhd
+-- File       : JesdTestStreamTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-15
 -- Last update: 2015-04-15
@@ -30,7 +30,7 @@ use ieee.numeric_std.all;
 use work.StdRtlPkg.all;
 use work.jesd204bpkg.all;
 
-entity TestStreamTx is
+entity JesdTestStreamTx is
    generic (
       TPD_G        : time   := 1 ns;
       F_G          : positive   := 2
@@ -60,9 +60,9 @@ entity TestStreamTx is
       -- Digital out pulse for latency debug
       pulse_o : out sl
    );
-end entity TestStreamTx;
+end entity JesdTestStreamTx;
 
-architecture rtl of TestStreamTx is
+architecture rtl of JesdTestStreamTx is
    
    constant SAM_IN_WORD_C    : positive := (GT_WORD_SIZE_C/F_G);
 

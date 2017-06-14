@@ -111,7 +111,7 @@ architecture rtl of JesdTxLane is
 begin
      
    -- Synchronization FSM
-   syncFSM_INST : entity work.SyncFsmTx
+   syncFSM_INST : entity work.JesdSyncFsmTx
       generic map (
       TPD_G         => TPD_G,
       NUM_ILAS_MF_G => 4)
@@ -138,7 +138,7 @@ begin
    
    ----------------------------------------------------     
    -- Initial Synchronization Data Sequence (ILAS)
-   ilasGen_INST: entity work.IlasGen
+   ilasGen_INST: entity work.JesdIlasGen
       generic map (
          TPD_G => TPD_G,
          F_G   => F_G)
@@ -153,7 +153,7 @@ begin
       
    ----------------------------------------------------     
    -- Sample data with added synchronization characters TODO
-   AlignChGen_INST: entity work.AlignChGen
+   AlignChGen_INST: entity work.JesdAlignChGen
       generic map (
          TPD_G => TPD_G,
          F_G   => F_G)

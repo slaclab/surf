@@ -92,7 +92,7 @@ architecture rtl of JesdTxTest is
 begin
 
    -- Delay lmfc input (for 1 to 16 c-c) to 
-   lmfcDly_INST: entity work.SysrefDly
+   lmfcDly_INST: entity work.JesdSysrefDly
    generic map (
       TPD_G       => TPD_G,
       DLY_WIDTH_G => 4 
@@ -106,7 +106,7 @@ begin
    );
    
    -- Delay nsync input (for 1 to 16 c-c) to 
-   nsyncDly_INST: entity work.SysrefDly
+   nsyncDly_INST: entity work.JesdSysrefDly
    generic map (
       TPD_G       => TPD_G,
       DLY_WIDTH_G => 4 
@@ -120,7 +120,7 @@ begin
    );
 
    -- Synchronization FSM
-   syncFSM_INST : entity work.SyncFsmTxTest
+   syncFSM_INST : entity work.JesdSyncFsmTxTest
       generic map (
          TPD_G          => TPD_G)
       port map (

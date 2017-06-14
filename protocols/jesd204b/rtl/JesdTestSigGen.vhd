@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : TestSigGen.vhd
+-- File       : JesdTestSigGen.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-15
 -- Last update: 2015-04-15
@@ -25,7 +25,7 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.Jesd204bPkg.all;
 
-entity TestSigGen is
+entity JesdTestSigGen is
    generic (
       TPD_G        : time       := 1 ns;
       
@@ -48,9 +48,9 @@ entity TestSigGen is
       -- Test signal 
       testSig_o    : out sl
    );
-end entity TestSigGen;
+end entity JesdTestSigGen;
 
-architecture rtl of TestSigGen is
+architecture rtl of JesdTestSigGen is
   
    type RegType is record
       sig         : sl;

@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : AlignFrRepCh.vhd
+-- File       : JesdAlignFrRepCh.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-15
 -- Last update: 2016-02-12
@@ -36,7 +36,7 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.Jesd204bPkg.all;
 
-entity AlignFrRepCh is
+entity JesdAlignFrRepCh is
    generic (
       TPD_G : time := 1 ns;
 
@@ -71,9 +71,9 @@ entity AlignFrRepCh is
       alignErr_o    : out sl;           -- Invalid or misaligned character in the data
       positionErr_o : out sl            -- Invalid (comma) position received at time of alignment
       );
-end entity AlignFrRepCh;
+end entity JesdAlignFrRepCh;
 
-architecture rtl of AlignFrRepCh is
+architecture rtl of JesdAlignFrRepCh is
    -- How many samples is in a GT word
    constant SAMPLES_IN_WORD_C : positive := (GT_WORD_SIZE_C/F_G);
 

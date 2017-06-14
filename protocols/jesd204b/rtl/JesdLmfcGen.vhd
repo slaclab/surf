@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : LmfcGen.vhd
+-- File       : JesdLmfcGen.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-15
 -- Last update: 2017-05-02
@@ -30,7 +30,7 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.jesd204bpkg.all;
 
-entity LmfcGen is
+entity JesdLmfcGen is
    generic (
       TPD_G        : time   := 1 ns;
       K_G          : positive   := 32;
@@ -47,9 +47,9 @@ entity LmfcGen is
       sysrefRe_o : out sl;      
       lmfc_o     : out sl  
    );
-end entity LmfcGen;
+end entity JesdLmfcGen;
 
-architecture rtl of LmfcGen is
+architecture rtl of JesdLmfcGen is
    
    constant PERIOD_C    : positive := ((K_G * F_G)/GT_WORD_SIZE_C)-1;
    constant CNT_WIDTH_C : positive := bitSize(PERIOD_C);

@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteTxRegItf.vhd
+-- File       : JesdTxReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-15
 -- Last update: 2016-02-12
@@ -62,7 +62,7 @@ use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.Jesd204bPkg.all;
 
-entity AxiLiteTxRegItf is
+entity JesdTxReg is
    generic (
       -- General Configurations
       TPD_G            : time            := 1 ns;
@@ -114,9 +114,9 @@ entity AxiLiteTxRegItf is
 
       axisPacketSize_o : out slv(23 downto 0)
       );
-end AxiLiteTxRegItf;
+end JesdTxReg;
 
-architecture rtl of AxiLiteTxRegItf is
+architecture rtl of JesdTxReg is
 
    type RegType is record
       -- JESD Control (RW)

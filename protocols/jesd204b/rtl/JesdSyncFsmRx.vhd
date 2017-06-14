@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : SyncFsmRx.vhd 
+-- File       : JesdSyncFsmRx.vhd 
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-14
 -- Last update: 2015-04-14
@@ -26,7 +26,7 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.Jesd204bPkg.all;
 
-entity SyncFsmRx is
+entity JesdSyncFsmRx is
    generic (
       TPD_G: time    := 1 ns;
 
@@ -97,9 +97,9 @@ entity SyncFsmRx is
       dataValid_o    : out   sl
 
     );
-end SyncFsmRx;
+end JesdSyncFsmRx;
 
-architecture rtl of SyncFsmRx is
+architecture rtl of JesdSyncFsmRx is
 
    type stateType is (
       IDLE_S,

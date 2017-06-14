@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
--- File       : syncFsmTx.vhd 
+-- File       : JesdSyncFsmTxTest.vhd 
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-14
 -- Last update: 2015-04-14
 -------------------------------------------------------------------------------
--- Description: Synchronizer TX Finite state machine
---              Finite state machine for sub-class 1 and sub-class 0 deterministic latency
+-- Description: Synchronizer for simple TX Finite state machine
+--              Finite state machine for sub-class 1 deterministic latency
 --              lane synchronization.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
@@ -25,62 +25,48 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.Jesd204bPkg.all;
 
-entity SyncFsmTx is
+entity JesdSyncFsmTxTest is
    generic (
-      TPD_G       : time     := 1 ns;
-      --JESD204B class (0 and 1 supported)
-      
-      -- Number of multi-frames in ILA sequence (4-255)
-      NUM_ILAS_MF_G : positive := 4);    
+      TPD_G       : time     := 1 ns);    
    port (
       -- Clocks and Resets   
-      clk            : in  sl;    
-      rst            : in  sl;
-      
-      -- JESD subclass selection: '0' or '1'(default)     
-      subClass_i     : in sl;   
+      clk            : in    sl;    
+      rst            : in    sl;
       
       -- Enable the module
-      enable_i       : in  sl;      
-
+      enable_i       : in    sl;
+      
+      -- JESD subclass selection: '0' or '1'(default)     
+      subClass_i     : in sl;
+      
       -- Local multi frame clock
-      lmfc_i         : in  sl;
+      lmfc_i         : in    sl;
    
       -- Synchronization request
-      nSync_i        : in  sl;
-      
-      -- GT is ready to transmit data after reset
-      gtTxReady_i    : in  sl;
-      
-      -- SYSREF for subclass 1 fixed latency
-      sysRef_i       : in  sl; 
+      nSync_i        : in    sl;
+          
+      testCntr_o     : out   slv(7 downto 0); 
 
       -- Synchronization process is complete start sending data 
-      dataValid_o    : out sl;
-      
-      -- sysref received     
-      sysref_o       : out   sl;
-      
-      -- Initial lane synchronization sequence indicator
-      ila_o          : out sl
+      dataValid_o    : out   sl;
+      -- First data
+      align_o        : out   sl
    );
-end SyncFsmTx;
+end JesdSyncFsmTxTest;
 
-architecture rtl of SyncFsmTx is
+architecture rtl of JesdSyncFsmTxTest is
 
    type stateType is (
       IDLE_S,
       SYNC_S,
-      ILA_S,     
+      ALIGN_S,     
       DATA_S
    );
 
    type RegType is record
       -- Synchronous FSM control outputs
       dataValid   : sl;
-      ila         : sl;
-      sysref      : sl;
-      -- Count       
+      align       : sl;      
       cnt         : slv(7 downto 0);
       
       -- Status Machine
@@ -89,8 +75,7 @@ architecture rtl of SyncFsmTx is
    
    constant REG_INIT_C : RegType := (
       dataValid    => '0',
-      ila          => '0',
-      sysref       => '0',
+      align        => '0',
       cnt          =>  (others => '0'),
 
       -- Status Machine
@@ -103,7 +88,7 @@ architecture rtl of SyncFsmTx is
 begin
    
    -- State machine
-   comb : process (rst, r, enable_i, lmfc_i, nSync_i, gtTxReady_i, sysRef_i, subClass_i) is
+   comb : process (rst, r, enable_i, lmfc_i, nSync_i) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -117,18 +102,11 @@ begin
             -- Outputs
             v.cnt       := (others => '0');
             v.dataValid := '0';
-            v.ila       := '0';
-            v.sysref    := '0';
+            v.align     := '0';
             
-            -- Next state condition (depending on subclass)
-            if  subClass_i = '1' then
-               if  sysRef_i = '1' and enable_i = '1' and gtTxReady_i = '1' then
-                  v.state    := SYNC_S;
-               end if;
-            else  
-               if  enable_i = '1' and gtTxReady_i = '1' then
-                  v.state    := SYNC_S;
-               end if;            
+            -- Next state condition            
+            if  nSync_i = '0' then
+               v.state    := SYNC_S;
             end if;
          ----------------------------------------------------------------------
          when SYNC_S =>
@@ -136,46 +114,42 @@ begin
             -- Outputs
             v.cnt       := (others => '0');
             v.dataValid := '0';
-            v.ila       := '0';
-            v.sysref    := '1';
+            v.align     := '0';
             
             -- Next state condition
-            if  nSync_i = '1' and lmfc_i = '1' then
-               v.state   := ILA_S;                             
-            elsif enable_i = '0' then  
-               v.state   := IDLE_S;            
-            end if;
+            if  subClass_i = '1' then
+               if  nSync_i = '1' and enable_i = '1' and lmfc_i = '1' then
+                  v.state   := ALIGN_S;                             
+               elsif enable_i = '0' then  
+                  v.state   := IDLE_S;            
+               end if;
+            else  
+               if  nSync_i = '1' and enable_i = '1' then
+                  v.state   := ALIGN_S;                             
+               elsif enable_i = '0' then  
+                  v.state   := IDLE_S;            
+               end if;
+            end if; 
          ----------------------------------------------------------------------
-         when ILA_S =>
+         when ALIGN_S =>
                   
             -- Outputs
+            v.cnt       := (others => '0');
             v.dataValid := '0';
-            v.ila       := '1';
-            v.sysref    := '1';
-            
-            -- Increase lmfc counter.
-            if (lmfc_i = '1') then
-               v.cnt := r.cnt + 1;
-            end if;
- 
-            -- Next state condition
-            -- After NUM_ILAS_MF_G LMFC clocks the ILA sequence ends and relevant ADC data is being received.            
-            if  v.cnt = NUM_ILAS_MF_G then
-               v.state   := DATA_S;
-            elsif nSync_i = '0' or enable_i = '0' then  
-               v.state   := IDLE_S;           
-            end if;
+            v.align     := '1';
+                       
+            -- Next state condition            
+            v.state   := DATA_S;       
          ----------------------------------------------------------------------
          when DATA_S =>
 
             -- Outputs
             v.cnt       := r.cnt+GT_WORD_SIZE_C; -- two or four data bytes sent in parallel
             v.dataValid := '1';
-            v.ila       := '0';
-            v.sysref    := '1';
+            v.align     := '0';
             
             -- Next state condition            
-            if  nSync_i = '0' or enable_i = '0' or gtTxReady_i = '0' then  
+            if  nSync_i = '0' or enable_i = '0' then  
                v.state   := IDLE_S;            
             end if;
          ----------------------------------------------------------------------      
@@ -184,8 +158,7 @@ begin
             -- Outputs
             v.cnt       := (others => '0');
             v.dataValid := '0';
-            v.ila       := '0';
-            v.sysref    := '0';
+            v.align     := '0';
             
             -- Next state condition            
             v.state   := IDLE_S;            
@@ -209,9 +182,9 @@ begin
       end if;
    end process seq;
    
-   -- Output assignment   
+   -- Output assignment
+   testCntr_o  <= r.cnt;     
    dataValid_o <= r.dataValid;
-   ila_o       <= r.ila;
-   sysref_o    <= r.sysref;
+   align_o     <= r.align;
 ----------------------------------------------
 end rtl;

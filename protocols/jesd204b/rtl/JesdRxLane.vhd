@@ -220,7 +220,7 @@ begin
          );
 
    -- Synchronization FSM
-   syncFSM_INST : entity work.SyncFsmRx
+   syncFSM_INST : entity work.JesdSyncFsmRx
       generic map (
          TPD_G => TPD_G,
          F_G   => F_G,
@@ -249,7 +249,7 @@ begin
          );
 
    -- Align the rx data within the GT word and replace the characters. 
-   alignFrRepCh_INST : entity work.AlignFrRepCh
+   alignFrRepCh_INST : entity work.JesdAlignFrRepCh
       generic map (
          TPD_G => TPD_G,
          F_G   => F_G)

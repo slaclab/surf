@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : TestStreamTx.vhd
+-- File       : JesdIlasGen.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-15
 -- Last update: 2015-04-15
@@ -24,7 +24,7 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.jesd204bpkg.all;
 
-entity ilasGen is
+entity JesdIlasGen is
    generic (
       TPD_G        : time   := 1 ns;
       F_G          : positive   := 2);
@@ -45,9 +45,9 @@ entity ilasGen is
       ilasData_o : out slv(GT_WORD_SIZE_C*8-1 downto 0);
       ilasK_o    : out slv(  GT_WORD_SIZE_C-1 downto 0)      
    );
-end entity ilasGen;
+end entity JesdIlasGen;
 
-architecture rtl of ilasGen is
+architecture rtl of JesdIlasGen is
    
    type RegType is record
       lmfcD1      : sl;
