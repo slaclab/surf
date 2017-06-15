@@ -93,10 +93,12 @@ class GenericMemory(pr.Device):
         # Process local blocks. 
         if variable is not None:
             variable._block.blockingTransaction(rogue.interfaces.memory.Read)
+            variable._block._updated()
         else:
             for block in self._blocks:
                 if block.bulkEn:
                     block.blockingTransaction(rogue.interfaces.memory.Read)
+                    block._updated()                    
 
         # Process rest of tree
         if recurse:
