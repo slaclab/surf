@@ -88,6 +88,11 @@ entity Jesd204bTx is
 
       -- Data and character inputs from GT (transceivers)
       r_jesdGtTxArr : out jesdGtTxLaneTypeArray(L_G-1 downto 0);
+      
+      -- TX Configurable Driver Ports
+      txDiffCtrl    : out Slv8Array(L_G-1 downto 0);
+      txPostCursor  : out Slv8Array(L_G-1 downto 0);
+      txPreCursor   : out Slv8Array(L_G-1 downto 0);
 
       -- Debug signals
       pulse_o : out slv(L_G-1 downto 0);
@@ -208,12 +213,14 @@ begin
          sigTypeArr_o     => s_sigTypeArr,
          posAmplitude_o   => s_posAmplitude,
          negAmplitude_o   => s_negAmplitude,
-         swTrigger_o      => open,
          rampStep_o       => s_rampStep,
          squarePeriod_o   => s_squarePeriod,
          enableTestSig_o  => s_enableTestSig,
          invertSync_o     => s_invertSync,
-         axisPacketSize_o => open);
+         -- TX Configurable Driver Ports
+         txDiffCtrl       => txDiffCtrl,
+         txPostCursor     => txPostCursor,
+         txPreCursor      => txPreCursor);        
 
    GEN_TEST : for I in L_G-1 downto 0 generate
 

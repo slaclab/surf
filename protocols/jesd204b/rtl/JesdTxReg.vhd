@@ -5,44 +5,6 @@
 -- Last update: 2016-02-12
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface for register access  
---
---             Register decoding for JESD TX core
---               0x00 (RW)- Enable TX lanes (L_G downto 1)
---               0x01 (RW)- SYSREF delay (5 bit)
---               0x02 (RW)- Enable AXI Stream transfer (L_G downto 1) (Not used-Reserved)
---               0x03 (RW)- AXI stream packet size (24 bit) (Not used-Reserved)
---               0x04 (RW)- Common control register:
---                   bit 0: JESD Subclass (Default '1')
---                   bit 1: Enable control character replacement(Default '1')
---                   bit 2: Reset MGTs (Default '0') 
---                   bit 3: Clear Status counter(Default '0') 
---                   bit 4: Invert nSync (Default '1'-inverted)
---                   bit 5: Enable test signal. Note: Has to be toggled if test signal type is changed to align the lanes (Default '1').
---                   bit 6: Enable scrambling (Default '0') 
---               0x05 (RW)- Test signal control: Ramp step and Square signal period control
---                   bit 31-16: Square signal period (Clock cycles)
---                   bit 15-0:  Ramp step (Clock cycles)
---               0x06 (RW)- Square wave test signal amplitude low
---               0x07 (RW)- Square wave test signal amplitude high
---               0x08 (RW)- Mask Enable the ADC data inversion. 1-Inverted, 0-normal.
---               0x1X (R) - Lane X status
---                   bit 0: GT Reset done
---                   bit 1: Transmuting valid data
---                   bit 2: Transmitting ILA sequence
---                   bit 3: Synchronization input status 
---                   bit 4: TX lane enabled status
---                   bit 5: SysRef detected (active only when the TX lane is enabled)
---               0x2X (RW) - Lane X signal select (Mux control)
---                   bit 5-4: Test signal select:
---                         "00" - Saw signal increment
---                         "01" - Saw signal decrement
---                         "10" - Square wave
---                         "11" - Output zero
---                   bit 1-0: Signal source select:
---                         "00" - Output zero 
---                         "01" - Internal FPGA source (Not used-Reserved)
---                         "10" - AXI Stream data source 
---                         "11" - Test signal
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -68,11 +30,8 @@ entity JesdTxReg is
       TPD_G            : time            := 1 ns;
       AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C;
       -- JESD 
-      -- Number of TX lanes (1 to 32)
-      L_G : positive range 1 to 32 := 2;
-
-      F_G : positive := 2
-      );
+      L_G : positive range 1 to 16 := 2;
+      F_G : positive := 2);
    port (
       -- JESD axiClk
       axiClk_i : in sl;
@@ -100,7 +59,6 @@ entity JesdTxReg is
       replEnable_o    : out sl;
       scrEnable_o     : out sl;
       invertData_o    : out slv(L_G-1 downto 0);   
-      swTrigger_o     : out slv(L_G-1 downto 0);
       rampStep_o      : out slv(PER_STEP_WIDTH_C-1 downto 0);
       squarePeriod_o  : out slv(PER_STEP_WIDTH_C-1 downto 0);
       subClass_o      : out sl;
@@ -111,9 +69,11 @@ entity JesdTxReg is
 
       posAmplitude_o : out slv(F_G*8-1 downto 0);
       negAmplitude_o : out slv(F_G*8-1 downto 0);
-
-      axisPacketSize_o : out slv(23 downto 0)
-      );
+      
+      -- TX Configurable Driver Ports
+      txDiffCtrl    : out Slv8Array(L_G-1 downto 0);
+      txPostCursor  : out Slv8Array(L_G-1 downto 0);
+      txPreCursor   : out Slv8Array(L_G-1 downto 0));       
 end JesdTxReg;
 
 architecture rtl of JesdTxReg is
@@ -124,13 +84,13 @@ architecture rtl of JesdTxReg is
       invertData      : slv(L_G-1 downto 0);      
       commonCtrl      : slv(6 downto 0);
       sysrefDlyTx     : slv(SYSRF_DLY_WIDTH_C-1 downto 0);
-      swTrigger       : slv(L_G-1 downto 0);
-      axisPacketSize  : slv(23 downto 0);
       signalSelectArr : Slv8Array(L_G-1 downto 0);
       periodStep      : slv(31 downto 0);
       posAmplitude    : slv(F_G*8-1 downto 0);
       negAmplitude    : slv(F_G*8-1 downto 0);
-
+      txDiffCtrl      : Slv8Array(L_G-1 downto 0);
+      txPostCursor    : Slv8Array(L_G-1 downto 0);
+      txPreCursor     : Slv8Array(L_G-1 downto 0);        
       -- AXI lite
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
@@ -141,8 +101,6 @@ architecture rtl of JesdTxReg is
       invertData     => (others => '0'),      
       commonCtrl      => "0110011",
       sysrefDlyTx     => (others => '0'),
-      swTrigger       => (others => '0'),
-      axisPacketSize  => AXI_PACKET_SIZE_DEFAULT_C,
       --signalSelectArr=> (others => b"0010_0011"), -- Set to squarewave
       --periodStep     => intToSlv(1,PER_STEP_WIDTH_C) & intToSlv(4096,PER_STEP_WIDTH_C),
       signalSelectArr => (others => b"0000_0001"),  -- Set to external
@@ -152,6 +110,10 @@ architecture rtl of JesdTxReg is
 
       posAmplitude => (others => '1'),
       negAmplitude => (others => '0'),
+      
+      txDiffCtrl    => (others => x"FF"),
+      txPostCursor  => (others => x"00"),
+      txPreCursor   => (others => x"00"),       
 
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
@@ -222,10 +184,10 @@ begin
                v.enableTx := axilWriteMaster.wdata(L_G-1 downto 0);
             when 16#01# =>              -- ADDR (0x4)
                v.sysrefDlyTx := axilWriteMaster.wdata(SYSRF_DLY_WIDTH_C-1 downto 0);
-            when 16#02# =>              -- ADDR (0x8)
-               v.swTrigger := axilWriteMaster.wdata(L_G-1 downto 0);
-            when 16#03# =>              -- ADDR (0xC)
-               v.axisPacketSize := axilWriteMaster.wdata(23 downto 0);
+            -- when 16#02# =>              -- ADDR (0x8)
+               -- v.swTrigger := axilWriteMaster.wdata(L_G-1 downto 0);
+            -- when 16#03# =>              -- ADDR (0xC)
+               -- v.axisPacketSize := axilWriteMaster.wdata(23 downto 0);
             when 16#04# =>              -- ADDR (0x10)
                v.commonCtrl := axilWriteMaster.wdata(6 downto 0);
             when 16#05# =>              -- ADDR (0x14)
@@ -242,6 +204,14 @@ begin
                      v.signalSelectArr(I) := axilWriteMaster.wdata(7 downto 0);
                   end if;
                end loop;
+            when 16#80# to 16#9F# =>
+               for I in (L_G-1) downto 0 loop
+                  if (axilWriteMaster.awaddr(6 downto 2) = I) then
+                     v.txDiffCtrl(I)   := axilWriteMaster.wdata(7 downto 0);
+                     v.txPostCursor(I) := axilWriteMaster.wdata(15 downto 8);
+                     v.txPreCursor(I)  := axilWriteMaster.wdata(23 downto 16);
+                  end if;
+               end loop;                
             when others =>
                axilWriteResp := AXI_ERROR_RESP_G;
          end case;
@@ -256,10 +226,10 @@ begin
                v.axilReadSlave.rdata(L_G-1 downto 0) := r.enableTx;
             when 16#01# =>              -- ADDR (0x4)
                v.axilReadSlave.rdata(SYSRF_DLY_WIDTH_C-1 downto 0) := r.sysrefDlyTx;
-            when 16#02# =>              -- ADDR (0x8)
-               v.axilReadSlave.rdata(L_G-1 downto 0) := r.swTrigger;
-            when 16#03# =>              -- ADDR (0xC)
-               v.axilReadSlave.rdata(23 downto 0) := r.axisPacketSize;
+            -- when 16#02# =>              -- ADDR (0x8)
+               -- v.axilReadSlave.rdata(L_G-1 downto 0) := r.swTrigger;
+            -- when 16#03# =>              -- ADDR (0xC)
+               -- v.axilReadSlave.rdata(23 downto 0) := r.axisPacketSize;
             when 16#04# =>              -- ADDR (0x10)
                v.axilReadSlave.rdata(6 downto 0) := r.commonCtrl;
             when 16#05# =>              -- ADDR (0x14)
@@ -282,6 +252,7 @@ begin
                      v.axilReadSlave.rdata(7 downto 0) := r.signalSelectArr(I);
                   end if;
                end loop;
+               
             when 16#40# to 16#4F# =>
                for I in (L_G-1) downto 0 loop
                   if (axilReadMaster.araddr(5 downto 2) = I) then
@@ -290,6 +261,14 @@ begin
                      end loop;
                   end if;
                end loop;
+            when 16#80# to 16#9F# =>
+               for I in (L_G-1) downto 0 loop
+                  if (axilReadMaster.araddr(6 downto 2) = I) then
+                     v.axilReadSlave.rdata(7 downto 0)   := r.txDiffCtrl(I);
+                     v.axilReadSlave.rdata(15 downto 8)  := r.txPostCursor(I);
+                     v.axilReadSlave.rdata(23 downto 16) := r.txPreCursor(I);
+                  end if;
+               end loop;                              
             when others =>
                axilReadResp := AXI_ERROR_RESP_G;
          end case;
@@ -307,7 +286,10 @@ begin
       -- Outputs
       axilReadSlave  <= r.axilReadSlave;
       axilWriteSlave <= r.axilWriteSlave;
-
+      txDiffCtrl     <= r.txDiffCtrl;
+      txPostCursor   <= r.txPostCursor;
+      txPreCursor    <= r.txPreCursor;      
+      
    end process comb;
 
    seq : process (axiClk_i) is
@@ -358,32 +340,6 @@ begin
          din    => r.enableTx,
          rd_clk => devClk_i,
          dout   => enableTx_o
-         );
-
-   SyncFifo_OUT2 : entity work.SynchronizerFifo
-      generic map (
-         TPD_G        => TPD_G,
-         PIPE_STAGES_G => 1,
-         DATA_WIDTH_G => L_G
-         )
-      port map (
-         wr_clk => axiClk_i,
-         din    => r.swTrigger,
-         rd_clk => devClk_i,
-         dout   => swTrigger_o
-         );
-
-   SyncFifo_OUT3 : entity work.SynchronizerFifo
-      generic map (
-         TPD_G        => TPD_G,
-         PIPE_STAGES_G => 1,
-         DATA_WIDTH_G => 24
-         )
-      port map (
-         wr_clk => axiClk_i,
-         din    => r.axisPacketSize,
-         rd_clk => devClk_i,
-         dout   => axisPacketSize_o
          );
 
    Sync_OUT4 : entity work.Synchronizer
