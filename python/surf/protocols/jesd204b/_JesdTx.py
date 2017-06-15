@@ -236,7 +236,7 @@ class JesdTx(pr.Device):
                                 enum         = {
                                                   0 : "OutputZero",
                                                   1 : "UserData",
-                                                  2 : "AxiStream",
+                                                  2 : "OutputOnes",
                                                   3 : "TestData",
                                                },
                             )
