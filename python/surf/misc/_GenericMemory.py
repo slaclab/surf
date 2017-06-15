@@ -18,6 +18,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import rogue.interfaces.memory
 
 class GenericMemory(pr.Device):
     def __init__(   self, 
@@ -34,7 +35,7 @@ class GenericMemory(pr.Device):
                     mode        = "RW", 
                     instantiate =  True,
                 ):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden)
+        super(self.__class__, self).__init__(name, description, memBase, offset, hidden=False)
 
         ##############################
         # Variables
@@ -50,4 +51,75 @@ class GenericMemory(pr.Device):
                                 mode         =  mode,
                                 number       =  nelms,
                                 stride       =  stride,
+                                hidden = hidden,
                             )
+
+        @self.command()
+        def fill():
+            for i,v in self.Mem.items():
+                v.set(i, write=False)
+            self.writeBlocks(force=True)
+            self.checkBlocks()
+        
+
+    def writeBlocks(self, force=False, recurse=True, variable=None):
+        
+        if not self.enable.get(): return
+
+        # Retire any in-flight transactions before starting
+        self._root.checkBlocks(varUpdate=True, recurse=True)
+
+        # Process local blocks. 
+        if variable is not None:
+            variable._block.blockingTransaction(rogue.interfaces.memory.Write)
+        else:
+            for block in self._blocks:
+                if block.bulkEn:
+                    block.blockingTransaction(rogue.interfaces.memory.Write)
+
+        # Process rest of tree
+        if recurse:
+            for key,value in self.devices.items():
+                value.readBlocks(recurse=True)
+                
+
+    def readBlocks(self, recurse=True, variable=None):
+
+        if not self.enable.get(): return
+
+        # Retire any in-flight transactions before starting
+        self._root.checkBlocks(varUpdate=True, recurse=True)
+
+        # Process local blocks. 
+        if variable is not None:
+            variable._block.blockingTransaction(rogue.interfaces.memory.Read)
+        else:
+            for block in self._blocks:
+                if block.bulkEn:
+                    block.blockingTransaction(rogue.interfaces.memory.Read)
+
+        # Process rest of tree
+        if recurse:
+            for key,value in self.devices.items():
+                value.readBlocks(recurse=True)
+
+
+    def verifyBlocks(self, recurse=True, variable=None):
+
+        if not self.enable.get(): return
+        
+       # Retire any in-flight transactions before starting
+        self._root.checkBlocks(varUpdate=True, recurse=True)
+        
+        # Process local blocks.
+        if variable is not None:
+            variable._block.blockingTransaction(rogue.interfaces.memory.Verify)
+        else:
+            for block in self._blocks:
+                if block.bulkEn:
+                    block.blockingTransaction(rogue.interfaces.memory.Verify)
+
+        # Process rest of tree
+        if recurse:
+            for key,value in self.devices.items():
+                value.verifyBlocks(recurse=True)
