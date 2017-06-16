@@ -269,6 +269,41 @@ class JesdTx(pr.Device):
                                 stride       =  4,
                             )
     
+    
+    
+            self.addVariables(  name         = "txDiffCtrl",
+                                description  = "TX diff. swing control",
+                                offset       =  0x200,
+                                bitSize      =  8,
+                                bitOffset    =  0,
+                                base         = "hex",
+                                mode         = "RW",
+                                number       =  numTxLanes,
+                                stride       =  4,
+                            )   
+
+            self.addVariables(  name         = "txPostCursor",
+                                description  = "TX post cursor control",
+                                offset       =  0x200,
+                                bitSize      =  8,
+                                bitOffset    =  8,
+                                base         = "hex",
+                                mode         = "RW",
+                                number       =  numTxLanes,
+                                stride       =  4,
+                            )
+
+            self.addVariables(  name         = "txPreCursor",
+                                description  = "TX pre cursor control",
+                                offset       =  0x200,
+                                bitSize      =  8,
+                                bitOffset    =  16,
+                                base         = "hex",
+                                mode         = "RW",
+                                number       =  numTxLanes,
+                                stride       =  4,
+                            )                            
+    
             ##############################
             # Commands
             ##############################
