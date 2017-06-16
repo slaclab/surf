@@ -311,8 +311,23 @@ class Dac38J84(pr.Device):
             dev.EnableTx.set(0)
             dev.InitJesd.set(30)
             dev.InitJesd.set(1)
-            dev.EnableTx.set(1)        
-        self.addCommand(    name         = "InitDac",
+            dev.EnableTx.set(1)     
+            # clearAlarms
+            dev.DacReg[100].set(0)
+            dev.DacReg[101].set(0)
+            dev.DacReg[102].set(0)
+            dev.DacReg[103].set(0)
+            dev.DacReg[104].set(0)
+            dev.DacReg[105].set(0)
+            dev.DacReg[106].set(0)
+            dev.DacReg[107].set(0)
+            dev.DacReg[108].set(0)
+            # Perform a sif_sync
+            sifSync = (dev.DacReg[31].get()) | 0x2
+            dev.DacReg[31].set(sifSync)
+            dev.DacReg[31].set(sifSync&0xFFFD)
+            
+        self.addCommand(    name         = "Init",
                             description  = "Initialization sequence for the DAC JESD core",
                             function     = initDac
                         )

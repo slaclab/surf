@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : AlignFrRepCh.vhd
+-- File       : JesdAlignFrRepCh.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-15
 -- Last update: 2016-02-12
@@ -11,11 +11,11 @@
 --              GT Word sizes 2, 4  <--- I don't think 2 word is supported because hard coded in Jesd204bPkg.vhd
 --
 --          Note: 
---          dataRx_i - is little endian and byteswapped (directly from GTH)
+--          dataRx_i - is little endian and byte-swapped (directly from GTH)
 --                First sample in time:  dataRx_i(7  downto 0) & dataRx_i(15 downto 8)
 --                Second sample in time: dataRx_i(23 downto 16)& dataRx_i(31 downto 24) 
 --
---          sampleData_o is big endian and not byteswapped
+--          sampleData_o is big endian and not byte-swapped
 --                First sample in time:  sampleData_o(31 downto 16) 
 --                Second sample in time: sampleData_o(15 downto 0)   
 -------------------------------------------------------------------------------
@@ -36,7 +36,7 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.Jesd204bPkg.all;
 
-entity AlignFrRepCh is
+entity JesdAlignFrRepCh is
    generic (
       TPD_G : time := 1 ns;
 
@@ -63,7 +63,7 @@ entity AlignFrRepCh is
       dataRx_i    : in slv((GT_WORD_SIZE_C*8)-1 downto 0);
       chariskRx_i : in slv(GT_WORD_SIZE_C-1 downto 0);
 
-      -- Sample data output (after allignment, character replacement and scrambling)   
+      -- Sample data output (after alignment, character replacement and scrambling)   
       sampleData_o      : out slv((GT_WORD_SIZE_C*8)-1 downto 0);
       sampleDataValid_o : out sl;
 
@@ -71,9 +71,9 @@ entity AlignFrRepCh is
       alignErr_o    : out sl;           -- Invalid or misaligned character in the data
       positionErr_o : out sl            -- Invalid (comma) position received at time of alignment
       );
-end entity AlignFrRepCh;
+end entity JesdAlignFrRepCh;
 
-architecture rtl of AlignFrRepCh is
+architecture rtl of JesdAlignFrRepCh is
    -- How many samples is in a GT word
    constant SAMPLES_IN_WORD_C : positive := (GT_WORD_SIZE_C/F_G);
 

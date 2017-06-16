@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : SysrefDly.vhd
+-- File       : JesdSysrefDly.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-15
 -- Last update: 2015-04-15
@@ -28,7 +28,7 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.Jesd204bPkg.all;
 
-entity SysrefDly is
+entity JesdSysrefDly is
    generic (
       TPD_G        : time       := 1 ns;
       DLY_WIDTH_G  : positive   := 5 -- number of bits in the delay setting (2**DLY_WIDTH_G is the max size of delay)
@@ -39,15 +39,15 @@ entity SysrefDly is
       
       dly_i    : in  slv(DLY_WIDTH_G-1 downto 0);
       
-      -- Synchronisation input
+      -- Synchronization input
       sysref_i : in  sl; 
       
-      -- Synchronisation delayed input      
+      -- Synchronization delayed input      
       sysref_o  : out sl  
    );
-end entity SysrefDly;
+end entity JesdSysrefDly;
 
-architecture rtl of SysrefDly is
+architecture rtl of JesdSysrefDly is
    
    type RegType is record
       shft      : slv(2**DLY_WIDTH_G-1 downto 0);

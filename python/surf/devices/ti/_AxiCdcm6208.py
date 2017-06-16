@@ -34,16 +34,17 @@ class AxiCdcm6208(pr.Device):
         # Variables
         ##############################
 
-        self.addVariables(  name         = "Cdcm6208",
-                            description  = "Cdcm6208 Control Registers",
-                            offset       =  0x00,
-                            bitSize      =  16,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                            number       =  21,
-                            stride       =  4,
-                        )
+        # Commented out because causes a "Segmentation fault" when "ReadAll()" is performed
+        # self.addVariables(  name         = "Cdcm6208",
+                            # description  = "Cdcm6208 Control Registers",
+                            # offset       =  0x00,
+                            # bitSize      =  16,
+                            # bitOffset    =  0x00,
+                            # base         = "hex",
+                            # mode         = "RW",
+                            # number       =  21,
+                            # stride       =  4,
+                        # )
 
         self.addVariable(   name         = "SEL_REF",
                             description  = "Indicates Reference Selected for PLL:0 SEL_REF 0 => Primary 1 => Secondary",

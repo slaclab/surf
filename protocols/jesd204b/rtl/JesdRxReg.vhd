@@ -1,48 +1,10 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteRxRegItf.vhd
+-- File       : JesdRxReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-15
 -- Last update: 2016-09-23
 -------------------------------------------------------------------------------
 -- Description:  AXI-Lite interface for register access 
---
---             Register decoding for JESD RX core
---               0x00 (RW)- Enable RX lanes (L_G downto 1)
---               0x01 (RW)- SYSREF delay (5 bit)
---               0x02 (RW)- Enable AXI Stream transfer (L_G downto 1)
---               0x03 (RW)- AXI stream packet size (24 bit)
---               0x04 (RW)- Common control register:
---                   bit 0: JESD Subclass (Default '1')
---                   bit 1: Enable control character replacement(Default '1')
---                   bit 2: Reset MGTs (Default '1')
---                   bit 3: Clear Registered errors (Default '0')
---                   bit 4: Invert nSync (Default '1'-inverted) 
---                   bit 5: Scrambling support enable (Default '0'- Disabled) 
---               0x05 (RW)- LinkErrorMask
---                   bit 5-0: positionErr & s_bufOvf & s_bufUnf & dispErr & decErr & s_alignErr                     
---               0x06 (RW)- Mask Enable the ADC data inversion. 1-Inverted, 0-normal.
---               0x1X (R) - Lane X status
---                   bit 0: GT Reset done
---                   bit 1: Received data valid
---                   bit 2: Received data is misaligned
---                   bit 3: Synchronisation output status 
---                   bit 4: Rx buffer overflow
---                   bit 5: Rx buffer underflow
---                   bit 6: Comma position not as expected during alignment
---                   bit 7: TX lane enabled status
---                   bit 8: SysRef detected (active only when the RX lane is enabled)
---                   bit 9: Comma (K28.5) detected
---                   bit 10-13: Disparity error
---                   bit 14-17: Not in table Error
---                   bit 18-25: Elastic buffer latency (c-c)
---                   bit 26: CDR Stable
---               0x2X (RW) - Lane X test module control
---                   bit 11-8: Lane delay (Number of JESD clock cycles)
---                   bit 3-0:  Lane alignment within one clock cycle (Valid values= "0001", "0010","0100","1000")
---               0x3X (RW) - Lane X test signal thresholds 
---                   bit 31-16: High threshold
---                   bit 15-0:  Low threshold
---               0x4X (RO) - Status valid counters 
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -62,16 +24,15 @@ use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.Jesd204bPkg.all;
 
-entity AxiLiteRxRegItf is
+entity JesdRxReg is
    generic (
       -- General Configurations
       TPD_G            : time            := 1 ns;
       AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C;
       AXI_ADDR_WIDTH_G : positive        := 10;
       -- JESD 
-      -- Number of RX lanes (1 to 8)
-      L_G              : positive        := 2
-      );
+      -- Number of RX lanes (1 to 32)
+      L_G : positive range 1 to 32 := 2);
    port (
       -- AXI Clk
       axiClk_i : in sl;
@@ -110,9 +71,9 @@ entity AxiLiteRxRegItf is
       linkErrMask_o     : out slv(5 downto 0);
       axisPacketSize_o  : out slv(23 downto 0)
       );
-end AxiLiteRxRegItf;
+end JesdRxReg;
 
-architecture rtl of AxiLiteRxRegItf is
+architecture rtl of JesdRxReg is
 
    type RegType is record
       -- JESD Control (RW)
@@ -319,7 +280,7 @@ begin
       end if;
    end process seq;
 
-   -- Input assignment and synchronisation
+   -- Input assignment and synchronization
    GEN_0 : for I in L_G-1 downto 0 generate
       SyncFifo_IN0 : entity work.SynchronizerFifo
          generic map (
@@ -350,7 +311,7 @@ begin
    
    
 
-   -- Output assignment and synchronisation
+   -- Output assignment and synchronization
 
    SyncFifo_OUT0 : entity work.SynchronizerFifo
       generic map (

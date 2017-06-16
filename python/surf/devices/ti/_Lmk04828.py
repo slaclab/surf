@@ -19,6 +19,10 @@
 
 import pyrogue as pr
 import time
+import os
+import sys
+import re
+import ast
 
 class Lmk04828(pr.Device):
     def __init__(   self,       
@@ -1051,6 +1055,24 @@ class Lmk04828(pr.Device):
                             base         = "hex",
                             mode         = "RW",
                         )
+                        
+        self.addVariable(   name         = "LmkReg_0x0172",
+                            description  = "LMK Registers",
+                            offset       =  0x5C8,
+                            bitSize      =  8,
+                            bitOffset    =  0x00,
+                            base         = "hex",
+                            mode         = "RW",
+                        )
+
+        self.addVariable(   name         = "LmkReg_0x0171",
+                            description  = "LMK Registers",
+                            offset       =  0x5C4,
+                            bitSize      =  8,
+                            bitOffset    =  0x00,
+                            base         = "hex",
+                            mode         = "RW",
+                        )                        
 
         self.addVariable(   name         = "LmkReg_0x016E",
                             description  = "LMK Registers",
@@ -1091,6 +1113,47 @@ class Lmk04828(pr.Device):
         ##############################
         # Commands
         ##############################
+        def loadCodeLoaderMacFile(dev, cmd, arg):
+            # Open the input file
+            with open(arg, 'r') as ifd:              
+                 for i, line in enumerate(ifd): 
+                    line = line.strip()
+                    if (i<18):
+                        if (i==0) and ( line != '[SETUP]'):
+                            print ('invalid file detected at line#1')
+                            break
+                        elif (i==5) and ( line != 'PART=LMK04828B'):
+                            print ('invalid file detected at line#6')
+                            break
+                        elif (i==11) and ( line != '[MODES]'):
+                            print ('invalid file detected at line#12')
+                            break
+                        elif (i==12) and ( line != 'NAME00=R0 (INIT)'):
+                            print ('invalid file detected at line#13')
+                            break                            
+                    elif (i<232):
+                        if(i%2):
+                            pat = re.compile("[=]")                
+                            fields=pat.split(line)                    
+                            data = (ast.literal_eval(fields[1])&0xFF)
+                            v = getattr(dev, 'LmkReg_0x%04X'%addr)
+                            v.set(data)
+                            if(addr==357):
+                                dev.LmkReg_0x0171.set(0xAA)
+                                dev.LmkReg_0x0172.set(0x02)
+                                dev.LmkReg_0x0173.set(0x00)
+                                dev.LmkReg_0x0174.set(0x00)
+                        else:
+                            pat = re.compile("[R\t\n]")                
+                            fields=pat.split(line)
+                            addr = ast.literal_eval(fields[1])                
+                    else:
+                        pass                            
+            ifd.close()         
+        self.add(pr.LocalCommand(    name         = "LoadCodeLoaderMacFile",
+                            description  = "Load the CodeLoader .MAC file",
+                            function     = loadCodeLoaderMacFile
+                        ))        
 
         def pwrDwnSysRef(dev, cmd, arg):
             dev.EnableSysRef.set(0)        
@@ -1115,7 +1178,7 @@ class Lmk04828(pr.Device):
             time.sleep(1.0)
             dev.EnableSysRef.set(3)
             dev.EnableSync.set(255)                       
-        self.addCommand(    name         = "InitLmk",
+        self.addCommand(    name         = "Init",
                             description  = "Synchronise LMK internal counters. Warning this function will power off and power on all the system clocks",
                             function     = initLmk
                         )

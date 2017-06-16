@@ -41,6 +41,7 @@ class AxiSysMonUltraScale(pr.Device):
                             bitOffset    =  0x00,
                             base         = "hex",
                             mode         = "RO",
+                            hidden       =  True,
                         )
 
         self.addVariable(   name         = "AOSR",
@@ -50,6 +51,7 @@ class AxiSysMonUltraScale(pr.Device):
                             bitOffset    =  0x00,
                             base         = "hex",
                             mode         = "RO",
+                            hidden       =  True,
                         )
 
         self.addVariable(   name         = "CONVSTR",
@@ -59,6 +61,7 @@ class AxiSysMonUltraScale(pr.Device):
                             bitOffset    =  0x00,
                             base         = "hex",
                             mode         = "WO",
+                            hidden       =  True,
                         )
 
         self.addVariable(   name         = "SYSMONRR",
@@ -68,6 +71,7 @@ class AxiSysMonUltraScale(pr.Device):
                             bitOffset    =  0x00,
                             base         = "hex",
                             mode         = "WO",
+                            hidden       =  True,
                         )
 
         self.addVariable(   name         = "GIER",
@@ -77,6 +81,7 @@ class AxiSysMonUltraScale(pr.Device):
                             bitOffset    =  0x00,
                             base         = "hex",
                             mode         = "RW",
+                            hidden       =  True,
                         )
 
         self.addVariable(   name         = "IPISR",
@@ -86,6 +91,7 @@ class AxiSysMonUltraScale(pr.Device):
                             bitOffset    =  0x00,
                             base         = "hex",
                             mode         = "RO",
+                            hidden       =  True,
                         )
 
         self.addVariable(   name         = "IPIER",
@@ -95,6 +101,7 @@ class AxiSysMonUltraScale(pr.Device):
                             bitOffset    =  0x00,
                             base         = "hex",
                             mode         = "RW",
+                            hidden       =  True,
                         )
 
         self.addVariable(   name         = "Temperature",
@@ -131,6 +138,7 @@ class AxiSysMonUltraScale(pr.Device):
                             bitOffset    =  0x00,
                             base         = "hex",
                             mode         = "RO",
+                            hidden       =  True,
                         )
 
         self.addVariable(   name         = "VREFP",
@@ -140,6 +148,7 @@ class AxiSysMonUltraScale(pr.Device):
                             bitOffset    =  0x00,
                             base         = "hex",
                             mode         = "RO",
+                            hidden       =  True,
                         )
 
         self.addVariable(   name         = "VREFN",
@@ -149,6 +158,7 @@ class AxiSysMonUltraScale(pr.Device):
                             bitOffset    =  0x00,
                             base         = "hex",
                             mode         = "RO",
+                            hidden       =  True,
                         )
 
         self.addVariable(   name         = "VBRAM",
@@ -167,6 +177,7 @@ class AxiSysMonUltraScale(pr.Device):
                             bitOffset    =  0x00,
                             base         = "hex",
                             mode         = "RO",
+                            hidden       =  True,
                         )
 
         self.addVariable(   name         = "ADCOffset",
@@ -176,6 +187,7 @@ class AxiSysMonUltraScale(pr.Device):
                             bitOffset    =  0x00,
                             base         = "hex",
                             mode         = "RO",
+                            hidden       =  True,
                         )
 
         self.addVariable(   name         = "GainError",
@@ -185,6 +197,7 @@ class AxiSysMonUltraScale(pr.Device):
                             bitOffset    =  0x00,
                             base         = "hex",
                             mode         = "RO",
+                            hidden       =  True,
                         )
 
         self.addVariables(  name         = "VAUXP_VAUXN",
@@ -196,6 +209,7 @@ class AxiSysMonUltraScale(pr.Device):
                             mode         = "RO",
                             number       =  16,
                             stride       =  4,
+                            hidden       =  True,
                         )
 
         self.addVariable(   name         = "MaxTemp",
@@ -277,6 +291,7 @@ class AxiSysMonUltraScale(pr.Device):
                             bitOffset    =  0x00,
                             base         = "hex",
                             mode         = "RO",
+                            hidden       =  True,
                         )
 
         self.addVariable(   name         = "FlagRegister",
@@ -286,6 +301,7 @@ class AxiSysMonUltraScale(pr.Device):
                             bitOffset    =  0x00,
                             base         = "hex",
                             mode         = "RO",
+                            hidden       =  True,
                         )
 
         self.addVariables(  name         = "ConfigurationRegister",
@@ -297,6 +313,7 @@ class AxiSysMonUltraScale(pr.Device):
                             mode         = "RW",
                             number       =  4,
                             stride       =  4,
+                            hidden       =  True,
                         )
 
         self.addVariable(   name         = "SequenceRegister8",
@@ -306,6 +323,7 @@ class AxiSysMonUltraScale(pr.Device):
                             bitOffset    =  0x00,
                             base         = "hex",
                             mode         = "RW",
+                            hidden       =  True,
                         )
 
         self.addVariable(   name         = "SequenceReg9",
@@ -315,6 +333,7 @@ class AxiSysMonUltraScale(pr.Device):
                             bitOffset    =  0x00,
                             base         = "hex",
                             mode         = "RW",
+                            hidden       =  True,
                         )
 
         self.addVariables(  name         = "SequenceReg_7_0",
@@ -326,6 +345,7 @@ class AxiSysMonUltraScale(pr.Device):
                             mode         = "RW",
                             number       =  8,
                             stride       =  4,
+                            hidden       =  True,
                         )
 
         self.addVariables(  name         = "AlarmThresholdReg_8_0",
@@ -337,6 +357,7 @@ class AxiSysMonUltraScale(pr.Device):
                             mode         = "RW",
                             number       =  9,
                             stride       =  4,
+                            hidden       =  True,
                         )
 
         self.addVariable(   name         = "AlarmThresholdReg12",
@@ -346,6 +367,7 @@ class AxiSysMonUltraScale(pr.Device):
                             bitOffset    =  0x00,
                             base         = "hex",
                             mode         = "RW",
+                            hidden       =  True,
                         )
 
         self.addVariable(   name         = "AlarmThresholdReg16",
@@ -355,6 +377,7 @@ class AxiSysMonUltraScale(pr.Device):
                             bitOffset    =  0x00,
                             base         = "hex",
                             mode         = "RW",
+                            hidden       =  True,
                         )
 
         self.addVariables(  name         = "AlarmThresholdReg_25_16",
@@ -366,6 +389,7 @@ class AxiSysMonUltraScale(pr.Device):
                             mode         = "RW",
                             number       =  8,
                             stride       =  4,
+                            hidden       =  True,
                         )
 
         self.addVariables(  name         = "VUSER",
@@ -377,6 +401,7 @@ class AxiSysMonUltraScale(pr.Device):
                             mode         = "RO",
                             number       =  4,
                             stride       =  4,
+                            hidden       =  True,
                         )
 
         self.addVariables(  name         = "MAX_VUSER",
@@ -388,6 +413,7 @@ class AxiSysMonUltraScale(pr.Device):
                             mode         = "RO",
                             number       =  4,
                             stride       =  4,
+                            hidden       =  True,
                         )
 
         self.addVariables(  name         = "MIN_VUSER",
@@ -399,5 +425,6 @@ class AxiSysMonUltraScale(pr.Device):
                             mode         = "RO",
                             number       =  4,
                             stride       =  4,
+                            hidden       =  True,
                         )
 

@@ -297,24 +297,24 @@ class RssiCore(pr.Device):
         self.addCommand(    name         = "C_OpenConn",
                             description  = "Open connection request",
                             function     = """\
-                                           self.OpenConn.set(1)
-                                           self.OpenConn.set(0)
+                                           dev.OpenConn.set(1)
+                                           dev.OpenConn.set(0)
                                            """
                         )
 
         self.addCommand(    name         = "C_CloseConn",
                             description  = "Close connection request",
                             function     = """\
-                                           self.CloseConn.set(1)
-                                           self.CloseConn.set(0)
+                                           dev.CloseConn.set(1)
+                                           dev.CloseConn.set(0)
                                            """
                         )
 
         self.addCommand(    name         = "C_InjectFault",
                             description  = "Inject a single fault(for debug and test purposes only). Corrupts checksum during transmission",
                             function     = """\
-                                           self.InjectFault.set(1)
-                                           self.InjectFault.set(0)
+                                           dev.InjectFault.set(1)
+                                           dev.InjectFault.set(0)
                                            """
                         )
 

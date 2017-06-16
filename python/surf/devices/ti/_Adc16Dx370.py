@@ -18,6 +18,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import time
 
 class Adc16Dx370(pr.Device):
     def __init__(   self,       
@@ -392,23 +393,23 @@ class Adc16Dx370(pr.Device):
         self.addCommand(    name         = "PowerDown",
                             description  = "PowerDown",
                             function     = """\
-                                           self.AdcReg_0x0002.set(3)
+                                           dev.AdcReg_0x0002.set(3)
                                            """
                         )
 
         self.addCommand(    name         = "PowerUp",
                             description  = "PowerUp",
                             function     = """\
-                                           self.AdcReg_0x0002.set(0)
+                                           dev.AdcReg_0x0002.set(0)
                                            """
                         )
 
         self.addCommand(    name         = "CalibrateAdc",
                             description  = "CalibrateAdc",
                             function     = """\
-                                           self.PowerDown.set(1)
-                                           self.usleep.set(1000000)
-                                           self.PowerUp.set(1)
+                                           dev.PowerDown.set(1)
+                                           time.sleep(1.0)
+                                           dev.PowerUp.set(1)
                                            """
                         )
 

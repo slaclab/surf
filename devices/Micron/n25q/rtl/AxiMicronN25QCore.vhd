@@ -22,8 +22,6 @@ use ieee.std_logic_1164.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -34,8 +32,6 @@ entity AxiMicronN25QCore is
       MEM_ADDR_MASK_G  : slv(31 downto 0)    := x"00000000";
       AXI_CLK_FREQ_G   : real                := 200.0E+6;  -- units of Hz
       SPI_CLK_FREQ_G   : real                := 25.0E+6;   -- units of Hz
-      PIPE_STAGES_G    : natural             := 0;
-      AXI_CONFIG_G     : AxiStreamConfigType := ssiAxiStreamConfig(4);
       AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C);     
    port (
       -- FLASH Memory Ports
@@ -48,11 +44,6 @@ entity AxiMicronN25QCore is
       axiReadSlave   : out AxiLiteReadSlaveType;
       axiWriteMaster : in  AxiLiteWriteMasterType;
       axiWriteSlave  : out AxiLiteWriteSlaveType;
-      -- AXI Streaming Interface (Optional)
-      mAxisMaster    : out AxiStreamMasterType;
-      mAxisSlave     : in  AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
-      sAxisMaster    : in  AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-      sAxisSlave     : out AxiStreamSlaveType;
       -- Clocks and Resets
       axiClk         : in  sl;
       axiRst         : in  sl);
@@ -77,8 +68,6 @@ begin
          MEM_ADDR_MASK_G  => MEM_ADDR_MASK_G,
          AXI_CLK_FREQ_G   => AXI_CLK_FREQ_G,
          SPI_CLK_FREQ_G   => SPI_CLK_FREQ_G,
-         PIPE_STAGES_G    => PIPE_STAGES_G,
-         AXI_CONFIG_G     => AXI_CONFIG_G,
          AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
       port map(
          -- FLASH Memory Ports
@@ -91,11 +80,6 @@ begin
          axiReadSlave   => axiReadSlave,
          axiWriteMaster => axiWriteMaster,
          axiWriteSlave  => axiWriteSlave,
-         -- AXI Streaming Interface (Optional)
-         mAxisMaster    => mAxisMaster,
-         mAxisSlave     => mAxisSlave,
-         sAxisMaster    => sAxisMaster,
-         sAxisSlave     => sAxisSlave,
          -- Clocks and Resets
          axiClk         => axiClk,
          axiRst         => axiRst);   

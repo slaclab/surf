@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : AlignChGen.vhd
+-- File       : JesdAlignChGen.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-15
 -- Last update: 2016-02-22
@@ -9,7 +9,7 @@
 --     Inverts incoming data if enabled
 --
 --     Replaces data with F and A characters.
---     A(K28.3) - x"7C" - Inserted at the end of a multiframe.   
+--     A(K28.3) - x"7C" - Inserted at the end of a multi-frame.   
 --     F(K28.7) - x"FC" - Inserted at the end of a frame.
 --     
 --     Note: Character replacement mechanism is different weather scrambler is enabled or disabled.
@@ -36,7 +36,7 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.jesd204bpkg.all;
 
-entity AlignChGen is
+entity JesdAlignChGen is
    generic (
       TPD_G : time     := 1 ns;
       F_G   : positive := 2);
@@ -66,9 +66,9 @@ entity AlignChGen is
       sampleData_o : out slv(GT_WORD_SIZE_C*8-1 downto 0);
       sampleK_o    : out slv(GT_WORD_SIZE_C-1 downto 0)
       );
-end entity AlignChGen;
+end entity JesdAlignChGen;
 
-architecture rtl of AlignChGen is
+architecture rtl of JesdAlignChGen is
 
    -- How many samples is in a GT word
    constant SAMPLES_IN_WORD_C : positive := (GT_WORD_SIZE_C/F_G);

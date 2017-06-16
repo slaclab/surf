@@ -503,16 +503,19 @@ begin
             end if;
          ----------------------------------------------------------------------
          when AXIL_RD_REQ_S =>
-            -- Set the read address buses
-            v.mAxilReadMaster.araddr  := r.addr(31 downto 0);
-            -- Start AXI-Lite transaction
-            v.mAxilReadMaster.arvalid := '1';
-            v.mAxilReadMaster.rready  := '1';
-            -- Reset the timer
-            v.timer                   := 0;
-            v.timeoutCnt              := (others => '0');
-            -- Next state
-            v.state                   := AXIL_RD_RESP_S;
+            -- Check if ready to move data
+            if (v.txMaster.tValid = '0') then         
+               -- Set the read address buses
+               v.mAxilReadMaster.araddr  := r.addr(31 downto 0);
+               -- Start AXI-Lite transaction
+               v.mAxilReadMaster.arvalid := '1';
+               v.mAxilReadMaster.rready  := '1';
+               -- Reset the timer
+               v.timer                   := 0;
+               v.timeoutCnt              := (others => '0');
+               -- Next state
+               v.state                   := AXIL_RD_RESP_S;
+            end if;
          ----------------------------------------------------------------------
          when AXIL_RD_RESP_S =>
             -- Check if ready to move data
