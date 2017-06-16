@@ -157,72 +157,54 @@ class JesdTx(pr.Device):
                                 base         = "hex",
                                 mode         = "RW",
                             )
-    
-            self.addVariables(  name         = "GTReady",
-                                description  = "GT Ready. Jesd clock ok PLLs are locked and GT is ready to receive data.",
-                                offset       =  0x40,
-                                bitSize      =  1,
-                                bitOffset    =  0x00,
-                                base         = "hex",
-                                mode         = "RO",
-                                number       =  numTxLanes,
-                                stride       =  4,
-                            )
-    
-            self.addVariables(  name         = "DataValid",
-                                description  = "Jesd Data Valid. Goes high after the code synchronisation and ILAS sequence is complete (More info in Jesd204b standard).",
-                                offset       =  0x40,
-                                bitSize      =  1,
-                                bitOffset    =  0x01,
-                                base         = "hex",
-                                mode         = "RO",
-                                number       =  numTxLanes,
-                                stride       =  4,
-                            )
-    
-            self.addVariables(  name         = "IlasActive",
+                                                        
+            self.add(pr.RemoteVariable( name  = "GTReady",
+                                 description  = "GT Ready. Jesd clock ok PLLs are locked and GT is ready to receive data.",
+                                 offset       = range(0x40,0x40+4*numTxLanes+1,4),
+                                 bitSize      = 1,
+                                 bitOffset    = 0,
+                                 mode         = "RO",
+                            ))                            
+                            
+            self.add(pr.RemoteVariable( name  = "DataValid",
+                                 description  = "Jesd Data Valid. Goes high after the code synchronisation and ILAS sequence is complete (More info in Jesd204b standard).",
+                                 offset       = range(0x40,0x40+4*numTxLanes+1,4),
+                                 bitSize      = 1,
+                                 bitOffset    = 1,
+                                 mode         = "RO",
+                            ))  
+
+            self.add(pr.RemoteVariable( name  = "IlasActive",
                                 description  = "ILA sequence Active. Only 1 for 4 multiframe clock cycles then it drops (More info in Jesd204b standard).",
-                                offset       =  0x40,
-                                bitSize      =  1,
-                                bitOffset    =  0x02,
-                                base         = "hex",
-                                mode         = "RO",
-                                number       =  numTxLanes,
-                                stride       =  4,
-                            )
-    
-            self.addVariables(  name         = "nSync",
+                                 offset       = range(0x40,0x40+4*numTxLanes+1,4),
+                                 bitSize      = 1,
+                                 bitOffset    = 2,
+                                 mode         = "RO",
+                            ))  
+
+            self.add(pr.RemoteVariable( name  = "nSync",
                                 description  = "nSync. 0 - Not synchronised. 1 - Indicades that code group synchronisation has been completed.",
-                                offset       =  0x40,
-                                bitSize      =  1,
-                                bitOffset    =  0x03,
-                                base         = "hex",
-                                mode         = "RO",
-                                number       =  numTxLanes,
-                                stride       =  4,
-                            )
-    
-            self.addVariables(  name         = "TxEnabled",
+                                 offset       = range(0x40,0x40+4*numTxLanes+1,4),
+                                 bitSize      = 1,
+                                 bitOffset    = 3,
+                                 mode         = "RO",
+                            ))    
+
+            self.add(pr.RemoteVariable( name  = "TxEnabled",
                                 description  = "Tx Lane Enabled. Indicates if the lane had been enabled in configuration.",
-                                offset       =  0x40,
-                                bitSize      =  1,
-                                bitOffset    =  0x04,
-                                base         = "hex",
-                                mode         = "RO",
-                                number       =  numTxLanes,
-                                stride       =  4,
-                            )
-    
-            self.addVariables(  name         = "SysRefDetected",
+                                 offset       = range(0x40,0x40+4*numTxLanes+1,4),
+                                 bitSize      = 1,
+                                 bitOffset    = 4,
+                                 mode         = "RO",
+                            ))  
+
+            self.add(pr.RemoteVariable( name  = "SysRefDetected",
                                 description  = "System Reference input has been Detected.",
-                                offset       =  0x40,
-                                bitSize      =  1,
-                                bitOffset    =  0x05,
-                                base         = "hex",
-                                mode         = "RO",
-                                number       =  numTxLanes,
-                                stride       =  4,
-                            )
+                                 offset       = range(0x40,0x40+4*numTxLanes+1,4),
+                                 bitSize      = 1,
+                                 bitOffset    = 5,
+                                 mode         = "RO",
+                            ))                              
     
             self.addVariables(  name         = "dataOutMux",
                                 description  = "data_out_mux: Select between: b000 - Output zero, b001 - Parallel data from inside FPGA, b010 - Data from AXI stream (not used), b011 - Test data",
