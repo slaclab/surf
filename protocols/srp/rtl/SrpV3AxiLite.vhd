@@ -2,7 +2,7 @@
 -- File       : SrpV3AxiLite.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-03-22
--- Last update: 2016-11-07
+-- Last update: 2017-06-18
 -------------------------------------------------------------------------------
 -- Description: SLAC Register Protocol Version 3, AXI-Lite Interface
 --
@@ -34,14 +34,15 @@ use work.AxiLitePkg.all;
 entity SrpV3AxiLite is
    generic (
       TPD_G               : time                    := 1 ns;
-      PIPE_STAGES_G       : natural range 0 to 16   := 0;
+      INT_PIPE_STAGES_G   : natural range 0 to 16   := 1;
+      PIPE_STAGES_G       : natural range 0 to 16   := 1;
       FIFO_PAUSE_THRESH_G : positive range 1 to 511 := 256;
       TX_VALID_THOLD_G    : positive                := 1;
       SLAVE_READY_EN_G    : boolean                 := false;
       GEN_SYNC_FIFO_G     : boolean                 := false;
       ALTERA_SYN_G        : boolean                 := false;
       ALTERA_RAM_G        : string                  := "M9K";
-      AXIL_CLK_FREQ_G     : real                    := 156.25E+6;  -- units of Hz
+      AXIL_CLK_FREQ_G     : real                    := 156.25E+6;  -- units of Hz    
       AXI_STREAM_CONFIG_G : AxiStreamConfigType     := ssiAxiStreamConfig(2));
    port (
       -- AXIS Slave Interface (sAxisClk domain) 
@@ -74,10 +75,9 @@ architecture rtl of SrpV3AxiLite is
    constant NON_POSTED_WRITE_C : slv(1 downto 0) := "01";
    constant POSTED_WRITE_C     : slv(1 downto 0) := "10";
    constant NULL_C             : slv(1 downto 0) := "11";
-   
+
    type StateType is (
       IDLE_S,
-      BLOWOFF_S,
       HDR_REQ0_S,
       HDR_REQ1_S,
       HDR_REQ2_S,
@@ -97,6 +97,7 @@ architecture rtl of SrpV3AxiLite is
       timeoutSize      : slv(7 downto 0);
       timeoutCnt       : slv(7 downto 0);
       tid              : slv(31 downto 0);
+      tidDly           : slv(31 downto 0);  -- simulation debug only
       addr             : slv(63 downto 0);
       reqSize          : slv(31 downto 0);
       cnt              : slv(29 downto 0);
@@ -108,6 +109,9 @@ architecture rtl of SrpV3AxiLite is
       verMismatch      : sl;
       reqSizeError     : sl;
       ignoreMemResp    : sl;
+      rxRst            : sl;
+      overflowDet      : sl;
+      skip             : sl;                -- simulation debug only
       mAxilWriteMaster : AxiLiteWriteMasterType;
       mAxilReadMaster  : AxiLiteReadMasterType;
       rxSlave          : AxiStreamSlaveType;
@@ -122,6 +126,7 @@ architecture rtl of SrpV3AxiLite is
       timeoutSize      => (others => '0'),
       timeoutCnt       => (others => '0'),
       tid              => (others => '0'),
+      tidDly           => (others => '1'),
       addr             => (others => '0'),
       reqSize          => (others => '0'),
       cnt              => (others => '0'),
@@ -133,6 +138,9 @@ architecture rtl of SrpV3AxiLite is
       verMismatch      => '0',
       reqSizeError     => '0',
       ignoreMemResp    => '0',
+      rxRst            => '0',
+      overflowDet      => '0',
+      skip             => '0',
       mAxilWriteMaster => AXI_LITE_WRITE_MASTER_INIT_C,
       mAxilReadMaster  => AXI_LITE_READ_MASTER_INIT_C,
       rxSlave          => AXI_STREAM_SLAVE_INIT_C,
@@ -142,24 +150,67 @@ architecture rtl of SrpV3AxiLite is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal sCtrl    : AxiStreamCtrlType;
-   signal rxMaster : AxiStreamMasterType;
-   signal rxSlave  : AxiStreamSlaveType;
-   signal rxCtrl   : AxiStreamCtrlType;
-   signal txSlave  : AxiStreamSlaveType;
+   signal axisMaster : AxiStreamMasterType;
+   signal axisSlave  : AxiStreamSlaveType;
 
-   -- attribute dont_touch                    : string;
-   -- attribute dont_touch of r               : signal is "TRUE";
+   signal sCtrl : AxiStreamCtrlType;
+
+   signal rxMaster     : AxiStreamMasterType;
+   signal rxSlave      : AxiStreamSlaveType;
+   signal rxCtrl       : AxiStreamCtrlType;
+   signal rxTLastTUser : slv(7 downto 0);
+   signal txSlave      : AxiStreamSlaveType;
+   signal rst          : sl;
+   signal sRst         : sl;
+   signal rxRst        : sl;
+
+   -- attribute dont_touch                 : string;
+   -- attribute dont_touch of r            : signal is "TRUE";
+   -- attribute dont_touch of axisMaster   : signal is "TRUE";
+   -- attribute dont_touch of axisSlave    : signal is "TRUE";
+   -- attribute dont_touch of sCtrl        : signal is "TRUE";
+   -- attribute dont_touch of rxMaster     : signal is "TRUE";
+   -- attribute dont_touch of rxSlave      : signal is "TRUE";
+   -- attribute dont_touch of rxCtrl       : signal is "TRUE";
+   -- attribute dont_touch of rxTLastTUser : signal is "TRUE";
+   -- attribute dont_touch of txSlave      : signal is "TRUE";
+   -- attribute dont_touch of rst          : signal is "TRUE";
+   -- attribute dont_touch of sRst         : signal is "TRUE";
+   -- attribute dont_touch of rxRst        : signal is "TRUE";
 
 begin
 
    sAxisCtrl <= sCtrl;
+   sRst      <= rst or sAxisRst;
 
-   RX_FIFO : entity work.SsiFifo
+   U_Limiter : entity work.SsiFrameLimiter
+      generic map (
+         TPD_G               => TPD_G,
+         EN_TIMEOUT_G        => false,
+         FRAME_LIMIT_G       => (4128/AXI_STREAM_CONFIG_G.TDATA_BYTES_C),  -- (2^12+4*8)/TDATA_BYTES_C
+         COMMON_CLK_G        => true,
+         SLAVE_FIFO_G        => false,
+         MASTER_FIFO_G       => false,
+         SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
+         SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_G,
+         MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_G)
+      port map (
+         -- Slave Port
+         sAxisClk    => sAxisClk,
+         sAxisRst    => sRst,
+         sAxisMaster => sAxisMaster,
+         sAxisSlave  => sAxisSlave,
+         -- Master Port
+         mAxisClk    => sAxisClk,
+         mAxisRst    => sRst,
+         mAxisMaster => axisMaster,
+         mAxisSlave  => axisSlave);
+
+   RX_FIFO : entity work.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
-         EN_FRAME_FILTER_G   => true,
+         INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
          PIPE_STAGES_G       => PIPE_STAGES_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
          VALID_THOLD_G       => 0,  -- = 0 = only when frame ready                                                                 
@@ -170,9 +221,9 @@ begin
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          ALTERA_SYN_G        => ALTERA_SYN_G,
          ALTERA_RAM_G        => ALTERA_RAM_G,
-         FIFO_ADDR_WIDTH_G   => 9,      -- 2kB/FIFO = 32-bits x 512 entries
-         CASCADE_SIZE_G      => 3,      -- 6kB = 3 FIFOs x 2 kB/FIFO
-         CASCADE_PAUSE_SEL_G => 2,      -- Set pause select on top FIFO
+         INT_WIDTH_SELECT_G  => "CUSTOM",
+         INT_DATA_WIDTH_G    => 16,     -- 128-bit         
+         FIFO_ADDR_WIDTH_G   => 9,      -- 8kB/FIFO = 128-bits x 512 entries
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
          -- AXI Stream Port Configurations
@@ -181,18 +232,20 @@ begin
       port map (
          -- Slave Port
          sAxisClk    => sAxisClk,
-         sAxisRst    => sAxisRst,
-         sAxisMaster => sAxisMaster,
-         sAxisSlave  => sAxisSlave,
+         sAxisRst    => sRst,
+         sAxisMaster => axisMaster,
+         sAxisSlave  => axisSlave,
          sAxisCtrl   => sCtrl,
          -- Master Port
          mAxisClk    => axilClk,
-         mAxisRst    => axilRst,
+         mAxisRst    => rxRst,
          mAxisMaster => rxMaster,
-         mAxisSlave  => rxSlave);  
+         mAxisSlave  => rxSlave,
+         mTLastTUser => rxTLastTUser);
 
    GEN_SYNC_SLAVE : if (GEN_SYNC_FIFO_G = true) generate
       rxCtrl <= sCtrl;
+      rst    <= rxRst;
    end generate;
 
    GEN_ASYNC_SLAVE : if (GEN_SYNC_FIFO_G = false) generate
@@ -207,7 +260,7 @@ begin
             dataIn(0)  => sCtrl.pause,
             dataIn(1)  => sCtrl.idle,
             dataOut(0) => rxCtrl.pause,
-            dataOut(1) => rxCtrl.idle);   
+            dataOut(1) => rxCtrl.idle);
       Sync_Overflow : entity work.SynchronizerOneShot
          generic map (
             TPD_G => TPD_G)
@@ -215,16 +268,26 @@ begin
             clk     => axilClk,
             rst     => axilRst,
             dataIn  => sCtrl.overflow,
-            dataOut => rxCtrl.overflow);            
+            dataOut => rxCtrl.overflow);
+      Sync_Rst : entity work.RstSync
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk      => sAxisClk,
+            asyncRst => rxRst,
+            syncRst  => rst);
    end generate;
 
-   comb : process (axilRst, mAxilReadSlave, mAxilWriteSlave, r, rxCtrl, rxMaster, txSlave) is
+   comb : process (axilRst, mAxilReadSlave, mAxilWriteSlave, r, rxCtrl,
+                   rxMaster, rxTLastTUser, txSlave) is
       variable v : RegType;
    begin
       -- Latch the current value
       v := r;
 
       -- Reset the flags    
+      v.rxRst   := '0';
+      v.skip    := '0';
       v.rxSlave := AXI_STREAM_SLAVE_INIT_C;
       if txSlave.tReady = '1' then
          v.txMaster.tValid := '0';
@@ -239,6 +302,12 @@ begin
       else
          -- Increment the timer
          v.timer := r.timer + 1;
+      end if;
+
+      -- Check for overflow
+      if (rxCtrl.overflow = '1') and (r.rxRst = '0') then
+         -- Set the flag
+         v.overflowDet := '1';
       end if;
 
       -- State Machine
@@ -260,15 +329,17 @@ begin
             v.mAxilWriteMaster.bready  := '0';
             v.cnt                      := (others => '0');
             -- Check for overflow
-            if rxCtrl.overflow = '1' then
-               -- Next state
-               v.state := BLOWOFF_S;
+            if r.overflowDet = '1' then
+               -- Reset the flag
+               v.overflowDet := '0';
+               -- Reset the FIFO
+               v.rxRst       := '1';
             -- Check for valid data
-            elsif rxMaster.tValid = '1' then
-               -- Check for SOF
-               if (ssiGetUserSof(AXIS_CONFIG_C, rxMaster) = '1') then
-                  -- Accept the data
-                  v.rxSlave.tReady := '1';
+            elsif (rxMaster.tValid = '1') and (r.rxRst = '0') then
+               -- Accept the data
+               v.rxSlave.tReady := '1';
+               -- Check for SOF and no EOFE
+               if (ssiGetUserSof(AXIS_CONFIG_C, rxMaster) = '1') and (rxTLastTUser(SSI_EOFE_C) = '0') then
                   -- Latch the AXIS TDEST
                   v.txMaster.tDest := rxMaster.tDest;
                   -- Latch the header information
@@ -290,19 +361,7 @@ begin
                      -- Next State
                      v.state := HDR_REQ0_S;
                   end if;
-               else
-                  -- Next state
-                  v.state := BLOWOFF_S;
                end if;
-            end if;
-         ----------------------------------------------------------------------
-         when BLOWOFF_S =>
-            -- Accept the data
-            v.rxSlave.tReady := '1';
-            -- Check for EOF
-            if rxMaster.tLast = '1' then
-               -- Next state
-               v.state := IDLE_S;
             end if;
          ----------------------------------------------------------------------
          when HDR_REQ0_S =>
@@ -498,13 +557,18 @@ begin
                v.txMaster.tData(11)           := r.verMismatch;
                v.txMaster.tData(12)           := r.reqSizeError;
                v.txMaster.tData(31 downto 13) := (others => '0');
+               -- Debugging code for chipscope
+               v.tidDly                       := r.tid;
+               if ((r.tidDly + 1) /= r.tid) then
+                  v.skip := '1';
+               end if;
                -- Next state
-               v.state                        := IDLE_S;
+               v.state := IDLE_S;
             end if;
          ----------------------------------------------------------------------
          when AXIL_RD_REQ_S =>
             -- Check if ready to move data
-            if (v.txMaster.tValid = '0') then         
+            if (v.txMaster.tValid = '0') then
                -- Set the read address buses
                v.mAxilReadMaster.araddr  := r.addr(31 downto 0);
                -- Start AXI-Lite transaction
@@ -699,6 +763,7 @@ begin
       rxSlave          <= v.rxSlave;
       mAxilWriteMaster <= r.mAxilWriteMaster;
       mAxilReadMaster  <= r.mAxilReadMaster;
+      rxRst            <= r.rxRst or axilRst;
 
    end process comb;
 
@@ -713,6 +778,7 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
+         INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
          PIPE_STAGES_G       => PIPE_STAGES_G,
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => TX_VALID_THOLD_G,
