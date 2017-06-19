@@ -120,7 +120,7 @@ begin
 
    GEN_RX :
    for i in (APP_STREAMS_G-1) downto 0 generate
-      U_RxFifo : entity work.AxiStreamFifo
+      U_RxFifo : entity work.AxiStreamFifoV2
          generic map (
             TPD_G               => TPD_G,
             SLAVE_READY_EN_G    => true,
@@ -280,7 +280,7 @@ begin
 
    GEN_TX :
    for i in (APP_STREAMS_G-1) downto 0 generate
-      U_TxFifo : entity work.AxiStreamFifo
+      U_TxFifo : entity work.AxiStreamFifoV2
          generic map (
             TPD_G               => TPD_G,
             SLAVE_READY_EN_G    => true,
