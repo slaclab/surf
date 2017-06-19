@@ -304,7 +304,7 @@ class JesdRx(pr.Device):
             def clearErrors(dev, cmd, arg):
                 dev.ClearErrors.set(1)
                 dev.ClearErrors.set(0)
-            self.addCommand(    name         = "CmdClearRxErrors",
+            self.addCommand(    name         = "CmdClearErrors",
                                 description  = "Clear the registered errors of all RX lanes",
                                 function     = clearErrors
                             )
