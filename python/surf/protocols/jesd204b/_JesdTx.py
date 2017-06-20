@@ -164,7 +164,8 @@ class JesdTx(pr.Device):
                                  bitSize      = 1,
                                  bitOffset    = 0,
                                  mode         = "RO",
-                            ))                            
+                                 pollInterval = 1,
+                            ))  
                             
             self.add(pr.RemoteVariable( name  = "DataValid",
                                  description  = "Jesd Data Valid. Goes high after the code synchronisation and ILAS sequence is complete (More info in Jesd204b standard).",
@@ -172,6 +173,7 @@ class JesdTx(pr.Device):
                                  bitSize      = 1,
                                  bitOffset    = 1,
                                  mode         = "RO",
+                                 pollInterval = 1,
                             ))  
 
             self.add(pr.RemoteVariable( name  = "IlasActive",
@@ -180,6 +182,7 @@ class JesdTx(pr.Device):
                                  bitSize      = 1,
                                  bitOffset    = 2,
                                  mode         = "RO",
+                                 pollInterval = 1,
                             ))  
 
             self.add(pr.RemoteVariable( name  = "nSync",
@@ -188,7 +191,8 @@ class JesdTx(pr.Device):
                                  bitSize      = 1,
                                  bitOffset    = 3,
                                  mode         = "RO",
-                            ))    
+                                 pollInterval = 1,
+                            ))  
 
             self.add(pr.RemoteVariable( name  = "TxEnabled",
                                 description  = "Tx Lane Enabled. Indicates if the lane had been enabled in configuration.",
@@ -196,6 +200,7 @@ class JesdTx(pr.Device):
                                  bitSize      = 1,
                                  bitOffset    = 4,
                                  mode         = "RO",
+                                 pollInterval = 1,
                             ))  
 
             self.add(pr.RemoteVariable( name  = "SysRefDetected",
@@ -204,7 +209,8 @@ class JesdTx(pr.Device):
                                  bitSize      = 1,
                                  bitOffset    = 5,
                                  mode         = "RO",
-                            ))                              
+                                 pollInterval = 1,
+                            ))  
     
             self.addVariables(  name         = "dataOutMux",
                                 description  = "data_out_mux: Select between: b000 - Output zero, b001 - Parallel data from inside FPGA, b010 - Data from AXI stream (not used), b011 - Test data",
@@ -249,7 +255,8 @@ class JesdTx(pr.Device):
                                 mode         = "RO",
                                 number       =  numTxLanes,
                                 stride       =  4,
-                            )
+                                pollInterval =  1,
+                            )  
     
     
     

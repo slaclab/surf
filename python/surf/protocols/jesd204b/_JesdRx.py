@@ -146,6 +146,7 @@ class JesdRx(pr.Device):
                                 bitSize      = 1,
                                 bitOffset    = 0,
                                 mode         = "RO",
+                                pollInterval = 1,
                             ))  
 
             self.add(pr.RemoteVariable( name  = "DataValid",
@@ -154,6 +155,7 @@ class JesdRx(pr.Device):
                                 bitSize      = 1,
                                 bitOffset    = 1,
                                 mode         = "RO",
+                                pollInterval = 1,
                             ))  
 
             self.add(pr.RemoteVariable( name  = "AlignErr",
@@ -162,6 +164,7 @@ class JesdRx(pr.Device):
                                 bitSize      = 1,
                                 bitOffset    = 2,
                                 mode         = "RO",
+                                pollInterval = 1,
                             ))  
 
             self.add(pr.RemoteVariable( name  = "nSync",
@@ -178,7 +181,8 @@ class JesdRx(pr.Device):
                                 bitSize      = 1,
                                 bitOffset    = 4,
                                 mode         = "RO",
-                            ))      
+                                pollInterval = 1,
+                            ))  
 
             self.add(pr.RemoteVariable( name  = "RxBuffOfl",
                                 description  = "Jesd elastic buffer overflow. This error will trigger JESD re-synchronisation.",
@@ -186,7 +190,8 @@ class JesdRx(pr.Device):
                                 bitSize      = 1,
                                 bitOffset    = 5,
                                 mode         = "RO",
-                            ))    
+                                pollInterval = 1,
+                            ))  
 
             self.add(pr.RemoteVariable( name  = "PositionErr",
                                 description  = "The position of K28.5 character during code group synchronisation is wrong. This error will trigger JESD re-synchronisation.",
@@ -194,7 +199,8 @@ class JesdRx(pr.Device):
                                 bitSize      = 1,
                                 bitOffset    = 6,
                                 mode         = "RO",
-                            ))     
+                                pollInterval = 1,
+                            ))  
 
             self.add(pr.RemoteVariable( name  = "RxEnabled",
                                 description  = "Rx Lane Enabled. Indicates if the lane had been enabled in configuration.",
@@ -202,7 +208,8 @@ class JesdRx(pr.Device):
                                 bitSize      = 1,
                                 bitOffset    = 7,
                                 mode         = "RO",
-                            ))     
+                                pollInterval = 1,
+                            ))  
 
             self.add(pr.RemoteVariable( name  = "SysRefDetected",
                                 description  = "System Reference input has been Detected.",
@@ -210,7 +217,8 @@ class JesdRx(pr.Device):
                                 bitSize      = 1,
                                 bitOffset    = 8,
                                 mode         = "RO",
-                            ))   
+                                pollInterval = 1,
+                            ))  
 
             self.add(pr.RemoteVariable( name  = "CommaDetected",
                                 description  = "The K28.5 characters detected in the serial stream. ",
@@ -218,7 +226,8 @@ class JesdRx(pr.Device):
                                 bitSize      = 1,
                                 bitOffset    = 9,
                                 mode         = "RO",
-                            ))                               
+                                pollInterval = 1,
+                            ))  
 
             self.addVariables(  name         = "DisparityErr",
                                 description  = "Latched High when the data byte on RXDATA arrives with the wrong disparity. Indicates bad serial connection (Check HW).",
@@ -229,6 +238,7 @@ class JesdRx(pr.Device):
                                 mode         = "RO",
                                 number       =  numRxLanes,
                                 stride       =  4,
+                                pollInterval = 1,
                             )
 
             self.addVariables(  name         = "NotInTableErr",
@@ -240,6 +250,7 @@ class JesdRx(pr.Device):
                                 mode         = "RO",
                                 number       =  numRxLanes,
                                 stride       =  4,
+                                pollInterval = 1,
                             )
 
             self.addVariables(  name         = "ElBuffLatency",
@@ -251,7 +262,9 @@ class JesdRx(pr.Device):
                                 mode         = "RO",
                                 number       =  numRxLanes,
                                 stride       =  4,
+                                pollInterval = 1,
                             )
+                            
             if (debug):
                 self.addVariables(  name         = "ThresholdLow",
                                     description  = "Threshold_Low. Debug funtionality. Threshold for generating a digital signal from the ADC data.",
@@ -284,7 +297,9 @@ class JesdRx(pr.Device):
                                 mode         = "RO",
                                 number       =  numRxLanes,
                                 stride       =  4,
+                                pollInterval = 1,
                             )
+
 
             self.addVariables(  name         = "RawData",
                                 description  = "Raw data from GT.",
@@ -295,7 +310,9 @@ class JesdRx(pr.Device):
                                 mode         = "RO",
                                 number       =  numRxLanes,
                                 stride       =  4,
+                                pollInterval = 1,
                             )
+
 
             ##############################
             # Commands
