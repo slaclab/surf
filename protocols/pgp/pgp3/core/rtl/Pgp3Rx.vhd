@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-07
--- Last update: 2017-04-18
+-- Last update: 2017-06-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -118,6 +118,20 @@ begin
          outputSideband => unscrambedHeader);  -- [out]
 
    -- Elastic Buffer
+   U_Pgp3RxEb_1 : entity work.Pgp3RxEb
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         phyRxClk    => phyRxClk,             -- [in]
+         phyRxRst    => phyRxRst,             -- [in]
+         phyRxValid  => unscrambledRxValid,   -- [in]
+         phyRxData   => unscrambledRxData,    -- [in]
+         phyRxHeader => unscrambledRxHeader,  -- [in]
+         pgpRxClk    => pgpRxClk,             -- [in]
+         pgpRxRst    => pgpRxRst,             -- [in]
+         pgpRxValid  => ebValid,              -- [out]
+         pgpRxData   => ebData,               -- [out]
+         pgpRxHeader => ebHeader);            -- [out]
 
    -- Main RX protocol logic
    U_Pgp3RxProtocol_1 : entity work.Pgp3RxProtocol
