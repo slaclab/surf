@@ -70,7 +70,7 @@ package Pgp3Pkg is
    type PGP3_SOFC_SEQ_FIELD_C is range 55 downto 44;
    type PGP3_EOFC_TUSER_FIELD_C is range 7 downto 0;
    type PGP3_EOFC_BYTES_LAST_FIELD_C is range 18 downto 16;
-   type PGP3_EOFC_CRC_FIELD_C is range 56 downto 24;
+   type PGP3_EOFC_CRC_FIELD_C is range 55 downto 24;
 
    function makeLinkInfo (
       locRxFifoCtrl  : AxiStreamCtrlArray;
