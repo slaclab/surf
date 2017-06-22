@@ -63,14 +63,12 @@ entity JesdRxReg is
       alignTxArr_o      : out alignTxArray(L_G-1 downto 0);  -- 0001, 0010, 0100, 1000
       thresoldLowArr_o  : out Slv16Array(L_G-1 downto 0);    -- Test signal threshold low
       thresoldHighArr_o : out Slv16Array(L_G-1 downto 0);    -- Test signal threshold high  
-      axisTrigger_o     : out slv(L_G-1 downto 0);
       subClass_o        : out sl;
       gtReset_o         : out sl;
       clearErr_o        : out sl;
       invertSync_o      : out sl;
       linkErrMask_o     : out slv(5 downto 0);
-      axisPacketSize_o  : out slv(23 downto 0)
-      );
+      rxPolarity        : out slv(L_G-1 downto 0)); 
 end JesdRxReg;
 
 architecture rtl of JesdRxReg is
@@ -84,8 +82,8 @@ architecture rtl of JesdRxReg is
       sysrefDlyRx    : slv(SYSRF_DLY_WIDTH_C-1 downto 0);
       testTXItf      : Slv16Array(L_G-1 downto 0);
       testSigThr     : Slv32Array(L_G-1 downto 0);
-      axisTrigger    : slv(L_G-1 downto 0);
-      axisPacketSize : slv(23 downto 0);
+      rxPolarity     : slv(L_G-1 downto 0);
+
 
       -- AXI lite
       axilReadSlave  : AxiLiteReadSlaveType;
@@ -100,8 +98,8 @@ architecture rtl of JesdRxReg is
       sysrefDlyRx    => (others => '0'),
       testTXItf      => (others => x"0000"),
       testSigThr     => (others => x"A000_5000"),
-      axisTrigger    => (others => '0'),
-      axisPacketSize => AXI_PACKET_SIZE_DEFAULT_C,
+      rxPolarity     => (others => '0'),  
+
 
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
@@ -176,9 +174,7 @@ begin
             when 16#01# =>              -- ADDR (0x04)
                v.sysrefDlyRx := axilWriteMaster.wdata(SYSRF_DLY_WIDTH_C-1 downto 0);
             when 16#02# =>              -- ADDR (0x08)
-               v.axisTrigger := axilWriteMaster.wdata(L_G-1 downto 0);
-            when 16#03# =>              -- ADDR (0x0C)
-               v.axisPacketSize := axilWriteMaster.wdata(23 downto 0);
+               v.rxPolarity := axilWriteMaster.wdata(L_G-1 downto 0);
             when 16#04# =>              -- ADDR (0x10)
                v.commonCtrl := axilWriteMaster.wdata(5 downto 0);
             when 16#05# =>              -- ADDR (0x14)
@@ -196,7 +192,7 @@ begin
                   if (axilWriteMaster.awaddr(5 downto 2) = I) then
                      v.testSigThr(I) := axilWriteMaster.wdata(31 downto 0);
                   end if;
-               end loop;
+               end loop;              
             when others =>
                axilWriteResp := AXI_ERROR_RESP_G;
          end case;
@@ -212,9 +208,7 @@ begin
             when 16#01# =>              -- ADDR (0x04)
                v.axilReadSlave.rdata(SYSRF_DLY_WIDTH_C-1 downto 0) := r.sysrefDlyRx;
             when 16#02# =>              -- ADDR (0x08)
-               v.axilReadSlave.rdata(L_G-1 downto 0) := r.axisTrigger;
-            when 16#03# =>              -- ADDR (0x0C)
-               v.axilReadSlave.rdata(23 downto 0) := r.axisPacketSize;
+               v.axilReadSlave.rdata(L_G-1 downto 0) := r.rxPolarity;
             when 16#04# =>              -- ADDR (0x10)
                v.axilReadSlave.rdata(5 downto 0) := r.commonCtrl;
             when 16#05# =>              -- ADDR (0x14)
@@ -270,6 +264,7 @@ begin
       -- Outputs
       axilReadSlave  <= r.axilReadSlave;
       axilWriteSlave <= r.axilWriteSlave;
+      rxPolarity     <= r.rxPolarity;
 
    end process comb;
 
@@ -294,7 +289,6 @@ begin
             dout   => s_statusRxArr(I)
             );
             
-            
       SyncFifo_IN1 : entity work.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
@@ -308,11 +302,7 @@ begin
             );
    end generate GEN_0;
    
-   
-   
-
    -- Output assignment and synchronization
-
    SyncFifo_OUT0 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
@@ -337,20 +327,6 @@ begin
          din    => r.enableRx,
          rd_clk => devClk_i,
          dout   => enableRx_o
-         );
-
-
-   SyncFifo_OUT2 : entity work.SynchronizerFifo
-      generic map (
-         TPD_G        => TPD_G,
-         PIPE_STAGES_G => 1,
-         DATA_WIDTH_G => 24
-         )
-      port map (
-         wr_clk => axiClk_i,
-         din    => r.axisPacketSize,
-         rd_clk => devClk_i,
-         dout   => axisPacketSize_o
          );
 
    Sync_OUT3 : entity work.Synchronizer
@@ -429,19 +405,6 @@ begin
          rst     => devRst_i,
          dataIn  => r.linkErrMask,
          dataOut => linkErrMask_o
-         );
-
-   SyncFifo_OUT8 : entity work.SynchronizerFifo
-      generic map (
-         TPD_G        => TPD_G,
-         PIPE_STAGES_G => 1,
-         DATA_WIDTH_G => L_G
-         )
-      port map (
-         wr_clk => axiClk_i,
-         din    => r.axisTrigger,
-         rd_clk => devClk_i,
-         dout   => axisTrigger_o
          );
 
    SyncFifo_OUT9 : entity work.SynchronizerFifo

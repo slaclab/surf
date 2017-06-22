@@ -55,6 +55,15 @@ class JesdRx(pr.Device):
                                 base         = "hex",
                                 mode         = "RW",
                             )
+                            
+            self.addVariable(   name         = "Polarity",
+                                description  = "0 = non-inverted, 1 = inverted",
+                                offset       =  0x08,
+                                bitSize      =  numRxLanes,
+                                bitOffset    =  0,
+                                base         = "hex",
+                                mode         = "RW",
+                            )                              
 
             self.addVariable(   name         = "SubClass",
                                 description  = "Jesd204b SubClass. 0 - For designs without sysref (no fixed latency). 1 - Fixed latency.",
@@ -150,7 +159,7 @@ class JesdRx(pr.Device):
                             ))  
 
             self.add(pr.RemoteVariable( name  = "DataValid",
-                                description  = "Jesd Data Valid. Goes high after the code synchronisation and ILAS sequence is complete (More info in Jesd204b standard).",
+                                description  = "Jesd Data Valid. Goes high after the code synchronization and ILAS sequence is complete (More info in Jesd204b standard).",
                                 offset       = range(0x40,0x40+4*numRxLanes+1,4),
                                 bitSize      = 1,
                                 bitOffset    = 1,
@@ -159,7 +168,7 @@ class JesdRx(pr.Device):
                             ))  
 
             self.add(pr.RemoteVariable( name  = "AlignErr",
-                                description  = "Jesd Character Alignment Error. The control characters in the data are missaligned. This error will trigger JESD re-synchronisation.",
+                                description  = "Jesd Character Alignment Error. The control characters in the data are missaligned. This error will trigger JESD re-synchronization.",
                                 offset       = range(0x40,0x40+4*numRxLanes+1,4),
                                 bitSize      = 1,
                                 bitOffset    = 2,
@@ -168,7 +177,7 @@ class JesdRx(pr.Device):
                             ))  
 
             self.add(pr.RemoteVariable( name  = "nSync",
-                                description  = "Synchronisation request. 0 - Not synchronised. 1 - Indicades that code group synchronisation has been completed.",
+                                description  = "Synchronisation request. 0 - Not synchronised. 1 - Indicades that code group synchronization has been completed.",
                                 offset       = range(0x40,0x40+4*numRxLanes+1,4),
                                 bitSize      = 1,
                                 bitOffset    = 3,
@@ -176,7 +185,7 @@ class JesdRx(pr.Device):
                             ))  
 
             self.add(pr.RemoteVariable( name  = "RxBuffUfl",
-                                description  = "Jesd sync fifo buffer undeflow. This error will trigger JESD re-synchronisation.",
+                                description  = "Jesd sync fifo buffer undeflow. This error will trigger JESD re-synchronization.",
                                 offset       = range(0x40,0x40+4*numRxLanes+1,4),
                                 bitSize      = 1,
                                 bitOffset    = 4,
@@ -185,7 +194,7 @@ class JesdRx(pr.Device):
                             ))  
 
             self.add(pr.RemoteVariable( name  = "RxBuffOfl",
-                                description  = "Jesd elastic buffer overflow. This error will trigger JESD re-synchronisation.",
+                                description  = "Jesd elastic buffer overflow. This error will trigger JESD re-synchronization.",
                                 offset       = range(0x40,0x40+4*numRxLanes+1,4),
                                 bitSize      = 1,
                                 bitOffset    = 5,
@@ -194,7 +203,7 @@ class JesdRx(pr.Device):
                             ))  
 
             self.add(pr.RemoteVariable( name  = "PositionErr",
-                                description  = "The position of K28.5 character during code group synchronisation is wrong. This error will trigger JESD re-synchronisation.",
+                                description  = "The position of K28.5 character during code group synchronization is wrong. This error will trigger JESD re-synchronization.",
                                 offset       = range(0x40,0x40+4*numRxLanes+1,4),
                                 bitSize      = 1,
                                 bitOffset    = 6,

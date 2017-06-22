@@ -26,7 +26,7 @@ class Dac38J84(pr.Device):
                     memBase     =  None,
                     offset      =  0x00,
                     hidden      =  False,
-                    debug       =  False,
+                    debug       =  True,
                     numTxLanes  =  2,
                     expand      =  True,
                 ):

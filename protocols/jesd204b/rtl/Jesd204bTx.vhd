@@ -65,7 +65,7 @@ entity Jesd204bTx is
       axilWriteSlave  : out AxiLiteWriteSlaveType;
 
       -- Legacy Interface that we will remove in the future
-      txAxisMasterArr_i : in  AxiStreamMasterArray(L_G-1 downto 0);
+      txAxisMasterArr_i : in  AxiStreamMasterArray(L_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
       txAxisSlaveArr_o  : out AxiStreamSlaveArray(L_G-1 downto 0);
 
       -- JESD
@@ -93,6 +93,8 @@ entity Jesd204bTx is
       txDiffCtrl    : out Slv8Array(L_G-1 downto 0);
       txPostCursor  : out Slv8Array(L_G-1 downto 0);
       txPreCursor   : out Slv8Array(L_G-1 downto 0);
+      txPolarity    : out slv(L_G-1 downto 0);       
+      loopback      : out slv(L_G-1 downto 0);      
 
       -- Debug signals
       pulse_o : out slv(L_G-1 downto 0);
@@ -220,8 +222,10 @@ begin
          -- TX Configurable Driver Ports
          txDiffCtrl       => txDiffCtrl,
          txPostCursor     => txPostCursor,
-         txPreCursor      => txPreCursor);        
-
+         txPreCursor      => txPreCursor,   
+         txPolarity       => txPolarity,    
+         loopback         => loopback);    
+      
    GEN_TEST : for I in L_G-1 downto 0 generate
 
       -- Check the test pattern enable bit 

@@ -1172,14 +1172,14 @@ class Lmk04828(pr.Device):
         def initLmk(dev, cmd, arg):
             dev.EnableSysRef.set(0)
             dev.EnableSync.set(0)
-            time.sleep(0.250)
+            time.sleep(1.0)
             dev.SyncBit.set(1)
             dev.SyncBit.set(0)
-            time.sleep(0.250)
+            time.sleep(1.0)
             dev.EnableSysRef.set(3)
             dev.EnableSync.set(255)                       
         self.addCommand(    name         = "Init",
-                            description  = "Synchronise LMK internal counters. Warning this function will power off and power on all the system clocks",
+                            description  = "Synchronize LMK internal counters. Warning this function will power off and power on all the system clocks",
                             function     = initLmk
                         )
 

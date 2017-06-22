@@ -73,7 +73,9 @@ entity JesdTxReg is
       -- TX Configurable Driver Ports
       txDiffCtrl    : out Slv8Array(L_G-1 downto 0);
       txPostCursor  : out Slv8Array(L_G-1 downto 0);
-      txPreCursor   : out Slv8Array(L_G-1 downto 0));       
+      txPreCursor   : out Slv8Array(L_G-1 downto 0);       
+      txPolarity    : out slv(L_G-1 downto 0);       
+      loopback      : out slv(L_G-1 downto 0));       
 end JesdTxReg;
 
 architecture rtl of JesdTxReg is
@@ -90,7 +92,9 @@ architecture rtl of JesdTxReg is
       negAmplitude    : slv(F_G*8-1 downto 0);
       txDiffCtrl      : Slv8Array(L_G-1 downto 0);
       txPostCursor    : Slv8Array(L_G-1 downto 0);
-      txPreCursor     : Slv8Array(L_G-1 downto 0);        
+      txPreCursor     : Slv8Array(L_G-1 downto 0);  
+      txPolarity      : slv(L_G-1 downto 0);       
+      loopback        : slv(L_G-1 downto 0);        
       -- AXI lite
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
@@ -114,6 +118,8 @@ architecture rtl of JesdTxReg is
       txDiffCtrl    => (others => x"FF"),
       txPostCursor  => (others => x"00"),
       txPreCursor   => (others => x"00"),       
+      txPolarity    => (others => '0'),
+      loopback      => (others => '0'),
 
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
@@ -184,10 +190,10 @@ begin
                v.enableTx := axilWriteMaster.wdata(L_G-1 downto 0);
             when 16#01# =>              -- ADDR (0x4)
                v.sysrefDlyTx := axilWriteMaster.wdata(SYSRF_DLY_WIDTH_C-1 downto 0);
-            -- when 16#02# =>              -- ADDR (0x8)
-               -- v.swTrigger := axilWriteMaster.wdata(L_G-1 downto 0);
-            -- when 16#03# =>              -- ADDR (0xC)
-               -- v.axisPacketSize := axilWriteMaster.wdata(23 downto 0);
+            when 16#02# =>              -- ADDR (0x8)
+               v.txPolarity := axilWriteMaster.wdata(L_G-1 downto 0);
+            when 16#03# =>              -- ADDR (0xC)
+               v.loopback := axilWriteMaster.wdata(L_G-1 downto 0);
             when 16#04# =>              -- ADDR (0x10)
                v.commonCtrl := axilWriteMaster.wdata(6 downto 0);
             when 16#05# =>              -- ADDR (0x14)
@@ -209,7 +215,7 @@ begin
                   if (axilWriteMaster.awaddr(6 downto 2) = I) then
                      v.txDiffCtrl(I)   := axilWriteMaster.wdata(7 downto 0);
                      v.txPostCursor(I) := axilWriteMaster.wdata(15 downto 8);
-                     v.txPreCursor(I)  := axilWriteMaster.wdata(23 downto 16);
+                     v.txPreCursor(I)  := axilWriteMaster.wdata(23 downto 16);               
                   end if;
                end loop;                
             when others =>
@@ -226,10 +232,10 @@ begin
                v.axilReadSlave.rdata(L_G-1 downto 0) := r.enableTx;
             when 16#01# =>              -- ADDR (0x4)
                v.axilReadSlave.rdata(SYSRF_DLY_WIDTH_C-1 downto 0) := r.sysrefDlyTx;
-            -- when 16#02# =>              -- ADDR (0x8)
-               -- v.axilReadSlave.rdata(L_G-1 downto 0) := r.swTrigger;
-            -- when 16#03# =>              -- ADDR (0xC)
-               -- v.axilReadSlave.rdata(23 downto 0) := r.axisPacketSize;
+            when 16#02# =>              -- ADDR (0x8)
+               v.axilReadSlave.rdata(L_G-1 downto 0) := r.txPolarity;
+            when 16#03# =>              -- ADDR (0xC)
+               v.axilReadSlave.rdata(L_G-1 downto 0) := r.loopback;
             when 16#04# =>              -- ADDR (0x10)
                v.axilReadSlave.rdata(6 downto 0) := r.commonCtrl;
             when 16#05# =>              -- ADDR (0x14)
@@ -266,7 +272,7 @@ begin
                   if (axilReadMaster.araddr(6 downto 2) = I) then
                      v.axilReadSlave.rdata(7 downto 0)   := r.txDiffCtrl(I);
                      v.axilReadSlave.rdata(15 downto 8)  := r.txPostCursor(I);
-                     v.axilReadSlave.rdata(23 downto 16) := r.txPreCursor(I);
+                     v.axilReadSlave.rdata(23 downto 16) := r.txPreCursor(I);              
                   end if;
                end loop;                              
             when others =>
@@ -289,6 +295,8 @@ begin
       txDiffCtrl     <= r.txDiffCtrl;
       txPostCursor   <= r.txPostCursor;
       txPreCursor    <= r.txPreCursor;      
+      txPolarity     <= r.txPolarity;      
+      loopback       <= r.loopback;      
       
    end process comb;
 

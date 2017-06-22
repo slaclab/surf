@@ -76,7 +76,7 @@ entity Jesd204bRx is
 
       -- Legacy Interface that we will remove in the future
       rxAxisMasterArr_o : out AxiStreamMasterArray(L_G-1 downto 0);
-      rxCtrlArr_i       : in  AxiStreamCtrlArray(L_G-1 downto 0);
+      rxCtrlArr_i       : in  AxiStreamCtrlArray(L_G-1 downto 0) := (others => AXI_STREAM_CTRL_UNUSED_C);
 
       -- Sample data output (Use if external data acquisition core is attached)
       sampleDataArr_o : out sampleDataArray(L_G-1 downto 0);
@@ -97,6 +97,8 @@ entity Jesd204bRx is
       r_jesdGtRxArr : in  jesdGtRxLaneTypeArray(L_G-1 downto 0);
       gtRxReset_o   : out slv(L_G-1 downto 0);
 
+      rxPolarity    : out slv(L_G-1 downto 0);       
+      
       -- Synchronization output combined from all receivers 
       nSync_o : out sl;
       
@@ -214,7 +216,6 @@ begin
          scrEnable_o       => s_scrEnable,
          dlyTxArr_o        => s_dlyTxArr,
          alignTxArr_o      => s_alignTxArr,
-         axisTrigger_o     => open,
          subClass_o        => s_subClass,
          gtReset_o         => s_gtReset,
          clearErr_o        => s_clearErr,
@@ -222,7 +223,7 @@ begin
          invertData_o      => s_invertData,        
          thresoldHighArr_o => s_thresoldHighArr,
          thresoldLowArr_o  => s_thresoldLowArr,
-         axisPacketSize_o  => open);
+         rxPolarity        => rxPolarity);
 
    -----------------------------------------------------------
    -- TEST or OPER

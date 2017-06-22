@@ -45,6 +45,24 @@ class JesdTx(pr.Device):
                                 base         = "hex",
                                 mode         = "RW",
                             )
+                            
+            self.addVariable(   name         = "Polarity",
+                                description  = "0 = non-inverted, 1 = inverted",
+                                offset       =  0x08,
+                                bitSize      =  numTxLanes,
+                                bitOffset    =  0,
+                                base         = "hex",
+                                mode         = "RW",
+                            )         
+
+            self.addVariable(   name         = "Loopback",
+                                description  = "0 = normal mode, 1 = internal loopback",
+                                offset       =  0x0C,
+                                bitSize      =  numTxLanes,
+                                bitOffset    =  0,
+                                base         = "hex",
+                                mode         = "RW",
+                            )                              
     
             self.addVariable(   name         = "SubClass",
                                 description  = "Jesd204b SubClass. 0 - For designs without sysref (no fixed latency). 1 - Fixed latency.",
@@ -168,7 +186,7 @@ class JesdTx(pr.Device):
                             ))  
                             
             self.add(pr.RemoteVariable( name  = "DataValid",
-                                 description  = "Jesd Data Valid. Goes high after the code synchronisation and ILAS sequence is complete (More info in Jesd204b standard).",
+                                 description  = "Jesd Data Valid. Goes high after the code synchronization and ILAS sequence is complete (More info in Jesd204b standard).",
                                  offset       = range(0x40,0x40+4*numTxLanes+1,4),
                                  bitSize      = 1,
                                  bitOffset    = 1,
@@ -186,7 +204,7 @@ class JesdTx(pr.Device):
                             ))  
 
             self.add(pr.RemoteVariable( name  = "nSync",
-                                description  = "nSync. 0 - Not synchronised. 1 - Indicades that code group synchronisation has been completed.",
+                                description  = "nSync. 0 - Not synchronised. 1 - Indicades that code group synchronization has been completed.",
                                  offset       = range(0x40,0x40+4*numTxLanes+1,4),
                                  bitSize      = 1,
                                  bitOffset    = 3,
@@ -212,40 +230,6 @@ class JesdTx(pr.Device):
                                  pollInterval = 1,
                             ))  
     
-            self.addVariables(  name         = "dataOutMux",
-                                description  = "data_out_mux: Select between: b000 - Output zero, b001 - Parallel data from inside FPGA, b010 - Data from AXI stream (not used), b011 - Test data",
-                                offset       =  0x80,
-                                bitSize      =  4,
-                                bitOffset    =  0x00,
-                                base         = "enum",
-                                mode         = "RW",
-                                number       =  numTxLanes,
-                                stride       =  4,
-                                enum         = {
-                                                  0 : "OutputZero",
-                                                  1 : "UserData",
-                                                  2 : "OutputOnes",
-                                                  3 : "TestData",
-                                               },
-                            )
-    
-            self.addVariables(  name         = "testOutMux",
-                                description  = "test_out_mux[1:0]: Select between: b000 - Saw signal increment, b001 - Saw signal decrement, b010 - Square wave,  b011 - Output zero",
-                                offset       =  0x80,
-                                bitSize      =  4,
-                                bitOffset    =  0x04,
-                                base         = "enum",
-                                mode         = "RW",
-                                number       =  numTxLanes,
-                                stride       =  4,
-                                enum         = {
-                                                  0 : "SawIncrement",
-                                                  1 : "SawDecrement",
-                                                  2 : "SquareWave",
-                                                  3 : "OutputZero",
-                                               },
-                            )
-    
             self.addVariables(  name         = "StatusValidCnt",
                                 description  = "StatusValidCnt[31:0]. Shows stability of JESD lanes. Counts number of JESD re-syncronisations.",
                                 offset       =  0x100,
@@ -257,7 +241,6 @@ class JesdTx(pr.Device):
                                 stride       =  4,
                                 pollInterval =  1,
                             )  
-    
     
     
             self.addVariables(  name         = "txDiffCtrl",
@@ -292,6 +275,40 @@ class JesdTx(pr.Device):
                                 number       =  numTxLanes,
                                 stride       =  4,
                             )                            
+    
+            self.addVariables(  name         = "dataOutMux",
+                                description  = "data_out_mux: Select between: b000 - Output zero, b001 - Parallel data from inside FPGA, b010 - Data from AXI stream (not used), b011 - Test data",
+                                offset       =  0x80,
+                                bitSize      =  4,
+                                bitOffset    =  0x00,
+                                base         = "enum",
+                                mode         = "RW",
+                                number       =  numTxLanes,
+                                stride       =  4,
+                                enum         = {
+                                                  0 : "OutputZero",
+                                                  1 : "UserData",
+                                                  2 : "OutputOnes",
+                                                  3 : "TestData",
+                                               },
+                            )
+    
+            self.addVariables(  name         = "testOutMux",
+                                description  = "test_out_mux[1:0]: Select between: b000 - Saw signal increment, b001 - Saw signal decrement, b010 - Square wave,  b011 - Output zero",
+                                offset       =  0x80,
+                                bitSize      =  4,
+                                bitOffset    =  0x04,
+                                base         = "enum",
+                                mode         = "RW",
+                                number       =  numTxLanes,
+                                stride       =  4,
+                                enum         = {
+                                                  0 : "SawIncrement",
+                                                  1 : "SawDecrement",
+                                                  2 : "SquareWave",
+                                                  3 : "OutputZero",
+                                               },
+                            )    
     
             ##############################
             # Commands
