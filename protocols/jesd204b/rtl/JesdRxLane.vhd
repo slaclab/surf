@@ -274,7 +274,7 @@ begin
 
          -- Link error masked by the mask from register and ORed
          s_linkErrVec <= s_positionErr & s_bufOvf & s_bufUnf & uOr(r.jesdGtRx.dispErr) & uOr(r.jesdGtRx.decErr) & s_alignErr after TPD_G;
-         s_linkErr    <= uOr(s_linkErrVec and linkErrMask_i) and enable_i;                                                   after TPD_G;
+         s_linkErr    <= uOr(s_linkErrVec and linkErrMask_i) and enable_i                                                    after TPD_G;
 
          -- Combine errors that need registering
          s_errComb <= r.jesdGtRx.decErr & r.jesdGtRx.dispErr & s_alignErr & s_positionErr & s_bufOvf & s_bufUnf after TPD_G;
