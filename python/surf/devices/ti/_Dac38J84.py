@@ -26,6 +26,7 @@ class Dac38J84(pr.Device):
                     memBase     =  None,
                     offset      =  0x00,
                     hidden      =  False,
+                    debug       =  True,
                     numTxLanes  =  2,
                     expand      =  True,
                 ):
@@ -44,6 +45,7 @@ class Dac38J84(pr.Device):
                             mode         = "RW",
                             number       =  126,
                             stride       =  4,
+                            hidden       =  not(debug),   
                             verify       =  False,   
                         )
 

@@ -55,6 +55,15 @@ class JesdRx(pr.Device):
                                 base         = "hex",
                                 mode         = "RW",
                             )
+                            
+            self.addVariable(   name         = "Polarity",
+                                description  = "0 = non-inverted, 1 = inverted",
+                                offset       =  0x08,
+                                bitSize      =  numRxLanes,
+                                bitOffset    =  0,
+                                base         = "hex",
+                                mode         = "RW",
+                            )                              
 
             self.addVariable(   name         = "SubClass",
                                 description  = "Jesd204b SubClass. 0 - For designs without sysref (no fixed latency). 1 - Fixed latency.",
@@ -140,115 +149,94 @@ class JesdRx(pr.Device):
                                 mode         = "RW",
                             )
 
-            self.addVariables(  name         = "GTReady",
+            self.add(pr.RemoteVariable( name  = "GTReady",
                                 description  = "GT Ready. Jesd clock ok PLLs are locked and GT is ready to receive data.",
-                                offset       =  0x40,
-                                bitSize      =  1,
-                                bitOffset    =  0x00,
-                                base         = "hex",
+                                offset       = range(0x40,0x40+4*numRxLanes+1,4),
+                                bitSize      = 1,
+                                bitOffset    = 0,
                                 mode         = "RO",
-                                number       =  numRxLanes,
-                                stride       =  4,
-                            )
+                                pollInterval = 1,
+                            ))  
 
-            self.addVariables(  name         = "DataValid",
-                                description  = "Jesd Data Valid. Goes high after the code synchronisation and ILAS sequence is complete (More info in Jesd204b standard).",
-                                offset       =  0x40,
-                                bitSize      =  1,
-                                bitOffset    =  0x01,
-                                base         = "hex",
+            self.add(pr.RemoteVariable( name  = "DataValid",
+                                description  = "Jesd Data Valid. Goes high after the code synchronization and ILAS sequence is complete (More info in Jesd204b standard).",
+                                offset       = range(0x40,0x40+4*numRxLanes+1,4),
+                                bitSize      = 1,
+                                bitOffset    = 1,
                                 mode         = "RO",
-                                number       =  numRxLanes,
-                                stride       =  4,
-                            )
+                                pollInterval = 1,
+                            ))  
 
-            self.addVariables(  name         = "AlignErr",
-                                description  = "Jesd Character Alignment Error. The control characters in the data are missaligned. This error will trigger JESD re-synchronisation.",
-                                offset       =  0x40,
-                                bitSize      =  1,
-                                bitOffset    =  0x02,
-                                base         = "hex",
+            self.add(pr.RemoteVariable( name  = "AlignErr",
+                                description  = "Jesd Character Alignment Error. The control characters in the data are missaligned. This error will trigger JESD re-synchronization.",
+                                offset       = range(0x40,0x40+4*numRxLanes+1,4),
+                                bitSize      = 1,
+                                bitOffset    = 2,
                                 mode         = "RO",
-                                number       =  numRxLanes,
-                                stride       =  4,
-                            )
+                                pollInterval = 1,
+                            ))  
 
-            self.addVariables(  name         = "nSync",
-                                description  = "Synchronisation request. 0 - Not synchronised. 1 - Indicades that code group synchronisation has been completed.",
-                                offset       =  0x40,
-                                bitSize      =  1,
-                                bitOffset    =  0x03,
-                                base         = "hex",
+            self.add(pr.RemoteVariable( name  = "nSync",
+                                description  = "Synchronisation request. 0 - Not synchronised. 1 - Indicades that code group synchronization has been completed.",
+                                offset       = range(0x40,0x40+4*numRxLanes+1,4),
+                                bitSize      = 1,
+                                bitOffset    = 3,
                                 mode         = "RO",
-                                number       =  numRxLanes,
-                                stride       =  4,
-                            )
+                            ))  
 
-            self.addVariables(  name         = "RxBuffUfl",
-                                description  = "Jesd sync fifo buffer undeflow. This error will trigger JESD re-synchronisation.",
-                                offset       =  0x40,
-                                bitSize      =  1,
-                                bitOffset    =  0x04,
-                                base         = "hex",
+            self.add(pr.RemoteVariable( name  = "RxBuffUfl",
+                                description  = "Jesd sync fifo buffer undeflow. This error will trigger JESD re-synchronization.",
+                                offset       = range(0x40,0x40+4*numRxLanes+1,4),
+                                bitSize      = 1,
+                                bitOffset    = 4,
                                 mode         = "RO",
-                                number       =  numRxLanes,
-                                stride       =  4,
-                            )
+                                pollInterval = 1,
+                            ))  
 
-            self.addVariables(  name         = "RxBuffOfl",
-                                description  = "Jesd elastic buffer overflow. This error will trigger JESD re-synchronisation.",
-                                offset       =  0x40,
-                                bitSize      =  1,
-                                bitOffset    =  0x05,
-                                base         = "hex",
+            self.add(pr.RemoteVariable( name  = "RxBuffOfl",
+                                description  = "Jesd elastic buffer overflow. This error will trigger JESD re-synchronization.",
+                                offset       = range(0x40,0x40+4*numRxLanes+1,4),
+                                bitSize      = 1,
+                                bitOffset    = 5,
                                 mode         = "RO",
-                                number       =  numRxLanes,
-                                stride       =  4,
-                            )
+                                pollInterval = 1,
+                            ))  
 
-            self.addVariables(  name         = "PositionErr",
-                                description  = "The position of K28.5 character during code group synchronisation is wrong. This error will trigger JESD re-synchronisation.",
-                                offset       =  0x40,
-                                bitSize      =  1,
-                                bitOffset    =  0x06,
-                                base         = "hex",
+            self.add(pr.RemoteVariable( name  = "PositionErr",
+                                description  = "The position of K28.5 character during code group synchronization is wrong. This error will trigger JESD re-synchronization.",
+                                offset       = range(0x40,0x40+4*numRxLanes+1,4),
+                                bitSize      = 1,
+                                bitOffset    = 6,
                                 mode         = "RO",
-                                number       =  numRxLanes,
-                                stride       =  4,
-                            )
+                                pollInterval = 1,
+                            ))  
 
-            self.addVariables(  name         = "RxEnabled",
+            self.add(pr.RemoteVariable( name  = "RxEnabled",
                                 description  = "Rx Lane Enabled. Indicates if the lane had been enabled in configuration.",
-                                offset       =  0x40,
-                                bitSize      =  1,
-                                bitOffset    =  0x07,
-                                base         = "hex",
+                                offset       = range(0x40,0x40+4*numRxLanes+1,4),
+                                bitSize      = 1,
+                                bitOffset    = 7,
                                 mode         = "RO",
-                                number       =  numRxLanes,
-                                stride       =  4,
-                            )
+                                pollInterval = 1,
+                            ))  
 
-            self.addVariables(  name         = "SysRefDetected",
+            self.add(pr.RemoteVariable( name  = "SysRefDetected",
                                 description  = "System Reference input has been Detected.",
-                                offset       =  0x40,
-                                bitSize      =  1,
-                                bitOffset    =  8,
-                                base         = "hex",
+                                offset       = range(0x40,0x40+4*numRxLanes+1,4),
+                                bitSize      = 1,
+                                bitOffset    = 8,
                                 mode         = "RO",
-                                number       =  numRxLanes,
-                                stride       =  4,
-                            )
+                                pollInterval = 1,
+                            ))  
 
-            self.addVariables(  name         = "CommaDetected",
+            self.add(pr.RemoteVariable( name  = "CommaDetected",
                                 description  = "The K28.5 characters detected in the serial stream. ",
-                                offset       =  0x40,
-                                bitSize      =  1,
-                                bitOffset    =  9,
-                                base         = "hex",
+                                offset       = range(0x40,0x40+4*numRxLanes+1,4),
+                                bitSize      = 1,
+                                bitOffset    = 9,
                                 mode         = "RO",
-                                number       =  numRxLanes,
-                                stride       =  4,
-                            )
+                                pollInterval = 1,
+                            ))  
 
             self.addVariables(  name         = "DisparityErr",
                                 description  = "Latched High when the data byte on RXDATA arrives with the wrong disparity. Indicates bad serial connection (Check HW).",
@@ -259,6 +247,7 @@ class JesdRx(pr.Device):
                                 mode         = "RO",
                                 number       =  numRxLanes,
                                 stride       =  4,
+                                pollInterval = 1,
                             )
 
             self.addVariables(  name         = "NotInTableErr",
@@ -270,6 +259,7 @@ class JesdRx(pr.Device):
                                 mode         = "RO",
                                 number       =  numRxLanes,
                                 stride       =  4,
+                                pollInterval = 1,
                             )
 
             self.addVariables(  name         = "ElBuffLatency",
@@ -281,7 +271,9 @@ class JesdRx(pr.Device):
                                 mode         = "RO",
                                 number       =  numRxLanes,
                                 stride       =  4,
+                                pollInterval = 1,
                             )
+                            
             if (debug):
                 self.addVariables(  name         = "ThresholdLow",
                                     description  = "Threshold_Low. Debug funtionality. Threshold for generating a digital signal from the ADC data.",
@@ -314,7 +306,9 @@ class JesdRx(pr.Device):
                                 mode         = "RO",
                                 number       =  numRxLanes,
                                 stride       =  4,
+                                pollInterval = 1,
                             )
+
 
             self.addVariables(  name         = "RawData",
                                 description  = "Raw data from GT.",
@@ -325,7 +319,9 @@ class JesdRx(pr.Device):
                                 mode         = "RO",
                                 number       =  numRxLanes,
                                 stride       =  4,
+                                pollInterval = 1,
                             )
+
 
             ##############################
             # Commands
@@ -334,7 +330,7 @@ class JesdRx(pr.Device):
             def clearErrors(dev, cmd, arg):
                 dev.ClearErrors.set(1)
                 dev.ClearErrors.set(0)
-            self.addCommand(    name         = "CmdClearRxErrors",
+            self.addCommand(    name         = "CmdClearErrors",
                                 description  = "Clear the registered errors of all RX lanes",
                                 function     = clearErrors
                             )

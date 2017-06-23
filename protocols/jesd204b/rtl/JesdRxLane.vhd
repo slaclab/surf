@@ -2,7 +2,7 @@
 -- File       : JesdRxLane.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-14
--- Last update: 2016-02-12
+-- Last update: 2017-06-22
 -------------------------------------------------------------------------------
 -- Description: JesdRx single lane module
 --              Receiver JESD204b standard.
@@ -61,8 +61,8 @@ entity JesdRxLane is
       TPD_G : time := 1 ns;
 
       -- Number of bytes in a frame
-      F_G            : positive := 2;
-      
+      F_G : positive := 2;
+
       -- Number of frames in a multi frame
       K_G : positive := 32
       );
@@ -93,17 +93,17 @@ entity JesdRxLane is
 
       -- Local multi frame clock
       lmfc_i : in sl;
-      
+
       -- Error mask
-      linkErrMask_i : in slv(5 downto 0):= (others=>'1');
+      linkErrMask_i : in slv(5 downto 0) := (others => '1');
 
       -- One or more RX modules requested synchronization
       nSyncAny_i   : in sl;
       nSyncAnyD1_i : in sl;
-      
+
       -- Invert ADC data
-      inv_i     : in sl:='0';
-      
+      inv_i : in sl := '0';
+
       -- Synchronization request output 
       nSync_o : out sl;
 
@@ -120,19 +120,19 @@ architecture rtl of JesdRxLane is
 
 -- Register
    type RegType is record
-      bufWeD1        : sl;
-      errReg         : slv(ERR_REG_WIDTH_C-1 downto 0);
-      sampleData     : slv(sampleData_o'range);
-      sampleDataValid: sl;
-      jesdGtRx       : jesdGtRxLaneType;
+      bufWeD1         : sl;
+      errReg          : slv(ERR_REG_WIDTH_C-1 downto 0);
+      sampleData      : slv(sampleData_o'range);
+      sampleDataValid : sl;
+      jesdGtRx        : jesdGtRxLaneType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      bufWeD1        => '0',
-      errReg         => (others => '0'),
-      sampleData     => (others => '0'),
-      sampleDataValid=> '0',
-      jesdGtRx       => JESD_GT_RX_LANE_INIT_C
+      bufWeD1         => '0',
+      errReg          => (others => '0'),
+      sampleData      => (others => '0'),
+      sampleDataValid => '0',
+      jesdGtRx        => JESD_GT_RX_LANE_INIT_C
       );
 
    signal r   : RegType := REG_INIT_C;
@@ -153,7 +153,7 @@ architecture rtl of JesdRxLane is
    signal s_bufRe  : sl;
 
    -- Datapath
-   signal s_charAndData     : slv(((GT_WORD_SIZE_C*8)+GT_WORD_SIZE_C)-1 downto 0);    
+   signal s_charAndData     : slv(((GT_WORD_SIZE_C*8)+GT_WORD_SIZE_C)-1 downto 0);
    signal s_charAndDataBuff : slv(s_charAndData'range);
    signal s_sampleData      : slv(sampleData_o'range);
    signal s_sampleDataValid : sl;
@@ -165,16 +165,16 @@ architecture rtl of JesdRxLane is
    signal s_alignErr    : sl;
    signal s_positionErr : sl;
    signal s_linkErrVec  : slv(5 downto 0);
-   signal s_linkErr     : sl;   
+   signal s_linkErr     : sl;
    signal s_kDetected   : sl;
    signal s_refDetected : sl;
    signal s_errComb     : slv(ERR_REG_WIDTH_C-1 downto 0);
    signal s_buffLatency : slv(7 downto 0);
 
 begin
-   
+
    s_charAndData <= r.jesdGtRx.dataK & r.jesdGtRx.data;
-   
+
    -- Buffer control
    s_bufRst <= devRst_i or not s_nSync or not enable_i;
    s_bufWe  <= not s_bufRst and not s_bufFull;
@@ -202,7 +202,7 @@ begin
          rst          => s_bufRst,
          clk          => devClk_i,
          wr_en        => s_bufWe,       -- Always write when enabled
-         rd_en        => s_bufRe,       -- Hold read while sync not in sync with LMFC
+         rd_en        => s_bufRe,  -- Hold read while sync not in sync with LMFC
          din          => s_charAndData,
          dout         => s_charAndDataBuff,
          data_count   => open,
@@ -254,31 +254,31 @@ begin
          TPD_G => TPD_G,
          F_G   => F_G)
       port map (
-         clk           => devClk_i,
-         rst           => devRst_i,
-         replEnable_i  => replenable_i,
-         scrEnable_i   => scrEnable_i,
-         alignFrame_i  => s_alignFrame,
-         dataValid_i   => s_dataValid,
-         dataRx_i      => s_charAndDataBuff((GT_WORD_SIZE_C*8)-1 downto 0),
-         chariskRx_i   => s_charAndDataBuff(((GT_WORD_SIZE_C*8)+GT_WORD_SIZE_C)-1 downto (GT_WORD_SIZE_C*8)),
-         sampleDataValid_o   => s_sampleDataValid,
-         sampleData_o  => s_sampleData,
-         alignErr_o    => s_alignErr,
-         positionErr_o => s_positionErr
+         clk               => devClk_i,
+         rst               => devRst_i,
+         replEnable_i      => replenable_i,
+         scrEnable_i       => scrEnable_i,
+         alignFrame_i      => s_alignFrame,
+         dataValid_i       => s_dataValid,
+         dataRx_i          => s_charAndDataBuff((GT_WORD_SIZE_C*8)-1 downto 0),
+         chariskRx_i       => s_charAndDataBuff(((GT_WORD_SIZE_C*8)+GT_WORD_SIZE_C)-1 downto (GT_WORD_SIZE_C*8)),
+         sampleDataValid_o => s_sampleDataValid,
+         sampleData_o      => s_sampleData,
+         alignErr_o        => s_alignErr,
+         positionErr_o     => s_positionErr
          );
 
    process(devClk_i)
    begin
       if rising_edge(devClk_i) then
-         
+
          -- Link error masked by the mask from register and ORed
          s_linkErrVec <= s_positionErr & s_bufOvf & s_bufUnf & uOr(r.jesdGtRx.dispErr) & uOr(r.jesdGtRx.decErr) & s_alignErr after TPD_G;
-         s_linkErr    <= uOr(s_linkErrVec and linkErrMask_i) after TPD_G;
-         
+         s_linkErr    <= uOr(s_linkErrVec and linkErrMask_i) and enable_i                                                    after TPD_G;
+
          -- Combine errors that need registering
          s_errComb <= r.jesdGtRx.decErr & r.jesdGtRx.dispErr & s_alignErr & s_positionErr & s_bufOvf & s_bufUnf after TPD_G;
-         
+
       end if;
    end process;
 
@@ -288,20 +288,20 @@ begin
    -- - Inverting ADC data
    -------------------------------------------------------------------------------
    -------------------------------------------------------------------------------
-   comb : process (devRst_i, clearErr_i, r, s_bufWe, s_errComb, r_jesdGtRx, s_nSync,
-                   s_sampleData, s_sampleDataValid, inv_i) is
+   comb : process (clearErr_i, devRst_i, enable_i, inv_i, r, r_jesdGtRx,
+                   s_bufWe, s_errComb, s_nSync, s_sampleData,
+                   s_sampleDataValid) is
       variable v : RegType;
    begin
       v := r;
-      
+
       v.jesdGtRx := r_jesdGtRx;
-      
-      v.bufWeD1 := s_bufWe;
+      v.bufWeD1  := s_bufWe;
 
       -- Register errors (store until reset)
       if (r.jesdGtRx.rstDone = '1' and s_nSync = '1') then
          for I in 0 to(ERR_REG_WIDTH_C-1) loop
-            if (s_errComb(I) = '1') then
+            if (s_errComb(I) = '1') and (enable_i = '1') then
                v.errReg(I) := '1';
             end if;
          end loop;
@@ -311,17 +311,17 @@ begin
       if (clearErr_i = '1') then
          v.errReg := REG_INIT_C.errReg;
       end if;
-      
+
       -- Invert sample data
       v.sampleDataValid := s_sampleDataValid;
-      
+
       if (inv_i = '1') then
-      -- Invert sample data      
-         v.sampleData :=  invData(s_sampleData, F_G, GT_WORD_SIZE_C);
+         -- Invert sample data      
+         v.sampleData := invData(s_sampleData, F_G, GT_WORD_SIZE_C);
       else
-         v.sampleData :=  s_sampleData;
+         v.sampleData := s_sampleData;
       end if;
-      
+
       -- Reset registers
       if (devRst_i = '1') then
          v := REG_INIT_C;
