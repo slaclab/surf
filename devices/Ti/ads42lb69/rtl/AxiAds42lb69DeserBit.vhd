@@ -30,7 +30,8 @@ entity AxiAds42lb69DeserBit is
    generic (
       TPD_G           : time            := 1 ns;
       DELAY_INIT_G    : slv(4 downto 0) := (others => '0');
-      IODELAY_GROUP_G : string          := "AXI_ADS42LB69_IODELAY_GRP");
+      IODELAY_GROUP_G : string          := "AXI_ADS42LB69_IODELAY_GRP";
+      XIL_DEVICE_G    : string          := "7SERIES");
    port (
       -- ADC Data (clk domain)
       dataP        : in  sl;

@@ -32,7 +32,8 @@ entity AxiAds42lb69Core is
       DELAY_INIT_G       : Slv5VectorArray(1 downto 0, 7 downto 0) := (others => (others => (others => '0')));
       IODELAY_GROUP_G    : string                                  := "AXI_ADS42LB69_IODELAY_GRP";
       STATUS_CNT_WIDTH_G : natural range 1 to 32                   := 32;
-      AXI_ERROR_RESP_G   : slv(1 downto 0)                         := AXI_RESP_SLVERR_C);      
+      AXI_ERROR_RESP_G   : slv(1 downto 0)                         := AXI_RESP_SLVERR_C;
+      XIL_DEVICE_G       : string                                  := "7SERIES");      
    port (
       -- ADC Ports
       adcIn          : in  AxiAds42lb69InType;

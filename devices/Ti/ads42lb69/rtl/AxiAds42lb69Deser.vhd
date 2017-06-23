@@ -32,7 +32,8 @@ entity AxiAds42lb69Deser is
       USE_PLL_G       : boolean                                 := false;
       ADC_CLK_FREQ_G  : real                                    := 250.0E+6;
       DELAY_INIT_G    : Slv5VectorArray(1 downto 0, 7 downto 0) := (others => (others => (others => '0')));
-      IODELAY_GROUP_G : string                                  := "AXI_ADS42LB69_IODELAY_GRP");
+      IODELAY_GROUP_G : string                                  := "AXI_ADS42LB69_IODELAY_GRP";
+      XIL_DEVICE_G    : string                                  := "7SERIES");
    port (
       -- ADC Ports  
       clkP         : out sl;
