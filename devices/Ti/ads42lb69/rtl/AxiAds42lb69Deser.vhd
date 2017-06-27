@@ -31,7 +31,7 @@ entity AxiAds42lb69Deser is
       TPD_G           : time                                    := 1 ns;
       USE_PLL_G       : boolean                                 := false;
       ADC_CLK_FREQ_G  : real                                    := 250.0E+6;
-      DELAY_INIT_G    : Slv5VectorArray(1 downto 0, 7 downto 0) := (others => (others => (others => '0')));
+      DELAY_INIT_G    : Slv9VectorArray(1 downto 0, 7 downto 0) := (others => (others => (others => '0')));
       IODELAY_GROUP_G : string                                  := "AXI_ADS42LB69_IODELAY_GRP";
       XIL_DEVICE_G    : string                                  := "7SERIES");
    port (
@@ -70,9 +70,6 @@ architecture rtl of AxiAds42lb69Deser is
    signal adcDmuxA  : Slv8Array(1 downto 0);
    signal adcDmuxB  : Slv8Array(1 downto 0);
    signal data      : Slv16Array(1 downto 0);
-
-   attribute IODELAY_GROUP                    : string;
-   attribute IODELAY_GROUP of IDELAYCTRL_Inst : label is IODELAY_GROUP_G;
    
 begin
 
@@ -80,7 +77,8 @@ begin
       generic map(
          TPD_G          => TPD_G,
          USE_PLL_G      => USE_PLL_G,
-         ADC_CLK_FREQ_G => ADC_CLK_FREQ_G)
+         ADC_CLK_FREQ_G => ADC_CLK_FREQ_G,
+         XIL_DEVICE_G   => XIL_DEVICE_G)
       port map (
          -- ADC Clocking ports
          adcClkP   => clkP,
@@ -103,12 +101,17 @@ begin
          clk     => adcClock,
          dataIn  => dmode,
          dataOut => dmux);
-
-   IDELAYCTRL_Inst : IDELAYCTRL
-      port map (
-         RDY    => delayOut.rdy,        -- 1-bit output: Ready output
-         REFCLK => refClk200MHz,        -- 1-bit input: Reference clock input
-         RST    => delayIn.rst);        -- 1-bit input: Active high reset input                   
+   
+   GEN_7SERIES : if (XIL_DEVICE_G = "7SERIES") generate
+      attribute IODELAY_GROUP                    : string;
+      attribute IODELAY_GROUP of IDELAYCTRL_Inst : label is IODELAY_GROUP_G;
+   begin
+      IDELAYCTRL_Inst : IDELAYCTRL
+         port map (
+            RDY    => delayOut.rdy,        -- 1-bit output: Ready output
+            REFCLK => refClk200MHz,        -- 1-bit input: Reference clock input
+            RST    => delayIn.rst);        -- 1-bit input: Active high reset input
+   end generate;
 
    GEN_CH :
    for ch in 1 downto 0 generate
@@ -119,7 +122,8 @@ begin
             generic map(
                TPD_G           => TPD_G,
                DELAY_INIT_G    => DELAY_INIT_G(ch, i),
-               IODELAY_GROUP_G => IODELAY_GROUP_G)
+               IODELAY_GROUP_G => IODELAY_GROUP_G,
+               XIL_DEVICE_G    => XIL_DEVICE_G)
             port map (
                -- ADC Data (clk domain)
                dataP        => dataP(ch)(i),

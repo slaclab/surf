@@ -29,7 +29,7 @@ entity AxiAds42lb69Core is
       USE_PLL_G          : boolean                                 := false;  -- true = phase compensate the ADC data bus
       ADC_CLK_FREQ_G     : real                                    := 250.0E+6;  -- units of Hz
       DMODE_INIT_G       : slv(1 downto 0)                         := "00";
-      DELAY_INIT_G       : Slv5VectorArray(1 downto 0, 7 downto 0) := (others => (others => (others => '0')));
+      DELAY_INIT_G       : Slv9VectorArray(1 downto 0, 7 downto 0) := (others => (others => (others => '0')));
       IODELAY_GROUP_G    : string                                  := "AXI_ADS42LB69_IODELAY_GRP";
       STATUS_CNT_WIDTH_G : natural range 1 to 32                   := 32;
       AXI_ERROR_RESP_G   : slv(1 downto 0)                         := AXI_RESP_SLVERR_C;
@@ -109,12 +109,6 @@ begin
          ADC_CLK_FREQ_G     => ADC_CLK_FREQ_G,
          AXI_ERROR_RESP_G   => AXI_ERROR_RESP_G)
       port map(
-         -- ADC Ports
-         csL            => adcOut.csL,
-         sck            => adcOut.sck,
-         sdi            => adcOut.sdi,
-         rst            => adcOut.rst,
-         sdo            => adcIn.sdo,
          -- AXI-Lite Register Interface (adcClk domain)
          axiReadMaster  => mAxiReadMaster,
          axiReadSlave   => mAxiReadSlave,
@@ -134,7 +128,8 @@ begin
          USE_PLL_G       => USE_PLL_G,
          ADC_CLK_FREQ_G  => ADC_CLK_FREQ_G,
          DELAY_INIT_G    => DELAY_INIT_G,
-         IODELAY_GROUP_G => IODELAY_GROUP_G)
+         IODELAY_GROUP_G => IODELAY_GROUP_G,
+         XIL_DEVICE_G    => XIL_DEVICE_G)
       port map (
          -- ADC Ports  
          clkP         => adcOut.clkP,

@@ -29,7 +29,7 @@ use unisim.vcomponents.all;
 entity AxiAds42lb69DeserBit is
    generic (
       TPD_G           : time            := 1 ns;
-      DELAY_INIT_G    : slv(4 downto 0) := (others => '0');
+      DELAY_INIT_G    : slv(8 downto 0) := (others => '0');
       IODELAY_GROUP_G : string          := "AXI_ADS42LB69_IODELAY_GRP";
       XIL_DEVICE_G    : string          := "7SERIES");
    port (
@@ -40,8 +40,8 @@ entity AxiAds42lb69DeserBit is
       Q2           : out sl;
       -- IO_Delay (refClk200MHz domain)
       delayInLoad  : in  sl;
-      delayInData  : in  slv(4 downto 0);
-      delayOutData : out slv(4 downto 0);
+      delayInData  : in  slv(8 downto 0);
+      delayOutData : out slv(9 downto 0);
       -- Clocks
       clk          : in  sl;
       refClk200MHz : in  sl);
@@ -49,57 +49,149 @@ end AxiAds42lb69DeserBit;
 
 architecture rtl of AxiAds42lb69DeserBit is
    
-   signal data,
-      dataDly : sl;
-   
-   attribute IODELAY_GROUP                  : string;
-   attribute IODELAY_GROUP of IDELAYE2_inst : label is IODELAY_GROUP_G;
+   signal data       : sl;
+   signal dataDly    : sl;
+   signal clkb       : sl;
+   signal cascOut    : sl;
+   signal cascRet    : sl;
+   signal delayOutData1 : slv(8 downto 0);
+   signal delayOutData2 : slv(8 downto 0);
    
 begin
 
-   IBUFDS_Inst : IBUFDS
-      port map (
-         I  => dataP,
-         IB => dataN,
-         O  => data);                 
+   GEN_7SERIES : if (XIL_DEVICE_G = "7SERIES") generate
+      attribute IODELAY_GROUP                  : string;
+      attribute IODELAY_GROUP of IDELAYE2_inst : label is IODELAY_GROUP_G;
+   begin
+      
+      IBUFDS_Inst : IBUFDS
+         port map (
+            I  => dataP,
+            IB => dataN,
+            O  => data);                 
 
-   IDELAYE2_inst : IDELAYE2
-      generic map (
-         CINVCTRL_SEL          => "FALSE",     -- Enable dynamic clock inversion (FALSE, TRUE)
-         DELAY_SRC             => "IDATAIN",   -- Delay input (IDATAIN, DATAIN)
-         HIGH_PERFORMANCE_MODE => "FALSE",     -- Reduced jitter ("TRUE"), Reduced power ("FALSE")
-         IDELAY_TYPE           => "VAR_LOAD",  -- FIXED, VARIABLE, VAR_LOAD, VAR_LOAD_PIPE
-         IDELAY_VALUE          => conv_integer(DELAY_INIT_G),  -- Input delay tap setting (0-31)
-         PIPE_SEL              => "FALSE",     -- Select pipelined mode, FALSE, TRUE
-         REFCLK_FREQUENCY      => 200.0,  -- IDELAYCTRL clock input frequency in MHz (190.0-210.0, 290.0-310.0).
-         SIGNAL_PATTERN        => "DATA")      -- DATA, CLOCK input signal
-      port map (
-         CNTVALUEOUT => delayOutData,   -- 5-bit output: Counter value output
-         DATAOUT     => dataDly,        -- 1-bit output: Delayed data output
-         C           => refClk200MHz,   -- 1-bit input: Clock input
-         CE          => '0',            -- 1-bit input: Active high enable increment/decrement input
-         CINVCTRL    => '0',            -- 1-bit input: Dynamic clock inversion input
-         CNTVALUEIN  => delayInData,    -- 5-bit input: Counter value input
-         DATAIN      => '0',            -- 1-bit input: Internal delay data input
-         IDATAIN     => data,           -- 1-bit input: Data input from the I/O
-         INC         => '0',            -- 1-bit input: Increment / Decrement tap delay input
-         LD          => '1',            -- 1-bit input: Load IDELAY_VALUE input
-         LDPIPEEN    => '0',            -- 1-bit input: Enable PIPELINE register to load data input
-         REGRST      => delayInLoad);   -- 1-bit input: Active-high reset tap-delay input
+      IDELAYE2_inst : IDELAYE2
+         generic map (
+            CINVCTRL_SEL          => "FALSE",     -- Enable dynamic clock inversion (FALSE, TRUE)
+            DELAY_SRC             => "IDATAIN",   -- Delay input (IDATAIN, DATAIN)
+            HIGH_PERFORMANCE_MODE => "FALSE",     -- Reduced jitter ("TRUE"), Reduced power ("FALSE")
+            IDELAY_TYPE           => "VAR_LOAD",  -- FIXED, VARIABLE, VAR_LOAD, VAR_LOAD_PIPE
+            IDELAY_VALUE          => conv_integer(DELAY_INIT_G(4 downto 0)),  -- Input delay tap setting (0-31)
+            PIPE_SEL              => "FALSE",     -- Select pipelined mode, FALSE, TRUE
+            REFCLK_FREQUENCY      => 200.0,  -- IDELAYCTRL clock input frequency in MHz (190.0-210.0, 290.0-310.0).
+            SIGNAL_PATTERN        => "DATA")      -- DATA, CLOCK input signal
+         port map (
+            CNTVALUEOUT => delayOutData(4 downto 0),   -- 5-bit output: Counter value output
+            DATAOUT     => dataDly,        -- 1-bit output: Delayed data output
+            C           => refClk200MHz,   -- 1-bit input: Clock input
+            CE          => '0',            -- 1-bit input: Active high enable increment/decrement input
+            CINVCTRL    => '0',            -- 1-bit input: Dynamic clock inversion input
+            CNTVALUEIN  => delayInData(4 downto 0),    -- 5-bit input: Counter value input
+            DATAIN      => '0',            -- 1-bit input: Internal delay data input
+            IDATAIN     => data,           -- 1-bit input: Data input from the I/O
+            INC         => '0',            -- 1-bit input: Increment / Decrement tap delay input
+            LD          => '1',            -- 1-bit input: Load IDELAY_VALUE input
+            LDPIPEEN    => '0',            -- 1-bit input: Enable PIPELINE register to load data input
+            REGRST      => delayInLoad);   -- 1-bit input: Active-high reset tap-delay input
 
-   IDDR_Inst : IDDR
-      generic map (
-         DDR_CLK_EDGE => "SAME_EDGE_PIPELINED",  -- "OPPOSITE_EDGE", "SAME_EDGE", or "SAME_EDGE_PIPELINED"
-         INIT_Q1      => '0',           -- Initial value of Q1: '0' or '1'
-         INIT_Q2      => '0',           -- Initial value of Q2: '0' or '1'
-         SRTYPE       => "SYNC")        -- Set/Reset type: "SYNC" or "ASYNC" 
-      port map (
-         D  => dataDly,                 -- 1-bit DDR data input
-         C  => clk,                     -- 1-bit clock input
-         CE => '1',                     -- 1-bit clock enable input
-         R  => '0',                     -- 1-bit reset
-         S  => '0',                     -- 1-bit set
-         Q1 => Q1,                      -- 1-bit output for positive edge of clock 
-         Q2 => Q2);                     -- 1-bit output for negative edge of clock
+      IDDR_Inst : IDDR
+         generic map (
+            DDR_CLK_EDGE => "SAME_EDGE_PIPELINED",  -- "OPPOSITE_EDGE", "SAME_EDGE", or "SAME_EDGE_PIPELINED"
+            INIT_Q1      => '0',           -- Initial value of Q1: '0' or '1'
+            INIT_Q2      => '0',           -- Initial value of Q2: '0' or '1'
+            SRTYPE       => "SYNC")        -- Set/Reset type: "SYNC" or "ASYNC" 
+         port map (
+            D  => dataDly,                 -- 1-bit DDR data input
+            C  => clk,                     -- 1-bit clock input
+            CE => '1',                     -- 1-bit clock enable input
+            R  => '0',                     -- 1-bit reset
+            S  => '0',                     -- 1-bit set
+            Q1 => Q1,                      -- 1-bit output for positive edge of clock 
+            Q2 => Q2);                     -- 1-bit output for negative edge of clock
+      
+   end generate;
+      
+   GEN_ULTRASCALE : if (XIL_DEVICE_G = "ULTRASCALE") generate
+      
+      -- when DELAY_FORMAT is "COUNT" the delay is not PVT calibrated
+      -- Therefore, do not use an IDELAYCTRL component
+      -- Leave the REFCLK_FREQUENCY attribute at the default value (300 MHz).
+      -- Tie the EN_VTC input pin Low
+      
+      IBUFDS_Inst : IBUFDS
+         port map (
+            I  => dataP,
+            IB => dataN,
+            O  => data);                 
+
+      IDELAYE3_inst : IDELAYE3
+         generic map (
+            CASCADE => "MASTER",       -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
+            DELAY_FORMAT => "COUNT",   -- Units of the DELAY_VALUE (COUNT, TIME)
+            DELAY_SRC => "IDATAIN",    -- Delay input (DATAIN, IDATAIN)
+            DELAY_TYPE => "VAR_LOAD",  -- Set the type of tap delay line (FIXED, VARIABLE, VAR_LOAD)
+            DELAY_VALUE => conv_integer(DELAY_INIT_G), -- Input delay value setting
+            IS_CLK_INVERTED => '0',    -- Optional inversion for CLK
+            IS_RST_INVERTED => '0',    -- Optional inversion for RST
+            REFCLK_FREQUENCY => 300.0, -- IDELAYCTRL clock input frequency in MHz (200.0-2400.0)
+            UPDATE_MODE => "ASYNC")    -- Determines when updates to the delay will take effect (ASYNC, MANUAL, SYNC)
+         port map (
+            CASC_IN     => '0',           -- 1-bit input: Cascade delay input from slave ODELAY CASCADE_OUT 
+            CASC_OUT    => cascOut,       -- 1-bit output: Cascade delay output to ODELAY input cascade 
+            CASC_RETURN => cascRet,       -- 1-bit input: Cascade delay returning from slave ODELAY DATAOUT 
+            DATAIN      => '0',           -- 1-bit input: Data input from the logic 
+            IDATAIN     => data,          -- 1-bit input: Data input from the IOBUF
+            DATAOUT     => dataDly,       -- 1-bit output: Delayed data output 
+            CLK         => clk,           -- 1-bit input: Clock input 
+            EN_VTC      => '0',           -- 1-bit input: Keep delay constant over VT 
+            INC         => '0',           -- 1-bit input: Increment / Decrement tap delay input 
+            CE          => '0',           -- 1-bit input: Active high enable increment/decrement input 
+            LOAD        => delayInLoad,   -- 1-bit input: Load DELAY_VALUE input 
+            RST         => '0',           -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
+            CNTVALUEIN  => delayInData,      -- 9-bit input: Counter value input 
+            CNTVALUEOUT => delayOutData1);   -- 9-bit output: Counter value output 
+      
+      ODELAYE3_inst : ODELAYE3
+         generic map (
+            CASCADE => "SLAVE_END",    -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
+            DELAY_FORMAT => "COUNT",   -- Units of the DELAY_VALUE (COUNT, TIME)
+            DELAY_TYPE => "VAR_LOAD",  -- Set the type of tap delay line (FIXED, VARIABLE, VAR_LOAD)
+            DELAY_VALUE => conv_integer(DELAY_INIT_G), -- Input delay value setting
+            IS_CLK_INVERTED => '0',    -- Optional inversion for CLK
+            IS_RST_INVERTED => '0',    -- Optional inversion for RST
+            REFCLK_FREQUENCY => 300.0, -- IDELAYCTRL clock input frequency in MHz (200.0-2400.0)
+            UPDATE_MODE => "ASYNC")    -- Determines when updates to the delay will take effect (ASYNC, MANUAL, SYNC)
+         port map (
+            CASC_IN     => cascOut,       -- 1-bit input: Cascade delay input from slave IDELAY CASCADE_OUT
+            CASC_OUT    => open,          -- 1-bit output: Cascade delay output to IDELAY input cascade 
+            CASC_RETURN => '0',           -- 1-bit input: Cascade delay returning from slave IDELAY DATAOUT 
+            ODATAIN     => '0',           -- 1-bit input: Data input
+            DATAOUT     => cascRet,       -- 1-bit output: Delayed data from ODATAIN input port 
+            CLK         => clk,           -- 1-bit input: Clock input 
+            EN_VTC      => '0',           -- 1-bit input: Keep delay constant over VT 
+            INC         => '0',           -- 1-bit input: Increment / Decrement tap delay input
+            CE          => '0',           -- 1-bit input: Active high enable increment/decrement input 
+            LOAD        => delayInLoad,   -- 1-bit input: Load DELAY_VALUE input 
+            RST         => '0',           -- 1-bit input: Asynchronous Reset to the DELAY_VALUE 
+            CNTVALUEIN  => delayInData,      -- 9-bit input: Counter value input
+            CNTVALUEOUT => delayOutData2);   -- 9-bit output: Counter value output 
+      
+      delayOutData <= ext(delayOutData1, 10) + ext(delayOutData2, 10);
+
+      IDDR_Inst : IDDRE1
+         generic map (
+            DDR_CLK_EDGE   => "SAME_EDGE_PIPELINED",  -- "OPPOSITE_EDGE", "SAME_EDGE", or "SAME_EDGE_PIPELINED"
+            IS_C_INVERTED  => '0')
+         port map (
+            D  => dataDly,                 -- 1-bit DDR data input
+            C  => clk,                     -- 1-bit clock input
+            CB => clkb,                    -- 1-bit inverted clock input
+            R  => '0',                     -- 1-bit reset
+            Q1 => Q1,                      -- 1-bit output for positive edge of clock 
+            Q2 => Q2);                     -- 1-bit output for negative edge of clock
+         
+         clkb <= not clk;
+      
+   end generate;
 
 end rtl;
