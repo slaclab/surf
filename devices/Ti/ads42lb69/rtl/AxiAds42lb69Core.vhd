@@ -64,6 +64,10 @@ architecture mapping of AxiAds42lb69Core is
    signal mAxiWriteMaster : AxiLiteWriteMasterType;
    signal mAxiWriteSlave  : AxiLiteWriteSlaveType;
    
+   attribute keep : string;
+   attribute keep of mAxiReadMaster : signal is "true";
+   attribute keep of mAxiReadSlave : signal is "true";
+   
 begin
 
    adcData <= status.adcData;

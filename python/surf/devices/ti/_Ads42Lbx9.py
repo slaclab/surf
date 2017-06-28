@@ -20,9 +20,9 @@
 import pyrogue as pr
 import time
 
-class Ads42Lbx9(pr.Device):
+class Ads42Lbx9Config(pr.Device):
     def __init__(self, **kwargs):
-        super(self.__class__, self).__init__(description="ADS42LBx9 Module",
+        super(self.__class__, self).__init__(description="ADS42LBx9 Config Module",
                                              **kwargs)
 
         ##############################
@@ -191,3 +191,56 @@ class Ads42Lbx9(pr.Device):
                             mode         = "RW",
                         )
 
+class Ads42Lbx9Readout(pr.Device):
+    def __init__(self, **kwargs):
+        super(self.__class__, self).__init__(description="ADS42LBx9 Readout Module",
+                                             **kwargs)
+
+        ##############################
+        # Variables
+        ##############################
+        
+        for i in range(0, 8):
+            self.addVariable(   name         = "DelayAdcALane["+str(i)+"]",
+                                description  = "LVDS Lane Delay",
+                                offset       =  0x200+i*4,
+                                bitSize      =  10,
+                                bitOffset    =  0x00,
+                                base         = "uint",
+                                mode         = "RW",
+                            )
+        for i in range(0, 8):
+            self.addVariable(   name         = "DelayAdcBLane["+str(i)+"]",
+                                description  = "LVDS Lane Delay",
+                                offset       =  0x220+i*4,
+                                bitSize      =  10,
+                                bitOffset    =  0x00,
+                                base         = "uint",
+                                mode         = "RW",
+                            )
+        for i in range(0, 8):
+            self.addVariable(   name         = "AdcASample["+str(i)+"]",
+                                description  = "ADC Sample",
+                                offset       =  0x180+i*4,
+                                bitSize      =  16,
+                                bitOffset    =  0x00,
+                                base         = "uint",
+                                mode         = "RO",
+                            )
+        for i in range(0, 8):
+            self.addVariable(   name         = "AdcBSample["+str(i)+"]",
+                                description  = "ADC Sample",
+                                offset       =  0x1A0+i*4,
+                                bitSize      =  16,
+                                bitOffset    =  0x00,
+                                base         = "uint",
+                                mode         = "RO",
+                            )
+        self.addVariable(   name         = "DMode",
+                            description  = "DMode",
+                            offset       =  0x240,
+                            bitSize      =  2,
+                            bitOffset    =  0x00,
+                            base         = "hex",
+                            mode         = "RW",
+                        )
