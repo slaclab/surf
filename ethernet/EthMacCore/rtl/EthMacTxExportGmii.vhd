@@ -121,7 +121,7 @@ architecture rtl of EthMacTxExportGmii is
 
 begin
 
-   DATA_MUX : entity work.AxiStreamFifo
+   DATA_MUX : entity work.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,

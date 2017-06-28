@@ -166,7 +166,7 @@ begin
    ---------------------------------
    -- Synchronize AXIS bus to semClk
    ---------------------------------
-   U_TxFifo : entity work.AxiStreamFifo
+   U_TxFifo : entity work.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => false,
@@ -190,7 +190,7 @@ begin
          mAxisMaster => semObAxisMaster,
          mAxisSlave  => semObAxisSlave);
 
-   U_RxFifo : entity work.AxiStreamFifo
+   U_RxFifo : entity work.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => true,

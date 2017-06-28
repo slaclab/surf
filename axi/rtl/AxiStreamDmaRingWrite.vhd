@@ -421,7 +421,7 @@ begin
 
    -- Pass status message through a small fifo to convert to statusClk
    -- And convert width
-   U_AxiStreamFifo_MSG : entity work.AxiStreamFifo
+   U_AxiStreamFifo_MSG : entity work.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          PIPE_STAGES_G       => 1,

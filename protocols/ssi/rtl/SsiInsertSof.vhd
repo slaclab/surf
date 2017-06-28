@@ -80,7 +80,7 @@ begin
    end generate;
 
    GEN_FIFO_RX : if ( (SLAVE_FIFO_G = true) or (COMMON_CLK_G = false) or (SLAVE_AXI_CONFIG_G /= MASTER_AXI_CONFIG_G) ) generate
-      FIFO_RX : entity work.AxiStreamFifo
+      FIFO_RX : entity work.AxiStreamFifoV2
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
@@ -211,7 +211,7 @@ begin
    end generate;
 
    GEN_FIFO_TX : if (MASTER_FIFO_G = true) generate
-      FIFO_TX : entity work.AxiStreamFifo
+      FIFO_TX : entity work.AxiStreamFifoV2
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,

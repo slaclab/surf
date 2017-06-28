@@ -80,7 +80,7 @@ begin
    ------------------------------------
    -- Inbound
    ------------------------------------
-   U_IbFifo : entity work.AxiStreamFifo
+   U_IbFifo : entity work.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          GEN_SYNC_FIFO_G     => COMMON_SLAVE_CLK_G,
@@ -136,7 +136,7 @@ begin
    ------------------------------------
    -- Outbound
    ------------------------------------
-   U_ObFifo : entity work.AxiStreamFifo
+   U_ObFifo : entity work.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          GEN_SYNC_FIFO_G     => COMMON_MASTER_CLK_G,
