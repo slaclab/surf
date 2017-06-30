@@ -26,7 +26,7 @@ class GenericMemory(pr.Device):
                     description = "Generic Memory Module", 
                     memBase     =  None, 
                     offset      =  0x0, 
-                    hidden      =  False, 
+                    hidden      =  True, 
                     nelms       =  1, 
                     bitSize     =  32, 
                     bitOffset   =  0, 
@@ -34,25 +34,34 @@ class GenericMemory(pr.Device):
                     base        = "hex", 
                     mode        = "RW", 
                     instantiate =  True,
+                    expand      =  False,
                 ):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden=False)
+        super().__init__(
+            name        = name,
+            description = description,
+            memBase     = memBase,
+            offset      = offset,
+            hidden      = hidden,
+            expand      = expand,
+        )                
 
         ##############################
         # Variables
         ##############################
         
         if (instantiate):
-            self.addVariables(  name         = "Mem",
-                                description  = "Memory Array",
-                                offset       =  0x00,
-                                bitSize      =  bitSize,
-                                bitOffset    =  bitOffset,
-                                base         =  base,
-                                mode         =  mode,
-                                number       =  nelms,
-                                stride       =  stride,
-                                hidden = hidden,
-                            )
+            self.addVariables(  
+                name         = "Mem",
+                description  = "Memory Array",
+                offset       =  0x00,
+                bitSize      =  bitSize,
+                bitOffset    =  bitOffset,
+                base         =  base,
+                mode         =  mode,
+                number       =  nelms,
+                stride       =  stride,
+                hidden = hidden,
+            )
 
         @self.command()
         def fill():
