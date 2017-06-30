@@ -224,7 +224,7 @@ class Ads42Lbx9Readout(pr.Device):
                                 offset       =  0x180+i*4,
                                 bitSize      =  16,
                                 bitOffset    =  0x00,
-                                base         = "uint",
+                                base         = "hex",
                                 mode         = "RO",
                             )
         for i in range(0, 8):
@@ -233,7 +233,7 @@ class Ads42Lbx9Readout(pr.Device):
                                 offset       =  0x1A0+i*4,
                                 bitSize      =  16,
                                 bitOffset    =  0x00,
-                                base         = "uint",
+                                base         = "hex",
                                 mode         = "RO",
                             )
         self.addVariable(   name         = "DMode",

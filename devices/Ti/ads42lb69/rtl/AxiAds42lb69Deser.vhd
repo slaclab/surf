@@ -46,16 +46,18 @@ entity AxiAds42lb69Deser is
       dataN        : in  Slv8Array(1 downto 0);
       -- ADC Data Interface (adcClk domain)
       adcData      : out Slv16Array(1 downto 0);
-      -- Register Interface (adcClk domain)
+      -- Register Interface
       dmode        : in  slv(1 downto 0);
-      -- Register Interface (refclk200MHz domain)
-      delayin      : in  AxiAds42lb69DelayInType;
+      -- Register Interface (axiClk domain)
+      delayIn      : in  AxiAds42lb69DelayInType;
       delayOut     : out AxiAds42lb69DelayOutType;
       -- Clocks and Resets
+      axiClk       : in  sl;
+      axiRst       : in  sl;
       adcClk       : in  sl;
       adcRst       : in  sl;
       adcSync      : in  sl;
-      refclk200MHz : in  sl);
+      refClk200MHz : in  sl);
 end AxiAds42lb69Deser;
 
 architecture rtl of AxiAds42lb69Deser is
@@ -105,12 +107,23 @@ begin
    GEN_7SERIES : if (XIL_DEVICE_G = "7SERIES") generate
       attribute IODELAY_GROUP                    : string;
       attribute IODELAY_GROUP of IDELAYCTRL_Inst : label is IODELAY_GROUP_G;
+      signal rstSync : sl;
    begin
       IDELAYCTRL_Inst : IDELAYCTRL
          port map (
             RDY    => delayOut.rdy,        -- 1-bit output: Ready output
             REFCLK => refClk200MHz,        -- 1-bit input: Reference clock input
-            RST    => delayIn.rst);        -- 1-bit input: Active high reset input
+            RST    => rstSync);            -- 1-bit input: Active high reset input
+      
+      Sync_delayIn_rst : entity work.RstSync
+         generic map (
+            TPD_G           => TPD_G,
+            RELEASE_DELAY_G => 16)   
+         port map (
+            clk      => refClk200MHz,
+            asyncRst => delayIn.rst,
+            syncRst  => rstSync);   
+         
    end generate;
 
    GEN_CH :
@@ -130,13 +143,14 @@ begin
                dataN        => dataN(ch)(i),
                Q1           => adcDataPs(ch)(i),
                Q2           => adcDataNs(ch)(i),
-               -- IO_Delay (refClk200MHz domain)
-               delayInLoad  => delayIn.load,
-               delayInData  => delayIn.data(ch, i),
+               -- IO_Delay (delayClk domain)
+               delayInLoad  => delayIn.load(ch)(i),
+               delayInData  => delayIn.data,
                delayOutData => delayOut.data(ch, i),
                -- Clocks
                clk          => adcClock,
-               refClk200MHz => refClk200MHz);
+               delayRst     => axiRst,
+               delayClk     => axiClk);
 
       end generate GEN_DAT;
 

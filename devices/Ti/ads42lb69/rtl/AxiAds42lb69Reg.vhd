@@ -26,14 +26,13 @@ use work.AxiAds42lb69Pkg.all;
 
 entity AxiAds42lb69Reg is
    generic (
-      TPD_G              : time                                    := 1 ns;
-      ADC_CLK_FREQ_G     : real                                    := 250.0E+6;  -- units of Hz
-      DMODE_INIT_G       : slv(1 downto 0)                         := "00";
-      DELAY_INIT_G       : Slv9VectorArray(1 downto 0, 7 downto 0) := (others => (others => (others => '0')));
-      STATUS_CNT_WIDTH_G : natural range 1 to 32                   := 32;
-      AXI_ERROR_RESP_G   : slv(1 downto 0)                         := AXI_RESP_SLVERR_C);  
+      TPD_G              : time              := 1 ns;
+      SIM_SPEEDUP_G      : boolean           := false;
+      ADC_CLK_FREQ_G     : real              := 250.00E+6; -- units of Hz
+      DMODE_INIT_G       : slv(1 downto 0)   := "00";
+      AXI_ERROR_RESP_G   : slv(1 downto 0)   := AXI_RESP_SLVERR_C);  
    port (
-      -- AXI-Lite Register Interface (adcClk domain)
+      -- AXI-Lite Register Interface (axiClk domain)
       axiReadMaster  : in  AxiLiteReadMasterType;
       axiReadSlave   : out AxiLiteReadSlaveType;
       axiWriteMaster : in  AxiLiteWriteMasterType;
@@ -44,17 +43,16 @@ entity AxiAds42lb69Reg is
       -- Global Signals
       adcClk         : in  sl;
       adcRst         : in  sl;
-      refClk200MHz   : in  sl);      
+      axiClk         : in  sl;
+      axiRst         : in  sl
+   );      
 end AxiAds42lb69Reg;
 
 architecture rtl of AxiAds42lb69Reg is
    
-   constant TIMEOUT_1S_C : natural := getTimeRatio(ADC_CLK_FREQ_G, 1.0E+00);
+   constant TIMEOUT_1S_C : natural := ite(SIM_SPEEDUP_G, 1000, getTimeRatio(ADC_CLK_FREQ_G, 1.0E+00));
 
    type RegType is record
-      timer         : natural range 0 to TIMEOUT_1S_C;
-      smplCnt       : natural range 0 to 7;
-      armed         : sl;
       adcSmpl       : Slv16VectorArray(1 downto 0, 7 downto 0);
       regOut        : AxiAds42lb69ConfigType;
       axiReadSlave  : AxiLiteReadSlaveType;
@@ -62,66 +60,85 @@ architecture rtl of AxiAds42lb69Reg is
    end record RegType;
    
    constant REG_INIT_C : RegType := (
-      timer         => 0,
-      smplCnt       => 0,
-      armed         => '0',
       adcSmpl       => (others => (others => (others => '0'))),
       regOut        => AXI_ADS42LB69_CONFIG_INIT_C,
       axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
+   
+   type AdcType is record
+      timer         : natural range 0 to TIMEOUT_1S_C;
+      smplCnt       : natural range 0 to 7;
+      armed         : sl;
+   end record AdcType;
+   
+   constant ADC_INIT_C : AdcType := (
+      timer         => 0,
+      smplCnt       => 0,
+      armed         => '0');
 
-   signal r   : RegType := REG_INIT_C;
-   signal rin : RegType;
+   signal r    : RegType := REG_INIT_C;
+   signal rin  : RegType;
+   signal ra   : AdcType := ADC_INIT_C;
+   signal rain : AdcType;
 
    signal regIn : AxiAds42lb69StatusType := AXI_ADS42LB69_STATUS_INIT_C;
 
 begin
 
+   
+
    -------------------------------
    -- Configuration Register
    -------------------------------  
-   comb : process (adcRst, axiReadMaster, axiWriteMaster, r, regIn) is
-      variable i            : integer;
+   comb : process (axiRst, adcRst, axiReadMaster, axiWriteMaster, r, ra, regIn) is
       variable v            : RegType;
+      variable va           : AdcType;
       variable axiStatus    : AxiLiteStatusType;
       variable axiWriteResp : slv(1 downto 0);
       variable axiReadResp  : slv(1 downto 0);
    begin
       -- Latch the current value
       v := r;
+      va := ra;
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
 
       -- Reset strobe signals
-      v.regOut.delayIn.load := '0';
+      v.regOut.delayIn.load := (others=>(others=>'0'));
       v.regOut.delayIn.rst  := '0';
-
-      -- Increment the counter
-      v.timer := r.timer + 1;
+      
+      -- Increment the counter (ADC clock domain)
+      va.timer := ra.timer + 1;
       -- Check the timer for 1 second timeout
-      if r.timer = TIMEOUT_1S_C then
-         -- Reset the counter
-         v.timer := 0;
+      if ra.timer = TIMEOUT_1S_C then
+         -- Reset the counters
+         va.timer := 0;
+         va.smplCnt := 0;
          -- Set the flag
-         v.armed := '1';
-      end if;
-
-      -- Process for collecting 8 consecutive samples after each 1 second timeout
-      if r.armed = '1' then
-         -- Latch the value
-         v.adcSmpl(0, r.smplCnt) := regIn.adcData(0);
-         v.adcSmpl(1, r.smplCnt) := regIn.adcData(1);
-         -- Increment the counter   
-         v.smplCnt               := r.smplCnt + 1;
-         -- Check the counter value
-         if r.smplCnt = 7 then
-            -- Reset the counter
-            v.smplCnt := 0;
-            -- Reset the flag
-            v.armed   := '0';
+         va.armed := '1';
+      end if; 
+      -- Count ADC samples (ADC clock domain)
+      if ra.armed = '1' then
+         va.smplCnt := ra.smplCnt + 1;
+         if ra.smplCnt = 7 then
+            va.armed := '0';
          end if;
       end if;
+
+      -- Store last 8 samples read from ADCs
+      for ch in 1 downto 0 loop
+         if (regIn.adcValid(ch) = '1') then
+            v.adcSmpl(ch, 0) := regIn.adcData(ch);
+            v.adcSmpl(ch, 1) := r.adcSmpl(ch, 0);
+            v.adcSmpl(ch, 2) := r.adcSmpl(ch, 1);
+            v.adcSmpl(ch, 3) := r.adcSmpl(ch, 2);
+            v.adcSmpl(ch, 4) := r.adcSmpl(ch, 3);
+            v.adcSmpl(ch, 5) := r.adcSmpl(ch, 4);
+            v.adcSmpl(ch, 6) := r.adcSmpl(ch, 5);
+            v.adcSmpl(ch, 7) := r.adcSmpl(ch, 6);
+         end if;
+      end loop;
 
       if (axiStatus.writeEnable = '1') then
          -- Check for an out of 32 bit aligned address
@@ -129,69 +146,69 @@ begin
          -- Decode address and perform write
          case (axiWriteMaster.awaddr(9 downto 2)) is
             when x"80" =>
-               v.regOut.delayIn.load       := '1';
+               v.regOut.delayIn.load(0)(0) := '1';
                v.regOut.delayIn.rst        := '1';
-               v.regOut.delayIn.data(0, 0) := axiWriteMaster.wdata(8 downto 0);
+               v.regOut.delayIn.data       := axiWriteMaster.wdata(8 downto 0);
             when x"81" =>
-               v.regOut.delayIn.load       := '1';
+               v.regOut.delayIn.load(0)(1) := '1';
                v.regOut.delayIn.rst        := '1';
-               v.regOut.delayIn.data(0, 1) := axiWriteMaster.wdata(8 downto 0);
+               v.regOut.delayIn.data       := axiWriteMaster.wdata(8 downto 0);
             when x"82" =>
-               v.regOut.delayIn.load       := '1';
+               v.regOut.delayIn.load(0)(2) := '1';
                v.regOut.delayIn.rst        := '1';
-               v.regOut.delayIn.data(0, 2) := axiWriteMaster.wdata(8 downto 0);
+               v.regOut.delayIn.data       := axiWriteMaster.wdata(8 downto 0);
             when x"83" =>
-               v.regOut.delayIn.load       := '1';
+               v.regOut.delayIn.load(0)(3) := '1';
                v.regOut.delayIn.rst        := '1';
-               v.regOut.delayIn.data(0, 3) := axiWriteMaster.wdata(8 downto 0);
+               v.regOut.delayIn.data       := axiWriteMaster.wdata(8 downto 0);
             when x"84" =>
-               v.regOut.delayIn.load       := '1';
+               v.regOut.delayIn.load(0)(4) := '1';
                v.regOut.delayIn.rst        := '1';
-               v.regOut.delayIn.data(0, 4) := axiWriteMaster.wdata(8 downto 0);
+               v.regOut.delayIn.data       := axiWriteMaster.wdata(8 downto 0);
             when x"85" =>
-               v.regOut.delayIn.load       := '1';
+               v.regOut.delayIn.load(0)(5) := '1';
                v.regOut.delayIn.rst        := '1';
-               v.regOut.delayIn.data(0, 5) := axiWriteMaster.wdata(8 downto 0);
+               v.regOut.delayIn.data       := axiWriteMaster.wdata(8 downto 0);
             when x"86" =>
-               v.regOut.delayIn.load       := '1';
+               v.regOut.delayIn.load(0)(6) := '1';
                v.regOut.delayIn.rst        := '1';
-               v.regOut.delayIn.data(0, 6) := axiWriteMaster.wdata(8 downto 0);
+               v.regOut.delayIn.data       := axiWriteMaster.wdata(8 downto 0);
             when x"87" =>
-               v.regOut.delayIn.load       := '1';
+               v.regOut.delayIn.load(0)(7) := '1';
                v.regOut.delayIn.rst        := '1';
-               v.regOut.delayIn.data(0, 7) := axiWriteMaster.wdata(8 downto 0);
+               v.regOut.delayIn.data       := axiWriteMaster.wdata(8 downto 0);
             when x"88" =>
-               v.regOut.delayIn.load       := '1';
+               v.regOut.delayIn.load(1)(0) := '1';
                v.regOut.delayIn.rst        := '1';
-               v.regOut.delayIn.data(1, 0) := axiWriteMaster.wdata(8 downto 0);
+               v.regOut.delayIn.data       := axiWriteMaster.wdata(8 downto 0);
             when x"89" =>
-               v.regOut.delayIn.load       := '1';
+               v.regOut.delayIn.load(1)(1) := '1';
                v.regOut.delayIn.rst        := '1';
-               v.regOut.delayIn.data(1, 1) := axiWriteMaster.wdata(8 downto 0);
+               v.regOut.delayIn.data       := axiWriteMaster.wdata(8 downto 0);
             when x"8A" =>
-               v.regOut.delayIn.load       := '1';
+               v.regOut.delayIn.load(1)(2) := '1';
                v.regOut.delayIn.rst        := '1';
-               v.regOut.delayIn.data(1, 2) := axiWriteMaster.wdata(8 downto 0);
+               v.regOut.delayIn.data       := axiWriteMaster.wdata(8 downto 0);
             when x"8B" =>
-               v.regOut.delayIn.load       := '1';
+               v.regOut.delayIn.load(1)(3) := '1';
                v.regOut.delayIn.rst        := '1';
-               v.regOut.delayIn.data(1, 3) := axiWriteMaster.wdata(8 downto 0);
+               v.regOut.delayIn.data       := axiWriteMaster.wdata(8 downto 0);
             when x"8C" =>
-               v.regOut.delayIn.load       := '1';
+               v.regOut.delayIn.load(1)(4) := '1';
                v.regOut.delayIn.rst        := '1';
-               v.regOut.delayIn.data(1, 4) := axiWriteMaster.wdata(8 downto 0);
+               v.regOut.delayIn.data       := axiWriteMaster.wdata(8 downto 0);
             when x"8D" =>
-               v.regOut.delayIn.load       := '1';
+               v.regOut.delayIn.load(1)(5) := '1';
                v.regOut.delayIn.rst        := '1';
-               v.regOut.delayIn.data(1, 5) := axiWriteMaster.wdata(8 downto 0);
+               v.regOut.delayIn.data       := axiWriteMaster.wdata(8 downto 0);
             when x"8E" =>
-               v.regOut.delayIn.load       := '1';
+               v.regOut.delayIn.load(1)(6) := '1';
                v.regOut.delayIn.rst        := '1';
-               v.regOut.delayIn.data(1, 6) := axiWriteMaster.wdata(8 downto 0);
+               v.regOut.delayIn.data       := axiWriteMaster.wdata(8 downto 0);
             when x"8F" =>
-               v.regOut.delayIn.load       := '1';
+               v.regOut.delayIn.load(1)(7) := '1';
                v.regOut.delayIn.rst        := '1';
-               v.regOut.delayIn.data(1, 7) := axiWriteMaster.wdata(8 downto 0);
+               v.regOut.delayIn.data       := axiWriteMaster.wdata(8 downto 0);
             when x"90" =>
                v.regOut.dmode := axiWriteMaster.wdata(1 downto 0);
             when others =>
@@ -282,96 +299,61 @@ begin
       end if;
 
       -- Synchronous Reset
+      if axiRst = '1' then
+         v              := REG_INIT_C;
+         v.regOut.dmode := DMODE_INIT_G;
+      end if;
+      -- Synchronous Reset
       if adcRst = '1' then
-         v                     := REG_INIT_C;
-         v.regOut.delayIn.load := '1';
-         v.regOut.delayIn.rst  := '1';
-         v.regOut.delayIn.data := DELAY_INIT_G;
-         v.regOut.dmode        := DMODE_INIT_G;
+         va             := ADC_INIT_C;
       end if;
 
       -- Register the variable for next clock cycle
       rin <= v;
+      rain <= va;
 
       -- Outputs
-      axiReadSlave  <= r.axiReadSlave;
-      axiWriteSlave <= r.axiWriteSlave;
+      axiReadSlave   <= r.axiReadSlave;
+      axiWriteSlave  <= r.axiWriteSlave;
+      config         <= r.regOut;
       
    end process comb;
 
-   seq : process (adcClk) is
+   seq : process (axiClk) is
    begin
-      if rising_edge(adcClk) then
+      if rising_edge(axiClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
+   
+   seqa : process (adcClk) is
+   begin
+      if rising_edge(adcClk) then
+         ra <= rain after TPD_G;
+      end if;
+   end process seqa;
 
    -------------------------------            
-   -- Synchronization: Outputs
+   -- Synchronization
    -------------------------------
-   config.dmode <= r.regOut.dmode;
 
-   GEN_CH_CONFIG :
+   GEN_ADC_SMPL :
    for ch in 0 to 1 generate
-      GEN_DAT_CONFIG :
-      for i in 0 to 7 generate
-         SyncOut_delayIn_data : entity work.SynchronizerFifo
-            generic map (
-               TPD_G        => TPD_G,
-               DATA_WIDTH_G => 9)
-            port map (
-               wr_clk => adcClk,
-               din    => r.regOut.delayIn.data(ch, i),
-               rd_clk => refClk200MHz,
-               dout   => config.delayIn.data(ch, i));
-      end generate GEN_DAT_CONFIG;
-   end generate GEN_CH_CONFIG;
-
-   SyncOut_delayIn_load : entity work.RstSync
-      generic map (
-         TPD_G           => TPD_G,
-         RELEASE_DELAY_G => 32)   
-      port map (
-         clk      => refClk200MHz,
-         asyncRst => r.regOut.delayIn.load,
-         syncRst  => config.delayIn.load); 
-
-   SyncOut_delayIn_rst : entity work.RstSync
-      generic map (
-         TPD_G           => TPD_G,
-         RELEASE_DELAY_G => 16)   
-      port map (
-         clk      => refClk200MHz,
-         asyncRst => r.regOut.delayIn.rst,
-         syncRst  => config.delayIn.rst);     
-
-   -------------------------------
-   -- Synchronization: Inputs
-   -------------------------------
-   regIn.adcData <= status.adcData;
-
-   SyncIn_delayOut_rdy : entity work.Synchronizer
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk     => adcClk,
-         dataIn  => status.delayOut.rdy,
-         dataOut => regIn.delayOut.rdy);   
-
-   GEN_CH_STATUS :
-   for ch in 0 to 1 generate
-      GEN_DAT_STATUS :
-      for i in 0 to 7 generate
-         SyncIn_delayOut_data : entity work.SynchronizerFifo
-            generic map (
-               TPD_G        => TPD_G,
-               DATA_WIDTH_G => 10)
-            port map (
-               wr_clk => refClk200MHz,
-               din    => status.delayOut.data(ch, i),
-               rd_clk => adcClk,
-               dout   => regIn.delayOut.data(ch, i));       
-      end generate GEN_DAT_STATUS;
-   end generate GEN_CH_STATUS;
+      SyncOut_delayIn_data : entity work.SynchronizerFifo
+         generic map (
+            TPD_G        => TPD_G,
+            DATA_WIDTH_G => 16)
+         port map (
+            wr_clk   => adcClk,
+            wr_en    => ra.armed,
+            din      => status.adcData(ch),
+            rd_clk   => axiClk,
+            rd_en    => regIn.adcValid(ch),
+            valid    => regIn.adcValid(ch),
+            dout     => regIn.adcData(ch)
+         );
+   end generate;
+   
+   regIn.delayOut <= status.delayOut;
 
 end rtl;

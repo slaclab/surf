@@ -38,13 +38,14 @@ entity AxiAds42lb69DeserBit is
       dataN        : in  sl;
       Q1           : out sl;
       Q2           : out sl;
-      -- IO_Delay (refClk200MHz domain)
+      -- IO_Delay (delayClk domain)
+      delayClk     : in  sl;
+      delayRst     : in  sl;
       delayInLoad  : in  sl;
       delayInData  : in  slv(8 downto 0);
       delayOutData : out slv(9 downto 0);
       -- Clocks
-      clk          : in  sl;
-      refClk200MHz : in  sl);
+      clk          : in  sl);
 end AxiAds42lb69DeserBit;
 
 architecture rtl of AxiAds42lb69DeserBit is
@@ -83,7 +84,7 @@ begin
          port map (
             CNTVALUEOUT => delayOutData(4 downto 0),   -- 5-bit output: Counter value output
             DATAOUT     => dataDly,        -- 1-bit output: Delayed data output
-            C           => refClk200MHz,   -- 1-bit input: Clock input
+            C           => delayClk,       -- 1-bit input: Clock input
             CE          => '0',            -- 1-bit input: Active high enable increment/decrement input
             CINVCTRL    => '0',            -- 1-bit input: Dynamic clock inversion input
             CNTVALUEIN  => delayInData(4 downto 0),    -- 5-bit input: Counter value input
@@ -142,12 +143,12 @@ begin
             DATAIN      => '0',           -- 1-bit input: Data input from the logic 
             IDATAIN     => data,          -- 1-bit input: Data input from the IOBUF
             DATAOUT     => dataDly,       -- 1-bit output: Delayed data output 
-            CLK         => clk,           -- 1-bit input: Clock input 
+            CLK         => delayClk,           -- 1-bit input: Clock input 
             EN_VTC      => '0',           -- 1-bit input: Keep delay constant over VT 
             INC         => '0',           -- 1-bit input: Increment / Decrement tap delay input 
             CE          => '0',           -- 1-bit input: Active high enable increment/decrement input 
             LOAD        => delayInLoad,   -- 1-bit input: Load DELAY_VALUE input 
-            RST         => '0',           -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
+            RST         => delayRst,      -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
             CNTVALUEIN  => delayInData,      -- 9-bit input: Counter value input 
             CNTVALUEOUT => delayOutData1);   -- 9-bit output: Counter value output 
       
@@ -167,16 +168,16 @@ begin
             CASC_RETURN => '0',           -- 1-bit input: Cascade delay returning from slave IDELAY DATAOUT 
             ODATAIN     => '0',           -- 1-bit input: Data input
             DATAOUT     => cascRet,       -- 1-bit output: Delayed data from ODATAIN input port 
-            CLK         => clk,           -- 1-bit input: Clock input 
+            CLK         => delayClk,           -- 1-bit input: Clock input 
             EN_VTC      => '0',           -- 1-bit input: Keep delay constant over VT 
             INC         => '0',           -- 1-bit input: Increment / Decrement tap delay input
             CE          => '0',           -- 1-bit input: Active high enable increment/decrement input 
             LOAD        => delayInLoad,   -- 1-bit input: Load DELAY_VALUE input 
-            RST         => '0',           -- 1-bit input: Asynchronous Reset to the DELAY_VALUE 
+            RST         => delayRst,      -- 1-bit input: Asynchronous Reset to the DELAY_VALUE 
             CNTVALUEIN  => delayInData,      -- 9-bit input: Counter value input
             CNTVALUEOUT => delayOutData2);   -- 9-bit output: Counter value output 
       
-      delayOutData <= ext(delayOutData1, 10) + ext(delayOutData2, 10);
+      delayOutData <= resize(delayOutData1, 10, '0') + delayOutData2;
 
       IDDR_Inst : IDDRE1
          generic map (
