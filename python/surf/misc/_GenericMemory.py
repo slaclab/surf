@@ -22,20 +22,20 @@ import rogue.interfaces.memory
 
 class GenericMemory(pr.Device):
     def __init__(   self, 
-                    name        = "GenericMemory", 
-                    description = "Generic Memory Module", 
-                    memBase     =  None, 
-                    offset      =  0x0, 
-                    hidden      =  True, 
-                    nelms       =  1, 
-                    bitSize     =  32, 
-                    bitOffset   =  0, 
-                    stride      =  4,
-                    base        = "hex", 
-                    mode        = "RW", 
-                    instantiate =  True,
-                    expand      =  False,
-                ):
+        name        = "GenericMemory", 
+        description = "Generic Memory Module", 
+        memBase     =  None, 
+        offset      =  0x0, 
+        hidden      =  True, 
+        nelms       =  1, 
+        bitSize     =  32, 
+        bitOffset   =  0, 
+        stride      =  4,
+        base        = "hex", 
+        mode        = "RW", 
+        instantiate =  True,
+        expand      =  False,
+    ):
         super().__init__(
             name        = name,
             description = description,
@@ -43,7 +43,7 @@ class GenericMemory(pr.Device):
             offset      = offset,
             hidden      = hidden,
             expand      = expand,
-        )                
+        )           
 
         ##############################
         # Variables
