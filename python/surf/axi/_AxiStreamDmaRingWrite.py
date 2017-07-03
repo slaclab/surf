@@ -38,6 +38,8 @@ class AxiStreamDmaRingWrite(pr.Device):
             expand      = expand,
         )  
 
+        self._numBuffers = numBuffers
+        
         ##############################
         # Variables
         ##############################
@@ -267,21 +269,15 @@ class AxiStreamDmaRingWrite(pr.Device):
         ##############################
         # Commands
         ##############################
+        @self.command(name="Initialize", description="Initialize the buffer. Reset the write pointer to StartAddr. Clear the Done field.",)
+        def Initialize():
+            for i in range(self._numBuffers):
+                self.Init[i].set(1)
+                self.Init[i].set(0)       
 
-        self.addCommand(    name         = "Initialize",
-                            description  = "Initialize the buffer. Reset the write pointer to StartAddr. Clear the Done field.",
-                            function     = """\
-                                           for i in range(%d):
-                                             dev.Init[i].set(1)
-                                             dev.Init[i].set(0)
-                                           """ % numBuffers
-                        )
-
-        self.addCommand(    name         = "SoftTriggerAll",
-                            description  = "Send a trigger to the buffer",
-                            function     = """\
-                                           for i in range(%d):
-                                             dev.SoftTrigger[i].set(1)
-                                             dev.SoftTrigger[i].set(0)
-                                           """ % numBuffers
-                        )
+        @self.command(name="SoftTriggerAll", description="Send a trigger to the buffer",)
+        def SoftTriggerAll():
+            for i in range(self._numBuffers):
+                self.SoftTrigger[i].set(1)
+                self.SoftTrigger[i].set(0)                       
+                
