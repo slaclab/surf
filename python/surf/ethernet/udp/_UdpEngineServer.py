@@ -21,34 +21,43 @@ import pyrogue as pr
 
 class UdpEngineServer(pr.Device):
     def __init__(   self,       
-                    name        = "UdpEngineServer",
-                    description = "UdpEngineServer",
-                    memBase     =  None,
-                    offset      =  0x00,
-                    hidden      =  False,
-                    expand	    =  True,
-                ):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, expand=expand)  
+        name        = "UdpEngineServer",
+        description = "UdpEngineServer",
+        memBase     =  None,
+        offset      =  0x00,
+        hidden      =  False,
+        expand      =  True,
+    ):
+        super().__init__(
+            name        = name,
+            description = description,
+            memBase     = memBase,
+            offset      = offset,
+            hidden      = hidden,
+            expand      = expand,
+        )
 
         ##############################
         # Variables
         ##############################
 
-        self.addVariable(   name         = "ServerRemotePort",
-                            description  = "ServerRemotePort (big-Endian configuration)",
-                            offset       =  0x00,
-                            bitSize      =  16,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RO",
-                        )
+        self.addVariable(   
+            name         = "ServerRemotePort",
+            description  = "ServerRemotePort (big-Endian configuration)",
+            offset       =  0x00,
+            bitSize      =  16,
+            bitOffset    =  0x00,
+            base         = "hex",
+            mode         = "RO",
+        )
 
-        self.addVariable(   name         = "ServerRemoteIp",
-                            description  = "ServerRemoteIp (big-Endian configuration)",
-                            offset       =  0x04,
-                            bitSize      =  32,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RO",
-                        )
+        self.addVariable(   
+            name         = "ServerRemoteIp",
+            description  = "ServerRemoteIp (big-Endian configuration)",
+            offset       =  0x04,
+            bitSize      =  32,
+            bitOffset    =  0x00,
+            base         = "hex",
+            mode         = "RO",
+        )
 

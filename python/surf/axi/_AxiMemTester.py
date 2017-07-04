@@ -21,97 +21,113 @@ import pyrogue as pr
 
 class AxiMemTester(pr.Device):
     def __init__(   self,       
-                    name        = "AxiMemTester",
-                    description = "AXI4 Memory Tester Module",
-                    memBase     =  None,
-                    offset      =  0x00,
-                    hidden      =  False,
-                    expand	    =  True,
-                ):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, expand=expand)    
+        name        = "AxiMemTester",
+        description = "AXI4 Memory Tester Module",
+        memBase     =  None,
+        offset      =  0x00,
+        hidden      =  False,
+        expand      =  True,
+    ):
+        super().__init__(
+            name        = name,
+            description = description,
+            memBase     = memBase,
+            offset      = offset,
+            hidden      = hidden,
+            expand      = expand,
+        ) 
 
         ##############################
         # Variables
         ##############################
 
-        self.addVariable(   name         = "Passed",
-                            description  = "Passed Memory Test",
-                            offset       =  0x100,
-                            bitSize      =  1,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RO",
-                        )
+        self.addVariable(   
+            name         = "Passed",
+            description  = "Passed Memory Test",
+            offset       =  0x100,
+            bitSize      =  1,
+            bitOffset    =  0x00,
+            base         = "hex",
+            mode         = "RO",
+        )
 
-        self.addVariable(   name         = "Failed",
-                            description  = "Failed Memory Test",
-                            offset       =  0x104,
-                            bitSize      =  1,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RO",
-                        )
+        self.addVariable(   
+            name         = "Failed",
+            description  = "Failed Memory Test",
+            offset       =  0x104,
+            bitSize      =  1,
+            bitOffset    =  0x00,
+            base         = "hex",
+            mode         = "RO",
+        )
 
-        self.addVariable(   name         = "WriteTimer",
-                            description  = "Write Timer",
-                            offset       =  0x108,
-                            bitSize      =  32,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RO",
-                        )
+        self.addVariable(   
+            name         = "WriteTimer",
+            description  = "Write Timer",
+            offset       =  0x108,
+            bitSize      =  32,
+            bitOffset    =  0x00,
+            base         = "hex",
+            mode         = "RO",
+        )
 
-        self.addVariable(   name         = "ReadTimer",
-                            description  = "Read Timer",
-                            offset       =  0x10C,
-                            bitSize      =  32,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RO",
-                        )
+        self.addVariable(   
+            name         = "ReadTimer",
+            description  = "Read Timer",
+            offset       =  0x10C,
+            bitSize      =  32,
+            bitOffset    =  0x00,
+            base         = "hex",
+            mode         = "RO",
+        )
 
-        self.addVariable(   name         = "StartAddress",
-                            description  = "Start Address",
-                            offset       =  0x110,
-                            bitSize      =  64,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RO",
-                        )
+        self.addVariable(   
+            name         = "StartAddress",
+            description  = "Start Address",
+            offset       =  0x110,
+            bitSize      =  64,
+            bitOffset    =  0x00,
+            base         = "hex",
+            mode         = "RO",
+        )
 
-        self.addVariable(   name         = "StopAddress",
-                            description  = "Stop Address",
-                            offset       =  0x118,
-                            bitSize      =  64,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RO",
-                        )
+        self.addVariable(   
+            name         = "StopAddress",
+            description  = "Stop Address",
+            offset       =  0x118,
+            bitSize      =  64,
+            bitOffset    =  0x00,
+            base         = "hex",
+            mode         = "RO",
+        )
 
-        self.addVariable(   name         = "ADDR_WIDTH_C",
-                            description  = "AXI4 Address Bus Width (units of bits)",
-                            offset       =  0x120,
-                            bitSize      =  32,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RO",
-                        )
+        self.addVariable(   
+            name         = "ADDR_WIDTH_C",
+            description  = "AXI4 Address Bus Width (units of bits)",
+            offset       =  0x120,
+            bitSize      =  32,
+            bitOffset    =  0x00,
+            base         = "hex",
+            mode         = "RO",
+        )
 
-        self.addVariable(   name         = "DATA_BYTES_C",
-                            description  = "AXI4 Data Bus Width (units of bits)",
-                            offset       =  0x124,
-                            bitSize      =  32,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RO",
-                        )
+        self.addVariable(   
+            name         = "DATA_BYTES_C",
+            description  = "AXI4 Data Bus Width (units of bits)",
+            offset       =  0x124,
+            bitSize      =  32,
+            bitOffset    =  0x00,
+            base         = "hex",
+            mode         = "RO",
+        )
 
-        self.addVariable(   name         = "ID_BITS_C",
-                            description  = "AXI4 ID Bus Width (units of bits)",
-                            offset       =  0x128,
-                            bitSize      =  32,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RO",
-                        )
+        self.addVariable(   
+            name         = "ID_BITS_C",
+            description  = "AXI4 ID Bus Width (units of bits)",
+            offset       =  0x128,
+            bitSize      =  32,
+            bitOffset    =  0x00,
+            base         = "hex",
+            mode         = "RO",
+        )
 

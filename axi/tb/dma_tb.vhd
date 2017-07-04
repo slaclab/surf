@@ -151,7 +151,7 @@ begin
          axiWriteCtrl        => slvAxiWriteCtrl
       );
 
-   U_Fifo : entity work.AxiStreamFifo 
+   U_Fifo : entity work.AxiStreamFifoV2
       generic map (
          TPD_G               => 1 ns,
          BRAM_EN_G           => true,

@@ -126,7 +126,7 @@ begin
    ----------------------------------
    -- Output FIFO 
    ----------------------------------
-   TxAxiStreamFifo : entity work.AxiStreamFifo
+   TxAxiStreamFifo : entity work.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          PIPE_STAGES_G       => 1,
@@ -158,7 +158,7 @@ begin
    ----------------------------------
    -- Input FIFO 
    ----------------------------------
-   RxAxiStreamFifo : entity work.AxiStreamFifo
+   RxAxiStreamFifo : entity work.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          PIPE_STAGES_G       => 1,

@@ -108,7 +108,7 @@ architecture rtl of SaltTx is
 
 begin
 
-   FIFO_RX : entity work.AxiStreamFifo
+   FIFO_RX : entity work.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -137,7 +137,7 @@ begin
          mAxisMaster => rxMaster,
          mAxisSlave  => rxSlave);
 
-   DATAGRAM_BUFFER : entity work.AxiStreamFifo
+   DATAGRAM_BUFFER : entity work.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -384,7 +384,7 @@ begin
       end if;
    end process seq;
 
-   FIFO_TX : entity work.AxiStreamFifo
+   FIFO_TX : entity work.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,

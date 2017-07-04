@@ -106,7 +106,7 @@ begin
          clk                  => clk,
          rst                  => rst); 
 
-   MAC_FIFO_0 : entity work.AxiStreamFifo
+   MAC_FIFO_0 : entity work.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_C,
@@ -134,7 +134,7 @@ begin
          mAxisMaster => obMacMasters(1),
          mAxisSlave  => obMacSlaves(1));    
 
-   MAC_FIFO_1 : entity work.AxiStreamFifo
+   MAC_FIFO_1 : entity work.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_C,

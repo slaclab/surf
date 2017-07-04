@@ -111,7 +111,7 @@ begin
             tId          => (others => '0')
          );     
 
-      U_AxiStreamFifo: entity work.AxiStreamFifo 
+      U_AxiStreamFifo: entity work.AxiStreamFifoV2
          generic map (
             TPD_G                  => TPD_C,
             FIFO_ADDR_WIDTH_G      => 9,
@@ -147,7 +147,7 @@ begin
          axisRst      => axiClkRst
       );
 
-   U_AxiStreamFifo: entity work.AxiStreamFifo 
+   U_AxiStreamFifo: entity work.AxiStreamFifoV2
       generic map (
          TPD_G                  => TPD_C,
          INT_PIPE_STAGES_G      => 1,

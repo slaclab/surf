@@ -163,7 +163,7 @@ begin
    ----------------------------------
    -- Input FIFO 
    ----------------------------------
-   SlaveAxiStreamFifo : entity work.AxiStreamFifo
+   SlaveAxiStreamFifo : entity work.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          PIPE_STAGES_G       => 0,
@@ -441,7 +441,7 @@ begin
    ----------------------------------
    -- Output FIFO 
    ----------------------------------
-   MasterAxiStreamFifo : entity work.AxiStreamFifo
+   MasterAxiStreamFifo : entity work.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          PIPE_STAGES_G       => 0,

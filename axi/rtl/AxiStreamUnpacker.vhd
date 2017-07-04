@@ -222,7 +222,7 @@ begin
    locRawAxisCtrl  <= rawAxisCtrl;
 
    -- Could probably get rid of this
---   AxiStreamFifo_1 : entity work.AxiStreamFifo
+--   AxiStreamFifo_1 : entity work.AxiStreamFifoV2
 --      generic map (
 --         TPD_G               => TPD_G,
 --         BRAM_EN_G           => false,

@@ -178,7 +178,7 @@ begin
             tId          => (others=>'0')
          );
 
-         U_TxFifo : entity work.AxiStreamFifo
+         U_TxFifo : entity work.AxiStreamFifoV2
             generic map (
                TPD_G               => 1 ns,
                PIPE_STAGES_G       => 1,
@@ -275,7 +275,7 @@ begin
    -- PRBS receiver
    U_RxGen: for i in 0 to 0 generate 
 
-      AxiStreamFifo_Rx : entity work.AxiStreamFifo
+      AxiStreamFifo_Rx : entity work.AxiStreamFifoV2
          generic map(
             -- General Configurations
             TPD_G               => 1 ns,

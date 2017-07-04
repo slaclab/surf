@@ -22,37 +22,46 @@ import rogue.interfaces.memory
 
 class GenericMemory(pr.Device):
     def __init__(   self, 
-                    name        = "GenericMemory", 
-                    description = "Generic Memory Module", 
-                    memBase     =  None, 
-                    offset      =  0x0, 
-                    hidden      =  False, 
-                    nelms       =  1, 
-                    bitSize     =  32, 
-                    bitOffset   =  0, 
-                    stride      =  4,
-                    base        = "hex", 
-                    mode        = "RW", 
-                    instantiate =  True,
-                ):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden=False)
+        name        = "GenericMemory", 
+        description = "Generic Memory Module", 
+        memBase     =  None, 
+        offset      =  0x0, 
+        hidden      =  True, 
+        nelms       =  1, 
+        bitSize     =  32, 
+        bitOffset   =  0, 
+        stride      =  4,
+        base        = "hex", 
+        mode        = "RW", 
+        instantiate =  True,
+        expand      =  False,
+    ):
+        super().__init__(
+            name        = name,
+            description = description,
+            memBase     = memBase,
+            offset      = offset,
+            hidden      = hidden,
+            expand      = expand,
+        )           
 
         ##############################
         # Variables
         ##############################
         
         if (instantiate):
-            self.addVariables(  name         = "Mem",
-                                description  = "Memory Array",
-                                offset       =  0x00,
-                                bitSize      =  bitSize,
-                                bitOffset    =  bitOffset,
-                                base         =  base,
-                                mode         =  mode,
-                                number       =  nelms,
-                                stride       =  stride,
-                                hidden = hidden,
-                            )
+            self.addVariables(  
+                name         = "Mem",
+                description  = "Memory Array",
+                offset       =  0x00,
+                bitSize      =  bitSize,
+                bitOffset    =  bitOffset,
+                base         =  base,
+                mode         =  mode,
+                number       =  nelms,
+                stride       =  stride,
+                hidden = hidden,
+            )
 
         @self.command()
         def fill():

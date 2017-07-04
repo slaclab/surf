@@ -21,12 +21,18 @@ import pyrogue as pr
 
 class AxiLiteEmpty(pr.Device):
     def __init__(   self,       
-                    name        = "AxiEmpty",
-                    description = "AxiEmpty Module as a placeholder for future module",
-                    memBase     =  None,
-                    offset      =  0x00,
-                    hidden      =  False,
-                    expand	    =  True,
-                ):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, expand=expand)    
-
+        name        = "AxiEmpty",
+        description = "AxiEmpty Module as a placeholder for future module",
+        memBase     =  None,
+        offset      =  0x00,
+        hidden      =  True,
+        expand      =  True,
+    ):
+        super().__init__(
+            name        = name,
+            description = description,
+            memBase     = memBase,
+            offset      = offset,
+            hidden      = hidden,
+            expand      = expand,
+        )   

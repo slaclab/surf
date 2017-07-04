@@ -90,7 +90,7 @@ architecture AxiStreamSimWrap of AxiStreamSimWrap is
 
 begin
 
-   Slave_Fifo : entity work.AxiStreamFifo
+   Slave_Fifo : entity work.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -164,7 +164,7 @@ begin
          rst  => slaveRst,
          rstL => open);         
          
-   Master_Fifo : entity work.AxiStreamFifo
+   Master_Fifo : entity work.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
