@@ -27,7 +27,8 @@ entity AxiAds42lb69Pll is
    generic (
       TPD_G          : time    := 1 ns;
       USE_PLL_G      : boolean := true;
-      ADC_CLK_FREQ_G : real    := 250.0E+6);
+      ADC_CLK_FREQ_G : real    := 250.0E+6;
+      XIL_DEVICE_G   : string  := "7SERIES");
    port (
       -- ADC Clocking ports
       adcClkP   : out sl;
@@ -57,7 +58,7 @@ architecture mapping of AxiAds42lb69Pll is
 
 begin
 
-   GEN_PLL : if (USE_PLL_G = true) generate
+   GEN_PLL : if (USE_PLL_G = true and XIL_DEVICE_G = "7SERIES") generate
 
       IBUFGDS_0 : IBUFGDS
          port map (
@@ -162,7 +163,7 @@ begin
 
    end generate;
 
-   GEN_NO_PLL : if (USE_PLL_G = false) generate
+   GEN_NO_PLL : if (USE_PLL_G = false and XIL_DEVICE_G = "7SERIES") generate
       
       ClkOutBufDiff_1 : entity work.ClkOutBufDiff
          port map (
@@ -211,6 +212,55 @@ begin
             I => adcInClk,
             O => adcClock); 
 
+   end generate;
+   
+   
+   GEN_ULTRASCALE_NO_PLL : if (XIL_DEVICE_G = "ULTRASCALE") generate
+      
+      ClkOutBufDiff_1 : entity work.ClkOutBufDiff
+         generic map (
+            XIL_DEVICE_G => XIL_DEVICE_G)
+         port map (
+            clkIn   => adcClk,
+            rstIn   => adcRst,
+            clkOutP => adcClkP,
+            clkOutN => adcClkN);   
+
+      SynchronizerOneShot_1 : entity work.SynchronizerOneShot
+         generic map (
+            TPD_G         => TPD_G,
+            BYPASS_SYNC_G => true)
+         port map (
+            clk     => adcClk,
+            dataIn  => adcSync,
+            dataOut => sync);
+
+      ODDRE1_1 : ODDRE1
+         port map (
+            D1 => sync,                       -- 1-bit data input (positive edge)
+            D2 => sync,                       -- 1-bit data input (negative edge)
+            Q  => syncOut,                    -- 1-bit DDR output
+            C  => adcClk,                     -- 1-bit clock input
+            SR  => '0');
+      
+      OBUFDS_1 : OBUFDS
+         port map(
+            I  => syncOut,
+            O  => adcSyncP,
+            OB => adcSyncN);         
+
+      IBUFGDS_1 : IBUFGDS
+         port map (
+            I  => adcClkFbP,
+            IB => adcClkFbN,
+            O  => adcInClk);
+
+      BUFG_1 : BUFG
+         port map (
+            I => adcInClk,
+            O => adcClock); 
+
+      
    end generate;
    
 end mapping;
