@@ -5,3 +5,4 @@ source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 loadRuckusTcl "$::DIR_PATH/n25q"
 loadRuckusTcl "$::DIR_PATH/p30"
 loadRuckusTcl "$::DIR_PATH/ddr3"
+loadRuckusTcl "$::DIR_PATH/ddr4"
