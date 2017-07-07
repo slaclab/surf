@@ -76,7 +76,7 @@ begin
                else
                   -- Check for skip
                   if (rxData /= cnt)   then
-                     -- failed <= '1' after TPD_C;
+                     failed <= '1' after TPD_C;
                   end if;
                   cnt <= rxData + 1 after TPD_C;
                end if;
