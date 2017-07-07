@@ -2,7 +2,7 @@
 -- File       : Jesd204bPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-07-11
--- Last update: 2017-05-03
+-- Last update: 2017-07-06
 -------------------------------------------------------------------------------
 -- Description: JESD204B Package File
 -------------------------------------------------------------------------------
@@ -58,9 +58,9 @@ package Jesd204bPkg is
 -------------------------------------------------------------------------- 
    type jesdGtRxLaneType is record
       data      : slv((GT_WORD_SIZE_C*8)-1 downto 0);  -- PHY receive data
-      dataK     : slv(GT_WORD_SIZE_C-1 downto 0);      -- PHY receive data is K character
-      dispErr   : slv(GT_WORD_SIZE_C-1 downto 0);      -- PHY receive data has disparity error
-      decErr    : slv(GT_WORD_SIZE_C-1 downto 0);      -- PHY receive data not in table
+      dataK     : slv(GT_WORD_SIZE_C-1 downto 0);  -- PHY receive data is K character
+      dispErr   : slv(GT_WORD_SIZE_C-1 downto 0);  -- PHY receive data has disparity error
+      decErr    : slv(GT_WORD_SIZE_C-1 downto 0);  -- PHY receive data not in table
       rstDone   : sl;
       cdrStable : sl;
    end record jesdGtRxLaneType;
@@ -76,7 +76,7 @@ package Jesd204bPkg is
 
    type jesdGtTxLaneType is record
       data  : slv((GT_WORD_SIZE_C*8)-1 downto 0);  -- PHY receive data
-      dataK : slv(GT_WORD_SIZE_C-1 downto 0);      -- PHY receive data is K character
+      dataK : slv(GT_WORD_SIZE_C-1 downto 0);  -- PHY receive data is K character
    end record jesdGtTxLaneType;
    constant JESD_GT_TX_LANE_INIT_C : jesdGtTxLaneType := (
       data  => (others => '0'),
@@ -132,6 +132,12 @@ package Jesd204bPkg is
    -- Invert signed 
    function invSigned(input : slv) return std_logic_vector;
    function invData(data    : slv; F_int : positive; bytes_int : positive) return std_logic_vector;
+
+   procedure jesdScrambler (
+      dataIn  : in    slv(15 downto 0);
+      lfsrIn  : in    slv(14 downto 0);
+      dataOut : inout slv(15 downto 0);
+      lfsrOut : inout slv(14 downto 0));
 
 end Jesd204bPkg;
 
@@ -420,6 +426,46 @@ package body Jesd204bPkg is
 
    end invData;
 
+   -- lfsr(14:0)=1+x^14+x^15
+   procedure jesdScrambler (
+      dataIn  : in    slv(15 downto 0);
+      lfsrIn  : in    slv(14 downto 0);
+      dataOut : inout slv(15 downto 0);
+      lfsrOut : inout slv(14 downto 0)) is
+   begin
+      lfsrOut(0)  := lfsrIn(0) xor lfsrIn(1) xor lfsrIn(2) xor lfsrIn(3) xor lfsrIn(4) xor lfsrIn(5) xor lfsrIn(6) xor lfsrIn(7) xor lfsrIn(8) xor lfsrIn(9) xor lfsrIn(10) xor lfsrIn(11) xor lfsrIn(12) xor lfsrIn(13);
+      lfsrOut(1)  := lfsrIn(0) xor lfsrIn(1) xor lfsrIn(2) xor lfsrIn(3) xor lfsrIn(4) xor lfsrIn(5) xor lfsrIn(6) xor lfsrIn(7) xor lfsrIn(8) xor lfsrIn(9) xor lfsrIn(10) xor lfsrIn(11) xor lfsrIn(12) xor lfsrIn(13) xor lfsrIn(14);
+      lfsrOut(2)  := lfsrIn(1) xor lfsrIn(2) xor lfsrIn(3) xor lfsrIn(4) xor lfsrIn(5) xor lfsrIn(6) xor lfsrIn(7) xor lfsrIn(8) xor lfsrIn(9) xor lfsrIn(10) xor lfsrIn(11) xor lfsrIn(12) xor lfsrIn(13) xor lfsrIn(14);
+      lfsrOut(3)  := lfsrIn(2) xor lfsrIn(3) xor lfsrIn(4) xor lfsrIn(5) xor lfsrIn(6) xor lfsrIn(7) xor lfsrIn(8) xor lfsrIn(9) xor lfsrIn(10) xor lfsrIn(11) xor lfsrIn(12) xor lfsrIn(13) xor lfsrIn(14);
+      lfsrOut(4)  := lfsrIn(3) xor lfsrIn(4) xor lfsrIn(5) xor lfsrIn(6) xor lfsrIn(7) xor lfsrIn(8) xor lfsrIn(9) xor lfsrIn(10) xor lfsrIn(11) xor lfsrIn(12) xor lfsrIn(13) xor lfsrIn(14);
+      lfsrOut(5)  := lfsrIn(4) xor lfsrIn(5) xor lfsrIn(6) xor lfsrIn(7) xor lfsrIn(8) xor lfsrIn(9) xor lfsrIn(10) xor lfsrIn(11) xor lfsrIn(12) xor lfsrIn(13) xor lfsrIn(14);
+      lfsrOut(6)  := lfsrIn(5) xor lfsrIn(6) xor lfsrIn(7) xor lfsrIn(8) xor lfsrIn(9) xor lfsrIn(10) xor lfsrIn(11) xor lfsrIn(12) xor lfsrIn(13) xor lfsrIn(14);
+      lfsrOut(7)  := lfsrIn(6) xor lfsrIn(7) xor lfsrIn(8) xor lfsrIn(9) xor lfsrIn(10) xor lfsrIn(11) xor lfsrIn(12) xor lfsrIn(13) xor lfsrIn(14);
+      lfsrOut(8)  := lfsrIn(7) xor lfsrIn(8) xor lfsrIn(9) xor lfsrIn(10) xor lfsrIn(11) xor lfsrIn(12) xor lfsrIn(13) xor lfsrIn(14);
+      lfsrOut(9)  := lfsrIn(8) xor lfsrIn(9) xor lfsrIn(10) xor lfsrIn(11) xor lfsrIn(12) xor lfsrIn(13) xor lfsrIn(14);
+      lfsrOut(10) := lfsrIn(9) xor lfsrIn(10) xor lfsrIn(11) xor lfsrIn(12) xor lfsrIn(13) xor lfsrIn(14);
+      lfsrOut(11) := lfsrIn(10) xor lfsrIn(11) xor lfsrIn(12) xor lfsrIn(13) xor lfsrIn(14);
+      lfsrOut(12) := lfsrIn(11) xor lfsrIn(12) xor lfsrIn(13) xor lfsrIn(14);
+      lfsrOut(13) := lfsrIn(12) xor lfsrIn(13) xor lfsrIn(14);
+      lfsrOut(14) := lfsrIn(0) xor lfsrIn(1) xor lfsrIn(2) xor lfsrIn(3) xor lfsrIn(4) xor lfsrIn(5) xor lfsrIn(6) xor lfsrIn(7) xor lfsrIn(8) xor lfsrIn(9) xor lfsrIn(10) xor lfsrIn(11) xor lfsrIn(12) xor lfsrIn(14);
 
---------------------------------------------------------------------------------------------
+      dataOut(0)  := dataIn(0) xor lfsrIn(14);
+      dataOut(1)  := dataIn(1) xor lfsrIn(13) xor lfsrIn(14);
+      dataOut(2)  := dataIn(2) xor lfsrIn(12) xor lfsrIn(13) xor lfsrIn(14);
+      dataOut(3)  := dataIn(3) xor lfsrIn(11) xor lfsrIn(12) xor lfsrIn(13) xor lfsrIn(14);
+      dataOut(4)  := dataIn(4) xor lfsrIn(10) xor lfsrIn(11) xor lfsrIn(12) xor lfsrIn(13) xor lfsrIn(14);
+      dataOut(5)  := dataIn(5) xor lfsrIn(9) xor lfsrIn(10) xor lfsrIn(11) xor lfsrIn(12) xor lfsrIn(13) xor lfsrIn(14);
+      dataOut(6)  := dataIn(6) xor lfsrIn(8) xor lfsrIn(9) xor lfsrIn(10) xor lfsrIn(11) xor lfsrIn(12) xor lfsrIn(13) xor lfsrIn(14);
+      dataOut(7)  := dataIn(7) xor lfsrIn(7) xor lfsrIn(8) xor lfsrIn(9) xor lfsrIn(10) xor lfsrIn(11) xor lfsrIn(12) xor lfsrIn(13) xor lfsrIn(14);
+      dataOut(8)  := dataIn(8) xor lfsrIn(6) xor lfsrIn(7) xor lfsrIn(8) xor lfsrIn(9) xor lfsrIn(10) xor lfsrIn(11) xor lfsrIn(12) xor lfsrIn(13) xor lfsrIn(14);
+      dataOut(9)  := dataIn(9) xor lfsrIn(5) xor lfsrIn(6) xor lfsrIn(7) xor lfsrIn(8) xor lfsrIn(9) xor lfsrIn(10) xor lfsrIn(11) xor lfsrIn(12) xor lfsrIn(13) xor lfsrIn(14);
+      dataOut(10) := dataIn(10) xor lfsrIn(4) xor lfsrIn(5) xor lfsrIn(6) xor lfsrIn(7) xor lfsrIn(8) xor lfsrIn(9) xor lfsrIn(10) xor lfsrIn(11) xor lfsrIn(12) xor lfsrIn(13) xor lfsrIn(14);
+      dataOut(11) := dataIn(11) xor lfsrIn(3) xor lfsrIn(4) xor lfsrIn(5) xor lfsrIn(6) xor lfsrIn(7) xor lfsrIn(8) xor lfsrIn(9) xor lfsrIn(10) xor lfsrIn(11) xor lfsrIn(12) xor lfsrIn(13) xor lfsrIn(14);
+      dataOut(12) := dataIn(12) xor lfsrIn(2) xor lfsrIn(3) xor lfsrIn(4) xor lfsrIn(5) xor lfsrIn(6) xor lfsrIn(7) xor lfsrIn(8) xor lfsrIn(9) xor lfsrIn(10) xor lfsrIn(11) xor lfsrIn(12) xor lfsrIn(13) xor lfsrIn(14);
+      dataOut(13) := dataIn(13) xor lfsrIn(1) xor lfsrIn(2) xor lfsrIn(3) xor lfsrIn(4) xor lfsrIn(5) xor lfsrIn(6) xor lfsrIn(7) xor lfsrIn(8) xor lfsrIn(9) xor lfsrIn(10) xor lfsrIn(11) xor lfsrIn(12) xor lfsrIn(13) xor lfsrIn(14);
+      dataOut(14) := dataIn(14) xor lfsrIn(0) xor lfsrIn(1) xor lfsrIn(2) xor lfsrIn(3) xor lfsrIn(4) xor lfsrIn(5) xor lfsrIn(6) xor lfsrIn(7) xor lfsrIn(8) xor lfsrIn(9) xor lfsrIn(10) xor lfsrIn(11) xor lfsrIn(12) xor lfsrIn(13) xor lfsrIn(14);
+      dataOut(15) := dataIn(15) xor lfsrIn(0) xor lfsrIn(1) xor lfsrIn(2) xor lfsrIn(3) xor lfsrIn(4) xor lfsrIn(5) xor lfsrIn(6) xor lfsrIn(7) xor lfsrIn(8) xor lfsrIn(9) xor lfsrIn(10) xor lfsrIn(11) xor lfsrIn(12) xor lfsrIn(13);
+
+   end procedure;
+
 end package body Jesd204bPkg;
