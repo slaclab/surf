@@ -1239,7 +1239,7 @@ class Lmk04828(pr.Device):
         ##############################
         # Commands
         ##############################
-        @self.command(name="LoadCodeLoaderMacFile", description="Load the CodeLoader .MAC file",)
+        @self.command(description="Load the CodeLoader .MAC file",base=pr.String,)
         def LoadCodeLoaderMacFile(arg):         
             # Open the input file
             with open(arg, 'r') as ifd:              
@@ -1278,15 +1278,15 @@ class Lmk04828(pr.Device):
                         pass                            
             ifd.close()         
             
-        @self.command(name="PwrDwnSysRef", description="Powerdown the sysref lines",)
+        @self.command(description="Powerdown the sysref lines",)
         def PwrDwnSysRef(): 
             self.EnableSysRef.set(0)        
 
-        @self.command(name="PwrUpSysRef", description="Powerup the sysref lines",)
+        @self.command(description="Powerup the sysref lines",)
         def PwrUpSysRef(): 
             self.EnableSysRef.set(3)                
             
-        @self.command(name="Init", description="Synchronize LMK internal counters. Warning this function will power off and power on all the system clocks",)
+        @self.command(description="Synchronize LMK internal counters. Warning this function will power off and power on all the system clocks",)
         def Init(): 
             self.EnableSysRef.set(0)
             self.EnableSync.set(0)
