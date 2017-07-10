@@ -44,7 +44,7 @@ class Ltc2270(pr.Device):
             offset      = 0x000, 
             bitSize     = 1, 
             bitOffset   = 7, 
-            base        = 'bool', 
+            base        = pr.Bool,
             mode        = 'RW',
         )) 
               
@@ -54,7 +54,7 @@ class Ltc2270(pr.Device):
             offset      = 0x004, 
             bitSize     = 2, 
             bitOffset   = 0, 
-            base        = 'hex', 
+            base        = pr.UInt,
             mode        = 'RW',
         )) 
 
@@ -64,7 +64,7 @@ class Ltc2270(pr.Device):
             offset      = 0x008, 
             bitSize     = 1, 
             bitOffset   = 3, 
-            base        = 'bool', 
+            base        = pr.Bool,
             mode        = 'RW',
         ))                 
                 
@@ -74,7 +74,7 @@ class Ltc2270(pr.Device):
             offset      = 0x004, 
             bitSize     = 2, 
             bitOffset   = 1, 
-            base        = 'hex', 
+            base        = pr.UInt,
             mode        = 'RW',
         )) 
 
@@ -84,7 +84,7 @@ class Ltc2270(pr.Device):
             offset      = 0x004,
             bitSize     = 1, 
             bitOffset   = 0, 
-            base        = 'bool', 
+            base        = pr.Bool,
             mode        = 'RW',
         ))
                 
@@ -94,7 +94,7 @@ class Ltc2270(pr.Device):
             offset      = 0x008, 
             bitSize     = 3, 
             bitOffset   = 3, 
-            base        = 'hex', 
+            base        = pr.UInt,
             mode        = 'RW',
         ))                
 
@@ -104,7 +104,7 @@ class Ltc2270(pr.Device):
             offset      = 0x008, 
             bitSize     = 1, 
             bitOffset   = 3, 
-            base        = 'bool', 
+            base        = pr.Bool,
             mode        = 'RW',
         ))  
 
@@ -114,7 +114,7 @@ class Ltc2270(pr.Device):
             offset      = 0x008, 
             bitSize     = 1, 
             bitOffset   = 2, 
-            base        = 'bool', 
+            base        = pr.Bool,
             mode        = 'RW',
         )) 
 
@@ -124,7 +124,7 @@ class Ltc2270(pr.Device):
             offset      = 0x008, 
             bitSize     = 2, 
             bitOffset   = 0, 
-            base        = 'hex', 
+            base        = pr.UInt,
             mode        = 'RW',
         ))  
 
@@ -134,18 +134,17 @@ class Ltc2270(pr.Device):
             offset      = 0x00C, 
             bitSize     = 3, 
             bitOffset   = 3, 
-            base        = 'hex', 
+            base        = pr.UInt,
             mode        = 'RW',
         ))                  
 
-        self.add(
-            pr.Variable(
+        self.add(pr.RemoteVariable(  
             name        = 'Abp',
             description = 'Abp',
             offset      = 0x00C, 
             bitSize     = 1, 
             bitOffset   = 2, 
-            base        = 'bool', 
+            base        = pr.Bool,
             mode        = 'RW',
         ))  
 
@@ -155,7 +154,7 @@ class Ltc2270(pr.Device):
             offset      = 0x00C, 
             bitSize     = 1, 
             bitOffset   = 1, 
-            base        = 'bool', 
+            base        = pr.Bool,
             mode        = 'RW',
         ))   
 
@@ -165,7 +164,7 @@ class Ltc2270(pr.Device):
             offset      = 0x00C, 
             bitSize     = 1, 
             bitOffset   = 0, 
-            base        = 'bool', 
+            base        = pr.Bool,
             mode        = 'RW',
         ))   
                 
@@ -177,7 +176,7 @@ class Ltc2270(pr.Device):
                     description = '',
                     bitSize     = 16,
                     bitOffset   = 0, 
-                    base        = 'hex', 
+                    base        = pr.UInt,
                     mode        = 'RO',
                 ))                  
                 
@@ -187,7 +186,7 @@ class Ltc2270(pr.Device):
             offset      = 0x1FC, 
             bitSize     = 1, 
             bitOffset   = 0, 
-            base        = 'bool', 
+            base        = pr.Bool,
             mode        = 'RO',
         ))                 
                 
@@ -199,7 +198,7 @@ class Ltc2270(pr.Device):
                     description = '',
                     bitSize     = 5, 
                     bitOffset   = 0, 
-                    base        = 'hex', 
+                    base        = pr.UInt,
                     mode        = 'RW',
                 ))                          
                         

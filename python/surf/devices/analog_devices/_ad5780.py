@@ -32,7 +32,7 @@ class Ad5780(pr.Device):
             bitSize=32,
             bitOffset=0,
             base=pr.UInt,
-            disp={:d},
+            # disp={:d},
             mode='RO'))
 
         self.add(pr.RemoteVariable(
