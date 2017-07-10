@@ -42,7 +42,7 @@ class SsiPrbsRateGen(pr.Device):
         # Variables
         ##############################
 
-        self.addCommand  (  
+        self.add (pr.RemoteCommand(  
             name         = "statReset",
             description  = "",
             offset       =  0x00,
@@ -82,7 +82,7 @@ class SsiPrbsRateGen(pr.Device):
             mode         = "RW",
         ))
 
-        self.addCommand (   
+        self.add(pr.RemoteCommand (   
             name         = "oneShot",
             description  = "",
             offset       =  0x0C,
