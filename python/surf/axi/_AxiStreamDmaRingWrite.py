@@ -36,7 +36,7 @@ class AxiStreamDmaRingWrite(pr.Device):
             offset      = offset,
             hidden      = hidden,
             expand      = expand,
-        )  
+        )
 
         self._numBuffers = numBuffers
         
@@ -44,73 +44,72 @@ class AxiStreamDmaRingWrite(pr.Device):
         # Variables
         ##############################
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "StartAddr",
             description  = "",
             offset       =  0x00,
             bitSize      =  64,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
             number       =  numBuffers,
             stride       =  8,
-        )
+        ))
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "EndAddr",
             description  = "",
             offset       =  0x200,
             bitSize      =  64,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
             number       =  numBuffers,
             stride       =  8,
-        )
+        ))
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "WrAddr",
             description  = "",
             offset       =  0x400,
             bitSize      =  64,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
             number       =  numBuffers,
             stride       =  8,
-        )
+        ))
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "TriggerAddr",
             description  = "",
             offset       =  0x600,
             bitSize      =  64,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
             number       =  numBuffers,
             stride       =  8,
-        )
+        ))
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "Enabled",
             description  = "",
             offset       =  0x800,
             bitSize      =  1,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
             number       =  numBuffers,
             stride       =  4,
-        )
+        ))
  
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "Mode",
                 description  = "",
                 offset       =  0x800,
                 bitSize      =  1,
                 bitOffset    =  0x01,
-                base         = "enum",
                 mode         = "RW",
                 number       =  numBuffers,
                 stride       =  4,
@@ -118,39 +117,38 @@ class AxiStreamDmaRingWrite(pr.Device):
                     0 : "Wrap",
                     1 : "DoneWhenFull",
                 },
-            )
+            ))
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "Init",
             description  = "",
             offset       =  0x800,
             bitSize      =  1,
             bitOffset    =  0x02,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
             number       =  numBuffers,
             stride       =  4,
-        )
+        ))
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "SoftTrigger",
             description  = "",
             offset       =  0x800,
             bitSize      =  1,
             bitOffset    =  0x03,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
             number       =  numBuffers,
             stride       =  4,
-        )
+        ))
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "MsgDest",
             description  = "",
             offset       =  0x800,
             bitSize      =  4,
             bitOffset    =  0x04,
-            base         = "enum",
             mode         = "RW",
             number       =  numBuffers,
             stride       =  4,
@@ -158,113 +156,113 @@ class AxiStreamDmaRingWrite(pr.Device):
                 0 : "Software",
                 1 : "Auto-Readout",
             },
-        )
+        ))
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "FramesAfterTrigger",
             description  = "",
             offset       =  0x800,
             bitSize      =  16,
             bitOffset    =  16,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
             number       =  numBuffers,
             stride       =  4,
-        )
+        ))
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "Status",
             description  = "Include all of the status bits in one access",
             offset       =  0xA00,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
             number       =  numBuffers,
             stride       =  4,
-        )
+        ))
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "Empty",
             description  = "",
             offset       =  0xA00,
             bitSize      =  1,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
             number       =  numBuffers,
             stride       =  4,
-        )
+        ))
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "Full",
             description  = "",
             offset       =  0xA00,
             bitSize      =  1,
             bitOffset    =  0x01,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
             number       =  numBuffers,
             stride       =  4,
-        )
+        ))
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "Done",
             description  = "",
             offset       =  0xA00,
             bitSize      =  1,
             bitOffset    =  0x02,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
             number       =  numBuffers,
             stride       =  4,
-        )
+        ))
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "Triggered",
             description  = "",
             offset       =  0xA00,
             bitSize      =  1,
             bitOffset    =  0x03,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
             number       =  numBuffers,
             stride       =  4,
-        )
+        ))
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "Error",
             description  = "",
             offset       =  0xA00,
             bitSize      =  1,
             bitOffset    =  0x04,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
             number       =  numBuffers,
             stride       =  4,
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "BurstSize",
             description  = "",
             offset       =  0xA00,
             bitSize      =  4,
             bitOffset    =  8,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "FramesSinceTrigger",
             description  = "",
             offset       =  0xA00,
             bitSize      =  16,
             bitOffset    =  16,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
             number       =  numBuffers,
             stride       =  4,
-        )
+        ))
 
         ##############################
         # Commands

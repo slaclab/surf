@@ -21,228 +21,283 @@ import pyrogue as pr
 import time
 
 class Ads42Lbx9Config(pr.Device):
-    def __init__(self, **kwargs):
-        super(self.__class__, self).__init__(description="ADS42LBx9 Config Module",
-                                             **kwargs)
+    def __init__( self,       
+        name        = "Ads42Lbx9Config",
+        description = "ADS42LBx9 Config Module",
+        memBase     =  None,
+        offset      =  0x00,
+        hidden      =  False,
+        expand      =  True,
+    ):
+        super().__init__(
+            name        = name,
+            description = description,
+            memBase     = memBase,
+            offset      = offset,
+            hidden      = hidden,
+            expand      = expand,
+        )
 
         ##############################
         # Variables
         ##############################
         
-        self.addVariable(   name         = "AdcReg_0x0006",
-                            description  = "ADC Control Registers",
-                            offset       =  0x18,
-                            bitSize      =  8,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                        )
+        self.add(pr.RemoteVariable(    
+            name         = "AdcReg_0x0006",
+            description  = "ADC Control Registers",
+            offset       =  0x18,
+            bitSize      =  8,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
         
-        self.addVariable(   name         = "AdcReg_0x0007",
-                            description  = "ADC Control Registers",
-                            offset       =  0x1C,
-                            bitSize      =  8,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                        )
+        self.add(pr.RemoteVariable(    
+            name         = "AdcReg_0x0007",
+            description  = "ADC Control Registers",
+            offset       =  0x1C,
+            bitSize      =  8,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
         
-        self.addVariable(   name         = "AdcReg_0x0008",
-                            description  = "ADC Control Registers",
-                            offset       =  0x20,
-                            bitSize      =  8,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                        )
+        self.add(pr.RemoteVariable(    
+            name         = "AdcReg_0x0008",
+            description  = "ADC Control Registers",
+            offset       =  0x20,
+            bitSize      =  8,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
         
-        self.addVariable(   name         = "AdcReg_0x000B",
-                            description  = "ADC Control Registers",
-                            offset       =  0x2C,
-                            bitSize      =  8,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                        )
+        self.add(pr.RemoteVariable(    
+            name         = "AdcReg_0x000B",
+            description  = "ADC Control Registers",
+            offset       =  0x2C,
+            bitSize      =  8,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
         
-        self.addVariable(   name         = "AdcReg_0x000C",
-                            description  = "ADC Control Registers",
-                            offset       =  0x30,
-                            bitSize      =  8,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                        )
+        self.add(pr.RemoteVariable(    
+            name         = "AdcReg_0x000C",
+            description  = "ADC Control Registers",
+            offset       =  0x30,
+            bitSize      =  8,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
 
-        self.addVariable(   name         = "AdcReg_0x000D",
-                            description  = "ADC Control Registers",
-                            offset       =  0x34,
-                            bitSize      =  8,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                        )
+        self.add(pr.RemoteVariable(    
+            name         = "AdcReg_0x000D",
+            description  = "ADC Control Registers",
+            offset       =  0x34,
+            bitSize      =  8,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
 
-        self.addVariable(   name         = "AdcReg_0x000F",
-                            description  = "ADC Control Registers",
-                            offset       =  0x3C,
-                            bitSize      =  8,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                        )
+        self.add(pr.RemoteVariable(    
+            name         = "AdcReg_0x000F",
+            description  = "ADC Control Registers",
+            offset       =  0x3C,
+            bitSize      =  8,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
 
-        self.addVariable(   name         = "AdcReg_0x0010",
-                            description  = "ADC Control Registers",
-                            offset       =  0x40,
-                            bitSize      =  8,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                        )
+        self.add(pr.RemoteVariable(    
+            name         = "AdcReg_0x0010",
+            description  = "ADC Control Registers",
+            offset       =  0x40,
+            bitSize      =  8,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
 
-        self.addVariable(   name         = "AdcReg_0x0011",
-                            description  = "ADC Control Registers",
-                            offset       =  0x44,
-                            bitSize      =  8,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                        )
+        self.add(pr.RemoteVariable(    
+            name         = "AdcReg_0x0011",
+            description  = "ADC Control Registers",
+            offset       =  0x44,
+            bitSize      =  8,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
 
-        self.addVariable(   name         = "AdcReg_0x0012",
-                            description  = "ADC Control Registers",
-                            offset       =  0x48,
-                            bitSize      =  8,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                        )
+        self.add(pr.RemoteVariable(    
+            name         = "AdcReg_0x0012",
+            description  = "ADC Control Registers",
+            offset       =  0x48,
+            bitSize      =  8,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
 
-        self.addVariable(   name         = "AdcReg_0x0013",
-                            description  = "ADC Control Registers",
-                            offset       =  0x4C,
-                            bitSize      =  8,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                        )
+        self.add(pr.RemoteVariable(    
+            name         = "AdcReg_0x0013",
+            description  = "ADC Control Registers",
+            offset       =  0x4C,
+            bitSize      =  8,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
 
-        self.addVariable(   name         = "AdcReg_0x0014",
-                            description  = "ADC Control Registers",
-                            offset       =  0x50,
-                            bitSize      =  8,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                        )
+        self.add(pr.RemoteVariable(    
+            name         = "AdcReg_0x0014",
+            description  = "ADC Control Registers",
+            offset       =  0x50,
+            bitSize      =  8,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
 
-        self.addVariable(   name         = "AdcReg_0x0015",
-                            description  = "ADC Control Registers",
-                            offset       =  0x54,
-                            bitSize      =  8,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                        )
+        self.add(pr.RemoteVariable(    
+            name         = "AdcReg_0x0015",
+            description  = "ADC Control Registers",
+            offset       =  0x54,
+            bitSize      =  8,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
 
-        self.addVariable(   name         = "AdcReg_0x0016",
-                            description  = "ADC Control Registers",
-                            offset       =  0x58,
-                            bitSize      =  8,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                        )
+        self.add(pr.RemoteVariable(    
+            name         = "AdcReg_0x0016",
+            description  = "ADC Control Registers",
+            offset       =  0x58,
+            bitSize      =  8,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
         
-        self.addVariable(   name         = "AdcReg_0x0017",
-                            description  = "ADC Control Registers",
-                            offset       =  0x5C,
-                            bitSize      =  8,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                        )
+        self.add(pr.RemoteVariable(    
+            name         = "AdcReg_0x0017",
+            description  = "ADC Control Registers",
+            offset       =  0x5C,
+            bitSize      =  8,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
         
-        self.addVariable(   name         = "AdcReg_0x0018",
-                            description  = "ADC Control Registers",
-                            offset       =  0x60,
-                            bitSize      =  8,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                        )
+        self.add(pr.RemoteVariable(    
+            name         = "AdcReg_0x0018",
+            description  = "ADC Control Registers",
+            offset       =  0x60,
+            bitSize      =  8,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
         
-        self.addVariable(   name         = "AdcReg_0x001F",
-                            description  = "ADC Control Registers",
-                            offset       =  0x7C,
-                            bitSize      =  8,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                        )
+        self.add(pr.RemoteVariable(    
+            name         = "AdcReg_0x001F",
+            description  = "ADC Control Registers",
+            offset       =  0x7C,
+            bitSize      =  8,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
         
-        self.addVariable(   name         = "AdcReg_0x0020",
-                            description  = "ADC Control Registers",
-                            offset       =  0x80,
-                            bitSize      =  8,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                        )
+        self.add(pr.RemoteVariable(    
+            name         = "AdcReg_0x0020",
+            description  = "ADC Control Registers",
+            offset       =  0x80,
+            bitSize      =  8,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
 
 class Ads42Lbx9Readout(pr.Device):
-    def __init__(self, **kwargs):
-        super(self.__class__, self).__init__(description="ADS42LBx9 Readout Module",
-                                             **kwargs)
+    def __init__( self,       
+        name        = "Ads42Lbx9Readout",
+        description = "ADS42LBx9 Readout Module",
+        memBase     =  None,
+        offset      =  0x00,
+        hidden      =  False,
+        expand      =  True,
+    ):
+        super().__init__(
+            name        = name,
+            description = description,
+            memBase     = memBase,
+            offset      = offset,
+            hidden      = hidden,
+            expand      = expand,
+        )
 
         ##############################
         # Variables
         ##############################
         
-        for i in range(0, 8):
-            self.addVariable(   name         = "DelayAdcALane["+str(i)+"]",
-                                description  = "LVDS Lane Delay",
-                                offset       =  0x200+i*4,
-                                bitSize      =  10,
-                                bitOffset    =  0x00,
-                                base         = "uint",
-                                mode         = "RW",
-                            )
-        for i in range(0, 8):
-            self.addVariable(   name         = "DelayAdcBLane["+str(i)+"]",
-                                description  = "LVDS Lane Delay",
-                                offset       =  0x220+i*4,
-                                bitSize      =  10,
-                                bitOffset    =  0x00,
-                                base         = "uint",
-                                mode         = "RW",
-                            )
-        for i in range(0, 8):
-            self.addVariable(   name         = "AdcASample["+str(i)+"]",
-                                description  = "ADC Sample",
-                                offset       =  0x180+i*4,
-                                bitSize      =  16,
-                                bitOffset    =  0x00,
-                                base         = "hex",
-                                mode         = "RO",
-                            )
-        for i in range(0, 8):
-            self.addVariable(   name         = "AdcBSample["+str(i)+"]",
-                                description  = "ADC Sample",
-                                offset       =  0x1A0+i*4,
-                                bitSize      =  16,
-                                bitOffset    =  0x00,
-                                base         = "hex",
-                                mode         = "RO",
-                            )
-        self.addVariable(   name         = "DMode",
-                            description  = "DMode",
-                            offset       =  0x240,
-                            bitSize      =  2,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                        )
+        self.add(pr.RemoteVariable(    
+            name         = "DelayAdcALane",
+            description  = "LVDS Lane Delay",
+            offset       =  0x200,
+            bitSize      =  10,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            number       =  8,
+            stride       =  4,            
+            mode         = "RW",
+        ))
 
-
+        self.add(pr.RemoteVariable(    
+            name         = "DelayAdcBLane",
+            description  = "LVDS Lane Delay",
+            offset       =  0x220,
+            bitSize      =  10,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            number       =  8,
+            stride       =  4,            
+            mode         = "RW",
+        ))
+        
+        self.add(pr.RemoteVariable(    
+            name         = "AdcASample",
+            description  = "ADC Sample",
+            offset       =  0x180,
+            bitSize      =  16,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            number       =  8,
+            stride       =  4,             
+            mode         = "RO",
+        ))
+                            
+        self.add(pr.RemoteVariable(    
+            name         = "AdcBSample",
+            description  = "ADC Sample",
+            offset       =  0x1A0,
+            bitSize      =  16,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            number       =  8,
+            stride       =  4,             
+            mode         = "RO",
+        ))
+                        
+        self.add(pr.RemoteVariable(    
+            name         = "DMode",
+            description  = "DMode",
+            offset       =  0x240,
+            bitSize      =  2,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))

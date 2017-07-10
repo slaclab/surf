@@ -50,29 +50,29 @@ class SsiPrbsRateGen(pr.Device):
             bitOffset    =  0x00,
             mode         = "RW",
             function     = pr.Command.toggle
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "packetLength",
             description  = "",
             offset       =  0x04,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "period",
             description  = "",
             offset       =  0x08,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "txEn",
             description  = "",
             offset       =  0x0C,
@@ -80,7 +80,7 @@ class SsiPrbsRateGen(pr.Device):
             bitOffset    =  0x00,
             base         = "bool",
             mode         = "RW",
-        )
+        ))
 
         self.addCommand (   
             name         = "oneShot",
@@ -88,12 +88,12 @@ class SsiPrbsRateGen(pr.Device):
             offset       =  0x0C,
             bitSize      =  1,
             bitOffset    =  0x01,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "WO",
             function     = pr.Command.toggle
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "missed",
             description  = "",
             offset       =  0x10,
@@ -102,9 +102,9 @@ class SsiPrbsRateGen(pr.Device):
             base         = "int",
             pollInterval = 1,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "frameRate",
             description  = "",
             offset       =  0x14,
@@ -113,9 +113,9 @@ class SsiPrbsRateGen(pr.Device):
             base         = "int",
             pollInterval = 1,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "frameRateMax",
             description  = "",
             offset       =  0x18,
@@ -124,9 +124,9 @@ class SsiPrbsRateGen(pr.Device):
             base         = "int",
             pollInterval = 1,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "frameRateMin",
             description  = "",
             offset       =  0x1C,
@@ -135,9 +135,9 @@ class SsiPrbsRateGen(pr.Device):
             base         = "int",
             pollInterval = 1,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "bandWidth",
             description  = "",
             offset       =  0x20,
@@ -146,9 +146,9 @@ class SsiPrbsRateGen(pr.Device):
             base         = "int",
             pollInterval = 1,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "bandWidthMax",
             description  = "",
             offset       =  0x28,
@@ -157,9 +157,9 @@ class SsiPrbsRateGen(pr.Device):
             base         = "int",
             pollInterval = 1,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "bandWidthMin",
             description  = "",
             offset       =  0x30,
@@ -168,9 +168,9 @@ class SsiPrbsRateGen(pr.Device):
             base         = "int",
             pollInterval = 1,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "frameCount",
             description  = "",
             offset       =  0x40,
@@ -179,5 +179,5 @@ class SsiPrbsRateGen(pr.Device):
             base         = "int",
             pollInterval = 1,
             mode         = "RO",
-        )
+        ))
 

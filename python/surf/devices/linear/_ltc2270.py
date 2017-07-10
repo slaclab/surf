@@ -37,9 +37,8 @@ class Ltc2270(pr.Device):
             hidden      = hidden,
             expand      = expand,
         )                                             
-                                             
-                                             
-        self.add(pr.Variable(
+
+        self.add(pr.RemoteVariable(  
             name        = 'DacReset',
             description = 'DacReset',
             offset      = 0x000, 
@@ -49,7 +48,7 @@ class Ltc2270(pr.Device):
             mode        = 'RW',
         )) 
               
-        self.add(pr.Variable(
+        self.add(pr.RemoteVariable(  
             name        = 'PwrDwn',
             description = 'PwrDwn',
             offset      = 0x004, 
@@ -59,7 +58,7 @@ class Ltc2270(pr.Device):
             mode        = 'RW',
         )) 
 
-        self.add(pr.Variable(
+        self.add(pr.RemoteVariable(  
             name        = 'ClkInv',
             description = 'ClkInv',
             offset      = 0x008, 
@@ -69,7 +68,7 @@ class Ltc2270(pr.Device):
             mode        = 'RW',
         ))                 
                 
-        self.add(pr.Variable(
+        self.add(pr.RemoteVariable(  
             name        = 'ClkPhase',
             description = 'ClkPhase',
             offset      = 0x004, 
@@ -79,7 +78,7 @@ class Ltc2270(pr.Device):
             mode        = 'RW',
         )) 
 
-        self.add(pr.Variable(
+        self.add(pr.RemoteVariable(  
             name        = 'Dcs',
             description = 'Dcs',
             offset      = 0x004,
@@ -89,7 +88,7 @@ class Ltc2270(pr.Device):
             mode        = 'RW',
         ))
                 
-        self.add(pr.Variable(
+        self.add(pr.RemoteVariable(  
             name        = 'ILvds',
             description = 'ILvds',
             offset      = 0x008, 
@@ -99,7 +98,7 @@ class Ltc2270(pr.Device):
             mode        = 'RW',
         ))                
 
-        self.add(pr.Variable(
+        self.add(pr.RemoteVariable(  
             name        = 'TermOn',
             description = 'TermOn',
             offset      = 0x008, 
@@ -109,7 +108,7 @@ class Ltc2270(pr.Device):
             mode        = 'RW',
         ))  
 
-        self.add(pr.Variable(
+        self.add(pr.RemoteVariable(  
             name        = 'OutOff',
             description = 'OutOff',
             offset      = 0x008, 
@@ -119,7 +118,7 @@ class Ltc2270(pr.Device):
             mode        = 'RW',
         )) 
 
-        self.add(pr.Variable(
+        self.add(pr.RemoteVariable(  
             name        = 'OutMode',
             description = 'OutMode',
             offset      = 0x008, 
@@ -129,7 +128,7 @@ class Ltc2270(pr.Device):
             mode        = 'RW',
         ))  
 
-        self.add(pr.Variable(
+        self.add(pr.RemoteVariable(  
             name        = 'OutTest',
             description = 'OutTest',
             offset      = 0x00C, 
@@ -150,7 +149,7 @@ class Ltc2270(pr.Device):
             mode        = 'RW',
         ))  
 
-        self.add(pr.Variable(
+        self.add(pr.RemoteVariable(  
             name        = 'Rand',
             description = 'Rand',
             offset      = 0x00C, 
@@ -160,7 +159,7 @@ class Ltc2270(pr.Device):
             mode        = 'RW',
         ))   
 
-        self.add(pr.Variable(
+        self.add(pr.RemoteVariable(  
             name        = 'TwoComp',
             description = 'TwoComp',
             offset      = 0x00C, 
@@ -172,7 +171,7 @@ class Ltc2270(pr.Device):
                 
         for i in range(2):
             for j in range(8):
-                self.add(pr.Variable(
+                self.add(pr.RemoteVariable(  
                     name        = 'adcData_%01i_%01i'%(i,j), 
                     offset      = ((0x60 + (8*i)+j)*4), 
                     description = '',
@@ -182,7 +181,7 @@ class Ltc2270(pr.Device):
                     mode        = 'RO',
                 ))                  
                 
-        self.add(pr.Variable(
+        self.add(pr.RemoteVariable(  
             name        = 'delayRdy',
             description = 'delayOut.rdy',
             offset      = 0x1FC, 
@@ -194,7 +193,7 @@ class Ltc2270(pr.Device):
                 
         for i in range(2):
             for j in range(8):
-                self.add(pr.Variable(
+                self.add(pr.RemoteVariable(  
                     name        = 'delayData_%01i_%01i'%(i,j), 
                     offset      = ((0x80 + (8*i)+j)*4), 
                     description = '',

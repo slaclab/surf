@@ -38,134 +38,131 @@ class JesdRx(pr.Device):
             offset      = offset,
             hidden      = hidden,
             expand      = expand,
-        ) 
+        )
 
         ##############################
         # Variables
         ##############################
 
         if (instantiate):
-            self.addVariable(   
+            self.add(pr.RemoteVariable(    
                 name         = "Enable",
                 description  = "Enable mask. Example: 0x3F Enable ln0 to ln5.",
                 offset       =  0x00,
                 bitSize      =  numRxLanes,
                 bitOffset    =  0x00,
-                base         = "hex",
+                base         = pr.UInt,
                 mode         = "RW",
-            )
+            ))
 
-            self.addVariable(   
+            self.add(pr.RemoteVariable(    
                 name         = "SysrefDelay",
                 description  = "Sets the system reference delay in clock cycles. Use if you want to reduce the latency (The latency is indicated by ElBuffLatency status). ",
                 offset       =  0x04,
                 bitSize      =  5,
                 bitOffset    =  0x00,
-                base         = "hex",
+                base         = pr.UInt,
                 mode         = "RW",
-            )
+            ))
                             
-            self.addVariable(   
+            self.add(pr.RemoteVariable(    
                 name         = "Polarity",
                 description  = "0 = non-inverted, 1 = inverted",
                 offset       =  0x08,
                 bitSize      =  numRxLanes,
                 bitOffset    =  0,
-                base         = "hex",
+                base         = pr.UInt,
                 mode         = "RW",
-            )                              
+            ))                              
 
-            self.addVariable(   
+            self.add(pr.RemoteVariable(    
                 name         = "SubClass",
                 description  = "Jesd204b SubClass. 0 - For designs without sysref (no fixed latency). 1 - Fixed latency.",
                 offset       =  0x10,
                 bitSize      =  1,
                 bitOffset    =  0x00,
-                base         = "hex",
+                base         = pr.UInt,
                 mode         = "RW",
-            )
+            ))
 
-            self.addVariable(   
+            self.add(pr.RemoteVariable(    
                 name         = "ReplaceEnable",
                 description  = "ReplaceEnable. Replace the control characters with data. (Should be 1 use 0 only for debug).",
                 offset       =  0x10,
                 bitSize      =  1,
                 bitOffset    =  0x01,
-                base         = "enum",
                 mode         = "RW",
                 enum         = {
                     0 : "Disabled",
                     1 : "Enabled",
                 },
-            )
+            ))
 
-            self.addVariable(   
+            self.add(pr.RemoteVariable(    
                 name         = "ResetGTs",
                 description  = "ResetGTs. Request reset of the GT modules.",
                 offset       =  0x10,
                 bitSize      =  1,
                 bitOffset    =  0x02,
-                base         = "hex",
+                base         = pr.UInt,
                 mode         = "RW",
-            )
+            ))
 
-            self.addVariable(   
+            self.add(pr.RemoteVariable(    
                 name         = "ClearErrors",
                 description  = "Clear Jesd Errors and reset the status counters.",
                 offset       =  0x10,
                 bitSize      =  1,
                 bitOffset    =  0x03,
-                base         = "hex",
+                base         = pr.UInt,
                 mode         = "RW",
-            )
+            ))
 
-            self.addVariable(   
+            self.add(pr.RemoteVariable(    
                 name         = "InvertSync",
                 description  = "Invert Sync. Sync output has to be inverted in some systems depending on signal polarities on the PCB.",
                 offset       =  0x10,
                 bitSize      =  1,
                 bitOffset    =  0x04,
-                base         = "enum",
                 mode         = "RW",
                 enum         = {
                     0 : "Regular",
                     1 : "Inverted",
                 },
-            )
+            ))
 
-            self.addVariable(   
+            self.add(pr.RemoteVariable(    
                 name         = "ScrambleEnable",
                 description  = "ScrambleEnable. Enable data scrambling (More info in Jesd204b standard).",
                 offset       =  0x10,
                 bitSize      =  1,
                 bitOffset    =  0x05,
-                base         = "enum",
                 mode         = "RW",
                 enum         = {
                     0 : "Disabled",
                     1 : "Enabled",
                 },
-            )
+            ))
 
-            self.addVariable(   
+            self.add(pr.RemoteVariable(    
                 name         = "LinkErrMask",
                 description  = "Mask Enable the errors that are required to brake the link. bit 5-0: positionErr - s_bufOvf - s_bufUnf - dispErr - decErr - s_alignErr",
                 offset       =  0x14,
                 bitSize      =  6,
                 bitOffset    =  0x00,
-                base         = "hex",
+                base         = pr.UInt,
                 mode         = "RW",
-            )
+            ))
 
-            self.addVariable(   
+            self.add(pr.RemoteVariable(    
                 name         = "InvertAdcData",
                 description  = "Mask Enable the ADC data inversion. 1-Inverted, 0-normal.",
                 offset       =  0x18,
                 bitSize      =  numRxLanes,
                 bitOffset    =  0x00,
-                base         = "hex",
+                base         = pr.UInt,
                 mode         = "RW",
-            )
+            ))
 
             self.add(pr.RemoteVariable( 
                 name         = "GTReady",
@@ -175,7 +172,7 @@ class JesdRx(pr.Device):
                 bitOffset    = 0,
                 mode         = "RO",
                 pollInterval = 1,
-            ))  
+            ))
 
             self.add(pr.RemoteVariable( 
                 name         = "DataValid",
@@ -185,7 +182,7 @@ class JesdRx(pr.Device):
                 bitOffset    = 1,
                 mode         = "RO",
                 pollInterval = 1,
-            ))  
+            ))
 
             self.add(pr.RemoteVariable( 
                 name         = "AlignErr",
@@ -195,7 +192,7 @@ class JesdRx(pr.Device):
                 bitOffset    = 2,
                 mode         = "RO",
                 pollInterval = 1,
-            ))  
+            ))
 
             self.add(pr.RemoteVariable( 
                 name         = "nSync",
@@ -266,96 +263,96 @@ class JesdRx(pr.Device):
                 pollInterval = 1,
             ))  
 
-            self.addVariables(  
+            self.add(pr.RemoteVariable(   
                 name         = "DisparityErr",
                 description  = "Latched High when the data byte on RXDATA arrives with the wrong disparity. Indicates bad serial connection (Check HW).",
                 offset       =  0x40,
                 bitSize      =  4,
                 bitOffset    =  10,
-                base         = "hex",
+                base         = pr.UInt,
                 mode         = "RO",
                 number       =  numRxLanes,
                 stride       =  4,
                 pollInterval = 1,
-            )
+            ))
 
-            self.addVariables(  
+            self.add(pr.RemoteVariable(   
                 name         = "NotInTableErr",
                 description  = "NotInTableErr. When GT decoder received s 10-bit character that cannot be mapped into a valid 8B/10B character. Indicates bad serial connection (Check HW).",
                 offset       =  0x40,
                 bitSize      =  4,
                 bitOffset    =  14,
-                base         = "hex",
+                base         = pr.UInt,
                 mode         = "RO",
                 number       =  numRxLanes,
                 stride       =  4,
                 pollInterval = 1,
-            )
+            ))
 
-            self.addVariables(  
+            self.add(pr.RemoteVariable(   
                 name         = "ElBuffLatency",
                 description  = "Jesd204b elastic buffer latency in c-c. Can be adjusted by Sysref delay.",
                 offset       =  0x40,
                 bitSize      =  8,
                 bitOffset    =  18,
-                base         = "hex",
+                base         = pr.UInt,
                 mode         = "RO",
                 number       =  numRxLanes,
                 stride       =  4,
                 pollInterval = 1,
-            )
+            ))
                             
             if (debug):
-                self.addVariables(  
+                self.add(pr.RemoteVariable(   
                     name         = "ThresholdLow",
                     description  = "Threshold_Low. Debug funtionality. Threshold for generating a digital signal from the ADC data.",
                     offset       =  0xC0,
                     bitSize      =  16,
                     bitOffset    =  0x00,
-                    base         = "hex",
+                    base         = pr.UInt,
                     mode         = "RW",
                     number       =  numRxLanes,
                     stride       =  4,
-                )
+                ))
 
-                self.addVariables(  
+                self.add(pr.RemoteVariable(   
                     name         = "ThresholdHigh",
                     description  = "Threshold_High. Debug funtionality. Threshold for generating a digital signal from the ADC data.",
                     offset       =  0xC0,
                     bitSize      =  16,
                     bitOffset    =  16,
-                    base         = "hex",
+                    base         = pr.UInt,
                     mode         = "RW",
                     number       =  numRxLanes,
                     stride       =  4,
-                )
+                ))
 
-            self.addVariables(  
+            self.add(pr.RemoteVariable(   
                 name         = "StatusValidCnt",
                 description  = "StatusValidCnt. Shows stability of JESD lanes. Counts number of JESD re-syncronisations.",
                 offset       =  0x100,
                 bitSize      =  32,
                 bitOffset    =  0x00,
-                base         = "hex",
+                base         = pr.UInt,
                 mode         = "RO",
                 number       =  numRxLanes,
                 stride       =  4,
                 pollInterval = 1,
-            )
+            ))
 
 
-            self.addVariables(  
+            self.add(pr.RemoteVariable(   
                 name         = "RawData",
                 description  = "Raw data from GT.",
                 offset       =  0x140,
                 bitSize      =  32,
                 bitOffset    =  0x00,
-                base         = "hex",
+                base         = pr.UInt,
                 mode         = "RO",
                 number       =  numRxLanes,
                 stride       =  4,
                 pollInterval = 1,
-            )
+            ))
 
             ##############################
             # Commands

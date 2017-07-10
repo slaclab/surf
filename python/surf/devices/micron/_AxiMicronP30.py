@@ -34,45 +34,45 @@ class AxiMicronP30(pr.Device):
         # Variables
         ##############################
 
-        self.addVariable(   name         = "WrData",
+        self.add(pr.RemoteVariable(   name         = "WrData",
                             description  = "Write Data",
                             offset       =  0x00,
                             bitSize      =  32,
                             bitOffset    =  0,
-                            base         = "hex",
+                            base         = pr.UInt,
                             mode         = "RW",
                             hidden       =  True,                            
                             verify       =  False,
-                        )
+                        ))
 
-        self.addVariable(   name         = "Addr",
+        self.add(pr.RemoteVariable(   name         = "Addr",
                             description  = "Address",
                             offset       =  0x04,
                             bitSize      =  32,
                             bitOffset    =  0x00,
-                            base         = "hex",
+                            base         = pr.UInt,
                             mode         = "RW",
                             hidden       =  True,                            
                             verify       =  False,
-                        )
+                        ))
 
-        self.addVariable(   name         = "RdData",
+        self.add(pr.RemoteVariable(   name         = "RdData",
                             description  = "Read Data",
                             offset       =  0x08,
                             bitSize      =  16,
                             bitOffset    =  0,
-                            base         = "hex",
+                            base         = pr.UInt,
                             mode         = "RO",
                             hidden       =  True,                            
                             verify       =  False,
-                        )                  
+                        ))                  
                         
-        self.addVariable(   name         = "Test",
+        self.add(pr.RemoteVariable(   name         = "Test",
                             description  = "Scratch Pad tester register",
                             offset       =  0x0C,
                             bitSize      =  32,
                             bitOffset    =  0x00,
-                            base         = "hex",
+                            base         = pr.UInt,
                             mode         = "RW",
-                        )
+                        ))
                         
