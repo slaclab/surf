@@ -257,7 +257,7 @@ class JesdTx(pr.Device):
                 pollInterval = 1,
             ))  
     
-            self.add(pr.RemoteVariable(   
+            self.addRemoteVariables(   
                 name         = "StatusValidCnt",
                 description  = "StatusValidCnt[31:0]. Shows stability of JESD lanes. Counts number of JESD re-syncronisations.",
                 offset       =  0x100,
@@ -268,9 +268,9 @@ class JesdTx(pr.Device):
                 number       =  numTxLanes,
                 stride       =  4,
                 pollInterval =  1,
-            ))  
+            )  
     
-            self.add(pr.RemoteVariable(   
+            self.addRemoteVariables(   
                 name         = "txDiffCtrl",
                 description  = "TX diff. swing control",
                 offset       =  0x200,
@@ -280,9 +280,9 @@ class JesdTx(pr.Device):
                 mode         = "RW",
                 number       =  numTxLanes,
                 stride       =  4,
-            ))   
+            )   
 
-            self.add(pr.RemoteVariable(   
+            self.addRemoteVariables(   
                 name         = "txPostCursor",
                 description  = "TX post cursor control",
                 offset       =  0x200,
@@ -292,9 +292,9 @@ class JesdTx(pr.Device):
                 mode         = "RW",
                 number       =  numTxLanes,
                 stride       =  4,
-            ))
+            )
 
-            self.add(pr.RemoteVariable(   
+            self.addRemoteVariables(   
                 name         = "txPreCursor",
                 description  = "TX pre cursor control",
                 offset       =  0x200,
@@ -304,9 +304,9 @@ class JesdTx(pr.Device):
                 mode         = "RW",
                 number       =  numTxLanes,
                 stride       =  4,
-            ))                            
+            )                            
     
-            self.add(pr.RemoteVariable(   
+            self.addRemoteVariables(   
                 name         = "dataOutMux",
                 description  = "data_out_mux: Select between: b000 - Output zero, b001 - Parallel data from inside FPGA, b010 - Data from AXI stream (not used), b011 - Test data",
                 offset       =  0x80,
@@ -321,9 +321,9 @@ class JesdTx(pr.Device):
                     2 : "OutputOnes",
                     3 : "TestData",
                 },
-            ))
+            )
     
-            self.add(pr.RemoteVariable(   
+            self.addRemoteVariables(   
                 name         = "testOutMux",
                 description  = "test_out_mux[1:0]: Select between: b000 - Saw signal increment, b001 - Saw signal decrement, b010 - Square wave,  b011 - Output zero",
                 offset       =  0x80,
@@ -338,7 +338,7 @@ class JesdTx(pr.Device):
                     2 : "SquareWave",
                     3 : "OutputZero",
                 },
-            ))    
+            )    
     
             ##############################
             # Commands

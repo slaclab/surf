@@ -50,7 +50,7 @@ class GenericMemory(pr.Device):
         ##############################
         
         if (instantiate):
-            self.addVariables(  
+            self.addRemoteVariables(  
                 name         = "Mem",
                 description  = "Memory Array",
                 offset       =  0x00,

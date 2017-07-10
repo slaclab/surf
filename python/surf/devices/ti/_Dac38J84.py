@@ -43,7 +43,7 @@ class Dac38J84(pr.Device):
         # Variables
         ##############################
         
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "DacReg",
             description  = "DAC Registers[125:0]",
             offset       =  0x00,
@@ -55,7 +55,7 @@ class Dac38J84(pr.Device):
             stride       =  4,
             hidden       =  not(debug),   
             verify       =  False,   
-        ))
+        )
 
         self.add(pr.RemoteVariable(    
             name         = "LaneBufferDelay",
@@ -77,7 +77,7 @@ class Dac38J84(pr.Device):
             mode         = "RO",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "LinkErrCnt",
             description  = "Link Error Count",
             offset       =  0x104,
@@ -87,9 +87,9 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "ReadFifoEmpty",
             description  = "ReadFifoEmpty",
             offset       =  0x190,
@@ -99,9 +99,9 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "ReadFifoUnderflow",
             description  = "ReadFifoUnderflow",
             offset       =  0x190,
@@ -111,9 +111,9 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "ReadFifoFull",
             description  = "ReadFifoFull",
             offset       =  0x190,
@@ -123,9 +123,9 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "ReadFifoOverflow",
             description  = "ReadFifoOverflow",
             offset       =  0x190,
@@ -135,9 +135,9 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "DispErr",
             description  = "DispErr",
             offset       =  0x190,
@@ -147,9 +147,9 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "NotitableErr",
             description  = "NotitableErr",
             offset       =  0x190,
@@ -159,9 +159,9 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "CodeSyncErr",
             description  = "CodeSyncErr",
             offset       =  0x190,
@@ -171,9 +171,9 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "FirstDataMatchErr",
             description  = "FirstDataMatchErr",
             offset       =  0x190,
@@ -183,9 +183,9 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "ElasticBuffOverflow",
             description  = "ElasticBuffOverflow",
             offset       =  0x190,
@@ -195,9 +195,9 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "LinkConfigErr",
             description  = "LinkConfigErr",
             offset       =  0x190,
@@ -207,9 +207,9 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "FrameAlignErr",
             description  = "FrameAlignErr",
             offset       =  0x190,
@@ -219,9 +219,9 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "MultiFrameAlignErr",
             description  = "MultiFrameAlignErr",
             offset       =  0x190,
@@ -231,7 +231,7 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
-        ))
+        )
 
         self.add(pr.RemoteVariable(    
             name         = "Serdes1pllAlarm",

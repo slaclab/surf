@@ -263,7 +263,7 @@ class JesdRx(pr.Device):
                 pollInterval = 1,
             ))  
 
-            self.add(pr.RemoteVariable(   
+            self.addRemoteVariables(   
                 name         = "DisparityErr",
                 description  = "Latched High when the data byte on RXDATA arrives with the wrong disparity. Indicates bad serial connection (Check HW).",
                 offset       =  0x40,
@@ -274,9 +274,9 @@ class JesdRx(pr.Device):
                 number       =  numRxLanes,
                 stride       =  4,
                 pollInterval = 1,
-            ))
+            )
 
-            self.add(pr.RemoteVariable(   
+            self.addRemoteVariables(   
                 name         = "NotInTableErr",
                 description  = "NotInTableErr. When GT decoder received s 10-bit character that cannot be mapped into a valid 8B/10B character. Indicates bad serial connection (Check HW).",
                 offset       =  0x40,
@@ -287,9 +287,9 @@ class JesdRx(pr.Device):
                 number       =  numRxLanes,
                 stride       =  4,
                 pollInterval = 1,
-            ))
+            )
 
-            self.add(pr.RemoteVariable(   
+            self.addRemoteVariables(   
                 name         = "ElBuffLatency",
                 description  = "Jesd204b elastic buffer latency in c-c. Can be adjusted by Sysref delay.",
                 offset       =  0x40,
@@ -300,10 +300,10 @@ class JesdRx(pr.Device):
                 number       =  numRxLanes,
                 stride       =  4,
                 pollInterval = 1,
-            ))
+            )
                             
             if (debug):
-                self.add(pr.RemoteVariable(   
+                self.addRemoteVariables(   
                     name         = "ThresholdLow",
                     description  = "Threshold_Low. Debug funtionality. Threshold for generating a digital signal from the ADC data.",
                     offset       =  0xC0,
@@ -313,9 +313,9 @@ class JesdRx(pr.Device):
                     mode         = "RW",
                     number       =  numRxLanes,
                     stride       =  4,
-                ))
+                )
 
-                self.add(pr.RemoteVariable(   
+                self.addRemoteVariables(   
                     name         = "ThresholdHigh",
                     description  = "Threshold_High. Debug funtionality. Threshold for generating a digital signal from the ADC data.",
                     offset       =  0xC0,
@@ -325,9 +325,9 @@ class JesdRx(pr.Device):
                     mode         = "RW",
                     number       =  numRxLanes,
                     stride       =  4,
-                ))
+                )
 
-            self.add(pr.RemoteVariable(   
+            self.addRemoteVariables(   
                 name         = "StatusValidCnt",
                 description  = "StatusValidCnt. Shows stability of JESD lanes. Counts number of JESD re-syncronisations.",
                 offset       =  0x100,
@@ -338,10 +338,10 @@ class JesdRx(pr.Device):
                 number       =  numRxLanes,
                 stride       =  4,
                 pollInterval = 1,
-            ))
+            )
 
 
-            self.add(pr.RemoteVariable(   
+            self.addRemoteVariables(   
                 name         = "RawData",
                 description  = "Raw data from GT.",
                 offset       =  0x140,
@@ -352,7 +352,7 @@ class JesdRx(pr.Device):
                 number       =  numRxLanes,
                 stride       =  4,
                 pollInterval = 1,
-            ))
+            )
 
             ##############################
             # Commands

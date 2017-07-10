@@ -301,7 +301,7 @@ class RssiCore(pr.Device):
             mode         = "RO",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "FrameRate",
             description  = "Frame Rate (in units of Hz)",
             offset       =  0x54,
@@ -311,9 +311,9 @@ class RssiCore(pr.Device):
             mode         = "RO",
             number       =  2,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "Bandwidth",
             description  = "Bandwidth (in units of bytes per second)",
             offset       =  0x5C,
@@ -323,7 +323,7 @@ class RssiCore(pr.Device):
             mode         = "RO",
             number       =  2,
             stride       =  8,
-        ))
+        )
 
         ##############################
         # Commands

@@ -44,7 +44,7 @@ class AxiStreamDmaRingWrite(pr.Device):
         # Variables
         ##############################
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "StartAddr",
             description  = "",
             offset       =  0x00,
@@ -54,9 +54,9 @@ class AxiStreamDmaRingWrite(pr.Device):
             mode         = "RW",
             number       =  numBuffers,
             stride       =  8,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "EndAddr",
             description  = "",
             offset       =  0x200,
@@ -66,9 +66,9 @@ class AxiStreamDmaRingWrite(pr.Device):
             mode         = "RW",
             number       =  numBuffers,
             stride       =  8,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "WrAddr",
             description  = "",
             offset       =  0x400,
@@ -78,9 +78,9 @@ class AxiStreamDmaRingWrite(pr.Device):
             mode         = "RO",
             number       =  numBuffers,
             stride       =  8,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "TriggerAddr",
             description  = "",
             offset       =  0x600,
@@ -90,9 +90,9 @@ class AxiStreamDmaRingWrite(pr.Device):
             mode         = "RO",
             number       =  numBuffers,
             stride       =  8,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "Enabled",
             description  = "",
             offset       =  0x800,
@@ -102,9 +102,9 @@ class AxiStreamDmaRingWrite(pr.Device):
             mode         = "RW",
             number       =  numBuffers,
             stride       =  4,
-        ))
+        )
  
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "Mode",
                 description  = "",
                 offset       =  0x800,
@@ -117,9 +117,9 @@ class AxiStreamDmaRingWrite(pr.Device):
                     0 : "Wrap",
                     1 : "DoneWhenFull",
                 },
-            ))
+            )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "Init",
             description  = "",
             offset       =  0x800,
@@ -129,9 +129,9 @@ class AxiStreamDmaRingWrite(pr.Device):
             mode         = "RW",
             number       =  numBuffers,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "SoftTrigger",
             description  = "",
             offset       =  0x800,
@@ -141,9 +141,9 @@ class AxiStreamDmaRingWrite(pr.Device):
             mode         = "RW",
             number       =  numBuffers,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "MsgDest",
             description  = "",
             offset       =  0x800,
@@ -156,9 +156,9 @@ class AxiStreamDmaRingWrite(pr.Device):
                 0 : "Software",
                 1 : "Auto-Readout",
             },
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "FramesAfterTrigger",
             description  = "",
             offset       =  0x800,
@@ -168,9 +168,9 @@ class AxiStreamDmaRingWrite(pr.Device):
             mode         = "RW",
             number       =  numBuffers,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "Status",
             description  = "Include all of the status bits in one access",
             offset       =  0xA00,
@@ -180,9 +180,9 @@ class AxiStreamDmaRingWrite(pr.Device):
             mode         = "RO",
             number       =  numBuffers,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "Empty",
             description  = "",
             offset       =  0xA00,
@@ -192,9 +192,9 @@ class AxiStreamDmaRingWrite(pr.Device):
             mode         = "RO",
             number       =  numBuffers,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "Full",
             description  = "",
             offset       =  0xA00,
@@ -204,9 +204,9 @@ class AxiStreamDmaRingWrite(pr.Device):
             mode         = "RO",
             number       =  numBuffers,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "Done",
             description  = "",
             offset       =  0xA00,
@@ -216,9 +216,9 @@ class AxiStreamDmaRingWrite(pr.Device):
             mode         = "RO",
             number       =  numBuffers,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "Triggered",
             description  = "",
             offset       =  0xA00,
@@ -228,9 +228,9 @@ class AxiStreamDmaRingWrite(pr.Device):
             mode         = "RO",
             number       =  numBuffers,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "Error",
             description  = "",
             offset       =  0xA00,
@@ -240,7 +240,7 @@ class AxiStreamDmaRingWrite(pr.Device):
             mode         = "RO",
             number       =  numBuffers,
             stride       =  4,
-        ))
+        )
 
         self.add(pr.RemoteVariable(    
             name         = "BurstSize",
@@ -252,7 +252,7 @@ class AxiStreamDmaRingWrite(pr.Device):
             mode         = "RO",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "FramesSinceTrigger",
             description  = "",
             offset       =  0xA00,
@@ -262,7 +262,7 @@ class AxiStreamDmaRingWrite(pr.Device):
             mode         = "RO",
             number       =  numBuffers,
             stride       =  4,
-        ))
+        )
 
         ##############################
         # Commands

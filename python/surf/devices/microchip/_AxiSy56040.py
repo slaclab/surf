@@ -41,7 +41,7 @@ class AxiSy56040(pr.Device):
         # Variables
         ##############################
 
-        self.add(pr.RemoteVariable( 
+        self.addRemoteVariables( 
             name         = "OutputConfig",
             description  = "Output Configuration Register Array",
             offset       =  0x00,
@@ -51,5 +51,5 @@ class AxiSy56040(pr.Device):
             mode         = "RW",
             number       =  4,
             stride       =  4,
-        ))
+        )
 

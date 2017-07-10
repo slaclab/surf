@@ -44,7 +44,7 @@ class AxiCdcm6208(pr.Device):
         ####################################################################################
         ## Commented out because causes a "Segmentation fault" when "ReadAll()" is performed
         ####################################################################################
-#        self.add(pr.RemoteVariable(   
+#        self.addRemoteVariables(   
 #            name         = "Cdcm6208",
 #            description  = "Cdcm6208 Control Registers",
 #            offset       =  0x00,
@@ -54,7 +54,7 @@ class AxiCdcm6208(pr.Device):
 #            mode         = "RW",
 #            number       =  21,
 #            stride       =  4,
-#        ))
+#        )
 
         self.add(pr.RemoteVariable(    
             name         = "SEL_REF",

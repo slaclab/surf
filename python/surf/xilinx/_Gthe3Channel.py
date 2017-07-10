@@ -291,7 +291,7 @@ class Gthe3Channel(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "RXCDR_CFG",
             description  = "",
             offset       =  0x38,
@@ -301,7 +301,7 @@ class Gthe3Channel(pr.Device):
             mode         = "RW",
             number       =  5,
             stride       =  4,
-        ))
+        )
 
         self.add(pr.RemoteVariable(   
             name         = "RXCDR_LOCK_CFG0",
@@ -2823,7 +2823,7 @@ class Gthe3Channel(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "TXPHDLY_CFG",
             description  = "",
             offset       =  0x1B8,
@@ -2833,7 +2833,7 @@ class Gthe3Channel(pr.Device):
             mode         = "RW",
             number       =  2,
             stride       =  4,
-        ))
+        )
 
         self.add(pr.RemoteVariable(   
             name         = "RX_CLK25_DIV",
@@ -3525,7 +3525,7 @@ class Gthe3Channel(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "RXDFE_CFG",
             description  = "",
             offset       =  0x14C,
@@ -3535,7 +3535,7 @@ class Gthe3Channel(pr.Device):
             mode         = "RW",
             number       =  2,
             stride       =  4,
-        ))
+        )
 
         self.add(pr.RemoteVariable(   
             name         = "RX_EN_HI_LR",
@@ -3627,7 +3627,7 @@ class Gthe3Channel(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "ES_SDATA_MASK",
             description  = "",
             offset       =  0x124,
@@ -3637,9 +3637,9 @@ class Gthe3Channel(pr.Device):
             mode         = "RW",
             number       =  5,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "ES_QUAL_MASK",
             description  = "",
             offset       =  0x110,
@@ -3649,9 +3649,9 @@ class Gthe3Channel(pr.Device):
             mode         = "RW",
             number       =  5,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "ES_QUALIFIER",
             description  = "",
             offset       =  0xFC,
@@ -3661,7 +3661,7 @@ class Gthe3Channel(pr.Device):
             mode         = "RW",
             number       =  5,
             stride       =  4,
-        ))
+        )
 
         self.add(pr.RemoteVariable(   
             name         = "TX_PROGDIV_CFG",

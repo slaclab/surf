@@ -41,7 +41,7 @@ class GigEthReg(pr.Device):
         # Variables
         ##############################
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "StatusCounters",
             description  = "Status Counters",
             offset       =  0x00,
@@ -51,7 +51,7 @@ class GigEthReg(pr.Device):
             mode         = "RO",
             number       =  9,
             stride       =  4,
-        ))
+        )
 
         self.add(pr.RemoteVariable(   
             name         = "StatusVector",

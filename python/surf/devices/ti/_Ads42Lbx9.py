@@ -244,7 +244,7 @@ class Ads42Lbx9Readout(pr.Device):
         # Variables
         ##############################
         
-        self.add(pr.RemoteVariable(    
+        self.addRemoteVariables(    
             name         = "DelayAdcALane",
             description  = "LVDS Lane Delay",
             offset       =  0x200,
@@ -254,9 +254,9 @@ class Ads42Lbx9Readout(pr.Device):
             number       =  8,
             stride       =  4,            
             mode         = "RW",
-        ))
+        )
 
-        self.add(pr.RemoteVariable(    
+        self.addRemoteVariables(    
             name         = "DelayAdcBLane",
             description  = "LVDS Lane Delay",
             offset       =  0x220,
@@ -266,9 +266,9 @@ class Ads42Lbx9Readout(pr.Device):
             number       =  8,
             stride       =  4,            
             mode         = "RW",
-        ))
+        )
         
-        self.add(pr.RemoteVariable(    
+        self.addRemoteVariables(    
             name         = "AdcASample",
             description  = "ADC Sample",
             offset       =  0x180,
@@ -278,9 +278,9 @@ class Ads42Lbx9Readout(pr.Device):
             number       =  8,
             stride       =  4,             
             mode         = "RO",
-        ))
+        )
                             
-        self.add(pr.RemoteVariable(    
+        self.addRemoteVariables(    
             name         = "AdcBSample",
             description  = "ADC Sample",
             offset       =  0x1A0,
@@ -290,9 +290,9 @@ class Ads42Lbx9Readout(pr.Device):
             number       =  8,
             stride       =  4,             
             mode         = "RO",
-        ))
+        )
                         
-        self.add(pr.RemoteVariable(    
+        self.addRemoteVariables(    
             name         = "DMode",
             description  = "DMode",
             offset       =  0x240,
@@ -300,4 +300,4 @@ class Ads42Lbx9Readout(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
-        ))
+        )

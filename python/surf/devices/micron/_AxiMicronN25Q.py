@@ -73,7 +73,7 @@ class AxiMicronN25Q(pr.Device):
                             hidden       =  True,
                         ))
 
-        self.add(pr.RemoteVariable(   name         = "Data",
+        self.addRemoteVariables(   name         = "Data",
                             description  = "Data Register Array",
                             offset       =  0x200,
                             bitSize      =  32,
@@ -83,5 +83,5 @@ class AxiMicronN25Q(pr.Device):
                             number       =  64,
                             stride       =  4,
                             hidden       =  True,
-                        ))
+                        )
 

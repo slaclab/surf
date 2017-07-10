@@ -129,7 +129,7 @@ class AxiVersion(pr.Device):
             mode         = "RO",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "UserConstants",
             description  = "Optional user input values",
             offset       =  0x400,
@@ -140,7 +140,7 @@ class AxiVersion(pr.Device):
             number       =  64,
             stride       =  4,
             hidden       = True,
-        ))
+        )
 
 
         self.add(pr.RemoteVariable(   

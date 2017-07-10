@@ -224,7 +224,7 @@ class AxiSysMonUltraScale(pr.Device):
             hidden       =  True,
         ))
 
-        self.add(pr.RemoteVariable( 
+        self.addRemoteVariables( 
             name         = "VAUXP_VAUXN",
             description  = "VAUXP_VAUXN's ADC values",
             offset       =  0x440,
@@ -235,7 +235,7 @@ class AxiSysMonUltraScale(pr.Device):
             number       =  16,
             stride       =  4,
             hidden       =  True,
-        ))
+        )
 
         self.add(pr.RemoteVariable(    
             name         = "MaxTemp",
@@ -339,7 +339,7 @@ class AxiSysMonUltraScale(pr.Device):
             hidden       =  True,
         ))
 
-        self.add(pr.RemoteVariable( 
+        self.addRemoteVariables( 
             name         = "ConfigurationRegister",
             description  = "Configuration Registers",
             offset       =  0x500,
@@ -350,7 +350,7 @@ class AxiSysMonUltraScale(pr.Device):
             number       =  4,
             stride       =  4,
             hidden       =  True,
-        ))
+        )
 
         self.add(pr.RemoteVariable(    
             name         = "SequenceRegister8",
@@ -374,7 +374,7 @@ class AxiSysMonUltraScale(pr.Device):
             hidden       =  True,
         ))
 
-        self.add(pr.RemoteVariable( 
+        self.addRemoteVariables( 
             name         = "SequenceReg_7_0",
             description  = "Sequence Register [7:0]",
             offset       =  0x520,
@@ -385,9 +385,9 @@ class AxiSysMonUltraScale(pr.Device):
             number       =  8,
             stride       =  4,
             hidden       =  True,
-        ))
+        )
 
-        self.add(pr.RemoteVariable( 
+        self.addRemoteVariables( 
             name         = "AlarmThresholdReg_8_0",
             description  = "Alarm Threshold Register [8:0]",
             offset       =  0x540,
@@ -398,7 +398,7 @@ class AxiSysMonUltraScale(pr.Device):
             number       =  9,
             stride       =  4,
             hidden       =  True,
-        ))
+        )
 
         self.add(pr.RemoteVariable(    
             name         = "AlarmThresholdReg12",
@@ -422,7 +422,7 @@ class AxiSysMonUltraScale(pr.Device):
             hidden       =  True,
         ))
 
-        self.add(pr.RemoteVariable( 
+        self.addRemoteVariables( 
             name         = "AlarmThresholdReg_25_16",
             description  = "Alarm Threshold Register [25:16]",
             offset       =  0x580,
@@ -433,9 +433,9 @@ class AxiSysMonUltraScale(pr.Device):
             number       =  8,
             stride       =  4,
             hidden       =  True,
-        ))
+        )
 
-        self.add(pr.RemoteVariable( 
+        self.addRemoteVariables( 
             name         = "VUSER",
             description  = "VUSER[4:0] supply monitor measurement",
             offset       =  0x600,
@@ -446,9 +446,9 @@ class AxiSysMonUltraScale(pr.Device):
             number       =  4,
             stride       =  4,
             hidden       =  True,
-        ))
+        )
 
-        self.add(pr.RemoteVariable( 
+        self.addRemoteVariables( 
             name         = "MAX_VUSER",
             description  = "Maximum VUSER[4:0] supply monitor measurement",
             offset       =  0x680,
@@ -459,9 +459,9 @@ class AxiSysMonUltraScale(pr.Device):
             number       =  4,
             stride       =  4,
             hidden       =  True,
-        ))
+        )
 
-        self.add(pr.RemoteVariable( 
+        self.addRemoteVariables( 
             name         = "MIN_VUSER",
             description  = "Minimum VUSER[4:0] supply monitor measurement",
             offset       =  0x6A0,
@@ -472,5 +472,5 @@ class AxiSysMonUltraScale(pr.Device):
             number       =  4,
             stride       =  4,
             hidden       =  True,
-        ))
+        )
         
