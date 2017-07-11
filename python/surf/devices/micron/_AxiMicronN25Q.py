@@ -20,12 +20,10 @@
 import pyrogue as pr
 
 class AxiMicronN25Q(pr.Device):
-    def __init__(
-            self,       
+    def __init__(self,       
             name        = "AxiMicronN25Q",
             description = "AXI-Lite Micron N25Q and Micron MT25Q PROM",
             **kwargs):
-    
         super(self.__class__, self).__init__(name=name, description=description, **kwargs)
 
         ##############################

@@ -21,24 +21,13 @@ import pyrogue as pr
 
 class JesdRx(pr.Device):
     def __init__(   self,       
-        name        = "JesdRx",
-        description = "JESD RX Module",
-        memBase     =  None,
-        offset      =  0x00,
-        hidden      =  False,
-        numRxLanes  =  6,
-        instantiate =  True,
-        debug	    =  False,
-        expand      =  True,
-    ):
-        super().__init__(
-            name        = name,
-            description = description,
-            memBase     = memBase,
-            offset      = offset,
-            hidden      = hidden,
-            expand      = expand,
-        )
+            name        = "JesdRx",
+            description = "JESD RX Module",
+            numRxLanes  =  6,
+            instantiate =  True,
+            debug	    =  False,
+            **kwargs):
+        super(self.__class__, self).__init__(name=name, description=description, **kwargs) 
 
         ##############################
         # Variables

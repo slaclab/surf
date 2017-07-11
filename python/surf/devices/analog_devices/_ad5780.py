@@ -21,9 +21,11 @@
 import pyrogue as pr
 
 class Ad5780(pr.Device):
-    def __init__(self, name="Ad5780", memBase=None, offset=0, hidden=False):
-        super(self.__class__, self).__init__(name, "Ad5780 Module",
-                                             memBase, offset, hidden)
+    def __init__(self,       
+            name        = "Ad5780",
+            description = "Ad5780",
+            **kwargs):
+        super(self.__class__, self).__init__(name=name, description=description, **kwargs)
                                              
         self.add(pr.RemoteVariable(
             name='dacRefreshRate',
