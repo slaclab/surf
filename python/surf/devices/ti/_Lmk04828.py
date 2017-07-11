@@ -1239,7 +1239,7 @@ class Lmk04828(pr.Device):
         ##############################
         # Commands
         ##############################
-        @self.command(description="Load the CodeLoader .MAC file",base=pr.String,)
+        @self.command(description="Load the CodeLoader .MAC file",value='',)
         def LoadCodeLoaderMacFile(arg):         
             # Open the input file
             with open(arg, 'r') as ifd:              
