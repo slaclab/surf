@@ -21,21 +21,10 @@ import pyrogue as pr
 
 class UdpEngineClient(pr.Device):
     def __init__(   self,       
-        name        = "UdpEngineClient",
-        description = "UdpEngineClient",
-        memBase     =  None,
-        offset      =  0x00,
-        hidden      =  False,
-        expand      =  True,
-    ):
-        super().__init__(
-            name        = name,
-            description = description,
-            memBase     = memBase,
-            offset      = offset,
-            hidden      = hidden,
-            expand      = expand,
-        )
+            name        = "UdpEngineClient",
+            description = "UdpEngineClient",
+            **kwargs):
+        super(self.__class__, self).__init__(name=name, description=description, **kwargs) 
         ##############################
         # Variables
         ##############################

@@ -21,22 +21,11 @@ import pyrogue as pr
 
 class AxiStreamDmaRingWrite(pr.Device):
     def __init__(   self,       
-        name        = "AxiStreamDmaRingWrite",
-        description = "DMA Ring Buffer Manager",
-        memBase     =  None,
-        offset      =  0x00,
-        numBuffers  =  4,
-        hidden      =  False,
-        expand      =  True,
-    ):
-        super().__init__(
-            name        = name,
-            description = description,
-            memBase     = memBase,
-            offset      = offset,
-            hidden      = hidden,
-            expand      = expand,
-        )
+            name        = "AxiStreamDmaRingWrite",
+            description = "DMA Ring Buffer Manager",
+            numBuffers  =  4,
+            **kwargs):
+        super(self.__class__, self).__init__(name=name, description=description, **kwargs)  
 
         self._numBuffers = numBuffers
         

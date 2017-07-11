@@ -39,14 +39,27 @@ class McsReader():
         self.endAddr   = 0
         self.size      = 0
         baseAddr       = 0
-        dataList       = []
-        # Open the file
-        with open(filename, 'r') as f:
-            # Setup the status bar
-            with click.progressbar(enumerate(f),label='Reading .MCS:\t') as bar:
-                for i, line in bar:
+        dataList       = []        
+        # Find the length of the file
+        f = open(filename, "r")
+        length = 0
+        for line in iter(f):
+            length += 1
+        f.close()    
+        # Setup the status bar
+        with click.progressbar(
+            length   = length,
+            label    = '\t'+click.style('Reading .MCS:', bg='blue', fg='white')+'\t',            
+        ) as bar:            
+            # Open the file
+            with open(filename, 'r') as f:
+                for i, line in enumerate(f):
                     # Readout a line
                     line = line.strip()
+                    
+                    # Throttle down printf rate
+                    if ( (i&0xFFF) == 0):
+                        bar.update(0xFFF)                      
                         
                     # Check for "start code"
                     if line[0] != ':':
@@ -100,9 +113,18 @@ class McsReader():
                             baseAddr = int(strings[4]+strings[5], 16)* (2**16)
                         else: # Undefined RecordType
                             raise McsException('McsReader.open(): Invalid record type: {:d}'.format(recordType))    
-
+                            
+            # Close the status bar
+            bar.update(length)          
+            
         # Calculate the total size (in units of bytes)                
         self.size = (self.endAddr - self.startAddr) + 1
         
         # Convert to numpy array
         self.entry = np.array(dataList)
+        
+        # # Debugging
+        # print ( 'self.startAddr = 0x%x' % self.startAddr )
+        # print ( 'self.endAddr   = 0x%x' % self.endAddr )
+        # print ( 'self.size      = 0x%x' % self.size )
+        
