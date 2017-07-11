@@ -20,28 +20,36 @@
 import pyrogue as pr
 
 class AxiSy56040(pr.Device):
-    def __init__(   self,       
-                    name        = "AxiSy56040",
-                    description = "AXI-Lite Microchip SY56040 and Microchip SY58040",
-                    memBase     =  None,
-                    offset      =  0x00,
-                    hidden      =  False,
-                    expand	    =  True,
-                ):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, expand=expand)  
+    def __init__( self,       
+        name        = "AxiSy56040",
+        description = "AXI-Lite Microchip SY56040 and Microchip SY58040",
+        memBase     =  None,
+        offset      =  0x00,
+        hidden      =  False,
+        expand      =  True,
+    ):
+        super().__init__(
+            name        = name,
+            description = description,
+            memBase     = memBase,
+            offset      = offset,
+            hidden      = hidden,
+            expand      = expand,
+        )
 
         ##############################
         # Variables
         ##############################
 
-        self.addVariables(  name         = "OutputConfig",
-                            description  = "Output Configuration Register Array",
-                            offset       =  0x00,
-                            bitSize      =  2,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                            number       =  4,
-                            stride       =  4,
-                        )
+        self.addRemoteVariables( 
+            name         = "OutputConfig",
+            description  = "Output Configuration Register Array",
+            offset       =  0x00,
+            bitSize      =  2,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW",
+            number       =  4,
+            stride       =  4,
+        )
 

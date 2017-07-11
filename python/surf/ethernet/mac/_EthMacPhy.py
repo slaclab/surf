@@ -41,105 +41,105 @@ class EthMacPhy(pr.Device):
         # Variables
         ##############################
 
-        self.addVariables(  
+        self.addRemoteVariables(   
             name         = "StatusCounters",
             description  = "Status Counters",
             offset       =  0x00,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
             number       =  32,
             stride       =  4,
         )
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(   
             name         = "StatusVector",
             description  = "Status Vector",
             offset       =  0x100,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(   
             name         = "MacAddress",
             description  = "MAC Address (big-Endian)",
             offset       =  0x200,
             bitSize      =  48,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(   
             name         = "PauseTime",
             description  = "PauseTime",
             offset       =  0x21C,
             bitSize      =  16,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(   
             name         = "FilterEnable",
             description  = "FilterEnable",
             offset       =  0x228,
             bitSize      =  1,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(   
             name         = "PauseEnable",
             description  = "PauseEnable",
             offset       =  0x22C,
             bitSize      =  1,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(   
             name         = "RollOverEn",
             description  = "RollOverEn",
             offset       =  0xF00,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(   
             name         = "CounterReset",
             description  = "CounterReset",
             offset       =  0xFF4,
             bitSize      =  1,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "WO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(   
             name         = "SoftReset",
             description  = "SoftReset",
             offset       =  0xFF8,
             bitSize      =  1,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "WO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(   
             name         = "HardReset",
             description  = "HardReset",
             offset       =  0xFFC,
             bitSize      =  1,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "WO",
-        )
+        ))
 

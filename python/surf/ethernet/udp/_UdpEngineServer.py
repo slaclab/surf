@@ -41,23 +41,23 @@ class UdpEngineServer(pr.Device):
         # Variables
         ##############################
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(   
             name         = "ServerRemotePort",
             description  = "ServerRemotePort (big-Endian configuration)",
             offset       =  0x00,
             bitSize      =  16,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(   
             name         = "ServerRemoteIp",
             description  = "ServerRemoteIp (big-Endian configuration)",
             offset       =  0x04,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 

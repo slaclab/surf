@@ -80,6 +80,7 @@ architecture rtl of JesdAlignChGen is
       sampleDataD1  : slv(sampleData_o'range);
       sampleDataD2  : slv(sampleData_o'range);
       sampleKD1     : slv(sampleK_o'range);
+      lfsr          : slv(sampleData_o'range);
       lmfcD1        : sl;
    end record RegType;
 
@@ -89,6 +90,7 @@ architecture rtl of JesdAlignChGen is
       sampleDataD1  => (others => '0'),
       sampleDataD2  => (others => '0'),
       sampleKD1     => (others => '0'),
+      lfsr          => (others => '0'),
       lmfcD1        => '0'
       );
 
@@ -123,9 +125,12 @@ begin
      
       -- Scramble Data if enabled
       if scrEnable_i = '1' then
-         -- Scramble the data if scrambling enabled
          for i in (GT_WORD_SIZE_C*8)-1 downto 0 loop
-            v.sampleDataD1 := lfsrShift(v.sampleDataD1, JESD_PRBS_TAPS_C, r.sampleDataInv(i));
+            v.sampleDataD1(i) := r.sampleDataInv(i);
+            for j in JESD_PRBS_TAPS_C'range loop
+               v.sampleDataD1(i) := v.sampleDataD1(i) xor v.lfsr(JESD_PRBS_TAPS_C(j)-1);
+            end loop;
+            v.lfsr := v.lfsr((GT_WORD_SIZE_C*8)-2 downto 0) & v.sampleDataD1(i);
          end loop;
       else
          -- Use the data from the input if scrambling disabled 

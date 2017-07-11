@@ -20,59 +20,57 @@
 import pyrogue as pr
 
 class AxiMicronP30(pr.Device):
-    def __init__(   self,       
-                    name        = "AxiMicronP30",
-                    description = "AXI-Lite Micron P30 PROM",
-                    memBase     =  None,
-                    offset      =  0x00,
-                    hidden      =  False,
-                    expand	    =  True,
-                ):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, expand=expand)   
+    def __init__(
+            self,       
+            name        = "AxiMicronP30",
+            description = "AXI-Lite Micron P30 PROM",
+            **kwargs):
+        
+        super(self.__class__, self).__init__(name=name, description=description, **kwargs)
         
         ##############################
         # Variables
         ##############################
 
-        self.addVariable(   name         = "WrData",
-                            description  = "Write Data",
-                            offset       =  0x00,
-                            bitSize      =  32,
-                            bitOffset    =  0,
-                            base         = "hex",
-                            mode         = "RW",
-                            hidden       =  True,                            
-                            verify       =  False,
-                        )
+        self.add(pr.RemoteVariable(
+            name         = "WrData",
+            description  = "Write Data",
+            offset       =  0x00,
+            bitSize      =  32,
+            bitOffset    =  0,
+            base         = pr.UInt,
+            mode         = "RW",
+            hidden       =  True,                            
+            verify       =  False))
 
-        self.addVariable(   name         = "Addr",
-                            description  = "Address",
-                            offset       =  0x04,
-                            bitSize      =  32,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                            hidden       =  True,                            
-                            verify       =  False,
-                        )
+        self.add(pr.RemoteVariable(
+            name         = "Addr",
+            description  = "Address",
+            offset       =  0x04,
+            bitSize      =  32,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW",
+            hidden       =  True,                            
+            verify       =  False ))
 
-        self.addVariable(   name         = "RdData",
-                            description  = "Read Data",
-                            offset       =  0x08,
-                            bitSize      =  16,
-                            bitOffset    =  0,
-                            base         = "hex",
-                            mode         = "RO",
-                            hidden       =  True,                            
-                            verify       =  False,
-                        )                  
+        self.add(pr.RemoteVariable(
+            name         = "RdData",
+            description  = "Read Data",
+            offset       =  0x08,
+            bitSize      =  16,
+            bitOffset    =  0,
+            base         = pr.UInt,
+            mode         = "RO",
+            hidden       =  True,                            
+            verify       =  False))
                         
-        self.addVariable(   name         = "Test",
-                            description  = "Scratch Pad tester register",
-                            offset       =  0x0C,
-                            bitSize      =  32,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                        )
+        self.add(pr.RemoteVariable(
+            name         = "Test",
+            description  = "Scratch Pad tester register",
+            offset       =  0x0C,
+            bitSize      =  32,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW"))
                         

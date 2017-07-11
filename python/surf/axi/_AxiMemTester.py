@@ -35,99 +35,99 @@ class AxiMemTester(pr.Device):
             offset      = offset,
             hidden      = hidden,
             expand      = expand,
-        ) 
+        )
 
         ##############################
         # Variables
         ##############################
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "Passed",
             description  = "Passed Memory Test",
             offset       =  0x100,
             bitSize      =  1,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "Failed",
             description  = "Failed Memory Test",
             offset       =  0x104,
             bitSize      =  1,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "WriteTimer",
             description  = "Write Timer",
             offset       =  0x108,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "ReadTimer",
             description  = "Read Timer",
             offset       =  0x10C,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "StartAddress",
             description  = "Start Address",
             offset       =  0x110,
             bitSize      =  64,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "StopAddress",
             description  = "Stop Address",
             offset       =  0x118,
             bitSize      =  64,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "ADDR_WIDTH_C",
             description  = "AXI4 Address Bus Width (units of bits)",
             offset       =  0x120,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "DATA_BYTES_C",
             description  = "AXI4 Data Bus Width (units of bits)",
             offset       =  0x124,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "ID_BITS_C",
             description  = "AXI4 ID Bus Width (units of bits)",
             offset       =  0x128,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
