@@ -2,7 +2,7 @@
 -- File       : AxiMicronP30Reg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-10-21
--- Last update: 2017-06-15
+-- Last update: 2017-07-11
 -------------------------------------------------------------------------------
 -- Description: This controller is designed around the Micron PC28F FLASH IC.
 -------------------------------------------------------------------------------
@@ -88,6 +88,7 @@ architecture rtl of AxiMicronP30Reg is
       wrData        : slv(15 downto 0);
       test          : slv(31 downto 0);
       -- Block Transfer signals
+      lockCmd       : sl;
       blockRd       : sl;
       blockWr       : sl;
       blockCnt      : slv(7 downto 0);
@@ -120,6 +121,7 @@ architecture rtl of AxiMicronP30Reg is
       wrData        => (others => '0'),
       test          => (others => '0'),
       -- Block Transfer signals
+      lockCmd       => '0',
       blockRd       => '0',
       blockWr       => '0',
       blockCnt      => (others => '0'),
@@ -179,6 +181,7 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Reset variables
+            v.lockCmd  := '0';
             v.blockRd  := '0';
             v.blockWr  := '0';
             v.blockCnt := x"00";
@@ -347,8 +350,9 @@ begin
                   v.wrData := ramDout;  -- Send the BRAM data
                -- Get the status register
                when x"03" =>
-                  v.RnW   := '1';
-                  v.wrCmd := x"0070";
+                  v.RnW    := '1';
+                  v.wrCmd  := x"0070";
+                  v.wrData := x"00FF";
                when others =>
                   -- Check if FLASH is still busy
                   if r.dataReg(7) = '0' then
@@ -357,6 +361,7 @@ begin
                      -- Get the status register
                      v.RnW      := '1';
                      v.wrCmd    := x"0070";
+                     v.wrData   := x"00FF";
                   -- Check for programming failure
                   elsif r.dataReg(4) = '1' then
                      -- Set the counter
@@ -370,6 +375,7 @@ begin
                      v.RnW      := '0';
                      v.wrCmd    := x"0060";
                      v.wrData   := x"0001";
+                     v.lockCmd  := '1';
                      -- Reset the counter
                      v.blockCnt := x"00";
                      -- Check the Block RAM address
@@ -469,6 +475,13 @@ begin
                   v.state := BLOCK_RD_S;
                -- Check for block write
                elsif (r.blockWr = '1') then
+                  -- Check for the lock CMD
+                  if (r.lockCmd = '1') then
+                     -- Reset the flag
+                     v.lockCmd := '0';
+                     -- Increment the counter
+                     v.addr    := r.addr + 1;
+                  end if;
                   -- Next state
                   v.state := BLOCK_WR_S;
                else
