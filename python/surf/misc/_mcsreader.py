@@ -90,7 +90,7 @@ class McsReader():
                             for j in range(byteCount):
                                 # Put the address and data into a list
                                 address = baseAddr + addr + j
-                                data    = bytes[(byteCount-j)+3]
+                                data    = bytes[j+4]
                                 dataList.append([address, data])
                             
                             # Save the last address
@@ -121,7 +121,7 @@ class McsReader():
         self.size = (self.endAddr - self.startAddr) + 1
         
         # Convert to numpy array
-        self.entry = np.array(dataList)
+        self.entry = np.array(dataList,dtype=np.int32)
         
         # # Debugging
         # print ( 'self.startAddr = 0x%x' % self.startAddr )
