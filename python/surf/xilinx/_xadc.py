@@ -23,7 +23,7 @@ import pyrogue as pr
     
 class Xadc(pr.Device):
     def __init__(self, auxChannels=0, zynq=False, **kwargs):
-        super(self.__class__, self).__init__(
+        super().__init__(
             description='AXI-Lite XADC for Xilinx 7 Series (Refer to PG091 & PG019)', **kwargs)
             
 

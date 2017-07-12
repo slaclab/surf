@@ -24,4 +24,4 @@ class AxiLiteEmpty(pr.Device):
             name        = "AxiEmpty",
             description = "AxiEmpty Module as a placeholder for future module",
             **kwargs):
-        super(self.__class__, self).__init__(name=name, description=description, **kwargs)  
+        super().__init__(name=name, description=description, **kwargs)  

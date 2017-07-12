@@ -25,7 +25,7 @@ class Ltc2270(pr.Device):
             name        = "Ltc2270",
             description = "Ltc2270",
             **kwargs):
-        super(self.__class__, self).__init__(name=name, description=description, **kwargs)                                  
+        super().__init__(name=name, description=description, **kwargs)                                  
 
         self.add(pr.RemoteVariable(  
             name        = 'DacReset',

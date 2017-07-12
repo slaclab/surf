@@ -25,7 +25,7 @@ class Ad5780(pr.Device):
             name        = "Ad5780",
             description = "Ad5780",
             **kwargs):
-        super(self.__class__, self).__init__(name=name, description=description, **kwargs)
+        super().__init__(name=name, description=description, **kwargs)
                                              
         self.add(pr.RemoteVariable(
             name='dacRefreshRate',

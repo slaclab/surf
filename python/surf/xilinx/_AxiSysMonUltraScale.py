@@ -24,7 +24,7 @@ class AxiSysMonUltraScale(pr.Device):
             name        = "AxiSysMonUltraScale",
             description = "AXI-Lite System Managment for Xilinx Ultra Scale (Refer to PG185 and UG580)",
             **kwargs):
-        super(self.__class__, self).__init__(name=name, description=description, **kwargs) 
+        super().__init__(name=name, description=description, **kwargs) 
 
         ##############################
         # Variables

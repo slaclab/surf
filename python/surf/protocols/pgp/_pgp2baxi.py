@@ -23,7 +23,7 @@ import rogue
 
 class Pgp2bAxi(pr.Device):
     def __init__(self, **kwargs):
-        super(self.__class__, self).__init__(
+        super().__init__(
             description="Configuration and status of a downstream PGP link", **kwargs)
 
         #self.add(pr.Command(

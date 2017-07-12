@@ -24,7 +24,7 @@ import math
 
 class Ad9249ConfigGroup(pr.Device):
     def __init__(self, **kwargs):
-        super(self.__class__, self).__init__(description="Configure one side of an AD9249 ADC",
+        super().__init__(description="Configure one side of an AD9249 ADC",
                                              **kwargs)
 
         # AD9249 bank configuration registers
@@ -70,7 +70,7 @@ class Ad9249ConfigGroup(pr.Device):
 
 class Ad9249ChipConfig(pr.Device):
     def __init__(self, **kwargs):
-        super(self.__class__, self).__init__(description="Configure one side of an AD9249 ADC",
+        super().__init__(description="Configure one side of an AD9249 ADC",
                                              **kwargs)
 
         self.add(Ad9249ConfigGroup("BankConfig[0]", 0x0000));
@@ -80,7 +80,7 @@ class Ad9249ChipConfig(pr.Device):
 class Ad9249Config(pr.Device):
 
     def __init__(self, chips=1, **kwargs):
-        super(self.__class__, self).__init__(description="Configuration of Ad9249 ADC",
+        super().__init__(description="Configuration of Ad9249 ADC",
                                              **kwargs)
 
         PDWN_ADDR = int(pow(2,11+math.log(chips*2,2)))
@@ -115,7 +115,7 @@ class Ad9249ReadoutGroup(pr.Device):
 
         assert (channels > 0 and channels <= 8), "channels (%r) must be between 0 and 8" % (channels)
         
-        super(self.__class__, self).__init__(description="Configure readout of 1 bank of an AD9249",
+        super().__init__(description="Configure readout of 1 bank of an AD9249",
                                              **kwargs)
         
         for i in range(channels):
