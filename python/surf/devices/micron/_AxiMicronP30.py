@@ -99,7 +99,10 @@ class AxiMicronP30(pr.Device):
                 self._eraseCmd(address)
                 # Increment by one block
                 address += ERASE_SIZE
-                
+        # Check the corner case
+        if ( address<self._mcs.endAddr ): 
+            self._eraseCmd(address)         
+
     # Erase Command
     def _eraseCmd(self, address):
         # Unlock the Block
