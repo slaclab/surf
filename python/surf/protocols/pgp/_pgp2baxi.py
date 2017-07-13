@@ -34,13 +34,7 @@ class Pgp2bAxi(pr.Device):
             bitSize     = 3, 
             bitOffset   = 0, 
             mode        = "RW", 
-            enum        = {
-                0: "Off",
-                1: "NearPcs",
-                2: "NearPma",
-                4: "FarPma",
-                5: "FarPcs",
-            },
+            base        = pr.UInt,
         ))
         
         self.add(pr.RemoteVariable(
