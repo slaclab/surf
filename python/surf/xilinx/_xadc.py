@@ -306,25 +306,25 @@ class Xadc(pr.Device):
                 VrefN, thus 1 LSB = 3V/4096. The data is MSB justified in 
                 the 16-bit register.      """,
         )
-
-        for i in range(auxChannels):
-            self.add(pr.RemoteVariable(  
-                name        = 'Aux[{:d}]Raw'.format(i),
-                offset      = (i*4)+0x240, 
-                bitSize     = 12, 
-                bitOffset   = 4, 
-                base        = pr.UInt, 
-                mode        = 'RO',
-                description = """
-                    The results of the conversions on auxiliary analog input 
-                    channels are stored in this register. The data is MSB 
-                    justified in the 16-bit register (Read Only). The 12 MSBs correspond to 
-                    the transfer function shown in Figure 2-1, page 24 or 
-                    Figure 2-2, page 25 of UG480 (v1.2) depending on analog input mode 
-                    settings.""",
-            ))
-
-
+        
+        self.addRemoteVariables(   
+            name         = "Aux",
+            offset       =  0x240,
+            bitSize      =  12,
+            bitOffset    =  4,
+            base         = pr.UInt,
+            mode         = "RO",
+            number       =  auxChannels,
+            stride       =  4,
+            description = """
+                The results of the conversions on auxiliary analog input 
+                channels are stored in this register. The data is MSB 
+                justified in the 16-bit register (Read Only). The 12 MSBs correspond to 
+                the transfer function shown in Figure 2-1, page 24 or 
+                Figure 2-2, page 25 of UG480 (v1.2) depending on analog input mode 
+                settings.""",
+        )            
+        
         if (zynq):
             addPair(
                 name        = 'VccpInt', 
