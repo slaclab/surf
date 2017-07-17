@@ -18,15 +18,16 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-import click
 from surf.misc._mcsreader import *
+import click
+import time
 
 class AxiMicronP30(pr.Device):
     def __init__(self,       
             name        = "AxiMicronP30",
             description = "AXI-Lite Micron P30 PROM",
             **kwargs):
-        super(self.__class__, self).__init__(name=name, description=description, **kwargs)
+        super().__init__(name=name, description=description, **kwargs)
         
         self._mcs = McsReader()        
         
@@ -43,13 +44,17 @@ class AxiMicronP30(pr.Device):
             mode         = "RW"))
             
         @self.command(value='',description="Load the .MCS into PROM",)
-        def LoadMcsFile(arg):    
-            print ( "LoadMcsFile: %s" % arg)
+        def LoadMcsFile(arg):
+            
+            click.secho(('LoadMcsFile: %s' % arg), fg='green')
+            
+            # Start time measurement for profiling
+            start = time.time()
             
             # Configuration: Force default configurations
             self._writeToFlash(0xFD4F,0x60,0x03)            
             
-            # # Open the MCS file
+            # Open the MCS file
             self._mcs.open(arg)                                           
             
             # Erase the PROM
@@ -58,9 +63,27 @@ class AxiMicronP30(pr.Device):
             # Write to the PROM
             self.writeProm()
             
-            # # Verify the PROM
-            # self.verifyProm()
-                        
+            # Verify the PROM
+            self.verifyProm()
+            
+            # End time measurement for profiling
+            end = time.time()
+            elapsed = end - start
+            click.secho(('LoadMcsFile() took %d seconds' % int(elapsed)), fg='green')
+            
+            # Add a power cycle reminder
+            click.secho(
+                "\n\n\
+                ***************************************************\n\
+                ***************************************************\n\
+                The MCS data has been written into the PROM.       \n\
+                To reprogram the FPGA with the new PROM data,      \n\
+                a IPROG CMD, reboot, or power cycle is be required.\n\
+                ***************************************************\n\
+                ***************************************************\n\n"\
+                , bg='green',
+            )
+   
     def eraseProm(self):
         # Set the starting address index
         address    = self._mcs.startAddr        
@@ -68,15 +91,18 @@ class AxiMicronP30(pr.Device):
         ERASE_SIZE = 0x4000 
         # Setup the status bar
         with click.progressbar(
-            iterable = range(int(self._mcs.size/ERASE_SIZE)),
-            label    = '\t'+click.style('Erasing PROM:', bg='blue', fg='white')+'\t', 
+            iterable = range(int((self._mcs.size)/ERASE_SIZE)),
+            label    = click.style('Erasing PROM:  ', fg='green'),
         ) as bar:
             for i in bar:
                 # Execute the erase command
                 self._eraseCmd(address)
                 # Increment by one block
                 address += ERASE_SIZE
-                
+        # Check the corner case
+        if ( address<self._mcs.endAddr ): 
+            self._eraseCmd(address)         
+
     # Erase Command
     def _eraseCmd(self, address):
         # Unlock the Block
@@ -109,7 +135,7 @@ class AxiMicronP30(pr.Device):
         # Setup the status bar
         with click.progressbar(
             length   = self._mcs.size,
-            label    = '\t'+click.style('Writing PROM:', bg='blue', fg='white')+'\t',   
+            label    = click.style('Writing PROM:  ', fg='green'),
         ) as bar:        
             for i in range(self._mcs.size):        
                 if ( (i&0x1) == 0):
@@ -118,37 +144,30 @@ class AxiMicronP30(pr.Device):
                         # Throttle down printf rate
                         bar.update(0x1FF)            
                         # Get the start bursting address
-                        addr =  self._mcs.entry[i][0]
+                        addr = int(self._mcs.entry[i][0])>>1 # 16-bit word addressing at the PROM
                         # Reset the counter
                         cnt = 0
                     # Get the data from MCS file
-                    dataArray[cnt] = (self._mcs.entry[i][1] << 8)
+                    dataArray[cnt] = int(self._mcs.entry[i][1]) & 0xFF
                 else:
                     # Get the data from MCS file
-                    dataArray[cnt] |= (self._mcs.entry[i][1]  << 8)
+                    dataArray[cnt] |= (int(self._mcs.entry[i][1])   << 8)
                     cnt += 1
                     # Check for the last byte
                     if ( cnt == 256 ):
-
-
                         # Write burst data
                         self._rawWrite(address=0x400, data=dataArray)
                         # Start a burst transfer
-                        self._rawWrite(0x84,0x7FFFFFFF&addr)   
-                        
+                        self._rawWrite(0x84,0x7FFFFFFF&addr)                           
             # Check for leftover data
             if (cnt != 256):
                 # Fill the rest of the data array with ones
                 for i in range(cnt, 256):
                     dataArray[i] = 0xFFFF
-
-
                 # Write burst data
                 self._rawWrite(address=0x400, data=dataArray)
                 # Start a burst transfer
                 self._rawWrite(0x84,0x7FFFFFFF&addr)                  
-
-                
             # Close the status bar
             bar.update(self._mcs.size)  
 
@@ -160,13 +179,13 @@ class AxiMicronP30(pr.Device):
         # Setup the status bar
         with click.progressbar(
             length  = self._mcs.size,
-            label   = '\t'+click.style('Verifying PROM:', bg='blue', fg='white')+'\t',               
+            label   = click.style('Verifying PROM:', fg='green'),           
         ) as bar:
             for i in range(self._mcs.size):
                 if ( (i&0x1) == 0):
                     # Get the data and address from MCS file
-                    addr =  self._mcs.entry[i][0]        
-                    data = (self._mcs.entry[i][1] << 8)               
+                    addr = int(self._mcs.entry[i][0])>>1 # 16-bit word addressing at the PROM
+                    data = int(self._mcs.entry[i][1]) & 0xFF             
                     # Check for burst transfer
                     if ( (i&0x1FF) == 0):
                         # Throttle down printf rate
@@ -174,16 +193,16 @@ class AxiMicronP30(pr.Device):
                         # Start a burst transfer
                         self._rawWrite(0x84,0x80000000|addr)
                         # Get the data
-                        dataArray = self._rawRead(address=0x400,size=256,model=pr.UInt,stride=4)                
+                        dataArray = self._rawRead(address=0x400,size=256)  
                 else:
                     # Get the data for MCS file
-                    data |= (self._mcs.entry[i][1]  << 8)
+                    data |= (int(self._mcs.entry[i][1])  << 8)
                     # Get the prom data from data array
-                    prom = dataArray[(i>>1)]&0xFFFF
+                    prom = dataArray[(i&0x1FF)>>1]
                     # Compare PROM to file
                     if (data != prom):
-                        print ("\nAddr = 0x%x: data 0x%x != prom 0x%x" % (addr,data,prom))
-                        raise McsException('verifyProm() Failed')
+                        click.secho(("\nAddr = 0x%x: MCS = 0x%x != PROM = 0x%x" % (addr,data,prom)), fg='red')
+                        raise McsException('verifyProm() Failed\n\n')
             # Close the status bar
             bar.update(self._mcs.size)  
         

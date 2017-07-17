@@ -24,7 +24,7 @@ class AxiSy56040(pr.Device):
             name        = "AxiSy56040",
             description = "AXI-Lite Microchip SY56040 and Microchip SY58040",
             **kwargs):
-        super(self.__class__, self).__init__(name=name, description=description, **kwargs) 
+        super().__init__(name=name, description=description, **kwargs) 
 
         ##############################
         # Variables

@@ -20,7 +20,10 @@
 
 import numpy as np
 import functools
-import click
+import click 
+import gzip
+import os
+import fnmatch
 
 class McsException(Exception):
     pass
@@ -39,23 +42,38 @@ class McsReader():
         self.endAddr   = 0
         self.size      = 0
         baseAddr       = 0
-        dataList       = []        
+        dataList       = []
+
+        # Check for non-compressed .MCS file
+        if fnmatch.fnmatch(filename, '*.mcs'):
+            gzipEn = False
+        elif fnmatch.fnmatch(filename, '*.mcs.gz'):
+            gzipEn = True
+        else:
+            click.secho('\nUnsupported file extension detected', fg='red')
+            raise McsException('McsReader.open(): failed')  
+            
         # Find the length of the file
-        f = open(filename, "r")
+        f = gzip.open(filename, "rb") if (gzipEn) else open(filename, "r")
         length = 0
         for line in iter(f):
             length += 1
-        f.close()    
+        f.close()  
         # Setup the status bar
         with click.progressbar(
-            length   = length,
-            label    = '\t'+click.style('Reading .MCS:', bg='blue', fg='white')+'\t',            
+            length = length,
+            label  = click.style('Reading .MCS:  ', fg='green'),
         ) as bar:            
             # Open the file
-            with open(filename, 'r') as f:
+            with ( gzip.open(filename, "rb") if (gzipEn) else open(filename, 'r') ) as f:            
                 for i, line in enumerate(f):
                     # Readout a line
                     line = line.strip()
+                    
+                    # Check if GZIP and convert to standard string
+                    if (gzipEn):
+                        line = str(line)[2:]
+                        line = str(line)[:-1]
                     
                     # Throttle down printf rate
                     if ( (i&0xFFF) == 0):
@@ -63,7 +81,8 @@ class McsReader():
                         
                     # Check for "start code"
                     if line[0] != ':':
-                        raise McsException('McsReader.open(): Missing start code. Line: \n\t{:s}'.format(line))
+                        click.secho( ('\nMissing start code. Line[%d]: {:%s}' % (i,line)), fg='red')
+                        raise McsException('McsReader.open(): failed')                         
                     else:
                     
                         strings = [line[j:j+2] for j in range(1, len(line), 2)]
@@ -72,8 +91,9 @@ class McsReader():
                         s = functools.reduce(lambda x,y: x+y, bytes[:-1]) & 0xFF
                         c = (bytes[-1]*-1) & 0xFF
                         
-                        if s != c:
-                            raise McsException("McsReader.open(): Bad checksum on line: {:s}. Sum: {:x}, checksum: {:x}".format(line, s, c))
+                        if s != c:                            
+                            click.secho('\nBad checksum on line: {:s}. Sum: {:x}, checksum: {:x}'.format(line, s, c), fg='red')
+                            raise McsException('McsReader.open(): failed') 
 
                         # Parse out the bytes
                         byteCount = bytes[0]
@@ -81,16 +101,18 @@ class McsReader():
                         recordType = bytes[3]
                        
                         if byteCount > 16:
-                            raise McsException('McsReader.open(): Invalid byte count: {:d}'.format(byteCount))
+                            click.secho('\nInvalid byte count: {:d}'.format(byteCount), fg='red')
+                            raise McsException('McsReader.open(): failed') 
 
                         elif recordType == 0: # Data RecordType           
                             
                             if byteCount == 0:
-                                raise McsException('McsReader.open(): Invalid byte count: {:d} for recordType: {d}'.format(byteCount, recordType))
+                                click.secho('\nInvalid byte count: {:d} for recordType: {d}'.format(byteCount, recordType), fg='red')
+                                raise McsException('McsReader.open(): failed') 
                             for j in range(byteCount):
                                 # Put the address and data into a list
                                 address = baseAddr + addr + j
-                                data    = bytes[(byteCount-j)+3]
+                                data    = bytes[j+4]
                                 dataList.append([address, data])
                             
                             # Save the last address
@@ -102,17 +124,20 @@ class McsReader():
                         elif recordType == 4: #Extended Linear Address RecordType
                             # Check for an invalid byte count
                             if byteCount != 2:
-                                raise McsException("McsReader.open():Byte count: {:d} must be 2 for ELA records".format(byteCount))
+                                click.secho('\nMcsReader.open():Byte count: {:d} must be 2 for ELA records'.format(byteCount), fg='red')
+                                raise McsException('McsReader.open(): failed')  
                             # Check for an invalid address header
                             elif addr != 0:
-                                raise McsException("McsReader.open(): Addr: {:x} must be 0 for ELA records".format(addr))
+                                click.secho('\nAddr: {:x} must be 0 for ELA records'.format(addr), fg='red')
+                                raise McsException('McsReader.open(): failed')  
                             # Check for first address index (which is always the first line)
                             if (i==0):
                                 self.startAddr = addr
                             # Update the base address 
                             baseAddr = int(strings[4]+strings[5], 16)* (2**16)
                         else: # Undefined RecordType
-                            raise McsException('McsReader.open(): Invalid record type: {:d}'.format(recordType))    
+                            click.secho('\nInvalid record type: {:d}'.format(recordType), fg='red')
+                            raise McsException('McsReader.open(): failed')    
                             
             # Close the status bar
             bar.update(length)          
@@ -121,10 +146,5 @@ class McsReader():
         self.size = (self.endAddr - self.startAddr) + 1
         
         # Convert to numpy array
-        self.entry = np.array(dataList)
-        
-        # # Debugging
-        # print ( 'self.startAddr = 0x%x' % self.startAddr )
-        # print ( 'self.endAddr   = 0x%x' % self.endAddr )
-        # print ( 'self.size      = 0x%x' % self.size )
-        
+        self.entry = np.array(dataList,dtype=np.int32)
+   

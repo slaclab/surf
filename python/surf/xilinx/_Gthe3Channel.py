@@ -24,7 +24,7 @@ class Gthe3Channel(pr.Device):
             name        = "Gthe3Channel",
             description = "Gthe3Channel",
             **kwargs):
-        super(self.__class__, self).__init__(name=name, description=description, **kwargs) 
+        super().__init__(name=name, description=description, **kwargs) 
 
         ##############################
         # Variables

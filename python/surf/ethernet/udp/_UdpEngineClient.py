@@ -24,7 +24,7 @@ class UdpEngineClient(pr.Device):
             name        = "UdpEngineClient",
             description = "UdpEngineClient",
             **kwargs):
-        super(self.__class__, self).__init__(name=name, description=description, **kwargs) 
+        super().__init__(name=name, description=description, **kwargs) 
         ##############################
         # Variables
         ##############################

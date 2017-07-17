@@ -32,7 +32,7 @@ class DdrSpd(pr.Device):
                     instantiate =  True,
                     expand	=  True,
                 ):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, expand=expand)   
+        super().__init__(name, description, memBase, offset, hidden, expand=expand)   
 
         ##############################
         # Variables

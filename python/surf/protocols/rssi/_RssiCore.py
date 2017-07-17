@@ -24,7 +24,7 @@ class RssiCore(pr.Device):
             name        = "RssiCore",
             description = "RSSI module",
             **kwargs):
-        super(self.__class__, self).__init__(name=name, description=description, **kwargs) 
+        super().__init__(name=name, description=description, **kwargs) 
 
         ##############################
         # Variables

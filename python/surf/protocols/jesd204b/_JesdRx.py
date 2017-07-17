@@ -27,7 +27,7 @@ class JesdRx(pr.Device):
             instantiate =  True,
             debug	    =  False,
             **kwargs):
-        super(self.__class__, self).__init__(name=name, description=description, **kwargs) 
+        super().__init__(name=name, description=description, **kwargs) 
 
         ##############################
         # Variables

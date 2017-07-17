@@ -23,22 +23,12 @@ from surf.devices.ti._adc32Rf45Channel import *
 
 class Adc32Rf45(pr.Device):
     def __init__( self,       
-        name        = "Adc32Rf45",
-        description = "Adc32Rf45 Module",
-        memBase     =  None,
-        offset      =  0x00,
-        hidden      =  False,
-        verify      =  False,
-        expand      =  True,
-    ):
-        super().__init__(
-            name        = name,
-            description = description,
-            memBase     = memBase,
-            offset      = offset,
-            hidden      = hidden,
-            expand      = expand,
-        )
+            name        = "Adc32Rf45",
+            description = "Adc32Rf45 Module",
+            verify      =  False,
+            expand      =  True,
+            **kwargs):
+        super().__init__(name=name, description=description, expand=expand, **kwargs)
         
         ################
         # Base addresses
@@ -72,7 +62,7 @@ class Adc32Rf45(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = "WO",
+            # mode         = "WO",
             hidden       =  True,
             function     = pr.BaseCommand.createTouch(0x81)
         ))
