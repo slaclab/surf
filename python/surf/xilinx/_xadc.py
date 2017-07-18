@@ -564,8 +564,8 @@ class Xadc(pr.Device):
         
 
     @staticmethod
-    def convTemp(dev, var):
-        value   = var.dependencies[0].get(read=False)
+    def convTemp(dev, var, read=False):
+        value   = var.dependencies[0].get(read=read)
         fpValue = value*(503.975/4096.0)
         fpValue -= 273.15
         return '%0.1f'%(fpValue)
@@ -592,8 +592,8 @@ class Xadc(pr.Device):
             var._block.setUInt(var.bitOffset, var.bitSize, ivalue)
 
     @staticmethod
-    def convVoltage(dev, var):
-        value   = var.dependencies[0].get(read=False)
+    def convVoltage(dev, var, read=false):
+        value   = var.dependencies[0].get(read=read)
         fpValue = value*(732.0E-6)
         return '%0.3f'%(fpValue)
         
