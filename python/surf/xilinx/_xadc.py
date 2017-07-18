@@ -573,7 +573,7 @@ class Xadc(pr.Device):
     @staticmethod
     def getTemp(var):
         if hasattr(rogue,'Version') and rogue.Version.greaterThanEqual('2.0.0'):
-            value = var.depdendencies[0].get(read)
+            value = var.depdendencies[0].value()
         else:
             value = var._block.getUInt(var.bitOffset, var.bitSize)
 
