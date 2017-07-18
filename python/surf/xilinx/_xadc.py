@@ -564,14 +564,14 @@ class Xadc(pr.Device):
         
 
     @staticmethod
-    def convTemp(dev, var, read=False):
-        value   = var.dependencies[0].get(read=read)
+    def convTemp(var):
+        value   = var.dependencies[0].value()
         fpValue = value*(503.975/4096.0)
         fpValue -= 273.15
         return '%0.1f'%(fpValue)
 
     @staticmethod
-    def getTemp(dev, var):
+    def getTemp(var):
         if hasattr(rogue,'Version') and rogue.Version.greaterThanEqual('2.0.0'):
             value = var.depdendencies[0].get(read)
         else:
@@ -579,10 +579,10 @@ class Xadc(pr.Device):
 
         fpValue = value*(503.975/4096.0)
         fpValue -= 273.15
-        return '%0.1f'%(fpValue)
+        return fpValue
     
     @staticmethod
-    def setTemp(dev, var, value):
+    def setTemp(var, value):
         ivalue = int((int(value) + 273.15)*(4096/503.975))
         print( 'Setting Temp thresh to {:x}'.format(ivalue) )
 
@@ -592,10 +592,10 @@ class Xadc(pr.Device):
             var._block.setUInt(var.bitOffset, var.bitSize, ivalue)
 
     @staticmethod
-    def convVoltage(dev, var, read=false):
-        value   = var.dependencies[0].get(read=read)
+    def convVoltage(var):
+        value   = var.dependencies[0].value()
         fpValue = value*(732.0E-6)
-        return '%0.3f'%(fpValue)
+        return fpValue
         
     def simpleView(self):
         # Hide all the variable
