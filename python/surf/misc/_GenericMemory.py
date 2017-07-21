@@ -76,7 +76,7 @@ class GenericMemory(pr.Device):
         if not self.enable.get(): return
 
         # Retire any in-flight transactions before starting
-        self._root.checkBlocks(varUpdate=True, recurse=True)
+        self._root.checkBlocks(recurse=True)
 
         # Process local blocks. 
         if variable is not None:
@@ -97,7 +97,7 @@ class GenericMemory(pr.Device):
         if not self.enable.get(): return
 
         # Retire any in-flight transactions before starting
-        self._root.checkBlocks(varUpdate=True, recurse=True)
+        self._root.checkBlocks(recurse=True)
 
         # Process local blocks. 
         if variable is not None:
@@ -120,7 +120,7 @@ class GenericMemory(pr.Device):
         if not self.enable.get(): return
         
        # Retire any in-flight transactions before starting
-        self._root.checkBlocks(varUpdate=True, recurse=True)
+        self._root.checkBlocks(recurse=True)
         
         # Process local blocks.
         if variable is not None:

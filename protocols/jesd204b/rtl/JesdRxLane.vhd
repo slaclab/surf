@@ -194,7 +194,8 @@ begin
          ALTERA_RAM_G   => "M9K",
          PIPE_STAGES_G  => 0,
          DATA_WIDTH_G   => (GT_WORD_SIZE_C*8) + GT_WORD_SIZE_C,
-         ADDR_WIDTH_G   => bitSize((K_G * F_G)/GT_WORD_SIZE_C),
+         -- ADDR_WIDTH_G   => bitSize((K_G * F_G)/GT_WORD_SIZE_C),
+         ADDR_WIDTH_G   => 8,
          INIT_G         => "0",
          FULL_THRES_G   => 1,
          EMPTY_THRES_G  => 1)
@@ -205,7 +206,7 @@ begin
          rd_en        => s_bufRe,  -- Hold read while sync not in sync with LMFC
          din          => s_charAndData,
          dout         => s_charAndDataBuff,
-         data_count   => open,
+         data_count   => s_buffLatency,
          wr_ack       => open,
          valid        => open,
          overflow     => s_bufOvf,
@@ -239,7 +240,7 @@ begin
          linkErr_i     => s_linkErr,
          nSync_o       => s_nSync,
          readBuff_o    => s_readBuff,
-         buffLatency_o => s_buffLatency,
+         -- buffLatency_o => s_buffLatency,
          alignFrame_o  => s_alignFrame,
          ila_o         => s_ila,
          kDetected_o   => s_kDetected,

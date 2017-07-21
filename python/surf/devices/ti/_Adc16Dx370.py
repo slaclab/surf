@@ -69,7 +69,7 @@ class Adc16Dx370(pr.Device):
             bitSize      =  8,
             bitOffset    =  0x00,
             base         = pr.UInt,
-            mode         = "RW",
+            mode         = "RO",
         ))
 
         self.add(pr.RemoteVariable(    
@@ -79,7 +79,7 @@ class Adc16Dx370(pr.Device):
             bitSize      =  8,
             bitOffset    =  0x00,
             base         = pr.UInt,
-            mode         = "RW",
+            mode         = "RO",
         ))
 
         self.add(pr.RemoteVariable(    
@@ -89,7 +89,7 @@ class Adc16Dx370(pr.Device):
             bitSize      =  8,
             bitOffset    =  0x00,
             base         = pr.UInt,
-            mode         = "RW",
+            mode         = "RO",
         ))
 
         self.add(pr.RemoteVariable(    
@@ -99,7 +99,7 @@ class Adc16Dx370(pr.Device):
             bitSize      =  8,
             bitOffset    =  0x00,
             base         = pr.UInt,
-            mode         = "RW",
+            mode         = "RO",
         ))
 
         self.add(pr.RemoteVariable(    
@@ -109,7 +109,7 @@ class Adc16Dx370(pr.Device):
             bitSize      =  8,
             bitOffset    =  0x00,
             base         = pr.UInt,
-            mode         = "RW",
+            mode         = "RO",
         ))
 
         self.add(pr.RemoteVariable(    
@@ -119,43 +119,13 @@ class Adc16Dx370(pr.Device):
             bitSize      =  8,
             bitOffset    =  0x00,
             base         = pr.UInt,
-            mode         = "RW",
-        ))
-
-        self.add(pr.RemoteVariable(    
-            name         = "AdcReg_0x000E",
-            description  = "ADC Control Registers",
-            offset       =  0x38,
-            bitSize      =  8,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
-            mode         = "RW",
-        ))
-
-        self.add(pr.RemoteVariable(    
-            name         = "AdcReg_0x000F",
-            description  = "ADC Control Registers",
-            offset       =  0x3C,
-            bitSize      =  8,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
-            mode         = "RW",
+            mode         = "RO",
         ))
 
         self.add(pr.RemoteVariable(    
             name         = "AdcReg_0x0010",
             description  = "ADC Control Registers",
             offset       =  0x40,
-            bitSize      =  8,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
-            mode         = "RW",
-        ))
-
-        self.add(pr.RemoteVariable(    
-            name         = "AdcReg_0x0011",
-            description  = "ADC Control Registers",
-            offset       =  0x44,
             bitSize      =  8,
             bitOffset    =  0x00,
             base         = pr.UInt,
@@ -289,7 +259,7 @@ class Adc16Dx370(pr.Device):
             bitSize      =  8,
             bitOffset    =  0x00,
             base         = pr.UInt,
-            mode         = "RW",
+            mode         = "RO",
         ))
 
         self.add(pr.RemoteVariable(    
@@ -299,7 +269,7 @@ class Adc16Dx370(pr.Device):
             bitSize      =  8,
             bitOffset    =  0x00,
             base         = pr.UInt,
-            mode         = "RW",
+            mode         = "RO",
         ))
 
         self.add(pr.RemoteVariable(    
@@ -436,15 +406,15 @@ class Adc16Dx370(pr.Device):
         # Commands
         ##############################
 
-        @self.command(name="PowerDown", description="PowerDown",)
+        @self.command(description="PowerDown",)
         def PowerDown():         
             self.AdcReg_0x0002.set(3)
             
-        @self.command(name="PowerUp", description="PowerUp",)
+        @self.command(description="PowerUp",)
         def PowerUp():         
             self.AdcReg_0x0002.set(0)  
 
-        @self.command(name="CalibrateAdc", description="CalibrateAdc",)
+        @self.command(description="CalibrateAdc",)
         def CalibrateAdc():         
             self.PowerDown.set(1)    
             time.sleep(1.0)

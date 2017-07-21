@@ -554,6 +554,7 @@ class Lmk04828(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            verify       = False, # Don't verify because changes during JesdReset() JesdInit() commands
         ))
 
         self.add(pr.RemoteVariable(    
@@ -1074,6 +1075,7 @@ class Lmk04828(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            verify       = False, # Don't verify because changes during JesdReset() JesdInit() commands
         ))
 
         self.add(pr.RemoteVariable(    
@@ -1280,14 +1282,17 @@ class Lmk04828(pr.Device):
             
         @self.command(description="Powerdown the sysref lines",)
         def PwrDwnSysRef(): 
+            # print ( "PwrDwnSysRef()" )
             self.EnableSysRef.set(0)        
 
         @self.command(description="Powerup the sysref lines",)
         def PwrUpSysRef(): 
+            # print ( "PwrUpSysRef()" )
             self.EnableSysRef.set(3)                
             
         @self.command(description="Synchronize LMK internal counters. Warning this function will power off and power on all the system clocks",)
         def Init(): 
+            # print ( "Init()" )
             self.EnableSysRef.set(0)
             self.EnableSync.set(0)
             time.sleep(1.0)

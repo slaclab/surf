@@ -95,6 +95,8 @@ entity Jesd204bTx is
       txPreCursor   : out Slv8Array(L_G-1 downto 0);
       txPolarity    : out slv(L_G-1 downto 0);       
       loopback      : out slv(L_G-1 downto 0);      
+      txEnable      : out slv(L_G-1 downto 0);
+      txEnableL     : out slv(L_G-1 downto 0);
 
       -- Debug signals
       pulse_o : out slv(L_G-1 downto 0);
@@ -160,7 +162,7 @@ begin
 
    -- Legacy Interface that we will remove in the future
    txAxisSlaveArr_o <= (others => AXI_STREAM_SLAVE_FORCE_C);
-
+   
    ----------------------
    -- Input data register
    ----------------------
@@ -183,6 +185,9 @@ begin
       s_dataValid(I) <= s_statusTxArr(I)(1);
    end generate GEN_VALID;
 
+   txEnable  <= s_enableTx;
+   txEnableL <= not(s_enableTx);
+   
    ---------------------
    -- AXI-Lite registers
    ---------------------
