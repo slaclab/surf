@@ -105,7 +105,7 @@ begin
          rd_clk             => pgpRxClk,    -- [in]
          rd_en              => valid,       -- [in]
          dout(63 downto 0)  => pgpRxData,   -- [out]
-         dout(65 downto 64) => pgpRxHeader  -- [out]
+         dout(65 downto 64) => pgpRxHeader,  -- [out]
          rd_data_count      => open,        -- [out]
          valid              => valid,       -- [out]
          underflow          => open,        -- [out]
