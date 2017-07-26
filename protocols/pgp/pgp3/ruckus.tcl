@@ -11,9 +11,9 @@ set family [getFpgaFamily]
 #    loadRuckusTcl "$::DIR_PATH/gth7"
 # }
 
-# if { ${family} == "kintexu" } {
-#    loadRuckusTcl "$::DIR_PATH/gthUltraScale"
-# }
+if { ${family} == "kintexu" } {
+   loadRuckusTcl "$::DIR_PATH/gthUs"
+}
 
 # if { ${family} == "artix7" } {
 #    loadRuckusTcl "$::DIR_PATH/gtp7"
