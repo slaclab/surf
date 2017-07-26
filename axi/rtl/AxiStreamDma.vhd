@@ -2,7 +2,7 @@
 -- File       : AxiStreamDma.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2016-10-27
+-- Last update: 2017-05-03
 -------------------------------------------------------------------------------
 -- Description:
 -- Generic AXI Stream DMA block for frame at a time transfers.
@@ -429,7 +429,7 @@ begin
       case ib.state is
 
          when IDLE_S =>
-            v.ibReq.address := pushFifoDout(IB_FIFO_C)(31 downto 0);
+            v.ibReq.address(31 downto 0) := pushFifoDout(IB_FIFO_C)(31 downto 0);
             v.ibReq.maxSize := x"00" & r.maxRxSize;
 
             if pushFifoValid(IB_FIFO_C) = '1' and popFifoPFull(IB_FIFO_C) = '0' then
@@ -524,7 +524,7 @@ begin
       case ob.state is
 
          when IDLE_S =>
-            v.obReq.address := pushFifoDout(OB_FIFO_C)(31 downto 0);
+            v.obReq.address(31 downto 0) := pushFifoDout(OB_FIFO_C)(31 downto 0);
 
             if pushFifoValid(OB_FIFO_C) = '1' then
                v.pushFifoRead := '1';

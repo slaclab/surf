@@ -2,7 +2,6 @@
 -- File       : AxiStreamGearboxUnpack.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-26
--- Last update: 2017-04-10
 -------------------------------------------------------------------------------
 -- Description: Takes 8 80-bit (5x16) ADC frames and reformats them into
 --              7 80 bit (5x14) frames.
@@ -29,9 +28,9 @@ entity AxiStreamGearboxUnpack is
    
    generic (
       TPD_G               : time := 1 ns;
-      AXI_STREAM_CONFIG_G : AxiStreamConfigType;
-      RANGE_HIGH_G        : integer;
-      RANGE_LOW_G         : integer);
+      AXI_STREAM_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
+      RANGE_HIGH_G        : integer := 119;
+      RANGE_LOW_G         : integer := 8);
 --      PACK_SIZE_G         : integer);
    port (
       axisClk : in sl;
@@ -137,6 +136,7 @@ begin
             -- wrData := packedSsiMaster.data(STREAM_WIDTH_C-1 downto zeroIndex) &
             --           ZERO_C & packedSsiMaster.data(splitIndexInt downto 0);
             -- But Vivado can't synthesize it that way, so we do this hack:
+            wrData := (others => '0');
             wrData(STREAM_WIDTH_C+SIZE_DIFFERENCE_C-1 downto SIZE_DIFFERENCE_C) :=
                packedSsiMaster.data(STREAM_WIDTH_C-1 downto 0);
             wrData(splitIndexInt+SIZE_DIFFERENCE_C-1 downto splitIndexInt) :=
@@ -221,7 +221,7 @@ begin
    locRawAxisCtrl  <= rawAxisCtrl;
 
    -- Could probably get rid of this
---   AxiStreamFifo_1 : entity work.AxiStreamFifo
+--   AxiStreamFifo_1 : entity work.AxiStreamFifoV2
 --      generic map (
 --         TPD_G               => TPD_G,
 --         BRAM_EN_G           => false,

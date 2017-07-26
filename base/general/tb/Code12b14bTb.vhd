@@ -2,7 +2,7 @@
 -- File       : Encoder12b14bTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-10-11
--- Last update: 2016-10-18
+-- Last update: 2017-04-25
 -------------------------------------------------------------------------------
 -- Description: Testbench for design "Encoder12b14b"
 -------------------------------------------------------------------------------
@@ -22,7 +22,6 @@ use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
 use work.Code12b14bPkg.all;
-use work.Code12b14bConstPkg.all;
 use work.TextUtilPkg.all;
 
 
@@ -73,7 +72,8 @@ architecture sim of Code12b14bTb is
    signal decCodeError : sl;                       -- [out]
    signal decDispError : sl;                       -- [out]
 
-
+   signal dlyDataOut : slv(11 downto 0);
+   signal dlyDataKOut : sl;
 
 begin
 
@@ -155,7 +155,7 @@ begin
          return boolean is
       begin
          for i in K_CODE_TABLE_C'range loop
-            if (K_CODE_TABLE_C(i).k12 = d) then
+            if (K_CODE_TABLE_C(i) = d) then
 --                 d /= K_120_3_C and
 --                 d /= K_120_11_C and
 --                 d /= K_120_19_C) then
@@ -202,7 +202,7 @@ begin
 
       end loop;
 
-      stop(0);
+--      stop(0);
 
    end process;
 
@@ -248,6 +248,7 @@ begin
 
          assert (decDispError = '0') report "Disparity Error" severity failure;
          assert (decCodeError = '0') report "Code Error" severity failure;
+         assert (decDataOut = dlyDataOut and decDataKOut = dlyDataKOut) report "Encode/Decode mismatch" severity error;         
       end if;
 
       run <= runVar;
@@ -276,6 +277,26 @@ begin
          dispOut   => decDispOut,       -- [out]
          codeError => decCodeError,     -- [out]
          dispError => decDispError);    -- [out]
+
+   -------------------------------------------------------------------------------------------------
+   -- Delay encDataIn in parallel to compare against output of decoder
+   -------------------------------------------------------------------------------------------------
+   U_SynchronizerVector_1 : entity work.SynchronizerVector
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         STAGES_G       => 2,
+         WIDTH_G        => 13)
+      port map (
+         clk                  => clk,           -- [in]
+         rst                  => rst,           -- [in]
+         dataIn(11 downto 0)  => encDataIn,     -- [in]
+         dataIn(12)           => encDataKIn,    -- [in]
+         dataOut(11 downto 0) => dlyDataOut,    -- [out]
+         dataOut(12)          => dlyDataKOut);  -- [out]
+
+
 
 end architecture sim;
 

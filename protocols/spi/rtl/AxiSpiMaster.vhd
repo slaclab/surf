@@ -2,7 +2,7 @@
 -- File       : AxiSpiMaster.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-01-12
--- Last update: 2016-06-15
+-- Last update: 2017-07-10
 -------------------------------------------------------------------------------
 -- Description: Axi lite interface for a single chip "generic SPI master"
 --                For multiple chips on single bus connect multiple cores
@@ -45,7 +45,8 @@ entity AxiSpiMaster is
       CPHA_G            : sl              := '0';
       CPOL_G            : sl              := '0';
       CLK_PERIOD_G      : real            := 6.4E-9;
-      SPI_SCLK_PERIOD_G : real            := 100.0E-6
+      SPI_SCLK_PERIOD_G : real            := 100.0E-6;
+      SPI_NUM_CHIPS_G   : positive        := 1
       );
    port (
       axiClk : in sl;
@@ -59,7 +60,8 @@ entity AxiSpiMaster is
       coreSclk  : out sl;
       coreSDin  : in  sl;
       coreSDout : out sl;
-      coreCsb   : out sl
+      coreCsb   : out sl;  -- coreCsb is for legacy firmware without SPI_NUM_CHIPS_G generic
+      coreMCsb  : out slv(SPI_NUM_CHIPS_G-1 downto 0)
       );
 end entity AxiSpiMaster;
 
@@ -67,6 +69,7 @@ architecture rtl of AxiSpiMaster is
 
    -- AdcCore Outputs
    constant PACKET_SIZE_C : positive := ite(MODE_G = "RW", 1, 0) + ADDRESS_SIZE_G + DATA_SIZE_G;  -- "1+" For R/W command bit
+   constant CHIP_BITS_C   : integer  := log2(SPI_NUM_CHIPS_G);
 
    signal rdData : slv(PACKET_SIZE_C-1 downto 0);
    signal rdEn   : sl;
@@ -80,6 +83,7 @@ architecture rtl of AxiSpiMaster is
       axiWriteSlave : AxiLiteWriteSlaveType;
       -- Adc Core Inputs
       wrData        : slv(PACKET_SIZE_C-1 downto 0);
+      chipSel       : slv(CHIP_BITS_C-1 downto 0);
       wrEn          : sl;
    end record RegType;
 
@@ -88,10 +92,12 @@ architecture rtl of AxiSpiMaster is
       axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       wrData        => (others => '0'),
+      chipSel       => (others => '0'),
       wrEn          => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
+   signal csb : slv(SPI_NUM_CHIPS_G-1 downto 0);
 
 begin
 
@@ -122,6 +128,8 @@ begin
                   end if;
                   -- Data
                   v.wrData(DATA_SIZE_G-1 downto 0) := axiWriteMaster.wdata(DATA_SIZE_G-1 downto 0);
+                  -- Chip select
+                  v.chipSel                        := axiWriteMaster.awaddr(SPI_NUM_CHIPS_G+ADDRESS_SIZE_G+1 downto 2+ADDRESS_SIZE_G);
                   v.wrEn                           := '1';
                   v.state                          := WAIT_CYCLE_S;
                end if;
@@ -146,16 +154,18 @@ begin
                   end if;
 
                   -- If there are no address bits, readback will reuse the last wrData when shifting
-
-                  v.wrEn  := '1';
-                  v.state := WAIT_CYCLE_S;
+                  v.chipSel := axiReadMaster.araddr(SPI_NUM_CHIPS_G+ADDRESS_SIZE_G+1 downto 2+ADDRESS_SIZE_G);
+                  v.wrEn    := '1';
+                  v.state   := WAIT_CYCLE_S;
                end if;
             end if;
 
          when WAIT_CYCLE_S =>
-            -- Wait 1 cycle for rdEn to drop
-            v.wrEn  := '0';
-            v.state := WAIT_SPI_TXN_DONE_S;
+            -- Wait for rdEn to drop
+            if (rdEn = '0') then
+               v.wrEn  := '0';
+               v.state := WAIT_SPI_TXN_DONE_S;
+            end if;
 
          when WAIT_SPI_TXN_DONE_S =>
 
@@ -174,6 +184,11 @@ begin
 
          when others => null;
       end case;
+
+      -- Check if single access
+      if (SPI_NUM_CHIPS_G = 1) then
+         v.chipSel := (others => '0');
+      end if;
 
       if (axiRst = '1') then
          v := REG_INIT_C;
@@ -196,22 +211,26 @@ begin
    SpiMaster_1 : entity work.SpiMaster
       generic map (
          TPD_G             => TPD_G,
-         NUM_CHIPS_G       => 1,
+         NUM_CHIPS_G       => SPI_NUM_CHIPS_G,
          DATA_SIZE_G       => PACKET_SIZE_C,
          CPHA_G            => CPHA_G,
          CPOL_G            => CPOL_G,
-         CLK_PERIOD_G      => CLK_PERIOD_G,       -- 8.0E-9,
-         SPI_SCLK_PERIOD_G => SPI_SCLK_PERIOD_G)  --ite(SIMULATION_G, 100.0E-9, 100.0E-6))
+         CLK_PERIOD_G      => CLK_PERIOD_G,
+         SPI_SCLK_PERIOD_G => SPI_SCLK_PERIOD_G)
       port map (
-         clk       => axiClk,
-         sRst      => axiRst,
-         chipSel   => "0",
-         wrEn      => r.wrEn,
-         wrData    => r.wrData,
-         rdEn      => rdEn,
-         rdData    => rdData,
-         spiCsL(0) => coreCsb,
-         spiSclk   => coreSclk,
-         spiSdi    => coreSDout,
-         spiSdo    => coreSDin);
+         clk     => axiClk,
+         sRst    => axiRst,
+         chipSel => r.chipSel,
+         wrEn    => r.wrEn,
+         wrData  => r.wrData,
+         rdEn    => rdEn,
+         rdData  => rdData,
+         spiCsL  => csb,
+         spiSclk => coreSclk,
+         spiSdi  => coreSDout,
+         spiSdo  => coreSDin);
+
+   coreCsb  <= csb(0);
+   coreMCsb <= csb;
+
 end architecture rtl;

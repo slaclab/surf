@@ -228,7 +228,7 @@ begin
       end if;
    end process seq;
 
-   AxiStreamFifo_Inst : entity work.AxiStreamFifo
+   AxiStreamFifo_Inst : entity work.AxiStreamFifoV2
       generic map(
          -- General Configurations
          TPD_G               => TPD_G,

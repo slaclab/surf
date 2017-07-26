@@ -217,7 +217,7 @@ begin
 
    sAxisCtrl <= axisCtrl(0);
 
-   AxiStreamFifo_Rx : entity work.AxiStreamFifo
+   AxiStreamFifo_Rx : entity work.AxiStreamFifoV2
       generic map(
          -- General Configurations
          TPD_G               => TPD_G,
@@ -511,7 +511,7 @@ begin
       end if;
    end process seq;
 
-   AxiStreamFifo_Tx : entity work.AxiStreamFifo
+   AxiStreamFifo_Tx : entity work.AxiStreamFifoV2
       generic map(
          -- General Configurations
          TPD_G               => TPD_G,

@@ -45,7 +45,7 @@ entity JesdTxTest is
       -- Local multi frame clock
       lmfc_i         : in  sl;
 
-      -- Synchronisation request input 
+      -- Synchronization request input 
       nSync_i        : in  sl;
       
       -- Lane delay inputs
@@ -92,7 +92,7 @@ architecture rtl of JesdTxTest is
 begin
 
    -- Delay lmfc input (for 1 to 16 c-c) to 
-   lmfcDly_INST: entity work.SysrefDly
+   lmfcDly_INST: entity work.JesdSysrefDly
    generic map (
       TPD_G       => TPD_G,
       DLY_WIDTH_G => 4 
@@ -106,7 +106,7 @@ begin
    );
    
    -- Delay nsync input (for 1 to 16 c-c) to 
-   nsyncDly_INST: entity work.SysrefDly
+   nsyncDly_INST: entity work.JesdSysrefDly
    generic map (
       TPD_G       => TPD_G,
       DLY_WIDTH_G => 4 
@@ -119,8 +119,8 @@ begin
       sysref_o => s_nsync_dly
    );
 
-   -- Synchronisation FSM
-   syncFSM_INST : entity work.SyncFsmTxTest
+   -- Synchronization FSM
+   syncFSM_INST : entity work.JesdSyncFsmTxTest
       generic map (
          TPD_G          => TPD_G)
       port map (

@@ -10,13 +10,13 @@
 --              Supports sub-class 1 deterministic latency.
 --              Supports sub-class 0 non deterministic latency.
 --              Features:
---              - Synchronisation of LMFC to SYSREF
+--              - Synchronization of LMFC to SYSREF
 --              - Multi-lane operation (L_G: 1-16)
 --              - Lane alignment using RX buffers
 --              - Serial lane error check
 --              - Alignment character replacement and alignment check
 --               
---          Note: sampleDataArr_o is little endian and not byteswapped
+--          Note: sampleDataArr_o is little endian and not byte-swapped
 --                First sample in time:  sampleData_o(15 downto 0) 
 --                Second sample in time: sampleData_o(31 downto 16)
 -------------------------------------------------------------------------------
@@ -59,9 +59,8 @@ entity Jesd204bRx is
       -- Number of frames in a multi frame (32)
       K_G : positive := 32;
 
-      --Number of lanes (1 to 16)
-      L_G : positive := 2
-      );
+      -- Number of RX lanes (1 to 32)
+      L_G : positive range 1 to 32 := 2);
 
    port (
       -- AXI interface      
@@ -75,9 +74,9 @@ entity Jesd204bRx is
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
 
-      -- AXI Streaming Interface (Use to directly connect to AXI stream interface)
+      -- Legacy Interface that we will remove in the future
       rxAxisMasterArr_o : out AxiStreamMasterArray(L_G-1 downto 0);
-      rxCtrlArr_i       : in  AxiStreamCtrlArray(L_G-1 downto 0);
+      rxCtrlArr_i       : in  AxiStreamCtrlArray(L_G-1 downto 0) := (others => AXI_STREAM_CTRL_UNUSED_C);
 
       -- Sample data output (Use if external data acquisition core is attached)
       sampleDataArr_o : out sampleDataArray(L_G-1 downto 0);
@@ -88,7 +87,7 @@ entity Jesd204bRx is
       devClk_i : in sl;
       devRst_i : in sl;
 
-      -- SYSREF for subcalss 1 fixed latency
+      -- SYSREF for subclass 1 fixed latency
       sysRef_i : in sl;
 
       -- SYSREF output for debug
@@ -98,7 +97,9 @@ entity Jesd204bRx is
       r_jesdGtRxArr : in  jesdGtRxLaneTypeArray(L_G-1 downto 0);
       gtRxReset_o   : out slv(L_G-1 downto 0);
 
-      -- Synchronisation output combined from all receivers 
+      rxPolarity    : out slv(L_G-1 downto 0);       
+      
+      -- Synchronization output combined from all receivers 
       nSync_o : out sl;
       
       -- Debug signals
@@ -126,7 +127,7 @@ architecture rtl of Jesd204bRx is
    -- Local Multi Frame Clock 
    signal s_lmfc : sl;
 
-   -- Synchronisation output generation
+   -- Synchronization output generation
    signal s_nSyncVec     : slv(L_G-1 downto 0);
    signal s_nSyncVecEn   : slv(L_G-1 downto 0);
    signal s_dataValidVec : slv(L_G-1 downto 0);
@@ -157,10 +158,8 @@ architecture rtl of Jesd204bRx is
    signal s_dlyTxArr   : Slv4Array(L_G-1 downto 0);
    signal s_alignTxArr : alignTxArray(L_G-1 downto 0);
 
-   -- Axi Stream
+
    signal s_sampleDataArr     : sampleDataArray(L_G-1 downto 0);
-   signal s_axisPacketSizeReg : slv(23 downto 0);
-   signal s_axisTriggerReg    : slv(L_G-1 downto 0);
 
    -- Sysref conditioning
    signal s_sysrefSync : sl;
@@ -172,16 +171,17 @@ architecture rtl of Jesd204bRx is
    signal s_rawData     : slv32Array(L_G-1 downto 0);
 
    -- Generate pause signal logic OR
-   signal s_pauseVec : slv(L_G-1 downto 0);
-   signal s_pause    : sl;
    signal s_linkErrMask : slv(5 downto 0);
 
 begin
+
    -- Check JESD generics
-   assert (1 <= L_G and L_G <= 16) report "L_G must be between 1 and 16" severity failure;
    assert (((K_G * F_G) mod GT_WORD_SIZE_C) = 0) report "K_G setting is incorrect" severity failure;
    assert (F_G = 1 or F_G = 2 or (F_G = 4 and GT_WORD_SIZE_C = 4)) report "F_G setting must be 1,2,or 4*" severity failure;
 
+   -- Legacy Interface that we will remove in the future
+   rxAxisMasterArr_o  <= (others => AXI_STREAM_MASTER_INIT_C);
+   
    -----------------------------------------------------------
    -- AXI Lite AXI clock domain crossed
    -----------------------------------------------------------
@@ -191,7 +191,7 @@ begin
    end generate GEN_rawData;
    
    -- axiLite register interface
-   AxiLiteRegItf_INST : entity work.AxiLiteRxRegItf
+   U_Reg : entity work.JesdRxReg
       generic map (
          TPD_G            => TPD_G,
          AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
@@ -216,7 +216,6 @@ begin
          scrEnable_o       => s_scrEnable,
          dlyTxArr_o        => s_dlyTxArr,
          alignTxArr_o      => s_alignTxArr,
-         axisTrigger_o     => s_axisTriggerReg,
          subClass_o        => s_subClass,
          gtReset_o         => s_gtReset,
          clearErr_o        => s_clearErr,
@@ -224,40 +223,7 @@ begin
          invertData_o      => s_invertData,        
          thresoldHighArr_o => s_thresoldHighArr,
          thresoldLowArr_o  => s_thresoldLowArr,
-         axisPacketSize_o  => s_axisPacketSizeReg
-         );
-
-   -----------------------------------------------------------
-   -- AXI Stream
-   -----------------------------------------------------------   
-
-   -- AXI stream interface one module per lane
-   generatePauseSignal : for I in L_G-1 downto 0 generate
-      s_pauseVec(I) <= rxCtrlArr_i(I).pause;
-   end generate generatePauseSignal;
-
-   -- Start the next AXI stream packer transfer transfer when all FIFOs are empty  
-   s_pause <= uOr(s_pauseVec);
-
-   -- AXI stream interface one module per lane
-   generateAxiStreamLanes : for I in L_G-1 downto 0 generate
-      AxiStreamLaneTx_INST : entity work.AxiStreamLaneRx
-         generic map (
-            TPD_G            => TPD_G,
-            AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
-         port map (
-            laneNum_i      => I,
-            devClk_i       => devClk_i,
-            devRst_i       => devRst_i,
-            packetSize_i   => s_axisPacketSizeReg,
-            trigger_i      => s_axisTriggerReg(I),
-            rxAxisMaster_o => rxAxisMasterArr_o(I),
-            pause_i        => s_pause,
-            enable_i       => s_enableRx(I),
-            sampleData_i   => s_sampleDataArr(I),
-            dataReady_i    => s_dataValidVec(I)
-            );
-   end generate generateAxiStreamLanes;
+         rxPolarity        => rxPolarity);
 
    -----------------------------------------------------------
    -- TEST or OPER
@@ -296,7 +262,7 @@ begin
    -----------------------------------------------------------
    -- SYSREF and LMFC
    -----------------------------------------------------------     
-   -- Synchronise SYSREF input to devClk_i
+   -- Synchronize SYSREF input to devClk_i
    Synchronizer_INST : entity work.Synchronizer
       generic map (
          TPD_G          => TPD_G,
@@ -314,7 +280,7 @@ begin
          );
 
    -- Delay SYSREF input (for 1 to 32 c-c)
-   SysrefDly_INST : entity work.SysrefDly
+   SysrefDly_INST : entity work.JesdSysrefDly
       generic map (
          TPD_G       => TPD_G,
          DLY_WIDTH_G => SYSRF_DLY_WIDTH_C
@@ -328,7 +294,7 @@ begin
          );
 
    -- LMFC period generator aligned to SYSREF input
-   LmfcGen_INST : entity work.LmfcGen
+   LmfcGen_INST : entity work.JesdLmfcGen
       generic map (
          TPD_G => TPD_G,
          K_G   => K_G,
@@ -378,7 +344,7 @@ begin
 
    -- Test signal generator
    generatePulserLanes : for I in L_G-1 downto 0 generate
-      Pulser_INST : entity work.TestSigGen
+      Pulser_INST : entity work.JesdTestSigGen
          generic map (
             TPD_G => TPD_G,
             F_G   => F_G)

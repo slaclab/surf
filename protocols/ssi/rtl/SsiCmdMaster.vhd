@@ -97,7 +97,7 @@ begin
    ----------------------------------
    -- Fifo
    ----------------------------------
-   SlaveAxiStreamFifo : entity work.AxiStreamFifo
+   SlaveAxiStreamFifo : entity work.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,

@@ -59,13 +59,13 @@ end AxiStreamDmaV2Read;
 
 architecture rtl of AxiStreamDmaV2Read is
 
-   constant DATA_BYTES_C : integer         := AXIS_CONFIG_G.TDATA_BYTES_C;
-   constant ADDR_LSB_C   : integer         := bitSize(DATA_BYTES_C-1);
-   constant ARLEN_C      : slv(7 downto 0) := getAxiLen(AXI_CONFIG_G, BURST_BYTES_G);
+   constant DATA_BYTES_C : integer := AXIS_CONFIG_G.TDATA_BYTES_C;
+   constant ADDR_LSB_C   : integer := bitSize(DATA_BYTES_C-1);
 
    type ReqStateType is (
       IDLE_S,
-      ADDR_S);
+      ADDR_S,
+      NEXT_S);
 
    type StateType is (
       IDLE_S,
@@ -127,7 +127,6 @@ begin
 
    comb : process (axiReadSlave, axiRst, dmaRdDescReq, dmaRdDescRetAck,  pause, r, sSlave, axiCache) is
       variable v        : RegType;
-      variable reqLen   : natural;
       variable pendBytes: natural;
       variable pending  : boolean;
    begin
@@ -155,7 +154,6 @@ begin
       pendBytes := conv_integer(r.reqCnt - r.ackCnt);
 
       -- Update variables
-      reqLen  := 0;
       pending := true;
 
       -- Check for the threshold = zero case
@@ -217,16 +215,8 @@ begin
             if (r.rMaster.arvalid = '0') then
                -- Set the memory address 
                v.rMaster.araddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := r.dmaRdDescReq.address(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0);
-               -- Determine transfer size to align address to transfer size boundaries
-               -- This will ensure that we never cross a 4k boundary
-               if (ARLEN_C > 0) then
-                  -- Set the burst length
-                  v.rMaster.arlen := ARLEN_C - r.dmaRdDescReq.address(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C);
-                  -- Limit read burst size
-                  if (r.reqSize(31 downto ADDR_LSB_C) < v.rMaster.arlen) then
-                     v.rMaster.arlen := resize(r.reqSize(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C)-1, 8);
-                  end if;
-               end if;
+               -- Determine transfer size aligned to 4k boundaries
+               v.rMaster.arlen := getAxiLen(AXI_CONFIG_G,BURST_BYTES_G,r.reqSize,r.dmaRdDescReq.address);
                -- Check for the following:
                --    1) There is enough room in the FIFO for a burst 
                --    2) pending flag
@@ -234,17 +224,20 @@ begin
                if (pause = '0') and (pending = false) and (r.reqCnt < r.dmaRdDescReq.size) then
                   -- Set the flag
                   v.rMaster.arvalid := '1';
-                  -- Update the request size
-                  reqLen    := DATA_BYTES_C*(conv_integer(v.rMaster.arlen) + 1);
-                  v.reqCnt  := r.reqCnt + reqLen;
-                  v.reqSize := r.reqSize - reqLen;
-                  -- Update next address
-                  v.dmaRdDescReq.address                        := r.dmaRdDescReq.address + reqLen;
-                  v.dmaRdDescReq.address(ADDR_LSB_C-1 downto 0) := (others => '0');
                   -- Next state
-                  v.state := MOVE_S;
+                  v.state    := MOVE_S;
+                  v.reqState := NEXT_S;
                end if;
             end if;
+         ----------------------------------------------------------------------
+         when NEXT_S =>
+            -- Update the request size
+            v.reqCnt  := r.reqCnt  + getAxiReadBytes(AXI_CONFIG_G,r.rMaster);
+            v.reqSize := r.reqSize - getAxiReadBytes(AXI_CONFIG_G,r.rMaster);
+            -- Update next address
+            v.dmaRdDescReq.address := r.dmaRdDescReq.address + getAxiReadBytes(AXI_CONFIG_G,r.rMaster);
+            -- Back to address state
+            v.reqState := ADDR_S;
       ----------------------------------------------------------------------
       end case;
 

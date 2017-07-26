@@ -96,9 +96,11 @@ AxiVersion: &AxiVersion
     GitHash:
       at:
         offset: 0x600
+        nelms: 20
       class: IntField
-      sizeBits: 160
+      sizeBits: 8
       mode: RO
+      configBase: 16
       description: GIT SHA-1 Hash       
     #########################################################
     DeviceDna:

@@ -388,7 +388,7 @@ begin
    s_rstFifo <= rst_i or not s_connActive;
 
    -- Application side   
-   AppFifoIn_INST : entity work.AxiStreamFifo
+   AppFifoIn_INST : entity work.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => true,
@@ -417,7 +417,7 @@ begin
    sAppAxisSlave_o <= monSlaves(0);      
    
    -- Transport side
-   TspFifoIn_INST : entity work.AxiStreamFifo
+   TspFifoIn_INST : entity work.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => true,
@@ -786,7 +786,7 @@ begin
    -- /////////////////////////////////////////////////////////
 
    -- Application side   
-   AppFifoOut_INST : entity work.AxiStreamFifo
+   AppFifoOut_INST : entity work.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => false,
@@ -819,7 +819,7 @@ begin
    monSlaves(1)     <= mAppAxisSlave_i;
 
    -- Transport side
-   TspFifoOut_INST : entity work.AxiStreamFifo
+   TspFifoOut_INST : entity work.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => false,

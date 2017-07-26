@@ -20,8 +20,6 @@ use ieee.std_logic_1164.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
 use work.AxiMicronP30Pkg.all;
 
 library unisim;
@@ -32,8 +30,6 @@ entity AxiMicronP30Core is
       TPD_G            : time                := 1 ns;
       MEM_ADDR_MASK_G  : slv(31 downto 0)    := x"00000000";
       AXI_CLK_FREQ_G   : real                := 200.0E+6;  -- units of Hz
-      PIPE_STAGES_G    : natural             := 0;
-      AXI_CONFIG_G     : AxiStreamConfigType := ssiAxiStreamConfig(4);
       AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C);
    port (
       -- FLASH Interface 
@@ -45,11 +41,6 @@ entity AxiMicronP30Core is
       axiReadSlave   : out   AxiLiteReadSlaveType;
       axiWriteMaster : in    AxiLiteWriteMasterType;
       axiWriteSlave  : out   AxiLiteWriteSlaveType;
-      -- AXI Streaming Interface (Optional)
-      mAxisMaster    : out   AxiStreamMasterType;
-      mAxisSlave     : in    AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
-      sAxisMaster    : in    AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-      sAxisSlave     : out   AxiStreamSlaveType;
       -- Clocks and Resets
       axiClk         : in    sl;
       axiRst         : in    sl);
@@ -73,13 +64,11 @@ begin
             T  => flashTri);  -- 3-state enable input, high=input, low=output     
    end generate GEN_IOBUF;
 
-   AxiMicronP30Reg_Inst : entity work.AxiMicronP30Reg
+   U_CTRL : entity work.AxiMicronP30Reg
       generic map (
          TPD_G            => TPD_G,
          MEM_ADDR_MASK_G  => MEM_ADDR_MASK_G,
          AXI_CLK_FREQ_G   => AXI_CLK_FREQ_G,
-         PIPE_STAGES_G    => PIPE_STAGES_G,
-         AXI_CONFIG_G     => AXI_CONFIG_G,
          AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
       port map (
          -- FLASH Interface 
@@ -98,11 +87,6 @@ begin
          axiReadSlave   => axiReadSlave,
          axiWriteMaster => axiWriteMaster,
          axiWriteSlave  => axiWriteSlave,
-         -- AXI Streaming Interface (Optional)
-         mAxisMaster    => mAxisMaster,
-         mAxisSlave     => mAxisSlave,
-         sAxisMaster    => sAxisMaster,
-         sAxisSlave     => sAxisSlave,
          -- Clocks and Resets
          axiClk         => axiClk,
          axiRst         => axiRst);

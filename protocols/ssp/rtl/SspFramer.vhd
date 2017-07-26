@@ -2,7 +2,7 @@
 -- File       : SspFramer.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-07-14
--- Last update: 2016-11-08
+-- Last update: 2017-05-01
 -------------------------------------------------------------------------------
 -- Description: SimpleStreamingProtocol - A simple protocol layer for inserting
 -- idle and framing control characters into a raw data stream. The output of
@@ -31,6 +31,7 @@ entity SspFramer is
       RST_POLARITY_G  : sl      := '0';
       RST_ASYNC_G     : boolean := true;
       AUTO_FRAME_G    : boolean := true;
+      FLOW_CTRL_EN_G : boolean := false;
       WORD_SIZE_G     : integer := 16;
       K_SIZE_G        : integer := 2;
       SSP_IDLE_CODE_G : slv;
@@ -43,10 +44,13 @@ entity SspFramer is
    port (
       clk      : in  sl;
       rst      : in  sl := RST_POLARITY_G;
-      valid    : in  sl;
+      validIn  : in  sl;
+      readyIn  : out sl;
+      dataIn   : in  slv(WORD_SIZE_G-1 downto 0);
       sof      : in  sl := '0';
       eof      : in  sl := '0';
-      dataIn   : in  slv(WORD_SIZE_G-1 downto 0);
+      validOut : out sl;
+      readyOut : in  sl := '1';
       dataOut  : out slv(WORD_SIZE_G-1 downto 0);
       dataKOut : out slv(K_SIZE_G-1 downto 0));
 
@@ -58,74 +62,90 @@ architecture rtl of SspFramer is
    constant DATA_MODE_C : sl := '1';
 
    type RegType is record
-      mode       : sl;
-      eofLast    : sl;
-      eof        : sl;
-      dataInLast : slv(WORD_SIZE_G-1 downto 0);
-      validLast  : sl;
-      dataOut    : slv(WORD_SIZE_G-1 downto 0);
-      dataKOut   : slv(K_SIZE_G-1 downto 0);
+      readyIn     : sl;
+      validOut    : sl;
+      mode        : sl;
+      eofLast     : sl;
+      eof         : sl;
+      dataInLast  : slv(WORD_SIZE_G-1 downto 0);
+      validInLast : sl;
+      dataOut     : slv(WORD_SIZE_G-1 downto 0);
+      dataKOut    : slv(K_SIZE_G-1 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      mode       => '0',
-      eofLast    => '0',
-      eof        => '0',
-      dataInLast => (others => '0'),
-      validLast  => '0',
-      dataKOut   => (others => '0'),
-      dataOut    => (others => '0'));
+      readyIn     => '0',
+      validOut    => toSl(not FLOW_CTRL_EN_G),
+      mode        => '0',
+      eofLast     => '0',
+      eof         => '0',
+      dataInLast  => (others => '0'),
+      validInLast => '0',
+      dataKOut    => (others => '0'),
+      dataOut     => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
 
-   comb : process (dataIn, eof, r, rst, sof, valid) is
+   comb : process (dataIn, eof, r, readyOut, rst, sof, validIn) is
       variable v : RegType;
    begin
       v := r;
 
-      v.dataInLast := dataIn;
-      v.validLast  := valid;
-      v.eofLast    := eof;
+      v.readyIn := readyOut;
 
-      -- Send commas while waiting for valid, then send SOF
-      if (r.mode = IDLE_MODE_C) then
-         v.dataOut  := SSP_IDLE_CODE_G;
-         v.dataKOut := SSP_IDLE_K_G;
-         if (valid = '1' and (sof = '1' or AUTO_FRAME_G)) then
-            v.dataOut  := SSP_SOF_CODE_G;
-            v.dataKOut := SSP_SOF_K_G;
-            v.mode     := DATA_MODE_C;
-         end if;
-
-      -- Send pipline delayed data, send eof when delayed valid falls
-      elsif (r.mode = DATA_MODE_C) then
-         v.dataOut  := r.dataInLast;
-         v.dataKOut := slvZero(K_SIZE_G);
-         v.eof      := r.validLast and r.eofLast;
-         if (r.validLast = '0') then
-            if (AUTO_FRAME_G or r.eof = '1') then
-               v.dataOut  := SSP_EOF_CODE_G;
-               v.dataKOut := SSP_EOF_K_G;
-               v.mode     := IDLE_MODE_C;
-            else
-               -- if not auto framing and valid drops, insert idle char
-               v.dataOut  := SSP_IDLE_CODE_G;
-               v.dataKOut := SSP_EOF_K_G;
-            end if;
-         end if;
-
+      if (readyOut = '1' and FLOW_CTRL_EN_G) then
+         v.validOut := '0';
       end if;
 
-      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
-         v := REG_INIT_C;
+      if (v.validOut = '0' or FLOW_CTRL_EN_G = false) then
+         v.validOut    := '1';
+         v.dataInLast  := dataIn;
+         v.validInLast := validIn;
+         v.eofLast     := eof;
+
+         -- Send commas while waiting for valid, then send SOF
+         if (r.mode = IDLE_MODE_C) then
+            v.dataOut  := SSP_IDLE_CODE_G;
+            v.dataKOut := SSP_IDLE_K_G;
+            if (validIn = '1' and (sof = '1' or AUTO_FRAME_G)) then
+               v.dataOut  := SSP_SOF_CODE_G;
+               v.dataKOut := SSP_SOF_K_G;
+               v.mode     := DATA_MODE_C;
+            end if;
+
+         -- Send pipline delayed data, send eof when delayed valid falls
+         elsif (r.mode = DATA_MODE_C) then
+            v.dataOut  := r.dataInLast;
+            v.dataKOut := slvZero(K_SIZE_G);
+            v.eof      := r.validInLast and r.eofLast;
+            if (r.validInLast = '0') then
+               if (AUTO_FRAME_G or r.eof = '1') then
+                  v.dataOut  := SSP_EOF_CODE_G;
+                  v.dataKOut := SSP_EOF_K_G;
+                  v.mode     := IDLE_MODE_C;
+               else
+                  -- if not auto framing and valid drops, insert idle char
+                  v.dataOut  := SSP_IDLE_CODE_G;
+                  v.dataKOut := SSP_EOF_K_G;
+               end if;
+            end if;
+
+         end if;
+
+         if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
+            v := REG_INIT_C;
+         end if;
+
       end if;
 
       rin      <= v;
       dataOut  <= r.dataOut;
       dataKOut <= r.dataKOut;
+      validOut <= r.validOut;
+      readyIn  <= v.readyIn;
 
    end process comb;
 

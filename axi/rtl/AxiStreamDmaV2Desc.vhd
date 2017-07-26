@@ -156,6 +156,7 @@ architecture rtl of AxiStreamDmaV2Desc is
       wrReqValid      : sl;
       wrReqNum        : slv(CHAN_SIZE_C-1 downto 0);
       wrReqAcks       : slv(CHAN_COUNT_G-1 downto 0);
+      wrReqMissed     : slv(31 downto 0);
 
       -- Desc Return
       descRetList     : slv(DESC_COUNT_C-1 downto 0);
@@ -210,6 +211,7 @@ architecture rtl of AxiStreamDmaV2Desc is
       wrReqValid         => '0',
       wrReqNum           => (others=>'0'),
       wrReqAcks          => (others=>'0'),
+      wrReqMissed        => (others=>'0'),
       descRetList        => (others=>'0'),
       descState          => IDLE_S,
       descRetNum         => (others=>'0'),
@@ -436,6 +438,8 @@ begin
       axiSlaveRegisterR(regCon, x"054", 0, r.wrIndex);
       axiSlaveRegisterR(regCon, x"058", 0, r.rdIndex);
 
+      axiSlaveRegisterR(regCon, x"05C", 0, r.wrReqMissed);
+
       -- End transaction block
       axiSlaveDefault(regCon,v.axilWriteSlave, v.axilReadSlave, AXI_ERROR_RESP_G);
 
@@ -494,6 +498,12 @@ begin
             arbitrate(wrReqList, r.wrReqNum, v.wrReqNum, v.wrReqValid, v.wrReqAcks);
          end if;
 
+         if r.enable = '0' then
+            v.wrReqMissed := (others=>'0');
+         elsif wrReqList /= 0 and wrFifoValid = '0' then
+            v.wrReqMissed := r.wrReqMissed + 1;
+         end if;
+
       -- Valid arbitration result
       else
          for i in 0 to CHAN_COUNT_G-1 loop
@@ -509,6 +519,7 @@ begin
          v.wrReqValid := '0';
 
       end if;
+
 
       --------------------------------------
       -- Read/Write Descriptor Returns

@@ -2,7 +2,7 @@
 -- File       : TenGigEthGthUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2016-09-29
+-- Last update: 2017-06-22
 -------------------------------------------------------------------------------
 -- Description: 10GBASE-R Ethernet for GTH Ultra Scale
 -------------------------------------------------------------------------------
@@ -75,10 +75,168 @@ entity TenGigEthGthUltraScale is
       gtTxP              : out sl;
       gtTxN              : out sl;
       gtRxP              : in  sl;
-      gtRxN              : in  sl);  
+      gtRxN              : in  sl);
 end TenGigEthGthUltraScale;
 
 architecture mapping of TenGigEthGthUltraScale is
+
+   component TenGigEthGthUltraScale156p25MHzCore
+      port (
+         dclk                 : in  std_logic;
+         rxrecclk_out         : out std_logic;
+         coreclk              : in  std_logic;
+         txusrclk             : in  std_logic;
+         txusrclk2            : in  std_logic;
+         txoutclk             : out std_logic;
+         areset               : in  std_logic;
+         areset_coreclk       : in  std_logic;
+         gttxreset            : in  std_logic;
+         gtrxreset            : in  std_logic;
+         sim_speedup_control  : in  std_logic;
+         txuserrdy            : in  std_logic;
+         qpll0lock            : in  std_logic;
+         qpll0outclk          : in  std_logic;
+         qpll0outrefclk       : in  std_logic;
+         qpll0reset           : out std_logic;
+         reset_tx_bufg_gt     : out std_logic;
+         reset_counter_done   : in  std_logic;
+         gt_eyescanreset      : in  std_logic;
+         gt_eyescantrigger    : in  std_logic;
+         gt_rxcdrhold         : in  std_logic;
+         gt_txprbsforceerr    : in  std_logic;
+         gt_txpolarity        : in  std_logic;
+         gt_rxpolarity        : in  std_logic;
+         gt_rxrate            : in  std_logic_vector (2 downto 0);
+         gt_txoutclksel       : in  std_logic_vector (2 downto 0);
+         gt_txpcsreset        : in  std_logic;
+         gt_txpmareset        : in  std_logic;
+         gt_rxpmareset        : in  std_logic;
+         gt_rxdfelpmreset     : in  std_logic;
+         gt_txprecursor       : in  std_logic_vector (4 downto 0);
+         gt_txpostcursor      : in  std_logic_vector (4 downto 0);
+         gt_txdiffctrl        : in  std_logic_vector (3 downto 0);
+         gt_rxlpmen           : in  std_logic;
+         gt_pcsrsvdin         : in  std_logic_vector (15 downto 0);
+         gt_eyescandataerror  : out std_logic;
+         gt_txbufstatus       : out std_logic_vector (1 downto 0);
+         gt_txresetdone       : out std_logic;
+         gt_rxpmaresetdone    : out std_logic;
+         gt_rxresetdone       : out std_logic;
+         gt_rxbufstatus       : out std_logic_vector (2 downto 0);
+         gt_rxprbserr         : out std_logic;
+         gt_dmonitorout       : out std_logic_vector (16 downto 0);
+         xgmii_txd            : in  std_logic_vector (63 downto 0);
+         xgmii_txc            : in  std_logic_vector (7 downto 0);
+         xgmii_rxd            : out std_logic_vector (63 downto 0);
+         xgmii_rxc            : out std_logic_vector (7 downto 0);
+         txp                  : out std_logic;
+         txn                  : out std_logic;
+         rxp                  : in  std_logic;
+         rxn                  : in  std_logic;
+         configuration_vector : in  std_logic_vector (535 downto 0);
+         status_vector        : out std_logic_vector (447 downto 0);
+         core_status          : out std_logic_vector (7 downto 0);
+         tx_resetdone         : out std_logic;
+         rx_resetdone         : out std_logic;
+         signal_detect        : in  std_logic;
+         tx_fault             : in  std_logic;
+         drp_req              : out std_logic;
+         drp_gnt              : in  std_logic;
+         core_to_gt_drpen     : out std_logic;
+         core_to_gt_drpwe     : out std_logic;
+         core_to_gt_drpaddr   : out std_logic_vector (15 downto 0);
+         core_to_gt_drpdi     : out std_logic_vector (15 downto 0);
+         core_to_gt_drprdy    : in  std_logic;
+         core_to_gt_drpdo     : in  std_logic_vector (15 downto 0);
+         gt_drpen             : in  std_logic;
+         gt_drpwe             : in  std_logic;
+         gt_drpaddr           : in  std_logic_vector (15 downto 0);
+         gt_drpdi             : in  std_logic_vector (15 downto 0);
+         gt_drprdy            : out std_logic;
+         gt_drpdo             : out std_logic_vector (15 downto 0);
+         pma_pmd_type         : in  std_logic_vector (2 downto 0);
+         tx_disable           : out std_logic
+         );
+   end component;
+
+   component TenGigEthGthUltraScale312p5MHzCore
+      port (
+         dclk                 : in  std_logic;
+         rxrecclk_out         : out std_logic;
+         coreclk              : in  std_logic;
+         txusrclk             : in  std_logic;
+         txusrclk2            : in  std_logic;
+         txoutclk             : out std_logic;
+         areset               : in  std_logic;
+         areset_coreclk       : in  std_logic;
+         gttxreset            : in  std_logic;
+         gtrxreset            : in  std_logic;
+         sim_speedup_control  : in  std_logic;
+         txuserrdy            : in  std_logic;
+         qpll0lock            : in  std_logic;
+         qpll0outclk          : in  std_logic;
+         qpll0outrefclk       : in  std_logic;
+         qpll0reset           : out std_logic;
+         reset_tx_bufg_gt     : out std_logic;
+         reset_counter_done   : in  std_logic;
+         gt_eyescanreset      : in  std_logic;
+         gt_eyescantrigger    : in  std_logic;
+         gt_rxcdrhold         : in  std_logic;
+         gt_txprbsforceerr    : in  std_logic;
+         gt_txpolarity        : in  std_logic;
+         gt_rxpolarity        : in  std_logic;
+         gt_rxrate            : in  std_logic_vector (2 downto 0);
+         gt_txoutclksel       : in  std_logic_vector (2 downto 0);
+         gt_txpcsreset        : in  std_logic;
+         gt_txpmareset        : in  std_logic;
+         gt_rxpmareset        : in  std_logic;
+         gt_rxdfelpmreset     : in  std_logic;
+         gt_txprecursor       : in  std_logic_vector (4 downto 0);
+         gt_txpostcursor      : in  std_logic_vector (4 downto 0);
+         gt_txdiffctrl        : in  std_logic_vector (3 downto 0);
+         gt_rxlpmen           : in  std_logic;
+         gt_pcsrsvdin         : in  std_logic_vector (15 downto 0);
+         gt_eyescandataerror  : out std_logic;
+         gt_txbufstatus       : out std_logic_vector (1 downto 0);
+         gt_txresetdone       : out std_logic;
+         gt_rxpmaresetdone    : out std_logic;
+         gt_rxresetdone       : out std_logic;
+         gt_rxbufstatus       : out std_logic_vector (2 downto 0);
+         gt_rxprbserr         : out std_logic;
+         gt_dmonitorout       : out std_logic_vector (16 downto 0);
+         xgmii_txd            : in  std_logic_vector (63 downto 0);
+         xgmii_txc            : in  std_logic_vector (7 downto 0);
+         xgmii_rxd            : out std_logic_vector (63 downto 0);
+         xgmii_rxc            : out std_logic_vector (7 downto 0);
+         txp                  : out std_logic;
+         txn                  : out std_logic;
+         rxp                  : in  std_logic;
+         rxn                  : in  std_logic;
+         configuration_vector : in  std_logic_vector (535 downto 0);
+         status_vector        : out std_logic_vector (447 downto 0);
+         core_status          : out std_logic_vector (7 downto 0);
+         tx_resetdone         : out std_logic;
+         rx_resetdone         : out std_logic;
+         signal_detect        : in  std_logic;
+         tx_fault             : in  std_logic;
+         drp_req              : out std_logic;
+         drp_gnt              : in  std_logic;
+         core_to_gt_drpen     : out std_logic;
+         core_to_gt_drpwe     : out std_logic;
+         core_to_gt_drpaddr   : out std_logic_vector (15 downto 0);
+         core_to_gt_drpdi     : out std_logic_vector (15 downto 0);
+         core_to_gt_drprdy    : in  std_logic;
+         core_to_gt_drpdo     : in  std_logic_vector (15 downto 0);
+         gt_drpen             : in  std_logic;
+         gt_drpwe             : in  std_logic;
+         gt_drpaddr           : in  std_logic_vector (15 downto 0);
+         gt_drpdi             : in  std_logic_vector (15 downto 0);
+         gt_drprdy            : out std_logic;
+         gt_drpdo             : out std_logic_vector (15 downto 0);
+         pma_pmd_type         : in  std_logic_vector (2 downto 0);
+         tx_disable           : out std_logic
+         );
+   end component;
 
    signal mAxiReadMaster  : AxiLiteReadMasterType;
    signal mAxiReadSlave   : AxiLiteReadSlaveType;
@@ -117,7 +275,7 @@ architecture mapping of TenGigEthGthUltraScale is
    signal macRxAxisCtrl   : AxiStreamCtrlType;
    signal macTxAxisMaster : AxiStreamMasterType;
    signal macTxAxisSlave  : AxiStreamSlaveType;
-   
+
 begin
 
    phyClk          <= phyClock;
@@ -146,7 +304,7 @@ begin
          mAxiReadMaster  => mAxiReadMaster,
          mAxiReadSlave   => mAxiReadSlave,
          mAxiWriteMaster => mAxiWriteMaster,
-         mAxiWriteSlave  => mAxiWriteSlave);    
+         mAxiWriteSlave  => mAxiWriteSlave);
 
    txDisable <= status.txDisable;
 
@@ -163,7 +321,7 @@ begin
          -- Output
          dataOut(0) => status.sigDet,
          dataOut(1) => status.txFault,
-         dataOut(2) => status.txUsrRdy);  
+         dataOut(2) => status.txUsrRdy);
 
    --------------------
    -- Ethernet MAC core
@@ -191,13 +349,13 @@ begin
          xgmiiRxd        => phyRxd,
          xgmiiRxc        => phyRxc,
          xgmiiTxd        => phyTxd,
-         xgmiiTxc        => phyTxc);     
+         xgmiiTxc        => phyTxc);
 
    -----------------
    -- 10GBASE-R core
    -----------------
    GEN_156p25MHz : if (REF_CLK_FREQ_G = 156.25E+6) generate
-      U_TenGigEthGthUltraScaleCore : entity work.TenGigEthGthUltraScale156p25MHzCore
+      U_TenGigEthGthUltraScaleCore : TenGigEthGthUltraScale156p25MHzCore
          port map (
             -- Clocks and Resets
             coreclk              => coreclk,
@@ -284,7 +442,7 @@ begin
             gt_txoutclksel       => "101");
    end generate;
    GEN_312p5MHz : if (REF_CLK_FREQ_G = 312.50E+6) generate
-      U_TenGigEthGthUltraScaleCore : entity work.TenGigEthGthUltraScale312p5MHzCore
+      U_TenGigEthGthUltraScaleCore : TenGigEthGthUltraScale312p5MHzCore
          port map (
             -- Clocks and Resets
             coreclk              => coreclk,
@@ -391,7 +549,7 @@ begin
          gtTxRst     => status.gtTxRst,
          gtRxRst     => status.gtRxRst,
          txUsrRdy    => txUsrRdy,
-         rstCntDone  => status.rstCntDone);   
+         rstCntDone  => status.rstCntDone);
 
    -------------------------------         
    -- Configuration Vector Mapping
@@ -428,6 +586,6 @@ begin
          axiWriteSlave  => mAxiWriteSlave,
          -- Configuration and Status Interface
          config         => config,
-         status         => status); 
+         status         => status);
 
 end mapping;

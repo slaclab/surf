@@ -632,7 +632,7 @@ begin
       end if;
    end process seq;
 
-   Fifo_Cache : entity work.AxiStreamFifo
+   Fifo_Cache : entity work.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,

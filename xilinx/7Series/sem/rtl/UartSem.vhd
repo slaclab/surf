@@ -2,7 +2,7 @@
 -- File       : UartSem.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-02-08
--- Last update: 2017-02-08
+-- Last update: 2017-05-08
 -------------------------------------------------------------------------------
 -- Description: UART wrapper for 7-series SEM module
 -------------------------------------------------------------------------------
@@ -67,8 +67,8 @@ begin
          TPD_G => TPD_G)
       port map (
          -- Clock and Reset
-         semClk => clk,
-         semRst => rst,
+         semClk => semClk,
+         semRst => semRst,
          -- SEM Interface
          semIb  => semIb,
          semOb  => semOb);
@@ -91,8 +91,8 @@ begin
          FIFO_ADDR_WIDTH_G => FIFO_ADDR_WIDTH_G)
       port map (
          -- Clock and Reset
-         clk     => clk,
-         rst     => rst,
+         clk     => semClk,
+         rst     => semRst,
          -- Write Interface
          wrData  => semOb.txData,
          wrValid => semOb.txWrite,
@@ -102,7 +102,7 @@ begin
          rdValid => rdValid,
          rdReady => semOb.rxRead,
          -- UART Serial Interface
-         tx      => tx,
-         rx      => rx);
+         tx      => uartTx,
+         rx      => uartRx);
 
 end mapping;

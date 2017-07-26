@@ -2,7 +2,7 @@
 -- File       : AxiI2cQsfpPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-10-21
--- Last update: 2016-09-20
+-- Last update: 2017-05-02
 -------------------------------------------------------------------------------
 -- Description: AxiI2cQsfp Package File
 -------------------------------------------------------------------------------
@@ -25,12 +25,12 @@ package AxiI2cQsfpPkg is
    type AxiI2cQsfpInType is record
       modPrstL : sl;                    -- Module Present
       -- ModPrsL is pulled up to Vcc_Host on the host board and 
-      -- grounded in the module. The ModPrsL is asserted “Low” 
+      -- grounded in the module. The ModPrsL is asserted "Low" 
       -- when module is inserted into the host connector, and 
-      -- deasserted “High” when the module is physically absent 
+      -- deasserted "High" when the module is physically absent 
       -- from the host connector.      
       intL     : sl;                    -- Interrupt
-      -- IntL is an output signal. When “Low”, it indicates a possible module operational fault or a status critical to the 
+      -- IntL is an output signal. When "Low", it indicates a possible module operational fault or a status critical to the 
       -- host system. The host identifies the source of the interrupt using the 2-wire serial interface. The IntL signal is an 
       -- open collector output and must be pulled to host supply 
       -- voltage on the host board. A corresponding soft status 
@@ -58,9 +58,9 @@ package AxiI2cQsfpPkg is
       -- The ModSelL is an input signal. When held low by the 
       -- host, the module responds to 2-wire serial communication commands. The ModSelL allows the use of multiple 
       -- QSFP+ modules on a single 2-wire interface bus. When 
-      -- the ModSelL is “High”, the module will not respond to or 
+      -- the ModSelL is "High", the module will not respond to or 
       -- acknowledge any 2-wire interface communication from 
-      -- the host. ModSelL signal input node is biased to the “High” 
+      -- the host. ModSelL signal input node is biased to the "High" 
       -- state in the module. In order to avoid conflicts, the host 
       -- system shall not attempt 2-wire interface communications within the ModSelL de-assert time after any QSFP+ 
       -- module is deselected. Similarly, the host must wait at least 

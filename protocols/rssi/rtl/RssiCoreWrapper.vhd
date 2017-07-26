@@ -2,7 +2,7 @@
 -- File       : RssiCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-02-25
--- Last update: 2016-09-09
+-- Last update: 2017-05-09
 -------------------------------------------------------------------------------
 -- Description: Wrapper for RSSI + AXIS packetizer 
 -------------------------------------------------------------------------------
@@ -39,7 +39,7 @@ entity RssiCoreWrapper is
       APP_STREAM_ROUTES_G : Slv8Array           := (0 => "--------");
       AXI_ERROR_RESP_G    : slv(1 downto 0) := AXI_RESP_DECERR_C;
       -- AXIS Configurations
-      APP_AXIS_CONFIG_G   : AxiStreamConfigArray;
+      APP_AXIS_CONFIG_G   : AxiStreamConfigArray := (0 => ssiAxiStreamConfig(8, TKEEP_NORMAL_C));
       TSP_AXIS_CONFIG_G   : AxiStreamConfigType := ssiAxiStreamConfig(16, TKEEP_NORMAL_C);
       -- Version and connection ID
       INIT_SEQ_N_G        : natural             := 16#80#;
@@ -120,7 +120,7 @@ begin
 
    GEN_RX :
    for i in (APP_STREAMS_G-1) downto 0 generate
-      U_RxFifo : entity work.AxiStreamFifo
+      U_RxFifo : entity work.AxiStreamFifoV2
          generic map (
             TPD_G               => TPD_G,
             SLAVE_READY_EN_G    => true,
@@ -280,7 +280,7 @@ begin
 
    GEN_TX :
    for i in (APP_STREAMS_G-1) downto 0 generate
-      U_TxFifo : entity work.AxiStreamFifo
+      U_TxFifo : entity work.AxiStreamFifoV2
          generic map (
             TPD_G               => TPD_G,
             SLAVE_READY_EN_G    => true,

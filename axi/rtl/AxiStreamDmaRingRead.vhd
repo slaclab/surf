@@ -215,7 +215,7 @@ begin
          dataOut(0)          => dmaAck.readError,      -- [out]
          dataOut(2 downto 1) => dmaAck.errorValue);    -- [out]
 
-   U_AxiStreamFifo_Status : entity work.AxiStreamFifo
+   U_AxiStreamFifo_Status : entity work.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          PIPE_STAGES_G       => 1,

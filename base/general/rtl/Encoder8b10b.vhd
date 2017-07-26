@@ -2,7 +2,7 @@
 -- File       : Encoder8b10b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-10-12
--- Last update: 2016-10-12
+-- Last update: 2017-05-01
 -------------------------------------------------------------------------------
 -- Description: 8B10B Encoder Module
 -------------------------------------------------------------------------------
@@ -21,60 +21,81 @@ use work.StdRtlPkg.all;
 use work.Code8b10bPkg.all;
 
 entity Encoder8b10b is
-   
+
    generic (
       TPD_G          : time     := 1 ns;
       NUM_BYTES_G    : positive := 2;
       RST_POLARITY_G : sl       := '0';
-      RST_ASYNC_G    : boolean  := true);
+      RST_ASYNC_G    : boolean  := true;
+      FLOW_CTRL_EN_G : boolean := false);
    port (
-      clk     : in  sl;
-      clkEn   : in  sl := '1';  -- Optional Clock Enable
-      rst     : in  sl := not RST_POLARITY_G;  -- Optional Reset
-      dataIn  : in  slv(NUM_BYTES_G*8-1 downto 0);
-      dataKIn : in  slv(NUM_BYTES_G-1 downto 0);
-      dataOut : out slv(NUM_BYTES_G*10-1 downto 0));
+      clk      : in  sl;
+      clkEn    : in  sl := '1';                 -- Optional Clock Enable
+      rst      : in  sl := not RST_POLARITY_G;  -- Optional Reset
+      validIn  : in  sl := '1';
+      readyIn  : out sl;
+      dataIn   : in  slv(NUM_BYTES_G*8-1 downto 0);
+      dataKIn  : in  slv(NUM_BYTES_G-1 downto 0);
+      validOut : out sl;
+      readyOut : in  sl := '1';
+      dataOut  : out slv(NUM_BYTES_G*10-1 downto 0));
 
 end entity Encoder8b10b;
 
 architecture rtl of Encoder8b10b is
 
    type RegType is record
-      runDisp : sl;
-      dataOut : slv(NUM_BYTES_G*10-1 downto 0);
+      validOut : sl;
+      readyIn  : sl;
+      runDisp  : sl;
+      dataOut  : slv(NUM_BYTES_G*10-1 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      runDisp => '0',
-      dataOut => (others => '0'));
+      validOut => toSl(not FLOW_CTRL_EN_G),
+      readyIn  => '0',
+      runDisp  => '0',
+      dataOut  => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
 
-   comb : process (dataIn, dataKIn, r, rst) is
+   comb : process (dataIn, dataKIn, r, readyOut, rst) is
       variable v            : RegType;
       variable dispChainVar : sl;
    begin
-      v            := r;
-      dispChainVar := r.runDisp;
-      for i in 0 to NUM_BYTES_G-1 loop
-         encode8b10b(dataIn  => dataIn(i*8+7 downto i*8),
-                     dataKIn => dataKIn(i),
-                     dispIn  => dispChainVar,
-                     dataOut => v.dataOut(i*10+9 downto i*10),
-                     dispOut => dispChainVar);
-      end loop;
-      v.runDisp := dispChainVar;
+      v := r;
+
+      v.readyIn := readyOut;
+      if (readyOut = '1' and FLOW_CTRL_EN_G) then
+         v.validOut := '0';
+      end if;
+
+      if (v.validOut = '0' or FLOW_CTRL_EN_G = false) then
+         v.validOut := '1';
+
+         dispChainVar := r.runDisp;
+         for i in 0 to NUM_BYTES_G-1 loop
+            encode8b10b(dataIn  => dataIn(i*8+7 downto i*8),
+                        dataKIn => dataKIn(i),
+                        dispIn  => dispChainVar,
+                        dataOut => v.dataOut(i*10+9 downto i*10),
+                        dispOut => dispChainVar);
+         end loop;
+         v.runDisp := dispChainVar;
+      end if;
 
       -- Synchronous reset
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
-      rin     <= v;
-      dataOut <= r.dataOut;
+      rin      <= v;
+      dataOut  <= r.dataOut;
+      readyIn  <= v.readyIn;
+      validOut <= r.validOut;
    end process comb;
 
    seq : process (clk, rst) is

@@ -27,7 +27,6 @@ package AxiAds42lb69Pkg is
       clkFbN : sl;
       dataP  : Slv8Array(1 downto 0);
       dataN  : Slv8Array(1 downto 0);
-      sdo    : sl;
    end record;
    type AxiAds42lb69InArray is array (natural range <>) of AxiAds42lb69InType;
 
@@ -36,26 +35,22 @@ package AxiAds42lb69Pkg is
       clkN  : sl;
       syncP : sl;
       syncN : sl;
-      csL   : sl;
-      sck   : sl;
-      sdi   : sl;
-      rst   : sl;
    end record;
    type AxiAds42lb69OutArray is array (natural range <>) of AxiAds42lb69OutType;
 
    type AxiAds42lb69DelayInType is record
-      load : sl;
+      load : Slv8Array(1 downto 0);
       rst  : sl;
-      data : Slv5VectorArray(1 downto 0, 7 downto 0);
+      data : slv(8 downto 0);
    end record;
    constant AXI_ADS42LB69_DELAY_IN_INIT_C : AxiAds42lb69DelayInType := (
-      load => '0',
+      load => (others =>(others => '0')),
       rst  => '0',
-      data => (others => (others => (others => '0'))));  
+      data => (others => '0'));  
 
    type AxiAds42lb69DelayOutType is record
       rdy  : sl;
-      data : Slv5VectorArray(1 downto 0, 7 downto 0);
+      data : Slv10VectorArray(1 downto 0, 7 downto 0);
    end record;
    constant AXI_ADS42LB69_DELAY_OUT_INIT_C : AxiAds42lb69DelayOutType := (
       rdy  => '0',

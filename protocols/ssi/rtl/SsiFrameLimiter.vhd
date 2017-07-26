@@ -2,7 +2,7 @@
 -- File       : SsiFrameLimiter.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-20
--- Last update: 2016-09-20
+-- Last update: 2017-06-18
 -------------------------------------------------------------------------------
 -- Description: Limits the amount of data being sent across a SSI AXIS bus 
 -------------------------------------------------------------------------------
@@ -29,13 +29,14 @@ entity SsiFrameLimiter is
       TPD_G               : time                := 1 ns;
       EN_TIMEOUT_G        : boolean             := true;
       MAXIS_CLK_FREQ_G    : real                := 156.25E+06;  -- In units of Hz
-      TIMEOUT_G           : real                := 1.0E-3;      -- In units of seconds
+      TIMEOUT_G           : real                := 1.0E-3;  -- In units of seconds
       FRAME_LIMIT_G       : positive            := 1024;  -- In units of MASTER_AXI_CONFIG_G.TDATA_BYTES_C
       COMMON_CLK_G        : boolean             := false;  -- True if sAxisClk and mAxisClk are the same clock
       SLAVE_FIFO_G        : boolean             := false;
       MASTER_FIFO_G       : boolean             := false;
+      SLAVE_READY_EN_G    : boolean             := true;
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      MASTER_AXI_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);       
+      MASTER_AXI_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- Slave Port
       sAxisClk    : in  sl;
@@ -46,7 +47,7 @@ entity SsiFrameLimiter is
       mAxisClk    : in  sl;
       mAxisRst    : in  sl;
       mAxisMaster : out AxiStreamMasterType;
-      mAxisSlave  : in  AxiStreamSlaveType);      
+      mAxisSlave  : in  AxiStreamSlaveType);
 end SsiFrameLimiter;
 
 architecture rtl of SsiFrameLimiter is
@@ -55,7 +56,7 @@ architecture rtl of SsiFrameLimiter is
 
    type StateType is (
       IDLE_S,
-      MOVE_S); 
+      MOVE_S);
 
    type RegType is record
       cnt      : natural range 0 to FRAME_LIMIT_G-1;
@@ -69,7 +70,7 @@ architecture rtl of SsiFrameLimiter is
       timer    => 0,
       rxSlave  => AXI_STREAM_SLAVE_INIT_C,
       txMaster => AXI_STREAM_MASTER_INIT_C,
-      state    => IDLE_S);      
+      state    => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -87,12 +88,12 @@ begin
    end generate;
 
    GEN_FIFO_RX : if ((SLAVE_FIFO_G = true) or (COMMON_CLK_G = false) or (SLAVE_AXI_CONFIG_G /= MASTER_AXI_CONFIG_G)) generate
-      FIFO_RX : entity work.AxiStreamFifo
+      FIFO_RX : entity work.AxiStreamFifoV2
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
             PIPE_STAGES_G       => 0,
-            SLAVE_READY_EN_G    => true,
+            SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
             VALID_THOLD_G       => 1,
             -- FIFO configurations
             BRAM_EN_G           => false,
@@ -102,7 +103,7 @@ begin
             FIFO_ADDR_WIDTH_G   => 4,
             -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_G,
-            MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G)            
+            MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G)
          port map (
             -- Slave Port
             sAxisClk    => sAxisClk,
@@ -113,7 +114,7 @@ begin
             mAxisClk    => mAxisClk,
             mAxisRst    => mAxisRst,
             mAxisMaster => rxMaster,
-            mAxisSlave  => rxSlave);   
+            mAxisSlave  => rxSlave);
    end generate;
 
    comb : process (mAxisRst, r, rxMaster, txSlave) is
@@ -125,7 +126,7 @@ begin
 
       -- Reset the flags
       v.rxSlave := AXI_STREAM_SLAVE_INIT_C;
-      if txSlave.tReady = '1' then
+      if (txSlave.tReady = '1') or (SLAVE_READY_EN_G = false) then
          v.txMaster.tValid := '0';
       end if;
 
@@ -133,17 +134,21 @@ begin
       case r.state is
          ----------------------------------------------------------------------
          when IDLE_S =>
-            -- Reset the counter
-            v.cnt := 0;
+            -- Preset the counter
+            v.cnt := 1;
             -- Check if ready to move data
             if (v.txMaster.tValid = '0') and (rxMaster.tValid = '1') then
+               -- Accept the data
+               v.rxSlave.tReady := '1';
                -- Check for SOF
                if ssiGetUserSof(MASTER_AXI_CONFIG_G, rxMaster) = '1' then
-                  -- Next state
-                  v.state := MOVE_S;
-               else
-                  -- Blowoff the data
-                  v.rxSlave.tReady := '1';
+                  -- Move the data
+                  v.txMaster := rxMaster;
+                  -- Check for non-EOF
+                  if rxMaster.tLast = '0' then
+                     -- Next state
+                     v.state := MOVE_S;
+                  end if;
                end if;
             end if;
          ----------------------------------------------------------------------
@@ -198,6 +203,11 @@ begin
          end if;
       end if;
 
+      -- Check if using tReady
+      if (SLAVE_READY_EN_G = false) then
+         v.rxSlave.tReady := '1';
+      end if;
+
       -- Reset
       if (mAxisRst = '1') then
          v := REG_INIT_C;
@@ -225,12 +235,12 @@ begin
    end generate;
 
    GEN_FIFO_TX : if (MASTER_FIFO_G = true) generate
-      FIFO_TX : entity work.AxiStreamFifo
+      FIFO_TX : entity work.AxiStreamFifoV2
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
             PIPE_STAGES_G       => 0,
-            SLAVE_READY_EN_G    => true,
+            SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
             VALID_THOLD_G       => 1,
             -- FIFO configurations
             BRAM_EN_G           => false,
@@ -240,7 +250,7 @@ begin
             FIFO_ADDR_WIDTH_G   => 4,
             -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => MASTER_AXI_CONFIG_G,
-            MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G)            
+            MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G)
          port map (
             -- Slave Port
             sAxisClk    => mAxisClk,
@@ -251,7 +261,7 @@ begin
             mAxisClk    => mAxisClk,
             mAxisRst    => mAxisRst,
             mAxisMaster => mAxisMaster,
-            mAxisSlave  => mAxisSlave);   
+            mAxisSlave  => mAxisSlave);
    end generate;
-   
+
 end rtl;

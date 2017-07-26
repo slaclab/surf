@@ -178,7 +178,7 @@ begin
    ----------------------------   
    -- Data Filter (Test Module)
    ----------------------------
-   U_AxiStreamFifo_PacketOut : entity work.AxiStreamFifo
+   U_AxiStreamFifo_PacketOut : entity work.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_C,

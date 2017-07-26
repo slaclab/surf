@@ -2,7 +2,7 @@
 -- File       : SspEncoder10b12b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-07-14
--- Last update: 2016-10-26
+-- Last update: 2017-05-01
 -------------------------------------------------------------------------------
 -- Description: SimpleStreamingProtocol - A simple protocol layer for inserting
 -- idle and framing control characters into a raw data stream. This module
@@ -31,15 +31,19 @@ entity SspEncoder10b12b is
       TPD_G          : time    := 1 ns;
       RST_POLARITY_G : sl      := '0';
       RST_ASYNC_G    : boolean := true;
-      AUTO_FRAME_G   : boolean := true);
+      AUTO_FRAME_G   : boolean := true;
+      FLOW_CTRL_EN_G : boolean := false);
    port (
-      clk     : in  sl;
-      rst     : in  sl := RST_POLARITY_G;
-      valid   : in  sl;
-      sof     : in  sl := '0';
-      eof     : in  sl := '0';
-      dataIn  : in  slv(9 downto 0);
-      dataOut : out slv(11 downto 0));
+      clk      : in  sl;
+      rst      : in  sl := RST_POLARITY_G;
+      validIn  : in  sl;
+      readyIn  : out sl;
+      sof      : in  sl := '0';
+      eof      : in  sl := '0';
+      dataIn   : in  slv(9 downto 0);
+      validOut : out sl;
+      readyOut : in  sl := '1';
+      dataOut  : out slv(11 downto 0));
 
 end entity SspEncoder10b12b;
 
@@ -47,6 +51,8 @@ architecture rtl of SspEncoder10b12b is
 
    signal framedData  : slv(9 downto 0);
    signal framedDataK : slv(0 downto 0);
+   signal validInt    : sl;
+   signal readyInt    : sl;
 
 begin
 
@@ -56,6 +62,7 @@ begin
          RST_POLARITY_G  => RST_POLARITY_G,
          RST_ASYNC_G     => RST_ASYNC_G,
          AUTO_FRAME_G    => AUTO_FRAME_G,
+         FLOW_CTRL_EN_G  => FLOW_CTRL_EN_G,
          WORD_SIZE_G     => 10,
          K_SIZE_G        => 1,
          SSP_IDLE_CODE_G => K_28_3_C,
@@ -67,11 +74,14 @@ begin
       port map (
          clk      => clk,
          rst      => rst,
-         valid    => valid,
+         validIn  => validIn,
+         readyIn  => readyIn,
          sof      => sof,
          eof      => eof,
          dataIn   => dataIn,
          dataOut  => framedData,
+         validOut => validInt,
+         readyOut => readyInt,
          dataKOut => framedDataK);
 
    Encoder10b12b_1 : entity work.Encoder10b12b
@@ -79,12 +89,17 @@ begin
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
-         USE_CLK_EN_G   => false)
+         USE_CLK_EN_G   => false,
+         FLOW_CTRL_EN_G => FLOW_CTRL_EN_G)
       port map (
-         clk     => clk,
-         rst     => rst,
-         dataIn  => framedData,
-         dataKIn => framedDataK(0),
-         dataOut => dataOut);
+         clk      => clk,
+         rst      => rst,
+         validIn  => validInt,
+         readyIn  => readyInt,
+         dataIn   => framedData,
+         dataKIn  => framedDataK(0),
+         validOut => validOut,
+         readyOut => readyOut,
+         dataOut  => dataOut);
 
 end architecture rtl;
