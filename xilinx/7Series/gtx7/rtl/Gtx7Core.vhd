@@ -1142,7 +1142,8 @@ begin
          RXDFEVPHOLD      => '0',
          RXDFEVPOVRDEN    => '0',
          RXDFEVSEN        => '0',
-         RXDFEXYDEN       => RXDFEXYDEN_G,
+         -- RXDFEXYDEN       => RXDFEXYDEN_G,
+         RXDFEXYDEN       => '1',-- This should always be 1
          RXDFEXYDHOLD     => '0',
          RXDFEXYDOVRDEN   => '0',
          RXMONITOROUT     => open,
