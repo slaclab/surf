@@ -2,7 +2,7 @@
 -- File       : Pgp3GthUs.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2017-06-29
+-- Last update: 2017-07-28
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -28,163 +28,208 @@ use UNISIM.VCOMPONENTS.all;
 
 entity Pgp3GthUs is
    generic (
-      TPD_G             : time                 := 1 ns;
+      TPD_G                           : time                  := 1 ns;
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
-      PGP_RX_ENABLE_G   : boolean              := true;
-      PGP_TX_ENABLE_G   : boolean              := true;
-      PAYLOAD_CNT_TOP_G : integer              := 7;  -- Top bit for payload counter
-      VC_INTERLEAVE_G   : integer              := 0;  -- Interleave Frames
-      NUM_VC_EN_G       : integer range 1 to 4 := 4);
+      PGP_RX_ENABLE_G                 : boolean               := true;
+      PGP_TX_ENABLE_G                 : boolean               := true;
+      NUM_VC_G                        : integer range 1 to 16 := 4;
+      TX_CELL_WORDS_MAX_G             : integer               := 256;  -- Number of 64-bit words per cell
+      TX_SKP_INTERVAL_G               : integer               := 5000;
+      TX_SKP_BURST_SIZE_G             : integer               := 8;
+      TX_MUX_MODE_G                   : string                := "INDEXED";  -- Or "ROUTED"
+      TX_MUX_TDEST_ROUTES_G           : Slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
+      TX_MUX_TDEST_LOW_G              : integer range 0 to 7  := 0;
+      TX_MUX_INTERLEAVE_EN_G          : boolean               := true;
+      TX_MUX_INTERLEAVE_ON_NOTVALID_G : boolean               := true);
+
    port (
       -- GT Clocking
-      stableClk        : in  sl;                      -- GT needs a stable clock to "boot up"
-      stableRst        : in  sl;
-      gtRefClk         : in  sl;
+      stableClk    : in  sl;            -- GT needs a stable clock to "boot up"
+      stableRst    : in  sl;
+      gtRefClk     : in  sl;
       -- Gt Serial IO
-      pgpGtTxP         : out sl;
-      pgpGtTxN         : out sl;
-      pgpGtRxP         : in  sl;
-      pgpGtRxN         : in  sl;
+      pgpGtTxP     : out sl;
+      pgpGtTxN     : out sl;
+      pgpGtRxP     : in  sl;
+      pgpGtRxN     : in  sl;
       -- Tx Clocking
-      pgpTxReset       : in  sl;
-      pgpTxRecClk      : out sl;                      -- recovered clock
-      pgpTxClk         : in  sl;
-      pgpTxMmcmLocked  : in  sl;
+      pgpTxRst     : out sl;
+      pgpTxClk     : out sl;
       -- Rx clocking
-      pgpRxReset       : in  sl;
-      pgpRxRecClk      : out sl;                      -- recovered clock
-      pgpRxClk         : in  sl;
-      pgpRxMmcmLocked  : in  sl;
+      pgpRxRst     : out sl;
+      pgpRxClk     : out sl;
       -- Non VC Rx Signals
-      pgpRxIn          : in  Pgp3RxInType;
-      pgpRxOut         : out Pgp3RxOutType;
+      pgpRxIn      : in  Pgp3RxInType;
+      pgpRxOut     : out Pgp3RxOutType;
       -- Non VC Tx Signals
-      pgpTxIn          : in  Pgp3TxInType;
-      pgpTxOut         : out Pgp3TxOutType;
+      pgpTxIn      : in  Pgp3TxInType;
+      pgpTxOut     : out Pgp3TxOutType;
       -- Frame Transmit Interface - 1 Lane, Array of 4 VCs
-      pgpTxMasters     : in  AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0);
-      pgpTxSlaves      : out AxiStreamSlaveArray(NUM_VC_EN_G-1 downto 0);
-      pgpTxCtrl : out AxiStreamCtrlArray(NUM_VC_EN_G-1 downto 0);
+      pgpTxMasters : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
+      pgpTxSlaves  : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
+      pgpTxCtrl    : out AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
       -- Frame Receive Interface - 1 Lane, Array of 4 VCs
-      pgpRxMasters     : out AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0);
-      pgpRxCtrl        : in  AxiStreamCtrlArray(NUM_VC_EN_G-1 downto 0));
+      pgpRxMasters : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
+      pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0));
 end Pgp3GthUs;
 
 architecture mapping of Pgp3GthUs is
 
+   -- clocks
+   signal pgpRxClkInt : sl;
+   signal pgpRxRstInt : sl;
+   signal pgpTxClkInt : sl;
+   signal pgpTxRstInt : sl;
+
    -- PgpRx Signals
-   signal gtRxUserReset : sl;
-   signal phyRxLaneIn   : Pgp2bRxPhyLaneInType;
-   signal phyRxLaneOut  : Pgp2bRxPhyLaneOutType;
-   signal phyRxReady    : sl;
+--   signal gtRxUserReset : sl;
+   signal phyRxClk      : sl;
+   signal phyRxRst      : sl;
    signal phyRxInit     : sl;
+   signal phyRxReady    : sl;
+   signal phyRxValid    : sl;
+   signal phyRxHeader   : slv(1 downto 0);
+   signal phyRxData     : slv(63 downto 0);
+   signal phyRxStartSeq : sl;
+   signal phyRxSlip     : sl;
+
 
    -- PgpTx Signals
-   signal gtTxUserReset : sl;
-   signal phyTxLaneOut  : Pgp2bTxPhyLaneOutType;
+--   signal gtTxUserReset : sl;
    signal phyTxReady    : sl;
+   signal phyTxStart    : sl;
+   signal phyTxSequence : slv(5 downto 0);
+   signal phyTxData     : slv(63 downto 0);
+   signal phyTxHeader   : slv(1 downto 0);
+
 
 begin
 
-   gtRxUserReset <= phyRxInit or pgpRxReset or pgpRxIn.resetRx;
-   gtTxUserReset <= pgpTxReset;
+   pgpRxClk <= pgpRxClkInt;
+   pgpRxRst <= pgpRxRstInt;
+   pgpTxClk <= pgpTxClkInt;
+   pgpTxRst <= pgpTxRstInt;
 
-   U_Pgp2bLane : entity work.Pgp2bLane
+   --gtRxUserReset <= phyRxInit or pgpRxIn.resetRx;
+   --gtTxUserReset <= pgpTxRst;
+
+   U_Pgp3Core_1 : entity work.Pgp3Core
       generic map (
-         LANE_CNT_G        => 1,
-         VC_INTERLEAVE_G   => VC_INTERLEAVE_G,
-         PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G,
-         NUM_VC_EN_G       => NUM_VC_EN_G,
-         TX_ENABLE_G       => PGP_TX_ENABLE_G,
-         RX_ENABLE_G       => PGP_RX_ENABLE_G)
+         TPD_G                           => TPD_G,
+         NUM_VC_G                        => NUM_VC_G,
+         PGP_RX_ENABLE_G                 => PGP_RX_ENABLE_G,
+         PGP_TX_ENABLE_G                 => PGP_TX_ENABLE_G,
+         TX_CELL_WORDS_MAX_G             => TX_CELL_WORDS_MAX_G,
+         TX_SKP_INTERVAL_G               => TX_SKP_INTERVAL_G,
+         TX_SKP_BURST_SIZE_G             => TX_SKP_BURST_SIZE_G,
+         TX_MUX_MODE_G                   => TX_MUX_MODE_G,
+         TX_MUX_TDEST_ROUTES_G           => TX_MUX_TDEST_ROUTES_G,
+         TX_MUX_TDEST_LOW_G              => TX_MUX_TDEST_LOW_G,
+         TX_MUX_INTERLEAVE_EN_G          => TX_MUX_INTERLEAVE_EN_G,
+         TX_MUX_INTERLEAVE_ON_NOTVALID_G => TX_MUX_INTERLEAVE_ON_NOTVALID_G)
       port map (
-         pgpTxClk         => pgpTxClk,
-         pgpTxClkRst      => pgpTxReset,
-         pgpTxIn          => pgpTxIn,
-         pgpTxOut         => pgpTxOut,
-         pgpTxMasters     => pgpTxMasters,
-         pgpTxSlaves      => pgpTxSlaves,
-         phyTxLanesOut(0) => phyTxLaneOut,
-         phyTxReady       => phyTxReady,
-         pgpRxClk         => pgpRxClk,
-         pgpRxClkRst      => pgpRxReset,
-         pgpRxIn          => pgpRxIn,
-         pgpRxOut         => pgpRxOut,
-         pgpRxMasters     => pgpRxMasters,
-         pgpRxMasterMuxed => pgpRxMasterMuxed,
-         pgpRxCtrl        => pgpRxCtrl,
-         phyRxLanesOut(0) => phyRxLaneOut,
-         phyRxLanesIn(0)  => phyRxLaneIn,
-         phyRxReady       => phyRxReady,
-         phyRxInit        => phyRxInit);
+         pgpTxClk      => pgpTxClkInt,    -- [in]
+         pgpTxRst      => pgpTxRstInt,    -- [in]
+         pgpTxIn       => pgpTxIn,        -- [in]
+         pgpTxOut      => pgpTxOut,       -- [out]
+         pgpTxMasters  => pgpTxMasters,   -- [in]
+         pgpTxSlaves   => pgpTxSlaves,    -- [out]
+         pgpTxCtrl     => pgpTxCtrl,      -- [out]
+         phyTxReady    => phyTxReady,     -- [in]
+         phyTxStart    => phyTxStart,     -- [out]
+         phyTxSequence => phyTxSequence,  -- [out]
+         phyTxData     => phyTxData,      -- [out]
+         phyTxHeader   => phyTxHeader,    -- [out]
+         pgpRxClk      => pgpTxClkInt,    -- [in]
+         pgpRxRst      => pgpTxRstInt,    -- [in]
+         pgpRxIn       => pgpRxIn,        -- [in]
+         pgpRxOut      => pgpRxOut,       -- [out]
+         pgpRxMasters  => pgpRxMasters,   -- [out]
+         pgpRxCtrl     => pgpRxCtrl,      -- [in]
+         phyRxClk      => phyRxClk,       -- [in]
+         phyRxRst      => phyRxRst,       -- [in]
+         phyRxInit     => phyRxInit,      -- [out]
+         phyRxReady    => phyRxReady,     -- [in]
+         phyRxValid    => phyRxValid,     -- [in]
+         phyRxHeader   => phyRxHeader,    -- [in]
+         phyRxData     => phyRxData,      -- [in]
+         phyRxStartSeq => phyRxStartSeq,  -- [in]
+         phyRxSlip     => phyRxSlip);     -- [out]
 
    --------------------------
    -- Wrapper for GTH IP core
    --------------------------
-   U_Pgp3GthCoreWrapper_1 : entity work.Pgp3GthCoreWrapper
+   U_Pgp3GthCoreWrapper_2 : entity work.Pgp3GthCoreWrapper
       generic map (
          TPD_G => TPD_G)
       port map (
-         stableClk      => stableClk,        -- [in]
-         stableRst      => stableRst,        -- [in]
-         gtRefClk       => gtRefClk,         -- [in]
-         gtRxP          => pgpGtRxP,         -- [in]
-         gtRxN          => pgpGtRxN,         -- [in]
-         gtTxP          => pgpGtTxP,         -- [out]
-         gtTxN          => pgpGtTxN,         -- [out]
-         rxReset        => gtRxUserReset,    -- [in]
-         rxUsrClkActive => mmcmLocked,       -- [in]
-         rxResetDone    => phyRxReady,       -- [out]
-         rxUsrClk       => rxUsrClk,         -- [in]
-         rxUsrClk2      => rxUsrClk2,        -- [in]
-         rxData         => phyRxData,        -- [out]
-         rxDataValid    => phyRxValid,       -- [out]
-         rxHeader       => phyRxHeader,      -- [out]
-         rxHeaderValid  => open,             -- [out]
-         rxStartOfSeq   => phyRxStartOfSeq,  -- [out]
-         rxGearboxSlip  => phyRxSlip,        -- [in]
-         rxOutClk       => phyRxClk,         -- [out]
-         txReset        => ,                 -- [in]
-         txUsrClkActive => mmcmLocked,       -- [in]
-         txResetDone    => phyTxReady,       -- [out]
-         txUsrClk       => txUsrClk,         -- [in]
-         txUsrClk2      => txUsrClk2,        -- [in]
-         txData         => phyTxData,        -- [in]
-         txHeader       => phyTxHeader,      -- [in]
-         txSequence     => phyTxSequence,    -- [in]
-         txOutClk       => txOutClk,         -- [out]
-         loopback       => loopback);        -- [in]
+         stableClk      => stableClk,         -- [in]
+         stableRst      => stableRst,         -- [in]
+         gtRefClk       => gtRefClk,          -- [in]
+         gtRxP          => pgpGtRxP,             -- [in]
+         gtRxN          => pgpGtRxN,             -- [in]
+         gtTxP          => pgpGtTxP,             -- [out]
+         gtTxN          => pgpGtTxN,             -- [out]
+         rxReset        => phyRxInit,         -- [in]
+         rxUsrClkActive => open,              -- [out]
+         rxResetDone    => phyRxReady,        -- [out]
+         rxUsrClk       => open,              -- [out]
+         rxUsrClk2      => phyRxClk,       -- [out]
+         rxUsrClkRst    => phyRxRst,       -- [out]
+         rxData         => phyRxData,         -- [out]
+         rxDataValid    => phyRxValid,        -- [out]
+         rxHeader       => phyRxHeader,       -- [out]
+         rxHeaderValid  => open,              -- [out]
+         rxStartOfSeq   => phyRxStartSeq,     -- [out]
+         rxGearboxSlip  => phyRxSlip,         -- [in]
+         rxOutClk       => open,              -- [out]
+         txReset        => '0',               -- [in]
+         txUsrClkActive => open,              -- [out]
+         txResetDone    => phyTxReady,        -- [out]
+         txUsrClk       => open,              -- [out]
+         txUsrClk2      => pgpTxClkInt,       -- [out]
+         txUsrClkRst    => pgpTxRstInt,       -- [out]
+         txData         => phyTxData,         -- [in]
+         txHeader       => phyTxHeader,       -- [in]
+         txSequence     => phyTxSequence,     -- [in]
+         txOutClk       => open,              -- [out]
+         loopback       => (others => '0'));  -- [in]
 
-   PgpGthCoreWrapper_1 : entity work.PgpGthCoreWrapper
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         stableClk      => stableClk,
-         stableRst      => stableRst,
-         gtRefClk       => gtRefClk,
-         gtRxP          => pgpGtRxP,
-         gtRxN          => pgpGtRxN,
-         gtTxP          => pgpGtTxP,
-         gtTxN          => pgpGtTxN,
-         rxReset        => gtRxUserReset,
-         rxUsrClkActive => pgpRxMmcmLocked,
-         rxResetDone    => phyRxReady,
-         rxUsrClk       => pgpRxClk,
-         rxData         => phyRxLaneIn.data,
-         rxDataK        => phyRxLaneIn.dataK,
-         rxDispErr      => phyRxLaneIn.dispErr,
-         rxDecErr       => phyRxLaneIn.decErr,
-         rxPolarity     => phyRxLaneOut.polarity,
-         rxOutClk       => pgpRxRecClk,
-         txReset        => gtTxUserReset,
-         txUsrClk       => pgpTxClk,
-         txUsrClkActive => pgpTxMmcmLocked,
-         txResetDone    => phyTxReady,
-         txData         => phyTxLaneOut.data,
-         txDataK        => phyTxLaneOut.dataK,
-         txOutClk       => pgpTxRecClk,
-         loopback       => pgpRxIn.loopback);
+--    U_Pgp3GthCoreWrapper_1 : entity work.Pgp3GthCoreWrapper
+--       generic map (
+--          TPD_G => TPD_G)
+--       port map (
+--          stableClk      => stableClk,        -- [in]
+--          stableRst      => stableRst,        -- [in]
+--          gtRefClk       => gtRefClk,         -- [in]
+--          gtRxP          => pgpGtRxP,         -- [in]
+--          gtRxN          => pgpGtRxN,         -- [in]
+--          gtTxP          => pgpGtTxP,         -- [out]
+--          gtTxN          => pgpGtTxN,         -- [out]
+--          rxReset        => gtRxUserReset,    -- [in]
+--          rxUsrClkActive => mmcmLocked,       -- [in]
+--          rxResetDone    => phyRxReady,       -- [out]
+--          rxUsrClk       => rxUsrClk,         -- [in]
+--          rxUsrClk2      => rxUsrClk2,        -- [in]
+--          rxData         => phyRxData,        -- [out]
+--          rxDataValid    => phyRxValid,       -- [out]
+--          rxHeader       => phyRxHeader,      -- [out]
+--          rxHeaderValid  => open,             -- [out]
+--          rxStartOfSeq   => phyRxStartOfSeq,  -- [out]
+--          rxGearboxSlip  => phyRxSlip,        -- [in]
+--          rxOutClk       => phyRxClk,         -- [out]
+--          txReset        => gtRxUserReset,    -- [in]
+--          txUsrClkActive => mmcmLocked,       -- [in]
+--          txResetDone    => phyTxReady,       -- [out]
+--          txUsrClk       => txUsrClk,         -- [in]
+--          txUsrClk2      => txUsrClk2,        -- [in]
+--          txData         => phyTxData,        -- [in]
+--          txHeader       => phyTxHeader,      -- [in]
+--          txSequence     => phyTxSequence,    -- [in]
+--          txOutClk       => txOutClk,         -- [out]
+--          loopback       => loopback);        -- [in]
+
 
 end mapping;
