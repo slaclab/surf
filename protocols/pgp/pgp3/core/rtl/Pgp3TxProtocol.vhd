@@ -204,6 +204,8 @@ begin
       pgpTxSlave   <= v.pgpTxSlave;
       protTxData   <= r.protTxData;
       protTxHeader <= r.protTxHeader;
+      protTxValid  <= r.protTxValid;
+      protTxStart  <= r.protTxStart;
 
    end process comb;
 

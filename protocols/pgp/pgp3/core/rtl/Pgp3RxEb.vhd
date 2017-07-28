@@ -57,7 +57,7 @@ architecture rtl of Pgp3RxEb is
 
 begin
 
-   comb : process (r) is
+   comb : process (phyRxData, phyRxHeader, phyRxValid, r) is
       variable v : RegType;
    begin
       v := r;

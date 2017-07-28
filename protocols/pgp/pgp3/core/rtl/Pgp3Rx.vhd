@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-07
--- Last update: 2017-06-05
+-- Last update: 2017-07-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -32,8 +32,11 @@ use work.AxiStreamPacketizer2Pkg.all;
 entity Pgp3Rx is
 
    generic (
-      TPD_G    : time                  := 1 ns;
-      NUM_VC_G : integer range 1 to 16 := 4);
+      TPD_G              : time                  := 1 ns;
+      NUM_VC_G           : integer range 1 to 16 := 4;
+      ALIGN_GOOD_COUNT_G : integer               := 128;
+      ALIGN_BAD_COUNT_G  : integer               := 16;
+      ALIGN_SLIP_WAIT_G  : integer               := 32);
    port (
       -- User Transmit interface
       pgpRxClk     : in  sl;
@@ -53,6 +56,7 @@ entity Pgp3Rx is
       phyRxClk      : in  sl;
       phyRxRst      : in  sl;
       phyRxInit     : out sl;
+      phyRxReady    : in  sl;
       phyRxValid    : in  sl;
       phyRxHeader   : in  slv(1 downto 0);
       phyRxData     : in  slv(63 downto 0);
@@ -65,10 +69,16 @@ end entity Pgp3Rx;
 
 architecture rtl of Pgp3Rx is
 
+   constant SCRAMBLER_TAPS_C : IntegerArray := (0 => 39, 1 => 58);
+
    signal gearboxAligned         : sl := '1';
    signal unscramblerValid       : sl;
+   signal unscrambledValid       : sl;
    signal unscrambledData        : slv(63 downto 0);
-   signal unscrambedHeader       : slv(1 downto 0);
+   signal unscrambledHeader      : slv(1 downto 0);
+   signal ebValid                : sl;
+   signal ebData                 : slv(63 downto 0);
+   signal ebHeader               : slv(1 downto 0);
    signal pgpRawRxMaster         : AxiStreamMasterType;
    signal pgpRawRxSlave          : AxiStreamSlaveType;
    signal depacketizedAxisMaster : AxiStreamMasterType;
@@ -78,7 +88,6 @@ architecture rtl of Pgp3Rx is
    signal depacketizerDebug : Packetizer2DebugType;
 
    signal locRxLinkReadyInt : sl;
-   signal rxAligned         : sl;
 
 begin
    locRxLinkReady <= locRxLinkReadyInt;
@@ -87,19 +96,19 @@ begin
    U_Pgp3RxGearboxAligner_1 : entity work.Pgp3RxGearboxAligner
       generic map (
          TPD_G        => TPD_G,
-         GOOD_COUNT_G => GOOD_COUNT_G,
-         BAD_COUNT_G  => BAD_COUNT_G,
-         SLIP_WAIT_G  => SLIP_WAIT_G)
+         GOOD_COUNT_G => ALIGN_GOOD_COUNT_G,
+         BAD_COUNT_G  => ALIGN_BAD_COUNT_G,
+         SLIP_WAIT_G  => ALIGN_SLIP_WAIT_G)
       port map (
          clk           => phyRxClk,     -- [in]
          rst           => phyRxRst,     -- [in]
          rxHeader      => phyRxHeader,  -- [in]
          rxHeaderValid => phyRxValid,   -- [in]
          slip          => phyRxSlip,    -- [out]
-         locked        => rxAligned);   -- [out]
+         locked        => gearboxAligned);   -- [out]
 
    -- Unscramble the data for 64b66b
-   unscramblerInputValid <= gearboxAligned and phyRxValid;
+   unscramblerValid <= gearboxAligned and phyRxValid;
    U_Scrambler_1 : entity work.Scrambler
       generic map (
          TPD_G            => TPD_G,
@@ -108,30 +117,30 @@ begin
          SIDEBAND_WIDTH_G => 2,
          TAPS_G           => SCRAMBLER_TAPS_C)
       port map (
-         clk            => phyRxClk,           -- [in]
-         rst            => phyRxRst,           -- [in]
-         inputValid     => phyRxValid,         -- [in]         
-         inputData      => phyRxData,          -- [in]
-         inputSideband  => phyRxHeader,        -- [in]
-         outputValid    => unscramblerValid,   -- [out]
-         outputData     => unscrambledData,    -- [out]
-         outputSideband => unscrambedHeader);  -- [out]
+         clk            => phyRxClk,            -- [in]
+         rst            => phyRxRst,            -- [in]
+         inputValid     => unscramblerValid,    -- [in]         
+         inputData      => phyRxData,           -- [in]
+         inputSideband  => phyRxHeader,         -- [in]
+         outputValid    => unscrambledValid,    -- [out]
+         outputData     => unscrambledData,     -- [out]
+         outputSideband => unscrambledHeader);  -- [out]
 
    -- Elastic Buffer
    U_Pgp3RxEb_1 : entity work.Pgp3RxEb
       generic map (
          TPD_G => TPD_G)
       port map (
-         phyRxClk    => phyRxClk,             -- [in]
-         phyRxRst    => phyRxRst,             -- [in]
-         phyRxValid  => unscrambledRxValid,   -- [in]
-         phyRxData   => unscrambledRxData,    -- [in]
-         phyRxHeader => unscrambledRxHeader,  -- [in]
-         pgpRxClk    => pgpRxClk,             -- [in]
-         pgpRxRst    => pgpRxRst,             -- [in]
-         pgpRxValid  => ebValid,              -- [out]
-         pgpRxData   => ebData,               -- [out]
-         pgpRxHeader => ebHeader);            -- [out]
+         phyRxClk    => phyRxClk,           -- [in]
+         phyRxRst    => phyRxRst,           -- [in]
+         phyRxValid  => unscrambledValid,   -- [in]
+         phyRxData   => unscrambledData,    -- [in]
+         phyRxHeader => unscrambledHeader,  -- [in]
+         pgpRxClk    => pgpRxClk,           -- [in]
+         pgpRxRst    => pgpRxRst,           -- [in]
+         pgpRxValid  => ebValid,            -- [out]
+         pgpRxData   => ebData,             -- [out]
+         pgpRxHeader => ebHeader);          -- [out]
 
    -- Main RX protocol logic
    U_Pgp3RxProtocol_1 : entity work.Pgp3RxProtocol
@@ -188,7 +197,7 @@ begin
          mAxisMasters => pgpRxMasters,                           -- [out]
          mAxisSlaves  => (others => AXI_STREAM_SLAVE_FORCE_C));  -- [in]
 
-   pgpRxOut.protRxReady  <= protRxReady;
+   pgpRxOut.phyRxReady   <= phyRxReady;
    pgpRxOut.linkReady    <= pgpRxOutProtocol.linkReady;
    pgpRxOut.frameRx      <= depacketizerDebug.eof;
    pgpRxOut.frameRxErr   <= depacketizerDebug.eofe;

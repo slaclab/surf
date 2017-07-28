@@ -48,7 +48,7 @@ architecture rtl of Pgp3RxGearboxAligner is
 
    constant GOOD_COUNT_WIDTH_C : integer := log2(maximum(GOOD_COUNT_G, SLIP_WAIT_G));
 
-   type StateType is (UNLOCKED_S, SLIP_WAIT_G, LOCKED_S);
+   type StateType is (UNLOCKED_S, SLIP_WAIT_S, LOCKED_S);
 
    type RegType is record
       state     : StateType;
@@ -73,6 +73,7 @@ begin
    comb : process (r, rst, rxHeader, rxHeaderValid) is
       variable v : RegType;
    begin
+      v := r;
 
       v.slip := '0';
 

@@ -33,7 +33,7 @@ entity Pgp3Tx is
       TPD_G                        : time                  := 1 ns;
       -- PGP configuration
       NUM_VC_G                     : integer range 1 to 16 := 1;
-      TX_CELL_WORDS_MAX_G          : integer               := 256;  -- Number of 64-bit words per cell
+      CELL_WORDS_MAX_G             : integer               := 256;  -- Number of 64-bit words per cell
       SKP_INTERVAL_G               : integer               := 5000;
       SKP_BURST_SIZE_G             : integer               := 8;
       -- Mux configuration
@@ -59,10 +59,12 @@ entity Pgp3Tx is
       remRxLinkReady : in sl;
 
       -- PHY interface
-      phyTxReady  : in  sl;
-      phyTxStart  : out sl;
-      phyTxData   : out slv(63 downto 0);
-      phyTxHeader : out slv(1 downto 0));
+      phyTxReady    : in  sl;
+      phyTxStart    : out sl;
+      phyTxSequence : out slv(5 downto 0);
+      phyTxData     : out slv(63 downto 0);
+      phyTxHeader   : out slv(1 downto 0));
+
 end entity Pgp3Tx;
 
 architecture rtl of Pgp3Tx is
@@ -83,9 +85,9 @@ architecture rtl of Pgp3Tx is
 
    signal protTxValid  : sl;
    signal protTxReady  : sl;
+   signal protTxStart  : sl;
    signal protTxData   : slv(63 downto 0);
    signal protTxHeader : slv(1 downto 0);
-
 
 begin
 
@@ -153,7 +155,7 @@ begin
          TDEST_LOW_G              => MUX_TDEST_LOW_G,
          INTERLEAVE_EN_G          => MUX_INTERLEAVE_EN_G,
          INTERLEAVE_ON_NOTVALID_G => MUX_INTERLEAVE_ON_NOTVALID_G,
-         INTERLEAVE_MAX_TXNS_G    => TX_CELL_WORDS_MAX_G)
+         INTERLEAVE_MAX_TXNS_G    => CELL_WORDS_MAX_G)
       port map (
          axisClk      => pgpTxClk,       -- [in]
          axisRst      => pgpTxRst,       -- [in]
@@ -173,7 +175,7 @@ begin
          TPD_G                => TPD_G,
          CRC_EN_G             => true,
          CRC_POLY_G           => X"04C11DB7",
-         MAX_PACKET_BYTES_G   => TX_CELL_WORDS_MAX_G*8*2,
+         MAX_PACKET_BYTES_G   => CELL_WORDS_MAX_G*8*2,
          OUTPUT_SSI_G         => true,
          INPUT_PIPE_STAGES_G  => 0,
          OUTPUT_PIPE_STAGES_G => 0)
@@ -204,10 +206,11 @@ begin
          locRxFifoCtrl  => syncLocRxFifoCtrl,   -- [in]
          locRxLinkReady => syncLocRxLinkReady,  -- [in]
          remRxLinkReady => syncRemRxLinkReady,  -- [in]
-         phyTxReady     => protTxReady,         -- [in]
-         phyTxValid     => protTxValid,         -- [out]
-         phyTxData      => protTxData,          -- [out]
-         phyTxHeader    => protTxHeader);       -- [out]
+         protTxReady    => protTxReady,         -- [in]
+         protTxValid    => protTxValid,         -- [out]
+         protTxStart    => protTxStart,         -- [out]
+         protTxData     => protTxData,          -- [out]
+         protTxHeader   => protTxHeader);       -- [out]
 
    -- Scramble the data for 64b66b
    U_Scrambler_1 : entity work.Scrambler
@@ -215,7 +218,7 @@ begin
          TPD_G            => TPD_G,
          DIRECTION_G      => "SCRAMBLER",
          DATA_WIDTH_G     => 64,
-         SIDEBAND_WIDTH_G => 2,
+         SIDEBAND_WIDTH_G => 3,
          TAPS_G           => SCRAMBLER_TAPS_C)
       port map (
          clk                        => pgpTxClk,      -- [in]
