@@ -2,7 +2,7 @@
 -- File       : AxiMicronN25QCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-03-03
--- Last update: 2016-09-20
+-- Last update: 2017-07-31
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to N25Q FLASH Memory IC
 -------------------------------------------------------------------------------
@@ -28,17 +28,20 @@ use unisim.vcomponents.all;
 
 entity AxiMicronN25QCore is
    generic (
-      TPD_G            : time                := 1 ns;
-      MEM_ADDR_MASK_G  : slv(31 downto 0)    := x"00000000";
-      AXI_CLK_FREQ_G   : real                := 200.0E+6;  -- units of Hz
-      SPI_CLK_FREQ_G   : real                := 25.0E+6;   -- units of Hz
-      AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C);     
+      TPD_G            : time             := 1 ns;
+      MEM_ADDR_MASK_G  : slv(31 downto 0) := x"00000000";
+      AXI_CLK_FREQ_G   : real             := 200.0E+6;  -- units of Hz
+      SPI_CLK_FREQ_G   : real             := 25.0E+6;   -- units of Hz
+      AXI_ERROR_RESP_G : slv(1 downto 0)  := AXI_RESP_SLVERR_C);
    port (
       -- FLASH Memory Ports
       csL            : out sl;
       sck            : out sl;
       mosi           : out sl;
       miso           : in  sl;
+      -- Shared SPI Interface 
+      busyIn         : in  sl := '0';
+      busyOut        : out sl;
       -- AXI-Lite Register Interface
       axiReadMaster  : in  AxiLiteReadMasterType;
       axiReadSlave   : out AxiLiteReadSlaveType;
@@ -75,6 +78,9 @@ begin
          sck            => sck,
          mosi           => mosi,
          miso           => miso,
+         -- Shared SPI Interface 
+         busyIn         => busyIn,
+         busyOut        => busyOut,
          -- AXI-Lite Register Interface    
          axiReadMaster  => axiReadMaster,
          axiReadSlave   => axiReadSlave,
@@ -82,6 +88,6 @@ begin
          axiWriteSlave  => axiWriteSlave,
          -- Clocks and Resets
          axiClk         => axiClk,
-         axiRst         => axiRst);   
+         axiRst         => axiRst);
 
 end mapping;

@@ -2,7 +2,7 @@
 -- File       : AxiMicronN25QReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2017-06-14
+-- Last update: 2017-07-31
 -------------------------------------------------------------------------------
 -- Description: MicronN25Q AXI-Lite Register Access
 -------------------------------------------------------------------------------
@@ -36,6 +36,9 @@ entity AxiMicronN25QReg is
       sck            : out sl;
       mosi           : out sl;
       miso           : in  sl;
+      -- Shared SPI Interface 
+      busyIn         : in  sl := '0';
+      busyOut        : out sl;
       -- AXI-Lite Register Interface
       axiReadMaster  : in  AxiLiteReadMasterType;
       axiReadSlave   : out AxiLiteReadSlaveType;
@@ -82,6 +85,7 @@ architecture rtl of AxiMicronN25QReg is
       xferSize      : slv(8 downto 0);
       ramDin        : slv(7 downto 0);
       -- SPI Signals
+      busy          : sl;
       csL           : sl;
       sck           : sl;
       mosi          : sl;
@@ -111,6 +115,7 @@ architecture rtl of AxiMicronN25QReg is
       xferSize      => (others => '0'),
       ramDin        => (others => '0'),
       -- SPI Signals
+      busy          => '0',
       csL           => '1',
       sck           => '0',
       mosi          => '0',
@@ -135,7 +140,8 @@ begin
    -------------------------------
    -- Configuration Register
    -------------------------------  
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, miso, r, ramDout) is
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, busyIn, miso, r,
+                   ramDout) is
       variable v            : RegType;
       variable axiStatus    : AxiLiteStatusType;
       variable axiWriteResp : slv(1 downto 0);
@@ -175,7 +181,7 @@ begin
                   v.wrData := axiWriteMaster.wdata;
                   -- Next state
                   v.state  := WORD_WRITE_S;
-               else
+               elsif (busyIn = '0') then
                   -- Decode address and perform write
                   case (axiWriteMaster.awaddr(7 downto 0)) is
                      when x"00" =>
@@ -213,7 +219,7 @@ begin
                   v.rd(0) := '1';
                   -- Next state
                   v.state := WORD_READ_S;
-               else
+               elsif (busyIn = '0') then
                   -- Reset the register
                   v.axiReadSlave.rdata := (others => '0');
                   -- Decode address and assign read data
@@ -388,6 +394,14 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
+      
+      if (r.state = IDLE_S) then
+         -- Reset the flag
+         r.busy <= '0';
+      else
+         -- Set the flag
+         r.busy <= '1';
+      end if;
 
       -- Synchronous Reset
       if axiRst = '1' then
@@ -401,9 +415,10 @@ begin
       axiReadSlave  <= r.axiReadSlave;
       axiWriteSlave <= r.axiWriteSlave;
 
-      csL  <= r.csL;
-      sck  <= r.sck;
-      mosi <= r.mosi;
+      csL     <= r.csL;
+      sck     <= r.sck;
+      mosi    <= r.mosi;
+      busyOut <= r.busy;
 
    end process comb;
 
