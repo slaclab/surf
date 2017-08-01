@@ -397,10 +397,10 @@ begin
       
       if (r.state = IDLE_S) then
          -- Reset the flag
-         r.busy <= '0';
+         v.busy := '0';
       else
          -- Set the flag
-         r.busy <= '1';
+         v.busy := '1';
       end if;
 
       -- Synchronous Reset
