@@ -2,7 +2,7 @@
 -- File       : Pgp3GthUs.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2017-07-28
+-- Last update: 2017-08-01
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -33,6 +33,9 @@ entity Pgp3GthUs is
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
       PGP_RX_ENABLE_G                 : boolean               := true;
+      RX_ALIGN_GOOD_COUNT_G           : integer               := 128;
+      RX_ALIGN_BAD_COUNT_G            : integer               := 16;
+      RX_ALIGN_SLIP_WAIT_G            : integer               := 32;
       PGP_TX_ENABLE_G                 : boolean               := true;
       NUM_VC_G                        : integer range 1 to 16 := 4;
       TX_CELL_WORDS_MAX_G             : integer               := 256;  -- Number of 64-bit words per cell
@@ -54,12 +57,9 @@ entity Pgp3GthUs is
       pgpGtTxN     : out sl;
       pgpGtRxP     : in  sl;
       pgpGtRxN     : in  sl;
-      -- Tx Clocking
-      pgpTxRst     : out sl;
-      pgpTxClk     : out sl;
-      -- Rx clocking
-      pgpRxRst     : out sl;
-      pgpRxClk     : out sl;
+      -- Clocking
+      pgpClk       : out sl;
+      pgpClkRst    : out sl;
       -- Non VC Rx Signals
       pgpRxIn      : in  Pgp3RxInType;
       pgpRxOut     : out Pgp3RxOutType;
@@ -75,7 +75,7 @@ entity Pgp3GthUs is
       pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0));
 end Pgp3GthUs;
 
-architecture mapping of Pgp3GthUs is
+architecture rtl of Pgp3GthUs is
 
    -- clocks
    signal pgpRxClkInt : sl;
@@ -107,10 +107,8 @@ architecture mapping of Pgp3GthUs is
 
 begin
 
-   pgpRxClk <= pgpRxClkInt;
-   pgpRxRst <= pgpRxRstInt;
-   pgpTxClk <= pgpTxClkInt;
-   pgpTxRst <= pgpTxRstInt;
+   pgpClk    <= pgpTxClkInt;
+   pgpClkRst <= pgpTxRstInt;
 
    --gtRxUserReset <= phyRxInit or pgpRxIn.resetRx;
    --gtTxUserReset <= pgpTxRst;
@@ -120,6 +118,9 @@ begin
          TPD_G                           => TPD_G,
          NUM_VC_G                        => NUM_VC_G,
          PGP_RX_ENABLE_G                 => PGP_RX_ENABLE_G,
+         RX_ALIGN_GOOD_COUNT_G           => RX_ALIGN_GOOD_COUNT_G,
+         RX_ALIGN_BAD_COUNT_G            => RX_ALIGN_BAD_COUNT_G,
+         RX_ALIGN_SLIP_WAIT_G            => RX_ALIGN_SLIP_WAIT_G,
          PGP_TX_ENABLE_G                 => PGP_TX_ENABLE_G,
          TX_CELL_WORDS_MAX_G             => TX_CELL_WORDS_MAX_G,
          TX_SKP_INTERVAL_G               => TX_SKP_INTERVAL_G,
@@ -168,16 +169,16 @@ begin
          stableClk      => stableClk,         -- [in]
          stableRst      => stableRst,         -- [in]
          gtRefClk       => gtRefClk,          -- [in]
-         gtRxP          => pgpGtRxP,             -- [in]
-         gtRxN          => pgpGtRxN,             -- [in]
-         gtTxP          => pgpGtTxP,             -- [out]
-         gtTxN          => pgpGtTxN,             -- [out]
+         gtRxP          => pgpGtRxP,          -- [in]
+         gtRxN          => pgpGtRxN,          -- [in]
+         gtTxP          => pgpGtTxP,          -- [out]
+         gtTxN          => pgpGtTxN,          -- [out]
          rxReset        => phyRxInit,         -- [in]
          rxUsrClkActive => open,              -- [out]
          rxResetDone    => phyRxReady,        -- [out]
          rxUsrClk       => open,              -- [out]
-         rxUsrClk2      => phyRxClk,       -- [out]
-         rxUsrClkRst    => phyRxRst,       -- [out]
+         rxUsrClk2      => phyRxClk,          -- [out]
+         rxUsrClkRst    => phyRxRst,          -- [out]
          rxData         => phyRxData,         -- [out]
          rxDataValid    => phyRxValid,        -- [out]
          rxHeader       => phyRxHeader,       -- [out]
@@ -197,39 +198,5 @@ begin
          txOutClk       => open,              -- [out]
          loopback       => (others => '0'));  -- [in]
 
---    U_Pgp3GthCoreWrapper_1 : entity work.Pgp3GthCoreWrapper
---       generic map (
---          TPD_G => TPD_G)
---       port map (
---          stableClk      => stableClk,        -- [in]
---          stableRst      => stableRst,        -- [in]
---          gtRefClk       => gtRefClk,         -- [in]
---          gtRxP          => pgpGtRxP,         -- [in]
---          gtRxN          => pgpGtRxN,         -- [in]
---          gtTxP          => pgpGtTxP,         -- [out]
---          gtTxN          => pgpGtTxN,         -- [out]
---          rxReset        => gtRxUserReset,    -- [in]
---          rxUsrClkActive => mmcmLocked,       -- [in]
---          rxResetDone    => phyRxReady,       -- [out]
---          rxUsrClk       => rxUsrClk,         -- [in]
---          rxUsrClk2      => rxUsrClk2,        -- [in]
---          rxData         => phyRxData,        -- [out]
---          rxDataValid    => phyRxValid,       -- [out]
---          rxHeader       => phyRxHeader,      -- [out]
---          rxHeaderValid  => open,             -- [out]
---          rxStartOfSeq   => phyRxStartOfSeq,  -- [out]
---          rxGearboxSlip  => phyRxSlip,        -- [in]
---          rxOutClk       => phyRxClk,         -- [out]
---          txReset        => gtRxUserReset,    -- [in]
---          txUsrClkActive => mmcmLocked,       -- [in]
---          txResetDone    => phyTxReady,       -- [out]
---          txUsrClk       => txUsrClk,         -- [in]
---          txUsrClk2      => txUsrClk2,        -- [in]
---          txData         => phyTxData,        -- [in]
---          txHeader       => phyTxHeader,      -- [in]
---          txSequence     => phyTxSequence,    -- [in]
---          txOutClk       => txOutClk,         -- [out]
---          loopback       => loopback);        -- [in]
 
-
-end mapping;
+end rtl;
