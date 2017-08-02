@@ -2,7 +2,7 @@
 -- File       : Pgp3GthCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2017-07-28
+-- Last update: 2017-08-01
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -175,8 +175,8 @@ begin
          gtrefclk00_in(0)                      => gtRefClk,           -- [in]
          qpll0outclk_out(0)                    => open,               -- [out]
          qpll0outrefclk_out(0)                 => open,               -- [out]
-         gthrxn_in(0)                          => gtRxP,              -- [in]
-         gthrxp_in(0)                          => gtRxN,              -- [in]
+         gthrxn_in(0)                          => gtRxN,              -- [in]
+         gthrxp_in(0)                          => gtRxP,              -- [in]
 --         loopback_in(0)                        => loopback,           -- [in]
          rxgearboxslip_in(0)                   => rxGearboxSlip,      -- [in]
          txheader_in(5 downto 2)               => (others => '0'),    -- [in]
