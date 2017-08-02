@@ -116,7 +116,7 @@ begin
             REG_EN_G       => false,
             DOA_REG_G      => false,
             DOB_REG_G      => false,
-            MODE_G         => "read-first",
+            MODE_G         => "no-change",
             BYTE_WR_EN_G   => false,
             DATA_WIDTH_G   => 32,
             ADDR_WIDTH_G   => 12)

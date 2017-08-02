@@ -117,7 +117,7 @@ begin
          TPD_G        => TPD_G,
          BRAM_EN_G    => BRAM_EN_G,
          REG_EN_G     => REG_EN_G,
-         MODE_G       => "read-first",
+         MODE_G       => "no-change",
          DOB_REG_G    => REG_EN_G,
          DATA_WIDTH_G => DATA_WIDTH_G,
          ADDR_WIDTH_G => RAM_ADDR_WIDTH_G)
