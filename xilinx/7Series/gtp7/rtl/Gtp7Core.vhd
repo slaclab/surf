@@ -1103,7 +1103,7 @@ begin
          RXCHBONDLEVEL        => rxChBondLevelIn,
          RXCHBONDMASTER       => toSl(RX_CHAN_BOND_MASTER_G),
          RXCHBONDO            => rxChBondOut,
-         RXCHBONDSLAVE        => toSl(RX_CHAN_BOND_MASTER_G = false),
+         RXCHBONDSLAVE        => toSl(RX_CHAN_BOND_EN_G = true and RX_CHAN_BOND_MASTER_G = false),
          ----------------- Receive Ports - RX Channel Bonding Ports  ----------------
          RXCHANISALIGNED      => open,
          RXCHANREALIGN        => open,
