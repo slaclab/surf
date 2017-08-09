@@ -2,7 +2,7 @@
 -- File       : PgpGthCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2016-01-19
+-- Last update: 2017-08-09
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -110,6 +110,18 @@ architecture mapping of PgpGthCoreWrapper is
          );
    end component;
 
+   signal dummy1 : sl;
+   signal dummy2 : sl;
+   signal dummy3 : sl;
+   signal dummy4 : sl;
+   signal dummy5 : slv(13 downto 0);
+   signal dummy6 : slv(13 downto 0);
+   signal dummy7 : slV(7 downto 0);
+   signal dummy8 : slv(5 downto 0);
+   signal dummy9 : sl;
+   signal dummy10 : sl;
+
+
 begin
 
    -- Note: Has to be generated from aurora core in order to work properly
@@ -123,7 +135,7 @@ begin
          gtwiz_reset_tx_datapath_in(0)         => txReset,
          gtwiz_reset_rx_pll_and_datapath_in(0) => '0',
          gtwiz_reset_rx_datapath_in(0)         => rxReset,
-         gtwiz_reset_rx_cdr_stable_out(0)      => open,
+         gtwiz_reset_rx_cdr_stable_out(0)      => dummy1,
          gtwiz_reset_tx_done_out(0)            => txResetDone,
          gtwiz_reset_rx_done_out(0)            => rxResetDone,
          gtwiz_userdata_tx_in                  => txData,
@@ -150,18 +162,18 @@ begin
          txusrclk2_in(0)                       => txUsrClk,
          gthtxn_out(0)                         => gtTxN,
          gthtxp_out(0)                         => gtTxP,
-         rxbyteisaligned_out(0)                => open,
-         rxbyterealign_out(0)                  => open,
-         rxcommadet_out(0)                     => open,
+         rxbyteisaligned_out(0)                => dummy2,
+         rxbyterealign_out(0)                  => dummy3,
+         rxcommadet_out(0)                     => dummy4,
          rxctrl0_out(1 downto 0)               => rxDataK,
-         rxctrl0_out(15 downto 2)              => open,
+         rxctrl0_out(15 downto 2)              => dummy5,
          rxctrl1_out(1 downto 0)               => rxDispErr,
-         rxctrl1_out(15 downto 2)              => open,
-         rxctrl2_out                           => open,
+         rxctrl1_out(15 downto 2)              => dummy6,
+         rxctrl2_out                           => dummy7,
          rxctrl3_out(1 downto 0)               => rxDecErr,
-         rxctrl3_out(7 downto 2)               => open,
+         rxctrl3_out(7 downto 2)               => dummy8,
          rxoutclk_out(0)                       => rxOutClk,
-         rxpmaresetdone_out(0)                 => open,
+         rxpmaresetdone_out(0)                 => dummy9,
          txoutclk_out(0)                       => txOutClk,
-         txpmaresetdone_out(0)                 => open);
+         txpmaresetdone_out(0)                 => dummy10);
 end architecture mapping;

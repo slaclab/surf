@@ -2,7 +2,7 @@
 -- File       : Pgp3GthCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2017-08-01
+-- Last update: 2017-08-08
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -115,6 +115,14 @@ architecture mapping of Pgp3GthCoreWrapper is
    signal dummy2            : sl;
    signal dummy3            : slv(3 downto 0);
    signal dummy4            : sl;
+   signal dummy5            : sl;
+   signal dummy6            : sl;
+   signal dummy7            : sl;
+   signal dummy8            : sl;
+   signal dummy9            : sl;
+   signal dummy10           : sl;
+   signal dummy11           : sl;
+   
    signal rxUsrClk2Int      : sl;
    signal rxUsrClkActiveInt : sl;
    signal txUsrClk2Int      : sl;
@@ -167,14 +175,14 @@ begin
          gtwiz_reset_tx_datapath_in(0)         => '0',                -- [in] --txReset?
          gtwiz_reset_rx_pll_and_datapath_in(0) => '0',                -- [in]
          gtwiz_reset_rx_datapath_in(0)         => rxReset,            -- [in]
-         gtwiz_reset_rx_cdr_stable_out(0)      => open,               -- [out]
+         gtwiz_reset_rx_cdr_stable_out(0)      => dummy5,             -- [out]
          gtwiz_reset_tx_done_out(0)            => txResetDone,        -- [out]
          gtwiz_reset_rx_done_out(0)            => rxResetDone,        -- [out]
          gtwiz_userdata_tx_in                  => txData,             -- [in]
          gtwiz_userdata_rx_out                 => rxData,             -- [out]
          gtrefclk00_in(0)                      => gtRefClk,           -- [in]
-         qpll0outclk_out(0)                    => open,               -- [out]
-         qpll0outrefclk_out(0)                 => open,               -- [out]
+         qpll0outclk_out(0)                    => dummy6,             -- [out]
+         qpll0outrefclk_out(0)                 => dummy7,             -- [out]
          gthrxn_in(0)                          => gtRxN,              -- [in]
          gthrxp_in(0)                          => gtRxP,              -- [in]
 --         loopback_in(0)                        => loopback,           -- [in]
@@ -191,12 +199,12 @@ begin
          rxheader_out(5 downto 2)              => dummy3,
          rxheadervalid_out(0)                  => rxHeaderValid,      -- [out]
          rxheadervalid_out(1)                  => dummy4,             -- [out]
-         rxpmaresetdone_out(0)                 => open,               -- [out]
-         rxprgdivresetdone_out(0)              => open,               -- [out]
+         rxpmaresetdone_out(0)                 => dummy8,             -- [out]
+         rxprgdivresetdone_out(0)              => dummy9,             -- [out]
          rxstartofseq_out(1)                   => dummy2,             -- [out]
          rxstartofseq_out(0)                   => rxStartOfSeq,       -- [out]
-         txpmaresetdone_out(0)                 => open,               -- [out]
-         txprgdivresetdone_out(0)              => open);              -- [out]
+         txpmaresetdone_out(0)                 => dummy10,            -- [out]
+         txprgdivresetdone_out(0)              => dummy11);           -- [out]
 
 
 
