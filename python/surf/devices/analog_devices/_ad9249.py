@@ -19,6 +19,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import rogue.interfaces.memory as rim
 import math
 
 class Ad9249ConfigGroup(pr.Device):
@@ -94,26 +95,27 @@ class Ad9249ConfigGroup(pr.Device):
             bitSize     = 1, 
             bitOffset   = 2, 
             enum        = {
-                0: 'off', 
-                1: 'on',
+                0: 'Off', 
+                1: 'On',
             },
         ))
 
-        self.add(pr.RemoteVariable(
-            name        = "DevIndexMask[7:4]", 
-            offset      = 0x10, 
-            bitSize     = 4, 
-            bitOffset   = 0, 
-            mode        = 'RW', 
-            base        = pr.UInt,
-        ))
+#         self.add(pr.RemoteVariable(
+#             name        = "DevIndexMask[7:4]", 
+#             offset      = 0x10, 
+#             bitSize     = 4, 
+#             bitOffset   = 0, 
+#             mode        = 'RW', 
+#             base        = pr.UInt,
+#         ))
         
         self.add(pr.RemoteVariable(
-            name        = "DevIndexMask[3:0]", 
-            offset      = 0x14, 
+            name        = "DevIndexMask[7:0]", 
+            offset      = [0x10, 0x14],
             bitSize     = 4, 
             bitOffset   = 0, 
-            mode        = 'RW', 
+            mode        = 'RW',
+            disp        = '{:#b}',
             base        = pr.UInt,
         ))
         
@@ -122,7 +124,8 @@ class Ad9249ConfigGroup(pr.Device):
             offset      = 0x14, 
             bitSize     = 2, 
             bitOffset   = 0x4, 
-            mode        = 'RW', 
+            mode        = 'RW',
+            disp        = '{:#b}',
             base        = pr.UInt,
         ))                
 
@@ -297,12 +300,13 @@ class Ad9249ReadoutGroup(pr.Device):
 
         for i in range(channels):
             self.add(pr.RemoteVariable(
-                name        = "AdcChannel[{:d}]".format(i),
-                description = 'Last deserialized channel {:d} ADC value for debug'.format(i),
+                name        = f'AdcChannel[{i:d}]',
+                description = f'Last deserialized channel {i:d} ADC value for debug',
                 offset      = 0x80 + (i*4),
                 bitSize     = 32,
                 bitOffset   = 0,
                 base        = pr.UInt,
+                disp        = '{:_x}',
                 mode        = "RO",
             ))
 
@@ -314,3 +318,27 @@ class Ad9249ReadoutGroup(pr.Device):
             bitSize     = 1,
             bitOffset   = 0,
         ))
+
+        self.add(pr.RemoteCommand(
+            name='FreezeDebug',
+            description='Freeze all of the AdcChannel registers',
+            hidden=True,
+            offset=0xA0,
+            bitSize=1,
+            bitOffset=0,
+            base=pr.UInt,
+            function=pr.RemoteCommand.touch))
+
+    def readBlocks(self, recurse=True, variable=None):
+        if variable is not None:
+            variable._block.backgroundTransaction(rim.Read)
+        else:
+            self.FreezeDebug(1)
+            for block in self._blocks:
+                if block.bulkEn:
+                    block.backgroundTransaction(rim.Read)
+            self.FreezeDebug(0)
+
+            if recurse:
+                for key, value in self.devices.items():
+                    value.readBlocks(recurse=True)
