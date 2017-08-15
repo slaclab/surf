@@ -27,7 +27,7 @@ entity QuadPortRam is
       TPD_G          : time                       := 1 ns;
       RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
       REG_EN_G       : boolean                    := true;
-      MODE_G         : string                     := "read-first";
+      MODE_G         : string                     := "no-change";
       BYTE_WR_EN_G   : boolean                    := false;
       DATA_WIDTH_G   : integer range 1 to (2**24) := 16;
       BYTE_WIDTH_G   : integer                    := 8;

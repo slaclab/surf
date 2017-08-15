@@ -30,7 +30,7 @@ entity AxiDualPortRam is
       TPD_G            : time                       := 1 ns;
       BRAM_EN_G        : boolean                    := false;
       REG_EN_G         : boolean                    := true;
-      MODE_G           : string                     := "read-first";
+      MODE_G           : string                     := "no-change";
       AXI_WR_EN_G      : boolean                    := true;
       SYS_WR_EN_G      : boolean                    := false;
       SYS_BYTE_WR_EN_G : boolean                    := false;

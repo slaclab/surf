@@ -31,7 +31,7 @@ entity TrueDualPortRam is
       ALTERA_RAM_G   : string                     := "M9K";
       DOA_REG_G      : boolean                    := false;  -- Extra output register on doutA.
       DOB_REG_G      : boolean                    := false;  -- Extra output register on doutB.
-      MODE_G         : string                     := "read-first";
+      MODE_G         : string                     := "no-change";
       BYTE_WR_EN_G   : boolean                    := false;
       DATA_WIDTH_G   : integer range 1 to (2**24) := 18;
       BYTE_WIDTH_G   : integer                    := 8;  -- Should be multiple of 8 or 9.
