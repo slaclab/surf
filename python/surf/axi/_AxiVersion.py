@@ -18,7 +18,7 @@
 #-----------------------------------------------------------------------------
 
 # Comment added by rherbst for demonstration purposes.
-
+import datetime
 import pyrogue as pr
 
 # Another comment added by rherbst for demonstration
@@ -50,6 +50,7 @@ class AxiVersion(pr.Device):
             bitOffset    =  0x00,
             base         =  pr.UInt,
             mode         = "RO",
+            disp         = '{:08x}',
         ))
 
         self.add(pr.RemoteVariable(   
@@ -60,18 +61,26 @@ class AxiVersion(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            disp         = '{:08x}'            
         ))
 
         self.add(pr.RemoteVariable(   
             name         = "UpTimeCnt",
             description  = "Number of seconds since last reset",
-            offset       =  0x08,
-            bitSize      =  32,
-            bitOffset    =  0x00,
+            hidden       = True,
+            offset       = 0x08,
+            bitSize      = 32,
+            bitOffset    = 0x00,
             base         = pr.UInt,
             mode         = "RO",
+            disp         = '{:d}',
+            units        = 'seconds',
             pollInterval = 1
         ))
+
+        @self.linkedGet(dependencies=[self.UpTimeCnt])
+        def UpTime():
+            return str(datetime.timedelta(seconds=self.UpTimeCnt.value()))
 
         self.add(pr.RemoteVariable(   
             name         = "FpgaReloadHalt",
@@ -83,14 +92,15 @@ class AxiVersion(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(   
+        
+        self.add(pr.RemoteCommand(   
             name         = "FpgaReload",
             description  = "Optional Reload the FPGA from the attached PROM",
             offset       =  0x104,
             bitSize      =  1,
             bitOffset    =  0x00,
             base         = pr.UInt,
-            mode         = "RW",
+            function     = pr.RemoteCommand.postedTouchOne
         ))
 
         self.add(pr.RemoteVariable(   
@@ -102,6 +112,11 @@ class AxiVersion(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
         ))
+
+        @self.command(hidden=True)
+        def FpgaReloadAtAddress(arg):
+            self.FpgaReloadAddress.set(arg)
+            self.FpgaReload()
 
         self.add(pr.RemoteVariable(   
             name         = "UserReset",
