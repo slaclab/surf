@@ -50,6 +50,7 @@ class AxiVersionLegacy(pr.Device):
             bitOffset    =  0x00,
             base         =  pr.UInt,
             mode         = "RO",
+            disp         = '{:08x}',
         ))
 
         self.add(pr.RemoteVariable(   
@@ -60,6 +61,7 @@ class AxiVersionLegacy(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            disp         = '{:08x}',            
         ))
 
 #         self.add(pr.RemoteVariable(   
@@ -83,14 +85,14 @@ class AxiVersionLegacy(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteCommand(   
             name         = "FpgaReload",
             description  = "Optional Reload the FPGA from the attached PROM",
             offset       =  0x1C,
             bitSize      =  1,
             bitOffset    =  0x00,
             base         = pr.UInt,
-            mode         = "RW",
+            function     = pr.RemoteCommand.postedTouchOne
         ))
 
         self.add(pr.RemoteVariable(   
@@ -114,15 +116,31 @@ class AxiVersionLegacy(pr.Device):
 #         ))
 
         self.add(pr.RemoteVariable(   
-            name         = "FdSerial",
+            name         = "FdSerialH",
             description  = "Board ID value read from DS2411 chip",
-            offset       =  [0x14,0x10]
+            offset       =  0x10
             bitSize      =  32,
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            hidden       = True,
         ))
 
+        self.add(pr.RemoteVariable(   
+            name         = "FdSerialL",
+            description  = "Board ID value read from DS2411 chip",
+            offset       =  0x14
+            bitSize      =  32,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RO",
+            hidden       = True,
+        ))
+
+        @self.linkedGet(dependencies=[self.FdSerialH, self.FdSerialL], disp='{:08x'})
+        def FdSerial():
+            return self.FdSerialH.value() << 32 | self.FdSerialL.value()
+        
         self.addRemoteVariables(   
             name         = "UserConstants",
             description  = "Optional user input values",
@@ -158,14 +176,32 @@ class AxiVersionLegacy(pr.Device):
 #         ))
 
         self.add(pr.RemoteVariable(   
-            name         = "DeviceDna",
+            name         = "DeviceDnaH",
             description  = "Xilinx Device DNA value burned into FPGA",
-            offset       =  [0xC, 0x8]
+            offset       =  0x8,
             bitSize      =  32,
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            hidden       = True,
         ))
+
+        self.add(pr.RemoteVariable(   
+            name         = "DeviceDnaL",
+            description  = "Xilinx Device DNA value burned into FPGA",
+            offset       =  0xC,
+            bitSize      =  32,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RO",
+            hidden       = True,
+        ))
+
+
+        @self.linkedGet(dependencies=[self.DeviceDnaH, self.DeviceDnaL], disp='{:08x'})
+        def FdSerial():
+            return self.DeviceDnaH.value() << 32 | self.DeviceDnaL.value()        
+        
 
         self.add(pr.RemoteVariable(   
             name         = "BuildStamp",
