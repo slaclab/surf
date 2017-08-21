@@ -50,7 +50,7 @@ class AxiVersion(pr.Device):
             bitOffset    =  0x00,
             base         =  pr.UInt,
             mode         = "RO",
-            disp         = '{:08x}',
+            disp         = '{:#08x}',
         ))
 
         self.add(pr.RemoteVariable(   
@@ -61,7 +61,7 @@ class AxiVersion(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
-            disp         = '{:08x}'            
+            disp         = '{:#08x}'            
         ))
 
         self.add(pr.RemoteVariable(   
@@ -170,7 +170,12 @@ class AxiVersion(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            hidden       = 'True',
         ))
+
+        @self.linkedGet(dependencies=[self.GitHash], disp='{:x}')
+        def GitHashShort():
+            return self.GitHash.value() >> 132
 
         self.add(pr.RemoteVariable(   
             name         = "DeviceDna",
