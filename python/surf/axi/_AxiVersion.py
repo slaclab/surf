@@ -31,7 +31,7 @@ class AxiVersion(pr.Device):
             self,       
             name             = 'AxiVersion',
             description      = 'AXI-Lite Version Module',
-            numUserConstants = 0
+            numUserConstants = 0,
             **kwargs):
         
         super().__init__(
