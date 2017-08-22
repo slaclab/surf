@@ -70,7 +70,7 @@ class AxiVersionLegacy(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = 'UpTimeCnt',
             description  = 'Number of seconds since last reset',
-            hidden       = True
+            hidden       = True,
             offset       = 0x02C,
             bitSize      = 32,
             bitOffset    = 0x00,
@@ -130,7 +130,7 @@ class AxiVersionLegacy(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = 'FdSerial',
             description  = 'Board ID value read from DS2411 chip',
-            offset       =  0x10
+            offset       =  0x10,
             bitSize      =  64,
             bitOffset    =  0x00,
             base         = pr.UInt,
