@@ -160,7 +160,8 @@ begin
             bootAddress => r.fpgaReloadAddr);
    end generate;
 
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, dnaValue, fpgaEnReload, r, userValues) is
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, dnaValue, fdValue, fpgaEnReload, r,
+                   userValues) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -188,10 +189,10 @@ begin
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave);
 
-      axiSlaveRegisterR(axilEp, X"000", 0, FPGA_VERSION_C);
+      axiSlaveRegisterR(axilEp, X"000", 0, BUILD_INFO_C.fwVersion);
       axiSlaveRegister(axilEp, X"004", 0, v.scratchPad);
-      axiSlaveRegisterR(axilEp, X"008", 0, ite(dnaValid = '1', dnaValue, X"0000000000000000"));
-      axiSlaveRegisterR(axilEp, X"010", 0, ite(fdValid = '1', fdSerial, X"0000000000000000"));
+      axiSlaveRegisterR(axilEp, X"008", 0, dnaValue(63 downto 0));
+      axiSlaveRegisterR(axilEp, X"010", 0, fdValue);
       axiSlaveRegister(axilEp, X"018", 0, v.userReset);
 
       axiSlaveRegister(axilEp, X"01C", 0, v.fpgaReload);
@@ -202,7 +203,7 @@ begin
       axiSlaveRegisterR(axilEp, X"030", 0, DEVICE_ID_G);
 
       axiSlaveRegisterR(axilEp, X"400", userValues);
-      axiSlaveRegisterR(axilEp, X"800", STRING_ROM_C);
+      axiSlaveRegisterR(axilEp, X"800", BUILD_STRING_ROM_C);
 
       axiSlaveDefault(axilEp, v.axiWriteSlave, v.axiReadSlave, AXI_ERROR_RESP_G);
 
