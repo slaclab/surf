@@ -1,11 +1,9 @@
 -------------------------------------------------------------------------------
--- File       : AxiVersion.vhd
+-- File       : AxiVersionLegacy.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-05-20
--- Last update: 2017-02-15
 -------------------------------------------------------------------------------
 -- Description: Creates AXI accessible registers containing configuration
--- information.
+-- information. This is a legacy version for backward compatibility.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -24,7 +22,7 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 
-entity AxiVersion is
+entity AxiVersionLegacy is
    generic (
       TPD_G              : time                   := 1 ns;
       BUILD_INFO_G       : BuildInfoType;
@@ -64,9 +62,9 @@ entity AxiVersion is
       userValues     : in    Slv32Array(0 to 63) := (others => X"00000000");
       -- Optional: DS2411 interface
       fdSerSdio      : inout sl                  := 'Z');
-end AxiVersion;
+end AxiVersionLegacy;
 
-architecture rtl of AxiVersion is
+architecture rtl of AxiVersionLegacy is
 
    constant RELOAD_COUNT_C : integer          := integer(AUTO_RELOAD_TIME_G / CLK_PERIOD_G);
    constant TIMEOUT_1HZ_C  : natural          := (getTimeRatio(1.0, CLK_PERIOD_G) -1);
