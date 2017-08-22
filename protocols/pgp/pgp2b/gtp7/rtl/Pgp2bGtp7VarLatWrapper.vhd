@@ -2,7 +2,7 @@
 -- File       : Pgp2bGtp7VarLatWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2016-12-16
+-- Last update: 2017-08-22
 -------------------------------------------------------------------------------
 -- Description: Example PGP2b front end wrapper
 -- Note: Default generic configurations are for the AC701 development board
@@ -137,18 +137,6 @@ begin
          I => refClkDiv2,
          O => stableClock);
 
-   RstSync_Inst : entity work.RstSync
-      generic map(
-         TPD_G => TPD_G)
-      port map (
-         clk      => stableClock,
-         asyncRst => extRst,
-         syncRst  => extRstSync);
-
---    U_BUFG_PGP : BUFG
---       port map (
---          I => pgpTxRecClk,
---          O => pgpClock);
 
    ClockManager7_Inst : entity work.ClockManager7
       generic map(
@@ -166,9 +154,9 @@ begin
          CLKOUT0_DIVIDE_F_G => CLKOUT0_DIVIDE_F_G)
       port map(
          clkIn     => pgpTxRecClk,
-         rstIn     => extRstSync,
+         rstIn     => extRst,
          clkOut(0) => pgpClock,
-         rstOut(0) => open,
+         rstOut(0) => pgpReset,
          locked    => pgpTxMmcmLocked);
 
    -- PLL0 Port Mapping
@@ -239,7 +227,7 @@ begin
          gtRxP            => gtRxP,
          gtRxN            => gtRxN,
          -- Tx Clocking
-         pgpTxReset       => extRstSync,
+         pgpTxReset       => pgpReset,
          pgpTxRecClk      => pgpTxRecClk,
          pgpTxClk         => pgpClock,
          pgpTxMmcmReset   => open,
