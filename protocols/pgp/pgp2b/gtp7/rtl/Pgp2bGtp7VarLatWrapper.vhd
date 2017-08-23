@@ -138,18 +138,6 @@ begin
          I => refClkDiv2,
          O => stableClock);
 
-   RstSync_Inst : entity work.RstSync
-      generic map(
-         TPD_G => TPD_G)
-      port map (
-         clk      => pgpClock,
-         asyncRst => extRst,
-         syncRst  => extRstSync);
-
---    U_BUFG_PGP : BUFG
---       port map (
---          I => pgpTxRecClk,
---          O => pgpClock);
 
    ClockManager7_Inst : entity work.ClockManager7
       generic map(
@@ -240,7 +228,7 @@ begin
          gtRxP            => gtRxP,
          gtRxN            => gtRxN,
          -- Tx Clocking
-         pgpTxReset       => extRstSync,
+         pgpTxReset       => extRst,
          pgpTxRecClk      => pgpTxRecClk,
          pgpTxClk         => pgpClock,
          pgpTxMmcmReset   => pgpTxMmcmReset,
