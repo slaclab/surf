@@ -49,8 +49,8 @@ entity AxiVersion is
       axiReadSlave   : out   AxiLiteReadSlaveType;
       axiWriteMaster : in    AxiLiteWriteMasterType;
       axiWriteSlave  : out   AxiLiteWriteSlaveType;
-      -- Optional: Master Reset
-      masterReset    : out   sl;
+      -- Optional: User Reset
+      userReset      : out   sl;
       -- Optional: FPGA Reloading Interface
       fpgaEnReload   : in    sl                  := '1';
       fpgaReload     : out   sl;
@@ -81,7 +81,7 @@ architecture rtl of AxiVersion is
       scratchPad     : slv(31 downto 0);
       counter        : slv(31 downto 0);
       counterRst     : sl;
-      masterReset    : sl;
+      userReset      : sl;
       fpgaReload     : sl;
       haltReload     : sl;
       fpgaReloadAddr : slv(31 downto 0);
@@ -95,7 +95,7 @@ architecture rtl of AxiVersion is
       scratchPad     => (others => '0'),
       counter        => (others => '0'),
       counterRst     => '0',
-      masterReset    => '0',
+      userReset      => '1',-- Asserted on powerup
       fpgaReload     => '0',
       haltReload     => '0',
       fpgaReloadAddr => AUTO_RELOAD_ADDR_G,
@@ -107,8 +107,6 @@ architecture rtl of AxiVersion is
 
    signal dnaValue     : slv(127 downto 0) := (others => '0');
    signal fdValue      : slv(63 downto 0)  := (others => '0');
-   signal masterRstDet : sl                := '0';
-   signal asyncRst     : sl                := '0';
 
    attribute rom_style                         : string;
    attribute rom_style of BUILD_STRING_ROM_C   : constant is "distributed";
@@ -172,9 +170,6 @@ begin
       -- Latch the current value
       v := r;
 
-      -- Reset strobes
-      v.masterReset := '0';
-
       ---------------------------------
       -- First Stage Boot Loader (FSBL)
       ---------------------------------
@@ -202,7 +197,7 @@ begin
       axiSlaveRegister(axilEp, x"100", 0, v.haltReload);
       axiSlaveRegister(axilEp, x"104", 0, v.fpgaReload);
       axiSlaveRegister(axilEp, x"108", 0, v.fpgaReloadAddr);
-      axiSlaveRegister(axilEp, x"10C", 0, v.masterReset);
+      axiSlaveRegister(axilEp, x"10C", 0, v.userReset);
 
       axiSlaveRegisterR(axilEp, x"300", 0, fdValue);
       axiSlaveRegisterR(axilEp, x"400", userValues);
@@ -245,7 +240,7 @@ begin
       axiWriteSlave  <= r.axiWriteSlave;
       fpgaReload     <= r.fpgaReload;
       fpgaReloadAddr <= r.fpgaReloadAddr;
-      masterRstDet   <= v.masterReset;
+      userReset      <= r.userReset;
       upTimeCnt      <= r.upTimeCnt;
 
    end process comb;
@@ -256,15 +251,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-
-   asyncRst <= axiRst or masterRstDet;
-
-   U_RstSync : entity work.RstSync
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk      => axiClk,
-         asyncRst => asyncRst,
-         syncRst  => masterReset);
 
 end architecture rtl;

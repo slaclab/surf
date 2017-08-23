@@ -2,7 +2,7 @@
 -- File       : RstPipeline.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-08-03
--- Last update: 2017-08-03
+-- Last update: 2017-08-12
 -------------------------------------------------------------------------------
 -- Description:   Reset pipeline register stages
 -------------------------------------------------------------------------------
@@ -25,7 +25,8 @@ entity RstPipeline is
       TPD_G         : time     := 1 ns;
       INV_RST_G     : boolean  := false;
       PIPE_STAGES_G : positive := 3;
-      INIT_G        : slv      := "0");
+      MAX_FANOUT_G  : positive := 16384;
+      INIT_G        : slv      := "1");
    port (
       clk    : in  sl;
       rstIn  : in  sl;
@@ -34,7 +35,7 @@ end RstPipeline;
 
 architecture rtl of RstPipeline is
 
-   constant INIT_C : slv(PIPE_STAGES_G-1 downto 0) := ite(INIT_G = "0", slvOne(PIPE_STAGES_G), INIT_G);
+   constant INIT_C : slv(PIPE_STAGES_G-1 downto 0) := ite(INIT_G = "1", slvOne(PIPE_STAGES_G), INIT_G);
 
    type RegType is record
       shift : slv(PIPE_STAGES_G-1 downto 0);
@@ -47,6 +48,9 @@ architecture rtl of RstPipeline is
 
    attribute shreg_extract      : string;
    attribute shreg_extract of r : signal is "NO";
+
+   attribute max_fanout      : integer;
+   attribute max_fanout of r : signal is MAX_FANOUT_G;
 
 begin
 

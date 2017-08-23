@@ -185,7 +185,7 @@ architecture mapping of SaltUltraScale is
    
 
    signal config : slv(4 downto 0);
-   signal status : slv(15 downto 0);
+   signal status : slv(15 downto 0) := (others=>'0');
 
    signal txEn   : sl;
    signal txData : slv(7 downto 0);
@@ -322,9 +322,11 @@ begin
             -- General IO's
             ---------------
             configuration_vector => config,
-            status_vector        => status,
+            status_vector        => open,
             reset                => rst125MHz,
             signal_detect        => '1');
+            
+      status(0) <= not(rst125MHz);
    end generate;
 
    TX_ENABLE : if (TX_ENABLE_G = true) generate

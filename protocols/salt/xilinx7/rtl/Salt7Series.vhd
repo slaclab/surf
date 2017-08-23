@@ -106,7 +106,7 @@ architecture mapping of Salt7Series is
    end component;
 
    signal config : slv(4 downto 0);
-   signal status : slv(15 downto 0);
+   signal status : slv(15 downto 0) := (others=>'0');
 
    signal txEn   : sl;
    signal txData : slv(7 downto 0);
