@@ -2,7 +2,7 @@
 -- File       : Pgp2bGtp7VarLatWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2016-12-16
+-- Last update: 2017-08-23
 -------------------------------------------------------------------------------
 -- Description: Example PGP2b front end wrapper
 -- Note: Default generic configurations are for the AC701 development board
@@ -55,8 +55,8 @@ entity Pgp2bGtp7VarLatWrapper is
       RX_ENABLE_G          : boolean                 := true;
       TX_ENABLE_G          : boolean                 := true;
       AXI_ERROR_RESP_G     : slv(1 downto 0)         := AXI_RESP_DECERR_C;
-      PAYLOAD_CNT_TOP_G    : integer                 := 7;     -- Top bit for payload counter
-      VC_INTERLEAVE_G      : integer                 := 1;     -- Interleave Frames
+      PAYLOAD_CNT_TOP_G    : integer                 := 7;  -- Top bit for payload counter
+      VC_INTERLEAVE_G      : integer                 := 1;  -- Interleave Frames
       NUM_VC_EN_G          : integer range 1 to 4    := 4);
    port (
       -- Manual Reset
@@ -108,6 +108,7 @@ architecture mapping of Pgp2bGtp7VarLatWrapper is
    signal pgpTxRecClk     : sl;
    signal pgpReset        : sl;
    signal pgpTxMmcmLocked : sl;
+   signal pgpTxMmcmReset  : sl;
 
    signal pllRefClk        : slv(1 downto 0);
    signal pllLockDetClk    : slv(1 downto 0);
@@ -141,7 +142,7 @@ begin
       generic map(
          TPD_G => TPD_G)
       port map (
-         clk      => stableClock,
+         clk      => pgpClock,
          asyncRst => extRst,
          syncRst  => extRstSync);
 
@@ -166,7 +167,7 @@ begin
          CLKOUT0_DIVIDE_F_G => CLKOUT0_DIVIDE_F_G)
       port map(
          clkIn     => pgpTxRecClk,
-         rstIn     => extRstSync,
+         rstIn     => pgpTxMmcmReset,
          clkOut(0) => pgpClock,
          rstOut(0) => open,
          locked    => pgpTxMmcmLocked);
@@ -242,7 +243,7 @@ begin
          pgpTxReset       => extRstSync,
          pgpTxRecClk      => pgpTxRecClk,
          pgpTxClk         => pgpClock,
-         pgpTxMmcmReset   => open,
+         pgpTxMmcmReset   => pgpTxMmcmReset,
          pgpTxMmcmLocked  => pgpTxMmcmLocked,
          -- Rx clocking
          pgpRxReset       => pgpReset,
