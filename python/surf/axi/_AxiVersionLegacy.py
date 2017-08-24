@@ -163,15 +163,19 @@ class AxiVersionLegacy(pr.Device):
             mode         = 'RO',
         ))
 
-#         self.add(pr.RemoteVariable(   
-#             name         = 'GitHash',
-#             description  = 'GIT SHA-1 Hash',
-#             offset       =  0x600,
-#             bitSize      =  160,
-#             bitOffset    =  0x00,
-#             base         = pr.UInt,
-#             mode         = 'RO',
-#         ))
+        self.add(pr.RemoteVariable(   
+            name         = 'GitHash',
+            description  = 'GIT SHA-1 Hash',
+            offset       = 0x100,
+            bitSize      = 160,
+            bitOffset    = 0x00,
+            base         = pr.UInt,
+            mode         = 'RO',
+        ))
+
+        @self.linkedGet(dependencies=[self.GitHash], disp='{:x}')
+        def GitHashShort():
+            return self.GitHash.value() >> 132
 
         self.add(pr.RemoteVariable(   
             name         = 'DeviceDna',
