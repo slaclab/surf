@@ -19,64 +19,65 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import rogue.interfaces.memory as rim
 import math
 
 class Ad9249ConfigGroup(pr.Device):
     def __init__(self,       
-            name        = "Ad9249ConfigGroup",
-            description = "Configure one side of an AD9249 ADC",
+            name        = 'Ad9249ConfigGroup',
+            description = 'Configure one side of an AD9249 ADC',
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)                                             
                                              
         # AD9249 bank configuration registers
         self.add(pr.RemoteVariable(
-            name        = "ChipId", 
+            name        = 'ChipId', 
             offset      = 0x04, 
             bitSize     = 8, 
             bitOffset   = 0, 
-            mode        = "RO",
+            mode        = 'RO',
         ))
         
         self.add(pr.RemoteVariable(
-            name        = "ChipGrade", 
+            name        = 'ChipGrade', 
             offset      = 0x08, 
             bitSize     = 3, 
             bitOffset   = 4, 
-            mode        = "RO",
+            mode        = 'RO',
         ))
         
         self.add(pr.RemoteVariable(
-            name        = "ExternalPdwnMode", 
+            name        = 'ExternalPdwnMode', 
             offset      = 0x20, 
             bitSize     = 1, 
             bitOffset   = 5, 
             enum        = {
-                0: "Full Power Down", 
-                1: "Standby",
+                0: 'Full Power Down', 
+                1: 'Standby',
             },
         ))
         
         self.add(pr.RemoteVariable(
-            name        = "InternalPdwnMode", 
+            name        = 'InternalPdwnMode', 
             offset      = 0x20, 
             bitSize     = 2, 
             bitOffset   = 0, 
             enum        = {
-                0: "Chip Run", 
-                1: "Full Power Down", 
-                2: "Standby", 
-                3: "Digital Reset",
+                0: 'Chip Run', 
+                1: 'Full Power Down', 
+                2: 'Standby', 
+                3: 'Digital Reset',
             },
         ))
         
         self.add(pr.RemoteVariable(
-            name        = "DutyCycleStabilizer", 
+            name        = 'DutyCycleStabilizer', 
             offset      = 0x24, 
             bitSize     = 1, 
             bitOffset   = 0, 
             enum        = {
-                0: "Off", 
-                1: "On",
+                0: 'Off', 
+                1: 'On',
             },
         ))
 
@@ -85,7 +86,7 @@ class Ad9249ConfigGroup(pr.Device):
             offset      = (0xb*4), 
             bitSize     = 3, 
             bitOffset   = 0, 
-            enum        = {i : "Divide by {:d}".format(i+1) for i in range(8)},
+            enum        = {i : f'Divide by {i+1}' for i in range(8)},
         ))
 
         self.add(pr.RemoteVariable(
@@ -94,35 +95,28 @@ class Ad9249ConfigGroup(pr.Device):
             bitSize     = 1, 
             bitOffset   = 2, 
             enum        = {
-                0: 'off', 
-                1: 'on',
+                0: 'Off', 
+                1: 'On',
             },
         ))
 
         self.add(pr.RemoteVariable(
-            name        = "DevIndexMask[7:4]", 
-            offset      = 0x10, 
+            name        = 'DevIndexMask[7:0]', 
+            offset      = [0x10, 0x14],
             bitSize     = 4, 
             bitOffset   = 0, 
-            mode        = 'RW', 
+            mode        = 'RW',
+            disp        = '{:#b}',
             base        = pr.UInt,
         ))
         
         self.add(pr.RemoteVariable(
-            name        = "DevIndexMask[3:0]", 
-            offset      = 0x14, 
-            bitSize     = 4, 
-            bitOffset   = 0, 
-            mode        = 'RW', 
-            base        = pr.UInt,
-        ))
-        
-        self.add(pr.RemoteVariable(
-            name        = "DevIndexMask[DCO:FCO]", 
+            name        = 'DevIndexMask[DCO:FCO]', 
             offset      = 0x14, 
             bitSize     = 2, 
             bitOffset   = 0x4, 
-            mode        = 'RW', 
+            mode        = 'RW',
+            disp        = '{:#b}',
             base        = pr.UInt,
         ))                
 
@@ -140,25 +134,25 @@ class Ad9249ConfigGroup(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name        = "OutputTestMode", 
+            name        = 'OutputTestMode', 
             offset      = (0x0D*4), 
             bitSize     = 4, 
             bitOffset   = 0, 
             mode        = 'RW', 
             enum        = {
-                0: "Off", 
-                1: "Midscale Short", 
-                2: "Positive FS", 
-                3: "Negative FS",
-                4: "Alternating checkerboard", 
-                5: "PN23", 
-                6: "PN9", 
-                7: "1/0-word toggle",
-                8: "User Input", 
-                9: "1/0-bit Toggle", 
-                10: "1x sync", 
-                11: "One bit high",
-                12: "mixed bit frequency",
+                0: 'Off', 
+                1: 'Midscale Short', 
+                2: 'Positive FS', 
+                3: 'Negative FS',
+                4: 'Alternating checkerboard', 
+                5: 'PN23', 
+                6: 'PN9', 
+                7: '1/0-word toggle',
+                8: 'User Input', 
+                9: '1/0-bit Toggle', 
+                10: '1x sync', 
+                11: 'One bit high',
+                12: 'mixed bit frequency',
             },
         ))
 
@@ -190,17 +184,17 @@ class Ad9249ConfigGroup(pr.Device):
 
 class Ad9249ChipConfig(pr.Device):
     def __init__(self,       
-            name        = "Ad9249ChipConfig",
-            description = "Configure one side of an AD9249 ADC",
+            name        = 'Ad9249ChipConfig',
+            description = 'Configure one side of an AD9249 ADC',
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)   
-        self.add(Ad9249ConfigGroup("BankConfig[0]", 0x0000));
-        self.add(Ad9249ConfigGroup("BankConfig[1]", 0x0200));        
+        self.add(Ad9249ConfigGroup('BankConfig[0]', 0x0000));
+        self.add(Ad9249ConfigGroup('BankConfig[1]', 0x0200));        
         
 class Ad9249Config(pr.Device):
     def __init__(self,       
-            name        = "Ad9249Config",
-            description = "Configuration of Ad9249 AD",
+            name        = 'Ad9249Config',
+            description = 'Configuration of Ad9249 AD',
             chips       = 1,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)   
@@ -210,44 +204,43 @@ class Ad9249Config(pr.Device):
         # First add all of the power down GPIOs
         if chips == 1:
             self.add(pr.RemoteVariable(
-                name        = "Pdwn",
-                description = "Power down chip ",
+                name        = 'Pdwn',
+                description = 'Power down chip ',
                 offset      = PDWN_ADDR,
                 bitSize     = 1,
                 bitOffset   = 0,
                 base        = pr.Bool,
-                mode        = "RW",
+                mode        = 'RW',
              ))
-            self.add(Ad9249ConfigGroup(name="BankConfig[0]", offset=0x0000));
-            self.add(Ad9249ConfigGroup(name="BankConfig[1]", offset=0x0800));
+            self.add(Ad9249ConfigGroup(name='BankConfig[0]', offset=0x0000));
+            self.add(Ad9249ConfigGroup(name='BankConfig[1]', offset=0x0800));
         else:
             for i in range(chips):
                 self.add(pr.RemoteVariable(
-                    name        = "Pdwn" + str(i),
-                    description = "Power down chip " + str(i),
+                    name        = f'Pdwn{i}',
+                    description = f'Power down chip {i}',
                     offset      = PDWN_ADDR + (i*4),
                     bitSize     = 1,
                     bitOffset   = 0,
                     base        = pr.Bool,
-                    mode        = "RW",
+                    mode        = 'RW',
                 ))
-                self.add(Ad9249ConfigGroup(name="Ad9249Chip["+str(i)+"].BankConfig[0]", offset=i*0x1000));
-                self.add(Ad9249ConfigGroup(name="Ad9249Chip["+str(i)+"].BankConfig[1]", offset=i*0x1000+0x0800));
-                #self.add(Ad9249ChipConfig(name="Ad9249Chip[{:d}]".format(i), offset=(i*(0x800))))
+                self.add(Ad9249ConfigGroup(name=f'Ad9249Chip[{i}].BankConfig[0]', offset=i*0x1000));
+                self.add(Ad9249ConfigGroup(name=f'Ad9249Chip[{i}].BankConfig[1]', offset=i*0x1000+0x0800));
 
 class Ad9249ReadoutGroup(pr.Device):
     def __init__(self,       
-            name        = "Ad9249ReadoutGroup",
-            description = "Configure readout of 1 bank of an AD9249",
+            name        = 'Ad9249ReadoutGroup',
+            description = 'Configure readout of 1 bank of an AD9249',
             channels    = 8,
             **kwargs):
-        assert (channels > 0 and channels <= 8), "channels (%r) must be between 0 and 8" % (channels)
+        assert (channels > 0 and channels <= 8), f'channels ({channels}) must be between 0 and 8'
         super().__init__(name=name, description=description, **kwargs)   
         
         for i in range(channels):
             self.add(pr.RemoteVariable(
-                name        = "ChannelDelay["+str(i)+"]",
-                description = "IDELAY value for serial channel " + str(i),
+                name        = f'ChannelDelay[{i}]',
+                description = f'IDELAY value for serial channel {i}',
                 offset      = i*4,
                 bitSize     = 5,
                 bitOffset   = 0,
@@ -256,8 +249,8 @@ class Ad9249ReadoutGroup(pr.Device):
             ))
 
         self.add(pr.RemoteVariable(
-            name        = "FrameDelay",
-            description = "IDELAY value for FCO",
+            name        = 'FrameDelay',
+            description = 'IDELAY value for FCO',
             offset      = 0x20,
             bitSize     = 5,
             bitOffset   = 0,
@@ -266,51 +259,76 @@ class Ad9249ReadoutGroup(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name        = "LostLockCount",
-            description = "Number of times that frame lock has been lost since reset",
+            name        = 'LostLockCount',
+            description = 'Number of times that frame lock has been lost since reset',
             offset      = 0x30,
             bitSize     = 16,
             bitOffset   = 0,
             base        = pr.UInt,
-            mode        = "RO",
+            mode        = 'RO',
         ))
         
         self.add(pr.RemoteVariable(
-            name        = "Locked",
-            description = "Readout has locked on to the frame boundary",
+            name        = 'Locked',
+            description = 'Readout has locked on to the frame boundary',
             offset      = 0x30,
             bitSize     = 1,
             bitOffset   = 16,
             base        = pr.Bool,
-            mode        = "RO",
+            mode        = 'RO',
         ))
         
         self.add(pr.RemoteVariable(
-            name        = "AdcFrame",
-            description = "Last deserialized FCO value for debug",
+            name        = 'AdcFrame',
+            description = 'Last deserialized FCO value for debug',
             offset      = 0x34,
             bitSize     = 16,
             bitOffset   = 0,
             base        = pr.UInt,
-            mode        = "RO",
+            mode        = 'RO',
         ))
 
         for i in range(channels):
             self.add(pr.RemoteVariable(
-                name        = "AdcChannel[{:d}]".format(i),
-                description = 'Last deserialized channel {:d} ADC value for debug'.format(i),
+                name        = f'AdcChannel[{i:d}]',
+                description = f'Last deserialized channel {i:d} ADC value for debug',
                 offset      = 0x80 + (i*4),
                 bitSize     = 32,
                 bitOffset   = 0,
                 base        = pr.UInt,
-                mode        = "RO",
+                disp        = '{:_x}',
+                mode        = 'RO',
             ))
 
         self.add(pr.RemoteCommand(
-            name        = "LostLockCountReset",
-            description = "Reset LostLockCount",
+            name        = 'LostLockCountReset',
+            description = 'Reset LostLockCount',
             function    = pr.BaseCommand.toggle,
             offset      = 0x38,
             bitSize     = 1,
             bitOffset   = 0,
         ))
+
+        self.add(pr.RemoteCommand(
+            name='FreezeDebug',
+            description='Freeze all of the AdcChannel registers',
+            hidden=True,
+            offset=0xA0,
+            bitSize=1,
+            bitOffset=0,
+            base=pr.UInt,
+            function=pr.RemoteCommand.touch))
+
+    def readBlocks(self, recurse=True, variable=None):
+        if variable is not None:
+            variable._block.backgroundTransaction(rim.Read)
+        else:
+            self.FreezeDebug(1)
+            for block in self._blocks:
+                if block.bulkEn:
+                    block.backgroundTransaction(rim.Read)
+            self.FreezeDebug(0)
+
+            if recurse:
+                for key, value in self.devices.items():
+                    value.readBlocks(recurse=True)
