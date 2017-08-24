@@ -202,12 +202,12 @@ begin
       axiSlaveRegisterR(axilEp, X"02C", 0, r.upTimeCnt);
       axiSlaveRegisterR(axilEp, X"030", 0, DEVICE_ID_G);
 
-      axiSlaveRegisterR(axilEp, X"100", 0, BUILD_INFO_C.gitHash);
+      axiSlaveRegisterR(axilEp, X"100", 0, BUILD_INFO_C.gitHash(63 downto 32));
 --       axiSlaveRegisterR(axilEp, X"100", 0, BUILD_INFO_C.gitHash(31 downto 0));
 --       axiSlaveRegisterR(axilEp, x"104", 0, BUILD_INFO_C.gitHash(63 downto 32));
 --       axiSlaveRegisterR(axilEp, x"108", 0, BUILD_INFO_C.gitHash(95 downto 64));
---       axiSlaveRegisterR(axilEp, x"10C", 0, BUILD_INFO_C.gitHash(127 downto 96));
---       axiSlaveRegisterR(axilEp, x"110", 0, BUILD_INFO_C.gitHash(159 downto 128));
+       axiSlaveRegisterR(axilEp, x"108", 0, BUILD_INFO_C.gitHash(127 downto 64));
+       axiSlaveRegisterR(axilEp, x"110", 0, BUILD_INFO_C.gitHash(159 downto 128));
 
       axiSlaveRegisterR(axilEp, X"400", userValues);
       axiSlaveRegisterR(axilEp, X"800", BUILD_STRING_ROM_C);
