@@ -171,6 +171,7 @@ class AxiVersionLegacy(pr.Device):
             bitOffset    = 0x00,
             base         = pr.UInt,
             mode         = 'RO',
+            hidden       = True,
         ))
 
         @self.linkedGet(dependencies=[self.GitHash], disp='{:x}')
