@@ -373,10 +373,10 @@ class AxiMicronN25Q(pr.Device):
         self._rawWrite(0x0C,value)         
         
     def getCmdReg(self):            
-        return (self._rawRead(0x0C))
+        return (self._rawRead(offset=0x0C))
         
     def setDataReg(self,values):            
         self._rawWrite(0x200,values)     
         
     def getDataReg(self):            
-        return (self._rawRead(address=0x200,size=64))
+        return (self._rawRead(offset=0x200,numWords=64))
