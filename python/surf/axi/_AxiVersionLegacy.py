@@ -30,10 +30,15 @@ class AxiVersionLegacy(pr.Device):
 
     # Last comment added by rherbst for demonstration.
     def __init__(
-            self,       
+            self, *,
             name        = 'AxiVersion',
             description = 'AXI-Lite Version Module',
             numUserConstants = 0,
+            hasUpTimeCnt=True,
+            hasFpgaReloadHalt=True,
+            hasDeviceId=True,
+            hasGitHash=True,
+            dnaBigEndian=False,
             **kwargs):
         
         super().__init__(
@@ -44,6 +49,8 @@ class AxiVersionLegacy(pr.Device):
         ##############################
         # Variables
         ##############################
+
+
 
         self.add(pr.RemoteVariable(
             name         = 'FpgaVersion',
@@ -67,35 +74,36 @@ class AxiVersionLegacy(pr.Device):
             disp         = '{:#08x}',            
         ))
 
-        self.add(pr.RemoteVariable(   
-            name         = 'UpTimeCnt',
-            description  = 'Number of seconds since last reset',
-            hidden       = True,
-            offset       = 0x02C,
-            bitSize      = 32,
-            bitOffset    = 0x00,
-            base         = pr.UInt,
-            mode         = 'RO',
-            disp         = '{:d}',
-            units        = 'seconds',
-            pollInterval = 1,
-        ))
+        if hasUpTimeCnt:
+            self.add(pr.RemoteVariable(   
+                name         = 'UpTimeCnt',
+                description  = 'Number of seconds since last reset',
+                hidden       = True,
+                offset       = 0x02C,
+                bitSize      = 32,
+                bitOffset    = 0x00,
+                base         = pr.UInt,
+                mode         = 'RO',
+                disp         = '{:d}',
+                units        = 'seconds',
+                pollInterval = 1,
+            ))
 
-        @self.linkedGet(dependencies=[self.UpTimeCnt])
-        def UpTime():
-            return str(datetime.timedelta(seconds=self.UpTimeCnt.value()))
+            @self.linkedGet(dependencies=[self.UpTimeCnt])
+            def UpTime():
+                return str(datetime.timedelta(seconds=self.UpTimeCnt.value()))
         
-
-        self.add(pr.RemoteVariable(   
-            name         = 'FpgaReloadHalt',
-            description  = 'Used to halt automatic reloads via AxiVersion',
-            offset       = 0x28,
-            bitSize      = 1,
-            bitOffset    = 0x00,
-            base         = pr.UInt,
-            mode         = 'RW',
-            hidden       = True,
-        ))
+        if hasFpgaReloadHalt:
+            self.add(pr.RemoteVariable(   
+                name         = 'FpgaReloadHalt',
+                description  = 'Used to halt automatic reloads via AxiVersion',
+                offset       = 0x28,
+                bitSize      = 1,
+                bitOffset    = 0x00,
+                base         = pr.UInt,
+                mode         = 'RW',
+                hidden       = True,
+            ))
 
         self.add(pr.RemoteCommand(   
             name         = 'FpgaReload',
@@ -117,18 +125,25 @@ class AxiVersionLegacy(pr.Device):
             mode         = 'RW',
         ))
 
-        self.add(pr.RemoteVariable(   
-            name         = 'UserReset',
-            description  = 'Optional User Reset',
-            offset       = 0x018,
-            bitSize      = 1,
-            bitOffset    = 0x00,
-            base         = pr.UInt,
-            mode         = 'RW',
-        ))
+#         self.add(pr.RemoteVariable(   
+#             name         = 'UserReset',
+#             description  = 'Optional User Reset',
+#             offset       = 0x018,
+#             bitSize      = 1,
+#             bitOffset    = 0x00,
+#             base         = pr.UInt,
+#             mode         = 'RW',
+#         ))
+
+        def endianSwap(var):
+            base = var.dependencies[0].value()
+            if dnaBigEndian:
+                return ((base >>32)&0xFFFFFFFF) | ((base << 32)&0xFFFFFFFF00000000)
+            else:
+                return base
 
         self.add(pr.RemoteVariable(   
-            name         = 'FdSerial',
+            name         = 'FdSerialRaw',
             description  = 'Board ID value read from DS2411 chip',
             offset       =  0x10,
             bitSize      =  64,
@@ -136,9 +151,70 @@ class AxiVersionLegacy(pr.Device):
             base         = pr.UInt,
             mode         = 'RO',
             disp         = '{:#08x}',
+            hidden       = True,
         ))
 
+        self.add(pr.LinkVariable(
+            name = 'FdSerial',
+            disp = '{:#08x}',            
+            dependencies = [self.FdSerialRaw],
+            linkedGet = endianSwap))
+
+        self.add(pr.RemoteVariable(   
+            name         = 'DeviceDnaRaw',
+            description  = 'Xilinx Device DNA value burned into FPGA',
+            offset       = 0x8,
+            bitSize      = 64,
+            bitOffset    = 0x00,
+            base         = pr.UInt,
+            mode         = 'RO',
+            hidden       = True
+        ))
+
+        self.add(pr.LinkVariable(
+            name = 'DeviceDna',
+            disp = '{:#08x}',
+            dependencies = [self.DeviceDnaRaw],
+            linkedGet = endianSwap))
         
+        if hasDeviceId:
+            self.add(pr.RemoteVariable(   
+                name         = 'DeviceId',
+                description  = 'Device Identification  (configued by generic)',
+                offset       = 0x030,
+                bitSize      = 32,
+                bitOffset    = 0x00,
+                base         = pr.UInt,
+                mode         = 'RO',
+            ))
+
+        if hasGitHash:
+            self.add(pr.RemoteVariable(   
+                name         = 'GitHash',
+                description  = 'GIT SHA-1 Hash',
+                offset       = 0x100,
+                bitSize      = 160,
+                bitOffset    = 0x00,
+                base         = pr.UInt,
+                mode         = 'RO',
+                hidden       = True,
+            ))
+
+            @self.linkedGet(dependencies=[self.GitHash], disp='{:x}')
+            def GitHashShort():
+                return self.GitHash.value() >> 132
+
+
+        self.add(pr.RemoteVariable(   
+            name         = 'BuildStamp',
+            description  = 'Firmware Build String',
+            offset       = 0x800,
+            bitSize      = 8*256,
+            bitOffset    = 0x00,
+            base         = pr.String,
+            mode         = 'RO',
+        ))
+
         self.addRemoteVariables(   
             name         = 'UserConstants',
             description  = 'Optional user input values',
@@ -151,50 +227,5 @@ class AxiVersionLegacy(pr.Device):
             stride       =  4,
             hidden       = True,
         )
-
-
-        self.add(pr.RemoteVariable(   
-            name         = 'DeviceId',
-            description  = 'Device Identification  (configued by generic)',
-            offset       = 0x030,
-            bitSize      = 32,
-            bitOffset    = 0x00,
-            base         = pr.UInt,
-            mode         = 'RO',
-        ))
-
-        self.add(pr.RemoteVariable(   
-            name         = 'GitHash',
-            description  = 'GIT SHA-1 Hash',
-            offset       = 0x100,
-            bitSize      = 160,
-            bitOffset    = 0x00,
-            base         = pr.UInt,
-            mode         = 'RO',
-            hidden       = True,
-        ))
-
-        @self.linkedGet(dependencies=[self.GitHash], disp='{:x}')
-        def GitHashShort():
-            return self.GitHash.value() >> 132
-
-        self.add(pr.RemoteVariable(   
-            name         = 'DeviceDna',
-            description  = 'Xilinx Device DNA value burned into FPGA',
-            offset       = 0x8,
-            bitSize      = 64,
-            bitOffset    = 0x00,
-            base         = pr.UInt,
-            mode         = 'RO',
-        ))
-
-        self.add(pr.RemoteVariable(   
-            name         = 'BuildStamp',
-            description  = 'Firmware Build String',
-            offset       = 0x800,
-            bitSize      = 8*256,
-            bitOffset    = 0x00,
-            base         = pr.String,
-            mode         = 'RO',
-        ))
+        
 
