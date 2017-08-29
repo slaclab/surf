@@ -2,7 +2,7 @@
 -- File       : Jesd16bTo32b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-02-24
--- Last update: 2016-02-24
+-- Last update: 2017-08-29
 -------------------------------------------------------------------------------
 -- Description: Converts the 16-bit interface to 32-bit JESD interface
 -------------------------------------------------------------------------------
@@ -27,17 +27,19 @@ entity Jesd16bTo32b is
       TPD_G : time := 1 ns);
    port (
       -- 16-bit Write Interface
-      wrClk    : in  sl;
-      wrRst    : in  sl;
-      validIn  : in  sl;
-      overflow : out sl;
-      dataIn   : in  slv(15 downto 0);
+      wrClk     : in  sl;
+      wrRst     : in  sl;
+      validIn   : in  sl;
+      trigIn    : in  sl := '0';
+      overflow  : out sl;
+      dataIn    : in  slv(15 downto 0);
       -- 32-bit Read Interface
-      rdClk    : in  sl;
-      rdRst    : in  sl;
-      validOut : out sl;
-      underflow: out sl;
-      dataOut  : out slv(31 downto 0));    
+      rdClk     : in  sl;
+      rdRst     : in  sl;
+      validOut  : out sl;
+      trigOut   : out slv(1 downto 0);
+      underflow : out sl;
+      dataOut   : out slv(31 downto 0));
 end Jesd16bTo32b;
 
 architecture rtl of Jesd16bTo32b is
@@ -45,38 +47,45 @@ architecture rtl of Jesd16bTo32b is
    type RegType is record
       wordSel : sl;
       wrEn    : sl;
+      trig    : slv(1 downto 0);
       data    : slv(31 downto 0);
    end record;
 
    constant REG_INIT_C : RegType := (
       wordSel => '0',
       wrEn    => '0',
+      trig    => "00",
       data    => (others => '0'));
 
-   signal r   : RegType := REG_INIT_C;
-   signal rin : RegType;
-   signal s_valid  : sl;
-   
+   signal r       : RegType := REG_INIT_C;
+   signal rin     : RegType;
+   signal s_valid : sl;
+
+   -- attribute dont_touch      : string;
+   -- attribute dont_touch of r : signal is "TRUE";
+
 begin
 
-   comb : process (r, wrRst, validIn, dataIn) is
+   comb : process (dataIn, r, trigIn, validIn, wrRst) is
       variable v : RegType;
    begin
       -- Latch the current value
       v := r;
-      
+
       -- Check if data valid
       if validIn = '1' then
          if r.wordSel = '0' then
             -- Set the flags and data bus
-            v.wordSel := '1';
-            v.data(15 downto 0)    := dataIn;
-            v.wrEn := '0';
+            v.wordSel           := '1';
+            v.data(15 downto 0) := dataIn;
+            v.trig(0)           := trigIn;
+            v.wrEn              := '0';
          else
             -- Set the flags and data bus
-            v.wordSel := '0';
-            v.data(31 downto 16)    := dataIn;
-            v.wrEn := '1';
+            v.wordSel            := '0';
+            v.data(31 downto 16) := dataIn;
+            v.trig(1)            := trigIn;
+            v.wrEn               := '1';
          end if;
       else
          v := REG_INIT_C;
@@ -89,33 +98,34 @@ begin
 
       -- Register the variable for next clock cycle
       rin <= v;
-    
+
    end process comb;
-   
 
    U_FIFO : entity work.FifoAsync
-   generic map (
-      TPD_G         => TPD_G,
-      BRAM_EN_G     => false,
-      FWFT_EN_G     => true,
-      ALTERA_SYN_G  => false,
-      SYNC_STAGES_G => 3,
-      DATA_WIDTH_G  => 32,
-      ADDR_WIDTH_G  => 5)
-   port map (
-      -- Asynchronous Reset
-      rst    => wrRst,
-      -- Write Ports (wr_clk domain)
-      wr_clk => wrClk,
-      wr_en  => r.wrEn,
-      din    => r.data,
-      overflow => overflow,
-      -- Read Ports (rd_clk domain)
-      rd_clk => rdClk,
-      rd_en  => s_valid,
-      dout   => dataOut,
-      underflow => underflow,
-      valid  => s_valid);
+      generic map (
+         TPD_G         => TPD_G,
+         BRAM_EN_G     => false,
+         FWFT_EN_G     => true,
+         ALTERA_SYN_G  => false,
+         SYNC_STAGES_G => 3,
+         DATA_WIDTH_G  => 34,
+         ADDR_WIDTH_G  => 5)
+      port map (
+         -- Asynchronous Reset
+         rst                => wrRst,
+         -- Write Ports (wr_clk domain)
+         wr_clk             => wrClk,
+         wr_en              => r.wrEn,
+         din(33 downto 32)  => r.trig,
+         din(31 downto 0)   => r.data,
+         overflow           => overflow,
+         -- Read Ports (rd_clk domain)
+         rd_clk             => rdClk,
+         rd_en              => s_valid,
+         dout(33 downto 32) => trigOut,
+         dout(31 downto 0)  => dataOut,
+         underflow          => underflow,
+         valid              => s_valid);
 
    validOut <= s_valid;
 
@@ -125,5 +135,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-   
+
 end rtl;
