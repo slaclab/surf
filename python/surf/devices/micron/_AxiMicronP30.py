@@ -56,6 +56,9 @@ class AxiMicronP30(pr.Device):
             
             # Open the MCS file
             self._mcs.open(arg)                                           
+
+            print(f' startAddr: {hex(self._mcs.startAddr)}')
+            print(f' endAddr: {hex(self._mcs.endAddr)}')            
             
             # Erase the PROM
             self.eraseProm()
@@ -86,7 +89,7 @@ class AxiMicronP30(pr.Device):
    
     def eraseProm(self):
         # Set the starting address index
-        address    = self._mcs.startAddr        
+        address    = self._mcs.startAddr >> 1        
         # Assume the smallest block size of 16-kword/block
         ERASE_SIZE = 0x4000 
         # Setup the status bar
@@ -100,7 +103,7 @@ class AxiMicronP30(pr.Device):
                 # Increment by one block
                 address += ERASE_SIZE
         # Check the corner case
-        if ( address<self._mcs.endAddr ): 
+        if ( address< (self._mcs.endAddr>>1) ): 
             self._eraseCmd(address)         
 
     # Erase Command
