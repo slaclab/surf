@@ -30,12 +30,11 @@ class McsException(Exception):
 
 class McsReader():
 
-    def __init__(self, addrOffset=0):
+    def __init__(self,name="McsReader"):
         self.entry     = []
         self.startAddr = 0
         self.endAddr   = 0
         self.size      = 0
-        self.addrOffset= addrOffset
         
     def open(self, filename):   
         self.entry     = []
@@ -73,9 +72,10 @@ class McsReader():
                     
                     # Check if GZIP and convert to standard string
                     if (gzipEn):
-                        line = line.decode('utf-8')
+                        line = str(line)[2:]
+                        line = str(line)[:-1]
                     
-                    # Update the progess bar every 4k lines
+                    # Throttle down printf rate
                     if ( (i&0xFFF) == 0):
                         bar.update(0xFFF)                      
                         
@@ -86,7 +86,7 @@ class McsReader():
                     else:
                     
                         strings = [line[j:j+2] for j in range(1, len(line), 2)]
-                        bytes = bytearray(int(s, 16) for s in strings)
+                        bytes = [int(s, 16) for s in strings]
 
                         s = functools.reduce(lambda x,y: x+y, bytes[:-1]) & 0xFF
                         c = (bytes[-1]*-1) & 0xFF
@@ -111,7 +111,7 @@ class McsReader():
                                 raise McsException('McsReader.open(): failed') 
                             for j in range(byteCount):
                                 # Put the address and data into a list
-                                address = self.addrOffset + baseAddr + addr + j
+                                address = baseAddr + addr + j
                                 data    = bytes[j+4]
                                 dataList.append([address, data])
                             
@@ -134,7 +134,7 @@ class McsReader():
                             baseAddr = int(strings[4]+strings[5], 16)* (2**16)
                             # Check for first address index (which is always the first line)
                             if (i==0):
-                                self.startAddr = self.addrOffset + baseAddr
+                                self.startAddr = baseAddr
                         else: # Undefined RecordType
                             click.secho('\nInvalid record type: {:d}'.format(recordType), fg='red')
                             raise McsException('McsReader.open(): failed')    
