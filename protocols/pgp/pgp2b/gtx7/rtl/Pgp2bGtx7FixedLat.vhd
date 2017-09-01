@@ -68,6 +68,8 @@ entity Pgp2bGtx7Fixedlat is
       PAYLOAD_CNT_TOP_G : integer              := 7;      -- Top bit for payload counter
       NUM_VC_EN_G       : integer range 1 to 4 := 4;
       AXI_ERROR_RESP_G  : slv(1 downto 0)      := AXI_RESP_DECERR_C;
+      TX_POLARITY_G     : sl                   := '0';
+      RX_POLARITY_G     : sl                   := '0';
       TX_ENABLE_G       : boolean              := true;   -- Enable TX direction
       RX_ENABLE_G       : boolean              := true);  -- Enable RX direction
    port (
@@ -331,7 +333,7 @@ begin
          rxCharIsKOut     => open,      -- Not using gt rx 8b10b
          rxDecErrOut      => open,      -- Not using gt rx 8b10b
          rxDispErrOut     => open,      -- Not using gt rx 8b10b
-         rxPolarityIn     => phyRxLanesOut(0).polarity,
+         rxPolarityIn     => RX_POLARITY_G,
          rxBufStatusOut   => open,      -- Not using rx buff
          txOutClkOut      => gtTxOutClk,  -- Maybe drive PGP TX with this and output it
          txUsrClkIn       => gtTxUsrClk,
@@ -343,6 +345,7 @@ begin
          txResetDoneOut   => gtTxResetDone,
          txDataIn         => phyTxLanesOut(0).data,
          txCharIsKIn      => phyTxLanesOut(0).dataK,
+         txPolarityIn     => TX_POLARITY_G,
          txBufStatusOut   => open,      -- Not using tx buff
          loopbackIn       => pgpRxIn.loopback,
          txPreCursor      => txPreCursor,
