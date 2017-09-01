@@ -469,6 +469,7 @@ begin
    U_TrackRam: entity work.DualPortRam 
       generic map (
          TPD_G          => TPD_G,
+         MODE_G         => "write-first",
          DATA_WIDTH_G   => AXI_WRITE_DMA_TRACK_SIZE_C,
          ADDR_WIDTH_G   => 8)
       port map (
