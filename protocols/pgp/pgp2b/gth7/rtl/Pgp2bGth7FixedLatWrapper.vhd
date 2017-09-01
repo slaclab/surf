@@ -37,6 +37,8 @@ entity Pgp2bGth7FixedLatWrapper is
       PAYLOAD_CNT_TOP_G    : integer              := 7;     -- Top bit for payload counter
       NUM_VC_EN_G          : integer range 1 to 4 := 4;
       AXI_ERROR_RESP_G     : slv(1 downto 0)      := AXI_RESP_DECERR_C;
+      TX_POLARITY_G        : sl                   := '0';
+      RX_POLARITY_G        : sl                   := '0';
       TX_ENABLE_G          : boolean              := true;  -- Enable TX direction
       RX_ENABLE_G          : boolean              := true;  -- Enable RX direction
       -- QPLL Configurations
@@ -274,6 +276,8 @@ begin
          PAYLOAD_CNT_TOP_G     => PAYLOAD_CNT_TOP_G,
          NUM_VC_EN_G           => NUM_VC_EN_G,
          AXI_ERROR_RESP_G      => AXI_ERROR_RESP_G,
+         TX_POLARITY_G         => TX_POLARITY_G,
+         RX_POLARITY_G         => RX_POLARITY_G,
          TX_ENABLE_G           => TX_ENABLE_G,
          RX_ENABLE_G           => RX_ENABLE_G,
          STABLE_CLOCK_PERIOD_G => 4.0E-9,  --set for longest timeout 
