@@ -33,6 +33,7 @@ entity AxiStreamDmaV2Write is
       AXI_READY_EN_G    : boolean                 := false;
       AXIS_CONFIG_G     : AxiStreamConfigType     := AXI_STREAM_CONFIG_INIT_C;
       AXI_CONFIG_G      : AxiConfigType           := AXI_CONFIG_INIT_C;
+      PIPE_STAGES_G     : natural                 := 1;
       BURST_BYTES_G     : integer range 1 to 4096 := 4096;
       ACK_WAIT_BVALID_G : boolean                 := true);
    port (
@@ -124,9 +125,17 @@ begin
       report "AXIS (" & integer'image(AXIS_CONFIG_G.TDATA_BYTES_C) & ") and AXI ("
       & integer'image(AXI_CONFIG_G.DATA_BYTES_C) & ") must have equal data widths" severity failure;
 
-   -- Placeholder for potential FIFO
-   intAxisMaster <= axisMaster;
-   axisSlave     <= intAxisSlave;
+   U_Pipeline : entity work.AxiStreamPipeline
+      generic map (
+         TPD_G         => TPD_G,
+         PIPE_STAGES_G => PIPE_STAGES_G)
+      port map (
+         axisClk     => axiClk,
+         axisRst     => axiRst,
+         sAxisMaster => axisMaster,
+         sAxisSlave  => axisSlave,
+         mAxisMaster => intAxisMaster,
+         mAxisSlave  => intAxisSlave);    
 
    -- Pause when enabled
    pause <= '0' when (AXI_READY_EN_G) else axiWriteCtrl.pause;
