@@ -145,8 +145,12 @@ begin
          v.sMaster.tValid := '0';
          v.sMaster.tLast  := '0';
          v.sMaster.tUser  := (others => '0');
-         v.sMaster.tKeep  := (others => '1');
          v.sMaster.tStrb  := (others => '1');
+         if (AXIS_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
+            v.sMaster.tKeep  := toSlv(AXIS_CONFIG_G.TDATA_BYTES_C, 16);
+         else
+            v.sMaster.tKeep  := (others => '1');
+         end if;         
       end if;
 
       -- Calculate the pending bytes
@@ -286,7 +290,11 @@ begin
                if (v.size = 0) then
                   -- Terminate the frame
                   v.sMaster.tLast := not r.dmaRdDescReq.continue;
-                  v.sMaster.tKeep := genTKeep(conv_integer(r.size(4 downto 0)));
+                  if (AXIS_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
+                     v.sMaster.tKeep := "00000000000" & r.size(4 downto 0);
+                  else
+                     v.sMaster.tKeep := genTKeep(conv_integer(r.size(4 downto 0)));
+                  end if;                   
                   v.sMaster.tStrb := genTKeep(conv_integer(r.size(4 downto 0)));
                   -- Set last user field
                   axiStreamSetUserField (AXIS_CONFIG_G, v.sMaster, r.dmaRdDescReq.lastUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0));

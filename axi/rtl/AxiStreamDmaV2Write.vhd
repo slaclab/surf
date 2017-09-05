@@ -175,8 +175,12 @@ begin
       end if;
 
       -- Count number of bytes in return data
-      bytes := getTKeep(intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0));
-
+      if (AXIS_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
+         bytes := conv_integer(intAxisMaster.tKeep(4 downto 0));
+      else
+         bytes := getTKeep(intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0));
+      end if;
+      
       -- State machine
       case r.state is
          ----------------------------------------------------------------------
@@ -299,7 +303,11 @@ begin
                   v.wMaster.wvalid := '1';
                   v.wMaster.wdata((DATA_BYTES_C*8)-1 downto 0) := intAxisMaster.tData((DATA_BYTES_C*8)-1 downto 0);
                   -- Set byte write strobes
-                  v.wMaster.wstrb(DATA_BYTES_C-1 downto 0) := intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0);
+                  if (AXIS_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
+                     v.wMaster.wstrb(15 downto 0)             := genTKeep(bytes);
+                  else
+                     v.wMaster.wstrb(DATA_BYTES_C-1 downto 0) := intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0);
+                  end if;                  
                   -- Address and size increment
                   v.dmaWrTrack.address := r.dmaWrTrack.address + DATA_BYTES_C;
                   v.dmaWrTrack.address(ADDR_LSB_C-1 downto 0) := (others => '0');
