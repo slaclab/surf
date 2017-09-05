@@ -177,11 +177,11 @@ class AxiVersion(pr.Device):
             mode         = "RO",
         ))
 
-    def hardReset(self):
+    def hardResetFunc(self):
         print("AxiVersion hard reset called")
 
-    def softReset(self):
+    def softResetFunc(self):
         print("AxiVersion soft reset called")
 
-    def countReset(self):
+    def countResetFunc(self):
         print("AxiVersion count reset called")
