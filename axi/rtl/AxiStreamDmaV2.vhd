@@ -2,7 +2,7 @@
 -- File       : AxiStreamDmaV2.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-02-02
--- Last update: 2017-02-02
+-- Last update: 2017-09-02
 -------------------------------------------------------------------------------
 -- Description:
 -- Generic AXI Stream DMA block for frame at a time transfers.
@@ -41,6 +41,7 @@ entity AxiStreamDmaV2 is
       AXI_DMA_CONFIG_G  : AxiConfigType           := AXI_CONFIG_INIT_C;
       CHAN_COUNT_G      : integer range 1 to 16   := 1;
       BURST_BYTES_G     : integer range 1 to 4096 := 4096;
+      WR_PIPE_STAGES_G  : natural                 := 1;
       RD_PIPE_STAGES_G  : natural                 := 1;
       RD_PEND_THRESH_G  : natural                 := 0);  -- In units of bytes
    port (
@@ -71,61 +72,76 @@ end AxiStreamDmaV2;
 
 architecture structure of AxiStreamDmaV2 is
 
-   signal dmaWrDescReq      : AxiWriteDmaDescReqArray(CHAN_COUNT_G-1 downto 0);
-   signal dmaWrDescAck      : AxiWriteDmaDescAckArray(CHAN_COUNT_G-1 downto 0);
-   signal dmaWrDescRet      : AxiWriteDmaDescRetArray(CHAN_COUNT_G-1 downto 0);
-   signal dmaWrDescRetAck   : slv(CHAN_COUNT_G-1 downto 0);
+   signal dmaWrDescReq    : AxiWriteDmaDescReqArray(CHAN_COUNT_G-1 downto 0);
+   signal dmaWrDescAck    : AxiWriteDmaDescAckArray(CHAN_COUNT_G-1 downto 0);
+   signal dmaWrDescRet    : AxiWriteDmaDescRetArray(CHAN_COUNT_G-1 downto 0);
+   signal dmaWrDescRetAck : slv(CHAN_COUNT_G-1 downto 0);
 
-   signal dmaRdDescReq      : AxiReadDmaDescReqArray(CHAN_COUNT_G-1 downto 0);
-   signal dmaRdDescAck      : slv(CHAN_COUNT_G-1 downto 0);
-   signal dmaRdDescRet      : AxiReadDmaDescRetArray(CHAN_COUNT_G-1 downto 0);
-   signal dmaRdDescRetAck   : slv(CHAN_COUNT_G-1 downto 0);
+   signal dmaRdDescReq    : AxiReadDmaDescReqArray(CHAN_COUNT_G-1 downto 0);
+   signal dmaRdDescAck    : slv(CHAN_COUNT_G-1 downto 0);
+   signal dmaRdDescRet    : AxiReadDmaDescRetArray(CHAN_COUNT_G-1 downto 0);
+   signal dmaRdDescRetAck : slv(CHAN_COUNT_G-1 downto 0);
 
    signal axiCache : slv(3 downto 0);
 
+   signal axiReset  : slv(CHAN_COUNT_G-1 downto 0);
+
+   attribute dont_touch             : string;
+   attribute dont_touch of axiReset : signal is "true";   
+   
 begin
 
-   U_DmaDesc: entity work.AxiStreamDmaV2Desc
+   U_DmaDesc : entity work.AxiStreamDmaV2Desc
       generic map (
-         TPD_G                 => TPD_G,
-         CHAN_COUNT_G          => CHAN_COUNT_G,
-         AXIL_BASE_ADDR_G      => AXIL_BASE_ADDR_G,
-         AXI_ERROR_RESP_G      => AXI_ERROR_RESP_G,
-         AXI_READY_EN_G        => AXI_READY_EN_G,
-         AXI_CONFIG_G          => AXI_DESC_CONFIG_G,
-         DESC_AWIDTH_G         => DESC_AWIDTH_G,
-         DESC_ARB_G            => DESC_ARB_G,
-         ACK_WAIT_BVALID_G     => true)
+         TPD_G             => TPD_G,
+         CHAN_COUNT_G      => CHAN_COUNT_G,
+         AXIL_BASE_ADDR_G  => AXIL_BASE_ADDR_G,
+         AXI_ERROR_RESP_G  => AXI_ERROR_RESP_G,
+         AXI_READY_EN_G    => AXI_READY_EN_G,
+         AXI_CONFIG_G      => AXI_DESC_CONFIG_G,
+         DESC_AWIDTH_G     => DESC_AWIDTH_G,
+         DESC_ARB_G        => DESC_ARB_G,
+         ACK_WAIT_BVALID_G => true)
       port map (
          -- Clock/Reset
-         axiClk             => axiClk,
-         axiRst             => axiRst,
-         axilReadMaster     => axilReadMaster,
-         axilReadSlave      => axilReadSlave,
-         axilWriteMaster    => axilWriteMaster,
-         axilWriteSlave     => axilWriteSlave,
-         interrupt          => interrupt,
-         online             => online,
-         acknowledge        => acknowledge,
-         dmaWrDescReq       => dmaWrDescReq,
-         dmaWrDescAck       => dmaWrDescAck,
-         dmaWrDescRet       => dmaWrDescRet,
-         dmaWrDescRetAck    => dmaWrDescRetAck,
-         dmaRdDescReq       => dmaRdDescReq,
-         dmaRdDescAck       => dmaRdDescAck,
-         dmaRdDescRet       => dmaRdDescRet,
-         dmaRdDescRetAck    => dmaRdDescRetAck,
-         axiCache           => axiCache,
-         axiWriteMaster     => axiWriteMaster(0),
-         axiWriteSlave      => axiWriteSlave(0),
-         axiWriteCtrl       => axiWriteCtrl(0));
+         axiClk          => axiClk,
+         axiRst          => axiRst,
+         axilReadMaster  => axilReadMaster,
+         axilReadSlave   => axilReadSlave,
+         axilWriteMaster => axilWriteMaster,
+         axilWriteSlave  => axilWriteSlave,
+         interrupt       => interrupt,
+         online          => online,
+         acknowledge     => acknowledge,
+         dmaWrDescReq    => dmaWrDescReq,
+         dmaWrDescAck    => dmaWrDescAck,
+         dmaWrDescRet    => dmaWrDescRet,
+         dmaWrDescRetAck => dmaWrDescRetAck,
+         dmaRdDescReq    => dmaRdDescReq,
+         dmaRdDescAck    => dmaRdDescAck,
+         dmaRdDescRet    => dmaRdDescRet,
+         dmaRdDescRetAck => dmaRdDescRetAck,
+         axiCache        => axiCache,
+         axiWriteMaster  => axiWriteMaster(0),
+         axiWriteSlave   => axiWriteSlave(0),
+         axiWriteCtrl    => axiWriteCtrl(0));
 
    -- Read channel 0 unused.
    axiReadMaster(0) <= AXI_READ_MASTER_INIT_C;
 
-   U_ChanGen: for i in 0 to CHAN_COUNT_G-1 generate
+   U_ChanGen : for i in 0 to CHAN_COUNT_G-1 generate
+   
+      -- Help with timing
+      U_AxisRst : entity work.RstPipeline
+         generic map (
+            TPD_G     => TPD_G,
+            INV_RST_G => false)
+         port map (
+            clk    => axiClk,
+            rstIn  => axiRst,
+            rstOut => axiReset(i));   
 
-      U_DmaRead: entity work.AxiStreamDmaV2Read 
+      U_DmaRead : entity work.AxiStreamDmaV2Read
          generic map (
             TPD_G           => TPD_G,
             AXIS_READY_EN_G => AXIS_READY_EN_G,
@@ -135,14 +151,14 @@ begin
             BURST_BYTES_G   => BURST_BYTES_G,
             PEND_THRESH_G   => RD_PEND_THRESH_G)
          port map (
-            axiClk             => axiClk,
-            axiRst             => axiRst,
-            dmaRdDescReq       => dmaRdDescReq(i),
-            dmaRdDescAck       => dmaRdDescAck(i),
-            dmaRdDescRet       => dmaRdDescRet(i),
-            dmaRdDescRetAck    => dmaRdDescRetAck(i),
-            dmaRdIdle          => open,
-            axiCache           => axiCache,
+            axiClk          => axiClk,
+            axiRst          => axiReset(i),
+            dmaRdDescReq    => dmaRdDescReq(i),
+            dmaRdDescAck    => dmaRdDescAck(i),
+            dmaRdDescRet    => dmaRdDescRet(i),
+            dmaRdDescRetAck => dmaRdDescRetAck(i),
+            dmaRdIdle       => open,
+            axiCache        => axiCache,
             -- Streaming Interface 
             axisMaster      => mAxisMaster(i),
             axisSlave       => mAxisSlave(i),
@@ -150,28 +166,29 @@ begin
             axiReadMaster   => axiReadMaster(i+1),
             axiReadSlave    => axiReadSlave(i+1));
 
-      U_DmaWrite: entity work.AxiStreamDmaV2Write
+      U_DmaWrite : entity work.AxiStreamDmaV2Write
          generic map (
             TPD_G             => TPD_G,
             AXI_READY_EN_G    => AXI_READY_EN_G,
             AXIS_CONFIG_G     => AXIS_CONFIG_G,
             AXI_CONFIG_G      => AXI_DMA_CONFIG_G,
+            PIPE_STAGES_G     => WR_PIPE_STAGES_G,
             BURST_BYTES_G     => BURST_BYTES_G,
             ACK_WAIT_BVALID_G => true)
          port map (
-            axiClk           => axiClk,
-            axiRst           => axiRst,
-            dmaWrDescReq     => dmaWrDescReq(i),
-            dmaWrDescAck     => dmaWrDescAck(i),
-            dmaWrDescRet     => dmaWrDescRet(i),
-            dmaWrDescRetAck  => dmaWrDescRetAck(i),
-            dmaWrIdle        => open,
-            axiCache         => axiCache,
-            axisMaster       => sAxisMaster(i),
-            axisSlave        => sAxisSlave(i),
-            axiWriteMaster   => axiWriteMaster(i+1),
-            axiWriteSlave    => axiWriteSlave(i+1),
-            axiWriteCtrl     => axiWriteCtrl(i+1));
+            axiClk          => axiClk,
+            axiRst          => axiReset(i),
+            dmaWrDescReq    => dmaWrDescReq(i),
+            dmaWrDescAck    => dmaWrDescAck(i),
+            dmaWrDescRet    => dmaWrDescRet(i),
+            dmaWrDescRetAck => dmaWrDescRetAck(i),
+            dmaWrIdle       => open,
+            axiCache        => axiCache,
+            axisMaster      => sAxisMaster(i),
+            axisSlave       => sAxisSlave(i),
+            axiWriteMaster  => axiWriteMaster(i+1),
+            axiWriteSlave   => axiWriteSlave(i+1),
+            axiWriteCtrl    => axiWriteCtrl(i+1));
    end generate;
 
 end structure;
