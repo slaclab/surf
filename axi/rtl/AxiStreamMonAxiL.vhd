@@ -80,11 +80,8 @@ architecture rtl of AxiStreamMonAxiL is
 
 
    signal frameRate         : Slv32Array(AXIS_NUM_SLOTS-1 downto 0);
-   signal frameRateMax      : Slv32Array(AXIS_NUM_SLOTS-1 downto 0);
-   signal frameRateMin      : Slv32Array(AXIS_NUM_SLOTS-1 downto 0);
    signal bandwidth         : Slv64Array(AXIS_NUM_SLOTS-1 downto 0);
-   signal bandwidthMax      : Slv64Array(AXIS_NUM_SLOTS-1 downto 0);
-   signal bandwidthMin      : Slv64Array(AXIS_NUM_SLOTS-1 downto 0);
+
 
    -- attribute dont_touch          : string;
    -- attribute dont_touch of r     : signal is "true";   
@@ -111,30 +108,47 @@ begin
          statusClk    => axilClk,
          statusRst    => localRst,
          frameRate    => frameRate(i),
-         frameRateMax => frameRateMax(i),
-         frameRateMin => frameRateMin(i),
-         bandwidth    => bandwidth(i),
-         bandwidthMax => bandwidthMax(i),
-         bandwidthMin => bandwidthMin(i)
+         bandwidth    => bandwidth(i)
       );
 
    end generate;
 
    comb : process (axilRst, sAxilReadMaster, sAxilWriteMaster, r,
-                   frameRate, frameRateMax, frameRateMin, bandwidth, bandwidthMax, bandwidthMin) is
+                   frameRate, bandwidth) is
       variable v        : RegType;
       variable regCon   : AxiLiteEndPointType;
    begin
       v := r;
 
+
       for i in 0 to (AXIS_NUM_SLOTS-1) loop 
          v.frameRate(i)    := frameRate(i);
-         v.frameRateMax(i) := frameRateMax(i);
-         v.frameRateMin(i) := frameRateMin(i);
          v.bandwidth(i)    := bandwidth(i);
-         v.bandwidthMax(i) := bandwidthMax(i);
-         v.bandwidthMin(i) := bandwidthMin(i);
       end loop;
+
+      if r.rstCnt = '1' then
+         for i in 0 to (AXIS_NUM_SLOTS-1) loop 
+            v.frameRateMax(i) := frameRate(i);
+            v.frameRateMin(i) := frameRate(i);
+            v.bandwidthMax(i) := bandwidth(i);
+            v.bandwidthMin(i) := bandwidth(i);
+         end loop;
+      else
+         for i in 0 to (AXIS_NUM_SLOTS-1) loop 
+            if r.frameRate(i) > r.frameRateMax(i) then
+               v.frameRateMax(i) := r.frameRate(i);
+            end if;
+            if r.frameRate(i) < r.frameRateMin(i) then
+               v.frameRateMin(i) := r.frameRate(i);
+            end if;
+            if r.bandwidth(i) > r.bandwidthMax(i) then
+               v.bandwidthMax(i) := r.bandwidth(i);
+            end if;
+            if r.bandwidth(i) < r.bandwidthMin(i) then
+               v.bandwidthMin(i) := r.bandwidth(i);
+            end if;
+         end loop;
+      end if;
 
       v.rstCnt := '0';
       v.sAxilReadSlave.rdata := (others => '0');
@@ -148,7 +162,7 @@ begin
          axiSlaveRegisterR(regCon, toSlv(24 + (i * 48),16), 0,  r.frameRateMin(i));       --x"18" + i * x"30" 
          axiSlaveRegisterR(regCon, toSlv(28 + (i * 48),16), 0,  r.bandwidth(i));          --x"1C" + i * x"30" 
          axiSlaveRegisterR(regCon, toSlv(36 + (i * 48),16), 0,  r.bandwidthMax(i));       --x"24" + i * x"30" 
-         axiSlaveRegisterR(regCon, toSlv(44 + (i * 48),16), 0,  r.bandwidthMin(i)));      --x"2C" + i * x"30" 
+         axiSlaveRegisterR(regCon, toSlv(44 + (i * 48),16), 0,  r.bandwidthMin(i));       --x"2C" + i * x"30" 
       end loop;
       
       axiSlaveDefault(regCon, v.sAxilWriteSlave, v.sAxilReadSlave, AXIL_ERR_RESP_G);
