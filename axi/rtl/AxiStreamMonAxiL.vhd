@@ -30,15 +30,15 @@ entity AxiStreamMonAxiL is
       TPD_G           : time                := 1 ns;
       COMMON_CLK_G    : boolean             := false;  -- true if axisClk = statusClk
       AXIS_CLK_FREQ_G : real                := 156.25E+6;  -- units of Hz
-      AXIS_NUM_SLOTS  : integer             := 1;
+      AXIS_NUM_SLOTS_G: integer             := 1;
       AXIS_CONFIG_G   : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
       AXIL_ERR_RESP_G : slv(1 downto 0)     := AXI_RESP_DECERR_C);
    port (
       -- AXIS Stream Interface
       axisClk           : in  sl;
       axisRst           : in  sl;
-      axisMaster        : in  AxiStreamMasterArray(AXIS_NUM_SLOTS-1 downto 0);
-      axisSlave         : in  AxiStreamSlaveArray(AXIS_NUM_SLOTS-1 downto 0);
+      axisMaster        : in  AxiStreamMasterArray(AXIS_NUM_SLOTS_G-1 downto 0);
+      axisSlave         : in  AxiStreamSlaveArray(AXIS_NUM_SLOTS_G-1 downto 0);
       -- AXI lite slave port for register access
       axilClk           : in  std_logic;
       axilRst           : in  std_logic;
@@ -52,12 +52,12 @@ architecture rtl of AxiStreamMonAxiL is
 
    type RegType is record
       rstCnt            : sl;
-      frameRate         : Slv32Array(AXIS_NUM_SLOTS-1 downto 0);
-      frameRateMax      : Slv32Array(AXIS_NUM_SLOTS-1 downto 0);
-      frameRateMin      : Slv32Array(AXIS_NUM_SLOTS-1 downto 0);
-      bandwidth         : Slv64Array(AXIS_NUM_SLOTS-1 downto 0);
-      bandwidthMax      : Slv64Array(AXIS_NUM_SLOTS-1 downto 0);
-      bandwidthMin      : Slv64Array(AXIS_NUM_SLOTS-1 downto 0);
+      frameRate         : Slv32Array(AXIS_NUM_SLOTS_G-1 downto 0);
+      frameRateMax      : Slv32Array(AXIS_NUM_SLOTS_G-1 downto 0);
+      frameRateMin      : Slv32Array(AXIS_NUM_SLOTS_G-1 downto 0);
+      bandwidth         : Slv64Array(AXIS_NUM_SLOTS_G-1 downto 0);
+      bandwidthMax      : Slv64Array(AXIS_NUM_SLOTS_G-1 downto 0);
+      bandwidthMin      : Slv64Array(AXIS_NUM_SLOTS_G-1 downto 0);
       sAxilWriteSlave   : AxiLiteWriteSlaveType;
       sAxilReadSlave    : AxiLiteReadSlaveType;
    end record;
@@ -79,8 +79,8 @@ architecture rtl of AxiStreamMonAxiL is
    signal localRst : sl;
 
 
-   signal frameRate         : Slv32Array(AXIS_NUM_SLOTS-1 downto 0);
-   signal bandwidth         : Slv64Array(AXIS_NUM_SLOTS-1 downto 0);
+   signal frameRate         : Slv32Array(AXIS_NUM_SLOTS_G-1 downto 0);
+   signal bandwidth         : Slv64Array(AXIS_NUM_SLOTS_G-1 downto 0);
 
 
    -- attribute dont_touch          : string;
@@ -90,7 +90,7 @@ begin
 
    localRst <= r.rstCnt;
 
-   G_StreamLinks : for i in 0 to (AXIS_NUM_SLOTS-1) generate 
+   G_StreamLinks : for i in 0 to (AXIS_NUM_SLOTS_G-1) generate 
 
       U_rateMonitor : entity work.AxiStreamMon 
       generic map(
@@ -121,20 +121,20 @@ begin
       v := r;
 
 
-      for i in 0 to (AXIS_NUM_SLOTS-1) loop 
+      for i in 0 to (AXIS_NUM_SLOTS_G-1) loop 
          v.frameRate(i)    := frameRate(i);
          v.bandwidth(i)    := bandwidth(i);
       end loop;
 
       if r.rstCnt = '1' then
-         for i in 0 to (AXIS_NUM_SLOTS-1) loop 
+         for i in 0 to (AXIS_NUM_SLOTS_G-1) loop 
             v.frameRateMax(i) := frameRate(i);
             v.frameRateMin(i) := frameRate(i);
             v.bandwidthMax(i) := bandwidth(i);
             v.bandwidthMin(i) := bandwidth(i);
          end loop;
       else
-         for i in 0 to (AXIS_NUM_SLOTS-1) loop 
+         for i in 0 to (AXIS_NUM_SLOTS_G-1) loop 
             if r.frameRate(i) > r.frameRateMax(i) then
                v.frameRateMax(i) := r.frameRate(i);
             end if;
@@ -156,7 +156,7 @@ begin
       
       axiSlaveRegister (regCon, x"00",  0, v.rstCnt);
 
-      for i in 0 to (AXIS_NUM_SLOTS-1) loop
+      for i in 0 to (AXIS_NUM_SLOTS_G-1) loop
          axiSlaveRegisterR(regCon, toSlv(16 + (i * 48),16), 0,  r.frameRate(i));          --x"10" + i * x"30" 
          axiSlaveRegisterR(regCon, toSlv(20 + (i * 48),16), 0,  r.frameRateMax(i));       --x"14" + i * x"30" 
          axiSlaveRegisterR(regCon, toSlv(24 + (i * 48),16), 0,  r.frameRateMin(i));       --x"18" + i * x"30" 
