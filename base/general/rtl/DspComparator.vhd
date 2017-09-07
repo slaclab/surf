@@ -23,17 +23,21 @@ use work.StdRtlPkg.all;
 
 entity DspComparator is
    generic (
-      TPD_G   : time                   := 1 ns;
-      WIDTH_G : positive range 2 to 48 := 32);
+      TPD_G          : time                   := 1 ns;
+      RST_POLARITY_G : sl                     := '1';  -- '1' for active high rst, '0' for active low
+      WIDTH_G        : positive range 2 to 48 := 32);
    port (
-      clk  : in  sl;
-      ain  : in  slv(WIDTH_G-1 downto 0);
-      bin  : in  slv(WIDTH_G-1 downto 0);
-      eq   : out sl;                    -- equal                    (a =  b)
-      gt   : out sl;                    -- greater than             (a >  b)
-      gtEq : out sl;                    -- greater than or equal to (a >= b)
-      ls   : out sl;                    -- less than                (a <  b)
-      lsEq : out sl);                   -- less than or equal to    (a <= b)
+      clk      : in  sl;
+      rst      : in  sl := not(RST_POLARITY_G);
+      validIn  : in  sl := '1';
+      ain      : in  slv(WIDTH_G-1 downto 0);
+      bin      : in  slv(WIDTH_G-1 downto 0);
+      validOut : out sl;
+      eq       : out sl;                -- equal                    (a =  b)
+      gt       : out sl;                -- greater than             (a >  b)
+      gtEq     : out sl;                -- greater than or equal to (a >= b)
+      ls       : out sl;                -- less than                (a <  b)
+      lsEq     : out sl);               -- less than or equal to    (a <= b)
 end DspComparator;
 
 architecture rtl of DspComparator is
@@ -53,7 +57,15 @@ begin
    process(clk)
    begin
       if rising_edge(clk) then
-         c <= a - b after TPD_G;
+         validOut <= '0' after TPD_G;
+         if (rst = RST_POLARITY_G) then
+            c <= (others => '0') after TPD_G;
+         else
+            if (validIn = '1') then
+               validOut <= '1'   after TPD_G;
+               c        <= a - b after TPD_G;
+            end if;
+         end if;
       end if;
    end process;
 
