@@ -25,54 +25,132 @@ entity DspComparator is
    generic (
       TPD_G          : time                   := 1 ns;
       RST_POLARITY_G : sl                     := '1';  -- '1' for active high rst, '0' for active low
+      USE_DSP_G      : string                 := "yes";
+      PIPE_STAGES_G  : natural range 0 to 1   := 0;
       WIDTH_G        : positive range 2 to 48 := 32);
    port (
-      clk      : in  sl;
-      rst      : in  sl := not(RST_POLARITY_G);
-      validIn  : in  sl := '1';
-      ain      : in  slv(WIDTH_G-1 downto 0);
-      bin      : in  slv(WIDTH_G-1 downto 0);
-      validOut : out sl;
-      eq       : out sl;                -- equal                    (a =  b)
-      gt       : out sl;                -- greater than             (a >  b)
-      gtEq     : out sl;                -- greater than or equal to (a >= b)
-      ls       : out sl;                -- less than                (a <  b)
-      lsEq     : out sl);               -- less than or equal to    (a <= b)
+      clk     : in  sl;
+      rst     : in  sl := not(RST_POLARITY_G);
+      -- Inbound Interface
+      ibValid : in  sl := '1';
+      ibReady : out sl;
+      ain     : in  slv(WIDTH_G-1 downto 0);
+      bin     : in  slv(WIDTH_G-1 downto 0);
+      -- Outbound Interface
+      obValid : out sl;
+      obReady : in  sl := '1';
+      eq      : out sl;                 -- equal                    (a =  b)
+      gt      : out sl;                 -- greater than             (a >  b)
+      gtEq    : out sl;                 -- greater than or equal to (a >= b)
+      ls      : out sl;                 -- less than                (a <  b)
+      lsEq    : out sl);                -- less than or equal to    (a <= b)
 end DspComparator;
 
 architecture rtl of DspComparator is
 
-   signal a : signed(WIDTH_G - 1 downto 0);
-   signal b : signed(WIDTH_G - 1 downto 0);
-   signal c : signed(WIDTH_G - 1 downto 0);
+   type RegType is record
+      ibReady : sl;
+      tValid  : sl;
+      diff    : signed(WIDTH_G - 1 downto 0);
+   end record RegType;
+   constant REG_INIT_C : RegType := (
+      ibReady => '0',
+      tValid  => '0',
+      diff    => (others => '0'));
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
+
+   signal tReady  : sl;
+   signal eqInt   : sl;
+   signal gtInt   : sl;
+   signal gtEqInt : sl;
+   signal lsInt   : sl;
+   signal lsEqInt : sl;
 
    attribute use_dsp48      : string;
-   attribute use_dsp48 of c : signal is "yes";
+   attribute use_dsp48 of r : signal is USE_DSP_G;
 
 begin
 
-   a <= signed(ain);
-   b <= signed(bin);
+   comb : process (ain, bin, ibValid, r, rst, tReady) is
+      variable v : RegType;
+      variable a : signed(WIDTH_G - 1 downto 0);
+      variable b : signed(WIDTH_G - 1 downto 0);
+   begin
+      -- Latch the current value
+      v := r;
 
-   process(clk)
+      -- typecast from slv to signed
+      a := signed(ain);
+      b := signed(bin);
+
+      -- Reset the flags
+      v.ibReady := '0';
+      if tReady = '1' then
+         v.tValid := '0';
+      end if;
+
+      -- Check if ready to process data
+      if (v.tValid = '0') and (ibValid = '1') then
+         -- Set the flow control flags
+         v.ibReady := '1';
+         v.tValid  := '1';
+         -- Process the data
+         v.diff    := a - b;
+      end if;
+
+      -- Reset
+      if (rst = RST_POLARITY_G) then
+         v := REG_INIT_C;
+      end if;
+
+      -- Register the variable for next clock cycle
+      rin <= v;
+
+      -- Outputs              
+      ibReady <= v.ibReady;
+
+   end process comb;
+
+   seq : process (clk) is
    begin
       if rising_edge(clk) then
-         validOut <= '0' after TPD_G;
-         if (rst = RST_POLARITY_G) then
-            c <= (others => '0') after TPD_G;
-         else
-            if (validIn = '1') then
-               validOut <= '1'   after TPD_G;
-               c        <= a - b after TPD_G;
-            end if;
-         end if;
+         r <= rin after TPD_G;
       end if;
-   end process;
+   end process seq;
 
-   eq   <= '1' when (c(WIDTH_G-1 downto 0) = 0)                         else '0';
-   gt   <= '1' when (c(WIDTH_G-1) = '0' and c(WIDTH_G-2 downto 0) /= 0) else '0';
-   gtEq <= '1' when (c(WIDTH_G-1) = '0')                                else '0';
-   ls   <= '1' when (c(WIDTH_G-1) = '1')                                else '0';
-   lsEq <= '1' when (c(WIDTH_G-1) = '1' or c(WIDTH_G-1 downto 0) = 0)   else '0';
+   eqInt   <= '1' when (r.diff(WIDTH_G-1 downto 0) = 0)                              else '0';
+   gtInt   <= '1' when (r.diff(WIDTH_G-1) = '0' and r.diff(WIDTH_G-2 downto 0) /= 0) else '0';
+   gtEqInt <= '1' when (r.diff(WIDTH_G-1) = '0')                                     else '0';
+   lsInt   <= '1' when (r.diff(WIDTH_G-1) = '1')                                     else '0';
+   lsEqInt <= '1' when (r.diff(WIDTH_G-1) = '1' or r.diff(WIDTH_G-1 downto 0) = 0)   else '0';
+
+   U_Pipe : entity work.FifoOutputPipeline
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         DATA_WIDTH_G   => 5,
+         PIPE_STAGES_G  => PIPE_STAGES_G)
+      port map (
+         -- Slave Port         
+         sData(0) => eqInt,
+         sData(1) => gtInt,
+         sData(2) => gtEqInt,
+         sData(3) => lsInt,
+         sData(4) => lsEqInt,
+         sValid   => r.tValid,
+         sRdEn    => tReady,
+         -- Master Port
+         mData(0) => eq,
+         mData(1) => gt,
+         mData(2) => gtEq,
+         mData(3) => ls,
+         mData(4) => lsEq,
+         mValid   => obValid,
+         mRdEn    => obReady,
+         -- Clock and Reset
+         clk      => clk,
+         rst      => rst);
 
 end rtl;

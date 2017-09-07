@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- File       : DspComparatorTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-09-26
+-- Created    : 2017-09-07
 -- Last update: 2017-09-07
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for the DspComparator module
