@@ -52,9 +52,11 @@ entity Pgp2bGtp7VarLatWrapper is
       RXLPM_INCM_CFG_G     : bit                     := '0';
       RXLPM_IPCM_CFG_G     : bit                     := '1';
       -- Configure PGP
-      RX_ENABLE_G          : boolean                 := true;
-      TX_ENABLE_G          : boolean                 := true;
       AXI_ERROR_RESP_G     : slv(1 downto 0)         := AXI_RESP_DECERR_C;
+      TX_POLARITY_G        : sl                      := '0';
+      RX_POLARITY_G        : sl                      := '0';
+      TX_ENABLE_G          : boolean                 := true;
+      RX_ENABLE_G          : boolean                 := true;
       PAYLOAD_CNT_TOP_G    : integer                 := 7;     -- Top bit for payload counter
       VC_INTERLEAVE_G      : integer                 := 1;     -- Interleave Frames
       NUM_VC_EN_G          : integer range 1 to 4    := 4);
@@ -219,9 +221,11 @@ begin
          TX_PLL_G              => "PLL0",
          RX_PLL_G              => "PLL1",
          -- Configure PGP
-         RX_ENABLE_G           => RX_ENABLE_G,
-         TX_ENABLE_G           => TX_ENABLE_G,
          AXI_ERROR_RESP_G      => AXI_ERROR_RESP_G,
+         TX_POLARITY_G         => TX_POLARITY_G,
+         RX_POLARITY_G         => RX_POLARITY_G,
+         TX_ENABLE_G           => TX_ENABLE_G,
+         RX_ENABLE_G           => RX_ENABLE_G,
          PAYLOAD_CNT_TOP_G     => PAYLOAD_CNT_TOP_G,
          VC_INTERLEAVE_G       => VC_INTERLEAVE_G,
          NUM_VC_EN_G           => NUM_VC_EN_G)

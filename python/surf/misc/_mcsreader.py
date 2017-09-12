@@ -130,11 +130,11 @@ class McsReader():
                             elif addr != 0:
                                 click.secho('\nAddr: {:x} must be 0 for ELA records'.format(addr), fg='red')
                                 raise McsException('McsReader.open(): failed')  
-                            # Check for first address index (which is always the first line)
-                            if (i==0):
-                                self.startAddr = addr
                             # Update the base address 
                             baseAddr = int(strings[4]+strings[5], 16)* (2**16)
+                            # Check for first address index (which is always the first line)
+                            if (i==0):
+                                self.startAddr = baseAddr
                         else: # Undefined RecordType
                             click.secho('\nInvalid record type: {:d}'.format(recordType), fg='red')
                             raise McsException('McsReader.open(): failed')    

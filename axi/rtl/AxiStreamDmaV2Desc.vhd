@@ -30,14 +30,15 @@ use work.ArbiterPkg.all;
 
 entity AxiStreamDmaV2Desc is
    generic (
-      TPD_G            : time                   := 1 ns;
-      CHAN_COUNT_G     : integer range 1 to 16  := 1;
-      AXIL_BASE_ADDR_G : slv(31 downto 0)       := x"00000000";
-      AXI_ERROR_RESP_G : slv(1 downto 0)        := AXI_RESP_OK_C;
-      AXI_READY_EN_G   : boolean                := false;
-      AXI_CONFIG_G     : AxiConfigType          := AXI_CONFIG_INIT_C;
-      DESC_AWIDTH_G    : integer range 4 to 12  := 12;
-      ACK_WAIT_BVALID_G : boolean               := true);
+      TPD_G             : time                   := 1 ns;
+      CHAN_COUNT_G      : integer range 1 to 16  := 1;
+      AXIL_BASE_ADDR_G  : slv(31 downto 0)       := x"00000000";
+      AXI_ERROR_RESP_G  : slv(1 downto 0)        := AXI_RESP_OK_C;
+      AXI_READY_EN_G    : boolean                := false;
+      AXI_CONFIG_G      : AxiConfigType          := AXI_CONFIG_INIT_C;
+      DESC_AWIDTH_G     : integer range 4 to 12  := 12;
+      DESC_ARB_G        : boolean                := true;
+      ACK_WAIT_BVALID_G : boolean                := true);
    port (
       -- Clock/Reset
       axiClk          : in  sl;
@@ -154,6 +155,7 @@ architecture rtl of AxiStreamDmaV2Desc is
 
       -- Write Desc Request
       wrReqValid      : sl;
+      wrReqCnt        : natural range 0 to CHAN_COUNT_G-1;
       wrReqNum        : slv(CHAN_SIZE_C-1 downto 0);
       wrReqAcks       : slv(CHAN_COUNT_G-1 downto 0);
       wrReqMissed     : slv(31 downto 0);
@@ -161,6 +163,7 @@ architecture rtl of AxiStreamDmaV2Desc is
       -- Desc Return
       descRetList     : slv(DESC_COUNT_C-1 downto 0);
       descState       : DescStateType;
+      descRetCnt      : natural range 0 to DESC_COUNT_C-1;
       descRetNum      : slv(DESC_SIZE_C-1 downto 0);
       descRetAcks     : slv(DESC_COUNT_C-1 downto 0);
       wrIndex         : slv(DESC_AWIDTH_G-1 downto 0);
@@ -209,11 +212,13 @@ architecture rtl of AxiStreamDmaV2Desc is
       rdAddr             => (others=>'0'),
       rdAddrValid        => '0',
       wrReqValid         => '0',
+      wrReqCnt           => 0,
       wrReqNum           => (others=>'0'),
       wrReqAcks          => (others=>'0'),
       wrReqMissed        => (others=>'0'),
       descRetList        => (others=>'0'),
       descState          => IDLE_S,
+      descRetCnt         => 0,
       descRetNum         => (others=>'0'),
       descRetAcks        => (others=>'0'),
       wrIndex            => (others=>'0'),
@@ -237,23 +242,6 @@ architecture rtl of AxiStreamDmaV2Desc is
 
    attribute dont_touch      : string;
    attribute dont_touch of r : signal is "true";
-
-   procedure axiWrDetect (
-      variable ep : inout AxiLiteEndpointType;
-      addr        : in    slv;
-      reg         : inout sl)
-   is
-      -- Need to remap addr range to be (length-1 downto 0)
-      constant ADDR_LEN_C : integer := addr'length;
-      constant ADDR_C     : slv(ADDR_LEN_C-1 downto 0) := addr;
-   begin
-      if (ep.axiStatus.writeEnable = '1') then
-         if std_match(ep.axiWriteMaster.awaddr(ADDR_LEN_C-1 downto 2), ADDR_C(ADDR_LEN_C-1 downto 2)) then
-            reg := '1';
-            axiSlaveWriteResponse(ep.axiWriteSlave);
-         end if;
-      end if;
-   end procedure;
 
 begin
 
@@ -447,7 +435,7 @@ begin
       -- Address FIFO Control
       --------------------------------------
       -- Alternate between read and write FIFOs to common address pool
-      v.addrFifoSel := not v.addrFifoSel;
+      v.addrFifoSel := not(r.addrFifoSel);
 
       -- Write pipeline
       if r.wrFifoRd = '1' then
@@ -495,7 +483,25 @@ begin
 
          -- Aribrate between requesters
          if r.enable = '1' and r.wrFifoRd = '0' and r.wrAddrValid = '1' then
-            arbitrate(wrReqList, r.wrReqNum, v.wrReqNum, v.wrReqValid, v.wrReqAcks);
+            if (DESC_ARB_G = true) then
+               arbitrate(wrReqList, r.wrReqNum, v.wrReqNum, v.wrReqValid, v.wrReqAcks);
+            else               
+               -- Check the counter
+               if (r.wrReqCnt = (CHAN_COUNT_G-1)) then
+                  -- Reset the counter
+                  v.wrReqCnt := 0;
+               else
+                  -- Increment the counter
+                  v.wrReqCnt := r.wrReqCnt + 1;
+               end if;
+               -- Check for valid 
+               if (wrReqList(r.wrReqCnt) = '1') then
+                  v.wrReqValid := '1';
+                  v.wrReqNum   := toSlv(r.wrReqCnt ,CHAN_COUNT_G);
+               else
+                  v.wrReqValid := '0';
+               end if;            
+            end if;
          end if;
 
          if r.enable = '0' then
@@ -559,8 +565,26 @@ begin
 
             -- Aribrate between requesters
             if r.enable = '1' and pause = '0' then
-               arbitrate(v.descRetList, r.descRetNum, v.descRetNum, descRetValid, v.descRetAcks);
-
+               if (DESC_ARB_G = true) then
+                  arbitrate(v.descRetList, r.descRetNum, v.descRetNum, descRetValid, v.descRetAcks);
+               else
+                  -- Check the counter
+                  if (r.descRetCnt = (DESC_COUNT_C-1)) then
+                     -- Reset the counter
+                     v.descRetCnt := 0;
+                  else
+                     -- Increment the counter
+                     v.descRetCnt := r.descRetCnt + 1;
+                  end if;               
+                  -- Check for valid 
+                  if (v.descRetList(r.descRetCnt) = '1') then
+                     descRetValid := '1';
+                     v.descRetNum := toSlv(r.descRetCnt ,DESC_SIZE_C);
+                  else
+                     descRetValid := '0';
+                  end if;
+               end if;            
+            
                -- Valid request
                if descRetValid = '1' then
                   if v.descRetNum(0) = '1' then

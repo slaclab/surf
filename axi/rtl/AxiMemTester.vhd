@@ -2,7 +2,7 @@
 -- File       : AxiMemTester.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-07-28
--- Last update: 2017-05-09
+-- Last update: 2017-08-14
 -------------------------------------------------------------------------------
 -- Description: General Purpose AXI4 memory tester
 -------------------------------------------------------------------------------
@@ -28,10 +28,10 @@ entity AxiMemTester is
    generic (
       TPD_G            : time                     := 1 ns;
       AXI_ERROR_RESP_G : slv(1 downto 0)          := AXI_RESP_DECERR_C;
-      START_ADDR_G     : slv := X"00000000";
-      STOP_ADDR_G      : slv := X"FFFFFFFF";
+      START_ADDR_G     : slv                      := X"00000000";
+      STOP_ADDR_G      : slv                      := X"FFFFFFFF";
       BURST_LEN_G      : positive range 1 to 4096 := 4096;
-      AXI_CONFIG_G     : AxiConfigType := AXI_CONFIG_INIT_C);
+      AXI_CONFIG_G     : AxiConfigType            := AXI_CONFIG_INIT_C);
    port (
       -- AXI-Lite Interface
       axilClk         : in  sl;
@@ -62,10 +62,19 @@ architecture rtl of AxiMemTester is
    constant DATA_BITS_C : natural         := 8*AXI_CONFIG_G.DATA_BYTES_C;
    constant AXI_LEN_C   : slv(7 downto 0) := getAxiLen(AXI_CONFIG_G, BURST_LEN_G);
 
+   constant PRBS_TAPS_C : NaturalArray := (0 => (DATA_BITS_C-1), 1 => (DATA_BITS_C/2), 2 => (DATA_BITS_C/4));
 
-   constant PRBS_TAPS_C : NaturalArray       := (0 => 1023, 1 => 257, 2 => 113, 3 => 61, 4 => 29, 5 => 17, 6 => 7);
-   constant PRBS_SEED_C : slv(1023 downto 0) := x"AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55AA55";
-   
+   function GenSeed return slv is
+      variable retVar : slv(DATA_BITS_C-1 downto 0);
+   begin
+      for i in AXI_CONFIG_G.DATA_BYTES_C-1 downto 0 loop
+         retVar((8*i)+7 downto (8*i)) := x"A5";
+      end loop;
+      return retVar;
+   end function;
+
+   constant PRBS_SEED_C : slv(DATA_BITS_C-1 downto 0) := GenSeed;
+
    type StateType is (
       IDLE_S,
       WRITE_ADDR_S,
@@ -74,7 +83,7 @@ architecture rtl of AxiMemTester is
       READ_ADDR_S,
       READ_DATA_S,
       DONE_S,
-      ERROR_S);    
+      ERROR_S);
 
    type RegType is record
       done           : sl;
@@ -88,12 +97,12 @@ architecture rtl of AxiMemTester is
       rTimer         : slv(31 downto 0);
       len            : slv(7 downto 0);
       address        : slv(63 downto 0);
-      randomData     : slv(1023 downto 0);
+      randomData     : slv(DATA_BITS_C-1 downto 0);
       state          : StateType;
       axiWriteMaster : AxiWriteMasterType;
       axiReadMaster  : AxiReadMasterType;
    end record;
-   
+
    constant REG_INIT_C : RegType := (
       done           => '0',
       error          => '0',
@@ -109,7 +118,7 @@ architecture rtl of AxiMemTester is
       randomData     => PRBS_SEED_C,
       state          => IDLE_S,
       axiWriteMaster => AXI_WRITE_MASTER_INIT_C,
-      axiReadMaster  => AXI_READ_MASTER_INIT_C);   
+      axiReadMaster  => AXI_READ_MASTER_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -138,7 +147,7 @@ architecture rtl of AxiMemTester is
    -- attribute dont_touch          : string;
    -- attribute dont_touch of r     : signal is "true";
    -- attribute dont_touch of rLite : signal is "true";
-   
+
 begin
 
    comb : process (axiReadSlave, axiRst, axiWriteSlave, r, start) is
@@ -338,7 +347,7 @@ begin
       -- Outputs
       axiWriteMaster <= r.axiWriteMaster;
       axiReadMaster  <= r.axiReadMaster;
-      
+
    end process comb;
 
    seq : process (axiClk) is
@@ -362,7 +371,7 @@ begin
       port map (
          clk     => axilClk,
          dataIn  => r.error,
-         dataOut => error);      
+         dataOut => error);
 
    Sync_2 : entity work.SynchronizerFifo
       generic map (
@@ -386,9 +395,10 @@ begin
          din    => r.rTimer,
          -- Read Ports (rd_clk domain)
          rd_clk => axilClk,
-         dout   => rTimer);         
+         dout   => rTimer);
 
-   combLite : process (axilReadMaster, axilRst, axilWriteMaster, done, error, rLite, rTimer, wTimer) is
+   combLite : process (axilReadMaster, axilRst, axilWriteMaster, done, error,
+                       rLite, rTimer, wTimer) is
       variable v      : RegLiteType;
       variable regCon : AxiLiteEndPointType;
    begin
@@ -438,7 +448,7 @@ begin
       axilReadSlave  <= rLite.axilReadSlave;
       memReady       <= rLite.memReady;
       memError       <= rLite.memError;
-      
+
    end process combLite;
 
    seqLite : process (axilClk) is
@@ -447,5 +457,5 @@ begin
          rLite <= rinLite after TPD_G;
       end if;
    end process seqLite;
-   
+
 end rtl;

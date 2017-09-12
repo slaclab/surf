@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2017-03-07
+-- Last update: 2017-08-09
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -74,6 +74,7 @@ architecture rtl of Ad9249ReadoutGroup is
       delay          : slv(4 downto 0);
       dataDelaySet   : slv(NUM_CHANNELS_G-1 downto 0);
       frameDelaySet  : sl;
+      freezeDebug    : sl;
       readoutDebug0  : slv16Array(NUM_CHANNELS_G-1 downto 0);
       readoutDebug1  : slv16Array(NUM_CHANNELS_G-1 downto 0);
       lockedCountRst : sl;
@@ -85,6 +86,7 @@ architecture rtl of Ad9249ReadoutGroup is
       delay          => DEFAULT_DELAY_G,
       dataDelaySet   => (others => '1'),
       frameDelaySet  => '1',
+      freezeDebug    => '0',
       readoutDebug0  => (others => (others => '0')),
       readoutDebug1  => (others => (others => '0')),
       lockedCountRst => '0');
@@ -139,7 +141,7 @@ architecture rtl of Ad9249ReadoutGroup is
 
    signal debugDataValid : sl;
    signal debugDataOut   : slv(NUM_CHANNELS_G*16-1 downto 0);
-   signal debugDataTmp   : slv16Array(NUM_CHANNELS_G-1 downto 0);   
+   signal debugDataTmp   : slv16Array(NUM_CHANNELS_G-1 downto 0);
 
 begin
    -------------------------------------------------------------------------------------------------
@@ -200,7 +202,7 @@ begin
       v.axilReadSlave.rdata := (others => '0');
 
       -- Store last two samples read from ADC
-      if (debugDataValid = '1') then
+      if (debugDataValid = '1' and axilR.freezeDebug = '0') then
          v.readoutDebug0 := debugDataTmp;
          v.readoutDebug1 := axilR.readoutDebug0;
       end if;
@@ -236,6 +238,8 @@ begin
          axiSlaveRegisterR(axilEp, X"80"+toSlv((i*4), 8), 0, axilR.readoutDebug0(i));
          axiSlaveRegisterR(axilEp, X"80"+toSlv((i*4), 8), 16, axilR.readoutDebug1(i));
       end loop;
+
+      axiSlaveRegister(axilEp, X"A0", 0, v.freezeDebug);
 
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
@@ -404,7 +408,7 @@ begin
             v.fifoWrData(i) := "00" & adcData(i);
          else
             -- Not locked
-            v.fifoWrData(i) := (others => '1'); --"10" & "00000000000000";
+            v.fifoWrData(i) := (others => '1');  --"10" & "00000000000000";
          end if;
       end loop;
 

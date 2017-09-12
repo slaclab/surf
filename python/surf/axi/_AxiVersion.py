@@ -104,13 +104,13 @@ class AxiVersion(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(   
-            name         = "MasterReset",
+            name         = "UserReset",
             description  = "Optional User Reset",
             offset       =  0x10C,
             bitSize      =  1,
             bitOffset    =  0x00,
             base         = pr.UInt,
-            mode         = "WO",
+            mode         = "RW",
         ))
 
         self.add(pr.RemoteVariable(   

@@ -38,9 +38,11 @@ entity Pgp2bGtp7FixedLatWrapper is
       VC_INTERLEAVE_G         : integer              := 0;  -- No interleave Frames
       PAYLOAD_CNT_TOP_G       : integer              := 7;  -- Top bit for payload counter
       NUM_VC_EN_G             : integer range 1 to 4 := 4;
-      AXIL_ERROR_RESP_G       : slv(1 downto 0)      := AXI_RESP_DECERR_C;
       AXIL_BASE_ADDR_G        : slv(31 downto 0)     := (others => '0');
       EXT_RST_POLARITY_G      : sl                   := '1';
+      AXIL_ERROR_RESP_G       : slv(1 downto 0)      := AXI_RESP_DECERR_C;
+      TX_POLARITY_G           : sl                   := '0';
+      RX_POLARITY_G           : sl                   := '0';
       TX_ENABLE_G             : boolean              := true;           -- Enable TX direction
       RX_ENABLE_G             : boolean              := true;           -- Enable RX direction
       -- CM Configurations
@@ -388,6 +390,8 @@ begin
          PAYLOAD_CNT_TOP_G     => PAYLOAD_CNT_TOP_G,
          NUM_VC_EN_G           => NUM_VC_EN_G,
          AXI_ERROR_RESP_G      => AXIL_ERROR_RESP_G,
+         TX_POLARITY_G         => TX_POLARITY_G,
+         RX_POLARITY_G         => RX_POLARITY_G,
          TX_ENABLE_G           => TX_ENABLE_G,
          RX_ENABLE_G           => RX_ENABLE_G)
       port map (

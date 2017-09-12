@@ -193,7 +193,7 @@ class AxiMicronP30(pr.Device):
                         # Start a burst transfer
                         self._rawWrite(0x84,0x80000000|addr)
                         # Get the data
-                        dataArray = self._rawRead(address=0x400,size=256)  
+                        dataArray = self._rawRead(offset=0x400,numWords=256)  
                 else:
                     # Get the data for MCS file
                     data |= (int(self._mcs.entry[i][1])  << 8)
@@ -220,4 +220,4 @@ class AxiMicronP30(pr.Device):
         # Set the address
         self._rawWrite(0x4,addr|0x80000000)  
         # Get the read data 
-        return (self._rawRead(0x8)&0xFFFF) 
+        return (self._rawRead(offset=0x8)&0xFFFF) 

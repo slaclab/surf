@@ -74,6 +74,8 @@ entity Pgp2bGtx7MultiLane is
       PAYLOAD_CNT_TOP_G : integer              := 7;        -- Top bit for payload counter
       NUM_VC_EN_G       : integer range 1 to 4 := 4;
       AXI_ERROR_RESP_G  : slv(1 downto 0)      := AXI_RESP_DECERR_C;
+      TX_POLARITY_G     : sl                   := '0';
+      RX_POLARITY_G     : sl                   := '0';
       TX_ENABLE_G       : boolean              := true;     -- Enable TX direction
       RX_ENABLE_G       : boolean              := true);    -- Enable RX direction
    port (
@@ -352,7 +354,7 @@ begin
             rxCharIsKOut     => phyRxLanesIn(i).dataK,
             rxDecErrOut      => phyRxLanesIn(i).decErr,
             rxDispErrOut     => phyRxLanesIn(i).dispErr,
-            rxPolarityIn     => phyRxLanesOut(i).polarity,
+            rxPolarityIn     => RX_POLARITY_G,
             rxBufStatusOut   => open,
             rxChBondLevelIn  => slv(to_unsigned((LANE_CNT_G-1-i), 3)),
             rxChBondIn       => rxChBondIn(i),
@@ -367,6 +369,7 @@ begin
             txResetDoneOut   => gtTxResetDone(i),
             txDataIn         => phyTxLanesOut(i).data,
             txCharIsKIn      => phyTxLanesOut(i).dataK,
+            txPolarityIn     => TX_POLARITY_G,
             txBufStatusOut   => open,
             loopbackIn       => pgpRxIn.loopback,
             txPreCursor      => txPreCursor,
