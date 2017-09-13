@@ -126,9 +126,9 @@ begin
          v.tReady    := '1';
          v.tValid(1) := '1';
          -- Process the data
-         if (clr = '1') then
+         if (r.clr = '1') then
             v.p := r.mult;
-         elsif (add = '1') then
+         elsif (r.add = '1') then
             v.p := r.p + r.mult;
          else
             v.p := r.p - r.mult;
