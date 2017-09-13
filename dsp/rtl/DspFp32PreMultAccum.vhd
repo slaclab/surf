@@ -2,7 +2,7 @@
 -- File       : DspFp32PreMultAccum.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-09-12
--- Last update: 2017-09-12
+-- Last update: 2017-09-13
 -------------------------------------------------------------------------------
 -- Description: 32-bit Floating Point DSP inferred accumulator with pre-multiplier 
 -- Equation: p = sum(+/-(a x b)[i])
@@ -37,7 +37,7 @@ entity DspFp32PreMultAccum is
       ibReady : out sl;
       ain     : in  slv(31 downto 0);
       bin     : in  slv(31 downto 0);
-      clr     : in  sl := '0';
+      load    : in  sl := '0';
       add     : in  sl := '1';          -- '1' = add, '0' = subtract
       -- Outbound Interface
       obValid : out sl;
@@ -51,7 +51,7 @@ architecture rtl of DspFp32PreMultAccum is
       ibReady : sl;
       tReady  : sl;
       tValid  : slv(1 downto 0);
-      clr     : sl;
+      load    : sl;
       add     : sl;
       mult    : float32;
       p       : float32;
@@ -60,7 +60,7 @@ architecture rtl of DspFp32PreMultAccum is
       ibReady => '0',
       tReady  => '0',
       tValid  => (others => '0'),
-      clr     => '0',
+      load    => '0',
       add     => '1',
       mult    => (others => '0'),
       p       => (others => '0'));
@@ -77,7 +77,7 @@ architecture rtl of DspFp32PreMultAccum is
 
 begin
 
-   comb : process (add, ain, bin, clr, ibValid, r, rst, tReady) is
+   comb : process (add, ain, bin, ibValid, load, r, rst, tReady) is
       variable v : RegType;
       variable a : float32;
       variable b : float32;
@@ -107,7 +107,7 @@ begin
          -- Process the data
          v.mult      := a * b;
          v.add       := add;
-         v.clr       := clr;
+         v.load      := load;
       end if;
 
       --------------------------------------------------------------------
@@ -126,9 +126,9 @@ begin
          v.tReady    := '1';
          v.tValid(1) := '1';
          -- Process the data
-         if (r.clr = '1') then
+         if (load = '1') then
             v.p := r.mult;
-         elsif (r.add = '1') then
+         elsif (add = '1') then
             v.p := r.p + r.mult;
          else
             v.p := r.p - r.mult;

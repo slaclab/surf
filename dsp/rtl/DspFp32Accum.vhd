@@ -2,7 +2,7 @@
 -- File       : DspFp32Accum.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-09-12
--- Last update: 2017-09-12
+-- Last update: 2017-09-13
 -------------------------------------------------------------------------------
 -- Description: 32-bit Floating Point DSP inferred accumulator  
 -- Equation: p = sum(+/-a[i])
@@ -36,7 +36,7 @@ entity DspFp32Accum is
       ibValid : in  sl := '1';
       ibReady : out sl;
       ain     : in  slv(31 downto 0);
-      clr     : in  sl := '0';
+      load    : in  sl := '0';
       add     : in  sl := '1';          -- '1' = add, '0' = subtract
       -- Outbound Interface
       obValid : out sl;
@@ -68,7 +68,7 @@ architecture rtl of DspFp32Accum is
 
 begin
 
-   comb : process (add, ain, clr, ibValid, r, rst, tReady) is
+   comb : process (add, ain, ibValid, load, r, rst, tReady) is
       variable v : RegType;
       variable a : float32;
    begin
@@ -90,7 +90,7 @@ begin
          v.ibReady := '1';
          v.tValid  := '1';
          -- Process the data
-         if (clr = '1') then
+         if (load = '1') then
             v.p := a;
          elsif (add = '1') then
             v.p := r.p + a;
