@@ -2,7 +2,7 @@
 -- File       : Pgp3GthUs.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2017-08-01
+-- Last update: 2017-09-13
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -69,7 +69,6 @@ entity Pgp3GthUs is
       -- Frame Transmit Interface - 1 Lane, Array of 4 VCs
       pgpTxMasters : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
       pgpTxSlaves  : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
-      pgpTxCtrl    : out AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
       -- Frame Receive Interface - 1 Lane, Array of 4 VCs
       pgpRxMasters : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
       pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0));
@@ -88,7 +87,7 @@ architecture rtl of Pgp3GthUs is
    signal phyRxClk      : sl;
    signal phyRxRst      : sl;
    signal phyRxInit     : sl;
-   signal phyRxReady    : sl;
+   signal phyRxActive   : sl;
    signal phyRxValid    : sl;
    signal phyRxHeader   : slv(1 downto 0);
    signal phyRxData     : slv(63 downto 0);
@@ -98,7 +97,7 @@ architecture rtl of Pgp3GthUs is
 
    -- PgpTx Signals
 --   signal gtTxUserReset : sl;
-   signal phyTxReady    : sl;
+   signal phyTxActive   : sl;
    signal phyTxStart    : sl;
    signal phyTxSequence : slv(5 downto 0);
    signal phyTxData     : slv(63 downto 0);
@@ -137,8 +136,8 @@ begin
          pgpTxOut      => pgpTxOut,       -- [out]
          pgpTxMasters  => pgpTxMasters,   -- [in]
          pgpTxSlaves   => pgpTxSlaves,    -- [out]
-         pgpTxCtrl     => pgpTxCtrl,      -- [out]
-         phyTxReady    => phyTxReady,     -- [in]
+         phyTxActive   => phyTxActive,    -- [in]
+         phyTxReady    => '1',            -- [in]
          phyTxStart    => phyTxStart,     -- [out]
          phyTxSequence => phyTxSequence,  -- [out]
          phyTxData     => phyTxData,      -- [out]
@@ -152,7 +151,7 @@ begin
          phyRxClk      => phyRxClk,       -- [in]
          phyRxRst      => phyRxRst,       -- [in]
          phyRxInit     => phyRxInit,      -- [out]
-         phyRxReady    => phyRxReady,     -- [in]
+         phyRxActive   => phyRxActive,    -- [in]
          phyRxValid    => phyRxValid,     -- [in]
          phyRxHeader   => phyRxHeader,    -- [in]
          phyRxData     => phyRxData,      -- [in]
@@ -166,37 +165,37 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         stableClk      => stableClk,         -- [in]
-         stableRst      => stableRst,         -- [in]
-         gtRefClk       => gtRefClk,          -- [in]
-         gtRxP          => pgpGtRxP,          -- [in]
-         gtRxN          => pgpGtRxN,          -- [in]
-         gtTxP          => pgpGtTxP,          -- [out]
-         gtTxN          => pgpGtTxN,          -- [out]
-         rxReset        => phyRxInit,         -- [in]
-         rxUsrClkActive => open,              -- [out]
-         rxResetDone    => phyRxReady,        -- [out]
-         rxUsrClk       => open,              -- [out]
-         rxUsrClk2      => phyRxClk,          -- [out]
-         rxUsrClkRst    => phyRxRst,          -- [out]
-         rxData         => phyRxData,         -- [out]
-         rxDataValid    => phyRxValid,        -- [out]
-         rxHeader       => phyRxHeader,       -- [out]
-         rxHeaderValid  => open,              -- [out]
-         rxStartOfSeq   => phyRxStartSeq,     -- [out]
-         rxGearboxSlip  => phyRxSlip,         -- [in]
-         rxOutClk       => open,              -- [out]
-         txReset        => '0',               -- [in]
-         txUsrClkActive => open,              -- [out]
-         txResetDone    => phyTxReady,        -- [out]
-         txUsrClk       => open,              -- [out]
-         txUsrClk2      => pgpTxClkInt,       -- [out]
-         txUsrClkRst    => pgpTxRstInt,       -- [out]
-         txData         => phyTxData,         -- [in]
-         txHeader       => phyTxHeader,       -- [in]
-         txSequence     => phyTxSequence,     -- [in]
-         txOutClk       => open,              -- [out]
-         loopback       => (others => '0'));  -- [in]
+         stableClk      => stableClk,          -- [in]
+         stableRst      => stableRst,          -- [in]
+         gtRefClk       => gtRefClk,           -- [in]
+         gtRxP          => pgpGtRxP,           -- [in]
+         gtRxN          => pgpGtRxN,           -- [in]
+         gtTxP          => pgpGtTxP,           -- [out]
+         gtTxN          => pgpGtTxN,           -- [out]
+         rxReset        => phyRxInit,          -- [in]
+         rxUsrClkActive => open,               -- [out]
+         rxResetDone    => phyRxActive,        -- [out]
+         rxUsrClk       => open,               -- [out]
+         rxUsrClk2      => phyRxClk,           -- [out]
+         rxUsrClkRst    => phyRxRst,           -- [out]
+         rxData         => phyRxData,          -- [out]
+         rxDataValid    => phyRxValid,         -- [out]
+         rxHeader       => phyRxHeader,        -- [out]
+         rxHeaderValid  => open,               -- [out]
+         rxStartOfSeq   => phyRxStartSeq,      -- [out]
+         rxGearboxSlip  => phyRxSlip,          -- [in]
+         rxOutClk       => open,               -- [out]
+         txReset        => '0',                -- [in]
+         txUsrClkActive => open,               -- [out]
+         txResetDone    => phyTxActive,        -- [out]
+         txUsrClk       => open,               -- [out]
+         txUsrClk2      => pgpTxClkInt,        -- [out]
+         txUsrClkRst    => pgpTxRstInt,        -- [out]
+         txData         => phyTxData,          -- [in]
+         txHeader       => phyTxHeader,        -- [in]
+         txSequence     => phyTxSequence,      -- [in]
+         txOutClk       => open,               -- [out]
+         loopback       => pgpRxIn.loopback);  -- [in]
 
 
 end rtl;

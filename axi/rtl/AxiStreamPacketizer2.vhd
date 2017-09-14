@@ -302,6 +302,7 @@ begin
 
       inputAxisSlave   <= v.inputAxisSlave;
       outputAxisMaster <= r.outputAxisMaster;
+      rearbitrate      <= r.rearbitrate;
 
    end process comb;
 

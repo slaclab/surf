@@ -85,14 +85,16 @@ package Pgp3Pkg is
 
 
    type Pgp3TxInType is record
-      disable : sl;
+      disable      : sl;
+      flowCntlDis  : sl;
       opCodeEn     : sl;
       opCodeNumber : slv(2 downto 0);
       opCodeData   : slv(55 downto 0);
    end record Pgp3TxInType;
 
    constant PGP3_TX_IN_INIT_C : Pgp3TxInType := (
-      disable => '0',
+      disable      => '0',
+      flowCntlDis  => '0',
       opCodeEn     => '0',
       opCodeNumber => (others => '0'),
       opCodeData   => (others => '0'));
@@ -101,7 +103,7 @@ package Pgp3Pkg is
    type Pgp3TxOutType is record
       locOverflow : slv(15 downto 0);
       locPause    : slv(15 downto 0);
-      phyTxReady  : sl;
+      phyTxActive : sl;
       linkReady   : sl;
       frameTx     : sl;                 -- A good frame was transmitted
       frameTxErr  : sl;                 -- An errored frame was transmitted
@@ -110,7 +112,7 @@ package Pgp3Pkg is
    constant PGP3_TX_OUT_INIT_C : Pgp3TxOutType := (
       locOverflow => (others => '0'),
       locPause    => (others => '0'),
-      phyTxReady  => '0',
+      phyTxActive => '0',
       linkReady   => '0',
       frameTx     => '0',
       frameTxErr  => '0');
@@ -122,12 +124,15 @@ package Pgp3Pkg is
    constant PGP3_RX_IN_INIT_C : Pgp3RxInType := (
       loopback => (others => '0'));
 
+
    type Pgp3RxOutType is record
-      phyRxReady     : sl;
+      phyRxActive    : sl;
       linkReady      : sl;                -- locRxLinkReady
       frameRx        : sl;                -- A good frame was received
       frameRxErr     : sl;                -- An errored frame was received
       cellError      : sl;                -- A cell error has occured
+      linkDown       : sl;                -- A link down event has occured
+      linkError      : sl;                -- A link error has occured      
       opCodeEn       : sl;                -- Opcode valid
       opCodeNumber   : slv(2 downto 0);   -- Opcode number
       opCodeData     : slv(55 downto 0);  -- Opcode data
@@ -137,11 +142,13 @@ package Pgp3Pkg is
    end record Pgp3RxOutType;
 
    constant PGP3_RX_OUT_INIT_C : Pgp3RxOutType := (
-      phyRxReady     => '0',
+      phyRxActive    => '0',
       linkReady      => '0',
       frameRx        => '0',
       frameRxErr     => '0',
       cellError      => '0',
+      linkDown       => '0',
+      linkError      => '0',
       opCodeEn       => '0',
       opCodeNumber   => (others => '0'),
       opCodeData     => (others => '0'),

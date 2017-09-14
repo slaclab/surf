@@ -50,7 +50,6 @@ entity Pgp3Tx is
       pgpTxOut     : out Pgp3TxOutType;
       pgpTxMasters : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
       pgpTxSlaves  : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
-      pgpTxCtrl    : out AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
 
       -- Status of receive and remote FIFOs (Asynchronous)
       locRxFifoCtrl  : in AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
@@ -59,6 +58,7 @@ entity Pgp3Tx is
       remRxLinkReady : in sl;
 
       -- PHY interface
+      phyTxActive   : in  sl;
       phyTxReady    : in  sl;
       phyTxStart    : out sl;
       phyTxSequence : out slv(5 downto 0);
@@ -83,11 +83,12 @@ architecture rtl of Pgp3Tx is
    signal packetizedTxMaster : AxiStreamMasterType;
    signal packetizedTxSlave  : AxiStreamSlaveType;
 
-   signal protTxValid  : sl;
-   signal protTxReady  : sl;
-   signal protTxStart  : sl;
-   signal protTxData   : slv(63 downto 0);
-   signal protTxHeader : slv(1 downto 0);
+   signal protTxValid    : sl;
+   signal protTxReady    : sl;
+   signal protTxSequence : slv(5 downto 0);
+   signal protTxStart    : sl;
+   signal protTxData     : slv(63 downto 0);
+   signal protTxHeader   : slv(1 downto 0);
 
 begin
 
@@ -114,9 +115,6 @@ begin
             dataOut(1) => syncRemRxFifoCtrl(i).overflow);  -- [out]
    end generate;
 
-   -- Drive synchronized remote fifo status out onto pgpTxCtrl
-   pgpTxCtrl <= syncRemRxFifoCtrl;
-
    -- Synchronize local rx status
    U_Synchronizer_LOC : entity work.Synchronizer
       generic map (
@@ -141,9 +139,19 @@ begin
    end generate;
 
    -- Use synchronized remote status to disable channels from mux selection
-   DISABLE_SEL_GEN : for i in NUM_VC_G-1 downto 0 generate
-      disableSel(i) <= syncRemRxFifoCtrl(i).pause or syncRemRxFifoCtrl(i).overflow;
-   end generate DISABLE_SEL_GEN;
+   -- All flow control overriden by pgpTxIn 'disable' and 'flowCntlDis'
+   DISABLE_SEL : process (pgpTxIn, syncRemRxFifoCtrl) is
+   begin
+      for i in NUM_VC_G-1 downto 0 loop
+         if (pgpTxIn.disable = '1') then
+            disableSel(i) <= '1';
+         elsif (pgpTxIn.flowCntlDis = '1') then
+            disableSel(i) <= '0';
+         else
+            disableSel(i) <= syncRemRxFifoCtrl(i).pause or syncRemRxFifoCtrl(i).overflow;
+         end if;
+      end loop;
+   end process;
 
    -- Multiplex the incomming tx streams with interleaving
    U_AxiStreamMux_1 : entity work.AxiStreamMux
@@ -206,9 +214,11 @@ begin
          locRxFifoCtrl  => syncLocRxFifoCtrl,   -- [in]
          locRxLinkReady => syncLocRxLinkReady,  -- [in]
          remRxLinkReady => syncRemRxLinkReady,  -- [in]
+         phyTxActive    => phyTxActive,         -- [in]
          protTxReady    => protTxReady,         -- [in]
          protTxValid    => protTxValid,         -- [out]
          protTxStart    => protTxStart,         -- [out]
+         protTxSequence => protTxSequence,      -- [out]
          protTxData     => protTxData,          -- [out]
          protTxHeader   => protTxHeader);       -- [out]
 
@@ -218,19 +228,21 @@ begin
          TPD_G            => TPD_G,
          DIRECTION_G      => "SCRAMBLER",
          DATA_WIDTH_G     => 64,
-         SIDEBAND_WIDTH_G => 3,
+         SIDEBAND_WIDTH_G => 9,
          TAPS_G           => SCRAMBLER_TAPS_C)
       port map (
-         clk                        => pgpTxClk,      -- [in]
-         rst                        => pgpTxRst,      -- [in]
-         inputValid                 => protTxValid,   -- [in]
-         inputReady                 => protTxReady,   -- [out]
-         inputData                  => protTxData,    -- [in]
-         inputSideband(1 downto 0)  => protTxHeader,  -- [in]
-         inputSideband(2)           => protTxStart,   -- [in]
-         outputReady                => phyTxReady,    -- [in]
-         outputData                 => phyTxData,     -- [out]
-         outputSideband(1 downto 0) => phyTxHeader,   -- [out]
-         outputSideband(2)          => phyTxStart);
+         clk                        => pgpTxClk,        -- [in]
+         rst                        => pgpTxRst,        -- [in]
+         inputValid                 => protTxValid,     -- [in]
+         inputReady                 => protTxReady,     -- [out]
+         inputData                  => protTxData,      -- [in]
+         inputSideband(1 downto 0)  => protTxHeader,    -- [in]
+         inputSideband(2)           => protTxStart,     -- [in]
+         inputSideband(8 downto 3)  => protTxSequence,  -- [in]
+         outputReady                => phyTxReady,      -- [in]
+         outputData                 => phyTxData,       -- [out]
+         outputSideband(1 downto 0) => phyTxHeader,     -- [out]
+         outputSideband(2)          => phyTxStart,      -- [out]
+         outputSideband(8 downto 3) => phyTxSequence);  -- [out]
 
 end architecture rtl;

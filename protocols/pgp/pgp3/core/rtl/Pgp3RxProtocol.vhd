@@ -96,6 +96,8 @@ begin
 
       v.pgpRxMaster       := REG_INIT_C.pgpRxMaster;
       v.pgpRxOut.opCodeEn := '0';
+      v.pgpRxOut.linkDown := '0';
+      v.pgpRxOut.linkError := '0';
       v.protRxPhyInit     := '0';
 
 
@@ -172,6 +174,8 @@ begin
                -- Normal Data
                v.pgpRxMaster.tValid             := r.pgpRxOut.linkReady;
                v.pgpRxMaster.tData(63 downto 0) := protRxData;
+            else
+               v.pgpRxOut.linkError := '1';
             end if;
          end if;
       end if;
@@ -181,6 +185,10 @@ begin
       -- When linked, r.count counts consecutive chars without a valid k-char
       if (r.count = 1000) then
          v.pgpRxOut.linkReady := not r.pgpRxOut.linkReady;
+         if (v.pgpRxOut.linkReady = '0') then
+            -- Pulse linkDown whenever linkReady drops
+            v.pgpRxOut.linkDown := '1';
+         end if;
          v.protRxPhyInit      := r.pgpRxOut.linkReady;  -- Init phy when ready drops
          v.count              := (others => '0');
       end if;

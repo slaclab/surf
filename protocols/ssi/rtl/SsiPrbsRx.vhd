@@ -2,7 +2,7 @@
 -- File       : SsiPrbsRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2016-10-25
+-- Last update: 2017-09-14
 -------------------------------------------------------------------------------
 -- Description:   This module generates 
 --                PseudoRandom Binary Sequence (PRBS) on Virtual Channel Lane.
@@ -43,13 +43,13 @@ entity SsiPrbsRx is
       FIFO_ADDR_WIDTH_G          : natural range 4 to 48      := 9;
       FIFO_PAUSE_THRESH_G        : natural range 1 to (2**24) := 2**8;
       -- PRBS Config
-      PRBS_SEED_SIZE_G           : natural range 8 to 128    := 32;
+      PRBS_SEED_SIZE_G           : natural range 8 to 128     := 32;
       PRBS_TAPS_G                : NaturalArray               := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
       -- AXI Stream IO Config
       SLAVE_AXI_STREAM_CONFIG_G  : AxiStreamConfigType        := ssiAxiStreamConfig(4);
       SLAVE_AXI_PIPE_STAGES_G    : natural range 0 to 16      := 0;
       MASTER_AXI_STREAM_CONFIG_G : AxiStreamConfigType        := ssiAxiStreamConfig(4);
-      MASTER_AXI_PIPE_STAGES_G   : natural range 0 to 16      := 0);        
+      MASTER_AXI_PIPE_STAGES_G   : natural range 0 to 16      := 0);
    port (
       -- Streaming RX Data Interface (sAxisClk domain) 
       sAxisClk        : in  sl;
@@ -71,7 +71,7 @@ entity SsiPrbsRx is
       axiWriteSlave   : out AxiLiteWriteSlaveType;
       -- Error Detection Signals (sAxisClk domain)
       updatedResults  : out sl;
-      errorDet        : out sl;-- '1' if any error detected
+      errorDet        : out sl;         -- '1' if any error detected
       busy            : out sl;
       errMissedPacket : out sl;
       errLength       : out sl;
@@ -89,13 +89,13 @@ architecture rtl of SsiPrbsRx is
    constant PRBS_BYTES_C             : natural             := wordCount(PRBS_SEED_SIZE_G, 8);
    constant SLAVE_PRBS_SSI_CONFIG_C  : AxiStreamConfigType := ssiAxiStreamConfig(PRBS_BYTES_C, TKEEP_COMP_C);
    constant MASTER_PRBS_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(PRBS_BYTES_C, TKEEP_COMP_C);
-   
+
    type StateType is (
       IDLE_S,
       LENGTH_S,
       DATA_S,
       BIT_ERR_S,
-      SEND_RESULT_S);   
+      SEND_RESULT_S);
 
    type RegType is record
       busy            : sl;
@@ -124,33 +124,33 @@ architecture rtl of SsiPrbsRx is
       txAxisMaster    : AxiStreamMasterType;
       state           : StateType;
    end record;
-   
+
    constant REG_INIT_C : RegType := (
-      '1',
-      toSlv(2, 32),
-      '0',
-      '0',
-      '0',
-      '0',
-      '0',
-      '0',
-      '0',
-      '0',
-      '0',
-      (others => '0'),
-      (others => '0'),
-      (others => '0'),
-      (others => '0'),
-      (others => '0'),
-      (others => '0'),
-      (others => '0'),
-      (others => '0'),
-      (others => '0'),
-      (others => '1'),
-      (others => '1'),
-      AXI_STREAM_SLAVE_INIT_C,
-      AXI_STREAM_MASTER_INIT_C,
-      IDLE_S);
+      busy            => '1',
+      packetLength    => toSlv(2, 32),
+      errorDet        => '0',
+      eof             => '0',
+      eofe            => '0',
+      errLength       => '0',
+      updatedResults  => '0',
+      errMissedPacket => '0',
+      errDataBus      => '0',
+      errWordStrb     => '0',
+      errBitStrb      => '0',
+      txCnt           => (others => '0'),
+      bitPntr         => (others => '0'),
+      errorBits       => (others => '0'),
+      errWordCnt      => (others => '0'),
+      errbitCnt       => (others => '0'),
+      eventCnt        => toSlv(1, PRBS_SEED_SIZE_G),
+      randomData      => (others => '0'),
+      dataCnt         => (others => '0'),
+      stopTime        => (others => '0'),
+      startTime       => (others => '1'),
+      packetRate      => (others => '1'),
+      rxAxisSlave     => AXI_STREAM_SLAVE_INIT_C,
+      txAxisMaster    => AXI_STREAM_MASTER_INIT_C,
+      state           => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -160,7 +160,7 @@ architecture rtl of SsiPrbsRx is
 
    signal txAxisSlave,
       rxAxisSlave : AxiStreamSlaveType;
-   
+
    signal axisCtrl : AxiStreamCtrlArray(0 to 1);
 
    constant STATUS_SIZE_C : positive := 10;
@@ -172,7 +172,7 @@ architecture rtl of SsiPrbsRx is
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
    end record;
-   
+
    constant LOC_REG_INIT_C : LocRegType := (
       '1',
       (others => '0'),
@@ -210,7 +210,7 @@ architecture rtl of SsiPrbsRx is
       errEofeCnt,
       errLengthCnt,
       errMissedPacketCnt : slv(STATUS_CNT_WIDTH_G-1 downto 0);
-   
+
 begin
 
 --   assert (PRBS_SEED_SIZE_G mod 8 = 0) report "PRBS_SEED_SIZE_G must be a multiple of 8" severity failure;
@@ -248,7 +248,7 @@ begin
          mAxisClk    => sAxisClk,
          mAxisRst    => sAxisRst,
          mAxisMaster => rxAxisMaster,
-         mAxisSlave  => rxAxisSlave);   
+         mAxisSlave  => rxAxisSlave);
 
 
    comb : process (r, rxAxisMaster, sAxisRst, txAxisSlave) is
@@ -370,7 +370,7 @@ begin
                   -- Check for EOFE
                   if v.eofe = '1' then
                      v.errorDet := '1';
-                  end if;                  
+                  end if;
                   -- Check the data packet length
                   if r.dataCnt /= r.packetLength then
                      -- Wrong length detected
@@ -501,7 +501,7 @@ begin
       busy            <= r.busy;
       packetLength    <= r.packetLength;
       errorDet        <= r.errorDet;
-      
+
    end process comb;
 
    seq : process (sAxisClk) is
@@ -542,7 +542,7 @@ begin
          mAxisClk    => mAxisClk,
          mAxisRst    => mAxisRst,
          mAxisMaster => mAxisMaster,
-         mAxisSlave  => mAxisSlave); 
+         mAxisSlave  => mAxisSlave);
 
    SyncFifo_Inst : entity work.SynchronizerFifo
       generic map (
@@ -559,7 +559,7 @@ begin
          dout(31 downto 0)   => packetLengthSync,
          dout(63 downto 32)  => packetRateSync,
          dout(95 downto 64)  => errbitCntSync,
-         dout(127 downto 96) => errWordCntSync); 
+         dout(127 downto 96) => errWordCntSync);
 
    SyncStatusVec_Inst : entity work.SyncStatusVector
       generic map (
@@ -568,7 +568,7 @@ begin
          CNT_RST_EDGE_G => false,
          COMMON_CLK_G   => false,
          CNT_WIDTH_G    => STATUS_CNT_WIDTH_G,
-         WIDTH_G        => STATUS_SIZE_C)     
+         WIDTH_G        => STATUS_SIZE_C)
       port map (
          -- Input Status bit Signals (wrClk domain)   
          statusIn(9)  => axisCtrl(1).pause,
@@ -719,7 +719,7 @@ begin
       -- Outputs
       axiReadSlave  <= rAxiLite.axiReadSlave;
       axiWriteSlave <= rAxiLite.axiWriteSlave;
-      
+
    end process combAxiLite;
 
    seqAxiLite : process (axiClk) is

@@ -2,7 +2,7 @@
 -- File       : Pgp3GthCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2017-08-08
+-- Last update: 2017-09-12
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -111,18 +111,18 @@ architecture mapping of Pgp3GthCoreWrapper is
          );
    end component;
 
-   signal dummy1            : sl;
-   signal dummy2            : sl;
-   signal dummy3            : slv(3 downto 0);
-   signal dummy4            : sl;
-   signal dummy5            : sl;
-   signal dummy6            : sl;
-   signal dummy7            : sl;
-   signal dummy8            : sl;
-   signal dummy9            : sl;
-   signal dummy10           : sl;
-   signal dummy11           : sl;
-   
+   signal dummy1  : sl;
+   signal dummy2  : sl;
+   signal dummy3  : slv(3 downto 0);
+   signal dummy4  : sl;
+   signal dummy5  : sl;
+   signal dummy6  : sl;
+   signal dummy7  : sl;
+   signal dummy8  : sl;
+   signal dummy9  : sl;
+   signal dummy10 : sl;
+   signal dummy11 : sl;
+
    signal rxUsrClk2Int      : sl;
    signal rxUsrClkActiveInt : sl;
    signal txUsrClk2Int      : sl;
@@ -190,7 +190,7 @@ begin
          txheader_in(5 downto 2)               => (others => '0'),    -- [in]
          txheader_in(1 downto 0)               => txHeader,           -- [in]
          txsequence_in(6)                      => '0',                -- [in],
-         txsequence_in(5 downto 0)             => txSequence,         -- [in]
+         txsequence_in(5 downto 0)             => (others => '0'),    -- [in]
          gthtxn_out(0)                         => gtTxN,              -- [out]
          gthtxp_out(0)                         => gtTxP,              -- [out]
          rxdatavalid_out(0)                    => rxDataValid,        -- [out]

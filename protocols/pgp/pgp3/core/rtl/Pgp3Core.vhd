@@ -48,9 +48,9 @@ entity Pgp3Core is
       pgpTxOut     : out Pgp3TxOutType;
       pgpTxMasters : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
       pgpTxSlaves  : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
-      pgpTxCtrl    : out AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
 
       -- Tx Phy interface
+      phyTxActive   : in  sl;
       phyTxReady    : in  sl;
       phyTxStart    : out sl;
       phyTxSequence : out slv(5 downto 0);
@@ -69,7 +69,7 @@ entity Pgp3Core is
       phyRxClk      : in  sl;
       phyRxRst      : in  sl;
       phyRxInit     : out sl;
-      phyRxReady    : in  sl;
+      phyRxActive   : in  sl;
       phyRxValid    : in  sl;
       phyRxHeader   : in  slv(1 downto 0);
       phyRxData     : in  slv(63 downto 0);
@@ -80,7 +80,7 @@ end entity Pgp3Core;
 architecture rtl of Pgp3Core is
 
    signal locRxLinkReady : sl;
-   signal remRxFifoCtrl : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
+   signal remRxFifoCtrl  : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
    signal remRxLinkReady : sl;
 
 begin
@@ -104,11 +104,11 @@ begin
          pgpTxOut       => pgpTxOut,        -- [out]
          pgpTxMasters   => pgpTxMasters,    -- [in]
          pgpTxSlaves    => pgpTxSlaves,     -- [out]
-         pgpTxCtrl      => pgpTxCtrl,       -- [out]
          locRxFifoCtrl  => pgpRxCtrl,       -- [in]
          locRxLinkReady => locRxLinkReady,  -- [in]
          remRxFifoCtrl  => remRxFifoCtrl,   -- [in]
          remRxLinkReady => remRxLinkReady,  -- [in]
+         phyTxActive    => phyTxActive,     --[in]
          phyTxReady     => phyTxReady,      -- [in]
          phyTxStart     => phyTxStart,      -- [out]
          phyTxSequence  => phyTxSequence,   -- [out]
@@ -135,11 +135,13 @@ begin
          phyRxClk       => phyRxClk,        -- [in]
          phyRxRst       => phyRxRst,        -- [in]
          phyRxInit      => phyRxInit,       -- [out]
-         phyRxReady     => phyRxReady,      -- [in]
+         phyRxActive    => phyRxActive,     -- [in]
          phyRxValid     => phyRxValid,      -- [in]
          phyRxHeader    => phyRxHeader,     -- [in]
          phyRxData      => phyRxData,       -- [in]
          phyRxStartSeq  => phyRxStartSeq,   -- [in]
          phyRxSlip      => phyRxSlip);      -- [out]
+
+   
 
 end architecture rtl;

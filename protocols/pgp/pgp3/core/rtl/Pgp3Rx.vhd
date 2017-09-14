@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-07
--- Last update: 2017-07-28
+-- Last update: 2017-09-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -47,7 +47,6 @@ entity Pgp3Rx is
       pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
 
       -- Status of local receive fifos
-      -- Should these all be on pgpRxOut?
       remRxFifoCtrl  : out AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
       remRxLinkReady : out sl;
       locRxLinkReady : out sl;
@@ -56,7 +55,7 @@ entity Pgp3Rx is
       phyRxClk      : in  sl;
       phyRxRst      : in  sl;
       phyRxInit     : out sl;
-      phyRxReady    : in  sl;
+      phyRxActive    : in  sl;
       phyRxValid    : in  sl;
       phyRxHeader   : in  slv(1 downto 0);
       phyRxData     : in  slv(63 downto 0);
@@ -88,9 +87,13 @@ architecture rtl of Pgp3Rx is
    signal depacketizerDebug : Packetizer2DebugType;
 
    signal locRxLinkReadyInt : sl;
+   signal remRxLinkReadyInt : sl;
+   signal remRxFifoCtrlInt  : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
 
 begin
    locRxLinkReady <= locRxLinkReadyInt;
+   remRxLinkReady <= remRxLinkReadyInt;
+   remRxFifoCtrl  <= remRxFifoCtrlInt;
 
    -- Gearbox aligner
    U_Pgp3RxGearboxAligner_1 : entity work.Pgp3RxGearboxAligner
@@ -100,12 +103,12 @@ begin
          BAD_COUNT_G  => ALIGN_BAD_COUNT_G,
          SLIP_WAIT_G  => ALIGN_SLIP_WAIT_G)
       port map (
-         clk           => phyRxClk,     -- [in]
-         rst           => phyRxRst,     -- [in]
-         rxHeader      => phyRxHeader,  -- [in]
-         rxHeaderValid => phyRxValid,   -- [in]
-         slip          => phyRxSlip,    -- [out]
-         locked        => gearboxAligned);   -- [out]
+         clk           => phyRxClk,         -- [in]
+         rst           => phyRxRst,         -- [in]
+         rxHeader      => phyRxHeader,      -- [in]
+         rxHeaderValid => phyRxValid,       -- [in]
+         slip          => phyRxSlip,        -- [out]
+         locked        => gearboxAligned);  -- [out]
 
    -- Unscramble the data for 64b66b
    unscramblerValid <= gearboxAligned and phyRxValid;
@@ -154,8 +157,8 @@ begin
          pgpRxOut       => pgpRxOutProtocol,   -- [out]
          pgpRxMaster    => pgpRawRxMaster,     -- [out]
          pgpRxSlave     => pgpRawRxSlave,      -- [in]
-         remRxFifoCtrl  => remRxFifoCtrl,      -- [out]
-         remRxLinkReady => remRxLinkReady,     -- [out]
+         remRxFifoCtrl  => remRxFifoCtrlInt,   -- [out]
+         remRxLinkReady => remRxLinkReadyInt,  -- [out]
          locRxLinkReady => locRxLinkReadyInt,  -- [out]
          protRxValid    => ebValid,            -- [in]
          protRxPhyInit  => phyRxInit,          -- [out]
@@ -197,15 +200,26 @@ begin
          mAxisMasters => pgpRxMasters,                           -- [out]
          mAxisSlaves  => (others => AXI_STREAM_SLAVE_FORCE_C));  -- [in]
 
-   pgpRxOut.phyRxReady   <= phyRxReady;
-   pgpRxOut.linkReady    <= pgpRxOutProtocol.linkReady;
-   pgpRxOut.frameRx      <= depacketizerDebug.eof;
-   pgpRxOut.frameRxErr   <= depacketizerDebug.eofe;
-   pgpRxOut.cellError    <= depacketizerDebug.packetError;
-   pgpRxOut.opCodeEn     <= pgpRxOutProtocol.opCodeEn;
-   pgpRxOut.opCodeNumber <= pgpRxOutProtocol.opCodeNumber;
-   pgpRxOut.opCodeData   <= pgpRxOutProtocol.opCodeData;
-
+   pgpRxOut.phyRxActive     <= phyRxActive;
+   pgpRxOut.linkReady      <= pgpRxOutProtocol.linkReady;
+   pgpRxOut.frameRx        <= depacketizerDebug.eof;
+   pgpRxOut.frameRxErr     <= depacketizerDebug.eofe;
+   pgpRxOut.cellError      <= depacketizerDebug.packetError;
+   pgpRxOut.opCodeEn       <= pgpRxOutProtocol.opCodeEn;
+   pgpRxOut.opCodeNumber   <= pgpRxOutProtocol.opCodeNumber;
+   pgpRxOut.opCodeData     <= pgpRxOutProtocol.opCodeData;
+   pgpRxOut.remRxLinkReady <= remRxLinkReadyInt;
+   
+   CTRL_OUT: for i in 15 downto 0 generate
+      USED : if (i < NUM_VC_G) generate
+         pgpRxOut.remRxOverflow(i) <= remRxFifoCtrlInt(i).overflow;
+         pgpRxOut.remRxPause(i)    <= remRxFifoCtrlInt(i).pause;
+      end generate;
+      UNUSED : if (i >= NUM_VC_G) generate
+         pgpRxOut.remRxOverflow(i) <= '0';
+         pgpRxOut.remRxPause(i)    <= '0';
+      end generate;
+   end generate;
 
 
 end architecture rtl;

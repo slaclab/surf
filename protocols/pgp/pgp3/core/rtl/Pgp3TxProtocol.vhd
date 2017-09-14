@@ -55,43 +55,52 @@ entity Pgp3TxProtocol is
       remRxLinkReady : in sl;
 
       -- Output Interface
-      protTxReady  : in  sl;
-      protTxValid  : out sl;
-      protTxStart  : out sl;
-      protTxData   : out slv(63 downto 0);
-      protTxHeader : out slv(1 downto 0));
+      phyTxActive    : in  sl;
+      protTxReady    : in  sl;
+      protTxValid    : out sl;
+      protTxStart    : out sl;
+      protTxSequence : out slv(5 downto 0);
+      protTxData     : out slv(63 downto 0);
+      protTxHeader   : out slv(1 downto 0));
 
 end entity Pgp3TxProtocol;
 
 architecture rtl of Pgp3TxProtocol is
 
    type RegType is record
-      skpCount     : slv(15 downto 0);
-      startupCount : integer;
-      pgpTxSlave   : AxiStreamSlaveType;
-      pgpTxOut     : Pgp3TxOutType;
-      protTxValid  : sl;
-      protTxStart  : sl;
-      protTxData   : slv(63 downto 0);
-      protTxHeader : slv(1 downto 0);
+      skpCount       : slv(15 downto 0);
+      startupCount   : integer;
+      pgpTxSlave     : AxiStreamSlaveType;
+      linkReady      : sl;
+      frameTx        : sl;
+      frameTxErr     : sl;
+      protTxValid    : sl;
+      protTxStart    : sl;
+      protTxSequence : slv(5 downto 0);
+      protTxData     : slv(63 downto 0);
+      protTxHeader   : slv(1 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      skpCount     => (others => '0'),
-      startupCount => 0,
-      pgpTxSlave   => AXI_STREAM_SLAVE_INIT_C,
-      pgpTxOut     => PGP3_TX_OUT_INIT_C,
-      protTxValid  => '0',
-      protTxStart  => '0',
-      protTxData   => (others => '0'),
-      protTxHeader => (others => '0'));
+      skpCount       => (others => '0'),
+      startupCount   => 0,
+      pgpTxSlave     => AXI_STREAM_SLAVE_INIT_C,
+      linkReady      => '0',
+      frameTx        => '0',
+      frameTxErr     => '0',
+      protTxValid    => '0',
+      protTxStart    => '0',
+      protTxSequence => (others => '0'),
+      protTxData     => (others => '0'),
+      protTxHeader   => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
 
-   comb : process (locRxFifoCtrl, locRxLinkReady, pgpTxIn, pgpTxMaster, pgpTxRst, protTxReady, r) is
+   comb : process (locRxFifoCtrl, locRxLinkReady, pgpTxIn, pgpTxMaster, pgpTxRst, phyTxActive,
+                   protTxReady, r) is
       variable v        : RegType;
       variable linkInfo : slv(39 downto 0);
    begin
@@ -105,24 +114,28 @@ begin
       -- Don't accept new frame data by default
       v.pgpTxSlave.tReady := '0';
 
-      v.pgpTxOut.frameTx    := '0';
-      v.pgpTxOut.frameTxErr := '0';
+      v.frameTx    := '0';
+      v.frameTxErr := '0';
+
+      v.protTxStart    := '0';
+      v.protTxSequence := r.protTxSequence + 1;
 
       if (protTxReady = '1') then
          v.protTxValid := '0';
       end if;
 
-      if (pgpTxMaster.tValid = '1' and v.protTxValid = '0') then
+      if (v.protTxValid = '0' and phyTxActive = '1') then
          v.protTxValid := '1';
 
          -- Send only IDLE and SKP for STARTUP_HOLD_G cycles after reset
          v.startupCount := r.startupCount + 1;
          if (r.startupCount = 0) then
-            v.protTxStart := '1';
+            v.protTxStart    := '1';
+            v.protTxSequence := (others => '0');
          end if;
          if (r.startupCount = STARTUP_HOLD_G) then
-            v.startupCount       := r.startupCount;
-            v.pgpTxOut.linkReady := '1';
+            v.startupCount := r.startupCount;
+            v.linkReady    := '1';
          end if;
 
          -- Decide whether to send IDLE, SKP, USER or data frames.
@@ -135,7 +148,7 @@ begin
          v.protTxHeader             := K_HEADER_C;
 
          -- Send data if there is data to send
-         if (r.pgpTxOut.linkReady = '1') then
+         if (pgpTxMaster.tValid = '1' and r.linkReady = '1') then
             v.pgpTxSlave.tReady := '1';  -- Accept the data
 
             if (ssiGetUserSof(PGP3_AXIS_CONFIG_C, pgpTxMaster) = '1') then
@@ -156,8 +169,8 @@ begin
                v.protTxData(55 downto 24) := pgpTxMaster.tData(63 downto 32);  -- CRC
                v.protTxHeader             := K_HEADER_C;
                -- Debug output
-               v.pgpTxOut.frameTx         := pgpTxMaster.tData(8);
-               v.pgpTxOut.frameTxErr      := pgpTxMaster.tData(8) and pgpTxMaster.tData(0);
+               v.frameTx                  := pgpTxMaster.tData(8);
+               v.frameTxErr               := pgpTxMaster.tData(8) and pgpTxMaster.tData(0);
             else
                -- Normal data
                v.protTxData(63 downto 0) := pgpTxMaster.tData(63 downto 0);
@@ -176,7 +189,7 @@ begin
 
 
          -- USER codes override data and delay SKP if they happen to coincide
-         if (pgpTxIn.opCodeEn = '1' and r.pgpTxOut.linkReady = '1') then
+         if (pgpTxIn.opCodeEn = '1' and r.linkReady = '1') then
             v.pgpTxSlave.tReady        := '0';  -- Override any data acceptance.
             v.protTxData(63 downto 56) := USER_C(conv_integer(pgpTxIn.opCodeNumber));
             v.protTxData(55 downto 0)  := pgpTxIn.opCodeData;
@@ -187,10 +200,10 @@ begin
          end if;
 
          if (pgpTxIn.disable = '1') then
-            v.pgpTxOut.linkReady := '0';
-            v.startupCount       := 0;
-            v.protTxData         := (others => '0');
-            v.protTxHeader       := (others => '0');
+            v.linkReady    := '0';
+            v.startupCount := 0;
+            v.protTxData   := (others => '0');
+            v.protTxHeader := (others => '0');
          end if;
 
       end if;
@@ -201,11 +214,28 @@ begin
 
       rin <= v;
 
-      pgpTxSlave   <= v.pgpTxSlave;
-      protTxData   <= r.protTxData;
-      protTxHeader <= r.protTxHeader;
-      protTxValid  <= r.protTxValid;
-      protTxStart  <= r.protTxStart;
+      pgpTxSlave     <= v.pgpTxSlave;
+      protTxData     <= r.protTxData;
+      protTxHeader   <= r.protTxHeader;
+      protTxValid    <= r.protTxValid;
+      protTxStart    <= r.protTxStart;
+      protTxSequence <= r.protTxSequence;
+
+      pgpTxOut.phyTxActive <= phyTxActive;
+      pgpTxOut.linkReady   <= r.linkReady;
+      pgpTxOut.frameTx     <= r.frameTx;
+      pgpTxOut.frameTxErr  <= r.frameTxErr;
+
+      for i in 15 downto 0 loop
+         if (i < NUM_VC_G) then
+            pgpTxOut.locOverflow(i) <= locRxFifoCtrl(i).overflow;
+            pgpTxOut.locPause(i)    <= locRxFifoCtrl(i).pause;
+         else
+            pgpTxOut.locOverflow(i) <= '0';
+            pgpTxOut.locPause(i)    <= '0';
+         end if;
+      end loop;
+
 
    end process comb;
 
