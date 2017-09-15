@@ -708,6 +708,11 @@ begin
             v.descState := IDLE_S;
 
       end case;
+      
+      -- Copy the lowest 64-bit word to the entire bus (refer to  "section 9.3 Narrow transfers" of the AMBA spec)
+      for i in 15 downto 1 loop
+         v.axiWriteMaster.wdata((64*i)+63 downto (64*i)) := v.axiWriteMaster.wdata(63 downto 0);
+      end loop;      
 
       -- Driver interrupt
       if r.intReqCount /= 0 then
