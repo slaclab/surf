@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
--- File       : DspFp32Mult.vhd
+-- File       : DspFp32Accum.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-09-12
--- Last update: 2017-09-12
+-- Last update: 2017-09-18
 -------------------------------------------------------------------------------
--- Description: 32-bit Floating Point DSP inferred multiplier 
--- Equation: p = a x b
+-- Description: 32-bit Floating Point DSP inferred accumulator  
+-- Equation: p = sum(+/-a[i])
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -22,8 +22,9 @@ use ieee.fixed_float_types.all;
 use ieee.float_pkg.all;
 
 use work.StdRtlPkg.all;
+use work.DspPkg.all;
 
-entity DspFp32Mult is
+entity DspFp32Accum is
    generic (
       TPD_G          : time                 := 1 ns;
       RST_POLARITY_G : sl                   := '1';  -- '1' for active high rst, '0' for active low
@@ -36,14 +37,15 @@ entity DspFp32Mult is
       ibValid : in  sl := '1';
       ibReady : out sl;
       ain     : in  slv(31 downto 0);
-      bin     : in  slv(31 downto 0);
+      load    : in  sl := '0';
+      add     : in  sl := '1';          -- '1' = add, '0' = subtract
       -- Outbound Interface
       obValid : out sl;
       obReady : in  sl := '1';
       pOut    : out slv(31 downto 0));
-end DspFp32Mult;
+end DspFp32Accum;
 
-architecture rtl of DspFp32Mult is
+architecture rtl of DspFp32Accum is
 
    type RegType is record
       ibReady : sl;
@@ -53,7 +55,7 @@ architecture rtl of DspFp32Mult is
    constant REG_INIT_C : RegType := (
       ibReady => '0',
       tValid  => '0',
-      p       => (others => '0'));
+      p       => FP32_ZERO_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -67,17 +69,15 @@ architecture rtl of DspFp32Mult is
 
 begin
 
-   comb : process (ain, bin, ibValid, r, rst, tReady) is
+   comb : process (add, ain, ibValid, load, r, rst, tReady) is
       variable v : RegType;
       variable a : float32;
-      variable b : float32;
    begin
       -- Latch the current value
       v := r;
 
       -- typecast from slv to float32
       a := float32(ain);
-      b := float32(bin);
 
       -- Reset the flags
       v.ibReady := '0';
@@ -91,7 +91,13 @@ begin
          v.ibReady := '1';
          v.tValid  := '1';
          -- Process the data
-         v.p       := a * b;
+         if (load = '1') then
+            v.p := a;
+         elsif (add = '1') then
+            v.p := r.p + a;
+         else
+            v.p := r.p - a;
+         end if;
       end if;
 
       -- Reset

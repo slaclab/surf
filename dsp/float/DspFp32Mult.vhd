@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
--- File       : DspFp32PreMultAccum.vhd
+-- File       : DspFp32Mult.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-09-12
--- Last update: 2017-09-13
+-- Last update: 2017-09-18
 -------------------------------------------------------------------------------
--- Description: 32-bit Floating Point DSP inferred accumulator with pre-multiplier 
--- Equation: p = sum(+/-(a x b)[i])
+-- Description: 32-bit Floating Point DSP inferred multiplier 
+-- Equation: p = a x b
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -22,8 +22,9 @@ use ieee.fixed_float_types.all;
 use ieee.float_pkg.all;
 
 use work.StdRtlPkg.all;
+use work.DspPkg.all;
 
-entity DspFp32PreMultAccum is
+entity DspFp32Mult is
    generic (
       TPD_G          : time                 := 1 ns;
       RST_POLARITY_G : sl                   := '1';  -- '1' for active high rst, '0' for active low
@@ -37,38 +38,28 @@ entity DspFp32PreMultAccum is
       ibReady : out sl;
       ain     : in  slv(31 downto 0);
       bin     : in  slv(31 downto 0);
-      load    : in  sl := '0';
-      add     : in  sl := '1';          -- '1' = add, '0' = subtract
       -- Outbound Interface
       obValid : out sl;
       obReady : in  sl := '1';
       pOut    : out slv(31 downto 0));
-end DspFp32PreMultAccum;
+end DspFp32Mult;
 
-architecture rtl of DspFp32PreMultAccum is
+architecture rtl of DspFp32Mult is
 
    type RegType is record
       ibReady : sl;
-      tReady  : sl;
-      tValid  : slv(1 downto 0);
-      load    : sl;
-      add     : sl;
-      mult    : float32;
+      tValid  : sl;
       p       : float32;
    end record RegType;
    constant REG_INIT_C : RegType := (
       ibReady => '0',
-      tReady  => '0',
-      tValid  => (others => '0'),
-      load    => '0',
-      add     => '1',
-      mult    => (others => '0'),
-      p       => (others => '0'));
+      tValid  => '0',
+      p       => FP32_ZERO_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal tReady : slv(1 downto 0);
+   signal tReady : sl;
 
    signal p : slv(31 downto 0);
 
@@ -77,7 +68,7 @@ architecture rtl of DspFp32PreMultAccum is
 
 begin
 
-   comb : process (add, ain, bin, ibValid, load, r, rst, tReady) is
+   comb : process (ain, bin, ibValid, r, rst, tReady) is
       variable v : RegType;
       variable a : float32;
       variable b : float32;
@@ -85,57 +76,24 @@ begin
       -- Latch the current value
       v := r;
 
-      -- typecast from slv to signed
+      -- typecast from slv to float32
       a := float32(ain);
       b := float32(bin);
 
-      --------------------------------------------------------------------
-      -- 1st latency cycle
-      --------------------------------------------------------------------      
-
       -- Reset the flags
       v.ibReady := '0';
-      if tReady(0) = '1' then
-         v.tValid(0) := '0';
+      if tReady = '1' then
+         v.tValid := '0';
       end if;
 
       -- Check if ready to process data
-      if (v.tValid(0) = '0') and (ibValid = '1') then
+      if (v.tValid = '0') and (ibValid = '1') then
          -- Set the flow control flags
-         v.ibReady   := '1';
-         v.tValid(0) := '1';
+         v.ibReady := '1';
+         v.tValid  := '1';
          -- Process the data
-         v.mult      := a * b;
-         v.add       := add;
-         v.load      := load;
+         v.p       := a * b;
       end if;
-
-      --------------------------------------------------------------------
-      -- 2nd latency cycle
-      --------------------------------------------------------------------
-
-      -- Reset the flags
-      v.tReady := '0';
-      if tReady(1) = '1' then
-         v.tValid(1) := '0';
-      end if;
-
-      -- Check if ready to process data
-      if (v.tValid(1) = '0') and (r.tValid(0) = '1') then
-         -- Set the flow control flags
-         v.tReady    := '1';
-         v.tValid(1) := '1';
-         -- Process the data
-         if (load = '1') then
-            v.p := r.mult;
-         elsif (add = '1') then
-            v.p := r.p + r.mult;
-         else
-            v.p := r.p - r.mult;
-         end if;
-      end if;
-
-      --------------------------------------------------------------------
 
       -- Reset
       if (rst = RST_POLARITY_G) then
@@ -146,9 +104,8 @@ begin
       rin <= v;
 
       -- Outputs              
-      ibReady   <= v.ibReady;
-      tReady(0) <= v.tReady;
-      p         <= std_logic_vector(r.p);
+      ibReady <= v.ibReady;
+      p       <= std_logic_vector(r.p);
 
    end process comb;
 
@@ -168,8 +125,8 @@ begin
       port map (
          -- Slave Port         
          sData  => p,
-         sValid => r.tValid(1),
-         sRdEn  => tReady(1),
+         sValid => r.tValid,
+         sRdEn  => tReady,
          -- Master Port
          mData  => pOut,
          mValid => obValid,

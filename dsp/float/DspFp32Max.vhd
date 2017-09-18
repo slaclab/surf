@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
--- File       : DspFp32Accum.vhd
+-- File       : DspFp32Max.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-09-12
--- Last update: 2017-09-13
+-- Created    : 2017-09-18
+-- Last update: 2017-09-18
 -------------------------------------------------------------------------------
--- Description: 32-bit Floating Point DSP inferred accumulator  
--- Equation: p = sum(+/-a[i])
+-- Description: 32-bit Floating Point DSP inferred maximum module  
+-- Equation: p = max(a[i])
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -22,8 +22,9 @@ use ieee.fixed_float_types.all;
 use ieee.float_pkg.all;
 
 use work.StdRtlPkg.all;
+use work.DspPkg.all;
 
-entity DspFp32Accum is
+entity DspFp32Max is
    generic (
       TPD_G          : time                 := 1 ns;
       RST_POLARITY_G : sl                   := '1';  -- '1' for active high rst, '0' for active low
@@ -37,14 +38,13 @@ entity DspFp32Accum is
       ibReady : out sl;
       ain     : in  slv(31 downto 0);
       load    : in  sl := '0';
-      add     : in  sl := '1';          -- '1' = add, '0' = subtract
       -- Outbound Interface
       obValid : out sl;
       obReady : in  sl := '1';
       pOut    : out slv(31 downto 0));
-end DspFp32Accum;
+end DspFp32Max;
 
-architecture rtl of DspFp32Accum is
+architecture rtl of DspFp32Max is
 
    type RegType is record
       ibReady : sl;
@@ -54,7 +54,7 @@ architecture rtl of DspFp32Accum is
    constant REG_INIT_C : RegType := (
       ibReady => '0',
       tValid  => '0',
-      p       => (others => '0'));
+      p       => FP32_ZERO_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -68,7 +68,7 @@ architecture rtl of DspFp32Accum is
 
 begin
 
-   comb : process (add, ain, ibValid, load, r, rst, tReady) is
+   comb : process (ain, ibValid, load, r, rst, tReady) is
       variable v : RegType;
       variable a : float32;
    begin
@@ -92,10 +92,8 @@ begin
          -- Process the data
          if (load = '1') then
             v.p := a;
-         elsif (add = '1') then
-            v.p := r.p + a;
-         else
-            v.p := r.p - a;
+         elsif (a > r.p) then
+            v.p := a;
          end if;
       end if;
 
