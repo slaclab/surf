@@ -2,7 +2,7 @@
 -- File       : DspFp32Accum.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-09-12
--- Last update: 2017-09-13
+-- Last update: 2017-09-18
 -------------------------------------------------------------------------------
 -- Description: 32-bit Floating Point DSP inferred accumulator  
 -- Equation: p = sum(+/-a[i])
@@ -22,6 +22,7 @@ use ieee.fixed_float_types.all;
 use ieee.float_pkg.all;
 
 use work.StdRtlPkg.all;
+use work.DspPkg.all;
 
 entity DspFp32Accum is
    generic (
@@ -54,7 +55,7 @@ architecture rtl of DspFp32Accum is
    constant REG_INIT_C : RegType := (
       ibReady => '0',
       tValid  => '0',
-      p       => (others => '0'));
+      p       => FP32_ZERO_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;

@@ -2,7 +2,7 @@
 -- File       : DspFp32PreMultAccum.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-09-12
--- Last update: 2017-09-13
+-- Last update: 2017-09-18
 -------------------------------------------------------------------------------
 -- Description: 32-bit Floating Point DSP inferred accumulator with pre-multiplier 
 -- Equation: p = sum(+/-(a x b)[i])
@@ -22,6 +22,7 @@ use ieee.fixed_float_types.all;
 use ieee.float_pkg.all;
 
 use work.StdRtlPkg.all;
+use work.DspPkg.all;
 
 entity DspFp32PreMultAccum is
    generic (
@@ -62,8 +63,8 @@ architecture rtl of DspFp32PreMultAccum is
       tValid  => (others => '0'),
       load    => '0',
       add     => '1',
-      mult    => (others => '0'),
-      p       => (others => '0'));
+      mult    => FP32_ZERO_C,
+      p       => FP32_ZERO_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
