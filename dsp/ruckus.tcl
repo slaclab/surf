@@ -5,6 +5,7 @@ source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 loadSource -dir "$::DIR_PATH/core"  -fileType "VHDL 2008"
 loadSource -dir "$::DIR_PATH/float" -fileType "VHDL 2008"
 loadSource -dir "$::DIR_PATH/fixed" -fileType "VHDL 2008"
+loadSource -dir "$::DIR_PATH/logic" -fileType "VHDL 2008"
 
 # Load Simulation
 loadSource -sim_only -dir "$::DIR_PATH/tb" -fileType "VHDL 2008"
