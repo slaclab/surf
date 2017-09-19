@@ -243,11 +243,11 @@ architecture rtl of AxiStreamDmaV2Desc is
    signal invalidCount : sl;
    signal diffCnt      : slv(31 downto 0);
 
-   attribute dont_touch                 : string;
-   attribute dont_touch of r            : signal is "true";
-   attribute dont_touch of intAckEn     : signal is "true";
-   attribute dont_touch of invalidCount : signal is "true";
-   attribute dont_touch of diffCnt      : signal is "true";
+   -- attribute dont_touch                 : string;
+   -- attribute dont_touch of r            : signal is "true";
+   -- attribute dont_touch of intAckEn     : signal is "true";
+   -- attribute dont_touch of invalidCount : signal is "true";
+   -- attribute dont_touch of diffCnt      : signal is "true";
 
 begin
 
