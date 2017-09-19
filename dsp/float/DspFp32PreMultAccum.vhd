@@ -18,8 +18,15 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+
 use ieee.fixed_float_types.all;
 use ieee.float_pkg.all;
+
+-- synthesis translate_off
+library ieee_proposed;
+use ieee_proposed.fixed_float_types.all;
+use ieee_proposed.float_pkg.all;
+-- synthesis translate_on
 
 use work.StdRtlPkg.all;
 use work.DspPkg.all;

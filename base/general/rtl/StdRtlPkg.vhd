@@ -22,6 +22,14 @@ use ieee.math_real.all;
 
 package StdRtlPkg is
 
+   -- Useful for pre compiler
+   constant IN_SIMULATION_C : boolean := false
+-- pragma translate_off
+   or true
+-- pragma translate_on
+   ;
+   constant IN_SYNTHESIS_C : boolean := not(IN_SIMULATION_C);
+
    -- Typing std_logic(_vector) is annoying
    subtype sl is std_logic;
    subtype slv is std_logic_vector;
