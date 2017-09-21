@@ -130,8 +130,10 @@ package body TextUtilPkg is
    procedure print(text : string) is
       variable msg_line : line;
    begin
+      -- synthesis translate_off
       write(msg_line, text);
       writeline(output, msg_line);
+      -- synthesis translate_on
    end print;
 
    -- prints text to the screen when active
