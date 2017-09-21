@@ -2,7 +2,7 @@
 -- File       : DspPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-24
--- Last update: 2017-02-09
+-- Last update: 2017-09-21
 -------------------------------------------------------------------------------
 -- Description: AXI Stream Package File
 -------------------------------------------------------------------------------
@@ -24,22 +24,56 @@ use work.StdRtlPkg.all;
 
 package DspPkg is
 
-  -- IEEE 754 half precision: https://en.wikipedia.org/wiki/Half-precision_floating-point_format
-  subtype UNRESOLVED_float16 is UNRESOLVED_float (5 downto -10);
-  alias U_float16 is UNRESOLVED_float16;
-  subtype float16 is float (5 downto -10);
+   -- IEEE 754 half precision: https://en.wikipedia.org/wiki/Half-precision_floating-point_format
+   subtype UNRESOLVED_float16 is UNRESOLVED_float (5 downto -10);
+   alias U_float16 is UNRESOLVED_float16;
+   subtype float16 is float (5 downto -10);
 
-  -- Useful constants
-  constant FP32_ZERO_C    : float32 := x"00000000";
-  constant FP32_NEG_ONE_C : float32 := x"bf800000";
-  constant FP32_POS_ONE_C : float32 := x"3f800000";
-  
-  constant FP64_ZERO_C    : float64 := x"0000000000000000";
-  constant FP64_NEG_ONE_C : float64 := x"bff0000000000000";
-  constant FP64_POS_ONE_C : float64 := x"3ff0000000000000";  
+   -- Useful constants
+   constant FP16_ZERO_C    : float16 := x"0000";
+   constant FP16_NEG_ONE_C : float16 := x"bC00";
+   constant FP16_POS_ONE_C : float16 := x"3C00";
+
+   constant FP32_ZERO_C    : float32 := x"00000000";
+   constant FP32_NEG_ONE_C : float32 := x"bf800000";
+   constant FP32_POS_ONE_C : float32 := x"3f800000";
+
+   constant FP64_ZERO_C    : float64 := x"0000000000000000";
+   constant FP64_NEG_ONE_C : float64 := x"bff0000000000000";
+   constant FP64_POS_ONE_C : float64 := x"3ff0000000000000";
+
+   constant FP128_ZERO_C    : float64 := x"00000000000000000000000000000000";
+   constant FP128_NEG_ONE_C : float64 := x"bfff0000000000000000000000000000";
+   constant FP128_POS_ONE_C : float64 := x"3fff0000000000000000000000000000";
+
+   -- Useful functions
+   function ite(i : boolean; t : float16; e : float16) return float16;
+   function ite(i : boolean; t : float32; e : float32) return float32;
+   function ite(i : boolean; t : float64; e : float64) return float64;
+   function ite(i : boolean; t : float128; e : float128) return float128;
 
 end package DspPkg;
 
 package body DspPkg is
+
+   function ite (i : boolean; t : float16; e : float16) return float16 is
+   begin
+      if (i) then return t; else return e; end if;
+   end function ite;
+
+   function ite (i : boolean; t : float32; e : float32) return float32 is
+   begin
+      if (i) then return t; else return e; end if;
+   end function ite;
+
+   function ite (i : boolean; t : float64; e : float64) return float64 is
+   begin
+      if (i) then return t; else return e; end if;
+   end function ite;
+
+   function ite (i : boolean; t : float128; e : float128) return float128 is
+   begin
+      if (i) then return t; else return e; end if;
+   end function ite;
 
 end package body DspPkg;
