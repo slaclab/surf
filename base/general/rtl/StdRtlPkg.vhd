@@ -105,6 +105,7 @@ package StdRtlPkg is
    function ite(i : boolean; t : boolean; e : boolean) return boolean;
    function ite(i : boolean; t : sl; e : sl) return sl;
    function ite(i : boolean; t : slv; e : slv) return slv;
+   function ite(i : boolean; t : bit; e : bit) return bit;
    function ite(i : boolean; t : bit_vector; e : bit_vector) return bit_vector;
    function ite(i : boolean; t : character; e : character) return character;
    function ite(i : boolean; t : string; e : string) return string;
@@ -1077,10 +1078,15 @@ package body StdRtlPkg is
       if (i) then return t; else return e; end if;
    end function ite;
 
-   function ite (i : boolean; t : bit_vector; e : bit_vector) return bit_vector is
+   function ite (i : boolean; t : bit; e : bit) return bit is
    begin
       if (i) then return t; else return e; end if;
    end function ite;
+
+   function ite (i : boolean; t : bit_vector; e : bit_vector) return bit_vector is
+   begin
+      if (i) then return t; else return e; end if;
+   end function ite;   
 
    function ite (i : boolean; t : character; e : character) return character is
    begin
