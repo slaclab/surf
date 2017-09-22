@@ -4,7 +4,7 @@
 -- Created    : 2014-04-24
 -- Last update: 2017-09-21
 -------------------------------------------------------------------------------
--- Description: AXI Stream Package File
+-- Description: DSP Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -17,10 +17,15 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+
 use ieee.fixed_float_types.all;
 use ieee.float_pkg.all;
 
-use work.StdRtlPkg.all;
+-- synthesis translate_off
+library ieee_proposed;
+use ieee_proposed.fixed_float_types.all;
+use ieee_proposed.float_pkg.all;
+-- synthesis translate_on
 
 package DspPkg is
 
@@ -46,34 +51,8 @@ package DspPkg is
    constant FP128_NEG_ONE_C : float64 := x"bfff0000000000000000000000000000";
    constant FP128_POS_ONE_C : float64 := x"3fff0000000000000000000000000000";
 
-   -- Useful functions
-   function ite(i : boolean; t : float16; e : float16) return float16;
-   function ite(i : boolean; t : float32; e : float32) return float32;
-   function ite(i : boolean; t : float64; e : float64) return float64;
-   function ite(i : boolean; t : float128; e : float128) return float128;
-
 end package DspPkg;
 
 package body DspPkg is
-
-   function ite (i : boolean; t : float16; e : float16) return float16 is
-   begin
-      if (i) then return t; else return e; end if;
-   end function ite;
-
-   function ite (i : boolean; t : float32; e : float32) return float32 is
-   begin
-      if (i) then return t; else return e; end if;
-   end function ite;
-
-   function ite (i : boolean; t : float64; e : float64) return float64 is
-   begin
-      if (i) then return t; else return e; end if;
-   end function ite;
-
-   function ite (i : boolean; t : float128; e : float128) return float128 is
-   begin
-      if (i) then return t; else return e; end if;
-   end function ite;
 
 end package body DspPkg;
