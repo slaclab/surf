@@ -117,8 +117,8 @@ architecture rtl of AxiStreamDmaV2Read is
    signal sSlave     : AxiStreamSlaveType;
    signal mSlave     : AxiStreamSlaveType;
 
-   attribute dont_touch      : string;
-   attribute dont_touch of r : signal is "TRUE";
+   -- attribute dont_touch      : string;
+   -- attribute dont_touch of r : signal is "TRUE";
 
 begin
 
