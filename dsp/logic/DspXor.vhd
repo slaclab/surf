@@ -25,9 +25,9 @@ use work.StdRtlPkg.all;
 
 entity DspXor is
    generic (
-      TPD_G     : time                   := 1 ns;
-      USE_DSP_G : string                 := "logic";
-      WIDTH_G   : positive range 2 to 96 := 96);
+      TPD_G     : time                    := 1 ns;
+      USE_DSP_G : string                  := "logic";
+      WIDTH_G   : positive range 2 to 192 := 96);
    port (
       clk  : in  sl;
       -- Inbound Interface
