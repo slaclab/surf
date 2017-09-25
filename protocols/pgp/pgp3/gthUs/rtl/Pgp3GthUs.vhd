@@ -2,7 +2,7 @@
 -- File       : Pgp3GthUs.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2017-09-13
+-- Last update: 2017-09-20
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -21,6 +21,7 @@ use ieee.numeric_std.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
+use work.AxiLitePkg.all;
 use work.Pgp3Pkg.all;
 
 library UNISIM;
@@ -45,8 +46,8 @@ entity Pgp3GthUs is
       TX_MUX_TDEST_ROUTES_G           : Slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
       TX_MUX_TDEST_LOW_G              : integer range 0 to 7  := 0;
       TX_MUX_INTERLEAVE_EN_G          : boolean               := true;
-      TX_MUX_INTERLEAVE_ON_NOTVALID_G : boolean               := true);
-
+      TX_MUX_INTERLEAVE_ON_NOTVALID_G : boolean               := true;
+      AXIL_CLK_FREQ_G                 : real                  := 125.0E+6);
    port (
       -- GT Clocking
       stableClk    : in  sl;            -- GT needs a stable clock to "boot up"
@@ -71,7 +72,15 @@ entity Pgp3GthUs is
       pgpTxSlaves  : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
       -- Frame Receive Interface - 1 Lane, Array of 4 VCs
       pgpRxMasters : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
-      pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0));
+      pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
+
+      -- AXI-Lite Register Interface (axilClk domain)
+      axilClk         : in  sl                     := '0';
+      axilRst         : in  sl                     := '0';
+      axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadSlave   : out AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;
+      axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C);
 end Pgp3GthUs;
 
 architecture rtl of Pgp3GthUs is
@@ -128,35 +137,42 @@ begin
          TX_MUX_TDEST_ROUTES_G           => TX_MUX_TDEST_ROUTES_G,
          TX_MUX_TDEST_LOW_G              => TX_MUX_TDEST_LOW_G,
          TX_MUX_INTERLEAVE_EN_G          => TX_MUX_INTERLEAVE_EN_G,
-         TX_MUX_INTERLEAVE_ON_NOTVALID_G => TX_MUX_INTERLEAVE_ON_NOTVALID_G)
+         TX_MUX_INTERLEAVE_ON_NOTVALID_G => TX_MUX_INTERLEAVE_ON_NOTVALID_G,
+         AXIL_CLK_FREQ_G                 => AXIL_CLK_FREQ_G)
       port map (
-         pgpTxClk      => pgpTxClkInt,    -- [in]
-         pgpTxRst      => pgpTxRstInt,    -- [in]
-         pgpTxIn       => pgpTxIn,        -- [in]
-         pgpTxOut      => pgpTxOut,       -- [out]
-         pgpTxMasters  => pgpTxMasters,   -- [in]
-         pgpTxSlaves   => pgpTxSlaves,    -- [out]
-         phyTxActive   => phyTxActive,    -- [in]
-         phyTxReady    => '1',            -- [in]
-         phyTxStart    => phyTxStart,     -- [out]
-         phyTxSequence => phyTxSequence,  -- [out]
-         phyTxData     => phyTxData,      -- [out]
-         phyTxHeader   => phyTxHeader,    -- [out]
-         pgpRxClk      => pgpTxClkInt,    -- [in]
-         pgpRxRst      => pgpTxRstInt,    -- [in]
-         pgpRxIn       => pgpRxIn,        -- [in]
-         pgpRxOut      => pgpRxOut,       -- [out]
-         pgpRxMasters  => pgpRxMasters,   -- [out]
-         pgpRxCtrl     => pgpRxCtrl,      -- [in]
-         phyRxClk      => phyRxClk,       -- [in]
-         phyRxRst      => phyRxRst,       -- [in]
-         phyRxInit     => phyRxInit,      -- [out]
-         phyRxActive   => phyRxActive,    -- [in]
-         phyRxValid    => phyRxValid,     -- [in]
-         phyRxHeader   => phyRxHeader,    -- [in]
-         phyRxData     => phyRxData,      -- [in]
-         phyRxStartSeq => phyRxStartSeq,  -- [in]
-         phyRxSlip     => phyRxSlip);     -- [out]
+         pgpTxClk        => pgpTxClkInt,      -- [in]
+         pgpTxRst        => pgpTxRstInt,      -- [in]
+         pgpTxIn         => pgpTxIn,          -- [in]
+         pgpTxOut        => pgpTxOut,         -- [out]
+         pgpTxMasters    => pgpTxMasters,     -- [in]
+         pgpTxSlaves     => pgpTxSlaves,      -- [out]
+         phyTxActive     => phyTxActive,      -- [in]
+         phyTxReady      => '1',              -- [in]
+         phyTxStart      => phyTxStart,       -- [out]
+         phyTxSequence   => phyTxSequence,    -- [out]
+         phyTxData       => phyTxData,        -- [out]
+         phyTxHeader     => phyTxHeader,      -- [out]
+         pgpRxClk        => pgpTxClkInt,      -- [in]
+         pgpRxRst        => pgpTxRstInt,      -- [in]
+         pgpRxIn         => pgpRxIn,          -- [in]
+         pgpRxOut        => pgpRxOut,         -- [out]
+         pgpRxMasters    => pgpRxMasters,     -- [out]
+         pgpRxCtrl       => pgpRxCtrl,        -- [in]
+         phyRxClk        => phyRxClk,         -- [in]
+         phyRxRst        => phyRxRst,         -- [in]
+         phyRxInit       => phyRxInit,        -- [out]
+         phyRxActive     => phyRxActive,      -- [in]
+         phyRxValid      => phyRxValid,       -- [in]
+         phyRxHeader     => phyRxHeader,      -- [in]
+         phyRxData       => phyRxData,        -- [in]
+         phyRxStartSeq   => phyRxStartSeq,    -- [in]
+         phyRxSlip       => phyRxSlip,        -- [out]
+         axilClk         => axilClk,          -- [in]
+         axilRst         => axilRst,          -- [in]
+         axilReadMaster  => axilReadMaster,   -- [in]
+         axilReadSlave   => axilReadSlave,    -- [out]
+         axilWriteMaster => axilWriteMaster,  -- [in]
+         axilWriteSlave  => axilWriteSlave);  -- [out]
 
    --------------------------
    -- Wrapper for GTH IP core

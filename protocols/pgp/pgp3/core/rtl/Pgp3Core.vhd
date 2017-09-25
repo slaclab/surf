@@ -20,6 +20,7 @@ use ieee.std_logic_1164.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
+use work.AxiLitePkg.all;
 use work.Pgp3Pkg.all;
 
 entity Pgp3Core is
@@ -39,9 +40,10 @@ entity Pgp3Core is
       TX_MUX_TDEST_ROUTES_G           : Slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
       TX_MUX_TDEST_LOW_G              : integer range 0 to 7  := 0;
       TX_MUX_INTERLEAVE_EN_G          : boolean               := true;
-      TX_MUX_INTERLEAVE_ON_NOTVALID_G : boolean               := true);
+      TX_MUX_INTERLEAVE_ON_NOTVALID_G : boolean               := true;
+      AXIL_CLK_FREQ_G                 : real                  := 125.0E+6);
    port (
-      -- Tx interface
+      -- Tx User interface
       pgpTxClk     : in  sl;
       pgpTxRst     : in  sl;
       pgpTxIn      : in  Pgp3TxInType;
@@ -49,7 +51,7 @@ entity Pgp3Core is
       pgpTxMasters : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
       pgpTxSlaves  : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
 
-      -- Tx Phy interface
+      -- Tx PHY interface
       phyTxActive   : in  sl;
       phyTxReady    : in  sl;
       phyTxStart    : out sl;
@@ -57,7 +59,7 @@ entity Pgp3Core is
       phyTxData     : out slv(63 downto 0);
       phyTxHeader   : out slv(1 downto 0);
 
-      -- Rx user interface
+      -- Rx User interface
       pgpRxClk     : in  sl;
       pgpRxRst     : in  sl;
       pgpRxIn      : in  Pgp3RxInType;
@@ -65,7 +67,7 @@ entity Pgp3Core is
       pgpRxMasters : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
       pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
 
-      -- rx phy interface
+      -- Rx PHY interface
       phyRxClk      : in  sl;
       phyRxRst      : in  sl;
       phyRxInit     : out sl;
@@ -74,7 +76,15 @@ entity Pgp3Core is
       phyRxHeader   : in  slv(1 downto 0);
       phyRxData     : in  slv(63 downto 0);
       phyRxStartSeq : in  sl;
-      phyRxSlip     : out sl);
+      phyRxSlip     : out sl;
+
+      -- AXI-Lite Register Interface (axilClk domain)
+      axilClk         : in  sl                     := '0';
+      axilRst         : in  sl                     := '0';
+      axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadSlave   : out AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;
+      axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C);
 end entity Pgp3Core;
 
 architecture rtl of Pgp3Core is
@@ -83,7 +93,15 @@ architecture rtl of Pgp3Core is
    signal remRxFifoCtrl  : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
    signal remRxLinkReady : sl;
 
+   signal pgpTxInInt  : Pgp3TxInType;
+   signal pgpTxOutInt : Pgp3TxOutType;
+   signal pgpRxInInt  : Pgp3RxInType;
+   signal pgpRxOutInt : Pgp3RxOutType;
+
 begin
+
+   pgpRxOut <= pgpRxOutInt;
+   pgpTxOut <= pgpTxOutInt;
 
    U_Pgp3Tx_1 : entity work.Pgp3Tx
       generic map (
@@ -100,8 +118,8 @@ begin
       port map (
          pgpTxClk       => pgpTxClk,        -- [in]
          pgpTxRst       => pgpTxRst,        -- [in]
-         pgpTxIn        => pgpTxIn,         -- [in]
-         pgpTxOut       => pgpTxOut,        -- [out]
+         pgpTxIn        => pgpTxInInt,      -- [in]
+         pgpTxOut       => pgpTxOutInt,     -- [out]
          pgpTxMasters   => pgpTxMasters,    -- [in]
          pgpTxSlaves    => pgpTxSlaves,     -- [out]
          locRxFifoCtrl  => pgpRxCtrl,       -- [in]
@@ -125,8 +143,8 @@ begin
       port map (
          pgpRxClk       => pgpRxClk,        -- [in]
          pgpRxRst       => pgpRxRst,        -- [in]
-         pgpRxIn        => pgpRxIn,         -- [in]
-         pgpRxOut       => pgpRxOut,        -- [out]
+         pgpRxIn        => pgpRxInInt,      -- [in]
+         pgpRxOut       => pgpRxOutInt,     -- [out]
          pgpRxMasters   => pgpRxMasters,    -- [out]
          pgpRxCtrl      => pgpRxCtrl,       -- [in]
          remRxFifoCtrl  => remRxFifoCtrl,   -- [out]
@@ -142,6 +160,36 @@ begin
          phyRxStartSeq  => phyRxStartSeq,   -- [in]
          phyRxSlip      => phyRxSlip);      -- [out]
 
-   
+
+   U_Pgp3Axi_1 : entity work.Pgp3AxiL
+      generic map (
+         TPD_G              => TPD_G,
+         COMMON_TX_CLK_G    => false,
+         COMMON_RX_CLK_G    => false,
+         WRITE_EN_G         => true,
+         AXI_CLK_FREQ_G     => AXIL_CLK_FREQ_G,
+         STATUS_CNT_WIDTH_G => 32,
+         ERROR_CNT_WIDTH_G  => 8)
+      port map (
+         pgpTxClk        => pgpTxClk,         -- [in]
+         pgpTxRst        => pgpTxRst,         -- [in]
+         pgpTxIn         => pgpTxInInt,       -- [out]
+         pgpTxOut        => pgpTxOutInt,      -- [in]
+         locTxIn         => pgpTxIn,          -- [in]
+         pgpRxClk        => pgpRxClk,         -- [in]
+         pgpRxRst        => pgpRxRst,         -- [in]
+         pgpRxIn         => pgpRxInInt,       -- [out]
+         pgpRxOut        => pgpRxOutInt,      -- [in]
+         locRxIn         => pgpRxIn,          -- [in]
+         statusWord      => open,             -- [out]
+         statusSend      => open,             -- [out]
+         axilClk         => axilClk,          -- [in]
+         axilRst         => axilRst,          -- [in]
+         axilReadMaster  => axilReadMaster,   -- [in]
+         axilReadSlave   => axilReadSlave,    -- [out]
+         axilWriteMaster => axilWriteMaster,  -- [in]
+         axilWriteSlave  => axilWriteSlave);  -- [out]
+
+
 
 end architecture rtl;
