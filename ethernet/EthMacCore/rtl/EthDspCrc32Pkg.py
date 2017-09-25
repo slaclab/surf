@@ -186,29 +186,90 @@ lfsrPoly     = [1,1,1,0,1,1,0,1, # x^7 + x^5 + x^4 + x^2 + x^1 + 1
                 0,0,1,0,0,0,0,0] # x^32 + x^26 (doesn’t include highest degree coefficient in polynomial representation)
    
 ##################################################################################################
-numDataBits  = 8
 
-LfsrMatrix = BuildMatrix (
-    lfsrPolySize = lfsrPolySize,
-    lfsrPoly     = lfsrPoly,    
-    numDataBits  = numDataBits,
-    )
-    
-dXorTaps, cXorTaps = GetXorTaps (
-    lfsrPolySize = lfsrPolySize,
-    numDataBits  = numDataBits,
-    LfsrMatrix   = LfsrMatrix,    
-    )  
-   
-PrintXorVhdl (
-    lfsrPolySize = lfsrPolySize,
-    numDataBits  = numDataBits,
-    dXorTaps     = dXorTaps,    
-    cXorTaps     = cXorTaps,    
-    )
+ofd = open('EthDspCrc32Pkg.vhd', 'w')
 
+ofd.write(""" -------------------------------------------------------------------------------
+-- File       : EthDspCrc32Pkg.vhd
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2017-09-25
+-- Last update: 2017-09-25
+-------------------------------------------------------------------------------
+-- Description: Ethernet DSP CRC32 Package File
+-------------------------------------------------------------------------------
+-- This file is part of 'SLAC Firmware Standard Library'.
+-- It is subject to the license terms in the LICENSE.txt file found in the 
+-- top-level directory of this distribution and at: 
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
+-- may be copied, modified, propagated, or distributed except according to 
+-- the terms contained in the LICENSE.txt file.
+-------------------------------------------------------------------------------
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+use ieee.std_logic_arith.all;
+
+package EthDspCrc32Pkg is
+
+""")
+
+for i in range(1,16+1,1):
+
+    ofd.write("   procedure xorBitMap%dByte (\n" % i )
+    ofd.write("      currentData : in    slv(%d downto 0);\n" % ((i*8)-1))
+    ofd.write("      previousCrc : in    slv(31 downto 0);\n")
+    ofd.write("      xorBitMap   : inout Slv192Array(31 downto 0));\n\n")
+     
+ofd.write("""end package EthDspCrc32Pkg;
+
+package body EthDspCrc32Pkg is
+
+""")
+
+# Generate for all byte combinations from 1 byte (8-bit) to 16 bytes (128-bit)
+for i in range(1,16+1,1):
+    numDataBits = i*8
+
+    LfsrMatrix = BuildMatrix (
+        lfsrPolySize = lfsrPolySize,
+        lfsrPoly     = lfsrPoly,    
+        numDataBits  = numDataBits,
+        )
         
-                
-                
-                
+    dXorTaps, cXorTaps = GetXorTaps (
+        lfsrPolySize = lfsrPolySize,
+        numDataBits  = numDataBits,
+        LfsrMatrix   = LfsrMatrix,    
+        )  
+       
+    # PrintXorVhdl (
+        # lfsrPolySize = lfsrPolySize,
+        # numDataBits  = numDataBits,
+        # dXorTaps     = dXorTaps,    
+        # cXorTaps     = cXorTaps,    
+        # )
+        
+    ofd.write("   procedure xorBitMap%dByte (\n" % i )
+    ofd.write("      currentData : in    slv(%d downto 0);\n" % ((i*8)-1))
+    ofd.write("      previousCrc : in    slv(31 downto 0);\n")
+    ofd.write("      xorBitMap   : inout Slv192Array(31 downto 0);\n")       
+    ofd.write("   begin\n")       
+       
+    for x in range(lfsrPolySize):  
+        ofd.write("      ")
+        for y in range( (numDataBits-1), -1, -1 ):
+            if (dXorTaps[x][y]):
+                ofd.write("xorBitMap(%d)(%d) := currentData(%d); " % (x,y,y) ) 
+        for y in range(lfsrPolySize):
+            if (cXorTaps[x][y]):
+                ofd.write("xorBitMap(%d)(%d) := previousCrc(%d); " % (x,(y+160),y) )
+        ofd.write("\n")
+    ofd.write("   end procedure;\n")
+
+ofd.write("""
+end package body EthDspCrc32Pkg;                
+
+""")
                 
