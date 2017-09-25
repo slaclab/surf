@@ -121,10 +121,34 @@ def BuildMatrix (
     
 ##################################################################################################
 
-def PrintXorVhdl(                
+def GetXorTaps (                
     lfsrPolySize,
     numDataBits,
     LfsrMatrix,
+    ): 
+
+    dXorTaps = [([0] * numDataBits) for i in range(lfsrPolySize)]
+    cXorTaps = [([0] * lfsrPolySize) for i in range(lfsrPolySize)]
+       
+    for i in range(lfsrPolySize):
+              
+        for j in range(numDataBits):
+            if(LfsrMatrix[(lfsrPolySize*lfsrPolySize)+(j*lfsrPolySize)+i]):
+                dXorTaps[i][j] = 1
+                
+        for j in range(lfsrPolySize):
+            if(LfsrMatrix[j*lfsrPolySize+i]):
+                cXorTaps[i][j] = 1
+                
+    return dXorTaps, cXorTaps
+        
+##################################################################################################
+        
+def PrintXorVhdl(                
+    lfsrPolySize,
+    numDataBits,
+    dXorTaps,
+    cXorTaps,
     ):      
 
     for i in range(lfsrPolySize):
@@ -132,7 +156,7 @@ def PrintXorVhdl(
         printStr = ('    newcrc(%d) := ' % i)
               
         for j in range( (numDataBits-1), -1, -1 ):
-            if(LfsrMatrix[(lfsrPolySize*lfsrPolySize)+(j*lfsrPolySize)+i]):
+            if (dXorTaps[i][j]):
                 if (firstBit):
                     firstBit = False
                     printStr += ('d(%d)' % j)
@@ -140,7 +164,7 @@ def PrintXorVhdl(
                     printStr += (' xor d(%d)' % j)        
         
         for j in range(lfsrPolySize):
-            if(LfsrMatrix[j*lfsrPolySize+i]):
+            if (cXorTaps[i][j]):
                 if (firstBit):
                     firstBit = False
                     printStr += ('c(%d)' % j)
@@ -160,13 +184,9 @@ lfsrPoly     = [1,1,1,0,1,1,0,1, # x^7 + x^5 + x^4 + x^2 + x^1 + 1
                 1,0,1,1,1,0,0,0, # x^12 + x^11 + x^10 + x^8
                 1,0,0,0,0,0,1,1, # x^23 + x^22 + x^16
                 0,0,1,0,0,0,0,0] # x^32 + x^26 (doesn’t include highest degree coefficient in polynomial representation)
-# for i in range(lfsrPolySize): 
-    # print ('lfsrPoly[%d] = %d' % (i,lfsrPoly[i]) )
-    
+   
 ##################################################################################################
-numDataBits  = 128
-
-
+numDataBits  = 8
 
 LfsrMatrix = BuildMatrix (
     lfsrPolySize = lfsrPolySize,
@@ -174,10 +194,17 @@ LfsrMatrix = BuildMatrix (
     numDataBits  = numDataBits,
     )
     
-PrintXorVhdl (
+dXorTaps, cXorTaps = GetXorTaps (
     lfsrPolySize = lfsrPolySize,
     numDataBits  = numDataBits,
     LfsrMatrix   = LfsrMatrix,    
+    )  
+   
+PrintXorVhdl (
+    lfsrPolySize = lfsrPolySize,
+    numDataBits  = numDataBits,
+    dXorTaps     = dXorTaps,    
+    cXorTaps     = cXorTaps,    
     )
 
         
