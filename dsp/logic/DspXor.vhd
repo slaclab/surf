@@ -2,7 +2,7 @@
 -- File       : DspXor.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-09-19
--- Last update: 2017-09-19
+-- Last update: 2017-09-25
 -------------------------------------------------------------------------------
 -- Description: Generalized DSP inferred XOR, which can be used to help with 
 --              performance when implementing FEC and CRC algorithms
@@ -25,11 +25,14 @@ use work.StdRtlPkg.all;
 
 entity DspXor is
    generic (
-      TPD_G     : time                    := 1 ns;
-      USE_DSP_G : string                  := "logic";
-      WIDTH_G   : positive range 2 to 192 := 96);
+      TPD_G          : time                    := 1 ns;
+      INIT_G         : sl                      := '1';
+      RST_POLARITY_G : sl                      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      USE_DSP_G      : string                  := "logic";
+      WIDTH_G        : positive range 2 to 192 := 96);
    port (
       clk  : in  sl;
+      rst  : in  sl := not(RST_POLARITY_G);
       -- Inbound Interface
       ain  : in  slv(WIDTH_G-1 downto 0);
       -- Outbound Interface
@@ -42,7 +45,7 @@ architecture rtl of DspXor is
       p : sl;
    end record RegType;
    constant REG_INIT_C : RegType := (
-      p => '0');
+      p => INIT_G);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -76,11 +79,15 @@ begin
 
    end process comb;
 
-   seq : process (clk) is
+   seq : process (clk, rst) is
    begin
       if rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
+      -- Only ASYNC reset supported
+      if (rst = RST_POLARITY_G) then
+         r <= REG_INIT_C after TPD_G;
+      end if;
    end process seq;
-
+   
 end rtl;

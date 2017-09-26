@@ -141,39 +141,7 @@ def GetXorTaps (
                 cXorTaps[i][j] = 1
                 
     return dXorTaps, cXorTaps
-        
-##################################################################################################
-        
-def PrintXorVhdl(                
-    lfsrPolySize,
-    numDataBits,
-    dXorTaps,
-    cXorTaps,
-    ):      
-
-    for i in range(lfsrPolySize):
-        firstBit = True
-        printStr = ('    newcrc(%d) := ' % i)
-              
-        for j in range( (numDataBits-1), -1, -1 ):
-            if (dXorTaps[i][j]):
-                if (firstBit):
-                    firstBit = False
-                    printStr += ('d(%d)' % j)
-                else:
-                    printStr += (' xor d(%d)' % j)        
-        
-        for j in range(lfsrPolySize):
-            if (cXorTaps[i][j]):
-                if (firstBit):
-                    firstBit = False
-                    printStr += ('c(%d)' % j)
-                else:
-                    printStr += (' xor c(%d)' % j)
-                   
-        printStr += (';')
-        print (printStr)  
-        
+    
 ##################################################################################################
 # CRC32 Ethernet/AAL5:
 # x^32 + x^26 + x^23 + x^22 + x^16 + x^12 + x^11 + x^10 + x^8 + x^7 + x^5 + x^4 + x^2 + x^1 + 1
@@ -195,7 +163,8 @@ ofd.write(""" ------------------------------------------------------------------
 -- Created    : 2017-09-25
 -- Last update: 2017-09-25
 -------------------------------------------------------------------------------
--- Description: Ethernet DSP CRC32 Package File
+-- Description: Ethernet DSP-based CRC32 Ethernet/AAL5 Package File
+-- Polynomial: x^32 + x^26 + x^23 + x^22 + x^16 + x^12 + x^11 + x^10 + x^8 + x^7 + x^5 + x^4 + x^2 + x^1 + 1
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -211,24 +180,36 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
+use work.StdRtlPkg.all;
+
 package EthDspCrc32Pkg is
 
 """)
 
 for i in range(1,16+1,1):
+    ofd.write("   function crc32Parallel%dByte (crcCur : slv(31 downto 0); data : slv(%d downto 0)) return slv;\n" % (i,(i*8)-1) )
 
+ofd.write("\n")
+    
+for i in range(1,8+1,1):
     ofd.write("   procedure xorBitMap%dByte (\n" % i )
-    ofd.write("      currentData : in    slv(%d downto 0);\n" % ((i*8)-1))
+    ofd.write("      xorBitMap   : inout Slv96Array(31 downto 0);\n")
     ofd.write("      previousCrc : in    slv(31 downto 0);\n")
-    ofd.write("      xorBitMap   : inout Slv192Array(31 downto 0));\n\n")
-     
+    ofd.write("      currentData : in    slv(%d downto 0));\n\n" % ((i*8)-1))
+
+    
+for i in range(1,16+1,1):
+    ofd.write("   procedure xorBitMap%dByte (\n" % i )
+    ofd.write("      xorBitMap   : inout Slv192Array(31 downto 0);\n")    
+    ofd.write("      previousCrc : in    slv(31 downto 0);\n")
+    ofd.write("      currentData : in    slv(%d downto 0));\n\n" % ((i*8)-1))
+    
 ofd.write("""end package EthDspCrc32Pkg;
 
 package body EthDspCrc32Pkg is
 
 """)
 
-# Generate for all byte combinations from 1 byte (8-bit) to 16 bytes (128-bit)
 for i in range(1,16+1,1):
     numDataBits = i*8
 
@@ -243,18 +224,88 @@ for i in range(1,16+1,1):
         numDataBits  = numDataBits,
         LfsrMatrix   = LfsrMatrix,    
         )  
-       
-    # PrintXorVhdl (
-        # lfsrPolySize = lfsrPolySize,
-        # numDataBits  = numDataBits,
-        # dXorTaps     = dXorTaps,    
-        # cXorTaps     = cXorTaps,    
-        # )
+        
+    ofd.write("   function crc32Parallel%dByte (crcCur : slv(31 downto 0); data : slv(%d downto 0)) return slv is\n" % (i,(i*8)-1) )
+    ofd.write("      variable retVar : slv(31 downto 0) := (others => '0');\n")
+    ofd.write("   begin\n")
+    for i in range(lfsrPolySize):
+        firstBit = True
+        printStr = ('      retVar(%d) := ' % i)
+              
+        # for j in range( (numDataBits-1), -1, -1 ):
+        for j in range(numDataBits):
+            if (dXorTaps[i][j]):
+                if (firstBit):
+                    firstBit = False
+                    printStr += ('data(%d)' % j)
+                else:
+                    printStr += (' xor data(%d)' % j)        
+        
+        for j in range(lfsrPolySize):
+            if (cXorTaps[i][j]):
+                if (firstBit):
+                    firstBit = False
+                    printStr += ('crcCur(%d)' % j)
+                else:
+                    printStr += (' xor crcCur(%d)' % j)
+                   
+        printStr += (';\n')
+        ofd.write(printStr)        
+    ofd.write("""      return retVar;\n   end function;\n\n""")
+        
+for i in range(1,8+1,1):
+    numDataBits = i*8
+
+    LfsrMatrix = BuildMatrix (
+        lfsrPolySize = lfsrPolySize,
+        lfsrPoly     = lfsrPoly,    
+        numDataBits  = numDataBits,
+        )
+        
+    dXorTaps, cXorTaps = GetXorTaps (
+        lfsrPolySize = lfsrPolySize,
+        numDataBits  = numDataBits,
+        LfsrMatrix   = LfsrMatrix,    
+        )  
         
     ofd.write("   procedure xorBitMap%dByte (\n" % i )
-    ofd.write("      currentData : in    slv(%d downto 0);\n" % ((i*8)-1))
+    
+    ofd.write("      xorBitMap   : inout Slv96Array(31 downto 0);\n")
     ofd.write("      previousCrc : in    slv(31 downto 0);\n")
-    ofd.write("      xorBitMap   : inout Slv192Array(31 downto 0);\n")       
+    ofd.write("      currentData : in    slv(%d downto 0)) is \n" % ((i*8)-1))    
+    ofd.write("   begin\n")       
+       
+    for x in range(lfsrPolySize):  
+        ofd.write("      ")
+        for y in range( (numDataBits-1), -1, -1 ):
+            if (dXorTaps[x][y]):
+                ofd.write("xorBitMap(%d)(%d) := currentData(%d); " % (x,y,y) ) 
+        for y in range(lfsrPolySize):
+            if (cXorTaps[x][y]):
+                ofd.write("xorBitMap(%d)(%d) := previousCrc(%d); " % (x,(y+64),y) )
+        ofd.write("\n")
+    ofd.write("   end procedure;\n\n")
+    
+for i in range(1,16+1,1):
+    numDataBits = i*8
+
+    LfsrMatrix = BuildMatrix (
+        lfsrPolySize = lfsrPolySize,
+        lfsrPoly     = lfsrPoly,    
+        numDataBits  = numDataBits,
+        )
+        
+    dXorTaps, cXorTaps = GetXorTaps (
+        lfsrPolySize = lfsrPolySize,
+        numDataBits  = numDataBits,
+        LfsrMatrix   = LfsrMatrix,    
+        )  
+        
+    ofd.write("   procedure xorBitMap%dByte (\n" % i )
+    ofd.write("      xorBitMap   : inout Slv192Array(31 downto 0);\n")        
+    ofd.write("      previousCrc : in    slv(31 downto 0);\n")
+    ofd.write("      currentData : in    slv(%d downto 0)) is \n" % ((i*8)-1))   
+    
     ofd.write("   begin\n")       
        
     for x in range(lfsrPolySize):  
@@ -266,10 +317,6 @@ for i in range(1,16+1,1):
             if (cXorTaps[x][y]):
                 ofd.write("xorBitMap(%d)(%d) := previousCrc(%d); " % (x,(y+160),y) )
         ofd.write("\n")
-    ofd.write("   end procedure;\n")
+    ofd.write("   end procedure;\n\n")
 
-ofd.write("""
-end package body EthDspCrc32Pkg;                
-
-""")
-                
+ofd.write("end package body EthDspCrc32Pkg;\n\n")
