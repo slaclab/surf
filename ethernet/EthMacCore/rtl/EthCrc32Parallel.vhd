@@ -1,10 +1,10 @@
 -------------------------------------------------------------------------------
--- File       : EthDspCrc32Parallel.vhd
+-- File       : EthCrc32Parallel.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-01
 -- Last update: 2017-09-26
 -------------------------------------------------------------------------------
--- Description: Ethernet DSP-based CRC32 Ethernet/AAL5 Module
+-- Description: Ethernet CRC32 Ethernet/AAL5 Module
 -- Polynomial: x^32 + x^26 + x^23 + x^22 + x^16 + x^12 + x^11 + x^10 + x^8 + x^7 + x^5 + x^4 + x^2 + x^1 + 1
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
@@ -22,12 +22,12 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
-use work.EthDspCrc32Pkg.all;
+use work.EthCrc32Pkg.all;
 
-entity EthDspCrc32Parallel is
+entity EthCrc32Parallel is
    generic (
       TPD_G        : time                   := 1 ns;
-      USE_DSP_G    : boolean                := false;
+      USE_DSP_G    : boolean                := false;-- true is not tested yet
       CRC_INIT_G   : slv(31 downto 0)       := x"FFFFFFFF";
       BYTE_WIDTH_G : positive range 1 to 16 := 16);  -- Maximum byte width (1-16 supported)
    port (
@@ -37,9 +37,9 @@ entity EthDspCrc32Parallel is
       crcDataWidth : in  slv(3 downto 0);  -- # of bytes minus 1 (example: 0 - 1 byte, 1 - 2 bytes ... , 15 - 16 bytes)
       crcIn        : in  slv((BYTE_WIDTH_G*8-1) downto 0);
       crcOut       : out slv(31 downto 0));
-end EthDspCrc32Parallel;
+end EthCrc32Parallel;
 
-architecture rtl of EthDspCrc32Parallel is
+architecture rtl of EthCrc32Parallel is
 
    type RegType is record
       valid     : sl;

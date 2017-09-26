@@ -1,10 +1,10 @@
  -------------------------------------------------------------------------------
--- File       : EthDspCrc32Pkg.vhd
+-- File       : EthCrc32Pkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-09-25
 -- Last update: 2017-09-25
 -------------------------------------------------------------------------------
--- Description: Ethernet DSP-based CRC32 Ethernet/AAL5 Package File
+-- Description: Ethernet CRC32 Ethernet/AAL5 Package File
 -- Polynomial: x^32 + x^26 + x^23 + x^22 + x^16 + x^12 + x^11 + x^10 + x^8 + x^7 + x^5 + x^4 + x^2 + x^1 + 1
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
@@ -23,7 +23,7 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 
-package EthDspCrc32Pkg is
+package EthCrc32Pkg is
 
    function crc32Parallel1Byte (crcCur : slv(31 downto 0); data : slv(7 downto 0)) return slv;
    function crc32Parallel2Byte (crcCur : slv(31 downto 0); data : slv(15 downto 0)) return slv;
@@ -162,9 +162,9 @@ package EthDspCrc32Pkg is
       previousCrc : in    slv(31 downto 0);
       currentData : in    slv(127 downto 0));
 
-end package EthDspCrc32Pkg;
+end package EthCrc32Pkg;
 
-package body EthDspCrc32Pkg is
+package body EthCrc32Pkg is
 
    function crc32Parallel1Byte (crcCur : slv(31 downto 0); data : slv(7 downto 0)) return slv is
       variable retVar : slv(31 downto 0) := (others => '0');
@@ -1710,5 +1710,5 @@ package body EthDspCrc32Pkg is
       xorBitMap(31)(127) := currentData(127); xorBitMap(31)(126) := currentData(126); xorBitMap(31)(125) := currentData(125); xorBitMap(31)(124) := currentData(124); xorBitMap(31)(122) := currentData(122); xorBitMap(31)(118) := currentData(118); xorBitMap(31)(117) := currentData(117); xorBitMap(31)(116) := currentData(116); xorBitMap(31)(115) := currentData(115); xorBitMap(31)(113) := currentData(113); xorBitMap(31)(112) := currentData(112); xorBitMap(31)(110) := currentData(110); xorBitMap(31)(109) := currentData(109); xorBitMap(31)(105) := currentData(105); xorBitMap(31)(103) := currentData(103); xorBitMap(31)(102) := currentData(102); xorBitMap(31)(100) := currentData(100); xorBitMap(31)(98) := currentData(98); xorBitMap(31)(97) := currentData(97); xorBitMap(31)(96) := currentData(96); xorBitMap(31)(95) := currentData(95); xorBitMap(31)(94) := currentData(94); xorBitMap(31)(93) := currentData(93); xorBitMap(31)(86) := currentData(86); xorBitMap(31)(84) := currentData(84); xorBitMap(31)(83) := currentData(83); xorBitMap(31)(82) := currentData(82); xorBitMap(31)(81) := currentData(81); xorBitMap(31)(80) := currentData(80); xorBitMap(31)(78) := currentData(78); xorBitMap(31)(72) := currentData(72); xorBitMap(31)(71) := currentData(71); xorBitMap(31)(67) := currentData(67); xorBitMap(31)(66) := currentData(66); xorBitMap(31)(65) := currentData(65); xorBitMap(31)(64) := currentData(64); xorBitMap(31)(62) := currentData(62); xorBitMap(31)(60) := currentData(60); xorBitMap(31)(59) := currentData(59); xorBitMap(31)(57) := currentData(57); xorBitMap(31)(54) := currentData(54); xorBitMap(31)(53) := currentData(53); xorBitMap(31)(52) := currentData(52); xorBitMap(31)(49) := currentData(49); xorBitMap(31)(47) := currentData(47); xorBitMap(31)(46) := currentData(46); xorBitMap(31)(44) := currentData(44); xorBitMap(31)(43) := currentData(43); xorBitMap(31)(36) := currentData(36); xorBitMap(31)(33) := currentData(33); xorBitMap(31)(31) := currentData(31); xorBitMap(31)(30) := currentData(30); xorBitMap(31)(29) := currentData(29); xorBitMap(31)(28) := currentData(28); xorBitMap(31)(27) := currentData(27); xorBitMap(31)(25) := currentData(25); xorBitMap(31)(24) := currentData(24); xorBitMap(31)(23) := currentData(23); xorBitMap(31)(15) := currentData(15); xorBitMap(31)(11) := currentData(11); xorBitMap(31)(9) := currentData(9); xorBitMap(31)(8) := currentData(8); xorBitMap(31)(5) := currentData(5); xorBitMap(31)(160) := previousCrc(0); xorBitMap(31)(161) := previousCrc(1); xorBitMap(31)(162) := previousCrc(2); xorBitMap(31)(164) := previousCrc(4); xorBitMap(31)(166) := previousCrc(6); xorBitMap(31)(167) := previousCrc(7); xorBitMap(31)(169) := previousCrc(9); xorBitMap(31)(173) := previousCrc(13); xorBitMap(31)(174) := previousCrc(14); xorBitMap(31)(176) := previousCrc(16); xorBitMap(31)(177) := previousCrc(17); xorBitMap(31)(179) := previousCrc(19); xorBitMap(31)(180) := previousCrc(20); xorBitMap(31)(181) := previousCrc(21); xorBitMap(31)(182) := previousCrc(22); xorBitMap(31)(186) := previousCrc(26); xorBitMap(31)(188) := previousCrc(28); xorBitMap(31)(189) := previousCrc(29); xorBitMap(31)(190) := previousCrc(30); xorBitMap(31)(191) := previousCrc(31); 
    end procedure;
 
-end package body EthDspCrc32Pkg;
+end package body EthCrc32Pkg;
 

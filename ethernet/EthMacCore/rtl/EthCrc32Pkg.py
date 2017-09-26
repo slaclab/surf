@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #-----------------------------------------------------------------------------
-# File       : EthDspCrc32Pkg.py
+# File       : EthCrc32Pkg.py
 # Created    : 2017-09-25
 # Last update: 2017-09-25
 #-----------------------------------------------------------------------------
@@ -155,15 +155,15 @@ lfsrPoly     = [1,1,1,0,1,1,0,1, # x^7 + x^5 + x^4 + x^2 + x^1 + 1
    
 ##################################################################################################
 
-ofd = open('EthDspCrc32Pkg.vhd', 'w')
+ofd = open('EthCrc32Pkg.vhd', 'w')
 
 ofd.write(""" -------------------------------------------------------------------------------
--- File       : EthDspCrc32Pkg.vhd
+-- File       : EthCrc32Pkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-09-25
 -- Last update: 2017-09-25
 -------------------------------------------------------------------------------
--- Description: Ethernet DSP-based CRC32 Ethernet/AAL5 Package File
+-- Description: Ethernet CRC32 Ethernet/AAL5 Package File
 -- Polynomial: x^32 + x^26 + x^23 + x^22 + x^16 + x^12 + x^11 + x^10 + x^8 + x^7 + x^5 + x^4 + x^2 + x^1 + 1
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
@@ -182,7 +182,7 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 
-package EthDspCrc32Pkg is
+package EthCrc32Pkg is
 
 """)
 
@@ -204,9 +204,9 @@ for i in range(1,16+1,1):
     ofd.write("      previousCrc : in    slv(31 downto 0);\n")
     ofd.write("      currentData : in    slv(%d downto 0));\n\n" % ((i*8)-1))
     
-ofd.write("""end package EthDspCrc32Pkg;
+ofd.write("""end package EthCrc32Pkg;
 
-package body EthDspCrc32Pkg is
+package body EthCrc32Pkg is
 
 """)
 
@@ -319,4 +319,4 @@ for i in range(1,16+1,1):
         ofd.write("\n")
     ofd.write("   end procedure;\n\n")
 
-ofd.write("end package body EthDspCrc32Pkg;\n\n")
+ofd.write("end package body EthCrc32Pkg;\n\n")
