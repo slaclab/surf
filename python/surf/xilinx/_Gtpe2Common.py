@@ -33,7 +33,7 @@ class Gtpe2Common(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "PLL0_CFG_WRD0",
             description  = "",
-            offset       =  (0x0002<<4),
+            offset       =  (0x0002<<2),
             bitSize      =  16,
             bitOffset    =  0,
             base         = pr.UInt,
@@ -43,7 +43,7 @@ class Gtpe2Common(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "PLL0_CFG_WRD1",
             description  = "",
-            offset       =  (0x0003<<4),
+            offset       =  (0x0003<<2),
             bitSize      =  11,
             bitOffset    =  0,
             base         = pr.UInt,
@@ -53,7 +53,7 @@ class Gtpe2Common(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "PLL0_REFCLK_DIV",
             description  = "",
-            offset       =  (0x0004<<4),
+            offset       =  (0x0004<<2),
             bitSize      =  5,
             bitOffset    =  9,
             base         = pr.UInt,
@@ -63,7 +63,7 @@ class Gtpe2Common(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "PLL0_FBDIV_45",
             description  = "",
-            offset       =  (0x0004<<4),
+            offset       =  (0x0004<<2),
             bitSize      =  1,
             bitOffset    =  7,
             base         = pr.UInt,
@@ -73,7 +73,7 @@ class Gtpe2Common(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "PLL0_FBDIV",
             description  = "",
-            offset       =  (0x0004<<4),
+            offset       =  (0x0004<<2),
             bitSize      =  6,
             bitOffset    =  0,
             base         = pr.UInt,
@@ -83,7 +83,7 @@ class Gtpe2Common(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "PLL0_LOCK_CFG",
             description  = "",
-            offset       =  (0x0005<<4),
+            offset       =  (0x0005<<2),
             bitSize      =  9,
             bitOffset    =  0,
             base         = pr.UInt,
@@ -93,7 +93,7 @@ class Gtpe2Common(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "PLL0_INIT_CFG_WRD0",
             description  = "",
-            offset       =  (0x0006<<4),
+            offset       =  (0x0006<<2),
             bitSize      =  16,
             bitOffset    =  0,
             base         = pr.UInt,
@@ -103,7 +103,7 @@ class Gtpe2Common(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "PLL0_INIT_CFG_WRD1",
             description  = "",
-            offset       =  (0x0007<<4),
+            offset       =  (0x0007<<2),
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
@@ -113,7 +113,7 @@ class Gtpe2Common(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "RSVD_ATTR0",
             description  = "",
-            offset       =  (0x000A<<4),
+            offset       =  (0x000A<<2),
             bitSize      =  16,
             bitOffset    =  0,
             base         = pr.UInt,
@@ -123,7 +123,7 @@ class Gtpe2Common(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "PLL1_DMON_CFG",
             description  = "",
-            offset       =  (0x000F<<4),
+            offset       =  (0x000F<<2),
             bitSize      =  1,
             bitOffset    =  1,
             base         = pr.UInt,
@@ -133,7 +133,7 @@ class Gtpe2Common(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "PLL0_DMON_CFG",
             description  = "",
-            offset       =  (0x000F<<4),
+            offset       =  (0x000F<<2),
             bitSize      =  1,
             bitOffset    =  0,
             base         = pr.UInt,
@@ -143,7 +143,7 @@ class Gtpe2Common(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "COMMON_CFG_WRD0",
             description  = "",
-            offset       =  (0x0011<<4),
+            offset       =  (0x0011<<2),
             bitSize      =  16,
             bitOffset    =  0,
             base         = pr.UInt,
@@ -153,7 +153,7 @@ class Gtpe2Common(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "COMMON_CFG_WRD1",
             description  = "",
-            offset       =  (0x0012<<4),
+            offset       =  (0x0012<<2),
             bitSize      =  16,
             bitOffset    =  0,
             base         = pr.UInt,
@@ -163,7 +163,7 @@ class Gtpe2Common(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "PLL_CLKOUT_CFG",
             description  = "",
-            offset       =  (0x0013<<4),
+            offset       =  (0x0013<<2),
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
@@ -173,7 +173,7 @@ class Gtpe2Common(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "BIAS_CFG_WRD0",
             description  = "",
-            offset       =  (0x0019<<4),
+            offset       =  (0x0019<<2),
             bitSize      =  16,
             bitOffset    =  0,
             base         = pr.UInt,
@@ -183,7 +183,7 @@ class Gtpe2Common(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "BIAS_CFG_WRD1",
             description  = "",
-            offset       =  (0x001A<<4),
+            offset       =  (0x001A<<2),
             bitSize      =  16,
             bitOffset    =  0,
             base         = pr.UInt,
@@ -193,7 +193,7 @@ class Gtpe2Common(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "BIAS_CFG_WRD2",
             description  = "",
-            offset       =  (0x001B<<4),
+            offset       =  (0x001B<<2),
             bitSize      =  16,
             bitOffset    =  0,
             base         = pr.UInt,
@@ -203,7 +203,7 @@ class Gtpe2Common(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "BIAS_CFG_WRD3",
             description  = "",
-            offset       =  (0x001C<<4),
+            offset       =  (0x001C<<2),
             bitSize      =  16,
             bitOffset    =  0,
             base         = pr.UInt,
@@ -213,7 +213,7 @@ class Gtpe2Common(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "RSVD_ATTR1",
             description  = "",
-            offset       =  (0x0024<<4),
+            offset       =  (0x0024<<2),
             bitSize      =  16,
             bitOffset    =  0,
             base         = pr.UInt,
@@ -223,7 +223,7 @@ class Gtpe2Common(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "PLL1_INIT_CFG_WRD0",
             description  = "",
-            offset       =  (0x0028<<4),
+            offset       =  (0x0028<<2),
             bitSize      =  16,
             bitOffset    =  0,
             base         = pr.UInt,
@@ -233,7 +233,7 @@ class Gtpe2Common(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "PLL1_INIT_CFG_WRD1",
             description  = "",
-            offset       =  (0x0029<<4),
+            offset       =  (0x0029<<2),
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
@@ -243,7 +243,7 @@ class Gtpe2Common(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "PLL1_LOCK_CFG",
             description  = "",
-            offset       =  (0x002A<<4),
+            offset       =  (0x002A<<2),
             bitSize      =  9,
             bitOffset    =  0,
             base         = pr.UInt,
@@ -253,7 +253,7 @@ class Gtpe2Common(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "PLL1_REFCLK_DIV",
             description  = "",
-            offset       =  (0x002B<<4),
+            offset       =  (0x002B<<2),
             bitSize      =  5,
             bitOffset    =  9,
             base         = pr.UInt,
@@ -263,7 +263,7 @@ class Gtpe2Common(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "PLL1_FBDIV_45",
             description  = "",
-            offset       =  (0x002B<<4),
+            offset       =  (0x002B<<2),
             bitSize      =  1,
             bitOffset    =  7,
             base         = pr.UInt,
@@ -273,7 +273,7 @@ class Gtpe2Common(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "PLL1_FBDIV",
             description  = "",
-            offset       =  (0x002B<<4),
+            offset       =  (0x002B<<2),
             bitSize      =  6,
             bitOffset    =  0,
             base         = pr.UInt,
@@ -283,7 +283,7 @@ class Gtpe2Common(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "PLL1_CFG_WRD0",
             description  = "",
-            offset       =  (0x002C<<4),
+            offset       =  (0x002C<<2),
             bitSize      =  16,
             bitOffset    =  0,
             base         = pr.UInt,
@@ -293,7 +293,7 @@ class Gtpe2Common(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "PLL1_CFG_WRD1",
             description  = "",
-            offset       =  (0x002D<<4),
+            offset       =  (0x002D<<2),
             bitSize      =  11,
             bitOffset    =  0,
             base         = pr.UInt,
