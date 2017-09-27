@@ -220,6 +220,7 @@ entity Gtp7Core is
       -- DRP Interface (stableClkIn Domain)
       drpGnt         : out sl;
       drpRdy         : out sl;
+      drpOverride    : in  sl               := '0';
       drpEn          : in  sl               := '0';
       drpWe          : in  sl               := '0';
       drpAddr        : in  slv(8 downto 0)  := "000000000";
@@ -1283,6 +1284,7 @@ begin
    GEN_RST_SEQ : if (SIMULATION_G = false) generate
       Gtp7RxRstSeq_Inst : entity work.Gtp7RxRstSeq
          port map(
+            DRP_OVERRIDE   => drpOverride,
             RST_IN         => rxUserResetIn,
             GTRXRESET_IN   => gtRxReset,
             RXPMARESETDONE => rxPmaResetDone,

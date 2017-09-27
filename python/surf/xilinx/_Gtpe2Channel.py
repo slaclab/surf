@@ -258,7 +258,7 @@ class Gtpe2Channel(pr.Device):
             bitOffset    =  4,
             base         = pr.UInt,
             mode         = "RW",
-        ))   
+        ))                 
 
         self.add(pr.RemoteVariable(   
             name         = "RXPRBS_ERR_LOOPBACK",
@@ -1560,16 +1560,17 @@ class Gtpe2Channel(pr.Device):
             mode         = "RW",
         ))   
 
-        self.add(pr.RemoteVariable(   
-            name         = "TERM_RCAL_OVRD",
-            description  = "",
-            offset       =  (0x006A<<2),
-            bitSize      =  3,
-            bitOffset    =  13,
-            base         = pr.UInt,
-            mode         = "RW",
-        )) 
-
+        # "This feature is intended for internal use only." (UG482)
+        # self.add(pr.RemoteVariable(   
+            # name         = "TERM_RCAL_OVRD",
+            # description  = "",
+            # offset       =  (0x006A<<2),
+            # bitSize      =  3,
+            # bitOffset    =  13,
+            # base         = pr.UInt,
+            # mode         = "RW",
+        # ))
+                
         self.add(pr.RemoteVariable(   
             name         = "TX_CLK25_DIV",
             description  = "",
@@ -1918,7 +1919,7 @@ class Gtpe2Channel(pr.Device):
             bitOffset    =  11,
             base         = pr.UInt,
             mode         = "RW",
-        )) 
+        ))    
 
         self.add(pr.RemoteVariable(   
             name         = "TXOUT_DIV",
@@ -1928,8 +1929,8 @@ class Gtpe2Channel(pr.Device):
             bitOffset    =  4,
             base         = pr.UInt,
             mode         = "RW",
-        ))      
-
+        ))           
+        
         self.add(pr.RemoteVariable(   
             name         = "RXOUT_DIV",
             description  = "",
