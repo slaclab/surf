@@ -489,8 +489,8 @@ begin
 
       -- Rx Status regs
       axiSlaveRegisterR(axilEp, X"10", 0, rxStatusSync.phyRxActive);
-      axiSlaveRegisterR(axilEp, X"10", 2, rxStatusSync.locLinkReady);
-      axiSlaveRegisterR(axilEp, X"10", 3, rxStatusSync.remLinkReady);
+      axiSlaveRegisterR(axilEp, X"10", 1, rxStatusSync.locLinkReady);
+      axiSlaveRegisterR(axilEp, X"10", 2, rxStatusSync.remLinkReady);
 
       axiSlaveRegisterR(axilEp, X"14", 0, rxStatusSync.cellErrorCount);
       axiSlaveRegisterR(axilEp, X"18", 0, rxStatusSync.linkDownCount);
@@ -534,9 +534,10 @@ begin
       axiSlaveRegisterR(axilEp, X"94", 0, txStatusSync.frameErrCount);
       axiSlaveRegisterR(axilEp, X"9C", 0, txStatusSync.txClkFreq);
 
-      axiSlaveRegisterR(axilEp, X"A0", 0, txStatusSync.txOpCodeDataLast);
+      axiSlaveRegisterR(axilEp, X"A0", 0, txStatusSync.txOpCodeCount);
+      axiSlaveRegisterR(axilEp, X"A4", 0, txStatusSync.txOpCodeDataLast);
       axiSlaveRegisterR(axilEp, X"A4", 56, txStatusSync.txOpCodeNumberLast);
-      axiSlaveRegisterR(axilEp, X"A4", 0, txStatusSync.txOpCodeCount);
+
 
       for i in 0 to 15 loop
          axiSlaveRegisterR(axilEp, X"B0"+toSlv(i*4, 8), 0, txStatusSync.locOverflowCnt(i));
