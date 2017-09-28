@@ -55,6 +55,7 @@ entity Pgp2bGtp7FixedLat is
       TX_OUTCLK_SRC_G  : string  := "PLLREFCLK";
       TX_PHASE_ALIGN_G : string  := "MANUAL";
       -- Configure PLL sources
+      DYNAMIC_QPLL_G   : boolean := false; 
       TX_PLL_G         : string  := "PLL0";
       RX_PLL_G         : string  := "PLL1";
 
@@ -121,6 +122,7 @@ entity Pgp2bGtp7FixedLat is
       txPreCursor     : in  slv(4 downto 0)        := (others => '0');
       txPostCursor    : in  slv(4 downto 0)        := (others => '0');
       txDiffCtrl      : in  slv(3 downto 0)        := "1000";
+      drpOverride     : in  sl                     := '0';
       -- AXI-Lite Interface 
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
@@ -262,6 +264,7 @@ begin
          RXCDR_CFG_G           => RXCDR_CFG_G,
          RXLPM_INCM_CFG_G      => RXLPM_INCM_CFG_G,
          RXLPM_IPCM_CFG_G      => RXLPM_IPCM_CFG_G,
+         DYNAMIC_QPLL_G        => DYNAMIC_QPLL_G,
          TX_PLL_G              => TX_PLL_G,
          RX_PLL_G              => RX_PLL_G,
          TX_EXT_DATA_WIDTH_G   => 16,
@@ -344,6 +347,7 @@ begin
          txPreCursor      => txPreCursor,
          txPostCursor     => txPostCursor,
          txDiffCtrl       => txDiffCtrl,
+         drpOverride      => drpOverride,
          drpGnt           => drpGnt,
          drpRdy           => drpRdy,
          drpEn            => drpEn,

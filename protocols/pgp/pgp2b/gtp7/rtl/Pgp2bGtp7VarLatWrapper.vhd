@@ -33,6 +33,7 @@ entity Pgp2bGtp7VarLatWrapper is
       TPD_G                : time                    := 1 ns;
       COMMON_CLK_G         : boolean                 := false;-- set true if (stableClk = axilClk)
       SIMULATION_G         : boolean                 := false;
+      DYNAMIC_QPLL_G       : boolean                 := false;
       -- MMCM Configurations
       CLKIN_PERIOD_G       : real                    := 6.4;
       DIVCLK_DIVIDE_G      : natural range 1 to 106  := 1;
@@ -91,6 +92,7 @@ entity Pgp2bGtp7VarLatWrapper is
       txPreCursor     : in  slv(4 downto 0)        := (others => '0');
       txPostCursor    : in  slv(4 downto 0)        := (others => '0');
       txDiffCtrl      : in  slv(3 downto 0)        := "1000";
+      drpOverride     : in  sl                     := '0';
       -- AXI-Lite Interface 
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
@@ -220,6 +222,7 @@ begin
          RXLPM_INCM_CFG_G      => RXLPM_INCM_CFG_G,
          RXLPM_IPCM_CFG_G      => RXLPM_IPCM_CFG_G,
          -- Configure PLL sources
+         DYNAMIC_QPLL_G        => DYNAMIC_QPLL_G,
          TX_PLL_G              => "PLL0",
          RX_PLL_G              => "PLL1",
          -- Configure PGP
@@ -272,6 +275,7 @@ begin
          txPreCursor      => txPreCursor,
          txPostCursor     => txPostCursor,
          txDiffCtrl       => txDiffCtrl,
+         drpOverride      => drpOverride,
          -- AXI-Lite Interface 
          axilClk          => axilClk,
          axilRst          => axilRst,

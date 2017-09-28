@@ -44,6 +44,7 @@ entity Pgp2bGtp7VarLat is
       RXCDR_CFG_G           : bit_vector           := x"0000107FE206001041010";  -- Set by wizard
       RXLPM_INCM_CFG_G      : bit                  := '1';    -- Set by wizard
       RXLPM_IPCM_CFG_G      : bit                  := '0';    -- Set by wizard      
+      DYNAMIC_QPLL_G        : boolean              := false;
       TX_PLL_G              : string               := "PLL0";
       RX_PLL_G              : string               := "PLL1";
       -- Configure Buffer usage
@@ -105,6 +106,7 @@ entity Pgp2bGtp7VarLat is
       txPreCursor      : in  slv(4 downto 0)                  := (others => '0');
       txPostCursor     : in  slv(4 downto 0)                  := (others => '0');
       txDiffCtrl       : in  slv(3 downto 0)                  := "1000";
+      drpOverride      : in  sl                               := '0';
       -- AXI-Lite Interface 
       axilClk          : in  sl                               := '0';
       axilRst          : in  sl                               := '0';
@@ -136,6 +138,7 @@ begin
          RXCDR_CFG_G           => RXCDR_CFG_G,
          RXLPM_INCM_CFG_G      => RXLPM_INCM_CFG_G,
          RXLPM_IPCM_CFG_G      => RXLPM_IPCM_CFG_G,
+         DYNAMIC_QPLL_G        => DYNAMIC_QPLL_G,
          TX_PLL_G              => TX_PLL_G,
          RX_PLL_G              => RX_PLL_G,
          -- Configure Buffer usage
@@ -195,6 +198,7 @@ begin
          txPreCursor         => txPreCursor,
          txPostCursor        => txPostCursor,
          txDiffCtrl          => txDiffCtrl,
+         drpOverride         => drpOverride,
          -- AXI-Lite Interface 
          axilClk             => axilClk,
          axilRst             => axilRst,
