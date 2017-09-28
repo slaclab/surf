@@ -103,7 +103,7 @@ class AxiVersion(pr.Device):
             bitSize      = 1,
             bitOffset    = 0x00,
             base         = pr.UInt,
-            function     = pr.RemoteCommand.postedTouchOne
+            function     = lambda cmd: cmd.post(1)
         ))
 
         self.add(pr.RemoteVariable(   
