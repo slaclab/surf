@@ -26,6 +26,7 @@ use work.AxiLitePkg.all;
 entity Pgp2bGtp7VarLat is
    generic (
       TPD_G                 : time                 := 1 ns;
+      COMMON_CLK_G          : boolean              := false;-- set true if (stableClk = axilClk)
       ----------------------------------------------------------------------------------------------
       -- GT Settings
       ----------------------------------------------------------------------------------------------
@@ -120,6 +121,7 @@ begin
    MuliLane_Inst : entity work.Pgp2bGtp7MultiLane
       generic map (
          TPD_G                 => TPD_G,
+         COMMON_CLK_G          => COMMON_CLK_G,
          -- SIM Generics
          SIM_GTRESET_SPEEDUP_G => SIM_GTRESET_SPEEDUP_G,
          SIM_VERSION_G         => SIM_VERSION_G,

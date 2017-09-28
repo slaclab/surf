@@ -31,6 +31,7 @@ use unisim.vcomponents.all;
 entity Pgp2bGtp7FixedLatWrapper is
    generic (
       TPD_G                   : time                 := 1 ns;
+      COMMON_CLK_G            : boolean              := false;-- set true if (stableClk = axilClk)
       SIM_GTRESET_SPEEDUP_G   : boolean              := false;
       SIM_VERSION_G           : string               := "1.0";
       SIMULATION_G            : boolean              := false;
@@ -370,6 +371,7 @@ begin
    Pgp2bGtp7Fixedlat_Inst : entity work.Pgp2bGtp7FixedLat
       generic map (
          TPD_G                 => TPD_G,
+         COMMON_CLK_G          => COMMON_CLK_G,
          SIM_GTRESET_SPEEDUP_G => SIM_GTRESET_SPEEDUP_C,
          SIM_VERSION_G         => SIM_VERSION_G,
          SIMULATION_G          => SIMULATION_G,

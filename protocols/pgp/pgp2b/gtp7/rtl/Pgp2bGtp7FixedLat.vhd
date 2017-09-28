@@ -29,7 +29,7 @@ use UNISIM.VCOMPONENTS.all;
 entity Pgp2bGtp7FixedLat is
    generic (
       TPD_G : time := 1 ns;
-
+      COMMON_CLK_G          : boolean              := false;-- set true if (stableClk = axilClk)
       ----------------------------------------------------------------------------------------------
       -- GT Settings
       ----------------------------------------------------------------------------------------------
@@ -356,7 +356,7 @@ begin
       generic map (
          TPD_G            => TPD_G,
          AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
-         COMMON_CLK_G     => false,
+         COMMON_CLK_G     => COMMON_CLK_G,
          EN_ARBITRATION_G => true,
          TIMEOUT_G        => 4096,
          ADDR_WIDTH_G     => 9,
