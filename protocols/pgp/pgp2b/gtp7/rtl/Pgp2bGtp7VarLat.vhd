@@ -67,6 +67,8 @@ entity Pgp2bGtp7VarLat is
    port (
       -- GT Clocking
       stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
+      qPllRxSelect     : in  slv(1 downto 0) := "00";
+      qPllTxSelect     : in  slv(1 downto 0) := "00";          
       gtQPllOutRefClk  : in  slv(1 downto 0);
       gtQPllOutClk     : in  slv(1 downto 0);
       gtQPllLock       : in  slv(1 downto 0);
@@ -159,6 +161,8 @@ begin
       port map (
          -- GT Clocking
          stableClk           => stableClk,
+         qPllRxSelect        => qPllRxSelect,
+         qPllTxSelect        => qPllTxSelect,         
          gtQPllOutRefClk     => gtQPllOutRefClk,
          gtQPllOutClk        => gtQPllOutClk,
          gtQPllLock          => gtQPllLock,

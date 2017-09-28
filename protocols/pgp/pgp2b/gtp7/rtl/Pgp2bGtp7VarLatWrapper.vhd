@@ -93,6 +93,8 @@ entity Pgp2bGtp7VarLatWrapper is
       txPostCursor    : in  slv(4 downto 0)        := (others => '0');
       txDiffCtrl      : in  slv(3 downto 0)        := "1000";
       drpOverride     : in  sl                     := '0';
+      qPllRxSelect    : in  slv(1 downto 0)        := "00";
+      qPllTxSelect    : in  slv(1 downto 0)        := "00";          
       -- AXI-Lite Interface 
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
@@ -237,6 +239,8 @@ begin
       port map (
          -- GT Clocking
          stableClk        => stableClock,
+         qPllRxSelect     => qPllRxSelect,
+         qPllTxSelect     => qPllTxSelect,         
          gtQPllOutRefClk  => gtQPllOutRefClk,
          gtQPllOutClk     => gtQPllOutClk,
          gtQPllLock       => gtQPllLock,
