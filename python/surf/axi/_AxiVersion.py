@@ -79,9 +79,11 @@ class AxiVersion(pr.Device):
             pollInterval = 1
         ))
 
-        @self.linkedGet(dependencies=[self.UpTimeCnt])
-        def UpTime():
-            return str(datetime.timedelta(seconds=self.UpTimeCnt.value()))
+        self.add(pr.LinkVariable(
+            name = 'UpTime',
+            dependencies = [self.UpTimeCnt],
+            linkedGet = lambda: str(datetime.timedelta(seconds=self.UpTimeCnt.value()))
+        ))
 
         self.add(pr.RemoteVariable(   
             name         = 'FpgaReloadHalt',
@@ -174,9 +176,13 @@ class AxiVersion(pr.Device):
             hidden       = 'True',
         ))
 
-        @self.linkedGet(dependencies=[self.GitHash], disp='{:x}')
-        def GitHashShort():
-            return self.GitHash.value() >> 132
+        self.add(pr.LinkVariable(
+            name = 'GitHashShort',
+            dependencies = [self.GitHash],
+            disp = '{:x}',
+            linkedGet = lambda: self.GitHash.value() >> 132
+        ))
+
 
         self.add(pr.RemoteVariable(   
             name         = 'DeviceDna',
