@@ -36,7 +36,7 @@ class SsiPrbsTx(pr.Device):
             offset       =  0x00,
             bitSize      =  1,
             bitOffset    =  0x00,
-            base         = pr.UInt,
+            base         = pr.Bool,
             mode         = "RW",
         ))
 
@@ -46,7 +46,7 @@ class SsiPrbsTx(pr.Device):
             offset       =  0x00,
             bitSize      =  1,
             bitOffset    =  0x01,
-            base         = pr.UInt,
+            base         = pr.Bool,
             mode         = "RW",
         ))
 
@@ -70,14 +70,14 @@ class SsiPrbsTx(pr.Device):
             mode         = "RO",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteCommand(    
             name         = "OneShot",
             description  = "",
             offset       =  0x00,
             bitSize      =  1,
             bitOffset    =  0x04,
             base         = pr.UInt,
-            mode         = "WO",
+            function     = pr.BaseCommand.touchOne
         ))
 
         self.add(pr.RemoteVariable(    
@@ -86,7 +86,7 @@ class SsiPrbsTx(pr.Device):
             offset       =  0x00,
             bitSize      =  1,
             bitOffset    =  0x05,
-            base         = pr.UInt,
+            base         = pr.Bool,
             mode         = "RW",
         ))
 
@@ -150,10 +150,3 @@ class SsiPrbsTx(pr.Device):
             mode         = "RO",
         ))
 
-        ##############################
-        # Commands
-        ##############################
-
-        @self.command(name="C_OneShot", description="",)
-        def C_OneShot():        
-            self.OneShot.set(1)

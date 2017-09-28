@@ -200,13 +200,16 @@ class SsiPrbsRx(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
-            name         = "CntRst",
+        self.add(pr.RemoteCommand(    
+            name         = "CountReset",
             description  = "Status counter reset",
             offset       =  0x3FC,
             bitSize      =  1,
             bitOffset    =  0x00,
             base         = pr.UInt,
-            mode         = "WO",
+            function     = pr.BaseCommand.touchOne
         ))
+
+    def countReset(self):
+        self.CountReset()
 

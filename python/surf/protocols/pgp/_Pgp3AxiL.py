@@ -331,3 +331,6 @@ class Pgp3AxiL(pr.Device):
             name = 'TxOpCodeLast',
             dependencies = [self.TxOpCodeDataLastRaw, self.TxOpCodeNumLastRaw],
             linkedGet = lambda: f'{self.TxOpCodeNumLastRaw.value()} - {self.TxOpCodeDataLastRaw.value():x}'))
+
+    def countReset(self):
+        self.CountReset()
