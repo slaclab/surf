@@ -405,12 +405,18 @@ begin
 
    end generate GTP7_CORE_GEN;
 
-   U_RstSync : entity work.RstSync
-      generic map (
-         TPD_G => TPD_G)      
-      port map (
-         clk      => stableClk,
-         asyncRst => axilRst,
-         syncRst  => stableRst);     
+   GEN_RST : if (COMMON_CLK_G = false) generate   
+      U_RstSync : entity work.RstSync
+         generic map (
+            TPD_G => TPD_G)      
+         port map (
+            clk      => stableClk,
+            asyncRst => axilRst,
+            syncRst  => stableRst);     
+   end generate;
+   
+   BYP_RST_SYNC : if (COMMON_CLK_G = true) generate   
+      stableRst <= axilRst; 
+   end generate;      
 
 end rtl;
