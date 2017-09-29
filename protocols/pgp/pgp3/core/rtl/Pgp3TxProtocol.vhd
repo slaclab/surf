@@ -35,7 +35,7 @@ entity Pgp3TxProtocol is
    generic (
       TPD_G            : time                  := 1 ns;
       NUM_VC_G         : integer range 1 to 16 := 4;
-      STARTUP_HOLD_G   : integer               := 6000;
+      STARTUP_HOLD_G   : integer               := 1000;
       SKP_INTERVAL_G   : integer               := 5000;
       SKP_BURST_SIZE_G : integer               := 8);
 
@@ -103,6 +103,7 @@ begin
                    protTxReady, r) is
       variable v        : RegType;
       variable linkInfo : slv(39 downto 0);
+      variable dataEn : sl;
    begin
       v := r;
 
@@ -123,6 +124,8 @@ begin
       if (protTxReady = '1') then
          v.protTxValid := '0';
       end if;
+
+      dataEn := ite(pgpTxIn.flowCntlDis = '1', r.linkReady, remRxLinkReady);
 
       if (v.protTxValid = '0' and phyTxActive = '1') then
          v.protTxValid := '1';
@@ -148,7 +151,7 @@ begin
          v.protTxHeader             := K_HEADER_C;
 
          -- Send data if there is data to send
-         if (pgpTxMaster.tValid = '1' and r.linkReady = '1') then
+         if (pgpTxMaster.tValid = '1' and dataEn = '1') then
             v.pgpTxSlave.tReady := '1';  -- Accept the data
 
             if (ssiGetUserSof(PGP3_AXIS_CONFIG_C, pgpTxMaster) = '1') then
@@ -189,7 +192,7 @@ begin
 
 
          -- USER codes override data and delay SKP if they happen to coincide
-         if (pgpTxIn.opCodeEn = '1' and r.linkReady = '1') then
+         if (pgpTxIn.opCodeEn = '1' and dataEn = '1') then
             v.pgpTxSlave.tReady        := '0';  -- Override any data acceptance.
             v.protTxData(63 downto 56) := USER_C(conv_integer(pgpTxIn.opCodeNumber));
             v.protTxData(55 downto 0)  := pgpTxIn.opCodeData;
