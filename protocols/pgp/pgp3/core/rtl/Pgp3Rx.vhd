@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-07
--- Last update: 2017-09-13
+-- Last update: 2017-09-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -55,7 +55,7 @@ entity Pgp3Rx is
       phyRxClk      : in  sl;
       phyRxRst      : in  sl;
       phyRxInit     : out sl;
-      phyRxActive    : in  sl;
+      phyRxActive   : in  sl;
       phyRxValid    : in  sl;
       phyRxHeader   : in  slv(1 downto 0);
       phyRxData     : in  slv(63 downto 0);
@@ -200,7 +200,7 @@ begin
          mAxisMasters => pgpRxMasters,                           -- [out]
          mAxisSlaves  => (others => AXI_STREAM_SLAVE_FORCE_C));  -- [in]
 
-   pgpRxOut.phyRxActive     <= phyRxActive;
+   pgpRxOut.phyRxActive    <= phyRxActive;
    pgpRxOut.linkReady      <= pgpRxOutProtocol.linkReady;
    pgpRxOut.frameRx        <= depacketizerDebug.eof;
    pgpRxOut.frameRxErr     <= depacketizerDebug.eofe;
@@ -209,8 +209,8 @@ begin
    pgpRxOut.opCodeNumber   <= pgpRxOutProtocol.opCodeNumber;
    pgpRxOut.opCodeData     <= pgpRxOutProtocol.opCodeData;
    pgpRxOut.remRxLinkReady <= remRxLinkReadyInt;
-   
-   CTRL_OUT: for i in 15 downto 0 generate
+
+   CTRL_OUT : for i in 15 downto 0 generate
       USED : if (i < NUM_VC_G) generate
          pgpRxOut.remRxOverflow(i) <= remRxFifoCtrlInt(i).overflow;
          pgpRxOut.remRxPause(i)    <= remRxFifoCtrlInt(i).pause;
