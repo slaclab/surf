@@ -193,6 +193,10 @@ begin
          v.count              := (others => '0');
       end if;
 
+      if (v.pgpRxOut.linkReady = '0') then
+         v.remRxLinkReady := '0';
+      end if;
+
 
       if (pgpRxRst = '1') then
          v := REG_INIT_C;
