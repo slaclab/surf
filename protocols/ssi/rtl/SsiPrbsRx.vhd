@@ -2,7 +2,7 @@
 -- File       : SsiPrbsRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2017-09-14
+-- Last update: 2017-09-29
 -------------------------------------------------------------------------------
 -- Description:   This module generates 
 --                PseudoRandom Binary Sequence (PRBS) on Virtual Channel Lane.
@@ -701,6 +701,8 @@ begin
                v.axiReadSlave.rdata := errWordCntSync;
             when x"F0" =>
                v.axiReadSlave.rdata(STATUS_SIZE_C-1 downto 0) := rAxiLite.rollOverEn;
+            when X"F1" =>
+               v.axiReadSlave.rdata := toSlv(PRBS_SEED_SIZE_G, 32);
             when others =>
                axiReadResp := AXI_ERROR_RESP_G;
          end case;
