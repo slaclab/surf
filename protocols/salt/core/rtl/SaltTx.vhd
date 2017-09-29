@@ -2,7 +2,7 @@
 -- File       : SaltTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2015-09-22
+-- Last update: 2017-09-29
 -------------------------------------------------------------------------------
 -- Description: SALT TX Engine Module
 -------------------------------------------------------------------------------
@@ -37,6 +37,7 @@ entity SaltTx is
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
       -- GMII Interface
+      txPktSent   : out sl;
       txEn        : out sl;
       txData      : out slv(7 downto 0);
       clk         : in  sl;
@@ -54,9 +55,10 @@ architecture rtl of SaltTx is
       LENGTH_S,
       MOVE_S,
       CHECKSUM_S,
-      FOOTER_S); 
+      FOOTER_S);
 
    type RegType is record
+      txPktSent   : sl;
       flushBuffer : sl;
       sof         : sl;
       eof         : sl;
@@ -75,6 +77,7 @@ architecture rtl of SaltTx is
       state       : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
+      txPktSent   => '0',
       flushBuffer => '1',
       sof         => '0',
       eof         => '0',
@@ -90,7 +93,7 @@ architecture rtl of SaltTx is
       sMaster     => AXI_STREAM_MASTER_INIT_C,
       mSlave      => AXI_STREAM_SLAVE_INIT_C,
       gmiiSlave   => AXI_STREAM_SLAVE_INIT_C,
-      state       => IDLE_S);      
+      state       => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -124,7 +127,7 @@ begin
          FIFO_PAUSE_THRESH_G => ((2**4)-2),
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_G,
-         MASTER_AXI_CONFIG_G => SSI_SALT_CONFIG_C)            
+         MASTER_AXI_CONFIG_G => SSI_SALT_CONFIG_C)
       port map (
          -- Slave Port
          sAxisClk    => sAxisClk,
@@ -152,7 +155,7 @@ begin
          FIFO_ADDR_WIDTH_G   => 9,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => SSI_SALT_CONFIG_C,
-         MASTER_AXI_CONFIG_G => SSI_SALT_CONFIG_C)            
+         MASTER_AXI_CONFIG_G => SSI_SALT_CONFIG_C)
       port map (
          -- Slave Port
          sAxisClk    => clk,
@@ -163,7 +166,7 @@ begin
          mAxisClk    => clk,
          mAxisRst    => r.flushBuffer,
          mAxisMaster => mMaster,
-         mAxisSlave  => mSlave);            
+         mAxisSlave  => mSlave);
 
 
    comb : process (gmiiMaster, mMaster, r, rst, rxMaster, sSlave, txSlave) is
@@ -173,6 +176,7 @@ begin
       v := r;
 
       -- Reset the flags
+      v.txPktSent   := '0';
       v.flushBuffer := '0';
       v.rxSlave     := AXI_STREAM_SLAVE_INIT_C;
       if txSlave.tReady = '1' then
@@ -204,11 +208,12 @@ begin
                -- Check for SOF
                if ssiGetUserSof(SSI_SALT_CONFIG_C, rxMaster) = '1' then
                   -- Set the flag
-                  v.sof    := '1';
+                  v.sof       := '1';
+                  v.txPktSent := '1';
                   -- Reset the counter
-                  v.seqCnt := x"00";
+                  v.seqCnt    := x"00";
                   -- Latch the destination
-                  v.tDest  := rxMaster.tDest;
+                  v.tDest     := rxMaster.tDest;
                else
                   -- Increment the counter
                   v.seqCnt := r.seqCnt + 1;
@@ -374,6 +379,7 @@ begin
       rxSlave   <= v.rxSlave;
       txMaster  <= r.txMaster;
       gmiiSlave <= r.gmiiSlave;
+      txPktSent <= r.txPktSent;
 
    end process comb;
 
@@ -399,7 +405,7 @@ begin
          FIFO_ADDR_WIDTH_G   => 9,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => SSI_SALT_CONFIG_C,
-         MASTER_AXI_CONFIG_G => SSI_GMII_CONFIG_C)            
+         MASTER_AXI_CONFIG_G => SSI_GMII_CONFIG_C)
       port map (
          -- Slave Port
          sAxisClk    => clk,
@@ -410,7 +416,8 @@ begin
          mAxisClk    => clk,
          mAxisRst    => rst,
          mAxisMaster => gmiiMaster,
-         mAxisSlave  => gmiiSlave);      
+         mAxisSlave  => gmiiSlave);
+
 
    txEn   <= gmiiMaster.tValid and gmiiSlave.tReady;
    txData <= gmiiMaster.tData(7 downto 0);
