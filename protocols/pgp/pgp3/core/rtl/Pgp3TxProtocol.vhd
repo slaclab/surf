@@ -100,7 +100,7 @@ architecture rtl of Pgp3TxProtocol is
 begin
 
    comb : process (locRxFifoCtrl, locRxLinkReady, pgpTxIn, pgpTxMaster, pgpTxRst, phyTxActive,
-                   protTxReady, r) is
+                   protTxReady, r, remRxLinkReady) is
       variable v        : RegType;
       variable linkInfo : slv(39 downto 0);
       variable dataEn : sl;
