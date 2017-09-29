@@ -20,10 +20,12 @@
 import pyrogue as pr
 
 class SsiPrbsRx(pr.Device):
-    def __init__(   self,       
-            name        = "SsiPrbsRx",
-            description = "SsiPrbsRx",
-            **kwargs):
+    def __init__(self,       
+                 name        = "SsiPrbsRx",
+                 description = "SsiPrbsRx",
+                 rxClkPeriod = 6.4e-9,
+                 seedBits = 32,
+                 **kwargs):
         super().__init__(name=name, description=description, **kwargs) 
 
         ##############################
@@ -160,8 +162,14 @@ class SsiPrbsRx(pr.Device):
             mode         = "RO",
         ))
 
+        self.add(pr.RemoteVariable(
+            name = 'WordSize',
+            offset = 0xF1 << 2,
+            mode = 'RO',
+            hidden = False))
+
         self.add(pr.RemoteVariable(    
-            name         = "PacketRate",
+            name         = "PacketRateRaw",
             description  = "",
             offset       =  0x1C8,
             bitSize      =  32,
@@ -169,6 +177,29 @@ class SsiPrbsRx(pr.Device):
             base         = pr.UInt,
             mode         = "RO",
         ))
+
+        self.add(pr.LinkVariable(
+            name = 'PacketRate',
+            dependencies = [self.PacketRateRaw],
+            units = 'Frames/sec',
+            disp = '{:0.1f}',
+            linkedGet = lambda: 1.0/((self.PacketRateRaw.value()+1) * rxClkPeriod)))
+
+        self.add(pr.LinkVariable(
+            name = 'WordRate',
+            dependencies = [self.PacketRate, self.PacketLength],
+            units = 'Words/sec',
+            disp = '{:0.1f}',
+            linkedGet = lambda: self.PacketRate.value() * self.PacketLength.value()))
+
+        self.add(pr.LinkVariable(
+            name = 'BitRate',
+            dependencies = [self.WordRate, self.WordSize],
+            units = 'MBits/sec',
+            disp = '{:0.1f}',
+            linkedGet = lambda: self.WordRate.value() * self.WordSize.value() * 1e-6))
+            
+            
 
         self.add(pr.RemoteVariable(    
             name         = "BitErrCnt",
