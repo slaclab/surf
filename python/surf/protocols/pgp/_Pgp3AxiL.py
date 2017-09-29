@@ -142,7 +142,7 @@ class Pgp3AxiL(pr.Device):
             units        = "MHz", 
             dependencies = [self.RxClockFreqRaw], 
             linkedGet    = lambda: self.RxClockFreqRaw.value() * 1.0e-6,
-            disp         = '{:0.1f}',
+            disp         = '{:0.3f}',
         ))
         
 
@@ -285,12 +285,12 @@ class Pgp3AxiL(pr.Device):
             units        = "MHz", 
             dependencies = [self.TxClockFreqRaw], 
             linkedGet    = lambda: self.TxClockFreqRaw.value() * 1.0e-6,
-            disp         = '{:0.1f}',
+            disp         = '{:0.3f}',
         ))        
         
         self.add(pr.RemoteVariable(
             name        = "TxFrameCount",    
-            offset      = 0x94, 
+            offset      = 0x90, 
             bitSize     = statusCountBits, 
             bitOffset   = 0, 
             mode        = "RO", 
