@@ -50,6 +50,7 @@ entity Pgp3RxProtocol is
       locRxLinkReady : out sl;
 
       -- Received data from descramber/CC FIFO
+      phyRxActive   : in  sl;
       protRxValid   : in  sl;
       protRxPhyInit : out sl;
       protRxData    : in  slv(63 downto 0);
@@ -83,7 +84,18 @@ architecture rtl of Pgp3RxProtocol is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   signal phyRxActiveSyncFall : sl;
+
 begin
+
+   U_SynchronizerEdge_1 : entity work.SynchronizerEdge
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk         => pgpRxClk,              -- [in]
+         rst         => pgpRxRst,              -- [in]
+         dataIn      => phyRxActive,           -- [in]
+         fallingEdge => phyRxActiveSyncFall);  -- [out]
 
    comb : process (pgpRxRst, protRxData, protRxHeader, protRxValid, r) is
       variable v        : RegType;
@@ -94,11 +106,11 @@ begin
 
       btf := protRxData(63 downto 56);
 
-      v.pgpRxMaster       := REG_INIT_C.pgpRxMaster;
-      v.pgpRxOut.opCodeEn := '0';
-      v.pgpRxOut.linkDown := '0';
+      v.pgpRxMaster        := REG_INIT_C.pgpRxMaster;
+      v.pgpRxOut.opCodeEn  := '0';
+      v.pgpRxOut.linkDown  := '0';
       v.pgpRxOut.linkError := '0';
-      v.protRxPhyInit     := '0';
+      v.protRxPhyInit      := '0';
 
 
       -- Just translate straight to AXI-Stream packetizer2 format
@@ -185,12 +197,17 @@ begin
       -- When linked, r.count counts consecutive chars without a valid k-char
       if (r.count = 1000) then
          v.pgpRxOut.linkReady := not r.pgpRxOut.linkReady;
-         if (v.pgpRxOut.linkReady = '0') then
-            -- Pulse linkDown whenever linkReady drops
-            v.pgpRxOut.linkDown := '1';
-         end if;
          v.protRxPhyInit      := r.pgpRxOut.linkReady;  -- Init phy when ready drops
          v.count              := (others => '0');
+      end if;
+
+      if (phyRxActiveSyncFall = '0') then
+         v.pgpRxOut.linkReady := '0';
+      end if;
+
+      if (r.pgpRxOut.linkReady = '1' and v.pgpRxOut.linkReady = '0') then
+         v.pgpRxOut.linkDown := '1';
+         v.protRxPhyInit     := '1';
       end if;
 
       if (v.pgpRxOut.linkReady = '0') then

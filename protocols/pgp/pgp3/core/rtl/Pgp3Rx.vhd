@@ -160,6 +160,7 @@ begin
          remRxFifoCtrl  => remRxFifoCtrlInt,   -- [out]
          remRxLinkReady => remRxLinkReadyInt,  -- [out]
          locRxLinkReady => locRxLinkReadyInt,  -- [out]
+         phyRxActive    => phyRxActive,        -- [in]
          protRxValid    => ebValid,            -- [in]
          protRxPhyInit  => phyRxInit,          -- [out]
          protRxData     => ebData,             -- [in]
