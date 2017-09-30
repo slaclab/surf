@@ -97,7 +97,7 @@ begin
          dataIn      => phyRxActive,           -- [in]
          fallingEdge => phyRxActiveSyncFall);  -- [out]
 
-   comb : process (pgpRxRst, protRxData, protRxHeader, protRxValid, r) is
+   comb : process (pgpRxRst, phyRxActiveSyncFall, protRxData, protRxHeader, protRxValid, r) is
       variable v        : RegType;
       variable linkInfo : slv(39 downto 0);
       variable btf      : slv(7 downto 0);
