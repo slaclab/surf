@@ -57,7 +57,7 @@ begin
          if rst = '1' then
             cnt <= FP32_ZERO_C after TPD_G;
          else
-            cnt <= cnt + 1.0 after TPD_G;
+            cnt <= cnt + 0.5 after TPD_G;
          end if;
       end if;
    end process;
