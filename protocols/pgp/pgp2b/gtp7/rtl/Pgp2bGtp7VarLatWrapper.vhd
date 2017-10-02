@@ -31,7 +31,9 @@ use unisim.vcomponents.all;
 entity Pgp2bGtp7VarLatWrapper is
    generic (
       TPD_G                : time                    := 1 ns;
+      COMMON_CLK_G         : boolean                 := false;-- set true if (stableClk = axilClk)
       SIMULATION_G         : boolean                 := false;
+      DYNAMIC_QPLL_G       : boolean                 := false;
       -- MMCM Configurations
       CLKIN_PERIOD_G       : real                    := 6.4;
       DIVCLK_DIVIDE_G      : natural range 1 to 106  := 1;
@@ -90,6 +92,9 @@ entity Pgp2bGtp7VarLatWrapper is
       txPreCursor     : in  slv(4 downto 0)        := (others => '0');
       txPostCursor    : in  slv(4 downto 0)        := (others => '0');
       txDiffCtrl      : in  slv(3 downto 0)        := "1000";
+      drpOverride     : in  sl                     := '0';
+      qPllRxSelect    : in  slv(1 downto 0)        := "00";
+      qPllTxSelect    : in  slv(1 downto 0)        := "00";          
       -- AXI-Lite Interface 
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
@@ -207,6 +212,7 @@ begin
    Pgp2bGtp7VarLat_Inst : entity work.Pgp2bGtp7VarLat
       generic map (
          TPD_G                 => TPD_G,
+         COMMON_CLK_G          => COMMON_CLK_G,
          SIM_GTRESET_SPEEDUP_G => ite(SIMULATION_G, "TRUE", "FALSE"),
          -- MGT Configurations
          RXOUT_DIV_G           => RXOUT_DIV_G,
@@ -218,6 +224,7 @@ begin
          RXLPM_INCM_CFG_G      => RXLPM_INCM_CFG_G,
          RXLPM_IPCM_CFG_G      => RXLPM_IPCM_CFG_G,
          -- Configure PLL sources
+         DYNAMIC_QPLL_G        => DYNAMIC_QPLL_G,
          TX_PLL_G              => "PLL0",
          RX_PLL_G              => "PLL1",
          -- Configure PGP
@@ -232,6 +239,8 @@ begin
       port map (
          -- GT Clocking
          stableClk        => stableClock,
+         qPllRxSelect     => qPllRxSelect,
+         qPllTxSelect     => qPllTxSelect,         
          gtQPllOutRefClk  => gtQPllOutRefClk,
          gtQPllOutClk     => gtQPllOutClk,
          gtQPllLock       => gtQPllLock,
@@ -270,6 +279,7 @@ begin
          txPreCursor      => txPreCursor,
          txPostCursor     => txPostCursor,
          txDiffCtrl       => txDiffCtrl,
+         drpOverride      => drpOverride,
          -- AXI-Lite Interface 
          axilClk          => axilClk,
          axilRst          => axilRst,

@@ -74,11 +74,13 @@ use IEEE.NUMERIC_STD.all;
 entity Gtp7TxRst is
    generic(
       TPD_G                  : time                  := 1 ns;
+      DYNAMIC_QPLL_G         : boolean               := false;
       STABLE_CLOCK_PERIOD    : integer range 4 to 20 := 8;  --Period of the stable clock driving this state-machine, unit is [ns]
       RETRY_COUNTER_BITWIDTH : integer range 2 to 8  := 8;
       TX_PLL0_USED           : boolean               := false  -- the TX Reset FSMs must
       );     
    port (
+      qPllTxSelect      : in  std_logic_vector(1 downto 0);
       STABLE_CLOCK      : in  std_logic;  --Stable Clock, either a stable clock from the PCB
                                           --or reference-clock present at startup.
       TXUSERCLK         : in  std_logic;  --TXUSERCLK as used in the design
@@ -383,8 +385,22 @@ begin
       end if;
    end process;
 
-
-   refclk_lost <= '1' when ((TX_PLL0_USED and PLL0REFCLKLOST = '1') or (not TX_PLL0_USED and PLL1REFCLKLOST = '1')) else '0';
+   process(qPllTxSelect,PLL0REFCLKLOST,PLL1REFCLKLOST)
+   begin
+      if DYNAMIC_QPLL_G then
+         if qPllTxSelect = "00" then
+            refclk_lost <= PLL0REFCLKLOST;
+         else
+            refclk_lost <= PLL1REFCLKLOST;
+         end if;
+      else
+         if TX_PLL0_USED then
+            refclk_lost <= PLL0REFCLKLOST;
+         else
+            refclk_lost <= PLL1REFCLKLOST;
+         end if;
+      end if;
+   end process;
 
    --FSM for resetting the GTX/GTH/GTP in the 7-series. 
    --~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -437,19 +453,37 @@ begin
                   --case the transceiver never comes up for some reason, this machine 
                   --will still continue its best and rerun until the FPGA is turned off
                   --or the transceivers come up correctly.
-                  if TX_PLL0_USED then
-                     if pll_reset_asserted = '0' then
-                        PLL0_RESET         <= '1';
-                        pll_reset_asserted <= '1';
+                  if DYNAMIC_QPLL_G then
+                     if qPllTxSelect = "00" then
+                        if pll_reset_asserted = '0' then
+                           PLL0_RESET         <= '1';
+                           pll_reset_asserted <= '1';
+                        else
+                           PLL0_RESET <= '0';
+                        end if;
                      else
-                        PLL0_RESET <= '0';
-                     end if;
+                        if pll_reset_asserted = '0' then
+                           PLL1_RESET         <= '1';
+                           pll_reset_asserted <= '1';
+                        else
+                           PLL1_RESET <= '0';
+                        end if;
+                     end if;                  
                   else
-                     if pll_reset_asserted = '0' then
-                        PLL1_RESET         <= '1';
-                        pll_reset_asserted <= '1';
+                     if TX_PLL0_USED then
+                        if pll_reset_asserted = '0' then
+                           PLL0_RESET         <= '1';
+                           pll_reset_asserted <= '1';
+                        else
+                           PLL0_RESET <= '0';
+                        end if;
                      else
-                        PLL1_RESET <= '0';
+                        if pll_reset_asserted = '0' then
+                           PLL1_RESET         <= '1';
+                           pll_reset_asserted <= '1';
+                        else
+                           PLL1_RESET <= '0';
+                        end if;
                      end if;
                   end if;
                   txuserrdy_i             <= '0';
@@ -459,9 +493,16 @@ begin
                   run_phase_alignment_int <= '0';
                   RESET_PHALIGNMENT       <= '1';
 
-                  if (TX_PLL0_USED and (PLL0REFCLKLOST = '0') and pll_reset_asserted = '1') or
-                     (not TX_PLL0_USED and (PLL1REFCLKLOST = '0') and pll_reset_asserted = '1') then
-                     tx_state <= RELEASE_PLL_RESET;
+                  if DYNAMIC_QPLL_G then
+                     if ((qPllTxSelect = "00") and (PLL0REFCLKLOST = '0') and pll_reset_asserted = '1') or
+                        ((qPllTxSelect /= "00") and (PLL1REFCLKLOST = '0') and pll_reset_asserted = '1') then
+                        tx_state <= RELEASE_PLL_RESET;
+                     end if;                  
+                  else
+                     if (TX_PLL0_USED and (PLL0REFCLKLOST = '0') and pll_reset_asserted = '1') or
+                        (not TX_PLL0_USED and (PLL1REFCLKLOST = '0') and pll_reset_asserted = '1') then
+                        tx_state <= RELEASE_PLL_RESET;
+                     end if;
                   end if;
                   
                when RELEASE_PLL_RESET =>
@@ -469,10 +510,18 @@ begin
                   --starts running.
                   pll_reset_asserted <= '0';
 
-                  if (TX_PLL0_USED and (pll0lock_ris_edge = '1')) or
-                     (not TX_PLL0_USED and (pll1lock_ris_edge = '1')) then
-                     tx_state       <= RELEASE_MMCM_RESET;
-                     reset_time_out <= '1';
+                  if DYNAMIC_QPLL_G then
+                     if ((qPllTxSelect = "00") and (pll0lock_ris_edge = '1')) or
+                        ((qPllTxSelect /= "00") and (pll1lock_ris_edge = '1')) then
+                        tx_state       <= RELEASE_MMCM_RESET;
+                        reset_time_out <= '1';
+                     end if;                  
+                  else
+                     if (TX_PLL0_USED and (pll0lock_ris_edge = '1')) or
+                        (not TX_PLL0_USED and (pll1lock_ris_edge = '1')) then
+                        tx_state       <= RELEASE_MMCM_RESET;
+                        reset_time_out <= '1';
+                     end if;
                   end if;
 
                   if time_out_2ms = '1' then
