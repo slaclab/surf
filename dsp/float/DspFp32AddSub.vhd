@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
--- File       : DspFp32Accum.vhd
+-- File       : DspFp32AddSub.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-09-12
--- Last update: 2017-09-18
+-- Created    : 2017-09-30
+-- Last update: 2017-09-30
 -------------------------------------------------------------------------------
--- Description: 32-bit Floating Point DSP inferred accumulator  
--- Equation: p = sum(+/-a[i])
+-- Description: 32-bit Floating Point DSP inferred add/sub 
+-- Equation: p = a +/- b
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -35,7 +35,7 @@ use ieee_proposed.float_pkg.all;
 use work.StdRtlPkg.all;
 use work.DspPkg.all;
 
-entity DspFp32Accum is
+entity DspFp32AddSub is
    generic (
       TPD_G          : time                 := 1 ns;
       RST_POLARITY_G : sl                   := '1';  -- '1' for active high rst, '0' for active low
@@ -48,15 +48,15 @@ entity DspFp32Accum is
       ibValid : in  sl := '1';
       ibReady : out sl;
       ain     : in  slv(31 downto 0);
-      load    : in  sl := '0';
+      bin     : in  slv(31 downto 0);
       add     : in  sl := '1';          -- '1' = add, '0' = subtract
       -- Outbound Interface
       obValid : out sl;
       obReady : in  sl := '1';
       pOut    : out slv(31 downto 0));
-end DspFp32Accum;
+end DspFp32AddSub;
 
-architecture rtl of DspFp32Accum is
+architecture rtl of DspFp32AddSub is
 
    type RegType is record
       ibReady : sl;
@@ -80,15 +80,17 @@ architecture rtl of DspFp32Accum is
 
 begin
 
-   comb : process (add, ain, ibValid, load, r, rst, tReady) is
+   comb : process (add, ain, bin, ibValid, r, rst, tReady) is
       variable v : RegType;
       variable a : float32;
+      variable b : float32;
    begin
       -- Latch the current value
       v := r;
 
-      -- typecast from slv to float32
+      -- typecast from slv to signed
       a := float32(ain);
+      b := float32(bin);
 
       -- Reset the flags
       v.ibReady := '0';
@@ -102,12 +104,10 @@ begin
          v.ibReady := '1';
          v.tValid  := '1';
          -- Process the data
-         if (load = '1') then
-            v.p := a;
-         elsif (add = '1') then
-            v.p := r.p + a;
+         if (add = '1') then
+            v.p := a + b;
          else
-            v.p := r.p - a;
+            v.p := a - b;
          end if;
       end if;
 

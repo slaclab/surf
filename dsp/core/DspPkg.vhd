@@ -18,8 +18,12 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
+--------------------------------------
+-- Comment out these for simulation --
+--------------------------------------
 use ieee.fixed_float_types.all;
 use ieee.float_pkg.all;
+--------------------------------------
 
 -- synthesis translate_off
 library ieee_proposed;
@@ -47,9 +51,9 @@ package DspPkg is
    constant FP64_NEG_ONE_C : float64 := x"bff0000000000000";
    constant FP64_POS_ONE_C : float64 := x"3ff0000000000000";
 
-   constant FP128_ZERO_C    : float64 := x"00000000000000000000000000000000";
-   constant FP128_NEG_ONE_C : float64 := x"bfff0000000000000000000000000000";
-   constant FP128_POS_ONE_C : float64 := x"3fff0000000000000000000000000000";
+   constant FP128_ZERO_C    : float128 := x"00000000000000000000000000000000";
+   constant FP128_NEG_ONE_C : float128 := x"bfff0000000000000000000000000000";
+   constant FP128_POS_ONE_C : float128 := x"3fff0000000000000000000000000000";
 
 end package DspPkg;
 
