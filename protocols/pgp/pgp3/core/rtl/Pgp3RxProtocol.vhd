@@ -201,7 +201,7 @@ begin
          v.count              := (others => '0');
       end if;
 
-      if (phyRxActiveSyncFall = '0') then
+      if (phyRxActiveSyncFall = '1') then
          v.pgpRxOut.linkReady := '0';
       end if;
 
