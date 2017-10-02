@@ -2,7 +2,7 @@
 -- File       : Pgp2bAxi.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2009-05-27
--- Last update: 2017-09-28
+-- Last update: 2017-10-02
 -------------------------------------------------------------------------------
 -- Description:
 -- AXI-Lite block to manage the PGP3 interface.
@@ -443,6 +443,7 @@ begin
 
    -- Set rx input
    pgpRxIn.loopback <= locRxIn.loopback or r.loopBack;
+   pgpRxIn.resetRx <= locRxIn.resetRx;
 
    ------------------------------------
    -- AXI Registers

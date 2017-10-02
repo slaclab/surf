@@ -119,10 +119,12 @@ package Pgp3Pkg is
 
    type Pgp3RxInType is record
       loopback : slv(2 downto 0);
+      resetRx  : sl;
    end record Pgp3RxInType;
 
    constant PGP3_RX_IN_INIT_C : Pgp3RxInType := (
-      loopback => (others => '0'));
+      loopback => (others => '0'),
+      resetRx  => '0');
 
 
    type Pgp3RxOutType is record

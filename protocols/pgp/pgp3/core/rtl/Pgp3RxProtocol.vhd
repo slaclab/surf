@@ -61,6 +61,7 @@ end entity Pgp3RxProtocol;
 architecture rtl of Pgp3RxProtocol is
 
    type RegType is record
+      notValidCnt    : slv(3 downto 0);
       count          : slv(15 downto 0);
       pgpRxMaster    : AxiStreamMasterType;
       pgpRxOut       : Pgp3RxOutType;
@@ -72,6 +73,7 @@ architecture rtl of Pgp3RxProtocol is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      notValidCnt    => (others => '0'),
       count          => (others => '0'),
       pgpRxMaster    => axiStreamMasterInit(PGP3_AXIS_CONFIG_C),
       pgpRxOut       => PGP3_RX_OUT_INIT_C,
@@ -97,7 +99,7 @@ begin
          dataIn      => phyRxActive,           -- [in]
          fallingEdge => phyRxActiveSyncFall);  -- [out]
 
-   comb : process (pgpRxRst, phyRxActiveSyncFall, protRxData, protRxHeader, protRxValid, r) is
+   comb : process (pgpRxIn, pgpRxRst, phyRxActiveSyncFall, protRxData, protRxHeader, protRxValid, r) is
       variable v        : RegType;
       variable linkInfo : slv(39 downto 0);
       variable btf      : slv(7 downto 0);
@@ -192,12 +194,16 @@ begin
          end if;
       end if;
 
+      v.notValidCnt := (others => '0');
+      if (protRxValid = '0') then
+         v.notValidCnt := r.notValidCnt + 1;
+      end if;
+
       -- Count reaching max indicates that link state needs to toggle
       -- When not linked, r.count counts consecutive valid k-chars
       -- When linked, r.count counts consecutive chars without a valid k-char
       if (r.count = 1000) then
          v.pgpRxOut.linkReady := not r.pgpRxOut.linkReady;
-         v.protRxPhyInit      := r.pgpRxOut.linkReady;  -- Init phy when ready drops
          v.count              := (others => '0');
       end if;
 
@@ -205,9 +211,19 @@ begin
          v.pgpRxOut.linkReady := '0';
       end if;
 
+      if (r.notValidCnt = 10) then
+         v.pgpRxOut.linkReady := '0';
+      end if;
+
+      if (pgpRxIn.resetRx = '1') then
+         v.pgpRxOut.linkReady := '0';
+         v.protRxPhyInit      := '1';   -- Always init the phy on resetRx
+      end if;
+
       if (r.pgpRxOut.linkReady = '1' and v.pgpRxOut.linkReady = '0') then
          v.pgpRxOut.linkDown := '1';
          v.protRxPhyInit     := '1';
+         v.count             := (others => '0');
       end if;
 
       if (v.pgpRxOut.linkReady = '0') then
