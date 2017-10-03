@@ -242,7 +242,7 @@ class Pgp3AxiL(pr.Device):
             bitSize = 2))
 
         self.add(pr.RemoteVariable(
-            name = 'GearboxAligned'
+            name = 'GearboxAligned',
             offset = 0x120,
             bitSize = 1))
 
