@@ -78,6 +78,7 @@ architecture rtl of Pgp3Rx is
    signal ebValid                : sl;
    signal ebData                 : slv(63 downto 0);
    signal ebHeader               : slv(1 downto 0);
+   signal phyRxInitInt           : sl;
    signal pgpRawRxMaster         : AxiStreamMasterType;
    signal pgpRawRxSlave          : AxiStreamSlaveType;
    signal depacketizedAxisMaster : AxiStreamMasterType;
@@ -91,6 +92,7 @@ architecture rtl of Pgp3Rx is
    signal remRxFifoCtrlInt  : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
 
 begin
+   phyRxInit      <= phyRxInitInt;
    locRxLinkReady <= locRxLinkReadyInt;
    remRxLinkReady <= remRxLinkReadyInt;
    remRxFifoCtrl  <= remRxFifoCtrlInt;
@@ -162,7 +164,7 @@ begin
          locRxLinkReady => locRxLinkReadyInt,  -- [out]
          phyRxActive    => phyRxActive,        -- [in]
          protRxValid    => ebValid,            -- [in]
-         protRxPhyInit  => phyRxInit,          -- [out]
+         protRxPhyInit  => phyRxInitInt,       -- [out]
          protRxData     => ebData,             -- [in]
          protRxHeader   => ebHeader);          -- [in]
 
@@ -214,12 +216,13 @@ begin
    pgpRxOut.phyRxData   <= phyRxData;
    pgpRxOut.phyRxHeader <= phyRxHeader;
    pgpRxOut.phyRxValid  <= phyRxValid;
+   pgpRxOut.phyRxInit   <= phyRxInitInt;
 
    pgpRxOut.gearboxAligned <= gearboxAligned;
 
    pgpRxOut.ebData   <= ebData;
    pgpRxOut.ebHeader <= ebHeader;
-   pgpRxOut.ebValid    <= ebValid;
+   pgpRxOut.ebValid  <= ebValid;
 
 
    CTRL_OUT : for i in 15 downto 0 generate

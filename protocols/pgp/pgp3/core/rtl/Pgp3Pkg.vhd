@@ -145,6 +145,7 @@ package Pgp3Pkg is
       phyRxData   : slv(63 downto 0);
       phyRxHeader : slv(1 downto 0);
       phyRxValid  : sl;
+      phyRxInit : sl;
 
       gearboxAligned : sl;
 
@@ -170,6 +171,7 @@ package Pgp3Pkg is
       phyRxData      => (others => '0'),
       phyRxHeader    => (others => '0'),
       phyRxValid     => '0',
+      phyRxInit => '0',
       gearboxAligned => '0',
       ebData         => (others => '0'),
       ebHeader       => (others => '0'),

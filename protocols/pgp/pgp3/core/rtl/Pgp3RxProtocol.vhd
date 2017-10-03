@@ -61,7 +61,7 @@ end entity Pgp3RxProtocol;
 architecture rtl of Pgp3RxProtocol is
 
    type RegType is record
-      notValidCnt    : slv(3 downto 0);
+      notValidCnt    : slv(31 downto 0);
       count          : slv(15 downto 0);
       pgpRxMaster    : AxiStreamMasterType;
       pgpRxOut       : Pgp3RxOutType;
@@ -87,6 +87,7 @@ architecture rtl of Pgp3RxProtocol is
    signal rin : RegType;
 
    signal phyRxActiveSyncFall : sl;
+   signal phyRxActiveSync     : sl;
 
 begin
 
@@ -97,9 +98,11 @@ begin
          clk         => pgpRxClk,              -- [in]
          rst         => pgpRxRst,              -- [in]
          dataIn      => phyRxActive,           -- [in]
+         dataOut     => phyRxActiveSync,       -- [out]
          fallingEdge => phyRxActiveSyncFall);  -- [out]
 
-   comb : process (pgpRxIn, pgpRxRst, phyRxActiveSyncFall, protRxData, protRxHeader, protRxValid, r) is
+   comb : process (pgpRxIn, pgpRxRst, phyRxActiveSync, phyRxActiveSyncFall, protRxData,
+                   protRxHeader, protRxValid, r) is
       variable v        : RegType;
       variable linkInfo : slv(39 downto 0);
       variable btf      : slv(7 downto 0);
@@ -195,7 +198,7 @@ begin
       end if;
 
       v.notValidCnt := (others => '0');
-      if (protRxValid = '0') then
+      if (protRxValid = '0' and phyRxActiveSync = '1') then
          v.notValidCnt := r.notValidCnt + 1;
       end if;
 
@@ -211,8 +214,11 @@ begin
          v.pgpRxOut.linkReady := '0';
       end if;
 
-      if (r.notValidCnt = 10) then
+      -- Reset phy if active but no valid data for 100 cycles
+      -- Indicates aligner unable to get lock
+      if (r.notValidCnt = 10000) then
          v.pgpRxOut.linkReady := '0';
+         v.protRxPhyInit      := '1';
       end if;
 
       if (pgpRxIn.resetRx = '1') then

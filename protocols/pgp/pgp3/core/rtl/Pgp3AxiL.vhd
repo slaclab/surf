@@ -75,7 +75,7 @@ architecture rtl of Pgp3AxiL is
    subtype ErrorCountSlv is slv(ERROR_CNT_WIDTH_G-1 downto 0);
    type ErrorCountSlvArray is array (natural range <>) of ErrorCountSlv;
 
-   constant RX_ERROR_COUNTERS_C : integer := 40;
+   constant RX_ERROR_COUNTERS_C : integer := 44;
    constant TX_ERROR_COUNTERS_C : integer := 36;
 
    subtype StatusCountSlv is slv(STATUS_CNT_WIDTH_G-1 downto 0);
@@ -148,6 +148,7 @@ architecture rtl of Pgp3AxiL is
       phyValid            : sl;
       phyData             : slv(63 downto 0);
       phyHeader           : slv(1 downto 0);
+      phyRxInitCnt : ErrorCountSlv;
       gearboxAligned : sl;
       gearboxAlignCnt : slv(7 downto 0);
    end record RxStatusType;
@@ -204,7 +205,7 @@ begin
          IN_POLARITY_G   => "1",
          OUT_POLARITY_G  => '1',
          USE_DSP48_G     => "no",
-         SYNTH_CNT_G     => X"0000FFFF7C",
+         SYNTH_CNT_G     => X"10000FFFF7C",
          CNT_RST_EDGE_G  => false,
          CNT_WIDTH_G     => ERROR_CNT_WIDTH_G,
          WIDTH_G         => RX_ERROR_COUNTERS_C)
@@ -219,6 +220,8 @@ begin
          statusIn(7)            => pgpRxOut.remRxLinkReady,
          statusIn(23 downto 8)  => pgpRxOut.remRxOverflow,
          statusIn(39 downto 24) => pgpRxOut.remRxPause,
+         statusIn(40) => pgpRxOut.phyRxInit,
+         statusIn(43 downto 41) => "000",
          statusOut              => rxErrorOut,
          cntRstIn               => r.countReset,
          rollOverEnIn           => (others => '0'),
@@ -261,6 +264,8 @@ begin
    REM_OVERFLOW_CNT : for i in 15 downto 0 generate
       rxStatusSync.remRxOverflowCnt(i) <= muxSlVectorArray(rxErrorCntOut, i+8);
    end generate REM_OVERFLOW_CNT;
+
+   rxStatusSync.phyRxInitCnt <= muxSlVectorArray(rxErrorCntOut, 40);
 
    -- Status counters
    U_RxStatus : entity work.SyncStatusVector
@@ -593,7 +598,9 @@ begin
       axiSlaveRegisterR(axilEp, X"118", 2, rxStatusSync.ebValid);
 
       axiSlaveRegisterR(axilEp, X"120", 0, rxStatusSync.gearboxAligned);
-      axiSlaveRegisterR(axilEp, X"120", 8, rxStatusSync.gearboxAlignCnt);            
+      axiSlaveRegisterR(axilEp, X"120", 8, rxStatusSync.gearboxAlignCnt);
+
+      axiSlaveRegisterR(axilEp, X"130", 0, rxStatusSync.phyRxInitCnt);
 
 
 
