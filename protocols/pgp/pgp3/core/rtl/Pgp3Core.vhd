@@ -183,6 +183,7 @@ begin
          locRxIn         => pgpRxIn,          -- [in]
          statusWord      => open,             -- [out]
          statusSend      => open,             -- [out]
+         phyRxClk        => phyRxClk,         -- [in]
          axilClk         => axilClk,          -- [in]
          axilRst         => axilRst,          -- [in]
          axilReadMaster  => axilReadMaster,   -- [in]

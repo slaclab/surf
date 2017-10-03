@@ -141,6 +141,16 @@ package Pgp3Pkg is
       remRxLinkReady : sl;                -- Far end RX has link
       remRxOverflow  : slv(15 downto 0);  -- Far end RX overflow status
       remRxPause     : slv(15 downto 0);  -- Far end pause status
+
+      phyRxData   : slv(63 downto 0);
+      phyRxHeader : slv(1 downto 0);
+      phyRxValid  : sl;
+
+      gearboxAligned : sl;
+
+      ebData   : slv(63 downto 0);
+      ebHeader : slv(1 downto 0);
+      ebValid  : sl;
    end record Pgp3RxOutType;
 
    constant PGP3_RX_OUT_INIT_C : Pgp3RxOutType := (
@@ -156,7 +166,14 @@ package Pgp3Pkg is
       opCodeData     => (others => '0'),
       remRxLinkReady => '0',
       remRxOverflow  => (others => '0'),
-      remRxPause     => (others => '0'));
+      remRxPause     => (others => '0'),
+      phyRxData      => (others => '0'),
+      phyRxHeader    => (others => '0'),
+      phyRxValid     => '0',
+      gearboxAligned => '0',
+      ebData         => (others => '0'),
+      ebHeader       => (others => '0'),
+      ebValid        => '0');
 
 end package Pgp3Pkg;
 

@@ -207,6 +207,50 @@ class Pgp3AxiL(pr.Device):
             dependencies = [self.RxOpCodeDataLastRaw, self.RxOpCodeNumLastRaw],
             linkedGet = lambda: f'{self.RxOpCodeNumLastRaw.value()} - {self.RxOpCodeDataLastRaw.value():x}'))
 
+        self.add(pr.RemoteVariable(
+            name = 'PhyRxValid',
+            offset = 0x108,
+            bitOffset = 2,
+            bitSize = 1))
+
+        self.add(pr.RemoteVariable(
+            name = 'PhyRxData',
+            offset = 0x100,
+            bitOffset = 64))
+
+        self.add(pr.RemoteVariable(
+            name = 'PhyRxHeader',
+            offset = 0x108,
+            bitOffset = 0,
+            bitSize = 2))
+
+        self.add(pr.RemoteVariable(
+            name = 'EbRxValid',
+            offset = 0x118,
+            bitOffset = 2,
+            bitSize = 1))
+
+        self.add(pr.RemoteVariable(
+            name = 'EbRxData',
+            offset = 0x110,
+            bitOffset = 64))
+
+        self.add(pr.RemoteVariable(
+            name = 'EbRxHeader',
+            offset = 0x118,
+            bitOffset = 0,
+            bitSize = 2))
+
+        self.add(pr.RemoteVariable(
+            name = 'GearboxAligned'
+            offset = 0x120,
+            bitSize = 1))
+
+        self.add(pr.RemoteVariable(
+            name = 'GearboxAlignCnt',
+            offset = 0x120,
+            bitOffset = 8,
+            bitSize = 8))
         
         ################
         # TX

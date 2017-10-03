@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-07
--- Last update: 2017-09-29
+-- Last update: 2017-10-03
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -210,6 +210,17 @@ begin
    pgpRxOut.opCodeNumber   <= pgpRxOutProtocol.opCodeNumber;
    pgpRxOut.opCodeData     <= pgpRxOutProtocol.opCodeData;
    pgpRxOut.remRxLinkReady <= remRxLinkReadyInt;
+
+   pgpRxOut.phyRxData   <= phyRxData;
+   pgpRxOut.phyRxHeader <= phyRxHeader;
+   pgpRxOut.phyRxValid  <= phyRxValid;
+
+   pgpRxOut.gearboxAligned <= gearboxAligned;
+
+   pgpRxOut.ebData   <= ebData;
+   pgpRxOut.ebHeader <= ebHeader;
+   pgpRxOut.ebValid    <= ebValid;
+
 
    CTRL_OUT : for i in 15 downto 0 generate
       USED : if (i < NUM_VC_G) generate

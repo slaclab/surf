@@ -2,7 +2,7 @@
 -- File       : Pgp2bAxi.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2009-05-27
--- Last update: 2017-10-02
+-- Last update: 2017-10-03
 -------------------------------------------------------------------------------
 -- Description:
 -- AXI-Lite block to manage the PGP3 interface.
@@ -56,6 +56,8 @@ entity Pgp3AxiL is
       statusWord : out slv(63 downto 0);
       statusSend : out sl;
 
+      phyRxClk : in sl;
+
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -99,6 +101,7 @@ architecture rtl of Pgp3AxiL is
 --   signal rxFlush         : sl;
 --   signal rxReset         : sl;
    signal syncFlowCntlDis : sl;
+   signal gearboxAlignCnt : SlVectorArray(0 downto 0, 7 downto 0);   
 
    type RegType is record
       countReset     : sl;
@@ -139,6 +142,14 @@ architecture rtl of Pgp3AxiL is
       rxOpCodeCount      : ErrorCountSlv;
       rxOpCodeDataLast   : slv(55 downto 0);
       rxOpCodeNumberLast : slv(2 downto 0);
+      ebValid            : sl;
+      ebData             : slv(63 downto 0);
+      ebHeader           : slv(1 downto 0);
+      phyValid            : sl;
+      phyData             : slv(63 downto 0);
+      phyHeader           : slv(1 downto 0);
+      gearboxAligned : sl;
+      gearboxAlignCnt : slv(7 downto 0);
    end record RxStatusType;
 
    signal rxStatusSync : RxStatusType;
@@ -283,10 +294,10 @@ begin
 
    U_RxClkFreq : entity work.SyncClockFreq
       generic map (
-         TPD_G             => TPD_G,
-         USE_DSP48_G       => "no",
-         REF_CLK_FREQ_G    => AXI_CLK_FREQ_G,
-         CNT_WIDTH_G       => 32)
+         TPD_G          => TPD_G,
+         USE_DSP48_G    => "no",
+         REF_CLK_FREQ_G => AXI_CLK_FREQ_G,
+         CNT_WIDTH_G    => 32)
       port map (
          freqOut     => rxStatusSync.rxClkFreq,
          freqUpdated => open,
@@ -297,6 +308,72 @@ begin
          locClk      => axilClk,
          refClk      => axilClk
          );
+
+   U_RxEbDataSync : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         BRAM_EN_G    => false,
+         DATA_WIDTH_G => 67,
+         ADDR_WIDTH_G => 4)
+      port map (
+         rst                => r.countReset,
+         wr_clk             => pgpRxClk,
+         wr_en              => '1',
+         din(0)             => pgpRxOut.ebValid,
+         din(64 downto 1)   => pgpRxOut.ebData,
+         din(66 downto 65)  => pgpRxOut.ebHeader,
+         rd_clk             => axilClk,
+         dout(0)            => rxStatusSync.ebValid,
+         dout(64 downto 1)  => rxStatusSync.ebData,
+         dout(66 downto 65) => rxStatusSync.ebHeader);
+
+
+   U_RxPhyDataSync : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         BRAM_EN_G    => false,
+         DATA_WIDTH_G => 67,
+         ADDR_WIDTH_G => 4)
+      port map (
+         rst                => r.countReset,
+         wr_clk             => phyRxClk,
+         wr_en              => '1',
+         din(0)             => pgpRxOut.phyRxValid,
+         din(64 downto 1)   => pgpRxOut.phyRxData,
+         din(66 downto 65)  => pgpRxOut.phyRxHeader,
+         rd_clk             => axilClk,
+         dout(0)            => rxStatusSync.phyValid,
+         dout(64 downto 1)  => rxStatusSync.phyData,
+         dout(66 downto 65) => rxStatusSync.phyHeader);
+
+   U_RxGearboxStatus : entity work.SyncStatusVector
+      generic map (
+         TPD_G           => TPD_G,
+         RST_POLARITY_G  => '1',
+         COMMON_CLK_G    => false,
+         RELEASE_DELAY_G => 3,
+         IN_POLARITY_G   => "1",
+         OUT_POLARITY_G  => '1',
+         USE_DSP48_G     => "no",
+         SYNTH_CNT_G     => "1",
+         CNT_RST_EDGE_G  => false,
+         CNT_WIDTH_G     => 8,
+         WIDTH_G         => 1)
+      port map (
+         statusIn(0)  => pgpRxOut.gearboxAligned,
+         statusOut(0)    => rxStatusSync.gearboxAligned,
+         cntRstIn     => r.countReset,
+         rollOverEnIn => (others => '1'),
+         cntOut       => gearboxAlignCnt,
+         irqEnIn      => (others => '0'),
+         irqOut       => open,
+         wrClk        => pgpRxClk,
+         wrRst        => pgpRxRst,
+         rdClk        => axilClk,
+         rdRst        => axilRst
+         );
+
+   rxStatusSync.gearboxAlignCnt <= muxSlVectorArray(gearboxAlignCnt, 0);   
 
 
    ---------------------------------------
@@ -398,10 +475,10 @@ begin
 
    U_TxClkFreq : entity work.SyncClockFreq
       generic map (
-         TPD_G             => TPD_G,
-         USE_DSP48_G       => "no",
-         REF_CLK_FREQ_G    => AXI_CLK_FREQ_G,
-         CNT_WIDTH_G       => 32)
+         TPD_G          => TPD_G,
+         USE_DSP48_G    => "no",
+         REF_CLK_FREQ_G => AXI_CLK_FREQ_G,
+         CNT_WIDTH_G    => 32)
       port map (
          freqOut     => txStatusSync.txClkFreq,
          freqUpdated => open,
@@ -443,7 +520,7 @@ begin
 
    -- Set rx input
    pgpRxIn.loopback <= locRxIn.loopback or r.loopBack;
-   pgpRxIn.resetRx <= locRxIn.resetRx;
+   pgpRxIn.resetRx  <= locRxIn.resetRx;
 
    ------------------------------------
    -- AXI Registers
@@ -466,8 +543,8 @@ begin
 
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
-      axiSlaveRegister(axilEp, X"00", 0, v.countReset);
-      axiSlaveRegister(axilEp, X"04", 0, v.autoStatus);
+      axiSlaveRegister(axilEp, X"000", 0, v.countReset);
+      axiSlaveRegister(axilEp, X"004", 0, v.autoStatus);
 
       ----------------------------------------------------------------------------------------------
       -- RX
@@ -476,35 +553,47 @@ begin
       if (WRITE_EN_G) then
 --         axiSlaveRegister(axilEp, X"04", 0, v.resetRx);
 --         axiSlaveRegister(axilEp, X"08", 0, v.flush);
-         axiSlaveRegister(axilEp, X"08", 0, v.loopback);
+         axiSlaveRegister(axilEp, X"008", 0, v.loopback);
       else
-         axiSlaveRegisterR(axilEp, X"08", 0, r.loopback);
+         axiSlaveRegisterR(axilEp, X"008", 0, r.loopback);
       end if;
 
 
       -- Rx Status regs
-      axiSlaveRegisterR(axilEp, X"10", 0, rxStatusSync.phyRxActive);
-      axiSlaveRegisterR(axilEp, X"10", 1, rxStatusSync.locLinkReady);
-      axiSlaveRegisterR(axilEp, X"10", 2, rxStatusSync.remLinkReady);
+      axiSlaveRegisterR(axilEp, X"010", 0, rxStatusSync.phyRxActive);
+      axiSlaveRegisterR(axilEp, X"010", 1, rxStatusSync.locLinkReady);
+      axiSlaveRegisterR(axilEp, X"010", 2, rxStatusSync.remLinkReady);
 
-      axiSlaveRegisterR(axilEp, X"14", 0, rxStatusSync.cellErrorCount);
-      axiSlaveRegisterR(axilEp, X"18", 0, rxStatusSync.linkDownCount);
-      axiSlaveRegisterR(axilEp, X"1C", 0, rxStatusSync.linkErrorCount);
+      axiSlaveRegisterR(axilEp, X"014", 0, rxStatusSync.cellErrorCount);
+      axiSlaveRegisterR(axilEp, X"018", 0, rxStatusSync.linkDownCount);
+      axiSlaveRegisterR(axilEp, X"01C", 0, rxStatusSync.linkErrorCount);
 
-      axiSlaveRegisterR(axilEp, X"20", 0, rxStatusSync.remRxOverflow);
-      axiSlaveRegisterR(axilEp, X"20", 16, rxStatusSync.remRxPause);
+      axiSlaveRegisterR(axilEp, X"020", 0, rxStatusSync.remRxOverflow);
+      axiSlaveRegisterR(axilEp, X"020", 16, rxStatusSync.remRxPause);
 
-      axiSlaveRegisterR(axilEp, X"24", 0, rxStatusSync.frameCount);
-      axiSlaveRegisterR(axilEp, X"28", 0, rxStatusSync.frameErrCount);
-      axiSlaveRegisterR(axilEp, X"2C", 0, rxStatusSync.rxClkFreq);
+      axiSlaveRegisterR(axilEp, X"024", 0, rxStatusSync.frameCount);
+      axiSlaveRegisterR(axilEp, X"028", 0, rxStatusSync.frameErrCount);
+      axiSlaveRegisterR(axilEp, X"02C", 0, rxStatusSync.rxClkFreq);
 
-      axiSlaveRegisterR(axilEp, X"30", 0, rxStatusSync.rxOpCodeCount);
-      axiSlaveRegisterR(axilEp, X"34", 0, rxStatusSync.rxOpCodeDataLast);
-      axiSlaveRegisterR(axilEp, X"34", 56, rxStatusSync.rxOpCodeNumberLast);
+      axiSlaveRegisterR(axilEp, X"030", 0, rxStatusSync.rxOpCodeCount);
+      axiSlaveRegisterR(axilEp, X"034", 0, rxStatusSync.rxOpCodeDataLast);
+      axiSlaveRegisterR(axilEp, X"034", 56, rxStatusSync.rxOpCodeNumberLast);
 
       for i in 0 to 15 loop
-         axiSlaveRegisterR(axilEp, X"40"+toSlv(i*4, 8), 0, rxStatusSync.remRxOverflowCnt(i));
+         axiSlaveRegisterR(axilEp, X"040"+toSlv(i*4, 8), 0, rxStatusSync.remRxOverflowCnt(i));
       end loop;
+
+
+      axiSlaveRegisterR(axilEp, X"100", 0, rxStatusSync.phyData);
+      axiSlaveRegisterR(axilEp, X"108", 0, rxStatusSync.phyHeader);
+      axiSlaveRegisterR(axilEp, X"108", 2, rxStatusSync.phyValid);      
+      
+      axiSlaveRegisterR(axilEp, X"110", 0, rxStatusSync.ebData);
+      axiSlaveRegisterR(axilEp, X"118", 0, rxStatusSync.ebHeader);            
+      axiSlaveRegisterR(axilEp, X"118", 2, rxStatusSync.ebValid);
+
+      axiSlaveRegisterR(axilEp, X"120", 0, rxStatusSync.gearboxAligned);
+      axiSlaveRegisterR(axilEp, X"120", 8, rxStatusSync.gearboxAlignCnt);            
 
 
 
@@ -512,30 +601,30 @@ begin
       -- TX
       ----------------------------------------------------------------------------------------------
       if (WRITE_EN_G) then
-         axiSlaveRegister(axilEp, X"80", 0, v.flowCntlDis);
-         axiSlaveRegister(axilEp, X"80", 1, v.txDisable);
+         axiSlaveRegister(axilEp, X"080", 0, v.flowCntlDis);
+         axiSlaveRegister(axilEp, X"080", 1, v.txDisable);
       else
-         axiSlaveRegisterR(axilEp, X"80", 0, r.flowCntlDis);
-         axiSlaveRegisterR(axilEp, X"80", 1, r.txDisable);
+         axiSlaveRegisterR(axilEp, X"080", 0, r.flowCntlDis);
+         axiSlaveRegisterR(axilEp, X"080", 1, r.txDisable);
       end if;
 
-      axiSlaveRegisterR(axilEp, X"84", 0, txStatusSync.phyTxActive);
-      axiSlaveRegisterR(axilEp, X"84", 1, txStatusSync.linkReady);
+      axiSlaveRegisterR(axilEp, X"084", 0, txStatusSync.phyTxActive);
+      axiSlaveRegisterR(axilEp, X"084", 1, txStatusSync.linkReady);
 
-      axiSlaveRegisterR(axilEp, X"8C", 0, txStatusSync.locOverflow);
-      axiSlaveRegisterR(axilEp, X"8C", 16, txStatusSync.locPause);
+      axiSlaveRegisterR(axilEp, X"08C", 0, txStatusSync.locOverflow);
+      axiSlaveRegisterR(axilEp, X"08C", 16, txStatusSync.locPause);
 
-      axiSlaveRegisterR(axilEp, X"90", 0, txStatusSync.frameCount);
-      axiSlaveRegisterR(axilEp, X"94", 0, txStatusSync.frameErrCount);
-      axiSlaveRegisterR(axilEp, X"9C", 0, txStatusSync.txClkFreq);
+      axiSlaveRegisterR(axilEp, X"090", 0, txStatusSync.frameCount);
+      axiSlaveRegisterR(axilEp, X"094", 0, txStatusSync.frameErrCount);
+      axiSlaveRegisterR(axilEp, X"09C", 0, txStatusSync.txClkFreq);
 
-      axiSlaveRegisterR(axilEp, X"A0", 0, txStatusSync.txOpCodeCount);
-      axiSlaveRegisterR(axilEp, X"A4", 0, txStatusSync.txOpCodeDataLast);
-      axiSlaveRegisterR(axilEp, X"A4", 56, txStatusSync.txOpCodeNumberLast);
+      axiSlaveRegisterR(axilEp, X"0A0", 0, txStatusSync.txOpCodeCount);
+      axiSlaveRegisterR(axilEp, X"0A4", 0, txStatusSync.txOpCodeDataLast);
+      axiSlaveRegisterR(axilEp, X"0A4", 56, txStatusSync.txOpCodeNumberLast);
 
 
       for i in 0 to 15 loop
-         axiSlaveRegisterR(axilEp, X"B0"+toSlv(i*4, 8), 0, txStatusSync.locOverflowCnt(i));
+         axiSlaveRegisterR(axilEp, X"0B0"+toSlv(i*4, 8), 0, txStatusSync.locOverflowCnt(i));
       end loop;
 
 
