@@ -87,6 +87,7 @@ package Pgp3Pkg is
    type Pgp3TxInType is record
       disable      : sl;
       flowCntlDis  : sl;
+      skpInterval : slv(31 downto 0);
       opCodeEn     : sl;
       opCodeNumber : slv(2 downto 0);
       opCodeData   : slv(55 downto 0);
@@ -95,6 +96,7 @@ package Pgp3Pkg is
    constant PGP3_TX_IN_INIT_C : Pgp3TxInType := (
       disable      => '0',
       flowCntlDis  => '0',
+      skpInterval => (others => '0'),
       opCodeEn     => '0',
       opCodeNumber => (others => '0'),
       opCodeData   => (others => '0'));

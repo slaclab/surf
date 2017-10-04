@@ -101,6 +101,7 @@ architecture rtl of Pgp3AxiL is
 --   signal rxFlush         : sl;
 --   signal rxReset         : sl;
    signal syncFlowCntlDis : sl;
+   signal syncSkpInterval : slv(31 downto 0);
    signal gearboxAlignCnt : SlVectorArray(0 downto 0, 7 downto 0);
 
    type RegType is record
@@ -108,6 +109,7 @@ architecture rtl of Pgp3AxiL is
       loopBack       : slv(2 downto 0);
       flowCntlDis    : sl;
       txDisable      : sl;
+      skpInterval    : slv(31 downto 0);
       autoStatus     : sl;
       axilWriteSlave : AxiLiteWriteSlaveType;
       axilReadSlave  : AxiLiteReadSlaveType;
@@ -118,6 +120,7 @@ architecture rtl of Pgp3AxiL is
       loopBack       => (others => '0'),
       flowCntlDis    => '0',
       txDisable      => '0',
+      skpInterval    => X"0000FFF0",
       autoStatus     => '0',
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C
@@ -173,6 +176,8 @@ architecture rtl of Pgp3AxiL is
    end record TxStatusType;
 
    signal txStatusSync : TxStatusType;
+
+
 
 begin
 
@@ -523,6 +528,19 @@ begin
          dataOut => syncFlowCntlDis
          );
 
+   U_SKP_SYNC : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         BRAM_EN_G    => false,
+         DATA_WIDTH_G => 32,
+         ADDR_WIDTH_G => 4)
+      port map (
+         rst    => '0',
+         wr_clk => axilClk,
+         din    => r.skpInterval,
+         rd_clk => pgpTxClk,
+         dout   => syncSkpInterval);
+
 
    -- Set tx input
 --   pgpTxIn.flush        <= locTxIn.flush or txFlush;
@@ -530,6 +548,7 @@ begin
    pgpTxIn.opCodeData   <= locTxIn.opCodeData;
    pgpTxIn.opCodeNumber <= locTxIn.opCodeNumber;
    pgpTxIn.flowCntlDis  <= locTxIn.flowCntlDis or syncFlowCntlDis;
+   pgpTxIn.skpInterval  <= syncSkpInterval;
 
    -- Set rx input
    pgpRxIn.loopback <= locRxIn.loopback or r.loopBack;
@@ -625,6 +644,8 @@ begin
          axiSlaveRegisterR(axilEp, X"080", 0, r.flowCntlDis);
          axiSlaveRegisterR(axilEp, X"080", 1, r.txDisable);
       end if;
+
+      axiSlaveRegister(axilEp, X"00C", 0, v.skpInterval);
 
       axiSlaveRegisterR(axilEp, X"084", 0, txStatusSync.phyTxActive);
       axiSlaveRegisterR(axilEp, X"084", 1, txStatusSync.linkReady);

@@ -68,7 +68,7 @@ end entity Pgp3TxProtocol;
 architecture rtl of Pgp3TxProtocol is
 
    type RegType is record
-      skpCount       : slv(15 downto 0);
+      skpCount       : slv(31 downto 0);
       startupCount   : integer;
       pgpTxSlave     : AxiStreamSlaveType;
       linkReady      : sl;
@@ -182,7 +182,7 @@ begin
          end if;
 
          -- 
-         if (r.skpCount = SKP_INTERVAL_G-1) then
+         if (r.skpCount = pgpTxIn.skpInterval) then
             v.skpCount                 := (others => '0');
             v.pgpTxSlave.tReady        := '0';  -- Override any data acceptance.
             v.protTxData               := (others => '0');

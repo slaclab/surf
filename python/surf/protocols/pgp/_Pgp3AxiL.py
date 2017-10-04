@@ -57,6 +57,11 @@ class Pgp3AxiL(pr.Device):
             mode        = "RW" if writeEn else 'RO', 
             base        = pr.UInt,
         ))
+
+        self.add(pr.RemoteVariable(
+            name = 'SkipInterval',
+            offset = 0xC,
+            disp = '{:d}'))
         
         self.add(pr.RemoteVariable(
             name        = "AutoStatus", 
@@ -220,29 +225,34 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name = 'PhyRxHeader',
+            mode = 'RO',
             offset = 0x108,
             bitOffset = 0,
             bitSize = 2))
 
         self.add(pr.RemoteVariable(
             name = 'EbRxValid',
+            mode = 'RO',            
             offset = 0x118,
             bitOffset = 2,
             bitSize = 1))
 
         self.add(pr.RemoteVariable(
             name = 'EbRxData',
+            mode = 'RO',            
             offset = 0x110,
             bitOffset = 64))
 
         self.add(pr.RemoteVariable(
             name = 'EbRxHeader',
+            mode = 'RO',            
             offset = 0x118,
             bitOffset = 0,
             bitSize = 2))
 
         self.add(pr.RemoteVariable(
             name = 'EbRxStatus',
+            mode = 'RO',            
             offset = 0x118,
             bitOffset = 3,
             bitSize = 9,
@@ -250,12 +260,14 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name = 'EbRxOverflow',
+            mode = 'RO',            
             offset = 0x11C,
             bitOffset = 0,
             bitSize = 1))
 
         self.add(pr.RemoteVariable(
             name = 'EbRxOverflowCnt',
+            mode = 'RO',            
             offset = 0x11C,
             bitOffset = 1,
             bitSize = errorCountBits))
@@ -263,17 +275,20 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name = 'GearboxAligned',
+            mode = 'RO',            
             offset = 0x120,
             bitSize = 1))
 
         self.add(pr.RemoteVariable(
             name = 'GearboxAlignCnt',
+            mode = 'RO',            
             offset = 0x120,
             bitOffset = 8,
             bitSize = 8))
 
         self.add(pr.RemoteVariable(
             name = 'PhyRxInitCnt',
+            mode = 'RO',            
             offset = 0x130,
             bitSize = 4))
         
