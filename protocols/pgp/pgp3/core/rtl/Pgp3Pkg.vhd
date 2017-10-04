@@ -145,15 +145,15 @@ package Pgp3Pkg is
       phyRxData   : slv(63 downto 0);
       phyRxHeader : slv(1 downto 0);
       phyRxValid  : sl;
-      phyRxInit : sl;
+      phyRxInit   : sl;
 
       gearboxAligned : sl;
 
-      ebData   : slv(63 downto 0);
-      ebHeader : slv(1 downto 0);
-      ebValid  : sl;
+      ebData     : slv(63 downto 0);
+      ebHeader   : slv(1 downto 0);
+      ebValid    : sl;
       ebOverflow : sl;
-      ebStatus : slv(8 downto 0);
+      ebStatus   : slv(8 downto 0);
    end record Pgp3RxOutType;
 
    constant PGP3_RX_OUT_INIT_C : Pgp3RxOutType := (
@@ -173,11 +173,13 @@ package Pgp3Pkg is
       phyRxData      => (others => '0'),
       phyRxHeader    => (others => '0'),
       phyRxValid     => '0',
-      phyRxInit => '0',
+      phyRxInit      => '0',
       gearboxAligned => '0',
       ebData         => (others => '0'),
       ebHeader       => (others => '0'),
-      ebValid        => '0');
+      ebValid        => '0',
+      ebOverflow     => '0',
+      ebStatus       => (others => '0'));
 
 end package Pgp3Pkg;
 
