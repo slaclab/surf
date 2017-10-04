@@ -123,9 +123,7 @@ begin
       port map (
          clk      => pgpRxClk,          -- [in]
          asyncRst => overflowInt,          -- [in]
-         syncRst  => overflowSync);     -- [out]
-
-   overflow <= overflowSync;
+         syncRst  => overflow);     -- [out]
 
    pgpRxValid <= valid;
 

@@ -145,6 +145,9 @@ architecture rtl of Pgp3AxiL is
       ebValid            : sl;
       ebData             : slv(63 downto 0);
       ebHeader           : slv(1 downto 0);
+      ebOverflow         : sl;
+      ebOverflowCnt      : ErrorCountSlv;
+      ebStatus           : slv(8 downto 0);
       phyValid           : sl;
       phyData            : slv(63 downto 0);
       phyHeader          : slv(1 downto 0);
@@ -205,7 +208,7 @@ begin
          IN_POLARITY_G   => "1",
          OUT_POLARITY_G  => '1',
          USE_DSP48_G     => "no",
-         SYNTH_CNT_G     => X"30000FFFF7C",
+         SYNTH_CNT_G     => X"0030000FFFF7C",
          CNT_RST_EDGE_G  => false,
          CNT_WIDTH_G     => ERROR_CNT_WIDTH_G,
          WIDTH_G         => RX_ERROR_COUNTERS_C)
@@ -603,7 +606,7 @@ begin
       axiSlaveRegisterR(axilEp, X"118", 2, rxStatusSync.ebValid);
       axiSlaveRegisterR(axilEp, X"118", 3, rxStatusSync.ebStatus);
       axiSlaveRegisterR(axilEp, X"11C", 0, rxStatusSync.ebOverflow);
-      axiSlaveRegisterR(axilEp, X"11C", 1, rxStatusSync.ebOverflowCnt);      
+      axiSlaveRegisterR(axilEp, X"11C", 1, rxStatusSync.ebOverflowCnt);
 
       axiSlaveRegisterR(axilEp, X"120", 0, rxStatusSync.gearboxAligned);
       axiSlaveRegisterR(axilEp, X"120", 8, rxStatusSync.gearboxAlignCnt);
