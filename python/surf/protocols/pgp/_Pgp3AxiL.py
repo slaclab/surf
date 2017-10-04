@@ -242,6 +242,26 @@ class Pgp3AxiL(pr.Device):
             bitSize = 2))
 
         self.add(pr.RemoteVariable(
+            name = 'EbRxStatus',
+            offset = 0x118,
+            bitOffset = 3,
+            bitSize = 9,
+            disp = '{:d}'))
+
+        self.add(pr.RemoteVariable(
+            name = 'EbRxOverflow',
+            offset = 0x11C,
+            bitOffset = 0,
+            bitSize = 1))
+
+        self.add(pr.RemoteVariable(
+            name = 'EbRxOverflowCnt',
+            offset = 0x11C,
+            bitOffset = 1,
+            bitSize = errorCountBits))
+        
+
+        self.add(pr.RemoteVariable(
             name = 'GearboxAligned',
             offset = 0x120,
             bitSize = 1))
@@ -251,6 +271,11 @@ class Pgp3AxiL(pr.Device):
             offset = 0x120,
             bitOffset = 8,
             bitSize = 8))
+
+        self.add(pr.RemoteVariable(
+            name = 'PhyRxInitCnt',
+            offset = 0x130,
+            bitSize = 4))
         
         ################
         # TX

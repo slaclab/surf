@@ -152,6 +152,8 @@ package Pgp3Pkg is
       ebData   : slv(63 downto 0);
       ebHeader : slv(1 downto 0);
       ebValid  : sl;
+      ebOverflow : sl;
+      ebStatus : slv(8 downto 0);
    end record Pgp3RxOutType;
 
    constant PGP3_RX_OUT_INIT_C : Pgp3RxOutType := (

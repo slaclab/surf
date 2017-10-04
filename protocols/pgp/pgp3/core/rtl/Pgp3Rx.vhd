@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-07
--- Last update: 2017-10-03
+-- Last update: 2017-10-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -78,6 +78,8 @@ architecture rtl of Pgp3Rx is
    signal ebValid                : sl;
    signal ebData                 : slv(63 downto 0);
    signal ebHeader               : slv(1 downto 0);
+   signal ebOverflow             : sl;
+   signal ebStatus               : slv(8 downto 0);
    signal phyRxInitInt           : sl;
    signal pgpRawRxMaster         : AxiStreamMasterType;
    signal pgpRawRxSlave          : AxiStreamSlaveType;
@@ -145,7 +147,9 @@ begin
          pgpRxRst    => pgpRxRst,           -- [in]
          pgpRxValid  => ebValid,            -- [out]
          pgpRxData   => ebData,             -- [out]
-         pgpRxHeader => ebHeader);          -- [out]
+         pgpRxHeader => ebHeader,           -- [out]
+         overflow    => ebOverflow,         -- [out]
+         status      => ebStatus);          -- [out]
 
    -- Main RX protocol logic
    U_Pgp3RxProtocol_1 : entity work.Pgp3RxProtocol
@@ -220,9 +224,11 @@ begin
 
    pgpRxOut.gearboxAligned <= gearboxAligned;
 
-   pgpRxOut.ebData   <= ebData;
-   pgpRxOut.ebHeader <= ebHeader;
-   pgpRxOut.ebValid  <= ebValid;
+   pgpRxOut.ebData     <= ebData;
+   pgpRxOut.ebHeader   <= ebHeader;
+   pgpRxOut.ebValid    <= ebValid;
+   pgpRxOut.ebOverflow <= ebOverflow;
+   pgpRxOut.ebStatus   <= ebStatus;
 
 
    CTRL_OUT : for i in 15 downto 0 generate

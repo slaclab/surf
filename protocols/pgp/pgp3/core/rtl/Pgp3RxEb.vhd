@@ -39,7 +39,9 @@ entity Pgp3RxEb is
       pgpRxRst    : in  sl;
       pgpRxValid  : out sl;
       pgpRxData   : out slv(63 downto 0);
-      pgpRxHeader : out slv(1 downto 0));
+      pgpRxHeader : out slv(1 downto 0);
+      overflow    : out sl;
+      status      : out slv(8 downto 0));
 
 end entity Pgp3RxEb;
 
@@ -54,6 +56,8 @@ architecture rtl of Pgp3RxEb is
    signal rin : RegType;
 
    signal valid : sl;
+
+   signal overflowInt : sl;
 
 begin
 
@@ -91,27 +95,37 @@ begin
          DATA_WIDTH_G  => 66,
          ADDR_WIDTH_G  => 9)
       port map (
-         rst                => phyRxRst,    -- [in]
-         wr_clk             => phyRxClk,    -- [in]
-         wr_en              => r.fifoWrEn,  -- [in]
-         din                => r.fifoIn,    -- [in]
-         wr_data_count      => open,        -- [out]
-         wr_ack             => open,        -- [out]
-         overflow           => open,        -- [out]
-         prog_full          => open,        -- [out]
-         almost_full        => open,        -- [out]
-         full               => open,        -- [out]
-         not_full           => open,        -- [out]
-         rd_clk             => pgpRxClk,    -- [in]
-         rd_en              => valid,       -- [in]
-         dout(63 downto 0)  => pgpRxData,   -- [out]
+         rst                => phyRxRst,     -- [in]
+         wr_clk             => phyRxClk,     -- [in]
+         wr_en              => r.fifoWrEn,   -- [in]
+         din                => r.fifoIn,     -- [in]
+         wr_data_count      => open,         -- [out]
+         wr_ack             => open,         -- [out]
+         overflow           => overflowInt,     -- [out]
+         prog_full          => open,         -- [out]
+         almost_full        => open,         -- [out]
+         full               => open,         -- [out]
+         not_full           => open,         -- [out]
+         rd_clk             => pgpRxClk,     -- [in]
+         rd_en              => valid,        -- [in]
+         dout(63 downto 0)  => pgpRxData,    -- [out]
          dout(65 downto 64) => pgpRxHeader,  -- [out]
-         rd_data_count      => open,        -- [out]
-         valid              => valid,       -- [out]
-         underflow          => open,        -- [out]
-         prog_empty         => open,        -- [out]
-         almost_empty       => open,        -- [out]
-         empty              => open);       -- [out]
+         rd_data_count      => status,       -- [out]
+         valid              => valid,        -- [out]
+         underflow          => open,         -- [out]
+         prog_empty         => open,         -- [out]
+         almost_empty       => open,         -- [out]
+         empty              => open);        -- [out]
+
+   U_RstSync_1 : entity work.RstSync
+      generic map (
+         TPD_G           => TPD_G)
+      port map (
+         clk      => pgpRxClk,          -- [in]
+         asyncRst => overflowInt,          -- [in]
+         syncRst  => overflowSync);     -- [out]
+
+   overflow <= overflowSync;
 
    pgpRxValid <= valid;
 

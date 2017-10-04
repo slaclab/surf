@@ -2,7 +2,7 @@
 -- File       : Pgp2bAxi.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2009-05-27
--- Last update: 2017-10-03
+-- Last update: 2017-10-04
 -------------------------------------------------------------------------------
 -- Description:
 -- AXI-Lite block to manage the PGP3 interface.
@@ -75,7 +75,7 @@ architecture rtl of Pgp3AxiL is
    subtype ErrorCountSlv is slv(ERROR_CNT_WIDTH_G-1 downto 0);
    type ErrorCountSlvArray is array (natural range <>) of ErrorCountSlv;
 
-   constant RX_ERROR_COUNTERS_C : integer := 44;
+   constant RX_ERROR_COUNTERS_C : integer := 52;
    constant TX_ERROR_COUNTERS_C : integer := 36;
 
    subtype StatusCountSlv is slv(STATUS_CNT_WIDTH_G-1 downto 0);
@@ -101,7 +101,7 @@ architecture rtl of Pgp3AxiL is
 --   signal rxFlush         : sl;
 --   signal rxReset         : sl;
    signal syncFlowCntlDis : sl;
-   signal gearboxAlignCnt : SlVectorArray(0 downto 0, 7 downto 0);   
+   signal gearboxAlignCnt : SlVectorArray(0 downto 0, 7 downto 0);
 
    type RegType is record
       countReset     : sl;
@@ -145,12 +145,12 @@ architecture rtl of Pgp3AxiL is
       ebValid            : sl;
       ebData             : slv(63 downto 0);
       ebHeader           : slv(1 downto 0);
-      phyValid            : sl;
-      phyData             : slv(63 downto 0);
-      phyHeader           : slv(1 downto 0);
-      phyRxInitCnt : ErrorCountSlv;
-      gearboxAligned : sl;
-      gearboxAlignCnt : slv(7 downto 0);
+      phyValid           : sl;
+      phyData            : slv(63 downto 0);
+      phyHeader          : slv(1 downto 0);
+      phyRxInitCnt       : ErrorCountSlv;
+      gearboxAligned     : sl;
+      gearboxAlignCnt    : slv(7 downto 0);
    end record RxStatusType;
 
    signal rxStatusSync : RxStatusType;
@@ -205,7 +205,7 @@ begin
          IN_POLARITY_G   => "1",
          OUT_POLARITY_G  => '1',
          USE_DSP48_G     => "no",
-         SYNTH_CNT_G     => X"10000FFFF7C",
+         SYNTH_CNT_G     => X"30000FFFF7C",
          CNT_RST_EDGE_G  => false,
          CNT_WIDTH_G     => ERROR_CNT_WIDTH_G,
          WIDTH_G         => RX_ERROR_COUNTERS_C)
@@ -220,8 +220,10 @@ begin
          statusIn(7)            => pgpRxOut.remRxLinkReady,
          statusIn(23 downto 8)  => pgpRxOut.remRxOverflow,
          statusIn(39 downto 24) => pgpRxOut.remRxPause,
-         statusIn(40) => pgpRxOut.phyRxInit,
-         statusIn(43 downto 41) => "000",
+         statusIn(40)           => pgpRxOut.phyRxInit,
+         statusIn(41)           => pgpRxOut.ebOverflow,
+         statusIn(50 downto 42) => pgpRxOut.ebStatus,
+         statusIn(51)           => '0',
          statusOut              => rxErrorOut,
          cntRstIn               => r.countReset,
          rollOverEnIn           => (others => '0'),
@@ -254,6 +256,8 @@ begin
    rxStatusSync.remLinkReady  <= rxErrorOut(7);
    rxStatusSync.remRxOverflow <= rxErrorOut(23 downto 8);
    rxStatusSync.remRxPause    <= rxErrorOut(39 downto 24);
+   rxStatusSync.ebOverflow    <= rxErrorOut(41);
+   rxStatusSync.ebStatus      <= rxErrorOut(50 downto 42);
 
    -- Map counters
    rxStatusSync.frameErrCount  <= muxSlVectorArray(rxErrorCntOut, 2);
@@ -265,7 +269,8 @@ begin
       rxStatusSync.remRxOverflowCnt(i) <= muxSlVectorArray(rxErrorCntOut, i+8);
    end generate REM_OVERFLOW_CNT;
 
-   rxStatusSync.phyRxInitCnt <= muxSlVectorArray(rxErrorCntOut, 40);
+   rxStatusSync.phyRxInitCnt  <= muxSlVectorArray(rxErrorCntOut, 40);
+   rxStatusSync.ebOverflowCnt <= muxSlVectorArray(rxErrorCntOut, 41);
 
    -- Status counters
    U_RxStatus : entity work.SyncStatusVector
@@ -366,7 +371,7 @@ begin
          WIDTH_G         => 1)
       port map (
          statusIn(0)  => pgpRxOut.gearboxAligned,
-         statusOut(0)    => rxStatusSync.gearboxAligned,
+         statusOut(0) => rxStatusSync.gearboxAligned,
          cntRstIn     => r.countReset,
          rollOverEnIn => (others => '1'),
          cntOut       => gearboxAlignCnt,
@@ -378,7 +383,7 @@ begin
          rdRst        => axilRst
          );
 
-   rxStatusSync.gearboxAlignCnt <= muxSlVectorArray(gearboxAlignCnt, 0);   
+   rxStatusSync.gearboxAlignCnt <= muxSlVectorArray(gearboxAlignCnt, 0);
 
 
    ---------------------------------------
@@ -591,11 +596,14 @@ begin
 
       axiSlaveRegisterR(axilEp, X"100", 0, rxStatusSync.phyData);
       axiSlaveRegisterR(axilEp, X"108", 0, rxStatusSync.phyHeader);
-      axiSlaveRegisterR(axilEp, X"108", 2, rxStatusSync.phyValid);      
-      
+      axiSlaveRegisterR(axilEp, X"108", 2, rxStatusSync.phyValid);
+
       axiSlaveRegisterR(axilEp, X"110", 0, rxStatusSync.ebData);
-      axiSlaveRegisterR(axilEp, X"118", 0, rxStatusSync.ebHeader);            
+      axiSlaveRegisterR(axilEp, X"118", 0, rxStatusSync.ebHeader);
       axiSlaveRegisterR(axilEp, X"118", 2, rxStatusSync.ebValid);
+      axiSlaveRegisterR(axilEp, X"118", 3, rxStatusSync.ebStatus);
+      axiSlaveRegisterR(axilEp, X"11C", 0, rxStatusSync.ebOverflow);
+      axiSlaveRegisterR(axilEp, X"11C", 1, rxStatusSync.ebOverflowCnt);      
 
       axiSlaveRegisterR(axilEp, X"120", 0, rxStatusSync.gearboxAligned);
       axiSlaveRegisterR(axilEp, X"120", 8, rxStatusSync.gearboxAlignCnt);
