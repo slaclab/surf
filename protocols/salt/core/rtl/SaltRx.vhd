@@ -2,7 +2,7 @@
 -- File       : SaltRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2015-09-04
+-- Last update: 2017-09-29
 -------------------------------------------------------------------------------
 -- Description: SALT RX Engine Module
 -------------------------------------------------------------------------------
@@ -37,11 +37,12 @@ entity SaltRx is
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType;
       -- GMII Interface
+      rxPktRcvd   : out sl;
       rxEn        : in  sl;
       rxErr       : in  sl;
       rxData      : in  slv(7 downto 0);
       clk         : in  sl;
-      rst         : in  sl);       
+      rst         : in  sl);
 end SaltRx;
 
 architecture rtl of SaltRx is
@@ -51,37 +52,39 @@ architecture rtl of SaltRx is
       LENGTH_S,
       MOVE_S,
       CHECKSUM_S,
-      DONE_S); 
+      DONE_S);
 
    type RegType is record
-      sof      : sl;
-      eofe     : sl;
-      align    : sl;
-      seqCnt   : slv(7 downto 0);
-      tDest    : slv(7 downto 0);
-      length   : slv(15 downto 0);
-      cnt      : slv(15 downto 0);
-      checksum : slv(31 downto 0);
-      alignCnt : natural range 0 to 3;
-      dly      : AxiStreamMasterArray(1 downto 0);
-      rxMaster : AxiStreamMasterType;
-      txMaster : AxiStreamMasterType;
-      state    : StateType;
+      rxPktRcvd : sl;
+      sof       : sl;
+      eofe      : sl;
+      align     : sl;
+      seqCnt    : slv(7 downto 0);
+      tDest     : slv(7 downto 0);
+      length    : slv(15 downto 0);
+      cnt       : slv(15 downto 0);
+      checksum  : slv(31 downto 0);
+      alignCnt  : natural range 0 to 3;
+      dly       : AxiStreamMasterArray(1 downto 0);
+      rxMaster  : AxiStreamMasterType;
+      txMaster  : AxiStreamMasterType;
+      state     : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
-      sof      => '1',
-      eofe     => '0',
-      align    => '0',
-      seqCnt   => (others => '0'),
-      tDest    => (others => '0'),
-      length   => (others => '0'),
-      cnt      => (others => '0'),
-      checksum => (others => '0'),
-      alignCnt => 0,
-      dly      => (others => AXI_STREAM_MASTER_INIT_C),
-      txMaster => AXI_STREAM_MASTER_INIT_C,
-      rxMaster => AXI_STREAM_MASTER_INIT_C,
-      state    => IDLE_S);      
+      rxPktRcvd => '0',
+      sof       => '1',
+      eofe      => '0',
+      align     => '0',
+      seqCnt    => (others => '0'),
+      tDest     => (others => '0'),
+      length    => (others => '0'),
+      cnt       => (others => '0'),
+      checksum  => (others => '0'),
+      alignCnt  => 0,
+      dly       => (others => AXI_STREAM_MASTER_INIT_C),
+      txMaster  => AXI_STREAM_MASTER_INIT_C,
+      rxMaster  => AXI_STREAM_MASTER_INIT_C,
+      state     => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -98,6 +101,7 @@ begin
       v := r;
 
       -- Reset the flags
+      v.rxPktRcvd       := '0';
       v.rxMaster.tValid := '0';
       if txSlave.tReady = '1' then
          v.txMaster.tValid := '0';
@@ -243,11 +247,13 @@ begin
                elsif r.rxMaster.tData(31 downto 0) = EOF_C then
                   -- Set EOF flag
                   v.txMaster.tLast := '1';
+                  v.rxPktRcvd      := '1';
                   -- Set EOFE
                   ssiSetUserEofe(SSI_SALT_CONFIG_C, v.txMaster, r.eofe);
                elsif r.rxMaster.tData(31 downto 0) = EOFE_C then
                   -- Set EOF flag
                   v.txMaster.tLast := '1';
+                  v.rxPktRcvd      := '1';
                   -- Set EOFE
                   ssiSetUserEofe(SSI_SALT_CONFIG_C, v.txMaster, '1');
                else
@@ -278,7 +284,8 @@ begin
       rin <= v;
 
       -- Outputs        
-      txMaster <= r.txMaster;
+      txMaster  <= r.txMaster;
+      rxPktRcvd <= r.rxPktRcvd;
 
    end process comb;
 
@@ -304,7 +311,7 @@ begin
          FIFO_ADDR_WIDTH_G   => 9,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => SSI_SALT_CONFIG_C,
-         MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G)            
+         MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G)
       port map (
          -- Slave Port
          sAxisClk    => clk,
@@ -315,6 +322,6 @@ begin
          mAxisClk    => mAxisClk,
          mAxisRst    => mAxisRst,
          mAxisMaster => mAxisMaster,
-         mAxisSlave  => mAxisSlave);   
+         mAxisSlave  => mAxisSlave);
 
 end rtl;

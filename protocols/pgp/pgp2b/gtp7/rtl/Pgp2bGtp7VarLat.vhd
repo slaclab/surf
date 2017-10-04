@@ -26,6 +26,7 @@ use work.AxiLitePkg.all;
 entity Pgp2bGtp7VarLat is
    generic (
       TPD_G                 : time                 := 1 ns;
+      COMMON_CLK_G          : boolean              := false;-- set true if (stableClk = axilClk)
       ----------------------------------------------------------------------------------------------
       -- GT Settings
       ----------------------------------------------------------------------------------------------
@@ -43,6 +44,7 @@ entity Pgp2bGtp7VarLat is
       RXCDR_CFG_G           : bit_vector           := x"0000107FE206001041010";  -- Set by wizard
       RXLPM_INCM_CFG_G      : bit                  := '1';    -- Set by wizard
       RXLPM_IPCM_CFG_G      : bit                  := '0';    -- Set by wizard      
+      DYNAMIC_QPLL_G        : boolean              := false;
       TX_PLL_G              : string               := "PLL0";
       RX_PLL_G              : string               := "PLL1";
       -- Configure Buffer usage
@@ -65,6 +67,8 @@ entity Pgp2bGtp7VarLat is
    port (
       -- GT Clocking
       stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
+      qPllRxSelect     : in  slv(1 downto 0) := "00";
+      qPllTxSelect     : in  slv(1 downto 0) := "00";          
       gtQPllOutRefClk  : in  slv(1 downto 0);
       gtQPllOutClk     : in  slv(1 downto 0);
       gtQPllLock       : in  slv(1 downto 0);
@@ -104,6 +108,7 @@ entity Pgp2bGtp7VarLat is
       txPreCursor      : in  slv(4 downto 0)                  := (others => '0');
       txPostCursor     : in  slv(4 downto 0)                  := (others => '0');
       txDiffCtrl       : in  slv(3 downto 0)                  := "1000";
+      drpOverride      : in  sl                               := '0';
       -- AXI-Lite Interface 
       axilClk          : in  sl                               := '0';
       axilRst          : in  sl                               := '0';
@@ -120,6 +125,7 @@ begin
    MuliLane_Inst : entity work.Pgp2bGtp7MultiLane
       generic map (
          TPD_G                 => TPD_G,
+         COMMON_CLK_G          => COMMON_CLK_G,
          -- SIM Generics
          SIM_GTRESET_SPEEDUP_G => SIM_GTRESET_SPEEDUP_G,
          SIM_VERSION_G         => SIM_VERSION_G,
@@ -134,6 +140,7 @@ begin
          RXCDR_CFG_G           => RXCDR_CFG_G,
          RXLPM_INCM_CFG_G      => RXLPM_INCM_CFG_G,
          RXLPM_IPCM_CFG_G      => RXLPM_IPCM_CFG_G,
+         DYNAMIC_QPLL_G        => DYNAMIC_QPLL_G,
          TX_PLL_G              => TX_PLL_G,
          RX_PLL_G              => RX_PLL_G,
          -- Configure Buffer usage
@@ -154,6 +161,8 @@ begin
       port map (
          -- GT Clocking
          stableClk           => stableClk,
+         qPllRxSelect        => qPllRxSelect,
+         qPllTxSelect        => qPllTxSelect,         
          gtQPllOutRefClk     => gtQPllOutRefClk,
          gtQPllOutClk        => gtQPllOutClk,
          gtQPllLock          => gtQPllLock,
@@ -193,6 +202,7 @@ begin
          txPreCursor         => txPreCursor,
          txPostCursor        => txPostCursor,
          txDiffCtrl          => txDiffCtrl,
+         drpOverride         => drpOverride,
          -- AXI-Lite Interface 
          axilClk             => axilClk,
          axilRst             => axilRst,

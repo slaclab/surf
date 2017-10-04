@@ -19,8 +19,12 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
+--------------------------------------
+-- Comment out these for simulation --
+--------------------------------------
 use ieee.fixed_float_types.all;
 use ieee.float_pkg.all;
+--------------------------------------
 
 -- synthesis translate_off
 library ieee_proposed;
