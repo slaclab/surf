@@ -166,6 +166,7 @@ class SsiPrbsRx(pr.Device):
             name = 'WordSize',
             offset = 0xF1 << 2,
             mode = 'RO',
+            disp = '{:d}',
             hidden = False))
 
         self.add(pr.RemoteVariable(    
