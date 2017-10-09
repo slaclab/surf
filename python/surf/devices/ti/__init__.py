@@ -10,6 +10,8 @@
 ##############################################################################
 from surf.devices.ti._adc32Rf45 import *
 from surf.devices.ti._adc32Rf45Channel import *
+from surf.devices.ti._ads54J60 import *
+from surf.devices.ti._ads54J60Channel import *
 from surf.devices.ti._Adc16Dx370 import *
 from surf.devices.ti._AxiCdcm6208 import *
 from surf.devices.ti._Dac38J84 import *
