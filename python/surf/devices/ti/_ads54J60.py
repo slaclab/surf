@@ -19,7 +19,7 @@
 
 import pyrogue as pr
 import time
-from surf.devices.ti._Ads54J60Channel import *
+from surf.devices.ti._ads54J60Channel import *
 
 class Ads54J60(pr.Device):
     def __init__( self,       
