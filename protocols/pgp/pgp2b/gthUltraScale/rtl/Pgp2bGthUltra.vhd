@@ -2,7 +2,7 @@
 -- File       : Pgp2bGthUltra.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2016-01-19
+-- Last update: 2017-10-10
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -48,31 +48,41 @@ entity Pgp2bGthUltra is
       pgpGtRxP         : in  sl;
       pgpGtRxN         : in  sl;
       -- Tx Clocking
-      pgpTxReset       : in  sl;
-      pgpTxRecClk      : out sl;                      -- recovered clock
-      pgpTxClk         : in  sl;
-      pgpTxMmcmLocked  : in  sl;
-      -- Rx clocking
-      pgpRxReset       : in  sl;
-      pgpRxRecClk      : out sl;                      -- recovered clock
-      pgpRxClk         : in  sl;
-      pgpRxMmcmLocked  : in  sl;
-      -- Non VC Rx Signals
-      pgpRxIn          : in  Pgp2bRxInType;
-      pgpRxOut         : out Pgp2bRxOutType;
+      pgpTxReset       : out sl;
+      pgpTxClk         : out sl;                      -- recovered clock
       -- Non VC Tx Signals
       pgpTxIn          : in  Pgp2bTxInType;
       pgpTxOut         : out Pgp2bTxOutType;
       -- Frame Transmit Interface - 1 Lane, Array of 4 VCs
       pgpTxMasters     : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
       pgpTxSlaves      : out AxiStreamSlaveArray(3 downto 0);
+      -- Rx clocking
+      pgpRxReset       : out sl;
+      pgpRxClk         : out sl;
+      -- Non VC Rx Signals
+      pgpRxIn          : in  Pgp2bRxInType;
+      pgpRxOut         : out Pgp2bRxOutType;
       -- Frame Receive Interface - 1 Lane, Array of 4 VCs
       pgpRxMasters     : out AxiStreamMasterArray(3 downto 0);
       pgpRxMasterMuxed : out AxiStreamMasterType;
-      pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0));
+      pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0)
+      -- AXI-Lite DRP interface
+      axilClk          : in  sl;
+      axilRst          : in  sl;
+      axilReadMaster   : in  AxiLiteReadMasterType;
+      axilReadSlave    : out AxiLiteReadSlaveType;
+      axilWriteMaster  : in  AxiLiteWriteMasterType;
+      axilWriteSlave   : out AxiLiteWriteSlaveType);
 end Pgp2bGthUltra;
 
 architecture mapping of Pgp2bGthUltra is
+
+   -- clocks
+   signal pgpRxClkInt : sl;
+   signal pgpRxRstInt : sl;
+   signal pgpTxClkInt : sl;
+   signal pgpTxRstInt : sl;
+   
 
    -- PgpRx Signals
    signal gtRxUserReset : sl;
@@ -87,9 +97,13 @@ architecture mapping of Pgp2bGthUltra is
    signal phyTxReady    : sl;
 
 begin
+   pgpRxClk <= pgpRxClkInt;
+   pgpRxReset <= pgpRxRstInt;
+   pgpTxClk <= pgpTxClkInt;
+   pgpTxReset <= pgpTxRstInt;
 
-   gtRxUserReset <= phyRxInit or pgpRxReset or pgpRxIn.resetRx;
-   gtTxUserReset <= pgpTxReset;
+   gtRxUserReset <= phyRxInit or pgpRxResetInt or pgpRxIn.resetRx;
+   gtTxUserReset <= pgpTxRstInt;
 
    U_Pgp2bLane : entity work.Pgp2bLane
       generic map (
@@ -100,16 +114,16 @@ begin
          TX_ENABLE_G       => PGP_TX_ENABLE_G,
          RX_ENABLE_G       => PGP_RX_ENABLE_G)
       port map (
-         pgpTxClk         => pgpTxClk,
-         pgpTxClkRst      => pgpTxReset,
+         pgpTxClk         => pgpTxClkInt,
+         pgpTxClkRst      => pgpTxResetInt,
          pgpTxIn          => pgpTxIn,
          pgpTxOut         => pgpTxOut,
          pgpTxMasters     => pgpTxMasters,
          pgpTxSlaves      => pgpTxSlaves,
          phyTxLanesOut(0) => phyTxLaneOut,
          phyTxReady       => phyTxReady,
-         pgpRxClk         => pgpRxClk,
-         pgpRxClkRst      => pgpRxReset,
+         pgpRxClk         => pgpRxClkInt,
+         pgpRxClkRst      => pgpRxResetInt,
          pgpRxIn          => pgpRxIn,
          pgpRxOut         => pgpRxOut,
          pgpRxMasters     => pgpRxMasters,
@@ -127,30 +141,40 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         stableClk      => stableClk,
-         stableRst      => stableRst,
-         gtRefClk       => gtRefClk,
-         gtRxP          => pgpGtRxP,
-         gtRxN          => pgpGtRxN,
-         gtTxP          => pgpGtTxP,
-         gtTxN          => pgpGtTxN,
-         rxReset        => gtRxUserReset,
-         rxUsrClkActive => pgpRxMmcmLocked,
-         rxResetDone    => phyRxReady,
-         rxUsrClk       => pgpRxClk,
-         rxData         => phyRxLaneIn.data,
-         rxDataK        => phyRxLaneIn.dataK,
-         rxDispErr      => phyRxLaneIn.dispErr,
-         rxDecErr       => phyRxLaneIn.decErr,
-         rxPolarity     => phyRxLaneOut.polarity,
-         rxOutClk       => pgpRxRecClk,
-         txReset        => gtTxUserReset,
-         txUsrClk       => pgpTxClk,
-         txUsrClkActive => pgpTxMmcmLocked,
-         txResetDone    => phyTxReady,
-         txData         => phyTxLaneOut.data,
-         txDataK        => phyTxLaneOut.dataK,
-         txOutClk       => pgpTxRecClk,
-         loopback       => pgpRxIn.loopback);
+         stableClk       => stableClk,
+         stableRst       => stableRst,
+         gtRefClk        => gtRefClk,
+         gtRxP           => pgpGtRxP,
+         gtRxN           => pgpGtRxN,
+         gtTxP           => pgpGtTxP,
+         gtTxN           => pgpGtTxN,
+         rxReset         => gtRxUserReset,
+         rxUsrClkActive  => open,
+         rxResetDone     => phyRxReady,
+         rxUsrClk        => open,
+         rxUsrClk2       => pgpRxClkInt,
+         rxUsrClkRst     => pgpRxRstInt,
+         rxData          => phyRxLaneIn.data,
+         rxDataK         => phyRxLaneIn.dataK,
+         rxDispErr       => phyRxLaneIn.dispErr,
+         rxDecErr        => phyRxLaneIn.decErr,
+         rxPolarity      => phyRxLaneOut.polarity,
+         rxOutClk        => open,
+         txReset         => gtTxUserReset,
+         txUsrClk        => open,
+         txUsrClk2       => pgpTxClkInt,
+         txUsrClkRst     => pgpTxRstInt,
+         txUsrClkActive  => open,
+         txResetDone     => phyTxReady,
+         txData          => phyTxLaneOut.data,
+         txDataK         => phyTxLaneOut.dataK,
+         txOutClk        => open,
+         loopback        => pgpRxIn.loopback,
+         axilClk         => axilClk,
+         axilRst         => axilRst,
+         axilReadMaster  => axilReadMaster,
+         axilReadSlave   => axilReadSlave,
+         axilWriteMaster => axilWriteMaster,
+         axilWriteSlave  => axilWriteSlave);
 
 end mapping;
