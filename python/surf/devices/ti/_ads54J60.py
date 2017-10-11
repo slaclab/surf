@@ -335,14 +335,18 @@ class Ads54J60(pr.Device):
         
         @self.command(name= "Init", description  = "Device Initiation")        
         def Init():        
+            self.HW_RST.set(0x1)
+            self.HW_RST.set(0x0)
+            time.sleep(0.001)
             self.RESET()
             self._rawWrite(unusedPages, 0x00) # Clear any unwanted content from the unused pages of the JESD bank.
-            self.DigRst()
-            self._rawWrite(mainDigital + chA + (4*0x0F7),0x01); # Use the DIG RESET register bit to reset all pages in the JESD bank (self-clearing bit)
-            self._rawWrite(mainDigital + chB + (4*0x0F7),0x01); # Use the DIG RESET register bit to reset all pages in the JESD bank (self-clearing bit)                  
-            self._rawWrite(masterPage        + (4*0x059),0x20); # Set the ALWAYS WRITE 1 bit
-            self._rawWrite(jesdDigital + chA + (4*0x016),0x80); # Set the ALWAYS WRITE 1 bit
-            self._rawWrite(jesdDigital + chB + (4*0x016),0x80); # Set the ALWAYS WRITE 1 bit
-            self._rawWrite(jesdAnalog  + chA + (4*0x012),0x02); # Set the ALWAYS WRITE 1 bit
-            self._rawWrite(jesdAnalog  + chB + (4*0x012),0x02); # Set the ALWAYS WRITE 1 bit
             
+            self._rawWrite(mainDigital + chA + (4*0x0F7),0x01); # Use the DIG RESET register bit to reset all pages in the JESD bank (self-clearing bit)
+            self._rawWrite(mainDigital + chB + (4*0x0F7),0x01); # Use the DIG RESET register bit to reset all pages in the JESD bank (self-clearing bit)     
+
+            self._rawWrite(mainDigital + chA + (4*0x000),0x01) # CHA: PULSE RESET
+            self._rawWrite(mainDigital + chB + (4*0x000),0x01) # CHB: PULSE RESET 
+            self._rawWrite(mainDigital + chA + (4*0x000),0x00) # CHA: clear reset
+            self._rawWrite(mainDigital + chB + (4*0x000),0x00) # CHB: clear reset 
+
+            self._rawWrite(masterPage        + (4*0x059),0x20); # Set the ALWAYS WRITE 1 bit
