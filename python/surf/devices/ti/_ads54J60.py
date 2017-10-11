@@ -52,8 +52,8 @@ class Ads54J60(pr.Device):
         #####################
         # Add Device Channels
         #####################
-        self.add(Ads54J60Channel(name='CH[0]',description='Channel A',offset=chA,expand=expand,verify=verify))
-        self.add(Ads54J60Channel(name='CH[1]',description='Channel B',offset=chB,expand=expand,verify=verify))      
+        self.add(Ads54J60Channel(name='CH[0]',description='Channel A',offset=chA,expand=expand,verify=verify,writeOnly=writeOnly,))
+        self.add(Ads54J60Channel(name='CH[1]',description='Channel B',offset=chB,expand=expand,verify=verify,writeOnly=writeOnly,))      
         
         ##################
         # General Register
