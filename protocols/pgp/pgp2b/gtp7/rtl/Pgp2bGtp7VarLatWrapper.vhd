@@ -2,7 +2,7 @@
 -- File       : Pgp2bGtp7VarLatWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2017-08-23
+-- Last update: 2017-10-12
 -------------------------------------------------------------------------------
 -- Description: Example PGP2b front end wrapper
 -- Note: Default generic configurations are for the AC701 development board
@@ -31,7 +31,7 @@ use unisim.vcomponents.all;
 entity Pgp2bGtp7VarLatWrapper is
    generic (
       TPD_G                : time                    := 1 ns;
-      COMMON_CLK_G         : boolean                 := false;-- set true if (stableClk = axilClk)
+      COMMON_CLK_G         : boolean                 := false;  -- set true if (stableClk = axilClk)
       SIMULATION_G         : boolean                 := false;
       DYNAMIC_QPLL_G       : boolean                 := false;
       -- MMCM Configurations
@@ -59,6 +59,8 @@ entity Pgp2bGtp7VarLatWrapper is
       RX_POLARITY_G        : sl                      := '0';
       TX_ENABLE_G          : boolean                 := true;
       RX_ENABLE_G          : boolean                 := true;
+      PAYLOAD_CNT_TOP_G    : integer                 := 7;      -- Top bit for payload counter
+      VC_INTERLEAVE_G      : integer                 := 1;      -- Interleave Frames      
       NUM_VC_EN_G          : integer range 1 to 4    := 4);
    port (
       -- Manual Reset
@@ -92,7 +94,7 @@ entity Pgp2bGtp7VarLatWrapper is
       txDiffCtrl      : in  slv(3 downto 0)        := "1000";
       drpOverride     : in  sl                     := '0';
       qPllRxSelect    : in  slv(1 downto 0)        := "00";
-      qPllTxSelect    : in  slv(1 downto 0)        := "00";          
+      qPllTxSelect    : in  slv(1 downto 0)        := "00";
       -- AXI-Lite Interface 
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
@@ -227,7 +229,7 @@ begin
          -- GT Clocking
          stableClk        => stableClock,
          qPllRxSelect     => qPllRxSelect,
-         qPllTxSelect     => qPllTxSelect,         
+         qPllTxSelect     => qPllTxSelect,
          gtQPllOutRefClk  => gtQPllOutRefClk,
          gtQPllOutClk     => gtQPllOutClk,
          gtQPllLock       => gtQPllLock,
