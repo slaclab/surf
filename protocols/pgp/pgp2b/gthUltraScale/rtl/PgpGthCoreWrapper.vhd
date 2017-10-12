@@ -132,8 +132,6 @@ architecture mapping of PgpGthCoreWrapper is
          rxctrl1_out                        : out slv(15 downto 0);
          rxctrl2_out                        : out slv(7 downto 0);
          rxctrl3_out                        : out slv(7 downto 0);
-         rxoutclk_out                       : out slv(0 downto 0);
-         txoutclk_out                       : out slv(0 downto 0);         
          rxpmaresetdone_out                 : out slv(0 downto 0);
          txpmaresetdone_out                 : out slv(0 downto 0);
          txprgdivresetdone_out              : out slv(0 downto 0));
@@ -234,9 +232,7 @@ begin
          rxctrl2_out                           => open,
          rxctrl3_out(1 downto 0)               => rxDecErr,
          rxctrl3_out(7 downto 2)               => open,
-         rxoutclk_out(0)                       => rxOutClk,
          rxpmaresetdone_out(0)                 => open,
-         txoutclk_out(0)                       => txOutClk,
          txpmaresetdone_out(0)                 => open);
 
    U_AxiLiteToDrp_1 : entity work.AxiLiteToDrp
