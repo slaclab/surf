@@ -95,7 +95,7 @@ architecture rtl of AxiVersion is
       scratchPad     => (others => '0'),
       counter        => (others => '0'),
       counterRst     => '0',
-      userReset      => '1',-- Asserted on powerup
+      userReset      => '0',
       fpgaReload     => '0',
       haltReload     => '0',
       fpgaReloadAddr => AUTO_RELOAD_ADDR_G,

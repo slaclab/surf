@@ -58,11 +58,15 @@ package AxiAds42lb69Pkg is
 
    type AxiAds42lb69ConfigType is record
       dmode   : slv(1 downto 0);
+      invert  : slv(1 downto 0);
+      convert : slv(1 downto 0);
       -- IO-Delay Signals (refClk200MHz domain)
       delayIn : AxiAds42lb69DelayInType;
    end record;
    constant AXI_ADS42LB69_CONFIG_INIT_C : AxiAds42lb69ConfigType := (
       dmode   => (others => '0'),
+      invert  => (others => '0'),
+      convert => (others => '0'),
       delayIn => AXI_ADS42LB69_DELAY_IN_INIT_C);    
 
    type AxiAds42lb69StatusType is record

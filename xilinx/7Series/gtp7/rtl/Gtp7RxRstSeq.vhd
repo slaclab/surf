@@ -70,6 +70,7 @@ entity Gtp7RxRstSeq is
    generic(
       TPD_G : time := 1 ns);  
    port (
+      DRP_OVERRIDE   : in  std_logic; 
       RST_IN         : in  std_logic; 
       GTRXRESET_IN   : in  std_logic;    
       RXPMARESETDONE : in  std_logic;
@@ -156,7 +157,7 @@ begin
    process (DRPCLK)
    begin
       if rising_edge(DRPCLK) then
-         if (RST = '1') then
+         if (RST = '1') or (DRP_OVERRIDE = '1') then
             state              <= idle    after TPD_G;
             gtrxreset_s        <= '0'     after TPD_G;
             gtrxreset_ss       <= '0'     after TPD_G;

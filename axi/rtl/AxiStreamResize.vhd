@@ -98,7 +98,11 @@ begin
       v       := r;
       idx     := conv_integer(r.count);
       bytes   := (idx+1) * MST_BYTES_C;
-      byteCnt := getTKeep(sAxisMaster.tKeep);
+      if (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
+         byteCnt := conv_integer(sAxisMaster.tKeep(4 downto 0));
+      else
+         byteCnt := getTKeep(sAxisMaster.tKeep);
+      end if;
 
       -- Init ready
       v.ibSlave.tReady := '0';
@@ -109,8 +113,11 @@ begin
       end if;
 
       -- Inbound data with normalized user bits (8 user bits)
-      ibM := sAxisMaster;
+      ibM       := sAxisMaster;
       ibM.tUser := (others=>'0');
+      if (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
+         ibM.tKeep := genTKeep(byteCnt);
+      end if;
 
       for i in 0 to 15 loop
          ibM.tUser((i*8)+(SLV_USER_C-1) downto (i*8)) := sAxisMaster.tUser((i*SLV_USER_C)+(SLV_USER_C-1) downto (i*SLV_USER_C));
@@ -185,12 +192,33 @@ begin
       if SLV_BYTES_C = MST_BYTES_C then
          sAxisSlave  <= mAxisSlave;
          mAxisMaster <= sAxisMaster;
+         
+         -- Check for TKEEP_COUNT_C mode on either side
+         if (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) or (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
+            
+            -- Check for TKEEP_COUNT_C mode on slave side only
+            if (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) and (MASTER_AXI_CONFIG_G.TKEEP_MODE_C /= TKEEP_COUNT_C) then
+               mAxisMaster.tkeep <= genTKeep(conv_integer(sAxisMaster.tkeep(4 downto 0)));
+         
+            -- Check for TKEEP_COUNT_C mode on master side only
+            elsif (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C /= TKEEP_COUNT_C) and (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
+               mAxisMaster.tkeep <= toSlv(getTKeep(sAxisMaster.tKeep) ,16);
+            
+            -- Else both sides are TKEEP_COUNT_C mode
+            else
+               NULL;
+            end if;
+         end if;
+         
       else
          sAxisSlave  <= v.ibSlave;
 
          -- Outbound data with proper user bits
          mAxisMaster       <= r.obMaster;
          mAxisMaster.tUser <= (others=>'0');
+         if (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
+            mAxisMaster.tKeep <= toSlv(getTKeep(r.obMaster.tKeep) ,16);
+         end if;
 
          for i in 0 to 15 loop
             mAxisMaster.tUser((i*MST_USER_C)+(MST_USER_C-1) downto (i*MST_USER_C)) <= r.obMaster.tUser((i*8)+(MST_USER_C-1) downto (i*8));

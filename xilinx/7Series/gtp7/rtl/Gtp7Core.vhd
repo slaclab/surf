@@ -51,7 +51,9 @@ entity Gtp7Core is
       -- Configure PLL sources
       TX_PLL_G : string := "PLL0";
       RX_PLL_G : string := "PLL1";
-
+      
+      DYNAMIC_QPLL_G : boolean := false;
+      
       -- Configure Data widths
       TX_EXT_DATA_WIDTH_G : integer := 16;
       TX_INT_DATA_WIDTH_G : integer := 20;
@@ -146,6 +148,8 @@ entity Gtp7Core is
    port (
       stableClkIn : in sl;              -- Freerunning clock needed to drive reset logic
 
+      qPllRxSelect     : in  slv(1 downto 0)  := "00";
+      qPllTxSelect     : in  slv(1 downto 0)  := "00";
       qPllRefClkIn     : in  slv(1 downto 0);
       qPllClkIn        : in  slv(1 downto 0);
       qPllLockIn       : in  slv(1 downto 0);
@@ -216,6 +220,7 @@ entity Gtp7Core is
       -- DRP Interface (stableClkIn Domain)
       drpGnt         : out sl;
       drpRdy         : out sl;
+      drpOverride    : in  sl               := '0';
       drpEn          : in  sl               := '0';
       drpWe          : in  sl               := '0';
       drpAddr        : in  slv(8 downto 0)  := "000000000";
@@ -273,13 +278,15 @@ architecture rtl of Gtp7Core is
    -- Signals
    --------------------------------------------------------------------------------------------------
 
+   signal rxPllSel  : slv(1 downto 0);
+   signal txPllSel  : slv(1 downto 0);
+   
    ----------------------------
    -- Rx Signals
    signal rxOutClk     : sl;
    signal rxOutClkBufg : sl;
 
    signal rxPllResets     : slv(1 downto 0);
-   signal rxPllLock       : sl;
 
    signal gtRxReset    : sl;            -- GT GTRXRESET
    signal rxResetDone  : sl;            -- GT RXRESETDONE
@@ -370,8 +377,9 @@ begin
    rxOutClkOut     <= rxOutClkBufg;
    qPllResetOut(0) <= rxPllResets(0) or txPllResets(0);
    qPllResetOut(1) <= rxPllResets(1) or txPllResets(1);
-
-   rxPllLock <= qPllLockIn(0) when RX_PLL0_USED_C else qPllLockIn(1);
+   
+   rxPllSel <= qPllRxSelect when DYNAMIC_QPLL_G else RX_SYSCLK_SEL_C;
+   txPllSel <= qPllTxSelect when DYNAMIC_QPLL_G else TX_SYSCLK_SEL_C;
 
    --------------------------------------------------------------------------------------------------
    -- Rx Logic
@@ -424,12 +432,15 @@ begin
    Gtp7RxRst_Inst : entity work.Gtp7RxRst
       generic map (
          TPD_G                  => TPD_G,
+         DYNAMIC_QPLL_G         => DYNAMIC_QPLL_G,
          SIMULATION_G => SIMULATION_G,
          STABLE_CLOCK_PERIOD    => getTimeRatio(STABLE_CLOCK_PERIOD_G, 1.0E-9),
          RETRY_COUNTER_BITWIDTH => 8,
          TX_PLL0_USED           => TX_PLL0_USED_C,
          RX_PLL0_USED           => RX_PLL0_USED_C)
       port map (
+         qPllRxSelect           => qPllRxSelect,
+         qPllTxSelect           => qPllTxSelect,
          STABLE_CLOCK           => stableClkIn,
          RXUSERCLK              => rxUsrClkIn,
          SOFT_RESET             => rxUserResetInt,
@@ -606,10 +617,12 @@ begin
    Gtp7TxRst_Inst : entity work.Gtp7TxRst
       generic map (
          TPD_G                  => TPD_G,
+         DYNAMIC_QPLL_G         => DYNAMIC_QPLL_G,
          STABLE_CLOCK_PERIOD    => getTimeRatio(STABLE_CLOCK_PERIOD_G, 1.0E-9),
          RETRY_COUNTER_BITWIDTH => 8,
          TX_PLL0_USED           => TX_PLL0_USED_C)
       port map (
+         qPllTxSelect      => qPllTxSelect,      
          STABLE_CLOCK      => stableClkIn,
          TXUSERCLK         => txUsrClkIn,
          SOFT_RESET        => txUserResetIn,
@@ -994,8 +1007,8 @@ begin
          PLL0REFCLK           => qPllRefClkIn(0),
          PLL1CLK              => qPllClkIn(1),
          PLL1REFCLK           => qPllRefClkIn(1),
-         RXSYSCLKSEL          => RX_SYSCLK_SEL_C,
-         TXSYSCLKSEL          => TX_SYSCLK_SEL_C,
+         RXSYSCLKSEL          => rxPllSel,
+         TXSYSCLKSEL          => txPllSel,
          ------------------------------- Loopback Ports -----------------------------
          LOOPBACK             => loopbackIn,
          ----------------------------- PCI Express Ports ----------------------------
@@ -1271,6 +1284,7 @@ begin
    GEN_RST_SEQ : if (SIMULATION_G = false) generate
       Gtp7RxRstSeq_Inst : entity work.Gtp7RxRstSeq
          port map(
+            DRP_OVERRIDE   => drpOverride,
             RST_IN         => rxUserResetIn,
             GTRXRESET_IN   => gtRxReset,
             RXPMARESETDONE => rxPmaResetDone,

@@ -33,8 +33,10 @@ entity Pgp2bGthUltra is
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
-      PGP_RX_ENABLE_G   : boolean              := true;
-      PGP_TX_ENABLE_G   : boolean              := true;
+      TX_POLARITY_G     : sl                   := '0';
+      RX_POLARITY_G     : sl                   := '0';
+      RX_ENABLE_G       : boolean              := true;
+      TX_ENABLE_G       : boolean              := true;
       PAYLOAD_CNT_TOP_G : integer              := 7;  -- Top bit for payload counter
       VC_INTERLEAVE_G   : integer              := 0;  -- Interleave Frames
       NUM_VC_EN_G       : integer range 1 to 4 := 4);
@@ -112,8 +114,8 @@ begin
          VC_INTERLEAVE_G   => VC_INTERLEAVE_G,
          PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G,
          NUM_VC_EN_G       => NUM_VC_EN_G,
-         TX_ENABLE_G       => PGP_TX_ENABLE_G,
-         RX_ENABLE_G       => PGP_RX_ENABLE_G)
+         TX_ENABLE_G       => TX_ENABLE_G,
+         RX_ENABLE_G       => RX_ENABLE_G)
       port map (
          pgpTxClk         => pgpTxClkInt,
          pgpTxClkRst      => pgpTxRstInt,
@@ -159,7 +161,7 @@ begin
          rxDataK         => phyRxLaneIn.dataK,
          rxDispErr       => phyRxLaneIn.dispErr,
          rxDecErr        => phyRxLaneIn.decErr,
-         rxPolarity      => phyRxLaneOut.polarity,
+         rxPolarity      => RX_POLARITY_G,
          rxOutClk        => open,
          txReset         => gtTxUserReset,
          txUsrClkActive  => open,
@@ -170,6 +172,7 @@ begin
          txData          => phyTxLaneOut.data,
          txDataK         => phyTxLaneOut.dataK,
          txOutClk        => open,
+         txPolarity      => TX_POLARITY_G,
          loopback        => pgpRxIn.loopback,
          axilClk         => axilClk,
          axilRst         => axilRst,

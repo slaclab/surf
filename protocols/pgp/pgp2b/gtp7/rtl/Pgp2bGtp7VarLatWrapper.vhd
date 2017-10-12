@@ -31,7 +31,9 @@ use unisim.vcomponents.all;
 entity Pgp2bGtp7VarLatWrapper is
    generic (
       TPD_G                : time                    := 1 ns;
+      COMMON_CLK_G         : boolean                 := false;-- set true if (stableClk = axilClk)
       SIMULATION_G         : boolean                 := false;
+      DYNAMIC_QPLL_G       : boolean                 := false;
       -- MMCM Configurations
       CLKIN_PERIOD_G       : real                    := 6.4;
       DIVCLK_DIVIDE_G      : natural range 1 to 106  := 1;
@@ -52,11 +54,11 @@ entity Pgp2bGtp7VarLatWrapper is
       RXLPM_INCM_CFG_G     : bit                     := '0';
       RXLPM_IPCM_CFG_G     : bit                     := '1';
       -- Configure PGP
-      RX_ENABLE_G          : boolean                 := true;
-      TX_ENABLE_G          : boolean                 := true;
       AXI_ERROR_RESP_G     : slv(1 downto 0)         := AXI_RESP_DECERR_C;
-      PAYLOAD_CNT_TOP_G    : integer                 := 7;  -- Top bit for payload counter
-      VC_INTERLEAVE_G      : integer                 := 1;  -- Interleave Frames
+      TX_POLARITY_G        : sl                      := '0';
+      RX_POLARITY_G        : sl                      := '0';
+      TX_ENABLE_G          : boolean                 := true;
+      RX_ENABLE_G          : boolean                 := true;
       NUM_VC_EN_G          : integer range 1 to 4    := 4);
    port (
       -- Manual Reset
@@ -88,6 +90,9 @@ entity Pgp2bGtp7VarLatWrapper is
       txPreCursor     : in  slv(4 downto 0)        := (others => '0');
       txPostCursor    : in  slv(4 downto 0)        := (others => '0');
       txDiffCtrl      : in  slv(3 downto 0)        := "1000";
+      drpOverride     : in  sl                     := '0';
+      qPllRxSelect    : in  slv(1 downto 0)        := "00";
+      qPllTxSelect    : in  slv(1 downto 0)        := "00";          
       -- AXI-Lite Interface 
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
@@ -194,6 +199,7 @@ begin
    Pgp2bGtp7VarLat_Inst : entity work.Pgp2bGtp7VarLat
       generic map (
          TPD_G                 => TPD_G,
+         COMMON_CLK_G          => COMMON_CLK_G,
          SIM_GTRESET_SPEEDUP_G => ite(SIMULATION_G, "TRUE", "FALSE"),
          -- MGT Configurations
          RXOUT_DIV_G           => RXOUT_DIV_G,
@@ -205,18 +211,23 @@ begin
          RXLPM_INCM_CFG_G      => RXLPM_INCM_CFG_G,
          RXLPM_IPCM_CFG_G      => RXLPM_IPCM_CFG_G,
          -- Configure PLL sources
+         DYNAMIC_QPLL_G        => DYNAMIC_QPLL_G,
          TX_PLL_G              => "PLL0",
          RX_PLL_G              => "PLL1",
          -- Configure PGP
-         RX_ENABLE_G           => RX_ENABLE_G,
-         TX_ENABLE_G           => TX_ENABLE_G,
          AXI_ERROR_RESP_G      => AXI_ERROR_RESP_G,
+         TX_POLARITY_G         => TX_POLARITY_G,
+         RX_POLARITY_G         => RX_POLARITY_G,
+         TX_ENABLE_G           => TX_ENABLE_G,
+         RX_ENABLE_G           => RX_ENABLE_G,
          PAYLOAD_CNT_TOP_G     => PAYLOAD_CNT_TOP_G,
          VC_INTERLEAVE_G       => VC_INTERLEAVE_G,
          NUM_VC_EN_G           => NUM_VC_EN_G)
       port map (
          -- GT Clocking
          stableClk        => stableClock,
+         qPllRxSelect     => qPllRxSelect,
+         qPllTxSelect     => qPllTxSelect,         
          gtQPllOutRefClk  => gtQPllOutRefClk,
          gtQPllOutClk     => gtQPllOutClk,
          gtQPllLock       => gtQPllLock,
@@ -255,6 +266,7 @@ begin
          txPreCursor      => txPreCursor,
          txPostCursor     => txPostCursor,
          txDiffCtrl       => txDiffCtrl,
+         drpOverride      => drpOverride,
          -- AXI-Lite Interface 
          axilClk          => axilClk,
          axilRst          => axilRst,

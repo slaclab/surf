@@ -60,6 +60,7 @@ entity PgpGthCoreWrapper is
       txData         : in  slv(15 downto 0);
       txDataK        : in  slv(1 downto 0);
       txOutClk       : out sl;
+      txPolarity : in sl;
       loopback       : in  slv(2 downto 0);
 
       -- AXI-Lite DRP interface
@@ -112,6 +113,7 @@ architecture mapping of PgpGthCoreWrapper is
          rxmcommaalignen_in                 : in  slv(0 downto 0);
          rxpcommaalignen_in                 : in  slv(0 downto 0);
          rxpolarity_in                      : in  slv(0 downto 0);
+         txpolarity_in                      : in  slv(0 downto 0);         
          tx8b10ben_in                       : in  slv(0 downto 0);
          txctrl0_in                         : in  slv(15 downto 0);
          txctrl1_in                         : in  slv(15 downto 0);
@@ -214,6 +216,7 @@ begin
          rxmcommaalignen_in(0)                 => '1',
          rxpcommaalignen_in(0)                 => '1',
          rxpolarity_in(0)                      => rxPolarity,
+         txpolarity_in(0)                      => txPolarity,         
          tx8b10ben_in(0)                       => '1',
          txctrl0_in                            => X"0000",
          txctrl1_in                            => X"0000",

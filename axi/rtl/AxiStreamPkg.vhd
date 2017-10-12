@@ -66,7 +66,7 @@ package AxiStreamPkg is
 
    type TUserModeType is (TUSER_NORMAL_C, TUSER_FIRST_LAST_C, TUSER_LAST_C, TUSER_NONE_C);
 
-   type TKeepModeType is (TKEEP_NORMAL_C, TKEEP_COMP_C, TKEEP_FIXED_C);
+   type TKeepModeType is (TKEEP_NORMAL_C, TKEEP_COMP_C, TKEEP_FIXED_C, TKEEP_COUNT_C);
 
    type AxiStreamConfigType is record
       TSTRB_EN_C    : boolean;
@@ -579,8 +579,10 @@ package body AxiStreamPkg is
       size := size + c.TDATA_BYTES_C*8;
 
       -- Keep
-      size := size + ite(c.TKEEP_MODE_C = TKEEP_NORMAL_C, c.TDATA_BYTES_C,
-                         ite(c.TKEEP_MODE_C = TKEEP_COMP_C, bitSize(c.TDATA_BYTES_C-1), 0));
+      size := size + ite( (c.TKEEP_MODE_C = TKEEP_NORMAL_C), c.TDATA_BYTES_C,          -- TKEEP_NORMAL_C
+                     ite( (c.TKEEP_MODE_C = TKEEP_COMP_C), bitSize(c.TDATA_BYTES_C-1), -- TKEEP_COMP_C
+                     ite( (c.TKEEP_MODE_C = TKEEP_COUNT_C), 5,                         -- TKEEP_COUNT_C
+                     0)));                                                             -- TKEEP_FIXED_C
 
       -- User bits
       size := size + ite(c.TUSER_MODE_C = TUSER_FIRST_LAST_C, c.TUSER_BITS_C*2,
@@ -614,8 +616,10 @@ package body AxiStreamPkg is
       elsif c.TKEEP_MODE_C = TKEEP_COMP_C then
          -- Assume lsb is present
          assignSlv(i, retValue, toSlv(getTKeep(din.tKeep(c.TDATA_BYTES_C-1 downto 1)), bitSize(c.TDATA_BYTES_C-1)));
+      elsif c.TKEEP_MODE_C = TKEEP_COUNT_C then
+         assignSlv(i, retValue, din.tKeep(4 downto 0));
       end if;
-      -- TKEEP Fixed uses 0 bits
+      -- TKEEP_FIXED_C uses 0 bits
 
       -- Pack user bits
       if (c.TUSER_BITS_C > 0 and c.TUSER_MODE_C /= TUSER_NONE_C) then
@@ -674,6 +678,8 @@ package body AxiStreamPkg is
       elsif c.TKEEP_MODE_C = TKEEP_COMP_C then
          assignRecord(i, din, keep);
          master.tKeep := genTKeep(conv_integer(keep)+1);
+      elsif c.TKEEP_MODE_C = TKEEP_COUNT_C then
+         assignRecord(i, din, master.tKeep(4 downto 0));       
       else                              -- KEEP_MODE_C = TKEEP_FIXED_C
          master.tKeep := genTKeep(c.TDATA_BYTES_C);
       end if;
