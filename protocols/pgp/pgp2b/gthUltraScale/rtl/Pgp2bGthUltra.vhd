@@ -35,8 +35,8 @@ entity Pgp2bGthUltra is
       ----------------------------------------------------------------------------------------------
       TX_POLARITY_G     : sl                   := '0';
       RX_POLARITY_G     : sl                   := '0';
-      RX_ENABLE_G       : boolean              := true;
       TX_ENABLE_G       : boolean              := true;
+      RX_ENABLE_G       : boolean              := true;
       PAYLOAD_CNT_TOP_G : integer              := 7;  -- Top bit for payload counter
       VC_INTERLEAVE_G   : integer              := 0;  -- Interleave Frames
       NUM_VC_EN_G       : integer range 1 to 4 := 4);
