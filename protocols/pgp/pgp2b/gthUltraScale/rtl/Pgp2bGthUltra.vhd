@@ -2,7 +2,7 @@
 -- File       : Pgp2bGthUltra.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2017-10-10
+-- Last update: 2017-10-12
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -21,6 +21,7 @@ use ieee.numeric_std.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
+use work.AxiLitePkg.all;
 use work.Pgp2bPkg.all;
 
 library UNISIM;
@@ -65,7 +66,7 @@ entity Pgp2bGthUltra is
       -- Frame Receive Interface - 1 Lane, Array of 4 VCs
       pgpRxMasters     : out AxiStreamMasterArray(3 downto 0);
       pgpRxMasterMuxed : out AxiStreamMasterType;
-      pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0)
+      pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0);
       -- AXI-Lite DRP interface
       axilClk          : in  sl;
       axilRst          : in  sl;
@@ -82,7 +83,7 @@ architecture mapping of Pgp2bGthUltra is
    signal pgpRxRstInt : sl;
    signal pgpTxClkInt : sl;
    signal pgpTxRstInt : sl;
-   
+
 
    -- PgpRx Signals
    signal gtRxUserReset : sl;
@@ -97,12 +98,12 @@ architecture mapping of Pgp2bGthUltra is
    signal phyTxReady    : sl;
 
 begin
-   pgpRxClk <= pgpRxClkInt;
+   pgpRxClk   <= pgpRxClkInt;
    pgpRxReset <= pgpRxRstInt;
-   pgpTxClk <= pgpTxClkInt;
+   pgpTxClk   <= pgpTxClkInt;
    pgpTxReset <= pgpTxRstInt;
 
-   gtRxUserReset <= phyRxInit or pgpRxResetInt or pgpRxIn.resetRx;
+   gtRxUserReset <= phyRxInit or pgpRxRstInt or pgpRxIn.resetRx;
    gtTxUserReset <= pgpTxRstInt;
 
    U_Pgp2bLane : entity work.Pgp2bLane
@@ -115,7 +116,7 @@ begin
          RX_ENABLE_G       => PGP_RX_ENABLE_G)
       port map (
          pgpTxClk         => pgpTxClkInt,
-         pgpTxClkRst      => pgpTxResetInt,
+         pgpTxClkRst      => pgpTxRstInt,
          pgpTxIn          => pgpTxIn,
          pgpTxOut         => pgpTxOut,
          pgpTxMasters     => pgpTxMasters,
@@ -123,7 +124,7 @@ begin
          phyTxLanesOut(0) => phyTxLaneOut,
          phyTxReady       => phyTxReady,
          pgpRxClk         => pgpRxClkInt,
-         pgpRxClkRst      => pgpRxResetInt,
+         pgpRxClkRst      => pgpRxRstInt,
          pgpRxIn          => pgpRxIn,
          pgpRxOut         => pgpRxOut,
          pgpRxMasters     => pgpRxMasters,
@@ -161,11 +162,11 @@ begin
          rxPolarity      => phyRxLaneOut.polarity,
          rxOutClk        => open,
          txReset         => gtTxUserReset,
+         txUsrClkActive  => open,
+         txResetDone     => phyTxReady,
          txUsrClk        => open,
          txUsrClk2       => pgpTxClkInt,
          txUsrClkRst     => pgpTxRstInt,
-         txUsrClkActive  => open,
-         txResetDone     => phyTxReady,
          txData          => phyTxLaneOut.data,
          txDataK         => phyTxLaneOut.dataK,
          txOutClk        => open,

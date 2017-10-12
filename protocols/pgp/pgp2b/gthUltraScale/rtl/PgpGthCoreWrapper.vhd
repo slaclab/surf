@@ -2,7 +2,7 @@
 -- File       : PgpGthCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2017-10-10
+-- Last update: 2017-10-12
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -18,6 +18,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
+use work.AxiLitePkg.all;
 
 entity PgpGthCoreWrapper is
 
@@ -42,12 +43,11 @@ entity PgpGthCoreWrapper is
       rxUsrClk       : out sl;
       rxUsrClk2      : out sl;
       rxUsrClkRst    : out sl;
-      rxData         : out slv(63 downto 0);
-      rxDataValid    : out sl;
-      rxHeader       : out slv(1 downto 0);
-      rxHeaderValid  : out sl;
-      rxStartOfSeq   : out sl;
-      rxGearboxSlip  : in  sl;
+      rxData         : out slv(15 downto 0);
+      rxDataK        : out slv(1 downto 0);
+      rxDispErr      : out slv(1 downto 0);
+      rxDecErr       : out slv(1 downto 0);
+      rxPolarity     : in  sl;
       rxOutClk       : out sl;
 
       -- Tx Ports
@@ -57,11 +57,10 @@ entity PgpGthCoreWrapper is
       txUsrClk       : out sl;
       txUsrClk2      : out sl;
       txUsrClkRst    : out sl;
-      txData         : in  slv(63 downto 0);
-      txHeader       : in  slv(1 downto 0);
-      txSequence     : in  slv(5 downto 0);
+      txData         : in  slv(15 downto 0);
+      txDataK        : in  slv(1 downto 0);
       txOutClk       : out sl;
-      loopback       : in  slv(2 downto 0)
+      loopback       : in  slv(2 downto 0);
 
       -- AXI-Lite DRP interface
       axilClk         : in  sl                     := '0';
@@ -112,11 +111,11 @@ architecture mapping of PgpGthCoreWrapper is
          rxcommadeten_in                    : in  slv(0 downto 0);
          rxmcommaalignen_in                 : in  slv(0 downto 0);
          rxpcommaalignen_in                 : in  slv(0 downto 0);
+         rxpolarity_in                      : in  slv(0 downto 0);
          tx8b10ben_in                       : in  slv(0 downto 0);
          txctrl0_in                         : in  slv(15 downto 0);
          txctrl1_in                         : in  slv(15 downto 0);
          txctrl2_in                         : in  slv(7 downto 0);
-         txpolarity_in                      : in  slv(0 downto 0);
          drpdo_out                          : out slv(15 downto 0);
          drprdy_out                         : out slv(0 downto 0);
          gthtxn_out                         : out slv(0 downto 0);
@@ -131,6 +130,8 @@ architecture mapping of PgpGthCoreWrapper is
          rxctrl1_out                        : out slv(15 downto 0);
          rxctrl2_out                        : out slv(7 downto 0);
          rxctrl3_out                        : out slv(7 downto 0);
+         rxoutclk_out                       : out slv(0 downto 0);
+         txoutclk_out                       : out slv(0 downto 0);         
          rxpmaresetdone_out                 : out slv(0 downto 0);
          txpmaresetdone_out                 : out slv(0 downto 0);
          txprgdivresetdone_out              : out slv(0 downto 0));
@@ -171,13 +172,13 @@ begin
          clk      => rxUsrClk2Int,       -- [in]
          asyncRst => rxUsrClkActiveInt,  -- [in]
          syncRst  => rxUsrClkRst);       -- [out]
-   
+
    -- Note: Has to be generated from aurora core in order to work properly
    U_PgpGthCore : PgpGthCore
       port map (
          gtwiz_userclk_tx_reset_in(0)          => txReset,
          gtwiz_userclk_tx_srcclk_out(0)        => txOutClk,
-         gtwiz_userclk_tx_usrclk_out(0)        => txUsrClk
+         gtwiz_userclk_tx_usrclk_out(0)        => txUsrClk,
          gtwiz_userclk_tx_usrclk2_out(0)       => txUsrClk2Int,
          gtwiz_userclk_tx_active_out(0)        => txUsrClkActiveInt,
          gtwiz_userclk_rx_reset_in(0)          => rxReset,
@@ -191,17 +192,17 @@ begin
          gtwiz_reset_tx_datapath_in(0)         => '0',
          gtwiz_reset_rx_pll_and_datapath_in(0) => '0',
          gtwiz_reset_rx_datapath_in(0)         => rxReset,
-         gtwiz_reset_rx_cdr_stable_out(0)      => open,
+         gtwiz_reset_rx_cdr_stable_out         => open,
          gtwiz_reset_tx_done_out(0)            => txResetDone,
          gtwiz_reset_rx_done_out(0)            => rxResetDone,
          gtwiz_userdata_tx_in                  => txData,
          gtwiz_userdata_rx_out                 => rxData,
          drpclk_in(0)                          => stableClk,
-         drpaddr_in(0)                         => drpAddr,
-         drpdi_in(0)                           => drpDi,
+         drpaddr_in                            => drpAddr,
+         drpdi_in                              => drpDi,
          drpen_in(0)                           => drpEn,
          drpwe_in(0)                           => drpWe,
-         drpdo_out(0)                          => drpDo,
+         drpdo_out                             => drpDo,
          drprdy_out(0)                         => drpRdy,
          gthrxn_in(0)                          => gtRxN,
          gthrxp_in(0)                          => gtRxP,
@@ -220,9 +221,9 @@ begin
          txctrl2_in(7 downto 2)                => (others => '0'),
          gthtxn_out(0)                         => gtTxN,
          gthtxp_out(0)                         => gtTxP,
-         rxbyteisaligned_out(0)                => open,
-         rxbyterealign_out(0)                  => open,
-         rxcommadet_out(0)                     => open,
+         rxbyteisaligned_out                   => open,
+         rxbyterealign_out                     => open,
+         rxcommadet_out                        => open,
          rxctrl0_out(1 downto 0)               => rxDataK,
          rxctrl0_out(15 downto 2)              => open,
          rxctrl1_out(1 downto 0)               => rxDispErr,
@@ -252,11 +253,11 @@ begin
          axilWriteSlave  => axilWriteSlave,   -- [out]
          drpClk          => stableClk,        -- [in]
          drpRst          => stableRst,        -- [in]
-         drpReq          => drpReq,           -- [out]
+         drpReq          => open,             -- [out]
          drpRdy          => drpRdy,           -- [in]
          drpEn           => drpEn,            -- [out]
          drpWe           => drpWe,            -- [out]
-         drpUsrRst       => drpUsrRst,        -- [out]
+         drpUsrRst       => open,             -- [out]
          drpAddr         => drpAddr,          -- [out]
          drpDi           => drpDi,            -- [out]
          drpDo           => drpDo);           -- [in]
