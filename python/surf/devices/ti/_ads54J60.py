@@ -27,14 +27,8 @@ class Ads54J60(pr.Device):
             description = "Ads54J60 Module",
             verify      = False,
             expand      = True,
-            writeOnly   = False,
             **kwargs):
-        super().__init__(name=name, description=description, expand=expand, **kwargs)
-        
-        if writeOnly:
-            ModeType = "WO"
-        else: 
-            ModeType = "RW"        
+        super().__init__(name=name, description=description, expand=expand, **kwargs)      
         
         ################
         # Base addresses
@@ -52,8 +46,8 @@ class Ads54J60(pr.Device):
         #####################
         # Add Device Channels
         #####################
-        self.add(Ads54J60Channel(name='CH[0]',description='Channel A',offset=chA,expand=expand,verify=verify,writeOnly=writeOnly,))
-        self.add(Ads54J60Channel(name='CH[1]',description='Channel B',offset=chB,expand=expand,verify=verify,writeOnly=writeOnly,))      
+        self.add(Ads54J60Channel(name='CH[0]',description='Channel A',offset=chA,expand=expand,verify=verify,))
+        self.add(Ads54J60Channel(name='CH[1]',description='Channel B',offset=chB,expand=expand,verify=verify,))      
         
         ##################
         # General Register
@@ -93,7 +87,7 @@ class Ads54J60(pr.Device):
             bitSize      = 4,
             bitOffset    = 4,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))
 
@@ -104,7 +98,7 @@ class Ads54J60(pr.Device):
             bitSize      = 4,
             bitOffset    = 0,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         )) 
 
@@ -115,7 +109,7 @@ class Ads54J60(pr.Device):
             bitSize      = 2,
             bitOffset    = 6,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))
 
@@ -126,7 +120,7 @@ class Ads54J60(pr.Device):
             bitSize      = 2,
             bitOffset    = 4,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))         
         
@@ -137,7 +131,7 @@ class Ads54J60(pr.Device):
             bitSize      = 4,
             bitOffset    = 4,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))
 
@@ -148,7 +142,7 @@ class Ads54J60(pr.Device):
             bitSize      = 4,
             bitOffset    = 0,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))         
         
@@ -159,7 +153,7 @@ class Ads54J60(pr.Device):
             bitSize      = 2,
             bitOffset    = 6,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))
 
@@ -170,7 +164,7 @@ class Ads54J60(pr.Device):
             bitSize      = 2,
             bitOffset    = 4,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))  
 
@@ -181,7 +175,7 @@ class Ads54J60(pr.Device):
             bitSize      = 1,
             bitOffset    = 7,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))
 
@@ -192,7 +186,7 @@ class Ads54J60(pr.Device):
             bitSize      = 1,
             bitOffset    = 6,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))  
 
@@ -203,18 +197,18 @@ class Ads54J60(pr.Device):
             bitSize      = 1,
             bitOffset    = 5,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))          
 
         self.add(pr.RemoteVariable(   
-            name         = "EN_INPU_DC_COUPLING",
+            name         = "EN_INPUT_DC_COUPLING",
             description  = "",
             offset       = (masterPage + (4*0x4F)),
             bitSize      = 1,
             bitOffset    = 0,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))
         
@@ -225,7 +219,7 @@ class Ads54J60(pr.Device):
             bitSize      = 1,
             bitOffset    = 6,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))  
 
@@ -236,7 +230,7 @@ class Ads54J60(pr.Device):
             bitSize      = 1,
             bitOffset    = 1,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))    
 
@@ -247,7 +241,7 @@ class Ads54J60(pr.Device):
             bitSize      = 1,
             bitOffset    = 0,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         )) 
 
@@ -258,7 +252,7 @@ class Ads54J60(pr.Device):
             bitSize      = 1,
             bitOffset    = 7,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         )) 
 
@@ -269,7 +263,7 @@ class Ads54J60(pr.Device):
             bitSize      = 1,
             bitOffset    = 4,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))  
 
@@ -280,7 +274,7 @@ class Ads54J60(pr.Device):
             bitSize      = 1,
             bitOffset    = 7,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))          
         
@@ -309,7 +303,7 @@ class Ads54J60(pr.Device):
             bitSize      = 8,
             bitOffset    = 0,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))
 
@@ -319,19 +313,21 @@ class Ads54J60(pr.Device):
 
         @self.command(name= "DigRst", description  = "Digital Reset")        
         def DigRst():               
-            self._rawWrite(mainDigital + chA + (4*0x017),0x00) # CHA: PLL clear
-            self._rawWrite(mainDigital + chB + (4*0x017),0x00) # CHB: PLL clear
-            self._rawWrite(mainDigital + chA + (4*0x017),0x40) # CHA: PLL reset
-            self._rawWrite(mainDigital + chB + (4*0x017),0x40) # CHB: PLL reset
-            self._rawWrite(mainDigital + chA + (4*0x017),0x00) # CHA: PLL clear
-            self._rawWrite(mainDigital + chB + (4*0x017),0x00) # CHB: PLL clear        
-            time.sleep(0.050)
             self._rawWrite(mainDigital + chA + (4*0x000),0x00) # CHA: clear reset
             self._rawWrite(mainDigital + chB + (4*0x000),0x00) # CHB: clear reset
             self._rawWrite(mainDigital + chA + (4*0x000),0x01) # CHA: PULSE RESET
             self._rawWrite(mainDigital + chB + (4*0x000),0x01) # CHB: PULSE RESET 
             self._rawWrite(mainDigital + chA + (4*0x000),0x00) # CHA: clear reset
-            self._rawWrite(mainDigital + chB + (4*0x000),0x00) # CHB: clear reset   
+            self._rawWrite(mainDigital + chB + (4*0x000),0x00) # CHB: clear reset 
+
+        @self.command(name= "PllRst", description  = "PLL Reset")        
+        def PllRst():               
+            self._rawWrite(mainDigital + chA + (4*0x017),0x00) # CHA: PLL clear
+            self._rawWrite(mainDigital + chB + (4*0x017),0x00) # CHB: PLL clear
+            self._rawWrite(mainDigital + chA + (4*0x017),0x40) # CHA: PLL reset
+            self._rawWrite(mainDigital + chB + (4*0x017),0x40) # CHB: PLL reset
+            self._rawWrite(mainDigital + chA + (4*0x017),0x00) # CHA: PLL clear
+            self._rawWrite(mainDigital + chB + (4*0x017),0x00) # CHB: PLL clear                 
         
         @self.command(name= "Init", description  = "Device Initiation")        
         def Init():        
@@ -350,3 +346,6 @@ class Ads54J60(pr.Device):
             self._rawWrite(mainDigital + chB + (4*0x000),0x00) # CHB: clear reset 
 
             self._rawWrite(masterPage        + (4*0x059),0x20); # Set the ALWAYS WRITE 1 bit
+            
+            self.PllRst()
+            
