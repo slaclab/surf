@@ -313,19 +313,21 @@ class Ads54J60(pr.Device):
 
         @self.command(name= "DigRst", description  = "Digital Reset")        
         def DigRst():               
-            self._rawWrite(mainDigital + chA + (4*0x017),0x00) # CHA: PLL clear
-            self._rawWrite(mainDigital + chB + (4*0x017),0x00) # CHB: PLL clear
-            self._rawWrite(mainDigital + chA + (4*0x017),0x40) # CHA: PLL reset
-            self._rawWrite(mainDigital + chB + (4*0x017),0x40) # CHB: PLL reset
-            self._rawWrite(mainDigital + chA + (4*0x017),0x00) # CHA: PLL clear
-            self._rawWrite(mainDigital + chB + (4*0x017),0x00) # CHB: PLL clear        
-            time.sleep(0.050)
             self._rawWrite(mainDigital + chA + (4*0x000),0x00) # CHA: clear reset
             self._rawWrite(mainDigital + chB + (4*0x000),0x00) # CHB: clear reset
             self._rawWrite(mainDigital + chA + (4*0x000),0x01) # CHA: PULSE RESET
             self._rawWrite(mainDigital + chB + (4*0x000),0x01) # CHB: PULSE RESET 
             self._rawWrite(mainDigital + chA + (4*0x000),0x00) # CHA: clear reset
-            self._rawWrite(mainDigital + chB + (4*0x000),0x00) # CHB: clear reset   
+            self._rawWrite(mainDigital + chB + (4*0x000),0x00) # CHB: clear reset 
+
+        @self.command(name= "PllRst", description  = "PLL Reset")        
+        def PllRst():               
+            self._rawWrite(mainDigital + chA + (4*0x017),0x00) # CHA: PLL clear
+            self._rawWrite(mainDigital + chB + (4*0x017),0x00) # CHB: PLL clear
+            self._rawWrite(mainDigital + chA + (4*0x017),0x40) # CHA: PLL reset
+            self._rawWrite(mainDigital + chB + (4*0x017),0x40) # CHB: PLL reset
+            self._rawWrite(mainDigital + chA + (4*0x017),0x00) # CHA: PLL clear
+            self._rawWrite(mainDigital + chB + (4*0x017),0x00) # CHB: PLL clear                 
         
         @self.command(name= "Init", description  = "Device Initiation")        
         def Init():        
@@ -344,3 +346,6 @@ class Ads54J60(pr.Device):
             self._rawWrite(mainDigital + chB + (4*0x000),0x00) # CHB: clear reset 
 
             self._rawWrite(masterPage        + (4*0x059),0x20); # Set the ALWAYS WRITE 1 bit
+            
+            self.PllRst()
+            
