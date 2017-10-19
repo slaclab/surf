@@ -2,7 +2,7 @@
 -- File       : TenGigEthReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-20
--- Last update: 2016-10-06
+-- Last update: 2017-10-19
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite 10GbE Register Interface
 -------------------------------------------------------------------------------
@@ -42,7 +42,7 @@ entity TenGigEthReg is
       axiWriteSlave  : out AxiLiteWriteSlaveType;
       -- Configuration and Status Interface
       config         : out TenGigEthConfig;
-      status         : in  TenGigEthStatus);   
+      status         : in  TenGigEthStatus);
 end TenGigEthReg;
 
 architecture rtl of TenGigEthReg is
@@ -57,7 +57,7 @@ architecture rtl of TenGigEthReg is
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
    end record RegType;
-   
+
    constant REG_INIT_C : RegType := (
       hardRst       => '0',
       cntRst        => '1',
@@ -72,7 +72,7 @@ architecture rtl of TenGigEthReg is
    signal statusOut    : slv(STATUS_SIZE_C-1 downto 0);
    signal cntOut       : SlVectorArray(STATUS_SIZE_C-1 downto 0, 31 downto 0);
    signal localMacSync : slv(47 downto 0);
-   
+
 begin
 
    GEN_BYPASS : if (EN_AXI_REG_G = false) generate
@@ -96,7 +96,7 @@ begin
          port map (
             clk     => clk,
             dataIn  => localMac,
-            dataOut => localMacSync);             
+            dataOut => localMacSync);
 
       process (localMacSync) is
          variable retVar : TenGigEthConfig;
@@ -117,7 +117,7 @@ begin
             CNT_RST_EDGE_G => false,
             COMMON_CLK_G   => true,
             CNT_WIDTH_G    => 32,
-            WIDTH_G        => STATUS_SIZE_C)     
+            WIDTH_G        => STATUS_SIZE_C)
          port map (
             -- Input Status bit Signals (wrClk domain)
             statusIn(0)            => status.phyReady,
@@ -153,10 +153,11 @@ begin
       -------------------------------
       -- Configuration Register
       -------------------------------  
-      comb : process (axiReadMaster, axiWriteMaster, cntOut, localMac, r, rst, status, statusOut) is
+      comb : process (axiReadMaster, axiWriteMaster, cntOut, localMac, r, rst,
+                      status, statusOut) is
          variable v      : RegType;
          variable regCon : AxiLiteEndPointType;
-         variable rdPntr : natural;
+         variable i      : natural;
       begin
          -- Latch the current value
          v := r;
@@ -169,11 +170,10 @@ begin
          v.config.softRst := '0';
          v.hardRst        := '0';
 
-         -- Calculate the read pointer
-         rdPntr := conv_integer(axiReadMaster.araddr(9 downto 2));
-
          -- Register Mapping
-         axiSlaveRegisterR(regCon, "0000--------", 0, muxSlVectorArray(cntOut, rdPntr));
+         for i in STATUS_SIZE_C-1 downto 0 loop
+            axiSlaveRegisterR(regCon, toSlv(4*i, 12), 0, muxSlVectorArray(cntOut, i));
+         end loop;
          axiSlaveRegisterR(regCon, x"100", 0, statusOut);
          --axiSlaveRegisterR(regCon, x"104", 0, status.macStatus.rxPauseValue);
          axiSlaveRegisterR(regCon, x"108", 0, status.core_status);
@@ -238,5 +238,5 @@ begin
       end process seq;
 
    end generate;
-   
+
 end rtl;
