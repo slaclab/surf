@@ -2,7 +2,7 @@
 -- File       : Pgp2bGthUltra.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2017-10-12
+-- Last update: 2017-10-20
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -106,7 +106,7 @@ begin
    pgpTxReset <= pgpTxRstInt;
 
    gtRxUserReset <= phyRxInit or pgpRxRstInt or pgpRxIn.resetRx;
-   gtTxUserReset <= pgpTxRstInt;
+   gtTxUserReset <= pgpTxRstInt or pgpTxIn.resetTx;
 
    U_Pgp2bLane : entity work.Pgp2bLane
       generic map (
