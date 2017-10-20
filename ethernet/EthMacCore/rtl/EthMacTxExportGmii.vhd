@@ -2,7 +2,7 @@
 -- File       : EthMacTxExportGmii.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-04
--- Last update: 2016-09-14
+-- Last update: 2017-10-19
 -------------------------------------------------------------------------------
 -- Description: 1GbE Export MAC core with GMII interface
 -------------------------------------------------------------------------------
@@ -48,7 +48,7 @@ entity EthMacTxExportGmii is
 end EthMacTxExportGmii;
 
 architecture rtl of EthMacTxExportGmii is
-   
+
    constant AXI_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => EMAC_AXIS_CONFIG_C.TSTRB_EN_C,
       TDATA_BYTES_C => 1,               -- 8-bit AXI stream interface
@@ -56,7 +56,7 @@ architecture rtl of EthMacTxExportGmii is
       TID_BITS_C    => EMAC_AXIS_CONFIG_C.TID_BITS_C,
       TKEEP_MODE_C  => EMAC_AXIS_CONFIG_C.TKEEP_MODE_C,
       TUSER_BITS_C  => EMAC_AXIS_CONFIG_C.TUSER_BITS_C,
-      TUSER_MODE_C  => EMAC_AXIS_CONFIG_C.TUSER_MODE_C);      
+      TUSER_MODE_C  => EMAC_AXIS_CONFIG_C.TUSER_MODE_C);
 
    type StateType is(
       IDLE_S,
@@ -137,18 +137,18 @@ begin
          FIFO_ADDR_WIDTH_G   => 4,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,  -- 128-bit AXI stream interface  
-         MASTER_AXI_CONFIG_G => AXI_CONFIG_C)        -- 8-bit AXI stream interface          
+         MASTER_AXI_CONFIG_G => AXI_CONFIG_C)  -- 8-bit AXI stream interface          
       port map (
          -- Slave Port
          sAxisClk    => ethClk,
          sAxisRst    => ethRst,
-         sAxisMaster => macObMaster,                 -- 128-bit AXI stream interface 
+         sAxisMaster => macObMaster,    -- 128-bit AXI stream interface 
          sAxisSlave  => macObSlave,
          -- Master Port
          mAxisClk    => ethClk,
          mAxisRst    => ethRst,
-         mAxisMaster => macMaster,                   -- 8-bit AXI stream interface 
-         mAxisSlave  => macSlave);  
+         mAxisMaster => macMaster,      -- 8-bit AXI stream interface 
+         mAxisSlave  => macSlave);
 
    comb : process (crcOut, ethRst, macMaster, phyReady, r) is
       variable v : RegType;
@@ -159,6 +159,7 @@ begin
       -- Reset the flags
       v.macSlave       := AXI_STREAM_SLAVE_INIT_C;
       v.crcDataValid   := '0';
+      v.txCountEn      := '0';
       v.txUnderRun     := '0';
       v.txLinkNotReady := '0';
 
@@ -250,9 +251,10 @@ begin
             v.state   := TX_CRC3_S;
          ----------------------------------------------------------------------      
          when TX_CRC3_S =>
-            v.gmiitxd := crcOut(7 downto 0);
-            v.TxCount := x"00";
-            v.state   := INTERGAP_S;
+            v.txCountEn := '1';
+            v.gmiitxd   := crcOut(7 downto 0);
+            v.TxCount   := x"00";
+            v.state     := INTERGAP_S;
          ----------------------------------------------------------------------      
          when DUMP_S =>
             v.gmiiTxEn        := '0';
@@ -265,7 +267,7 @@ begin
          when INTERGAP_S =>
             v.gmiiTxEn := '0';
             v.TxCount  := r.TxCount +1;
-            if r.TxCount = x"0A" then    -- 12 Octels - IDLE state
+            if r.TxCount = x"0A" then   -- 12 Octels - IDLE state
                v.TxCount := x"00";
                v.state   := IDLE_S;
             end if;
@@ -281,7 +283,7 @@ begin
       rin <= v;
 
       -- Outputs        
-      macSlave       <= v.macSlave;     -- Flow control with non-registered signal
+      macSlave       <= v.macSlave;  -- Flow control with non-registered signal
       txCountEn      <= r.txCountEn;
       txUnderRun     <= r.txUnderRun;
       txLinkNotReady <= r.txLinkNotReady;
@@ -290,7 +292,7 @@ begin
       gmiiTxd        <= r.gmiiTxd;
       crcDataValid   <= v.crcDataValid;
       crcIn          <= v.crcIn;
-      
+
    end process comb;
 
    seq : process (ethClk) is
@@ -310,6 +312,6 @@ begin
          crcDataValid => crcDataValid,
          crcDataWidth => "000",
          crcIn        => crcIn,
-         crcReset     => r.crcReset); 
+         crcReset     => r.crcReset);
 
 end rtl;
