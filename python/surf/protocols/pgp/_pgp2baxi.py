@@ -333,21 +333,24 @@ class Pgp2bAxi(pr.Device):
             pollInterval = 1,
         ))
 
+        def convtMHz(var):
+            return var.dependencies[0].value() * 1.0E-6        
+        
         self.add(pr.LinkVariable(
             name         = "RxClkFreq", 
             mode         = "RO", 
             units        = "MHz",
-            disp         = '{:0.1f}'            
+            disp         = '{:0.1f}', 
             dependencies = [self.RxClkFreqRaw], 
-            linkedGet    = lambda: self RxClkFreqRaw * 1e-6
+            linkedGet    = convtMHz,
         ))
         
         self.add(pr.LinkVariable(
             name         = "TxClkFreq", 
             mode         = "RO", 
             units        = "MHz",
-            disp         = '{:0.1f}'
+            disp         = '{:0.1f}',
             dependencies = [self.TxClkFreqRaw], 
-            linkedGet    = lambda: self.TxClkFreqRaw * 1e-6
+            linkedGet    = convtMHz,
         ))
              
