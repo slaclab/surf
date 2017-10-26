@@ -161,7 +161,7 @@ begin
          asyncRst => rxUsrClkActiveInt,  -- [in]
          syncRst  => rxUsrClkRst);       -- [out]
 
-   U_Pgp3GthUsIp_1 : entity work.Pgp3GthUsIp
+   U_Pgp3GthUsIp_1 : Pgp3GthUsIp
       port map (
          gtwiz_userclk_tx_reset_in(0)          => txReset,            -- [in]
          gtwiz_userclk_tx_srcclk_out(0)        => txOutClk,           -- [out]
