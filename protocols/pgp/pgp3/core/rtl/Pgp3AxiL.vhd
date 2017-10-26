@@ -32,9 +32,9 @@ entity Pgp3AxiL is
       COMMON_TX_CLK_G    : boolean               := false;  -- Set to true if axiClk and pgpTxClk are the same clock
       COMMON_RX_CLK_G    : boolean               := false;  -- Set to true if axiClk and pgpRxClk are the same clock
       WRITE_EN_G         : boolean               := false;  -- Set to false when on remote end of a link
-      AXI_CLK_FREQ_G     : real                  := 125.0E+6;
       STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32;
       ERROR_CNT_WIDTH_G  : natural range 1 to 32 := 4;
+      AXI_CLK_FREQ_G     : real                  := 125.0E+6;
       AXI_ERROR_RESP_G   : slv(1 downto 0)       := AXI_RESP_DECERR_C);
    port (
 

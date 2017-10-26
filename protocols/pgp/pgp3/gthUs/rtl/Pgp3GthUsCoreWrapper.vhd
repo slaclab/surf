@@ -122,6 +122,10 @@ architecture mapping of Pgp3GthCoreWrapper is
    signal dummy9  : sl;
    signal dummy10 : sl;
    signal dummy11 : sl;
+   signal zeroBit : sl;
+   
+   signal txsequence_in : slv(6 downto 0);
+   signal txheader_in   : slv(5 downto 0);
 
    signal rxUsrClk2Int      : sl;
    signal rxUsrClkActiveInt : sl;
@@ -171,9 +175,9 @@ begin
          gtwiz_userclk_rx_active_out(0)        => rxUsrClkActiveInt,  -- [out]
          gtwiz_reset_clk_freerun_in(0)         => stableClk,          -- [in]
          gtwiz_reset_all_in(0)                 => stableRst,          -- [in]
-         gtwiz_reset_tx_pll_and_datapath_in(0) => '0',                -- [in]
-         gtwiz_reset_tx_datapath_in(0)         => '0',                -- [in] --txReset?
-         gtwiz_reset_rx_pll_and_datapath_in(0) => '0',                -- [in]
+         gtwiz_reset_tx_pll_and_datapath_in(0) => zeroBit,            -- [in]
+         gtwiz_reset_tx_datapath_in(0)         => zeroBit,            -- [in] --txReset?
+         gtwiz_reset_rx_pll_and_datapath_in(0) => zeroBit,            -- [in]
          gtwiz_reset_rx_datapath_in(0)         => rxReset,            -- [in]
          gtwiz_reset_rx_cdr_stable_out(0)      => dummy5,             -- [out]
          gtwiz_reset_tx_done_out(0)            => txResetDone,        -- [out]
@@ -185,12 +189,10 @@ begin
          qpll0outrefclk_out(0)                 => dummy7,             -- [out]
          gthrxn_in(0)                          => gtRxN,              -- [in]
          gthrxp_in(0)                          => gtRxP,              -- [in]
---         loopback_in(0)                        => loopback,           -- [in]
+--         loopback_in(0)                        => loopback,         -- [in]
          rxgearboxslip_in(0)                   => rxGearboxSlip,      -- [in]
-         txheader_in(5 downto 2)               => (others => '0'),    -- [in]
-         txheader_in(1 downto 0)               => txHeader,           -- [in]
-         txsequence_in(6)                      => '0',                -- [in],
-         txsequence_in(5 downto 0)             => (others => '0'),    -- [in]
+         txheader_in                           => txheader_in,        -- [in]
+         txsequence_in                         => txsequence_in,      -- [in]
          gthtxn_out(0)                         => gtTxN,              -- [out]
          gthtxp_out(0)                         => gtTxP,              -- [out]
          rxdatavalid_out(0)                    => rxDataValid,        -- [out]
@@ -206,7 +208,10 @@ begin
          txpmaresetdone_out(0)                 => dummy10,            -- [out]
          txprgdivresetdone_out(0)              => dummy11);           -- [out]
 
-
-
-
+   zeroBit                   <= '0';
+   txsequence_in(6)          <= '0';
+   txsequence_in(5 downto 0) <= (others => '0');
+   txheader_in(5 downto 2)   <= (others => '0');
+   txheader_in(1 downto 0)   <= txHeader;
+   
 end architecture mapping;

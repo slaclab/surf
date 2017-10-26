@@ -47,7 +47,8 @@ entity Pgp3GthUs is
       TX_MUX_TDEST_LOW_G              : integer range 0 to 7  := 0;
       TX_MUX_INTERLEAVE_EN_G          : boolean               := true;
       TX_MUX_INTERLEAVE_ON_NOTVALID_G : boolean               := true;
-      AXIL_CLK_FREQ_G                 : real                  := 125.0E+6);
+      AXIL_CLK_FREQ_G                 : real                  := 125.0E+6;
+      AXI_ERROR_RESP_G                : slv(1 downto 0)       := AXI_RESP_DECERR_C);
    port (
       -- GT Clocking
       stableClk    : in  sl;            -- GT needs a stable clock to "boot up"
@@ -67,10 +68,10 @@ entity Pgp3GthUs is
       -- Non VC Tx Signals
       pgpTxIn      : in  Pgp3TxInType;
       pgpTxOut     : out Pgp3TxOutType;
-      -- Frame Transmit Interface - 1 Lane, Array of 4 VCs
+      -- Frame Transmit Interface
       pgpTxMasters : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
       pgpTxSlaves  : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
-      -- Frame Receive Interface - 1 Lane, Array of 4 VCs
+      -- Frame Receive Interface
       pgpRxMasters : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
       pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
 
@@ -138,7 +139,8 @@ begin
          TX_MUX_TDEST_LOW_G              => TX_MUX_TDEST_LOW_G,
          TX_MUX_INTERLEAVE_EN_G          => TX_MUX_INTERLEAVE_EN_G,
          TX_MUX_INTERLEAVE_ON_NOTVALID_G => TX_MUX_INTERLEAVE_ON_NOTVALID_G,
-         AXIL_CLK_FREQ_G                 => AXIL_CLK_FREQ_G)
+         AXIL_CLK_FREQ_G                 => AXIL_CLK_FREQ_G,
+         AXI_ERROR_RESP_G                => AXI_ERROR_RESP_G)
       port map (
          pgpTxClk        => pgpTxClkInt,      -- [in]
          pgpTxRst        => pgpTxRstInt,      -- [in]
