@@ -92,7 +92,7 @@ package Pgp3Pkg is
       opCodeNumber : slv(2 downto 0);
       opCodeData   : slv(55 downto 0);
    end record Pgp3TxInType;
-
+   type Pgp3TxInArray is array (natural range<>) of Pgp3TxInType;
    constant PGP3_TX_IN_INIT_C : Pgp3TxInType := (
       disable      => '0',
       flowCntlDis  => '0',
@@ -110,7 +110,7 @@ package Pgp3Pkg is
       frameTx     : sl;                 -- A good frame was transmitted
       frameTxErr  : sl;                 -- An errored frame was transmitted
    end record;
-
+   type Pgp3TxOutArray is array (natural range<>) of Pgp3TxOutType;
    constant PGP3_TX_OUT_INIT_C : Pgp3TxOutType := (
       locOverflow => (others => '0'),
       locPause    => (others => '0'),
@@ -123,7 +123,7 @@ package Pgp3Pkg is
       loopback : slv(2 downto 0);
       resetRx  : sl;
    end record Pgp3RxInType;
-
+   type Pgp3RxInArray is array (natural range<>) of Pgp3RxInType;
    constant PGP3_RX_IN_INIT_C : Pgp3RxInType := (
       loopback => (others => '0'),
       resetRx  => '0');
@@ -157,7 +157,7 @@ package Pgp3Pkg is
       ebOverflow : sl;
       ebStatus   : slv(8 downto 0);
    end record Pgp3RxOutType;
-
+   type Pgp3RxOutArray is array (natural range<>) of Pgp3RxOutType;
    constant PGP3_RX_OUT_INIT_C : Pgp3RxOutType := (
       phyRxActive    => '0',
       linkReady      => '0',

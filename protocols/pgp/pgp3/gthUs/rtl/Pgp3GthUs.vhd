@@ -6,11 +6,11 @@
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
--- This file is part of 'Example Project Firmware'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'Example Project Firmware', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
@@ -50,10 +50,14 @@ entity Pgp3GthUs is
       AXIL_CLK_FREQ_G                 : real                  := 125.0E+6;
       AXI_ERROR_RESP_G                : slv(1 downto 0)       := AXI_RESP_DECERR_C);
    port (
-      -- GT Clocking
-      stableClk    : in  sl;            -- GT needs a stable clock to "boot up"
+      -- Stable Clock and Reset
+      stableClk    : in  sl;-- GT needs a stable clock to "boot up"
       stableRst    : in  sl;
-      gtRefClk     : in  sl;
+      -- QPLL Interface
+      qpllLock     : in  slv(1 downto 0);
+      qpllclk      : in  slv(1 downto 0);
+      qpllrefclk   : in  slv(1 downto 0);
+      qpllRst      : out slv(1 downto 0);
       -- Gt Serial IO
       pgpGtTxP     : out sl;
       pgpGtTxN     : out sl;
@@ -179,13 +183,16 @@ begin
    --------------------------
    -- Wrapper for GTH IP core
    --------------------------
-   U_Pgp3GthCoreWrapper_2 : entity work.Pgp3GthCoreWrapper
+   U_Pgp3GthCoreWrapper_2 : entity work.Pgp3GthUsIpWrapper
       generic map (
          TPD_G => TPD_G)
       port map (
          stableClk      => stableClk,          -- [in]
          stableRst      => stableRst,          -- [in]
-         gtRefClk       => gtRefClk,           -- [in]
+         qpllLock       => qpllLock,           -- [in]
+         qpllclk        => qpllclk,            -- [in]
+         qpllrefclk     => qpllrefclk,         -- [in]
+         qpllRst        => qpllRst,            -- [out]
          gtRxP          => pgpGtRxP,           -- [in]
          gtRxN          => pgpGtRxN,           -- [in]
          gtTxP          => pgpGtTxP,           -- [out]
@@ -213,7 +220,8 @@ begin
          txHeader       => phyTxHeader,        -- [in]
          txSequence     => phyTxSequence,      -- [in]
          txOutClk       => open,               -- [out]
-         loopback       => pgpRxIn.loopback);  -- [in]
+         loopback       => "000");  -- [in]
+         -- loopback       => pgpRxIn.loopback);  -- [in]
 
 
 end rtl;
