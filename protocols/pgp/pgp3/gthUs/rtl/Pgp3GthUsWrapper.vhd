@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- File       : Pgp3GthUsWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-06-29
--- Last update: 2017-10-26
+-- Created    : 2017-10-27
+-- Last update: 2017-10-27
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -24,14 +24,15 @@ use work.AxiStreamPkg.all;
 use work.AxiLitePkg.all;
 use work.Pgp3Pkg.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity Pgp3GthUsWrapper is
    generic (
       TPD_G                           : time                   := 1 ns;
       NUM_LANE_G                      : positive range 1 to 4  := 1;
       NUM_VC_G                        : positive range 1 to 16 := 4;
+      REFCLK_G                        : boolean                := false;  --  FALSE: pgpRefClkP/N,  TRUE: pgpRefClkIn
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
@@ -54,12 +55,15 @@ entity Pgp3GthUsWrapper is
       -- Stable Clock and Reset
       stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
       stableRst        : in  sl;
-      pgpRefClk        : in  sl;
       -- Gt Serial IO
       pgpGtTxP         : out slv(NUM_LANE_G-1 downto 0);
       pgpGtTxN         : out slv(NUM_LANE_G-1 downto 0);
       pgpGtRxP         : in  slv(NUM_LANE_G-1 downto 0);
       pgpGtRxN         : in  slv(NUM_LANE_G-1 downto 0);
+      pgpRefClkP       : in  sl                                             := '0';
+      pgpRefClkN       : in  sl                                             := '1';
+      pgpRefClkIn      : in  sl                                             := '0';
+      pgpRefClkOut     : out sl;
       -- Clocking
       pgpClk           : out slv(NUM_LANE_G-1 downto 0);
       pgpClkRst        : out slv(NUM_LANE_G-1 downto 0);
@@ -91,7 +95,26 @@ architecture rtl of Pgp3GthUsWrapper is
    signal qpllrefclk : Slv2Array(3 downto 0) := (others => "00");
    signal qpllRst    : Slv2Array(3 downto 0) := (others => "00");
 
+   signal pgpRefClock : sl;
+   signal pgpRefClk   : sl;
+
 begin
+
+   pgpRefClkOut <= pgpRefClk;
+
+   U_pgpRefClk : IBUFDS_GTE3
+      generic map (
+         REFCLK_EN_TX_PATH  => '0',
+         REFCLK_HROW_CK_SEL => "00",    -- 2'b00: ODIV2 = O
+         REFCLK_ICNTL_RX    => "00")
+      port map (
+         I     => pgpRefClkP,
+         IB    => pgpRefClkN,
+         CEB   => '0',
+         ODIV2 => open,
+         O     => pgpRefClock);
+
+   pgpRefClk <= pgpRefClock when(REFCLK_G = false) else pgpRefClkIn;
 
    U_QPLL : entity work.Pgp3GthUsQpll
       generic map (
