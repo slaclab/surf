@@ -60,6 +60,7 @@ entity Pgp3GthUsWrapper is
       pgpGtTxN         : out slv(NUM_LANE_G-1 downto 0);
       pgpGtRxP         : in  slv(NUM_LANE_G-1 downto 0);
       pgpGtRxN         : in  slv(NUM_LANE_G-1 downto 0);
+      -- GT Clocking
       pgpRefClkP       : in  sl                                             := '0';
       pgpRefClkN       : in  sl                                             := '1';
       pgpRefClkIn      : in  sl                                             := '0';
