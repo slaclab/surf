@@ -69,7 +69,7 @@ package Pgp3Pkg is
    type PGP3_SOFC_VC_FIELD_C is range 43 downto 40;
    type PGP3_SOFC_SEQ_FIELD_C is range 55 downto 44;
    type PGP3_EOFC_TUSER_FIELD_C is range 7 downto 0;
-   type PGP3_EOFC_BYTES_LAST_FIELD_C is range 18 downto 16;
+   type PGP3_EOFC_BYTES_LAST_FIELD_C is range 19 downto 16;
    type PGP3_EOFC_CRC_FIELD_C is range 55 downto 24;
 
    function makeLinkInfo (
@@ -90,7 +90,7 @@ package Pgp3Pkg is
       skpInterval : slv(31 downto 0);
       opCodeEn     : sl;
       opCodeNumber : slv(2 downto 0);
-      opCodeData   : slv(55 downto 0);
+      opCodeData   : slv(47 downto 0);
    end record Pgp3TxInType;
    type Pgp3TxInArray is array (natural range<>) of Pgp3TxInType;
    constant PGP3_TX_IN_INIT_C : Pgp3TxInType := (
@@ -110,7 +110,9 @@ package Pgp3Pkg is
       frameTx     : sl;                 -- A good frame was transmitted
       frameTxErr  : sl;                 -- An errored frame was transmitted
    end record;
+   
    type Pgp3TxOutArray is array (natural range<>) of Pgp3TxOutType;
+
    constant PGP3_TX_OUT_INIT_C : Pgp3TxOutType := (
       locOverflow => (others => '0'),
       locPause    => (others => '0'),
@@ -123,7 +125,9 @@ package Pgp3Pkg is
       loopback : slv(2 downto 0);
       resetRx  : sl;
    end record Pgp3RxInType;
+   
    type Pgp3RxInArray is array (natural range<>) of Pgp3RxInType;
+
    constant PGP3_RX_IN_INIT_C : Pgp3RxInType := (
       loopback => (others => '0'),
       resetRx  => '0');
@@ -139,7 +143,7 @@ package Pgp3Pkg is
       linkError      : sl;                -- A link error has occured      
       opCodeEn       : sl;                -- Opcode valid
       opCodeNumber   : slv(2 downto 0);   -- Opcode number
-      opCodeData     : slv(55 downto 0);  -- Opcode data
+      opCodeData     : slv(47 downto 0);  -- Opcode data
       remRxLinkReady : sl;                -- Far end RX has link
       remRxOverflow  : slv(15 downto 0);  -- Far end RX overflow status
       remRxPause     : slv(15 downto 0);  -- Far end pause status

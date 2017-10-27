@@ -103,9 +103,10 @@ begin
 
    comb : process (pgpRxIn, pgpRxRst, phyRxActiveSync, phyRxActiveSyncFall, protRxData,
                    protRxHeader, protRxValid, r) is
-      variable v        : RegType;
-      variable linkInfo : slv(39 downto 0);
-      variable btf      : slv(7 downto 0);
+      variable v              : RegType;
+      variable linkInfo       : slv(39 downto 0);
+      variable btf            : slv(7 downto 0);
+      variable opCodeChecksum : slv(7 downto 0);
    begin
       v := r;
 
@@ -116,6 +117,12 @@ begin
       v.pgpRxOut.linkDown  := '0';
       v.pgpRxOut.linkError := '0';
       v.protRxPhyInit      := '0';
+
+      opCodeChecksum := not (protRxData(7 downto 0) +
+                             protRxData(15 downto 8) +
+                             protRxData(23 downto 16) +
+                             protRxData(31 downto 24) +
+                             protRxData(47 downto 32));
 
 
       -- Just translate straight to AXI-Stream packetizer2 format
@@ -180,9 +187,12 @@ begin
                else
                   for i in USER_C'range loop
                      if (btf = USER_C(i)) then
-                        v.pgpRxOut.opCodeEn     := '1';
                         v.pgpRxOut.opCodeNumber := toSlv(i, 3);
-                        v.pgpRxOut.opCodeData   := protRxData(55 downto 0);
+                        v.pgpRxOut.opCodeData   := protRxData(47 downto 0);
+                        -- Verify checksun
+                        if (protRxData(55 downto 48) = opCodeChecksum) then
+                           v.pgpRxOut.opCodeEn := '1';                           
+                        end if;
                      end if;
                   end loop;
                end if;
