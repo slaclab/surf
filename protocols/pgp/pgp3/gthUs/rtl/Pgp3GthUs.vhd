@@ -2,7 +2,7 @@
 -- File       : Pgp3GthUs.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2017-09-20
+-- Last update: 2017-10-27
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -48,10 +48,10 @@ entity Pgp3GthUs is
       TX_MUX_INTERLEAVE_EN_G          : boolean               := true;
       TX_MUX_INTERLEAVE_ON_NOTVALID_G : boolean               := true;
       AXIL_CLK_FREQ_G                 : real                  := 125.0E+6;
-      AXI_ERROR_RESP_G                : slv(1 downto 0)       := AXI_RESP_DECERR_C);
+      AXIL_ERROR_RESP_G               : slv(1 downto 0)       := AXI_RESP_DECERR_C);
    port (
       -- Stable Clock and Reset
-      stableClk    : in  sl;-- GT needs a stable clock to "boot up"
+      stableClk    : in  sl;            -- GT needs a stable clock to "boot up"
       stableRst    : in  sl;
       -- QPLL Interface
       qpllLock     : in  slv(1 downto 0);
@@ -144,7 +144,7 @@ begin
          TX_MUX_INTERLEAVE_EN_G          => TX_MUX_INTERLEAVE_EN_G,
          TX_MUX_INTERLEAVE_ON_NOTVALID_G => TX_MUX_INTERLEAVE_ON_NOTVALID_G,
          AXIL_CLK_FREQ_G                 => AXIL_CLK_FREQ_G,
-         AXI_ERROR_RESP_G                => AXI_ERROR_RESP_G)
+         AXIL_ERROR_RESP_G               => AXIL_ERROR_RESP_G)
       port map (
          pgpTxClk        => pgpTxClkInt,      -- [in]
          pgpTxRst        => pgpTxRstInt,      -- [in]
@@ -187,41 +187,41 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         stableClk      => stableClk,          -- [in]
-         stableRst      => stableRst,          -- [in]
-         qpllLock       => qpllLock,           -- [in]
-         qpllclk        => qpllclk,            -- [in]
-         qpllrefclk     => qpllrefclk,         -- [in]
-         qpllRst        => qpllRst,            -- [out]
-         gtRxP          => pgpGtRxP,           -- [in]
-         gtRxN          => pgpGtRxN,           -- [in]
-         gtTxP          => pgpGtTxP,           -- [out]
-         gtTxN          => pgpGtTxN,           -- [out]
-         rxReset        => phyRxInit,          -- [in]
-         rxUsrClkActive => open,               -- [out]
-         rxResetDone    => phyRxActive,        -- [out]
-         rxUsrClk       => open,               -- [out]
-         rxUsrClk2      => phyRxClk,           -- [out]
-         rxUsrClkRst    => phyRxRst,           -- [out]
-         rxData         => phyRxData,          -- [out]
-         rxDataValid    => phyRxValid,         -- [out]
-         rxHeader       => phyRxHeader,        -- [out]
-         rxHeaderValid  => open,               -- [out]
-         rxStartOfSeq   => phyRxStartSeq,      -- [out]
-         rxGearboxSlip  => phyRxSlip,          -- [in]
-         rxOutClk       => open,               -- [out]
-         txReset        => '0',                -- [in]
-         txUsrClkActive => open,               -- [out]
-         txResetDone    => phyTxActive,        -- [out]
-         txUsrClk       => open,               -- [out]
-         txUsrClk2      => pgpTxClkInt,        -- [out]
-         txUsrClkRst    => pgpTxRstInt,        -- [out]
-         txData         => phyTxData,          -- [in]
-         txHeader       => phyTxHeader,        -- [in]
-         txSequence     => phyTxSequence,      -- [in]
-         txOutClk       => open,               -- [out]
-         loopback       => "000");  -- [in]
-         -- loopback       => pgpRxIn.loopback);  -- [in]
+         stableClk      => stableClk,      -- [in]
+         stableRst      => stableRst,      -- [in]
+         qpllLock       => qpllLock,       -- [in]
+         qpllclk        => qpllclk,        -- [in]
+         qpllrefclk     => qpllrefclk,     -- [in]
+         qpllRst        => qpllRst,        -- [out]
+         gtRxP          => pgpGtRxP,       -- [in]
+         gtRxN          => pgpGtRxN,       -- [in]
+         gtTxP          => pgpGtTxP,       -- [out]
+         gtTxN          => pgpGtTxN,       -- [out]
+         rxReset        => phyRxInit,      -- [in]
+         rxUsrClkActive => open,           -- [out]
+         rxResetDone    => phyRxActive,    -- [out]
+         rxUsrClk       => open,           -- [out]
+         rxUsrClk2      => phyRxClk,       -- [out]
+         rxUsrClkRst    => phyRxRst,       -- [out]
+         rxData         => phyRxData,      -- [out]
+         rxDataValid    => phyRxValid,     -- [out]
+         rxHeader       => phyRxHeader,    -- [out]
+         rxHeaderValid  => open,           -- [out]
+         rxStartOfSeq   => phyRxStartSeq,  -- [out]
+         rxGearboxSlip  => phyRxSlip,      -- [in]
+         rxOutClk       => open,           -- [out]
+         txReset        => '0',            -- [in]
+         txUsrClkActive => open,           -- [out]
+         txResetDone    => phyTxActive,    -- [out]
+         txUsrClk       => open,           -- [out]
+         txUsrClk2      => pgpTxClkInt,    -- [out]
+         txUsrClkRst    => pgpTxRstInt,    -- [out]
+         txData         => phyTxData,      -- [in]
+         txHeader       => phyTxHeader,    -- [in]
+         txSequence     => phyTxSequence,  -- [in]
+         txOutClk       => open,           -- [out]
+         loopback       => "000");         -- [in]
+   -- loopback       => pgpRxIn.loopback);  -- [in]
 
 
 end rtl;

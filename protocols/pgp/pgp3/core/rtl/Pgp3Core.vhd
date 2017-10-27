@@ -42,7 +42,7 @@ entity Pgp3Core is
       TX_MUX_INTERLEAVE_EN_G          : boolean               := true;
       TX_MUX_INTERLEAVE_ON_NOTVALID_G : boolean               := true;
       AXIL_CLK_FREQ_G                 : real                  := 125.0E+6;
-      AXI_ERROR_RESP_G                : slv(1 downto 0)       := AXI_RESP_DECERR_C);
+      AXIL_ERROR_RESP_G                : slv(1 downto 0)       := AXI_RESP_DECERR_C);
    port (
       -- Tx User interface
       pgpTxClk     : in  sl;
@@ -170,8 +170,8 @@ begin
          WRITE_EN_G         => true,
          STATUS_CNT_WIDTH_G => 32,
          ERROR_CNT_WIDTH_G  => 8,
-         AXI_CLK_FREQ_G     => AXIL_CLK_FREQ_G,
-         AXI_ERROR_RESP_G   => AXI_ERROR_RESP_G)
+         AXIL_CLK_FREQ_G     => AXIL_CLK_FREQ_G,
+         AXIL_ERROR_RESP_G   => AXIL_ERROR_RESP_G)
       port map (
          pgpTxClk        => pgpTxClk,         -- [in]
          pgpTxRst        => pgpTxRst,         -- [in]
