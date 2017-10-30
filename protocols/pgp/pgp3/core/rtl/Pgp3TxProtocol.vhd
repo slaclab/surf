@@ -195,11 +195,12 @@ begin
          if (pgpTxIn.opCodeEn = '1' and dataEn = '1') then
             v.pgpTxSlave.tReady        := '0';  -- Override any data acceptance.
             v.protTxData(63 downto 56) := USER_C(conv_integer(pgpTxIn.opCodeNumber));
-            v.protTxData(55 downto 48) := not (pgpTxIn.opCodeNumber(7 downto 0) +
-                                               pgpTxIn.opCodeNumber(15 downto 8) +
-                                               pgpTxIn.opCodeNumber(23 downto 16) +
-                                               pgpTxIn.opCodeNumber(31 downto 24) +
-                                               pgpTxIn.opCodeNumber(47 downto 32));
+            v.protTxData(55 downto 48) := not (pgpTxIn.opCodeData(7 downto 0) +
+                                               pgpTxIn.opCodeData(15 downto 8) +
+                                               pgpTxIn.opCodeData(23 downto 16) +
+                                               pgpTxIn.opCodeData(31 downto 24) +
+                                               pgpTxIn.opCodeData(39 downto 32) +                                               
+                                               pgpTxIn.opCodeData(47 downto 40));
             v.protTxData(47 downto 0) := pgpTxIn.opCodeData;
 
             -- If skip was interrupted, hold it for next cycle

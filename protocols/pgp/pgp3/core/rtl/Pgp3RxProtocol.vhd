@@ -122,7 +122,8 @@ begin
                              protRxData(15 downto 8) +
                              protRxData(23 downto 16) +
                              protRxData(31 downto 24) +
-                             protRxData(47 downto 32));
+                             protRxData(39 downto 32) +                             
+                             protRxData(47 downto 40));
 
 
       -- Just translate straight to AXI-Stream packetizer2 format
