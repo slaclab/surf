@@ -32,11 +32,12 @@ class Pgp3AxiL(pr.Device):
 
         def addErrorCountVar(**ecvkwargs):
             self.add(pr.RemoteVariable(
-                bitSize = errorCountBits,
-                mode = 'RO',
-                bitOffset = 0,
-                base = pr.UInt,
-                disp = '{:d}',
+                bitSize      = errorCountBits,
+                mode         = 'RO',
+                bitOffset    = 0,
+                base         = pr.UInt,
+                disp         = '{:d}',
+                pollInterval = 1,
                 **ecvkwargs))
 
 
@@ -59,9 +60,10 @@ class Pgp3AxiL(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name = 'SkipInterval',
+            name   = 'SkipInterval',
             offset = 0xC,
-            disp = '{:d}'))
+            disp   = '{:d}',
+        ))
         
         self.add(pr.RemoteVariable(
             name        = "AutoStatus", 
@@ -73,74 +75,76 @@ class Pgp3AxiL(pr.Device):
             base        = pr.Bool,
         ))
 
-
         ####################
         # RX
         ###################
         self.add(pr.RemoteVariable(
-            name        = "RxPhyActive",       
-            offset      = 0x10, 
-            bitSize     = 1, 
-            bitOffset   = 0, 
-            mode        = "RO",
-            base        = pr.Bool, 
-            description = "RX Phy is Ready",
-        ))
-        
-        
-        self.add(pr.RemoteVariable(
-            name        = "RxLocalLinkReady", 
-            offset      = 0x10, 
-            bitSize     = 1, 
-            bitOffset   = 1, 
-            mode        = "RO", 
-            base        = pr.Bool, 
-            description = "Rx Local Link Ready",
+            name         = "RxPhyActive",       
+            offset       = 0x10, 
+            bitSize      = 1, 
+            bitOffset    = 0, 
+            mode         = "RO",
+            base         = pr.Bool, 
+            description  = "RX Phy is Ready",
+            pollInterval = 1,
         ))
         
         self.add(pr.RemoteVariable(
-            name        = "RxRemLinkReady",   
-            offset      = 0x10, 
-            bitSize     = 1, 
-            bitOffset   = 2, 
-            mode        = "RO", 
-            base        = pr.Bool, 
-            description = "Rx Remote Link Ready",
+            name         = "RxLocalLinkReady", 
+            offset       = 0x10, 
+            bitSize      = 1, 
+            bitOffset    = 1, 
+            mode         = "RO", 
+            base         = pr.Bool, 
+            description  = "Rx Local Link Ready",
+            pollInterval = 1,
         ))
         
         self.add(pr.RemoteVariable(
-            name        = "RxRemPause",       
-            offset      = 0x20, 
-            bitSize     = channels, 
-            bitOffset   = 16, 
-            mode        = "RO", 
-            base        = pr.UInt,
-            disp        = '{:#_b}',
-            description = "RX Remote Pause Asserted",
+            name         = "RxRemLinkReady",   
+            offset       = 0x10, 
+            bitSize      = 1, 
+            bitOffset    = 2, 
+            mode         = "RO", 
+            base         = pr.Bool, 
+            description  = "Rx Remote Link Ready",
+            pollInterval = 1,
         ))
         
         self.add(pr.RemoteVariable(
-            name        = "RxRemOverflow",    
-            offset      = 0x20, 
-            bitSize     = channels, 
-            bitOffset   = 0, 
-            mode        = "RO", 
-            base        = pr.UInt,
-            disp        = '{:#_b}',            
-            description = "Received remote overflow flag",
+            name         = "RxRemPause",       
+            offset       = 0x20, 
+            bitSize      = channels, 
+            bitOffset    = 16, 
+            mode         = "RO", 
+            base         = pr.UInt,
+            disp         = '{:#_b}',
+            description  = "RX Remote Pause Asserted",
+            pollInterval = 1,
+        ))
+        
+        self.add(pr.RemoteVariable(
+            name         = "RxRemOverflow",    
+            offset       = 0x20, 
+            bitSize      = channels, 
+            bitOffset    = 0, 
+            mode         = "RO", 
+            base         = pr.UInt,
+            disp         = '{:#_b}',            
+            description  = "Received remote overflow flag",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
-            name        = "RxClockFreqRaw",    
-            offset      = 0x2C, 
-            bitSize     = 32, 
-            bitOffset   = 0, 
-            mode        = "RO", 
-            base        = pr.UInt,
-            hidden      = True,
-            pollInterval = 5,
+            name         = "RxClockFreqRaw",    
+            offset       = 0x2C, 
+            bitSize      = 32, 
+            bitOffset    = 0, 
+            mode         = "RO", 
+            base         = pr.UInt,
+            hidden       = True,
+            pollInterval = 1,
         ))
-
 
         self.add(pr.LinkVariable(
             name         = "RxClockFrequency", 
@@ -152,16 +156,17 @@ class Pgp3AxiL(pr.Device):
         
 
         self.add(pr.RemoteVariable(
-            name        = "RxFrameCount",    
-            offset      = 0x24, 
-            bitSize     = statusCountBits, 
-            bitOffset   = 0, 
-            mode        = "RO", 
-            base        = pr.UInt, 
+            name         = "RxFrameCount",    
+            offset       = 0x24, 
+            bitSize      = statusCountBits, 
+            bitOffset    = 0, 
+            mode         = "RO", 
+            base         = pr.UInt, 
+            pollInterval = 1,
         ))
 
         addErrorCountVar(
-            name = 'RxFrameErrorCount',
+            name   = 'RxFrameErrorCount',
             offset = 0x28,
         )
 
@@ -171,145 +176,170 @@ class Pgp3AxiL(pr.Device):
         )
 
         addErrorCountVar(
-            name = "RxLinkDownCount",
+            name   = "RxLinkDownCount",
             offset = 0x18
         )
 
         addErrorCountVar(
-            name = 'RxLinkErrorCount',
+            name   = 'RxLinkErrorCount',
             offset = 0x1C,
         )
         
         for i in range(16):
             addErrorCountVar(
-                name = f'RxRemOverflowCount[{i}]',
+                name   = f'RxRemOverflowCount[{i}]',
                 offset = 0x40+(i*4),
-                hidden = (i >= channels)
+                hidden = (i >= channels),
             )
 
         addErrorCountVar(
-            name = 'RxOpCodeCount',
-            offset = 0x30)
+            name   = 'RxOpCodeCount',
+            offset = 0x30,
+        )
 
         self.add(pr.RemoteVariable(
-            name = 'RxOpCodeDataLastRaw',
-            offset = 0x34,
+            name    = 'RxOpCodeDataLastRaw',
+            offset  = 0x34,
             bitSize = 56,
-            base = pr.UInt,
-            hidden = True,
+            base    = pr.UInt,
+            hidden  = True,
         ))
 
         self.add(pr.RemoteVariable(
-            name = 'RxOpCodeNumLastRaw',
-            offset = 0x34,
+            name      = 'RxOpCodeNumLastRaw',
+            offset    = 0x34,
             bitOffset = 56,            
-            bitSize = 3,
-            hidden = True,
+            bitSize   = 3,
+            hidden    = True,
         ))
 
         self.add(pr.LinkVariable(
-            name = 'RxOpCodeLast',
+            name         = 'RxOpCodeLast',
             dependencies = [self.RxOpCodeDataLastRaw, self.RxOpCodeNumLastRaw],
-            linkedGet = lambda: f'{self.RxOpCodeNumLastRaw.value()} - {self.RxOpCodeDataLastRaw.value():x}'))
+            linkedGet    = lambda: f'{self.RxOpCodeNumLastRaw.value()} - {self.RxOpCodeDataLastRaw.value():x}',
+        ))
 
         self.add(pr.RemoteVariable(
-            name = 'PhyRxValid',
-            offset = 0x108,
+            name      = 'PhyRxValid',
+            offset    = 0x108,
             bitOffset = 2,
-            bitSize = 1))
+            bitSize   = 1,
+        ))
 
         self.add(pr.RemoteVariable(
-            name = 'PhyRxData',
-            offset = 0x100,
-            bitOffset = 64))
+            name      = 'PhyRxData',
+            offset    = 0x100,
+            bitOffset = 64,
+        ))
 
         self.add(pr.RemoteVariable(
-            name = 'PhyRxHeader',
-            mode = 'RO',
-            offset = 0x108,
-            bitOffset = 0,
-            bitSize = 2))
+            name         = 'PhyRxHeader',
+            mode         = 'RO',
+            offset       = 0x108,
+            bitOffset    = 0,
+            bitSize      = 2,
+            pollInterval = 1,
+        ))
 
         self.add(pr.RemoteVariable(
-            name = 'EbRxValid',
-            mode = 'RO',            
-            offset = 0x118,
-            bitOffset = 2,
-            bitSize = 1))
+            name         = 'EbRxValid',
+            mode         = 'RO',            
+            offset       = 0x118,
+            bitOffset    = 2,
+            bitSize      = 1,
+            pollInterval = 1,
+        ))
 
         self.add(pr.RemoteVariable(
-            name = 'EbRxData',
-            mode = 'RO',            
-            offset = 0x110,
-            bitOffset = 64))
+            name         = 'EbRxData',
+            mode         = 'RO',            
+            offset       = 0x110,
+            bitOffset    = 64,
+            pollInterval = 1,
+        ))
 
         self.add(pr.RemoteVariable(
-            name = 'EbRxHeader',
-            mode = 'RO',            
-            offset = 0x118,
-            bitOffset = 0,
-            bitSize = 2))
+            name         = 'EbRxHeader',
+            mode         = 'RO',            
+            offset       = 0x118,
+            bitOffset    = 0,
+            bitSize      = 2,
+            pollInterval = 1,
+        ))
 
         self.add(pr.RemoteVariable(
-            name = 'EbRxStatus',
-            mode = 'RO',            
-            offset = 0x118,
-            bitOffset = 3,
-            bitSize = 9,
-            disp = '{:d}'))
+            name         = 'EbRxStatus',
+            mode         = 'RO',            
+            offset       = 0x118,
+            bitOffset    = 3,
+            bitSize      = 9,
+            disp         = '{:d}',
+            pollInterval = 1,
+        ))
 
         self.add(pr.RemoteVariable(
-            name = 'EbRxOverflow',
-            mode = 'RO',            
-            offset = 0x11C,
-            bitOffset = 0,
-            bitSize = 1))
+            name         = 'EbRxOverflow',
+            mode         = 'RO',            
+            offset       = 0x11C,
+            bitOffset    = 0,
+            bitSize      = 1,
+            pollInterval = 1,
+        ))
 
         self.add(pr.RemoteVariable(
-            name = 'EbRxOverflowCnt',
-            mode = 'RO',            
-            offset = 0x11C,
-            bitOffset = 1,
-            bitSize = errorCountBits))
-        
+            name         = 'EbRxOverflowCnt',
+            mode         = 'RO',            
+            offset       = 0x11C,
+            bitOffset    = 1,
+            bitSize      = errorCountBits,
+            pollInterval = 1,
+        ))
 
         self.add(pr.RemoteVariable(
-            name = 'GearboxAligned',
-            mode = 'RO',            
-            offset = 0x120,
-            bitSize = 1))
+            name         = 'GearboxAligned',
+            mode         = 'RO',            
+            offset       = 0x120,
+            bitSize      = 1,
+            pollInterval = 1,
+        ))
 
         self.add(pr.RemoteVariable(
-            name = 'GearboxAlignCnt',
-            mode = 'RO',            
-            offset = 0x120,
-            bitOffset = 8,
-            bitSize = 8))
+            name         = 'GearboxAlignCnt',
+            mode         = 'RO',            
+            offset       = 0x120,
+            bitOffset    = 8,
+            bitSize      = 8,
+            pollInterval = 1,
+        ))
 
         self.add(pr.RemoteVariable(
-            name = 'PhyRxInitCnt',
-            mode = 'RO',            
-            offset = 0x130,
-            bitSize = 4))
+            name         = 'PhyRxInitCnt',
+            mode         = 'RO',            
+            offset       = 0x130,
+            bitSize      = 4,
+            pollInterval = 1,
+        ))
         
         ################
         # TX
         ################
         self.add(pr.RemoteVariable(
-            name = 'FlowControlDisable',
-            offset = 0x80,
+            name      = 'FlowControlDisable',
+            offset    = 0x80,
             bitOffset = 0,
-            bitSize = 1,
-            base = pr.Bool,
-            mode = 'RW' if writeEn else 'RO'))
+            bitSize   = 1,
+            base      = pr.Bool,
+            mode      = 'RW' if writeEn else 'RO'
+        ))
 
         self.add(pr.RemoteVariable(
-            name = 'TxDisable',
-            offset = 0x80,
+            name      = 'TxDisable',
+            offset    = 0x80,
             bitOffset = 1,
-            bitSize = 1,
-            base = pr.Bool,
-            mode = 'RW' if writeEn else 'RO'))
+            bitSize   = 1,
+            base      = pr.Bool,
+            mode      = 'RW' if writeEn else 'RO'
+        ))
         
         self.add(pr.RemoteVariable(
             name        = "TxPhyActive",       
@@ -319,49 +349,52 @@ class Pgp3AxiL(pr.Device):
             mode        = "RO", 
             base        = pr.Bool, 
             description = "TX Phy is Ready",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
-            name = 'TxLinkReady',
-            offset = 0x84,
-            bitOffset = 0,
-            bitSize = 1,
-            mode = 'RO',
-            base = pr.Bool))
+            name         = 'TxLinkReady',
+            offset       = 0x84,
+            bitOffset    = 0,
+            bitSize      = 1,
+            mode         = 'RO',
+            base         = pr.Bool,
+            pollInterval = 1,
+        ))
         
-        
-
         self.add(pr.RemoteVariable(
-            name        = "TxLocPause",       
-            offset      = 0x8C, 
-            bitSize     = channels, 
-            bitOffset   = 16, 
-            mode        = "RO", 
-            base        = pr.UInt,
-            disp        = '{:#_b}',            
-            description = "Tx Local Pause Asserted",
+            name         = "TxLocPause",       
+            offset       = 0x8C, 
+            bitSize      = channels, 
+            bitOffset    = 16, 
+            mode         = "RO", 
+            base         = pr.UInt,
+            disp         = '{:#_b}',            
+            description  = "Tx Local Pause Asserted",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
-            name        = "TxLocOverflow",    
-            offset      = 0x8C, 
-            bitSize     = channels,
-            bitOffset   = 0, 
-            mode        = "RO", 
-            base        = pr.UInt,
-            disp        = '{:#_b}',            
-            description = "Received local overflow flag",
+            name         = "TxLocOverflow",    
+            offset       = 0x8C, 
+            bitSize      = channels,
+            bitOffset    = 0, 
+            mode         = "RO", 
+            base         = pr.UInt,
+            disp         = '{:#_b}',            
+            description  = "Received local overflow flag",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
-            name        = "TxClockFreqRaw",    
-            offset      = 0x9C, 
-            bitSize     = 32, 
-            bitOffset   = 0, 
-            mode        = "RO", 
-            base        = pr.UInt,
-            hidden      = True,
-            pollInterval = 5,
+            name         = "TxClockFreqRaw",    
+            offset       = 0x9C, 
+            bitSize      = 32, 
+            bitOffset    = 0, 
+            mode         = "RO", 
+            base         = pr.UInt,
+            hidden       = True,
+            pollInterval = 1,
         ))
 
         self.add(pr.LinkVariable(
@@ -373,48 +406,53 @@ class Pgp3AxiL(pr.Device):
         ))        
         
         self.add(pr.RemoteVariable(
-            name        = "TxFrameCount",    
-            offset      = 0x90, 
-            bitSize     = statusCountBits, 
-            bitOffset   = 0, 
-            mode        = "RO", 
-            base        = pr.UInt, 
-        ))        
+            name         = "TxFrameCount",    
+            offset       = 0x90, 
+            bitSize      = statusCountBits, 
+            bitOffset    = 0, 
+            mode         = "RO", 
+            base         = pr.UInt, 
+            pollInterval = 1,
+        ))
 
         addErrorCountVar(
-            name = 'TxFrameErrorCount',
-            offset = 0x94)
+            name   = 'TxFrameErrorCount',
+            offset = 0x94,
+        )
 
         for i in range(16):
             addErrorCountVar(
-                name = f'TxLocOverflowCount[{i}]',
+                name   = f'TxLocOverflowCount[{i}]',
                 offset = 0xB0 + (i*4),
-                hidden = (i >= channels))
+                hidden = (i >= channels),
+            )
        
         addErrorCountVar(
-            name = 'TxOpCodeCount',
-            offset = 0xA0)
+            name   = 'TxOpCodeCount',
+            offset = 0xA0,
+        )
 
         self.add(pr.RemoteVariable(
-            name = 'TxOpCodeDataLastRaw',
-            offset = 0xA4,
+            name    = 'TxOpCodeDataLastRaw',
+            offset  = 0xA4,
             bitSize = 56,
-            base = pr.UInt,
-            hidden = True,
+            base    = pr.UInt,
+            hidden  = True,
         ))
 
         self.add(pr.RemoteVariable(
-            name = 'TxOpCodeNumLastRaw',
-            offset = 0xA4,
+            name      = 'TxOpCodeNumLastRaw',
+            offset    = 0xA4,
             bitOffset = 56,            
-            bitSize = 3,
-            hidden = True,
+            bitSize   = 3,
+            hidden    = True,
         ))
 
         self.add(pr.LinkVariable(
             name = 'TxOpCodeLast',
             dependencies = [self.TxOpCodeDataLastRaw, self.TxOpCodeNumLastRaw],
-            linkedGet = lambda: f'{self.TxOpCodeNumLastRaw.value()} - {self.TxOpCodeDataLastRaw.value():x}'))
+            linkedGet = lambda: f'{self.TxOpCodeNumLastRaw.value()} - {self.TxOpCodeDataLastRaw.value():x}'),
+        )
 
     def countReset(self):
         self.CountReset()
