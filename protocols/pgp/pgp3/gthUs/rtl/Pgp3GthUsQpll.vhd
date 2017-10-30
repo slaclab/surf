@@ -2,7 +2,7 @@
 -- File       : Pgp3GthUsQpll.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-26
--- Last update: 2017-10-26
+-- Last update: 2017-10-30
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -28,12 +28,12 @@ use unisim.vcomponents.all;
 
 entity Pgp3GthUsQpll is
    generic (
-      TPD_G            : time            := 1 ns;
-      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_DECERR_C);
+      TPD_G             : time            := 1 ns;
+      AXIL_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_DECERR_C);
    port (
       -- Stable Clock and Reset
-      stableClk    : in  sl;-- GT needs a stable clock to "boot up"
-      stableRst    : in  sl;   
+      stableClk       : in  sl;         -- GT needs a stable clock to "boot up"
+      stableRst       : in  sl;
       -- QPLL Clocking
       pgpRefClk       : in  sl;
       qpllLock        : out Slv2Array(3 downto 0);
@@ -41,8 +41,8 @@ entity Pgp3GthUsQpll is
       qpllrefclk      : out Slv2Array(3 downto 0);
       qpllRst         : in  Slv2Array(3 downto 0);
       -- AXI-Lite Interface
-      axilClk         : in  sl := '0';
-      axilRst         : in  sl := '0';
+      axilClk         : in  sl                     := '0';
+      axilRst         : in  sl                     := '0';
       axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
@@ -102,7 +102,7 @@ begin
          -- Simulation Parameters
          TPD_G              => TPD_G,
          -- AXI-Lite Parameters
-         AXI_ERROR_RESP_G   => AXI_ERROR_RESP_G,
+         AXIL_ERROR_RESP_G  => AXIL_ERROR_RESP_G,
          -- QPLL Configuration Parameters
          QPLL_CFG0_G        => (others => x"321C"),
          QPLL_CFG1_G        => (others => x"1018"),
