@@ -2,7 +2,7 @@
 -- File       : Pgp3GthUsIpWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2017-10-26
+-- Last update: 2017-10-31
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -18,10 +18,12 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
+use work.AxiLitePkg.all;
 
 entity Pgp3GthUsIpWrapper is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G             : time            := 1 ns;
+      AXIL_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_DECERR_C);
    port (
       stableClk      : in  sl;
       stableRst      : in  sl;
@@ -60,57 +62,73 @@ entity Pgp3GthUsIpWrapper is
       txHeader       : in  slv(1 downto 0);
       txSequence     : in  slv(5 downto 0);
       txOutClk       : out sl;
-      loopback       : in  slv(2 downto 0));
+      loopback       : in  slv(2 downto 0);
+
+      -- AXI-Lite DRP Interface
+      axilClk         : in  sl                     := '0';
+      axilRst         : in  sl                     := '0';
+      axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteSlave  : out AxiLiteWriteSlaveType);
+
 end entity Pgp3GthUsIpWrapper;
 
 architecture mapping of Pgp3GthUsIpWrapper is
 
    component Pgp3GthUsIp
       port (
-         gtwiz_userclk_tx_reset_in          : in  std_logic_vector(0 downto 0);
-         gtwiz_userclk_tx_srcclk_out        : out std_logic_vector(0 downto 0);
-         gtwiz_userclk_tx_usrclk_out        : out std_logic_vector(0 downto 0);
-         gtwiz_userclk_tx_usrclk2_out       : out std_logic_vector(0 downto 0);
-         gtwiz_userclk_tx_active_out        : out std_logic_vector(0 downto 0);
-         gtwiz_userclk_rx_reset_in          : in  std_logic_vector(0 downto 0);
-         gtwiz_userclk_rx_srcclk_out        : out std_logic_vector(0 downto 0);
-         gtwiz_userclk_rx_usrclk_out        : out std_logic_vector(0 downto 0);
-         gtwiz_userclk_rx_usrclk2_out       : out std_logic_vector(0 downto 0);
-         gtwiz_userclk_rx_active_out        : out std_logic_vector(0 downto 0);
-         gtwiz_reset_clk_freerun_in         : in  std_logic_vector(0 downto 0);
-         gtwiz_reset_all_in                 : in  std_logic_vector(0 downto 0);
-         gtwiz_reset_tx_pll_and_datapath_in : in  std_logic_vector(0 downto 0);
-         gtwiz_reset_tx_datapath_in         : in  std_logic_vector(0 downto 0);
-         gtwiz_reset_rx_pll_and_datapath_in : in  std_logic_vector(0 downto 0);
-         gtwiz_reset_rx_datapath_in         : in  std_logic_vector(0 downto 0);
-         gtwiz_reset_qpll0lock_in           : in  std_logic_vector(0 downto 0);
-         gtwiz_reset_rx_cdr_stable_out      : out std_logic_vector(0 downto 0);
-         gtwiz_reset_tx_done_out            : out std_logic_vector(0 downto 0);
-         gtwiz_reset_rx_done_out            : out std_logic_vector(0 downto 0);
-         gtwiz_reset_qpll0reset_out         : out std_logic_vector(0 downto 0);
-         gtwiz_userdata_tx_in               : in  std_logic_vector(63 downto 0);
-         gtwiz_userdata_rx_out              : out std_logic_vector(63 downto 0);
-         gthrxn_in                          : in  std_logic_vector(0 downto 0);
-         gthrxp_in                          : in  std_logic_vector(0 downto 0);
-         loopback_in                        : in  std_logic_vector(2 downto 0);
-         qpll0clk_in                        : in  std_logic_vector(0 downto 0);
-         qpll0refclk_in                     : in  std_logic_vector(0 downto 0);
-         qpll1clk_in                        : in  std_logic_vector(0 downto 0);
-         qpll1refclk_in                     : in  std_logic_vector(0 downto 0);
-         rxgearboxslip_in                   : in  std_logic_vector(0 downto 0);
-         txheader_in                        : in  std_logic_vector(5 downto 0);
-         txsequence_in                      : in  std_logic_vector(6 downto 0);
-         gthtxn_out                         : out std_logic_vector(0 downto 0);
-         gthtxp_out                         : out std_logic_vector(0 downto 0);
-         gtpowergood_out                    : out std_logic_vector(0 downto 0);
-         rxdatavalid_out                    : out std_logic_vector(1 downto 0);
-         rxheader_out                       : out std_logic_vector(5 downto 0);
-         rxheadervalid_out                  : out std_logic_vector(1 downto 0);
-         rxpmaresetdone_out                 : out std_logic_vector(0 downto 0);
-         rxprgdivresetdone_out              : out std_logic_vector(0 downto 0);
-         rxstartofseq_out                   : out std_logic_vector(1 downto 0);
-         txpmaresetdone_out                 : out std_logic_vector(0 downto 0);
-         txprgdivresetdone_out              : out std_logic_vector(0 downto 0)
+         gtwiz_userclk_tx_reset_in          : in  slv(0 downto 0);
+         gtwiz_userclk_tx_srcclk_out        : out slv(0 downto 0);
+         gtwiz_userclk_tx_usrclk_out        : out slv(0 downto 0);
+         gtwiz_userclk_tx_usrclk2_out       : out slv(0 downto 0);
+         gtwiz_userclk_tx_active_out        : out slv(0 downto 0);
+         gtwiz_userclk_rx_reset_in          : in  slv(0 downto 0);
+         gtwiz_userclk_rx_srcclk_out        : out slv(0 downto 0);
+         gtwiz_userclk_rx_usrclk_out        : out slv(0 downto 0);
+         gtwiz_userclk_rx_usrclk2_out       : out slv(0 downto 0);
+         gtwiz_userclk_rx_active_out        : out slv(0 downto 0);
+         gtwiz_reset_clk_freerun_in         : in  slv(0 downto 0);
+         gtwiz_reset_all_in                 : in  slv(0 downto 0);
+         gtwiz_reset_tx_pll_and_datapath_in : in  slv(0 downto 0);
+         gtwiz_reset_tx_datapath_in         : in  slv(0 downto 0);
+         gtwiz_reset_rx_pll_and_datapath_in : in  slv(0 downto 0);
+         gtwiz_reset_rx_datapath_in         : in  slv(0 downto 0);
+         gtwiz_reset_qpll0lock_in           : in  slv(0 downto 0);
+         gtwiz_reset_rx_cdr_stable_out      : out slv(0 downto 0);
+         gtwiz_reset_tx_done_out            : out slv(0 downto 0);
+         gtwiz_reset_rx_done_out            : out slv(0 downto 0);
+         gtwiz_reset_qpll0reset_out         : out slv(0 downto 0);
+         gtwiz_userdata_tx_in               : in  slv(63 downto 0);
+         gtwiz_userdata_rx_out              : out slv(63 downto 0);
+         drpaddr_in                         : in  slv(8 downto 0);
+         drpclk_in                          : in  slv(0 downto 0);
+         drpdi_in                           : in  slv(15 downto 0);
+         drpen_in                           : in  slv(0 downto 0);
+         drpwe_in                           : in  slv(0 downto 0);
+         drpdo_out                          : out slv(15 downto 0);
+         drprdy_out                         : out slv(0 downto 0);
+         gthrxn_in                          : in  slv(0 downto 0);
+         gthrxp_in                          : in  slv(0 downto 0);
+         loopback_in                        : in  slv(2 downto 0);
+         qpll0clk_in                        : in  slv(0 downto 0);
+         qpll0refclk_in                     : in  slv(0 downto 0);
+         qpll1clk_in                        : in  slv(0 downto 0);
+         qpll1refclk_in                     : in  slv(0 downto 0);
+         rxgearboxslip_in                   : in  slv(0 downto 0);
+         txheader_in                        : in  slv(5 downto 0);
+         txsequence_in                      : in  slv(6 downto 0);
+         gthtxn_out                         : out slv(0 downto 0);
+         gthtxp_out                         : out slv(0 downto 0);
+         gtpowergood_out                    : out slv(0 downto 0);
+         rxdatavalid_out                    : out slv(1 downto 0);
+         rxheader_out                       : out slv(5 downto 0);
+         rxheadervalid_out                  : out slv(1 downto 0);
+         rxpmaresetdone_out                 : out slv(0 downto 0);
+         rxprgdivresetdone_out              : out slv(0 downto 0);
+         rxstartofseq_out                   : out slv(1 downto 0);
+         txpmaresetdone_out                 : out slv(0 downto 0);
+         txprgdivresetdone_out              : out slv(0 downto 0)
          );
    end component;
 
@@ -135,6 +153,12 @@ architecture mapping of Pgp3GthUsIpWrapper is
    signal txUsrClk2Int      : sl;
    signal txUsrClkActiveInt : sl;
 
+   signal drpAddr : slv(8 downto 0);
+   signal drpDi   : slv(15 downto 0);
+   signal drpDo   : slv(15 downto 0);
+   signal drpEn   : sl;
+   signal drpWe   : sl;
+   signal drpRdy  : sl;
 begin
 
    rxUsrClk2      <= rxUsrClk2Int;
@@ -189,6 +213,13 @@ begin
          gtwiz_reset_qpll0reset_out(0)         => qpllRst(0),
          gtwiz_userdata_tx_in                  => txData,
          gtwiz_userdata_rx_out                 => rxData,
+         drpclk_in(0)                          => stableClk,
+         drpaddr_in                            => drpAddr,
+         drpdi_in                              => drpDi,
+         drpen_in(0)                           => drpEn,
+         drpwe_in(0)                           => drpWe,
+         drpdo_out                             => drpDo,
+         drprdy_out(0)                         => drpRdy,
          gthrxn_in(0)                          => gtRxN,
          gthrxp_in(0)                          => gtRxP,
          loopback_in                           => loopback,
@@ -220,5 +251,31 @@ begin
    txsequence_in(5 downto 0) <= (others => '0');
    txheader_in(5 downto 2)   <= (others => '0');
    txheader_in(1 downto 0)   <= txHeader;
+
+   U_AxiLiteToDrp_1 : entity work.AxiLiteToDrp
+      generic map (
+         TPD_G            => TPD_G,
+         AXI_ERROR_RESP_G => AXIL_ERROR_RESP_G,
+         COMMON_CLK_G     => false,
+         EN_ARBITRATION_G => false,
+         ADDR_WIDTH_G     => 9,
+         DATA_WIDTH_G     => 16)
+      port map (
+         axilClk         => axilClk,          -- [in]
+         axilRst         => axilRst,          -- [in]
+         axilReadMaster  => axilReadMaster,   -- [in]
+         axilReadSlave   => axilReadSlave,    -- [out]
+         axilWriteMaster => axilWriteMaster,  -- [in]
+         axilWriteSlave  => axilWriteSlave,   -- [out]
+         drpClk          => stableClk,        -- [in]
+         drpRst          => stableRst,        -- [in]
+         drpReq          => open,             -- [out]
+         drpRdy          => drpRdy,           -- [in]
+         drpEn           => drpEn,            -- [out]
+         drpWe           => drpWe,            -- [out]
+         drpUsrRst       => open,             -- [out]
+         drpAddr         => drpAddr,          -- [out]
+         drpDi           => drpDi,            -- [out]
+         drpDo           => drpDo);           -- [in]
 
 end architecture mapping;
