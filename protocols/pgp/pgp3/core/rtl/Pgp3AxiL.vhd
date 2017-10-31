@@ -2,7 +2,7 @@
 -- File       : Pgp2bAxi.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2009-05-27
--- Last update: 2017-10-27
+-- Last update: 2017-10-31
 -------------------------------------------------------------------------------
 -- Description:
 -- AXI-Lite block to manage the PGP3 interface.
@@ -143,7 +143,7 @@ architecture rtl of Pgp3AxiL is
       remRxPause         : slv(15 downto 0);
       rxClkFreq          : slv(31 downto 0);
       rxOpCodeCount      : ErrorCountSlv;
-      rxOpCodeDataLast   : slv(55 downto 0);
+      rxOpCodeDataLast   : slv(47 downto 0);
       rxOpCodeNumberLast : slv(2 downto 0);
       ebValid            : sl;
       ebData             : slv(63 downto 0);
@@ -171,7 +171,7 @@ architecture rtl of Pgp3AxiL is
       frameCount         : StatusCountSlv;
       txClkFreq          : slv(31 downto 0);
       txOpCodeCount      : ErrorCountSlv;
-      txOpCodeDataLast   : slv(55 downto 0);
+      txOpCodeDataLast   : slv(47 downto 0);
       txOpCodeNumberLast : slv(2 downto 0);
    end record TxStatusType;
 
@@ -191,17 +191,17 @@ begin
       generic map (
          TPD_G        => TPD_G,
          BRAM_EN_G    => false,
-         DATA_WIDTH_G => 59,
+         DATA_WIDTH_G => 51,
          ADDR_WIDTH_G => 2)
       port map (
          rst                => r.countReset,
          wr_clk             => pgpRxClk,
          wr_en              => pgpRxOut.opCodeEn,
-         din(55 downto 0)   => pgpRxOut.opCodeData,
-         din(58 downto 56)  => pgpRxOut.opCodeNumber,
+         din(47 downto 0)   => pgpRxOut.opCodeData,
+         din(50 downto 48)  => pgpRxOut.opCodeNumber,
          rd_clk             => axilClk,
-         dout(55 downto 0)  => rxStatusSync.rxOpCodeDataLast,
-         dout(58 downto 56) => rxStatusSync.rxOpCodeNumberLast);
+         dout(47 downto 0)  => rxStatusSync.rxOpCodeDataLast,
+         dout(50 downto 48) => rxStatusSync.rxOpCodeNumberLast);
 
    -- Errror counters and non counted values
    U_RxError : entity work.SyncStatusVector
@@ -403,17 +403,17 @@ begin
       generic map (
          TPD_G        => TPD_G,
          BRAM_EN_G    => false,
-         DATA_WIDTH_G => 59,
+         DATA_WIDTH_G => 51,
          ADDR_WIDTH_G => 2)
       port map (
          rst                => r.countReset,
          wr_clk             => pgpTxClk,
          wr_en              => locTxIn.opCodeEn,
-         din(55 downto 0)   => locTxIn.opCodeData,
-         din(58 downto 56)  => locTxIn.opCodeNumber,
+         din(47 downto 0)   => locTxIn.opCodeData,
+         din(50 downto 48)  => locTxIn.opCodeNumber,
          rd_clk             => axilClk,
-         dout(55 downto 0)  => txStatusSync.txOpCodeDataLast,
-         dout(58 downto 56) => txStatusSync.txOpCodeNumberLast);
+         dout(47 downto 0)  => txStatusSync.txOpCodeDataLast,
+         dout(50 downto 48) => txStatusSync.txOpCodeNumberLast);
 
    -- Errror counters and non counted values
    U_TxError : entity work.SyncStatusVector
