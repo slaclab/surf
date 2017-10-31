@@ -30,18 +30,18 @@ use work.Pgp3Pkg.all;
 entity Pgp3Tx is
 
    generic (
-      TPD_G                        : time                  := 1 ns;
+      TPD_G                    : time                  := 1 ns;
       -- PGP configuration
-      NUM_VC_G                     : integer range 1 to 16 := 1;
-      CELL_WORDS_MAX_G             : integer               := 256;  -- Number of 64-bit words per cell
-      SKP_INTERVAL_G               : integer               := 5000;
-      SKP_BURST_SIZE_G             : integer               := 8;
+      NUM_VC_G                 : integer range 1 to 16 := 1;
+      CELL_WORDS_MAX_G         : integer               := 256;  -- Number of 64-bit words per cell
+      SKP_INTERVAL_G           : integer               := 5000;
+      SKP_BURST_SIZE_G         : integer               := 8;
       -- Mux configuration
-      MUX_MODE_G                   : string                := "INDEXED";  -- Or "ROUTED"
-      MUX_TDEST_ROUTES_G           : Slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
-      MUX_TDEST_LOW_G              : integer range 0 to 7  := 0;
-      MUX_INTERLEAVE_EN_G          : boolean               := true;
-      MUX_INTERLEAVE_ON_NOTVALID_G : boolean               := true);
+      MUX_MODE_G               : string                := "INDEXED";  -- Or "ROUTED"
+      MUX_TDEST_ROUTES_G       : Slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
+      MUX_TDEST_LOW_G          : integer range 0 to 7  := 0;
+      MUX_ILEAVE_EN_G          : boolean               := true;
+      MUX_ILEAVE_ON_NOTVALID_G : boolean               := true);
    port (
       -- Transmit interface
       pgpTxClk     : in  sl;
@@ -156,14 +156,14 @@ begin
    -- Multiplex the incomming tx streams with interleaving
    U_AxiStreamMux_1 : entity work.AxiStreamMux
       generic map (
-         TPD_G                    => TPD_G,
-         NUM_SLAVES_G             => NUM_VC_G,
-         MODE_G                   => MUX_MODE_G,
-         PIPE_STAGES_G            => 0,
-         TDEST_LOW_G              => MUX_TDEST_LOW_G,
-         INTERLEAVE_EN_G          => MUX_INTERLEAVE_EN_G,
-         INTERLEAVE_ON_NOTVALID_G => MUX_INTERLEAVE_ON_NOTVALID_G,
-         INTERLEAVE_MAX_TXNS_G    => CELL_WORDS_MAX_G)
+         TPD_G                => TPD_G,
+         NUM_SLAVES_G         => NUM_VC_G,
+         MODE_G               => MUX_MODE_G,
+         PIPE_STAGES_G        => 0,
+         TDEST_LOW_G          => MUX_TDEST_LOW_G,
+         ILEAVE_EN_G          => MUX_ILEAVE_EN_G,
+         ILEAVE_ON_NOTVALID_G => MUX_ILEAVE_ON_NOTVALID_G,
+         ILEAVE_REARB_G       => CELL_WORDS_MAX_G)
       port map (
          axisClk      => pgpTxClk,       -- [in]
          axisRst      => pgpTxRst,       -- [in]

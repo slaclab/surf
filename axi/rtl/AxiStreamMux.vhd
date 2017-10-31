@@ -2,7 +2,7 @@
 -- File       : AxiStreamMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2017-04-13
+-- Last update: 2017-10-31
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to connect multiple incoming AXI streams into a single encoded
@@ -28,15 +28,15 @@ use work.AxiStreamPkg.all;
 
 entity AxiStreamMux is
    generic (
-      TPD_G                      : time                  := 1 ns;
-      NUM_SLAVES_G               : integer range 1 to 32 := 4;
-      MODE_G                     : string                := "INDEXED";  -- Or "ROUTED"
-      TDEST_ROUTES_G             : Slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
-      PIPE_STAGES_G              : integer range 0 to 16 := 0;
-      TDEST_LOW_G                : integer range 0 to 7  := 0;  -- LSB of updated tdest for INDEX
-      INTERLEAVE_EN_G            : boolean               := false;  -- Set to true if interleaving dests, arbitrate on gaps
-      INTERLEAVE_ON_NOTVALID_G : boolean               := false;  -- Rearbitrate when tValid drops on selected channel
-      INTERLEAVE_MAX_TXNS_G      : natural               := 0);  -- Max number of transactions between arbitrations, 0 = unlimited
+      TPD_G                : time                  := 1 ns;
+      NUM_SLAVES_G         : integer range 1 to 32 := 4;
+      MODE_G               : string                := "INDEXED";  -- Or "ROUTED"
+      TDEST_ROUTES_G       : Slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
+      PIPE_STAGES_G        : integer range 0 to 16 := 0;
+      TDEST_LOW_G          : integer range 0 to 7  := 0;   -- LSB of updated tdest for INDEX
+      ILEAVE_EN_G          : boolean               := false;  -- Set to true if interleaving dests, arbitrate on gaps
+      ILEAVE_ON_NOTVALID_G : boolean               := false;  -- Rearbitrate when tValid drops on selected channel
+      ILEAVE_REARB_G       : natural               := 0);  -- Max number of transactions between arbitrations, 0 = unlimited
    port (
       -- Clock and reset
       axisClk      : in  sl;
@@ -56,7 +56,7 @@ architecture structure of AxiStreamMux is
 
    constant DEST_SIZE_C : integer := bitSize(NUM_SLAVES_G-1);
    constant ARB_BITS_C  : integer := 2**DEST_SIZE_C;
-   constant ACNT_SIZE_G : integer := bitSize(INTERLEAVE_MAX_TXNS_G);
+   constant ACNT_SIZE_G : integer := bitSize(ILEAVE_REARB_G);
 
    type StateType is (
       IDLE_S,
@@ -192,28 +192,28 @@ begin
                -- Accept the data
                v.slaves(conv_integer(r.ackNum)).tReady := '1';
                -- Move the AXIS data
-               v.master := selData;
-               v.arbCnt := r.arbCnt + 1;
+               v.master                                := selData;
+               v.arbCnt                                := r.arbCnt + 1;
                -- Check for tLast
                if selData.tLast = '1' then
                   -- Next state
                   v.state := IDLE_S;
 
 
-               elsif (INTERLEAVE_EN_G) then
-                  if ((INTERLEAVE_MAX_TXNS_G /= 0) and (r.arbCnt = INTERLEAVE_MAX_TXNS_G-2)) or
+               elsif (ILEAVE_EN_G) then
+                  if ((ILEAVE_REARB_G /= 0) and (r.arbCnt = ILEAVE_REARB_G-2)) or
                      rearbitrate = '1' or
                      disableSel(conv_integer(r.ackNum)) = '1' then
-                  -- rearbitrate after ILEAVE_MAX_TXNS_G txns
-                  -- Or upon manual rearbitration input
-                  -- Or selected channel being disabled                  
+                     -- rearbitrate after ILEAVE_REARB_G txns
+                     -- Or upon manual rearbitration input
+                     -- Or selected channel being disabled                  
                      v.state := IDLE_S;
                   end if;
                end if;
 
             -- RE-arbitrate on gaps if interleaving frames
             elsif (v.master.tValid = '0') and (selData.tValid = '0') and
-               (INTERLEAVE_EN_G and INTERLEAVE_ON_NOTVALID_G) then
+               (ILEAVE_EN_G and ILEAVE_ON_NOTVALID_G) then
                v.state := IDLE_S;
             end if;
       ----------------------------------------------------------------------
@@ -228,22 +228,22 @@ begin
       rin <= v;
 
       -- Outputs  
-      sAxisSlaves <= v.slaves;
+      sAxisSlaves    <= v.slaves;
       pipeAxisMaster <= r.master;
 
    end process comb;
 
    AxiStreamPipeline_1 : entity work.AxiStreamPipeline
       generic map (
-         TPD_G => TPD_G,
+         TPD_G         => TPD_G,
          PIPE_STAGES_G => PIPE_STAGES_G)
       port map (
-         axisClk => axisClk,
-         axisRst => axisRst,
+         axisClk     => axisClk,
+         axisRst     => axisRst,
          sAxisMaster => pipeAxisMaster,
-         sAxisSlave => pipeAxisSlave,
+         sAxisSlave  => pipeAxisSlave,
          mAxisMaster => mAxisMaster,
-         mAxisSlave => mAxisSlave);
+         mAxisSlave  => mAxisSlave);
 
    seq : process (axisClk) is
    begin

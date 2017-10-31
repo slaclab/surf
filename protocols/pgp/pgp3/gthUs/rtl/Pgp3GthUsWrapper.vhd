@@ -2,7 +2,7 @@
 -- File       : Pgp3GthUsWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-27
--- Last update: 2017-10-30
+-- Last update: 2017-10-31
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -29,28 +29,28 @@ use unisim.vcomponents.all;
 
 entity Pgp3GthUsWrapper is
    generic (
-      TPD_G                           : time                   := 1 ns;
-      NUM_LANE_G                      : positive range 1 to 4  := 1;
-      NUM_VC_G                        : positive range 1 to 16 := 4;
-      REFCLK_G                        : boolean                := false;  --  FALSE: pgpRefClkP/N,  TRUE: pgpRefClkIn
+      TPD_G                       : time                   := 1 ns;
+      NUM_LANE_G                  : positive range 1 to 4  := 1;
+      NUM_VC_G                    : positive range 1 to 16 := 4;
+      REFCLK_G                    : boolean                := false;  --  FALSE: pgpRefClkP/N,  TRUE: pgpRefClkIn
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
-      PGP_RX_ENABLE_G                 : boolean                := true;
-      RX_ALIGN_GOOD_COUNT_G           : integer                := 128;
-      RX_ALIGN_BAD_COUNT_G            : integer                := 16;
-      RX_ALIGN_SLIP_WAIT_G            : integer                := 32;
-      PGP_TX_ENABLE_G                 : boolean                := true;
-      TX_CELL_WORDS_MAX_G             : integer                := 256;  -- Number of 64-bit words per cell
-      TX_SKP_INTERVAL_G               : integer                := 5000;
-      TX_SKP_BURST_SIZE_G             : integer                := 8;
-      TX_MUX_MODE_G                   : string                 := "INDEXED";         -- Or "ROUTED"
-      TX_MUX_TDEST_ROUTES_G           : Slv8Array              := (0 => "--------");  -- Only used in ROUTED mode
-      TX_MUX_TDEST_LOW_G              : integer range 0 to 7   := 0;
-      TX_MUX_INTERLEAVE_EN_G          : boolean                := true;
-      TX_MUX_INTERLEAVE_ON_NOTVALID_G : boolean                := true;
-      AXIL_CLK_FREQ_G                 : real                   := 125.0E+6;
-      AXIL_ERROR_RESP_G               : slv(1 downto 0)        := AXI_RESP_DECERR_C);
+      PGP_RX_ENABLE_G             : boolean                := true;
+      RX_ALIGN_GOOD_COUNT_G       : integer                := 128;
+      RX_ALIGN_BAD_COUNT_G        : integer                := 16;
+      RX_ALIGN_SLIP_WAIT_G        : integer                := 32;
+      PGP_TX_ENABLE_G             : boolean                := true;
+      TX_CELL_WORDS_MAX_G         : integer                := 256;  -- Number of 64-bit words per cell
+      TX_SKP_INTERVAL_G           : integer                := 5000;
+      TX_SKP_BURST_SIZE_G         : integer                := 8;
+      TX_MUX_MODE_G               : string                 := "INDEXED";             -- Or "ROUTED"
+      TX_MUX_TDEST_ROUTES_G       : Slv8Array              := (0 => "--------");  -- Only used in ROUTED mode
+      TX_MUX_TDEST_LOW_G          : integer range 0 to 7   := 0;
+      TX_MUX_ILEAVE_EN_G          : boolean                := true;
+      TX_MUX_ILEAVE_ON_NOTVALID_G : boolean                := true;
+      AXIL_CLK_FREQ_G             : real                   := 125.0E+6;
+      AXIL_ERROR_RESP_G           : slv(1 downto 0)        := AXI_RESP_DECERR_C);
    port (
       -- Stable Clock and Reset
       stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
@@ -140,26 +140,26 @@ begin
 
       U_Pgp : entity work.Pgp3GthUs
          generic map (
-            TPD_G                           => TPD_G,
+            TPD_G                       => TPD_G,
             ----------------------------------------------------------------------------------------------
             -- PGP Settings
             ----------------------------------------------------------------------------------------------
-            PGP_RX_ENABLE_G                 => PGP_RX_ENABLE_G,
-            RX_ALIGN_GOOD_COUNT_G           => RX_ALIGN_GOOD_COUNT_G,
-            RX_ALIGN_BAD_COUNT_G            => RX_ALIGN_BAD_COUNT_G,
-            RX_ALIGN_SLIP_WAIT_G            => RX_ALIGN_SLIP_WAIT_G,
-            PGP_TX_ENABLE_G                 => PGP_TX_ENABLE_G,
-            NUM_VC_G                        => NUM_VC_G,
-            TX_CELL_WORDS_MAX_G             => TX_CELL_WORDS_MAX_G,
-            TX_SKP_INTERVAL_G               => TX_SKP_INTERVAL_G,
-            TX_SKP_BURST_SIZE_G             => TX_SKP_BURST_SIZE_G,
-            TX_MUX_MODE_G                   => TX_MUX_MODE_G,
-            TX_MUX_TDEST_ROUTES_G           => TX_MUX_TDEST_ROUTES_G,
-            TX_MUX_TDEST_LOW_G              => TX_MUX_TDEST_LOW_G,
-            TX_MUX_INTERLEAVE_EN_G          => TX_MUX_INTERLEAVE_EN_G,
-            TX_MUX_INTERLEAVE_ON_NOTVALID_G => TX_MUX_INTERLEAVE_ON_NOTVALID_G,
-            AXIL_CLK_FREQ_G                 => AXIL_CLK_FREQ_G,
-            AXIL_ERROR_RESP_G               => AXIL_ERROR_RESP_G)
+            PGP_RX_ENABLE_G             => PGP_RX_ENABLE_G,
+            RX_ALIGN_GOOD_COUNT_G       => RX_ALIGN_GOOD_COUNT_G,
+            RX_ALIGN_BAD_COUNT_G        => RX_ALIGN_BAD_COUNT_G,
+            RX_ALIGN_SLIP_WAIT_G        => RX_ALIGN_SLIP_WAIT_G,
+            PGP_TX_ENABLE_G             => PGP_TX_ENABLE_G,
+            NUM_VC_G                    => NUM_VC_G,
+            TX_CELL_WORDS_MAX_G         => TX_CELL_WORDS_MAX_G,
+            TX_SKP_INTERVAL_G           => TX_SKP_INTERVAL_G,
+            TX_SKP_BURST_SIZE_G         => TX_SKP_BURST_SIZE_G,
+            TX_MUX_MODE_G               => TX_MUX_MODE_G,
+            TX_MUX_TDEST_ROUTES_G       => TX_MUX_TDEST_ROUTES_G,
+            TX_MUX_TDEST_LOW_G          => TX_MUX_TDEST_LOW_G,
+            TX_MUX_ILEAVE_EN_G          => TX_MUX_ILEAVE_EN_G,
+            TX_MUX_ILEAVE_ON_NOTVALID_G => TX_MUX_ILEAVE_ON_NOTVALID_G,
+            AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G,
+            AXIL_ERROR_RESP_G           => AXIL_ERROR_RESP_G)
          port map (
             -- Stable Clock and Reset
             stableClk       => stableClk,

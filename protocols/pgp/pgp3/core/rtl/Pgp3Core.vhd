@@ -26,23 +26,23 @@ use work.Pgp3Pkg.all;
 entity Pgp3Core is
 
    generic (
-      TPD_G                           : time                  := 1 ns;
-      NUM_VC_G                        : integer range 1 to 16 := 4;
-      PGP_RX_ENABLE_G                 : boolean               := true;
-      RX_ALIGN_GOOD_COUNT_G           : integer               := 128;
-      RX_ALIGN_BAD_COUNT_G            : integer               := 16;
-      RX_ALIGN_SLIP_WAIT_G            : integer               := 32;
-      PGP_TX_ENABLE_G                 : boolean               := true;
-      TX_CELL_WORDS_MAX_G             : integer               := 256;  -- Number of 64-bit words per cell
-      TX_SKP_INTERVAL_G               : integer               := 5000;
-      TX_SKP_BURST_SIZE_G             : integer               := 8;
-      TX_MUX_MODE_G                   : string                := "INDEXED";  -- Or "ROUTED"
-      TX_MUX_TDEST_ROUTES_G           : Slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
-      TX_MUX_TDEST_LOW_G              : integer range 0 to 7  := 0;
-      TX_MUX_INTERLEAVE_EN_G          : boolean               := true;
-      TX_MUX_INTERLEAVE_ON_NOTVALID_G : boolean               := true;
-      AXIL_CLK_FREQ_G                 : real                  := 125.0E+6;
-      AXIL_ERROR_RESP_G                : slv(1 downto 0)       := AXI_RESP_DECERR_C);
+      TPD_G                       : time                  := 1 ns;
+      NUM_VC_G                    : integer range 1 to 16 := 4;
+      PGP_RX_ENABLE_G             : boolean               := true;
+      RX_ALIGN_GOOD_COUNT_G       : integer               := 128;
+      RX_ALIGN_BAD_COUNT_G        : integer               := 16;
+      RX_ALIGN_SLIP_WAIT_G        : integer               := 32;
+      PGP_TX_ENABLE_G             : boolean               := true;
+      TX_CELL_WORDS_MAX_G         : integer               := 256;  -- Number of 64-bit words per cell
+      TX_SKP_INTERVAL_G           : integer               := 5000;
+      TX_SKP_BURST_SIZE_G         : integer               := 8;
+      TX_MUX_MODE_G               : string                := "INDEXED";  -- Or "ROUTED"
+      TX_MUX_TDEST_ROUTES_G       : Slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
+      TX_MUX_TDEST_LOW_G          : integer range 0 to 7  := 0;
+      TX_MUX_ILEAVE_EN_G          : boolean               := true;
+      TX_MUX_ILEAVE_ON_NOTVALID_G : boolean               := true;
+      AXIL_CLK_FREQ_G             : real                  := 125.0E+6;
+      AXIL_ERROR_RESP_G           : slv(1 downto 0)       := AXI_RESP_DECERR_C);
    port (
       -- Tx User interface
       pgpTxClk     : in  sl;
@@ -106,16 +106,16 @@ begin
 
    U_Pgp3Tx_1 : entity work.Pgp3Tx
       generic map (
-         TPD_G                        => TPD_G,
-         NUM_VC_G                     => NUM_VC_G,
-         CELL_WORDS_MAX_G             => TX_CELL_WORDS_MAX_G,
-         SKP_INTERVAL_G               => TX_SKP_INTERVAL_G,
-         SKP_BURST_SIZE_G             => TX_SKP_BURST_SIZE_G,
-         MUX_MODE_G                   => TX_MUX_MODE_G,
-         MUX_TDEST_ROUTES_G           => TX_MUX_TDEST_ROUTES_G,
-         MUX_TDEST_LOW_G              => TX_MUX_TDEST_LOW_G,
-         MUX_INTERLEAVE_EN_G          => TX_MUX_INTERLEAVE_EN_G,
-         MUX_INTERLEAVE_ON_NOTVALID_G => TX_MUX_INTERLEAVE_ON_NOTVALID_G)
+         TPD_G                    => TPD_G,
+         NUM_VC_G                 => NUM_VC_G,
+         CELL_WORDS_MAX_G         => TX_CELL_WORDS_MAX_G,
+         SKP_INTERVAL_G           => TX_SKP_INTERVAL_G,
+         SKP_BURST_SIZE_G         => TX_SKP_BURST_SIZE_G,
+         MUX_MODE_G               => TX_MUX_MODE_G,
+         MUX_TDEST_ROUTES_G       => TX_MUX_TDEST_ROUTES_G,
+         MUX_TDEST_LOW_G          => TX_MUX_TDEST_LOW_G,
+         MUX_ILEAVE_EN_G          => TX_MUX_ILEAVE_EN_G,
+         MUX_ILEAVE_ON_NOTVALID_G => TX_MUX_ILEAVE_ON_NOTVALID_G)
       port map (
          pgpTxClk       => pgpTxClk,        -- [in]
          pgpTxRst       => pgpTxRst,        -- [in]
@@ -170,8 +170,8 @@ begin
          WRITE_EN_G         => true,
          STATUS_CNT_WIDTH_G => 32,
          ERROR_CNT_WIDTH_G  => 8,
-         AXIL_CLK_FREQ_G     => AXIL_CLK_FREQ_G,
-         AXIL_ERROR_RESP_G   => AXIL_ERROR_RESP_G)
+         AXIL_CLK_FREQ_G    => AXIL_CLK_FREQ_G,
+         AXIL_ERROR_RESP_G  => AXIL_ERROR_RESP_G)
       port map (
          pgpTxClk        => pgpTxClk,         -- [in]
          pgpTxRst        => pgpTxRst,         -- [in]
