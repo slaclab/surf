@@ -2,7 +2,7 @@
 -- File       : Pgp3GthUsWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-27
--- Last update: 2017-10-30
+-- Last update: 2017-10-31
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -44,7 +44,7 @@ entity Pgp3GthUsWrapper is
       TX_CELL_WORDS_MAX_G             : integer                := 256;  -- Number of 64-bit words per cell
       TX_SKP_INTERVAL_G               : integer                := 5000;
       TX_SKP_BURST_SIZE_G             : integer                := 8;
-      TX_MUX_MODE_G                   : string                 := "INDEXED";         -- Or "ROUTED"
+      TX_MUX_MODE_G                   : string                 := "INDEXED";  -- Or "ROUTED"
       TX_MUX_TDEST_ROUTES_G           : Slv8Array              := (0 => "--------");  -- Only used in ROUTED mode
       TX_MUX_TDEST_LOW_G              : integer range 0 to 7   := 0;
       TX_MUX_INTERLEAVE_EN_G          : boolean                := true;
@@ -92,8 +92,8 @@ end Pgp3GthUsWrapper;
 architecture rtl of Pgp3GthUsWrapper is
 
    signal qpllLock   : Slv2Array(3 downto 0) := (others => "00");
-   signal qpllclk    : Slv2Array(3 downto 0) := (others => "00");
-   signal qpllrefclk : Slv2Array(3 downto 0) := (others => "00");
+   signal qpllClk    : Slv2Array(3 downto 0) := (others => "00");
+   signal qpllRefclk : Slv2Array(3 downto 0) := (others => "00");
    signal qpllRst    : Slv2Array(3 downto 0) := (others => "00");
 
    signal pgpRefClock : sl;
@@ -128,8 +128,8 @@ begin
          -- QPLL Clocking
          pgpRefClk  => pgpRefClk,
          qpllLock   => qpllLock,
-         qpllclk    => qpllclk,
-         qpllrefclk => qpllrefclk,
+         qpllClk    => qpllClk,
+         qpllRefclk => qpllRefclk,
          qpllRst    => qpllRst);
 
    -----------
@@ -166,8 +166,8 @@ begin
             stableRst       => stableRst,
             -- QPLL Interface
             qpllLock        => qpllLock(i),
-            qpllclk         => qpllclk(i),
-            qpllrefclk      => qpllrefclk(i),
+            qpllClk         => qpllClk(i),
+            qpllRefclk      => qpllRefclk(i),
             qpllRst         => qpllRst(i),
             -- Gt Serial IO
             pgpGtTxP        => pgpGtTxP(i),

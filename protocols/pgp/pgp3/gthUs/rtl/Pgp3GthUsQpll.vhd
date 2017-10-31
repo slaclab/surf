@@ -2,7 +2,7 @@
 -- File       : Pgp3GthUsQpll.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-26
--- Last update: 2017-10-30
+-- Last update: 2017-10-31
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -37,8 +37,8 @@ entity Pgp3GthUsQpll is
       -- QPLL Clocking
       pgpRefClk       : in  sl;
       qpllLock        : out Slv2Array(3 downto 0);
-      qpllclk         : out Slv2Array(3 downto 0);
-      qpllrefclk      : out Slv2Array(3 downto 0);
+      qpllClk         : out Slv2Array(3 downto 0);
+      qpllRefclk      : out Slv2Array(3 downto 0);
       qpllRst         : in  Slv2Array(3 downto 0);
       -- AXI-Lite Interface
       axilClk         : in  sl                     := '0';
@@ -70,8 +70,8 @@ begin
       GEN_CH :
       for j in 1 downto 0 generate
 
-         qpllclk(i)(j)    <= pllOutClk(j);
-         qpllrefclk(i)(j) <= pllOutRefClk(j);
+         qpllClk(i)(j)    <= pllOutClk(j);
+         qpllRefclk(i)(j) <= pllOutRefClk(j);
          qpllLock(i)(j)   <= pllLock(j) and not(lockedStrobe(i)(j));  -- trick the GTH state machine of lock transition
 
          ----------------------------------------------------------------------------
