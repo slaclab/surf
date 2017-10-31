@@ -170,22 +170,40 @@ begin
          douta(15 downto 0) => packetNumberRam,   -- [out]
          douta(16)          => packetActiveRam,   -- [out]
          douta(17)          => sentEofeRam);      -- [out]
-
-   U_Crc32_1 : entity work.Crc32
-      generic map (
-         TPD_G            => TPD_G,
-         INPUT_REGISTER_G => false,
-         BYTE_WIDTH_G     => 8,
-         CRC_INIT_G       => X"FFFFFFFF",
-         CRC_POLY_G       => CRC_POLY_G)
-      port map (
-         crcOut       => crcOut,                              -- [out]
-         crcClk       => axisClk,                             -- [in]
-         crcDataValid => rin.crcDataValid,                    -- [in]
-         crcDataWidth => rin.crcDataWidth,                    -- [in]
-         crcIn        => inputAxisMaster.tData(63 downto 0),  -- [in]
-         crcReset     => rin.crcReset);                       -- [in]
-
+                
+   ETH_CRC : if (CRC_POLY_G = x"04C11DB7") generate         
+      U_Crc32 : entity work.Crc32Parallel
+         generic map (
+            TPD_G            => TPD_G,
+            INPUT_REGISTER_G => false,
+            BYTE_WIDTH_G     => 8,
+            CRC_INIT_G       => X"FFFFFFFF")
+         port map (
+            crcOut       => crcOut,                              -- [out]
+            crcClk       => axisClk,                             -- [in]
+            crcDataValid => rin.crcDataValid,                    -- [in]
+            crcDataWidth => rin.crcDataWidth,                    -- [in]
+            crcIn        => inputAxisMaster.tData(63 downto 0),  -- [in]
+            crcReset     => rin.crcReset);                       -- [in]
+   end generate;
+   
+   GEN_CRC : if (CRC_POLY_G /= x"04C11DB7") generate         
+      U_Crc32 : entity work.Crc32
+         generic map (
+            TPD_G            => TPD_G,
+            INPUT_REGISTER_G => false,
+            BYTE_WIDTH_G     => 8,
+            CRC_INIT_G       => X"FFFFFFFF",
+            CRC_POLY_G       => CRC_POLY_G)
+         port map (
+            crcOut       => crcOut,                              -- [out]
+            crcClk       => axisClk,                             -- [in]
+            crcDataValid => rin.crcDataValid,                    -- [in]
+            crcDataWidth => rin.crcDataWidth,                    -- [in]
+            crcIn        => inputAxisMaster.tData(63 downto 0),  -- [in]
+            crcReset     => rin.crcReset);                       -- [in]
+   end generate;         
+   
    comb : process (axisRst, crcOut, linkGood, sentEofeRam, inputAxisMaster, outputAxisSlave,
                    packetActiveRam, packetNumberRam, r) is
       variable v         : RegType;
