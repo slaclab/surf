@@ -41,6 +41,7 @@ entity Pgp3Core is
       TX_MUX_TDEST_LOW_G          : integer range 0 to 7  := 0;
       TX_MUX_ILEAVE_EN_G          : boolean               := true;
       TX_MUX_ILEAVE_ON_NOTVALID_G : boolean               := true;
+      EN_PGP_MON_G                : boolean               := true;
       AXIL_CLK_FREQ_G             : real                  := 125.0E+6;
       AXIL_ERROR_RESP_G           : slv(1 downto 0)       := AXI_RESP_DECERR_C);
    port (
@@ -161,38 +162,43 @@ begin
          phyRxStartSeq  => phyRxStartSeq,   -- [in]
          phyRxSlip      => phyRxSlip);      -- [out]
 
+   GEN_PGP_MON : if (EN_PGP_MON_G) generate
+      U_Pgp3Axi_1 : entity work.Pgp3AxiL
+         generic map (
+            TPD_G              => TPD_G,
+            COMMON_TX_CLK_G    => false,
+            COMMON_RX_CLK_G    => false,
+            WRITE_EN_G         => true,
+            STATUS_CNT_WIDTH_G => 32,
+            ERROR_CNT_WIDTH_G  => 8,
+            AXIL_CLK_FREQ_G    => AXIL_CLK_FREQ_G,
+            AXIL_ERROR_RESP_G  => AXIL_ERROR_RESP_G)
+         port map (
+            pgpTxClk        => pgpTxClk,         -- [in]
+            pgpTxRst        => pgpTxRst,         -- [in]
+            pgpTxIn         => pgpTxInInt,       -- [out]
+            pgpTxOut        => pgpTxOutInt,      -- [in]
+            locTxIn         => pgpTxIn,          -- [in]
+            pgpRxClk        => pgpRxClk,         -- [in]
+            pgpRxRst        => pgpRxRst,         -- [in]
+            pgpRxIn         => pgpRxInInt,       -- [out]
+            pgpRxOut        => pgpRxOutInt,      -- [in]
+            locRxIn         => pgpRxIn,          -- [in]
+            statusWord      => open,             -- [out]
+            statusSend      => open,             -- [out]
+            phyRxClk        => phyRxClk,         -- [in]
+            axilClk         => axilClk,          -- [in]
+            axilRst         => axilRst,          -- [in]
+            axilReadMaster  => axilReadMaster,   -- [in]
+            axilReadSlave   => axilReadSlave,    -- [out]
+            axilWriteMaster => axilWriteMaster,  -- [in]
+            axilWriteSlave  => axilWriteSlave);  -- [out]
+   end generate GEN_PGP_MON;
 
-   U_Pgp3Axi_1 : entity work.Pgp3AxiL
-      generic map (
-         TPD_G              => TPD_G,
-         COMMON_TX_CLK_G    => false,
-         COMMON_RX_CLK_G    => false,
-         WRITE_EN_G         => true,
-         STATUS_CNT_WIDTH_G => 32,
-         ERROR_CNT_WIDTH_G  => 8,
-         AXIL_CLK_FREQ_G    => AXIL_CLK_FREQ_G,
-         AXIL_ERROR_RESP_G  => AXIL_ERROR_RESP_G)
-      port map (
-         pgpTxClk        => pgpTxClk,         -- [in]
-         pgpTxRst        => pgpTxRst,         -- [in]
-         pgpTxIn         => pgpTxInInt,       -- [out]
-         pgpTxOut        => pgpTxOutInt,      -- [in]
-         locTxIn         => pgpTxIn,          -- [in]
-         pgpRxClk        => pgpRxClk,         -- [in]
-         pgpRxRst        => pgpRxRst,         -- [in]
-         pgpRxIn         => pgpRxInInt,       -- [out]
-         pgpRxOut        => pgpRxOutInt,      -- [in]
-         locRxIn         => pgpRxIn,          -- [in]
-         statusWord      => open,             -- [out]
-         statusSend      => open,             -- [out]
-         phyRxClk        => phyRxClk,         -- [in]
-         axilClk         => axilClk,          -- [in]
-         axilRst         => axilRst,          -- [in]
-         axilReadMaster  => axilReadMaster,   -- [in]
-         axilReadSlave   => axilReadSlave,    -- [out]
-         axilWriteMaster => axilWriteMaster,  -- [in]
-         axilWriteSlave  => axilWriteSlave);  -- [out]
-
+   NO_PGP_MON: if (not EN_PGP_MON_G) generate
+      pgpTxInInt <= pgpTxIn;
+      pgpRxInInt <= pgpRxIn;
+   end generate NO_PGP_MON;
 
 
 end architecture rtl;

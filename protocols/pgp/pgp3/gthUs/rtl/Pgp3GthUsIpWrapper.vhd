@@ -2,7 +2,7 @@
 -- File       : Pgp3GthUsIpWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2017-10-31
+-- Last update: 2017-11-01
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -23,6 +23,7 @@ use work.AxiLitePkg.all;
 entity Pgp3GthUsIpWrapper is
    generic (
       TPD_G             : time            := 1 ns;
+      EN_DRP_G          : boolean         := true;
       AXIL_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_DECERR_C);
    port (
       stableClk      : in  sl;
@@ -153,12 +154,13 @@ architecture mapping of Pgp3GthUsIpWrapper is
    signal txUsrClk2Int      : sl;
    signal txUsrClkActiveInt : sl;
 
-   signal drpAddr : slv(8 downto 0);
-   signal drpDi   : slv(15 downto 0);
-   signal drpDo   : slv(15 downto 0);
-   signal drpEn   : sl;
-   signal drpWe   : sl;
-   signal drpRdy  : sl;
+   signal drpAddr : slv(8 downto 0)  := (others => '0');
+   signal drpDi   : slv(15 downto 0) := (others => '0');
+   signal drpDo   : slv(15 downto 0) := (others => '0');
+   signal drpEn   : sl               := '0';
+   signal drpWe   : sl               := '0';
+   signal drpRdy  : sl               := '0'
+                                        ;
 begin
 
    rxUsrClk2      <= rxUsrClk2Int;
@@ -252,30 +254,32 @@ begin
    txheader_in(5 downto 2)   <= (others => '0');
    txheader_in(1 downto 0)   <= txHeader;
 
-   U_AxiLiteToDrp_1 : entity work.AxiLiteToDrp
-      generic map (
-         TPD_G            => TPD_G,
-         AXI_ERROR_RESP_G => AXIL_ERROR_RESP_G,
-         COMMON_CLK_G     => false,
-         EN_ARBITRATION_G => false,
-         ADDR_WIDTH_G     => 9,
-         DATA_WIDTH_G     => 16)
-      port map (
-         axilClk         => axilClk,          -- [in]
-         axilRst         => axilRst,          -- [in]
-         axilReadMaster  => axilReadMaster,   -- [in]
-         axilReadSlave   => axilReadSlave,    -- [out]
-         axilWriteMaster => axilWriteMaster,  -- [in]
-         axilWriteSlave  => axilWriteSlave,   -- [out]
-         drpClk          => stableClk,        -- [in]
-         drpRst          => stableRst,        -- [in]
-         drpReq          => open,             -- [out]
-         drpRdy          => drpRdy,           -- [in]
-         drpEn           => drpEn,            -- [out]
-         drpWe           => drpWe,            -- [out]
-         drpUsrRst       => open,             -- [out]
-         drpAddr         => drpAddr,          -- [out]
-         drpDi           => drpDi,            -- [out]
-         drpDo           => drpDo);           -- [in]
+   GEN_DRP : if (EN_DRP_G) generate
+      U_AxiLiteToDrp_1 : entity work.AxiLiteToDrp
+         generic map (
+            TPD_G            => TPD_G,
+            AXI_ERROR_RESP_G => AXIL_ERROR_RESP_G,
+            COMMON_CLK_G     => false,
+            EN_ARBITRATION_G => false,
+            ADDR_WIDTH_G     => 9,
+            DATA_WIDTH_G     => 16)
+         port map (
+            axilClk         => axilClk,          -- [in]
+            axilRst         => axilRst,          -- [in]
+            axilReadMaster  => axilReadMaster,   -- [in]
+            axilReadSlave   => axilReadSlave,    -- [out]
+            axilWriteMaster => axilWriteMaster,  -- [in]
+            axilWriteSlave  => axilWriteSlave,   -- [out]
+            drpClk          => stableClk,        -- [in]
+            drpRst          => stableRst,        -- [in]
+            drpReq          => open,             -- [out]
+            drpRdy          => drpRdy,           -- [in]
+            drpEn           => drpEn,            -- [out]
+            drpWe           => drpWe,            -- [out]
+            drpUsrRst       => open,             -- [out]
+            drpAddr         => drpAddr,          -- [out]
+            drpDi           => drpDi,            -- [out]
+            drpDo           => drpDo);           -- [in]
+   end generate GEN_DRP;
 
 end architecture mapping;

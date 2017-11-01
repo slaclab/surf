@@ -2,7 +2,7 @@
 -- File       : Pgp3GthUsQpll.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-26
--- Last update: 2017-10-31
+-- Last update: 2017-11-01
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -29,6 +29,7 @@ use unisim.vcomponents.all;
 entity Pgp3GthUsQpll is
    generic (
       TPD_G             : time            := 1 ns;
+      EN_DRP_G          : boolean         := true;
       AXIL_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_DECERR_C);
    port (
       -- Stable Clock and Reset
@@ -102,6 +103,7 @@ begin
          -- Simulation Parameters
          TPD_G              => TPD_G,
          -- AXI-Lite Parameters
+         EN_DRP_G           => EN_DRP_G,
          AXIL_ERROR_RESP_G  => AXIL_ERROR_RESP_G,
          -- QPLL Configuration Parameters
          QPLL_CFG0_G        => (others => x"321C"),

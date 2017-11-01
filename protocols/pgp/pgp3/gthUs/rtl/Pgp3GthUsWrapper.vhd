@@ -2,7 +2,7 @@
 -- File       : Pgp3GthUsWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-27
--- Last update: 2017-10-31
+-- Last update: 2017-11-01
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -51,6 +51,9 @@ entity Pgp3GthUsWrapper is
       TX_MUX_TDEST_LOW_G          : integer range 0 to 7   := 0;
       TX_MUX_ILEAVE_EN_G          : boolean                := true;
       TX_MUX_ILEAVE_ON_NOTVALID_G : boolean                := true;
+      EN_PGP_MON_G                : boolean                := true;
+      EN_GTH_DRP_G                : boolean                := true;
+      EN_QPLL_DRP_G               : boolean                := true;
       AXIL_BASE_ADDR_G            : slv(31 downto 0)       := (others => '0');
       AXIL_CLK_FREQ_G             : real                   := 125.0E+6;
       AXIL_ERROR_RESP_G           : slv(1 downto 0)        := AXI_RESP_DECERR_C);
@@ -106,7 +109,7 @@ architecture rtl of Pgp3GthUsWrapper is
    constant QPLL_AXIL_INDEX_C  : integer := NUM_AXIL_MASTERS_C-1;
 
    constant XBAR_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) :=
-      genAxiLiteConfig(NUM_AXIL_MASTERS_C, AXIL_BASE_ADDR_G, 16, 12);
+      genAxiLiteConfig(NUM_AXIL_MASTERS_C, AXIL_BASE_ADDR_G, 16, 13);
 
    signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_MASTER_INIT_C);
    signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)   := (others => AXI_LITE_READ_SLAVE_INIT_C);
@@ -153,6 +156,7 @@ begin
    U_QPLL : entity work.Pgp3GthUsQpll
       generic map (
          TPD_G             => TPD_G,
+         EN_DRP_G          => EN_QPLL_DRP_G,
          AXIL_ERROR_RESP_G => AXIL_ERROR_RESP_G)
       port map (
          -- Stable Clock and Reset
@@ -175,9 +179,7 @@ begin
    -----------
    -- PGP Core
    -----------
-   GEN_LANE :
-   for i in NUM_LANES_G-1 downto 0 generate
-
+   GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
       U_Pgp : entity work.Pgp3GthUs
          generic map (
             TPD_G                       => TPD_G,
@@ -198,6 +200,8 @@ begin
             TX_MUX_TDEST_LOW_G          => TX_MUX_TDEST_LOW_G,
             TX_MUX_ILEAVE_EN_G          => TX_MUX_ILEAVE_EN_G,
             TX_MUX_ILEAVE_ON_NOTVALID_G => TX_MUX_ILEAVE_ON_NOTVALID_G,
+            EN_PGP_MON_G                => EN_PGP_MON_G,
+            EN_DRP_G                    => EN_GTH_DRP_G,
             AXIL_BASE_ADDR_G            => AXIL_BASE_ADDR_G,
             AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G,
             AXIL_ERROR_RESP_G           => AXIL_ERROR_RESP_G)

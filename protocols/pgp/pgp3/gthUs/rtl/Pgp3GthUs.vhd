@@ -2,7 +2,7 @@
 -- File       : Pgp3GthUs.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2017-10-31
+-- Last update: 2017-11-01
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -49,6 +49,8 @@ entity Pgp3GthUs is
       TX_MUX_TDEST_LOW_G          : integer range 0 to 7  := 0;
       TX_MUX_ILEAVE_EN_G          : boolean               := true;
       TX_MUX_ILEAVE_ON_NOTVALID_G : boolean               := true;
+      EN_DRP_G                    : boolean               := true;
+      EN_PGP_MON_G                : boolean               := true;
       AXIL_BASE_ADDR_G            : slv(31 downto 0)      := (others => '0');
       AXIL_CLK_FREQ_G             : real                  := 125.0E+6;
       AXIL_ERROR_RESP_G           : slv(1 downto 0)       := AXI_RESP_DECERR_C);
@@ -127,17 +129,17 @@ architecture rtl of Pgp3GthUs is
    constant XBAR_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := (
       PGP_AXIL_INDEX_C => (
          baseAddr      => AXIL_BASE_ADDR_G,
-         addrBits      => 9,
+         addrBits      => 12,
          connectivity  => X"FFFF"),
       DRP_AXIL_INDEX_C => (
-         baseAddr      => AXIL_BASE_ADDR_G + X"800",
+         baseAddr      => AXIL_BASE_ADDR_G + X"1000",
          addrBits      => 11,
          connectivity  => X"FFFF"));
 
-   signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
-   signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
-   signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
-   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_READ_MASTER_INIT_C);
+   signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_SLAVE_INIT_C);
+   signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
+   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_INIT_C);
 
 begin
 
@@ -147,25 +149,56 @@ begin
    --gtRxUserReset <= phyRxInit or pgpRxIn.resetRx;
    --gtTxUserReset <= pgpTxRst;
 
+   GEN_XBAR : if (EN_DRP_G and EN_PGP_MON_G) generate
+      U_XBAR : entity work.AxiLiteCrossbar
+         generic map (
+            TPD_G              => TPD_G,
+            DEC_ERROR_RESP_G   => AXIL_ERROR_RESP_G,
+            NUM_SLAVE_SLOTS_G  => 1,
+            NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
+            MASTERS_CONFIG_G   => XBAR_CONFIG_C)
+         port map (
+            axiClk              => axilClk,
+            axiClkRst           => axilRst,
+            sAxiWriteMasters(0) => axilWriteMaster,
+            sAxiWriteSlaves(0)  => axilWriteSlave,
+            sAxiReadMasters(0)  => axilReadMaster,
+            sAxiReadSlaves(0)   => axilReadSlave,
+            mAxiWriteMasters    => axilWriteMasters,
+            mAxiWriteSlaves     => axilWriteSlaves,
+            mAxiReadMasters     => axilReadMasters,
+            mAxiReadSlaves      => axilReadSlaves);
+   end generate GEN_XBAR;
 
-   U_XBAR : entity work.AxiLiteCrossbar
-      generic map (
-         TPD_G              => TPD_G,
-         DEC_ERROR_RESP_G   => AXIL_ERROR_RESP_G,
-         NUM_SLAVE_SLOTS_G  => 1,
-         NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
-         MASTERS_CONFIG_G   => XBAR_CONFIG_C)
-      port map (
-         axiClk              => axilClk,
-         axiClkRst           => axilRst,
-         sAxiWriteMasters(0) => axilWriteMaster,
-         sAxiWriteSlaves(0)  => axilWriteSlave,
-         sAxiReadMasters(0)  => axilReadMaster,
-         sAxiReadSlaves(0)   => axilReadSlave,
-         mAxiWriteMasters    => axilWriteMasters,
-         mAxiWriteSlaves     => axilWriteSlaves,
-         mAxiReadMasters     => axilReadMasters,
-         mAxiReadSlaves      => axilReadSlaves);
+   -- If DRP or PGP_MON not enabled, no crossbar needed
+   GEN_DRP_ONLY : if (EN_DRP_G and not EN_PGP_MON_G) generate
+      axilWriteSlave                     <= axilWriteSlaves(DRP_AXIL_INDEX_C);
+      axilWriteMasters(DRP_AXIL_INDEX_C) <= axilWriteMaster;
+      axilReadSlave                      <= axilReadSlaves(DRP_AXIL_INDEX_C);
+      axilReadMasters(DRP_AXIL_INDEX_C)  <= axilReadMaster;
+   end generate GEN_DRP_ONLY;
+
+   GEN_PGP_MON_ONLY : if (EN_PGP_MON_G and not EN_DRP_G) generate
+      axilWriteSlave                     <= axilWriteSlaves(PGP_AXIL_INDEX_C);
+      axilWriteMasters(PGP_AXIL_INDEX_C) <= axilWriteMaster;
+      axilReadSlave                      <= axilReadSlaves(PGP_AXIL_INDEX_C);
+      axilReadMasters(PGP_AXIL_INDEX_C)  <= axilReadMaster;
+   end generate GEN_PGP_MON_ONLY;
+
+   -- If neither enabled, cap with AxiLiteEmpty
+   NO_AXIL : if (not EN_PGP_MON_G and not EN_DRP_G) generate
+      U_AxiLiteEmpty_1 : entity work.AxiLiteEmpty
+         generic map (
+            TPD_G            => TPD_G,
+            AXI_ERROR_RESP_G => AXIL_ERROR_RESP_G)
+         port map (
+            axiClk         => axilClk,          -- [in]
+            axiClkRst      => axilRst,          -- [in]
+            axiReadMaster  => axilReadMaster,   -- [in]
+            axiReadSlave   => axilReadSlave,    -- [out]
+            axiWriteMaster => axilWriteMaster,  -- [in]
+            axiWriteSlave  => axilWriteSlave);  -- [out]
+   end generate NO_AXIL;
 
    U_Pgp3Core_1 : entity work.Pgp3Core
       generic map (
@@ -184,6 +217,7 @@ begin
          TX_MUX_TDEST_LOW_G          => TX_MUX_TDEST_LOW_G,
          TX_MUX_ILEAVE_EN_G          => TX_MUX_ILEAVE_EN_G,
          TX_MUX_ILEAVE_ON_NOTVALID_G => TX_MUX_ILEAVE_ON_NOTVALID_G,
+         EN_PGP_MON_G                => EN_PGP_MON_G,
          AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G,
          AXIL_ERROR_RESP_G           => AXIL_ERROR_RESP_G)
       port map (
