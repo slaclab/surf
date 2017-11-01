@@ -27,7 +27,6 @@ class Ads54J60Channel(pr.Device):
         offset      = 0x00,
         hidden      = False,
         verify      = False,
-        writeOnly   = False,
         expand      = True,
     ):
         super().__init__(
@@ -37,13 +36,7 @@ class Ads54J60Channel(pr.Device):
             offset      = offset,
             hidden      = hidden,
             expand      = expand,
-        )
-        
-        if writeOnly:
-            ModeType = "WO"
-        else: 
-            ModeType = "RW"
-            
+        )            
         
         #######################
         # Paging base addresses
@@ -56,16 +49,16 @@ class Ads54J60Channel(pr.Device):
         # Main Digital Page
         ###################
 
-        self.add(pr.RemoteVariable(   
-            name         = "PULSE_RESET",
-            description  = "",
-            offset       = (mainDigital + (4*0x000)),
-            bitSize      = 1,
-            bitOffset    = 0,
-            base         = pr.UInt,
-            mode         = ModeType,
-            verify       = verify,
-        ))
+        # self.add(pr.RemoteVariable(   
+            # name         = "PULSE_RESET",
+            # description  = "",
+            # offset       = (mainDigital + (4*0x000)),
+            # bitSize      = 1,
+            # bitOffset    = 0,
+            # base         = pr.UInt,
+            # mode         = "RW",
+            # verify       = verify,
+        # ))
         
         self.add(pr.RemoteVariable(   
             name         = "DECFIL_MODE3",
@@ -74,7 +67,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 1,
             bitOffset    = 5,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))   
 
@@ -85,7 +78,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 1,
             bitOffset    = 4,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))           
 
@@ -96,7 +89,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 3,
             bitOffset    = 0,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))    
 
@@ -107,7 +100,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 3,
             bitOffset    = 0,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))    
 
@@ -118,7 +111,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 1,
             bitOffset    = 0,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         )) 
 
@@ -129,7 +122,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 7,
             bitOffset    = 0,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))  
 
@@ -140,7 +133,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 1,
             bitOffset    = 5,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))    
 
@@ -151,7 +144,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 1,
             bitOffset    = 3,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))   
 
@@ -162,7 +155,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 1,
             bitOffset    = 7,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))
 
@@ -173,7 +166,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 1,
             bitOffset    = 7,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))   
 
@@ -184,7 +177,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 1,
             bitOffset    = 0,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))  
 
@@ -195,7 +188,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 1,
             bitOffset    = 3,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))  
 
@@ -206,7 +199,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 1,
             bitOffset    = 0,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))  
 
@@ -217,20 +210,20 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 2,
             bitOffset    = 0,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         )) 
 
-        self.add(pr.RemoteVariable(   
-            name         = "DIG_RESET",
-            description  = "",
-            offset       = (mainDigital + (4*0x0F7)),
-            bitSize      = 1,
-            bitOffset    = 0,
-            base         = pr.UInt,
-            mode         = ModeType,
-            verify       = verify,
-        ))         
+        # self.add(pr.RemoteVariable(   
+            # name         = "DIG_RESET",
+            # description  = "",
+            # offset       = (mainDigital + (4*0x0F7)),
+            # bitSize      = 1,
+            # bitOffset    = 0,
+            # base         = pr.UInt,
+            # mode         = "RW",
+            # verify       = verify,
+        # ))         
         
         ###################
         # JESD DIGITAL PAGE
@@ -243,7 +236,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 1,
             bitOffset    = 7,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         )) 
         
@@ -254,7 +247,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 1,
             bitOffset    = 4,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))  
 
@@ -265,7 +258,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 1,
             bitOffset    = 3,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))  
 
@@ -276,7 +269,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 1,
             bitOffset    = 2,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         )) 
 
@@ -287,7 +280,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 1,
             bitOffset    = 1,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))    
 
@@ -298,7 +291,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 1,
             bitOffset    = 0,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))  
 
@@ -309,7 +302,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 1,
             bitOffset    = 7,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         )) 
 
@@ -320,7 +313,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 1,
             bitOffset    = 6,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))  
 
@@ -331,7 +324,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 3,
             bitOffset    = 3,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         )) 
 
@@ -342,7 +335,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 3,
             bitOffset    = 0,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))  
 
@@ -353,7 +346,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 3,
             bitOffset    = 5,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))  
 
@@ -364,7 +357,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 1,
             bitOffset    = 4,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))
 
@@ -375,7 +368,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 1,
             bitOffset    = 3,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         )) 
 
@@ -386,7 +379,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 1,
             bitOffset    = 7,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         )) 
 
@@ -397,7 +390,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 5,
             bitOffset    = 2,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         )) 
 
@@ -408,7 +401,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 2,
             bitOffset    = 0,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         )) 
 
@@ -419,7 +412,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 1,
             bitOffset    = 7,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))    
 
@@ -430,7 +423,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 5,
             bitOffset    = 0,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))
 
@@ -441,7 +434,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 1,
             bitOffset    = 3,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))   
 
@@ -465,7 +458,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 1,
             bitOffset    = 4,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         )) 
 
@@ -476,7 +469,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 8,
             bitOffset    = 0,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))     
 
@@ -487,7 +480,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 8,
             bitOffset    = 0,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))             
         
@@ -502,7 +495,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 6,
             bitOffset    = 2,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))         
         
@@ -526,7 +519,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 6,
             bitOffset    = 2,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))    
 
@@ -537,7 +530,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 6,
             bitOffset    = 2,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))
 
@@ -548,7 +541,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 6,
             bitOffset    = 2,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))   
 
@@ -559,7 +552,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 2,
             bitOffset    = 0,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))  
 
@@ -570,7 +563,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 1,
             bitOffset    = 6,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))   
 
@@ -581,7 +574,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 1,
             bitOffset    = 1,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))
 
@@ -592,7 +585,7 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 3,
             bitOffset    = 5,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))
 
@@ -603,6 +596,6 @@ class Ads54J60Channel(pr.Device):
             bitSize      = 1,
             bitOffset    = 3,
             base         = pr.UInt,
-            mode         = ModeType,
+            mode         = "RW",
             verify       = verify,
         ))

@@ -2,7 +2,7 @@
 -- File       : UdpEngineRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2017-05-22
+-- Last update: 2017-10-18
 -------------------------------------------------------------------------------
 -- Description: UDP RX Engine Module
 -- Note: UDP checksum checked in EthMac core
@@ -43,6 +43,7 @@ entity UdpEngineRx is
    port (
       -- Local Configurations
       localIp          : in  slv(31 downto 0);  --  big-Endian configuration      
+      broadcastIp      : in  slv(31 downto 0);  --  big-Endian configuration      
       -- Interface to IPV4 Engine  
       ibUdpMaster      : in  AxiStreamMasterType;
       ibUdpSlave       : out AxiStreamSlaveType;
@@ -140,8 +141,8 @@ begin
          mAxisMaster => rxMaster,
          mAxisSlave  => rxSlave);
 
-   comb : process (clientSlave, dhcpSlave, localIp, r, rst, rxMaster,
-                   serverSlave) is
+   comb : process (broadcastIp, clientSlave, dhcpSlave, localIp, r, rst,
+                   rxMaster, serverSlave) is
       variable v : RegType;
       variable i : natural;
    begin
@@ -210,8 +211,8 @@ begin
                -- tData[1][95:80]  = UDP Checksum 
                -- tData[1][127:96] = UDP Datagram 
                ------------------------------------------------               
-               -- Check the IP port 
-               if (r.tData(127 downto 96) = localIp) then
+               -- Check the local IP address or broadcast IP
+               if (r.tData(127 downto 96) = localIp) or (r.tData(127 downto 96) = broadcastIp) then
                   -- Check if server engine(s) is enabled
                   if (SERVER_EN_G = true) then
                      for i in (SERVER_SIZE_G-1) downto 0 loop
