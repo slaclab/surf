@@ -23,7 +23,7 @@ import pyrogue as pr
 class Pgp3AxiL(pr.Device):
     def __init__(self, 
                  description = "Configuration and status a PGP 3 link",
-                 channels = 4,
+                 numVc = 4,
                  writeEn = False,
                  errorCountBits = 4,
                  statusCountBits = 32,
@@ -114,7 +114,7 @@ class Pgp3AxiL(pr.Device):
         self.add(pr.RemoteVariable(
             name         = "RxRemPause",       
             offset       = 0x20, 
-            bitSize      = channels, 
+            bitSize      = numVc, 
             bitOffset    = 16, 
             mode         = "RO", 
             base         = pr.UInt,
@@ -126,7 +126,7 @@ class Pgp3AxiL(pr.Device):
         self.add(pr.RemoteVariable(
             name         = "RxRemOverflow",    
             offset       = 0x20, 
-            bitSize      = channels, 
+            bitSize      = numVc, 
             bitOffset    = 0, 
             mode         = "RO", 
             base         = pr.UInt,
@@ -189,7 +189,7 @@ class Pgp3AxiL(pr.Device):
             addErrorCountVar(
                 name   = f'RxRemOverflowCount[{i}]',
                 offset = 0x40+(i*4),
-                hidden = (i >= channels),
+                hidden = (i >= numVc),
             )
 
         addErrorCountVar(
@@ -365,7 +365,7 @@ class Pgp3AxiL(pr.Device):
         self.add(pr.RemoteVariable(
             name         = "TxLocPause",       
             offset       = 0x8C, 
-            bitSize      = channels, 
+            bitSize      = numVc, 
             bitOffset    = 16, 
             mode         = "RO", 
             base         = pr.UInt,
@@ -377,7 +377,7 @@ class Pgp3AxiL(pr.Device):
         self.add(pr.RemoteVariable(
             name         = "TxLocOverflow",    
             offset       = 0x8C, 
-            bitSize      = channels,
+            bitSize      = numVc,
             bitOffset    = 0, 
             mode         = "RO", 
             base         = pr.UInt,
@@ -424,7 +424,7 @@ class Pgp3AxiL(pr.Device):
             addErrorCountVar(
                 name   = f'TxLocOverflowCount[{i}]',
                 offset = 0xB0 + (i*4),
-                hidden = (i >= channels),
+                hidden = (i >= numVc),
             )
        
         addErrorCountVar(
@@ -456,3 +456,55 @@ class Pgp3AxiL(pr.Device):
 
     def countReset(self):
         self.CountReset()
+
+class Pgp3GthUs(pr.Device):
+    def __init__(self, *,
+                 enDrp = True,
+                 enMon = True,
+                 numVc = 4,                 
+                 monWriteEn = False,
+                 monErrorCountBits = 4,
+                 monStatusCountBits = 32,
+                 **kwargs):
+        super().__init__(self, **kwargs)
+        
+        if enMon:
+            self.add(Pgp3AxiL(
+                offset = 0x0,
+                numVc = numVc,
+                writeEn = monWriteEn,
+                errorCountBits = monErrorCountBits,
+                statusCountBits = monStatusCountBits,
+            ))
+
+        if enDrp:
+            self.add(surf.xilinx.Gthe3Channel(
+                offset = 0x1000,
+                expand = False,
+            ))
+
+    
+class Pgp3GthUsWrapper(pr.Device):
+    def __init__(self, *,
+                 lanes = 1,
+                 enGtDrp = True,
+                 enQpllDrp = False,
+                 enMon = True,
+                 **kwargs):
+        super().__init__(self, **kwargs)
+
+        self.addNodes(
+            nodeClass = Pgp3GthUs,
+            number = lanes,
+            stride = 0x2000
+            name = 'Pgp3GthUs',
+            offset = 0x0,
+            enMon = enMon,
+            enDrp = enGtDrp
+        )
+
+#         if enQpllDrp:
+#             self.add(surf.xilinx.Gthe3Qpll(
+#                 offset = lanes * 0x2000))
+            
+                
