@@ -2,7 +2,7 @@
 -- File       : PgpGthCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2017-10-12
+-- Last update: 2017-11-03
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -150,6 +150,9 @@ architecture mapping of PgpGthCoreWrapper is
    signal drpRdy  : sl;
 
 begin
+
+   rxUsrClk <= rxUsrClkInt;
+   txUsrClk <= txUsrClkInt;
 
    U_RstSync_TX : entity work.RstSync
       generic map (
