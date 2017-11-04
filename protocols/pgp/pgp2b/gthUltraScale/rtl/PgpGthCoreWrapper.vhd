@@ -151,8 +151,8 @@ architecture mapping of PgpGthCoreWrapper is
 
 begin
 
-   rxUsrClk <= rxUsrClkInt;
-   txUsrClk <= txUsrClkInt;
+   rxUsrClk2 <= rxUsrClk2Int;
+   txUsrClk2 <= txUsrClk2Int;
 
    U_RstSync_TX : entity work.RstSync
       generic map (
