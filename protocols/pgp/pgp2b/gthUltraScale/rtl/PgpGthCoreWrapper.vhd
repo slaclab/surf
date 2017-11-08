@@ -2,7 +2,7 @@
 -- File       : PgpGthCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2017-11-03
+-- Last update: 2017-11-07
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -149,6 +149,13 @@ architecture mapping of PgpGthCoreWrapper is
    signal drpWe   : sl;
    signal drpRdy  : sl;
 
+   signal dummy0_6 : slv(5 downto 0);
+   signal dummy1_14 : slv(13 downto 0);
+   signal dummy2_14 : slv(13 downto 0);
+   signal dummy3_6 : slv(5 downto 0);
+   signal dummy4_1 : sl;
+   signal dummy5_1 : sl;
+
 begin
 
    rxUsrClk2 <= rxUsrClk2Int;
@@ -159,7 +166,7 @@ begin
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
          OUT_POLARITY_G => '1',
-         OUT_REG_RST_G  => true)
+         OUT_REG_RST_G  => false)
       port map (
          clk      => txUsrClk2Int,       -- [in]
          asyncRst => txUsrClkActiveInt,  -- [in]
@@ -170,7 +177,7 @@ begin
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
          OUT_POLARITY_G => '1',
-         OUT_REG_RST_G  => true)
+         OUT_REG_RST_G  => false)
       port map (
          clk      => rxUsrClk2Int,       -- [in]
          asyncRst => rxUsrClkActiveInt,  -- [in]
@@ -222,21 +229,21 @@ begin
          txctrl0_in                            => X"0000",
          txctrl1_in                            => X"0000",
          txctrl2_in(1 downto 0)                => txDataK,
-         txctrl2_in(7 downto 2)                => (others => '0'),
+         txctrl2_in(7 downto 2)                => dummy0_6,
          gthtxn_out(0)                         => gtTxN,
          gthtxp_out(0)                         => gtTxP,
          rxbyteisaligned_out                   => open,
          rxbyterealign_out                     => open,
          rxcommadet_out                        => open,
          rxctrl0_out(1 downto 0)               => rxDataK,
-         rxctrl0_out(15 downto 2)              => open,
+         rxctrl0_out(15 downto 2)              => dummy1_14,
          rxctrl1_out(1 downto 0)               => rxDispErr,
-         rxctrl1_out(15 downto 2)              => open,
+         rxctrl1_out(15 downto 2)              => dummy2_14,
          rxctrl2_out                           => open,
          rxctrl3_out(1 downto 0)               => rxDecErr,
-         rxctrl3_out(7 downto 2)               => open,
-         rxpmaresetdone_out(0)                 => open,
-         txpmaresetdone_out(0)                 => open);
+         rxctrl3_out(7 downto 2)               => dummy3_6,
+         rxpmaresetdone_out(0)                 => dummy4_1,
+         txpmaresetdone_out(0)                 => dummy5_1);
 
    U_AxiLiteToDrp_1 : entity work.AxiLiteToDrp
       generic map (
