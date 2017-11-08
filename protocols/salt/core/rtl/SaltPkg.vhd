@@ -2,7 +2,7 @@
 -- File       : SaltPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2016-07-13
+-- Last update: 2017-11-08
 -------------------------------------------------------------------------------
 -- Description: SLAC Asynchronous Logic Transceiver (SALT) Package File
 -------------------------------------------------------------------------------
@@ -19,14 +19,29 @@ library ieee;
 use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
 
 package SaltPkg is
 
-   constant SSI_GMII_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(1, TKEEP_COMP_C, TUSER_FIRST_LAST_C, 0);
-   constant SSI_SALT_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_COMP_C, TUSER_FIRST_LAST_C, 8);
-   constant SALT_MAX_WORDS_C  : natural             := (1500/4);
-   constant INTER_GAP_SIZE_C  : natural             := 12;
+   constant SSI_GMII_CONFIG_C : AxiStreamConfigType := (
+      TSTRB_EN_C    => false,
+      TDATA_BYTES_C => 1,
+      TDEST_BITS_C  => 8,
+      TID_BITS_C    => 0,
+      TKEEP_MODE_C  => TKEEP_COMP_C,
+      TUSER_BITS_C  => 2,
+      TUSER_MODE_C  => TUSER_FIRST_LAST_C);
+
+   constant SSI_SALT_CONFIG_C : AxiStreamConfigType := (
+      TSTRB_EN_C    => false,
+      TDATA_BYTES_C => 4,
+      TDEST_BITS_C  => 8,
+      TID_BITS_C    => 0,
+      TKEEP_MODE_C  => TKEEP_COMP_C,
+      TUSER_BITS_C  => 2,
+      TUSER_MODE_C  => TUSER_FIRST_LAST_C);
+
+   constant SALT_MAX_WORDS_C : natural := (1500/4);
+   constant INTER_GAP_SIZE_C : natural := 12;
 
    constant SOF_C  : slv(31 downto 0) := x"BBBBBBBB";  -- SOF  = start of frame
    constant SOC_C  : slv(31 downto 0) := x"CCCCCCCC";  -- SOC  = start of continuation
@@ -36,5 +51,5 @@ package SaltPkg is
 
    constant PREAMBLE_C : slv(31 downto 0) := x"55555555";
    constant SFD_C      : slv(31 downto 0) := x"D5555555";
-   
+
 end package;
