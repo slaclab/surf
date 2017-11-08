@@ -587,29 +587,24 @@ begin
    end generate;
 
    -- Flush Sync
-   U_TxFlushSync : entity work.RstSync
+   U_TxFlushSync : entity work.SynchronizerOneShot
       generic map (
-         TPD_G           => TPD_G,
-         IN_POLARITY_G   => '1',
-         OUT_POLARITY_G  => '1',
-         RELEASE_DELAY_G => 3)
+         TPD_G         => TPD_G,
+         PULSE_WIDTH_G => 10)
       port map (
-         clk      => pgpTxClk,
-         asyncRst => r.flush,
-         syncRst  => txFlush);
+         clk     => pgpTxClk,
+         dataIn  => r.flush,
+         dataOut => txFlush);
 
    -- Flush Sync
-   U_TxResetSync : entity work.RstSync
+   U_TxResetSync : entity work.SynchronizerOneShot
       generic map (
-         TPD_G           => TPD_G,
-         IN_POLARITY_G   => '1',
-         OUT_POLARITY_G  => '1',
-         RELEASE_DELAY_G => 3)
+         TPD_G         => TPD_G,
+         PULSE_WIDTH_G => 10)
       port map (
-         clk      => pgpTxClk,
-         asyncRst => r.resetTx,
-         syncRst  => txReset
-         );
+         clk     => pgpTxClk,
+         dataIn  => r.resetTx,
+         dataout => txReset);
 
 
    -- Set tx input
@@ -626,28 +621,24 @@ begin
    -------------------------------------
 
    -- Flush Sync
-   U_RxFlushSync : entity work.RstSync
+   U_RxFlushSync : entity work.SynchronizerOneShot
       generic map (
-         TPD_G           => TPD_G,
-         IN_POLARITY_G   => '1',
-         OUT_POLARITY_G  => '1',
-         RELEASE_DELAY_G => 3)
+         TPD_G         => TPD_G,
+         PULSE_WIDTH_G => 10)
       port map (
-         clk      => pgpRxClk,
-         asyncRst => r.flush,
-         syncRst  => rxFlush);
+         clk     => pgpRxClk,
+         dataIn  => r.flush,
+         dataOut => rxFlush);
 
    -- Reset Rx Sync
-   U_ResetRxSync : entity work.RstSync
+   U_ResetRxSync : entity work.SynchronizerOneShot
       generic map (
-         TPD_G           => TPD_G,
-         IN_POLARITY_G   => '1',
-         OUT_POLARITY_G  => '1',
-         RELEASE_DELAY_G => 16)
+         TPD_G         => TPD_G,
+         PULSE_WIDTH_G => 10)
       port map (
-         clk      => pgpRxClk,
-         asyncRst => r.resetRx,
-         syncRst  => rxReset);
+         clk     => pgpRxClk,
+         dataIn  => r.resetRx,
+         dataOut => rxReset);
 
    -- Set rx input
    pgpRxIn.flush    <= locRxIn.flush or rxFlush;
