@@ -106,8 +106,8 @@ begin
    pgpTxClk   <= pgpTxClkInt;
    pgpTxReset <= pgpTxRstInt;
 
-   gtRxUserReset <= phyRxInit or pgpRxIn.resetRx;
-   gtTxUserReset <= pgpTxIn.resetTx;
+   gtRxUserReset <= phyRxInit; -- or pgpRxIn.resetRx;
+   gtTxUserReset <= '0'; --pgpTxIn.resetTx;
 
    U_Pgp2bLane : entity work.Pgp2bLane
       generic map (
