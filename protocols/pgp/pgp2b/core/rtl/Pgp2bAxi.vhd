@@ -2,7 +2,7 @@
 -- File       : Pgp2bAxi.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2009-05-27
--- Last update: 2017-10-20
+-- Last update: 2017-11-08
 -------------------------------------------------------------------------------
 -- Description:
 -- AXI-Lite block to manage the PGP interface.
@@ -403,8 +403,8 @@ begin
          USE_DSP48_G       => "no",
          REF_CLK_FREQ_G    => AXI_CLK_FREQ_G,
          REFRESH_RATE_G    => 100.0,
-         CLK_LOWER_LIMIT_G => 159.0E+6,
-         CLK_UPPER_LIMIT_G => 161.0E+6,
+         CLK_LOWER_LIMIT_G => 155.0E+6,
+         CLK_UPPER_LIMIT_G => 158.0E+6,
          CNT_WIDTH_G       => 32)
       port map (
          freqOut     => rxStatusSync.rxClkFreq,
@@ -523,8 +523,8 @@ begin
          USE_DSP48_G       => "no",
          REF_CLK_FREQ_G    => AXI_CLK_FREQ_G,
          REFRESH_RATE_G    => 100.0,
-         CLK_LOWER_LIMIT_G => 159.0E+6,
-         CLK_UPPER_LIMIT_G => 161.0E+6,
+         CLK_LOWER_LIMIT_G => 155.0E+6,
+         CLK_UPPER_LIMIT_G => 158.0E+6,
          CNT_WIDTH_G       => 32)
       port map (
          freqOut     => txStatusSync.txClkFreq,
