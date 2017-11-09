@@ -19,6 +19,7 @@
 
 # Comment added by rherbst for demonstration purposes.
 import datetime
+import parse
 import pyrogue as pr
 
 # Another comment added by rherbst for demonstration
@@ -202,7 +203,59 @@ class AxiVersion(pr.Device):
             bitOffset    = 0x00,
             base         = pr.String,
             mode         = 'RO',
+            hidden       = True,
         ))
+
+        self._imageName = ''
+        self._buildEnv = ''
+        self._buildServer = ''
+        self._buildDate = ''
+        self._builder = ''
+        
+        def parseBuildStamp(var, value, disp):
+            print(f'parseBuildStamp({value})')
+            p = parse.parse("{imageName}: {buildEnv}, {buildServer}, Built {buildDate} by {builder}", value.strip())
+            print(p)            
+            print(p.named)
+            if p is not None:
+                for k,v in p.named.items():
+                    setattr(self, f'_{k}', v)
+
+        self.BuildStamp.addListener(parseBuildStamp)
+        
+        self.add(pr.LinkVariable(
+            name = 'ImageName',
+            mode = 'RO',
+            linkedGet = lambda: self._imageName,
+            dependencies = [self.BuildStamp]))
+ 
+        self.add(pr.LinkVariable(
+            name = 'BuildEnv',
+            mode = 'RO',
+            linkedGet = lambda: self._buildEnv,
+            dependencies = [self.BuildStamp]))
+
+        self.add(pr.LinkVariable(
+            name = 'BuildServer',
+            mode = 'RO',
+            linkedGet = lambda: self._buildServer,
+            dependencies = [self.BuildStamp]))
+       
+        self.add(pr.LinkVariable(
+            name = 'BuildDate',
+            mode = 'RO',
+            linkedGet = lambda: self._buildDate,
+            dependencies = [self.BuildStamp]))
+       
+        self.add(pr.LinkVariable(
+            name = 'Builder',
+            mode = 'RO',
+            linkedGet = lambda: self._builder,
+            dependencies = [self.BuildStamp]))
+       
+        print(f'BuildStamp listeners - {self.BuildStamp.listeners}')
+        print(dir(self))
+            
 
     def hardReset(self):
         print('AxiVersion hard reset called')
