@@ -2,7 +2,7 @@
 -- File       : PgpGthCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2017-11-07
+-- Last update: 2017-11-09
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -60,7 +60,7 @@ entity PgpGthCoreWrapper is
       txData         : in  slv(15 downto 0);
       txDataK        : in  slv(1 downto 0);
       txOutClk       : out sl;
-      txPolarity : in sl;
+      txPolarity     : in  sl;
       loopback       : in  slv(2 downto 0);
 
       -- AXI-Lite DRP interface
@@ -113,7 +113,7 @@ architecture mapping of PgpGthCoreWrapper is
          rxmcommaalignen_in                 : in  slv(0 downto 0);
          rxpcommaalignen_in                 : in  slv(0 downto 0);
          rxpolarity_in                      : in  slv(0 downto 0);
-         txpolarity_in                      : in  slv(0 downto 0);         
+         txpolarity_in                      : in  slv(0 downto 0);
          tx8b10ben_in                       : in  slv(0 downto 0);
          txctrl0_in                         : in  slv(15 downto 0);
          txctrl1_in                         : in  slv(15 downto 0);
@@ -149,12 +149,14 @@ architecture mapping of PgpGthCoreWrapper is
    signal drpWe   : sl;
    signal drpRdy  : sl;
 
-   signal dummy0_6 : slv(5 downto 0);
+   signal dummy0_6  : slv(5 downto 0);
    signal dummy1_14 : slv(13 downto 0);
    signal dummy2_14 : slv(13 downto 0);
-   signal dummy3_6 : slv(5 downto 0);
-   signal dummy4_1 : sl;
-   signal dummy5_1 : sl;
+   signal dummy3_6  : slv(5 downto 0);
+   signal dummy4_1  : sl;
+   signal dummy5_1  : sl;
+
+   signal txctrl2 : slv(7 downto 0);
 
 begin
 
@@ -182,6 +184,9 @@ begin
          clk      => rxUsrClk2Int,       -- [in]
          asyncRst => rxUsrClkActiveInt,  -- [in]
          syncRst  => rxUsrClkRst);       -- [out]
+
+   txUsrClkActive <= txUsrClkActiveInt;
+   rxUsrClkActive <= rxUsrClkActiveInt;
 
    -- Note: Has to be generated from aurora core in order to work properly
    U_PgpGthCore : PgpGthCore
@@ -224,12 +229,11 @@ begin
          rxmcommaalignen_in(0)                 => '1',
          rxpcommaalignen_in(0)                 => '1',
          rxpolarity_in(0)                      => rxPolarity,
-         txpolarity_in(0)                      => txPolarity,         
+         txpolarity_in(0)                      => txPolarity,
          tx8b10ben_in(0)                       => '1',
          txctrl0_in                            => X"0000",
          txctrl1_in                            => X"0000",
-         txctrl2_in(1 downto 0)                => txDataK,
-         txctrl2_in(7 downto 2)                => dummy0_6,
+         txctrl2_in                            => txctrl2,
          gthtxn_out(0)                         => gtTxN,
          gthtxp_out(0)                         => gtTxP,
          rxbyteisaligned_out                   => open,
@@ -244,6 +248,8 @@ begin
          rxctrl3_out(7 downto 2)               => dummy3_6,
          rxpmaresetdone_out(0)                 => dummy4_1,
          txpmaresetdone_out(0)                 => dummy5_1);
+
+   txctrl2 <= "000000" & txDataK;
 
    U_AxiLiteToDrp_1 : entity work.AxiLiteToDrp
       generic map (
