@@ -370,7 +370,7 @@ begin
       port map (
          -- Clock and Reset
          clk      => clk,
-         rst      => clk,
+         rst      => rst,
          -- AXI Stream Interface
          rxMaster => txMaster,
          rxSlave  => txSlave,
