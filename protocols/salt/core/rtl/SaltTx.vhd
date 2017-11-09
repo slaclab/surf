@@ -2,7 +2,7 @@
 -- File       : SaltTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2017-09-29
+-- Last update: 2017-11-08
 -------------------------------------------------------------------------------
 -- Description: SALT TX Engine Module
 -------------------------------------------------------------------------------
@@ -37,11 +37,11 @@ entity SaltTx is
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
       -- GMII Interface
+      clk         : in  sl;
+      rst         : in  sl;
       txPktSent   : out sl;
       txEn        : out sl;
-      txData      : out slv(7 downto 0);
-      clk         : in  sl;
-      rst         : in  sl);
+      txData      : out slv(7 downto 0));
 end SaltTx;
 
 architecture rtl of SaltTx is
@@ -58,12 +58,11 @@ architecture rtl of SaltTx is
       FOOTER_S);
 
    type RegType is record
-      txPktSent   : sl;
       flushBuffer : sl;
       sof         : sl;
       eof         : sl;
       eofe        : sl;
-      gapCnt      : natural range 0 to INTER_GAP_SIZE_C;
+      txPktSent   : sl;
       seqCnt      : slv(7 downto 0);
       tDest       : slv(7 downto 0);
       cnt         : slv(15 downto 0);
@@ -73,16 +72,14 @@ architecture rtl of SaltTx is
       rxSlave     : AxiStreamSlaveType;
       sMaster     : AxiStreamMasterType;
       mSlave      : AxiStreamSlaveType;
-      gmiiSlave   : AxiStreamSlaveType;
       state       : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
-      txPktSent   => '0',
       flushBuffer => '1',
       sof         => '0',
       eof         => '0',
       eofe        => '0',
-      gapCnt      => 0,
+      txPktSent   => '0',
       seqCnt      => (others => '0'),
       tDest       => (others => '0'),
       cnt         => (others => '0'),
@@ -92,22 +89,19 @@ architecture rtl of SaltTx is
       rxSlave     => AXI_STREAM_SLAVE_INIT_C,
       sMaster     => AXI_STREAM_MASTER_INIT_C,
       mSlave      => AXI_STREAM_SLAVE_INIT_C,
-      gmiiSlave   => AXI_STREAM_SLAVE_INIT_C,
       state       => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal rxMaster   : AxiStreamMasterType;
-   signal rxSlave    : AxiStreamSlaveType;
-   signal sMaster    : AxiStreamMasterType;
-   signal sSlave     : AxiStreamSlaveType;
-   signal mMaster    : AxiStreamMasterType;
-   signal mSlave     : AxiStreamSlaveType;
-   signal txMaster   : AxiStreamMasterType;
-   signal txSlave    : AxiStreamSlaveType;
-   signal gmiiMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal gmiiSlave  : AxiStreamSlaveType;
+   signal rxMaster : AxiStreamMasterType;
+   signal rxSlave  : AxiStreamSlaveType;
+   signal sMaster  : AxiStreamMasterType;
+   signal sSlave   : AxiStreamSlaveType;
+   signal mMaster  : AxiStreamMasterType;
+   signal mSlave   : AxiStreamSlaveType;
+   signal txMaster : AxiStreamMasterType;
+   signal txSlave  : AxiStreamSlaveType;
 
 begin
 
@@ -168,15 +162,13 @@ begin
          mAxisMaster => mMaster,
          mAxisSlave  => mSlave);
 
-
-   comb : process (gmiiMaster, mMaster, r, rst, rxMaster, sSlave, txSlave) is
+   comb : process (mMaster, r, rst, rxMaster, sSlave, txSlave) is
       variable v : RegType;
    begin
       -- Latch the current value
       v := r;
 
       -- Reset the flags
-      v.txPktSent   := '0';
       v.flushBuffer := '0';
       v.rxSlave     := AXI_STREAM_SLAVE_INIT_C;
       if txSlave.tReady = '1' then
@@ -200,6 +192,7 @@ begin
             v.sof         := '0';
             v.eof         := '0';
             v.eofe        := '0';
+            v.txPktSent   := '0';
             v.length      := (others => '0');
             v.checksum    := (others => '0');
             v.cnt         := (others => '0');
@@ -208,12 +201,11 @@ begin
                -- Check for SOF
                if ssiGetUserSof(SSI_SALT_CONFIG_C, rxMaster) = '1' then
                   -- Set the flag
-                  v.sof       := '1';
-                  v.txPktSent := '1';
+                  v.sof    := '1';
                   -- Reset the counter
-                  v.seqCnt    := x"00";
+                  v.seqCnt := x"00";
                   -- Latch the destination
-                  v.tDest     := rxMaster.tDest;
+                  v.tDest  := rxMaster.tDest;
                else
                   -- Increment the counter
                   v.seqCnt := r.seqCnt + 1;
@@ -298,13 +290,14 @@ begin
             -- Check for valid data
             if (mMaster.tValid = '1') and (v.txMaster.tValid = '0') then
                -- Accept the data
-               v.mSlave.tReady := '1';
+               v.mSlave.tReady               := '1';
                -- Move the data
-               v.txMaster      := mMaster;
+               v.txMaster.tValid             := '1';
+               v.txMaster.tdata(31 downto 0) := mMaster.tdata(31 downto 0);
                -- Update checksum
-               v.checksum      := r.checksum + mMaster.tData(31 downto 0);
+               v.checksum                    := r.checksum + mMaster.tData(31 downto 0);
                -- Increment the counter
-               v.cnt           := r.cnt + 1;
+               v.cnt                         := r.cnt + 1;
                -- Check the length
                if v.cnt = r.length then
                   -- Flush the buffer
@@ -329,8 +322,8 @@ begin
             if (v.txMaster.tValid = '0') then
                -- Write the footer
                v.txMaster.tValid := '1';
-               -- Insert tLast for intergap monitoring
                v.txMaster.tLast  := '1';
+               v.txPktSent       := '1';
                -- Check for EOF
                if r.eof = '0' then
                   v.txMaster.tData(31 downto 0) := EOC_C;
@@ -347,24 +340,6 @@ begin
       ----------------------------------------------------------------------
       end case;
 
-      -- Check the current state of gmiiSlave
-      if r.gmiiSlave.tReady = '0' then
-         -- Check the intergap counter
-         if r.gapCnt = INTER_GAP_SIZE_C then
-            -- Set the flag
-            v.gmiiSlave.tReady := '1';
-         else
-            v.gapCnt := r.gapCnt + 1;
-         end if;
-      else
-         -- Check for GMII tLast
-         if (gmiiMaster.tValid = '1') and (gmiiMaster.tLast = '1') then
-            -- Reset the flag and counter
-            v.gmiiSlave.tReady := '0';
-            v.gapCnt           := 0;
-         end if;
-      end if;
-
       -- Reset
       if (rst = '1') then
          v := REG_INIT_C;
@@ -378,7 +353,6 @@ begin
       sMaster   <= r.sMaster;
       rxSlave   <= v.rxSlave;
       txMaster  <= r.txMaster;
-      gmiiSlave <= r.gmiiSlave;
       txPktSent <= r.txPktSent;
 
    end process comb;
@@ -390,36 +364,18 @@ begin
       end if;
    end process seq;
 
-   FIFO_TX : entity work.AxiStreamFifoV2
+   U_TxResize : entity work.SaltTxResize
       generic map (
-         -- General Configurations
-         TPD_G               => TPD_G,
-         PIPE_STAGES_G       => 0,
-         SLAVE_READY_EN_G    => true,
-         VALID_THOLD_G       => 1,
-         -- FIFO configurations
-         BRAM_EN_G           => true,
-         USE_BUILT_IN_G      => false,
-         GEN_SYNC_FIFO_G     => true,
-         CASCADE_SIZE_G      => 1,
-         FIFO_ADDR_WIDTH_G   => 9,
-         -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => SSI_SALT_CONFIG_C,
-         MASTER_AXI_CONFIG_G => SSI_GMII_CONFIG_C)
+         TPD_G => TPD_G)
       port map (
-         -- Slave Port
-         sAxisClk    => clk,
-         sAxisRst    => rst,
-         sAxisMaster => txMaster,
-         sAxisSlave  => txSlave,
-         -- Master Port
-         mAxisClk    => clk,
-         mAxisRst    => rst,
-         mAxisMaster => gmiiMaster,
-         mAxisSlave  => gmiiSlave);
-
-
-   txEn   <= gmiiMaster.tValid and gmiiSlave.tReady;
-   txData <= gmiiMaster.tData(7 downto 0);
+         -- Clock and Reset
+         clk      => clk,
+         rst      => rst,
+         -- AXI Stream Interface
+         rxMaster => txMaster,
+         rxSlave  => txSlave,
+         -- GMII Interface
+         txEn     => txEn,
+         txData   => txData);
 
 end rtl;
