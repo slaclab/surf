@@ -2,7 +2,7 @@
 -- File       : Pgp2bAxi.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2009-05-27
--- Last update: 2017-11-08
+-- Last update: 2017-11-09
 -------------------------------------------------------------------------------
 -- Description:
 -- AXI-Lite block to manage the PGP interface.
@@ -587,24 +587,26 @@ begin
    end generate;
 
    -- Flush Sync
-   U_TxFlushSync : entity work.SynchronizerOneShot
-      generic map (
-         TPD_G         => TPD_G,
-         PULSE_WIDTH_G => 10)
-      port map (
-         clk     => pgpTxClk,
-         dataIn  => r.flush,
-         dataOut => txFlush);
+--    U_TxFlushSync : entity work.SynchronizerOneShot
+--       generic map (
+--          TPD_G         => TPD_G,
+--          PULSE_WIDTH_G => 10)
+--       port map (
+--          clk     => pgpTxClk,
+--          dataIn  => r.flush,
+--          dataOut => txFlush);
+   txFlush <= r.flush;
 
    -- Flush Sync
-   U_TxResetSync : entity work.SynchronizerOneShot
-      generic map (
-         TPD_G         => TPD_G,
-         PULSE_WIDTH_G => 10)
-      port map (
-         clk     => pgpTxClk,
-         dataIn  => r.resetTx,
-         dataout => txReset);
+--    U_TxResetSync : entity work.SynchronizerOneShot
+--       generic map (
+--          TPD_G         => TPD_G,
+--          PULSE_WIDTH_G => 10)
+--       port map (
+--          clk     => pgpTxClk,
+--          dataIn  => r.resetTx,
+--          dataout => txReset);
+   txReset <= r.resetTx;
 
 
    -- Set tx input
@@ -621,24 +623,28 @@ begin
    -------------------------------------
 
    -- Flush Sync
-   U_RxFlushSync : entity work.SynchronizerOneShot
-      generic map (
-         TPD_G         => TPD_G,
-         PULSE_WIDTH_G => 10)
-      port map (
-         clk     => pgpRxClk,
-         dataIn  => r.flush,
-         dataOut => rxFlush);
+--    U_RxFlushSync : entity work.SynchronizerOneShot
+--       generic map (
+--          TPD_G         => TPD_G,
+--          PULSE_WIDTH_G => 10)
+--       port map (
+--          clk     => pgpRxClk,
+--          dataIn  => r.flush,
+--          dataOut => rxFlush);
+
+   rxFlush <= r.flush;
 
    -- Reset Rx Sync
-   U_ResetRxSync : entity work.SynchronizerOneShot
-      generic map (
-         TPD_G         => TPD_G,
-         PULSE_WIDTH_G => 10)
-      port map (
-         clk     => pgpRxClk,
-         dataIn  => r.resetRx,
-         dataOut => rxReset);
+--    U_ResetRxSync : entity work.SynchronizerOneShot
+--       generic map (
+--          TPD_G         => TPD_G,
+--          PULSE_WIDTH_G => 10)
+--       port map (
+--          clk     => pgpRxClk,
+--          dataIn  => r.resetRx,
+--          dataOut => rxReset);
+
+   rxReset <= r.resetRx;
 
    -- Set rx input
    pgpRxIn.flush    <= locRxIn.flush or rxFlush;
