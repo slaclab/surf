@@ -206,56 +206,40 @@ class AxiVersion(pr.Device):
             hidden       = True,
         ))
 
-        self._imageName = ''
-        self._buildEnv = ''
-        self._buildServer = ''
-        self._buildDate = ''
-        self._builder = ''
         
         def parseBuildStamp(var, value, disp):
-            print(f'parseBuildStamp({value})')
-            p = parse.parse("{imageName}: {buildEnv}, {buildServer}, Built {buildDate} by {builder}", value.strip())
-            print(p)            
-            print(p.named)
+            p = parse.parse("{ImageName}: {BuildEnv}, {BuildServer}, Built {BuildDate} by {Builder}", value.strip())
             if p is not None:
                 for k,v in p.named.items():
-                    setattr(self, f'_{k}', v)
-
-        self.BuildStamp.addListener(parseBuildStamp)
+                    self.node(k).set(v)
         
-        self.add(pr.LinkVariable(
+        self.add(pr.LocalVariable(
             name = 'ImageName',
             mode = 'RO',
-            linkedGet = lambda: self._imageName,
-            dependencies = [self.BuildStamp]))
+            value = ''))
  
-        self.add(pr.LinkVariable(
+        self.add(pr.LocalVariable(
             name = 'BuildEnv',
             mode = 'RO',
-            linkedGet = lambda: self._buildEnv,
-            dependencies = [self.BuildStamp]))
+            value = ''))
 
-        self.add(pr.LinkVariable(
+        self.add(pr.LocalVariable(
             name = 'BuildServer',
             mode = 'RO',
-            linkedGet = lambda: self._buildServer,
-            dependencies = [self.BuildStamp]))
+            value = ''))
        
-        self.add(pr.LinkVariable(
+        self.add(pr.LocalVariable(
             name = 'BuildDate',
             mode = 'RO',
-            linkedGet = lambda: self._buildDate,
-            dependencies = [self.BuildStamp]))
+            value = ''))
        
-        self.add(pr.LinkVariable(
+        self.add(pr.LocalVariable(
             name = 'Builder',
             mode = 'RO',
-            linkedGet = lambda: self._builder,
-            dependencies = [self.BuildStamp]))
+            value = ''))
+
+        self.BuildStamp.addListener(parseBuildStamp)        
        
-        print(f'BuildStamp listeners - {self.BuildStamp.listeners}')
-        print(dir(self))
-            
 
     def hardReset(self):
         print('AxiVersion hard reset called')
