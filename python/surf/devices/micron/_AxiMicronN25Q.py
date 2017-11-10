@@ -227,12 +227,13 @@ class AxiMicronN25Q(pr.Device):
                     bar.update(0xFFF)      
                 # Get the start bursting address
                 if ( (byteCnt==0) and (wordCnt==0) ):
-                    # Start a burst transfer
+                    # Start address of a burst transfer
                     self.readCmd(int(self._mcs.entry[i][0])) 
                     # Get the data
                     dataArray = self.getDataReg()
-                # Get the data for MCS file
+                # Get the data/addr for MCS file
                 data = int(self._mcs.entry[i][1])
+                addr = int(self._mcs.entry[i][0])
                 # Get the prom data from data array                    
                 prom = ((dataArray[wordCnt] >> 8*(3-byteCnt)) & 0xFF)
                 # Compare PROM to file

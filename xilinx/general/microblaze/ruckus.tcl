@@ -16,9 +16,11 @@ if { [info exists ::env(SDK_SRC_PATH)] != 1 }  {
    if { $::env(VIVADO_VERSION) <= 2016.2 } {
       loadBlockDesign -path "$::DIR_PATH/bd/2016.2/MicroblazeBasicCore.bd"
    } elseif { $::env(VIVADO_VERSION) == 2016.3 } {
-      puts "\n\nError: $::DIR_PATH/bd/MicroblazeBasicCore doesn't support Vivado 2016.2\n\n"
+      puts "\n\nError: $::DIR_PATH/bd/MicroblazeBasicCore doesn't support Vivado 2016.3\n\n"
+   } elseif { $::env(VIVADO_VERSION) <= 2017.2 } {
+      loadBlockDesign -path "$::DIR_PATH/bd/2016.4/MicroblazeBasicCore.bd"      
    } else {
-      loadBlockDesign -path "$::DIR_PATH/bd/2016.4/MicroblazeBasicCore.bd"
+      loadBlockDesign -path "$::DIR_PATH/bd/2017.3/MicroblazeBasicCore.bd"
    }
    
 }

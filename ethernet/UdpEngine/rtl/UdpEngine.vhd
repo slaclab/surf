@@ -2,7 +2,7 @@
 -- File       : UdpEngine.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2016-09-30
+-- Last update: 2017-10-18
 -------------------------------------------------------------------------------
 -- Description: Top-Level UDP/DHCP Module
 -------------------------------------------------------------------------------
@@ -35,13 +35,14 @@ entity UdpEngine is
       CLIENT_PORTS_G : PositiveArray := (0 => 8193);
       -- General UDP/ARP/DHCP Generics
       DHCP_G         : boolean       := false;
-      CLK_FREQ_G     : real          := 156.25E+06;                 -- In units of Hz
+      CLK_FREQ_G     : real          := 156.25E+06;  -- In units of Hz
       COMM_TIMEOUT_G : positive      := 30);  -- In units of seconds, Client's Communication timeout before re-ARPing or DHCP discover/request
    port (
       -- Local Configurations
-      localMac         : in  slv(47 downto 0);                      --  big-Endian configuration
-      localIpIn        : in  slv(31 downto 0);                      --  big-Endian configuration 
-      dhcpIpOut        : out slv(31 downto 0);                      --  big-Endian configuration 
+      localMac         : in  slv(47 downto 0);  --  big-Endian configuration
+      broadcastIp      : in  slv(31 downto 0);  --  big-Endian configuration  
+      localIpIn        : in  slv(31 downto 0);  --  big-Endian configuration 
+      dhcpIpOut        : out slv(31 downto 0);  --  big-Endian configuration 
       -- Interface to IPV4 Engine  
       obUdpMaster      : out AxiStreamMasterType;
       obUdpSlave       : in  AxiStreamSlaveType;
@@ -90,12 +91,12 @@ architecture mapping of UdpEngine is
    signal obDhcpSlave  : AxiStreamSlaveType;
 
    signal localIp : slv(31 downto 0);
-   
+
 begin
 
    assert ((SERVER_EN_G = true) or (CLIENT_EN_G = true)) report
       "UdpEngine: Either SERVER_EN_G or CLIENT_EN_G must be true" severity failure;
-   
+
    serverRemotePort <= remotePort;      -- Debug Only
    serverRemoteIp   <= remoteIp;        -- Debug Only
    dhcpIpOut        <= localIp;
@@ -109,10 +110,11 @@ begin
          SERVER_PORTS_G => SERVER_PORTS_G,
          CLIENT_EN_G    => CLIENT_EN_G,
          CLIENT_SIZE_G  => CLIENT_SIZE_G,
-         CLIENT_PORTS_G => CLIENT_PORTS_G) 
+         CLIENT_PORTS_G => CLIENT_PORTS_G)
       port map (
          -- Local Configurations
          localIp          => localIp,
+         broadcastIp      => broadcastIp,
          -- Interface to IPV4 Engine  
          ibUdpMaster      => ibUdpMaster,
          ibUdpSlave       => ibUdpSlave,
@@ -131,17 +133,17 @@ begin
          ibDhcpSlave      => ibDhcpSlave,
          -- Clock and Reset
          clk              => clk,
-         rst              => rst); 
+         rst              => rst);
 
    GEN_DHCP : if (DHCP_G = true) generate
-      
+
       U_UdpEngineDhcp : entity work.UdpEngineDhcp
          generic map (
             -- Simulation Generics
             TPD_G          => TPD_G,
             -- UDP ARP/DHCP Generics
             CLK_FREQ_G     => CLK_FREQ_G,
-            COMM_TIMEOUT_G => COMM_TIMEOUT_G)             
+            COMM_TIMEOUT_G => COMM_TIMEOUT_G)
          port map (
             -- Local Configurations
             localMac     => localMac,
@@ -163,16 +165,16 @@ begin
       localIp      <= localIpIn;
       ibDhcpSlave  <= AXI_STREAM_SLAVE_FORCE_C;
       obDhcpMaster <= AXI_STREAM_MASTER_INIT_C;
-      
+
    end generate;
 
    GEN_SERVER : if (SERVER_EN_G = true) generate
-      
+
       U_UdpEngineTx : entity work.UdpEngineTx
          generic map (
             TPD_G  => TPD_G,
             SIZE_G => SERVER_SIZE_G,
-            PORT_G => SERVER_PORTS_G)    
+            PORT_G => SERVER_PORTS_G)
          port map (
             -- Interface to IPV4 Engine  
             obUdpMaster  => obUdpMasters(0),
@@ -194,13 +196,13 @@ begin
    end generate;
 
    GEN_CLIENT : if (CLIENT_EN_G = true) generate
-      
+
       U_UdpEngineArp : entity work.UdpEngineArp
          generic map (
             TPD_G          => TPD_G,
             CLIENT_SIZE_G  => CLIENT_SIZE_G,
             CLK_FREQ_G     => CLK_FREQ_G,
-            COMM_TIMEOUT_G => COMM_TIMEOUT_G) 
+            COMM_TIMEOUT_G => COMM_TIMEOUT_G)
          port map (
             -- Local Configurations
             localIp         => localIp,
@@ -221,7 +223,7 @@ begin
          generic map (
             TPD_G  => TPD_G,
             SIZE_G => CLIENT_SIZE_G,
-            PORT_G => CLIENT_PORTS_G)    
+            PORT_G => CLIENT_PORTS_G)
          port map (
             -- Interface to IPV4 Engine  
             obUdpMaster => obUdpMasters(1),
@@ -240,7 +242,7 @@ begin
    end generate;
 
    GEN_MUX : if ((SERVER_EN_G = true) and (CLIENT_EN_G = true)) generate
-      
+
       U_AxiStreamMux : entity work.AxiStreamMux
          generic map (
             TPD_G        => TPD_G,
@@ -254,7 +256,7 @@ begin
             sAxisSlaves  => obUdpSlaves,
             -- Master
             mAxisMaster  => obUdpMaster,
-            mAxisSlave   => obUdpSlave); 
+            mAxisSlave   => obUdpSlave);
 
    end generate;
 
@@ -270,7 +272,7 @@ begin
       arpReqMasters   <= (others => AXI_STREAM_MASTER_INIT_C);
       arpAckSlaves    <= (others => AXI_STREAM_SLAVE_FORCE_C);
       clientRemoteMac <= (others => (others => '0'));
-      
+
    end generate;
 
    NO_SERVER : if ((SERVER_EN_G = false) and (CLIENT_EN_G = true)) generate
@@ -282,7 +284,7 @@ begin
       -- Terminated the server buses
       ibServerSlaves  <= (others => AXI_STREAM_SLAVE_FORCE_C);
       obUdpMasters(0) <= AXI_STREAM_MASTER_INIT_C;
-      
+
    end generate;
-   
+
 end mapping;

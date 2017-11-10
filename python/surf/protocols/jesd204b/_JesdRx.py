@@ -156,7 +156,7 @@ class JesdRx(pr.Device):
             self.add(pr.RemoteVariable( 
                 name         = "GTReady",
                 description  = "GT Ready. Jesd clock ok PLLs are locked and GT is ready to receive data.",
-                offset       = range(0x40,0x40+4*numRxLanes+1,4),
+                offset       = range(0x40,0x40+4*numRxLanes,4),
                 bitSize      = 1,
                 bitOffset    = 0,
                 mode         = "RO",
@@ -166,7 +166,7 @@ class JesdRx(pr.Device):
             self.add(pr.RemoteVariable( 
                 name         = "DataValid",
                 description  = "Jesd Data Valid. Goes high after the code synchronization and ILAS sequence is complete (More info in Jesd204b standard).",
-                offset       = range(0x40,0x40+4*numRxLanes+1,4),
+                offset       = range(0x40,0x40+4*numRxLanes,4),
                 bitSize      = 1,
                 bitOffset    = 1,
                 mode         = "RO",
@@ -176,7 +176,7 @@ class JesdRx(pr.Device):
             self.add(pr.RemoteVariable( 
                 name         = "AlignErr",
                 description  = "Jesd Character Alignment Error. The control characters in the data are missaligned. This error will trigger JESD re-synchronization.",
-                offset       = range(0x40,0x40+4*numRxLanes+1,4),
+                offset       = range(0x40,0x40+4*numRxLanes,4),
                 bitSize      = 1,
                 bitOffset    = 2,
                 mode         = "RO",
@@ -186,7 +186,7 @@ class JesdRx(pr.Device):
             self.add(pr.RemoteVariable( 
                 name         = "nSync",
                 description  = "Synchronisation request. 0 - Not synchronised. 1 - Indicades that code group synchronization has been completed.",
-                offset       = range(0x40,0x40+4*numRxLanes+1,4),
+                offset       = range(0x40,0x40+4*numRxLanes,4),
                 bitSize      = 1,
                 bitOffset    = 3,
                 mode         = "RO",
@@ -195,7 +195,7 @@ class JesdRx(pr.Device):
             self.add(pr.RemoteVariable( 
                 name         = "RxBuffUfl",
                 description  = "Jesd sync fifo buffer undeflow. This error will trigger JESD re-synchronization.",
-                offset       = range(0x40,0x40+4*numRxLanes+1,4),
+                offset       = range(0x40,0x40+4*numRxLanes,4),
                 bitSize      = 1,
                 bitOffset    = 4,
                 mode         = "RO",
@@ -205,7 +205,7 @@ class JesdRx(pr.Device):
             self.add(pr.RemoteVariable( 
                 name         = "RxBuffOfl",
                 description  = "Jesd elastic buffer overflow. This error will trigger JESD re-synchronization.",
-                offset       = range(0x40,0x40+4*numRxLanes+1,4),
+                offset       = range(0x40,0x40+4*numRxLanes,4),
                 bitSize      = 1,
                 bitOffset    = 5,
                 mode         = "RO",
@@ -215,7 +215,7 @@ class JesdRx(pr.Device):
             self.add(pr.RemoteVariable( 
                 name         = "PositionErr",
                 description  = "The position of K28.5 character during code group synchronization is wrong. This error will trigger JESD re-synchronization.",
-                offset       = range(0x40,0x40+4*numRxLanes+1,4),
+                offset       = range(0x40,0x40+4*numRxLanes,4),
                 bitSize      = 1,
                 bitOffset    = 6,
                 mode         = "RO",
@@ -225,7 +225,7 @@ class JesdRx(pr.Device):
             self.add(pr.RemoteVariable( 
                 name         = "RxEnabled",
                 description  = "Rx Lane Enabled. Indicates if the lane had been enabled in configuration.",
-                offset       = range(0x40,0x40+4*numRxLanes+1,4),
+                offset       = range(0x40,0x40+4*numRxLanes,4),
                 bitSize      = 1,
                 bitOffset    = 7,
                 mode         = "RO",
@@ -235,7 +235,7 @@ class JesdRx(pr.Device):
             self.add(pr.RemoteVariable( 
                 name         = "SysRefDetected",
                 description  = "System Reference input has been Detected.",
-                offset       = range(0x40,0x40+4*numRxLanes+1,4),
+                offset       = range(0x40,0x40+4*numRxLanes,4),
                 bitSize      = 1,
                 bitOffset    = 8,
                 mode         = "RO",
@@ -245,7 +245,7 @@ class JesdRx(pr.Device):
             self.add(pr.RemoteVariable( 
                 name         = "CommaDetected",
                 description  = "The K28.5 characters detected in the serial stream. ",
-                offset       = range(0x40,0x40+4*numRxLanes+1,4),
+                offset       = range(0x40,0x40+4*numRxLanes,4),
                 bitSize      = 1,
                 bitOffset    = 9,
                 mode         = "RO",

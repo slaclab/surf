@@ -2,7 +2,7 @@
 -- File       : AxiLiteAsync.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-02
--- Last update: 2016-04-26
+-- Last update: 2017-11-07
 -------------------------------------------------------------------------------
 -- Description:
 -- Asynchronous bridge for AXI Lite bus. Allows AXI transactions to cross 
@@ -181,7 +181,7 @@ begin
    process (readSlaveToMastDout)
    begin
       mAxiReadMaster.araddr <= (others => '0');
-      mAxiReadMaster.araddr <= readSlaveToMastDout(NUM_ADDR_BITS_G+2 downto 3);
+      mAxiReadMaster.araddr(NUM_ADDR_BITS_G-1 downto 0) <= readSlaveToMastDout(NUM_ADDR_BITS_G+2 downto 3);
    end process;
 
    -- Read control and valid
@@ -308,7 +308,7 @@ begin
    process (writeAddrSlaveToMastDout)
    begin
       mAxiWriteMaster.awaddr <= (others => '0');
-      mAxiWriteMaster.awaddr <= writeAddrSlaveToMastDout(NUM_ADDR_BITS_G+2 downto 3);
+      mAxiWriteMaster.awaddr(NUM_ADDR_BITS_G-1 downto 0) <= writeAddrSlaveToMastDout(NUM_ADDR_BITS_G+2 downto 3);
    end process;
 
    -- Read control and valid
