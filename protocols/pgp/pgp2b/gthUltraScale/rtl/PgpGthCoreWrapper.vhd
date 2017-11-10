@@ -2,7 +2,7 @@
 -- File       : PgpGthCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2017-11-09
+-- Last update: 2017-11-10
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -82,11 +82,14 @@ architecture mapping of PgpGthCoreWrapper is
          gtwiz_userclk_tx_usrclk_out        : out slv(0 downto 0);
          gtwiz_userclk_tx_usrclk2_out       : out slv(0 downto 0);
          gtwiz_userclk_tx_active_out        : out slv(0 downto 0);
-         gtwiz_userclk_rx_reset_in          : in  slv(0 downto 0);
-         gtwiz_userclk_rx_srcclk_out        : out slv(0 downto 0);
-         gtwiz_userclk_rx_usrclk_out        : out slv(0 downto 0);
-         gtwiz_userclk_rx_usrclk2_out       : out slv(0 downto 0);
-         gtwiz_userclk_rx_active_out        : out slv(0 downto 0);
+--         gtwiz_userclk_rx_reset_in          : in  slv(0 downto 0);
+         rxusrclk_in                        : in  slv(0 downto 0);
+         rxusrclk2_in                       : in  slv(0 downto 0);
+         rxoutclk_out                       : out slv(0 downto 0);
+--          gtwiz_userclk_rx_srcclk_out        : out slv(0 downto 0);
+--          gtwiz_userclk_rx_usrclk_out        : out slv(0 downto 0);
+--          gtwiz_userclk_rx_usrclk2_out       : out slv(0 downto 0);
+         gtwiz_userclk_rx_active_in         : in  slv(0 downto 0);
          gtwiz_reset_clk_freerun_in         : in  slv(0 downto 0);
          gtwiz_reset_all_in                 : in  slv(0 downto 0);
          gtwiz_reset_tx_pll_and_datapath_in : in  slv(0 downto 0);
@@ -134,6 +137,7 @@ architecture mapping of PgpGthCoreWrapper is
          rxctrl3_out                        : out slv(7 downto 0);
          rxpmaresetdone_out                 : out slv(0 downto 0);
          txpmaresetdone_out                 : out slv(0 downto 0);
+         rxprgdivresetdone_out              : out slv(0 downto 0);
          txprgdivresetdone_out              : out slv(0 downto 0));
    end component;
 
@@ -141,6 +145,8 @@ architecture mapping of PgpGthCoreWrapper is
    signal rxUsrClkActiveInt : sl;
    signal txUsrClk2Int      : sl;
    signal txUsrClkActiveInt : sl;
+   signal rxUsrClkInt       : sl;
+   signal txUsrClkInt       : sl;
 
    signal drpAddr : slv(8 downto 0);
    signal drpDi   : slv(15 downto 0);
@@ -162,6 +168,17 @@ begin
 
    rxUsrClk2 <= rxUsrClk2Int;
    txUsrClk2 <= txUsrClk2Int;
+
+   txUsrClk <= txUsrClkInt;
+   rxUsrClk <= rxUsrClkInt;
+
+   txUsrClkActive <= txUsrClkActiveInt;
+   rxUsrClkActive <= rxUsrClkActiveInt;
+
+
+   rxUsrClk2Int      <= txUsrClk2Int;
+   rxUsrClkInt       <= txUsrClkInt;
+   rxUsrClkActiveInt <= txUsrClkActiveInt;
 
    U_RstSync_TX : entity work.RstSync
       generic map (
@@ -185,28 +202,27 @@ begin
          asyncRst => rxUsrClkActiveInt,  -- [in]
          syncRst  => rxUsrClkRst);       -- [out]
 
-   txUsrClkActive <= txUsrClkActiveInt;
-   rxUsrClkActive <= rxUsrClkActiveInt;
+
 
    -- Note: Has to be generated from aurora core in order to work properly
    U_PgpGthCore : PgpGthCore
       port map (
          gtwiz_userclk_tx_reset_in(0)          => txReset,
          gtwiz_userclk_tx_srcclk_out(0)        => txOutClk,
-         gtwiz_userclk_tx_usrclk_out(0)        => txUsrClk,
+         gtwiz_userclk_tx_usrclk_out(0)        => txUsrClkInt,
          gtwiz_userclk_tx_usrclk2_out(0)       => txUsrClk2Int,
          gtwiz_userclk_tx_active_out(0)        => txUsrClkActiveInt,
-         gtwiz_userclk_rx_reset_in(0)          => rxReset,
-         gtwiz_userclk_rx_srcclk_out(0)        => rxOutClk,
-         gtwiz_userclk_rx_usrclk_out(0)        => rxUsrClk,
-         gtwiz_userclk_rx_usrclk2_out(0)       => rxUsrClk2Int,
-         gtwiz_userclk_rx_active_out(0)        => rxUsrClkActiveInt,
+         --gtwiz_userclk_rx_reset_in(0)          => rxReset,
+         rxusrclk_in(0)                        => rxUsrClkInt,
+         rxusrclk2_in(0)                       => rxUsrClk2Int,
+         rxoutclk_out                          => open,
+         gtwiz_userclk_rx_active_in(0)         => rxUsrClkActiveInt,
          gtwiz_reset_clk_freerun_in(0)         => stableClk,
          gtwiz_reset_all_in(0)                 => stableRst,
          gtwiz_reset_tx_pll_and_datapath_in(0) => '0',
          gtwiz_reset_tx_datapath_in(0)         => '0',
-         gtwiz_reset_rx_pll_and_datapath_in(0) => '0',
-         gtwiz_reset_rx_datapath_in(0)         => rxReset,
+         gtwiz_reset_rx_pll_and_datapath_in(0) => rxReset,
+         gtwiz_reset_rx_datapath_in(0)         => '0',
          gtwiz_reset_rx_cdr_stable_out         => open,
          gtwiz_reset_tx_done_out(0)            => txResetDone,
          gtwiz_reset_rx_done_out(0)            => rxResetDone,

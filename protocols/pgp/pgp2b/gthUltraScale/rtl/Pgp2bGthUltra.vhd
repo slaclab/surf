@@ -107,7 +107,7 @@ begin
    pgpTxReset <= pgpTxRstInt;
 
    gtRxUserReset <= phyRxInit or pgpRxIn.resetRx;
-   gtTxUserReset <= '0'; --pgpTxIn.resetTx;
+   gtTxUserReset <= pgpTxIn.resetTx;
 
    U_Pgp2bLane : entity work.Pgp2bLane
       generic map (
@@ -157,8 +157,8 @@ begin
          rxUsrClkActive  => open,
          rxResetDone     => phyRxReady,
          rxUsrClk        => open,
-         rxUsrClk2       => pgpRxClkInt,
-         rxUsrClkRst     => pgpRxRstInt,
+         rxUsrClk2       => open,
+         rxUsrClkRst     => open,
          rxData          => phyRxLaneIn.data,
          rxDataK         => phyRxLaneIn.dataK,
          rxDispErr       => phyRxLaneIn.dispErr,
@@ -182,5 +182,8 @@ begin
          axilReadSlave   => axilReadSlave,
          axilWriteMaster => axilWriteMaster,
          axilWriteSlave  => axilWriteSlave);
+
+   pgpRxClkInt <= pgpTxClkInt;
+   pgpRxRstInt <= pgpTxRstInt;
 
 end mapping;
