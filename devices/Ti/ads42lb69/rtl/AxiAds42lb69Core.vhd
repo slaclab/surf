@@ -17,6 +17,8 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
@@ -32,7 +34,8 @@ entity AxiAds42lb69Core is
       DELAY_INIT_G       : Slv9VectorArray(1 downto 0, 7 downto 0) := (others => (others => (others => '0')));
       IODELAY_GROUP_G    : string                                  := "AXI_ADS42LB69_IODELAY_GRP";
       AXI_ERROR_RESP_G   : slv(1 downto 0)                         := AXI_RESP_SLVERR_C;
-      XIL_DEVICE_G       : string                                  := "7SERIES");      
+      XIL_DEVICE_G       : string                                  := "7SERIES"
+   );      
    port (
       -- ADC Ports
       adcIn          : in  AxiAds42lb69InType;
@@ -57,10 +60,30 @@ architecture mapping of AxiAds42lb69Core is
    
    signal status : AxiAds42lb69StatusType;
    signal config : AxiAds42lb69ConfigType;
+   signal adcDataCnv : Slv16Array(1 downto 0);
    
 begin
-
-   adcData <= status.adcData;
+   
+   GEN_INVERT : for i in 1 downto 0 generate
+      process (adcClk) is
+      begin
+         if (rising_edge(adcClk)) then
+            -- option to convert 2s complement data to binary
+            if config.convert(i) = '1' then
+               adcDataCnv(i) <= status.adcData(i) - x"8000";
+            else
+               adcDataCnv(i) <= status.adcData(i);
+            end if;
+            -- option to invert data
+            -- useful when the PCB polarity is swapped
+            if config.invert(i) = '1' then
+               adcData(i) <= x"FFFF" - adcDataCnv(i);
+            else
+               adcData(i) <= adcDataCnv(i);
+            end if;
+         end if;
+      end process;
+   end generate;
 
    AxiAds42lb69Reg_Inst : entity work.AxiAds42lb69Reg
       generic map(
