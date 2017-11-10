@@ -2,7 +2,7 @@
 -- File       : AxiMicronN25QReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2017-07-31
+-- Last update: 2017-11-09
 -------------------------------------------------------------------------------
 -- Description: MicronN25Q AXI-Lite Register Access
 -------------------------------------------------------------------------------
@@ -63,7 +63,6 @@ architecture rtl of AxiMicronN25QReg is
       IDLE_S,
       WORD_WRITE_S,
       WORD_READ_S,
-      WORD_READ_HOLD_S,
       SCK_LOW_S,
       SCK_HIGH_S,
       MIN_CS_WIDTH_S);
@@ -71,6 +70,7 @@ architecture rtl of AxiMicronN25QReg is
    type RegType is record
       test          : slv(31 downto 0);
       wrData        : slv(31 downto 0);
+      rdData        : slv(31 downto 0);
       addr          : slv(31 downto 0);
       addr32BitMode : sl;
       cmd           : slv(7 downto 0);
@@ -101,6 +101,7 @@ architecture rtl of AxiMicronN25QReg is
    constant REG_INIT_C : RegType := (
       test          => (others => '0'),
       wrData        => (others => '0'),
+      rdData        => (others => '0'),
       addr          => (others => '0'),
       addr32BitMode => '0',
       cmd           => (others => '0'),
@@ -263,32 +264,24 @@ begin
             -- Check if the RAM data is updated
             if r.rd = "00" then
                -- Set the flag
-               v.rd(0)                           := '1';
+               v.rd(0)               := '1';
                -- Shift the data
-               v.axiReadSlave.rdata(31 downto 8) := v.axiReadSlave.rdata(23 downto 0);
-               v.axiReadSlave.rdata(7 downto 0)  := ramDout;
+               v.rdData(31 downto 8) := r.rdData(23 downto 0);
+               v.rdData(7 downto 0)  := ramDout;
                -- Increment the counters
-               v.raddr                           := r.raddr + 1;
-               v.cnt                             := r.cnt + 1;
+               v.raddr               := r.raddr + 1;
+               v.cnt                 := r.cnt + 1;
                -- Check the counter size
                if r.cnt = 3 then
                   -- Reset the counter
-                  v.cnt   := (others => '0');
+                  v.cnt                := (others => '0');
+                  -- Forward the read data
+                  v.axiReadSlave.rdata := v.rdData;
+                  -- Send AXI-Lite Response
+                  axiSlaveReadResponse(v.axiReadSlave);
                   -- Next state
-                  v.state := WORD_READ_HOLD_S;
+                  v.state              := IDLE_S;
                end if;
-            end if;
-         ----------------------------------------------------------------------
-         when WORD_READ_HOLD_S =>
-            -- Send AXI-Lite Response
-            axiSlaveReadResponse(v.axiReadSlave);
-            -- Wait for read request to complete
-            if (axiStatus.readEnable = '0') then
-               -- Reset the counters
-               v.waddr := (others => '0');
-               v.raddr := (others => '0');
-               -- Next state
-               v.state := IDLE_S;
             end if;
          ----------------------------------------------------------------------
          when SCK_LOW_S =>
@@ -394,7 +387,7 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
-      
+
       if (r.state = IDLE_S) then
          -- Reset the flag
          v.busy := '0';

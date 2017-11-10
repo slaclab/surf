@@ -211,6 +211,10 @@ begin
                v.regOut.delayIn.data       := axiWriteMaster.wdata(8 downto 0);
             when x"90" =>
                v.regOut.dmode := axiWriteMaster.wdata(1 downto 0);
+            when x"91" =>
+               v.regOut.invert := axiWriteMaster.wdata(1 downto 0);
+            when x"92" =>
+               v.regOut.convert := axiWriteMaster.wdata(1 downto 0);
             when others =>
                axiWriteResp := AXI_ERROR_RESP_G;
          end case;
@@ -291,6 +295,10 @@ begin
                v.axiReadSlave.rdata(9 downto 0) := regIn.delayOut.data(1, 7);
             when x"90" =>
                v.axiReadSlave.rdata(1 downto 0) := r.regOut.dmode;
+            when x"91" =>
+               v.axiReadSlave.rdata(1 downto 0) := r.regOut.invert;
+            when x"92" =>
+               v.axiReadSlave.rdata(1 downto 0) := r.regOut.convert;
             when others =>
                axiReadResp := AXI_ERROR_RESP_G;
          end case;

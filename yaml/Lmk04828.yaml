@@ -1042,6 +1042,9 @@ Lmk04828: &Lmk04828
         # Turn off normal continuous sysref
         - entry: EnableSysRef
           value: 0x0
+        # 100 ms sleep
+        - entry: usleep
+          value: 100000           
     #########################################################
     PwrUpSysRef:
       name: PwrUpSysRef
@@ -1050,9 +1053,15 @@ Lmk04828: &Lmk04828
         offset: 0x0
       description: Powerup the sysref lines
       sequence:
+        # 1000 ms sleep
+        - entry: usleep
+          value: 1000000      
         # Turn on normal continuous sysref
         - entry: EnableSysRef
           value: 0x3
+        # 2000 ms sleep
+        - entry: usleep
+          value: 2000000          
     #########################################################
     InitLmk:
       name: InitLmk
@@ -1073,8 +1082,7 @@ Lmk04828: &Lmk04828
         # 1000 ms sleep
         - entry: usleep
           value: 1000000
-
-        
+          
         # Toggle Sync bit
         - entry: SyncBit
           value: 0x1
@@ -1084,7 +1092,6 @@ Lmk04828: &Lmk04828
         # 1000 ms sleep
         - entry: usleep
           value: 1000000
-
         
         # Turn on normal continuous sysref
         - entry: EnableSysRef

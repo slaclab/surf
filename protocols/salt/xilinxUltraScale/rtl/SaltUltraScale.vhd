@@ -2,7 +2,7 @@
 -- File       : SaltUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-15
--- Last update: 2017-09-29
+-- Last update: 2017-11-08
 -------------------------------------------------------------------------------
 -- Description: SLAC Asynchronous Logic Transceiver (SALT) UltraScale Core
 -------------------------------------------------------------------------------
@@ -28,6 +28,7 @@ use unisim.vcomponents.all;
 entity SaltUltraScale is
    generic (
       TPD_G               : time                := 1 ns;
+      SIMULATION_G        : boolean             := false;
       TX_ENABLE_G         : boolean             := true;
       RX_ENABLE_G         : boolean             := true;
       COMMON_TX_CLK_G     : boolean             := false;  -- Set to true if sAxisClk and clk are the same clock
@@ -206,7 +207,7 @@ begin
    config(3) <= '0';                    -- Isolate Disabled
    config(4) <= '0';                    -- Auto-Negotiation Disabled
 
-   FULL_DUPLEX : if (TX_ENABLE_G = true) and (RX_ENABLE_G = true) generate
+   FULL_DUPLEX : if ((TX_ENABLE_G = true) and (RX_ENABLE_G = true)) or (SIMULATION_G = true) generate
       U_SaltUltraScaleCore : SaltUltraScaleCore
          port map(
             -----------------------------
@@ -248,7 +249,7 @@ begin
             signal_detect        => '1');
    end generate;
 
-   RX_ONLY : if (TX_ENABLE_G = false) and (RX_ENABLE_G = true) generate
+   RX_ONLY : if (TX_ENABLE_G = false) and (RX_ENABLE_G = true) and (SIMULATION_G = false) generate
       txp <= '0';
       txn <= '1';
       U_SaltUltraScaleCore : SaltUltraScaleRxOnly
@@ -290,7 +291,7 @@ begin
             signal_detect        => '1');
    end generate;
 
-   TX_ONLY : if (TX_ENABLE_G = true) and (RX_ENABLE_G = false) generate
+   TX_ONLY : if (TX_ENABLE_G = true) and (RX_ENABLE_G = false) and (SIMULATION_G = false) generate
       U_SaltUltraScaleCore : SaltUltraScaleTxOnly
          port map(
             -----------------------------
@@ -353,7 +354,7 @@ begin
 
    TX_DISABLE : if (TX_ENABLE_G = false) generate
 
-      txData     <= x"00";
+      txData     <= x"BC";
       txPktSent  <= '0';
       txEn       <= '0';
       sAxisSlave <= AXI_STREAM_SLAVE_FORCE_C;

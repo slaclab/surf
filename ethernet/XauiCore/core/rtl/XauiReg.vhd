@@ -2,7 +2,7 @@
 -- File       : XauiReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-07
--- Last update: 2016-10-06
+-- Last update: 2017-10-19
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite XAUI Register Interface
 -------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ entity XauiReg is
       phyClk         : in  sl;
       phyRst         : in  sl;
       config         : out XauiConfig;
-      status         : in  XauiStatus);   
+      status         : in  XauiStatus);
 end XauiReg;
 
 architecture rtl of XauiReg is
@@ -58,7 +58,7 @@ architecture rtl of XauiReg is
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
    end record RegType;
-   
+
    constant REG_INIT_C : RegType := (
       hardRst       => '0',
       cntRst        => '1',
@@ -73,7 +73,7 @@ architecture rtl of XauiReg is
    signal statusOut    : slv(STATUS_SIZE_C-1 downto 0);
    signal cntOut       : SlVectorArray(STATUS_SIZE_C-1 downto 0, 31 downto 0);
    signal localMacSync : slv(47 downto 0);
-   
+
 begin
 
    GEN_BYPASS : if (EN_AXI_REG_G = false) generate
@@ -97,7 +97,7 @@ begin
          port map (
             clk     => phyClk,
             dataIn  => localMac,
-            dataOut => localMacSync);             
+            dataOut => localMacSync);
 
       process (localMacSync) is
          variable retVar : XauiConfig;
@@ -110,7 +110,7 @@ begin
    end generate;
 
    GEN_REG : if (EN_AXI_REG_G = true) generate
-      
+
       SyncStatusVec_Inst : entity work.SyncStatusVector
          generic map (
             TPD_G          => TPD_G,
@@ -118,7 +118,7 @@ begin
             CNT_RST_EDGE_G => true,
             COMMON_CLK_G   => false,
             CNT_WIDTH_G    => 32,
-            WIDTH_G        => STATUS_SIZE_C)     
+            WIDTH_G        => STATUS_SIZE_C)
          port map (
             -- Input Status bit Signals (wrClk domain)
             statusIn(0)            => status.phyReady,
@@ -148,10 +148,11 @@ begin
       -------------------------------
       -- Configuration Register
       -------------------------------  
-      comb : process (axiReadMaster, axiRst, axiWriteMaster, cntOut, localMac, r, statusOut) is
+      comb : process (axiReadMaster, axiRst, axiWriteMaster, cntOut, localMac,
+                      r, statusOut) is
          variable v      : RegType;
          variable regCon : AxiLiteEndPointType;
-         variable rdPntr : natural;
+         variable i      : natural;
       begin
          -- Latch the current value
          v := r;
@@ -164,11 +165,10 @@ begin
          v.config.softRst := '0';
          v.hardRst        := '0';
 
-         -- Calculate the read pointer
-         rdPntr := conv_integer(axiReadMaster.araddr(9 downto 2));
-
          -- Register Mapping
-         axiSlaveRegisterR(regCon, "0000--------", 0, muxSlVectorArray(cntOut, rdPntr));
+         for i in STATUS_SIZE_C-1 downto 0 loop
+            axiSlaveRegisterR(regCon, toSlv(4*i, 12), 0, muxSlVectorArray(cntOut, i));
+         end loop;
          axiSlaveRegisterR(regCon, x"100", 0, statusOut);
          --axiSlaveRegisterR(regCon, x"104", 0, status.macStatus.rxPauseValue);
 
@@ -237,7 +237,7 @@ begin
             wr_clk => axiClk,
             din    => r.config.macConfig.macAddress,
             rd_clk => phyClk,
-            dout   => config.macConfig.macAddress); 
+            dout   => config.macConfig.macAddress);
 
       SyncIn_pauseTime : entity work.SynchronizerFifo
          generic map (
@@ -247,13 +247,13 @@ begin
             wr_clk => axiClk,
             din    => r.config.macConfig.pauseTime,
             rd_clk => phyClk,
-            dout   => config.macConfig.pauseTime);          
+            dout   => config.macConfig.pauseTime);
 
       SyncIn_macConfig : entity work.SynchronizerVector
          generic map (
             TPD_G    => TPD_G,
             STAGES_G => 2,
-            WIDTH_G  => 5) 
+            WIDTH_G  => 5)
          port map (
             clk        => phyClk,
             -- Input Data
@@ -267,7 +267,7 @@ begin
             dataOut(1) => config.macConfig.pauseEnable,
             dataOut(2) => config.macConfig.ipCsumEn,
             dataOut(3) => config.macConfig.tcpCsumEn,
-            dataOut(4) => config.macConfig.udpCsumEn);  
+            dataOut(4) => config.macConfig.udpCsumEn);
 
       SyncIn_configVector : entity work.SynchronizerFifo
          generic map (
@@ -277,8 +277,8 @@ begin
             wr_clk => axiClk,
             din    => r.config.configVector,
             rd_clk => phyClk,
-            dout   => config.configVector);    
+            dout   => config.configVector);
 
    end generate;
-   
+
 end rtl;
