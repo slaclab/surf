@@ -207,7 +207,7 @@ begin
    -- Note: Has to be generated from aurora core in order to work properly
    U_PgpGthCore : PgpGthCore
       port map (
-         gtwiz_userclk_tx_reset_in(0)          => txReset,
+         gtwiz_userclk_tx_reset_in(0)          => '0',
          gtwiz_userclk_tx_srcclk_out(0)        => txOutClk,
          gtwiz_userclk_tx_usrclk_out(0)        => txUsrClkInt,
          gtwiz_userclk_tx_usrclk2_out(0)       => txUsrClk2Int,
@@ -220,9 +220,9 @@ begin
          gtwiz_reset_clk_freerun_in(0)         => stableClk,
          gtwiz_reset_all_in(0)                 => stableRst,
          gtwiz_reset_tx_pll_and_datapath_in(0) => '0',
-         gtwiz_reset_tx_datapath_in(0)         => '0',
-         gtwiz_reset_rx_pll_and_datapath_in(0) => rxReset,
-         gtwiz_reset_rx_datapath_in(0)         => '0',
+         gtwiz_reset_tx_datapath_in(0)         => txReset,
+         gtwiz_reset_rx_pll_and_datapath_in(0) => '0',
+         gtwiz_reset_rx_datapath_in(0)         => rxReset,
          gtwiz_reset_rx_cdr_stable_out         => open,
          gtwiz_reset_tx_done_out(0)            => txResetDone,
          gtwiz_reset_rx_done_out(0)            => rxResetDone,
