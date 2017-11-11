@@ -25,7 +25,8 @@ UdpEngineServer: &UdpEngineServer
       class: IntField
       sizeBits: 16      
       mode: RO
-      description: ServerRemotePort (big-Endian configuration)
+      byteOrder: BE
+      description: ServerRemotePort
     #########################################################
     ServerRemoteIp:
       at:
@@ -33,5 +34,6 @@ UdpEngineServer: &UdpEngineServer
       class: IntField
       sizeBits: 32      
       mode: RO
-      description: ServerRemoteIp (big-Endian configuration)
+      byteOrder: BE
+      description: ServerRemoteIp
     #########################################################
