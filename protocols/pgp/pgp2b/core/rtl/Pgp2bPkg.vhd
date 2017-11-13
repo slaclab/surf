@@ -2,7 +2,7 @@
 -- File       : Pgp2bPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2009-05-27
--- Last update: 2017-10-20
+-- Last update: 2017-11-13
 -------------------------------------------------------------------------------
 -- Description:
 -- PGP ID and other global constants.
@@ -111,6 +111,7 @@ package Pgp2bPkg is
       locData     : slv(7 downto 0);    -- Near end side User Data
       flowCntlDis : sl;                 -- Ignore flow control
       resetTx     : sl;                 -- Reset tx phy
+      resetGt     : sl;
    end record Pgp2bTxInType;
 
    type Pgp2bTxInArray is array (natural range <>) of Pgp2bTxInType;
@@ -121,6 +122,7 @@ package Pgp2bPkg is
       (others => '0'),
       (others => '0'),
       '0',
+      '0',
       '0'
       );
 
@@ -130,6 +132,7 @@ package Pgp2bPkg is
       (others => '0'),
       (others => '0'),
       '1',
+      '0',
       '0'
       );
 

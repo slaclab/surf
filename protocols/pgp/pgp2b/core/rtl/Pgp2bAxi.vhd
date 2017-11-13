@@ -2,7 +2,7 @@
 -- File       : Pgp2bAxi.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2009-05-27
--- Last update: 2017-11-09
+-- Last update: 2017-11-13
 -------------------------------------------------------------------------------
 -- Description:
 -- AXI-Lite block to manage the PGP interface.
@@ -174,6 +174,7 @@ architecture structure of Pgp2bAxi is
       flush          : sl;
       resetTx        : sl;
       resetRx        : sl;
+      resetGt        : sl;
       countReset     : sl;
       loopBack       : slv(2 downto 0);
       flowCntlDis    : sl;
@@ -188,6 +189,7 @@ architecture structure of Pgp2bAxi is
       flush          => '0',
       resetTx        => '0',
       resetRx        => '0',
+      resetGt        => '0',
       countReset     => '0',
       loopBack       => (others => '0'),
       flowCntlDis    => '0',
@@ -616,6 +618,7 @@ begin
    pgpTxIn.locData     <= locTxData when locTxDataEn = '1' else locTxIn.locData;
    pgpTxIn.flowCntlDis <= locTxIn.flowCntlDis or syncFlowCntlDis;
    pgpTxIn.resetTx     <= locTxIn.resetTx or txReset;
+   pgpTxIn.resetGt     <= r.resetGt;
 
 
    -------------------------------------
@@ -652,6 +655,7 @@ begin
    pgpRxIn.loopback <= locRxIn.loopback or r.loopBack;
 
 
+
    ------------------------------------
    -- AXI Registers
    ------------------------------------
@@ -683,6 +687,7 @@ begin
             when X"04" =>
                v.resetRx := ite(WRITE_EN_G, axilWriteMaster.wdata(0), '0');
                v.resetTx := ite(WRITE_EN_G, axilWriteMaster.wdata(1), '0');
+               v.resetGt := ite(WRITE_EN_G, axilWriteMaster.wdata(2), '0');
             when X"08" =>
                v.flush := ite(WRITE_EN_G, axilWriteMaster.wdata(0), '0');
             when X"0C" =>
@@ -712,6 +717,7 @@ begin
             when X"04" =>
                v.axilReadSlave.rdata(0) := r.resetRx;
                v.axilReadSlave.rdata(1) := r.resetTx;
+               v.axilReadSlave.rdata(2) := r.resetGt;
             when X"08" =>
                v.axilReadSlave.rdata(0) := r.flush;
             when X"0C" =>
