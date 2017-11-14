@@ -202,7 +202,7 @@ begin
             TX_MUX_ILEAVE_ON_NOTVALID_G => TX_MUX_ILEAVE_ON_NOTVALID_G,
             EN_PGP_MON_G                => EN_PGP_MON_G,
             EN_DRP_G                    => EN_GTH_DRP_G,
-            AXIL_BASE_ADDR_G            => AXIL_BASE_ADDR_G,
+            AXIL_BASE_ADDR_G            => XBAR_CONFIG_C(i).baseAddr,
             AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G,
             AXIL_ERROR_RESP_G           => AXIL_ERROR_RESP_G)
          port map (
