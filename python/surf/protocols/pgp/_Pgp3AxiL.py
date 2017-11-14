@@ -148,7 +148,8 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = "RxClockFrequency", 
-            units        = "MHz", 
+            units        = "MHz",
+            mode         = "RO",
             dependencies = [self.RxClockFreqRaw], 
             linkedGet    = lambda: self.RxClockFreqRaw.value() * 1.0e-6,
             disp         = '{:0.3f}',
@@ -400,6 +401,7 @@ class Pgp3AxiL(pr.Device):
         self.add(pr.LinkVariable(
             name         = "TxClockFrequency", 
             units        = "MHz", 
+            mode         = "RO",
             dependencies = [self.TxClockFreqRaw], 
             linkedGet    = lambda: self.TxClockFreqRaw.value() * 1.0e-6,
             disp         = '{:0.3f}',
