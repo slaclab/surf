@@ -2,7 +2,7 @@
 -- File       : PgpGthCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2017-11-13
+-- Last update: 2017-11-14
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -158,7 +158,7 @@ begin
          gtwiz_reset_tx_datapath_in(0)         => txReset,
          gtwiz_reset_rx_pll_and_datapath_in(0) => '0',
          gtwiz_reset_rx_datapath_in(0)         => rxReset,
-         gtwiz_reset_rx_cdr_stable_out(0)      => open,
+         gtwiz_reset_rx_cdr_stable_out         => open,
          gtwiz_reset_tx_done_out(0)            => txResetDone,
          gtwiz_reset_rx_done_out(0)            => rxResetDone,
          gtwiz_userdata_tx_in                  => txData,
@@ -191,9 +191,9 @@ begin
          txusrclk2_in(0)                       => txUsrClk,
          gthtxn_out(0)                         => gtTxN,
          gthtxp_out(0)                         => gtTxP,
-         rxbyteisaligned_out(0)                => open,
-         rxbyterealign_out(0)                  => open,
-         rxcommadet_out(0)                     => open,
+         rxbyteisaligned_out                   => open,
+         rxbyterealign_out                     => open,
+         rxcommadet_out                        => open,
          rxctrl0_out(1 downto 0)               => rxDataK,
          rxctrl0_out(15 downto 2)              => dummy1_14,
          rxctrl1_out(1 downto 0)               => rxDispErr,
@@ -202,9 +202,9 @@ begin
          rxctrl3_out(1 downto 0)               => rxDecErr,
          rxctrl3_out(7 downto 2)               => dummy0_6,
          rxoutclk_out(0)                       => rxOutClk,
-         rxpmaresetdone_out(0)                 => open,
+         rxpmaresetdone_out                    => open,
          txoutclk_out(0)                       => txOutClk,
-         txpmaresetdone_out(0)                 => open);
+         txpmaresetdone_out                    => open);
 
    txctrl2 <= "000000" & txDataK;
 
