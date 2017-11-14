@@ -496,7 +496,7 @@ class Pgp3GthUsWrapper(pr.Device):
         self.addNodes(
             nodeClass = Pgp3GthUs,
             number = lanes,
-            stride = 0x2000
+            stride = 0x2000,
             name = 'Pgp3GthUs',
             offset = 0x0,
             enMon = enMon,
