@@ -33,11 +33,11 @@ architecture test of ClinkTb is
 
    signal fastClk       : sl;
    signal fastRst       : sl;
-   signal din           : slv(3 downto 0);
-   signal clk           : sl;
+   signal din           : slv(3 downto 0) := (others=>'0');
+   signal clk           : sl := '0';
    signal clinkLocked   : sl;
    signal clinkParData  : slv(27 downto 0);
-   signal cnt           : integer;
+   signal cnt           : integer := 3;
 
    constant clkShift   : slv(6 downto 0) := "1100011";
    constant dinShiftA  : slv(6 downto 0) := "0101010"; -- 1A
@@ -54,7 +54,7 @@ begin
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
-         RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long)
+         RST_HOLD_TIME_G   => 10030 ns)  -- Hold reset for this long)
       port map (
          clkP => fastClk,
          clkN => open,
@@ -67,25 +67,18 @@ begin
    process (fastRst, fastClk)
    begin
       if rising_edge(fastClk) then
-         if fastRst = '1' then
-            din <= (others=>'0') after TPD_G;
-            clk <= '0'           after TPD_G;
-            cnt <= 0             after TPD_G;
+         if cnt = 6 then
+            cnt <= 0 after TPD_G;
          else
-
-            if cnt = 6 then
-               cnt <= 0 after TPD_G;
-            else
-               cnt <= cnt + 1 after TPD_G;
-            end if;
-
-            clk    <= clkShift(cnt);
-            din(0) <= dinShiftA(cnt);
-            din(1) <= dinShiftB(cnt);
-            din(2) <= dinShiftC(cnt);
-            din(3) <= dinShiftD(cnt);
-
+            cnt <= cnt + 1 after TPD_G;
          end if;
+
+         clk    <= clkShift(cnt);
+         din(0) <= dinShiftA(cnt);
+         din(1) <= dinShiftB(cnt);
+         din(2) <= dinShiftC(cnt);
+         din(3) <= dinShiftD(cnt);
+
       end if;
    end process;
 
@@ -93,7 +86,7 @@ begin
    U_ClinkGroup: entity work.ClinkGroup 
       generic map ( TPD_G => TPD_G )
       port map (
-         clinkClkIn      => fastClk,
+         clinkClkIn      => clk,
          resetIn         => fastRst,
          clinkClk        => open,
          clinkRst        => open,

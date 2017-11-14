@@ -32,13 +32,13 @@ entity ClinkClk is
       clinkClkIn      : in  sl;
       -- Async reset
       resetIn         : in  sl;
-      -- Outputs
+      -- Clock and reset out
       clinkClk        : out sl;
       clinkRst        : out sl;
       clinkClk7x      : out sl; -- 7X clock input
-      -- Clink shift, clinkClk
+      -- Status, clinkClk
       clinkShift      : out sl;
-      -- Locked signal, clinkClk
+      shiftCount      : out slv(3 downto 0);
       clinkLocked     : out sl;
       -- AXI-Lite Interface 
       axilClk         : in  sl                     := '0';
@@ -54,12 +54,14 @@ architecture structure of ClinkClk is
 
    type RegType is record
       count   : integer range 0 to 6;
+      sftCnt  : slv(3 downto 0);
       locked  : sl;
       shift   : sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       count   => 0,
+      sftCnt  => (others=>'0'),
       locked  => '0',
       shift   => '0');
 
@@ -81,11 +83,11 @@ begin
          INPUT_BUFG_G        => false,
          NUM_CLOCKS_G        => 2,
          BANDWIDTH_G         => "OPTIMIZED",
-         CLKIN_PERIOD_G      => 11.765e-9,
+         CLKIN_PERIOD_G      => 11.765,
          DIVCLK_DIVIDE_G     => 1,
          CLKFBOUT_MULT_F_G   => 14.0,
          CLKOUT0_DIVIDE_F_G  => 14.0,
-         CLKOUT1_DIVIDE_G    => 7)
+         CLKOUT1_DIVIDE_G    => 2)
       port map (
          clkIn            => clinkClkIn,
          rstIn            => resetIn,
@@ -171,6 +173,7 @@ begin
          if intData /= "1100011" then
             v.shift  := '1';
             v.locked := '0';
+            v.sftCnt := r.sftCnt + 1;
          else
             v.locked := '1';
          end if;
@@ -183,6 +186,10 @@ begin
 
       -- Register the variable for next clock cycle
       rin <= v;
+
+      clinkLocked <= r.locked;
+      clinkShift  <= r.shift;
+      shiftCount  <= r.sftCnt;
 
    end process comb;
 
