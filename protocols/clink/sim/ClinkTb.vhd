@@ -69,7 +69,7 @@ begin
       if rising_edge(fastClk) then
          if fastRst = '1' then
             din <= (others=>'0') after TPD_G;
-            clk <= (others=>'0') after TPD_G;
+            clk <= '0'           after TPD_G;
             cnt <= 0             after TPD_G;
          else
 

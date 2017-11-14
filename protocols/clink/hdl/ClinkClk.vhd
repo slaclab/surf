@@ -21,10 +21,12 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity ClinkClk is
    generic (
-      TPD_G : time := 1 ns;
+      TPD_G : time := 1 ns);
    port (
       -- Input clock
       clinkClkIn      : in  sl;
@@ -72,12 +74,12 @@ architecture structure of ClinkClk is
 
 begin
 
-   -- Clock generator
-   U_ClkGen: entity work.ClockManagerUltraScale
+   -- Clock Manager
+   U_ClkGen : entity work.ClockManager7
       generic map (
          TPD_G               => TPD_G,
          INPUT_BUFG_G        => false,
-         NUM_CLOCKS_G        => 3,
+         NUM_CLOCKS_G        => 2,
          BANDWIDTH_G         => "OPTIMIZED",
          CLKIN_PERIOD_G      => 11.765e-9,
          DIVCLK_DIVIDE_G     => 1,
@@ -133,7 +135,7 @@ begin
          CLK          => iclinkClk7x,
          CLKB         => iclinkClk7xInv,
          CLKDIV       => iclinkClk,
-         OCLK         => open,
+         OCLK         => '0',
          DYNCLKDIVSEL => '0',
          DYNCLKSEL    => '0',
          D            => clinkClkIn,
@@ -147,7 +149,7 @@ begin
 
 
    -- Data tracking
-   comb : process (clinkRst, r, intData) is
+   comb : process (iclinkRst, r, intData) is
       variable v  : RegType;
    begin
 
@@ -175,7 +177,7 @@ begin
       end if;
 
       -- Reset
-      if (clinkRst = '1') then
+      if (iclinkRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -185,9 +187,9 @@ begin
    end process comb;
 
    -- sync logic
-   seq : process (clinkClk) is
+   seq : process (iclinkClk) is
    begin
-      if (rising_edge(clinkClk)) then
+      if (rising_edge(iclinkClk)) then
          r <= rin after TPD_G;
       end if;
    end process seq;

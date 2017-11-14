@@ -20,10 +20,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity ClinkDin is
    generic (
-      TPD_G : time := 1 ns;
+      TPD_G : time := 1 ns);
    port (
       clinkClk        : in  sl;
       clinkRst        : in  sl;
@@ -75,7 +77,7 @@ begin
          CLK          => clinkClk7x,
          CLKB         => clinkClk7xInv,
          CLKDIV       => clinkClk,
-         OCLK         => open,
+         OCLK         => '0',
          DYNCLKDIVSEL => '0',
          DYNCLKSEL    => '0',
          D            => clinkSerData,

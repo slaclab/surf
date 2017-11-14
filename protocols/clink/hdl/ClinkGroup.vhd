@@ -24,7 +24,7 @@ use work.AxiLitePkg.all;
 
 entity ClinkGroup is
    generic (
-      TPD_G : time := 1 ns;
+      TPD_G : time := 1 ns);
    port (
       -- Input clock
       clinkClkIn      : in  sl;
@@ -58,10 +58,8 @@ architecture structure of ClinkGroup is
 begin
 
    -- Outputs
-   clinkShift <= intShift;
    clinkClk   <= iclinkClk;
    clinkRst   <= iclinkRst;
-   clinkClk7x <= iclinkClk7x;
 
    -- Clink clocks
    U_ClinkClk: entity work.ClinkClk
@@ -86,12 +84,13 @@ begin
       U_Din: entity work.ClinkDin
          generic map (TPD_G => TPD_G)
          port map (
-            clinkClk        : in  sl;
-            clinkRst        : in  sl;
-            clinkClk7x      : in  sl;
+            clinkClk       => iclinkClk,
+            clinkRst       => iclinkRst,
+            clinkClk7x     => iclinkClk7x,
             clinkSerData   => clinkSerData(i),
             clinkShift     => intShift,
             clinkParData   => clinkParData(i*7+6 downto i*7));
+   end generate;
 
 end structure;
 
