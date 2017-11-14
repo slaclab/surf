@@ -35,6 +35,11 @@ class Pgp2bAxi(pr.Device):
             bitOffset   = 0, 
             mode        = "RW", 
             base        = pr.UInt,
+            enum = {0: 'No',
+                    1: 'Near-end PCS',
+                    2: 'Near-end PMA',
+                    4: 'Far-end PMA',
+                    6: 'Far-end PCS'},
         ))
         
         self.add(pr.RemoteVariable(
@@ -279,11 +284,19 @@ class Pgp2bAxi(pr.Device):
         ))
  
         self.add(pr.RemoteCommand(
-            name        = "ResetTx", 
+            name        = 'ResetTx', 
             offset      = 0x04, 
             bitSize     = 1, 
             bitOffset   = 1, 
             function    = pr.BaseCommand.toggle,
+        ))
+
+        self.add(pr.RemoteCommand(
+            name = 'ResetGt',
+            offset = 0x04,
+            bitSize = 1,
+            bitOffset =2,
+            function = pr.BaseCommand.toggle,
         ))
 
         @self.command()        
