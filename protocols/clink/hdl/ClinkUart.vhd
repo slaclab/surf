@@ -115,7 +115,7 @@ begin
          GEN_SYNC_FIFO_G     => true,
          FIFO_ADDR_WIDTH_G   => 9,
          SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_G,
-         MASTER_AXI_CONFIG_G => INT_CONFIG_G)
+         MASTER_AXI_CONFIG_G => INT_CONFIG_C)
       port map (
          sAxisClk    => clk,
          sAxisRst    => rst,
@@ -173,7 +173,7 @@ begin
          GEN_SYNC_FIFO_G     => true,
          FIFO_ADDR_WIDTH_G   => 9,
          SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_G,
-         MASTER_AXI_CONFIG_G => INT_CONFIG_G)
+         MASTER_AXI_CONFIG_G => INT_CONFIG_C)
       port map (
          sAxisClk    => clk,
          sAxisRst    => rst,
