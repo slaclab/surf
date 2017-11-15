@@ -77,7 +77,7 @@ architecture rtl of AxiStreamMonAxiL is
    signal rin : RegType;
 
    signal localReset : sl;
-   signal localRst   : sl;
+   signal axisReset  : sl;
 
    signal frameRate : Slv32Array(AXIS_NUM_SLOTS_G-1 downto 0);
    signal bandwidth : Slv64Array(AXIS_NUM_SLOTS_G-1 downto 0);
@@ -97,7 +97,7 @@ begin
       port map (
          clk      => axisClk,
          asyncRst => localReset,
-         syncRst  => localRst);
+         syncRst  => axisReset);
 
    GEN_VEC : for i in 0 to (AXIS_NUM_SLOTS_G-1) generate
 
@@ -110,7 +110,7 @@ begin
          port map(
             -- AXIS Stream Interface
             axisClk    => axisClk,
-            axisRst    => localRst,
+            axisRst    => axisReset,
             axisMaster => axisMaster(i),
             axisSlave  => axisSlave(i),
             -- Status Interface
