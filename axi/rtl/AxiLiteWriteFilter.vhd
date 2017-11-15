@@ -2,7 +2,7 @@
 -- File       : AxiLiteWriteFilter.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-11-13
--- Last update: 2017-11-13
+-- Last update: 2017-11-14
 -------------------------------------------------------------------------------
 -- Description: Module for filtering write access
 -------------------------------------------------------------------------------
@@ -26,14 +26,15 @@ use work.AxiLitePkg.all;
 entity AxiLiteWriteFilter is
    generic (
       TPD_G            : time            := 1 ns;
-      SIZE_G           : positive        := 1;
-      ADDR_G           : Slv32Array      := (0 => x"00000000");
+      FILTER_SIZE_G    : positive        := 1;  -- Number of filter addresses
+      FILTER_ADDR_G    : Slv32Array      := (0 => x"00000000");  -- Filter addresses that will be allowed through
       AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_DECERR_C);
    port (
       -- Clock and reset
       axilClk          : in  sl;
       axilRst          : in  sl;
       enFilter         : in  sl := '1';
+      blockAll         : in  sl := '1';  -- overrides enFilter, '1' blocks all transactions
       -- AXI-Lite Slave Interface
       sAxilWriteMaster : in  AxiLiteWriteMasterType;
       sAxilWriteSlave  : out AxiLiteWriteSlaveType;
@@ -53,7 +54,7 @@ architecture rtl of AxiLiteWriteFilter is
 
    type RegType is record
       validAddress     : sl;
-      idx              : natural range 0 to SIZE_G-1;
+      idx              : natural range 0 to FILTER_SIZE_G-1;
       sAxilWriteSlave  : AxiLiteWriteSlaveType;
       mAxilWriteMaster : AxiLiteWriteMasterType;
       state            : StateType;
@@ -70,7 +71,8 @@ architecture rtl of AxiLiteWriteFilter is
 
 begin
 
-   comb : process (axilRst, enFilter, mAxilWriteSlave, r, sAxilWriteMaster) is
+   comb : process (axilRst, blockAll, enFilter, mAxilWriteSlave, r,
+                   sAxilWriteMaster) is
       variable v : RegType;
    begin
       -- Latch the current value   
@@ -104,15 +106,21 @@ begin
             v.mAxilWriteMaster.awprot := sAxilWriteMaster.awprot;
             v.mAxilWriteMaster.wdata  := sAxilWriteMaster.wdata;
             v.mAxilWriteMaster.wstrb  := sAxilWriteMaster.wstrb;
-            -- Armed the filter flag
-            v.validAddress            := '1';
+            -- Reset the flag
+            v.validAddress            := '0';
             -- Check for Incoming write transaction
             if (sAxilWriteMaster.awvalid = '1') and (sAxilWriteMaster.wvalid = '1') then
                -- Accept the address and data
                v.sAxilWriteSlave.awready := '1';
                v.sAxilWriteSlave.wready  := '1';
                -- Check if filtering address
-               if (enFilter = '1') then
+               if (blockAll = '1') then
+                  -- Forward the error message
+                  v.sAxilWriteSlave.bvalid := '1';
+                  v.sAxilWriteSlave.bresp  := AXI_ERROR_RESP_G;
+                  -- Next state
+                  v.state                  := BUS_RESP_S;
+               elsif (enFilter = '1') then
                   -- Next state
                   v.state := LOOP_ARRAY_S;
                else
@@ -126,13 +134,13 @@ begin
             end if;
          ------------------------------------------------------------------------------------
          when LOOP_ARRAY_S =>
-            -- Check for a matched masked off address 
-            if (r.mAxilWriteMaster.awaddr = ADDR_G(r.idx)) then
-               -- Reset the flag
-               v.validAddress := '0';
+            -- Check for a matched pass through address
+            if (r.mAxilWriteMaster.awaddr = FILTER_ADDR_G(r.idx)) then
+               -- Set the flag
+               v.validAddress := '1';
             end if;
             -- Check the counter
-            if (r.idx = SIZE_G-1) then
+            if (r.idx = FILTER_SIZE_G-1) then
                -- Reset the counter
                v.idx   := 0;
                -- Next state
