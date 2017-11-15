@@ -66,22 +66,13 @@ end ClinkTop;
 
 architecture structure of ClinkTop is
 
-   constant INT_CONFIG_C : AxiStreamConfigType := (
-      TSTRB_EN_C    => false,
-      TDATA_BYTES_C => 1,
-      TDEST_BITS_C  => 0,
-      TID_BITS_C    => 0,
-      TKEEP_MODE_C  => TKEEP_COMP_C,
-      TUSER_BITS_C  => 2,
-      TUSER_MODE_C  => TUSER_FIRST_LAST_C);
-
-   signal intCtrl   : Slv4Array(1 downto 0);
-   signal serBaud   : Slv24Array(1 downto 0);
-   signal locked    : slv(2 downto 0);
-   signal parData   : Slv28Array(2 downto 0);
-   signal parValid  : slv(2 downto 0);
-   signal parReady  : slv(2 downto 0);
-   signal dualCable : sl;
+   signal intCamCtrl : Slv4Array(1 downto 0);
+   signal serBaud    : Slv24Array(1 downto 0);
+   signal locked     : slv(2 downto 0);
+   signal parData    : Slv28Array(2 downto 0);
+   signal parValid   : slv(2 downto 0);
+   signal parReady   : slv(2 downto 0);
+   signal dualCable  : sl;
 
 begin
 
@@ -102,7 +93,7 @@ begin
          cblSerM      => cbl0SerM,
          sysClk       => sysClk,
          sysRst       => sysRst,
-         camCtrl      => intCtrl(0),
+         camCtrl      => intCamCtrl(0),
          serBaud      => serBaud(0),
          serRxMaster  => serRxMaster(0),
          serRxSlave   => serRxSlave(0),
@@ -135,7 +126,7 @@ begin
          cblSerM      => cbl1SerM,
          sysClk       => sysClk,
          sysRst       => sysRst,
-         camCtrl      => intCtrl(1),
+         camCtrl      => intCamCtrl(1),
          serBaud      => serBaud(1),
          locked       => locked(1),
          ctrlMode     => dualCable,
@@ -163,22 +154,57 @@ begin
    ---------------------------------
    -- Data Processing
    ---------------------------------
-   constant INT_CONFIG_C 
-   signal parData   : Slv28Array(2 downto 0);
-   signal parValid  : slv(2 downto 0);
-   signal parReady  : slv(2 downto 0);
+   U_Framer0 : entity work.ClinkFraming
+      generic map (
+         TPD_G              => TPD_G,
+         SSI_EN_G           => SSI_EN_G,
+         DATA_AXIS_CONFIG_G => DATA_AXIS_CONFIG_G)
+      port map (
+         sysClk        => sysClk,
+         sysRst        => sysRst,
+         mode          => mode(0),
+         frameCount    => frameCount(0),
+         locked        => locked,
+         running       => running(0),
+         parData       => parData,
+         parValid      => parValid,
+         parReady      => parReady,
+         dataMaster    => dataMaster(0),
+         dataSlave     => dataSlave(0));
 
-   dataMaster   : out AxiStreamMasterArray(1 downto 0);
-   dataSlave    : in  AxiStreamSlaveArray(1 downto 0);
-
-   DATA_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
+   U_Framer1 : entity work.ClinkFraming
+      generic map (
+         TPD_G              => TPD_G,
+         SSI_EN_G           => SSI_EN_G,
+         DATA_AXIS_CONFIG_G => DATA_AXIS_CONFIG_G)
+      port map (
+         sysClk        => sysClk,
+         sysRst        => sysRst,
+         mode          => mode(1),
+         frameCount    => frameCount(1),
+         locked(0)     => locked(2),
+         locked(1)     => '0',
+         locked(2)     => '0',
+         running       => running(2),
+         parData(0)    => parData(2),
+         parData(1)    => (others=>'0'),
+         parData(2)    => (others=>'0'),
+         parValid(0)   => parValid(2),
+         parValid(1)   => '0',
+         parValid(2)   => '0',
+         parReady(0)   => parReady(2),
+         parReady(1)   => open,
+         parReady(2)   => open,
+         dataMaster    => dataMaster(1),
+         dataSlave     => dataSlave(1));
 
    ---------------------------------
    -- Registers
    ---------------------------------
+
       camCtrl      : in  slv(7 downto 0);
 
-   intCtrl   : Slv4Array(1 downto 0);
+   intCamCtrl   : Slv4Array(1 downto 0);
    serBaud   : Slv24Array(1 downto 0);
    locked    : slv(2 downto 0);
    dualCable : sl;
