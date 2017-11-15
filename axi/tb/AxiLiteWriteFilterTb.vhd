@@ -38,6 +38,7 @@ architecture tb of AxiLiteWriteFilterTb is
    signal axilClk  : sl := '0';
    signal axilRst  : sl := '1';
    signal enFilter : sl := '1';
+   signal blockAll : sl := '1';
 
 begin
 
@@ -57,40 +58,72 @@ begin
       variable data : slv(31 downto 0) := (others => '0');
    begin
       enFilter <= '1';
+      blockAll <= '1';
       wait until axilRst = '1';
       wait until axilRst = '0';
 
       wait for 1 us;
       wait until axilClk = '1';
-      axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, x"00000000", x"11111111", true);
+      report "Should be two DECODE_ERROR";
+      axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, x"00000FF0", x"11111111", true);      
+      axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, x"000001A0", x"11111111", true);      
+      report "###################################################################################";
+      report "###################################################################################";
+      report "###################################################################################";
+
+      wait for 1 us;
+      blockAll <= '0';
+      wait for 1 us;
+      wait until axilClk = '1';
+      report "Should be one DECODE_ERROR";
+      axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, x"00000FF0", x"FFFFFFFF", true);      
+      axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, x"000001A0", x"11111111", true);   
+      report "###################################################################################";
+      report "###################################################################################";
+      report "###################################################################################";     
 
       wait for 1 us;
       wait until axilClk = '1';
-      axiLiteBusSimRead(axilClk, axilReadMaster, axilReadSlave, x"00000000", data, true);
+      report "Read back the data";
+      axiLiteBusSimRead(axilClk, axilReadMaster, axilReadSlave, x"00000FF0", data, true);
+      axiLiteBusSimRead(axilClk, axilReadMaster, axilReadSlave, x"000001A0", data, true);
+      report "###################################################################################";
+      report "###################################################################################";
+      report "###################################################################################";      
 
       wait for 1 us;
       enFilter <= '0';
       wait for 1 us;
       wait until axilClk = '1';
-      axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, x"00000000", x"11111111", true);
-
+      axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, x"00000FF0", x"FFFFFFFF", true);
+      axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, x"000001A0", x"22222222", true);
+      report "###################################################################################";
+      report "###################################################################################";
+      report "###################################################################################";
+      
       wait for 1 us;
       wait until axilClk = '1';
-      axiLiteBusSimRead(axilClk, axilReadMaster, axilReadSlave, x"00000000", data, true);
+      report "Read back the data";
+      axiLiteBusSimRead(axilClk, axilReadMaster, axilReadSlave, x"00000FF0", data, true);
+      axiLiteBusSimRead(axilClk, axilReadMaster, axilReadSlave, x"000001A0", data, true);
+      report "###################################################################################";
+      report "###################################################################################";
+      report "###################################################################################";      
 
    end process test;
 
    U_Filter : entity work.AxiLiteWriteFilter
       generic map (
          TPD_G            => TPD_G,
-         SIZE_G           => 1,
-         ADDR_G           => (0 => x"00000000"),
+         FILTER_SIZE_G    => 1,
+         FILTER_ADDR_G    => (0 => x"000001A0"),
          AXI_ERROR_RESP_G => AXI_RESP_DECERR_C)
       port map (
          -- Clock and reset
          axilClk          => axilClk,
          axilRst          => axilRst,
          enFilter         => enFilter,
+         blockAll         => blockAll,
          -- AXI-Lite Slave Interface
          sAxilWriteMaster => axilWriteMaster,
          sAxilWriteSlave  => axilWriteSlave,
