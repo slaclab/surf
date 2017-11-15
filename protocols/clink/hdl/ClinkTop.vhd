@@ -4,7 +4,7 @@
 -- Created    : 2017-11-13
 -------------------------------------------------------------------------------
 -- Description:
--- CameraLink Channel
+-- CameraLink Top Level
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -28,6 +28,7 @@ entity ClinkTop is
       TPD_G              : time                := 1 ns;
       SYS_CLK_FREQ_G     : real                := 125.0e6;
       SSI_EN_G           : boolean             := true; -- Insert SOF
+      AXI_ERROR_RESP_G   : slv(1 downto 0)     := AXI_RESP_DECERR_C;
       DATA_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
       UART_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
@@ -53,7 +54,7 @@ entity ClinkTop is
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
       -- Camera Control Bits
-      camCtrl         : in  slv(7 downto 0);
+      camCtrl         : in  Svl4Array(1 downto 0);
       -- Camera data
       dataMaster      : out AxiStreamMasterArray(1 downto 0);
       dataSlave       : in  AxiStreamSlaveArray(1 downto 0);
@@ -66,13 +67,37 @@ end ClinkTop;
 
 architecture structure of ClinkTop is
 
+   type RegType is record
+      swCamCtrl       : Slv4Array(1 downto 0);
+      swCamCtrlEn     : Slv4Array(1 downto 0);
+      intCamCtrl      : Slv4Array(1 downto 0);
+      serBaud         : Slv24Array(1 downto 0);
+      mode            : Slv3Array(1 downto 0);
+      dualCable       : sl;
+      axilReadSlave   : AxiLiteReadSlaveType;
+      axilWriteSlave  : AxiLiteWriteSlaveType;
+   end record RegType;
+
+   constant REG_INIT_C : RegType := (
+      swCamCtrl       => (others=>(others=>'0')),
+      swCamCtrlEn     => (others=>(others=>'0')),
+      intCamCtrl      => (others=>(others=>'0')),
+      serBaud         => (others=>(others=>'0')),
+      mode            => (others=>(others=>'0')),
+      dualCable       => '0',
+      axilReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
+      axilWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C);
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
+
    signal intCamCtrl : Slv4Array(1 downto 0);
-   signal serBaud    : Slv24Array(1 downto 0);
    signal locked     : slv(2 downto 0);
+   signal running    : slv(1 downto 0);
+   signal frameCount : Slv32Array(1 downto 0);
    signal parData    : Slv28Array(2 downto 0);
    signal parValid   : slv(2 downto 0);
    signal parReady   : slv(2 downto 0);
-   signal dualCable  : sl;
 
 begin
 
@@ -94,7 +119,7 @@ begin
          sysClk       => sysClk,
          sysRst       => sysRst,
          camCtrl      => intCamCtrl(0),
-         serBaud      => serBaud(0),
+         serBaud      => r.serBaud(0),
          serRxMaster  => serRxMaster(0),
          serRxSlave   => serRxSlave(0),
          serTxMaster  => serTxMaster(0),
@@ -127,9 +152,9 @@ begin
          sysClk       => sysClk,
          sysRst       => sysRst,
          camCtrl      => intCamCtrl(1),
-         serBaud      => serBaud(1),
+         serBaud      => r.serBaud(1),
          locked       => locked(1),
-         ctrlMode     => dualCable,
+         ctrlMode     => r.dualCable,
          parData      => parData(1),
          parValid     => parValid(1),
          parReady     => parReady(1),
@@ -162,7 +187,7 @@ begin
       port map (
          sysClk        => sysClk,
          sysRst        => sysRst,
-         mode          => mode(0),
+         mode          => r.mode(0),
          frameCount    => frameCount(0),
          locked        => locked,
          running       => running(0),
@@ -180,7 +205,7 @@ begin
       port map (
          sysClk        => sysClk,
          sysRst        => sysRst,
-         mode          => mode(1),
+         mode          => r.mode(1),
          frameCount    => frameCount(1),
          locked(0)     => locked(2),
          locked(1)     => '0',
@@ -201,20 +226,83 @@ begin
    ---------------------------------
    -- Registers
    ---------------------------------
+   comb : process (r, sysRst, axilReadMaster, axilWriteMaster, locked, camCtrl, running, frameCount) is
+      variable v      : RegType;
+      variable axilEp : AxiLiteEndpointType;
+   begin
 
-      camCtrl      : in  slv(7 downto 0);
+      -- Latch the current value
+      v := r;
 
-   intCamCtrl   : Slv4Array(1 downto 0);
-   serBaud   : Slv24Array(1 downto 0);
-   locked    : slv(2 downto 0);
-   dualCable : sl;
+      -- Camera link secondary channel mode generation
+      if r.mode(0) <= 1 then  -- disable or base
+         v.dualCable := '1';
+         v.mode(1)   := r.mode(0);
+      else
+         v.dualCable := '0';
+         v.mode(1)   := (others=>'0');
+      end if;
 
+      -- Drive camera control bits
+      for i in 0 to 1 loop
+         for j in 0 to 3 loop
+            if swCamCtrlEn(i)(j) = '1' then
+               v.intCamCtrl(i)(j) := swCamCtrl(i)(j);
+            else
+               v.intCamCtrl(i)(j) := camCtrl(i)(j);
+            end if;
+         end loop;
+      end loop;
 
-      axilReadMaster  : in  AxiLiteReadMasterType;
-      axilReadSlave   : out AxiLiteReadSlaveType;
-      axilWriteMaster : in  AxiLiteWriteMasterType;
-      axilWriteSlave  : out AxiLiteWriteSlaveType;
+      ------------------------      
+      -- AXI-Lite Transactions
+      ------------------------      
 
+      -- Determine the transaction type
+      axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
+
+      axiSlaveRegister(axilEp, x"10",  0, v.mode(0));
+
+      axiSlaveRegister(axilEp, x"18",  0, v.serBaud(0));
+      axiSlaveRegister(axilEp, x"1C",  0, v.serBaud(1));
+
+      axiSlaveRegister(axilEp, x"20",  0, locked);
+      axiSlaveRegister(axilEp, x"20",  4, running);
+
+      axiSlaveRegister(axilEp, x"24",  4, frameCount(0));
+
+      axiSlaveRegister(axilEp, x"28",  4, frameCount(0));
+
+      axiSlaveRegister(axilEp, x"30",  0, v.swCamCtrl(0));
+      axiSlaveRegister(axilEp, x"30",  4, v.swCamCtrl(1));
+      axiSlaveRegister(axilEp, x"30",  8, v.swCamCtrlEn(0));
+      axiSlaveRegister(axilEp, x"30", 12, v.swCamCtrlEn(1));
+
+      axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_ERROR_RESP_G);
+
+      --------
+      -- Reset
+      --------
+      if (sysRst = '1') then
+         v := REG_INIT_C;
+      end if;
+
+      -- Register the variable for next clock cycle
+      rin <= v;
+
+      -- Outputs 
+      axilReadSlave  <= r.axilReadSlave;
+      axilWriteSlave <= r.axilWriteSlave;
+      intCamCtrl     <= v.intCamCtrl;
+
+   end process comb;
+
+   seq : process (sysClk) is
+   begin
+      if (rising_edge(sysClk)) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;
 
 end architecture rtl;
 
