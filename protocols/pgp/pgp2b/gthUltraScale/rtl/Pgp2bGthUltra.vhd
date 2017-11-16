@@ -179,7 +179,7 @@ begin
          txPolarity      => TX_POLARITY_G,
          txOutClk        => pgpTxOutClk,
          loopback        => pgpRxIn.loopback,
-         axilClk         => axilClkm,
+         axilClk         => axilClk,
          axilRst         => axilRst,
          axilReadMaster  => axilReadMaster,
          axilReadSlave   => axilReadSlave,
