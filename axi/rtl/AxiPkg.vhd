@@ -333,7 +333,7 @@ package body AxiPkg is
       -- burstBytes / data bytes width is number of txns required.
       -- Subtract by 1 for A*LEN value for even divides.
       -- Convert to SLV and truncate to size of A*LEN port for this AXI bus
-      -- This limits number of txns approraiately based on size of len port
+      -- This limits number of txns appropriately based on size of len port
       -- Then resize to 8 bits because our records define A*LEN as 8 bits always.
       return resize(toSlv(wordCount(burstBytes,axiConfig.DATA_BYTES_C)-1, axiConfig.LEN_BITS_C), 8);
    end function getAxiLen;
@@ -350,13 +350,36 @@ package body AxiPkg is
       return slv is
       variable max  : natural;
       variable req  : natural;
+      variable min  : natural;
       variable maxLen : slv(7 downto 0);
    begin
 
-      max  := 4096 - conv_integer(address(11 downto 0));
-      req  := minimum(conv_integer(totalBytes),burstBytes);
+      -- Check for 4kB boundary
+      max := 4096 - conv_integer(address(11 downto 0));
+      
+      -- Check the SLV range to prevent negative integer during typecasting 
+      if (totalBytes'HIGH >= 31) then
+         -- Check if the upper bits are non-zero
+         if (totalBytes(totalBytes'HIGH downto 31) /= 0) then
+            req := burstBytes;      
+         else
+            req := minimum(conv_integer(totalBytes(30 downto 0)),burstBytes);      
+         end if;
+      else
+         req := minimum(conv_integer(totalBytes),burstBytes);      
+      end if;
+      
+      -- Find the minimum value between the request and max size
+      min  := minimum(req,max);
+      
+      -- -- Debug prints for simulation
+      -- assert false report "burstBytes = " & integer'image(burstBytes) severity note;
+      -- assert false report "max = " & integer'image(max) severity note;
+      -- assert false report "req = " & integer'image(req) severity note;
+      -- assert false report "min = " & integer'image(min) severity note;
 
-      return getAxiLen(axiConfig,minimum(req,max));
+      -- Return the AXI Length value
+      return getAxiLen(axiConfig,min);
 
    end function getAxiLen;
 
