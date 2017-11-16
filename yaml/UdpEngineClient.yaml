@@ -25,7 +25,8 @@ UdpEngineClient: &UdpEngineClient
       class: IntField
       sizeBits: 16      
       mode: RW
-      description: ClientRemotePort (big-Endian configuration)
+      byteOrder: BE
+      description: ClientRemotePort
     #########################################################
     ClientRemoteIp:
       at:
@@ -33,5 +34,6 @@ UdpEngineClient: &UdpEngineClient
       class: IntField
       sizeBits: 32      
       mode: RW
-      description: ClientRemoteIp (big-Endian configuration)
+      byteOrder: BE
+      description: ClientRemoteIp
     #########################################################
