@@ -44,7 +44,7 @@ class AxiStreamMonitoring(pr.Device):
                 mode         = 'RO', 
                 units        = units,
                 linkedGet    = function,
-                disp         = '{:1.3f}',
+                disp         = '{:1.1f}',
                 dependencies = [self.variables[name+"Raw"]],
             ))        
         
@@ -60,7 +60,7 @@ class AxiStreamMonitoring(pr.Device):
                 bitSize      = 32, 
                 bitOffset    = 0, 
                 mode         = "RO",
-                base         = pr.UInt, 
+                base         = pr.Int, 
                 units        = 'Hz', 
                 pollInterval = 1,
             ))     
@@ -72,7 +72,7 @@ class AxiStreamMonitoring(pr.Device):
                 bitSize      = 32, 
                 bitOffset    = 0, 
                 mode         = "RO",
-                base         = pr.UInt, 
+                base         = pr.Int, 
                 units        = 'Hz', 
                 pollInterval = 1,
             )) 
@@ -84,7 +84,7 @@ class AxiStreamMonitoring(pr.Device):
                 bitSize      = 32, 
                 bitOffset    = 0, 
                 mode         = "RO",
-                base         = pr.UInt, 
+                base         = pr.Int, 
                 units        = 'Hz', 
                 pollInterval = 1,
             ))
@@ -95,8 +95,8 @@ class AxiStreamMonitoring(pr.Device):
                 offset       = (28 + i*48), 
                 bitSize      = 64, 
                 bitOffset    = 0, 
-                function     = self.convMBps,
-                units        = 'MByte/s', 
+                function     = self.convMbps,
+                units        = 'Mbps', 
                 pollInterval = 1,
             )
 
@@ -106,8 +106,8 @@ class AxiStreamMonitoring(pr.Device):
                 offset       = (36 + i*48), 
                 bitSize      = 64, 
                 bitOffset    = 0, 
-                function     = self.convMBps,
-                units        = 'MByte/s', 
+                function     = self.convMbps,
+                units        = 'Mbps', 
                 pollInterval = 1,
             )
 
@@ -117,14 +117,14 @@ class AxiStreamMonitoring(pr.Device):
                 offset       = (44 + i*48), 
                 bitSize      = 64, 
                 bitOffset    = 0, 
-                function     = self.convMBps,
-                units        = 'MByte/s', 
+                function     = self.convMbps,
+                units        = 'Mbps', 
                 pollInterval = 1,
             )
 
     @staticmethod
-    def convMBps(var):
-        return var.dependencies[0].value() * 1e-6
+    def convMbps(var):
+        return var.dependencies[0].value() * 8e-6
         
     def countReset(self):
         self._rawWrite(offset=0x0,data=0x1)       
