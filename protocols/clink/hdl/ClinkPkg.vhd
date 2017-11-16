@@ -4,7 +4,7 @@
 -- Created    : 2017-11-13
 -------------------------------------------------------------------------------
 -- Description:
--- CameraLink framing module
+-- CameraLink Package
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -61,12 +61,44 @@ package ClinkPkg is
    -- Port Mapping 
    ------------------------------------
 
+   -- Map channel to port for lite mode
+   procedure clMapLitePorts ( dataMode : slv; 
+                              parData  : Slv28Array; 
+                              bytes    : inout integer;
+                              portData : inout ClDataType);
 
+   -- Map channel to port for base mode
+   procedure clMapBasePorts ( dataMode : slv; 
+                              parData  : Slv28Array; 
+                              bytes    : inout integer;
+                              portData : inout ClDataType);
+
+   -- Map channel to port for medium mode
+   procedure clMapMedmPorts ( dataMode : slv; 
+                              parData  : Slv28Array; 
+                              bytes    : inout integer;
+                              portData : inout ClDataType);
+
+   -- Map channel to port for full mode
+   procedure clMapFullPorts ( dataMode : slv; 
+                              parData  : Slv28Array; 
+                              bytes    : inout integer;
+                              portData : inout ClDataType);
+
+   -- Map channel to port for deca mode
+   procedure clMapDecaPorts ( dataMode : slv; 
+                              parData  : Slv28Array; 
+                              bytes    : inout integer;
+                              portData : inout ClDataType);
 
    ------------------------------------
    -- Byte Mapping 
    ------------------------------------
 
+   -- Remap data bytes
+   procedure clMapBytes ( dataMode : slv; 
+                          portData : ClDataType;
+                          byteData : inout ClDataType );
 
 
 end package ClinkPkg;
@@ -78,6 +110,7 @@ package body ClinkPkg is
    ------------------------------------
 
    -- Map channel to port for lite mode
+   -- From page 18 of camera link spec
    procedure clMapLitePorts ( dataMode : slv; 
                               parData  : Slv28Array; 
                               bytes    : inout integer;
@@ -103,6 +136,7 @@ package body ClinkPkg is
    end procedure;
 
    -- Map channel to port for base mode
+   -- From page 15 of camera link spec
    procedure clMapBasePorts ( dataMode : slv; 
                               parData  : Slv28Array; 
                               bytes    : inout integer;
@@ -134,6 +168,7 @@ package body ClinkPkg is
    end procedure;
 
    -- Map channel to port for medium mode
+   -- From page 15 of camera link spec
    procedure clMapMedmPorts ( dataMode : slv; 
                               parData  : Slv28Array; 
                               bytes    : inout integer;
@@ -171,6 +206,7 @@ package body ClinkPkg is
    end procedure;
 
    -- Map channel to port for full mode
+   -- From page 15 of camera link spec
    procedure clMapFullPorts ( dataMode : slv; 
                               parData  : Slv28Array; 
                               bytes    : inout integer;
@@ -205,6 +241,7 @@ package body ClinkPkg is
    end procedure;
 
    -- Map channel to port for deca mode
+   -- From page 16/17 of camera link spec
    procedure clMapDecaPorts ( dataMode : slv; 
                               parData  : Slv28Array; 
                               bytes    : inout integer;
@@ -278,10 +315,11 @@ package body ClinkPkg is
    -- Byte Mapping 
    ------------------------------------
 
-   -- Ream data bytes
+   -- Remap data bytes
+   -- From page 8 of camera link spec
    procedure clMapBytes ( dataMode : slv; 
                           portData : ClDataType;
-                          byteData : ClDataType ) is
+                          byteData : inout ClDataType ) is
    begin
 
       byteData := portData;

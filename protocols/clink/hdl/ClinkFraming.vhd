@@ -20,6 +20,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
+use work.ClinkPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
@@ -102,7 +103,7 @@ begin
 
          -- Lite mode, 12 bits
          -- Control interface for this mode is not correct!
-         when => 1
+         when CLM_LITE_C =>
             v.running        := locked(0);
             v.portData.valid := parValid(0);
 
@@ -111,7 +112,7 @@ begin
             v.byteData := r.portData;
 
          -- Base mode, 24 bits
-         when => 2
+         when CLM_BASE_C =>
             v.running        := locked(0);
             v.portData.valid := parValid(0);
 
@@ -120,7 +121,7 @@ begin
             clMapBytes ( dataMode, r.portData, v.byteData );
 
          -- Medium mode, 48 bits
-         when => 3
+         when CLM_MEDM_C =>
             v.running        := uAnd(locked(1 downto 0));
             v.portData.valid := uAnd(parValid(1 downto 0));
 
@@ -129,7 +130,7 @@ begin
             clMapBytes ( dataMode, r.portData, v.byteData );
 
          -- Full mode, 64 bits
-         when => 4
+         when CLM_FULL_C =>
             v.running        := uAnd(locked);
             v.portData.valid := uAnd(parValid);
 
@@ -138,7 +139,7 @@ begin
             clMapBytes ( dataMode, r.portData, v.byteData );
 
          -- DECA mode, 80 bits
-         when => 5
+         when CLM_DECA_C =>
             v.running        := uAnd(locked);
             v.portData.valid := uAnd(parValid);
 
@@ -149,7 +150,7 @@ begin
       end case;
 
       -- Drive ready, dump when not running
-      v.ready := v.validA or (not r.running);
+      v.ready := v.portData.valid or (not r.running);
 
       -- Push data to AXI frame
 

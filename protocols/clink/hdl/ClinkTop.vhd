@@ -20,6 +20,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
+use work.ClinkPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
@@ -29,6 +30,7 @@ entity ClinkTop is
       SYS_CLK_FREQ_G     : real                := 125.0e6;
       SSI_EN_G           : boolean             := true; -- Insert SOF
       AXI_ERROR_RESP_G   : slv(1 downto 0)     := AXI_RESP_DECERR_C;
+      AXI_COMMON_CLK_G   : boolean             := false;
       DATA_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
       UART_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
@@ -48,11 +50,6 @@ entity ClinkTop is
       -- System clock and reset, must be 100Mhz or greater
       sysClk          : in  sl;
       sysRst          : in  sl;
-      -- Axi-Lite Interface
-      axilReadMaster  : in  AxiLiteReadMasterType;
-      axilReadSlave   : out AxiLiteReadSlaveType;
-      axilWriteMaster : in  AxiLiteWriteMasterType;
-      axilWriteSlave  : out AxiLiteWriteSlaveType;
       -- Camera Control Bits
       camCtrl         : in  Svl4Array(1 downto 0);
       -- Camera data
@@ -62,7 +59,14 @@ entity ClinkTop is
       serRxMaster     : in  AxiStreamMasterArray(1 downto 0);
       serRxSlave      : out AxiStreamSlaveArray(1 downto 0);
       serTxMaster     : out AxiStreamMasterArray(1 downto 0);
-      serTxSlave      : in  AxiStreamSlaveArray(1 downto 0));
+      serTxSlave      : in  AxiStreamSlaveArray(1 downto 0);
+      -- Axi-Lite Interface
+      axilClk         : in  sl;
+      axilRst         : in  sl;
+      axilReadMaster  : in  AxiLiteReadMasterType;
+      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilWriteMaster : in  AxiLiteWriteMasterType;
+      axilWriteSlave  : out AxiLiteWriteSlaveType);
 end ClinkTop;
 
 architecture structure of ClinkTop is
@@ -93,15 +97,19 @@ architecture structure of ClinkTop is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal intCamCtrl : Slv4Array(1 downto 0);
-   signal locked     : slv(2 downto 0);
-   signal running    : slv(1 downto 0);
-   signal frameCount : Slv32Array(1 downto 0);
-   signal dropCount  : Slv32Array(1 downto 0);
-   signal parData    : Slv28Array(2 downto 0);
-   signal parValid   : slv(2 downto 0);
-   signal parReady   : sl;
-   signal frameReady : slv(1 downto 0);
+   signal intCamCtrl     : Slv4Array(1 downto 0);
+   signal locked         : slv(2 downto 0);
+   signal running        : slv(1 downto 0);
+   signal frameCount     : Slv32Array(1 downto 0);
+   signal dropCount      : Slv32Array(1 downto 0);
+   signal parData        : Slv28Array(2 downto 0);
+   signal parValid       : slv(2 downto 0);
+   signal parReady       : sl;
+   signal frameReady     : slv(1 downto 0);
+   signal intReadMaster  : AxiLiteReadMasterType;
+   signal intReadSlave   : AxiLiteReadSlaveType;
+   signal intWriteMaster : AxiLiteWriteMasterType;
+   signal intWriteSlave  : AxiLiteWriteSlaveType;
 
 begin
 
@@ -233,9 +241,31 @@ begin
          dataSlave     => dataSlave(1));
 
    ---------------------------------
+   -- AXIL Clock Transition
+   ---------------------------------
+   U_AxilAsync: entity work.AxiLiteAsync
+      generic map (
+         TPD_G            => TPD_G,
+         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
+         COMMON_CLK_G     => AXI_COMMON_CLK_G)
+      port map (
+         sAxiClk         => axilClk,
+         sAxiClkRst      => axilRst,
+         sAxiReadMaster  => axilReadMaster,
+         sAxiReadSlave   => axilReadSlave,
+         sAxiWriteMaster => axilWriteMaster,
+         sAxiWriteSlave  => axilWriteSlave,
+         mAxiClk         => sysClk,
+         mAxiClkRst      => sysRst,
+         mAxiReadMaster  => intReadMaster,
+         mAxiReadSlave   => intReadSlave,
+         mAxiWriteMaster => intWriteMaster,
+         mAxiWriteSlave  => intWriteSlave);
+
+   ---------------------------------
    -- Registers
    ---------------------------------
-   comb : process (r, sysRst, axilReadMaster, axilWriteMaster, locked, camCtrl, running, frameCount) is
+   comb : process (r, sysRst, intReadMaster, intWriteMaster, locked, camCtrl, running, frameCount) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -244,7 +274,7 @@ begin
       v := r;
 
       -- Camera link secondary channel link mode generation
-      if r.linkMode(0) <= 2 then  -- disable, lite or base
+      if r.linkMode(0) = CLM_LITE_C or r.linkMode(0) = CLM_BASE_C then
          v.dualCable   := '1';
          v.linkMode(1) := r.linkMode(0);
       else
@@ -268,7 +298,7 @@ begin
       ------------------------      
 
       -- Determine the transaction type
-      axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
+      axiSlaveWaitTxn(axilEp, intWriteMaster, intReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
       axiSlaveRegister(axilEp, x"10",  0, v.linkMode(0));
       axiSlaveRegister(axilEp, x"10",  8, v.dataMode(0));
@@ -303,9 +333,9 @@ begin
       rin <= v;
 
       -- Outputs 
-      axilReadSlave  <= r.axilReadSlave;
-      axilWriteSlave <= r.axilWriteSlave;
-      intCamCtrl     <= v.intCamCtrl;
+      intReadSlave  <= r.axilReadSlave;
+      intWriteSlave <= r.axilWriteSlave;
+      intCamCtrl    <= v.intCamCtrl;
 
    end process comb;
 
