@@ -118,7 +118,7 @@ begin
 
          if dmaWrDescReq(i).valid then
             v.dmaWrDescAck(i).valid    := '1';
-            v.dmaWrDescAck(i).address  := r.dmaWrDescAck(i).Address  + 1;
+            v.dmaWrDescAck(i).address  := r.dmaWrDescAck(i).Address  + 8192;
             v.dmaWrDescAck(i).dropEn   := '0';
             v.dmaWrDescAck(i).maxSize  := x"FFFFFFFF";
             v.dmaWrDescAck(i).contEn   :='1';
@@ -172,7 +172,7 @@ begin
       dmaWrDescRetAck <= r.dmaWrDescRetAck;
       dmaRdDescReq    <= r.dmaRdDescReq;
       dmaRdDescRetAck <= r.dmaRdDescRetAck;
-      axiCache        <= r.buffCache;
+      axiCache        <= AXI_CACHE_G;
 
    end process comb;
 
