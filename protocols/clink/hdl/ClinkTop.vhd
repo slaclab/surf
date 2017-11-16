@@ -72,7 +72,8 @@ architecture structure of ClinkTop is
       swCamCtrlEn     : Slv4Array(1 downto 0);
       intCamCtrl      : Slv4Array(1 downto 0);
       serBaud         : Slv24Array(1 downto 0);
-      mode            : Slv3Array(1 downto 0);
+      linkMode        : Slv4Array(1 downto 0);
+      dataMode        : Slv4Array(1 downto 0);
       dualCable       : sl;
       axilReadSlave   : AxiLiteReadSlaveType;
       axilWriteSlave  : AxiLiteWriteSlaveType;
@@ -83,7 +84,8 @@ architecture structure of ClinkTop is
       swCamCtrlEn     => (others=>(others=>'0')),
       intCamCtrl      => (others=>(others=>'0')),
       serBaud         => (others=>(others=>'0')),
-      mode            => (others=>(others=>'0')),
+      linkMode        => (others=>(others=>'0')),
+      dataMode        => (others=>(others=>'0')),
       dualCable       => '0',
       axilReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C);
@@ -95,9 +97,11 @@ architecture structure of ClinkTop is
    signal locked     : slv(2 downto 0);
    signal running    : slv(1 downto 0);
    signal frameCount : Slv32Array(1 downto 0);
+   signal dropCount  : Slv32Array(1 downto 0);
    signal parData    : Slv28Array(2 downto 0);
    signal parValid   : slv(2 downto 0);
-   signal parReady   : slv(2 downto 0);
+   signal parReady   : sl;
+   signal frameReady : slv(1 downto 0);
 
 begin
 
@@ -136,9 +140,9 @@ begin
          locked    => locked(0),
          parData   => parData(0),
          parValid  => parValid(0),
-         parReady  => parReady(0));
+         parReady  => frameReady(0));
 
-   -- Cable 0, half 0
+   -- Cable 1, half 0
    U_Cbl1Half0: entity work.ClinkDual
       generic map (
          TPD_G              => TPD_G,
@@ -157,7 +161,7 @@ begin
          ctrlMode     => r.dualCable,
          parData      => parData(1),
          parValid     => parValid(1),
-         parReady     => parReady(1),
+         parReady     => frameReady(0),
          serRxMaster  => serRxMaster(1),
          serRxSlave   => serRxSlave(1),
          serTxMaster  => serTxMaster(1),
@@ -174,7 +178,10 @@ begin
          locked    => locked(2),
          parData   => parData(2),
          parValid  => parValid(2),
-         parReady  => parReady(2));
+         parReady  => parReady);
+
+   -- Ready generation
+   parReady <= frameReady(1) when r.dualCable = '1' else frameReady(0);
 
    ---------------------------------
    -- Data Processing
@@ -187,13 +194,15 @@ begin
       port map (
          sysClk        => sysClk,
          sysRst        => sysRst,
-         mode          => r.mode(0),
+         linkMode      => r.linkMode(0),
+         dataMode      => r.dataMode(0),
          frameCount    => frameCount(0),
+         dropCount     => dropCount(0),
          locked        => locked,
          running       => running(0),
          parData       => parData,
          parValid      => parValid,
-         parReady      => parReady,
+         parReady      => frameReady(0),
          dataMaster    => dataMaster(0),
          dataSlave     => dataSlave(0));
 
@@ -205,8 +214,10 @@ begin
       port map (
          sysClk        => sysClk,
          sysRst        => sysRst,
-         mode          => r.mode(1),
+         linkMode      => r.linkMode(1),
+         dataMode      => r.dataMode(1),
          frameCount    => frameCount(1),
+         dropCount     => dropCount(1),
          locked(0)     => locked(2),
          locked(1)     => '0',
          locked(2)     => '0',
@@ -217,9 +228,7 @@ begin
          parValid(0)   => parValid(2),
          parValid(1)   => '0',
          parValid(2)   => '0',
-         parReady(0)   => parReady(2),
-         parReady(1)   => open,
-         parReady(2)   => open,
+         parReady      => frameReady(1),
          dataMaster    => dataMaster(1),
          dataSlave     => dataSlave(1));
 
@@ -234,13 +243,13 @@ begin
       -- Latch the current value
       v := r;
 
-      -- Camera link secondary channel mode generation
-      if r.mode(0) <= 1 then  -- disable or base
-         v.dualCable := '1';
-         v.mode(1)   := r.mode(0);
+      -- Camera link secondary channel link mode generation
+      if r.linkMode(0) <= 2 then  -- disable, lite or base
+         v.dualCable   := '1';
+         v.linkMode(1) := r.linkMode(0);
       else
-         v.dualCable := '0';
-         v.mode(1)   := (others=>'0');
+         v.dualCable   := '0';
+         v.linkMode(1) := (others=>'0');
       end if;
 
       -- Drive camera control bits
@@ -261,7 +270,9 @@ begin
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
-      axiSlaveRegister(axilEp, x"10",  0, v.mode(0));
+      axiSlaveRegister(axilEp, x"10",  0, v.linkMode(0));
+      axiSlaveRegister(axilEp, x"10",  8, v.dataMode(0));
+      axiSlaveRegister(axilEp, x"10", 16, v.dataMode(1));
 
       axiSlaveRegister(axilEp, x"18",  0, v.serBaud(0));
       axiSlaveRegister(axilEp, x"1C",  0, v.serBaud(1));
@@ -269,14 +280,15 @@ begin
       axiSlaveRegister(axilEp, x"20",  0, locked);
       axiSlaveRegister(axilEp, x"20",  4, running);
 
-      axiSlaveRegister(axilEp, x"24",  4, frameCount(0));
+      axiSlaveRegister(axilEp, x"30",  0, frameCount(0));
+      axiSlaveRegister(axilEp, x"34",  0, frameCount(1));
+      axiSlaveRegister(axilEp, x"38",  0, dropCount(0));
+      axiSlaveRegister(axilEp, x"3C",  0, dropCount(1));
 
-      axiSlaveRegister(axilEp, x"28",  4, frameCount(0));
-
-      axiSlaveRegister(axilEp, x"30",  0, v.swCamCtrl(0));
-      axiSlaveRegister(axilEp, x"30",  4, v.swCamCtrl(1));
-      axiSlaveRegister(axilEp, x"30",  8, v.swCamCtrlEn(0));
-      axiSlaveRegister(axilEp, x"30", 12, v.swCamCtrlEn(1));
+      axiSlaveRegister(axilEp, x"40",  0, v.swCamCtrl(0));
+      axiSlaveRegister(axilEp, x"40",  4, v.swCamCtrl(1));
+      axiSlaveRegister(axilEp, x"40",  8, v.swCamCtrlEn(0));
+      axiSlaveRegister(axilEp, x"40", 12, v.swCamCtrlEn(1));
 
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_ERROR_RESP_G);
 

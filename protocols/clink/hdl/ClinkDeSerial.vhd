@@ -220,29 +220,39 @@ begin
 
    --------------------------------------
    -- Adjust data bit mappings
-   -- This is probably wrong!
+   -- From DS90CR288A data sheet
    --------------------------------------
+   parDataIn(0)  <= dataShift(0)(6);
+   parDataIn(1)  <= dataShift(0)(5);
+   parDataIn(2)  <= dataShift(0)(4);
+   parDataIn(3)  <= dataShift(0)(3);
+   parDataIn(4)  <= dataShift(0)(2);
+   parDataIn(5)  <= dataShift(3)(5);
+   parDataIn(6)  <= dataShift(0)(1);
 
-   -- Byte 0
-   parDataIn(4  downto  0) <= dataShift(0)(4 downto 0);
-   parDataIn(5)            <= dataShift(0)(6);
-   parDataIn(6)            <= dataShift(3)(6);
-   parDataIn(7)            <= dataShift(0)(5);
+   parDataIn(7)  <= dataShift(0)(0);
+   parDataIn(8)  <= dataShift(1)(6);
+   parDataIn(9)  <= dataShift(1)(5);
+   parDataIn(10) <= dataShift(3)(4);
+   parDataIn(11) <= dataShift(3)(3);
+   parDataIn(12) <= dataShift(1)(4);
+   parDataIn(13) <= dataShift(1)(3);
 
-   -- Byte 1
-   parDataIn(10 downto  8) <= dataShift(1)(2 downto 0);
-   parDataIn(12 downto 11) <= dataShift(1)(6 downto 5);
-   parDataIn(13)           <= dataShift(2)(0);
-   parDataIn(15 downto 14) <= dataShift(1)(4 downto 3);
+   parDataIn(14) <= dataShift(1)(2);
+   parDataIn(15) <= dataShift(1)(1);
+   parDataIn(16) <= dataShift(3)(2);
+   parDataIn(17) <= dataShift(3)(1);
+   parDataIn(18) <= dataShift(1)(0);
+   parDataIn(19) <= dataShift(2)(6);
+   parDataIn(20) <= dataShift(2)(5);
 
-   -- Byte 2
-   parDataIn(16)           <= dataShift(2)(1);
-   parDataIn(19 downto 17) <= dataShift(0)(6 downto 4);
-   parDataIn(21 downto 20) <= dataShift(3)(1 downto 0);
-   parDataIn(23 downto 22) <= dataShift(0)(3 downto 2);
-
-   -- Valid bits
-   parDataIn(27 downto 24) <= dataShift(3)(5 downto 2);
+   parDataIn(21) <= dataShift(2)(4);
+   parDataIn(22) <= dataShift(2)(3);
+   parDataIn(23) <= dataShift(3)(0);
+   parDataIn(24) <= dataShift(2)(2);
+   parDataIn(25) <= dataShift(2)(1);
+   parDataIn(26) <= dataShift(2)(0);
+   parDataIn(27) <= dataShift(3)(6);
 
    --------------------------------------
    -- Output FIFO and status

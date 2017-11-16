@@ -63,8 +63,6 @@ architecture structure of ClinkDual is
    signal cableIn    : slv(4 downto 0);
    signal cableDirIn : slv(4 downto 0);
    signal cblSerOut  : sl;
-   signal intValid   : sl;
-   signal intLocked  : sl;
 
 begin
 
@@ -138,13 +136,10 @@ begin
          dataIn    => cableIn(4 downto 1),
          sysClk    => sysClk,
          sysRst    => dataRst,
-         locked    => intLocked,
+         locked    => locked,
          parData   => parData,
-         parValid  => intValid,
+         parValid  => parValid,
          parReady  => parReady);
-
-   locked   <= intLocked or ctrlMode;
-   parValid <= intValid  or ctrlMode;
 
 end architecture rtl;
 

@@ -33,14 +33,16 @@ entity ClinkFraming is
       sysClk       : in  sl;
       sysRst       : in  sl;
       -- Config and status
-      mode         : in  slv(2 downto 0); -- 0 = Disable, 1 = Base, 2 = Medium, 3 = Full, 4 = Deca
+      linkMode     : in  slv(3 downto 0);
+      dataMode     : in  slv(3 downto 0);
       frameCount   : out slv(31 downto 0);
+      dropCount    : out slv(31 downto 0);
       -- Data interface
       locked       : in  slv(2 downto 0);
       running      : out sl;
       parData      : in  Slv28Array(2 downto 0);
       parValid     : in  slv(2 downto 0);
-      parReady     : out slv(2 downto 0);
+      parReady     : out sl;
       -- Camera data
       dataMaster   : out AxiStreamMasterType;
       dataSlave    : in  AxiStreamSlaveType;
@@ -58,25 +60,25 @@ architecture structure of ClinkFraming is
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
 
    type RegType is record
-      ready   : sl;
-      valid   : sl;
-      fV      : sl;
-      lV      : sl;
-      dV      : sl;
-      running : sl;
-      data    : slv(83 downto 0);
-      master  : AxiStreamMasterType;
+      ready      : sl;
+      bytes      : integer range 1 to 10;
+      portData   : ClDataType;
+      byteData   : ClDataType;
+      running    : sl;
+      frameCount : slv(31 downto 0);
+      dropCount  : slv(31 downto 0);
+      master     : AxiStreamMasterType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      ready   => '0',
-      valid   => '0',
-      fV      => '0',
-      lV      => '0',
-      dV      => '0',
-      running => '0',
-      data    => (others=>'0'),
-      master  => AXI_STREAM_MASTER_INIT_C);
+      ready      => '0',
+      bytes      => 1,
+      portData   => CL_DATA_INIT_C,
+      byteData   => CL_DATA_INIT_C,
+      running    => '0',
+      frameCount => (others=>'0'),
+      dropCount  => (others=>'0'),
+      master     => AXI_STREAM_MASTER_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -85,99 +87,71 @@ architecture structure of ClinkFraming is
 
 begin
 
-   comb : process (r, sysRst, locked, intCtrl, parData, parValid) is
+   comb : process (r, sysRst, linkMode, dataMode, locked, intCtrl, parData, parValid) is
       variable v : RegType;
    begin
       v := r;
 
+      -- Init data
+      v.running  := '0';
+      v.portData := CL_DATA_INIT_C;
+
       -- Determine running mode and check valids
       -- Extract data, and alignment markers
-      case mode is 
+      case linkMode is 
 
-         -- Base mode
+         -- Lite mode, 12 bits
+         -- Control interface for this mode is not correct!
          when => 1
-            v.running := locked(0);
-            v.valid   := xValid;
-            v.dV      := xData(26);
-            v.fV      := xData(25);
-            v.lV      := xData(24);
+            v.running        := locked(0);
+            v.portData.valid := parValid(0);
 
-         -- Medium mode
+            clMapLitePorts ( dataMode, parData, v.bytes, v.portData );
+
+            v.byteData := r.portData;
+
+         -- Base mode, 24 bits
          when => 2
-            v.running := uAnd(locked(1 downto 0));
-            v.valid   := xValid and yValid;
-            v.dV      := xData(26) and yData(26);
-            v.fV      := xData(25) and yData(25);
-            v.lV      := xData(24) and yData(24);
+            v.running        := locked(0);
+            v.portData.valid := parValid(0);
 
-         -- Full mode
+            clMapBasePorts ( dataMode, parData, v.bytes, v.portData );
+
+            clMapBytes ( dataMode, r.portData, v.byteData );
+
+         -- Medium mode, 48 bits
          when => 3
-            v.running := uAnd(locked);
-            v.valid   := xValid and yValid and zValid;
-            v.dV      := xData(26) and yData(26) and zData(26);
-            v.fV      := xData(25) and yData(25) and zData(26);
-            v.lV      := xData(24) and yData(24) and zData(24);
+            v.running        := uAnd(locked(1 downto 0));
+            v.portData.valid := uAnd(parValid(1 downto 0));
 
-         -- DECA mode
+            clMapMedmPorts ( dataMode, parData, v.bytes, v.portData );
+
+            clMapBytes ( dataMode, r.portData, v.byteData );
+
+         -- Full mode, 64 bits
          when => 4
-            v.running := uAnd(locked);
-            v.valid   := xValid and yValid and zValid;
-            v.dV      := xData(26);
-            v.fV      := xData(25);
-            v.lV      := xData(24);
+            v.running        := uAnd(locked);
+            v.portData.valid := uAnd(parValid);
 
-         -- Invalid
-         when others =>
-            v.running := '0';
-            v.valid   := '0';
-            v.dV      := '0';
-            v.lV      := '0';
-            v.fV      := '0';
+            clMapFullPorts ( dataMode, parData, v.bytes, v.portData );
+
+            clMapBytes ( dataMode, r.portData, v.byteData );
+
+         -- DECA mode, 80 bits
+         when => 5
+            v.running        := uAnd(locked);
+            v.portData.valid := uAnd(parValid);
+
+            clMapDecaPorts ( dataMode, parData, v.bytes, v.portData );
+
+            v.byteData := r.portData;
+
       end case;
-   
-      -- Select data
-      v.data(4  downto  0) := xData(4  downto  0);
-      v.data(5)            := xData(6);
-      v.data(6)            := xData(27);
-      v.data(7)            := xData(5);
-      v.data(10 downto  8) := xData(9  downto  7);
-      v.data(12 downto 11) := xData(13 downto 12);
-      v.data(13)           := xData(14);
-      v.data(15 downto 14) := xData(11 downto 10);
-      v.data(16)           := xData(15);
-      v.data(19 downto 17) := xData(20 downto 18);
-      v.data(21 downto 20) := xData(22 downto 21);
-      v.data(23 downto 22) := xData(17 downto 16);
-      v.data(83 downto 24) := (others=>'0');
-
-      -- Medium, full, deca
-      if mode > 1 then
-         v.data(28 downto 24) := xData(4  downto  0);
-         v.data(29)           := xData(6);
-         v.data(30)           := xData(27);
-         v.data(31)           := xData(5);
-         v.data(34 downto 32) := xData(9  downto  7);
-         v.data(36 downto 35) := xData(13 downto 12);
-         v.data(37)           := xData(14);
-         v.data(39 downto 48) := xData(11 downto 10);
-         v.data(40)           := xData(15);
-         v.data(43 downto 41) := xData(20 downto 18);
-         v.data(45 downto 44) := xData(22 downto 21);
-         v.data(47 downto 46) := xData(17 downto 16);
-      end if;
-
-
-
-
-
-
 
       -- Drive ready, dump when not running
-      v.ready := v.valid or (not r.running);
+      v.ready := v.validA or (not r.running);
 
-      -- Data valid
-      if r.valid = '1' then
-
+      -- Push data to AXI frame
 
 
 
@@ -193,19 +167,16 @@ begin
 
 
 
-
-
-
-
-
+      -- Reset
       if (sysRst = '1') then
          v := REG_INIT_C;
       end if;
 
       rin        <= v;
-      parReady   <= (others=>v.valid);
+      parReady   <= v.ready;
       running    <= r.running;
-      frameCount <= r.count;
+      frameCount <= r.frameCount;
+      dropCount  <= r.dropCount;
 
    end process;
 
