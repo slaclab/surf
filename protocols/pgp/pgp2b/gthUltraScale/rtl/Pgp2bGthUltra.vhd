@@ -2,7 +2,7 @@
 -- File       : Pgp2bGthUltra.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2017-11-13
+-- Last update: 2017-11-15
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -30,7 +30,7 @@ use UNISIM.VCOMPONENTS.all;
 entity Pgp2bGthUltra is
    generic (
       TPD_G             : time                 := 1 ns;
-      AXIL_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_DECERR_C;
+      AXIL_ERROR_RESP_G : slv(1 downto 0)      := AXI_RESP_DECERR_C;
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ entity Pgp2bGthUltra is
       NUM_VC_EN_G       : integer range 1 to 4 := 4);
    port (
       -- GT Clocking
-      stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
+      stableClk        : in  sl;                      -- GT needs a stable clock to "boot up"
       stableRst        : in  sl;
       gtRefClk         : in  sl;
       -- Gt Serial IO
@@ -53,12 +53,12 @@ entity Pgp2bGthUltra is
       pgpGtRxN         : in  sl;
       -- Tx Clocking
       pgpTxReset       : in  sl;
-      pgpTxOutClk      : out sl;        -- recovered clock
+      pgpTxOutClk      : out sl;                      -- recovered clock
       pgpTxClk         : in  sl;
       pgpTxMmcmLocked  : in  sl;
       -- Rx clocking
       pgpRxReset       : in  sl;
-      pgpRxOutClk      : out sl;        -- recovered clock
+      pgpRxOutClk      : out sl;                      -- recovered clock
       pgpRxClk         : in  sl;
       pgpRxMmcmLocked  : in  sl;
       -- Non VC Rx Signals
@@ -105,15 +105,15 @@ begin
    gtRxUserReset <= phyRxInit or pgpRxReset or pgpRxIn.resetRx;
    gtTxUserReset <= pgpTxReset or pgpTxIn.resetTx;
 
-   U_RstSync_1: entity work.RstSync
+   U_RstSync_1 : entity work.RstSync
       generic map (
-         TPD_G           => TPD_G,
-         OUT_REG_RST_G   => true)
+         TPD_G         => TPD_G,
+         OUT_REG_RST_G => true)
       port map (
-         clk      => stableClk,               -- [in]
-         asyncRst => pgpTxIn.resetGt,          -- [in]
-         syncRst  => resetGtSync);          -- [out]
-   
+         clk      => stableClk,         -- [in]
+         asyncRst => pgpTxIn.resetGt,   -- [in]
+         syncRst  => resetGtSync);      -- [out]
+
    gtHardReset <= resetGtSync or stableRst;
 
    U_Pgp2bLane : entity work.Pgp2bLane
@@ -153,33 +153,34 @@ begin
          TPD_G             => TPD_G,
          AXIL_ERROR_RESP_G => AXIL_ERROR_RESP_G)
       port map (
-         stableClk      => stableClk,
-         stableRst      => gtHardReset,
-         gtRefClk       => gtRefClk,
-         gtRxP          => pgpGtRxP,
-         gtRxN          => pgpGtRxN,
-         gtTxP          => pgpGtTxP,
-         gtTxN          => pgpGtTxN,
-         rxReset        => gtRxUserReset,
-         rxUsrClkActive => pgpRxMmcmLocked,
-         rxResetDone    => phyRxReady,
-         rxUsrClk       => pgpRxClk,
-         rxData         => phyRxLaneIn.data,
-         rxDataK        => phyRxLaneIn.dataK,
-         rxDispErr      => phyRxLaneIn.dispErr,
-         rxDecErr       => phyRxLaneIn.decErr,
-         rxPolarity     => RX_POLARITY_G,
-         rxOutClk       => pgpRxOutClk,
-         txReset        => gtTxUserReset,
-         txUsrClk       => pgpTxClk,
-         txUsrClkActive => pgpTxMmcmLocked,
-         txResetDone    => phyTxReady,
-         txData         => phyTxLaneOut.data,
-         txDataK        => phyTxLaneOut.dataK,
-         txPolarity     => TX_POLARITY_G,
-         txOutClk       => pgpTxOutClk,
-         loopback       => pgpRxIn.loopback,
-	 axilRst         => axilRst,
+         stableClk       => stableClk,
+         stableRst       => gtHardReset,
+         gtRefClk        => gtRefClk,
+         gtRxP           => pgpGtRxP,
+         gtRxN           => pgpGtRxN,
+         gtTxP           => pgpGtTxP,
+         gtTxN           => pgpGtTxN,
+         rxReset         => gtRxUserReset,
+         rxUsrClkActive  => pgpRxMmcmLocked,
+         rxResetDone     => phyRxReady,
+         rxUsrClk        => pgpRxClk,
+         rxData          => phyRxLaneIn.data,
+         rxDataK         => phyRxLaneIn.dataK,
+         rxDispErr       => phyRxLaneIn.dispErr,
+         rxDecErr        => phyRxLaneIn.decErr,
+         rxPolarity      => RX_POLARITY_G,
+         rxOutClk        => pgpRxOutClk,
+         txReset         => gtTxUserReset,
+         txUsrClk        => pgpTxClk,
+         txUsrClkActive  => pgpTxMmcmLocked,
+         txResetDone     => phyTxReady,
+         txData          => phyTxLaneOut.data,
+         txDataK         => phyTxLaneOut.dataK,
+         txPolarity      => TX_POLARITY_G,
+         txOutClk        => pgpTxOutClk,
+         loopback        => pgpRxIn.loopback,
+         axilClk         => axilClkm,
+         axilRst         => axilRst,
          axilReadMaster  => axilReadMaster,
          axilReadSlave   => axilReadSlave,
          axilWriteMaster => axilWriteMaster,
