@@ -30,6 +30,7 @@ use work.AxiDmaPkg.all;
 entity AxiStreamDmaV2 is
    generic (
       TPD_G             : time                     := 1 ns;
+      SIMULATION_G      : boolean                  := false;
       DESC_AWIDTH_G     : positive range 4 to 12   := 12;
       DESC_ARB_G        : boolean                  := true;
       AXIL_BASE_ADDR_G  : slv(31 downto 0)         := x"00000000";
@@ -91,41 +92,80 @@ architecture structure of AxiStreamDmaV2 is
    
 begin
 
-   U_DmaDesc : entity work.AxiStreamDmaV2Desc
-      generic map (
-         TPD_G             => TPD_G,
-         CHAN_COUNT_G      => CHAN_COUNT_G,
-         AXIL_BASE_ADDR_G  => AXIL_BASE_ADDR_G,
-         AXI_ERROR_RESP_G  => AXI_ERROR_RESP_G,
-         AXI_READY_EN_G    => AXI_READY_EN_G,
-         AXI_CONFIG_G      => AXI_DESC_CONFIG_G,
-         DESC_AWIDTH_G     => DESC_AWIDTH_G,
-         DESC_ARB_G        => DESC_ARB_G,
-         ACK_WAIT_BVALID_G => true)
-      port map (
-         -- Clock/Reset
-         axiClk          => axiClk,
-         axiRst          => axiRst,
-         axilReadMaster  => axilReadMaster,
-         axilReadSlave   => axilReadSlave,
-         axilWriteMaster => axilWriteMaster,
-         axilWriteSlave  => axilWriteSlave,
-         interrupt       => interrupt,
-         online          => online,
-         acknowledge     => acknowledge,
-         dmaWrDescReq    => dmaWrDescReq,
-         dmaWrDescAck    => dmaWrDescAck,
-         dmaWrDescRet    => dmaWrDescRet,
-         dmaWrDescRetAck => dmaWrDescRetAck,
-         dmaRdDescReq    => dmaRdDescReq,
-         dmaRdDescAck    => dmaRdDescAck,
-         dmaRdDescRet    => dmaRdDescRet,
-         dmaRdDescRetAck => dmaRdDescRetAck,
-         axiCache        => axiCache,
-         axiWriteMaster  => axiWriteMaster(0),
-         axiWriteSlave   => axiWriteSlave(0),
-         axiWriteCtrl    => axiWriteCtrl(0));
-
+   GEN_Desc : if (SIMULATION_G = false) generate
+      U_DmaDesc : entity work.AxiStreamDmaV2Desc
+         generic map (
+            TPD_G             => TPD_G,
+            CHAN_COUNT_G      => CHAN_COUNT_G,
+            AXIL_BASE_ADDR_G  => AXIL_BASE_ADDR_G,
+            AXI_ERROR_RESP_G  => AXI_ERROR_RESP_G,
+            AXI_READY_EN_G    => AXI_READY_EN_G,
+            AXI_CONFIG_G      => AXI_DESC_CONFIG_G,
+            DESC_AWIDTH_G     => DESC_AWIDTH_G,
+            DESC_ARB_G        => DESC_ARB_G,
+            ACK_WAIT_BVALID_G => true)
+         port map (
+            -- Clock/Reset
+            axiClk          => axiClk,
+            axiRst          => axiRst,
+            axilReadMaster  => axilReadMaster,
+            axilReadSlave   => axilReadSlave,
+            axilWriteMaster => axilWriteMaster,
+            axilWriteSlave  => axilWriteSlave,
+            interrupt       => interrupt,
+            online          => online,
+            acknowledge     => acknowledge,
+            dmaWrDescReq    => dmaWrDescReq,
+            dmaWrDescAck    => dmaWrDescAck,
+            dmaWrDescRet    => dmaWrDescRet,
+            dmaWrDescRetAck => dmaWrDescRetAck,
+            dmaRdDescReq    => dmaRdDescReq,
+            dmaRdDescAck    => dmaRdDescAck,
+            dmaRdDescRet    => dmaRdDescRet,
+            dmaRdDescRetAck => dmaRdDescRetAck,
+            axiCache        => axiCache,
+            axiWriteMaster  => axiWriteMaster(0),
+            axiWriteSlave   => axiWriteSlave(0),
+            axiWriteCtrl    => axiWriteCtrl(0));
+   end generate;
+   
+   EMU_Desc : if (SIMULATION_G = true) generate
+      U_DmaDesc : entity work.AxiStreamDmaV2DescEmulate
+         generic map (
+            TPD_G             => TPD_G,
+            CHAN_COUNT_G      => CHAN_COUNT_G,
+            AXIL_BASE_ADDR_G  => AXIL_BASE_ADDR_G,
+            AXI_ERROR_RESP_G  => AXI_ERROR_RESP_G,
+            AXI_READY_EN_G    => AXI_READY_EN_G,
+            AXI_CONFIG_G      => AXI_DESC_CONFIG_G,
+            DESC_AWIDTH_G     => DESC_AWIDTH_G,
+            DESC_ARB_G        => DESC_ARB_G,
+            ACK_WAIT_BVALID_G => true)
+         port map (
+            -- Clock/Reset
+            axiClk          => axiClk,
+            axiRst          => axiRst,
+            axilReadMaster  => axilReadMaster,
+            axilReadSlave   => axilReadSlave,
+            axilWriteMaster => axilWriteMaster,
+            axilWriteSlave  => axilWriteSlave,
+            interrupt       => interrupt,
+            online          => online,
+            acknowledge     => acknowledge,
+            dmaWrDescReq    => dmaWrDescReq,
+            dmaWrDescAck    => dmaWrDescAck,
+            dmaWrDescRet    => dmaWrDescRet,
+            dmaWrDescRetAck => dmaWrDescRetAck,
+            dmaRdDescReq    => dmaRdDescReq,
+            dmaRdDescAck    => dmaRdDescAck,
+            dmaRdDescRet    => dmaRdDescRet,
+            dmaRdDescRetAck => dmaRdDescRetAck,
+            axiCache        => axiCache,
+            axiWriteMaster  => axiWriteMaster(0),
+            axiWriteSlave   => axiWriteSlave(0),
+            axiWriteCtrl    => axiWriteCtrl(0));
+   end generate;   
+   
    -- Read channel 0 unused.
    axiReadMaster(0) <= AXI_READ_MASTER_INIT_C;
 

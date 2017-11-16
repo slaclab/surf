@@ -116,7 +116,7 @@ begin
       for i in 0 to CHAN_COUNT_G-1 loop
          v.dmaWrDescAck(i).valid := '0';
 
-         if dmaWrDescReq(i).valid then
+         if dmaWrDescReq(i).valid = '1' then
             v.dmaWrDescAck(i).valid    := '1';
             v.dmaWrDescAck(i).address  := r.dmaWrDescAck(i).Address  + 8192;
             v.dmaWrDescAck(i).dropEn   := '0';
@@ -133,7 +133,7 @@ begin
       for i in 0 to CHAN_COUNT_G-1 loop
          v.dmaWrDescRetAck(i) := dmaWrDescRet(i).valid;
          v.dmaRdDescRetAck(i) := dmaRdDescRet(i).valid;
-      end if;
+      end loop;
 
       --------------------------------------
       -- Read Descriptor Requests
