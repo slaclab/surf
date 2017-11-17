@@ -28,7 +28,7 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 
-entity AxiStreamBytePacker.vhd is
+entity AxiStreamBytePacker is
    generic (
       TPD_G           : time                := 1 ns;
       SLAVE_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
@@ -41,9 +41,9 @@ entity AxiStreamBytePacker.vhd is
       sAxisMaster  : in  AxiStreamMasterType;
       -- Outbound frame
       mAxisMaster  : out AxiStreamMasterType);
-end AxiStreamBytePacker.vhd;
+end AxiStreamBytePacker;
 
-architecture rtl of AxiStreamBytePacker.vhd is
+architecture rtl of AxiStreamBytePacker is
 
    constant MAX_IN_BYTE_C  : integer := SLAVE_CONFIG_G.TDATA_BYTES_C-1;
    constant MAX_OUT_BYTE_C : integer := MASTER_CONFIG_G.TDATA_BYTES_C-1;

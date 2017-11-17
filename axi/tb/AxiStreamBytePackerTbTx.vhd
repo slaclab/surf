@@ -29,8 +29,8 @@ entity AxiStreamBytePackerTbTx is
       AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- System clock and reset
-      sysClk       : in  sl;
-      sysRst       : in  sl;
+      axiClk       : in  sl;
+      axiRst       : in  sl;
       -- Outbound frame
       mAxisMaster  : out AxiStreamMasterType);
 end AxiStreamBytePackerTbTx;
@@ -53,7 +53,7 @@ architecture rtl of AxiStreamBytePackerTbTx is
 
 begin
 
-   comb : process (r, sysRst ) is
+   comb : process (r, axiRst ) is
       variable v : RegType;
    begin
       v := r;
@@ -75,7 +75,7 @@ begin
       end if;
 
       -- Reset
-      if (sysRst = '1') then
+      if (axiRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -85,9 +85,9 @@ begin
 
    end process;
 
-   seq : process (sysClk) is
+   seq : process (axiClk) is
    begin  
-      if (rising_edge(sysClk)) then
+      if (rising_edge(axiClk)) then
          r <= rin;
       end if;
    end process;

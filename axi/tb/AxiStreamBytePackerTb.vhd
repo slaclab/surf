@@ -30,7 +30,7 @@ architecture test of AxiStreamBytePackerTb is
 
    constant SRC_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
-      TDATA_BYTES_C => 10, -- 80 bits
+      TDATA_BYTES_C => 16, -- 128 bits
       TDEST_BITS_C  => 0,
       TID_BITS_C    => 0,
       TKEEP_MODE_C  => TKEEP_COMP_C,
@@ -49,8 +49,8 @@ architecture test of AxiStreamBytePackerTb is
    constant CLK_PERIOD_C : time := 5.000 ns;
    constant TPD_G        : time := 1 ns;
 
-   signal sysClk : sl;
-   signal sysRst : sl;
+   signal axiClk : sl;
+   signal axiRst : sl;
 
    signal testInMaster    : AxiStreamMasterArray(15 downto 0);
    signal testOutMaster   : AxiStreamMasterArray(15 downto 0);
@@ -67,9 +67,9 @@ begin
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 10030 ns)  -- Hold reset for this long)
       port map (
-         clkP => sysClk,
+         clkP => axiClk,
          clkN => open,
-         rst  => sysRst,
+         rst  => axiRst,
          rstL => open);  
 
    U_TestGen : for i in 0 to 15 generate
@@ -80,18 +80,18 @@ begin
             BYTE_SIZE_C   => i+1,
             AXIS_CONFIG_G => SRC_CONFIG_C)
          port map (
-            sysClk      => sysClk,
-            sysRst      => sysRst,
+            axiClk      => axiClk,
+            axiRst      => axiRst,
             mAxisMaster => testInMaster(i));
 
       U_Pack: entity work.AxiStreamBytePacker
          generic map (
             TPD_G           => TPD_G,
-            SLAVE_CONFIG_G  => SRC_CONFIG_C)
+            SLAVE_CONFIG_G  => SRC_CONFIG_C,
             MASTER_CONFIG_G => DST_CONFIG_C)
          port map (
-            sysClk       => sysClk,
-            sysRst       => sysRst,
+            axiClk       => axiClk,
+            axiRst       => axiRst,
             sAxisMaster  => testInMaster(i),
             mAxisMaster  => testOutMaster(i));
 
@@ -101,8 +101,8 @@ begin
             BYTE_SIZE_C   => i+1,
             AXIS_CONFIG_G => DST_CONFIG_C)
          port map (
-            sysClk      => sysClk,
-            sysRst      => sysRst,
+            axiClk      => axiClk,
+            axiRst      => axiRst,
             sAxisMaster => testOutMaster(i),
             fail        => testFail(i));
    end generate;

@@ -48,7 +48,16 @@ end ClinkFraming;
 
 architecture structure of ClinkFraming is
 
-   constant INT_CONFIG_C : AxiStreamConfigType := (
+   constant SLV_CONFIG_C : AxiStreamConfigType := (
+      TSTRB_EN_C    => false,
+      TDATA_BYTES_C => 10, -- 80 bits
+      TDEST_BITS_C  => 0,
+      TID_BITS_C    => 0,
+      TKEEP_MODE_C  => TKEEP_COMP_C,
+      TUSER_BITS_C  => 2,
+      TUSER_MODE_C  => TUSER_FIRST_LAST_C);
+
+   constant MST_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
       TDATA_BYTES_C => 16, -- 128 bits
       TDEST_BITS_C  => 0,
@@ -151,7 +160,7 @@ begin
       end loop;
 
       -- Set start of frame
-      ssiSetUserSof ( INT_CONFIG_C, v.master, not r.inFrame );
+      ssiSetUserSof ( SLV_CONFIG_C, v.master, not r.inFrame );
 
       -- Move data
       if r.portData.valid = '1' and r.byteData.valid = '1' and r.byteData.fv = '1' then
@@ -172,7 +181,7 @@ begin
 
             -- Frame was dumped, or bad end markers
             if r.dump = '1' or r.inFrame = '0' or r.byteData.dv = '0' or r.byteData.lv = '0' then
-               ssiSetUserEofe ( INT_CONFIG_C, v.master, '1' );
+               ssiSetUserEofe ( SLV_CONFIG_C, v.master, '1' );
                v.dropCount := r.dropCount + 1;
             else
                v.frameCount := r.frameCount + 1;
@@ -209,13 +218,14 @@ begin
    ---------------------------------
    -- Frame Packing
    ---------------------------------
-   U_Pack: entity work.ClinkPack
-      generic (
-         TPD_G         => TPD_G,
-         AXIS_CONFIG_G => INT_CONFIG_C,
+   U_Pack: entity work.AxiStreamBytePacker
+      generic map (
+         TPD_G           => TPD_G,
+         SLAVE_CONFIG_G  => SLV_CONFIG_C,
+         MASTER_CONFIG_G => MST_CONFIG_C)
       port map (
-         sysClk      => sysClk,
-         sysRst      => sysRst,
+         axiClk      => sysClk,
+         axiRst      => sysRst,
          sAxisMaster => r.master,
          mAxisMaster => packMaster);
 
@@ -229,7 +239,7 @@ begin
          GEN_SYNC_FIFO_G     => true,
          FIFO_ADDR_WIDTH_G   => 9,
          FIFO_PAUSE_THRESH_G => 500,
-         SLAVE_AXI_CONFIG_G  => INT_CONFIG_C,
+         SLAVE_AXI_CONFIG_G  => MST_CONFIG_C,
          MASTER_AXI_CONFIG_G => DATA_AXIS_CONFIG_G)
       port map (
          sAxisClk    => sysClk,
