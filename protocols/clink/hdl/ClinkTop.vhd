@@ -28,7 +28,6 @@ entity ClinkTop is
    generic (
       TPD_G              : time                := 1 ns;
       SYS_CLK_FREQ_G     : real                := 125.0e6;
-      SSI_EN_G           : boolean             := true; -- Insert SOF
       AXI_ERROR_RESP_G   : slv(1 downto 0)     := AXI_RESP_DECERR_C;
       AXI_COMMON_CLK_G   : boolean             := false;
       DATA_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
@@ -197,7 +196,6 @@ begin
    U_Framer0 : entity work.ClinkFraming
       generic map (
          TPD_G              => TPD_G,
-         SSI_EN_G           => SSI_EN_G,
          DATA_AXIS_CONFIG_G => DATA_AXIS_CONFIG_G)
       port map (
          sysClk        => sysClk,
@@ -217,7 +215,6 @@ begin
    U_Framer1 : entity work.ClinkFraming
       generic map (
          TPD_G              => TPD_G,
-         SSI_EN_G           => SSI_EN_G,
          DATA_AXIS_CONFIG_G => DATA_AXIS_CONFIG_G)
       port map (
          sysClk        => sysClk,

@@ -27,7 +27,6 @@ use unisim.vcomponents.all;
 entity ClinkFraming is
    generic (
       TPD_G              : time                := 1 ns;
-      SSI_EN_G           : boolean             := true; -- Insert SOF
       DATA_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- System clock and reset
@@ -66,11 +65,10 @@ architecture structure of ClinkFraming is
       portData   : ClDataType;
       byteData   : ClDataType;
       bytes      : integer range 1 to 10;
-
-      --inFrame    : sl;
-      --dump       : sl;
-      --frameCount : slv(31 downto 0);
-      --dropCount  : slv(31 downto 0);
+      inFrame    : sl;
+      dump       : sl;
+      frameCount : slv(31 downto 0);
+      dropCount  : slv(31 downto 0);
       master     : AxiStreamMasterType;
    end record RegType;
 
@@ -80,17 +78,17 @@ architecture structure of ClinkFraming is
       portData   => CL_DATA_INIT_C,
       byteData   => CL_DATA_INIT_C,
       bytes      => 1,
-
-      --inFrame    => '0',
-      --dump       => '0',
-      --frameCount => (others=>'0'),
-      --dropCount  => (others=>'0'),
+      inFrame    => '0',
+      dump       => '0',
+      frameCount => (others=>'0'),
+      dropCount  => (others=>'0'),
       master     => AXI_STREAM_MASTER_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal intCtrl : AxiStreamCtrlType;
+   signal intCtrl    : AxiStreamCtrlType;
+   signal packMaster : AxiStreamMasterType;
 
 begin
 
@@ -154,18 +152,39 @@ begin
          v.master.tKeep(i) := '1';
       end loop;
 
+      -- Set start of frame
+      ssiSetUserSof ( INT_CONFIG_C, v.master, not r.inFrame );
+
       -- Move data
-      if r.portData.valid = '1' and r.byteData.valid = '1' then
+      if r.portData.valid = '1' and r.byteData.valid = '1' and r.byteData.fv = '1' then
 
          -- Valid data in byte record
-         if r.byteData.dv = '1' and r.byteData.lv = '1' and r.byteData.fv = '1' then
+         if r.dump = '0' and r.byteData.dv = '1' and r.byteData.lv = '1' then
+            v.inFrame       := '1';
+            v.master.tValid := '1';
+         end if;
 
+         -- Backpressure
+         if intCtrl.pause = '1' then
+            v.dump := '1';
+         end if;
 
-            v.master.tValid 
-            ssiSetUserSof ( INT_CONFIG_C, v.master, not r.inFrame );
-            ssiSetUserEofe ( INT_CONFIG_C, v.master, not r.inFrame );
+         -- End of frame
+         if r.byteData.fv = '1' and r.portData.fv = '0' then
 
+            -- Frame was dumped, or bad end markers
+            if r.dump = '1' or r.inFrame = '0' or r.byteData.dv = '0' or r.byteData.lv = '0' then
+               ssiSetUserEofe ( INT_CONFIG_C, v.master, '1' );
+               v.dropCount := r.dropCount + 1;
+            else
+               v.frameCount := r.frameCount + 1;
+            end if;
 
+            v.master.tValid := r.inFrame;
+            v.master.tLast  := '1';
+
+            v.inFrame := '0';
+            v.dump    := '0';
          end if;
       end if;
 
@@ -190,6 +209,11 @@ begin
    end process;
 
    ---------------------------------
+   -- Frame Packing
+   ---------------------------------
+   packMaster <= r.master;
+
+   ---------------------------------
    -- Data FIFO
    ---------------------------------
    U_DataFifo: entity work.AxiStreamFifoV2
@@ -198,12 +222,13 @@ begin
          SLAVE_READY_EN_G    => false,
          GEN_SYNC_FIFO_G     => true,
          FIFO_ADDR_WIDTH_G   => 9,
+         FIFO_PAUSE_THRESH_G => 500,
          SLAVE_AXI_CONFIG_G  => INT_CONFIG_C,
          MASTER_AXI_CONFIG_G => DATA_AXIS_CONFIG_G)
       port map (
          sAxisClk    => sysClk,
          sAxisRst    => sysRst,
-         sAxisMaster => r.Master,
+         sAxisMaster => packMaster,
          sAxisCtrl   => intCtrl,
          mAxisClk    => sysClk,
          mAxisRst    => sysRst,
