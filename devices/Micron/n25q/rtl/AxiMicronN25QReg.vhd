@@ -2,7 +2,7 @@
 -- File       : AxiMicronN25QReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2017-06-14
+-- Last update: 2017-11-09
 -------------------------------------------------------------------------------
 -- Description: MicronN25Q AXI-Lite Register Access
 -------------------------------------------------------------------------------
@@ -36,6 +36,9 @@ entity AxiMicronN25QReg is
       sck            : out sl;
       mosi           : out sl;
       miso           : in  sl;
+      -- Shared SPI Interface 
+      busyIn         : in  sl := '0';
+      busyOut        : out sl;
       -- AXI-Lite Register Interface
       axiReadMaster  : in  AxiLiteReadMasterType;
       axiReadSlave   : out AxiLiteReadSlaveType;
@@ -60,7 +63,6 @@ architecture rtl of AxiMicronN25QReg is
       IDLE_S,
       WORD_WRITE_S,
       WORD_READ_S,
-      WORD_READ_HOLD_S,
       SCK_LOW_S,
       SCK_HIGH_S,
       MIN_CS_WIDTH_S);
@@ -68,6 +70,7 @@ architecture rtl of AxiMicronN25QReg is
    type RegType is record
       test          : slv(31 downto 0);
       wrData        : slv(31 downto 0);
+      rdData        : slv(31 downto 0);
       addr          : slv(31 downto 0);
       addr32BitMode : sl;
       cmd           : slv(7 downto 0);
@@ -82,6 +85,7 @@ architecture rtl of AxiMicronN25QReg is
       xferSize      : slv(8 downto 0);
       ramDin        : slv(7 downto 0);
       -- SPI Signals
+      busy          : sl;
       csL           : sl;
       sck           : sl;
       mosi          : sl;
@@ -97,6 +101,7 @@ architecture rtl of AxiMicronN25QReg is
    constant REG_INIT_C : RegType := (
       test          => (others => '0'),
       wrData        => (others => '0'),
+      rdData        => (others => '0'),
       addr          => (others => '0'),
       addr32BitMode => '0',
       cmd           => (others => '0'),
@@ -111,6 +116,7 @@ architecture rtl of AxiMicronN25QReg is
       xferSize      => (others => '0'),
       ramDin        => (others => '0'),
       -- SPI Signals
+      busy          => '0',
       csL           => '1',
       sck           => '0',
       mosi          => '0',
@@ -135,7 +141,8 @@ begin
    -------------------------------
    -- Configuration Register
    -------------------------------  
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, miso, r, ramDout) is
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, busyIn, miso, r,
+                   ramDout) is
       variable v            : RegType;
       variable axiStatus    : AxiLiteStatusType;
       variable axiWriteResp : slv(1 downto 0);
@@ -175,7 +182,7 @@ begin
                   v.wrData := axiWriteMaster.wdata;
                   -- Next state
                   v.state  := WORD_WRITE_S;
-               else
+               elsif (busyIn = '0') then
                   -- Decode address and perform write
                   case (axiWriteMaster.awaddr(7 downto 0)) is
                      when x"00" =>
@@ -213,7 +220,7 @@ begin
                   v.rd(0) := '1';
                   -- Next state
                   v.state := WORD_READ_S;
-               else
+               elsif (busyIn = '0') then
                   -- Reset the register
                   v.axiReadSlave.rdata := (others => '0');
                   -- Decode address and assign read data
@@ -257,32 +264,24 @@ begin
             -- Check if the RAM data is updated
             if r.rd = "00" then
                -- Set the flag
-               v.rd(0)                           := '1';
+               v.rd(0)               := '1';
                -- Shift the data
-               v.axiReadSlave.rdata(31 downto 8) := v.axiReadSlave.rdata(23 downto 0);
-               v.axiReadSlave.rdata(7 downto 0)  := ramDout;
+               v.rdData(31 downto 8) := r.rdData(23 downto 0);
+               v.rdData(7 downto 0)  := ramDout;
                -- Increment the counters
-               v.raddr                           := r.raddr + 1;
-               v.cnt                             := r.cnt + 1;
+               v.raddr               := r.raddr + 1;
+               v.cnt                 := r.cnt + 1;
                -- Check the counter size
                if r.cnt = 3 then
                   -- Reset the counter
-                  v.cnt   := (others => '0');
+                  v.cnt                := (others => '0');
+                  -- Forward the read data
+                  v.axiReadSlave.rdata := v.rdData;
+                  -- Send AXI-Lite Response
+                  axiSlaveReadResponse(v.axiReadSlave);
                   -- Next state
-                  v.state := WORD_READ_HOLD_S;
+                  v.state              := IDLE_S;
                end if;
-            end if;
-         ----------------------------------------------------------------------
-         when WORD_READ_HOLD_S =>
-            -- Send AXI-Lite Response
-            axiSlaveReadResponse(v.axiReadSlave);
-            -- Wait for read request to complete
-            if (axiStatus.readEnable = '0') then
-               -- Reset the counters
-               v.waddr := (others => '0');
-               v.raddr := (others => '0');
-               -- Next state
-               v.state := IDLE_S;
             end if;
          ----------------------------------------------------------------------
          when SCK_LOW_S =>
@@ -389,6 +388,14 @@ begin
       ----------------------------------------------------------------------
       end case;
 
+      if (r.state = IDLE_S) then
+         -- Reset the flag
+         v.busy := '0';
+      else
+         -- Set the flag
+         v.busy := '1';
+      end if;
+
       -- Synchronous Reset
       if axiRst = '1' then
          v := REG_INIT_C;
@@ -401,9 +408,10 @@ begin
       axiReadSlave  <= r.axiReadSlave;
       axiWriteSlave <= r.axiWriteSlave;
 
-      csL  <= r.csL;
-      sck  <= r.sck;
-      mosi <= r.mosi;
+      csL     <= r.csL;
+      sck     <= r.sck;
+      mosi    <= r.mosi;
+      busyOut <= r.busy;
 
    end process comb;
 

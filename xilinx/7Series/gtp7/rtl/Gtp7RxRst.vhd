@@ -75,13 +75,17 @@ use ieee.std_logic_unsigned.all;
 entity Gtp7RxRst is
    generic(
       TPD_G                  : time                  := 1 ns;
+      DYNAMIC_QPLL_G         : boolean               := false;
       SIMULATION_G           : boolean               := false;
       STABLE_CLOCK_PERIOD    : integer range 4 to 20 := 8;  --Period of the stable clock driving this state-machine, unit is [ns]
       RETRY_COUNTER_BITWIDTH : integer range 2 to 8  := 8;
       TX_PLL0_USED           : boolean               := false;  -- the TX and RX Reset FSMs must
       RX_PLL0_USED           : boolean               := false   -- share these two generic values
       );
-   port (STABLE_CLOCK             : in  std_logic;  --Stable Clock, either a stable clock from the PCB
+   port (
+         qPllRxSelect             : in  std_logic_vector(1 downto 0);
+         qPllTxSelect             : in  std_logic_vector(1 downto 0);
+         STABLE_CLOCK             : in  std_logic;  --Stable Clock, either a stable clock from the PCB
                                                     --or reference-clock present at startup.
          RXUSERCLK                : in  std_logic;  --RXUSERCLK as used in the design
          SOFT_RESET               : in  std_logic;  --User Reset, can be pulled any time
@@ -482,8 +486,22 @@ begin
    end process;
 
 
-   refclk_lost <= '1' when ((RX_PLL0_USED and PLL0REFCLKLOST = '1') or (not RX_PLL0_USED and PLL1REFCLKLOST = '1')) else '0';
-
+   process(qPllRxSelect,PLL0REFCLKLOST,PLL1REFCLKLOST)
+   begin
+      if DYNAMIC_QPLL_G then
+         if qPllRxSelect = "00" then
+            refclk_lost <= PLL0REFCLKLOST;
+         else
+            refclk_lost <= PLL1REFCLKLOST;
+         end if;
+      else
+         if RX_PLL0_USED then
+            refclk_lost <= PLL0REFCLKLOST;
+         else
+            refclk_lost <= PLL1REFCLKLOST;
+         end if;
+      end if;
+   end process;   
 
    --FSM for resetting the GTX/GTH/GTP in the 7-series. 
    --~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -543,19 +561,37 @@ begin
                   --case the transceiver never comes up for some reason, this machine 
                   --will still continue its best and rerun until the FPGA is turned off
                   --or the transceivers come up correctly.
-                  if RX_PLL0_USED and not TX_PLL0_USED then
-                     if pll_reset_asserted = '0' then
-                        PLL0_RESET         <= '1';
-                        pll_reset_asserted <= '1';
-                     else
-                        PLL0_RESET <= '0';
-                     end if;
-                  elsif not RX_PLL0_USED and TX_PLL0_USED then
-                     if pll_reset_asserted = '0' then
-                        PLL1_RESET         <= '1';
-                        pll_reset_asserted <= '1';
-                     else
-                        PLL1_RESET <= '0';
+                  if DYNAMIC_QPLL_G then
+                     if (qPllRxSelect = "00") and (qPllTxSelect /= "00") then
+                        if pll_reset_asserted = '0' then
+                           PLL0_RESET         <= '1';
+                           pll_reset_asserted <= '1';
+                        else
+                           PLL0_RESET <= '0';
+                        end if;
+                     elsif (qPllRxSelect /= "00") and (qPllTxSelect = "00") then
+                        if pll_reset_asserted = '0' then
+                           PLL1_RESET         <= '1';
+                           pll_reset_asserted <= '1';
+                        else
+                           PLL1_RESET <= '0';
+                        end if;
+                     end if;                  
+                  else
+                     if RX_PLL0_USED and not TX_PLL0_USED then
+                        if pll_reset_asserted = '0' then
+                           PLL0_RESET         <= '1';
+                           pll_reset_asserted <= '1';
+                        else
+                           PLL0_RESET <= '0';
+                        end if;
+                     elsif not RX_PLL0_USED and TX_PLL0_USED then
+                        if pll_reset_asserted = '0' then
+                           PLL1_RESET         <= '1';
+                           pll_reset_asserted <= '1';
+                        else
+                           PLL1_RESET <= '0';
+                        end if;
                      end if;
                   end if;
 
@@ -566,12 +602,22 @@ begin
                   RESET_PHALIGNMENT       <= '1';
                   check_tlock_max         <= '0';
                   recclk_mon_count_reset  <= '1';
-                  if (RX_PLL0_USED and not TX_PLL0_USED and (PLL0REFCLKLOST = '0') and pll_reset_asserted = '1') or
-                     (not RX_PLL0_USED and TX_PLL0_USED and (PLL1REFCLKLOST = '0') and pll_reset_asserted = '1') or
-                     (RX_PLL0_USED and TX_PLL0_USED and (PLL0REFCLKLOST = '0')) or
-                     (not RX_PLL0_USED and not TX_PLL0_USED and (PLL1REFCLKLOST = '0')) then
-                     rx_state       <= RELEASE_PLL_RESET;
-                     reset_time_out <= '1';
+                  if DYNAMIC_QPLL_G then
+                     if ((qPllRxSelect = "00")  and (qPllTxSelect /= "00") and (PLL0REFCLKLOST = '0') and pll_reset_asserted = '1') or
+                        ((qPllRxSelect /= "00") and (qPllTxSelect = "00")  and (PLL1REFCLKLOST = '0') and pll_reset_asserted = '1') or
+                        ((qPllRxSelect = "00")  and (qPllTxSelect = "00")  and (PLL0REFCLKLOST = '0')) or
+                        ((qPllRxSelect /= "00") and (qPllTxSelect /= "00") and (PLL1REFCLKLOST = '0')) then
+                        rx_state       <= RELEASE_PLL_RESET;
+                        reset_time_out <= '1';
+                     end if;                  
+                  else
+                     if (RX_PLL0_USED and not TX_PLL0_USED and (PLL0REFCLKLOST = '0') and pll_reset_asserted = '1') or
+                        (not RX_PLL0_USED and TX_PLL0_USED and (PLL1REFCLKLOST = '0') and pll_reset_asserted = '1') or
+                        (RX_PLL0_USED and TX_PLL0_USED and (PLL0REFCLKLOST = '0')) or
+                        (not RX_PLL0_USED and not TX_PLL0_USED and (PLL1REFCLKLOST = '0')) then
+                        rx_state       <= RELEASE_PLL_RESET;
+                        reset_time_out <= '1';
+                     end if;
                   end if;
 
                when RELEASE_PLL_RESET =>
@@ -580,16 +626,30 @@ begin
                   pll_reset_asserted <= '0';
                   reset_time_out     <= '0';
 
-                  if (RX_PLL0_USED and not TX_PLL0_USED and (pll0lock_ris_edge = '1')) or
-                     (not RX_PLL0_USED and TX_PLL0_USED and (pll1lock_ris_edge = '1')) then
-                     rx_state               <= VERIFY_RECCLK_STABLE;
-                     reset_time_out         <= '1';
-                     recclk_mon_count_reset <= '0';
-                  elsif (RX_PLL0_USED and (pll0lock_sync = '1')) or
-                     (not RX_PLL0_USED and (pll1lock_sync = '1')) then
-                     rx_state               <= VERIFY_RECCLK_STABLE;
-                     reset_time_out         <= '1';
-                     recclk_mon_count_reset <= '0';
+                  if DYNAMIC_QPLL_G then
+                     if ((qPllRxSelect = "00")  and (qPllTxSelect /= "00") and (pll0lock_ris_edge = '1')) or
+                        ((qPllRxSelect /= "00") and (qPllTxSelect = "00")  and (pll1lock_ris_edge = '1')) then
+                        rx_state               <= VERIFY_RECCLK_STABLE;
+                        reset_time_out         <= '1';
+                        recclk_mon_count_reset <= '0';
+                     elsif ((qPllRxSelect = "00") and (pll0lock_sync = '1')) or
+                        ((qPllRxSelect /= "00") and (pll1lock_sync = '1')) then
+                        rx_state               <= VERIFY_RECCLK_STABLE;
+                        reset_time_out         <= '1';
+                        recclk_mon_count_reset <= '0';
+                     end if;                  
+                  else                  
+                     if (RX_PLL0_USED and not TX_PLL0_USED and (pll0lock_ris_edge = '1')) or
+                        (not RX_PLL0_USED and TX_PLL0_USED and (pll1lock_ris_edge = '1')) then
+                        rx_state               <= VERIFY_RECCLK_STABLE;
+                        reset_time_out         <= '1';
+                        recclk_mon_count_reset <= '0';
+                     elsif (RX_PLL0_USED and (pll0lock_sync = '1')) or
+                        (not RX_PLL0_USED and (pll1lock_sync = '1')) then
+                        rx_state               <= VERIFY_RECCLK_STABLE;
+                        reset_time_out         <= '1';
+                        recclk_mon_count_reset <= '0';
+                     end if;
                   end if;
 
                   if time_out_2ms = '1' then

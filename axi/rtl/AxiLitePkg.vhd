@@ -350,6 +350,11 @@ package AxiLitePkg is
       addr        : in    slv;
       regs        : in    slv32Array);
 
+   procedure axiWrDetect (
+      variable ep : inout AxiLiteEndpointType;
+      addr        : in    slv;
+      reg         : inout sl);
+
    procedure axiSlaveDefault (
       variable ep            : inout AxiLiteEndpointType;
       variable axiWriteSlave : inout AxiLiteWriteSlaveType;
@@ -763,6 +768,23 @@ package body AxiLitePkg is
       addrLocal(1 downto 0)               := "00";
 --      print("MULTI! - Addr: " & hstr(addrLocal));
       axiSlaveRegister(ep, addrLocal, 0, tmp);
+   end procedure;
+
+   procedure axiWrDetect (
+      variable ep : inout AxiLiteEndpointType;
+      addr        : in    slv;
+      reg         : inout sl)
+   is
+      -- Need to remap addr range to be (length-1 downto 0)
+      constant ADDR_LEN_C : integer := addr'length;
+      constant ADDR_C     : slv(ADDR_LEN_C-1 downto 0) := addr;
+   begin
+      if (ep.axiStatus.writeEnable = '1') then
+         if std_match(ep.axiWriteMaster.awaddr(ADDR_LEN_C-1 downto 2), ADDR_C(ADDR_LEN_C-1 downto 2)) then
+            reg := '1';
+            axiSlaveWriteResponse(ep.axiWriteSlave);
+         end if;
+      end if;
    end procedure;
 
    procedure axiSlaveDefault (

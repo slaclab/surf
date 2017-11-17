@@ -1093,7 +1093,7 @@ begin
          RXCHBONDLEVEL    => rxChBondLevelIn,  --"000",
          RXCHBONDMASTER   => toSl(RX_CHAN_BOND_MASTER_G),
          RXCHBONDO        => rxChBondOut,
-         RXCHBONDSLAVE    => toSl(RX_CHAN_BOND_MASTER_G = false),
+         RXCHBONDSLAVE    => toSl(RX_CHAN_BOND_EN_G = true and RX_CHAN_BOND_MASTER_G = false),
          ------------------- Receive Ports - Channel Bonding Ports  -----------------
          RXCHANISALIGNED  => open,
          RXCHANREALIGN    => open,
@@ -1142,7 +1142,8 @@ begin
          RXDFEVPHOLD      => '0',
          RXDFEVPOVRDEN    => '0',
          RXDFEVSEN        => '0',
-         RXDFEXYDEN       => RXDFEXYDEN_G,
+         -- RXDFEXYDEN       => RXDFEXYDEN_G,
+         RXDFEXYDEN       => '1',-- This should always be 1
          RXDFEXYDHOLD     => '0',
          RXDFEXYDOVRDEN   => '0',
          RXMONITOROUT     => open,

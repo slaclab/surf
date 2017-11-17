@@ -280,7 +280,8 @@ begin
                stateCntRst   <= '1';
                ltsCntEn      <= '0';
                ltsCntRst     <= '0';
-               nxtRxPolarity <= intRxPolarity;
+               -- nxtRxPolarity <= intRxPolarity;
+               nxtRxPolarity <= (others => '0');
                nxtState      <= ST_RESET_C;
 
             -- Decode or disparity error, clear lts count
@@ -288,7 +289,8 @@ begin
                stateCntRst   <= '0';
                ltsCntEn      <= '0';
                ltsCntRst     <= '1';
-               nxtRxPolarity <= intRxPolarity;
+               -- nxtRxPolarity <= intRxPolarity;
+               nxtRxPolarity <= (others => '0');
                nxtState      <= curState;
 
             -- Training pattern seen
@@ -297,7 +299,8 @@ begin
 
                -- No Inversion
                if rxDetectInvert = 0 then
-                  nxtRxPolarity <= intRxPolarity;
+                  -- nxtRxPolarity <= intRxPolarity;
+                  nxtRxPolarity <= (others => '0');
                   nxtState      <= curState;
 
                   -- ID & Lane Count Ok
@@ -313,7 +316,8 @@ begin
                else
                   ltsCntEn      <= '0';
                   ltsCntRst     <= '1';
-                  nxtRxPolarity <= intRxPolarity xor rxDetectInvert;
+                  -- nxtRxPolarity <= intRxPolarity xor rxDetectInvert;
+                  nxtRxPolarity <= (others => '0');
                   nxtState      <= ST_INVRT_C;
                end if;
 
@@ -323,7 +327,8 @@ begin
                stateCntRst   <= '1';
                ltsCntEn      <= '0';
                ltsCntRst     <= '1';
-               nxtRxPolarity <= intRxPolarity;
+               -- nxtRxPolarity <= intRxPolarity;
+               nxtRxPolarity <= (others => '0');
                nxtState      <= ST_READY_C;
 
             -- Terminal count without seeing a valid LTS
@@ -331,7 +336,8 @@ begin
                stateCntRst   <= '1';
                ltsCntEn      <= '0';
                ltsCntRst     <= '1';
-               nxtRxPolarity <= intRxPolarity;
+               -- nxtRxPolarity <= intRxPolarity;
+               nxtRxPolarity <= (others => '0');
                nxtState      <= ST_RESET_C;
 
             -- Count cycles without LTS
@@ -339,14 +345,16 @@ begin
                stateCntRst   <= '0';
                ltsCntEn      <= '0';
                ltsCntRst     <= '0';
-               nxtRxPolarity <= intRxPolarity;
+               -- nxtRxPolarity <= intRxPolarity;
+               nxtRxPolarity <= (others => '0');
                nxtState      <= curState;
             end if;
 
          -- Wait a few clocks after inverting receive interface
          when ST_INVRT_C =>
             nxtRxLinkReady <= '0';
-            nxtRxPolarity  <= intRxPolarity;
+            -- nxtRxPolarity  <= intRxPolarity;
+            nxtRxPolarity  <= (others => '0');
             ltsCntRst      <= '1';
             ltsCntEn       <= '0';
             nxtRxInit      <= '0';
@@ -363,7 +371,8 @@ begin
          -- Ready
          when ST_READY_C =>
             nxtRxLinkReady <= '1';
-            nxtRxPolarity  <= intRxPolarity;
+            -- nxtRxPolarity  <= intRxPolarity;
+            nxtRxPolarity  <= (others => '0');
             ltsCntRst      <= '1';
             ltsCntEn       <= '0';
             nxtRxInit      <= '0';

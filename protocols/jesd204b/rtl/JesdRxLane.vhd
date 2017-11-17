@@ -2,7 +2,7 @@
 -- File       : JesdRxLane.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-14
--- Last update: 2017-06-22
+-- Last update: 2017-11-10
 -------------------------------------------------------------------------------
 -- Description: JesdRx single lane module
 --              Receiver JESD204b standard.
@@ -141,11 +141,13 @@ architecture rtl of JesdRxLane is
    -- Internal signals
 
    -- Control signals from FSM
-   signal s_nSync      : sl;
-   signal s_readBuff   : sl;
-   signal s_alignFrame : sl;
-   signal s_ila        : sl;
-   signal s_dataValid  : sl;
+   signal s_nSync         : sl;
+   signal s_readBuff      : sl;
+   signal s_alignFrame    : sl;
+   signal s_alignFrameDly : sl;
+   signal s_ila           : sl;
+   signal s_dataValid     : sl;
+   signal s_dataValidDly  : sl;
 
    -- Buffer control
    signal s_bufRst : sl;
@@ -153,10 +155,11 @@ architecture rtl of JesdRxLane is
    signal s_bufRe  : sl;
 
    -- Datapath
-   signal s_charAndData     : slv(((GT_WORD_SIZE_C*8)+GT_WORD_SIZE_C)-1 downto 0);
-   signal s_charAndDataBuff : slv(s_charAndData'range);
-   signal s_sampleData      : slv(sampleData_o'range);
-   signal s_sampleDataValid : sl;
+   signal s_charAndData        : slv(((GT_WORD_SIZE_C*8)+GT_WORD_SIZE_C)-1 downto 0);
+   signal s_charAndDataBuff    : slv(s_charAndData'range);
+   signal s_charAndDataBuffDly : slv(s_charAndData'range);
+   signal s_sampleData         : slv(sampleData_o'range);
+   signal s_sampleDataValid    : sl;
 
    -- Statuses
    signal s_bufOvf      : sl;
@@ -227,26 +230,26 @@ begin
          F_G   => F_G,
          K_G   => K_G)
       port map (
-         clk           => devClk_i,
-         rst           => devRst_i,
-         enable_i      => enable_i,
-         sysRef_i      => sysRef_i,
-         dataRx_i      => r.jesdGtRx.data,
-         chariskRx_i   => r.jesdGtRx.dataK,
-         gtReady_i     => r.jesdGtRx.rstDone,
-         lmfc_i        => lmfc_i,
-         nSyncAnyD1_i  => nSyncAnyD1_i,
-         nSyncAny_i    => nSyncAny_i,
-         linkErr_i     => s_linkErr,
-         nSync_o       => s_nSync,
-         readBuff_o    => s_readBuff,
+         clk          => devClk_i,
+         rst          => devRst_i,
+         enable_i     => enable_i,
+         sysRef_i     => sysRef_i,
+         dataRx_i     => r.jesdGtRx.data,
+         chariskRx_i  => r.jesdGtRx.dataK,
+         gtReady_i    => r.jesdGtRx.rstDone,
+         lmfc_i       => lmfc_i,
+         nSyncAnyD1_i => nSyncAnyD1_i,
+         nSyncAny_i   => nSyncAny_i,
+         linkErr_i    => s_linkErr,
+         nSync_o      => s_nSync,
+         readBuff_o   => s_readBuff,
          -- buffLatency_o => s_buffLatency,
-         alignFrame_o  => s_alignFrame,
-         ila_o         => s_ila,
-         kDetected_o   => s_kDetected,
-         sysref_o      => s_refDetected,
-         dataValid_o   => s_dataValid,
-         subClass_i    => subClass_i
+         alignFrame_o => s_alignFrame,
+         ila_o        => s_ila,
+         kDetected_o  => s_kDetected,
+         sysref_o     => s_refDetected,
+         dataValid_o  => s_dataValid,
+         subClass_i   => subClass_i
          );
 
    -- Align the rx data within the GT word and replace the characters. 
@@ -259,10 +262,10 @@ begin
          rst               => devRst_i,
          replEnable_i      => replenable_i,
          scrEnable_i       => scrEnable_i,
-         alignFrame_i      => s_alignFrame,
-         dataValid_i       => s_dataValid,
-         dataRx_i          => s_charAndDataBuff((GT_WORD_SIZE_C*8)-1 downto 0),
-         chariskRx_i       => s_charAndDataBuff(((GT_WORD_SIZE_C*8)+GT_WORD_SIZE_C)-1 downto (GT_WORD_SIZE_C*8)),
+         alignFrame_i      => s_alignFrameDly,
+         dataValid_i       => s_dataValidDly,
+         dataRx_i          => s_charAndDataBuffDly((GT_WORD_SIZE_C*8)-1 downto 0),
+         chariskRx_i       => s_charAndDataBuffDly(((GT_WORD_SIZE_C*8)+GT_WORD_SIZE_C)-1 downto (GT_WORD_SIZE_C*8)),
          sampleDataValid_o => s_sampleDataValid,
          sampleData_o      => s_sampleData,
          alignErr_o        => s_alignErr,
@@ -272,6 +275,11 @@ begin
    process(devClk_i)
    begin
       if rising_edge(devClk_i) then
+
+         -- Register to help with timing
+         s_alignFrameDly      <= s_alignFrame      after TPD_G;
+         s_dataValidDly       <= s_dataValid       after TPD_G;
+         s_charAndDataBuffDly <= s_charAndDataBuff after TPD_G;
 
          -- Link error masked by the mask from register and ORed
          s_linkErrVec <= s_positionErr & s_bufOvf & s_bufUnf & uOr(r.jesdGtRx.dispErr) & uOr(r.jesdGtRx.decErr) & s_alignErr after TPD_G;
@@ -342,6 +350,6 @@ begin
    nSync_o      <= s_nSync;
    dataValid_o  <= r.sampleDataValid;
    sampleData_o <= endianSwapSlv(r.sampleData, GT_WORD_SIZE_C);
-   status_o     <= r.jesdGtRx.cdrStable & s_buffLatency & r.errReg(r.errReg'high downto 4) & s_kDetected & s_refDetected & enable_i & r.errReg(2 downto 0) & s_nSync & r.errReg(3) & s_dataValid & r.jesdGtRx.rstDone;
+   status_o     <= r.jesdGtRx.cdrStable & s_buffLatency & r.errReg(r.errReg'high downto 4) & s_kDetected & s_refDetected & enable_i & r.errReg(2 downto 0) & s_nSync & r.errReg(3) & s_dataValidDly & r.jesdGtRx.rstDone;
 -----------------------------------------------------------------------------------------
 end rtl;

@@ -2,7 +2,7 @@
 -- File       : SaltUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-15
--- Last update: 2017-02-10
+-- Last update: 2017-11-08
 -------------------------------------------------------------------------------
 -- Description: SLAC Asynchronous Logic Transceiver (SALT) UltraScale Core
 -------------------------------------------------------------------------------
@@ -28,6 +28,7 @@ use unisim.vcomponents.all;
 entity SaltUltraScale is
    generic (
       TPD_G               : time                := 1 ns;
+      SIMULATION_G        : boolean             := false;
       TX_ENABLE_G         : boolean             := true;
       RX_ENABLE_G         : boolean             := true;
       COMMON_TX_CLK_G     : boolean             := false;  -- Set to true if sAxisClk and clk are the same clock
@@ -51,6 +52,8 @@ entity SaltUltraScale is
       loopback      : in  sl := '0';
       powerDown     : in  sl := '0';
       linkUp        : out sl;
+      txPktSent     : out sl;
+      rxPktRcvd     : out sl;
       -- Slave Port
       sAxisClk      : in  sl;
       sAxisRst      : in  sl;
@@ -144,7 +147,7 @@ architecture mapping of SaltUltraScale is
          reset                : in  std_logic;  -- Asynchronous reset for entire core.
          signal_detect        : in  std_logic);  -- Input from PMD to indicate presence of optical input.
    end component;
-   
+
    component SaltUltraScaleTxOnly
       port (
          -----------------------------
@@ -182,10 +185,10 @@ architecture mapping of SaltUltraScale is
          reset                : in  std_logic;  -- Asynchronous reset for entire core.
          signal_detect        : in  std_logic);  -- Input from PMD to indicate presence of optical input.
    end component;
-   
+
 
    signal config : slv(4 downto 0);
-   signal status : slv(15 downto 0);
+   signal status : slv(15 downto 0) := (others => '0');
 
    signal txEn   : sl;
    signal txData : slv(7 downto 0);
@@ -204,7 +207,7 @@ begin
    config(3) <= '0';                    -- Isolate Disabled
    config(4) <= '0';                    -- Auto-Negotiation Disabled
 
-   FULL_DUPLEX : if (TX_ENABLE_G = true) and (RX_ENABLE_G = true) generate
+   FULL_DUPLEX : if ((TX_ENABLE_G = true) and (RX_ENABLE_G = true)) or (SIMULATION_G = true) generate
       U_SaltUltraScaleCore : SaltUltraScaleCore
          port map(
             -----------------------------
@@ -246,7 +249,7 @@ begin
             signal_detect        => '1');
    end generate;
 
-   RX_ONLY : if (TX_ENABLE_G = false) and (RX_ENABLE_G = true) generate
+   RX_ONLY : if (TX_ENABLE_G = false) and (RX_ENABLE_G = true) and (SIMULATION_G = false) generate
       txp <= '0';
       txn <= '1';
       U_SaltUltraScaleCore : SaltUltraScaleRxOnly
@@ -288,7 +291,7 @@ begin
             signal_detect        => '1');
    end generate;
 
-   TX_ONLY : if (TX_ENABLE_G = true) and (RX_ENABLE_G = false) generate
+   TX_ONLY : if (TX_ENABLE_G = true) and (RX_ENABLE_G = false) and (SIMULATION_G = false) generate
       U_SaltUltraScaleCore : SaltUltraScaleTxOnly
          port map(
             -----------------------------
@@ -322,9 +325,11 @@ begin
             -- General IO's
             ---------------
             configuration_vector => config,
-            status_vector        => status,
+            status_vector        => open,
             reset                => rst125MHz,
             signal_detect        => '1');
+
+      status(0) <= not(rst125MHz);
    end generate;
 
    TX_ENABLE : if (TX_ENABLE_G = true) generate
@@ -340,6 +345,7 @@ begin
             sAxisMaster => sAxisMaster,
             sAxisSlave  => sAxisSlave,
             -- GMII Interface
+            txPktSent   => txPktSent,
             txEn        => txEn,
             txData      => txData,
             clk         => clk125MHz,
@@ -348,7 +354,8 @@ begin
 
    TX_DISABLE : if (TX_ENABLE_G = false) generate
 
-      txData     <= x"00";
+      txData     <= x"BC";
+      txPktSent  <= '0';
       txEn       <= '0';
       sAxisSlave <= AXI_STREAM_SLAVE_FORCE_C;
 
@@ -367,6 +374,7 @@ begin
             mAxisMaster => mAxisMaster,
             mAxisSlave  => mAxisSlave,
             -- GMII Interface
+            rxPktRcvd   => rxPktRcvd,
             rxEn        => rxEn,
             rxErr       => rxErr,
             rxData      => rxData,
@@ -377,6 +385,7 @@ begin
 
    RX_DISABLE : if (RX_ENABLE_G = false) generate
 
+      rxPktRcvd   <= '0';
       mAxisMaster <= AXI_STREAM_MASTER_INIT_C;
 
    end generate;

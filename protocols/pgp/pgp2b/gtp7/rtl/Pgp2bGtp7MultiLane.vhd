@@ -30,6 +30,7 @@ use UNISIM.VCOMPONENTS.all;
 entity Pgp2bGtp7MultiLane is
    generic (
       TPD_G                 : time                 := 1 ns;
+      COMMON_CLK_G          : boolean              := false;-- set true if (stableClk = axilClk)
       ----------------------------------------------------------------------------------------------
       -- GT Settings
       ----------------------------------------------------------------------------------------------
@@ -46,7 +47,8 @@ entity Pgp2bGtp7MultiLane is
       RX_OS_CFG_G           : bit_vector           := "0001111110000";           -- Set by wizard
       RXCDR_CFG_G           : bit_vector           := x"0000107FE206001041010";  -- Set by wizard
       RXLPM_INCM_CFG_G      : bit                  := '1';    -- Set by wizard
-      RXLPM_IPCM_CFG_G      : bit                  := '0';    -- Set by wizard      
+      RXLPM_IPCM_CFG_G      : bit                  := '0';    -- Set by wizard
+      DYNAMIC_QPLL_G        : boolean              := false;      
       TX_PLL_G              : string               := "PLL0";
       RX_PLL_G              : string               := "PLL1";
       -- Configure Buffer usage
@@ -64,11 +66,15 @@ entity Pgp2bGtp7MultiLane is
       PAYLOAD_CNT_TOP_G     : integer              := 7;      -- Top bit for payload counter
       NUM_VC_EN_G           : integer range 1 to 4 := 4;
       AXI_ERROR_RESP_G      : slv(1 downto 0)      := AXI_RESP_DECERR_C;
+      TX_POLARITY_G         : sl                   := '0';
+      RX_POLARITY_G         : sl                   := '0';
       TX_ENABLE_G           : boolean              := true;   -- Enable TX direction
       RX_ENABLE_G           : boolean              := true);  -- Enable RX direction
    port (
       -- GT Clocking
       stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
+      qPllRxSelect     : in  slv(1 downto 0) := "00";
+      qPllTxSelect     : in  slv(1 downto 0) := "00";          
       gtQPllOutRefClk  : in  slv(1 downto 0);
       gtQPllOutClk     : in  slv(1 downto 0);
       gtQPllLock       : in  slv(1 downto 0);
@@ -109,6 +115,7 @@ entity Pgp2bGtp7MultiLane is
       txPreCursor      : in  slv(4 downto 0)                                  := (others => '0');
       txPostCursor     : in  slv(4 downto 0)                                  := (others => '0');
       txDiffCtrl       : in  slv(3 downto 0)                                  := "1000";
+      drpOverride      : in  sl                                               := '0';
       -- AXI-Lite Interface 
       axilClk          : in  sl                                               := '0';
       axilRst          : in  sl                                               := '0';
@@ -237,6 +244,7 @@ begin
             RXCDR_CFG_G              => RXCDR_CFG_G,
             RXLPM_INCM_CFG_G         => RXLPM_INCM_CFG_G,
             RXLPM_IPCM_CFG_G         => RXLPM_IPCM_CFG_G,
+            DYNAMIC_QPLL_G           => DYNAMIC_QPLL_G,
             TX_PLL_G                 => TX_PLL_G,
             RX_PLL_G                 => RX_PLL_G,
             TX_EXT_DATA_WIDTH_G      => 16,
@@ -312,6 +320,8 @@ begin
             FTS_LANE_DESKEW_EN_G     => "FALSE")       -- Default
          port map (
             stableClkIn      => stableClk,
+            qPllRxSelect     => qPllRxSelect,
+            qPllTxSelect     => qPllTxSelect,            
             qPllRefClkIn     => gtQPllOutRefClk,
             qPllClkIn        => gtQPllOutClk,
             qPllLockIn       => gtQPllLock,
@@ -335,7 +345,7 @@ begin
             rxCharIsKOut     => phyRxLanesIn(i).dataK,
             rxDecErrOut      => phyRxLanesIn(i).decErr,
             rxDispErrOut     => phyRxLanesIn(i).dispErr,
-            rxPolarityIn     => phyRxLanesOut(i).polarity,
+            rxPolarityIn     => RX_POLARITY_G,
             rxBufStatusOut   => open,
             rxChBondLevelIn  => slv(to_unsigned((LANE_CNT_G-1-i), 3)),
             rxChBondIn       => rxChBondIn(i),
@@ -350,11 +360,13 @@ begin
             txResetDoneOut   => gtTxResetDone(i),
             txDataIn         => phyTxLanesOut(i).data,
             txCharIsKIn      => phyTxLanesOut(i).dataK,
+            txPolarityIn     => TX_POLARITY_G,
             txBufStatusOut   => open,
             loopbackIn       => pgpRxIn.loopback,
             txPreCursor      => txPreCursor,
             txPostCursor     => txPostCursor,
             txDiffCtrl       => txDiffCtrl,
+            drpOverride      => drpOverride,
             drpGnt           => drpGnt(i),
             drpRdy           => drpRdy(i),
             drpEn            => drpEn(i),
@@ -367,7 +379,7 @@ begin
          generic map (
             TPD_G            => TPD_G,
             AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
-            COMMON_CLK_G     => false,
+            COMMON_CLK_G     => COMMON_CLK_G,
             EN_ARBITRATION_G => true,
             TIMEOUT_G        => 4096,
             ADDR_WIDTH_G     => 9,
@@ -393,12 +405,18 @@ begin
 
    end generate GTP7_CORE_GEN;
 
-   U_RstSync : entity work.RstSync
-      generic map (
-         TPD_G => TPD_G)      
-      port map (
-         clk      => stableClk,
-         asyncRst => axilRst,
-         syncRst  => stableRst);     
+   GEN_RST : if (COMMON_CLK_G = false) generate   
+      U_RstSync : entity work.RstSync
+         generic map (
+            TPD_G => TPD_G)      
+         port map (
+            clk      => stableClk,
+            asyncRst => axilRst,
+            syncRst  => stableRst);     
+   end generate;
+   
+   BYP_RST_SYNC : if (COMMON_CLK_G = true) generate   
+      stableRst <= axilRst; 
+   end generate;      
 
 end rtl;

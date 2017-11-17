@@ -2,7 +2,7 @@
 -- File       : SlvArraytoAxiLite.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-07-21
--- Last update: 2016-07-21
+-- Last update: 2017-10-24
 -------------------------------------------------------------------------------
 -- Description: SLV array to AXI-Lite Master Bridge 
 -------------------------------------------------------------------------------
@@ -41,14 +41,14 @@ entity SlvArraytoAxiLite is
       axilReadMaster  : out AxiLiteReadMasterType;
       axilReadSlave   : in  AxiLiteReadSlaveType;
       axilWriteMaster : out AxiLiteWriteMasterType;
-      axilWriteSlave  : in  AxiLiteWriteSlaveType);    
+      axilWriteSlave  : in  AxiLiteWriteSlaveType);
 end entity SlvArraytoAxiLite;
 
 architecture rtl of SlvArraytoAxiLite is
 
    type StateType is (
       IDLE_S,
-      WAIT_S); 
+      WAIT_S);
 
    type RegType is record
       cnt   : natural range 0 to SIZE_G-1;
@@ -103,7 +103,7 @@ begin
          axilWriteMaster => axilWriteMaster,
          axilWriteSlave  => axilWriteSlave,
          axilReadMaster  => axilReadMaster,
-         axilReadSlave   => axilReadSlave);  
+         axilReadSlave   => axilReadSlave);
 
    comb : process (ack, axilRst, inSlv, r) is
       variable v : RegType;
@@ -128,23 +128,26 @@ begin
       case (r.state) is
          ----------------------------------------------------------------------
          when IDLE_S =>
-            -- Increment the counter
-            if r.cnt = (SIZE_G-1) then
-               v.cnt := 0;
-            else
-               v.cnt := r.cnt + 1;
-            end if;
-            -- Check the valid flag and transaction completed
-            if (r.valid(r.cnt) = '1') and (ack.done = '0') then
-               -- Reset the flag
-               v.valid(r.cnt) := '0';
-               -- Setup the AXI-Lite Master request
-               v.req.request  := '1';
-               v.req.rnw      := '0';   -- Write operation
-               v.req.address  := ADDR_G(r.cnt);
-               v.req.wrData   := r.inSlv(r.cnt);
-               -- Next state
-               v.state        := WAIT_S;
+            -- Check if transaction completed
+            if (ack.done = '0') then
+               -- Increment the counter
+               if r.cnt = (SIZE_G-1) then
+                  v.cnt := 0;
+               else
+                  v.cnt := r.cnt + 1;
+               end if;
+               -- Check the valid flag and transaction completed
+               if (r.valid(r.cnt) = '1') then
+                  -- Reset the flag
+                  v.valid(r.cnt) := '0';
+                  -- Setup the AXI-Lite Master request
+                  v.req.request  := '1';
+                  v.req.rnw      := '0';  -- Write operation
+                  v.req.address  := ADDR_G(r.cnt);
+                  v.req.wrData   := r.inSlv(r.cnt);
+                  -- Next state
+                  v.state        := WAIT_S;
+               end if;
             end if;
          ----------------------------------------------------------------------
          when WAIT_S =>
@@ -165,7 +168,7 @@ begin
 
       -- Register the variable for next clock cycle
       rin <= v;
-      
+
    end process comb;
 
    seq : process (axilClk) is

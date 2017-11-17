@@ -2,7 +2,7 @@
 -- File       : AxiStreamDmaV2Read.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-02-02
--- Last update: 2017-02-02
+-- Last update: 2017-09-07
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to transfer a single AXI Stream frame from memory using an AXI
@@ -29,13 +29,13 @@ use work.AxiDmaPkg.all;
 
 entity AxiStreamDmaV2Read is
    generic (
-      TPD_G           : time                    := 1 ns;
-      AXIS_READY_EN_G : boolean                 := false;
-      AXIS_CONFIG_G   : AxiStreamConfigType     := AXI_STREAM_CONFIG_INIT_C;
-      AXI_CONFIG_G    : AxiConfigType           := AXI_CONFIG_INIT_C;
-      PIPE_STAGES_G   : natural                 := 1;
-      BURST_BYTES_G   : integer range 1 to 4096 := 4096;
-      PEND_THRESH_G   : natural                 := 0);  -- In units of bytes
+      TPD_G           : time                     := 1 ns;
+      AXIS_READY_EN_G : boolean                  := false;
+      AXIS_CONFIG_G   : AxiStreamConfigType      := AXI_STREAM_CONFIG_INIT_C;
+      AXI_CONFIG_G    : AxiConfigType            := AXI_CONFIG_INIT_C;
+      PIPE_STAGES_G   : natural                  := 1;
+      BURST_BYTES_G   : positive range 1 to 4096 := 4096;
+      PEND_THRESH_G   : positive                 := 1);  -- In units of bytes
    port (
       -- Clock/Reset
       axiClk          : in  sl;
@@ -59,27 +59,29 @@ end AxiStreamDmaV2Read;
 
 architecture rtl of AxiStreamDmaV2Read is
 
-   constant DATA_BYTES_C : integer := AXIS_CONFIG_G.TDATA_BYTES_C;
-   constant ADDR_LSB_C   : integer := bitSize(DATA_BYTES_C-1);
+   constant DATA_BYTES_C : positive := AXIS_CONFIG_G.TDATA_BYTES_C;
+   constant ADDR_LSB_C   : natural  := bitSize(DATA_BYTES_C-1);
+   constant PEND_LSB_C   : natural  := bitSize(PEND_THRESH_G-1);
 
    type ReqStateType is (
       IDLE_S,
+      NEXT_S,
       ADDR_S,
-      NEXT_S);
+      DLY_S);
 
    type StateType is (
       IDLE_S,
       MOVE_S,
       DONE_S,
-      BLOWOFF_S);      
+      BLOWOFF_S);
 
    type RegType is record
       idle         : sl;
-      --pendBytes    : slv(31 downto 0);
-      size         : slv(31 downto 0); -- Decrementing counter used in data collection engine
-      reqSize      : slv(31 downto 0); -- Decrementing counter used in request engine
-      reqCnt       : slv(31 downto 0); -- Total bytes requested
-      ackCnt       : slv(31 downto 0); -- Total bytes received
+      pending      : boolean;
+      size         : slv(31 downto 0);  -- Decrementing counter used in data collection engine
+      reqSize      : slv(31 downto 0);  -- Decrementing counter used in request engine
+      reqCnt       : slv(31 downto 0);  -- Total bytes requested
+      ackCnt       : slv(31 downto 0);  -- Total bytes received
       dmaRdDescReq : AxiReadDmaDescReqType;
       dmaRdDescAck : sl;
       dmaRdDescRet : AxiReadDmaDescRetType;
@@ -93,7 +95,7 @@ architecture rtl of AxiStreamDmaV2Read is
 
    constant REG_INIT_C : RegType := (
       idle         => '0',
-      --pendBytes    => (others => '0'),
+      pending      => true,
       size         => (others => '0'),
       reqSize      => (others => '0'),
       reqCnt       => (others => '0'),
@@ -111,11 +113,12 @@ architecture rtl of AxiStreamDmaV2Read is
    signal r          : RegType := REG_INIT_C;
    signal rin        : RegType;
    signal pause      : sl;
+   signal notReqDone : sl;
    signal sSlave     : AxiStreamSlaveType;
    signal mSlave     : AxiStreamSlaveType;
 
-   attribute dont_touch      : string;
-   attribute dont_touch of r : signal is "TRUE";
+   -- attribute dont_touch      : string;
+   -- attribute dont_touch of r : signal is "TRUE";
 
 begin
 
@@ -123,12 +126,29 @@ begin
       report "AXIS (" & integer'image(AXIS_CONFIG_G.TDATA_BYTES_C) & ") and AXI ("
       & integer'image(AXI_CONFIG_G.DATA_BYTES_C) & ") must have equal data widths" severity failure;
 
+   assert (isPowerOf2(AXIS_CONFIG_G.TDATA_BYTES_C) = true)
+      report "AXIS_CONFIG_G.TDATA_BYTES_C must be power of 2" severity failure;
+
+   assert (isPowerOf2(PEND_THRESH_G) = true)
+      report "PEND_THRESH_G must be power of 2" severity failure;
+
    pause <= '0' when (AXIS_READY_EN_G) else axisCtrl.pause;
 
-   comb : process (axiReadSlave, axiRst, dmaRdDescReq, dmaRdDescRetAck,  pause, r, sSlave, axiCache) is
-      variable v        : RegType;
-      variable pendBytes: natural;
-      variable pending  : boolean;
+   -- Check if last transfer completed
+   U_DspComparator : entity work.DspComparator
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => 32)
+      port map (
+         clk => axiClk,
+         ain => r.reqCnt,
+         bin => r.dmaRdDescReq.size,
+         ls  => notReqDone);            --  (a <  b)
+
+   comb : process (axiCache, axiReadSlave, axiRst, dmaRdDescReq,
+                   dmaRdDescRetAck, notReqDone, pause, r, sSlave) is
+      variable v         : RegType;
+      variable pendBytes : slv(31 downto 0);
    begin
       -- Latch the current value   
       v := r;
@@ -145,27 +165,31 @@ begin
          v.sMaster.tValid := '0';
          v.sMaster.tLast  := '0';
          v.sMaster.tUser  := (others => '0');
-         v.sMaster.tKeep  := (others => '1');
          v.sMaster.tStrb  := (others => '1');
+         if (AXIS_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
+            v.sMaster.tKeep := toSlv(AXIS_CONFIG_G.TDATA_BYTES_C, 16);
+         else
+            v.sMaster.tKeep := (others => '1');
+         end if;
       end if;
 
       -- Calculate the pending bytes
-      --v.pendBytes := r.reqCnt - r.ackCnt;
-      pendBytes := conv_integer(r.reqCnt - r.ackCnt);
+      pendBytes := r.reqCnt - r.ackCnt;
 
       -- Update variables
-      pending := true;
+      v.pending := true;
 
-      -- Check for the threshold = zero case
-      if (PEND_THRESH_G = 0) then
-         --if (r.pendBytes = 0) then
+      -- Check for the non-threshold case
+      if (PEND_THRESH_G = 1) then
          if (pendBytes = 0) then
-            pending := false;
+            v.pending := false;
          end if;
       else
-         --if (r.pendBytes < PEND_THRESH_G) then
-         if (pendBytes < PEND_THRESH_G) then
-            pending := false;
+         ----------------------------------
+         -- if (pendBytes < PEND_THRESH_G) then  -- old code
+         ----------------------------------
+         if (pendBytes(31 downto PEND_LSB_C) = 0) then  -- new optimized code      
+            v.pending := false;
          end if;
       end if;
 
@@ -186,21 +210,23 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Update the variables
-            v.dmaRdDescReq := dmaRdDescReq;
+            v.dmaRdDescReq                                := dmaRdDescReq;
             -- Init return
-            v.dmaRdDescRet.valid  := '0';
-            v.dmaRdDescRet.buffId := dmaRdDescReq.buffId;
-            v.dmaRdDescRet.result := (others=>'0');
+            v.dmaRdDescRet.valid                          := '0';
+            v.dmaRdDescRet.buffId                         := dmaRdDescReq.buffId;
+            v.dmaRdDescRet.result                         := (others => '0');
             -- Force address alignment
             v.dmaRdDescReq.address(ADDR_LSB_C-1 downto 0) := (others => '0');
             -- Reset the counters
-            v.reqCnt := (others => '0');
-            v.ackCnt := (others => '0');
+            v.reqCnt                                      := (others => '0');
+            v.ackCnt                                      := (others => '0');
+            -- Reset flags
+            v.pending                                     := false;
             -- Check for DMA request 
             if dmaRdDescReq.valid = '1' then
-               v.dmaRdDescAck := '1';
+               v.dmaRdDescAck  := '1';
                -- Set the flags
-               v.first := '1';
+               v.first         := '1';
                -- Latch the value
                v.size          := dmaRdDescReq.size;
                v.reqSize       := dmaRdDescReq.size;
@@ -216,27 +242,31 @@ begin
                -- Set the memory address 
                v.rMaster.araddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := r.dmaRdDescReq.address(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0);
                -- Determine transfer size aligned to 4k boundaries
-               v.rMaster.arlen := getAxiLen(AXI_CONFIG_G,BURST_BYTES_G,r.reqSize,r.dmaRdDescReq.address);
+               v.rMaster.arlen                                        := getAxiLen(AXI_CONFIG_G, BURST_BYTES_G, r.reqSize, r.dmaRdDescReq.address);
                -- Check for the following:
                --    1) There is enough room in the FIFO for a burst 
                --    2) pending flag
                --    3) Last transaction already completed
-               if (pause = '0') and (pending = false) and (r.reqCnt < r.dmaRdDescReq.size) then
+               if (pause = '0') and (r.pending = false) and (notReqDone = '1') then
                   -- Set the flag
                   v.rMaster.arvalid := '1';
                   -- Next state
-                  v.state    := MOVE_S;
-                  v.reqState := NEXT_S;
+                  v.state           := MOVE_S;
+                  v.reqState        := NEXT_S;
                end if;
             end if;
          ----------------------------------------------------------------------
          when NEXT_S =>
             -- Update the request size
-            v.reqCnt  := r.reqCnt  + getAxiReadBytes(AXI_CONFIG_G,r.rMaster);
-            v.reqSize := r.reqSize - getAxiReadBytes(AXI_CONFIG_G,r.rMaster);
+            v.reqCnt               := r.reqCnt + getAxiReadBytes(AXI_CONFIG_G, r.rMaster);
+            v.reqSize              := r.reqSize - getAxiReadBytes(AXI_CONFIG_G, r.rMaster);
             -- Update next address
-            v.dmaRdDescReq.address := r.dmaRdDescReq.address + getAxiReadBytes(AXI_CONFIG_G,r.rMaster);
+            v.dmaRdDescReq.address := r.dmaRdDescReq.address + getAxiReadBytes(AXI_CONFIG_G, r.rMaster);
             -- Back to address state
+            v.reqState             := DLY_S;
+         ----------------------------------------------------------------------
+         when DLY_S =>  -- 1 cycle latency between v.reqCnt to r.pending/notReqDone
+            -- Next state
             v.reqState := ADDR_S;
       ----------------------------------------------------------------------
       end case;
@@ -268,10 +298,13 @@ begin
                   axiStreamSetUserField(
                      AXIS_CONFIG_G,
                      v.sMaster,
-                     r.dmaRdDescReq.firstUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0),0);
+                     r.dmaRdDescReq.firstUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0), 0);
                end if;
                -- Check the read size
-               if (DATA_BYTES_C > r.size) then
+               ----------------------------------
+               -- if (DATA_BYTES_C > r.size) then -- old code
+               ----------------------------------
+               if (r.size(31 downto ADDR_LSB_C) = 0) then  -- new optimized code
                   -- Bottom out at 0
                   v.size   := (others => '0');
                   -- Top out at dma.size
@@ -286,15 +319,19 @@ begin
                if (v.size = 0) then
                   -- Terminate the frame
                   v.sMaster.tLast := not r.dmaRdDescReq.continue;
-                  v.sMaster.tKeep := genTKeep(conv_integer(r.size(4 downto 0)));
-                  v.sMaster.tStrb := genTKeep(conv_integer(r.size(4 downto 0)));
+                  if (AXIS_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
+                     v.sMaster.tKeep := "00000000000" & r.size(4 downto 0);
+                  else
+                     v.sMaster.tKeep := genTKeep(conv_integer(r.size(4 downto 0)));
+                  end if;
+                  v.sMaster.tStrb      := genTKeep(conv_integer(r.size(4 downto 0)));
                   -- Set last user field
                   axiStreamSetUserField (AXIS_CONFIG_G, v.sMaster, r.dmaRdDescReq.lastUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0));
                   -- Set the flags
                   v.dmaRdDescRet.valid := '1';
-                  v.leftovers   := not(axiReadSlave.rlast);
+                  v.leftovers          := not(axiReadSlave.rlast);
                   -- Next state
-                  v.state := DONE_S;
+                  v.state              := DONE_S;
                end if;
             end if;
          ----------------------------------------------------------------------
@@ -372,5 +409,5 @@ begin
          mAxisSlave  => mSlave);
 
    mSlave <= axisSlave when(AXIS_READY_EN_G) else AXI_STREAM_SLAVE_FORCE_C;
-   
+
 end rtl;

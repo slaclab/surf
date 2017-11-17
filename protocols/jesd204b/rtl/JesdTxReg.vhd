@@ -136,6 +136,8 @@ architecture rtl of JesdTxReg is
    signal s_statusCnt   : SlVectorArray(L_G-1 downto 0, 31 downto 0);
    signal s_adcValids   : slv(L_G-1 downto 0);
    
+   signal scrEnable : sl;
+   
 begin
 
    ----------------------------------------------------------------------------------------------
@@ -312,198 +314,175 @@ begin
       SyncFifo_IN0 : entity work.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
-            DATA_WIDTH_G => TX_STAT_WIDTH_C
-            )
+            DATA_WIDTH_G => TX_STAT_WIDTH_C)
          port map (
             wr_clk => devClk_i,
             din    => statusTxArr_i(I),
             rd_clk => axiClk_i,
-            dout   => s_statusTxArr(I)
-            );
+            dout   => s_statusTxArr(I));
    end generate GEN_0;
-
 
    -- Output assignment and synchronization
    SyncFifo_OUT0 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          PIPE_STAGES_G => 1,
-         DATA_WIDTH_G => SYSRF_DLY_WIDTH_C
-         )
+         DATA_WIDTH_G => SYSRF_DLY_WIDTH_C)
       port map (
          wr_clk => axiClk_i,
          din    => r.sysrefDlyTx,
          rd_clk => devClk_i,
-         dout   => sysrefDlyTx_o
-         );
+         dout   => sysrefDlyTx_o);
 
    SyncFifo_OUT1 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          PIPE_STAGES_G => 1,
-         DATA_WIDTH_G => L_G
-         )
+         DATA_WIDTH_G => L_G)
       port map (
          wr_clk => axiClk_i,
          din    => r.enableTx,
          rd_clk => devClk_i,
-         dout   => enableTx_o
-         );
+         dout   => enableTx_o);
 
    Sync_OUT4 : entity work.Synchronizer
       generic map (
-         TPD_G => TPD_G
-         )
+         TPD_G => TPD_G)
       port map (
          clk     => devClk_i,
          rst     => devRst_i,
          dataIn  => r.commonCtrl(0),
-         dataOut => subClass_o
-         );
+         dataOut => subClass_o);
 
    Sync_OUT5 : entity work.Synchronizer
       generic map (
-         TPD_G => TPD_G
-         )
+         TPD_G => TPD_G)
       port map (
          clk     => devClk_i,
          rst     => devRst_i,
          dataIn  => r.commonCtrl(1),
-         dataOut => replEnable_o
-         );
+         dataOut => replEnable_o);
 
    Sync_OUT6 : entity work.Synchronizer
       generic map (
-         TPD_G => TPD_G
-         )
+         TPD_G => TPD_G)
       port map (
          clk     => devClk_i,
          rst     => devRst_i,
          dataIn  => r.commonCtrl(2),
-         dataOut => gtReset_o
-         );
+         dataOut => gtReset_o);
 
    Sync_OUT7 : entity work.Synchronizer
       generic map (
-         TPD_G => TPD_G
-         )
+         TPD_G => TPD_G)
       port map (
          clk     => devClk_i,
          rst     => devRst_i,
          dataIn  => r.commonCtrl(3),
-         dataOut => clearErr_o
-         );
+         dataOut => clearErr_o);
 
    Sync_OUT8 : entity work.Synchronizer
       generic map (
-         TPD_G => TPD_G
-         )
+         TPD_G => TPD_G)
       port map (
          clk     => devClk_i,
          rst     => devRst_i,
          dataIn  => r.commonCtrl(4),
-         dataOut => invertSync_o
-         );
+         dataOut => invertSync_o);
 
    Sync_OUT9 : entity work.Synchronizer
       generic map (
-         TPD_G => TPD_G
-         )
+         TPD_G => TPD_G)
       port map (
          clk     => devClk_i,
          rst     => devRst_i,
          dataIn  => r.commonCtrl(5),
-         dataOut => enableTestSig_o
-         );
+         dataOut => enableTestSig_o);
          
    Sync_OUT10 : entity work.Synchronizer
       generic map (
-         TPD_G => TPD_G
-         )
+         TPD_G => TPD_G)
       port map (
          clk     => devClk_i,
          rst     => devRst_i,
          dataIn  => r.commonCtrl(6),
-         dataOut => scrEnable_o
-         );
+         dataOut => scrEnable);
+   -- Help with timing      
+   U_scrEnable : entity work.RstPipeline
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk    => devClk_i,
+         rstIn  => scrEnable,
+         rstOut => scrEnable_o);         
 
    SyncFifo_OUT10 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          PIPE_STAGES_G => 1,
-         DATA_WIDTH_G => PER_STEP_WIDTH_C
-         )
+         DATA_WIDTH_G => PER_STEP_WIDTH_C)
       port map (
          wr_clk => axiClk_i,
          din    => r.periodStep(PER_STEP_WIDTH_C-1 downto 0),
          rd_clk => devClk_i,
-         dout   => rampStep_o
-         );
+         dout   => rampStep_o);
 
    SyncFifo_OUT11 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          PIPE_STAGES_G => 1,
-         DATA_WIDTH_G => PER_STEP_WIDTH_C
-         )
+         DATA_WIDTH_G => PER_STEP_WIDTH_C)
       port map (
          wr_clk => axiClk_i,
          din    => r.periodStep(16+PER_STEP_WIDTH_C-1 downto 16),
          rd_clk => devClk_i,
-         dout   => squarePeriod_o
-         );
+         dout   => squarePeriod_o);
 
    SyncFifo_OUT12 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          PIPE_STAGES_G => 1,
-         DATA_WIDTH_G => F_G*8
-         )
+         DATA_WIDTH_G => F_G*8)
       port map (
          wr_clk => axiClk_i,
          din    => r.posAmplitude,
          rd_clk => devClk_i,
-         dout   => posAmplitude_o
-         );
+         dout   => posAmplitude_o);
 
    SyncFifo_OUT13 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          PIPE_STAGES_G => 1,
-         DATA_WIDTH_G => F_G*8
-         )
+         DATA_WIDTH_G => F_G*8)
       port map (
          wr_clk => axiClk_i,
          din    => r.negAmplitude,
          rd_clk => devClk_i,
-         dout   => negAmplitude_o
-         );
+         dout   => negAmplitude_o);
+         
    SyncFifo_OUT14 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          PIPE_STAGES_G => 1,
-         DATA_WIDTH_G => L_G
-         )
+         DATA_WIDTH_G => L_G)
       port map (
          wr_clk => axiClk_i,
          din    => r.invertData,
          rd_clk => devClk_i,
-         dout   => invertData_o
-         );  
+         dout   => invertData_o);  
 
    GEN_1 : for I in L_G-1 downto 0 generate
+   
       SyncFifo_OUT0 : entity work.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
             PIPE_STAGES_G => 1,
-            DATA_WIDTH_G => 3
-            )
+            DATA_WIDTH_G => 3)
          port map (
             wr_clk => axiClk_i,
             din    => r.signalSelectArr(I)(2 downto 0),
             rd_clk => devClk_i,
-            dout   => muxOutSelArr_o(I)
-            );
+            dout   => muxOutSelArr_o(I));
 
       SyncFifo_OUT1 : entity work.SynchronizerFifo
          generic map (
@@ -515,8 +494,8 @@ begin
             wr_clk => axiClk_i,
             din    => r.signalSelectArr(I)(5 downto 4),
             rd_clk => devClk_i,
-            dout   => sigTypeArr_o(I)
-            );
+            dout   => sigTypeArr_o(I));
+            
    end generate GEN_1;
----------------------------------------------------------------------
+
 end rtl;
