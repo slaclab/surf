@@ -102,15 +102,15 @@ begin
 
          -- Process each input byte
          for i in 0 to r.inTop loop
-            valid := toSl(v.byteCount = MAX_BYTE_C) or (r.inMaster.tLast and toSl(i=r.inTop));
             last  := r.inMaster.tLast and toSl(i=r.inTop);
+            valid := toSl(v.byteCount = MAX_BYTE_C) or last;
             user  := axiStreamGetUserField ( AXIS_CONFIG_G, r.inMaster, i );
 
             -- Still filling current data
             if v.curMaster.tValid = '0' then 
 
                v.curMaster.tData(v.byteCount*8+7 downto v.byteCount*8) := r.inMaster.tData(i*8+7 downto i*8);
-               v.curMaster.tKeep(v.byteCount) := r.inMaster.tKeep(i);
+               v.curMaster.tKeep(v.byteCount) := '1';
                v.curMaster.tValid := valid;
                v.curMaster.tLast  := last;
 
@@ -121,7 +121,7 @@ begin
             elsif v.nxtMaster.tValid = '0' then
 
                v.nxtMaster.tData(v.byteCount*8+7 downto v.byteCount*8) := r.inMaster.tData(i*8+7 downto i*8);
-               v.nxtMaster.tKeep(v.byteCount) := r.inMaster.tKeep(i);
+               v.nxtMaster.tKeep(v.byteCount) := '1';
                v.nxtMaster.tValid := valid;
                v.nxtMaster.tLast  := last;
 
