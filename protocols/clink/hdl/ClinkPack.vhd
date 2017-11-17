@@ -1,10 +1,16 @@
 -------------------------------------------------------------------------------
--- File       : ClinkPack.vhd
+-- File       : AxiStreamBytePacker.vhd.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-11-13
 -------------------------------------------------------------------------------
 -- Description:
--- CameraLink data packer
+-- Byte packer for AXI-Stream. 
+-- Accepts an incoming stream and packs data into the outbound stream. 
+-- Similiar to AxiStreamResize, but allows an input and output width to have 
+-- non multiples and for the input size to by dynamic. 
+-- This module does not downsize and creates more complex combinitorial logic 
+-- than in AxiStreamResize.
+-- Ready handshaking is not supported.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -22,10 +28,11 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 
-entity ClinkPack is
+entity AxiStreamBytePacker.vhd is
    generic (
-      TPD_G         : time                := 1 ns;
-      AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      TPD_G           : time                := 1 ns;
+      SLAVE_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
+      MASTER_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- System clock and reset
       sysClk       : in  sl;
@@ -34,15 +41,16 @@ entity ClinkPack is
       sAxisMaster  : in  AxiStreamMasterType;
       -- Outbound frame
       mAxisMaster  : out AxiStreamMasterType);
-end ClinkPack;
+end AxiStreamBytePacker.vhd;
 
-architecture rtl of ClinkPack is
+architecture rtl of AxiStreamBytePacker.vhd is
 
-   constant MAX_BYTE_C : integer := AXIS_CONFIG_G.TDATA_BYTES_C-1;
+   constant MAX_IN_BYTE_C  : integer := SLAVE_CONFIG_G.TDATA_BYTES_C-1;
+   constant MAX_OUT_BYTE_C : integer := MASTER_CONFIG_G.TDATA_BYTES_C-1;
 
    type RegType is record
-      byteCount  : integer range 0 to MAX_BYTE_C;
-      inTop      : integer range 0 to MAX_BYTE_C;
+      byteCount  : integer range 0 to MAX_OUT_BYTE_C;
+      inTop      : integer range 0 to MAX_IN_BYTE_C;
       inMaster   : AxiStreamMasterType;
       curMaster  : AxiStreamMasterType;
       nxtMaster  : AxiStreamMasterType;
@@ -66,14 +74,14 @@ begin
       variable v     : RegType;
       variable valid : sl;
       variable last  : sl;
-      variable user  : slv(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0);
+      variable user  : slv(SLAVE_CONFIG_G.TUSER_BITS_C-1 downto 0);
       variable data  : slv(7 downto 0);
    begin
       v := r;
 
       -- Register input and compute size
       v.inMaster := sAxisMaster;
-      v.inTop    := getTKeep(sAxisMaster.tKeep(MAX_BYTE_C downto 0))-1;
+      v.inTop    := getTKeep(sAxisMaster.tKeep(MAX_IN_BYTE_C downto 0))-1;
 
       -- Pending output from current
       if r.curMaster.tValid = '1' then
@@ -106,8 +114,8 @@ begin
 
             -- Extract values for each iteration
             last  := r.inMaster.tLast and toSl(i=r.inTop);
-            valid := toSl(v.byteCount = MAX_BYTE_C) or last;
-            user  := axiStreamGetUserField ( AXIS_CONFIG_G, r.inMaster, i );
+            valid := toSl(v.byteCount = MAX_OUT_BYTE_C) or last;
+            user  := axiStreamGetUserField ( SLAVE_CONFIG_G, r.inMaster, i );
             data  := r.inMaster.tData(i*8+7 downto i*8);
 
             -- Still filling current data
@@ -119,7 +127,7 @@ begin
                v.curMaster.tLast  := last;
 
                -- Copy user field
-               axiStreamSetUserField( AXIS_CONFIG_G, v.curMaster, user, v.ByteCount);
+               axiStreamSetUserField( MASTER_CONFIG_G, v.curMaster, user, v.ByteCount);
 
             -- Filling next data
             elsif v.nxtMaster.tValid = '0' then
@@ -130,11 +138,11 @@ begin
                v.nxtMaster.tLast  := last;
 
                -- Copy user field
-               axiStreamSetUserField( AXIS_CONFIG_G, v.nxtMaster, user, v.ByteCount);
+               axiStreamSetUserField( MASTER_CONFIG_G, v.nxtMaster, user, v.ByteCount);
 
             end if;
 
-            if v.byteCount = MAX_BYTE_C or last = '1' then
+            if v.byteCount = MAX_OUT_BYTE_C or last = '1' then
                v.byteCount := 0;
             else
                v.byteCount := v.byteCount + 1;
