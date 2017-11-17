@@ -100,7 +100,7 @@ begin
       -- Data is valid
       if r.inMaster.tValid = '1' then
 
-         -- Process each output byte
+         -- Process each input byte
          for i in 0 to r.inTop loop
             valid := toSl(v.byteCount = MAX_BYTE_C) or (r.inMaster.tLast and toSl(i=r.inTop));
             last  := r.inMaster.tLast and toSl(i=r.inTop);
