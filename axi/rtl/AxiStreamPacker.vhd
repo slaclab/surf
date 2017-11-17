@@ -28,6 +28,7 @@ entity AxiStreamPacker is
    
    generic (
       TPD_G               : time := 1 ns;
+      HEADER_PASS_EN_G    : boolean := true;
       AXI_STREAM_CONFIG_G : AxiStreamConfigType := SSI_CONFIG_INIT_C;
       RANGE_HIGH_G        : integer := 13;
       RANGE_LOW_G         : integer := 2);
@@ -48,7 +49,6 @@ entity AxiStreamPacker is
 end entity AxiStreamPacker;
 
 architecture rtl of AxiStreamPacker is
-
 
    constant STREAM_WIDTH_C    : integer := AXI_STREAM_CONFIG_G.TDATA_BYTES_C*8;
    constant PACK_SIZE_C       : integer := RANGE_HIGH_G-RANGE_LOW_G+1;
@@ -107,9 +107,8 @@ begin
       v.rawSsiSlave.pause    := '0';
       v.rawSsiSlave.overflow := '0';
 
-
       if (rawSsiMaster.valid = '1') then
-         if (rawSsiMaster.sof = '1') then
+         if (rawSsiMaster.sof = '1' and HEADER_PASS_EN_G) then
             -- Frame header goes through unmodified
             v.data                            := (others => '0');
             v.data(STREAM_WIDTH_C-1 downto 0) := rawSsiMaster.data(STREAM_WIDTH_C-1 downto 0);
@@ -119,9 +118,9 @@ begin
 
          else
             -- Pack all other txns
+            v.packedSsiMaster.sof  := rawSsiMaster.sof;
             v.packedSsiMaster.eof  := rawSsiMaster.eof;
             v.packedSsiMaster.eofe := rawSsiMaster.eofe;
-
 
             -- Shift the data over
             v.data(STREAM_WIDTH_C-1 downto 0) := r.data(STREAM_WIDTH_C*2-1 downto STREAM_WIDTH_C);
@@ -134,10 +133,8 @@ begin
 --            v.packedSsiMaster.valid := toSl(indexInt+PACK_SIZE_C >= STREAM_WIDTH_C);
             v.packedSsiMaster.valid := toSl(r.index /= 0) or rawSsiMaster.eofe or rawSsiMaster.eof;
 
-
             -- Increment index
             v.index := r.index + 1;
-
             
          end if;
       end if;
