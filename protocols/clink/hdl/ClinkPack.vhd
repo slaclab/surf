@@ -67,6 +67,7 @@ begin
       variable valid : sl;
       variable last  : sl;
       variable user  : slv(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0);
+      variable data  : slv(7 downto 0);
    begin
       v := r;
 
@@ -102,14 +103,17 @@ begin
 
          -- Process each input byte
          for i in 0 to r.inTop loop
+
+            -- Extract values for each iteration
             last  := r.inMaster.tLast and toSl(i=r.inTop);
             valid := toSl(v.byteCount = MAX_BYTE_C) or last;
             user  := axiStreamGetUserField ( AXIS_CONFIG_G, r.inMaster, i );
+            data  := r.inMaster.tData(i*8+7 downto i*8);
 
             -- Still filling current data
             if v.curMaster.tValid = '0' then 
 
-               v.curMaster.tData(v.byteCount*8+7 downto v.byteCount*8) := r.inMaster.tData(i*8+7 downto i*8);
+               v.curMaster.tData(v.byteCount*8+7 downto v.byteCount*8) := data;
                v.curMaster.tKeep(v.byteCount) := '1';
                v.curMaster.tValid := valid;
                v.curMaster.tLast  := last;
@@ -120,7 +124,7 @@ begin
             -- Filling next data
             elsif v.nxtMaster.tValid = '0' then
 
-               v.nxtMaster.tData(v.byteCount*8+7 downto v.byteCount*8) := r.inMaster.tData(i*8+7 downto i*8);
+               v.nxtMaster.tData(v.byteCount*8+7 downto v.byteCount*8) := data;
                v.nxtMaster.tKeep(v.byteCount) := '1';
                v.nxtMaster.tValid := valid;
                v.nxtMaster.tLast  := last;
