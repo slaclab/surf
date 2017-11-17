@@ -4,7 +4,7 @@
 -- Created    : 2017-11-13
 -------------------------------------------------------------------------------
 -- Description:
--- CameraLink framing module
+-- CameraLink data packer
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -20,9 +20,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
-use work.ClinkPkg.all;
-library unisim;
-use unisim.vcomponents.all;
+use work.AxiStreamPkg.all;
 
 entity ClinkPack is
    generic (
@@ -38,10 +36,14 @@ entity ClinkPack is
       mAxisMaster  : out AxiStreamMasterType);
 end ClinkPack;
 
-architecture structure of ClinkPack is
+architecture rtl of ClinkPack is
+
+   constant MAX_BYTE_C : integer := AXIS_CONFIG_G.TDATA_BYTES_C-1;
 
    type RegType is record
-      byteCount  : integer range 0 to 127;
+      byteCount  : integer range 0 to MAX_BYTE_C;
+      inTop      : integer range 0 to MAX_BYTE_C;
+      inMaster   : AxiStreamMasterType;
       curMaster  : AxiStreamMasterType;
       nxtMaster  : AxiStreamMasterType;
       outMaster  : AxiStreamMasterType;
@@ -49,10 +51,11 @@ architecture structure of ClinkPack is
 
    constant REG_INIT_C : RegType := (
       byteCount  => 0,
+      inTop      => 0,
+      inMaster   => AXI_STREAM_MASTER_INIT_C,
       curMaster  => AXI_STREAM_MASTER_INIT_C,
       nxtMaster  => AXI_STREAM_MASTER_INIT_C,
       outMaster  => AXI_STREAM_MASTER_INIT_C);
-   end record RegType;
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -60,75 +63,91 @@ architecture structure of ClinkPack is
 begin
 
    comb : process (r, sysRst, sAxisMaster ) is
-      variable v : RegType;
+      variable v     : RegType;
+      variable valid : sl;
+      variable last  : sl;
+      variable user  : slv(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0);
    begin
       v := r;
 
-      -- Init
-      v.curMaster.tValid := '0';
-      v.nxtMaster.tValid := '0';
-      v.outMaster.tValid := '0';
+      -- Register input and compute size
+      v.inMaster := sAxisMaster;
+      v.inTop    := getTKeep(sAxisMaster.tKeep(MAX_BYTE_C downto 0))-1;
 
-      -- Pending output
-      if r.curMaster.tValid := '1' then
+      -- Pending output from current
+      if r.curMaster.tValid = '1' then
          v.outMaster := r.curMaster;
 
-         if r.nxtMaster.tValid = '1' then
+         -- Shift next to current only if nxt is not full
+         if r.nxtMaster.tValid = '0' then
             v.curMaster := r.nxtMaster;
+            v.nxtMaster := AXI_STREAM_MASTER_INIT_C;
+            v.nxtMaster.tKeep := (others=>'0');
+         else
+            v.curMaster := AXI_STREAM_MASTER_INIT_C;
+            v.curMaster.tKeep := (others=>'0');
          end if;
 
+      -- Next is full, send to out
       elsif r.nxtMaster.tValid = '1' then
          v.outMaster := r.nxtMaster;
+         v.nxtMaster := AXI_STREAM_MASTER_INIT_C;
+         v.nxtMaster.tKeep := (others=>'0');
+      else
+         v.outMaster := AXI_STREAM_MASTER_INIT_C;
       end if;
 
       -- Data is valid
-      if sAxisMaster.tValid = '1' then
+      if r.inMaster.tValid = '1' then
 
          -- Process each output byte
-         for i in 0 to AXIS_CONFIG_G.DATA_BYTES_C-1 loop
+         for i in 0 to r.inTop loop
+            valid := toSl(v.byteCount = MAX_BYTE_C) or (r.inMaster.tLast and toSl(i=r.inTop));
+            last  := r.inMaster.tLast and toSl(i=r.inTop);
+            user  := axiStreamGetUserField ( AXIS_CONFIG_G, r.inMaster, i );
 
-               -- Still filling current data
-               if v.curMaster.tValid = '0' then 
+            -- Still filling current data
+            if v.curMaster.tValid = '0' then 
 
-                  v.curMaster.tData(v.byteCount*8+7 downto v.byteCount*8) := sAxisMaster.tData(i*8+7 downto i*8);
-                  v.curMaster.tKeep(v.outByte) := sAxisMaster.tKeep(i);
-                  v.curMaster.tValid := toSl(v.byteCount = 15) or sAxisMaster.tLast;
-                  v.curMaster.tLast  := sAxisMaster.tLast;
+               v.curMaster.tData(v.byteCount*8+7 downto v.byteCount*8) := r.inMaster.tData(i*8+7 downto i*8);
+               v.curMaster.tKeep(v.byteCount) := r.inMaster.tKeep(i);
+               v.curMaster.tValid := valid;
+               v.curMaster.tLast  := last;
 
-                  -- Copy user field
-                  axiStreamSetUserField( AXIS_CONFIG_G, v.curMaster, axiStreamGetUserField ( AXIS_CONFIG_G, sAxisMaster, i ), v.ByteCount);
+               -- Copy user field
+               axiStreamSetUserField( AXIS_CONFIG_G, v.curMaster, user, v.ByteCount);
 
-               -- Filling next data
-               else
+            -- Filling next data
+            elsif v.nxtMaster.tValid = '0' then
 
-                  v.nxtMaster.tData(v.byteCount*8+7 downto v.byteCount*8) := sAxisMaster.tData(i*8+7 downto i*8);
-                  v.nxtMaster.tKeep(v.outByte) := sAxisMaster.tKeep(i);
-                  v.nxtMaster.tValid := toSl(v.byteCount = 15);
-                  v.nxtMaster.tLast  := sAxisMaster.tLast;
+               v.nxtMaster.tData(v.byteCount*8+7 downto v.byteCount*8) := r.inMaster.tData(i*8+7 downto i*8);
+               v.nxtMaster.tKeep(v.byteCount) := r.inMaster.tKeep(i);
+               v.nxtMaster.tValid := valid;
+               v.nxtMaster.tLast  := last;
 
-                  -- Copy user field
-                  axiStreamSetUserField( AXIS_CONFIG_G, v.nxtMaster, axiStreamGetUserField ( AXIS_CONFIG_G, sAxisMaster, i ), v.ByteCount);
+               -- Copy user field
+               axiStreamSetUserField( AXIS_CONFIG_G, v.nxtMaster, user, v.ByteCount);
 
-               end if;
+            end if;
 
-            if v.outByte = 15 then
-               v.outByte := 0;
+            if v.byteCount = MAX_BYTE_C or last = '1' then
+               v.byteCount := 0;
+            else
+               v.byteCount := v.byteCount + 1;
             end if;
          end loop;
       end if;
 
-
-
       -- Reset
       if (sysRst = '1') then
          v := REG_INIT_C;
+         v.curMaster.tKeep := (others=>'0');
+         v.nxtMaster.tKeep := (others=>'0');
       end if;
 
-      rin        <= v;
-      parReady   <= v.ready;
-      running    <= r.running;
-      frameCount <= r.frameCount;
-      dropCount  <= r.dropCount;
+      rin <= v;
+
+      mAxisMaster <= r.outMaster;
 
    end process;
 
@@ -138,27 +157,6 @@ begin
          r <= rin;
       end if;
    end process;
-
-   ---------------------------------
-   -- Data FIFO
-   ---------------------------------
-   U_DataFifo: entity work.AxiStreamFifoV2
-      generic map (
-         TPD_G               => TPD_G,
-         SLAVE_READY_EN_G    => false,
-         GEN_SYNC_FIFO_G     => true,
-         FIFO_ADDR_WIDTH_G   => 9,
-         SLAVE_AXI_CONFIG_G  => INT_CONFIG_C,
-         MASTER_AXI_CONFIG_G => DATA_AXIS_CONFIG_G)
-      port map (
-         sAxisClk    => sysClk,
-         sAxisRst    => sysRst,
-         sAxisMaster => r.Master,
-         sAxisCtrl   => intCtrl,
-         mAxisClk    => sysClk,
-         mAxisRst    => sysRst,
-         mAxisMaster => dataMaster,
-         mAxisSlave  => dataSlave);
 
 end architecture rtl;
 

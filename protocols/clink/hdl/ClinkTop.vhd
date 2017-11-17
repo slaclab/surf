@@ -21,8 +21,6 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.ClinkPkg.all;
-library unisim;
-use unisim.vcomponents.all;
 
 entity ClinkTop is
    generic (

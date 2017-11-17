@@ -21,8 +21,6 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.ClinkPkg.all;
-library unisim;
-use unisim.vcomponents.all;
 
 entity ClinkFraming is
    generic (
@@ -211,7 +209,15 @@ begin
    ---------------------------------
    -- Frame Packing
    ---------------------------------
-   packMaster <= r.master;
+   U_Pack: entity work.ClinkPack
+      generic (
+         TPD_G         => TPD_G,
+         AXIS_CONFIG_G => INT_CONFIG_C,
+      port map (
+         sysClk      => sysClk,
+         sysRst      => sysRst,
+         sAxisMaster => r.master,
+         mAxisMaster => packMaster);
 
    ---------------------------------
    -- Data FIFO
