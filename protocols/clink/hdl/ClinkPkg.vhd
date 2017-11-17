@@ -26,11 +26,10 @@ package ClinkPkg is
    ------------------------------------
    -- Link Modes
    ------------------------------------
-   constant CLM_LITE_C : slv(3 downto 0) := "0001";
-   constant CLM_BASE_C : slv(3 downto 0) := "0010";
-   constant CLM_MEDM_C : slv(3 downto 0) := "0011";
-   constant CLM_FULL_C : slv(3 downto 0) := "0100";
-   constant CLM_DECA_C : slv(3 downto 0) := "0101";
+   constant CLM_BASE_C : slv(3 downto 0) := "0001";
+   constant CLM_MEDM_C : slv(3 downto 0) := "0010";
+   constant CLM_FULL_C : slv(3 downto 0) := "0011";
+   constant CLM_DECA_C : slv(3 downto 0) := "0100";
 
    ------------------------------------
    -- Data Modes
@@ -60,12 +59,6 @@ package ClinkPkg is
    ------------------------------------
    -- Port Mapping 
    ------------------------------------
-
-   -- Map channel to port for lite mode
-   procedure clMapLitePorts ( dataMode : slv; 
-                              parData  : Slv28Array; 
-                              bytes    : inout integer;
-                              portData : inout ClDataType);
 
    -- Map channel to port for base mode
    procedure clMapBasePorts ( dataMode : slv; 
@@ -98,6 +91,7 @@ package ClinkPkg is
    -- Remap data bytes
    procedure clMapBytes ( dataMode : slv; 
                           portData : ClDataType;
+                          mapEn    : boolean;
                           byteData : inout ClDataType );
 
 
@@ -108,32 +102,6 @@ package body ClinkPkg is
    ------------------------------------
    -- Port Mapping 
    ------------------------------------
-
-   -- Map channel to port for lite mode
-   -- From page 18 of camera link spec
-   procedure clMapLitePorts ( dataMode : slv; 
-                              parData  : Slv28Array; 
-                              bytes    : inout integer;
-                              portData : inout ClDataType) is
-
-   begin
-      portData.dv := parData(0)(26);
-      portData.fv := parData(0)(25);
-      portData.lv := parData(0)(24);
-
-      portData.data(0)(4 downto 0) := parData(0)(4 downto 0));
-      portData.data(0)(5)          := parData(0)(6);
-      portData.data(0)(7 downto 6) := parData(0)(21 downto 20);
-
-      -- 10 bit mode
-      if dataMode = CDM_10BIT_C then
-         portData.data(1)(0) := parData(0)(7);
-         portData.data(1)(1) := parData(0)(19);
-         bytes := 2;
-      else
-         bytes := 1;
-      end if;
-   end procedure;
 
    -- Map channel to port for base mode
    -- From page 15 of camera link spec
@@ -248,7 +216,6 @@ package body ClinkPkg is
                               portData : inout ClDataType) is
    begin
 
-      portData.dv := '0'; -- ??????
       portData.fv := parData(0)(25);
       bytes       := 10;
 
@@ -309,6 +276,9 @@ package body ClinkPkg is
          portData.data(9)(6 downto 5) := parData(2)(26 downto 25);
          portData.data(9)(7)          := parData(2)(23);
       end if;
+
+      portData.dv := portData.lv;
+
    end procedure;
 
    ------------------------------------
@@ -319,27 +289,31 @@ package body ClinkPkg is
    -- From page 8 of camera link spec
    procedure clMapBytes ( dataMode : slv; 
                           portData : ClDataType;
+                          mapEn    : boolean;
                           byteData : inout ClDataType ) is
    begin
 
-      byteData := portData;
+      -- Move only when portData is valid
+      if portData.valid = '1' then
+         byteData := portData;
 
-      if dataMode = CDM_12BIT_C then
-         byteData.data(0)             := portData.data(0);             -- A[07:00]
-         byteData.data(1)(3 downto 0) := portData.data(1)(3 downto 0); -- A[11:08]
-         byteData.data(1)(7 downto 4) := (others=>'0');
-         byteData.data(2)             := portData.data(2);             -- B[07:00]
-         byteData.data(3)(3 downto 0) := portData.data(1)(7 downto 4); -- B[11:08]
-         byteData.data(3)(7 downto 4) := (others=>'0');
-         byteData.data(4)             := portData.data(4);             -- C[07:00]
-         byteData.data(5)(3 downto 0) := portData.data(5)(3 downto 0); -- C[11:08]
-         byteData.data(5)(7 downto 4) := (others=>'0');
-         byteData.data(6)             := portData.data(3);             -- D[07:00]
-         byteData.data(7)(3 downto 0) := portData.data(5)(7 downto 4); -- D[11:08]
-         byteData.data(7)(7 downto 4) := (others=>'0');
-         byteData.data(8)             := portData.data(6);             -- E[07:00], not sure?
-         byteData.data(9)(3 downto 0) := portData.data(7)(7 downto 4); -- E[11:08], not sure?
-         byteData.data(9)(7 downto 4) := (others=>'0');
+         if dataMode = CDM_12BIT_C and mapEn then
+            byteData.data(0)             := portData.data(0);             -- A[07:00]
+            byteData.data(1)(3 downto 0) := portData.data(1)(3 downto 0); -- A[11:08]
+            byteData.data(1)(7 downto 4) := (others=>'0');
+            byteData.data(2)             := portData.data(2);             -- B[07:00]
+            byteData.data(3)(3 downto 0) := portData.data(1)(7 downto 4); -- B[11:08]
+            byteData.data(3)(7 downto 4) := (others=>'0');
+            byteData.data(4)             := portData.data(4);             -- C[07:00]
+            byteData.data(5)(3 downto 0) := portData.data(5)(3 downto 0); -- C[11:08]
+            byteData.data(5)(7 downto 4) := (others=>'0');
+            byteData.data(6)             := portData.data(3);             -- D[07:00]
+            byteData.data(7)(3 downto 0) := portData.data(5)(7 downto 4); -- D[11:08]
+            byteData.data(7)(7 downto 4) := (others=>'0');
+            byteData.data(8)             := portData.data(6);             -- E[07:00], not sure?
+            byteData.data(9)(3 downto 0) := portData.data(7)(7 downto 4); -- E[11:08], not sure?
+            byteData.data(9)(7 downto 4) := (others=>'0');
+         end if;
       end if;
    end procedure;
 

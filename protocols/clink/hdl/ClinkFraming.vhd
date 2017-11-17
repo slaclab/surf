@@ -53,7 +53,7 @@ architecture structure of ClinkFraming is
 
    constant INT_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
-      TDATA_BYTES_C => 1,
+      TDATA_BYTES_C => 16, -- 128 bits
       TDEST_BITS_C  => 0,
       TID_BITS_C    => 0,
       TKEEP_MODE_C  => TKEEP_COMP_C,
@@ -63,6 +63,9 @@ architecture structure of ClinkFraming is
    type RegType is record
       ready      : sl;
       bytes      : integer range 1 to 10;
+      dCount     : integer range 0 to 16;
+      inFrame    : sl;
+      dump       : sl;
       portData   : ClDataType;
       byteData   : ClDataType;
       running    : sl;
@@ -74,6 +77,9 @@ architecture structure of ClinkFraming is
    constant REG_INIT_C : RegType := (
       ready      => '0',
       bytes      => 1,
+      dCount     => 0,
+      inFrame    => '0',
+      dump       => '0',
       portData   => CL_DATA_INIT_C,
       byteData   => CL_DATA_INIT_C,
       running    => '0',
@@ -101,24 +107,13 @@ begin
       -- Extract data, and alignment markers
       case linkMode is 
 
-         -- Lite mode, 12 bits
-         -- Control interface for this mode is not correct!
-         when CLM_LITE_C =>
-            v.running        := locked(0);
-            v.portData.valid := parValid(0);
-
-            clMapLitePorts ( dataMode, parData, v.bytes, v.portData );
-
-            v.byteData := r.portData;
-
          -- Base mode, 24 bits
          when CLM_BASE_C =>
             v.running        := locked(0);
             v.portData.valid := parValid(0);
 
             clMapBasePorts ( dataMode, parData, v.bytes, v.portData );
-
-            clMapBytes ( dataMode, r.portData, v.byteData );
+            clMapBytes ( dataMode, r.portData, true, v.byteData );
 
          -- Medium mode, 48 bits
          when CLM_MEDM_C =>
@@ -126,8 +121,7 @@ begin
             v.portData.valid := uAnd(parValid(1 downto 0));
 
             clMapMedmPorts ( dataMode, parData, v.bytes, v.portData );
-
-            clMapBytes ( dataMode, r.portData, v.byteData );
+            clMapBytes ( dataMode, r.portData, true, v.byteData );
 
          -- Full mode, 64 bits
          when CLM_FULL_C =>
@@ -135,8 +129,7 @@ begin
             v.portData.valid := uAnd(parValid);
 
             clMapFullPorts ( dataMode, parData, v.bytes, v.portData );
-
-            clMapBytes ( dataMode, r.portData, v.byteData );
+            clMapBytes ( dataMode, r.portData, true, v.byteData );
 
          -- DECA mode, 80 bits
          when CLM_DECA_C =>
@@ -144,21 +137,26 @@ begin
             v.portData.valid := uAnd(parValid);
 
             clMapDecaPorts ( dataMode, parData, v.bytes, v.portData );
-
-            v.byteData := r.portData;
+            clMapBytes ( dataMode, r.portData, false, v.byteData );
 
       end case;
 
       -- Drive ready, dump when not running
       v.ready := v.portData.valid or (not r.running);
 
-      -- Push data to AXI frame
+      -- Move data
+      if r.portData.valid = '1' and r.byteData.valid = '1' then
+
+         -- Valid data in byte record
+         if r.byteData.dv = '1' and r.byteData.lv = '1' and r.byteData.fv = '1' then
 
 
 
-
-
-
+   -- Expect byte widths per transfer
+   -- Base = 3 or 4 
+   -- Medm = 6 or 8
+   -- Full = 8
+   -- Deca = 10
 
 
 
