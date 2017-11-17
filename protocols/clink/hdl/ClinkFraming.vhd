@@ -62,29 +62,29 @@ architecture structure of ClinkFraming is
 
    type RegType is record
       ready      : sl;
-      bytes      : integer range 1 to 10;
-      dCount     : integer range 0 to 16;
-      inFrame    : sl;
-      dump       : sl;
+      running    : sl;
       portData   : ClDataType;
       byteData   : ClDataType;
-      running    : sl;
-      frameCount : slv(31 downto 0);
-      dropCount  : slv(31 downto 0);
+      bytes      : integer range 1 to 10;
+
+      --inFrame    : sl;
+      --dump       : sl;
+      --frameCount : slv(31 downto 0);
+      --dropCount  : slv(31 downto 0);
       master     : AxiStreamMasterType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       ready      => '0',
-      bytes      => 1,
-      dCount     => 0,
-      inFrame    => '0',
-      dump       => '0',
+      running    => '0',
       portData   => CL_DATA_INIT_C,
       byteData   => CL_DATA_INIT_C,
-      running    => '0',
-      frameCount => (others=>'0'),
-      dropCount  => (others=>'0'),
+      bytes      => 1,
+
+      --inFrame    => '0',
+      --dump       => '0',
+      --frameCount => (others=>'0'),
+      --dropCount  => (others=>'0'),
       master     => AXI_STREAM_MASTER_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
@@ -144,6 +144,16 @@ begin
       -- Drive ready, dump when not running
       v.ready := v.portData.valid or (not r.running);
 
+      -- Format data
+      v.master       := AXI_STREAM_MASTER_INIT_C;
+      v.master.tKeep := (others=>'0');
+
+      -- Setup output data
+      for i in 0 to r.bytes-1 loop
+         v.master.tData((i*8)+7 downto i*8) := r.byteData(i);
+         v.master.tKeep(i) := '1';
+      end loop;
+
       -- Move data
       if r.portData.valid = '1' and r.byteData.valid = '1' then
 
@@ -151,20 +161,13 @@ begin
          if r.byteData.dv = '1' and r.byteData.lv = '1' and r.byteData.fv = '1' then
 
 
-
-   -- Expect byte widths per transfer
-   -- Base = 3 or 4 
-   -- Medm = 6 or 8
-   -- Full = 8
-   -- Deca = 10
+            v.master.tValid 
+            ssiSetUserSof ( INT_CONFIG_C, v.master, not r.inFrame );
+            ssiSetUserEofe ( INT_CONFIG_C, v.master, not r.inFrame );
 
 
-
-
-
-
-
-
+         end if;
+      end if;
 
       -- Reset
       if (sysRst = '1') then
