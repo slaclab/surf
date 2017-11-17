@@ -5,4 +5,4 @@ source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 loadSource -dir "$::DIR_PATH/hdl/"
 
 # Load Simulation
-loadSource -sim_only -dir "$::DIR_PATH/sim/"
+#loadSource -sim_only -dir "$::DIR_PATH/sim/"
