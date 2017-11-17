@@ -28,7 +28,7 @@ entity AxiStreamBytePackerTb is end AxiStreamBytePackerTb;
 -- Define architecture
 architecture test of AxiStreamBytePackerTb is
 
-   constant MASTER_CONFIG_C : AxiStreamConfigType := (
+   constant SRC_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
       TDATA_BYTES_C => 10, -- 80 bits
       TDEST_BITS_C  => 0,
@@ -37,7 +37,7 @@ architecture test of AxiStreamBytePackerTb is
       TUSER_BITS_C  => 2,
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
 
-   constant SLAVE_CONFIG_C : AxiStreamConfigType := (
+   constant DST_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
       TDATA_BYTES_C => 16, -- 128 bits
       TDEST_BITS_C  => 0,
@@ -78,7 +78,7 @@ begin
          generic map (
             TPD_G         => TPD_G,
             BYTE_SIZE_C   => i+1,
-            AXIS_CONFIG_G => INT_CONFIG_C)
+            AXIS_CONFIG_G => SRC_CONFIG_C)
          port map (
             sysClk      => sysClk,
             sysRst      => sysRst,
@@ -86,8 +86,9 @@ begin
 
       U_Pack: entity work.AxiStreamBytePacker
          generic map (
-            TPD_G         => TPD_G,
-            AXIS_CONFIG_G => INT_CONFIG_C)
+            TPD_G           => TPD_G,
+            SLAVE_CONFIG_G  => SRC_CONFIG_C)
+            MASTER_CONFIG_G => DST_CONFIG_C)
          port map (
             sysClk       => sysClk,
             sysRst       => sysRst,
@@ -98,7 +99,7 @@ begin
          generic map (
             TPD_G         => TPD_G,
             BYTE_SIZE_C   => i+1,
-            AXIS_CONFIG_G => INT_CONFIG_C)
+            AXIS_CONFIG_G => DST_CONFIG_C)
          port map (
             sysClk      => sysClk,
             sysRst      => sysRst,

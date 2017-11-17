@@ -7,7 +7,7 @@
 -- Byte packer for AXI-Stream. 
 -- Accepts an incoming stream and packs data into the outbound stream. 
 -- Similiar to AxiStreamResize, but allows an input and output width to have 
--- non multiples and for the input size to by dynamic. 
+-- non multiples and for the input size to be dynamic. 
 -- This module does not downsize and creates more complex combinitorial logic 
 -- than in AxiStreamResize.
 -- Ready handshaking is not supported.
@@ -35,8 +35,8 @@ entity AxiStreamBytePacker.vhd is
       MASTER_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- System clock and reset
-      sysClk       : in  sl;
-      sysRst       : in  sl;
+      axiClk       : in  sl;
+      axiRst       : in  sl;
       -- Inbound frame
       sAxisMaster  : in  AxiStreamMasterType;
       -- Outbound frame
@@ -70,7 +70,7 @@ architecture rtl of AxiStreamBytePacker.vhd is
 
 begin
 
-   comb : process (r, sysRst, sAxisMaster ) is
+   comb : process (r, axiRst, sAxisMaster ) is
       variable v     : RegType;
       variable valid : sl;
       variable last  : sl;
@@ -151,7 +151,7 @@ begin
       end if;
 
       -- Reset
-      if (sysRst = '1') then
+      if (axiRst = '1') then
          v := REG_INIT_C;
          v.curMaster.tKeep := (others=>'0');
          v.nxtMaster.tKeep := (others=>'0');
@@ -163,9 +163,9 @@ begin
 
    end process;
 
-   seq : process (sysClk) is
+   seq : process (axiClk) is
    begin  
-      if (rising_edge(sysClk)) then
+      if (rising_edge(axiClk)) then
          r <= rin;
       end if;
    end process;
