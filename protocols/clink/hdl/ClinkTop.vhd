@@ -75,6 +75,7 @@ architecture structure of ClinkTop is
       serBaud         : Slv24Array(1 downto 0);
       linkMode        : Slv4Array(1 downto 0);
       dataMode        : Slv4Array(1 downto 0);
+      dataEn          : sl;
       dualCable       : sl;
       axilReadSlave   : AxiLiteReadSlaveType;
       axilWriteSlave  : AxiLiteWriteSlaveType;
@@ -87,6 +88,7 @@ architecture structure of ClinkTop is
       serBaud         => (others=>(others=>'0')),
       linkMode        => (others=>(others=>'0')),
       dataMode        => (others=>(others=>'0')),
+      dataEn          => '0',
       dualCable       => '0',
       axilReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C);
@@ -200,6 +202,7 @@ begin
          sysRst        => sysRst,
          linkMode      => r.linkMode(0),
          dataMode      => r.dataMode(0),
+         dataEn        => dataEn,
          frameCount    => frameCount(0),
          dropCount     => dropCount(0),
          locked        => locked,
@@ -219,6 +222,7 @@ begin
          sysRst        => sysRst,
          linkMode      => r.linkMode(1),
          dataMode      => r.dataMode(1),
+         dataEn        => dataEn,
          frameCount    => frameCount(1),
          dropCount     => dropCount(1),
          locked(0)     => locked(2),
@@ -298,6 +302,7 @@ begin
       axiSlaveRegister(axilEp, x"10",  0, v.linkMode(0));
       axiSlaveRegister(axilEp, x"10",  8, v.dataMode(0));
       axiSlaveRegister(axilEp, x"10", 16, v.dataMode(1));
+      axiSlaveRegister(axilEp, x"10", 24, v.dataEn);
 
       axiSlaveRegister(axilEp, x"18",  0, v.serBaud(0));
       axiSlaveRegister(axilEp, x"1C",  0, v.serBaud(1));

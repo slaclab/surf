@@ -20,6 +20,8 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
+use work.AxiStreamPkg.all;
+use work.SsiPkg.all;
 use work.ClinkPkg.all;
 
 entity ClinkFraming is
@@ -33,6 +35,7 @@ entity ClinkFraming is
       -- Config and status
       linkMode     : in  slv(3 downto 0);
       dataMode     : in  slv(3 downto 0);
+      dataEn       : in  sl;
       frameCount   : out slv(31 downto 0);
       dropCount    : out slv(31 downto 0);
       -- Data interface
@@ -43,28 +46,13 @@ entity ClinkFraming is
       parReady     : out sl;
       -- Camera data
       dataMaster   : out AxiStreamMasterType;
-      dataSlave    : in  AxiStreamSlaveType;
+      dataSlave    : in  AxiStreamSlaveType);
 end ClinkFraming;
 
-architecture structure of ClinkFraming is
+architecture rtl of ClinkFraming is
 
-   constant SLV_CONFIG_C : AxiStreamConfigType := (
-      TSTRB_EN_C    => false,
-      TDATA_BYTES_C => 10, -- 80 bits
-      TDEST_BITS_C  => 0,
-      TID_BITS_C    => 0,
-      TKEEP_MODE_C  => TKEEP_COMP_C,
-      TUSER_BITS_C  => 2,
-      TUSER_MODE_C  => TUSER_FIRST_LAST_C);
-
-   constant MST_CONFIG_C : AxiStreamConfigType := (
-      TSTRB_EN_C    => false,
-      TDATA_BYTES_C => 16, -- 128 bits
-      TDEST_BITS_C  => 0,
-      TID_BITS_C    => 0,
-      TKEEP_MODE_C  => TKEEP_COMP_C,
-      TUSER_BITS_C  => 2,
-      TUSER_MODE_C  => TUSER_FIRST_LAST_C);
+   constant SLV_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(dataBytes=>10,tDestBits=>0);
+   constant MST_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(dataBytes=>16,tDestBits=>0);
 
    type RegType is record
       ready      : sl;
@@ -99,7 +87,7 @@ architecture structure of ClinkFraming is
 
 begin
 
-   comb : process (r, sysRst, linkMode, dataMode, locked, intCtrl, parData, parValid) is
+   comb : process (r, sysRst, dataEn, linkMode, dataMode, locked, intCtrl, parData, parValid) is
       variable v : RegType;
    begin
       v := r;
@@ -115,7 +103,7 @@ begin
          -- Base mode, 24 bits
          when CLM_BASE_C =>
             v.running        := locked(0);
-            v.portData.valid := parValid(0);
+            v.portData.valid := parValid(0) and v.running;
 
             clMapBasePorts ( dataMode, parData, v.bytes, v.portData );
             clMapBytes ( dataMode, r.portData, true, v.byteData );
@@ -123,7 +111,7 @@ begin
          -- Medium mode, 48 bits
          when CLM_MEDM_C =>
             v.running        := uAnd(locked(1 downto 0));
-            v.portData.valid := uAnd(parValid(1 downto 0));
+            v.portData.valid := uAnd(parValid(1 downto 0)) and v.running;
 
             clMapMedmPorts ( dataMode, parData, v.bytes, v.portData );
             clMapBytes ( dataMode, r.portData, true, v.byteData );
@@ -131,7 +119,7 @@ begin
          -- Full mode, 64 bits
          when CLM_FULL_C =>
             v.running        := uAnd(locked);
-            v.portData.valid := uAnd(parValid);
+            v.portData.valid := uAnd(parValid) and v.running;
 
             clMapFullPorts ( dataMode, parData, v.bytes, v.portData );
             clMapBytes ( dataMode, r.portData, true, v.byteData );
@@ -139,10 +127,12 @@ begin
          -- DECA mode, 80 bits
          when CLM_DECA_C =>
             v.running        := uAnd(locked);
-            v.portData.valid := uAnd(parValid);
+            v.portData.valid := uAnd(parValid) and v.running;
 
             clMapDecaPorts ( dataMode, parData, v.bytes, v.portData );
             clMapBytes ( dataMode, r.portData, false, v.byteData );
+
+         when others =>
 
       end case;
 
@@ -155,7 +145,7 @@ begin
 
       -- Setup output data
       for i in 0 to r.bytes-1 loop
-         v.master.tData((i*8)+7 downto i*8) := r.byteData(i);
+         v.master.tData((i*8)+7 downto i*8) := r.byteData.data(i);
          v.master.tKeep(i) := '1';
       end loop;
 
@@ -196,7 +186,7 @@ begin
       end if;
 
       -- Reset
-      if (sysRst = '1') then
+      if (sysRst = '1' or dataEn = '0') then
          v := REG_INIT_C;
       end if;
 
