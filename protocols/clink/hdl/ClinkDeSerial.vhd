@@ -217,6 +217,7 @@ begin
             SHIFTIN1     => '0',
             SHIFTIN2     => '0'
          );
+   end generate;
 
    --------------------------------------
    -- Adjust data bit mappings

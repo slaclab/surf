@@ -134,7 +134,7 @@ begin
          serRxMaster  => serRxMaster(0),
          serRxSlave   => serRxSlave(0),
          serTxMaster  => serTxMaster(0),
-         serTxSlave   => serTxSlave(0),
+         serTxSlave   => serTxSlave(0));
 
    -- Cable 0, half 1
    U_Cbl0Half1: entity work.ClinkData

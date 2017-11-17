@@ -146,21 +146,21 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => clk,                       -- [in]
-         rst     => rst,                       -- [in]
-         baud16x => r.clkEn,                   -- [in]
-         rdData  => rxMaster.tData(7 downto 0) -- [out]
-         rdValid => rxMaster.tValid,           -- [out]
-         rdReady => rxSlave.tReady,            -- [in]
-         rx      => rxIn);                     -- [in]
+         clk     => clk,                        -- [in]
+         rst     => rst,                        -- [in]
+         baud16x => r.clkEn,                    -- [in]
+         rdData  => rxMaster.tData(7 downto 0), -- [out]
+         rdValid => rxMaster.tValid,            -- [out]
+         rdReady => rxSlave.tReady,             -- [in]
+         rx      => rxIn);                      -- [in]
 
-   rxMaster.tData(127 downto 8) => (others => '0');
-   rxMaster.tStrb  => (others => '1');
-   rxMaster.tKeep  => (others => '1');
-   rxMaster.tLast  => '1';
-   rxMaster.tDest  => (others => '0');
-   rxMaster.tId    => (others => '0');
-   rxMaster.tUser  => (others => '0');
+   rxMaster.tData(127 downto 8) <= (others => '0');
+   rxMaster.tStrb  <= (others => '1');
+   rxMaster.tKeep  <= (others => '1');
+   rxMaster.tLast  <= '1';
+   rxMaster.tDest  <= (others => '0');
+   rxMaster.tId    <= (others => '0');
+   rxMaster.tUser  <= (others => '0');
 
    -------------------------------------------------------------------------------------------------
    -- Receive FIFO

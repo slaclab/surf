@@ -26,7 +26,7 @@ use unisim.vcomponents.all;
 
 entity ClinkData is
    generic (
-      TPD_G : time := 1 ns;
+      TPD_G : time := 1 ns);
    port (
       -- Cable Input
       cblHalfP : in  slv(4 downto 0); --  8, 10, 11, 12,  9

@@ -74,21 +74,20 @@ begin
    -- IO Buffers
    -------------------------------
    U_CableBuffGen : for i in 0 to 4 generate
-      U_CableBuff: : IOBUFDS
+      U_CableBuff: IOBUFDS
          port map(
             I   => cableOut(i),
             O   => cableIn(i),
             T   => cableDirIn(i),
             IO  => cblHalfP(i),
             IOB => cblHalfM(i));
-
-   U_SerOutGen: for i in 0 to 4 generate
-      U_SerOut: OBUFDS
-         port map (
-            I  => cblSerOut,
-            O  => cblSerP,
-            OB => cblSerM);
    end generate;
+
+   U_SerOut: OBUFDS
+      port map (
+         I  => cblSerOut,
+         O  => cblSerP,
+         OB => cblSerM);
 
    -------------------------------
    -- Camera control bits
