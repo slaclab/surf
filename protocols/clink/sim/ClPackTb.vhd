@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
--- File       : ClinkTb.vhd
+-- File       : AxiStreamBytePackerTb.vhd
 -- Created    : 2017-11-13
 -------------------------------------------------------------------------------
--- Description: Simulation Testbed for Clink
+-- Description: Simulation Testbed for AxiStreamBytePacker
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -23,12 +23,21 @@ library unisim;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 
-entity ClPackTb is end ClPackTb;
+entity AxiStreamBytePackerTb is end AxiStreamBytePackerTb;
 
 -- Define architecture
-architecture test of ClPackTb is
+architecture test of AxiStreamBytePackerTb is
 
-   constant INT_CONFIG_C : AxiStreamConfigType := (
+   constant MASTER_CONFIG_C : AxiStreamConfigType := (
+      TSTRB_EN_C    => false,
+      TDATA_BYTES_C => 10, -- 80 bits
+      TDEST_BITS_C  => 0,
+      TID_BITS_C    => 0,
+      TKEEP_MODE_C  => TKEEP_COMP_C,
+      TUSER_BITS_C  => 2,
+      TUSER_MODE_C  => TUSER_FIRST_LAST_C);
+
+   constant SLAVE_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
       TDATA_BYTES_C => 16, -- 128 bits
       TDEST_BITS_C  => 0,
@@ -37,8 +46,8 @@ architecture test of ClPackTb is
       TUSER_BITS_C  => 2,
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
 
-   constant CLK_PERIOD_C   : time    := 5.000 ns;
-   constant TPD_G          : time    := 1 ns;
+   constant CLK_PERIOD_C : time := 5.000 ns;
+   constant TPD_G        : time := 1 ns;
 
    signal sysClk : sl;
    signal sysRst : sl;
@@ -65,7 +74,7 @@ begin
 
    U_TestGen : for i in 0 to 15 generate
 
-      U_PackTx : entity work.ClinkPackTbTx
+      U_PackTx : entity work.AxiStreamBytePackerTbTx
          generic map (
             TPD_G         => TPD_G,
             BYTE_SIZE_C   => i+1,
@@ -75,7 +84,7 @@ begin
             sysRst      => sysRst,
             mAxisMaster => testInMaster(i));
 
-      U_Pack: entity work.ClinkPack
+      U_Pack: entity work.AxiStreamBytePacker
          generic map (
             TPD_G         => TPD_G,
             AXIS_CONFIG_G => INT_CONFIG_C)
@@ -85,7 +94,7 @@ begin
             sAxisMaster  => testInMaster(i),
             mAxisMaster  => testOutMaster(i));
 
-      U_PackRx : entity work.ClinkPackTbRx
+      U_PackRx : entity work.AxiStreamBytePackerTbRx
          generic map (
             TPD_G         => TPD_G,
             BYTE_SIZE_C   => i+1,

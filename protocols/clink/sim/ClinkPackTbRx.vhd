@@ -1,10 +1,10 @@
 -------------------------------------------------------------------------------
--- File       : ClinkPackTbRx.vhd
+-- File       : AxiStreamBytePackerTbRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-11-13
 -------------------------------------------------------------------------------
 -- Description:
--- CameraLink data packer tester, tx module
+-- AxiStream data packer tester, tx module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -22,7 +22,7 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 
-entity ClinkPackTbRx is
+entity AxiStreamBytePackerTbRx is
    generic (
       TPD_G         : time                := 1 ns;
       BYTE_SIZE_C   : positive            := 1;
@@ -34,9 +34,9 @@ entity ClinkPackTbRx is
       -- Outbound frame
       sAxisMaster  : in  AxiStreamMasterType;
       fail         : out sl);
-end ClinkPackTbRx;
+end AxiStreamBytePackerTbRx;
 
-architecture rtl of ClinkPackTbRx is
+architecture rtl of AxiStreamBytePackerTbRx is
 
    type RegType is record
       byteCount  : natural;
