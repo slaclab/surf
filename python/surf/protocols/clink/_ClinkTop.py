@@ -110,6 +110,7 @@ class ClinkTop(pr.Device):
             bitSize      =  3,
             bitOffset    =  0,
             base         = pr.UInt,
+            pollInterval = 1,
             mode         = "RO",
         ))
 
@@ -120,6 +121,7 @@ class ClinkTop(pr.Device):
             bitSize      =  2,
             bitOffset    =  4,
             base         = pr.UInt,
+            pollInterval = 1,
             mode         = "RO",
         ))
 
@@ -130,6 +132,7 @@ class ClinkTop(pr.Device):
             bitSize      =  32,
             bitOffset    =  0,
             base         = pr.UInt,
+            pollInterval = 1,
             mode         = "RO",
         ))
 
@@ -140,6 +143,7 @@ class ClinkTop(pr.Device):
             bitSize      =  32,
             bitOffset    =  0,
             base         = pr.UInt,
+            pollInterval = 1,
             mode         = "RO",
         ))
 
@@ -150,6 +154,7 @@ class ClinkTop(pr.Device):
             bitSize      =  32,
             bitOffset    =  0,
             base         = pr.UInt,
+            pollInterval = 1,
             mode         = "RO",
         ))
 
@@ -160,6 +165,7 @@ class ClinkTop(pr.Device):
             bitSize      =  32,
             bitOffset    =  0,
             base         = pr.UInt,
+            pollInterval = 1,
             mode         = "RO",
         ))
 
