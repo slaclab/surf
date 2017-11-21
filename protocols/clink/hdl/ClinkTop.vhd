@@ -75,7 +75,7 @@ architecture structure of ClinkTop is
       serBaud         : Slv24Array(1 downto 0);
       linkMode        : Slv4Array(1 downto 0);
       dataMode        : Slv4Array(1 downto 0);
-      dataEn          : sl;
+      dataEn          : slv(1 downto 0);
       dualCable       : sl;
       axilReadSlave   : AxiLiteReadSlaveType;
       axilWriteSlave  : AxiLiteWriteSlaveType;
@@ -88,7 +88,7 @@ architecture structure of ClinkTop is
       serBaud         => (others=>(others=>'0')),
       linkMode        => (others=>(others=>'0')),
       dataMode        => (others=>(others=>'0')),
-      dataEn          => '0',
+      dataEn          => "00",
       dualCable       => '0',
       axilReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C);
@@ -202,7 +202,7 @@ begin
          sysRst        => sysRst,
          linkMode      => r.linkMode(0),
          dataMode      => r.dataMode(0),
-         dataEn        => dataEn,
+         dataEn        => dataEn(0),
          frameCount    => frameCount(0),
          dropCount     => dropCount(0),
          locked        => locked,
@@ -222,7 +222,7 @@ begin
          sysRst        => sysRst,
          linkMode      => r.linkMode(1),
          dataMode      => r.dataMode(1),
-         dataEn        => dataEn,
+         dataEn        => dataEn(1),
          frameCount    => frameCount(1),
          dropCount     => dropCount(1),
          locked(0)     => locked(2),
