@@ -75,6 +75,7 @@ begin
       generic map (
          TPD_G               => TPD_G,
          INPUT_BUFG_G        => false,
+         FB_BUFG_G           => false,
          NUM_CLOCKS_G        => 2,
          BANDWIDTH_G         => "OPTIMIZED",
          CLKIN_PERIOD_G      => 11.765,

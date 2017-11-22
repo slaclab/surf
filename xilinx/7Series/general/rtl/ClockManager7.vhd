@@ -32,8 +32,11 @@ entity ClockManager7 is
       TPD_G                  : time                             := 1 ns;
       TYPE_G                 : string                           := "MMCM";  -- or "PLL"
       INPUT_BUFG_G           : boolean                          := true;
+      INPUT_BUFR_G           : boolean                          := false;
       FB_BUFG_G              : boolean                          := true;
+      FB_BUFR_G              : boolean                          := false;
       OUTPUT_BUFG_G          : boolean                          := true;
+      OUTPUT_BUFR_G          : boolean                          := false;
       RST_IN_POLARITY_G      : sl                               := '1';     -- '0' for active low
       NUM_CLOCKS_G           : integer range 1 to 7;
       AXI_ERROR_RESP_G       : slv(1 downto 0)                  := AXI_RESP_DECERR_C;
@@ -276,7 +279,15 @@ begin
             O => clkInLoc);
    end generate;
 
-   InputNoBufg : if (not INPUT_BUFG_G) generate
+   InputBufrGen : if (not INPUT_BUFG_G) and (INPUT_BUFR_G) generate
+      U_Bufg : BUFR
+         port map (
+            I => clkIn,
+            O => clkInLoc);
+   end generate;
+
+
+   InputNoBufg : if (not INPUT_BUFG_G) and (not INPUT_BUFR_G) generate
       clkInLoc <= clkIn;
    end generate;
 
@@ -287,7 +298,14 @@ begin
             O => clkFbIn);
    end generate;
 
-   FbNoBufg : if (not FB_BUFG_G) generate
+   FbBufrGen : if (not FB_BUFG_G) and (FB_BUFR_G) generate
+      U_Bufg : BUFR
+         port map (
+            I => clkFbOut,
+            O => clkFbIn);
+   end generate;
+
+   FbNoBufg : if (not FB_BUFG_G) and (not FB_BUFR_G) generate
       clkFbOut <= clkFbIn;
    end generate;
 
@@ -301,7 +319,17 @@ begin
       end generate;
    end generate OutBufgGen;
 
-   NoOutBufgGen : if (not OUTPUT_BUFG_G) generate
+   OutBufrGen : if (not OUTPUT_BUFG_G) and (OUTPUT_BUFR_G) generate
+      ClkOutGen : for i in NUM_CLOCKS_G-1 downto 0 generate
+         U_Bufg : BUFR
+            port map (
+               I => clkOutMmcm(i),
+               O => clkOutLoc(i));
+         clkOut(i) <= clkOutLoc(i);
+      end generate;
+   end generate OutBufgGen;
+
+   NoOutBufgGen : if (not OUTPUT_BUFG_G) and (not OUTPUT_BUFR_G) generate
       clkOutLoc <= clkOutMmcm;
       clkOut    <= clkOutLoc;
    end generate NoOutBufgGen;
