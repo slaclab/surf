@@ -32,8 +32,8 @@ entity ClinkCtrl is
       UART_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- Cable In/Out
-      cblHalfP    : inout slv(4 downto 0); --  2,  4,  5,  6, 3 /  8, 10, 11, 12,  9
-      cblHalfM    : inout slv(4 downto 0); -- 15, 17, 18, 19 16 / 21, 23, 24, 25, 22
+      cblHalfP    : inout slv(4 downto 0); -- 15, 17,  5,  6, 3
+      cblHalfM    : inout slv(4 downto 0); --  2,  4, 18, 19, 16
       cblSerP     : out   sl; -- 20
       cblSerM     : out   sl; -- 7
       -- System clock and reset, must be 100Mhz or greater
@@ -84,13 +84,13 @@ begin
    cblOut(2)   <= camCtrl(0);
 
    cblDirIn(3) <= '0';
-   cblOut(3)   <= not camCtrl(1);
+   cblOut(3)   <= camCtrl(1);
 
    cblDirIn(0) <= '0';
    cblOut(0)   <= camCtrl(2);
 
    cblDirIn(4) <= '0';
-   cblOut(4)   <= not camCtrl(3);
+   cblOut(4)   <= camCtrl(3);
 
    -------------------------------
    -- UART

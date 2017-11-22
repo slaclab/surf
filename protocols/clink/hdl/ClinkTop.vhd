@@ -35,8 +35,8 @@ entity ClinkTop is
       UART_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- Connector 0, Half 0, Control for Base,Medium,Full,Deca
-      cbl0Half0P      : inout slv(4 downto 0); --  2,  4,  5,  6, 3
-      cbl0Half0M      : inout slv(4 downto 0); -- 15, 17, 18, 19 16
+      cbl0Half0P      : inout slv(4 downto 0); -- 15, 17,  5,  6,  3
+      cbl0Half0M      : inout slv(4 downto 0); --  2,  4, 18, 19, 16
       -- Connector 0, Half 1, Data X for Base,Medium,Full,Deca
       cbl0Half1P      : in    slv(4 downto 0); --  8, 10, 11, 12,  9
       cbl0Half1M      : in    slv(4 downto 0); -- 21, 23, 24, 25, 22
@@ -176,7 +176,7 @@ begin
          sysRst       => sysRst,
          camCtrl      => intCamCtrl(1),
          serBaud      => r.serBaud(1),
-         locked       => locked(1),
+         locked       => locked(2),
          ctrlMode     => r.dualCable,
          parData      => parData(2),
          parValid     => parValid(2),
@@ -277,7 +277,7 @@ begin
    ---------------------------------
    -- Registers
    ---------------------------------
-   comb : process (r, sysRst, intReadMaster, intWriteMaster, locked, camCtrl, running, frameCount) is
+   comb : process (r, sysRst, intReadMaster, intWriteMaster, locked, camCtrl, running, frameCount, dropCount) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin

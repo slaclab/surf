@@ -32,8 +32,8 @@ entity ClinkDual is
       UART_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- Cable In/Out
-      cblHalfP    : inout slv(4 downto 0); --  2,  4,  5,  6, 3 /  8, 10, 11, 12,  9
-      cblHalfM    : inout slv(4 downto 0); -- 15, 17, 18, 19 16 / 21, 23, 24, 25, 22
+      cblHalfP    : inout slv(4 downto 0); --  2,  4,  5,  6, 3
+      cblHalfM    : inout slv(4 downto 0); -- 15, 17, 18, 19 16
       cblSerP     : out   sl; -- 20
       cblSerM     : out   sl; -- 7
       -- System clock and reset, must be 100Mhz or greater
@@ -94,6 +94,7 @@ begin
 
    -------------------------------
    -- Camera control bits
+   -- Bits 1 & 3 inverted
    -------------------------------
    cblDirIn(2) <= dataMode;
    cblOut(2)   <= camCtrl(0);
