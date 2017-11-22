@@ -42,7 +42,7 @@ entity ClinkData is
       parReady : in  sl := '1');
 end ClinkData;
 
-architecture structure of ClinkData is
+architecture rtl of ClinkData is
    signal cableIn : slv(4 downto 0);
 begin
 

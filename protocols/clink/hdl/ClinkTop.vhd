@@ -21,6 +21,8 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.ClinkPkg.all;
+use work.AxiLitePkg.all;
+use work.AxiStreamPkg.all;
 
 entity ClinkTop is
    generic (
@@ -28,35 +30,42 @@ entity ClinkTop is
       SYS_CLK_FREQ_G     : real                := 125.0e6;
       AXI_ERROR_RESP_G   : slv(1 downto 0)     := AXI_RESP_DECERR_C;
       AXI_COMMON_CLK_G   : boolean             := false;
+      UART_READY_EN_G    : boolean             := true;
       DATA_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
       UART_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
-      -- Cable Input/Output
+      -- Connector 0, Half 0, Control for Base,Medium,Full,Deca
       cbl0Half0P      : inout slv(4 downto 0); --  2,  4,  5,  6, 3
       cbl0Half0M      : inout slv(4 downto 0); -- 15, 17, 18, 19 16
+      -- Connector 0, Half 1, Data X for Base,Medium,Full,Deca
       cbl0Half1P      : in    slv(4 downto 0); --  8, 10, 11, 12,  9
       cbl0Half1M      : in    slv(4 downto 0); -- 21, 23, 24, 25, 22
+      -- Connector 0, Serial out
       cbl0SerP        : out   sl; -- 20
       cbl0SerM        : out   sl; -- 7
+      -- Connector 1, Half 0, Control Base, Data Z for Med, Full, Deca
       cbl1Half0P      : inout slv(4 downto 0); --  2,  4,  5,  6, 3
       cbl1Half0M      : inout slv(4 downto 0); -- 15, 17, 18, 19 16
+      -- Connector 1, Half 1, Data X for Base, Data Y for Med, Full, Deca
       cbl1Half1P      : in    slv(4 downto 0); --  8, 10, 11, 12,  9
       cbl1Half1M      : in    slv(4 downto 0); -- 21, 23, 24, 25, 22
+      -- Connector 1, Serial out
       cbl1SerP        : out   sl; -- 20
       cbl1SerM        : out   sl; -- 7
       -- System clock and reset, must be 100Mhz or greater
       sysClk          : in  sl;
       sysRst          : in  sl;
       -- Camera Control Bits
-      camCtrl         : in  Svl4Array(1 downto 0);
+      camCtrl         : in  Slv4Array(1 downto 0);
       -- Camera data
-      dataMaster      : out AxiStreamMasterArray(1 downto 0);
-      dataSlave       : in  AxiStreamSlaveArray(1 downto 0);
+      dataMasters     : out AxiStreamMasterArray(1 downto 0);
+      dataSlaves      : in  AxiStreamSlaveArray(1 downto 0);
       -- UART data
-      serRxMaster     : in  AxiStreamMasterArray(1 downto 0);
-      serRxSlave      : out AxiStreamSlaveArray(1 downto 0);
-      serTxMaster     : out AxiStreamMasterArray(1 downto 0);
-      serTxSlave      : in  AxiStreamSlaveArray(1 downto 0);
+      sUartMasters    : in  AxiStreamMasterArray(1 downto 0);
+      sUartSlaves     : out AxiStreamSlaveArray(1 downto 0);
+      sUartCtrls      : out AxiStreamCtrlArray(1 downto 0);
+      mUartMasters    : out AxiStreamMasterArray(1 downto 0);
+      mUartSlaves     : in  AxiStreamSlaveArray(1 downto 0);
       -- Axi-Lite Interface
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -66,7 +75,7 @@ entity ClinkTop is
       axilWriteSlave  : out AxiLiteWriteSlaveType);
 end ClinkTop;
 
-architecture structure of ClinkTop is
+architecture rtl of ClinkTop is
 
    type RegType is record
       swCamCtrl       : Slv4Array(1 downto 0);
@@ -116,11 +125,12 @@ begin
    -- IO Modules
    ----------------------------------------
 
-   -- Cable 0, half 0
+   -- Connector 0, Half 0, Control for Base,Medium,Full,Deca
    U_Cbl0Half0: entity work.ClinkCtrl
       generic map (
          TPD_G              => TPD_G,
          SYS_CLK_FREQ_G     => SYS_CLK_FREQ_G,
+         UART_READY_EN_G    => UART_READY_EN_G,
          UART_AXIS_CONFIG_G => UART_AXIS_CONFIG_G)
       port map (
          cblHalfP     => cbl0Half0P,
@@ -131,12 +141,13 @@ begin
          sysRst       => sysRst,
          camCtrl      => intCamCtrl(0),
          serBaud      => r.serBaud(0),
-         serRxMaster  => serRxMaster(0),
-         serRxSlave   => serRxSlave(0),
-         serTxMaster  => serTxMaster(0),
-         serTxSlave   => serTxSlave(0));
+         sUartMaster  => sUartMasters(0),
+         sUartSlave   => sUartSlaves(0),
+         sUartCtrl    => sUartCtrls(0),
+         mUartMaster  => mUartMasters(0),
+         mUartSlave   => mUartSlaves(0));
 
-   -- Cable 0, half 1
+   -- Connector 0, Half 1, Data X for Base,Medium,Full,Deca
    U_Cbl0Half1: entity work.ClinkData
       generic map ( TPD_G => TPD_G )
       port map (
@@ -149,11 +160,12 @@ begin
          parValid  => parValid(0),
          parReady  => frameReady(0));
 
-   -- Cable 1, half 0
+   -- Connector 1, Half 0, Control Base, Data Z for Med, Full, Deca
    U_Cbl1Half0: entity work.ClinkDual
       generic map (
          TPD_G              => TPD_G,
          SYS_CLK_FREQ_G     => SYS_CLK_FREQ_G,
+         UART_READY_EN_G    => UART_READY_EN_G,
          UART_AXIS_CONFIG_G => UART_AXIS_CONFIG_G)
       port map (
          cblHalfP     => cbl1Half0P,
@@ -166,15 +178,16 @@ begin
          serBaud      => r.serBaud(1),
          locked       => locked(1),
          ctrlMode     => r.dualCable,
-         parData      => parData(1),
-         parValid     => parValid(1),
+         parData      => parData(2),
+         parValid     => parValid(2),
          parReady     => frameReady(0),
-         serRxMaster  => serRxMaster(1),
-         serRxSlave   => serRxSlave(1),
-         serTxMaster  => serTxMaster(1),
-         serTxSlave   => serTxSlave(1));
+         sUartMaster  => sUartMasters(1),
+         sUartSlave   => sUartSlaves(1),
+         sUartCtrl    => sUartCtrls(1),
+         mUartMaster  => mUartMasters(1),
+         mUartSlave   => mUartSlaves(1));
 
-   -- Cable 1, half 1
+   -- Connector 1, Half 1, Data X for Base, Data Y for Med, Full, Deca
    U_Cbl1Half1: entity work.ClinkData
       generic map ( TPD_G => TPD_G )
       port map (
@@ -182,9 +195,9 @@ begin
          cblHalfM  => cbl1Half1M,
          sysClk    => sysClk,
          sysRst    => sysRst,
-         locked    => locked(2),
-         parData   => parData(2),
-         parValid  => parValid(2),
+         locked    => locked(1),
+         parData   => parData(1),
+         parValid  => parValid(1),
          parReady  => parReady);
 
    -- Ready generation
@@ -202,7 +215,7 @@ begin
          sysRst        => sysRst,
          linkMode      => r.linkMode(0),
          dataMode      => r.dataMode(0),
-         dataEn        => dataEn(0),
+         dataEn        => r.dataEn(0),
          frameCount    => frameCount(0),
          dropCount     => dropCount(0),
          locked        => locked,
@@ -210,8 +223,8 @@ begin
          parData       => parData,
          parValid      => parValid,
          parReady      => frameReady(0),
-         dataMaster    => dataMaster(0),
-         dataSlave     => dataSlave(0));
+         dataMaster    => dataMasters(0),
+         dataSlave     => dataSlaves(0));
 
    U_Framer1 : entity work.ClinkFraming
       generic map (
@@ -222,22 +235,22 @@ begin
          sysRst        => sysRst,
          linkMode      => r.linkMode(1),
          dataMode      => r.dataMode(1),
-         dataEn        => dataEn(1),
+         dataEn        => r.dataEn(1),
          frameCount    => frameCount(1),
          dropCount     => dropCount(1),
-         locked(0)     => locked(2),
+         locked(0)     => locked(1),
          locked(1)     => '0',
          locked(2)     => '0',
-         running       => running(2),
-         parData(0)    => parData(2),
+         running       => running(1),
+         parData(0)    => parData(1),
          parData(1)    => (others=>'0'),
          parData(2)    => (others=>'0'),
-         parValid(0)   => parValid(2),
+         parValid(0)   => parValid(1),
          parValid(1)   => '0',
          parValid(2)   => '0',
          parReady      => frameReady(1),
-         dataMaster    => dataMaster(1),
-         dataSlave     => dataSlave(1));
+         dataMaster    => dataMasters(1),
+         dataSlave     => dataSlaves(1));
 
    ---------------------------------
    -- AXIL Clock Transition
@@ -273,7 +286,7 @@ begin
       v := r;
 
       -- Camera link secondary channel link mode generation
-      if r.linkMode(0) = CLM_LITE_C or r.linkMode(0) = CLM_BASE_C then
+      if r.linkMode(0) = CLM_BASE_C then
          v.dualCable   := '1';
          v.linkMode(1) := r.linkMode(0);
       else
@@ -284,8 +297,8 @@ begin
       -- Drive camera control bits
       for i in 0 to 1 loop
          for j in 0 to 3 loop
-            if swCamCtrlEn(i)(j) = '1' then
-               v.intCamCtrl(i)(j) := swCamCtrl(i)(j);
+            if r.swCamCtrlEn(i)(j) = '1' then
+               v.intCamCtrl(i)(j) := r.swCamCtrl(i)(j);
             else
                v.intCamCtrl(i)(j) := camCtrl(i)(j);
             end if;
@@ -307,13 +320,13 @@ begin
       axiSlaveRegister(axilEp, x"18",  0, v.serBaud(0));
       axiSlaveRegister(axilEp, x"1C",  0, v.serBaud(1));
 
-      axiSlaveRegister(axilEp, x"20",  0, locked);
-      axiSlaveRegister(axilEp, x"20",  4, running);
+      axiSlaveRegisterR(axilEp, x"20",  0, locked);
+      axiSlaveRegisterR(axilEp, x"20",  4, running);
 
-      axiSlaveRegister(axilEp, x"30",  0, frameCount(0));
-      axiSlaveRegister(axilEp, x"34",  0, frameCount(1));
-      axiSlaveRegister(axilEp, x"38",  0, dropCount(0));
-      axiSlaveRegister(axilEp, x"3C",  0, dropCount(1));
+      axiSlaveRegisterR(axilEp, x"30",  0, frameCount(0));
+      axiSlaveRegisterR(axilEp, x"34",  0, frameCount(1));
+      axiSlaveRegisterR(axilEp, x"38",  0, dropCount(0));
+      axiSlaveRegisterR(axilEp, x"3C",  0, dropCount(1));
 
       axiSlaveRegister(axilEp, x"40",  0, v.swCamCtrl(0));
       axiSlaveRegister(axilEp, x"40",  4, v.swCamCtrl(1));

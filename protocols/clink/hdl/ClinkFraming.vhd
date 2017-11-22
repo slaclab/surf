@@ -144,9 +144,11 @@ begin
       v.master.tKeep := (others=>'0');
 
       -- Setup output data
-      for i in 0 to r.bytes-1 loop
-         v.master.tData((i*8)+7 downto i*8) := r.byteData.data(i);
-         v.master.tKeep(i) := '1';
+      for i in 0 to SLV_CONFIG_C.TDATA_BYTES_C-1 loop
+         if i < r.bytes then
+            v.master.tData((i*8)+7 downto i*8) := r.byteData.data(i);
+            v.master.tKeep(i) := '1';
+         end if;
       end loop;
 
       -- Set start of frame

@@ -21,6 +21,8 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity ClinkDeSerial is
    generic (
@@ -85,7 +87,8 @@ begin
          rstIn            => sysRst,
          clkOut(0)        => clinkClk,
          clkOut(1)        => clinkClk7x,
-         rstOut(0)        => clinkRst);
+         rstOut(0)        => clinkRst,
+         rstOut(1)        => open);
 
    -- Inverted clock
    clinkClk7xInv <= not clinkClk7x;
@@ -209,7 +212,7 @@ begin
             OCLK         => '0',
             DYNCLKDIVSEL => '0',
             DYNCLKSEL    => '0',
-            D            => dataIn,
+            D            => dataIn(i),
             DDLY         => '0',
             OFB          => '0',
             OCLKB        => '0',

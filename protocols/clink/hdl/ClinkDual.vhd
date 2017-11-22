@@ -20,6 +20,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
+use work.AxiStreamPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
@@ -27,6 +28,7 @@ entity ClinkDual is
    generic (
       TPD_G              : time                := 1 ns;
       SYS_CLK_FREQ_G     : real                := 125.0e6;
+      UART_READY_EN_G    : boolean             := true;
       UART_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- Cable In/Out
@@ -48,20 +50,21 @@ entity ClinkDual is
       parValid    : out sl;
       parReady    : in  sl := '1';
       -- UART data
-      serRxMaster : in  AxiStreamMasterType;
-      serRxSlave  : out AxiStreamSlaveType;
-      serTxMaster : out AxiStreamMasterType;
-      serTxSlave  : in  AxiStreamSlaveType);
+      sUartMaster : in  AxiStreamMasterType;
+      sUartSlave  : out AxiStreamSlaveType;
+      sUartCtrl   : out AxiStreamCtrlType;
+      mUartMaster : out AxiStreamMasterType;
+      mUartSlave  : in  AxiStreamSlaveType);
 end ClinkDual;
 
-architecture structure of ClinkDual is
+architecture rtl of ClinkDual is
 
    signal dataMode   : sl;
    signal uartRst    : sl;
    signal dataRst    : sl;
-   signal cableOut   : slv(4 downto 0);
-   signal cableIn    : slv(4 downto 0);
-   signal cableDirIn : slv(4 downto 0);
+   signal cblOut     : slv(4 downto 0);
+   signal cblIn      : slv(4 downto 0);
+   signal cblDirIn   : slv(4 downto 0);
    signal cblSerOut  : sl;
 
 begin
@@ -76,9 +79,9 @@ begin
    U_CableBuffGen : for i in 0 to 4 generate
       U_CableBuff: IOBUFDS
          port map(
-            I   => cableOut(i),
-            O   => cableIn(i),
-            T   => cableDirIn(i),
+            I   => cblOut(i),
+            O   => cblIn(i),
+            T   => cblDirIn(i),
             IO  => cblHalfP(i),
             IOB => cblHalfM(i));
    end generate;
@@ -109,17 +112,19 @@ begin
    -------------------------------
    U_Uart: entity work.ClinkUart
       generic map (
-         TPD_G         => TPD_G,
-         CLK_FREQ_G    => SYS_CLK_FREQ_G,
-         AXIS_CONFIG_G => UART_AXIS_CONFIG_G)
+         TPD_G              => TPD_G,
+         CLK_FREQ_G         => SYS_CLK_FREQ_G,
+         UART_READY_EN_G    => UART_READY_EN_G,
+         UART_AXIS_CONFIG_G => UART_AXIS_CONFIG_G)
       port map (
          clk           => sysCLk,
          rst           => uartRst,
          baud          => serBaud,
-         sAxisMaster   => serTxMaster,
-         sAxisSlave    => serTxSlave,
-         mAxisMaster   => serRxMaster,
-         mAxisSlave    => serRxSlave,
+         sUartMaster   => sUartMaster,
+         sUartSlave    => sUartSlave,
+         sUartCtrl     => sUartCtrl,
+         mUartMaster   => mUartMaster,
+         mUartSlave    => mUartSlave,
          rxIn          => cblIn(1),
          txOut         => cblSerOut);
 
@@ -131,8 +136,8 @@ begin
    U_DeSerial : entity work.ClinkDeSerial
       generic map ( TPD_G => TPD_G )
       port map (
-         clkIn     => cableIn(0),
-         dataIn    => cableIn(4 downto 1),
+         clkIn     => cblIn(0),
+         dataIn    => cblIn(4 downto 1),
          sysClk    => sysClk,
          sysRst    => dataRst,
          locked    => locked,
