@@ -282,8 +282,10 @@ begin
    InputBufrGen : if (not INPUT_BUFG_G) and (INPUT_BUFR_G) generate
       U_Bufg : BUFR
          port map (
-            I => clkIn,
-            O => clkInLoc);
+            CE  => '1',
+            CLR => '0',
+            I   => clkIn,
+            O   => clkInLoc);
    end generate;
 
 
@@ -301,8 +303,10 @@ begin
    FbBufrGen : if (not FB_BUFG_G) and (FB_BUFR_G) generate
       U_Bufg : BUFR
          port map (
-            I => clkFbOut,
-            O => clkFbIn);
+            CE  => '1',
+            CLR => '0',
+            I   => clkFbOut,
+            O   => clkFbIn);
    end generate;
 
    FbNoBufg : if (not FB_BUFG_G) and (not FB_BUFR_G) generate
@@ -323,11 +327,13 @@ begin
       ClkOutGen : for i in NUM_CLOCKS_G-1 downto 0 generate
          U_Bufg : BUFR
             port map (
-               I => clkOutMmcm(i),
-               O => clkOutLoc(i));
+               CE  => '1',
+               CLR => '0',
+               I   => clkOutMmcm(i),
+               O   => clkOutLoc(i));
          clkOut(i) <= clkOutLoc(i);
       end generate;
-   end generate OutBufgGen;
+   end generate OutBufrGen;
 
    NoOutBufgGen : if (not OUTPUT_BUFG_G) and (not OUTPUT_BUFR_G) generate
       clkOutLoc <= clkOutMmcm;

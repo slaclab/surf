@@ -74,8 +74,12 @@ begin
    U_ClkGen : entity work.ClockManager7
       generic map (
          TPD_G               => TPD_G,
-         INPUT_BUFG_G        => false,
-         FB_BUFG_G           => false,
+         INPUT_BUFG_G        => true,
+         INPUT_BUFR_G        => false,
+         FB_BUFG_G           => true,
+         FB_BUFR_G           => false,
+         OUTPUT_BUFG_G       => true, 
+         OUTPUT_BUFR_G       => false,
          NUM_CLOCKS_G        => 2,
          BANDWIDTH_G         => "OPTIMIZED",
          CLKIN_PERIOD_G      => 11.765,
