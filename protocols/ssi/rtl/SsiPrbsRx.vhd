@@ -2,7 +2,7 @@
 -- File       : SsiPrbsRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2017-09-29
+-- Last update: 2017-08-22
 -------------------------------------------------------------------------------
 -- Description:   This module generates 
 --                PseudoRandom Binary Sequence (PRBS) on Virtual Channel Lane.
@@ -33,6 +33,7 @@ entity SsiPrbsRx is
       STATUS_CNT_WIDTH_G         : natural range 1 to 32      := 32;
       AXI_ERROR_RESP_G           : slv(1 downto 0)            := AXI_RESP_SLVERR_C;
       -- FIFO configurations
+      SLAVE_READY_EN_G           : boolean                    := false;
       BRAM_EN_G                  : boolean                    := true;
       XIL_DEVICE_G               : string                     := "7SERIES";
       USE_BUILT_IN_G             : boolean                    := false;
@@ -223,6 +224,7 @@ begin
          TPD_G               => TPD_G,
          INT_PIPE_STAGES_G   => SLAVE_AXI_PIPE_STAGES_G,
          PIPE_STAGES_G       => SLAVE_AXI_PIPE_STAGES_G,
+         SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
          -- FIFO configurations
          BRAM_EN_G           => BRAM_EN_G,
          XIL_DEVICE_G        => XIL_DEVICE_G,

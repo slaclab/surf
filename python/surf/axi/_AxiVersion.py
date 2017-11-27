@@ -19,6 +19,7 @@
 
 # Comment added by rherbst for demonstration purposes.
 import datetime
+import parse
 import pyrogue as pr
 
 # Another comment added by rherbst for demonstration
@@ -202,7 +203,43 @@ class AxiVersion(pr.Device):
             bitOffset    = 0x00,
             base         = pr.String,
             mode         = 'RO',
+            hidden       = True,
         ))
+
+        
+        def parseBuildStamp(var, value, disp):
+            p = parse.parse("{ImageName}: {BuildEnv}, {BuildServer}, Built {BuildDate} by {Builder}", value.strip())
+            if p is not None:
+                for k,v in p.named.items():
+                    self.node(k).set(v)
+        
+        self.add(pr.LocalVariable(
+            name = 'ImageName',
+            mode = 'RO',
+            value = ''))
+ 
+        self.add(pr.LocalVariable(
+            name = 'BuildEnv',
+            mode = 'RO',
+            value = ''))
+
+        self.add(pr.LocalVariable(
+            name = 'BuildServer',
+            mode = 'RO',
+            value = ''))
+       
+        self.add(pr.LocalVariable(
+            name = 'BuildDate',
+            mode = 'RO',
+            value = ''))
+       
+        self.add(pr.LocalVariable(
+            name = 'Builder',
+            mode = 'RO',
+            value = ''))
+
+        self.BuildStamp.addListener(parseBuildStamp)        
+       
 
     def hardReset(self):
         print('AxiVersion hard reset called')
