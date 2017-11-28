@@ -18,11 +18,13 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import surf.protocols.clink
 
 class ClinkTop(pr.Device):
     def __init__(   self,       
             name        = "ClinkTop",
             description = "CameraLink module",
+            serial      = None,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs) 
 
@@ -34,7 +36,7 @@ class ClinkTop(pr.Device):
             name         = "LinkMode",
             description  = "Link mode control for camera link lanes",
             offset       =  0x10,
-            bitSize      =  1,
+            bitSize      =  4,
             bitOffset    =  0x00,
             base         = pr.UInt,
             enum         = { 0 : 'Disable' , 1 : 'Base', 2 : 'Medium', 3 : 'Full', 4 : 'Deca'},
@@ -89,6 +91,7 @@ class ClinkTop(pr.Device):
             offset       =  0x18,
             bitSize      =  24,
             bitOffset    =  0,
+            disp         = '{}',
             base         = pr.UInt,
             mode         = "RW",
         ))
@@ -99,6 +102,7 @@ class ClinkTop(pr.Device):
             offset       =  0x1C,
             bitSize      =  24,
             bitOffset    =  0,
+            disp         = '{}',
             base         = pr.UInt,
             mode         = "RW",
         ))
@@ -132,6 +136,7 @@ class ClinkTop(pr.Device):
             bitSize      =  32,
             bitOffset    =  0,
             base         = pr.UInt,
+            disp         = '{}',
             pollInterval = 1,
             mode         = "RO",
         ))
@@ -143,6 +148,7 @@ class ClinkTop(pr.Device):
             bitSize      =  32,
             bitOffset    =  0,
             base         = pr.UInt,
+            disp         = '{}',
             pollInterval = 1,
             mode         = "RO",
         ))
@@ -154,6 +160,7 @@ class ClinkTop(pr.Device):
             bitSize      =  32,
             bitOffset    =  0,
             base         = pr.UInt,
+            disp         = '{}',
             pollInterval = 1,
             mode         = "RO",
         ))
@@ -165,6 +172,7 @@ class ClinkTop(pr.Device):
             bitSize      =  32,
             bitOffset    =  0,
             base         = pr.UInt,
+            disp         = '{}',
             pollInterval = 1,
             mode         = "RO",
         ))
@@ -174,7 +182,7 @@ class ClinkTop(pr.Device):
             description  = "Software camera control bit values for lane A",
             offset       =  0x40,
             bitSize      =  4,
-            bitOffset    =  9,
+            bitOffset    =  0,
             base         = pr.UInt,
             mode         = "RW",
         ))
@@ -208,4 +216,24 @@ class ClinkTop(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
         ))
+
+        self._rx = None
+        self._tx = None
+
+        if serial is not None:
+            self._rx = surf.protocols.clink.ClinkSerialRx()
+            pr.streamConnect(serial,self._rx)
+
+            self._tx = surf.protocols.clink.ClinkSerialTx()
+            pr.streamConnect(self._tx,serial)
+
+    @pr.command(order=1, value='', name='SendString', description='Send a command string')
+    def sendString(self, arg):
+        if self._tx is not None:
+            self._tx.sendString(arg)
+
+    @pr.command(order=2, name='SendEscape', description='Send an escape charactor')
+    def sendEscape(self):
+        if self._tx is not None:
+            self._tx.sendEscape()
 

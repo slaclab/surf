@@ -50,7 +50,7 @@ architecture rtl of ClinkUart is
 
    constant INT_FREQ_C : integer := integer(CLK_FREQ_G);
 
-   constant INT_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(dataBytes=>2,tDestBits=>0);
+   constant INT_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(dataBytes=>4,tDestBits=>0);
 
    type RegType is   record
       count  : integer;
