@@ -2,7 +2,7 @@
 -- File       : Pgp2bGthUltra.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2017-11-15
+-- Last update: 2017-11-28
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -105,14 +105,14 @@ begin
    gtRxUserReset <= phyRxInit or pgpRxReset or pgpRxIn.resetRx;
    gtTxUserReset <= pgpTxReset or pgpTxIn.resetTx;
 
-   U_RstSync_1 : entity work.RstSync
+   U_RstSync_1 : entity work.SynchronizerOneShot
       generic map (
          TPD_G         => TPD_G,
-         OUT_REG_RST_G => true)
+         PULSE_WIDTH_G => 125000000)
       port map (
-         clk      => stableClk,         -- [in]
-         asyncRst => pgpTxIn.resetGt,   -- [in]
-         syncRst  => resetGtSync);      -- [out]
+         clk     => stableClk,          -- [in]
+         dataIn  => pgpTxIn.resetGt,    -- [in]
+         dataOut => resetGtSync);       -- [out]
 
    gtHardReset <= resetGtSync or stableRst;
 
