@@ -22,7 +22,6 @@ EthMacPhy: &EthMacPhy
         offset: 0x000
         nelms: 32
       class: IntField
-      name: StatusCounters
       mode: RO
       description: Status Counters
     #########################################################
@@ -30,16 +29,22 @@ EthMacPhy: &EthMacPhy
       at:
         offset: 0x100
       class: IntField
-      name: StatusVector
       sizeBits: 32
       mode: RO
       description: Status Vector
+    #########################################################
+    CoreStatusVector:
+      at:
+        offset: 0x108
+      class: IntField
+      sizeBits: 16
+      mode: RO
+      description: Status Vector of Xilinx PCS/PMA IP Core
     #########################################################
     MacAddress:
       at:
         offset: 0x200
       class: IntField
-      name: MacAddress
       sizeBits: 48
       mode: RO
       description: MAC Address (big-Endian)
@@ -48,7 +53,6 @@ EthMacPhy: &EthMacPhy
       at:
         offset: 0x21C
       class: IntField
-      name: PauseTime
       sizeBits: 16
       mode: RO
       description: PauseTime
@@ -57,7 +61,6 @@ EthMacPhy: &EthMacPhy
       at:
         offset: 0x228
       class: IntField
-      name: FilterEnable
       sizeBits: 1
       mode: RO
       description: FilterEnable
@@ -66,7 +69,6 @@ EthMacPhy: &EthMacPhy
       at:
         offset: 0x22C
       class: IntField
-      name: PauseEnable
       sizeBits: 1
       mode: RO
       description: PauseEnable
@@ -75,7 +77,6 @@ EthMacPhy: &EthMacPhy
       at:
         offset: 0xF00
       class: IntField
-      name: RollOverEn
       sizeBits: 32
       mode: RW
       description: RollOverEn
@@ -84,7 +85,6 @@ EthMacPhy: &EthMacPhy
       at:
         offset: 0xFF4
       class: IntField
-      name: CounterReset
       sizeBits: 1
       mode: WO
       description: CounterReset
@@ -93,7 +93,6 @@ EthMacPhy: &EthMacPhy
       at:
         offset: 0xFF8
       class: IntField
-      name: SoftReset
       sizeBits: 1
       mode: WO
       description: SoftReset
@@ -102,7 +101,6 @@ EthMacPhy: &EthMacPhy
       at:
         offset: 0xFFC
       class: IntField
-      name: HardReset
       sizeBits: 1
       mode: WO
       description: HardReset
