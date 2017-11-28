@@ -304,10 +304,10 @@ class Pgp2bAxi(pr.Device):
             self.ResetRx.set(1, False)
             self.ResetTx.set(1, False)
             # Both are same block
-            self.ResetTx._block.blockingTransaction(rim.Write)
+            self.ResetTx._block.startTransaction(rim.Write, check=True)
             self.ResetRx.set(0, False)
             self.ResetTx.set(0, False)
-            self.ResetTx._block.blockingTransaction(rim.Write)
+            self.ResetTx._block.startTransaction(rim.Write, check=True)
             
         self.add(pr.RemoteCommand(
             name        = "Flush", 
