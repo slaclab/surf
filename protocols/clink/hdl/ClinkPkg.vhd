@@ -26,10 +26,10 @@ package ClinkPkg is
    ------------------------------------
    -- Link Modes
    ------------------------------------
-   constant CLM_BASE_C : ClLinkModeType := "0001";
-   constant CLM_MEDM_C : ClLinkModeType := "0010";
-   constant CLM_FULL_C : ClLinkModeType := "0011";
-   constant CLM_DECA_C : ClLinkModeType := "0100";
+   constant CLM_BASE_C : slv(3 downto 0) := "0001";
+   constant CLM_MEDM_C : slv(3 downto 0) := "0010";
+   constant CLM_FULL_C : slv(3 downto 0) := "0011";
+   constant CLM_DECA_C : slv(3 downto 0) := "0100";
 
    ------------------------------------
    -- Data Modes
@@ -68,6 +68,8 @@ package ClinkPkg is
       frameMode   => (others=>'0'),
       dataEn      => '0');
 
+   type ClConfigArray is array (natural range<>) of ClConfigType;
+
    ------------------------------------
    -- Framer Status Record
    ------------------------------------
@@ -81,6 +83,8 @@ package ClinkPkg is
       running    => '0',
       frameCount => (others=>'0'),
       dropCount  => (others=>'0'));
+
+   type ClStatusArray is array (natural range<>) of ClStatusType;
 
    ------------------------------------
    -- Data Type

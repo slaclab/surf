@@ -20,6 +20,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
+use work.ClinkPkg.all;
 use work.AxiStreamPkg.all;
 library unisim;
 use unisim.vcomponents.all;
@@ -42,10 +43,9 @@ entity ClinkDual is
       -- Camera Control Bits
       camCtrl     : in  slv(3 downto 0);
       -- Config/status
-      serBaud     : in  slv(23 downto 0);
+      config      : in  ClConfigType;
       locked      : out sl;
       shiftCnt    : out slv(7 downto 0);
-      ctrlMode    : in  sl;
       -- Data output
       parData     : out slv(27 downto 0);
       parValid    : out sl;
@@ -60,7 +60,6 @@ end ClinkDual;
 
 architecture rtl of ClinkDual is
 
-   signal dataMode   : sl;
    signal uartRst    : sl;
    signal dataRst    : sl;
    signal cblOut     : slv(4 downto 0);
@@ -71,9 +70,8 @@ architecture rtl of ClinkDual is
 
 begin
 
-   dataMode <= not ctrlMode;
-   uartRst  <= sysRst or dataMode;
-   dataRst  <= sysRst or ctrlMode;
+   uartRst <= sysRst or (not config.enable);
+   dataRst <= sysRst or config.enable;
 
    -------------------------------
    -- IO Buffers
@@ -98,30 +96,18 @@ begin
    -- Camera control bits
    -- Bits 1 & 3 inverted
    -------------------------------
+   cblDirIn(2) <= not config.enable;
+   cblOut(2)   <= camCtrl(0) when config.swCamCtrlEn(0) = '0' else config.swCamCtrl(0);
 
-      -- Drive camera control bits
-      for i in 0 to 1 loop
-         for j in 0 to 3 loop
-            if r.swCamCtrlEn(i)(j) = '1' then
-               intCamCtrl(i)(j) <= r.swCamCtrl(i)(j);
-            else
-               intCamCtrl(i)(j) <= camCtrl(i)(j);
-            end if;
-         end loop;
-      end loop;
+   cblDirIn(3) <= not config.enable;
+   cblOut(3)   <= (not camCtrl(1)) when config.swCamCtrlEn(1) = '0' else (not config.swCamCtrl(1));
 
+   cblDirIn(0) <= not config.enable;
+   cblOut(0)   <= camCtrl(2) when config.swCamCtrlEn(2) = '0' else config.swCamCtrl(2);
 
-   cblDirIn(2) <= dataMode;
-   cblOut(2)   <= camCtrl(0);
+   cblDirIn(4) <= not config.enable;
+   cblOut(4)   <= (not camCtrl(3)) when config.swCamCtrlEn(3) = '0' else (not config.swCamCtrl(3));
 
-   cblDirIn(3) <= dataMode;
-   cblOut(3)   <= not camCtrl(1);
-
-   cblDirIn(0) <= dataMode;
-   cblOut(0)   <= camCtrl(2);
-
-   cblDirIn(4) <= dataMode;
-   cblOut(4)   <= not camCtrl(3);
 
    -------------------------------
    -- UART
@@ -135,7 +121,7 @@ begin
       port map (
          clk           => sysCLk,
          rst           => uartRst,
-         baud          => serBaud,
+         baud          => config.serBaud,
          sUartMaster   => sUartMaster,
          sUartSlave    => sUartSlave,
          sUartCtrl     => sUartCtrl,

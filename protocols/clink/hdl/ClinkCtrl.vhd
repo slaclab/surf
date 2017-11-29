@@ -20,6 +20,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
+use work.ClinkPkg.all;
 use work.AxiStreamPkg.all;
 library unisim;
 use unisim.vcomponents.all;
@@ -42,7 +43,7 @@ entity ClinkCtrl is
       -- Camera Control Bits
       camCtrl     : in  slv(3 downto 0);
       -- Config
-      serBaud     : in  slv(23 downto 0);
+      config      : in  ClConfigType;
       -- UART data
       sUartMaster : in  AxiStreamMasterType;
       sUartSlave  : out AxiStreamSlaveType;
@@ -52,6 +53,7 @@ entity ClinkCtrl is
 end ClinkCtrl;
 
 architecture rtl of ClinkCtrl is
+   signal intCtrl   : slv(3 downto 0);
    signal cblOut    : slv(4 downto 0);
    signal cblIn     : slv(4 downto 0);
    signal cblDirIn  : slv(4 downto 0);
@@ -80,34 +82,17 @@ begin
    -------------------------------
    -- Camera control bits
    -------------------------------
-
-      -- Drive camera control bits
-      for i in 0 to 1 loop
-         for j in 0 to 3 loop
-            if r.swCamCtrlEn(i)(j) = '1' then
-               intCamCtrl(i)(j) <= r.swCamCtrl(i)(j);
-            else
-               intCamCtrl(i)(j) <= camCtrl(i)(j);
-            end if;
-         end loop;
-      end loop;
-
-
-
-
-
-
    cblDirIn(2) <= '0';
-   cblOut(2)   <= camCtrl(0);
+   cblOut(2)   <= camCtrl(0) when config.swCamCtrlEn(0) = '0' else config.swCamCtrl(0);
 
    cblDirIn(3) <= '0';
-   cblOut(3)   <= camCtrl(1);
+   cblOut(3)   <= camCtrl(1) when config.swCamCtrlEn(1) = '0' else config.swCamCtrl(1);
 
    cblDirIn(0) <= '0';
-   cblOut(0)   <= camCtrl(2);
+   cblOut(0)   <= camCtrl(2) when config.swCamCtrlEn(2) = '0' else config.swCamCtrl(2);
 
    cblDirIn(4) <= '0';
-   cblOut(4)   <= camCtrl(3);
+   cblOut(4)   <= camCtrl(3) when config.swCamCtrlEn(3) = '0' else config.swCamCtrl(3);
 
    -------------------------------
    -- UART
@@ -121,7 +106,7 @@ begin
       port map (
          clk           => sysCLk,
          rst           => sysRst,
-         baud          => serBaud,
+         baud          => config.serBaud,
          sUartMaster   => sUartMaster,
          sUartSlave    => sUartSlave,
          sUartCtrl     => sUartCtrl,

@@ -11,3 +11,4 @@
 from surf.protocols.clink._ClinkTop import *
 from surf.protocols.clink._ClinkSerialRx import *
 from surf.protocols.clink._ClinkSerialTx import *
+from surf.protocols.clink._ClinkChannel import *

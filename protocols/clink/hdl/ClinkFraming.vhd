@@ -68,7 +68,7 @@ architecture rtl of ClinkFraming is
       bytes      => 1,
       inFrame    => '0',
       dump       => '0',
-      status     => CL_STATUS_TYPE_INIT_C;
+      status     => CL_STATUS_INIT_C,
       master     => AXI_STREAM_MASTER_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
@@ -85,7 +85,7 @@ architecture rtl of ClinkFraming is
 
 begin
 
-   comb : process (r, sysRst, locked, intCtrl, parData, parValid) is
+   comb : process (r, sysRst, locked, intCtrl, parData, parValid, config) is
       variable v : RegType;
    begin
       v := r;
@@ -154,8 +154,8 @@ begin
 
       -- Move data
       if r.portData.valid = '1' and r.byteData.valid = '1' and (
-           ( r.config.frameMode = CFM_FRAME_C and r.byteData.fv = '1') or      -- Frame mode
-           ( r.config.frameMode = CFM_LINE_C  and r.byteData.lv = '1') ) then  -- Line  mode
+           ( config.frameMode = CFM_FRAME_C and r.byteData.fv = '1') or      -- Frame mode
+           ( config.frameMode = CFM_LINE_C  and r.byteData.lv = '1') ) then  -- Line  mode
 
          -- Valid data in byte record
          if r.dump = '0' and r.byteData.dv = '1' and r.byteData.lv = '1' then
@@ -169,8 +169,8 @@ begin
          end if;
 
          -- End of frame or line depending on mode
-         if (r.config.frameMode = CFM_FRAME_C and r.byteData.fv = '1' and r.portData.fv = '0') or   -- Frame mode
-            (r.config.frameMode = CFM_LINE_C  and r.byteData.lv = '1' and r.portData.lv = '0') then -- Line mode
+         if (config.frameMode = CFM_FRAME_C and r.byteData.fv = '1' and r.portData.fv = '0') or   -- Frame mode
+            (config.frameMode = CFM_LINE_C  and r.byteData.lv = '1' and r.portData.lv = '0') then -- Line mode
 
             -- Frame was dumped, or bad end markers
             if r.dump = '1' or r.inFrame = '0' or r.byteData.dv = '0' or r.byteData.lv = '0' then

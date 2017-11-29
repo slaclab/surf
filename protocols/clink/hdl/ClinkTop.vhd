@@ -126,7 +126,7 @@ begin
          sysClk       => sysClk,
          sysRst       => sysRst,
          camCtrl      => camCtrl(0),
-         serBaud      => r.config(0).serBaud,
+         config       => r.config(0),
          sUartMaster  => sUartMasters(0),
          sUartSlave   => sUartSlaves(0),
          sUartCtrl    => sUartCtrls(0),
@@ -162,10 +162,9 @@ begin
          sysClk       => sysClk,
          sysRst       => sysRst,
          camCtrl      => camCtrl(1),
-         serBaud      => r.config(0).serBaud,
+         config       => r.config(1),
          locked       => locked(2),
          shiftCnt     => shiftCnt(2),
-         ctrlMode     => r.config(1).enable,
          parData      => parData(2),
          parValid     => parValid(2),
          parReady     => frameReady(0),
@@ -296,7 +295,7 @@ begin
       -- Channel A Status
       axiSlaveRegisterR(axilEp, x"120",  0, status(0).running);
       axiSlaveRegisterR(axilEp, x"124",  0, status(0).frameCount);
-      axiSlaveRegisterR(axilEp, x"124",  0, status(0).dropCount);
+      axiSlaveRegisterR(axilEp, x"128",  0, status(0).dropCount);
 
       -- Channel B Config
       axiSlaveRegisterR(axilEp, x"200",  0, r.config(1).linkMode);
@@ -311,7 +310,7 @@ begin
       -- Channel B Status
       axiSlaveRegisterR(axilEp, x"220",  0, status(1).running);
       axiSlaveRegisterR(axilEp, x"224",  0, status(1).frameCount);
-      axiSlaveRegisterR(axilEp, x"224",  0, status(1).dropCount);
+      axiSlaveRegisterR(axilEp, x"228",  0, status(1).dropCount);
 
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_ERROR_RESP_G);
 
@@ -322,7 +321,7 @@ begin
       v.config(0).enable := '1';
       v.config(1)        := CL_CONFIG_INIT_C;
 
-      if r.channel(0).linkMode = CLM_BASE_C then
+      if r.config(0).linkMode = CLM_BASE_C then
          v.config(1)          := r.swConfig(1);
          v.config(1).linkMode := CLM_BASE_C;
          v.config(1).enable   := '1';
