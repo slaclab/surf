@@ -78,39 +78,24 @@ end ClinkTop;
 architecture rtl of ClinkTop is
 
    type RegType is record
-      swCamCtrl       : Slv4Array(1 downto 0);
-      swCamCtrlEn     : Slv4Array(1 downto 0);
-      intCamCtrl      : Slv4Array(1 downto 0);
-      serBaud         : Slv24Array(1 downto 0);
-      linkMode        : Slv4Array(1 downto 0);
-      dataMode        : Slv4Array(1 downto 0);
-      dataEn          : slv(1 downto 0);
-      dualCable       : sl;
+      swConfig        : ClConfigArray(1 downto 0);
+      config          : ClConfigArray(1 downto 0);
       axilReadSlave   : AxiLiteReadSlaveType;
       axilWriteSlave  : AxiLiteWriteSlaveType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      swCamCtrl       => (others=>(others=>'0')),
-      swCamCtrlEn     => (others=>(others=>'0')),
-      intCamCtrl      => (others=>(others=>'0')),
-      serBaud         => (others=>(others=>'0')),
-      linkMode        => (others=>(others=>'0')),
-      dataMode        => (others=>(others=>'0')),
-      dataEn          => "00",
-      dualCable       => '0',
+      swConfig        => (others=>CL_CONFIG_INIT_C),
+      config          => (others=>CL_CONFIG_INIT_C),
       axilReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal intCamCtrl     : Slv4Array(1 downto 0);
+   signal status         : ClStatusArray(1 downto 0);
    signal locked         : slv(2 downto 0);
    signal shiftCnt       : Slv8Array(2 downto 0);
-   signal running        : slv(1 downto 0);
-   signal frameCount     : Slv32Array(1 downto 0);
-   signal dropCount      : Slv32Array(1 downto 0);
    signal parData        : Slv28Array(2 downto 0);
    signal parValid       : slv(2 downto 0);
    signal parReady       : sl;
@@ -140,8 +125,8 @@ begin
          cblSerM      => cbl0SerM,
          sysClk       => sysClk,
          sysRst       => sysRst,
-         camCtrl      => intCamCtrl(0),
-         serBaud      => r.serBaud(0),
+         camCtrl      => camCtrl(0),
+         serBaud      => r.config(0).serBaud,
          sUartMaster  => sUartMasters(0),
          sUartSlave   => sUartSlaves(0),
          sUartCtrl    => sUartCtrls(0),
@@ -176,11 +161,11 @@ begin
          cblSerM      => cbl1SerM,
          sysClk       => sysClk,
          sysRst       => sysRst,
-         camCtrl      => intCamCtrl(1),
-         serBaud      => r.serBaud(1),
+         camCtrl      => camCtrl(1),
+         serBaud      => r.config(0).serBaud,
          locked       => locked(2),
          shiftCnt     => shiftCnt(2),
-         ctrlMode     => r.dualCable,
+         ctrlMode     => r.config(1).enable,
          parData      => parData(2),
          parValid     => parValid(2),
          parReady     => frameReady(0),
@@ -205,7 +190,7 @@ begin
          parReady  => parReady);
 
    -- Ready generation
-   parReady <= frameReady(1) when r.dualCable = '1' else frameReady(0);
+   parReady <= frameReady(1) when r.config(1).enable = '1' else frameReady(0);
 
    ---------------------------------
    -- Data Processing
@@ -217,13 +202,9 @@ begin
       port map (
          sysClk        => sysClk,
          sysRst        => sysRst,
-         linkMode      => r.linkMode(0),
-         dataMode      => r.dataMode(0),
-         dataEn        => r.dataEn(0),
-         frameCount    => frameCount(0),
-         dropCount     => dropCount(0),
+         config        => r.config(0),
+         status        => status(0),
          locked        => locked,
-         running       => running(0),
          parData       => parData,
          parValid      => parValid,
          parReady      => frameReady(0),
@@ -237,15 +218,11 @@ begin
       port map (
          sysClk        => sysClk,
          sysRst        => sysRst,
-         linkMode      => r.linkMode(1),
-         dataMode      => r.dataMode(1),
-         dataEn        => r.dataEn(1),
-         frameCount    => frameCount(1),
-         dropCount     => dropCount(1),
+         config        => r.config(1),
+         status        => status(1),
          locked(0)     => locked(1),
          locked(1)     => '0',
          locked(2)     => '0',
-         running       => running(1),
          parData(0)    => parData(1),
          parData(1)    => (others=>'0'),
          parData(2)    => (others=>'0'),
@@ -281,8 +258,7 @@ begin
    ---------------------------------
    -- Registers
    ---------------------------------
-   comb : process (r, sysRst, intReadMaster, intWriteMaster, locked, 
-                   camCtrl, running, frameCount, dropCount, shiftCnt) is
+   comb : process (r, sysRst, intReadMaster, intWriteMaster, locked, shiftCnt, status) is
 
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
@@ -291,26 +267,6 @@ begin
       -- Latch the current value
       v := r;
 
-      -- Camera link secondary channel link mode generation
-      if r.linkMode(0) = CLM_BASE_C then
-         v.dualCable   := '1';
-         v.linkMode(1) := r.linkMode(0);
-      else
-         v.dualCable   := '0';
-         v.linkMode(1) := (others=>'0');
-      end if;
-
-      -- Drive camera control bits
-      for i in 0 to 1 loop
-         for j in 0 to 3 loop
-            if r.swCamCtrlEn(i)(j) = '1' then
-               v.intCamCtrl(i)(j) := r.swCamCtrl(i)(j);
-            else
-               v.intCamCtrl(i)(j) := camCtrl(i)(j);
-            end if;
-         end loop;
-      end loop;
-
       ------------------------      
       -- AXI-Lite Transactions
       ------------------------      
@@ -318,36 +274,64 @@ begin
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, intWriteMaster, intReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
-      axiSlaveRegister(axilEp, x"10",  0, v.linkMode(0));
-      axiSlaveRegister(axilEp, x"10",  8, v.dataMode(0));
-      axiSlaveRegister(axilEp, x"10", 16, v.dataMode(1));
-      axiSlaveRegister(axilEp, x"10", 24, v.dataEn);
+      -- Common Config
+      axiSlaveRegister (axilEp, x"000",  0, v.config(0).linkMode);
 
-      axiSlaveRegister(axilEp, x"18",  0, v.serBaud(0));
-      axiSlaveRegister(axilEp, x"1C",  0, v.serBaud(1));
+      -- Common Status
+      axiSlaveRegisterR(axilEp, x"004",  0, locked);
+      axiSlaveRegisterR(axilEp, x"008",  0, shiftCnt(0));
+      axiSlaveRegisterR(axilEp, x"008",  8, shiftCnt(1));
+      axiSlaveRegisterR(axilEp, x"008", 16, shiftCnt(2));
 
-      axiSlaveRegisterR(axilEp, x"20",  0, locked);
-      axiSlaveRegisterR(axilEp, x"20",  4, running);
+      -- Channel A Config
+      axiSlaveRegisterR(axilEp, x"100",  0, r.config(0).linkMode);
+      axiSlaveRegister (axilEp, x"104",  0, v.swConfig(0).dataMode);
+      axiSlaveRegister (axilEp, x"108",  0, v.swConfig(0).frameMode);
+      axiSlaveRegister (axilEp, x"10C",  0, v.swConfig(0).dataEn);
 
-      axiSlaveRegisterR(axilEp, x"24",  0, shiftCnt(0));
-      axiSlaveRegisterR(axilEp, x"24",  8, shiftCnt(1));
-      axiSlaveRegisterR(axilEp, x"24", 16, shiftCnt(2));
+      axiSlaveRegister (axilEp, x"110",  0, v.swConfig(0).serBaud);
+      axiSlaveRegister (axilEp, x"114",  0, v.swConfig(0).swCamCtrlEn);
+      axiSlaveRegister (axilEp, x"118",  0, v.swConfig(0).swCamCtrl);
 
-      axiSlaveRegisterR(axilEp, x"30",  0, frameCount(0));
-      axiSlaveRegisterR(axilEp, x"34",  0, frameCount(1));
-      axiSlaveRegisterR(axilEp, x"38",  0, dropCount(0));
-      axiSlaveRegisterR(axilEp, x"3C",  0, dropCount(1));
+      -- Channel A Status
+      axiSlaveRegisterR(axilEp, x"120",  0, status(0).running);
+      axiSlaveRegisterR(axilEp, x"124",  0, status(0).frameCount);
+      axiSlaveRegisterR(axilEp, x"124",  0, status(0).dropCount);
 
-      axiSlaveRegister(axilEp, x"40",  0, v.swCamCtrl(0));
-      axiSlaveRegister(axilEp, x"40",  4, v.swCamCtrl(1));
-      axiSlaveRegister(axilEp, x"40",  8, v.swCamCtrlEn(0));
-      axiSlaveRegister(axilEp, x"40", 12, v.swCamCtrlEn(1));
+      -- Channel B Config
+      axiSlaveRegisterR(axilEp, x"200",  0, r.config(1).linkMode);
+      axiSlaveRegister (axilEp, x"204",  0, v.swConfig(1).dataMode);
+      axiSlaveRegister (axilEp, x"208",  0, v.swConfig(1).frameMode);
+      axiSlaveRegister (axilEp, x"20C",  0, v.swConfig(1).dataEn);
+
+      axiSlaveRegister (axilEp, x"210",  0, v.swConfig(1).serBaud);
+      axiSlaveRegister (axilEp, x"214",  0, v.swConfig(1).swCamCtrlEn);
+      axiSlaveRegister (axilEp, x"218",  0, v.swConfig(1).swCamCtrl);
+
+      -- Channel B Status
+      axiSlaveRegisterR(axilEp, x"220",  0, status(1).running);
+      axiSlaveRegisterR(axilEp, x"224",  0, status(1).frameCount);
+      axiSlaveRegisterR(axilEp, x"224",  0, status(1).dropCount);
 
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_ERROR_RESP_G);
 
-      --------
+      ------------------------------
+      -- Configuration Extraction
+      ------------------------------
+      v.config(0)        := r.swConfig(0);
+      v.config(0).enable := '1';
+      v.config(1)        := CL_CONFIG_INIT_C;
+
+      if r.channel(0).linkMode = CLM_BASE_C then
+         v.config(1)          := r.swConfig(1);
+         v.config(1).linkMode := CLM_BASE_C;
+         v.config(1).enable   := '1';
+      else
+      end if;
+
+      -------------
       -- Reset
-      --------
+      -------------
       if (sysRst = '1') then
          v := REG_INIT_C;
       end if;
@@ -358,7 +342,6 @@ begin
       -- Outputs 
       intReadSlave  <= r.axilReadSlave;
       intWriteSlave <= r.axilWriteSlave;
-      intCamCtrl    <= v.intCamCtrl;
 
    end process comb;
 

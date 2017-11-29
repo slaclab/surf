@@ -33,14 +33,10 @@ entity ClinkFraming is
       sysClk       : in  sl;
       sysRst       : in  sl;
       -- Config and status
-      linkMode     : in  slv(3 downto 0);
-      dataMode     : in  slv(3 downto 0);
-      dataEn       : in  sl;
-      frameCount   : out slv(31 downto 0);
-      dropCount    : out slv(31 downto 0);
+      config       : in  ClConfigType;
+      status       : out ClStatusType;
       -- Data interface
       locked       : in  slv(2 downto 0);
-      running      : out sl;
       parData      : in  Slv28Array(2 downto 0);
       parValid     : in  slv(2 downto 0);
       parReady     : out sl;
@@ -56,27 +52,23 @@ architecture rtl of ClinkFraming is
 
    type RegType is record
       ready      : sl;
-      running    : sl;
       portData   : ClDataType;
       byteData   : ClDataType;
       bytes      : integer range 1 to 10;
       inFrame    : sl;
       dump       : sl;
-      frameCount : slv(31 downto 0);
-      dropCount  : slv(31 downto 0);
+      status     : ClStatusType;
       master     : AxiStreamMasterType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       ready      => '0',
-      running    => '0',
       portData   => CL_DATA_INIT_C,
       byteData   => CL_DATA_INIT_C,
       bytes      => 1,
       inFrame    => '0',
       dump       => '0',
-      frameCount => (others=>'0'),
-      dropCount  => (others=>'0'),
+      status     => CL_STATUS_TYPE_INIT_C;
       master     => AXI_STREAM_MASTER_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
@@ -93,57 +85,57 @@ architecture rtl of ClinkFraming is
 
 begin
 
-   comb : process (r, sysRst, dataEn, linkMode, dataMode, locked, intCtrl, parData, parValid) is
+   comb : process (r, sysRst, locked, intCtrl, parData, parValid) is
       variable v : RegType;
    begin
       v := r;
 
       -- Init data
-      v.running  := '0';
-      v.portData := CL_DATA_INIT_C;
+      v.status.running := '0';
+      v.portData       := CL_DATA_INIT_C;
 
       -- Determine running mode and check valids
       -- Extract data, and alignment markers
-      case linkMode is 
+      case config.linkMode is 
 
          -- Base mode, 24 bits
          when CLM_BASE_C =>
-            v.running        := locked(0);
-            v.portData.valid := parValid(0) and v.running;
+            v.status.running := locked(0);
+            v.portData.valid := parValid(0) and v.status.running;
 
-            clMapBasePorts ( dataMode, parData, v.bytes, v.portData );
-            clMapBytes ( dataMode, r.portData, true, v.byteData );
+            clMapBasePorts ( config, parData, v.bytes, v.portData );
+            clMapBytes ( config, r.portData, true, v.byteData );
 
          -- Medium mode, 48 bits
          when CLM_MEDM_C =>
-            v.running        := uAnd(locked(1 downto 0));
-            v.portData.valid := uAnd(parValid(1 downto 0)) and v.running;
+            v.status.running := uAnd(locked(1 downto 0));
+            v.portData.valid := uAnd(parValid(1 downto 0)) and v.status.running;
 
-            clMapMedmPorts ( dataMode, parData, v.bytes, v.portData );
-            clMapBytes ( dataMode, r.portData, true, v.byteData );
+            clMapMedmPorts ( config, parData, v.bytes, v.portData );
+            clMapBytes ( config, r.portData, true, v.byteData );
 
          -- Full mode, 64 bits
          when CLM_FULL_C =>
-            v.running        := uAnd(locked);
-            v.portData.valid := uAnd(parValid) and v.running;
+            v.status.running := uAnd(locked);
+            v.portData.valid := uAnd(parValid) and v.status.running;
 
-            clMapFullPorts ( dataMode, parData, v.bytes, v.portData );
-            clMapBytes ( dataMode, r.portData, true, v.byteData );
+            clMapFullPorts ( config, parData, v.bytes, v.portData );
+            clMapBytes ( config, r.portData, true, v.byteData );
 
          -- DECA mode, 80 bits
          when CLM_DECA_C =>
-            v.running        := uAnd(locked);
-            v.portData.valid := uAnd(parValid) and v.running;
+            v.status.running := uAnd(locked);
+            v.portData.valid := uAnd(parValid) and v.status.running;
 
-            clMapDecaPorts ( dataMode, parData, v.bytes, v.portData );
-            clMapBytes ( dataMode, r.portData, false, v.byteData );
+            clMapDecaPorts ( config, parData, v.bytes, v.portData );
+            clMapBytes ( config, r.portData, false, v.byteData );
 
          when others =>
 
       end case;
 
       -- Drive ready, dump when not running
-      v.ready := v.portData.valid or (not r.running);
+      v.ready := v.portData.valid or (not r.status.running);
 
       -- Format data
       v.master       := AXI_STREAM_MASTER_INIT_C;
@@ -161,7 +153,9 @@ begin
       ssiSetUserSof ( SLV_CONFIG_C, v.master, not r.inFrame );
 
       -- Move data
-      if r.portData.valid = '1' and r.byteData.valid = '1' and r.byteData.fv = '1' then
+      if r.portData.valid = '1' and r.byteData.valid = '1' and (
+           ( r.config.frameMode = CFM_FRAME_C and r.byteData.fv = '1') or      -- Frame mode
+           ( r.config.frameMode = CFM_LINE_C  and r.byteData.lv = '1') ) then  -- Line  mode
 
          -- Valid data in byte record
          if r.dump = '0' and r.byteData.dv = '1' and r.byteData.lv = '1' then
@@ -174,15 +168,16 @@ begin
             v.dump := '1';
          end if;
 
-         -- End of frame
-         if r.byteData.fv = '1' and r.portData.fv = '0' then
+         -- End of frame or line depending on mode
+         if (r.config.frameMode = CFM_FRAME_C and r.byteData.fv = '1' and r.portData.fv = '0') or   -- Frame mode
+            (r.config.frameMode = CFM_LINE_C  and r.byteData.lv = '1' and r.portData.lv = '0') then -- Line mode
 
             -- Frame was dumped, or bad end markers
             if r.dump = '1' or r.inFrame = '0' or r.byteData.dv = '0' or r.byteData.lv = '0' then
                ssiSetUserEofe ( SLV_CONFIG_C, v.master, '1' );
-               v.dropCount := r.dropCount + 1;
+               v.status.dropCount := r.status.dropCount + 1;
             else
-               v.frameCount := r.frameCount + 1;
+               v.status.frameCount := r.status.frameCount + 1;
             end if;
 
             v.master.tValid := r.inFrame;
@@ -194,15 +189,13 @@ begin
       end if;
 
       -- Reset
-      if (sysRst = '1' or dataEn = '0') then
+      if (sysRst = '1' or config.dataEn = '0') then
          v := REG_INIT_C;
       end if;
 
       rin        <= v;
       parReady   <= v.ready;
-      running    <= r.running;
-      frameCount <= r.frameCount;
-      dropCount  <= r.dropCount;
+      status     <= r.status;
 
    end process;
 

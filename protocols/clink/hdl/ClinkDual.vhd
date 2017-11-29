@@ -98,6 +98,19 @@ begin
    -- Camera control bits
    -- Bits 1 & 3 inverted
    -------------------------------
+
+      -- Drive camera control bits
+      for i in 0 to 1 loop
+         for j in 0 to 3 loop
+            if r.swCamCtrlEn(i)(j) = '1' then
+               intCamCtrl(i)(j) <= r.swCamCtrl(i)(j);
+            else
+               intCamCtrl(i)(j) <= camCtrl(i)(j);
+            end if;
+         end loop;
+      end loop;
+
+
    cblDirIn(2) <= dataMode;
    cblOut(2)   <= camCtrl(0);
 

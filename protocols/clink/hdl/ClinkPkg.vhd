@@ -26,10 +26,10 @@ package ClinkPkg is
    ------------------------------------
    -- Link Modes
    ------------------------------------
-   constant CLM_BASE_C : slv(3 downto 0) := "0001";
-   constant CLM_MEDM_C : slv(3 downto 0) := "0010";
-   constant CLM_FULL_C : slv(3 downto 0) := "0011";
-   constant CLM_DECA_C : slv(3 downto 0) := "0100";
+   constant CLM_BASE_C : ClLinkModeType := "0001";
+   constant CLM_MEDM_C : ClLinkModeType := "0010";
+   constant CLM_FULL_C : ClLinkModeType := "0011";
+   constant CLM_DECA_C : ClLinkModeType := "0100";
 
    ------------------------------------
    -- Data Modes
@@ -37,6 +37,50 @@ package ClinkPkg is
    constant CDM_8BIT_C  : slv(3 downto 0) := "0001";
    constant CDM_10BIT_C : slv(3 downto 0) := "0010";
    constant CDM_12BIT_C : slv(3 downto 0) := "0011";
+
+   ------------------------------------
+   -- Framing Modes
+   ------------------------------------
+   constant CFM_LINE_C  : slv(3 downto 0) := "0001";
+   constant CFM_FRAME_C : slv(3 downto 0) := "0010";
+
+   ------------------------------------
+   -- Configuration Record
+   ------------------------------------
+   type ClConfigType is record
+      enable      : sl;
+      swCamCtrl   : slv(3 downto 0);
+      swCamCtrlEn : slv(3 downto 0);
+      serBaud     : slv(23 downto 0);
+      linkMode    : slv(3 downto 0);
+      dataMode    : slv(3 downto 0);
+      frameMode   : slv(3 downto 0);
+      dataEn      : sl;
+   end record ClConfigType;
+
+   constant CL_CONFIG_INIT_C : ClConfigType := (
+      enable      => '0',
+      swCamCtrl   => (others=>'0'),
+      swCamCtrlEn => (others=>'0'),
+      serBaud     => (others=>'0'),
+      linkMode    => (others=>'0'),
+      dataMode    => (others=>'0'),
+      frameMode   => (others=>'0'),
+      dataEn      => '0');
+
+   ------------------------------------
+   -- Framer Status Record
+   ------------------------------------
+   type ClStatusType is record
+      running    : sl;
+      frameCount : slv(31 downto 0);
+      dropCount  : slv(31 downto 0);
+   end record ClStatusType;
+
+   constant CL_STATUS_INIT_C : ClStatusType := (
+      running    => '0',
+      frameCount => (others=>'0'),
+      dropCount  => (others=>'0'));
 
    ------------------------------------
    -- Data Type
@@ -61,25 +105,25 @@ package ClinkPkg is
    ------------------------------------
 
    -- Map channel to port for base mode
-   procedure clMapBasePorts ( dataMode : slv; 
+   procedure clMapBasePorts ( config   : ClConfigType; 
                               parData  : Slv28Array; 
                               bytes    : inout integer;
                               portData : inout ClDataType);
 
    -- Map channel to port for medium mode
-   procedure clMapMedmPorts ( dataMode : slv; 
+   procedure clMapMedmPorts ( config   : ClConfigType; 
                               parData  : Slv28Array; 
                               bytes    : inout integer;
                               portData : inout ClDataType);
 
    -- Map channel to port for full mode
-   procedure clMapFullPorts ( dataMode : slv; 
+   procedure clMapFullPorts ( config   : ClConfigType; 
                               parData  : Slv28Array; 
                               bytes    : inout integer;
                               portData : inout ClDataType);
 
    -- Map channel to port for deca mode
-   procedure clMapDecaPorts ( dataMode : slv; 
+   procedure clMapDecaPorts ( config   : ClConfigType; 
                               parData  : Slv28Array; 
                               bytes    : inout integer;
                               portData : inout ClDataType);
@@ -89,7 +133,7 @@ package ClinkPkg is
    ------------------------------------
 
    -- Remap data bytes
-   procedure clMapBytes ( dataMode : slv; 
+   procedure clMapBytes ( config   : ClConfigType; 
                           portData : ClDataType;
                           mapEn    : boolean;
                           byteData : inout ClDataType );
@@ -105,7 +149,7 @@ package body ClinkPkg is
 
    -- Map channel to port for base mode
    -- From page 15 of camera link spec
-   procedure clMapBasePorts ( dataMode : slv; 
+   procedure clMapBasePorts ( config   : ClConfigType; 
                               parData  : Slv28Array; 
                               bytes    : inout integer;
                               portData : inout ClDataType) is
@@ -127,7 +171,7 @@ package body ClinkPkg is
       portData.data(2)(7 downto 6) := parData(0)(17 downto 16);
 
       -- 12 bit mode
-      if dataMode = CDM_12BIT_C then
+      if config.dataMode = CDM_12BIT_C then
          bytes := 4;
       else
          bytes := 3;
@@ -137,7 +181,7 @@ package body ClinkPkg is
 
    -- Map channel to port for medium mode
    -- From page 15 of camera link spec
-   procedure clMapMedmPorts ( dataMode : slv; 
+   procedure clMapMedmPorts ( config   : ClConfigType; 
                               parData  : Slv28Array; 
                               bytes    : inout integer;
                               portData : inout ClDataType) is
@@ -147,7 +191,7 @@ package body ClinkPkg is
    begin
 
       -- Inherit base mapping
-      clMapBasePorts ( dataMode, parData, prevBytes, portData );
+      clMapBasePorts ( config, parData, prevBytes, portData );
 
       portData.dv := portData.dv and parData(1)(26);
       portData.fv := portData.fv and parData(1)(25);
@@ -165,7 +209,7 @@ package body ClinkPkg is
       portData.data(5)(7 downto 6) := parData(1)(17 downto 16);
 
       -- 12 bit mode
-      if dataMode = CDM_12BIT_C then
+      if config.dataMode = CDM_12BIT_C then
          bytes := 8;
       else
          bytes := 6;
@@ -175,7 +219,7 @@ package body ClinkPkg is
 
    -- Map channel to port for full mode
    -- From page 15 of camera link spec
-   procedure clMapFullPorts ( dataMode : slv; 
+   procedure clMapFullPorts ( config   : ClConfigType; 
                               parData  : Slv28Array; 
                               bytes    : inout integer;
                               portData : inout ClDataType) is
@@ -185,7 +229,7 @@ package body ClinkPkg is
    begin
 
       -- Inherit medium mapping
-      clMapMedmPorts ( dataMode, parData, prevBytes,portData );
+      clMapMedmPorts ( config, parData, prevBytes,portData );
 
       portData.dv := portData.dv and parData(2)(26);
       portData.fv := portData.fv and parData(2)(25);
@@ -210,7 +254,7 @@ package body ClinkPkg is
 
    -- Map channel to port for deca mode
    -- From page 16/17 of camera link spec
-   procedure clMapDecaPorts ( dataMode : slv; 
+   procedure clMapDecaPorts ( config   : ClConfigType;
                               parData  : Slv28Array; 
                               bytes    : inout integer;
                               portData : inout ClDataType) is
@@ -221,7 +265,7 @@ package body ClinkPkg is
       bytes       := 10;
 
       -- 8-bit
-      if dataMode = CDM_8BIT_C then
+      if config.dataMode = CDM_8BIT_C then
          portData.lv                  := parData(0)(24) and parData(1)(27) and parData(2)(27);
          portData.data(0)             := parData(0)(7  downto  0);
          portData.data(1)             := parData(0)(15 downto  8);
@@ -237,7 +281,7 @@ package body ClinkPkg is
          portData.data(9)             := parData(2)(26 downto 19);
 
       -- 10-bit
-      elsif dataMode = CDM_10BIT_C then
+      elsif config.dataMode = CDM_10BIT_C then
          portData.lv                  := parData(0)(24) and parData(1)(24) and parData(2)(24);
          portData.data(0)(4 downto 0) := parData(0)(4  downto  0);
          portData.data(0)(5)          := parData(0)(6);
@@ -286,7 +330,7 @@ package body ClinkPkg is
 
    -- Remap data bytes
    -- From page 8 of camera link spec
-   procedure clMapBytes ( dataMode : slv; 
+   procedure clMapBytes ( config   : ClConfigType;
                           portData : ClDataType;
                           mapEn    : boolean;
                           byteData : inout ClDataType ) is
@@ -296,7 +340,7 @@ package body ClinkPkg is
       if portData.valid = '1' then
          byteData := portData;
 
-         if dataMode = CDM_12BIT_C and mapEn then
+         if config.dataMode = CDM_12BIT_C and mapEn then
             byteData.data(0)             := portData.data(0);             -- A[07:00]
             byteData.data(1)(3 downto 0) := portData.data(1)(3 downto 0); -- A[11:08]
             byteData.data(1)(7 downto 4) := (others=>'0');
