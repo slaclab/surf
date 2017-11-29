@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : GigEthLVDSUltraScaleWrapper.vhd
+-- File       : GigEthLvdsUltraScaleWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for SGMII/LVDS Ethernet
@@ -24,7 +24,7 @@ use work.GigEthPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity GigEthLVDSUltraScaleWrapper is
+entity GigEthLvdsUltraScaleWrapper is
    generic (
       TPD_G              : time                             := 1 ns;
       NUM_LANE_G         : natural range 1 to 4             := 1;
@@ -75,9 +75,9 @@ entity GigEthLVDSUltraScaleWrapper is
       sgmiiRxP            : in  slv(NUM_LANE_G-1 downto 0);
       sgmiiRxN            : in  slv(NUM_LANE_G-1 downto 0)
    );
-end GigEthLVDSUltraScaleWrapper;
+end GigEthLvdsUltraScaleWrapper;
 
-architecture mapping of GigEthLVDSUltraScaleWrapper is
+architecture mapping of GigEthLvdsUltraScaleWrapper is
 
    -- reset is asserted for 2*RST_DURATION_C
    constant RST_DURATION_C : natural range 0 to ((2**30)-1) := 156250000;
@@ -272,7 +272,7 @@ begin
       -- says how much phase shift the cascading actually introduces)
       -- hoping to balance things a bit.
 
-      U_BUFGMUX_CASC : entity work.GigEthLVDSClockMux
+      U_BUFGMUX_CASC : entity work.GigEthLvdsClockMux
          port map (
             clk125p0 => sysClkNB(0),
             clk12p50 => sysClkNB(3),
@@ -294,7 +294,7 @@ begin
             syncRst            => ethRst
          );
 
-      U_GigEthLVDSUltraScale : entity work.GigEthLVDSUltraScale
+      U_GigEthLvdsUltraScale : entity work.GigEthLvdsUltraScale
          generic map (
             TPD_G            => TPD_G,
             -- AXI-Lite Configurations

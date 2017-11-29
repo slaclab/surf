@@ -1,5 +1,5 @@
 ##-----------------------------------------------------------------------------
-## File       : GigEthLVDSClockMux.xdc
+## File       : GigEthLvdsClockMux.xdc
 ## Company    : SLAC National Accelerator Laboratory
 ##-----------------------------------------------------------------------------
 ## Description: Wrapper for SGMII/LVDS Ethernet

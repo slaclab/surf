@@ -1,5 +1,5 @@
 ##-----------------------------------------------------------------------------
-## File       : GigEthLVDSUltraScaleWrapper.xdc
+## File       : GigEthLvdsUltraScaleWrapper.xdc
 ## Company    : SLAC National Accelerator Laboratory
 ##-----------------------------------------------------------------------------
 ## Description: Wrapper for SGMII/LVDS Ethernet

@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : GigEthLVDSUltraScaleWrapper.vhd
+-- File       : GigEthLvdsUltraScaleWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for SGMII/LVDS Ethernet
@@ -21,7 +21,7 @@ use work.StdRtlPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity GigEthLVDSClockMux is
+entity GigEthLvdsClockMux is
    port (
       clk125p0   : in  sl;
       clk12p50   : in  sl;
@@ -30,9 +30,9 @@ entity GigEthLVDSClockMux is
       sel1p250   : in  sl;
       O          : out sl
    );
-end entity GigEthLVDSClockMux;
+end entity GigEthLvdsClockMux;
 
-architecture GigEthLVDSClockMuxImpl of GigEthLVDSClockMux is
+architecture GigEthLvdsClockMuxImpl of GigEthLvdsClockMux is
    signal bufCasc : sl;
 begin
 
@@ -51,4 +51,4 @@ begin
                S  => sel1p250,
                O  => O
             );
-end architecture GigEthLVDSClockMuxImpl;
+end architecture GigEthLvdsClockMuxImpl;

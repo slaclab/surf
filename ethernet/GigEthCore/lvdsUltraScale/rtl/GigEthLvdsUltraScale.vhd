@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : GigEthLVDSUltraScale.vhd
+-- File       : GigEthLvdsUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-02-07
 -- Last update: 2017-05-12
@@ -24,7 +24,7 @@ use work.AxiLitePkg.all;
 use work.EthMacPkg.all;
 use work.GigEthPkg.all;
 
-entity GigEthLVDSUltraScale is
+entity GigEthLvdsUltraScale is
    generic (
       TPD_G            : time                := 1 ns;
       -- AXI-Lite Configurations
@@ -68,9 +68,9 @@ entity GigEthLVDSUltraScale is
       sgmiiTxN           : out sl;
       sgmiiRxP           : in  sl;
       sgmiiRxN           : in  sl);
-end GigEthLVDSUltraScale;
+end GigEthLvdsUltraScale;
 
-architecture mapping of GigEthLVDSUltraScale is
+architecture mapping of GigEthLvdsUltraScale is
 
    signal config          : GigEthConfigType;
    signal status          : GigEthStatusType;
@@ -168,7 +168,7 @@ begin
    ------------------
    -- gmii - sgmii
    ------------------
-   U_GigEthLVDSUltraScaleCore : entity work.SaltUltraScaleCore
+   U_GigEthLvdsUltraScaleCore : entity work.SaltUltraScaleCore
       port map (
          -- Clocks and Resets
          clk125m                => sysClk125,
