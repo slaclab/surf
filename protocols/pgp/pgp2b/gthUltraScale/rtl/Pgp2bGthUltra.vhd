@@ -2,7 +2,7 @@
 -- File       : Pgp2bGthUltra.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2017-11-28
+-- Last update: 2017-11-29
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -53,11 +53,13 @@ entity Pgp2bGthUltra is
       pgpGtRxN         : in  sl;
       -- Tx Clocking
       pgpTxReset       : in  sl;
+      pgpTxResetDone   : out sl;
       pgpTxOutClk      : out sl;                      -- recovered clock
       pgpTxClk         : in  sl;
       pgpTxMmcmLocked  : in  sl;
       -- Rx clocking
       pgpRxReset       : in  sl;
+      pgpRxResetDone   : out sl;
       pgpRxOutClk      : out sl;                      -- recovered clock
       pgpRxClk         : in  sl;
       pgpRxMmcmLocked  : in  sl;
@@ -89,6 +91,7 @@ architecture mapping of Pgp2bGthUltra is
    signal gtHardReset : sl;
 
    -- PgpRx Signals
+   signal resetRxSync   : sl;
    signal gtRxUserReset : sl;
    signal phyRxLaneIn   : Pgp2bRxPhyLaneInType;
    signal phyRxLaneOut  : Pgp2bRxPhyLaneOutType;
@@ -102,8 +105,8 @@ architecture mapping of Pgp2bGthUltra is
 
 begin
 
-   gtRxUserReset <= phyRxInit or pgpRxReset or pgpRxIn.resetRx;
-   gtTxUserReset <= pgpTxReset or pgpTxIn.resetTx;
+   pgpTxResetDone <= phyTxReady;
+   pgpRxResetDone <= phyRxReady;
 
    U_RstSync_1 : entity work.SynchronizerOneShot
       generic map (
@@ -115,6 +118,27 @@ begin
          dataOut => resetGtSync);       -- [out]
 
    gtHardReset <= resetGtSync or stableRst;
+
+   -- Sync pgpRxIn.rxReset to stableClk and tie to gtRxUserReset
+   U_RstSync_2 : entity work.SynchronizerOneShot
+      generic map (
+         TPD_G         => TPD_G,
+         PULSE_WIDTH_G => 125000000)
+      port map (
+         clk     => stableClk,          -- [in]
+         dataIn  => pgpRxIn.resetRx,    -- [in]
+         dataOut => resetRxSync);       -- [out]
+
+   gtRxUserReset <= phyRxInit or resetRxSync;
+
+   U_RstSync_3 : entity work.SynchronizerOneShot
+      generic map (
+         TPD_G         => TPD_G,
+         PULSE_WIDTH_G => 125000000)
+      port map (
+         clk     => stableClk,          -- [in]
+         dataIn  => pgpTxIn.resetTx,    -- [in]
+         dataOut => gtTxUserReset);     -- [out]
 
    U_Pgp2bLane : entity work.Pgp2bLane
       generic map (
