@@ -130,6 +130,39 @@ class ClinkTop(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(    
+            name         = "ShiftCountA",
+            description  = "Shift count for channel",
+            offset       =  0x24,
+            bitSize      =  8,
+            bitOffset    =  0,
+            base         = pr.UInt,
+            pollInterval = 1,
+            mode         = "RO",
+        ))
+
+        self.add(pr.RemoteVariable(    
+            name         = "ShiftCountB",
+            description  = "Shift count for channel",
+            offset       =  0x24,
+            bitSize      =  8,
+            bitOffset    =  8,
+            base         = pr.UInt,
+            pollInterval = 1,
+            mode         = "RO",
+        ))
+
+        self.add(pr.RemoteVariable(    
+            name         = "ShiftCountC",
+            description  = "Shift count for channel",
+            offset       =  0x24,
+            bitSize      =  8,
+            bitOffset    =  16,
+            base         = pr.UInt,
+            pollInterval = 1,
+            mode         = "RO",
+        ))
+
+        self.add(pr.RemoteVariable(    
             name         = "FrameCountA",
             description  = "Lane A frame counter",
             offset       =  0x30,
@@ -236,4 +269,9 @@ class ClinkTop(pr.Device):
     def sendEscape(self):
         if self._tx is not None:
             self._tx.sendEscape()
+
+    @pr.command(order=3, name='SendGcp', description='Send gcp command')
+    def sendGcp(self):
+        if self._tx is not None:
+            self._tx.sendString("gcp")
 

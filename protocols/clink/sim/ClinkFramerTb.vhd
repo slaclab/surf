@@ -142,5 +142,21 @@ begin
 
    dataSlave <= AXI_STREAM_SLAVE_FORCE_C;
 
+   U_Uart : entity work.ClinkUart
+      generic map (
+         TPD_G              => TPD_G,
+         CLK_FREQ_G         => 200.0e6)
+      port map (
+         clk             => sysClk,
+         rst             => sysRst,
+         baud            => toSlv(9600,24),
+         sUartMaster     => AXI_STREAM_MASTER_INIT_C,
+         sUartSlave      => open,
+         sUartCtrl       => open,
+         mUartMaster     => open,
+         mUartSlave      => AXI_STREAM_SLAVE_INIT_C,
+         rxIn            => '1',
+         txOut           => open);
+
 end test;
 

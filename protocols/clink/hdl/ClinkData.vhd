@@ -36,6 +36,7 @@ entity ClinkData is
       sysRst   : in  sl;
       -- Status
       locked   : out sl;
+      shiftCnt : out slv(7 downto 0);
       -- Data output
       parData  : out slv(27 downto 0);
       parValid : out sl;
@@ -43,7 +44,7 @@ entity ClinkData is
 end ClinkData;
 
 architecture rtl of ClinkData is
-   signal cableIn : slv(4 downto 0);
+   signal cblIn : slv(4 downto 0);
 begin
 
    -------------------------------
@@ -54,7 +55,7 @@ begin
          port map (
             I  => cblHalfP(i),
             IB => cblHalfM(i),
-            O  => cableIn(i));
+            O  => cblIn(i));
    end generate;
 
    -------------------------------
@@ -63,11 +64,12 @@ begin
    U_DeSerial : entity work.ClinkDeSerial
       generic map ( TPD_G => TPD_G )
       port map (
-         clkIn     => cableIn(0),
-         dataIn    => cableIn(4 downto 1),
+         clkIn     => cblIn(0),
+         dataIn    => cblIn(4 downto 1),
          sysClk    => sysClk,
          sysRst    => sysRst,
          locked    => locked,
+         shiftCnt  => shiftCnt,
          parData   => parData,
          parValid  => parValid,
          parReady  => parReady);

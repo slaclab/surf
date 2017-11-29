@@ -85,6 +85,12 @@ architecture rtl of ClinkFraming is
    signal intCtrl    : AxiStreamCtrlType;
    signal packMaster : AxiStreamMasterType;
 
+   attribute MARK_DEBUG : string;
+   attribute MARK_DEBUG of r        : signal is "TRUE";
+   attribute MARK_DEBUG of parData  : signal is "TRUE";
+   attribute MARK_DEBUG of parValid : signal is "TRUE";
+   attribute MARK_DEBUG of parReady : signal is "TRUE";
+
 begin
 
    comb : process (r, sysRst, dataEn, linkMode, dataMode, locked, intCtrl, parData, parValid) is

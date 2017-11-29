@@ -107,6 +107,7 @@ architecture rtl of ClinkTop is
 
    signal intCamCtrl     : Slv4Array(1 downto 0);
    signal locked         : slv(2 downto 0);
+   signal shiftCnt       : Slv8Array(2 downto 0);
    signal running        : slv(1 downto 0);
    signal frameCount     : Slv32Array(1 downto 0);
    signal dropCount      : Slv32Array(1 downto 0);
@@ -156,6 +157,7 @@ begin
          sysClk    => sysClk,
          sysRst    => sysRst,
          locked    => locked(0),
+         shiftCnt  => shiftCnt(0),
          parData   => parData(0),
          parValid  => parValid(0),
          parReady  => frameReady(0));
@@ -177,6 +179,7 @@ begin
          camCtrl      => intCamCtrl(1),
          serBaud      => r.serBaud(1),
          locked       => locked(2),
+         shiftCnt     => shiftCnt(2),
          ctrlMode     => r.dualCable,
          parData      => parData(2),
          parValid     => parValid(2),
@@ -196,6 +199,7 @@ begin
          sysClk    => sysClk,
          sysRst    => sysRst,
          locked    => locked(1),
+         shiftCnt  => shiftCnt(1),
          parData   => parData(1),
          parValid  => parValid(1),
          parReady  => parReady);
@@ -277,7 +281,9 @@ begin
    ---------------------------------
    -- Registers
    ---------------------------------
-   comb : process (r, sysRst, intReadMaster, intWriteMaster, locked, camCtrl, running, frameCount, dropCount) is
+   comb : process (r, sysRst, intReadMaster, intWriteMaster, locked, 
+                   camCtrl, running, frameCount, dropCount, shiftCnt) is
+
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -322,6 +328,10 @@ begin
 
       axiSlaveRegisterR(axilEp, x"20",  0, locked);
       axiSlaveRegisterR(axilEp, x"20",  4, running);
+
+      axiSlaveRegisterR(axilEp, x"24",  0, shiftCnt(0));
+      axiSlaveRegisterR(axilEp, x"24",  8, shiftCnt(1));
+      axiSlaveRegisterR(axilEp, x"24", 16, shiftCnt(2));
 
       axiSlaveRegisterR(axilEp, x"30",  0, frameCount(0));
       axiSlaveRegisterR(axilEp, x"34",  0, frameCount(1));

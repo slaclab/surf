@@ -70,7 +70,6 @@ architecture rtl of ClinkUart is
    signal txMaster : AxiStreamMasterType;
    signal txSlave  : AxiStreamSlaveType;
    signal rxMaster : AxiStreamMasterType;
-   signal rxSlave  : AxiStreamSlaveType;
 
 begin
 
@@ -153,7 +152,7 @@ begin
          baud16x => r.clkEn,        -- [in]
          rdData  => rdData,         -- [out]
          rdValid => rdValid,        -- [out]
-         rdReady => rxSlave.tReady, -- [in]
+         rdReady => '1',            -- [in]
          rx      => rxIn);          -- [in]
 
    process (rdData, rdValid) is
@@ -167,7 +166,7 @@ begin
       mst.tValid := rdValid;
       mst.tLast  := '1';
 
-      ssiSetUserSof ( INT_CONFIG_C, mst, '1');
+      ssiSetUserSof (INT_CONFIG_C, mst, '1');
 
       rxMaster <= mst;
 
@@ -181,13 +180,13 @@ begin
          TPD_G               => TPD_G,
          GEN_SYNC_FIFO_G     => true,
          FIFO_ADDR_WIDTH_G   => 9,
-         SLAVE_AXI_CONFIG_G  => UART_AXIS_CONFIG_G,
-         MASTER_AXI_CONFIG_G => INT_CONFIG_C)
+         SLAVE_READY_EN_G    => false,
+         SLAVE_AXI_CONFIG_G  => INT_CONFIG_C,
+         MASTER_AXI_CONFIG_G => UART_AXIS_CONFIG_G)
       port map (
          sAxisClk    => clk,
          sAxisRst    => rst,
          sAxisMaster => rxMaster,
-         sAxisSlave  => rxSlave,
          mAxisClk    => clk,
          mAxisRst    => rst,
          mAxisMaster => mUartMaster,

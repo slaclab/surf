@@ -29,8 +29,6 @@ class ClinkSerialTx(rogue.interfaces.stream.Master):
         ba = bytearray(4)
         ba[0] = 27
 
-        print("Send byte array: {}".format(ba))
-
         frame = self._reqFrame(len(ba),True,0)
         frame.write(ba,0)
         self._sendFrame(frame)
@@ -42,8 +40,6 @@ class ClinkSerialTx(rogue.interfaces.stream.Master):
             ba[i] = ord(c)
             i += 4
         ba[i] = 0x0D
-
-        print("Send byte array: {}".format(ba))
 
         frame = self._reqFrame(len(ba),True,0)
         frame.write(ba,0)

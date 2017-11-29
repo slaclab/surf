@@ -44,6 +44,7 @@ entity ClinkDual is
       -- Config/status
       serBaud     : in  slv(23 downto 0);
       locked      : out sl;
+      shiftCnt    : out slv(7 downto 0);
       ctrlMode    : in  sl;
       -- Data output
       parData     : out slv(27 downto 0);
@@ -64,6 +65,7 @@ architecture rtl of ClinkDual is
    signal dataRst    : sl;
    signal cblOut     : slv(4 downto 0);
    signal cblIn      : slv(4 downto 0);
+   signal tmpIn      : slv(4 downto 0);
    signal cblDirIn   : slv(4 downto 0);
    signal cblSerOut  : sl;
 
@@ -135,13 +137,16 @@ begin
    -- Data
    -------------------------------
    U_DeSerial : entity work.ClinkDeSerial
-      generic map ( TPD_G => TPD_G )
-      port map (
+      generic map ( 
+         TPD_G       => TPD_G,
+         INVERT_34_G => false
+      ) port map (
          clkIn     => cblIn(0),
          dataIn    => cblIn(4 downto 1),
          sysClk    => sysClk,
          sysRst    => dataRst,
          locked    => locked,
+         shiftCnt  => shiftCnt,
          parData   => parData,
          parValid  => parValid,
          parReady  => parReady);

@@ -29,13 +29,13 @@ class ClinkSerialRx(rogue.interfaces.stream.Slave):
     def _acceptFrame(self,frame):
         ba = bytearray(frame.getPayload())
         frame.read(ba,0)
-        print("Got byte array: {}".format(ba))
 
-        for b in range(0,len(ba),4):
+        for i in range(0,len(ba),4):
+            c = chr(ba[i])
 
-            if chr(ba[b]) == '\n':
-                print("Got Response: {}".format(self._cur))
+            if c == '\n':
+                print("Got Response: {}".format(''.join(self._cur)))
                 self._cur = []
-            else:
-                self._cur.append(chr(ba[b]))
+            elif c != '\r':
+                self._cur.append(c)
 

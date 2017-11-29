@@ -216,6 +216,7 @@ package body ClinkPkg is
                               portData : inout ClDataType) is
    begin
 
+      portData.dv := '1';
       portData.fv := parData(0)(25);
       bytes       := 10;
 
@@ -276,8 +277,6 @@ package body ClinkPkg is
          portData.data(9)(6 downto 5) := parData(2)(26 downto 25);
          portData.data(9)(7)          := parData(2)(23);
       end if;
-
-      portData.dv := portData.lv;
 
    end procedure;
 
