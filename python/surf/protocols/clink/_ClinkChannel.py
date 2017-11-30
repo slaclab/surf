@@ -36,7 +36,7 @@ class ClinkChannel(pr.Device):
             name         = "LinkMode",
             description  = "Link mode control for camera link lanes",
             offset       =  0x00,
-            bitSize      =  4,
+            bitSize      =  3,
             bitOffset    =  0,
             base         = pr.UInt,
             enum         = { 0 : 'Disable' , 1 : 'Base', 2 : 'Medium', 3 : 'Full', 4 : 'Deca'},
@@ -50,7 +50,7 @@ class ClinkChannel(pr.Device):
             bitSize      =  4,
             bitOffset    =  0,
             base         = pr.UInt,
-            enum         = { 0 : 'None', 1 : '8Bit', 2 : '10Bit', 3 : '12Bit'},
+            enum         = { 0 : 'None', 1 : '8Bit', 2 : '10Bit', 3 : '12Bit', 4 : '14Bit', 5 : '16Bit', 6 : '24Bit', 7 : '30Bit', 8 : '36Bit'},
             mode         = "RW",
         ))
 
@@ -58,7 +58,7 @@ class ClinkChannel(pr.Device):
             name         = "FrameMode",
             description  = "Frame mode",
             offset       =  0x08,
-            bitSize      =  4,
+            bitSize      =  2,
             bitOffset    =  0,
             base         = pr.UInt,
             enum         = { 0 : 'None', 1 : 'Line', 2 : 'Frame'},
@@ -66,9 +66,21 @@ class ClinkChannel(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(    
+            name         = "TapCount",
+            description  = "Frame mode",
+            offset       =  0x0C,
+            bitSize      =  4,
+            bitOffset    =  0,
+            minimum      = 0,
+            maximum      = 10,
+            base         = "range",
+            mode         = "RW",
+        ))
+
+        self.add(pr.RemoteVariable(    
             name         = "DataEn",
             description  = "Data enable",
-            offset       =  0x0C,
+            offset       =  0x10,
             bitSize      =  1,
             bitOffset    =  0,
             base         = pr.Bool,
@@ -78,7 +90,7 @@ class ClinkChannel(pr.Device):
         self.add(pr.RemoteVariable(    
             name         = "BaudRate",
             description  = "Baud rate",
-            offset       =  0x10,
+            offset       =  0x14,
             bitSize      =  24,
             bitOffset    =  0,
             disp         = '{}',
@@ -89,7 +101,7 @@ class ClinkChannel(pr.Device):
         self.add(pr.RemoteVariable(    
             name         = "SwControlValue",
             description  = "Software camera control bit values",
-            offset       =  0x14,
+            offset       =  0x18,
             bitSize      =  4,
             bitOffset    =  0,
             base         = pr.UInt,
@@ -99,7 +111,7 @@ class ClinkChannel(pr.Device):
         self.add(pr.RemoteVariable(    
             name         = "SwControlEn",
             description  = "Software camera control bit enable mask for lane A",
-            offset       =  0x18,
+            offset       =  0x1C,
             bitSize      =  4,
             bitOffset    =  0,
             base         = pr.UInt,

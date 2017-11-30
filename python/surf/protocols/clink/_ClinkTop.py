@@ -37,7 +37,7 @@ class ClinkTop(pr.Device):
             name         = "LinkMode",
             description  = "Link mode control for camera link lanes",
             offset       =  0x00,
-            bitSize      =  4,
+            bitSize      =  3,
             bitOffset    =  0x00,
             base         = pr.UInt,
             enum         = { 0 : 'Disable' , 1 : 'Base', 2 : 'Medium', 3 : 'Full', 4 : 'Deca'},

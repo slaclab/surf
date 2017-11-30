@@ -23,10 +23,13 @@ use work.StdRtlPkg.all;
 use work.ClinkPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity ClinkTop is
    generic (
       TPD_G              : time                := 1 ns;
+      DUAL_CHAN_EN_G     : boolean             := false;
       SYS_CLK_FREQ_G     : real                := 125.0e6;
       AXI_ERROR_RESP_G   : slv(1 downto 0)     := AXI_RESP_DECERR_C;
       AXI_COMMON_CLK_G   : boolean             := false;
@@ -105,6 +108,9 @@ architecture rtl of ClinkTop is
    signal intWriteMaster : AxiLiteWriteMasterType;
    signal intWriteSlave  : AxiLiteWriteSlaveType;
 
+   attribute MARK_DEBUG : string;
+   attribute MARK_DEBUG of r        : signal is "TRUE";
+
 begin
 
    ----------------------------------------
@@ -147,32 +153,63 @@ begin
          parValid  => parValid(0),
          parReady  => frameReady(0));
 
-   -- Connector 1, Half 0, Control Base, Data Z for Med, Full, Deca
-   U_Cbl1Half0: entity work.ClinkDual
-      generic map (
-         TPD_G              => TPD_G,
-         SYS_CLK_FREQ_G     => SYS_CLK_FREQ_G,
-         UART_READY_EN_G    => UART_READY_EN_G,
-         UART_AXIS_CONFIG_G => UART_AXIS_CONFIG_G)
-      port map (
-         cblHalfP     => cbl1Half0P,
-         cblHalfM     => cbl1Half0M,
-         cblSerP      => cbl1SerP,
-         cblSerM      => cbl1SerM,
-         sysClk       => sysClk,
-         sysRst       => sysRst,
-         camCtrl      => camCtrl(1),
-         config       => r.config(1),
-         locked       => locked(2),
-         shiftCnt     => shiftCnt(2),
-         parData      => parData(2),
-         parValid     => parValid(2),
-         parReady     => frameReady(0),
-         sUartMaster  => sUartMasters(1),
-         sUartSlave   => sUartSlaves(1),
-         sUartCtrl    => sUartCtrls(1),
-         mUartMaster  => mUartMasters(1),
-         mUartSlave   => mUartSlaves(1));
+   U_DualCtrlEn: if DUAL_CHAN_EN_G generate
+
+      -- Connector 1, Half 0, Control Base, Data Z for Med, Full, Deca
+      U_Cbl1Half0: entity work.ClinkDual
+         generic map (
+            TPD_G              => TPD_G,
+            SYS_CLK_FREQ_G     => SYS_CLK_FREQ_G,
+            UART_READY_EN_G    => UART_READY_EN_G,
+            UART_AXIS_CONFIG_G => UART_AXIS_CONFIG_G)
+         port map (
+            cblHalfP     => cbl1Half0P,
+            cblHalfM     => cbl1Half0M,
+            cblSerP      => cbl1SerP,
+            cblSerM      => cbl1SerM,
+            sysClk       => sysClk,
+            sysRst       => sysRst,
+            camCtrl      => camCtrl(1),
+            config       => r.config(1),
+            locked       => locked(2),
+            shiftCnt     => shiftCnt(2),
+            parData      => parData(2),
+            parValid     => parValid(2),
+            parReady     => frameReady(0),
+            sUartMaster  => sUartMasters(1),
+            sUartSlave   => sUartSlaves(1),
+            sUartCtrl    => sUartCtrls(1),
+            mUartMaster  => mUartMasters(1),
+            mUartSlave   => mUartSlaves(1));
+   end generate;
+
+   U_DualCtrlDis: if not DUAL_CHAN_EN_G generate
+
+      -- Connector 1, Half 0, Control Base, Data Z for Med, Full, Deca
+      U_Cbl1Half0: entity work.ClinkData
+         generic map ( TPD_G => TPD_G )
+         port map (
+            cblHalfP  => cbl1Half0P,
+            cblHalfM  => cbl1Half0M,
+            sysClk    => sysClk,
+            sysRst    => sysRst,
+            locked    => locked(2),
+            shiftCnt  => shiftCnt(2),
+            parData   => parData(2),
+            parValid  => parValid(2),
+            parReady  => frameReady(0));
+
+      U_SerOut: OBUFDS
+         port map (
+            I  => '0',
+            O  => cbl1SerP,
+            OB => cbl1SerM);
+
+         sUartSlaves(1)  <= AXI_STREAM_SLAVE_FORCE_C;
+         sUartCtrls(1)   <= AXI_STREAM_CTRL_UNUSED_C;
+         mUartMasters(1) <= AXI_STREAM_MASTER_INIT_C;
+
+   end generate;
 
    -- Connector 1, Half 1, Data X for Base, Data Y for Med, Full, Deca
    U_Cbl1Half1: entity work.ClinkData
@@ -210,27 +247,37 @@ begin
          dataMaster    => dataMasters(0),
          dataSlave     => dataSlaves(0));
 
-   U_Framer1 : entity work.ClinkFraming
-      generic map (
-         TPD_G              => TPD_G,
-         DATA_AXIS_CONFIG_G => DATA_AXIS_CONFIG_G)
-      port map (
-         sysClk        => sysClk,
-         sysRst        => sysRst,
-         config        => r.config(1),
-         status        => status(1),
-         locked(0)     => locked(1),
-         locked(1)     => '0',
-         locked(2)     => '0',
-         parData(0)    => parData(1),
-         parData(1)    => (others=>'0'),
-         parData(2)    => (others=>'0'),
-         parValid(0)   => parValid(1),
-         parValid(1)   => '0',
-         parValid(2)   => '0',
-         parReady      => frameReady(1),
-         dataMaster    => dataMasters(1),
-         dataSlave     => dataSlaves(1));
+   U_DualFrameEn: if DUAL_CHAN_EN_G generate
+
+      U_Framer1 : entity work.ClinkFraming
+         generic map (
+            TPD_G              => TPD_G,
+            DATA_AXIS_CONFIG_G => DATA_AXIS_CONFIG_G)
+         port map (
+            sysClk        => sysClk,
+            sysRst        => sysRst,
+            config        => r.config(1),
+            status        => status(1),
+            locked(0)     => locked(1),
+            locked(1)     => '0',
+            locked(2)     => '0',
+            parData(0)    => parData(1),
+            parData(1)    => (others=>'0'),
+            parData(2)    => (others=>'0'),
+            parValid(0)   => parValid(1),
+            parValid(1)   => '0',
+            parValid(2)   => '0',
+            parReady      => frameReady(1),
+            dataMaster    => dataMasters(1),
+            dataSlave     => dataSlaves(1));
+
+   end generate;
+
+   U_DualFrameDis: if not DUAL_CHAN_EN_G generate
+      status(1)      <= CL_STATUS_INIT_C;
+      frameReady(1)  <= '0';
+      dataMasters(1) <= AXI_STREAM_MASTER_INIT_C;
+   end generate;
 
    ---------------------------------
    -- AXIL Clock Transition
@@ -274,10 +321,11 @@ begin
       axiSlaveWaitTxn(axilEp, intWriteMaster, intReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
       -- Common Config
-      axiSlaveRegister (axilEp, x"000",  0, v.config(0).linkMode);
+      axiSlaveRegister (axilEp, x"000",  0, v.swConfig(0).linkMode);
 
       -- Common Status
       axiSlaveRegisterR(axilEp, x"004",  0, locked);
+      axiSlaveRegisterR(axilEp, x"004",  8, toSl(DUAL_CHAN_EN_G));
       axiSlaveRegisterR(axilEp, x"008",  0, shiftCnt(0));
       axiSlaveRegisterR(axilEp, x"008",  8, shiftCnt(1));
       axiSlaveRegisterR(axilEp, x"008", 16, shiftCnt(2));
@@ -286,11 +334,11 @@ begin
       axiSlaveRegisterR(axilEp, x"100",  0, r.config(0).linkMode);
       axiSlaveRegister (axilEp, x"104",  0, v.swConfig(0).dataMode);
       axiSlaveRegister (axilEp, x"108",  0, v.swConfig(0).frameMode);
-      axiSlaveRegister (axilEp, x"10C",  0, v.swConfig(0).dataEn);
-
-      axiSlaveRegister (axilEp, x"110",  0, v.swConfig(0).serBaud);
-      axiSlaveRegister (axilEp, x"114",  0, v.swConfig(0).swCamCtrlEn);
-      axiSlaveRegister (axilEp, x"118",  0, v.swConfig(0).swCamCtrl);
+      axiSlaveRegister (axilEp, x"10C",  0, v.swConfig(0).tapCount);
+      axiSlaveRegister (axilEp, x"110",  0, v.swConfig(0).dataEn);
+      axiSlaveRegister (axilEp, x"114",  0, v.swConfig(0).serBaud);
+      axiSlaveRegister (axilEp, x"118",  0, v.swConfig(0).swCamCtrlEn);
+      axiSlaveRegister (axilEp, x"11C",  0, v.swConfig(0).swCamCtrl);
 
       -- Channel A Status
       axiSlaveRegisterR(axilEp, x"120",  0, status(0).running);
@@ -298,14 +346,14 @@ begin
       axiSlaveRegisterR(axilEp, x"128",  0, status(0).dropCount);
 
       -- Channel B Config
-      axiSlaveRegisterR(axilEp, x"200",  0, r.config(1).linkMode);
-      axiSlaveRegister (axilEp, x"204",  0, v.swConfig(1).dataMode);
-      axiSlaveRegister (axilEp, x"208",  0, v.swConfig(1).frameMode);
-      axiSlaveRegister (axilEp, x"20C",  0, v.swConfig(1).dataEn);
-
-      axiSlaveRegister (axilEp, x"210",  0, v.swConfig(1).serBaud);
-      axiSlaveRegister (axilEp, x"214",  0, v.swConfig(1).swCamCtrlEn);
-      axiSlaveRegister (axilEp, x"218",  0, v.swConfig(1).swCamCtrl);
+      axiSlaveRegisterR(axilEp, x"200",  0, r.config(0).linkMode);
+      axiSlaveRegister (axilEp, x"204",  0, v.swConfig(0).dataMode);
+      axiSlaveRegister (axilEp, x"208",  0, v.swConfig(0).frameMode);
+      axiSlaveRegister (axilEp, x"20C",  0, v.swConfig(0).tapCount);
+      axiSlaveRegister (axilEp, x"210",  0, v.swConfig(0).dataEn);
+      axiSlaveRegister (axilEp, x"214",  0, v.swConfig(0).serBaud);
+      axiSlaveRegister (axilEp, x"218",  0, v.swConfig(0).swCamCtrlEn);
+      axiSlaveRegister (axilEp, x"21C",  0, v.swConfig(0).swCamCtrl);
 
       -- Channel B Status
       axiSlaveRegisterR(axilEp, x"220",  0, status(1).running);
@@ -321,11 +369,10 @@ begin
       v.config(0).enable := '1';
       v.config(1)        := CL_CONFIG_INIT_C;
 
-      if r.config(0).linkMode = CLM_BASE_C then
+      if DUAL_CHAN_EN_G and r.config(0).linkMode = CLM_BASE_C then
          v.config(1)          := r.swConfig(1);
          v.config(1).linkMode := CLM_BASE_C;
          v.config(1).enable   := '1';
-      else
       end if;
 
       -------------

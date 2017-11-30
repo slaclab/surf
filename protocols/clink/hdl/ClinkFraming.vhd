@@ -62,7 +62,7 @@ architecture rtl of ClinkFraming is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      ready      => '0',
+      ready      => '1',
       portData   => CL_DATA_INIT_C,
       byteData   => CL_DATA_INIT_C,
       bytes      => 1,
@@ -90,54 +90,246 @@ begin
    begin
       v := r;
 
-      -- Init data
+      ---------------------------------
+      -- Map parrallel data to ports
+      ---------------------------------
       v.status.running := '0';
       v.portData       := CL_DATA_INIT_C;
 
-      -- Determine running mode and check valids
-      -- Extract data, and alignment markers
-      case config.linkMode is 
+      -- DECA Mode
+      if config.linkMode = CLM_DECA_C then
 
-         -- Base mode, 24 bits
-         when CLM_BASE_C =>
-            v.status.running := locked(0);
-            v.portData.valid := parValid(0) and v.status.running;
+         v.status.running := uAnd(locked);
+         v.portData.valid := uAnd(parValid) and v.status.running;
+         v.portData.dv    := '1';
+         v.portData.fv    := parData(0)(25);
 
-            clMapBasePorts ( config, parData, v.bytes, v.portData );
-            clMapBytes ( config, r.portData, true, v.byteData );
+         -- 8-bit
+         if config.dataMode = CDM_8BIT_C then
+            v.portData.lv                  := parData(0)(24) and parData(1)(27) and parData(2)(27);
+            v.portData.data(0)             := parData(0)(7  downto  0);
+            v.portData.data(1)             := parData(0)(15 downto  8);
+            v.portData.data(2)             := parData(0)(23 downto 16);
+            v.portData.data(3)(1 downto 0) := parData(0)(27 downto 26);
+            v.portData.data(3)(7 downto 2) := parData(1)(5  downto  0);
+            v.portData.data(4)             := parData(1)(13 downto  6);
+            v.portData.data(5)             := parData(1)(21 downto 14);
+            v.portData.data(6)(4 downto 0) := parData(1)(26 downto 22);
+            v.portData.data(6)(7 downto 5) := parData(2)(2  downto  0);
+            v.portData.data(7)             := parData(2)(10 downto  3);
+            v.portData.data(8)             := parData(2)(18 downto 11);
+            v.portData.data(9)             := parData(2)(26 downto 19);
 
-         -- Medium mode, 48 bits
-         when CLM_MEDM_C =>
-            v.status.running := uAnd(locked(1 downto 0));
-            v.portData.valid := uAnd(parValid(1 downto 0)) and v.status.running;
+         -- 10-bit
+         elsif config.dataMode = CDM_10BIT_C then
+            v.portData.lv                  := parData(0)(24) and parData(1)(24) and parData(2)(24);
+            v.portData.data(0)(4 downto 0) := parData(0)(4  downto  0);
+            v.portData.data(0)(5)          := parData(0)(6);
+            v.portData.data(0)(6)          := parData(0)(27);
+            v.portData.data(0)(7)          := parData(0)(5);
+            v.portData.data(1)(2 downto 0) := parData(0)(9  downto  7);
+            v.portData.data(1)(5 downto 3) := parData(0)(14 downto 12);
+            v.portData.data(1)(7 downto 6) := parData(0)(11 downto 10);
+            v.portData.data(2)(0)          := parData(0)(15);
+            v.portData.data(2)(5 downto 1) := parData(0)(22 downto 18);
+            v.portData.data(2)(7 downto 6) := parData(0)(17 downto 16);
+            v.portData.data(3)(4 downto 0) := parData(1)(4  downto  0);
+            v.portData.data(3)(5)          := parData(1)(6);
+            v.portData.data(3)(6)          := parData(1)(27);
+            v.portData.data(3)(7)          := parData(1)(5);
+            v.portData.data(4)(2 downto 0) := parData(1)(9  downto  7);
+            v.portData.data(4)(5 downto 3) := parData(1)(14 downto 12);
+            v.portData.data(4)(7 downto 6) := parData(1)(11 downto 10);
+            v.portData.data(5)(0)          := parData(1)(15);
+            v.portData.data(5)(5 downto 1) := parData(1)(22 downto 18);
+            v.portData.data(5)(7 downto 6) := parData(1)(17 downto 16);
+            v.portData.data(6)(4 downto 0) := parData(2)(4  downto  0);
+            v.portData.data(6)(5)          := parData(2)(6);
+            v.portData.data(6)(6)          := parData(2)(27);
+            v.portData.data(6)(7)          := parData(2)(5);
+            v.portData.data(7)(2 downto 0) := parData(2)(9  downto  7);
+            v.portData.data(7)(5 downto 3) := parData(2)(14 downto 12);
+            v.portData.data(7)(7 downto 6) := parData(2)(11 downto 10);
+            v.portData.data(8)(0)          := parData(0)(26);
+            v.portData.data(8)(1)          := parData(0)(23);
+            v.portData.data(8)(3 downto 2) := parData(1)(26 downto 25);
+            v.portData.data(8)(4)          := parData(1)(23);
+            v.portData.data(8)(5)          := parData(2)(15);
+            v.portData.data(8)(7 downto 6) := parData(2)(19 downto 18);
+            v.portData.data(9)(2 downto 0) := parData(2)(22 downto 20);
+            v.portData.data(9)(4 downto 3) := parData(2)(17 downto 16);
+            v.portData.data(9)(6 downto 5) := parData(2)(26 downto 25);
+            v.portData.data(9)(7)          := parData(2)(23);
+         end if;
 
-            clMapMedmPorts ( config, parData, v.bytes, v.portData );
-            clMapBytes ( config, r.portData, true, v.byteData );
+      -- Base, Medium, Full Modes
+      else
 
-         -- Full mode, 64 bits
-         when CLM_FULL_C =>
-            v.status.running := uAnd(locked);
-            v.portData.valid := uAnd(parValid) and v.status.running;
+         -- Base, Medium, Full
+         v.portData.data(0)(4 downto 0) := parData(0)(4 downto 0);
+         v.portData.data(0)(5)          := parData(0)(6);
+         v.portData.data(0)(6)          := parData(0)(27);
+         v.portData.data(0)(7)          := parData(0)(5);
+         v.portData.data(1)(2 downto 0) := parData(0)(9  downto  7);
+         v.portData.data(1)(5 downto 3) := parData(0)(14 downto 12);
+         v.portData.data(1)(7 downto 6) := parData(0)(11 downto 10);
+         v.portData.data(2)(0)          := parData(0)(15);
+         v.portData.data(2)(5 downto 1) := parData(0)(22 downto 18);
+         v.portData.data(2)(7 downto 6) := parData(0)(17 downto 16);
 
-            clMapFullPorts ( config, parData, v.bytes, v.portData );
-            clMapBytes ( config, r.portData, true, v.byteData );
+         -- Medium, Full
+         v.portData.data(3)(4 downto 0) := parData(1)(4 downto 0);
+         v.portData.data(3)(5)          := parData(1)(6);
+         v.portData.data(3)(6)          := parData(1)(27);
+         v.portData.data(3)(7)          := parData(1)(5);
+         v.portData.data(4)(2 downto 0) := parData(1)(9  downto  7);
+         v.portData.data(4)(5 downto 3) := parData(1)(14 downto 12);
+         v.portData.data(4)(7 downto 6) := parData(1)(11 downto 10);
+         v.portData.data(5)(0)          := parData(1)(15);
+         v.portData.data(5)(5 downto 1) := parData(1)(22 downto 18);
+         v.portData.data(5)(7 downto 6) := parData(1)(17 downto 16);
 
-         -- DECA mode, 80 bits
-         when CLM_DECA_C =>
-            v.status.running := uAnd(locked);
-            v.portData.valid := uAnd(parValid) and v.status.running;
+         -- Full
+         v.portData.data(6)(4 downto 0) := parData(2)(4 downto 0);
+         v.portData.data(6)(5)          := parData(2)(6);
+         v.portData.data(6)(6)          := parData(2)(27);
+         v.portData.data(6)(7)          := parData(2)(5);
+         v.portData.data(7)(2 downto 0) := parData(2)(9  downto  7);
+         v.portData.data(7)(5 downto 3) := parData(2)(14 downto 12);
+         v.portData.data(7)(7 downto 6) := parData(2)(11 downto 10);
+         v.portData.data(8)(0)          := parData(2)(15);
+         v.portData.data(8)(5 downto 1) := parData(2)(22 downto 18);
+         v.portData.data(8)(7 downto 6) := parData(2)(17 downto 16);
 
-            clMapDecaPorts ( config, parData, v.bytes, v.portData );
-            clMapBytes ( config, r.portData, false, v.byteData );
+         -- Determine valids based upon modes
+         case config.linkMode is 
 
-         when others =>
+            -- Base mode, 24 bits
+            when CLM_BASE_C =>
+               v.status.running := locked(0);
+               v.portData.valid := parValid(0) and v.status.running;
+               v.portData.dv    := parData(0)(26);
+               v.portData.fv    := parData(0)(25);
+               v.portData.lv    := parData(0)(24);
 
-      end case;
+            -- Medium mode, 48 bits
+            when CLM_MEDM_C =>
+               v.status.running := uAnd(locked(1 downto 0));
+               v.portData.valid := uAnd(parValid(1 downto 0)) and v.status.running;
+               v.portData.dv    := parData(0)(26) and parData(1)(26);
+               v.portData.fv    := parData(0)(25) and parData(1)(25);
+               v.portData.lv    := parData(0)(24) and parData(1)(24);
+
+            -- Full mode, 64 bits
+            when CLM_FULL_C =>
+               v.status.running := uAnd(locked);
+               v.portData.valid := uAnd(parValid) and v.status.running;
+               v.portData.dv    := parData(0)(26) and parData(1)(26) and parData(2)(26);
+               v.portData.fv    := parData(0)(25) and parData(1)(25) and parData(2)(25);
+               v.portData.lv    := parData(0)(24) and parData(1)(24) and parData(2)(24);
+   
+            when others =>
+         end case;
+      end if;
 
       -- Drive ready, dump when not running
       v.ready := v.portData.valid or (not r.status.running);
 
-      -- Format data
+      ---------------------------------
+      -- Map data bytes
+      ---------------------------------
+
+      -- Move only when portData is valid
+      if r.portData.valid = '1' then
+         v.byteData      := r.portData;
+         v.byteData.data := (others=>(others=>'0'));
+         v.bytes := 1;
+
+         -- Data mode
+         case config.linkMode is 
+
+            -- 8 bits, base, medium, full & deca
+            when CDM_8BIT_C =>
+               v.byteData := r.portData;
+               v.bytes    := conv_integer(config.tapCount);
+
+            -- 10 bits, base, medium, full & deca
+            when CDM_10BIT_C =>
+               if config.linkMode = CLM_DECA_C then
+                  v.byteData := r.portData;
+                  v.bytes    := 10;
+               else
+                  v.byteData.data(0)             := r.portData.data(0);             -- T1, DA[07:00]
+                  v.byteData.data(1)(1 downto 0) := r.portData.data(1)(1 downto 0); -- T1, DA[09:08]
+                  v.byteData.data(2)             := r.portData.data(2);             -- T2, DB[07:00]
+                  v.byteData.data(3)(1 downto 0) := r.portData.data(1)(5 downto 4); -- T2, DB[09:08]
+                  v.byteData.data(4)             := r.portData.data(4);             -- T3, DC[07:00]
+                  v.byteData.data(5)(1 downto 0) := r.portData.data(5)(1 downto 0); -- T3, DC[09:08]
+                  v.byteData.data(6)             := r.portData.data(3);             -- T4, DD[07:00]
+                  v.byteData.data(7)(1 downto 0) := r.portData.data(5)(5 downto 4); -- T4, DD[09:08]
+   
+                  v.bytes := conv_integer(config.tapCount & "0"); -- tapCount * 2
+               end if;
+   
+            -- 12 bits, base and medium
+            when CDM_12BIT_C =>
+               v.byteData.data(0)             := r.portData.data(0);             -- T1, DA[07:00]
+               v.byteData.data(1)(3 downto 0) := r.portData.data(1)(3 downto 0); -- T1, DA[11:08]
+               v.byteData.data(2)             := r.portData.data(2);             -- T2, DB[07:00]
+               v.byteData.data(3)(3 downto 0) := r.portData.data(1)(7 downto 4); -- T2, DB[11:08]
+               v.byteData.data(4)             := r.portData.data(4);             -- T3, DC[07:00]
+               v.byteData.data(5)(3 downto 0) := r.portData.data(5)(3 downto 0); -- T3, DC[11:08]
+               v.byteData.data(6)             := r.portData.data(3);             -- T4, DD[07:00]
+               v.byteData.data(7)(3 downto 0) := r.portData.data(5)(7 downto 4); -- T4, DD[11:08]
+   
+               v.bytes := conv_integer(config.tapCount & "0"); -- tapCount * 2
+   
+            -- 14 bits, base
+            when CDM_14BIT_C =>
+               v.byteData.data(0)             := r.portData.data(0);             -- T1, DA[07:00]
+               v.byteData.data(1)(5 downto 0) := r.portData.data(1)(5 downto 0); -- T1, DA[13:08]
+               v.bytes := 2;
+
+            -- 16 bits, base
+            when CDM_16BIT_C =>
+               v.byteData.data(0) := r.portData.data(0); -- T1, DA[07:00]
+               v.byteData.data(1) := r.portData.data(1); -- T1, DA[15:08]
+               v.bytes := 2;
+
+            -- 24 bits, base
+            when CDM_24BIT_C =>
+               v.byteData.data(0) := r.portData.data(0); -- T1, DR[07:00]
+               v.byteData.data(1) := r.portData.data(1); -- T2, DG[07:08]
+               v.byteData.data(2) := r.portData.data(2); -- T3, DB[07:08]
+               v.bytes := 3;
+
+            -- 30 bits, medium
+            when CDM_30BIT_C =>
+               v.byteData.data(0)             := r.portData.data(0);             -- T1, DR[07:00]
+               v.byteData.data(1)(1 downto 0) := r.portData.data(1)(1 downto 0); -- T1, DR[09:08]
+               v.byteData.data(2)             := r.portData.data(2);             -- T2, DB[07:00]
+               v.byteData.data(3)(1 downto 0) := r.portData.data(1)(5 downto 4); -- T2, DB[09:08]
+               v.byteData.data(4)             := r.portData.data(4);             -- T3, DG[07:00]
+               v.byteData.data(5)(1 downto 0) := r.portData.data(5)(1 downto 0); -- T3, DG[09:08]
+               v.bytes := 6;
+
+            -- 36 bits, medium
+            when CDM_36BIT_C =>
+               v.byteData.data(0)             := r.portData.data(0);             -- T1, DR[07:00]
+               v.byteData.data(1)(3 downto 0) := r.portData.data(1)(3 downto 0); -- T1, DR[11:08]
+               v.byteData.data(2)             := r.portData.data(2);             -- T2, DB[07:00]
+               v.byteData.data(3)(3 downto 0) := r.portData.data(1)(7 downto 4); -- T2, DB[11:08]
+               v.byteData.data(4)             := r.portData.data(4);             -- T3, DG[07:00]
+               v.byteData.data(5)(3 downto 0) := r.portData.data(5)(3 downto 0); -- T3, DG[11:08]
+               v.bytes := 6;
+
+            when others =>
+         end case;
+      end if;
+
+      ---------------------------------
+      -- Frame Generation
+      ---------------------------------
       v.master       := AXI_STREAM_MASTER_INIT_C;
       v.master.tKeep := (others=>'0');
 
@@ -188,14 +380,16 @@ begin
          end if;
       end if;
 
-      -- Reset
+      ---------------------------------
+      -- Reset and outputs
+      ---------------------------------
       if (sysRst = '1' or config.dataEn = '0') then
          v := REG_INIT_C;
       end if;
 
-      rin        <= v;
-      parReady   <= v.ready;
-      status     <= r.status;
+      rin      <= v;
+      parReady <= v.ready;
+      status   <= r.status;
 
    end process;
 
