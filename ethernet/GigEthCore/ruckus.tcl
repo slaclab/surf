@@ -13,6 +13,7 @@ if { ${family} == "virtex7" } {
 
 if { ${family} == "kintexu" } {
    loadRuckusTcl "$::DIR_PATH/gthUltraScale"
+   loadRuckusTcl "$::DIR_PATH/lvdsUltraScale"
 }
 
 if { ${family} == "artix7" } {
