@@ -2,7 +2,7 @@
 -- File       : Pgp2bGthUltra.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2017-11-29
+-- Last update: 2017-12-04
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -103,6 +103,8 @@ architecture mapping of Pgp2bGthUltra is
    signal phyTxLaneOut  : Pgp2bTxPhyLaneOutType;
    signal phyTxReady    : sl;
 
+   signal phyRxInitSync : sl;
+
 begin
 
    pgpTxResetDone <= phyTxReady;
@@ -119,6 +121,16 @@ begin
 
    gtHardReset <= resetGtSync or stableRst;
 
+   U_RstSync_4 : entity work.SynchronizerOneShot
+      generic map (
+         TPD_G         => TPD_G,
+         PULSE_WIDTH_G => 12500000)
+      port map (
+         clk     => stableClk,          -- [in]
+         dataIn  => phyRxInit,          -- [in]
+         dataOut => phyRxInitSync);     -- [out]
+
+
    -- Sync pgpRxIn.rxReset to stableClk and tie to gtRxUserReset
    U_RstSync_2 : entity work.SynchronizerOneShot
       generic map (
@@ -129,7 +141,7 @@ begin
          dataIn  => pgpRxIn.resetRx,    -- [in]
          dataOut => resetRxSync);       -- [out]
 
-   gtRxUserReset <= phyRxInit or resetRxSync;
+   gtRxUserReset <= phyRxInitSync or resetRxSync;
 
    U_RstSync_3 : entity work.SynchronizerOneShot
       generic map (
