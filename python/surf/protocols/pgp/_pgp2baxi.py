@@ -299,15 +299,15 @@ class Pgp2bAxi(pr.Device):
             function = pr.BaseCommand.toggle,
         ))
 
-        @self.command()        
-        def ResetTxRx():
-            self.ResetRx.set(1, False)
-            self.ResetTx.set(1, False)
-            # Both are same block
-            self.ResetTx._block.startTransaction(rim.Write, check=True)
-            self.ResetRx.set(0, False)
-            self.ResetTx.set(0, False)
-            self.ResetTx._block.startTransaction(rim.Write, check=True)
+#         @self.command()        
+#         def ResetTxRx():
+#             self.ResetRx.set(1, False)
+#             self.ResetTx.set(1, False)
+#             # Both are same block
+#             self.ResetTx._block.startTransaction(rim.Write, check=True)
+#             self.ResetRx.set(0, False)
+#             self.ResetTx.set(0, False)
+#             self.ResetTx._block.startTransaction(rim.Write, check=True)
             
         self.add(pr.RemoteCommand(
             name        = "Flush", 
