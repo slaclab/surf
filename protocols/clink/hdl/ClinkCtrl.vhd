@@ -28,7 +28,6 @@ use unisim.vcomponents.all;
 entity ClinkCtrl is
    generic (
       TPD_G              : time                := 1 ns;
-      SYS_CLK_FREQ_G     : real                := 125.0e6;
       UART_READY_EN_G    : boolean             := true;
       UART_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
@@ -37,14 +36,19 @@ entity ClinkCtrl is
       cblHalfM    : inout slv(4 downto 0); --  2,  4, 18, 19, 16
       cblSerP     : out   sl; -- 20
       cblSerM     : out   sl; -- 7
+      -- Delay clock and reset, 200Mhz
+      dlyClk      : in  sl; 
+      dlyRst      : in  sl; 
       -- System clock and reset, must be 100Mhz or greater
       sysClk      : in  sl;
       sysRst      : in  sl;
       -- Camera Control Bits
       camCtrl     : in  slv(3 downto 0);
       -- Config
-      config      : in  ClConfigType;
+      chanConfig  : in  ClChanConfigType;
       -- UART data
+      uartClk     : in  sl;
+      uartRst     : in  sl;
       sUartMaster : in  AxiStreamMasterType;
       sUartSlave  : out AxiStreamSlaveType;
       sUartCtrl   : out AxiStreamCtrlType;
@@ -57,13 +61,32 @@ architecture rtl of ClinkCtrl is
    signal cblOut    : slv(4 downto 0);
    signal cblIn     : slv(4 downto 0);
    signal cblDirIn  : slv(4 downto 0);
+   signal cblDirOut : slv(4 downto 0);
    signal cblSerOut : sl;
 begin
 
    -------------------------------
    -- IO Buffers
    -------------------------------
+   cblDirOut <= not cblDirIn;
+
    U_CableBuffGen : for i in 0 to 4 generate
+--      U_CableBuff : IOBUFDS_DCIEN
+--         generic map (
+--            DIFF_TERM       => "TRUE",    -- Differential termination (TRUE/FALSE)
+--            IBUF_LOW_PWR    => "FALSE",   -- Low Power - TRUE, HIGH Performance = FALSE
+--            IOSTANDARD      => "LVDS_25", -- Specify the I/O standard
+--            SLEW            => "FAST",    -- Specify the output slew rate
+--            USE_IBUFDISABLE => "TRUE")    -- Use IBUFDISABLE function "TRUE" or "FALSE"
+--         port map (
+--            I   => cblOut(i),
+--            O   => cblIn(i),
+--            T   => cblDirIn(i),
+--            IO  => cblHalfP(i),
+--            IOB => cblHalfM(i),
+--            DCITERMDISABLE => cblDirOut(i),
+--            IBUFDISABLE    => cblDirOut(i));
+
       U_CableBuff: IOBUFDS
          port map(
             I   => cblOut(i),
@@ -71,6 +94,7 @@ begin
             T   => cblDirIn(i),
             IO  => cblHalfP(i),
             IOB => cblHalfM(i));
+
    end generate;
 
    U_SerOut: OBUFDS
@@ -83,16 +107,16 @@ begin
    -- Camera control bits
    -------------------------------
    cblDirIn(2) <= '0';
-   cblOut(2)   <= camCtrl(0) when config.swCamCtrlEn(0) = '0' else config.swCamCtrl(0);
+   cblOut(2)   <= camCtrl(0) when chanConfig.swCamCtrlEn(0) = '0' else chanConfig.swCamCtrl(0);
 
    cblDirIn(3) <= '0';
-   cblOut(3)   <= camCtrl(1) when config.swCamCtrlEn(1) = '0' else config.swCamCtrl(1);
+   cblOut(3)   <= camCtrl(1) when chanConfig.swCamCtrlEn(1) = '0' else chanConfig.swCamCtrl(1);
 
    cblDirIn(0) <= '0';
-   cblOut(0)   <= camCtrl(2) when config.swCamCtrlEn(2) = '0' else config.swCamCtrl(2);
+   cblOut(0)   <= camCtrl(2) when chanConfig.swCamCtrlEn(2) = '0' else chanConfig.swCamCtrl(2);
 
    cblDirIn(4) <= '0';
-   cblOut(4)   <= camCtrl(3) when config.swCamCtrlEn(3) = '0' else config.swCamCtrl(3);
+   cblOut(4)   <= camCtrl(3) when chanConfig.swCamCtrlEn(3) = '0' else chanConfig.swCamCtrl(3);
 
    -------------------------------
    -- UART
@@ -100,13 +124,14 @@ begin
    U_Uart: entity work.ClinkUart
       generic map (
          TPD_G              => TPD_G,
-         CLK_FREQ_G         => SYS_CLK_FREQ_G,
          UART_READY_EN_G    => UART_READY_EN_G,
          UART_AXIS_CONFIG_G => UART_AXIS_CONFIG_G)
       port map (
-         clk           => sysCLk,
-         rst           => sysRst,
-         baud          => config.serBaud,
+         intClk        => dlyCLk,
+         intRst        => dlyRst,
+         baud          => chanConfig.serBaud,
+         uartClk       => uartClk,
+         uartRst       => uartRst,
          sUartMaster   => sUartMaster,
          sUartSlave    => sUartSlave,
          sUartCtrl     => sUartCtrl,

@@ -30,9 +30,7 @@ entity ClinkTop is
    generic (
       TPD_G              : time                := 1 ns;
       DUAL_CHAN_EN_G     : boolean             := false;
-      SYS_CLK_FREQ_G     : real                := 125.0e6;
       AXI_ERROR_RESP_G   : slv(1 downto 0)     := AXI_RESP_DECERR_C;
-      AXI_COMMON_CLK_G   : boolean             := false;
       UART_READY_EN_G    : boolean             := true;
       DATA_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
       UART_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
@@ -41,8 +39,8 @@ entity ClinkTop is
       cbl0Half0P      : inout slv(4 downto 0); -- 15, 17,  5,  6,  3
       cbl0Half0M      : inout slv(4 downto 0); --  2,  4, 18, 19, 16
       -- Connector 0, Half 1, Data X for Base,Medium,Full,Deca
-      cbl0Half1P      : in    slv(4 downto 0); --  8, 10, 11, 12,  9
-      cbl0Half1M      : in    slv(4 downto 0); -- 21, 23, 24, 25, 22
+      cbl0Half1P      : inout slv(4 downto 0); --  8, 10, 11, 12,  9
+      cbl0Half1M      : inout slv(4 downto 0); -- 21, 23, 24, 25, 22
       -- Connector 0, Serial out
       cbl0SerP        : out   sl; -- 20
       cbl0SerM        : out   sl; -- 7
@@ -50,20 +48,27 @@ entity ClinkTop is
       cbl1Half0P      : inout slv(4 downto 0); --  2,  4,  5,  6, 3
       cbl1Half0M      : inout slv(4 downto 0); -- 15, 17, 18, 19 16
       -- Connector 1, Half 1, Data X for Base, Data Y for Med, Full, Deca
-      cbl1Half1P      : in    slv(4 downto 0); --  8, 10, 11, 12,  9
-      cbl1Half1M      : in    slv(4 downto 0); -- 21, 23, 24, 25, 22
+      cbl1Half1P      : inout slv(4 downto 0); --  8, 10, 11, 12,  9
+      cbl1Half1M      : inout slv(4 downto 0); -- 21, 23, 24, 25, 22
       -- Connector 1, Serial out
       cbl1SerP        : out   sl; -- 20
       cbl1SerM        : out   sl; -- 7
-      -- System clock and reset, must be 100Mhz or greater
+      -- Delay clock and reset, 200Mhz
+      dlyClk          : in  sl; 
+      dlyRst          : in  sl; 
+      -- System clock and reset, > 100 Mhz
       sysClk          : in  sl;
       sysRst          : in  sl;
-      -- Camera Control Bits
+      -- Camera Control Bits, async
       camCtrl         : in  Slv4Array(1 downto 0);
       -- Camera data
+      dataClk         : in  sl;
+      dataRst         : in  sl;
       dataMasters     : out AxiStreamMasterArray(1 downto 0);
       dataSlaves      : in  AxiStreamSlaveArray(1 downto 0);
       -- UART data
+      uartClk         : in  sl;
+      uartRst         : in  sl;
       sUartMasters    : in  AxiStreamMasterArray(1 downto 0);
       sUartSlaves     : out AxiStreamSlaveArray(1 downto 0);
       sUartCtrls      : out AxiStreamCtrlArray(1 downto 0);
@@ -81,24 +86,25 @@ end ClinkTop;
 architecture rtl of ClinkTop is
 
    type RegType is record
-      swConfig        : ClConfigArray(1 downto 0);
-      config          : ClConfigArray(1 downto 0);
+      swConfig        : ClChanConfigArray(1 downto 0);
+      chanConfig      : ClChanConfigArray(1 downto 0);
+      linkConfig      : ClLinkConfigArray(2 downto 0);
       axilReadSlave   : AxiLiteReadSlaveType;
       axilWriteSlave  : AxiLiteWriteSlaveType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      swConfig        => (others=>CL_CONFIG_INIT_C),
-      config          => (others=>CL_CONFIG_INIT_C),
+      swConfig        => (others=>CL_CHAN_CONFIG_INIT_C),
+      chanConfig      => (others=>CL_CHAN_CONFIG_INIT_C),
+      linkConfig      => (others=>CL_LINK_CONFIG_INIT_C),
       axilReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal status         : ClStatusArray(1 downto 0);
-   signal locked         : slv(2 downto 0);
-   signal shiftCnt       : Slv8Array(2 downto 0);
+   signal chanStatus     : ClChanStatusArray(1 downto 0);
+   signal linkStatus     : ClLinkStatusArray(2 downto 0);
    signal parData        : Slv28Array(2 downto 0);
    signal parValid       : slv(2 downto 0);
    signal parReady       : sl;
@@ -109,19 +115,26 @@ architecture rtl of ClinkTop is
    signal intWriteSlave  : AxiLiteWriteSlaveType;
 
    attribute MARK_DEBUG : string;
-   attribute MARK_DEBUG of r        : signal is "TRUE";
+   attribute MARK_DEBUG of r : signal is "TRUE";
+
+   attribute IODELAY_GROUP                 : string;
+   attribute IODELAY_GROUP of U_IDelayCtrl : label is "CLINK_CORE";
 
 begin
 
    ----------------------------------------
    -- IO Modules
    ----------------------------------------
+   U_IdelayCtrl : IDELAYCTRL
+      port map (
+         RDY    => open,    -- 1-bit output: Ready output
+         REFCLK => dlyClk,  -- 1-bit input: Reference clock input
+         RST    => dlyRst); -- 1-bit input: Active high reset input
 
    -- Connector 0, Half 0, Control for Base,Medium,Full,Deca
    U_Cbl0Half0: entity work.ClinkCtrl
       generic map (
          TPD_G              => TPD_G,
-         SYS_CLK_FREQ_G     => SYS_CLK_FREQ_G,
          UART_READY_EN_G    => UART_READY_EN_G,
          UART_AXIS_CONFIG_G => UART_AXIS_CONFIG_G)
       port map (
@@ -129,10 +142,14 @@ begin
          cblHalfM     => cbl0Half0M,
          cblSerP      => cbl0SerP,
          cblSerM      => cbl0SerM,
+         dlyClk       => dlyClk,
+         dlyRst       => dlyRst,
          sysClk       => sysClk,
          sysRst       => sysRst,
          camCtrl      => camCtrl(0),
-         config       => r.config(0),
+         chanConfig   => r.chanConfig(0),
+         uartClk      => uartClk,
+         uartRst      => uartRst,
          sUartMaster  => sUartMasters(0),
          sUartSlave   => sUartSlaves(0),
          sUartCtrl    => sUartCtrls(0),
@@ -141,17 +158,19 @@ begin
 
    -- Connector 0, Half 1, Data X for Base,Medium,Full,Deca
    U_Cbl0Half1: entity work.ClinkData
-      generic map ( TPD_G => TPD_G )
+      generic map ( TPD_G => TPD_G)
       port map (
-         cblHalfP  => cbl0Half1P,
-         cblHalfM  => cbl0Half1M,
-         sysClk    => sysClk,
-         sysRst    => sysRst,
-         locked    => locked(0),
-         shiftCnt  => shiftCnt(0),
-         parData   => parData(0),
-         parValid  => parValid(0),
-         parReady  => frameReady(0));
+         cblHalfP   => cbl0Half1P,
+         cblHalfM   => cbl0Half1M,
+         dlyClk     => dlyClk,
+         dlyRst     => dlyRst,
+         sysClk     => sysClk,
+         sysRst     => sysRst,
+         linkConfig => r.linkConfig(0),
+         linkStatus => linkStatus(0),
+         parData    => parData(0),
+         parValid   => parValid(0),
+         parReady   => frameReady(0));
 
    U_DualCtrlEn: if DUAL_CHAN_EN_G generate
 
@@ -159,7 +178,6 @@ begin
       U_Cbl1Half0: entity work.ClinkDual
          generic map (
             TPD_G              => TPD_G,
-            SYS_CLK_FREQ_G     => SYS_CLK_FREQ_G,
             UART_READY_EN_G    => UART_READY_EN_G,
             UART_AXIS_CONFIG_G => UART_AXIS_CONFIG_G)
          port map (
@@ -167,15 +185,19 @@ begin
             cblHalfM     => cbl1Half0M,
             cblSerP      => cbl1SerP,
             cblSerM      => cbl1SerM,
+            dlyClk       => dlyClk,
+            dlyRst       => dlyRst,
             sysClk       => sysClk,
             sysRst       => sysRst,
+            linkConfig   => r.linkConfig(2),
+            linkStatus   => linkStatus(2),
             camCtrl      => camCtrl(1),
-            config       => r.config(1),
-            locked       => locked(2),
-            shiftCnt     => shiftCnt(2),
+            chanConfig   => r.chanConfig(1),
             parData      => parData(2),
             parValid     => parValid(2),
             parReady     => frameReady(0),
+            uartClk      => uartClk,
+            uartRst      => uartRst,
             sUartMaster  => sUartMasters(1),
             sUartSlave   => sUartSlaves(1),
             sUartCtrl    => sUartCtrls(1),
@@ -189,15 +211,17 @@ begin
       U_Cbl1Half0: entity work.ClinkData
          generic map ( TPD_G => TPD_G )
          port map (
-            cblHalfP  => cbl1Half0P,
-            cblHalfM  => cbl1Half0M,
-            sysClk    => sysClk,
-            sysRst    => sysRst,
-            locked    => locked(2),
-            shiftCnt  => shiftCnt(2),
-            parData   => parData(2),
-            parValid  => parValid(2),
-            parReady  => frameReady(0));
+            cblHalfP   => cbl1Half0P,
+            cblHalfM   => cbl1Half0M,
+            dlyClk     => dlyClk,
+            dlyRst     => dlyRst,
+            sysClk     => sysClk,
+            sysRst     => sysRst,
+            linkConfig => r.linkConfig(2),
+            linkStatus => linkStatus(2),
+            parData    => parData(2),
+            parValid   => parValid(2),
+            parReady   => frameReady(0));
 
       U_SerOut: OBUFDS
          port map (
@@ -215,18 +239,20 @@ begin
    U_Cbl1Half1: entity work.ClinkData
       generic map ( TPD_G => TPD_G )
       port map (
-         cblHalfP  => cbl1Half1P,
-         cblHalfM  => cbl1Half1M,
-         sysClk    => sysClk,
-         sysRst    => sysRst,
-         locked    => locked(1),
-         shiftCnt  => shiftCnt(1),
-         parData   => parData(1),
-         parValid  => parValid(1),
-         parReady  => parReady);
+         cblHalfP   => cbl1Half1P,
+         cblHalfM   => cbl1Half1M,
+         dlyClk     => dlyClk,
+         dlyRst     => dlyRst,
+         sysClk     => sysClk,
+         sysRst     => sysRst,
+         linkConfig => r.linkConfig(1),
+         linkStatus => linkStatus(1),
+         parData    => parData(1),
+         parValid   => parValid(1),
+         parReady   => parReady);
 
    -- Ready generation
-   parReady <= frameReady(1) when r.config(1).enable = '1' else frameReady(0);
+   parReady <= frameReady(1) when r.chanConfig(1).enable = '1' else frameReady(0);
 
    ---------------------------------
    -- Data Processing
@@ -238,12 +264,14 @@ begin
       port map (
          sysClk        => sysClk,
          sysRst        => sysRst,
-         config        => r.config(0),
-         status        => status(0),
-         locked        => locked,
+         chanConfig    => r.chanConfig(0),
+         chanStatus    => chanStatus(0),
+         linkStatus    => linkStatus,
          parData       => parData,
          parValid      => parValid,
          parReady      => frameReady(0),
+         dataClk       => dataClk,
+         dataRst       => dataRst,
          dataMaster    => dataMasters(0),
          dataSlave     => dataSlaves(0));
 
@@ -256,11 +284,11 @@ begin
          port map (
             sysClk        => sysClk,
             sysRst        => sysRst,
-            config        => r.config(1),
-            status        => status(1),
-            locked(0)     => locked(1),
-            locked(1)     => '0',
-            locked(2)     => '0',
+            chanConfig    => r.chanConfig(1),
+            chanStatus    => chanStatus(1),
+            linkStatus(0) => linkStatus(1),
+            linkStatus(1) => CL_LINK_STATUS_INIT_C,
+            linkStatus(2) => CL_LINK_STATUS_INIT_C,
             parData(0)    => parData(1),
             parData(1)    => (others=>'0'),
             parData(2)    => (others=>'0'),
@@ -268,13 +296,15 @@ begin
             parValid(1)   => '0',
             parValid(2)   => '0',
             parReady      => frameReady(1),
+            dataClk       => dataClk,
+            dataRst       => dataRst,
             dataMaster    => dataMasters(1),
             dataSlave     => dataSlaves(1));
 
    end generate;
 
    U_DualFrameDis: if not DUAL_CHAN_EN_G generate
-      status(1)      <= CL_STATUS_INIT_C;
+      chanStatus(1)  <= CL_CHAN_STATUS_INIT_C;
       frameReady(1)  <= '0';
       dataMasters(1) <= AXI_STREAM_MASTER_INIT_C;
    end generate;
@@ -286,7 +316,7 @@ begin
       generic map (
          TPD_G            => TPD_G,
          AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
-         COMMON_CLK_G     => AXI_COMMON_CLK_G)
+         COMMON_CLK_G     => false)
       port map (
          sAxiClk         => axilClk,
          sAxiClkRst      => axilRst,
@@ -304,7 +334,7 @@ begin
    ---------------------------------
    -- Registers
    ---------------------------------
-   comb : process (r, sysRst, intReadMaster, intWriteMaster, locked, shiftCnt, status) is
+   comb : process (r, sysRst, intReadMaster, intWriteMaster, chanStatus, linkStatus) is
 
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
@@ -322,16 +352,20 @@ begin
 
       -- Common Config
       axiSlaveRegister (axilEp, x"000",  0, v.swConfig(0).linkMode);
+      axiSlaveRegister (axilEp, x"004",  0, v.linkConfig(0).reset);
+      axiSlaveRegister (axilEp, x"008",  0, v.linkConfig(0).delay);
 
       -- Common Status
-      axiSlaveRegisterR(axilEp, x"004",  0, locked);
-      axiSlaveRegisterR(axilEp, x"004",  8, toSl(DUAL_CHAN_EN_G));
-      axiSlaveRegisterR(axilEp, x"008",  0, shiftCnt(0));
-      axiSlaveRegisterR(axilEp, x"008",  8, shiftCnt(1));
-      axiSlaveRegisterR(axilEp, x"008", 16, shiftCnt(2));
+      axiSlaveRegisterR(axilEp, x"010",  0, linkStatus(0).locked);
+      axiSlaveRegisterR(axilEp, x"010",  1, linkStatus(1).locked);
+      axiSlaveRegisterR(axilEp, x"010",  2, linkStatus(2).locked);
+      axiSlaveRegisterR(axilEp, x"010",  8, toSl(DUAL_CHAN_EN_G));
+      axiSlaveRegisterR(axilEp, x"014",  0, linkStatus(0).shiftCnt);
+      axiSlaveRegisterR(axilEp, x"014",  8, linkStatus(1).shiftCnt);
+      axiSlaveRegisterR(axilEp, x"014", 16, linkStatus(2).shiftCnt);
 
       -- Channel A Config
-      axiSlaveRegisterR(axilEp, x"100",  0, r.config(0).linkMode);
+      axiSlaveRegisterR(axilEp, x"100",  0, r.chanConfig(0).linkMode);
       axiSlaveRegister (axilEp, x"104",  0, v.swConfig(0).dataMode);
       axiSlaveRegister (axilEp, x"108",  0, v.swConfig(0).frameMode);
       axiSlaveRegister (axilEp, x"10C",  0, v.swConfig(0).tapCount);
@@ -341,12 +375,12 @@ begin
       axiSlaveRegister (axilEp, x"11C",  0, v.swConfig(0).swCamCtrl);
 
       -- Channel A Status
-      axiSlaveRegisterR(axilEp, x"120",  0, status(0).running);
-      axiSlaveRegisterR(axilEp, x"124",  0, status(0).frameCount);
-      axiSlaveRegisterR(axilEp, x"128",  0, status(0).dropCount);
+      axiSlaveRegisterR(axilEp, x"120",  0, chanStatus(0).running);
+      axiSlaveRegisterR(axilEp, x"124",  0, chanStatus(0).frameCount);
+      axiSlaveRegisterR(axilEp, x"128",  0, chanStatus(0).dropCount);
 
       -- Channel B Config
-      axiSlaveRegisterR(axilEp, x"200",  0, r.config(0).linkMode);
+      axiSlaveRegisterR(axilEp, x"200",  0, r.chanConfig(0).linkMode);
       axiSlaveRegister (axilEp, x"204",  0, v.swConfig(0).dataMode);
       axiSlaveRegister (axilEp, x"208",  0, v.swConfig(0).frameMode);
       axiSlaveRegister (axilEp, x"20C",  0, v.swConfig(0).tapCount);
@@ -356,23 +390,26 @@ begin
       axiSlaveRegister (axilEp, x"21C",  0, v.swConfig(0).swCamCtrl);
 
       -- Channel B Status
-      axiSlaveRegisterR(axilEp, x"220",  0, status(1).running);
-      axiSlaveRegisterR(axilEp, x"224",  0, status(1).frameCount);
-      axiSlaveRegisterR(axilEp, x"228",  0, status(1).dropCount);
+      axiSlaveRegisterR(axilEp, x"220",  0, chanStatus(1).running);
+      axiSlaveRegisterR(axilEp, x"224",  0, chanStatus(1).frameCount);
+      axiSlaveRegisterR(axilEp, x"228",  0, chanStatus(1).dropCount);
 
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_ERROR_RESP_G);
 
       ------------------------------
       -- Configuration Extraction
       ------------------------------
-      v.config(0)        := r.swConfig(0);
-      v.config(0).enable := '1';
-      v.config(1)        := CL_CONFIG_INIT_C;
+      v.linkConfig(1) := r.linkConfig(0);
+      v.linkConfig(2) := r.linkConfig(0);
 
-      if DUAL_CHAN_EN_G and r.config(0).linkMode = CLM_BASE_C then
-         v.config(1)          := r.swConfig(1);
-         v.config(1).linkMode := CLM_BASE_C;
-         v.config(1).enable   := '1';
+      v.chanConfig(0)        := r.swConfig(0);
+      v.chanConfig(0).enable := '1';
+      v.chanConfig(1)        := CL_CHAN_CONFIG_INIT_C;
+
+      if DUAL_CHAN_EN_G and r.chanConfig(0).linkMode = CLM_BASE_C then
+         v.chanConfig(1)          := r.swConfig(1);
+         v.chanConfig(1).linkMode := CLM_BASE_C;
+         v.chanConfig(1).enable   := '1';
       end if;
 
       -------------

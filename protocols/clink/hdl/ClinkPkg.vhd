@@ -53,9 +53,37 @@ package ClinkPkg is
    constant CFM_FRAME_C : slv(1 downto 0) := "10";
 
    ------------------------------------
-   -- Configuration Record
+   -- Link Configuration Record
    ------------------------------------
-   type ClConfigType is record
+   type ClLinkConfigType is record
+      reset       : sl;
+      delay       : slv(4 downto 0);
+   end record ClLinkConfigType;
+
+   constant CL_LINK_CONFIG_INIT_C : ClLinkConfigType := (
+      reset       => '0',
+      delay       => (others=>'0'));
+
+   type ClLinkConfigArray is array (natural range<>) of ClLinkConfigType;
+
+   ------------------------------------
+   -- Link Status Record
+   ------------------------------------
+   type ClLinkStatusType is record
+      locked      : sl;
+      shiftCnt    : slv(7 downto 0);
+   end record ClLinkStatusType;
+
+   constant CL_LINK_STATUS_INIT_C : ClLinkStatusType := (
+      locked      => '0',
+      shiftCnt    => (others=>'0'));
+
+   type ClLinkStatusArray is array (natural range<>) of ClLinkStatusType;
+
+   ------------------------------------
+   -- Channel Configuration Record
+   ------------------------------------
+   type ClChanConfigType is record
       enable      : sl;
       swCamCtrl   : slv(3 downto 0);
       swCamCtrlEn : slv(3 downto 0);
@@ -65,9 +93,9 @@ package ClinkPkg is
       tapCount    : slv(3 downto 0);
       frameMode   : slv(3 downto 0);
       dataEn      : sl;
-   end record ClConfigType;
+   end record ClChanConfigType;
 
-   constant CL_CONFIG_INIT_C : ClConfigType := (
+   constant CL_CHAN_CONFIG_INIT_C : ClChanConfigType := (
       enable      => '0',
       swCamCtrl   => (others=>'0'),
       swCamCtrlEn => (others=>'0'),
@@ -78,23 +106,23 @@ package ClinkPkg is
       frameMode   => (others=>'0'),
       dataEn      => '0');
 
-   type ClConfigArray is array (natural range<>) of ClConfigType;
+   type ClChanConfigArray is array (natural range<>) of ClChanConfigType;
 
    ------------------------------------
-   -- Framer Status Record
+   -- Channel Status Record
    ------------------------------------
-   type ClStatusType is record
+   type ClChanStatusType is record
       running    : sl;
       frameCount : slv(31 downto 0);
       dropCount  : slv(31 downto 0);
-   end record ClStatusType;
+   end record ClChanStatusType;
 
-   constant CL_STATUS_INIT_C : ClStatusType := (
+   constant CL_CHAN_STATUS_INIT_C : ClChanStatusType := (
       running    => '0',
       frameCount => (others=>'0'),
       dropCount  => (others=>'0'));
 
-   type ClStatusArray is array (natural range<>) of ClStatusType;
+   type ClChanStatusArray is array (natural range<>) of ClChanStatusType;
 
    ------------------------------------
    -- Data Type

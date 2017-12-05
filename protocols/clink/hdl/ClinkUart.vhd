@@ -26,16 +26,17 @@ use work.SsiPkg.all;
 entity ClinkUart is
    generic (
       TPD_G              : time                := 1 ns;
-      CLK_FREQ_G         : real                := 125.0e6;
       UART_READY_EN_G    : boolean             := true;
       UART_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
-      -- Clock and reset
-      clk             : in  sl;
-      rst             : in  sl;
+      -- Clock and reset, 200Mhz
+      intClk          : in  sl;
+      intRst          : in  sl;
       -- Baud rate
       baud            : in  slv(23 downto 0);
       -- Data In/Out
+      uartClk         : in  sl;
+      uartRst         : in  sl;
       sUartMaster     : in  AxiStreamMasterType;
       sUartSlave      : out AxiStreamSlaveType;
       sUartCtrl       : out AxiStreamCtrlType;
@@ -48,7 +49,7 @@ end ClinkUart;
 
 architecture rtl of ClinkUart is
 
-   constant INT_FREQ_C : integer := integer(CLK_FREQ_G);
+   constant INT_FREQ_C : integer := 200000000;
 
    constant INT_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(dataBytes=>4,tDestBits=>0);
 
@@ -76,7 +77,7 @@ begin
    -----------------------------------
    -- Baud rate generation
    -----------------------------------
-   comb : process (r, rst, baud) is
+   comb : process (r, intRst, baud) is
       variable v : RegType;
    begin
       v := r;
@@ -89,16 +90,16 @@ begin
          v.clkEn := '1';
       end if;
 
-      if (rst = '1') then
+      if (intRst = '1') then
          v := REG_INIT_C;
       end if;
 
       rin   <= v;
    end process;
 
-   seq : process (clk) is
+   seq : process (intClk) is
    begin  
-      if (rising_edge(clk)) then
+      if (rising_edge(intClk)) then
          r <= rin;
       end if;
    end process;
@@ -109,19 +110,19 @@ begin
    U_TxFifo: entity work.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
-         GEN_SYNC_FIFO_G     => true,
+         GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 9,
          SLAVE_READY_EN_G    => UART_READY_EN_G,
          SLAVE_AXI_CONFIG_G  => UART_AXIS_CONFIG_G,
          MASTER_AXI_CONFIG_G => INT_CONFIG_C)
       port map (
-         sAxisClk    => clk,
-         sAxisRst    => rst,
+         sAxisClk    => uartClk,
+         sAxisRst    => uartRst,
          sAxisMaster => sUartMaster, 
          sAxisSlave  => sUartSlave,
          sAxisCtrl   => sUartCtrl,
-         mAxisClk    => clk,
-         mAxisRst    => rst,
+         mAxisClk    => intClk,
+         mAxisRst    => intRst,
          mAxisMaster => txMaster,
          mAxisSlave  => txSlave);
 
@@ -132,8 +133,8 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => clk,                        -- [in]
-         rst     => rst,                        -- [in]
+         clk     => intClk,                     -- [in]
+         rst     => intRst,                     -- [in]
          baud16x => r.clkEn,                    -- [in]
          wrData  => txMaster.tData(7 downto 0), -- [in]
          wrValid => txMaster.tValid,            -- [in]
@@ -147,8 +148,8 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => clk,            -- [in]
-         rst     => rst,            -- [in]
+         clk     => intClk,         -- [in]
+         rst     => intRst,         -- [in]
          baud16x => r.clkEn,        -- [in]
          rdData  => rdData,         -- [out]
          rdValid => rdValid,        -- [out]
@@ -178,17 +179,17 @@ begin
    U_RxFifo: entity work.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
-         GEN_SYNC_FIFO_G     => true,
+         GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 9,
          SLAVE_READY_EN_G    => false,
          SLAVE_AXI_CONFIG_G  => INT_CONFIG_C,
          MASTER_AXI_CONFIG_G => UART_AXIS_CONFIG_G)
       port map (
-         sAxisClk    => clk,
-         sAxisRst    => rst,
+         sAxisClk    => intClk,
+         sAxisRst    => intRst,
          sAxisMaster => rxMaster,
-         mAxisClk    => clk,
-         mAxisRst    => rst,
+         mAxisClk    => uartClk,
+         mAxisRst    => uartRst,
          mAxisMaster => mUartMaster,
          mAxisSlave  => mUartSlave);
 

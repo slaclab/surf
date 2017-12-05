@@ -27,30 +27,34 @@ use unisim.vcomponents.all;
 
 entity ClinkDual is
    generic (
-      TPD_G              : time                := 1 ns;
-      SYS_CLK_FREQ_G     : real                := 125.0e6;
-      UART_READY_EN_G    : boolean             := true;
-      UART_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      TPD_G              : time                  := 1 ns;
+      UART_READY_EN_G    : boolean               := true;
+      UART_AXIS_CONFIG_G : AxiStreamConfigType   := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- Cable In/Out
       cblHalfP    : inout slv(4 downto 0); --  2,  4,  5,  6, 3
       cblHalfM    : inout slv(4 downto 0); -- 15, 17, 18, 19 16
       cblSerP     : out   sl; -- 20
       cblSerM     : out   sl; -- 7
+      -- Delay clock and reset, 200Mhz
+      dlyClk      : in  sl; 
+      dlyRst      : in  sl; 
       -- System clock and reset, must be 100Mhz or greater
       sysClk      : in  sl;
       sysRst      : in  sl;
       -- Camera Control Bits
       camCtrl     : in  slv(3 downto 0);
       -- Config/status
-      config      : in  ClConfigType;
-      locked      : out sl;
-      shiftCnt    : out slv(7 downto 0);
+      linkConfig  : in  ClLinkConfigType;
+      linkStatus  : out ClLinkStatusType;
+      chanConfig  : in  ClChanConfigType;
       -- Data output
       parData     : out slv(27 downto 0);
       parValid    : out sl;
       parReady    : in  sl := '1';
       -- UART data
+      uartClk     : in  sl;
+      uartRst     : in  sl;
       sUartMaster : in  AxiStreamMasterType;
       sUartSlave  : out AxiStreamSlaveType;
       sUartCtrl   : out AxiStreamCtrlType;
@@ -60,23 +64,42 @@ end ClinkDual;
 
 architecture rtl of ClinkDual is
 
-   signal uartRst    : sl;
+   signal serRst     : sl;
    signal dataRst    : sl;
    signal cblOut     : slv(4 downto 0);
    signal cblIn      : slv(4 downto 0);
    signal tmpIn      : slv(4 downto 0);
    signal cblDirIn   : slv(4 downto 0);
+   signal cblDirOut  : slv(4 downto 0);
    signal cblSerOut  : sl;
 
 begin
 
-   uartRst <= sysRst or (not config.enable);
-   dataRst <= sysRst or config.enable;
+   serRst  <= sysRst or (not chanConfig.enable);
+   dataRst <= sysRst or chanConfig.enable;
 
    -------------------------------
    -- IO Buffers
    -------------------------------
+   cblDirOut <= not cblDirIn;
+
    U_CableBuffGen : for i in 0 to 4 generate
+--      U_CableBuff : IOBUFDS_DCIEN
+--         generic map (
+--            DIFF_TERM       => "TRUE",    -- Differential termination (TRUE/FALSE)
+--            IBUF_LOW_PWR    => "FALSE",   -- Low Power - TRUE, HIGH Performance = FALSE
+--            IOSTANDARD      => "LVDS_25", -- Specify the I/O standard
+--            SLEW            => "FAST",    -- Specify the output slew rate
+--            USE_IBUFDISABLE => "TRUE")    -- Use IBUFDISABLE function "TRUE" or "FALSE"
+--         port map (
+--            I    => cblOut(i),
+--            O    => cblIn(i),
+--            T    => cblDirIn(i),
+--            IO   => cblHalfP(i),
+--            IOB  => cblHalfM(i),
+--            DCITERMDISABLE => cblDirOut(i),
+--            IBUFDISABLE    => cblDirOut(i));
+
       U_CableBuff: IOBUFDS
          port map(
             I   => cblOut(i),
@@ -84,6 +107,7 @@ begin
             T   => cblDirIn(i),
             IO  => cblHalfP(i),
             IOB => cblHalfM(i));
+
    end generate;
 
    U_SerOut: OBUFDS
@@ -96,17 +120,17 @@ begin
    -- Camera control bits
    -- Bits 1 & 3 inverted
    -------------------------------
-   cblDirIn(2) <= not config.enable;
-   cblOut(2)   <= camCtrl(0) when config.swCamCtrlEn(0) = '0' else config.swCamCtrl(0);
+   cblDirIn(2) <= not chanConfig.enable;
+   cblOut(2)   <= camCtrl(0) when chanConfig.swCamCtrlEn(0) = '0' else chanConfig.swCamCtrl(0);
 
-   cblDirIn(3) <= not config.enable;
-   cblOut(3)   <= (not camCtrl(1)) when config.swCamCtrlEn(1) = '0' else (not config.swCamCtrl(1));
+   cblDirIn(3) <= not chanConfig.enable;
+   cblOut(3)   <= (not camCtrl(1)) when chanConfig.swCamCtrlEn(1) = '0' else (not chanConfig.swCamCtrl(1));
 
-   cblDirIn(0) <= not config.enable;
-   cblOut(0)   <= camCtrl(2) when config.swCamCtrlEn(2) = '0' else config.swCamCtrl(2);
+   cblDirIn(0) <= not chanConfig.enable;
+   cblOut(0)   <= camCtrl(2) when chanConfig.swCamCtrlEn(2) = '0' else chanConfig.swCamCtrl(2);
 
-   cblDirIn(4) <= not config.enable;
-   cblOut(4)   <= (not camCtrl(3)) when config.swCamCtrlEn(3) = '0' else (not config.swCamCtrl(3));
+   cblDirIn(4) <= not chanConfig.enable;
+   cblOut(4)   <= (not camCtrl(3)) when chanConfig.swCamCtrlEn(3) = '0' else (not chanConfig.swCamCtrl(3));
 
 
    -------------------------------
@@ -115,13 +139,14 @@ begin
    U_Uart: entity work.ClinkUart
       generic map (
          TPD_G              => TPD_G,
-         CLK_FREQ_G         => SYS_CLK_FREQ_G,
          UART_READY_EN_G    => UART_READY_EN_G,
          UART_AXIS_CONFIG_G => UART_AXIS_CONFIG_G)
       port map (
-         clk           => sysCLk,
-         rst           => uartRst,
-         baud          => config.serBaud,
+         intClk        => dlyCLk,
+         intRst        => dlyRst,
+         baud          => chanConfig.serBaud,
+         uartClk       => uartClk,
+         uartRst       => uartRst,
          sUartMaster   => sUartMaster,
          sUartSlave    => sUartSlave,
          sUartCtrl     => sUartCtrl,
@@ -136,19 +161,18 @@ begin
    -- Data
    -------------------------------
    U_DeSerial : entity work.ClinkDeSerial
-      generic map ( 
-         TPD_G       => TPD_G,
-         INVERT_34_G => false
-      ) port map (
-         clkIn     => cblIn(0),
-         dataIn    => cblIn(4 downto 1),
-         sysClk    => sysClk,
-         sysRst    => dataRst,
-         locked    => locked,
-         shiftCnt  => shiftCnt,
-         parData   => parData,
-         parValid  => parValid,
-         parReady  => parReady);
+      generic map ( TPD_G => TPD_G )
+      port map (
+         cblIn      => cblIn,
+         dlyClk     => dlyClk,
+         dlyRst     => dlyRst,
+         sysClk     => sysClk,
+         sysRst     => dataRst,
+         linkConfig => linkConfig,
+         linkStatus => linkStatus,
+         parData    => parData,
+         parValid   => parValid,
+         parReady   => parReady);
 
 end architecture rtl;
 

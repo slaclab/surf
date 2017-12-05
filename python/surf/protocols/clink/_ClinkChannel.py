@@ -50,7 +50,8 @@ class ClinkChannel(pr.Device):
             bitSize      =  4,
             bitOffset    =  0,
             base         = pr.UInt,
-            enum         = { 0 : 'None', 1 : '8Bit', 2 : '10Bit', 3 : '12Bit', 4 : '14Bit', 5 : '16Bit', 6 : '24Bit', 7 : '30Bit', 8 : '36Bit'},
+            enum         = { 0 : 'None',  1 : '8Bit',  2 : '10Bit', 3 : '12Bit', 4 : '14Bit', 
+                             5 : '16Bit', 6 : '24Bit', 7 : '30Bit', 8 : '36Bit'},
             mode         = "RW",
         ))
 
@@ -73,7 +74,7 @@ class ClinkChannel(pr.Device):
             bitOffset    =  0,
             minimum      = 0,
             maximum      = 10,
-            base         = "range",
+            base         = pr.UInt,
             mode         = "RW",
         ))
 

@@ -33,14 +33,16 @@ entity ClinkFraming is
       sysClk       : in  sl;
       sysRst       : in  sl;
       -- Config and status
-      config       : in  ClConfigType;
-      status       : out ClStatusType;
+      chanConfig   : in  ClChanConfigType;
+      chanStatus   : out ClChanStatusType;
+      linkStatus   : in  ClLinkStatusArray(2 downto 0);
       -- Data interface
-      locked       : in  slv(2 downto 0);
       parData      : in  Slv28Array(2 downto 0);
       parValid     : in  slv(2 downto 0);
       parReady     : out sl;
       -- Camera data
+      dataClk      : in  sl;
+      dataRst      : in  sl;
       dataMaster   : out AxiStreamMasterType;
       dataSlave    : in  AxiStreamSlaveType);
 end ClinkFraming;
@@ -57,7 +59,7 @@ architecture rtl of ClinkFraming is
       bytes      : integer range 1 to 10;
       inFrame    : sl;
       dump       : sl;
-      status     : ClStatusType;
+      status     : ClChanStatusType;
       master     : AxiStreamMasterType;
    end record RegType;
 
@@ -68,7 +70,7 @@ architecture rtl of ClinkFraming is
       bytes      => 1,
       inFrame    => '0',
       dump       => '0',
-      status     => CL_STATUS_INIT_C,
+      status     => CL_CHAN_STATUS_INIT_C,
       master     => AXI_STREAM_MASTER_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
@@ -85,27 +87,28 @@ architecture rtl of ClinkFraming is
 
 begin
 
-   comb : process (r, sysRst, locked, intCtrl, parData, parValid, config) is
+   comb : process (r, sysRst, linkStatus, intCtrl, parData, parValid, chanConfig) is
       variable v : RegType;
    begin
       v := r;
 
       ---------------------------------
       -- Map parrallel data to ports
+      -- Taken from cameraLink spec V2.0
       ---------------------------------
       v.status.running := '0';
       v.portData       := CL_DATA_INIT_C;
 
       -- DECA Mode
-      if config.linkMode = CLM_DECA_C then
+      if chanConfig.linkMode = CLM_DECA_C then
 
-         v.status.running := uAnd(locked);
+         v.status.running := linkStatus(0).locked and linkStatus(1).locked and linkStatus(2).locked;
          v.portData.valid := uAnd(parValid) and v.status.running;
          v.portData.dv    := '1';
          v.portData.fv    := parData(0)(25);
 
-         -- 8-bit
-         if config.dataMode = CDM_8BIT_C then
+         -- 8-bit, cameraLink spec V2.0, page 16
+         if chanConfig.dataMode = CDM_8BIT_C then
             v.portData.lv                  := parData(0)(24) and parData(1)(27) and parData(2)(27);
             v.portData.data(0)             := parData(0)(7  downto  0);
             v.portData.data(1)             := parData(0)(15 downto  8);
@@ -120,8 +123,8 @@ begin
             v.portData.data(8)             := parData(2)(18 downto 11);
             v.portData.data(9)             := parData(2)(26 downto 19);
 
-         -- 10-bit
-         elsif config.dataMode = CDM_10BIT_C then
+         -- 10-bit, cameraLink spec V2.0, page 17
+         elsif chanConfig.dataMode = CDM_10BIT_C then
             v.portData.lv                  := parData(0)(24) and parData(1)(24) and parData(2)(24);
             v.portData.data(0)(4 downto 0) := parData(0)(4  downto  0);
             v.portData.data(0)(5)          := parData(0)(6);
@@ -165,7 +168,7 @@ begin
       -- Base, Medium, Full Modes
       else
 
-         -- Base, Medium, Full
+         -- Base, Medium, Full, cameraLink spec V2.0 page 15
          v.portData.data(0)(4 downto 0) := parData(0)(4 downto 0);
          v.portData.data(0)(5)          := parData(0)(6);
          v.portData.data(0)(6)          := parData(0)(27);
@@ -177,7 +180,7 @@ begin
          v.portData.data(2)(5 downto 1) := parData(0)(22 downto 18);
          v.portData.data(2)(7 downto 6) := parData(0)(17 downto 16);
 
-         -- Medium, Full
+         -- Medium, Full, cameraLink spec V2.0 pages 15
          v.portData.data(3)(4 downto 0) := parData(1)(4 downto 0);
          v.portData.data(3)(5)          := parData(1)(6);
          v.portData.data(3)(6)          := parData(1)(27);
@@ -189,7 +192,7 @@ begin
          v.portData.data(5)(5 downto 1) := parData(1)(22 downto 18);
          v.portData.data(5)(7 downto 6) := parData(1)(17 downto 16);
 
-         -- Full
+         -- Full, cameraLink spec V2.0 page 15
          v.portData.data(6)(4 downto 0) := parData(2)(4 downto 0);
          v.portData.data(6)(5)          := parData(2)(6);
          v.portData.data(6)(6)          := parData(2)(27);
@@ -202,27 +205,27 @@ begin
          v.portData.data(8)(7 downto 6) := parData(2)(17 downto 16);
 
          -- Determine valids based upon modes
-         case config.linkMode is 
+         case chanConfig.linkMode is 
 
-            -- Base mode, 24 bits
+            -- Base mode, 24 bits, cameraLink spec V2.0 page 15
             when CLM_BASE_C =>
-               v.status.running := locked(0);
+               v.status.running := linkStatus(0).locked;
                v.portData.valid := parValid(0) and v.status.running;
                v.portData.dv    := parData(0)(26);
                v.portData.fv    := parData(0)(25);
                v.portData.lv    := parData(0)(24);
 
-            -- Medium mode, 48 bits
+            -- Medium mode, 48 bits, cameraLink spec V2.0 page 15
             when CLM_MEDM_C =>
-               v.status.running := uAnd(locked(1 downto 0));
+               v.status.running := linkStatus(0).locked and linkStatus(1).locked;
                v.portData.valid := uAnd(parValid(1 downto 0)) and v.status.running;
                v.portData.dv    := parData(0)(26) and parData(1)(26);
                v.portData.fv    := parData(0)(25) and parData(1)(25);
                v.portData.lv    := parData(0)(24) and parData(1)(24);
 
-            -- Full mode, 64 bits
+            -- Full mode, 64 bits, cameraLink spec V2.0 page 15
             when CLM_FULL_C =>
-               v.status.running := uAnd(locked);
+               v.status.running := linkStatus(0).locked and linkStatus(1).locked and linkStatus(2).locked;
                v.portData.valid := uAnd(parValid) and v.status.running;
                v.portData.dv    := parData(0)(26) and parData(1)(26) and parData(2)(26);
                v.portData.fv    := parData(0)(25) and parData(1)(25) and parData(2)(25);
@@ -246,16 +249,16 @@ begin
          v.bytes := 1;
 
          -- Data mode
-         case config.linkMode is 
+         case chanConfig.dataMode is 
 
             -- 8 bits, base, medium, full & deca
             when CDM_8BIT_C =>
                v.byteData := r.portData;
-               v.bytes    := conv_integer(config.tapCount);
+               v.bytes    := conv_integer(chanConfig.tapCount);
 
-            -- 10 bits, base, medium, full & deca
+            -- 10 bits, base, medium, full & deca, cameraLink spec V2.0 pages 19-28
             when CDM_10BIT_C =>
-               if config.linkMode = CLM_DECA_C then
+               if chanConfig.linkMode = CLM_DECA_C then
                   v.byteData := r.portData;
                   v.bytes    := 10;
                else
@@ -268,10 +271,10 @@ begin
                   v.byteData.data(6)             := r.portData.data(3);             -- T4, DD[07:00]
                   v.byteData.data(7)(1 downto 0) := r.portData.data(5)(5 downto 4); -- T4, DD[09:08]
    
-                  v.bytes := conv_integer(config.tapCount & "0"); -- tapCount * 2
+                  v.bytes := conv_integer(chanConfig.tapCount & "0"); -- tapCount * 2
                end if;
    
-            -- 12 bits, base and medium
+            -- 12 bits, base and medium, cameraLink spec V2.0 pages 19-20
             when CDM_12BIT_C =>
                v.byteData.data(0)             := r.portData.data(0);             -- T1, DA[07:00]
                v.byteData.data(1)(3 downto 0) := r.portData.data(1)(3 downto 0); -- T1, DA[11:08]
@@ -282,28 +285,28 @@ begin
                v.byteData.data(6)             := r.portData.data(3);             -- T4, DD[07:00]
                v.byteData.data(7)(3 downto 0) := r.portData.data(5)(7 downto 4); -- T4, DD[11:08]
    
-               v.bytes := conv_integer(config.tapCount & "0"); -- tapCount * 2
+               v.bytes := conv_integer(chanConfig.tapCount & "0"); -- tapCount * 2
    
-            -- 14 bits, base
+            -- 14 bits, base, cameraLink spec V2.0 page 19
             when CDM_14BIT_C =>
                v.byteData.data(0)             := r.portData.data(0);             -- T1, DA[07:00]
                v.byteData.data(1)(5 downto 0) := r.portData.data(1)(5 downto 0); -- T1, DA[13:08]
                v.bytes := 2;
 
-            -- 16 bits, base
+            -- 16 bits, base, cameraLink spec V2.0 page 19
             when CDM_16BIT_C =>
                v.byteData.data(0) := r.portData.data(0); -- T1, DA[07:00]
                v.byteData.data(1) := r.portData.data(1); -- T1, DA[15:08]
                v.bytes := 2;
 
-            -- 24 bits, base
+            -- 24 bits, base, cameraLink spec V2.0 page 19
             when CDM_24BIT_C =>
                v.byteData.data(0) := r.portData.data(0); -- T1, DR[07:00]
                v.byteData.data(1) := r.portData.data(1); -- T2, DG[07:08]
                v.byteData.data(2) := r.portData.data(2); -- T3, DB[07:08]
                v.bytes := 3;
 
-            -- 30 bits, medium
+            -- 30 bits, medium, cameraLink spec V2.0 page 20
             when CDM_30BIT_C =>
                v.byteData.data(0)             := r.portData.data(0);             -- T1, DR[07:00]
                v.byteData.data(1)(1 downto 0) := r.portData.data(1)(1 downto 0); -- T1, DR[09:08]
@@ -313,7 +316,7 @@ begin
                v.byteData.data(5)(1 downto 0) := r.portData.data(5)(1 downto 0); -- T3, DG[09:08]
                v.bytes := 6;
 
-            -- 36 bits, medium
+            -- 36 bits, medium, cameraLink spec V2.0 pages 20
             when CDM_36BIT_C =>
                v.byteData.data(0)             := r.portData.data(0);             -- T1, DR[07:00]
                v.byteData.data(1)(3 downto 0) := r.portData.data(1)(3 downto 0); -- T1, DR[11:08]
@@ -346,8 +349,8 @@ begin
 
       -- Move data
       if r.portData.valid = '1' and r.byteData.valid = '1' and (
-           ( config.frameMode = CFM_FRAME_C and r.byteData.fv = '1') or      -- Frame mode
-           ( config.frameMode = CFM_LINE_C  and r.byteData.lv = '1') ) then  -- Line  mode
+           ( chanConfig.frameMode = CFM_FRAME_C and r.byteData.fv = '1') or      -- Frame mode
+           ( chanConfig.frameMode = CFM_LINE_C  and r.byteData.lv = '1') ) then  -- Line  mode
 
          -- Valid data in byte record
          if r.dump = '0' and r.byteData.dv = '1' and r.byteData.lv = '1' then
@@ -361,8 +364,8 @@ begin
          end if;
 
          -- End of frame or line depending on mode
-         if (config.frameMode = CFM_FRAME_C and r.byteData.fv = '1' and r.portData.fv = '0') or   -- Frame mode
-            (config.frameMode = CFM_LINE_C  and r.byteData.lv = '1' and r.portData.lv = '0') then -- Line mode
+         if (chanConfig.frameMode = CFM_FRAME_C and r.byteData.fv = '1' and r.portData.fv = '0') or   -- Frame mode
+            (chanConfig.frameMode = CFM_LINE_C  and r.byteData.lv = '1' and r.portData.lv = '0') then -- Line mode
 
             -- Frame was dumped, or bad end markers
             if r.dump = '1' or r.inFrame = '0' or r.byteData.dv = '0' or r.byteData.lv = '0' then
@@ -383,13 +386,13 @@ begin
       ---------------------------------
       -- Reset and outputs
       ---------------------------------
-      if (sysRst = '1' or config.dataEn = '0') then
+      if (sysRst = '1' or chanConfig.dataEn = '0') then
          v := REG_INIT_C;
       end if;
 
-      rin      <= v;
-      parReady <= v.ready;
-      status   <= r.status;
+      rin        <= v;
+      parReady   <= v.ready;
+      chanStatus <= r.status;
 
    end process;
 
@@ -421,7 +424,7 @@ begin
       generic map (
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => false,
-         GEN_SYNC_FIFO_G     => true,
+         GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 9,
          FIFO_PAUSE_THRESH_G => 500,
          SLAVE_AXI_CONFIG_G  => MST_CONFIG_C,
@@ -431,8 +434,8 @@ begin
          sAxisRst    => sysRst,
          sAxisMaster => packMaster,
          sAxisCtrl   => intCtrl,
-         mAxisClk    => sysClk,
-         mAxisRst    => sysRst,
+         mAxisClk    => dataClk,
+         mAxisRst    => dataRst,
          mAxisMaster => dataMaster,
          mAxisSlave  => dataSlave);
 
