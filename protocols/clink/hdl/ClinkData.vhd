@@ -27,7 +27,8 @@ use unisim.vcomponents.all;
 
 entity ClinkData is
    generic (
-      TPD_G : time := 1 ns );
+      TPD_G       : time    := 1 ns;
+      INVERT_34_G : boolean := false);
    port (
       -- Cable Input
       cblHalfP   : inout slv(4 downto 0); --  8, 10, 11, 12,  9
@@ -85,7 +86,9 @@ begin
    -- Data
    -------------------------------
    U_DeSerial : entity work.ClinkDeSerial
-      generic map ( TPD_G => TPD_G )
+      generic map ( 
+         TPD_G       => TPD_G,
+         INVERT_34_G => INVERT_34_G)
       port map (
          cblIn      => cblIn,
          dlyClk     => dlyClk,

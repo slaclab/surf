@@ -33,6 +33,7 @@ use unisim.vcomponents.all;
 entity ClinkDeSerial is
    generic (
       TPD_G           : time                  := 1 ns;
+      INVERT_34_G     : boolean               := false;
       IDELAY_VALUE_G  : integer range 0 to 31 := 15); -- 1/2 high speed period , 10
    port (
       -- Input clock and data
@@ -98,12 +99,13 @@ begin
    U_ClkGen : entity work.ClockManager7
       generic map (
          TPD_G               => TPD_G,
+         TYPE_G              => "PLL", -- PLL or MMCM
          INPUT_BUFG_G        => true,
          FB_BUFG_G           => true,
          OUTPUT_BUFG_G       => true, 
          NUM_CLOCKS_G        => 2,
          BANDWIDTH_G         => "OPTIMIZED",
-         CLKIN_PERIOD_G      => 11.765, -- 85 Mhz
+         CLKIN_PERIOD_G      => 11.764, -- 85 Mhz
          DIVCLK_DIVIDE_G     => 1,
          CLKFBOUT_MULT_F_G   => 14.0, -- 1190Mhz
          CLKOUT0_DIVIDE_F_G  => 14.0, -- 85Mhz
@@ -308,37 +310,57 @@ begin
    -- Iserdes Bits
    --         6    5    4    3    2    1    0
    -------------------------------------------------------
-   parDataIn(7)  <= dataShift(1)(6);
-   parDataIn(6)  <= dataShift(1)(5);
-   parDataIn(4)  <= dataShift(1)(4);
-   parDataIn(3)  <= dataShift(1)(3);
-   parDataIn(2)  <= dataShift(1)(2);
-   parDataIn(1)  <= dataShift(1)(1);
-   parDataIn(0)  <= dataShift(1)(0);
+   process ( dataShift ) begin
+      parDataIn(7)  <= dataShift(1)(6);
+      parDataIn(6)  <= dataShift(1)(5);
+      parDataIn(4)  <= dataShift(1)(4);
+      parDataIn(3)  <= dataShift(1)(3);
+      parDataIn(2)  <= dataShift(1)(2);
+      parDataIn(1)  <= dataShift(1)(1);
+      parDataIn(0)  <= dataShift(1)(0);
 
-   parDataIn(18) <= dataShift(2)(6);
-   parDataIn(15) <= dataShift(2)(5);
-   parDataIn(14) <= dataShift(2)(4);
-   parDataIn(13) <= dataShift(2)(3);
-   parDataIn(12) <= dataShift(2)(2);
-   parDataIn(9)  <= dataShift(2)(1);
-   parDataIn(8)  <= dataShift(2)(0);
+      parDataIn(18) <= dataShift(2)(6);
+      parDataIn(15) <= dataShift(2)(5);
+      parDataIn(14) <= dataShift(2)(4);
+      parDataIn(13) <= dataShift(2)(3);
+      parDataIn(12) <= dataShift(2)(2);
+      parDataIn(9)  <= dataShift(2)(1);
+      parDataIn(8)  <= dataShift(2)(0);
 
-   parDataIn(26) <= dataShift(3)(6);
-   parDataIn(25) <= dataShift(3)(5);
-   parDataIn(24) <= dataShift(3)(4);
-   parDataIn(22) <= dataShift(3)(3);
-   parDataIn(21) <= dataShift(3)(2);
-   parDataIn(20) <= dataShift(3)(1);
-   parDataIn(19) <= dataShift(3)(0);
+      if INVERT_34_G then
+         parDataIn(26) <= not dataShift(3)(6);
+         parDataIn(25) <= not dataShift(3)(5);
+         parDataIn(24) <= not dataShift(3)(4);
+         parDataIn(22) <= not dataShift(3)(3);
+         parDataIn(21) <= not dataShift(3)(2);
+         parDataIn(20) <= not dataShift(3)(1);
+         parDataIn(19) <= not dataShift(3)(0);
 
-   parDataIn(23) <= dataShift(4)(6);
-   parDataIn(17) <= dataShift(4)(5);
-   parDataIn(16) <= dataShift(4)(4);
-   parDataIn(11) <= dataShift(4)(3);
-   parDataIn(10) <= dataShift(4)(2);
-   parDataIn(5)  <= dataShift(4)(1);
-   parDataIn(27) <= dataShift(4)(0);
+         parDataIn(23) <= not dataShift(4)(6); 
+         parDataIn(17) <= not dataShift(4)(5);
+         parDataIn(16) <= not dataShift(4)(4);
+         parDataIn(11) <= not dataShift(4)(3);
+         parDataIn(10) <= not dataShift(4)(2);
+         parDataIn(5)  <= not dataShift(4)(1);
+         parDataIn(27) <= not dataShift(4)(0);
+      else
+         parDataIn(26) <= dataShift(3)(6);
+         parDataIn(25) <= dataShift(3)(5);
+         parDataIn(24) <= dataShift(3)(4);
+         parDataIn(22) <= dataShift(3)(3);
+         parDataIn(21) <= dataShift(3)(2);
+         parDataIn(20) <= dataShift(3)(1);
+         parDataIn(19) <= dataShift(3)(0);
+
+         parDataIn(23) <= dataShift(4)(6); 
+         parDataIn(17) <= dataShift(4)(5);
+         parDataIn(16) <= dataShift(4)(4);
+         parDataIn(11) <= dataShift(4)(3);
+         parDataIn(10) <= dataShift(4)(2);
+         parDataIn(5)  <= dataShift(4)(1);
+         parDataIn(27) <= dataShift(4)(0);
+      end if;
+   end process;
 
    --------------------------------------
    -- Output FIFO and status

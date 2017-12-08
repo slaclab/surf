@@ -183,14 +183,14 @@ begin
          -- Medium, Full, cameraLink spec V2.0 pages 15
          v.portData.data(3)(4 downto 0) := parData(1)(4 downto 0);
          v.portData.data(3)(5)          := parData(1)(6);
-         v.portData.data(3)(6)          := parData(1)(27);
-         v.portData.data(3)(7)          := parData(1)(5);
+         v.portData.data(3)(6)          := parData(1)(27);    -- bad
+         v.portData.data(3)(7)          := parData(1)(5);    -- bad
          v.portData.data(4)(2 downto 0) := parData(1)(9  downto  7);
          v.portData.data(4)(5 downto 3) := parData(1)(14 downto 12);
-         v.portData.data(4)(7 downto 6) := parData(1)(11 downto 10);
+         v.portData.data(4)(7 downto 6) := parData(1)(11 downto 10);    -- bad
          v.portData.data(5)(0)          := parData(1)(15);
          v.portData.data(5)(5 downto 1) := parData(1)(22 downto 18);
-         v.portData.data(5)(7 downto 6) := parData(1)(17 downto 16);
+         v.portData.data(5)(7 downto 6) := parData(1)(17 downto 16);    -- bad
 
          -- Full, cameraLink spec V2.0 page 15
          v.portData.data(6)(4 downto 0) := parData(2)(4 downto 0);

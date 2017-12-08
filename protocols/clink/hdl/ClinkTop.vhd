@@ -209,7 +209,9 @@ begin
 
       -- Connector 1, Half 0, Control Base, Data Z for Med, Full, Deca
       U_Cbl1Half0: entity work.ClinkData
-         generic map ( TPD_G => TPD_G )
+         generic map ( 
+            TPD_G       => TPD_G,
+            INVERT_34_G => true)
          port map (
             cblHalfP   => cbl1Half0P,
             cblHalfM   => cbl1Half0M,
