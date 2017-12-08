@@ -119,4 +119,5 @@ AxiVersion: &AxiVersion
       sizeBits: 8
       mode: RO
       description: Firmware Build String
+      encoding: ASCII
     #########################################################
