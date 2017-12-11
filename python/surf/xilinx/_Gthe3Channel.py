@@ -19,6 +19,18 @@
 
 import pyrogue as pr
 
+DIV_ENU = {
+    0: '2',
+    1: '3',
+    2: '4',
+    3: '5',
+    5: '6',
+    7: '10',
+    13: '12',
+    14: '16',
+    15: '20',
+    16: '1'}
+
 class Gthe3Channel(pr.Device):
     def __init__(   self,       
             name        = "Gthe3Channel",
@@ -760,16 +772,20 @@ class Gthe3Channel(pr.Device):
             bitOffset    =  0x07,
             base         = pr.UInt,
             mode         = "RW",
+            enum = {
+                0: '4',
+                1: '5'}
         ))
 
         self.add(pr.RemoteVariable(   
             name         = "CPLL_FBDIV",
             description  = "",
-            offset       =  0xA1,
+            offset       =  0xA0,
             bitSize      =  8,
-            bitOffset    =  0x00,
+            bitOffset    =  8,
             base         = pr.UInt,
             mode         = "RW",
+            enum = DIV_ENU,
         ))
 
         self.add(pr.RemoteVariable(   
@@ -810,6 +826,7 @@ class Gthe3Channel(pr.Device):
             bitOffset    =  0x03,
             base         = pr.UInt,
             mode         = "RW",
+            enum = DIV_ENU,
         ))
 
         self.add(pr.RemoteVariable(   
@@ -1150,6 +1167,23 @@ class Gthe3Channel(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            enum         = {
+                0 : '-',
+                32768 : '0.0' ,
+                57744 : '4.0' ,
+                49648 : '5.0' ,
+                57728 : '8.0' ,
+                57760 : '10.0' ,
+                57730 : '16.0' ,
+                49672 : '16.5' ,
+                57762 : '20.0' ,
+                57734 : '32.0' ,
+                49800 : '33.0' ,
+                57766 : '40.0' ,
+                57742 : '64.0' ,
+                50056 : '66.0' ,
+                57743 : '80.0' ,
+                57775 : '100.0' }
         ))
 
         self.add(pr.RemoteVariable(   
@@ -2580,6 +2614,12 @@ class Gthe3Channel(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            enum = {
+                0: '1',
+                4: '16',
+                1: '2',
+                2: '4',
+                3: '8'},            
         ))
 
         self.add(pr.RemoteVariable(   
@@ -3242,6 +3282,12 @@ class Gthe3Channel(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            enum = {
+                0: '1',
+                4: '16',
+                1: '2',
+                2: '4',
+                3: '8'},
         ))
 
         self.add(pr.RemoteVariable(   
@@ -3660,6 +3706,23 @@ class Gthe3Channel(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            enum         = {
+                0 : '-',
+                32768 : '0.0' ,
+                57744 : '4.0' ,
+                49648 : '5.0' ,
+                57728 : '8.0' ,
+                57760 : '10.0' ,
+                57730 : '16.0' ,
+                49672 : '16.5' ,
+                57762 : '20.0' ,
+                57734 : '32.0' ,
+                49800 : '33.0' ,
+                57766 : '40.0' ,
+                57742 : '64.0' ,
+                50056 : '66.0' ,
+                57743 : '80.0' ,
+                57775 : '100.0' }
         ))
 
         self.add(pr.RemoteVariable(   
