@@ -71,6 +71,7 @@ entity Pgp3GthUsWrapper is
       pgpRefClkN      : in  sl                     := '1';
       pgpRefClkIn     : in  sl                     := '0';
       pgpRefClkOut    : out sl;
+      pgpRefClkDiv2   : out sl;
       -- Clocking
       pgpClk          : out slv(NUM_LANES_G-1 downto 0);
       pgpClkRst       : out slv(NUM_LANES_G-1 downto 0);
@@ -102,8 +103,9 @@ architecture rtl of Pgp3GthUsWrapper is
    signal qpllRefclk : Slv2Array(3 downto 0) := (others => "00");
    signal qpllRst    : Slv2Array(3 downto 0) := (others => "00");
 
-   signal pgpRefClock : sl;
-   signal pgpRefClk   : sl;
+   signal pgpRefClockDiv2 : sl;
+   signal pgpRefClock     : sl;
+   signal pgpRefClk       : sl;
 
    constant NUM_AXIL_MASTERS_C : integer := NUM_LANES_G+1;
    constant QPLL_AXIL_INDEX_C  : integer := NUM_AXIL_MASTERS_C-1;
@@ -119,6 +121,16 @@ architecture rtl of Pgp3GthUsWrapper is
 begin
 
    pgpRefClkOut <= pgpRefClk;
+   
+   U_BUFG_GT : BUFG_GT
+      port map (
+         I       => pgpRefClockDiv2,
+         CE      => '1',
+         CLR     => '0',
+         CEMASK  => '1',
+         CLRMASK => '1',
+         DIV     => "000",              -- Divide by 1
+         O       => pgpRefClkDiv2);
 
    U_pgpRefClk : IBUFDS_GTE3
       generic map (
@@ -129,7 +141,7 @@ begin
          I     => pgpRefClkP,
          IB    => pgpRefClkN,
          CEB   => '0',
-         ODIV2 => open,
+         ODIV2 => pgpRefClockDiv2,
          O     => pgpRefClock);
 
    pgpRefClk <= pgpRefClock when(REFCLK_G = false) else pgpRefClkIn;
