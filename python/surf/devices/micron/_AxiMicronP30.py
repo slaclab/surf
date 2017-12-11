@@ -57,8 +57,8 @@ class AxiMicronP30(pr.Device):
             # Open the MCS file
             self._mcs.open(arg)                                           
 
-            print(f' startAddr: {hex(self._mcs.startAddr)}')
-            print(f' endAddr: {hex(self._mcs.endAddr)}')            
+            # print(f' startAddr: {hex(self._mcs.startAddr)}')
+            # print(f' endAddr: {hex(self._mcs.endAddr)}')            
             
             # Erase the PROM
             self.eraseProm()

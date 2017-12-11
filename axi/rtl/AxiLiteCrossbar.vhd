@@ -2,7 +2,7 @@
 -- File       : AxiLiteCrossbar.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-24
--- Last update: 2017-05-09
+-- Last update: 2017-11-13
 -------------------------------------------------------------------------------
 -- Description: Wrapper around Xilinx generated Main AXI Crossbar for HPS Front End
 -------------------------------------------------------------------------------
@@ -186,6 +186,8 @@ begin
                   if (uOr(v.slave(s).wrReqs) = '0') then
                      v.sAxiWriteSlaves(s).awready := '1';
                      v.sAxiWriteSlaves(s).wready  := '1';
+                     v.sAxiWriteSlaves(s).bresp   := DEC_ERROR_RESP_G;
+                     v.sAxiWriteSlaves(s).bvalid  := '1';
                      v.slave(s).wrState           := S_DEC_ERR_S;
                   else
                      v.slave(s).wrState := S_ACK_S;
@@ -195,9 +197,7 @@ begin
             -- Send error
             when S_DEC_ERR_S =>
                if (sAxiWriteMasters(s).bready = '1') then
-                  v.sAxiWriteSlaves(s).bresp  := DEC_ERROR_RESP_G;
-                  v.sAxiWriteSlaves(s).bvalid := '1';
-                  v.slave(s).wrState          := S_WAIT_AXI_TXN_S;
+                  v.slave(s).wrState := S_WAIT_AXI_TXN_S;
                end if;
 
             -- Transaction is acked
@@ -248,6 +248,9 @@ begin
                   -- Respond with error if decode fails
                   if (uOr(v.slave(s).rdReqs) = '0') then
                      v.sAxiReadSlaves(s).arready := '1';
+                     v.sAxiReadSlaves(s).rresp   := DEC_ERROR_RESP_G;
+                     v.sAxiReadSlaves(s).rdata   := (others => '0');
+                     v.sAxiReadSlaves(s).rvalid  := '1';
                      v.slave(s).rdState          := S_DEC_ERR_S;
                   else
                      v.slave(s).rdState := S_ACK_S;
@@ -257,10 +260,7 @@ begin
             -- Error
             when S_DEC_ERR_S =>
                if (sAxiReadMasters(s).rready = '1') then
-                  v.sAxiReadSlaves(s).rresp  := DEC_ERROR_RESP_G;
-                  v.sAxiReadSlaves(s).rdata  := (others => '0');
-                  v.sAxiReadSlaves(s).rvalid := '1';
-                  v.slave(s).rdState         := S_WAIT_AXI_TXN_S;
+                  v.slave(s).rdState := S_WAIT_AXI_TXN_S;
                end if;
 
             -- Transaction is acked
