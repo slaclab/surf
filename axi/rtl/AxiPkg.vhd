@@ -2,7 +2,7 @@
 -- File       : AxiPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-02
--- Last update: 2016-04-26
+-- Last update: 2017-12-12
 -------------------------------------------------------------------------------
 -- Description: AXI4 Package File
 -------------------------------------------------------------------------------
@@ -29,19 +29,19 @@ package AxiPkg is
    -------------------------------------
    type AxiReadMasterType is record
       -- Read Address channel
-      arvalid  : sl;                    -- Address valid
-      araddr   : slv(63 downto 0);      -- Address
-      arid     : slv(31 downto 0);      -- Address ID
-      arlen    : slv(7 downto 0);       -- Transfer count
-      arsize   : slv(2 downto 0);       -- Bytes per transfer
-      arburst  : slv(1 downto 0);       -- Burst Type
-      arlock   : slv(1 downto 0);       -- Lock control
-      arprot   : slv(2 downto 0);       -- Protection control
-      arcache  : slv(3 downto 0);       -- Cache control
-      arqos    : slv(3 downto 0);       -- QoS value                                        
-      arregion : slv(3 downto 0);       -- Region identifier                                       
+      arvalid  : sl;  -- Address valid
+      araddr   : slv(63 downto 0);  -- Address
+      arid     : slv(31 downto 0);  -- Address ID
+      arlen    : slv(7 downto 0);  -- Transfer count
+      arsize   : slv(2 downto 0);  -- Bytes per transfer
+      arburst  : slv(1 downto 0);  -- Burst Type
+      arlock   : slv(1 downto 0);  -- Lock control
+      arprot   : slv(2 downto 0);  -- Protection control
+      arcache  : slv(3 downto 0);  -- Cache control
+      arqos    : slv(3 downto 0);  -- QoS value                                        
+      arregion : slv(3 downto 0);  -- Region identifier                                       
       -- Read data channel
-      rready   : sl;                    -- Master is ready for data
+      rready   : sl;  -- Master is ready for data
    end record;
    type AxiReadMasterArray is array (natural range<>) of AxiReadMasterType;
    constant AXI_READ_MASTER_INIT_C : AxiReadMasterType := (
@@ -76,13 +76,13 @@ package AxiPkg is
    ------------------------------------
    type AxiReadSlaveType is record
       -- Read Address channel
-      arready : sl;                     -- Slave is ready for address
+      arready : sl;  -- Slave is ready for address
       -- Read data channel
-      rdata   : slv(1023 downto 0);     -- Read data from slave
-      rlast   : sl;                     -- Read data last strobe
-      rvalid  : sl;                     -- Read data is valid
-      rid     : slv(31 downto 0);       -- Read ID tag
-      rresp   : slv(1 downto 0);        -- Read data result
+      rdata   : slv(1023 downto 0);  -- Read data from slave
+      rlast   : sl;  -- Read data last strobe
+      rvalid  : sl;  -- Read data is valid
+      rid     : slv(31 downto 0);  -- Read ID tag
+      rresp   : slv(1 downto 0);  -- Read data result
    end record;
    type AxiReadSlaveArray is array (natural range<>) of AxiReadSlaveType;
    constant AXI_READ_SLAVE_INIT_C : AxiReadSlaveType := (
@@ -105,25 +105,25 @@ package AxiPkg is
    --------------------------------------
    type AxiWriteMasterType is record
       -- Write address channel
-      awvalid  : sl;                    -- Address valid
-      awaddr   : slv(63 downto 0);      -- Address
-      awid     : slv(31 downto 0);      -- Address ID
-      awlen    : slv(7 downto 0);       -- Transfer count (burst length)
-      awsize   : slv(2 downto 0);       -- Bytes per transfer
-      awburst  : slv(1 downto 0);       -- Burst Type
-      awlock   : slv(1 downto 0);       -- Lock control
-      awprot   : slv(2 downto 0);       -- Protection control
-      awcache  : slv(3 downto 0);       -- Cache control
-      awqos    : slv(3 downto 0);       -- QoS value                                        
-      awregion : slv(3 downto 0);       -- Region identifier                                       
+      awvalid  : sl;  -- Address valid
+      awaddr   : slv(63 downto 0);  -- Address
+      awid     : slv(31 downto 0);  -- Address ID
+      awlen    : slv(7 downto 0);  -- Transfer count (burst length)
+      awsize   : slv(2 downto 0);  -- Bytes per transfer
+      awburst  : slv(1 downto 0);  -- Burst Type
+      awlock   : slv(1 downto 0);  -- Lock control
+      awprot   : slv(2 downto 0);  -- Protection control
+      awcache  : slv(3 downto 0);  -- Cache control
+      awqos    : slv(3 downto 0);  -- QoS value                                        
+      awregion : slv(3 downto 0);  -- Region identifier                                       
       -- Write data channel
-      wdata    : slv(1023 downto 0);    -- Write data
-      wlast    : sl;                    -- Write data is last
-      wvalid   : sl;                    -- Write data is valid
-      wid      : slv(31 downto 0);      -- Write ID tag
-      wstrb    : slv(127 downto 0);     -- Write enable strobes, 1 per byte
+      wdata    : slv(1023 downto 0);  -- Write data
+      wlast    : sl;  -- Write data is last
+      wvalid   : sl;  -- Write data is valid
+      wid      : slv(31 downto 0);  -- Write ID tag
+      wstrb    : slv(127 downto 0);  -- Write enable strobes, 1 per byte
       -- Write ack channel
-      bready   : sl;                    -- Write master is ready for status
+      bready   : sl;  -- Write master is ready for status
    end record;
    type AxiWriteMasterArray is array (natural range<>) of AxiWriteMasterType;
    constant AXI_WRITE_MASTER_INIT_C : AxiWriteMasterType := (
@@ -168,13 +168,13 @@ package AxiPkg is
    -------------------------------------
    type AxiWriteSlaveType is record
       -- Write address channel
-      awready : sl;                     -- Write slave is ready for address
+      awready : sl;  -- Write slave is ready for address
       -- Write data channel
-      wready  : sl;                     -- Write slave is ready for data
+      wready  : sl;  -- Write slave is ready for data
       -- Write ack channel
-      bresp   : slv(1 downto 0);        -- Write access status
-      bvalid  : sl;                     -- Write status valid
-      bid     : slv(31 downto 0);       -- Channel ID
+      bresp   : slv(1 downto 0);  -- Write access status
+      bvalid  : sl;  -- Write status valid
+      bid     : slv(31 downto 0);  -- Channel ID
    end record;
    type AxiWriteSlaveArray is array (natural range<>) of AxiWriteSlaveType;
    constant AXI_WRITE_SLAVE_INIT_C : AxiWriteSlaveType := (
@@ -219,7 +219,7 @@ package AxiPkg is
       constant ADDR_WIDTH_C : in positive range 12 to 64 := 32;
       constant DATA_BYTES_C : in positive range 1 to 128 := 4;
       constant ID_BITS_C    : in positive range 1 to 32  := 12;
-      constant LEN_BITS_C   : in natural range 0 to 8   := 4)
+      constant LEN_BITS_C   : in natural range 0 to 8    := 4)
       return AxiConfigType;
 
    constant AXI_CONFIG_INIT_C : AxiConfigType := axiConfig(
@@ -264,8 +264,8 @@ package AxiPkg is
 
    -- Caclulate the byte count for a read request
    function getAxiReadBytes (
-      axiConfig  : AxiConfigType;
-      axiRead    : AxiReadMasterType)
+      axiConfig : AxiConfigType;
+      axiRead   : AxiReadMasterType)
       return slv;
 
 end package AxiPkg;
@@ -276,7 +276,7 @@ package body AxiPkg is
       constant ADDR_WIDTH_C : in positive range 12 to 64 := 32;
       constant DATA_BYTES_C : in positive range 1 to 128 := 4;
       constant ID_BITS_C    : in positive range 1 to 32  := 12;
-      constant LEN_BITS_C   : in natural range 0 to 8   := 4)
+      constant LEN_BITS_C   : in natural range 0 to 8    := 4)
       return AxiConfigType is
       variable ret : AxiConfigType;
    begin
@@ -335,7 +335,7 @@ package body AxiPkg is
       -- Convert to SLV and truncate to size of A*LEN port for this AXI bus
       -- This limits number of txns appropriately based on size of len port
       -- Then resize to 8 bits because our records define A*LEN as 8 bits always.
-      return resize(toSlv(wordCount(burstBytes,axiConfig.DATA_BYTES_C)-1, axiConfig.LEN_BITS_C), 8);
+      return resize(toSlv(wordCount(burstBytes, axiConfig.DATA_BYTES_C)-1, axiConfig.LEN_BITS_C), 8);
    end function getAxiLen;
 
    -- Calculate number of txns in a burst based upon burst size, total remaining bytes,
@@ -348,30 +348,23 @@ package body AxiPkg is
       totalBytes : slv;
       address    : slv)
       return slv is
-      variable max  : natural;
-      variable req  : natural;
-      variable min  : natural;
-      variable maxLen : slv(7 downto 0);
+      variable max : natural;
+      variable req : natural;
+      variable min : natural;
+
    begin
 
       -- Check for 4kB boundary
-      max := 4096 - conv_integer(address(11 downto 0));
-      
-      -- Check the SLV range to prevent negative integer during typecasting 
-      if (totalBytes'HIGH >= 31) then
-         -- Check if the upper bits are non-zero
-         if (totalBytes(totalBytes'HIGH downto 31) /= 0) then
-            req := burstBytes;      
-         else
-            req := minimum(conv_integer(totalBytes(30 downto 0)),burstBytes);      
-         end if;
+      max := 4096 - conv_integer(unsigned(address(11 downto 0)));
+
+      if (totalBytes < burstBytes) then
+         req := conv_integer(totalBytes);
       else
-         req := minimum(conv_integer(totalBytes),burstBytes);      
+         req := burstBytes;
       end if;
-      
-      -- Find the minimum value between the request and max size
-      min  := minimum(req,max);
-      
+
+      min := minimum(req, max);
+
       -- -- Debug prints for simulation
       -- assert false report "burstBytes = " & integer'image(burstBytes) severity note;
       -- assert false report "max = " & integer'image(max) severity note;
@@ -379,22 +372,22 @@ package body AxiPkg is
       -- assert false report "min = " & integer'image(min) severity note;
 
       -- Return the AXI Length value
-      return getAxiLen(axiConfig,min);
+      return getAxiLen(axiConfig, min);
 
    end function getAxiLen;
 
    -- Calculate the byte count for a read request
    function getAxiReadBytes (
-      axiConfig  : AxiConfigType;
-      axiRead    : AxiReadMasterType)
+      axiConfig : AxiConfigType;
+      axiRead   : AxiReadMasterType)
       return slv is
       constant addrLsb : natural := bitSize(AxiConfig.DATA_BYTES_C-1);
       variable tempSlv : slv(AxiConfig.LEN_BITS_C+addrLsb downto 0);
    begin
-      tempSlv := (others=>'0');
+      tempSlv := (others => '0');
 
-      tempSlv(AxiConfig.LEN_BITS_C+addrLsb downto addrLsb) 
-         := axiRead.arlen(AxiConfig.LEN_BITS_C-1 downto 0) + toSlv(1,AxiConfig.LEN_BITS_C+1);
+      tempSlv(AxiConfig.LEN_BITS_C+addrLsb downto addrLsb)
+                     := axiRead.arlen(AxiConfig.LEN_BITS_C-1 downto 0) + toSlv(1, AxiConfig.LEN_BITS_C+1);
 
       tempSlv := tempSlv - axiRead.araddr(addrLsb-1 downto 0);
 
