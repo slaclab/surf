@@ -56,13 +56,11 @@ package ClinkPkg is
    -- Link Configuration Record
    ------------------------------------
    type ClLinkConfigType is record
-      reset       : sl;
-      delay       : slv(4 downto 0);
+      reset  : sl;
    end record ClLinkConfigType;
 
    constant CL_LINK_CONFIG_INIT_C : ClLinkConfigType := (
-      reset       => '0',
-      delay       => (others=>'0'));
+      reset  => '0');
 
    type ClLinkConfigArray is array (natural range<>) of ClLinkConfigType;
 
@@ -71,11 +69,13 @@ package ClinkPkg is
    ------------------------------------
    type ClLinkStatusType is record
       locked      : sl;
-      shiftCnt    : slv(7 downto 0);
+      delay       : slv(4 downto 0);
+      shiftCnt    : slv(2 downto 0);
    end record ClLinkStatusType;
 
    constant CL_LINK_STATUS_INIT_C : ClLinkStatusType := (
       locked      => '0',
+      delay       => (others=>'0'),
       shiftCnt    => (others=>'0'));
 
    type ClLinkStatusArray is array (natural range<>) of ClLinkStatusType;
