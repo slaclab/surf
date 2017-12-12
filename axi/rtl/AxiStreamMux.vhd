@@ -128,6 +128,7 @@ begin
       variable requests : slv(ARB_BITS_C-1 downto 0);
       variable selData  : AxiStreamMasterType;
       variable i        : natural;
+      variable doRearb : boolean;
    begin
       -- Latch the current value   
       v := r;
@@ -170,38 +171,38 @@ begin
             end if;
 
          ----------------------------------------------------------------------
-         when MOVE_S =>
+            if (r.valid = '1') then
+               
+
             v.valid := '0';
-            -- Check if need to move data
-            if (v.master.tValid = '0') and (selData.tValid = '1') then
+
+            -- RE-arbitrate on gaps if interleaving frames
+            -- Also allow disableSel and rearbitrate to work any time
+            if (ILEAVE_EN_G and
+                ((ILEAVE_ON_NOTVALID_G and selData.tValid = '0') or
+                 rearbitrate = '1' or
+                 disableSel(conv_integer(r.ackNum)) = '1')) then
+               v.state := IDLE_S;
+               doRearb := true;
+
+            -- Check if able to move data            
+            elsif (v.master.tValid = '0') and (selData.tValid = '1') then
                -- Accept the data
                v.slaves(conv_integer(r.ackNum)).tReady := '1';
+
                -- Move the AXIS data
-               v.master                                := selData;
-               v.arbCnt                                := r.arbCnt + 1;
+               v.master := selData;
+               -- Increment the txn count
+               v.arbCnt := r.arbCnt + 1;
+               
                -- Check for tLast
                if selData.tLast = '1' then
                   -- Next state
                   v.state := IDLE_S;
+                  doRearb := true;
 
-               elsif (ILEAVE_EN_G) then
-                  if ((ILEAVE_REARB_G /= 0) and (r.arbCnt = ILEAVE_REARB_G-1)) or
-                     rearbitrate = '1' or
-                     disableSel(conv_integer(r.ackNum)) = '1' then
-                     -- rearbitrate after ILEAVE_REARB_G txns
-                     -- Or upon manual rearbitration input
-                     -- Or selected channel being disabled                  
-                     v.state := IDLE_S;
-                  end if;
-               end if;
-
-            -- RE-arbitrate on gaps if interleaving frames
-            -- Also allow disableSel and rearbitrate to work during gaps
-            elsif (v.master.tValid = '0') and (selData.tValid = '0') then
-               if (ILEAVE_EN_G and 
-                   (ILEAVE_ON_NOTVALID_G or
-                    rearbitrate = '1' or
-                    disableSel(conv_integer(r.ackNum)) = '1')) then
+               -- rearbitrate after ILEAVE_REARB_G txns                  
+               elsif (ILEAVE_EN_G) and (ILEAVE_REARB_G /= 0) and (r.arbCnt = ILEAVE_REARB_G-1) then
                   v.state := IDLE_S;
                end if;
             end if;
