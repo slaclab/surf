@@ -365,12 +365,6 @@ package body AxiPkg is
 
       min := minimum(req, max);
 
-      -- -- Debug prints for simulation
-      -- assert false report "burstBytes = " & integer'image(burstBytes) severity note;
-      -- assert false report "max = " & integer'image(max) severity note;
-      -- assert false report "req = " & integer'image(req) severity note;
-      -- assert false report "min = " & integer'image(min) severity note;
-
       -- Return the AXI Length value
       return getAxiLen(axiConfig, min);
 
