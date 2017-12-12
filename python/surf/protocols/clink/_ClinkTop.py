@@ -34,14 +34,13 @@ class ClinkTop(pr.Device):
         ##############################
 
         self.add(pr.RemoteVariable(    
-            name         = "LinkMode",
-            description  = "Link mode control for camera link lanes",
+            name         = "ChanCount",
+            description  = "Supported channels",
             offset       =  0x00,
-            bitSize      =  3,
+            bitSize      =  2,
             bitOffset    =  0x00,
             base         = pr.UInt,
-            enum         = { 0 : 'Disable' , 1 : 'Base', 2 : 'Medium', 3 : 'Full', 4 : 'Deca'},
-            mode         = "RW",
+            mode         = "RO",
         ))
 
         self.add(pr.RemoteVariable(    
@@ -51,17 +50,6 @@ class ClinkTop(pr.Device):
             bitSize      =  1,
             bitOffset    =  0,
             base         = pr.Bool,
-            pollInterval = 1,
-            mode         = "RW",
-        ))
-
-        self.add(pr.RemoteVariable(    
-            name         = "LinkDelay",
-            description  = "Camera link channel reset",
-            offset       =  0x08,
-            bitSize      =  5,
-            bitOffset    =  0,
-            base         = pr.UInt,
             pollInterval = 1,
             mode         = "RW",
         ))
@@ -100,21 +88,10 @@ class ClinkTop(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(    
-            name         = "DualChannel",
-            description  = "Dual channel enabled",
-            offset       =  0x10,
-            bitSize      =  1,
-            bitOffset    =  8,
-            base         = pr.Bool,
-            pollInterval = 1,
-            mode         = "RO",
-        ))
-
-        self.add(pr.RemoteVariable(    
             name         = "ShiftCountA",
             description  = "Shift count for channel",
             offset       =  0x14,
-            bitSize      =  8,
+            bitSize      =  3,
             bitOffset    =  0,
             base         = pr.UInt,
             pollInterval = 1,
@@ -125,7 +102,7 @@ class ClinkTop(pr.Device):
             name         = "ShiftCountB",
             description  = "Shift count for channel",
             offset       =  0x14,
-            bitSize      =  8,
+            bitSize      =  3,
             bitOffset    =  8,
             base         = pr.UInt,
             pollInterval = 1,
@@ -136,7 +113,40 @@ class ClinkTop(pr.Device):
             name         = "ShiftCountC",
             description  = "Shift count for channel",
             offset       =  0x14,
-            bitSize      =  8,
+            bitSize      =  3,
+            bitOffset    =  16,
+            base         = pr.UInt,
+            pollInterval = 1,
+            mode         = "RO",
+        ))
+
+        self.add(pr.RemoteVariable(    
+            name         = "DelayA",
+            description  = "Precision delay for channel A",
+            offset       =  0x18,
+            bitSize      =  5,
+            bitOffset    =  0,
+            base         = pr.UInt,
+            pollInterval = 1,
+            mode         = "RO",
+        ))
+
+        self.add(pr.RemoteVariable(    
+            name         = "DelayB",
+            description  = "Precision delay for channel B",
+            offset       =  0x18,
+            bitSize      =  5,
+            bitOffset    =  8,
+            base         = pr.UInt,
+            pollInterval = 1,
+            mode         = "RO",
+        ))
+
+        self.add(pr.RemoteVariable(    
+            name         = "DelayC",
+            description  = "Precision delay for channel C",
+            offset       =  0x18,
+            bitSize      =  5,
             bitOffset    =  16,
             base         = pr.UInt,
             pollInterval = 1,

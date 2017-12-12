@@ -40,7 +40,7 @@ class ClinkChannel(pr.Device):
             bitOffset    =  0,
             base         = pr.UInt,
             enum         = { 0 : 'Disable' , 1 : 'Base', 2 : 'Medium', 3 : 'Full', 4 : 'Deca'},
-            mode         = "RO",
+            mode         = "RW",
         ))
 
         self.add(pr.RemoteVariable(    

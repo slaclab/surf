@@ -27,7 +27,7 @@ use unisim.vcomponents.all;
 use work.StdRtlPkg.all;
 
 entity ClinkDataClk is
-   generic ( TPD_G  : time := 1 ns;
+   generic ( TPD_G  : time := 1 ns);
    port (
       clkIn      : in  sl;
       rstIn      : in  sl;

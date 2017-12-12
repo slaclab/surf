@@ -29,8 +29,8 @@ entity ClinkData is
    generic ( TPD_G : time := 1 ns );
    port (
       -- Cable Input
-      cblHalfP   : in  slv(4 downto 0); --  8, 10, 11, 12,  9
-      cblHalfM   : in  slv(4 downto 0); -- 21, 23, 24, 25, 22
+      cblHalfP   : inout slv(4 downto 0); --  8, 10, 11, 12,  9
+      cblHalfM   : inout slv(4 downto 0); -- 21, 23, 24, 25, 22
       -- Delay clock, 200Mhz
       dlyClk     : in  sl; 
       -- System clock and reset, must be 100Mhz or greater
@@ -130,7 +130,7 @@ begin
             end if;
 
          -- Wait while recording clock state
-         when WAIT_S =>
+         when WAIT_C_S =>
             v.lastClk := parClock;
 
             if r.count = 0 then
@@ -185,7 +185,7 @@ begin
             v.status.delay := r.delay;
 
             if r.count = 0 then
-               if parClock(0) = "1100011" then
+               if parClock = "1100011" then
                   v.status.locked := '1';
                else
                   v.status.locked := '0';

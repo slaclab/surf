@@ -84,7 +84,6 @@ package ClinkPkg is
    -- Channel Configuration Record
    ------------------------------------
    type ClChanConfigType is record
-      enable      : sl;
       swCamCtrl   : slv(3 downto 0);
       swCamCtrlEn : slv(3 downto 0);
       serBaud     : slv(23 downto 0);
@@ -96,7 +95,6 @@ package ClinkPkg is
    end record ClChanConfigType;
 
    constant CL_CHAN_CONFIG_INIT_C : ClChanConfigType := (
-      enable      => '0',
       swCamCtrl   => (others=>'0'),
       swCamCtrlEn => (others=>'0'),
       serBaud     => (others=>'0'),

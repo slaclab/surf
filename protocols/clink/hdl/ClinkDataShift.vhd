@@ -29,8 +29,8 @@ entity ClinkDataShift is
    generic ( TPD_G : time := 1 ns );
    port (
       -- Input clock and data
-      cblHalfP   : in  slv(4 downto 0);
-      cblHalfM   : in  slv(4 downto 0);
+      cblHalfP   : inout slv(4 downto 0);
+      cblHalfM   : inout slv(4 downto 0);
       -- Async link reset
       linkRst    : in  sl;
       -- Delay clock, 200Mhz
@@ -86,13 +86,13 @@ begin
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 5 )
-      port (
+      port map (
          rst    => intRst,
          wr_clk => intClk,
          wr_en  => delayLd,
          din    => delay,
          rd_clk => dlyClk,
-         valid  => intDelayLd,
+         valid  => intLd,
          dout   => intDelay);
 
    --------------------------------------
@@ -105,9 +105,11 @@ begin
       -- Input buffer
       U_InBuff: IOBUFDS
          port map(
+            I   => '0',
             O   => cblIn(i),
-            I   => cblHalfP(i),
-            IB  => cblHalfM(i));
+            T   => '1',
+            IO  => cblHalfP(i),
+            IOB => cblHalfM(i));
 
       -- Each delay tap = 1/(32 * 2 * 200Mhz) = 78ps 
       -- Input rate = 85Mhz * 7 = 595Mhz = 1.68nS = 21.55 taps
@@ -117,7 +119,7 @@ begin
             DELAY_SRC             => "IDATAIN",      -- Delay input (IDATAIN, DATAIN)
             HIGH_PERFORMANCE_MODE => "TRUE",         -- Reduced jitter ("TRUE"), Reduced power ("FALSE")
             IDELAY_TYPE           => "VAR_LOAD",     -- FIXED, VARIABLE, VAR_LOAD, VAR_LOAD_PIPE
-            IDELAY_VALUE          => IDELAY_VALUE_G, -- Input delay tap setting (0-31)
+            IDELAY_VALUE          => 0,              -- Input delay tap setting (0-31)
             PIPE_SEL              => "FALSE",        -- Select pipelined mode, FALSE, TRUE
             REFCLK_FREQUENCY      => 200.0,          -- IDELAYCTRL clock input frequency in MHz (190.0-210.0, 290.0-310.0).
             SIGNAL_PATTERN        => "DATA"          -- DATA, CLOCK input signal
@@ -132,7 +134,7 @@ begin
             DATAIN      => '0',         -- 1-bit input: Internal delay data input
             IDATAIN     => cblIn(i),    -- 1-bit input: Data input from the I/O
             INC         => '0',         -- 1-bit input: Increment / Decrement tap delay input
-            LD          => intDelayLd,  -- 1-bit input: Load IDELAY_VALUE input
+            LD          => intLd,       -- 1-bit input: Load IDELAY_VALUE input
             LDPIPEEN    => '0',         -- 1-bit input: Enable PIPELINE register to load data input
             REGRST      => '0'          -- 1-bit input: Active-high reset tap-delay input
          );
