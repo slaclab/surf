@@ -2,7 +2,7 @@
 -- File       : AxiStreamMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2017-10-31
+-- Last update: 2017-12-12
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to connect multiple incoming AXI streams into a single encoded
@@ -162,31 +162,16 @@ begin
       case r.state is
          ----------------------------------------------------------------------
          when IDLE_S =>
-            -- Arbitrate between requesters
-            if r.valid = '0' then
-               arbitrate(requests, r.ackNum, v.ackNum, v.valid, v.acks);
-            else
-               -- Reset the Arbitration flag
-               v.valid := '0';
-               -- Check if need to move data
-               if (v.master.tValid = '0') and (selData.tValid = '1') then
-                  -- Accept the data
-                  v.slaves(conv_integer(r.ackNum)).tReady := '1';
-                  -- Move the AXIS data
-                  v.master                                := selData;
-                  -- Check for no-tLast
-                  if selData.tLast = '0' then
-                     -- Next state
-                     v.state := MOVE_S;
-                  end if;
-               else
-                  -- Next state
-                  v.state := MOVE_S;
-               end if;
-            end if;
             v.arbCnt := (others => '0');
+            -- Arbitrate between requesters
+            arbitrate(requests, r.ackNum, v.ackNum, v.valid, v.acks);
+            if (v.valid = '1') then
+               v.state := MOVE_S;
+            end if;
+
          ----------------------------------------------------------------------
          when MOVE_S =>
+            v.valid := '0';
             -- Check if need to move data
             if (v.master.tValid = '0') and (selData.tValid = '1') then
                -- Accept the data
@@ -199,9 +184,8 @@ begin
                   -- Next state
                   v.state := IDLE_S;
 
-
                elsif (ILEAVE_EN_G) then
-                  if ((ILEAVE_REARB_G /= 0) and (r.arbCnt = ILEAVE_REARB_G-2)) or
+                  if ((ILEAVE_REARB_G /= 0) and (r.arbCnt = ILEAVE_REARB_G-1)) or
                      rearbitrate = '1' or
                      disableSel(conv_integer(r.ackNum)) = '1' then
                      -- rearbitrate after ILEAVE_REARB_G txns
@@ -212,10 +196,16 @@ begin
                end if;
 
             -- RE-arbitrate on gaps if interleaving frames
-            elsif (v.master.tValid = '0') and (selData.tValid = '0') and
-               (ILEAVE_EN_G and ILEAVE_ON_NOTVALID_G) then
-               v.state := IDLE_S;
+            -- Also allow disableSel and rearbitrate to work during gaps
+            elsif (v.master.tValid = '0') and (selData.tValid = '0') then
+               if (ILEAVE_EN_G and 
+                   (ILEAVE_ON_NOTVALID_G or
+                    rearbitrate = '1' or
+                    disableSel(conv_integer(r.ackNum)) = '1')) then
+                  v.state := IDLE_S;
+               end if;
             end if;
+
       ----------------------------------------------------------------------
       end case;
 
