@@ -2,7 +2,7 @@
 -- File       : AxiPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-02
--- Last update: 2016-04-26
+-- Last update: 2017-12-12
 -------------------------------------------------------------------------------
 -- Description: AXI4 Package File
 -------------------------------------------------------------------------------
@@ -219,7 +219,7 @@ package AxiPkg is
       constant ADDR_WIDTH_C : in positive range 12 to 64 := 32;
       constant DATA_BYTES_C : in positive range 1 to 128 := 4;
       constant ID_BITS_C    : in positive range 1 to 32  := 12;
-      constant LEN_BITS_C   : in natural range 0 to 8   := 4)
+      constant LEN_BITS_C   : in natural range 0 to 8    := 4)
       return AxiConfigType;
 
    constant AXI_CONFIG_INIT_C : AxiConfigType := axiConfig(
@@ -264,8 +264,8 @@ package AxiPkg is
 
    -- Caclulate the byte count for a read request
    function getAxiReadBytes (
-      axiConfig  : AxiConfigType;
-      axiRead    : AxiReadMasterType)
+      axiConfig : AxiConfigType;
+      axiRead   : AxiReadMasterType)
       return slv;
 
 end package AxiPkg;
@@ -276,7 +276,7 @@ package body AxiPkg is
       constant ADDR_WIDTH_C : in positive range 12 to 64 := 32;
       constant DATA_BYTES_C : in positive range 1 to 128 := 4;
       constant ID_BITS_C    : in positive range 1 to 32  := 12;
-      constant LEN_BITS_C   : in natural range 0 to 8   := 4)
+      constant LEN_BITS_C   : in natural range 0 to 8    := 4)
       return AxiConfigType is
       variable ret : AxiConfigType;
    begin
@@ -333,9 +333,9 @@ package body AxiPkg is
       -- burstBytes / data bytes width is number of txns required.
       -- Subtract by 1 for A*LEN value for even divides.
       -- Convert to SLV and truncate to size of A*LEN port for this AXI bus
-      -- This limits number of txns approraiately based on size of len port
+      -- This limits number of txns appropriately based on size of len port
       -- Then resize to 8 bits because our records define A*LEN as 8 bits always.
-      return resize(toSlv(wordCount(burstBytes,axiConfig.DATA_BYTES_C)-1, axiConfig.LEN_BITS_C), 8);
+      return resize(toSlv(wordCount(burstBytes, axiConfig.DATA_BYTES_C)-1, axiConfig.LEN_BITS_C), 8);
    end function getAxiLen;
 
    -- Calculate number of txns in a burst based upon burst size, total remaining bytes,
@@ -348,30 +348,40 @@ package body AxiPkg is
       totalBytes : slv;
       address    : slv)
       return slv is
-      variable max  : natural;
-      variable req  : natural;
-      variable maxLen : slv(7 downto 0);
+      variable max : natural;
+      variable req : natural;
+      variable min : natural;
+
    begin
 
-      max  := 4096 - conv_integer(address(11 downto 0));
-      req  := minimum(conv_integer(totalBytes),burstBytes);
+      -- Check for 4kB boundary
+      max := 4096 - conv_integer(unsigned(address(11 downto 0)));
 
-      return getAxiLen(axiConfig,minimum(req,max));
+      if (totalBytes < burstBytes) then
+         req := conv_integer(totalBytes);
+      else
+         req := burstBytes;
+      end if;
+
+      min := minimum(req, max);
+
+      -- Return the AXI Length value
+      return getAxiLen(axiConfig, min);
 
    end function getAxiLen;
 
    -- Calculate the byte count for a read request
    function getAxiReadBytes (
-      axiConfig  : AxiConfigType;
-      axiRead    : AxiReadMasterType)
+      axiConfig : AxiConfigType;
+      axiRead   : AxiReadMasterType)
       return slv is
       constant addrLsb : natural := bitSize(AxiConfig.DATA_BYTES_C-1);
       variable tempSlv : slv(AxiConfig.LEN_BITS_C+addrLsb downto 0);
    begin
-      tempSlv := (others=>'0');
+      tempSlv := (others => '0');
 
-      tempSlv(AxiConfig.LEN_BITS_C+addrLsb downto addrLsb) 
-         := axiRead.arlen(AxiConfig.LEN_BITS_C-1 downto 0) + toSlv(1,AxiConfig.LEN_BITS_C+1);
+      tempSlv(AxiConfig.LEN_BITS_C+addrLsb downto addrLsb)
+         := axiRead.arlen(AxiConfig.LEN_BITS_C-1 downto 0) + toSlv(1, AxiConfig.LEN_BITS_C+1);
 
       tempSlv := tempSlv - axiRead.araddr(addrLsb-1 downto 0);
 
