@@ -172,7 +172,7 @@ begin
    U_DualCtrlEn: if CHAN_COUNT_G = 2 generate
 
       -- Connector 1, Half 0, Control Base, Data Z for Med, Full, Deca
-      U_Cbl0Half0: entity work.ClinkCtrl
+      U_Cbl1Half0: entity work.ClinkCtrl
          generic map (
             TPD_G              => TPD_G,
             UART_READY_EN_G    => UART_READY_EN_G,
