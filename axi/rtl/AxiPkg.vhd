@@ -29,19 +29,19 @@ package AxiPkg is
    -------------------------------------
    type AxiReadMasterType is record
       -- Read Address channel
-      arvalid  : sl;  -- Address valid
-      araddr   : slv(63 downto 0);  -- Address
-      arid     : slv(31 downto 0);  -- Address ID
-      arlen    : slv(7 downto 0);  -- Transfer count
-      arsize   : slv(2 downto 0);  -- Bytes per transfer
-      arburst  : slv(1 downto 0);  -- Burst Type
-      arlock   : slv(1 downto 0);  -- Lock control
-      arprot   : slv(2 downto 0);  -- Protection control
-      arcache  : slv(3 downto 0);  -- Cache control
-      arqos    : slv(3 downto 0);  -- QoS value                                        
-      arregion : slv(3 downto 0);  -- Region identifier                                       
+      arvalid  : sl;                    -- Address valid
+      araddr   : slv(63 downto 0);      -- Address
+      arid     : slv(31 downto 0);      -- Address ID
+      arlen    : slv(7 downto 0);       -- Transfer count
+      arsize   : slv(2 downto 0);       -- Bytes per transfer
+      arburst  : slv(1 downto 0);       -- Burst Type
+      arlock   : slv(1 downto 0);       -- Lock control
+      arprot   : slv(2 downto 0);       -- Protection control
+      arcache  : slv(3 downto 0);       -- Cache control
+      arqos    : slv(3 downto 0);       -- QoS value                                        
+      arregion : slv(3 downto 0);       -- Region identifier                                       
       -- Read data channel
-      rready   : sl;  -- Master is ready for data
+      rready   : sl;                    -- Master is ready for data
    end record;
    type AxiReadMasterArray is array (natural range<>) of AxiReadMasterType;
    constant AXI_READ_MASTER_INIT_C : AxiReadMasterType := (
@@ -76,13 +76,13 @@ package AxiPkg is
    ------------------------------------
    type AxiReadSlaveType is record
       -- Read Address channel
-      arready : sl;  -- Slave is ready for address
+      arready : sl;                     -- Slave is ready for address
       -- Read data channel
-      rdata   : slv(1023 downto 0);  -- Read data from slave
-      rlast   : sl;  -- Read data last strobe
-      rvalid  : sl;  -- Read data is valid
-      rid     : slv(31 downto 0);  -- Read ID tag
-      rresp   : slv(1 downto 0);  -- Read data result
+      rdata   : slv(1023 downto 0);     -- Read data from slave
+      rlast   : sl;                     -- Read data last strobe
+      rvalid  : sl;                     -- Read data is valid
+      rid     : slv(31 downto 0);       -- Read ID tag
+      rresp   : slv(1 downto 0);        -- Read data result
    end record;
    type AxiReadSlaveArray is array (natural range<>) of AxiReadSlaveType;
    constant AXI_READ_SLAVE_INIT_C : AxiReadSlaveType := (
@@ -105,25 +105,25 @@ package AxiPkg is
    --------------------------------------
    type AxiWriteMasterType is record
       -- Write address channel
-      awvalid  : sl;  -- Address valid
-      awaddr   : slv(63 downto 0);  -- Address
-      awid     : slv(31 downto 0);  -- Address ID
-      awlen    : slv(7 downto 0);  -- Transfer count (burst length)
-      awsize   : slv(2 downto 0);  -- Bytes per transfer
-      awburst  : slv(1 downto 0);  -- Burst Type
-      awlock   : slv(1 downto 0);  -- Lock control
-      awprot   : slv(2 downto 0);  -- Protection control
-      awcache  : slv(3 downto 0);  -- Cache control
-      awqos    : slv(3 downto 0);  -- QoS value                                        
-      awregion : slv(3 downto 0);  -- Region identifier                                       
+      awvalid  : sl;                    -- Address valid
+      awaddr   : slv(63 downto 0);      -- Address
+      awid     : slv(31 downto 0);      -- Address ID
+      awlen    : slv(7 downto 0);       -- Transfer count (burst length)
+      awsize   : slv(2 downto 0);       -- Bytes per transfer
+      awburst  : slv(1 downto 0);       -- Burst Type
+      awlock   : slv(1 downto 0);       -- Lock control
+      awprot   : slv(2 downto 0);       -- Protection control
+      awcache  : slv(3 downto 0);       -- Cache control
+      awqos    : slv(3 downto 0);       -- QoS value                                        
+      awregion : slv(3 downto 0);       -- Region identifier                                       
       -- Write data channel
-      wdata    : slv(1023 downto 0);  -- Write data
-      wlast    : sl;  -- Write data is last
-      wvalid   : sl;  -- Write data is valid
-      wid      : slv(31 downto 0);  -- Write ID tag
-      wstrb    : slv(127 downto 0);  -- Write enable strobes, 1 per byte
+      wdata    : slv(1023 downto 0);    -- Write data
+      wlast    : sl;                    -- Write data is last
+      wvalid   : sl;                    -- Write data is valid
+      wid      : slv(31 downto 0);      -- Write ID tag
+      wstrb    : slv(127 downto 0);     -- Write enable strobes, 1 per byte
       -- Write ack channel
-      bready   : sl;  -- Write master is ready for status
+      bready   : sl;                    -- Write master is ready for status
    end record;
    type AxiWriteMasterArray is array (natural range<>) of AxiWriteMasterType;
    constant AXI_WRITE_MASTER_INIT_C : AxiWriteMasterType := (
@@ -168,13 +168,13 @@ package AxiPkg is
    -------------------------------------
    type AxiWriteSlaveType is record
       -- Write address channel
-      awready : sl;  -- Write slave is ready for address
+      awready : sl;                     -- Write slave is ready for address
       -- Write data channel
-      wready  : sl;  -- Write slave is ready for data
+      wready  : sl;                     -- Write slave is ready for data
       -- Write ack channel
-      bresp   : slv(1 downto 0);  -- Write access status
-      bvalid  : sl;  -- Write status valid
-      bid     : slv(31 downto 0);  -- Channel ID
+      bresp   : slv(1 downto 0);        -- Write access status
+      bvalid  : sl;                     -- Write status valid
+      bid     : slv(31 downto 0);       -- Channel ID
    end record;
    type AxiWriteSlaveArray is array (natural range<>) of AxiWriteSlaveType;
    constant AXI_WRITE_SLAVE_INIT_C : AxiWriteSlaveType := (
@@ -387,7 +387,7 @@ package body AxiPkg is
       tempSlv := (others => '0');
 
       tempSlv(AxiConfig.LEN_BITS_C+addrLsb downto addrLsb)
-                     := axiRead.arlen(AxiConfig.LEN_BITS_C-1 downto 0) + toSlv(1, AxiConfig.LEN_BITS_C+1);
+         := axiRead.arlen(AxiConfig.LEN_BITS_C-1 downto 0) + toSlv(1, AxiConfig.LEN_BITS_C+1);
 
       tempSlv := tempSlv - axiRead.araddr(addrLsb-1 downto 0);
 
