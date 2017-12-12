@@ -23,6 +23,7 @@ if { ${family} == "zynq" } {
    loadRuckusTcl "$::DIR_PATH/7Series"
 }
 
-if { ${family} == "kintexu" } {
+if { ${family} eq {kintexu} ||
+     ${family} eq {kintexuplus} } {
    loadRuckusTcl "$::DIR_PATH/UltraScale"
 }
