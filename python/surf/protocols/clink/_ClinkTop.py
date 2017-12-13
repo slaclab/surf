@@ -37,7 +37,7 @@ class ClinkTop(pr.Device):
             name         = "ChanCount",
             description  = "Supported channels",
             offset       =  0x00,
-            bitSize      =  2,
+            bitSize      =  4,
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",

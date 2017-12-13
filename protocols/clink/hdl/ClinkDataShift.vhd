@@ -55,7 +55,6 @@ architecture structure of ClinkDataShift is
    signal intClk7xInv   : sl;
    signal intDelay      : slv(4 downto 0);
    signal intLd         : sl;
-   signal rawInput      : slv(4 downto 0);
    signal cblInDly      : slv(4 downto 0);
    signal cblIn         : slv(4 downto 0);
    signal dataShift     : Slv7Array(4 downto 0);
@@ -70,7 +69,7 @@ begin
    U_ClkGen : entity work.ClinkDataClk
       generic map ( TPD_G => TPD_G )
       port map (
-         clkIn      => rawInput(0),
+         clkIn      => cblIn(0),
          rstIn      => linkRst,
          clinkClk   => intClk,  
          clinkClk7x => intClk7x,
@@ -160,7 +159,7 @@ begin
             Q5           => dataShift(i)(4),
             Q6           => dataShift(i)(5),
             Q7           => dataShift(i)(6),
-            O            => rawInput(i),
+            O            => open,
             BITSLIP      => bitSlip,
             CE1          => '1',
             CE2          => '1',
@@ -227,6 +226,8 @@ begin
    parData(27) <= dataShift(4)(0);
 
    parClock <= dataShift(0);
+   clinkClk <= intClk;
+   clinkRst <= intRst;
 
 end structure;
 

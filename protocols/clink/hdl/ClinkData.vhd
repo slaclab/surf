@@ -182,7 +182,6 @@ begin
             v.status.shiftCnt := r.status.shiftCnt + 1;
 
          when DONE_S =>
-            v.status.delay := r.delay;
 
             if r.count = 0 then
                if parClock = "1100011" then
@@ -194,6 +193,8 @@ begin
 
          when others =>
       end case;
+
+      v.status.delay := r.delay;
 
       -- Reset
       if (clinkRst = '1') then

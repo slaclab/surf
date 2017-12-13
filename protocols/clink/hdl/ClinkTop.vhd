@@ -342,7 +342,7 @@ begin
       axiSlaveWaitTxn(axilEp, intWriteMaster, intReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
       -- Common Config
-      axiSlaveRegisterR(axilEp, x"000",  8, toSlv(CHAN_COUNT_G,4));
+      axiSlaveRegisterR(axilEp, x"000",  0, toSlv(CHAN_COUNT_G,4));
       axiSlaveRegister (axilEp, x"004",  0, v.linkConfig.reset);
 
       -- Common Status
