@@ -22,6 +22,23 @@ However, the protocol and its current support in Vivado has several drawbacks
     and requires AXI. In some use cases the AXI interface is already "owned"
     by an application and a second master to be used by XVC is not available.
 
+For the Impatient
+-----------------
+
+1) Add the AxisDebugBridge module to your design; hook up to an AXI Stream.
+   This should probably be a UDP master.
+2) Add ILA cores; under Vivado-2016.04 these *must* be added to the hdl and
+   cannot be added to an already synthesized design!
+3) Compile and install the `xvcSrv` program on a machine that is directly
+   connected to FW.
+4) Start `xvcSrv` (`udp_server_port` is where AXI Stream is connected)
+
+       xvcSrv -t <fw_ip_address>:<udp_server_port>
+
+5) In Vivado connect to the target:
+
+       open_hw_target -xvc_url <xvc_server_ip>:2542
+
 Design Goals
 ------------
 
@@ -112,7 +129,7 @@ Software (xvcSrv)
 -----------------
 
 The `xvcSrv` software must be installed and executed on a machine with
-connectivity to the firware. The basic options for execution are:
+connectivity to the firmware. The basic options for execution are:
 
     xvcSrv [-D transport_driver] -t <target>
 
@@ -159,10 +176,10 @@ When trying to add ILAs to a synthesized design (e.g., via tcl `create_debug_cor
 
 >
 >     Vivado% create_debug_core ila_test ila
-      ERROR: [Common 17-69] Command failed: This design contains a
-      debug_bridge IP configured in either 'From_AXI_to_BSCAN' or
-      'From_JTAG_to_BSCAN' mode. Debug insertion is not currently supported
-      for such designs. Please use the debug instantiation flow. 
+>     ERROR: [Common 17-69] Command failed: This design contains a
+>     debug_bridge IP configured in either 'From_AXI_to_BSCAN' or
+>     'From_JTAG_to_BSCAN' mode. Debug insertion is not currently supported
+>     for such designs. Please use the debug instantiation flow. 
 
 Therefore, under 2016.04 you can only use XVC when instantiating ILAs
 into your hdl code.
@@ -185,7 +202,7 @@ onto the JTAG lines in parallel. For streaming we use the following format:
 where the payload depends on the type of transaction that is executed. All words
 are in little-endian, i.e., LSbits are transmitted/received first (on JTAG).
 
-The 32 least-significant bits of the header are defined, it is left-padded
+The 32 least-significant bits of the header are defined; it is left-padded
 so that the payload is always word aligned. The word size depends on the
 configuration of the core (`AXIS_WIDTH_G`).
 
