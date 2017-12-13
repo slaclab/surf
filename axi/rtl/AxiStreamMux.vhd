@@ -33,10 +33,12 @@ entity AxiStreamMux is
       MODE_G               : string                := "INDEXED";  -- Or "ROUTED"
       TDEST_ROUTES_G       : Slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
       PIPE_STAGES_G        : integer range 0 to 16 := 0;
-      TDEST_LOW_G          : integer range 0 to 7  := 0;   -- LSB of updated tdest for INDEX
+      TDEST_LOW_G          : integer range 0 to 7  := 0;  -- LSB of updated tdest for INDEX
       ILEAVE_EN_G          : boolean               := false;  -- Set to true if interleaving dests, arbitrate on gaps
       ILEAVE_ON_NOTVALID_G : boolean               := false;  -- Rearbitrate when tValid drops on selected channel
-      ILEAVE_REARB_G       : natural               := 0);  -- Max number of transactions between arbitrations, 0 = unlimited
+      ILEAVE_REARB_G       : natural               := 0;  -- Max number of transactions between arbitrations, 0 = unlimited
+      REARB_DELAY_G        : boolean               := false;
+      FORCED_REARB_HOLD_G  : boolean               := false);
    port (
       -- Clock and reset
       axisClk      : in  sl;
@@ -128,7 +130,7 @@ begin
       variable requests : slv(ARB_BITS_C-1 downto 0);
       variable selData  : AxiStreamMasterType;
       variable i        : natural;
-      variable doRearb : boolean;
+      variable doRearb  : boolean;
    begin
       -- Latch the current value   
       v := r;
@@ -159,56 +161,50 @@ begin
          requests(i) := sAxisMastersTmp(i).tValid and not disableSel(i);
       end loop;
 
-      -- State machine
-      case r.state is
-         ----------------------------------------------------------------------
-         when IDLE_S =>
-            v.arbCnt := (others => '0');
-            -- Arbitrate between requesters
-            arbitrate(requests, r.ackNum, v.ackNum, v.valid, v.acks);
-            if (v.valid = '1') then
-               v.state := MOVE_S;
-            end if;
 
-         ----------------------------------------------------------------------
-            if (r.valid = '1') then
-               
+      if (r.valid = '1') then
+         -- RE-arbitrate on gaps if interleaving frames
+         -- Also allow disableSel and rearbitrate to work any time
+         if (ILEAVE_EN_G and
+             ((ILEAVE_ON_NOTVALID_G and selData.tValid = '0') or
+              rearbitrate = '1' or
+              disableSel(conv_integer(r.ackNum)) = '1')) then
 
             v.valid := '0';
+         end if;
 
-            -- RE-arbitrate on gaps if interleaving frames
-            -- Also allow disableSel and rearbitrate to work any time
-            if (ILEAVE_EN_G and
-                ((ILEAVE_ON_NOTVALID_G and selData.tValid = '0') or
-                 rearbitrate = '1' or
-                 disableSel(conv_integer(r.ackNum)) = '1')) then
-               v.state := IDLE_S;
-               doRearb := true;
+         -- Check if able to move data            
+         if (FORCED_REARB_HOLD_G = false or v.valid = '1') and (v.master.tValid = '0') and (selData.tValid = '1') then
+            -- Accept the data
+            v.slaves(conv_integer(r.ackNum)).tReady := '1';
 
-            -- Check if able to move data            
-            elsif (v.master.tValid = '0') and (selData.tValid = '1') then
-               -- Accept the data
-               v.slaves(conv_integer(r.ackNum)).tReady := '1';
+            -- Move the AXIS data
+            v.master := selData;
+            -- Increment the txn count
+            v.arbCnt := r.arbCnt + 1;
 
-               -- Move the AXIS data
-               v.master := selData;
-               -- Increment the txn count
-               v.arbCnt := r.arbCnt + 1;
-               
-               -- Check for tLast
-               if selData.tLast = '1' then
-                  -- Next state
-                  v.state := IDLE_S;
-                  doRearb := true;
+            -- Check for tLast
+            if selData.tLast = '1' then
+               -- Next state
+               v.valid := '0';
 
-               -- rearbitrate after ILEAVE_REARB_G txns                  
-               elsif (ILEAVE_EN_G) and (ILEAVE_REARB_G /= 0) and (r.arbCnt = ILEAVE_REARB_G-1) then
-                  v.state := IDLE_S;
-               end if;
+            -- rearbitrate after ILEAVE_REARB_G txns                  
+            elsif (ILEAVE_EN_G) and (ILEAVE_REARB_G /= 0) and (r.arbCnt = ILEAVE_REARB_G-1) then
+               v.valid := '0';
             end if;
+         end if;
+      end if;
 
-      ----------------------------------------------------------------------
-      end case;
+      if (v.valid = '0') then
+         v.arbCnt := (others => '0');
+      end if;
+
+      if ((v.valid = '0' and REARB_DELAY_G = false) or r.valid = '0') then
+         v.arbCnt := (others => '0');
+         -- Arbitrate between requesters
+         arbitrate(requests, r.ackNum, v.ackNum, v.valid, v.acks);
+      end if;
+
 
       -- Reset
       if (axisRst = '1') then
