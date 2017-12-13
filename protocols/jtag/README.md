@@ -31,7 +31,7 @@ For the Impatient
    cannot be added to an already synthesized design!
 3) Compile and install the `xvcSrv` program on a machine that is directly
    connected to FW.
-4) Start `xvcSrv` (`udp_server_port` is where AXI Stream is connected)
+4) Start `xvcSrv` (`udp_server_port` is where the AXI Stream is connected)
 
        xvcSrv -t <fw_ip_address>:<udp_server_port>
 
