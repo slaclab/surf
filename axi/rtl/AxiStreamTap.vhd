@@ -26,8 +26,7 @@ use work.AxiStreamPkg.all;
 entity AxiStreamTap is
    generic (
       TPD_G          : time                   := 1 ns;
-      TAP_DEST_G     : integer range 1 to 255 := 0;
-      NUM_MASTERS_G  : integer range 1 to 32  := 12);
+      TAP_DEST_G     : integer range 0 to 255 := 0);
    port (
       -- Slave
       sAxisMaster  : in  AxiStreamMasterType;
