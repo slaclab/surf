@@ -160,6 +160,7 @@ begin
          cblHalfP   => cbl0Half1P,
          cblHalfM   => cbl0Half1M,
          dlyClk     => dlyClk,
+         dlyRst     => dlyRst,
          sysClk     => sysClk,
          sysRst     => sysRst,
          linkConfig => r.linkConfig,
@@ -208,11 +209,14 @@ begin
 
       -- Connector 1, Half 0, Control Base, Data Z for Med, Full, Deca
       U_Cbl1Half0: entity work.ClinkData
-         generic map ( TPD_G => TPD_G )
+         generic map ( 
+            TPD_G    => TPD_G,
+            INV_34_G => true)
          port map (
             cblHalfP   => cbl1Half0P,
             cblHalfM   => cbl1Half0M,
             dlyClk     => dlyClk,
+            dlyRst     => dlyRst,
             sysClk     => sysClk,
             sysRst     => sysRst,
             linkConfig => r.linkConfig,
@@ -236,6 +240,7 @@ begin
          cblHalfP   => cbl1Half1P,
          cblHalfM   => cbl1Half1M,
          dlyClk     => dlyClk,
+         dlyRst     => dlyRst,
          sysClk     => sysClk,
          sysRst     => sysRst,
          linkConfig => r.linkConfig,

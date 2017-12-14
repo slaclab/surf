@@ -26,13 +26,16 @@ library unisim;
 use unisim.vcomponents.all;
 
 entity ClinkData is
-   generic ( TPD_G : time := 1 ns );
+   generic ( 
+      TPD_G    : time    := 1 ns;
+      INV_34_G : boolean := false);
    port (
       -- Cable Input
       cblHalfP   : inout slv(4 downto 0); --  8, 10, 11, 12,  9
       cblHalfM   : inout slv(4 downto 0); -- 21, 23, 24, 25, 22
       -- Delay clock, 200Mhz
       dlyClk     : in  sl; 
+      dlyRst     : in  sl; 
       -- System clock and reset, must be 100Mhz or greater
       sysClk     : in  sl;
       sysRst     : in  sl;
@@ -65,7 +68,7 @@ architecture rtl of ClinkData is
    constant REG_INIT_C : RegType := (
       state    => RESET_S,
       lastClk  => (others=>'0'),
-      delay    => "10100", -- 20 taps, almost 1 full cycle
+      delay    => "01111", -- 15 taps, > 1/2 cycle
       delayLd  => '0',
       bitSlip  => '0',
       count    => 99,
@@ -85,12 +88,15 @@ begin
    -- DeSerializer
    -------------------------------
    U_DataShift: entity work.ClinkDataShift
-      generic map ( TPD_G => TPD_G )
+      generic map ( 
+         TPD_G    => TPD_G,
+         INV_34_G => INV_34_G)
       port map (
          cblHalfP    => cblHalfP,
          cblHalfM    => cblHalfM,
          linkRst     => linkConfig.reset,
          dlyClk      => dlyClk,
+         dlyRst      => dlyRst,
          clinkClk    => clinkClk,
          clinkRst    => clinkRst,
          parData     => intData,
@@ -139,7 +145,7 @@ begin
 
          -- Shift clock one delay tick
          when SHIFT_C_S =>
-            v.delay   := r.delay - 1;
+            v.delay   := r.delay + 1;
             v.delayLd := '1';
             v.state   := CHECK_C_S;
 
@@ -148,7 +154,7 @@ begin
             if r.count = 0 then
 
                -- Check for error
-               if r.delay = 0 then
+               if r.delay = 31 then
                   v.state := DONE_S;
 
                -- Check for clock change
@@ -163,7 +169,7 @@ begin
 
          -- Load final clock shift
          when LOAD_C_S =>
-            v.delay   := r.delay + "01010"; -- 10 = 1/2 cycle
+            v.delay   := r.delay - "01010"; -- 10 = 1/2 cycle
             v.delayLd := '1';
             v.state   := CHECK_D_S;
 
@@ -182,9 +188,8 @@ begin
             v.status.shiftCnt := r.status.shiftCnt + 1;
 
          when DONE_S =>
-
             if r.count = 0 then
-               if parClock = "1100011" then
+               if parClock = "1100011" and r.delay /= 31 then
                   v.status.locked := '1';
                else
                   v.status.locked := '0';

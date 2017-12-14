@@ -26,7 +26,9 @@ library unisim;
 use unisim.vcomponents.all;
 
 entity ClinkDataShift is
-   generic ( TPD_G : time := 1 ns );
+   generic ( 
+      TPD_G    : time    := 1 ns;
+      INV_34_G : boolean := false);
    port (
       -- Input clock and data
       cblHalfP   : inout slv(4 downto 0);
@@ -35,6 +37,7 @@ entity ClinkDataShift is
       linkRst    : in  sl;
       -- Delay clock, 200Mhz
       dlyClk     : in  sl;
+      dlyRst     : in  sl;
       -- Parrallel Clock and reset Output, 85Mhz
       clinkClk   : out sl;
       clinkRst   : out sl;
@@ -57,7 +60,9 @@ architecture structure of ClinkDataShift is
    signal intLd         : sl;
    signal cblInDly      : slv(4 downto 0);
    signal cblIn         : slv(4 downto 0);
+   signal rawIn         : slv(4 downto 0);
    signal dataShift     : Slv7Array(4 downto 0);
+   signal clkReset      : sl;
 
    attribute IODELAY_GROUP : string;           
 
@@ -69,11 +74,14 @@ begin
    U_ClkGen : entity work.ClinkDataClk
       generic map ( TPD_G => TPD_G )
       port map (
-         clkIn      => cblIn(0),
-         rstIn      => linkRst,
+         clkIn      => rawIn(0),
+         rstIn      => clkReset,
          clinkClk   => intClk,  
          clinkClk7x => intClk7x,
          clinkRst   => intRst);
+
+   -- Clock reset
+   clkReset <= linkRst or dlyRst;
 
    -- Inverted clock
    intClk7xInv <= not intClk7x;
@@ -159,7 +167,7 @@ begin
             Q5           => dataShift(i)(4),
             Q6           => dataShift(i)(5),
             Q7           => dataShift(i)(6),
-            O            => open,
+            O            => rawIn(i),
             BITSLIP      => bitSlip,
             CE1          => '1',
             CE2          => '1',
@@ -209,21 +217,21 @@ begin
    parData(9)  <= dataShift(2)(1);
    parData(8)  <= dataShift(2)(0);
 
-   parData(26) <= dataShift(3)(6);
-   parData(25) <= dataShift(3)(5);
-   parData(24) <= dataShift(3)(4);
-   parData(22) <= dataShift(3)(3);
-   parData(21) <= dataShift(3)(2);
-   parData(20) <= dataShift(3)(1);
-   parData(19) <= dataShift(3)(0);
+   parData(26) <= (not dataShift(3)(6)) when INV_34_G else dataShift(3)(6);
+   parData(25) <= (not dataShift(3)(5)) when INV_34_G else dataShift(3)(5);
+   parData(24) <= (not dataShift(3)(4)) when INV_34_G else dataShift(3)(4);
+   parData(22) <= (not dataShift(3)(3)) when INV_34_G else dataShift(3)(3);
+   parData(21) <= (not dataShift(3)(2)) when INV_34_G else dataShift(3)(2);
+   parData(20) <= (not dataShift(3)(1)) when INV_34_G else dataShift(3)(1);
+   parData(19) <= (not dataShift(3)(0)) when INV_34_G else dataShift(3)(0);
 
-   parData(23) <= dataShift(4)(6); 
-   parData(17) <= dataShift(4)(5);
-   parData(16) <= dataShift(4)(4);
-   parData(11) <= dataShift(4)(3);
-   parData(10) <= dataShift(4)(2);
-   parData(5)  <= dataShift(4)(1);
-   parData(27) <= dataShift(4)(0);
+   parData(23) <= (not dataShift(4)(6)) when INV_34_G else dataShift(4)(6); 
+   parData(17) <= (not dataShift(4)(5)) when INV_34_G else dataShift(4)(5);
+   parData(16) <= (not dataShift(4)(4)) when INV_34_G else dataShift(4)(4);
+   parData(11) <= (not dataShift(4)(3)) when INV_34_G else dataShift(4)(3);
+   parData(10) <= (not dataShift(4)(2)) when INV_34_G else dataShift(4)(2);
+   parData(5)  <= (not dataShift(4)(1)) when INV_34_G else dataShift(4)(1);
+   parData(27) <= (not dataShift(4)(0)) when INV_34_G else dataShift(4)(0);
 
    parClock <= dataShift(0);
    clinkClk <= intClk;

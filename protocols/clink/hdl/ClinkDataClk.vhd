@@ -44,6 +44,7 @@ architecture rtl of ClinkDataClk is
    signal clkFbOut   : sl;
    signal clkFbIn    : sl;
    signal lockedLoc  : sl;
+   signal genReset   : sl;
 
 begin
 
@@ -99,6 +100,8 @@ begin
          I   => clkOutMmcm(1),
          O   => clkOutLoc(1));
 
+   genReset <= lockedLoc and (not rstIn);
+
    U_RstSync : entity work.RstSync
       generic map (
          TPD_G           => TPD_G,
@@ -107,7 +110,7 @@ begin
          BYPASS_SYNC_G   => false)
       port map (
          clk      => clkOutLoc(0),
-         asyncRst => lockedLoc,
+         asyncRst => genReset,
          syncRst  => clinkRst);
 
    clinkClk   <= clkOutLoc(0);
