@@ -2,7 +2,7 @@
 -- File       : AxiStreamMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2017-12-12
+-- Last update: 2017-12-14
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to connect multiple incoming AXI streams into a single encoded
@@ -29,16 +29,29 @@ use work.AxiStreamPkg.all;
 entity AxiStreamMux is
    generic (
       TPD_G                : time                  := 1 ns;
-      NUM_SLAVES_G         : integer range 1 to 32 := 4;
-      MODE_G               : string                := "INDEXED";  -- Or "ROUTED"
-      TDEST_ROUTES_G       : Slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
       PIPE_STAGES_G        : integer range 0 to 16 := 0;
-      TDEST_LOW_G          : integer range 0 to 7  := 0;  -- LSB of updated tdest for INDEX
-      ILEAVE_EN_G          : boolean               := false;  -- Set to true if interleaving dests, arbitrate on gaps
-      ILEAVE_ON_NOTVALID_G : boolean               := false;  -- Rearbitrate when tValid drops on selected channel
-      ILEAVE_REARB_G       : natural               := 0;  -- Max number of transactions between arbitrations, 0 = unlimited
-      REARB_DELAY_G        : boolean               := false;
+      NUM_SLAVES_G         : integer range 1 to 32 := 4;
+      -- In INDEXED mode, the output TDEST is set based on the selected slave index
+      -- In ROUTED mode, TDEST is set accoring to the TDEST_ROUTES_G table
+      MODE_G               : string                := "INDEXED";
+      -- In ROUTED mode, an array mapping how TDEST should be assigned for each slave port
+      -- Each TDEST bit can be set to '0', '1' or '-' for passthrough from slave TDEST.
+      TDEST_ROUTES_G       : Slv8Array             := (0 => "--------");
+      -- In INDEXED mode, assign slave index to TDEST at this bit offset
+      TDEST_LOW_G          : integer range 0 to 7  := 0;
+      -- Set to true if interleaving dests
+      ILEAVE_EN_G          : boolean               := false;
+      -- Rearbitrate when tValid drops on selected channel, ignored when ILEAVE_EN_G=false      
+      ILEAVE_ON_NOTVALID_G : boolean               := false;
+      -- Max number of transactions between arbitrations, 0 = unlimited, ignored when ILEAVE_EN_G=false
+      ILEAVE_REARB_G       : natural               := 0;
+      -- One cycle gap in stream between during rearbitration.
+      -- Set true for better timing, false for higher throughput.
+      REARB_DELAY_G        : boolean               := true;
+      -- Block selected slave txns arriving on same cycle as rearbitrate or disableSel from going through,
+      -- creating 1 cycle gap. This might be needed logically but decreases throughput.
       FORCED_REARB_HOLD_G  : boolean               := false);
+
    port (
       -- Clock and reset
       axisClk      : in  sl;
@@ -54,18 +67,13 @@ entity AxiStreamMux is
       mAxisSlave  : in  AxiStreamSlaveType);
 end AxiStreamMux;
 
-architecture structure of AxiStreamMux is
+architecture rtl of AxiStreamMux is
 
    constant DEST_SIZE_C : integer := bitSize(NUM_SLAVES_G-1);
    constant ARB_BITS_C  : integer := 2**DEST_SIZE_C;
    constant ACNT_SIZE_G : integer := bitSize(ILEAVE_REARB_G);
 
-   type StateType is (
-      IDLE_S,
-      MOVE_S);
-
    type RegType is record
-      state  : StateType;
       acks   : slv(ARB_BITS_C-1 downto 0);
       ackNum : slv(DEST_SIZE_C-1 downto 0);
       valid  : sl;
@@ -75,7 +83,6 @@ architecture structure of AxiStreamMux is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state  => IDLE_S,
       acks   => (others => '0'),
       ackNum => toSlv(NUM_SLAVES_G-1, DEST_SIZE_C),
       valid  => '0',
@@ -130,7 +137,6 @@ begin
       variable requests : slv(ARB_BITS_C-1 downto 0);
       variable selData  : AxiStreamMasterType;
       variable i        : natural;
-      variable doRearb  : boolean;
    begin
       -- Latch the current value   
       v := r;
@@ -150,6 +156,7 @@ begin
          selData := sAxisMastersTmp(conv_integer(r.ackNum));
       end if;
 
+      -- In INDEXED mode, assign the slave index to TDEST at offset of TDEST_LOW_G
       if MODE_G = "INDEXED" then
          selData.tDest(7 downto TDEST_LOW_G)                         := (others => '0');
          selData.tDest(DEST_SIZE_C+TDEST_LOW_G-1 downto TDEST_LOW_G) := r.ackNum;
@@ -163,55 +170,57 @@ begin
 
 
       if (r.valid = '1') then
-         -- RE-arbitrate on gaps if interleaving frames
-         -- Also allow disableSel and rearbitrate to work any time
-         if (ILEAVE_EN_G and
-             ((ILEAVE_ON_NOTVALID_G and selData.tValid = '0') or
-              rearbitrate = '1' or
-              disableSel(conv_integer(r.ackNum)) = '1')) then
-
-            v.valid := '0';
+         -- RE-arbitrate on gaps if configured to do so
+         -- Also allow disableSel and rearbitrate to work at any time
+         if (ILEAVE_EN_G) then
+            if ((ILEAVE_ON_NOTVALID_G and selData.tValid = '0') or
+                (rearbitrate = '1' or disableSel(conv_integer(r.ackNum)) = '1')) then
+               v.valid := '0';
+            end if;
          end if;
 
-         -- Check if able to move data            
-         if (FORCED_REARB_HOLD_G = false or v.valid = '1') and (v.master.tValid = '0') and (selData.tValid = '1') then
-            -- Accept the data
+         -- Check if able to move data
+         -- Optionally hold  txns that arrive on same cycle as arbitrate or disableSel(r.ackNum)
+         if ((v.master.tValid = '0') and (selData.tValid = '1') and
+             (FORCED_REARB_HOLD_G = false or v.valid = '1')) then
+
+            -- Accept the data from slave
             v.slaves(conv_integer(r.ackNum)).tReady := '1';
 
-            -- Move the AXIS data
+            -- Assign data to output
             v.master := selData;
+
             -- Increment the txn count
             v.arbCnt := r.arbCnt + 1;
 
             -- Check for tLast
             if selData.tLast = '1' then
-               -- Next state
                v.valid := '0';
 
-            -- rearbitrate after ILEAVE_REARB_G txns                  
+            -- Rearbitrate after ILEAVE_REARB_G txns
             elsif (ILEAVE_EN_G) and (ILEAVE_REARB_G /= 0) and (r.arbCnt = ILEAVE_REARB_G-1) then
                v.valid := '0';
             end if;
          end if;
       end if;
 
+      -- v.valid = 0 indicates rearbitration, so reset arbCnt
       if (v.valid = '0') then
          v.arbCnt := (others => '0');
       end if;
 
+      -- Arbitrate between requesters      
       if ((v.valid = '0' and REARB_DELAY_G = false) or r.valid = '0') then
          v.arbCnt := (others => '0');
-         -- Arbitrate between requesters
          arbitrate(requests, r.ackNum, v.ackNum, v.valid, v.acks);
       end if;
-
 
       -- Reset
       if (axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
-      -- Register the variable for next clock cycle
+      -- Assign variable back to signal
       rin <= v;
 
       -- Outputs  
@@ -220,6 +229,14 @@ begin
 
    end process comb;
 
+   seq : process (axisClk) is
+   begin
+      if (rising_edge(axisClk)) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;   
+
+   -- Optional output pipeline registers to ease timing
    AxiStreamPipeline_1 : entity work.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
@@ -232,11 +249,4 @@ begin
          mAxisMaster => mAxisMaster,
          mAxisSlave  => mAxisSlave);
 
-   seq : process (axisClk) is
-   begin
-      if (rising_edge(axisClk)) then
-         r <= rin after TPD_G;
-      end if;
-   end process seq;
-
-end structure;
+end rtl;
