@@ -16,9 +16,10 @@ if { ${family} eq {kintexu} } {
    loadRuckusTcl "$::DIR_PATH/lvdsUltraScale"
 }
 
-# if { ${family} eq {kintexuplus} } {
-   # loadRuckusTcl "$::DIR_PATH/gthUltraScale+"
-# }
+if { ${family} eq {kintexuplus} } {
+   loadRuckusTcl "$::DIR_PATH/gthUltraScale+"
+   loadRuckusTcl "$::DIR_PATH/lvdsUltraScale"
+}
 
 if { ${family} == "artix7" } {
    loadRuckusTcl "$::DIR_PATH/gtp7"
