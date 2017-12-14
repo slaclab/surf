@@ -25,8 +25,8 @@ use work.AxiStreamPkg.all;
 
 entity AxiStreamTap is
    generic (
-      TPD_G          : time                   := 1 ns;
-      TAP_DEST_G     : integer range 0 to 255 := 0);
+      TPD_G      : time                   := 1 ns;
+      TAP_DEST_G : integer range 0 to 255 := 0);
    port (
       -- Slave
       sAxisMaster  : in  AxiStreamMasterType;
@@ -47,7 +47,7 @@ end AxiStreamTap;
 architecture structure of AxiStreamTap is
 
    constant ROUTES_C : Slv8Array := (0 => "--------", 
-                                     1 = toSlv(TAP_DEST_G,8));
+                                     1 => toSlv(TAP_DEST_G,8));
 
    signal iAxisMaster  : AxiStreamMasterType;
    signal iAxisSlave   : AxiStreamSlaveType;
