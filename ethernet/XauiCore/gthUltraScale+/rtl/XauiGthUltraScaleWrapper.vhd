@@ -2,9 +2,9 @@
 -- File       : XauiGthUltraScaleWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2017-12-12
+-- Last update: 2017-12-13
 -------------------------------------------------------------------------------
--- Description: GTH Ultra Scale Wrapper for 10 GigE XAUI
+-- Description: GTH UltraScale+ Wrapper for 10 GigE XAUI
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -62,7 +62,7 @@ entity XauiGthUltraScaleWrapper is
       -- Transceiver Debug Interface
       gtTxPreCursor      : in  slv(19 downto 0)       := (others => '0');
       gtTxPostCursor     : in  slv(19 downto 0)       := (others => '0');
-      gtTxDiffCtrl       : in  slv(15 downto 0)       := x"CCCC";
+      gtTxDiffCtrl       : in  slv(19 downto 0)       := (others => '1');
       gtRxPolarity       : in  slv(3 downto 0)        := x"0";
       gtTxPolarity       : in  slv(3 downto 0)        := x"0";
       -- MGT Clock Port (156.25MHz or 312.5MHz)
@@ -87,7 +87,7 @@ begin
 
    phyReady <= linkUp;
 
-   IBUFDS_GTE3_Inst : IBUFDS_GTE3
+   U_refClk : IBUFDS_GTE4
       port map (
          I     => gtClkP,
          IB    => gtClkN,

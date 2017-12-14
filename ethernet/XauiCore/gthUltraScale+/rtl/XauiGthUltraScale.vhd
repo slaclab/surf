@@ -30,6 +30,8 @@ use unisim.vcomponents.all;
 entity XauiGthUltraScale is
    generic (
       TPD_G            : time                := 1 ns;
+      -- XAUI Configurations
+      REF_CLK_FREQ_G   : real                := 156.25E+6;  -- Support 156.25MHz or 312.5MHz
       -- AXI-Lite Configurations
       EN_AXI_REG_G     : boolean             := false;
       AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C;
@@ -60,11 +62,11 @@ entity XauiGthUltraScale is
       -- Transceiver Debug Interface
       gtTxPreCursor      : in  slv(19 downto 0)       := (others => '0');
       gtTxPostCursor     : in  slv(19 downto 0)       := (others => '0');
-      gtTxDiffCtrl       : in  slv(15 downto 0)       := x"CCCC";
+      gtTxDiffCtrl       : in  slv(19 downto 0)       := (others => '1');
       gtRxPolarity       : in  slv(3 downto 0)        := x"0";
       gtTxPolarity       : in  slv(3 downto 0)        := x"0";
       -- MGT Ports
-      refClk             : in  sl;      -- 156.25MHz
+      refClk             : in  sl;      -- 156.25MHz or 312.5MHz
       gtTxP              : out slv(3 downto 0);
       gtTxN              : out slv(3 downto 0);
       gtRxP              : in  slv(3 downto 0);
@@ -130,109 +132,113 @@ begin
    U_XauiGthUltraScaleCore : entity work.XauiGthUltraScale156p25MHz10GigECore
       port map (
          -- Clocks and Resets
-         dclk                 => phyClock,
-         reset                => status.areset,
-         clk156_out           => phyClock,
-         clk156_lock          => status.clkLock,
-         refclk               => refClk,
+         dclk                         => phyClock,
+         reset                        => status.areset,
+         clk156_out                   => phyClock,
+         clk156_lock                  => status.clkLock,
+         refclk                       => refClk,
          -- PHY Interface
-         xgmii_txd            => phyTxd,
-         xgmii_txc            => phyTxc,
-         xgmii_rxd            => phyRxd,
-         xgmii_rxc            => phyRxc,
+         xgmii_txd                    => phyTxd,
+         xgmii_txc                    => phyTxc,
+         xgmii_rxd                    => phyRxd,
+         xgmii_rxc                    => phyRxc,
          -- MGT Ports
-         xaui_tx_l0_p         => gtTxP(0),
-         xaui_tx_l0_n         => gtTxN(0),
-         xaui_tx_l1_p         => gtTxP(1),
-         xaui_tx_l1_n         => gtTxN(1),
-         xaui_tx_l2_p         => gtTxP(2),
-         xaui_tx_l2_n         => gtTxN(2),
-         xaui_tx_l3_p         => gtTxP(3),
-         xaui_tx_l3_n         => gtTxN(3),
-         xaui_rx_l0_p         => gtRxP(0),
-         xaui_rx_l0_n         => gtRxN(0),
-         xaui_rx_l1_p         => gtRxP(1),
-         xaui_rx_l1_n         => gtRxN(1),
-         xaui_rx_l2_p         => gtRxP(2),
-         xaui_rx_l2_n         => gtRxN(2),
-         xaui_rx_l3_p         => gtRxP(3),
-         xaui_rx_l3_n         => gtRxN(3),
+         xaui_tx_l0_p                 => gtTxP(0),
+         xaui_tx_l0_n                 => gtTxN(0),
+         xaui_tx_l1_p                 => gtTxP(1),
+         xaui_tx_l1_n                 => gtTxN(1),
+         xaui_tx_l2_p                 => gtTxP(2),
+         xaui_tx_l2_n                 => gtTxN(2),
+         xaui_tx_l3_p                 => gtTxP(3),
+         xaui_tx_l3_n                 => gtTxN(3),
+         xaui_rx_l0_p                 => gtRxP(0),
+         xaui_rx_l0_n                 => gtRxN(0),
+         xaui_rx_l1_p                 => gtRxP(1),
+         xaui_rx_l1_n                 => gtRxN(1),
+         xaui_rx_l2_p                 => gtRxP(2),
+         xaui_rx_l2_n                 => gtRxN(2),
+         xaui_rx_l3_p                 => gtRxP(3),
+         xaui_rx_l3_n                 => gtRxN(3),
          -- DRP
-         gt0_drpaddr          => B"000000000",
-         gt0_drpen            => '0',
-         gt0_drpdi            => X"0000",
-         gt0_drpdo            => open,
-         gt0_drprdy           => open,
-         gt0_drpwe            => '0',
-         gt1_drpaddr          => (others => '0'),
-         gt1_drpen            => '0',
-         gt1_drpdi            => X"0000",
-         gt1_drpdo            => open,
-         gt1_drprdy           => open,
-         gt1_drpwe            => '0',
-         gt2_drpaddr          => (others => '0'),
-         gt2_drpen            => '0',
-         gt2_drpdi            => X"0000",
-         gt2_drpdo            => open,
-         gt2_drprdy           => open,
-         gt2_drpwe            => '0',
-         gt3_drpaddr          => (others => '0'),
-         gt3_drpen            => '0',
-         gt3_drpdi            => X"0000",
-         gt3_drpdo            => open,
-         gt3_drprdy           => open,
-         gt3_drpwe            => '0',
+         gt0_drpaddr                  => (others => '0'),
+         gt0_drpen                    => '0',
+         gt0_drpdi                    => X"0000",
+         gt0_drpdo                    => open,
+         gt0_drprdy                   => open,
+         gt0_drpwe                    => '0',
+         gt1_drpaddr                  => (others => '0'),
+         gt1_drpen                    => '0',
+         gt1_drpdi                    => X"0000",
+         gt1_drpdo                    => open,
+         gt1_drprdy                   => open,
+         gt1_drpwe                    => '0',
+         gt2_drpaddr                  => (others => '0'),
+         gt2_drpen                    => '0',
+         gt2_drpdi                    => X"0000",
+         gt2_drpdo                    => open,
+         gt2_drprdy                   => open,
+         gt2_drpwe                    => '0',
+         gt3_drpaddr                  => (others => '0'),
+         gt3_drpen                    => '0',
+         gt3_drpdi                    => X"0000",
+         gt3_drpdo                    => open,
+         gt3_drprdy                   => open,
+         gt3_drpwe                    => '0',
          -- TX Reset and Initialization
-         gt_txpmareset        => B"0000",
-         gt_txpcsreset        => B"0000",
-         gt_txresetdone       => open,
+         gt_reset_tx_datapath         => '0',
+         gt_reset_tx_pll_and_datapath => '0',
+         gt_txpmareset                => B"0000",
+         gt_txpcsreset                => B"0000",
+         gt_txresetdone               => open,
          -- RX Reset and Initialization
-         gt_rxpmareset        => B"0000",
-         gt_rxpcsreset        => B"0000",
-         gt_rxpmaresetdone    => open,
-         gt_rxresetdone       => open,
+         gt_reset_rx_datapath         => '0',
+         gt_reset_rx_pll_and_datapath => '0',
+         gt_rxpmareset                => B"0000",
+         gt_rxpcsreset                => B"0000",
+         gt_rxpmaresetdone            => open,
+         gt_rxresetdone               => open,
          -- Clocking
-         gt_rxbufstatus       => open,
-         gt_txphaligndone     => open,
-         gt_txphinitdone      => open,
-         gt_txdlysresetdone   => open,
-         gt_qplllock          => open,
+         gt_rxbufstatus               => open,
+         gt_txphaligndone             => open,
+         gt_txphinitdone              => open,
+         gt_txdlysresetdone           => open,
+         gt_qplllock                  => open,
          -- Signal Integrity and Functionality
          -- Eye Scan
-         gt_eyescantrigger    => B"0000",
-         gt_eyescanreset      => B"0000",
-         gt_eyescandataerror  => open,
-         gt_rxrate            => X"000",
+         gt_eyescantrigger            => B"0000",
+         gt_eyescanreset              => B"0000",
+         gt_eyescandataerror          => open,
+         gt_rxrate                    => X"000",
          -- Loopback
-         gt_loopback          => X"000",
+         gt_loopback                  => X"000",
          -- Polarity
-         gt_rxpolarity        => gtRxPolarity,
-         gt_txpolarity        => gtTxPolarity,
+         gt_rxpolarity                => gtRxPolarity,
+         gt_txpolarity                => gtTxPolarity,
          -- RX Decision Feedback Equalizer (DFE)
-         gt_rxlpmen           => B"1111",
-         gt_rxdfelpmreset     => B"0000",
+         gt_rxlpmen                   => B"1111",
+         gt_rxdfelpmreset             => B"0000",
          -- TX Driver
-         gt_txpostcursor      => gtTxPostCursor,
-         gt_txprecursor       => gtTxPreCursor,
-         gt_txdiffctrl        => gtTxDiffCtrl,
-         gt_txinhibit         => "0000",
+         gt_txpostcursor              => gtTxPostCursor,
+         gt_txprecursor               => gtTxPreCursor,
+         gt_txdiffctrl                => gtTxDiffCtrl,
+         gt_txinhibit                 => "0000",
          -- PRBS
-         gt_rxprbscntreset    => B"0000",
-         gt_rxprbserr         => open,
-         gt_rxprbssel         => X"0000",
-         gt_txprbssel         => X"0000",
-         gt_txprbsforceerr    => B"0000",
-         gt_rxcdrhold         => B"0000",
-         gt_dmonitorout       => open,
-         gt_pcsrsvdin         => (others => '0'),
+         gt_rxprbscntreset            => B"0000",
+         gt_rxprbserr                 => open,
+         gt_rxprbssel                 => X"0000",
+         gt_txprbssel                 => X"0000",
+         gt_txprbsforceerr            => B"0000",
+         gt_rxcdrhold                 => B"0000",
+         gt_dmonitorout               => open,
+         gt_pcsrsvdin                 => (others => '0'),
          -- Configuration and Status
-         gt_rxdisperr         => open,
-         gt_rxnotintable      => open,
-         gt_rxcommadet        => open,
-         signal_detect        => (others => '1'),
-         debug                => status.debugVector,
-         configuration_vector => config.configVector,
-         status_vector        => status.statusVector);
+         gt_rxdisperr                 => open,
+         gt_rxnotintable              => open,
+         gt_rxcommadet                => open,
+         signal_detect                => (others => '1'),
+         debug                        => status.debugVector,
+         configuration_vector         => config.configVector,
+         status_vector                => status.statusVector);
 
    status.phyReady <= uAnd(status.debugVector);
 
