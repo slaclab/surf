@@ -16,7 +16,8 @@ architecture AxisToJtagTbImpl of AxisToJtagTb is
 
    constant TPD_C : time := 5 ns;
 
-   subtype Slv32 is slv(31 downto 0);
+   subtype Word is slv(31 downto 0);
+   type    WordArray is array( natural range <> ) of Word;
 
    signal clk : sl := '0';
    signal rst : sl := '1';
@@ -34,12 +35,12 @@ architecture AxisToJtagTbImpl of AxisToJtagTb is
    signal txstage  : natural := 0;
    signal rxstage  : natural := 0;
 
-   signal td       : Slv32;
+   signal td       : Word;
    signal tv       : sl := '0';
    signal tl       : sl;
    signal tr       : sl;
 
-   signal rd       : Slv32;
+   signal rd       : Word;
    signal rv       : sl := '0';
    signal rl       : sl;
    signal rr       : sl;
@@ -65,8 +66,8 @@ begin
    variable cnt : natural;
    variable txid: slv(7 downto 0) := x"00";
 
-   procedure send(xin : in Slv32; del : in natural := 0) is
-      variable v_td : Slv32;
+   procedure send(xin : in Word; del : in natural := 0) is
+      variable v_td : Word;
       variable v_tv : sl;
       variable v_tl : sl;
    begin
@@ -101,8 +102,8 @@ begin
       tl <= v_tl after TPD_C;
    end procedure send;
 
-   procedure sendVec(xin : in Slv32Array) is
-      variable v_td : Slv32;
+   procedure sendVec(xin : in WordArray) is
+      variable v_td : Word;
       variable v_tv : sl;
       variable v_tl : sl;
    begin
@@ -209,8 +210,8 @@ begin
       variable v    : natural;
       variable cnt  : natural;
    
-      procedure rcv(expin : in Slv32; lst : in sl) is
-         variable exp : Slv32;
+      procedure rcv(expin : in Word; lst : in sl) is
+         variable exp : Word;
       begin
          exp               := expin;
          exp(27 downto 20) := rxid;
@@ -226,8 +227,8 @@ begin
          end if;
       end procedure rcv;
 
-      procedure rcvVec(exp : in Slv32Array) is
-         variable val : Slv32;
+      procedure rcvVec(exp : in WordArray) is
+         variable val : Word;
       begin
          v := rxstage;
          if ( rr = '0' ) then
