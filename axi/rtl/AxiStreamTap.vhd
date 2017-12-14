@@ -65,8 +65,8 @@ begin
          sAxisSlave      => sAxisSlave,
          mAxisMasters(0) => iAxisMaster,
          mAxisSlaves(0)  => iAxisSlave,
-         mAxisMasters(0) => tmAxisMaster,
-         mAxisSlaves(0)  => tmAxisSlave,
+         mAxisMasters(1) => tmAxisMaster,
+         mAxisSlaves(1)  => tmAxisSlave,
          axisClk         => axisClk,
          axisRst         => axisRst);
 
