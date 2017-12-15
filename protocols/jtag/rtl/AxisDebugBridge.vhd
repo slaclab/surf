@@ -53,6 +53,13 @@ end entity AxisDebugBridge;
 architecture AxisDebugBridgeImpl of AxisDebugBridge is
 
    -- IP
+   -- Must be generated and named DebugBridgeJtag, e.g., with TCL commands:
+   --
+   --    create_ip -name debug_bridge -vendor xilinx.com -library ip -module_name DebugBridgeJtag
+   --    # C_DEBUG_MODE selects JTAG <-> BSCAN mode
+   --    set_property -dict [list CONFIG.C_DEBUG_MODE {4}] [get_ips DebugBridgeJtag]
+   --
+
    component DebugBridgeJtag is
      port (
        jtag_tdi : in  std_logic;
