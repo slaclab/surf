@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- File       : GthUltraScaleQuadPll.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-08
--- Last update: 2017-12-14
+-- Created    : 2017-12-15
+-- Last update: 2017-12-15
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Ultrascale GTH QPLL primitive
 -------------------------------------------------------------------------------
@@ -44,7 +44,8 @@ entity GthUltraScaleQuadPll is
       COMMON_CFG1_G      : slv(15 downto 0)         := x"0000";
       POR_CFG_G          : slv(15 downto 0)         := x"0000";
       PPF_CFG_G          : Slv16Array(1 downto 0)   := (others => x"0600");
-      QPLL_CLKOUT_RATE_G : StringArray(1 downto 0)  := (others => "HALF");
+      QPLL0CLKOUT_RATE_G : string                   := "HALF";
+      QPLL1CLKOUT_RATE_G : string                   := "HALF";
       QPLL_CFG0_G        : Slv16Array(1 downto 0)   := (others => x"331C");
       QPLL_CFG1_G        : Slv16Array(1 downto 0)   := (others => x"D038");
       QPLL_CFG1_G3_G     : Slv16Array(1 downto 0)   := (others => x"D038");
@@ -141,7 +142,7 @@ begin
          POR_CFG               => POR_CFG_G,
          PPF0_CFG              => PPF_CFG_G(0),
          PPF1_CFG              => PPF_CFG_G(1),
-         QPLL0CLKOUT_RATE      => QPLL_CLKOUT_RATE_G(0),
+         QPLL0CLKOUT_RATE      => QPLL0CLKOUT_RATE_G,
          QPLL0_CFG0            => QPLL_CFG0_G(0),
          QPLL0_CFG1            => QPLL_CFG1_G(0),
          QPLL0_CFG1_G3         => QPLL_CFG1_G3_G(0),
@@ -165,7 +166,7 @@ begin
          QPLL0_SDM_CFG0        => QPLL_SDM_CFG0_G(0),
          QPLL0_SDM_CFG1        => QPLL_SDM_CFG1_G(0),
          QPLL0_SDM_CFG2        => QPLL_SDM_CFG2_G(0),
-         QPLL1CLKOUT_RATE      => QPLL_CLKOUT_RATE_G(1),
+         QPLL1CLKOUT_RATE      => QPLL1CLKOUT_RATE_G,
          QPLL1_CFG0            => QPLL_CFG0_G(1),
          QPLL1_CFG1            => QPLL_CFG1_G(1),
          QPLL1_CFG1_G3         => QPLL_CFG1_G3_G(1),

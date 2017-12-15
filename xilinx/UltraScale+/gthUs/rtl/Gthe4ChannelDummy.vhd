@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- File       : Gthe4ChannelDummy.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-10-18
--- Last update: 2017-10-18
+-- Created    : 2017-12-15
+-- Last update: 2017-12-15
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -383,7 +383,7 @@ begin
             TXSYSCLKSEL          => (others => '0'),
             TXUSERRDY            => '0',
             TXUSRCLK             => '0',
-            TXUSRCLK2            => '0');        
+            TXUSRCLK2            => '0');
    end generate GEN_VEC;
 
 end architecture mapping;
