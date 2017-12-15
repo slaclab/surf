@@ -42,7 +42,6 @@ package StdRtlPkg is
    type RealArray     is array (natural range <>) of real;
    type TimeArray     is array (natural range <>) of time;
    type BooleanArray  is array (natural range <>) of boolean;
-   type StringArray   is array (natural range <>) of string;
    
    -- Declare vector arrays of built in types
    --type SlvVectorArray     is array (natural range<>, natural range<>) of slv;   -- not supported in VCS yet (14APRIL2014 -- LLR)
@@ -52,7 +51,6 @@ package StdRtlPkg is
    type RealVectorArray     is array (natural range<>, natural range<>) of real;
    type TimeVectorArray     is array (natural range<>, natural range<>) of time;
    type BooleanVectorArray  is array (natural range<>, natural range<>) of boolean;   
-   type StringVectorArray   is array (natural range<>, natural range<>) of string;   
 
    -- Create an arbitrary sized slv with all bits set high or low
    function slvAll (size  : positive; value : sl) return slv;
