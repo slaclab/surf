@@ -1,3 +1,33 @@
+#-----------------------------------------------------------------------------
+# Title      : JTAG Support
+#-----------------------------------------------------------------------------
+# File       : makefile
+# Author     : Till Straumann <strauman@slac.stanford.edu>
+# Company    : SLAC National Accelerator Laboratory
+# Created    : 2017-12-05
+# Last update: 2017-12-05
+# Platform   :
+# Standard   : VHDL'93/02
+#-----------------------------------------------------------------------------
+# Description:
+#-----------------------------------------------------------------------------
+# This file is part of 'SLAC Firmware Standard Library'.
+# It is subject to the license terms in the LICENSE.txt file found in the
+# top-level directory of this distribution and at:
+#    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+# No part of 'SLAC Firmware Standard Library', including this file,
+# may be copied, modified, propagated, or distributed except according to
+# the terms contained in the LICENSE.txt file.
+#-----------------------------------------------------------------------------
+
+# If you want to cross-compile this program define
+# the path to the cross-tools either here or on the
+# command line
+#
+# CROSS=/path/to/arm-linux-
+#
+# so that $(CROSS)$(CXX) points to a valid cross compiler
+
 all: xvcSrv drvFifo.so
 
 OBJS=xvcSrv.o xvcDrvLoopBack.o xvcConn.o xvcDrvUdp.o
