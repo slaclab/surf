@@ -71,7 +71,7 @@
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_RX_USRCLK_FREQUENCY">156.2500000</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_SECONDARY_QPLL_ENABLE">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_SECONDARY_QPLL_REFCLK_FREQUENCY">257.8125</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_SIM_CPLL_CAL_BYPASS">&quot;0&quot;</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_SIM_CPLL_CAL_BYPASS">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_TOTAL_NUM_CHANNELS">1</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_TOTAL_NUM_COMMONS">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_TOTAL_NUM_COMMONS_EXAMPLE">0</spirit:configurableElementValue>
@@ -111,7 +111,7 @@
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.INCLUDE_CPLL_CAL">2</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.INS_LOSS_NYQ">14</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.INTERNAL_CHANNEL_COLUMN_LOC_MAX">96</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.INTERNAL_CHANNEL_SITES_UPDATED">5</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.INTERNAL_CHANNEL_SITES_UPDATED">13</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.INTERNAL_GT_PRIM_TYPE">gthe3</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.INTERNAL_NUM_COMMONS_CORE">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.INTERNAL_NUM_COMMONS_EXAMPLE">0</spirit:configurableElementValue>
@@ -649,7 +649,7 @@
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.INTERNAL_PORT_ENABLED_UBMDMTDO_OUT">-1</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.INTERNAL_PORT_ENABLED_UBRSVDOUT_OUT">-1</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.INTERNAL_PORT_ENABLED_UBTXUART_OUT">-1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.INTERNAL_PORT_ENABLEMENT_UPDATED">26</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.INTERNAL_PORT_ENABLEMENT_UPDATED">57</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.INTERNAL_PORT_USAGE_UPDATED">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.INTERNAL_PRESET">Aurora_8B10B</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.INTERNAL_RX_COMMA_PRESET_UPDATE">6</spirit:configurableElementValue>
@@ -1404,6 +1404,7 @@
             <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.RX_PLL_TYPE" xilinx:valueSource="user"/>
             <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.RX_PPM_OFFSET" xilinx:valueSource="user"/>
             <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.RX_REFCLK_FREQUENCY" xilinx:valueSource="user"/>
+            <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.RX_REFCLK_SOURCE" xilinx:valueSource="user"/>
             <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.RX_USER_DATA_WIDTH" xilinx:valueSource="user"/>
             <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.TXPROGDIV_FREQ_SOURCE" xilinx:valueSource="user"/>
             <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.TXPROGDIV_FREQ_VAL" xilinx:valueSource="user"/>
