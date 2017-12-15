@@ -169,6 +169,19 @@ From vivado (e.g., tcl console in the hardware manager) a connection to the
 If the port xvcSrv binds to was changed (with -p) then the port passed to
 `open_hw_target` must be changed accordingly.
 
+*Note*: When using an ssh tunnel (or another kind of WAN connection) then it
+seems to be better to run a `hw_server` close to the target, i.e., the
+machine where `xvcSrv` runs. This gives better response than connecting
+from far away to the XVC server directly. E.g.,:
+
+    bash$  ssh -L3121:localhost:3121 gateway_host hw_server
+
+and in Vivado you proceed as usual, i.e., connect to the default
+server (which is now visible at tcp port 3121) and open a xvc target:
+
+    %open_hw_server -url     localhost:3121
+    %open_hw_target -xvc_url <xvcSrvHost>:2542
+
 
 #### Limitation of ILA Design Flow in Vivado 2016.04
 
