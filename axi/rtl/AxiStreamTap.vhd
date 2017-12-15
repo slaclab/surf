@@ -64,8 +64,8 @@ begin
          sAxisMaster     => sAxisMaster,
          sAxisSlave      => sAxisSlave,
          mAxisMasters(0) => iAxisMaster,
-         mAxisSlaves(0)  => iAxisSlave,
          mAxisMasters(1) => tmAxisMaster,
+         mAxisSlaves(0)  => iAxisSlave,
          mAxisSlaves(1)  => tmAxisSlave,
          axisClk         => axisClk,
          axisRst         => axisRst);
@@ -80,11 +80,11 @@ begin
          ILEAVE_REARB_G => 0)
       port map (
          axisClk         => axisClk,
-         axisRst         => axisRst);
+         axisRst         => axisRst,
          sAxisMasters(0) => iAxisMaster,
+         sAxisMasters(1) => tsAxisMaster,
          sAxisSlaves(0)  => iAxisSlave,
-         sAxisMasters(1) => tmAxisMaster,
-         sAxisSlaves(1)  => tmAxisSlave,
+         sAxisSlaves(1)  => tsAxisSlave,
          mAxisMaster     => mAxisMaster,
          mAxisSlave      => mAxisSlave);
 
