@@ -162,10 +162,23 @@ use work.AxiStreamPkg.all;
 entity AxisToJtag is
    generic (
       TPD_G            : time                       := 1 ns;
-      AXIS_FREQ_G      : real                       := 0.0;   -- Hz (for computing TCK period)
-      AXIS_WIDTH_G     : positive range 4 to 16     := 4;     -- bytes
-      CLK_DIV2_G       : positive                   := 4;     -- half-period of TCK in axisClk cycles
-      MEM_DEPTH_G      : natural  range 0 to 65535  := 4      -- size of buffer memory (0 for none)
+      -- Clock frequency in Hz. This information is used for computing
+      -- the JTAG clock frequency which is sent as part of a QUERY reply.
+      -- If unset (=0.0) then this will cause the XVC server (software)
+      -- to always return the requested (and not the true) TCK frequency
+      -- in the XVC 'settck' command.
+      AXIS_FREQ_G      : real                       := 0.0;
+      -- Width in bytes of the TDATA; this module does not support TKEEP
+      -- nor resizing the I/O streams.
+      AXIS_WIDTH_G     : positive range 4 to 16     := 4;
+      -- Half period of TCK in axisClk cycles. I.e., for a given TCK
+      -- frequency set CLK_DIV2_G = round( AXIS_FREQ_G / TCK_FREQ / 2 );
+      CLK_DIV2_G       : positive                   := 4;
+      -- Depth of buffer memory (in units of words of width AXIS_WIDTH_G)
+      -- Setting to zero disables memory.
+      MEM_DEPTH_G      : natural  range 0 to 65535  := 4;
+      -- Memory type inference (Vivado) - use 'auto', 'block' or 'distributed'
+      MEM_STYLE_G      : string                     := "auto"
    );
    port (
       axisClk          : in sl;
@@ -406,15 +419,26 @@ architecture AxisToJtagImpl of AxisToJtag is
       tdoRen      : sl;
    end record CombSigType;
 
-   signal s      : CombSigType;
+   signal s            : CombSigType;
 
    -- buffer memory
-   signal bufMem : MemType;
+   signal bufMem       : MemType;
+
+   attribute ram_style : string;
+
+   attribute ram_style of bufMem : signal is MEM_STYLE_G;
 
    -- memory readout port
    signal memOut : slv(WORD_SIZE_C - 1 downto 0);
 
 begin
+   assert (AXIS_FREQ_G >= 0.0)
+      report "AXIS_FREQ_G cannot be negative"
+      severity failure;
+
+   assert (MEM_STYLE_G = "auto" or MEM_STYLE_G = "distributed" or MEM_STYLE_G = "block")
+      report "MEM_STYLE_G must be one of 'auto', 'distributed' or 'block'"
+      severity failure;
 
    -- Control flow of the input stream to the AxisToJtagCore.
    -- We stop the flow while inspecting the header or during
