@@ -31,8 +31,6 @@ entity XauiGthUltraScaleWrapper is
       TPD_G             : time                := 1 ns;
       EN_WDT_G          : boolean             := false;
       STABLE_CLK_FREQ_G : real                := 156.25E+6;  -- Support 156.25MHz or 312.5MHz
-      -- XAUI Configurations
-      REF_CLK_FREQ_G    : real                := 156.25E+6;  -- Support 156.25MHz or 312.5MHz
       -- AXI-Lite Configurations
       EN_AXI_REG_G      : boolean             := false;
       AXI_ERROR_RESP_G  : slv(1 downto 0)     := AXI_RESP_SLVERR_C;
@@ -136,8 +134,6 @@ begin
    XauiGthUltraScale_Inst : entity work.XauiGthUltraScale
       generic map (
          TPD_G            => TPD_G,
-         -- XAUI Configurations
-         REF_CLK_FREQ_G   => REF_CLK_FREQ_G,
          -- AXI-Lite Configurations
          EN_AXI_REG_G     => EN_AXI_REG_G,
          AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,

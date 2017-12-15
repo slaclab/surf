@@ -11,10 +11,13 @@ if { ${family} == "virtex7" } {
    loadRuckusTcl "$::DIR_PATH/gth7"
 }
 
-if { ${family} eq {kintexu} ||
-     ${family} eq {kintexuplus} } {
+if { ${family} eq {kintexu} } {
    loadRuckusTcl "$::DIR_PATH/gthUltraScale"
 }
+
+# if { ${family} eq {kintexuplus} } {
+   # loadRuckusTcl "$::DIR_PATH/gthUltraScale+"
+# }
 
 if { ${family} == "artix7" } {
    loadRuckusTcl "$::DIR_PATH/gtp7"

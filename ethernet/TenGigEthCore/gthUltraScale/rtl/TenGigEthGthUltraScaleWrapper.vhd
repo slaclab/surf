@@ -26,8 +26,7 @@ use work.TenGigEthPkg.all;
 
 entity TenGigEthGthUltraScaleWrapper is
    generic (
-      TPD_G             : time                             := 1 ns;
-      REF_CLK_FREQ_G    : real                             := 156.25E+6;  -- Support 156.25MHz or 312.5MHz            
+      TPD_G             : time                             := 1 ns;    
       NUM_LANE_G        : natural range 1 to 4             := 1;
       -- QUAD PLL Configurations
       QPLL_REFCLK_SEL_G : slv(2 downto 0)                  := "001";
@@ -71,7 +70,7 @@ entity TenGigEthGthUltraScaleWrapper is
       gtTxDiffCtrl        : in  slv(3 downto 0)                                := "1110";
       gtRxPolarity        : in  sl                                             := '0';
       gtTxPolarity        : in  sl                                             := '0';
-      -- MGT Clock Port (156.25 MHz or 312.5 MHz)
+      -- MGT Clock Port (156.25 MHz)
       gtRefClk            : in  sl                                             := '0';
       gtClkP              : in  sl                                             := '1';
       gtClkN              : in  sl                                             := '0';
@@ -117,10 +116,9 @@ begin
    TenGigEthGthUltraScaleClk_Inst : entity work.TenGigEthGthUltraScaleClk
       generic map (
          TPD_G             => TPD_G,
-         REF_CLK_FREQ_G    => REF_CLK_FREQ_G,
          QPLL_REFCLK_SEL_G => QPLL_REFCLK_SEL_G)         
       port map (
-         -- MGT Clock Port (156.25 MHz or 312.5 MHz)
+         -- MGT Clock Port (156.25 MHz)
          gtRefClk      => gtRefClk,
          gtClkP        => gtClkP,
          gtClkN        => gtClkN,
@@ -144,7 +142,6 @@ begin
       TenGigEthGthUltraScale_Inst : entity work.TenGigEthGthUltraScale
          generic map (
             TPD_G            => TPD_G,
-            REF_CLK_FREQ_G   => REF_CLK_FREQ_G,
             -- AXI-Lite Configurations
             EN_AXI_REG_G     => EN_AXI_REG_G,
             AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
