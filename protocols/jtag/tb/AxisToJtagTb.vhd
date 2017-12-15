@@ -38,15 +38,7 @@ architecture AxisToJtagTbImpl of AxisToJtagTb is
 
    constant TPD_C : time := 5 ns;
 
-   constant WL_C  : natural := 8;
-   constant BL_C  : natural := 8*WL_C;
-
-   constant WRD_C : slv(3 downto 0) := toSlv(WL_C - 1, 4);
-
-   constant PAD_C : slv(31 downto 0)     := ( others => '0' );
-   constant ZER_C : slv(BL_C-1 downto 0) := ( others => '0' );
-
-   subtype Word is slv(BL_C-1 downto 0);
+   subtype Word is slv(31 downto 0);
    type    WordArray is array( natural range <> ) of Word;
 
    signal clk : sl := '0';
@@ -81,11 +73,11 @@ begin
 
    tr <= sAxisTdi.tReady;
 
-   mAxisTdi.tValid                 <= tv;
-   mAxisTdi.tLast                  <= tl;
-   mAxisTdi.tData(BL_C-1 downto 0) <= td;
+   mAxisTdi.tValid             <= tv;
+   mAxisTdi.tLast              <= tl;
+   mAxisTdi.tData(31 downto 0) <= td;
 
-   rd <= mAxisTdo.tData(BL_C-1 downto 0);
+   rd <= mAxisTdo.tData(31 downto 0);
    rv <= mAxisTdo.tValid;
    rl <= mAxisTdo.tLast;
 
@@ -180,58 +172,53 @@ begin
             when 4     =>
             when 5     =>
                -- normal query
-               send( (PAD_C & x"00000000") );
+               send( x"00000000" );
             when 6     =>
                -- bad version; too long a frame
-               send( (PAD_C & x"40000000"), 4 );
+               send( x"40000000", 4 );
             when 7     =>
                -- bad command
-               send( (PAD_C & x"20000000") );
+               send( x"20000000" );
             when 8     =>
                -- single word shift
-               sendVec( ( (PAD_C & x"1000001f"), ZER_C, (PAD_C & x"deadbeef") ) );
+               sendVec( (x"1000001f", x"00000000", x"deadbeef" ) );
             when 9     =>
                -- word and bit shift
-               sendVec( ( (PAD_C & x"10000020"), ZER_C, (x"00000001" & x"affecafe") ) );
+               sendVec( (x"10000020", x"00000000", x"affecafe", x"00000000", x"00000001") );
             when 10    =>
                -- extra words
-               sendVec( ( (PAD_C & x"10000004"), (x"ffffffff" & x"deadbeef"), (PAD_C & x"deadbe33") ) );
+               sendVec( (x"10000004", x"00000000", x"deadbe33", x"deadbeef", x"ffffffff") );
             when 11    =>
                -- short frame (should be truncated)
-               sendVec( ( (PAD_C & x"10000040"), (x"ffffffff" & x"00000000"), (x"09abcdef" & x"12345678") ) );
+               sendVec( (x"10000020", x"00000000", x"12345678", x"ffffffff") );
             when 12    =>
-               sendVec( (( PAD_C & x"1000005f"),
-                         ( x"affecafe"& x"12345678"),
-                         ( x"12345678"& x"affecafe"),
-                         ( PAD_C      & x"abcdef90"),
-                         ( PAD_C      & x"00000001")
-                        ) );
+               sendVec( (x"1000005f",
+                         x"12345678",
+                         x"affecafe",
+                         x"affecafe",
+                         x"12345678",
+                         x"abcdef90",
+                         x"00000001") );
             when 13    =>
                -- retransmission (send less data; replay should play full set back)
                  txid := slv(unsigned(txid) - 1);
             when 14    =>
-               sendVec( (( PAD_C & x"1000005f"),
-                         ( x"affecafe" & x"00000000")
-                        ) );
+               sendVec( (x"1000005f", x"00000000", x"affecafe") );
             when 15    =>
                -- retransmission (send less data; replay should play full set back)
                  txid := slv(unsigned(txid) - 1);
             when 16    =>
-               sendVec( ((PAD_C & x"1000005f"), (PAD_C & x"12345678")) );
+               sendVec( (x"1000005f", x"12345678") );
             when 17    =>
-               sendVec( ((PAD_C & x"1000007f"),
-                         ( x"deadbeef" & x"feedbeef" ),
-                         ( x"11121314" & x"01020304" ),
-                         ( x"deadbeef" & x"feedbeef" ),
-                         (x"31323334"  & x"21222324" )
-                        ) );
-            when 18    =>
-               send( ZER_C );
-            when 19    =>
-               sendVec( ((PAD_C & x"1010002a"),
-                        (x"00000300" & x"0000005f"),
-                        (x"00000000" & x"0001fe00")
-                      ));
+               sendVec( (x"1000007f",
+                         x"feedbeef",
+                         x"01020304",
+                         x"feedbeef",
+                         x"11121314",
+                         x"feedbeef",
+                         x"21222324",
+                         x"feedbeef",
+                         x"31323334") );
    when others  =>
          end case;
 
@@ -302,59 +289,46 @@ begin
             when 1 =>
                rr <= '1';
             when 2 =>
-               rcv( (PAD_C & x"0000004" & WRD_C), '1' );
+               rcv( x"00000043", '1' );
             when 3 =>
-               rcv( (PAD_C & x"20000001"), '1' );
+               rcv( x"20000001", '1' );
             when 4|5|6|7 =>
                -- pause
                rr <= '0';
             when 8 =>
                rr <= '1';
             when 9 =>
-               rcv( (PAD_C & x"20000002"), '1' );
+               rcv( x"20000002", '1' );
             when 10 =>
                rr <= '0';
             when 11 =>
-               rcvVec( ((PAD_C & x"1000001f"), (PAD_C & x"deadbeef")) );
+               rcvVec( (x"1000001f", x"deadbeef") );
             when 12 =>
-               rcvVec( ((PAD_C & x"10000020"), (x"00000001" & x"affecafe")) );
+               rcvVec( (x"10000020", x"affecafe", x"00000001") );
             when 13 =>
-               rcvVec( ((PAD_C & x"10000004"), (PAD_C & x"00000013") ) );
+               rcvVec( (x"10000004", x"00000013" ) );
             when 14 => -- short frame
-               rcvVec( ((PAD_C & x"10000040"), (x"09abcdef" & x"12345678") ) );
+               rcvVec( (x"10000020", x"12345678") );
             when 15 =>
-               rcvVec( ((PAD_C & x"1000005f"),
-                        (x"12345678"& x"affecafe"),
-                        (PAD_C      & x"00000001")
-                     ) );
+               rcvVec( (x"1000005f", x"affecafe", x"12345678", x"00000001") );
             when 16 =>
                rxid := slv(unsigned(rxid) - 1); -- expect retransmission
             when 17 =>
-               rcvVec( ((PAD_C & x"1000005f"),
-                        (x"12345678"& x"affecafe"),
-                        (PAD_C      & x"00000001")
-                     ) );
+               rcvVec( (x"1000005f", x"affecafe", x"12345678", x"00000001") );
             when 18 =>
                rxid := slv(unsigned(rxid) - 1); -- expect retransmission
             when 19 =>
-               rcvVec( ((PAD_C & x"1000005f"),
-                        (x"12345678"& x"affecafe"),
-                        (PAD_C      & x"00000001")
-                     ) );
+               rcvVec( (x"1000005f", x"affecafe", x"12345678", x"00000001") );
 			when 20 =>
-               rcvVec( ((PAD_C & x"1000007f"),
-                        (x"11121314"& x"01020304"),
-                        (x"31323334"& x"21222324")
-                     ) );
-			when 21 =>
-               rcv( (PAD_C & x"04001007"), '1' );
-			when 22 =>
-               rcvVec( ((PAD_C & x"1010002a"),
-                        (x"00000000" & x"0001fe00")
-                     ) );
+               rcvVec( (x"1000007f",
+                        x"01020304",
+                        x"11121314",
+                        x"21222324",
+                        x"31323334") );
  
             when others  =>
                run <= false;
+               report "Test PASSED";
          end case;
 
          rxstage <= v after TPD_C;
@@ -376,7 +350,6 @@ begin
    U_DUT : entity work.AxisToJtag
       generic map (
          TPD_G           => TPD_C,
-         AXIS_WIDTH_G    => WL_C,
          MEM_DEPTH_G     => 4
       )
       port map (
