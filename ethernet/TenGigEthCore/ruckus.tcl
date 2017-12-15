@@ -15,6 +15,10 @@ if { ${family} eq {kintexu} } {
    loadRuckusTcl "$::DIR_PATH/gthUltraScale"
 }
 
+##########################################
+# This will take more time to develop    #
+# Plan to release this after v1.5.0      #
+##########################################
 # if { ${family} eq {kintexuplus} } {
    # loadRuckusTcl "$::DIR_PATH/gthUltraScale+"
 # }

@@ -2,7 +2,7 @@
 -- File       : GthUltraScaleQuadPll.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2016-03-08
+-- Last update: 2017-12-14
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Ultrascale GTH QPLL primitive
 -------------------------------------------------------------------------------
@@ -27,44 +27,47 @@ use unisim.vcomponents.all;
 entity GthUltraScaleQuadPll is
    generic (
       -- Simulation Parameters
-      TPD_G               : time                     := 1 ns;
-      SIM_RESET_SPEEDUP_G : string                   := "FALSE";
-      SIM_VERSION_G       : natural                  := 2;
+      TPD_G              : time                     := 1 ns;
+      SIM_DEVICE         : string                   := "ULTRASCALE_PLUS";
+      SIM_MODE           : string                   := "FAST";
+      SIM_RESET_SPEEDUP  : string                   := "TRUE";
       -- AXI-Lite Parameters
-      AXI_ERROR_RESP_G    : slv(1 downto 0)          := AXI_RESP_DECERR_C;
+      AXI_ERROR_RESP_G   : slv(1 downto 0)          := AXI_RESP_DECERR_C;
       -- QPLL Configuration Parameters
-      BIAS_CFG0_G         : slv(15 downto 0)         := x"0000";
-      BIAS_CFG1_G         : slv(15 downto 0)         := x"0000";
-      BIAS_CFG2_G         : slv(15 downto 0)         := x"0000";
-      BIAS_CFG3_G         : slv(15 downto 0)         := x"0040";
-      BIAS_CFG4_G         : slv(15 downto 0)         := x"0000";
-      BIAS_CFG_RSVD_G     : slv(9 downto 0)          := "0000000000";
-      COMMON_CFG0_G       : slv(15 downto 0)         := x"0000";
-      COMMON_CFG1_G       : slv(15 downto 0)         := x"0000";
-      POR_CFG_G           : slv(15 downto 0)         := x"0004";
-      QPLL_CFG0_G         : Slv16Array(1 downto 0)   := (others => x"3018");
-      QPLL_CFG1_G         : Slv16Array(1 downto 0)   := (others => x"0000");
-      QPLL_CFG1_G3_G      : Slv16Array(1 downto 0)   := (others => x"0020");
-      QPLL_CFG2_G         : Slv16Array(1 downto 0)   := (others => x"0000");
-      QPLL_CFG2_G3_G      : Slv16Array(1 downto 0)   := (others => x"0000");
-      QPLL_CFG3_G         : Slv16Array(1 downto 0)   := (others => x"0120");
-      QPLL_CFG4_G         : Slv16Array(1 downto 0)   := (others => x"0009");
-      QPLL_CP_G           : Slv10Array(1 downto 0)   := (others => "0000011111");
-      QPLL_CP_G3_G        : Slv10Array(1 downto 0)   := (others => "0000011111");
-      QPLL_FBDIV_G        : NaturalArray(1 downto 0) := (others => 66);
-      QPLL_FBDIV_G3_G     : NaturalArray(1 downto 0) := (others => 80);
-      QPLL_INIT_CFG0_G    : Slv16Array(1 downto 0)   := (others => x"0000");
-      QPLL_INIT_CFG1_G    : Slv8Array(1 downto 0)    := (others => x"00");
-      QPLL_LOCK_CFG_G     : Slv16Array(1 downto 0)   := (others => x"01E8");
-      QPLL_LOCK_CFG_G3_G  : Slv16Array(1 downto 0)   := (others => x"01E8");
-      QPLL_LPF_G          : Slv10Array(1 downto 0)   := (others => "1111111111");
-      QPLL_LPF_G3_G       : Slv10Array(1 downto 0)   := (others => "1111111111");
-      QPLL_REFCLK_DIV_G   : NaturalArray(1 downto 0) := (others => 2);
-      QPLL_SDM_CFG0_G     : Slv16Array(1 downto 0)   := (others => x"0000");
-      QPLL_SDM_CFG1_G     : Slv16Array(1 downto 0)   := (others => x"0000");
-      QPLL_SDM_CFG2_G     : Slv16Array(1 downto 0)   := (others => x"0000");
+      BIAS_CFG0_G        : slv(15 downto 0)         := x"0000";
+      BIAS_CFG1_G        : slv(15 downto 0)         := x"0000";
+      BIAS_CFG2_G        : slv(15 downto 0)         := x"0124";
+      BIAS_CFG3_G        : slv(15 downto 0)         := x"0041";
+      BIAS_CFG4_G        : slv(15 downto 0)         := x"0010";
+      BIAS_CFG_RSVD_G    : slv(9 downto 0)          := "0000000000";
+      COMMON_CFG0_G      : slv(15 downto 0)         := x"0000";
+      COMMON_CFG1_G      : slv(15 downto 0)         := x"0000";
+      POR_CFG_G          : slv(15 downto 0)         := x"0000";
+      PPF_CFG_G          : Slv16Array(1 downto 0)   := (others => x"0600");
+      QPLL_CLKOUT_RATE_G : StringArray(1 downto 0)  := (others => "HALF");
+      QPLL_CFG0_G        : Slv16Array(1 downto 0)   := (others => x"331C");
+      QPLL_CFG1_G        : Slv16Array(1 downto 0)   := (others => x"D038");
+      QPLL_CFG1_G3_G     : Slv16Array(1 downto 0)   := (others => x"D038");
+      QPLL_CFG2_G        : Slv16Array(1 downto 0)   := (others => x"0FC0");
+      QPLL_CFG2_G3_G     : Slv16Array(1 downto 0)   := (others => x"0FC0");
+      QPLL_CFG3_G        : Slv16Array(1 downto 0)   := (others => x"0120");
+      QPLL_CFG4_G        : Slv16Array(1 downto 0)   := (others => x"0003");
+      QPLL_CP_G          : Slv10Array(1 downto 0)   := (others => "0011111111");
+      QPLL_CP_G3_G       : Slv10Array(1 downto 0)   := (others => "0000001111");
+      QPLL_FBDIV_G       : NaturalArray(1 downto 0) := (others => 66);
+      QPLL_FBDIV_G3_G    : NaturalArray(1 downto 0) := (others => 160);
+      QPLL_INIT_CFG0_G   : Slv16Array(1 downto 0)   := (others => x"02B2");
+      QPLL_INIT_CFG1_G   : Slv8Array(1 downto 0)    := (others => x"00");
+      QPLL_LOCK_CFG_G    : Slv16Array(1 downto 0)   := (others => x"25E8");
+      QPLL_LOCK_CFG_G3_G : Slv16Array(1 downto 0)   := (others => x"25E8");
+      QPLL_LPF_G         : Slv10Array(1 downto 0)   := (others => "1000111111");
+      QPLL_LPF_G3_G      : Slv10Array(1 downto 0)   := (others => "0111010101");
+      QPLL_REFCLK_DIV_G  : NaturalArray(1 downto 0) := (others => 1);
+      QPLL_SDM_CFG0_G    : Slv16Array(1 downto 0)   := (others => x"0080");
+      QPLL_SDM_CFG1_G    : Slv16Array(1 downto 0)   := (others => x"0000");
+      QPLL_SDM_CFG2_G    : Slv16Array(1 downto 0)   := (others => x"0000");
       -- Clock Selects
-      QPLL_REFCLK_SEL_G   : Slv3Array(1 downto 0)    := (others => "001"));      
+      QPLL_REFCLK_SEL_G  : Slv3Array(1 downto 0)    := (others => "001"));
    port (
       qPllRefClk      : in  slv(1 downto 0);
       qPllOutClk      : out slv(1 downto 0);
@@ -81,7 +84,7 @@ entity GthUltraScaleQuadPll is
       axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave  : out AxiLiteWriteSlaveType); 
+      axilWriteSlave  : out AxiLiteWriteSlaveType);
 end entity GthUltraScaleQuadPll;
 
 architecture mapping of GthUltraScaleQuadPll is
@@ -97,10 +100,10 @@ architecture mapping of GthUltraScaleQuadPll is
    signal drpEn   : sl;
    signal drpWe   : sl;
    signal drpRdy  : sl;
-   signal drpAddr : slv(8 downto 0);
+   signal drpAddr : slv(15 downto 0);
    signal drpDi   : slv(15 downto 0);
    signal drpDo   : slv(15 downto 0);
-   
+
 begin
 
    ---------------------------------------------------------------------------------------
@@ -119,79 +122,88 @@ begin
 
    GTHE4_COMMON_Inst : GTHE4_COMMON
       generic map (
-         BIAS_CFG0          => BIAS_CFG0_G,
-         BIAS_CFG1          => BIAS_CFG1_G,
-         BIAS_CFG2          => BIAS_CFG2_G,
-         BIAS_CFG3          => BIAS_CFG3_G,
-         BIAS_CFG4          => BIAS_CFG4_G,
-         BIAS_CFG_RSVD      => BIAS_CFG_RSVD_G,
-         COMMON_CFG0        => COMMON_CFG0_G,
-         COMMON_CFG1        => COMMON_CFG1_G,
-         POR_CFG            => POR_CFG_G,
-         QPLL0_CFG0         => QPLL_CFG0_G(0),
-         QPLL0_CFG1         => QPLL_CFG1_G(0),
-         QPLL0_CFG1_G3      => QPLL_CFG1_G3_G(0),
-         QPLL0_CFG2         => QPLL_CFG2_G(0),
-         QPLL0_CFG2_G3      => QPLL_CFG2_G3_G(0),
-         QPLL0_CFG3         => QPLL_CFG3_G(0),
-         QPLL0_CFG4         => QPLL_CFG4_G(0),
-         QPLL0_CP           => QPLL_CP_G(0),
-         QPLL0_CP_G3        => QPLL_CP_G3_G(0),
-         QPLL0_FBDIV        => QPLL_FBDIV_G(0),
-         QPLL0_FBDIV_G3     => QPLL_FBDIV_G3_G(0),
-         QPLL0_INIT_CFG0    => QPLL_INIT_CFG0_G(0),
-         QPLL0_INIT_CFG1    => QPLL_INIT_CFG1_G(0),
-         QPLL0_LOCK_CFG     => QPLL_LOCK_CFG_G(0),
-         QPLL0_LOCK_CFG_G3  => QPLL_LOCK_CFG_G3_G(0),
-         QPLL0_LPF          => QPLL_LPF_G(0),
-         QPLL0_LPF_G3       => QPLL_LPF_G3_G(0),
-         QPLL0_REFCLK_DIV   => QPLL_REFCLK_DIV_G(0),
-         QPLL0_SDM_CFG0     => QPLL_SDM_CFG0_G(0),
-         QPLL0_SDM_CFG1     => QPLL_SDM_CFG1_G(0),
-         QPLL0_SDM_CFG2     => QPLL_SDM_CFG2_G(0),
-         QPLL1_CFG0         => QPLL_CFG0_G(1),
-         QPLL1_CFG1         => QPLL_CFG1_G(1),
-         QPLL1_CFG1_G3      => QPLL_CFG1_G3_G(1),
-         QPLL1_CFG2         => QPLL_CFG2_G(1),
-         QPLL1_CFG2_G3      => QPLL_CFG2_G3_G(1),
-         QPLL1_CFG3         => QPLL_CFG3_G(1),
-         QPLL1_CFG4         => QPLL_CFG4_G(1),
-         QPLL1_CP           => QPLL_CP_G(1),
-         QPLL1_CP_G3        => QPLL_CP_G3_G(1),
-         QPLL1_FBDIV        => QPLL_FBDIV_G(1),
-         QPLL1_FBDIV_G3     => QPLL_FBDIV_G3_G(1),
-         QPLL1_INIT_CFG0    => QPLL_INIT_CFG0_G(1),
-         QPLL1_INIT_CFG1    => QPLL_INIT_CFG1_G(1),
-         QPLL1_LOCK_CFG     => QPLL_LOCK_CFG_G(1),
-         QPLL1_LOCK_CFG_G3  => QPLL_LOCK_CFG_G3_G(1),
-         QPLL1_LPF          => QPLL_LPF_G(1),
-         QPLL1_LPF_G3       => QPLL_LPF_G3_G(1),
-         QPLL1_REFCLK_DIV   => QPLL_REFCLK_DIV_G(1),
-         QPLL1_SDM_CFG0     => QPLL_SDM_CFG0_G(1),
-         QPLL1_SDM_CFG1     => QPLL_SDM_CFG1_G(1),
-         QPLL1_SDM_CFG2     => QPLL_SDM_CFG2_G(1),
-         RSVD_ATTR0         => x"0000",
-         RSVD_ATTR1         => x"0000",
-         RSVD_ATTR2         => x"0000",
-         RSVD_ATTR3         => x"0000",
-         RXRECCLKOUT0_SEL   => "00",
-         RXRECCLKOUT1_SEL   => "00",
-         SARC_EN            => '1',
-         SARC_SEL           => '0',
-         SDM0DATA1_0        => "0000000000000000",
-         SDM0DATA1_1        => "000000000",
-         SDM0INITSEED0_0    => "0000000000000000",
-         SDM0INITSEED0_1    => "000000000",
-         SDM0_DATA_PIN_SEL  => '0',
-         SDM0_WIDTH_PIN_SEL => '0',
-         SDM1DATA1_0        => "0000000000000000",
-         SDM1DATA1_1        => "000000000",
-         SDM1INITSEED0_0    => "0000000000000000",
-         SDM1INITSEED0_1    => "000000000",
-         SDM1_DATA_PIN_SEL  => '0',
-         SDM1_WIDTH_PIN_SEL => '0',
-         SIM_RESET_SPEEDUP  => SIM_RESET_SPEEDUP_G,
-         SIM_VERSION        => SIM_VERSION_G)
+         AEN_QPLL0_FBDIV       => '1',
+         AEN_QPLL1_FBDIV       => '1',
+         AEN_SDM0TOGGLE        => '0',
+         AEN_SDM1TOGGLE        => '0',
+         A_SDM0TOGGLE          => '0',
+         A_SDM1DATA_HIGH       => "000000000",
+         A_SDM1DATA_LOW        => "0000000000000000",
+         A_SDM1TOGGLE          => '0',
+         BIAS_CFG0             => BIAS_CFG0_G,
+         BIAS_CFG1             => BIAS_CFG1_G,
+         BIAS_CFG2             => BIAS_CFG2_G,
+         BIAS_CFG3             => BIAS_CFG3_G,
+         BIAS_CFG4             => BIAS_CFG4_G,
+         BIAS_CFG_RSVD         => BIAS_CFG_RSVD_G,
+         COMMON_CFG0           => COMMON_CFG0_G,
+         COMMON_CFG1           => COMMON_CFG1_G,
+         POR_CFG               => POR_CFG_G,
+         PPF0_CFG              => PPF_CFG_G(0),
+         PPF1_CFG              => PPF_CFG_G(1),
+         QPLL0CLKOUT_RATE      => QPLL_CLKOUT_RATE_G(0),
+         QPLL0_CFG0            => QPLL_CFG0_G(0),
+         QPLL0_CFG1            => QPLL_CFG1_G(0),
+         QPLL0_CFG1_G3         => QPLL_CFG1_G3_G(0),
+         QPLL0_CFG2            => QPLL_CFG2_G(0),
+         QPLL0_CFG2_G3         => QPLL_CFG2_G3_G(0),
+         QPLL0_CFG3            => QPLL_CFG3_G(0),
+         QPLL0_CFG4            => QPLL_CFG4_G(0),
+         QPLL0_CP              => QPLL_CP_G(0),
+         QPLL0_CP_G3           => QPLL_CP_G3_G(0),
+         QPLL0_FBDIV           => QPLL_FBDIV_G(0),
+         QPLL0_FBDIV_G3        => QPLL_FBDIV_G3_G(0),
+         QPLL0_INIT_CFG0       => QPLL_INIT_CFG0_G(0),
+         QPLL0_INIT_CFG1       => QPLL_INIT_CFG1_G(0),
+         QPLL0_LOCK_CFG        => QPLL_LOCK_CFG_G(0),
+         QPLL0_LOCK_CFG_G3     => QPLL_LOCK_CFG_G3_G(0),
+         QPLL0_LPF             => QPLL_LPF_G(0),
+         QPLL0_LPF_G3          => QPLL_LPF_G3_G(0),
+         QPLL0_PCI_EN          => '0',
+         QPLL0_RATE_SW_USE_DRP => '1',
+         QPLL0_REFCLK_DIV      => QPLL_REFCLK_DIV_G(0),
+         QPLL0_SDM_CFG0        => QPLL_SDM_CFG0_G(0),
+         QPLL0_SDM_CFG1        => QPLL_SDM_CFG1_G(0),
+         QPLL0_SDM_CFG2        => QPLL_SDM_CFG2_G(0),
+         QPLL1CLKOUT_RATE      => QPLL_CLKOUT_RATE_G(1),
+         QPLL1_CFG0            => QPLL_CFG0_G(1),
+         QPLL1_CFG1            => QPLL_CFG1_G(1),
+         QPLL1_CFG1_G3         => QPLL_CFG1_G3_G(1),
+         QPLL1_CFG2            => QPLL_CFG2_G(1),
+         QPLL1_CFG2_G3         => QPLL_CFG2_G3_G(1),
+         QPLL1_CFG3            => QPLL_CFG3_G(1),
+         QPLL1_CFG4            => QPLL_CFG4_G(1),
+         QPLL1_CP              => QPLL_CP_G(1),
+         QPLL1_CP_G3           => QPLL_CP_G3_G(1),
+         QPLL1_FBDIV           => QPLL_FBDIV_G(1),
+         QPLL1_FBDIV_G3        => QPLL_FBDIV_G3_G(1),
+         QPLL1_INIT_CFG0       => QPLL_INIT_CFG0_G(1),
+         QPLL1_INIT_CFG1       => QPLL_INIT_CFG1_G(1),
+         QPLL1_LOCK_CFG        => QPLL_LOCK_CFG_G(1),
+         QPLL1_LOCK_CFG_G3     => QPLL_LOCK_CFG_G3_G(1),
+         QPLL1_LPF             => QPLL_LPF_G(1),
+         QPLL1_LPF_G3          => QPLL_LPF_G3_G(1),
+         QPLL1_PCI_EN          => '0',
+         QPLL1_RATE_SW_USE_DRP => '1',
+         QPLL1_REFCLK_DIV      => QPLL_REFCLK_DIV_G(1),
+         QPLL1_SDM_CFG0        => QPLL_SDM_CFG0_G(1),
+         QPLL1_SDM_CFG1        => QPLL_SDM_CFG1_G(1),
+         QPLL1_SDM_CFG2        => QPLL_SDM_CFG2_G(1),
+         RSVD_ATTR0            => x"0000",
+         RSVD_ATTR1            => x"0000",
+         RSVD_ATTR2            => x"0000",
+         RSVD_ATTR3            => x"0000",
+         RXRECCLKOUT0_SEL      => "00",
+         RXRECCLKOUT1_SEL      => "00",
+         SARC_ENB              => '0',
+         SARC_SEL              => '0',
+         SDM0INITSEED0_0       => "0000000100010001",
+         SDM0INITSEED0_1       => "000010001",
+         SDM1INITSEED0_0       => "0000000100010001",
+         SDM1INITSEED0_1       => "000010001",
+         SIM_DEVICE            => SIM_DEVICE_G,
+         SIM_MODE              => SIM_MODE_G,
+         SIM_RESET_SPEEDUP     => SIM_RESET_SPEEDUP_G)
       port map (
          -- DRP Ports
          DRPADDR           => drpAddr,
@@ -208,8 +220,14 @@ begin
          QPLLDMONITOR1     => open,
          REFCLKOUTMONITOR0 => open,
          REFCLKOUTMONITOR1 => open,
-         RXRECCLK0_SEL     => open,
-         RXRECCLK1_SEL     => open,
+         RXRECCLK0SEL      => open,
+         RXRECCLK1SEL      => open,
+         SDM0FINALOUT      => open,
+         SDM0TESTDATA      => open,
+         SDM1FINALOUT      => open,
+         SDM1TESTDATA      => open,
+         TCONGPO           => open,
+         TCONRSVDOUT0      => open,
          QPLL0FBCLKLOST    => qPllFbClkLost(0),
          QPLL0LOCK         => qPllLock(0),
          QPLL0OUTCLK       => qPllOutClk(0),
@@ -223,6 +241,7 @@ begin
          -- QPLL Inputs
          QPLL0CLKRSVD0     => '0',
          QPLL0CLKRSVD1     => '0',
+         QPLL0FBDIV        => (others => '0'),
          QPLL0LOCKDETCLK   => qPllLockDetClk(0),
          QPLL0LOCKEN       => '1',
          QPLL0PD           => qPllPowerDown(0),
@@ -230,6 +249,7 @@ begin
          QPLL0RESET        => qPllReset(0),
          QPLL1CLKRSVD0     => '0',
          QPLL1CLKRSVD1     => '0',
+         QPLL1FBDIV        => (others => '0'),
          QPLL1LOCKDETCLK   => qPllLockDetClk(1),
          QPLL1LOCKEN       => '1',
          QPLL1PD           => qPllPowerDown(1),
@@ -254,8 +274,22 @@ begin
          GTSOUTHREFCLK01   => gtSouthRefClk0(1),
          GTSOUTHREFCLK11   => gtSouthRefClk1(1),
          GTGREFCLK1        => gtGRefClk(1),
+         PCIERATEQPLL0     => (others => '0'),
+         PCIERATEQPLL1     => (others => '0'),
          PMARSVD0          => (others => '0'),
          PMARSVD1          => (others => '0'),
+         SDM0DATA          => (others => '0'),
+         SDM0RESET         => '0',
+         SDM0TOGGLE        => '0',
+         SDM0WIDTH         => (others => '0'),
+         SDM1DATA          => (others => '0'),
+         SDM1RESET         => '0',
+         SDM1TOGGLE        => '0',
+         SDM1WIDTH         => (others => '0'),
+         TCONGPI           => (others => '0'),
+         TCONPOWERUP       => '0',
+         TCONRESET         => (others => '0'),
+         TCONRSVDIN1       => (others => '0'),
          QPLLRSVD1         => (others => '0'),
          QPLLRSVD2         => (others => '0'),
          QPLLRSVD3         => (others => '0'),
@@ -269,8 +303,8 @@ begin
          COMMON_CLK_G     => true,
          EN_ARBITRATION_G => false,
          TIMEOUT_G        => 4096,
-         ADDR_WIDTH_G     => 9,
-         DATA_WIDTH_G     => 16)      
+         ADDR_WIDTH_G     => 16,
+         DATA_WIDTH_G     => 16)
       port map (
          -- AXI-Lite Port
          axilClk         => axilClk,
@@ -287,6 +321,6 @@ begin
          drpWe           => drpWe,
          drpAddr         => drpAddr,
          drpDi           => drpDi,
-         drpDo           => drpDo);            
+         drpDo           => drpDo);
 
 end architecture mapping;
