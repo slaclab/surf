@@ -61,32 +61,13 @@ architecture rtl of ClinkCtrl is
    signal cblOut    : slv(4 downto 0);
    signal cblIn     : slv(4 downto 0);
    signal cblDirIn  : slv(4 downto 0);
-   signal cblDirOut : slv(4 downto 0);
    signal cblSerOut : sl;
 begin
 
    -------------------------------
    -- IO Buffers
    -------------------------------
-   cblDirOut <= not cblDirIn;
-
    U_CableBuffGen : for i in 0 to 4 generate
---      U_CableBuff : IOBUFDS_DCIEN
---         generic map (
---            DIFF_TERM       => "TRUE",    -- Differential termination (TRUE/FALSE)
---            IBUF_LOW_PWR    => "FALSE",   -- Low Power - TRUE, HIGH Performance = FALSE
---            IOSTANDARD      => "LVDS_25", -- Specify the I/O standard
---            SLEW            => "FAST",    -- Specify the output slew rate
---            USE_IBUFDISABLE => "TRUE")    -- Use IBUFDISABLE function "TRUE" or "FALSE"
---         port map (
---            I   => cblOut(i),
---            O   => cblIn(i),
---            T   => cblDirIn(i),
---            IO  => cblHalfP(i),
---            IOB => cblHalfM(i),
---            DCITERMDISABLE => cblDirOut(i),
---            IBUFDISABLE    => cblDirOut(i));
-
       U_CableBuff: IOBUFDS
          port map(
             I   => cblOut(i),
