@@ -490,8 +490,10 @@ gtwizard_ultrascale_v1_7_1_gthe4_channel #(
   .GTHE4_CHANNEL_CPLLLOCKEN_VAL                 (1'b1),
   .GTHE4_CHANNEL_CPLLPD_TIE_EN                  (1'b0),
   .GTHE4_CHANNEL_CPLLPD_VAL                     (1'b0),
-  .GTHE4_CHANNEL_CPLLREFCLKSEL_TIE_EN           (1'b0),
-  .GTHE4_CHANNEL_CPLLREFCLKSEL_VAL              (3'b001),
+  // .GTHE4_CHANNEL_CPLLREFCLKSEL_TIE_EN           (1'b0),  // LLR 15DEC2017
+  .GTHE4_CHANNEL_CPLLREFCLKSEL_TIE_EN           (1'b1),     // LLR 15DEC2017
+  // .GTHE4_CHANNEL_CPLLREFCLKSEL_VAL              (3'b001),// LLR 15DEC2017
+  .GTHE4_CHANNEL_CPLLREFCLKSEL_VAL              (3'b111),   // LLR 15DEC2017
   .GTHE4_CHANNEL_CPLLRESET_TIE_EN               (1'b0),
   .GTHE4_CHANNEL_CPLLRESET_VAL                  (1'b0),
   .GTHE4_CHANNEL_CPLL_CFG0                      (16'b0000000111111010),

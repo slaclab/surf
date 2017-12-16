@@ -522,13 +522,16 @@ output wire [0 : 0] txresetdone_out;
     .eyescanreset_in(eyescanreset_in),
     .eyescantrigger_in(eyescantrigger_in),
     .freqos_in(1'H0),
-    .gtgrefclk_in(1'H0),
+    // .gtgrefclk_in(1'H0),            // LLR 15DEC2017
+    .gtgrefclk_in(gtrefclk0_in),       // LLR 15DEC2017
     .gthrxn_in(gthrxn_in),
     .gthrxp_in(gthrxp_in),
     .gtnorthrefclk0_in(1'H0),
     .gtnorthrefclk1_in(1'H0),
-    .gtrefclk0_in(gtrefclk0_in),
-    .gtrefclk1_in(gtrefclk1_in),
+    // .gtrefclk0_in(gtrefclk0_in),    // LLR 15DEC2017
+    // .gtrefclk1_in(gtrefclk1_in),    // LLR 15DEC2017
+    .gtrefclk0_in(1'H0),               // LLR 15DEC2017
+    .gtrefclk1_in(1'H0),               // LLR 15DEC2017
     .gtresetsel_in(1'B0),
     .gtrsvd_in(16'H0000),
     .gtrxreset_in(1'H0),
