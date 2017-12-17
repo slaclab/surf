@@ -1,1 +1,1 @@
-Refer to https://github.com/slaclab/surf-dcp-targets/tree/master/firmware/targets/GigEthGth7Dcp/ for original source code
+Refer to https://github.com/slaclab/surf-dcp-targets/tree/master/firmware/dcp/GigEthGth7/ for original source code
