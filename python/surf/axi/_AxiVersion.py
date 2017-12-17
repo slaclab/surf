@@ -82,6 +82,7 @@ class AxiVersion(pr.Device):
 
         self.add(pr.LinkVariable(
             name = 'UpTime',
+            mode = 'RO',
             dependencies = [self.UpTimeCnt],
             linkedGet = lambda: str(datetime.timedelta(seconds=self.UpTimeCnt.value()))
         ))
