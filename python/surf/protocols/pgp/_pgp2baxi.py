@@ -35,6 +35,11 @@ class Pgp2bAxi(pr.Device):
             bitOffset   = 0, 
             mode        = "RW", 
             base        = pr.UInt,
+            enum = {0: 'No',
+                    1: 'Near-end PCS',
+                    2: 'Near-end PMA',
+                    4: 'Far-end PMA',
+                    6: 'Far-end PCS'},
         ))
         
         self.add(pr.RemoteVariable(
@@ -277,7 +282,33 @@ class Pgp2bAxi(pr.Device):
             bitOffset   = 0, 
             function    = pr.BaseCommand.toggle,
         ))
-        
+ 
+        self.add(pr.RemoteCommand(
+            name        = 'ResetTx', 
+            offset      = 0x04, 
+            bitSize     = 1, 
+            bitOffset   = 1, 
+            function    = pr.BaseCommand.toggle,
+        ))
+
+        self.add(pr.RemoteCommand(
+            name = 'ResetGt',
+            offset = 0x04,
+            bitSize = 1,
+            bitOffset =2,
+            function = pr.BaseCommand.toggle,
+        ))
+
+#         @self.command()        
+#         def ResetTxRx():
+#             self.ResetRx.set(1, False)
+#             self.ResetTx.set(1, False)
+#             # Both are same block
+#             self.ResetTx._block.startTransaction(rim.Write, check=True)
+#             self.ResetRx.set(0, False)
+#             self.ResetTx.set(0, False)
+#             self.ResetTx._block.startTransaction(rim.Write, check=True)
+            
         self.add(pr.RemoteCommand(
             name        = "Flush", 
             offset      = 0x08, 
@@ -286,15 +317,15 @@ class Pgp2bAxi(pr.Device):
             function    = pr.BaseCommand.toggle,
         ))
 
-        def _resetFunc(dev, rstType):
-            """Application specific reset function"""
-            if rstType == 'soft':
-                self.Flush()
-            elif rstType == 'hard':
-                self.ResetRx()
-            elif rstType == 'count':
-                self.CountReset()
+        def softReset(self):
+            self.Flush()
 
+        def hardReset(self):
+            self.ResetTxRx()
+
+        def countReset(self):
+            self.CountReset()
+            
         self.add(pr.RemoteVariable(
             name         = "RxClkFreqRaw", 
             offset       = 0x64, 
@@ -315,25 +346,24 @@ class Pgp2bAxi(pr.Device):
             pollInterval = 1,
         ))
 
+        def convtMHz(var):
+            return var.dependencies[0].value() * 1.0E-6        
+        
         self.add(pr.LinkVariable(
             name         = "RxClkFreq", 
             mode         = "RO", 
-            units        = "MHz", 
+            units        = "MHz",
+            disp         = '{:0.2f}', 
             dependencies = [self.RxClkFreqRaw], 
-            linkedGet    = self._convertFrequency,
+            linkedGet    = convtMHz,
         ))
         
         self.add(pr.LinkVariable(
             name         = "TxClkFreq", 
             mode         = "RO", 
-            units        = "MHz", 
+            units        = "MHz",
+            disp         = '{:0.2f}',
             dependencies = [self.TxClkFreqRaw], 
-            linkedGet    = self._convertFrequency,
+            linkedGet    = convtMHz,
         ))
              
-    @staticmethod
-    def _convertFrequency(dev, var):
-        value   = var.dependencies[0].get(read=False)
-        fpValue = value*1e-6
-        return '%0.1f'%(fpValue)
-

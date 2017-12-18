@@ -19,6 +19,18 @@
 
 import pyrogue as pr
 
+DIV_ENU = {
+    0: '2',
+    1: '3',
+    2: '4',
+    3: '5',
+    5: '6',
+    7: '10',
+    13: '12',
+    14: '16',
+    15: '20',
+    16: '1'}
+
 class Gthe3Channel(pr.Device):
     def __init__(   self,       
             name        = "Gthe3Channel",
@@ -30,10 +42,15 @@ class Gthe3Channel(pr.Device):
         # Variables
         ##############################
 
+        def addVar(**kwargs):
+            kwargs['offset'] = kwargs['offset'] << 2
+            self.add(pr.RemoteVariable(**kwargs))
+            
+
         self.add(pr.RemoteVariable(   
             name         = "CDR_SWAP_MODE_EN",
             description  = "",
-            offset       =  0x08,
+            offset       =  0x02 << 2,
             bitSize      =  1,
             bitOffset    =  0x00,
             base         = pr.UInt,
@@ -43,19 +60,9 @@ class Gthe3Channel(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "RXCDRFREQRESET_TIME",
             description  = "",
-            offset       =  0x0C,
+            offset       =  0x03 << 2,
             bitSize      =  5,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
-            mode         = "RW",
-        ))
-
-        self.add(pr.RemoteVariable(   
-            name         = "RX_DATA_WIDTH",
-            description  = "",
-            offset       =  0x0C,
-            bitSize      =  4,
-            bitOffset    =  0x05,
+            bitOffset    =  0,
             base         = pr.UInt,
             mode         = "RW",
         ))
@@ -63,11 +70,32 @@ class Gthe3Channel(pr.Device):
         self.add(pr.RemoteVariable(   
             name         = "EYE_SCAN_SWAP_EN",
             description  = "",
-            offset       =  0x0D,
+            offset       = 0x3 << 2,
             bitSize      =  1,
-            bitOffset    =  0x01,
+            bitOffset    =  9,
             base         = pr.UInt,
             mode         = "RW",
+        ))
+
+        self.add(pr.RemoteVariable(   
+            name         = "RX_DATA_WIDTH",
+            description  = "",
+            offset       =  0x03 << 2,
+            bitSize      =  4,
+            bitOffset    =  0x05,
+            base         = pr.UInt,
+            mode         = "RW",
+            value        = 2,
+            enum         = {
+                0 : '-',
+                2 : '16',
+                3 : '20',
+                4 : '32',
+                5 : '40',
+                6 : '64',
+                7 : '80',
+                8 : '128',
+                9 : '160'},
         ))
 
         self.add(pr.RemoteVariable(   
@@ -482,25 +510,6 @@ class Gthe3Channel(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(   
-            name         = "CLK_COR_MIN_LAT",
-            description  = "",
-            offset       =  0x70,
-            bitSize      =  6,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
-            mode         = "RW",
-        ))
-
-        self.add(pr.RemoteVariable(   
-            name         = "CLK_COR_KEEP_IDLE",
-            description  = "",
-            offset       =  0x70,
-            bitSize      =  1,
-            bitOffset    =  0x06,
-            base         = pr.UInt,
-            mode         = "RW",
-        ))
 
         self.add(pr.RemoteVariable(   
             name         = "CHAN_BOND_SEQ_2_USE",
@@ -533,6 +542,50 @@ class Gthe3Channel(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(   
+            name         = "CLK_CORRECT_USE",
+            description  = "",
+            offset       =  0x91,
+            bitSize      =  1,
+            bitOffset    =  0x02,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))        
+        
+
+        self.add(pr.RemoteVariable(   
+            name         = "CLK_COR_MIN_LAT",
+            description  = "",
+            offset       =  0x70,
+            bitSize      =  6,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW",
+            disp         = '{:d}',
+        ))
+
+        self.add(pr.RemoteVariable(   
+            name         = "CLK_COR_MAX_LAT",
+            description  = "",
+            offset       =  0x75,
+            bitSize      =  6,
+            bitOffset    =  0x02,
+            base         = pr.UInt,
+            mode         = "RW",
+            disp         = '{:d}',            
+        ))
+
+        self.add(pr.RemoteVariable(   
+            name         = "CLK_COR_KEEP_IDLE",
+            description  = "",
+            offset       =  0x70,
+            bitSize      =  1,
+            bitOffset    =  0x06,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
+
+
+        self.add(pr.RemoteVariable(   
             name         = "CLK_COR_SEQ_LEN",
             description  = "",
             offset       =  0x74,
@@ -550,6 +603,7 @@ class Gthe3Channel(pr.Device):
             bitOffset    =  0x04,
             base         = pr.UInt,
             mode         = "RW",
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(   
@@ -562,15 +616,18 @@ class Gthe3Channel(pr.Device):
             mode         = "RW",
         ))
 
+
+
         self.add(pr.RemoteVariable(   
-            name         = "CLK_COR_MAX_LAT",
+            name         = "CLK_COR_SEQ_1_ENABLE",
             description  = "",
-            offset       =  0x75,
-            bitSize      =  6,
-            bitOffset    =  0x02,
+            offset       =  0x89,
+            bitSize      =  4,
+            bitOffset    =  0x04,
             base         = pr.UInt,
             mode         = "RW",
-        ))
+            disp         = '0b{:04b}',            
+        ))        
 
         self.add(pr.RemoteVariable(   
             name         = "CLK_COR_SEQ_1_1",
@@ -580,6 +637,7 @@ class Gthe3Channel(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            disp         = '0b{:010b}',
         ))
 
         self.add(pr.RemoteVariable(   
@@ -590,6 +648,7 @@ class Gthe3Channel(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            disp         = '0b{:010b}',            
         ))
 
         self.add(pr.RemoteVariable(   
@@ -600,6 +659,7 @@ class Gthe3Channel(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            disp         = '0b{:010b}',            
         ))
 
         self.add(pr.RemoteVariable(   
@@ -610,66 +670,7 @@ class Gthe3Channel(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
-        ))
-
-        self.add(pr.RemoteVariable(   
-            name         = "CLK_COR_SEQ_2_1",
-            description  = "",
-            offset       =  0x88,
-            bitSize      =  10,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
-            mode         = "RW",
-        ))
-
-        self.add(pr.RemoteVariable(   
-            name         = "CLK_COR_SEQ_1_ENABLE",
-            description  = "",
-            offset       =  0x89,
-            bitSize      =  4,
-            bitOffset    =  0x04,
-            base         = pr.UInt,
-            mode         = "RW",
-        ))
-
-        self.add(pr.RemoteVariable(   
-            name         = "CLK_COR_SEQ_2_2",
-            description  = "",
-            offset       =  0x8C,
-            bitSize      =  10,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
-            mode         = "RW",
-        ))
-
-        self.add(pr.RemoteVariable(   
-            name         = "CLK_COR_SEQ_2_3",
-            description  = "",
-            offset       =  0x90,
-            bitSize      =  10,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
-            mode         = "RW",
-        ))
-
-        self.add(pr.RemoteVariable(   
-            name         = "CLK_CORRECT_USE",
-            description  = "",
-            offset       =  0x91,
-            bitSize      =  1,
-            bitOffset    =  0x02,
-            base         = pr.UInt,
-            mode         = "RW",
-        ))
-
-        self.add(pr.RemoteVariable(   
-            name         = "CLK_COR_SEQ_2_USE",
-            description  = "",
-            offset       =  0x91,
-            bitSize      =  1,
-            bitOffset    =  0x03,
-            base         = pr.UInt,
-            mode         = "RW",
+            disp         = '0b{:010b}',            
         ))
 
         self.add(pr.RemoteVariable(   
@@ -680,6 +681,52 @@ class Gthe3Channel(pr.Device):
             bitOffset    =  0x04,
             base         = pr.UInt,
             mode         = "RW",
+            disp         = '0b{:04b}',            
+        ))
+
+        self.add(pr.RemoteVariable(   
+            name         = "CLK_COR_SEQ_2_USE",
+            description  = "",
+            offset       =  0x91,
+            bitSize      =  1,
+            bitOffset    =  0x03,
+            base         = pr.Bool,
+            mode         = "RW",
+        ))        
+
+        self.add(pr.RemoteVariable(   
+            name         = "CLK_COR_SEQ_2_1",
+            description  = "",
+            offset       =  0x88,
+            bitSize      =  10,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW",
+            disp         = '0b{:010b}',                        
+        ))
+
+ 
+
+        self.add(pr.RemoteVariable(   
+            name         = "CLK_COR_SEQ_2_2",
+            description  = "",
+            offset       =  0x8C,
+            bitSize      =  10,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW",
+            disp         = '0b{:010b}',            
+        ))
+
+        self.add(pr.RemoteVariable(   
+            name         = "CLK_COR_SEQ_2_3",
+            description  = "",
+            offset       =  0x90,
+            bitSize      =  10,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW",
+            disp         = '0b{:010b}',
         ))
 
         self.add(pr.RemoteVariable(   
@@ -690,6 +737,7 @@ class Gthe3Channel(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            disp         = '0b{:010b}',            
         ))
 
         self.add(pr.RemoteVariable(   
@@ -760,16 +808,20 @@ class Gthe3Channel(pr.Device):
             bitOffset    =  0x07,
             base         = pr.UInt,
             mode         = "RW",
+            enum = {
+                0: '4',
+                1: '5'}
         ))
 
         self.add(pr.RemoteVariable(   
             name         = "CPLL_FBDIV",
             description  = "",
-            offset       =  0xA1,
+            offset       =  0xA0,
             bitSize      =  8,
-            bitOffset    =  0x00,
+            bitOffset    =  8,
             base         = pr.UInt,
             mode         = "RW",
+            enum = DIV_ENU,
         ))
 
         self.add(pr.RemoteVariable(   
@@ -810,6 +862,7 @@ class Gthe3Channel(pr.Device):
             bitOffset    =  0x03,
             base         = pr.UInt,
             mode         = "RW",
+            enum = DIV_ENU,
         ))
 
         self.add(pr.RemoteVariable(   
@@ -1150,6 +1203,23 @@ class Gthe3Channel(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            enum         = {
+                0 : '-',
+                32768 : '0.0' ,
+                57744 : '4.0' ,
+                49648 : '5.0' ,
+                57728 : '8.0' ,
+                57760 : '10.0' ,
+                57730 : '16.0' ,
+                49672 : '16.5' ,
+                57762 : '20.0' ,
+                57734 : '32.0' ,
+                49800 : '33.0' ,
+                57766 : '40.0' ,
+                57742 : '64.0' ,
+                50056 : '66.0' ,
+                57743 : '80.0' ,
+                57775 : '100.0' }
         ))
 
         self.add(pr.RemoteVariable(   
@@ -1661,6 +1731,17 @@ class Gthe3Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
         ))
+
+        self.add(pr.RemoteVariable(   
+            name         = "RXCDR_CFG2",
+            description  = "",
+            offset       =  0x10 << 2,
+            bitSize      =  16,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
+        
 
         self.add(pr.RemoteVariable(   
             name         = "RXCDR_CFG2_GEN3",
@@ -2580,6 +2661,12 @@ class Gthe3Channel(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            enum = {
+                0: '1',
+                4: '16',
+                1: '2',
+                2: '4',
+                3: '8'},            
         ))
 
         self.add(pr.RemoteVariable(   
@@ -3242,6 +3329,12 @@ class Gthe3Channel(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            enum = {
+                0: '1',
+                4: '16',
+                1: '2',
+                2: '4',
+                3: '8'},
         ))
 
         self.add(pr.RemoteVariable(   
@@ -3660,6 +3753,23 @@ class Gthe3Channel(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            enum         = {
+                0 : '-',
+                32768 : '0.0' ,
+                57744 : '4.0' ,
+                49648 : '5.0' ,
+                57728 : '8.0' ,
+                57760 : '10.0' ,
+                57730 : '16.0' ,
+                49672 : '16.5' ,
+                57762 : '20.0' ,
+                57734 : '32.0' ,
+                49800 : '33.0' ,
+                57766 : '40.0' ,
+                57742 : '64.0' ,
+                50056 : '66.0' ,
+                57743 : '80.0' ,
+                57775 : '100.0' }
         ))
 
         self.add(pr.RemoteVariable(   
