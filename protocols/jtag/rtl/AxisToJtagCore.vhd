@@ -173,6 +173,9 @@ architecture AxisToJtagCoreImpl of AxisToJtagCore is
 
    signal rin         : RegType;
 
+   signal mAxisTdoLoc : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal sAxisTmsLoc : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+
    signal tdiReady    : sl;
    signal tdoValidLoc : sl;
    signal tdoValid    : sl;
@@ -182,14 +185,17 @@ architecture AxisToJtagCoreImpl of AxisToJtagCore is
 begin
    running                                   <= r.running;
 
-   sAxisTmsTdi.tReady                        <= r.sReady;
+   sAxisTmsLoc.tReady                        <= r.sReady;
+   sAxisTmsTdi                               <= sAxisTmsLoc;
 
    tdoValid                                  <= r.tdoValid and r.tdoPass;
 
-   mAxisTdo.tKeep(AXIS_WIDTH_G - 1 downto 0) <= ( others => '1' );
-   mAxisTdo.tValid                           <= tdoValid;
-   mAxisTdo.tLast                            <= r.tLast;
-   mAxisTdo.tData(AXIS_BW_G    - 1 downto 0) <= r.tdo;
+   mAxisTdoLoc.tKeep(AXIS_WIDTH_G - 1 downto 0) <= ( others => '1' );
+   mAxisTdoLoc.tValid                           <= tdoValid;
+   mAxisTdoLoc.tLast                            <= r.tLast;
+   mAxisTdoLoc.tData(AXIS_BW_G    - 1 downto 0) <= r.tdo;
+
+   mAxisTdo <= mAxisTdoLoc;
 
    tdoReady <= not r.tdoValid or ( sAxisTdo.tReady and r.tdoPass );
 
