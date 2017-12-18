@@ -2,7 +2,7 @@
 -- File       : Pgp2bPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2009-05-27
--- Last update: 2017-05-02
+-- Last update: 2017-11-13
 -------------------------------------------------------------------------------
 -- Description:
 -- PGP ID and other global constants.
@@ -16,8 +16,8 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-LIBRARY ieee;
-USE ieee.std_logic_1164.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
@@ -30,18 +30,18 @@ package Pgp2bPkg is
    constant SSI_PGP2B_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(2, TKEEP_COMP_C);
 
    -- 8B10B Characters
-   constant K_COM_C  : slv(7 downto 0) := "10111100"; -- K28.5, 0xBC
-   constant K_LTS_C  : slv(7 downto 0) := "00111100"; -- K28.1, 0x3C
-   constant D_102_C  : slv(7 downto 0) := "01001010"; -- D10.2, 0x4A
-   constant D_215_C  : slv(7 downto 0) := "10110101"; -- D21.5, 0xB5
-   constant K_SKP_C  : slv(7 downto 0) := "00011100"; -- K28.0, 0x1C
-   constant K_OTS_C  : slv(7 downto 0) := "01111100"; -- K28.3, 0x7C
-   constant K_ALN_C  : slv(7 downto 0) := "11011100"; -- K28.6, 0xDC
-   constant K_SOC_C  : slv(7 downto 0) := "11111011"; -- K27.7, 0xFB
-   constant K_SOF_C  : slv(7 downto 0) := "11110111"; -- K23.7, 0xF7
-   constant K_EOF_C  : slv(7 downto 0) := "11111101"; -- K29.7, 0xFD
-   constant K_EOFE_C : slv(7 downto 0) := "11111110"; -- K30.7, 0xFE
-   constant K_EOC_C  : slv(7 downto 0) := "01011100"; -- K28.2, 0x5C
+   constant K_COM_C  : slv(7 downto 0) := "10111100";  -- K28.5, 0xBC
+   constant K_LTS_C  : slv(7 downto 0) := "00111100";  -- K28.1, 0x3C
+   constant D_102_C  : slv(7 downto 0) := "01001010";  -- D10.2, 0x4A
+   constant D_215_C  : slv(7 downto 0) := "10110101";  -- D21.5, 0xB5
+   constant K_SKP_C  : slv(7 downto 0) := "00011100";  -- K28.0, 0x1C
+   constant K_OTS_C  : slv(7 downto 0) := "01111100";  -- K28.3, 0x7C
+   constant K_ALN_C  : slv(7 downto 0) := "11011100";  -- K28.6, 0xDC
+   constant K_SOC_C  : slv(7 downto 0) := "11111011";  -- K27.7, 0xFB
+   constant K_SOF_C  : slv(7 downto 0) := "11110111";  -- K23.7, 0xF7
+   constant K_EOF_C  : slv(7 downto 0) := "11111101";  -- K29.7, 0xFD
+   constant K_EOFE_C : slv(7 downto 0) := "11111110";  -- K30.7, 0xFE
+   constant K_EOC_C  : slv(7 downto 0) := "01011100";  -- K28.2, 0x5C
 
    -- ID Constant
    constant PGP2B_ID_C : slv(3 downto 0) := "0101";
@@ -51,7 +51,7 @@ package Pgp2bPkg is
    -----------------------------------------------------
 
    type Pgp2bRxInType is record
-      flush    : sl;  -- Flush the link
+      flush    : sl;                    -- Flush the link
       resetRx  : sl;
       loopback : slv(2 downto 0);
    end record Pgp2bRxInType;
@@ -62,23 +62,23 @@ package Pgp2bPkg is
       '0',
       '0',
       "000"
-   );
+      );
 
    type Pgp2bRxOutType is record
-      phyRxReady    : sl;                -- RX Phy is ready
-      linkReady     : sl;                -- Local side has link
-      linkPolarity  : slv(1 downto 0);   -- Receive link polarity
-      frameRx       : sl;                -- A good frame was received
-      frameRxErr    : sl;                -- An errored frame was received
-      cellError     : sl;                -- A cell error has occured
-      linkDown      : sl;                -- A link down event has occured
-      linkError     : sl;                -- A link error has occured
-      opCodeEn      : sl;                -- Opcode receive enable
-      opCode        : slv(7 downto 0);   -- Opcode receive value
-      remLinkReady  : sl;                -- Far end side has link
-      remLinkData   : slv(7 downto 0);   -- Far end side User Data
-      remOverflow   : slv(3 downto 0);   -- Far end overflow status
-      remPause      : slv(3 downto 0);   -- Far end pause status
+      phyRxReady   : sl;                -- RX Phy is ready
+      linkReady    : sl;                -- Local side has link
+      linkPolarity : slv(1 downto 0);   -- Receive link polarity
+      frameRx      : sl;                -- A good frame was received
+      frameRxErr   : sl;                -- An errored frame was received
+      cellError    : sl;                -- A cell error has occured
+      linkDown     : sl;                -- A link down event has occured
+      linkError    : sl;                -- A link error has occured
+      opCodeEn     : sl;                -- Opcode receive enable
+      opCode       : slv(7 downto 0);   -- Opcode receive value
+      remLinkReady : sl;                -- Far end side has link
+      remLinkData  : slv(7 downto 0);   -- Far end side User Data
+      remOverflow  : slv(3 downto 0);   -- Far end overflow status
+      remPause     : slv(3 downto 0);   -- Far end pause status
    end record Pgp2bRxOutType;
 
    type Pgp2bRxOutArray is array (natural range <>) of Pgp2bRxOutType;
@@ -98,18 +98,20 @@ package Pgp2bPkg is
       (others => '0'),
       (others => '0'),
       (others => '0')
-   );
+      );
 
    -----------------------------------------------------
    -- PGP2B TX non-data types
    -----------------------------------------------------
 
    type Pgp2bTxInType is record
-      flush           : sl;                -- Flush the link
-      opCodeEn        : sl;                -- Opcode receive enable
-      opCode          : slv(7 downto 0);   -- Opcode receive value
-      locData         : slv(7 downto 0);   -- Near end side User Data
-      flowCntlDis     : sl;                -- Ignore flow control 
+      flush       : sl;                 -- Flush the link
+      opCodeEn    : sl;                 -- Opcode receive enable
+      opCode      : slv(7 downto 0);    -- Opcode receive value
+      locData     : slv(7 downto 0);    -- Near end side User Data
+      flowCntlDis : sl;                 -- Ignore flow control
+      resetTx     : sl;                 -- Reset tx phy
+      resetGt     : sl;
    end record Pgp2bTxInType;
 
    type Pgp2bTxInArray is array (natural range <>) of Pgp2bTxInType;
@@ -119,24 +121,28 @@ package Pgp2bPkg is
       '0',
       (others => '0'),
       (others => '0'),
+      '0',
+      '0',
       '0'
-   ); 
+      );
 
    constant PGP2B_TX_IN_HALF_DUPLEX_C : Pgp2bTxInType := (
       '0',
       '0',
       (others => '0'),
       (others => '0'),
-      '1'
-   );    
+      '1',
+      '0',
+      '0'
+      );
 
    type Pgp2bTxOutType is record
-      locOverflow : slv(3 downto 0);   -- Local overflow status
-      locPause    : slv(3 downto 0);   -- Local pause status
-      phyTxReady  : sl;                -- TX Phy is ready
-      linkReady   : sl;                -- Local side has link
-      frameTx     : sl;                -- A good frame was transmitted
-      frameTxErr  : sl;                -- An errored frame was transmitted
+      locOverflow : slv(3 downto 0);    -- Local overflow status
+      locPause    : slv(3 downto 0);    -- Local pause status
+      phyTxReady  : sl;                 -- TX Phy is ready
+      linkReady   : sl;                 -- Local side has link
+      frameTx     : sl;                 -- A good frame was transmitted
+      frameTxErr  : sl;                 -- An errored frame was transmitted
    end record Pgp2bTxOutType;
 
    type Pgp2bTxOutArray is array (natural range <>) of Pgp2bTxOutType;
@@ -148,7 +154,7 @@ package Pgp2bPkg is
       '0',
       '0',
       '0'
-   );                
+      );
 
    -----------------------------------------------------
    -- PGP2B RX Phy types
@@ -160,7 +166,7 @@ package Pgp2bPkg is
 
    type Pgp2bRxPhyLaneOutArray is array (natural range <>) of Pgp2bRxPhyLaneOutType;
 
-   constant PGP2B_RX_PHY_LANE_OUT_INIT_C : Pgp2bRxPhyLaneOutType := (polarity => '0');   
+   constant PGP2B_RX_PHY_LANE_OUT_INIT_C : Pgp2bRxPhyLaneOutType := (polarity => '0');
 
    type Pgp2bRxPhyLaneInType is record
       data    : slv(15 downto 0);       -- PHY receive data
@@ -176,7 +182,7 @@ package Pgp2bPkg is
       (others => '0'),
       (others => '0'),
       (others => '0')
-   );    
+      );
 
    -----------------------------------------------------
    -- PGP2B TX Phy types
@@ -192,7 +198,7 @@ package Pgp2bPkg is
    constant PGP2B_TX_PHY_LANE_OUT_INIT_C : Pgp2bTxPhyLaneOutType := (
       (others => '0'),
       (others => '0')
-   );    
-   
+      );
+
 end Pgp2bPkg;
 

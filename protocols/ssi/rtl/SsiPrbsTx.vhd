@@ -2,7 +2,7 @@
 -- File       : SsiPrbsTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2016-10-25
+-- Last update: 2017-09-13
 -------------------------------------------------------------------------------
 -- Description:   This module generates 
 --                PseudoRandom Binary Sequence (PRBS) on Virtual Channel Lane.
@@ -116,7 +116,7 @@ architecture rtl of SsiPrbsTx is
       length         => (others => '0'),
       packetLength   => (others => '0'),
       dataCnt        => (others => '0'),
-      eventCnt       => (others => '0'),
+      eventCnt       => toSlv(1, PRBS_SEED_SIZE_G),
       randomData     => (others => '0'),
       txAxisMaster   => AXI_STREAM_MASTER_INIT_C,
       state          => IDLE_S,

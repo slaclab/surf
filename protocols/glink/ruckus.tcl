@@ -7,13 +7,9 @@ loadRuckusTcl "$::DIR_PATH/core"
 # Get the family type
 set family [getFpgaFamily]
 
-# if { ${family} == "virtex7" } {
-   # loadRuckusTcl "$::DIR_PATH/gth7"
-# }
-
-# if { ${family} == "kintexu" } {
-   # loadRuckusTcl "$::DIR_PATH/gthUltraScale"
-# }
+#############################################################################
+# Note: Our G-Link implementation only supported by the Xilinx 7-Series FPGAs
+#############################################################################
 
 if { ${family} == "artix7" } {
    loadRuckusTcl "$::DIR_PATH/gtp7"
