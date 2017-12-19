@@ -2,7 +2,7 @@
 -- File       : Pgp2bGtp7VarLatWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2017-10-12
+-- Last update: 2017-12-19
 -------------------------------------------------------------------------------
 -- Description: Example PGP2b front end wrapper
 -- Note: Default generic configurations are for the AC701 development board
@@ -164,7 +164,6 @@ begin
          clkIn     => pgpTxRecClk,
          rstIn     => pgpTxMmcmReset,
          clkOut(0) => pgpClock,
-         rstOut(0) => open,
          locked    => pgpTxMmcmLocked);
 
    -- PLL0 Port Mapping

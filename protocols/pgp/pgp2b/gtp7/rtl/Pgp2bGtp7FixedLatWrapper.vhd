@@ -2,7 +2,7 @@
 -- File       : Pgp2bGtp7FixedLatWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2017-01-24
+-- Last update: 2017-12-19
 -------------------------------------------------------------------------------
 -- Description: Gtp7 Fixed Latency Wrapper
 -------------------------------------------------------------------------------
@@ -275,7 +275,6 @@ begin
             clkIn     => pgpTxClkBase,
             rstIn     => pgpTxMmcmReset,
             clkOut(0) => pgpTxClk,
-            rstOut(0) => open,
             locked    => pgpTxMmcmLocked);
 
       pgpTxReset <= extRst;
