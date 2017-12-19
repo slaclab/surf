@@ -108,9 +108,9 @@ entity AxisToJtagCore is
       axisRst          : in sl;
 
       mAxisTmsTdi      : in  AxiStreamMasterType;
-      sAxisTmsTdi      : out AxiStreamSlaveType;
+      sAxisTmsTdi      : out AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
 
-      mAxisTdo         : out AxiStreamMasterType;
+      mAxisTdo         : out AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
       sAxisTdo         : in  AxiStreamSlaveType;
 
       running          : out sl;
@@ -127,14 +127,14 @@ architecture AxisToJtagCoreImpl of AxisToJtagCore is
 
    type StateType is (IDLE, GET_TMS, GET_TDI, SHIFT, ALIGN, DISCARD);
 
-   constant AXIS_BW_G       : positive  := 8*AXIS_WIDTH_G;
-
+   constant AXIS_BW_C       : positive  := 8*AXIS_WIDTH_G;
+   
    type RegType is record
       state      : StateType;
-      tdi        : slv(AXIS_BW_G - 1 downto 0);
-      tms        : slv(AXIS_BW_G - 1 downto 0);
-      tdo        : slv(AXIS_BW_G - 1 downto 0);
-      nBits      : natural range 0 to AXIS_BW_G - 1;
+      tdi        : slv(AXIS_BW_C - 1 downto 0);
+      tms        : slv(AXIS_BW_C - 1 downto 0);
+      tdo        : slv(AXIS_BW_C - 1 downto 0);
+      nBits      : natural range 0 to AXIS_BW_C - 1;
       nBitsTot   : slv(LEN_POSN_G - LEN_POS0_G downto 0);
       tdiValid   : sl;
       sReady     : sl;
@@ -167,14 +167,11 @@ architecture AxisToJtagCoreImpl of AxisToJtagCore is
       running    => '0'
    );
 
-   signal tdoData     : slv(AXIS_BW_G - 1 downto 0);
+   signal tdoData     : slv(AXIS_BW_C - 1 downto 0);
 
    signal r           : RegType := REG_INIT_C;
 
    signal rin         : RegType;
-
-   signal mAxisTdoLoc : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal sAxisTmsLoc : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
 
    signal tdiReady    : sl;
    signal tdoValidLoc : sl;
@@ -185,24 +182,22 @@ architecture AxisToJtagCoreImpl of AxisToJtagCore is
 begin
    running                                   <= r.running;
 
-   sAxisTmsLoc.tReady                        <= r.sReady;
-   sAxisTmsTdi                               <= sAxisTmsLoc;
+   sAxisTmsTdi.tReady                        <= r.sReady;
 
    tdoValid                                  <= r.tdoValid and r.tdoPass;
 
-   mAxisTdoLoc.tKeep(AXIS_WIDTH_G - 1 downto 0) <= ( others => '1' );
-   mAxisTdoLoc.tValid                           <= tdoValid;
-   mAxisTdoLoc.tLast                            <= r.tLast;
-   mAxisTdoLoc.tData(AXIS_BW_G    - 1 downto 0) <= r.tdo;
-
-   mAxisTdo <= mAxisTdoLoc;
+   mAxisTdo.tKeep(mAxisTdo.tKeep'left - 1 downto AXIS_WIDTH_G) <= ( others => '0' );
+   mAxisTdo.tKeep(AXIS_WIDTH_G - 1 downto 0) <= ( others => '1' );
+   mAxisTdo.tValid                           <= tdoValid;
+   mAxisTdo.tLast                            <= r.tLast;
+   mAxisTdo.tData(AXIS_BW_C    - 1 downto 0) <= r.tdo;
 
    tdoReady <= not r.tdoValid or ( sAxisTdo.tReady and r.tdoPass );
 
    U_Jtag : entity work.JtagSerDesCore
       generic map (
          TPD_G         => TPD_G,
-         WIDTH_G       => AXIS_BW_G,
+         WIDTH_G       => AXIS_BW_C,
          CLK_DIV2_G    => CLK_DIV2_G
       )
       port map (
@@ -257,20 +252,20 @@ begin
                      -- wait for outstanding transaction
                      v.last      := true;
                      v.tLastSeen := true;
-                     v.nBits     := AXIS_BW_G - 1;
+                     v.nBits     := AXIS_BW_C - 1;
                      v.state     := ALIGN;
                   else
                      -- nothing outstanding -- go back to idle state
                      v.state    := IDLE;
                   end if;
                else
-                  v.tms      := mAxisTmsTdi.tData(AXIS_BW_G - 1 downto 0);
+                  v.tms      := mAxisTmsTdi.tData(AXIS_BW_C - 1 downto 0);
                   v.state    := GET_TDI;
                   v.iCnt     := slv(unsigned(r.iCnt) + 1);
                   v.running  := '1';
-                  if ( unsigned(r.nBitsTot) >= AXIS_BW_G ) then
-                     v.nBits    := AXIS_BW_G - 1;
-                     v.nBitsTot := slv(unsigned(r.nBitsTot) - unsigned(toSlv(AXIS_BW_G, v.nBitsTot'length)));
+                  if ( unsigned(r.nBitsTot) >= AXIS_BW_C ) then
+                     v.nBits    := AXIS_BW_C - 1;
+                     v.nBitsTot := slv(unsigned(r.nBitsTot) - unsigned(toSlv(AXIS_BW_C, v.nBitsTot'length)));
                   else
                      v.last     := true;
                      v.nBits    := to_integer(unsigned(r.nBitsTot));
@@ -288,7 +283,7 @@ begin
                      v.last      := true;
                   end if;
                end if;
-               v.tdi      := mAxisTmsTdi.tData(AXIS_BW_G - 1 downto 0);
+               v.tdi      := mAxisTmsTdi.tData(AXIS_BW_C - 1 downto 0);
                v.tdiValid := '1';
                v.sReady   := '0';
                v.state    := SHIFT;
@@ -304,7 +299,7 @@ begin
             end if;
 
          when ALIGN =>
-            if ( r.nBits = AXIS_BW_G - 1 ) then
+            if ( r.nBits = AXIS_BW_C - 1 ) then
                v.tLast   := '1';
                if ( ( r.tdoValid and sAxisTdo.tReady ) = '1' ) then
                   v.state := DISCARD;
