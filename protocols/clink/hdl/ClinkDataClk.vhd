@@ -27,7 +27,9 @@ use unisim.vcomponents.all;
 use work.StdRtlPkg.all;
 
 entity ClinkDataClk is
-   generic ( TPD_G  : time := 1 ns);
+   generic ( 
+      TPD_G         : time    := 1 ns;
+      REG_BUFF_EN_G : boolean := false);
    port (
       clkIn      : in  sl;
       rstIn      : in  sl;
@@ -80,25 +82,59 @@ begin
          CLKOUT0  => clkOutMmcm(0),
          CLKOUT1  => clkOutMmcm(1));
 
-   U_BufIn : BUFG
-      port map (
-         I   => clkIn,
-         O   => clkInLoc);
+   U_RegGen: if REG_BUFF_EN_G generate
 
-   U_BufFb : BUFG
-      port map (
-         I   => clkFbOut,
-         O   => clkFbIn);
+      U_BufIn : BUFR
+         port map (
+            CE  => '0',
+            CLR => '0',
+            I   => clkIn,
+            O   => clkInLoc);
 
-   U_BufOut : BUFG
-      port map (
-         I   => clkOutMmcm(0),
-         O   => clkOutLoc(0));
+      U_BufFb : BUFR
+         port map (
+            CE  => '0',
+            CLR => '0',
+            I   => clkFbOut,
+            O   => clkFbIn);
 
-   U_BufIo : BUFG
-      port map (
-         I   => clkOutMmcm(1),
-         O   => clkOutLoc(1));
+      U_BufOut : BUFR
+         port map (
+            CE  => '0',
+            CLR => '0',
+            I   => clkOutMmcm(0),
+            O   => clkOutLoc(0));
+
+      U_BufIo : BUFIO
+         port map (
+            I   => clkOutMmcm(1),
+            O   => clkOutLoc(1));
+
+   end generate;
+
+   U_GlbGen: if not REG_BUFF_EN_G generate
+
+      U_BufIn : BUFG
+         port map (
+            I   => clkIn,
+            O   => clkInLoc);
+
+      U_BufFb : BUFG
+         port map (
+            I   => clkFbOut,
+            O   => clkFbIn);
+
+      U_BufOut : BUFG
+         port map (
+            I   => clkOutMmcm(0),
+            O   => clkOutLoc(0));
+
+      U_BufIo : BUFG
+         port map (
+            I   => clkOutMmcm(1),
+            O   => clkOutLoc(1));
+
+   end generate;
 
    genReset <= lockedLoc and (not rstIn);
 
