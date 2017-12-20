@@ -2,7 +2,7 @@
 -- File       : SaltRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2017-09-29
+-- Last update: 2017-12-20
 -------------------------------------------------------------------------------
 -- Description: SALT RX Engine Module
 -------------------------------------------------------------------------------
@@ -37,7 +37,9 @@ entity SaltRx is
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType;
       -- GMII Interface
+      rxLinkUp    : in  sl;
       rxPktRcvd   : out sl;
+      rxErrDet    : out sl;
       rxEn        : in  sl;
       rxErr       : in  sl;
       rxData      : in  slv(7 downto 0);
@@ -56,6 +58,7 @@ architecture rtl of SaltRx is
 
    type RegType is record
       rxPktRcvd : sl;
+      rxErrDet  : sl;
       sof       : sl;
       eofe      : sl;
       align     : sl;
@@ -72,6 +75,7 @@ architecture rtl of SaltRx is
    end record RegType;
    constant REG_INIT_C : RegType := (
       rxPktRcvd => '0',
+      rxErrDet  => '0',
       sof       => '1',
       eofe      => '0',
       align     => '0',
@@ -94,7 +98,7 @@ architecture rtl of SaltRx is
 
 begin
 
-   comb : process (r, rst, rxData, rxEn, rxErr, txSlave) is
+   comb : process (r, rst, rxData, rxEn, rxErr, rxLinkUp, txSlave) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -102,6 +106,7 @@ begin
 
       -- Reset the flags
       v.rxPktRcvd       := '0';
+      v.rxErrDet        := '0';
       v.rxMaster.tValid := '0';
       if txSlave.tReady = '1' then
          v.txMaster.tValid := '0';
@@ -181,9 +186,10 @@ begin
                -- Check for invalid lengths or invalid sequence counter
                if (v.length = 0) or (v.length > SALT_MAX_WORDS_C) or (r.rxMaster.tData(31 downto 24) /= r.seqCnt) then
                   -- Set the error flag
-                  v.eofe  := '1';
+                  v.eofe     := '1';
+                  v.rxErrDet := '1';
                   -- Next state
-                  v.state := IDLE_S;
+                  v.state    := IDLE_S;
                else
                   -- Next state
                   v.state := MOVE_S;
@@ -229,9 +235,10 @@ begin
                v.state := DONE_S;
             else
                -- Set the error flag
-               v.eofe  := '1';
+               v.eofe     := '1';
+               v.rxErrDet := '1';
                -- Next state
-               v.state := IDLE_S;
+               v.state    := IDLE_S;
             end if;
          ----------------------------------------------------------------------
          when DONE_S =>
@@ -258,7 +265,8 @@ begin
                   ssiSetUserEofe(SSI_SALT_CONFIG_C, v.txMaster, '1');
                else
                   -- Set the error flag
-                  v.eofe := '1';
+                  v.eofe     := '1';
+                  v.rxErrDet := '1';
                end if;
                -- Next state
                v.state := IDLE_S;
@@ -269,14 +277,15 @@ begin
       -- Check for GMII frame error
       if (r.rxMaster.tValid = '1') and (r.rxMaster.tUser(SSI_EOFE_C) = '1') then
          -- Set the error flag
-         v.eofe := '1';
+         v.eofe     := '1';
+         v.rxErrDet := '1';
       end if;
 
       -- Overwrite the destination field
       v.txMaster.tDest := r.tDest;
 
       -- Reset
-      if (rst = '1') then
+      if (rst = '1') or (rxLinkUp = '0') then
          v := REG_INIT_C;
       end if;
 
@@ -286,6 +295,7 @@ begin
       -- Outputs        
       txMaster  <= r.txMaster;
       rxPktRcvd <= r.rxPktRcvd;
+      rxErrDet  <= r.rxErrDet;
 
    end process comb;
 

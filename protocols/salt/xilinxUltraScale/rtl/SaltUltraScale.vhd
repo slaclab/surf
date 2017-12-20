@@ -2,7 +2,7 @@
 -- File       : SaltUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-15
--- Last update: 2017-11-08
+-- Last update: 2017-12-20
 -------------------------------------------------------------------------------
 -- Description: SLAC Asynchronous Logic Transceiver (SALT) UltraScale Core
 -------------------------------------------------------------------------------
@@ -54,6 +54,7 @@ entity SaltUltraScale is
       linkUp        : out sl;
       txPktSent     : out sl;
       rxPktRcvd     : out sl;
+      rxErrDet      : out sl;
       -- Slave Port
       sAxisClk      : in  sl;
       sAxisRst      : in  sl;
@@ -374,7 +375,9 @@ begin
             mAxisMaster => mAxisMaster,
             mAxisSlave  => mAxisSlave,
             -- GMII Interface
+            rxLinkUp    => status(0),
             rxPktRcvd   => rxPktRcvd,
+            rxErrDet    => rxErrDet,
             rxEn        => rxEn,
             rxErr       => rxErr,
             rxData      => rxData,
@@ -386,6 +389,7 @@ begin
    RX_DISABLE : if (RX_ENABLE_G = false) generate
 
       rxPktRcvd   <= '0';
+      rxErrDet    <= '0';
       mAxisMaster <= AXI_STREAM_MASTER_INIT_C;
 
    end generate;
