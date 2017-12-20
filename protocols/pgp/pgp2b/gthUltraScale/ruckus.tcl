@@ -2,12 +2,18 @@
 source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 
 # Load local source Code and constraints
-loadSource   -dir "$::DIR_PATH/rtl/"
+if { $::env(VIVADO_VERSION) >= 2017.3 } {
 
-loadSource   -path "$::DIR_PATH/ip/PgpGthCore.dcp"
-#loadIpCore  -path "$::DIR_PATH/ip/PgpGthCore.xci" 
-#loadConstraints -path "$::DIR_PATH/rtl/Pgp2bGthUltra.xdc"
+   loadSource   -dir "$::DIR_PATH/rtl/"
 
-#set_property PROCESSING_ORDER {LATE} [get_files {Pgp2bGthUltra.xdc}]
-#set_property SCOPED_TO_REF {PgpGthCore} [get_files {Pgp2bGthUltra.xdc}]
-#set_property SCOPED_TO_CELLS {inst} [get_files {Pgp2bGthUltra.xdc}]
+   loadSource   -path "$::DIR_PATH/ip/PgpGthCore.dcp"
+   #loadIpCore  -path "$::DIR_PATH/ip/PgpGthCore.xci" 
+   #loadConstraints -path "$::DIR_PATH/rtl/Pgp2bGthUltra.xdc"
+
+   #set_property PROCESSING_ORDER {LATE} [get_files {Pgp2bGthUltra.xdc}]
+   #set_property SCOPED_TO_REF {PgpGthCore} [get_files {Pgp2bGthUltra.xdc}]
+   #set_property SCOPED_TO_CELLS {inst} [get_files {Pgp2bGthUltra.xdc}]
+
+} else {
+   puts "\n\nWARNING: $::DIR_PATH requires Vivado 2017.3 (or later)\n\n"
+}      
