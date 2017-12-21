@@ -30,7 +30,7 @@ entity AxiStreamFlushTb is end AxiStreamFlushTb;
 architecture testbed of AxiStreamFlushTb is
 
    -- Constants
-   constant FAST_CLK_PERIOD_C  : time             := SLOW_CLK_PERIOD_C/3.14159;
+   constant FAST_CLK_PERIOD_C  : time             := 5 ns;
    constant TPD_C              : time             := FAST_CLK_PERIOD_C/4;
 
    -- PRBS Configuration
@@ -79,7 +79,7 @@ begin
          GEN_SYNC_FIFO_G            => true,
          PRBS_SEED_SIZE_G           => PRBS_SEED_SIZE_C,
          PRBS_TAPS_G                => PRBS_TAPS_C,
-         MASTER_AXI_STREAM_CONFIG_G => AXI_STREAM_CONFIG_C);
+         MASTER_AXI_STREAM_CONFIG_G => AXI_STREAM_CONFIG_C)
       port map (
          mAxisClk     => fastClk,
          mAxisRst     => fastRst,
@@ -96,9 +96,9 @@ begin
 
    U_Flush: entity work.AxiStreamFlush
       generic map (
-         TPD_G         => TPD_G,
+         TPD_G         => TPD_C,
          AXIS_CONFIG_G => AXI_STREAM_CONFIG_C,
-         SSI_EN_G      => true);
+         SSI_EN_G      => true)
       port map (
          axisClk     => fastClk,
          axisRst     => fastRst,
@@ -118,17 +118,21 @@ begin
          else
 
             if count = 254 then
-               count <= 0 after TPD_G;
+               count <= 0 after TPD_C;
             else
-               count <= count + 1 after TPD_G;
+               count <= count + 1 after TPD_C;
             end if;
 
             if count = 254 then
-               fushEn <= '1' after TPD_C;
+               flushEn <= '1' after TPD_C;
+            else
+               flushEn <= '0' after TPD_C;
             end if;
 
-            if (count % 10) = 0 then
-               ibCtrl.pause <= '1' after TPD_G;
+            if (count rem 10) = 0 then
+               ibCtrl.pause <= '1' after TPD_C;
+            else
+               ibCtrl.pause <= '0' after TPD_C;
             end if;
 
          end if;

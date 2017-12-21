@@ -62,7 +62,7 @@ architecture rtl of AxiStreamFlush is
 
    constant REG_INIT_C : RegType := (
       state    => IDLE_S,
-      obMaster => axiStreamMasterInit(MASTER_AXI_CONFIG_G),
+      obMaster => axiStreamMasterInit(AXIS_CONFIG_G),
       ibSlave  => AXI_STREAM_SLAVE_INIT_C
    );
 
@@ -78,6 +78,7 @@ begin
       v := r;
 
       v.ibSlave.tReady := '0';
+      v.obMaster := AXI_STREAM_MASTER_INIT_C;
 
       case r.state is
 
@@ -113,11 +114,14 @@ begin
                end if;
 
                v.state := FLUSH_S;
+
+            elsif sAxisMaster.tValid = '1' and sAxisMaster.tLast = '1' then
+               v.state := IDLE_S;
             end if;
 
          -- Flushing data
          when FLUSH_S =>
-            v.ibSlave.tReady ;= '1';
+            v.ibSlave.tReady := '1';
 
             -- Dump until we see tlast
             if sAxisMaster.tValid = '1' and sAxisMaster.tLast = '1' then
@@ -143,7 +147,7 @@ begin
    seq : process (axisClk) is
    begin
       if (rising_edge(axisClk)) then
-         r <= REG_INIT_C after TPD_G;
+         r <= rin after TPD_G;
       end if;
    end process seq;
 
