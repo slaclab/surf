@@ -19,10 +19,18 @@ if { ${family} == "kintexu" } {
 #    loadRuckusTcl "$::DIR_PATH/gtp7"
 # }
 
-# if { ${family} == "kintex7" } {
-#    loadRuckusTcl "$::DIR_PATH/gtx7"
+if { ${family} == "kintex7" } {
+   loadRuckusTcl "$::DIR_PATH/gtx7"
+}
+
+if { ${family} == "zynq" } {
+   loadRuckusTcl "$::DIR_PATH/gtx7"
+}
+
+# if { ${family} eq {kintexu} } {
+#    loadRuckusTcl "$::DIR_PATH/gthUltraScale"
 # }
 
-# if { ${family} == "zynq" } {
-#    loadRuckusTcl "$::DIR_PATH/gtx7"
+# if { ${family} eq {kintexuplus} } {
+#    loadRuckusTcl "$::DIR_PATH/gthUltraScale+"
 # }

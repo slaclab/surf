@@ -186,7 +186,13 @@ package Pgp3Pkg is
       ebValid        => '0',
       ebOverflow     => '0',
       ebStatus       => (others => '0'));
-
+      
+   type Pgp3RefClkType is (
+      PGP3_REFCLK_125_C,  -- Used in 6.25Gbps only
+      PGP3_REFCLK_156_C,  -- Used in 10.3125Gbps & 6.25Gbps
+      PGP3_REFCLK_250_C,  -- Used in 6.25Gbps only
+      PGP3_REFCLK_312_C); -- Used in 10.3125Gbps & 6.25Gbps
+      
 end package Pgp3Pkg;
 
 package body Pgp3Pkg is
