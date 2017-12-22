@@ -30,8 +30,8 @@ entity AxiStreamFlushTb is end AxiStreamFlushTb;
 architecture testbed of AxiStreamFlushTb is
 
    -- Constants
-   constant CLK_PERIOD_C  : time := 10 ns;
-   constant TPD_C         : time := CLK_PERIOD_C/4;
+   constant FAST_CLK_PERIOD_C  : time             := 5 ns;
+   constant TPD_C              : time             := FAST_CLK_PERIOD_C/4;
 
    -- PRBS Configuration
    constant PRBS_SEED_SIZE_C : natural      := 32;
@@ -125,10 +125,14 @@ begin
 
             if count = 254 then
                flushEn <= '1' after TPD_C;
+            else
+               flushEn <= '0' after TPD_C;
             end if;
 
-            if (count mod 10) = 0 then
+            if (count rem 10) = 0 then
                ibCtrl.pause <= '1' after TPD_C;
+            else
+               ibCtrl.pause <= '0' after TPD_C;
             end if;
 
          end if;

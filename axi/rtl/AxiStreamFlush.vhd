@@ -78,6 +78,7 @@ begin
       v := r;
 
       v.ibSlave.tReady := '0';
+      v.obMaster := AXI_STREAM_MASTER_INIT_C;
 
       case r.state is
 
@@ -113,6 +114,9 @@ begin
                end if;
 
                v.state := FLUSH_S;
+
+            elsif sAxisMaster.tValid = '1' and sAxisMaster.tLast = '1' then
+               v.state := IDLE_S;
             end if;
 
          -- Flushing data
@@ -143,7 +147,7 @@ begin
    seq : process (axisClk) is
    begin
       if (rising_edge(axisClk)) then
-         r <= REG_INIT_C after TPD_G;
+         r <= rin after TPD_G;
       end if;
    end process seq;
 
