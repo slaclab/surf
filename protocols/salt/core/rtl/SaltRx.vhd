@@ -2,7 +2,7 @@
 -- File       : SaltRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2017-12-20
+-- Last update: 2017-12-22
 -------------------------------------------------------------------------------
 -- Description: SALT RX Engine Module
 -------------------------------------------------------------------------------
@@ -257,12 +257,16 @@ begin
                   v.rxPktRcvd      := '1';
                   -- Set EOFE
                   ssiSetUserEofe(SSI_SALT_CONFIG_C, v.txMaster, r.eofe);
+                  -- Set the error flag
+                  v.rxErrDet       := r.eofe;
                elsif r.rxMaster.tData(31 downto 0) = EOFE_C then
                   -- Set EOF flag
                   v.txMaster.tLast := '1';
                   v.rxPktRcvd      := '1';
                   -- Set EOFE
                   ssiSetUserEofe(SSI_SALT_CONFIG_C, v.txMaster, '1');
+                  -- Set the error flag
+                  v.rxErrDet       := '1';
                else
                   -- Set the error flag
                   v.eofe     := '1';
