@@ -6,7 +6,7 @@ if { $::env(VIVADO_VERSION) >= 2016.4 } {
 
    loadSource -dir  "$::DIR_PATH/rtl"
    loadSource -path "$::DIR_PATH/ip/SaltUltraScaleCore.dcp"
-   # loadSource -path "$::DIR_PATH/images/SaltUltraScaleRxOnly.dcp"
+   loadSource -path "$::DIR_PATH/images/SaltUltraScaleRxOnly.dcp"
    loadSource -path "$::DIR_PATH/images/SaltUltraScaleTxOnly.dcp"
 
    # Load Simulation
@@ -17,8 +17,6 @@ if { $::env(VIVADO_VERSION) >= 2016.4 } {
 } 
 
 if { $::env(VIVADO_VERSION) >= 2017.3 } {
-
-   loadSource -path "$::DIR_PATH/images/SaltUltraScaleRxOnly.dcp"
    
    if { [info exists ::env(INCLUDE_SALT)] != 1 || $::env(INCLUDE_SALT) == 0 } {
       set nop 0
@@ -48,6 +46,4 @@ if { $::env(VIVADO_VERSION) >= 2017.3 } {
       set_property SCOPED_TO_CELLS  {U0}                   [get_files {SaltUltraScaleTxOnly.xdc}]        
    }
    
-} else {
-   puts "\n\nWARNING: $::DIR_PATH/images/SaltUltraScaleRxOnly.dcp requires Vivado 2016.4 (or later)\n\n"
 }  
