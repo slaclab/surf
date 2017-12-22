@@ -6,8 +6,8 @@ if { $::env(VIVADO_VERSION) >= 2015.3 } {
 
    loadSource -dir  "$::DIR_PATH/rtl"
 
-   # loadIpCore -path "$::DIR_PATH/coregen/TenGigEthGtx7Core.xci"
-   loadSource -path "$::DIR_PATH/coregen/TenGigEthGtx7Core.dcp"
+   # loadIpCore -path "$::DIR_PATH/ip/TenGigEthGtx7Core.xci"
+   loadSource -path "$::DIR_PATH/ip/TenGigEthGtx7Core.dcp"
    
 } else {
    puts "\n\nWARNING: $::DIR_PATH requires Vivado 2015.3 (or later)\n\n"
