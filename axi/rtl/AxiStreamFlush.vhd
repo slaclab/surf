@@ -62,7 +62,7 @@ architecture rtl of AxiStreamFlush is
 
    constant REG_INIT_C : RegType := (
       state    => IDLE_S,
-      obMaster => axiStreamMasterInit(MASTER_AXI_CONFIG_G),
+      obMaster => axiStreamMasterInit(AXIS_CONFIG_G),
       ibSlave  => AXI_STREAM_SLAVE_INIT_C
    );
 
@@ -117,7 +117,7 @@ begin
 
          -- Flushing data
          when FLUSH_S =>
-            v.ibSlave.tReady ;= '1';
+            v.ibSlave.tReady := '1';
 
             -- Dump until we see tlast
             if sAxisMaster.tValid = '1' and sAxisMaster.tLast = '1' then
