@@ -30,8 +30,8 @@ entity AxiStreamFlushTb is end AxiStreamFlushTb;
 architecture testbed of AxiStreamFlushTb is
 
    -- Constants
-   constant FAST_CLK_PERIOD_C  : time             := SLOW_CLK_PERIOD_C/3.14159;
-   constant TPD_C              : time             := FAST_CLK_PERIOD_C/4;
+   constant CLK_PERIOD_C  : time := 10 ns;
+   constant TPD_C         : time := CLK_PERIOD_C/4;
 
    -- PRBS Configuration
    constant PRBS_SEED_SIZE_C : natural      := 32;
@@ -60,9 +60,9 @@ begin
    ---------------------------------------
    ClkRst_Fast : entity work.ClkRst
       generic map (
-         CLK_PERIOD_G      => FAST_CLK_PERIOD_C,
+         CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
-         RST_HOLD_TIME_G   => 200 ns)   -- Hold reset for this long)
+         RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long)
       port map (
          clkP => fastClk,
          clkN => open,
@@ -79,7 +79,7 @@ begin
          GEN_SYNC_FIFO_G            => true,
          PRBS_SEED_SIZE_G           => PRBS_SEED_SIZE_C,
          PRBS_TAPS_G                => PRBS_TAPS_C,
-         MASTER_AXI_STREAM_CONFIG_G => AXI_STREAM_CONFIG_C);
+         MASTER_AXI_STREAM_CONFIG_G => AXI_STREAM_CONFIG_C)
       port map (
          mAxisClk     => fastClk,
          mAxisRst     => fastRst,
@@ -96,9 +96,9 @@ begin
 
    U_Flush: entity work.AxiStreamFlush
       generic map (
-         TPD_G         => TPD_G,
+         TPD_G         => TPD_C,
          AXIS_CONFIG_G => AXI_STREAM_CONFIG_C,
-         SSI_EN_G      => true);
+         SSI_EN_G      => true)
       port map (
          axisClk     => fastClk,
          axisRst     => fastRst,
@@ -118,17 +118,17 @@ begin
          else
 
             if count = 254 then
-               count <= 0 after TPD_G;
+               count <= 0 after TPD_C;
             else
-               count <= count + 1 after TPD_G;
+               count <= count + 1 after TPD_C;
             end if;
 
             if count = 254 then
-               fushEn <= '1' after TPD_C;
+               flushEn <= '1' after TPD_C;
             end if;
 
-            if (count % 10) = 0 then
-               ibCtrl.pause <= '1' after TPD_G;
+            if (count mod 10) = 0 then
+               ibCtrl.pause <= '1' after TPD_C;
             end if;
 
          end if;
