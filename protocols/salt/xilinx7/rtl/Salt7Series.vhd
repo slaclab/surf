@@ -2,7 +2,7 @@
 -- File       : Salt7Series.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-15
--- Last update: 2017-12-20
+-- Last update: 2017-12-22
 -------------------------------------------------------------------------------
 -- Description: SLAC Asynchronous Logic Transceiver (SALT) 7-series Core
 -------------------------------------------------------------------------------
@@ -50,6 +50,7 @@ entity Salt7Series is
       powerDown   : in  sl := '0';
       linkUp      : out sl;
       txPktSent   : out sl;
+      txEofeSent  : out sl;
       rxPktRcvd   : out sl;
       rxErrDet    : out sl;
       -- Slave Port
@@ -183,6 +184,7 @@ begin
             sAxisSlave  => sAxisSlave,
             -- GMII Interface
             txPktSent   => txPktSent,
+            txEofeSent  => txEofeSent,
             txEn        => txEn,
             txData      => txData,
             clk         => clk125MHz,
@@ -193,6 +195,7 @@ begin
 
       txData     <= x"00";
       txPktSent  <= '0';
+      txEofeSent <= '0';
       txEn       <= '0';
       sAxisSlave <= AXI_STREAM_SLAVE_FORCE_C;
 

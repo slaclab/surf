@@ -2,7 +2,7 @@
 -- File       : SaltTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2017-11-08
+-- Last update: 2017-12-22
 -------------------------------------------------------------------------------
 -- Description: SALT TX Engine Module
 -------------------------------------------------------------------------------
@@ -40,6 +40,7 @@ entity SaltTx is
       clk         : in  sl;
       rst         : in  sl;
       txPktSent   : out sl;
+      txEofeSent  : out sl;
       txEn        : out sl;
       txData      : out slv(7 downto 0));
 end SaltTx;
@@ -63,6 +64,7 @@ architecture rtl of SaltTx is
       eof         : sl;
       eofe        : sl;
       txPktSent   : sl;
+      txEofeSent  : sl;
       seqCnt      : slv(7 downto 0);
       tDest       : slv(7 downto 0);
       cnt         : slv(15 downto 0);
@@ -80,6 +82,7 @@ architecture rtl of SaltTx is
       eof         => '0',
       eofe        => '0',
       txPktSent   => '0',
+      txEofeSent  => '0',
       seqCnt      => (others => '0'),
       tDest       => (others => '0'),
       cnt         => (others => '0'),
@@ -193,6 +196,7 @@ begin
             v.eof         := '0';
             v.eofe        := '0';
             v.txPktSent   := '0';
+            v.txEofeSent  := '0';
             v.length      := (others => '0');
             v.checksum    := (others => '0');
             v.cnt         := (others => '0');
@@ -323,15 +327,16 @@ begin
                -- Write the footer
                v.txMaster.tValid := '1';
                v.txMaster.tLast  := '1';
-               v.txPktSent       := '1';
                -- Check for EOF
                if r.eof = '0' then
                   v.txMaster.tData(31 downto 0) := EOC_C;
                else
+                  v.txPktSent := '1';
                   if r.eofe = '0' then
                      v.txMaster.tData(31 downto 0) := EOF_C;
                   else
                      v.txMaster.tData(31 downto 0) := EOFE_C;
+                     v.txEofeSent                  := '1';
                   end if;
                end if;
                -- Next state
@@ -349,11 +354,12 @@ begin
       rin <= v;
 
       -- Outputs        
-      mSlave    <= v.mSlave;
-      sMaster   <= r.sMaster;
-      rxSlave   <= v.rxSlave;
-      txMaster  <= r.txMaster;
-      txPktSent <= r.txPktSent;
+      mSlave     <= v.mSlave;
+      sMaster    <= r.sMaster;
+      rxSlave    <= v.rxSlave;
+      txMaster   <= r.txMaster;
+      txPktSent  <= r.txPktSent;
+      txEofeSent <= r.txEofeSent;
 
    end process comb;
 

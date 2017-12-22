@@ -281,8 +281,7 @@ begin
       -- Check for GMII frame error
       if (r.rxMaster.tValid = '1') and (r.rxMaster.tUser(SSI_EOFE_C) = '1') then
          -- Set the error flag
-         v.eofe     := '1';
-         v.rxErrDet := '1';
+         v.eofe := '1';
       end if;
 
       -- Overwrite the destination field
