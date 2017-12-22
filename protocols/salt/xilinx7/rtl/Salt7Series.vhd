@@ -2,7 +2,7 @@
 -- File       : Salt7Series.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-15
--- Last update: 2017-09-29
+-- Last update: 2017-12-22
 -------------------------------------------------------------------------------
 -- Description: SLAC Asynchronous Logic Transceiver (SALT) 7-series Core
 -------------------------------------------------------------------------------
@@ -50,7 +50,9 @@ entity Salt7Series is
       powerDown   : in  sl := '0';
       linkUp      : out sl;
       txPktSent   : out sl;
+      txEofeSent  : out sl;
       rxPktRcvd   : out sl;
+      rxErrDet    : out sl;
       -- Slave Port
       sAxisClk    : in  sl;
       sAxisRst    : in  sl;
@@ -182,6 +184,7 @@ begin
             sAxisSlave  => sAxisSlave,
             -- GMII Interface
             txPktSent   => txPktSent,
+            txEofeSent  => txEofeSent,
             txEn        => txEn,
             txData      => txData,
             clk         => clk125MHz,
@@ -192,6 +195,7 @@ begin
 
       txData     <= x"00";
       txPktSent  <= '0';
+      txEofeSent <= '0';
       txEn       <= '0';
       sAxisSlave <= AXI_STREAM_SLAVE_FORCE_C;
 
@@ -210,7 +214,9 @@ begin
             mAxisMaster => mAxisMaster,
             mAxisSlave  => mAxisSlave,
             -- GMII Interface
+            rxLinkUp    => status(0),
             rxPktRcvd   => rxPktRcvd,
+            rxErrDet    => rxErrDet,
             rxEn        => rxEn,
             rxErr       => rxErr,
             rxData      => rxData,
@@ -222,6 +228,7 @@ begin
    RX_DISABLE : if (RX_ENABLE_G = false) generate
 
       rxPktRcvd   <= '0';
+      rxErrDet    <= '0';
       mAxisMaster <= AXI_STREAM_MASTER_INIT_C;
 
    end generate;
