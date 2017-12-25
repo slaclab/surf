@@ -349,6 +349,11 @@ JtagDriverAxisToJtag::dumpInfo(FILE *f)
 	fprintf(f, "TCK Period             (ns) %ld\n", (unsigned long)getPeriodNs());
 }
 
+void
+JtagDriverAxisToJtag::usage()
+{
+}
+
 SockSd::SockSd(bool stream)
 {
 	if ( (sd_ = ::socket( AF_INET, stream ? SOCK_STREAM : SOCK_DGRAM, 0 )) < 0 ) {
@@ -450,10 +455,18 @@ DriverRegistry::DriverRegistry()
 }
 
 void
-DriverRegistry::registerFactory(Factory f)
+DriverRegistry::registerFactory(Factory f, Usage h)
 {
 	printf("Registering Driver\n");
 	creator_ = f;
+    helper_  = h;
+}
+
+void
+DriverRegistry::usage()
+{
+	if ( helper_ )
+		helper_();
 }
 
 DriverRegistry *
@@ -508,6 +521,7 @@ DriverRegistry *registry = DriverRegistry::init();
 bool            setTest  = false;
 unsigned        testMode = 0;
 bool            once     = false;
+bool            help     = false;
 
 	while ( (opt = getopt(argc, argv, "hvot:D:p:M:T:")) > 0 ) {
         i_p = 0;
@@ -517,7 +531,8 @@ bool            once     = false;
 				return 1;
 			case 'h':
 				usage( argv[0] );
-				return 0;
+				help = true;
+				break;
 
 			case 'v':
 				debug++;
@@ -554,22 +569,38 @@ bool            once     = false;
 		}
 	}
 
-	if ( ! target ) {
+	if ( ! target && ! help ) {
 		fprintf(stderr,"Need a -t <target> arg (e.g., -t <ip>[:port])\n\n\n");
 		usage( argv[0] );
 		return 1;
 	}
 
 	if ( 0 == strcmp( drvnam, "udp" ) ) {
+		if ( help ) {
+			JtagDriverUdp::usage();
+			return 0;
+		}
 		drv = new JtagDriverUdp( target );
 	} else if ( 0 == strcmp( drvnam, "loopback" ) ) {
+		if ( help ) {
+			JtagDriverLoopBack::usage();
+			return 0;
+		}
 		drv = new JtagDriverLoopBack( target );
 	} else if ( 0 == strcmp( drvnam, "udpLoopback" ) ) {
+		if ( help ) {
+			JtagDriverUdp::usage();
+			return 0;
+		}
 		drv  = new JtagDriverUdp( "localhost:2543" );
 		loop = new UdpLoopBack( target, 2543 );
 	} else {
 		if ( ! (hdl = dlopen( drvnam, RTLD_NOW | RTLD_GLOBAL )) ) {
 			throw std::runtime_error(std::string("Unable to load requested driver: ") + std::string(dlerror()));
+		}
+		if ( help ) {
+			registry->usage();
+			return 0;
 		}
 		drv = registry->create( target );
 	}

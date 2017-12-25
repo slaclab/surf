@@ -93,6 +93,8 @@ public:
 	dumpInfo(FILE *f = stdout) = 0;
 
 	virtual ~JtagDriver() {}
+
+    static void usage(); // to be implemented by subclass
 };
 
 // Simple driver registry (only a single loadable driver is remembered)
@@ -105,9 +107,11 @@ public:
 class DriverRegistry {
 public:
 	typedef JtagDriver * (*Factory)(const char *);
+	typedef void         (*Usage)();
 
 private:
 	Factory creator_;
+    Usage   helper_;
 
 	 DriverRegistry();
 	~DriverRegistry();
@@ -117,7 +121,9 @@ private:
 public:
 	JtagDriver *create(const char *arg);
 
-	void registerFactory(Factory f);
+	void registerFactory(Factory f, Usage h);
+
+    void usage();
 
 	static DriverRegistry *
 	get();
@@ -141,7 +147,7 @@ public:
 	// (prior to init() being executed)
 	DriverRegistry *r = DriverRegistry::get();
 		if ( r ) {
-			r->registerFactory( createP );
+			r->registerFactory( createP, T::usage );
 		}
 	}
 };
@@ -311,6 +317,8 @@ public:
 	virtual void sendVectors(unsigned long bits, uint8_t *tms, uint8_t *tdi, uint8_t *tdo);
 
 	virtual void dumpInfo(FILE *f);
+
+	static void usage();
 };
 
 // RAII socket helper

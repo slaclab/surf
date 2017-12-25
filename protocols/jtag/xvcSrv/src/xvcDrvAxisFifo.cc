@@ -171,4 +171,11 @@ uint32_t w;
 	return min;
 }
 
+void
+JtagDriverZynqFifo::usage()
+{
+	printf("  Driver options: [-i]\n");
+	printf("  -i          : disable interrupts (use polled mode)\n");
+}
+
 static DriverRegistrar<JtagDriverZynqFifo> r;
