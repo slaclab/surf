@@ -51,35 +51,35 @@ JtagDriverZynqFifo::~JtagDriverZynqFifo()
 
 void
 JtagDriverZynqFifo::o32(unsigned idx, uint32_t v)
-	{
-		if ( debug_ > 2 ) {
-			fprintf(stderr, "r[%d]:=0x%08x\n", idx, v);
-		}
-		map_.wr(idx, v);
+{
+	if ( debug_ > 2 ) {
+		fprintf(stderr, "r[%d]:=0x%08x\n", idx, v);
 	}
+	map_.wr(idx, v);
+}
 
 uint32_t
 JtagDriverZynqFifo::i32(unsigned idx)
-	{
+{
 	uint32_t v = map_.rd(idx);
-		if ( debug_ > 2 ) {
-			fprintf(stderr, "r[%d]=>0x%08x\n", idx, v);
-		}
-		return v;
+	if ( debug_ > 2 ) {
+		fprintf(stderr, "r[%d]=>0x%08x\n", idx, v);
 	}
+	return v;
+}
 
 void
 JtagDriverZynqFifo::reset()
-	{
-		o32( RX_RST_IDX, RST_MAGIC );
-		o32( TX_RST_IDX, RST_MAGIC );
-		while ( ! (i32(RX_RST_IDX) & (1<<RX_RST_SHF)) )
-			/* busy wait */;
-		o32( RX_STA_IDX, (1<<RX_RST_SHF) );
-		while ( ! (i32(TX_RST_IDX) & (1<<TX_RST_SHF)) )
-			/* busy wait */;
-		o32( TX_STA_IDX, (1<<TX_RST_SHF) );
-	}
+{
+	o32( RX_RST_IDX, RST_MAGIC );
+	o32( TX_RST_IDX, RST_MAGIC );
+	while ( ! (i32(RX_RST_IDX) & (1<<RX_RST_SHF)) )
+		/* busy wait */;
+	o32( RX_STA_IDX, (1<<RX_RST_SHF) );
+	while ( ! (i32(TX_RST_IDX) & (1<<TX_RST_SHF)) )
+		/* busy wait */;
+	o32( TX_STA_IDX, (1<<TX_RST_SHF) );
+}
 
 void
 JtagDriverZynqFifo::init()
