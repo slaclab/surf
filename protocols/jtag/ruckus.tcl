@@ -3,7 +3,6 @@ source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 
 if { [info exists ::env(USE_XVC_DEBUG)] != 1 || $::env(USE_XVC_DEBUG) == 0 } {
 
-	loadSource -path  "$::DIR_PATH/rtl/AxisDebugBridge.vhd"
 	loadSource -path  "$::DIR_PATH/rtl/AxisDebugBridgeStub.vhd"
 
 } else {
@@ -16,16 +15,19 @@ if { [info exists ::env(USE_XVC_DEBUG)] != 1 || $::env(USE_XVC_DEBUG) == 0 } {
     	set_property -dict [list CONFIG.C_DEBUG_MODE {4}] [get_ips DebugBridgeJtag]
 	}
 
-	foreach f {
-		AxisDebugBridge.vhd
-		AxisDebugBridgeImpl.vhd
-		AxisToJtag.vhd
-		AxisToJtagCore.vhd
-		AxisToJtagPkg.vhd
-		AxiStreamSelector.vhd
-		JtagSerDesCore.vhd
-	} {
-		loadSource -path  "$::DIR_PATH/rtl/$f"
-	}
+	loadSource -path  "$::DIR_PATH/rtl/AxisDebugBridgeImpl.vhd"
 
 }
+
+foreach f {
+	AxisDebugBridge.vhd
+	AxisToJtag.vhd
+	AxisToJtagCore.vhd
+	AxisToJtagPkg.vhd
+	AxiStreamSelector.vhd
+	JtagSerDesCore.vhd
+} {
+	loadSource -path  "$::DIR_PATH/rtl/$f"
+}
+
+
