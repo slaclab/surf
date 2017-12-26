@@ -220,7 +220,7 @@ uint32_t w;
 void
 JtagDriverZynqFifo::usage()
 {
-	printf("  Driver options: [-i]\n");
+	printf("  Axi Stream Fifo Driver options: [-i]\n");
 	printf("  -i          : disable interrupts (use polled mode)\n");
 }
 

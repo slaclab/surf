@@ -43,14 +43,21 @@ int                    stat, opt;
 unsigned               mtu;
 unsigned              *i_p;
 socklen_t              slen;
+bool                   userMtu = false;
+bool                   frag    = false;
 
-	while ( (opt = getopt(argc, argv, "m:")) > 0 ) {
+	while ( (opt = getopt(argc, argv, "m:f")) > 0 ) {
 
 		i_p = 0;
 
 		switch ( opt ) {
 			case 'm':
-				i_p = &mtu_;
+				i_p     = &mtu_;
+				userMtu = true;
+			break;
+
+			case 'f':
+				frag    = true;
 			break;
 
 			default:
@@ -112,13 +119,18 @@ socklen_t              slen;
 		if ( mtu < mtu_ ) {
 			fprintf(stderr,"Warning: requested MTU limit (%d) > IP_MTU; clipping to %d octets\n", mtu_, mtu);
 			mtu_ = mtu;
+		} else if ( ! userMtu ) {
+			// allow MTU to be increased only if not defined by the user
+            mtu_ = mtu;
 		}
 	}
 
-    opt  = IP_PMTUDISC_DO; // this forces the DF (dont-fragment) flag
-	stat = setsockopt( sock_.getSd(), IPPROTO_IP, IP_MTU_DISCOVER, &opt, sizeof(opt) );
-	if ( stat ) {
-		throw SysErr("Unable to set IP_MTU_DISCOVER to IP_PMTUDISC_DO (enforce DF)");
+	if ( ! frag ) {
+		opt  = IP_PMTUDISC_DO; // this forces the DF (dont-fragment) flag
+		stat = setsockopt( sock_.getSd(), IPPROTO_IP, IP_MTU_DISCOVER, &opt, sizeof(opt) );
+		if ( stat ) {
+			throw SysErr("Unable to set IP_MTU_DISCOVER to IP_PMTUDISC_DO (enforce DF)");
+		}
 	}
 
 	poll_[0].fd     = sock_.getSd();
@@ -210,8 +222,9 @@ int got;
 void
 JtagDriverUdp::usage()
 {
-	printf("  Driver options: [-m <mtu>]\n");
+	printf("  UDP Driver options: [-m <mtu>]\n");
 	printf("  -m <mtu>    : Set MTU limit for UDP datagrams (must not be fragmented!)\n");
+	printf("  -f          : Enable IP fragmentation - note that FW does probably not support this!\n");
 }
 
 static DriverRegistrar<JtagDriverUdp> r;

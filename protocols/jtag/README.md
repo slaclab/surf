@@ -131,7 +131,7 @@ Software (xvcSrv)
 The `xvcSrv` software must be installed and executed on a machine with
 connectivity to the firmware. The basic options for execution are:
 
-    xvcSrv [-D transport_driver] -t <target>
+    xvcSrv [-D transport_driver] -t <target> [ -- <driver_options> ]
 
 where `<target>` is a string that passes information to the transport driver
 how to reach the firmware target. In case of the "udp" transport (which is
@@ -141,8 +141,24 @@ the default) `target` is a `<ip_addr>:<udp_port>` string, thus, e.g.,
 
 The local TCP port is 2542 by default but can be changed with the `-p` option.
 
-The '-h' option lets the program print basic usage information to the console.
+Other Options:
 
+    -h             : program prints basic usage information to the console.
+    -v             : print protocol parameter info (retrieved from target).
+                     Multiple 'v' can be given to increase debugging verbosity.
+    -D <driver>    : use/load transport driver <driver>. E.g., '/path/myDriver.so'.
+    -p <port>      : TCP port where to listen for XVC connections.
+    -M             : Max XVC vectors size. This defines the max. block size
+                     to be used on the TCP side (it is beneficial to let this
+                     be big!).
+                     The block size between the driver and the target may well
+                     be smaller (and xvcSrv will break transactions accordingly)
+                     due to limits in the transport (e.g., UDP/ethernet MTU) or
+                     firmware memory. However, if xvcSrv is tightly coupled
+                     to the target then using large blocks on TCP is desirable
+                     in order to mitigate TCP round-trip times.
+    --             : Delimiter; any options (and args) after '--' are passed to
+                     and interpreted by the transport driver.
 
 ### Transport drivers
 
@@ -155,6 +171,25 @@ driver.
 If you have a driver, e.g., `myDriver.so` then you can start the server
 
     xvcSrv -D ./myDriver.so -t my_driver_info
+
+#### UDP Transport Driver
+
+The UDP Transport driver is built-in and used by default. The target
+string must be of the form
+
+    <target_ip>[:<udp_port]
+
+The driver recognizes the following options (given to `xvcSrv` after `--`)
+
+    -m <mtu>       : Limit UDP datagrams to less than <mtu> octets. By default
+                     the program tries to guess the MTU size but in some cases
+                     it might be necessary to override this default.
+
+                     Note that xvcSrv sets the DF (dont-fragment) bit on the
+                     UDP connection, so that UDP datagrams are never broken up.
+                     (firmware does not support IP defragmentation AFAIK.)
+                     
+    -f             : Disable DF; i.e., allow IP fragmentation.
 
 Vivado Notes
 ------------
