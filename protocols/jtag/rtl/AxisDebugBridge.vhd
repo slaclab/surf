@@ -104,7 +104,7 @@ architecture AxisDebugBridgeImpl of AxisDebugBridge is
 begin
 
    -- use a component here; ghdl can't handle two architectures
-   -- if I instantiate an entity here :-(
+   -- if I instantiate an entity here; the test-bed gets linker errors :-(
    U_AXIS_JTAG : component AxisToJtag
       generic map (
          TPD_G        => TPD_G,
