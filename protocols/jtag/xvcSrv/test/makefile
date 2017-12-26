@@ -30,4 +30,7 @@ clean:
 	$(RM) testDataTdoOnly.txt
 
 test: ../src/xvcSrv test.py testDataTdoOnly.txt
-	sh -c "(./xvcSrv -D udpLoopback -o -t testDataTdoOnly.txt & sleep 1 ; python3 test.py -k)"
+	sh -c "(../src/xvcSrv -D udpLoopback -o -t testDataTdoOnly.txt & sleep 1 ; python3 test.py -k)"
+
+../src/xvcSrv:
+	@$(error "You need to build the xvcSrv executable in the ../src/ directory first!")
