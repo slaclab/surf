@@ -21,14 +21,26 @@
 //-----------------------------------------------------------------------------
 
 #include <xvcDrvAxisFifo.h>
+#include <unistd.h>
 
-JtagDriverZynqFifo::JtagDriverZynqFifo(const char *devnam)
-: JtagDriverAxisToJtag(),
-  map_( devnam )
+JtagDriverZynqFifo::JtagDriverZynqFifo(int argc, char *const argv[], const char *devnam)
+: JtagDriverAxisToJtag( argc, argv ),
+  map_   ( devnam ),
+  useIrq_( true   )
 {
 uint32_t sizVal;
 unsigned long maxBytes;
 unsigned long maxWords;
+int           opt;
+
+	while ( (opt = getopt(argc, argv, "i")) > 0 ) {
+		switch ( opt ) {
+			case 'i': useIrq_ = false; printf("Interrupts disabled\n"); break;
+			default:
+				fprintf( stderr,"Unknown driver option -%c\n", opt );
+				throw std::runtime_error("Unknown driver option");
+		}
+	}
 
 	reset();
 
@@ -68,17 +80,51 @@ JtagDriverZynqFifo::i32(unsigned idx)
 	return v;
 }
 
+uint32_t
+JtagDriverZynqFifo::wait()
+{
+uint32_t evs = 0;
+	if ( useIrq_ ) {
+		evs = 1;
+		if ( sizeof(evs) != write( map_.fd(), &evs, sizeof(evs) ) ) {
+			throw SysErr("Unable to write to IRQ descriptor");
+		}
+		if ( sizeof(evs) != read( map_.fd(), &evs, sizeof(evs) ) ) {
+			throw SysErr("Unable to read from IRQ descriptor");
+		}
+	} // else busy wait
+	return evs;
+}
+
 void
 JtagDriverZynqFifo::reset()
 {
+int set = 0;
+
 	o32( RX_RST_IDX, RST_MAGIC );
 	o32( TX_RST_IDX, RST_MAGIC );
-	while ( ! (i32(RX_RST_IDX) & (1<<RX_RST_SHF)) )
-		/* busy wait */;
-	o32( RX_STA_IDX, (1<<RX_RST_SHF) );
-	while ( ! (i32(TX_RST_IDX) & (1<<TX_RST_SHF)) )
-		/* busy wait */;
-	o32( TX_STA_IDX, (1<<TX_RST_SHF) );
+	if ( useIrq_ ) {
+		o32( RX_IEN_IDX, (1<<RX_RST_SHF) | (1<<RX_RDY_SHF) );
+		o32( TX_IEN_IDX, (1<<TX_RST_SHF) );
+	}
+	while ( 1 ) {
+		if ( ! (set & 1) ) {
+			if ( i32(RX_RST_IDX) & (1<<RX_RST_SHF) ) {
+				set |= 1;
+				o32( RX_STA_IDX, (1<<RX_RST_SHF) );
+			}
+		}
+		if ( ! (set & 2) ) {
+			if ( i32(TX_RST_IDX) & (1<<TX_RST_SHF) ) {
+				set |= 2;
+				o32( TX_STA_IDX, (1<<TX_RST_SHF) );
+			}
+		}
+		if ( set == 3 ) {
+			break;
+		}
+		wait();
+	}
 }
 
 void
@@ -118,7 +164,7 @@ uint32_t w;
 	o32( TX_END_IDX, lastBytes );
 
 	while ( ! (i32( RX_STA_IDX ) & (1<<RX_RDY_SHF)) ) {
-		/* busy wait */
+		wait();
 	}
 	/* clear status */
 	o32( RX_STA_IDX, (1<<RX_RDY_SHF) );

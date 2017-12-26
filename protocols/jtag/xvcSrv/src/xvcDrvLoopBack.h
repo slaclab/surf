@@ -44,7 +44,7 @@ private:
 	unsigned long line_;
 public:
 
-	JtagDriverLoopBack(const char *fnam = 0);
+	JtagDriverLoopBack(int argc, char *const argv[], const char *fnam = 0);
 
 	virtual ~JtagDriverLoopBack();
 

@@ -23,8 +23,9 @@
 #include <xvcDrvLoopBack.h>
 #include <netinet/in.h>
 
-JtagDriverLoopBack::JtagDriverLoopBack(const char *fnam)
-: skip_   ( 0 == fnam || 0 == *fnam ),
+JtagDriverLoopBack::JtagDriverLoopBack(int argc, char *const argv[], const char *fnam)
+: JtagDriverAxisToJtag(argc, argv   ),
+  skip_   ( 0 == fnam || 0 == *fnam ),
   line_   ( 1                       ),
   tdoOnly_( false                   )
 {
@@ -244,7 +245,7 @@ char           cbuf[1024];
 }
 
 UdpLoopBack::UdpLoopBack(const char *fnam, unsigned port)
-: JtagDriverLoopBack( fnam ),
+: JtagDriverLoopBack( 0, 0, fnam ),
   sock_( false      ),
   tsiz_( -1         )
 {

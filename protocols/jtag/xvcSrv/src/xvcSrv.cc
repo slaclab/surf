@@ -31,7 +31,7 @@
 #include <pthread.h>
 #include <math.h>
 
-JtagDriver::JtagDriver(unsigned debug)
+JtagDriver::JtagDriver(int argc, char *const argv[], unsigned debug)
 : debug_ ( debug ),
   drop_  ( 0     ),
   drEn_  ( false )
@@ -76,12 +76,12 @@ static unsigned hdBufMax()
 	return 16;
 }
 
-JtagDriverAxisToJtag::JtagDriverAxisToJtag( unsigned debug )
-: JtagDriver( debug          ),
-  wordSize_ ( sizeof(Header) ),
-  memDepth_ ( 1              ),
-  retry_    ( 5              ),
-  periodNs_ ( UNKNOWN_PERIOD )
+JtagDriverAxisToJtag::JtagDriverAxisToJtag( int argc, char *const argv[], unsigned debug )
+: JtagDriver( argc, argv, debug ),
+  wordSize_ ( sizeof(Header)    ),
+  memDepth_ ( 1                 ),
+  retry_    ( 5                 ),
+  periodNs_ ( UNKNOWN_PERIOD    )
 {
 	// start out with an initial header size; it might be increased
 	// once we contacted the server...
@@ -130,6 +130,21 @@ JtagDriverAxisToJtag::getLen(Header x)
 	}
 	return ((x & LEN_MASK) >> LEN_SHIFT) + 1;
 }
+
+const char *
+JtagDriverAxisToJtag::getMsg(unsigned e)
+{
+	switch ( e ) {
+		case  0:               return "NO ERROR";
+		case ERR_BAD_VERSION:  return "Unsupported Protocol Version";
+		case ERR_BAD_COMMAND:  return "Unsupported Command";
+		case ERR_TRUNCATED:    return "Unsupported Command";
+		case ERR_NOT_PRESENT:  return "XVC Support not Instantiated in Firmware";
+        default:    break;
+	}
+	return NULL;
+}
+
 
 JtagDriverAxisToJtag::Header
 JtagDriverAxisToJtag::mkQuery()
@@ -227,8 +242,16 @@ int      got;
 			got = xfer( txb, txBytes, &hdBuf_[0], getWordSize(), rxb, sizeBytes );
 			hdr = getHdr( &hdBuf_[0] );
 			if ( (e = getErr( hdr )) ) {
-				char errb[256];
-				snprintf(errb, sizeof(errb), "Got error response from server -- error %d", e);
+				char        errb[256];
+                const char *msg = getMsg( e );
+                int         pos; 
+				pos = snprintf(errb, sizeof(errb), "Got error response from server -- ");
+				if ( msg ) {
+					snprintf(errb + pos, sizeof(errb) - pos, "%s", msg);
+				} else {
+					snprintf(errb + pos, sizeof(errb) - pos, "error %d", e);
+				}
+                
 				throw ProtoErr(errb);
 			}
 			if ( xid == XID_ANY || xid == getXid( hdr ) ) {
@@ -492,13 +515,13 @@ DriverRegistry::init()
 }
 
 JtagDriver *
-DriverRegistry::create(const char *arg)
+DriverRegistry::create(int argc, char *const argv[], const char *arg)
 {
 JtagDriver *drv;
 	if ( ! creator_ ) {
 		throw std::runtime_error("Internal Error: No driver module registered");
 	}
-	drv = creator_( arg );
+	drv = creator_( argc, argv, arg );
 	return drv;
 }
 
@@ -569,6 +592,9 @@ bool            help     = false;
 		}
 	}
 
+    // Reset opterr so that drivers can parse options after '--'
+	opterr = 0;
+
 	if ( ! target && ! help ) {
 		fprintf(stderr,"Need a -t <target> arg (e.g., -t <ip>[:port])\n\n\n");
 		usage( argv[0] );
@@ -580,19 +606,19 @@ bool            help     = false;
 			JtagDriverUdp::usage();
 			return 0;
 		}
-		drv = new JtagDriverUdp( target );
+		drv = new JtagDriverUdp( argc, argv, target );
 	} else if ( 0 == strcmp( drvnam, "loopback" ) ) {
 		if ( help ) {
 			JtagDriverLoopBack::usage();
 			return 0;
 		}
-		drv = new JtagDriverLoopBack( target );
+		drv = new JtagDriverLoopBack( argc, argv, target );
 	} else if ( 0 == strcmp( drvnam, "udpLoopback" ) ) {
 		if ( help ) {
 			JtagDriverUdp::usage();
 			return 0;
 		}
-		drv  = new JtagDriverUdp( "localhost:2543" );
+		drv  = new JtagDriverUdp( argc, argv, "localhost:2543" );
 		loop = new UdpLoopBack( target, 2543 );
 	} else {
 		if ( ! (hdl = dlopen( drvnam, RTLD_NOW | RTLD_GLOBAL )) ) {
@@ -602,7 +628,7 @@ bool            help     = false;
 			registry->usage();
 			return 0;
 		}
-		drv = registry->create( target );
+		drv = registry->create( argc, argv, target );
 	}
 
 	if ( ! drv ) {

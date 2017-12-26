@@ -52,6 +52,7 @@ private:
 
 	unsigned long     maxVec_;
     unsigned          wrdSiz_;
+    bool              useIrq_;
 
 public:
 
@@ -61,7 +62,9 @@ public:
 
 	virtual void reset();
 
-	JtagDriverZynqFifo(const char *devnam);
+	virtual uint32_t wait();
+
+	JtagDriverZynqFifo(int argc, char *const argv[], const char *devnam);
 
 	virtual void
 	init();

@@ -42,7 +42,7 @@ public:
 
 	static const unsigned MTU_ = 1450; // etherner MTU - IP/UDP headers
 
-	JtagDriverUdp(const char *target);
+	JtagDriverUdp(int argc, char *const argv[], const char *target);
 
 	virtual void
 	init();

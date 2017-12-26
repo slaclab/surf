@@ -28,8 +28,9 @@ static const char *DFLT_PORT="2543";
 
 static const unsigned MAXL  = 256;
 
-JtagDriverUdp::JtagDriverUdp(const char *target)
-: sock_      ( false ),
+JtagDriverUdp::JtagDriverUdp(int argc, char *const argv[], const char *target)
+: JtagDriverAxisToJtag( argc, argv ),
+  sock_      ( false ),
   timeoutMs_ ( 500   )
 {
 struct addrinfo hint, *res;

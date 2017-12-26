@@ -33,6 +33,7 @@ template<typename T> class MemMap {
 private:
 	volatile T        *devMem_;
 	unsigned long      mapSiz_;
+    int                fd_;
 public:
 	MemMap(const char *devnam, unsigned long siz = 1);
 
@@ -42,6 +43,11 @@ public:
     virtual T    rd(unsigned index)
 	{
 		return devMem_[index];
+	}
+
+	virtual int  fd()
+	{
+		return fd_;
 	}
 
     virtual void wr(unsigned index, T val)
@@ -56,10 +62,9 @@ public:
 template <typename T>
 MemMap<T>::MemMap(const char *devnam, unsigned long siz)
 {
-int fd;
 unsigned long pgsz;
 
-	if ( (fd = open( devnam, O_RDWR )) < 0 ) {
+	if ( (fd_ = open( devnam, O_RDWR )) < 0 ) {
 		throw SysErr("Unable to open FIFO device file");
 	}
 	pgsz = sysconf( _SC_PAGE_SIZE );
@@ -73,13 +78,12 @@ unsigned long pgsz;
 	            mapSiz_,
 	            PROT_READ | PROT_WRITE,
 	            MAP_SHARED,
-	            fd,
+	            fd_,
 	            0
 	          );
 
-	close( fd );
-
 	if ( (void*)devMem_ == MAP_FAILED ) {
+		close( fd_ );
 		throw SysErr("Unable to mmap device");
 	}
 }
@@ -87,6 +91,7 @@ unsigned long pgsz;
 template <typename T>
 MemMap<T>::~MemMap()
 {
+	close( fd_ );
 	munmap( (void*)devMem_, mapSiz_ );
 }
 

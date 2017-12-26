@@ -45,7 +45,7 @@ protected:
 	bool     drEn_;
 
 public:
-	JtagDriver(unsigned debug);
+	JtagDriver(int argc, char *const argv[], unsigned debug);
 
 	// set/get debug level
 	void     setDebug(unsigned debug);
@@ -106,7 +106,7 @@ public:
 
 class DriverRegistry {
 public:
-	typedef JtagDriver * (*Factory)(const char *);
+	typedef JtagDriver * (*Factory)(int argc, char *const argv[], const char *);
 	typedef void         (*Usage)();
 
 private:
@@ -119,7 +119,7 @@ private:
 	static DriverRegistry *getP(bool creat);
 
 public:
-	JtagDriver *create(const char *arg);
+	JtagDriver *create(int argc, char *const argv[], const char *arg);
 
 	void registerFactory(Factory f, Usage h);
 
@@ -134,9 +134,9 @@ public:
 
 template <typename T> class DriverRegistrar {
 private:
-	static JtagDriver *createP(const char *arg)
+	static JtagDriver *createP(int argc, char * const argv[], const char *arg)
 	{
-		return new T(arg);
+		return new T(argc, argv, arg);
 	}
 
 public:
@@ -254,10 +254,18 @@ protected:
 	static const unsigned LEN_SHIFT =  0;
 	static const Header   LEN_MASK  = 0x000fffff;
 
+    static const unsigned ERR_BAD_VERSION = 1;
+    static const unsigned ERR_BAD_COMMAND = 2;
+    static const unsigned ERR_TRUNCATED   = 3;
+    static const unsigned ERR_NOT_PRESENT = 4;
+
 	static Xid           getXid(Header x);
 	static uint32_t      getCmd(Header x);
 	static unsigned      getErr(Header x);
 	static unsigned long getLen(Header x);
+
+    // returns error message or NULL (unknown error)
+    static const char   *getMsg(unsigned error);
 
 
 	// extract from message header
@@ -286,7 +294,7 @@ protected:
 
 public:
 
-	JtagDriverAxisToJtag( unsigned debug = 0 );
+	JtagDriverAxisToJtag( int argc, char *const argv[], unsigned debug = 0 );
 
 	// initialization after full construction
 	virtual void
