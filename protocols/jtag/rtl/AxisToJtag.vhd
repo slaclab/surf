@@ -379,8 +379,17 @@ begin
       -- request/input stream slave
    sAxisReq      <= s.sAxisReqLoc;
 
-      -- output stream
-   mAxisTdo      <= s.mOb;
+   -- output stream; splice in TKEEP
+   P_TKEEP : process(s.mOb) is
+      variable v : AxiStreamMasterType;
+   begin
+      v := s.mOb;
+      v.tKeep(v.tKeep'left     downto AXIS_WIDTH_G) := (others => '0');
+      v.tKeep(AXIS_WIDTH_G - 1 downto            0) := (others => '1');
+      v.tStrb                                       := v.tKeep;
+      mAxisTdo   <= v;
+   end process P_TKEEP;
+
    s.sOb         <= sAxisTdo;
 
       -- streams into the StreamSelector
