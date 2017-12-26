@@ -36,7 +36,8 @@ entity AxisDebugBridge is
       AXIS_FREQ_G      : real                       := 0.0;   -- Hz (for computing TCK period)
       AXIS_WIDTH_G     : positive range 4 to 16     := 4;     -- bytes
       CLK_DIV2_G       : positive                   := 4;     -- half-period of TCK in axisClk cycles
-      MEM_DEPTH_G      : natural  range 0 to 65535  := 4      -- size of buffer memory (0 for none)
+      MEM_DEPTH_G      : natural  range 0 to 65535  := 4;     -- size of buffer memory (0 for none)
+      MEM_STYLE_G      : string                     := "auto" -- 'auto', 'block' or 'distributed'
    );
    port (
       axisClk          : in sl;
@@ -79,7 +80,8 @@ begin
          AXIS_WIDTH_G => AXIS_WIDTH_G,
          AXIS_FREQ_G  => AXIS_FREQ_G,
          CLK_DIV2_G   => CLK_DIV2_G,
-         MEM_DEPTH_G  => MEM_DEPTH_G
+         MEM_DEPTH_G  => MEM_DEPTH_G,
+         MEM_STYLE_G  => MEM_STYLE_G
       )
       port map (
          axisClk      => axisClk,
