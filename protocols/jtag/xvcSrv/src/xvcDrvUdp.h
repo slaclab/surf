@@ -38,9 +38,8 @@ private:
 	struct msghdr     msgh_;
 	struct iovec      iovs_[2];
 
+    unsigned          mtu_;
 public:
-
-	static const unsigned MTU_ = 1450; // etherner MTU - IP/UDP headers
 
 	JtagDriverUdp(int argc, char *const argv[], const char *target);
 
@@ -54,6 +53,8 @@ public:
 	xfer( uint8_t *txb, unsigned txBytes, uint8_t *hdbuf, unsigned hsize, uint8_t *rxb, unsigned size );
 
 	virtual ~JtagDriverUdp();
+
+	static void usage();
 };
 
 #endif

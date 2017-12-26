@@ -23,6 +23,7 @@
 #include <xvcDrvUdp.h>
 #include <netdb.h>
 #include <string.h>
+#include <netinet/ip.h>
 
 static const char *DFLT_PORT="2543";
 
@@ -31,13 +32,39 @@ static const unsigned MAXL  = 256;
 JtagDriverUdp::JtagDriverUdp(int argc, char *const argv[], const char *target)
 : JtagDriverAxisToJtag( argc, argv ),
   sock_      ( false ),
-  timeoutMs_ ( 500   )
+  timeoutMs_ ( 500   ),
+  mtu_       ( 1450  ) // ethernet mtu minus MAC/IP/UDP addresses
 {
 struct addrinfo hint, *res;
 const char            *col, *prtnam;
 char                   buf[MAXL];
 unsigned               l;
-int                    stat;
+int                    stat, opt;
+unsigned               mtu;
+unsigned              *i_p;
+socklen_t              slen;
+
+	while ( (opt = getopt(argc, argv, "m:")) > 0 ) {
+
+		i_p = 0;
+
+		switch ( opt ) {
+			case 'm':
+				i_p = &mtu_;
+			break;
+
+			default:
+				fprintf(stderr,"Unknown driver option -%c\n", opt);
+				throw std::runtime_error("Unknown driver option");
+		}
+
+		if ( i_p ) {
+			if ( 1 != sscanf(optarg,"%i", i_p) ) {
+				fprintf(stderr,"Unable to scan argument to option -%c\n", opt);
+				throw std::runtime_error("Unable to scan option argument");
+			}
+		}
+	}
 
 	if ( (col = strchr(target, ':')) ) {
 
@@ -76,6 +103,24 @@ int                    stat;
 		}
 	}
 
+	// find current MTU
+    slen = sizeof(mtu);
+	stat = getsockopt( sock_.getSd(), IPPROTO_IP, IP_MTU, &mtu, &slen );
+	if ( stat ) {
+		fprintf(stderr,"Warning: Unable to estimate MTU (getsockopt(IP_MTU) failed: %s) -- using %d\n", strerror(errno), mtu_);
+	} else {
+		if ( mtu < mtu_ ) {
+			fprintf(stderr,"Warning: requested MTU limit (%d) > IP_MTU; clipping to %d octets\n", mtu_, mtu);
+			mtu_ = mtu;
+		}
+	}
+
+    opt  = IP_PMTUDISC_DO; // this forces the DF (dont-fragment) flag
+	stat = setsockopt( sock_.getSd(), IPPROTO_IP, IP_MTU_DISCOVER, &opt, sizeof(opt) );
+	if ( stat ) {
+		throw SysErr("Unable to set IP_MTU_DISCOVER to IP_PMTUDISC_DO (enforce DF)");
+	}
+
 	poll_[0].fd     = sock_.getSd();
 	poll_[0].events = POLLIN;
 }
@@ -99,7 +144,7 @@ unsigned long
 JtagDriverUdp::getMaxVectorSize()
 {
 // MTU lim; 2*vector size + header must fit!
-unsigned long mtuLim    = (MTU_ - getWordSize()) / 2;
+unsigned long mtuLim    = (mtu_ - getWordSize()) / 2;
 
 		return mtuLim;
 }
@@ -110,6 +155,10 @@ JtagDriverUdp::xfer( uint8_t *txb, unsigned txBytes, uint8_t *hdbuf, unsigned hs
 int got;
 
 	if ( write( poll_[0].fd, txb, txBytes ) < 0 ) {
+		if ( EMSGSIZE == errno ) {
+			fprintf(stderr, "UDP message size too large; would require fragmentation!\n");
+			fprintf(stderr, "Try to reduce using the driver option -- -m <mtu_size>.\n");
+		}
 		throw SysErr("JtagDriverUdp: unable to send");
 	}
 
@@ -156,6 +205,13 @@ int got;
 	}
 
 	return got;
+}
+
+void
+JtagDriverUdp::usage()
+{
+	printf("  Driver options: [-m <mtu>]\n");
+	printf("  -m <mtu>    : Set MTU limit for UDP datagrams (must not be fragmented!)\n");
 }
 
 static DriverRegistrar<JtagDriverUdp> r;

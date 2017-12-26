@@ -446,7 +446,7 @@ XvcServer::run()
 static void
 usage(const char *nm)
 {
-	fprintf(stderr,"Usage: %s [-v] [-D <driver>] [-p <port>] -t <target>\n", nm);
+	fprintf(stderr,"Usage: %s [-v{v}] [-D <driver>] [-p <port>] -t <target> [ -- <driver_options>]\n", nm);
 	fprintf(stderr,"  -t <target> : contact target (depends on driver; e.g., <ip[:port]>)\n");
 	fprintf(stderr,"  -h          : this message\n");
 	fprintf(stderr,"  -D <driver> : use transport driver 'driver'\n");
