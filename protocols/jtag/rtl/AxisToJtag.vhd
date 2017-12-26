@@ -28,6 +28,7 @@ use ieee.numeric_std.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
+use work.AxisToJtagPkg.all;
 
 --
 -- This module implements a simple protocol for encoding XVC transactions over
@@ -211,44 +212,6 @@ architecture AxisToJtagImpl of AxisToJtag is
 
    constant ADDR_ZERO_C : AddrType := (others => '0');
 
-   -- bit indices in the header word
-
-   -- REQUEST
-   constant LEN_SHIFT_C : natural  :=  0;
-   constant LEN_WIDTH_C : positive := 20;
-   constant XID_SHIFT_C : natural  := LEN_SHIFT_C + LEN_WIDTH_C;
-   constant XID_WIDTH_C : positive :=  8;
-   constant CMD_SHIFT_C : natural  := XID_SHIFT_C + XID_WIDTH_C;
-   constant CMD_WIDTH_C : positive :=  2;
-   constant VER_SHIFT_C : natural  := CMD_SHIFT_C + CMD_WIDTH_C;
-   constant VER_WIDTH_C : positive :=  2;
-
-   -- REPLY (query)
-   constant QWL_SHIFT_C : natural  := LEN_SHIFT_C;
-   constant QWL_WIDTH_C : natural  :=  4;
-   constant QMS_SHIFT_C : natural  := QWL_SHIFT_C + QWL_WIDTH_C;
-   constant QMS_WIDTH_C : natural  := 16;
-   constant QPD_SHIFT_C : natural  := QMS_SHIFT_C + QMS_WIDTH_C;
-   constant QPD_WIDTH_C : natural  :=  8;
-
-   subtype LenType  is slv(LEN_WIDTH_C - 1 downto 0);
-   subtype XidType  is slv(XID_WIDTH_C - 1 downto 0);
-   subtype ProType  is slv(VER_WIDTH_C - 1 downto 0);
-   subtype CmdType  is slv(CMD_WIDTH_C - 1 downto 0);
-
-   -- Protocol Version
-   constant PRO_VERSN_C : ProType := "00";
-
-   -- Commands
-   constant CMD_QUERY_C : CmdType := "00";
-   constant CMD_TRANS_C : CmdType := "01";
-   constant CMD_ERROR_C : CmdType := "10";
-
-   -- Error codes (CMD_ERROR_C)
-   constant ERR_BAD_VERSION_C : LenType := toSlv( 1, LenType'length );
-   constant ERR_BAD_COMMAND_C : LenType := toSlv( 2, LenType'length );
-   constant ERR_TRUNCATED_C   : LenType := toSlv( 3, LenType'length );
-
    -- Stream selector port indices
    constant LOCL_OSTRM_PORT   : natural := 0;
    constant JTAG_OSTRM_PORT   : natural := 1;
@@ -287,35 +250,6 @@ architecture AxisToJtagImpl of AxisToJtag is
       xid         => (others => '0')
    );
 
-   function getVersion(
-      data       : in slv
-   ) return ProType is
-   begin
-      return data(VER_SHIFT_C + VER_WIDTH_C - 1 downto VER_SHIFT_C);
-   end function getVersion;
-
-   procedure setVersion(
-      version    : in    ProType;
-      data       : inout slv
-   ) is
-   begin
-      data(VER_SHIFT_C + VER_WIDTH_C - 1 downto VER_SHIFT_C) := version;
-   end procedure setVersion;
-
-   function getCommand(
-      data       : in slv
-   ) return CmdType is
-   begin
-      return data(CMD_SHIFT_C + CMD_WIDTH_C - 1 downto CMD_SHIFT_C);
-   end function getCommand;
-
-   function getXid(
-      data       : in slv
-   ) return XidType is
-   begin
-      return data(XID_SHIFT_C + XID_WIDTH_C - 1 downto XID_SHIFT_C);
-   end function getXid;
-
    function xidIsNew(
       data       : in slv;
       xid        : in XidType;
@@ -328,13 +262,6 @@ architecture AxisToJtagImpl of AxisToJtag is
          return getXid(data) /= xid;
       end if;
    end function xidIsNew;
-
-   function getLen(
-      data       : in slv
-   ) return LenType is
-   begin
-      return data(LEN_SHIFT_C + LEN_WIDTH_C - 1 downto LEN_SHIFT_C);
-   end function getLen;
 
    function checkLen(
       data      : in slv
@@ -356,15 +283,6 @@ architecture AxisToJtagImpl of AxisToJtag is
          return true;
       end if;
    end function;
-
-   procedure setErr(
-      err        : in    LenType;
-      data       : inout slv
-   ) is
-   begin
-      data(CMD_SHIFT_C + CMD_WIDTH_C - 1 downto CMD_SHIFT_C) := CMD_ERROR_C;
-      data(LEN_SHIFT_C + LEN_WIDTH_C - 1 downto LEN_SHIFT_C) := err;
-   end procedure setErr;
 
    procedure setQueryData(
       wordLength : in natural range 4 to    16;
