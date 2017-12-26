@@ -73,6 +73,8 @@ public:
 	xfer( uint8_t *txb, unsigned txBytes, uint8_t *hdbuf, unsigned hsize, uint8_t *rxb, unsigned size );
 
 	virtual ~JtagDriverZynqFifo();
+
+	static void usage();
 };
 
 extern "C" JtagDriver *drvCreate(const char *target);
