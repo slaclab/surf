@@ -28,6 +28,7 @@ use ieee.numeric_std.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
+use work.AxisToJtagPkg.all;
 
 -- Connect AxisToJtag to a debug bridge IP (convenience wrapper)
 entity AxisDebugBridge is
