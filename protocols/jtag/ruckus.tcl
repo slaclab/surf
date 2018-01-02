@@ -10,5 +10,3 @@ if { [llength [get_ips DebugBridgeJtag]] == 0 } {
 }
 
 loadSource -dir  "$::DIR_PATH/rtl/"
-
-

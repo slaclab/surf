@@ -384,7 +384,9 @@ begin
       variable v : AxiStreamMasterType;
    begin
       v := s.mOb;
-      v.tKeep(v.tKeep'left     downto AXIS_WIDTH_G) := (others => '0');
+      if (v.tKeep'left > AXIS_WIDTH_G) then -- avoid critical warning
+         v.tKeep(v.tKeep'left     downto AXIS_WIDTH_G) := (others => '0');
+      end if;
       v.tKeep(AXIS_WIDTH_G - 1 downto            0) := (others => '1');
       v.tStrb                                       := v.tKeep;
       mAxisTdo   <= v;

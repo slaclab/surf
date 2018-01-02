@@ -186,7 +186,9 @@ begin
 
    tdoValid                                  <= r.tdoValid and r.tdoPass;
 
-   mAxisTdo.tKeep(mAxisTdo.tKeep'left - 1 downto AXIS_WIDTH_G) <= ( others => '0' );
+   GEN_PAD_TKEEP : if (mAxisTdo.tKeep'left > AXIS_WIDTH_G) generate -- silence critical warning
+      mAxisTdo.tKeep(mAxisTdo.tKeep'left - 1 downto AXIS_WIDTH_G) <= ( others => '0' );
+   end generate;
    mAxisTdo.tKeep(AXIS_WIDTH_G - 1 downto 0) <= ( others => '1' );
    mAxisTdo.tValid                           <= tdoValid;
    mAxisTdo.tLast                            <= r.tLast;
