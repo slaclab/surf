@@ -215,7 +215,8 @@ class Pgp2bAxi(pr.Device):
         for offset, name in enumerate(countVars):
             self.add(pr.RemoteVariable(
                 name        = name, 
-                offset      = ((offset*4)+0x28), 
+                offset      = ((offset*4)+0x28),
+                disp        = '{:d}',
                 bitSize     = 32, 
                 bitOffset   = 0, 
                 mode        = "RO", 
@@ -251,7 +252,8 @@ class Pgp2bAxi(pr.Device):
             bitSize     = 8, 
             bitOffset   = 0, 
             mode        = "RO", 
-            base        = pr.UInt, 
+            base        = pr.UInt,
+            disp        = "{:d}",
             description = "",
             pollInterval = 1,
         ))
@@ -262,7 +264,8 @@ class Pgp2bAxi(pr.Device):
             bitSize     = 8, 
             bitOffset   = 0, 
             mode        = "RO", 
-            base        = pr.UInt, 
+            base        = pr.UInt,
+            disp        = "{:d}",            
             description = "",
             pollInterval = 1,
         ))
