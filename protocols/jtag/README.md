@@ -236,7 +236,7 @@ seems to be better to run a `hw_server` close to the target, i.e., the
 machine where `xvcSrv` runs. This gives better response than connecting
 from far away to the XVC server directly. E.g.,:
 
-    bash$  ssh -L3121:localhost:3121 gateway_host hw_server
+    bash$  ssh -tt -L3121:localhost:3121 gateway_host hw_server
 
 and in Vivado you proceed as usual, i.e., connect to the default
 server (which is now visible at tcp port 3121) and open a xvc target:
