@@ -121,6 +121,7 @@ implementation for sake of saving resources or avoiding the limitations
     AXIS_WIDTH_G : positive range 4 to 16
     CLK_DIV2_G   : positive
     MEM_DEPTH_G  : natural range 0 to 65535
+    MEM_STYLE_G  : string
 
   - `AXIS_FREQ_G`: The value of the clock frequency (in Hz). This information is
     used to communicate the JTAG TCK period back to the XVC protocol.
@@ -143,6 +144,9 @@ implementation for sake of saving resources or avoiding the limitations
     (in order to support unreliable transport). This limits the maximum message size
     that can be processed at once. If the transport between the XVC server and FW
     is reliable then `MEM_DEPTH_G` may be set to zero (no memory).
+
+  - `MEM_STYLE_G`: memory type (block- vs. distributed RAM) to use for the buffer memory.
+    Valid choices are: "auto", "block" or "distributed" (defaults to "auto").
 
 ### Ports
 
@@ -198,7 +202,7 @@ If you have a driver, e.g., `myDriver.so` then you can start the server
 #### UDP Transport Driver
 
 The UDP Transport driver is built-in and used by default. The target
-string must be of the form
+string must be of the form (udp port 2542 is used by default):
 
     <target_ip>[:<udp_port]
 
@@ -256,6 +260,15 @@ Therefore, under 2016.04 you can only use XVC when instantiating ILAs
 into your hdl code.
 
 A basic test under 2017.03 indicated that this limitation has been removed.
+
+Unfortunately, however, even under 2017.03 and 2017.04 it is not possible
+to add debug ports to ILAs added by `create_debug_core` -- the old error
+message appears -- and you are limited to a single port (the width of which
+you can change just fine).
+
+Since the ILA with a single port works just fine we believe the restriction
+to a single port to be a simple bug (failure to remove an obsolete check).
+Contact the authors for more information.
 
 Appendix
 ========
