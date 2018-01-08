@@ -121,6 +121,8 @@ use work.AxiStreamPkg.all;
 --                     TLAST which is detected after the first TDI word
 --                     does NOT flag an error but yields a truncated reply
 --                     (less TDO words than requested by the number of bits).
+--                  4: 'debug bridge not present' error. I.e., the FW only
+--                     implements a stub and no true debug bridge.
 --
 --            "00"  QUERY: the response to a QUERY command encodes information
 --                  in the command-specific bits:
