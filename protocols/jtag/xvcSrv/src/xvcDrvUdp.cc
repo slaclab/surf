@@ -25,7 +25,7 @@
 #include <string.h>
 #include <netinet/ip.h>
 
-static const char *DFLT_PORT="2543";
+static const char *DFLT_PORT="2542";
 
 static const unsigned MAXL  = 256;
 
