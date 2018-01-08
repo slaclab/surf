@@ -26,7 +26,12 @@ For the Impatient
 -----------------
 
 1) Add the AxisDebugBridge module to your design; hook up to an AXI Stream.
-   This should probably be a UDP master.
+   This should probably be a UDP server.
+   Note that there are two VHDL 'architectures' of this module ('entity') -
+   a stub (`AxisDebugBridgeStub') and the true implementation:
+   `AxisDebugBridgeImpl'. The stub will be used by default by Vivado so you
+   have to explicitly specify the `AxisDebugBridgeImpl' architecture for
+   instantiation.
 2) Add ILA cores; under Vivado-2016.04 these *must* be added to the hdl and
    cannot be added to an already synthesized design!
 3) Compile and install the `xvcSrv` program on a machine that is directly
@@ -91,6 +96,24 @@ Firmware Configuration and Use
 There are two top-level wrappers `AxisToJtag` and `AxisDebugBridge` which support
 the same generics and the same streaming interface. For convenience the latter
 variant already instantiates a JTAG to BSCAN IP and connects to its JTAG port.
+
+### Architectures
+There are two VHDL architectures of the `AxisDebugBridge' entity: 
+`AxisDebugBridgeStub' and `AxisDebugBridgeImpl'. While the latter provides the
+real implementation described in this document the stub only implements
+the QUERY command and replies with a `ERR_NOT_PRESENT_C' error, thus informing
+a software client that firmware support is not implemented.
+
+The stub appears after the full implementation in the source code so that it
+is picked by default by the synthesis tool if `AxisDebugBridge' is
+instanitated without specifying an architecture.
+Therefore, the user has to explicitly request the `AxisDebugBridgeImpl'
+architecture.
+
+The purpose of the stub is allowing a design to unconditionally provide
+the upstream components but optionally use either the stub or the real
+implementation for sake of saving resources or avoiding the limitations
+(see below) associated with the JTAG to BSCAN IP.
 
 ### Generics
 
