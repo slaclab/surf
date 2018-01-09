@@ -25,12 +25,13 @@ use work.AxiLitePkg.all;
 
 entity AxiLiteEmpty is
    generic (
-      TPD_G           : time                  := 1 ns;
-      AXI_RESP_G      : slv(1 downto 0)       := AXI_RESP_OK_C);
+      TPD_G       : time             := 1 ns;
+      AXI_RESP_G  : slv(1 downto 0)  := AXI_RESP_OK_C;
+      AXI_RDATA_G : slv(31 downto 0) := (others => '0'));
    port (
       -- AXI-Lite Bus
-      axiClk         : in  sl;
-      axiClkRst      : in  sl;
+      axiClk         : in  sl := '0';
+      axiClkRst      : in  sl := '0';
       axiReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
       axiReadSlave   : out AxiLiteReadSlaveType;
       axiWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
@@ -39,52 +40,19 @@ end AxiLiteEmpty;
 
 architecture rtl of AxiLiteEmpty is
 
-   type RegType is record
-      axiReadSlave  : AxiLiteReadSlaveType;
-      axiWriteSlave : AxiLiteWriteSlaveType;
-   end record RegType;
-
-   constant REG_INIT_C : RegType := (
-      axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
-      axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
-
-   signal r   : RegType := REG_INIT_C;
-   signal rin : RegType;
-
 begin
 
-   comb : process (axiClkRst, axiReadMaster, axiWriteMaster, r, readRegister) is
-      variable v      : RegType;
-      variable regCon : AxiLiteEndPointType;
-   begin
-      -- Latch the current value
-      v := r;
+   axiReadSlave <= (
+      arready => '1',
+      rdata   => AXI_RDATA_G,
+      rresp   => AXI_RESP_G,
+      rvalid  => '1');
 
-      -- Determine the transaction type
-      axiSlaveWaitTxn(regCon, axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave);
+   axiWriteSlave <= (
+      awready => '1',
+      wready  => '1',
+      bresp   => AXI_RESP_G,
+      bvalid  => '1');
 
-      -- Closeout the transaction
-      axiSlaveDefault(regCon, v.axiWriteSlave, v.axiReadSlave, AXI_RESP_G);
-
-      -- Synchronous Reset
-      if (axiClkRst = '1') then
-         v := REG_INIT_C;
-      end if;
-
-      -- Register the variable for next clock cycle
-      rin <= v;
-
-      -- Outputs
-      axiReadSlave  <= r.axiReadSlave;
-      axiWriteSlave <= r.axiWriteSlave;
-
-   end process comb;
-
-   seq : process (axiClk) is
-   begin
-      if (rising_edge(axiClk)) then
-         r <= rin after TPD_G;
-      end if;
-   end process seq;
 
 end architecture rtl;
