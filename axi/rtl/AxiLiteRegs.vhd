@@ -1,10 +1,7 @@
 -------------------------------------------------------------------------------
--- Title         : AXI Lite Empty End Point
--- File          : AxiLiteEmpty.vhd
--------------------------------------------------------------------------------
 -- Description:
--- Empty slave endpoint for AXI Lite bus.
--- Absorbs writes and returns zeros on reads.
+-- Generic register slave endpoint on AXI-Lite bus
+-- Supports a configurable number of write and read vectors.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -23,28 +20,34 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 
-entity AxiLiteEmpty is
+entity AxiLiteRegs is
    generic (
-      TPD_G           : time                  := 1 ns;
-      AXI_RESP_G      : slv(1 downto 0)       := AXI_RESP_OK_C);
+      TPD_G            : time                  := 1 ns;
+      NUM_WRITE_REG_G  : integer range 1 to 32 := 1;
+      NUM_READ_REG_G   : integer range 1 to 32 := 1);
    port (
       -- AXI-Lite Bus
       axiClk         : in  sl;
       axiClkRst      : in  sl;
-      axiReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      axiReadMaster  : in  AxiLiteReadMasterType;
       axiReadSlave   : out AxiLiteReadSlaveType;
-      axiWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-      axiWriteSlave  : out AxiLiteWriteSlaveType);
-end AxiLiteEmpty;
+      axiWriteMaster : in  AxiLiteWriteMasterType;
+      axiWriteSlave  : out AxiLiteWriteSlaveType;
+      -- User Read/Write registers
+      writeRegister  : out Slv32Array(NUM_WRITE_REG_G-1 downto 0);
+      readRegister   : in  Slv32Array(NUM_READ_REG_G-1 downto 0) := (others => (others => '0')));
+end AxiLiteRegs;
 
-architecture rtl of AxiLiteEmpty is
+architecture rtl of AxiLiteRegs is
 
    type RegType is record
+      writeRegister : Slv32Array(NUM_WRITE_REG_G-1 downto 0);
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      writeRegister => (others => (others => '0')),
       axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
@@ -56,6 +59,7 @@ begin
    comb : process (axiClkRst, axiReadMaster, axiWriteMaster, r, readRegister) is
       variable v      : RegType;
       variable regCon : AxiLiteEndPointType;
+      variable i      : natural;
    begin
       -- Latch the current value
       v := r;
@@ -63,8 +67,18 @@ begin
       -- Determine the transaction type
       axiSlaveWaitTxn(regCon, axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave);
 
+      -- Map the read registers = [0x000:0x0FF]
+      for i in NUM_READ_REG_G-1 downto 0 loop
+         axiSlaveRegisterR(regCon, toSlv((i*4)+0, 9), 0, readRegister(i));
+      end loop;
+
+      -- Map the write registers = [0x100:0x1FF]
+      for i in NUM_WRITE_REG_G-1 downto 0 loop
+         axiSlaveRegister(regCon, toSlv((i*4)+256, 9), 0, v.writeRegister(i));
+      end loop;
+
       -- Closeout the transaction
-      axiSlaveDefault(regCon, v.axiWriteSlave, v.axiReadSlave, AXI_RESP_G);
+      axiSlaveDefault(regCon, v.axiWriteSlave, v.axiReadSlave, AXI_RESP_DECERR_C);
 
       -- Synchronous Reset
       if (axiClkRst = '1') then
@@ -77,7 +91,8 @@ begin
       -- Outputs
       axiReadSlave  <= r.axiReadSlave;
       axiWriteSlave <= r.axiWriteSlave;
-
+      writeRegister <= r.writeRegister;
+      
    end process comb;
 
    seq : process (axiClk) is
