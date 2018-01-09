@@ -33,7 +33,6 @@ entity AxiStreamDmaV2 is
       DESC_AWIDTH_G     : positive range 4 to 12   := 12;
       DESC_ARB_G        : boolean                  := true;
       AXIL_BASE_ADDR_G  : slv(31 downto 0)         := x"00000000";
-      AXI_ERROR_RESP_G  : slv(1 downto 0)          := AXI_RESP_OK_C;
       AXI_READY_EN_G    : boolean                  := false;
       AXIS_READY_EN_G   : boolean                  := false;
       AXIS_CONFIG_G     : AxiStreamConfigType      := AXI_STREAM_CONFIG_INIT_C;
@@ -96,7 +95,6 @@ begin
          TPD_G             => TPD_G,
          CHAN_COUNT_G      => CHAN_COUNT_G,
          AXIL_BASE_ADDR_G  => AXIL_BASE_ADDR_G,
-         AXI_ERROR_RESP_G  => AXI_ERROR_RESP_G,
          AXI_READY_EN_G    => AXI_READY_EN_G,
          AXI_CONFIG_G      => AXI_DESC_CONFIG_G,
          DESC_AWIDTH_G     => DESC_AWIDTH_G,

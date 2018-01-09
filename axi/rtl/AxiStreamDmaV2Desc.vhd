@@ -33,7 +33,6 @@ entity AxiStreamDmaV2Desc is
       TPD_G             : time                  := 1 ns;
       CHAN_COUNT_G      : integer range 1 to 16 := 1;
       AXIL_BASE_ADDR_G  : slv(31 downto 0)      := x"00000000";
-      AXI_ERROR_RESP_G  : slv(1 downto 0)       := AXI_RESP_OK_C;
       AXI_READY_EN_G    : boolean               := false;
       AXI_CONFIG_G      : AxiConfigType         := AXI_CONFIG_INIT_C;
       DESC_AWIDTH_G     : integer range 4 to 12 := 12;
@@ -259,7 +258,7 @@ begin
          TPD_G              => TPD_G,
          NUM_SLAVE_SLOTS_G  => 1,
          NUM_MASTER_SLOTS_G => CB_COUNT_C,
-         DEC_ERROR_RESP_G   => AXI_ERROR_RESP_G,
+         DEC_ERROR_RESP_G   => AXI_RESP_OK_C,
          MASTERS_CONFIG_G   => AXI_CROSSBAR_MASTERS_CONFIG_C)
       port map (
          axiClk              => axiClk,
