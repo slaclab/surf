@@ -127,31 +127,31 @@ architecture rtl of SsiPrbsRx is
    end record;
 
    constant REG_INIT_C : RegType := (
-      '1',
-      toSlv(2, 32),
-      '0',
-      '0',
-      '0',
-      '0',
-      '0',
-      '0',
-      '0',
-      '0',
-      '0',
-      (others => '0'),
-      (others => '0'),
-      (others => '0'),
-      (others => '0'),
-      (others => '0'),
-      (others => '0'),
-      (others => '0'),
-      (others => '0'),
-      (others => '0'),
-      (others => '1'),
-      (others => '1'),
-      AXI_STREAM_SLAVE_INIT_C,
-      AXI_STREAM_MASTER_INIT_C,
-      IDLE_S);
+      busy            => '1',
+      packetLength    => toSlv(2, 32),
+      errorDet        => '0',
+      eof             => '0',
+      eofe            => '0',
+      errLength       => '0',
+      updatedResults  => '0',
+      errMissedPacket => '0',
+      errDataBus      => '0',
+      errWordStrb     => '0',
+      errBitStrb      => '0',
+      txCnt           => (others => '0'),
+      bitPntr         => (others => '0'),
+      errorBits       => (others => '0'),
+      errWordCnt      => (others => '0'),
+      errbitCnt       => (others => '0'),
+      eventCnt        => toSlv(1, PRBS_SEED_SIZE_G),
+      randomData      => (others => '0'),
+      dataCnt         => (others => '0'),
+      stopTime        => (others => '0'),
+      startTime       => (others => '1'),
+      packetRate      => (others => '1'),
+      rxAxisSlave     => AXI_STREAM_SLAVE_INIT_C,
+      txAxisMaster    => AXI_STREAM_MASTER_INIT_C,
+      state           => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -703,6 +703,8 @@ begin
                v.axiReadSlave.rdata := errWordCntSync;
             when x"F0" =>
                v.axiReadSlave.rdata(STATUS_SIZE_C-1 downto 0) := rAxiLite.rollOverEn;
+            when X"F1" =>
+               v.axiReadSlave.rdata := toSlv(PRBS_SEED_SIZE_G, 32);
             when others =>
                axiReadResp := AXI_ERROR_RESP_G;
          end case;

@@ -2,7 +2,7 @@
 -- File       : AxiStreamMon.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-07-14
--- Last update: 2017-01-26
+-- Last update: 2017-11-16
 -------------------------------------------------------------------------------
 -- Description: AXI Stream Monitor Module
 -------------------------------------------------------------------------------
@@ -85,6 +85,11 @@ architecture rtl of AxiStreamMon is
    signal bwMax : slv(39 downto 0);
    signal bwMin : slv(39 downto 0);
 
+   signal frameRateUpdate  : sl;
+   signal frameRateSync    : slv(31 downto 0);
+   signal frameRateMaxSync : slv(31 downto 0);
+   signal frameRateMinSync : slv(31 downto 0);
+
    -- attribute dont_touch          : string;
    -- attribute dont_touch of r     : signal is "true";   
 
@@ -93,22 +98,59 @@ begin
    U_packetRate : entity work.SyncTrigRate
       generic map (
          TPD_G          => TPD_G,
-         COMMON_CLK_G   => COMMON_CLK_G,
+         COMMON_CLK_G   => true,
          REF_CLK_FREQ_G => AXIS_CLK_FREQ_G,  -- units of Hz
          REFRESH_RATE_G => 1.0,              -- units of Hz
          CNT_WIDTH_G    => 32)               -- Counters' width
       port map (
          -- Trigger Input (locClk domain)
-         trigIn         => r.frameSent,
+         trigIn          => r.frameSent,
          -- Trigger Rate Output (locClk domain)
-         trigRateOut    => frameRate,
-         trigRateOutMax => frameRateMax,
-         trigRateOutMin => frameRateMin,
+         trigRateUpdated => frameRateUpdate,
+         trigRateOut     => frameRateSync,
+         trigRateOutMax  => frameRateMaxSync,
+         trigRateOutMin  => frameRateMinSync,
          -- Clocks
-         locClk         => statusClk,
-         locRst         => statusRst,
-         refClk         => axisClk,
-         refRst         => axisRst);
+         locClk          => axisClk,
+         locRst          => axisRst,
+         refClk          => axisClk,
+         refRst          => axisRst);
+
+   SyncOut_frameRate : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         COMMON_CLK_G => COMMON_CLK_G,
+         DATA_WIDTH_G => 32)
+      port map (
+         wr_clk => axisClk,
+         wr_en  => frameRateUpdate,
+         din    => frameRateSync,
+         rd_clk => statusClk,
+         dout   => frameRate);
+
+   SyncOut_frameRateMax : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         COMMON_CLK_G => COMMON_CLK_G,
+         DATA_WIDTH_G => 32)
+      port map (
+         wr_clk => axisClk,
+         wr_en  => frameRateUpdate,
+         din    => frameRateMaxSync,
+         rd_clk => statusClk,
+         dout   => frameRateMax);
+
+   SyncOut_frameRateMin : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         COMMON_CLK_G => COMMON_CLK_G,
+         DATA_WIDTH_G => 32)
+      port map (
+         wr_clk => axisClk,
+         wr_en  => frameRateUpdate,
+         din    => frameRateMinSync,
+         rd_clk => statusClk,
+         dout   => frameRateMin);
 
    comb : process (axisMaster, axisRst, axisSlave, r) is
       variable v : RegType;
