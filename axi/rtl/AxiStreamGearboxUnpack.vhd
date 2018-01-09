@@ -1,8 +1,7 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamUnpacker.vhd
+-- File       : AxiStreamGearboxUnpack.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-26
--- Last update: 2017-05-24
 -------------------------------------------------------------------------------
 -- Description: Takes 8 80-bit (5x16) ADC frames and reformats them into
 --              7 80 bit (5x14) frames.
@@ -25,7 +24,7 @@ use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
 
-entity AxiStreamUnpacker is
+entity AxiStreamGearboxUnpack is
    
    generic (
       TPD_G               : time := 1 ns;
@@ -47,9 +46,9 @@ entity AxiStreamUnpacker is
 
       );
 
-end entity AxiStreamUnpacker;
+end entity AxiStreamGearboxUnpack;
 
-architecture rtl of AxiStreamUnpacker is
+architecture rtl of AxiStreamGearboxUnpack is
    
    constant STREAM_WIDTH_C    : integer                           := AXI_STREAM_CONFIG_G.TDATA_BYTES_C*8;
    constant PACK_SIZE_C       : integer                           := RANGE_HIGH_G-RANGE_LOW_G+1;

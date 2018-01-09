@@ -34,7 +34,7 @@ architecture testbed of AxiStreamMuxTb is
    constant FAST_CLK_PERIOD_C  : time             := SLOW_CLK_PERIOD_C/3.14159;
    constant TPD_C              : time             := FAST_CLK_PERIOD_C/4;
    constant STATUS_CNT_WIDTH_C : natural          := 32;
-   constant TX_PACKET_LENGTH_C : slv(31 downto 0) := toSlv(16, 32);
+   constant TX_PACKET_LENGTH_C : slv(31 downto 0) := toSlv(32, 32);
    constant NUMBER_PACKET_C    : slv(31 downto 0) := toSlv(4096, 32);
    constant MUX_SIZE_C         : natural          := 4;
 
@@ -91,6 +91,9 @@ architecture testbed of AxiStreamMuxTb is
    signal obMasters : AxiStreamMasterArray(MUX_SIZE_C-1 downto 0);
    signal obSlaves  : AxiStreamSlaveArray(MUX_SIZE_C-1 downto 0);
 
+   signal rearbitrate : sl      := '0';
+   signal rearbCount  : integer := 0;
+
 begin
 
    ---------------------------------------
@@ -105,7 +108,7 @@ begin
          clkP => fastClk,
          clkN => open,
          rst  => fastRst,
-         rstL => open); 
+         rstL => open);
 
    ClkRst_Slow : entity work.ClkRst
       generic map (
@@ -116,7 +119,7 @@ begin
          clkP => slowClk,
          clkN => open,
          rst  => slowRst,
-         rstL => open);          
+         rstL => open);
 
    --------------
    -- Data Source
@@ -140,9 +143,10 @@ begin
             -- PRBS Configurations
             PRBS_SEED_SIZE_G           => PRBS_SEED_SIZE_C,
             PRBS_TAPS_G                => PRBS_TAPS_C,
+--            PRBS_INCREMENT_G => true,
             -- AXI Stream Configurations
             MASTER_AXI_STREAM_CONFIG_G => AXI_STREAM_CONFIG_C,
-            MASTER_AXI_PIPE_STAGES_G   => AXI_PIPE_STAGES_C)        
+            MASTER_AXI_PIPE_STAGES_G   => AXI_PIPE_STAGES_C)
          port map (
             -- Master Port (mAxisClk)
             mAxisClk     => fastClk,
@@ -153,64 +157,81 @@ begin
             locClk       => fastClk,
             locRst       => fastRst,
             trig         => '1',
-            packetLength => (TX_PACKET_LENGTH_C+i),
+            packetLength => (TX_PACKET_LENGTH_C+(i*10)),
             forceEofe    => '0',
             busy         => open,
             tDest        => (others => '0'),
-            tId          => (others => '0'));     
+            tId          => (others => '0'));
    end generate GEN_SRC;
 
+
+   rearb_proc : process (fastClk) is
+   begin
+      if (rising_edge(fastClk)) then
+         if (rearbCount = 80) then
+            rearbCount  <= 0   after TPD_C;
+            rearbitrate <= '1' after TPD_C;
+         else
+            rearbCount  <= rearbCount + 1 after TPD_C;
+            rearbitrate <= '0'            after TPD_C;
+         end if;
+      end if;
+   end process rearb_proc;
 
    -- Module to be tested
    U_AxiStreamMux : entity work.AxiStreamMux
       generic map (
-         TPD_G        => TPD_C,
-         NUM_SLAVES_G => MUX_SIZE_C)
+         TPD_G                => TPD_C,
+         NUM_SLAVES_G         => MUX_SIZE_C,
+         ILEAVE_EN_G          => true,
+         ILEAVE_ON_NOTVALID_G => true,
+         ILEAVE_REARB_G       => 16)
       port map (
          -- Clock and reset
          axisClk      => fastClk,
          axisRst      => fastRst,
          -- Slaves
+         rearbitrate  => rearbitrate,
          sAxisMasters => obMasters,
          sAxisSlaves  => obSlaves,
          -- Master
          mAxisMaster  => obMaster,
-         mAxisSlave   => obSlave);          
+         mAxisSlave   => obSlave);
 
-   SsiFifo_Inst : entity work.SsiFifo
-      generic map (
-         -- General Configurations
-         TPD_G               => TPD_C,
-         PIPE_STAGES_G       => AXI_PIPE_STAGES_C,
-         EN_FRAME_FILTER_G   => true,
-         VALID_THOLD_G       => 1,
-         -- FIFO configurations
-         BRAM_EN_G           => BRAM_EN_C,
-         XIL_DEVICE_G        => XIL_DEVICE_C,
-         USE_BUILT_IN_G      => USE_BUILT_IN_C,
-         GEN_SYNC_FIFO_G     => false,
-         ALTERA_SYN_G        => ALTERA_SYN_C,
-         ALTERA_RAM_G        => ALTERA_RAM_C,
-         CASCADE_SIZE_G      => CASCADE_SIZE_C,
-         FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
-         FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_C,
-         -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_C,
-         MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_C)
-      port map (
-         -- Slave Port
-         sAxisClk       => fastClk,
-         sAxisRst       => fastRst,
-         sAxisMaster    => obMaster,
-         sAxisSlave     => obSlave,
-         sAxisCtrl      => open,
-         sAxisDropWrite => dropWrite,
-         sAxisTermFrame => dropFrame,
-         -- Master Port
-         mAxisClk       => slowClk,
-         mAxisRst       => slowRst,
-         mAxisMaster    => ibMaster,
-         mAxisSlave     => ibSlave);   
+--    SsiFifo_Inst : entity work.SsiFifo
+--       generic map (
+--          -- General Configurations
+--          TPD_G               => TPD_C,
+--          PIPE_STAGES_G       => AXI_PIPE_STAGES_C,
+--          EN_FRAME_FILTER_G   => true,
+--          VALID_THOLD_G       => 1,
+--          -- FIFO configurations
+--          BRAM_EN_G           => BRAM_EN_C,
+--          XIL_DEVICE_G        => XIL_DEVICE_C,
+--          USE_BUILT_IN_G      => USE_BUILT_IN_C,
+--          GEN_SYNC_FIFO_G     => false,
+--          ALTERA_SYN_G        => ALTERA_SYN_C,
+--          ALTERA_RAM_G        => ALTERA_RAM_C,
+--          CASCADE_SIZE_G      => CASCADE_SIZE_C,
+--          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
+--          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_C,
+--          -- AXI Stream Port Configurations
+--          SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_C,
+--          MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_C)
+--       port map (
+--          -- Slave Port
+--          sAxisClk       => fastClk,
+--          sAxisRst       => fastRst,
+--          sAxisMaster    => obMaster,
+--          sAxisSlave     => obSlave,
+--          sAxisCtrl      => open,
+--          sAxisDropWrite => dropWrite,
+--          sAxisTermFrame => dropFrame,
+--          -- Master Port
+--          mAxisClk       => slowClk,
+--          mAxisRst       => slowRst,
+--          mAxisMaster    => ibMaster,
+--          mAxisSlave     => ibSlave);
 
    process(fastClk)
    begin
@@ -251,11 +272,11 @@ begin
          axisClk      => slowClk,
          axisRst      => slowRst,
          -- Slaves
-         sAxisMaster  => ibMaster,
-         sAxisSlave   => ibSlave,
+         sAxisMaster  => obMaster,
+         sAxisSlave   => obSlave,
          -- Master
          mAxisMasters => ibMasters,
-         mAxisSlaves  => ibSlaves);   
+         mAxisSlaves  => ibSlaves);
 
    ------------
    -- Data Sink
@@ -306,7 +327,7 @@ begin
             -- Error Detection Signals (sAxisClk domain)
             updatedResults => updated(i),
             errorDet       => errorDet(i),
-            packetLength   => packetLengths(i));     
+            packetLength   => packetLengths(i));
    end generate GEN_SINK;
 
    process(slowClk)

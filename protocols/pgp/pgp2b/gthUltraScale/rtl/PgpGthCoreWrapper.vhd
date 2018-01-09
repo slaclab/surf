@@ -231,4 +231,5 @@ begin
          drpAddr         => drpAddr,          -- [out]
          drpDi           => drpDi,            -- [out]
          drpDo           => drpDo);           -- [in]
+     
 end architecture mapping;

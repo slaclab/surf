@@ -9,3 +9,4 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 from surf.protocols.pgp._pgp2baxi import *
+from surf.protocols.pgp._Pgp3AxiL import *

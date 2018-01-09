@@ -2,7 +2,6 @@
 -- File       : StdRtlPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-01
--- Last update: 2017-05-05
 -------------------------------------------------------------------------------
 -- Description: Standard RTL Package File
 ------------------------------------------------------------------------------
@@ -107,7 +106,9 @@ package StdRtlPkg is
    function lfsrShift (lfsr : slv; constant taps : NaturalArray; input : sl := '0') return slv;
 
    function maximum (left, right : integer) return integer;
+   function maximum (a : IntegerArray) return integer;
    function minimum (left, right : integer) return integer;
+   function minimum (a : IntegerArray) return integer;
 
    -- One line if-then-else functions. Useful for assigning constants based on generics.
    function ite(i : boolean; t : boolean; e : boolean) return boolean;
@@ -1131,13 +1132,38 @@ package body StdRtlPkg is
       end if;
    end maximum;
 
+   function maximum (
+      a : IntegerArray)
+      return integer is
+      variable max : integer := a(a'low);
+   begin
+      for i in a'range loop
+         if (a(i) > max) then
+            max := a(i);
+         end if;
+      end loop;
+      return max;
+   end function maximum;
+
    function minimum (left, right : integer) return integer is
    begin
       if left < right then return left;
       else return right;
       end if;
    end minimum;
-
+   
+   function minimum (
+      a : IntegerArray)
+      return integer is
+      variable max : integer := a(a'low);
+   begin
+      for i in a'range loop
+         if (a(i) < max) then
+            max := a(i);
+         end if;
+      end loop;
+      return max;
+   end function minimum;
    -----------------------------
    -- conv_std_logic_vector functions
    -- without calling the STD_LOGIC_ARITH library
