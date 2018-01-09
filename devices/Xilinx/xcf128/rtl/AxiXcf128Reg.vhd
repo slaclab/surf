@@ -2,7 +2,7 @@
 -- File       : AxiXcf128Reg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-18
--- Last update: 2015-01-13
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite Register Access
 -------------------------------------------------------------------------------
@@ -27,8 +27,7 @@ use work.AxiXcf128Pkg.all;
 entity AxiXcf128Reg is
    generic (
       TPD_G            : time            := 1 ns;
-      AXI_CLK_FREQ_G   : real            := 200.0E+6;  -- units of Hz      
-      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C);
+      AXI_CLK_FREQ_G   : real            := 200.0E+6);  -- units of Hz      
    port (
       -- AXI-Lite Register Interface
       axiReadMaster  : in  AxiLiteReadMasterType;
@@ -103,7 +102,7 @@ begin
          -- Check for an out of 32 bit aligned address
          if axiWriteMaster.awaddr(1 downto 0) /= "00" then
             -- Send AXI response
-            axiSlaveWriteResponse(v.axiWriteSlave, AXI_ERROR_RESP_G);
+            axiSlaveWriteResponse(v.axiWriteSlave, AXI_RESP_DECERR_C);
          else
             -- Check the write address
             if axiWriteMaster.awaddr(3 downto 2) = 0 then
@@ -121,12 +120,12 @@ begin
                v.state       := CMD_LOW_S;
             else
                -- Send AXI response
-               axiSlaveWriteResponse(v.axiWriteSlave, AXI_ERROR_RESP_G);
+               axiSlaveWriteResponse(v.axiWriteSlave, AXI_RESP_DECERR_C);
             end if;
          end if;
       elsif (axiStatus.readEnable = '1') and (r.state = IDLE_S) then
          -- Check for an out of 32 bit aligned address
-         axiReadResp          := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
+         axiReadResp          := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          -- Reset the register
          v.axiReadSlave.rdata := (others => '0');
          -- Check the read address
@@ -140,7 +139,7 @@ begin
             -- Get the read data bus
             v.axiReadSlave.rdata(15 downto 0) := r.dataReg;
          else
-            axiReadResp := AXI_ERROR_RESP_G;
+            axiReadResp := AXI_RESP_DECERR_C;
          end if;
          -- Send AXI Response
          axiSlaveReadResponse(v.axiReadSlave, axiReadResp);

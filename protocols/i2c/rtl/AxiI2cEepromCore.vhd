@@ -2,7 +2,7 @@
 -- File       : AxiI2cEepromCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-07-11
--- Last update: 2016-09-20
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite Read/ModifyWrite for standard EEPROM Module
 --
@@ -47,8 +47,7 @@ entity AxiI2cEepromCore is
       I2C_ADDR_G       : slv(6 downto 0) := "1010000";
       I2C_SCL_FREQ_G   : real            := 100.0E+3;   -- units of Hz
       I2C_MIN_PULSE_G  : real            := 100.0E-9;   -- units of seconds
-      AXI_CLK_FREQ_G   : real            := 156.25E+6;  -- units of Hz
-      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C);
+      AXI_CLK_FREQ_G   : real            := 156.25E+6);  -- units of Hz
    port (
       -- I2C Ports
       i2ci            : in  i2c_in_type;
@@ -156,7 +155,7 @@ begin
       axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
 
       -- Update the AXI-Lite response
-      axilResp := ite(regOut.regFail = '1', AXI_ERROR_RESP_G, AXI_RESP_OK_C);
+      axilResp := ite(regOut.regFail = '1', AXI_RESP_SLVERR_C, AXI_RESP_OK_C);
 
       -- State Machine
       case (r.state) is

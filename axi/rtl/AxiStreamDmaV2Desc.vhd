@@ -2,7 +2,7 @@
 -- File       : AxiStreamDmaV2Desc.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-02-02
--- Last update: 2017-09-15
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description:
 -- Descriptor manager for AXI DMA read and write engines.
@@ -463,7 +463,7 @@ begin
       axiSlaveRegisterR(regCon, x"05C", 0, r.wrReqMissed);
 
       -- End transaction block
-      axiSlaveDefault(regCon, v.axilWriteSlave, v.axilReadSlave, AXI_ERROR_RESP_G);
+      axiSlaveDefault(regCon, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
       --------------------------------------
       -- Address FIFO Control

@@ -2,7 +2,7 @@
 -- File       : vcs_tb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2016-09-06
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for VCS module
 -------------------------------------------------------------------------------
@@ -185,7 +185,6 @@ begin
 --         EN_USER_REG_G       => false,
 --         NUM_WRITE_REG_G     => 1,
 --         NUM_READ_REG_G      => 1,
---         AXI_ERROR_RESP_G    => AXI_RESP_SLVERR_C
 --      ) port map (
 --         axiClk           => axiClk,
 --         axiRst           => axiClkRst,

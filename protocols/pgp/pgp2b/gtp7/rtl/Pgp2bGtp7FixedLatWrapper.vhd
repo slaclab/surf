@@ -2,7 +2,7 @@
 -- File       : Pgp2bGtp7FixedLatWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2017-01-24
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Gtp7 Fixed Latency Wrapper
 -------------------------------------------------------------------------------
@@ -41,7 +41,6 @@ entity Pgp2bGtp7FixedLatWrapper is
       NUM_VC_EN_G             : integer range 1 to 4 := 4;
       AXIL_BASE_ADDR_G        : slv(31 downto 0)     := (others => '0');
       EXT_RST_POLARITY_G      : sl                   := '1';
-      AXIL_ERROR_RESP_G       : slv(1 downto 0)      := AXI_RESP_DECERR_C;
       TX_POLARITY_G           : sl                   := '0';
       RX_POLARITY_G           : sl                   := '0';
       TX_ENABLE_G             : boolean              := true;           -- Enable TX direction
@@ -345,7 +344,6 @@ begin
    U_Gtp7QuadPll_1 : entity work.Gtp7QuadPll
       generic map (
          TPD_G                => TPD_G,
-         AXI_ERROR_RESP_G     => AXIL_ERROR_RESP_G,
          SIM_RESET_SPEEDUP_G  => SIM_GTRESET_SPEEDUP_C,
          SIM_VERSION_G        => SIM_VERSION_G,
          PLL0_REFCLK_SEL_G    => "001",
@@ -396,7 +394,6 @@ begin
          VC_INTERLEAVE_G       => VC_INTERLEAVE_G,
          PAYLOAD_CNT_TOP_G     => PAYLOAD_CNT_TOP_G,
          NUM_VC_EN_G           => NUM_VC_EN_G,
-         AXI_ERROR_RESP_G      => AXIL_ERROR_RESP_G,
          TX_POLARITY_G         => TX_POLARITY_G,
          RX_POLARITY_G         => RX_POLARITY_G,
          TX_ENABLE_G           => TX_ENABLE_G,
@@ -508,7 +505,6 @@ begin
          TPD_G              => TPD_G,
          NUM_SLAVE_SLOTS_G  => 1,
          NUM_MASTER_SLOTS_G => 2,
-         DEC_ERROR_RESP_G   => AXIL_ERROR_RESP_G,
          MASTERS_CONFIG_G   => genAxiLiteConfig(2, AXIL_BASE_ADDR_G, 16, 12),
          DEBUG_G            => true)
       port map (

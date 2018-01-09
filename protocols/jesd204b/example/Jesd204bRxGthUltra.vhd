@@ -2,7 +2,7 @@
 -- File       : Jesd204bRxGthUltra.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-14
--- Last update: 2015-04-14
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: JESD204b receiver module containing the GTH Ultrascale MGT
 --              Wrapper module for JESD receiver.
@@ -47,10 +47,6 @@ entity Jesd204bRxGthUltra is
       -- External SYSREF
       SYSREF_GEN_G        : boolean                    := false; 
       
-   -- AXI Lite and AXI stream generics
-   ----------------------------------------------------------------------------------------------
-      AXI_ERROR_RESP_G  : slv(1 downto 0)             := AXI_RESP_SLVERR_C;
-
    -- JESD generics
    ----------------------------------------------------------------------------------------------
       F_G            : positive := 2;
@@ -212,7 +208,6 @@ begin
    generic map (
       TPD_G             => TPD_G,
       TEST_G            => TEST_G,
-      AXI_ERROR_RESP_G  => AXI_ERROR_RESP_G,
       F_G               => F_G,
       K_G               => K_G,
       L_G               => L_G)

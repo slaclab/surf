@@ -2,7 +2,7 @@
 -- File       : AxiAd5780Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-18
--- Last update: 2014-05-18
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to AD5780 DAC IC
 -------------------------------------------------------------------------------
@@ -28,8 +28,7 @@ entity AxiAd5780Core is
       STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32;
       USE_DSP48_G        : string                := "no";  -- "no" for no DSP48 implementation, "yes" to use DSP48 slices      
       AXI_CLK_FREQ_G     : real                  := 200.0E+6;  -- units of Hz
-      SPI_CLK_FREQ_G     : real                  := 25.0E+6;   -- units of Hz
-      AXI_ERROR_RESP_G   : slv(1 downto 0)       := AXI_RESP_SLVERR_C);
+      SPI_CLK_FREQ_G     : real                  := 25.0E+6);   -- units of Hz
    port (
       -- DAC Ports
       dacIn          : in  AxiAd5780InType;
@@ -64,8 +63,7 @@ begin
          STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
          USE_DSP48_G        => USE_DSP48_G,
          AXI_CLK_FREQ_G     => AXI_CLK_FREQ_G,
-         SPI_CLK_FREQ_G     => SPI_CLK_FREQ_G,
-         AXI_ERROR_RESP_G   => AXI_ERROR_RESP_G)
+         SPI_CLK_FREQ_G     => SPI_CLK_FREQ_G)
       port map(
          -- AXI-Lite Register Interface    
          axiReadMaster  => axiReadMaster,

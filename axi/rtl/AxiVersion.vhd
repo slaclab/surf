@@ -2,7 +2,7 @@
 -- File       : AxiVersion.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-20
--- Last update: 2017-02-15
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Creates AXI accessible registers containing configuration
 -- information.
@@ -29,7 +29,6 @@ entity AxiVersion is
       TPD_G              : time                   := 1 ns;
       BUILD_INFO_G       : BuildInfoType;
       SIM_DNA_VALUE_G    : slv                    := X"000000000000000000000000";
-      AXI_ERROR_RESP_G   : slv(1 downto 0)        := AXI_RESP_DECERR_C;
       DEVICE_ID_G        : slv(31 downto 0)       := (others => '0');
       CLK_PERIOD_G       : real                   := 8.0E-9;  -- units of seconds
       XIL_DEVICE_G       : string                 := "7SERIES";  -- Either "7SERIES" or "ULTRASCALE"
@@ -213,7 +212,7 @@ begin
       axiSlaveRegisterR(axilEp, x"700", 0, dnaValue);
       axiSlaveRegisterR(axilEp, x"800", BUILD_STRING_ROM_C);
 
-      axiSlaveDefault(axilEp, v.axiWriteSlave, v.axiReadSlave, AXI_ERROR_RESP_G);
+      axiSlaveDefault(axilEp, v.axiWriteSlave, v.axiReadSlave, AXI_RESP_DECERR_C);
 
       ---------------------------------
       -- Uptime counter

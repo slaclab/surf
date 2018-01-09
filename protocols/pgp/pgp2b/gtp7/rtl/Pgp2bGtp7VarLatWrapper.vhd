@@ -2,7 +2,7 @@
 -- File       : Pgp2bGtp7VarLatWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2017-10-12
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Example PGP2b front end wrapper
 -- Note: Default generic configurations are for the AC701 development board
@@ -54,7 +54,6 @@ entity Pgp2bGtp7VarLatWrapper is
       RXLPM_INCM_CFG_G     : bit                     := '0';
       RXLPM_IPCM_CFG_G     : bit                     := '1';
       -- Configure PGP
-      AXI_ERROR_RESP_G     : slv(1 downto 0)         := AXI_RESP_DECERR_C;
       TX_POLARITY_G        : sl                      := '0';
       RX_POLARITY_G        : sl                      := '0';
       TX_ENABLE_G          : boolean                 := true;
@@ -217,7 +216,6 @@ begin
          TX_PLL_G              => "PLL0",
          RX_PLL_G              => "PLL1",
          -- Configure PGP
-         AXI_ERROR_RESP_G      => AXI_ERROR_RESP_G,
          TX_POLARITY_G         => TX_POLARITY_G,
          RX_POLARITY_G         => RX_POLARITY_G,
          TX_ENABLE_G           => TX_ENABLE_G,

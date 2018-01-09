@@ -2,7 +2,7 @@
 -- File       : XadcSimpleCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-10
--- Last update: 2016-12-08
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: This core only measures internal voltages and temperature
 -------------------------------------------------------------------------------
@@ -30,8 +30,6 @@ entity XadcSimpleCore is
       TPD_G              : time   := 1 ns;
       SIM_DEVICE_G       : string := "7SERIES";
       SIM_MONITOR_FILE_G : string := "design.txt";
-
-      AXIL_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_DECERR_C;
 
       -- Global XADC configurations
       SEQUENCER_MODE_G : string                 := "DEFAULT";  -- SINGLE_PASS, CONTINUOUS, SINGLE_CHANNEL,
@@ -331,7 +329,6 @@ begin
    U_AxiLiteToDrp_1 : entity work.AxiLiteToDrp
       generic map (
          TPD_G            => TPD_G,
-         AXI_ERROR_RESP_G => AXIL_ERROR_RESP_G,
          COMMON_CLK_G     => true,
          EN_ARBITRATION_G => false,
          TIMEOUT_G        => 4096,

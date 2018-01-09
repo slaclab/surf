@@ -2,7 +2,7 @@
 -- File       : Pgp2bGthUltra.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2017-12-04
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -30,7 +30,6 @@ use UNISIM.VCOMPONENTS.all;
 entity Pgp2bGthUltra is
    generic (
       TPD_G             : time                 := 1 ns;
-      AXIL_ERROR_RESP_G : slv(1 downto 0)      := AXI_RESP_DECERR_C;
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
@@ -186,8 +185,7 @@ begin
    --------------------------
    PgpGthCoreWrapper_1 : entity work.PgpGthCoreWrapper
       generic map (
-         TPD_G             => TPD_G,
-         AXIL_ERROR_RESP_G => AXIL_ERROR_RESP_G)
+         TPD_G             => TPD_G)
       port map (
          stableClk       => stableClk,
          stableRst       => gtHardReset,

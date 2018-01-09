@@ -2,7 +2,7 @@
 -- File       : AxiStreamMonAxiL.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-07-14
--- Last update: 2017-01-26
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: AXI Stream Monitor Module
 -------------------------------------------------------------------------------
@@ -31,8 +31,7 @@ entity AxiStreamMonAxiL is
       COMMON_CLK_G    : boolean             := false;  -- true if axisClk = statusClk
       AXIS_CLK_FREQ_G : real                := 156.25E+6;  -- units of Hz
       AXIS_NUM_SLOTS_G: integer             := 1;
-      AXIS_CONFIG_G   : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      AXIL_ERR_RESP_G : slv(1 downto 0)     := AXI_RESP_DECERR_C);
+      AXIS_CONFIG_G   : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- AXIS Stream Interface
       axisClk           : in  sl;
@@ -165,7 +164,7 @@ begin
          axiSlaveRegisterR(regCon, toSlv(44 + (i * 48),16), 0,  r.bandwidthMin(i));       --x"2C" + i * x"30" 
       end loop;
       
-      axiSlaveDefault(regCon, v.sAxilWriteSlave, v.sAxilReadSlave, AXIL_ERR_RESP_G);
+      axiSlaveDefault(regCon, v.sAxilWriteSlave, v.sAxilReadSlave, AXI_RESP_DECERR_C);
       
       if (axilRst = '1') then
          v := REG_INIT_C;

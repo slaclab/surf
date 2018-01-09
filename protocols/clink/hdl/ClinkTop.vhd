@@ -30,7 +30,6 @@ entity ClinkTop is
    generic (
       TPD_G              : time                 := 1 ns;
       CHAN_COUNT_G       : integer range 1 to 2 := 1;
-      AXI_ERROR_RESP_G   : slv(1 downto 0)      := AXI_RESP_DECERR_C;
       UART_READY_EN_G    : boolean              := true;
       DATA_AXIS_CONFIG_G : AxiStreamConfigType  := AXI_STREAM_CONFIG_INIT_C;
       UART_AXIS_CONFIG_G : AxiStreamConfigType  := AXI_STREAM_CONFIG_INIT_C);
@@ -311,7 +310,6 @@ begin
    U_AxilAsync: entity work.AxiLiteAsync
       generic map (
          TPD_G            => TPD_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
          COMMON_CLK_G     => false)
       port map (
          sAxiClk         => axilClk,
@@ -391,7 +389,7 @@ begin
       axiSlaveRegisterR(axilEp, x"224",  0, chanStatus(1).frameCount);
       axiSlaveRegisterR(axilEp, x"228",  0, chanStatus(1).dropCount);
 
-      axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_ERROR_RESP_G);
+      axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
       -------------
       -- Reset

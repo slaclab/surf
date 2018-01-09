@@ -2,7 +2,7 @@
 -- File       : AxiXcf128Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-24
--- Last update: 2015-01-13
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to XCF128 FLASH IC
 -------------------------------------------------------------------------------
@@ -29,8 +29,7 @@ use unisim.vcomponents.all;
 entity AxiXcf128Core is
    generic (
       TPD_G            : time            := 1 ns;
-      AXI_CLK_FREQ_G   : real            := 200.0E+6;  -- units of Hz
-      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C);
+      AXI_CLK_FREQ_G   : real            := 200.0E+6);  -- units of Hz
    port (
       -- XCF128 Ports
       xcfInOut       : inout AxiXcf128InOutType;
@@ -71,8 +70,7 @@ begin
    AxiXcf128Reg_Inst : entity work.AxiXcf128Reg
       generic map(
          TPD_G            => TPD_G,
-         AXI_CLK_FREQ_G   => AXI_CLK_FREQ_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
+         AXI_CLK_FREQ_G   => AXI_CLK_FREQ_G)
       port map(
          -- AXI-Lite Register Interface
          axiReadMaster  => axiReadMaster,

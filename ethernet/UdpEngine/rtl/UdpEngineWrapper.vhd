@@ -2,7 +2,7 @@
 -- File       : UdpEngineWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2017-10-18
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Wrapper for UdpEngine
 -------------------------------------------------------------------------------
@@ -38,7 +38,6 @@ entity UdpEngineWrapper is
       CLIENT_SIZE_G       : positive        := 1;
       CLIENT_PORTS_G      : PositiveArray   := (0 => 8193);
       CLIENT_EXT_CONFIG_G : boolean         := false;
-      AXI_ERROR_RESP_G    : slv(1 downto 0) := AXI_RESP_DECERR_C;
       -- General IPv4/ARP/DHCP Generics
       DHCP_G              : boolean         := false;
       CLK_FREQ_G          : real            := 156.25E+06;  -- In units of Hz
@@ -229,7 +228,7 @@ begin
       axiSlaveRegisterR(regCon, x"FF8", 0, localMac);
 
       -- Closeout the transaction
-      axiSlaveDefault(regCon, v.axilWriteSlave, v.axilReadSlave, AXI_ERROR_RESP_G);
+      axiSlaveDefault(regCon, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
       -- Synchronous Reset
       if (rst = '1') then

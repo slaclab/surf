@@ -2,7 +2,7 @@
 -- File       : RssiCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-09
--- Last update: 2016-05-13
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: The module is based upon RUDP (Cisco implementation) RFC-908, RFC-1151, draft-ietf-sigtran-reliable-udp-00.
 --              The specifications in the drafts are modified by internal simplifications and improvements.
@@ -58,8 +58,6 @@ entity RssiCore is
 
       WINDOW_ADDR_SIZE_G  : positive range 1 to 10 := 3;  -- 2^WINDOW_ADDR_SIZE_G  = Max number of segments in buffer
       SEGMENT_ADDR_SIZE_G : positive := 7;  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
-      
-      AXI_ERROR_RESP_G    : slv(1 downto 0) := AXI_RESP_DECERR_C;
       
       -- AXIS Configurations
       APP_AXIS_CONFIG_G        : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_NORMAL_C);    
@@ -291,7 +289,6 @@ begin
    AxiLiteRegItf_INST : entity work.RssiAxiLiteRegItf
       generic map (
          TPD_G                 => TPD_G,
-         AXI_ERROR_RESP_G      => AXI_ERROR_RESP_G,
          TIMEOUT_UNIT_G        => TIMEOUT_UNIT_G,
          SEGMENT_ADDR_SIZE_G   => SEGMENT_ADDR_SIZE_G,
          INIT_SEQ_N_G          => INIT_SEQ_N_G,

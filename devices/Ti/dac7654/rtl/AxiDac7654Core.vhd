@@ -2,7 +2,7 @@
 -- File       : AxiDac7654Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-09-23
--- Last update: 2014-09-25
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to DAC7654 DAC IC
 -------------------------------------------------------------------------------
@@ -26,8 +26,7 @@ entity AxiDac7654Core is
    generic (
       TPD_G              : time                  := 1 ns;
       AXI_CLK_FREQ_G     : real                  := 125.0E+6;  -- units of Hz
-      STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32;
-      AXI_ERROR_RESP_G   : slv(1 downto 0)       := AXI_RESP_SLVERR_C);
+      STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32);
    port (
       -- DAC Ports
       dacIn          : in  AxiDac7654InType;
@@ -51,8 +50,7 @@ begin
    AxiDac7654Reg_Inst : entity work.AxiDac7654Reg
       generic map(
          TPD_G              => TPD_G,
-         STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
-         AXI_ERROR_RESP_G   => AXI_ERROR_RESP_G)
+         STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G)
       port map(
          -- AXI-Lite Register Interface    
          axiClk         => axiClk,

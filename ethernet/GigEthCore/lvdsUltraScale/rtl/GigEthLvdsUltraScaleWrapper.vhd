@@ -35,7 +35,6 @@ entity GigEthLvdsUltraScaleWrapper is
       CLKFBOUT_MULT_F_G  : real                             := 2.0;
       -- AXI-Lite Configurations
       EN_AXI_REG_G       : boolean                          := false;
-      AXI_ERROR_RESP_G   : slv(1 downto 0)                  := AXI_RESP_SLVERR_C;
       -- AXI Streaming Configurations
       AXIS_CONFIG_G      : AxiStreamConfigArray(3 downto 0) := (others => AXI_STREAM_CONFIG_INIT_C)
    );
@@ -299,7 +298,6 @@ begin
             TPD_G            => TPD_G,
             -- AXI-Lite Configurations
             EN_AXI_REG_G     => EN_AXI_REG_G,
-            AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
             -- AXI Streaming Configurations
             AXIS_CONFIG_G    => AXIS_CONFIG_G(i)
          )
