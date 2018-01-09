@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : JTAG Support
 -------------------------------------------------------------------------------
--- File       : AxisDebugBridge.vhd
+-- File       : AxisJtagDebugBridge.vhd
 -- Author     : Till Straumann <strauman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-05
@@ -31,7 +31,7 @@ use work.AxiStreamPkg.all;
 use work.AxisToJtagPkg.all;
 
 -- Connect AxisToJtag to a debug bridge IP (convenience wrapper)
-entity AxisDebugBridge is
+entity AxisJtagDebugBridge is
    generic (
       TPD_G            : time                       := 1 ns;
       AXIS_FREQ_G      : real                       := 0.0;   -- Hz (for computing TCK period)
@@ -50,9 +50,9 @@ entity AxisDebugBridge is
       mAxisTdo         : out AxiStreamMasterType;
       sAxisTdo         : in  AxiStreamSlaveType
    );
-end entity AxisDebugBridge;
+end entity AxisJtagDebugBridge;
 
-architecture AxisDebugBridgeImpl of AxisDebugBridge is
+architecture AxisJtagDebugBridgeImpl of AxisJtagDebugBridge is
 
    -- IP
    -- Must be generated and named DebugBridgeJtag, e.g., with TCL commands:
@@ -108,9 +108,9 @@ begin
          jtag_tck     => tck
       );
 
-end architecture AxisDebugBridgeImpl;
+end architecture AxisJtagDebugBridgeImpl;
 
-architecture AxisDebugBridgeStub of AxisDebugBridge is
+architecture AxisJtagDebugBridgeStub of AxisJtagDebugBridge is
 
    type StateType is (READY_S, SKIP_S, REPLY_S);
 
@@ -206,4 +206,4 @@ begin
       end if;
    end process U_seq;
 
-end architecture AxisDebugBridgeStub;
+end architecture AxisJtagDebugBridgeStub;

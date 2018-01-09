@@ -25,12 +25,12 @@ However, the protocol and its current support in Vivado has several drawbacks
 For the Impatient
 -----------------
 
-1) Add the AxisDebugBridge module to your design; hook up to an AXI Stream.
+1) Add the AxisJtagDebugBridge module to your design; hook up to an AXI Stream.
    This should probably be a UDP server.
    Note that there are two VHDL 'architectures' of this module ('entity') -
-   a stub (`AxisDebugBridgeStub`) and the true implementation:
-   `AxisDebugBridgeImpl`. The stub will be used by default by Vivado so you
-   have to explicitly specify the `AxisDebugBridgeImpl` architecture for
+   a stub (`AxisJtagDebugBridgeStub`) and the true implementation:
+   `AxisJtagDebugBridgeImpl`. The stub will be used by default by Vivado so you
+   have to explicitly specify the `AxisJtagDebugBridgeImpl` architecture for
    instantiation.
 2) Add ILA cores; under Vivado-2016.04 these *must* be added to the hdl and
    cannot be added to an already synthesized design!
@@ -93,21 +93,21 @@ a general-purpose JTAG controller.
 Firmware Configuration and Use
 ------------------------------
 
-There are two top-level wrappers `AxisToJtag` and `AxisDebugBridge` which support
+There are two top-level wrappers `AxisToJtag` and `AxisJtagDebugBridge` which support
 the same generics and the same streaming interface. For convenience the latter
 variant already instantiates a JTAG to BSCAN IP and connects to its JTAG port.
 
 ### Architectures
-There are two VHDL architectures of the `AxisDebugBridge` entity: 
-`AxisDebugBridgeStub` and `AxisDebugBridgeImpl`. While the latter provides the
+There are two VHDL architectures of the `AxisJtagDebugBridge` entity: 
+`AxisJtagDebugBridgeStub` and `AxisJtagDebugBridgeImpl`. While the latter provides the
 real implementation described in this document the stub only implements
 the QUERY command and replies with a `ERR_NOT_PRESENT_C` error, thus informing
 a software client that firmware support is not implemented.
 
 The stub appears after the full implementation in the source code so that it
-is picked by default by the synthesis tool if `AxisDebugBridge` is
+is picked by default by the synthesis tool if `AxisJtagDebugBridge` is
 instanitated without specifying an architecture.
-Therefore, the user has to explicitly request the `AxisDebugBridgeImpl`
+Therefore, the user has to explicitly request the `AxisJtagDebugBridgeImpl`
 architecture.
 
 The purpose of the stub is allowing a design to unconditionally provide

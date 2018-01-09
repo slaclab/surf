@@ -160,7 +160,7 @@ begin
       end if;
    end process U_RX;
 
-   U_dut : entity work.AxisDebugBridge(AxisDebugBridgeStub)
+   U_dut : entity work.AxisJtagDebugBridge(AxisJtagDebugBridgeStub)
       port map (
          axisClk  => clk,
          axisRst  => rst,
