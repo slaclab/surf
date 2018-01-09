@@ -208,7 +208,7 @@ architecture AxisToJtagImpl of AxisToJtag is
 
    subtype  AddrType  is unsigned( bitSize(MEM_DEPTH_G) downto 0 ); -- one guard bit
 
-   type     StateType is (IDLE, SEND_REP, WAIT_STARTED, WAIT_HDR_READY, WAIT_STOPPED, REPLAY);
+   type     StateType is (IDLE_S, SEND_REP_S, WAIT_STARTED_S, WAIT_HDR_READY_S, WAIT_STOPPED_S, REPLAY_S);
 
    constant ADDR_ZERO_C : AddrType := (others => '0');
 
@@ -237,8 +237,8 @@ architecture AxisToJtagImpl of AxisToJtag is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state       => IDLE,
-      nstate      => IDLE,
+      state       => IDLE_S,
+      nstate      => IDLE_S,
       replyData   => AXI_STREAM_MASTER_INIT_C,
       tLastSeen   => '0',
       ackInput    => '0',
@@ -302,7 +302,7 @@ architecture AxisToJtagImpl of AxisToJtag is
    begin
       v.replyData.tValid := '1';
       v.replyData.tLast  := '1';
-      v.state            := SEND_REP;
+      v.state            := SEND_REP_S;
    end procedure sendHeaderNow;
 
    signal r           : RegType := REG_INIT_C;
@@ -419,7 +419,7 @@ begin
    s.tdoWen      <= (s.tdoXfer     and r.passTdo    );
 
      -- read-enable for buffer memory
-   s.tdoRen <= ite( (r.state = REPLAY) , s.locConsumed, '1' );
+   s.tdoRen <= ite( (r.state = REPLAY_S) , s.locConsumed, '1' );
 
 
    -- A stream multiplexer; depending on 'sel' either Ib(0) or Ib(1)
@@ -477,7 +477,7 @@ begin
       v := r;
 
       case r.state is
-         when IDLE =>
+         when IDLE_S =>
             v.tLastSeen := '0';
             if ( mAxisReq.tValid = '1' ) then
                -- got a request
@@ -516,14 +516,14 @@ begin
                            elsif xidIsNew( mAxisReq.tData, r.xid, r.memValid ) then
                               v.widx             := ADDR_ZERO_C;
                               v.xid              := getXid( maxisReq.tData );
-                              v.state            := WAIT_STARTED;
+                              v.state            := WAIT_STARTED_S;
                               v.ackInput         := '0'; -- pass on to processor
                               v.passTdi          := '1';
                               v.memValid         := false;
                            else
                               v.replyData.tValid := '1';
                               v.replyData.tLast  := '0';
-                              v.state            := REPLAY;
+                              v.state            := REPLAY_S;
                               v.ridx             := ADDR_ZERO_C + 1;
                            end if;
                         end if;
@@ -540,12 +540,12 @@ begin
          -- not released yet (replyData.tValid = 0); so we can
          -- send an error if we receive a tLast on the requesting
          -- stream before the processor has even started.
-         when WAIT_STARTED =>
+         when WAIT_STARTED_S =>
             if ( s.coreRunning = '1' ) then
                if ( s.lastTdi = '1' ) then
                   v.passTdi := '0';
                end if;
-               v.state            := WAIT_HDR_READY;
+               v.state            := WAIT_HDR_READY_S;
                -- release header
                v.replyData.tValid := '1';
             elsif ( s.lastReq = '1' ) then
@@ -556,7 +556,7 @@ begin
                sendHeaderNow( v );
             end if;
 
-         when SEND_REP =>
+         when SEND_REP_S =>
             -- wait in this state until the request has been consumed by us
             -- and the reply has gone out (absorbed by the Selector).
             if ( r.tLastSeen = '0' and s.lastReq = '1' ) then
@@ -573,7 +573,7 @@ begin
                v.state             := v.nstate;
             end if;
 
-         when WAIT_HDR_READY =>
+         when WAIT_HDR_READY_S =>
             if ( s.lastTdi = '1' ) then
                v.passTdi := '0';
             end if;
@@ -582,10 +582,10 @@ begin
                -- over to the processor
                v.passTdo          := '1';
                v.replyData.tValid := '0';
-               v.state            := WAIT_STOPPED;
+               v.state            := WAIT_STOPPED_S;
             end if;
 
-         when WAIT_STOPPED =>
+         when WAIT_STOPPED_S =>
             if ( s.lastTdi = '1' ) then
                -- switch input stream back to header processing
                v.passTdi := '0';
@@ -595,7 +595,7 @@ begin
                v.passTdo           := '0';
             end if;
             if ( v.passTdi = '0' and v.passTdo = '0' ) then
-               v.state             := IDLE;
+               v.state             := IDLE_S;
             end if;
             if ( MEM_DEPTH_G > 0 and s.tdoWen = '1' ) then
                if ( s.mTdo.tLast = '1' ) then
@@ -604,7 +604,7 @@ begin
                v.widx           := r.widx + 1;
             end if;
 
-         when REPLAY =>
+         when REPLAY_S =>
             if ( s.lastReq = '1' ) then
                -- absorb the input stream
                v.ackInput := '0';
@@ -623,7 +623,7 @@ begin
                end if;
             end if;
             if ( v.ackInput = '0' and v.replyData.tValid = '0' ) then
-               v.state            := IDLE;
+               v.state            := IDLE_S;
             end if;
       end case;
 

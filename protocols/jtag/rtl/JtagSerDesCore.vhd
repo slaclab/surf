@@ -59,7 +59,7 @@ end entity JtagSerDesCore;
 
 architecture JtagSerDesCoreImpl of JtagSerDesCore is
 
-   type StateType is (IDLE, SHIFT, WAI);
+   type StateType is (IDLE_S, SHIFT_S, WAI_S);
 
    type RegType is record
       cnt     : integer range -1 to WIDTH_G - 1;
@@ -84,7 +84,7 @@ architecture JtagSerDesCoreImpl of JtagSerDesCore is
       lastBit => false,
       oValid  => '0',
       iReady  => '1',
-      state   => IDLE
+      state   => IDLE_S
    );
 
    signal r       : RegType := REG_INIT_C;
@@ -106,7 +106,7 @@ begin
       v := r;
 
       case (r.state) is
-         when IDLE =>
+         when IDLE_S =>
             v.oValid := '0';
             if ( dataInValid /= '0' and r.iReady /= '0' ) then
                v.tms    := dataInTms;
@@ -114,10 +114,10 @@ begin
                v.iReady := '0';
                v.cnt    := numBits;
                v.div    := CLK_DIV2_G - 1;
-               v.state  := SHIFT;
+               v.state  := SHIFT_S;
             end if;
 
-         when SHIFT =>
+         when SHIFT_S =>
             v.iReady := '0';
             v.oValid := '0';
             if ( r.div = 0 ) then
@@ -136,15 +136,15 @@ begin
                            v.tck   := '1';
                            v.div   := CLK_DIV2_G - 1;
                         else
-                           v.state := WAI;
+                           v.state := WAI_S;
                         end if;
                      else
                         -- we are done
                         if ( dataOutReady /= '0' ) then
                            v.iReady := '1';
-                           v.state  := IDLE;
+                           v.state  := IDLE_S;
                         else
-                           v.state  := WAI;
+                           v.state  := WAI_S;
                         end if;
                      end if;
                   else
@@ -172,16 +172,16 @@ begin
                v.div := r.div - 1;
             end if;
 
-         when WAI =>
+         when WAI_S =>
             if ( dataOutReady /= '0' ) then
                v.oValid := '0';
                if ( r.cnt >= 0 ) then
-                  v.tck   := '1';
-                  v.div   := CLK_DIV2_G - 1;
-                  v.state := SHIFT;
+                  v.tck    := '1';
+                  v.div    := CLK_DIV2_G - 1;
+                  v.state  := SHIFT_S;
                else
                   v.iReady := '1';
-                  v.state  := IDLE;
+                  v.state  := IDLE_S;
                end if;
             end if;
 

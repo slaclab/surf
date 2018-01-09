@@ -112,7 +112,7 @@ end architecture AxisDebugBridgeImpl;
 
 architecture AxisDebugBridgeStub of AxisDebugBridge is
 
-   type StateType is (READY, SKIP, REPLY);
+   type StateType is (READY_S, SKIP_S, REPLY_S);
 
    type RegType is record
       state    : StateType;
@@ -122,7 +122,7 @@ architecture AxisDebugBridgeStub of AxisDebugBridge is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state    => READY,
+      state    => READY_S,
       repValid => '0',
       repData  => (others => '0'),
       reqReady => '1'
@@ -151,7 +151,7 @@ begin
 
       case (r.state) is
 
-         when READY =>
+         when READY_S =>
             if ( mAxisReq.tValid = '1' ) then
                v.repData := ( others => '0' );
                if ( getVersion( mAxisReq.tData ) /= PRO_VERSN_C ) then
@@ -166,10 +166,10 @@ begin
                   v.reqReady := '0';
                end if;
                v.repValid := '1';
-               v.state    := REPLY;
+               v.state    := REPLY_S;
             end if;
 
-         when REPLY =>
+         when REPLY_S =>
             if ( (mAxisReq.tValid and mAxisReq.tLast and r.reqReady) = '1' ) then
                v.reqReady := '0';
             end if;
@@ -177,16 +177,16 @@ begin
                v.repValid := '0';
                if ( v.reqReady = '1' ) then
                   -- no TLAST seen yet
-                  v.state := SKIP;
+                  v.state := SKIP_S;
                else
                   v.reqReady := '1';
-                  v.state    := READY;
+                  v.state    := READY_S;
                end if;
             end if;
 
-         when SKIP =>
+         when SKIP_S =>
             if ( (mAxisReq.tValid and mAxisReq.tLast) = '1' ) then
-               v.state := READY;
+               v.state := READY_S;
             end if;
 
       end case;

@@ -125,7 +125,7 @@ end entity AxisToJtagCore;
 architecture AxisToJtagCoreImpl of AxisToJtagCore is
 
 
-   type StateType is (IDLE, GET_TMS, GET_TDI, SHIFT, ALIGN, DISCARD);
+   type StateType is (IDLE_S, GET_TMS_S, GET_TDI_S, SHIFT_S, ALIGN_S, DISCARD_S);
 
    constant AXIS_BW_C       : positive  := 8*AXIS_WIDTH_G;
    
@@ -149,7 +149,7 @@ architecture AxisToJtagCoreImpl of AxisToJtagCore is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state      => IDLE,
+      state      => IDLE_S,
       tdi        => (others => '0'),
       tms        => (others => '0'),
       tdo        => (others => '0'),
@@ -230,7 +230,7 @@ begin
       v := r;
 
       case ( r.state ) is
-         when IDLE =>
+         when IDLE_S =>
             v.last      := false;
             v.tLastSeen := false;
             v.iCnt      := ( others => '0' );
@@ -242,11 +242,11 @@ begin
                -- first word is bit count (minus one)
                if ( mAxisTmsTdi.tLast /= '1' ) then
                   v.nBitsTot := mAxisTmsTdi.tData(LEN_POSN_G downto LEN_POS0_G);
-                  v.state    := GET_TMS;
+                  v.state    := GET_TMS_S;
                end if;
             end if;
 
-         when GET_TMS =>
+         when GET_TMS_S =>
             if ( (r.sReady and mAxisTmsTdi.tValid) = '1' ) then
                if ( mAxisTmsTdi.tLast = '1' ) then
                   -- not enough data for this beat; abort
@@ -255,14 +255,14 @@ begin
                      v.last      := true;
                      v.tLastSeen := true;
                      v.nBits     := AXIS_BW_C - 1;
-                     v.state     := ALIGN;
+                     v.state     := ALIGN_S;
                   else
                      -- nothing outstanding -- go back to idle state
-                     v.state    := IDLE;
+                     v.state    := IDLE_S;
                   end if;
                else
                   v.tms      := mAxisTmsTdi.tData(AXIS_BW_C - 1 downto 0);
-                  v.state    := GET_TDI;
+                  v.state    := GET_TDI_S;
                   v.iCnt     := slv(unsigned(r.iCnt) + 1);
                   v.running  := '1';
                   if ( unsigned(r.nBitsTot) >= AXIS_BW_C ) then
@@ -275,7 +275,7 @@ begin
                end if;
             end if;
 
-         when GET_TDI =>
+         when GET_TDI_S =>
             if ( (r.sReady and mAxisTmsTdi.tValid) = '1' ) then
                if ( mAxisTmsTdi.tLast = '1' ) then
                   v.tLastSeen := true;
@@ -288,23 +288,23 @@ begin
                v.tdi      := mAxisTmsTdi.tData(AXIS_BW_C - 1 downto 0);
                v.tdiValid := '1';
                v.sReady   := '0';
-               v.state    := SHIFT;
+               v.state    := SHIFT_S;
             end if;
 
-         when SHIFT   =>
+         when SHIFT_S   =>
             if ( (tdiReady and r.tdiValid) = '1' ) then
                v.tdiValid := '0';
                if ( not r.last ) then
-                  v.state   := GET_TMS;
+                  v.state   := GET_TMS_S;
                   v.sReady  := '1';
                end if;
             end if;
 
-         when ALIGN =>
+         when ALIGN_S =>
             if ( r.nBits = AXIS_BW_C - 1 ) then
                v.tLast   := '1';
                if ( ( r.tdoValid and sAxisTdo.tReady ) = '1' ) then
-                  v.state := DISCARD;
+                  v.state := DISCARD_S;
                end if;
             else
                v.tdo   := ( '0' & r.tdo( r.tdo'left downto 1 ) );
@@ -312,7 +312,7 @@ begin
             end if;
 
          -- discard stuff after requested number of bits
-         when DISCARD =>
+         when DISCARD_S =>
             if ( r.tLastSeen or TLAST_IGNORE_G ) then
                v.tdoPass := '1';
             else
@@ -330,7 +330,7 @@ begin
       if ( (tdoValid and sAxisTdo.tReady) = '1' ) then
          if ( r.tLast = '1' ) then
             v.running := '0';
-            v.state   := IDLE;
+            v.state   := IDLE_S;
          end if;
          v.tdoValid := '0';
       end if;
@@ -340,7 +340,7 @@ begin
          v.oCnt     := slv(unsigned(r.oCnt) + 1);
          if ( r.last and v.oCnt = r.iCnt ) then
             v.tdoPass  := '0';
-            v.state    := ALIGN;
+            v.state    := ALIGN_S;
          end if;
       end if;
 
