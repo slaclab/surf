@@ -2,7 +2,7 @@
 -- File       : Pgp3GthUs.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2017-11-01
+-- Last update: 2018-01-10
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -52,8 +52,7 @@ entity Pgp3GthUs is
       EN_DRP_G                    : boolean               := true;
       EN_PGP_MON_G                : boolean               := true;
       AXIL_BASE_ADDR_G            : slv(31 downto 0)      := (others => '0');
-      AXIL_CLK_FREQ_G             : real                  := 125.0E+6;
-      AXIL_ERROR_RESP_G           : slv(1 downto 0)       := AXI_RESP_DECERR_C);
+      AXIL_CLK_FREQ_G             : real                  := 125.0E+6);
    port (
       -- Stable Clock and Reset
       stableClk    : in  sl;            -- GT needs a stable clock to "boot up"
@@ -136,10 +135,10 @@ architecture rtl of Pgp3GthUs is
          addrBits      => 11,
          connectivity  => X"FFFF"));
 
-   signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_READ_MASTER_INIT_C);
-   signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_SLAVE_INIT_C);
+   signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_MASTER_INIT_C);
+   signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)   := (others => AXI_LITE_READ_SLAVE_INIT_C);
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
-   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_INIT_C);
+   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_WRITE_SLAVE_INIT_C);
 
 begin
 
@@ -153,7 +152,6 @@ begin
       U_XBAR : entity work.AxiLiteCrossbar
          generic map (
             TPD_G              => TPD_G,
-            DEC_ERROR_RESP_G   => AXIL_ERROR_RESP_G,
             NUM_SLAVE_SLOTS_G  => 1,
             NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
             MASTERS_CONFIG_G   => XBAR_CONFIG_C)
@@ -189,8 +187,8 @@ begin
    NO_AXIL : if (not EN_PGP_MON_G and not EN_DRP_G) generate
       U_AxiLiteEmpty_1 : entity work.AxiLiteEmpty
          generic map (
-            TPD_G            => TPD_G,
-            AXI_ERROR_RESP_G => AXIL_ERROR_RESP_G)
+            TPD_G      => TPD_G,
+            AXI_RESP_G => AXI_RESP_DECERR_C)
          port map (
             axiClk         => axilClk,          -- [in]
             axiClkRst      => axilRst,          -- [in]
@@ -218,8 +216,7 @@ begin
          TX_MUX_ILEAVE_EN_G          => TX_MUX_ILEAVE_EN_G,
          TX_MUX_ILEAVE_ON_NOTVALID_G => TX_MUX_ILEAVE_ON_NOTVALID_G,
          EN_PGP_MON_G                => EN_PGP_MON_G,
-         AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G,
-         AXIL_ERROR_RESP_G           => AXIL_ERROR_RESP_G)
+         AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G)
       port map (
          pgpTxClk        => pgpTxClkInt,                         -- [in]
          pgpTxRst        => pgpTxRstInt,                         -- [in]

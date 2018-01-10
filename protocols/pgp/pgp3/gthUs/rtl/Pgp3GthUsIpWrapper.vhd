@@ -2,7 +2,7 @@
 -- File       : Pgp3GthUsIpWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2017-11-01
+-- Last update: 2018-01-10
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -23,8 +23,7 @@ use work.AxiLitePkg.all;
 entity Pgp3GthUsIpWrapper is
    generic (
       TPD_G             : time            := 1 ns;
-      EN_DRP_G          : boolean         := true;
-      AXIL_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_DECERR_C);
+      EN_DRP_G          : boolean         := true);
    port (
       stableClk      : in  sl;
       stableRst      : in  sl;
@@ -258,7 +257,6 @@ begin
       U_AxiLiteToDrp_1 : entity work.AxiLiteToDrp
          generic map (
             TPD_G            => TPD_G,
-            AXI_ERROR_RESP_G => AXIL_ERROR_RESP_G,
             COMMON_CLK_G     => false,
             EN_ARBITRATION_G => false,
             ADDR_WIDTH_G     => 9,

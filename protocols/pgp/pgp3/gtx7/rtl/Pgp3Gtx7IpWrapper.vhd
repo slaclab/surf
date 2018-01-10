@@ -2,7 +2,7 @@
 -- File       : Pgp3Gtx7IpWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-20
--- Last update: 2017-12-21
+-- Last update: 2018-01-10
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -30,8 +30,7 @@ entity Pgp3Gtx7IpWrapper is
       EN_DRP_G          : boolean         := true;
       RATE_G            : boolean         := true;  -- true = 10.3125 Gbps, false = 6.25 Gbps
       TX_POLARITY_G     : sl              := '0';
-      RX_POLARITY_G     : sl              := '0';
-      AXIL_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_DECERR_C);
+      RX_POLARITY_G     : sl              := '0');
    port (
       stableClk       : in  sl;
       stableRst       : in  sl;
@@ -570,7 +569,6 @@ begin
       U_AxiLiteToDrp_1 : entity work.AxiLiteToDrp
          generic map (
             TPD_G            => TPD_G,
-            AXI_ERROR_RESP_G => AXIL_ERROR_RESP_G,
             COMMON_CLK_G     => false,
             EN_ARBITRATION_G => false,
             ADDR_WIDTH_G     => 9,

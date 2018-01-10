@@ -2,7 +2,7 @@
 -- File       : Pgp2bAxi.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2009-05-27
--- Last update: 2017-10-31
+-- Last update: 2018-01-10
 -------------------------------------------------------------------------------
 -- Description:
 -- AXI-Lite block to manage the PGP3 interface.
@@ -34,8 +34,7 @@ entity Pgp3AxiL is
       WRITE_EN_G         : boolean               := false;  -- Set to false when on remote end of a link
       STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32;
       ERROR_CNT_WIDTH_G  : natural range 1 to 32 := 4;
-      AXIL_CLK_FREQ_G     : real                  := 125.0E+6;
-      AXIL_ERROR_RESP_G   : slv(1 downto 0)       := AXI_RESP_DECERR_C);
+      AXIL_CLK_FREQ_G     : real                  := 125.0E+6);
    port (
 
       -- TX PGP Interface (pgpTxClk)
@@ -667,7 +666,7 @@ begin
       end loop;
 
 
-      axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXIL_ERROR_RESP_G);
+      axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
 
       -- Reset

@@ -163,8 +163,7 @@ begin
 --          TX_MUX_ILEAVE_EN_G          => TX_MUX_ILEAVE_EN_G,
 --          TX_MUX_ILEAVE_ON_NOTVALID_G => TX_MUX_ILEAVE_ON_NOTVALID_G,
 --          EN_PGP_MON_G                => EN_PGP_MON_G,
---          AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G,
---          AXIL_ERROR_RESP_G           => AXIL_ERROR_RESP_G)
+--          AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G)
       port map (
          pgpTxClk      => axisClk,            -- [in]
          pgpTxRst      => axisRst,            -- [in]
@@ -231,8 +230,7 @@ begin
 --          TX_MUX_ILEAVE_EN_G          => TX_MUX_ILEAVE_EN_G,
 --          TX_MUX_ILEAVE_ON_NOTVALID_G => TX_MUX_ILEAVE_ON_NOTVALID_G,
 --          EN_PGP_MON_G                => EN_PGP_MON_G,
---          AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G,
---          AXIL_ERROR_RESP_G           => AXIL_ERROR_RESP_G)
+--          AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G)
       port map (
          pgpTxClk      => axisClk,            -- [in]
          pgpTxRst      => axisRst,            -- [in]

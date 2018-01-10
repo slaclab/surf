@@ -2,7 +2,7 @@
 -- File       : Pgp3Gtx7.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2017-12-21
+-- Last update: 2018-01-10
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -55,8 +55,7 @@ entity Pgp3Gtx7 is
       TX_POLARITY_G               : sl                    := '0';
       RX_POLARITY_G               : sl                    := '0';
       AXIL_BASE_ADDR_G            : slv(31 downto 0)      := (others => '0');
-      AXIL_CLK_FREQ_G             : real                  := 156.25E+6;
-      AXIL_ERROR_RESP_G           : slv(1 downto 0)       := AXI_RESP_DECERR_C);
+      AXIL_CLK_FREQ_G             : real                  := 156.25E+6);
    port (
       -- Stable Clock and Reset
       stableClk      : in  sl;          -- GT needs a stable clock to "boot up"
@@ -163,7 +162,6 @@ begin
       U_XBAR : entity work.AxiLiteCrossbar
          generic map (
             TPD_G              => TPD_G,
-            DEC_ERROR_RESP_G   => AXIL_ERROR_RESP_G,
             NUM_SLAVE_SLOTS_G  => 1,
             NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
             MASTERS_CONFIG_G   => XBAR_CONFIG_C)
@@ -199,8 +197,8 @@ begin
    NO_AXIL : if (not EN_PGP_MON_G and not EN_DRP_G) generate
       U_AxiLiteEmpty : entity work.AxiLiteEmpty
          generic map (
-            TPD_G            => TPD_G,
-            AXI_ERROR_RESP_G => AXIL_ERROR_RESP_G)
+            TPD_G      => TPD_G,
+            AXI_RESP_G => AXI_RESP_DECERR_C)
          port map (
             axiClk         => axilClk,          -- [in]
             axiClkRst      => axilRst,          -- [in]
@@ -228,8 +226,7 @@ begin
          TX_MUX_ILEAVE_EN_G          => TX_MUX_ILEAVE_EN_G,
          TX_MUX_ILEAVE_ON_NOTVALID_G => TX_MUX_ILEAVE_ON_NOTVALID_G,
          EN_PGP_MON_G                => EN_PGP_MON_G,
-         AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G,
-         AXIL_ERROR_RESP_G           => AXIL_ERROR_RESP_G)
+         AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G)
       port map (
          pgpTxClk        => pgpTxClkInt,                         -- [in]
          pgpTxRst        => pgpTxRstInt,                         -- [in]

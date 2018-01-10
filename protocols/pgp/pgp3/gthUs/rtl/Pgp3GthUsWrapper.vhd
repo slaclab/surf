@@ -2,7 +2,7 @@
 -- File       : Pgp3GthUsWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-27
--- Last update: 2017-11-01
+-- Last update: 2018-01-10
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -55,8 +55,7 @@ entity Pgp3GthUsWrapper is
       EN_GTH_DRP_G                : boolean                := true;
       EN_QPLL_DRP_G               : boolean                := true;
       AXIL_BASE_ADDR_G            : slv(31 downto 0)       := (others => '0');
-      AXIL_CLK_FREQ_G             : real                   := 125.0E+6;
-      AXIL_ERROR_RESP_G           : slv(1 downto 0)        := AXI_RESP_DECERR_C);
+      AXIL_CLK_FREQ_G             : real                   := 125.0E+6);
    port (
       -- Stable Clock and Reset
       stableClk       : in  sl;         -- GT needs a stable clock to "boot up"
@@ -149,7 +148,6 @@ begin
    U_XBAR : entity work.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
-         DEC_ERROR_RESP_G   => AXIL_ERROR_RESP_G,
          NUM_SLAVE_SLOTS_G  => 1,
          NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
          MASTERS_CONFIG_G   => XBAR_CONFIG_C)
@@ -168,8 +166,7 @@ begin
    U_QPLL : entity work.Pgp3GthUsQpll
       generic map (
          TPD_G             => TPD_G,
-         EN_DRP_G          => EN_QPLL_DRP_G,
-         AXIL_ERROR_RESP_G => AXIL_ERROR_RESP_G)
+         EN_DRP_G          => EN_QPLL_DRP_G)
       port map (
          -- Stable Clock and Reset
          stableClk       => stableClk,                            -- [in]
@@ -215,8 +212,7 @@ begin
             EN_PGP_MON_G                => EN_PGP_MON_G,
             EN_DRP_G                    => EN_GTH_DRP_G,
             AXIL_BASE_ADDR_G            => XBAR_CONFIG_C(i).baseAddr,
-            AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G,
-            AXIL_ERROR_RESP_G           => AXIL_ERROR_RESP_G)
+            AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G)
          port map (
             -- Stable Clock and Reset
             stableClk       => stableClk,
