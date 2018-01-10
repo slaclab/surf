@@ -25,8 +25,9 @@ use work.AxiStreamPkg.all;
 
 entity AxiStreamTap is
    generic (
-      TPD_G      : time                   := 1 ns;
-      TAP_DEST_G : integer range 0 to 255 := 0);
+      TPD_G         : time                   := 1 ns;
+      PIPE_STAGES_G : integer range 0 to 16  := 0;
+      TAP_DEST_G    : integer range 0 to 255 := 0);
    port (
       -- Slave
       sAxisMaster  : in  AxiStreamMasterType;
@@ -57,6 +58,7 @@ begin
    U_DeMux: entity work.AxiStreamDeMux
       generic map (
          TPD_G          => TPD_G,
+         PIPE_STAGES_G  => PIPE_STAGES_G,
          NUM_MASTERS_G  => 2,
          MODE_G         => "ROUTED",
          TDEST_ROUTES_G => ROUTES_C)
@@ -73,6 +75,7 @@ begin
    U_Mux: entity work.AxiStreamMux
       generic map (
          TPD_G          => TPD_G,
+         PIPE_STAGES_G  => PIPE_STAGES_G,
          NUM_SLAVES_G   => 2,
          MODE_G         => "ROUTED",
          TDEST_ROUTES_G => ROUTES_C,
