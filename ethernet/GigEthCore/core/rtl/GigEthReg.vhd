@@ -2,7 +2,7 @@
 -- File       : GigEthReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-20
--- Last update: 2018-01-08
+-- Last update: 2018-01-10
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite 1GbE Register Interface
 -------------------------------------------------------------------------------
@@ -26,8 +26,8 @@ use work.GigEthPkg.all;
 
 entity GigEthReg is
    generic (
-      TPD_G            : time            := 1 ns;
-      EN_AXI_REG_G     : boolean         := false);
+      TPD_G        : time    := 1 ns;
+      EN_AXI_REG_G : boolean := false);
    port (
       -- Local Configurations
       localMac       : in  slv(47 downto 0) := MAC_ADDR_INIT_C;
@@ -88,8 +88,8 @@ begin
 
       U_AxiLiteEmpty : entity work.AxiLiteEmpty
          generic map (
-            TPD_G            => TPD_G,
-            AXI_ERROR_RESP_G => AXI_RESP_DECERR_C)
+            TPD_G      => TPD_G,
+            AXI_RESP_G => AXI_RESP_DECERR_C)
          port map (
             axiClk         => clk,
             axiClkRst      => rst,

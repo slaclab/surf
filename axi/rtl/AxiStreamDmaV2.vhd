@@ -2,7 +2,7 @@
 -- File       : AxiStreamDmaV2.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-02-02
--- Last update: 2017-09-02
+-- Last update: 2018-01-10
 -------------------------------------------------------------------------------
 -- Description:
 -- Generic AXI Stream DMA block for frame at a time transfers.
@@ -97,7 +97,6 @@ begin
             TPD_G             => TPD_G,
             CHAN_COUNT_G      => CHAN_COUNT_G,
             AXIL_BASE_ADDR_G  => AXIL_BASE_ADDR_G,
-            AXI_ERROR_RESP_G  => AXI_ERROR_RESP_G,
             AXI_READY_EN_G    => AXI_READY_EN_G,
             AXI_CONFIG_G      => AXI_DESC_CONFIG_G,
             DESC_AWIDTH_G     => DESC_AWIDTH_G,
@@ -134,7 +133,6 @@ begin
             TPD_G             => TPD_G,
             CHAN_COUNT_G      => CHAN_COUNT_G,
             AXIL_BASE_ADDR_G  => AXIL_BASE_ADDR_G,
-            AXI_ERROR_RESP_G  => AXI_ERROR_RESP_G,
             AXI_READY_EN_G    => AXI_READY_EN_G,
             AXI_CONFIG_G      => AXI_DESC_CONFIG_G,
             DESC_AWIDTH_G     => DESC_AWIDTH_G,

@@ -2,7 +2,7 @@
 -- File       : GthUltraScaleQuadPll.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2018-01-08
+-- Last update: 2018-01-10
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Ultrascale GTH QPLL primitive
 -------------------------------------------------------------------------------
@@ -291,8 +291,8 @@ begin
    NO_DRP : if (not EN_DRP_G) generate
       U_AxiLiteEmpty_1 : entity work.AxiLiteEmpty
          generic map (
-            TPD_G            => TPD_G,
-            AXI_ERROR_RESP_G => AXIL_RESP_DECERR_C)
+            TPD_G      => TPD_G,
+            AXI_RESP_G => AXIL_RESP_DECERR_C)
          port map (
             axiClk         => axilClk,          -- [in]
             axiClkRst      => axilRst,          -- [in]
