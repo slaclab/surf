@@ -129,7 +129,7 @@ begin
                   -- Data
                   v.wrData(DATA_SIZE_G-1 downto 0) := axiWriteMaster.wdata(DATA_SIZE_G-1 downto 0);
                   -- Chip select
-                  v.chipSel                        := axiWriteMaster.awaddr(SPI_NUM_CHIPS_G+ADDRESS_SIZE_G+1 downto 2+ADDRESS_SIZE_G);
+                  v.chipSel                        := axiWriteMaster.awaddr(CHIP_BITS_C+ADDRESS_SIZE_G+1 downto 2+ADDRESS_SIZE_G);
                   v.wrEn                           := '1';
                   v.state                          := WAIT_CYCLE_S;
                end if;
@@ -154,7 +154,7 @@ begin
                   end if;
 
                   -- If there are no address bits, readback will reuse the last wrData when shifting
-                  v.chipSel := axiReadMaster.araddr(SPI_NUM_CHIPS_G+ADDRESS_SIZE_G+1 downto 2+ADDRESS_SIZE_G);
+                  v.chipSel := axiReadMaster.araddr(CHIP_BITS_C+ADDRESS_SIZE_G+1 downto 2+ADDRESS_SIZE_G);
                   v.wrEn    := '1';
                   v.state   := WAIT_CYCLE_S;
                end if;

@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamPacker
+-- File       : AxiStreamGearboxPack
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
 -- Last update: 2016-07-13
@@ -24,7 +24,7 @@ use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
 
-entity AxiStreamPacker is
+entity AxiStreamGearboxPack is
    
    generic (
       TPD_G               : time := 1 ns;
@@ -45,9 +45,9 @@ entity AxiStreamPacker is
 
       );
 
-end entity AxiStreamPacker;
+end entity AxiStreamGearboxPack;
 
-architecture rtl of AxiStreamPacker is
+architecture rtl of AxiStreamGearboxPack is
 
 
    constant STREAM_WIDTH_C    : integer := AXI_STREAM_CONFIG_G.TDATA_BYTES_C*8;

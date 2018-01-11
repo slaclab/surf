@@ -531,7 +531,7 @@ begin
                -- Check for valid 
                if (wrReqList(r.wrReqCnt) = '1') then
                   v.wrReqValid := '1';
-                  v.wrReqNum   := toSlv(r.wrReqCnt, CHAN_COUNT_G);
+                  v.wrReqNum   := toSlv(r.wrReqCnt, CHAN_SIZE_C);
                else
                   v.wrReqValid := '0';
                end if;

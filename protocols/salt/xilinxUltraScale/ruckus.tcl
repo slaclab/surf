@@ -14,4 +14,36 @@ if { $::env(VIVADO_VERSION) >= 2016.4 } {
    
 } else {
    puts "\n\nWARNING: $::DIR_PATH requires Vivado 2016.4 (or later)\n\n"
+} 
+
+if { $::env(VIVADO_VERSION) >= 2017.3 } {
+   
+   if { [info exists ::env(INCLUDE_SALT)] != 1 || $::env(INCLUDE_SALT) == 0 } {
+      set nop 0
+   } else {
+
+      loadConstraints -path "$::DIR_PATH/xdc/SaltUltraScaleCore.xdc"
+      set_property PROCESSING_ORDER {EARLY}                [get_files {SaltUltraScaleCore.xdc}]
+      set_property SCOPED_TO_REF    {SaltUltraScaleCore}   [get_files {SaltUltraScaleCore.xdc}]
+      set_property SCOPED_TO_CELLS  {U0}                   [get_files {SaltUltraScaleCore.xdc}]
+   }   
+      
+   if { [info exists ::env(INCLUDE_SALT_RX_ONLY)] != 1 || $::env(INCLUDE_SALT_RX_ONLY) == 0 } {
+      set nop 0
+   } else {
+      loadConstraints -path "$::DIR_PATH/xdc/SaltUltraScaleRxOnly.xdc"
+      set_property PROCESSING_ORDER {EARLY}                [get_files {SaltUltraScaleRxOnly.xdc}]
+      set_property SCOPED_TO_REF    {SaltUltraScaleRxOnly} [get_files {SaltUltraScaleRxOnly.xdc}]
+      set_property SCOPED_TO_CELLS  {U0}                   [get_files {SaltUltraScaleRxOnly.xdc}]  
+   }   
+      
+   if { [info exists ::env(INCLUDE_SALT_TX_ONLY)] != 1 || $::env(INCLUDE_SALT_TX_ONLY) == 0 } {
+      set nop 0
+   } else {      
+      loadConstraints -path "$::DIR_PATH/xdc/SaltUltraScaleTxOnly.xdc"
+      set_property PROCESSING_ORDER {EARLY}                [get_files {SaltUltraScaleTxOnly.xdc}]
+      set_property SCOPED_TO_REF    {SaltUltraScaleTxOnly} [get_files {SaltUltraScaleTxOnly.xdc}]
+      set_property SCOPED_TO_CELLS  {U0}                   [get_files {SaltUltraScaleTxOnly.xdc}]        
+   }
+   
 }  
