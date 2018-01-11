@@ -2,7 +2,7 @@
 -- File       : Pgp3GthUsIpWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2017-11-01
+-- Last update: 2018-01-11
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -24,6 +24,8 @@ entity Pgp3GthUsIpWrapper is
    generic (
       TPD_G             : time            := 1 ns;
       EN_DRP_G          : boolean         := true;
+      TX_POLARITY_G     : sl              := '0';
+      RX_POLARITY_G     : sl              := '0';
       AXIL_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_DECERR_C);
    port (
       stableClk      : in  sl;
@@ -79,57 +81,62 @@ architecture mapping of Pgp3GthUsIpWrapper is
 
    component Pgp3GthUsIp
       port (
-         gtwiz_userclk_tx_reset_in          : in  slv(0 downto 0);
-         gtwiz_userclk_tx_srcclk_out        : out slv(0 downto 0);
-         gtwiz_userclk_tx_usrclk_out        : out slv(0 downto 0);
-         gtwiz_userclk_tx_usrclk2_out       : out slv(0 downto 0);
-         gtwiz_userclk_tx_active_out        : out slv(0 downto 0);
-         gtwiz_userclk_rx_reset_in          : in  slv(0 downto 0);
-         gtwiz_userclk_rx_srcclk_out        : out slv(0 downto 0);
-         gtwiz_userclk_rx_usrclk_out        : out slv(0 downto 0);
-         gtwiz_userclk_rx_usrclk2_out       : out slv(0 downto 0);
-         gtwiz_userclk_rx_active_out        : out slv(0 downto 0);
-         gtwiz_reset_clk_freerun_in         : in  slv(0 downto 0);
-         gtwiz_reset_all_in                 : in  slv(0 downto 0);
-         gtwiz_reset_tx_pll_and_datapath_in : in  slv(0 downto 0);
-         gtwiz_reset_tx_datapath_in         : in  slv(0 downto 0);
-         gtwiz_reset_rx_pll_and_datapath_in : in  slv(0 downto 0);
-         gtwiz_reset_rx_datapath_in         : in  slv(0 downto 0);
-         gtwiz_reset_qpll0lock_in           : in  slv(0 downto 0);
-         gtwiz_reset_rx_cdr_stable_out      : out slv(0 downto 0);
-         gtwiz_reset_tx_done_out            : out slv(0 downto 0);
-         gtwiz_reset_rx_done_out            : out slv(0 downto 0);
-         gtwiz_reset_qpll0reset_out         : out slv(0 downto 0);
-         gtwiz_userdata_tx_in               : in  slv(63 downto 0);
-         gtwiz_userdata_rx_out              : out slv(63 downto 0);
-         drpaddr_in                         : in  slv(8 downto 0);
-         drpclk_in                          : in  slv(0 downto 0);
-         drpdi_in                           : in  slv(15 downto 0);
-         drpen_in                           : in  slv(0 downto 0);
-         drpwe_in                           : in  slv(0 downto 0);
-         drpdo_out                          : out slv(15 downto 0);
-         drprdy_out                         : out slv(0 downto 0);
-         gthrxn_in                          : in  slv(0 downto 0);
-         gthrxp_in                          : in  slv(0 downto 0);
-         loopback_in                        : in  slv(2 downto 0);
-         qpll0clk_in                        : in  slv(0 downto 0);
-         qpll0refclk_in                     : in  slv(0 downto 0);
-         qpll1clk_in                        : in  slv(0 downto 0);
-         qpll1refclk_in                     : in  slv(0 downto 0);
-         rxgearboxslip_in                   : in  slv(0 downto 0);
-         txheader_in                        : in  slv(5 downto 0);
-         txsequence_in                      : in  slv(6 downto 0);
-         gthtxn_out                         : out slv(0 downto 0);
-         gthtxp_out                         : out slv(0 downto 0);
-         gtpowergood_out                    : out slv(0 downto 0);
-         rxdatavalid_out                    : out slv(1 downto 0);
-         rxheader_out                       : out slv(5 downto 0);
-         rxheadervalid_out                  : out slv(1 downto 0);
-         rxpmaresetdone_out                 : out slv(0 downto 0);
-         rxprgdivresetdone_out              : out slv(0 downto 0);
-         rxstartofseq_out                   : out slv(1 downto 0);
-         txpmaresetdone_out                 : out slv(0 downto 0);
-         txprgdivresetdone_out              : out slv(0 downto 0)
+         gtwiz_userclk_tx_reset_in          : in  std_logic_vector(0 downto 0);
+         gtwiz_userclk_tx_srcclk_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_tx_usrclk_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_tx_usrclk2_out       : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_tx_active_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_reset_in          : in  std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_srcclk_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_usrclk_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_usrclk2_out       : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_active_out        : out std_logic_vector(0 downto 0);
+         gtwiz_reset_clk_freerun_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_all_in                 : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_tx_pll_and_datapath_in : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_tx_datapath_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_pll_and_datapath_in : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_datapath_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_qpll0lock_in           : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_cdr_stable_out      : out std_logic_vector(0 downto 0);
+         gtwiz_reset_tx_done_out            : out std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_done_out            : out std_logic_vector(0 downto 0);
+         gtwiz_reset_qpll0reset_out         : out std_logic_vector(0 downto 0);
+         gtwiz_userdata_tx_in               : in  std_logic_vector(63 downto 0);
+         gtwiz_userdata_rx_out              : out std_logic_vector(63 downto 0);
+         drpaddr_in                         : in  std_logic_vector(8 downto 0);
+         drpclk_in                          : in  std_logic_vector(0 downto 0);
+         drpdi_in                           : in  std_logic_vector(15 downto 0);
+         drpen_in                           : in  std_logic_vector(0 downto 0);
+         drpwe_in                           : in  std_logic_vector(0 downto 0);
+         gthrxn_in                          : in  std_logic_vector(0 downto 0);
+         gthrxp_in                          : in  std_logic_vector(0 downto 0);
+         loopback_in                        : in  std_logic_vector(2 downto 0);
+         qpll0clk_in                        : in  std_logic_vector(0 downto 0);
+         qpll0refclk_in                     : in  std_logic_vector(0 downto 0);
+         qpll1clk_in                        : in  std_logic_vector(0 downto 0);
+         qpll1refclk_in                     : in  std_logic_vector(0 downto 0);
+         rxgearboxslip_in                   : in  std_logic_vector(0 downto 0);
+         rxpolarity_in                      : in  std_logic_vector(0 downto 0);
+         txdiffctrl_in                      : in  std_logic_vector(3 downto 0);
+         txheader_in                        : in  std_logic_vector(5 downto 0);
+         txpolarity_in                      : in  std_logic_vector(0 downto 0);
+         txpostcursor_in                    : in  std_logic_vector(4 downto 0);
+         txprecursor_in                     : in  std_logic_vector(4 downto 0);
+         txsequence_in                      : in  std_logic_vector(6 downto 0);
+         drpdo_out                          : out std_logic_vector(15 downto 0);
+         drprdy_out                         : out std_logic_vector(0 downto 0);
+         gthtxn_out                         : out std_logic_vector(0 downto 0);
+         gthtxp_out                         : out std_logic_vector(0 downto 0);
+         gtpowergood_out                    : out std_logic_vector(0 downto 0);
+         rxdatavalid_out                    : out std_logic_vector(1 downto 0);
+         rxheader_out                       : out std_logic_vector(5 downto 0);
+         rxheadervalid_out                  : out std_logic_vector(1 downto 0);
+         rxpmaresetdone_out                 : out std_logic_vector(0 downto 0);
+         rxprgdivresetdone_out              : out std_logic_vector(0 downto 0);
+         rxstartofseq_out                   : out std_logic_vector(1 downto 0);
+         txpmaresetdone_out                 : out std_logic_vector(0 downto 0);
+         txprgdivresetdone_out              : out std_logic_vector(0 downto 0)
          );
    end component;
 
@@ -160,7 +167,7 @@ architecture mapping of Pgp3GthUsIpWrapper is
    signal drpEn   : sl               := '0';
    signal drpWe   : sl               := '0';
    signal drpRdy  : sl               := '0'
-                                        ;
+;
 begin
 
    rxUsrClk2      <= rxUsrClk2Int;
@@ -230,7 +237,12 @@ begin
          qpll1clk_in(0)                        => qpllclk(1),
          qpll1refclk_in(0)                     => qpllrefclk(1),
          rxgearboxslip_in(0)                   => rxGearboxSlip,
+         rxpolarity_in(0)                      => RX_POLARITY_G,
+         txdiffctrl_in                         => "1111",
          txheader_in                           => txheader_in,
+         txpolarity_in(0)                      => TX_POLARITY_G,
+         txpostcursor_in                       => "00111",
+         txprecursor_in                        => "00111",
          txsequence_in                         => txsequence_in,
          gthtxn_out(0)                         => gtTxN,
          gthtxp_out(0)                         => gtTxP,

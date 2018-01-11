@@ -46,7 +46,6 @@
 #  PART OF THIS FILE AT ALL TIMES.
 #------------------------------------------------------------------------------
 
-
 # False path constraints
 # ----------------------------------------------------------------------------------------------------------------------
 
@@ -65,3 +64,5 @@ set_false_path -to [get_pins -hierarchical -filter {NAME =~ *reset_synchronizer*
 set_false_path -to [get_pins -hierarchical -filter {NAME =~ *reset_synchronizer*inst/rst_in_sync3_reg/CLR}]
 set_false_path -to [get_pins -hierarchical -filter {NAME =~ *reset_synchronizer*inst/rst_in_out_reg/CLR}]
 
+set_false_path -to [get_cells -hierarchical -filter {NAME =~ *gtwiz_userclk_tx_inst/*gtwiz_userclk_tx_active_*_reg}]
+set_false_path -to [get_cells -hierarchical -filter {NAME =~ *gtwiz_userclk_rx_inst/*gtwiz_userclk_rx_active_*_reg}]
