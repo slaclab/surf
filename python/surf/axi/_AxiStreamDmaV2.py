@@ -5,21 +5,21 @@ class AxiStreamDmaV2Desc(pr.Device):
         super().__init__(description='', **kwargs)
 
         
-#         self.add(pr.RemoteVariable(
-#             name='HwEnable',
-#             mode = 'RO',
-#             offset=0x0,
-#             bitOffset=0,
-#             bitSize=1,
-#         ))
+        self.add(pr.RemoteVariable(
+            name='HwEnable',
+            mode = 'RO',
+            offset=0x0,
+            bitOffset=0,
+            bitSize=1,
+        ))
         
-#         self.add(pr.RemoteVariable(
-#             name='Version',
-#             mode = 'RO',            
-#             offset=0x0,
-#             bitOffset=24,
-#             bitSize=8,
-#         ))
+        self.add(pr.RemoteVariable(
+            name='Version',
+            mode = 'RO',            
+            offset=0x0,
+            bitOffset=24,
+            bitSize=8,
+        ))
 
         self.add(pr.RemoteVariable(
             name='IntEnable',
