@@ -40,8 +40,8 @@ package SaltPkg is
       TUSER_BITS_C  => 2,
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
 
-   constant SALT_MAX_BYTES_C : natural := 8192;
-   constant SALT_MAX_WORDS_C : natural := (SALT_MAX_BYTES_C/4);
+   constant SALT_MAX_WORDS_C : natural := 500; -- Limited by 32-bit x 9-bit address TX DATAGRAM_BUFFER FIFO
+   constant SALT_MAX_BYTES_C : natural := (4*SALT_MAX_WORDS_C);
    constant INTER_GAP_SIZE_C : natural := 12;
 
    constant SOF_C  : slv(31 downto 0) := x"BBBBBBBB";  -- SOF  = start of frame
