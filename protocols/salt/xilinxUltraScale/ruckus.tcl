@@ -5,7 +5,10 @@ source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 if { $::env(VIVADO_VERSION) >= 2016.4 } {
 
    loadSource -dir  "$::DIR_PATH/rtl"
+   
    loadSource -path "$::DIR_PATH/ip/SaltUltraScaleCore.dcp"
+   # loadIpCore -path "$::DIR_PATH/ip/SaltUltraScaleCore.xci"
+   
    loadSource -path "$::DIR_PATH/images/SaltUltraScaleRxOnly.dcp"
    loadSource -path "$::DIR_PATH/images/SaltUltraScaleTxOnly.dcp"
 

@@ -2,7 +2,7 @@
 -- File       : SaltTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2017-12-22
+-- Last update: 2018-01-11
 -------------------------------------------------------------------------------
 -- Description: SALT TX Engine Module
 -------------------------------------------------------------------------------
@@ -68,6 +68,7 @@ architecture rtl of SaltTx is
       seqCnt      : slv(7 downto 0);
       tDest       : slv(7 downto 0);
       cnt         : slv(15 downto 0);
+      size        : slv(15 downto 0);
       length      : slv(15 downto 0);
       checksum    : slv(31 downto 0);
       txMaster    : AxiStreamMasterType;
@@ -86,6 +87,7 @@ architecture rtl of SaltTx is
       seqCnt      => (others => '0'),
       tDest       => (others => '0'),
       cnt         => (others => '0'),
+      size        => (others => '0'),
       length      => (others => '0'),
       checksum    => (others => '0'),
       txMaster    => AXI_STREAM_MASTER_INIT_C,
@@ -166,7 +168,8 @@ begin
          mAxisSlave  => mSlave);
 
    comb : process (mMaster, r, rst, rxMaster, sSlave, txSlave) is
-      variable v : RegType;
+      variable v     : RegType;
+      variable tKeep : slv(15 downto 0);
    begin
       -- Latch the current value
       v := r;
@@ -186,6 +189,9 @@ begin
          v.sMaster.tUser  := (others => '0');
       end if;
 
+      -- Update the variable
+      tKeep := x"000" & rxMaster.tKeep(3 downto 0);
+
       -- State Machine
       case r.state is
          ----------------------------------------------------------------------
@@ -198,6 +204,7 @@ begin
             v.txPktSent   := '0';
             v.txEofeSent  := '0';
             v.length      := (others => '0');
+            v.size        := (others => '0');
             v.checksum    := (others => '0');
             v.cnt         := (others => '0');
             -- Check for data
@@ -227,8 +234,9 @@ begin
                v.sMaster        := rxMaster;
                -- Mask off tLast for intergap monitoring
                v.sMaster.tLast  := '0';
-               -- Increment the counter
-               v.length         := r.length + 1;
+               -- Increment the counters
+               v.length         := r.length + getTKeep(tKeep);
+               v.size           := r.size + 1;
                -- Check for EOF
                if rxMaster.tLast = '1' then
                   -- Set the flags
@@ -236,7 +244,7 @@ begin
                   v.eofe  := ssiGetUserEofe(SSI_SALT_CONFIG_C, rxMaster);
                   -- Next state
                   v.state := PREAMBLE_S;
-               elsif v.length = SALT_MAX_WORDS_C then
+               elsif v.size = SALT_MAX_WORDS_C then
                   -- Next state
                   v.state := PREAMBLE_S;
                end if;
@@ -302,8 +310,8 @@ begin
                v.checksum                    := r.checksum + mMaster.tData(31 downto 0);
                -- Increment the counter
                v.cnt                         := r.cnt + 1;
-               -- Check the length
-               if v.cnt = r.length then
+               -- Check the size
+               if v.cnt = r.size then
                   -- Flush the buffer
                   v.flushBuffer := '1';
                   -- Next state
