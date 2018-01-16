@@ -85,7 +85,6 @@ class Gthe3Channel(pr.Device):
             bitOffset    =  0x05,
             base         = pr.UInt,
             mode         = "RW",
-            value        = 2,
             enum         = {
                 0 : '-',
                 2 : '16',
@@ -2757,6 +2756,16 @@ class Gthe3Channel(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            enum         = {
+                0 : '-',
+                2 : '16',
+                3 : '20',
+                4 : '32',
+                5 : '40',
+                6 : '64',
+                7 : '80',
+                8 : '128',
+                9 : '160'},
         ))
 
         self.add(pr.RemoteVariable(   
