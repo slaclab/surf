@@ -133,7 +133,7 @@ architecture rtl of AxiStreamDmaV2Desc is
       online       : slv(CHAN_COUNT_G-1 downto 0);
       acknowledge  : slv(CHAN_COUNT_G-1 downto 0);
       fifoReset    : sl;
-      intAckEn     : sl;
+      intSwAckReq  : sl;
       intAckCount  : slv(31 downto 0);
       descCache    : slv(3 downto 0);
       buffCache    : slv(3 downto 0);
@@ -194,7 +194,7 @@ architecture rtl of AxiStreamDmaV2Desc is
       online          => (others => '0'),
       acknowledge     => (others => '0'),
       fifoReset       => '1',
-      intAckEn        => '0',
+      intSwAckReq     => '0',
       intAckCount     => (others => '0'),
       descCache       => (others => '0'),
       buffCache       => (others => '0'),
@@ -238,13 +238,15 @@ architecture rtl of AxiStreamDmaV2Desc is
    signal wrFifoDout   : slv(15 downto 0);
    signal addrRamDout  : slv(31 downto 0);
    signal addrRamAddr  : slv(DESC_AWIDTH_G-1 downto 0);
-   signal intAckEn     : sl;
+   signal intSwAckEn   : sl;
+   signal intCompValid : sl;
+   signal intDiffValid : sl;
    signal invalidCount : sl;
    signal diffCnt      : slv(31 downto 0);
 
    -- attribute dont_touch                 : string;
    -- attribute dont_touch of r            : signal is "true";
-   -- attribute dont_touch of intAckEn     : signal is "true";
+   -- attribute dont_touch of intSwAckEn   : signal is "true";
    -- attribute dont_touch of invalidCount : signal is "true";
    -- attribute dont_touch of diffCnt      : signal is "true";
 
@@ -362,10 +364,10 @@ begin
          WIDTH_G => 32)
       port map (
          clk     => axiClk,
-         ibValid => r.intAckEn,
+         ibValid => r.intSwAckReq,
          ain     => r.intReqCount,
          bin     => r.intAckCount,
-         obValid => intAckEn,
+         obValid => intCompValid,
          ls      => invalidCount);  --  (a <  b) <--> r.intAckCount > r.intReqCount
 
    U_DspSub : entity work.DspAddSub
@@ -374,12 +376,15 @@ begin
          WIDTH_G => 32)
       port map (
          clk     => axiClk,
-         ibValid => r.intAckEn,
+         ibValid => r.intSwAckReq,
          ain     => r.intReqCount,
          bin     => r.intAckCount,
          add     => '0',                -- '0' = subtract
-         obValid => open,               -- sync'd up with U_DspComparator
+         obValid => intDiffValid,       -- sync'd up with U_DspComparator
          pOut    => diffCnt);  -- a - b <--> r.intReqCount - r.intAckCount
+
+   -- Both DSPs are done
+   intSwAckEn <= intDiffValid and intCompValid;
 
    -----------------------------------------
    -- Control Logic
@@ -389,7 +394,7 @@ begin
    pause <= '0' when (AXI_READY_EN_G) else axiWriteCtrl.pause;
 
    comb : process (addrRamDout, axiRst, axiWriteSlave, diffCnt, dmaRdDescAck,
-                   dmaRdDescRet, dmaWrDescReq, dmaWrDescRet, intAckEn,
+                   dmaRdDescRet, dmaWrDescReq, dmaWrDescRet, intSwAckEn,
                    intReadMasters, intWriteMasters, invalidCount, pause, r,
                    rdFifoDout, rdFifoValid, wrFifoDout, wrFifoValid) is
 
@@ -411,7 +416,6 @@ begin
       v.rdFifoRd    := '0';
       v.wrFifoWr    := '0';
       v.wrFifoRd    := '0';
-      v.intAckEn    := '0';
       v.acknowledge := (others => '0');
 
       -----------------------------
@@ -453,7 +457,7 @@ begin
 
       axiSlaveRegister(regCon, x"04C", 0, v.intAckCount(15 downto 0));
       axiSlaveRegister(regCon, x"04C", 17, v.intEnable);
-      axiWrDetect(regCon, x"04C", v.intAckEn);
+      axiWrDetect(regCon, x"04C", v.intSwAckReq);
 
       axiSlaveRegisterR(regCon, x"050", 0, r.intReqCount);
       axiSlaveRegisterR(regCon, x"054", 0, r.wrIndex);
@@ -713,25 +717,26 @@ begin
          v.axiWriteMaster.wdata((64*i)+63 downto (64*i)) := v.axiWriteMaster.wdata(63 downto 0);
       end loop;      
 
-      -- Driver interrupt
-      if r.intReqCount /= 0 then
-         -- Prevent false interrupts during ACK from software
-         if (r.intAckEn = '0') and (intAckEn = '0') then
-            v.interrupt := r.intEnable;
-         end if;
+      -- Drive interrupt, avoid false firings during ack
+      if r.intReqCount /= 0 and r.intSwAckReq = '0' then
+         v.interrupt := r.intEnable;
       else
          v.interrupt := '0';
       end if;
 
-      -- Ack from software
-      if intAckEn = '1' then
-         v.interrupt := '0';
+      -- Ack request from software
+      if r.intSwAckReq = '1' then
 
-         -- Just in case
-         if invalidCount = '1' then     -- r.intAckCount > r.intReqCount
-            v.intReqCount := (others => '0');
-         else
-            v.intReqCount := diffCnt;   -- r.intReqCount - r.intAckCount
+         -- DSPs are done
+         if intSwAckEn = '1' then
+            v.intSwAckReq := '0';
+
+            -- Just in case
+            if invalidCount = '1' then     -- r.intAckCount > r.intReqCount
+               v.intReqCount := (others => '0');
+            else
+               v.intReqCount := diffCnt;   -- r.intReqCount - r.intAckCount
+            end if;
          end if;
 
       -- Firmware posted an entry

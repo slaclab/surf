@@ -2,7 +2,7 @@
 -- File       : UdpEngineWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-20
--- Last update: 2018-01-08
+-- Last update: 2017-10-18
 -------------------------------------------------------------------------------
 -- Description: Wrapper for UdpEngine
 -------------------------------------------------------------------------------
@@ -38,8 +38,10 @@ entity UdpEngineWrapper is
       CLIENT_SIZE_G       : positive        := 1;
       CLIENT_PORTS_G      : PositiveArray   := (0 => 8193);
       CLIENT_EXT_CONFIG_G : boolean         := false;
-      -- General IPv4/ARP/DHCP Generics
+      -- General IPv4/ICMP/ARP/DHCP Generics
       DHCP_G              : boolean         := false;
+      ICMP_G              : boolean         := true;
+      ARP_G               : boolean         := true;
       CLK_FREQ_G          : real            := 156.25E+06;  -- In units of Hz
       COMM_TIMEOUT_G      : positive        := 30;  -- In units of seconds, Client's Communication timeout before re-ARPing or DHCP discover/request
       TTL_G               : slv(7 downto 0) := x"20";  -- IPv4's Time-To-Live (TTL)
@@ -113,7 +115,7 @@ architecture rtl of UdpEngineWrapper is
 begin
 
    ------------------
-   -- IPv4/ARP Engine
+   -- IPv4/ICMP/ARP Engine
    ------------------
    IpV4Engine_Inst : entity work.IpV4Engine
       generic map (
@@ -122,6 +124,8 @@ begin
          PROTOCOL_G      => (0 => UDP_C),
          CLIENT_SIZE_G   => CLIENT_SIZE_G,
          CLK_FREQ_G      => CLK_FREQ_G,
+         ICMP_G          => ICMP_G,
+         ARP_G           => ARP_G,
          VLAN_G          => VLAN_G)
       port map (
          -- Local Configurations

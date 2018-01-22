@@ -2,7 +2,7 @@
 -- File       : IpV4Engine.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-12
--- Last update: 2016-09-16
+-- Last update: 2018-01-18
 -------------------------------------------------------------------------------
 -- Description: IPv4 Top-level Module for IPv4/ARP/ICMP
 -------------------------------------------------------------------------------
@@ -24,17 +24,19 @@ use work.EthMacPkg.all;
 
 entity IpV4Engine is
    generic (
-      TPD_G           : time            := 1 ns;          -- Simulation parameter only
+      TPD_G           : time            := 1 ns;  -- Simulation parameter only
       PROTOCOL_SIZE_G : positive        := 1;  -- Default to 1x protocol
       PROTOCOL_G      : Slv8Array       := (0 => UDP_C);  -- Default to UDP protocol
       CLIENT_SIZE_G   : positive        := 1;  -- Sets the number of attached client engines
       CLK_FREQ_G      : real            := 156.25E+06;    -- In units of Hz
       TTL_G           : slv(7 downto 0) := x"20";
-      VLAN_G          : boolean         := false);        -- true = VLAN support 
+      ICMP_G          : boolean         := true;
+      ARP_G           : boolean         := true;
+      VLAN_G          : boolean         := false);  -- true = VLAN support 
    port (
       -- Local Configurations
-      localMac          : in  slv(47 downto 0);           --  big-Endian configuration
-      localIp           : in  slv(31 downto 0);           --  big-Endian configuration
+      localMac          : in  slv(47 downto 0);   --  big-Endian configuration
+      localIp           : in  slv(31 downto 0);   --  big-Endian configuration
       -- Interface to Ethernet Media Access Controller (MAC)
       obMacMaster       : in  AxiStreamMasterType;
       obMacSlave        : out AxiStreamSlaveType;
@@ -86,13 +88,13 @@ architecture mapping of IpV4Engine is
    signal ibSlaves  : AxiStreamSlaveArray(PROTOCOL_SIZE_G downto 0);
    signal obMasters : AxiStreamMasterArray(PROTOCOL_SIZE_G downto 0);
    signal obSlaves  : AxiStreamSlaveArray(PROTOCOL_SIZE_G downto 0);
-   
+
 begin
 
    U_EthFrameDeMux : entity work.IpV4EngineDeMux
       generic map (
          TPD_G  => TPD_G,
-         VLAN_G => VLAN_G) 
+         VLAN_G => VLAN_G)
       port map (
          -- Local Configurations
          localMac     => localMac,
@@ -106,7 +108,7 @@ begin
          ibIpv4Slave  => ibIpv4Slave,
          -- Clock and Reset
          clk          => clk,
-         rst          => rst);         
+         rst          => rst);
 
    U_EthFrameMux : entity work.AxiStreamMux
       generic map (
@@ -125,36 +127,46 @@ begin
          mAxisMaster     => ibMacMaster,
          mAxisSlave      => ibMacSlave);
 
-   U_ArpEngine : entity work.ArpEngine
-      generic map (
-         TPD_G         => TPD_G,
-         CLIENT_SIZE_G => CLIENT_SIZE_G,
-         CLK_FREQ_G    => CLK_FREQ_G,
-         VLAN_G        => VLAN_G)
-      port map (
-         -- Local Configurations
-         localMac      => localMac,
-         localIp       => localIp,
-         -- Interface to Client Engine(s)
-         arpReqMasters => arpReqMasters,
-         arpReqSlaves  => arpReqSlaves,
-         arpAckMasters => arpAckMasters,
-         arpAckSlaves  => arpAckSlaves,
-         -- Interface to Ethernet Frame MUX/DEMUX 
-         ibArpMaster   => ibArpMaster,
-         ibArpSlave    => ibArpSlave,
-         obArpMaster   => obArpMaster,
-         obArpSlave    => obArpSlave,
-         -- Clock and Reset
-         clk           => clk,
-         rst           => rst);
+   GEN_ARP : if (ARP_G = true) generate
+      U_ArpEngine : entity work.ArpEngine
+         generic map (
+            TPD_G         => TPD_G,
+            CLIENT_SIZE_G => CLIENT_SIZE_G,
+            CLK_FREQ_G    => CLK_FREQ_G,
+            VLAN_G        => VLAN_G)
+         port map (
+            -- Local Configurations
+            localMac      => localMac,
+            localIp       => localIp,
+            -- Interface to Client Engine(s)
+            arpReqMasters => arpReqMasters,
+            arpReqSlaves  => arpReqSlaves,
+            arpAckMasters => arpAckMasters,
+            arpAckSlaves  => arpAckSlaves,
+            -- Interface to Ethernet Frame MUX/DEMUX 
+            ibArpMaster   => ibArpMaster,
+            ibArpSlave    => ibArpSlave,
+            obArpMaster   => obArpMaster,
+            obArpSlave    => obArpSlave,
+            -- Clock and Reset
+            clk           => clk,
+            rst           => rst);
+   end generate;
+
+   BYPASS_ARP : if (ARP_G = false) generate
+      -- Terminate Unused buses
+      arpReqSlaves  <= (others => AXI_STREAM_SLAVE_FORCE_C);
+      arpAckMasters <= (others => AXI_STREAM_MASTER_INIT_C);
+      ibArpSlave    <= AXI_STREAM_SLAVE_FORCE_C;
+      obArpMaster   <= AXI_STREAM_MASTER_INIT_C;
+   end generate;
 
    U_IpV4EngineRx : entity work.IpV4EngineRx
       generic map (
          TPD_G           => TPD_G,
          PROTOCOL_SIZE_G => (PROTOCOL_SIZE_G+1),
          PROTOCOL_G      => PROTOCOL_C,
-         VLAN_G          => VLAN_G)    
+         VLAN_G          => VLAN_G)
       port map (
          -- Interface to Ethernet Frame MUX/DEMUX 
          ibIpv4Master      => ibIpv4Master,
@@ -166,7 +178,7 @@ begin
          ibProtocolSlaves  => ibSlaves,
          -- Clock and Reset
          clk               => clk,
-         rst               => rst); 
+         rst               => rst);
 
    U_IpV4EngineTx : entity work.IpV4EngineTx
       generic map (
@@ -174,7 +186,7 @@ begin
          PROTOCOL_SIZE_G => (PROTOCOL_SIZE_G+1),
          PROTOCOL_G      => PROTOCOL_C,
          TTL_G           => TTL_G,
-         VLAN_G          => VLAN_G)    
+         VLAN_G          => VLAN_G)
       port map (
          -- Local Configurations
          localMac          => localMac,
@@ -188,22 +200,30 @@ begin
          obProtocolSlaves  => obSlaves,
          -- Clock and Reset
          clk               => clk,
-         rst               => rst); 
+         rst               => rst);
 
-   U_IcmpEngine : entity work.IcmpEngine
-      generic map (
-         TPD_G => TPD_G)    
-      port map (
-         -- Local Configurations
-         localIp      => localIp,
-         -- Interface to ICMP Engine
-         ibIcmpMaster => ibMasters(PROTOCOL_SIZE_G),
-         ibIcmpSlave  => ibSlaves(PROTOCOL_SIZE_G),
-         obIcmpMaster => obMasters(PROTOCOL_SIZE_G),
-         obIcmpSlave  => obSlaves(PROTOCOL_SIZE_G),
-         -- Clock and Reset
-         clk          => clk,
-         rst          => rst);           
+   GEN_ICMP : if (ICMP_G = true) generate
+      U_IcmpEngine : entity work.IcmpEngine
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            -- Local Configurations
+            localIp      => localIp,
+            -- Interface to ICMP Engine
+            ibIcmpMaster => ibMasters(PROTOCOL_SIZE_G),
+            ibIcmpSlave  => ibSlaves(PROTOCOL_SIZE_G),
+            obIcmpMaster => obMasters(PROTOCOL_SIZE_G),
+            obIcmpSlave  => obSlaves(PROTOCOL_SIZE_G),
+            -- Clock and Reset
+            clk          => clk,
+            rst          => rst);
+   end generate;
+
+   BYPASS_ICMP : if (ICMP_G = false) generate
+      -- Terminate Unused buses
+      ibSlaves(PROTOCOL_SIZE_G)  <= AXI_STREAM_SLAVE_FORCE_C;
+      obMasters(PROTOCOL_SIZE_G) <= AXI_STREAM_MASTER_INIT_C;
+   end generate;
 
    GEN_VEC :
    for i in (PROTOCOL_SIZE_G-1) downto 0 generate
@@ -212,5 +232,5 @@ begin
       ibProtocolMasters(i) <= ibMasters(i);
       ibSlaves(i)          <= ibProtocolSlaves(i);
    end generate GEN_VEC;
-   
+
 end mapping;
