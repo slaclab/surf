@@ -2,7 +2,7 @@
 -- File       : SrpV3AxiLiteTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-06-18
--- Last update: 2018-01-10
+-- Last update: 2018-01-22
 -------------------------------------------------------------------------------
 -- Description: Simulation testbed for AxiLiteSrpV0
 -------------------------------------------------------------------------------
@@ -73,9 +73,9 @@ architecture tb of SrpV3AxiLiteTb is
    signal debug : slv(1 downto 0) := (others => '0');
 
    signal axilWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-   signal axilWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;
+   signal axilWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_OK_C;
    signal axilReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
-   signal axilReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;
+   signal axilReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_EMPTY_OK_C;
 
    signal sAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal sAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
@@ -110,17 +110,6 @@ begin
          clkP => clk,
          rst  => rst);
 
-   U_AxiLiteEmpty : entity work.AxiLiteEmpty
-      generic map (
-         TPD_G      => TPD_G,
-         AXI_RESP_G => AXI_RESP_OK_C)
-      port map (
-         axiClk         => clk,
-         axiClkRst      => rst,
-         axiReadMaster  => axilReadMaster,
-         axiReadSlave   => axilReadSlave,
-         axiWriteMaster => axilWriteMaster,
-         axiWriteSlave  => axilWriteSlave);
 
    U_SRPv3 : entity work.SrpV3AxiLite
       generic map (

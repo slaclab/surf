@@ -2,7 +2,7 @@
 -- File       : GigEthReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-20
--- Last update: 2018-01-10
+-- Last update: 2018-01-22
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite 1GbE Register Interface
 -------------------------------------------------------------------------------
@@ -86,17 +86,8 @@ begin
 
    GEN_BYPASS : if (EN_AXI_REG_G = false) generate
 
-      U_AxiLiteEmpty : entity work.AxiLiteEmpty
-         generic map (
-            TPD_G      => TPD_G,
-            AXI_RESP_G => AXI_RESP_DECERR_C)
-         port map (
-            axiClk         => clk,
-            axiClkRst      => rst,
-            axiReadMaster  => axiReadMaster,
-            axiReadSlave   => axiReadSlave,
-            axiWriteMaster => axiWriteMaster,
-            axiWriteSlave  => axiWriteSlave);
+      axiReadSlave <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
+      axiWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
 
       Sync_Config : entity work.SynchronizerVector
          generic map (

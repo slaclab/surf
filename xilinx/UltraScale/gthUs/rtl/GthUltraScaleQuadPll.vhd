@@ -2,7 +2,7 @@
 -- File       : GthUltraScaleQuadPll.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2018-01-10
+-- Last update: 2018-01-22
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Ultrascale GTH QPLL primitive
 -------------------------------------------------------------------------------
@@ -77,9 +77,9 @@ entity GthUltraScaleQuadPll is
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
       axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
-      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilReadSlave   : out AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave  : out AxiLiteWriteSlaveType);
+      axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 end entity GthUltraScaleQuadPll;
 
 architecture mapping of GthUltraScaleQuadPll is
@@ -287,19 +287,5 @@ begin
             drpDi           => drpDi,
             drpDo           => drpDo);
    end generate GEN_DRP;
-
-   NO_DRP : if (not EN_DRP_G) generate
-      U_AxiLiteEmpty_1 : entity work.AxiLiteEmpty
-         generic map (
-            TPD_G      => TPD_G,
-            AXI_RESP_G => AXIL_RESP_DECERR_C)
-         port map (
-            axiClk         => axilClk,          -- [in]
-            axiClkRst      => axilRst,          -- [in]
-            axiReadMaster  => axilReadMaster,   -- [in]
-            axiReadSlave   => axilReadSlave,    -- [out]
-            axiWriteMaster => axilWriteMaster,  -- [in]
-            axiWriteSlave  => axilWriteSlave);  -- [out]
-   end generate NO_DRP;
 
 end architecture mapping;

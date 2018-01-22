@@ -2,7 +2,7 @@
 -- File       : vcs_tb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2018-01-08
+-- Last update: 2018-01-22
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for VCS module
 -------------------------------------------------------------------------------
@@ -157,7 +157,7 @@ begin
          mAxiLiteReadSlave    => axiReadSlave
       );
 
-   U_AxiLiteEmpty : entity work.AxiLiteEmpty 
+   U_AxiLiteEmpty : entity work.AxiLiteRegs
       generic map (
          TPD_G           => 1 ns,
          NUM_WRITE_REG_G => 2,
