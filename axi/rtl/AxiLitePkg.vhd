@@ -2,7 +2,7 @@
 -- File       : AxiLitePkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-02
--- Last update: 2017-05-09
+-- Last update: 2018-01-29
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite Package File
 -------------------------------------------------------------------------------
@@ -97,6 +97,15 @@ package AxiLitePkg is
       rvalid  => '0'
       );
 
+   function axiLiteReadSlaveEmptyInit (
+      rresp : slv(1 downto 0)  := AXI_RESP_OK_C;
+      rdata : slv(31 downto 0) := (others => '0'))
+      return AxiLiteReadSlaveType;
+
+   constant AXI_LITE_READ_SLAVE_EMPTY_OK_C     : AxiLiteReadSlaveType := axiLiteReadSlaveEmptyInit(rresp => AXI_RESP_OK_C);
+   constant AXI_LITE_READ_SLAVE_EMPTY_SLVERR_C : AxiLiteReadSlaveType := axiLiteReadSlaveEmptyInit(rresp => AXI_RESP_SLVERR_C);
+   constant AXI_LITE_READ_SLAVE_EMPTY_DECERR_C : AxiLiteReadSlaveType := axiLiteReadSlaveEmptyInit(rresp => AXI_RESP_DECERR_C);
+
    -- Array
    type AxiLiteReadSlaveArray is array (natural range<>) of AxiLiteReadSlaveType;
 
@@ -158,6 +167,15 @@ package AxiLitePkg is
       bvalid  => '0'
       );
 
+   function axiLiteWriteSlaveEmptyInit (
+      bresp : slv(1 downto 0) := AXI_RESP_OK_C)
+      return AxiLiteWriteSlaveType;
+
+   constant AXI_LITE_WRITE_SLAVE_EMPTY_OK_C     : AxiLiteWriteSlaveType := axiLiteWriteSlaveEmptyInit(bresp => AXI_RESP_OK_C);
+   constant AXI_LITE_WRITE_SLAVE_EMPTY_SLVERR_C : AxiLiteWriteSlaveType := axiLiteWriteSlaveEmptyInit(bresp => AXI_RESP_SLVERR_C);
+   constant AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C : AxiLiteWriteSlaveType := axiLiteWriteSlaveEmptyInit(bresp => AXI_RESP_DECERR_C);
+
+
    -- Array
    type AxiLiteWriteSlaveArray is array (natural range<>) of AxiLiteWriteSlaveType;
 
@@ -200,17 +218,17 @@ package AxiLitePkg is
    type AxiLiteCrossbarMasterConfigArray is array (natural range <>) of AxiLiteCrossbarMasterConfigType;
 
    constant AXIL_XBAR_CFG_DEFAULT_C : AxiLiteCrossbarMasterConfigArray(0 to 3) := (
-      0 => (baseAddr => X"00000000",
-            addrBits => 16,
+      0                  => (baseAddr => X"00000000",
+            addrBits     => 16,
             connectivity => X"FFFF"),
-      1 => (baseAddr => X"00010000",
-            addrBits => 16,
+      1                  => (baseAddr => X"00010000",
+            addrBits     => 16,
             connectivity => X"FFFF"),
-      2 => (baseAddr => X"00020000",
-            addrBits => 16,
+      2                  => (baseAddr => X"00020000",
+            addrBits     => 16,
             connectivity => X"FFFF"),
-      3 => (baseAddr => X"00030000",
-            addrBits => 16,
+      3                  => (baseAddr => X"00030000",
+            addrBits     => 16,
             connectivity => X"FFFF"));
 
    -------------------------------------------------------------------------------------------------
@@ -319,7 +337,7 @@ package AxiLitePkg is
       addr        : in    slv;
       offset      : in    integer;
       reg         : inout slv;
-      constVal    : in    slv    := "X");
+      constVal    : in    slv := "X");
 
    procedure axiSlaveRegisterR (
       variable ep : inout AxiLiteEndpointType;
@@ -394,14 +412,35 @@ package AxiLitePkg is
       data                  : out slv;
       debug                 : in  boolean := false);
 
-   function ite(i : boolean; t : AxiLiteReadMasterType;  e : AxiLiteReadMasterType)  return AxiLiteReadMasterType;
-   function ite(i : boolean; t : AxiLiteReadSlaveType;   e : AxiLiteReadSlaveType)   return AxiLiteReadSlaveType;
+   function ite(i : boolean; t : AxiLiteReadMasterType; e : AxiLiteReadMasterType) return AxiLiteReadMasterType;
+   function ite(i : boolean; t : AxiLiteReadSlaveType; e : AxiLiteReadSlaveType) return AxiLiteReadSlaveType;
    function ite(i : boolean; t : AxiLiteWriteMasterType; e : AxiLiteWriteMasterType) return AxiLiteWriteMasterType;
-   function ite(i : boolean; t : AxiLiteWriteSlaveType;  e : AxiLiteWriteSlaveType)  return AxiLiteWriteSlaveType;
-   
+   function ite(i : boolean; t : AxiLiteWriteSlaveType; e : AxiLiteWriteSlaveType) return AxiLiteWriteSlaveType;
+
 end AxiLitePkg;
 
 package body AxiLitePkg is
+
+   function axiLiteReadSlaveEmptyInit (
+      rresp : slv(1 downto 0)  := AXI_RESP_OK_C;
+      rdata : slv(31 downto 0) := (others => '0'))
+      return AxiLiteReadSlaveType is
+   begin
+      return (arready => '1',
+              rdata   => rdata,
+              rresp   => rresp,
+              rvalid  => '1');
+   end function axiLiteReadSlaveEmptyInit;
+
+   function axiLiteWriteSlaveEmptyInit (
+      bresp : slv(1 downto 0) := AXI_RESP_OK_C)
+      return AxiLiteWriteSlaveType is
+   begin
+      return (awready => '1',
+              wready => '1',
+              bresp => bresp,
+              bvalid => '1');
+   end function axiLiteWriteSlaveEmptyInit;
 
    function axiReadMasterInit (constant config : AxiLiteCrossbarMasterConfigType) return AxiLiteReadMasterType is
       variable ret : AxiLiteReadMasterType;
@@ -481,7 +520,7 @@ package body AxiLitePkg is
       -- Reset rvalid upon rready
       if (axiReadMaster.rready = '1') then
          axiReadSlave.rvalid := '0';
-         axiReadSlave.rdata  := (others=>'0');
+         axiReadSlave.rdata  := (others => '0');
       end if;
    end procedure axiSlaveWaitReadTxn;
 
@@ -650,7 +689,7 @@ package body AxiLitePkg is
       addr        : in    slv;
       offset      : in    integer;
       reg         : inout slv;
-      constVal    : in    slv    := "X")
+      constVal    : in    slv := "X")
    is
       -- Need to remap addr range to be (length-1 downto 0)
       constant ADDR_LEN_C   : integer                    := addr'length;
@@ -717,7 +756,7 @@ package body AxiLitePkg is
       addr        : in    slv;
       offset      : in    integer;
       reg         : inout sl;
-      constVal    : in    sl     := 'X')
+      constVal    : in    sl := 'X')
    is
       variable tmpReg : slv(0 downto 0);
       variable tmpVal : slv(0 downto 0);
@@ -777,7 +816,7 @@ package body AxiLitePkg is
       reg         : inout sl)
    is
       -- Need to remap addr range to be (length-1 downto 0)
-      constant ADDR_LEN_C : integer := addr'length;
+      constant ADDR_LEN_C : integer                    := addr'length;
       constant ADDR_C     : slv(ADDR_LEN_C-1 downto 0) := addr;
    begin
       if (ep.axiStatus.writeEnable = '1') then
@@ -981,7 +1020,7 @@ package body AxiLitePkg is
    begin
       if (i) then return t; else return e; end if;
    end function ite;
-   
-   
+
+
 end package body AxiLitePkg;
 

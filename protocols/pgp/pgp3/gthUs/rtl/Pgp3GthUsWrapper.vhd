@@ -54,6 +54,8 @@ entity Pgp3GthUsWrapper is
       EN_PGP_MON_G                : boolean                := true;
       EN_GTH_DRP_G                : boolean                := true;
       EN_QPLL_DRP_G               : boolean                := true;
+      TX_POLARITY_G               : slv(3 downto 0)        := x"0";
+      RX_POLARITY_G               : slv(3 downto 0)        := x"0";      
       AXIL_BASE_ADDR_G            : slv(31 downto 0)       := (others => '0');
       AXIL_CLK_FREQ_G             : real                   := 125.0E+6;
       AXIL_ERROR_RESP_G           : slv(1 downto 0)        := AXI_RESP_DECERR_C);
@@ -214,6 +216,8 @@ begin
             TX_MUX_ILEAVE_ON_NOTVALID_G => TX_MUX_ILEAVE_ON_NOTVALID_G,
             EN_PGP_MON_G                => EN_PGP_MON_G,
             EN_DRP_G                    => EN_GTH_DRP_G,
+            TX_POLARITY_G               => TX_POLARITY_G(i),
+            RX_POLARITY_G               => RX_POLARITY_G(i),            
             AXIL_BASE_ADDR_G            => XBAR_CONFIG_C(i).baseAddr,
             AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G,
             AXIL_ERROR_RESP_G           => AXIL_ERROR_RESP_G)

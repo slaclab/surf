@@ -31,6 +31,11 @@
 #include <pthread.h>
 #include <math.h>
 
+// To be defined by Makefile
+#ifndef XVC_SRV_VERSION
+#define XVC_SRV_VERSION "unknown"
+#endif
+
 JtagDriver::JtagDriver(int argc, char *const argv[], unsigned debug)
 : debug_ ( debug ),
   drop_  ( 0     ),
@@ -446,7 +451,7 @@ XvcServer::run()
 static void
 usage(const char *nm)
 {
-	fprintf(stderr,"Usage: %s [-v{v}] [-D <driver>] [-p <port>] -t <target> [ -- <driver_options>]\n", nm);
+	fprintf(stderr,"Usage: %s [-v{v}] [-Vh] [-D <driver>] [-p <port>] -t <target> [ -- <driver_options>]\n", nm);
 	fprintf(stderr,"  -t <target> : contact target (depends on driver; e.g., <ip[:port]>)\n");
 	fprintf(stderr,"  -h          : this message\n");
 	fprintf(stderr,"  -D <driver> : use transport driver 'driver'\n");
@@ -456,7 +461,8 @@ usage(const char *nm)
 	fprintf(stderr,"                   'udpLoopback'\n");
 	fprintf(stderr,"  -p <port>   : bind to TCP port <port> (default: 2542)\n");
 	fprintf(stderr,"  -M          : max XVC vector size (default 32768)\n");
-	fprintf(stderr,"  -v          : verbose\n");
+	fprintf(stderr,"  -v          : verbose (more 'v's increase verbosity)\n");
+	fprintf(stderr,"  -V          : print version information\n");
 	fprintf(stderr,"  -T <mode>   : set test mode/flags\n");
 }
 
@@ -488,8 +494,9 @@ DriverRegistry::registerFactory(Factory f, Usage h)
 void
 DriverRegistry::usage()
 {
-	if ( helper_ )
+	if ( helper_ ) {
 		helper_();
+	}
 }
 
 DriverRegistry *
@@ -546,7 +553,7 @@ unsigned        testMode = 0;
 bool            once     = false;
 bool            help     = false;
 
-	while ( (opt = getopt(argc, argv, "hvot:D:p:M:T:")) > 0 ) {
+	while ( (opt = getopt(argc, argv, "hvVot:D:p:M:T:")) > 0 ) {
         i_p = 0;
 		switch ( opt ) {
 			default:
@@ -560,6 +567,10 @@ bool            help     = false;
 			case 'v':
 				debug++;
 				break;
+
+			case 'V':
+				printf("%s\n", XVC_SRV_VERSION);
+				return 0;
 
 			case 't':
 				target = optarg;
@@ -603,6 +614,7 @@ bool            help     = false;
 
 	if ( 0 == strcmp( drvnam, "udp" ) ) {
 		if ( help ) {
+			fprintf(stderr,"\n");
 			JtagDriverUdp::usage();
 			return 0;
 		}
