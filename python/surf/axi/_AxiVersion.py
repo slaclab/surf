@@ -180,7 +180,7 @@ class AxiVersion(pr.Device):
 
         self.add(pr.LinkVariable(
             name = 'GitHashShort',
-            dependencies = [self.GitHash],
+            variable=self.GitHash,
             disp = '{:07x}',
             linkedGet = lambda: self.GitHash.value() >> 132
         ))
