@@ -2,7 +2,7 @@
 -- File       : RoguePgpSim.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-12-05
--- Last update: 2017-02-02
+-- Last update: 2018-01-19
 -------------------------------------------------------------------------------
 -- Description: Wrapper on RogueStreamSim to simulate a PGP lane with 4
 -- virtual channels
@@ -34,13 +34,15 @@ entity RoguePgpSim is
    generic (
       TPD_G           : time                   := 1 ns;
       FIXED_LAT_G     : boolean                := false;
+      DIFF_CLK_G : boolean := true;
       RX_CLK_PERIOD_G : real                   := 8.0e-9;
       USER_ID_G       : integer range 0 to 100 := 1;
       NUM_VC_EN_G     : integer range 1 to 4   := 4);
 
    port (
-      refClkP : in sl;
-      refClkM : in sl;
+      refClkP : in sl := '0';
+      refClkM : in sl := '0';
+      refClk : in sl := '0';
 
       pgpTxClk     : out sl;
       pgpTxRst     : out sl;
@@ -70,11 +72,17 @@ architecture sim of RoguePgpSim is
 
 begin
 
+   DIF_CLK_GEN: if (DIFF_CLK_G) generate
    IBUFDS_GTE2_Inst : IBUFGDS
       port map (
          I  => refClkP,
          IB => refClkM,
          O  => pgpClk);
+   end generate DIF_CLK_GEN;
+
+   SE_CLK_GEN: if (not DIFF_CLK_G) generate
+      pgpClk <= refClk;
+   end generate SE_CLK_GEN;
 
    PwrUpRst_Inst : entity work.PwrUpRst
       generic map (
