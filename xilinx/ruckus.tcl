@@ -30,3 +30,7 @@ if { ${family} eq {kintexu} } {
 if { ${family} == "kintexuplus" } {
    loadRuckusTcl "$::DIR_PATH/UltraScale+"
 }
+
+if { ${family} == "virtexuplus" } {
+   loadRuckusTcl "$::DIR_PATH/UltraScale+"
+}
