@@ -171,11 +171,10 @@ begin
 
             if (rdEn = '1') then
                v.state := WAIT_AXI_TXN_S;
-               if (MODE_G = "WO" or r.wrData(PACKET_SIZE_C-1) = '0') then
-                  -- Finish write
+               
+               if (MODE_G = "WO" or (MODE_G = "RW" and r.wrData(PACKET_SIZE_C-1) = '0')) then
                   axiSlaveWriteResponse(v.axiWriteSlave);
                else
-                  -- Finish read
                   v.axiReadSlave.rdata                         := (others => '0');
                   v.axiReadSlave.rdata(DATA_SIZE_G-1 downto 0) := rdData(DATA_SIZE_G-1 downto 0);
                   axiSlaveReadResponse(v.axiReadSlave);
