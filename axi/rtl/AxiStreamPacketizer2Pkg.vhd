@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-07
--- Last update: 2017-04-14
+-- Last update: 2018-02-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -52,7 +52,7 @@ package AxiStreamPacketizer2Pkg is
 
    constant PACKET_TAIL_EOF_BIT_C : integer := 8;
    type PACKET_TAIL_TUSER_FIELD_C is range 7 downto 0;
-   type PACKET_TAIL_BYTES_FIELD_C is range 18 downto 16;
+   type PACKET_TAIL_BYTES_FIELD_C is range 19 downto 16;
    type PACKET_TAIL_CRC_FIELD_C is range 63 downto 32;
 
    type Packetizer2DebugType is record
