@@ -2,7 +2,7 @@
 -- File       : AxiSpiMaster.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-01-12
--- Last update: 2017-07-10
+-- Last update: 2018-02-01
 -------------------------------------------------------------------------------
 -- Description: Axi lite interface for a single chip "generic SPI master"
 --                For multiple chips on single bus connect multiple cores
@@ -171,11 +171,10 @@ begin
 
             if (rdEn = '1') then
                v.state := WAIT_AXI_TXN_S;
-               if (r.wrData(PACKET_SIZE_C-1) = '0') then
-                  -- Finish write
+               
+               if (MODE_G = "WO" or (MODE_G = "RW" and r.wrData(PACKET_SIZE_C-1) = '0')) then
                   axiSlaveWriteResponse(v.axiWriteSlave);
                else
-                  -- Finish read
                   v.axiReadSlave.rdata                         := (others => '0');
                   v.axiReadSlave.rdata(DATA_SIZE_G-1 downto 0) := rdData(DATA_SIZE_G-1 downto 0);
                   axiSlaveReadResponse(v.axiReadSlave);
