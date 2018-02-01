@@ -31,10 +31,11 @@ use work.AxiStreamPacketizer2Pkg.all;
 entity AxiStreamDepacketizer2 is
 
    generic (
-      TPD_G               : time             := 1 ns;
-      CRC_EN_G            : boolean          := true;
-      CRC_POLY_G          : slv(31 downto 0) := x"04C11DB7";
-      INPUT_PIPE_STAGES_G : integer          := 0);
+      TPD_G                : time             := 1 ns;
+      CRC_EN_G             : boolean          := true;
+      CRC_POLY_G           : slv(31 downto 0) := x"04C11DB7";
+      INPUT_PIPE_STAGES_G  : integer          := 0;
+      OUTPUT_PIPE_STAGES_G : integer          := 1);
    port (
       -- AXI-Lite Interface for local registers 
       axisClk : in sl;
@@ -133,7 +134,7 @@ begin
    U_AxiStreamPipeline_Output : entity work.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
-         PIPE_STAGES_G => 1)
+         PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,           -- [in]
          axisRst     => axisRst,           -- [in]
@@ -170,8 +171,8 @@ begin
          douta(15 downto 0) => packetNumberRam,   -- [out]
          douta(16)          => packetActiveRam,   -- [out]
          douta(17)          => sentEofeRam);      -- [out]
-                
-   ETH_CRC : if (CRC_POLY_G = x"04C11DB7") generate         
+
+   ETH_CRC : if (CRC_POLY_G = x"04C11DB7") generate
       U_Crc32 : entity work.Crc32Parallel
          generic map (
             TPD_G            => TPD_G,
@@ -186,8 +187,8 @@ begin
             crcIn        => inputAxisMaster.tData(63 downto 0),  -- [in]
             crcReset     => rin.crcReset);                       -- [in]
    end generate;
-   
-   GEN_CRC : if (CRC_POLY_G /= x"04C11DB7") generate         
+
+   GEN_CRC : if (CRC_POLY_G /= x"04C11DB7") generate
       U_Crc32 : entity work.Crc32
          generic map (
             TPD_G            => TPD_G,
@@ -202,10 +203,10 @@ begin
             crcDataWidth => rin.crcDataWidth,                    -- [in]
             crcIn        => inputAxisMaster.tData(63 downto 0),  -- [in]
             crcReset     => rin.crcReset);                       -- [in]
-   end generate;         
-   
-   comb : process (axisRst, crcOut, linkGood, sentEofeRam, inputAxisMaster, outputAxisSlave,
-                   packetActiveRam, packetNumberRam, r) is
+   end generate;
+
+   comb : process (axisRst, crcOut, inputAxisMaster, linkGood, outputAxisSlave,
+                   packetActiveRam, packetNumberRam, r, sentEofeRam) is
       variable v         : RegType;
       variable sof       : sl;
       variable lastBytes : integer;
