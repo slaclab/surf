@@ -26,6 +26,8 @@ use work.SsiPkg.all;
 
 package AxiStreamPacketizer2Pkg is
 
+   constant PACKET_VERSION_C : slv(7 downto 0) := X"02";
+   
    type PACKET_HDR_VERSION_FIELD_C is range 7 downto 0;
    type PACKET_HDR_TUSER_FIELD_C is range 15 downto 8;
    type PACKET_HDR_TDEST_FIELD_C is range 23 downto 16;
@@ -86,6 +88,7 @@ package body AxiStreamPacketizer2Pkg is
       variable ret : slv(63 downto 0);
    begin
       ret := (others => '0');
+      ret(PACKET_HDR_VERSION_FIELD_C) := PACKET_VERSION_C;
       ret(PACKET_HDR_SOF_BIT_C) := sof;
       ret(PACKET_HDR_TUSER_FIELD_C) := tuser;
       ret(PACKET_HDR_TDEST_FIELD_C) := tdest;
