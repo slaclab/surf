@@ -261,7 +261,8 @@ begin
                   axiStreamSetUserBit(AXIS_CONFIG_C, v.outputAxisMaster(1), SSI_SOF_C, sof, 0);  -- SOF
 
 
-                  if (sof = not packetActiveRam and v.packetNumber = packetNumberRam) then
+                  if (sof = not packetActiveRam and v.packetNumber = packetNumberRam and
+                      inputAxisMaster.tData(PACKET_HDR_VERSION_FIELD_C) = PACKET_VERSION_C) then
                      -- Header metadata as expected
                      v.state    := MOVE_S;
                      v.sideband := '1';
