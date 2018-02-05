@@ -224,13 +224,14 @@ begin
             v.wordCount := (others => '0');
             v.crcReset  := '1';
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
-               v.outputAxisMaster                                 := axiStreamMasterInit(AXIS_CONFIG_C);
-               v.outputAxisMaster.tValid                          := inputAxisMaster.tValid;
-               v.outputAxisMaster.tData(PACKET_HDR_TUSER_FIELD_C) := inputAxisMaster.tUser(7 downto 0);
-               v.outputAxisMaster.tData(PACKET_HDR_TDEST_FIELD_C) := inputAxisMaster.tDest(7 downto 0);
-               v.outputAxisMaster.tData(PACKET_HDR_TID_FIELD_C)   := inputAxisMaster.tId(7 downto 0);
-               v.outputAxisMaster.tData(PACKET_HDR_SOF_BIT_C)     := not packetActiveOut;
-               v.outputAxisMaster.tData(PACKET_HDR_SEQ_FIELD_C)   := packetNumberOut;
+               v.outputAxisMaster                                   := axiStreamMasterInit(AXIS_CONFIG_C);
+               v.outputAxisMaster.tValid                            := inputAxisMaster.tValid;
+               v.outputAxisMaster.tData(PACKET_HDR_VERSION_FIELD_C) := X"02";
+               v.outputAxisMaster.tData(PACKET_HDR_TUSER_FIELD_C)   := inputAxisMaster.tUser(7 downto 0);
+               v.outputAxisMaster.tData(PACKET_HDR_TDEST_FIELD_C)   := inputAxisMaster.tDest(7 downto 0);
+               v.outputAxisMaster.tData(PACKET_HDR_TID_FIELD_C)     := inputAxisMaster.tId(7 downto 0);
+               v.outputAxisMaster.tData(PACKET_HDR_SOF_BIT_C)       := not packetActiveOut;
+               v.outputAxisMaster.tData(PACKET_HDR_SEQ_FIELD_C)     := packetNumberOut;
 
                -- Frame ID on 63:48?
                axiStreamSetUserBit(AXIS_CONFIG_C, v.outputAxisMaster, SSI_SOF_C, '1', 0);  -- SOF
