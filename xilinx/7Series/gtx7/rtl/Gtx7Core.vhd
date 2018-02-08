@@ -209,7 +209,7 @@ entity Gtx7Core is
 
       -- Rx gearbox ports
       rxGearboxDataValid   : out sl;
-      rxGearboxSlip        : in  sl;
+      rxGearboxSlip        : in  sl := '0';
       rxGearboxHeader      : out slv(2 downto 0);
       rxGearboxHeaderValid : out sl;
       rxGearboxStartOfSeq  : out sl;
