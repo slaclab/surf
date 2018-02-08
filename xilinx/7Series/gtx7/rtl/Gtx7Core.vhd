@@ -209,7 +209,7 @@ entity Gtx7Core is
 
       -- Rx gearbox ports
       rxGearboxDataValid   : out sl;
-      rxGearboxSlip        : in  sl;
+      rxGearboxSlip        : in  sl := '0';
       rxGearboxHeader      : out slv(2 downto 0);
       rxGearboxHeaderValid : out sl;
       rxGearboxStartOfSeq  : out sl;
@@ -307,7 +307,7 @@ architecture rtl of Gtx7Core is
 
    constant RXLPMEN_C : sl := ite(RX_EQUALIZER_G = "LPM", '1', '0');
 
-   constant RX_GEARBOX_MODE_C : slv(2 downto 0) :=
+   constant RX_GEARBOX_MODE_C : bit_vector :=
       ite(RX_GEARBOX_SEQUENCE_G = "INTERNAL",
           ite(RX_GEARBOX_MODE_G = "64B66B", "011", "010"),   -- "INTERNAL"
           ite(RX_GEARBOX_MODE_G = "64B66B", "001", "000"));  -- "EXTERNAL"
