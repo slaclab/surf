@@ -2,7 +2,7 @@
 -- File       : EthMacRxCsum.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-09-08
--- Last update: 2017-02-22
+-- Last update: 2018-01-31
 -------------------------------------------------------------------------------
 -- Description: RX Checksum Hardware Offloading Engine
 -- https://docs.google.com/spreadsheets/d/1_1M1keasfq8RLmRYHkO0IlRhMq5YZTgJ7OGrWvkib8I/edit?usp=sharing
@@ -261,7 +261,7 @@ begin
                      v.ipv4Hdr(12)        := sAxisMaster.tData(119 downto 112);  -- Source IP Address
                      v.ipv4Hdr(13)        := sAxisMaster.tData(127 downto 120);  -- Source IP Address      
                      -- Fill in the TCP/UDP checksum
-                     v.tData(31 downto 0) := sAxisMaster.tData(127 downto 119) & sAxisMaster.tData(95 downto 88) & x"00";
+                     v.tData(31 downto 0) := sAxisMaster.tData(127 downto 112) & sAxisMaster.tData(95 downto 88) & x"00";
                      v.tKeep(3 downto 0)  := (others => '1');
                   end if;
                   -- Latch the IPv4 length value

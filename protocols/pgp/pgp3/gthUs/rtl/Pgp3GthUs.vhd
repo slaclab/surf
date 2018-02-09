@@ -51,6 +51,8 @@ entity Pgp3GthUs is
       TX_MUX_ILEAVE_ON_NOTVALID_G : boolean               := true;
       EN_DRP_G                    : boolean               := true;
       EN_PGP_MON_G                : boolean               := true;
+      TX_POLARITY_G               : sl                    := '0';
+      RX_POLARITY_G               : sl                    := '0';      
       AXIL_BASE_ADDR_G            : slv(31 downto 0)      := (others => '0');
       AXIL_CLK_FREQ_G             : real                  := 125.0E+6);
    port (
@@ -244,7 +246,10 @@ begin
    --------------------------
    U_Pgp3GthUsIpWrapper_1 : entity work.Pgp3GthUsIpWrapper
       generic map (
-         TPD_G => TPD_G)
+         TPD_G         => TPD_G,
+         TX_POLARITY_G => TX_POLARITY_G,
+         RX_POLARITY_G => RX_POLARITY_G,
+         EN_DRP_G      => EN_DRP_G)
       port map (
          stableClk       => stableClk,                           -- [in]
          stableRst       => stableRst,                           -- [in]
