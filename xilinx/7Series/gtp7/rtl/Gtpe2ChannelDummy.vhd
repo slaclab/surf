@@ -25,18 +25,35 @@ use unisim.vcomponents.all;
 
 entity Gtpe2ChannelDummy is
    generic (
-      TPD_G   : time     := 1 ns;
-      WIDTH_G : positive := 1);
+      TPD_G   : time                  := 1 ns;
+      WIDTH_G : positive range 1 to 4 := 1);
    port (
-      gtRxP : in  slv(WIDTH_G-1 downto 0);
-      gtRxN : in  slv(WIDTH_G-1 downto 0);
-      gtTxP : out slv(WIDTH_G-1 downto 0);
-      gtTxN : out slv(WIDTH_G-1 downto 0));
+      refClk : in  sl;                  -- Required by DRC REQP #48
+      gtRxP  : in  slv(WIDTH_G-1 downto 0);
+      gtRxN  : in  slv(WIDTH_G-1 downto 0);
+      gtTxP  : out slv(WIDTH_G-1 downto 0);
+      gtTxN  : out slv(WIDTH_G-1 downto 0));
 end entity Gtpe2ChannelDummy;
 
 architecture mapping of Gtpe2ChannelDummy is
 
+   signal qPllOutClk    : slv(1 downto 0);
+   signal qPllOutRefClk : slv(1 downto 0);
+
 begin
+
+   U_Gtp7QuadPll : entity work.Gtp7QuadPll
+      generic map (
+         TPD_G             => TPD_G,
+         PLL0_REFCLK_SEL_G => "111",
+         PLL1_REFCLK_SEL_G => "111")
+      port map (
+         qPllRefClk     => (others => refClk),
+         qplllockdetclk => (others => refClk),
+         qPllOutClk     => qPllOutClk,
+         qPllOutRefClk  => qPllOutRefClk,
+         qPllPowerDown  => (others => '1'),
+         qPllReset      => (others => '1'));
 
    GEN_VEC :
    for i in WIDTH_G-1 downto 0 generate
@@ -129,10 +146,10 @@ begin
             GTTXRESET            => '0',
             LOOPBACK             => (others => '0'),
             PCSRSVDIN            => (others => '0'),
-            PLL0CLK              => '0',
-            PLL0REFCLK           => '0',
-            PLL1CLK              => '0',
-            PLL1REFCLK           => '0',
+            PLL0CLK              => qPllOutClk(0),
+            PLL0REFCLK           => qPllOutRefClk(0),
+            PLL1CLK              => qPllOutClk(1),
+            PLL1REFCLK           => qPllOutRefClk(1),
             PMARSVDIN0           => '0',
             PMARSVDIN1           => '0',
             PMARSVDIN2           => '0',
