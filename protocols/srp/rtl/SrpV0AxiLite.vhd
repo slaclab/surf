@@ -40,7 +40,7 @@ entity SrpV0AxiLite is
       SLAVE_READY_EN_G    : boolean                    := false;
       EN_32BIT_ADDR_G     : boolean                    := false;
       BRAM_EN_G           : boolean                    := true;
-      FIFO_MEMORY_TYPE_G  : string                     := "auto";  --Xilinx only generic parameter    
+      FIFO_MEMORY_TYPE_G  : string                     := "block";  
       USE_BUILT_IN_G      : boolean                    := false;  --if set to true, this module is only Xilinx compatible only!!!
       ALTERA_SYN_G        : boolean                    := false;
       ALTERA_RAM_G        : string                     := "M9K";

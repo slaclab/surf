@@ -41,7 +41,7 @@ architecture tb of AxiLiteSrpV0Tb is
    constant RESP_THOLD_G        : integer range 0 to (2**24) := 1;
    constant SLAVE_READY_EN_G    : boolean                    := true;
    constant BRAM_EN_G           : boolean                    := true;
-   constant FIFO_MEMORY_TYPE_G  : string                     := "auto";
+   constant FIFO_MEMORY_TYPE_G  : string                     := "block";
    constant USE_BUILT_IN_G      : boolean                    := false;
    constant ALTERA_SYN_G        : boolean                    := false;
    constant ALTERA_RAM_G        : string                     := "M9K";

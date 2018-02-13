@@ -215,7 +215,7 @@ begin
    generic map (
       TPD_G                      => TPD_C,
 
-      FIFO_MEMORY_TYPE_G         => "auto",
+      FIFO_MEMORY_TYPE_G         => "block",
 
       CASCADE_SIZE_G             => 1,
       FIFO_ADDR_WIDTH_G          => 9,
@@ -248,7 +248,7 @@ begin
    generic map (
       TPD_G                      => TPD_C,
 
-      FIFO_MEMORY_TYPE_G         => "auto",
+      FIFO_MEMORY_TYPE_G         => "block",
       CASCADE_SIZE_G             => 1,
       FIFO_ADDR_WIDTH_G          => 4,
       FIFO_PAUSE_THRESH_G        => 1,

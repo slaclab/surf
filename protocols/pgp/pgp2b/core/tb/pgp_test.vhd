@@ -152,7 +152,7 @@ begin
             TPD_G                      => 1 ns,
             ALTERA_SYN_G               => false,
             ALTERA_RAM_G               => "M9K",
-            FIFO_MEMORY_TYPE_G         => "auto",  --Xilinx only generic parameter    
+            FIFO_MEMORY_TYPE_G         => "block",       
             BRAM_EN_G                  => true,
             USE_BUILT_IN_G             => false,  --if set to true, this module is only Xilinx compatible only!!!
             GEN_SYNC_FIFO_G            => false,
@@ -185,7 +185,7 @@ begin
                SLAVE_READY_EN_G    => true,
                VALID_THOLD_G       => 1,
                BRAM_EN_G           => true,
-               FIFO_MEMORY_TYPE_G  => "auto",
+               FIFO_MEMORY_TYPE_G  => "block",
                USE_BUILT_IN_G      => false,
                GEN_SYNC_FIFO_G     => false,
                ALTERA_SYN_G        => false,
@@ -282,7 +282,7 @@ begin
             PIPE_STAGES_G       => 0,
             -- FIFO configurations
             BRAM_EN_G           => true,
-            FIFO_MEMORY_TYPE_G  => "auto",
+            FIFO_MEMORY_TYPE_G  => "block",
             USE_BUILT_IN_G      => false,
             GEN_SYNC_FIFO_G     => false,
             CASCADE_SIZE_G      => 1,
@@ -313,7 +313,7 @@ begin
             ALTERA_SYN_G               => false,
             ALTERA_RAM_G               => "M9K",
             CASCADE_SIZE_G             => 1,
-            FIFO_MEMORY_TYPE_G         => "auto",  --Xilinx only generic parameter    
+            FIFO_MEMORY_TYPE_G         => "block",       
             BRAM_EN_G                  => true,
             USE_BUILT_IN_G             => false,  --if set to true, this module is only Xilinx compatible only!!!
             GEN_SYNC_FIFO_G            => false,

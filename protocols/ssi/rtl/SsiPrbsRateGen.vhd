@@ -33,7 +33,7 @@ entity SsiPrbsRateGen is
       VALID_THOLD_G              : integer range 0 to (2**24) := 1;
       VALID_BURST_MODE_G         : boolean                    := false;
       BRAM_EN_G                  : boolean                    := true;
-      FIFO_MEMORY_TYPE_G         : string                     := "auto";
+      FIFO_MEMORY_TYPE_G         : string                     := "block";
       USE_BUILT_IN_G             : boolean                    := false;
       CASCADE_SIZE_G             : natural range 1 to (2**24) := 1;
       FIFO_ADDR_WIDTH_G          : natural range 4 to 48      := 9;

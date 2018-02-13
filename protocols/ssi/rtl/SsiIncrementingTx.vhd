@@ -31,7 +31,7 @@ entity SsiIncrementingTx is
       TPD_G                      : time                       := 1 ns;
       -- FIFO configurations
       BRAM_EN_G                  : boolean                    := true;
-      FIFO_MEMORY_TYPE_G         : string                     := "auto";
+      FIFO_MEMORY_TYPE_G         : string                     := "block";
       USE_BUILT_IN_G             : boolean                    := false;
       GEN_SYNC_FIFO_G            : boolean                    := false;
       ALTERA_SYN_G               : boolean                    := true;

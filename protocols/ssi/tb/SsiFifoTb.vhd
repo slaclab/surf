@@ -41,7 +41,7 @@ architecture testbed of SsiFifoTb is
 
    -- FIFO configurations
    constant BRAM_EN_C           : boolean := true;
-   constant FIFO_MEMORY_TYPE_C  : string  := "auto";
+   constant FIFO_MEMORY_TYPE_C  : string  := "block";
    constant USE_BUILT_IN_C      : boolean := false;
    constant ALTERA_SYN_C        : boolean := false;
    constant ALTERA_RAM_C        : string  := "M9K";

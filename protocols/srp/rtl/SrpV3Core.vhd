@@ -166,7 +166,7 @@ begin
          VALID_THOLD_G          => 0,  -- = 0 = only when frame ready                                                                 
          -- FIFO configurations
          BRAM_EN_G              => true,
-         FIFO_MEMORY_TYPE_G     => "auto",
+         FIFO_MEMORY_TYPE_G     => "block",
          USE_BUILT_IN_G         => false,
          GEN_SYNC_FIFO_G        => GEN_SYNC_FIFO_G,
          ALTERA_SYN_G           => ALTERA_SYN_G,
@@ -684,7 +684,7 @@ begin
          VALID_THOLD_G       => TX_VALID_THOLD_G,
          -- FIFO configurations
          BRAM_EN_G           => true,
-         FIFO_MEMORY_TYPE_G  => "auto",
+         FIFO_MEMORY_TYPE_G  => "block",
          USE_BUILT_IN_G      => false,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          ALTERA_SYN_G        => ALTERA_SYN_G,

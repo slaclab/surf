@@ -41,7 +41,7 @@ entity SsiCmdMaster is
       -- AXI Stream FIFO Config
       SLAVE_READY_EN_G    : boolean                    := false;
       BRAM_EN_G           : boolean                    := false;
-      FIFO_MEMORY_TYPE_G  : string                     := "auto";
+      FIFO_MEMORY_TYPE_G  : string                     := "block";
       USE_BUILT_IN_G      : boolean                    := false;  --if set to true, this module is only Xilinx compatible only!!!
       GEN_SYNC_FIFO_G     : boolean                    := false;
       ALTERA_SYN_G        : boolean                    := false;
