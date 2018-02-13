@@ -2,7 +2,7 @@
 -- File       : FifoAsync.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2016-06-30
+-- Last update: 2018-02-12
 -------------------------------------------------------------------------------
 -- Description: ASYNC FIFO module
 -------------------------------------------------------------------------------
@@ -24,19 +24,20 @@ use work.StdRtlPkg.all;
 
 entity FifoAsync is
    generic (
-      TPD_G          : time                       := 1 ns;
-      RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
-      BRAM_EN_G      : boolean                    := true;
-      FWFT_EN_G      : boolean                    := false;
-      ALTERA_SYN_G   : boolean                    := false;
-      ALTERA_RAM_G   : string                     := "M9K";
-      SYNC_STAGES_G  : integer range 3 to (2**24) := 3;
-      PIPE_STAGES_G  : natural range 0 to 16      := 0;
-      DATA_WIDTH_G   : integer range 1 to (2**24) := 16;
-      ADDR_WIDTH_G   : integer range 2 to 48      := 4;
-      INIT_G         : slv                        := "0";
-      FULL_THRES_G   : integer range 1 to (2**24) := 1;
-      EMPTY_THRES_G  : integer range 1 to (2**24) := 1);
+      TPD_G              : time                       := 1 ns;
+      RST_POLARITY_G     : sl                         := '1';  -- '1' for active high rst, '0' for active low
+      BRAM_EN_G          : boolean                    := true;
+      FWFT_EN_G          : boolean                    := false;
+      ALTERA_SYN_G       : boolean                    := false;
+      ALTERA_RAM_G       : string                     := "M9K";
+      FIFO_MEMORY_TYPE_G : string                     := "block";
+      SYNC_STAGES_G      : integer range 3 to (2**24) := 3;
+      PIPE_STAGES_G      : natural range 0 to 16      := 0;
+      DATA_WIDTH_G       : integer range 1 to (2**24) := 16;
+      ADDR_WIDTH_G       : integer range 2 to 48      := 4;
+      INIT_G             : slv                        := "0";
+      FULL_THRES_G       : integer range 1 to (2**24) := 1;
+      EMPTY_THRES_G      : integer range 1 to (2**24) := 1);
    port (
       -- Asynchronous Reset
       rst           : in  sl;
@@ -447,6 +448,7 @@ begin
          BRAM_EN_G    => BRAM_EN_G,
          ALTERA_SYN_G => ALTERA_SYN_G,
          ALTERA_RAM_G => ALTERA_RAM_G,
+         XILINX_RAM_G => FIFO_MEMORY_TYPE_G,
          DATA_WIDTH_G => DATA_WIDTH_G,
          ADDR_WIDTH_G => ADDR_WIDTH_G,
          INIT_G       => INIT_C)

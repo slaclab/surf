@@ -80,19 +80,20 @@ begin
       FIFO_ASYNC_Gen : if (GEN_SYNC_FIFO_G = false) generate
          FifoAsync_Inst : entity work.FifoAsync
             generic map (
-               TPD_G          => TPD_G,
-               RST_POLARITY_G => RST_POLARITY_G,
-               BRAM_EN_G      => BRAM_EN_G,
-               FWFT_EN_G      => FWFT_EN_G,
-               ALTERA_SYN_G   => ALTERA_SYN_G,
-               ALTERA_RAM_G   => ALTERA_RAM_G,
-               SYNC_STAGES_G  => SYNC_STAGES_G,
-               PIPE_STAGES_G  => PIPE_STAGES_G,
-               DATA_WIDTH_G   => DATA_WIDTH_G,
-               ADDR_WIDTH_G   => ADDR_WIDTH_G,
-               INIT_G         => INIT_C,
-               FULL_THRES_G   => FULL_THRES_G,
-               EMPTY_THRES_G  => EMPTY_THRES_G)
+               TPD_G              => TPD_G,
+               RST_POLARITY_G     => RST_POLARITY_G,
+               BRAM_EN_G          => BRAM_EN_G,
+               FWFT_EN_G          => FWFT_EN_G,
+               FIFO_MEMORY_TYPE_G => FIFO_MEMORY_TYPE_G,
+               ALTERA_SYN_G       => ALTERA_SYN_G,
+               ALTERA_RAM_G       => ALTERA_RAM_G,
+               SYNC_STAGES_G      => SYNC_STAGES_G,
+               PIPE_STAGES_G      => PIPE_STAGES_G,
+               DATA_WIDTH_G       => DATA_WIDTH_G,
+               ADDR_WIDTH_G       => ADDR_WIDTH_G,
+               INIT_G             => INIT_C,
+               FULL_THRES_G       => FULL_THRES_G,
+               EMPTY_THRES_G      => EMPTY_THRES_G)
             port map (
                rst           => rst,
                wr_clk        => wr_clk,
@@ -122,18 +123,19 @@ begin
 
          FifoSync_Inst : entity work.FifoSync
             generic map (
-               TPD_G          => TPD_G,
-               RST_POLARITY_G => RST_POLARITY_G,
-               RST_ASYNC_G    => RST_ASYNC_G,
-               BRAM_EN_G      => BRAM_EN_G,
-               FWFT_EN_G      => FWFT_EN_G,
-               ALTERA_RAM_G   => ALTERA_RAM_G,
-               PIPE_STAGES_G  => PIPE_STAGES_G,
-               DATA_WIDTH_G   => DATA_WIDTH_G,
-               ADDR_WIDTH_G   => ADDR_WIDTH_G,
-               INIT_G         => INIT_C,
-               FULL_THRES_G   => FULL_THRES_G,
-               EMPTY_THRES_G  => EMPTY_THRES_G)
+               TPD_G              => TPD_G,
+               RST_POLARITY_G     => RST_POLARITY_G,
+               RST_ASYNC_G        => RST_ASYNC_G,
+               BRAM_EN_G          => BRAM_EN_G,
+               FWFT_EN_G          => FWFT_EN_G,
+               FIFO_MEMORY_TYPE_G => FIFO_MEMORY_TYPE_G,
+               ALTERA_RAM_G       => ALTERA_RAM_G,
+               PIPE_STAGES_G      => PIPE_STAGES_G,
+               DATA_WIDTH_G       => DATA_WIDTH_G,
+               ADDR_WIDTH_G       => ADDR_WIDTH_G,
+               INIT_G             => INIT_C,
+               FULL_THRES_G       => FULL_THRES_G,
+               EMPTY_THRES_G      => EMPTY_THRES_G)
             port map (
                rst          => rst,
                clk          => wr_clk,
