@@ -332,6 +332,7 @@ class Xadc(pr.Device):
                 name=f'Aux[{i}]',
                 units='V',
                 disp='{:1.3f}',
+                mode='RO',
                 variable=self.AuxRaw[i],
                 linkedGet=self.convAuxVoltage))
         
