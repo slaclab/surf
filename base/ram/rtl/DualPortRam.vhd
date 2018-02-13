@@ -35,6 +35,7 @@ entity DualPortRam is
       DATA_WIDTH_G   : integer range 1 to (2**24) := 16;
       BYTE_WIDTH_G   : integer                    := 8;    -- If BRAM, should be multiple of 8 or 9
       ADDR_WIDTH_G   : integer range 1 to (2**24) := 4;
+      XILINX_RAM_G   : string                     := "block";
       INIT_G         : slv                        := "0");
    port (
       -- Port A     
@@ -74,6 +75,7 @@ begin
             DATA_WIDTH_G   => DATA_WIDTH_G,
             BYTE_WIDTH_G   => BYTE_WIDTH_G,
             ADDR_WIDTH_G   => ADDR_WIDTH_G,
+            XILINX_RAM_G   => XILINX_RAM_G,
             INIT_G         => INIT_G)
          port map (
             -- Port A     

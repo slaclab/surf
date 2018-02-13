@@ -29,6 +29,7 @@ entity TrueDualPortRam is
       TPD_G          : time                       := 1 ns;
       RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
       ALTERA_RAM_G   : string                     := "M9K";
+      XILINX_RAM_G   : string                     := "block";
       DOA_REG_G      : boolean                    := false;  -- Extra output register on doutA.
       DOB_REG_G      : boolean                    := false;  -- Extra output register on doutB.
       MODE_G         : string                     := "read-first";
@@ -82,7 +83,7 @@ architecture rtl of TrueDualPortRam is
 
    -- Attribute for XST (Xilinx Synthesizer)
    attribute ram_style        : string;
-   attribute ram_style of mem : variable is "block";
+   attribute ram_style of mem : variable is XILINX_RAM_G;
 
    attribute ram_extract        : string;
    attribute ram_extract of mem : variable is "TRUE";
@@ -92,7 +93,7 @@ architecture rtl of TrueDualPortRam is
 
    -- Attribute for Synplicity Synthesizer 
    attribute syn_ramstyle        : string;
-   attribute syn_ramstyle of mem : variable is "block";
+   attribute syn_ramstyle of mem : variable is XILINX_RAM_G;
 
    attribute syn_keep        : string;
    attribute syn_keep of mem : variable is "TRUE";
