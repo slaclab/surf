@@ -331,7 +331,9 @@ class Xadc(pr.Device):
             self.add(pr.LinkVariable(
                 name=f'Aux[{i}]',
                 units='V',
-                dependencies=[self.AuxRaw[i]],
+                disp='{:1.3f}',
+                mode='RO',
+                variable=self.AuxRaw[i],
                 linkedGet=self.convAuxVoltage))
         
         if (zynq):
