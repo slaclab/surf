@@ -182,6 +182,7 @@ class AxiVersion(pr.Device):
             name = 'GitHashShort',
             variable=self.GitHash,
             disp = '{:07x}',
+            mode = 'RO',
             linkedGet = lambda: self.GitHash.value() >> 132
         ))
 
