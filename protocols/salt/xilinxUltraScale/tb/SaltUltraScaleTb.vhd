@@ -44,7 +44,7 @@ architecture testbed of SaltUltraScaleTb is
 
    -- FIFO configurations
    constant BRAM_EN_C           : boolean := true;
-   constant XIL_DEVICE_C        : string  := "7SERIES";
+   constant FIFO_MEMORY_TYPE_C  : string  := "auto";
    constant USE_BUILT_IN_C      : boolean := false;
    constant GEN_SYNC_FIFO_C     : boolean := false;
    constant ALTERA_SYN_C        : boolean := false;
@@ -148,7 +148,7 @@ begin
          TPD_G                      => TPD_C,
          -- FIFO configurations
          BRAM_EN_G                  => BRAM_EN_C,
-         XIL_DEVICE_G               => XIL_DEVICE_C,
+         FIFO_MEMORY_TYPE_G         => FIFO_MEMORY_TYPE_C,
          USE_BUILT_IN_G             => USE_BUILT_IN_C,
          GEN_SYNC_FIFO_G            => GEN_SYNC_FIFO_C,
          ALTERA_SYN_G               => ALTERA_SYN_C,
@@ -230,7 +230,7 @@ begin
          AXI_ERROR_RESP_G           => AXI_ERROR_RESP_C,
          -- FIFO Configurations
          BRAM_EN_G                  => BRAM_EN_C,
-         XIL_DEVICE_G               => XIL_DEVICE_C,
+         FIFO_MEMORY_TYPE_G         => FIFO_MEMORY_TYPE_C,
          USE_BUILT_IN_G             => USE_BUILT_IN_C,
          GEN_SYNC_FIFO_G            => GEN_SYNC_FIFO_C,
          ALTERA_SYN_G               => ALTERA_SYN_C,

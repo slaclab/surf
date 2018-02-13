@@ -83,7 +83,9 @@ begin
          PIPE_STAGES_G   => PIPE_STAGES_G,
          FWFT_EN_G       => true,
          DATA_WIDTH_G    => 16,
-         ADDR_WIDTH_G    => 10)        
+         ADDR_WIDTH_G    => 10,  
+         FULL_THRES_G    => 750,  
+         EMPTY_THRES_G   => 250)         
       port map (
          -- Resets
          rst         => rst,

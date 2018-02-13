@@ -43,8 +43,7 @@ entity AxiLiteFifoPop is
       ALTERA_SYN_G       : boolean                    := false;
       ALTERA_RAM_G       : string                     := "M9K";
       USE_BUILT_IN_G     : boolean                    := false;
-      XIL_DEVICE_G       : string                     := "7SERIES"
-   );
+      FIFO_MEMORY_TYPE_G : string                     := "block");
    port (
 
       -- AXI Interface (axiClk)
@@ -131,11 +130,10 @@ begin
             GEN_SYNC_FIFO_G    => POP_SYNC_FIFO_G,
             BRAM_EN_G          => POP_BRAM_EN_G,
             FWFT_EN_G          => true,
-            USE_DSP48_G        => "no",
             ALTERA_SYN_G       => ALTERA_SYN_G,
             ALTERA_RAM_G       => ALTERA_RAM_G,
             USE_BUILT_IN_G     => USE_BUILT_IN_G,
-            XIL_DEVICE_G       => XIL_DEVICE_G,
+            FIFO_MEMORY_TYPE_G => FIFO_MEMORY_TYPE_G,
             SYNC_STAGES_G      => 3,
             DATA_WIDTH_G       => 32,
             ADDR_WIDTH_G       => POP_ADDR_WIDTH_G,
@@ -189,11 +187,10 @@ begin
                GEN_SYNC_FIFO_G    => true,
                BRAM_EN_G          => LOOP_BRAM_EN_G,
                FWFT_EN_G          => true,
-               USE_DSP48_G        => "no",
                ALTERA_SYN_G       => ALTERA_SYN_G,
                ALTERA_RAM_G       => ALTERA_RAM_G,
                USE_BUILT_IN_G     => USE_BUILT_IN_G,
-               XIL_DEVICE_G       => XIL_DEVICE_G,
+               FIFO_MEMORY_TYPE_G => FIFO_MEMORY_TYPE_G,
                SYNC_STAGES_G      => 3,
                DATA_WIDTH_G       => 32,
                ADDR_WIDTH_G       => LOOP_ADDR_WIDTH_G,

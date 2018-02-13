@@ -28,7 +28,6 @@ entity FifoAsync is
       RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
       BRAM_EN_G      : boolean                    := true;
       FWFT_EN_G      : boolean                    := false;
-      USE_DSP48_G    : string                     := "no";
       ALTERA_SYN_G   : boolean                    := false;
       ALTERA_RAM_G   : string                     := "M9K";
       SYNC_STAGES_G  : integer range 3 to (2**24) := 3;
@@ -147,11 +146,6 @@ architecture rtl of FifoAsync is
       empty        => '1');
    signal fifoStatus, fwftStatus : ReadStatusType := READ_STATUS_INIT_C;
 
-   -- Attribute for XST
-   attribute use_dsp48          : string;
-   attribute use_dsp48 of rdReg : signal is USE_DSP48_G;
-   attribute use_dsp48 of wrReg : signal is USE_DSP48_G;
-
 begin
 
    -- FULL_THRES_G upper range check
@@ -161,10 +155,6 @@ begin
    -- EMPTY_THRES_G upper range check
    assert (EMPTY_THRES_G <= ((2**ADDR_WIDTH_G)-2))
       report "EMPTY_THRES_G must be <= ((2**ADDR_WIDTH_G)-2)"
-      severity failure;
-   -- USE_DSP48_G check
-   assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
-      report "USE_DSP48_G must be either yes, no, auto, or automax"
       severity failure;
    -- INIT_G length check
    assert (INIT_G = "0" or INIT_G'length = DATA_WIDTH_G) report

@@ -134,7 +134,6 @@ begin
          RST_POLARITY_G => '1',
          BRAM_EN_G      => false,       -- Use Dist Ram
          FWFT_EN_G      => true,
-         USE_DSP48_G    => "no",
          ALTERA_SYN_G   => false,
          ALTERA_RAM_G   => "M9K",
          SYNC_STAGES_G  => 3,
@@ -200,7 +199,6 @@ begin
          RST_POLARITY_G => '1',
          BRAM_EN_G      => false,       -- Use Dist Ram
          FWFT_EN_G      => true,
-         USE_DSP48_G    => "no",
          ALTERA_SYN_G   => false,
          ALTERA_RAM_G   => "M9K",
          SYNC_STAGES_G  => 3,
@@ -261,7 +259,6 @@ begin
          RST_POLARITY_G => '1',
          BRAM_EN_G      => false,       -- Use Dist Ram
          FWFT_EN_G      => true,
-         USE_DSP48_G    => "no",
          ALTERA_SYN_G   => false,
          ALTERA_RAM_G   => "M9K",
          SYNC_STAGES_G  => 3,
@@ -327,7 +324,6 @@ begin
          RST_POLARITY_G => '1',
          BRAM_EN_G      => false,       -- Use Dist Ram
          FWFT_EN_G      => true,
-         USE_DSP48_G    => "no",
          ALTERA_SYN_G   => false,
          ALTERA_RAM_G   => "M9K",
          SYNC_STAGES_G  => 3,
@@ -388,7 +384,6 @@ begin
          RST_POLARITY_G => '1',
          BRAM_EN_G      => false,       -- Use Dist Ram
          FWFT_EN_G      => true,
-         USE_DSP48_G    => "no",
          ALTERA_SYN_G   => false,
          ALTERA_RAM_G   => "M9K",
          SYNC_STAGES_G  => 3,

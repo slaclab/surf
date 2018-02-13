@@ -155,7 +155,7 @@ begin
          SLAVE_READY_EN_G       => true,
          VALID_THOLD_G          => 1,
          BRAM_EN_G              => true,
-         XIL_DEVICE_G           => "7SERIES",
+         FIFO_MEMORY_TYPE_G     => "block",
          USE_BUILT_IN_G         => false,
          GEN_SYNC_FIFO_G        => true,
          ALTERA_SYN_G           => false,

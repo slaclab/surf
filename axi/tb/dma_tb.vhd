@@ -155,7 +155,7 @@ begin
       generic map (
          TPD_G               => 1 ns,
          BRAM_EN_G           => true,
-         XIL_DEVICE_G        => "7SERIES",
+         FIFO_MEMORY_TYPE_G  => "block",
          USE_BUILT_IN_G      => false,
          GEN_SYNC_FIFO_G     => false,
          ALTERA_SYN_G        => false,
@@ -183,7 +183,7 @@ begin
    U_AxiWritePathFifo: entity work.AxiWritePathFifo 
       generic map (
          TPD_G                    => 1 ns,
-         XIL_DEVICE_G             => "7SERIES",
+         FIFO_MEMORY_TYPE_G       => "block",
          USE_BUILT_IN_G           => false,
          GEN_SYNC_FIFO_G          => false,
          ALTERA_SYN_G             => false,
@@ -228,7 +228,7 @@ begin
    U_AxiReadPathFifo: entity work.AxiReadPathFifo 
       generic map (
          TPD_G                    => 1 ns,
-         XIL_DEVICE_G             => "7SERIES",
+         FIFO_MEMORY_TYPE_G       => "block",
          USE_BUILT_IN_G           => false,
          GEN_SYNC_FIFO_G          => false,
          ALTERA_SYN_G             => false,

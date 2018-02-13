@@ -192,7 +192,6 @@ begin
          RST_ASYNC_G    => false,
          BRAM_EN_G      => true,
          FWFT_EN_G      => false,
-         USE_DSP48_G    => "no",
          ALTERA_SYN_G   => false,
          ALTERA_RAM_G   => "M9K",
          PIPE_STAGES_G  => 0,

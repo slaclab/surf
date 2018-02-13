@@ -30,7 +30,6 @@ entity FifoSync is
       BRAM_EN_G      : boolean                    := true;
       BYP_RAM_G      : boolean                    := false;
       FWFT_EN_G      : boolean                    := false;
-      USE_DSP48_G    : string                     := "no";
       ALTERA_SYN_G   : boolean                    := false;
       ALTERA_RAM_G   : string                     := "M9K";
       PIPE_STAGES_G  : natural range 0 to 16      := 0;
@@ -102,12 +101,6 @@ architecture rtl of FifoSync is
 
    signal sValid,
       sRdEn : sl;
-
-   -- Attribute for XST
-   attribute use_dsp48          : string;
-   attribute use_dsp48 of raddr : signal is USE_DSP48_G;
-   attribute use_dsp48 of waddr : signal is USE_DSP48_G;
-   attribute use_dsp48 of cnt   : signal is USE_DSP48_G;
    
 begin
 
@@ -118,10 +111,6 @@ begin
    -- EMPTY_THRES_G upper range check
    assert (EMPTY_THRES_G <= ((2**ADDR_WIDTH_G)-2))
       report "EMPTY_THRES_G must be <= ((2**ADDR_WIDTH_G)-2)"
-      severity failure;
-   -- USE_DSP48_G check
-   assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
-      report "USE_DSP48_G must be either yes, no, auto, or automax"
       severity failure;
    -- INIT_G length check
    assert (INIT_G = "0" or INIT_G'length = DATA_WIDTH_G) report

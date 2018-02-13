@@ -34,7 +34,7 @@ entity AxiStreamSimWrap is
       PIPE_STAGES_G       : natural range 0 to 16      := 0;
       VALID_THOLD_G       : integer range 1 to (2**24) := 1;
       BRAM_EN_G           : boolean                    := true;
-      XIL_DEVICE_G        : string                     := "7SERIES";
+      FIFO_MEMORY_TYPE_G  : string                     := "block";
       USE_BUILT_IN_G      : boolean                    := false;
       GEN_SYNC_FIFO_G     : boolean                    := false;
       ALTERA_SYN_G        : boolean                    := false;
@@ -98,7 +98,7 @@ begin
          VALID_THOLD_G       => VALID_THOLD_G,
          -- FIFO configurations
          BRAM_EN_G           => BRAM_EN_G,
-         XIL_DEVICE_G        => XIL_DEVICE_G,
+         FIFO_MEMORY_TYPE_G  => FIFO_MEMORY_TYPE_G,
          USE_BUILT_IN_G      => USE_BUILT_IN_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          ALTERA_SYN_G        => ALTERA_SYN_G,
@@ -172,7 +172,7 @@ begin
          VALID_THOLD_G       => VALID_THOLD_G,
          -- FIFO configurations
          BRAM_EN_G           => BRAM_EN_G,
-         XIL_DEVICE_G        => XIL_DEVICE_G,
+         FIFO_MEMORY_TYPE_G  => FIFO_MEMORY_TYPE_G,
          USE_BUILT_IN_G      => USE_BUILT_IN_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          ALTERA_SYN_G        => ALTERA_SYN_G,

@@ -130,7 +130,7 @@ begin
    U_AxiLiteMaster : entity work.SsiAxiLiteMaster 
       generic map (
          TPD_G               => 1 ns,
-         XIL_DEVICE_G        => "7SERIES",
+         FIFO_MEMORY_TYPE_G  => "block",
          USE_BUILT_IN_G      => false,
          ALTERA_SYN_G        => false,
          ALTERA_RAM_G        => "M9K",
@@ -218,7 +218,7 @@ begin
    U_CmdMaster : entity work.SsiCmdMaster 
       generic map (
          TPD_G               => 1 ns,
-         XIL_DEVICE_G        => "7SERIES",
+         FIFO_MEMORY_TYPE_G  => "block",
          USE_BUILT_IN_G      => false,
          ALTERA_SYN_G        => false,
          ALTERA_RAM_G        => "M9K",
