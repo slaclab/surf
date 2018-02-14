@@ -349,6 +349,10 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
+      
+      -- Combinatorial outputs before the reset
+      ibSlaves    <= v.ibSlaves;
+      obDhcpSlave <= v.obDhcpSlave;
 
       -- Reset
       if (rst = '1') then
@@ -358,10 +362,8 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs        
-      ibSlaves    <= v.ibSlaves;
-      txMaster    <= r.txMaster;
-      obDhcpSlave <= v.obDhcpSlave;
+      -- Registered Outputs   
+      txMaster <= r.txMaster;
       
    end process comb;
 

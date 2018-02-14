@@ -2,7 +2,7 @@
 -- File       : DspFp32AddSub.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-09-30
--- Last update: 2017-09-30
+-- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: 32-bit Floating Point DSP inferred add/sub 
 -- Equation: p = a +/- b
@@ -110,7 +110,10 @@ begin
             v.p := a - b;
          end if;
       end if;
-
+      
+      -- Combinatorial outputs before the reset
+      ibReady <= v.ibReady;
+      
       -- Reset
       if (rst = RST_POLARITY_G) then
          v := REG_INIT_C;
@@ -120,7 +123,6 @@ begin
       rin <= v;
 
       -- Outputs              
-      ibReady <= v.ibReady;
       p       <= std_logic_vector(r.p);
 
    end process comb;

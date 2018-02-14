@@ -233,6 +233,9 @@ begin
                end if;
          ----------------------------------------------------------------------
          end case;
+         
+         -- Combinatorial outputs before the reset
+         sAxisSlave <= v.slave;
 
          -- Synchronous Reset
          if (axisRst = '1') then
@@ -242,8 +245,7 @@ begin
          -- Register the variable for next clock cycle
          rin <= v;
 
-         -- Outputs
-         sAxisSlave     <= v.slave;
+         -- Registered Outputs
          mAxisMaster    <= r.master;
          mAxisDropWrite <= r.wordDropped;
          mAxisTermFrame <= r.frameDropped;

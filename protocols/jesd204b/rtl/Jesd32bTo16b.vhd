@@ -2,7 +2,7 @@
 -- File       : Jesd32bTo16b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-02-24
--- Last update: 2017-08-29
+-- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: Converts the 32-bit JESD interface to 16-bit interface
 -------------------------------------------------------------------------------
@@ -126,6 +126,9 @@ begin
          end if;
       end if;
 
+      -- Combinatorial outputs before the reset
+      rdEn <= v.rdEn;
+
       -- Synchronous Reset
       if (rdRst = '1') then
          v := REG_INIT_C;
@@ -135,7 +138,6 @@ begin
       rin <= v;
 
       -- Outputs
-      rdEn     <= v.rdEn;
       validOut <= r.valid;
       trigOut  <= r.trig;
       dataOut  <= r.data;

@@ -273,6 +273,11 @@ begin
             end if;
       ----------------------------------------------------------------------      
       end case;
+      
+      -- Combinatorial outputs before the reset
+      macSlave     <= v.macSlave;
+      crcDataValid <= v.crcDataValid;
+      crcIn        <= v.crcIn;
 
       -- Reset
       if (ethRst = '1') then
@@ -282,16 +287,13 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs        
-      macSlave       <= v.macSlave;  -- Flow control with non-registered signal
+      -- Registered Outputs 
       txCountEn      <= r.txCountEn;
       txUnderRun     <= r.txUnderRun;
       txLinkNotReady <= r.txLinkNotReady;
       gmiiTxEn       <= r.gmiiTxEn;
       gmiiTxEr       <= r.gmiiTxEr;
       gmiiTxd        <= r.gmiiTxd;
-      crcDataValid   <= v.crcDataValid;
-      crcIn          <= v.crcIn;
 
    end process comb;
 

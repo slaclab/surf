@@ -2,7 +2,7 @@
 -- File       : DspSquareDiffMult.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-09-08
--- Last update: 2017-09-08
+-- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: Generalized DSP inferred Squarer with pre-adder 
 --              configured as subtractor (based on UG901)
@@ -123,6 +123,9 @@ begin
       end if;
 
       --------------------------------------------------------------------      
+      -- Combinatorial outputs before the reset
+      ibReady   <= v.ibReady;
+      tReady(0) <= v.tReady;
 
       -- Reset
       if (rst = RST_POLARITY_G) then
@@ -133,9 +136,7 @@ begin
       rin <= v;
 
       -- Outputs              
-      ibReady   <= v.ibReady;
-      tReady(0) <= v.tReady;
-      p         <= std_logic_vector(r.p);
+      p <= std_logic_vector(r.p);
 
    end process comb;
 

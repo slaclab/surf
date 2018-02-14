@@ -231,6 +231,11 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
+      
+      -- Combinatorial outputs before the reset
+      obMacSlave <= v.obMacSlave;
+      tDest      <= v.ibAppMaster.tDest;
+      req        <= v.req;
 
       -- Reset
       if (rst = '1') then
@@ -240,11 +245,8 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs        
-      obMacSlave  <= v.obMacSlave;
+      -- Registered Outputs   
       ibAppMaster <= r.ibAppMaster;
-      tDest       <= v.ibAppMaster.tDest;
-      req         <= v.req;
 
    end process comb;
 

@@ -352,6 +352,10 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
+      
+      -- Combinatorial outputs before the reset
+      mSlave  <= v.mSlave;
+      rxSlave <= v.rxSlave;
 
       -- Reset
       if (rst = '1') then
@@ -361,10 +365,8 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs        
-      mSlave     <= v.mSlave;
+      -- Registered Outputs 
       sMaster    <= r.sMaster;
-      rxSlave    <= v.rxSlave;
       txMaster   <= r.txMaster;
       txPktSent  <= r.txPktSent;
       txEofeSent <= r.txEofeSent;

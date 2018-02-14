@@ -168,6 +168,9 @@ begin
             end case;
          end if;
       end loop;
+      
+      -- Combinatorial outputs before the reset
+      arpAckSlaves <= v.arpAckSlaves;
 
       -- Reset
       if (rst = '1') then
@@ -177,8 +180,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs        
-      arpAckSlaves    <= v.arpAckSlaves;
+      -- Registered Outputs
       arpReqMasters   <= r.arpReqMasters;
       clientRemoteMac <= r.clientRemoteMac;
 

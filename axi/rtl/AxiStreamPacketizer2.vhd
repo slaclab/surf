@@ -311,17 +311,19 @@ begin
       end case;
 
       v.outputAxisMaster.tStrb := v.outputAxisMaster.tKeep;
+      
+      -- Combinatorial outputs before the reset
+      inputAxisSlave <= v.inputAxisSlave;
 
-      ----------------------------------------------------------------------------------------------
-      -- Reset and output assignment
-      ----------------------------------------------------------------------------------------------
+      -- Reset
       if (axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
+      -- Register the variable for next clock cycle
       rin <= v;
 
-      inputAxisSlave   <= v.inputAxisSlave;
+      -- Registered Outputs
       outputAxisMaster <= r.outputAxisMaster;
       rearbitrate      <= r.rearbitrate;
 

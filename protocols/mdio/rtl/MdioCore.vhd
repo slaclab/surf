@@ -5,7 +5,7 @@
 -- Author     : Till Straumann <strauman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-11-27
--- Last update: 2017-11-27
+-- Last update: 2018-02-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -140,7 +140,7 @@ begin
    begin
       if ( rising_edge( clk ) ) then
          if ( rst /= '0' ) then
-            r <= REG_INIT_C;
+            r <= REG_INIT_C after TPD_G;
          else
             r <= rin after TPD_G;
          end if;

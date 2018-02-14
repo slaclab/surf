@@ -190,6 +190,9 @@ begin
             end case;
          end if;
       end if;
+      
+      -- Combinatorial outputs before the reset
+      obMacSlave <= v.obMacSlave;
 
       -- Reset
       if (rst = '1') then
@@ -199,8 +202,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs
-      obMacSlave   <= v.obMacSlave;
+      -- Registered Outputs
       ibArpMaster  <= r.ibArpMaster;
       ibIpv4Master <= r.ibIpv4Master;
       

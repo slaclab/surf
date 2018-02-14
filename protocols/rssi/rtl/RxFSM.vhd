@@ -2,7 +2,7 @@
 -- File       : RxFSM.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-11
--- Last update: 2016-06-23
+-- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: Receiver FSM
 --              Receiver has the following functionality:
@@ -749,6 +749,11 @@ begin
            
       ----------------------------------------------------------------------
       end case;
+      
+      -- Combinatorial outputs before the reset
+      rdBuffAddr_o   <= v.txBufferAddr & v.txSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0);      
+      -- Transport side SSI output
+      tspSsiSlave_o <= v.tspSsiSlave;
 
       -- Synchronous Reset
       if (rst_i = '1') then
@@ -762,7 +767,6 @@ begin
       wrBuffAddr_o   <= r.rxBufferAddr & r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0);
       wrBuffWe_o     <= r.segmentWe;
       wrBuffData_o   <= r.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0);
-      rdBuffAddr_o   <= v.txBufferAddr & v.txSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0);
       
       -- Assign outputs
       rxFlags_o      <= r.rxF;
@@ -775,9 +779,6 @@ begin
       chksumStrobe_o <= r.chkStb;
       chksumLength_o <= r.chkLen;
       rxParam_o      <= r.rxParam;    
-      
-      -- Transport side SSI output
-      tspSsiSlave_o <= v.tspSsiSlave;
       
       -- Application side SSI output
       appSsiMaster_o <= r.appSsiMaster;      

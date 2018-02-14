@@ -74,9 +74,10 @@ begin
    comb : process (mAxisCtrl, sAxisMaster, axisRst, flushEn, r) is
       variable v : RegType;
    begin
-
+      -- Latch the current value
       v := r;
 
+      -- Reset strobing signals
       v.ibSlave.tReady := '0';
       v.obMaster := AXI_STREAM_MASTER_INIT_C;
 
@@ -132,14 +133,19 @@ begin
             v.state := IDLE_S;
 
       end case;
+      
+      -- Combinatorial outputs before the reset
+      sAxisSlave <= v.ibSlave;
 
+      -- Reset
       if axisRst = '1' then
          v := REG_INIT_C;
       end if;
 
+      -- Register the variable for next clock cycle
       rin <= v;
 
-      sAxisSlave  <= v.ibSlave;
+      -- Registered Outputs
       mAxisMaster <= r.obMaster;
 
    end process comb;
@@ -152,4 +158,3 @@ begin
    end process seq;
 
 end rtl;
-
