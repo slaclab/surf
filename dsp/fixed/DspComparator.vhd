@@ -2,7 +2,7 @@
 -- File       : DspComparator.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-09-07
--- Last update: 2017-09-07
+-- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: Generalized DSP inferred comparator
 -------------------------------------------------------------------------------
@@ -99,7 +99,10 @@ begin
          -- Process the data
          v.diff    := a - b;
       end if;
-
+      
+      -- Outputs              
+      ibReady <= v.ibReady;
+      
       -- Reset
       if (rst = RST_POLARITY_G) then
          v := REG_INIT_C;
@@ -108,8 +111,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs              
-      ibReady <= v.ibReady;
+    
 
    end process comb;
 

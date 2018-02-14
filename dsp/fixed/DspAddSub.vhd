@@ -2,7 +2,7 @@
 -- File       : DspAddSub.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-09-12
--- Last update: 2017-09-13
+-- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: Generalized DSP inferred DSP inferred add/sub 
 -- Equation: p = a +/- b
@@ -98,6 +98,9 @@ begin
             v.p := a - b;
          end if;
       end if;
+      
+      -- Combinatorial outputs before the reset
+      ibReady <= v.ibReady;
 
       -- Reset
       if (rst = RST_POLARITY_G) then
@@ -108,7 +111,6 @@ begin
       rin <= v;
 
       -- Outputs              
-      ibReady <= v.ibReady;
       p       <= std_logic_vector(r.p);
 
    end process comb;
