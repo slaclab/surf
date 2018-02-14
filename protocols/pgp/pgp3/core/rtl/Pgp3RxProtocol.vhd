@@ -159,10 +159,10 @@ begin
                   end if;
                elsif (btf = PGP3_SOF_C or btf = PGP3_SOC_C) then
                   v.pgpRxMaster.tValid := r.pgpRxOut.linkReady;  -- Hold Everything until linkready
-                  v.pgpRxMaster.tData := axiStreamPacketizer2Header(
+                  v.pgpRxMaster.tData := makePacketizer2Header(
                      sof   => ite(btf = SOF_C, '1', '0'),
                      tdest => resize(protRxData(PGP3_SOFC_VC_FIELD_C), 8),
-                     seq   => resize(protRxData(PGP3_SOFC_SEQ_FIELD_C), PACKET_HDR_SEQ_FIELD_C'length));
+                     seq   => resize(protRxData(PGP3_SOFC_SEQ_FIELD_C), PACKETIZER2_HDR_SEQ_FIELD_C'length));
                   axiStreamSetUserBit(PGP3_AXIS_CONFIG_C, v.pgpRxMaster, SSI_SOF_C, '1', 0);  -- Set SOF
                   pgp3ExtractLinkInfo(
                      protRxData(PGP3_LINKINFO_FIELD_C),

@@ -158,22 +158,22 @@ begin
             if (ssiGetUserSof(PGP3_AXIS_CONFIG_C, pgpTxMaster) = '1') then
                -- SOF/SOC, format SOF/SOC char from data
                v.protTxData                        := (others => '0');
-               v.protTxData(PGP3_BTF_FIELD_C)      := ite(pgpTxMaster.tData(PACKET_HDR_SOF_BIT_C) = '1', PGP3_SOF_C, PGP3_SOC_C);
+               v.protTxData(PGP3_BTF_FIELD_C)      := ite(pgpTxMaster.tData(PACKETIZER2_HDR_SOF_BIT_C) = '1', PGP3_SOF_C, PGP3_SOC_C);
                v.protTxData(PGP3_LINKINFO_FIELD_C) := linkInfo;
-               v.protTxData(PGP3_SOFC_VC_FIELD_C)  := resize(pgpTxMaster.tData(PACKET_HDR_TDEST_FIELD_C), PGP3_SOFC_VC_FIELD_C'length);  -- Virtual Channel
-               v.protTxData(PGP3_SOFC_SEQ_FIELD_C) := resize(pgpTxMaster.tData(PACKET_HDR_SEQ_FIELD_C), PGP3_SOFC_SEQ_FIELD_C'length));  -- Packet number
+               v.protTxData(PGP3_SOFC_VC_FIELD_C)  := resize(pgpTxMaster.tData(PACKETIZER2_HDR_TDEST_FIELD_C), PGP3_SOFC_VC_FIELD_C'length);  -- Virtual Channel
+               v.protTxData(PGP3_SOFC_SEQ_FIELD_C) := resize(pgpTxMaster.tData(PACKETIZER2_HDR_SEQ_FIELD_C), PGP3_SOFC_SEQ_FIELD_C'length));  -- Packet number
                v.protTxHeader                      := PGP3_K_HEADER_C;
 
             elsif (pgpTxMaster.tLast = '1') then
                -- EOF/EOC
                v.protTxData                               := (others => '0');
-               v.protTxData(PGP3_BTF_FIELD_C)             := ite(pgpTxMaster.tData(PACKET_TAIL_EOF_BIT_C) = '1', EOF_C, EOC_C);
-               v.protTxData(PGP3_EOFC_TUSER_FIELD_C)      := pgpTxMaster.tData(PACKET_TAIL_TUSER_FIELD_C);  -- TUSER LAST
-               v.protTxData(PGP3_EOFC_BYTES_LAST_FIELD_C) := pgpTxMaster.tData(PACKET_TAIL_BYTES_FIELD_C);  -- Last byte count
-               v.protTxData(PGP3_EOFC_CRC_FIELD_C)        := pgpTxMaster.tData(PACKET_TAIL_CRC_FIELD_C);  -- CRC
+               v.protTxData(PGP3_BTF_FIELD_C)             := ite(pgpTxMaster.tData(PACKETIZER2_TAIL_EOF_BIT_C) = '1', EOF_C, EOC_C);
+               v.protTxData(PGP3_EOFC_TUSER_FIELD_C)      := pgpTxMaster.tData(PACKETIZER2_TAIL_TUSER_FIELD_C);  -- TUSER LAST
+               v.protTxData(PGP3_EOFC_BYTES_LAST_FIELD_C) := pgpTxMaster.tData(PACKETIZER2_TAIL_BYTES_FIELD_C);  -- Last byte count
+               v.protTxData(PGP3_EOFC_CRC_FIELD_C)        := pgpTxMaster.tData(PACKETIZER2_TAIL_CRC_FIELD_C);  -- CRC
                v.protTxHeader                             := K_HEADER_C;
                -- Debug output
-               v.frameTx                                  := pgpTxMaster.tData(PACKET_TAIL_EOF_BIT_C);
+               v.frameTx                                  := pgpTxMaster.tData(PACKETIZER2_TAIL_EOF_BIT_C);
                v.frameTxErr                               := v.frameTx and ssiGetUserEofe(PGP3_AXIS_CONFIG_C, pgpTxMaster);
             else
                -- Normal data

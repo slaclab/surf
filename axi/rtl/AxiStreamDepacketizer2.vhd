@@ -249,11 +249,11 @@ begin
                if (ssiGetuserSof(AXIS_CONFIG_C, inputAxisMaster) = '1') then
 
                   -- Assign sideband fields
-                  v.outputAxisMaster(1).tDest(7 downto 0) := inputAxisMaster.tData(PACKET_HDR_TDEST_FIELD_C);
-                  v.outputAxisMaster(1).tId(7 downto 0)   := inputAxisMaster.tData(PACKET_HDR_TID_FIELD_C);
-                  v.outputAxisMaster(1).tUser(7 downto 0) := inputAxisMaster.tData(PACKET_HDR_TUSER_FIELD_C);
-                  sof                                     := inputAxisMaster.tData(PACKET_HDR_SOF_BIT_C);
-                  v.packetNumber                          := inputAxisMaster.tData(PACKET_HDR_SEQ_FIELD_C);
+                  v.outputAxisMaster(1).tDest(7 downto 0) := inputAxisMaster.tData(PACKETIZER2_HDR_TDEST_FIELD_C);
+                  v.outputAxisMaster(1).tId(7 downto 0)   := inputAxisMaster.tData(PACKETIZER2_HDR_TID_FIELD_C);
+                  v.outputAxisMaster(1).tUser(7 downto 0) := inputAxisMaster.tData(PACKETIZER2_HDR_TUSER_FIELD_C);
+                  sof                                     := inputAxisMaster.tData(PACKETIZER2_HDR_SOF_BIT_C);
+                  v.packetNumber                          := inputAxisMaster.tData(PACKETIZER2_HDR_SEQ_FIELD_C);
 
                   v.activeTDest := v.outputAxisMaster(1).tDest(7 downto 0);
 
@@ -262,7 +262,7 @@ begin
 
 
                   if (sof = not packetActiveRam and v.packetNumber = packetNumberRam and
-                      inputAxisMaster.tData(PACKET_HDR_VERSION_FIELD_C) = PACKET_VERSION_C) then
+                      inputAxisMaster.tData(PACKETIZER2_HDR_VERSION_FIELD_C) = PACKETIZER2_VERSION_C) then
                      -- Header metadata as expected
                      v.state    := MOVE_S;
                      v.sideband := '1';
@@ -322,18 +322,18 @@ begin
                   v.crcDataValid               := '0';
 
                   -- Append EOF metadata to previous txn which has been held
-                  lastBytes                   := conv_integer(inputAxisMaster.tData(PACKET_TAIL_BYTES_FIELD_C));
-                  axiStreamSetUserField(AXIS_CONFIG_C, v.outputAxisMaster(0), inputAxisMaster.tData(PACKET_TAIL_TUSER_FIELD_C), lastBytes);
-                  v.outputAxisMaster(0).tLast := inputAxisMaster.tData(PACKET_TAIL_EOF_BIT_C);
-                  v.outputAxisMaster(0).tKeep := genTkeep(conv_integer(inputAxisMaster.tData(PACKET_TAIL_BYTES_FIELD_C)));
+                  lastBytes                   := conv_integer(inputAxisMaster.tData(PACKETIZER2_TAIL_BYTES_FIELD_C));
+                  axiStreamSetUserField(AXIS_CONFIG_C, v.outputAxisMaster(0), inputAxisMaster.tData(PACKETIZER2_TAIL_TUSER_FIELD_C), lastBytes);
+                  v.outputAxisMaster(0).tLast := inputAxisMaster.tData(PACKETIZER2_TAIL_EOF_BIT_C);
+                  v.outputAxisMaster(0).tKeep := genTkeep(conv_integer(inputAxisMaster.tData(PACKETIZER2_TAIL_BYTES_FIELD_C)));
 
                   -- Verify the CRC. Set EOFE if fail.
-                  if (crcOut /= inputAxisMaster.tData(PACKET_TAIL_CRC_FIELD_C) and CRC_EN_G) then
+                  if (crcOut /= inputAxisMaster.tData(PACKETIZER2_TAIL_CRC_FIELD_C) and CRC_EN_G) then
                      axiStreamSetUserBit(AXIS_CONFIG_C, v.outputAxisMaster(0), SSI_EOFE_C, '1', lastBytes);
                   end if;
 
 
-                  if (inputAxisMaster.tData(PACKET_TAIL_EOF_BIT_C) = '1') then
+                  if (inputAxisMaster.tData(PACKETIZER2_TAIL_EOF_BIT_C) = '1') then
                      -- If EOF, reset packetActive and packetNumber                     
                      v.packetActive := '0';
                      v.packetNumber := (others => '0');

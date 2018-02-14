@@ -224,14 +224,14 @@ begin
             v.wordCount := (others => '0');
             v.crcReset  := '1';
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
-               v.outputAxisMaster                                   := axiStreamMasterInit(AXIS_CONFIG_C);
-               v.outputAxisMaster.tValid                            := inputAxisMaster.tValid;
-               v.outputAxisMaster.tData(PACKET_HDR_VERSION_FIELD_C) := X"02";
-               v.outputAxisMaster.tData(PACKET_HDR_TUSER_FIELD_C)   := inputAxisMaster.tUser(7 downto 0);
-               v.outputAxisMaster.tData(PACKET_HDR_TDEST_FIELD_C)   := inputAxisMaster.tDest(7 downto 0);
-               v.outputAxisMaster.tData(PACKET_HDR_TID_FIELD_C)     := inputAxisMaster.tId(7 downto 0);
-               v.outputAxisMaster.tData(PACKET_HDR_SOF_BIT_C)       := not packetActiveOut;
-               v.outputAxisMaster.tData(PACKET_HDR_SEQ_FIELD_C)     := packetNumberOut;
+               v.outputAxisMaster                                        := axiStreamMasterInit(AXIS_CONFIG_C);
+               v.outputAxisMaster.tValid                                 := inputAxisMaster.tValid;
+               v.outputAxisMaster.tData(PACKETIZER2_HDR_VERSION_FIELD_C) := PACKETIZER2_VERSION_C;
+               v.outputAxisMaster.tData(PACKETIZER2_HDR_TUSER_FIELD_C)   := inputAxisMaster.tUser(7 downto 0);
+               v.outputAxisMaster.tData(PACKETIZER2_HDR_TDEST_FIELD_C)   := inputAxisMaster.tDest(7 downto 0);
+               v.outputAxisMaster.tData(PACKETIZER2_HDR_TID_FIELD_C)     := inputAxisMaster.tId(7 downto 0);
+               v.outputAxisMaster.tData(PACKETIZER2_HDR_SOF_BIT_C)       := not packetActiveOut;
+               v.outputAxisMaster.tData(PACKETIZER2_HDR_SEQ_FIELD_C)     := packetNumberOut;
 
                -- Frame ID on 63:48?
                axiStreamSetUserBit(AXIS_CONFIG_C, v.outputAxisMaster, SSI_SOF_C, '1', 0);  -- SOF
@@ -292,19 +292,19 @@ begin
          when TAIL_S =>
             -- Insert tail when master side is ready for it
             if (v.outputAxisMaster.tValid = '0') then
-               v.outputAxisMaster.tValid                           := '1';
-               v.outputAxisMaster.tKeep                            := X"00FF";
-               v.outputAxisMaster.tData                            := (others => '0');
-               v.outputAxisMaster.tData(PACKET_TAIL_EOF_BIT_C)     := r.eof;
-               v.outputAxisMaster.tData(PACKET_TAIL_TUSER_FIELD_C) := r.tUserLast;
-               v.outputAxisMaster.tData(PACKET_TAIL_BYTES_FIELD_C) := r.lastByteCount;
-               v.outputAxisMaster.tData(PACKET_TAIL_CRC_FIELD_C)   := ite(CRC_EN_G, crcOut, X"00000000");
+               v.outputAxisMaster.tValid                                := '1';
+               v.outputAxisMaster.tKeep                                 := X"00FF";
+               v.outputAxisMaster.tData                                 := (others => '0');
+               v.outputAxisMaster.tData(PACKETIZER2_TAIL_EOF_BIT_C)     := r.eof;
+               v.outputAxisMaster.tData(PACKETIZER2_TAIL_TUSER_FIELD_C) := r.tUserLast;
+               v.outputAxisMaster.tData(PACKETIZER2_TAIL_BYTES_FIELD_C) := r.lastByteCount;
+               v.outputAxisMaster.tData(PACKETIZER2_TAIL_CRC_FIELD_C)   := ite(CRC_EN_G, crcOut, X"00000000");
                -- Myabe set tuser when SSI enabled?
-               v.outputAxisMaster.tUser                            := (others => '0');
-               v.outputAxisMaster.tLast                            := '1';
-               v.eof                                               := '0';  -- Clear EOF for next frame
-               v.tUserLast                                         := (others => '0');
-               v.state                                             := HEADER_S;  -- Go to idle and wait for new data
+               v.outputAxisMaster.tUser                                 := (others => '0');
+               v.outputAxisMaster.tLast                                 := '1';
+               v.eof                                                    := '0';  -- Clear EOF for next frame
+               v.tUserLast                                              := (others => '0');
+               v.state                                                  := HEADER_S;  -- Go to idle and wait for new data
             end if;
 
       end case;
