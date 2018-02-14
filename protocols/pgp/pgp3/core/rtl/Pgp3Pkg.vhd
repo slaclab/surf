@@ -19,6 +19,8 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
@@ -66,15 +68,15 @@ package Pgp3Pkg is
 
    constant PGP3_SCRAMBLER_TAPS_C : IntegerArray(0 to 1) := (0 => 39, 1 => 58);
 
-   type PGP3_BTF_FIELD_C is range 63 downto 56;
-   type PGP3_LINKINFO_FIELD_C is range 39 downto 0;
-   type PGP3_SOFC_VC_FIELD_C is range 43 downto 40;
-   type PGP3_SOFC_SEQ_FIELD_C is range 55 downto 44;
-   type PGP3_EOFC_TUSER_FIELD_C is range 7 downto 0;
-   type PGP3_EOFC_BYTES_LAST_FIELD_C is range 19 downto 16;
-   type PGP3_EOFC_CRC_FIELD_C is range 55 downto 24;
-   type PGP3_USER_CHECKSUM_FIELD_C is range 55 downto 48;
-   type PGP3_USER_OPCODE_FIELD_C is range 47 downto 0;
+   subtype PGP3_BTF_FIELD_C is natural range 63 downto 56;
+   subtype PGP3_LINKINFO_FIELD_C is natural range 39 downto 0;
+   subtype PGP3_SOFC_VC_FIELD_C is natural range 43 downto 40;
+   subtype PGP3_SOFC_SEQ_FIELD_C is natural range 55 downto 44;
+   subtype PGP3_EOFC_TUSER_FIELD_C is natural range 7 downto 0;
+   subtype PGP3_EOFC_BYTES_LAST_FIELD_C is natural range 19 downto 16;
+   subtype PGP3_EOFC_CRC_FIELD_C is natural range 55 downto 24;
+   subtype PGP3_USER_CHECKSUM_FIELD_C is natural range 55 downto 48;
+   subtype PGP3_USER_OPCODE_FIELD_C is natural range 47 downto 0;
 
    function pgp3MakeLinkInfo (
       locRxFifoCtrl  : AxiStreamCtrlArray;
@@ -252,6 +254,6 @@ package body Pgp3Pkg is
                   opCodeData(39 downto 32) +
                   opCodeData(47 downto 40));
       return ret;
-   end function
+   end function;
 
 end package body Pgp3Pkg;

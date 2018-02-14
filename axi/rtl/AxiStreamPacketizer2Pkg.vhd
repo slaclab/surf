@@ -28,17 +28,17 @@ package AxiStreamPacketizer2Pkg is
 
    constant PACKETIZER2_VERSION_C : slv(7 downto 0) := X"02";
 
-   type PACKETIZER2_HDR_VERSION_FIELD_C is range 7 downto 0;
-   type PACKETIZER2_HDR_TUSER_FIELD_C is range 15 downto 8;
-   type PACKETIZER2_HDR_TDEST_FIELD_C is range 23 downto 16;
-   type PACKETIZER2_HDR_TID_FIELD_C is range 31 downto 24;
+   subtype PACKETIZER2_HDR_VERSION_FIELD_C is natural range 7 downto 0;
+   subtype PACKETIZER2_HDR_TUSER_FIELD_C is natural range 15 downto 8;
+   subtype PACKETIZER2_HDR_TDEST_FIELD_C is natural range 23 downto 16;
+   subtype PACKETIZER2_HDR_TID_FIELD_C is natural range 31 downto 24;
    constant PACKETIZER2_HDR_SOF_BIT_C : integer := 63;
-   type PACKETIZER2_HDR_SEQ_FIELD_C is range 47 downto 32;
+   subtype PACKETIZER2_HDR_SEQ_FIELD_C is natural range 47 downto 32;
 
    constant PACKETIZER2_TAIL_EOF_BIT_C : integer := 8;
-   type PACKETIZER2_TAIL_TUSER_FIELD_C is range 7 downto 0;
-   type PACKETIZER2_TAIL_BYTES_FIELD_C is range 19 downto 16;
-   type PACKETIZER2_TAIL_CRC_FIELD_C is range 63 downto 32;
+   subtype PACKETIZER2_TAIL_TUSER_FIELD_C is natural range 7 downto 0;
+   subtype PACKETIZER2_TAIL_BYTES_FIELD_C is natural range 19 downto 16;
+   subtype PACKETIZER2_TAIL_CRC_FIELD_C is natural range 63 downto 32;
 
    type Packetizer2DebugType is record
       sof         : sl;

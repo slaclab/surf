@@ -160,18 +160,18 @@ begin
                v.protTxData                        := (others => '0');
                v.protTxData(PGP3_BTF_FIELD_C)      := ite(pgpTxMaster.tData(PACKETIZER2_HDR_SOF_BIT_C) = '1', PGP3_SOF_C, PGP3_SOC_C);
                v.protTxData(PGP3_LINKINFO_FIELD_C) := linkInfo;
-               v.protTxData(PGP3_SOFC_VC_FIELD_C)  := resize(pgpTxMaster.tData(PACKETIZER2_HDR_TDEST_FIELD_C), PGP3_SOFC_VC_FIELD_C'length);  -- Virtual Channel
-               v.protTxData(PGP3_SOFC_SEQ_FIELD_C) := resize(pgpTxMaster.tData(PACKETIZER2_HDR_SEQ_FIELD_C), PGP3_SOFC_SEQ_FIELD_C'length));  -- Packet number
+               v.protTxData(PGP3_SOFC_VC_FIELD_C)  := resize(pgpTxMaster.tData(PACKETIZER2_HDR_TDEST_FIELD_C), 4);  -- Virtual Channel
+               v.protTxData(PGP3_SOFC_SEQ_FIELD_C) := resize(pgpTxMaster.tData(PACKETIZER2_HDR_SEQ_FIELD_C), 12);  -- Packet number
                v.protTxHeader                      := PGP3_K_HEADER_C;
 
             elsif (pgpTxMaster.tLast = '1') then
                -- EOF/EOC
                v.protTxData                               := (others => '0');
-               v.protTxData(PGP3_BTF_FIELD_C)             := ite(pgpTxMaster.tData(PACKETIZER2_TAIL_EOF_BIT_C) = '1', EOF_C, EOC_C);
+               v.protTxData(PGP3_BTF_FIELD_C)             := ite(pgpTxMaster.tData(PACKETIZER2_TAIL_EOF_BIT_C) = '1', PGP3_EOF_C, PGP3_EOC_C);
                v.protTxData(PGP3_EOFC_TUSER_FIELD_C)      := pgpTxMaster.tData(PACKETIZER2_TAIL_TUSER_FIELD_C);  -- TUSER LAST
                v.protTxData(PGP3_EOFC_BYTES_LAST_FIELD_C) := pgpTxMaster.tData(PACKETIZER2_TAIL_BYTES_FIELD_C);  -- Last byte count
                v.protTxData(PGP3_EOFC_CRC_FIELD_C)        := pgpTxMaster.tData(PACKETIZER2_TAIL_CRC_FIELD_C);  -- CRC
-               v.protTxHeader                             := K_HEADER_C;
+               v.protTxHeader                             := PGP3_K_HEADER_C;
                -- Debug output
                v.frameTx                                  := pgpTxMaster.tData(PACKETIZER2_TAIL_EOF_BIT_C);
                v.frameTxErr                               := v.frameTx and ssiGetUserEofe(PGP3_AXIS_CONFIG_C, pgpTxMaster);
@@ -195,7 +195,7 @@ begin
          -- USER codes override data and delay SKP if they happen to coincide
          if (pgpTxIn.opCodeEn = '1' and dataEn = '1') then
             v.pgpTxSlave.tReady                      := '0';  -- Override any data acceptance.
-            v.protTxData(PGP3_BTF_FIELD_C)           := USER_C(conv_integer(pgpTxIn.opCodeNumber));
+            v.protTxData(PGP3_BTF_FIELD_C)           := PGP3_USER_C(conv_integer(pgpTxIn.opCodeNumber));
             v.protTxData(PGP3_USER_CHECKSUM_FIELD_C) := pgp3OpCodeChecksum(pgpTxIn.opCodeData);
             v.protTxData(PGP3_USER_OPCODE_FIELD_C)   := pgpTxIn.opCodeData;
 

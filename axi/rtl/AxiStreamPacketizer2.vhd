@@ -26,6 +26,7 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
+use work.AxiStreamPacketizer2Pkg.all;
 
 entity AxiStreamPacketizer2 is
 
