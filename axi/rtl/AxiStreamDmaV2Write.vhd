@@ -447,6 +447,9 @@ begin
       else
          v.dmaWrIdle := '0';
       end if;
+      
+      -- Combinatorial outputs before the reset
+      intAxisSlave <= v.slave;
 
       -- Reset      
       if (axiRst = '1') then
@@ -456,8 +459,7 @@ begin
       -- Register the variable for next clock cycle      
       rin <= v;
 
-      -- Outputs   
-      intAxisSlave   <= v.slave;
+      -- Registered Outputs 
       axiWriteMaster <= r.wMaster;
       dmaWrDescReq   <= r.dmaWrDescReq;
       dmaWrDescRet   <= r.dmaWrDescRet;

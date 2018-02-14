@@ -223,6 +223,9 @@ begin
             v.timer  := x"0000";
       ----------------------------------------------------------------------
       end case;
+      
+      -- Combinatorial outputs before the reset
+      obClientSlave <= v.obClientSlave;
 
       -- Reset
       if (rst = '1') then
@@ -232,8 +235,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs        
-      obClientSlave  <= v.obClientSlave;
+      -- Registered Outputs
       ibClientMaster <= r.ibClientMaster;
       passed         <= r.passedDly;
       failed         <= r.failedDly;

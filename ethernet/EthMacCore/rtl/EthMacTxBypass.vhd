@@ -150,6 +150,10 @@ begin
                end if;
          ----------------------------------------------------------------------   
          end case;
+         
+         -- Combinatorial outputs before the reset
+         sPrimSlave <= v.sPrimSlave;
+         sBypSlave  <= v.sBypSlave;
 
          -- Reset
          if ethRst = '1' then
@@ -159,9 +163,7 @@ begin
          -- Register the variable for next clock cycle
          rin <= v;
 
-         -- Outputs 
-         sPrimSlave  <= v.sPrimSlave;
-         sBypSlave   <= v.sBypSlave;
+         -- Registered Outputs
          mAxisMaster <= r.mAxisMaster;
 
       end process;

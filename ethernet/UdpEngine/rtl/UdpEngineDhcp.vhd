@@ -524,8 +524,11 @@ begin
             end if;
             -- Next state
             v.state := IDLE_S;
-----------------------------------------------------------------------
+         ----------------------------------------------------------------------
       end case;
+      
+      -- Combinatorial outputs before the reset
+      rxSlave <= v.rxSlave;
 
       -- Reset
       if (rst = '1') then
@@ -535,8 +538,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs        
-      rxSlave  <= v.rxSlave;
+      -- Registered Outputs       
       txMaster <= r.txMaster;
       dhcpIp   <= r.dhcpIp;
 

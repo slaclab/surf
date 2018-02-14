@@ -217,6 +217,9 @@ begin
          end if;
 
       end if;
+      
+      -- Combinatorial outputs before the reset
+      pgpTxSlave <= v.pgpTxSlave;
 
       if (pgpTxRst = '1') then
          v := REG_INIT_C;
@@ -224,7 +227,6 @@ begin
 
       rin <= v;
 
-      pgpTxSlave     <= v.pgpTxSlave;
       protTxData     <= r.protTxData;
       protTxHeader   <= r.protTxHeader;
       protTxValid    <= r.protTxValid;

@@ -214,6 +214,9 @@ begin
          v.arbCnt := (others => '0');
          arbitrate(requests, r.ackNum, v.ackNum, v.valid, v.acks);
       end if;
+      
+      -- Combinatorial outputs before the reset
+      sAxisSlaves <= v.slaves;
 
       -- Reset
       if (axisRst = '1') then
@@ -223,8 +226,7 @@ begin
       -- Assign variable back to signal
       rin <= v;
 
-      -- Outputs  
-      sAxisSlaves    <= v.slaves;
+      -- Registered Outputs
       pipeAxisMaster <= r.master;
 
    end process comb;

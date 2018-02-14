@@ -273,16 +273,16 @@ begin
             
       end case;
 
-      ----------------------------------------------------------------------------------------------
-      -- Reset and output assignment
-      ----------------------------------------------------------------------------------------------
+      -- Combinatorial outputs before the reset
+      inputAxisSlave <= v.inputAxisSlave;
+      
+      -- Reset
       if (axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
+      -- Register the variable for next clock cycle
       rin <= v;
-
-      inputAxisSlave <= v.inputAxisSlave;
 
       -- Hold each out tvalid until next in tvalid arrives
       outputAxisMaster <= r.outputAxisMaster(0);

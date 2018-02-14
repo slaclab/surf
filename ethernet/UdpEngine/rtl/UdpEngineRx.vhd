@@ -459,6 +459,9 @@ begin
             end case;
       ----------------------------------------------------------------------
       end case;
+      
+      -- Combinatorial outputs before the reset
+      rxSlave <= v.rxSlave;
 
       -- Reset
       if (rst = '1') then
@@ -468,12 +471,11 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs        
+      -- Registered Outputs  
       serverRemotePort <= r.serverRemotePort;
       serverRemoteIp   <= r.serverRemoteIp;
       serverRemoteMac  <= r.serverRemoteMac;
       clientRemoteDet  <= r.clientRemoteDet;
-      rxSlave          <= v.rxSlave;
 
    end process comb;
 

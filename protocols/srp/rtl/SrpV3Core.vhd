@@ -651,6 +651,10 @@ begin
       if (rxMaster.tLast = '1') and (v.rxSlave.tReady = '1') then
          v.eofe := ssiGetUserEofe(SRP_AXIS_CONFIG_C, rxMaster);
       end if;
+      
+      -- Combinatorial outputs before the reset
+      rxSlave       <= v.rxSlave;
+      srpRdSlaveInt <= v.srpRdSlave;
 
       -- Reset
       if (srpRst = '1') then
@@ -660,10 +664,8 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs    
-      rxSlave        <= v.rxSlave;
+      -- Registered Outputs
       srpReq         <= r.srpReq;
-      srpRdSlaveInt  <= v.srpRdSlave;
       srpWrMasterInt <= r.srpWrMaster;
 
    end process comb;

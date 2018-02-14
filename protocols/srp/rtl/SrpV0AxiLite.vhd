@@ -389,16 +389,21 @@ begin
             v.state := S_IDLE_C;
 
       end case;
+      
+      -- Combinatorial outputs before the reset
+      sFifoAxisSlave <= v.sFifoAxisSlave;
 
+      -- Reset
       if (axiLiteRst = '1') then
          v := REG_INIT_C;
       end if;
 
+      -- Register the variable for next clock cycle
       rin <= v;
 
+      -- Registered Outputs
       mAxiLiteWriteMaster <= r.mAxiLiteWriteMaster;
       mAxiLiteReadMaster  <= r.mAxiLiteReadMaster;
-      sFifoAxisSlave      <= v.sFifoAxisSlave;
       mFifoAxisMaster     <= r.mFifoAxisMaster;
 
    end process comb;
