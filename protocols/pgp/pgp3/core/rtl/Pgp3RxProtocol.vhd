@@ -11,11 +11,11 @@
 -- stream (pre-scrambler). Inserts IDLE and SKP codes as needed. Inserts
 -- user K codes on request.
 -------------------------------------------------------------------------------
--- This file is part of <PROJECT_NAME>. It is subject to
+-- This file is part of SURF. It is subject to
 -- the license terms in the LICENSE.txt file found in the top-level directory
 -- of this distribution and at:
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
--- No part of <PROJECT_NAME>, including this file, may be
+-- No part of SURF, including this file, may be
 -- copied, modified, propagated, or distributed except according to the terms
 -- contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
@@ -27,6 +27,7 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
+use work.AxiStreamPacketizer2Pkg.all;
 use work.SsiPkg.all;
 use work.Pgp3Pkg.all;
 
@@ -110,7 +111,7 @@ begin
    begin
       v := r;
 
-      btf := protRxData(63 downto 56);
+      btf := protRxData(PGP3_BTF_FIELD_C);
 
       v.pgpRxMaster        := REG_INIT_C.pgpRxMaster;
       v.pgpRxOut.opCodeEn  := '0';
@@ -118,13 +119,7 @@ begin
       v.pgpRxOut.linkError := '0';
       v.protRxPhyInit      := '0';
 
-      opCodeChecksum := not (protRxData(7 downto 0) +
-                             protRxData(15 downto 8) +
-                             protRxData(23 downto 16) +
-                             protRxData(31 downto 24) +
-                             protRxData(39 downto 32) +                             
-                             protRxData(47 downto 40));
-
+      opCodeChecksum := pgp3OpCodeChecksum(protRxData(47 downto 0));
 
       -- Just translate straight to AXI-Stream packetizer2 format
       -- and let the depacketizer handle any errors?
@@ -133,14 +128,14 @@ begin
             -- Unlinked
             -- Need N valid headers in a row. Data is ignored.
             v.count := (others => '0');
-            if (protRxHeader = K_HEADER_C) then
-               for i in VALID_BTF_ARRAY_C'range loop
-                  if (btf = VALID_BTF_ARRAY_C(i)) then
+            if (protRxHeader = PGP3_K_HEADER_C) then
+               for i in PGP3_VALID_BTF_ARRAY_C'range loop
+                  if (btf = PGP3_VALID_BTF_ARRAY_C(i)) then
                      -- Valid header, increment count
                      v.count := r.count + 1;
                   end if;
                end loop;
-            elsif (protRxHeader = D_HEADER_C) then
+            elsif (protRxHeader = PGP3_D_HEADER_C) then
                -- Ignore data
                v.count := r.count;
             end if;
@@ -152,53 +147,54 @@ begin
             -- reset when IDLE or SOF or SOC seen
             v.count := r.count + 1;
 
-            if (protRxHeader = K_HEADER_C) then
-               if (btf = IDLE_C) then
-                  extractLinkInfo(
-                     protRxData(39 downto 0),
+            if (protRxHeader = PGP3_K_HEADER_C) then
+               if (btf = PGP3_IDLE_C) then
+                  pgp3ExtractLinkInfo(
+                     protRxData(PGP3_LINKINFO_FIELD_C),
                      v.remRxFifoCtrl,
                      v.remRxLinkReady,
                      v.version);
                   if (v.version = PGP3_VERSION_C) then
                      v.count := (others => '0');
                   end if;
-               elsif (btf = SOF_C or btf = SOC_C) then
-                  v.pgpRxMaster.tValid              := r.pgpRxOut.linkReady;  -- Hold Everything until
-                  v.pgpRxMaster.tData               := (others => '0');
-                  v.pgpRxMaster.tData(24)           := ite(btf = SOF_C, '1', '0');  -- packetizer SOC bit
-                  v.pgpRxMaster.tData(11 downto 8)  := protRxData(43 downto 40);  -- VC
-                  v.pgpRxMaster.tData(43 downto 32) := protRxData(55 downto 44);  -- packet number
+               elsif (btf = PGP3_SOF_C or btf = PGP3_SOC_C) then
+                  v.pgpRxMaster.tValid := r.pgpRxOut.linkReady;  -- Hold Everything until linkready
+                  v.pgpRxMaster.tData(63 downto 0) := makePacketizer2Header(
+                     sof   => ite(btf = PGP3_SOF_C, '1', '0'),
+                     tdest => resize(protRxData(PGP3_SOFC_VC_FIELD_C), 8),
+                     seq   => resize(protRxData(PGP3_SOFC_SEQ_FIELD_C), 16));
                   axiStreamSetUserBit(PGP3_AXIS_CONFIG_C, v.pgpRxMaster, SSI_SOF_C, '1', 0);  -- Set SOF
-                  extractLinkInfo(
-                     protRxData(39 downto 0),
+                  pgp3ExtractLinkInfo(
+                     protRxData(PGP3_LINKINFO_FIELD_C),
                      v.remRxFifoCtrl,
                      v.pgpRxOut.remRxLinkReady,
                      v.version);
                   if (v.version = PGP3_VERSION_C) then
                      v.count := (others => '0');
                   end if;
-               elsif (btf = EOF_C or btf = EOC_C) then
-                  v.pgpRxMaster.tValid              := r.pgpRxOut.linkReady;
-                  v.pgpRxMaster.tLast               := '1';
-                  v.pgpRxMaster.tData               := (others => '0');
-                  v.pgpRxMaster.tData(8)            := toSl(btf = EOF_C);     -- EOF bit
-                  v.pgpRxMaster.tData(7 downto 0)   := protRxData(7 downto 0);    -- TUSER LAST
-                  v.pgpRxMaster.tData(19 downto 16) := protRxData(19 downto 16);  -- Last byte count
-                  v.pgpRxMaster.tData(63 downto 32) := protRxData(55 downto 24);  -- CRC
+               elsif (btf = PGP3_EOF_C or btf = PGP3_EOC_C) then
+                  v.pgpRxMaster.tValid := r.pgpRxOut.linkReady;
+                  v.pgpRxMaster.tLast  := '1';
+                  v.pgpRxMaster.tData(63 downto 0) := makePacketizer2Tail(
+                     eof   => toSl(btf = PGP3_EOF_C),
+                     tuser => protRxData(PGP3_EOFC_TUSER_FIELD_C),
+                     bytes => protRxData(PGP3_EOFC_BYTES_LAST_FIELD_C),
+                     crc   => protRxData(PGP3_EOFC_CRC_FIELD_C));
+
                else
-                  for i in USER_C'range loop
-                     if (btf = USER_C(i)) then
+                  for i in PGP3_USER_C'range loop
+                     if (btf = PGP3_USER_C(i)) then
                         v.pgpRxOut.opCodeNumber := toSlv(i, 3);
-                        v.pgpRxOut.opCodeData   := protRxData(47 downto 0);
+                        v.pgpRxOut.opCodeData   := protRxData(PGP3_USER_OPCODE_FIELD_C);
                         -- Verify checksun
-                        if (protRxData(55 downto 48) = opCodeChecksum) then
-                           v.pgpRxOut.opCodeEn := '1';                           
+                        if (protRxData(PGP3_USER_CHECKSUM_FIELD_C) = opCodeChecksum) then
+                           v.pgpRxOut.opCodeEn := '1';
                         end if;
                      end if;
                   end loop;
                end if;
             -- Unknown opcodes silently dropped
-            elsif (protRxHeader = D_HEADER_C) then
+            elsif (protRxHeader = PGP3_D_HEADER_C) then
                -- Normal Data
                v.pgpRxMaster.tValid             := r.pgpRxOut.linkReady;
                v.pgpRxMaster.tData(63 downto 0) := protRxData;
