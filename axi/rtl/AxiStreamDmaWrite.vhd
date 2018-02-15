@@ -505,6 +505,9 @@ begin
          -- Reset the flag
          v.dmaAck.idle := '0';
       end if;
+      
+      -- Combinatorial outputs before the reset
+      intAxisSlave <= v.slave;
 
       -- Reset      
       if (axiRst = '1') then
@@ -514,9 +517,8 @@ begin
       -- Register the variable for next clock cycle      
       rin <= v;
 
-      -- Outputs   
+      -- Registered Outputs 
       dmaAck         <= r.dmaAck;
-      intAxisSlave   <= v.slave;
       axiWriteMaster <= r.wMaster;
       
    end process comb;

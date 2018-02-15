@@ -26,6 +26,7 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
+use work.AxiStreamPacketizer2Pkg.all;
 
 entity AxiStreamPacketizer2 is
 
@@ -162,7 +163,7 @@ begin
          doutb(15 downto 0) => packetNumberOut,        -- [out]
          doutb(16)          => packetActiveOut);       --[out]
 
-   ETH_CRC : if (CRC_POLY_G = x"04C11DB7") generate         
+   ETH_CRC : if (CRC_POLY_G = x"04C11DB7") generate
       U_Crc32 : entity work.Crc32Parallel
          generic map (
             TPD_G            => TPD_G,
@@ -177,8 +178,8 @@ begin
             crcIn        => inputAxisMaster.tData(63 downto 0),  -- [in]
             crcReset     => rin.crcReset);                       -- [in]
    end generate;
-   
-   GEN_CRC : if (CRC_POLY_G /= x"04C11DB7") generate         
+
+   GEN_CRC : if (CRC_POLY_G /= x"04C11DB7") generate
       U_Crc32 : entity work.Crc32
          generic map (
             TPD_G            => TPD_G,
@@ -224,19 +225,21 @@ begin
             v.wordCount := (others => '0');
             v.crcReset  := '1';
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
-               v.outputAxisMaster                     := axiStreamMasterInit(AXIS_CONFIG_C);
-               v.outputAxisMaster.tValid              := inputAxisMaster.tValid;
-               v.outputAxisMaster.tData(7 downto 0)   := inputAxisMaster.tUser(7 downto 0);
-               v.outputAxisMaster.tData(15 downto 8)  := inputAxisMaster.tDest(7 downto 0);
-               v.outputAxisMaster.tData(23 downto 16) := inputAxisMaster.tId(7 downto 0);
-               v.outputAxisMaster.tData(24)           := not packetActiveOut;
-               v.outputAxisMaster.tData(47 downto 32) := packetNumberOut;
+               v.outputAxisMaster                                        := axiStreamMasterInit(AXIS_CONFIG_C);
+               v.outputAxisMaster.tValid                                 := inputAxisMaster.tValid;
+               v.outputAxisMaster.tData(PACKETIZER2_HDR_VERSION_FIELD_C) := PACKETIZER2_VERSION_C;
+               v.outputAxisMaster.tData(PACKETIZER2_HDR_TUSER_FIELD_C)   := inputAxisMaster.tUser(7 downto 0);
+               v.outputAxisMaster.tData(PACKETIZER2_HDR_TDEST_FIELD_C)   := inputAxisMaster.tDest(7 downto 0);
+               v.outputAxisMaster.tData(PACKETIZER2_HDR_TID_FIELD_C)     := inputAxisMaster.tId(7 downto 0);
+               v.outputAxisMaster.tData(PACKETIZER2_HDR_SOF_BIT_C)       := not packetActiveOut;
+               v.outputAxisMaster.tData(PACKETIZER2_HDR_SEQ_FIELD_C)     := packetNumberOut;
+
                -- Frame ID on 63:48?
                axiStreamSetUserBit(AXIS_CONFIG_C, v.outputAxisMaster, SSI_SOF_C, '1', 0);  -- SOF
-               v.packetNumber                         := packetNumberOut + 1;
-               v.packetActive                         := '1';
-               v.activeTDest                          := inputAxisMaster.tDest;
-               v.state                                := MOVE_S;
+               v.packetNumber := packetNumberOut + 1;
+               v.packetActive := '1';
+               v.activeTDest  := inputAxisMaster.tDest;
+               v.state        := MOVE_S;
             end if;
 
          when MOVE_S =>
@@ -290,35 +293,37 @@ begin
          when TAIL_S =>
             -- Insert tail when master side is ready for it
             if (v.outputAxisMaster.tValid = '0') then
-               v.outputAxisMaster.tValid              := '1';
-               v.outputAxisMaster.tKeep               := X"00FF";
-               v.outputAxisMaster.tData               := (others => '0');
-               v.outputAxisMaster.tData(8)            := r.eof;
-               v.outputAxisMaster.tData(7 downto 0)   := r.tUserLast;
-               v.outputAxisMaster.tData(19 downto 16) := r.lastByteCount;
-               v.outputAxisMaster.tData(63 downto 32) := ite(CRC_EN_G, crcOut, X"00000000");
+               v.outputAxisMaster.tValid                                := '1';
+               v.outputAxisMaster.tKeep                                 := X"00FF";
+               v.outputAxisMaster.tData                                 := (others => '0');
+               v.outputAxisMaster.tData(PACKETIZER2_TAIL_EOF_BIT_C)     := r.eof;
+               v.outputAxisMaster.tData(PACKETIZER2_TAIL_TUSER_FIELD_C) := r.tUserLast;
+               v.outputAxisMaster.tData(PACKETIZER2_TAIL_BYTES_FIELD_C) := r.lastByteCount;
+               v.outputAxisMaster.tData(PACKETIZER2_TAIL_CRC_FIELD_C)   := ite(CRC_EN_G, crcOut, X"00000000");
                -- Myabe set tuser when SSI enabled?
-               v.outputAxisMaster.tUser               := (others => '0');
-               v.outputAxisMaster.tLast               := '1';
-               v.eof                                  := '0';       -- Clear EOF for next frame
-               v.tUserLast                            := (others => '0');
-               v.state                                := HEADER_S;  -- Go to idle and wait for new data
+               v.outputAxisMaster.tUser                                 := (others => '0');
+               v.outputAxisMaster.tLast                                 := '1';
+               v.eof                                                    := '0';  -- Clear EOF for next frame
+               v.tUserLast                                              := (others => '0');
+               v.state                                                  := HEADER_S;  -- Go to idle and wait for new data
             end if;
 
       end case;
 
       v.outputAxisMaster.tStrb := v.outputAxisMaster.tKeep;
+      
+      -- Combinatorial outputs before the reset
+      inputAxisSlave <= v.inputAxisSlave;
 
-      ----------------------------------------------------------------------------------------------
-      -- Reset and output assignment
-      ----------------------------------------------------------------------------------------------
+      -- Reset
       if (axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
+      -- Register the variable for next clock cycle
       rin <= v;
 
-      inputAxisSlave   <= v.inputAxisSlave;
+      -- Registered Outputs
       outputAxisMaster <= r.outputAxisMaster;
       rearbitrate      <= r.rearbitrate;
 

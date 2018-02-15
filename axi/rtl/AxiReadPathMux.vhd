@@ -2,7 +2,7 @@
 -- File       : AxiReadPathMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2014-04-29
+-- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: Block to connect multiple incoming AXI write path interfaces.
 -------------------------------------------------------------------------------
@@ -26,7 +26,7 @@ use work.AxiPkg.all;
 
 entity AxiReadPathMux is
    generic (
-      TPD_G        : time                  := 1 ns;
+      TPD_G : time := 1 ns;
       NUM_SLAVES_G : integer range 1 to 32 := 4
       );
    port (
@@ -36,19 +36,19 @@ entity AxiReadPathMux is
       axiRst : in sl;
 
       -- Slaves
-      sAxiReadMasters : in  AxiReadMasterArray(NUM_SLAVES_G-1 downto 0);
-      sAxiReadSlaves  : out AxiReadSlaveArray(NUM_SLAVES_G-1 downto 0);
+      sAxiReadMasters : in AxiReadMasterArray(NUM_SLAVES_G-1 downto 0);
+      sAxiReadSlaves : out AxiReadSlaveArray(NUM_SLAVES_G-1 downto 0);
 
       -- Master
-      mAxiReadMaster  : out AxiReadMasterType;
-      mAxiReadSlave   : in  AxiReadSlaveType
+      mAxiReadMaster : out AxiReadMasterType;
+      mAxiReadSlave : in AxiReadSlaveType
       );
 end AxiReadPathMux;
 
 architecture structure of AxiReadPathMux is
 
    constant DEST_SIZE_C : integer := bitSize(NUM_SLAVES_G-1);
-   constant ARB_BITS_C  : integer := 2**DEST_SIZE_C;
+   constant ARB_BITS_C : integer := 2**DEST_SIZE_C;
 
    --------------------------
    -- Address Path
@@ -57,32 +57,32 @@ architecture structure of AxiReadPathMux is
    type StateType is (S_IDLE_C, S_MOVE_C, S_LAST_C);
 
    type RegType is record
-      addrState  : StateType;
-      addrAcks   : slv(ARB_BITS_C-1 downto 0);
+      addrState : StateType;
+      addrAcks : slv(ARB_BITS_C-1 downto 0);
       addrAckNum : slv(DEST_SIZE_C-1 downto 0);
-      addrValid  : sl;
-      slaves     : AxiReadSlaveArray(NUM_SLAVES_G-1 downto 0);
-      master     : AxiReadMasterType;
+      addrValid : sl;
+      slaves : AxiReadSlaveArray(NUM_SLAVES_G-1 downto 0);
+      master : AxiReadMasterType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      addrState  => S_IDLE_C,
-      addrAcks   => (others => '0'),
+      addrState => S_IDLE_C,
+      addrAcks => (others => '0'),
       addrAckNum => (others => '0'),
-      addrValid  => '0',
-      slaves     => (others => AXI_READ_SLAVE_INIT_C),
-      master     => AXI_READ_MASTER_INIT_C
+      addrValid => '0',
+      slaves => (others => AXI_READ_SLAVE_INIT_C),
+      master => AXI_READ_MASTER_INIT_C
       );
 
-   signal r   : RegType := REG_INIT_C;
+   signal r : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
 
    comb : process (axiRst, r, sAxiReadMasters, mAxiReadSlave) is
-      variable v            : RegType;
+      variable v : RegType;
       variable addrRequests : slv(ARB_BITS_C-1 downto 0);
-      variable selAddr      : AxiReadMasterType;
+      variable selAddr : AxiReadMasterType;
    begin
       v := r;
 
@@ -96,13 +96,13 @@ begin
       end loop;
 
       -- Select address source
-      selAddr       := sAxiReadMasters(conv_integer(r.addrAckNum));
-      selAddr.arid  := (others => '0');
+      selAddr := sAxiReadMasters(conv_integer(r.addrAckNum));
+      selAddr.arid := (others => '0');
 
       selAddr.arid(DEST_SIZE_C-1 downto 0) := r.addrAckNum;
 
       -- Format requests
-      addrRequests := (others=>'0');
+      addrRequests := (others => '0');
       for i in 0 to (NUM_SLAVES_G-1) loop
          addrRequests(i) := sAxiReadMasters(i).arvalid;
       end loop;
@@ -133,21 +133,21 @@ begin
 
             -- Advance pipeline 
             v.master.arvalid := '1';
-            v.master.araddr  := selAddr.araddr;
-            v.master.arid    := selAddr.arid;
-            v.master.arlen   := selAddr.arlen;
-            v.master.arsize  := selAddr.arsize;
+            v.master.araddr := selAddr.araddr;
+            v.master.arid := selAddr.arid;
+            v.master.arlen := selAddr.arlen;
+            v.master.arsize := selAddr.arsize;
             v.master.arburst := selAddr.arburst;
-            v.master.arlock  := selAddr.arlock;
-            v.master.arprot  := selAddr.arprot;
+            v.master.arlock := selAddr.arlock;
+            v.master.arprot := selAddr.arprot;
             v.master.arcache := selAddr.arcache;
-            v.addrState      := S_LAST_C;
+            v.addrState := S_LAST_C;
 
          -- Laster transfer
          when S_LAST_C =>
             if mAxiReadSlave.arready = '1' then
                v.master.arvalid := '0';
-               v.addrState      := S_IDLE_C;
+               v.addrState := S_IDLE_C;
             end if;
       end case;
 
@@ -167,16 +167,24 @@ begin
          sAxiReadMasters(conv_integer(mAxiReadSlave.rid(DEST_SIZE_C-1 downto 0))).rready = '1' then
 
          v.slaves(conv_integer(mAxiReadSlave.rid(DEST_SIZE_C-1 downto 0))).rvalid := mAxiReadSlave.rvalid;
-         v.slaves(conv_integer(mAxiReadSlave.rid(DEST_SIZE_C-1 downto 0))).rdata  := mAxiReadSlave.rdata;
-         v.slaves(conv_integer(mAxiReadSlave.rid(DEST_SIZE_C-1 downto 0))).rlast  := mAxiReadSlave.rlast;
-         v.slaves(conv_integer(mAxiReadSlave.rid(DEST_SIZE_C-1 downto 0))).rresp  := mAxiReadSlave.rresp;
-         v.slaves(conv_integer(mAxiReadSlave.rid(DEST_SIZE_C-1 downto 0))).rid    := mAxiReadSlave.rid;
+         v.slaves(conv_integer(mAxiReadSlave.rid(DEST_SIZE_C-1 downto 0))).rdata := mAxiReadSlave.rdata;
+         v.slaves(conv_integer(mAxiReadSlave.rid(DEST_SIZE_C-1 downto 0))).rlast := mAxiReadSlave.rlast;
+         v.slaves(conv_integer(mAxiReadSlave.rid(DEST_SIZE_C-1 downto 0))).rresp := mAxiReadSlave.rresp;
+         v.slaves(conv_integer(mAxiReadSlave.rid(DEST_SIZE_C-1 downto 0))).rid := mAxiReadSlave.rid;
          v.master.rready := '1';
       else
          v.master.rready := '0';
       end if;
-   
-      if (axiRst = '1' ) or (NUM_SLAVES_G = 1) then
+
+      -- Readies are direct
+      -- Assign combinatoral outputs before reset
+      for i in 0 to (NUM_SLAVES_G-1) loop
+         sAxiReadSlaves(i).arready <= v.slaves(i).arready;
+      end loop;
+      mAxiReadMaster.rready <= v.master.rready;
+
+
+      if (axiRst = '1') or (NUM_SLAVES_G = 1) then
          v := REG_INIT_C;
       end if;
 
@@ -185,18 +193,13 @@ begin
       -- Bypass if single slave
       if NUM_SLAVES_G = 1 then
          sAxiReadSlaves(0) <= mAxiReadSlave;
-         mAxiReadMaster    <= sAxiReadmasters(0);
+         mAxiReadMaster <= sAxiReadmasters(0);
       else
 
          -- Output data
          sAxiReadSlaves <= r.slaves;
          mAxiReadMaster <= r.master;
 
-         -- Readies are direct
-         for i in 0 to (NUM_SLAVES_G-1) loop
-            sAxiReadSlaves(i).arready <= v.slaves(i).arready;
-         end loop;
-         mAxiReadMaster.rready <= v.master.rready;
       end if;
    end process comb;
 

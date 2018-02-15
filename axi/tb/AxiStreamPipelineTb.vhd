@@ -2,7 +2,7 @@
 -- File       : AxiStreamPipelineTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2016-09-06
+-- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the AxiStreamPipelineTb module
 -------------------------------------------------------------------------------
@@ -202,6 +202,9 @@ begin
             end if;
          end if;
       end if;
+      
+      -- Combinatorial outputs before the reset
+      mAxisSlave  <= v.mAxisSlave;      
 
       -- Reset
       if (rst = '1') then
@@ -212,7 +215,6 @@ begin
       rin <= v;
 
       -- Outputs        
-      mAxisSlave  <= v.mAxisSlave;
       sAxisMaster <= r.sAxisMaster;
       failed      <= r.failed;
       passed      <= r.passed;

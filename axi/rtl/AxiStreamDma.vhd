@@ -384,7 +384,7 @@ begin
       -- Next register assignment
       rin <= v;
 
-      -- Outputs
+      -- Registered Outputs
       interrupt         <= r.interrupt;
       acknowledge       <= r.acknowledge;
       online            <= r.online;
@@ -476,10 +476,10 @@ begin
          v := IB_INIT_C;
       end if;
 
-      -- Next register assignment
+      -- Register the variable for next clock cycle
       ibin <= v;
 
-      -- Outputs
+      -- Registered Outputs
       ibReq                   <= ib.ibReq;
       popFifoWrite(IB_FIFO_C) <= ib.popFifoWrite;
       popFifoDin(IB_FIFO_C)   <= ib.popFifoDin;
@@ -584,19 +584,21 @@ begin
          v.intPending := '0';
       end if;
 
+      -- Combinatorial outputs before the reset
+      pushFifoRead(OB_FIFO_C) <= v.pushFifoRead;
+      
       -- Reset
       if axiRst = '1' or r.txEnable = '0' then
          v := OB_INIT_C;
       end if;
 
-      -- Next register assignment
+      -- Register the variable for next clock cycle
       obin <= v;
 
-      -- Outputs
+      -- Registered Outputs
       obReq                   <= ob.obReq;
       popFifoWrite(OB_FIFO_C) <= ob.popFifoWrite;
       popFifoDin(OB_FIFO_C)   <= ob.popFifoDin;
-      pushFifoRead(OB_FIFO_C) <= v.pushFifoRead;
 
    end process;
    

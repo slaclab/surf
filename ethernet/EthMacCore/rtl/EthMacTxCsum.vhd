@@ -2,7 +2,7 @@
 -- File       : EthMacTxCsum.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-09-08
--- Last update: 2017-02-22
+-- Last update: 2018-01-31
 -------------------------------------------------------------------------------
 -- Description: TX Checksum Hardware Offloading Engine
 -- https://docs.google.com/spreadsheets/d/1_1M1keasfq8RLmRYHkO0IlRhMq5YZTgJ7OGrWvkib8I/edit?usp=sharing
@@ -241,7 +241,7 @@ begin
                -- Move data
                v.sMaster        := rxMaster;
                -- Set the flag
-               v.fragDet(0) := axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, rxMaster, EMAC_FRAG_BIT_C, 0);
+               v.fragDet(0)     := axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, rxMaster, EMAC_FRAG_BIT_C, 0);
                -- Check for EOF
                if (rxMaster.tLast = '1') then
                   -- Save the EOFE value
@@ -328,7 +328,7 @@ begin
                      v.ipv4Hdr(12)        := rxMaster.tData(119 downto 112);  -- Source IP Address
                      v.ipv4Hdr(13)        := rxMaster.tData(127 downto 120);  -- Source IP Address      
                      -- Fill in the TCP/UDP checksum
-                     v.tData(31 downto 0) := rxMaster.tData(127 downto 119) & rxMaster.tData(95 downto 88) & x"00";
+                     v.tData(31 downto 0) := rxMaster.tData(127 downto 112) & rxMaster.tData(95 downto 88) & x"00";
                      v.tKeep(3 downto 0)  := (others => '1');
                   end if;
                   -- Check for UDP protocol
@@ -608,6 +608,10 @@ begin
             end if;
          end if;
       end if;
+      
+      -- Combinatorial outputs before the reset
+      rxSlave <= v.rxSlave;
+      mSlave  <= v.mSlave;
 
       -- Reset
       if (ethRst = '1') then
@@ -617,10 +621,8 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs        
-      rxSlave  <= v.rxSlave;
+      -- Registered Outputs       
       sMaster  <= r.sMaster;
-      mSlave   <= v.mSlave;
       txMaster <= r.txMaster;
 
    end process comb;

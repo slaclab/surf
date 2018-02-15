@@ -120,6 +120,9 @@ begin
          v.masters(idx) := sAxisMaster;
       end if;
 
+      -- Combinatorial outputs before the reset
+      sAxisSlave <= v.slave;
+      
       -- Reset
       if (axisRst = '1') then
          v := REG_INIT_C;
@@ -128,8 +131,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs
-      sAxisSlave      <= v.slave;
+      -- Registered Outputs
       pipeAxisMasters <= r.masters;
 
    end process comb;

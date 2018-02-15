@@ -311,6 +311,10 @@ begin
             v.timer  := x"0000";
       ----------------------------------------------------------------------
       end case;
+      
+      -- Combinatorial outputs before the reset
+      arpAckSlave     <= v.arpAckSlave;
+      ibProtocolSlave <= v.ibProtocolSlave;
 
       -- Reset
       if (rst = '1') then
@@ -320,10 +324,8 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs        
-      arpAckSlave      <= v.arpAckSlave;
+      -- Registered Outputs    
       arpReqMaster     <= r.arpReqMaster;
-      ibProtocolSlave  <= v.ibProtocolSlave;
       obProtocolMaster <= r.obProtocolMaster;
       passed           <= r.passedDly;
       failed           <= r.failedDly;

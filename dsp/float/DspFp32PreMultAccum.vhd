@@ -2,7 +2,7 @@
 -- File       : DspFp32PreMultAccum.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-09-12
--- Last update: 2017-09-30
+-- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: 32-bit Floating Point DSP inferred accumulator with pre-multiplier 
 -- Equation: p = sum(+/-(a x b)[i])
@@ -50,7 +50,7 @@ entity DspFp32PreMultAccum is
       ain     : in  slv(31 downto 0);
       bin     : in  slv(31 downto 0);
       load    : in  sl := '0';
-      add     : in  sl := '1';          -- '1' = add, '0' = subtract
+      add     : in  sl := '1';                       -- '1' = add, '0' = subtract
       -- Outbound Interface
       obValid : out sl;
       obReady : in  sl := '1';
@@ -148,6 +148,9 @@ begin
       end if;
 
       --------------------------------------------------------------------
+      -- Combinatorial outputs before the reset
+      ibReady   <= v.ibReady;
+      tReady(0) <= v.tReady;
 
       -- Reset
       if (rst = RST_POLARITY_G) then
@@ -158,9 +161,7 @@ begin
       rin <= v;
 
       -- Outputs              
-      ibReady   <= v.ibReady;
-      tReady(0) <= v.tReady;
-      p         <= std_logic_vector(r.p);
+      p <= std_logic_vector(r.p);
 
    end process comb;
 

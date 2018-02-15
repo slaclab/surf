@@ -2,7 +2,7 @@
 -- File       : dma_read_tb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2016-09-06
+-- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for DMA read
 -------------------------------------------------------------------------------
@@ -265,6 +265,9 @@ begin
       ----------------------------------------------------------------------
       end case;
 
+      -- Combinatoral outputs
+      axisSlave <= v.axisSlave;
+      
       -- Reset      
       if (axiClkRst = '1') then
          v := REG_INIT_C;
@@ -272,9 +275,6 @@ begin
 
       -- Register the variable for next clock cycle      
       rin <= v;
-
-      -- Outputs
-      axisSlave <= v.axisSlave;
 
    end process comb;
 

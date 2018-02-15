@@ -316,17 +316,19 @@ begin
             end if;
 
       end case;
+      
+      -- Combinatorial outputs before the reset
+      inputAxisSlaves <= v.inputAxisSlaves;
 
-      ----------------------------------------------------------------------------------------------
-      -- Reset and output assignment
-      ----------------------------------------------------------------------------------------------
+      -- Reset
       if (axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
+      -- Register the variable for next clock cycle
       rin <= v;
 
-      inputAxisSlaves   <= v.inputAxisSlaves;
+      -- Registered Outputs
       outputAxisMaster <= r.outputAxisMaster;
 
    end process comb;

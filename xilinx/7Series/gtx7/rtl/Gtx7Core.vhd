@@ -2,7 +2,7 @@
 -- File       : Gtx7Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-12-17
--- Last update: 2017-04-18
+-- Last update: 2016-10-27
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Xilinx 7-series GTX primitive
 -------------------------------------------------------------------------------
@@ -62,14 +62,10 @@ entity Gtx7Core is
       TX_EXT_DATA_WIDTH_G : integer := 16;
       TX_INT_DATA_WIDTH_G : integer := 20;
       TX_8B10B_EN_G       : boolean := true;
-      TX_GEARBOX_EN_G     : boolean := false;
 
-      RX_EXT_DATA_WIDTH_G   : integer := 16;
-      RX_INT_DATA_WIDTH_G   : integer := 20;
-      RX_8B10B_EN_G         : boolean := true;
-      RX_GEARBOX_EN_G       : boolean := false;
-      RX_GEARBOX_SEQUENCE_G : string  := "INTERNAL";  -- or "EXTERNAL"
-      RX_GEARBOX_MODE_G     : string  := "64B66B";    -- or "64B67B" for interlaken
+      RX_EXT_DATA_WIDTH_G : integer := 16;
+      RX_INT_DATA_WIDTH_G : integer := 20;
+      RX_8B10B_EN_G       : boolean := true;
 
       -- Configure Buffer usage
       TX_BUF_EN_G        : boolean := true;
@@ -207,13 +203,6 @@ entity Gtx7Core is
       rxPolarityIn   : in  sl := '0';
       rxBufStatusOut : out slv(2 downto 0);
 
-      -- Rx gearbox ports
-      rxGearboxDataValid   : out sl;
-      rxGearboxSlip        : in  sl;
-      rxGearboxHeader      : out slv(2 downto 0);
-      rxGearboxHeaderValid : out sl;
-      rxGearboxStartOfSeq  : out sl;
-
       -- Rx Channel Bonding
       rxChBondLevelIn : in  slv(2 downto 0) := "000";
       rxChBondIn      : in  slv(4 downto 0) := "00000";
@@ -235,29 +224,22 @@ entity Gtx7Core is
       txDataIn       : in  slv(TX_EXT_DATA_WIDTH_G-1 downto 0);
       txCharIsKIn    : in  slv((TX_EXT_DATA_WIDTH_G/8)-1 downto 0);
       txBufStatusOut : out slv(1 downto 0);
-      txPolarityIn   : in  sl := '0';
-
-      -- Tx Gearbox
-      txGearboxReady    : out sl;
-      txGearboxHeader   : in  slv(2 downto 0) := (others => '0');
-      txGearboxSequence : in  slv(6 downto 0) := (others => '0');
-      txGearboxStartSeq : in  sl              := '0';
-
+      txPolarityIn   : in  sl               := '0';
       -- Debug Interface   
-      txPowerDown  : in  slv(1 downto 0)  := "00";
-      rxPowerDown  : in  slv(1 downto 0)  := "00";
-      loopbackIn   : in  slv(2 downto 0)  := "000";
-      txPreCursor  : in  slv(4 downto 0)  := (others => '0');
-      txPostCursor : in  slv(4 downto 0)  := (others => '0');
-      txDiffCtrl   : in  slv(3 downto 0)  := "1000";
+      txPowerDown    : in  slv(1 downto 0)  := "00";
+      rxPowerDown    : in  slv(1 downto 0)  := "00";
+      loopbackIn     : in  slv(2 downto 0)  := "000";
+      txPreCursor    : in  slv(4 downto 0)  := (others => '0');
+      txPostCursor   : in  slv(4 downto 0)  := (others => '0');
+      txDiffCtrl     : in  slv(3 downto 0)  := "1000";
       -- DRP Interface (drpClk Domain)      
-      drpClk       : in  sl               := '0';
-      drpRdy       : out sl;
-      drpEn        : in  sl               := '0';
-      drpWe        : in  sl               := '0';
-      drpAddr      : in  slv(8 downto 0)  := "000000000";
-      drpDi        : in  slv(15 downto 0) := X"0000";
-      drpDo        : out slv(15 downto 0));
+      drpClk         : in  sl               := '0';
+      drpRdy         : out sl;
+      drpEn          : in  sl               := '0';
+      drpWe          : in  sl               := '0';
+      drpAddr        : in  slv(8 downto 0)  := "000000000";
+      drpDi          : in  slv(15 downto 0) := X"0000";
+      drpDo          : out slv(15 downto 0));
 
 end entity Gtx7Core;
 
@@ -306,11 +288,6 @@ architecture rtl of Gtx7Core is
    constant TX_INT_DATAWIDTH_C : integer := (TX_INT_DATA_WIDTH_G/32);
 
    constant RXLPMEN_C : sl := ite(RX_EQUALIZER_G = "LPM", '1', '0');
-
-   constant RX_GEARBOX_MODE_C : slv(2 downto 0) :=
-      ite(RX_GEARBOX_SEQUENCE_G = "INTERNAL",
-          ite(RX_GEARBOX_MODE_G = "64B66B", "011", "010"),   -- "INTERNAL"
-          ite(RX_GEARBOX_MODE_G = "64B66B", "001", "000"));  -- "EXTERNAL"
 
    --------------------------------------------------------------------------------------------------
    -- Signals
@@ -398,7 +375,7 @@ architecture rtl of Gtx7Core is
    signal txDlyEn              : sl;    -- GT TXDLYEN
 
    -- Tx Data Signals
-   signal txDataFull     : slv(63 downto 0) := (others => '0');
+   signal txDataFull : slv(63 downto 0) := (others => '0');
    signal txCharIsKFull  : slv(7 downto 0)  := (others => '0');
    signal txCharDispMode : slv(7 downto 0)  := (others => '0');
    signal txCharDispVal  : slv(7 downto 0)  := (others => '0');
@@ -565,23 +542,23 @@ begin
 --    end generate;
 
 --   RX_NO_RECCLK_MON_GEN : if (RX_BUF_EN_G) generate
-   rxRecClkMonitorRestart <= '0';
-   process(stableClkIn)
-   begin
-      if rising_edge(stableClkIn) then
-         if gtRxReset = '1' then
-            rxRecClkStable <= '0' after TPD_G;
-            rxCdrLockCnt   <= 0   after TPD_G;
-         elsif rxRecClkStable = '0' then
-            if rxCdrLockCnt = WAIT_TIME_CDRLOCK_C then
-               rxRecClkStable <= '1'          after TPD_G;
-               rxCdrLockCnt   <= rxCdrLockCnt after TPD_G;
-            else
-               rxCdrLockCnt <= rxCdrLockCnt + 1 after TPD_G;
+      rxRecClkMonitorRestart <= '0';
+      process(stableClkIn)
+      begin
+         if rising_edge(stableClkIn) then
+            if gtRxReset = '1' then
+               rxRecClkStable <= '0' after TPD_G;
+               rxCdrLockCnt   <= 0   after TPD_G;
+            elsif rxRecClkStable = '0' then
+               if rxCdrLockCnt = WAIT_TIME_CDRLOCK_C then
+                  rxRecClkStable <= '1'          after TPD_G;
+                  rxCdrLockCnt   <= rxCdrLockCnt after TPD_G;
+               else
+                  rxCdrLockCnt <= rxCdrLockCnt + 1 after TPD_G;
+               end if;
             end if;
          end if;
-      end if;
-   end process;
+      end process;
 --   end generate RX_NO_RECCLK_MON_GEN;
 
    -------------------------------------------------------------------------------------------------
@@ -917,8 +894,8 @@ begin
          RXOOB_CFG => ("0000110"),
 
          -------------------------RX Gearbox Attributes---------------------------
-         RXGEARBOX_EN => toString(RX_GEARBOX_EN_G),
-         GEARBOX_MODE => RX_GEARBOX_MODE_C,
+         RXGEARBOX_EN => ("FALSE"),
+         GEARBOX_MODE => ("000"),
 
          -------------------------PRBS Detection Attribute-----------------------
          RXPRBS_ERR_LOOPBACK => ('0'),
@@ -978,7 +955,7 @@ begin
          TX_MARGIN_LOW_4         => ("1000000"),
 
          -------------------------TX Gearbox Attributes--------------------------
-         TXGEARBOX_EN => toString(TX_GEARBOX_EN_G),
+         TXGEARBOX_EN => ("FALSE"),
 
          -------------------------TX Initialization and Reset Attributes--------------------------
          TXPCSRESET_TIME => ("00001"),
@@ -1098,11 +1075,11 @@ begin
          RXSYSCLKSEL      => RX_SYSCLK_SEL_C,
          RXUSERRDY        => rxUserRdyInt,
          -------------- Receive Ports - 64b66b and 64b67b Gearbox Ports -------------
-         RXDATAVALID      => rxGearboxDataValid,
-         RXGEARBOXSLIP    => rxGearboxSlip,
-         RXHEADER         => rxGearboxHeader,
-         RXHEADERVALID    => rxGearboxHeaderValid,
-         RXSTARTOFSEQ     => rxGearboxStartOfSeq,
+         RXDATAVALID      => open,
+         RXGEARBOXSLIP    => '0',
+         RXHEADER         => open,
+         RXHEADERVALID    => open,
+         RXSTARTOFSEQ     => open,
          ----------------------- Receive Ports - 8b10b Decoder ----------------------
          RX8B10BEN        => toSl(RX_8B10B_EN_G),
          RXCHARISCOMMA    => open,
@@ -1238,10 +1215,10 @@ begin
          TXSYSCLKSEL      => TX_SYSCLK_SEL_C,
          TXUSERRDY        => txUserRdyInt,
          -------------- Transmit Ports - 64b66b and 64b67b Gearbox Ports ------------
-         TXGEARBOXREADY   => txGearboxReady,
-         TXHEADER         => txGearboxHeader,
-         TXSEQUENCE       => txGearboxSequence,                   -- "0000000",
-         TXSTARTSEQ       => txGearboxStartSeq,                   --'0',
+         TXGEARBOXREADY   => open,
+         TXHEADER         => "000",
+         TXSEQUENCE       => "0000000",
+         TXSTARTSEQ       => '0',
          ---------------- Transmit Ports - 8b10b Encoder Control Ports --------------
          TX8B10BBYPASS    => X"00",
          TX8B10BEN        => toSl(TX_8B10B_EN_G),

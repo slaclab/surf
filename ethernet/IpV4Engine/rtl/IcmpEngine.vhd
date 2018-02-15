@@ -203,6 +203,9 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
+      
+      -- Combinatorial outputs before the reset
+      ibIcmpSlave <= v.ibIcmpSlave;
 
       -- Reset
       if (rst = '1') then
@@ -212,8 +215,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs        
-      ibIcmpSlave  <= v.ibIcmpSlave;
+      -- Registered Outputs       
       obIcmpMaster <= r.obIcmpMaster;
 
    end process comb;

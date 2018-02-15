@@ -11,11 +11,11 @@
 -- stream (pre-scrambler). Inserts IDLE and SKP codes as needed. Inserts
 -- user K codes on request.
 -------------------------------------------------------------------------------
--- This file is part of <PROJECT_NAME>. It is subject to
+-- This file is part of SURF. It is subject to
 -- the license terms in the LICENSE.txt file found in the top-level directory
 -- of this distribution and at:
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
--- No part of <PROJECT_NAME>, including this file, may be
+-- No part of SURF, including this file, may be
 -- copied, modified, propagated, or distributed except according to the terms
 -- contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
@@ -27,6 +27,7 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
+use work.AxiStreamPacketizer2Pkg.all;
 use work.SsiPkg.all;
 use work.Pgp3Pkg.all;
 
@@ -107,7 +108,7 @@ begin
    begin
       v := r;
 
-      linkInfo := makeLinkInfo(locRxFifoCtrl, locRxLinkReady);
+      linkInfo := pgp3MakeLinkInfo(locRxFifoCtrl, locRxLinkReady);
 
       -- Always increment skpCount
       v.skpCount := r.skpCount + 1;
@@ -145,10 +146,10 @@ begin
          -- Coded in reverse order of priority
 
          -- Send idle chars by default
-         v.protTxData(39 downto 0)  := linkInfo;
-         v.protTxData(55 downto 40) := (others => '0');
-         v.protTxData(63 downto 56) := IDLE_C;
-         v.protTxHeader             := K_HEADER_C;
+         v.protTxData                        := (others => '0');
+         v.protTxData(PGP3_LINKINFO_FIELD_C) := linkInfo;
+         v.protTxData(PGP3_BTF_FIELD_C)      := PGP3_IDLE_C;
+         v.protTxHeader                      := PGP3_K_HEADER_C;
 
          -- Send data if there is data to send
          if (pgpTxMaster.tValid = '1' and dataEn = '1') then
@@ -156,52 +157,47 @@ begin
 
             if (ssiGetUserSof(PGP3_AXIS_CONFIG_C, pgpTxMaster) = '1') then
                -- SOF/SOC, format SOF/SOC char from data
-               v.protTxData               := (others => '0');
-               v.protTxData(63 downto 56) := ite(pgpTxMaster.tData(24) = '1', SOF_C, SOC_C);
-               v.protTxData(39 downto 0)  := linkInfo;
-               v.protTxData(43 downto 40) := pgpTxMaster.tData(11 downto 8);   -- Virtual Channel
-               v.protTxData(55 downto 44) := pgpTxMaster.tData(43 downto 32);  -- Packet number
-               v.protTxHeader             := K_HEADER_C;
+               v.protTxData                        := (others => '0');
+               v.protTxData(PGP3_BTF_FIELD_C)      := ite(pgpTxMaster.tData(PACKETIZER2_HDR_SOF_BIT_C) = '1', PGP3_SOF_C, PGP3_SOC_C);
+               v.protTxData(PGP3_LINKINFO_FIELD_C) := linkInfo;
+               v.protTxData(PGP3_SOFC_VC_FIELD_C)  := resize(pgpTxMaster.tData(PACKETIZER2_HDR_TDEST_FIELD_C), 4);  -- Virtual Channel
+               v.protTxData(PGP3_SOFC_SEQ_FIELD_C) := resize(pgpTxMaster.tData(PACKETIZER2_HDR_SEQ_FIELD_C), 12);  -- Packet number
+               v.protTxHeader                      := PGP3_K_HEADER_C;
 
             elsif (pgpTxMaster.tLast = '1') then
                -- EOF/EOC
-               v.protTxData               := (others => '0');
-               v.protTxData(63 downto 56) := ite(pgpTxMaster.tData(8) = '1', EOF_C, EOC_C);
-               v.protTxData(7 downto 0)   := pgpTxMaster.tData(7 downto 0);    -- TUSER LAST
-               v.protTxData(19 downto 16) := pgpTxMaster.tData(19 downto 16);  -- Last byte count
-               v.protTxData(55 downto 24) := pgpTxMaster.tData(63 downto 32);  -- CRC
-               v.protTxHeader             := K_HEADER_C;
+               v.protTxData                               := (others => '0');
+               v.protTxData(PGP3_BTF_FIELD_C)             := ite(pgpTxMaster.tData(PACKETIZER2_TAIL_EOF_BIT_C) = '1', PGP3_EOF_C, PGP3_EOC_C);
+               v.protTxData(PGP3_EOFC_TUSER_FIELD_C)      := pgpTxMaster.tData(PACKETIZER2_TAIL_TUSER_FIELD_C);  -- TUSER LAST
+               v.protTxData(PGP3_EOFC_BYTES_LAST_FIELD_C) := pgpTxMaster.tData(PACKETIZER2_TAIL_BYTES_FIELD_C);  -- Last byte count
+               v.protTxData(PGP3_EOFC_CRC_FIELD_C)        := pgpTxMaster.tData(PACKETIZER2_TAIL_CRC_FIELD_C);  -- CRC
+               v.protTxHeader                             := PGP3_K_HEADER_C;
                -- Debug output
-               v.frameTx                  := pgpTxMaster.tData(8);
-               v.frameTxErr               := pgpTxMaster.tData(8) and pgpTxMaster.tData(0);
+               v.frameTx                                  := pgpTxMaster.tData(PACKETIZER2_TAIL_EOF_BIT_C);
+               v.frameTxErr                               := v.frameTx and ssiGetUserEofe(PGP3_AXIS_CONFIG_C, pgpTxMaster);
             else
                -- Normal data
                v.protTxData(63 downto 0) := pgpTxMaster.tData(63 downto 0);
-               v.protTxHeader            := D_HEADER_C;
+               v.protTxHeader            := PGP3_D_HEADER_C;
             end if;
          end if;
 
          -- 
          if (r.skpCount = pgpTxIn.skpInterval) then
-            v.skpCount                 := (others => '0');
-            v.pgpTxSlave.tReady        := '0';  -- Override any data acceptance.
-            v.protTxData               := (others => '0');
-            v.protTxData(63 downto 56) := SKP_C;
-            v.protTxHeader             := K_HEADER_C;
+            v.skpCount                     := (others => '0');
+            v.pgpTxSlave.tReady            := '0';  -- Override any data acceptance.
+            v.protTxData                   := (others => '0');
+            v.protTxData(PGP3_BTF_FIELD_C) := PGP3_SKP_C;
+            v.protTxHeader                 := PGP3_K_HEADER_C;
          end if;
 
 
          -- USER codes override data and delay SKP if they happen to coincide
          if (pgpTxIn.opCodeEn = '1' and dataEn = '1') then
-            v.pgpTxSlave.tReady        := '0';  -- Override any data acceptance.
-            v.protTxData(63 downto 56) := USER_C(conv_integer(pgpTxIn.opCodeNumber));
-            v.protTxData(55 downto 48) := not (pgpTxIn.opCodeData(7 downto 0) +
-                                               pgpTxIn.opCodeData(15 downto 8) +
-                                               pgpTxIn.opCodeData(23 downto 16) +
-                                               pgpTxIn.opCodeData(31 downto 24) +
-                                               pgpTxIn.opCodeData(39 downto 32) +                                               
-                                               pgpTxIn.opCodeData(47 downto 40));
-            v.protTxData(47 downto 0) := pgpTxIn.opCodeData;
+            v.pgpTxSlave.tReady                      := '0';  -- Override any data acceptance.
+            v.protTxData(PGP3_BTF_FIELD_C)           := PGP3_USER_C(conv_integer(pgpTxIn.opCodeNumber));
+            v.protTxData(PGP3_USER_CHECKSUM_FIELD_C) := pgp3OpCodeChecksum(pgpTxIn.opCodeData);
+            v.protTxData(PGP3_USER_OPCODE_FIELD_C)   := pgpTxIn.opCodeData;
 
             -- If skip was interrupted, hold it for next cycle
             if (r.skpCount = SKP_INTERVAL_G-1) then
@@ -217,6 +213,9 @@ begin
          end if;
 
       end if;
+      
+      -- Combinatorial outputs before the reset
+      pgpTxSlave <= v.pgpTxSlave;
 
       if (pgpTxRst = '1') then
          v := REG_INIT_C;
@@ -224,7 +223,6 @@ begin
 
       rin <= v;
 
-      pgpTxSlave     <= v.pgpTxSlave;
       protTxData     <= r.protTxData;
       protTxHeader   <= r.protTxHeader;
       protTxValid    <= r.protTxValid;

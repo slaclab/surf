@@ -71,7 +71,7 @@ begin
       v.fifoWrEn             := phyRxValid;
 
       -- Don't write SKP words into the FIFO
-      if (phyRxHeader = K_HEADER_C and phyRxData(63 downto 56) = SKP_C) then
+      if (phyRxHeader = PGP3_K_HEADER_C and phyRxData(63 downto 56) = PGP3_SKP_C) then
          v.fifoWrEn := '0';
       end if;
 

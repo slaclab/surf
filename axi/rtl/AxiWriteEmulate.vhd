@@ -2,7 +2,7 @@
 -- File       : AxiWriteEmulate.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-02
--- Last update: 2016-04-26
+-- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: AXI4 Write Emulation Module
 -------------------------------------------------------------------------------
@@ -141,7 +141,10 @@ begin
                v.state := IDLE_S;
             end if;
       end case;
-
+      
+      -- Combinatorial outputs before the reset
+      intWriteSlave <= v.iSlave;
+      
       -- Reset
       if (axiRst = '1') then
          v := REG_INIT_C;
@@ -150,8 +153,7 @@ begin
       -- Register the variable for next clock cycle    
       rin <= v;
 
-      -- Outputs 
-      intWriteSlave <= v.iSlave;
+     
 
    end process comb;
 

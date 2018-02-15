@@ -2,7 +2,7 @@
 -- File       : JesdAlignFrRepCh.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-15
--- Last update: 2016-02-12
+-- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: Align bytes and replace control characters with data
 --
@@ -231,6 +231,10 @@ begin
          v.dataValid    := dataValid_i;
       end if;
       
+      -- Combinatorial outputs before the reset
+      positionErr_o     <= v_positionErr;
+      alignErr_o        <= v_alignErr;
+      
       if (rst = '1') then
          v := REG_INIT_C;
       end if;
@@ -239,8 +243,6 @@ begin
       rin <= v;
 
       -- Output assignment
-      positionErr_o     <= v_positionErr;
-      alignErr_o        <= v_alignErr;
       sampleData_o      <= r.sampleData;
       sampleDataValid_o <= r.dataValid;
    -----------------------------------------------------------

@@ -229,7 +229,7 @@ begin
          DIRECTION_G      => "SCRAMBLER",
          DATA_WIDTH_G     => 64,
          SIDEBAND_WIDTH_G => 9,
-         TAPS_G           => SCRAMBLER_TAPS_C)
+         TAPS_G           => PGP3_SCRAMBLER_TAPS_C)
       port map (
          clk                        => pgpTxClk,        -- [in]
          rst                        => pgpTxRst,        -- [in]

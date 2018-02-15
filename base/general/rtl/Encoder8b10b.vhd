@@ -2,7 +2,7 @@
 -- File       : Encoder8b10b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-10-12
--- Last update: 2017-05-01
+-- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: 8B10B Encoder Module
 -------------------------------------------------------------------------------
@@ -86,6 +86,9 @@ begin
          end loop;
          v.runDisp := dispChainVar;
       end if;
+      
+      -- Combinatorial outputs before the reset
+      readyIn  <= v.readyIn;      
 
       -- Synchronous reset
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
@@ -94,7 +97,6 @@ begin
 
       rin      <= v;
       dataOut  <= r.dataOut;
-      readyIn  <= v.readyIn;
       validOut <= r.validOut;
    end process comb;
 

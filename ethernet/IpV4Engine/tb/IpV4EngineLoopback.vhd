@@ -154,6 +154,10 @@ begin
             v.done := '1';
       ----------------------------------------------------------------------
       end case;
+      
+      -- Combinatorial outputs before the reset
+      ibProtocolSlave <= v.ibProtocolSlave;
+      arpAckSlave     <= v.arpAckSlave;
 
       -- Reset
       if (rst = '1') then
@@ -163,10 +167,8 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs              
-      ibProtocolSlave  <= v.ibProtocolSlave;
+      -- Registered Outputs         
       obProtocolMaster <= r.obProtocolMaster;
-      arpAckSlave      <= v.arpAckSlave;
       arpReqMaster     <= r.arpReqMaster;
       done             <= r.done;
       remoteMac        <= r.remoteMac;
