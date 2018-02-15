@@ -39,11 +39,11 @@ entity SsiPrbsRx is
       GEN_SYNC_FIFO_G            : boolean                    := false;
       ALTERA_SYN_G               : boolean                    := false;
       ALTERA_RAM_G               : string                     := "M9K";
-      CASCADE_SIZE_G             : natural range 1 to (2**24) := 1;
-      FIFO_ADDR_WIDTH_G          : natural range 4 to 48      := 9;
-      FIFO_PAUSE_THRESH_G        : natural range 1 to (2**24) := 2**8;
+      CASCADE_SIZE_G             : positive                   := 1;
+      FIFO_ADDR_WIDTH_G          : positive                   := 9;
+      FIFO_PAUSE_THRESH_G        : positive                   := 2**8;
       -- PRBS Config
-      PRBS_SEED_SIZE_G           : natural range 8 to 128     := 32;
+      PRBS_SEED_SIZE_G           : positive range 32 to 128   := 32;
       PRBS_TAPS_G                : NaturalArray               := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
       -- AXI Stream IO Config
       SLAVE_AXI_STREAM_CONFIG_G  : AxiStreamConfigType        := ssiAxiStreamConfig(4);
@@ -213,7 +213,7 @@ architecture rtl of SsiPrbsRx is
 
 begin
 
---   assert (PRBS_SEED_SIZE_G mod 8 = 0) report "PRBS_SEED_SIZE_G must be a multiple of 8" severity failure;
+  assert ((PRBS_SEED_SIZE_G=32) or (PRBS_SEED_SIZE_G=64) or (PRBS_SEED_SIZE_G=128)) report "PRBS_SEED_SIZE_G must be either [32,64,128]" severity failure;
 
    sAxisCtrl <= axisCtrl(0);
 

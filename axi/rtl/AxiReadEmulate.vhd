@@ -2,7 +2,7 @@
 -- File       : AxiReadEmulate.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-02
--- Last update: 2016-04-26
+-- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: AXI4 Read Emulation Module
 -------------------------------------------------------------------------------
@@ -147,6 +147,9 @@ begin
       ----------------------------------------------------------------------
       end case;
 
+      -- Combinatoral outputs before reset
+      intReadSlave <= v.iSlave;
+      
       -- Reset
       if (axiRst = '1') then
          v := REG_INIT_C;
@@ -154,9 +157,6 @@ begin
 
       -- Register the variable for next clock cycle    
       rin <= v;
-
-      -- Outputs 
-      intReadSlave <= v.iSlave;
 
    end process comb;
 

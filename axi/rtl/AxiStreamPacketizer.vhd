@@ -250,16 +250,18 @@ begin
 
       v.outputAxisMaster.tStrb := v.outputAxisMaster.tKeep;
 
-      ----------------------------------------------------------------------------------------------
-      -- Reset and output assignment
-      ----------------------------------------------------------------------------------------------
+      -- Combinatorial outputs before the reset
+      inputAxisSlave <= v.inputAxisSlave;
+      
+      -- Reset
       if (axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
+      -- Register the variable for next clock cycle
       rin <= v;
 
-      inputAxisSlave   <= v.inputAxisSlave;
+      -- Registered Outputs
       outputAxisMaster <= r.outputAxisMaster;
 
    end process comb;

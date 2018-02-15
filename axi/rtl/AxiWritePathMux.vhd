@@ -2,7 +2,7 @@
 -- File       : AxiWritePathMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2014-04-29
+-- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to connect multiple incoming AXI write path interfaces.
@@ -255,6 +255,15 @@ begin
       else
          v.master.bready := '0';
       end if;
+
+      -- Combinatorial outputs before the reset
+      -- Readies are direct
+      for i in 0 to (NUM_SLAVES_G-1) loop
+         sAxiWriteSlaves(i).awready <= v.slaves(i).awready;
+         sAxiWriteSlaves(i).wready  <= v.slaves(i).wready;
+      end loop;
+      mAxiWriteMaster.bready <= v.master.bready;
+    
    
       if (axiRst = '1') or (NUM_SLAVES_G = 1) then
          v := REG_INIT_C;
@@ -271,14 +280,8 @@ begin
          -- Output data
          sAxiWriteSlaves <= r.slaves;
          mAxiWriteMaster <= r.master;
+      end if;      
 
-         -- Readies are direct
-         for i in 0 to (NUM_SLAVES_G-1) loop
-            sAxiWriteSlaves(i).awready <= v.slaves(i).awready;
-            sAxiWriteSlaves(i).wready  <= v.slaves(i).wready;
-         end loop;
-         mAxiWriteMaster.bready <= v.master.bready;
-      end if;
 
    end process comb;
 

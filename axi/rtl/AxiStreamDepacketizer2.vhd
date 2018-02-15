@@ -31,10 +31,11 @@ use work.AxiStreamPacketizer2Pkg.all;
 entity AxiStreamDepacketizer2 is
 
    generic (
-      TPD_G               : time             := 1 ns;
-      CRC_EN_G            : boolean          := true;
-      CRC_POLY_G          : slv(31 downto 0) := x"04C11DB7";
-      INPUT_PIPE_STAGES_G : integer          := 0);
+      TPD_G                : time             := 1 ns;
+      CRC_EN_G             : boolean          := true;
+      CRC_POLY_G           : slv(31 downto 0) := x"04C11DB7";
+      INPUT_PIPE_STAGES_G  : integer          := 0;
+      OUTPUT_PIPE_STAGES_G : integer          := 1);
    port (
       -- AXI-Lite Interface for local registers 
       axisClk : in sl;
@@ -133,7 +134,7 @@ begin
    U_AxiStreamPipeline_Output : entity work.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
-         PIPE_STAGES_G => 1)
+         PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,           -- [in]
          axisRst     => axisRst,           -- [in]
@@ -164,14 +165,11 @@ begin
          dina(15 downto 0)  => rin.packetNumber,  -- [in]
          dina(16)           => rin.packetActive,  -- [in]
          dina(17)           => rin.sentEofe,      -- [in]
---          clkb               => axisClk,                             -- [in]
---          rstb               => axisRst,                             -- [in]
---          addrb              => inputAxisMaster.tData(15 downto 8),  -- [in]
          douta(15 downto 0) => packetNumberRam,   -- [out]
          douta(16)          => packetActiveRam,   -- [out]
          douta(17)          => sentEofeRam);      -- [out]
-                
-   ETH_CRC : if (CRC_POLY_G = x"04C11DB7") generate         
+
+   ETH_CRC : if (CRC_POLY_G = x"04C11DB7") generate
       U_Crc32 : entity work.Crc32Parallel
          generic map (
             TPD_G            => TPD_G,
@@ -186,8 +184,8 @@ begin
             crcIn        => inputAxisMaster.tData(63 downto 0),  -- [in]
             crcReset     => rin.crcReset);                       -- [in]
    end generate;
-   
-   GEN_CRC : if (CRC_POLY_G /= x"04C11DB7") generate         
+
+   GEN_CRC : if (CRC_POLY_G /= x"04C11DB7") generate
       U_Crc32 : entity work.Crc32
          generic map (
             TPD_G            => TPD_G,
@@ -202,10 +200,10 @@ begin
             crcDataWidth => rin.crcDataWidth,                    -- [in]
             crcIn        => inputAxisMaster.tData(63 downto 0),  -- [in]
             crcReset     => rin.crcReset);                       -- [in]
-   end generate;         
-   
-   comb : process (axisRst, crcOut, linkGood, sentEofeRam, inputAxisMaster, outputAxisSlave,
-                   packetActiveRam, packetNumberRam, r) is
+   end generate;
+
+   comb : process (axisRst, crcOut, inputAxisMaster, linkGood, outputAxisSlave,
+                   packetActiveRam, packetNumberRam, r, sentEofeRam) is
       variable v         : RegType;
       variable sof       : sl;
       variable lastBytes : integer;
@@ -251,12 +249,11 @@ begin
                if (ssiGetuserSof(AXIS_CONFIG_C, inputAxisMaster) = '1') then
 
                   -- Assign sideband fields
-                  v.outputAxisMaster(1).tDest(7 downto 0) := inputAxisMaster.tData(15 downto 8);
-                  v.outputAxisMaster(1).tId(7 downto 0)   := inputAxisMaster.tData(23 downto 16);
-                  v.outputAxisMaster(1).tUser(7 downto 0) := inputAxisMaster.tData(7 downto 0);
-
-                  sof            := inputAxisMaster.tData(24);
-                  v.packetNumber := inputAxisMaster.tData(47 downto 32);
+                  v.outputAxisMaster(1).tDest(7 downto 0) := inputAxisMaster.tData(PACKETIZER2_HDR_TDEST_FIELD_C);
+                  v.outputAxisMaster(1).tId(7 downto 0)   := inputAxisMaster.tData(PACKETIZER2_HDR_TID_FIELD_C);
+                  v.outputAxisMaster(1).tUser(7 downto 0) := inputAxisMaster.tData(PACKETIZER2_HDR_TUSER_FIELD_C);
+                  sof                                     := inputAxisMaster.tData(PACKETIZER2_HDR_SOF_BIT_C);
+                  v.packetNumber                          := inputAxisMaster.tData(PACKETIZER2_HDR_SEQ_FIELD_C);
 
                   v.activeTDest := v.outputAxisMaster(1).tDest(7 downto 0);
 
@@ -264,7 +261,8 @@ begin
                   axiStreamSetUserBit(AXIS_CONFIG_C, v.outputAxisMaster(1), SSI_SOF_C, sof, 0);  -- SOF
 
 
-                  if (sof = not packetActiveRam and v.packetNumber = packetNumberRam) then
+                  if (sof = not packetActiveRam and v.packetNumber = packetNumberRam and
+                      inputAxisMaster.tData(PACKETIZER2_HDR_VERSION_FIELD_C) = PACKETIZER2_VERSION_C) then
                      -- Header metadata as expected
                      v.state    := MOVE_S;
                      v.sideband := '1';
@@ -324,18 +322,18 @@ begin
                   v.crcDataValid               := '0';
 
                   -- Append EOF metadata to previous txn which has been held
-                  lastBytes                   := conv_integer(inputAxisMaster.tData(19 downto 16));
-                  axiStreamSetUserField(AXIS_CONFIG_C, v.outputAxisMaster(0), inputAxisMaster.tData(7 downto 0), lastBytes);
-                  v.outputAxisMaster(0).tLast := inputAxisMaster.tData(8);
-                  v.outputAxisMaster(0).tKeep := genTkeep(conv_integer(inputAxisMaster.tData(19 downto 16)));
+                  lastBytes                   := conv_integer(inputAxisMaster.tData(PACKETIZER2_TAIL_BYTES_FIELD_C));
+                  axiStreamSetUserField(AXIS_CONFIG_C, v.outputAxisMaster(0), inputAxisMaster.tData(PACKETIZER2_TAIL_TUSER_FIELD_C), lastBytes);
+                  v.outputAxisMaster(0).tLast := inputAxisMaster.tData(PACKETIZER2_TAIL_EOF_BIT_C);
+                  v.outputAxisMaster(0).tKeep := genTkeep(conv_integer(inputAxisMaster.tData(PACKETIZER2_TAIL_BYTES_FIELD_C)));
 
                   -- Verify the CRC. Set EOFE if fail.
-                  if (crcOut /= inputAxisMaster.tData(63 downto 32) and CRC_EN_G) then
+                  if (crcOut /= inputAxisMaster.tData(PACKETIZER2_TAIL_CRC_FIELD_C) and CRC_EN_G) then
                      axiStreamSetUserBit(AXIS_CONFIG_C, v.outputAxisMaster(0), SSI_EOFE_C, '1', lastBytes);
                   end if;
 
 
-                  if (inputAxisMaster.tData(8) = '1') then
+                  if (inputAxisMaster.tData(PACKETIZER2_TAIL_EOF_BIT_C) = '1') then
                      -- If EOF, reset packetActive and packetNumber                     
                      v.packetActive := '0';
                      v.packetNumber := (others => '0');
@@ -395,18 +393,19 @@ begin
             end if;
 
       end case;
-
-      ----------------------------------------------------------------------------------------------
-      -- Reset and output assignment
-      ----------------------------------------------------------------------------------------------
+      
+      -- Combinatorial outputs before the reset
+      inputAxisSlave <= v.inputAxisSlave;
+      
+      -- Reset
       if (axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
+      -- Register the variable for next clock cycle
       rin <= v;
 
-      inputAxisSlave <= v.inputAxisSlave;
-
+      -- Registered Outputs
       outputAxisMaster <= r.outputAxisMaster(0);
       debug            <= r.debug;
 

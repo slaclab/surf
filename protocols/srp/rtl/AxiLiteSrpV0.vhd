@@ -298,19 +298,22 @@ begin
                v.state := WAIT_AXIL_REQ_S;
             end if;
       end case;
+      
+      -- Combinatorial outputs before the reset
+      rxFifoAxisSlave <= v.rxFifoAxisSlave;
 
-
+      -- Reset
       if (axilRst = '1') then
          v := REG_INIT_C;
       end if;
 
+      -- Register the variable for next clock cycle
       rin <= v;
 
+      -- Registered Outputs
       sAxilWriteSlave  <= r.sAxilWriteSlave;
       sAxilReadSlave   <= r.sAxilReadSlave;
       txFifoAxisMaster <= r.txFifoAxisMaster;
-      rxFifoAxisSlave  <= v.rxFifoAxisSlave;
-
 
    end process comb;
 

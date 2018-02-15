@@ -750,6 +750,9 @@ begin
       if (rxMaster.tLast = '1') and (v.rxSlave.tReady = '1') then
          v.eofe := ssiGetUserEofe(AXIS_CONFIG_C, rxMaster);
       end if;
+      
+      -- Combinatorial outputs before the reset
+      rxSlave <= v.rxSlave;
 
       -- Reset
       if (axilRst = '1') then
@@ -759,8 +762,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs    
-      rxSlave          <= v.rxSlave;
+      -- Registered Outputs
       mAxilWriteMaster <= r.mAxilWriteMaster;
       mAxilReadMaster  <= r.mAxilReadMaster;
       rxRst            <= r.rxRst or axilRst;
