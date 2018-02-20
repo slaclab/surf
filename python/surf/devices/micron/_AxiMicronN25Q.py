@@ -77,17 +77,21 @@ class AxiMicronN25Q(pr.Device):
         self.READ_NONVOLATILE_CONFIG  = (0xB5 << 16)
         self.READ_VOLATILE_CONFIG     = (0x85 << 16)
 
-        ## Default Configuration:
-        ## Number of dummy clock cycles = 0xF
-        ## XIP mode at power-on reset = 0x7
-        ## Output driver strength = x7
-        ## Double transfer rate protocol = 0x1 ( = Disabled and only used in MT25Q only)
-        ## Reset/hold = 0x0 (disabled to be MT25Q pin compatible with N25Q)
-        ## Quad I/O protocol = 0x1
-        ## Dual I/O protocol = 0x1
-        ## 128Mb segment select = 0x1
-        self.DEFAULT_3BYTE_CONFIG = 0xFFEF
-        self.DEFAULT_4BYTE_CONFIG = 0xFFEE
+        ##########################
+        ## Configuration Register:
+        ##########################
+        ## BIT[15:12] Number of dummy clock cycles = 0xF    (default)
+        ## BIT[11:09] XIP mode at power-on reset = 0x7      (default)
+        ## BIT[08:06] Output driver strength = x7           (default)
+        ## BIT[05:05] Double transfer rate protocol = 0x1   (default)
+        ## BIT[04:04] Reset/hold = 0x1                      (default)
+        ## BIT[03:03] Quad I/O protocol = 0x1               (default)
+        ## BIT[02:02] Dual I/O protocol = 0x1               (default)
+        ## BIT[01:01] 128Mb segment select = 0x1            (default)
+        ## BIT[00:00] 1 = Enable 3-byte address mode        (default)
+        ## BIT[00:00] 0 = Enable 4-byte address mode
+        self.DEFAULT_3BYTE_CONFIG = 0xFFFF
+        self.DEFAULT_4BYTE_CONFIG = 0xFFFE
 
         self.READ_MASK   = 0x00000000 
         self.WRITE_MASK  = 0x80000000 
@@ -102,10 +106,17 @@ class AxiMicronN25Q(pr.Device):
             start = time.time()
             
             # Reset the SPI interface
-            self.resetFlash()            
+            self.resetFlash()
             
+            # Print the status registers
+            print("MicronN25Q Manufacturer ID Code  = {}".format(hex(self.getManufacturerId())))
+            print("MicronN25Q Manufacturer Type     = {}".format(hex(self.getManufacturerType())))
+            print("MicronN25Q Manufacturer Capacity = {}".format(hex(self.getManufacturerCapacity())))
+            print("MicronN25Q Status Register       = {}".format(hex(self.getPromStatusReg())))
+            print("MicronN25Q Volatile Config Reg   = {}".format(hex(self.getPromConfigReg())))
+
             # Open the MCS file
-            self._mcs.open(arg)                                           
+            self._mcs.open(arg)
             
             # Erase the PROM
             self.eraseProm()
@@ -301,22 +312,27 @@ class AxiMicronN25Q(pr.Device):
     def getPromStatusReg(self):
         self.waitForFlashReady()
         self.setCmd(self.READ_MASK|self.STATUS_REG_RD_CMD|0x1)
-        return (self.getCmdReg()&0xFF)  
-        
+        return (self.getCmdReg()&0xFF)
+
+    def getPromConfigReg(self):
+        self.waitForFlashReady()
+        self.setCmd(self.READ_MASK|self.READ_VOLATILE_CONFIG|0x1)
+        return (self.getCmdReg()&0xFF)
+
     def getManufacturerId(self):
         self.waitForFlashReady()
         self.setCmd(self.READ_MASK|self.DEV_ID_RD_CMD|0x1)
-        return (self.getCmdReg()&0xFF)      
-        
+        return (self.getCmdReg()&0xFF)
+
     def getManufacturerType(self):
         self.waitForFlashReady()
         self.setCmd(self.READ_MASK|self.DEV_ID_RD_CMD|0x2)
-        return (self.getCmdReg()&0xFF)     
+        return (self.getCmdReg()&0xFF)
         
     def getManufacturerCapacity(self):  
         self.waitForFlashReady()
         self.setCmd(self.READ_MASK|self.DEV_ID_RD_CMD|0x3)
-        return (self.getCmdReg()&0xFF)              
+        return (self.getCmdReg()&0xFF)
             
     def resetFlash(self):
         # Send the enable reset command
@@ -350,7 +366,7 @@ class AxiMicronN25Q(pr.Device):
     def waitForFlashReady(self):  
         while True:
             # Get the status register
-            self.setCmd(self.READ_MASK|self.FLAG_STATUS_REG|0x1)
+            self.setCmdReg(self.READ_MASK|self.FLAG_STATUS_REG|0x1)
             status = (self.getCmdReg()&0xFF) 
             # Check if not busy
             if ( (status & self.FLAG_STATUS_RDY) != 0 ):
