@@ -77,17 +77,21 @@ class AxiMicronN25Q(pr.Device):
         self.READ_NONVOLATILE_CONFIG  = (0xB5 << 16)
         self.READ_VOLATILE_CONFIG     = (0x85 << 16)
 
-        ## Default Configuration:
-        ## Number of dummy clock cycles = 0xF
-        ## XIP mode at power-on reset = 0x7
-        ## Output driver strength = x7
-        ## Double transfer rate protocol = 0x1 ( = Disabled and only used in MT25Q only)
-        ## Reset/hold = 0x0 (disabled to be MT25Q pin compatible with N25Q)
-        ## Quad I/O protocol = 0x1
-        ## Dual I/O protocol = 0x1
-        ## 128Mb segment select = 0x1
-        self.DEFAULT_3BYTE_CONFIG = 0xFFEF
-        self.DEFAULT_4BYTE_CONFIG = 0xFFEE
+        ##########################
+        ## Configuration Register:
+        ##########################
+        ## BIT[15:12] Number of dummy clock cycles = 0xF    (default)
+        ## BIT[11:09] XIP mode at power-on reset = 0x7      (default)
+        ## BIT[08:06] Output driver strength = x7           (default)
+        ## BIT[05:05] Double transfer rate protocol = 0x1   (default)
+        ## BIT[04:04] Reset/hold = 0x1                      (default)
+        ## BIT[03:03] Quad I/O protocol = 0x1               (default)
+        ## BIT[02:02] Dual I/O protocol = 0x1               (default)
+        ## BIT[01:01] 128Mb segment select = 0x1            (default)
+        ## BIT[00:00] 1 = Enable 3-byte address mode        (default)
+        ## BIT[00:00] 0 = Enable 4-byte address mode
+        self.DEFAULT_3BYTE_CONFIG = 0xFFFF
+        self.DEFAULT_4BYTE_CONFIG = 0xFFFE
 
         self.READ_MASK   = 0x00000000 
         self.WRITE_MASK  = 0x80000000 
