@@ -32,6 +32,7 @@ class AxiMicronN25Q(pr.Device):
         
         self._mcs      = McsReader()        
         self._addrMode = addrMode     
+        self._progDone = False     
         
         ##############################
         # Variables
@@ -101,6 +102,7 @@ class AxiMicronN25Q(pr.Device):
         def LoadMcsFile(arg):
             
             click.secho(('LoadMcsFile: %s' % arg), fg='green')
+            self._progDone = False 
             
             # Start time measurement for profiling
             start = time.time()
@@ -133,6 +135,7 @@ class AxiMicronN25Q(pr.Device):
             click.secho(('LoadMcsFile() took %d seconds' % int(elapsed)), fg='green')
             
             # Add a power cycle reminder
+            self._progDone = True
             click.secho(
                 "\n\n\
                 ***************************************************\n\
