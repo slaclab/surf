@@ -354,7 +354,7 @@ class AxiMicronN25Q(pr.Device):
     def waitForFlashReady(self):  
         while True:
             # Get the status register
-            self.setCmd(self.READ_MASK|self.FLAG_STATUS_REG|0x1)
+            self.setCmdReg(self.READ_MASK|self.FLAG_STATUS_REG|0x1)
             status = (self.getCmdReg()&0xFF) 
             # Check if not busy
             if ( (status & self.FLAG_STATUS_RDY) != 0 ):
