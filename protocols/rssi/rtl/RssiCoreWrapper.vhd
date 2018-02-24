@@ -88,7 +88,7 @@ end entity RssiCoreWrapper;
 
 architecture mapping of RssiCoreWrapper is
 
-   constant CRC_EN_C   : boolean          := false;  -- Selected false since RSSI already has error checking and to help with SW-to-HW (or HW-to-SW) performance
+   constant CRC_EN_C   : boolean          := true;
    constant CRC_POLY_C : slv(31 downto 0) := x"04C11DB7";
 
    signal rxMasters : AxiStreamMasterArray(APP_STREAMS_G-1 downto 0);

@@ -74,7 +74,6 @@ architecture rtl of AxiStreamDepacketizer2 is
       ramWe            : sl;
       sideband         : sl;
       crcDataValid     : sl;
-      crcDataWidth     : slv(2 downto 0);
       crcReset         : sl;
       debug            : Packetizer2DebugType;
       inputAxisSlave   : AxiStreamSlaveType;
@@ -90,7 +89,6 @@ architecture rtl of AxiStreamDepacketizer2 is
       ramWe            => '0',
       sideband         => '0',
       crcDataValid     => '0',
-      crcDataWidth     => "111",
       crcReset         => '1',
       debug            => PACKETIZER2_DEBUG_INIT_C,
       inputAxisSlave   => AXI_STREAM_SLAVE_INIT_C,
@@ -177,12 +175,12 @@ begin
             BYTE_WIDTH_G     => 8,
             CRC_INIT_G       => X"FFFFFFFF")
          port map (
-            crcOut       => crcOut,                              -- [out]
-            crcClk       => axisClk,                             -- [in]
-            crcDataValid => rin.crcDataValid,                    -- [in]
-            crcDataWidth => rin.crcDataWidth,                    -- [in]
-            crcIn        => inputAxisMaster.tData(63 downto 0),  -- [in]
-            crcReset     => rin.crcReset);                       -- [in]
+            crcOut       => crcOut,                            -- [out]
+            crcClk       => axisClk,                           -- [in]
+            crcDataValid => rin.crcDataValid,                  -- [in]
+            crcDataWidth => "111",                             -- [in]
+            crcIn        => inputAxisMaster.tData(63 downto 0),-- [in]
+            crcReset     => rin.crcReset);                     -- [in]
    end generate;
 
    GEN_CRC : if (CRC_POLY_G /= x"04C11DB7") generate
@@ -194,12 +192,12 @@ begin
             CRC_INIT_G       => X"FFFFFFFF",
             CRC_POLY_G       => CRC_POLY_G)
          port map (
-            crcOut       => crcOut,                              -- [out]
-            crcClk       => axisClk,                             -- [in]
-            crcDataValid => rin.crcDataValid,                    -- [in]
-            crcDataWidth => rin.crcDataWidth,                    -- [in]
-            crcIn        => inputAxisMaster.tData(63 downto 0),  -- [in]
-            crcReset     => rin.crcReset);                       -- [in]
+            crcOut       => crcOut,                            -- [out]
+            crcClk       => axisClk,                           -- [in]
+            crcDataValid => rin.crcDataValid,                  -- [in]
+            crcDataWidth => "111",                             -- [in]
+            crcIn        => inputAxisMaster.tData(63 downto 0),-- [in]
+            crcReset     => rin.crcReset);                     -- [in]
    end generate;
 
    comb : process (axisRst, crcOut, inputAxisMaster, linkGood, outputAxisSlave,
@@ -215,7 +213,7 @@ begin
       v.ramWe := '0';
 
       v.crcDataValid := '0';
-      v.crcDataWidth := "111";
+      v.crcReset     := '0';
 
       if (linkGood = '0') then
          v.state := TERMINATE_S;
@@ -241,8 +239,9 @@ begin
             end if;
 
 
-            -- Process an incomming transaction
+            -- Process an incoming transaction
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster(1).tValid = '0') then
+               v.crcDataValid := '1';
                -- Must be an SSI SOF
                -- If txn is not a header, data will be dumped by doing nothing here
                -- This is all we can do, since we don't know which tdest the data belongs to
@@ -297,8 +296,6 @@ begin
          when MOVE_S =>
             v.inputAxisSlave.tReady      := outputAxisSlave.tReady;
             v.outputAxisMaster(1).tvalid := r.outputAxisMaster(1).tvalid;
-
-            v.crcReset := '0';
 
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster(0).tValid = '0') then
                -- Advance the pipeline

@@ -80,7 +80,6 @@ architecture rtl of AxiStreamPacketizer2 is
       tUserLast        : slv(7 downto 0);
       rearbitrate      : sl;
       crcDataValid     : sl;
-      crcDataWidth     : slv(2 downto 0);
       crcReset         : sl;
       inputAxisSlave   : AxiStreamSlaveType;
       outputAxisMaster : AxiStreamMasterType;
@@ -98,7 +97,6 @@ architecture rtl of AxiStreamPacketizer2 is
       tUserLast        => (others => '0'),
       rearbitrate      => '0',
       crcDataValid     => '0',
-      crcDataWidth     => (others => '0'),
       crcReset         => '0',
       inputAxisSlave   => AXI_STREAM_SLAVE_INIT_C,
       outputAxisMaster => axiStreamMasterInit(AXIS_CONFIG_C));
@@ -171,12 +169,12 @@ begin
             BYTE_WIDTH_G     => 8,
             CRC_INIT_G       => X"FFFFFFFF")
          port map (
-            crcOut       => crcOut,                              -- [out]
-            crcClk       => axisClk,                             -- [in]
-            crcDataValid => rin.crcDataValid,                    -- [in]
-            crcDataWidth => rin.crcDataWidth,                    -- [in]
-            crcIn        => inputAxisMaster.tData(63 downto 0),  -- [in]
-            crcReset     => rin.crcReset);                       -- [in]
+            crcOut       => crcOut,                                  -- [out]
+            crcClk       => axisClk,                                 -- [in]
+            crcDataValid => rin.crcDataValid,                        -- [in]
+            crcDataWidth => "111",                                   -- [in]
+            crcIn        => rin.outputAxisMaster.tData(63 downto 0), -- [in]
+            crcReset     => rin.crcReset);                           -- [in]
    end generate;
 
    GEN_CRC : if (CRC_POLY_G /= x"04C11DB7") generate
@@ -188,12 +186,12 @@ begin
             CRC_INIT_G       => X"FFFFFFFF",
             CRC_POLY_G       => CRC_POLY_G)
          port map (
-            crcOut       => crcOut,                              -- [out]
-            crcClk       => axisClk,                             -- [in]
-            crcDataValid => rin.crcDataValid,                    -- [in]
-            crcDataWidth => rin.crcDataWidth,                    -- [in]
-            crcIn        => inputAxisMaster.tData(63 downto 0),  -- [in]
-            crcReset     => rin.crcReset);                       -- [in]
+            crcOut       => crcOut,                                  -- [out]
+            crcClk       => axisClk,                                 -- [in]
+            crcDataValid => rin.crcDataValid,                        -- [in]
+            crcDataWidth => "111",                                   -- [in]
+            crcIn        => rin.outputAxisMaster.tData(63 downto 0), -- [in]
+            crcReset     => rin.crcReset);                           -- [in]
    end generate;
 
    -------------------------------------------------------------------------------------------------
@@ -215,8 +213,8 @@ begin
       -- Don't write new packet number by default
       v.ramWe := '0';
 
-      -- Don't activate CRC by default
       v.crcDataValid := '0';
+      v.crcReset     := '0';
 
       -- Main state machine
       case r.state is
@@ -225,6 +223,7 @@ begin
             v.wordCount := (others => '0');
             v.crcReset  := '1';
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
+               v.crcDataValid                                            := '1';
                v.outputAxisMaster                                        := axiStreamMasterInit(AXIS_CONFIG_C);
                v.outputAxisMaster.tValid                                 := inputAxisMaster.tValid;
                v.outputAxisMaster.tData(PACKETIZER2_HDR_VERSION_FIELD_C) := PACKETIZER2_VERSION_C;
@@ -240,12 +239,11 @@ begin
                v.packetActive := '1';
                v.activeTDest  := inputAxisMaster.tDest;
                v.state        := MOVE_S;
+               
             end if;
 
          when MOVE_S =>
-            v.crcReset      := '0';
             v.lastByteCount := "1000";
-            v.crcDataWidth  := "111";
             if (inputAxisMaster.tvalid = '1' and v.outputAxisMaster.tValid = '0') then
                -- Accept the data
                v.inputAxisSlave.tReady := '1';
@@ -283,7 +281,6 @@ begin
                   v.tUserLast              := inputAxisMaster.tUser(7 downto 0);
                   v.eof                    := '1';
                   v.lastByteCount          := toSlv(getTKeep(inputAxisMaster.tKeep), 4);
---                  v.crcDataWidth           := toSlv(getTKeep(inputAxisMaster.tKeep)-1, 3);
                   v.outputAxisMaster.tLast := '0';
                end if;
 
@@ -294,13 +291,12 @@ begin
             -- Insert tail when master side is ready for it
             if (v.outputAxisMaster.tValid = '0') then
                v.outputAxisMaster.tValid                                := '1';
-               v.outputAxisMaster.tKeep                                 := X"00FF";
                v.outputAxisMaster.tData                                 := (others => '0');
                v.outputAxisMaster.tData(PACKETIZER2_TAIL_EOF_BIT_C)     := r.eof;
                v.outputAxisMaster.tData(PACKETIZER2_TAIL_TUSER_FIELD_C) := r.tUserLast;
                v.outputAxisMaster.tData(PACKETIZER2_TAIL_BYTES_FIELD_C) := r.lastByteCount;
                v.outputAxisMaster.tData(PACKETIZER2_TAIL_CRC_FIELD_C)   := ite(CRC_EN_G, crcOut, X"00000000");
-               -- Myabe set tuser when SSI enabled?
+               -- Maybe set tuser when SSI enabled???
                v.outputAxisMaster.tUser                                 := (others => '0');
                v.outputAxisMaster.tLast                                 := '1';
                v.eof                                                    := '0';  -- Clear EOF for next frame
@@ -310,6 +306,8 @@ begin
 
       end case;
 
+      -- Always a 64-bit transfer
+      v.outputAxisMaster.tKeep := X"00FF";
       v.outputAxisMaster.tStrb := v.outputAxisMaster.tKeep;
       
       -- Combinatorial outputs before the reset
