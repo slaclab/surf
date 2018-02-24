@@ -270,10 +270,8 @@ begin
                   v.inputAxisSlave.tReady   := '0';  -- Hold acceptance of new data
                   v.outputAxisMaster        := r.outputAxisMaster;
                   v.outputAxisMaster.tValid := '0';  -- And transmission
-               end if;
-
                -- End of frame, append tail
-               if (inputAxisMaster.tLast = '1') then
+               elsif (inputAxisMaster.tLast = '1') then
                   v.ramWe                  := '1';
                   v.packetNumber           := (others => '0');
                   v.packetActive           := '0';
