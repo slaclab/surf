@@ -30,6 +30,7 @@ class AxiMicronP30(pr.Device):
         super().__init__(name=name, description=description, **kwargs)
         
         self._mcs = McsReader()        
+        self._progDone = False 
         
         ##############################
         # Variables
@@ -47,6 +48,7 @@ class AxiMicronP30(pr.Device):
         def LoadMcsFile(arg):
             
             click.secho(('LoadMcsFile: %s' % arg), fg='green')
+            self._progDone = False 
             
             # Start time measurement for profiling
             start = time.time()
@@ -75,6 +77,7 @@ class AxiMicronP30(pr.Device):
             click.secho(('LoadMcsFile() took %d seconds' % int(elapsed)), fg='green')
             
             # Add a power cycle reminder
+            self._progDone = True
             click.secho(
                 "\n\n\
                 ***************************************************\n\
