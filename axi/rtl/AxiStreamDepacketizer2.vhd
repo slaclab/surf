@@ -107,6 +107,17 @@ architecture rtl of AxiStreamDepacketizer2 is
    signal inputAxisSlave   : AxiStreamSlaveType;
    signal outputAxisMaster : AxiStreamMasterType;
    signal outputAxisSlave  : AxiStreamSlaveType;
+   
+   -- attribute dont_touch                     : string;
+   -- attribute dont_touch of r                : signal is "TRUE";
+   -- attribute dont_touch of crcOut           : signal is "TRUE";
+   -- attribute dont_touch of packetNumberRam  : signal is "TRUE";
+   -- attribute dont_touch of packetActiveRam  : signal is "TRUE";
+   -- attribute dont_touch of sentEofeRam      : signal is "TRUE";
+   -- attribute dont_touch of inputAxisMaster  : signal is "TRUE";
+   -- attribute dont_touch of inputAxisSlave   : signal is "TRUE";
+   -- attribute dont_touch of outputAxisMaster : signal is "TRUE";
+   -- attribute dont_touch of outputAxisSlave  : signal is "TRUE";   
 
 begin
 
@@ -320,9 +331,9 @@ begin
 
                   -- Append EOF metadata to previous txn which has been held
                   lastBytes                   := conv_integer(inputAxisMaster.tData(PACKETIZER2_TAIL_BYTES_FIELD_C));
-                  axiStreamSetUserField(AXIS_CONFIG_C, v.outputAxisMaster(0), inputAxisMaster.tData(PACKETIZER2_TAIL_TUSER_FIELD_C), -1);-- -1 = last
                   v.outputAxisMaster(0).tLast := inputAxisMaster.tData(PACKETIZER2_TAIL_EOF_BIT_C);
                   v.outputAxisMaster(0).tKeep := genTkeep(conv_integer(inputAxisMaster.tData(PACKETIZER2_TAIL_BYTES_FIELD_C)));
+                  axiStreamSetUserField(AXIS_CONFIG_C, v.outputAxisMaster(0), inputAxisMaster.tData(PACKETIZER2_TAIL_TUSER_FIELD_C), -1);-- -1 = last
 
                   -- Verify the CRC. Set EOFE if fail.
                   if (crcOut /= inputAxisMaster.tData(PACKETIZER2_TAIL_CRC_FIELD_C) and CRC_EN_G) then
