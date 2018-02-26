@@ -185,7 +185,7 @@ begin
 
       -- Count number of bytes in return data
       if (AXIS_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-         bytes := conv_integer(intAxisMaster.tKeep(4 downto 0));
+         bytes := conv_integer(intAxisMaster.tKeep(4 downto 0));-- Assumes max AXIS.TDATA width of 128-bits
       else
          bytes := getTKeep(intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0));
       end if;
@@ -291,7 +291,7 @@ begin
                if intAxisMaster.tDest /= r.dmaWrDescReq.dest then
                   v.state := PAD_S;
                -- Overflow detect
-               elsif bytes > r.dmaWrTrack.maxSize then
+               elsif (r.dmaWrTrack.maxSize(31 downto 5) = 0) then -- Assumes max AXIS.TDATA width of 128-bits
                   -- Multi-descriptor DMA is supported
                   if r.dmaWrTrack.contEn = '1' then
                      v.continue := '1';
