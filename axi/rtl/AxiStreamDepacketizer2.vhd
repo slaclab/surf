@@ -257,7 +257,7 @@ begin
                   v.activeTDest := v.outputAxisMaster(1).tDest(7 downto 0);
 
                   -- Assert SSI SOF if SOF header bit set
-                  axiStreamSetUserBit(AXIS_CONFIG_C, v.outputAxisMaster(1), SSI_SOF_C, sof, 0);  -- SOF
+                  axiStreamSetUserBit(AXIS_CONFIG_C, v.outputAxisMaster(1), SSI_SOF_C, sof, 0);  -- 0 = first
 
 
                   if (sof = not packetActiveRam and v.packetNumber = packetNumberRam and
@@ -320,13 +320,13 @@ begin
 
                   -- Append EOF metadata to previous txn which has been held
                   lastBytes                   := conv_integer(inputAxisMaster.tData(PACKETIZER2_TAIL_BYTES_FIELD_C));
-                  axiStreamSetUserField(AXIS_CONFIG_C, v.outputAxisMaster(0), inputAxisMaster.tData(PACKETIZER2_TAIL_TUSER_FIELD_C), lastBytes);
+                  axiStreamSetUserField(AXIS_CONFIG_C, v.outputAxisMaster(0), inputAxisMaster.tData(PACKETIZER2_TAIL_TUSER_FIELD_C), -1);-- -1 = last
                   v.outputAxisMaster(0).tLast := inputAxisMaster.tData(PACKETIZER2_TAIL_EOF_BIT_C);
                   v.outputAxisMaster(0).tKeep := genTkeep(conv_integer(inputAxisMaster.tData(PACKETIZER2_TAIL_BYTES_FIELD_C)));
 
                   -- Verify the CRC. Set EOFE if fail.
                   if (crcOut /= inputAxisMaster.tData(PACKETIZER2_TAIL_CRC_FIELD_C) and CRC_EN_G) then
-                     axiStreamSetUserBit(AXIS_CONFIG_C, v.outputAxisMaster(0), SSI_EOFE_C, '1', lastBytes);
+                     axiStreamSetUserBit(AXIS_CONFIG_C, v.outputAxisMaster(0), SSI_EOFE_C, '1', -1);-- -1 = last
                   end if;
 
 
