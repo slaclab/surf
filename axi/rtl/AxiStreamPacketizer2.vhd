@@ -34,10 +34,10 @@ entity AxiStreamPacketizer2 is
       TPD_G                : time             := 1 ns;
       CRC_EN_G             : boolean          := false;
       CRC_POLY_G           : slv(31 downto 0) := x"04C11DB7";
-      MAX_PACKET_BYTES_G   : integer          := 256*8;  -- Must be a multiple of 8
+      MAX_PACKET_BYTES_G   : positive         := 256*8;  -- Must be a multiple of 8
       OUTPUT_SSI_G         : boolean          := true;
-      INPUT_PIPE_STAGES_G  : integer          := 0;
-      OUTPUT_PIPE_STAGES_G : integer          := 0);
+      INPUT_PIPE_STAGES_G  : natural          := 0;
+      OUTPUT_PIPE_STAGES_G : natural          := 0);
    port (
       -- AXI-Lite Interface for local registers 
       axisClk : in sl;
@@ -55,7 +55,7 @@ end entity AxiStreamPacketizer2;
 architecture rtl of AxiStreamPacketizer2 is
 
    -- Packetizer constants
-   constant MAX_WORD_COUNT_C : integer := (MAX_PACKET_BYTES_G / 8) - 3;
+   constant MAX_WORD_COUNT_C : positive := (MAX_PACKET_BYTES_G / 8) - 3;
 
    constant AXIS_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
