@@ -55,7 +55,7 @@ end entity AxiStreamPacketizer2;
 architecture rtl of AxiStreamPacketizer2 is
 
    -- Packetizer constants
-   constant MAX_WORD_COUNT_C : integer := (MAX_PACKET_BYTES_G / 8) - 1;
+   constant MAX_WORD_COUNT_C : integer := (MAX_PACKET_BYTES_G / 8) - 3;
 
    constant AXIS_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
@@ -114,6 +114,16 @@ architecture rtl of AxiStreamPacketizer2 is
 
    signal crcOut : slv(31 downto 0);
 
+   -- attribute dont_touch                     : string;
+   -- attribute dont_touch of r                : signal is "TRUE";
+   -- attribute dont_touch of crcOut           : signal is "TRUE";
+   -- attribute dont_touch of packetNumberOut  : signal is "TRUE";
+   -- attribute dont_touch of packetActiveOut  : signal is "TRUE";
+   -- attribute dont_touch of inputAxisMaster  : signal is "TRUE";
+   -- attribute dont_touch of inputAxisSlave   : signal is "TRUE";
+   -- attribute dont_touch of outputAxisMaster : signal is "TRUE";
+   -- attribute dont_touch of outputAxisSlave  : signal is "TRUE";
+   
 begin
 
    assert ((MAX_PACKET_BYTES_G rem 8) = 0)
