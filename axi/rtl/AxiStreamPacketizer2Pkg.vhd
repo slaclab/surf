@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-07
--- Last update: 2018-02-26
+-- Last update: 2018-02-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,13 +26,14 @@ use work.SsiPkg.all;
 
 package AxiStreamPacketizer2Pkg is
 
-   constant PACKETIZER2_VERSION_C : slv(7 downto 0) := X"02";
+   constant PACKETIZER2_VERSION_C : slv(3 downto 0) := X"2";
 
-   subtype PACKETIZER2_HDR_VERSION_FIELD_C is natural range 7 downto 0;
+   subtype PACKETIZER2_HDR_VERSION_FIELD_C is natural range 3 downto 0;
+   constant PACKETIZER2_HDR_CRC_TYPE_FIELD_C : integer := 7;
    subtype PACKETIZER2_HDR_TUSER_FIELD_C is natural range 15 downto 8;
    subtype PACKETIZER2_HDR_TDEST_FIELD_C is natural range 23 downto 16;
    subtype PACKETIZER2_HDR_TID_FIELD_C is natural range 31 downto 24;
-   constant PACKETIZER2_HDR_SOF_BIT_C : integer := 63;
+   constant PACKETIZER2_HDR_SOF_BIT_C        : integer := 63;
    subtype PACKETIZER2_HDR_SEQ_FIELD_C is natural range 47 downto 32;
 
    constant PACKETIZER2_TAIL_EOF_BIT_C : integer := 8;
@@ -73,9 +74,9 @@ package AxiStreamPacketizer2Pkg is
       crc   : slv(31 downto 0) := (others => '0'))
       return slv;
 
-   function endianSwapSlv (
-      data : slv(63 downto 0))
-      return slv;
+--    function endianSwapSlv (
+--       data : slv(63 downto 0))
+--       return slv;
 
 end package AxiStreamPacketizer2Pkg;
 
@@ -118,18 +119,18 @@ package body AxiStreamPacketizer2Pkg is
       return ret;
    end function makePacketizer2Tail;
 
-   function endianSwapSlv (
-      data : slv(63 downto 0))
-      return slv
-   is
-      variable retVar : slv(63 downto 0);
-      variable i      : natural;
-   begin
-      for i in 7 downto 0 loop
-         retVar(7+(8*i) downto (8*i)) := data(7+(8*(7-i)) downto (8*(7-i)));
-      end loop;
-      return retVar;
-   end endianSwapSlv;
+--    function endianSwapSlv (
+--       data : slv(63 downto 0))
+--       return slv
+--    is
+--       variable retVar : slv(63 downto 0);
+--       variable i      : natural;
+--    begin
+--       for i in 7 downto 0 loop
+--          retVar(7+(8*i) downto (8*i)) := data(7+(8*(7-i)) downto (8*(7-i)));
+--       end loop;
+--       return retVar;
+--    end endianSwapSlv;
 
 end package body AxiStreamPacketizer2Pkg;
 
