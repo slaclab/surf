@@ -1,0 +1,421 @@
+##############################################################################
+## This file is part of 'SLAC Firmware Standard Library'.
+## It is subject to the license terms in the LICENSE.txt file found in the 
+## top-level directory of this distribution and at: 
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+## No part of 'SLAC Firmware Standard Library', including this file, 
+## may be copied, modified, propagated, or distributed except according to 
+## the terms contained in the LICENSE.txt file.
+##############################################################################
+#schemaversion 3.0.0
+#once Pgp2bAxi.yaml
+Pgp2bAxi: &Pgp2bAxi
+  class: MMIODev
+  configPrio: 1
+  description: "Configuration and status of a downstream PGP link"
+  size: 0x2000
+  ########
+  children:
+    #########################################################
+    countReset:
+      at:
+        offset: 0x00
+      class: IntField
+      sizeBits: 1
+      lsBit: 0
+      mode: RW
+      description: "countReset"
+    #########################################################
+    resetRx:
+      at:
+        offset: 0x04
+      class: IntField
+      sizeBits: 1
+      lsBit: 0
+      mode: RW
+      description: "resetRx"
+    #########################################################
+    flush:
+      at:
+        offset: 0x08
+      class: IntField
+      sizeBits: 1
+      lsBit: 0
+      mode: RW
+      description: "flush"
+    #########################################################
+    Loopback:
+      at:
+        offset: 0xC
+      class: IntField
+      sizeBits: 3
+      lsBit: 0
+      mode: RW
+      enums:
+        - name: Disabled
+          class: Off
+          value: 0
+        - name:  NearPcs
+          class: Enum
+          value: 1
+        - name:  NearPma
+          class: Enum
+          value: 2
+        - name:  FarPma
+          class: Enum
+          value: 4
+        - name:  FarPcs
+          class: Enum
+          value: 6          
+      description: "GT Loopback Mode"
+    #########################################################
+    LocData:
+      at:
+        offset: 0x10
+      class: IntField
+      sizeBits: 8
+      lsBit: 0
+      mode: RW
+      description: "Sideband data to transmit"
+    #########################################################
+    LocDataEn:
+      at:
+        offset: 0x11
+      class: IntField
+      sizeBits: 1
+      lsBit: 0
+      mode: RW
+      description: "Enable sideband data to transmit"
+    #########################################################
+    AutoStatus:
+      at:
+        offset: 0x14
+      class: IntField
+      sizeBits: 1
+      lsBit: 0
+      mode: RW
+      description: "Auto Status Send Enable (PPI)"
+    ######################################################### 
+    RxPhyReady:
+      at:
+        offset: 0x20
+      class: IntField
+      sizeBits: 1
+      lsBit: 0
+      mode: RO
+      description: "RX Phy is Ready"
+    ######################################################### 
+    TxPhyReady:
+      at:
+        offset: 0x20
+      class: IntField
+      sizeBits: 1
+      lsBit: 1
+      mode: RO
+      description: "TX Phy is Ready"
+    ######################################################### 
+    RxLocalLinkReady:
+      at:
+        offset: 0x20
+      class: IntField
+      sizeBits: 1
+      lsBit: 2
+      mode: RO
+      description: "Rx Local Link Ready"
+    ######################################################### 
+    RxRemLinkReady:
+      at:
+        offset: 0x20
+      class: IntField
+      sizeBits: 1
+      lsBit: 3
+      mode: RO
+      description: "Rx Remote Link Ready"
+    ######################################################### 
+    TxLinkReady:
+      at:
+        offset: 0x20
+      class: IntField
+      sizeBits: 1
+      lsBit: 4
+      mode: RO
+      description: "Tx Link Ready"
+    ######################################################### 
+    RxLinkPolarity:
+      at:
+        offset: 0x21
+      class: IntField
+      sizeBits: 2
+      lsBit: 0
+      mode: RO
+      description: "Rx Link Polarity"
+    ######################################################### 
+    RxRemPause:
+      at:
+        offset: 0x21
+      class: IntField
+      sizeBits: 4
+      lsBit: 4
+      mode: RO
+      description: "RX Remote Pause Asserted"
+    ######################################################### 
+    TxLocPause:
+      at:
+        offset: 0x22
+      class: IntField
+      sizeBits: 4
+      lsBit: 0
+      mode: RO
+      description: "Tx Local Pause Asserted"
+    ######################################################### 
+    RxRemOverflow:
+      at:
+        offset: 0x22
+      class: IntField
+      sizeBits: 4
+      lsBit: 4
+      mode: RO
+      description: "Received remote overflow flag"
+    ######################################################### 
+    TxLocOverflow:
+      at:
+        offset: 0x23
+      class: IntField
+      sizeBits: 4
+      lsBit: 0
+      mode: RO
+      description: "Received local overflow flag"
+    ######################################################### 
+    RxRemLinkData:
+      at:
+        offset: 0x23
+      class: IntField
+      sizeBits: 8
+      lsBit: 0
+      mode: RO
+      description: "RxRemLinkData"
+    ######################################################### 
+    RxCellErrorCount:
+      at:
+        offset: 0x28
+      class: IntField
+      sizeBits: 8
+      lsBit: 0
+      mode: RO
+      description: "RxCellErrorCount"
+    ######################################################### 
+    RxLinkDownCount:
+      at:
+        offset: 0x2C
+      class: IntField
+      sizeBits: 8
+      lsBit: 0
+      mode: RO
+      description: "RxLinkDownCount"
+    ######################################################### 
+    RxLinkErrorCount:
+      at:
+        offset: 0x30
+      class: IntField
+      sizeBits: 8
+      lsBit: 0
+      mode: RO
+      description: "RxLinkErrorCount"
+    ######################################################### 
+    RxRemOverflow0Count:
+      at:
+        offset: 0x34
+      class: IntField
+      sizeBits: 8
+      lsBit: 0
+      mode: RO
+      description: "RxRemOverflow0Count"
+    ######################################################### 
+    RxRemOverflow1Count:
+      at:
+        offset: 0x38
+      class: IntField
+      sizeBits: 8
+      lsBit: 0
+      mode: RO
+      description: "RxRemOverflow1Count"
+    ######################################################### 
+    RxRemOverflow2Count:
+      at:
+        offset: 0x3C
+      class: IntField
+      sizeBits: 8
+      lsBit: 0
+      mode: RO
+      description: "RxRemOverflow2Count"
+    ######################################################### 
+    RxRemOverflow3Count:
+      at:
+        offset: 0x40
+      class: IntField
+      sizeBits: 8
+      lsBit: 0
+      mode: RO
+      description: "RxRemOverflow3Count"
+    ######################################################### 
+    RxFrameErrorCoumt:
+      at:
+        offset: 0x44
+      class: IntField
+      sizeBits: 8
+      lsBit: 0
+      mode: RO
+      description: "RxFrameErrorCoumt"
+    ######################################################### 
+    RxFrameCount:
+      at:
+        offset: 0x48
+      class: IntField
+      sizeBits: 8
+      lsBit: 0
+      mode: RO
+      description: "RxFrameCount"
+    ######################################################### 
+    TxLocOverflow0Count:
+      at:
+        offset: 0x4C
+      class: IntField
+      sizeBits: 8
+      lsBit: 0
+      mode: RO
+      description: "TxLocOverflow0Count"
+    ######################################################### 
+    TxLocOverflow1Count:
+      at:
+        offset: 0x50
+      class: IntField
+      sizeBits: 8
+      lsBit: 0
+      mode: RO
+      description: "TxLocOverflow1Count"
+    ######################################################### 
+    TxLocOverflow2Count:
+      at:
+        offset: 0x54
+      class: IntField
+      sizeBits: 8
+      lsBit: 0
+      mode: RO
+      description: "TxLocOverflow2Count"
+    ######################################################### 
+    TxLocOverflow3Count:
+      at:
+        offset: 0x58
+      class: IntField
+      sizeBits: 8
+      lsBit: 0
+      mode: RO
+      description: "TxLocOverflow3Count"
+    ######################################################### 
+    TxFrameErrorCount:
+      at:
+        offset: 0x5C
+      class: IntField
+      sizeBits: 8
+      lsBit: 0
+      mode: RO
+      description: "TxFrameErrorCount"
+    ######################################################### 
+    TxFrameCount:
+      at:
+        offset: 0x60
+      class: IntField
+      sizeBits: 8
+      lsBit: 0
+      mode: RO
+      description: "TxFrameCount"
+    ######################################################### 
+    RxClkFreq:
+      at:
+        offset: 0x64
+      class: IntField
+      sizeBits: 32
+      lsBit: 0
+      mode: RO
+      description: "RxClkFreq"
+    ######################################################### 
+    TxClkFreq:
+      at:
+        offset: 0x68
+      class: IntField
+      sizeBits: 32
+      lsBit: 0
+      mode: RO
+      description: "TxClkFreq"
+    ######################################################### 
+    LastTxOpCode:
+      at:
+        offset: 0x70
+      class: IntField
+      sizeBits: 8
+      lsBit: 0
+      mode: RO
+      description: "LastTxOpCode"
+    ######################################################### 
+    LastRxOpCode:
+      at:
+        offset: 0x74
+      class: IntField
+      sizeBits: 8
+      lsBit: 0
+      mode: RO
+      description: "LastRxOpCode"
+    ######################################################### 
+    TxOpCodeCount:
+      at:
+        offset: 0x78
+      class: IntField
+      sizeBits: 8
+      lsBit: 0
+      mode: RO
+      description: "TxOpCodeCount"
+    ######################################################### 
+    RxOpCodeCount:
+      at:
+        offset: 0x7C
+      class: IntField
+      sizeBits: 8
+      lsBit: 0
+      mode: RO
+      description: "RxOpCodeCount"
+    #########################################################
+    ## Commands
+    #########################################################
+    ResetCounters:
+      class: SequenceCommand
+      at:
+        offset: 0x0
+      description: ResetCounters
+      sequence:
+      - entry: countReset
+        value: 0x1
+      - entry: countReset
+        value: 0x0
+    #########################################################
+    ResetReceiver:
+      class: SequenceCommand
+      at:
+        offset: 0x0
+      description: ResetReceiver
+      sequence:
+      - entry: resetRx
+        value: 0x1
+      - entry: resetRx
+        value: 0x0
+    #########################################################
+    FlushData:
+      class: SequenceCommand
+      at:
+        offset: 0x0
+      description: FlushData
+      sequence:
+      - entry: flush
+        value: 0x1
+      - entry: flush
+        value: 0x0
+    #########################################################
