@@ -63,7 +63,11 @@ architecture rtl of AxiStreamDepacketizer2 is
       TUSER_BITS_C  => 8,
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
 
-   type StateType is (HEADER_S, MOVE_S, TERMINATE_S);
+   type StateType is (
+      HEADER_S,
+      MOVE_S,
+      TERMINATE_S,
+      CRC_S);
 
    type RegType is record
       state            : StateType;
@@ -74,14 +78,16 @@ architecture rtl of AxiStreamDepacketizer2 is
       ramWe            : sl;
       sideband         : sl;
       crcDataValid     : sl;
+      crcDataWidth     : slv(2 downto 0);
       crcReset         : sl;
+      linkGoodDly      : sl;
       debug            : Packetizer2DebugType;
       inputAxisSlave   : AxiStreamSlaveType;
       outputAxisMaster : AxiStreamMasterArray(1 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state            => HEADER_S,
+      state            => TERMINATE_S,
       activeTDest      => (others => '0'),
       packetNumber     => (others => '0'),
       packetActive     => '0',
@@ -89,7 +95,9 @@ architecture rtl of AxiStreamDepacketizer2 is
       ramWe            => '0',
       sideband         => '0',
       crcDataValid     => '0',
+      crcDataWidth     => (others => '1'),
       crcReset         => '1',
+      linkGoodDly      => '0',
       debug            => PACKETIZER2_DEBUG_INIT_C,
       inputAxisSlave   => AXI_STREAM_SLAVE_INIT_C,
       outputAxisMaster => (others => axiStreamMasterInit(AXIS_CONFIG_C)));
@@ -107,7 +115,7 @@ architecture rtl of AxiStreamDepacketizer2 is
    signal inputAxisSlave   : AxiStreamSlaveType;
    signal outputAxisMaster : AxiStreamMasterType;
    signal outputAxisSlave  : AxiStreamSlaveType;
-   
+
    -- attribute dont_touch                     : string;
    -- attribute dont_touch of r                : signal is "TRUE";
    -- attribute dont_touch of crcOut           : signal is "TRUE";
@@ -186,12 +194,12 @@ begin
             BYTE_WIDTH_G     => 8,
             CRC_INIT_G       => X"FFFFFFFF")
          port map (
-            crcOut       => crcOut,                            -- [out]
-            crcClk       => axisClk,                           -- [in]
-            crcDataValid => rin.crcDataValid,                  -- [in]
-            crcDataWidth => "111",                             -- [in]
-            crcIn        => inputAxisMaster.tData(63 downto 0),-- [in]
-            crcReset     => rin.crcReset);                     -- [in]
+            crcOut       => crcOut,
+            crcClk       => axisClk,
+            crcDataValid => rin.crcDataValid,
+            crcDataWidth => rin.crcDataWidth,
+            crcIn        => endianSwapSlv(inputAxisMaster.tData(63 downto 0)),
+            crcReset     => rin.crcReset);
    end generate;
 
    GEN_CRC : if (CRC_POLY_G /= x"04C11DB7") generate
@@ -203,12 +211,12 @@ begin
             CRC_INIT_G       => X"FFFFFFFF",
             CRC_POLY_G       => CRC_POLY_G)
          port map (
-            crcOut       => crcOut,                            -- [out]
-            crcClk       => axisClk,                           -- [in]
-            crcDataValid => rin.crcDataValid,                  -- [in]
-            crcDataWidth => "111",                             -- [in]
-            crcIn        => inputAxisMaster.tData(63 downto 0),-- [in]
-            crcReset     => rin.crcReset);                     -- [in]
+            crcOut       => crcOut,
+            crcClk       => axisClk,
+            crcDataValid => rin.crcDataValid,
+            crcDataWidth => rin.crcDataWidth,
+            crcIn        => endianSwapSlv(inputAxisMaster.tData(63 downto 0)),
+            crcReset     => rin.crcReset);
    end generate;
 
    comb : process (axisRst, crcOut, inputAxisMaster, linkGood, outputAxisSlave,
@@ -225,10 +233,7 @@ begin
 
       v.crcDataValid := '0';
       v.crcReset     := '0';
-
-      if (linkGood = '0') then
-         v.state := TERMINATE_S;
-      end if;
+      v.crcDataWidth := "111";          -- 64-bit transfer  
 
       if (outputAxisSlave.tReady = '1') then
          v.outputAxisMaster(1).tValid := '0';
@@ -236,6 +241,7 @@ begin
       end if;
 
       case r.state is
+         ----------------------------------------------------------------------
          when HEADER_S =>
             -- The header data won't be pushed to the output this cycle, so accept by default
             v.inputAxisSlave.tready := '1';
@@ -303,7 +309,7 @@ begin
 
                end if;
             end if;
-
+         ----------------------------------------------------------------------
          when MOVE_S =>
             v.inputAxisSlave.tReady      := outputAxisSlave.tReady;
             v.outputAxisMaster(1).tvalid := r.outputAxisMaster(1).tvalid;
@@ -325,86 +331,104 @@ begin
 
                -- End of packet
                if (inputAxisMaster.tLast = '1') then
-                  v.state                      := HEADER_S;
+                  v.state                      := CRC_S;
+                  v.outputAxisMaster(0).tValid := '0';
                   v.outputAxisMaster(1).tValid := '0';
-                  v.crcDataValid               := '0';
-
+                  v.crcDataWidth               := "011";  -- 32-bit transfer
                   -- Append EOF metadata to previous txn which has been held
-                  lastBytes                   := conv_integer(inputAxisMaster.tData(PACKETIZER2_TAIL_BYTES_FIELD_C));
-                  v.outputAxisMaster(0).tLast := inputAxisMaster.tData(PACKETIZER2_TAIL_EOF_BIT_C);
-                  v.outputAxisMaster(0).tKeep := genTkeep(conv_integer(inputAxisMaster.tData(PACKETIZER2_TAIL_BYTES_FIELD_C)));
-                  axiStreamSetUserField(AXIS_CONFIG_C, v.outputAxisMaster(0), inputAxisMaster.tData(PACKETIZER2_TAIL_TUSER_FIELD_C), -1);-- -1 = last
-
-                  -- Verify the CRC. Set EOFE if fail.
-                  if (crcOut /= inputAxisMaster.tData(PACKETIZER2_TAIL_CRC_FIELD_C) and CRC_EN_G) then
-                     axiStreamSetUserBit(AXIS_CONFIG_C, v.outputAxisMaster(0), SSI_EOFE_C, '1', -1);-- -1 = last
-                  end if;
-
-
-                  if (inputAxisMaster.tData(PACKETIZER2_TAIL_EOF_BIT_C) = '1') then
-                     -- If EOF, reset packetActive and packetNumber                     
-                     v.packetActive := '0';
-                     v.packetNumber := (others => '0');
-                     v.sentEofe     := '0';
-                     v.ramWe        := '1';
-                     v.debug.eof    := '1';
-                     v.debug.eop    := '1';
-                  elsif (axiStreamGetUserBit(AXIS_CONFIG_C, v.outputAxisMaster(0), SSI_EOFE_C, lastBytes) = '1') then
-                     -- EOP with error, do EOFE
-                     v.outputAxisMaster(0).tLast := '1';
-                     v.packetActive              := '0';
-                     v.packetNumber              := (others => '0');
-                     v.sentEofe                  := '1';
-                     v.ramWe                     := '1';
-                     v.debug.eof                 := '1';
-                     v.debug.eofe                := '1';
-                     v.debug.eop                 := '1';
-                  else
-                     -- else increment packetNumber and set packetActive
-                     v.packetActive := '1';
-                     v.packetNumber := r.packetNumber + 1;
-                     v.sentEofe     := '0';
-                     v.ramWe        := '1';
-                     v.debug.eop    := '1';
-                  end if;
-
-                  v.debug.packetError := axiStreamGetUserBit(AXIS_CONFIG_C, v.outputAxisMaster(0), SSI_EOFE_C, lastBytes);
-
+                  lastBytes                    := conv_integer(inputAxisMaster.tData(PACKETIZER2_TAIL_BYTES_FIELD_C));
+                  v.outputAxisMaster(0).tLast  := inputAxisMaster.tData(PACKETIZER2_TAIL_EOF_BIT_C);
+                  v.outputAxisMaster(0).tKeep  := genTkeep(conv_integer(inputAxisMaster.tData(PACKETIZER2_TAIL_BYTES_FIELD_C)));
+                  axiStreamSetUserField(AXIS_CONFIG_C, v.outputAxisMaster(0), inputAxisMaster.tData(PACKETIZER2_TAIL_TUSER_FIELD_C), -1);  -- -1 = last
+                  -- Update flag
+                  v.debug.packetError          := ssiGetUserEofe(AXIS_CONFIG_C, inputAxisMaster);
                end if;
             end if;
-
+         ----------------------------------------------------------------------
+         when CRC_S =>
+            -- Do not accept new frame during this cycle
+            v.inputAxisSlave.tReady      := '0';
+            -- Move the data (Note: v.outputAxisMaster(0).tValid = '0' in previous state)
+            v.outputAxisMaster(0).tValid := '1';
+            -- Check for packetError or CRC error
+            if (r.debug.packetError = '1') or (crcOut /= r.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_FIELD_C) and CRC_EN_G) then
+               -- EOP with error, do EOFE
+               ssiSetUserEofe(AXIS_CONFIG_C, v.outputAxisMaster(0), '1');
+               v.outputAxisMaster(0).tLast := '1';
+               v.packetActive              := '0';
+               v.packetNumber              := (others => '0');
+               v.sentEofe                  := '1';
+               v.ramWe                     := '1';
+               v.debug.eof                 := '1';
+               v.debug.eofe                := '1';
+               v.debug.eop                 := '1';
+            elsif (r.outputAxisMaster(1).tData(PACKETIZER2_TAIL_EOF_BIT_C) = '1') then
+               -- If EOF, reset packetActive and packetNumber                     
+               v.packetActive := '0';
+               v.packetNumber := (others => '0');
+               v.sentEofe     := '0';
+               v.ramWe        := '1';
+               v.debug.eof    := '1';
+               v.debug.eop    := '1';
+            else
+               -- else increment packetNumber and set packetActive
+               v.packetActive := '1';
+               v.packetNumber := r.packetNumber + 1;
+               v.sentEofe     := '0';
+               v.ramWe        := '1';
+               v.debug.eop    := '1';
+            end if;
+            -- Next state
+            v.state := HEADER_S;
+         ----------------------------------------------------------------------
          when TERMINATE_S =>
             -- Advance the output pipeline
             if (r.outputAxisMaster(1).tValid = '1' and v.outputAxisMaster(0).tValid = '0') then
                v.outputAxisMaster(0) := r.outputAxisMaster(1);
             end if;
-
-            -- Terminate any open frames with EOFE
-            if (v.outputAxisMaster(1).tValid = '0') then
-               v.activeTDest  := r.activeTDest + 1;
-               v.packetActive := '0';
-               v.sentEofe     := '0';   -- Clear any frame error
-               v.packetNumber := (others => '0');
-               v.ramWe        := '1';
-
-               ssiSetUserEofe(AXIS_CONFIG_C, v.outputAxisMaster(1), '1');
-               v.outputAxisMaster(1).tLast             := '1';
-               v.outputAxisMaster(1).tValid            := packetActiveRam;
-               v.outputAxisMaster(1).tDest(7 downto 0) := v.activeTDest;
-               v.debug.eof                             := packetActiveRam;
-               v.debug.eofe                            := packetActiveRam;
+            -- Reset the values in the RAM
+            v.packetActive := '0';
+            v.sentEofe     := '0';      -- Clear any frame error
+            v.packetNumber := (others => '0');
+            -- Check for max index
+            if (r.activeTDest = x"FF") then
+               -- Wait for link to come back up
+               if (linkGood = '1') then
+                  v.state := HEADER_S;
+               end if;
+            else
+               -- Check if ready to move data
+               if (v.outputAxisMaster(1).tValid = '0') then
+                  -- Write to the RAM
+                  v.activeTDest                           := r.activeTDest + 1;
+                  -- Increment the index
+                  v.ramWe                                 := '1';
+                  -- Terminate any open frames with EOFE
+                  ssiSetUserEofe(AXIS_CONFIG_C, v.outputAxisMaster(1), '1');
+                  v.outputAxisMaster(1).tLast             := '1';
+                  v.outputAxisMaster(1).tValid            := packetActiveRam;
+                  v.outputAxisMaster(1).tDest(7 downto 0) := v.activeTDest;
+                  v.debug.eof                             := packetActiveRam;
+                  v.debug.eofe                            := packetActiveRam;
+               end if;
             end if;
-
-            -- Stop when link comes back
-            if (linkGood = '1') then
-               v.state := HEADER_S;
-            end if;
-
+      ----------------------------------------------------------------------
       end case;
-      
+
+      -- Keep a delayed copy
+      v.linkGoodDly := linkGood;
+
+      -- Check for link drop event
+      if (r.linkGoodDly = '1') and (linkGood = '0') then
+         -- Reset the index
+         v.activeTDest := x"00";
+         -- Next state
+         v.state       := TERMINATE_S;
+      end if;
+
       -- Combinatorial outputs before the reset
       inputAxisSlave <= v.inputAxisSlave;
-      
+
       -- Reset
       if (axisRst = '1') then
          v := REG_INIT_C;

@@ -66,7 +66,11 @@ architecture rtl of AxiStreamPacketizer2 is
       TUSER_BITS_C  => ite(OUTPUT_SSI_G, 2, 0),
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
 
-   type StateType is (HEADER_S, MOVE_S, TAIL_S);
+   type StateType is (
+      HEADER_S, 
+      MOVE_S, 
+      TAIL_S, 
+      CRC_S);
 
    type RegType is record
       state            : StateType;
@@ -80,6 +84,7 @@ architecture rtl of AxiStreamPacketizer2 is
       tUserLast        : slv(7 downto 0);
       rearbitrate      : sl;
       crcDataValid     : sl;
+      crcDataWidth     : slv(2 downto 0);
       crcReset         : sl;
       inputAxisSlave   : AxiStreamSlaveType;
       outputAxisMaster : AxiStreamMasterType;
@@ -97,6 +102,7 @@ architecture rtl of AxiStreamPacketizer2 is
       tUserLast        => (others => '0'),
       rearbitrate      => '0',
       crcDataValid     => '0',
+      crcDataWidth     => (others => '1'),
       crcReset         => '0',
       inputAxisSlave   => AXI_STREAM_SLAVE_INIT_C,
       outputAxisMaster => axiStreamMasterInit(AXIS_CONFIG_C));
@@ -179,12 +185,12 @@ begin
             BYTE_WIDTH_G     => 8,
             CRC_INIT_G       => X"FFFFFFFF")
          port map (
-            crcOut       => crcOut,                                  -- [out]
-            crcClk       => axisClk,                                 -- [in]
-            crcDataValid => rin.crcDataValid,                        -- [in]
-            crcDataWidth => "111",                                   -- [in]
-            crcIn        => rin.outputAxisMaster.tData(63 downto 0), -- [in]
-            crcReset     => rin.crcReset);                           -- [in]
+            crcOut       => crcOut,                                  
+            crcClk       => axisClk,                                 
+            crcDataValid => rin.crcDataValid,                        
+            crcDataWidth => rin.crcDataWidth,                        
+            crcIn        => endianSwapSlv(rin.outputAxisMaster.tData(63 downto 0)),
+            crcReset     => rin.crcReset);                           
    end generate;
 
    GEN_CRC : if (CRC_POLY_G /= x"04C11DB7") generate
@@ -196,12 +202,12 @@ begin
             CRC_INIT_G       => X"FFFFFFFF",
             CRC_POLY_G       => CRC_POLY_G)
          port map (
-            crcOut       => crcOut,                                  -- [out]
-            crcClk       => axisClk,                                 -- [in]
-            crcDataValid => rin.crcDataValid,                        -- [in]
-            crcDataWidth => "111",                                   -- [in]
-            crcIn        => rin.outputAxisMaster.tData(63 downto 0), -- [in]
-            crcReset     => rin.crcReset);                           -- [in]
+            crcOut       => crcOut,                                  
+            crcClk       => axisClk,                                 
+            crcDataValid => rin.crcDataValid,                        
+            crcDataWidth => rin.crcDataWidth,                        
+            crcIn        => endianSwapSlv(rin.outputAxisMaster.tData(63 downto 0)),
+            crcReset     => rin.crcReset); 
    end generate;
 
    -------------------------------------------------------------------------------------------------
@@ -225,15 +231,16 @@ begin
 
       v.crcDataValid := '0';
       v.crcReset     := '0';
+      v.crcDataWidth := "111"; -- 64-bit transfer
 
       -- Main state machine
       case r.state is
          when HEADER_S =>
             -- Place header on output when new data arrived
-            v.wordCount := (others => '0');
-            v.crcReset  := '1';
+            v.wordCount    := (others => '0');
+            v.crcReset     := '1';
+            v.crcDataValid := '1';
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
-               v.crcDataValid                                            := '1';
                v.outputAxisMaster                                        := axiStreamMasterInit(AXIS_CONFIG_C);
                v.outputAxisMaster.tValid                                 := inputAxisMaster.tValid;
                v.outputAxisMaster.tData(PACKETIZER2_HDR_VERSION_FIELD_C) := PACKETIZER2_VERSION_C;
@@ -296,13 +303,18 @@ begin
             end if;
 
          when TAIL_S =>
+            v.crcDataValid                                           := '1';
+            v.crcDataWidth                                           := "011"; -- 32-bit transfer
+            v.outputAxisMaster.tData                                 := (others => '0');
+            v.outputAxisMaster.tData(PACKETIZER2_TAIL_EOF_BIT_C)     := r.eof;
+            v.outputAxisMaster.tData(PACKETIZER2_TAIL_TUSER_FIELD_C) := r.tUserLast;
+            v.outputAxisMaster.tData(PACKETIZER2_TAIL_BYTES_FIELD_C) := r.lastByteCount;
+            v.state                                                  := CRC_S;
+         
+         when CRC_S =>
             -- Insert tail when master side is ready for it
             if (v.outputAxisMaster.tValid = '0') then
                v.outputAxisMaster.tValid                                := '1';
-               v.outputAxisMaster.tData                                 := (others => '0');
-               v.outputAxisMaster.tData(PACKETIZER2_TAIL_EOF_BIT_C)     := r.eof;
-               v.outputAxisMaster.tData(PACKETIZER2_TAIL_TUSER_FIELD_C) := r.tUserLast;
-               v.outputAxisMaster.tData(PACKETIZER2_TAIL_BYTES_FIELD_C) := r.lastByteCount;
                v.outputAxisMaster.tData(PACKETIZER2_TAIL_CRC_FIELD_C)   := ite(CRC_EN_G, crcOut, X"00000000");
                -- Maybe set tuser when SSI enabled???
                v.outputAxisMaster.tUser                                 := (others => '0');
