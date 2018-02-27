@@ -2,7 +2,7 @@
 -- File       : Crc32.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-01
--- Last update: 2017-03-31
+-- Last update: 2018-02-27
 -------------------------------------------------------------------------------
 -- Description:
 -- This is an implementation of a generic N-byte input CRC32 calculation.
@@ -45,7 +45,8 @@ entity Crc32 is
       crcDataValid : in  sl;            -- indicate that new data arrived and CRC can be computed
       crcDataWidth : in  slv(2 downto 0);  -- indicate width in bytes minus 1, 0 - 1 byte, 1 - 2 bytes ... , 7 - 8 bytes
       crcIn        : in  slv((BYTE_WIDTH_G*8-1) downto 0);  -- input data for CRC calculation
-      crcReset     : in  sl);           -- initializes CRC logic to CRC_INIT_G
+      crcInit      : in  slv((BYTE_WIDTH_G*8-1) downto 0) := CRC_INIT_G;  -- optional override of CRC_INIT_G
+      crcReset     : in  sl);           -- initializes CRC logic to crcInit
 end Crc32;
 
 architecture rtl of Crc32 is
@@ -110,7 +111,7 @@ begin
       if (crcReset = '0') then
          v.crc := r.crc;
       else
-         v.crc := CRC_INIT_G;
+         v.crc := crcInit;
       end if;
 
       -- Calculate CRC byte-by-byte 

@@ -2,7 +2,7 @@
 -- File       : CRC32Rtl.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-01
--- Last update: 2017-02-23
+-- Last update: 2018-02-27
 -------------------------------------------------------------------------------
 -- Description:
 -- VHDL source file for CRC32 calculation to replace macro of Virtex5 in Virtex6 and Spartan6.
@@ -38,6 +38,7 @@ entity CRC32Rtl is
       CRCDATAVALID : in  std_logic;  -- indicate that new data arrived and CRC can be computed
       CRCDATAWIDTH : in  std_logic_vector(2 downto 0);  -- indicate width in bytes minus 1, 0 - 1 byte, 1 - 2 bytes
       CRCIN        : in  std_logic_vector(31 downto 0);  -- input data for CRC calculation
+      CRCINIT      : in  std_logic_vector(31 downto 0) := CRC_INIT;
       CRCRESET     : in  std_logic);  -- to set CRC logic to value in crc_cNIT
 end CRC32Rtl;
 
@@ -106,7 +107,7 @@ begin
    begin
       if rising_edge(CRCCLK) then
          if (CRCRESET = '1') then
-            crc <= To_StdLogicVector(CRC_INIT);
+            crc <= To_StdLogicVector(CRCINIT);
          elsif (CRCDATAVALID_d = '1') and (CRCCLKEN = '1') then
             if (CRCDATAWIDTH_d = "000") then
                crc <= TempXOR(8);
