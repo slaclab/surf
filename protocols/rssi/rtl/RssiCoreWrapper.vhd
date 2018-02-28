@@ -2,7 +2,7 @@
 -- File       : RssiCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-02-25
--- Last update: 2018-01-31
+-- Last update: 2018-02-27
 -------------------------------------------------------------------------------
 -- Description: Wrapper for RSSI + AXIS packetizer 
 -------------------------------------------------------------------------------
@@ -88,8 +88,9 @@ end entity RssiCoreWrapper;
 
 architecture mapping of RssiCoreWrapper is
 
-   constant CRC_EN_C   : boolean          := true;
-   constant CRC_POLY_C : slv(31 downto 0) := x"04C11DB7";
+   constant CRC_EN_C        : boolean          := true;
+   constant CRC_HEAD_TAIL_C : boolean          := true;
+   constant CRC_POLY_C      : slv(31 downto 0) := x"04C11DB7";
 
    signal rxMasters : AxiStreamMasterArray(APP_STREAMS_G-1 downto 0);
    signal rxSlaves  : AxiStreamSlaveArray(APP_STREAMS_G-1 downto 0);
@@ -190,6 +191,7 @@ begin
                TPD_G                => TPD_G,
                CRC_EN_G             => CRC_EN_C,
                CRC_POLY_G           => CRC_POLY_C,
+               CRC_HEAD_TAIL_G      => CRC_HEAD_TAIL_C,
                MAX_PACKET_BYTES_G   => MAX_SEG_SIZE_G,
                OUTPUT_SSI_G         => true,
                INPUT_PIPE_STAGES_G  => 0,
@@ -291,6 +293,7 @@ begin
                TPD_G                => TPD_G,
                CRC_EN_G             => CRC_EN_C,
                CRC_POLY_G           => CRC_POLY_C,
+               CRC_HEAD_TAIL_G      => CRC_HEAD_TAIL_C,
                INPUT_PIPE_STAGES_G  => 0,  -- No need for input stage, RSSI output is already pipelined
                OUTPUT_PIPE_STAGES_G => 1)
             port map (
