@@ -132,7 +132,7 @@ architecture rtl of AxiStreamDepacketizer2 is
    -- attribute dont_touch of inputAxisMaster  : signal is "TRUE";
    -- attribute dont_touch of inputAxisSlave   : signal is "TRUE";
    -- attribute dont_touch of outputAxisMaster : signal is "TRUE";
-   -- attribute dont_touch of outputAxisSlave  : signal is "TRUE";   
+   -- attribute dont_touch of outputAxisSlave  : signal is "TRUE";
 
 begin
 
@@ -323,7 +323,7 @@ begin
                if (ssiGetuserSof(AXIS_CONFIG_C, inputAxisMaster) = '1') then
 
                   -- Assert SSI SOF if SOF header bit set
-                  ssiSetUserEofe(AXIS_CONFIG_C, v.outputAxisMaster(1), sof);
+                  ssiSetUserSof(AXIS_CONFIG_C, v.outputAxisMaster(1), sof);
 
                   if (sof = '1') then
                      -- Reset the CRC on new frames

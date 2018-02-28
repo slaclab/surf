@@ -262,7 +262,7 @@ begin
             -- Check for data
             if (inputAxisMaster.tValid = '1') then
                v.state := HEADER_S;
-            end if;  
+            end if;
          ----------------------------------------------------------------------
          when HEADER_S =>
             -- Place header on output when new data arrived
@@ -287,7 +287,7 @@ begin
                end if;
 
                -- Frame ID on 63:48?
-               axiStreamSetUserBit(AXIS_CONFIG_C, v.outputAxisMaster, SSI_SOF_C, '1', 0);  -- SOF
+               ssiSetUserSof(AXIS_CONFIG_C, v.outputAxisMaster, '1');  -- SOF
                v.packetNumber := packetNumberOut + 1;
                v.packetActive := '1';
                v.activeTDest  := inputAxisMaster.tDest;
