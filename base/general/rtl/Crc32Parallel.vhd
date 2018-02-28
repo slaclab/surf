@@ -46,7 +46,7 @@ entity Crc32Parallel is
       INPUT_REGISTER_G : boolean          := true;
       CRC_INIT_G       : slv(31 downto 0) := x"FFFFFFFF");
    port (
-      crcOut       : out slv(31 downto 0);                  -- CRC output
+      crcOut       : out slv(31 downto 0);                -- CRC output
       crcClk       : in  sl;            -- system clock
       crcDataValid : in  sl;  -- indicate that new data arrived and CRC can be computed
       crcDataWidth : in  slv(2 downto 0);  -- indicate width in bytes minus 1, 0 - 1 byte, 1 - 2 bytes ... , 7 - 8 bytes
@@ -77,7 +77,7 @@ begin
 
    assert (BYTE_WIDTH_G > 0 and BYTE_WIDTH_G <= 8) report "BYTE_WIDTH_G must be in the range [1,8]" severity failure;
 
-   comb : process(crcDataValid, crcDataWidth, crcIn, crcReset, r)
+   comb : process(crcDataValid, crcDataWidth, crcIn, crcInit, crcReset, r)
       variable v         : RegType;
       variable prevCrc   : slv(31 downto 0);
       variable byteWidth : slv(2 downto 0);

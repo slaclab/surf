@@ -40,9 +40,9 @@ entity Crc32 is
       CRC_INIT_G       : slv(31 downto 0) := x"FFFFFFFF";
       CRC_POLY_G       : slv(31 downto 0) := x"04C11DB7");
    port (
-      crcOut       : out slv(31 downto 0);                  -- CRC output
+      crcOut       : out slv(31 downto 0);                -- CRC output
       crcClk       : in  sl;            -- system clock
-      crcDataValid : in  sl;            -- indicate that new data arrived and CRC can be computed
+      crcDataValid : in  sl;  -- indicate that new data arrived and CRC can be computed
       crcDataWidth : in  slv(2 downto 0);  -- indicate width in bytes minus 1, 0 - 1 byte, 1 - 2 bytes ... , 7 - 8 bytes
       crcIn        : in  slv((BYTE_WIDTH_G*8-1) downto 0);  -- input data for CRC calculation
       crcInit      : in  slv(31 downto 0) := CRC_INIT_G;  -- optional override of CRC_INIT_G
@@ -70,7 +70,7 @@ architecture rtl of Crc32 is
 
 begin
 
-   comb : process(crcIn, crcDataWidth, crcReset, crcDataValid, r)
+   comb : process(crcDataValid, crcDataWidth, crcIn, crcInit, crcReset, r)
       variable v         : RegType;
       variable byteXor   : slv(7 downto 0);
       variable byteWidth : slv(2 downto 0);
