@@ -288,6 +288,12 @@ begin
                -- Calculate CRC on head of enabled to do so
                v.crcDataValid := toSl(CRC_HEAD_TAIL_G);
 
+               -- Check for BRAM configuration
+               if BRAM_EN_G then
+                  -- Default next state if v.state=MOVE_S not applied later in the combinatorial chain
+                  v.state := IDLE_S;
+               end if;
+
                -- Must be an SSI SOF
                -- If txn is not a header, data will be dumped by doing nothing here
                -- This is all we can do, since we don't know which tdest the data belongs to
