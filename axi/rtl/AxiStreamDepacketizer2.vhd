@@ -243,16 +243,21 @@ begin
       variable sof       : sl;
       variable lastBytes : integer;
    begin
+      -- Latch the current value
       v := r;
 
+      -- Set default debug value
       v.debug := PACKETIZER2_DEBUG_INIT_C;
 
+      -- Don't write new packet number by default
       v.ramWe := '0';
 
+      -- Default CRC variable values
       v.crcDataValid := '0';
       v.crcReset     := '0';
       v.crcDataWidth := "111";          -- 64-bit transfer  
 
+      -- Check if data accepted
       if (outputAxisSlave.tReady = '1') then
          v.outputAxisMaster(1).tValid := '0';
          v.outputAxisMaster(0).tValid := '0';
@@ -261,8 +266,17 @@ begin
       case r.state is
          ----------------------------------------------------------------------
          when IDLE_S =>
+            -- Update the RAM address
+            v.activeTDest := inputAxisMaster.tData(PACKETIZER2_HDR_TDEST_FIELD_C);
+
             -- Halt incoming data
             v.inputAxisSlave.tReady := '0';
+
+            -- Advance the output pipeline
+            if (r.outputAxisMaster(1).tValid = '1' and v.outputAxisMaster(0).tValid = '0') then
+               v.outputAxisMaster(0) := r.outputAxisMaster(1);
+            end if;
+
             -- Check for data
             if (inputAxisMaster.tValid = '1') then
                v.state := HEADER_S;
@@ -277,11 +291,20 @@ begin
             v.crcReset := '1';
             v.crcInit  := crcRam;
 
+            -- Update the RAM address
+            v.activeTDest := inputAxisMaster.tData(PACKETIZER2_HDR_TDEST_FIELD_C);
+
+            -- Assign sideband fields
+            v.outputAxisMaster(1).tDest(7 downto 0) := inputAxisMaster.tData(PACKETIZER2_HDR_TDEST_FIELD_C);
+            v.outputAxisMaster(1).tId(7 downto 0)   := inputAxisMaster.tData(PACKETIZER2_HDR_TID_FIELD_C);
+            v.outputAxisMaster(1).tUser(7 downto 0) := inputAxisMaster.tData(PACKETIZER2_HDR_TUSER_FIELD_C);
+            sof                                     := inputAxisMaster.tData(PACKETIZER2_HDR_SOF_BIT_C);
+            v.packetNumber                          := inputAxisMaster.tData(PACKETIZER2_HDR_SEQ_FIELD_C);
+
             -- Advance the output pipeline
             if (r.outputAxisMaster(1).tValid = '1' and v.outputAxisMaster(0).tValid = '0') then
                v.outputAxisMaster(0) := r.outputAxisMaster(1);
             end if;
-
 
             -- Process an incoming transaction
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster(1).tValid = '0') then
@@ -299,17 +322,8 @@ begin
                -- This is all we can do, since we don't know which tdest the data belongs to
                if (ssiGetuserSof(AXIS_CONFIG_C, inputAxisMaster) = '1') then
 
-                  -- Assign sideband fields
-                  v.outputAxisMaster(1).tDest(7 downto 0) := inputAxisMaster.tData(PACKETIZER2_HDR_TDEST_FIELD_C);
-                  v.outputAxisMaster(1).tId(7 downto 0)   := inputAxisMaster.tData(PACKETIZER2_HDR_TID_FIELD_C);
-                  v.outputAxisMaster(1).tUser(7 downto 0) := inputAxisMaster.tData(PACKETIZER2_HDR_TUSER_FIELD_C);
-                  sof                                     := inputAxisMaster.tData(PACKETIZER2_HDR_SOF_BIT_C);
-                  v.packetNumber                          := inputAxisMaster.tData(PACKETIZER2_HDR_SEQ_FIELD_C);
-
-                  v.activeTDest := v.outputAxisMaster(1).tDest(7 downto 0);
-
                   -- Assert SSI SOF if SOF header bit set
-                  axiStreamSetUserBit(AXIS_CONFIG_C, v.outputAxisMaster(1), SSI_SOF_C, sof, 0);  -- 0 = first
+                  ssiSetUserEofe(AXIS_CONFIG_C, v.outputAxisMaster(1), sof);
 
                   if (sof = '1') then
                      -- Reset the CRC on new frames
@@ -513,4 +527,3 @@ begin
    end process seq;
 
 end architecture rtl;
-

@@ -236,6 +236,7 @@ begin
                    packetActiveOut, packetNumberOut, r) is
       variable v : RegType;
    begin
+      -- Latch the current value
       v := r;
 
       if (outputAxisSlave.tReady = '1') then
@@ -248,6 +249,7 @@ begin
       -- Don't write new packet number by default
       v.ramWe := '0';
 
+      -- Default CRC variable values
       v.crcDataValid := '0';
       v.crcReset     := '0';
       v.crcDataWidth := "111";          -- 64-bit transfer
