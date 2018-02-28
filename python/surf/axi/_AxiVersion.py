@@ -175,7 +175,7 @@ class AxiVersion(pr.Device):
             bitOffset    = 0x00,
             base         = pr.UInt,
             mode         = 'RO',
-            hidden       = 'True',
+            hidden       = True,
         ))
 
         self.add(pr.LinkVariable(
