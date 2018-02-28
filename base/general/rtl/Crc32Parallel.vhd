@@ -51,7 +51,7 @@ entity Crc32Parallel is
       crcDataValid : in  sl;  -- indicate that new data arrived and CRC can be computed
       crcDataWidth : in  slv(2 downto 0);  -- indicate width in bytes minus 1, 0 - 1 byte, 1 - 2 bytes ... , 7 - 8 bytes
       crcIn        : in  slv((BYTE_WIDTH_G*8-1) downto 0);  -- input data for CRC calculation
-      crcInit      : in slv((BYTE_WIDTH_G*8-1) downto 0) := CRC_INIT_G;  -- optional override of CRC_INIT_G
+      crcInit      : in  slv(31 downto 0) := CRC_INIT_G;  -- optional override of CRC_INIT_G
       crcReset     : in  sl);  -- initializes CRC logic to crcInit     
 end Crc32Parallel;
 
