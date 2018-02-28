@@ -98,7 +98,7 @@ architecture rtl of AxiStreamDepacketizer2 is
       sideband         => '0',
       crcDataValid     => '0',
       crcDataWidth     => (others => '1'),
-      crcInit          => (others => '1');
+      crcInit          => (others => '1'),
       crcReset         => '1',
       linkGoodDly      => '0',
       debug            => PACKETIZER2_DEBUG_INIT_C,
@@ -208,7 +208,7 @@ begin
             crcDataValid => rin.crcDataValid,
             crcDataWidth => rin.crcDataWidth,
             crcIn        => crcIn,
-            crcInit      => rin.crcInit;
+            crcInit      => rin.crcInit,
             crcReset     => rin.crcReset);
    end generate;
 
@@ -290,16 +290,17 @@ begin
                   -- Assert SSI SOF if SOF header bit set
                   axiStreamSetUserBit(AXIS_CONFIG_C, v.outputAxisMaster(1), SSI_SOF_C, sof, 0);  -- 0 = first
 
-                  if (sof) then
+                  if (sof='1') then
                      -- Reset the CRC on new frames
                      -- Do this on EOF instead maybe?
                      v.crcInit := (others => '1');
                   end if;
 
 
-                  if (sof = not packetActiveRam and v.packetNumber = packetNumberRam and
-                      inputAxisMaster.tData(PACKETIZER2_HDR_VERSION_FIELD_C) = PACKETIZER2_VERSION_C and
-                      inputAxisMaster.tData(PACKETIZER2_HDR_CRC_TYPE_FIELD_C = toSl(CRC_HEAD_TAIL_G)) then
+                  if (sof = not packetActiveRam) and 
+                     (v.packetNumber = packetNumberRam) and
+                     (inputAxisMaster.tData(PACKETIZER2_HDR_VERSION_FIELD_C) = PACKETIZER2_VERSION_C) and
+                     (inputAxisMaster.tData(PACKETIZER2_HDR_CRC_TYPE_FIELD_C) = toSl(CRC_HEAD_TAIL_G)) then
                      -- Header metadata as expected
                      v.state    := MOVE_S;
                      v.sideband := '1';
