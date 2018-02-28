@@ -32,6 +32,7 @@ entity AxiStreamDepacketizer2 is
 
    generic (
       TPD_G                : time             := 1 ns;
+      BRAM_EN_G            : boolean          := false;
       CRC_EN_G             : boolean          := true;
       CRC_POLY_G           : slv(31 downto 0) := x"04C11DB7";
       CRC_HEAD_TAIL_G      : boolean          := false;  -- CRC includes head and tail data
@@ -65,6 +66,7 @@ architecture rtl of AxiStreamDepacketizer2 is
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
 
    type StateType is (
+      IDLE_S,
       HEADER_S,
       MOVE_S,
       TERMINATE_S,
@@ -112,9 +114,9 @@ architecture rtl of AxiStreamDepacketizer2 is
    signal packetActiveRam : sl;
    signal sentEofeRam     : sl;
 
-   signal crcIn : slv(63 downto 0);
-   signal crcOut : slv(31 downto 0);
-   signal crcRam : slv(31 downto 0);
+   signal crcIn  : slv(63 downto 0) := (others => '0');
+   signal crcOut : slv(31 downto 0) := (others => '0');
+   signal crcRam : slv(31 downto 0) := (others => '0');
 
    signal inputAxisMaster  : AxiStreamMasterType;
    signal inputAxisSlave   : AxiStreamSlaveType;
@@ -172,7 +174,7 @@ begin
    U_DualPortRam_1 : entity work.DualPortRam
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
+         BRAM_EN_G    => BRAM_EN_G,
          REG_EN_G     => false,
          DOA_REG_G    => false,
          DOB_REG_G    => false,
@@ -195,43 +197,48 @@ begin
 
    crcIn <= endianSwap(inputAxisMaster.tData(63 downto 0));
 
-   ETH_CRC : if (CRC_POLY_G = x"04C11DB7") generate
-      U_Crc32 : entity work.Crc32Parallel
-         generic map (
-            TPD_G            => TPD_G,
-            INPUT_REGISTER_G => false,
-            BYTE_WIDTH_G     => 8,
-            CRC_INIT_G       => X"FFFFFFFF")
-         port map (
-            crcOut       => crcOut,
-            crcClk       => axisClk,
-            crcDataValid => rin.crcDataValid,
-            crcDataWidth => rin.crcDataWidth,
-            crcIn        => crcIn,
-            crcInit      => rin.crcInit,
-            crcReset     => rin.crcReset);
+   GEN_CRC : if (CRC_EN_G) generate
+
+      ETH_CRC : if (CRC_POLY_G = x"04C11DB7") generate
+         U_Crc32 : entity work.Crc32Parallel
+            generic map (
+               TPD_G            => TPD_G,
+               INPUT_REGISTER_G => false,
+               BYTE_WIDTH_G     => 8,
+               CRC_INIT_G       => X"FFFFFFFF")
+            port map (
+               crcOut       => crcOut,
+               crcClk       => axisClk,
+               crcDataValid => rin.crcDataValid,
+               crcDataWidth => rin.crcDataWidth,
+               crcIn        => crcIn,
+               crcInit      => rin.crcInit,
+               crcReset     => rin.crcReset);
+      end generate;
+
+      GENERNAL_CRC : if (CRC_POLY_G /= x"04C11DB7") generate
+         U_Crc32 : entity work.Crc32
+            generic map (
+               TPD_G            => TPD_G,
+               INPUT_REGISTER_G => false,
+               BYTE_WIDTH_G     => 8,
+               CRC_INIT_G       => X"FFFFFFFF",
+               CRC_POLY_G       => CRC_POLY_G)
+            port map (
+               crcOut       => crcOut,
+               crcClk       => axisClk,
+               crcDataValid => rin.crcDataValid,
+               crcDataWidth => rin.crcDataWidth,
+               crcIn        => crcIn,
+               crcInit      => rin.crcInit,
+               crcReset     => rin.crcReset);
+      end generate;
+
    end generate;
 
-   GEN_CRC : if (CRC_POLY_G /= x"04C11DB7") generate
-      U_Crc32 : entity work.Crc32
-         generic map (
-            TPD_G            => TPD_G,
-            INPUT_REGISTER_G => false,
-            BYTE_WIDTH_G     => 8,
-            CRC_INIT_G       => X"FFFFFFFF",
-            CRC_POLY_G       => CRC_POLY_G)
-         port map (
-            crcOut       => crcOut,
-            crcClk       => axisClk,
-            crcDataValid => rin.crcDataValid,
-            crcDataWidth => rin.crcDataWidth,
-            crcIn        => crcIn,
-            crcInit      => rin.crcInit,
-            crcReset     => rin.crcReset);
-   end generate;
-
-   comb : process (axisRst, crcOut, crcRam, inputAxisMaster, linkGood, outputAxisSlave,
-                   packetActiveRam, packetNumberRam, r, sentEofeRam) is
+   comb : process (axisRst, crcOut, crcRam, inputAxisMaster, linkGood,
+                   outputAxisSlave, packetActiveRam, packetNumberRam, r,
+                   sentEofeRam) is
       variable v         : RegType;
       variable sof       : sl;
       variable lastBytes : integer;
@@ -253,6 +260,14 @@ begin
 
       case r.state is
          ----------------------------------------------------------------------
+         when IDLE_S =>
+            -- Halt incoming data
+            v.inputAxisSlave.tReady := '0';
+            -- Check for data
+            if (inputAxisMaster.tValid = '1') then
+               v.state := HEADER_S;
+            end if;
+         ----------------------------------------------------------------------
          when HEADER_S =>
             -- The header data won't be pushed to the output this cycle, so accept by default
             v.inputAxisSlave.tready := '1';
@@ -270,7 +285,7 @@ begin
 
             -- Process an incoming transaction
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster(1).tValid = '0') then
-               -- Calcualte CRC on head of enabled to do so
+               -- Calculate CRC on head of enabled to do so
                v.crcDataValid := toSl(CRC_HEAD_TAIL_G);
 
                -- Must be an SSI SOF
@@ -290,14 +305,14 @@ begin
                   -- Assert SSI SOF if SOF header bit set
                   axiStreamSetUserBit(AXIS_CONFIG_C, v.outputAxisMaster(1), SSI_SOF_C, sof, 0);  -- 0 = first
 
-                  if (sof='1') then
+                  if (sof = '1') then
                      -- Reset the CRC on new frames
                      -- Do this on EOF instead maybe?
                      v.crcInit := (others => '1');
                   end if;
 
 
-                  if (sof = not packetActiveRam) and 
+                  if (sof = not packetActiveRam) and
                      (v.packetNumber = packetNumberRam) and
                      (inputAxisMaster.tData(PACKETIZER2_HDR_VERSION_FIELD_C) = PACKETIZER2_VERSION_C) and
                      (inputAxisMaster.tData(PACKETIZER2_HDR_CRC_TYPE_FIELD_C) = toSl(CRC_HEAD_TAIL_G)) then
@@ -308,7 +323,7 @@ begin
                      -- Set packetActive in ram for this tdest
                      -- v.packetNumber is already correct
                      v.packetActive := '1';
-                     v.sentEofe     := '0';                   -- Clear any frame error
+                     v.sentEofe     := '0';  -- Clear any frame error
                      v.ramWe        := '1';
                      v.debug.sop    := '1';
                      v.debug.sof    := sof;
@@ -382,7 +397,7 @@ begin
                v.packetNumber              := (others => '0');
                v.sentEofe                  := '1';
                v.crcInit                   := (others => '1');
-               v.crcReset                  := '1';        -- Reset CRC in ram to 0xFFFFFFFF
+               v.crcReset                  := '1';  -- Reset CRC in ram to 0xFFFFFFFF
                v.ramWe                     := '1';
                v.debug.eof                 := '1';
                v.debug.eofe                := '1';
@@ -406,10 +421,14 @@ begin
                v.debug.eop    := '1';
             end if;
             -- Next state
-            v.state := HEADER_S;
+            if BRAM_EN_G then
+               v.state := IDLE_S;
+            else
+               v.state := HEADER_S;
+            end if;
          ----------------------------------------------------------------------
          when TERMINATE_S =>
-            -- Halt incomming data
+            -- Halt incoming data
             v.inputAxisSlave.tReady := '0';
 
             -- Advance the output pipeline
@@ -427,7 +446,11 @@ begin
             if (r.activeTDest = x"FF") then
                -- Wait for link to come back up
                if (linkGood = '1') then
-                  v.state := HEADER_S;
+                  if BRAM_EN_G then
+                     v.state := IDLE_S;
+                  else
+                     v.state := HEADER_S;
+                  end if;
                end if;
             else
                -- Check if ready to move data

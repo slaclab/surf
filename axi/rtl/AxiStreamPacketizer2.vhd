@@ -32,6 +32,7 @@ entity AxiStreamPacketizer2 is
 
    generic (
       TPD_G                : time             := 1 ns;
+      BRAM_EN_G            : boolean          := false;
       CRC_EN_G             : boolean          := false;
       CRC_POLY_G           : slv(31 downto 0) := x"04C11DB7";
       CRC_HEAD_TAIL_G      : boolean          := false;
@@ -68,6 +69,7 @@ architecture rtl of AxiStreamPacketizer2 is
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
 
    type StateType is (
+      IDLE_S,
       HEADER_S,
       MOVE_S,
       TAIL_S);
@@ -122,9 +124,9 @@ architecture rtl of AxiStreamPacketizer2 is
    signal outputAxisMaster : AxiStreamMasterType;
    signal outputAxisSlave  : AxiStreamSlaveType;
 
-   signal crcOut : slv(31 downto 0);
-   signal crcIn  : slv(63 downto 0);
-   signal crcRam : slv(31 downto 0);
+   signal crcOut : slv(31 downto 0) := (others => '0');
+   signal crcIn  : slv(63 downto 0) := (others => '0');
+   signal crcRam : slv(31 downto 0) := (others => '0');
 
 
    -- attribute dont_touch                     : string;
@@ -164,7 +166,7 @@ begin
    U_DualPortRam_1 : entity work.DualPortRam
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
+         BRAM_EN_G    => BRAM_EN_G,
          REG_EN_G     => false,
          DOA_REG_G    => false,
          DOB_REG_G    => false,
@@ -188,46 +190,50 @@ begin
 
    crcIn <= endianSwap(rin.outputAxisMaster.tData(63 downto 0));
 
-   ETH_CRC : if (CRC_POLY_G = x"04C11DB7") generate
-      U_Crc32 : entity work.Crc32Parallel
-         generic map (
-            TPD_G            => TPD_G,
-            INPUT_REGISTER_G => false,
-            BYTE_WIDTH_G     => 8,
-            CRC_INIT_G       => X"FFFFFFFF")
-         port map (
-            crcOut       => crcOut,
-            crcClk       => axisClk,
-            crcDataValid => rin.crcDataValid,
-            crcDataWidth => rin.crcDataWidth,
-            crcIn        => crcIn,
-            crcInit      => rin.crcInit,
-            crcReset     => rin.crcReset);
-   end generate;
+   GEN_CRC : if (CRC_EN_G) generate
 
-   GEN_CRC : if (CRC_POLY_G /= x"04C11DB7") generate
-      U_Crc32 : entity work.Crc32
-         generic map (
-            TPD_G            => TPD_G,
-            INPUT_REGISTER_G => false,
-            BYTE_WIDTH_G     => 8,
-            CRC_INIT_G       => X"FFFFFFFF",
-            CRC_POLY_G       => CRC_POLY_G)
-         port map (
-            crcOut       => crcOut,
-            crcClk       => axisClk,
-            crcDataValid => rin.crcDataValid,
-            crcDataWidth => rin.crcDataWidth,
-            crcIn        => crcIn,
-            crcInit      => rin.crcInit,
-            crcReset     => rin.crcReset);
+      ETH_CRC : if (CRC_POLY_G = x"04C11DB7") generate
+         U_Crc32 : entity work.Crc32Parallel
+            generic map (
+               TPD_G            => TPD_G,
+               INPUT_REGISTER_G => false,
+               BYTE_WIDTH_G     => 8,
+               CRC_INIT_G       => X"FFFFFFFF")
+            port map (
+               crcOut       => crcOut,
+               crcClk       => axisClk,
+               crcDataValid => rin.crcDataValid,
+               crcDataWidth => rin.crcDataWidth,
+               crcIn        => crcIn,
+               crcInit      => rin.crcInit,
+               crcReset     => rin.crcReset);
+      end generate;
+
+      GENERNAL_CRC : if (CRC_POLY_G /= x"04C11DB7") generate
+         U_Crc32 : entity work.Crc32
+            generic map (
+               TPD_G            => TPD_G,
+               INPUT_REGISTER_G => false,
+               BYTE_WIDTH_G     => 8,
+               CRC_INIT_G       => X"FFFFFFFF",
+               CRC_POLY_G       => CRC_POLY_G)
+            port map (
+               crcOut       => crcOut,
+               crcClk       => axisClk,
+               crcDataValid => rin.crcDataValid,
+               crcDataWidth => rin.crcDataWidth,
+               crcIn        => crcIn,
+               crcInit      => rin.crcInit,
+               crcReset     => rin.crcReset);
+      end generate;
+
    end generate;
 
    -------------------------------------------------------------------------------------------------
    -- Accumulation sequencing, DMA ring buffer, and AXI-Lite logic
    -------------------------------------------------------------------------------------------------
-   comb : process (axisRst, crcOut, crcRam, inputAxisMaster, outputAxisSlave, packetActiveOut,
-                   packetNumberOut, r) is
+   comb : process (axisRst, crcOut, crcRam, inputAxisMaster, outputAxisSlave,
+                   packetActiveOut, packetNumberOut, r) is
       variable v : RegType;
    begin
       v := r;
@@ -249,6 +255,13 @@ begin
 
       -- Main state machine
       case r.state is
+         ----------------------------------------------------------------------
+         when IDLE_S =>
+            -- Check for data
+            if (inputAxisMaster.tValid = '1') then
+               v.state := HEADER_S;
+            end if;  
+         ----------------------------------------------------------------------
          when HEADER_S =>
             -- Place header on output when new data arrived
             v.wordCount    := (others => '0');
@@ -279,7 +292,7 @@ begin
                v.state        := MOVE_S;
 
             end if;
-
+         ----------------------------------------------------------------------
          when MOVE_S =>
             v.lastByteCount := "1000";
             if (inputAxisMaster.tvalid = '1' and v.outputAxisMaster.tValid = '0') then
@@ -322,7 +335,7 @@ begin
 
                v.crcDataValid := v.outputAxisMaster.tValid;
             end if;
-
+         ----------------------------------------------------------------------
          when TAIL_S =>
             v.crcDataValid                                           := toSl(CRC_HEAD_TAIL_G);
             v.crcDataWidth                                           := "011";  -- 32-bit transfer
@@ -345,11 +358,15 @@ begin
                   v.outputAxisMaster.tLast                               := '1';
                   v.eof                                                  := '0';  -- Clear EOF for next frame
                   v.tUserLast                                            := (others => '0');
-                  v.state                                                := HEADER_S;  -- Go to idle and wait for new data
+                  if BRAM_EN_G then
+                     v.state := IDLE_S;    -- Go to idle and wait for new data
+                  else
+                     v.state := HEADER_S;  -- Go to idle and wait for new data
+                  end if;
                end if;
 
             end if;
-
+      ----------------------------------------------------------------------
       end case;
 
       -- Always a 64-bit transfer
