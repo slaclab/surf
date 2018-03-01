@@ -181,10 +181,9 @@ begin
    U_AxiStreamPacketizer2_1 : entity work.AxiStreamPacketizer2
       generic map (
          TPD_G                => TPD_G,
-         CRC_EN_G             => true,
+         CRC_MODE_G           => "DATA",
          CRC_POLY_G           => X"04C11DB7",
          MAX_PACKET_BYTES_G   => CELL_WORDS_MAX_G*8*2,
-         OUTPUT_SSI_G         => true,
          INPUT_PIPE_STAGES_G  => 0,
          OUTPUT_PIPE_STAGES_G => 0)
       port map (
