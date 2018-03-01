@@ -143,12 +143,12 @@ begin
          TPD_G         => TPD_G,
          PIPE_STAGES_G => INPUT_PIPE_STAGES_G)
       port map (
-         axisClk     => axisClk,          -- [in]
-         axisRst     => axisRst,          -- [in]
-         sAxisMaster => sAxisMaster,      -- [in]
-         sAxisSlave  => sAxisSlave,       -- [out]
-         mAxisMaster => inputAxisMaster,  -- [out]
-         mAxisSlave  => inputAxisSlave);  -- [in]
+         axisClk     => axisClk,
+         axisRst     => axisRst,
+         sAxisMaster => sAxisMaster,
+         sAxisSlave  => sAxisSlave,
+         mAxisMaster => inputAxisMaster,
+         mAxisSlave  => inputAxisSlave);
 
    -------------------------------------------------------------------------------
    -- Packet Count ram
@@ -451,7 +451,14 @@ begin
             if (r.activeTDest = x"FF") then
                -- Wait for link to come back up
                if (linkGood = '1') then
-                  v.state := ite(BRAM_EN_G, IDLE_S, HEADER_S);
+                  -- Check for BRAM used
+                  if (BRAM_EN_G) then
+                     -- Next state (1 cycle read latency)
+                     v.state := IDLE_S;
+                  else
+                     -- Next state (0 cycle read latency)
+                     v.state := HEADER_S;
+                  end if;
                end if;
             else
                -- Check if ready to move data

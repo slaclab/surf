@@ -189,7 +189,6 @@ begin
                CRC_MODE_G           => "FULL",
                CRC_POLY_G           => x"04C11DB7",
                MAX_PACKET_BYTES_G   => MAX_SEG_SIZE_G,
-               OUTPUT_SSI_G         => true,
                INPUT_PIPE_STAGES_G  => 0,
                OUTPUT_PIPE_STAGES_G => 1)
             port map (

@@ -141,12 +141,12 @@ begin
          TPD_G         => TPD_G,
          PIPE_STAGES_G => INPUT_PIPE_STAGES_G)
       port map (
-         axisClk     => axisClk,          -- [in]
-         axisRst     => axisRst,          -- [in]
-         sAxisMaster => sAxisMaster,      -- [in]
-         sAxisSlave  => sAxisSlave,       -- [out]
-         mAxisMaster => inputAxisMaster,  -- [out]
-         mAxisSlave  => inputAxisSlave);  -- [in]
+         axisClk     => axisClk,
+         axisRst     => axisRst,
+         sAxisMaster => sAxisMaster,
+         sAxisSlave  => sAxisSlave,
+         mAxisMaster => inputAxisMaster,
+         mAxisSlave  => inputAxisSlave);
 
    -------------------------------------------------------------------------------
    -- Packet Count ram
@@ -163,19 +163,19 @@ begin
          DATA_WIDTH_G => 17+32,
          ADDR_WIDTH_G => 8)
       port map (
-         clka                => axisClk,                -- [in]
-         rsta                => axisRst,                -- [in]
-         wea                 => r.ramWe,                -- [in]
-         addra               => r.activeTDest,          -- [in]
-         dina(15 downto 0)   => r.packetSeq,            -- [in]
-         dina(16)            => r.packetActive,         -- [in]
-         dina(48 downto 17)  => r.crcRem,               -- [in]
-         clkb                => axisClk,                -- [in]
-         rstb                => axisRst,                -- [in]
-         addrb               => inputAxisMaster.tDest,  -- [in]
-         doutb(15 downto 0)  => ramPacketSeqOut,        -- [out]
-         doutb(16)           => ramPacketActiveOut,     -- [out]
-         doutb(48 downto 17) => ramCrcRem);             -- [out]
+         clka                => axisClk,
+         rsta                => axisRst,
+         wea                 => r.ramWe,
+         addra               => r.activeTDest,
+         dina(15 downto 0)   => r.packetSeq,
+         dina(16)            => r.packetActive,
+         dina(48 downto 17)  => r.crcRem,
+         clkb                => axisClk,
+         rstb                => axisRst,
+         addrb               => inputAxisMaster.tDest,
+         doutb(15 downto 0)  => ramPacketSeqOut,
+         doutb(16)           => ramPacketActiveOut,
+         doutb(48 downto 17) => ramCrcRem);
 
    crcIn <= endianSwap(rin.outputAxisMaster.tData(63 downto 0));
 
