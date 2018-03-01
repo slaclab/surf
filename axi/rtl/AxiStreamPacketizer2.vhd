@@ -270,11 +270,12 @@ begin
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
                v.outputAxisMaster :=
                   makePacketizer2Header(
-                     sof   => not ramPacketActiveOut,
-                     tdest => inputAxisMaster.tDest,
-                     tuser => inputAxisMaster.tUser(7 downto 0),
-                     tid   => inputAxisMaster.tId,
-                     seq   => ramPacketSeqOut);
+                     CRC_MODE_G => CRC_MODE_G,
+                     sof        => not ramPacketActiveOut,
+                     tdest      => inputAxisMaster.tDest,
+                     tuser      => inputAxisMaster.tUser(7 downto 0),
+                     tid        => inputAxisMaster.tId,
+                     seq        => ramPacketSeqOut);
                v.outputAxisMaster.tValid := inputAxisMaster.tValid;
 
                if (ramPacketActiveOut = '0') then

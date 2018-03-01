@@ -2,7 +2,7 @@
 -- File       : CRC32Rtl.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-01
--- Last update: 2018-02-27
+-- Last update: 2018-03-01
 -------------------------------------------------------------------------------
 -- Description:
 -- VHDL source file for CRC32 calculation to replace macro of Virtex5 in Virtex6 and Spartan6.
@@ -32,26 +32,26 @@ entity CRC32Rtl is
    generic (
       CRC_INIT : bit_vector := x"FFFFFFFF");
    port (
-      CRCOUT       : out std_logic_vector(31 downto 0);  -- CRC output
+      CRCOUT       : out std_logic_vector(31 downto 0);         -- CRC output
       CRCCLK       : in  std_logic;     -- system clock
-      CRCCLKEN     : in  std_logic := '1';-- system clock enable
-      CRCDATAVALID : in  std_logic;  -- indicate that new data arrived and CRC can be computed
+      CRCCLKEN     : in  std_logic                     := '1';  -- system clock enable
+      CRCDATAVALID : in  std_logic;     -- indicate that new data arrived and CRC can be computed
       CRCDATAWIDTH : in  std_logic_vector(2 downto 0);  -- indicate width in bytes minus 1, 0 - 1 byte, 1 - 2 bytes
-      CRCIN        : in  std_logic_vector(31 downto 0);  -- input data for CRC calculation
-      CRCINIT      : in  std_logic_vector(31 downto 0) := CRC_INIT;
-      CRCRESET     : in  std_logic);  -- to set CRC logic to value in crc_cNIT
+      CRCIN        : in  std_logic_vector(31 downto 0);         -- input data for CRC calculation
+      CRCINIT      : in  std_logic_vector(31 downto 0) := To_StdLogicVector(CRC_INIT);
+      CRCRESET     : in  std_logic);    -- to set CRC logic to value in crc_cNIT
 end CRC32Rtl;
 
 architecture rtl of CRC32Rtl is
 
    -- Local Signals
-   signal   data             : std_logic_vector(31 downto 0); 
-   signal   crc              : std_logic_vector(31 downto 0); 
-   signal   CRCDATAVALID_d   : std_logic;
-   signal   CRCDATAWIDTH_d   : std_logic_vector(2 downto 0);
-   constant Polyval          : std_logic_vector(31 downto 0) := X"04C11DB7";
-   type     fb_array is array (32 downto 0) of std_logic_vector(31 downto 0); 
-   signal   MSBVect, TempXOR : fb_array;
+   signal data             : std_logic_vector(31 downto 0);
+   signal crc              : std_logic_vector(31 downto 0);
+   signal CRCDATAVALID_d   : std_logic;
+   signal CRCDATAWIDTH_d   : std_logic_vector(2 downto 0);
+   constant Polyval        : std_logic_vector(31 downto 0) := X"04C11DB7";
+   type fb_array is array (32 downto 0) of std_logic_vector(31 downto 0);
+   signal MSBVect, TempXOR : fb_array;
 
    -- Register delay for simulation
    constant tpd : time := 0.5 ns;
@@ -69,7 +69,7 @@ begin
       TempXOR(i+1) <= ((TempXOR(i)(30 downto 0) & '0') xor (Polyval and MSBVect(i)));
    end generate MS2;
 
-   process(CRCCLK,CRCCLKEN)
+   process(CRCCLK, CRCCLKEN)
    begin
       if rising_edge(CRCCLK) and (CRCCLKEN = '1') then
          for i in 24 to 31 loop
