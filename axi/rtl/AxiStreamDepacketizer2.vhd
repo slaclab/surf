@@ -447,6 +447,8 @@ begin
             -- Move the data (Note: v.outputAxisMaster(0).tValid = '0' in previous state)
             v.outputAxisMaster(0).tValid := '1';
 
+            doTail;
+
             -- Check for BRAM used
             if (BRAM_EN_G) then
                -- Next state (1 cycle read latency)
