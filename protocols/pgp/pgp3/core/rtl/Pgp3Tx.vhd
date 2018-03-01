@@ -8,11 +8,11 @@
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
--- This file is part of <PROJECT_NAME>. It is subject to
+-- This file is part of SURF. It is subject to
 -- the license terms in the LICENSE.txt file found in the top-level directory
 -- of this distribution and at:
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
--- No part of <PROJECT_NAME>, including this file, may be
+-- No part of SURF, including this file, may be
 -- copied, modified, propagated, or distributed except according to the terms
 -- contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
@@ -182,7 +182,7 @@ begin
       generic map (
          TPD_G                => TPD_G,
          CRC_MODE_G           => "DATA",
-         CRC_POLY_G           => X"04C11DB7",
+         CRC_POLY_G           => PGP3_CRC_POLY_C,
          MAX_PACKET_BYTES_G   => CELL_WORDS_MAX_G*8*2,
          INPUT_PIPE_STAGES_G  => 0,
          OUTPUT_PIPE_STAGES_G => 0)

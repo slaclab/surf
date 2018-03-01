@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-07
--- Last update: 2017-10-04
+-- Last update: 2018-03-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -176,8 +176,8 @@ begin
    U_AxiStreamDepacketizer2_1 : entity work.AxiStreamDepacketizer2
       generic map (
          TPD_G               => TPD_G,
-         CRC_EN_G            => true,
---       CRC_POLY_G           => CRC_POLY_G,
+         CRC_MODE_G          => "DATA",
+         CRC_POLY_G          => PGP3_CRC_POLY_C,
          INPUT_PIPE_STAGES_G => 0)
       port map (
          axisClk     => pgpRxClk,                -- [in]

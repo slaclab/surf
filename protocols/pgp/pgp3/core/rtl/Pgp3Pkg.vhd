@@ -78,6 +78,8 @@ package Pgp3Pkg is
    subtype PGP3_USER_CHECKSUM_FIELD_C is natural range 55 downto 48;
    subtype PGP3_USER_OPCODE_FIELD_C is natural range 47 downto 0;
 
+   constant PGP3_CRC_POLY_C : slv(31 downto 0) := X"04C11DB7";
+
    function pgp3MakeLinkInfo (
       locRxFifoCtrl  : AxiStreamCtrlArray;
       locRxLinkReady : sl)
