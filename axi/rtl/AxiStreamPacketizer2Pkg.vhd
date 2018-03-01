@@ -1,13 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : Support Package for Packetizer Version 2
--------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-07
--- Last update: 2018-03-01
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Support Package for Packetizer Version 2
 -------------------------------------------------------------------------------
 -- This file is part of SURF. It is subject to
 -- the license terms in the LICENSE.txt file found in the top-level directory
@@ -17,6 +12,7 @@
 -- copied, modified, propagated, or distributed except according to the terms
 -- contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 
@@ -67,7 +63,6 @@ package AxiStreamPacketizer2Pkg is
       sop         => '0',
       eop         => '0',
       packetError => '0');
-
 
    function makePacketizer2Header (
       CRC_MODE_C : string;
@@ -136,7 +131,4 @@ package body AxiStreamPacketizer2Pkg is
       return ret;
    end function makePacketizer2Tail;
 
-
 end package body AxiStreamPacketizer2Pkg;
-
-

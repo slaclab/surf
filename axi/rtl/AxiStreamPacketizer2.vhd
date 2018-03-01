@@ -1,9 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
+-- File       : AxiStreamPacketizer2.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Platform   : 
--- Standard   : VHDL'93/02
+-- Created    : 2017-05-02
+-- Last update: 2018-03-01
 -------------------------------------------------------------------------------
 -- Description: Formats an AXI-Stream for a transport link.
 -- Sideband fields are placed into the data stream in a header.
@@ -29,36 +28,32 @@ use work.SsiPkg.all;
 use work.AxiStreamPacketizer2Pkg.all;
 
 entity AxiStreamPacketizer2 is
-
    generic (
       TPD_G                : time             := 1 ns;
       BRAM_EN_G            : boolean          := false;
       CRC_MODE_G           : string           := "DATA";  -- or "NONE" or "FULL"
       CRC_POLY_G           : slv(31 downto 0) := x"04C11DB7";
-      MAX_PACKET_BYTES_G   : positive         := 256*8;   -- Must be a multiple of 8
+      MAX_PACKET_BYTES_G   : positive         := 256*8;  -- Must be a multiple of 8
       INPUT_PIPE_STAGES_G  : natural          := 0;
       OUTPUT_PIPE_STAGES_G : natural          := 0);
    port (
-      -- AXI-Lite Interface for local registers 
-      axisClk : in sl;
-      axisRst : in sl;
-
+      -- Clock and Reset
+      axisClk     : in  sl;
+      axisRst     : in  sl;
+      -- Status for phase locking externally
       rearbitrate : out sl;
+      -- AXIS Interfaces
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
-
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType);
-
 end entity AxiStreamPacketizer2;
 
 architecture rtl of AxiStreamPacketizer2 is
 
-   -- Packetizer constants
    constant MAX_WORD_COUNT_C : positive := (MAX_PACKET_BYTES_G / 8) - 3;
-
-   constant CRC_EN_C        : boolean := CRC_MODE_G = "DATA" or CRC_MODE_G = "FULL";
-   constant CRC_HEAD_TAIL_C : boolean := CRC_MODE_G = "FULL";
+   constant CRC_EN_C         : boolean  := (CRC_MODE_G = "DATA") or (CRC_MODE_G = "FULL");
+   constant CRC_HEAD_TAIL_C  : boolean  := (CRC_MODE_G = "FULL");
 
    type StateType is (
       IDLE_S,
@@ -80,7 +75,7 @@ architecture rtl of AxiStreamPacketizer2 is
       crcDataValid     : sl;
       crcDataWidth     : slv(2 downto 0);
       crcInit          : slv(31 downto 0);
-      crcOut           : slv(31 downto 0);
+      crcRem           : slv(31 downto 0);
       crcReset         : sl;
       tailCrcReady     : sl;
       inputAxisSlave   : AxiStreamSlaveType;
@@ -101,7 +96,7 @@ architecture rtl of AxiStreamPacketizer2 is
       crcDataValid     => '0',
       crcDataWidth     => (others => '1'),
       crcInit          => (others => '1'),
-      crcOut           => (others => '1'),
+      crcRem           => (others => '1'),
       crcReset         => '0',
       tailCrcReady     => toSl(not CRC_HEAD_TAIL_C),
       inputAxisSlave   => AXI_STREAM_SLAVE_INIT_C,
@@ -110,18 +105,18 @@ architecture rtl of AxiStreamPacketizer2 is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal ramPacketSeqOut    : slv(15 downto 0);
-   signal ramPacketActiveOut : sl;
-
    signal inputAxisMaster  : AxiStreamMasterType;
    signal inputAxisSlave   : AxiStreamSlaveType;
    signal outputAxisMaster : AxiStreamMasterType;
    signal outputAxisSlave  : AxiStreamSlaveType;
 
-   signal crcOut : slv(31 downto 0) := (others => '0');
-   signal crcIn  : slv(63 downto 0) := (others => '0');
-   signal ramCrc : slv(31 downto 0) := (others => '0');
+   signal ramPacketSeqOut    : slv(15 downto 0);
+   signal ramPacketActiveOut : sl;
+   signal ramCrcRem          : slv(31 downto 0) := (others => '1');
 
+   signal crcIn  : slv(63 downto 0) := (others => '1');
+   signal crcOut : slv(31 downto 0) := (others => '1');
+   signal crcRem : slv(31 downto 0) := (others => '1');
 
    -- attribute dont_touch                     : string;
    -- attribute dont_touch of r                : signal is "TRUE";
@@ -138,25 +133,25 @@ begin
    assert ((MAX_PACKET_BYTES_G rem 8) = 0)
       report "MAX_PACKET_BYTES_G must be a multiple of 8" severity error;
 
-   -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   -----------------
    -- Input pipeline
-   -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-   U_AxiStreamPipeline_Input : entity work.AxiStreamPipeline
+   -----------------
+   U_Input : entity work.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => INPUT_PIPE_STAGES_G)
       port map (
-         axisClk     => axisClk,          -- [in]
-         axisRst     => axisRst,          -- [in]
-         sAxisMaster => sAxisMaster,      -- [in]
-         sAxisSlave  => sAxisSlave,       -- [out]
-         mAxisMaster => inputAxisMaster,  -- [out]
-         mAxisSlave  => inputAxisSlave);  -- [in]
+         axisClk     => axisClk,
+         axisRst     => axisRst,
+         sAxisMaster => sAxisMaster,
+         sAxisSlave  => sAxisSlave,
+         mAxisMaster => inputAxisMaster,
+         mAxisSlave  => inputAxisSlave);
 
-   -------------------------------------------------------------------------------------------------
+   -------------------------------------------------------------------------------
    -- Packet Count ram
    -- track current frame number, packet count and physical channel for each tDest
-   -------------------------------------------------------------------------------------------------
+   -------------------------------------------------------------------------------
    U_DualPortRam_1 : entity work.DualPortRam
       generic map (
          TPD_G        => TPD_G,
@@ -168,19 +163,19 @@ begin
          DATA_WIDTH_G => 17+32,
          ADDR_WIDTH_G => 8)
       port map (
-         clka                => axisClk,                -- [in]
-         rsta                => axisRst,                -- [in]
-         wea                 => r.ramWe,                -- [in]
-         addra               => r.activeTDest,          -- [in]
-         dina(15 downto 0)   => r.packetSeq,            -- [in]
-         dina(16)            => r.packetActive,         -- [in]
-         dina(48 downto 17)  => r.crcOut,               -- [in]
-         clkb                => axisClk,                -- [in]
-         rstb                => axisRst,                -- [in]
-         addrb               => inputAxisMaster.tDest,  -- [in]
-         doutb(15 downto 0)  => ramPacketSeqOut,        -- [out]
-         doutb(16)           => ramPacketActiveOut,     -- [out]
-         doutb(48 downto 17) => ramCrc);                -- [out]
+         clka                => axisClk,
+         rsta                => axisRst,
+         wea                 => r.ramWe,
+         addra               => r.activeTDest,
+         dina(15 downto 0)   => r.packetSeq,
+         dina(16)            => r.packetActive,
+         dina(48 downto 17)  => r.crcRem,
+         clkb                => axisClk,
+         rstb                => axisRst,
+         addrb               => inputAxisMaster.tDest,
+         doutb(15 downto 0)  => ramPacketSeqOut,
+         doutb(16)           => ramPacketActiveOut,
+         doutb(48 downto 17) => ramCrcRem);
 
    crcIn <= endianSwap(rin.outputAxisMaster.tData(63 downto 0));
 
@@ -195,6 +190,7 @@ begin
                CRC_INIT_G       => X"FFFFFFFF")
             port map (
                crcOut       => crcOut,
+               crcRem       => crcRem,
                crcClk       => axisClk,
                crcDataValid => rin.crcDataValid,
                crcDataWidth => rin.crcDataWidth,
@@ -213,6 +209,7 @@ begin
                CRC_POLY_G       => CRC_POLY_G)
             port map (
                crcOut       => crcOut,
+               crcRem       => crcRem,
                crcClk       => axisClk,
                crcDataValid => rin.crcDataValid,
                crcDataWidth => rin.crcDataWidth,
@@ -222,11 +219,8 @@ begin
       end generate;
    end generate;
 
-   -------------------------------------------------------------------------------------------------
-   -- Accumulation sequencing, DMA ring buffer, and AXI-Lite logic
-   -------------------------------------------------------------------------------------------------
-   comb : process (axisRst, crcOut, ramCrc, inputAxisMaster, outputAxisSlave,
-                   ramPacketActiveOut, ramPacketSeqOut, r) is
+   comb : process (axisRst, crcOut, crcRem, inputAxisMaster, outputAxisSlave,
+                   r, ramCrcRem, ramPacketActiveOut, ramPacketSeqOut) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -242,8 +236,8 @@ begin
       -- Don't write new packet number by default
       v.ramWe := '0';
 
-      -- keep a copy of the CRC output (phased aligned with v.ramWe)
-      v.crcOut := crcOut;
+      -- keep a copy of the CRC interim remainder (phased aligned with v.ramWe)
+      v.crcRem := crcRem;
 
       -- Default CRC variable values
       v.crcDataValid := '0';
@@ -262,11 +256,16 @@ begin
             end if;
          ----------------------------------------------------------------------
          when HEADER_S =>
-            -- Place header on output when new data arrived
+            -- Reset the word counter
             v.wordCount    := (others => '0');
-            v.crcInit      := ramCrc;
+            -- Pre-load the CRC with the interim remainder 
+            v.crcInit      := ramCrcRem;
+            -- Reset the CRC (which pre-loads it with crcInit)
             v.crcReset     := '1';
-            v.crcDataValid := toSl(CRC_HEAD_TAIL_C);  -- Use header in CRC if enabled
+            -- Use header in CRC if enabled
+            v.crcDataValid := toSl(CRC_HEAD_TAIL_C);
+
+            -- Check if ready to move data
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
                v.outputAxisMaster :=
                   makePacketizer2Header(
@@ -278,22 +277,27 @@ begin
                      tid        => inputAxisMaster.tId,
                      seq        => ramPacketSeqOut);
 
+               -- Check for active header
                if (ramPacketActiveOut = '0') then
                   -- Reset crc at start of new frame
                   v.crcInit := (others => '1');
                end if;
 
-               -- Frame ID on 63:48?
+               -- Increment the sequence counter
                v.packetSeq    := ramPacketSeqOut + 1;
+               -- Set the flag
                v.packetActive := '1';
+               -- Latch the current TDEST for TDEST change detection in next state
                v.activeTDest  := inputAxisMaster.tDest;
+               -- Next state
                v.state        := MOVE_S;
 
             end if;
          ----------------------------------------------------------------------
          when MOVE_S =>
-            v.lastByteCount := "1000";
+            -- Check if ready to move data
             if (inputAxisMaster.tvalid = '1' and v.outputAxisMaster.tValid = '0') then
+
                -- Accept the data
                v.inputAxisSlave.tReady := '1';
 
@@ -308,23 +312,26 @@ begin
 
                -- Reach max packet size. Append tail.
                if (r.wordCount = MAX_WORD_COUNT_C) then
+                  -- Next state
                   v.state := TAIL_S;
                end if;
 
                -- Upstream interleave detected, append tail
                if (inputAxisMaster.tDest /= r.activeTDest) then
-                  v.state                   := TAIL_S;
-                  v.ramWe                   := '1';
+
                   -- Hold acceptance of new data
                   -- and transmission of output data
                   v.inputAxisSlave.tReady   := '0';
                   v.outputAxisMaster        := r.outputAxisMaster;
                   v.outputAxisMaster.tValid := '0';
+                  -- Next state
+                  v.state                   := TAIL_S;
+                  -- Write metadata to RAM
+                  v.ramWe                   := '1';
 
                -- End of frame, append tail
                elsif (inputAxisMaster.tLast = '1') then
-                  v.state                  := TAIL_S;
-                  v.ramWe                  := '1';
+
                   -- Reset frame state in ram
                   v.packetSeq              := (others => '0');
                   v.packetActive           := '0';
@@ -332,15 +339,22 @@ begin
                   v.eof                    := '1';
                   v.lastByteCount          := toSlv(getTKeep(inputAxisMaster.tKeep), 4);
                   v.outputAxisMaster.tLast := '0';
+                  -- Next state
+                  v.state                  := TAIL_S;
+                  -- Write metadata to RAM
+                  v.ramWe                  := '1';
+
                end if;
 
+               -- Update the CRC based on the next outputAxisMaster.tValid
                v.crcDataValid := v.outputAxisMaster.tValid;
+
             end if;
          ----------------------------------------------------------------------
          when TAIL_S =>
             -- Assign the crc block inputs
             -- Don't do CRC if CRC_HEAD_TAIL_G is false
-            v.crcDataValid := not r.tailCrcReady;
+            v.crcDataValid := not(r.tailCrcReady);
             v.crcDataWidth := "011";    -- 32-bit transfer
 
             -- Assign the tail txn
@@ -362,25 +376,26 @@ begin
                if (v.outputAxisMaster.tValid = '0') then
                   -- Send the tail
                   v.outputAxisMaster.tValid := '1';
-                  -- Save current crc and packet state in ram
+                  -- Save current CRC and packet state in ram
                   -- and clear registers for next frame
                   v.ramWe                   := '1';
                   v.eof                     := '0';
                   v.tUserLast               := (others => '0');
-                  -- Wait for new data next
+                  -- Check for BRAM used
                   if (BRAM_EN_G) then
+                     -- Next state (1 cycle read latency)
                      v.state := IDLE_S;
                   else
+                     -- Next state (0 cycle read latency)
                      v.state := HEADER_S;
                   end if;
-
                end if;
             end if;
       ----------------------------------------------------------------------
       end case;
 
       -- Always a 64-bit transfer
-      v.outputAxisMaster.tKeep := X"00FF";
+      v.outputAxisMaster.tKeep := x"00FF";
       v.outputAxisMaster.tStrb := v.outputAxisMaster.tKeep;
 
       -- Combinatorial outputs before the reset
@@ -407,21 +422,19 @@ begin
       end if;
    end process seq;
 
-   -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   ------------------
    -- Output pipeline
-   -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-   U_AxiStreamPipeline_Output : entity work.AxiStreamPipeline
+   ------------------
+   U_Output : entity work.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)
       port map (
-         axisClk     => axisClk,           -- [in]
-         axisRst     => axisRst,           -- [in]
-         sAxisMaster => outputAxisMaster,  -- [in]
-         sAxisSlave  => outputAxisSlave,   -- [out]
-         mAxisMaster => mAxisMaster,       -- [out]
-         mAxisSlave  => mAxisSlave);       -- [in]
-
+         axisClk     => axisClk,
+         axisRst     => axisRst,
+         sAxisMaster => outputAxisMaster,
+         sAxisSlave  => outputAxisSlave,
+         mAxisMaster => mAxisMaster,
+         mAxisSlave  => mAxisSlave);
 
 end architecture rtl;
-
