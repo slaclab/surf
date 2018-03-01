@@ -7,6 +7,13 @@
 -- Description:
 -- Supports reading of general purpose FIFOs from the AxiLite bus.
 -- One address location per FIFO.
+-- Address map depends on the POP and LOOP FIFO counts.
+-- RANGE_LSB_G sets the address bit which seperates the 
+-- POP FIFO address space from the loop FIFO address space. 
+-- RANGE_LSB_G must be large enough for the number of POP and LOOP FIFOs
+-- enabled. I.E. if POP_FIFO_COUNT_C is 8, RANGE_FIFO_G must be > 5.
+-- POP Fifos exist at 0x0, 0x4, 0x8, 0xC ... 
+-- LOOP Fifos exist at 2^(RANGE_LSB_C) + 0x0, + 0x4, etc.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
