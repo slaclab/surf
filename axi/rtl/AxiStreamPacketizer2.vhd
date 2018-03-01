@@ -90,7 +90,7 @@ architecture rtl of AxiStreamPacketizer2 is
       ramWe            => '0',
       wordCount        => (others => '0'),
       eof              => '0',
-      lastByteCount    => (others => '0'),
+      lastByteCount    => "1000",
       tUserLast        => (others => '0'),
       rearbitrate      => '0',
       crcDataValid     => '0',
@@ -257,20 +257,22 @@ begin
          ----------------------------------------------------------------------
          when HEADER_S =>
             -- Reset the word counter
-            v.wordCount    := (others => '0');
+            v.wordCount     := (others => '0');
+            -- Set default tlast.tkeep (8 Bytes)
+            v.lastByteCount := "1000";
             -- Pre-load the CRC with the interim remainder 
-            v.crcInit      := ramCrcRem;
+            v.crcInit       := ramCrcRem;
             -- Reset the CRC (which pre-loads it with crcInit)
-            v.crcReset     := '1';
+            v.crcReset      := '1';
             -- Use header in CRC if enabled
-            v.crcDataValid := toSl(CRC_HEAD_TAIL_C);
+            v.crcDataValid  := toSl(CRC_HEAD_TAIL_C);
 
             -- Check if ready to move data
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
                v.outputAxisMaster :=
                   makePacketizer2Header(
                      CRC_MODE_C => CRC_MODE_G,
-                     valid => inputAxisMaster.tValid,
+                     valid      => inputAxisMaster.tValid,
                      sof        => not ramPacketActiveOut,
                      tdest      => inputAxisMaster.tDest,
                      tuser      => inputAxisMaster.tUser(7 downto 0),
