@@ -33,9 +33,8 @@ entity AxiStreamDepacketizer2 is
    generic (
       TPD_G                : time             := 1 ns;
       BRAM_EN_G            : boolean          := false;
-      CRC_EN_G             : boolean          := true;
+      CRC_MODE_G           : string           := "DATA";  -- or "NONE" or "FULL"
       CRC_POLY_G           : slv(31 downto 0) := x"04C11DB7";
-      CRC_HEAD_TAIL_G      : boolean          := false;  -- CRC includes head and tail data
       INPUT_PIPE_STAGES_G  : integer          := 0;
       OUTPUT_PIPE_STAGES_G : integer          := 1);
    port (
@@ -56,6 +55,9 @@ end entity AxiStreamDepacketizer2;
 
 architecture rtl of AxiStreamDepacketizer2 is
 
+   constant CRC_EN_C        : boolean := CRC_MODE_G = "DATA" or CRC_MODE_G = "FULL";
+   constant CRC_HEAD_TAIL_C : boolean := CRC_MODE_G = "FULL";
+
    constant AXIS_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
       TDATA_BYTES_C => 8,
@@ -75,7 +77,7 @@ architecture rtl of AxiStreamDepacketizer2 is
    type RegType is record
       state            : StateType;
       activeTDest      : slv(7 downto 0);
-      packetNumber     : slv(15 downto 0);
+      packetSeq        : slv(15 downto 0);
       packetActive     : sl;
       sentEofe         : sl;
       ramWe            : sl;
@@ -93,7 +95,7 @@ architecture rtl of AxiStreamDepacketizer2 is
    constant REG_INIT_C : RegType := (
       state            => TERMINATE_S,
       activeTDest      => (others => '0'),
-      packetNumber     => (others => '0'),
+      packetSeq        => (others => '0'),
       packetActive     => '0',
       sentEofe         => '0',
       ramWe            => '0',
@@ -110,13 +112,14 @@ architecture rtl of AxiStreamDepacketizer2 is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal packetNumberRam : slv(15 downto 0);
-   signal packetActiveRam : sl;
-   signal sentEofeRam     : sl;
+   signal ramPacketSeqOut    : slv(15 downto 0);
+   signal ramPacketActiveOut : sl;
+   signal ramSentEofeOut     : sl;
+   signal ramCrcOut          : slv(31 downto 0) := (others => '0');
 
    signal crcIn  : slv(63 downto 0) := (others => '0');
    signal crcOut : slv(31 downto 0) := (others => '0');
-   signal crcRam : slv(31 downto 0) := (others => '0');
+
 
    signal inputAxisMaster  : AxiStreamMasterType;
    signal inputAxisSlave   : AxiStreamSlaveType;
@@ -126,9 +129,9 @@ architecture rtl of AxiStreamDepacketizer2 is
    -- attribute dont_touch                     : string;
    -- attribute dont_touch of r                : signal is "TRUE";
    -- attribute dont_touch of crcOut           : signal is "TRUE";
-   -- attribute dont_touch of packetNumberRam  : signal is "TRUE";
-   -- attribute dont_touch of packetActiveRam  : signal is "TRUE";
-   -- attribute dont_touch of sentEofeRam      : signal is "TRUE";
+   -- attribute dont_touch of ramPacketSeqOut  : signal is "TRUE";
+   -- attribute dont_touch of ramPacketActiveOut  : signal is "TRUE";
+   -- attribute dont_touch of ramSentEofeOut      : signal is "TRUE";
    -- attribute dont_touch of inputAxisMaster  : signal is "TRUE";
    -- attribute dont_touch of inputAxisSlave   : signal is "TRUE";
    -- attribute dont_touch of outputAxisMaster : signal is "TRUE";
@@ -182,18 +185,18 @@ begin
          DATA_WIDTH_G => 18+32,
          ADDR_WIDTH_G => 8)
       port map (
-         clka                => axisClk,           -- [in]
-         rsta                => axisRst,           -- [in]
-         wea                 => rin.ramWe,         -- [in]
-         addra               => rin.activeTDest,   -- [in]
-         dina(15 downto 0)   => rin.packetNumber,  -- [in]
-         dina(16)            => rin.packetActive,  -- [in]
-         dina(17)            => rin.sentEofe,      -- [in]
-         dina(49 downto 18)  => crcOut,            -- [in]
-         douta(15 downto 0)  => packetNumberRam,   -- [out]
-         douta(16)           => packetActiveRam,   -- [out]
-         douta(17)           => sentEofeRam,       -- [out]
-         douta(49 downto 18) => crcRam);           -- [out]
+         clka                => axisClk,             -- [in]
+         rsta                => axisRst,             -- [in]
+         wea                 => rin.ramWe,           -- [in]
+         addra               => rin.activeTDest,     -- [in]
+         dina(15 downto 0)   => rin.packetSeq,       -- [in]
+         dina(16)            => rin.packetActive,    -- [in]
+         dina(17)            => rin.sentEofe,        -- [in]
+         dina(49 downto 18)  => crcOut,              -- [in]
+         douta(15 downto 0)  => ramPacketSeqOut,     -- [out]
+         douta(16)           => ramPacketActiveOut,  -- [out]
+         douta(17)           => ramSentEofeOut,      -- [out]
+         douta(49 downto 18) => ramCrcOut);          -- [out]
 
    crcIn <= endianSwap(inputAxisMaster.tData(63 downto 0));
 
@@ -236,9 +239,9 @@ begin
 
    end generate;
 
-   comb : process (axisRst, crcOut, crcRam, inputAxisMaster, linkGood,
-                   outputAxisSlave, packetActiveRam, packetNumberRam, r,
-                   sentEofeRam) is
+   comb : process (axisRst, crcOut, ramCrcOut, inputAxisMaster, linkGood,
+                   outputAxisSlave, ramPacketActiveOut, ramPacketSeqOut, r,
+                   ramSentEofeOut) is
       variable v         : RegType;
       variable sof       : sl;
       variable lastBytes : integer;
@@ -289,7 +292,7 @@ begin
 
             -- Reset the CRC for the next packet
             v.crcReset := '1';
-            v.crcInit  := crcRam;
+            v.crcInit  := ramCrcOut;
 
             -- Update the RAM address
             v.activeTDest := inputAxisMaster.tData(PACKETIZER2_HDR_TDEST_FIELD_C);
@@ -299,7 +302,7 @@ begin
             v.outputAxisMaster(1).tId(7 downto 0)   := inputAxisMaster.tData(PACKETIZER2_HDR_TID_FIELD_C);
             v.outputAxisMaster(1).tUser(7 downto 0) := inputAxisMaster.tData(PACKETIZER2_HDR_TUSER_FIELD_C);
             sof                                     := inputAxisMaster.tData(PACKETIZER2_HDR_SOF_BIT_C);
-            v.packetNumber                          := inputAxisMaster.tData(PACKETIZER2_HDR_SEQ_FIELD_C);
+            v.packetSeq                             := inputAxisMaster.tData(PACKETIZER2_HDR_SEQ_FIELD_C);
 
             -- Advance the output pipeline
             if (r.outputAxisMaster(1).tValid = '1' and v.outputAxisMaster(0).tValid = '0') then
@@ -309,7 +312,7 @@ begin
             -- Process an incoming transaction
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster(1).tValid = '0') then
                -- Calculate CRC on head of enabled to do so
-               v.crcDataValid := toSl(CRC_HEAD_TAIL_G);
+               v.crcDataValid := toSl(CRC_HEAD_TAIL_C);
 
                -- Check for BRAM configuration
                if BRAM_EN_G then
@@ -323,7 +326,7 @@ begin
                if (ssiGetuserSof(AXIS_CONFIG_C, inputAxisMaster) = '1') then
 
                   -- Assert SSI SOF if SOF header bit set
-                  ssiSetUserEofe(AXIS_CONFIG_C, v.outputAxisMaster(1), sof);
+                  ssiSetUserSof(AXIS_CONFIG_C, v.outputAxisMaster(1), sof);
 
                   if (sof = '1') then
                      -- Reset the CRC on new frames
@@ -332,24 +335,24 @@ begin
                   end if;
 
 
-                  if (sof = not packetActiveRam) and
-                     (v.packetNumber = packetNumberRam) and
+                  if (sof = not ramPacketActiveOut) and
+                     (v.packetSeq = ramPacketSeqOut) and
                      (inputAxisMaster.tData(PACKETIZER2_HDR_VERSION_FIELD_C) = PACKETIZER2_VERSION_C) and
-                     (inputAxisMaster.tData(PACKETIZER2_HDR_CRC_TYPE_FIELD_C) = toSl(CRC_HEAD_TAIL_G)) then
+                     (inputAxisMaster.tData(PACKETIZER2_HDR_CRC_TYPE_FIELD_C) = toSl(CRC_HEAD_TAIL_C)) then
                      -- Header metadata as expected
                      v.state    := MOVE_S;
                      v.sideband := '1';
 
                      -- Set packetActive in ram for this tdest
-                     -- v.packetNumber is already correct
+                     -- v.packetSeq is already correct
                      v.packetActive := '1';
-                     v.sentEofe     := '0';  -- Clear any frame error
+                     v.sentEofe     := '0';                   -- Clear any frame error
                      v.ramWe        := '1';
                      v.debug.sop    := '1';
                      v.debug.sof    := sof;
                   else
                      -- There was a missing packet!
-                     if (sentEofeRam = '0') then
+                     if (ramSentEofeOut = '0') then
                         -- Haven't yet sent an EOFE for this frame. Do so now.
                         ssiSetUserEofe(AXIS_CONFIG_C, v.outputAxisMaster(1), '1');
                         v.outputAxisMaster(1).tLast  := '1';
@@ -357,7 +360,7 @@ begin
                         v.debug.eof                  := '1';
                         v.debug.eofe                 := '1';
                      end if;
-                     v.packetNumber      := (others => '0');
+                     v.packetSeq         := (others => '0');
                      v.packetActive      := '0';
                      v.sentEofe          := '1';
                      v.ramWe             := '1';
@@ -383,7 +386,7 @@ begin
                   v.outputAxisMaster(1).tUser := r.outputAxisMaster(1).tUser;
                   v.sideband                  := '0';
                end if;
-               v.crcDataValid := toSl(CRC_HEAD_TAIL_G);
+               v.crcDataValid := toSl(CRC_HEAD_TAIL_C);
 
                v.outputAxisMaster(0) := r.outputAxisMaster(1);
 
@@ -409,23 +412,23 @@ begin
             -- Move the data (Note: v.outputAxisMaster(0).tValid = '0' in previous state)
             v.outputAxisMaster(0).tValid := '1';
             -- Check for packetError or CRC error
-            if (r.debug.packetError = '1') or (crcOut /= r.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_FIELD_C) and CRC_EN_G) then
+            if (r.debug.packetError = '1') or (crcOut /= r.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_FIELD_C) and CRC_EN_C) then
                -- EOP with error, do EOFE
                ssiSetUserEofe(AXIS_CONFIG_C, v.outputAxisMaster(0), '1');
                v.outputAxisMaster(0).tLast := '1';
                v.packetActive              := '0';
-               v.packetNumber              := (others => '0');
+               v.packetSeq                 := (others => '0');
                v.sentEofe                  := '1';
                v.crcInit                   := (others => '1');
-               v.crcReset                  := '1';  -- Reset CRC in ram to 0xFFFFFFFF
+               v.crcReset                  := '1';        -- Reset CRC in ram to 0xFFFFFFFF
                v.ramWe                     := '1';
                v.debug.eof                 := '1';
                v.debug.eofe                := '1';
                v.debug.eop                 := '1';
             elsif (r.outputAxisMaster(1).tData(PACKETIZER2_TAIL_EOF_BIT_C) = '1') then
-               -- If EOF, reset packetActive and packetNumber                     
+               -- If EOF, reset packetActive and packetSeq                     
                v.packetActive := '0';
-               v.packetNumber := (others => '0');
+               v.packetSeq    := (others => '0');
                v.sentEofe     := '0';
                v.crcInit      := (others => '1');
                v.crcReset     := '1';   -- Reset CRC in ram to 0xFFFFFFFF
@@ -433,19 +436,16 @@ begin
                v.debug.eof    := '1';
                v.debug.eop    := '1';
             else
-               -- else increment packetNumber and set packetActive
+               -- else increment packetSeq and set packetActive
                v.packetActive := '1';
-               v.packetNumber := r.packetNumber + 1;
+               v.packetSeq    := r.packetSeq + 1;
                v.sentEofe     := '0';
                v.ramWe        := '1';
                v.debug.eop    := '1';
             end if;
             -- Next state
-            if BRAM_EN_G then
-               v.state := IDLE_S;
-            else
-               v.state := HEADER_S;
-            end if;
+            v.state := ite(BRAM_EN_G, IDLE_S, HEADER_S);
+            
          ----------------------------------------------------------------------
          when TERMINATE_S =>
             -- Halt incoming data
@@ -459,18 +459,14 @@ begin
             -- Reset the values in the RAM
             v.packetActive := '0';
             v.sentEofe     := '0';      -- Clear any frame error
-            v.packetNumber := (others => '0');
+            v.packetSeq    := (others => '0');
             v.crcInit      := (others => '1');
             v.crcReset     := '1';      -- Reset CRC in ram to 0xFFFFFFFF
             -- Check for max index
             if (r.activeTDest = x"FF") then
                -- Wait for link to come back up
                if (linkGood = '1') then
-                  if BRAM_EN_G then
-                     v.state := IDLE_S;
-                  else
-                     v.state := HEADER_S;
-                  end if;
+                  v.state := ite(BRAM_EN_G, IDLE_S, HEADER_S);
                end if;
             else
                -- Check if ready to move data
@@ -482,10 +478,10 @@ begin
                   -- Terminate any open frames with EOFE
                   ssiSetUserEofe(AXIS_CONFIG_C, v.outputAxisMaster(1), '1');
                   v.outputAxisMaster(1).tLast             := '1';
-                  v.outputAxisMaster(1).tValid            := packetActiveRam;
+                  v.outputAxisMaster(1).tValid            := ramPacketActiveOut;
                   v.outputAxisMaster(1).tDest(7 downto 0) := v.activeTDest;
-                  v.debug.eof                             := packetActiveRam;
-                  v.debug.eofe                            := packetActiveRam;
+                  v.debug.eof                             := ramPacketActiveOut;
+                  v.debug.eofe                            := ramPacketActiveOut;
                end if;
             end if;
       ----------------------------------------------------------------------
