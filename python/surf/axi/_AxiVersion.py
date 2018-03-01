@@ -106,7 +106,7 @@ class AxiVersion(pr.Device):
             bitOffset    = 0x00,
             base         = pr.UInt,
             function     = lambda cmd: cmd.post(1),
-            hidden       = True,
+            hidden       = False,
         ))
 
         self.add(pr.RemoteVariable(   
