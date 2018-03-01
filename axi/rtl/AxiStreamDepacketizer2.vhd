@@ -328,7 +328,7 @@ begin
                      -- Set packetActive in ram for this tdest
                      -- v.packetSeq is already correct
                      v.packetActive := '1';
-                     v.sentEofe     := '0';  -- Clear any frame error
+                     v.sentEofe     := '0';                   -- Clear any frame error
                      v.ramWe        := '1';
                      v.debug.sop    := '1';
                      v.debug.sof    := sof;
@@ -368,7 +368,7 @@ begin
                   v.outputAxisMaster(1).tUser := r.outputAxisMaster(1).tUser;
                   v.sideband                  := '0';
                end if;
-               v.crcDataValid := toSl(CRC_HEAD_TAIL_C);
+               v.crcDataValid := toSl(CRC_EN_C);
 
                v.outputAxisMaster(0) := r.outputAxisMaster(1);
 
@@ -378,6 +378,7 @@ begin
                   v.outputAxisMaster(0).tValid := '0';
                   v.outputAxisMaster(1).tValid := '0';
                   v.crcDataWidth               := "011";  -- 32-bit transfer
+                  v.crcDataValid               := toSl(CRC_HEAD_TAIL_C);
                   -- Append EOF metadata to previous txn which has been held
                   lastBytes                    := conv_integer(inputAxisMaster.tData(PACKETIZER2_TAIL_BYTES_FIELD_C));
                   v.outputAxisMaster(0).tLast  := inputAxisMaster.tData(PACKETIZER2_TAIL_EOF_BIT_C);
@@ -402,7 +403,7 @@ begin
                v.packetSeq                 := (others => '0');
                v.sentEofe                  := '1';
                v.crcInit                   := (others => '1');
-               v.crcReset                  := '1';  -- Reset CRC in ram to 0xFFFFFFFF
+               v.crcReset                  := '1';        -- Reset CRC in ram to 0xFFFFFFFF
                v.ramWe                     := '1';
                v.debug.eof                 := '1';
                v.debug.eofe                := '1';
