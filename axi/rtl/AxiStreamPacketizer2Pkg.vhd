@@ -104,7 +104,7 @@ package body AxiStreamPacketizer2Pkg is
       tdest : slv(7 downto 0)  := (others => '0');
       tid   : slv(7 downto 0)  := (others => '0');
       seq   : slv(15 downto 0) := (others => '0'))
-      return AxiStreamMasterType;
+      return AxiStreamMasterType
    is
       variable ret : AxiStreamMasterType;
    begin
@@ -125,7 +125,7 @@ package body AxiStreamPacketizer2Pkg is
       tuser : slv(7 downto 0)  := (others => '0');
       bytes : slv(3 downto 0)  := "1000";
       crc   : slv(31 downto 0) := (others => '0'))
-      return AxiStreamMasterType;
+      return AxiStreamMasterType
    is
       variable ret : AxiStreamMasterType;
    begin
