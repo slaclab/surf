@@ -2,7 +2,7 @@
 -- File       : Crc32.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-01
--- Last update: 2018-02-27
+-- Last update: 2018-03-01
 -------------------------------------------------------------------------------
 -- Description:
 -- This is an implementation of an 1-to-8-byte input CRC32 calculation.
@@ -41,12 +41,13 @@ use work.CrcPkg.all;
 
 entity Crc32Parallel is
    generic (
-      TPD_G            : time             := 0.5 ns;
-      BYTE_WIDTH_G     : integer          := 4;
+      TPD_G            : time             := 1 ns;
+      BYTE_WIDTH_G     : positive         := 4;
       INPUT_REGISTER_G : boolean          := true;
       CRC_INIT_G       : slv(31 downto 0) := x"FFFFFFFF");
    port (
-      crcOut       : out slv(31 downto 0);                -- CRC output
+      crcOut       : out slv(31 downto 0);  -- CRC output
+      crcRem       : out slv(31 downto 0);  -- CRC CRC interim remainder
       crcClk       : in  sl;            -- system clock
       crcDataValid : in  sl;  -- indicate that new data arrived and CRC can be computed
       crcDataWidth : in  slv(2 downto 0);  -- indicate width in bytes minus 1, 0 - 1 byte, 1 - 2 bytes ... , 7 - 8 bytes
@@ -84,8 +85,10 @@ begin
       variable valid     : sl;
       variable data      : slv((BYTE_WIDTH_G*8-1) downto 0);
    begin
+      -- Latch the current value
       v := r;
 
+      -- Latch the signals
       v.byteWidth := crcDataWidth;
       v.valid     := crcDataValid;
 
@@ -100,6 +103,7 @@ begin
          end if;
       end loop;
 
+      -- Select where to register the inputs
       if (INPUT_REGISTER_G) then
          byteWidth := r.byteWidth;
          valid     := r.valid;
@@ -110,9 +114,12 @@ begin
          data      := v.data;
       end if;
 
+      -- Reset handling
       if (crcReset = '0') then
+         -- Use remainder from previous cycle
          prevCrc := r.crc;
       else
+         -- Pre-load the remainder
          prevCrc := crcInit;
       end if;
 
@@ -153,10 +160,15 @@ begin
             when others => v.crc := (others => '0');
          end case;
       else
+         -- No change
          v.crc := prevCrc;
       end if;
 
+      -- Register the variable for next clock cycle
       rin <= v;
+
+      -- Outputs
+      crcRem <= r.crc;
 
       -- Transpose each byte in the data out and invert
       -- This inversion is equivalent to an XOR of the CRC register with xFFFFFFFF 
