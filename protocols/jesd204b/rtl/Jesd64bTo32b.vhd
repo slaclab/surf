@@ -2,7 +2,7 @@
 -- File       : Jesd64bTo32b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-11-10
--- Last update: 2017-11-10
+-- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: Converts the 64-bit JESD interface to 32-bit interface
 -------------------------------------------------------------------------------
@@ -126,6 +126,9 @@ begin
          end if;
       end if;
 
+      -- Combinatorial outputs before the reset
+      rdEn <= v.rdEn;
+
       -- Synchronous Reset
       if (rdRst = '1') then
          v := REG_INIT_C;
@@ -135,7 +138,6 @@ begin
       rin <= v;
 
       -- Outputs
-      rdEn     <= v.rdEn;
       validOut <= r.valid;
       trigOut  <= r.trig;
       dataOut  <= r.data;

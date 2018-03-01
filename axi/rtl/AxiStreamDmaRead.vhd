@@ -2,7 +2,7 @@
 -- File       : AxiStreamDmaRead.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2016-10-27
+-- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to transfer a single AXI Stream frame from memory using an AXI
@@ -386,6 +386,9 @@ begin
          v.dmaAck.idle := '0';
       end if;
 
+      -- Combinatorial outputs before the reset
+      axiReadMaster.rready <= v.rMaster.rready;      
+
       -- Reset      
       if (axiRst = '1') then
          v := REG_INIT_C;
@@ -397,7 +400,7 @@ begin
       -- Outputs         
       dmaAck               <= r.dmaAck;
       axiReadMaster        <= r.rMaster;
-      axiReadMaster.rready <= v.rMaster.rready;
+
 
    end process comb;
 

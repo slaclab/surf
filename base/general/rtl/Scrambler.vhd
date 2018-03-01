@@ -101,13 +101,15 @@ begin
          end loop;
       end if;
 
+      -- Combinatorial outputs before the reset
+      inputReady     <= v.inputReady;      
+
       if (rst = '1') then
          v := REG_INIT_C;
       end if;
 
       rin            <= v;
       outputValid    <= r.outputValid;
-      inputReady     <= v.inputReady;
       outputData     <= r.outputData;
       outputSideband <= r.outputSideband;
 

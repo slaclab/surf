@@ -2,7 +2,7 @@
 -- File       : SspFramer.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-07-14
--- Last update: 2017-05-01
+-- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: SimpleStreamingProtocol - A simple protocol layer for inserting
 -- idle and framing control characters into a raw data stream. The output of
@@ -31,7 +31,7 @@ entity SspFramer is
       RST_POLARITY_G  : sl      := '0';
       RST_ASYNC_G     : boolean := true;
       AUTO_FRAME_G    : boolean := true;
-      FLOW_CTRL_EN_G : boolean := false;
+      FLOW_CTRL_EN_G  : boolean := false;
       WORD_SIZE_G     : integer := 16;
       K_SIZE_G        : integer := 2;
       SSP_IDLE_CODE_G : slv;
@@ -132,20 +132,20 @@ begin
                   v.dataKOut := SSP_EOF_K_G;
                end if;
             end if;
-
          end if;
+      end if;
 
-         if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
-            v := REG_INIT_C;
-         end if;
+      readyIn <= v.readyIn;
 
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
+         v := REG_INIT_C;
       end if;
 
       rin      <= v;
       dataOut  <= r.dataOut;
       dataKOut <= r.dataKOut;
       validOut <= r.validOut;
-      readyIn  <= v.readyIn;
+
 
    end process comb;
 

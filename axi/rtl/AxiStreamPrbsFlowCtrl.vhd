@@ -100,6 +100,9 @@ begin
          -- Move the data
          v.txMaster       := rxMaster;
       end if;
+      
+      -- Combinatorial outputs before the reset
+      rxSlave <= v.rxSlave;
 
       -- Reset
       if (rst = '1') then
@@ -110,7 +113,6 @@ begin
       rin <= v;
 
       -- Outputs              
-      rxSlave  <= v.rxSlave;
       txMaster <= r.txMaster;
 
    end process comb;

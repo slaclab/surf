@@ -2,7 +2,7 @@
 -- File       : SynchronizerOneShot.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-02-06
--- Last update: 2016-11-04
+-- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: One-Shot Pulser that has to cross clock domains
 -------------------------------------------------------------------------------
@@ -129,6 +129,9 @@ begin
          ----------------------------------------------------------------------   
          end case;
 
+         -- Combinatorial outputs before the reset
+         dataOut <= v.dataOut;         
+
          -- Reset
          if (rst = RST_POLARITY_G) then
             v := REG_INIT_C;
@@ -136,9 +139,6 @@ begin
 
          -- Register the variable for next clock cycle
          rin <= v;
-
-         -- Outputs 
-         dataOut <= v.dataOut;
 
       end process;
 

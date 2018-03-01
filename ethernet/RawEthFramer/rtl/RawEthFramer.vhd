@@ -189,6 +189,13 @@ begin
       ----------------------------------------------------------------------
       end case;
 
+      -- Combinatorial outputs before the reset
+      tDest <= v.tDest;
+      rxAck <= v.rxAck;
+      txAck <= v.txAck;
+      rxMac <= v.rxMac;
+      txMac <= v.txMac;
+
       -- Reset
       if (rst = '1') then
          v := REG_INIT_C;
@@ -196,13 +203,6 @@ begin
 
       -- Register the variable for next clock cycle
       rin <= v;
-
-      -- Outputs
-      tDest <= v.tDest;
-      rxAck <= v.rxAck;
-      txAck <= v.txAck;
-      rxMac <= v.rxMac;
-      txMac <= v.txMac;
       
    end process comb;
 

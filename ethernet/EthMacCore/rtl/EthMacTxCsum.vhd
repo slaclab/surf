@@ -608,6 +608,10 @@ begin
             end if;
          end if;
       end if;
+      
+      -- Combinatorial outputs before the reset
+      rxSlave <= v.rxSlave;
+      mSlave  <= v.mSlave;
 
       -- Reset
       if (ethRst = '1') then
@@ -617,10 +621,8 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs        
-      rxSlave  <= v.rxSlave;
+      -- Registered Outputs       
       sMaster  <= r.sMaster;
-      mSlave   <= v.mSlave;
       txMaster <= r.txMaster;
 
    end process comb;

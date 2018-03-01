@@ -383,6 +383,8 @@ begin
          end if;
       end if;
 
+      parReady   <= v.ready;      
+
       ---------------------------------
       -- Reset and outputs
       ---------------------------------
@@ -391,7 +393,6 @@ begin
       end if;
 
       rin        <= v;
-      parReady   <= v.ready;
       chanStatus <= r.status;
 
    end process;

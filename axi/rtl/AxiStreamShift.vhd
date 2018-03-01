@@ -261,6 +261,9 @@ begin
             v.master.tKeep(15 downto AXIS_CONFIG_G.TDATA_BYTES_C) := (others => '0');
             v.master.tStrb(15 downto AXIS_CONFIG_G.TDATA_BYTES_C) := (others => '0');
          end if;
+         
+         -- Combinatorial outputs before the reset
+         sAxisSlave <= v.slave;
 
          -- Reset
          if (axisRst = '1') then
@@ -271,7 +274,6 @@ begin
          rin <= v;
 
          -- Outputs 
-         sAxisSlave     <= v.slave;
          pipeAxisMaster <= r.master;
 
       end process comb;
