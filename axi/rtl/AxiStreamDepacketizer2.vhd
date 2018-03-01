@@ -484,6 +484,9 @@ begin
 
       -- Check for link drop event
       if (r.linkGoodDly = '1') and (linkGood = '0') then
+         -- Reset CRC now because crcRem has 1 cycle latency 
+         v.crcReset    := '1'; 
+         v.crcInit     := (others => '1');
          -- Reset the index
          v.activeTDest := x"00";
          -- Next state
