@@ -95,9 +95,9 @@ class AxiVersion(pr.Device):
             bitOffset    = 0x00,
             base         = pr.UInt,
             mode         = 'RW',
+            hidden       = True,
         ))
 
-        
         self.add(pr.RemoteCommand(   
             name         = 'FpgaReload',
             description  = 'Optional Reload the FPGA from the attached PROM',
@@ -105,7 +105,8 @@ class AxiVersion(pr.Device):
             bitSize      = 1,
             bitOffset    = 0x00,
             base         = pr.UInt,
-            function     = lambda cmd: cmd.post(1)
+            function     = lambda cmd: cmd.post(1),
+            hidden       = False,
         ))
 
         self.add(pr.RemoteVariable(   
@@ -116,6 +117,7 @@ class AxiVersion(pr.Device):
             bitOffset    = 0x00,
             base         = pr.UInt,
             mode         = 'RW',
+            hidden       = True,
         ))
 
         @self.command(hidden=True)
@@ -175,16 +177,16 @@ class AxiVersion(pr.Device):
             bitOffset    = 0x00,
             base         = pr.UInt,
             mode         = 'RO',
-            hidden       = 'True',
+            hidden       = True,
         ))
 
         self.add(pr.LinkVariable(
-            name = 'GitHashShort',
+            name         = 'GitHashShort',
+            mode         = 'RO',
             dependencies = [self.GitHash],
-            disp = '{:07x}',
-            linkedGet = lambda: self.GitHash.value() >> 132
+            disp         = '{:07x}',
+            linkedGet    = lambda: self.GitHash.value() >> 132
         ))
-
 
         self.add(pr.RemoteVariable(   
             name         = 'DeviceDna',
