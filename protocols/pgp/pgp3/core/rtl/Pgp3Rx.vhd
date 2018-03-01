@@ -178,7 +178,7 @@ begin
          TPD_G               => TPD_G,
          CRC_MODE_G          => "DATA",
          CRC_POLY_G          => PGP3_CRC_POLY_C,
-         INPUT_PIPE_STAGES_G => 0)
+         INPUT_PIPE_STAGES_G => 2)      -- Use this to buffer occasional tready=0 
       port map (
          axisClk     => pgpRxClk,                -- [in]
          axisRst     => pgpRxRst,                -- [in]
