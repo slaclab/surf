@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-07
--- Last update: 2018-02-28
+-- Last update: 2018-03-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -70,19 +70,21 @@ package AxiStreamPacketizer2Pkg is
 
 
    function makePacketizer2Header (
-      CRC_CFG_C : string;
-      sof       : sl               := '1';
-      tuser     : slv(7 downto 0)  := (others => '0');
-      tdest     : slv(7 downto 0)  := (others => '0');
-      tid       : slv(7 downto 0)  := (others => '0');
-      seq       : slv(15 downto 0) := (others => '0'))
+      CRC_MODE_C : string;
+      valid      : sl               := '0';
+      sof        : sl               := '1';
+      tuser      : slv(7 downto 0)  := (others => '0');
+      tdest      : slv(7 downto 0)  := (others => '0');
+      tid        : slv(7 downto 0)  := (others => '0');
+      seq        : slv(15 downto 0) := (others => '0'))
       return AxiStreamMasterType;
 
    function makePacketizer2Tail (
-      eof       : sl               := '1';
-      tuser     : slv(7 downto 0)  := (others => '0');
-      bytes     : slv(3 downto 0)  := "1000";  -- Default 8 bytes
-      crc       : slv(31 downto 0) := (others => '0'))
+      valid : sl               := '0';
+      eof   : sl               := '1';
+      tuser : slv(7 downto 0)  := (others => '0');
+      bytes : slv(3 downto 0)  := "1000";  -- Default 8 bytes
+      crc   : slv(31 downto 0) := (others => '0'))
       return axiStreamMasterType;
 
 end package AxiStreamPacketizer2Pkg;
@@ -90,19 +92,21 @@ end package AxiStreamPacketizer2Pkg;
 package body AxiStreamPacketizer2Pkg is
 
    function makePacketizer2Header (
-      CRC_CFG_C : string;
-      sof       : sl               := '1';
-      tuser     : slv(7 downto 0)  := (others => '0');
-      tdest     : slv(7 downto 0)  := (others => '0');
-      tid       : slv(7 downto 0)  := (others => '0');
-      seq       : slv(15 downto 0) := (others => '0'))
+      CRC_MODE_C : string;
+      valid      : sl               := '0';
+      sof        : sl               := '1';
+      tuser      : slv(7 downto 0)  := (others => '0');
+      tdest      : slv(7 downto 0)  := (others => '0');
+      tid        : slv(7 downto 0)  := (others => '0');
+      seq        : slv(15 downto 0) := (others => '0'))
       return AxiStreamMasterType
    is
       variable ret : AxiStreamMasterType;
    begin
       ret                                         := axiStreamMasterInit(PACKETIZER2_AXIS_CFG_C);
+      ret.tValid                                  := valid;
       ret.tData(PACKETIZER2_HDR_VERSION_FIELD_C)  := PACKETIZER2_VERSION_C;
-      ret.tData(PACKETIZER2_HDR_CRC_TYPE_FIELD_C) := toSl(CRC_CFG_C = "FULL");
+      ret.tData(PACKETIZER2_HDR_CRC_TYPE_FIELD_C) := toSl(CRC_MODE_C = "FULL");
       ret.tData(PACKETIZER2_HDR_SOF_BIT_C)        := sof;
       ret.tData(PACKETIZER2_HDR_TUSER_FIELD_C)    := tuser;
       ret.tData(PACKETIZER2_HDR_TDEST_FIELD_C)    := tdest;
@@ -113,6 +117,7 @@ package body AxiStreamPacketizer2Pkg is
    end function makePacketizer2Header;
 
    function makePacketizer2Tail (
+      valid : sl               := '0';
       eof   : sl               := '1';
       tuser : slv(7 downto 0)  := (others => '0');
       bytes : slv(3 downto 0)  := "1000";
@@ -122,6 +127,7 @@ package body AxiStreamPacketizer2Pkg is
       variable ret : AxiStreamMasterType;
    begin
       ret                                       := axiStreamMasterInit(PACKETIZER2_AXIS_CFG_C);
+      ret.tValid                                := valid;
       ret.tData(PACKETIZER2_TAIL_EOF_BIT_C)     := eof;
       ret.tData(PACKETIZER2_TAIL_TUSER_FIELD_C) := tuser;
       ret.tData(PACKETIZER2_TAIL_BYTES_FIELD_C) := bytes;

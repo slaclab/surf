@@ -270,13 +270,13 @@ begin
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
                v.outputAxisMaster :=
                   makePacketizer2Header(
-                     CRC_MODE_G => CRC_MODE_G,
+                     CRC_MODE_C => CRC_MODE_G,
+                     valid => inputAxisMaster.tValid,
                      sof        => not ramPacketActiveOut,
                      tdest      => inputAxisMaster.tDest,
                      tuser      => inputAxisMaster.tUser(7 downto 0),
                      tid        => inputAxisMaster.tId,
                      seq        => ramPacketSeqOut);
-               v.outputAxisMaster.tValid := inputAxisMaster.tValid;
 
                if (ramPacketActiveOut = '0') then
                   -- Reset crc at start of new frame
@@ -346,11 +346,11 @@ begin
             -- Assign the tail txn
             v.outputAxisMaster :=
                makePacketizer2Tail(
-                  CRC_MODE_C => CRC_MODE_G,
-                  eof        => r.eof,
-                  tuser      => r.tUserLast,
-                  bytes      => r.lastByteCount,
-                  crc        => crcOut);
+                  valid => '0',         -- Override below
+                  eof   => r.eof,
+                  tuser => r.tUserLast,
+                  bytes => r.lastByteCount,
+                  crc   => crcOut);
 
             -- It CRC_HEAD_TAIL_G = true, tailCrcReady will be '0' coming in to this state
             -- This delays the output txn by 1 cycle to allow the CRC to be
@@ -368,7 +368,12 @@ begin
                   v.eof                     := '0';
                   v.tUserLast               := (others => '0');
                   -- Wait for new data next
-                  v.state                   := ite(BRAM_EN_G, IDLE_S, HEADER_S);
+                  if (BRAM_EN_G) then
+                     v.state := IDLE_S;
+                  else
+                     v.state := HEADER_S;
+                  end if;
+
                end if;
             end if;
       ----------------------------------------------------------------------

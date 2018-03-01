@@ -200,7 +200,7 @@ begin
 
    crcIn <= endianSwap(inputAxisMaster.tData(63 downto 0));
 
-   GEN_CRC : if (CRC_EN_G) generate
+   GEN_CRC : if (CRC_EN_C) generate
 
       ETH_CRC : if (CRC_POLY_G = x"04C11DB7") generate
          U_Crc32 : entity work.Crc32Parallel
@@ -444,8 +444,13 @@ begin
                v.debug.eop    := '1';
             end if;
             -- Next state
-            v.state := ite(BRAM_EN_G, IDLE_S, HEADER_S);
-            
+            if (BRAM_EN_G) then
+               v.state := IDLE_S;
+            else
+               v.state := HEADER_S;
+            end if;
+
+
          ----------------------------------------------------------------------
          when TERMINATE_S =>
             -- Halt incoming data
@@ -466,7 +471,11 @@ begin
             if (r.activeTDest = x"FF") then
                -- Wait for link to come back up
                if (linkGood = '1') then
-                  v.state := ite(BRAM_EN_G, IDLE_S, HEADER_S);
+                  if (BRAM_EN_G) then
+                     v.state := IDLE_S;
+                  else
+                     v.state := HEADER_S;
+                  end if;
                end if;
             else
                -- Check if ready to move data
