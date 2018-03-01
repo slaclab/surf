@@ -80,6 +80,7 @@ architecture rtl of AxiStreamPacketizer2 is
       crcDataValid     : sl;
       crcDataWidth     : slv(2 downto 0);
       crcInit          : slv(31 downto 0);
+      crcOut           : slv(31 downto 0);
       crcReset         : sl;
       tailCrcReady     : sl;
       inputAxisSlave   : AxiStreamSlaveType;
@@ -100,6 +101,7 @@ architecture rtl of AxiStreamPacketizer2 is
       crcDataValid     => '0',
       crcDataWidth     => (others => '1'),
       crcInit          => (others => '1'),
+      crcOut           => (others => '1'),
       crcReset         => '0',
       tailCrcReady     => toSl(not CRC_HEAD_TAIL_C),
       inputAxisSlave   => AXI_STREAM_SLAVE_INIT_C,
@@ -172,7 +174,7 @@ begin
          addra               => r.activeTDest,          -- [in]
          dina(15 downto 0)   => r.packetSeq,            -- [in]
          dina(16)            => r.packetActive,         -- [in]
-         dina(48 downto 17)  => crcOut,                 -- [in]
+         dina(48 downto 17)  => r.crcOut,               -- [in]
          clkb                => axisClk,                -- [in]
          rstb                => axisRst,                -- [in]
          addrb               => inputAxisMaster.tDest,  -- [in]
@@ -239,6 +241,9 @@ begin
 
       -- Don't write new packet number by default
       v.ramWe := '0';
+
+      -- keep a copy of the CRC output (phased aligned with v.ramWe)
+      v.crcOut := crcOut;
 
       -- Default CRC variable values
       v.crcDataValid := '0';

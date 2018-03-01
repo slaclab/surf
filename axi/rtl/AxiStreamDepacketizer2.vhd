@@ -135,7 +135,7 @@ architecture rtl of AxiStreamDepacketizer2 is
    -- attribute dont_touch of inputAxisMaster  : signal is "TRUE";
    -- attribute dont_touch of inputAxisSlave   : signal is "TRUE";
    -- attribute dont_touch of outputAxisMaster : signal is "TRUE";
-   -- attribute dont_touch of outputAxisSlave  : signal is "TRUE";   
+   -- attribute dont_touch of outputAxisSlave  : signal is "TRUE";
 
 begin
 
