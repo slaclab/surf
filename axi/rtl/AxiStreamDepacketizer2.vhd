@@ -423,9 +423,14 @@ begin
                v.ramWe        := '1';
                v.debug.eop    := '1';
             end if;
-            -- Next state
-            v.state := ite(BRAM_EN_G, IDLE_S, HEADER_S);
-
+            -- Check for BRAM used
+            if (BRAM_EN_G) then
+               -- Next state (1 cycle read latency)
+               v.state := IDLE_S;
+            else
+               -- Next state (0 cycle read latency)
+               v.state := HEADER_S;
+            end if;
          ----------------------------------------------------------------------
          when TERMINATE_S =>
             -- Halt incoming data

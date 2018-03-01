@@ -136,7 +136,7 @@ begin
    -----------------
    -- Input pipeline
    -----------------
-   U_AxiStreamPipeline_Input : entity work.AxiStreamPipeline
+   U_Input : entity work.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => INPUT_PIPE_STAGES_G)
@@ -424,7 +424,7 @@ begin
    ------------------
    -- Output pipeline
    ------------------
-   U_AxiStreamPipeline_Output : entity work.AxiStreamPipeline
+   U_Output : entity work.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)
