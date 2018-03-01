@@ -1,9 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
+-- File       : AxiStreamPacketizer2.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Platform   : 
--- Standard   : VHDL'93/02
+-- Created    : 2017-05-02
+-- Last update: 2018-03-01
 -------------------------------------------------------------------------------
 -- Description: Formats an AXI-Stream for a transport link.
 -- Sideband fields are placed into the data stream in a header.
@@ -29,7 +28,6 @@ use work.SsiPkg.all;
 use work.AxiStreamPacketizer2Pkg.all;
 
 entity AxiStreamDepacketizer2 is
-
    generic (
       TPD_G                : time             := 1 ns;
       BRAM_EN_G            : boolean          := false;
@@ -38,19 +36,17 @@ entity AxiStreamDepacketizer2 is
       INPUT_PIPE_STAGES_G  : integer          := 0;
       OUTPUT_PIPE_STAGES_G : integer          := 1);
    port (
-      -- AXI-Lite Interface for local registers 
-      axisClk : in sl;
-      axisRst : in sl;
-
+      -- Clock and Reset
+      axisClk     : in  sl;
+      axisRst     : in  sl;
+      -- Link Status monitoring and debug interfaces
+      linkGood    : in  sl;
+      debug       : out Packetizer2DebugType;
+      -- AXIS Interfaces
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
-
-      linkGood : in  sl;
-      debug    : out Packetizer2DebugType;
-
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType);
-
 end entity AxiStreamDepacketizer2;
 
 architecture rtl of AxiStreamDepacketizer2 is
@@ -112,37 +108,37 @@ architecture rtl of AxiStreamDepacketizer2 is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal ramPacketSeqOut    : slv(15 downto 0);
-   signal ramPacketActiveOut : sl;
-   signal ramSentEofeOut     : sl;
-   signal ramCrcOut          : slv(31 downto 0) := (others => '0');
-
-   signal crcIn  : slv(63 downto 0) := (others => '0');
-   signal crcOut : slv(31 downto 0) := (others => '0');
-
-
    signal inputAxisMaster  : AxiStreamMasterType;
    signal inputAxisSlave   : AxiStreamSlaveType;
    signal outputAxisMaster : AxiStreamMasterType;
    signal outputAxisSlave  : AxiStreamSlaveType;
 
-   -- attribute dont_touch                     : string;
-   -- attribute dont_touch of r                : signal is "TRUE";
-   -- attribute dont_touch of crcOut           : signal is "TRUE";
-   -- attribute dont_touch of ramPacketSeqOut  : signal is "TRUE";
+   signal ramPacketSeqOut    : slv(15 downto 0);
+   signal ramPacketActiveOut : sl;
+   signal ramSentEofeOut     : sl;
+   signal ramCrcRem          : slv(31 downto 0) := (others => '1');
+
+   signal crcIn  : slv(63 downto 0) := (others => '1');
+   signal crcOut : slv(31 downto 0) := (others => '1');
+   signal crcRem : slv(31 downto 0) := (others => '1');
+
+   -- attribute dont_touch                        : string;
+   -- attribute dont_touch of r                   : signal is "TRUE";
+   -- attribute dont_touch of crcOut              : signal is "TRUE";
+   -- attribute dont_touch of ramPacketSeqOut     : signal is "TRUE";
    -- attribute dont_touch of ramPacketActiveOut  : signal is "TRUE";
    -- attribute dont_touch of ramSentEofeOut      : signal is "TRUE";
-   -- attribute dont_touch of inputAxisMaster  : signal is "TRUE";
-   -- attribute dont_touch of inputAxisSlave   : signal is "TRUE";
-   -- attribute dont_touch of outputAxisMaster : signal is "TRUE";
-   -- attribute dont_touch of outputAxisSlave  : signal is "TRUE";
+   -- attribute dont_touch of inputAxisMaster     : signal is "TRUE";
+   -- attribute dont_touch of inputAxisSlave      : signal is "TRUE";
+   -- attribute dont_touch of outputAxisMaster    : signal is "TRUE";
+   -- attribute dont_touch of outputAxisSlave     : signal is "TRUE";
 
 begin
 
-   -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   -----------------
    -- Input pipeline
-   -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-   U_AxiStreamPipeline_Input : entity work.AxiStreamPipeline
+   -----------------
+   U_Input : entity work.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => INPUT_PIPE_STAGES_G)
@@ -154,26 +150,10 @@ begin
          mAxisMaster => inputAxisMaster,  -- [out]
          mAxisSlave  => inputAxisSlave);  -- [in]
 
-   -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-   -- Output pipeline
-   -- Output kinda stutters awkwardly without this
-   -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-   U_AxiStreamPipeline_Output : entity work.AxiStreamPipeline
-      generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)
-      port map (
-         axisClk     => axisClk,           -- [in]
-         axisRst     => axisRst,           -- [in]
-         sAxisMaster => outputAxisMaster,  -- [in]
-         sAxisSlave  => outputAxisSlave,   -- [out]
-         mAxisMaster => mAxisMaster,       -- [out]
-         mAxisSlave  => mAxisSlave);       -- [in]
-
-   -------------------------------------------------------------------------------------------------
+   -------------------------------------------------------------------------------
    -- Packet Count ram
    -- track current frame number, packet count and physical channel for each tDest
-   -------------------------------------------------------------------------------------------------
+   -------------------------------------------------------------------------------
    U_DualPortRam_1 : entity work.DualPortRam
       generic map (
          TPD_G        => TPD_G,
@@ -185,22 +165,22 @@ begin
          DATA_WIDTH_G => 18+32,
          ADDR_WIDTH_G => 8)
       port map (
-         clka                => axisClk,             -- [in]
-         rsta                => axisRst,             -- [in]
-         wea                 => rin.ramWe,           -- [in]
-         addra               => rin.activeTDest,     -- [in]
-         dina(15 downto 0)   => rin.packetSeq,       -- [in]
-         dina(16)            => rin.packetActive,    -- [in]
-         dina(17)            => rin.sentEofe,        -- [in]
-         dina(49 downto 18)  => crcOut,              -- [in]
-         douta(15 downto 0)  => ramPacketSeqOut,     -- [out]
-         douta(16)           => ramPacketActiveOut,  -- [out]
-         douta(17)           => ramSentEofeOut,      -- [out]
-         douta(49 downto 18) => ramCrcOut);          -- [out]
+         clka                => axisClk,
+         rsta                => axisRst,
+         wea                 => rin.ramWe,
+         addra               => rin.activeTDest,
+         dina(15 downto 0)   => rin.packetSeq,
+         dina(16)            => rin.packetActive,
+         dina(17)            => rin.sentEofe,
+         dina(49 downto 18)  => crcRem,
+         douta(15 downto 0)  => ramPacketSeqOut,
+         douta(16)           => ramPacketActiveOut,
+         douta(17)           => ramSentEofeOut,
+         douta(49 downto 18) => ramCrcRem);
 
    crcIn <= endianSwap(inputAxisMaster.tData(63 downto 0));
 
-   GEN_CRC : if (CRC_EN_G) generate
+   GEN_CRC : if (CRC_EN_C) generate
 
       ETH_CRC : if (CRC_POLY_G = x"04C11DB7") generate
          U_Crc32 : entity work.Crc32Parallel
@@ -239,8 +219,8 @@ begin
 
    end generate;
 
-   comb : process (axisRst, crcOut, ramCrcOut, inputAxisMaster, linkGood,
-                   outputAxisSlave, ramPacketActiveOut, ramPacketSeqOut, r,
+   comb : process (axisRst, crcOut, inputAxisMaster, linkGood, outputAxisSlave,
+                   r, ramCrcRem, ramPacketActiveOut, ramPacketSeqOut,
                    ramSentEofeOut) is
       variable v         : RegType;
       variable sof       : sl;
@@ -292,7 +272,7 @@ begin
 
             -- Reset the CRC for the next packet
             v.crcReset := '1';
-            v.crcInit  := ramCrcOut;
+            v.crcInit  := ramCrcRem;
 
             -- Update the RAM address
             v.activeTDest := inputAxisMaster.tData(PACKETIZER2_HDR_TDEST_FIELD_C);
@@ -346,7 +326,7 @@ begin
                      -- Set packetActive in ram for this tdest
                      -- v.packetSeq is already correct
                      v.packetActive := '1';
-                     v.sentEofe     := '0';                   -- Clear any frame error
+                     v.sentEofe     := '0';  -- Clear any frame error
                      v.ramWe        := '1';
                      v.debug.sop    := '1';
                      v.debug.sof    := sof;
@@ -420,7 +400,7 @@ begin
                v.packetSeq                 := (others => '0');
                v.sentEofe                  := '1';
                v.crcInit                   := (others => '1');
-               v.crcReset                  := '1';        -- Reset CRC in ram to 0xFFFFFFFF
+               v.crcReset                  := '1';  -- Reset CRC in ram to 0xFFFFFFFF
                v.ramWe                     := '1';
                v.debug.eof                 := '1';
                v.debug.eofe                := '1';
@@ -445,7 +425,7 @@ begin
             end if;
             -- Next state
             v.state := ite(BRAM_EN_G, IDLE_S, HEADER_S);
-            
+
          ----------------------------------------------------------------------
          when TERMINATE_S =>
             -- Halt incoming data
@@ -521,5 +501,20 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
+
+   ------------------
+   -- Output pipeline
+   ------------------
+   U_Output : entity work.AxiStreamPipeline
+      generic map (
+         TPD_G         => TPD_G,
+         PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)
+      port map (
+         axisClk     => axisClk,
+         axisRst     => axisRst,
+         sAxisMaster => outputAxisMaster,
+         sAxisSlave  => outputAxisSlave,
+         mAxisMaster => mAxisMaster,
+         mAxisSlave  => mAxisSlave);
 
 end architecture rtl;

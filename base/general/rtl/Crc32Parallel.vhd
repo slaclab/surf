@@ -47,7 +47,7 @@ entity Crc32Parallel is
       CRC_INIT_G       : slv(31 downto 0) := x"FFFFFFFF");
    port (
       crcOut       : out slv(31 downto 0);  -- CRC output
-      crcRem       : out slv(31 downto 0);  -- CRC CRC interim remainder
+      crcRem       : out slv(31 downto 0);  -- CRC interim remainder
       crcClk       : in  sl;            -- system clock
       crcDataValid : in  sl;  -- indicate that new data arrived and CRC can be computed
       crcDataWidth : in  slv(2 downto 0);  -- indicate width in bytes minus 1, 0 - 1 byte, 1 - 2 bytes ... , 7 - 8 bytes

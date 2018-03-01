@@ -2,7 +2,7 @@
 -- File       : RssiCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-02-25
--- Last update: 2018-02-27
+-- Last update: 2018-03-01
 -------------------------------------------------------------------------------
 -- Description: Wrapper for RSSI + AXIS packetizer 
 -------------------------------------------------------------------------------
@@ -186,9 +186,8 @@ begin
             generic map (
                TPD_G                => TPD_G,
                BRAM_EN_G            => true,
-               CRC_EN_G             => true,
+               CRC_MODE_G           => "FULL",
                CRC_POLY_G           => x"04C11DB7",
-               CRC_HEAD_TAIL_G      => true,
                MAX_PACKET_BYTES_G   => MAX_SEG_SIZE_G,
                OUTPUT_SSI_G         => true,
                INPUT_PIPE_STAGES_G  => 0,
@@ -289,9 +288,8 @@ begin
             generic map (
                TPD_G                => TPD_G,
                BRAM_EN_G            => true,
-               CRC_EN_G             => true,
+               CRC_MODE_G           => "FULL",
                CRC_POLY_G           => x"04C11DB7",
-               CRC_HEAD_TAIL_G      => true,
                INPUT_PIPE_STAGES_G  => 0,  -- No need for input stage, RSSI output is already pipelined
                OUTPUT_PIPE_STAGES_G => 1)
             port map (

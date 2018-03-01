@@ -41,7 +41,7 @@ entity Crc32 is
       CRC_POLY_G       : slv(31 downto 0) := x"04C11DB7");
    port (
       crcOut       : out slv(31 downto 0);  -- CRC output
-      crcRem       : out slv(31 downto 0);  -- CRC CRC interim remainder
+      crcRem       : out slv(31 downto 0);  -- CRC interim remainder
       crcClk       : in  sl;            -- system clock
       crcDataValid : in  sl;  -- indicate that new data arrived and CRC can be computed
       crcDataWidth : in  slv(2 downto 0);  -- indicate width in bytes minus 1, 0 - 1 byte, 1 - 2 bytes ... , 7 - 8 bytes
@@ -113,10 +113,10 @@ begin
       -- Reset handling
       if (crcReset = '0') then
          -- Use remainder from previous cycle
-         prevCrc := r.crc;
+         v.crc := r.crc;
       else
          -- Pre-load the remainder
-         prevCrc := crcInit;
+         v.crc := crcInit;
       end if;
 
       -- Calculate CRC byte-by-byte 

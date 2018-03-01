@@ -1,22 +1,19 @@
 -------------------------------------------------------------------------------
--- Title      : Support Package for Packetizer Version 2
--------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-07
--- Last update: 2018-02-28
--- Platform   : 
--- Standard   : VHDL'93/02
+-- Last update: 2018-03-01
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Support Package for Packetizer Version 2
 -------------------------------------------------------------------------------
--- This file is part of SURF. It is subject to
--- the license terms in the LICENSE.txt file found in the top-level directory
--- of this distribution and at:
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
--- No part of SURF, including this file, may be
--- copied, modified, propagated, or distributed except according to the terms
--- contained in the LICENSE.txt file.
+-- This file is part of 'SLAC Firmware Standard Library'.
+-- It is subject to the license terms in the LICENSE.txt file found in the 
+-- top-level directory of this distribution and at: 
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
+-- may be copied, modified, propagated, or distributed except according to 
+-- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 
@@ -42,21 +39,14 @@ package AxiStreamPacketizer2Pkg is
    subtype PACKETIZER2_TAIL_CRC_FIELD_C is natural range 63 downto 32;
 
    -- AxiStream format for packetized data
-   constant PACKETIZER2_AXIS_CFG_C : AxiStreamConfigType :=(
+   constant PACKETIZER2_AXIS_CFG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
       TDATA_BYTES_C => 8,
       TDEST_BITS_C  => 0,
       TID_BITS_C    => 0,
       TKEEP_MODE_C  => TKEEP_NORMAL_C,
-      TUSER_BITS_C  => 2, 
+      TUSER_BITS_C  => 2,
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
-
-   type Packetizer2CfgType is record
---      OUTPUT_SSI_C    : boolean;
-      CRC_EN_C        : boolean;
-      CRC_HEAD_TAIL_C : boolean;
-      AXIS_CFG_C      : AxiStreamConfigType;
-   end record Packetizer2CfgType;
 
    type Packetizer2DebugType is record
       sof         : sl;
@@ -75,18 +65,16 @@ package AxiStreamPacketizer2Pkg is
       eop         => '0',
       packetError => '0');
 
-
    function makePacketizer2Header (
-      CFG_C : Packetizer2CfgType;
-      sof   : sl               := '1';
-      tuser : slv(7 downto 0)  := (others => '0');
-      tdest : slv(7 downto 0)  := (others => '0');
-      tid   : slv(7 downto 0)  := (others => '0');
-      seq   : slv(15 downto 0) := (others => '0'))
+      CRC_CFG_C : string;
+      sof       : sl               := '1';
+      tuser     : slv(7 downto 0)  := (others => '0');
+      tdest     : slv(7 downto 0)  := (others => '0');
+      tid       : slv(7 downto 0)  := (others => '0');
+      seq       : slv(15 downto 0) := (others => '0'))
       return AxiStreamMasterType;
 
    function makePacketizer2Tail (
-      CFG_C : Packetizer2CfgType;
       eof   : sl               := '1';
       tuser : slv(7 downto 0)  := (others => '0');
       bytes : slv(3 downto 0)  := "1000";  -- Default 8 bytes
@@ -99,11 +87,11 @@ package body AxiStreamPacketizer2Pkg is
 
    function makePacketizer2Header (
       CRC_CFG_C : string;
-      sof   : sl               := '1';
-      tuser : slv(7 downto 0)  := (others => '0');
-      tdest : slv(7 downto 0)  := (others => '0');
-      tid   : slv(7 downto 0)  := (others => '0');
-      seq   : slv(15 downto 0) := (others => '0'))
+      sof       : sl               := '1';
+      tuser     : slv(7 downto 0)  := (others => '0');
+      tdest     : slv(7 downto 0)  := (others => '0');
+      tid       : slv(7 downto 0)  := (others => '0');
+      seq       : slv(15 downto 0) := (others => '0'))
       return AxiStreamMasterType
    is
       variable ret : AxiStreamMasterType;
@@ -116,7 +104,8 @@ package body AxiStreamPacketizer2Pkg is
       ret.tData(PACKETIZER2_HDR_TDEST_FIELD_C)    := tdest;
       ret.tData(PACKETIZER2_HDR_TID_FIELD_C)      := tid;
       ret.tData(PACKETIZER2_HDR_SEQ_FIELD_C)      := seq;
-      axiStreamSetUserBit(CFG_C.AXIS_CFG_C, ret, SSI_SOF_C, '1', 0); 
+      ret.tValid                                  := '1';
+      axiStreamSetUserBit(PACKETIZER2_AXIS_CFG_C, ret, SSI_SOF_C, '1', 0);
       return ret;
    end function makePacketizer2Header;
 
@@ -138,7 +127,4 @@ package body AxiStreamPacketizer2Pkg is
       return ret;
    end function makePacketizer2Tail;
 
-
 end package body AxiStreamPacketizer2Pkg;
-
-
