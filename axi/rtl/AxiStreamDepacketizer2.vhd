@@ -191,6 +191,7 @@ begin
                CRC_INIT_G       => X"FFFFFFFF")
             port map (
                crcOut       => crcOut,
+               crcRem       => crcRem,
                crcClk       => axisClk,
                crcDataValid => rin.crcDataValid,
                crcDataWidth => rin.crcDataWidth,
@@ -209,6 +210,7 @@ begin
                CRC_POLY_G       => CRC_POLY_G)
             port map (
                crcOut       => crcOut,
+               crcRem       => crcRem,
                crcClk       => axisClk,
                crcDataValid => rin.crcDataValid,
                crcDataWidth => rin.crcDataWidth,
@@ -485,7 +487,7 @@ begin
       -- Check for link drop event
       if (r.linkGoodDly = '1') and (linkGood = '0') then
          -- Reset CRC now because crcRem has 1 cycle latency 
-         v.crcReset    := '1'; 
+         v.crcReset    := '1';
          v.crcInit     := (others => '1');
          -- Reset the index
          v.activeTDest := x"00";
