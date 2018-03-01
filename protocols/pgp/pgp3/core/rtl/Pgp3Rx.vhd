@@ -176,9 +176,10 @@ begin
    U_AxiStreamDepacketizer2_1 : entity work.AxiStreamDepacketizer2
       generic map (
          TPD_G               => TPD_G,
+         BRAM_EN_G           => false,
          CRC_MODE_G          => "DATA",
          CRC_POLY_G          => PGP3_CRC_POLY_C,
-         INPUT_PIPE_STAGES_G => 2)      -- Use this to buffer occasional tready=0 
+         INPUT_PIPE_STAGES_G => 0)
       port map (
          axisClk     => pgpRxClk,                -- [in]
          axisRst     => pgpRxRst,                -- [in]
