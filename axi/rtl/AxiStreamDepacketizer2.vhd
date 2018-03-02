@@ -134,7 +134,7 @@ architecture rtl of AxiStreamDepacketizer2 is
 
 begin
 
-   assert ((CRC_MODE_G = "NONE") (CRC_MODE_G = "DATA") or (CRC_MODE_G = "FULL"))
+   assert ((CRC_MODE_G = "NONE") or (CRC_MODE_G = "DATA") or (CRC_MODE_G = "FULL"))
       report "CRC_MODE_G must be NONE or DATA or FULL" severity error;
 
    -----------------
@@ -412,7 +412,7 @@ begin
                   v.outputAxisMaster(1).tUser := r.outputAxisMaster(1).tUser;
                   v.sideband                  := '0';
                end if;
-               v.crcDataValid := toSl(CRC_MODE_C /= "NONE");
+               v.crcDataValid := toSl(CRC_MODE_G /= "NONE");
 
                v.outputAxisMaster(0) := r.outputAxisMaster(1);
 

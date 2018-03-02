@@ -132,7 +132,7 @@ begin
    assert ((MAX_PACKET_BYTES_G rem 8) = 0)
       report "MAX_PACKET_BYTES_G must be a multiple of 8" severity error;
 
-   assert ((CRC_MODE_G = "NONE") (CRC_MODE_G = "DATA") or (CRC_MODE_G = "FULL"))
+   assert ((CRC_MODE_G = "NONE") or (CRC_MODE_G = "DATA") or (CRC_MODE_G = "FULL"))
       report "CRC_MODE_G must be NONE or DATA or FULL" severity error;
 
    -----------------
