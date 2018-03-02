@@ -115,7 +115,7 @@ architecture rtl of AxiStreamPacketizer2 is
    signal ramCrcRem          : slv(31 downto 0) := (others => '1');
 
    signal crcIn  : slv(63 downto 0) := (others => '1');
-   signal crcOut : slv(31 downto 0) := (others => '1');
+   signal crcOut : slv(31 downto 0) := (others => '0');
    signal crcRem : slv(31 downto 0) := (others => '1');
 
    -- attribute dont_touch                     : string;
