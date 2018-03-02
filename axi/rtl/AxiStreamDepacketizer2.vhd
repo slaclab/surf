@@ -231,10 +231,10 @@ begin
       procedure doTail is
       begin
          -- Check for packetError or CRC error
-         if ((r.state = MOVE_S) and (CRC_MODE_G = "DATA") and (v.debug.packetError = '1')) or
-            ((r.state = MOVE_S) and (CRC_MODE_G = "DATA") and (crcOut /= v.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_FIELD_C))) or
-            ((r.state = CRC_S) and (CRC_MODE_G = "FULL") and (r.debug.packetError = '1')) or
-            ((r.state = CRC_S) and (CRC_MODE_G = "FULL") and (crcOut /= r.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_FIELD_C))) then
+         if ((r.state = MOVE_S) and (v.debug.packetError = '1')) or
+            ((r.state = MOVE_S) and ((crcOut /= v.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_FIELD_C)) and CRC_EN_C)) or
+            ((r.state = CRC_S) and (r.debug.packetError = '1')) or
+            ((r.state = CRC_S) and ((crcOut /= r.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_FIELD_C)) and CRC_EN_C)) then
             -- EOP with error, do EOFE
             ssiSetUserEofe(AXIS_CONFIG_C, v.outputAxisMaster(0), '1');
             v.outputAxisMaster(0).tLast := '1';
@@ -247,8 +247,8 @@ begin
             v.debug.eof                 := '1';
             v.debug.eofe                := '1';
             v.debug.eop                 := '1';
-         elsif ((r.state = MOVE_S) and (CRC_MODE_G = "DATA") and (v.outputAxisMaster(1).tData(PACKETIZER2_TAIL_EOF_BIT_C) = '1')) or
-            ((r.state = CRC_S) and (CRC_MODE_G = "FULL") and (r.outputAxisMaster(1).tData(PACKETIZER2_TAIL_EOF_BIT_C) = '1')) then
+         elsif ((r.state = MOVE_S) and (v.outputAxisMaster(1).tData(PACKETIZER2_TAIL_EOF_BIT_C) = '1')) or
+            ((r.state = CRC_S) and (r.outputAxisMaster(1).tData(PACKETIZER2_TAIL_EOF_BIT_C) = '1')) then
             -- If EOF, reset packetActive and packetSeq                     
             v.packetActive := '0';
             v.packetSeq    := (others => '0');
@@ -258,8 +258,7 @@ begin
             v.ramWe        := '1';
             v.debug.eof    := '1';
             v.debug.eop    := '1';
-         elsif ((r.state = MOVE_S) and (CRC_MODE_G = "DATA")) or
-            ((r.state = CRC_S) and (CRC_MODE_G = "FULL")) then
+         else
             -- else increment packetSeq and set packetActive
             v.packetActive := '1';
             v.packetSeq    := r.packetSeq + 1;
