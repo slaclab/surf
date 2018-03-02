@@ -22,20 +22,34 @@ use work.SsiPkg.all;
 
 package AxiStreamPacketizer2Pkg is
 
-   constant PACKETIZER2_VERSION_C : slv(3 downto 0) := X"2";
+   constant PACKETIZER2_VERSION_C : slv(3 downto 0) := x"2";
 
+   constant PACKETIZER2_CRC_MODE_NONE_C    : slv(3 downto 0) := x"0";
+   constant PACKETIZER2_CRC_MODE_DATA_C    : slv(3 downto 0) := x"1";
+   constant PACKETIZER2_CRC_MODE_FULL_C    : slv(3 downto 0) := x"2";
+   constant PACKETIZER2_CRC_MODE_INVALID_C : slv(3 downto 0) := x"F";
+
+   ---------------------------------------------------------------
+   -- Header Definition
+   ---------------------------------------------------------------
    subtype PACKETIZER2_HDR_VERSION_FIELD_C is natural range 3 downto 0;
-   constant PACKETIZER2_HDR_CRC_TYPE_FIELD_C : integer := 7;
+   subtype PACKETIZER2_HDR_CRC_TYPE_FIELD_C is natural range 7 downto 4;
    subtype PACKETIZER2_HDR_TUSER_FIELD_C is natural range 15 downto 8;
    subtype PACKETIZER2_HDR_TDEST_FIELD_C is natural range 23 downto 16;
    subtype PACKETIZER2_HDR_TID_FIELD_C is natural range 31 downto 24;
-   constant PACKETIZER2_HDR_SOF_BIT_C        : integer := 63;
    subtype PACKETIZER2_HDR_SEQ_FIELD_C is natural range 47 downto 32;
+   -- BIT62:BIT48 unused
+   constant PACKETIZER2_HDR_SOF_BIT_C : integer := 63;
+   ---------------------------------------------------------------
 
-   constant PACKETIZER2_TAIL_EOF_BIT_C    : integer := 8;
-   constant PACKETIZER2_TAIL_CRC_EN_BIT_C : integer := 9;
+   ---------------------------------------------------------------
+   -- Tail Definition
+   ---------------------------------------------------------------
    subtype PACKETIZER2_TAIL_TUSER_FIELD_C is natural range 7 downto 0;
+   constant PACKETIZER2_TAIL_EOF_BIT_C : integer := 8;
+   -- BIT15:BIT9 unused
    subtype PACKETIZER2_TAIL_BYTES_FIELD_C is natural range 19 downto 16;
+   -- BIT31:BIT20 unused
    subtype PACKETIZER2_TAIL_CRC_FIELD_C is natural range 63 downto 32;
 
    -- AxiStream format for packetized data
@@ -65,6 +79,8 @@ package AxiStreamPacketizer2Pkg is
       eop         => '0',
       packetError => '0');
 
+   function crcStrToSlv (CRC_MODE_C : string) return slv;
+
    function makePacketizer2Header (
       CRC_MODE_C : string;
       valid      : sl               := '0';
@@ -88,6 +104,21 @@ end package AxiStreamPacketizer2Pkg;
 
 package body AxiStreamPacketizer2Pkg is
 
+   function crcStrToSlv (CRC_MODE_C : string) return slv is
+      variable retVar : slv(3 downto 0);
+   begin
+      if (CRC_MODE_C = "NONE") then
+         retVar := PACKETIZER2_CRC_MODE_NONE_C;
+      elsif (CRC_MODE_C = "DATA") then
+         retVar := PACKETIZER2_CRC_MODE_DATA_C;
+      elsif (CRC_MODE_C = "FULL") then
+         retVar := PACKETIZER2_CRC_MODE_FULL_C;
+      else
+         retVar := PACKETIZER2_CRC_MODE_INVALID_C;
+      end if;
+      return retVar;
+   end function;
+
    function makePacketizer2Header (
       CRC_MODE_C : string;
       valid      : sl               := '0';
@@ -103,7 +134,7 @@ package body AxiStreamPacketizer2Pkg is
       ret                                         := axiStreamMasterInit(PACKETIZER2_AXIS_CFG_C);
       ret.tValid                                  := valid;
       ret.tData(PACKETIZER2_HDR_VERSION_FIELD_C)  := PACKETIZER2_VERSION_C;
-      ret.tData(PACKETIZER2_HDR_CRC_TYPE_FIELD_C) := toSl(CRC_MODE_C = "FULL");
+      ret.tData(PACKETIZER2_HDR_CRC_TYPE_FIELD_C) := crcStrToSlv(CRC_MODE_C);
       ret.tData(PACKETIZER2_HDR_SOF_BIT_C)        := sof;
       ret.tData(PACKETIZER2_HDR_TUSER_FIELD_C)    := tuser;
       ret.tData(PACKETIZER2_HDR_TDEST_FIELD_C)    := tdest;
@@ -127,7 +158,6 @@ package body AxiStreamPacketizer2Pkg is
       ret                                       := axiStreamMasterInit(PACKETIZER2_AXIS_CFG_C);
       ret.tValid                                := valid;
       ret.tData(PACKETIZER2_TAIL_EOF_BIT_C)     := eof;
-      ret.tData(PACKETIZER2_TAIL_CRC_EN_BIT_C)  := toSl(CRC_MODE_C /= "NONE");
       ret.tData(PACKETIZER2_TAIL_TUSER_FIELD_C) := tuser;
       ret.tData(PACKETIZER2_TAIL_BYTES_FIELD_C) := bytes;
       ret.tData(PACKETIZER2_TAIL_CRC_FIELD_C)   := ite((CRC_MODE_C /= "NONE"), crc, x"00000000");

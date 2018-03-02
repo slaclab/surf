@@ -2,7 +2,7 @@
 -- File       : AxiStreamPacketizer2.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-05-02
--- Last update: 2018-03-01
+-- Last update: 2018-03-02
 -------------------------------------------------------------------------------
 -- Description: Formats an AXI-Stream for a transport link.
 -- Sideband fields are placed into the data stream in a header.
@@ -51,7 +51,8 @@ end entity AxiStreamDepacketizer2;
 
 architecture rtl of AxiStreamDepacketizer2 is
 
-   constant CRC_HEAD_TAIL_C : boolean := CRC_MODE_G = "FULL";
+   constant CRC_EN_C        : boolean := (CRC_MODE_G /= "NONE");
+   constant CRC_HEAD_TAIL_C : boolean := (CRC_MODE_G = "FULL");
 
    constant AXIS_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
@@ -182,7 +183,7 @@ begin
 
    crcIn <= endianSwap(inputAxisMaster.tData(63 downto 0));
 
-   GEN_CRC : if (CRC_MODE_G /= "NONE") generate
+   GEN_CRC : if (CRC_EN_C) generate
 
       ETH_CRC : if (CRC_POLY_G = x"04C11DB7") generate
          U_Crc32 : entity work.Crc32Parallel
@@ -234,11 +235,11 @@ begin
       begin
          -- Check for packetError or CRC error
          if ((r.state = MOVE_S) and (v.debug.packetError = '1')) or
-            ((r.state = MOVE_S) and ((CRC_MODE_G /= "NONE") and (v.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_FIELD_C) /= crcOut) and (v.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_EN_BIT_C) = '1'))) or
-            ((r.state = MOVE_S) and ((CRC_MODE_G = "NONE") and (v.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_FIELD_C) /= x"00000000") and (v.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_EN_BIT_C) = '0'))) or
+            ((r.state = MOVE_S) and ((CRC_EN_C = true) and (v.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_FIELD_C) /= crcOut))) or
+            ((r.state = MOVE_S) and ((CRC_EN_C = false) and (v.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_FIELD_C) /= x"00000000"))) or
             ((r.state = CRC_S) and (r.debug.packetError = '1')) or
-            ((r.state = CRC_S) and ((CRC_MODE_G /= "NONE") and (r.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_FIELD_C) /= crcOut) and (r.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_EN_BIT_C) = '1'))) or
-            ((r.state = CRC_S) and ((CRC_MODE_G = "NONE") and (r.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_FIELD_C) /= x"00000000") and (r.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_EN_BIT_C) = '0'))) then
+            ((r.state = CRC_S) and ((CRC_EN_C = true) and (r.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_FIELD_C) /= crcOut))) or
+            ((r.state = CRC_S) and ((CRC_EN_C = false) and (r.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_FIELD_C) /= x"00000000"))) then
             -- EOP with error, do EOFE
             ssiSetUserEofe(AXIS_CONFIG_C, v.outputAxisMaster(0), '1');
             v.outputAxisMaster(0).tLast := '1';
@@ -364,7 +365,7 @@ begin
                   if (sof = not ramPacketActiveOut) and
                      (v.packetSeq = ramPacketSeqOut) and
                      (inputAxisMaster.tData(PACKETIZER2_HDR_VERSION_FIELD_C) = PACKETIZER2_VERSION_C) and
-                     (inputAxisMaster.tData(PACKETIZER2_HDR_CRC_TYPE_FIELD_C) = toSl(CRC_HEAD_TAIL_C)) then
+                     (inputAxisMaster.tData(PACKETIZER2_HDR_CRC_TYPE_FIELD_C) = crcStrToSlv(CRC_MODE_G)) then
                      -- Header metadata as expected
                      v.state    := MOVE_S;
                      v.sideband := '1';
@@ -412,7 +413,7 @@ begin
                   v.outputAxisMaster(1).tUser := r.outputAxisMaster(1).tUser;
                   v.sideband                  := '0';
                end if;
-               v.crcDataValid := toSl(CRC_MODE_G /= "NONE");
+               v.crcDataValid := toSl(CRC_EN_C);
 
                v.outputAxisMaster(0) := r.outputAxisMaster(1);
 

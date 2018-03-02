@@ -2,7 +2,7 @@
 -- File       : AxiStreamPacketizer2.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-05-02
--- Last update: 2018-03-01
+-- Last update: 2018-03-02
 -------------------------------------------------------------------------------
 -- Description: Formats an AXI-Stream for a transport link.
 -- Sideband fields are placed into the data stream in a header.
@@ -52,6 +52,7 @@ end entity AxiStreamPacketizer2;
 architecture rtl of AxiStreamPacketizer2 is
 
    constant MAX_WORD_COUNT_C : positive := (MAX_PACKET_BYTES_G / 8) - 3;
+   constant CRC_EN_C         : boolean  := (CRC_MODE_G /= "NONE");
    constant CRC_HEAD_TAIL_C  : boolean  := (CRC_MODE_G = "FULL");
 
    type StateType is (
@@ -181,7 +182,7 @@ begin
 
    crcIn <= endianSwap(rin.outputAxisMaster.tData(63 downto 0));
 
-   GEN_CRC : if (CRC_MODE_G /= "NONE") generate
+   GEN_CRC : if (CRC_EN_C) generate
 
       ETH_CRC : if (CRC_POLY_G = x"04C11DB7") generate
          U_Crc32 : entity work.Crc32Parallel
