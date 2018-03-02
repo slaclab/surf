@@ -175,11 +175,12 @@ begin
                elsif (btf = PGP3_EOF_C or btf = PGP3_EOC_C) then
                   v.pgpRxMaster :=
                      makePacketizer2Tail(
-                        valid => r.pgpRxOut.linkReady,
-                        eof   => toSl(btf = PGP3_EOF_C),
-                        tuser => protRxData(PGP3_EOFC_TUSER_FIELD_C),
-                        bytes => protRxData(PGP3_EOFC_BYTES_LAST_FIELD_C),
-                        crc   => protRxData(PGP3_EOFC_CRC_FIELD_C));
+                        CRC_MODE_C => "DATA",
+                        valid      => r.pgpRxOut.linkReady,
+                        eof        => toSl(btf = PGP3_EOF_C),
+                        tuser      => protRxData(PGP3_EOFC_TUSER_FIELD_C),
+                        bytes      => protRxData(PGP3_EOFC_BYTES_LAST_FIELD_C),
+                        crc        => protRxData(PGP3_EOFC_CRC_FIELD_C));
                else
                   for i in PGP3_USER_C'range loop
                      if (btf = PGP3_USER_C(i)) then
