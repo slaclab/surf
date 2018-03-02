@@ -35,7 +35,8 @@ package AxiStreamPacketizer2Pkg is
    subtype PACKETIZER2_HDR_VERSION_FIELD_C is natural range 3 downto 0;
    subtype PACKETIZER2_HDR_CRC_TYPE_FIELD_C is natural range 7 downto 4;
    subtype PACKETIZER2_HDR_TUSER_FIELD_C is natural range 15 downto 8;
-   subtype PACKETIZER2_HDR_TDEST_FIELD_C is natural range 23 downto 16;
+   constant PACKETIZER2_HDR_TDEST_BIT_C : integer := 16;
+   subtype PACKETIZER2_HDR_TDEST_FIELD_C is natural range 23 downto PACKETIZER2_HDR_TDEST_BIT_C;
    subtype PACKETIZER2_HDR_TID_FIELD_C is natural range 31 downto 24;
    subtype PACKETIZER2_HDR_SEQ_FIELD_C is natural range 47 downto 32;
    -- BIT62:BIT48 unused

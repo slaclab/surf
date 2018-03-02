@@ -188,6 +188,7 @@ begin
                BRAM_EN_G            => true,
                CRC_MODE_G           => "FULL",
                CRC_POLY_G           => x"04C11DB7",
+               TDEST_BITS_G         => 8,
                MAX_PACKET_BYTES_G   => MAX_SEG_SIZE_G,
                INPUT_PIPE_STAGES_G  => 0,
                OUTPUT_PIPE_STAGES_G => 1)
@@ -289,6 +290,7 @@ begin
                BRAM_EN_G            => true,
                CRC_MODE_G           => "FULL",
                CRC_POLY_G           => x"04C11DB7",
+               TDEST_BITS_G         => 8,
                INPUT_PIPE_STAGES_G  => 0,  -- No need for input stage, RSSI output is already pipelined
                OUTPUT_PIPE_STAGES_G => 1)
             port map (
