@@ -34,6 +34,7 @@ entity AxiStreamPacketizer2 is
       CRC_MODE_G           : string           := "DATA";  -- or "NONE" or "FULL"
       CRC_POLY_G           : slv(31 downto 0) := x"04C11DB7";
       MAX_PACKET_BYTES_G   : positive         := 256*8;  -- Must be a multiple of 8
+      TDEST_BITS_G         : natural          := 8;
       INPUT_PIPE_STAGES_G  : natural          := 0;
       OUTPUT_PIPE_STAGES_G : natural          := 0);
    port (
@@ -54,6 +55,7 @@ architecture rtl of AxiStreamPacketizer2 is
    constant MAX_WORD_COUNT_C : positive := (MAX_PACKET_BYTES_G / 8) - 3;
    constant CRC_EN_C         : boolean  := (CRC_MODE_G /= "NONE");
    constant CRC_HEAD_TAIL_C  : boolean  := (CRC_MODE_G = "FULL");
+   constant ADDR_WIDTH_C     : positive := ite((TDEST_BITS_G = 0), 1, TDEST_BITS_G);
 
    type StateType is (
       IDLE_S,
@@ -65,7 +67,7 @@ architecture rtl of AxiStreamPacketizer2 is
       state            : StateType;
       packetSeq        : slv(15 downto 0);
       packetActive     : sl;
-      activeTDest      : slv(7 downto 0);
+      activeTDest      : slv(ADDR_WIDTH_C-1 downto 0);
       ramWe            : sl;
       wordCount        : slv(bitSize(MAX_WORD_COUNT_C)-1 downto 0);
       eof              : sl;
@@ -113,6 +115,7 @@ architecture rtl of AxiStreamPacketizer2 is
    signal ramPacketSeqOut    : slv(15 downto 0);
    signal ramPacketActiveOut : sl;
    signal ramCrcRem          : slv(31 downto 0) := (others => '1');
+   signal ramAddrr           : slv(ADDR_WIDTH_C-1 downto 0);
 
    signal crcIn  : slv(63 downto 0) := (others => '1');
    signal crcOut : slv(31 downto 0) := (others => '0');
@@ -135,6 +138,9 @@ begin
 
    assert ((CRC_MODE_G = "NONE") or (CRC_MODE_G = "DATA") or (CRC_MODE_G = "FULL"))
       report "CRC_MODE_G must be NONE or DATA or FULL" severity error;
+
+   assert (TDEST_BITS_G <= 8)
+      report "TDEST_BITS_G must be less than or equal to 8" severity error;
 
    -----------------
    -- Input pipeline
@@ -164,7 +170,7 @@ begin
          DOB_REG_G    => false,
          BYTE_WR_EN_G => false,
          DATA_WIDTH_G => 17+32,
-         ADDR_WIDTH_G => 8)
+         ADDR_WIDTH_G => ADDR_WIDTH_C)
       port map (
          clka                => axisClk,
          rsta                => axisRst,
@@ -175,12 +181,13 @@ begin
          dina(48 downto 17)  => rin.crcRem,
          clkb                => axisClk,
          rstb                => axisRst,
-         addrb               => inputAxisMaster.tDest,
+         addrb               => ramAddrr,
          doutb(15 downto 0)  => ramPacketSeqOut,
          doutb(16)           => ramPacketActiveOut,
          doutb(48 downto 17) => ramCrcRem);
 
-   crcIn <= endianSwap(rin.outputAxisMaster.tData(63 downto 0));
+   ramAddrr <= inputAxisMaster.tDest(ADDR_WIDTH_C-1 downto 0) when (TDEST_BITS_G > 0) else (others => '0');
+   crcIn    <= endianSwap(rin.outputAxisMaster.tData(63 downto 0));
 
    GEN_CRC : if (CRC_EN_C) generate
 
@@ -225,7 +232,8 @@ begin
 
    comb : process (axisRst, crcOut, crcRem, inputAxisMaster, outputAxisSlave,
                    r, ramCrcRem, ramPacketActiveOut, ramPacketSeqOut) is
-      variable v : RegType;
+      variable v     : RegType;
+      variable tdest : slv(7 downto 0);
    begin
       -- Latch the current value
       v := r;
@@ -273,12 +281,14 @@ begin
 
             -- Check if ready to move data
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
+               tdest                          := x"00";
+               tdest(ADDR_WIDTH_C-1 downto 0) := inputAxisMaster.tDest(ADDR_WIDTH_C-1 downto 0);
                v.outputAxisMaster :=
                   makePacketizer2Header(
                      CRC_MODE_C => CRC_MODE_G,
                      valid      => inputAxisMaster.tValid,
                      sof        => not ramPacketActiveOut,
-                     tdest      => inputAxisMaster.tDest,
+                     tdest      => tDest,
                      tuser      => inputAxisMaster.tUser(7 downto 0),
                      tid        => inputAxisMaster.tId,
                      seq        => ramPacketSeqOut);
@@ -294,7 +304,7 @@ begin
                -- Set the flag
                v.packetActive := '1';
                -- Latch the current TDEST for TDEST change detection in next state
-               v.activeTDest  := inputAxisMaster.tDest;
+               v.activeTDest  := inputAxisMaster.tDest(ADDR_WIDTH_C-1 downto 0);
                -- Next state
                v.state        := MOVE_S;
 
@@ -323,7 +333,7 @@ begin
                end if;
 
                -- Upstream interleave detected, append tail
-               if (inputAxisMaster.tDest /= r.activeTDest) then
+               if (inputAxisMaster.tDest(ADDR_WIDTH_C-1 downto 0) /= r.activeTDest) then
 
                   -- Hold acceptance of new data
                   -- and transmission of output data
