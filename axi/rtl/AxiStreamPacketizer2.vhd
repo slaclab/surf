@@ -52,7 +52,6 @@ end entity AxiStreamPacketizer2;
 architecture rtl of AxiStreamPacketizer2 is
 
    constant MAX_WORD_COUNT_C : positive := (MAX_PACKET_BYTES_G / 8) - 3;
-   constant CRC_EN_C         : boolean  := (CRC_MODE_G = "DATA") or (CRC_MODE_G = "FULL");
    constant CRC_HEAD_TAIL_C  : boolean  := (CRC_MODE_G = "FULL");
 
    type StateType is (
@@ -133,6 +132,9 @@ begin
    assert ((MAX_PACKET_BYTES_G rem 8) = 0)
       report "MAX_PACKET_BYTES_G must be a multiple of 8" severity error;
 
+   assert ((CRC_MODE_G = "DATA") or (CRC_MODE_G = "FULL"))
+      report "CRC_MODE_G must be DATA or FULL" severity error;
+
    -----------------
    -- Input pipeline
    -----------------
@@ -179,44 +181,41 @@ begin
 
    crcIn <= endianSwap(rin.outputAxisMaster.tData(63 downto 0));
 
-   GEN_CRC : if (CRC_EN_C) generate
+   ETH_CRC : if (CRC_POLY_G = x"04C11DB7") generate
+      U_Crc32 : entity work.Crc32Parallel
+         generic map (
+            TPD_G            => TPD_G,
+            INPUT_REGISTER_G => false,
+            BYTE_WIDTH_G     => 8,
+            CRC_INIT_G       => X"FFFFFFFF")
+         port map (
+            crcOut       => crcOut,
+            crcRem       => crcRem,
+            crcClk       => axisClk,
+            crcDataValid => rin.crcDataValid,
+            crcDataWidth => rin.crcDataWidth,
+            crcIn        => crcIn,
+            crcInit      => rin.crcInit,
+            crcReset     => rin.crcReset);
+   end generate;
 
-      ETH_CRC : if (CRC_POLY_G = x"04C11DB7") generate
-         U_Crc32 : entity work.Crc32Parallel
-            generic map (
-               TPD_G            => TPD_G,
-               INPUT_REGISTER_G => false,
-               BYTE_WIDTH_G     => 8,
-               CRC_INIT_G       => X"FFFFFFFF")
-            port map (
-               crcOut       => crcOut,
-               crcRem       => crcRem,
-               crcClk       => axisClk,
-               crcDataValid => rin.crcDataValid,
-               crcDataWidth => rin.crcDataWidth,
-               crcIn        => crcIn,
-               crcInit      => rin.crcInit,
-               crcReset     => rin.crcReset);
-      end generate;
-
-      GENERNAL_CRC : if (CRC_POLY_G /= x"04C11DB7") generate
-         U_Crc32 : entity work.Crc32
-            generic map (
-               TPD_G            => TPD_G,
-               INPUT_REGISTER_G => false,
-               BYTE_WIDTH_G     => 8,
-               CRC_INIT_G       => X"FFFFFFFF",
-               CRC_POLY_G       => CRC_POLY_G)
-            port map (
-               crcOut       => crcOut,
-               crcRem       => crcRem,
-               crcClk       => axisClk,
-               crcDataValid => rin.crcDataValid,
-               crcDataWidth => rin.crcDataWidth,
-               crcIn        => crcIn,
-               crcInit      => rin.crcInit,
-               crcReset     => rin.crcReset);
-      end generate;
+   GENERNAL_CRC : if (CRC_POLY_G /= x"04C11DB7") generate
+      U_Crc32 : entity work.Crc32
+         generic map (
+            TPD_G            => TPD_G,
+            INPUT_REGISTER_G => false,
+            BYTE_WIDTH_G     => 8,
+            CRC_INIT_G       => X"FFFFFFFF",
+            CRC_POLY_G       => CRC_POLY_G)
+         port map (
+            crcOut       => crcOut,
+            crcRem       => crcRem,
+            crcClk       => axisClk,
+            crcDataValid => rin.crcDataValid,
+            crcDataWidth => rin.crcDataWidth,
+            crcIn        => crcIn,
+            crcInit      => rin.crcInit,
+            crcReset     => rin.crcReset);
    end generate;
 
    comb : process (axisRst, crcOut, crcRem, inputAxisMaster, outputAxisSlave,

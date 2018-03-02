@@ -51,7 +51,6 @@ end entity AxiStreamDepacketizer2;
 
 architecture rtl of AxiStreamDepacketizer2 is
 
-   constant CRC_EN_C        : boolean := CRC_MODE_G = "DATA" or CRC_MODE_G = "FULL";
    constant CRC_HEAD_TAIL_C : boolean := CRC_MODE_G = "FULL";
 
    constant AXIS_CONFIG_C : AxiStreamConfigType := (
@@ -135,6 +134,9 @@ architecture rtl of AxiStreamDepacketizer2 is
 
 begin
 
+   assert ((CRC_MODE_G = "DATA") or (CRC_MODE_G = "FULL"))
+      report "CRC_MODE_G must be DATA or FULL" severity error;
+
    -----------------
    -- Input pipeline
    -----------------
@@ -180,48 +182,44 @@ begin
 
    crcIn <= endianSwap(inputAxisMaster.tData(63 downto 0));
 
-   GEN_CRC : if (CRC_EN_C) generate
-
-      ETH_CRC : if (CRC_POLY_G = x"04C11DB7") generate
-         U_Crc32 : entity work.Crc32Parallel
-            generic map (
-               TPD_G            => TPD_G,
-               INPUT_REGISTER_G => false,
-               BYTE_WIDTH_G     => 8,
-               CRC_INIT_G       => X"FFFFFFFF")
-            port map (
-               crcOut       => crcOut,
-               crcRem       => crcRem,
-               crcClk       => axisClk,
-               crcDataValid => rin.crcDataValid,
-               crcDataWidth => rin.crcDataWidth,
-               crcIn        => crcIn,
-               crcInit      => rin.crcInit,
-               crcReset     => rin.crcReset);
-      end generate;
-
-      GENERNAL_CRC : if (CRC_POLY_G /= x"04C11DB7") generate
-         U_Crc32 : entity work.Crc32
-            generic map (
-               TPD_G            => TPD_G,
-               INPUT_REGISTER_G => false,
-               BYTE_WIDTH_G     => 8,
-               CRC_INIT_G       => X"FFFFFFFF",
-               CRC_POLY_G       => CRC_POLY_G)
-            port map (
-               crcOut       => crcOut,
-               crcRem       => crcRem,
-               crcClk       => axisClk,
-               crcDataValid => rin.crcDataValid,
-               crcDataWidth => rin.crcDataWidth,
-               crcIn        => crcIn,
-               crcInit      => rin.crcInit,
-               crcReset     => rin.crcReset);
-      end generate;
-
+   ETH_CRC : if (CRC_POLY_G = x"04C11DB7") generate
+      U_Crc32 : entity work.Crc32Parallel
+         generic map (
+            TPD_G            => TPD_G,
+            INPUT_REGISTER_G => false,
+            BYTE_WIDTH_G     => 8,
+            CRC_INIT_G       => X"FFFFFFFF")
+         port map (
+            crcOut       => crcOut,
+            crcRem       => crcRem,
+            crcClk       => axisClk,
+            crcDataValid => rin.crcDataValid,
+            crcDataWidth => rin.crcDataWidth,
+            crcIn        => crcIn,
+            crcInit      => rin.crcInit,
+            crcReset     => rin.crcReset);
    end generate;
 
-   comb : process (axisRst, inputAxisMaster, linkGood, outputAxisSlave, r,
+   GENERNAL_CRC : if (CRC_POLY_G /= x"04C11DB7") generate
+      U_Crc32 : entity work.Crc32
+         generic map (
+            TPD_G            => TPD_G,
+            INPUT_REGISTER_G => false,
+            BYTE_WIDTH_G     => 8,
+            CRC_INIT_G       => X"FFFFFFFF",
+            CRC_POLY_G       => CRC_POLY_G)
+         port map (
+            crcOut       => crcOut,
+            crcRem       => crcRem,
+            crcClk       => axisClk,
+            crcDataValid => rin.crcDataValid,
+            crcDataWidth => rin.crcDataWidth,
+            crcIn        => crcIn,
+            crcInit      => rin.crcInit,
+            crcReset     => rin.crcReset);
+   end generate;
+
+   comb : process (axisRst, crcOut, inputAxisMaster, linkGood, outputAxisSlave, r,
                    ramCrcRem, ramPacketActiveOut, ramPacketSeqOut,
                    ramSentEofeOut) is
       variable v         : RegType;
@@ -232,9 +230,9 @@ begin
       begin
          -- Check for packetError or CRC error
          if ((r.state = MOVE_S) and (v.debug.packetError = '1')) or
-            ((r.state = MOVE_S) and ((crcOut /= v.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_FIELD_C)) and CRC_EN_C)) or
+            ((r.state = MOVE_S) and ((crcOut /= v.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_FIELD_C)) and (v.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_EN_BIT_C) = '1'))) or
             ((r.state = CRC_S) and (r.debug.packetError = '1')) or
-            ((r.state = CRC_S) and ((crcOut /= r.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_FIELD_C)) and CRC_EN_C)) then
+            ((r.state = CRC_S) and ((crcOut /= r.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_FIELD_C)) and (r.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_EN_BIT_C) = '1'))) then
             -- EOP with error, do EOFE
             ssiSetUserEofe(AXIS_CONFIG_C, v.outputAxisMaster(0), '1');
             v.outputAxisMaster(0).tLast := '1';
@@ -408,7 +406,7 @@ begin
                   v.outputAxisMaster(1).tUser := r.outputAxisMaster(1).tUser;
                   v.sideband                  := '0';
                end if;
-               v.crcDataValid := toSl(CRC_EN_C);
+               v.crcDataValid := '1';
 
                v.outputAxisMaster(0) := r.outputAxisMaster(1);
 

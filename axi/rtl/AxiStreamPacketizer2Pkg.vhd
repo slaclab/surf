@@ -32,7 +32,8 @@ package AxiStreamPacketizer2Pkg is
    constant PACKETIZER2_HDR_SOF_BIT_C        : integer := 63;
    subtype PACKETIZER2_HDR_SEQ_FIELD_C is natural range 47 downto 32;
 
-   constant PACKETIZER2_TAIL_EOF_BIT_C : integer := 8;
+   constant PACKETIZER2_TAIL_EOF_BIT_C    : integer := 8;
+   constant PACKETIZER2_TAIL_CRC_EN_BIT_C : integer := 9;
    subtype PACKETIZER2_TAIL_TUSER_FIELD_C is natural range 7 downto 0;
    subtype PACKETIZER2_TAIL_BYTES_FIELD_C is natural range 19 downto 16;
    subtype PACKETIZER2_TAIL_CRC_FIELD_C is natural range 63 downto 32;
@@ -124,6 +125,7 @@ package body AxiStreamPacketizer2Pkg is
       ret                                       := axiStreamMasterInit(PACKETIZER2_AXIS_CFG_C);
       ret.tValid                                := valid;
       ret.tData(PACKETIZER2_TAIL_EOF_BIT_C)     := eof;
+      ret.tData(PACKETIZER2_TAIL_CRC_EN_BIT_C)  := '1';
       ret.tData(PACKETIZER2_TAIL_TUSER_FIELD_C) := tuser;
       ret.tData(PACKETIZER2_TAIL_BYTES_FIELD_C) := bytes;
       ret.tData(PACKETIZER2_TAIL_CRC_FIELD_C)   := crc;
