@@ -132,8 +132,8 @@ begin
    assert ((MAX_PACKET_BYTES_G rem 8) = 0)
       report "MAX_PACKET_BYTES_G must be a multiple of 8" severity error;
 
-   assert ((CRC_MODE_G = "DATA") or (CRC_MODE_G = "FULL"))
-      report "CRC_MODE_G must be DATA or FULL" severity error;
+   assert ((CRC_MODE_G = "NONE") (CRC_MODE_G = "DATA") or (CRC_MODE_G = "FULL"))
+      report "CRC_MODE_G must be NONE or DATA or FULL" severity error;
 
    -----------------
    -- Input pipeline
@@ -181,41 +181,45 @@ begin
 
    crcIn <= endianSwap(rin.outputAxisMaster.tData(63 downto 0));
 
-   ETH_CRC : if (CRC_POLY_G = x"04C11DB7") generate
-      U_Crc32 : entity work.Crc32Parallel
-         generic map (
-            TPD_G            => TPD_G,
-            INPUT_REGISTER_G => false,
-            BYTE_WIDTH_G     => 8,
-            CRC_INIT_G       => X"FFFFFFFF")
-         port map (
-            crcOut       => crcOut,
-            crcRem       => crcRem,
-            crcClk       => axisClk,
-            crcDataValid => rin.crcDataValid,
-            crcDataWidth => rin.crcDataWidth,
-            crcIn        => crcIn,
-            crcInit      => rin.crcInit,
-            crcReset     => rin.crcReset);
-   end generate;
+   GEN_CRC : if (CRC_MODE_G /= "NONE") generate
 
-   GENERNAL_CRC : if (CRC_POLY_G /= x"04C11DB7") generate
-      U_Crc32 : entity work.Crc32
-         generic map (
-            TPD_G            => TPD_G,
-            INPUT_REGISTER_G => false,
-            BYTE_WIDTH_G     => 8,
-            CRC_INIT_G       => X"FFFFFFFF",
-            CRC_POLY_G       => CRC_POLY_G)
-         port map (
-            crcOut       => crcOut,
-            crcRem       => crcRem,
-            crcClk       => axisClk,
-            crcDataValid => rin.crcDataValid,
-            crcDataWidth => rin.crcDataWidth,
-            crcIn        => crcIn,
-            crcInit      => rin.crcInit,
-            crcReset     => rin.crcReset);
+      ETH_CRC : if (CRC_POLY_G = x"04C11DB7") generate
+         U_Crc32 : entity work.Crc32Parallel
+            generic map (
+               TPD_G            => TPD_G,
+               INPUT_REGISTER_G => false,
+               BYTE_WIDTH_G     => 8,
+               CRC_INIT_G       => X"FFFFFFFF")
+            port map (
+               crcOut       => crcOut,
+               crcRem       => crcRem,
+               crcClk       => axisClk,
+               crcDataValid => rin.crcDataValid,
+               crcDataWidth => rin.crcDataWidth,
+               crcIn        => crcIn,
+               crcInit      => rin.crcInit,
+               crcReset     => rin.crcReset);
+      end generate;
+
+      GENERNAL_CRC : if (CRC_POLY_G /= x"04C11DB7") generate
+         U_Crc32 : entity work.Crc32
+            generic map (
+               TPD_G            => TPD_G,
+               INPUT_REGISTER_G => false,
+               BYTE_WIDTH_G     => 8,
+               CRC_INIT_G       => X"FFFFFFFF",
+               CRC_POLY_G       => CRC_POLY_G)
+            port map (
+               crcOut       => crcOut,
+               crcRem       => crcRem,
+               crcClk       => axisClk,
+               crcDataValid => rin.crcDataValid,
+               crcDataWidth => rin.crcDataWidth,
+               crcIn        => crcIn,
+               crcInit      => rin.crcInit,
+               crcReset     => rin.crcReset);
+      end generate;
+
    end generate;
 
    comb : process (axisRst, crcOut, crcRem, inputAxisMaster, outputAxisSlave,
@@ -361,11 +365,12 @@ begin
             -- Assign the tail txn
             v.outputAxisMaster :=
                makePacketizer2Tail(
-                  valid => '0',         -- Override below
-                  eof   => r.eof,
-                  tuser => r.tUserLast,
-                  bytes => r.lastByteCount,
-                  crc   => crcOut);
+                  CRC_MODE_C => CRC_MODE_G,
+                  valid      => '0',    -- Override below
+                  eof        => r.eof,
+                  tuser      => r.tUserLast,
+                  bytes      => r.lastByteCount,
+                  crc        => crcOut);
 
             -- It CRC_HEAD_TAIL_G = true, tailCrcReady will be '0' coming in to this state
             -- This delays the output txn by 1 cycle to allow the CRC to be

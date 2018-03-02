@@ -76,11 +76,12 @@ package AxiStreamPacketizer2Pkg is
       return AxiStreamMasterType;
 
    function makePacketizer2Tail (
-      valid : sl               := '0';
-      eof   : sl               := '1';
-      tuser : slv(7 downto 0)  := (others => '0');
-      bytes : slv(3 downto 0)  := "1000";  -- Default 8 bytes
-      crc   : slv(31 downto 0) := (others => '0'))
+      CRC_MODE_C : string;
+      valid      : sl               := '0';
+      eof        : sl               := '1';
+      tuser      : slv(7 downto 0)  := (others => '0');
+      bytes      : slv(3 downto 0)  := "1000";  -- Default 8 bytes
+      crc        : slv(31 downto 0) := (others => '0'))
       return axiStreamMasterType;
 
 end package AxiStreamPacketizer2Pkg;
@@ -113,11 +114,12 @@ package body AxiStreamPacketizer2Pkg is
    end function makePacketizer2Header;
 
    function makePacketizer2Tail (
-      valid : sl               := '0';
-      eof   : sl               := '1';
-      tuser : slv(7 downto 0)  := (others => '0');
-      bytes : slv(3 downto 0)  := "1000";
-      crc   : slv(31 downto 0) := (others => '0'))
+      CRC_MODE_C : string;
+      valid      : sl               := '0';
+      eof        : sl               := '1';
+      tuser      : slv(7 downto 0)  := (others => '0');
+      bytes      : slv(3 downto 0)  := "1000";
+      crc        : slv(31 downto 0) := (others => '0'))
       return AxiStreamMasterType
    is
       variable ret : AxiStreamMasterType;
@@ -125,10 +127,10 @@ package body AxiStreamPacketizer2Pkg is
       ret                                       := axiStreamMasterInit(PACKETIZER2_AXIS_CFG_C);
       ret.tValid                                := valid;
       ret.tData(PACKETIZER2_TAIL_EOF_BIT_C)     := eof;
-      ret.tData(PACKETIZER2_TAIL_CRC_EN_BIT_C)  := '1';
+      ret.tData(PACKETIZER2_TAIL_CRC_EN_BIT_C)  := toSl(CRC_MODE_C /= "NONE");
       ret.tData(PACKETIZER2_TAIL_TUSER_FIELD_C) := tuser;
       ret.tData(PACKETIZER2_TAIL_BYTES_FIELD_C) := bytes;
-      ret.tData(PACKETIZER2_TAIL_CRC_FIELD_C)   := crc;
+      ret.tData(PACKETIZER2_TAIL_CRC_FIELD_C)   := ite((CRC_MODE_C /= "NONE"), crc, x"00000000");
       ret.tLast                                 := '1';
       return ret;
    end function makePacketizer2Tail;
