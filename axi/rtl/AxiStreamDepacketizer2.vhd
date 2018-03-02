@@ -221,8 +221,8 @@ begin
 
    end generate;
 
-   comb : process (axisRst, crcOut, inputAxisMaster, linkGood, outputAxisSlave,
-                   r, ramCrcRem, ramPacketActiveOut, ramPacketSeqOut,
+   comb : process (axisRst, inputAxisMaster, linkGood, outputAxisSlave, r,
+                   ramCrcRem, ramPacketActiveOut, ramPacketSeqOut,
                    ramSentEofeOut) is
       variable v         : RegType;
       variable sof       : sl;
@@ -231,7 +231,10 @@ begin
       procedure doTail is
       begin
          -- Check for packetError or CRC error
-         if (v.debug.packetError = '1') or (crcOut /= v.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_FIELD_C) and CRC_EN_C) then
+         if ((r.state = MOVE_S) and (CRC_MODE_G = "DATA") and (v.debug.packetError = '1')) or
+            ((r.state = MOVE_S) and (CRC_MODE_G = "DATA") and (crcOut /= v.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_FIELD_C))) or
+            ((r.state = CRC_S) and (CRC_MODE_G = "FULL") and (r.debug.packetError = '1')) or
+            ((r.state = CRC_S) and (CRC_MODE_G = "FULL") and (crcOut /= r.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_FIELD_C))) then
             -- EOP with error, do EOFE
             ssiSetUserEofe(AXIS_CONFIG_C, v.outputAxisMaster(0), '1');
             v.outputAxisMaster(0).tLast := '1';
@@ -244,17 +247,19 @@ begin
             v.debug.eof                 := '1';
             v.debug.eofe                := '1';
             v.debug.eop                 := '1';
-         elsif (v.outputAxisMaster(1).tData(PACKETIZER2_TAIL_EOF_BIT_C) = '1') then
+         elsif ((r.state = MOVE_S) and (CRC_MODE_G = "DATA") and (v.outputAxisMaster(1).tData(PACKETIZER2_TAIL_EOF_BIT_C) = '1')) or
+            ((r.state = CRC_S) and (CRC_MODE_G = "FULL") and (r.outputAxisMaster(1).tData(PACKETIZER2_TAIL_EOF_BIT_C) = '1')) then
             -- If EOF, reset packetActive and packetSeq                     
             v.packetActive := '0';
             v.packetSeq    := (others => '0');
             v.sentEofe     := '0';
             v.crcInit      := (others => '1');
-            v.crcReset     := '1';               -- Reset CRC in ram to 0xFFFFFFFF
+            v.crcReset     := '1';      -- Reset CRC in ram to 0xFFFFFFFF
             v.ramWe        := '1';
             v.debug.eof    := '1';
             v.debug.eop    := '1';
-         else
+         elsif ((r.state = MOVE_S) and (CRC_MODE_G = "DATA")) or
+            ((r.state = CRC_S) and (CRC_MODE_G = "FULL")) then
             -- else increment packetSeq and set packetActive
             v.packetActive := '1';
             v.packetSeq    := r.packetSeq + 1;
@@ -364,7 +369,7 @@ begin
                      -- Set packetActive in ram for this tdest
                      -- v.packetSeq is already correct
                      v.packetActive := '1';
-                     v.sentEofe     := '0';                   -- Clear any frame error
+                     v.sentEofe     := '0';  -- Clear any frame error
                      v.ramWe        := '1';
                      v.debug.sop    := '1';
                      v.debug.sof    := sof;
@@ -446,9 +451,8 @@ begin
             v.inputAxisSlave.tReady      := '0';
             -- Move the data (Note: v.outputAxisMaster(0).tValid = '0' in previous state)
             v.outputAxisMaster(0).tValid := '1';
-
+            -- Can sent tail right now
             doTail;
-
             -- Check for BRAM used
             if (BRAM_EN_G) then
                -- Next state (1 cycle read latency)
