@@ -16,5 +16,7 @@
 # Relax timing for the refRstCnt counter (clocked at 625MHz but it has a CE at half the rate)
 set_multicycle_path -through [get_pins -of_objects [get_cells {refRstCnt_reg*}] -filter {REF_PIN_NAME==Q}] -setup -start 2
 set_multicycle_path -through [get_pins -of_objects [get_cells {refRstCnt_reg*}] -filter {REF_PIN_NAME==Q}] -hold  -start 1
+set_multicycle_path -through [get_pins -of_objects [get_cells {refRst_reg*}]    -filter {REF_PIN_NAME==Q}] -setup -start 2
+set_multicycle_path -through [get_pins -of_objects [get_cells {refRst_reg*}]    -filter {REF_PIN_NAME==Q}] -hold  -start 1
 
 
