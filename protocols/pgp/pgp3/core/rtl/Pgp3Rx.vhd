@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-07
--- Last update: 2018-03-01
+-- Last update: 2018-03-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -179,7 +179,8 @@ begin
          BRAM_EN_G           => false,
          CRC_MODE_G          => "DATA",
          CRC_POLY_G          => PGP3_CRC_POLY_C,
-         INPUT_PIPE_STAGES_G => 0)
+         TDEST_BITS_G        => 4,
+         INPUT_PIPE_STAGES_G => 1)
       port map (
          axisClk     => pgpRxClk,                -- [in]
          axisRst     => pgpRxRst,                -- [in]
