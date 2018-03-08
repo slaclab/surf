@@ -2,7 +2,7 @@
 -- File       : AxiI2cMasterCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-22
--- Last update: 2018-01-08
+-- Last update: 2018-03-07
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to generic I2C master controller
 -------------------------------------------------------------------------------
@@ -80,7 +80,7 @@ begin
       generic map (
          TPD_G            => TPD_G,
          DEVICE_MAP_G     => DEVICE_MAP_G,
-         EN_USER_REG_G    => false),
+         EN_USER_REG_G    => false)
       port map (
          -- I2C Interface
          i2cRegMasterIn  => i2cRegMasterIn,

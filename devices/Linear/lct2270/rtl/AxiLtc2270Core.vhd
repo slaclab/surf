@@ -2,7 +2,7 @@
 -- File       : AxiLtc2270Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-21
--- Last update: 2018-01-08
+-- Last update: 2018-03-07
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to LTC2270 ADC IC
 -------------------------------------------------------------------------------
@@ -67,7 +67,7 @@ begin
          DMODE_INIT_G       => DMODE_INIT_G,
          DELAY_INIT_G       => DELAY_INIT_G,
          STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
-         AXI_CLK_FREQ_G     => AXI_CLK_FREQ_G),
+         AXI_CLK_FREQ_G     => AXI_CLK_FREQ_G)
       port map(
          -- ADC Ports
          adcCs          => adcOut.cs,
