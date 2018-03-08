@@ -2,7 +2,7 @@
 -- File       : AxiLtc2270Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-21
--- Last update: 2014-04-21
+-- Last update: 2018-03-07
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to LTC2270 ADC IC
 -------------------------------------------------------------------------------
@@ -30,8 +30,7 @@ entity AxiLtc2270Core is
       DELAY_INIT_G       : Slv5VectorArray(0 to 1, 0 to 7) := (others => (others => (others => '0')));
       IODELAY_GROUP_G    : string                          := "AXI_LTC2270_IODELAY_GRP";
       STATUS_CNT_WIDTH_G : natural range 1 to 32           := 32;
-      AXI_CLK_FREQ_G     : real                            := 200.0E+6;  -- units of Hz
-      AXI_ERROR_RESP_G   : slv(1 downto 0)                 := AXI_RESP_SLVERR_C);      
+      AXI_CLK_FREQ_G     : real                            := 200.0E+6);  -- units of Hz
    port (
       -- ADC Ports
       adcIn          : in    AxiLtc2270InType;
@@ -68,8 +67,7 @@ begin
          DMODE_INIT_G       => DMODE_INIT_G,
          DELAY_INIT_G       => DELAY_INIT_G,
          STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
-         AXI_CLK_FREQ_G     => AXI_CLK_FREQ_G,
-         AXI_ERROR_RESP_G   => AXI_ERROR_RESP_G)
+         AXI_CLK_FREQ_G     => AXI_CLK_FREQ_G)
       port map(
          -- ADC Ports
          adcCs          => adcOut.cs,

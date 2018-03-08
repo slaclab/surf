@@ -2,7 +2,7 @@
 -- File       : Pgp3Gtx7Qpll.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-26
--- Last update: 2017-12-21
+-- Last update: 2018-01-10
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -32,8 +32,7 @@ entity Pgp3Gtx7Qpll is
       TPD_G             : time            := 1 ns;
       EN_DRP_G          : boolean         := true;
       REFCLK_TYPE_G     : Pgp3RefClkType  := PGP3_REFCLK_312_C;
-      RATE_G            : boolean         := true;  -- true = 10.3125 Gbps, false = 6.25 Gbps
-      AXIL_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_DECERR_C);
+      RATE_G            : boolean         := true);  -- true = 10.3125 Gbps, false = 6.25 Gbps
    port (
       -- Stable Clock and Reset
       stableClk       : in  sl;         -- GT needs a stable clock to "boot up"
@@ -209,7 +208,6 @@ begin
    U_QPLL : entity work.Gtx7QuadPll
       generic map (
          TPD_G              => TPD_G,
-         AXI_ERROR_RESP_G   => AXIL_ERROR_RESP_G,
          QPLL_CFG_G         => QPLL_CFG_C,
          QPLL_FBDIV_G       => QPLL_FBDIV_C,
          QPLL_FBDIV_RATIO_G => QPLL_FBDIV_RATIO_C,

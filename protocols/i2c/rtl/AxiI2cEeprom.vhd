@@ -2,7 +2,7 @@
 -- File       : AxiI2cEeprom.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-07-11
--- Last update: 2016-07-11
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Wrapper for AxiI2cEepromCore
 --
@@ -45,8 +45,7 @@ entity AxiI2cEeprom is
       I2C_ADDR_G       : slv(6 downto 0) := "1010000";
       I2C_SCL_FREQ_G   : real            := 100.0E+3;   -- units of Hz
       I2C_MIN_PULSE_G  : real            := 100.0E-9;   -- units of seconds
-      AXI_CLK_FREQ_G   : real            := 156.25E+6;  -- units of Hz
-      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C);
+      AXI_CLK_FREQ_G   : real            := 156.25E+6);  -- units of Hz
    port (
       -- I2C Ports
       scl             : inout sl;
@@ -76,8 +75,7 @@ begin
          I2C_ADDR_G       => I2C_ADDR_G,
          I2C_SCL_FREQ_G   => I2C_SCL_FREQ_G,
          I2C_MIN_PULSE_G  => I2C_MIN_PULSE_G,
-         AXI_CLK_FREQ_G   => AXI_CLK_FREQ_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)      
+         AXI_CLK_FREQ_G   => AXI_CLK_FREQ_G)
       port map (
          -- I2C Interface
          i2ci            => i2ci,

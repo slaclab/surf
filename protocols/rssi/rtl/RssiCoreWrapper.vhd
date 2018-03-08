@@ -38,7 +38,6 @@ entity RssiCoreWrapper is
       APP_STREAMS_G       : positive             := 1;
       APP_STREAM_ROUTES_G : Slv8Array            := (0 => "--------");
       APP_ILEAVE_EN_G     : boolean              := false;
-      AXI_ERROR_RESP_G    : slv(1 downto 0)      := AXI_RESP_DECERR_C;
       -- AXIS Configurations
       APP_AXIS_CONFIG_G   : AxiStreamConfigArray := (0 => ssiAxiStreamConfig(8, TKEEP_NORMAL_C));
       TSP_AXIS_CONFIG_G   : AxiStreamConfigType  := ssiAxiStreamConfig(16, TKEEP_NORMAL_C);
@@ -218,7 +217,6 @@ begin
          RETRANSMIT_ENABLE_G => RETRANSMIT_ENABLE_G,
          WINDOW_ADDR_SIZE_G  => WINDOW_ADDR_SIZE_G,
          SEGMENT_ADDR_SIZE_G => SEGMENT_ADDR_SIZE_G,
-         AXI_ERROR_RESP_G    => AXI_ERROR_RESP_G,
          -- AXIS Configurations
          APP_AXIS_CONFIG_G   => RSSI_AXIS_CONFIG_C,
          TSP_AXIS_CONFIG_G   => TSP_AXIS_CONFIG_G,

@@ -2,7 +2,7 @@
 -- File       : JesdRxReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-15
--- Last update: 2016-09-23
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description:  AXI-Lite interface for register access 
 -------------------------------------------------------------------------------
@@ -28,7 +28,6 @@ entity JesdRxReg is
    generic (
       -- General Configurations
       TPD_G            : time            := 1 ns;
-      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C;
       AXI_ADDR_WIDTH_G : positive        := 10;
       -- JESD 
       -- Number of RX lanes (1 to 32)
@@ -167,7 +166,7 @@ begin
       axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
 
       if (axilStatus.writeEnable = '1') then
-         axilWriteResp := ite(axilWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
+         axilWriteResp := ite(axilWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          case (s_WrAddr) is
             when 16#00# =>              -- ADDR (0x00)
                v.enableRx := axilWriteMaster.wdata(L_G-1 downto 0);
@@ -194,13 +193,13 @@ begin
                   end if;
                end loop;              
             when others =>
-               axilWriteResp := AXI_ERROR_RESP_G;
+               axilWriteResp := AXI_RESP_DECERR_C;
          end case;
          axiSlaveWriteResponse(v.axilWriteSlave);
       end if;
 
       if (axilStatus.readEnable = '1') then
-         axilReadResp          := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
+         axilReadResp          := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          v.axilReadSlave.rdata := (others => '0');
          case (s_RdAddr) is
             when 16#00# =>              -- ADDR (0x0)
@@ -248,7 +247,7 @@ begin
                   end if;
                end loop;
             when others =>
-               axilReadResp := AXI_ERROR_RESP_G;
+               axilReadResp := AXI_RESP_DECERR_C;
          end case;
          axiSlaveReadResponse(v.axilReadSlave);
       end if;

@@ -2,7 +2,7 @@
 -- File       : Pgp2bGtx7Fixedlat.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2016-11-01
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Gtx7 Fixed Latency Module
 -------------------------------------------------------------------------------
@@ -67,7 +67,6 @@ entity Pgp2bGtx7Fixedlat is
       VC_INTERLEAVE_G   : integer              := 0;      -- No interleave Frames
       PAYLOAD_CNT_TOP_G : integer              := 7;      -- Top bit for payload counter
       NUM_VC_EN_G       : integer range 1 to 4 := 4;
-      AXI_ERROR_RESP_G  : slv(1 downto 0)      := AXI_RESP_DECERR_C;
       TX_POLARITY_G     : sl                   := '0';
       RX_POLARITY_G     : sl                   := '0';
       TX_ENABLE_G       : boolean              := true;   -- Enable TX direction
@@ -362,7 +361,6 @@ begin
    U_AxiLiteToDrp : entity work.AxiLiteToDrp
       generic map (
          TPD_G            => TPD_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
          COMMON_CLK_G     => true,
          EN_ARBITRATION_G => false,
          TIMEOUT_G        => 4096,

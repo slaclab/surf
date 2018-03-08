@@ -2,7 +2,7 @@
 -- File       : AxiLiteSaciMaster2.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-01
--- Last update: 2016-11-15
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: New and improved version of the AxiLiteSaciMaster.
 -------------------------------------------------------------------------------
@@ -27,7 +27,6 @@ use work.SaciMasterPkg.all;
 entity AxiLiteSaciMaster is
    generic (
       TPD_G              : time                  := 1 ns;
-      AXIL_ERROR_RESP_G  : slv(1 downto 0)       := AXI_RESP_DECERR_C;
       AXIL_CLK_PERIOD_G  : real                  := 8.0e-9;  -- In units of seconds
       AXIL_TIMEOUT_G     : real                  := 1.0E-3;  -- In units of seconds
       SACI_CLK_PERIOD_G  : real                  := 1.0e-6;  -- In units of seconds
@@ -197,7 +196,7 @@ begin
          when SACI_REQ_S =>
             if (ack = '1' and fail = '1') or (r.timer = TIMEOUT_C) then
                -- Set the error flags
-               resp      := AXIL_ERROR_RESP_G;
+               resp      := AXI_RESP_SLVERR_C;
                v.req     := '0';
                v.saciRst := '1';
             elsif (ack = '1') then

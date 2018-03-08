@@ -2,7 +2,7 @@
 -- File       : Jesd204bTxGtx7.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-14
--- Last update: 2017-05-09
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: JESD204b module containing the gtx7 MGT transmitter module
 --              Framework module for JESD.
@@ -80,10 +80,6 @@ entity Jesd204bTxGtx7 is
       TX_PHASE_ALIGN_G   : string  := "NONE";
       TX_BUF_ADDR_MODE_G : string  := "FULL";
       
-   -- AXI Lite and AXI stream generics
-   ----------------------------------------------------------------------------------------------
-      AXI_ERROR_RESP_G  : slv(1 downto 0)             := AXI_RESP_SLVERR_C;
-
    -- JESD generics
    ----------------------------------------------------------------------------------------------
       F_G            : positive := 2;
@@ -186,7 +182,6 @@ begin
    Jesd204bTx_INST: entity work.Jesd204bTx
    generic map (
       TPD_G            => TPD_G,
-      AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
       F_G              => F_G,
       K_G              => K_G,
       L_G              => L_G)

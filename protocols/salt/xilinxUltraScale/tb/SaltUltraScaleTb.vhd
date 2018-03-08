@@ -33,7 +33,6 @@ architecture testbed of SaltUltraScaleTb is
    constant CLK_PERIOD_C       : time             := 8 ns;
    constant TPD_C              : time             := 1 ns;
    constant STATUS_CNT_WIDTH_C : natural          := 32;
-   constant AXI_ERROR_RESP_C   : slv(1 downto 0)  := AXI_RESP_SLVERR_C;
    constant TX_PACKET_LENGTH_C : slv(31 downto 0) := toSlv(128, 32);
    constant NUMBER_PACKET_C    : slv(31 downto 0) := x"0000001F";
 
@@ -227,7 +226,6 @@ begin
          -- General Configurations
          TPD_G                      => TPD_C,
          STATUS_CNT_WIDTH_G         => STATUS_CNT_WIDTH_C,
-         AXI_ERROR_RESP_G           => AXI_ERROR_RESP_C,
          -- FIFO Configurations
          BRAM_EN_G                  => BRAM_EN_C,
          XIL_DEVICE_G               => XIL_DEVICE_C,

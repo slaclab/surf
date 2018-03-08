@@ -25,8 +25,7 @@ entity Pgp3GthUsIpWrapper is
       TPD_G             : time            := 1 ns;
       EN_DRP_G          : boolean         := true;
       TX_POLARITY_G     : sl              := '0';
-      RX_POLARITY_G     : sl              := '0';
-      AXIL_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_DECERR_C);
+      RX_POLARITY_G     : sl              := '0');
    port (
       stableClk      : in  sl;
       stableRst      : in  sl;
@@ -166,8 +165,8 @@ architecture mapping of Pgp3GthUsIpWrapper is
    signal drpDo   : slv(15 downto 0) := (others => '0');
    signal drpEn   : sl               := '0';
    signal drpWe   : sl               := '0';
-   signal drpRdy  : sl               := '0'
-;
+   signal drpRdy  : sl               := '0';
+
 begin
 
    rxUsrClk2      <= rxUsrClk2Int;
@@ -270,7 +269,6 @@ begin
       U_AxiLiteToDrp_1 : entity work.AxiLiteToDrp
          generic map (
             TPD_G            => TPD_G,
-            AXI_ERROR_RESP_G => AXIL_ERROR_RESP_G,
             COMMON_CLK_G     => false,
             EN_ARBITRATION_G => false,
             ADDR_WIDTH_G     => 9,

@@ -2,7 +2,7 @@
 -- File       : AxiStreamDmaV2DescEmulate.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-02-02
--- Last update: 2017-09-15
+-- Last update: 2018-01-09
 -------------------------------------------------------------------------------
 -- Description:
 -- Descriptor manager for AXI DMA read and write engines.
@@ -35,7 +35,6 @@ entity AxiStreamDmaV2DescEmulate is
       READ_EN_G         : boolean               := false;
       CHAN_COUNT_G      : integer range 1 to 16 := 1;
       AXIL_BASE_ADDR_G  : slv(31 downto 0)      := x"00000000";
-      AXI_ERROR_RESP_G  : slv(1 downto 0)       := AXI_RESP_OK_C;
       AXI_READY_EN_G    : boolean               := false;
       AXI_CONFIG_G      : AxiConfigType         := AXI_CONFIG_INIT_C;
       DESC_AWIDTH_G     : integer range 4 to 12 := 12;

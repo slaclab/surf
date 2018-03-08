@@ -2,7 +2,7 @@
 -- File       : AxiLiteWriteFilterTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-11-13
--- Last update: 2017-11-13
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Testbench for design "AxiLiteAsync"
 -------------------------------------------------------------------------------
@@ -116,8 +116,7 @@ begin
       generic map (
          TPD_G            => TPD_G,
          FILTER_SIZE_G    => 1,
-         FILTER_ADDR_G    => (0 => x"000001A0"),
-         AXI_ERROR_RESP_G => AXI_RESP_DECERR_C)
+         FILTER_ADDR_G    => (0 => x"000001A0"))
       port map (
          -- Clock and reset
          axilClk          => axilClk,
@@ -140,8 +139,7 @@ begin
          SYS_WR_EN_G      => false,
          COMMON_CLK_G     => false,
          ADDR_WIDTH_G     => 9,
-         DATA_WIDTH_G     => 32,
-         AXI_ERROR_RESP_G => AXI_RESP_DECERR_C)
+         DATA_WIDTH_G     => 32)
       port map (
          -- AXI-Lite Interface
          axiClk         => axilClk,

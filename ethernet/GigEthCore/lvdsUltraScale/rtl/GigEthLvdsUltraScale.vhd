@@ -2,7 +2,7 @@
 -- File       : GigEthLvdsUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-02-07
--- Last update: 2017-05-12
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: SGMII Ethernet over LVDS
 -------------------------------------------------------------------------------
@@ -29,7 +29,6 @@ entity GigEthLvdsUltraScale is
       TPD_G            : time                := 1 ns;
       -- AXI-Lite Configurations
       EN_AXI_REG_G     : boolean             := false;
-      AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C;
       -- AXI Streaming Configurations
       AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
@@ -209,8 +208,7 @@ begin
    U_GigEthReg : entity work.GigEthReg
       generic map (
          TPD_G            => TPD_G,
-         EN_AXI_REG_G     => EN_AXI_REG_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
+         EN_AXI_REG_G     => EN_AXI_REG_G)
       port map (
          -- Local Configurations
          localMac       => localMac,

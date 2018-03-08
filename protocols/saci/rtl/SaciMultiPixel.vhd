@@ -2,7 +2,7 @@
 -- File       : PgpParallelSimModel.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 07/21/2016
--- Last update: 07/21/2016
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -27,7 +27,6 @@ entity SaciMultiPixel is
       TPD_G              : time             := 1 ns;
       MASK_REG_ADDR_G    : slv(31 downto 0) := x"00000034";
       SACI_BASE_ADDR_G   : slv(31 downto 0) := x"02000000";
-      AXIL_ERR_RESP_G    : slv(1 downto 0)  := AXI_RESP_DECERR_C;
       SACI_NUM_CHIPS_G   : natural range 1 to 4 := 4
    );
    port (
@@ -122,7 +121,7 @@ begin
             v.globalMultiPix.data(3)      := sAxilWriteMaster.wdata(15 downto 0);
             v.globalMultiPix.req          := '1'; -- start the AxiL master
          else
-            axiSlaveWriteResponse(v.sAxilWriteSlave, AXIL_ERR_RESP_G);
+            axiSlaveWriteResponse(v.sAxilWriteSlave, AXI_RESP_DECERR_C);
          end if;
       end if;
       
@@ -152,7 +151,7 @@ begin
             v.sAxilReadSlave.rdata(1)           := r.timeout;
             axiSlaveReadResponse(v.sAxilReadSlave, AXI_RESP_OK_C);
          else
-            axiSlaveReadResponse(v.sAxilReadSlave, AXIL_ERR_RESP_G);
+            axiSlaveReadResponse(v.sAxilReadSlave, AXI_RESP_DECERR_C);
          end if;
       end if;
       
@@ -325,7 +324,7 @@ begin
          
          when S_DONE_FAIL_C =>
             v.globalMultiPix.req := '0';
-            axiSlaveWriteResponse(v.sAxilWriteSlave, AXIL_ERR_RESP_G);
+            axiSlaveWriteResponse(v.sAxilWriteSlave, AXI_RESP_SLVERR_C);
             v.state  := S_IDLE_C;
             
       end case;

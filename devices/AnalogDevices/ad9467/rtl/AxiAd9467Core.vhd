@@ -2,7 +2,7 @@
 -- File       : AxiAd9467Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-09-23
--- Last update: 2014-09-24
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to AD9467 ADC IC
 -------------------------------------------------------------------------------
@@ -28,7 +28,6 @@ entity AxiAd9467Core is
       STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32;
       AXI_CLK_FREQ_G     : real                  := 125.0E+6;  -- units of Hz
       ADC_CLK_FREQ_G     : real                  := 250.0E+6;  -- units of Hz
-      AXI_ERROR_RESP_G   : slv(1 downto 0)       := AXI_RESP_SLVERR_C;
       DEMUX_INIT_G       : sl                    := '0';
       DELAY_INIT_G       : Slv5Array(0 to 7)     := (others => "00000");
       IODELAY_GROUP_G    : string                := "AXI_AD9467_IODELAY_GRP");
@@ -66,8 +65,7 @@ begin
          TPD_G              => TPD_G,
          DEMUX_INIT_G       => DEMUX_INIT_G,
          DELAY_INIT_G       => DELAY_INIT_G,
-         STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
-         AXI_ERROR_RESP_G   => AXI_ERROR_RESP_G)
+         STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G)
       port map(
          -- AXI-Lite Register Interface    
          axiClk         => axiClk,
