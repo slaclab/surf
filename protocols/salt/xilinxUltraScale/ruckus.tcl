@@ -21,7 +21,8 @@ if { $::env(VIVADO_VERSION) >= 2016.4 } {
 
 if { $::env(VIVADO_VERSION) >= 2017.3 } {
    
-   if { [info exists ::env(INCLUDE_SALT)] != 1 || $::env(INCLUDE_SALT) == 0 } {
+   if {    ( [info exists ::env(INCLUDE_SALT)]           != 1 || $::env(INCLUDE_SALT)           == 0 )
+        && ( [info exists ::env(INCLUDE_ETH_SGMII_LVDS)] != 1 || $::env(INCLUDE_ETH_SGMII_LVDS) == 0 ) } {
       set nop 0
    } else {
 
