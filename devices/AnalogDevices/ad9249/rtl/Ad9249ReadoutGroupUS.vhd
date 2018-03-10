@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-03-07
+-- Last update: 2018-03-08
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -74,6 +74,7 @@ architecture rtl of Ad9249ReadoutGroupUS is
       axilReadSlave  : AxiLiteReadSlaveType;
       delay          : slv(8 downto 0);
       dataDelaySet   : slv(NUM_CHANNELS_G-1 downto 0);
+      idelayCtrlRdy  : sl;
       frameDelaySet  : sl;
       freezeDebug    : sl;
       readoutDebug0  : slv16Array(NUM_CHANNELS_G-1 downto 0);
@@ -86,6 +87,7 @@ architecture rtl of Ad9249ReadoutGroupUS is
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       delay          => DEFAULT_DELAY_G,
       dataDelaySet   => (others => '1'),
+      idelayCtrlRdy  => '0',
       frameDelaySet  => '1',
       freezeDebug    => '0',
       readoutDebug0  => (others => (others => '0')),
@@ -131,7 +133,7 @@ architecture rtl of Ad9249ReadoutGroupUS is
    signal adcBitClkR     : sl;
    signal adcBitClkRD4   : sl;
    signal adcBitRst      : sl;
-   signal idelayCtrlRdy  : sl; 
+   signal idelayCtrlRdy  : sl := '1'; 
 
    signal adcFramePad   : sl;
    signal adcFrame      : slv(13 downto 0);
@@ -200,7 +202,7 @@ begin
    -- AXIL Interface
    -------------------------------------------------------------------------------------------------
    axilComb : process (adcFrameSync, axilR, axilReadMaster, axilRst, axilWriteMaster, curDelayData,
-                       curDelayFrame, debugDataTmp, debugDataValid, lockedFallCount, lockedSync) is
+                       curDelayFrame, debugDataTmp, debugDataValid, lockedFallCount, lockedSync, idelayCtrlRdy) is
       variable v      : AxilRegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -209,6 +211,9 @@ begin
       v.dataDelaySet        := (others => '0');
       v.frameDelaySet       := '0';
       v.axilReadSlave.rdata := (others => '0');
+
+      --updates ctrl signal status
+      v.idelayCtrlRdy := idelayCtrlRdy;
 
       -- Store last two samples read from ADC
       if (debugDataValid = '1' and axilR.freezeDebug = '0') then
@@ -326,16 +331,16 @@ begin
          syncRst  => adcBitRst);
 
 
-   U_IDELYCTRL_0 : IDELAYCTRL
-     generic map (
-       SIM_DEVICE => "ULTRASCALE"  -- Must be set to "ULTRASCALE" 
-       )
-     port map (
-       RDY    => idelayCtrlRdy, -- 1-bit output: Ready output
-       REFCLK => adcBitClkIo,  -- 1-bit input: Reference clock input
-       RST    => adcClkRst      -- 1-bit input: Active high reset input. Asynchronous assert,
+--   U_IDELYCTRL_0 : IDELAYCTRL
+--     generic map (
+--       SIM_DEVICE => "ULTRASCALE"  -- Must be set to "ULTRASCALE" 
+--       )
+--     port map (
+--       RDY    => idelayCtrlRdy, -- 1-bit output: Ready output
+--       REFCLK => adcBitClkIo,  -- 1-bit input: Reference clock input
+--       RST    => adcClkRst      -- 1-bit input: Active high reset input. Asynchronous assert,
                                  -- synchronous deassert REFCLK.
-        );
+--        );
    -------------------------------------------------------------------------------------------------
    -- Deserializers
    -------------------------------------------------------------------------------------------------
@@ -350,7 +355,7 @@ begin
         ADC_INVERT_CH_G   => "00000000")
       port map (
         adcClkRst     => adcBitRst,
-        idelayCtrlRdy => idelayCtrlRdy,
+        idelayCtrlRdy => axilR.idelayCtrlRdy,
         dClkP         => adcBitClkIo,                         -- Data clock
         dClkN         => adcBitClkIoInv,
         dClkDiv4      => adcBitClkRD4,
@@ -385,7 +390,7 @@ begin
         ADC_INVERT_CH_G   => "00000000")
       port map (
         adcClkRst     => adcBitRst,
-        idelayCtrlRdy => idelayCtrlRdy,
+        idelayCtrlRdy => axilR.idelayCtrlRdy,
         dClkP         => adcBitClkIo,                         -- Data clock
         dClkN         => adcBitClkIoInv,
         dClkDiv4      => adcBitClkRD4,
@@ -407,7 +412,7 @@ begin
    adcComb : process (adcData, adcFrame, adcR) is
       variable v : AdcRegType;
    begin
-      v := adcR;
+      v := adcR;      
 
       ----------------------------------------------------------------------------------------------
       -- Slip bits until correct alignment seen

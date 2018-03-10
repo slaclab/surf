@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutClkUS.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-03-05
+-- Last update: 2018-03-08
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -212,7 +212,7 @@ begin
       CASC_IN => '1',         -- 1-bit input: Cascade delay input from slave ODELAY CASCADE_OUT
       CASC_RETURN => '1', -- 1-bit input: Cascade delay returning from slave ODELAY DATAOUT
       CE => adcR.masterCE,                   -- 1-bit input: Active high enable increment/decrement input
-      CLK => dClk,                 -- 1-bit input: Clock input
+      CLK => dClkDiv4,                 -- 1-bit input: Clock input
       CNTVALUEIN => adcR.masterCntValueIn,   -- 9-bit input: Counter value input
       DATAIN => '1',           -- 1-bit input: Data input from the logic
       EN_VTC => adcR.masterEn_Vtc,           -- 1-bit input: Keep delay constant over VT
@@ -274,7 +274,7 @@ begin
   -----------------------------------------------------------------------------
   -- custom logic 
   -----------------------------------------------------------------------------
-  adcComb : process (adcR, loadDelaySync, masterCntValue) is
+  adcComb : process (adcR, loadDelaySync, masterCntValue, idelayCtrlRdy, idelayRdy_n, delay) is
     variable v : AdcClkRegType;
   begin
     v := adcR;

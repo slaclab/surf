@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-03-07
+-- Last update: 2018-03-08
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -77,7 +77,7 @@ begin
         TPD_G             => TPD_G,
         NUM_CHANNELS_G    => NUM_CHANNELS_G,
         IODELAY_GROUP_G   => IODELAY_GROUP_G,
-        IDELAYCTRL_FREQ_G => 200.0
+        IDELAYCTRL_FREQ_G => IDELAYCTRL_FREQ_G
         )
       port map (
         axilClk           => axilClk,
@@ -99,7 +99,7 @@ begin
         TPD_G             => TPD_G,
         NUM_CHANNELS_G    => NUM_CHANNELS_G,
         IODELAY_GROUP_G   => IODELAY_GROUP_G,
-        IDELAYCTRL_FREQ_G => 200.0
+        IDELAYCTRL_FREQ_G => IDELAYCTRL_FREQ_G
         )
       port map (
         axilClk           => axilClk,
