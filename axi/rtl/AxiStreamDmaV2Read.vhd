@@ -2,7 +2,7 @@
 -- File       : AxiStreamDmaV2Read.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-02-02
--- Last update: 2018-02-14
+-- Last update: 2018-03-09
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to transfer a single AXI Stream frame from memory using an AXI
@@ -371,9 +371,9 @@ begin
          -- Reset the flag
          v.idle := '0';
       end if;
-      
+
       -- Combinatorial outputs before the reset
-      axiReadMaster.rready <= v.rMaster.rready;      
+      axiReadMaster.rready <= v.rMaster.rready;
 
       -- Reset      
       if (axiRst = '1') then
@@ -384,11 +384,20 @@ begin
       rin <= v;
 
       -- Outputs         
-      dmaRdIdle            <= r.idle;
-      dmaRdDescAck         <= r.dmaRdDescAck;
-      dmaRdDescRet         <= r.dmaRdDescRet;
-      axiReadMaster        <= r.rMaster;
-
+      dmaRdIdle              <= r.idle;
+      dmaRdDescAck           <= r.dmaRdDescAck;
+      dmaRdDescRet           <= r.dmaRdDescRet;
+      axiReadMaster.arvalid  <= r.rMaster.arvalid;
+      axiReadMaster.araddr   <= r.rMaster.araddr;
+      axiReadMaster.arid     <= r.rMaster.arid;
+      axiReadMaster.arlen    <= r.rMaster.arlen;
+      axiReadMaster.arsize   <= r.rMaster.arsize;
+      axiReadMaster.arburst  <= r.rMaster.arburst;
+      axiReadMaster.arlock   <= r.rMaster.arlock;
+      axiReadMaster.arprot   <= r.rMaster.arprot;
+      axiReadMaster.arcache  <= r.rMaster.arcache;
+      axiReadMaster.arqos    <= r.rMaster.arqos;
+      axiReadMaster.arregion <= r.rMaster.arregion;
 
    end process comb;
 
