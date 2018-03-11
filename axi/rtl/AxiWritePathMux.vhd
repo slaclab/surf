@@ -2,7 +2,7 @@
 -- File       : AxiWritePathMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2018-03-09
+-- Last update: 2018-03-11
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to connect multiple incoming AXI write path interfaces.
@@ -278,10 +278,12 @@ begin
       else
 
          -- Output data
-         sAxiWriteSlaves.bresp  <= r.slaves.bresp;
-         sAxiWriteSlaves.bvalid <= r.slaves.bvalid;
-         sAxiWriteSlaves.bid    <= r.slaves.bid;
-         mAxiWriteMaster        <= r.master;
+         for i in 0 to (NUM_SLAVES_G-1) loop
+            sAxiWriteSlaves(i).bresp  <= r.slaves(i).bresp;
+            sAxiWriteSlaves(i).bvalid <= r.slaves(i).bvalid;
+            sAxiWriteSlaves(i).bid    <= r.slaves(i).bid;
+         end loop;
+         mAxiWriteMaster <= r.master;
       end if;
 
 
