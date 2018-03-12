@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-03-08
+-- Last update: 2018-03-12
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -66,6 +66,8 @@ end Ad9249ReadoutGroupUS;
 -- Define architecture
 architecture rtl of Ad9249ReadoutGroupUS is
 
+  attribute keep : string;
+  
    -------------------------------------------------------------------------------------------------
    -- AXIL Registers
    -------------------------------------------------------------------------------------------------
@@ -153,6 +155,9 @@ architecture rtl of Ad9249ReadoutGroupUS is
    signal debugDataValid : sl;
    signal debugDataOut   : slv(NUM_CHANNELS_G*16-1 downto 0);
    signal debugDataTmp   : slv16Array(NUM_CHANNELS_G-1 downto 0);
+
+  attribute keep of adcBitClkR  : signal is "true";  
+  attribute keep of adcR        : signal is "true";
 
 begin
    -------------------------------------------------------------------------------------------------
