@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutClkUS.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-03-08
+-- Last update: 2018-03-12
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -67,6 +67,8 @@ end Ad9249DeserializerUS;
 
 -- Define architecture
 architecture rtl of Ad9249DeserializerUS is
+
+  attribute keep : string;
   -------------------------------------------------------------------------------------------------
   -- ADC Readout Clocked Registers
   -------------------------------------------------------------------------------------------------
@@ -165,6 +167,9 @@ architecture rtl of Ad9249DeserializerUS is
   signal masterCntValue : slv(8 downto 0);
   -- iserdes signal
   signal masterData      : slv(7 downto 0);
+
+  attribute keep of adcDV4R          : signal is "true";
+  attribute keep of loadDelaySync    : signal is "true";
 
 begin
 

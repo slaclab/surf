@@ -156,8 +156,8 @@ architecture rtl of Ad9249ReadoutGroupUS is
    signal debugDataOut   : slv(NUM_CHANNELS_G*16-1 downto 0);
    signal debugDataTmp   : slv16Array(NUM_CHANNELS_G-1 downto 0);
 
-  attribute keep of adcBitClkR  : signal is "true";  
-  attribute keep of adcR        : signal is "true";
+  attribute keep of adcBitClkRD4  : signal is "true";  
+  attribute keep of adcFrame      : signal is "true";
 
 begin
    -------------------------------------------------------------------------------------------------
