@@ -198,6 +198,7 @@ begin
             v.protTxData(PGP3_BTF_FIELD_C)           := PGP3_USER_C(conv_integer(pgpTxIn.opCodeNumber));
             v.protTxData(PGP3_USER_CHECKSUM_FIELD_C) := pgp3OpCodeChecksum(pgpTxIn.opCodeData);
             v.protTxData(PGP3_USER_OPCODE_FIELD_C)   := pgpTxIn.opCodeData;
+            v.protTxHeader                           := PGP3_K_HEADER_C;
 
             -- If skip was interrupted, hold it for next cycle
             if (r.skpCount = SKP_INTERVAL_G-1) then
