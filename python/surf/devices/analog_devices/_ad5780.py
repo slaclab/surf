@@ -128,8 +128,8 @@ class Ad5780(pr.Device):
         ))                
                 
         self.add(pr.RemoteVariable(
-            name        = 'hardReset',
-            description = 'HardReset',
+            name        = 'hrdRst',
+            description = 'hrdRst',
             offset      = 0x3F8,
             bitSize     = 1,
             bitOffset   = 0,
@@ -137,3 +137,7 @@ class Ad5780(pr.Device):
             mode        = 'WO',
             hidden      = False,
         )) 
+        
+    def hardReset(self):
+        self.hrdRst.set(1)
+        
