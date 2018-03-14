@@ -2,7 +2,7 @@
 -- File       : adc32rf45.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-05-26
--- Last update: 2017-06-07
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: SPI Master Wrapper that includes a state machine for SPI paging
 -------------------------------------------------------------------------------
@@ -26,7 +26,6 @@ use work.AxiLitePkg.all;
 entity adc32rf45 is
    generic (
       TPD_G             : time            := 1 ns;
-      AXI_ERROR_RESP_G  : slv(1 downto 0) := AXI_RESP_DECERR_C;
       CLK_PERIOD_G      : real            := (1.0/156.25E+6);
       SPI_SCLK_PERIOD_G : real            := (1.0/10.0E+6));
    port (

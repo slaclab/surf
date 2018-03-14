@@ -2,7 +2,7 @@
 -- File       : SsiFifoTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-03-24
--- Last update: 2015-12-09
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the SsiFifo module
 -------------------------------------------------------------------------------
@@ -35,7 +35,6 @@ architecture testbed of SsiFifoTb is
    constant FAST_CLK_PERIOD_C  : time             := 3.2 ns; --SLOW_CLK_PERIOD_C/3.14;
    constant TPD_C              : time             := 0.5 ns;--FAST_CLK_PERIOD_C/4;
    constant STATUS_CNT_WIDTH_C : natural          := 32;
-   constant AXI_ERROR_RESP_C   : slv(1 downto 0)  := AXI_RESP_SLVERR_C;
    constant TX_PACKET_LENGTH_C : slv(31 downto 0) := toSlv(100, 32);
    constant NUMBER_PACKET_C    : slv(31 downto 0) := toSlv(4096, 32);
 
@@ -281,7 +280,6 @@ begin
 --          -- General Configurations
 --          TPD_G                      => TPD_C,
 --          STATUS_CNT_WIDTH_G         => STATUS_CNT_WIDTH_C,
---          AXI_ERROR_RESP_G           => AXI_ERROR_RESP_C,
 --          -- FIFO Configurations
 --          BRAM_EN_G                  => BRAM_EN_C,
 --          XIL_DEVICE_G               => XIL_DEVICE_C,

@@ -2,7 +2,7 @@
 -- File       : AxiI2cRegMaster.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-07-08
--- Last update: 2017-05-09
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite I2C Register Master
 -------------------------------------------------------------------------------
@@ -31,8 +31,7 @@ entity AxiI2cRegMaster is
       DEVICE_MAP_G     : I2cAxiLiteDevArray := I2C_AXIL_DEV_ARRAY_DEFAULT_C;
       I2C_SCL_FREQ_G   : real               := 100.0E+3;   -- units of Hz
       I2C_MIN_PULSE_G  : real               := 100.0E-9;   -- units of seconds
-      AXI_CLK_FREQ_G   : real               := 156.25E+6;  -- units of Hz
-      AXI_ERROR_RESP_G : slv(1 downto 0)    := AXI_RESP_SLVERR_C);
+      AXI_CLK_FREQ_G   : real               := 156.25E+6);  -- units of Hz
    port (
       -- I2C Ports
       scl            : inout sl;
@@ -66,8 +65,7 @@ begin
    I2cRegMasterAxiBridge_Inst : entity work.I2cRegMasterAxiBridge
       generic map (
          TPD_G            => TPD_G,
-         DEVICE_MAP_G     => DEVICE_MAP_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
+         DEVICE_MAP_G     => DEVICE_MAP_G)
       port map (
          -- I2C Register Interface
          i2cRegMasterIn  => i2cRegMasterIn,

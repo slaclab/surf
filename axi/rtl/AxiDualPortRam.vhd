@@ -37,9 +37,7 @@ entity AxiDualPortRam is
       COMMON_CLK_G     : boolean                    := false;
       ADDR_WIDTH_G     : integer range 1 to (2**24) := 5;
       DATA_WIDTH_G     : integer                    := 32;
-      INIT_G           : slv                        := "0";
-      AXI_ERROR_RESP_G : slv(1 downto 0)            := AXI_RESP_DECERR_C);
-
+      INIT_G           : slv                        := "0");
    port (
       -- Axi Port
       axiClk         : in  sl;

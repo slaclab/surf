@@ -28,7 +28,6 @@ entity SsiPrbsRateGen is
    generic (
       -- General Configurations
       TPD_G                      : time                       := 1 ns;
-      AXI_ERROR_RESP_G           : slv(1 downto 0)            := AXI_RESP_SLVERR_C;
       -- PRBS TX FIFO Configurations
       VALID_THOLD_G              : integer range 0 to (2**24) := 1;
       VALID_BURST_MODE_G         : boolean                    := false;

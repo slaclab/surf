@@ -2,7 +2,7 @@
 -- File       : SsiPrbsTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-29
--- Last update: 2014-11-07
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the VcPrbsTx and VcPrbsRx modules
 -------------------------------------------------------------------------------
@@ -50,7 +50,6 @@ architecture testbed of SsiPrbsTb is
    constant FAST_CLK_PERIOD_C  : time             := SLOW_CLK_PERIOD_C/3;
    constant TPD_C              : time             := FAST_CLK_PERIOD_C/4;
    constant STATUS_CNT_WIDTH_C : natural          := 32;
-   constant AXI_ERROR_RESP_C   : slv(1 downto 0)  := AXI_RESP_SLVERR_C;
    constant TX_PACKET_LENGTH_C : slv(31 downto 0) := toSlv(256, 32);
    constant NUMBER_PACKET_C    : slv(31 downto 0) := x"00000FFF";
 
@@ -161,7 +160,6 @@ begin
          -- General Configurations
          TPD_G                      => TPD_C,
          STATUS_CNT_WIDTH_G         => STATUS_CNT_WIDTH_C,
-         AXI_ERROR_RESP_G           => AXI_ERROR_RESP_C,
          -- FIFO Configurations
          BRAM_EN_G                  => BRAM_EN_C,
          XIL_DEVICE_G               => XIL_DEVICE_C,

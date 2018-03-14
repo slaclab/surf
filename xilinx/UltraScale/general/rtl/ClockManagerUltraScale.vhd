@@ -2,7 +2,7 @@
 -- File       : ClockManagerUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-07-09
--- Last update: 2016-08-24
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: A wrapper over MMCM/PLL to avoid coregen use.
 -------------------------------------------------------------------------------
@@ -34,7 +34,6 @@ entity ClockManagerUltraScale is
       FB_BUFG_G              : boolean                          := true;
       RST_IN_POLARITY_G      : sl                               := '1';     -- '0' for active low
       NUM_CLOCKS_G           : integer range 1 to 7;
-      AXI_ERROR_RESP_G       : slv(1 downto 0)                  := AXI_RESP_DECERR_C;
       -- MMCM attributes
       BANDWIDTH_G            : string                           := "OPTIMIZED";
       CLKIN_PERIOD_G         : real                             := 10.0;    -- Input period in ns );
@@ -136,7 +135,6 @@ begin
    U_AxiLiteToDrp : entity work.AxiLiteToDrp
       generic map (
          TPD_G            => TPD_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
          COMMON_CLK_G     => true,
          EN_ARBITRATION_G => false,
          TIMEOUT_G        => 4096,

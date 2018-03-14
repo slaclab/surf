@@ -2,7 +2,7 @@
 -- File       : AxiSy56040Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-12
--- Last update: 2015-06-12
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to Clock Crossbar
 -------------------------------------------------------------------------------
@@ -26,8 +26,7 @@ entity AxiSy56040Core is
    generic (
       TPD_G            : time                  := 1 ns;
       AXI_CLK_FREQ_G   : real                  := 200.0E+6;  -- units of Hz
-      XBAR_DEFAULT_G   : Slv2Array(3 downto 0) := ("11", "10", "01", "00");
-      AXI_ERROR_RESP_G : slv(1 downto 0)       := AXI_RESP_SLVERR_C);
+      XBAR_DEFAULT_G   : Slv2Array(3 downto 0) := ("11", "10", "01", "00"));
    port (
       -- XBAR Ports 
       xBar           : out AxiSy56040OutType;
@@ -49,8 +48,7 @@ begin
       generic map (
          TPD_G            => TPD_G,
          AXI_CLK_FREQ_G   => AXI_CLK_FREQ_G,
-         XBAR_DEFAULT_G   => XBAR_DEFAULT_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G) 
+         XBAR_DEFAULT_G   => XBAR_DEFAULT_G)
       port map (
          -- XBAR Ports 
          xBarSin        => xBar.sin,

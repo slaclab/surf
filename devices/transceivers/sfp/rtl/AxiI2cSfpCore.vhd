@@ -2,7 +2,7 @@
 -- File       : AxiI2cSfpCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-18
--- Last update: 2016-09-20
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to SFP
 -------------------------------------------------------------------------------
@@ -34,8 +34,7 @@ entity AxiI2cSfpCore is
       I2C_SCL_FREQ_G     : real                  := 100.0E+3;  -- units of Hz
       I2C_MIN_PULSE_G    : real                  := 100.0E-9;  -- units of seconds
       STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32;
-      ALLOW_TX_DISABLE_G : boolean               := false;
-      AXI_ERROR_RESP_G   : slv(1 downto 0)       := AXI_RESP_SLVERR_C);
+      ALLOW_TX_DISABLE_G : boolean               := false);
    port (
       -- SFP Ports
       sfpIn          : in    AxiI2cSfpInType;
@@ -108,8 +107,7 @@ begin
       generic map(
          TPD_G              => TPD_G,
          STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
-         ALLOW_TX_DISABLE_G => ALLOW_TX_DISABLE_G,
-         AXI_ERROR_RESP_G   => AXI_ERROR_RESP_G)
+         ALLOW_TX_DISABLE_G => ALLOW_TX_DISABLE_G)
       port map(
          -- I2C Register Interface
          i2cRegMasterIn  => i2cRegMasterIn,

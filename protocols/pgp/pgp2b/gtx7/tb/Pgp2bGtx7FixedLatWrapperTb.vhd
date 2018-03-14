@@ -2,7 +2,7 @@
 -- File       : Pgp2bGtx7FixedLatWrapperTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-10-31
--- Last update: 2016-10-31
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for Pgp2bGtx7FixedLatWrapper
 -------------------------------------------------------------------------------
@@ -42,7 +42,6 @@ architecture tb of Pgp2bGtx7FixedLatWrapperTb is
    constant VC_INTERLEAVE_G         : integer              := 0;
    constant PAYLOAD_CNT_TOP_G       : integer              := 7;
    constant NUM_VC_EN_G             : integer range 1 to 4 := 4;
-   constant AXI_ERROR_RESP_G        : slv(1 downto 0)      := AXI_RESP_DECERR_C;
    constant TX_ENABLE_G             : boolean              := true;
    constant RX_ENABLE_G             : boolean              := true;
    constant TX_CM_EN_G              : boolean              := false;
@@ -123,7 +122,6 @@ begin
          VC_INTERLEAVE_G         => VC_INTERLEAVE_G,
          PAYLOAD_CNT_TOP_G       => PAYLOAD_CNT_TOP_G,
          NUM_VC_EN_G             => NUM_VC_EN_G,
-         AXI_ERROR_RESP_G        => AXI_ERROR_RESP_G,
          TX_ENABLE_G             => TX_ENABLE_G,
          RX_ENABLE_G             => RX_ENABLE_G,
          TX_CM_EN_G              => TX_CM_EN_G,

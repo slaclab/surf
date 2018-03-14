@@ -30,7 +30,6 @@ entity SsiPrbsTx is
    generic (
       -- General Configurations
       TPD_G                      : time                    := 1 ns;
-      AXI_ERROR_RESP_G           : slv(1 downto 0)         := AXI_RESP_SLVERR_C;
       AXI_EN_G                   : sl                      := '1';
       -- FIFO Configurations
       VALID_THOLD_G              : natural                 := 1;
@@ -159,7 +158,7 @@ begin
       axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
 
       if (axilStatus.writeEnable = '1') then
-         axilWriteResp := ite(axilWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
+         axilWriteResp := ite(axilWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          case (axilWriteMaster.awaddr(7 downto 0)) is
             when X"00" =>
                v.axiEn   := axilWriteMaster.wdata(0);
@@ -174,13 +173,13 @@ begin
                v.tDest := axilWriteMaster.wdata(7 downto 0);
                v.tId   := axilWriteMaster.wdata(15 downto 8);
             when others =>
-               axilWriteResp := AXI_ERROR_RESP_G;
+               axilWriteResp := AXI_RESP_DECERR_C;
          end case;
          axiSlaveWriteResponse(v.axilWriteSlave);
       end if;
 
       if (axilStatus.readEnable = '1') then
-         axilReadResp          := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
+         axilReadResp          := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          v.axilReadSlave.rdata := (others => '0');
          case (axilReadMaster.araddr(7 downto 0)) is
             when X"00" =>
@@ -210,7 +209,7 @@ begin
                   v.axilReadSlave.rdata(31 downto 0) := r.randomData(31 downto 0);
                end if;
             when others =>
-               axilReadResp := AXI_ERROR_RESP_G;
+               axilReadResp := AXI_RESP_DECERR_C;
          end case;
          axiSlaveReadResponse(v.axilReadSlave);
       end if;

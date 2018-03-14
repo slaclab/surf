@@ -2,7 +2,7 @@
 -- File       : Jesd204bTxGthUltra.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-14
--- Last update: 2015-04-14
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: JESD204b module containing the GTH Ultrascale MGT transmitter modules
 --              Wrapper module for JESD.
@@ -47,13 +47,6 @@ entity Jesd204bTxGthUltra is
       -- Simulation disconnect the GTX
       SIM_G              : boolean                    := false; 
       
-      
-   -- GT Settings
-   ----------------------------------------------------------------------------------------------     
-    -- AXI Lite and AXI stream generics
-   ----------------------------------------------------------------------------------------------
-      AXI_ERROR_RESP_G  : slv(1 downto 0)             := AXI_RESP_SLVERR_C;
-
    -- JESD generics
    ----------------------------------------------------------------------------------------------
       F_G            : positive := 2;
@@ -218,7 +211,6 @@ begin
    Jesd204bTx_INST: entity work.Jesd204bTx
    generic map (
       TPD_G            => TPD_G,
-      AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
       F_G              => F_G,
       K_G              => K_G,
       L_G              => L_G)

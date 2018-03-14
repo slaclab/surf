@@ -2,7 +2,7 @@
 -- File       : Jesd204bRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-14
--- Last update: 2016-02-12
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: JESD204b multi-lane receiver module
 --              Receiver JESD204b module.
@@ -47,9 +47,6 @@ entity Jesd204bRx is
 
       -- Test tx module instead of GTX
       TEST_G : boolean := false;
-
-      -- AXI Lite and stream generics
-      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C;
 
       -- JESD generics
 
@@ -194,7 +191,6 @@ begin
    U_Reg : entity work.JesdRxReg
       generic map (
          TPD_G            => TPD_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
          L_G              => L_G)
       port map (
          axiClk_i        => axiClk,

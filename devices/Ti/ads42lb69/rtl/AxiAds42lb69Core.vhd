@@ -2,7 +2,7 @@
 -- File       : AxiAds42lb69Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-03-20
--- Last update: 2015-05-19
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to ADS42LB69 ADC IC
 -------------------------------------------------------------------------------
@@ -33,7 +33,6 @@ entity AxiAds42lb69Core is
       DMODE_INIT_G       : slv(1 downto 0)                         := "00";
       DELAY_INIT_G       : Slv9VectorArray(1 downto 0, 7 downto 0) := (others => (others => (others => '0')));
       IODELAY_GROUP_G    : string                                  := "AXI_ADS42LB69_IODELAY_GRP";
-      AXI_ERROR_RESP_G   : slv(1 downto 0)                         := AXI_RESP_SLVERR_C;
       XIL_DEVICE_G       : string                                  := "7SERIES"
    );      
    port (
@@ -90,8 +89,7 @@ begin
          TPD_G              => TPD_G,
          SIM_SPEEDUP_G      => SIM_SPEEDUP_G,
          ADC_CLK_FREQ_G     => ADC_CLK_FREQ_G,
-         DMODE_INIT_G       => DMODE_INIT_G,
-         AXI_ERROR_RESP_G   => AXI_ERROR_RESP_G)
+         DMODE_INIT_G       => DMODE_INIT_G)
       port map(
          -- AXI-Lite Register Interface (axiClk domain)
          axiReadMaster  => axiReadMaster,

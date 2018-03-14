@@ -2,7 +2,7 @@
 -- File       : AxiDac7654Reg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-09-24
--- Last update: 2014-09-25
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite Register Access Module
 -------------------------------------------------------------------------------
@@ -27,8 +27,7 @@ use work.AxiDac7654Pkg.all;
 entity AxiDac7654Reg is
    generic (
       TPD_G              : time                  := 1 ns;
-      STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32;
-      AXI_ERROR_RESP_G   : slv(1 downto 0)       := AXI_RESP_SLVERR_C);  
+      STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32);
    port (
       -- AXI-Lite Register Interface (axiClk domain)
       axiClk         : in  sl;
@@ -86,7 +85,7 @@ begin
 
       if (axiStatus.writeEnable = '1') and (r.state = IDLE_S) then
          -- Check for an out of 32 bit aligned address
-         axiWriteResp := ite(axiWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
+         axiWriteResp := ite(axiWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          -- Decode address and perform write
          case (axiWriteMaster.awaddr(9 downto 2)) is
             when x"80" =>
@@ -110,13 +109,13 @@ begin
                   v.state              := REQ_S;
                end if;
             when others =>
-               axiWriteResp := AXI_ERROR_RESP_G;
+               axiWriteResp := AXI_RESP_DECERR_C;
          end case;
          -- Send AXI response
          axiSlaveWriteResponse(v.axiWriteSlave, axiWriteResp);
       elsif (axiStatus.readEnable = '1') and (r.state = IDLE_S) then
          -- Check for an out of 32 bit aligned address
-         axiReadResp          := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
+         axiReadResp          := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          -- Reset the register
          v.axiReadSlave.rdata := (others => '0');
          -- Decode address and assign read data
@@ -130,7 +129,7 @@ begin
             when x"83" =>
                v.axiReadSlave.rdata(15 downto 0) := r.config.spi.data(3);
             when others =>
-               axiReadResp := AXI_ERROR_RESP_G;
+               axiReadResp := AXI_RESP_DECERR_C;
          end case;
          -- Send AXI Response
          axiSlaveReadResponse(v.axiReadSlave, axiReadResp);

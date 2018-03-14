@@ -2,7 +2,7 @@
 -- File       : AxiI2cSfpReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-18
--- Last update: 2015-07-20
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite Register Acess Module
 -------------------------------------------------------------------------------
@@ -29,8 +29,7 @@ entity AxiI2cSfpReg is
    generic (
       TPD_G              : time                  := 1 ns;
       STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32;
-      ALLOW_TX_DISABLE_G : boolean               := false;
-      AXI_ERROR_RESP_G   : slv(1 downto 0)       := AXI_RESP_SLVERR_C);
+      ALLOW_TX_DISABLE_G : boolean               := false);
    port (
       -- I2C Register Interface
       i2cRegMasterIn  : out I2cRegMasterInType;
@@ -89,8 +88,7 @@ begin
          DEVICE_MAP_G     => DEVICE_MAP_C,
          EN_USER_REG_G    => true,
          NUM_WRITE_REG_G  => NUM_WRITE_REG_C-1,
-         NUM_READ_REG_G   => NUM_READ_REG_C-1,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)      
+         NUM_READ_REG_G   => NUM_READ_REG_C-1)
       port map (
          -- I2C Interface
          i2cRegMasterIn    => i2cRegMasterIn,

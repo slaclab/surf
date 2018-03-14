@@ -2,7 +2,7 @@
 -- File       : Ad9249ConfigNoPullup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-23
--- Last update: 2016-12-12
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: AD9249 Configuration/Status Module (no pullup version)
 -------------------------------------------------------------------------------
@@ -30,9 +30,7 @@ entity Ad9249ConfigNoPullup is
       DEN_POLARITY_G  : sl              := '1';
       CLK_PERIOD_G    : real            := 8.0e-9;
       CLK_EN_PERIOD_G : real            := 16.0e-9;
-      NUM_CHIPS_G     : positive        := 1;
-      AXIL_ERR_RESP_G : slv(1 downto 0) := AXI_RESP_DECERR_C
-      );
+      NUM_CHIPS_G     : positive        := 1);
    port (
 
       axilClk : in sl;
@@ -145,7 +143,7 @@ begin
             v.pdwn := axilWriteMaster.wdata(NUM_CHIPS_G-1 downto 0);
             axiSlaveWriteResponse(v.axilWriteSlave, AXI_RESP_OK_C);
          else
-            axiSlaveDefault(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus, AXIL_ERR_RESP_G);
+            axiSlaveDefault(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus, AXI_RESP_DECERR_C);
          end if;
       end if;
 
@@ -163,7 +161,7 @@ begin
             v.axilReadSlave.rdata(NUM_CHIPS_G-1 downto 0) := r.pdwn;
             axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_OK_C);
          else
-            axiSlaveDefault(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus, AXIL_ERR_RESP_G);
+            axiSlaveDefault(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus, AXI_RESP_DECERR_C);
          end if;
       end if;
 

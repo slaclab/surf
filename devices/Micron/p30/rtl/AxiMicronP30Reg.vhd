@@ -2,7 +2,7 @@
 -- File       : AxiMicronP30Reg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-10-21
--- Last update: 2017-07-11
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: This controller is designed around the Micron PC28F FLASH IC.
 -------------------------------------------------------------------------------
@@ -30,8 +30,7 @@ entity AxiMicronP30Reg is
    generic (
       TPD_G            : time             := 1 ns;
       MEM_ADDR_MASK_G  : slv(31 downto 0) := x"00000000";
-      AXI_CLK_FREQ_G   : real             := 200.0E+6;  -- units of Hz
-      AXI_ERROR_RESP_G : slv(1 downto 0)  := AXI_RESP_SLVERR_C);
+      AXI_CLK_FREQ_G   : real             := 200.0E+6);  -- units of Hz
    port (
       -- FLASH Interface 
       flashAddr      : out slv(30 downto 0);
@@ -231,7 +230,7 @@ begin
                         -- Get the address bus
                         v.axiReadSlave.rdata(30 downto 0) := r.addr;
                      when others =>
-                        axiReadResp := AXI_ERROR_RESP_G;
+                        axiReadResp := AXI_RESP_DECERR_C;
                   end case;
                   -- Send AXI-Lite Response
                   axiSlaveReadResponse(v.axiReadSlave, axiReadResp);
@@ -293,7 +292,7 @@ begin
                            v.state   := BLOCK_WR_S;
                         end if;
                      when others =>
-                        axiWriteResp := AXI_ERROR_RESP_G;
+                        axiWriteResp := AXI_RESP_DECERR_C;
                   end case;
                end if;
                -- Send AXI-Lite response

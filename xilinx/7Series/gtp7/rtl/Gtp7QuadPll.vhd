@@ -2,7 +2,7 @@
 -- File       : Gtp7QuadPll.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2016-03-08
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Xilinx 7-series GTP's QPLL
 -------------------------------------------------------------------------------
@@ -28,7 +28,6 @@ use unisim.vcomponents.all;
 entity Gtp7QuadPll is
    generic (
       TPD_G                : time                 := 1 ns;
-      AXI_ERROR_RESP_G     : slv(1 downto 0)      := AXI_RESP_DECERR_C;
       SIM_RESET_SPEEDUP_G  : string               := "TRUE";
       SIM_VERSION_G        : string               := "1.0";
       PLL0_REFCLK_SEL_G    : bit_vector           := "001";
@@ -178,7 +177,6 @@ begin
    U_AxiLiteToDrp : entity work.AxiLiteToDrp
       generic map (
          TPD_G            => TPD_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
          COMMON_CLK_G     => true,
          EN_ARBITRATION_G => false,
          TIMEOUT_G        => 4096,
