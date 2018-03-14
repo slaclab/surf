@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-03-12
+-- Last update: 2018-03-14
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -130,6 +130,7 @@ architecture rtl of Ad9249ReadoutGroupUS is
 
    -- Local Signals
    signal tmpAdcClk      : sl;
+   signal adcBitClkIoIn  : sl;
    signal adcBitClkIo    : sl;
    signal adcBitClkIoInv : sl;
    signal adcBitClkR     : sl;
@@ -156,7 +157,8 @@ architecture rtl of Ad9249ReadoutGroupUS is
    signal debugDataOut   : slv(NUM_CHANNELS_G*16-1 downto 0);
    signal debugDataTmp   : slv16Array(NUM_CHANNELS_G-1 downto 0);
 
-  attribute keep of adcBitClkRD4  : signal is "true";  
+  attribute keep of adcBitClkRD4  : signal is "true";
+  attribute keep of adcBitClkR    : signal is "true";  
   attribute keep of adcFrame      : signal is "true";
 
 begin
@@ -285,15 +287,57 @@ begin
    -- Create Clocks
    -------------------------------------------------------------------------------------------------
 
-   AdcClk_I_Ibufds : IBUFDS_DIFF_OUT
+      ------------------------------------------
+   -- Generate clocks from 156.25 MHz PGP  --
+   ------------------------------------------
+   -- clkIn     : 350.00 MHz PGP
+   -- clkOut(0) : 350.00 MHz adcBitClkIo clock
+   -- clkOut(1) : 350.00 MHz adcBitClkIoInv clock
+   
+   U_iserdesClockGen : entity work.ClockManagerUltraScale 
+   generic map(
+      TPD_G                  => 1 ns,
+      TYPE_G                 => "MMCM",  -- or "PLL"
+      INPUT_BUFG_G           => true,
+      FB_BUFG_G              => true,
+      RST_IN_POLARITY_G      => '1',     -- '0' for active low
+      NUM_CLOCKS_G           => 2,
+      -- MMCM attributes
+      BANDWIDTH_G            => "OPTIMIZED",
+      CLKIN_PERIOD_G         => 2.85,    -- Input period in ns );
+      DIVCLK_DIVIDE_G        => 10,
+      CLKFBOUT_MULT_F_G      => 40.0,
+      CLKFBOUT_MULT_G        => 5,
+      CLKOUT0_DIVIDE_F_G     => 1.0,
+      CLKOUT0_DIVIDE_G       => 4,
+      CLKOUT1_DIVIDE_G       => 4,
+      CLKOUT0_PHASE_G        => 0.0,
+      CLKOUT1_PHASE_G        => 90.0,
+      CLKOUT0_DUTY_CYCLE_G   => 0.5,
+      CLKOUT1_DUTY_CYCLE_G   => 0.5,
+      CLKOUT0_RST_HOLD_G     => 3,
+      CLKOUT1_RST_HOLD_G     => 3,
+      CLKOUT0_RST_POLARITY_G => '1',
+      CLKOUT1_RST_POLARITY_G => '1')
+   port map(
+      clkIn           => adcBitClkIoIn,
+      rstIn           => adcBitRst,
+      clkOut(0)       => adcBitClkIo,
+      clkOut(1)       => adcBitClkIoInv,
+      rstOut(0)       => open,
+      rstOut(1)       => open,
+      locked          => open
+      -- AXI-Lite Interface
+      );
+
+   AdcClk_I_Ibufds : IBUFDS
       generic map (
         DQS_BIAS => "FALSE"  -- (FALSE, TRUE)
       )
       port map (
          I  => adcSerial.dClkP,
          IB => adcSerial.dClkN,
-         O  => adcBitClkIo,
-         OB => adcBitClkIoInv);
+         O  => adcBitClkIoIn);
 
    -- Regional clock
    U_AdcBitClkR : BUFGCE_DIV
