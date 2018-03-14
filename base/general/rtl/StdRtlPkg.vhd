@@ -62,7 +62,8 @@ package StdRtlPkg is
    function log2 (constant number    : integer) return natural;
    function bitSize (constant number : natural) return positive;
    function bitReverse (a            : slv) return slv;
-   function wordCount (number : positive; wordSize : positive := 8) return natural; 
+   function wordCount (number : positive; wordSize : positive := 8) return natural;
+   function endianSwap(vector : slv) return slv;
 
    -- Similar to python's range() function
    function list (constant start, size, step : integer) return IntegerArray;
@@ -780,6 +781,19 @@ package body StdRtlPkg is
       end if;
       return ret;
    end function wordCount;
+
+   function endianSwap (vector : slv) return slv is
+      constant BYTES_C : natural := wordCount(number => vector'length, wordSize => 8);
+      variable inp : slv(BYTES_C*8-1 downto 0);
+      variable ret : slv(BYTES_C*8-1 downto 0);
+   begin
+      inp := resize(vector, BYTES_C*8);
+      
+      for i in BYTES_C-1 downto 0 loop
+         ret(7+(8*i) downto 8*i) := inp(7+(8*(7-i)) downto (8*(7-i)));
+      end loop;
+      return ret;
+   end function;
 
    function list (constant start, size, step : integer) return IntegerArray is
       variable retVar : IntegerArray(0 to size-1);

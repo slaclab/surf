@@ -2,7 +2,7 @@
 -- File       : Crc32.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-05-01
--- Last update: 2017-03-31
+-- Last update: 2018-03-01
 -------------------------------------------------------------------------------
 -- Description:
 -- This is an implementation of a generic N-byte input CRC32 calculation.
@@ -35,17 +35,19 @@ use work.CrcPkg.all;
 entity Crc32 is
    generic (
       TPD_G            : time             := 0.5 ns;
-      BYTE_WIDTH_G     : integer          := 4;
+      BYTE_WIDTH_G     : positive         := 4;
       INPUT_REGISTER_G : boolean          := true;
       CRC_INIT_G       : slv(31 downto 0) := x"FFFFFFFF";
       CRC_POLY_G       : slv(31 downto 0) := x"04C11DB7");
    port (
-      crcOut       : out slv(31 downto 0);                  -- CRC output
+      crcOut       : out slv(31 downto 0);  -- CRC output
+      crcRem       : out slv(31 downto 0);  -- CRC interim remainder
       crcClk       : in  sl;            -- system clock
-      crcDataValid : in  sl;            -- indicate that new data arrived and CRC can be computed
+      crcDataValid : in  sl;  -- indicate that new data arrived and CRC can be computed
       crcDataWidth : in  slv(2 downto 0);  -- indicate width in bytes minus 1, 0 - 1 byte, 1 - 2 bytes ... , 7 - 8 bytes
       crcIn        : in  slv((BYTE_WIDTH_G*8-1) downto 0);  -- input data for CRC calculation
-      crcReset     : in  sl);           -- initializes CRC logic to CRC_INIT_G
+      crcInit      : in  slv(31 downto 0) := CRC_INIT_G;  -- optional override of CRC_INIT_G
+      crcReset     : in  sl);           -- initializes CRC logic to crcInit
 end Crc32;
 
 architecture rtl of Crc32 is
@@ -69,15 +71,17 @@ architecture rtl of Crc32 is
 
 begin
 
-   comb : process(crcIn, crcDataWidth, crcReset, crcDataValid, r)
+   comb : process(crcDataValid, crcDataWidth, crcIn, crcInit, crcReset, r)
       variable v         : RegType;
       variable byteXor   : slv(7 downto 0);
       variable byteWidth : slv(2 downto 0);
       variable valid     : sl;
       variable data      : slv((BYTE_WIDTH_G*8-1) downto 0);
    begin
+      -- Latch the current value
       v := r;
 
+      -- Reset the bit mask
       byteXor := (others => '0');
 
       -- Register inputs
@@ -95,6 +99,7 @@ begin
          end loop;
       end loop;
 
+      -- Select where to register the inputs
       if (INPUT_REGISTER_G) then
          byteWidth := r.byteWidth;
          valid     := r.valid;
@@ -105,12 +110,13 @@ begin
          data      := v.data;
       end if;
 
-
       -- Reset handling
       if (crcReset = '0') then
+         -- Use remainder from previous cycle
          v.crc := r.crc;
       else
-         v.crc := CRC_INIT_G;
+         -- Pre-load the remainder
+         v.crc := crcInit;
       end if;
 
       -- Calculate CRC byte-by-byte 
@@ -123,8 +129,11 @@ begin
          end loop;
       end if;
 
+      -- Register the variable for next clock cycle
       rin <= v;
 
+      -- Outputs
+      crcRem <= r.crc;
       -- Transpose each byte in the data out and invert
       -- This inversion is equivalent to an XOR of the CRC register with xFFFFFFFF 
       for byte in 0 to 3 loop

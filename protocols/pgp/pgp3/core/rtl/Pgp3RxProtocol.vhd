@@ -142,7 +142,6 @@ begin
 
          else
             -- Linked
-
             -- Increment count on every incomming word
             -- reset when IDLE or SOF or SOC seen
             v.count := r.count + 1;
@@ -158,12 +157,13 @@ begin
                      v.count := (others => '0');
                   end if;
                elsif (btf = PGP3_SOF_C or btf = PGP3_SOC_C) then
-                  v.pgpRxMaster.tValid := r.pgpRxOut.linkReady;  -- Hold Everything until linkready
-                  v.pgpRxMaster.tData(63 downto 0) := makePacketizer2Header(
-                     sof   => ite(btf = PGP3_SOF_C, '1', '0'),
-                     tdest => resize(protRxData(PGP3_SOFC_VC_FIELD_C), 8),
-                     seq   => resize(protRxData(PGP3_SOFC_SEQ_FIELD_C), 16));
-                  axiStreamSetUserBit(PGP3_AXIS_CONFIG_C, v.pgpRxMaster, SSI_SOF_C, '1', 0);  -- Set SOF
+                  v.pgpRxMaster :=
+                     makePacketizer2Header(
+                        CRC_MODE_C => "DATA",
+                        valid      => r.pgpRxOut.linkReady,  -- Hold Everything until linkready                  
+                        sof        => ite(btf = PGP3_SOF_C, '1', '0'),
+                        tdest      => resize(protRxData(PGP3_SOFC_VC_FIELD_C), 8),
+                        seq        => resize(protRxData(PGP3_SOFC_SEQ_FIELD_C), 16));
                   pgp3ExtractLinkInfo(
                      protRxData(PGP3_LINKINFO_FIELD_C),
                      v.remRxFifoCtrl,
@@ -173,14 +173,14 @@ begin
                      v.count := (others => '0');
                   end if;
                elsif (btf = PGP3_EOF_C or btf = PGP3_EOC_C) then
-                  v.pgpRxMaster.tValid := r.pgpRxOut.linkReady;
-                  v.pgpRxMaster.tLast  := '1';
-                  v.pgpRxMaster.tData(63 downto 0) := makePacketizer2Tail(
-                     eof   => toSl(btf = PGP3_EOF_C),
-                     tuser => protRxData(PGP3_EOFC_TUSER_FIELD_C),
-                     bytes => protRxData(PGP3_EOFC_BYTES_LAST_FIELD_C),
-                     crc   => protRxData(PGP3_EOFC_CRC_FIELD_C));
-
+                  v.pgpRxMaster :=
+                     makePacketizer2Tail(
+                        CRC_MODE_C => "DATA",
+                        valid      => r.pgpRxOut.linkReady,
+                        eof        => toSl(btf = PGP3_EOF_C),
+                        tuser      => protRxData(PGP3_EOFC_TUSER_FIELD_C),
+                        bytes      => protRxData(PGP3_EOFC_BYTES_LAST_FIELD_C),
+                        crc        => protRxData(PGP3_EOFC_CRC_FIELD_C));
                else
                   for i in PGP3_USER_C'range loop
                      if (btf = PGP3_USER_C(i)) then
