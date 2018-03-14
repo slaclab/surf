@@ -2,7 +2,7 @@
 -- File       : AxiLiteWriteFilter.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-11-13
--- Last update: 2017-11-14
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Module for filtering write access
 -------------------------------------------------------------------------------
@@ -27,8 +27,7 @@ entity AxiLiteWriteFilter is
    generic (
       TPD_G            : time            := 1 ns;
       FILTER_SIZE_G    : positive        := 1;  -- Number of filter addresses
-      FILTER_ADDR_G    : Slv32Array      := (0 => x"00000000");  -- Filter addresses that will be allowed through
-      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_DECERR_C);
+      FILTER_ADDR_G    : Slv32Array      := (0 => x"00000000"));  -- Filter addresses that will be allowed through
    port (
       -- Clock and reset
       axilClk          : in  sl;
@@ -117,7 +116,7 @@ begin
                if (blockAll = '1') then
                   -- Forward the error message
                   v.sAxilWriteSlave.bvalid := '1';
-                  v.sAxilWriteSlave.bresp  := AXI_ERROR_RESP_G;
+                  v.sAxilWriteSlave.bresp  := AXI_RESP_SLVERR_C;
                   -- Next state
                   v.state                  := BUS_RESP_S;
                elsif (enFilter = '1') then
@@ -155,7 +154,7 @@ begin
             if (r.validAddress = '0') then
                -- Forward the error message
                v.sAxilWriteSlave.bvalid := '1';
-               v.sAxilWriteSlave.bresp  := AXI_ERROR_RESP_G;
+               v.sAxilWriteSlave.bresp  := AXI_RESP_DECERR_C;
                -- Next state
                v.state                  := BUS_RESP_S;
             else

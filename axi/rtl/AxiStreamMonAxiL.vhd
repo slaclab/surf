@@ -2,7 +2,7 @@
 -- File       : AxiStreamMonAxiL.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-07-14
--- Last update: 2017-11-15
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: AXI Stream Monitor Module
 -------------------------------------------------------------------------------
@@ -27,12 +27,11 @@ use work.SsiPkg.all;
 
 entity AxiStreamMonAxiL is
    generic (
-      TPD_G            : time                := 1 ns;
-      COMMON_CLK_G     : boolean             := false;  -- true if axisClk = statusClk
-      AXIS_CLK_FREQ_G  : real                := 156.25E+6;  -- units of Hz
-      AXIS_NUM_SLOTS_G : positive            := 1;
-      AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      AXIL_ERR_RESP_G  : slv(1 downto 0)     := AXI_RESP_DECERR_C);
+      TPD_G           : time                := 1 ns;
+      COMMON_CLK_G    : boolean             := false;  -- true if axisClk = statusClk
+      AXIS_CLK_FREQ_G : real                := 156.25E+6;  -- units of Hz
+      AXIS_NUM_SLOTS_G: positive            := 1;
+      AXIS_CONFIG_G   : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- AXIS Stream Interface
       axisClk          : in  sl;
@@ -177,7 +176,7 @@ begin
       end loop;
 
       -- Closeout the transaction
-      axiSlaveDefault(regCon, v.sAxilWriteSlave, v.sAxilReadSlave, AXIL_ERR_RESP_G);
+      axiSlaveDefault(regCon, v.sAxilWriteSlave, v.sAxilReadSlave, AXI_RESP_DECERR_C);
 
       -- Synchronous Reset
       if (axilRst = '1') then

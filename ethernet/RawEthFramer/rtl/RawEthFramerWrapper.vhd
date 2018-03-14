@@ -2,7 +2,7 @@
 -- File       : RawEthFramerWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-23
--- Last update: 2016-05-26
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Wrapper for RawEthFramer Module
 -------------------------------------------------------------------------------
@@ -27,8 +27,7 @@ use work.AxiStreamPkg.all;
 entity RawEthFramerWrapper is
    generic (
       TPD_G            : time             := 1 ns;
-      ETH_TYPE_G       : slv(15 downto 0) := x"0010";  --  0x1000 (big-Endian configuration)
-      AXI_ERROR_RESP_G : slv(1 downto 0)  := AXI_RESP_DECERR_C);      
+      ETH_TYPE_G       : slv(15 downto 0) := x"0010");  --  0x1000 (big-Endian configuration)
    port (
       -- Local Configurations
       localMac        : in  slv(47 downto 0);          --  big-Endian configuration
@@ -100,8 +99,7 @@ begin
          COMMON_CLK_G     => true,
          ADDR_WIDTH_G     => 8,
          DATA_WIDTH_G     => 48,
-         INIT_G           => "0",
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
+         INIT_G           => "0")
       port map (
          -- AXI-Lite Interface
          axiClk         => clk,

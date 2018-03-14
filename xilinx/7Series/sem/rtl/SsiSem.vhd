@@ -2,7 +2,7 @@
 -- File       : SsiSem.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-15
--- Last update: 2017-02-08
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: SSI wrapper for 7-series SEM module
 -------------------------------------------------------------------------------
@@ -30,7 +30,6 @@ use work.SemPkg.all;
 entity SsiSem is
    generic (
       TPD_G               : time                := 1 ns;
-      AXI_ERROR_RESP_G    : slv(1 downto 0)     := AXI_RESP_SLVERR_C;
       COMMON_AXIL_CLK_G   : boolean             := false;
       COMMON_AXIS_CLK_G   : boolean             := false;
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(1);
@@ -147,7 +146,6 @@ begin
    U_AxiLiteAsync : entity work.AxiLiteAsync
       generic map (
          TPD_G            => TPD_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
          COMMON_CLK_G     => COMMON_AXIL_CLK_G)
       port map (
          sAxiClk         => axilClk,
@@ -328,7 +326,7 @@ begin
       axiSlaveRegister(axilEp, x"10", 0, v.semIb.injectAddress(31 downto 0));
       axiSlaveRegister(axilEp, x"14", 0, v.semIb.injectAddress(39 downto 32));
 
-      axiSlaveDefault(axilEp, v.axiWriteSlave, v.axiReadSlave, AXI_ERROR_RESP_G);
+      axiSlaveDefault(axilEp, v.axiWriteSlave, v.axiReadSlave, AXI_RESP_DECERR_C);
 
       -----------------------------
       -- Allow IPROG access to ICAP

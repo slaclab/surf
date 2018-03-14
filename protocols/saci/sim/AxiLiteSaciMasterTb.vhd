@@ -2,7 +2,7 @@
 -- File       : AxiLiteSaciMasterTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-17
--- Last update: 2016-06-17
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Simulation testbed for AxiLiteSaciMaster2
 -------------------------------------------------------------------------------
@@ -33,7 +33,6 @@ architecture sim of AxiLiteSaciMasterTb is
 
    -- component generics
    constant TPD_G              : time                  := 1 ns;
-   constant AXIL_ERROR_RESP_G  : slv(1 downto 0)       := AXI_RESP_DECERR_C;
    constant AXIL_CLK_PERIOD_G  : real                  := 8.0e-9;
    constant AXIL_TIMEOUT_G     : real                  := 1.0E-3;
    constant SACI_CLK_PERIOD_G  : real                  := 1.0e-6;
@@ -69,7 +68,6 @@ begin
    U_AxiLiteSaciMaster2 : entity work.AxiLiteSaciMaster2
       generic map (
          TPD_G              => TPD_G,
-         AXIL_ERROR_RESP_G  => AXIL_ERROR_RESP_G,
          AXIL_CLK_PERIOD_G  => AXIL_CLK_PERIOD_G,
          AXIL_TIMEOUT_G     => AXIL_TIMEOUT_G,
          SACI_CLK_PERIOD_G  => SACI_CLK_PERIOD_G,

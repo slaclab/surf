@@ -27,7 +27,6 @@ entity AxiVersionLegacy is
       TPD_G              : time                   := 1 ns;
       BUILD_INFO_G       : BuildInfoType;
       SIM_DNA_VALUE_G    : slv                    := X"000000000000000000000000";
-      AXI_ERROR_RESP_G   : slv(1 downto 0)        := AXI_RESP_DECERR_C;
       DEVICE_ID_G        : slv(31 downto 0)       := (others => '0');
       CLK_PERIOD_G       : real                   := 8.0E-9;     -- units of seconds
       XIL_DEVICE_G       : string                 := "7SERIES";  -- Either "7SERIES" or "ULTRASCALE"
@@ -212,7 +211,7 @@ begin
       axiSlaveRegisterR(axilEp, X"400", userValues);
       axiSlaveRegisterR(axilEp, X"800", BUILD_STRING_ROM_C);
 
-      axiSlaveDefault(axilEp, v.axiWriteSlave, v.axiReadSlave, AXI_ERROR_RESP_G);
+      axiSlaveDefault(axilEp, v.axiWriteSlave, v.axiReadSlave, AXI_RESP_DECERR_C);
 
       ---------------------------------
       -- Uptime counter

@@ -2,7 +2,7 @@
 -- File       : AxiSy56040Reg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-12
--- Last update: 2016-09-20
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: This controller is designed around the Micrel SY56040AR.
 -------------------------------------------------------------------------------
@@ -27,8 +27,7 @@ entity AxiSy56040Reg is
    generic (
       TPD_G            : time                  := 1 ns;
       AXI_CLK_FREQ_G   : real                  := 200.0E+6;  -- units of Hz
-      XBAR_DEFAULT_G   : Slv2Array(3 downto 0) := ("11", "10", "01", "00");
-      AXI_ERROR_RESP_G : slv(1 downto 0)       := AXI_RESP_SLVERR_C);
+      XBAR_DEFAULT_G   : Slv2Array(3 downto 0) := ("11", "10", "01", "00"));
    port (
       -- XBAR Ports 
       xBarSin        : out slv(1 downto 0);
@@ -124,7 +123,7 @@ begin
                   when x"C" =>          -- OUT[3] Mapping
                      v.axiReadSlave.rdata(1 downto 0) := r.config(3);
                   when others =>
-                     axiReadResp := AXI_ERROR_RESP_G;
+                     axiReadResp := AXI_RESP_DECERR_C;
                end case;
                -- Send AXI-Lite Response
                axiSlaveReadResponse(v.axiReadSlave, axiReadResp);
@@ -146,7 +145,7 @@ begin
                      v.config(3) := axiWriteMaster.wdata(1 downto 0);
                      v.state     := SETUP_S;
                   when others =>
-                     axiWriteResp := AXI_ERROR_RESP_G;
+                     axiWriteResp := AXI_RESP_DECERR_C;
                end case;
                -- Send AXI-Lite response
                axiSlaveWriteResponse(v.axiWriteSlave, axiWriteResp);

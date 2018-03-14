@@ -2,7 +2,7 @@
 -- File       : AxiLiteToDrp.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-02-10
--- Last update: 2016-02-17
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite to Xilinx DRP Bridge 
 -------------------------------------------------------------------------------
@@ -26,7 +26,6 @@ use work.AxiLitePkg.all;
 entity AxiLiteToDrp is
    generic (
       TPD_G            : time                   := 1 ns;
-      AXI_ERROR_RESP_G : slv(1 downto 0)        := AXI_RESP_DECERR_C;
       COMMON_CLK_G     : boolean                := false;
       EN_ARBITRATION_G : boolean                := false;
       TIMEOUT_G        : positive               := 4096;
@@ -234,8 +233,8 @@ begin
                   -- Return good transaction
                   axiResp := AXI_RESP_OK_C;
                else
-                  -- Return good transaction
-                  axiResp     := AXI_ERROR_RESP_G;
+                  -- Return bad transaction
+                  axiResp     := AXI_RESP_SLVERR_C;
                   -- Attempt to re-initialize the DRP interface
                   v.drpUsrRst := '1';
                end if;

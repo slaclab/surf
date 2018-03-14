@@ -2,7 +2,7 @@
 -- File       : SaciPrepRdout.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 07/21/2016
--- Last update: 07/21/2016
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: The AXI lite master to issue SACI prepare for readout command
 -------------------------------------------------------------------------------
@@ -28,7 +28,6 @@ entity SaciPrepRdout is
       TPD_G              : time             := 1 ns;
       MASK_REG_ADDR_G    : slv(31 downto 0) := x"00000034";
       SACI_BASE_ADDR_G   : slv(31 downto 0) := x"02000000";
-      AXIL_ERR_RESP_G    : slv(1 downto 0)  := AXI_RESP_DECERR_C;
       SACI_NUM_CHIPS_G   : natural range 1 to 4 := 4
    );
    port (
@@ -115,7 +114,7 @@ begin
       axiSlaveRegisterR(regCon, x"0C", 0, r.wrTimeout);
       axiSlaveRegisterR(regCon, x"10", 0, r.asicMask);
       
-      axiSlaveDefault(regCon, v.sAxilWriteSlave, v.sAxilReadSlave, AXIL_ERR_RESP_G);
+      axiSlaveDefault(regCon, v.sAxilWriteSlave, v.sAxilReadSlave, AXI_RESP_DECERR_C);
       
       -- State machine for SACI mediation
       -- SACI command is issued via the AXI lite master bus

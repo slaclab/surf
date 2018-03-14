@@ -42,7 +42,6 @@ use work.Jesd204bPkg.all;
 entity Jesd204bTx is
    generic (
       TPD_G            : time                   := 1 ns;
-      AXI_ERROR_RESP_G : slv(1 downto 0)        := AXI_RESP_SLVERR_C;
       -- Register sample data at input and/or output 
       INPUT_REG_G      : boolean                := false;
       OUTPUT_REG_G     : boolean                := false;
@@ -194,7 +193,6 @@ begin
    U_Reg : entity work.JesdTxReg
       generic map (
          TPD_G            => TPD_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
          L_G              => L_G,
          F_G              => F_G)
       port map (

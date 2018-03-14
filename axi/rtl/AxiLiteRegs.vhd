@@ -1,12 +1,6 @@
 -------------------------------------------------------------------------------
--- Title         : AXI Lite Empty End Point
--- File          : AxiLiteEmpty.vhd
--- Author        : Ryan Herbst, rherbst@slac.stanford.edu
--- Created       : 03/10/2014
--------------------------------------------------------------------------------
 -- Description:
--- Empty slave endpoint for AXI Lite bus.
--- Absorbs writes and returns zeros on reads.
+-- Generic register slave endpoint on AXI-Lite bus
 -- Supports a configurable number of write and read vectors.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
@@ -17,9 +11,6 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
--- Modification history:
--- 03/10/2014: created.
--------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -29,10 +20,9 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 
-entity AxiLiteEmpty is
+entity AxiLiteRegs is
    generic (
       TPD_G            : time                  := 1 ns;
-      AXI_ERROR_RESP_G : slv(1 downto 0)       := AXI_RESP_OK_C;
       NUM_WRITE_REG_G  : integer range 1 to 32 := 1;
       NUM_READ_REG_G   : integer range 1 to 32 := 1);
    port (
@@ -46,9 +36,9 @@ entity AxiLiteEmpty is
       -- User Read/Write registers
       writeRegister  : out Slv32Array(NUM_WRITE_REG_G-1 downto 0);
       readRegister   : in  Slv32Array(NUM_READ_REG_G-1 downto 0) := (others => (others => '0')));
-end AxiLiteEmpty;
+end AxiLiteRegs;
 
-architecture rtl of AxiLiteEmpty is
+architecture rtl of AxiLiteRegs is
 
    type RegType is record
       writeRegister : Slv32Array(NUM_WRITE_REG_G-1 downto 0);
@@ -88,7 +78,7 @@ begin
       end loop;
 
       -- Closeout the transaction
-      axiSlaveDefault(regCon, v.axiWriteSlave, v.axiReadSlave, AXI_ERROR_RESP_G);
+      axiSlaveDefault(regCon, v.axiWriteSlave, v.axiReadSlave, AXI_RESP_DECERR_C);
 
       -- Synchronous Reset
       if (axiClkRst = '1') then

@@ -38,7 +38,6 @@ use work.AxiLitePkg.all;
 entity AxiSpiMaster is
    generic (
       TPD_G             : time            := 1 ns;
-      AXI_ERROR_RESP_G  : slv(1 downto 0) := AXI_RESP_DECERR_C;
       ADDRESS_SIZE_G    : natural         := 15;
       DATA_SIZE_G       : natural         := 8;
       MODE_G            : string          := "RW";  -- Or "WO" (write only),  "RO" (read only)
@@ -114,7 +113,7 @@ begin
 
             if (axiStatus.writeEnable = '1') then
                if (MODE_G = "RO") then
-                  axiSlaveWriteResponse(v.axiWriteSlave, AXI_ERROR_RESP_G);
+                  axiSlaveWriteResponse(v.axiWriteSlave, AXI_RESP_DECERR_C);
                else
 
                   -- No write bit when mode is write-only
@@ -137,7 +136,7 @@ begin
 
             if (axiStatus.readEnable = '1') then
                if (MODE_G = "WO") then
-                  axiSlaveReadResponse(v.axiReadSlave, AXI_ERROR_RESP_G);
+                  axiSlaveReadResponse(v.axiReadSlave, AXI_RESP_DECERR_C);
                else
 
                   -- No read bit when mode is read-only

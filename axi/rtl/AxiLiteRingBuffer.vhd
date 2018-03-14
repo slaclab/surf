@@ -2,7 +2,7 @@
 -- File       : AxiLiteRingBuffer.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2016-02-05
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Wrapper for simple BRAM based ring buffer with AXI-Lite interface
 -------------------------------------------------------------------------------
@@ -30,8 +30,7 @@ entity AxiLiteRingBuffer is
       BRAM_EN_G        : boolean                := true;
       REG_EN_G         : boolean                := true;
       DATA_WIDTH_G     : positive range 1 to 32 := 32;
-      RAM_ADDR_WIDTH_G : positive range 1 to 19 := 10;
-      AXI_ERROR_RESP_G : slv(1 downto 0)        := AXI_RESP_DECERR_C);
+      RAM_ADDR_WIDTH_G : positive range 1 to 19 := 10);
    port (
       -- Data to store in ring buffer
       dataClk         : in  sl;
@@ -276,14 +275,14 @@ begin
       -- Check for write request
       if (axilStatus.writeEnable = '1') then
          -- Check for an out of 32 bit aligned address
-         axiWriteResp := ite(axilWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
+         axiWriteResp := ite(axilWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          -- Check for first mapped address access (which is the control register)
          if (axilWriteMaster.awaddr(RAM_ADDR_WIDTH_G+2-1 downto 2) = 0) then
             v.bufferEnable := axilWriteMaster.wdata(31);
             v.bufferClear  := axilWriteMaster.wdata(30);
          else
             -- Unmapped write register access
-            axiWriteResp := AXI_ERROR_RESP_G;
+            axiWriteResp := AXI_RESP_DECERR_C;
          end if;
          -- Set the Slave's response
          axiSlaveWriteResponse(v.axilWriteSlave, axiWriteResp);
@@ -294,7 +293,7 @@ begin
          -- Reset the read data bus
          v.axilReadSlave.rdata := (others => '0');
          -- Check for an out of 32 bit aligned address
-         axiReadResp           := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
+         axiReadResp           := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          -- Control register mapped at address 0
          if (axilReadMaster.araddr(RAM_ADDR_WIDTH_G+2-1 downto 2) = 0) then
             v.axilReadSlave.rdata(31)                          := axilR.bufferEnable;

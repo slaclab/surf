@@ -2,7 +2,7 @@
 -- File       : AxiMemTester.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-07-28
--- Last update: 2017-08-14
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: General Purpose AXI4 memory tester
 -------------------------------------------------------------------------------
@@ -27,7 +27,6 @@ use work.AxiPkg.all;
 entity AxiMemTester is
    generic (
       TPD_G            : time                     := 1 ns;
-      AXI_ERROR_RESP_G : slv(1 downto 0)          := AXI_RESP_DECERR_C;
       START_ADDR_G     : slv                      := X"00000000";
       STOP_ADDR_G      : slv                      := X"FFFFFFFF";
       BURST_LEN_G      : positive range 1 to 4096 := 4096;
@@ -429,7 +428,7 @@ begin
       axiSlaveRegisterR(regCon, x"128", 0, toSlv(AXI_CONFIG_G.ID_BITS_C, 32));
 
       -- Closeout the transaction
-      axiSlaveDefault(regCon, v.axilWriteSlave, v.axilReadSlave, AXI_ERROR_RESP_G);
+      axiSlaveDefault(regCon, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
       -- Latch the values from Synchronizers
       v.memReady := done;

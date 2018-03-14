@@ -2,7 +2,7 @@
 -- File       : GigEthReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-20
--- Last update: 2017-10-19
+-- Last update: 2018-01-22
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite 1GbE Register Interface
 -------------------------------------------------------------------------------
@@ -26,9 +26,8 @@ use work.GigEthPkg.all;
 
 entity GigEthReg is
    generic (
-      TPD_G            : time            := 1 ns;
-      EN_AXI_REG_G     : boolean         := false;
-      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C);
+      TPD_G        : time    := 1 ns;
+      EN_AXI_REG_G : boolean := false);
    port (
       -- Local Configurations
       localMac       : in  slv(47 downto 0) := MAC_ADDR_INIT_C;
@@ -87,17 +86,8 @@ begin
 
    GEN_BYPASS : if (EN_AXI_REG_G = false) generate
 
-      U_AxiLiteEmpty : entity work.AxiLiteEmpty
-         generic map (
-            TPD_G            => TPD_G,
-            AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
-         port map (
-            axiClk         => clk,
-            axiClkRst      => rst,
-            axiReadMaster  => axiReadMaster,
-            axiReadSlave   => axiReadSlave,
-            axiWriteMaster => axiWriteMaster,
-            axiWriteSlave  => axiWriteSlave);
+      axiReadSlave <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
+      axiWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
 
       Sync_Config : entity work.SynchronizerVector
          generic map (
@@ -199,7 +189,7 @@ begin
          axiSlaveRegister(regCon, x"FFC", 0, v.hardRst);
 
          -- Closeout the transaction
-         axiSlaveDefault(regCon, v.axiWriteSlave, v.axiReadSlave, AXI_ERROR_RESP_G);
+         axiSlaveDefault(regCon, v.axiWriteSlave, v.axiReadSlave, AXI_RESP_DECERR_C);
 
          -- Synchronous Reset
          if (rst = '1') or (v.hardRst = '1') then
