@@ -136,6 +136,8 @@ architecture rtl of Ad9249ReadoutGroupUS is
    signal adcBitClkR     : sl;
    signal adcBitClkRD4   : sl;
    signal adcBitRst      : sl;
+   signal adcBitIoRst    : sl;
+   signal adcBitIoRst2   : sl;
    signal idelayCtrlRdy  : sl := '1'; 
 
    signal adcFramePad   : sl;
@@ -160,6 +162,7 @@ architecture rtl of Ad9249ReadoutGroupUS is
   attribute keep of adcBitClkRD4  : signal is "true";
   attribute keep of adcBitClkR    : signal is "true";  
   attribute keep of adcFrame      : signal is "true";
+  attribute keep of adcBitClkIo   : signal is "true";
 
 begin
    -------------------------------------------------------------------------------------------------
@@ -306,13 +309,13 @@ begin
       BANDWIDTH_G            => "OPTIMIZED",
       CLKIN_PERIOD_G         => 2.85,    -- Input period in ns );
       DIVCLK_DIVIDE_G        => 10,
-      CLKFBOUT_MULT_F_G      => 40.0,
+      CLKFBOUT_MULT_F_G      => 20.0,
       CLKFBOUT_MULT_G        => 5,
       CLKOUT0_DIVIDE_F_G     => 1.0,
-      CLKOUT0_DIVIDE_G       => 4,
-      CLKOUT1_DIVIDE_G       => 4,
+      CLKOUT0_DIVIDE_G       => 2,
+      CLKOUT1_DIVIDE_G       => 2,
       CLKOUT0_PHASE_G        => 0.0,
-      CLKOUT1_PHASE_G        => 90.0,
+      CLKOUT1_PHASE_G        => 180.0,
       CLKOUT0_DUTY_CYCLE_G   => 0.5,
       CLKOUT1_DUTY_CYCLE_G   => 0.5,
       CLKOUT0_RST_HOLD_G     => 3,
@@ -321,11 +324,11 @@ begin
       CLKOUT1_RST_POLARITY_G => '1')
    port map(
       clkIn           => adcBitClkIoIn,
-      rstIn           => adcBitRst,
+      rstIn           => adcClkRst,
       clkOut(0)       => adcBitClkIo,
       clkOut(1)       => adcBitClkIoInv,
-      rstOut(0)       => open,
-      rstOut(1)       => open,
+      rstOut(0)       => adcBitIoRst,
+      rstOut(1)       => adcBitIoRst2,
       locked          => open
       -- AXI-Lite Interface
       );
@@ -376,7 +379,7 @@ begin
          RELEASE_DELAY_G => 5)
       port map (
          clk      => adcBitClkR,
-         asyncRst => adcClkRst,
+         asyncRst => adcBitIoRst,
          syncRst  => adcBitRst);
 
 
