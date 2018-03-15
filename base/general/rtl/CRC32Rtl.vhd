@@ -107,7 +107,7 @@ begin
    begin
       if rising_edge(CRCCLK) then
          if (CRCRESET = '1') then
-            crc <= To_StdLogicVector(CRCINIT);
+            crc <= CRCINIT;
          elsif (CRCDATAVALID_d = '1') and (CRCCLKEN = '1') then
             if (CRCDATAWIDTH_d = "000") then
                crc <= TempXOR(8);
