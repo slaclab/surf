@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutClkUS.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-03-14
+-- Last update: 2018-03-15
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -41,7 +41,7 @@ entity Ad9249DeserializerUS is
       IODELAY_GROUP_G   : string               := "DEFAULT_GROUP";
       IDELAYCTRL_FREQ_G : real                 := 350.0;
       DELAY_VALUE_G     : natural              := 1250;
-      DEFAULT_DELAY_G   : slv(4 downto 0)      := (others => '0');
+      DEFAULT_DELAY_G   : slv(8 downto 0)      := (others => '0');
       ADC_INVERT_CH_G   : slv(7 downto 0)      := "00000000");
    port (
       -- Reset for adc deserializer
@@ -167,6 +167,7 @@ architecture rtl of Ad9249DeserializerUS is
   signal masterData      : slv(7 downto 0);
 
   attribute keep of adcDV4R          : signal is "true";
+  attribute keep of adcDV7R          : signal is "true";
   attribute keep of loadDelaySync    : signal is "true";
   attribute keep of sData_i          : signal is "true";
 
@@ -197,10 +198,10 @@ begin
   U_IDELAYE3_0 : IDELAYE3
     generic map (
       CASCADE => "NONE",          -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
-      DELAY_FORMAT => "TIME",     -- Units of the DELAY_VALUE (COUNT, TIME)
+      DELAY_FORMAT => "COUNT",     -- Units of the DELAY_VALUE (COUNT, TIME)
       DELAY_SRC => "IDATAIN",     -- Delay input (DATAIN, IDATAIN)
       DELAY_TYPE => "VAR_LOAD",   -- Set the type of tap delay line (FIXED, VARIABLE, VAR_LOAD)
-      DELAY_VALUE => DELAY_VALUE_G, -- Input delay value setting
+      DELAY_VALUE => conv_integer(DEFAULT_DELAY_G), -- Input delay value setting
       IS_CLK_INVERTED => '0',     -- Optional inversion for CLK
       IS_RST_INVERTED => '0',     -- Optional inversion for RST
       REFCLK_FREQUENCY => IDELAYCTRL_FREQ_G,  -- IDELAYCTRL clock input frequency in MHz (200.0-2667.0)
@@ -234,7 +235,7 @@ begin
       DATA_WIDTH => 8,            -- Parallel data width (4,8)
       FIFO_ENABLE => "FALSE",     -- Enables the use of the FIFO
       FIFO_SYNC_MODE => "FALSE",  -- Enables the use of internal 2-stage synchronizers on the FIFO
-      IS_CLK_B_INVERTED => '0',   -- Optional inversion for CLK_B
+      IS_CLK_B_INVERTED => '1',   -- Optional inversion for CLK_B
       IS_CLK_INVERTED => '0',     -- Optional inversion for CLK
       IS_RST_INVERTED => '0',     -- Optional inversion for RST
       SIM_DEVICE => "ULTRASCALE"  -- Set the device version (ULTRASCALE, ULTRASCALE_PLUS, ULTRASCALE_PLUS_ES1,
@@ -248,7 +249,7 @@ begin
       Q => masterData,            -- bit registered output
       CLK => dClkP,            -- 1-bit input: High-speed clock
       CLKDIV => dClkDiv4,         -- 1-bit input: Divided Clock
-      CLK_B => dClkN,        -- 1-bit input: Inversion of High-speed clock CLK
+      CLK_B => dClkP,        -- 1-bit input: Inversion of High-speed clock CLK
       D => sData_d,               -- 1-bit input: Serial Data Input
       FIFO_RD_CLK => '1',         -- 1-bit input: FIFO read clock
       FIFO_RD_EN => '1',          -- 1-bit input: Enables reading the FIFO when asserted

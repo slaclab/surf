@@ -325,7 +325,7 @@ begin
    port map(
       clkIn           => adcBitClkIoIn,
       rstIn           => adcClkRst,
-      clkOut(0)       => adcBitClkIo,
+      clkOut(0)       => tmpAdcClk,
       clkOut(1)       => adcBitClkIoInv,
       rstOut(0)       => adcBitIoRst,
       rstOut(1)       => adcBitIoRst2,
@@ -342,6 +342,11 @@ begin
          IB => adcSerial.dClkN,
          O  => adcBitClkIoIn);
 
+   U_bitClkBufG : BUFG
+     port map (
+       O => adcBitClkIo,
+       I => tmpAdcClk);
+     
    -- Regional clock
    U_AdcBitClkR : BUFGCE_DIV
       generic map (
