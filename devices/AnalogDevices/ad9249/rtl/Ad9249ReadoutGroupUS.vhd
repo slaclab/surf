@@ -2,12 +2,12 @@
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-03-14
+-- Last update: 2018-03-15
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
 -- Receives ADC Data from an AD9592 chip.
--- Designed specifically for Xilinx 7 series FPGAs
+-- Designed specifically for Xilinx Ultrascale series FPGAs
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -132,12 +132,10 @@ architecture rtl of Ad9249ReadoutGroupUS is
    signal tmpAdcClk      : sl;
    signal adcBitClkIoIn  : sl;
    signal adcBitClkIo    : sl;
-   signal adcBitClkIoInv : sl;
    signal adcBitClkR     : sl;
    signal adcBitClkRD4   : sl;
    signal adcBitRst      : sl;
    signal adcBitIoRst    : sl;
-   signal adcBitIoRst2   : sl;
    signal idelayCtrlRdy  : sl := '1'; 
 
    signal adcFramePad   : sl;
@@ -295,7 +293,7 @@ begin
    ------------------------------------------
    -- clkIn     : 350.00 MHz PGP
    -- clkOut(0) : 350.00 MHz adcBitClkIo clock
-   -- clkOut(1) : 350.00 MHz adcBitClkIoInv clock
+
    
    U_iserdesClockGen : entity work.ClockManagerUltraScale 
    generic map(
@@ -304,7 +302,7 @@ begin
       INPUT_BUFG_G           => true,
       FB_BUFG_G              => true,
       RST_IN_POLARITY_G      => '1',     -- '0' for active low
-      NUM_CLOCKS_G           => 2,
+      NUM_CLOCKS_G           => 1,
       -- MMCM attributes
       BANDWIDTH_G            => "OPTIMIZED",
       CLKIN_PERIOD_G         => 2.85,    -- Input period in ns );
@@ -313,22 +311,15 @@ begin
       CLKFBOUT_MULT_G        => 5,
       CLKOUT0_DIVIDE_F_G     => 1.0,
       CLKOUT0_DIVIDE_G       => 2,
-      CLKOUT1_DIVIDE_G       => 2,
       CLKOUT0_PHASE_G        => 0.0,
-      CLKOUT1_PHASE_G        => 180.0,
       CLKOUT0_DUTY_CYCLE_G   => 0.5,
-      CLKOUT1_DUTY_CYCLE_G   => 0.5,
       CLKOUT0_RST_HOLD_G     => 3,
-      CLKOUT1_RST_HOLD_G     => 3,
-      CLKOUT0_RST_POLARITY_G => '1',
-      CLKOUT1_RST_POLARITY_G => '1')
+      CLKOUT0_RST_POLARITY_G => '1')
    port map(
       clkIn           => adcBitClkIoIn,
       rstIn           => adcClkRst,
       clkOut(0)       => tmpAdcClk,
-      clkOut(1)       => adcBitClkIoInv,
       rstOut(0)       => adcBitIoRst,
-      rstOut(1)       => adcBitIoRst2,
       locked          => open
       -- AXI-Lite Interface
       );
@@ -387,17 +378,6 @@ begin
          asyncRst => adcBitIoRst,
          syncRst  => adcBitRst);
 
-
---   U_IDELYCTRL_0 : IDELAYCTRL
---     generic map (
---       SIM_DEVICE => "ULTRASCALE"  -- Must be set to "ULTRASCALE" 
---       )
---     port map (
---       RDY    => idelayCtrlRdy, -- 1-bit output: Ready output
---       REFCLK => adcBitClkIo,  -- 1-bit input: Reference clock input
---       RST    => adcClkRst      -- 1-bit input: Active high reset input. Asynchronous assert,
-                                 -- synchronous deassert REFCLK.
---        );
    -------------------------------------------------------------------------------------------------
    -- Deserializers
    -------------------------------------------------------------------------------------------------
@@ -407,14 +387,12 @@ begin
         NUM_CHANNELS_G    => 8,
         IODELAY_GROUP_G   => "DEFAULT_GROUP",
         IDELAYCTRL_FREQ_G => 350.0,
-        DELAY_VALUE_G     => 1250,
         DEFAULT_DELAY_G   => (others => '0'),
         ADC_INVERT_CH_G   => "00000000")
       port map (
         adcClkRst     => adcBitRst,
         idelayCtrlRdy => axilR.idelayCtrlRdy,
-        dClkP         => adcBitClkIo,                         -- Data clock
-        dClkN         => adcBitClkIoInv,
+        dClk          => adcBitClkIo,                         -- Data clock
         dClkDiv4      => adcBitClkRD4,
         dClkDiv7      => adcBitClkR,
         sDataP        => adcSerial.fClkP,                       -- Frame clock
@@ -442,14 +420,12 @@ begin
         NUM_CHANNELS_G    => 8,
         IODELAY_GROUP_G   => "DEFAULT_GROUP",
         IDELAYCTRL_FREQ_G => 350.0,
-        DELAY_VALUE_G     => 1250,
         DEFAULT_DELAY_G   => (others => '0'),
         ADC_INVERT_CH_G   => "00000000")
       port map (
         adcClkRst     => adcBitRst,
         idelayCtrlRdy => axilR.idelayCtrlRdy,
-        dClkP         => adcBitClkIo,                         -- Data clock
-        dClkN         => adcBitClkIoInv,
+        dClk          => adcBitClkIo,                         -- Data clock
         dClkDiv4      => adcBitClkRD4,
         dClkDiv7      => adcBitClkR,
         sDataP        => adcSerial.chP(i),                       -- Frame clock

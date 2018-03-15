@@ -40,7 +40,6 @@ entity Ad9249DeserializerUS is
       NUM_CHANNELS_G    : natural range 1 to 8 := 8;
       IODELAY_GROUP_G   : string               := "DEFAULT_GROUP";
       IDELAYCTRL_FREQ_G : real                 := 350.0;
-      DELAY_VALUE_G     : natural              := 1250;
       DEFAULT_DELAY_G   : slv(8 downto 0)      := (others => '0');
       ADC_INVERT_CH_G   : slv(7 downto 0)      := "00000000");
    port (
@@ -49,8 +48,7 @@ entity Ad9249DeserializerUS is
       -- Signals to/from idelayCtrl
       idelayCtrlRdy : in  sl;
       -- Serial Data from ADC
-      dClkP    : in sl;                       -- Data clock
-      dClkN    : in sl;                       -- Data clock
+      dClk     : in sl;                       -- Data clock
       dClkDiv4 : in sl;
       dClkDiv7 : in sl;
       sDataP   : in sl;                       -- Frame clock
@@ -157,7 +155,6 @@ architecture rtl of Ad9249DeserializerUS is
    -- Local signals
   signal sData_i    : sl;
   signal sData_d    : sl;
-  signal dClk       : sl;
   signal loadDelaySync : sl;
 
   -- idelay signals
@@ -173,7 +170,6 @@ architecture rtl of Ad9249DeserializerUS is
 
 begin
 
-  dClk <= dClkP;
   idelayRdy_n <= not idelayCtrlRdy;
 
   -------------------------------------------------------------------------------------------------
@@ -247,9 +243,9 @@ begin
                                   -- disabled (do not connect)
 
       Q => masterData,            -- bit registered output
-      CLK => dClkP,            -- 1-bit input: High-speed clock
+      CLK => dClk,            -- 1-bit input: High-speed clock
       CLKDIV => dClkDiv4,         -- 1-bit input: Divided Clock
-      CLK_B => dClkP,        -- 1-bit input: Inversion of High-speed clock CLK
+      CLK_B => dClk,        -- 1-bit input: Inversion of High-speed clock CLK
       D => sData_d,               -- 1-bit input: Serial Data Input
       FIFO_RD_CLK => '1',         -- 1-bit input: FIFO read clock
       FIFO_RD_EN => '1',          -- 1-bit input: Enables reading the FIFO when asserted
