@@ -2,7 +2,7 @@
 -- File       : GthUltraScaleQuadPll.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2018-01-22
+-- Last update: 2018-03-14
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Ultrascale GTH QPLL primitive
 -------------------------------------------------------------------------------
@@ -62,7 +62,8 @@ entity GthUltraScaleQuadPll is
       QPLL_SDM_CFG1_G     : Slv16Array(1 downto 0)   := (others => x"0000");
       QPLL_SDM_CFG2_G     : Slv16Array(1 downto 0)   := (others => x"0000");
       -- Clock Selects
-      QPLL_REFCLK_SEL_G   : Slv3Array(1 downto 0)    := (others => "001"));
+      QPLL_REFCLK_SEL_G   : Slv3Array(1 downto 0)    := (others => "001");
+      EN_DRP_G            : boolean                  := true);
    port (
       qPllRefClk      : in  slv(1 downto 0);
       qPllOutClk      : out slv(1 downto 0);

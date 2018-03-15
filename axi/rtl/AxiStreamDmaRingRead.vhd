@@ -2,7 +2,7 @@
 -- File       : AxiStreamDmaRingRead.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2016-08-02
+-- Last update: 2018-03-09
 -------------------------------------------------------------------------------
 -- Description: AXI Stream to DMA Ring Buffer Read Module
 -------------------------------------------------------------------------------
@@ -37,6 +37,8 @@ entity AxiStreamDmaRingRead is
       BURST_SIZE_BYTES_G    : natural range 4 to 2**17 := 4096;
       SSI_OUTPUT_G          : boolean                  := false;
       AXIL_BASE_ADDR_G      : slv(31 downto 0)         := (others => '0');
+      AXI_BURST_G           : slv(1 downto 0)          := "01";    -- INCR
+      AXI_CACHE_G           : slv(3 downto 0)          := "0011";  -- Cacheable
       AXI_STREAM_READY_EN_G : boolean                  := true;
       AXI_STREAM_CONFIG_G   : AxiStreamConfigType      := ssiAxiStreamConfig(8);
       AXI_READ_CONFIG_G     : AxiConfigType            := axiConfig(32, 8, 1, 8));
@@ -142,8 +144,8 @@ begin
          AXIS_READY_EN_G => AXI_STREAM_READY_EN_G,
          AXIS_CONFIG_G   => AXI_STREAM_CONFIG_G,
          AXI_CONFIG_G    => AXI_READ_CONFIG_G,
-         AXI_BURST_G     => "01",         -- INCR
-         AXI_CACHE_G     => "0011")       -- Cacheable
+         AXI_BURST_G     => AXI_BURST_G,
+         AXI_CACHE_G     => AXI_CACHE_G)
       port map (
          axiClk        => axiClk,         -- [in]
          axiRst        => axiRst,         -- [in]
@@ -303,8 +305,8 @@ begin
             v.dmaReq.dest                               := resize(buf, 8);
             v.dmaReq.firstUser                          := ite(SSI_OUTPUT_G, X"02", X"00");
             if (dmaAck.done = '1') then
-               v.dmaReq.request        := '0';
-               v.state                 := MODE_S;
+               v.dmaReq.request := '0';
+               v.state          := MODE_S;
             end if;
 
          when MODE_S =>
@@ -336,9 +338,9 @@ begin
             v.axilReq.request        := '1';
             v.axilReq.rnw            := '0';
             if (r.axilReq.request = '1' and axilAck.done = '1') then
-               v.axilReq.request := '0';
-               v.intStatusSlave.tready := '1';               
-               v.state           := START_LOW_S;
+               v.axilReq.request       := '0';
+               v.intStatusSlave.tready := '1';
+               v.state                 := START_LOW_S;
             end if;
 
 

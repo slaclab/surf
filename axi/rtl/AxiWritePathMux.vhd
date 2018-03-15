@@ -2,7 +2,7 @@
 -- File       : AxiWritePathMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2018-02-14
+-- Last update: 2018-03-11
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to connect multiple incoming AXI write path interfaces.
@@ -256,32 +256,29 @@ begin
          v.master.bready := '0';
       end if;
 
-      -- Combinatorial outputs before the reset
-      -- Readies are direct
-      for i in 0 to (NUM_SLAVES_G-1) loop
-         sAxiWriteSlaves(i).awready <= v.slaves(i).awready;
-         sAxiWriteSlaves(i).wready  <= v.slaves(i).wready;
-      end loop;
-      mAxiWriteMaster.bready <= v.master.bready;
-    
+      -- Bypass if single slave
+      if NUM_SLAVES_G = 1 then
+         sAxiWriteSlaves(0) <= mAxiWriteSlave;
+         mAxiWriteMaster    <= sAxiWritemasters(0);
+      else
+         -- Output data
+         sAxiWriteSlaves <= r.slaves;
+         mAxiWriteMaster <= r.master;
+
+         -- Combinatorial outputs before the reset
+         -- Readies are direct
+         for i in 0 to (NUM_SLAVES_G-1) loop
+           sAxiWriteSlaves(i).awready <= v.slaves(i).awready;
+           sAxiWriteSlaves(i).wready  <= v.slaves(i).wready;
+         end loop;
+         mAxiWriteMaster.bready <= v.master.bready;
+      end if;      
    
       if (axiRst = '1') or (NUM_SLAVES_G = 1) then
          v := REG_INIT_C;
       end if;
 
       rin <= v;
-
-      -- Bypass if single slave
-      if NUM_SLAVES_G = 1 then
-         sAxiWriteSlaves(0) <= mAxiWriteSlave;
-         mAxiWriteMaster    <= sAxiWritemasters(0);
-      else
-
-         -- Output data
-         sAxiWriteSlaves <= r.slaves;
-         mAxiWriteMaster <= r.master;
-      end if;      
-
 
    end process comb;
 

@@ -2,7 +2,7 @@
 -- File       : AxiStreamDmaRead.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2018-02-14
+-- Last update: 2018-03-09
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to transfer a single AXI Stream frame from memory using an AXI
@@ -38,7 +38,7 @@ entity AxiStreamDmaRead is
       SW_CACHE_EN_G   : boolean             := false;
       PIPE_STAGES_G   : natural             := 1;
       PEND_THRESH_G   : natural             := 0;  -- In units of bytes
-      BYP_SHIFT_G     : boolean             := false);      
+      BYP_SHIFT_G     : boolean             := false);
    port (
       -- Clock/Reset
       axiClk        : in  sl;
@@ -72,7 +72,7 @@ architecture rtl of AxiStreamDmaRead is
       MOVE_S,
       LAST_S,
       DONE_S,
-      BLOWOFF_S);      
+      BLOWOFF_S);
 
    type RegType is record
       pendBytes : slv(31 downto 0);
@@ -129,7 +129,8 @@ begin
 
    pause <= '0' when (AXIS_READY_EN_G) else axisCtrl.pause;
 
-   comb : process (axiReadSlave, axiRst, dmaReq, mMaster, mSlave, pause, r, sSlave, swCache) is
+   comb : process (axiReadSlave, axiRst, dmaReq, mMaster, mSlave, pause, r,
+                   sSlave, swCache) is
       variable v        : RegType;
       variable readSize : integer;
       variable reqLen   : natural;
@@ -387,7 +388,7 @@ begin
       end if;
 
       -- Combinatorial outputs before the reset
-      axiReadMaster.rready <= v.rMaster.rready;      
+      axiReadMaster.rready <= v.rMaster.rready;
 
       -- Reset      
       if (axiRst = '1') then
@@ -398,9 +399,18 @@ begin
       rin <= v;
 
       -- Outputs         
-      dmaAck               <= r.dmaAck;
-      axiReadMaster        <= r.rMaster;
-
+      dmaAck                 <= r.dmaAck;
+      axiReadMaster.arvalid  <= r.rMaster.arvalid;
+      axiReadMaster.araddr   <= r.rMaster.araddr;
+      axiReadMaster.arid     <= r.rMaster.arid;
+      axiReadMaster.arlen    <= r.rMaster.arlen;
+      axiReadMaster.arsize   <= r.rMaster.arsize;
+      axiReadMaster.arburst  <= r.rMaster.arburst;
+      axiReadMaster.arlock   <= r.rMaster.arlock;
+      axiReadMaster.arprot   <= r.rMaster.arprot;
+      axiReadMaster.arcache  <= r.rMaster.arcache;
+      axiReadMaster.arqos    <= r.rMaster.arqos;
+      axiReadMaster.arregion <= r.rMaster.arregion;
 
    end process comb;
 
@@ -421,14 +431,14 @@ begin
          sAxisMaster => r.sMaster,
          sAxisSlave  => sSlave,
          mAxisMaster => pipeMaster,
-         mAxisSlave  => pipeSlave);     
+         mAxisSlave  => pipeSlave);
 
    U_AxiStreamShift : entity work.AxiStreamShift
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => PIPE_STAGES_G,
          AXIS_CONFIG_G => AXIS_CONFIG_G,
-         BYP_SHIFT_G   => BYP_SHIFT_G) 
+         BYP_SHIFT_G   => BYP_SHIFT_G)
       port map (
          axisClk     => axiClk,
          axisRst     => axiRst,
@@ -456,5 +466,5 @@ begin
    end process;
 
    mSlave <= axisSlave when(AXIS_READY_EN_G) else AXI_STREAM_SLAVE_FORCE_C;
-   
+
 end rtl;

@@ -2,7 +2,7 @@
 -- File       : AxiReadPathMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2018-02-14
+-- Last update: 2018-03-11
 -------------------------------------------------------------------------------
 -- Description: Block to connect multiple incoming AXI write path interfaces.
 -------------------------------------------------------------------------------
@@ -176,12 +176,22 @@ begin
          v.master.rready := '0';
       end if;
 
-      -- Readies are direct
-      -- Assign combinatoral outputs before reset
-      for i in 0 to (NUM_SLAVES_G-1) loop
-         sAxiReadSlaves(i).arready <= v.slaves(i).arready;
-      end loop;
-      mAxiReadMaster.rready <= v.master.rready;
+      -- Bypass if single slave
+      if NUM_SLAVES_G = 1 then
+         sAxiReadSlaves(0) <= mAxiReadSlave;
+         mAxiReadMaster    <= sAxiReadmasters(0);
+      else
+         -- Output data
+         sAxiReadSlaves <= r.slaves;
+         mAxiReadMaster <= r.master;
+      
+         -- Readies are direct
+         -- Assign combinatoral outputs before reset
+         for i in 0 to (NUM_SLAVES_G-1) loop
+           sAxiReadSlaves(i).arready <= v.slaves(i).arready;
+         end loop;
+         mAxiReadMaster.rready <= v.master.rready;
+      end if;
 
 
       if (axiRst = '1') or (NUM_SLAVES_G = 1) then
@@ -190,17 +200,6 @@ begin
 
       rin <= v;
 
-      -- Bypass if single slave
-      if NUM_SLAVES_G = 1 then
-         sAxiReadSlaves(0) <= mAxiReadSlave;
-         mAxiReadMaster <= sAxiReadmasters(0);
-      else
-
-         -- Output data
-         sAxiReadSlaves <= r.slaves;
-         mAxiReadMaster <= r.master;
-
-      end if;
    end process comb;
 
    seq : process (axiClk) is
