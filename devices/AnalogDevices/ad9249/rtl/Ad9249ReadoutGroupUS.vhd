@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-03-15
+-- Last update: 2018-03-19
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -67,6 +67,8 @@ end Ad9249ReadoutGroupUS;
 architecture rtl of Ad9249ReadoutGroupUS is
 
   attribute keep : string;
+
+  constant FRAME_PATTERN_C : slv(13 downto 0) := "11111110000000";
   
    -------------------------------------------------------------------------------------------------
    -- AXIL Registers
@@ -388,7 +390,8 @@ begin
         IODELAY_GROUP_G   => "DEFAULT_GROUP",
         IDELAYCTRL_FREQ_G => 350.0,
         DEFAULT_DELAY_G   => (others => '0'),
-        ADC_INVERT_CH_G   => "00000000")
+        ADC_INVERT_CH_G   => '0',
+        BIT_REV_G         => '0')
       port map (
         adcClkRst     => adcBitRst,
         idelayCtrlRdy => axilR.idelayCtrlRdy,
@@ -409,10 +412,7 @@ begin
    -- Data Input, 8 channels
    --------------------------------
    GenData : for i in NUM_CHANNELS_G-1 downto 0 generate
-
-
-      -- Optionally invert the pad input
-      --adcDataPad(i) <= adcDataPadOut(i) when ADC_INVERT_CH_G(i) = '0' else not adcDataPadOut(i);
+     
 
       U_DATA_DESERIALIZER : entity work.Ad9249DeserializerUS
       generic map (
@@ -421,7 +421,8 @@ begin
         IODELAY_GROUP_G   => "DEFAULT_GROUP",
         IDELAYCTRL_FREQ_G => 350.0,
         DEFAULT_DELAY_G   => (others => '0'),
-        ADC_INVERT_CH_G   => "00000000")
+        ADC_INVERT_CH_G   => ADC_INVERT_CH_G(i),
+        BIT_REV_G         => '1')
       port map (
         adcClkRst     => adcBitRst,
         idelayCtrlRdy => axilR.idelayCtrlRdy,
@@ -451,7 +452,7 @@ begin
       -- Slip bits until correct alignment seen
       ----------------------------------------------------------------------------------------------
       if (adcR.count = 0) then
-         if (adcFrame = "11111110000000") then
+         if (adcFrame = FRAME_PATTERN_C) then
             v.locked := '1';
          else
             v.locked := '0';
@@ -474,7 +475,7 @@ begin
       -- Look for Frame rising edges and write data to fifos
       ----------------------------------------------------------------------------------------------
       for i in NUM_CHANNELS_G-1 downto 0 loop
-         if (adcR.locked = '1' and adcFrame = "11111110000000") then
+         if (adcR.locked = '1' and adcFrame = FRAME_PATTERN_C) then
             -- Locked, output adc data
             v.fifoWrData(i) := "00" & adcData(i);
          else

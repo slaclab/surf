@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-03-08
+-- Last update: 2018-03-16
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -38,7 +38,7 @@ entity Ad9249ReadoutGroup is
       IODELAY_GROUP_G   : string               := "DEFAULT_GROUP";
       XIL_DEVICE_G      : string               := "7SERIES";  -- option is "ULTRASCALE"
       IDELAYCTRL_FREQ_G : real                 := 200.0;
-      DEFAULT_DELAY_G   : slv(4 downto 0)      := (others => '0');
+      DEFAULT_DELAY_G   : slv(8 downto 0)      := (others => '0');
       ADC_INVERT_CH_G   : slv(7 downto 0)      := "00000000");
    port (
       -- Master system clock, 125Mhz
@@ -77,7 +77,9 @@ begin
         TPD_G             => TPD_G,
         NUM_CHANNELS_G    => NUM_CHANNELS_G,
         IODELAY_GROUP_G   => IODELAY_GROUP_G,
-        IDELAYCTRL_FREQ_G => IDELAYCTRL_FREQ_G
+        IDELAYCTRL_FREQ_G => IDELAYCTRL_FREQ_G,
+        DEFAULT_DELAY_G   => DEFAULT_DELAY_G(4 downto 0),
+        ADC_INVERT_CH_G   => ADC_INVERT_CH_G
         )
       port map (
         axilClk           => axilClk,
@@ -99,7 +101,9 @@ begin
         TPD_G             => TPD_G,
         NUM_CHANNELS_G    => NUM_CHANNELS_G,
         IODELAY_GROUP_G   => IODELAY_GROUP_G,
-        IDELAYCTRL_FREQ_G => IDELAYCTRL_FREQ_G
+        IDELAYCTRL_FREQ_G => IDELAYCTRL_FREQ_G,
+        DEFAULT_DELAY_G   => DEFAULT_DELAY_G,
+        ADC_INVERT_CH_G   => ADC_INVERT_CH_G
         )
       port map (
         axilClk           => axilClk,
