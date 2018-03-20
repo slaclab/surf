@@ -68,7 +68,7 @@ architecture rtl of Ad9249ReadoutGroupUS is
 
   attribute keep : string;
 
-  constant FRAME_PATTERN_C : slv(13 downto 0) := "11111110000000";
+  constant FRAME_PATTERN_C : slv(13 downto 0) := "00000001111111";
   
    -------------------------------------------------------------------------------------------------
    -- AXIL Registers
@@ -390,7 +390,8 @@ begin
         IODELAY_GROUP_G   => "DEFAULT_GROUP",
         IDELAYCTRL_FREQ_G => 350.0,
         DEFAULT_DELAY_G   => (others => '0'),
-        ADC_INVERT_CH_G   => '0',
+        FRAME_PATTERN_G   => FRAME_PATTERN_C,
+        ADC_INVERT_CH_G   => '1',
         BIT_REV_G         => '0')
       port map (
         adcClkRst     => adcBitRst,
@@ -421,6 +422,7 @@ begin
         IODELAY_GROUP_G   => "DEFAULT_GROUP",
         IDELAYCTRL_FREQ_G => 350.0,
         DEFAULT_DELAY_G   => (others => '0'),
+        FRAME_PATTERN_G   => FRAME_PATTERN_C,
         ADC_INVERT_CH_G   => ADC_INVERT_CH_G(i),
         BIT_REV_G         => '1')
       port map (

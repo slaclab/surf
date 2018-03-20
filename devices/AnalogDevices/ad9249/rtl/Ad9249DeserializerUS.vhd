@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutClkUS.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-03-19
+-- Last update: 2018-03-20
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -41,6 +41,7 @@ entity Ad9249DeserializerUS is
       IODELAY_GROUP_G   : string               := "DEFAULT_GROUP";
       IDELAYCTRL_FREQ_G : real                 := 350.0;
       DEFAULT_DELAY_G   : slv(8 downto 0)      := (others => '0');
+      FRAME_PATTERN_G   : slv(13 downto 0)     := "11111110000000";
       ADC_INVERT_CH_G   : sl                   := '0';
       BIT_REV_G         : sl                   := '0');
    port (
@@ -154,8 +155,8 @@ architecture rtl of Ad9249DeserializerUS is
   
 
    -- Local signals
-  signal sdataPadP  : sl;
-  signal sdataPadN  : sl;
+  signal sDataPadP  : sl;
+  signal sDataPadN  : sl;
   signal sData_i    : sl;
   signal sData_d    : sl;
   signal loadDelaySync : sl;
@@ -174,6 +175,8 @@ architecture rtl of Ad9249DeserializerUS is
 begin
 
   idelayRdy_n <= not idelayCtrlRdy;
+  PixData <= adcDv7R.masterPixData(7)&adcDv7R.masterPixData(8)&adcDv7R.masterPixData(9)&adcDv7R.masterPixData(10)&adcDv7R.masterPixData(11)&adcDv7R.masterPixData(12)&adcDv7R.masterPixData(13)&adcDv7R.masterPixData(0)&adcDv7R.masterPixData(1)&adcDv7R.masterPixData(2)&adcDv7R.masterPixData(3)&adcDv7R.masterPixData(4)&adcDv7R.masterPixData(5)&adcDv7R.masterPixData(6)                       when BIT_REV_G = '1'
+             else adcDv7R.masterPixData;
 
   -------------------------------------------------------------------------------------------------
   -- Create Clocks
@@ -192,7 +195,7 @@ begin
       IB => sDataN  -- 1-bit input: Diff_n buffer input (connect directly to top-level port)
       );
   -- Optionally invert the pad input
-  sData_i <= sdataPadP when ADC_INVERT_CH_G = '0' else sDataPadN;
+  sData_i <= sDataPadP when ADC_INVERT_CH_G = '0' else sDataPadN;
   ----------------------------------------------------------------------------
   -- idelay3 
   ----------------------------------------------------------------------------
@@ -478,7 +481,7 @@ begin
     v.pixDataGearboxIn_1 := adcDv7R.pixDataGearboxIn;
 
     -- flag that indicates data, or frame signal matches the expected pattern
-    if adcDv7R.masterPixData = "11111110000000" then
+    if adcDv7R.masterPixData = FRAME_PATTERN_G then
       v.dataAligned := '1';
     else
       v.dataAligned := '0';
@@ -517,7 +520,6 @@ begin
     adcDv7Rin <= v;
          
      --outputs
-    PixData <= adcDv7R.masterPixData(7)&adcDv7R.masterPixData(8)&adcDv7R.masterPixData(9)&adcDv7R.masterPixData(10)&adcDv7R.masterPixData(11)&adcDv7R.masterPixData(12)&adcDv7R.masterPixData(13)&adcDv7R.masterPixData(0)&adcDv7R.masterPixData(1)&adcDv7R.masterPixData(2)&adcDv7R.masterPixData(3)&adcDv7R.masterPixData(4)&adcDv7R.masterPixData(5)&adcDv7R.masterPixData(6);-- when BIT_REV_G='1'  else adcDv7R.masterPixData;
     
   end process;
    
