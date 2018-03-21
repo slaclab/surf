@@ -37,8 +37,17 @@ class UdpEngineServer(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            hidden       = True,
         ))
 
+        self.add(pr.LinkVariable(
+            name         = "ServerRemotePortValue", 
+            description  = "ServerRemotePort (human readable)",
+            mode         = 'RO', 
+            linkedGet    = self.dispPortValue,
+            dependencies = [self.variables["ServerRemotePort"]],
+        ))        
+        
         self.add(pr.RemoteVariable(   
             name         = "ServerRemoteIp",
             description  = "ServerRemoteIp (big-Endian configuration)",
@@ -47,5 +56,25 @@ class UdpEngineServer(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            hidden       = True,
         ))
+        
+        self.add(pr.LinkVariable(
+            name         = "ServerRemoteIpValue", 
+            description  = "ServerRemoteIp (human readable)",
+            mode         = 'RO', 
+            linkedGet    = self.dispIpValue,
+            dependencies = [self.variables["ServerRemoteIp"]],
+        ))         
+        
+    @staticmethod
+    def dispPortValue(var):
+        x = var.dependencies[0].value()
+        value = int.from_bytes(x.to_bytes(2, byteorder='little'), byteorder='big', signed=False)
+        return ( '%d' % value )   
 
+    @staticmethod
+    def dispIpValue(var):
+        x = var.dependencies[0].value()
+        return ( '%d.%d.%d.%d' % ( ((x>>0)&0xFF),((x>>8)&0xFF),((x>>16)&0xFF),((x>>24)&0xFF) ) )
+        
