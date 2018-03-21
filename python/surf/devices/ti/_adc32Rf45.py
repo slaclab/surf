@@ -26,9 +26,12 @@ class Adc32Rf45(pr.Device):
             name        = "Adc32Rf45",
             description = "Adc32Rf45 Module",
             verify      =  False,
-            expand      =  True,
             **kwargs):
-        super().__init__(name=name, description=description, expand=expand, **kwargs)
+        super().__init__(
+            name        = name, 
+            description = description, 
+            size        = (0x1 << 18), 
+            **kwargs)
         
         ################
         # Base addresses

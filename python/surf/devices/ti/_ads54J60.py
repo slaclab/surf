@@ -26,9 +26,12 @@ class Ads54J60(pr.Device):
             name        = "Ads54J60",
             description = "Ads54J60 Module",
             verify      = False,
-            expand      = True,
             **kwargs):
-        super().__init__(name=name, description=description, expand=expand, **kwargs)      
+        super().__init__(
+            name        = name, 
+            description = description, 
+            size        = (0x1 << 18), 
+            **kwargs)     
         
         ################
         # Base addresses
