@@ -18,6 +18,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+from surf.ethernet import udp
 
 class UdpEngineClient(pr.Device):
     def __init__(   self,       
@@ -25,53 +26,47 @@ class UdpEngineClient(pr.Device):
             description = "UdpEngineClient",
             **kwargs):
         super().__init__(name=name, description=description, **kwargs) 
+        
         ##############################
         # Variables
         ##############################
 
         self.add(pr.RemoteVariable(   
-            name         = "ClientRemotePort",
+            name         = "ClientRemotePortRaw",
             description  = "ClientRemotePort (big-Endian configuration)",
             offset       =  0x00,
             bitSize      =  16,
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            hidden       = True,            
         ))
 
         self.add(pr.LinkVariable(
-            name         = "ClientRemotePortValue", 
-            description  = "ClientRemotePort (human readable)",
-            mode         = 'RO', 
-            linkedGet    = self.dispPortValue,
-            dependencies = [self.variables["ClientRemotePort"]],
+            name         = "ClientRemotePort", 
+            description  = "ClientRemotePort (human readable & little-Endian configuration)",
+            mode         = 'RW', 
+            linkedGet    = udp.getPortValue,
+            linkedSet    = udp.setPortValue,
+            dependencies = [self.variables["ClientRemotePortRaw"]],
         ))         
         
         self.add(pr.RemoteVariable(   
-            name         = "ClientRemoteIp",
+            name         = "ClientRemoteIpRaw",
             description  = "ClientRemoteIp (big-Endian configuration)",
             offset       =  0x04,
             bitSize      =  32,
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            hidden       = True,            
         ))
         
         self.add(pr.LinkVariable(
-            name         = "ClientRemoteIpValue", 
-            description  = "ClientRemoteIp (human readable)",
-            mode         = 'RO', 
-            linkedGet    = self.dispIpValue,
-            dependencies = [self.variables["ClientRemoteIp"]],
+            name         = "ClientRemoteIp", 
+            description  = "ClientRemoteIp (human readable string)",
+            mode         = 'RW', 
+            linkedGet    = udp.getIpValue,
+            linkedSet    = udp.setIpValue,
+            dependencies = [self.variables["ClientRemoteIpRaw"]],
         ))         
-
-    @staticmethod
-    def dispPortValue(var):
-        x = var.dependencies[0].value()
-        value = int.from_bytes(x.to_bytes(2, byteorder='little'), byteorder='big', signed=False)
-        return ( '%d' % value )   
-
-    @staticmethod
-    def dispIpValue(var):
-        x = var.dependencies[0].value()
-        return ( '%d.%d.%d.%d' % ( ((x>>0)&0xFF),((x>>8)&0xFF),((x>>16)&0xFF),((x>>24)&0xFF) ) )

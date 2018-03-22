@@ -18,6 +18,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+from surf.ethernet import udp
 
 class UdpEngineServer(pr.Device):
     def __init__(   self,       
@@ -44,7 +45,7 @@ class UdpEngineServer(pr.Device):
             name         = "ServerRemotePortValue", 
             description  = "ServerRemotePort (human readable)",
             mode         = 'RO', 
-            linkedGet    = self.dispPortValue,
+            linkedGet    = udp.getPortValue,
             dependencies = [self.variables["ServerRemotePort"]],
         ))        
         
@@ -63,18 +64,6 @@ class UdpEngineServer(pr.Device):
             name         = "ServerRemoteIpValue", 
             description  = "ServerRemoteIp (human readable)",
             mode         = 'RO', 
-            linkedGet    = self.dispIpValue,
+            linkedGet    = udp.getIpValue,
             dependencies = [self.variables["ServerRemoteIp"]],
         ))         
-        
-    @staticmethod
-    def dispPortValue(var):
-        x = var.dependencies[0].value()
-        value = int.from_bytes(x.to_bytes(2, byteorder='little'), byteorder='big', signed=False)
-        return ( '%d' % value )   
-
-    @staticmethod
-    def dispIpValue(var):
-        x = var.dependencies[0].value()
-        return ( '%d.%d.%d.%d' % ( ((x>>0)&0xFF),((x>>8)&0xFF),((x>>16)&0xFF),((x>>24)&0xFF) ) )
-        
