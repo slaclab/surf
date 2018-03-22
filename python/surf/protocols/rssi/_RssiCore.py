@@ -188,6 +188,7 @@ class RssiCore(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -198,6 +199,7 @@ class RssiCore(pr.Device):
             bitOffset    =  0x01,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -208,6 +210,7 @@ class RssiCore(pr.Device):
             bitOffset    =  0x02,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -218,6 +221,7 @@ class RssiCore(pr.Device):
             bitOffset    =  0x03,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -228,6 +232,7 @@ class RssiCore(pr.Device):
             bitOffset    =  0x04,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -238,6 +243,7 @@ class RssiCore(pr.Device):
             bitOffset    =  0x05,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -248,6 +254,7 @@ class RssiCore(pr.Device):
             bitOffset    =  0x06,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -258,6 +265,7 @@ class RssiCore(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -268,6 +276,7 @@ class RssiCore(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -278,6 +287,7 @@ class RssiCore(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -288,6 +298,7 @@ class RssiCore(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.addRemoteVariables(   
@@ -300,6 +311,7 @@ class RssiCore(pr.Device):
             mode         = "RO",
             number       =  2,
             stride       =  4,
+            pollInterval = 1,
         )
 
         self.addRemoteVariables(   
@@ -312,6 +324,7 @@ class RssiCore(pr.Device):
             mode         = "RO",
             number       =  2,
             stride       =  8,
+            pollInterval = 1,
         )
 
         ##############################
