@@ -27,7 +27,11 @@ class AxiMicronP30(pr.Device):
             name        = "AxiMicronP30",
             description = "AXI-Lite Micron P30 PROM",
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+        super().__init__(
+            name        = name, 
+            description = description, 
+            size        = (0x1 << 11), 
+            **kwargs)
         
         self._mcs = McsReader()        
         self._progDone = False 

@@ -28,7 +28,11 @@ class AxiMicronN25Q(pr.Device):
             description = "AXI-Lite Micron N25Q and Micron MT25Q PROM",
             addrMode    = False, # False = 24-bit Address mode, True = 32-bit Address Mode
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+        super().__init__(
+            name        = name, 
+            description = description, 
+            size        = (0x1 << 10), 
+            **kwargs)
         
         self._mcs      = McsReader()
         self._addrMode = addrMode
