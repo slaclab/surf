@@ -300,32 +300,52 @@ class RssiCore(pr.Device):
             mode         = "RO",
             pollInterval = 1,
         ))
-
-        self.addRemoteVariables(   
-            name         = "FrameRate",
-            description  = "Frame Rate (in units of Hz)",
+        
+        self.add(pr.RemoteVariable(    
+            name         = 'TxFrameRate',
+            description  = 'Outbound Frame Rate',
+            units        = 'Hz',
             offset       =  0x54,
-            bitSize      =  32,
-            bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
-            number       =  2,
-            stride       =  4,
+            disp         = '{:d}',
             pollInterval = 1,
-        )
-
-        self.addRemoteVariables(   
-            name         = "Bandwidth",
-            description  = "Bandwidth (in units of bytes per second)",
+        ))   
+        
+        self.add(pr.RemoteVariable(    
+            name         = 'TxBandwidth',
+            description  = 'Outbound Bandwidth',
+            units        = 'B/s',
             offset       =  0x5C,
             bitSize      =  64,
-            bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
-            number       =  2,
-            stride       =  8,
+            disp         = '{:d}',
             pollInterval = 1,
-        )
+        ))           
+        
+        self.add(pr.RemoteVariable(    
+            name         = 'RxFrameRate',
+            description  = 'Inbound Frame Rate',
+            units        = 'Hz',
+            offset       =  0x58,
+            base         = pr.UInt,
+            mode         = "RO",
+            disp         = '{:d}',
+            pollInterval = 1,
+        ))           
+        
+        self.add(pr.RemoteVariable(    
+            name         = 'RxBandwidth',
+            description  = 'Inbound Bandwidth',
+            units        = 'B/s',
+            offset       =  0x64,
+            bitSize      =  64,
+            base         = pr.UInt,
+            mode         = "RO",
+            disp         = '{:d}',
+            pollInterval = 1,
+        ))           
 
         ##############################
         # Commands
