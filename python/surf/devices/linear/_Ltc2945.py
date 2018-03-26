@@ -84,7 +84,7 @@ class Ltc2945(pr.Device):
             bitSize     = 8, 
             bitOffset   = 0, 
             base        = pr.UInt,
-            mode        = 'RW',
+            mode        = 'RO',
         ))         
         
         self.add(pr.RemoteVariable(  
@@ -94,7 +94,7 @@ class Ltc2945(pr.Device):
             bitSize     = 8, 
             bitOffset   = 0, 
             base        = pr.UInt,
-            mode        = 'RW',
+            mode        = 'RO',
         ))  
 
         self.add(pr.RemoteVariable(  
@@ -104,7 +104,7 @@ class Ltc2945(pr.Device):
             bitSize     = 8, 
             bitOffset   = 0, 
             base        = pr.UInt,
-            mode        = 'RW',
+            mode        = 'RO',
         ))  
         
         self.add(pr.RemoteVariable(  
@@ -234,7 +234,7 @@ class Ltc2945(pr.Device):
             bitSize     = 8, 
             bitOffset   = 0, 
             base        = pr.UInt,
-            mode        = 'RW',
+            mode        = 'RO',
         ))    
 
         self.add(pr.RemoteVariable(  
@@ -244,7 +244,7 @@ class Ltc2945(pr.Device):
             bitSize     = 8, 
             bitOffset   = 0, 
             base        = pr.UInt,
-            mode        = 'RW',
+            mode        = 'RO',
         )) 
 
         self.add(pr.RemoteVariable(  
@@ -334,7 +334,7 @@ class Ltc2945(pr.Device):
             bitSize     = 8, 
             bitOffset   = 0, 
             base        = pr.UInt,
-            mode        = 'RW',
+            mode        = 'RO',
         ))    
 
         self.add(pr.RemoteVariable(  
@@ -344,7 +344,7 @@ class Ltc2945(pr.Device):
             bitSize     = 8, 
             bitOffset   = 0, 
             base        = pr.UInt,
-            mode        = 'RW',
+            mode        = 'RO',
         )) 
 
         self.add(pr.RemoteVariable(  
@@ -434,7 +434,7 @@ class Ltc2945(pr.Device):
             bitSize     = 8, 
             bitOffset   = 0, 
             base        = pr.UInt,
-            mode        = 'RW',
+            mode        = 'RO',
         ))    
 
         self.add(pr.RemoteVariable(  
@@ -444,7 +444,7 @@ class Ltc2945(pr.Device):
             bitSize     = 8, 
             bitOffset   = 0, 
             base        = pr.UInt,
-            mode        = 'RW',
+            mode        = 'RO',
         )) 
 
         self.add(pr.RemoteVariable(  
