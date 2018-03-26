@@ -299,7 +299,7 @@ class Ltc2945(pr.Device):
 
         self.add(pr.RemoteVariable(  
             name        = 'MaxSenseThresholdLsb',
-            description = 'Maximum SENSE Threshold LSB Dto Generate Alert',
+            description = 'Maximum SENSE Threshold LSB to Generate Alert',
             offset      = (0x1B << 2), 
             bitSize     = 8, 
             bitOffset   = 0, 
