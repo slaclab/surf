@@ -25,7 +25,7 @@ class Adc32Rf45Channel(pr.Device):
         description = "Adc32Rf45Channel Module",
         verify      =  False,
         **kwargs):
-        super().__init__(name=name,description=description)
+        super().__init__(name=name,description=description, **kwargs) 
         
         #######################
         # Paging base addresses

@@ -25,7 +25,7 @@ class Ads54J60Channel(pr.Device):
         description = "Ads54J60Channel Module",
         verify      =  False,
         **kwargs):
-        super().__init__(name=name,description=description)         
+        super().__init__(name=name,description=description, **kwargs)         
         
         #######################
         # Paging base addresses
