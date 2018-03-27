@@ -23,20 +23,9 @@ class Adc32Rf45Channel(pr.Device):
     def __init__( self,       
         name        = "Adc32Rf45Channel",
         description = "Adc32Rf45Channel Module",
-        memBase     =  None,
-        offset      =  0x00,
-        hidden      =  False,
         verify      =  False,
-        expand      =  True,
-    ):
-        super().__init__(
-            name        = name,
-            description = description,
-            memBase     = memBase,
-            offset      = offset,
-            hidden      = hidden,
-            expand      = expand,
-        )
+        **kwargs):
+        super().__init__(name=name,description=description, **kwargs) 
         
         #######################
         # Paging base addresses
