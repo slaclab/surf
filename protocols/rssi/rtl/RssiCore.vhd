@@ -120,7 +120,8 @@ end entity RssiCore;
 architecture rtl of RssiCore is
    --
    constant FIFO_ADDR_WIDTH_C   : positive := ite((SEGMENT_ADDR_SIZE_G < 7), 9, SEGMENT_ADDR_SIZE_G+2);
-   constant FIFO_PAUSE_THRESH_C : positive := ((2**FIFO_ADDR_WIDTH_C)-1) - 16;  -- FIFO_FULL - padding (128 bytes)
+   -- constant FIFO_PAUSE_THRESH_C : positive := ((2**FIFO_ADDR_WIDTH_C)-1) - 16;  -- FIFO_FULL - padding (128 bytes)
+   constant FIFO_PAUSE_THRESH_C : positive := (2**FIFO_ADDR_WIDTH_C) - (2**(SEGMENT_ADDR_SIZE_G+1));  -- pause threshold = FIFO_FULL - (2 x segment buffers)
 
    -- RSSI Parameters
    signal s_appRssiParam : RssiParamType;
