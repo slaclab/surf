@@ -2,7 +2,7 @@
 -- File       : AxiStreamDepacketizer
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2016-07-13
+-- Last update: 2018-03-29
 -------------------------------------------------------------------------------
 -- Description: AXI stream DePacketerizer Module (non-interleave only)
 --    Formats an AXI-Stream for a transport link.
@@ -39,7 +39,7 @@ entity AxiStreamDepacketizer is
       axisClk : in sl;
       axisRst : in sl;
 
-      restart : in sl := '0';                  -- Reset the expected frame number back to 0
+      restart : in sl := '0';  -- Reset the expected frame number back to 0
 
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
@@ -94,6 +94,13 @@ architecture rtl of AxiStreamDepacketizer is
    signal outputAxisMaster : AxiStreamMasterType;
    signal outputAxisSlave  : AxiStreamSlaveType;
 
+   -- attribute dont_touch                     : string;
+   -- attribute dont_touch of r                : signal is "TRUE";
+   -- attribute dont_touch of inputAxisMaster  : signal is "TRUE";
+   -- attribute dont_touch of inputAxisSlave   : signal is "TRUE";
+   -- attribute dont_touch of outputAxisMaster : signal is "TRUE";
+   -- attribute dont_touch of outputAxisSlave  : signal is "TRUE";
+
 begin
 
    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -133,30 +140,42 @@ begin
       variable v : RegType;
 
    begin
+      -- Latch the current value
       v := r;
 
+      -- Check for restart
       if (restart = '1') then
          v.startup := '1';
-         v.sof := '1';
+         v.sof     := '1';
       end if;
 
+      -- Reset tready by default
       v.inputAxisSlave.tready := '0';
+
+      -- Check if data accepted
       if (outputAxisSlave.tReady = '1') then
          v.outputAxisMaster(1).tValid := '0';
          v.outputAxisMaster(0).tValid := '0';
       end if;
 
       case r.state is
+         ----------------------------------------------------------------------
          when HEADER_S =>
+            -- Accept new data
             v.inputAxisSlave.tready := '1';
-            v.outputAxisMaster(1)   := axiStreamMasterInit(AXIS_CONFIG_C);
 
+            -- Initialize the AXIS[1] buffer
+            v.outputAxisMaster(1) := axiStreamMasterInit(AXIS_CONFIG_C);
+
+            -- Advance the output pipeline
             if (r.outputAxisMaster(1).tValid = '1' and v.outputAxisMaster(0).tValid = '0') then
                v.outputAxisMaster(0) := r.outputAxisMaster(1);
             end if;
 
-            -- Process the header
+            -- Process an incoming transaction (which should be the header)
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster(1).tValid = '0') then
+
+               -- Default next state if v.state=MOVE_S not applied later in the combinatorial chain
                v.state := MOVE_S;
 
                -- Assign sideband fields
@@ -166,57 +185,73 @@ begin
 
                -- Assert SOF if starting a new frame
                axiStreamSetUserBit(AXIS_CONFIG_C, v.outputAxisMaster(1), SSI_SOF_C, r.sof, 0);  -- SOF
+
+               -- Reset the SOF flag
                v.sof := '0';
 
-               -- Check frame and packet number
+               -- Check for SOF
                if (r.sof = '1') then
+                  -- Update local copy of frame number
                   v.frameNumber  := inputAxisMaster.tData(15 downto 4);
+                  -- Check the packet number because SOF
                   v.packetNumber := (others => '0');
-                  if ((r.startup = '0' and inputAxisMaster.tData(15 downto 4) /= r.frameNumber+1) or
-                      inputAxisMaster.tData(39 downto 16) /= 0) then
+                  -- Check for errors
+                  if ((r.startup = '0' and inputAxisMaster.tData(15 downto 4) /= r.frameNumber+1) or  -- not first value after startup and misalignment in frame number
+                      inputAxisMaster.tData(39 downto 16) /= 0) then  -- packet number != 0 
+                     -- Next state
                      v.state := BLEED_S;  -- Error - Missing frames
                   end if;
+               -- Else this is a continuation 
                else
+                  -- Update local copy of packet number
                   v.packetNumber := inputAxisMaster.tData(39 downto 16);
-                  if (inputAxisMaster.tData(15 downto 4) /= r.frameNumber or
-                      inputAxisMaster.tData(39 downto 16) /= r.packetNumber+1) then
+                  -- Check for errors
+                  if (inputAxisMaster.tData(15 downto 4) /= r.frameNumber or  -- new frame number != local copy of frame number
+                      inputAxisMaster.tData(39 downto 16) /= r.packetNumber+1) then  -- packet number increment by 1 with respect to local copy of packet number
+                     -- Terminate the packet 
                      v.outputAxisMaster(1).tvalid := '1';
                      v.outputAxisMaster(1).tlast  := '1';
+                     -- Set the EOFE flag
                      axiStreamSetUserBit(AXIS_CONFIG_C, v.outputAxisMaster(1), SSI_EOFE_C, '1', 0);
+                     -- Next state
                      v.state                      := BLEED_S;
                   end if;
                end if;
+               -- Update the flags
                v.startup  := '0';
                v.sideband := '1';
             end if;
-
+         ----------------------------------------------------------------------
          when BLEED_S =>
-            -- Blead an entire packet
-            -- Set startup and sof true when done
+            -- Blow off the data
             v.inputAxisSlave.tready      := '1';
             v.outputAxisMaster(1).tvalid := '0';
+            -- Set startup and SOF true
             v.sof                        := '1';
             v.startup                    := '1';
+            -- Check for EOF
             if (inputAxisMaster.tLast = '1') then
                v.state := HEADER_S;
             end if;
-
+         ----------------------------------------------------------------------
          when MOVE_S =>
             -- Keep the caches copy
             v.outputAxisMaster(1).tvalid := r.outputAxisMaster(1).tvalid;
             -- Check if we can move data
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster(0).tValid = '0') then
                -- Accept the data
-               v.inputAxisSlave.tReady      := '1';
+               v.inputAxisSlave.tReady     := '1';
                -- Advance the pipeline
                v.outputAxisMaster(1)       := inputAxisMaster;
                v.outputAxisMaster(0)       := r.outputAxisMaster(1);
                -- Keep sideband data from header
                v.outputAxisMaster(1).tDest := r.outputAxisMaster(1).tDest;
                v.outputAxisMaster(1).tId   := r.outputAxisMaster(1).tId;
+               -- Check for sideband
                if (r.sideband = '1') then
                   -- But tUser only for first output txn
                   v.outputAxisMaster(1).tUser := r.outputAxisMaster(1).tUser;
+                  -- Reset the flag
                   v.sideband                  := '0';
                end if;
                -- End of frame
@@ -255,11 +290,10 @@ begin
                         null;
                   end case;
                   v.outputAxisMaster(1).tLast := v.sof;
-                  v.state := DONE_S;
+                  v.state                     := DONE_S;
                end if;
             end if;
-
-
+         ----------------------------------------------------------------------
          when DONE_S =>
             -- Keep the caches copy
             v.outputAxisMaster(1).tvalid := r.outputAxisMaster(1).tvalid;
@@ -267,15 +301,15 @@ begin
             if (v.outputAxisMaster(0).tValid = '0') then
                -- Advance the pipeline
                v.outputAxisMaster(1).tValid := '0';
-               v.outputAxisMaster(0)        := r.outputAxisMaster(1);         
-               v.state := HEADER_S;
-            end if;            
-            
+               v.outputAxisMaster(0)        := r.outputAxisMaster(1);
+               v.state                      := HEADER_S;
+            end if;
+      ----------------------------------------------------------------------
       end case;
 
       -- Combinatorial outputs before the reset
       inputAxisSlave <= v.inputAxisSlave;
-      
+
       -- Reset
       if (axisRst = '1') then
          v := REG_INIT_C;
@@ -297,4 +331,3 @@ begin
    end process seq;
 
 end architecture rtl;
-
