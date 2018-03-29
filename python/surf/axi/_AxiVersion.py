@@ -214,7 +214,8 @@ class AxiVersion(pr.Device):
             p = parse.parse("{ImageName}: {BuildEnv}, {BuildServer}, Built {BuildDate} by {Builder}", value.strip())
             if p is not None:
                 for k,v in p.named.items():
-                    self.node(k).set(v)
+                    self.node(k).set(v,write=False)
+                self.writeAndVerifyBlocks(recurse=False)
         
         self.add(pr.LocalVariable(
             name = 'ImageName',
