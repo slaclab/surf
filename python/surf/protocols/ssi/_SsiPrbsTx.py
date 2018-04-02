@@ -58,6 +58,7 @@ class SsiPrbsTx(pr.Device):
             bitOffset    =  0x02,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -68,6 +69,7 @@ class SsiPrbsTx(pr.Device):
             bitOffset    =  0x03,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteCommand(    
@@ -128,6 +130,7 @@ class SsiPrbsTx(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -138,6 +141,7 @@ class SsiPrbsTx(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -148,5 +152,6 @@ class SsiPrbsTx(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 

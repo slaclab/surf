@@ -2,7 +2,7 @@
 -- File       : AxiStreamPacketizer
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-29
--- Last update: 2016-08-30
+-- Last update: 2018-03-29
 -------------------------------------------------------------------------------
 -- Description: AXI stream DePacketerizer Module (non-interleave only)
 --    Formats an AXI-Stream for a transport link.
@@ -63,10 +63,12 @@ architecture rtl of AxiStreamPacketizer is
       TUSER_BITS_C  => ite(OUTPUT_SSI_G, 2, 0),
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
 
-
    constant VERSION_C : slv(3 downto 0) := "0000";
 
-   type StateType is (IDLE_S, MOVE_S, TAIL_S);
+   type StateType is (
+      IDLE_S,
+      MOVE_S,
+      TAIL_S);
 
    type RegType is record
       state            : StateType;
@@ -97,143 +99,158 @@ architecture rtl of AxiStreamPacketizer is
    signal outputAxisMaster : AxiStreamMasterType;
    signal outputAxisSlave  : AxiStreamSlaveType;
 
+   -- attribute dont_touch                     : string;
+   -- attribute dont_touch of r                : signal is "TRUE";
+   -- attribute dont_touch of inputAxisMaster  : signal is "TRUE";
+   -- attribute dont_touch of inputAxisSlave   : signal is "TRUE";
+   -- attribute dont_touch of outputAxisMaster : signal is "TRUE";
+   -- attribute dont_touch of outputAxisSlave  : signal is "TRUE";
+
 begin
 
    assert ((MAX_PACKET_BYTES_G rem 8) = 0)
       report "MAX_PACKET_BYTES_G must be a multiple of 8" severity error;
 
-   -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   -----------------
    -- Input pipeline
-   -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-   U_AxiStreamPipeline_Input : entity work.AxiStreamPipeline
+   -----------------
+   U_Input : entity work.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => INPUT_PIPE_STAGES_G)
       port map (
-         axisClk     => axisClk,          -- [in]
-         axisRst     => axisRst,          -- [in]
-         sAxisMaster => sAxisMaster,      -- [in]
-         sAxisSlave  => sAxisSlave,       -- [out]
-         mAxisMaster => inputAxisMaster,  -- [out]
-         mAxisSlave  => inputAxisSlave);  -- [in]
+         axisClk     => axisClk,
+         axisRst     => axisRst,
+         sAxisMaster => sAxisMaster,
+         sAxisSlave  => sAxisSlave,
+         mAxisMaster => inputAxisMaster,
+         mAxisSlave  => inputAxisSlave);
 
-   -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-   -- Output pipeline
-   -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-   U_AxiStreamPipeline_Output : entity work.AxiStreamPipeline
-      generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)
-      port map (
-         axisClk     => axisClk,           -- [in]
-         axisRst     => axisRst,           -- [in]
-         sAxisMaster => outputAxisMaster,  -- [in]
-         sAxisSlave  => outputAxisSlave,   -- [out]
-         mAxisMaster => mAxisMaster,       -- [out]
-         mAxisSlave  => mAxisSlave);       -- [in]
-
-   -------------------------------------------------------------------------------------------------
-   -- Accumulation sequencing, DMA ring buffer, and AXI-Lite logic
-   -------------------------------------------------------------------------------------------------
    comb : process (axisRst, inputAxisMaster, outputAxisSlave, r) is
       variable v : RegType;
 
    begin
+      -- Latch the current value
       v := r;
 
+      -- Reset tready by default
+      v.inputAxisSlave.tready := '0';
+
+      -- Check if data accepted
       if (outputAxisSlave.tReady = '1') then
          v.outputAxisMaster.tValid := '0';
       end if;
 
       case r.state is
+         ----------------------------------------------------------------------
          when IDLE_S =>
+            -- Reset the counter
             v.wordCount := (others => '0');
-
-            -- Will need to insert header, so hold off tReady
-            v.inputAxisSlave.tReady := '0';
-
-            -- Place header on output when new data arrived and previous output clear                           
+            -- Check if ready to move data                         
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
+               -- Initialize the AXIS buffer
                v.outputAxisMaster                     := axiStreamMasterInit(AXIS_CONFIG_C);
-               v.outputAxisMaster.tValid              := inputAxisMaster.tValid;
+               -- Generate the 64-bit header
+               v.outputAxisMaster.tValid              := '1';
                v.outputAxisMaster.tData(3 downto 0)   := VERSION_C;
                v.outputAxisMaster.tData(15 downto 4)  := r.frameNumber;
                v.outputAxisMaster.tData(39 downto 16) := r.packetNumber;
                v.outputAxisMaster.tData(47 downto 40) := inputAxisMaster.tDest(7 downto 0);
                v.outputAxisMaster.tData(55 downto 48) := inputAxisMaster.tId(7 downto 0);
                v.outputAxisMaster.tData(63 downto 56) := inputAxisMaster.tUser(7 downto 0);
+               -- Check if SSI output
                if (OUTPUT_SSI_G) then
+                  -- Set the SOF bit
                   axiStreamSetUserBit(AXIS_CONFIG_C, v.outputAxisMaster, SSI_SOF_C, '1', 0);  -- SOF
                end if;
-               v.state        := MOVE_S;
+               -- Increment the counter
                v.packetNumber := r.packetNumber + 1;
+               -- Next state
+               v.state        := MOVE_S;
             end if;
-
+         ----------------------------------------------------------------------
          when MOVE_S =>
-            v.inputAxisSlave.tReady := '0';  --outputAxisSlave.tReady;
-
+            -- Check if ready to move data   
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
+
+               -- Accept the data
+               v.inputAxisSlave.tReady := '1';
+
                -- Send data through
-               v.inputAxisSlave.tReady   := '1';
-               v.outputAxisMaster        := inputAxisMaster;
-               v.outputAxisMaster.tUser  := (others => '0');
-               v.outputAxisMaster.tDest  := (others => '0');
-               v.outputAxisMaster.tId    := (others => '0');
+               v.outputAxisMaster       := inputAxisMaster;
+               v.outputAxisMaster.tUser := (others => '0');
+               v.outputAxisMaster.tDest := (others => '0');
+               v.outputAxisMaster.tId   := (others => '0');
+               v.outputAxisMaster.tKeep := x"00FF";
 
                -- Increment word count with each txn
                v.wordCount := r.wordCount + 1;
 
                -- Reach max packet size. Append tail.
                if (r.wordCount = MAX_WORD_COUNT_C) then
+                  -- Next state
                   v.state := TAIL_S;
                end if;
 
-               -- End of frame
+               -- Check for the end of the frame
                if (inputAxisMaster.tLast = '1') then
-                  -- Increment frame number, clear packetNumber
+
+                  -- Increment the counter
                   v.frameNumber  := r.frameNumber + 1;
+                  -- Reset the counter
                   v.packetNumber := (others => '0');
+                  -- Next state
                   v.state        := IDLE_S;
 
-                  -- Need to either append tail to current txn or put tail on next txn (TAIL_S)
-                  -- depending on tKeep
-                  v.outputAxisMaster.tKeep := MIN_TKEEP_G or (inputAxisMaster.tKeep(14 downto 0) & '1');
-
+                  ----------------------------------------------------------------------
+                  -- Generate the TAIL with respect to the TKEEP
+                  ----------------------------------------------------------------------
                   case (inputAxisMaster.tKeep) is
-                     when X"0000" =>
+                     when x"0000" =>
+                        v.outputAxisMaster.tKeep             := (x"0001" or MIN_TKEEP_G);
                         v.outputAxisMaster.tData(7 downto 0) := '1' & inputAxisMaster.tUser(6 downto 0);
-                     when X"0001" =>
+                     when x"0001" =>
+                        v.outputAxisMaster.tKeep              := (x"0003" or MIN_TKEEP_G);
                         v.outputAxisMaster.tData(15 downto 8) := '1' & inputAxisMaster.tUser(14 downto 8);
-                     when X"0003" =>
+                     when x"0003" =>
+                        v.outputAxisMaster.tKeep               := (x"0007" or MIN_TKEEP_G);
                         v.outputAxisMaster.tData(23 downto 16) := '1' & inputAxisMaster.tUser(22 downto 16);
-                     when X"0007" =>
+                     when x"0007" =>
+                        v.outputAxisMaster.tKeep               := (x"000F" or MIN_TKEEP_G);
                         v.outputAxisMaster.tData(31 downto 24) := '1' & inputAxisMaster.tUser(30 downto 24);
-                     when X"000F" =>
+                     when x"000F" =>
+                        v.outputAxisMaster.tKeep               := (x"001F" or MIN_TKEEP_G);
                         v.outputAxisMaster.tData(39 downto 32) := '1' & inputAxisMaster.tUser(38 downto 32);
-                     when X"001F" =>
+                     when x"001F" =>
+                        v.outputAxisMaster.tKeep               := (x"003F" or MIN_TKEEP_G);
                         v.outputAxisMaster.tData(47 downto 40) := '1' & inputAxisMaster.tUser(46 downto 40);
-                     when X"003F" =>
+                     when x"003F" =>
+                        v.outputAxisMaster.tKeep               := (x"007F" or MIN_TKEEP_G);
                         v.outputAxisMaster.tData(55 downto 48) := '1' & inputAxisMaster.tUser(54 downto 48);
-                     when X"007F" =>
+                     when x"007F" =>
+                        v.outputAxisMaster.tKeep               := (x"00FF" or MIN_TKEEP_G);
                         v.outputAxisMaster.tData(63 downto 56) := '1' & inputAxisMaster.tUser(62 downto 56);
-                     when others =>     --X"0FFF" or anything else
-                        -- Full tkeep. Add new word for tail
-                        v.outputAxisMaster.tKeep := inputAxisMaster.tKeep;
-                        v.state                  := TAIL_S;
+                     when others =>
+                        -- No room for TAIL this cycle and will add it in the next state
+                        v.outputAxisMaster.tKeep := (x"00FF" or MIN_TKEEP_G);
+                        -- Save the tUser at tLast
                         v.tUserLast              := inputAxisMaster.tUser(7 downto 0);
+                        -- Set the flag
                         v.eof                    := '1';
+                        -- Reset the flag
                         v.outputAxisMaster.tLast := '0';
+                        -- Next state
+                        v.state                  := TAIL_S;
                   end case;
+                  ----------------------------------------------------------------------
 
                end if;
             end if;
-
+         ----------------------------------------------------------------------
          when TAIL_S =>
-            -- Hold off slave side while inserting tail
-            v.inputAxisSlave.tReady := '0';
-
-            -- Insert tail when master side is ready for it
+            -- Check if ready to move data
             if (v.outputAxisMaster.tValid = '0') then
+               -- Generate the footer
                v.outputAxisMaster.tValid            := '1';
                v.outputAxisMaster.tKeep             := MIN_TKEEP_G;  --X"0001";
                v.outputAxisMaster.tData             := (others => '0');
@@ -241,18 +258,20 @@ begin
                v.outputAxisMaster.tData(6 downto 0) := r.tUserLast(6 downto 0);
                v.outputAxisMaster.tUser             := (others => '0');
                v.outputAxisMaster.tLast             := '1';
-               v.eof                                := '0';     -- Clear EOF for next frame
-               v.tUserLast                          := (others => '0');
-               v.state                              := IDLE_S;  -- Go to idle and wait for new data
+               -- Set the flag
+               v.eof                                := '0';
+               -- Next state
+               v.state                              := IDLE_S;
             end if;
-
+      ----------------------------------------------------------------------
       end case;
 
+      -- Match the tStrobe to tKeep
       v.outputAxisMaster.tStrb := v.outputAxisMaster.tKeep;
 
       -- Combinatorial outputs before the reset
       inputAxisSlave <= v.inputAxisSlave;
-      
+
       -- Reset
       if (axisRst = '1') then
          v := REG_INIT_C;
@@ -273,5 +292,19 @@ begin
       end if;
    end process seq;
 
-end architecture rtl;
+   ------------------
+   -- Output pipeline
+   ------------------
+   U_Output : entity work.AxiStreamPipeline
+      generic map (
+         TPD_G         => TPD_G,
+         PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)
+      port map (
+         axisClk     => axisClk,
+         axisRst     => axisRst,
+         sAxisMaster => outputAxisMaster,
+         sAxisSlave  => outputAxisSlave,
+         mAxisMaster => mAxisMaster,
+         mAxisSlave  => mAxisSlave);
 
+end architecture rtl;
