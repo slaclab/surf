@@ -247,8 +247,10 @@ architecture rtl of TxFSM is
       dataH  : sl;
       dataD  : sl;
       resend : sl;
+      
+      ackSndData : sl;
 
-      -- Varionus controls
+      -- Various controls
       txRdy    : sl;
       buffWe   : sl;
       buffSent : sl;
@@ -317,6 +319,8 @@ architecture rtl of TxFSM is
       dataD  => '0',
       resend => '0',
 
+      ackSndData => '0',
+      
       --
       txRdy    => '0',
       buffWe   => '0',
@@ -340,6 +344,12 @@ architecture rtl of TxFSM is
    signal rin               : RegType;
    signal s_chksum          : slv(chksum_i'range);
    signal s_headerAndChksum : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
+   
+   -- attribute dont_touch                      : string;
+   -- attribute dont_touch of r                 : signal is "TRUE";
+   -- attribute dont_touch of s_chksum          : signal is "TRUE";
+   -- attribute dont_touch of s_headerAndChksum : signal is "TRUE";
+   
 begin
 
    -- Send all 0 if checksum disabled
@@ -355,6 +365,9 @@ begin
    begin
       v := r;
 
+      
+      v.ackSndData := '0';
+      
       -- /////////////////////////////////////////////////////////
       ------------------------------------------------------------
       -- Buffer window handling
@@ -656,7 +669,7 @@ begin
 
             -- Hold request until accepted
             -- And not in resend process
-            if (v.dataH = '1' and v.resend = '0') then
+            if (r.ackSndData = '1' and v.resend = '0') then
                -- Increment the rxBuffer
                if r.rxBufferAddr < (windowSize_i-1) then
                   v.rxBufferAddr := r.rxBufferAddr+1;
@@ -697,7 +710,7 @@ begin
 
       -- ///////////////////////////////////////////////////////// 
       ------------------------------------------------------------      
-      -- Initialisation of the parameters when the connection is broken
+      -- Initialization of the parameters when the connection is broken
       if (connActive_i = '0') then
          v.firstUnackAddr := REG_INIT_C.firstUnackAddr;
          v.lastSentAddr   := REG_INIT_C.lastSentAddr;
@@ -736,7 +749,7 @@ begin
       -- /////////////////////////////////////////////////////////  
 
       -- Reset flags 
-      -- These flags will hold if not overidden
+      -- These flags will hold if not overridden
       v.tspSsiMaster := SSI_MASTER_INIT_C;
 
       -- Pipeline incoming slave
@@ -826,7 +839,8 @@ begin
             if (sndRst_i = '1') then
                v.tspState := RST_WE_S;
             elsif (r.sndData = '1' and r.bufferFull = '0') then
-               v.tspState := DATA_WE_S;
+               v.ackSndData := '1';
+               v.tspState   := DATA_WE_S;
             elsif (sndResend_i = '1' and r.bufferEmpty = '0') then
                v.tspState := RESEND_INIT_S;
             elsif (sndAck_i = '1') then
@@ -1144,7 +1158,7 @@ begin
             v.chkStb   := '0';
 
             -- SSI master 
-            -- Leave initialised v.tspSsiMaster
+            -- Leave initialized v.tspSsiMaster
             v.tspSsiMaster.data := r.tspSsiMaster.data;
 
             -- Next state condition
@@ -1180,7 +1194,7 @@ begin
 
             -- Next state condition
             -- Frame size is one word
-            -- Wait for the chksum to be ready
+            -- Wait for the checksum to be ready
             if (chksumValid_i = '1' and tspSsiSlave_i.pause = '0') then
                v.tspSsiMaster.valid := '1';
                v.tspSsiMaster.sof   := '1';
@@ -1278,7 +1292,7 @@ begin
             v.buffWe       := '0';
             v.buffSent     := '1';      -- Increment buffer last sent address(txBuffer)
 
-            -- SSI master (Initialise - stop transmission) 
+            -- SSI master (Initialize - stop transmission) 
             v.tspSsiMaster := SSI_MASTER_INIT_C;
 
             -- Next state
@@ -1351,7 +1365,7 @@ begin
 
             -- Next state condition
             -- Frame size is one word
-            -- Wait for chksumb ready
+            -- Wait for checksum ready
             if (chksumValid_i = '1' and tspSsiSlave_i.pause = '0') then
                v.tspSsiMaster.sof   := '1';
                v.tspSsiMaster.valid := '1';
@@ -1448,7 +1462,7 @@ begin
             v.txHeaderAddr  := (others => '0');
             v.txSegmentAddr := (others => '0');
 
-            -- Increment buffer address (circulary)
+            -- Increment buffer address (circular)
             if r.txBufferAddr < (windowSize_i-1) then
                v.txBufferAddr := r.txBufferAddr+1;
             else
