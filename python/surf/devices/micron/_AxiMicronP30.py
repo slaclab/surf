@@ -30,7 +30,7 @@ class AxiMicronP30(pr.Device):
         super().__init__(
             name        = name, 
             description = description, 
-            size        = (0x1 << 11), 
+            size        = (0x1 << 12), 
             **kwargs)
         
         self._mcs = McsReader()        
