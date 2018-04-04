@@ -29,7 +29,7 @@ class ClinkSerialTx(rogue.interfaces.stream.Master):
         ba = bytearray(4)
         ba[0] = 27
 
-        frame = self._reqFrame(len(ba),True,0)
+        frame = self._reqFrame(len(ba),True)
         frame.write(ba,0)
         self._sendFrame(frame)
 
@@ -41,7 +41,7 @@ class ClinkSerialTx(rogue.interfaces.stream.Master):
             i += 4
         ba[i] = 0x0D
 
-        frame = self._reqFrame(len(ba),True,0)
+        frame = self._reqFrame(len(ba),True)
         frame.write(ba,0)
         self._sendFrame(frame)
 
