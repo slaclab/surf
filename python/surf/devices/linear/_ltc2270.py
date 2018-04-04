@@ -60,7 +60,7 @@ class Ltc2270(pr.Device):
         self.add(pr.RemoteVariable(  
             name        = 'ClkPhase',
             description = 'ClkPhase',
-            offset      = 0x004, 
+            offset      = 0x008, 
             bitSize     = 2, 
             bitOffset   = 1, 
             base        = pr.UInt,
@@ -70,7 +70,7 @@ class Ltc2270(pr.Device):
         self.add(pr.RemoteVariable(  
             name        = 'Dcs',
             description = 'Dcs',
-            offset      = 0x004,
+            offset      = 0x008,
             bitSize     = 1, 
             bitOffset   = 0, 
             base        = pr.Bool,
@@ -80,9 +80,9 @@ class Ltc2270(pr.Device):
         self.add(pr.RemoteVariable(  
             name        = 'ILvds',
             description = 'ILvds',
-            offset      = 0x008, 
+            offset      = 0x00C, 
             bitSize     = 3, 
-            bitOffset   = 3, 
+            bitOffset   = 4, 
             base        = pr.UInt,
             mode        = 'RW',
         ))                
@@ -90,7 +90,7 @@ class Ltc2270(pr.Device):
         self.add(pr.RemoteVariable(  
             name        = 'TermOn',
             description = 'TermOn',
-            offset      = 0x008, 
+            offset      = 0x00C, 
             bitSize     = 1, 
             bitOffset   = 3, 
             base        = pr.Bool,
@@ -100,7 +100,7 @@ class Ltc2270(pr.Device):
         self.add(pr.RemoteVariable(  
             name        = 'OutOff',
             description = 'OutOff',
-            offset      = 0x008, 
+            offset      = 0x00C, 
             bitSize     = 1, 
             bitOffset   = 2, 
             base        = pr.Bool,
@@ -110,7 +110,7 @@ class Ltc2270(pr.Device):
         self.add(pr.RemoteVariable(  
             name        = 'OutMode',
             description = 'OutMode',
-            offset      = 0x008, 
+            offset      = 0x00C, 
             bitSize     = 2, 
             bitOffset   = 0, 
             base        = pr.UInt,
@@ -120,7 +120,7 @@ class Ltc2270(pr.Device):
         self.add(pr.RemoteVariable(  
             name        = 'OutTest',
             description = 'OutTest',
-            offset      = 0x00C, 
+            offset      = 0x010, 
             bitSize     = 3, 
             bitOffset   = 3, 
             base        = pr.UInt,
@@ -130,7 +130,7 @@ class Ltc2270(pr.Device):
         self.add(pr.RemoteVariable(  
             name        = 'Abp',
             description = 'Abp',
-            offset      = 0x00C, 
+            offset      = 0x010, 
             bitSize     = 1, 
             bitOffset   = 2, 
             base        = pr.Bool,
@@ -140,7 +140,7 @@ class Ltc2270(pr.Device):
         self.add(pr.RemoteVariable(  
             name        = 'Rand',
             description = 'Rand',
-            offset      = 0x00C, 
+            offset      = 0x010, 
             bitSize     = 1, 
             bitOffset   = 1, 
             base        = pr.Bool,
@@ -150,7 +150,7 @@ class Ltc2270(pr.Device):
         self.add(pr.RemoteVariable(  
             name        = 'TwoComp',
             description = 'TwoComp',
-            offset      = 0x00C, 
+            offset      = 0x010, 
             bitSize     = 1, 
             bitOffset   = 0, 
             base        = pr.Bool,
