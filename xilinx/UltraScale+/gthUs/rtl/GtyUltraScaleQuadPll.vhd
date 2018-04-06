@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
--- File       : GthUltraScaleQuadPll.vhd
+-- File       : GtyUltraScaleQuadPll.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-12-15
--- Last update: 2018-01-08
+-- Created    : 2018-04-06
+-- Last update: 2018-04-06
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Ultrascale GTH QPLL primitive
 -------------------------------------------------------------------------------
@@ -24,7 +24,7 @@ use work.AxiLitePkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity GthUltraScaleQuadPll is
+entity GtyUltraScaleQuadPll is
    generic (
       -- Simulation Parameters
       TPD_G              : time                     := 1 ns;
@@ -34,7 +34,7 @@ entity GthUltraScaleQuadPll is
       -- QPLL Configuration Parameters
       BIAS_CFG0_G        : slv(15 downto 0)         := x"0000";
       BIAS_CFG1_G        : slv(15 downto 0)         := x"0000";
-      BIAS_CFG2_G        : slv(15 downto 0)         := x"0124";
+      BIAS_CFG2_G        : slv(15 downto 0)         := x"0524";
       BIAS_CFG3_G        : slv(15 downto 0)         := x"0041";
       BIAS_CFG4_G        : slv(15 downto 0)         := x"0010";
       BIAS_CFG_RSVD_G    : slv(15 downto 0)         := X"0000";
@@ -50,7 +50,7 @@ entity GthUltraScaleQuadPll is
       QPLL_CFG2_G        : Slv16Array(1 downto 0)   := (others => x"0FC0");
       QPLL_CFG2_G3_G     : Slv16Array(1 downto 0)   := (others => x"0FC0");
       QPLL_CFG3_G        : Slv16Array(1 downto 0)   := (others => x"0120");
-      QPLL_CFG4_G        : Slv16Array(1 downto 0)   := (others => x"0003");
+      QPLL_CFG4_G        : Slv16Array(1 downto 0)   := (others => x"0002");
       QPLL_CP_G          : Slv10Array(1 downto 0)   := (others => "0011111111");
       QPLL_CP_G3_G       : Slv10Array(1 downto 0)   := (others => "0000001111");
       QPLL_FBDIV_G       : NaturalArray(1 downto 0) := (others => 66);
@@ -84,9 +84,9 @@ entity GthUltraScaleQuadPll is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
-end entity GthUltraScaleQuadPll;
+end entity GtyUltraScaleQuadPll;
 
-architecture mapping of GthUltraScaleQuadPll is
+architecture mapping of GtyUltraScaleQuadPll is
 
    signal gtRefClk0      : slv(1 downto 0);
    signal gtRefClk1      : slv(1 downto 0);
@@ -119,7 +119,7 @@ begin
       gtGRefClk(i)      <= qpllRefClk(i) when QPLL_REFCLK_SEL_G(i) = "111" else '0';
    end generate GEN_CLK_SELECT;
 
-   GTHE4_COMMON_Inst : GTHE4_COMMON
+   GTYE4_COMMON_Inst : GTYE4_COMMON
       generic map (
          AEN_QPLL0_FBDIV       => '1',
          AEN_QPLL1_FBDIV       => '1',
@@ -199,10 +199,17 @@ begin
          SDM0INITSEED0_0       => "0000000100010001",
          SDM0INITSEED0_1       => "000010001",
          SDM1INITSEED0_0       => "0000000100010001",
-         SDM1INITSEED0_1       => "000010001")
+         SDM1INITSEED0_1       => "000010001",
 --         SIM_DEVICE            => SIM_DEVICE_G,
 --         SIM_MODE              => SIM_MODE_G,
---         SIM_RESET_SPEEDUP     => SIM_RESET_SPEEDUP_G)
+--         SIM_RESET_SPEEDUP     => SIM_RESET_SPEEDUP_G,
+         UB_CFG0               => X"0000",
+         UB_CFG1               => X"0000",
+         UB_CFG2               => X"0000",
+         UB_CFG3               => X"0000",
+         UB_CFG4               => X"0000",
+         UB_CFG5               => X"0400",
+         UB_CFG6               => X"0000")
       port map (
          -- DRP Ports
          DRPADDR           => drpAddr,
@@ -225,8 +232,6 @@ begin
          SDM0TESTDATA      => open,
          SDM1FINALOUT      => open,
          SDM1TESTDATA      => open,
-         TCONGPO           => open,
-         TCONRSVDOUT0      => open,
          QPLL0FBCLKLOST    => qPllFbClkLost(0),
          QPLL0LOCK         => qPllLock(0),
          QPLL0OUTCLK       => qPllOutClk(0),
@@ -285,15 +290,35 @@ begin
          SDM1RESET         => '0',
          SDM1TOGGLE        => '0',
          SDM1WIDTH         => (others => '0'),
-         TCONGPI           => (others => '0'),
-         TCONPOWERUP       => '0',
-         TCONRESET         => (others => '0'),
-         TCONRSVDIN1       => (others => '0'),
          QPLLRSVD1         => (others => '0'),
          QPLLRSVD2         => (others => '0'),
          QPLLRSVD3         => (others => '0'),
          QPLLRSVD4         => (others => '0'),
-         RCALENB           => '1');
+         RCALENB           => '1',
+         -- UB Ports
+         UBDADDR           => open,
+         UBDEN             => open,
+         UBDI              => open,
+         UBDWE             => open,
+         UBMDMTDO          => open,
+         UBRSVDOUT         => open,
+         UBTXUART          => open,
+         UBCFGSTREAMEN     => '0',
+         UBDO              => (others => '0'),
+         UBDRDY            => '0',
+         UBENABLE          => '0',
+         UBGPI             => (others => '0'),
+         UBINTR            => (others => '0'),
+         UBIOLMBRST        => '0',
+         UBMBRST           => '0',
+         UBMDMCAPTURE      => '0',
+         UBMDMDBGRST       => '0',
+         UBMDMDBGUPDATE    => '0',
+         UBMDMREGEN        => (others => '0'),
+         UBMDMSHIFT        => '0',
+         UBMDMSYSRST       => '0',
+         UBMDMTCK          => '0',
+         UBMDMTDI          => '0');
 
    U_AxiLiteToDrp : entity work.AxiLiteToDrp
       generic map (
