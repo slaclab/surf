@@ -2,7 +2,7 @@
 -- File       : AxiAds42lb69Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-03-20
--- Last update: 2018-01-08
+-- Last update: 2015-05-19
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to ADS42LB69 ADC IC
 -------------------------------------------------------------------------------
@@ -33,6 +33,7 @@ entity AxiAds42lb69Core is
       DMODE_INIT_G       : slv(1 downto 0)                         := "00";
       DELAY_INIT_G       : Slv9VectorArray(1 downto 0, 7 downto 0) := (others => (others => (others => '0')));
       IODELAY_GROUP_G    : string                                  := "AXI_ADS42LB69_IODELAY_GRP";
+      AXI_ERROR_RESP_G   : slv(1 downto 0)                         := AXI_RESP_SLVERR_C;
       XIL_DEVICE_G       : string                                  := "7SERIES"
    );      
    port (
@@ -60,22 +61,42 @@ architecture mapping of AxiAds42lb69Core is
    signal status : AxiAds42lb69StatusType;
    signal config : AxiAds42lb69ConfigType;
    signal adcDataCnv : Slv16Array(1 downto 0);
+   signal convert    : slv(1 downto 0);
+   signal invert     : slv(1 downto 0);
    
 begin
+   
+   SynchVector0_Inst : entity work.SynchronizerVector
+      generic map(
+         TPD_G   => TPD_G,
+         WIDTH_G => 2)
+      port map(
+         clk     => adcClk,
+         dataIn  => config.convert,
+         dataOut => convert);
+   
+   SynchVector1_Inst : entity work.SynchronizerVector
+      generic map(
+         TPD_G   => TPD_G,
+         WIDTH_G => 2)
+      port map(
+         clk     => adcClk,
+         dataIn  => config.invert,
+         dataOut => invert);
    
    GEN_INVERT : for i in 1 downto 0 generate
       process (adcClk) is
       begin
          if (rising_edge(adcClk)) then
             -- option to convert 2s complement data to binary
-            if config.convert(i) = '1' then
+            if convert(i) = '1' then
                adcDataCnv(i) <= status.adcData(i) - x"8000";
             else
                adcDataCnv(i) <= status.adcData(i);
             end if;
             -- option to invert data
             -- useful when the PCB polarity is swapped
-            if config.invert(i) = '1' then
+            if invert(i) = '1' then
                adcData(i) <= x"FFFF" - adcDataCnv(i);
             else
                adcData(i) <= adcDataCnv(i);
@@ -89,7 +110,8 @@ begin
          TPD_G              => TPD_G,
          SIM_SPEEDUP_G      => SIM_SPEEDUP_G,
          ADC_CLK_FREQ_G     => ADC_CLK_FREQ_G,
-         DMODE_INIT_G       => DMODE_INIT_G)
+         DMODE_INIT_G       => DMODE_INIT_G,
+         AXI_ERROR_RESP_G   => AXI_ERROR_RESP_G)
       port map(
          -- AXI-Lite Register Interface (axiClk domain)
          axiReadMaster  => axiReadMaster,
