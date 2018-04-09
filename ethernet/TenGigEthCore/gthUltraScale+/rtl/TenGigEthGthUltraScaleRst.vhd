@@ -2,7 +2,7 @@
 -- File       : TenGigEthGthUltraScaleRst.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-04-06
--- Last update: 2018-04-06
+-- Last update: 2018-04-09
 -------------------------------------------------------------------------------
 -- Description: 10GBASE-R Ethernet Reset Module
 -------------------------------------------------------------------------------
@@ -46,17 +46,8 @@ architecture rtl of TenGigEthGthUltraScaleRst is
 
 begin
 
-   phyClk <= phyClock;
-
-   U_BUFG : BUFG_GT
-      port map (
-         I       => txGtClk,
-         CE      => '1',
-         CEMASK  => '1',
-         CLR     => '0',
-         CLRMASK => '1',
-         DIV     => "000",
-         O       => phyClock);
+   phyClk   <= phyClock;
+   phyClock <= txGtClk;
 
    U_RstSync : entity work.RstSync
       generic map (
