@@ -2,7 +2,7 @@
 -- File       : TenGigEthGtyUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-04-06
--- Last update: 2018-04-06
+-- Last update: 2018-04-09
 -------------------------------------------------------------------------------
 -- Description: 10GBASE-R Ethernet for GTH Ultra Scale
 -------------------------------------------------------------------------------
@@ -281,7 +281,7 @@ begin
          qpll0clk_in(0)                      => qplloutclk(0),
          qpll0refclk_in(0)                   => qplloutrefclk(0),
          qpll1clk_in(0)                      => qplloutclk(1),
-         qpll1refclk_in(0)                   => qplloutrefclk(0),
+         qpll1refclk_in(0)                   => qplloutrefclk(1),
          gtwiz_reset_qpll0lock_in            => qplllock(0),
          gtwiz_reset_qpll0reset_out          => qpllRst(0),
          gtwiz_reset_qpll1lock_in            => qplllock(1),
