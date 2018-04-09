@@ -22,6 +22,7 @@ use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.AxiLitePkg.all;
+use work.EthMacPkg.all;
 use work.TenGigEthPkg.all;
 
 entity TenGigEthGthUltraScaleWrapper is
@@ -51,10 +52,6 @@ entity TenGigEthGthUltraScaleWrapper is
       axiLiteReadSlaves   : out AxiLiteReadSlaveArray(NUM_LANE_G-1 downto 0);
       axiLiteWriteMasters : in  AxiLiteWriteMasterArray(NUM_LANE_G-1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
       axiLiteWriteSlaves  : out AxiLiteWriteSlaveArray(NUM_LANE_G-1 downto 0);
-      -- SFP+ Ports
-      sigDet              : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '1');
-      txFault             : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '0');
-      txDisable           : out slv(NUM_LANE_G-1 downto 0);
       -- Misc. Signals
       extRst              : in  sl;
       coreClk             : out sl;
@@ -82,12 +79,12 @@ end TenGigEthGthUltraScaleWrapper;
 
 architecture mapping of TenGigEthGthUltraScaleWrapper is
 
-   signal qplllock      : sl;
-   signal qplloutclk    : sl;
-   signal qplloutrefclk : sl;
+   signal qplllock      : slv(1 downto 0);
+   signal qplloutclk    : slv(1 downto 0);
+   signal qplloutrefclk : slv(1 downto 0);
 
-   signal qpllRst   : slv(NUM_LANE_G-1 downto 0);
-   signal qpllReset : sl;
+   signal qpllRst   : Slv2Array(3 downto 0) := (others=>"00");
+   signal qpllReset : slv(1 downto 0);
 
    signal coreClock : sl;
    signal coreReset : sl;
@@ -130,7 +127,8 @@ begin
          qplloutrefclk => qplloutrefclk,
          qpllRst       => qpllReset);            
 
-   qpllReset <= uOr(qpllRst) and not(qPllLock);
+   qpllReset(0) <= (qpllRst(0)(0) or qpllRst(1)(0) or qpllRst(2)(0) or qpllRst(3)(0)) and not(qPllLock(0));
+   qpllReset(1) <= (qpllRst(0)(1) or qpllRst(1)(1) or qpllRst(2)(1) or qpllRst(3)(1)) and not(qPllLock(1));
 
    ----------------
    -- 10GigE Module 
@@ -162,13 +160,9 @@ begin
             axiLiteReadSlave   => axiLiteReadSlaves(i),
             axiLiteWriteMaster => axiLiteWriteMasters(i),
             axiLiteWriteSlave  => axiLiteWriteSlaves(i),
-            -- SFP+ Ports
-            sigDet             => sigDet(i),
-            txFault            => txFault(i),
-            txDisable          => txDisable(i),
             -- Misc. Signals
-            extRst             => coreReset,
             coreClk            => coreClock,
+            coreRst            => coreReset,
             phyClk             => phyClk(i),
             phyRst             => phyRst(i),
             phyReady           => phyReady(i),
@@ -182,6 +176,7 @@ begin
             qplllock           => qplllock,
             qplloutclk         => qplloutclk,
             qplloutrefclk      => qplloutrefclk,
+            qpllRst            => qpllRst(i),            
             -- MGT Ports
             gtTxP              => gtTxP(i),
             gtTxN              => gtTxN(i),
