@@ -2,7 +2,7 @@
 -- File       : AxiMicronMt28ewReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-04-10
--- Last update: 2018-04-10
+-- Last update: 2018-04-11
 -------------------------------------------------------------------------------
 -- Description: This controller is designed around the Micron MT28EW FLASH IC.
 -------------------------------------------------------------------------------
@@ -84,7 +84,7 @@ architecture rtl of AxiMicronMt28ewReg is
       -- Block Transfer signals
       blockRd       : sl;
       blockWr       : sl;
-      blockCnt      : slv(3 downto 0);
+      blockCnt      : slv(7 downto 0);
       xferSize      : slv(7 downto 0);
       -- RAM Buffer Signals
       ramRd         : slv(1 downto 0);
@@ -109,7 +109,7 @@ architecture rtl of AxiMicronMt28ewReg is
       cnt           => 0,
       din           => x"0000",
       dataReg       => x"0000",
-      baseAddr          => (others => '0'),
+      baseAddr      => (others => '0'),
       addr          => (others => '0'),
       wrData        => (others => '0'),
       test          => (others => '0'),
@@ -135,9 +135,9 @@ architecture rtl of AxiMicronMt28ewReg is
 
    signal ramDout : slv(15 downto 0);
 
-   -- attribute dont_touch             : string;
-   -- attribute dont_touch of r        : signal is "true";
-   -- attribute dont_touch of ramDout  : signal is "true";
+   -- attribute dont_touch            : string;
+   -- attribute dont_touch of r       : signal is "true";
+   -- attribute dont_touch of ramDout : signal is "true";
 
 begin
 
@@ -173,7 +173,6 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Reset variables
-            v.lockCmd  := '0';
             v.blockRd  := '0';
             v.blockWr  := '0';
             v.blockCnt := x"00";
@@ -198,7 +197,7 @@ begin
                      -------------------------
                      when x"00" =>
                         -- Get the input data bus
-                        v.axiReadSlave.rdata(15 downto 0)  := r.wrData;
+                        v.axiReadSlave.rdata(15 downto 0) := r.wrData;
                      when x"04" =>
                         -- Get the RnW
                         v.axiReadSlave.rdata(31)          := r.RnW;
@@ -256,7 +255,8 @@ begin
                         v.xferSize := axiWriteMaster.wdata(7 downto 0);
                      when x"84" =>
                         -- Set the address bus
-                        v.baseAddr := axiWriteMaster.wdata(30 downto 0);                     
+                        v.addr     := axiWriteMaster.wdata(30 downto 0);
+                        v.baseAddr := axiWriteMaster.wdata(30 downto 0);
                         -- Check the mode
                         if (axiWriteMaster.wdata(31) = '1') then
                            -- Set the flag
@@ -304,78 +304,12 @@ begin
                -- Next state
                v.state    := DATA_LOW_S;
             end if;
-            
-            
-            
-            
-         ----------------------------------------------------------------------
-         when BLOCK_RD_S =>
-            -- Reset the bus
-            v.addr := (others=>'0');
-            -- Default next state
-            v.state := DATA_LOW_S;            
-            -- Increment the counter
-            v.blockCnt := r.blockCnt + 1;
-            -- Check the counter
-            case r.blockCnt is
-               when x"0" =>
-                  v.RnW                 := '0';
-                  v.addr(15 downto 0)   := x"0555";
-                  v.wrData(15 downto 0) := x"00AA";
-               when x"1" =>
-                  v.RnW                 := '0';
-                  v.addr(15 downto 0)   := x"02AA";
-                  v.wrData(15 downto 0) := x"0055";  
-                  
-                  
-                  
-
-
-                  
-               when x"2" =>
-                  v.RnW                 := '0';
-                  v.addr(15 downto 0)   := x"0555";
-                  v.wrData(15 downto 0) := x"00A0";               
-               when x"3" =>
-                  v.RnW    := '0';
-                  v.addr   := r.baseAddr;
-                  v.wrData := ramDout;  -- Send the BRAM data
-               when x"4" =>
-                  v.RnW    := '1';
-                  v.addr   := r.baseAddr;
-                  v.wrData := x"00FF";
-               when others =>
-                  -- Check if FLASH is still busy
-                  if r.dataReg(7) /= ramDout(7) then
-                     -- Keep the register counter value
-                     v.blockCnt := r.blockCnt;
-                     -- Get the status register
-                     v.RnW      := '1';
-                     v.addr   := r.baseAddr;
-                     v.wrData := x"00FF";
-                  else
-                     -- Check the Block RAM address
-                     if (r.raddr = r.xferSize) then
-                        -- Next state
-                        v.state := IDLE_S;                     
-                     else
-                        -- Reset the counter
-                        v.blockCnt := x"1";                  
-                        -- Increment the counter
-                        v.baseAddr    := r.baseAddr + 1;                  
-                        -- Start next program cycle
-                        v.RnW                 := '0';
-                        v.addr(15 downto 0)   := x"0555";
-                        v.wrData(15 downto 0) := x"00AA";
-                     end if;
-                  end if;
-            end case;
          ----------------------------------------------------------------------
          when BLOCK_WR_S =>
             -- Reset the bus
-            v.addr := (others=>'0');
+            v.addr     := (others => '0');
             -- Default next state
-            v.state := DATA_LOW_S;            
+            v.state    := DATA_LOW_S;
             -- Increment the counter
             v.blockCnt := r.blockCnt + 1;
             -- Check the counter
@@ -387,11 +321,11 @@ begin
                when x"1" =>
                   v.RnW                 := '0';
                   v.addr(15 downto 0)   := x"02AA";
-                  v.wrData(15 downto 0) := x"0055";               
+                  v.wrData(15 downto 0) := x"0055";
                when x"2" =>
                   v.RnW                 := '0';
                   v.addr(15 downto 0)   := x"0555";
-                  v.wrData(15 downto 0) := x"00A0";               
+                  v.wrData(15 downto 0) := x"00A0";
                when x"3" =>
                   v.RnW    := '0';
                   v.addr   := r.baseAddr;
@@ -407,18 +341,18 @@ begin
                      v.blockCnt := r.blockCnt;
                      -- Get the status register
                      v.RnW      := '1';
-                     v.addr   := r.baseAddr;
-                     v.wrData := x"00FF";
+                     v.addr     := r.baseAddr;
+                     v.wrData   := x"00FF";
                   else
                      -- Check the Block RAM address
                      if (r.raddr = r.xferSize) then
                         -- Next state
-                        v.state := IDLE_S;                     
+                        v.state := IDLE_S;
                      else
                         -- Reset the counter
-                        v.blockCnt := x"1";                  
+                        v.blockCnt            := x"1";
                         -- Increment the counter
-                        v.baseAddr    := r.baseAddr + 1;                  
+                        v.baseAddr            := r.baseAddr + 1;
                         -- Start next program cycle
                         v.RnW                 := '0';
                         v.addr(15 downto 0)   := x"0555";
@@ -426,18 +360,6 @@ begin
                      end if;
                   end if;
             end case;
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
          ----------------------------------------------------------------------
          when DATA_LOW_S =>
             v.ceL      := '0';

@@ -2,7 +2,7 @@
 -- File       : AxiMicronMt28ewCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-04-10
--- Last update: 2018-04-10
+-- Last update: 2018-04-11
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to Micron MT28EW FLASH IC
 -------------------------------------------------------------------------------
@@ -32,7 +32,6 @@ entity AxiMicronMt28ewCore is
       AXI_CLK_FREQ_G  : real             := 200.0E+6);  -- units of Hz
    port (
       -- FLASH Interface 
-      flashIn        : in    AxiMicronMt28ewInType;
       flashInOut     : inout AxiMicronMt28ewInOutType;
       flashOut       : out   AxiMicronMt28ewOutType;
       -- AXI-Lite Register Interface

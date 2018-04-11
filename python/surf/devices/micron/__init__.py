@@ -8,6 +8,7 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+from surf.devices.micron._AxiMicronMt28ew import *
 from surf.devices.micron._AxiMicronN25Q import *
 from surf.devices.micron._AxiMicronP30 import *
 from surf.devices.micron._DdrSpd import *
