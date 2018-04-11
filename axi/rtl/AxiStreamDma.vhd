@@ -2,7 +2,7 @@
 -- File       : AxiStreamDma.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2017-05-03
+-- Last update: 2018-02-12
 -------------------------------------------------------------------------------
 -- Description:
 -- Generic AXI Stream DMA block for frame at a time transfers.
@@ -207,7 +207,7 @@ architecture structure of AxiStreamDma is
    -- attribute dont_touch of ib    : signal is "true";
    -- attribute dont_touch of ibAck : signal is "true";
    -- attribute dont_touch of ibReq : signal is "true";
-   
+
 begin
 
    process (axiClk) is
@@ -226,7 +226,7 @@ begin
             NUM_SLAVE_SLOTS_G  => 1,
             NUM_MASTER_SLOTS_G => 2,
             DEC_ERROR_RESP_G   => AXI_RESP_OK_C,
-            MASTERS_CONFIG_G   => AXI_CROSSBAR_MASTERS_CONFIG_C) 
+            MASTERS_CONFIG_G   => AXI_CROSSBAR_MASTERS_CONFIG_C)
          port map (
             axiClk           => axiClk,
             axiClkRst        => axiRst,
@@ -249,27 +249,27 @@ begin
 
    U_SwFifos : entity work.AxiLiteFifoPushPop
       generic map (
-         TPD_G             => TPD_G,
-         POP_FIFO_COUNT_G  => 2,
-         POP_SYNC_FIFO_G   => true,
-         POP_BRAM_EN_G     => true,
-         POP_ADDR_WIDTH_G  => POP_ADDR_WIDTH_C,
-         POP_FULL_THRES_G  => POP_FIFO_PFULL_C,
-         LOOP_FIFO_EN_G    => false,
-         LOOP_FIFO_COUNT_G => 1,
-         LOOP_BRAM_EN_G    => false,
-         LOOP_ADDR_WIDTH_G => 9,
-         PUSH_FIFO_COUNT_G => 2,
-         PUSH_SYNC_FIFO_G  => true,
-         PUSH_BRAM_EN_G    => true,
-         PUSH_ADDR_WIDTH_G => PUSH_ADDR_WIDTH_C,
-         RANGE_LSB_G       => 8,
-         VALID_POSITION_G  => 31,
-         VALID_POLARITY_G  => '1',
-         ALTERA_SYN_G      => false,
-         ALTERA_RAM_G      => "M9K",
-         USE_BUILT_IN_G    => false,
-         XIL_DEVICE_G      => "7SERIES") 
+         TPD_G              => TPD_G,
+         POP_FIFO_COUNT_G   => 2,
+         POP_SYNC_FIFO_G    => true,
+         POP_BRAM_EN_G      => true,
+         POP_ADDR_WIDTH_G   => POP_ADDR_WIDTH_C,
+         POP_FULL_THRES_G   => POP_FIFO_PFULL_C,
+         LOOP_FIFO_EN_G     => false,
+         LOOP_FIFO_COUNT_G  => 1,
+         LOOP_BRAM_EN_G     => false,
+         LOOP_ADDR_WIDTH_G  => 9,
+         PUSH_FIFO_COUNT_G  => 2,
+         PUSH_SYNC_FIFO_G   => true,
+         PUSH_BRAM_EN_G     => true,
+         PUSH_ADDR_WIDTH_G  => PUSH_ADDR_WIDTH_C,
+         RANGE_LSB_G        => 8,
+         VALID_POSITION_G   => 31,
+         VALID_POLARITY_G   => '1',
+         ALTERA_SYN_G       => false,
+         ALTERA_RAM_G       => "M9K",
+         USE_BUILT_IN_G     => false,
+         FIFO_MEMORY_TYPE_G => "block")
       port map (
          axiClk         => axiClk,
          axiClkRst      => axiRst,
@@ -390,7 +390,7 @@ begin
       online            <= r.online;
       intReadSlaves(0)  <= r.axiReadSlave;
       intWriteSlaves(0) <= r.axiWriteSlave;
-      
+
    end process;
 
    -------------------------------------
@@ -405,7 +405,7 @@ begin
          AXI_BURST_G    => AXI_BURST_G,
          AXI_CACHE_G    => AXI_CACHE_G,
          SW_CACHE_EN_G  => true,
-         BYP_SHIFT_G    => BYP_SHIFT_G) 
+         BYP_SHIFT_G    => BYP_SHIFT_G)
       port map (
          axiClk         => axiClk,
          axiRst         => axiRst,
@@ -430,7 +430,7 @@ begin
 
          when IDLE_S =>
             v.ibReq.address(31 downto 0) := pushFifoDout(IB_FIFO_C)(31 downto 0);
-            v.ibReq.maxSize := x"00" & r.maxRxSize;
+            v.ibReq.maxSize              := x"00" & r.maxRxSize;
 
             if pushFifoValid(IB_FIFO_C) = '1' and popFifoPFull(IB_FIFO_C) = '0' then
                v.ibReq.request := '1';
@@ -500,7 +500,7 @@ begin
          AXI_CACHE_G     => AXI_CACHE_G,
          SW_CACHE_EN_G   => true,
          PEND_THRESH_G   => PEND_THRESH_G,
-         BYP_SHIFT_G     => BYP_SHIFT_G) 
+         BYP_SHIFT_G     => BYP_SHIFT_G)
       port map (
          axiClk        => axiClk,
          axiRst        => axiRst,
@@ -601,5 +601,5 @@ begin
       popFifoDin(OB_FIFO_C)   <= ob.popFifoDin;
 
    end process;
-   
+
 end structure;

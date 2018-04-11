@@ -32,17 +32,17 @@ entity SsiPrbsTx is
       TPD_G                      : time                    := 1 ns;
       AXI_EN_G                   : sl                      := '1';
       -- FIFO Configurations
-      VALID_THOLD_G              : natural                 := 1;
-      VALID_BURST_MODE_G         : boolean                 := false;
-      BRAM_EN_G                  : boolean                 := true;
-      XIL_DEVICE_G               : string                  := "7SERIES";
-      USE_BUILT_IN_G             : boolean                 := false;
-      GEN_SYNC_FIFO_G            : boolean                 := false;
-      ALTERA_SYN_G               : boolean                 := false;
-      ALTERA_RAM_G               : string                  := "M9K";
-      CASCADE_SIZE_G             : positive                := 1;
-      FIFO_ADDR_WIDTH_G          : positive                := 9;
-      FIFO_PAUSE_THRESH_G        : positive                := 2**8;
+      VALID_THOLD_G              : integer range 0 to (2**24) := 1;
+      VALID_BURST_MODE_G         : boolean                    := false;
+      BRAM_EN_G                  : boolean                    := true;
+      FIFO_MEMORY_TYPE_G         : string                     := "block";
+      USE_BUILT_IN_G             : boolean                    := false;
+      GEN_SYNC_FIFO_G            : boolean                    := false;
+      ALTERA_SYN_G               : boolean                    := false;
+      ALTERA_RAM_G               : string                     := "M9K";
+      CASCADE_SIZE_G             : natural range 1 to (2**24) := 1;
+      FIFO_ADDR_WIDTH_G          : natural range 4 to 48      := 9;
+      FIFO_PAUSE_THRESH_G        : natural range 1 to (2**24) := 2**8;
       -- PRBS Configurations
       PRBS_SEED_SIZE_G           : natural range 32 to 128 := 32;
       PRBS_TAPS_G                : NaturalArray            := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
@@ -369,7 +369,7 @@ begin
          VALID_BURST_MODE_G  => VALID_BURST_MODE_G,
          -- FIFO configurations
          BRAM_EN_G           => BRAM_EN_G,
-         XIL_DEVICE_G        => XIL_DEVICE_G,
+         FIFO_MEMORY_TYPE_G  => FIFO_MEMORY_TYPE_G,
          USE_BUILT_IN_G      => USE_BUILT_IN_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          ALTERA_SYN_G        => ALTERA_SYN_G,

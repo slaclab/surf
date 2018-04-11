@@ -30,6 +30,7 @@ entity SimpleDualPortRam is
       DOB_REG_G      : boolean                    := false;  -- Extra reg on doutb (folded into BRAM)
       ALTERA_SYN_G   : boolean                    := false;
       ALTERA_RAM_G   : string                     := "M9K";
+      XILINX_RAM_G   : string                     := "block";
       BYTE_WR_EN_G   : boolean                    := false;
       DATA_WIDTH_G   : integer range 1 to (2**24) := 16;
       BYTE_WIDTH_G   : integer                    := 8;    -- If BRAM, should be multiple or 8 or 9
@@ -61,7 +62,7 @@ architecture rtl of SimpleDualPortRam is
 
    constant INIT_C : slv(FULL_DATA_WIDTH_C-1 downto 0) := ite(INIT_G = "0", slvZero(FULL_DATA_WIDTH_C), INIT_G);
 
-   constant XST_BRAM_STYLE_C    : string := ite(BRAM_EN_G, "block", "distributed");
+   constant XST_BRAM_STYLE_C    : string := ite(BRAM_EN_G, XILINX_RAM_G, "distributed");
    constant ALTERA_BRAM_STYLE_C : string := ite(BRAM_EN_G, ALTERA_RAM_G, "MLAB");
 
    -- Shared memory 

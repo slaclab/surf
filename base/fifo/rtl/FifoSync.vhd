@@ -2,7 +2,7 @@
 -- File       : FifoSync.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2016-10-27
+-- Last update: 2018-02-12
 -------------------------------------------------------------------------------
 -- Description: SYNC FIFO module
 -------------------------------------------------------------------------------
@@ -24,21 +24,21 @@ use work.StdRtlPkg.all;
 
 entity FifoSync is
    generic (
-      TPD_G          : time                       := 1 ns;
-      RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
-      RST_ASYNC_G    : boolean                    := false;
-      BRAM_EN_G      : boolean                    := true;
-      BYP_RAM_G      : boolean                    := false;
-      FWFT_EN_G      : boolean                    := false;
-      USE_DSP48_G    : string                     := "no";
-      ALTERA_SYN_G   : boolean                    := false;
-      ALTERA_RAM_G   : string                     := "M9K";
-      PIPE_STAGES_G  : natural range 0 to 16      := 0;
-      DATA_WIDTH_G   : integer range 1 to (2**24) := 16;
-      ADDR_WIDTH_G   : integer range 4 to 48      := 4;
-      INIT_G         : slv                        := "0";
-      FULL_THRES_G   : integer range 1 to (2**24) := 1;
-      EMPTY_THRES_G  : integer range 1 to (2**24) := 1);
+      TPD_G              : time                       := 1 ns;
+      RST_POLARITY_G     : sl                         := '1';  -- '1' for active high rst, '0' for active low
+      RST_ASYNC_G        : boolean                    := false;
+      BRAM_EN_G          : boolean                    := true;
+      BYP_RAM_G          : boolean                    := false;
+      FWFT_EN_G          : boolean                    := false;
+      ALTERA_SYN_G       : boolean                    := false;
+      ALTERA_RAM_G       : string                     := "M9K";
+      FIFO_MEMORY_TYPE_G : string                     := "block";
+      PIPE_STAGES_G      : natural range 0 to 16      := 0;
+      DATA_WIDTH_G       : integer range 1 to (2**24) := 16;
+      ADDR_WIDTH_G       : integer range 4 to 48      := 4;
+      INIT_G             : slv                        := "0";
+      FULL_THRES_G       : integer range 1 to (2**24) := 1;
+      EMPTY_THRES_G      : integer range 1 to (2**24) := 1);
    port (
       rst          : in  sl := not RST_POLARITY_G;
       clk          : in  sl;
@@ -85,7 +85,7 @@ architecture rtl of FifoSync is
    constant READ_STATUS_INIT_C : ReadStatusType := (
       prog_empty   => '1',
       almost_empty => '1',
-      empty        => '1');   
+      empty        => '1');
    signal fifoStatus, fwftStatus : ReadStatusType := READ_STATUS_INIT_C;
 
    signal raddr : slv (ADDR_WIDTH_G-1 downto 0);
@@ -103,12 +103,6 @@ architecture rtl of FifoSync is
    signal sValid,
       sRdEn : sl;
 
-   -- Attribute for XST
-   attribute use_dsp48          : string;
-   attribute use_dsp48 of raddr : signal is USE_DSP48_G;
-   attribute use_dsp48 of waddr : signal is USE_DSP48_G;
-   attribute use_dsp48 of cnt   : signal is USE_DSP48_G;
-   
 begin
 
    -- FULL_THRES_G upper range check
@@ -118,10 +112,6 @@ begin
    -- EMPTY_THRES_G upper range check
    assert (EMPTY_THRES_G <= ((2**ADDR_WIDTH_G)-2))
       report "EMPTY_THRES_G must be <= ((2**ADDR_WIDTH_G)-2)"
-      severity failure;
-   -- USE_DSP48_G check
-   assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
-      report "USE_DSP48_G must be either yes, no, auto, or automax"
       severity failure;
    -- INIT_G length check
    assert (INIT_G = "0" or INIT_G'length = DATA_WIDTH_G) report
@@ -191,7 +181,7 @@ begin
    end generate;
 
    FWFT_Gen : if (FWFT_EN_G = true) generate
-      
+
       FifoOutputPipeline_Inst : entity work.FifoOutputPipeline
          generic map (
             TPD_G          => TPD_G,
@@ -287,7 +277,7 @@ begin
             elsif (readEnable = '0') and (wr_en = '1') and (fullStatus = '0') then
                cnt <= cnt + 1 after TPD_G;
             end if;
-            
+
          end if;
       end if;
    end process;
@@ -315,10 +305,11 @@ begin
       SimpleDualPortRam_Inst : entity work.SimpleDualPortRam
          generic map(
             TPD_G          => TPD_G,
-            RST_POLARITY_G => '1',      -- portB.rst already converted to active high
+            RST_POLARITY_G => '1',  -- portB.rst already converted to active high
             BRAM_EN_G      => BRAM_EN_G,
             ALTERA_SYN_G   => ALTERA_SYN_G,
             ALTERA_RAM_G   => ALTERA_RAM_G,
+            XILINX_RAM_G   => FIFO_MEMORY_TYPE_G,
             DATA_WIDTH_G   => DATA_WIDTH_G,
             ADDR_WIDTH_G   => ADDR_WIDTH_G,
             INIT_G         => INIT_C)
@@ -334,7 +325,7 @@ begin
             enb   => portB.en,
             rstb  => '0',               -- Rely on rd/wr ptrs
             addrb => portB.addr,
-            doutb => portB.dout);  
+            doutb => portB.dout);
    end generate;
 
 end rtl;

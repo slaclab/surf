@@ -2,7 +2,7 @@
 -- File       : FifoCascade.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-10
--- Last update: 2014-09-23
+-- Last update: 2018-02-12
 -------------------------------------------------------------------------------
 -- Description: Wrapper for cascading FWFT FIFOs together
 -------------------------------------------------------------------------------
@@ -31,11 +31,10 @@ entity FifoCascade is
       GEN_SYNC_FIFO_G    : boolean                    := false;
       BRAM_EN_G          : boolean                    := true;
       FWFT_EN_G          : boolean                    := false;
-      USE_DSP48_G        : string                     := "no";
       ALTERA_SYN_G       : boolean                    := false;
       ALTERA_RAM_G       : string                     := "M9K";
       USE_BUILT_IN_G     : boolean                    := false;  -- If set to true, this module is only Xilinx compatible only!!!
-      XIL_DEVICE_G       : string                     := "7SERIES";  -- Xilinx only generic parameter    
+      FIFO_MEMORY_TYPE_G : string                     := "block";
       SYNC_STAGES_G      : integer range 3 to (2**24) := 3;
       PIPE_STAGES_G      : natural range 0 to 16      := 0;
       DATA_WIDTH_G       : integer range 1 to (2**24) := 16;
@@ -57,7 +56,7 @@ entity FifoCascade is
       almost_full   : out sl;
       full          : out sl;
       not_full      : out sl;
-      progFullVec   : out slv(CASCADE_SIZE_G-1 downto 0); -- Output stage = 0
+      progFullVec   : out slv(CASCADE_SIZE_G-1 downto 0);  -- Output stage = 0
       --Read Ports (rd_clk domain)
       rd_clk        : in  sl;           --unused if GEN_SYNC_FIFO_G = true
       rd_en         : in  sl := '0';
@@ -94,30 +93,29 @@ begin
    -----------------------------------------------------------------
 
    ONE_STAGE : if (CASCADE_SIZE_G = 1) generate
-      
+
       prog_full      <= progFull;
       progFullVec(0) <= progFull;
 
       Fifo_1xStage : entity work.Fifo
          generic map (
-            TPD_G           => TPD_G,
-            RST_POLARITY_G  => RST_POLARITY_G,
-            RST_ASYNC_G     => RST_ASYNC_G,
-            GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_G,
-            BRAM_EN_G       => BRAM_EN_G,
-            FWFT_EN_G       => FWFT_EN_G,
-            USE_DSP48_G     => USE_DSP48_G,
-            ALTERA_SYN_G    => ALTERA_SYN_G,
-            ALTERA_RAM_G    => ALTERA_RAM_G,
-            USE_BUILT_IN_G  => USE_BUILT_IN_G,
-            XIL_DEVICE_G    => XIL_DEVICE_G,
-            SYNC_STAGES_G   => SYNC_STAGES_G,
-            PIPE_STAGES_G   => PIPE_STAGES_G,
-            DATA_WIDTH_G    => DATA_WIDTH_G,
-            ADDR_WIDTH_G    => ADDR_WIDTH_G,
-            INIT_G          => INIT_G,
-            FULL_THRES_G    => FULL_THRES_G,
-            EMPTY_THRES_G   => EMPTY_THRES_G)
+            TPD_G              => TPD_G,
+            RST_POLARITY_G     => RST_POLARITY_G,
+            RST_ASYNC_G        => RST_ASYNC_G,
+            GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
+            BRAM_EN_G          => BRAM_EN_G,
+            FWFT_EN_G          => FWFT_EN_G,
+            ALTERA_SYN_G       => ALTERA_SYN_G,
+            ALTERA_RAM_G       => ALTERA_RAM_G,
+            USE_BUILT_IN_G     => USE_BUILT_IN_G,
+            FIFO_MEMORY_TYPE_G => FIFO_MEMORY_TYPE_G,
+            SYNC_STAGES_G      => SYNC_STAGES_G,
+            PIPE_STAGES_G      => PIPE_STAGES_G,
+            DATA_WIDTH_G       => DATA_WIDTH_G,
+            ADDR_WIDTH_G       => ADDR_WIDTH_G,
+            INIT_G             => INIT_G,
+            FULL_THRES_G       => FULL_THRES_G,
+            EMPTY_THRES_G      => EMPTY_THRES_G)
          port map (
             -- Resets
             rst           => rst,
@@ -141,7 +139,7 @@ begin
             underflow     => underflow,
             prog_empty    => prog_empty,
             almost_empty  => almost_empty,
-            empty         => empty);   
+            empty         => empty);
 
    end generate;
 
@@ -150,30 +148,29 @@ begin
    -----------------------------------------------------------------   
 
    TWO_STAGE : if (CASCADE_SIZE_G >= 2) generate
-      
+
       prog_full                     <= progFull;
       progFullVec(CASCADE_SIZE_G-1) <= progFull;
 
       Fifo_First_Stage : entity work.Fifo
          generic map (
-            TPD_G           => TPD_G,
-            RST_POLARITY_G  => RST_POLARITY_G,
-            RST_ASYNC_G     => RST_ASYNC_G,
-            GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_FIRST_C,
-            BRAM_EN_G       => BRAM_EN_G,
-            FWFT_EN_G       => true,
-            USE_DSP48_G     => USE_DSP48_G,
-            ALTERA_SYN_G    => ALTERA_SYN_G,
-            ALTERA_RAM_G    => ALTERA_RAM_G,
-            USE_BUILT_IN_G  => USE_BUILT_IN_G,
-            XIL_DEVICE_G    => XIL_DEVICE_G,
-            SYNC_STAGES_G   => SYNC_STAGES_G,
-            PIPE_STAGES_G   => PIPE_STAGES_G,
-            DATA_WIDTH_G    => DATA_WIDTH_G,
-            ADDR_WIDTH_G    => ADDR_WIDTH_G,
-            INIT_G          => INIT_G,
-            FULL_THRES_G    => FULL_THRES_G,
-            EMPTY_THRES_G   => EMPTY_THRES_G)
+            TPD_G              => TPD_G,
+            RST_POLARITY_G     => RST_POLARITY_G,
+            RST_ASYNC_G        => RST_ASYNC_G,
+            GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_FIRST_C,
+            BRAM_EN_G          => BRAM_EN_G,
+            FWFT_EN_G          => true,
+            ALTERA_SYN_G       => ALTERA_SYN_G,
+            ALTERA_RAM_G       => ALTERA_RAM_G,
+            USE_BUILT_IN_G     => USE_BUILT_IN_G,
+            FIFO_MEMORY_TYPE_G => FIFO_MEMORY_TYPE_G,
+            SYNC_STAGES_G      => SYNC_STAGES_G,
+            PIPE_STAGES_G      => PIPE_STAGES_G,
+            DATA_WIDTH_G       => DATA_WIDTH_G,
+            ADDR_WIDTH_G       => ADDR_WIDTH_G,
+            INIT_G             => INIT_G,
+            FULL_THRES_G       => FULL_THRES_G,
+            EMPTY_THRES_G      => EMPTY_THRES_G)
          port map (
             -- Resets
             rst           => rst,
@@ -199,27 +196,26 @@ begin
 
          GEN_MULTI_STAGE :
          for i in (CASCADE_SIZE_G-2) downto 1 generate
-            
+
             Fifo_Middle_Stage : entity work.Fifo
                generic map (
-                  TPD_G           => TPD_G,
-                  RST_POLARITY_G  => RST_POLARITY_G,
-                  RST_ASYNC_G     => RST_ASYNC_G,
-                  GEN_SYNC_FIFO_G => true,
-                  BRAM_EN_G       => BRAM_EN_G,
-                  FWFT_EN_G       => true,
-                  USE_DSP48_G     => USE_DSP48_G,
-                  ALTERA_SYN_G    => ALTERA_SYN_G,
-                  ALTERA_RAM_G    => ALTERA_RAM_G,
-                  USE_BUILT_IN_G  => USE_BUILT_IN_G,
-                  XIL_DEVICE_G    => XIL_DEVICE_G,
-                  SYNC_STAGES_G   => SYNC_STAGES_G,
-                  PIPE_STAGES_G   => PIPE_STAGES_G,
-                  DATA_WIDTH_G    => DATA_WIDTH_G,
-                  ADDR_WIDTH_G    => ADDR_WIDTH_G,
-                  INIT_G          => INIT_G,
-                  FULL_THRES_G    => FULL_THRES_G,
-                  EMPTY_THRES_G   => EMPTY_THRES_G)
+                  TPD_G              => TPD_G,
+                  RST_POLARITY_G     => RST_POLARITY_G,
+                  RST_ASYNC_G        => RST_ASYNC_G,
+                  GEN_SYNC_FIFO_G    => true,
+                  BRAM_EN_G          => BRAM_EN_G,
+                  FWFT_EN_G          => true,
+                  ALTERA_SYN_G       => ALTERA_SYN_G,
+                  ALTERA_RAM_G       => ALTERA_RAM_G,
+                  USE_BUILT_IN_G     => USE_BUILT_IN_G,
+                  FIFO_MEMORY_TYPE_G => FIFO_MEMORY_TYPE_G,
+                  SYNC_STAGES_G      => SYNC_STAGES_G,
+                  PIPE_STAGES_G      => PIPE_STAGES_G,
+                  DATA_WIDTH_G       => DATA_WIDTH_G,
+                  ADDR_WIDTH_G       => ADDR_WIDTH_G,
+                  INIT_G             => INIT_G,
+                  FULL_THRES_G       => FULL_THRES_G,
+                  EMPTY_THRES_G      => EMPTY_THRES_G)
                port map (
                   -- Resets
                   rst         => rst,
@@ -233,32 +229,31 @@ begin
                   rd_clk      => cascadeClk,
                   rd_en       => readJump(i-1),
                   dout        => dataJump(i-1),
-                  valid       => validJump(i-1)); 
+                  valid       => validJump(i-1));
             readJump(i-1) <= validJump(i-1) and not AFullJump(i-1);
-            
+
          end generate GEN_MULTI_STAGE;
       end generate;
 
       Fifo_Last_Stage : entity work.Fifo
          generic map (
-            TPD_G           => TPD_G,
-            RST_POLARITY_G  => RST_POLARITY_G,
-            RST_ASYNC_G     => RST_ASYNC_G,
-            GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_LAST_C,
-            BRAM_EN_G       => BRAM_EN_G,
-            FWFT_EN_G       => FWFT_EN_G,
-            USE_DSP48_G     => USE_DSP48_G,
-            ALTERA_SYN_G    => ALTERA_SYN_G,
-            ALTERA_RAM_G    => ALTERA_RAM_G,
-            USE_BUILT_IN_G  => USE_BUILT_IN_G,
-            XIL_DEVICE_G    => XIL_DEVICE_G,
-            SYNC_STAGES_G   => SYNC_STAGES_G,
-            PIPE_STAGES_G   => PIPE_STAGES_G,
-            DATA_WIDTH_G    => DATA_WIDTH_G,
-            ADDR_WIDTH_G    => ADDR_WIDTH_G,
-            INIT_G          => INIT_G,
-            FULL_THRES_G    => FULL_THRES_G,
-            EMPTY_THRES_G   => EMPTY_THRES_G)
+            TPD_G              => TPD_G,
+            RST_POLARITY_G     => RST_POLARITY_G,
+            RST_ASYNC_G        => RST_ASYNC_G,
+            GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_LAST_C,
+            BRAM_EN_G          => BRAM_EN_G,
+            FWFT_EN_G          => FWFT_EN_G,
+            ALTERA_SYN_G       => ALTERA_SYN_G,
+            ALTERA_RAM_G       => ALTERA_RAM_G,
+            USE_BUILT_IN_G     => USE_BUILT_IN_G,
+            FIFO_MEMORY_TYPE_G => FIFO_MEMORY_TYPE_G,
+            SYNC_STAGES_G      => SYNC_STAGES_G,
+            PIPE_STAGES_G      => PIPE_STAGES_G,
+            DATA_WIDTH_G       => DATA_WIDTH_G,
+            ADDR_WIDTH_G       => ADDR_WIDTH_G,
+            INIT_G             => INIT_G,
+            FULL_THRES_G       => FULL_THRES_G,
+            EMPTY_THRES_G      => EMPTY_THRES_G)
          port map (
             -- Resets
             rst           => rst,
@@ -277,8 +272,8 @@ begin
             underflow     => underflow,
             prog_empty    => prog_empty,
             almost_empty  => almost_empty,
-            empty         => empty);                
+            empty         => empty);
 
    end generate;
-   
+
 end architecture mapping;

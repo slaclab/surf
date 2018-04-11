@@ -31,8 +31,8 @@ entity AxiWritePathFifo is
       TPD_G : time := 1 ns;
 
       -- General FIFO configurations
-      XIL_DEVICE_G             : string  := "7SERIES";
       USE_BUILT_IN_G           : boolean := false;
+      FIFO_MEMORY_TYPE_G       : string  := "block";
       GEN_SYNC_FIFO_G          : boolean := false;
       ALTERA_SYN_G             : boolean := false;
       ALTERA_RAM_G             : string  := "M9K";
@@ -356,11 +356,10 @@ begin
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
          BRAM_EN_G          => ADDR_BRAM_EN_G,
          FWFT_EN_G          => true,
-         USE_DSP48_G        => "no",
          ALTERA_SYN_G       => ALTERA_SYN_G,
          ALTERA_RAM_G       => ALTERA_RAM_G,
          USE_BUILT_IN_G     => USE_BUILT_IN_G,
-         XIL_DEVICE_G       => XIL_DEVICE_G,
+         FIFO_MEMORY_TYPE_G => FIFO_MEMORY_TYPE_G,
          SYNC_STAGES_G      => 3,
          DATA_WIDTH_G       => ADDR_FIFO_SIZE_C,
          ADDR_WIDTH_G       => ADDR_FIFO_ADDR_WIDTH_G,
@@ -401,11 +400,10 @@ begin
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
          BRAM_EN_G          => DATA_BRAM_EN_G,
          FWFT_EN_G          => true,
-         USE_DSP48_G        => "no",
          ALTERA_SYN_G       => ALTERA_SYN_G,
          ALTERA_RAM_G       => ALTERA_RAM_G,
          USE_BUILT_IN_G     => USE_BUILT_IN_G,
-         XIL_DEVICE_G       => XIL_DEVICE_G,
+         FIFO_MEMORY_TYPE_G => FIFO_MEMORY_TYPE_G,
          SYNC_STAGES_G      => 3,
          DATA_WIDTH_G       => DATA_FIFO_SIZE_C,
          ADDR_WIDTH_G       => DATA_FIFO_ADDR_WIDTH_G,
@@ -446,11 +444,10 @@ begin
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
          BRAM_EN_G          => RESP_BRAM_EN_G,
          FWFT_EN_G          => true,
-         USE_DSP48_G        => "no",
          ALTERA_SYN_G       => ALTERA_SYN_G,
          ALTERA_RAM_G       => ALTERA_RAM_G,
          USE_BUILT_IN_G     => USE_BUILT_IN_G,
-         XIL_DEVICE_G       => XIL_DEVICE_G,
+         FIFO_MEMORY_TYPE_G => FIFO_MEMORY_TYPE_G,
          SYNC_STAGES_G      => 3,
          DATA_WIDTH_G       => RESP_FIFO_SIZE_C,
          ADDR_WIDTH_G       => RESP_FIFO_ADDR_WIDTH_G,

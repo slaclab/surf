@@ -2,7 +2,7 @@
 -- File       : FifoAsyncBuiltIn.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-28
--- Last update: 2014-07-14
+-- Last update: 2018-02-12
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Xilinx's built-in ASYNC FIFO module
 -------------------------------------------------------------------------------
@@ -22,25 +22,21 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 
-library UNISIM;
-use UNISIM.vcomponents.all;
-
-library UNIMACRO;
-use UNIMACRO.vcomponents.all;
+library xpm;
+use xpm.vcomponents.all;
 
 entity FifoAsyncBuiltIn is
    generic (
-      TPD_G          : time                       := 1 ns;
-      RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
-      FWFT_EN_G      : boolean                    := false;
-      USE_DSP48_G    : string                     := "no";
-      XIL_DEVICE_G   : string                     := "7SERIES";  -- Target Device: "VIRTEX5", "VIRTEX6", "7SERIES"   
-      SYNC_STAGES_G  : integer range 3 to (2**24) := 3;
-      PIPE_STAGES_G  : natural range 0 to 16      := 0;
-      DATA_WIDTH_G   : integer range 1 to 72      := 18;
-      ADDR_WIDTH_G   : integer range 9 to 13      := 10;
-      FULL_THRES_G   : integer range 1 to 8190    := 1;
-      EMPTY_THRES_G  : integer range 1 to 8190    := 1);
+      TPD_G              : time     := 1 ns;
+      RST_POLARITY_G     : sl       := '1';  -- '1' for active high rst, '0' for active low
+      FWFT_EN_G          : boolean  := false;
+      FIFO_MEMORY_TYPE_G : string   := "block";
+      SYNC_STAGES_G      : positive := 3;
+      PIPE_STAGES_G      : natural  := 0;
+      DATA_WIDTH_G       : positive := 18;
+      ADDR_WIDTH_G       : positive := 10;
+      FULL_THRES_G       : positive := 1;
+      EMPTY_THRES_G      : positive := 1);
    port (
       -- Asynchronous Reset
       rst           : in  sl;
@@ -68,272 +64,115 @@ entity FifoAsyncBuiltIn is
 end FifoAsyncBuiltIn;
 
 architecture mapping of FifoAsyncBuiltIn is
-   
-   function GetFifoType (d_width : in integer; a_width : in integer) return string is
-   begin
-      if ((d_width >= 37) and (d_width <= 72) and (a_width = 9)) then
-         return "36Kb";
-      elsif ((d_width >= 19) and (d_width <= 36) and (a_width = 10)) then
-         return "36Kb";
-      elsif ((d_width >= 19) and (d_width <= 36) and (a_width = 9)) then
-         return "18Kb";
-      elsif ((d_width >= 10) and (d_width <= 18) and (a_width = 11)) then
-         return "36Kb";
-      elsif ((d_width >= 10) and (d_width <= 18) and (a_width = 10)) then
-         return "18Kb";
-      elsif ((d_width >= 5) and (d_width <= 9) and (a_width = 12)) then
-         return "36Kb";
-      elsif ((d_width >= 5) and (d_width <= 9) and (a_width = 11)) then
-         return "18Kb";
-      elsif ((d_width >= 1) and (d_width <= 4) and (a_width = 13)) then
-         return "36Kb";
-      elsif ((d_width >= 1) and (d_width <= 4) and (a_width = 12)) then
-         return "18Kb";
-      else
-         return "???Kb";                -- Generate error in Xilinx marco
-      end if;
-   end;
 
-   constant FIFO_LENGTH_C : integer := ((2**ADDR_WIDTH_G)- 1);
-   constant FIFO_SIZE_C   : string  := GetFifoType(DATA_WIDTH_G, ADDR_WIDTH_G);
+   constant WAKEUP_TIME_C : integer  := 0;  -- 0: Disable sleep, 2: Use Sleep Pin
+   constant READ_MODE_C   : string   := ite(FWFT_EN_G, "fwft", "std");
+   constant DOUT_INIT_C   : string   := "0";
+   constant MIN_THRES_C   : positive := 8;
+   constant MAX_THRES_C   : positive := 2**ADDR_WIDTH_G - 8;
 
-   signal wrAddrPntr,
-      rdAddrPntr,
-      wrGrayPntr,
-      rdGrayPntr,
-      wcnt,
-      rcnt : slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
+   constant FULL_THRES_C : positive :=
+      ite((FULL_THRES_G < MIN_THRES_C), MIN_THRES_C,
+          ite((FULL_THRES_G > MAX_THRES_C), MAX_THRES_C, FULL_THRES_G));
 
-   signal buildInFull,
-      buildInEmpty,
-      progEmpty,
-      progFull,
-      fifoWrRst,
-      fifoRdRst,
-      rstEmpty,
-      rstFull,
-      wrEn,
-      sValid,
-      sRdEn,
-      dummyWRERR,
-      dummyALMOSTFULL,
-      dummyALMOSTEMPTY,
-      rstDet : sl := '0';
-   
-   signal dataOut : slv(DATA_WIDTH_G-1 downto 0);
+   constant EMPTY_THRES_C : positive :=
+      ite((EMPTY_THRES_G < MIN_THRES_C), MIN_THRES_C,
+          ite((EMPTY_THRES_G > MAX_THRES_C), MAX_THRES_C, EMPTY_THRES_G));
 
-   -- Attribute for XST
-   attribute use_dsp48         : string;
-   attribute use_dsp48 of wcnt : signal is USE_DSP48_G;
-   attribute use_dsp48 of rcnt : signal is USE_DSP48_G;
-   
+   -------------------------
+   -- USE_ADV_FEATURES_C
+   -------------------------
+   -- BIT0:  Enable overflow
+   -- BIT1:  Enable prog_full
+   -- BIT2:  Enable wr_data_count
+   -- BIT3:  Enable almost_full
+   -- BIT4:  Enable wr_ack
+   -- BIT5:  Undefined
+   -- BIT6:  Undefined
+   -- BIT7:  Undefined
+   -- BIT8:  Enable underflow
+   -- BIT9:  Enable prog_empty
+   -- BIT10: Enable rd_data_count
+   -- BIT11: Enable almost_empty
+   -- BIT12: Enable data_valid
+   constant USE_ADV_FEATURES_C : string := "1F1F";
+
+   signal reset     : sl;
+   signal fifoFull  : sl;
+   signal sRdEn     : sl;
+   signal sValid    : sl;
+   signal dataOut   : slv(DATA_WIDTH_G-1 downto 0);
+   signal wrRstBusy : sl;
+   signal rdRstBusy : sl;
+
 begin
 
-   -- Check ADDR_WIDTH_G and DATA_WIDTH_G when USE_BUILT_IN_G = true
-   assert (((DATA_WIDTH_G >= 37) and (DATA_WIDTH_G    <= 72) and (ADDR_WIDTH_G = 9))
-           or ((DATA_WIDTH_G >= 19) and (DATA_WIDTH_G <= 36) and (ADDR_WIDTH_G = 10))
-           or ((DATA_WIDTH_G >= 19) and (DATA_WIDTH_G <= 36) and (ADDR_WIDTH_G = 9))
-           or ((DATA_WIDTH_G >= 10) and (DATA_WIDTH_G <= 18) and (ADDR_WIDTH_G = 11))
-           or ((DATA_WIDTH_G >= 10) and (DATA_WIDTH_G <= 18) and (ADDR_WIDTH_G = 10))
-           or ((DATA_WIDTH_G >= 5) and (DATA_WIDTH_G  <= 9) and (ADDR_WIDTH_G = 12))
-           or ((DATA_WIDTH_G >= 5) and (DATA_WIDTH_G  <= 9) and (ADDR_WIDTH_G = 11))
-           or ((DATA_WIDTH_G >= 1) and (DATA_WIDTH_G  <= 4) and (ADDR_WIDTH_G = 13))
-           or ((DATA_WIDTH_G >= 1) and (DATA_WIDTH_G  <= 4) and (ADDR_WIDTH_G = 12)))
-      report "Invalid DATA_WIDTH_G or ADDR_WIDTH_G for built-in FIFO configuration"
-      severity failure;
-   -----------------------------------------------------------------
-   -- DATA_WIDTH | FIFO_SIZE | FIFO Depth | RDCOUNT/WRCOUNT Width --
-   -- ===========|===========|============|=======================--
-   --    37-72   |   "36Kb"  |     512    |         9-bit         --
-   --    19-36   |   "36Kb"  |     1024   |        10-bit         --
-   --    19-36   |   "18Kb"  |     512    |         9-bit         --
-   --    10-18   |   "36Kb"  |     2048   |        11-bit         --
-   --    10-18   |   "18Kb"  |     1024   |        10-bit         --
-   --     5-9    |   "36Kb"  |     4096   |        12-bit         --
-   --     5-9    |   "18Kb"  |     2048   |        11-bit         --
-   --     1-4    |   "36Kb"  |     8192   |        13-bit         --
-   --     1-4    |   "18Kb"  |     4096   |        12-bit         --
-   -----------------------------------------------------------------       
-   -- FULL_THRES_G upper range check
-   assert (FULL_THRES_G <= ((2**ADDR_WIDTH_G)-1))
-      report "FULL_THRES_G must be <= ((2**ADDR_WIDTH_G)-1)"
-      severity failure;
-   -- EMPTY_THRES_G upper range check
-   assert (EMPTY_THRES_G <= ((2**ADDR_WIDTH_G)-2))
-      report "EMPTY_THRES_G must be <= ((2**ADDR_WIDTH_G)-2)"
-      severity failure;
-   -- USE_DSP48_G check
-   assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
-      report "USE_DSP48_G must be either yes, no, auto, or automax"
-      severity failure;
-
-   -------------------------------
-   -- Resets
-   -------------------------------   
-   RstSync_FULL : entity work.RstSync
+   U_ASYNC : xpm_fifo_async
       generic map (
-         TPD_G           => TPD_G,
-         IN_POLARITY_G   => RST_POLARITY_G,
-         RELEASE_DELAY_G => 10)   
+         FIFO_MEMORY_TYPE    => FIFO_MEMORY_TYPE_G,
+         ECC_MODE            => "no_ecc",
+         RELATED_CLOCKS      => 0,
+         FIFO_WRITE_DEPTH    => (2**ADDR_WIDTH_G),
+         WRITE_DATA_WIDTH    => DATA_WIDTH_G,
+         WR_DATA_COUNT_WIDTH => ADDR_WIDTH_G,
+         PROG_FULL_THRESH    => FULL_THRES_C,
+         FULL_RESET_VALUE    => 1,      -- Assert back pressure during reset
+         USE_ADV_FEATURES    => USE_ADV_FEATURES_C,
+         read_mode           => READ_MODE_C,
+         FIFO_READ_LATENCY   => ite(FWFT_EN_G, 0, 1),
+         READ_DATA_WIDTH     => DATA_WIDTH_G,
+         RD_DATA_COUNT_WIDTH => ADDR_WIDTH_G,
+         PROG_EMPTY_THRESH   => EMPTY_THRES_C,
+         DOUT_RESET_VALUE    => DOUT_INIT_C,
+         CDC_SYNC_STAGES     => SYNC_STAGES_G,
+         WAKEUP_TIME         => WAKEUP_TIME_C)
       port map (
-         clk      => wr_clk,
-         asyncRst => rst,
-         syncRst  => rstFull); 
+         sleep         => '0',
+         rst           => reset,
+         wr_clk        => wr_clk,
+         wr_en         => wr_en,
+         din           => din,
+         full          => fifoFull,
+         overflow      => overflow,
+         wr_rst_busy   => wrRstBusy,
+         prog_full     => prog_full,
+         wr_data_count => wr_data_count,
+         almost_full   => almost_full,
+         wr_ack        => wr_ack,
+         rd_clk        => rd_clk,
+         rd_en         => rd_en,
+         dout          => dataOut,
+         empty         => empty,
+         underflow     => underflow,
+         rd_rst_busy   => rdRstBusy,
+         prog_empty    => prog_empty,
+         rd_data_count => rd_data_count,
+         almost_empty  => almost_empty,
+         data_valid    => sValid,
+         injectsbiterr => '0',
+         injectdbiterr => '0',
+         sbiterr       => open,
+         dbiterr       => open);
 
-   SynchronizerEdge_FULL : entity work.SynchronizerEdge
-      generic map (
-         TPD_G => TPD_G)   
-      port map (
-         clk        => wr_clk,
-         dataIn     => rstFull,
-         risingEdge => rstDet);                 
+   reset <= rst when(RST_POLARITY_G = '1') else not(rst);
 
-   RstSync_FIFO : entity work.RstSync
-      generic map (
-         TPD_G           => TPD_G,
-         RELEASE_DELAY_G => 6)   
-      port map (
-         clk      => wr_clk,
-         asyncRst => rstDet,
-         syncRst  => fifoWrRst); 
+   full     <= fifoFull;
+   not_full <= not(fifoFull);
 
-   RstSync_RD : entity work.RstSync
-      generic map (
-         TPD_G           => TPD_G,
-         IN_POLARITY_G   => RST_POLARITY_G,
-         RELEASE_DELAY_G => 6)   
-      port map (
-         clk      => rd_clk,
-         asyncRst => rst,
-         syncRst  => fifoRdRst);          
+   BYPASS_PIPE : if ((FWFT_EN_G = false) or (PIPE_STAGES_G = 0)) generate
 
-   RstSync_EMPTY : entity work.RstSync
-      generic map (
-         TPD_G           => TPD_G,
-         IN_POLARITY_G   => RST_POLARITY_G,
-         RELEASE_DELAY_G => 10)   
-      port map (
-         clk      => rd_clk,
-         asyncRst => rst,
-         syncRst  => rstEmpty);          
+      sRdEn <= rd_en;
+      valid <= sValid;
+      dout  <= dataOut;
 
-   FIFO_DUALCLOCK_MACRO_inst : FIFO_DUALCLOCK_MACRO
-      generic map (
-         DEVICE                  => XIL_DEVICE_G,  -- Target Device: "VIRTEX5", "VIRTEX6", "7SERIES"
-         ALMOST_FULL_OFFSET      => x"000F",       -- Sets almost full threshold
-         ALMOST_EMPTY_OFFSET     => x"000F",       -- Sets the almost empty threshold
-         DATA_WIDTH              => DATA_WIDTH_G,  -- Valid values are 1-72 (37-72 only valid when FIFO_SIZE="36Kb")
-         FIFO_SIZE               => FIFO_SIZE_C,   -- Target BRAM, "18Kb" or "36Kb"
-         FIRST_WORD_FALL_THROUGH => FWFT_EN_G)     -- Sets the FIFO FWFT to TRUE or FALSE
-      port map (
-         RST         => fifoWrRst,      -- 1-bit input reset
-         WRCLK       => wr_clk,         -- 1-bit input write clock
-         WREN        => wrEn,           -- 1-bit input write enable
-         DI          => din,            -- Input data, width defined by DATA_WIDTH parameter
-         WRCOUNT     => wrAddrPntr,     -- Output write address pointer
-         WRERR       => dummyWRERR,     -- 1-bit output write error
-         ALMOSTFULL  => dummyALMOSTFULL,           -- 1-bit output almost full
-         FULL        => buildInFull,    -- 1-bit output full
-         RDCLK       => rd_clk,         -- 1-bit input read clock
-         RDEN        => sRdEn,          -- 1-bit input read enable
-         DO          => dataOut,        -- Output data, width defined by DATA_WIDTH parameter
-         RDCOUNT     => rdAddrPntr,     -- Output read address pointer
-         RDERR       => underflow,      -- 1-bit output read error
-         ALMOSTEMPTY => dummyALMOSTEMPTY,          -- 1-bit output almost empty
-         EMPTY       => buildInEmpty);  -- 1-bit output empty
-
-
-   -------------------------------
-   -- wr_clk domain
-   -------------------------------  
-   SynchronizerVector_0 : entity work.SynchronizerVector
-      generic map (
-         TPD_G       => TPD_G,
-         RST_ASYNC_G => false,
-         STAGES_G    => SYNC_STAGES_G,
-         WIDTH_G     => ADDR_WIDTH_G)
-      port map (
-         rst     => fifoWrRst,
-         clk     => wr_clk,
-         dataIn  => grayEncode(rdAddrPntr),
-         dataOut => rdGrayPntr); 
-
-   -- Calculate wr_data_count
-   wcnt <= wrAddrPntr - grayDecode(rdGrayPntr);
-
-   -- Full signals
-   wrEn          <= wr_en and not(rstFull) and not(buildInFull);
-   prog_full     <= '1'  when (wcnt > FULL_THRES_G)      else rstFull;
-   almost_full   <= '1'  when (wcnt = (FIFO_LENGTH_C-2)) else (buildInFull or rstFull);
-   full          <= buildInFull or rstFull;
-   not_full      <= not(buildInFull or rstFull);
-   wr_data_count <= wcnt when(rstFull = '0')             else (others => '1');
-
-   process(wr_clk)
-   begin
-      if rising_edge(wr_clk) then
-         wr_ack <= '0' after TPD_G;
-         if wr_en = '1' then
-            wr_ack <= not(buildInFull) after TPD_G;
-         end if;
-      end if;
-   end process;
-
-   process(wr_clk)
-   begin
-      if rising_edge(wr_clk) then
-         overflow <= '0' after TPD_G;
-         if (wr_en = '1') and (buildInFull = '1') then
-            overflow <= '1' after TPD_G;  -- Error strobe
-         end if;
-      end if;
-   end process;
-
-   -------------------------------
-   -- rd_clk domain
-   -------------------------------
-   SynchronizerVector_1 : entity work.SynchronizerVector
-      generic map (
-         TPD_G       => TPD_G,
-         RST_ASYNC_G => false,
-         STAGES_G    => SYNC_STAGES_G,
-         WIDTH_G     => ADDR_WIDTH_G)
-      port map (
-         rst     => fifoRdRst,
-         clk     => rd_clk,
-         dataIn  => grayEncode(wrAddrPntr),
-         dataOut => wrGrayPntr); 
-
-   -- Calculate rd_data_count
-   rcnt <= grayDecode(wrGrayPntr) - rdAddrPntr;
-
-   -- Empty signals
-   prog_empty    <= '1'  when (rcnt < EMPTY_THRES_G) else rstEmpty;
-   almost_empty  <= '1'  when (rcnt = 1)             else (buildInEmpty or rstEmpty);
-   empty         <= buildInEmpty or rstEmpty;
-   rd_data_count <= rcnt when(rstEmpty = '0')        else (others => '0');
-
-   FIFO_Gen : if (FWFT_EN_G = false) generate
-      
-      dout <= dataOut;
-
-      process(rd_clk)
-      begin
-         if rising_edge(rd_clk) then
-            valid <= '0' after TPD_G;
-            if rd_en = '1' then
-               valid <= not(buildInEmpty) after TPD_G;
-            end if;
-         end if;
-      end process;
    end generate;
 
-   FWFT_Gen : if (FWFT_EN_G = true) generate
-      
-      FifoOutputPipeline_Inst : entity work.FifoOutputPipeline
+   GEN_PIPE : if ((FWFT_EN_G = true) and (PIPE_STAGES_G /= 0)) generate
+
+      U_Pipeline : entity work.FifoOutputPipeline
          generic map (
             TPD_G          => TPD_G,
-            RST_POLARITY_G => '1',
+            RST_POLARITY_G => RST_POLARITY_G,
             RST_ASYNC_G    => false,
             DATA_WIDTH_G   => DATA_WIDTH_G,
             PIPE_STAGES_G  => PIPE_STAGES_G)
@@ -348,10 +187,8 @@ begin
             mRdEn  => rd_en,
             -- Clock and Reset
             clk    => rd_clk,
-            rst    => fifoRdRst);     
+            rst    => rst);
 
-      sValid <= not(buildInEmpty);
-      
    end generate;
-   
-end architecture mapping;
+
+end mapping;

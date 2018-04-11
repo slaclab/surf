@@ -66,7 +66,7 @@ entity SsiAxiLiteMaster is
       SLAVE_READY_EN_G    : boolean                    := false;
       EN_32BIT_ADDR_G     : boolean                    := false;
       BRAM_EN_G           : boolean                    := true;
-      XIL_DEVICE_G        : string                     := "7SERIES";  --Xilinx only generic parameter    
+      FIFO_MEMORY_TYPE_G  : string                     := "block"; 
       USE_BUILT_IN_G      : boolean                    := false;  --if set to true, this module is only Xilinx compatible only!!!
       ALTERA_SYN_G        : boolean                    := false;
       ALTERA_RAM_G        : string                     := "M9K";
@@ -169,7 +169,7 @@ begin
          PIPE_STAGES_G       => 0,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
          BRAM_EN_G           => BRAM_EN_G,
-         XIL_DEVICE_G        => XIL_DEVICE_G,
+         FIFO_MEMORY_TYPE_G  => FIFO_MEMORY_TYPE_G,
          USE_BUILT_IN_G      => USE_BUILT_IN_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          ALTERA_SYN_G        => ALTERA_SYN_G,
@@ -452,7 +452,7 @@ begin
          PIPE_STAGES_G       => 0,
          VALID_THOLD_G       => RESP_THOLD_G,
          BRAM_EN_G           => BRAM_EN_G,
-         XIL_DEVICE_G        => XIL_DEVICE_G,
+         FIFO_MEMORY_TYPE_G  => FIFO_MEMORY_TYPE_G,
          USE_BUILT_IN_G      => USE_BUILT_IN_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          ALTERA_SYN_G        => ALTERA_SYN_G,

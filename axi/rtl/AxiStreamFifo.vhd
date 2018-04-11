@@ -39,7 +39,7 @@ entity AxiStreamFifo is
                                                               -- >1 = only when frame ready or # entries
       -- FIFO configurations
       BRAM_EN_G           : boolean                    := true;
-      XIL_DEVICE_G        : string                     := "7SERIES";
+      FIFO_MEMORY_TYPE_G  : string                     := "block";
       USE_BUILT_IN_G      : boolean                    := false;
       GEN_SYNC_FIFO_G     : boolean                    := false;
       ALTERA_SYN_G        : boolean                    := false;
@@ -446,11 +446,10 @@ begin
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
          BRAM_EN_G          => BRAM_EN_G,
          FWFT_EN_G          => true,
-         USE_DSP48_G        => "no",
          ALTERA_SYN_G       => ALTERA_SYN_G,
          ALTERA_RAM_G       => ALTERA_RAM_G,
          USE_BUILT_IN_G     => USE_BUILT_IN_G,
-         XIL_DEVICE_G       => XIL_DEVICE_G,
+         FIFO_MEMORY_TYPE_G => FIFO_MEMORY_TYPE_G,
          SYNC_STAGES_G      => 3,
          DATA_WIDTH_G       => FIFO_BITS_C,
          ADDR_WIDTH_G       => FIFO_ADDR_WIDTH_G,
@@ -495,11 +494,10 @@ begin
             GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
             BRAM_EN_G          => false,
             FWFT_EN_G          => true,
-            USE_DSP48_G        => "no",
             ALTERA_SYN_G       => ALTERA_SYN_G,
             ALTERA_RAM_G       => ALTERA_RAM_G,
             USE_BUILT_IN_G     => false,
-            XIL_DEVICE_G       => XIL_DEVICE_G,
+            FIFO_MEMORY_TYPE_G => FIFO_MEMORY_TYPE_G,
             SYNC_STAGES_G      => 3,
             DATA_WIDTH_G       => FIFO_USER_TOT_C,
             ADDR_WIDTH_G       => LAST_FIFO_ADDR_WIDTH_C,
