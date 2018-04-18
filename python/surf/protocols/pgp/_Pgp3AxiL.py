@@ -230,7 +230,8 @@ class Pgp3AxiL(pr.Device):
         self.add(pr.RemoteVariable(
             name      = 'PhyRxData',
             offset    = 0x100,
-            bitOffset = 64,
+            bitOffset = 0,
+            bitSize   = 64,
         ))
 
         self.add(pr.RemoteVariable(
@@ -255,7 +256,8 @@ class Pgp3AxiL(pr.Device):
             name         = 'EbRxData',
             mode         = 'RO',            
             offset       = 0x110,
-            bitOffset    = 64,
+            bitOffset    = 0,
+            bitSize      = 64,
             pollInterval = 1,
         ))
 
@@ -300,6 +302,7 @@ class Pgp3AxiL(pr.Device):
             name         = 'GearboxAligned',
             mode         = 'RO',            
             offset       = 0x120,
+            bitOffset    = 0,
             bitSize      = 1,
             pollInterval = 1,
         ))
@@ -317,6 +320,7 @@ class Pgp3AxiL(pr.Device):
             name         = 'PhyRxInitCnt',
             mode         = 'RO',            
             offset       = 0x130,
+            bitOffset    = 0,
             bitSize      = 4,
             pollInterval = 1,
         ))
