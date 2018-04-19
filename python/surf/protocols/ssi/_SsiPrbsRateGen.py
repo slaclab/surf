@@ -79,7 +79,7 @@ class SsiPrbsRateGen(pr.Device):
             bitSize      = 1,
             bitOffset    = 1,
             base         = pr.UInt,            
-            function     = lambda cmd: cmd.toggle,
+            function     = pr.BaseCommand.toggle,
             hidden       = False,
         ))
 
