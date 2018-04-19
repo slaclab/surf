@@ -28,8 +28,8 @@ entity Debouncer is
       RST_ASYNC_G       : boolean  := false;
       INPUT_POLARITY_G  : sl       := '0';
       OUTPUT_POLARITY_G : sl       := '1';
-      FILTER_SIZE_G     : positive := 16;
-      FILTER_INIT_G     : slv      := X"0000";
+      CLK_PERIOD_G      : real   := 6.4E-9;   -- units of seconds
+      DEBOUNCE_PERIOD_G : real   := 1.0E-3;   -- units of seconds
       SYNCHRONIZE_G     : boolean  := true);  -- Run input through 2 FFs before filtering
 
    port (
@@ -40,23 +40,26 @@ entity Debouncer is
 end entity Debouncer;
 
 architecture rtl of Debouncer is
-
+   
+   constant CNT_MAX_C      : natural := getTimeRatio(DEBOUNCE_PERIOD_G, CLK_PERIOD_G) - 1;
+   constant POLARITY_EQ_C  : boolean := ite(INPUT_POLARITY_G = OUTPUT_POLARITY_G, true, false);
+   
    type RegType is record
-      filter : slv(FILTER_SIZE_G-1 downto 0);
-      o      : sl;
+      filter      : integer range 0 to CNT_MAX_C;
+      iSyncedDly  : sl;
+      o           : sl;
    end record RegType;
 
    constant REG_RESET_C : RegType :=
-      (filter => FILTER_INIT_G,
-       o      => not OUTPUT_POLARITY_G);
+      (filter     => 0,
+       iSyncedDly => '0',
+       o          => not OUTPUT_POLARITY_G);
 
    signal r       : RegType := REG_RESET_C;
    signal rin     : RegType;
    signal iSynced : sl      := INPUT_POLARITY_G;
 
 begin
-
-   assert (FILTER_INIT_G'length = FILTER_SIZE_G) report "FILTER_INIT_G length must = FILTER_SIZE_G" severity failure;
 
    SynchronizerGen : if (SYNCHRONIZE_G) generate
       Synchronizer_1 : entity work.Synchronizer
@@ -72,23 +75,34 @@ begin
             dataIn  => i,
             dataOut => iSynced);
    end generate SynchronizerGen;
+   
+   NoSynchronizerGen : if (not SYNCHRONIZE_G) generate
+      iSynced <= i;
+   end generate NoSynchronizerGen;
 
-   comb : process (r, i, iSynced, rst) is
+   comb : process (r, iSynced, rst) is
       variable v : RegType;
    begin
       v := r;
-
-      if (SYNCHRONIZE_G) then
-         v.filter := r.filter(FILTER_SIZE_G-2 downto 0) & iSynced;
-      else
-         v.filter := r.filter(FILTER_SIZE_G-2 downto 0) & i;
+      
+      v.iSyncedDly := iSynced;
+      
+      if (r.iSyncedDly /= iSynced) then  -- any edge
+         v.filter := CNT_MAX_C;
+      elsif (r.filter /= 0) then
+         v.filter := r.filter - 1;
       end if;
-
-      if (allBits(r.filter, INPUT_POLARITY_G)) then
-         v.o := OUTPUT_POLARITY_G;
-      elsif (noBits(r.filter, INPUT_POLARITY_G)) then
-         v.o := not OUTPUT_POLARITY_G;
-      -- else v.o retains current value
+      
+      if POLARITY_EQ_C then
+         if (r.filter = 0 and r.o /= r.iSyncedDly) then
+            v.o := r.iSyncedDly;
+         -- else v.o retains current value
+         end if;
+      else
+         if (r.filter = 0 and r.o = r.iSyncedDly) then
+            v.o := not r.iSyncedDly;
+         -- else v.o retains current value
+         end if;
       end if;
 
       -- Synchronous Reset
