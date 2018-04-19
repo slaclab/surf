@@ -2,7 +2,7 @@
 -- File       : Pgp3GthUsIpWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2018-01-11
+-- Last update: 2018-04-19
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -22,10 +22,10 @@ use work.AxiLitePkg.all;
 
 entity Pgp3GthUsIpWrapper is
    generic (
-      TPD_G             : time            := 1 ns;
-      EN_DRP_G          : boolean         := true;
-      TX_POLARITY_G     : sl              := '0';
-      RX_POLARITY_G     : sl              := '0');
+      TPD_G         : time    := 1 ns;
+      EN_DRP_G      : boolean := true;
+      TX_POLARITY_G : sl      := '0';
+      RX_POLARITY_G : sl      := '0');
    port (
       stableClk      : in  sl;
       stableRst      : in  sl;
@@ -70,10 +70,9 @@ entity Pgp3GthUsIpWrapper is
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
       axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
-      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilReadSlave   : out AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave  : out AxiLiteWriteSlaveType);
-
+      axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 end entity Pgp3GthUsIpWrapper;
 
 architecture mapping of Pgp3GthUsIpWrapper is
