@@ -17,6 +17,7 @@ if { ${family} eq {kintexu} } {
 
 if { ${family} eq {kintexuplus} } {
    loadRuckusTcl "$::DIR_PATH/gthUltraScale+"
+   loadRuckusTcl "$::DIR_PATH/gtyUltraScale+"
 }
 
 if { ${family} == "kintex7" } {

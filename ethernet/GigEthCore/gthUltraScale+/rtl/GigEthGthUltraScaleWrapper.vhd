@@ -22,6 +22,7 @@ use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.AxiLitePkg.all;
+use work.EthMacPkg.all;
 use work.GigEthPkg.all;
 
 library unisim;
@@ -94,7 +95,7 @@ begin
    -----------------------------
    -- Select the Reference Clock
    -----------------------------
-   IBUFDS_GTE3_Inst : IBUFDS_GTE4
+   U_IBUFDS : IBUFDS_GTE4
       generic map (
          REFCLK_EN_TX_PATH  => '0',
          REFCLK_HROW_CK_SEL => "00",    -- 2'b00: ODIV2 = O

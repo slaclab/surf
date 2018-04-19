@@ -25,8 +25,8 @@ use work.AxiStreamPkg.all;
 
 package EthMacPkg is
 
-   -- Default MAC is 01:03:00:56:44:00
-   constant EMAC_ADDR_INIT_C : slv(47 downto 0) := x"020300564400";
+   -- Default MAC is 08:00:56:00:00:00
+   constant MAC_ADDR_INIT_C : slv(47 downto 0) := x"000000560008";
 
    -- EtherTypes
    constant ARP_TYPE_C  : slv(15 downto 0) := x"0608";  -- EtherType = ARP = 0x0806
@@ -74,7 +74,7 @@ package EthMacPkg is
       dropOnPause : sl;
    end record EthMacConfigType;
    constant ETH_MAC_CONFIG_INIT_C : EthMacConfigType := (
-      macAddress  => EMAC_ADDR_INIT_C,
+      macAddress  => MAC_ADDR_INIT_C,
       filtEnable  => '1',
       pauseEnable => '1',
       pauseTime   => x"00FF",

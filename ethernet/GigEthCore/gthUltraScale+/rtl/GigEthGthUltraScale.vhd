@@ -184,11 +184,14 @@ begin
          rxp                    => gtRxP,
          rxn                    => gtRxN,
          -- Configuration and Status
+         an_restart_config      => '0',         
+         an_adv_config_vector   => GIG_ETH_AN_ADV_CONFIG_INIT_C,
+         an_interrupt           => open,
          configuration_vector   => config.coreConfig,
          status_vector          => status.coreStatus,
          signal_detect          => sigDet);
 
-   status.phyReady <= status.coreStatus(0);
+   status.phyReady <= status.coreStatus(1);
    phyReady        <= status.phyReady;
 
    --------------------------------     
