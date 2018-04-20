@@ -24,13 +24,13 @@ entity Debouncer is
    
    generic (
       TPD_G             : time     := 1 ns;
-      RST_POLARITY_G    : sl       := '1';    -- '1' for active high rst, '0' for active low
+      RST_POLARITY_G    : sl       := '1';         -- '1' for active high rst, '0' for active low
       RST_ASYNC_G       : boolean  := false;
       INPUT_POLARITY_G  : sl       := '0';
       OUTPUT_POLARITY_G : sl       := '1';
-      CLK_PERIOD_G      : real   := 6.4E-9;   -- units of seconds
-      DEBOUNCE_PERIOD_G : real   := 1.0E-3;   -- units of seconds
-      SYNCHRONIZE_G     : boolean  := true);  -- Run input through 2 FFs before filtering
+      CLK_FREQ_G        : real     := 156.250E+6;  -- units of Hz
+      DEBOUNCE_PERIOD_G : real     := 1.0E-3;      -- units of seconds
+      SYNCHRONIZE_G     : boolean  := true);       -- Run input through 2 FFs before filtering
 
    port (
       clk : in  sl;
@@ -41,8 +41,9 @@ end entity Debouncer;
 
 architecture rtl of Debouncer is
    
-   constant CNT_MAX_C      : natural := getTimeRatio(DEBOUNCE_PERIOD_G, CLK_PERIOD_G) - 1;
-   constant POLARITY_EQ_C  : boolean := ite(INPUT_POLARITY_G = OUTPUT_POLARITY_G, true, false);
+   constant CLK_PERIOD_C   : real      := 1.0/CLK_FREQ_G;
+   constant CNT_MAX_C      : natural   := getTimeRatio(DEBOUNCE_PERIOD_G, CLK_PERIOD_C) - 1;
+   constant POLARITY_EQ_C  : boolean   := ite(INPUT_POLARITY_G = OUTPUT_POLARITY_G, true, false);
    
    type RegType is record
       filter      : integer range 0 to CNT_MAX_C;
