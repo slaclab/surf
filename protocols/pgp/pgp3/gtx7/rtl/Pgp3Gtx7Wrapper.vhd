@@ -2,7 +2,7 @@
 -- File       : Pgp3Gtx7Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-27
--- Last update: 2018-01-10
+-- Last update: 2018-04-20
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -70,9 +70,9 @@ entity Pgp3Gtx7Wrapper is
       pgpGtRxP        : in  slv(NUM_LANES_G-1 downto 0);
       pgpGtRxN        : in  slv(NUM_LANES_G-1 downto 0);
       -- GT Clocking
-      pgpRefClkP      : in  sl                     := '0';
-      pgpRefClkN      : in  sl                     := '1';
-      pgpRefClkIn     : in  sl                     := '0';
+      pgpRefClkP      : in  sl                                := '0';
+      pgpRefClkN      : in  sl                                := '1';
+      pgpRefClkIn     : in  sl                                := '0';
       pgpRefClkOut    : out sl;
       pgpRefClkDiv2   : out sl;
       -- Clocking
@@ -90,13 +90,17 @@ entity Pgp3Gtx7Wrapper is
       -- Frame Receive Interface
       pgpRxMasters    : out AxiStreamMasterArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
       pgpRxCtrl       : in  AxiStreamCtrlArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
+      -- Debug Interface 
+      txPreCursor     : in  Slv5Array(NUM_LANES_G-1 downto 0) := (others => "00111");
+      txPostCursor    : in  Slv5Array(NUM_LANES_G-1 downto 0) := (others => "00111");
+      txDiffCtrl      : in  Slv4Array(NUM_LANES_G-1 downto 0) := (others => "1111");
       -- AXI-Lite Register Interface (axilClk domain)
-      axilClk         : in  sl                     := '0';  -- Stable Clock
-      axilRst         : in  sl                     := '0';
-      axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
-      axilReadSlave   : out AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
-      axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
+      axilClk         : in  sl                                := '0';  -- Stable Clock
+      axilRst         : in  sl                                := '0';
+      axilReadMaster  : in  AxiLiteReadMasterType             := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadSlave   : out AxiLiteReadSlaveType              := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
+      axilWriteMaster : in  AxiLiteWriteMasterType            := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteSlave  : out AxiLiteWriteSlaveType             := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 end Pgp3Gtx7Wrapper;
 
 architecture rtl of Pgp3Gtx7Wrapper is
@@ -169,10 +173,10 @@ begin
 
    U_QPLL : entity work.Pgp3Gtx7Qpll
       generic map (
-         TPD_G             => TPD_G,
-         EN_DRP_G          => EN_QPLL_DRP_G,
-         REFCLK_TYPE_G     => REFCLK_TYPE_G,
-         RATE_G            => RATE_G)
+         TPD_G         => TPD_G,
+         EN_DRP_G      => EN_QPLL_DRP_G,
+         REFCLK_TYPE_G => REFCLK_TYPE_G,
+         RATE_G        => RATE_G)
       port map (
          -- Stable Clock and Reset
          stableClk       => stableClk,                            -- [in]
@@ -258,6 +262,10 @@ begin
             -- Frame Receive Interface
             pgpRxMasters    => pgpRxMasters(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
             pgpRxCtrl       => pgpRxCtrl(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
+            -- Debug Interface 
+            txPreCursor     => txPreCursor(i),
+            txPostCursor    => txPostCursor(i),
+            txDiffCtrl      => txDiffCtrl(i),
             -- AXI-Lite Register Interface (axilClk domain)
             axilClk         => axilClk,
             axilRst         => axilRst,

@@ -2,7 +2,7 @@
 -- File       : Pgp3Gtx7.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2018-01-22
+-- Last update: 2018-04-20
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -58,41 +58,44 @@ entity Pgp3Gtx7 is
       AXIL_CLK_FREQ_G             : real                  := 156.25E+6);
    port (
       -- Stable Clock and Reset
-      stableClk      : in  sl;          -- GT needs a stable clock to "boot up"
-      stableRst      : in  sl;
+      stableClk       : in  sl;         -- GT needs a stable clock to "boot up"
+      stableRst       : in  sl;
       -- QPLL Interface
-      qpllLock       : in  sl;
-      qpllclk        : in  sl;
-      qpllrefclk     : in  sl;
-      qpllRefClkLost : in  sl;
-      qpllRst        : out sl;
+      qpllLock        : in  sl;
+      qpllclk         : in  sl;
+      qpllrefclk      : in  sl;
+      qpllRefClkLost  : in  sl;
+      qpllRst         : out sl;
       -- TX PLL Interface
-      gtTxOutClk     : out sl;
-      gtTxPllRst     : out sl;
-      txPllClk       : in  slv(1 downto 0);
-      txPllRst       : in  slv(1 downto 0);
-      gtTxPllLock    : in  sl;
+      gtTxOutClk      : out sl;
+      gtTxPllRst      : out sl;
+      txPllClk        : in  slv(1 downto 0);
+      txPllRst        : in  slv(1 downto 0);
+      gtTxPllLock     : in  sl;
       -- Gt Serial IO
-      pgpGtTxP       : out sl;
-      pgpGtTxN       : out sl;
-      pgpGtRxP       : in  sl;
-      pgpGtRxN       : in  sl;
+      pgpGtTxP        : out sl;
+      pgpGtTxN        : out sl;
+      pgpGtRxP        : in  sl;
+      pgpGtRxN        : in  sl;
       -- Clocking
-      pgpClk         : out sl;
-      pgpClkRst      : out sl;
+      pgpClk          : out sl;
+      pgpClkRst       : out sl;
       -- Non VC Rx Signals
-      pgpRxIn        : in  Pgp3RxInType;
-      pgpRxOut       : out Pgp3RxOutType;
+      pgpRxIn         : in  Pgp3RxInType;
+      pgpRxOut        : out Pgp3RxOutType;
       -- Non VC Tx Signals
-      pgpTxIn        : in  Pgp3TxInType;
-      pgpTxOut       : out Pgp3TxOutType;
+      pgpTxIn         : in  Pgp3TxInType;
+      pgpTxOut        : out Pgp3TxOutType;
       -- Frame Transmit Interface
-      pgpTxMasters   : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
-      pgpTxSlaves    : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
+      pgpTxMasters    : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
+      pgpTxSlaves     : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
       -- Frame Receive Interface
-      pgpRxMasters   : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
-      pgpRxCtrl      : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
-
+      pgpRxMasters    : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
+      pgpRxCtrl       : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
+      -- Debug Interface 
+      txPreCursor     : in  slv(4 downto 0)        := "00111";
+      txPostCursor    : in  slv(4 downto 0)        := "00111";
+      txDiffCtrl      : in  slv(3 downto 0)        := "1111";
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
@@ -299,7 +302,11 @@ begin
          txData          => phyTxData,                           -- [in]
          txHeader        => phyTxHeader,                         -- [in]
          txStart         => phyTxStart,                          -- [in]
+         -- Debug Interface 
          loopback        => pgpRxIn.loopback,                    -- [in]
+         txPreCursor     => txPreCursor,                         -- [in]
+         txPostCursor    => txPostCursor,                        -- [in]
+         txDiffCtrl      => txDiffCtrl,                          -- [in]
          -- AXI-Lite DRP Interface
          axilClk         => axilClk,                             -- [in]
          axilRst         => axilRst,                             -- [in]
