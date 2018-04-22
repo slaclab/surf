@@ -40,13 +40,22 @@ class Pgp3AxiL(pr.Device):
                 pollInterval = 1,
                 **ecvkwargs))
 
-
         self.add(pr.RemoteCommand(
             name        = 'CountReset', 
             offset      = 0x00, 
             bitSize     = 1, 
             bitOffset   = 0, 
             function    = pr.BaseCommand.toggle,
+        ))
+        
+        self.add(pr.RemoteVariable(
+            name        = "AutoStatus", 
+            description = "Auto Status Send Enable (PPI)",
+            offset      = 0x04, 
+            bitSize     = 1, 
+            bitOffset   = 0, 
+            mode        = "RW", 
+            base        = pr.Bool,
         ))
         
         self.add(pr.RemoteVariable(
@@ -61,18 +70,9 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name   = 'SkipInterval',
+            mode   = "RW", 
             offset = 0xC,
             disp   = '{:d}',
-        ))
-        
-        self.add(pr.RemoteVariable(
-            name        = "AutoStatus", 
-            description = "Auto Status Send Enable (PPI)",
-            offset      = 0x04, 
-            bitSize     = 1, 
-            bitOffset   = 0, 
-            mode        = "RW", 
-            base        = pr.Bool,
         ))
 
         ####################
@@ -216,12 +216,14 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = 'RxOpCodeLast',
+            mode         = "RO",
             dependencies = [self.RxOpCodeDataLastRaw, self.RxOpCodeNumLastRaw],
             linkedGet    = lambda: f'{self.RxOpCodeNumLastRaw.value()} - {self.RxOpCodeDataLastRaw.value():x}',
         ))
 
         self.add(pr.RemoteVariable(
             name      = 'PhyRxValid',
+            mode      = "RO",
             offset    = 0x108,
             bitOffset = 2,
             bitSize   = 1,
@@ -229,6 +231,7 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name      = 'PhyRxData',
+            mode      = "RO",
             offset    = 0x100,
             bitOffset = 0,
             bitSize   = 64,
@@ -455,9 +458,10 @@ class Pgp3AxiL(pr.Device):
         ))
 
         self.add(pr.LinkVariable(
-            name = 'TxOpCodeLast',
+            name         = 'TxOpCodeLast',
+            mode         = "RO",
             dependencies = [self.TxOpCodeDataLastRaw, self.TxOpCodeNumLastRaw],
-            linkedGet = lambda: f'{self.TxOpCodeNumLastRaw.value()} - {self.TxOpCodeDataLastRaw.value():x}'),
+            linkedGet    = lambda: f'{self.TxOpCodeNumLastRaw.value()} - {self.TxOpCodeDataLastRaw.value():x}'),
         )
 
     def countReset(self):
