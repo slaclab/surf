@@ -54,7 +54,7 @@ class Pgp3AxiL(pr.Device):
             offset      = 0x04, 
             bitSize     = 1, 
             bitOffset   = 0, 
-            mode        = "RW", 
+            mode        = 'RW', 
             base        = pr.Bool,
         ))
         
@@ -64,13 +64,13 @@ class Pgp3AxiL(pr.Device):
             offset      = 0x08, 
             bitSize     = 3, 
             bitOffset   = 0, 
-            mode        = "RW" if writeEn else 'RO', 
+            mode        = 'RW' if writeEn else 'RO', 
             base        = pr.UInt,
         ))
 
         self.add(pr.RemoteVariable(
             name   = 'SkipInterval',
-            mode   = "RW", 
+            mode   = 'RW', 
             offset = 0xC,
             disp   = '{:d}',
         ))
@@ -83,7 +83,7 @@ class Pgp3AxiL(pr.Device):
             offset       = 0x10, 
             bitSize      = 1, 
             bitOffset    = 0, 
-            mode         = "RO",
+            mode         = 'RO',
             base         = pr.Bool, 
             description  = "RX Phy is Ready",
             pollInterval = 1,
@@ -94,7 +94,7 @@ class Pgp3AxiL(pr.Device):
             offset       = 0x10, 
             bitSize      = 1, 
             bitOffset    = 1, 
-            mode         = "RO", 
+            mode         = 'RO', 
             base         = pr.Bool, 
             description  = "Rx Local Link Ready",
             pollInterval = 1,
@@ -105,7 +105,7 @@ class Pgp3AxiL(pr.Device):
             offset       = 0x10, 
             bitSize      = 1, 
             bitOffset    = 2, 
-            mode         = "RO", 
+            mode         = 'RO', 
             base         = pr.Bool, 
             description  = "Rx Remote Link Ready",
             pollInterval = 1,
@@ -116,7 +116,7 @@ class Pgp3AxiL(pr.Device):
             offset       = 0x20, 
             bitSize      = numVc, 
             bitOffset    = 16, 
-            mode         = "RO", 
+            mode         = 'RO', 
             base         = pr.UInt,
             disp         = '{:#_b}',
             description  = "RX Remote Pause Asserted",
@@ -128,7 +128,7 @@ class Pgp3AxiL(pr.Device):
             offset       = 0x20, 
             bitSize      = numVc, 
             bitOffset    = 0, 
-            mode         = "RO", 
+            mode         = 'RO', 
             base         = pr.UInt,
             disp         = '{:#_b}',            
             description  = "Received remote overflow flag",
@@ -140,7 +140,7 @@ class Pgp3AxiL(pr.Device):
             offset       = 0x2C, 
             bitSize      = 32, 
             bitOffset    = 0, 
-            mode         = "RO", 
+            mode         = 'RO', 
             base         = pr.UInt,
             hidden       = True,
             pollInterval = 1,
@@ -149,7 +149,7 @@ class Pgp3AxiL(pr.Device):
         self.add(pr.LinkVariable(
             name         = "RxClockFrequency", 
             units        = "MHz",
-            mode         = "RO",
+            mode         = 'RO',
             dependencies = [self.RxClockFreqRaw], 
             linkedGet    = lambda: self.RxClockFreqRaw.value() * 1.0e-6,
             disp         = '{:0.3f}',
@@ -161,7 +161,7 @@ class Pgp3AxiL(pr.Device):
             offset       = 0x24, 
             bitSize      = statusCountBits, 
             bitOffset    = 0, 
-            mode         = "RO", 
+            mode         = 'RO', 
             base         = pr.UInt, 
             pollInterval = 1,
         ))
@@ -199,42 +199,48 @@ class Pgp3AxiL(pr.Device):
         )
 
         self.add(pr.RemoteVariable(
-            name    = 'RxOpCodeDataLastRaw',
-            offset  = 0x34,
-            bitSize = 56,
-            base    = pr.UInt,
-            hidden  = True,
+            name         = 'RxOpCodeDataLastRaw',
+            mode         = 'RO',
+            offset       = 0x34,
+            bitSize      = 56,
+            base         = pr.UInt,
+            hidden       = True,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
-            name      = 'RxOpCodeNumLastRaw',
-            offset    = 0x34,
-            bitOffset = 56,            
-            bitSize   = 3,
-            hidden    = True,
+            name         = 'RxOpCodeNumLastRaw',
+            mode         = 'RO',
+            offset       = 0x34,
+            bitOffset    = 56,            
+            bitSize      = 3,
+            hidden       = True,
+            pollInterval = 1,
         ))
 
         self.add(pr.LinkVariable(
             name         = 'RxOpCodeLast',
-            mode         = "RO",
+            mode         = 'RO',
             dependencies = [self.RxOpCodeDataLastRaw, self.RxOpCodeNumLastRaw],
             linkedGet    = lambda: f'{self.RxOpCodeNumLastRaw.value()} - {self.RxOpCodeDataLastRaw.value():x}',
         ))
 
         self.add(pr.RemoteVariable(
-            name      = 'PhyRxValid',
-            mode      = "RO",
-            offset    = 0x108,
-            bitOffset = 2,
-            bitSize   = 1,
+            name         = 'PhyRxValid',
+            mode         = 'RO',
+            offset       = 0x108,
+            bitOffset    = 2,
+            bitSize      = 1,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
-            name      = 'PhyRxData',
-            mode      = "RO",
-            offset    = 0x100,
-            bitOffset = 0,
-            bitSize   = 64,
+            name         = 'PhyRxData',
+            mode         = 'RO',
+            offset       = 0x100,
+            bitOffset    = 0,
+            bitSize      = 64,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -354,7 +360,7 @@ class Pgp3AxiL(pr.Device):
             offset      = 0x84, 
             bitSize     = 1, 
             bitOffset   = 1, 
-            mode        = "RO", 
+            mode        = 'RO', 
             base        = pr.Bool, 
             description = "TX Phy is Ready",
             pollInterval = 1,
@@ -375,7 +381,7 @@ class Pgp3AxiL(pr.Device):
             offset       = 0x8C, 
             bitSize      = numVc, 
             bitOffset    = 16, 
-            mode         = "RO", 
+            mode         = 'RO', 
             base         = pr.UInt,
             disp         = '{:#_b}',            
             description  = "Tx Local Pause Asserted",
@@ -387,7 +393,7 @@ class Pgp3AxiL(pr.Device):
             offset       = 0x8C, 
             bitSize      = numVc,
             bitOffset    = 0, 
-            mode         = "RO", 
+            mode         = 'RO', 
             base         = pr.UInt,
             disp         = '{:#_b}',            
             description  = "Received local overflow flag",
@@ -399,7 +405,7 @@ class Pgp3AxiL(pr.Device):
             offset       = 0x9C, 
             bitSize      = 32, 
             bitOffset    = 0, 
-            mode         = "RO", 
+            mode         = 'RO', 
             base         = pr.UInt,
             hidden       = True,
             pollInterval = 1,
@@ -408,7 +414,7 @@ class Pgp3AxiL(pr.Device):
         self.add(pr.LinkVariable(
             name         = "TxClockFrequency", 
             units        = "MHz", 
-            mode         = "RO",
+            mode         = 'RO',
             dependencies = [self.TxClockFreqRaw], 
             linkedGet    = lambda: self.TxClockFreqRaw.value() * 1.0e-6,
             disp         = '{:0.3f}',
@@ -419,7 +425,7 @@ class Pgp3AxiL(pr.Device):
             offset       = 0x90, 
             bitSize      = statusCountBits, 
             bitOffset    = 0, 
-            mode         = "RO", 
+            mode         = 'RO', 
             base         = pr.UInt, 
             pollInterval = 1,
         ))
@@ -442,24 +448,28 @@ class Pgp3AxiL(pr.Device):
         )
 
         self.add(pr.RemoteVariable(
-            name    = 'TxOpCodeDataLastRaw',
-            offset  = 0xA4,
-            bitSize = 56,
-            base    = pr.UInt,
-            hidden  = True,
+            name         = 'TxOpCodeDataLastRaw',
+            mode         = 'RO',
+            offset       = 0xA4,
+            bitSize      = 56,
+            base         = pr.UInt,
+            hidden       = True,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
-            name      = 'TxOpCodeNumLastRaw',
-            offset    = 0xA4,
-            bitOffset = 56,            
-            bitSize   = 3,
-            hidden    = True,
+            name         = 'TxOpCodeNumLastRaw',
+            mode         = 'RO',
+            offset       = 0xA4,
+            bitOffset    = 56,            
+            bitSize      = 3,
+            hidden       = True,
+            pollInterval = 1,
         ))
 
         self.add(pr.LinkVariable(
             name         = 'TxOpCodeLast',
-            mode         = "RO",
+            mode         = 'RO',
             dependencies = [self.TxOpCodeDataLastRaw, self.TxOpCodeNumLastRaw],
             linkedGet    = lambda: f'{self.TxOpCodeNumLastRaw.value()} - {self.TxOpCodeDataLastRaw.value():x}'),
         )
