@@ -2,7 +2,7 @@
 -- File       : Pgp3Gtx7IpWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-20
--- Last update: 2018-04-22
+-- Last update: 2018-04-23
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -318,8 +318,11 @@ architecture mapping of Pgp3Gtx7IpWrapper is
    signal drpDo   : slv(15 downto 0) := (others => '0');
    signal drpEn   : sl               := '0';
    signal drpWe   : sl               := '0';
-   signal drpRdy  : sl               := '0'
-;
+   signal drpRdy  : sl               := '0';
+
+   signal txGearBoxReady    : sl := '0';
+   signal txGearBoxReadyDly : sl := '0';
+
 begin
 
    rxUsrClk  <= rxUsrClkInt;
@@ -355,6 +358,14 @@ begin
    txUsrClkInt  <= txPllClk(0);
    txUsrClk2Int <= txPllClk(1);
    txUsrClkRst  <= txPllRst(1);
+
+   txDataRdy <= txGearBoxReady or txGearBoxReadyDly;
+   process(txUsrClk2Int)
+   begin
+      if rising_edge(txUsrClk2Int) then
+         txGearBoxReadyDly <= txGearBoxReady after TPD_G;
+      end if;
+   end process;
 
    GEN_10G : if (RATE_G = true) generate
       U_Pgp3Gtx7Ip10G : Pgp3Gtx7Ip10G
@@ -446,7 +457,7 @@ begin
             gt0_txoutclkfabric_out      => open,  -- 156.25 MHz (6.206 ns period)
             gt0_txoutclkpcs_out         => open,
             --------------------- Transmit Ports - TX Gearbox Ports --------------------
-            gt0_txgearboxready_out      => txDataRdy,
+            gt0_txgearboxready_out      => txGearBoxReady,
             gt0_txheader_in             => txHeader,
             gt0_txstartseq_in           => txStart,
             ------------- Transmit Ports - TX Initialization and Reset Ports -----------
@@ -553,7 +564,7 @@ begin
             gt0_txoutclkfabric_out      => open,  -- 156.25 MHz (6.4 ns period)
             gt0_txoutclkpcs_out         => open,
             --------------------- Transmit Ports - TX Gearbox Ports --------------------
-            gt0_txgearboxready_out      => txDataRdy,
+            gt0_txgearboxready_out      => txGearBoxReady,
             gt0_txheader_in             => txHeader,
             gt0_txstartseq_in           => txStart,
             ------------- Transmit Ports - TX Initialization and Reset Ports -----------
