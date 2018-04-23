@@ -83,6 +83,7 @@ architecture rtl of Pgp3Tx is
    signal packetizedTxMaster : AxiStreamMasterType;
    signal packetizedTxSlave  : AxiStreamSlaveType;
 
+   signal phyTxActiveL   : sl;
    signal protTxValid    : sl;
    signal protTxReady    : sl;
    signal protTxSequence : slv(5 downto 0);
@@ -231,7 +232,7 @@ begin
          TAPS_G           => PGP3_SCRAMBLER_TAPS_C)
       port map (
          clk                        => pgpTxClk,        -- [in]
-         rst                        => pgpTxRst,        -- [in]
+         rst                        => phyTxActiveL,    -- [in]
          inputValid                 => protTxValid,     -- [in]
          inputReady                 => protTxReady,     -- [out]
          inputData                  => protTxData,      -- [in]
@@ -243,5 +244,7 @@ begin
          outputSideband(1 downto 0) => phyTxHeader,     -- [out]
          outputSideband(2)          => phyTxStart,      -- [out]
          outputSideband(8 downto 3) => phyTxSequence);  -- [out]
+
+   phyTxActiveL <= not(phyTxActive);
 
 end architecture rtl;
