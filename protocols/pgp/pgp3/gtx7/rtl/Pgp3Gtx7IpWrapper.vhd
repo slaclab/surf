@@ -2,7 +2,7 @@
 -- File       : Pgp3Gtx7IpWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-20
--- Last update: 2018-04-20
+-- Last update: 2018-04-22
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -68,6 +68,7 @@ entity Pgp3Gtx7IpWrapper is
       txUsrClk        : out sl;
       txUsrClk2       : out sl;
       txUsrClkRst     : out sl;
+      txDataRdy       : out sl;
       txData          : in  slv(63 downto 0);
       txHeader        : in  slv(1 downto 0);
       txStart         : in  sl;
@@ -445,7 +446,7 @@ begin
             gt0_txoutclkfabric_out      => open,  -- 156.25 MHz (6.206 ns period)
             gt0_txoutclkpcs_out         => open,
             --------------------- Transmit Ports - TX Gearbox Ports --------------------
-            gt0_txgearboxready_out      => open,
+            gt0_txgearboxready_out      => txDataRdy,
             gt0_txheader_in             => txHeader,
             gt0_txstartseq_in           => txStart,
             ------------- Transmit Ports - TX Initialization and Reset Ports -----------
@@ -552,7 +553,7 @@ begin
             gt0_txoutclkfabric_out      => open,  -- 156.25 MHz (6.4 ns period)
             gt0_txoutclkpcs_out         => open,
             --------------------- Transmit Ports - TX Gearbox Ports --------------------
-            gt0_txgearboxready_out      => open,
+            gt0_txgearboxready_out      => txDataRdy,
             gt0_txheader_in             => txHeader,
             gt0_txstartseq_in           => txStart,
             ------------- Transmit Ports - TX Initialization and Reset Ports -----------

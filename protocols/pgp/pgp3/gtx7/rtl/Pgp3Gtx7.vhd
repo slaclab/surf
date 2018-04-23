@@ -2,7 +2,7 @@
 -- File       : Pgp3Gtx7.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2018-04-20
+-- Last update: 2018-04-22
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -114,7 +114,6 @@ architecture rtl of Pgp3Gtx7 is
    signal pgpTxRstInt : sl;
 
    -- PgpRx Signals
---   signal gtRxUserReset : sl;
    signal phyRxClk      : sl;
    signal phyRxRst      : sl;
    signal phyRxInit     : sl;
@@ -125,11 +124,10 @@ architecture rtl of Pgp3Gtx7 is
    signal phyRxStartSeq : sl;
    signal phyRxSlip     : sl;
 
-
    -- PgpTx Signals
---   signal gtTxUserReset : sl;
    signal phyTxActive   : sl;
    signal phyTxStart    : sl;
+   signal phyTxDataRdy  : sl;
    signal phyTxSequence : slv(5 downto 0);
    signal phyTxData     : slv(63 downto 0);
    signal phyTxHeader   : slv(1 downto 0);
@@ -153,13 +151,12 @@ architecture rtl of Pgp3Gtx7 is
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 
+   signal loopback : slv(2 downto 0);
+
 begin
 
    pgpClk    <= pgpTxClkInt;
    pgpClkRst <= pgpTxRstInt;
-
-   --gtRxUserReset <= phyRxInit or pgpRxIn.resetRx;
-   --gtTxUserReset <= pgpTxRst;
 
    GEN_XBAR : if (EN_DRP_G and EN_PGP_MON_G) generate
       U_XBAR : entity work.AxiLiteCrossbar
@@ -218,24 +215,28 @@ begin
          EN_PGP_MON_G                => EN_PGP_MON_G,
          AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G)
       port map (
+         -- Tx User interface
          pgpTxClk        => pgpTxClkInt,                         -- [in]
          pgpTxRst        => pgpTxRstInt,                         -- [in]
          pgpTxIn         => pgpTxIn,                             -- [in]
          pgpTxOut        => pgpTxOut,                            -- [out]
          pgpTxMasters    => pgpTxMasters,                        -- [in]
          pgpTxSlaves     => pgpTxSlaves,                         -- [out]
+         -- Tx PHY interface
          phyTxActive     => phyTxActive,                         -- [in]
-         phyTxReady      => '1',                                 -- [in]
+         phyTxReady      => phyTxDataRdy,                        -- [in]
          phyTxStart      => phyTxStart,                          -- [out]
          phyTxSequence   => phyTxSequence,                       -- [out]
          phyTxData       => phyTxData,                           -- [out]
          phyTxHeader     => phyTxHeader,                         -- [out]
+         -- Rx User interface
          pgpRxClk        => pgpTxClkInt,                         -- [in]
          pgpRxRst        => pgpTxRstInt,                         -- [in]
          pgpRxIn         => pgpRxIn,                             -- [in]
          pgpRxOut        => pgpRxOut,                            -- [out]
          pgpRxMasters    => pgpRxMasters,                        -- [out]
          pgpRxCtrl       => pgpRxCtrl,                           -- [in]
+         -- Rx PHY interface
          phyRxClk        => phyRxClk,                            -- [in]
          phyRxRst        => phyRxRst,                            -- [in]
          phyRxInit       => phyRxInit,                           -- [out]
@@ -245,6 +246,9 @@ begin
          phyRxData       => phyRxData,                           -- [in]
          phyRxStartSeq   => '0',                                 -- [in]
          phyRxSlip       => phyRxSlip,                           -- [out]
+         -- Debug Interface
+         loopback        => loopback,                            -- [out]
+         -- AXI-Lite Register Interface (axilClk domain)
          axilClk         => axilClk,                             -- [in]
          axilRst         => axilRst,                             -- [in]
          axilReadMaster  => axilReadMasters(PGP_AXIL_INDEX_C),   -- [in]
@@ -299,11 +303,12 @@ begin
          txUsrClk        => open,                                -- [out]
          txUsrClk2       => pgpTxClkInt,                         -- [out]
          txUsrClkRst     => pgpTxRstInt,                         -- [out]
+         txDataRdy       => phyTxDataRdy,                        -- [out]
          txData          => phyTxData,                           -- [in]
          txHeader        => phyTxHeader,                         -- [in]
          txStart         => phyTxStart,                          -- [in]
          -- Debug Interface 
-         loopback        => pgpRxIn.loopback,                    -- [in]
+         loopback        => loopback,                            -- [in]
          txPreCursor     => txPreCursor,                         -- [in]
          txPostCursor    => txPostCursor,                        -- [in]
          txDiffCtrl      => txDiffCtrl,                          -- [in]
