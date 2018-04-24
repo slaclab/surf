@@ -94,8 +94,10 @@ XauiReg: &XauiReg
         offset: 0xFF4
       class: IntField
       name: CounterReset
-      sizeBits: 1
+      # sizeBits: 1
       mode: WO
+      # CPSW requires all WO variables to be 32-bit size and 32-bit aligned 
+      sizeBits: 32          
       description: CounterReset
     #########################################################
     SoftReset:
@@ -103,8 +105,10 @@ XauiReg: &XauiReg
         offset: 0xFF8
       class: IntField
       name: SoftReset
-      sizeBits: 1
+      # sizeBits: 1
       mode: WO
+      # CPSW requires all WO variables to be 32-bit size and 32-bit aligned 
+      sizeBits: 32          
       description: SoftReset
     #########################################################
     HardReset:
@@ -112,7 +116,9 @@ XauiReg: &XauiReg
         offset: 0xFFC
       class: IntField
       name: HardReset
-      sizeBits: 1
+      # sizeBits: 1
       mode: WO
+      # CPSW requires all WO variables to be 32-bit size and 32-bit aligned 
+      sizeBits: 32          
       description: HardReset
     #########################################################
