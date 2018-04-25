@@ -2,7 +2,7 @@
 -- File       : Pgp3Gtx7Qpll.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-26
--- Last update: 2018-01-10
+-- Last update: 2018-04-19
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -29,10 +29,10 @@ use unisim.vcomponents.all;
 
 entity Pgp3Gtx7Qpll is
    generic (
-      TPD_G             : time            := 1 ns;
-      EN_DRP_G          : boolean         := true;
-      REFCLK_TYPE_G     : Pgp3RefClkType  := PGP3_REFCLK_312_C;
-      RATE_G            : boolean         := true);  -- true = 10.3125 Gbps, false = 6.25 Gbps
+      TPD_G         : time           := 1 ns;
+      EN_DRP_G      : boolean        := true;
+      REFCLK_TYPE_G : Pgp3RefClkType := PGP3_REFCLK_312_C;
+      RATE_G        : boolean        := true);  -- true = 10.3125 Gbps, false = 6.25 Gbps
    port (
       -- Stable Clock and Reset
       stableClk       : in  sl;         -- GT needs a stable clock to "boot up"
@@ -48,9 +48,9 @@ entity Pgp3Gtx7Qpll is
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
       axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
-      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilReadSlave   : out AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave  : out AxiLiteWriteSlaveType);
+      axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 end Pgp3Gtx7Qpll;
 
 architecture mapping of Pgp3Gtx7Qpll is
@@ -208,6 +208,7 @@ begin
    U_QPLL : entity work.Gtx7QuadPll
       generic map (
          TPD_G              => TPD_G,
+         EN_DRP_G           => EN_DRP_G,
          QPLL_CFG_G         => QPLL_CFG_C,
          QPLL_FBDIV_G       => QPLL_FBDIV_C,
          QPLL_FBDIV_RATIO_G => QPLL_FBDIV_RATIO_C,

@@ -21,6 +21,7 @@ import pyrogue as pr
 from surf.misc._mcsreader import *
 import click
 import time
+import datetime
 
 class AxiMicronMt28ew(pr.Device):
     def __init__(self,       
@@ -72,7 +73,7 @@ class AxiMicronMt28ew(pr.Device):
             # End time measurement for profiling
             end = time.time()
             elapsed = end - start
-            click.secho(('LoadMcsFile() took %d seconds' % int(elapsed)), fg='green')
+            click.secho('LoadMcsFile() took %s to program the PROM' % datetime.timedelta(seconds=int(elapsed)), fg='green')
             
             # Add a power cycle reminder
             self._progDone = True

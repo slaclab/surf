@@ -1,19 +1,16 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
+-- File       : Pgp3Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: PGPv3 Core
 -------------------------------------------------------------------------------
--- This file is part of SURF. It is subject to
--- the license terms in the LICENSE.txt file found in the top-level directory
--- of this distribution and at:
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
--- No part of SURF, including this file, may be
--- copied, modified, propagated, or distributed except according to the terms
--- contained in the LICENSE.txt file.
+-- This file is part of 'SLAC Firmware Standard Library'.
+-- It is subject to the license terms in the LICENSE.txt file found in the 
+-- top-level directory of this distribution and at: 
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
+-- may be copied, modified, propagated, or distributed except according to 
+-- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -78,6 +75,9 @@ entity Pgp3Core is
       phyRxData     : in  slv(63 downto 0);
       phyRxStartSeq : in  sl;
       phyRxSlip     : out sl;
+
+      -- Debug Interface
+      loopback : out slv(2 downto 0);
 
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk         : in  sl                     := '0';
@@ -193,10 +193,11 @@ begin
             axilWriteSlave  => axilWriteSlave);  -- [out]
    end generate GEN_PGP_MON;
 
-   NO_PGP_MON: if (not EN_PGP_MON_G) generate
+   NO_PGP_MON : if (not EN_PGP_MON_G) generate
       pgpTxInInt <= pgpTxIn;
       pgpRxInInt <= pgpRxIn;
    end generate NO_PGP_MON;
 
+   loopback <= pgpRxInInt.loopback;
 
 end architecture rtl;

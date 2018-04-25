@@ -8,13 +8,13 @@
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
--- This file is part of SURF. It is subject to
--- the license terms in the LICENSE.txt file found in the top-level directory
--- of this distribution and at:
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
--- No part of SURF, including this file, may be
--- copied, modified, propagated, or distributed except according to the terms
--- contained in the LICENSE.txt file.
+-- This file is part of 'SLAC Firmware Standard Library'.
+-- It is subject to the license terms in the LICENSE.txt file found in the 
+-- top-level directory of this distribution and at: 
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
+-- may be copied, modified, propagated, or distributed except according to 
+-- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -83,6 +83,7 @@ architecture rtl of Pgp3Tx is
    signal packetizedTxMaster : AxiStreamMasterType;
    signal packetizedTxSlave  : AxiStreamSlaveType;
 
+   signal phyTxActiveL   : sl;
    signal protTxValid    : sl;
    signal protTxReady    : sl;
    signal protTxSequence : slv(5 downto 0);
@@ -231,7 +232,7 @@ begin
          TAPS_G           => PGP3_SCRAMBLER_TAPS_C)
       port map (
          clk                        => pgpTxClk,        -- [in]
-         rst                        => pgpTxRst,        -- [in]
+         rst                        => phyTxActiveL,    -- [in]
          inputValid                 => protTxValid,     -- [in]
          inputReady                 => protTxReady,     -- [out]
          inputData                  => protTxData,      -- [in]
@@ -243,5 +244,7 @@ begin
          outputSideband(1 downto 0) => phyTxHeader,     -- [out]
          outputSideband(2)          => phyTxStart,      -- [out]
          outputSideband(8 downto 3) => phyTxSequence);  -- [out]
+
+   phyTxActiveL <= not(phyTxActive);
 
 end architecture rtl;

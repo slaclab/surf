@@ -2,7 +2,7 @@
 -- File       : Pgp3Gtx7IpWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-12-20
--- Last update: 2018-01-10
+-- Last update: 2018-04-23
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -26,11 +26,11 @@ use unisim.vcomponents.all;
 
 entity Pgp3Gtx7IpWrapper is
    generic (
-      TPD_G             : time            := 1 ns;
-      EN_DRP_G          : boolean         := true;
-      RATE_G            : boolean         := true;  -- true = 10.3125 Gbps, false = 6.25 Gbps
-      TX_POLARITY_G     : sl              := '0';
-      RX_POLARITY_G     : sl              := '0');
+      TPD_G         : time    := 1 ns;
+      EN_DRP_G      : boolean := true;
+      RATE_G        : boolean := true;  -- true = 10.3125 Gbps, false = 6.25 Gbps
+      TX_POLARITY_G : sl      := '0';
+      RX_POLARITY_G : sl      := '0');
    port (
       stableClk       : in  sl;
       stableRst       : in  sl;
@@ -68,17 +68,22 @@ entity Pgp3Gtx7IpWrapper is
       txUsrClk        : out sl;
       txUsrClk2       : out sl;
       txUsrClkRst     : out sl;
+      txDataRdy       : out sl;
       txData          : in  slv(63 downto 0);
       txHeader        : in  slv(1 downto 0);
       txStart         : in  sl;
+      -- Debug Interface 
       loopback        : in  slv(2 downto 0);
+      txPreCursor     : in  slv(4 downto 0);
+      txPostCursor    : in  slv(4 downto 0);
+      txDiffCtrl      : in  slv(3 downto 0);
       -- AXI-Lite DRP Interface
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
       axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
-      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilReadSlave   : out AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave  : out AxiLiteWriteSlaveType);
+      axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 end entity Pgp3Gtx7IpWrapper;
 
 architecture mapping of Pgp3Gtx7IpWrapper is
@@ -313,8 +318,11 @@ architecture mapping of Pgp3Gtx7IpWrapper is
    signal drpDo   : slv(15 downto 0) := (others => '0');
    signal drpEn   : sl               := '0';
    signal drpWe   : sl               := '0';
-   signal drpRdy  : sl               := '0'
-;
+   signal drpRdy  : sl               := '0';
+
+   signal txGearBoxReady    : sl := '0';
+   signal txGearBoxReadyDly : sl := '0';
+
 begin
 
    rxUsrClk  <= rxUsrClkInt;
@@ -350,6 +358,14 @@ begin
    txUsrClkInt  <= txPllClk(0);
    txUsrClk2Int <= txPllClk(1);
    txUsrClkRst  <= txPllRst(1);
+
+   txDataRdy <= txGearBoxReady or txGearBoxReadyDly;
+   process(txUsrClk2Int)
+   begin
+      if rising_edge(txUsrClk2Int) then
+         txGearBoxReadyDly <= txGearBoxReady after TPD_G;
+      end if;
+   end process;
 
    GEN_10G : if (RATE_G = true) generate
       U_Pgp3Gtx7Ip10G : Pgp3Gtx7Ip10G
@@ -421,8 +437,8 @@ begin
             -------------- Receive Ports -RX Initialization and Reset Ports ------------
             gt0_rxresetdone_out         => open,
             ------------------------ TX Configurable Driver Ports ----------------------
-            gt0_txpostcursor_in         => "00111",
-            gt0_txprecursor_in          => "00111",
+            gt0_txpostcursor_in         => txPostCursor,
+            gt0_txprecursor_in          => txPreCursor,
             --------------------- TX Initialization and Reset Ports --------------------
             gt0_gttxreset_in            => '0',
             gt0_txuserrdy_in            => '1',
@@ -430,7 +446,7 @@ begin
             gt0_txusrclk_in             => txUsrClkInt,  -- 322.26 MHz (3.103 ns period)
             gt0_txusrclk2_in            => txUsrClk2Int,  -- 161.13 MHz (6.206 ns period)
             --------------- Transmit Ports - TX Configurable Driver Ports --------------
-            gt0_txdiffctrl_in           => "1111",
+            gt0_txdiffctrl_in           => txDiffCtrl,
             ------------------ Transmit Ports - TX Data Path interface -----------------
             gt0_txdata_in               => txData,
             ---------------- Transmit Ports - TX Driver and OOB signaling --------------
@@ -441,7 +457,7 @@ begin
             gt0_txoutclkfabric_out      => open,  -- 156.25 MHz (6.206 ns period)
             gt0_txoutclkpcs_out         => open,
             --------------------- Transmit Ports - TX Gearbox Ports --------------------
-            gt0_txgearboxready_out      => open,
+            gt0_txgearboxready_out      => txGearBoxReady,
             gt0_txheader_in             => txHeader,
             gt0_txstartseq_in           => txStart,
             ------------- Transmit Ports - TX Initialization and Reset Ports -----------
@@ -528,8 +544,8 @@ begin
             -------------- Receive Ports -RX Initialization and Reset Ports ------------
             gt0_rxresetdone_out         => open,
             ------------------------ TX Configurable Driver Ports ----------------------
-            gt0_txpostcursor_in         => "00111",
-            gt0_txprecursor_in          => "00111",
+            gt0_txpostcursor_in         => txPostCursor,
+            gt0_txprecursor_in          => txPreCursor,
             --------------------- TX Initialization and Reset Ports --------------------
             gt0_gttxreset_in            => '0',
             gt0_txuserrdy_in            => '1',
@@ -537,7 +553,7 @@ begin
             gt0_txusrclk_in             => txUsrClkInt,  -- 195.31 MHz (5.12 ns period)
             gt0_txusrclk2_in            => txUsrClk2Int,  -- 97.655 MHz (10.24 ns period)
             --------------- Transmit Ports - TX Configurable Driver Ports --------------
-            gt0_txdiffctrl_in           => "1111",
+            gt0_txdiffctrl_in           => txDiffCtrl,
             ------------------ Transmit Ports - TX Data Path interface -----------------
             gt0_txdata_in               => txData,
             ---------------- Transmit Ports - TX Driver and OOB signaling --------------
@@ -548,7 +564,7 @@ begin
             gt0_txoutclkfabric_out      => open,  -- 156.25 MHz (6.4 ns period)
             gt0_txoutclkpcs_out         => open,
             --------------------- Transmit Ports - TX Gearbox Ports --------------------
-            gt0_txgearboxready_out      => open,
+            gt0_txgearboxready_out      => txGearBoxReady,
             gt0_txheader_in             => txHeader,
             gt0_txstartseq_in           => txStart,
             ------------- Transmit Ports - TX Initialization and Reset Ports -----------
