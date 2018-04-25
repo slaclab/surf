@@ -57,15 +57,18 @@ SsiPrbsTx: &SsiPrbsTx
       sizeBits: 1
       description: ''
     #########################################################
-    OneShot:
-      at:
-        offset: 0x00
-      class: IntField
-      name: OneShot
-      mode: WO
-      lsBit: 4
-      sizeBits: 1
-      description: ''
+    # CPSW requires all WO variables to be 32-bit size and 32-bit aligned 
+    # which makes this variable not supported unless we rewrite the firmware
+    #########################################################
+    # OneShot:
+      # at:
+        # offset: 0x00
+      # class: IntField
+      # name: OneShot
+      # mode: WO
+      # lsBit: 4
+      # sizeBits: 1
+      # description: ''
     #########################################################
     FwCnt:
       at:
@@ -129,13 +132,16 @@ SsiPrbsTx: &SsiPrbsTx
       mode: RO
       description: ''
     #########################################################
-    C_OneShot:
-      name: C_OneShot
-      at:
-        offset: 0x0      
-      class: SequenceCommand
-      description: ''
-      sequence:
-      - entry: OneShot
-        value: 0x1
+    # CPSW requires all WO variables to be 32-bit size and 32-bit aligned 
+    # which makes this command not supported unless we rewrite the firmware
+    #########################################################
+    # C_OneShot:
+      # name: C_OneShot
+      # at:
+        # offset: 0x0      
+      # class: SequenceCommand
+      # description: ''
+      # sequence:
+      # - entry: OneShot
+        # value: 0x1
     #########################################################
