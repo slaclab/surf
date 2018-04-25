@@ -6,18 +6,18 @@
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description:
+-- Description: 
 -- Takes pre-packetized AxiStream frames and creates a PGP3 66/64 protocol
 -- stream (pre-scrambler). Inserts IDLE and SKP codes as needed. Inserts
 -- user K codes on request.
 -------------------------------------------------------------------------------
--- This file is part of SURF. It is subject to
--- the license terms in the LICENSE.txt file found in the top-level directory
--- of this distribution and at:
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
--- No part of SURF, including this file, may be
--- copied, modified, propagated, or distributed except according to the terms
--- contained in the LICENSE.txt file.
+-- This file is part of 'SLAC Firmware Standard Library'.
+-- It is subject to the license terms in the LICENSE.txt file found in the 
+-- top-level directory of this distribution and at: 
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
+-- may be copied, modified, propagated, or distributed except according to 
+-- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -100,8 +100,8 @@ architecture rtl of Pgp3TxProtocol is
 
 begin
 
-   comb : process (locRxFifoCtrl, locRxLinkReady, pgpTxIn, pgpTxMaster, pgpTxRst, phyTxActive,
-                   protTxReady, r, remRxLinkReady) is
+   comb : process (locRxFifoCtrl, locRxLinkReady, pgpTxIn, pgpTxMaster,
+                   pgpTxRst, phyTxActive, protTxReady, r, remRxLinkReady) is
       variable v        : RegType;
       variable linkInfo : slv(39 downto 0);
       variable dataEn   : sl;
@@ -119,9 +119,7 @@ begin
       v.frameTx    := '0';
       v.frameTxErr := '0';
 
-      v.protTxStart    := '0';
-      v.protTxSequence := r.protTxSequence + 1;
-
+      -- Check the handshaking 
       if (protTxReady = '1') then
          v.protTxValid := '0';
       end if;
@@ -129,17 +127,23 @@ begin
       dataEn := ite(pgpTxIn.flowCntlDis = '1', r.linkReady, remRxLinkReady);
 
       if (v.protTxValid = '0' and phyTxActive = '1') then
-         v.protTxValid := '1';
 
          -- Send only IDLE and SKP for STARTUP_HOLD_G cycles after reset
-         v.startupCount := r.startupCount + 1;
-         if (r.startupCount = 0) then
-            v.protTxStart    := '1';
-            v.protTxSequence := (others => '0');
-         end if;
          if (r.startupCount = STARTUP_HOLD_G) then
-            v.startupCount := r.startupCount;
-            v.linkReady    := '1';
+            -- Set the flags
+            v.linkReady   := '1';
+            v.protTxStart := '1';
+            v.protTxValid := '1';
+            -- Check for max seq count
+            if(r.protTxSequence = 32) then
+               v.protTxSequence := (others => '0');
+            else
+               -- Increment the counter
+               v.protTxSequence := r.protTxSequence + 1;
+            end if;
+         else
+            -- Increment the counter
+            v.startupCount := r.startupCount + 1;
          end if;
 
          -- Decide whether to send IDLE, SKP, USER or data frames.
@@ -206,15 +210,26 @@ begin
             end if;
          end if;
 
+         -- Check if TX is disabled
          if (pgpTxIn.disable = '1') then
-            v.linkReady    := '0';
-            v.startupCount := 0;
-            v.protTxData   := (others => '0');
-            v.protTxHeader := (others => '0');
+            v.linkReady      := '0';
+            v.protTxStart    := '0';
+            v.protTxSequence := (others => '0');
+            v.startupCount   := 0;
+            v.protTxData     := (others => '0');
+            v.protTxHeader   := (others => '0');
          end if;
 
       end if;
-      
+
+      -- Check if link down
+      if (phyTxActive = '0') then
+         v.linkReady      := '0';
+         v.protTxStart    := '0';
+         v.protTxSequence := (others => '0');
+         v.startupCount   := 0;
+      end if;
+
       -- Combinatorial outputs before the reset
       pgpTxSlave <= v.pgpTxSlave;
 
@@ -245,7 +260,6 @@ begin
          end if;
       end loop;
 
-
    end process comb;
 
    seq : process (pgpTxClk) is
@@ -254,4 +268,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
+   
 end architecture rtl;
