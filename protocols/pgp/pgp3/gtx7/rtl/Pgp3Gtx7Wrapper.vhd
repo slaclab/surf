@@ -2,7 +2,7 @@
 -- File       : Pgp3Gtx7Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-27
--- Last update: 2018-04-20
+-- Last update: 2018-05-01
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -120,7 +120,6 @@ architecture rtl of Pgp3Gtx7Wrapper is
    signal pllLock      : sl;
 
    signal pgpRefClockDiv2 : sl;
-   signal pgpRefClock     : sl;
    signal pgpRefClk       : sl;
 
    constant NUM_AXIL_MASTERS_C : integer := NUM_LANES_G+1;
@@ -138,20 +137,29 @@ begin
 
    pgpRefClkOut <= pgpRefClk;
 
-   U_BUFG : BUFG
-      port map (
-         I => pgpRefClockDiv2,
-         O => pgpRefClkDiv2);
+   INT_REFCLK : if (REFCLK_G = false) generate
 
-   U_pgpRefClk : IBUFDS_GTE2
-      port map (
-         I     => pgpRefClkP,
-         IB    => pgpRefClkN,
-         CEB   => '0',
-         ODIV2 => pgpRefClockDiv2,
-         O     => pgpRefClock);
+      U_BUFG : BUFG
+         port map (
+            I => pgpRefClockDiv2,
+            O => pgpRefClkDiv2);
 
-   pgpRefClk <= pgpRefClock when(REFCLK_G = false) else pgpRefClkIn;
+      U_pgpRefClk : IBUFDS_GTE2
+         port map (
+            I     => pgpRefClkP,
+            IB    => pgpRefClkN,
+            CEB   => '0',
+            ODIV2 => pgpRefClockDiv2,
+            O     => pgpRefClk);
+
+   end generate;
+
+   EXT_REFCLK : if (REFCLK_G = true) generate
+
+      pgpRefClkDiv2 <= '0';
+      pgpRefClk     <= pgpRefClkIn;
+
+   end generate;
 
    U_XBAR : entity work.AxiLiteCrossbar
       generic map (
