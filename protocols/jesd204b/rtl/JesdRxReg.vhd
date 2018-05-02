@@ -2,7 +2,7 @@
 -- File       : JesdRxReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-15
--- Last update: 2018-01-08
+-- Last update: 2018-05-02
 -------------------------------------------------------------------------------
 -- Description:  AXI-Lite interface for register access 
 -------------------------------------------------------------------------------
@@ -27,11 +27,11 @@ use work.Jesd204bPkg.all;
 entity JesdRxReg is
    generic (
       -- General Configurations
-      TPD_G            : time            := 1 ns;
-      AXI_ADDR_WIDTH_G : positive        := 10;
+      TPD_G            : time                   := 1 ns;
+      AXI_ADDR_WIDTH_G : positive               := 10;
       -- JESD 
       -- Number of RX lanes (1 to 32)
-      L_G : positive range 1 to 32 := 2);
+      L_G              : positive range 1 to 32 := 2);
    port (
       -- AXI Clk
       axiClk_i : in sl;
@@ -51,23 +51,24 @@ entity JesdRxReg is
       -- Status
       statusRxArr_i : in rxStatuRegisterArray(L_G-1 downto 0);
       rawData_i     : in slv32Array(L_G-1 downto 0);
-      
+
       -- Control
       sysrefDlyRx_o     : out slv(SYSRF_DLY_WIDTH_C-1 downto 0);
       enableRx_o        : out slv(L_G-1 downto 0);
       replEnable_o      : out sl;
       scrEnable_o       : out sl;
-      invertData_o      : out slv(L_G-1 downto 0);   
-      dlyTxArr_o        : out Slv4Array(L_G-1 downto 0);     -- 1 to 16 clock cycles
+      invertData_o      : out slv(L_G-1 downto 0);
+      dlyTxArr_o        : out Slv4Array(L_G-1 downto 0);  -- 1 to 16 clock cycles
       alignTxArr_o      : out alignTxArray(L_G-1 downto 0);  -- 0001, 0010, 0100, 1000
-      thresoldLowArr_o  : out Slv16Array(L_G-1 downto 0);    -- Test signal threshold low
-      thresoldHighArr_o : out Slv16Array(L_G-1 downto 0);    -- Test signal threshold high  
+      thresoldLowArr_o  : out Slv16Array(L_G-1 downto 0);  -- Test signal threshold low
+      thresoldHighArr_o : out Slv16Array(L_G-1 downto 0);  -- Test signal threshold high  
       subClass_o        : out sl;
       gtReset_o         : out sl;
       clearErr_o        : out sl;
       invertSync_o      : out sl;
       linkErrMask_o     : out slv(5 downto 0);
-      rxPolarity        : out slv(L_G-1 downto 0)); 
+      rxPowerDown       : out slv(L_G-1 downto 0);
+      rxPolarity        : out slv(L_G-1 downto 0));
 end JesdRxReg;
 
 architecture rtl of JesdRxReg is
@@ -75,31 +76,31 @@ architecture rtl of JesdRxReg is
    type RegType is record
       -- JESD Control (RW)
       enableRx       : slv(L_G-1 downto 0);
-      invertData     : slv(L_G-1 downto 0);    
+      invertData     : slv(L_G-1 downto 0);
       commonCtrl     : slv(5 downto 0);
       linkErrMask    : slv(5 downto 0);
       sysrefDlyRx    : slv(SYSRF_DLY_WIDTH_C-1 downto 0);
       testTXItf      : Slv16Array(L_G-1 downto 0);
       testSigThr     : Slv32Array(L_G-1 downto 0);
       rxPolarity     : slv(L_G-1 downto 0);
-
-
+      rxPowerDown    : slv(L_G-1 downto 0);
       -- AXI lite
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
    end record;
 
    constant REG_INIT_C : RegType := (
+      -- JESD Control (RW)
       enableRx       => (others => '0'),
-      invertData     => (others => '0'),  
+      invertData     => (others => '0'),
       commonCtrl     => "010111",
       linkErrMask    => "111111",
       sysrefDlyRx    => (others => '0'),
       testTXItf      => (others => x"0000"),
       testSigThr     => (others => x"A000_5000"),
-      rxPolarity     => (others => '0'),  
-
-
+      rxPolarity     => (others => '0'),
+      rxPowerDown    => (others => '0'),
+      -- AXI lite
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
@@ -115,7 +116,7 @@ architecture rtl of JesdRxReg is
    signal s_rawData     : slv32Array(L_G-1 downto 0);
    signal s_statusCnt   : SlVectorArray(L_G-1 downto 0, 31 downto 0);
    signal s_adcValids   : slv(L_G-1 downto 0);
-   
+
 
 begin
 
@@ -151,7 +152,7 @@ begin
    s_WrAddr <= slvToInt(axilWriteMaster.awaddr(AXI_ADDR_WIDTH_G-1 downto 2));
 
    comb : process (axiRst_i, axilReadMaster, axilWriteMaster, r, s_RdAddr,
-                   s_WrAddr, s_statusRxArr, s_statusCnt, s_rawData) is
+                   s_WrAddr, s_rawData, s_statusCnt, s_statusRxArr) is
       variable v             : RegType;
       variable axilStatus    : AxiLiteStatusType;
       variable axilWriteResp : slv(1 downto 0);
@@ -179,7 +180,9 @@ begin
             when 16#05# =>              -- ADDR (0x14)
                v.linkErrMask := axilWriteMaster.wdata(5 downto 0);
             when 16#06# =>              -- ADDR (0x18)
-               v.invertData  := axilWriteMaster.wdata(L_G-1 downto 0);
+               v.invertData := axilWriteMaster.wdata(L_G-1 downto 0);
+            when 16#09# =>              -- ADDR (0x24)
+               v.axilReadSlave.rdata(L_G-1 downto 0) := r.rxPowerDown;
             when 16#20# to 16#2F# =>
                for I in (L_G-1) downto 0 loop
                   if (axilWriteMaster.awaddr(5 downto 2) = I) then
@@ -191,7 +194,7 @@ begin
                   if (axilWriteMaster.awaddr(5 downto 2) = I) then
                      v.testSigThr(I) := axilWriteMaster.wdata(31 downto 0);
                   end if;
-               end loop;              
+               end loop;
             when others =>
                axilWriteResp := AXI_RESP_DECERR_C;
          end case;
@@ -214,6 +217,8 @@ begin
                v.axilReadSlave.rdata(5 downto 0) := r.linkErrMask;
             when 16#06# =>              -- ADDR (0x18)
                v.axilReadSlave.rdata(L_G-1 downto 0) := r.invertData;
+            when 16#09# =>              -- ADDR (0x24)
+               v.rxPowerDown := axilWriteMaster.wdata(L_G-1 downto 0);
             when 16#10# to 16#1F# =>
                for I in (L_G-1) downto 0 loop
                   if (axilReadMaster.araddr(5 downto 2) = I) then
@@ -263,6 +268,7 @@ begin
       -- Outputs
       axilReadSlave  <= r.axilReadSlave;
       axilWriteSlave <= r.axilWriteSlave;
+      rxPowerDown    <= r.rxPowerDown;
       rxPolarity     <= r.rxPolarity;
 
    end process comb;
@@ -287,7 +293,7 @@ begin
             rd_clk => axiClk_i,
             dout   => s_statusRxArr(I)
             );
-            
+
       SyncFifo_IN1 : entity work.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
@@ -300,13 +306,13 @@ begin
             dout   => s_rawData(I)
             );
    end generate GEN_0;
-   
+
    -- Output assignment and synchronization
    SyncFifo_OUT0 : entity work.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
+         TPD_G         => TPD_G,
          PIPE_STAGES_G => 1,
-         DATA_WIDTH_G => SYSRF_DLY_WIDTH_C
+         DATA_WIDTH_G  => SYSRF_DLY_WIDTH_C
          )
       port map (
          wr_clk => axiClk_i,
@@ -317,9 +323,9 @@ begin
 
    SyncFifo_OUT1 : entity work.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
+         TPD_G         => TPD_G,
          PIPE_STAGES_G => 1,
-         DATA_WIDTH_G => L_G
+         DATA_WIDTH_G  => L_G
          )
       port map (
          wr_clk => axiClk_i,
@@ -393,10 +399,10 @@ begin
          dataIn  => r.commonCtrl(5),
          dataOut => scrEnable_o
          );
-   
+
    Sync_OUT9 : entity work.SynchronizerVector
       generic map (
-         TPD_G => TPD_G,
+         TPD_G   => TPD_G,
          WIDTH_G => 6
          )
       port map (
@@ -408,23 +414,23 @@ begin
 
    SyncFifo_OUT9 : entity work.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
+         TPD_G         => TPD_G,
          PIPE_STAGES_G => 1,
-         DATA_WIDTH_G => L_G
+         DATA_WIDTH_G  => L_G
          )
       port map (
          wr_clk => axiClk_i,
          din    => r.invertData,
          rd_clk => devClk_i,
          dout   => invertData_o
-         );      
+         );
 
    GEN_1 : for I in L_G-1 downto 0 generate
       SyncFifo_OUT0 : entity work.SynchronizerFifo
          generic map (
-            TPD_G        => TPD_G,
+            TPD_G         => TPD_G,
             PIPE_STAGES_G => 1,
-            DATA_WIDTH_G => 4
+            DATA_WIDTH_G  => 4
             )
          port map (
             wr_clk => axiClk_i,
@@ -435,9 +441,9 @@ begin
 
       SyncFifo_OUT1 : entity work.SynchronizerFifo
          generic map (
-            TPD_G        => TPD_G,
+            TPD_G         => TPD_G,
             PIPE_STAGES_G => 1,
-            DATA_WIDTH_G => GT_WORD_SIZE_C
+            DATA_WIDTH_G  => GT_WORD_SIZE_C
             )
          port map (
             wr_clk => axiClk_i,
@@ -448,9 +454,9 @@ begin
 
       SyncFifo_OUT2 : entity work.SynchronizerFifo
          generic map (
-            TPD_G        => TPD_G,
+            TPD_G         => TPD_G,
             PIPE_STAGES_G => 1,
-            DATA_WIDTH_G => 16
+            DATA_WIDTH_G  => 16
             )
          port map (
             wr_clk => axiClk_i,
@@ -461,9 +467,9 @@ begin
 
       SyncFifo_OUT3 : entity work.SynchronizerFifo
          generic map (
-            TPD_G        => TPD_G,
+            TPD_G         => TPD_G,
             PIPE_STAGES_G => 1,
-            DATA_WIDTH_G => 16
+            DATA_WIDTH_G  => 16
             )
          port map (
             wr_clk => axiClk_i,
