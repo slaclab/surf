@@ -82,7 +82,7 @@ class Sa56004x(pr.Device):
             description = 'conversion rate read access (CR)',
             offset      = (0x04 << 2), 
             bitSize     = 4, 
-            bitOffset   = 4, 
+            bitOffset   = 0, 
             base        = pr.UInt,
             mode        = 'RO',
         ))    
@@ -92,7 +92,7 @@ class Sa56004x(pr.Device):
             description = 'conversion rate write access (CR)',
             offset      = (0x0A << 2), 
             bitSize     = 4, 
-            bitOffset   = 4, 
+            bitOffset   = 0, 
             base        = pr.UInt,
             mode        = 'WO',
         ))         
@@ -263,7 +263,7 @@ class Sa56004x(pr.Device):
             description = 'T_CRIT hysteresis (TH)',
             offset      = (0x21 << 2), 
             bitSize     = 5, 
-            bitOffset   = 3, 
+            bitOffset   = 0, 
             base        = pr.UInt,
             mode        = 'RW',
         ))  
@@ -272,8 +272,8 @@ class Sa56004x(pr.Device):
             name        = 'LocalTemperatureLowByte',
             description = 'local temperature low byte (LTLB))',
             offset      = (0x22 << 2), 
-            bitSize     = 6, 
-            bitOffset   = 2, 
+            bitSize     = 3, 
+            bitOffset   = 5, 
             base        = pr.UInt,
             mode        = 'RO',
         )) 
@@ -283,14 +283,14 @@ class Sa56004x(pr.Device):
             description = 'Alert mode (AM))',
             offset      = (0xBF << 2), 
             bitSize     = 1, 
-            bitOffset   = 7, 
+            bitOffset   = 0, 
             base        = pr.UInt,
             mode        = 'RW',
         ))         
         
         self.add(pr.RemoteVariable(  
             name        = 'ManufacturerId',
-            description = 'read manufacturer’s ID (RMID))',
+            description = 'read manufacturers ID (RMID))',
             offset      = (0xFE << 2), 
             bitSize     = 8, 
             bitOffset   = 0, 
