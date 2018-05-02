@@ -2,7 +2,7 @@
 -- File       : Pgp3GthUsWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-27
--- Last update: 2018-01-10
+-- Last update: 2018-05-02
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -55,46 +55,46 @@ entity Pgp3GthUsWrapper is
       EN_GTH_DRP_G                : boolean                := true;
       EN_QPLL_DRP_G               : boolean                := true;
       TX_POLARITY_G               : slv(3 downto 0)        := x"0";
-      RX_POLARITY_G               : slv(3 downto 0)        := x"0";      
+      RX_POLARITY_G               : slv(3 downto 0)        := x"0";
       AXIL_BASE_ADDR_G            : slv(31 downto 0)       := (others => '0');
       AXIL_CLK_FREQ_G             : real                   := 125.0E+6);
    port (
       -- Stable Clock and Reset
-      stableClk       : in  sl;         -- GT needs a stable clock to "boot up"
-      stableRst       : in  sl;
+      stableClk         : in  sl;       -- GT needs a stable clock to "boot up"
+      stableRst         : in  sl;
       -- Gt Serial IO
-      pgpGtTxP        : out slv(NUM_LANES_G-1 downto 0);
-      pgpGtTxN        : out slv(NUM_LANES_G-1 downto 0);
-      pgpGtRxP        : in  slv(NUM_LANES_G-1 downto 0);
-      pgpGtRxN        : in  slv(NUM_LANES_G-1 downto 0);
+      pgpGtTxP          : out slv(NUM_LANES_G-1 downto 0);
+      pgpGtTxN          : out slv(NUM_LANES_G-1 downto 0);
+      pgpGtRxP          : in  slv(NUM_LANES_G-1 downto 0);
+      pgpGtRxN          : in  slv(NUM_LANES_G-1 downto 0);
       -- GT Clocking
-      pgpRefClkP      : in  sl                     := '0';
-      pgpRefClkN      : in  sl                     := '1';
-      pgpRefClkIn     : in  sl                     := '0';
-      pgpRefClkOut    : out sl;
-      pgpRefClkDiv2   : out sl;
+      pgpRefClkP        : in  sl                     := '0';
+      pgpRefClkN        : in  sl                     := '1';
+      pgpRefClkIn       : in  sl                     := '0';
+      pgpRefClkOut      : out sl;
+      pgpRefClkDiv2Bufg : out sl;
       -- Clocking
-      pgpClk          : out slv(NUM_LANES_G-1 downto 0);
-      pgpClkRst       : out slv(NUM_LANES_G-1 downto 0);
+      pgpClk            : out slv(NUM_LANES_G-1 downto 0);
+      pgpClkRst         : out slv(NUM_LANES_G-1 downto 0);
       -- Non VC Rx Signals
-      pgpRxIn         : in  Pgp3RxInArray(NUM_LANES_G-1 downto 0);
-      pgpRxOut        : out Pgp3RxOutArray(NUM_LANES_G-1 downto 0);
+      pgpRxIn           : in  Pgp3RxInArray(NUM_LANES_G-1 downto 0);
+      pgpRxOut          : out Pgp3RxOutArray(NUM_LANES_G-1 downto 0);
       -- Non VC Tx Signals
-      pgpTxIn         : in  Pgp3TxInArray(NUM_LANES_G-1 downto 0);
-      pgpTxOut        : out Pgp3TxOutArray(NUM_LANES_G-1 downto 0);
+      pgpTxIn           : in  Pgp3TxInArray(NUM_LANES_G-1 downto 0);
+      pgpTxOut          : out Pgp3TxOutArray(NUM_LANES_G-1 downto 0);
       -- Frame Transmit Interface
-      pgpTxMasters    : in  AxiStreamMasterArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
-      pgpTxSlaves     : out AxiStreamSlaveArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
+      pgpTxMasters      : in  AxiStreamMasterArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
+      pgpTxSlaves       : out AxiStreamSlaveArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
       -- Frame Receive Interface
-      pgpRxMasters    : out AxiStreamMasterArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
-      pgpRxCtrl       : in  AxiStreamCtrlArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
+      pgpRxMasters      : out AxiStreamMasterArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
+      pgpRxCtrl         : in  AxiStreamCtrlArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
       -- AXI-Lite Register Interface (axilClk domain)
-      axilClk         : in  sl                     := '0';          -- Stable Clock
-      axilRst         : in  sl                     := '0';
-      axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
-      axilReadSlave   : out AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
-      axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
+      axilClk           : in  sl                     := '0';  -- Stable Clock
+      axilRst           : in  sl                     := '0';
+      axilReadMaster    : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadSlave     : out AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
+      axilWriteMaster   : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteSlave    : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 end Pgp3GthUsWrapper;
 
 architecture rtl of Pgp3GthUsWrapper is
@@ -104,9 +104,8 @@ architecture rtl of Pgp3GthUsWrapper is
    signal qpllRefclk : Slv2Array(3 downto 0) := (others => "00");
    signal qpllRst    : Slv2Array(3 downto 0) := (others => "00");
 
-   signal pgpRefClockDiv2 : sl;
-   signal pgpRefClock     : sl;
-   signal pgpRefClk       : sl;
+   signal pgpRefClkDiv2 : sl;
+   signal pgpRefClk     : sl;
 
    constant NUM_AXIL_MASTERS_C : integer := NUM_LANES_G+1;
    constant QPLL_AXIL_INDEX_C  : integer := NUM_AXIL_MASTERS_C-1;
@@ -122,30 +121,39 @@ architecture rtl of Pgp3GthUsWrapper is
 begin
 
    pgpRefClkOut <= pgpRefClk;
-   
-   U_BUFG_GT : BUFG_GT
-      port map (
-         I       => pgpRefClockDiv2,
-         CE      => '1',
-         CLR     => '0',
-         CEMASK  => '1',
-         CLRMASK => '1',
-         DIV     => "000",              -- Divide by 1
-         O       => pgpRefClkDiv2);
 
-   U_pgpRefClk : IBUFDS_GTE3
-      generic map (
-         REFCLK_EN_TX_PATH  => '0',
-         REFCLK_HROW_CK_SEL => "00",    -- 2'b00: ODIV2 = O
-         REFCLK_ICNTL_RX    => "00")
-      port map (
-         I     => pgpRefClkP,
-         IB    => pgpRefClkN,
-         CEB   => '0',
-         ODIV2 => pgpRefClockDiv2,
-         O     => pgpRefClock);
+   INT_REFCLK : if (REFCLK_G = false) generate
 
-   pgpRefClk <= pgpRefClock when(REFCLK_G = false) else pgpRefClkIn;
+      U_BUFG_GT : BUFG_GT
+         port map (
+            I       => pgpRefClkDiv2,
+            CE      => '1',
+            CLR     => '0',
+            CEMASK  => '1',
+            CLRMASK => '1',
+            DIV     => "000",           -- Divide by 1
+            O       => pgpRefClkDiv2Bufg);
+
+      U_pgpRefClk : IBUFDS_GTE3
+         generic map (
+            REFCLK_EN_TX_PATH  => '0',
+            REFCLK_HROW_CK_SEL => "00",  -- 2'b00: ODIV2 = O
+            REFCLK_ICNTL_RX    => "00")
+         port map (
+            I     => pgpRefClkP,
+            IB    => pgpRefClkN,
+            CEB   => '0',
+            ODIV2 => pgpRefClkDiv2,
+            O     => pgpRefClk);
+
+   end generate;
+
+   EXT_REFCLK : if (REFCLK_G = true) generate
+
+      pgpRefClkDiv2Bufg <= '0';
+      pgpRefClk         <= pgpRefClkIn;
+
+   end generate;
 
    U_XBAR : entity work.AxiLiteCrossbar
       generic map (
@@ -167,8 +175,8 @@ begin
 
    U_QPLL : entity work.Pgp3GthUsQpll
       generic map (
-         TPD_G             => TPD_G,
-         EN_DRP_G          => EN_QPLL_DRP_G)
+         TPD_G    => TPD_G,
+         EN_DRP_G => EN_QPLL_DRP_G)
       port map (
          -- Stable Clock and Reset
          stableClk       => stableClk,                            -- [in]
@@ -214,7 +222,7 @@ begin
             EN_PGP_MON_G                => EN_PGP_MON_G,
             EN_DRP_G                    => EN_GTH_DRP_G,
             TX_POLARITY_G               => TX_POLARITY_G(i),
-            RX_POLARITY_G               => RX_POLARITY_G(i),            
+            RX_POLARITY_G               => RX_POLARITY_G(i),
             AXIL_BASE_ADDR_G            => XBAR_CONFIG_C(i).baseAddr,
             AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G)
          port map (
