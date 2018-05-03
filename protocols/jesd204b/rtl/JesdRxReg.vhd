@@ -2,7 +2,7 @@
 -- File       : JesdRxReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-15
--- Last update: 2018-05-02
+-- Last update: 2018-05-03
 -------------------------------------------------------------------------------
 -- Description:  AXI-Lite interface for register access 
 -------------------------------------------------------------------------------
@@ -124,7 +124,7 @@ begin
    -- Data Valid Status Counter
    ----------------------------------------------------------------------------------------------
    GEN_LANES : for I in L_G-1 downto 0 generate
-      s_adcValids(I) <= statusRxArr_i(I)(1);
+      s_adcValids(i) <= statusRxArr_i(i)(1);
    end generate GEN_LANES;
 
 
@@ -186,13 +186,13 @@ begin
             when 16#20# to 16#2F# =>
                for I in (L_G-1) downto 0 loop
                   if (axilWriteMaster.awaddr(5 downto 2) = I) then
-                     v.testTXItf(I) := axilWriteMaster.wdata(15 downto 0);
+                     v.testTXItf(i) := axilWriteMaster.wdata(15 downto 0);
                   end if;
                end loop;
             when 16#30# to 16#3F# =>
                for I in (L_G-1) downto 0 loop
                   if (axilWriteMaster.awaddr(5 downto 2) = I) then
-                     v.testSigThr(I) := axilWriteMaster.wdata(31 downto 0);
+                     v.testSigThr(i) := axilWriteMaster.wdata(31 downto 0);
                   end if;
                end loop;
             when others =>
@@ -222,19 +222,19 @@ begin
             when 16#10# to 16#1F# =>
                for I in (L_G-1) downto 0 loop
                   if (axilReadMaster.araddr(5 downto 2) = I) then
-                     v.axilReadSlave.rdata(RX_STAT_WIDTH_C-1 downto 0) := s_statusRxArr(I);
+                     v.axilReadSlave.rdata(RX_STAT_WIDTH_C-1 downto 0) := s_statusRxArr(i);
                   end if;
                end loop;
             when 16#20# to 16#2F# =>
                for I in (L_G-1) downto 0 loop
                   if (axilReadMaster.araddr(5 downto 2) = I) then
-                     v.axilReadSlave.rdata(15 downto 0) := r.testTXItf(I);
+                     v.axilReadSlave.rdata(15 downto 0) := r.testTXItf(i);
                   end if;
                end loop;
             when 16#30# to 16#3F# =>
                for I in (L_G-1) downto 0 loop
                   if (axilReadMaster.araddr(5 downto 2) = I) then
-                     v.axilReadSlave.rdata(31 downto 0) := r.testSigThr(I);
+                     v.axilReadSlave.rdata(31 downto 0) := r.testSigThr(i);
                   end if;
                end loop;
             when 16#40# to 16#4F# =>
@@ -248,7 +248,7 @@ begin
             when 16#50# to 16#5F# =>
                for I in (L_G-1) downto 0 loop
                   if (axilReadMaster.araddr(5 downto 2) = I) then
-                     v.axilReadSlave.rdata := s_rawData(I);
+                     v.axilReadSlave.rdata := s_rawData(i);
                   end if;
                end loop;
             when others =>
@@ -281,202 +281,148 @@ begin
    end process seq;
 
    -- Input assignment and synchronization
-   GEN_0 : for I in L_G-1 downto 0 generate
-      SyncFifo_IN0 : entity work.SynchronizerFifo
+   GEN_0 : for i in L_G-1 downto 0 generate
+      Sync_IN0 : entity work.SynchronizerVector
          generic map (
             TPD_G        => TPD_G,
-            DATA_WIDTH_G => RX_STAT_WIDTH_C
-            )
+            DATA_WIDTH_G => RX_STAT_WIDTH_C)
          port map (
-            wr_clk => devClk_i,
-            din    => statusRxArr_i(I),
-            rd_clk => axiClk_i,
-            dout   => s_statusRxArr(I)
-            );
+            clk     => axiClk_i,
+            dataIn  => statusRxArr_i(i),
+            dataOut => s_statusRxArr(i));
 
-      SyncFifo_IN1 : entity work.SynchronizerFifo
+      Sync_IN1 : entity work.SynchronizerVector
          generic map (
             TPD_G        => TPD_G,
-            DATA_WIDTH_G => 32
-            )
+            DATA_WIDTH_G => 32)
          port map (
-            wr_clk => devClk_i,
-            din    => rawData_i(I),
-            rd_clk => axiClk_i,
-            dout   => s_rawData(I)
-            );
+            clk     => axiClk_i,
+            dataIn  => rawData_i(i),
+            dataOut => s_rawData(i));
    end generate GEN_0;
 
    -- Output assignment and synchronization
-   SyncFifo_OUT0 : entity work.SynchronizerFifo
+   Sync_OUT0 : entity work.SynchronizerVector
       generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => 1,
-         DATA_WIDTH_G  => SYSRF_DLY_WIDTH_C
-         )
+         TPD_G        => TPD_G,
+         DATA_WIDTH_G => SYSRF_DLY_WIDTH_C)
       port map (
-         wr_clk => axiClk_i,
-         din    => r.sysrefDlyRx,
-         rd_clk => devClk_i,
-         dout   => sysrefDlyRx_o
-         );
+         clk     => devClk_i,
+         dataIn  => r.sysrefDlyRx,
+         dataOut => sysrefDlyRx_o);
 
-   SyncFifo_OUT1 : entity work.SynchronizerFifo
+   Sync_OUT1 : entity work.SynchronizerVector
       generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => 1,
-         DATA_WIDTH_G  => L_G
-         )
+         TPD_G        => TPD_G,
+         DATA_WIDTH_G => L_G)
       port map (
-         wr_clk => axiClk_i,
-         din    => r.enableRx,
-         rd_clk => devClk_i,
-         dout   => enableRx_o
-         );
+         clk     => devClk_i,
+         dataIn  => r.enableRx,
+         dataOut => enableRx_o);
 
    Sync_OUT3 : entity work.Synchronizer
       generic map (
-         TPD_G => TPD_G
-         )
+         TPD_G => TPD_G)
       port map (
          clk     => devClk_i,
-         rst     => devRst_i,
          dataIn  => r.commonCtrl(0),
-         dataOut => subClass_o
-         );
+         dataOut => subClass_o);
 
    Sync_OUT4 : entity work.Synchronizer
       generic map (
-         TPD_G => TPD_G
-         )
+         TPD_G => TPD_G)
       port map (
          clk     => devClk_i,
-         rst     => devRst_i,
          dataIn  => r.commonCtrl(1),
-         dataOut => replEnable_o
-         );
+         dataOut => replEnable_o);
 
    Sync_OUT5 : entity work.Synchronizer
       generic map (
-         TPD_G => TPD_G
-         )
+         TPD_G => TPD_G)
       port map (
          clk     => devClk_i,
-         rst     => devRst_i,
          dataIn  => r.commonCtrl(2),
-         dataOut => gtReset_o
-         );
+         dataOut => gtReset_o);
 
    Sync_OUT6 : entity work.Synchronizer
       generic map (
-         TPD_G => TPD_G
-         )
+         TPD_G => TPD_G)
       port map (
          clk     => devClk_i,
-         rst     => devRst_i,
          dataIn  => r.commonCtrl(3),
-         dataOut => clearErr_o
-         );
+         dataOut => clearErr_o);
 
    Sync_OUT7 : entity work.Synchronizer
       generic map (
-         TPD_G => TPD_G
-         )
+         TPD_G => TPD_G)
       port map (
          clk     => devClk_i,
-         rst     => devRst_i,
          dataIn  => r.commonCtrl(4),
-         dataOut => invertSync_o
-         );
+         dataOut => invertSync_o);
 
    Sync_OUT8 : entity work.Synchronizer
       generic map (
-         TPD_G => TPD_G
-         )
+         TPD_G => TPD_G)
       port map (
          clk     => devClk_i,
-         rst     => devRst_i,
          dataIn  => r.commonCtrl(5),
-         dataOut => scrEnable_o
-         );
+         dataOut => scrEnable_o);
 
    Sync_OUT9 : entity work.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
-         WIDTH_G => 6
-         )
+         WIDTH_G => 6)
       port map (
          clk     => devClk_i,
-         rst     => devRst_i,
          dataIn  => r.linkErrMask,
-         dataOut => linkErrMask_o
-         );
+         dataOut => linkErrMask_o);
 
-   SyncFifo_OUT9 : entity work.SynchronizerFifo
+   Sync_OUT10 : entity work.SynchronizerVector
       generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => 1,
-         DATA_WIDTH_G  => L_G
-         )
+         TPD_G        => TPD_G,
+         DATA_WIDTH_G => L_G)
       port map (
-         wr_clk => axiClk_i,
-         din    => r.invertData,
-         rd_clk => devClk_i,
-         dout   => invertData_o
-         );
+         clk     => devClk_i,
+         dataIn  => r.invertData,
+         dataOut => invertData_o);
 
-   GEN_1 : for I in L_G-1 downto 0 generate
-      SyncFifo_OUT0 : entity work.SynchronizerFifo
+   GEN_1 : for i in L_G-1 downto 0 generate
+      Sync_OUT0 : entity work.SynchronizerVector
          generic map (
-            TPD_G         => TPD_G,
-            PIPE_STAGES_G => 1,
-            DATA_WIDTH_G  => 4
-            )
+            TPD_G        => TPD_G,
+            DATA_WIDTH_G => 4)
          port map (
-            wr_clk => axiClk_i,
-            din    => r.testTXItf(I) (11 downto 8),
-            rd_clk => devClk_i,
-            dout   => dlyTxArr_o(I)
-            );
+            clk     => devClk_i,
+            dataIn  => r.testTXItf(i) (11 downto 8),
+            dataOut => dlyTxArr_o(i));
 
-      SyncFifo_OUT1 : entity work.SynchronizerFifo
+      Sync_OUT1 : entity work.SynchronizerVector
          generic map (
-            TPD_G         => TPD_G,
-            PIPE_STAGES_G => 1,
-            DATA_WIDTH_G  => GT_WORD_SIZE_C
-            )
+            TPD_G        => TPD_G,
+            DATA_WIDTH_G => GT_WORD_SIZE_C)
          port map (
-            wr_clk => axiClk_i,
-            din    => r.testTXItf(I) (GT_WORD_SIZE_C-1 downto 0),
-            rd_clk => devClk_i,
-            dout   => alignTxArr_o(I)
-            );
+            clk     => devClk_i,
+            dataIn  => r.testTXItf(i) (GT_WORD_SIZE_C-1 downto 0),
+            dataOut => alignTxArr_o(i));
 
-      SyncFifo_OUT2 : entity work.SynchronizerFifo
+      Sync_OUT2 : entity work.SynchronizerVector
          generic map (
-            TPD_G         => TPD_G,
-            PIPE_STAGES_G => 1,
-            DATA_WIDTH_G  => 16
-            )
+            TPD_G        => TPD_G,
+            DATA_WIDTH_G => 16)
          port map (
-            wr_clk => axiClk_i,
-            din    => r.testSigThr(I) (31 downto 16),
-            rd_clk => devClk_i,
-            dout   => thresoldHighArr_o(I)
-            );
+            clk     => devClk_i,
+            dataIn  => r.testSigThr(i) (31 downto 16),
+            dataOut => thresoldHighArr_o(i));
 
-      SyncFifo_OUT3 : entity work.SynchronizerFifo
+      Sync_OUT3 : entity work.SynchronizerVector
          generic map (
-            TPD_G         => TPD_G,
-            PIPE_STAGES_G => 1,
-            DATA_WIDTH_G  => 16
-            )
+            TPD_G        => TPD_G,
+            DATA_WIDTH_G => 16)
          port map (
-            wr_clk => axiClk_i,
-            din    => r.testSigThr(I) (15 downto 0),
-            rd_clk => devClk_i,
-            dout   => thresoldLowArr_o(I)
-            );
+            clk     => devClk_i,
+            dataIn  => r.testSigThr(i) (15 downto 0),
+            dataOut => thresoldLowArr_o(i));
+
    end generate GEN_1;
----------------------------------------------------------------------
+
 end rtl;
