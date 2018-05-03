@@ -41,16 +41,16 @@ use work.Jesd204bPkg.all;
 
 entity Jesd204bTx is
    generic (
-      TPD_G            : time                   := 1 ns;
+      TPD_G        : time                   := 1 ns;
       -- Register sample data at input and/or output 
-      INPUT_REG_G      : boolean                := false;
-      OUTPUT_REG_G     : boolean                := false;
+      INPUT_REG_G  : boolean                := false;
+      OUTPUT_REG_G : boolean                := false;
       -- Number of bytes in a frame
-      F_G              : positive               := 2;
+      F_G          : positive               := 2;
       -- Number of frames in a multi frame
-      K_G              : positive               := 32;
+      K_G          : positive               := 32;
       -- Number of TX lanes (1 to 32)
-      L_G              : positive range 1 to 32 := 2);
+      L_G          : positive range 1 to 32 := 2);
    port (
       -- AXI interface      
       -- Clocks and Resets
@@ -87,15 +87,16 @@ entity Jesd204bTx is
 
       -- Data and character inputs from GT (transceivers)
       r_jesdGtTxArr : out jesdGtTxLaneTypeArray(L_G-1 downto 0);
-      
+
       -- TX Configurable Driver Ports
-      txDiffCtrl    : out Slv8Array(L_G-1 downto 0);
-      txPostCursor  : out Slv8Array(L_G-1 downto 0);
-      txPreCursor   : out Slv8Array(L_G-1 downto 0);
-      txPolarity    : out slv(L_G-1 downto 0);       
-      loopback      : out slv(L_G-1 downto 0);      
-      txEnable      : out slv(L_G-1 downto 0);
-      txEnableL     : out slv(L_G-1 downto 0);
+      txDiffCtrl   : out Slv8Array(L_G-1 downto 0);
+      txPostCursor : out Slv8Array(L_G-1 downto 0);
+      txPreCursor  : out Slv8Array(L_G-1 downto 0);
+      txPowerDown  : out slv(L_G-1 downto 0);
+      txPolarity   : out slv(L_G-1 downto 0);
+      loopback     : out slv(L_G-1 downto 0);
+      txEnable     : out slv(L_G-1 downto 0);
+      txEnableL    : out slv(L_G-1 downto 0);
 
       -- Debug signals
       pulse_o : out slv(L_G-1 downto 0);
@@ -161,7 +162,7 @@ begin
 
    -- Legacy Interface that we will remove in the future
    txAxisSlaveArr_o <= (others => AXI_STREAM_SLAVE_FORCE_C);
-   
+
    ----------------------
    -- Input data register
    ----------------------
@@ -186,49 +187,50 @@ begin
 
    txEnable  <= s_enableTx;
    txEnableL <= not(s_enableTx);
-   
+
    ---------------------
    -- AXI-Lite registers
    ---------------------
    U_Reg : entity work.JesdTxReg
       generic map (
-         TPD_G            => TPD_G,
-         L_G              => L_G,
-         F_G              => F_G)
+         TPD_G => TPD_G,
+         L_G   => L_G,
+         F_G   => F_G)
       port map (
-         axiClk_i         => axiClk,
-         axiRst_i         => axiRst,
-         axilReadMaster   => axilReadMaster,
-         axilReadSlave    => axilReadSlave,
-         axilWriteMaster  => axilWriteMaster,
-         axilWriteSlave   => axilWriteSlave,
+         axiClk_i        => axiClk,
+         axiRst_i        => axiRst,
+         axilReadMaster  => axilReadMaster,
+         axilReadSlave   => axilReadSlave,
+         axilWriteMaster => axilWriteMaster,
+         axilWriteSlave  => axilWriteSlave,
          -- DevClk domain
-         devClk_i         => devClk_i,
-         devRst_i         => devRst_i,
-         statusTxArr_i    => s_statusTxArr,
-         muxOutSelArr_o   => s_muxOutSelArr,
-         sysrefDlyTx_o    => s_sysrefDlyTx,
-         enableTx_o       => s_enableTx,
-         replEnable_o     => s_replEnable,
-         scrEnable_o      => s_scrEnable,
-         invertData_o     => s_invertData,
-         subClass_o       => s_subClass,
-         gtReset_o        => s_gtReset,
-         clearErr_o       => s_clearErr,
-         sigTypeArr_o     => s_sigTypeArr,
-         posAmplitude_o   => s_posAmplitude,
-         negAmplitude_o   => s_negAmplitude,
-         rampStep_o       => s_rampStep,
-         squarePeriod_o   => s_squarePeriod,
-         enableTestSig_o  => s_enableTestSig,
-         invertSync_o     => s_invertSync,
+         devClk_i        => devClk_i,
+         devRst_i        => devRst_i,
+         statusTxArr_i   => s_statusTxArr,
+         muxOutSelArr_o  => s_muxOutSelArr,
+         sysrefDlyTx_o   => s_sysrefDlyTx,
+         enableTx_o      => s_enableTx,
+         replEnable_o    => s_replEnable,
+         scrEnable_o     => s_scrEnable,
+         invertData_o    => s_invertData,
+         subClass_o      => s_subClass,
+         gtReset_o       => s_gtReset,
+         clearErr_o      => s_clearErr,
+         sigTypeArr_o    => s_sigTypeArr,
+         posAmplitude_o  => s_posAmplitude,
+         negAmplitude_o  => s_negAmplitude,
+         rampStep_o      => s_rampStep,
+         squarePeriod_o  => s_squarePeriod,
+         enableTestSig_o => s_enableTestSig,
+         invertSync_o    => s_invertSync,
          -- TX Configurable Driver Ports
-         txDiffCtrl       => txDiffCtrl,
-         txPostCursor     => txPostCursor,
-         txPreCursor      => txPreCursor,   
-         txPolarity       => txPolarity,    
-         loopback         => loopback);    
-      
+         txDiffCtrl      => txDiffCtrl,
+         txPostCursor    => txPostCursor,
+         txPreCursor     => txPreCursor,
+         txPowerDown     => txPowerDown,
+         txPolarity      => txPolarity,
+         loopback        => loopback);
+
    GEN_TEST : for I in L_G-1 downto 0 generate
 
       -- Check the test pattern enable bit 

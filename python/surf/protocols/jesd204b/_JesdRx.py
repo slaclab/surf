@@ -152,6 +152,16 @@ class JesdRx(pr.Device):
                 base         = pr.UInt,
                 mode         = "RW",
             ))
+            
+            self.add(pr.RemoteVariable(    
+                name         = "PowerDown",
+                description  = "Power Down Mask 1-PowerDown, 0-normal.",
+                offset       =  0x24,
+                bitSize      =  numRxLanes,
+                bitOffset    =  0x00,
+                base         = pr.UInt,
+                mode         = "RW",
+            ))
 
             self.add(pr.RemoteVariable( 
                 name         = "GTReady",
