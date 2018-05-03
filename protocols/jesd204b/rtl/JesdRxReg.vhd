@@ -284,8 +284,8 @@ begin
    GEN_0 : for i in L_G-1 downto 0 generate
       Sync_IN0 : entity work.SynchronizerVector
          generic map (
-            TPD_G        => TPD_G,
-            DATA_WIDTH_G => RX_STAT_WIDTH_C)
+            TPD_G   => TPD_G,
+            WIDTH_G => RX_STAT_WIDTH_C)
          port map (
             clk     => axiClk_i,
             dataIn  => statusRxArr_i(i),
@@ -293,8 +293,8 @@ begin
 
       Sync_IN1 : entity work.SynchronizerVector
          generic map (
-            TPD_G        => TPD_G,
-            DATA_WIDTH_G => 32)
+            TPD_G   => TPD_G,
+            WIDTH_G => 32)
          port map (
             clk     => axiClk_i,
             dataIn  => rawData_i(i),
@@ -304,8 +304,8 @@ begin
    -- Output assignment and synchronization
    Sync_OUT0 : entity work.SynchronizerVector
       generic map (
-         TPD_G        => TPD_G,
-         DATA_WIDTH_G => SYSRF_DLY_WIDTH_C)
+         TPD_G   => TPD_G,
+         WIDTH_G => SYSRF_DLY_WIDTH_C)
       port map (
          clk     => devClk_i,
          dataIn  => r.sysrefDlyRx,
@@ -313,8 +313,8 @@ begin
 
    Sync_OUT1 : entity work.SynchronizerVector
       generic map (
-         TPD_G        => TPD_G,
-         DATA_WIDTH_G => L_G)
+         TPD_G   => TPD_G,
+         WIDTH_G => L_G)
       port map (
          clk     => devClk_i,
          dataIn  => r.enableRx,
@@ -379,8 +379,8 @@ begin
 
    Sync_OUT10 : entity work.SynchronizerVector
       generic map (
-         TPD_G        => TPD_G,
-         DATA_WIDTH_G => L_G)
+         TPD_G   => TPD_G,
+         WIDTH_G => L_G)
       port map (
          clk     => devClk_i,
          dataIn  => r.invertData,
@@ -389,8 +389,8 @@ begin
    GEN_1 : for i in L_G-1 downto 0 generate
       Sync_OUT0 : entity work.SynchronizerVector
          generic map (
-            TPD_G        => TPD_G,
-            DATA_WIDTH_G => 4)
+            TPD_G   => TPD_G,
+            WIDTH_G => 4)
          port map (
             clk     => devClk_i,
             dataIn  => r.testTXItf(i) (11 downto 8),
@@ -398,8 +398,8 @@ begin
 
       Sync_OUT1 : entity work.SynchronizerVector
          generic map (
-            TPD_G        => TPD_G,
-            DATA_WIDTH_G => GT_WORD_SIZE_C)
+            TPD_G   => TPD_G,
+            WIDTH_G => GT_WORD_SIZE_C)
          port map (
             clk     => devClk_i,
             dataIn  => r.testTXItf(i) (GT_WORD_SIZE_C-1 downto 0),
@@ -407,8 +407,8 @@ begin
 
       Sync_OUT2 : entity work.SynchronizerVector
          generic map (
-            TPD_G        => TPD_G,
-            DATA_WIDTH_G => 16)
+            TPD_G   => TPD_G,
+            WIDTH_G => 16)
          port map (
             clk     => devClk_i,
             dataIn  => r.testSigThr(i) (31 downto 16),
@@ -416,8 +416,8 @@ begin
 
       Sync_OUT3 : entity work.SynchronizerVector
          generic map (
-            TPD_G        => TPD_G,
-            DATA_WIDTH_G => 16)
+            TPD_G   => TPD_G,
+            WIDTH_G => 16)
          port map (
             clk     => devClk_i,
             dataIn  => r.testSigThr(i) (15 downto 0),

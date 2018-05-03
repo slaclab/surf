@@ -2,7 +2,7 @@
 -- File       : Jesd204bRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-14
--- Last update: 2018-05-02
+-- Last update: 2018-05-03
 -------------------------------------------------------------------------------
 -- Description: JESD204b multi-lane receiver module
 --              Receiver JESD204b module.
