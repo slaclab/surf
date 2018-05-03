@@ -282,7 +282,7 @@ begin
 
    -- Input assignment and synchronization
    GEN_0 : for i in L_G-1 downto 0 generate
-      Sync_IN0 : entity work.SynchronizerVector
+      U_statusRxArr : entity work.SynchronizerVector
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => RX_STAT_WIDTH_C)
@@ -291,18 +291,19 @@ begin
             dataIn  => statusRxArr_i(i),
             dataOut => s_statusRxArr(i));
 
-      Sync_IN1 : entity work.SynchronizerVector
+      U_rawData : entity work.SynchronizerFifo
          generic map (
-            TPD_G   => TPD_G,
-            WIDTH_G => 32)
+            TPD_G        => TPD_G,
+            DATA_WIDTH_G => 32)
          port map (
-            clk     => axiClk_i,
-            dataIn  => rawData_i(i),
-            dataOut => s_rawData(i));
+            wr_clk => devClk_i,
+            din    => rawData_i(i),
+            rd_clk => axiClk_i,
+            dout   => s_rawData(i));
    end generate GEN_0;
 
    -- Output assignment and synchronization
-   Sync_OUT0 : entity work.SynchronizerVector
+   U_sysrefDlyRx : entity work.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => SYSRF_DLY_WIDTH_C)
@@ -311,7 +312,7 @@ begin
          dataIn  => r.sysrefDlyRx,
          dataOut => sysrefDlyRx_o);
 
-   Sync_OUT1 : entity work.SynchronizerVector
+   U_enableRx : entity work.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => L_G)
@@ -320,7 +321,7 @@ begin
          dataIn  => r.enableRx,
          dataOut => enableRx_o);
 
-   Sync_OUT3 : entity work.Synchronizer
+   U_subClass : entity work.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -328,7 +329,7 @@ begin
          dataIn  => r.commonCtrl(0),
          dataOut => subClass_o);
 
-   Sync_OUT4 : entity work.Synchronizer
+   U_replEnable : entity work.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -336,7 +337,7 @@ begin
          dataIn  => r.commonCtrl(1),
          dataOut => replEnable_o);
 
-   Sync_OUT5 : entity work.Synchronizer
+   U_gtReset : entity work.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -344,7 +345,7 @@ begin
          dataIn  => r.commonCtrl(2),
          dataOut => gtReset_o);
 
-   Sync_OUT6 : entity work.Synchronizer
+   U_clearErr : entity work.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -352,7 +353,7 @@ begin
          dataIn  => r.commonCtrl(3),
          dataOut => clearErr_o);
 
-   Sync_OUT7 : entity work.Synchronizer
+   U_invertSync : entity work.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -360,7 +361,7 @@ begin
          dataIn  => r.commonCtrl(4),
          dataOut => invertSync_o);
 
-   Sync_OUT8 : entity work.Synchronizer
+   U_scrEnable : entity work.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -368,7 +369,7 @@ begin
          dataIn  => r.commonCtrl(5),
          dataOut => scrEnable_o);
 
-   Sync_OUT9 : entity work.SynchronizerVector
+   U_linkErrMask : entity work.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 6)
@@ -377,7 +378,7 @@ begin
          dataIn  => r.linkErrMask,
          dataOut => linkErrMask_o);
 
-   Sync_OUT10 : entity work.SynchronizerVector
+   U_invertData : entity work.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => L_G)
@@ -387,7 +388,7 @@ begin
          dataOut => invertData_o);
 
    GEN_1 : for i in L_G-1 downto 0 generate
-      Sync_OUT0 : entity work.SynchronizerVector
+      U_dlyTxArr : entity work.SynchronizerVector
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => 4)
@@ -405,7 +406,7 @@ begin
             dataIn  => r.testTXItf(i) (GT_WORD_SIZE_C-1 downto 0),
             dataOut => alignTxArr_o(i));
 
-      Sync_OUT2 : entity work.SynchronizerVector
+      U_thresoldLowArr_A : entity work.SynchronizerVector
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => 16)
@@ -414,7 +415,7 @@ begin
             dataIn  => r.testSigThr(i) (31 downto 16),
             dataOut => thresoldHighArr_o(i));
 
-      Sync_OUT3 : entity work.SynchronizerVector
+      U_thresoldLowArr_B : entity work.SynchronizerVector
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => 16)

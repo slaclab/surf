@@ -319,7 +319,7 @@ begin
 
    -- Input assignment and synchronization
    GEN_0 : for I in L_G-1 downto 0 generate
-      Sync_IN0 : entity work.SynchronizerVector
+      s_statusTxArr : entity work.SynchronizerVector
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => TX_STAT_WIDTH_C)
@@ -330,7 +330,7 @@ begin
    end generate GEN_0;
 
    -- Output assignment and synchronization
-   Sync_OUT0 : entity work.SynchronizerVector
+   U_sysrefDlyTx : entity work.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => SYSRF_DLY_WIDTH_C)
@@ -339,7 +339,7 @@ begin
          dataIn  => r.sysrefDlyTx,
          dataOut => sysrefDlyTx_o);
 
-   Sync_OUT1 : entity work.SynchronizerVector
+   U_enableTx : entity work.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => L_G)
@@ -348,7 +348,7 @@ begin
          dataIn  => r.enableTx,
          dataOut => enableTx_o);
 
-   Sync_OUT4 : entity work.Synchronizer
+   U_subClass : entity work.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -356,7 +356,7 @@ begin
          dataIn  => r.commonCtrl(0),
          dataOut => subClass_o);
 
-   Sync_OUT5 : entity work.Synchronizer
+   U_replEnable : entity work.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -364,7 +364,7 @@ begin
          dataIn  => r.commonCtrl(1),
          dataOut => replEnable_o);
 
-   Sync_OUT6 : entity work.Synchronizer
+   U_gtReset : entity work.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -372,7 +372,7 @@ begin
          dataIn  => r.commonCtrl(2),
          dataOut => gtReset_o);
 
-   Sync_OUT7 : entity work.Synchronizer
+   U_clearErr : entity work.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -380,7 +380,7 @@ begin
          dataIn  => r.commonCtrl(3),
          dataOut => clearErr_o);
 
-   Sync_OUT8 : entity work.Synchronizer
+   U_invertSync : entity work.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -388,7 +388,7 @@ begin
          dataIn  => r.commonCtrl(4),
          dataOut => invertSync_o);
 
-   Sync_OUT9 : entity work.Synchronizer
+   U_enableTestSig : entity work.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -396,7 +396,7 @@ begin
          dataIn  => r.commonCtrl(5),
          dataOut => enableTestSig_o);
 
-   Sync_OUT10 : entity work.Synchronizer
+   U_scrEnable : entity work.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -412,7 +412,7 @@ begin
          rstIn  => scrEnable,
          rstOut => scrEnable_o);
 
-   Sync_OUT10 : entity work.SynchronizerVector
+   U_rampStep_A : entity work.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => PER_STEP_WIDTH_C)
@@ -421,7 +421,7 @@ begin
          dataIn  => r.periodStep(PER_STEP_WIDTH_C-1 downto 0),
          dataOut => rampStep_o);
 
-   Sync_OUT11 : entity work.SynchronizerVector
+   U_rampStep_B : entity work.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => PER_STEP_WIDTH_C)
@@ -430,7 +430,7 @@ begin
          dataIn  => r.periodStep(16+PER_STEP_WIDTH_C-1 downto 16),
          dataOut => squarePeriod_o);
 
-   Sync_OUT12 : entity work.SynchronizerVector
+   U_posAmplitude : entity work.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => F_G*8)
@@ -439,7 +439,7 @@ begin
          dataIn  => r.posAmplitude,
          dataOut => posAmplitude_o);
 
-   Sync_OUT13 : entity work.SynchronizerVector
+   U_negAmplitude : entity work.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => F_G*8)
@@ -448,7 +448,7 @@ begin
          dataIn  => r.negAmplitude,
          dataOut => negAmplitude_o);
 
-   Sync_OUT14 : entity work.SynchronizerVector
+   U_invertData : entity work.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => L_G)
@@ -459,7 +459,7 @@ begin
 
    GEN_1 : for i in L_G-1 downto 0 generate
 
-      Sync_OUT0 : entity work.SynchronizerVector
+      U_muxOutSelArr : entity work.SynchronizerVector
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => 3)
@@ -468,7 +468,7 @@ begin
             dataIn  => r.signalSelectArr(i)(2 downto 0),
             dataOut => muxOutSelArr_o(i));
 
-      Sync_OUT1 : entity work.SynchronizerVector
+      U_sigTypeArr : entity work.SynchronizerVector
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => 2)
