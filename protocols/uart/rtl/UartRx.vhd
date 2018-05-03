@@ -2,7 +2,7 @@
 -- File       : UartRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-13
--- Last update: 2018-05-01
+-- Last update: 2018-05-03
 -------------------------------------------------------------------------------
 -- Description: UART Receiver
 -------------------------------------------------------------------------------
@@ -145,7 +145,9 @@ begin
             v.rxState := WAIT_STOP_S;
           end if;
         end if;
-        
+
+        -- Samples parity bit on rx line and compare it to the calculated parity
+        -- raises a parityError flag if it does not match
       when PARITY_S =>
         case PARITY_G is
           when "NONE" => v.rxState := WAIT_STOP_S;
@@ -161,7 +163,7 @@ begin
             else
               v.parityError := '1';
             end if;
-		  when others => null;
+          when others => null;
         end case;
 
         -- Wait for the stop bit

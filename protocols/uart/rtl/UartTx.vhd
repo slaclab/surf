@@ -2,7 +2,7 @@
 -- File       : UartTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-13
--- Last update: 2018-05-01
+-- Last update: 2018-05-03
 -------------------------------------------------------------------------------
 -- Description: Uart Transmitter
 -------------------------------------------------------------------------------
@@ -92,7 +92,7 @@ begin  -- architecture RTL
               when "NONE" => v.shiftReg := '1' & '1' & r.holdReg & '0';
               when "EVEN" => v.shiftReg := '1' & v.parity & r.holdReg & '0';
               when "ODD"  => v.shiftReg := '1' & not(v.parity) & r.holdReg & '0';
-			  when others => null;
+              when others => null;
             end case;
           else
             v.shiftReg := '1' & r.holdReg & '0';
