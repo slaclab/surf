@@ -52,6 +52,9 @@ end Pgp3GthUsQpll;
 
 architecture mapping of Pgp3GthUsQpll is
 
+   constant QPLL_CP_C    : slv(9 downto 0) := ite(RATE_G, "0000011111", "0111111111");
+   constant QPLL_FBDIV_C : positive        := ite(RATE_G, 66, 80);
+
    signal pllRefClk     : slv(1 downto 0);
    signal pllOutClk     : slv(1 downto 0);
    signal pllOutRefClk  : slv(1 downto 0);
@@ -112,9 +115,9 @@ begin
          QPLL_CFG2_G3_G     => (others => x"0048"),
          QPLL_CFG3_G        => (others => x"0120"),
          QPLL_CFG4_G        => (others => x"0009"),
-         QPLL_CP_G          => (others => "0000011111"),
+         QPLL_CP_G          => (others => QPLL_CP_C),
          QPLL_CP_G3_G       => (others => "1111111111"),
-         QPLL_FBDIV_G       => (others => 66),
+         QPLL_FBDIV_G       => (others => QPLL_FBDIV_C),
          QPLL_FBDIV_G3_G    => (others => 80),
          QPLL_INIT_CFG0_G   => (others => x"02B2"),
          QPLL_INIT_CFG1_G   => (others => x"00"),
