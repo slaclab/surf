@@ -2,7 +2,7 @@
 -- File       : Pgp3GthUsWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-27
--- Last update: 2018-05-02
+-- Last update: 2018-05-03
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -35,6 +35,7 @@ entity Pgp3GthUsWrapper is
       NUM_LANES_G                 : positive range 1 to 4  := 1;
       NUM_VC_G                    : positive range 1 to 16 := 4;
       REFCLK_G                    : boolean                := false;  --  FALSE: pgpRefClkP/N,  TRUE: pgpRefClkIn
+      RATE_G                      : boolean                := true;  -- true = 10.3125 Gbps, false = 6.25 Gbps
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
@@ -176,6 +177,7 @@ begin
    U_QPLL : entity work.Pgp3GthUsQpll
       generic map (
          TPD_G    => TPD_G,
+         RATE_G   => RATE_G,
          EN_DRP_G => EN_QPLL_DRP_G)
       port map (
          -- Stable Clock and Reset
@@ -194,7 +196,6 @@ begin
          axilWriteMaster => axilWriteMasters(QPLL_AXIL_INDEX_C),  -- [in]
          axilWriteSlave  => axilWriteSlaves(QPLL_AXIL_INDEX_C));  -- [out]
 
-
    -----------
    -- PGP Core
    -----------
@@ -202,6 +203,7 @@ begin
       U_Pgp : entity work.Pgp3GthUs
          generic map (
             TPD_G                       => TPD_G,
+            RATE_G                      => RATE_G,
             ----------------------------------------------------------------------------------------------
             -- PGP Settings
             ----------------------------------------------------------------------------------------------

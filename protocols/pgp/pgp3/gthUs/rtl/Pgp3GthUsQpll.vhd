@@ -2,7 +2,7 @@
 -- File       : Pgp3GthUsQpll.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-26
--- Last update: 2018-01-10
+-- Last update: 2018-05-03
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -28,8 +28,9 @@ use unisim.vcomponents.all;
 
 entity Pgp3GthUsQpll is
    generic (
-      TPD_G             : time            := 1 ns;
-      EN_DRP_G          : boolean         := true);
+      TPD_G    : time    := 1 ns;
+      RATE_G   : boolean := true;  -- true = 10.3125 Gbps, false = 6.25 Gbps
+      EN_DRP_G : boolean := true);
    port (
       -- Stable Clock and Reset
       stableClk       : in  sl;         -- GT needs a stable clock to "boot up"

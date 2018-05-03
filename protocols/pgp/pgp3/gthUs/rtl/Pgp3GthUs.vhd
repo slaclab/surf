@@ -2,7 +2,7 @@
 -- File       : Pgp3GthUs.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2018-04-22
+-- Last update: 2018-05-03
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -32,6 +32,7 @@ use UNISIM.VCOMPONENTS.all;
 entity Pgp3GthUs is
    generic (
       TPD_G                       : time                  := 1 ns;
+      RATE_G                      : boolean               := true;  -- true = 10.3125 Gbps, false = 6.25 Gbps      
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
@@ -258,6 +259,7 @@ begin
          TPD_G         => TPD_G,
          TX_POLARITY_G => TX_POLARITY_G,
          RX_POLARITY_G => RX_POLARITY_G,
+         RATE_G        => RATE_G,
          EN_DRP_G      => EN_DRP_G)
       port map (
          stableClk       => stableClk,                           -- [in]
