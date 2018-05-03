@@ -117,6 +117,7 @@ architecture rtl of JesdRxReg is
    signal s_statusCnt   : SlVectorArray(L_G-1 downto 0, 31 downto 0);
    signal s_adcValids   : slv(L_G-1 downto 0);
 
+   signal scrEnable : sl;
 
 begin
 
@@ -367,7 +368,15 @@ begin
       port map (
          clk     => devClk_i,
          dataIn  => r.commonCtrl(5),
-         dataOut => scrEnable_o);
+         dataOut => scrEnable);
+
+   U_scrEnablePipeline : entity work.RstPipeline
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk    => devClk_i,
+         rstIn  => scrEnable,
+         rstOut => scrEnable_o);
 
    U_linkErrMask : entity work.SynchronizerVector
       generic map (

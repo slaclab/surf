@@ -404,7 +404,7 @@ begin
          dataIn  => r.commonCtrl(6),
          dataOut => scrEnable);
 
-   U_scrEnable : entity work.RstPipeline
+   U_scrEnablePipeline : entity work.RstPipeline
       generic map (
          TPD_G => TPD_G)
       port map (
