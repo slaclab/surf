@@ -319,7 +319,7 @@ begin
 
    -- Input assignment and synchronization
    GEN_0 : for I in L_G-1 downto 0 generate
-      s_statusTxArr : entity work.SynchronizerVector
+      U_statusTxArr : entity work.SynchronizerVector
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => TX_STAT_WIDTH_C)
