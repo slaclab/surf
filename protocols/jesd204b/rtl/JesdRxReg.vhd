@@ -117,7 +117,20 @@ architecture rtl of JesdRxReg is
    signal s_statusCnt   : SlVectorArray(L_G-1 downto 0, 31 downto 0);
    signal s_adcValids   : slv(L_G-1 downto 0);
 
-   signal scrEnable : sl;
+   signal sysrefDlyRx     : slv(SYSRF_DLY_WIDTH_C-1 downto 0);
+   signal enableRx        : slv(L_G-1 downto 0);
+   signal replEnable      : sl;
+   signal scrEnable       : sl;
+   signal invertData      : slv(L_G-1 downto 0);
+   signal dlyTxArr        : Slv4Array(L_G-1 downto 0);
+   signal alignTxArr      : alignTxArray(L_G-1 downto 0);
+   signal thresoldLowArr  : Slv16Array(L_G-1 downto 0);
+   signal thresoldHighArr : Slv16Array(L_G-1 downto 0);
+   signal subClass        : sl;
+   signal gtReset         : sl;
+   signal clearErr        : sl;
+   signal invertSync      : sl;
+   signal linkErrMask     : slv(5 downto 0);
 
 begin
 
@@ -311,7 +324,18 @@ begin
       port map (
          clk     => devClk_i,
          dataIn  => r.sysrefDlyRx,
-         dataOut => sysrefDlyRx_o);
+         dataOut => sysrefDlyRx);
+
+   U_sysrefDlyRx_Pipeline : entity work.RstPipelineVector
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => SYSRF_DLY_WIDTH_C)
+      port map (
+         clk    => devClk_i,
+         rstIn  => sysrefDlyRx,
+         rstOut => sysrefDlyRx_o);
+
+   ------------------------------------------------------------          
 
    U_enableRx : entity work.SynchronizerVector
       generic map (
@@ -320,7 +344,18 @@ begin
       port map (
          clk     => devClk_i,
          dataIn  => r.enableRx,
-         dataOut => enableRx_o);
+         dataOut => enableRx);
+
+   U_enableRx_Pipeline : entity work.RstPipelineVector
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => L_G)
+      port map (
+         clk    => devClk_i,
+         rstIn  => enableRx,
+         rstOut => enableRx_o);
+
+   ------------------------------------------------------------            
 
    U_subClass : entity work.Synchronizer
       generic map (
@@ -328,7 +363,17 @@ begin
       port map (
          clk     => devClk_i,
          dataIn  => r.commonCtrl(0),
-         dataOut => subClass_o);
+         dataOut => subClass);
+
+   U_subClass_Pipeline : entity work.RstPipeline
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk    => devClk_i,
+         rstIn  => subClass,
+         rstOut => subClass_o);
+
+   ------------------------------------------------------------            
 
    U_replEnable : entity work.Synchronizer
       generic map (
@@ -336,7 +381,17 @@ begin
       port map (
          clk     => devClk_i,
          dataIn  => r.commonCtrl(1),
-         dataOut => replEnable_o);
+         dataOut => replEnable);
+
+   U_replEnable_Pipeline : entity work.RstPipeline
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk    => devClk_i,
+         rstIn  => replEnable,
+         rstOut => replEnable_o);
+
+   ------------------------------------------------------------              
 
    U_gtReset : entity work.Synchronizer
       generic map (
@@ -344,7 +399,17 @@ begin
       port map (
          clk     => devClk_i,
          dataIn  => r.commonCtrl(2),
-         dataOut => gtReset_o);
+         dataOut => gtReset);
+
+   U_gtReset_Pipeline : entity work.RstPipeline
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk    => devClk_i,
+         rstIn  => gtReset,
+         rstOut => gtReset_o);
+
+   ------------------------------------------------------------      
 
    U_clearErr : entity work.Synchronizer
       generic map (
@@ -352,7 +417,17 @@ begin
       port map (
          clk     => devClk_i,
          dataIn  => r.commonCtrl(3),
-         dataOut => clearErr_o);
+         dataOut => clearErr);
+
+   U_clearErr_Pipeline : entity work.RstPipeline
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk    => devClk_i,
+         rstIn  => clearErr,
+         rstOut => clearErr_o);
+
+   ------------------------------------------------------------      
 
    U_invertSync : entity work.Synchronizer
       generic map (
@@ -360,7 +435,17 @@ begin
       port map (
          clk     => devClk_i,
          dataIn  => r.commonCtrl(4),
-         dataOut => invertSync_o);
+         dataOut => invertSync);
+
+   U_invertSync_Pipeline : entity work.RstPipeline
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk    => devClk_i,
+         rstIn  => invertSync,
+         rstOut => invertSync_o);
+
+   ------------------------------------------------------------      
 
    U_scrEnable : entity work.Synchronizer
       generic map (
@@ -370,13 +455,15 @@ begin
          dataIn  => r.commonCtrl(5),
          dataOut => scrEnable);
 
-   U_scrEnablePipeline : entity work.RstPipeline
+   U_scrEnable_Pipeline : entity work.RstPipeline
       generic map (
          TPD_G => TPD_G)
       port map (
          clk    => devClk_i,
          rstIn  => scrEnable,
          rstOut => scrEnable_o);
+
+   ------------------------------------------------------------      
 
    U_linkErrMask : entity work.SynchronizerVector
       generic map (
@@ -385,7 +472,18 @@ begin
       port map (
          clk     => devClk_i,
          dataIn  => r.linkErrMask,
-         dataOut => linkErrMask_o);
+         dataOut => linkErrMask);
+
+   U_linkErrMask_Pipeline : entity work.RstPipelineVector
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => 6)
+      port map (
+         clk    => devClk_i,
+         rstIn  => linkErrMask,
+         rstOut => linkErrMask_o);
+
+   ------------------------------------------------------------      
 
    U_invertData : entity work.SynchronizerVector
       generic map (
@@ -394,26 +492,62 @@ begin
       port map (
          clk     => devClk_i,
          dataIn  => r.invertData,
-         dataOut => invertData_o);
+         dataOut => invertData);
+
+   U_invertData_Pipeline : entity work.RstPipelineVector
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => L_G)
+      port map (
+         clk    => devClk_i,
+         rstIn  => invertData,
+         rstOut => invertData_o);
+
+   ------------------------------------------------------------      
 
    GEN_1 : for i in L_G-1 downto 0 generate
+
+      ------------------------------------------------------------      
+
       U_dlyTxArr : entity work.SynchronizerVector
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => 4)
          port map (
             clk     => devClk_i,
-            dataIn  => r.testTXItf(i) (11 downto 8),
-            dataOut => dlyTxArr_o(i));
+            dataIn  => r.testTXItf(i)(11 downto 8),
+            dataOut => dlyTxArr(i));
 
-      Sync_OUT1 : entity work.SynchronizerVector
+      U_dlyTxArr_Pipeline : entity work.RstPipelineVector
+         generic map (
+            TPD_G   => TPD_G,
+            WIDTH_G => 4)
+         port map (
+            clk    => devClk_i,
+            rstIn  => dlyTxArr(i),
+            rstOut => dlyTxArr_o(i));
+
+      ------------------------------------------------------------      
+
+      U_alignTxArr : entity work.SynchronizerVector
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => GT_WORD_SIZE_C)
          port map (
             clk     => devClk_i,
             dataIn  => r.testTXItf(i) (GT_WORD_SIZE_C-1 downto 0),
-            dataOut => alignTxArr_o(i));
+            dataOut => alignTxArr(i));
+
+      U_alignTxArr_Pipeline : entity work.RstPipelineVector
+         generic map (
+            TPD_G   => TPD_G,
+            WIDTH_G => GT_WORD_SIZE_C)
+         port map (
+            clk    => devClk_i,
+            rstIn  => alignTxArr(i),
+            rstOut => alignTxArr_o(i));
+
+      ------------------------------------------------------------      
 
       U_thresoldLowArr_A : entity work.SynchronizerVector
          generic map (
@@ -422,7 +556,18 @@ begin
          port map (
             clk     => devClk_i,
             dataIn  => r.testSigThr(i) (31 downto 16),
-            dataOut => thresoldHighArr_o(i));
+            dataOut => thresoldHighArr(i));
+
+      U_thresoldLowArr_A_Pipeline : entity work.RstPipelineVector
+         generic map (
+            TPD_G   => TPD_G,
+            WIDTH_G => 16)
+         port map (
+            clk    => devClk_i,
+            rstIn  => thresoldHighArr(i),
+            rstOut => thresoldHighArr_o(i));
+
+      ------------------------------------------------------------      
 
       U_thresoldLowArr_B : entity work.SynchronizerVector
          generic map (
@@ -431,7 +576,18 @@ begin
          port map (
             clk     => devClk_i,
             dataIn  => r.testSigThr(i) (15 downto 0),
-            dataOut => thresoldLowArr_o(i));
+            dataOut => thresoldLowArr(i));
+
+      U_thresoldLowArr_B_Pipeline : entity work.RstPipelineVector
+         generic map (
+            TPD_G   => TPD_G,
+            WIDTH_G => 16)
+         port map (
+            clk    => devClk_i,
+            rstIn  => thresoldLowArr(i),
+            rstOut => thresoldLowArr_o(i));
+
+      ------------------------------------------------------------      
 
    end generate GEN_1;
 
