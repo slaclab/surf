@@ -167,11 +167,11 @@ begin
    -- Input data register
    ----------------------
    GEN_REG_I : if (INPUT_REG_G = true) generate
-      GEN_LANE : for I in L_G-1 downto 0 generate
+      GEN_LANE : for i in L_G-1 downto 0 generate
          process(devClk_i)
          begin
             if rising_edge(devClk_i) then
-               s_regSampleDataIn(I) <= extSampleDataArray_i(I) after TPD_G;
+               s_regSampleDataIn(i) <= extSampleDataArray_i(i) after TPD_G;
             end if;
          end process;
       end generate GEN_LANE;
@@ -181,8 +181,8 @@ begin
       s_regSampleDataIn <= extSampleDataArray_i;
    end generate GEN_N_REG_I;
 
-   GEN_VALID : for I in L_G-1 downto 0 generate
-      s_dataValid(I) <= s_statusTxArr(I)(1);
+   GEN_VALID : for i in L_G-1 downto 0 generate
+      s_dataValid(i) <= s_statusTxArr(i)(1);
    end generate GEN_VALID;
 
    txEnable  <= s_enableTx;
@@ -206,6 +206,7 @@ begin
          -- DevClk domain
          devClk_i        => devClk_i,
          devRst_i        => devRst_i,
+         sysrefRe_i      => s_sysrefRe,
          statusTxArr_i   => s_statusTxArr,
          muxOutSelArr_o  => s_muxOutSelArr,
          sysrefDlyTx_o   => s_sysrefDlyTx,
@@ -231,10 +232,10 @@ begin
          txPolarity      => txPolarity,
          loopback        => loopback);
 
-   GEN_TEST : for I in L_G-1 downto 0 generate
+   GEN_TEST : for i in L_G-1 downto 0 generate
 
       -- Check the test pattern enable bit 
-      s_testEn(I) <= s_dataValid(I) and s_enableTestSig;
+      s_testEn(i) <= s_dataValid(i) and s_enableTestSig;
 
       U_TestStream : entity work.JesdTestStreamTx
          generic map (
@@ -243,35 +244,35 @@ begin
          port map (
             clk            => devClk_i,
             rst            => devRst_i,
-            enable_i       => s_testEn(I),
+            enable_i       => s_testEn(i),
             rampStep_i     => s_rampStep,
             squarePeriod_i => s_squarePeriod,
             posAmplitude_i => s_posAmplitude,
             negAmplitude_i => s_negAmplitude,
-            type_i         => s_sigTypeArr(I),
-            pulse_o        => pulse_o(I),
-            sampleData_o   => s_testDataArr(I));
+            type_i         => s_sigTypeArr(i),
+            pulse_o        => pulse_o(i),
+            sampleData_o   => s_testDataArr(i));
 
    end generate GEN_TEST;
 
    -- Sample data mux
-   GEN_MUX : for I in L_G-1 downto 0 generate
+   GEN_MUX : for i in L_G-1 downto 0 generate
 
       -- Swap endian (the module is built to use big endian data but the interface is little endian)
-      s_extDataArraySwap(I) <= endianSwapSlv(s_regSampleDataIn(I), GT_WORD_SIZE_C);
+      s_extDataArraySwap(i) <= endianSwapSlv(s_regSampleDataIn(i), GT_WORD_SIZE_C);
 
       -- Separate mux for separate lane
       process(devClk_i)
       begin
          if rising_edge(devClk_i) then
-            if (s_muxOutSelArr(I) = "000") then
-               s_sampleDataArr(I) <= outSampleZero(F_G, GT_WORD_SIZE_C) after TPD_G;
-            elsif (s_muxOutSelArr(I) = "001") then
-               s_sampleDataArr(I) <= s_extDataArraySwap(I) after TPD_G;
-            elsif (s_muxOutSelArr(I) = "010") then
-               s_sampleDataArr(I) <= (others => '1') after TPD_G;
+            if (s_muxOutSelArr(i) = "000") then
+               s_sampleDataArr(i) <= outSampleZero(F_G, GT_WORD_SIZE_C) after TPD_G;
+            elsif (s_muxOutSelArr(i) = "001") then
+               s_sampleDataArr(i) <= s_extDataArraySwap(i) after TPD_G;
+            elsif (s_muxOutSelArr(i) = "010") then
+               s_sampleDataArr(i) <= (others => '1') after TPD_G;
             else
-               s_sampleDataArr(I) <= s_testDataArr(I) after TPD_G;
+               s_sampleDataArr(i) <= s_testDataArr(i) after TPD_G;
             end if;
          end if;
       end process;
@@ -347,7 +348,7 @@ begin
    ----------------------------
    -- Transmitter modules (L_G)
    ----------------------------
-   GEN_TX : for I in L_G-1 downto 0 generate
+   GEN_TX : for i in L_G-1 downto 0 generate
       -- JESD Transmitter modules (one module per Lane)
       U_JesdTxLane : entity work.JesdTxLane
          generic map (
@@ -358,29 +359,29 @@ begin
             devClk_i     => devClk_i,
             devRst_i     => devRst_i,
             subClass_i   => s_subClass,        -- From AXI lite
-            enable_i     => s_enableTx(I),     -- From AXI lite
+            enable_i     => s_enableTx(i),     -- From AXI lite
             replEnable_i => s_replEnable,      -- From AXI lite
             scrEnable_i  => s_scrEnable,       -- From AXI lite
-            inv_i        => s_invertData(I),   -- From AXI lite
+            inv_i        => s_invertData(i),   -- From AXI lite
             lmfc_i       => s_lmfc,
             nSync_i      => s_nSyncSync,
-            gtTxReady_i  => gtTxReady_i(I),
+            gtTxReady_i  => gtTxReady_i(i),
             sysRef_i     => s_sysrefRe,
-            status_o     => s_statusTxArr(I),  -- To AXI lite
-            sampleData_i => s_sampleDataArr(I),
-            r_jesdGtTx   => s_jesdGtTxArr(I));
+            status_o     => s_statusTxArr(i),  -- To AXI lite
+            sampleData_i => s_sampleDataArr(i),
+            r_jesdGtTx   => s_jesdGtTxArr(i));
    end generate GEN_TX;
 
    ------------------
    -- Output register
    ------------------
    GEN_REG_O : if (OUTPUT_REG_G = true) generate
-      GEN_LANE : for I in L_G-1 downto 0 generate
+      GEN_LANE : for i in L_G-1 downto 0 generate
          process(devClk_i)
          begin
             if rising_edge(devClk_i) then
-               r_jesdGtTxArr(I).data  <= s_jesdGtTxArr(I).data  after TPD_G;
-               r_jesdGtTxArr(I).dataK <= s_jesdGtTxArr(I).dataK after TPD_G;
+               r_jesdGtTxArr(i).data  <= s_jesdGtTxArr(i).data  after TPD_G;
+               r_jesdGtTxArr(i).dataK <= s_jesdGtTxArr(i).dataK after TPD_G;
             end if;
          end process;
       end generate GEN_LANE;

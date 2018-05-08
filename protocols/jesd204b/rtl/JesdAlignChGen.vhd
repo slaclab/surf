@@ -165,19 +165,19 @@ begin
          end if;
 
          -- Replace with F character
-         for I in (SAMPLES_IN_WORD_C-1) downto 0 loop
+         for i in (SAMPLES_IN_WORD_C-1) downto 0 loop
             if scrEnable_i = '1' then
-               if (v_twoWordBuff((I*F_G*8)+7 downto (I*F_G*8)) = F_CHAR_C and
-                  v_twoCharBuff((I*F_G+F_G)) = '0')
+               if (v_twoWordBuff((i*F_G*8)+7 downto (i*F_G*8)) = F_CHAR_C and
+                  v_twoCharBuff((i*F_G+F_G)) = '0')
                then
-                  v_twoCharBuff(I*F_G) := '1';
+                  v_twoCharBuff(i*F_G) := '1';
                end if;            
             else   
-               if (v_twoWordBuff((I*F_G*8)+(F_G*8)+7 downto (I*F_G*8)+(F_G*8)) = v_twoWordBuff((I*F_G*8)+7 downto (I*F_G*8)) and
-                   v_twoCharBuff((I*F_G+F_G)) = '0')
+               if (v_twoWordBuff((i*F_G*8)+(F_G*8)+7 downto (i*F_G*8)+(F_G*8)) = v_twoWordBuff((i*F_G*8)+7 downto (i*F_G*8)) and
+                   v_twoCharBuff((i*F_G+F_G)) = '0')
                then
-                  v_twoWordBuff((I*F_G*8)+7 downto (I*F_G*8)) := F_CHAR_C;
-                  v_twoCharBuff(I*F_G)                        := '1';
+                  v_twoWordBuff((i*F_G*8)+7 downto (i*F_G*8)) := F_CHAR_C;
+                  v_twoCharBuff(i*F_G)                        := '1';
                end if;
             end if;
          end loop;

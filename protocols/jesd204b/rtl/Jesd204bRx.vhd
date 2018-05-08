@@ -184,8 +184,8 @@ begin
    -- AXI Lite AXI clock domain crossed
    -----------------------------------------------------------
 
-   GEN_rawData : for I in L_G-1 downto 0 generate
-      s_rawData(I) <= s_jesdGtRxArr(I).data;
+   GEN_rawData : for i in L_G-1 downto 0 generate
+      s_rawData(i) <= s_jesdGtRxArr(i).data;
    end generate GEN_rawData;
 
    -- axiLite register interface
@@ -204,6 +204,7 @@ begin
          -- DevClk domain
          devClk_i          => devClk_i,
          devRst_i          => devRst_i,
+         sysrefRe_i        => s_sysrefRe,
          statusRxArr_i     => s_statusRxArr,
          rawData_i         => s_rawData,
          linkErrMask_o     => s_linkErrMask,
@@ -231,19 +232,19 @@ begin
    -- Generate TX test core if TEST_G=true is selected
    TEST_GEN : if TEST_G = true generate
       -----------------------------------------
-      TX_LANES_GEN : for I in L_G-1 downto 0 generate
+      TX_LANES_GEN : for i in L_G-1 downto 0 generate
          JesdTxTest_INST : entity work.JesdTxTest
             generic map (
                TPD_G => TPD_G)
             port map (
                devClk_i      => devClk_i,
                devRst_i      => devRst_i,
-               enable_i      => s_enableRx(I),
-               delay_i       => s_dlyTxArr(I),
-               align_i       => s_alignTxArr(I),
+               enable_i      => s_enableRx(i),
+               delay_i       => s_dlyTxArr(i),
+               align_i       => s_alignTxArr(i),
                lmfc_i        => s_lmfc,
                nSync_i       => r.nSyncAnyD1,
-               r_jesdGtRx    => s_jesdGtRxArr(I),
+               r_jesdGtRx    => s_jesdGtRxArr(i),
                subClass_i    => s_subClass,
                txDataValid_o => open);
       end generate TX_LANES_GEN;
@@ -312,7 +313,7 @@ begin
    ----------------------------------------------------------- 
 
    -- JESD Receiver modules (one module per Lane)
-   generateRxLanes : for I in L_G-1 downto 0 generate
+   generateRxLanes : for i in L_G-1 downto 0 generate
       JesdRx_INST : entity work.JesdRxLane
          generic map (
             TPD_G => TPD_G,
@@ -322,26 +323,26 @@ begin
             devClk_i      => devClk_i,
             devRst_i      => devRst_i,
             sysRef_i      => s_sysrefRe,  -- Rising-edge of SYSREF
-            enable_i      => s_enableRx(I),
+            enable_i      => s_enableRx(i),
             clearErr_i    => s_clearErr,
             linkErrMask_i => s_linkErrMask,
             replEnable_i  => s_replEnable,
             scrEnable_i   => s_scrEnable,
-            inv_i         => s_invertData(I),
-            status_o      => s_statusRxArr(I),
-            r_jesdGtRx    => s_jesdGtRxArr(I),
+            inv_i         => s_invertData(i),
+            status_o      => s_statusRxArr(i),
+            r_jesdGtRx    => s_jesdGtRxArr(i),
             lmfc_i        => s_lmfc,
             nSyncAnyD1_i  => r.nSyncAnyD1,
             nSyncAny_i    => s_nSyncAny,
-            nSync_o       => s_nSyncVec(I),
-            dataValid_o   => s_dataValidVec(I),
-            sampleData_o  => s_sampleDataArr(I),
+            nSync_o       => s_nSyncVec(i),
+            dataValid_o   => s_dataValidVec(i),
+            sampleData_o  => s_sampleDataArr(i),
             subClass_i    => s_subClass
             );
    end generate;
 
    -- Test signal generator
-   generatePulserLanes : for I in L_G-1 downto 0 generate
+   generatePulserLanes : for i in L_G-1 downto 0 generate
       Pulser_INST : entity work.JesdTestSigGen
          generic map (
             TPD_G => TPD_G,
@@ -349,16 +350,16 @@ begin
          port map (
             clk            => devClk_i,
             rst            => devRst_i,
-            enable_i       => s_dataValidVec(I),
-            thresoldLow_i  => s_thresoldLowArr(I),
-            thresoldHigh_i => s_thresoldHighArr(I),
-            sampleData_i   => s_sampleDataArr(I),
-            testSig_o      => pulse_o(I));
+            enable_i       => s_dataValidVec(i),
+            thresoldLow_i  => s_thresoldLowArr(i),
+            thresoldHigh_i => s_thresoldHighArr(i),
+            sampleData_i   => s_sampleDataArr(i),
+            testSig_o      => pulse_o(i));
    end generate;
 
    -- Put sync output in 'z' if not enabled
-   syncVectEn : for I in L_G-1 downto 0 generate
-      s_nSyncVecEn(I) <= s_nSyncVec(I) or not s_enableRx(I);
+   syncVectEn : for i in L_G-1 downto 0 generate
+      s_nSyncVecEn(i) <= s_nSyncVec(i) or not s_enableRx(i);
    end generate syncVectEn;
 
    -- Combine nSync signals from all receivers

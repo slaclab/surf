@@ -131,9 +131,9 @@ begin
 
    ----------------------------------------------------   
    -- Comma character generation
-   COMMA_GEN : for I in GT_WORD_SIZE_C-1 downto 0 generate
-      s_commaDataMux(I*8+7 downto I*8) <= K_CHAR_C;   
-      s_commaKMux(I)    <= '1';
+   COMMA_GEN : for i in GT_WORD_SIZE_C-1 downto 0 generate
+      s_commaDataMux(i*8+7 downto i*8) <= K_CHAR_C;   
+      s_commaKMux(i)    <= '1';
    end generate COMMA_GEN;
    
    ----------------------------------------------------     

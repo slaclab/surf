@@ -49,6 +49,7 @@ entity JesdRxReg is
 
       -- JESD registers
       -- Status
+      sysrefRe_i    : in sl;
       statusRxArr_i : in rxStatuRegisterArray(L_G-1 downto 0);
       rawData_i     : in slv32Array(L_G-1 downto 0);
 
@@ -137,7 +138,7 @@ begin
    ----------------------------------------------------------------------------------------------
    -- Data Valid Status Counter
    ----------------------------------------------------------------------------------------------
-   GEN_LANES : for I in L_G-1 downto 0 generate
+   GEN_LANES : for i in L_G-1 downto 0 generate
       s_adcValids(i) <= statusRxArr_i(i)(1);
    end generate GEN_LANES;
 
@@ -198,14 +199,14 @@ begin
             when 16#09# =>              -- ADDR (0x24)
                v.axilReadSlave.rdata(L_G-1 downto 0) := r.rxPowerDown;
             when 16#20# to 16#2F# =>
-               for I in (L_G-1) downto 0 loop
-                  if (axilWriteMaster.awaddr(5 downto 2) = I) then
+               for i in (L_G-1) downto 0 loop
+                  if (axilWriteMaster.awaddr(5 downto 2) = i) then
                      v.testTXItf(i) := axilWriteMaster.wdata(15 downto 0);
                   end if;
                end loop;
             when 16#30# to 16#3F# =>
-               for I in (L_G-1) downto 0 loop
-                  if (axilWriteMaster.awaddr(5 downto 2) = I) then
+               for i in (L_G-1) downto 0 loop
+                  if (axilWriteMaster.awaddr(5 downto 2) = i) then
                      v.testSigThr(i) := axilWriteMaster.wdata(31 downto 0);
                   end if;
                end loop;
@@ -234,34 +235,34 @@ begin
             when 16#09# =>              -- ADDR (0x24)
                v.rxPowerDown := axilWriteMaster.wdata(L_G-1 downto 0);
             when 16#10# to 16#1F# =>
-               for I in (L_G-1) downto 0 loop
-                  if (axilReadMaster.araddr(5 downto 2) = I) then
+               for i in (L_G-1) downto 0 loop
+                  if (axilReadMaster.araddr(5 downto 2) = i) then
                      v.axilReadSlave.rdata(RX_STAT_WIDTH_C-1 downto 0) := s_statusRxArr(i);
                   end if;
                end loop;
             when 16#20# to 16#2F# =>
-               for I in (L_G-1) downto 0 loop
-                  if (axilReadMaster.araddr(5 downto 2) = I) then
+               for i in (L_G-1) downto 0 loop
+                  if (axilReadMaster.araddr(5 downto 2) = i) then
                      v.axilReadSlave.rdata(15 downto 0) := r.testTXItf(i);
                   end if;
                end loop;
             when 16#30# to 16#3F# =>
-               for I in (L_G-1) downto 0 loop
-                  if (axilReadMaster.araddr(5 downto 2) = I) then
+               for i in (L_G-1) downto 0 loop
+                  if (axilReadMaster.araddr(5 downto 2) = i) then
                      v.axilReadSlave.rdata(31 downto 0) := r.testSigThr(i);
                   end if;
                end loop;
             when 16#40# to 16#4F# =>
-               for I in (L_G-1) downto 0 loop
-                  if (axilReadMaster.araddr(5 downto 2) = I) then
-                     for J in 31 downto 0 loop
-                        v.axilReadSlave.rdata(J) := s_statusCnt(I, J);
+               for i in (L_G-1) downto 0 loop
+                  if (axilReadMaster.araddr(5 downto 2) = i) then
+                     for j in 31 downto 0 loop
+                        v.axilReadSlave.rdata(J) := s_statusCnt(i, j);
                      end loop;
                   end if;
                end loop;
             when 16#50# to 16#5F# =>
-               for I in (L_G-1) downto 0 loop
-                  if (axilReadMaster.araddr(5 downto 2) = I) then
+               for i in (L_G-1) downto 0 loop
+                  if (axilReadMaster.araddr(5 downto 2) = i) then
                      v.axilReadSlave.rdata := s_rawData(i);
                   end if;
                end loop;

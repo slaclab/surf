@@ -287,9 +287,9 @@ begin
 
       -- Register errors (store until reset)
       if (r.jesdGtRx.rstDone = '1' and s_nSync = '1') then
-         for I in 0 to(ERR_REG_WIDTH_C-1) loop
-            if (s_errComb(I) = '1') and (enable_i = '1') then
-               v.errReg(I) := '1';
+         for i in 0 to(ERR_REG_WIDTH_C-1) loop
+            if (s_errComb(i) = '1') and (enable_i = '1') then
+               v.errReg(i) := '1';
             end if;
          end loop;
       end if;

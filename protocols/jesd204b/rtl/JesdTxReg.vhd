@@ -48,6 +48,7 @@ entity JesdTxReg is
 
       -- JESD registers
       -- Status
+      sysrefRe_i    : in sl;
       statusTxArr_i : in txStatuRegisterArray(L_G-1 downto 0);
 
       -- Control
@@ -160,7 +161,7 @@ begin
    ----------------------------------------------------------------------------------------------
    -- Data Valid Status Counter
    ----------------------------------------------------------------------------------------------
-   GEN_LANES : for I in L_G-1 downto 0 generate
+   GEN_LANES : for i in L_G-1 downto 0 generate
       s_adcValids(i) <= statusTxArr_i(i)(1);
    end generate GEN_LANES;
 
@@ -227,14 +228,14 @@ begin
             when 16#09# =>              -- ADDR (0x24)
                v.txPowerDown := axilWriteMaster.wdata(L_G-1 downto 0);
             when 16#20# to 16#2F# =>
-               for I in (L_G-1) downto 0 loop
-                  if (axilWriteMaster.awaddr(5 downto 2) = I) then
+               for i in (L_G-1) downto 0 loop
+                  if (axilWriteMaster.awaddr(5 downto 2) = i) then
                      v.signalSelectArr(i) := axilWriteMaster.wdata(7 downto 0);
                   end if;
                end loop;
             when 16#80# to 16#9F# =>
-               for I in (L_G-1) downto 0 loop
-                  if (axilWriteMaster.awaddr(6 downto 2) = I) then
+               for i in (L_G-1) downto 0 loop
+                  if (axilWriteMaster.awaddr(6 downto 2) = i) then
                      v.txDiffCtrl(i)   := axilWriteMaster.wdata(7 downto 0);
                      v.txPostCursor(i) := axilWriteMaster.wdata(15 downto 8);
                      v.txPreCursor(i)  := axilWriteMaster.wdata(23 downto 16);
@@ -271,29 +272,29 @@ begin
             when 16#09# =>              -- ADDR (0x24)
                v.axilReadSlave.rdata(L_G-1 downto 0) := r.txPowerDown;
             when 16#10# to 16#1F# =>
-               for I in (L_G-1) downto 0 loop
-                  if (axilReadMaster.araddr(5 downto 2) = I) then
+               for i in (L_G-1) downto 0 loop
+                  if (axilReadMaster.araddr(5 downto 2) = i) then
                      v.axilReadSlave.rdata(TX_STAT_WIDTH_C-1 downto 0) := s_statusTxArr(i);
                   end if;
                end loop;
             when 16#20# to 16#2F# =>
-               for I in (L_G-1) downto 0 loop
-                  if (axilReadMaster.araddr(5 downto 2) = I) then
+               for i in (L_G-1) downto 0 loop
+                  if (axilReadMaster.araddr(5 downto 2) = i) then
                      v.axilReadSlave.rdata(7 downto 0) := r.signalSelectArr(i);
                   end if;
                end loop;
 
             when 16#40# to 16#4F# =>
-               for I in (L_G-1) downto 0 loop
-                  if (axilReadMaster.araddr(5 downto 2) = I) then
-                     for J in 31 downto 0 loop
-                        v.axilReadSlave.rdata(J) := s_statusCnt(I, J);
+               for i in (L_G-1) downto 0 loop
+                  if (axilReadMaster.araddr(5 downto 2) = i) then
+                     for j in 31 downto 0 loop
+                        v.axilReadSlave.rdata(J) := s_statusCnt(i, j);
                      end loop;
                   end if;
                end loop;
             when 16#80# to 16#9F# =>
-               for I in (L_G-1) downto 0 loop
-                  if (axilReadMaster.araddr(6 downto 2) = I) then
+               for i in (L_G-1) downto 0 loop
+                  if (axilReadMaster.araddr(6 downto 2) = i) then
                      v.axilReadSlave.rdata(7 downto 0)   := r.txDiffCtrl(i);
                      v.axilReadSlave.rdata(15 downto 8)  := r.txPostCursor(i);
                      v.axilReadSlave.rdata(23 downto 16) := r.txPreCursor(i);
@@ -333,7 +334,7 @@ begin
    end process seq;
 
    -- Input assignment and synchronization
-   GEN_0 : for I in L_G-1 downto 0 generate
+   GEN_0 : for i in L_G-1 downto 0 generate
       U_statusTxArr : entity work.SynchronizerVector
          generic map (
             TPD_G   => TPD_G,
