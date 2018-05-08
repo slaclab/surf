@@ -2,7 +2,7 @@
 -- File       : JesdTxReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-15
--- Last update: 2018-05-03
+-- Last update: 2018-05-08
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface for register access  
 -------------------------------------------------------------------------------
@@ -156,7 +156,23 @@ architecture rtl of JesdTxReg is
    signal posAmplitude  : slv(F_G*8-1 downto 0);
    signal negAmplitude  : slv(F_G*8-1 downto 0);
 
+   signal sysRefPeriodmin : slv(15 downto 0);
+   signal sysRefPeriodmax : slv(15 downto 0);
+
 begin
+
+   U_JesdSysrefMon : entity work.JesdSysrefMon
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         -- SYSREF Edge detection (devClk domain)
+         devClk          => devClk_i,
+         sysrefEdgeDet_i => sysrefRe_i,
+         -- Max/Min measurements  (axilClk domain)   
+         axilClk         => axiClk_i,
+         statClr         => r.commonCtrl(3),
+         sysRefPeriodmin => sysRefPeriodmin,
+         sysRefPeriodmax => sysRefPeriodmax);
 
    ----------------------------------------------------------------------------------------------
    -- Data Valid Status Counter
@@ -190,7 +206,8 @@ begin
    s_WrAddr <= slvToInt(axilWriteMaster.awaddr(9 downto 2));
 
    comb : process (axiRst_i, axilReadMaster, axilWriteMaster, r, s_RdAddr,
-                   s_WrAddr, s_statusCnt, s_statusTxArr) is
+                   s_WrAddr, s_statusCnt, s_statusTxArr, sysRefPeriodmax,
+                   sysRefPeriodmin) is
       variable v             : RegType;
       variable axilStatus    : AxiLiteStatusType;
       variable axilWriteResp : slv(1 downto 0);
@@ -271,6 +288,9 @@ begin
                v.axilReadSlave.rdata(L_G-1 downto 0) := r.invertData;
             when 16#09# =>              -- ADDR (0x24)
                v.axilReadSlave.rdata(L_G-1 downto 0) := r.txPowerDown;
+            when 16#0A# =>              -- ADDR (0x28)
+               v.axilReadSlave.rdata(15 downto 0)  := sysRefPeriodmin;
+               v.axilReadSlave.rdata(31 downto 16) := sysRefPeriodmax;
             when 16#10# to 16#1F# =>
                for i in (L_G-1) downto 0 loop
                   if (axilReadMaster.araddr(5 downto 2) = i) then
