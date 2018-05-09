@@ -28,7 +28,7 @@ entity Pgp3Gtx7IpWrapper is
    generic (
       TPD_G         : time    := 1 ns;
       EN_DRP_G      : boolean := true;
-      RATE_G        : boolean := true;  -- true = 10.3125 Gbps, false = 6.25 Gbps
+      RATE_G        : string  := "10.3125Gbps";  -- or "6.25Gbps" 
       TX_POLARITY_G : sl      := '0';
       RX_POLARITY_G : sl      := '0');
    port (
@@ -339,11 +339,11 @@ begin
          INPUT_BUFG_G     => true,
          FB_BUFG_G        => false,
          NUM_CLOCKS_G     => 2,
-         CLKIN_PERIOD_G   => ite(RATE_G, 3.103, 5.12),
+         CLKIN_PERIOD_G   => ite((RATE_G = "10.3125Gbps"), 3.103, 5.12),
          DIVCLK_DIVIDE_G  => 1,
-         CLKFBOUT_MULT_G  => ite(RATE_G, 3, 5),
-         CLKOUT0_DIVIDE_G => ite(RATE_G, 3, 5),
-         CLKOUT1_DIVIDE_G => ite(RATE_G, 6, 10))
+         CLKFBOUT_MULT_G  => ite((RATE_G = "10.3125Gbps"), 3, 5),
+         CLKOUT0_DIVIDE_G => ite((RATE_G = "10.3125Gbps"), 3, 5),
+         CLKOUT1_DIVIDE_G => ite((RATE_G = "10.3125Gbps"), 6, 10))
       port map(
          clkIn  => gtRxOutClk,
          rstIn  => gtRxPllRst,
@@ -367,7 +367,7 @@ begin
       end if;
    end process;
 
-   GEN_10G : if (RATE_G = true) generate
+   GEN_10G : if (RATE_G = "10.3125Gbps") generate
       U_Pgp3Gtx7Ip10G : Pgp3Gtx7Ip10G
          port map (
             SYSCLK_IN                   => stableClk,
@@ -474,7 +474,7 @@ begin
             GT0_QPLLOUTREFCLK_IN        => qpllrefclk);
    end generate;
 
-   GEN_6G : if (RATE_G = false) generate
+   GEN_6G : if (RATE_G = "6.25Gbps") generate
       U_Pgp3Gtx7Ip6G : Pgp3Gtx7Ip6G
          port map (
             SYSCLK_IN                   => stableClk,

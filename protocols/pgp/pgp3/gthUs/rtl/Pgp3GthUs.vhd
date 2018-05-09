@@ -2,7 +2,7 @@
 -- File       : Pgp3GthUs.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2018-05-03
+-- Last update: 2018-05-08
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -32,7 +32,7 @@ use UNISIM.VCOMPONENTS.all;
 entity Pgp3GthUs is
    generic (
       TPD_G                       : time                  := 1 ns;
-      RATE_G                      : boolean               := true;  -- true = 10.3125 Gbps, false = 6.25 Gbps      
+      RATE_G                      : string                := "10.3125Gbps";  -- or "6.25Gbps"     
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
@@ -146,6 +146,10 @@ architecture rtl of Pgp3GthUs is
    signal loopback : slv(2 downto 0);
 
 begin
+
+   assert ((RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps"))
+      report "RATE_G: Must be either 6.25Gbps or 10.3125Gbps"
+      severity error;
 
    pgpClk    <= pgpTxClkInt;
    pgpClkRst <= pgpTxRstInt;

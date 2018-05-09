@@ -24,7 +24,7 @@ entity Pgp3GthUsIpWrapper is
    generic (
       TPD_G         : time    := 1 ns;
       EN_DRP_G      : boolean := true;
-      RATE_G        : boolean := true;  -- true = 10.3125 Gbps, false = 6.25 Gbps
+      RATE_G        : string  := "10.3125Gbps";  -- or "6.25Gbps"
       TX_POLARITY_G : sl      := '0';
       RX_POLARITY_G : sl      := '0');
    port (
@@ -257,7 +257,7 @@ begin
          asyncRst => rxUsrClkActiveInt,  -- [in]
          syncRst  => rxUsrClkRst);       -- [out]
 
-   GEN_10G : if (RATE_G = true) generate
+   GEN_10G : if (RATE_G = "10.3125Gbps") generate
       U_Pgp3GthUsIp : Pgp3GthUsIp10G
          port map (
             gtwiz_userclk_tx_reset_in(0)          => txReset,
@@ -321,7 +321,7 @@ begin
             txprgdivresetdone_out(0)              => dummy11);
    end generate GEN_10G;
 
-   GEN_6G : if (RATE_G = false) generate
+   GEN_6G : if (RATE_G = "6.25Gbps") generate
       U_Pgp3GthUsIp : Pgp3GthUsIp6G
          port map (
             gtwiz_userclk_tx_reset_in(0)          => txReset,

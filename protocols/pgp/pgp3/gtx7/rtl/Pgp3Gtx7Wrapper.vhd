@@ -34,7 +34,7 @@ entity Pgp3Gtx7Wrapper is
       TPD_G                       : time                   := 1 ns;
       NUM_LANES_G                 : positive range 1 to 4  := 1;
       NUM_VC_G                    : positive range 1 to 16 := 4;
-      RATE_G                      : boolean                := true;  -- true = 10.3125 Gbps, false = 6.25 Gbps
+      RATE_G                      : string                 := "10.3125Gbps";  -- or "6.25Gbps"
       REFCLK_TYPE_G               : Pgp3RefClkType         := PGP3_REFCLK_312_C;
       REFCLK_G                    : boolean                := false;  --  FALSE: use pgpRefClkP/N,  TRUE: use pgpRefClkIn
       ----------------------------------------------------------------------------------------------
@@ -310,11 +310,11 @@ begin
          INPUT_BUFG_G     => true,
          FB_BUFG_G        => false,
          NUM_CLOCKS_G     => 2,
-         CLKIN_PERIOD_G   => ite(RATE_G, 3.103, 5.12),
+         CLKIN_PERIOD_G   => ite((RATE_G = "10.3125Gbps"), 3.103, 5.12),
          DIVCLK_DIVIDE_G  => 1,
-         CLKFBOUT_MULT_G  => ite(RATE_G, 3, 5),
-         CLKOUT0_DIVIDE_G => ite(RATE_G, 3, 5),
-         CLKOUT1_DIVIDE_G => ite(RATE_G, 6, 10))
+         CLKFBOUT_MULT_G  => ite((RATE_G = "10.3125Gbps"), 3, 5),
+         CLKOUT0_DIVIDE_G => ite((RATE_G = "10.3125Gbps"), 3, 5),
+         CLKOUT1_DIVIDE_G => ite((RATE_G = "10.3125Gbps"), 6, 10))
       port map(
          clkIn  => gtTxOutClk(0),
          rstIn  => gtTxPllRst(0),

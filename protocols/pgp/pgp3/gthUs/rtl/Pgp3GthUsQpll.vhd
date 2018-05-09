@@ -29,7 +29,7 @@ use unisim.vcomponents.all;
 entity Pgp3GthUsQpll is
    generic (
       TPD_G    : time    := 1 ns;
-      RATE_G   : boolean := true;  -- true = 10.3125 Gbps, false = 6.25 Gbps
+      RATE_G   : string  := "10.3125Gbps";  -- or "6.25Gbps"    
       EN_DRP_G : boolean := true);
    port (
       -- Stable Clock and Reset
@@ -52,8 +52,8 @@ end Pgp3GthUsQpll;
 
 architecture mapping of Pgp3GthUsQpll is
 
-   constant QPLL_CP_C    : slv(9 downto 0) := ite(RATE_G, "0000011111", "0111111111");
-   constant QPLL_FBDIV_C : positive        := ite(RATE_G, 66, 80);
+   constant QPLL_CP_C    : slv(9 downto 0) := ite((RATE_G = "10.3125Gbps"), "0000011111", "0111111111");
+   constant QPLL_FBDIV_C : positive        := ite((RATE_G = "10.3125Gbps"), 66, 80);
 
    signal pllRefClk     : slv(1 downto 0);
    signal pllOutClk     : slv(1 downto 0);
