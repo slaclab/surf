@@ -60,6 +60,7 @@ class Ltc4151(pr.Device):
             description  = 'Current Measurment',
             mode         = 'RO', 
             units        = 'A',
+            disp         = '{:1.3f}',
             dependencies = [self.SenseMsb,self.SenseLsb],
             linkedGet    = lambda: (int(self.SenseMsb.value()<<4)|int(self.SenseLsb.value()&0xF))*20.0E-6/self.senseRes
         ))             
@@ -93,6 +94,7 @@ class Ltc4151(pr.Device):
             description  = 'Voltage Measurment',
             mode         = 'RO', 
             units        = 'V',
+            disp         = '{:1.3f}',
             dependencies = [self.VinMsb,self.VinLsb],
             linkedGet    = lambda: (int(self.VinMsb.value()<<4)|int(self.VinLsb.value()&0xF))*25.0E-3
         ))           
@@ -102,6 +104,7 @@ class Ltc4151(pr.Device):
             description  = 'Power Measurment',
             mode         = 'RO', 
             units        = 'W',
+            disp         = '{:1.3f}',
             dependencies = [self.Vin,self.Iin],
             linkedGet    = lambda: (self.Vin.value())*(self.Iin.value())
         ))        
@@ -135,6 +138,7 @@ class Ltc4151(pr.Device):
             description  = 'ADC Voltage Measurment',
             mode         = 'RO', 
             units        = 'V',
+            disp         = '{:1.3f}',
             dependencies = [self.AdinMsb,self.AdinLsb],
             linkedGet    = lambda: (int(self.AdinMsb.value()<<4)|int(self.AdinLsb.value()&0xF))*500.0E-6
         ))           
