@@ -162,6 +162,28 @@ class JesdRx(pr.Device):
                 base         = pr.UInt,
                 mode         = "RW",
             ))
+            
+            self.add(pr.RemoteVariable(    
+                name         = "SysRefPeriodmin",
+                description  = "SysRef Period min",
+                offset       =  0x28,
+                bitSize      =  16,
+                bitOffset    =  0,
+                base         = pr.UInt,
+                mode         = "RO",
+                pollInterval = 1,
+            ))   
+
+            self.add(pr.RemoteVariable(    
+                name         = "SysRefPeriodmax",
+                description  = "SysRef Period max",
+                offset       =  0x28,
+                bitSize      =  16,
+                bitOffset    =  16,
+                base         = pr.UInt,
+                mode         = "RO",
+                pollInterval = 1,
+            ))             
 
             self.add(pr.RemoteVariable( 
                 name         = "GTReady",
