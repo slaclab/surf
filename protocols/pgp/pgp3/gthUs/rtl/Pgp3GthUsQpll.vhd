@@ -2,7 +2,7 @@
 -- File       : Pgp3GthUsQpll.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-26
--- Last update: 2018-01-10
+-- Last update: 2018-05-03
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -28,8 +28,9 @@ use unisim.vcomponents.all;
 
 entity Pgp3GthUsQpll is
    generic (
-      TPD_G             : time            := 1 ns;
-      EN_DRP_G          : boolean         := true);
+      TPD_G    : time    := 1 ns;
+      RATE_G   : string  := "10.3125Gbps";  -- or "6.25Gbps"    
+      EN_DRP_G : boolean := true);
    port (
       -- Stable Clock and Reset
       stableClk       : in  sl;         -- GT needs a stable clock to "boot up"
@@ -50,6 +51,9 @@ entity Pgp3GthUsQpll is
 end Pgp3GthUsQpll;
 
 architecture mapping of Pgp3GthUsQpll is
+
+   constant QPLL_CP_C    : slv(9 downto 0) := ite((RATE_G = "10.3125Gbps"), "0000011111", "0111111111");
+   constant QPLL_FBDIV_C : positive        := ite((RATE_G = "10.3125Gbps"), 66, 80);
 
    signal pllRefClk     : slv(1 downto 0);
    signal pllOutClk     : slv(1 downto 0);
@@ -111,9 +115,9 @@ begin
          QPLL_CFG2_G3_G     => (others => x"0048"),
          QPLL_CFG3_G        => (others => x"0120"),
          QPLL_CFG4_G        => (others => x"0009"),
-         QPLL_CP_G          => (others => "0000011111"),
+         QPLL_CP_G          => (others => QPLL_CP_C),
          QPLL_CP_G3_G       => (others => "1111111111"),
-         QPLL_FBDIV_G       => (others => 66),
+         QPLL_FBDIV_G       => (others => QPLL_FBDIV_C),
          QPLL_FBDIV_G3_G    => (others => 80),
          QPLL_INIT_CFG0_G   => (others => x"02B2"),
          QPLL_INIT_CFG1_G   => (others => x"00"),
