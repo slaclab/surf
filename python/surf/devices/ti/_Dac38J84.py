@@ -46,15 +46,16 @@ class Dac38J84(pr.Device):
         self.addRemoteVariables(   
             name         = "DacReg",
             description  = "DAC Registers[125:0]",
-            offset       =  0x00,
-            bitSize      =  16,
-            bitOffset    =  0x00,
+            offset       = 0x00,
+            bitSize      = 16,
+            bitOffset    = 0x00,
             base         = pr.UInt,
             mode         = "RW",
-            number       =  126,
-            stride       =  4,
-            hidden       =  not(debug),   
-            verify       =  False,   
+            number       = 126,
+            stride       = 4,
+            hidden       = not(debug),   
+            verify       = False,   
+            overlapEn    = True,
         )
 
         self.add(pr.RemoteVariable(    

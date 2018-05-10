@@ -169,6 +169,7 @@ class AxiStreamDmaRingWrite(pr.Device):
             mode         = "RO",
             number       =  numBuffers,
             stride       =  4,
+            overlapEn    = True,
         )
 
         self.addRemoteVariables(   
