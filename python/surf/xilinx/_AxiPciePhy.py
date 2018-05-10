@@ -30,7 +30,7 @@ class AxiPciePhy(pr.Device):
         # Variables
         ##############################        
         self.addRemoteVariables( 
-            name         = "PCIeConfigurationSpaceHeader",
+            name         = "PcieConfigHdr",
             description  = "PCIe Configuration Space Header",
             offset       = 0x000,
             bitSize      = 32,
@@ -44,7 +44,7 @@ class AxiPciePhy(pr.Device):
         )        
         
         self.add(pr.RemoteVariable(    
-            name         = "VendorID",
+            name         = "VendorId",
             description  = "Vendor ID",
             offset       =  0x000,
             bitSize      =  16,
@@ -55,7 +55,7 @@ class AxiPciePhy(pr.Device):
         ))   
         
         self.add(pr.RemoteVariable(    
-            name         = "DeviceID",
+            name         = "DeviceId",
             description  = "Device ID",
             offset       =  0x000,
             bitSize      =  16,
@@ -66,7 +66,7 @@ class AxiPciePhy(pr.Device):
         ))             
 
         self.add(pr.RemoteVariable(    
-            name         = "SubsystemVendorID",
+            name         = "SubVendorId",
             description  = "Subsystem Vendor ID",
             offset       =  0x02C,
             bitSize      =  16,
@@ -77,8 +77,8 @@ class AxiPciePhy(pr.Device):
         ))  
 
         self.add(pr.RemoteVariable(    
-            name         = "SubsystemID",
-            description  = "Subsystem ID",
+            name         = "SubDeviceId",
+            description  = "Subsystem Device ID",
             offset       =  0x02C,
             bitSize      =  16,
             bitOffset    =  16,
