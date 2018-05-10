@@ -145,7 +145,7 @@ class AxiMicronN25Q(pr.Device):
                 ***************************************************\n\
                 The MCS data has been written into the PROM.       \n\
                 To reprogram the FPGA with the new PROM data,      \n\
-                a IPROG CMD, reboot, or power cycle is be required.\n\
+                a IPROG CMD or power cycle is be required.\n\
                 ***************************************************\n\
                 ***************************************************\n\n"\
                 , bg='green',

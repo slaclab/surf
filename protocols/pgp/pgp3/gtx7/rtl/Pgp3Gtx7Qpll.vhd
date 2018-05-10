@@ -32,7 +32,7 @@ entity Pgp3Gtx7Qpll is
       TPD_G         : time           := 1 ns;
       EN_DRP_G      : boolean        := true;
       REFCLK_TYPE_G : Pgp3RefClkType := PGP3_REFCLK_312_C;
-      RATE_G        : boolean        := true);  -- true = 10.3125 Gbps, false = 6.25 Gbps
+      RATE_G        : string         := "10.3125Gbps");  -- or "6.25Gbps" 
    port (
       -- Stable Clock and Reset
       stableClk       : in  sl;         -- GT needs a stable clock to "boot up"
@@ -58,9 +58,9 @@ architecture mapping of Pgp3Gtx7Qpll is
    impure function GenQpllfbdivTop return integer is
    begin
       -------------------------------
-      -- RATE_G = true = 10.3125 Gbps
+      -- RATE_G = 10.3125Gbps
       -------------------------------
-      if (RATE_G) then
+      if ((RATE_G = "10.3125Gbps")) then
          if (REFCLK_TYPE_G = PGP3_REFCLK_312_C) then
             return 66;
          elsif (REFCLK_TYPE_G = PGP3_REFCLK_156_C) then
@@ -69,7 +69,7 @@ architecture mapping of Pgp3Gtx7Qpll is
             return -1;
          end if;
       -----------------------------
-      -- RATE_G = false = 6.25 Gbps
+      -- RATE_G = 6.25Gbps
       -----------------------------
       else
          if (REFCLK_TYPE_G = PGP3_REFCLK_312_C) then
@@ -135,9 +135,9 @@ architecture mapping of Pgp3Gtx7Qpll is
    impure function GenRefclkDiv return integer is
    begin
       -------------------------------
-      -- RATE_G = true = 10.3125 Gbps
+      -- RATE_G = 10.3125Gbps
       -------------------------------
-      if (RATE_G) then
+      if (RATE_G = "10.3125Gbps") then
          if (REFCLK_TYPE_G = PGP3_REFCLK_312_C) then
             return 2;
          elsif (REFCLK_TYPE_G = PGP3_REFCLK_156_C) then
@@ -146,7 +146,7 @@ architecture mapping of Pgp3Gtx7Qpll is
             return -1;
          end if;
       -----------------------------
-      -- RATE_G = false = 6.25 Gbps
+      -- RATE_G = 6.25Gbps
       -----------------------------
       else
          if (REFCLK_TYPE_G = PGP3_REFCLK_312_C) then
@@ -163,7 +163,7 @@ architecture mapping of Pgp3Gtx7Qpll is
       end if;
    end function;
 
-   constant QPLL_CFG_C         : bit_vector := ite(RATE_G, x"0680181", x"06801C1");
+   constant QPLL_CFG_C         : bit_vector := ite((RATE_G = "10.3125Gbps"), x"0680181", x"06801C1");
    constant QPLL_FBDIV_TOP_C   : positive   := GenQpllfbdivTop;
    constant QPLL_FBDIV_C       : bit_vector := GenQplFfbdivTop(QPLL_FBDIV_TOP_C);
    constant QPLL_FBDIV_RATIO_C : bit        := GenQpllFbdivRatio(QPLL_FBDIV_TOP_C);

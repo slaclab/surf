@@ -112,16 +112,16 @@ begin
             v.rampCnt := r.rampCnt +  slvToInt(rampStep_i)*SAM_IN_WORD_C;
             
             -- Increment samples within the word
-            for I in (SAM_IN_WORD_C-1) downto 0 loop
-               v.testData((F_G*8*I)+(F_G*8-1) downto F_G*8*I)     := std_logic_vector(r.rampCnt(F_G*8-1 downto 0)+((SAM_IN_WORD_C-1)-I)*slvToInt(rampStep_i));
+            for i in (SAM_IN_WORD_C-1) downto 0 loop
+               v.testData((F_G*8*i)+(F_G*8-1) downto F_G*8*i)     := std_logic_vector(r.rampCnt(F_G*8-1 downto 0)+((SAM_IN_WORD_C-1)-i)*slvToInt(rampStep_i));
             end loop;
          else
             -- Decrement sample base         
             v.rampCnt := r.rampCnt - slvToInt(rampStep_i)*SAM_IN_WORD_C;
             
             -- Decrement samples within the word
-            for I in (SAM_IN_WORD_C-1) downto 0 loop
-               v.testData((F_G*8*I)+(F_G*8-1) downto F_G*8*I)     := std_logic_vector(r.rampCnt(F_G*8-1 downto 0)-((SAM_IN_WORD_C-1)-I)*slvToInt(rampStep_i));
+            for i in (SAM_IN_WORD_C-1) downto 0 loop
+               v.testData((F_G*8*i)+(F_G*8-1) downto F_G*8*i)     := std_logic_vector(r.rampCnt(F_G*8-1 downto 0)-((SAM_IN_WORD_C-1)-i)*slvToInt(rampStep_i));
             end loop;
          end if;
          
@@ -134,12 +134,12 @@ begin
             v.squareCnt := (others=>'0');
             v.sign := not r.sign;
             if (r.sign = '0') then
-               for I in (SAM_IN_WORD_C-1) downto 0 loop
-                  v.testData((F_G*8*I)+(F_G*8-1) downto F_G*8*I)    := negAmplitude_i;
+               for i in (SAM_IN_WORD_C-1) downto 0 loop
+                  v.testData((F_G*8*i)+(F_G*8-1) downto F_G*8*i)    := negAmplitude_i;
                end loop;
             elsif (r.sign = '1') then
-               for I in (SAM_IN_WORD_C-1) downto 0 loop
-                  v.testData((F_G*8*I)+(F_G*8-1) downto F_G*8*I)    := posAmplitude_i;
+               for i in (SAM_IN_WORD_C-1) downto 0 loop
+                  v.testData((F_G*8*i)+(F_G*8-1) downto F_G*8*i)    := posAmplitude_i;
                end loop;
             end if;
          end if;
