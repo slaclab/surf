@@ -29,16 +29,17 @@ end Jesd204bTb;
 
 architecture tb of Jesd204bTb is
 
-   constant CLK_PERIOD_C : time := 10 ns;
-   constant TPD_C        : time := CLK_PERIOD_C/4;
+   constant CLK_PERIOD_C : time := 1 us;  -- 1 us makes it easy to count clock cycles in sim GUI
+   constant TPD_G        : time := CLK_PERIOD_C/4;
 
-   constant EN_SCRAMBLER_C : boolean := false;
+   constant EN_SCRAMBLER_C : boolean := true;
 
    signal clk        : sl := '0';
    signal rst        : sl := '0';
    signal rstL       : sl := '1';
    signal configDone : sl := '0';
    signal sysRef     : sl := '0';
+   signal nSync      : sl := '0';
 
    signal jesdGtTxArr : jesdGtTxLaneType := JESD_GT_TX_LANE_INIT_C;
    signal jesdGtRxArr : jesdGtRxLaneType := JESD_GT_RX_LANE_INIT_C;
@@ -53,9 +54,12 @@ architecture tb of Jesd204bTb is
    signal rxWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
    signal rxWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;
 
-   signal txData  : slv(31 downto 0) := (others => '0');
-   signal rxValid : sl               := '0';
-   signal rxData  : slv(31 downto 0) := (others => '0');
+   signal txData         : slv(31 downto 0) := (others => '0');
+   signal rxValid        : sl               := '0';
+   signal rxData         : slv(31 downto 0) := (others => '0');
+   signal nextRxData     : slv(31 downto 0) := (others => '0');
+   signal cnt            : slv(6 downto 0)  := (others => '0');
+   signal rxDataErrorDet : sl               := '0';
 
 begin
 
@@ -66,7 +70,7 @@ begin
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
-         RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long)
+         RST_HOLD_TIME_G   => 10 us)    -- Hold reset for this long)
       port map (
          clkP => clk,
          clkN => open,
@@ -79,52 +83,56 @@ begin
    process(clk)
    begin
       if rising_edge(clk) then
+         -- Reset strobes
+         rxDataErrorDet <= '0' after TPD_G;
+         -- Wait for config to finish before sending data
          if (configDone = '0') then
-            txData <= (others => '0') after TPD_C;
+            txData <= (others => '0') after TPD_G;
          else
-            txData <= txData + 1 after TPD_C;
+            txData <= txData + 1 after TPD_G;
          end if;
+         -- Wait for rxValid
+         if (rxValid = '1') then
+            -- Check for diff
+            if (rxData /= nextRxData) then
+               rxDataErrorDet <= '1' after TPD_G;
+            end if;
+         end if;
+         -- Create a free running counter
+         cnt        <= cnt + 1    after TPD_G;
+         -- Calculate next RX data 
+         nextRxData <= rxData + 1 after TPD_G;
       end if;
    end process;
 
    ---------------------------------------
    -- SYSREF period will be 128 clk cycles
    ---------------------------------------
-   U_sysRef : entity work.JesdLmfcGen
-      generic map (
-         TPD_G => TPD_G,
-         K_G   => 256,
-         F_G   => 2)
-      port map (
-         clk      => clk,
-         rst      => rst,
-         nSync_i  => '0',
-         sysref_i => '0',
-         lmfc_o   => s_sysRef);
+   sysRef <= cnt(6);
 
    -----------------
    -- JESD TX Module
    -----------------
    U_Jesd204bTx : entity work.Jesd204bTx
       generic map (
-         TPD_G => TPD_C,
+         TPD_G => TPD_G,
          K_G   => 32,
          F_G   => 2,
          L_G   => 1)
       port map (
-         axiClk           => clk,
-         axiRst           => rst,
-         axilReadMaster   => txReadMaster,
-         axilReadSlave    => txReadSlave,
-         axilWriteMaster  => txWriteMaster,
-         axilWriteSlave   => txWriteSlave,
-         extSampleDataArray_i(0) txData,
-         devClk_i         => clk,
-         devRst_i         => rst,
-         sysRef_i         => sysRef,
-         nSync_i          => nSync,
-         gtTxReady_i      => (others = configDone),
-         r_jesdGtTxArr(0) => jesdGtTxArr);
+         axiClk                  => clk,
+         axiRst                  => rst,
+         axilReadMaster          => txReadMaster,
+         axilReadSlave           => txReadSlave,
+         axilWriteMaster         => txWriteMaster,
+         axilWriteSlave          => txWriteSlave,
+         extSampleDataArray_i(0) => txData,
+         devClk_i                => clk,
+         devRst_i                => rst,
+         sysRef_i                => sysRef,
+         nSync_i                 => nSync,
+         gtTxReady_i             => (others => configDone),
+         r_jesdGtTxArr(0)        => jesdGtTxArr);
 
    -------------------------
    -- Map the GT TX to GT RX
@@ -139,7 +147,7 @@ begin
    -----------------            
    U_Jesd204bRx : entity work.Jesd204bRx
       generic map (
-         TPD_G => TPD_C,
+         TPD_G => TPD_G,
          K_G   => 32,
          F_G   => 2,
          L_G   => 1)
@@ -162,10 +170,7 @@ begin
    -- Configure the JESD RX/TX
    ---------------------------
    config : process is
-      variable addr : slv(31 downto 0) := (others => '0');
-      variable data : slv(31 downto 0) := (others => '0');
    begin
-      configDone <= '0';
       wait until rst = '1';
       wait until rst = '0';
 
@@ -174,7 +179,7 @@ begin
       if(EN_SCRAMBLER_C) then
          axiLiteBusSimWrite(clk, txWriteMaster, txWriteSlave, x"00000010", x"00000043");  -- scrEnable=0x1,SubClass=x01,ReplaceEnable=0x1 
       else
-         axiLiteBusSimWrite(clk, txWriteMaster, txWriteSlave, x"00000010", x"00000003");  -- SubClass=x01,ReplaceEnable=0x1 
+         axiLiteBusSimWrite(clk, txWriteMaster, txWriteSlave, x"00000010", x"00000003");  -- SubClass=x01,ReplaceEnable=0x1
       end if;
 
       -- Configure the JESD RX
