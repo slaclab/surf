@@ -337,6 +337,7 @@ class Dac38J84(pr.Device):
             self.DacReg[106].set(0)
             self.DacReg[107].set(0)
             self.DacReg[108].set(0)
+            self.DacReg[109].set(0)
 
         @self.command(name="Init", description="Initialization sequence for the DAC JESD core",)
         def Init():       
