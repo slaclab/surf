@@ -48,7 +48,7 @@ architecture rtl of UartRx is
     rdData       : slv(DATA_WIDTH_G-1 downto 0);
     rxState      : stateType;
     rxShiftReg   : slv(DATA_WIDTH_G-1 downto 0);
-    rxShiftCount : slv(2 downto 0);
+    rxShiftCount : slv(3 downto 0);
     baud16xCount : slv(3 downto 0);
     parity       : sl;
     parityError  : sl;
@@ -102,7 +102,7 @@ begin
         if (rxFall = '1') then
           v.rxState      := WAIT_8_S;
           v.baud16xCount := "0000";
-          v.rxShiftCount := "000";
+          v.rxShiftCount := "0000";
         end if;
 
         -- Wait 8 baud16x counts to find center of start bit
@@ -123,7 +123,7 @@ begin
         if (baud16x = '1') then
           v.baud16xCount := r.baud16xCount + 1;
           if (r.baud16xCount = "1111") then
-            if (r.rxShiftCount = DATA_WIDTH_G-1 and PARITY_EN_G = 1) then
+            if (r.rxShiftCount = DATA_WIDTH_G and PARITY_EN_G = 1) then
               v.rxState := PARITY_S;
               v.parity  := oddParity(v.rxShiftReg);
             else
