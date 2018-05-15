@@ -2,7 +2,7 @@
 -- File       : RssiCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-09
--- Last update: 2018-01-08
+-- Last update: 2018-05-15
 -------------------------------------------------------------------------------
 -- Description: The module is based upon RUDP (Cisco implementation) RFC-908, RFC-1151, draft-ietf-sigtran-reliable-udp-00.
 --              The specifications in the drafts are modified by internal simplifications and improvements.
@@ -57,11 +57,11 @@ entity RssiCore is
       RETRANSMIT_ENABLE_G : boolean := true;  -- Enable/Disable retransmissions in tx module
 
       WINDOW_ADDR_SIZE_G  : positive range 1 to 10 := 3;  -- 2^WINDOW_ADDR_SIZE_G  = Max number of segments in buffer
-      SEGMENT_ADDR_SIZE_G : positive := 7;  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
-      
+      SEGMENT_ADDR_SIZE_G : positive               := 7;  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
+
       -- AXIS Configurations
-      APP_AXIS_CONFIG_G        : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_NORMAL_C);    
-      TSP_AXIS_CONFIG_G        : AxiStreamConfigType := ssiAxiStreamConfig(16, TKEEP_NORMAL_C);       
+      APP_AXIS_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_NORMAL_C);
+      TSP_AXIS_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(16, TKEEP_NORMAL_C);
 
       -- Generic RSSI parameters
 
@@ -72,17 +72,17 @@ entity RssiCore is
       HEADER_CHKSUM_EN_G : boolean  := true;
 
       -- Window parameters of receiver module
-      MAX_NUM_OUTS_SEG_G : positive range 2 to 1024 := 8; -- <=(2**WINDOW_ADDR_SIZE_G)
-      MAX_SEG_SIZE_G     : positive := 1024;  -- <= (2**SEGMENT_ADDR_SIZE_G)*8 Number of bytes
+      MAX_NUM_OUTS_SEG_G : positive range 2 to 1024 := 8;  -- <=(2**WINDOW_ADDR_SIZE_G)
+      MAX_SEG_SIZE_G     : positive                 := 1024;  -- <= (2**SEGMENT_ADDR_SIZE_G)*8 Number of bytes
 
       -- RSSI Timeouts
-      ACK_TOUT_G     : positive := 25;   -- unit depends on TIMEOUT_UNIT_G   
-      RETRANS_TOUT_G : positive := 50;   -- unit depends on TIMEOUT_UNIT_G  (Recommended >= MAX_NUM_OUTS_SEG_G*Data segment transmission time)
+      ACK_TOUT_G     : positive := 25;  -- unit depends on TIMEOUT_UNIT_G   
+      RETRANS_TOUT_G : positive := 50;  -- unit depends on TIMEOUT_UNIT_G  (Recommended >= MAX_NUM_OUTS_SEG_G*Data segment transmission time)
       NULL_TOUT_G    : positive := 200;  -- unit depends on TIMEOUT_UNIT_G  (Recommended >= 4*RETRANS_TOUT_G)
 
       -- Counters
-      MAX_RETRANS_CNT_G     : positive := 2;
-      MAX_CUM_ACK_CNT_G     : positive := 3
+      MAX_RETRANS_CNT_G : positive := 2;
+      MAX_CUM_ACK_CNT_G : positive := 3
       );
    port (
       clk_i : in sl;
@@ -118,10 +118,18 @@ entity RssiCore is
 end entity RssiCore;
 
 architecture rtl of RssiCore is
-   --
-   constant FIFO_ADDR_WIDTH_C   : positive := ite((SEGMENT_ADDR_SIZE_G < 7), 9, SEGMENT_ADDR_SIZE_G+2);
-   -- constant FIFO_PAUSE_THRESH_C : positive := ((2**FIFO_ADDR_WIDTH_C)-1) - 16;  -- FIFO_FULL - padding (128 bytes)
-   constant FIFO_PAUSE_THRESH_C : positive := (2**FIFO_ADDR_WIDTH_C) - (2**(SEGMENT_ADDR_SIZE_G+1));  -- pause threshold = FIFO_FULL - (2 x segment buffers)
+
+   constant BUFFER_ADDR_WIDTH_C : positive := (SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G);
+
+   constant RX_FIFO_ADDR_WIDTH_C   : positive := BUFFER_ADDR_WIDTH_C+1;  -- 2 x total MAX buffering
+   constant RX_FIFO_PAUSE_THRESH_C : positive := (2**RX_FIFO_ADDR_WIDTH_C) - (2**(SEGMENT_ADDR_SIZE_G+1));  -- pause threshold = FIFO_FULL - (2 x segment buffers)   
+   constant RX_FIFO_BUSY_THRESH_C  : positive := (2**(SEGMENT_ADDR_SIZE_G+1));  -- busy threshold = (2 x segment buffers)
+
+   constant TX_FIFO_ADDR_WIDTH_C   : positive := ite((SEGMENT_ADDR_SIZE_G < 7), 9, SEGMENT_ADDR_SIZE_G+2);  -- min. 4 segment buffering
+   constant TX_FIFO_PAUSE_THRESH_C : positive := (2**TX_FIFO_ADDR_WIDTH_C) - (2**(SEGMENT_ADDR_SIZE_G+1));  -- pause threshold = FIFO_FULL - (2 x segment buffers)     
+
+   signal s_fifoWrCnt : slv(RX_FIFO_ADDR_WIDTH_C-1 downto 0);
+   signal s_localBusy : sl;
 
    -- RSSI Parameters
    signal s_appRssiParam : RssiParamType;
@@ -181,21 +189,21 @@ architecture rtl of RssiCore is
    -- Rx segment buffer
    signal s_rxBufferSize : integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_G);
    signal s_rxWindowSize : integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
-   signal s_rxWrBuffAddr : slv((SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G)-1 downto 0);
+   signal s_rxWrBuffAddr : slv(BUFFER_ADDR_WIDTH_C-1 downto 0);
    signal s_rxWrBuffData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
    signal s_rxWrBuffWe   : sl;
    signal s_rxRdBuffRe   : sl;
-   signal s_rxRdBuffAddr : slv((SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G)-1 downto 0);
+   signal s_rxRdBuffAddr : slv(BUFFER_ADDR_WIDTH_C-1 downto 0);
    signal s_rxRdBuffData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
 
    -- Tx segment buffer
    signal s_txBufferSize : integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_G);
    signal s_txWindowSize : integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
-   signal s_txWrBuffAddr : slv((SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G)-1 downto 0);
+   signal s_txWrBuffAddr : slv(BUFFER_ADDR_WIDTH_C-1 downto 0);
    signal s_txWrBuffData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
    signal s_txWrBuffWe   : sl;
    signal s_txRdBuffRe   : sl;
-   signal s_txRdBuffAddr : slv((SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G)-1 downto 0);
+   signal s_txRdBuffAddr : slv(BUFFER_ADDR_WIDTH_C-1 downto 0);
    signal s_txRdBuffData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
 
    -- Acknowledge pulse when valid segment 
@@ -254,32 +262,36 @@ architecture rtl of RssiCore is
    -- Axi Lite registers
    signal s_openRqReg       : sl;
    signal s_closeRqReg      : sl;
-   signal s_modeReg         : sl;       -- '0': Use internal parameters from generics 
+   signal s_modeReg         : sl;  -- '0': Use internal parameters from generics 
    -- '1': Use parameters from Axil   
    signal s_initSeqNReg     : slv(7 downto 0);
    signal s_appRssiParamReg : RssiParamType;
 
-   signal s_statusReg   : slv(statusReg_o'range);
-   signal s_dropCntReg  : slv(31 downto 0);
-   signal s_validCntReg : slv(31 downto 0);
+   signal s_statusReg    : slv(statusReg_o'range);
+   signal s_dropCntReg   : slv(31 downto 0);
+   signal s_validCntReg  : slv(31 downto 0);
    signal s_reconCntReg  : slv(31 downto 0);
    signal s_resendCntReg : slv(31 downto 0);
 
-   signal monMasters : AxiStreamMasterArray(1 downto 0);   
-   signal monSlaves  : AxiStreamSlaveArray(1 downto 0);      
-   signal frameRate  : Slv32Array(1 downto 0);   
-   signal bandwidth  : Slv64Array(1 downto 0);   
-   
+   signal monMasters : AxiStreamMasterArray(1 downto 0);
+   signal monSlaves  : AxiStreamSlaveArray(1 downto 0);
+   signal frameRate  : Slv32Array(1 downto 0);
+   signal bandwidth  : Slv64Array(1 downto 0);
+
    -- attribute dont_touch                   : string;
-   -- attribute dont_touch of bandwidth      : signal is "TRUE";     
-   -- attribute dont_touch of s_mAppAxisCtrl : signal is "TRUE";     
-   -- attribute dont_touch of s_mTspAxisCtrl : signal is "TRUE";   
+   -- attribute dont_touch of bandwidth      : signal is "TRUE";
+   -- attribute dont_touch of s_mAppAxisCtrl : signal is "TRUE";
+   -- attribute dont_touch of s_mTspAxisCtrl : signal is "TRUE";
+   -- attribute dont_touch of s_rxSeqN       : signal is "TRUE";
+   -- attribute dont_touch of s_rxLastSeqN   : signal is "TRUE";
+   -- attribute dont_touch of s_rxAckN       : signal is "TRUE";
+   -- attribute dont_touch of s_rxLastAckN   : signal is "TRUE";
 
 ----------------------------------------------------------------------
 begin
    -- Assertions to check generics
-   assert (1 <= MAX_NUM_OUTS_SEG_G and MAX_NUM_OUTS_SEG_G <=(2**WINDOW_ADDR_SIZE_G)) report "MAX_NUM_OUTS_SEG_G should be less or equal to 2**WINDOW_ADDR_SIZE_G" severity failure;   
-   assert (8 <= MAX_SEG_SIZE_G and  MAX_SEG_SIZE_G <=(2**SEGMENT_ADDR_SIZE_G)*8) report "MAX_SEG_SIZE_G should be less or equal to (2**SEGMENT_ADDR_SIZE_G)*8" severity failure;
+   assert (1 <= MAX_NUM_OUTS_SEG_G and MAX_NUM_OUTS_SEG_G <= (2**WINDOW_ADDR_SIZE_G)) report "MAX_NUM_OUTS_SEG_G should be less or equal to 2**WINDOW_ADDR_SIZE_G" severity failure;
+   assert (8 <= MAX_SEG_SIZE_G and MAX_SEG_SIZE_G <= (2**SEGMENT_ADDR_SIZE_G)*8) report "MAX_SEG_SIZE_G should be less or equal to (2**SEGMENT_ADDR_SIZE_G)*8" severity failure;
 
 
    -- /////////////////////////////////////////////////////////
@@ -326,13 +338,13 @@ begin
 
          -- Status (RO)
          frameRate_i => frameRate,
-         bandwidth_i => bandwidth, 
+         bandwidth_i => bandwidth,
          status_i    => s_statusReg,
          dropCnt_i   => s_dropCntReg,
          validCnt_i  => s_validCntReg,
          resendCnt_i => s_resendCntReg,
-         reconCnt_i  => s_reconCntReg 
-      );
+         reconCnt_i  => s_reconCntReg
+         );
 
    s_injectFault <= s_injectFaultReg or inject_i;
 
@@ -341,8 +353,9 @@ begin
    -- Parameter assignment
    ------------------------------------------------------------
    -- /////////////////////////////////////////////////////////
-   combParamAssign : process (closeRq_i, openRq_i, s_appRssiParamReg, s_closeRqReg, s_initSeqNReg,
-                              s_intCloseRq, s_modeReg, s_openRqReg) is
+   combParamAssign : process (closeRq_i, openRq_i, s_appRssiParamReg,
+                              s_closeRqReg, s_initSeqNReg, s_intCloseRq,
+                              s_modeReg, s_openRqReg) is
    begin
       if (s_modeReg = '0') then
          -- Use external requests
@@ -386,59 +399,47 @@ begin
    s_rstFifo <= rst_i or not s_connActive;
 
    -- Application side   
-   AppFifoIn_INST : entity work.AxiStreamFifoV2
+   U_AppIn : entity work.AxiStreamResize
       generic map (
+         -- General Configurations
          TPD_G               => TPD_G,
-         SLAVE_READY_EN_G    => true,
-         VALID_THOLD_G       => 1,
-         GEN_SYNC_FIFO_G     => true,
-         BRAM_EN_G           => true,
-         INT_PIPE_STAGES_G   => 0,
-         PIPE_STAGES_G       => 1,
-         FIFO_ADDR_WIDTH_G   => 9,
+         READY_EN_G          => true,
+         -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => APP_AXIS_CONFIG_G,
          MASTER_AXI_CONFIG_G => RSSI_AXIS_CONFIG_C)
       port map (
-         sAxisClk    => clk_i,
-         sAxisRst    => s_rstFifo,
+         -- Clock and reset
+         axisClk     => clk_i,
+         axisRst     => s_rstFifo,
+         -- Slave Port
          sAxisMaster => monMasters(0),
          sAxisSlave  => monSlaves(0),
-         sAxisCtrl   => open,
-         --
-         mAxisClk    => clk_i,
-         mAxisRst    => s_rstFifo,
+         -- Master Port
          mAxisMaster => s_sAppAxisMaster,
-         mAxisSlave  => s_sAppAxisSlave,
-         mTLastTUser => open);
-           
-   monMasters(0)   <= sAppAxisMaster_i;      
-   sAppAxisSlave_o <= monSlaves(0);      
-   
+         mAxisSlave  => s_sAppAxisSlave);
+
+   monMasters(0)   <= sAppAxisMaster_i;
+   sAppAxisSlave_o <= monSlaves(0);
+
    -- Transport side
-   TspFifoIn_INST : entity work.AxiStreamFifoV2
+   U_TspIn : entity work.AxiStreamResize
       generic map (
+         -- General Configurations
          TPD_G               => TPD_G,
-         SLAVE_READY_EN_G    => true,
-         VALID_THOLD_G       => 1,
-         GEN_SYNC_FIFO_G     => true,
-         BRAM_EN_G           => true,
-         INT_PIPE_STAGES_G   => 0,
-         PIPE_STAGES_G       => 1,
-         FIFO_ADDR_WIDTH_G   => 9,
+         READY_EN_G          => true,
+         -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => TSP_AXIS_CONFIG_G,
          MASTER_AXI_CONFIG_G => RSSI_AXIS_CONFIG_C)
       port map (
-         sAxisClk    => clk_i,
-         sAxisRst    => rst_i,
+         -- Clock and reset
+         axisClk     => clk_i,
+         axisRst     => rst_i,
+         -- Slave Port
          sAxisMaster => sTspAxisMaster_i,
          sAxisSlave  => sTspAxisSlave_o,
-         sAxisCtrl   => open,
-         --
-         mAxisClk    => clk_i,
-         mAxisRst    => rst_i,
+         -- Master Port
          mAxisMaster => s_sTspAxisMaster,
-         mAxisSlave  => s_sTspAxisSlave,
-         mTLastTUser => open);
+         mAxisSlave  => s_sTspAxisSlave);
 
    -- /////////////////////////////////////////////////////////
    ------------------------------------------------------------
@@ -530,8 +531,8 @@ begin
          dropCnt_o       => s_dropCntReg,
          validCnt_o      => s_validCntReg,
          resendCnt_o     => s_resendCntReg,
-         reconCnt_o      => s_reconCntReg         
-      );
+         reconCnt_o      => s_reconCntReg
+         );
 
    -- /////////////////////////////////////////////////////////
    ------------------------------------------------------------
@@ -558,6 +559,8 @@ begin
          dataHeadSt_i => s_dataHeadSt,
          nullHeadSt_i => s_nullHeadSt,
          ackHeadSt_i  => s_ackHeadSt,
+         busyHeadSt_i => s_localBusy,
+         connActive_i => s_connActive,
 
          ack_i          => s_txAckF,    -- Connected to ConnectFSM
          txSeqN_i       => s_txSeqN,
@@ -625,9 +628,10 @@ begin
          synHeadSt_o  => s_synHeadSt,
          ackHeadSt_o  => s_ackHeadSt,
          dataHeadSt_o => s_dataHeadSt,
-         dataSt_o     => open,          -- may be used in the future otherwise remove
+         dataSt_o     => open,  -- may be used in the future otherwise remove
          rstHeadSt_o  => s_rstHeadSt,
          nullHeadSt_o => s_nullHeadSt,
+         remoteBusy_i => s_rxFlags.busy,
 
          lastAckN_o => s_rxLastAckN,
          ack_i      => s_rxAck,
@@ -649,7 +653,7 @@ begin
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => RSSI_WORD_WIDTH_C*8,
-         ADDR_WIDTH_G => (SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G)
+         ADDR_WIDTH_G => BUFFER_ADDR_WIDTH_C
          )
       port map (
          -- Port A - Write only
@@ -728,7 +732,7 @@ begin
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => RSSI_WORD_WIDTH_C*8,
-         ADDR_WIDTH_G => (SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G)
+         ADDR_WIDTH_G => BUFFER_ADDR_WIDTH_C
          )
       port map (
          -- Port A - Write only
@@ -787,7 +791,7 @@ begin
    AppFifoOut_INST : entity work.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
-         SLAVE_READY_EN_G    => false,
+         SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          GEN_SYNC_FIFO_G     => true,
          BRAM_EN_G           => true,
@@ -795,9 +799,9 @@ begin
          PIPE_STAGES_G       => 1,
          CASCADE_SIZE_G      => 1,
          CASCADE_PAUSE_SEL_G => 0,
-         FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
+         FIFO_ADDR_WIDTH_G   => RX_FIFO_ADDR_WIDTH_C,
          FIFO_FIXED_THRESH_G => true,
-         FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_C,
+         FIFO_PAUSE_THRESH_G => RX_FIFO_PAUSE_THRESH_C,
          SLAVE_AXI_CONFIG_G  => RSSI_AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => APP_AXIS_CONFIG_G)
       port map (
@@ -806,13 +810,16 @@ begin
          sAxisMaster => s_mAppAxisMaster,
          sAxisSlave  => s_mAppAxisSlave,
          sAxisCtrl   => s_mAppAxisCtrl,
+         fifoWrCnt   => s_fifoWrCnt,
          --
          mAxisClk    => clk_i,
          mAxisRst    => s_rstFifo,
          mAxisMaster => monMasters(1),
          mAxisSlave  => monSlaves(1),
          mTLastTUser => open);
-         
+
+   s_localBusy <= '1' when(s_fifoWrCnt >= RX_FIFO_BUSY_THRESH_C) else '0';
+
    mAppAxisMaster_o <= monMasters(1);
    monSlaves(1)     <= mAppAxisSlave_i;
 
@@ -828,9 +835,9 @@ begin
          PIPE_STAGES_G       => 1,
          CASCADE_SIZE_G      => 1,
          CASCADE_PAUSE_SEL_G => 0,
-         FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
+         FIFO_ADDR_WIDTH_G   => TX_FIFO_ADDR_WIDTH_C,
          FIFO_FIXED_THRESH_G => true,
-         FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_C,
+         FIFO_PAUSE_THRESH_G => TX_FIFO_PAUSE_THRESH_C,
          SLAVE_AXI_CONFIG_G  => RSSI_AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => TSP_AXIS_CONFIG_G)
       port map (
@@ -845,15 +852,16 @@ begin
          mAxisMaster => mTspAxisMaster_o,
          mAxisSlave  => mTspAxisSlave_i,
          mTLastTUser => open);
+
 ----------------------------------------
 -- Output assignment
    statusReg_o <= s_statusReg;
-   
+
    PACKET_RATE :
    for i in 1 downto 0 generate
       U_AxiStreamMon : entity work.AxiStreamMon
          generic map (
-            TPD_G            => TPD_G,   
+            TPD_G           => TPD_G,
             AXIS_CLK_FREQ_G => CLK_FREQUENCY_G,
             AXIS_CONFIG_G   => APP_AXIS_CONFIG_G)
          port map (
@@ -866,7 +874,7 @@ begin
             statusClk  => axiClk_i,
             statusRst  => axiRst_i,
             frameRate  => frameRate(i),
-            bandwidth  => bandwidth(i));  
-   end generate PACKET_RATE;         
-   
+            bandwidth  => bandwidth(i));
+   end generate PACKET_RATE;
+
 end architecture rtl;

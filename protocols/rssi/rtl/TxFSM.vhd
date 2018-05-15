@@ -123,6 +123,7 @@ entity TxFSM is
       dataSt_o     : out sl;
       rstHeadSt_o  : out sl;
       nullHeadSt_o : out sl;
+      remoteBusy_i : in  sl;      
 
       -- Last acked number (Used in Rx FSM to determine if AcnN is valid)
       lastAckN_o : out slv(7 downto 0);
@@ -357,7 +358,7 @@ begin
    s_headerAndChksum <= rdHeaderData_i(63 downto 16) & s_chksum(15 downto 0);
 
    ----------------------------------------------------------------------------------------------- 
-   comb : process (r, rst_i, appSsiMaster_i, sndSyn_i, sndAck_i, connActive_i, closed_i, sndRst_i, initSeqN_i, windowSize_i, headerRdy_i, ack_i, ackN_i, bufferSize_i,
+   comb : process (r, rst_i, appSsiMaster_i, sndSyn_i, sndAck_i, connActive_i, closed_i, sndRst_i, initSeqN_i, windowSize_i, headerRdy_i, ack_i, ackN_i, bufferSize_i, remoteBusy_i,
                    sndResend_i, sndNull_i, tspSsiSlave_i, rdHeaderData_i, rdBuffData_i, s_headerAndChksum, chksumValid_i, headerLength_i, injectFault_i) is
 
       variable v : RegType;
@@ -838,10 +839,10 @@ begin
             -- Next state condition   
             if (sndRst_i = '1') then
                v.tspState := RST_WE_S;
-            elsif (r.sndData = '1' and r.bufferFull = '0') then
+            elsif (r.sndData = '1') and (r.bufferFull = '0') and (remoteBusy_i = '0') then
                v.ackSndData := '1';
                v.tspState   := DATA_WE_S;
-            elsif (sndResend_i = '1' and r.bufferEmpty = '0') then
+            elsif (sndResend_i = '1') and (r.bufferEmpty = '0') and (remoteBusy_i = '0') then
                v.tspState := RESEND_INIT_S;
             elsif (sndAck_i = '1') then
                v.tspState := ACK_H_S;

@@ -262,6 +262,10 @@ architecture rtl of RxFSM is
    signal rin : RegType;
    signal s_chksumOk : sl;
    
+   -- attribute dont_touch               : string;
+   -- attribute dont_touch of r          : signal is "TRUE";     
+   -- attribute dont_touch of s_chksumOk : signal is "TRUE";    
+   
 begin
    
   -- Override checksum check if checksum disabled
@@ -370,7 +374,7 @@ begin
                if (v.rxF.ack = '1' and v.rxAckN /= lastAckN_i) then
                   -- Acknowledgment not valid
                   v.tspState    := DROP_S;
-               elsif (v.rxF.eack = '1' or v.rxF.rst = '1' or v.rxF.busy = '1') then
+               elsif (v.rxF.eack = '1') or (v.rxF.rst = '1') then
                   -- Wrong flags
                   v.tspState    := DROP_S;               
                else

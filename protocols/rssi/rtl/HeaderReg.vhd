@@ -48,7 +48,8 @@ entity HeaderReg is
       dataHeadSt_i : in  sl;
       nullHeadSt_i : in  sl;
       ackHeadSt_i  : in  sl;
-      --eackHeadSt_i : in  sl;
+      busyHeadSt_i : in  sl;
+      connActive_i : in  sl;
          
       -- Ack sequence number valid
       ack_i : in sl;
@@ -214,6 +215,9 @@ begin
          v.headerData := (others=> '0');
          v.rdy := '0';
       end if;
+      
+      -- Update with local busy bit
+      v.headerData(56) := (busyHeadSt_i and connActive_i);
 
       if (rst_i = '1') then
          v := REG_INIT_C;

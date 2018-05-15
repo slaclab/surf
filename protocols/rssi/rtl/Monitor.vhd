@@ -172,7 +172,10 @@ architecture rtl of Monitor is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
    signal s_status : slv(STATUS_WIDTH_G - 1 downto 0); 
-   --
+   
+   -- attribute dont_touch      : string;
+   -- attribute dont_touch of r : signal is "TRUE";     
+
 begin
    -- Status assignment
    s_status(0) <= r.retransMax and r.sndResend and not r.sndResendD1;
