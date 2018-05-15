@@ -187,7 +187,7 @@ begin
       generic map (
          TPD_G               => TPD_G,
          EN_TIMEOUT_G        => false,
-         FRAME_LIMIT_G       => (4128/AXI_STREAM_CONFIG_G.TDATA_BYTES_C),  -- (2^12+4*8)/TDATA_BYTES_C
+         FRAME_LIMIT_G       => (4116/AXI_STREAM_CONFIG_G.TDATA_BYTES_C),  -- (20B HDR + 4096B payload)/TDATA_BYTES_C
          COMMON_CLK_G        => true,
          SLAVE_FIFO_G        => false,
          MASTER_FIFO_G       => false,
