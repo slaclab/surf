@@ -120,7 +120,7 @@ begin
    comb : process (mAxisRst, r, rxMaster, txSlave) is
       variable v      : RegType;
       variable i      : natural;
-      variable sofDet : natural;
+      variable sofDet : sl;
    begin
       -- Latch the current value
       v := r;
