@@ -458,7 +458,7 @@ begin
    ------------------------------------------------------------
    -- Connection and monitoring part
    ------------------------------------------------------------ 
-   ConnFSM_INST : entity work.ConnFSM
+   ConnFSM_INST : entity work.RssiConnFsm
       generic map (
          TPD_G               => TPD_G,
          SERVER_G            => SERVER_G,
@@ -494,7 +494,7 @@ begin
          peerTout_o     => s_peerConnTout,
          paramReject_o  => s_paramReject);
 
-   Monitor_INST : entity work.Monitor
+   Monitor_INST : entity work.RssiMonitor
       generic map (
          TPD_G               => TPD_G,
          CLK_FREQUENCY_G     => CLK_FREQUENCY_G,
@@ -540,7 +540,7 @@ begin
    -- /////////////////////////////////////////////////////////       
 
    -- Header decoder module
-   HeaderReg_INST : entity work.HeaderReg
+   HeaderReg_INST : entity work.RssiHeaderReg
       generic map (
          TPD_G => TPD_G,
 
@@ -574,7 +574,7 @@ begin
    s_sndAck <= s_sndAckCon or s_sndAckMon;
 
    --
-   TxFSM_INST : entity work.TxFSM
+   TxFSM_INST : entity work.RssiTxFsm
       generic map (
          TPD_G               => TPD_G,
          WINDOW_ADDR_SIZE_G  => WINDOW_ADDR_SIZE_G,
@@ -664,7 +664,7 @@ begin
          addrb => s_txRdBuffAddr,
          doutb => s_txRdBuffData);
 
-   tx_Chksum_INST : entity work.Chksum
+   tx_Chksum_INST : entity work.RssiChksum
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 64,
@@ -687,7 +687,7 @@ begin
    -- RX part
    ------------------------------------------------------------   
    -- /////////////////////////////////////////////////////////  
-   RxFSM_INST : entity work.RxFSM
+   RxFSM_INST : entity work.RssiRxFsm
       generic map (
          TPD_G               => TPD_G,
          WINDOW_ADDR_SIZE_G  => WINDOW_ADDR_SIZE_G,
@@ -746,7 +746,7 @@ begin
    -- Acknowledge valid packet
    s_rxAck <= s_rxValidSeg and s_rxFlags.ack and s_connActive;
 
-   rx_Chksum_INST : entity work.Chksum
+   rx_Chksum_INST : entity work.RssiChksum
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 64,
