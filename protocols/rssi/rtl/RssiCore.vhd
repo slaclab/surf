@@ -386,59 +386,47 @@ begin
    s_rstFifo <= rst_i or not s_connActive;
 
    -- Application side   
-   AppFifoIn_INST : entity work.AxiStreamFifoV2
+   U_AppIn : entity work.AxiStreamResize
       generic map (
+         -- General Configurations
          TPD_G               => TPD_G,
-         SLAVE_READY_EN_G    => true,
-         VALID_THOLD_G       => 1,
-         GEN_SYNC_FIFO_G     => true,
-         BRAM_EN_G           => true,
-         INT_PIPE_STAGES_G   => 0,
-         PIPE_STAGES_G       => 1,
-         FIFO_ADDR_WIDTH_G   => 9,
+         READY_EN_G          => true,
+         -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => APP_AXIS_CONFIG_G,
          MASTER_AXI_CONFIG_G => RSSI_AXIS_CONFIG_C)
       port map (
-         sAxisClk    => clk_i,
-         sAxisRst    => s_rstFifo,
+         -- Clock and reset
+         axisClk     => clk_i,
+         axisRst     => s_rstFifo,
+         -- Slave Port
          sAxisMaster => monMasters(0),
          sAxisSlave  => monSlaves(0),
-         sAxisCtrl   => open,
-         --
-         mAxisClk    => clk_i,
-         mAxisRst    => s_rstFifo,
+         -- Master Port
          mAxisMaster => s_sAppAxisMaster,
-         mAxisSlave  => s_sAppAxisSlave,
-         mTLastTUser => open);
+         mAxisSlave  => s_sAppAxisSlave);   
            
    monMasters(0)   <= sAppAxisMaster_i;      
    sAppAxisSlave_o <= monSlaves(0);      
    
    -- Transport side
-   TspFifoIn_INST : entity work.AxiStreamFifoV2
+   U_TspIn : entity work.AxiStreamResize
       generic map (
+         -- General Configurations
          TPD_G               => TPD_G,
-         SLAVE_READY_EN_G    => true,
-         VALID_THOLD_G       => 1,
-         GEN_SYNC_FIFO_G     => true,
-         BRAM_EN_G           => true,
-         INT_PIPE_STAGES_G   => 0,
-         PIPE_STAGES_G       => 1,
-         FIFO_ADDR_WIDTH_G   => 9,
+         READY_EN_G          => true,
+         -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => TSP_AXIS_CONFIG_G,
          MASTER_AXI_CONFIG_G => RSSI_AXIS_CONFIG_C)
       port map (
-         sAxisClk    => clk_i,
-         sAxisRst    => rst_i,
+         -- Clock and reset
+         axisClk     => clk_i,
+         axisRst     => rst_i,
+         -- Slave Port
          sAxisMaster => sTspAxisMaster_i,
          sAxisSlave  => sTspAxisSlave_o,
-         sAxisCtrl   => open,
-         --
-         mAxisClk    => clk_i,
-         mAxisRst    => rst_i,
+         -- Master Port
          mAxisMaster => s_sTspAxisMaster,
-         mAxisSlave  => s_sTspAxisSlave,
-         mTLastTUser => open);
+         mAxisSlave  => s_sTspAxisSlave);
 
    -- /////////////////////////////////////////////////////////
    ------------------------------------------------------------
