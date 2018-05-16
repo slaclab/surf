@@ -234,7 +234,7 @@ begin
    end generate;
 
    comb : process (axisRst, inputAxisMaster, linkGood, outputAxisSlave, r,
-                   ramCrcRem, ramPacketActiveOut, ramPacketSeqOut,
+                   ramCrcRem, ramPacketActiveOut, ramPacketSeqOut, crcOut,
                    ramSentEofeOut) is
       variable v         : RegType;
       variable sof       : sl;
