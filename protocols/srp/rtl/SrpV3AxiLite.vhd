@@ -2,7 +2,7 @@
 -- File       : SrpV3AxiLite.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-03-22
--- Last update: 2017-06-18
+-- Last update: 2018-05-16
 -------------------------------------------------------------------------------
 -- Description: SLAC Register Protocol Version 3, AXI-Lite Interface
 --
@@ -305,7 +305,7 @@ begin
       end if;
 
       -- Check for overflow
-      if (rxCtrl.overflow = '1') and (r.rxRst = '0') then
+      if (rxCtrl.overflow = '1') and (r.rxRst = '0') and (GEN_SYNC_FIFO_G = false) then
          -- Set the flag
          v.overflowDet := '1';
       end if;
@@ -750,7 +750,7 @@ begin
       if (rxMaster.tLast = '1') and (v.rxSlave.tReady = '1') then
          v.eofe := ssiGetUserEofe(AXIS_CONFIG_C, rxMaster);
       end if;
-      
+
       -- Combinatorial outputs before the reset
       rxSlave <= v.rxSlave;
 
