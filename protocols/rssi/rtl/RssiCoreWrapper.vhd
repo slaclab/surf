@@ -216,7 +216,7 @@ begin
          WINDOW_ADDR_SIZE_G  => WINDOW_ADDR_SIZE_G,
          SEGMENT_ADDR_SIZE_G => SEGMENT_ADDR_SIZE_G,
          -- AXIS Configurations
-         APP_AXIS_CONFIG_G   => RSSI_AXIS_CONFIG_C,
+         APP_AXIS_CONFIG_G   => CONV_AXIS_CONFIG_C,
          TSP_AXIS_CONFIG_G   => TSP_AXIS_CONFIG_G,
          -- Version and connection ID
          INIT_SEQ_N_G        => INIT_SEQ_N_G,
