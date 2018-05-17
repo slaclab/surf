@@ -43,9 +43,9 @@ architecture testbed of RssiCoreTb is
          addrBits     => 32,
          connectivity => x"FFFF"));
 
-   constant MAX_CNT_C       : positive := (4096/4);
+   constant MAX_CNT_C       : positive := (4096/4);  -- Up to 4kB writes and 4B per word
    constant SWEEP_C         : boolean  := true;
-   constant APP_ILEAVE_EN_C : boolean  := false;
+   constant APP_ILEAVE_EN_C : boolean  := true;
 
    type StateType is (
       IDLE_S,
@@ -301,7 +301,7 @@ begin
             if (v.txMaster.tValid = '0') then
                -- Move data
                v.txMaster.tValid             := '1';
-               v.txMaster.tData(31 downto 0) := toSlv(4*conv_integer(r.cnt),32); -- Data = Address 
+               v.txMaster.tData(31 downto 0) := toSlv(4*conv_integer(r.cnt), 32);  -- Data = Address 
                -- Increment the counter
                v.cnt                         := r.cnt + 1;
                -- Check for sweeping 
