@@ -2,7 +2,7 @@
 -- File       : RssiCoreTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-10-28
--- Last update: 2018-05-15
+-- Last update: 2018-05-16
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the RssiCore
 -------------------------------------------------------------------------------
@@ -35,14 +35,17 @@ architecture testbed of RssiCoreTb is
    constant CLK_PERIOD_C : time := 10 ns;  -- 1 us makes it easy to count clock cycles in sim GUI
    constant TPD_G        : time := CLK_PERIOD_C/4;
 
-   constant AXIS_CONFIG_C     : AxiStreamConfigType              := ssiAxiStreamConfig(4);
-   constant APP_AXIS_CONFIG_C : AxiStreamConfigArray(0 downto 0) := (0 => AXIS_CONFIG_C);
+   constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4);
 
    constant AXIL_CONFIG_C : AxiLiteCrossbarMasterConfigArray(0 downto 0) := (
       0               => (
          baseAddr     => x"0000_0000",
          addrBits     => 32,
          connectivity => x"FFFF"));
+
+   constant MAX_CNT_C       : positive := (4096/4);
+   constant SWEEP_C         : boolean  := true;
+   constant APP_ILEAVE_EN_C : boolean  := false;
 
    type StateType is (
       IDLE_S,
@@ -56,12 +59,14 @@ architecture testbed of RssiCoreTb is
    type RegType is record
       tid      : slv(31 downto 0);
       cnt      : slv(31 downto 0);
+      sweep    : slv(31 downto 0);
       txMaster : AxiStreamMasterType;
       state    : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
       tid      => x"0000_0000",
       cnt      => x"0000_0000",
+      sweep    => x"0000_0000",
       txMaster => AXI_STREAM_MASTER_INIT_C,
       state    => IDLE_S);
 
@@ -71,7 +76,7 @@ architecture testbed of RssiCoreTb is
    signal clk : sl := '0';
    signal rst : sl := '0';
 
-   constant NUM_XBAR_C : positive := 8;
+   constant NUM_XBAR_C : positive := 2;
 
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_XBAR_C-1 downto 0);
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_XBAR_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_OK_C);
@@ -139,7 +144,7 @@ begin
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => true,
          GEN_SYNC_FIFO_G     => true,
-         AXI_STREAM_CONFIG_G => AXIS_CONFIG_C)
+         AXI_STREAM_CONFIG_G => RSSI_AXIS_CONFIG_C)
       port map (
          -- Streaming Slave (Rx) Interface (sAxisClk domain) 
          sAxisClk         => clk,
@@ -166,8 +171,9 @@ begin
       generic map (
          TPD_G             => TPD_G,
          SERVER_G          => true,     -- Server
-         APP_AXIS_CONFIG_G => APP_AXIS_CONFIG_C,
-         TSP_AXIS_CONFIG_G => AXIS_CONFIG_C)
+         APP_ILEAVE_EN_G   => APP_ILEAVE_EN_C,
+         APP_AXIS_CONFIG_G => (0 => RSSI_AXIS_CONFIG_C),
+         TSP_AXIS_CONFIG_G => RSSI_AXIS_CONFIG_C)
       port map (
          clk_i                => clk,
          rst_i                => rst,
@@ -190,8 +196,9 @@ begin
       generic map (
          TPD_G             => TPD_G,
          SERVER_G          => false,    -- Client
-         APP_AXIS_CONFIG_G => APP_AXIS_CONFIG_C,
-         TSP_AXIS_CONFIG_G => AXIS_CONFIG_C)
+         APP_ILEAVE_EN_G   => APP_ILEAVE_EN_C,
+         APP_AXIS_CONFIG_G => (0 => AXIS_CONFIG_C),
+         TSP_AXIS_CONFIG_G => RSSI_AXIS_CONFIG_C)
       port map (
          clk_i                => clk,
          rst_i                => rst,
@@ -260,8 +267,6 @@ begin
                -- Move data
                v.txMaster.tValid             := '1';
                v.txMaster.tData(31 downto 0) := x"0000_0000";  -- Addr[31:0]
-               -- Increment the counter
-               v.tid                         := r.tid + 1;
                -- Next state
                v.state                       := HDR3_S;
             end if;
@@ -272,8 +277,6 @@ begin
                -- Move data
                v.txMaster.tValid             := '1';
                v.txMaster.tData(31 downto 0) := x"0000_0000";  -- Addr[63:32]
-               -- Increment the counter
-               v.tid                         := r.tid + 1;
                -- Next state
                v.state                       := HDR4_S;
             end if;
@@ -282,12 +285,15 @@ begin
             -- Check if ready to move data
             if (v.txMaster.tValid = '0') then
                -- Move data
-               v.txMaster.tValid             := '1';
-               v.txMaster.tData(31 downto 0) := x"0000_0FFF";  -- ReqSize[31:0] = 4kB
-               -- Increment the counter
-               v.tid                         := r.tid + 1;
+               v.txMaster.tValid := '1';
+               -- Check for sweeping 
+               if (SWEEP_C) then
+                  v.txMaster.tData(31 downto 0) := r.sweep(29 downto 0) & "11";  -- ReqSize[31:0] = varies
+               else
+                  v.txMaster.tData(31 downto 0) := x"0000_0FFF";  -- ReqSize[31:0] = 4kB
+               end if;
                -- Next state
-               v.state                       := PAYLOAD_S;
+               v.state := PAYLOAD_S;
             end if;
          ----------------------------------------------------------------------
          when PAYLOAD_S =>
@@ -295,18 +301,38 @@ begin
             if (v.txMaster.tValid = '0') then
                -- Move data
                v.txMaster.tValid             := '1';
-               v.txMaster.tData(31 downto 0) := r.cnt;
+               v.txMaster.tData(31 downto 0) := toSlv(4*conv_integer(r.cnt),32); -- Data = Address 
                -- Increment the counter
                v.cnt                         := r.cnt + 1;
-               -- Check for last transfer
-               if (r.cnt = x"0000_03FF") then
-                  -- if (r.cnt = x"0000_0400") then
-                  -- Reset the counter
-                  v.cnt            := x"0000_0000";
-                  -- Terminate the frame
-                  v.txMaster.tLast := '1';
-                  -- Next state
-                  v.state          := HDR0_S;
+               -- Check for sweeping 
+               if (SWEEP_C) then
+                  -- Check for last transfer
+                  if (r.cnt = r.sweep) then
+                     -- Reset the counter
+                     v.cnt := x"0000_0000";
+                     -- Check for max count
+                     if (r.sweep = (MAX_CNT_C-1)) then
+                        -- Reset the counter
+                        v.sweep := x"0000_0000";
+                     else
+                        -- Increment the counter
+                        v.sweep := r.sweep + 1;
+                     end if;
+                     -- Terminate the frame
+                     v.txMaster.tLast := '1';
+                     -- Next state
+                     v.state          := HDR0_S;
+                  end if;
+               else
+                  -- Check for last transfer
+                  if (r.cnt = (MAX_CNT_C-1)) then
+                     -- Reset the counter
+                     v.cnt            := x"0000_0000";
+                     -- Terminate the frame
+                     v.txMaster.tLast := '1';
+                     -- Next state
+                     v.state          := HDR0_S;
+                  end if;
                end if;
             end if;
       ----------------------------------------------------------------------
