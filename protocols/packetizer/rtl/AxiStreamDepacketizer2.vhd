@@ -2,7 +2,7 @@
 -- File       : AxiStreamPacketizer2.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-05-02
--- Last update: 2018-03-02
+-- Last update: 2018-05-16
 -------------------------------------------------------------------------------
 -- Description: Formats an AXI-Stream for a transport link.
 -- Sideband fields are placed into the data stream in a header.
@@ -233,8 +233,8 @@ begin
 
    end generate;
 
-   comb : process (axisRst, crcOut, inputAxisMaster, linkGood, outputAxisSlave, r,
-                   ramCrcRem, ramPacketActiveOut, ramPacketSeqOut,
+   comb : process (axisRst, inputAxisMaster, linkGood, outputAxisSlave, r,
+                   ramCrcRem, ramPacketActiveOut, ramPacketSeqOut, crcOut,
                    ramSentEofeOut) is
       variable v         : RegType;
       variable sof       : sl;
@@ -295,7 +295,10 @@ begin
       v.crcDataValid := '0';
       v.crcReset     := '0';
       v.crcDataWidth := "111";          -- 64-bit transfer  
-
+      
+      -- Reset tready by default
+      v.inputAxisSlave.tready := '0';
+      
       -- Check if data accepted
       if (outputAxisSlave.tReady = '1') then
          v.outputAxisMaster(1).tValid := '0';
@@ -311,9 +314,6 @@ begin
             else
                v.activeTDest := (others => '0');
             end if;
-
-            -- Halt incoming data
-            v.inputAxisSlave.tReady := '0';
 
             -- Advance the output pipeline
             if (r.outputAxisMaster(1).tValid = '1' and v.outputAxisMaster(0).tValid = '0') then
@@ -417,24 +417,26 @@ begin
             end if;
          ----------------------------------------------------------------------
          when MOVE_S =>
-            v.inputAxisSlave.tReady      := outputAxisSlave.tReady;
+            -- Keep the caches copy
             v.outputAxisMaster(1).tvalid := r.outputAxisMaster(1).tvalid;
-
+            -- Check if we can move data
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster(0).tValid = '0') then
+               -- Accept the data 
+               v.inputAxisSlave.tready     := '1';
                -- Advance the pipeline
                v.outputAxisMaster(1)       := inputAxisMaster;
+               v.outputAxisMaster(0)       := r.outputAxisMaster(1);
                -- Keep sideband data from header
                v.outputAxisMaster(1).tDest := r.outputAxisMaster(1).tDest;
                v.outputAxisMaster(1).tId   := r.outputAxisMaster(1).tId;
+               -- Check for sideband
                if (r.sideband = '1') then
                   -- But tUser only for first output txn
                   v.outputAxisMaster(1).tUser := r.outputAxisMaster(1).tUser;
                   v.sideband                  := '0';
                end if;
+               -- Updated the CRC
                v.crcDataValid := toSl(CRC_EN_C);
-
-               v.outputAxisMaster(0) := r.outputAxisMaster(1);
-
                -- End of packet
                if (inputAxisMaster.tLast = '1') then
                   v.outputAxisMaster(1).tValid := '0';
@@ -469,8 +471,6 @@ begin
             end if;
          ----------------------------------------------------------------------
          when CRC_S =>
-            -- Do not accept new frame during this cycle
-            v.inputAxisSlave.tReady      := '0';
             -- Move the data (Note: v.outputAxisMaster(0).tValid = '0' in previous state)
             v.outputAxisMaster(0).tValid := '1';
             -- Can sent tail right now
@@ -485,8 +485,6 @@ begin
             end if;
          ----------------------------------------------------------------------
          when TERMINATE_S =>
-            -- Halt incoming data
-            v.inputAxisSlave.tReady := '0';
 
             -- Advance the output pipeline
             if (r.outputAxisMaster(1).tValid = '1' and v.outputAxisMaster(0).tValid = '0') then

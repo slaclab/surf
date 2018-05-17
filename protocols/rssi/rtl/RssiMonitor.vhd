@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : Monitor.vhd
+-- File       : RssiMonitor.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-09
 -- Last update: 2016-01-27
@@ -40,7 +40,7 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.RssiPkg.all;
 
-entity Monitor is
+entity RssiMonitor is
    generic (
       TPD_G               : time     := 1 ns;
       TIMEOUT_UNIT_G      : real     := 1.0E-6; -- us
@@ -103,9 +103,9 @@ entity Monitor is
       resendCnt_o : out slv(CNT_WIDTH_G-1  downto 0);
       reconCnt_o  : out slv(CNT_WIDTH_G-1  downto 0)
    );
-end entity Monitor;
+end entity RssiMonitor;
 
-architecture rtl of Monitor is
+architecture rtl of RssiMonitor is
    --
    constant SAMPLES_PER_TIME_C : integer := integer(TIMEOUT_UNIT_G * CLK_FREQUENCY_G);
    constant SAMPLES_PER_TIME_DIV3_C : integer := integer(TIMEOUT_UNIT_G * CLK_FREQUENCY_G)/3;
