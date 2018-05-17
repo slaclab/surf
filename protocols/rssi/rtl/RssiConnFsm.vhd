@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : ConnFSM.vhd
+-- File       : RssiConnFsm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-09
 -- Last update: 2016-06-23
@@ -26,7 +26,7 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.RssiPkg.all;
 
-entity ConnFSM is
+entity RssiConnFsm is
    generic (
       TPD_G        : time     := 1 ns;
       SERVER_G     : boolean  := true;
@@ -92,9 +92,9 @@ entity ConnFSM is
       peerTout_o       : out sl;
       paramReject_o    : out sl     
    );
-end entity ConnFSM;
+end entity RssiConnFsm;
 
-architecture rtl of ConnFSM is
+architecture rtl of RssiConnFsm is
    --
    constant SAMPLES_PER_TIME_C : integer := integer(TIMEOUT_UNIT_G * CLK_FREQUENCY_G);
    --

@@ -386,59 +386,47 @@ begin
    s_rstFifo <= rst_i or not s_connActive;
 
    -- Application side   
-   AppFifoIn_INST : entity work.AxiStreamFifoV2
+   U_AppIn : entity work.AxiStreamResize
       generic map (
+         -- General Configurations
          TPD_G               => TPD_G,
-         SLAVE_READY_EN_G    => true,
-         VALID_THOLD_G       => 1,
-         GEN_SYNC_FIFO_G     => true,
-         BRAM_EN_G           => true,
-         INT_PIPE_STAGES_G   => 0,
-         PIPE_STAGES_G       => 1,
-         FIFO_ADDR_WIDTH_G   => 9,
+         READY_EN_G          => true,
+         -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => APP_AXIS_CONFIG_G,
          MASTER_AXI_CONFIG_G => RSSI_AXIS_CONFIG_C)
       port map (
-         sAxisClk    => clk_i,
-         sAxisRst    => s_rstFifo,
+         -- Clock and reset
+         axisClk     => clk_i,
+         axisRst     => s_rstFifo,
+         -- Slave Port
          sAxisMaster => monMasters(0),
          sAxisSlave  => monSlaves(0),
-         sAxisCtrl   => open,
-         --
-         mAxisClk    => clk_i,
-         mAxisRst    => s_rstFifo,
+         -- Master Port
          mAxisMaster => s_sAppAxisMaster,
-         mAxisSlave  => s_sAppAxisSlave,
-         mTLastTUser => open);
+         mAxisSlave  => s_sAppAxisSlave);   
            
    monMasters(0)   <= sAppAxisMaster_i;      
    sAppAxisSlave_o <= monSlaves(0);      
    
    -- Transport side
-   TspFifoIn_INST : entity work.AxiStreamFifoV2
+   U_TspIn : entity work.AxiStreamResize
       generic map (
+         -- General Configurations
          TPD_G               => TPD_G,
-         SLAVE_READY_EN_G    => true,
-         VALID_THOLD_G       => 1,
-         GEN_SYNC_FIFO_G     => true,
-         BRAM_EN_G           => true,
-         INT_PIPE_STAGES_G   => 0,
-         PIPE_STAGES_G       => 1,
-         FIFO_ADDR_WIDTH_G   => 9,
+         READY_EN_G          => true,
+         -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => TSP_AXIS_CONFIG_G,
          MASTER_AXI_CONFIG_G => RSSI_AXIS_CONFIG_C)
       port map (
-         sAxisClk    => clk_i,
-         sAxisRst    => rst_i,
+         -- Clock and reset
+         axisClk     => clk_i,
+         axisRst     => rst_i,
+         -- Slave Port
          sAxisMaster => sTspAxisMaster_i,
          sAxisSlave  => sTspAxisSlave_o,
-         sAxisCtrl   => open,
-         --
-         mAxisClk    => clk_i,
-         mAxisRst    => rst_i,
+         -- Master Port
          mAxisMaster => s_sTspAxisMaster,
-         mAxisSlave  => s_sTspAxisSlave,
-         mTLastTUser => open);
+         mAxisSlave  => s_sTspAxisSlave);
 
    -- /////////////////////////////////////////////////////////
    ------------------------------------------------------------
@@ -458,7 +446,7 @@ begin
    ------------------------------------------------------------
    -- Connection and monitoring part
    ------------------------------------------------------------ 
-   ConnFSM_INST : entity work.ConnFSM
+   ConnFSM_INST : entity work.RssiConnFsm
       generic map (
          TPD_G               => TPD_G,
          SERVER_G            => SERVER_G,
@@ -494,7 +482,7 @@ begin
          peerTout_o     => s_peerConnTout,
          paramReject_o  => s_paramReject);
 
-   Monitor_INST : entity work.Monitor
+   Monitor_INST : entity work.RssiMonitor
       generic map (
          TPD_G               => TPD_G,
          CLK_FREQUENCY_G     => CLK_FREQUENCY_G,
@@ -540,7 +528,7 @@ begin
    -- /////////////////////////////////////////////////////////       
 
    -- Header decoder module
-   HeaderReg_INST : entity work.HeaderReg
+   HeaderReg_INST : entity work.RssiHeaderReg
       generic map (
          TPD_G => TPD_G,
 
@@ -574,7 +562,7 @@ begin
    s_sndAck <= s_sndAckCon or s_sndAckMon;
 
    --
-   TxFSM_INST : entity work.TxFSM
+   TxFSM_INST : entity work.RssiTxFsm
       generic map (
          TPD_G               => TPD_G,
          WINDOW_ADDR_SIZE_G  => WINDOW_ADDR_SIZE_G,
@@ -664,7 +652,7 @@ begin
          addrb => s_txRdBuffAddr,
          doutb => s_txRdBuffData);
 
-   tx_Chksum_INST : entity work.Chksum
+   tx_Chksum_INST : entity work.RssiChksum
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 64,
@@ -687,7 +675,7 @@ begin
    -- RX part
    ------------------------------------------------------------   
    -- /////////////////////////////////////////////////////////  
-   RxFSM_INST : entity work.RxFSM
+   RxFSM_INST : entity work.RssiRxFsm
       generic map (
          TPD_G               => TPD_G,
          WINDOW_ADDR_SIZE_G  => WINDOW_ADDR_SIZE_G,
@@ -746,7 +734,7 @@ begin
    -- Acknowledge valid packet
    s_rxAck <= s_rxValidSeg and s_rxFlags.ack and s_connActive;
 
-   rx_Chksum_INST : entity work.Chksum
+   rx_Chksum_INST : entity work.RssiChksum
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 64,

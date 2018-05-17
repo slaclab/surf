@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : TxFSM.vhd
+-- File       : RssiTxFsm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-09
 -- Last update: 2018-02-14
@@ -48,7 +48,7 @@ use work.RssiPkg.all;
 use work.SsiPkg.all;
 use work.AxiStreamPkg.all;
 
-entity TxFSM is
+entity RssiTxFsm is
    generic (
       TPD_G : time := 1 ns;
 
@@ -148,9 +148,9 @@ entity TxFSM is
       -- Segment buffer indicator
       bufferEmpty_o : out sl
       );
-end entity TxFSM;
+end entity RssiTxFsm;
 
-architecture rtl of TxFSM is
+architecture rtl of RssiTxFsm is
 
    -- Init SSI bus
    constant SSI_MASTER_INIT_C  : SsiMasterType := axis2SsiMaster(RSSI_AXIS_CONFIG_C, AXI_STREAM_MASTER_INIT_C);

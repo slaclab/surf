@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : HeaderReg.vhd
+-- File       : RssiHeaderReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-09
 -- Last update: 2016-01-27
@@ -27,7 +27,7 @@ use work.StdRtlPkg.all;
 use work.RssiPkg.all;
 use ieee.math_real.all;
 
-entity HeaderReg is
+entity RssiHeaderReg is
    generic (
       TPD_G        : time     := 1 ns;
 
@@ -69,9 +69,9 @@ entity HeaderReg is
       ready_o        : out sl;
       headerLength_o : out positive
    );
-end entity HeaderReg;
+end entity RssiHeaderReg;
 
-architecture rtl of HeaderReg is
+architecture rtl of RssiHeaderReg is
   
    type RegType is record
       headerData :  slv(RSSI_WORD_WIDTH_C*8-1 downto 0);

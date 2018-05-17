@@ -134,6 +134,11 @@ class AxiVersion(pr.Device):
             base         = pr.UInt,
             mode         = 'RW',
         ))
+        
+        @self.command(description  = 'Toggle UserReset')
+        def UserRst():
+            self.UserReset.set(1)
+            self.UserReset.set(0)
 
         self.add(pr.RemoteVariable(   
             name         = 'FdSerial',

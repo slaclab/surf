@@ -82,7 +82,8 @@ entity AxiStreamFifoV2 is
 
       -- FIFO status & config , synchronous to sAxisClk, be carefull when using with
       -- output pipeline stages
-      fifoPauseThresh : in slv(FIFO_ADDR_WIDTH_G-1 downto 0) := (others => '1');
+      fifoPauseThresh : in  slv(FIFO_ADDR_WIDTH_G-1 downto 0) := (others => '1');
+      fifoWrCnt       : out slv(FIFO_ADDR_WIDTH_G-1 downto 0);
 
       -- Master Port
       mAxisClk    : in  sl;
@@ -217,6 +218,9 @@ begin
 
    -- Is ready enabled?
    fifoReady <= (not fifoAFull) when SLAVE_READY_EN_G else '1';
+   
+   -- Output a copy of FIFO WR count incase application needs more than one threshold
+   fifoWrCnt <= fifoWrCount;
 
    -- Map bits
    fifoDin       <= toSlv(fifoWriteMaster, FIFO_CONFIG_C);

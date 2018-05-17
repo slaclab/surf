@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : Chksum.vhd
+-- File       : RssiChksum.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-09
 -- Last update: 2015-08-09
@@ -24,7 +24,7 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 
-entity Chksum is
+entity RssiChksum is
    generic (
       TPD_G          : time     := 1 ns;
       -- 
@@ -63,9 +63,9 @@ entity Chksum is
       -- Indicates if the calculated checksum is ok (valid upon valid_o='1')
       check_o : out sl
    );
-end entity Chksum;
+end entity RssiChksum;
 
-architecture rtl of Chksum is
+architecture rtl of RssiChksum is
 
    constant RATIO_C : positive := DATA_WIDTH_G/CSUM_WIDTH_G;
    

@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
--- File       : FrontEndRegDecoder.vhd
+-- File       : FrontEndSaciRegDecoder.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-05-07
--- Last update: 2013-03-05
+-- Last update: 2018-05-16
 -------------------------------------------------------------------------------
 -- Description: Decodes register addresses from the Front End interface.
 -------------------------------------------------------------------------------
@@ -24,7 +24,7 @@ use work.Version.all;
 use work.FrontEndPkg.all;
 use work.SaciMasterPkg.all;
 
-entity FrontEndRegDecoder is
+entity FrontEndSaciRegDecoder is
   
   generic (
     DELAY_G : time := 1 ns);
@@ -41,9 +41,9 @@ entity FrontEndRegDecoder is
     saciMasterIn  : out SaciMasterInType;
     saciMasterOut : in  SaciMasterOutType);
 
-end entity FrontEndRegDecoder;
+end entity FrontEndSaciRegDecoder;
 
-architecture rtl of FrontEndRegDecoder is
+architecture rtl of FrontEndSaciRegDecoder is
 
   constant FRONT_END_REG_WRITE_C : sl := '1';
   constant FRONT_END_REG_READ_C  : sl := '0';

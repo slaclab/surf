@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : RxFSM.vhd
+-- File       : RssiRxFsm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-11
 -- Last update: 2018-02-14
@@ -50,7 +50,7 @@ use work.RssiPkg.all;
 use work.SsiPkg.all;
 use work.AxiStreamPkg.all;
 
-entity RxFSM is
+entity RssiRxFsm is
    generic (
       TPD_G               : time     := 1 ns;
       WINDOW_ADDR_SIZE_G  : positive := 7;     -- 2^WINDOW_ADDR_SIZE_G  = Number of segments
@@ -118,9 +118,9 @@ entity RxFSM is
       appSsiSlave_i  : in  SsiSlaveType
  
    );
-end entity RxFSM;
+end entity RssiRxFsm;
 
-architecture rtl of RxFSM is
+architecture rtl of RssiRxFsm is
    -- Init SSI bus
    constant SSI_MASTER_INIT_C   : SsiMasterType := axis2SsiMaster(RSSI_AXIS_CONFIG_C, AXI_STREAM_MASTER_INIT_C);
    constant SSI_SLAVE_NOTRDY_C  : SsiSlaveType  := axis2SsiSlave(RSSI_AXIS_CONFIG_C, AXI_STREAM_SLAVE_INIT_C, AXI_STREAM_CTRL_UNUSED_C);
