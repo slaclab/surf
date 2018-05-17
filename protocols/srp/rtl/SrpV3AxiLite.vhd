@@ -306,7 +306,7 @@ begin
       end if;
 
       -- Check for overflow
-      if (rxCtrl.overflow = '1') and (r.rxRst = '0') and (GEN_SYNC_FIFO_G = false) then
+      if (rxCtrl.overflow = '1') and (r.rxRst = '0') and (SLAVE_READY_EN_G = false) then
          -- Set the flag
          v.overflowDet := '1';
       end if;
