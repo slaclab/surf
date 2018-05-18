@@ -118,10 +118,18 @@ entity RssiCore is
 end entity RssiCore;
 
 architecture rtl of RssiCore is
-   --
-   constant FIFO_ADDR_WIDTH_C   : positive := ite((SEGMENT_ADDR_SIZE_G < 7), 9, SEGMENT_ADDR_SIZE_G+2);
-   -- constant FIFO_PAUSE_THRESH_C : positive := ((2**FIFO_ADDR_WIDTH_C)-1) - 16;  -- FIFO_FULL - padding (128 bytes)
-   constant FIFO_PAUSE_THRESH_C : positive := (2**FIFO_ADDR_WIDTH_C) - (2**(SEGMENT_ADDR_SIZE_G+1));  -- pause threshold = FIFO_FULL - (2 x segment buffers)
+
+   constant BUFFER_ADDR_WIDTH_C : positive := (SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G);
+
+   constant RX_FIFO_ADDR_WIDTH_C   : positive := BUFFER_ADDR_WIDTH_C+1;  -- 2 x total MAX buffering
+   constant RX_FIFO_PAUSE_THRESH_C : positive := (2**RX_FIFO_ADDR_WIDTH_C) - (2**(SEGMENT_ADDR_SIZE_G+1));  -- pause threshold = FIFO_FULL - (2 x segment buffers)   
+   constant RX_FIFO_BUSY_THRESH_C  : positive := (2**(SEGMENT_ADDR_SIZE_G+1));  -- busy threshold = (2 x segment buffers)
+
+   constant TX_FIFO_ADDR_WIDTH_C   : positive := ite((SEGMENT_ADDR_SIZE_G < 7), 9, SEGMENT_ADDR_SIZE_G+2);  -- min. 4 segment buffering
+   constant TX_FIFO_PAUSE_THRESH_C : positive := (2**TX_FIFO_ADDR_WIDTH_C) - (2**(SEGMENT_ADDR_SIZE_G+1));  -- pause threshold = FIFO_FULL - (2 x segment buffers)     
+
+   signal s_fifoWrCnt : slv(RX_FIFO_ADDR_WIDTH_C-1 downto 0);
+   signal s_localBusy : sl;
 
    -- RSSI Parameters
    signal s_appRssiParam : RssiParamType;
@@ -181,21 +189,21 @@ architecture rtl of RssiCore is
    -- Rx segment buffer
    signal s_rxBufferSize : integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_G);
    signal s_rxWindowSize : integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
-   signal s_rxWrBuffAddr : slv((SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G)-1 downto 0);
+   signal s_rxWrBuffAddr : slv(BUFFER_ADDR_WIDTH_C-1 downto 0);
    signal s_rxWrBuffData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
    signal s_rxWrBuffWe   : sl;
    signal s_rxRdBuffRe   : sl;
-   signal s_rxRdBuffAddr : slv((SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G)-1 downto 0);
+   signal s_rxRdBuffAddr : slv(BUFFER_ADDR_WIDTH_C-1 downto 0);
    signal s_rxRdBuffData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
 
    -- Tx segment buffer
    signal s_txBufferSize : integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_G);
    signal s_txWindowSize : integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
-   signal s_txWrBuffAddr : slv((SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G)-1 downto 0);
+   signal s_txWrBuffAddr : slv(BUFFER_ADDR_WIDTH_C-1 downto 0);
    signal s_txWrBuffData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
    signal s_txWrBuffWe   : sl;
    signal s_txRdBuffRe   : sl;
-   signal s_txRdBuffAddr : slv((SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G)-1 downto 0);
+   signal s_txRdBuffAddr : slv(BUFFER_ADDR_WIDTH_C-1 downto 0);
    signal s_txRdBuffData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
 
    -- Acknowledge pulse when valid segment 
@@ -546,6 +554,7 @@ begin
          dataHeadSt_i => s_dataHeadSt,
          nullHeadSt_i => s_nullHeadSt,
          ackHeadSt_i  => s_ackHeadSt,
+         busyHeadSt_i => s_localBusy,
 
          ack_i          => s_txAckF,    -- Connected to ConnectFSM
          txSeqN_i       => s_txSeqN,
@@ -637,7 +646,7 @@ begin
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => RSSI_WORD_WIDTH_C*8,
-         ADDR_WIDTH_G => (SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G)
+         ADDR_WIDTH_G => BUFFER_ADDR_WIDTH_C
          )
       port map (
          -- Port A - Write only
@@ -716,7 +725,7 @@ begin
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => RSSI_WORD_WIDTH_C*8,
-         ADDR_WIDTH_G => (SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G)
+         ADDR_WIDTH_G => BUFFER_ADDR_WIDTH_C
          )
       port map (
          -- Port A - Write only
@@ -783,9 +792,9 @@ begin
          PIPE_STAGES_G       => 1,
          CASCADE_SIZE_G      => 1,
          CASCADE_PAUSE_SEL_G => 0,
-         FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
+         FIFO_ADDR_WIDTH_G   => RX_FIFO_ADDR_WIDTH_C,
          FIFO_FIXED_THRESH_G => true,
-         FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_C,
+         FIFO_PAUSE_THRESH_G => RX_FIFO_PAUSE_THRESH_C,
          SLAVE_AXI_CONFIG_G  => RSSI_AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => APP_AXIS_CONFIG_G)
       port map (
@@ -794,12 +803,15 @@ begin
          sAxisMaster => s_mAppAxisMaster,
          sAxisSlave  => s_mAppAxisSlave,
          sAxisCtrl   => s_mAppAxisCtrl,
+         fifoWrCnt   => s_fifoWrCnt,
          --
          mAxisClk    => clk_i,
          mAxisRst    => s_rstFifo,
          mAxisMaster => monMasters(1),
          mAxisSlave  => monSlaves(1),
          mTLastTUser => open);
+         
+   s_localBusy <= '1' when((s_fifoWrCnt >= RX_FIFO_BUSY_THRESH_C) and (s_connActive = '1')) else '0';         
          
    mAppAxisMaster_o <= monMasters(1);
    monSlaves(1)     <= mAppAxisSlave_i;
@@ -816,9 +828,9 @@ begin
          PIPE_STAGES_G       => 1,
          CASCADE_SIZE_G      => 1,
          CASCADE_PAUSE_SEL_G => 0,
-         FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
+         FIFO_ADDR_WIDTH_G   => TX_FIFO_ADDR_WIDTH_C,
          FIFO_FIXED_THRESH_G => true,
-         FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_C,
+         FIFO_PAUSE_THRESH_G => TX_FIFO_PAUSE_THRESH_C,
          SLAVE_AXI_CONFIG_G  => RSSI_AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => TSP_AXIS_CONFIG_G)
       port map (
