@@ -595,6 +595,7 @@ begin
          sndRst_i    => s_sndRst,
          sndResend_i => s_sndResend,
          sndNull_i   => s_sndNull,
+         remoteBusy_i=> s_rxFlags.busy,
 
          windowSize_i => s_txWindowSize,
          bufferSize_i => s_txBufferSize,
