@@ -839,7 +839,7 @@ begin
             -- Next state condition   
             if (sndRst_i = '1') then
                v.tspState := RST_WE_S;
-            elsif (r.sndData = '1') and (r.bufferFull = '0') and (remoteBusy_i = '1') then
+            elsif (r.sndData = '1') and (r.bufferFull = '0') and (remoteBusy_i = '0') then
                v.ackSndData := '1';
                v.tspState   := DATA_WE_S;
             elsif (sndResend_i = '1' and r.bufferEmpty = '0') then
