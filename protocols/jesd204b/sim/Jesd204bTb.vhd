@@ -2,7 +2,7 @@
 -- File       : Jesd204bTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-02-03
--- Last update: 2018-05-11
+-- Last update: 2018-05-22
 -------------------------------------------------------------------------------
 -- Description: Simulation testbed for Jesd204b
 -------------------------------------------------------------------------------
@@ -34,6 +34,8 @@ architecture tb of Jesd204bTb is
 
    constant EN_SCRAMBLER_C : boolean := true;
 
+   constant BYTE_SHIFT_C : natural range 0 to 3 := 1;
+
    signal clk        : sl := '0';
    signal rst        : sl := '0';
    signal rstL       : sl := '1';
@@ -60,6 +62,12 @@ architecture tb of Jesd204bTb is
    signal nextRxData     : slv(31 downto 0) := (others => '0');
    signal cnt            : slv(6 downto 0)  := (others => '0');
    signal rxDataErrorDet : sl               := '0';
+   signal data           : slv(63 downto 0) := (others => '0');
+   signal dataK          : slv(7 downto 0)  := (others => '0');
+   signal kCharDet       : slv(3 downto 0)  := (others => '0');
+   signal rCharDet       : slv(3 downto 0)  := (others => '0');
+   signal aCharDet       : slv(3 downto 0)  := (others => '0');
+   signal fCharDet       : slv(3 downto 0)  := (others => '0');
 
 begin
 
@@ -87,9 +95,15 @@ begin
          rxDataErrorDet <= '0' after TPD_G;
          -- Wait for config to finish before sending data
          if (configDone = '0') then
-            txData <= (others => '0') after TPD_G;
+            txData(7 downto 0)   <= x"00" after TPD_G;
+            txData(15 downto 8)  <= x"01" after TPD_G;
+            txData(23 downto 16) <= x"02" after TPD_G;
+            txData(31 downto 24) <= x"03" after TPD_G;
          else
-            txData <= txData + 1 after TPD_G;
+            txData(7 downto 0)   <= txData(7 downto 0) + 4   after TPD_G;
+            txData(15 downto 8)  <= txData(15 downto 8) + 4  after TPD_G;
+            txData(23 downto 16) <= txData(23 downto 16) + 4 after TPD_G;
+            txData(31 downto 24) <= txData(31 downto 24) + 4 after TPD_G;
          end if;
          -- Wait for rxValid
          if (rxValid = '1') then
@@ -99,9 +113,12 @@ begin
             end if;
          end if;
          -- Create a free running counter
-         cnt        <= cnt + 1    after TPD_G;
+         cnt                      <= cnt + 1                  after TPD_G;
          -- Calculate next RX data 
-         nextRxData <= rxData + 1 after TPD_G;
+         nextRxData(7 downto 0)   <= rxData(7 downto 0) + 4   after TPD_G;
+         nextRxData(15 downto 8)  <= rxData(15 downto 8) + 4  after TPD_G;
+         nextRxData(23 downto 16) <= rxData(23 downto 16) + 4 after TPD_G;
+         nextRxData(31 downto 24) <= rxData(31 downto 24) + 4 after TPD_G;
       end if;
    end process;
 
@@ -134,13 +151,66 @@ begin
          gtTxReady_i             => (others => configDone),
          r_jesdGtTxArr(0)        => jesdGtTxArr);
 
+   ------------------------------------
+   -- Generate SLV to test unaligned 
+   -- byte compensations in the JESD RX
+   ------------------------------------
+   process(clk)
+   begin
+      if rising_edge(clk) then
+         data(31 downto 0)  <= data(63 downto 32) after TPD_G;
+         dataK(3 downto 0)  <= dataK(7 downto 4)  after TPD_G;
+         data(63 downto 32) <= jesdGtTxArr.data   after TPD_G;
+         dataK(7 downto 4)  <= jesdGtTxArr.dataK  after TPD_G;
+      end if;
+   end process;
+
    -------------------------
    -- Map the GT TX to GT RX
    -------------------------
-   jesdGtRxArr.data      <= jesdGtTxArr.data;
-   jesdGtRxArr.dataK     <= jesdGtTxArr.dataK;
+   jesdGtRxArr.data      <= data(31+(8*BYTE_SHIFT_C) downto (8*BYTE_SHIFT_C));  --- BYTE_SHIFT_C  applied the byte misalignment
+   jesdGtRxArr.dataK     <= dataK(3+BYTE_SHIFT_C downto BYTE_SHIFT_C);
    jesdGtRxArr.rstDone   <= configDone;
    jesdGtRxArr.cdrStable <= configDone;
+
+   -----------------------------------   
+   -- Adding char detect for debugging
+   -----------------------------------   
+   process(jesdGtRxArr)
+      variable i    : natural;
+      variable kDet : slv(3 downto 0);
+      variable rDet : slv(3 downto 0);
+      variable aDet : slv(3 downto 0);
+      variable fDet : slv(3 downto 0);
+   begin
+      -- Reset
+      kDet := x"0";
+      rDet := x"0";
+      aDet := x"0";
+      fDet := x"0";
+      -- Loop through the 8B10B bytes
+      for i in 3 downto 0 loop
+         if (jesdGtRxArr.dataK(i) = '1') then
+            if (jesdGtRxArr.data(7+(8*i) downto (8*i)) = K_CHAR_C) then
+               kDet(i) := '1';
+            end if;
+            if (jesdGtRxArr.data(7+(8*i) downto (8*i)) = R_CHAR_C) then
+               rDet(i) := '1';
+            end if;
+            if (jesdGtRxArr.data(7+(8*i) downto (8*i)) = A_CHAR_C) then
+               aDet(i) := '1';
+            end if;
+            if (jesdGtRxArr.data(7+(8*i) downto (8*i)) = F_CHAR_C) then
+               fDet(i) := '1';
+            end if;
+         end if;
+      end loop;
+      -- Return the results
+      kCharDet <= kDet;
+      rCharDet <= rDet;
+      aCharDet <= aDet;
+      fCharDet <= fDet;
+   end process;
 
    -----------------
    -- JESD RX Module
