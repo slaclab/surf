@@ -76,7 +76,7 @@ architecture testbed of RssiCoreTb is
    signal clk : sl := '0';
    signal rst : sl := '0';
 
-   constant NUM_XBAR_C : positive := 2;
+   constant NUM_XBAR_C : positive := 8;
 
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_XBAR_C-1 downto 0);
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_XBAR_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_OK_C);
