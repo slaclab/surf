@@ -24,7 +24,7 @@ use work.StdRtlPkg.all;
 entity UartRx is
    generic (
       TPD_G        : time                 := 1 ns;
-      STOP_BITS_G  : integer range 1 to 2 := 0;
+      STOP_BITS_G  : integer range 1 to 2 := 1;
       PARITY_G     : string               := "NONE";  -- "NONE" "ODD" "EVEN"
       DATA_WIDTH_G : integer range 5 to 8 := 8);
    port (
