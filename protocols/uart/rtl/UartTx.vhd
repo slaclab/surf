@@ -87,7 +87,7 @@ begin  -- architecture RTL
 
             -- Wait for next baud16x to synchronize
             -- Then load the shift reg
-            -- LSB is the start bit, MSB is stop bit, MSB-1 is parity/stop bit if PARITY_EN_G=1
+            -- LSB is the start bit, MSB is stop bit, MSB-1 is parity/stop
          when SYNC_EN_16_S =>
             if (baud16x = '1') then
                if(STOP_BITS_G = 1 and PARITY_G = "NONE") then
