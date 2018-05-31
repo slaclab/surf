@@ -82,7 +82,8 @@ architecture structure of AxiStreamDmaV2 is
    signal dmaRdDescRet    : AxiReadDmaDescRetArray(CHAN_COUNT_G-1 downto 0);
    signal dmaRdDescRetAck : slv(CHAN_COUNT_G-1 downto 0);
 
-   signal axiCache : slv(3 downto 0);
+   signal axiRdCache : slv(3 downto 0);
+   signal axiWrCache : slv(3 downto 0);
 
    signal axiReset  : slv(CHAN_COUNT_G-1 downto 0);
 
@@ -121,7 +122,8 @@ begin
             dmaRdDescAck    => dmaRdDescAck,
             dmaRdDescRet    => dmaRdDescRet,
             dmaRdDescRetAck => dmaRdDescRetAck,
-            axiCache        => axiCache,
+            axiRdCache      => axiRdCache,
+            axiWrCache      => axiWrCache,
             axiWriteMaster  => axiWriteMaster(0),
             axiWriteSlave   => axiWriteSlave(0),
             axiWriteCtrl    => axiWriteCtrl(0));
@@ -157,7 +159,8 @@ begin
             dmaRdDescAck    => dmaRdDescAck,
             dmaRdDescRet    => dmaRdDescRet,
             dmaRdDescRetAck => dmaRdDescRetAck,
-            axiCache        => axiCache,
+            axiRdCache      => axiRdCache,
+            axiWrCache      => axiWrCache,
             axiWriteMaster  => axiWriteMaster(0),
             axiWriteSlave   => axiWriteSlave(0),
             axiWriteCtrl    => axiWriteCtrl(0));
@@ -195,7 +198,7 @@ begin
             dmaRdDescRet    => dmaRdDescRet(i),
             dmaRdDescRetAck => dmaRdDescRetAck(i),
             dmaRdIdle       => open,
-            axiCache        => axiCache,
+            axiCache        => axiRdCache,
             -- Streaming Interface 
             axisMaster      => mAxisMaster(i),
             axisSlave       => mAxisSlave(i),
@@ -220,7 +223,7 @@ begin
             dmaWrDescRet    => dmaWrDescRet(i),
             dmaWrDescRetAck => dmaWrDescRetAck(i),
             dmaWrIdle       => open,
-            axiCache        => axiCache,
+            axiCache        => axiWrCache,
             axisMaster      => sAxisMaster(i),
             axisSlave       => sAxisSlave(i),
             axiWriteMaster  => axiWriteMaster(i+1),

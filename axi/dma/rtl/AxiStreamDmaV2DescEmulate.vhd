@@ -64,7 +64,8 @@ entity AxiStreamDmaV2DescEmulate is
       dmaRdDescRet    : in  AxiReadDmaDescRetArray(CHAN_COUNT_G-1 downto 0);
       dmaRdDescRetAck : out slv(CHAN_COUNT_G-1 downto 0);
       -- Config
-      axiCache        : out slv(3 downto 0);
+      axiRdCache      : out slv(3 downto 0);
+      axiWrCache      : out slv(3 downto 0);
       -- AXI Interface
       axiWriteMaster  : out AxiWriteMasterType;
       axiWriteSlave   : in  AxiWriteSlaveType;
@@ -171,7 +172,8 @@ begin
       dmaWrDescRetAck <= r.dmaWrDescRetAck;
       dmaRdDescReq    <= r.dmaRdDescReq;
       dmaRdDescRetAck <= r.dmaRdDescRetAck;
-      axiCache        <= AXI_CACHE_G;
+      axiRdCache      <= AXI_CACHE_G;
+      axiWrCache      <= AXI_CACHE_G;
 
    end process comb;
 
