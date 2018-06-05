@@ -2,7 +2,7 @@
 -- File       : UartTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-13
--- Last update: 2018-05-27
+-- Last update: 2018-06-05
 -------------------------------------------------------------------------------
 -- Description: Uart Transmitter
 -------------------------------------------------------------------------------
@@ -93,9 +93,9 @@ begin  -- architecture RTL
                if(STOP_BITS_G = 1 and PARITY_G = "NONE") then
                   v.shiftReg := '1' & r.holdReg & '0';
                elsif(STOP_BITS_G = 1 and PARITY_G = "EVEN") then
-                  v.shiftReg := '1' & v.parity & r.holdReg & '0';
+                  v.shiftReg := '1' & r.parity & r.holdReg & '0';
                elsif(STOP_BITS_G = 1 and PARITY_G = "ODD") then
-                  v.shiftReg := '1' & not(v.parity) & r.holdReg & '0';
+                  v.shiftReg := '1' & not(r.parity) & r.holdReg & '0';
                elsif(STOP_BITS_G = 2 and PARITY_G = "NONE") then
                   v.shiftReg := '1' & '1' & r.holdReg & '0';
                else

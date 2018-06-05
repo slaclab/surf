@@ -2,7 +2,7 @@
 -- File       : UartRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-13
--- Last update: 2018-05-27
+-- Last update: 2018-06-05
 -------------------------------------------------------------------------------
 -- Description: UART Receiver
 -------------------------------------------------------------------------------
@@ -31,7 +31,7 @@ entity UartRx is
       clk         : in  sl;
       rst         : in  sl;
       baud16x     : in  sl;
-      rdData      : out slv(7 downto 0);
+      rdData      : out slv(DATA_WIDTH_G-1 downto 0);
       rdValid     : out sl;
       parityError : out sl;
       rdReady     : in  sl;
@@ -40,7 +40,7 @@ end entity UartRx;
 
 architecture rtl of UartRx is
 
-   type StateType is (WAIT_START_BIT_S, WAIT_8_S, WAIT_16_S, SAMPLE_RX_S, CALC_PARITY_S, PARITY_S, WAIT_STOP_S, WRITE_OUT_S);
+   type StateType is (WAIT_START_BIT_S, WAIT_8_S, WAIT_16_S, SAMPLE_RX_S, WAIT_PARITY_S, PARITY_S, WAIT_STOP_S, WRITE_OUT_S);
 
    type RegType is
    record
@@ -101,18 +101,18 @@ begin
       case r.rxState is
 
          -- Wait for RX to drop to indicate start bit
+         -- reset parityError flag
          when WAIT_START_BIT_S =>
             if (rxFall = '1') then
                v.rxState      := WAIT_8_S;
                v.baud16xCount := "0000";
                v.rxShiftCount := "0000";
+               v.parityError  := '0';
             end if;
 
             -- Wait 8 baud16x counts to find center of start bit
             -- Every rx bit is 16 baud16x pulses apart
-            -- reset parity error flag
          when WAIT_8_S =>
-            v.parityError := '0';
             if (baud16x = '1') then
                v.baud16xCount := r.baud16xCount + 1;
                if (r.baud16xCount = "0111") then
@@ -138,38 +138,31 @@ begin
             v.rxState      := WAIT_16_S;
             if (r.rxShiftCount = DATA_WIDTH_G-1) then
                if(PARITY_G /= "NONE") then
-                  v.rxState := CALC_PARITY_S;
+                  v.rxState := WAIT_PARITY_S;
                else
                   v.rxState := WAIT_STOP_S;
                end if;
             end if;
 
             -- Wait 16 baud16x counts (center of next bit) and calculate parity
-         when CALC_PARITY_S =>
+         when WAIT_PARITY_S =>
             if (baud16x = '1') then
                v.baud16xCount := r.baud16xCount + 1;
                if (r.baud16xCount = "1111") then
                   v.rxState := PARITY_S;
-                  v.parity  := oddParity(v.rxShiftReg);
+                  if PARITY_G = "ODD" then
+                     v.parity := not(uXor(r.rxShiftReg));
+                  elsif PARITY_G = "EVEN" then
+                     v.parity := uXor(r.rxShiftReg);
+                  end if;
                end if;
             end if;
 
             -- Samples parity bit on rx line and compare it to the calculated parity
             -- raises a parityError flag if it does not match          
          when PARITY_S =>
-            if(PARITY_G = "NONE") then v.rxState := WAIT_STOP_S; end if;
-            if(PARITY_G = "EVEN") then
-               v.rxState := WAIT_STOP_S;
-               if(v.parity /= rxSync) then
-                  v.parityError := '1';
-               end if;
-            end if;
-            if(PARITY_G = "ODD") then
-               v.rxState := WAIT_STOP_S;
-               if(not(v.parity) /= rxSync) then
-                  v.parityError := '1';
-               end if;
-            end if;
+            v.rxState     := WAIT_STOP_S;
+            v.parityError := toSl(r.parity /= rxSync);
 
             -- Wait for the stop bit
          when WAIT_STOP_S =>
