@@ -98,9 +98,9 @@ begin
       end if;
 
       if (PARITY_G = "ODD") then
-         v.parity := evenParity(r.rxShfitReg);
+         v.parity := evenParity(r.rxShiftReg);
       elsif (PARITY_G = "EVEN") then
-         v.parity := oddParity(r.rxShfitReg);
+         v.parity := oddParity(r.rxShiftReg);
       else
          v.parity := '0';
       end if;
