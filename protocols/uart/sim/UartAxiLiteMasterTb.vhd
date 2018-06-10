@@ -2,7 +2,7 @@
 -- File       : UartAxiLiteMasterTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-27
--- Last update: 2018-06-09
+-- Last update: 2016-06-28
 -------------------------------------------------------------------------------
 -- Description: Testbench for design "UartAxiLiteMaster"
 -------------------------------------------------------------------------------
@@ -38,9 +38,6 @@ architecture sim of UartAxiLiteMasterTb is
    constant TPD_G             : time                  := 1 ns;
    constant CLK_FREQ_G        : real                  := 125.0e6;
    constant BAUD_RATE_G       : integer               := 115200;
-   constant STOP_BITS_G       : integer range 1 to 2  := 1;
-   constant PARITY_G          : string                := "NONE";  -- "NONE" "ODD" "EVEN"
-   constant DATA_WIDTH_G      : integer range 5 to 8  := 8;
    constant FIFO_BRAM_EN_G    : boolean               := false;
    constant FIFO_ADDR_WIDTH_G : integer range 4 to 48 := 5;
 
@@ -80,9 +77,6 @@ begin
          TPD_G             => TPD_G,
          CLK_FREQ_G        => CLK_FREQ_G,
          BAUD_RATE_G       => BAUD_RATE_G,
-         STOP_BITS_G       => STOP_BITS_G,
-         PARITY_G          => PARITY_G,
-         DATA_WIDTH_G      => DATA_WIDTH_G,
          FIFO_BRAM_EN_G    => FIFO_BRAM_EN_G,
          FIFO_ADDR_WIDTH_G => FIFO_ADDR_WIDTH_G)
       port map (
@@ -103,9 +97,6 @@ begin
          TPD_G             => TPD_G,
          AXIL_CLK_FREQ_G   => CLK_FREQ_G,
          BAUD_RATE_G       => BAUD_RATE_G,
-         STOP_BITS_G       => STOP_BITS_G,
-         PARITY_G          => PARITY_G,
-         DATA_WIDTH_G      => DATA_WIDTH_G,
          FIFO_BRAM_EN_G    => FIFO_BRAM_EN_G,
          FIFO_ADDR_WIDTH_G => FIFO_ADDR_WIDTH_G)
       port map (
@@ -139,121 +130,121 @@ begin
 
    test : process is
       function hexStrToSlv (s : string) return slv is
-      variable tmp            : string(1 to s'length) := resize(s, s'length);
-      variable char           : character;
-      variable ret            : slv(s'length*4-1 downto 0);
-   begin
-      for i in tmp'range loop
-         ret(ret'high downto 4) := ret(ret'high-4 downto 0);
-         case tmp(i) is
-            when '0'    => ret(3 downto 0) := toSlv(0, 4);
-            when '1'    => ret(3 downto 0) := toSlv(1, 4);
-            when '2'    => ret(3 downto 0) := toSlv(2, 4);
-            when '3'    => ret(3 downto 0) := toSlv(3, 4);
-            when '4'    => ret(3 downto 0) := toSlv(4, 4);
-            when '5'    => ret(3 downto 0) := toSlv(5, 4);
-            when '6'    => ret(3 downto 0) := toSlv(6, 4);
-            when '7'    => ret(3 downto 0) := toSlv(7, 4);
-            when '8'    => ret(3 downto 0) := toSlv(8, 4);
-            when '9'    => ret(3 downto 0) := toSlv(9, 4);
-            when 'A'    => ret(3 downto 0) := toSlv(10, 4);
-            when 'a'    => ret(3 downto 0) := toSlv(10, 4);
-            when 'B'    => ret(3 downto 0) := toSlv(11, 4);
-            when 'b'    => ret(3 downto 0) := toSlv(11, 4);
-            when 'C'    => ret(3 downto 0) := toSlv(12, 4);
-            when 'c'    => ret(3 downto 0) := toSlv(12, 4);
-            when 'D'    => ret(3 downto 0) := toSlv(13, 4);
-            when 'd'    => ret(3 downto 0) := toSlv(13, 4);
-            when 'E'    => ret(3 downto 0) := toSlv(14, 4);
-            when 'e'    => ret(3 downto 0) := toSlv(14, 4);
-            when 'F'    => ret(3 downto 0) := toSlv(15, 4);
-            when 'f'    => ret(3 downto 0) := toSlv(15, 4);
-            when others => ret(3 downto 0) := toSlv(0, 4);
-         end case;
+         variable tmp  : string(1 to s'length) := resize(s, s'length);
+         variable char : character;
+         variable ret  : slv(s'length*4-1 downto 0);
+      begin
+         for i in tmp'range loop
+            ret(ret'high downto 4) := ret(ret'high-4 downto 0);
+            case tmp(i) is
+               when '0'    => ret(3 downto 0) := toSlv(0, 4);
+               when '1'    => ret(3 downto 0) := toSlv(1, 4);
+               when '2'    => ret(3 downto 0) := toSlv(2, 4);
+               when '3'    => ret(3 downto 0) := toSlv(3, 4);
+               when '4'    => ret(3 downto 0) := toSlv(4, 4);
+               when '5'    => ret(3 downto 0) := toSlv(5, 4);
+               when '6'    => ret(3 downto 0) := toSlv(6, 4);
+               when '7'    => ret(3 downto 0) := toSlv(7, 4);
+               when '8'    => ret(3 downto 0) := toSlv(8, 4);
+               when '9'    => ret(3 downto 0) := toSlv(9, 4);
+               when 'A'    => ret(3 downto 0) := toSlv(10, 4);
+               when 'a'    => ret(3 downto 0) := toSlv(10, 4);
+               when 'B'    => ret(3 downto 0) := toSlv(11, 4);
+               when 'b'    => ret(3 downto 0) := toSlv(11, 4);
+               when 'C'    => ret(3 downto 0) := toSlv(12, 4);
+               when 'c'    => ret(3 downto 0) := toSlv(12, 4);
+               when 'D'    => ret(3 downto 0) := toSlv(13, 4);
+               when 'd'    => ret(3 downto 0) := toSlv(13, 4);
+               when 'E'    => ret(3 downto 0) := toSlv(14, 4);
+               when 'e'    => ret(3 downto 0) := toSlv(14, 4);
+               when 'F'    => ret(3 downto 0) := toSlv(15, 4);
+               when 'f'    => ret(3 downto 0) := toSlv(15, 4);
+               when others => ret(3 downto 0) := toSlv(0, 4);
+            end case;
 
-      end loop;
-      return ret;
+         end loop;
+         return ret;
 
-   end function;
+      end function;
 
-   procedure sendString (
-      s : in string) is
-   begin
-      print("Sending: " & s);
-      wait until clk = '1';
-      wait until clk = '1';
-
-      for i in s'range loop
-         wrData  <= toSlv(character'pos(s(i)), 8);
-         wrValid <= '1';
+      procedure sendString (
+         s : in string) is
+      begin
+         print("Sending: " & s);
          wait until clk = '1';
-
-         if (wrReady = '1') then
-            wrValid <= '0';
+         wait until clk = '1';         
+         
+         for i in s'range loop
+            wrData  <= toSlv(character'pos(s(i)), 8);
+            wrValid <= '1';
             wait until clk = '1';
-         else
-            wait until clk = '1';
-            while (wrReady = '0') loop
+            
+            if (wrReady = '1') then
+               wrValid <= '0';
                wait until clk = '1';
-            end loop;
+            else
+               wait until clk = '1';                              
+               while (wrReady = '0') loop
+                  wait until clk = '1';
+               end loop;
 
-            wrValid <= '0';
-            wait until clk = '1';
-         end if;
-      end loop;
-   end procedure sendString;
-
-   procedure receiveString (
-      s : inout string)
-   is
-      variable i : integer := 1;
-   begin
-      while (true) loop
-         wait until clk = '1';
-         if (rdValid = '1') then
-            s(i) := character'val(conv_integer(rdData));
-            if (s(i) = CR or s(i) = LF) then
-               exit;
+               wrValid <= '0';
+               wait until clk = '1';
             end if;
-            i := i+1;
-         end if;
-      end loop;
-      print("Received: " & s);
+         end loop;
+      end procedure sendString;
 
-   end procedure receiveString;
+      procedure receiveString (
+         s : inout string)
+      is
+         variable i : integer := 1;
+      begin
+         while (true) loop
+            wait until clk = '1';
+            if (rdValid = '1') then
+               s(i) := character'val(conv_integer(rdData));
+               if (s(i) = CR or s(i) = LF) then
+                  exit;
+               end if;
+               i:=i+1;
+            end if;
+         end loop;
+         print("Received: " & s);
 
-   procedure uartRegWrite (
-      wrAddr : in slv(31 downto 0);
-      wrData : in slv(31 downto 0))
-   is
-      variable s     : string(1 to 20);
-      variable reply : string(1 to 24);
-   begin
-      s := "W " & hstr(wrAddr) & " " & hstr(wrData) & CR;
-      sendString(s);
-      receiveString(reply);
-   end procedure uartRegWrite;
+      end procedure receiveString;
 
-   procedure uartRegRead (
-      rdAddr : in    slv(31 downto 0);
-      rdData : inout slv(31 downto 0))
-   is
-      variable s     : string(1 to 11);
-      variable reply : string(1 to 30);
-      variable tmp   : integer;
-   begin
-      s      := "R " & hstr(rdAddr) & CR;
-      sendString(s);
-      receiveString(reply);
-      tmp    := int(reply(12 to 19), 16);
-      print(reply(12 to 19));
-      print(str(tmp));
-      rdData := toSlv(tmp, 32);
-      print("Read Data: " & hstr(rdData));
-   end procedure;
+      procedure uartRegWrite (
+         wrAddr : in slv(31 downto 0);
+         wrData : in slv(31 downto 0))
+      is
+         variable s     : string(1 to 20);
+         variable reply : string(1 to 24);
+      begin
+         s := "W " & hstr(wrAddr) & " " & hstr(wrData) & CR;
+         sendString(s);
+         receiveString(reply);
+      end procedure uartRegWrite;
 
-   variable addr : slv(31 downto 0);
-   variable data : slv(31 downto 0);
+      procedure uartRegRead (
+         rdAddr : in    slv(31 downto 0);
+         rdData : inout slv(31 downto 0))
+      is
+         variable s     : string(1 to 11);
+         variable reply : string(1 to 30);
+         variable tmp : integer;
+      begin
+         s      := "R " & hstr(rdAddr) & CR;
+         sendString(s);
+         receiveString(reply);
+         tmp := int(reply(12 to 19), 16);
+         print(reply(12 to 19));
+         print(str(tmp));
+         rdData := toSlv(tmp, 32);
+         print("Read Data: " & hstr(rdData));
+      end procedure;
+
+      variable addr : slv(31 downto 0);
+      variable data : slv(31 downto 0);
    begin
       wait until rst = '1';
       wait until rst = '0';
@@ -261,9 +252,9 @@ begin
       wait until clk = '1';
 
       uartRegWrite(X"12345670", X"08765432");
-      uartRegWrite(X"03030300", X"12345678");
+      uartRegWrite(X"03030300", X"12345678");      
       uartRegRead(X"12345670", data);
-      uartRegRead(X"03030300", data);
+      uartRegRead(X"03030300", data);      
 
 
    end process test;
