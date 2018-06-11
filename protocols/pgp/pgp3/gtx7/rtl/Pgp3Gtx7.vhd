@@ -2,7 +2,7 @@
 -- File       : Pgp3Gtx7.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2018-04-23
+-- Last update: 2018-06-11
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -32,7 +32,7 @@ use UNISIM.VCOMPONENTS.all;
 entity Pgp3Gtx7 is
    generic (
       TPD_G                       : time                  := 1 ns;
-      RATE_G                      : string                := "10.3125Gbps";  -- or "6.25Gbps" 
+      RATE_G                      : string                := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
@@ -155,8 +155,8 @@ architecture rtl of Pgp3Gtx7 is
 
 begin
 
-   assert ((RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps"))
-      report "RATE_G: Must be either 6.25Gbps or 10.3125Gbps"
+   assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps"))
+      report "RATE_G: Must be either 3.125Gbps, 6.25Gbps or 10.3125Gbps"
       severity error;
 
    pgpClk    <= pgpTxClkInt;
