@@ -154,7 +154,7 @@ begin
          elsif (pgpTxIn.flowCntlDis = '1') then
             disableSel(i) <= '0';
          else
-            disableSel(i) <= syncRemRxFifoCtrl(i).pause or syncRemRxFifoCtrl(i).overflow;
+            disableSel(i) <= syncRemRxFifoCtrl(i).pause;
          end if;
       end loop;
    end process;
