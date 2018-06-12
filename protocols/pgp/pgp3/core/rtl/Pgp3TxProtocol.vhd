@@ -69,6 +69,7 @@ end entity Pgp3TxProtocol;
 architecture rtl of Pgp3TxProtocol is
 
    type RegType is record
+      locRxOverflow  : slv(NUM_VC_G-1 downto 0);
       skpCount       : slv(31 downto 0);
       startupCount   : integer;
       pgpTxSlave     : AxiStreamSlaveType;
@@ -83,6 +84,7 @@ architecture rtl of Pgp3TxProtocol is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      locRxOverflow  => (others => '0'),
       skpCount       => (others => '0'),
       startupCount   => 0,
       pgpTxSlave     => AXI_STREAM_SLAVE_INIT_C,
@@ -102,13 +104,26 @@ begin
 
    comb : process (locRxFifoCtrl, locRxLinkReady, pgpTxIn, pgpTxMaster,
                    pgpTxRst, phyTxActive, protTxReady, r, remRxLinkReady) is
-      variable v        : RegType;
-      variable linkInfo : slv(39 downto 0);
-      variable dataEn   : sl;
+      variable v            : RegType;
+      variable linkInfo     : slv(39 downto 0);
+      variable dataEn       : sl;
+      variable rxFifoCtrl   : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
+      variable linkInfoSent : boolean;
    begin
       v := r;
 
-      linkInfo := pgp3MakeLinkInfo(locRxFifoCtrl, locRxLinkReady);
+      linkInfoSent := false;
+      rxFifoCtrl   := locRxFifoCtrl;
+      for i in NUM_VC_G-1 downto 0 loop
+         -- Check for overflow event
+         if (locRxFifoCtrl(i).overflow = '1') then
+            v.locRxOverflow(i) := '1';
+         end if;
+         rxFifoCtrl(i).overflow := v.locRxOverflow(i);
+      end loop;
+
+      -- Generate the link information message
+      linkInfo := pgp3MakeLinkInfo(rxFifoCtrl, locRxLinkReady);
 
       -- Always increment skpCount
       v.skpCount := r.skpCount + 1;
@@ -151,18 +166,23 @@ begin
 
          -- Send idle chars by default
          v.protTxData                        := (others => '0');
+         linkInfoSent                        := true;
          v.protTxData(PGP3_LINKINFO_FIELD_C) := linkInfo;
          v.protTxData(PGP3_BTF_FIELD_C)      := PGP3_IDLE_C;
          v.protTxHeader                      := PGP3_K_HEADER_C;
 
          -- Send data if there is data to send
          if (pgpTxMaster.tValid = '1' and dataEn = '1') then
-            v.pgpTxSlave.tReady := '1';  -- Accept the data
+            -- Accept the data
+            v.pgpTxSlave.tReady := '1';
+            -- Update the flag
+            linkInfoSent        := false;
 
             if (ssiGetUserSof(PGP3_AXIS_CONFIG_C, pgpTxMaster) = '1') then
                -- SOF/SOC, format SOF/SOC char from data
                v.protTxData                        := (others => '0');
                v.protTxData(PGP3_BTF_FIELD_C)      := ite(pgpTxMaster.tData(PACKETIZER2_HDR_SOF_BIT_C) = '1', PGP3_SOF_C, PGP3_SOC_C);
+               linkInfoSent                        := true;
                v.protTxData(PGP3_LINKINFO_FIELD_C) := linkInfo;
                v.protTxData(PGP3_SOFC_VC_FIELD_C)  := resize(pgpTxMaster.tData(PACKETIZER2_HDR_TDEST_FIELD_C), 4);  -- Virtual Channel
                v.protTxData(PGP3_SOFC_SEQ_FIELD_C) := resize(pgpTxMaster.tData(PACKETIZER2_HDR_SEQ_FIELD_C), 12);  -- Packet number
@@ -230,6 +250,11 @@ begin
          v.startupCount   := 0;
       end if;
 
+      -- Check if message sent
+      if (linkInfoSent) then
+         v.locRxOverflow := (others => '0');
+      end if;
+
       -- Combinatorial outputs before the reset
       pgpTxSlave <= v.pgpTxSlave;
 
@@ -268,5 +293,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-   
+
 end architecture rtl;

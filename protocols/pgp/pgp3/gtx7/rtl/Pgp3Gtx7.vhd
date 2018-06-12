@@ -42,7 +42,7 @@ entity Pgp3Gtx7 is
       RX_ALIGN_SLIP_WAIT_G        : integer               := 32;
       PGP_TX_ENABLE_G             : boolean               := true;
       NUM_VC_G                    : integer range 1 to 16 := 4;
-      TX_CELL_WORDS_MAX_G         : integer               := 256;  -- Number of 64-bit words per cell
+      TX_CELL_WORDS_MAX_G         : integer               := PGP3_DEFAULT_TX_CELL_WORDS_MAX_C;  -- Number of 64-bit words per cell
       TX_SKP_INTERVAL_G           : integer               := 5000;
       TX_SKP_BURST_SIZE_G         : integer               := 8;
       TX_MUX_MODE_G               : string                := "INDEXED";  -- Or "ROUTED"
