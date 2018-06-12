@@ -69,33 +69,37 @@ end entity Pgp3TxProtocol;
 architecture rtl of Pgp3TxProtocol is
 
    type RegType is record
-      locRxOverflow  : slv(NUM_VC_G-1 downto 0);
-      skpCount       : slv(31 downto 0);
-      startupCount   : integer;
-      pgpTxSlave     : AxiStreamSlaveType;
-      linkReady      : sl;
-      frameTx        : sl;
-      frameTxErr     : sl;
-      protTxValid    : sl;
-      protTxStart    : sl;
-      protTxSequence : slv(5 downto 0);
-      protTxData     : slv(63 downto 0);
-      protTxHeader   : slv(1 downto 0);
+      pauseEvent        : sl;
+      locRxFifoCtrlLast : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
+      locRxOverflow     : slv(NUM_VC_G-1 downto 0);
+      skpCount          : slv(31 downto 0);
+      startupCount      : integer;
+      pgpTxSlave        : AxiStreamSlaveType;
+      linkReady         : sl;
+      frameTx           : sl;
+      frameTxErr        : sl;
+      protTxValid       : sl;
+      protTxStart       : sl;
+      protTxSequence    : slv(5 downto 0);
+      protTxData        : slv(63 downto 0);
+      protTxHeader      : slv(1 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      locRxOverflow  => (others => '0'),
-      skpCount       => (others => '0'),
-      startupCount   => 0,
-      pgpTxSlave     => AXI_STREAM_SLAVE_INIT_C,
-      linkReady      => '0',
-      frameTx        => '0',
-      frameTxErr     => '0',
-      protTxValid    => '0',
-      protTxStart    => '0',
-      protTxSequence => (others => '0'),
-      protTxData     => (others => '0'),
-      protTxHeader   => (others => '0'));
+      pauseEvent        => '0',
+      locRxFifoCtrlLast => (others => (AXI_STREAM_CTRL_UNUSED_C)),
+      locRxOverflow     => (others => '0'),
+      skpCount          => (others => '0'),
+      startupCount      => 0,
+      pgpTxSlave        => AXI_STREAM_SLAVE_INIT_C,
+      linkReady         => '0',
+      frameTx           => '0',
+      frameTxErr        => '0',
+      protTxValid       => '0',
+      protTxStart       => '0',
+      protTxSequence    => (others => '0'),
+      protTxData        => (others => '0'),
+      protTxHeader      => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -113,13 +117,23 @@ begin
       v := r;
 
       linkInfoSent := false;
-      rxFifoCtrl   := locRxFifoCtrl;
+
+      -- Latch overlow detection
+      rxFifoCtrl := locRxFifoCtrl;
       for i in NUM_VC_G-1 downto 0 loop
          -- Check for overflow event
          if (locRxFifoCtrl(i).overflow = '1') then
             v.locRxOverflow(i) := '1';
          end if;
          rxFifoCtrl(i).overflow := v.locRxOverflow(i);
+      end loop;
+
+      -- Detect 0->1 edges on locRxFifoCtrl(x).pause
+      v.locRxFifoCtrlLast <= locRxFifoCtrl;
+      for i in NUM_VC_G-1 downto 0 loop
+         if (locRxFifoCtrl(i).pause = '1' and r.locRxFifoCtrlLast(i).pause = '0') then
+            v.pauseEvent := '1';
+         end if;
       end loop;
 
       -- Generate the link information message
@@ -206,13 +220,26 @@ begin
             end if;
          end if;
 
-         -- 
+         -- A local rx pause going high causes an IDLE char to be sent mid frame
+         -- So that the sending end is notified with minimim latency
+         if (r.pauseEvent = '1') then
+            v.pgpTxSlave.tReady                 := '0';
+            v.protTxData(PGP3_BTF_FIELD_C)      := PGP3_IDLE_C;
+            v.protTxData(PGP3_LINKINFO_FIELD_C) := linkInfo;
+            v.protTxHeader                      := PGP3_K_HEADER_C;
+            v.pauseEvent                        := '0';
+            linkInfoSent                        := true;
+         end if;
+
+
+         -- SKIP codes override data
          if (r.skpCount = pgpTxIn.skpInterval) then
             v.skpCount                     := (others => '0');
             v.pgpTxSlave.tReady            := '0';  -- Override any data acceptance.
             v.protTxData                   := (others => '0');
             v.protTxData(PGP3_BTF_FIELD_C) := PGP3_SKP_C;
             v.protTxHeader                 := PGP3_K_HEADER_C;
+            linkInfoSent                   := false;
          end if;
 
 
@@ -228,6 +255,7 @@ begin
             if (r.skpCount = SKP_INTERVAL_G-1) then
                v.skpCount := r.skpCount;
             end if;
+            linkInfoSent := false;
          end if;
 
          -- Check if TX is disabled
@@ -253,6 +281,7 @@ begin
       -- Check if message sent
       if (linkInfoSent) then
          v.locRxOverflow := (others => '0');
+         v.pauseEvent    := '0';
       end if;
 
       -- Combinatorial outputs before the reset
