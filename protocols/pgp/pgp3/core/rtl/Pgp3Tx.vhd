@@ -126,17 +126,22 @@ begin
          dataIn  => locRxLinkReady,                        -- [in]
          dataOut => syncLocRxLinkReady);                   -- [out]
    LOC_STATUS_SYNC : for i in NUM_VC_G-1 downto 0 generate
-      U_SynchronizerVector_1 : entity work.SynchronizerVector
+      U_Synchronizer_pause : entity work.Synchronizer
          generic map (
-            TPD_G   => TPD_G,
-            WIDTH_G => 2)
+            TPD_G => TPD_G)
          port map (
-            clk        => pgpTxClk,                        -- [in]
-            rst        => pgpTxRst,                        -- [in]
-            dataIn(0)  => locRxFifoCtrl(i).pause,          -- [in]
-            dataIn(1)  => locRxFifoCtrl(i).overflow,       -- [in]
-            dataOut(0) => syncLocRxFifoCtrl(i).pause,      -- [out]
-            dataOut(1) => syncLocRxFifoCtrl(i).overflow);  -- [out]
+            clk     => pgpTxClk,                              -- [in]
+            rst     => pgpTxRst,                              -- [in]
+            dataIn  => locRxFifoCtrl(i).pause,                -- [in]
+            dataOut => syncLocRxFifoCtrl(i).pause);           -- [out] 
+      U_Synchronizer_overflow : entity work.SynchronizerOneShot
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk     => pgpTxClk,                              -- [in]
+            rst     => pgpTxRst,                              -- [in]
+            dataIn  => locRxFifoCtrl(i).overflow,             -- [in]
+            dataOut => syncLocRxFifoCtrl(i).overflow);        -- [out]
    end generate;
 
    -- Use synchronized remote status to disable channels from mux selection
