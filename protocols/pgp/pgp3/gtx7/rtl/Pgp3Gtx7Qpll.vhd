@@ -2,7 +2,7 @@
 -- File       : Pgp3Gtx7Qpll.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-26
--- Last update: 2018-04-19
+-- Last update: 2018-06-10
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -32,7 +32,7 @@ entity Pgp3Gtx7Qpll is
       TPD_G         : time           := 1 ns;
       EN_DRP_G      : boolean        := true;
       REFCLK_TYPE_G : Pgp3RefClkType := PGP3_REFCLK_312_C;
-      RATE_G        : string         := "10.3125Gbps");  -- or "6.25Gbps" 
+      RATE_G        : string         := "10.3125Gbps");  -- or "6.25Gbps" or "3.125Gbps"
    port (
       -- Stable Clock and Reset
       stableClk       : in  sl;         -- GT needs a stable clock to "boot up"
@@ -69,7 +69,7 @@ architecture mapping of Pgp3Gtx7Qpll is
             return -1;
          end if;
       -----------------------------
-      -- RATE_G = 6.25Gbps
+      -- RATE_G = 6.25Gbps or 3.125Gbps
       -----------------------------
       else
          if (REFCLK_TYPE_G = PGP3_REFCLK_312_C) then
@@ -146,7 +146,7 @@ architecture mapping of Pgp3Gtx7Qpll is
             return -1;
          end if;
       -----------------------------
-      -- RATE_G = 6.25Gbps
+      -- RATE_G = 6.25Gbps or 3.125Gbps
       -----------------------------
       else
          if (REFCLK_TYPE_G = PGP3_REFCLK_312_C) then
