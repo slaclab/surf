@@ -227,7 +227,6 @@ begin
             v.protTxData(PGP3_BTF_FIELD_C)      := PGP3_IDLE_C;
             v.protTxData(PGP3_LINKINFO_FIELD_C) := linkInfo;
             v.protTxHeader                      := PGP3_K_HEADER_C;
-            v.pauseEvent                        := '0';
             linkInfoSent                        := true;
          end if;
 
