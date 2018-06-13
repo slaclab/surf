@@ -481,8 +481,6 @@ class Pgp3GthUs(pr.Device):
                  enMon = True,
                  numVc = 4,                 
                  monWriteEn = False,
-                 mon8 = 4,
-                 mon32 = 32,
                  **kwargs):
         super().__init__(self, **kwargs)
         
@@ -491,8 +489,6 @@ class Pgp3GthUs(pr.Device):
                 offset = 0x0,
                 numVc = numVc,
                 writeEn = monWriteEn,
-                8 = mon8,
-                32 = mon32,
             ))
 
         if enDrp:
