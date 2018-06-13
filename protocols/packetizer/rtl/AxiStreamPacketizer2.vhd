@@ -381,13 +381,11 @@ begin
             v.tailCrcReady := '1';
             if (r.tailCrcReady = '1') then
                if (v.outputAxisMaster.tValid = '0') then
-                  -- Send the tail
-                  v.outputAxisMaster.tValid := '1';
                   -- Assign the tail txn
                   v.outputAxisMaster :=
                      makePacketizer2Tail(
                         CRC_MODE_C => CRC_MODE_G,
-                        valid      => '0',  -- Override below
+                        valid      => '1',
                         eof        => r.eof,
                         tuser      => r.tUserLast,
                         bytes      => r.lastByteCount,
