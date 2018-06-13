@@ -3,8 +3,6 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-03-30
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
 -- Takes pre-packetized AxiStream frames and creates a PGP3 66/64 protocol
@@ -69,7 +67,7 @@ end entity Pgp3TxProtocol;
 architecture rtl of Pgp3TxProtocol is
 
    type RegType is record
-      pauseEvent        : sl;
+      pauseEvent        : slv(NUM_VC_G-1 downto 0);
       locRxFifoCtrlLast : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
       locRxOverflow     : slv(NUM_VC_G-1 downto 0);
       skpCount          : slv(31 downto 0);
@@ -86,7 +84,7 @@ architecture rtl of Pgp3TxProtocol is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      pauseEvent        => '0',
+      pauseEvent        => (others => '0'),
       locRxFifoCtrlLast => (others => (AXI_STREAM_CTRL_UNUSED_C)),
       locRxOverflow     => (others => '0'),
       skpCount          => (others => '0'),
@@ -118,7 +116,7 @@ begin
 
       linkInfoSent := false;
 
-      -- Latch overlow detection
+      -- Latch overflow detection
       rxFifoCtrl := locRxFifoCtrl;
       for i in NUM_VC_G-1 downto 0 loop
          -- Check for overflow event
@@ -129,11 +127,13 @@ begin
       end loop;
 
       -- Detect 0->1 edges on locRxFifoCtrl(x).pause
-      v.locRxFifoCtrlLast <= locRxFifoCtrl;
+      v.locRxFifoCtrlLast := locRxFifoCtrl;
       for i in NUM_VC_G-1 downto 0 loop
          if (locRxFifoCtrl(i).pause = '1' and r.locRxFifoCtrlLast(i).pause = '0') then
-            v.pauseEvent := '1';
+            v.pauseEvent(i) := '1';
          end if;
+         -- Include the pauseEvent in the linkInfo message
+         rxFifoCtrl(i).pause := r.pauseEvent(i) or locRxFifoCtrl(i).pause;
       end loop;
 
       -- Generate the link information message
@@ -222,7 +222,7 @@ begin
 
          -- A local rx pause going high causes an IDLE char to be sent mid frame
          -- So that the sending end is notified with minimim latency
-         if (r.pauseEvent = '1') then
+         if (r.pauseEvent /= 0) then
             v.pgpTxSlave.tReady                 := '0';
             v.protTxData(PGP3_BTF_FIELD_C)      := PGP3_IDLE_C;
             v.protTxData(PGP3_LINKINFO_FIELD_C) := linkInfo;
@@ -280,7 +280,7 @@ begin
       -- Check if message sent
       if (linkInfoSent) then
          v.locRxOverflow := (others => '0');
-         v.pauseEvent    := '0';
+         v.pauseEvent    := (others => '0');
       end if;
 
       -- Combinatorial outputs before the reset
