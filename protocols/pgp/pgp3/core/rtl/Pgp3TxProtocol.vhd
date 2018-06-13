@@ -110,8 +110,8 @@ architecture rtl of Pgp3TxProtocol is
 
 begin
 
-   comb : process (locRxFifoCtrl, locRxLinkReady, pgpTxIn, pgpTxMaster,
-                   pgpTxRst, phyTxActive, protTxReady, r, remRxLinkReady) is
+   comb : process (locRxFifoCtrl, locRxLinkReady, pgpTxIn, pgpTxMaster, pgpTxRst, phyTxActive,
+                   protTxReady, r, remRxLinkReady) is
       variable v                  : RegType;
       variable linkInfo           : slv(39 downto 0);
       variable dataEn             : sl;
@@ -125,23 +125,24 @@ begin
       resetEventMetaData := false;
       rxFifoCtrl         := locRxFifoCtrl;
 
-      -- Detect 0->1 edges on locRxFifoCtrl(i).pause
+      -- Detect 0->1 edges on locRxFifoCtrl(i).pause and locRxFifoCtrl(i).overflow
       for i in NUM_VC_G-1 downto 0 loop
-         v.pauseDly(i) := locRxFifoCtrl(i).pause;
+         -- Save last value for edge detection
+         v.pauseDly(i)    := locRxFifoCtrl(i).pause;
+         v.overflowDly(i) := locRxFifoCtrl(i).overflow;
+
+         -- Check for rising edge on pause
          if (locRxFifoCtrl(i).pause = '1') and (r.pauseDly(i) = '0') then
             v.pauseEvent(i) := '1';
          end if;
-         -- Include the pauseEvent in the linkInfo message
-         rxFifoCtrl(i).pause := r.pauseEvent(i) or locRxFifoCtrl(i).pause;
-      end loop;
 
-      -- Detect 0->1 edges on locRxFifoCtrl(i).overflow
-      for i in NUM_VC_G-1 downto 0 loop
-         v.overflowDly(i) := locRxFifoCtrl(i).overflow;
-         -- Check for overflow event
+         -- Check for rising edge on overflow         
          if (locRxFifoCtrl(i).overflow = '1') and (r.overflowDly(i) = '0') then
             v.overflowEvent(i) := '1';
          end if;
+
+         -- Include the pauseEvent or overflowEvent in the linkInfo message
+         rxFifoCtrl(i).pause    := r.pauseEvent(i) or locRxFifoCtrl(i).pause;
          rxFifoCtrl(i).overflow := r.overflowEvent(i) or locRxFifoCtrl(i).overflow;
       end loop;
 
@@ -253,7 +254,7 @@ begin
          -- SKIP codes override data
          elsif (r.skpCount = pgpTxIn.skpInterval) then
             v.skpCount                     := (others => '0');
-            v.pgpTxSlave.tReady            := '0';  -- Override any data acceptance.
+            v.pgpTxSlave.tReady            := '0';            -- Override any data acceptance.
             v.protTxData                   := (others => '0');
             v.protTxData(PGP3_BTF_FIELD_C) := PGP3_SKP_C;
             v.protTxHeader                 := PGP3_K_HEADER_C;
