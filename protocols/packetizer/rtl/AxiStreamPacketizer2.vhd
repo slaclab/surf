@@ -2,7 +2,7 @@
 -- File       : AxiStreamPacketizer2.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-05-02
--- Last update: 2018-03-02
+-- Last update: 2018-06-13
 -------------------------------------------------------------------------------
 -- Description: Formats an AXI-Stream for a transport link.
 -- Sideband fields are placed into the data stream in a header.
@@ -373,16 +373,6 @@ begin
             v.crcDataValid := not(r.tailCrcReady);
             v.crcDataWidth := "011";    -- 32-bit transfer
 
-            -- Assign the tail txn
-            v.outputAxisMaster :=
-               makePacketizer2Tail(
-                  CRC_MODE_C => CRC_MODE_G,
-                  valid      => '0',    -- Override below
-                  eof        => r.eof,
-                  tuser      => r.tUserLast,
-                  bytes      => r.lastByteCount,
-                  crc        => crcOut);
-
             -- It CRC_HEAD_TAIL_G = true, tailCrcReady will be '0' coming in to this state
             -- This delays the output txn by 1 cycle to allow the CRC to be
             -- calculated on the tail data
@@ -391,13 +381,20 @@ begin
             v.tailCrcReady := '1';
             if (r.tailCrcReady = '1') then
                if (v.outputAxisMaster.tValid = '0') then
-                  -- Send the tail
-                  v.outputAxisMaster.tValid := '1';
+                  -- Assign the tail txn
+                  v.outputAxisMaster :=
+                     makePacketizer2Tail(
+                        CRC_MODE_C => CRC_MODE_G,
+                        valid      => '1',
+                        eof        => r.eof,
+                        tuser      => r.tUserLast,
+                        bytes      => r.lastByteCount,
+                        crc        => crcOut);
                   -- Save current CRC and packet state in ram
                   -- and clear registers for next frame
-                  v.ramWe                   := '1';
-                  v.eof                     := '0';
-                  v.tUserLast               := (others => '0');
+                  v.ramWe     := '1';
+                  v.eof       := '0';
+                  v.tUserLast := (others => '0');
                   -- Check for BRAM used
                   if (BRAM_EN_G) then
                      -- Next state (1 cycle read latency)
