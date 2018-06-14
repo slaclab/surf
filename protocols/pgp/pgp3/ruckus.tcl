@@ -17,15 +17,15 @@ if { ${family} eq {kintex7} ||
 # }
 
 if { ${family} eq {kintexu} } {
-   loadRuckusTcl "$::DIR_PATH/gthUltraScale"
+   loadRuckusTcl "$::DIR_PATH/gthUs"
 }
 
 # if { ${family} eq {kintexuplus} ||
      # ${family} eq {zynquplus} } {
-   # loadRuckusTcl "$::DIR_PATH/gthUltraScale+"
-   # loadRuckusTcl "$::DIR_PATH/gtyUltraScale+"
+   # loadRuckusTcl "$::DIR_PATH/gthUs+"
+   # loadRuckusTcl "$::DIR_PATH/gtyUs+"
 # }
 
 # if { ${family} eq {virtexuplus} } {
-   # loadRuckusTcl "$::DIR_PATH/gtyUltraScale+"
+   # loadRuckusTcl "$::DIR_PATH/gtyUs+"
 # }
