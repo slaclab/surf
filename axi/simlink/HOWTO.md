@@ -164,3 +164,17 @@ elaborate()
 +  vcs $vcs_elab_opts xil_defaultlib.DesyTrackerTb -o simv
 }
 ```
+
+Now source the environment file and run vcs:
+
+```tcsh
+> source setup_env.csh
+> ./simv -gui&
+```
+
+This will launch the GUI. You can drag whatever you want to see into the waveform viewer then start the simulation running.
+
+## Run the software
+
+In a separate terminal, launch your Rogue GUI or script that uses `pyrogue.interfaces.simulation.StreamSim`.
+It should act on the running VCS sim.
