@@ -1,6 +1,6 @@
 # Software-Firmware co-simulation with VCS and Rogue
 
-## Instantiate `RogueStreamSimWrap`
+## Instantiate `RogueStreamSimWrap` in Firmware
 
 The firmware will need an instance of `RogueStreamSimWrap` per Virtual Channel / TDEST.
 
@@ -8,9 +8,13 @@ For cases where a PGP2b interface is being emulated, you can use `RoguePgpSim` i
 This will instantiate 4 `RogueStreamSimWrap` instances, one per VC. It will also
 instantiate a 5th instance specifically for OpCodes.
 
+The `DEST_ID_G` and `USER_ID_G` generics constitute the channel addressing.
+You will use these same numbers when instantiating the streams on the software side.
+
 Example:
 
 ``` VHDL
+
 SIM_GEN : if (SIMULATION_G) generate
    DESTS : for i in 1 downto 0 generate
     U_RogueStreamSimWrap_1 : entity work.RogueStreamSimWrap
@@ -22,16 +26,107 @@ SIM_GEN : if (SIMULATION_G) generate
             COMMON_SLAVE_CLK_G  => true,
             AXIS_CONFIG_G       => AXIS_CONFIG_C)
          port map (
-            clk         => ethClk,            -- [in]
-            rst         => ethRst,            -- [in]
-            sAxisClk    => ethClk,            -- [in]
-            sAxisRst    => ethRst,            -- [in]
-            sAxisMaster => rssiIbMasters(i),  -- [in]
-            sAxisSlave  => rssiIbSlaves(i),   -- [out]
-            mAxisClk    => ethClk,            -- [in]
-            mAxisRst    => ethRst,            -- [in]
-            mAxisMaster => rssiObMasters(i),  -- [out]
-            mAxisSlave  => rssiObSlaves(i));  -- [in]
+            clk         => pgpClk,            -- [in]
+            rst         => pgpRst,            -- [in]
+            sAxisClk    => pgpClk,            -- [in]
+            sAxisRst    => pgpRst,            -- [in]
+            sAxisMaster => txMasters(i),      -- [in]
+            sAxisSlave  => txSlaves(i),       -- [out]
+            mAxisClk    => pgpClk,            -- [in]
+            mAxisRst    => pgpRst,            -- [in]
+            mAxisMaster => rxMasters(i),      -- [out]
+            mAxisSlave  => rxSlaves(i));      -- [in]
    end generate DESTS;
 end generate SIM_GEN;
+HW_GEN : if (not SIMULATION_G) generate
+  -- Instantiate normal PGP or Ethernet/UDP blocks here
+end generate HW_GEN;
 ```
+
+### Warning
+
+`RogueStreamSimWrap uses normal AxiStream flow control with AxiStreamSlave.
+PGP and blocks use PAUSE based flow control with AxiStreamCtrl for RX streams
+
+This means you'll probably have to do something like this:
+
+``` VHDL
+U_SRPv3 : entity work.SrpV3AxiLite
+   generic map (
+      TPD_G               => TPD_G,
+      SLAVE_READY_EN_G    => SIMULATION_G, -- Use READY when in SIMULATION mode
+      GEN_SYNC_FIFO_G     => false,
+      AXI_STREAM_CONFIG_G => AXIS_CONFIG_C)
+   port map (
+      -- Streaming Slave (Rx) Interface (sAxisClk domain) 
+      sAxisClk         => pgpClk,
+      sAxisRst         => pgpRst,
+      sAxisMaster      => rxMasters(0),
+      sAxisSlave       => rxSlaves(0),
+      sAxisCtrl        => rxCtrl(0),
+      -- Streaming Master (Tx) Data Interface (mAxisClk domain)
+      mAxisClk         => pgpClk,
+      mAxisRst         => pgpRst,
+      mAxisMaster      => txMasters(0),
+      mAxisSlave       => txSlaves(0),
+      -- AXI Lite Bus (axilClk domain)
+      axilClk          => axilClk,
+      axilRst          => axilClk,
+      mAxilReadMaster  => mAxilReadMaster,
+      mAxilReadSlave   => mAxilReadSlave,
+      mAxilWriteMaster => mAxilWriteMaster,
+      mAxilWriteSlave  => mAxilWriteSlave);
+```
+
+Note thate `SLAVE_READY_EN_G` gets set to `True` when compiling for simulation.
+
+## Instantiate `StreamSim` in Software
+
+The class `pyrogue.interfaces.simulation.StreamSim` is a Rogue Stream Master+Slave.
+You can instantiate and use it in place of `pyrogue.protocols.UdpRssiPack` or `rogue.hardware.pgp.PgpCard`.
+
+Example:
+
+```python
+ if mode == "SIM":
+     dest0 = pyrogue.interfaces.simulation.StreamSim(host='localhost', dest=0, uid=1, ssi=True)
+     dest1 = pyrogue.interfaces.simulation.StreamSim(host='localhost', dest=1, uid=1, ssi=True)
+ 
+ elif mode == "HW":
+     udp = pyrogue.protocols.UdpRssiPack( host='192.168.1.10', port=8192, packVer=2 )                
+     dest0 = udp.application(dest=0)
+     dest1 = udp.application(dest=1)
+```
+
+Note that `StreamSim` `dest=` and `uid=` parameters correspond to the `DEST_ID_G` and `USER_ID_G` generics respectively.
+
+## Symlink the SURF simlink folder into the firmware target folder
+
+```bash
+> cd firmawre/targets/Project1
+> ln -s ../../submodules/surf/axi/simlink/ simlink
+```
+
+## Build and run your firmware with VCS
+
+First, you'll need to setup the Vivado and VCS environment if you haven't already:
+
+```tcsh
+> source /afs/slac/g/reseng/xilinx/vivado_2018.1/Vivado/2018.1/settings64.csh
+> source /afs/slac/g/reseng/synopsys/vcs-mx/N-2017.12-1/settings.csh 
+```
+
+Then build make your firmware with VCS
+
+```tcsh
+> cd firmware/targets/Project1
+> make vcs
+```
+
+When this is done it will give you instructions on how to procede:
+
+
+
+
+
+
