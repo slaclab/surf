@@ -43,10 +43,10 @@ HW_GEN : if (not SIMULATION_G) generate
 end generate HW_GEN;
 ```
 
-### Warning
+#### Warning
 
-`RogueStreamSimWrap uses normal AxiStream flow control with AxiStreamSlave.
-PGP and blocks use PAUSE based flow control with AxiStreamCtrl for RX streams
+>`RogueStreamSimWrap uses normal AxiStream flow control with AxiStreamSlave.
+>PGP and blocks use PAUSE based flow control with AxiStreamCtrl for RX streams
 
 This means you'll probably have to do something like this:
 
@@ -125,7 +125,7 @@ Then build make your firmware with VCS
 > make vcs
 ```
 
-### Annoyance
+#### Annoyance
 > The `make vcs` command will open up every single DCP in SURF and spend a bunch of time
 > generating simulation code for them regardless of whether you instantiate them in your design.
 > **We should fix this.**
