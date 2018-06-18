@@ -45,8 +45,8 @@ end generate HW_GEN;
 
 #### Warning
 
->`RogueStreamSimWrap uses normal AxiStream flow control with AxiStreamSlave.
->PGP and blocks use PAUSE based flow control with AxiStreamCtrl for RX streams
+> `RogueStreamSimWrap uses normal AxiStream flow control with AxiStreamSlave.
+> PGP blocks use PAUSE based flow control with AxiStreamCtrl for RX streams
 
 This means you'll probably have to do something like this:
 
@@ -113,27 +113,54 @@ First, you'll need to setup the Vivado and VCS environment if you haven't alread
 
 ```tcsh
 > source /afs/slac/g/reseng/xilinx/vivado_2018.1/Vivado/2018.1/settings64.csh
-> source /afs/slac/g/reseng/synopsys/vcs-mx/N-2017.12-1/settings.csh
+> source /afs/slac/g/reseng/synopsys/vcs-mx/M-2017.03-1/settings.csh
 > source /path/to/rogue/setup_slac.csh
 > source /path/to/rogue/setup_rogue.csh
 ```
 
-Then build make your firmware with VCS
+**VCS version N-2017.12-1 does not work!**
+
+Also, your makefile needs to set:
+
+```export REMOVE_UNUSED_CODE = 1```
+
+Then make your firmware with VCS
 
 ```tcsh
 > cd firmware/targets/Project1
 > make vcs
 ```
 
-#### Annoyance
-> The `make vcs` command will open up every single DCP in SURF and spend a bunch of time
-> generating simulation code for them regardless of whether you instantiate them in your design.
-> **We should fix this.**
-
+What `make vcs` does is build VCS project makefiles based on your Vivado project heirarchy.
 When `make vcs` is done it will give you instructions on how to procede:
 
 
+```
+********************************************************
+The VCS simulation script has been generated.
+To compile and run the simulation:
+	$ cd /u/re/bareese/projects/kpix/firmware/build/DesyTracker/DesyTracker_project.sim/sim_1/behav/
+	$ ./sim_vcs_mx.sh
+	$ source setup_env.csh
+	$ ./simv
+********************************************************
+```
 
+You might get the following error:
 
+>Error-[VH-DANGLEVL-NA] VL top in pure VHDL flow
+>  A pure VHDL design is currently being simulated. In this pure VHDL design 
+>  flow, dangling verilog top(s) 'xil_defaultlib.glbl' have been specified and 
+>  this is not supported by VCS.
+>  Either remove the dangling verilog top(s) from vcs command line, or modify 
+>  the pure VHDL design to mixed HDL.
 
-
+To fix it, open up `sim_vcs_mx.sh` and make this change:
+```diff
+# RUN_STEP: <elaborate>
+elaborate()
+{
+-  vcs $vcs_elab_opts xil_defaultlib.DesyTrackerTb xil_defaultlib.glbl -o simv
++  vcs $vcs_elab_opts xil_defaultlib.DesyTrackerTb -o simv
+}
+```
