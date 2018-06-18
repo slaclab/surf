@@ -113,7 +113,9 @@ First, you'll need to setup the Vivado and VCS environment if you haven't alread
 
 ```tcsh
 > source /afs/slac/g/reseng/xilinx/vivado_2018.1/Vivado/2018.1/settings64.csh
-> source /afs/slac/g/reseng/synopsys/vcs-mx/N-2017.12-1/settings.csh 
+> source /afs/slac/g/reseng/synopsys/vcs-mx/N-2017.12-1/settings.csh
+> source /path/to/rogue/setup_slac.csh
+> source /path/to/rogue/setup_rogue.csh
 ```
 
 Then build make your firmware with VCS
@@ -123,7 +125,12 @@ Then build make your firmware with VCS
 > make vcs
 ```
 
-When this is done it will give you instructions on how to procede:
+### Annoyance
+> The `make vcs` command will open up every single DCP in SURF and spend a bunch of time
+> generating simulation code for them regardless of whether you instantiate them in your design.
+> **We should fix this.**
+
+When `make vcs` is done it will give you instructions on how to procede:
 
 
 
