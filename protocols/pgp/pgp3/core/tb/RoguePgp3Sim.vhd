@@ -30,30 +30,31 @@ use unisim.vcomponents.all;
 
 entity RoguePgp3Sim is
    generic (
-      TPD_G       : time                   := 1 ns;
-      USER_ID_G   : integer range 0 to 100 := 1;
-      NUM_VC_EN_G : integer range 1 to 16  := 4);
+      TPD_G     : time                   := 1 ns;
+      USER_ID_G : integer range 0 to 100 := 1;
+      NUM_VC_G  : integer range 1 to 16  := 4);
    port (
       -- GT Ports
-      pgpClkP         : in  sl;
-      pgpClkN         : in  sl;
-      pgpRxP          : in  sl;
-      pgpRxN          : in  sl;
-      pgpTxP          : out sl                     := '0';
-      pgpTxN          : out sl                     := '1';
+      pgpRefClk       : in  sl;
+      pgpGtRxP        : in  sl;
+      pgpGtRxN        : in  sl;
+      pgpGtTxP        : out sl                     := '0';
+      pgpGtTxN        : out sl                     := '1';
       -- PGP Clock and Reset
       pgpClk          : out sl;
-      pgpRst          : out sl;
-      -- TX Interface (pgpClk domain)
-      pgpTxIn         : in  Pgp3TxInType           := PGP3_TX_IN_INIT_C;
-      pgpTxOut        : out Pgp3TxOutType;
-      pgpTxMasters    : in  AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0);
-      pgpTxSlaves     : out AxiStreamSlaveArray(NUM_VC_EN_G-1 downto 0);
-      -- RX Interface (pgpClk domain)
-      pgpRxIn         : in  Pgp3RxInType           := PGP3_RX_IN_INIT_C;
+      pgpClkRst       : out sl;
+      -- Non VC Rx Signals
+      pgpRxIn         : in  Pgp3RxInType;
       pgpRxOut        : out Pgp3RxOutType;
-      pgpRxMasters    : out AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0);
-      pgpRxSlaves     : in  AxiStreamSlaveArray(NUM_VC_EN_G-1 downto 0);
+      -- Non VC Tx Signals
+      pgpTxIn         : in  Pgp3TxInType;
+      pgpTxOut        : out Pgp3TxOutType;
+      -- Frame Transmit Interface
+      pgpTxMasters    : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
+      pgpTxSlaves     : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
+      -- Frame Receive Interface
+      pgpRxMasters    : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
+      pgpRxSlaves     : in  AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk         : in  sl                     := '0';  -- Stable Clock
       axilRst         : in  sl                     := '0';
@@ -68,21 +69,18 @@ architecture sim of RoguePgp3Sim is
    signal clk : sl := '0';
    signal rst : sl := '1';
 
-   txOut : Pgp3TxOutType := PGP3_TX_OUT_INIT_C;
-   rxOut : Pgp3RxOutType := PGP3_RX_OUT_INIT_C;
+   signal txOut : Pgp3TxOutType := PGP3_TX_OUT_INIT_C;
+   signal rxOut : Pgp3RxOutType := PGP3_RX_OUT_INIT_C;
 
 begin
 
-   pgpClk   <= clk;
-   pgpRst   <= rst;
+   pgpClk    <= clk;
+   pgpClkRst <= rst;
+
    pgpTxOut <= txOut;
    pgpRxOut <= rxOut;
 
-   U_IBUFDS : IBUFDS
-      port map (
-         I  => pgpClkP,
-         IB => pgpClkN,
-         O  => clk);
+   clk <= pgpRefClk;
 
    PwrUpRst_Inst : entity work.PwrUpRst
       generic map (
@@ -94,7 +92,7 @@ begin
          clk    => clk,
          rstOut => rst);
 
-   GEN_VEC : for i in NUM_VC_EN_G-1 downto 0 generate
+   GEN_VEC : for i in NUM_VC_G-1 downto 0 generate
       U_PGP_VC : entity work.RogueStreamSimWrap
          generic map (
             TPD_G               => TPD_G,
@@ -119,7 +117,7 @@ begin
    txOut.phyTxActive <= '1';
    txOut.linkReady   <= '1';
 
-   rxOut.phyTxActive    <= '1';
+   rxOut.phyRxActive    <= '1';
    rxOut.linkReady      <= '1';
    rxOut.remRxLinkReady <= '1';
 
