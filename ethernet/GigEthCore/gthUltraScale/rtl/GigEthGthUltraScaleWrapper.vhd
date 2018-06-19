@@ -2,7 +2,7 @@
 -- File       : GigEthGthUltraScaleWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-03-30
--- Last update: 2018-01-08
+-- Last update: 2018-06-19
 -------------------------------------------------------------------------------
 -- Description: Gth7 Wrapper for 1000BASE-X Ethernet
 -- Note: This module supports up to a MGT QUAD of 1GigE interfaces
@@ -41,7 +41,7 @@ entity GigEthGthUltraScaleWrapper is
       -- AXI-Lite Configurations
       EN_AXI_REG_G       : boolean                          := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G      : AxiStreamConfigArray(3 downto 0) := (others => AXI_STREAM_CONFIG_INIT_C));
+      AXIS_CONFIG_G      : AxiStreamConfigArray := (0 => AXI_STREAM_CONFIG_INIT_C));
    port (
       -- Local Configurations
       localMac            : in  Slv48Array(NUM_LANE_G-1 downto 0)              := (others => MAC_ADDR_INIT_C);
