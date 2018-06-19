@@ -90,7 +90,8 @@ entity Pgp3GthUsWrapper is
       pgpTxSlaves       : out AxiStreamSlaveArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
       -- Frame Receive Interface
       pgpRxMasters      : out AxiStreamMasterArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
-      pgpRxCtrl         : in  AxiStreamCtrlArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
+      pgpRxCtrl         : in  AxiStreamCtrlArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);  -- Unused in implementation only
+      pgpRxSlaves       : in  AxiStreamSlaveArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);  -- Unused in simulation only      
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk           : in  sl                     := '0';  -- Stable Clock
       axilRst           : in  sl                     := '0';
