@@ -2,7 +2,7 @@
 -- File       : Pgp3GthUsWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-27
--- Last update: 2018-05-03
+-- Last update: 2018-06-19
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -32,6 +32,8 @@ use unisim.vcomponents.all;
 entity Pgp3GthUsWrapper is
    generic (
       TPD_G                       : time                   := 1 ns;
+      ROGUE_SIM_EN_G              : boolean                := true;
+      ROGUE_SIM_USER_ID_G         : integer range 0 to 100 := 1;
       NUM_LANES_G                 : positive range 1 to 4  := 1;
       NUM_VC_G                    : positive range 1 to 16 := 4;
       REFCLK_G                    : boolean                := false;  --  FALSE: pgpRefClkP/N,  TRUE: pgpRefClkIn
@@ -156,114 +158,157 @@ begin
 
    end generate;
 
-   U_XBAR : entity work.AxiLiteCrossbar
-      generic map (
-         TPD_G              => TPD_G,
-         NUM_SLAVE_SLOTS_G  => 1,
-         NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
-         MASTERS_CONFIG_G   => XBAR_CONFIG_C)
-      port map (
-         axiClk              => axilClk,
-         axiClkRst           => axilRst,
-         sAxiWriteMasters(0) => axilWriteMaster,
-         sAxiWriteSlaves(0)  => axilWriteSlave,
-         sAxiReadMasters(0)  => axilReadMaster,
-         sAxiReadSlaves(0)   => axilReadSlave,
-         mAxiWriteMasters    => axilWriteMasters,
-         mAxiWriteSlaves     => axilWriteSlaves,
-         mAxiReadMasters     => axilReadMasters,
-         mAxiReadSlaves      => axilReadSlaves);
+   REAL_PGP : if (not ROGUE_SIM_EN_G) generate
 
-   U_QPLL : entity work.Pgp3GthUsQpll
-      generic map (
-         TPD_G    => TPD_G,
-         RATE_G   => RATE_G,
-         EN_DRP_G => EN_QPLL_DRP_G)
-      port map (
-         -- Stable Clock and Reset
-         stableClk       => stableClk,                            -- [in]
-         stableRst       => stableRst,                            -- [in]
-         -- QPLL Clocking
-         pgpRefClk       => pgpRefClk,                            -- [in]
-         qpllLock        => qpllLock,                             -- [out]
-         qpllClk         => qpllClk,                              -- [out]
-         qpllRefclk      => qpllRefclk,                           -- [out]
-         qpllRst         => qpllRst,                              -- [in]
-         axilClk         => axilClk,                              -- [in]
-         axilRst         => axilRst,                              -- [in]
-         axilReadMaster  => axilReadMasters(QPLL_AXIL_INDEX_C),   -- [in]
-         axilReadSlave   => axilReadSlaves(QPLL_AXIL_INDEX_C),    -- [out]
-         axilWriteMaster => axilWriteMasters(QPLL_AXIL_INDEX_C),  -- [in]
-         axilWriteSlave  => axilWriteSlaves(QPLL_AXIL_INDEX_C));  -- [out]
-
-   -----------
-   -- PGP Core
-   -----------
-   GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
-      U_Pgp : entity work.Pgp3GthUs
+      U_XBAR : entity work.AxiLiteCrossbar
          generic map (
-            TPD_G                       => TPD_G,
-            RATE_G                      => RATE_G,
-            ----------------------------------------------------------------------------------------------
-            -- PGP Settings
-            ----------------------------------------------------------------------------------------------
-            PGP_RX_ENABLE_G             => PGP_RX_ENABLE_G,
-            RX_ALIGN_GOOD_COUNT_G       => RX_ALIGN_GOOD_COUNT_G,
-            RX_ALIGN_BAD_COUNT_G        => RX_ALIGN_BAD_COUNT_G,
-            RX_ALIGN_SLIP_WAIT_G        => RX_ALIGN_SLIP_WAIT_G,
-            PGP_TX_ENABLE_G             => PGP_TX_ENABLE_G,
-            NUM_VC_G                    => NUM_VC_G,
-            TX_CELL_WORDS_MAX_G         => TX_CELL_WORDS_MAX_G,
-            TX_SKP_INTERVAL_G           => TX_SKP_INTERVAL_G,
-            TX_SKP_BURST_SIZE_G         => TX_SKP_BURST_SIZE_G,
-            TX_MUX_MODE_G               => TX_MUX_MODE_G,
-            TX_MUX_TDEST_ROUTES_G       => TX_MUX_TDEST_ROUTES_G,
-            TX_MUX_TDEST_LOW_G          => TX_MUX_TDEST_LOW_G,
-            TX_MUX_ILEAVE_EN_G          => TX_MUX_ILEAVE_EN_G,
-            TX_MUX_ILEAVE_ON_NOTVALID_G => TX_MUX_ILEAVE_ON_NOTVALID_G,
-            EN_PGP_MON_G                => EN_PGP_MON_G,
-            EN_DRP_G                    => EN_GTH_DRP_G,
-            TX_POLARITY_G               => TX_POLARITY_G(i),
-            RX_POLARITY_G               => RX_POLARITY_G(i),
-            AXIL_BASE_ADDR_G            => XBAR_CONFIG_C(i).baseAddr,
-            AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G)
+            TPD_G              => TPD_G,
+            NUM_SLAVE_SLOTS_G  => 1,
+            NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
+            MASTERS_CONFIG_G   => XBAR_CONFIG_C)
+         port map (
+            axiClk              => axilClk,
+            axiClkRst           => axilRst,
+            sAxiWriteMasters(0) => axilWriteMaster,
+            sAxiWriteSlaves(0)  => axilWriteSlave,
+            sAxiReadMasters(0)  => axilReadMaster,
+            sAxiReadSlaves(0)   => axilReadSlave,
+            mAxiWriteMasters    => axilWriteMasters,
+            mAxiWriteSlaves     => axilWriteSlaves,
+            mAxiReadMasters     => axilReadMasters,
+            mAxiReadSlaves      => axilReadSlaves);
+
+      U_QPLL : entity work.Pgp3GthUsQpll
+         generic map (
+            TPD_G    => TPD_G,
+            RATE_G   => RATE_G,
+            EN_DRP_G => EN_QPLL_DRP_G)
          port map (
             -- Stable Clock and Reset
-            stableClk       => stableClk,
-            stableRst       => stableRst,
-            -- QPLL Interface
-            qpllLock        => qpllLock(i),
-            qpllClk         => qpllClk(i),
-            qpllRefclk      => qpllRefclk(i),
-            qpllRst         => qpllRst(i),
-            -- Gt Serial IO
-            pgpGtTxP        => pgpGtTxP(i),
-            pgpGtTxN        => pgpGtTxN(i),
-            pgpGtRxP        => pgpGtRxP(i),
-            pgpGtRxN        => pgpGtRxN(i),
-            -- Clocking
-            pgpClk          => pgpClk(i),
-            pgpClkRst       => pgpClkRst(i),
-            -- Non VC Rx Signals
-            pgpRxIn         => pgpRxIn(i),
-            pgpRxOut        => pgpRxOut(i),
-            -- Non VC Tx Signals
-            pgpTxIn         => pgpTxIn(i),
-            pgpTxOut        => pgpTxOut(i),
-            -- Frame Transmit Interface
-            pgpTxMasters    => pgpTxMasters(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
-            pgpTxSlaves     => pgpTxSlaves(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
-            -- Frame Receive Interface
-            pgpRxMasters    => pgpRxMasters(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
-            pgpRxCtrl       => pgpRxCtrl(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
-            -- AXI-Lite Register Interface (axilClk domain)
-            axilClk         => axilClk,
-            axilRst         => axilRst,
-            axilReadMaster  => axilReadMasters(i),
-            axilReadSlave   => axilReadSlaves(i),
-            axilWriteMaster => axilWriteMasters(i),
-            axilWriteSlave  => axilWriteSlaves(i));
+            stableClk       => stableClk,                            -- [in]
+            stableRst       => stableRst,                            -- [in]
+            -- QPLL Clocking
+            pgpRefClk       => pgpRefClk,                            -- [in]
+            qpllLock        => qpllLock,                             -- [out]
+            qpllClk         => qpllClk,                              -- [out]
+            qpllRefclk      => qpllRefclk,                           -- [out]
+            qpllRst         => qpllRst,                              -- [in]
+            axilClk         => axilClk,                              -- [in]
+            axilRst         => axilRst,                              -- [in]
+            axilReadMaster  => axilReadMasters(QPLL_AXIL_INDEX_C),   -- [in]
+            axilReadSlave   => axilReadSlaves(QPLL_AXIL_INDEX_C),    -- [out]
+            axilWriteMaster => axilWriteMasters(QPLL_AXIL_INDEX_C),  -- [in]
+            axilWriteSlave  => axilWriteSlaves(QPLL_AXIL_INDEX_C));  -- [out]
 
-   end generate GEN_LANE;
+      -----------
+      -- PGP Core
+      -----------
+      GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
+         U_Pgp : entity work.Pgp3GthUs
+            generic map (
+               TPD_G                       => TPD_G,
+               RATE_G                      => RATE_G,
+               ----------------------------------------------------------------------------------------------
+               -- PGP Settings
+               ----------------------------------------------------------------------------------------------
+               PGP_RX_ENABLE_G             => PGP_RX_ENABLE_G,
+               RX_ALIGN_GOOD_COUNT_G       => RX_ALIGN_GOOD_COUNT_G,
+               RX_ALIGN_BAD_COUNT_G        => RX_ALIGN_BAD_COUNT_G,
+               RX_ALIGN_SLIP_WAIT_G        => RX_ALIGN_SLIP_WAIT_G,
+               PGP_TX_ENABLE_G             => PGP_TX_ENABLE_G,
+               NUM_VC_G                    => NUM_VC_G,
+               TX_CELL_WORDS_MAX_G         => TX_CELL_WORDS_MAX_G,
+               TX_SKP_INTERVAL_G           => TX_SKP_INTERVAL_G,
+               TX_SKP_BURST_SIZE_G         => TX_SKP_BURST_SIZE_G,
+               TX_MUX_MODE_G               => TX_MUX_MODE_G,
+               TX_MUX_TDEST_ROUTES_G       => TX_MUX_TDEST_ROUTES_G,
+               TX_MUX_TDEST_LOW_G          => TX_MUX_TDEST_LOW_G,
+               TX_MUX_ILEAVE_EN_G          => TX_MUX_ILEAVE_EN_G,
+               TX_MUX_ILEAVE_ON_NOTVALID_G => TX_MUX_ILEAVE_ON_NOTVALID_G,
+               EN_PGP_MON_G                => EN_PGP_MON_G,
+               EN_DRP_G                    => EN_GTH_DRP_G,
+               TX_POLARITY_G               => TX_POLARITY_G(i),
+               RX_POLARITY_G               => RX_POLARITY_G(i),
+               AXIL_BASE_ADDR_G            => XBAR_CONFIG_C(i).baseAddr,
+               AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G)
+            port map (
+               -- Stable Clock and Reset
+               stableClk       => stableClk,
+               stableRst       => stableRst,
+               -- QPLL Interface
+               qpllLock        => qpllLock(i),
+               qpllClk         => qpllClk(i),
+               qpllRefclk      => qpllRefclk(i),
+               qpllRst         => qpllRst(i),
+               -- Gt Serial IO
+               pgpGtTxP        => pgpGtTxP(i),
+               pgpGtTxN        => pgpGtTxN(i),
+               pgpGtRxP        => pgpGtRxP(i),
+               pgpGtRxN        => pgpGtRxN(i),
+               -- Clocking
+               pgpClk          => pgpClk(i),
+               pgpClkRst       => pgpClkRst(i),
+               -- Non VC Rx Signals
+               pgpRxIn         => pgpRxIn(i),
+               pgpRxOut        => pgpRxOut(i),
+               -- Non VC Tx Signals
+               pgpTxIn         => pgpTxIn(i),
+               pgpTxOut        => pgpTxOut(i),
+               -- Frame Transmit Interface
+               pgpTxMasters    => pgpTxMasters(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
+               pgpTxSlaves     => pgpTxSlaves(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
+               -- Frame Receive Interface
+               pgpRxMasters    => pgpRxMasters(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
+               pgpRxCtrl       => pgpRxCtrl(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
+               -- AXI-Lite Register Interface (axilClk domain)
+               axilClk         => axilClk,
+               axilRst         => axilRst,
+               axilReadMaster  => axilReadMasters(i),
+               axilReadSlave   => axilReadSlaves(i),
+               axilWriteMaster => axilWriteMasters(i),
+               axilWriteSlave  => axilWriteSlaves(i));
+
+      end generate GEN_LANE;
+
+   end generate REAL_PGP;
+
+   SIM_PGP : if (ROGUE_SIM_EN_G) generate
+      GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
+         U_Rogue : entity work.RoguePgp3Sim
+            generic map(
+               TPD_G     => TPD_G,
+               USER_ID_G => (ROGUE_SIM_USER_ID_G+i),
+               NUM_VC_G  => NUM_VC_G)
+            port map(
+               -- GT Ports
+               pgpRefClk       => pgpRefClk,
+               pgpGtTxP        => pgpGtTxP(i),
+               pgpGtTxN        => pgpGtTxN(i),
+               pgpGtRxP        => pgpGtRxP(i),
+               pgpGtRxN        => pgpGtRxN(i),
+               -- PGP Clock and Reset
+               pgpClk          => pgpClk(i),
+               pgpClkRst       => pgpClkRst(i),
+               -- Non VC Rx Signals
+               pgpRxIn         => pgpRxIn(i),
+               pgpRxOut        => pgpRxOut(i),
+               -- Non VC Tx Signals
+               pgpTxIn         => pgpTxIn(i),
+               pgpTxOut        => pgpTxOut(i),
+               -- Frame Transmit Interface
+               pgpTxMasters    => pgpTxMasters(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
+               pgpTxSlaves     => pgpTxSlaves(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
+               -- Frame Receive Interface
+               pgpRxMasters    => pgpRxMasters(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
+               pgpRxSlave      => pgpRxSlaves(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
+               -- AXI-Lite Register Interface (axilClk domain)
+               axilClk         => axilClk,
+               axilRst         => axilRst,
+               axilReadMaster  => axilReadMasters(i),
+               axilReadSlave   => axilReadSlaves(i),
+               axilWriteMaster => axilWriteMasters(i),
+               axilWriteSlave  => axilWriteSlaves(i));
+      end generate GEN_LANE;
+   end generate SIM_PGP;
 
 end rtl;
