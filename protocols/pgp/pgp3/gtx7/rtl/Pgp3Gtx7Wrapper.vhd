@@ -31,7 +31,7 @@ use unisim.vcomponents.all;
 entity Pgp3Gtx7Wrapper is
    generic (
       TPD_G                       : time                   := 1 ns;
-      ROGUE_SIM_EN_G              : boolean                := true;
+      ROGUE_SIM_EN_G              : boolean                := false;
       ROGUE_SIM_USER_ID_G         : integer range 0 to 100 := 1;
       NUM_LANES_G                 : positive range 1 to 4  := 1;
       NUM_VC_G                    : positive range 1 to 16 := 4;
@@ -71,9 +71,9 @@ entity Pgp3Gtx7Wrapper is
       pgpGtRxP          : in  slv(NUM_LANES_G-1 downto 0);
       pgpGtRxN          : in  slv(NUM_LANES_G-1 downto 0);
       -- GT Clocking
-      pgpRefClkP        : in  sl                                := '0';
-      pgpRefClkN        : in  sl                                := '1';
-      pgpRefClkIn       : in  sl                                := '0';
+      pgpRefClkP        : in  sl                                                     := '0';
+      pgpRefClkN        : in  sl                                                     := '1';
+      pgpRefClkIn       : in  sl                                                     := '0';
       pgpRefClkOut      : out sl;
       pgpRefClkDiv2Bufg : out sl;
       -- Clocking
@@ -91,18 +91,18 @@ entity Pgp3Gtx7Wrapper is
       -- Frame Receive Interface
       pgpRxMasters      : out AxiStreamMasterArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
       pgpRxCtrl         : in  AxiStreamCtrlArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);  -- Unused in implementation only
-      pgpRxSlaves       : in  AxiStreamSlaveArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);  -- Unused in simulation only
+      pgpRxSlaves       : in  AxiStreamSlaveArray((NUM_LANES_G*NUM_VC_G)-1 downto 0) := (others => AXI_STREAM_SLAVE_FORCE_C);  -- Unused in simulation only
       -- Debug Interface 
-      txPreCursor       : in  Slv5Array(NUM_LANES_G-1 downto 0) := (others => "00111");
-      txPostCursor      : in  Slv5Array(NUM_LANES_G-1 downto 0) := (others => "00111");
-      txDiffCtrl        : in  Slv4Array(NUM_LANES_G-1 downto 0) := (others => "1111");
+      txPreCursor       : in  Slv5Array(NUM_LANES_G-1 downto 0)                      := (others => "00111");
+      txPostCursor      : in  Slv5Array(NUM_LANES_G-1 downto 0)                      := (others => "00111");
+      txDiffCtrl        : in  Slv4Array(NUM_LANES_G-1 downto 0)                      := (others => "1111");
       -- AXI-Lite Register Interface (axilClk domain)
-      axilClk           : in  sl                                := '0';  -- Stable Clock
-      axilRst           : in  sl                                := '0';
-      axilReadMaster    : in  AxiLiteReadMasterType             := AXI_LITE_READ_MASTER_INIT_C;
-      axilReadSlave     : out AxiLiteReadSlaveType              := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
-      axilWriteMaster   : in  AxiLiteWriteMasterType            := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave    : out AxiLiteWriteSlaveType             := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
+      axilClk           : in  sl                                                     := '0';  -- Stable Clock
+      axilRst           : in  sl                                                     := '0';
+      axilReadMaster    : in  AxiLiteReadMasterType                                  := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadSlave     : out AxiLiteReadSlaveType                                   := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
+      axilWriteMaster   : in  AxiLiteWriteMasterType                                 := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteSlave    : out AxiLiteWriteSlaveType                                  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 end Pgp3Gtx7Wrapper;
 
 architecture rtl of Pgp3Gtx7Wrapper is
@@ -357,7 +357,7 @@ begin
                pgpTxSlaves     => pgpTxSlaves(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
                -- Frame Receive Interface
                pgpRxMasters    => pgpRxMasters(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
-               pgpRxSlave      => pgpRxSlaves(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
+               pgpRxSlaves     => pgpRxSlaves(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
                -- AXI-Lite Register Interface (axilClk domain)
                axilClk         => axilClk,
                axilRst         => axilRst,
