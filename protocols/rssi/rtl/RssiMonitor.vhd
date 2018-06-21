@@ -106,10 +106,15 @@ entity RssiMonitor is
 end entity RssiMonitor;
 
 architecture rtl of RssiMonitor is
-   --
+  
    constant SAMPLES_PER_TIME_C : integer := integer(TIMEOUT_UNIT_G * CLK_FREQUENCY_G);
    constant SAMPLES_PER_TIME_DIV3_C : integer := integer(TIMEOUT_UNIT_G * CLK_FREQUENCY_G)/3;
-   --  
+  
+   constant MAX_TOUT_CNT_C     : slv(rssiParam_i.retransTout'left + bitSize(SAMPLES_PER_TIME_C) downto 0) := (others=>'1');
+   constant MAX_RETRANS_CNT_C  : slv(rssiParam_i.maxRetrans'left + bitSize(SAMPLES_PER_TIME_C) downto 0)  := (others=>'1');
+   constant MAX_NULL_CNT_C     : slv(rssiParam_i.nullSegTout'left + bitSize(SAMPLES_PER_TIME_C) downto 0) := (others=>'1');
+   constant MAX_ACK_TOUT_CNT_C : slv(rssiParam_i.cumulAckTout'left + bitSize(SAMPLES_PER_TIME_C) downto 0) := (others=>'1');
+     
    type RegType is record
       -- Retransmission
       retransToutCnt : slv(rssiParam_i.retransTout'left + bitSize(SAMPLES_PER_TIME_C) downto 0);
@@ -124,7 +129,7 @@ architecture rtl of RssiMonitor is
       nullTout    : sl;
       
       -- Ack packet cumulative/timeout
-      ackToutCnt  : slv(rssiParam_i.nullSegTout'left + bitSize(SAMPLES_PER_TIME_C) downto 0);
+      ackToutCnt  : slv(rssiParam_i.cumulAckTout'left + bitSize(SAMPLES_PER_TIME_C) downto 0);
       lastAckSeqN : slv(7 downto 0);      
       sndAck      : sl;
       
@@ -208,13 +213,13 @@ begin
           RETRANSMIT_ENABLE_G = false -- Disable retransmissions
       ) then
          v.retransToutCnt := (others=>'0');
-      else
+      elsif (r.retransToutCnt /= MAX_TOUT_CNT_C) then
          v.retransToutCnt := r.retransToutCnt+1;         
       end if; 
       
       -- Resend request SRFF 
       if (connActive_i = '0' or
-         (rxValid_i = '1' and rxFlags_i.busy = '1') or
+          rxFlags_i.busy = '1' or
           dataHeadSt_i = '1' or
           rstHeadSt_i  = '1' or
           nullHeadSt_i = '1' or
@@ -241,7 +246,9 @@ begin
       ) then
          v.retransCnt := (others=>'0');
       elsif (r.sndResend  = '1' and r.sndResendD1  = '0') then -- Rising edge
-         v.retransCnt := r.retransCnt+1;         
+         if (r.retransCnt /= MAX_RETRANS_CNT_C) then
+            v.retransCnt := r.retransCnt+1;         
+         end if;
       end if;
 
       -- Retransmission exceeded close connection request SRFF 
@@ -270,7 +277,7 @@ begin
           RETRANSMIT_ENABLE_G = false -- Disable null packet transmission  
       ) then
          v.nullToutCnt := (others=>'0');
-      else
+      elsif (r.nullToutCnt /= MAX_NULL_CNT_C) then
          v.nullToutCnt := r.nullToutCnt+1;         
       end if;
       
@@ -342,11 +349,10 @@ begin
       (rxLastSeqN_i - r.lastAckSeqN) = 0          
    ) then
       v.ackToutCnt := (others=>'0');
-   elsif (
-     (rxLastSeqN_i - r.lastAckSeqN) > 0   and 
-     (rxLastSeqN_i - r.lastAckSeqN) <= rxWindowSize_i
-   ) then       
-      v.ackToutCnt := r.ackToutCnt+1;         
+   elsif ((rxLastSeqN_i - r.lastAckSeqN) > 0   and (rxLastSeqN_i - r.lastAckSeqN) <= rxWindowSize_i) then       
+      if (r.ackToutCnt /= MAX_ACK_TOUT_CNT_C) then
+         v.ackToutCnt := r.ackToutCnt+1;         
+      end if; 
    end if; 
    
    -- Ack packet request SRFF 

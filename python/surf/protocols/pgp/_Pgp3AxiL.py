@@ -25,14 +25,12 @@ class Pgp3AxiL(pr.Device):
                  description = "Configuration and status a PGP 3 link",
                  numVc = 4,
                  writeEn = False,
-                 errorCountBits = 4,
-                 statusCountBits = 32,
                  **kwargs):
         super().__init__(description=description, **kwargs)
 
         def addErrorCountVar(**ecvkwargs):
             self.add(pr.RemoteVariable(
-                bitSize      = errorCountBits,
+                bitSize      = 8,
                 mode         = 'RO',
                 bitOffset    = 0,
                 base         = pr.UInt,
@@ -159,7 +157,7 @@ class Pgp3AxiL(pr.Device):
         self.add(pr.RemoteVariable(
             name         = "RxFrameCount",    
             offset       = 0x24, 
-            bitSize      = statusCountBits, 
+            bitSize      = 32, 
             bitOffset    = 0, 
             mode         = 'RO', 
             base         = pr.UInt, 
@@ -303,7 +301,7 @@ class Pgp3AxiL(pr.Device):
             mode         = 'RO',            
             offset       = 0x11C,
             bitOffset    = 1,
-            bitSize      = errorCountBits,
+            bitSize      = 8,
             pollInterval = 1,
         ))
 
@@ -423,7 +421,7 @@ class Pgp3AxiL(pr.Device):
         self.add(pr.RemoteVariable(
             name         = "TxFrameCount",    
             offset       = 0x90, 
-            bitSize      = statusCountBits, 
+            bitSize      = 32, 
             bitOffset    = 0, 
             mode         = 'RO', 
             base         = pr.UInt, 
@@ -483,8 +481,8 @@ class Pgp3GthUs(pr.Device):
                  enMon = True,
                  numVc = 4,                 
                  monWriteEn = False,
-                 monErrorCountBits = 4,
-                 monStatusCountBits = 32,
+                 mon8 = 4,
+                 mon32 = 32,
                  **kwargs):
         super().__init__(self, **kwargs)
         
@@ -493,8 +491,8 @@ class Pgp3GthUs(pr.Device):
                 offset = 0x0,
                 numVc = numVc,
                 writeEn = monWriteEn,
-                errorCountBits = monErrorCountBits,
-                statusCountBits = monStatusCountBits,
+                8 = mon8,
+                32 = mon32,
             ))
 
         if enDrp:

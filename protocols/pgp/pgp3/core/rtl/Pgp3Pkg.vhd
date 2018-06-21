@@ -29,6 +29,8 @@ use work.SsiPkg.all;
 package Pgp3Pkg is
 
    constant PGP3_VERSION_C : slv(2 downto 0) := "011";
+   
+   constant PGP3_DEFAULT_TX_CELL_WORDS_MAX_C : positive := 128;  -- Number of 64-bit words per cell
 
    constant PGP3_AXIS_CONFIG_C : AxiStreamConfigType :=
       ssiAxiStreamConfig(

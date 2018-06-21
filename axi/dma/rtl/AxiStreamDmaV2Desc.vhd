@@ -62,7 +62,8 @@ entity AxiStreamDmaV2Desc is
       dmaRdDescRet    : in  AxiReadDmaDescRetArray(CHAN_COUNT_G-1 downto 0);
       dmaRdDescRetAck : out slv(CHAN_COUNT_G-1 downto 0);
       -- Config
-      axiCache        : out slv(3 downto 0);
+      axiRdCache      : out slv(3 downto 0);
+      axiWrCache      : out slv(3 downto 0);
       -- AXI Interface
       axiWriteMaster  : out AxiWriteMasterType;
       axiWriteSlave   : in  AxiWriteSlaveType;
@@ -135,8 +136,9 @@ architecture rtl of AxiStreamDmaV2Desc is
       fifoReset    : sl;
       intSwAckReq  : sl;
       intAckCount  : slv(31 downto 0);
-      descCache    : slv(3 downto 0);
-      buffCache    : slv(3 downto 0);
+      descWrCache  : slv(3 downto 0);
+      buffRdCache  : slv(3 downto 0);
+      buffWrCache  : slv(3 downto 0);
 
       -- FIFOs
       fifoDin        : slv(31 downto 0);
@@ -196,8 +198,9 @@ architecture rtl of AxiStreamDmaV2Desc is
       fifoReset       => '1',
       intSwAckReq     => '0',
       intAckCount     => (others => '0'),
-      descCache       => (others => '0'),
-      buffCache       => (others => '0'),
+      descWrCache     => (others => '0'),
+      buffRdCache     => (others => '0'),
+      buffWrCache     => (others => '0'),
       fifoDin         => (others => '0'),
       wrFifoWr        => '0',
       rdFifoWr        => (others => '0'),
@@ -443,8 +446,9 @@ begin
 
       axiSlaveRegisterR(regCon, x"034", 0, toSlv(CHAN_COUNT_G, 8));
       axiSlaveRegisterR(regCon, x"038", 0, toSlv(DESC_AWIDTH_G, 8));
-      axiSlaveRegister(regCon, x"03C", 0, v.descCache);
-      axiSlaveRegister(regCon, x"03C", 8, v.buffCache);
+      axiSlaveRegister(regCon, x"03C",  0, v.descWrCache);
+      axiSlaveRegister(regCon, x"03C",  8, v.buffWrCache);
+      axiSlaveRegister(regCon, x"03C", 12, v.buffRdCache);
 
       axiSlaveRegister(regCon, x"040", 0, v.fifoDin);
       axiWrDetect(regCon, x"040", v.rdFifoWr(0));
@@ -573,7 +577,7 @@ begin
       v.dmaRdDescRetAck := (others => '0');
 
       -- Axi Cache
-      v.axiWriteMaster.awcache := r.descCache;
+      v.axiWriteMaster.awcache := r.descWrCache;
 
       -- Reset strobing Signals
       if (axiWriteSlave.awready = '1') or (AXI_READY_EN_G = false) then
@@ -814,7 +818,8 @@ begin
       dmaRdDescReq    <= r.dmaRdDescReq;
       dmaRdDescRetAck <= r.dmaRdDescRetAck;
       axiWriteMaster  <= r.axiWriteMaster;
-      axiCache        <= r.buffCache;
+      axiRdCache      <= r.buffRdCache;
+      axiWrCache      <= r.buffWrCache;
 
    end process comb;
 

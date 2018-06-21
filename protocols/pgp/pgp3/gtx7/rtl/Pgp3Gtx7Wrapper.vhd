@@ -2,7 +2,7 @@
 -- File       : Pgp3Gtx7Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-27
--- Last update: 2018-05-02
+-- Last update: 2018-06-10
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -34,7 +34,7 @@ entity Pgp3Gtx7Wrapper is
       TPD_G                       : time                   := 1 ns;
       NUM_LANES_G                 : positive range 1 to 4  := 1;
       NUM_VC_G                    : positive range 1 to 16 := 4;
-      RATE_G                      : string                 := "10.3125Gbps";  -- or "6.25Gbps"
+      RATE_G                      : string                 := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
       REFCLK_TYPE_G               : Pgp3RefClkType         := PGP3_REFCLK_312_C;
       REFCLK_G                    : boolean                := false;  --  FALSE: use pgpRefClkP/N,  TRUE: use pgpRefClkIn
       ----------------------------------------------------------------------------------------------
@@ -45,7 +45,7 @@ entity Pgp3Gtx7Wrapper is
       RX_ALIGN_BAD_COUNT_G        : integer                := 16;
       RX_ALIGN_SLIP_WAIT_G        : integer                := 32;
       PGP_TX_ENABLE_G             : boolean                := true;
-      TX_CELL_WORDS_MAX_G         : integer                := 256;  -- Number of 64-bit words per cell
+      TX_CELL_WORDS_MAX_G         : integer                := PGP3_DEFAULT_TX_CELL_WORDS_MAX_C;  -- Number of 64-bit words per cell
       TX_SKP_INTERVAL_G           : integer                := 5000;
       TX_SKP_BURST_SIZE_G         : integer                := 8;
       TX_MUX_MODE_G               : string                 := "INDEXED";  -- Or "ROUTED"
@@ -310,11 +310,11 @@ begin
          INPUT_BUFG_G     => true,
          FB_BUFG_G        => false,
          NUM_CLOCKS_G     => 2,
-         CLKIN_PERIOD_G   => ite((RATE_G = "10.3125Gbps"), 3.103, 5.12),
+         CLKIN_PERIOD_G   => ite((RATE_G = "10.3125Gbps"), 3.103, ite((RATE_G = "6.25Gbps"), 5.12, 10.24)),
          DIVCLK_DIVIDE_G  => 1,
-         CLKFBOUT_MULT_G  => ite((RATE_G = "10.3125Gbps"), 3, 5),
-         CLKOUT0_DIVIDE_G => ite((RATE_G = "10.3125Gbps"), 3, 5),
-         CLKOUT1_DIVIDE_G => ite((RATE_G = "10.3125Gbps"), 6, 10))
+         CLKFBOUT_MULT_G  => ite((RATE_G = "10.3125Gbps"), 3, ite((RATE_G = "6.25Gbps"), 5, 10)),
+         CLKOUT0_DIVIDE_G => ite((RATE_G = "10.3125Gbps"), 3, ite((RATE_G = "6.25Gbps"), 5, 10)),
+         CLKOUT1_DIVIDE_G => ite((RATE_G = "10.3125Gbps"), 6, ite((RATE_G = "6.25Gbps"), 10, 20)))
       port map(
          clkIn  => gtTxOutClk(0),
          rstIn  => gtTxPllRst(0),
