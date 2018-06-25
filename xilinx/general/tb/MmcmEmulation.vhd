@@ -129,6 +129,7 @@ begin
                   phasedUp(i) <= '0';
                else
                   wait for 10 us;
+                  wait until CLKIN = '0';
                   wait until CLKIN = '1';
                   wait for PHASE_OFFSET_C(i);
                   phasedUp(i) <= '1';
