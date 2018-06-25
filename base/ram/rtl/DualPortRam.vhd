@@ -26,7 +26,7 @@ entity DualPortRam is
    generic (
       TPD_G          : time                       := 1 ns;
       RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low      
-      BRAM_EN_G      : boolean                    := true;
+      MEMORY_TYPE_G  : string                     := "block";
       REG_EN_G       : boolean                    := true;
       DOA_REG_G      : boolean                    := false;
       DOB_REG_G      : boolean                    := false;
@@ -58,15 +58,18 @@ end DualPortRam;
 
 architecture mapping of DualPortRam is
 
+   constant BRAM_EN_C : boolean := ite((MEMORY_TYPE_G = "distributed"), false, true); 
+
    constant FORCE_RST_C : sl := not(RST_POLARITY_G);
 
 begin
 
-   GEN_BRAM : if (BRAM_EN_G = true) generate
+   GEN_BRAM : if (BRAM_EN_C = true) generate
       TrueDualPortRam_Inst : entity work.TrueDualPortRam
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => RST_POLARITY_G,
+            MEMORY_TYPE_G  => MEMORY_TYPE_G,
             DOA_REG_G      => DOA_REG_G,
             DOB_REG_G      => DOB_REG_G,
             MODE_G         => MODE_G,
@@ -97,7 +100,7 @@ begin
             regceb  => regceb);
    end generate;
 
-   GEN_LUTRAM : if (BRAM_EN_G = false) generate
+   GEN_LUTRAM : if (BRAM_EN_C = false) generate
       QuadPortRam_Inst : entity work.QuadPortRam
          generic map (
             TPD_G          => TPD_G,

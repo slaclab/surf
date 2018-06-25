@@ -2,7 +2,7 @@
 -- File       : FifoAsync.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-07-10
--- Last update: 2016-06-30
+-- Last update: 2018-06-25
 -------------------------------------------------------------------------------
 -- Description: ASYNC FIFO module
 -------------------------------------------------------------------------------
@@ -23,14 +23,13 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 
 entity FifoAsync is
+   -- MEMORY_TYPE_G: Xilinx Options: {"auto", "block", "distributed", "ultra"}
+   -- MEMORY_TYPE_G: Altera Options: {"auto", "MLAB", "M20K" and "M144K"}
    generic (
       TPD_G          : time                       := 1 ns;
       RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
-      BRAM_EN_G      : boolean                    := true;
+      MEMORY_TYPE_G  : string                     := "block";
       FWFT_EN_G      : boolean                    := false;
-      USE_DSP48_G    : string                     := "no";
-      ALTERA_SYN_G   : boolean                    := false;
-      ALTERA_RAM_G   : string                     := "M9K";
       SYNC_STAGES_G  : integer range 3 to (2**24) := 3;
       PIPE_STAGES_G  : natural range 0 to 16      := 0;
       DATA_WIDTH_G   : integer range 1 to (2**24) := 16;
@@ -147,11 +146,6 @@ architecture rtl of FifoAsync is
       empty        => '1');
    signal fifoStatus, fwftStatus : ReadStatusType := READ_STATUS_INIT_C;
 
-   -- Attribute for XST
-   attribute use_dsp48          : string;
-   attribute use_dsp48 of rdReg : signal is USE_DSP48_G;
-   attribute use_dsp48 of wrReg : signal is USE_DSP48_G;
-
 begin
 
    -- FULL_THRES_G upper range check
@@ -161,10 +155,6 @@ begin
    -- EMPTY_THRES_G upper range check
    assert (EMPTY_THRES_G <= ((2**ADDR_WIDTH_G)-2))
       report "EMPTY_THRES_G must be <= ((2**ADDR_WIDTH_G)-2)"
-      severity failure;
-   -- USE_DSP48_G check
-   assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
-      report "USE_DSP48_G must be either yes, no, auto, or automax"
       severity failure;
    -- INIT_G length check
    assert (INIT_G = "0" or INIT_G'length = DATA_WIDTH_G) report
@@ -453,13 +443,11 @@ begin
 
    SimpleDualPortRam_Inst : entity work.SimpleDualPortRam
       generic map(
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => BRAM_EN_G,
-         ALTERA_SYN_G => ALTERA_SYN_G,
-         ALTERA_RAM_G => ALTERA_RAM_G,
-         DATA_WIDTH_G => DATA_WIDTH_G,
-         ADDR_WIDTH_G => ADDR_WIDTH_G,
-         INIT_G       => INIT_C)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => MEMORY_TYPE_G,
+         DATA_WIDTH_G  => DATA_WIDTH_G,
+         ADDR_WIDTH_G  => ADDR_WIDTH_G,
+         INIT_G        => INIT_C)
       port map (
          -- Port A
          clka  => portA.clk,
