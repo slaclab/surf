@@ -39,6 +39,7 @@ entity AxiStreamDma is
       AXI_CONFIG_G      : AxiConfigType        := AXI_CONFIG_INIT_C;
       AXI_BURST_G       : slv(1 downto 0)      := "01";
       AXI_CACHE_G       : slv(3 downto 0)      := "1111";
+      SYNTH_MODE_G      : string               := "inferred";
       PEND_THRESH_G     : natural              := 0;
       BYP_SHIFT_G       : boolean              := false);
    port (
@@ -249,27 +250,24 @@ begin
 
    U_SwFifos : entity work.AxiLiteFifoPushPop
       generic map (
-         TPD_G             => TPD_G,
-         POP_FIFO_COUNT_G  => 2,
-         POP_SYNC_FIFO_G   => true,
-         POP_BRAM_EN_G     => true,
-         POP_ADDR_WIDTH_G  => POP_ADDR_WIDTH_C,
-         POP_FULL_THRES_G  => POP_FIFO_PFULL_C,
-         LOOP_FIFO_EN_G    => false,
-         LOOP_FIFO_COUNT_G => 1,
-         LOOP_BRAM_EN_G    => false,
-         LOOP_ADDR_WIDTH_G => 9,
-         PUSH_FIFO_COUNT_G => 2,
-         PUSH_SYNC_FIFO_G  => true,
-         PUSH_BRAM_EN_G    => true,
-         PUSH_ADDR_WIDTH_G => PUSH_ADDR_WIDTH_C,
-         RANGE_LSB_G       => 8,
-         VALID_POSITION_G  => 31,
-         VALID_POLARITY_G  => '1',
-         ALTERA_SYN_G      => false,
-         ALTERA_RAM_G      => "M9K",
-         USE_BUILT_IN_G    => false,
-         XIL_DEVICE_G      => "7SERIES") 
+         TPD_G              => TPD_G,
+         POP_FIFO_COUNT_G   => 2,
+         POP_SYNC_FIFO_G    => true,
+         POP_MEMORY_TYPE_G  => "block",
+         POP_ADDR_WIDTH_G   => POP_ADDR_WIDTH_C,
+         POP_FULL_THRES_G   => POP_FIFO_PFULL_C,
+         LOOP_FIFO_EN_G     => false,
+         LOOP_FIFO_COUNT_G  => 1,
+         LOOP_MEMORY_TYPE_G => "block",
+         LOOP_ADDR_WIDTH_G  => 9,
+         PUSH_FIFO_COUNT_G  => 2,
+         PUSH_SYNC_FIFO_G   => true,
+         PUSH_MEMORY_TYPE_G => "block",
+         PUSH_ADDR_WIDTH_G  => PUSH_ADDR_WIDTH_C,
+         RANGE_LSB_G        => 8,
+         VALID_POSITION_G   => 31,
+         VALID_POLARITY_G   => '1',
+         SYNTH_MODE_G       => SYNTH_MODE_G)
       port map (
          axiClk         => axiClk,
          axiClkRst      => axiRst,

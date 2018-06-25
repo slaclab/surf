@@ -30,12 +30,9 @@ entity SsiPrbsTxOld is
       -- General Configurations
       TPD_G                      : time                       := 1 ns;
       -- FIFO Configurations
-      BRAM_EN_G                  : boolean                    := true;
-      XIL_DEVICE_G               : string                     := "7SERIES";
-      USE_BUILT_IN_G             : boolean                    := false;
+      SYNTH_MODE_G               : string                     := "inferred";
+      MEMORY_TYPE_G              : string                     := "block"; 
       GEN_SYNC_FIFO_G            : boolean                    := false;
-      ALTERA_SYN_G               : boolean                    := false;
-      ALTERA_RAM_G               : string                     := "M9K";
       CASCADE_SIZE_G             : natural range 1 to (2**24) := 1;
       FIFO_ADDR_WIDTH_G          : natural range 4 to 48      := 9;
       FIFO_PAUSE_THRESH_G        : natural range 1 to (2**24) := 2**8;
@@ -236,12 +233,9 @@ begin
          SLAVE_READY_EN_G    => false,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
-         BRAM_EN_G           => BRAM_EN_G,
-         XIL_DEVICE_G        => XIL_DEVICE_G,
-         USE_BUILT_IN_G      => USE_BUILT_IN_G,
+         SYNTH_MODE_G        => SYNTH_MODE_G,
+         MEMORY_TYPE_G       => MEMORY_TYPE_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
          CASCADE_SIZE_G      => CASCADE_SIZE_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => true,

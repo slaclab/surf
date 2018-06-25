@@ -439,7 +439,7 @@ begin
 
    U_Ram : entity work.SimpleDualPortRam
       generic map(
-         BRAM_EN_G    => true,
+         TPD_G        => TPD_G,
          DATA_WIDTH_G => 16,
          ADDR_WIDTH_G => 8)
       port map (

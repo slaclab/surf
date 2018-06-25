@@ -182,7 +182,7 @@ begin
          U_Packetizer : entity work.AxiStreamPacketizer2
             generic map (
                TPD_G                => TPD_G,
-               BRAM_EN_G            => true,
+               MEMORY_TYPE_G        => "block",
                CRC_MODE_G           => "FULL",
                CRC_POLY_G           => x"04C11DB7",
                TDEST_BITS_G         => 8,
@@ -283,7 +283,7 @@ begin
          U_Depacketizer : entity work.AxiStreamDepacketizer2
             generic map (
                TPD_G                => TPD_G,
-               BRAM_EN_G            => true,
+               MEMORY_TYPE_G        => "block",
                CRC_MODE_G           => "FULL",
                CRC_POLY_G           => x"04C11DB7",
                TDEST_BITS_G         => 8,

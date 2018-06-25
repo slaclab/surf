@@ -32,6 +32,7 @@ entity SsiSem is
       TPD_G               : time                := 1 ns;
       COMMON_AXIL_CLK_G   : boolean             := false;
       COMMON_AXIS_CLK_G   : boolean             := false;
+      SYNTH_MODE_G        : string              := "inferred";
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(1);
       MASTER_AXI_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(1));
    port (
@@ -130,7 +131,6 @@ begin
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_AXIL_CLK_G,
-         BRAM_EN_G    => false,
          DATA_WIDTH_G => 4,
          ADDR_WIDTH_G => 4)
       port map (
@@ -169,8 +169,8 @@ begin
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => false,
          VALID_THOLD_G       => 0,
-         BRAM_EN_G           => false,
-         USE_BUILT_IN_G      => false,
+         SYNTH_MODE_G        => SYNTH_MODE_G,
+         MEMORY_TYPE_G       => "distributed",
          GEN_SYNC_FIFO_G     => COMMON_AXIS_CLK_G,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 4,
@@ -193,8 +193,8 @@ begin
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
-         BRAM_EN_G           => false,
-         USE_BUILT_IN_G      => false,
+         SYNTH_MODE_G        => SYNTH_MODE_G,
+         MEMORY_TYPE_G       => "distributed",
          GEN_SYNC_FIFO_G     => COMMON_AXIS_CLK_G,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 4,

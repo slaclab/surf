@@ -220,26 +220,4 @@ begin
    locRawAxisSlave <= rawAxisSlave;
    locRawAxisCtrl  <= rawAxisCtrl;
 
-   -- Could probably get rid of this
---   AxiStreamFifo_1 : entity work.AxiStreamFifoV2
---      generic map (
---         TPD_G               => TPD_G,
---         BRAM_EN_G           => false,
---         GEN_SYNC_FIFO_G     => true,
---         FIFO_ADDR_WIDTH_G   => 4,
---         FIFO_FIXED_THRESH_G => true,
---         FIFO_PAUSE_THRESH_G => 15,
---         SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_G,
---         MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_G)
---      port map (
---         sAxisClk    => axisClk,
---         sAxisRst    => axisRst,
---         sAxisMaster => locRawAxisMaster,
---         sAxisSlave  => locRawAxisSlave,
---         sAxisCtrl   => locRawAxisCtrl,
---         mAxisClk    => axisClk,
---         mAxisRst    => axisRst,
---         mAxisMaster => rawAxisMaster,
---         mAxisSlave  => rawAxisSlave);
-
 end architecture rtl;

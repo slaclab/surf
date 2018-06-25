@@ -131,12 +131,7 @@ begin
             -- General Configurations
             TPD_G                      => TPD_C,
             -- FIFO configurations
-            BRAM_EN_G                  => BRAM_EN_C,
-            XIL_DEVICE_G               => XIL_DEVICE_C,
-            USE_BUILT_IN_G             => USE_BUILT_IN_C,
             GEN_SYNC_FIFO_G            => true,
-            ALTERA_SYN_G               => ALTERA_SYN_C,
-            ALTERA_RAM_G               => ALTERA_RAM_C,
             CASCADE_SIZE_G             => CASCADE_SIZE_C,
             FIFO_ADDR_WIDTH_G          => FIFO_ADDR_WIDTH_C,
             FIFO_PAUSE_THRESH_G        => FIFO_PAUSE_THRESH_C,
@@ -198,41 +193,6 @@ begin
          mAxisMaster  => obMaster,
          mAxisSlave   => obSlave);
 
---    SsiFifo_Inst : entity work.SsiFifo
---       generic map (
---          -- General Configurations
---          TPD_G               => TPD_C,
---          PIPE_STAGES_G       => AXI_PIPE_STAGES_C,
---          EN_FRAME_FILTER_G   => true,
---          VALID_THOLD_G       => 1,
---          -- FIFO configurations
---          BRAM_EN_G           => BRAM_EN_C,
---          XIL_DEVICE_G        => XIL_DEVICE_C,
---          USE_BUILT_IN_G      => USE_BUILT_IN_C,
---          GEN_SYNC_FIFO_G     => false,
---          ALTERA_SYN_G        => ALTERA_SYN_C,
---          ALTERA_RAM_G        => ALTERA_RAM_C,
---          CASCADE_SIZE_G      => CASCADE_SIZE_C,
---          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
---          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_C,
---          -- AXI Stream Port Configurations
---          SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_C,
---          MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_C)
---       port map (
---          -- Slave Port
---          sAxisClk       => fastClk,
---          sAxisRst       => fastRst,
---          sAxisMaster    => obMaster,
---          sAxisSlave     => obSlave,
---          sAxisCtrl      => open,
---          sAxisDropWrite => dropWrite,
---          sAxisTermFrame => dropFrame,
---          -- Master Port
---          mAxisClk       => slowClk,
---          mAxisRst       => slowRst,
---          mAxisMaster    => ibMaster,
---          mAxisSlave     => ibSlave);
-
    process(fastClk)
    begin
       if rising_edge(fastClk) then
@@ -289,12 +249,7 @@ begin
             TPD_G                      => TPD_C,
             STATUS_CNT_WIDTH_G         => STATUS_CNT_WIDTH_C,
             -- FIFO Configurations
-            BRAM_EN_G                  => BRAM_EN_C,
-            XIL_DEVICE_G               => XIL_DEVICE_C,
-            USE_BUILT_IN_G             => USE_BUILT_IN_C,
             GEN_SYNC_FIFO_G            => true,
-            ALTERA_SYN_G               => ALTERA_SYN_C,
-            ALTERA_RAM_G               => ALTERA_RAM_C,
             CASCADE_SIZE_G             => CASCADE_SIZE_C,
             FIFO_ADDR_WIDTH_G          => FIFO_ADDR_WIDTH_C,
             FIFO_PAUSE_THRESH_G        => FIFO_PAUSE_THRESH_C,

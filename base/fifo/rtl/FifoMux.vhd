@@ -22,6 +22,7 @@ use ieee.numeric_std.all;
 use work.StdRtlPkg.all;
 
 entity FifoMux is
+   -- SYNTH_MODE_G Options: {"inferred", "xpm", "altera_mf"}
    -- MEMORY_TYPE_G: Xilinx Options: {"auto", "block", "distributed", "ultra"}
    -- MEMORY_TYPE_G: Altera Options: {"auto", "MLAB", "M20K" and "M144K"}
    generic (
@@ -31,6 +32,7 @@ entity FifoMux is
       RST_POLARITY_G     : sl                         := '1';  -- '1' for active high rst, '0' for active low
       RST_ASYNC_G        : boolean                    := false;
       GEN_SYNC_FIFO_G    : boolean                    := false;
+      SYNTH_MODE_G       : string                     := "inferred";
       MEMORY_TYPE_G      : string                     := "block";
       FWFT_EN_G          : boolean                    := true;
       SYNC_STAGES_G      : integer range 3 to (2**24) := 3;
@@ -262,6 +264,7 @@ begin
          RST_POLARITY_G     => RST_POLARITY_G,
          RST_ASYNC_G        => RST_ASYNC_G,
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
+         SYNTH_MODE_G       => SYNTH_MODE_G,
          MEMORY_TYPE_G      => MEMORY_TYPE_G,
          FWFT_EN_G          => FWFT_EN_G,
          SYNC_STAGES_G      => SYNC_STAGES_G,

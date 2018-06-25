@@ -54,10 +54,10 @@ entity FifoAlteraMf is
       rd_en         : in  sl;
       dout          : out slv(DATA_WIDTH_G-1 downto 0) := (others => '0');
       rd_data_count : out slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
-      valid         : out sl                           := '0'
-      underflow     : out sl                           := '0'
-      prog_empty    : out sl                           := '0'
-      almost_empty  : out sl                           := '0'
+      valid         : out sl                           := '0';
+      underflow     : out sl                           := '0';
+      prog_empty    : out sl                           := '0';
+      almost_empty  : out sl                           := '0';
       empty         : out sl                           := '0');
 end FifoAlteraMf;
 

@@ -75,9 +75,8 @@ begin
    U_FIFO : entity work.FifoAsync
       generic map (
          TPD_G         => TPD_G,
-         BRAM_EN_G     => false,
+         MEMORY_TYPE_G => "distributed",
          FWFT_EN_G     => true,
-         ALTERA_SYN_G  => false,
          SYNC_STAGES_G => 3,
          DATA_WIDTH_G  => 34,
          ADDR_WIDTH_G  => 5)

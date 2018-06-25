@@ -38,7 +38,6 @@ architecture sim of UartAxiLiteMasterTb is
    constant TPD_G             : time                  := 1 ns;
    constant CLK_FREQ_G        : real                  := 125.0e6;
    constant BAUD_RATE_G       : integer               := 115200;
-   constant FIFO_BRAM_EN_G    : boolean               := false;
    constant FIFO_ADDR_WIDTH_G : integer range 4 to 48 := 5;
 
    -- component ports
@@ -77,7 +76,6 @@ begin
          TPD_G             => TPD_G,
          CLK_FREQ_G        => CLK_FREQ_G,
          BAUD_RATE_G       => BAUD_RATE_G,
-         FIFO_BRAM_EN_G    => FIFO_BRAM_EN_G,
          FIFO_ADDR_WIDTH_G => FIFO_ADDR_WIDTH_G)
       port map (
          clk     => clk,                -- [in]
@@ -97,7 +95,6 @@ begin
          TPD_G             => TPD_G,
          AXIL_CLK_FREQ_G   => CLK_FREQ_G,
          BAUD_RATE_G       => BAUD_RATE_G,
-         FIFO_BRAM_EN_G    => FIFO_BRAM_EN_G,
          FIFO_ADDR_WIDTH_G => FIFO_ADDR_WIDTH_G)
       port map (
          axilClk          => clk,              -- [in]
@@ -113,7 +110,6 @@ begin
    U_AxiDualPortRam_1 : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
          REG_EN_G     => false,
          AXI_WR_EN_G  => true,
          SYS_WR_EN_G  => false,

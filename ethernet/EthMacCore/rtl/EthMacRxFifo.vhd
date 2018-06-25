@@ -104,7 +104,6 @@ begin
          OR_DROP_FLAGS_G     => true,
          VALID_THOLD_G       => VALID_THOLD_C,
          -- FIFO configurations
-         BRAM_EN_G           => true,
          GEN_SYNC_FIFO_G     => PRIM_COMMON_CLK_G,
          CASCADE_SIZE_G      => CASCADE_SIZE_G,
          CASCADE_PAUSE_SEL_G => CASCADE_PAUSE_SEL_G,
@@ -141,7 +140,6 @@ begin
             OR_DROP_FLAGS_G     => true,
             VALID_THOLD_G       => VALID_THOLD_C,
             -- FIFO configurations
-            BRAM_EN_G           => true,
             GEN_SYNC_FIFO_G     => PRIM_COMMON_CLK_G,
             CASCADE_SIZE_G      => CASCADE_SIZE_G,
             CASCADE_PAUSE_SEL_G => CASCADE_PAUSE_SEL_G,
@@ -180,7 +178,6 @@ begin
                OR_DROP_FLAGS_G     => true,
                VALID_THOLD_G       => VALID_THOLD_C,
                -- FIFO configurations
-               BRAM_EN_G           => true,
                GEN_SYNC_FIFO_G     => PRIM_COMMON_CLK_G,
                CASCADE_SIZE_G      => CASCADE_SIZE_G,
                CASCADE_PAUSE_SEL_G => CASCADE_PAUSE_SEL_G,

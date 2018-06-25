@@ -441,10 +441,8 @@ begin
    U_DataFifo : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
          DATA_WIDTH_G => NUM_CHANNELS_G*16,
-         ADDR_WIDTH_G => 4,
-         INIT_G       => "0")
+         ADDR_WIDTH_G => 4)
       port map (
          rst    => adcBitRst,
          wr_clk => adcBitClkR,
@@ -458,10 +456,8 @@ begin
    U_DataFifoDebug : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
          DATA_WIDTH_G => NUM_CHANNELS_G*16,
-         ADDR_WIDTH_G => 4,
-         INIT_G       => "0")
+         ADDR_WIDTH_G => 4)
       port map (
          rst    => adcBitRst,
          wr_clk => adcBitClkR,

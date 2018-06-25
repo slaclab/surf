@@ -110,7 +110,7 @@ begin
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => '1',
-            BRAM_EN_G      => false,
+            MEMORY_TYPE_G  => "distributed",
             REG_EN_G       => false,
             DOA_REG_G      => false,
             DOB_REG_G      => false,

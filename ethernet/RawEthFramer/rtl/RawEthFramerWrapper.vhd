@@ -90,7 +90,6 @@ begin
    U_RemoteMacLut : entity work.AxiDualPortRam
       generic map (
          TPD_G            => TPD_G,
-         BRAM_EN_G        => true,
          REG_EN_G         => false,
          MODE_G           => "read-first",
          AXI_WR_EN_G      => true,

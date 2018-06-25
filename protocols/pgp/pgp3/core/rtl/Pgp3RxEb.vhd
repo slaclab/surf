@@ -89,7 +89,7 @@ begin
    U_FifoAsync_1 : entity work.FifoAsync
       generic map (
          TPD_G         => TPD_G,
-         BRAM_EN_G     => true,
+         MEMORY_TYPE_G => "block",
          FWFT_EN_G     => true,
          PIPE_STAGES_G => 0,
          DATA_WIDTH_G  => 66,

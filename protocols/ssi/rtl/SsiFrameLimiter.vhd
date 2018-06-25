@@ -35,6 +35,7 @@ entity SsiFrameLimiter is
       SLAVE_FIFO_G        : boolean             := false;
       MASTER_FIFO_G       : boolean             := false;
       SLAVE_READY_EN_G    : boolean             := true;
+      SYNTH_MODE_G        : string              := "inferred";
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
       MASTER_AXI_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
@@ -96,8 +97,8 @@ begin
             SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
             VALID_THOLD_G       => 1,
             -- FIFO configurations
-            BRAM_EN_G           => false,
-            USE_BUILT_IN_G      => false,
+            SYNTH_MODE_G        => SYNTH_MODE_G,
+            MEMORY_TYPE_G       => "distributed",
             GEN_SYNC_FIFO_G     => COMMON_CLK_G,
             CASCADE_SIZE_G      => 1,
             FIFO_ADDR_WIDTH_G   => 4,
@@ -256,8 +257,8 @@ begin
             SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
             VALID_THOLD_G       => 1,
             -- FIFO configurations
-            BRAM_EN_G           => false,
-            USE_BUILT_IN_G      => false,
+            SYNTH_MODE_G        => SYNTH_MODE_G,
+            MEMORY_TYPE_G       => "distributed",
             GEN_SYNC_FIFO_G     => true,
             CASCADE_SIZE_G      => 1,
             FIFO_ADDR_WIDTH_G   => 4,

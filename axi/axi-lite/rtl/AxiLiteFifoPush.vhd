@@ -30,12 +30,9 @@ entity AxiLiteFifoPush is
       TPD_G              : time                  := 1 ns;
       PUSH_FIFO_COUNT_G  : positive              := 1;
       PUSH_SYNC_FIFO_G   : boolean               := false;
-      PUSH_BRAM_EN_G     : boolean               := false;
+      PUSH_MEMORY_TYPE_G : string                := "block";
       PUSH_ADDR_WIDTH_G  : integer range 4 to 48 := 4;
-      ALTERA_SYN_G       : boolean               := false;
-      ALTERA_RAM_G       : string                := "M9K";
-      USE_BUILT_IN_G     : boolean               := false;
-      XIL_DEVICE_G       : string                := "7SERIES"
+      SYNTH_MODE_G       : string                := "inferred"      
    );
    port (
 
@@ -100,13 +97,9 @@ begin
             RST_POLARITY_G     => '1',
             RST_ASYNC_G        => true,
             GEN_SYNC_FIFO_G    => PUSH_SYNC_FIFO_G,
-            BRAM_EN_G          => PUSH_BRAM_EN_G,
+            SYNTH_MODE_G       => SYNTH_MODE_G,
+            MEMORY_TYPE_G      => PUSH_MEMORY_TYPE_G,
             FWFT_EN_G          => true,
-            USE_DSP48_G        => "no",
-            ALTERA_SYN_G       => ALTERA_SYN_G,
-            ALTERA_RAM_G       => ALTERA_RAM_G,
-            USE_BUILT_IN_G     => USE_BUILT_IN_G,
-            XIL_DEVICE_G       => XIL_DEVICE_G,
             SYNC_STAGES_G      => 3,
             DATA_WIDTH_G       => 36,
             ADDR_WIDTH_G       => PUSH_ADDR_WIDTH_G,

@@ -28,7 +28,7 @@ entity AxiDualPortRam is
 
    generic (
       TPD_G            : time                       := 1 ns;
-      BRAM_EN_G        : boolean                    := false;
+      MEMORY_TYPE_G    : string                     := "distributed"; 
       REG_EN_G         : boolean                    := true;
       MODE_G           : string                     := "read-first";
       AXI_WR_EN_G      : boolean                    := true;
@@ -114,7 +114,7 @@ begin
       DualPortRam_1 : entity work.DualPortRam
          generic map (
             TPD_G        => TPD_G,
-            BRAM_EN_G    => BRAM_EN_G,
+            MEMORY_TYPE_G=> MEMORY_TYPE_G,
             REG_EN_G     => REG_EN_G,
             DOA_REG_G    => REG_EN_G,
             DOB_REG_G    => REG_EN_G,
@@ -146,7 +146,7 @@ begin
       DualPortRam_1 : entity work.DualPortRam
          generic map (
             TPD_G        => TPD_G,
-            BRAM_EN_G    => BRAM_EN_G,
+            MEMORY_TYPE_G=> MEMORY_TYPE_G,
             REG_EN_G     => REG_EN_G,
             DOA_REG_G    => REG_EN_G,
             DOB_REG_G    => REG_EN_G,
@@ -176,6 +176,7 @@ begin
       U_TrueDualPortRam_1 : entity work.TrueDualPortRam
          generic map (
             TPD_G        => TPD_G,
+            MEMORY_TYPE_G=> MEMORY_TYPE_G,
             MODE_G       => MODE_G,
             BYTE_WR_EN_G => true,
             DOA_REG_G    => REG_EN_G,
@@ -215,7 +216,6 @@ begin
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G,
-         BRAM_EN_G    => false,
          DATA_WIDTH_G => ADDR_WIDTH_G+DATA_WIDTH_G+ADDR_AXI_BYTES_C)
       port map (
          rst    => rst,                 -- [in]
@@ -275,19 +275,8 @@ begin
             elsif (axiStatus.readEnable = '1') then
                -- Set the address bus
                v.axiAddr := axiReadMaster.araddr(AXI_RAM_ADDR_RANGE_C);
-               -- Check for registered BRAM
-               if (BRAM_EN_G = true) and (REG_EN_G = true) then
-                  v.rdLatecy := 3;      -- read in 3 cycles
-               -- Check for non-registered BRAM
-               elsif (BRAM_EN_G = true) and (REG_EN_G = false) then
-                  v.rdLatecy := 2;      -- read in 2 cycles
-               -- Check for registered LUTRAM
-               elsif (BRAM_EN_G = false) and (REG_EN_G = true) then
-                  v.rdLatecy := 2;      -- read in 2 cycles
-               -- Else non-registered LUTRAM
-               else
-                  v.rdLatecy := 1;      -- read on next cycle
-               end if;
+               -- Read in 3 cycles (worst case)
+               v.rdLatecy := 3;
                -- Next state
                v.state := RD_S;
             end if;

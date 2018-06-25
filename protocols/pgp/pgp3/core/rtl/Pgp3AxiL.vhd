@@ -189,7 +189,6 @@ begin
    U_RxOpCodeSync : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
          DATA_WIDTH_G => 51,
          ADDR_WIDTH_G => 2)
       port map (
@@ -329,7 +328,6 @@ begin
    U_RxEbDataSync : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
          DATA_WIDTH_G => 67,
          ADDR_WIDTH_G => 4)
       port map (
@@ -348,7 +346,6 @@ begin
    U_RxPhyDataSync : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
          DATA_WIDTH_G => 67,
          ADDR_WIDTH_G => 4)
       port map (
@@ -401,7 +398,6 @@ begin
    U_TxOpCodeSync : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
          DATA_WIDTH_G => 51,
          ADDR_WIDTH_G => 2)
       port map (
@@ -530,7 +526,6 @@ begin
    U_SKP_SYNC : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
          DATA_WIDTH_G => 32,
          ADDR_WIDTH_G => 4)
       port map (

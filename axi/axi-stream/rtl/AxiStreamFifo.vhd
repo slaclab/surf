@@ -38,12 +38,9 @@ entity AxiStreamFifo is
                                                               -- =0 = only when frame ready
                                                               -- >1 = only when frame ready or # entries
       -- FIFO configurations
-      BRAM_EN_G           : boolean                    := true;
-      XIL_DEVICE_G        : string                     := "7SERIES";
-      USE_BUILT_IN_G      : boolean                    := false;
+      SYNTH_MODE_G        : string                     := "inferred";
+      MEMORY_TYPE_G       : string                     := "block";
       GEN_SYNC_FIFO_G     : boolean                    := false;
-      ALTERA_SYN_G        : boolean                    := false;
-      ALTERA_RAM_G        : string                     := "M9K";
       CASCADE_SIZE_G      : integer range 1 to (2**24) := 1;
       FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
       FIFO_FIXED_THRESH_G : boolean                    := true;
@@ -444,13 +441,9 @@ begin
          RST_POLARITY_G     => '1',
          RST_ASYNC_G        => false,
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
-         BRAM_EN_G          => BRAM_EN_G,
+         SYNTH_MODE_G       => SYNTH_MODE_G,
+         MEMORY_TYPE_G      => MEMORY_TYPE_G,         
          FWFT_EN_G          => true,
-         USE_DSP48_G        => "no",
-         ALTERA_SYN_G       => ALTERA_SYN_G,
-         ALTERA_RAM_G       => ALTERA_RAM_G,
-         USE_BUILT_IN_G     => USE_BUILT_IN_G,
-         XIL_DEVICE_G       => XIL_DEVICE_G,
          SYNC_STAGES_G      => 3,
          DATA_WIDTH_G       => FIFO_BITS_C,
          ADDR_WIDTH_G       => FIFO_ADDR_WIDTH_G,
@@ -492,14 +485,10 @@ begin
             PIPE_STAGES_G      => INT_PIPE_STAGES_G,
             RST_POLARITY_G     => '1',
             RST_ASYNC_G        => false,
-            GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
-            BRAM_EN_G          => false,
+            GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,            
+            SYNTH_MODE_G       => SYNTH_MODE_G,
+            MEMORY_TYPE_G      => "distributed",              
             FWFT_EN_G          => true,
-            USE_DSP48_G        => "no",
-            ALTERA_SYN_G       => ALTERA_SYN_G,
-            ALTERA_RAM_G       => ALTERA_RAM_G,
-            USE_BUILT_IN_G     => false,
-            XIL_DEVICE_G       => XIL_DEVICE_G,
             SYNC_STAGES_G      => 3,
             DATA_WIDTH_G       => FIFO_USER_TOT_C,
             ADDR_WIDTH_G       => LAST_FIFO_ADDR_WIDTH_C,

@@ -35,7 +35,7 @@ entity UartAxiLiteMaster is
       STOP_BITS_G       : integer range 1 to 2  := 1;
       PARITY_G          : string                := "NONE";  -- "NONE" "ODD" "EVEN"
       DATA_WIDTH_G      : integer range 5 to 8  := 8;
-      FIFO_BRAM_EN_G    : boolean               := false;
+      FIFO_MEMORY_TYPE_G: string                := "distributed"; 
       FIFO_ADDR_WIDTH_G : integer range 4 to 48 := 5);
    port (
       axilClk          : in  sl;
@@ -125,7 +125,7 @@ begin
          STOP_BITS_G       => STOP_BITS_G,
          PARITY_G          => PARITY_G,
          DATA_WIDTH_G      => DATA_WIDTH_G,
-         FIFO_BRAM_EN_G    => FIFO_BRAM_EN_G,
+         FIFO_MEMORY_TYPE_G=> FIFO_MEMORY_TYPE_G,
          FIFO_ADDR_WIDTH_G => FIFO_ADDR_WIDTH_G)
       port map (
          clk     => axilClk,            -- [in]

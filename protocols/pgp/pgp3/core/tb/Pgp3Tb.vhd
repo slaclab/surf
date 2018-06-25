@@ -217,12 +217,9 @@ begin
          generic map (
             TPD_G               => TPD_G,
             SLAVE_READY_EN_G    => false,
---            VALID_THOLD_G          => VALID_THOLD_G,
---            VALID_BURST_MODE_G     => VALID_BURST_MODE_G,
-            BRAM_EN_G           => false,
+            MEMORY_TYPE_G       => "distributed",
             GEN_SYNC_FIFO_G     => false,
             FIFO_ADDR_WIDTH_G   => 5,
---            FIFO_FIXED_THRESH_G    => FIFO_FIXED_THRESH_G,
             FIFO_PAUSE_THRESH_G => 16,
             INT_WIDTH_SELECT_G  => "WIDE",
             SLAVE_AXI_CONFIG_G  => PGP3_AXIS_CONFIG_C,

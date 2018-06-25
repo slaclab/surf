@@ -164,7 +164,6 @@ begin
             PIPE_STAGES_G       => PIPE_STAGES_G,
             SLAVE_READY_EN_G    => true,
             VALID_THOLD_G       => 1,
-            BRAM_EN_G           => true,
             GEN_SYNC_FIFO_G     => true,
             CASCADE_SIZE_G      => 1,
             FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,

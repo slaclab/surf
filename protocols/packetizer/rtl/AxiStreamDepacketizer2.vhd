@@ -30,7 +30,7 @@ use work.AxiStreamPacketizer2Pkg.all;
 entity AxiStreamDepacketizer2 is
    generic (
       TPD_G                : time             := 1 ns;
-      BRAM_EN_G            : boolean          := false;
+      MEMORY_TYPE_G        : string           := "distributed";
       CRC_MODE_G           : string           := "DATA";  -- or "NONE" or "FULL"
       CRC_POLY_G           : slv(31 downto 0) := x"04C11DB7";
       TDEST_BITS_G         : natural          := 8;
@@ -52,6 +52,7 @@ end entity AxiStreamDepacketizer2;
 
 architecture rtl of AxiStreamDepacketizer2 is
 
+   constant BRAM_EN_C       : boolean  := (MEMORY_TYPE_G/="distributed");
    constant CRC_EN_C        : boolean  := (CRC_MODE_G /= "NONE");
    constant CRC_HEAD_TAIL_C : boolean  := (CRC_MODE_G = "FULL");
    constant ADDR_WIDTH_C    : positive := ite((TDEST_BITS_G = 0), 1, TDEST_BITS_G);
@@ -168,7 +169,7 @@ begin
    U_DualPortRam_1 : entity work.DualPortRam
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => BRAM_EN_G,
+         MEMORY_TYPE_G=> MEMORY_TYPE_G,
          REG_EN_G     => false,
          DOA_REG_G    => false,
          DOB_REG_G    => false,
@@ -360,7 +361,7 @@ begin
                v.crcDataValid := toSl(CRC_HEAD_TAIL_C);
 
                -- Check for BRAM configuration
-               if BRAM_EN_G then
+               if BRAM_EN_C then
                   -- Default next state if v.state=MOVE_S not applied later in the combinatorial chain
                   v.state := IDLE_S;
                end if;
@@ -459,7 +460,7 @@ begin
                      -- Can sent tail right now
                      doTail;
                      -- Check for BRAM used
-                     if (BRAM_EN_G) then
+                     if (BRAM_EN_C) then
                         -- Next state (1 cycle read latency)
                         v.state := IDLE_S;
                      else
@@ -476,7 +477,7 @@ begin
             -- Can sent tail right now
             doTail;
             -- Check for BRAM used
-            if (BRAM_EN_G) then
+            if (BRAM_EN_C) then
                -- Next state (1 cycle read latency)
                v.state := IDLE_S;
             else
@@ -503,7 +504,7 @@ begin
                -- Wait for link to come back up
                if (linkGood = '1') then
                   -- Check for BRAM used
-                  if (BRAM_EN_G) then
+                  if (BRAM_EN_C) then
                      -- Next state (1 cycle read latency)
                      v.state := IDLE_S;
                   else
@@ -513,7 +514,7 @@ begin
                end if;
             else
                -- Check if ready to move data and RAM output ready
-               if (v.outputAxisMaster(1).tValid = '0') and ((r.ramWe = '0') or (BRAM_EN_G = false)) then
+               if (v.outputAxisMaster(1).tValid = '0') and ((r.ramWe = '0') or (BRAM_EN_C = false)) then
                   -- Write to the RAM
                   v.activeTDest                                        := r.activeTDest - 1;
                   -- Increment the index

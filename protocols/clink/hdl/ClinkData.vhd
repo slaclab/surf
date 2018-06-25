@@ -225,7 +225,7 @@ begin
    U_DataFifo: entity work.Fifo
       generic map (
          TPD_G           => TPD_G,
-         BRAM_EN_G       => false,
+         MEMORY_TYPE_G   => "distributed",
          FWFT_EN_G       => true,
          DATA_WIDTH_G    => 28,
          ADDR_WIDTH_G    => 4)

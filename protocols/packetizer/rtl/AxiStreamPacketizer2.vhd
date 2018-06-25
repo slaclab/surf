@@ -30,7 +30,7 @@ use work.AxiStreamPacketizer2Pkg.all;
 entity AxiStreamPacketizer2 is
    generic (
       TPD_G                : time             := 1 ns;
-      BRAM_EN_G            : boolean          := false;
+      MEMORY_TYPE_G        : string           := "distributed"; 
       CRC_MODE_G           : string           := "DATA";  -- or "NONE" or "FULL"
       CRC_POLY_G           : slv(31 downto 0) := x"04C11DB7";
       MAX_PACKET_BYTES_G   : positive         := 256*8;  -- Must be a multiple of 8
@@ -52,6 +52,7 @@ end entity AxiStreamPacketizer2;
 
 architecture rtl of AxiStreamPacketizer2 is
 
+   constant BRAM_EN_C        : boolean  := (MEMORY_TYPE_G/="distributed");
    constant MAX_WORD_COUNT_C : positive := (MAX_PACKET_BYTES_G / 8) - 3;
    constant CRC_EN_C         : boolean  := (CRC_MODE_G /= "NONE");
    constant CRC_HEAD_TAIL_C  : boolean  := (CRC_MODE_G = "FULL");
@@ -164,7 +165,7 @@ begin
    U_DualPortRam_1 : entity work.DualPortRam
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => BRAM_EN_G,
+         MEMORY_TYPE_G=> MEMORY_TYPE_G,
          REG_EN_G     => false,
          DOA_REG_G    => false,
          DOB_REG_G    => false,
@@ -396,7 +397,7 @@ begin
                   v.eof       := '0';
                   v.tUserLast := (others => '0');
                   -- Check for BRAM used
-                  if (BRAM_EN_G) then
+                  if (BRAM_EN_C) then
                      -- Next state (1 cycle read latency)
                      v.state := IDLE_S;
                   else

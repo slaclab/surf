@@ -176,7 +176,7 @@ begin
    U_AxiStreamDepacketizer2_1 : entity work.AxiStreamDepacketizer2
       generic map (
          TPD_G               => TPD_G,
-         BRAM_EN_G           => false,
+         MEMORY_TYPE_G       => "distributed",
          CRC_MODE_G          => "DATA",
          CRC_POLY_G          => PGP3_CRC_POLY_C,
          TDEST_BITS_G        => 4,

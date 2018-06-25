@@ -39,11 +39,6 @@ architecture testbed of SsiFifoTb is
    constant NUMBER_PACKET_C    : slv(31 downto 0) := toSlv(4096, 32);
 
    -- FIFO configurations
-   constant BRAM_EN_C           : boolean := true;
-   constant XIL_DEVICE_C        : string  := "7SERIES";
-   constant USE_BUILT_IN_C      : boolean := false;
-   constant ALTERA_SYN_C        : boolean := false;
-   constant ALTERA_RAM_C        : string  := "M9K";
    constant CASCADE_SIZE_C      : natural := 1;
    constant FIFO_ADDR_WIDTH_C   : natural := 9;
    constant FIFO_PAUSE_THRESH_C : natural := 2**8;
@@ -130,12 +125,7 @@ begin
          -- General Configurations
          TPD_G                      => TPD_C,
          -- FIFO configurations
-         BRAM_EN_G                  => BRAM_EN_C,
-         XIL_DEVICE_G               => XIL_DEVICE_C,
-         USE_BUILT_IN_G             => USE_BUILT_IN_C,
          GEN_SYNC_FIFO_G            => true,
-         ALTERA_SYN_G               => ALTERA_SYN_C,
-         ALTERA_RAM_G               => ALTERA_RAM_C,
          CASCADE_SIZE_G             => CASCADE_SIZE_C,
          FIFO_ADDR_WIDTH_G          => FIFO_ADDR_WIDTH_C,
          FIFO_PAUSE_THRESH_G        => FIFO_PAUSE_THRESH_C,
@@ -174,6 +164,7 @@ begin
          sAxisSlave  => obSlave,       -- [out]
          mAxisMaster => ssiFifoMaster,  -- [out]
          mAxisSlave  => ssiFifoSlave);  -- [in]
+         
    ----------------------------   
    -- Data Filter (Test Module)
    ----------------------------
@@ -185,8 +176,6 @@ begin
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
-         BRAM_EN_G           => false,
-         USE_BUILT_IN_G      => false,
          GEN_SYNC_FIFO_G     => true,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 4,
@@ -205,169 +194,6 @@ begin
          mAxisMaster => ibMaster,
          mAxisSlave  => ibSlave); 
 
---    SsiFifo_Inst : entity work.SsiFifo
---       generic map (
---          -- General Configurations
---          TPD_G               => TPD_C,
---          PIPE_STAGES_G       => AXI_PIPE_STAGES_C,
---          EN_FRAME_FILTER_G   => true,
---          VALID_THOLD_G       => 1,
---          -- FIFO configurations
---          BRAM_EN_G           => BRAM_EN_C,
---          XIL_DEVICE_G        => XIL_DEVICE_C,
---          USE_BUILT_IN_G      => USE_BUILT_IN_C,
---          GEN_SYNC_FIFO_G     => false,
---          ALTERA_SYN_G        => ALTERA_SYN_C,
---          ALTERA_RAM_G        => ALTERA_RAM_C,
---          CASCADE_SIZE_G      => CASCADE_SIZE_C,
---          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
---          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_C,
---          -- AXI Stream Port Configurations
---          SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_C,
---          MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_C)
---       port map (
---          -- Slave Port
---          sAxisClk       => fastClk,
---          sAxisRst       => fastRst,
---          sAxisMaster    => ssiFifoMaster,
---          sAxisSlave     => ssiFifoSlave,
---          sAxisCtrl      => open,
---          sAxisDropWrite => dropWrite,
---          sAxisTermFrame => dropFrame,
---          -- Master Port
---          mAxisClk       => slowClk,
---          mAxisRst       => slowRst,
---          mAxisMaster    => ibMaster,
---          mAxisSlave     => ibSlave);
-
    ibSlave <= AXI_STREAM_SLAVE_FORCE_C;
-
---    process(fastClk)
---    begin
---       if rising_edge(fastClk) then
---          if fastRst = '1' then
---             failedFast <= '0' after TPD_C;
---          else
---             -- Check for dropped word error
---             if dropWrite = '1' then
---                failedFast <= '1' after TPD_C;
---             end if;
---             -- Check for dropped frame error
---             if dropFrame = '1' then
---                failedFast <= '1' after TPD_C;
---             end if;
---          end if;
---       end if;
---    end process;
-
---    process(failedFast, failedSlow, passedSlow)
---    begin
---       if (failedFast = '1') or (failedSlow = '1') then
---          assert false
---             report "Simulation Failed!" severity failure;
---       end if;
---       if passedSlow = '1' then
---          assert false
---             report "Simulation Passed!" severity failure;
---       end if;
---    end process;
-
-   ------------
-   -- Data Sink
-   ------------
---    SsiPrbsRx_Inst : entity work.SsiPrbsRx
---       generic map (
---          -- General Configurations
---          TPD_G                      => TPD_C,
---          STATUS_CNT_WIDTH_G         => STATUS_CNT_WIDTH_C,
---          -- FIFO Configurations
---          BRAM_EN_G                  => BRAM_EN_C,
---          XIL_DEVICE_G               => XIL_DEVICE_C,
---          USE_BUILT_IN_G             => USE_BUILT_IN_C,
---          GEN_SYNC_FIFO_G            => true,
---          ALTERA_SYN_G               => ALTERA_SYN_C,
---          ALTERA_RAM_G               => ALTERA_RAM_C,
---          CASCADE_SIZE_G             => CASCADE_SIZE_C,
---          FIFO_ADDR_WIDTH_G          => FIFO_ADDR_WIDTH_C,
---          FIFO_PAUSE_THRESH_G        => FIFO_PAUSE_THRESH_C,
---          -- PRBS Configurations
---          PRBS_SEED_SIZE_G           => PRBS_SEED_SIZE_C,
---          PRBS_TAPS_G                => PRBS_TAPS_C,
---          -- AXI Stream Configurations
---          SLAVE_AXI_STREAM_CONFIG_G  => AXI_STREAM_CONFIG_C,
---          SLAVE_AXI_PIPE_STAGES_G    => AXI_PIPE_STAGES_C,
---          MASTER_AXI_STREAM_CONFIG_G => ssiAxiStreamConfig(4),  -- unused
---          MASTER_AXI_PIPE_STAGES_G   => 0)                      -- unused
---       port map (
---          -- Streaming RX Data Interface (sAxisClk domain) 
---          sAxisClk        => slowClk,
---          sAxisRst        => slowRst,
---          sAxisMaster     => ibMaster,
---          sAxisSlave      => ibSlave,
---          sAxisCtrl       => open,
---          -- Optional: Streaming TX Data Interface (mAxisClk domain)
---          mAxisClk        => slowClk,
---          mAxisRst        => slowRst,
---          mAxisMaster     => open,
---          mAxisSlave      => AXI_STREAM_SLAVE_FORCE_C,
---          -- Optional: AXI-Lite Register Interface (axiClk domain)
---          axiClk          => slowClk,
---          axiRst          => slowRst,
---          axiReadMaster   => AXI_LITE_READ_MASTER_INIT_C,
---          axiReadSlave    => open,
---          axiWriteMaster  => AXI_LITE_WRITE_MASTER_INIT_C,
---          -- Error Detection Signals (sAxisClk domain)
---          updatedResults  => updated,
---          busy            => open,
---          errMissedPacket => errMissedPacket,
---          errLength       => errLength,
---          errDataBus      => errDataBus,
---          errEofe         => errEofe,
---          errWordCnt      => errWordCnt,
---          errbitCnt       => errbitCnt,
---          packetRate      => open,
---          packetLength    => open);     
-
---    process(slowClk)
---    begin
---       if rising_edge(slowClk) then
---          if slowRst = '1' then
---             failedSlow <= '0' after TPD_C;
---             passedSlow <= '0' after TPD_C;
---          elsif updated = '1' then
---             -- Check for missed packet error
---             if errMissedPacket = '1' then
---                failedSlow <= '1' after TPD_C;
---             end if;
---             -- Check for packet length error
---             if errLength = '1' then
---                failedSlow <= '1' after TPD_C;
---             end if;
---             -- Check for packet data bus error
---             if errDataBus = '1' then
---                failedSlow <= '1' after TPD_C;
---             end if;
---             -- Check for EOFE error
---             if errEofe = '1' then
---                failedSlow <= '1' after TPD_C;
---             end if;
---             -- Check for word error
---             if errWordCnt /= 0 then
---                failedSlow <= '1' after TPD_C;
---             end if;
---             -- Check for bit error
---             if errbitCnt /= 0 then
---                failedSlow <= '1' after TPD_C;
---             end if;
---             -- Check the counter
---             if cnt = NUMBER_PACKET_C then
---                passedSlow <= '1' after TPD_C;
---             else
---                -- Increment the counter
---                cnt <= cnt + 1 after TPD_C;
---             end if;
---          end if;
---       end if;
---    end process;
 
 end testbed;

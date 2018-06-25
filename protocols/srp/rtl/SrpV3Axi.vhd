@@ -38,8 +38,6 @@ entity SrpV3Axi is
       TX_VALID_THOLD_G    : positive                := 1;
       SLAVE_READY_EN_G    : boolean                 := true;
       GEN_SYNC_FIFO_G     : boolean                 := false;
-      ALTERA_SYN_G        : boolean                 := false;
-      ALTERA_RAM_G        : string                  := "M9K";
       AXI_CLK_FREQ_G      : real                    := 156.25E+6;  -- units of Hz
       AXI_CONFIG_G        : AxiConfigType           := (33, 4, 1, 8);
       AXI_BURST_G         : slv(1 downto 0)         := "01";
@@ -117,8 +115,6 @@ begin
          TX_VALID_THOLD_G    => TX_VALID_THOLD_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
          SRP_CLK_FREQ_G      => AXI_CLK_FREQ_G,
          AXI_STREAM_CONFIG_G => AXI_STREAM_CONFIG_G,
          UNALIGNED_ACCESS_G  => UNALIGNED_ACCESS_G,

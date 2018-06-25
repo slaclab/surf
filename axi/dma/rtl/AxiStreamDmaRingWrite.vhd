@@ -258,7 +258,7 @@ begin
    U_AxiDualPortRam_Start : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
+         MEMORY_TYPE_G=> "distributed",
          REG_EN_G     => false,
          AXI_WR_EN_G  => true,
          SYS_WR_EN_G  => false,
@@ -280,7 +280,7 @@ begin
    U_AxiDualPortRam_End : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
+         MEMORY_TYPE_G=> "distributed",
          REG_EN_G     => false,
          AXI_WR_EN_G  => true,
          SYS_WR_EN_G  => false,
@@ -303,7 +303,7 @@ begin
    U_AxiDualPortRam_Next : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
+         MEMORY_TYPE_G=> "distributed",
          REG_EN_G     => false,
          AXI_WR_EN_G  => false,
          SYS_WR_EN_G  => true,
@@ -326,7 +326,7 @@ begin
    U_AxiDualPortRam_Trigger : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
+         MEMORY_TYPE_G=> "distributed",
          REG_EN_G     => false,
          AXI_WR_EN_G  => false,
          SYS_WR_EN_G  => true,
@@ -350,7 +350,7 @@ begin
    U_AxiDualPortRam_Mode : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
+         MEMORY_TYPE_G=> "distributed",
          REG_EN_G     => false,
          AXI_WR_EN_G  => true,
          SYS_WR_EN_G  => false,
@@ -376,7 +376,7 @@ begin
    U_AxiDualPortRam_Status : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
+         MEMORY_TYPE_G=> "distributed",
          REG_EN_G     => false,
          AXI_WR_EN_G  => false,
          SYS_WR_EN_G  => true,
@@ -427,8 +427,8 @@ begin
          PIPE_STAGES_G       => 1,
          SLAVE_READY_EN_G    => false,
          VALID_THOLD_G       => 1,
-         BRAM_EN_G           => false,
-         USE_BUILT_IN_G      => false,
+         SYNTH_MODE_G        => SYNTH_MODE_G,
+         MEMORY_TYPE_G       => "distributed",
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 4,
          FIFO_FIXED_THRESH_G => true,

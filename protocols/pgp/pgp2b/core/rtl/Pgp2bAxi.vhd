@@ -255,13 +255,8 @@ begin
    U_RxOpCodeSync : entity work.SynchronizerFifo
       generic map (
          TPD_G         => TPD_G,
-         BRAM_EN_G     => false,
-         ALTERA_SYN_G  => false,
-         ALTERA_RAM_G  => "M9K",
-         SYNC_STAGES_G => 3,
          DATA_WIDTH_G  => 8,
-         ADDR_WIDTH_G  => 2,
-         INIT_G        => "0")
+         ADDR_WIDTH_G  => 2)
       port map (
          rst    => r.countReset,
          wr_clk => pgpRxClk,
@@ -277,13 +272,8 @@ begin
       U_RxDataSync : entity work.SynchronizerFifo
          generic map (
             TPD_G         => TPD_G,
-            BRAM_EN_G     => false,
-            ALTERA_SYN_G  => false,
-            ALTERA_RAM_G  => "M9K",
-            SYNC_STAGES_G => 3,
             DATA_WIDTH_G  => 8,
-            ADDR_WIDTH_G  => 2,
-            INIT_G        => "0")
+            ADDR_WIDTH_G  => 2)
          port map (
             rst    => axilRst,
             wr_clk => pgpRxClk,
@@ -426,13 +416,8 @@ begin
    U_TxOpCodeSync : entity work.SynchronizerFifo
       generic map (
          TPD_G         => TPD_G,
-         BRAM_EN_G     => false,
-         ALTERA_SYN_G  => false,
-         ALTERA_RAM_G  => "M9K",
-         SYNC_STAGES_G => 3,
          DATA_WIDTH_G  => 8,
-         ADDR_WIDTH_G  => 2,
-         INIT_G        => "0")
+         ADDR_WIDTH_G  => 2)
       port map (
          rst    => r.countReset,
          wr_clk => pgpTxClk,
@@ -546,13 +531,8 @@ begin
       U_TxDataSync : entity work.SynchronizerFifo
          generic map (
             TPD_G         => TPD_G,
-            BRAM_EN_G     => false,
-            ALTERA_SYN_G  => false,
-            ALTERA_RAM_G  => "M9K",
-            SYNC_STAGES_G => 3,
             DATA_WIDTH_G  => 9,
-            ADDR_WIDTH_G  => 2,
-            INIT_G        => "0")
+            ADDR_WIDTH_G  => 2)
          port map (
             rst              => axilRst,
             wr_clk           => axilClk,
