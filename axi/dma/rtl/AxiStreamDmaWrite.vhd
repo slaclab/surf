@@ -30,6 +30,8 @@ use work.AxiDmaPkg.all;
 entity AxiStreamDmaWrite is
    generic (
       TPD_G             : time                := 1 ns;
+      SYNTH_MODE_G      : string              := "inferred";
+      MEMORY_TYPE_G     : string              := "block";       
       AXI_READY_EN_G    : boolean             := false;
       AXIS_CONFIG_G     : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
       AXI_CONFIG_G      : AxiConfigType       := AXI_CONFIG_INIT_C;
@@ -162,8 +164,10 @@ begin
             TPD_G               => TPD_G,
             INT_PIPE_STAGES_G   => PIPE_STAGES_G,
             PIPE_STAGES_G       => PIPE_STAGES_G,
-            SLAVE_READY_EN_G    => true,
             VALID_THOLD_G       => 1,
+            SLAVE_READY_EN_G    => true,
+            SYNTH_MODE_G        => SYNTH_MODE_G,
+            MEMORY_TYPE_G       => MEMORY_TYPE_G,              
             GEN_SYNC_FIFO_G     => true,
             CASCADE_SIZE_G      => 1,
             FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
@@ -191,7 +195,8 @@ begin
       U_Last : entity work.FifoSync
          generic map (
             TPD_G        => TPD_G,
-            BYP_RAM_G    => true,
+            SYNTH_MODE_G => "inferred",
+            BYP_RAM_G    => true, -- BYP_RAM_G only used in "inferred"
             FWFT_EN_G    => true,
             ADDR_WIDTH_G => FIFO_ADDR_WIDTH_C)
          port map (

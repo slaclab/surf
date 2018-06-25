@@ -31,6 +31,8 @@ entity AxiStreamDmaV2 is
    generic (
       TPD_G             : time                     := 1 ns;
       SIMULATION_G      : boolean                  := false;
+      SYNTH_MODE_G      : string                   := "inferred";
+      MEMORY_TYPE_G     : string                   := "block";      
       DESC_AWIDTH_G     : positive range 4 to 12   := 12;
       DESC_ARB_G        : boolean                  := true;
       AXIL_BASE_ADDR_G  : slv(31 downto 0)         := x"00000000";
@@ -96,6 +98,8 @@ begin
       U_DmaDesc : entity work.AxiStreamDmaV2Desc
          generic map (
             TPD_G             => TPD_G,
+            SYNTH_MODE_G      => SYNTH_MODE_G,
+            MEMORY_TYPE_G     => MEMORY_TYPE_G,             
             CHAN_COUNT_G      => CHAN_COUNT_G,
             AXIL_BASE_ADDR_G  => AXIL_BASE_ADDR_G,
             AXI_READY_EN_G    => AXI_READY_EN_G,

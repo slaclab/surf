@@ -31,6 +31,8 @@ use work.ArbiterPkg.all;
 entity AxiStreamDmaV2Desc is
    generic (
       TPD_G             : time                  := 1 ns;
+      SYNTH_MODE_G      : string                := "inferred";
+      MEMORY_TYPE_G     : string                := "block";
       CHAN_COUNT_G      : integer range 1 to 16 := 1;
       AXIL_BASE_ADDR_G  : slv(31 downto 0)      := x"00000000";
       AXI_READY_EN_G    : boolean               := false;
@@ -283,6 +285,8 @@ begin
    U_DescFifo : entity work.Fifo
       generic map (
          TPD_G           => TPD_G,
+         SYNTH_MODE_G    => SYNTH_MODE_G,
+         MEMORY_TYPE_G   => MEMORY_TYPE_G,
          GEN_SYNC_FIFO_G => true,
          FWFT_EN_G       => true,
          DATA_WIDTH_G    => 16,
@@ -303,6 +307,8 @@ begin
    U_RdLowFifo : entity work.Fifo
       generic map (
          TPD_G           => TPD_G,
+         SYNTH_MODE_G    => SYNTH_MODE_G,
+         MEMORY_TYPE_G   => MEMORY_TYPE_G,         
          GEN_SYNC_FIFO_G => true,
          FWFT_EN_G       => true,
          DATA_WIDTH_G    => 32,
@@ -320,6 +326,8 @@ begin
    U_RdHighFifo : entity work.Fifo
       generic map (
          TPD_G           => TPD_G,
+         SYNTH_MODE_G    => SYNTH_MODE_G,
+         MEMORY_TYPE_G   => MEMORY_TYPE_G,          
          GEN_SYNC_FIFO_G => true,
          FWFT_EN_G       => true,
          DATA_WIDTH_G    => 32,
@@ -340,6 +348,7 @@ begin
    U_AddrRam : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
+         MEMORY_TYPE_G=> MEMORY_TYPE_G, 
          REG_EN_G     => true,
          COMMON_CLK_G => true,
          ADDR_WIDTH_G => DESC_AWIDTH_G,
