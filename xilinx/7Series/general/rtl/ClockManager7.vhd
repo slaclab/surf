@@ -2,7 +2,7 @@
 -- File       : ClockManager7.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-10-28
--- Last update: 2018-01-08
+-- Last update: 2018-06-21
 -------------------------------------------------------------------------------
 -- Description: A wrapper over MMCM/PLL to avoid coregen use.
 -------------------------------------------------------------------------------
@@ -30,15 +30,16 @@ use work.AxiLitePkg.all;
 entity ClockManager7 is
    generic (
       TPD_G                  : time                             := 1 ns;
+      SIMULATION_G           : boolean                          := false;
       TYPE_G                 : string                           := "MMCM";  -- or "PLL"
       INPUT_BUFG_G           : boolean                          := true;
       FB_BUFG_G              : boolean                          := true;
       OUTPUT_BUFG_G          : boolean                          := true;
-      RST_IN_POLARITY_G      : sl                               := '1';     -- '0' for active low
+      RST_IN_POLARITY_G      : sl                               := '1';  -- '0' for active low
       NUM_CLOCKS_G           : integer range 1 to 7;
       -- MMCM attributes
       BANDWIDTH_G            : string                           := "OPTIMIZED";
-      CLKIN_PERIOD_G         : real                             := 10.0;    -- Input period in ns );
+      CLKIN_PERIOD_G         : real                             := 10.0;  -- Input period in ns );
       DIVCLK_DIVIDE_G        : integer range 1 to 106           := 1;
       CLKFBOUT_MULT_F_G      : real range 1.0 to 64.0           := 1.0;
       CLKFBOUT_MULT_G        : integer range 2 to 64            := 5;
@@ -90,7 +91,7 @@ entity ClockManager7 is
       axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave  : out AxiLiteWriteSlaveType);      
+      axilWriteSlave  : out AxiLiteWriteSlaveType);
 end entity ClockManager7;
 
 architecture rtl of ClockManager7 is
@@ -141,7 +142,7 @@ begin
          EN_ARBITRATION_G => false,
          TIMEOUT_G        => 4096,
          ADDR_WIDTH_G     => 7,
-         DATA_WIDTH_G     => 16)      
+         DATA_WIDTH_G     => 16)
       port map (
          -- AXI-Lite Port
          axilClk         => axilClk,
@@ -158,9 +159,9 @@ begin
          drpWe           => drpWe,
          drpAddr         => drpAddr,
          drpDi           => drpDi,
-         drpDo           => drpDo);         
+         drpDo           => drpDo);
 
-   MmcmGen : if (TYPE_G = "MMCM") generate
+   MmcmGen : if (TYPE_G = "MMCM") and (SIMULATION_G = false) generate
       U_Mmcm : MMCME2_ADV
          generic map (
             BANDWIDTH          => BANDWIDTH_G,
@@ -218,7 +219,49 @@ begin
             CLKOUT6  => clkOutMmcm(6));
    end generate MmcmGen;
 
-   PllGen : if (TYPE_G = "PLL") generate
+   MmcmEmu : if (TYPE_G = "MMCM") and (SIMULATION_G = true) generate
+      U_Mmcm : entity work.MmcmEmulation
+         generic map (
+            CLKIN_PERIOD_G       => CLKIN_PERIOD_G,
+            DIVCLK_DIVIDE_G      => DIVCLK_DIVIDE_G,
+            CLKFBOUT_MULT_F_G    => CLKFBOUT_MULT_F_C,
+            CLKOUT0_DIVIDE_F_G   => CLKOUT0_DIVIDE_F_C,
+            CLKOUT1_DIVIDE_G     => CLKOUT1_DIVIDE_G,
+            CLKOUT2_DIVIDE_G     => CLKOUT2_DIVIDE_G,
+            CLKOUT3_DIVIDE_G     => CLKOUT3_DIVIDE_G,
+            CLKOUT4_DIVIDE_G     => CLKOUT4_DIVIDE_G,
+            CLKOUT5_DIVIDE_G     => CLKOUT5_DIVIDE_G,
+            CLKOUT6_DIVIDE_G     => CLKOUT6_DIVIDE_G,
+            CLKOUT0_PHASE_G      => CLKOUT0_PHASE_G,
+            CLKOUT1_PHASE_G      => CLKOUT1_PHASE_G,
+            CLKOUT2_PHASE_G      => CLKOUT2_PHASE_G,
+            CLKOUT3_PHASE_G      => CLKOUT3_PHASE_G,
+            CLKOUT4_PHASE_G      => CLKOUT4_PHASE_G,
+            CLKOUT5_PHASE_G      => CLKOUT5_PHASE_G,
+            CLKOUT6_PHASE_G      => CLKOUT6_PHASE_G,
+            CLKOUT0_DUTY_CYCLE_G => CLKOUT0_DUTY_CYCLE_G,
+            CLKOUT1_DUTY_CYCLE_G => CLKOUT1_DUTY_CYCLE_G,
+            CLKOUT2_DUTY_CYCLE_G => CLKOUT2_DUTY_CYCLE_G,
+            CLKOUT3_DUTY_CYCLE_G => CLKOUT3_DUTY_CYCLE_G,
+            CLKOUT4_DUTY_CYCLE_G => CLKOUT4_DUTY_CYCLE_G,
+            CLKOUT5_DUTY_CYCLE_G => CLKOUT5_DUTY_CYCLE_G,
+            CLKOUT6_DUTY_CYCLE_G => CLKOUT6_DUTY_CYCLE_G)
+         port map (
+            CLKIN   => clkInLoc,
+            RST     => rstInLoc,
+            LOCKED  => lockedLoc,
+            CLKOUT0 => clkOutMmcm(0),
+            CLKOUT1 => clkOutMmcm(1),
+            CLKOUT2 => clkOutMmcm(2),
+            CLKOUT3 => clkOutMmcm(3),
+            CLKOUT4 => clkOutMmcm(4),
+            CLKOUT5 => clkOutMmcm(5),
+            CLKOUT6 => clkOutMmcm(6));
+      drpRdy <= '1';
+      drpDo  <= (others => '1');
+   end generate MmcmEmu;
+
+   PllGen : if (TYPE_G = "PLL") and (SIMULATION_G = false) generate
       U_Pll : PLLE2_ADV
          generic map (
             BANDWIDTH          => BANDWIDTH_G,
@@ -266,6 +309,44 @@ begin
             CLKOUT4  => clkOutMmcm(4),
             CLKOUT5  => clkOutMmcm(5));
    end generate;
+
+   PllEmu : if (TYPE_G = "PLL") and (SIMULATION_G = true) generate
+      U_Pll : entity work.MmcmEmulation
+         generic map (
+            CLKIN_PERIOD_G       => CLKIN_PERIOD_G,
+            DIVCLK_DIVIDE_G      => DIVCLK_DIVIDE_G,
+            CLKFBOUT_MULT_F_G    => real(CLKFBOUT_MULT_G),
+            CLKOUT0_DIVIDE_F_G   => real(CLKOUT0_DIVIDE_G),
+            CLKOUT1_DIVIDE_G     => CLKOUT1_DIVIDE_G,
+            CLKOUT2_DIVIDE_G     => CLKOUT2_DIVIDE_G,
+            CLKOUT3_DIVIDE_G     => CLKOUT3_DIVIDE_G,
+            CLKOUT4_DIVIDE_G     => CLKOUT4_DIVIDE_G,
+            CLKOUT5_DIVIDE_G     => CLKOUT5_DIVIDE_G,
+            CLKOUT0_PHASE_G      => CLKOUT0_PHASE_G,
+            CLKOUT1_PHASE_G      => CLKOUT1_PHASE_G,
+            CLKOUT2_PHASE_G      => CLKOUT2_PHASE_G,
+            CLKOUT3_PHASE_G      => CLKOUT3_PHASE_G,
+            CLKOUT4_PHASE_G      => CLKOUT4_PHASE_G,
+            CLKOUT5_PHASE_G      => CLKOUT5_PHASE_G,
+            CLKOUT0_DUTY_CYCLE_G => CLKOUT0_DUTY_CYCLE_G,
+            CLKOUT1_DUTY_CYCLE_G => CLKOUT1_DUTY_CYCLE_G,
+            CLKOUT2_DUTY_CYCLE_G => CLKOUT2_DUTY_CYCLE_G,
+            CLKOUT3_DUTY_CYCLE_G => CLKOUT3_DUTY_CYCLE_G,
+            CLKOUT4_DUTY_CYCLE_G => CLKOUT4_DUTY_CYCLE_G,
+            CLKOUT5_DUTY_CYCLE_G => CLKOUT5_DUTY_CYCLE_G)
+         port map (
+            CLKIN   => clkInLoc,
+            RST     => rstInLoc,
+            LOCKED  => lockedLoc,
+            CLKOUT0 => clkOutMmcm(0),
+            CLKOUT1 => clkOutMmcm(1),
+            CLKOUT2 => clkOutMmcm(2),
+            CLKOUT3 => clkOutMmcm(3),
+            CLKOUT4 => clkOutMmcm(4),
+            CLKOUT5 => clkOutMmcm(5));
+      drpRdy <= '1';
+      drpDo  <= (others => '1');
+   end generate PllEmu;
 
    InputBufgGen : if (INPUT_BUFG_G) generate
       U_Bufg : BUFG
