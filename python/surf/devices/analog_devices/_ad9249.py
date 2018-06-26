@@ -319,7 +319,7 @@ class Ad9249ReadoutGroup(pr.Device):
             base=pr.UInt,
             function=pr.RemoteCommand.touch))
 
-    def readBlocks(self, recurse=True, variable=None):
+    def readBlocks(self, recurse=True, variable=None, checkEach=False):
         if variable is not None:
             variable._block.backgroundTransaction(rim.Read)
         else:
