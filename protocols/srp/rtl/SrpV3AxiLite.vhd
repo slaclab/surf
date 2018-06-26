@@ -2,7 +2,7 @@
 -- File       : SrpV3AxiLite.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-03-22
--- Last update: 2017-06-18
+-- Last update: 2018-05-16
 -------------------------------------------------------------------------------
 -- Description: SLAC Register Protocol Version 3, AXI-Lite Interface
 --
@@ -30,6 +30,7 @@ use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
 use work.AxiLitePkg.all;
+use ieee.math_real.all;
 
 entity SrpV3AxiLite is
    generic (
@@ -187,7 +188,7 @@ begin
       generic map (
          TPD_G               => TPD_G,
          EN_TIMEOUT_G        => false,
-         FRAME_LIMIT_G       => (4128/AXI_STREAM_CONFIG_G.TDATA_BYTES_C),  -- (2^12+4*8)/TDATA_BYTES_C
+         FRAME_LIMIT_G       => integer(ceil(4116.0/real(AXI_STREAM_CONFIG_G.TDATA_BYTES_C))),  -- (20B HDR + 4096B payload)/TDATA_BYTES_C
          COMMON_CLK_G        => true,
          SLAVE_FIFO_G        => false,
          MASTER_FIFO_G       => false,
@@ -305,7 +306,7 @@ begin
       end if;
 
       -- Check for overflow
-      if (rxCtrl.overflow = '1') and (r.rxRst = '0') then
+      if (rxCtrl.overflow = '1') and (r.rxRst = '0') and (SLAVE_READY_EN_G = false) then
          -- Set the flag
          v.overflowDet := '1';
       end if;
@@ -751,6 +752,9 @@ begin
          v.eofe := ssiGetUserEofe(AXIS_CONFIG_C, rxMaster);
       end if;
 
+      -- Combinatorial outputs before the reset
+      rxSlave <= v.rxSlave;
+
       -- Reset
       if (axilRst = '1') then
          v := REG_INIT_C;
@@ -759,8 +763,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs    
-      rxSlave          <= v.rxSlave;
+      -- Registered Outputs
       mAxilWriteMaster <= r.mAxilWriteMaster;
       mAxilReadMaster  <= r.mAxilReadMaster;
       rxRst            <= r.rxRst or axilRst;

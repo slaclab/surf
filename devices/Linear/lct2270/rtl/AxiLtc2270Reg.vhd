@@ -2,7 +2,7 @@
 -- File       : AxiLtc2270Reg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-21
--- Last update: 2015-01-13
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite Register Access Module
 -------------------------------------------------------------------------------
@@ -33,8 +33,7 @@ entity AxiLtc2270Reg is
       DMODE_INIT_G       : slv(1 downto 0)                 := "00";
       DELAY_INIT_G       : Slv5VectorArray(0 to 1, 0 to 7) := (others => (others => (others => '0')));
       STATUS_CNT_WIDTH_G : natural range 1 to 32           := 32;
-      AXI_CLK_FREQ_G     : real                            := 200.0E+6;  -- units of Hz
-      AXI_ERROR_RESP_G   : slv(1 downto 0)                 := AXI_RESP_SLVERR_C);  
+      AXI_CLK_FREQ_G     : real                            := 200.0E+6);  -- units of Hz
    port (
       -- ADC Ports
       adcCs          : out   sl;
@@ -177,7 +176,7 @@ begin
 
       if (axiStatus.writeEnable = '1') and (r.state = IDLE_S) then
          -- Check for an out of 32 bit aligned address
-         axiWriteResp := ite(axiWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
+         axiWriteResp := ite(axiWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          if (axiWriteMaster.awaddr(9 downto 2) < 5) and (r.debug = '1') then
             v.serReg(15)           := '0';  -- Write
             v.serReg(14 downto 13) := "00";
@@ -258,14 +257,14 @@ begin
                when x"FF" =>
                   v.cntRst := '1';
                when others =>
-                  axiWriteResp := AXI_ERROR_RESP_G;
+                  axiWriteResp := AXI_RESP_DECERR_C;
             end case;
             -- Send AXI response
             axiSlaveWriteResponse(v.axiWriteSlave, axiWriteResp);
          end if;
       elsif (axiStatus.readEnable = '1') and (r.state = IDLE_S) then
          -- Check for an out of 32 bit aligned address
-         axiReadResp          := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
+         axiReadResp          := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          -- Reset the register
          v.axiReadSlave.rdata := (others => '0');
          if (axiReadMaster.araddr(9 downto 2) < 5) then
@@ -348,7 +347,7 @@ begin
                when x"A0" =>
                   v.axiReadSlave.rdata(0) := r.debug;
                when others =>
-                  axiReadResp := AXI_ERROR_RESP_G;
+                  axiReadResp := AXI_RESP_DECERR_C;
             end case;
             -- Send Axi Response
             axiSlaveReadResponse(v.axiReadSlave, axiReadResp);

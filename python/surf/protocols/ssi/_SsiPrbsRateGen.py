@@ -31,141 +31,142 @@ class SsiPrbsRateGen(pr.Device):
         # Variables
         ##############################
 
-        self.add (pr.RemoteCommand(  
-            name         = "statReset",
+        self.add(pr.RemoteCommand(    
+            name         = "StatReset",
             description  = "",
-            offset       =  0x00,
-            bitSize      =  1,
-            bitOffset    =  0x00,
-            mode         = "RW",
-            function     = pr.Command.toggle
+            offset       = 0x00,
+            bitSize      = 1,
+            bitOffset    = 0,
+            base         = pr.UInt,            
+            function     = lambda cmd: cmd.toggle,
+            hidden       = False,
         ))
 
         self.add(pr.RemoteVariable(    
-            name         = "packetLength",
+            name         = "PacketLength",
             description  = "",
-            offset       =  0x04,
-            bitSize      =  32,
-            bitOffset    =  0x00,
+            offset       = 0x04,
+            bitSize      = 32,
+            bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RW",
         ))
 
         self.add(pr.RemoteVariable(    
-            name         = "period",
+            name         = "Period",
             description  = "",
-            offset       =  0x08,
-            bitSize      =  32,
-            bitOffset    =  0x00,
+            offset       = 0x08,
+            bitSize      = 32,
+            bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RW",
         ))
 
         self.add(pr.RemoteVariable(    
-            name         = "txEn",
+            name         = "TxEn",
             description  = "",
-            offset       =  0x0C,
-            bitSize      =  1,
-            bitOffset    =  0x00,
-            base         = "bool",
+            offset       = 0x0C,
+            bitSize      = 1,
+            bitOffset    = 0,
+            base         = pr.Bool,
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteCommand (   
-            name         = "oneShot",
+        self.add(pr.RemoteCommand(    
+            name         = "OneShot",
             description  = "",
-            offset       =  0x0C,
-            bitSize      =  1,
-            bitOffset    =  0x01,
+            offset       = 0x0C,
+            bitSize      = 1,
+            bitOffset    = 1,
+            base         = pr.UInt,            
+            function     = pr.BaseCommand.toggle,
+            hidden       = False,
+        ))
+
+        self.add(pr.RemoteVariable(    
+            name         = "Missed",
+            description  = "",
+            offset       = 0x10,
+            bitSize      = 32,
+            bitOffset    = 0,
             base         = pr.UInt,
-            mode         = "WO",
-            function     = pr.Command.toggle
-        ))
-
-        self.add(pr.RemoteVariable(    
-            name         = "missed",
-            description  = "",
-            offset       =  0x10,
-            bitSize      =  32,
-            bitOffset    =  0x00,
-            base         = "int",
             pollInterval = 1,
             mode         = "RO",
         ))
 
         self.add(pr.RemoteVariable(    
-            name         = "frameRate",
+            name         = "FrameRate",
             description  = "",
-            offset       =  0x14,
-            bitSize      =  32,
-            bitOffset    =  0x00,
-            base         = "int",
+            offset       = 0x14,
+            bitSize      = 32,
+            bitOffset    = 0,
+            base         = pr.UInt,
             pollInterval = 1,
             mode         = "RO",
         ))
 
         self.add(pr.RemoteVariable(    
-            name         = "frameRateMax",
+            name         = "FrameRateMax",
             description  = "",
-            offset       =  0x18,
-            bitSize      =  32,
-            bitOffset    =  0x00,
-            base         = "int",
+            offset       = 0x18,
+            bitSize      = 32,
+            bitOffset    = 0,
+            base         = pr.UInt,
             pollInterval = 1,
             mode         = "RO",
         ))
 
         self.add(pr.RemoteVariable(    
-            name         = "frameRateMin",
+            name         = "FrameRateMin",
             description  = "",
-            offset       =  0x1C,
-            bitSize      =  32,
-            bitOffset    =  0x00,
-            base         = "int",
+            offset       = 0x1C,
+            bitSize      = 32,
+            bitOffset    = 0,
+            base         = pr.UInt,
             pollInterval = 1,
             mode         = "RO",
         ))
 
         self.add(pr.RemoteVariable(    
-            name         = "bandWidth",
+            name         = "BandWidth",
             description  = "",
-            offset       =  0x20,
-            bitSize      =  64,
-            bitOffset    =  0x00,
-            base         = "int",
+            offset       = 0x20,
+            bitSize      = 64,
+            bitOffset    = 0,
+            base         = pr.UInt,
             pollInterval = 1,
             mode         = "RO",
         ))
 
         self.add(pr.RemoteVariable(    
-            name         = "bandWidthMax",
+            name         = "BandWidthMax",
             description  = "",
-            offset       =  0x28,
-            bitSize      =  64,
-            bitOffset    =  0x00,
-            base         = "int",
+            offset       = 0x28,
+            bitSize      = 64,
+            bitOffset    = 0,
+            base         = pr.UInt,
             pollInterval = 1,
             mode         = "RO",
         ))
 
         self.add(pr.RemoteVariable(    
-            name         = "bandWidthMin",
+            name         = "BandWidthMin",
             description  = "",
-            offset       =  0x30,
-            bitSize      =  64,
-            bitOffset    =  0x00,
-            base         = "int",
+            offset       = 0x30,
+            bitSize      = 64,
+            bitOffset    = 0,
+            base         = pr.UInt,
             pollInterval = 1,
             mode         = "RO",
         ))
 
         self.add(pr.RemoteVariable(    
-            name         = "frameCount",
+            name         = "FrameCount",
             description  = "",
-            offset       =  0x40,
-            bitSize      =  64,
-            bitOffset    =  0x00,
-            base         = "int",
+            offset       = 0x40,
+            bitSize      = 64,
+            bitOffset    = 0,
+            base         = pr.UInt,
             pollInterval = 1,
             mode         = "RO",
         ))

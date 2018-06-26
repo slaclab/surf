@@ -2,7 +2,7 @@
 -- File       : AxiLiteSrpV0Tb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-08
--- Last update: 2016-06-08
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Simulation testbed for AxiLiteSrpV0
 -------------------------------------------------------------------------------
@@ -37,7 +37,6 @@ architecture tb of AxiLiteSrpV0Tb is
 
    -- component generics
    constant TPD_G               : time                       := 1 ns;
-   constant AXIL_ERR_RESP_G     : slv(1 downto 0)            := AXI_RESP_SLVERR_C;
    constant RESP_THOLD_G        : integer range 0 to (2**24) := 1;
    constant SLAVE_READY_EN_G    : boolean                    := true;
    constant BRAM_EN_G           : boolean                    := true;
@@ -102,7 +101,6 @@ begin
    U_AxiLiteSrpV0 : entity work.AxiLiteSrpV0
       generic map (
          TPD_G               => TPD_G,
-         AXIL_ERR_RESP_G     => AXIL_ERR_RESP_G,
          RESP_THOLD_G        => RESP_THOLD_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
          BRAM_EN_G           => BRAM_EN_G,

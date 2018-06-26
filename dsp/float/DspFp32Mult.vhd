@@ -2,7 +2,7 @@
 -- File       : DspFp32Mult.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-09-12
--- Last update: 2017-09-18
+-- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: 32-bit Floating Point DSP inferred multiplier 
 -- Equation: p = a x b
@@ -106,6 +106,9 @@ begin
          v.p       := a * b;
       end if;
 
+      -- Combinatorial outputs before the reset
+      ibReady <= v.ibReady;
+
       -- Reset
       if (rst = RST_POLARITY_G) then
          v := REG_INIT_C;
@@ -115,8 +118,7 @@ begin
       rin <= v;
 
       -- Outputs              
-      ibReady <= v.ibReady;
-      p       <= std_logic_vector(r.p);
+      p <= std_logic_vector(r.p);
 
    end process comb;
 

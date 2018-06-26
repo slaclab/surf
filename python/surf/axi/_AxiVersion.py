@@ -19,6 +19,7 @@
 
 # Comment added by rherbst for demonstration purposes.
 import datetime
+import parse
 import pyrogue as pr
 
 # Another comment added by rherbst for demonstration
@@ -81,6 +82,7 @@ class AxiVersion(pr.Device):
 
         self.add(pr.LinkVariable(
             name = 'UpTime',
+            mode = 'RO',
             dependencies = [self.UpTimeCnt],
             linkedGet = lambda: str(datetime.timedelta(seconds=self.UpTimeCnt.value()))
         ))
@@ -93,9 +95,9 @@ class AxiVersion(pr.Device):
             bitOffset    = 0x00,
             base         = pr.UInt,
             mode         = 'RW',
+            hidden       = True,
         ))
 
-        
         self.add(pr.RemoteCommand(   
             name         = 'FpgaReload',
             description  = 'Optional Reload the FPGA from the attached PROM',
@@ -103,7 +105,8 @@ class AxiVersion(pr.Device):
             bitSize      = 1,
             bitOffset    = 0x00,
             base         = pr.UInt,
-            function     = lambda cmd: cmd.post(1)
+            function     = lambda cmd: cmd.post(1),
+            hidden       = False,
         ))
 
         self.add(pr.RemoteVariable(   
@@ -114,6 +117,7 @@ class AxiVersion(pr.Device):
             bitOffset    = 0x00,
             base         = pr.UInt,
             mode         = 'RW',
+            hidden       = True,
         ))
 
         @self.command(hidden=True)
@@ -130,6 +134,11 @@ class AxiVersion(pr.Device):
             base         = pr.UInt,
             mode         = 'RW',
         ))
+        
+        @self.command(description  = 'Toggle UserReset')
+        def UserRst():
+            self.UserReset.set(1)
+            self.UserReset.set(0)
 
         self.add(pr.RemoteVariable(   
             name         = 'FdSerial',
@@ -173,16 +182,16 @@ class AxiVersion(pr.Device):
             bitOffset    = 0x00,
             base         = pr.UInt,
             mode         = 'RO',
-            hidden       = 'True',
+            hidden       = True,
         ))
 
         self.add(pr.LinkVariable(
-            name = 'GitHashShort',
+            name         = 'GitHashShort',
+            mode         = 'RO',
             dependencies = [self.GitHash],
-            disp = '{:07x}',
-            linkedGet = lambda: self.GitHash.value() >> 132
+            disp         = '{:07x}',
+            linkedGet    = lambda: self.GitHash.value() >> 132
         ))
-
 
         self.add(pr.RemoteVariable(   
             name         = 'DeviceDna',
@@ -202,7 +211,43 @@ class AxiVersion(pr.Device):
             bitOffset    = 0x00,
             base         = pr.String,
             mode         = 'RO',
+            hidden       = True,
         ))
+
+        
+        def parseBuildStamp(var, value, disp):
+            p = parse.parse("{ImageName}: {BuildEnv}, {BuildServer}, Built {BuildDate} by {Builder}", value.strip())
+            if p is not None:
+                for k,v in p.named.items():
+                    self.node(k).set(v)
+        
+        self.add(pr.LocalVariable(
+            name = 'ImageName',
+            mode = 'RO',
+            value = ''))
+ 
+        self.add(pr.LocalVariable(
+            name = 'BuildEnv',
+            mode = 'RO',
+            value = ''))
+
+        self.add(pr.LocalVariable(
+            name = 'BuildServer',
+            mode = 'RO',
+            value = ''))
+       
+        self.add(pr.LocalVariable(
+            name = 'BuildDate',
+            mode = 'RO',
+            value = ''))
+       
+        self.add(pr.LocalVariable(
+            name = 'Builder',
+            mode = 'RO',
+            value = ''))
+
+        self.BuildStamp.addListener(parseBuildStamp)        
+       
 
     def hardReset(self):
         print('AxiVersion hard reset called')
@@ -212,3 +257,20 @@ class AxiVersion(pr.Device):
 
     def countReset(self):
         print('AxiVersion count reset called')
+        
+    def printStatus(self):
+        self.UpTimeCnt.get()
+        self.BuildStamp.get()
+        gitHash = self.GitHash.get()
+        print("FwVersion    = {}".format(hex(self.FpgaVersion.get())))
+        print("UpTime       = {}".format(self.UpTime.get()))
+        if (gitHash != 0):
+            print("GitHash      = {}".format(hex(self.GitHash.get())))
+        else:
+            print("GitHash      = dirty (uncommitted code)")
+        print("XilinxDnaId  = {}".format(hex(self.DeviceDna.get())))
+        print("FwTarget     = {}".format(self.ImageName.get()))
+        print("BuildEnv     = {}".format(self.BuildEnv.get()))
+        print("BuildServer  = {}".format(self.BuildServer.get()))
+        print("BuildDate    = {}".format(self.BuildDate.get()))
+        print("Builder      = {}".format(self.Builder.get()))

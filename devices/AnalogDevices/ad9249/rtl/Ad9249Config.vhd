@@ -2,7 +2,7 @@
 -- File       : Ad9249Config.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-23
--- Last update: 2016-12-12
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: AD9249 Configuration/Status Module
 -------------------------------------------------------------------------------
@@ -32,8 +32,7 @@ entity Ad9249Config is
       TPD_G             : time            := 1 ns;
       NUM_CHIPS_G       : positive        := 1;
       SCLK_PERIOD_G     : real            := 1.0e-6;
-      AXIL_CLK_PERIOD_G : real            := 8.0e-9;
-      AXIL_ERR_RESP_G   : slv(1 downto 0) := AXI_RESP_DECERR_C);
+      AXIL_CLK_PERIOD_G : real            := 8.0e-9);
    port (
       axilClk : in sl;
       axilRst : in sl;
@@ -140,7 +139,7 @@ begin
                v.state                := WAIT_CYCLE_S;
             end if;
 
-            axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXIL_ERR_RESP_G, v.wrEn);            
+            axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C, v.wrEn);            
 
          when WAIT_CYCLE_S =>
             -- Wait 1 cycle for rdEn to drop

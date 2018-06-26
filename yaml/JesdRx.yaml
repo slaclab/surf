@@ -135,7 +135,34 @@ JesdRx: &JesdRx
       sizeBits: *numRxLanes
       mode: RW
       description: "Mask Enable the ADC data inversion. 1-Inverted, 0-normal."
-    #########################################################  
+    #########################################################
+    PowerDown:   
+      at:
+        offset: 0x24
+      class: IntField
+      name: PowerDown
+      sizeBits: *numRxLanes
+      mode: RW
+      description: "Power Down Mask 1-PowerDown, 0-normal."            
+    #########################################################
+    SysRefPeriodmin:   
+      at:
+        offset: 0x28
+      class: IntField
+      name: SysRefPeriodmin
+      sizeBits: 16
+      mode: RO
+      description: "SysRef Period min"   
+    #########################################################
+    SysRefPeriodmax:   
+      at:
+        offset: 0x2A
+      class: IntField
+      name: SysRefPeriodmax
+      sizeBits: 16
+      mode: RO
+      description: "SysRef Period max"    
+    #########################################################
     GTReady:
       at:
         offset: 0x040

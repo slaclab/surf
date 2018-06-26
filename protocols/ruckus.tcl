@@ -2,9 +2,13 @@
 source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 
 # Load ruckus files
+loadRuckusTcl "$::DIR_PATH/clink"
 loadRuckusTcl "$::DIR_PATH/glink"
 loadRuckusTcl "$::DIR_PATH/i2c"
 loadRuckusTcl "$::DIR_PATH/jesd204b"
+loadRuckusTcl "$::DIR_PATH/jtag"
+loadRuckusTcl "$::DIR_PATH/mdio"
+loadRuckusTcl "$::DIR_PATH/packetizer"
 loadRuckusTcl "$::DIR_PATH/pgp"
 loadRuckusTcl "$::DIR_PATH/rssi"
 loadRuckusTcl "$::DIR_PATH/saci"

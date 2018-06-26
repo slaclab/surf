@@ -2,7 +2,7 @@
 -- File       : Pgp2bGtx7FixedLatWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-01-29
--- Last update: 2016-11-04
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Gtx7 Fixed Latency Wrapper
 -------------------------------------------------------------------------------
@@ -38,7 +38,6 @@ entity Pgp2bGtx7FixedLatWrapper is
       VC_INTERLEAVE_G         : integer              := 0;         -- No interleave Frames
       PAYLOAD_CNT_TOP_G       : integer              := 7;         -- Top bit for payload counter
       NUM_VC_EN_G             : integer range 1 to 4 := 4;
-      AXI_ERROR_RESP_G        : slv(1 downto 0)      := AXI_RESP_DECERR_C;
       TX_POLARITY_G           : sl                   := '0';
       RX_POLARITY_G           : sl                   := '0';
       TX_ENABLE_G             : boolean              := true;      -- Enable TX direction
@@ -354,7 +353,6 @@ begin
          VC_INTERLEAVE_G       => VC_INTERLEAVE_G,
          PAYLOAD_CNT_TOP_G     => PAYLOAD_CNT_TOP_G,
          NUM_VC_EN_G           => NUM_VC_EN_G,
-         AXI_ERROR_RESP_G      => AXI_ERROR_RESP_G,
          TX_POLARITY_G         => TX_POLARITY_G,
          RX_POLARITY_G         => RX_POLARITY_G,
          TX_ENABLE_G           => TX_ENABLE_G,

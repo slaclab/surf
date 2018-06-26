@@ -2,7 +2,7 @@
 -- File       : Jesd204bRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-14
--- Last update: 2016-02-12
+-- Last update: 2018-05-03
 -------------------------------------------------------------------------------
 -- Description: JESD204b multi-lane receiver module
 --              Receiver JESD204b module.
@@ -47,9 +47,6 @@ entity Jesd204bRx is
 
       -- Test tx module instead of GTX
       TEST_G : boolean := false;
-
-      -- AXI Lite and stream generics
-      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C;
 
       -- JESD generics
 
@@ -97,14 +94,15 @@ entity Jesd204bRx is
       r_jesdGtRxArr : in  jesdGtRxLaneTypeArray(L_G-1 downto 0);
       gtRxReset_o   : out slv(L_G-1 downto 0);
 
-      rxPolarity    : out slv(L_G-1 downto 0);       
-      
+      rxPowerDown : out slv(L_G-1 downto 0);
+      rxPolarity  : out slv(L_G-1 downto 0);
+
       -- Synchronization output combined from all receivers 
       nSync_o : out sl;
-      
+
       -- Debug signals
       pulse_o : out slv(L_G-1 downto 0);
-      leds_o : out slv(1 downto 0)
+      leds_o  : out slv(1 downto 0)
       );
 end Jesd204bRx;
 
@@ -141,12 +139,12 @@ architecture rtl of Jesd204bRx is
    signal s_enableRx    : slv(L_G-1 downto 0);
    signal s_replEnable  : sl;
    signal s_scrEnable   : sl;
-   signal s_invertData  : slv(L_G-1 downto 0); 
-   
+   signal s_invertData  : slv(L_G-1 downto 0);
+
    -- JESD subclass selection (from AXI lite register)
-   signal s_subClass    : sl;
+   signal s_subClass : sl;
    -- User reset (from AXI lite register)
-   signal s_gtReset     : sl;
+   signal s_gtReset  : sl;
 
    signal s_invertSync      : sl;
    signal s_clearErr        : sl;
@@ -159,7 +157,7 @@ architecture rtl of Jesd204bRx is
    signal s_alignTxArr : alignTxArray(L_G-1 downto 0);
 
 
-   signal s_sampleDataArr     : sampleDataArray(L_G-1 downto 0);
+   signal s_sampleDataArr : sampleDataArray(L_G-1 downto 0);
 
    -- Sysref conditioning
    signal s_sysrefSync : sl;
@@ -180,22 +178,21 @@ begin
    assert (F_G = 1 or F_G = 2 or (F_G = 4 and GT_WORD_SIZE_C = 4)) report "F_G setting must be 1,2,or 4*" severity failure;
 
    -- Legacy Interface that we will remove in the future
-   rxAxisMasterArr_o  <= (others => AXI_STREAM_MASTER_INIT_C);
-   
+   rxAxisMasterArr_o <= (others => AXI_STREAM_MASTER_INIT_C);
+
    -----------------------------------------------------------
    -- AXI Lite AXI clock domain crossed
    -----------------------------------------------------------
-   
-   GEN_rawData : for I in L_G-1 downto 0 generate
-      s_rawData(I) <= s_jesdGtRxArr(I).data;
+
+   GEN_rawData : for i in L_G-1 downto 0 generate
+      s_rawData(i) <= s_jesdGtRxArr(i).data;
    end generate GEN_rawData;
-   
+
    -- axiLite register interface
    U_Reg : entity work.JesdRxReg
       generic map (
-         TPD_G            => TPD_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
-         L_G              => L_G)
+         TPD_G => TPD_G,
+         L_G   => L_G)
       port map (
          axiClk_i        => axiClk,
          axiRst_i        => axiRst,
@@ -207,6 +204,7 @@ begin
          -- DevClk domain
          devClk_i          => devClk_i,
          devRst_i          => devRst_i,
+         sysrefRe_i        => s_sysrefRe,
          statusRxArr_i     => s_statusRxArr,
          rawData_i         => s_rawData,
          linkErrMask_o     => s_linkErrMask,
@@ -220,9 +218,10 @@ begin
          gtReset_o         => s_gtReset,
          clearErr_o        => s_clearErr,
          invertSync_o      => s_invertSync,
-         invertData_o      => s_invertData,        
+         invertData_o      => s_invertData,
          thresoldHighArr_o => s_thresoldHighArr,
          thresoldLowArr_o  => s_thresoldLowArr,
+         rxPowerDown       => rxPowerDown,
          rxPolarity        => rxPolarity);
 
    -----------------------------------------------------------
@@ -233,19 +232,19 @@ begin
    -- Generate TX test core if TEST_G=true is selected
    TEST_GEN : if TEST_G = true generate
       -----------------------------------------
-      TX_LANES_GEN : for I in L_G-1 downto 0 generate
+      TX_LANES_GEN : for i in L_G-1 downto 0 generate
          JesdTxTest_INST : entity work.JesdTxTest
             generic map (
                TPD_G => TPD_G)
             port map (
                devClk_i      => devClk_i,
                devRst_i      => devRst_i,
-               enable_i      => s_enableRx(I),
-               delay_i       => s_dlyTxArr(I),
-               align_i       => s_alignTxArr(I),
+               enable_i      => s_enableRx(i),
+               delay_i       => s_dlyTxArr(i),
+               align_i       => s_alignTxArr(i),
                lmfc_i        => s_lmfc,
                nSync_i       => r.nSyncAnyD1,
-               r_jesdGtRx    => s_jesdGtRxArr(I),
+               r_jesdGtRx    => s_jesdGtRxArr(i),
                subClass_i    => s_subClass,
                txDataValid_o => open);
       end generate TX_LANES_GEN;
@@ -314,36 +313,36 @@ begin
    ----------------------------------------------------------- 
 
    -- JESD Receiver modules (one module per Lane)
-   generateRxLanes : for I in L_G-1 downto 0 generate
+   generateRxLanes : for i in L_G-1 downto 0 generate
       JesdRx_INST : entity work.JesdRxLane
          generic map (
             TPD_G => TPD_G,
             F_G   => F_G,
             K_G   => K_G)
          port map (
-            devClk_i     => devClk_i,
-            devRst_i     => devRst_i,
-            sysRef_i     => s_sysrefRe,  -- Rising-edge of SYSREF
-            enable_i     => s_enableRx(I),
-            clearErr_i   => s_clearErr,
-            linkErrMask_i=> s_linkErrMask,
-            replEnable_i => s_replEnable,
-            scrEnable_i  => s_scrEnable,
-            inv_i        => s_invertData(I), 
-            status_o     => s_statusRxArr(I),
-            r_jesdGtRx   => s_jesdGtRxArr(I),
-            lmfc_i       => s_lmfc,
-            nSyncAnyD1_i => r.nSyncAnyD1,
-            nSyncAny_i   => s_nSyncAny,
-            nSync_o      => s_nSyncVec(I),
-            dataValid_o  => s_dataValidVec(I),
-            sampleData_o => s_sampleDataArr(I),
-            subClass_i   => s_subClass
+            devClk_i      => devClk_i,
+            devRst_i      => devRst_i,
+            sysRef_i      => s_sysrefRe,  -- Rising-edge of SYSREF
+            enable_i      => s_enableRx(i),
+            clearErr_i    => s_clearErr,
+            linkErrMask_i => s_linkErrMask,
+            replEnable_i  => s_replEnable,
+            scrEnable_i   => s_scrEnable,
+            inv_i         => s_invertData(i),
+            status_o      => s_statusRxArr(i),
+            r_jesdGtRx    => s_jesdGtRxArr(i),
+            lmfc_i        => s_lmfc,
+            nSyncAnyD1_i  => r.nSyncAnyD1,
+            nSyncAny_i    => s_nSyncAny,
+            nSync_o       => s_nSyncVec(i),
+            dataValid_o   => s_dataValidVec(i),
+            sampleData_o  => s_sampleDataArr(i),
+            subClass_i    => s_subClass
             );
    end generate;
 
    -- Test signal generator
-   generatePulserLanes : for I in L_G-1 downto 0 generate
+   generatePulserLanes : for i in L_G-1 downto 0 generate
       Pulser_INST : entity work.JesdTestSigGen
          generic map (
             TPD_G => TPD_G,
@@ -351,23 +350,23 @@ begin
          port map (
             clk            => devClk_i,
             rst            => devRst_i,
-            enable_i       => s_dataValidVec(I),
-            thresoldLow_i  => s_thresoldLowArr(I),
-            thresoldHigh_i => s_thresoldHighArr(I),
-            sampleData_i   => s_sampleDataArr(I),
-            testSig_o      => pulse_o(I));
+            enable_i       => s_dataValidVec(i),
+            thresoldLow_i  => s_thresoldLowArr(i),
+            thresoldHigh_i => s_thresoldHighArr(i),
+            sampleData_i   => s_sampleDataArr(i),
+            testSig_o      => pulse_o(i));
    end generate;
 
    -- Put sync output in 'z' if not enabled
-   syncVectEn : for I in L_G-1 downto 0 generate
-      s_nSyncVecEn(I) <= s_nSyncVec(I) or not s_enableRx(I);
+   syncVectEn : for i in L_G-1 downto 0 generate
+      s_nSyncVecEn(i) <= s_nSyncVec(i) or not s_enableRx(i);
    end generate syncVectEn;
 
    -- Combine nSync signals from all receivers
    s_nSyncAny <= '0' when allBits (s_enableRx, '0') else uAnd(s_nSyncVecEn);
 
    -- DFF
-   comb : process (r, devRst_i, s_nSyncAll, s_nSyncAny) is
+   comb : process (devRst_i, s_nSyncAny) is
       variable v : RegType;
    begin
       v.nSyncAnyD1 := s_nSyncAny;

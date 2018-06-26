@@ -2,9 +2,17 @@
 source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 
 # Load Source Code
-loadSource -dir "$::DIR_PATH/rtl/"
-loadSource -path "$::DIR_PATH/ip/Pgp3GthUsIp/Pgp3GthUsIp.dcp"
-# loadIpCore -path "$::DIR_PATH/ip/Pgp3GthUsIp/Pgp3GthUsIp.xci"
+if { $::env(VIVADO_VERSION) >= 2017.3 } {
 
-# Load Simulation
-#loadSource -sim_only -dir "$::DIR_PATH/tb/"
+   # Load Source Code
+   loadSource -dir "$::DIR_PATH/rtl/"
+   
+   loadSource   -path "$::DIR_PATH/ip/Pgp3GthUsIp10G/Pgp3GthUsIp10G.dcp"
+   # loadIpCore -path "$::DIR_PATH/ip/Pgp3GthUsIp10G/Pgp3GthUsIp10G.xci"
+   
+   loadSource   -path "$::DIR_PATH/ip/Pgp3GthUsIp6G/Pgp3GthUsIp6G.dcp"
+   # loadIpCore -path "$::DIR_PATH/ip/Pgp3GthUsIp6G/Pgp3GthUsIp6G.xci"   
+   
+} else {
+   puts "\n\nWARNING: $::DIR_PATH requires Vivado 2017.3 (or later)\n\n"
+} 

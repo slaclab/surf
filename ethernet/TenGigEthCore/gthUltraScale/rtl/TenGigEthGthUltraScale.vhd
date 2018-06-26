@@ -2,7 +2,7 @@
 -- File       : TenGigEthGthUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2017-06-22
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: 10GBASE-R Ethernet for GTH Ultra Scale
 -------------------------------------------------------------------------------
@@ -27,10 +27,8 @@ use work.EthMacPkg.all;
 entity TenGigEthGthUltraScale is
    generic (
       TPD_G            : time                := 1 ns;
-      REF_CLK_FREQ_G   : real                := 156.25E+6;  -- Support 156.25MHz or 312.5MHz      
       -- AXI-Lite Configurations
       EN_AXI_REG_G     : boolean             := false;
-      AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C;
       -- AXI Streaming Configurations
       AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
@@ -81,85 +79,6 @@ end TenGigEthGthUltraScale;
 architecture mapping of TenGigEthGthUltraScale is
 
    component TenGigEthGthUltraScale156p25MHzCore
-      port (
-         dclk                 : in  std_logic;
-         rxrecclk_out         : out std_logic;
-         coreclk              : in  std_logic;
-         txusrclk             : in  std_logic;
-         txusrclk2            : in  std_logic;
-         txoutclk             : out std_logic;
-         areset               : in  std_logic;
-         areset_coreclk       : in  std_logic;
-         gttxreset            : in  std_logic;
-         gtrxreset            : in  std_logic;
-         sim_speedup_control  : in  std_logic;
-         txuserrdy            : in  std_logic;
-         qpll0lock            : in  std_logic;
-         qpll0outclk          : in  std_logic;
-         qpll0outrefclk       : in  std_logic;
-         qpll0reset           : out std_logic;
-         reset_tx_bufg_gt     : out std_logic;
-         reset_counter_done   : in  std_logic;
-         gt_eyescanreset      : in  std_logic;
-         gt_eyescantrigger    : in  std_logic;
-         gt_rxcdrhold         : in  std_logic;
-         gt_txprbsforceerr    : in  std_logic;
-         gt_txpolarity        : in  std_logic;
-         gt_rxpolarity        : in  std_logic;
-         gt_rxrate            : in  std_logic_vector (2 downto 0);
-         gt_txoutclksel       : in  std_logic_vector (2 downto 0);
-         gt_txpcsreset        : in  std_logic;
-         gt_txpmareset        : in  std_logic;
-         gt_rxpmareset        : in  std_logic;
-         gt_rxdfelpmreset     : in  std_logic;
-         gt_txprecursor       : in  std_logic_vector (4 downto 0);
-         gt_txpostcursor      : in  std_logic_vector (4 downto 0);
-         gt_txdiffctrl        : in  std_logic_vector (3 downto 0);
-         gt_rxlpmen           : in  std_logic;
-         gt_pcsrsvdin         : in  std_logic_vector (15 downto 0);
-         gt_eyescandataerror  : out std_logic;
-         gt_txbufstatus       : out std_logic_vector (1 downto 0);
-         gt_txresetdone       : out std_logic;
-         gt_rxpmaresetdone    : out std_logic;
-         gt_rxresetdone       : out std_logic;
-         gt_rxbufstatus       : out std_logic_vector (2 downto 0);
-         gt_rxprbserr         : out std_logic;
-         gt_dmonitorout       : out std_logic_vector (16 downto 0);
-         xgmii_txd            : in  std_logic_vector (63 downto 0);
-         xgmii_txc            : in  std_logic_vector (7 downto 0);
-         xgmii_rxd            : out std_logic_vector (63 downto 0);
-         xgmii_rxc            : out std_logic_vector (7 downto 0);
-         txp                  : out std_logic;
-         txn                  : out std_logic;
-         rxp                  : in  std_logic;
-         rxn                  : in  std_logic;
-         configuration_vector : in  std_logic_vector (535 downto 0);
-         status_vector        : out std_logic_vector (447 downto 0);
-         core_status          : out std_logic_vector (7 downto 0);
-         tx_resetdone         : out std_logic;
-         rx_resetdone         : out std_logic;
-         signal_detect        : in  std_logic;
-         tx_fault             : in  std_logic;
-         drp_req              : out std_logic;
-         drp_gnt              : in  std_logic;
-         core_to_gt_drpen     : out std_logic;
-         core_to_gt_drpwe     : out std_logic;
-         core_to_gt_drpaddr   : out std_logic_vector (15 downto 0);
-         core_to_gt_drpdi     : out std_logic_vector (15 downto 0);
-         core_to_gt_drprdy    : in  std_logic;
-         core_to_gt_drpdo     : in  std_logic_vector (15 downto 0);
-         gt_drpen             : in  std_logic;
-         gt_drpwe             : in  std_logic;
-         gt_drpaddr           : in  std_logic_vector (15 downto 0);
-         gt_drpdi             : in  std_logic_vector (15 downto 0);
-         gt_drprdy            : out std_logic;
-         gt_drpdo             : out std_logic_vector (15 downto 0);
-         pma_pmd_type         : in  std_logic_vector (2 downto 0);
-         tx_disable           : out std_logic
-         );
-   end component;
-
-   component TenGigEthGthUltraScale312p5MHzCore
       port (
          dclk                 : in  std_logic;
          rxrecclk_out         : out std_logic;
@@ -354,180 +273,91 @@ begin
    -----------------
    -- 10GBASE-R core
    -----------------
-   GEN_156p25MHz : if (REF_CLK_FREQ_G = 156.25E+6) generate
-      U_TenGigEthGthUltraScaleCore : TenGigEthGthUltraScale156p25MHzCore
-         port map (
-            -- Clocks and Resets
-            coreclk              => coreclk,
-            dclk                 => coreclk,
-            txusrclk             => txusrclk,
-            txusrclk2            => txusrclk2,
-            txoutclk             => txClk322,
-            areset_coreclk       => coreRst,
-            txuserrdy            => txUsrRdy,
-            rxrecclk_out         => open,
-            areset               => areset,
-            gttxreset            => status.gtTxRst,
-            gtrxreset            => status.gtRxRst,
-            reset_tx_bufg_gt     => txBufgGtRst,
-            reset_counter_done   => status.rstCntDone,
-            -- Quad PLL Interface
-            qpll0lock            => status.qplllock,
-            qpll0outclk          => qplloutclk,
-            qpll0outrefclk       => qplloutrefclk,
-            qpll0reset           => qpllRst,
-            -- MGT Ports
-            txp                  => gtTxP,
-            txn                  => gtTxN,
-            rxp                  => gtRxP,
-            rxn                  => gtRxN,
-            -- PHY Interface
-            xgmii_txd            => phyTxd,
-            xgmii_txc            => phyTxc,
-            xgmii_rxd            => phyRxd,
-            xgmii_rxc            => phyRxc,
-            -- Configuration and Status
-            sim_speedup_control  => '0',
-            configuration_vector => configurationVector,
-            status_vector        => open,
-            core_status          => status.core_status,
-            tx_resetdone         => status.txRstdone,
-            rx_resetdone         => status.rxRstdone,
-            signal_detect        => status.sigDet,
-            tx_fault             => status.txFault,
-            tx_disable           => status.txDisable,
-            pma_pmd_type         => config.pma_pmd_type,
-            -- DRP interface
-            -- Note: If no arbitration is required on the GT DRP ports 
-            -- then connect REQ to GNT and connect other signals i <= o;         
-            drp_req              => drpReqGnt,
-            drp_gnt              => drpReqGnt,
-            core_to_gt_drpen     => drpEn,
-            core_to_gt_drpwe     => drpWe,
-            core_to_gt_drpaddr   => drpAddr,
-            core_to_gt_drpdi     => drpDi,
-            gt_drprdy            => drpRdy,
-            gt_drpdo             => drpDo,
-            gt_drpen             => drpEn,
-            gt_drpwe             => drpWe,
-            gt_drpaddr           => drpAddr,
-            gt_drpdi             => drpDi,
-            core_to_gt_drprdy    => drpRdy,
-            core_to_gt_drpdo     => drpDo,
-            -- Transceiver Debug Interface
-            gt_txpcsreset        => extRst,
-            gt_txpmareset        => '0',
-            gt_rxpmareset        => '0',
-            gt_txresetdone       => open,
-            gt_rxresetdone       => open,
-            gt_rxpmaresetdone    => open,
-            gt_txbufstatus       => open,
-            gt_rxbufstatus       => open,
-            gt_rxrate            => (others => '0'),
-            gt_eyescantrigger    => '0',
-            gt_eyescanreset      => '0',
-            gt_eyescandataerror  => open,
-            gt_rxpolarity        => gtRxPolarity,
-            gt_txpolarity        => gtTxPolarity,
-            gt_rxdfelpmreset     => '0',
-            gt_txprbsforceerr    => '0',
-            gt_rxprbserr         => open,
-            gt_rxcdrhold         => '0',
-            gt_dmonitorout       => open,
-            gt_rxlpmen           => '0',
-            gt_txprecursor       => gtTxPreCursor,
-            gt_txpostcursor      => gtTxPostCursor,
-            gt_txdiffctrl        => gtTxDiffCtrl,
-            gt_pcsrsvdin         => (others => '0'),
-            gt_txoutclksel       => "101");
-   end generate;
-   GEN_312p5MHz : if (REF_CLK_FREQ_G = 312.50E+6) generate
-      U_TenGigEthGthUltraScaleCore : TenGigEthGthUltraScale312p5MHzCore
-         port map (
-            -- Clocks and Resets
-            coreclk              => coreclk,
-            dclk                 => phyClock,
-            txusrclk             => txusrclk,
-            txusrclk2            => txusrclk2,
-            txoutclk             => txClk322,
-            areset_coreclk       => coreRst,
-            txuserrdy            => txUsrRdy,
-            rxrecclk_out         => open,
-            areset               => areset,
-            gttxreset            => status.gtTxRst,
-            gtrxreset            => status.gtRxRst,
-            reset_tx_bufg_gt     => txBufgGtRst,
-            reset_counter_done   => status.rstCntDone,
-            -- Quad PLL Interface
-            qpll0lock            => status.qplllock,
-            qpll0outclk          => qplloutclk,
-            qpll0outrefclk       => qplloutrefclk,
-            qpll0reset           => qpllRst,
-            -- MGT Ports
-            txp                  => gtTxP,
-            txn                  => gtTxN,
-            rxp                  => gtRxP,
-            rxn                  => gtRxN,
-            -- PHY Interface
-            xgmii_txd            => phyTxd,
-            xgmii_txc            => phyTxc,
-            xgmii_rxd            => phyRxd,
-            xgmii_rxc            => phyRxc,
-            -- Configuration and Status
-            sim_speedup_control  => '0',
-            configuration_vector => configurationVector,
-            status_vector        => open,
-            core_status          => status.core_status,
-            tx_resetdone         => status.txRstdone,
-            rx_resetdone         => status.rxRstdone,
-            signal_detect        => status.sigDet,
-            tx_fault             => status.txFault,
-            tx_disable           => status.txDisable,
-            pma_pmd_type         => config.pma_pmd_type,
-            -- DRP interface
-            -- Note: If no arbitration is required on the GT DRP ports 
-            -- then connect REQ to GNT and connect other signals i <= o;         
-            drp_req              => drpReqGnt,
-            drp_gnt              => drpReqGnt,
-            core_to_gt_drpen     => drpEn,
-            core_to_gt_drpwe     => drpWe,
-            core_to_gt_drpaddr   => drpAddr,
-            core_to_gt_drpdi     => drpDi,
-            gt_drprdy            => drpRdy,
-            gt_drpdo             => drpDo,
-            gt_drpen             => drpEn,
-            gt_drpwe             => drpWe,
-            gt_drpaddr           => drpAddr,
-            gt_drpdi             => drpDi,
-            core_to_gt_drprdy    => drpRdy,
-            core_to_gt_drpdo     => drpDo,
-            -- Transceiver Debug Interface
-            gt_txpcsreset        => extRst,
-            gt_txpmareset        => '0',
-            gt_rxpmareset        => '0',
-            gt_txresetdone       => open,
-            gt_rxresetdone       => open,
-            gt_rxpmaresetdone    => open,
-            gt_txbufstatus       => open,
-            gt_rxbufstatus       => open,
-            gt_rxrate            => (others => '0'),
-            gt_eyescantrigger    => '0',
-            gt_eyescanreset      => '0',
-            gt_eyescandataerror  => open,
-            gt_rxpolarity        => gtRxPolarity,
-            gt_txpolarity        => gtTxPolarity,
-            gt_rxdfelpmreset     => '0',
-            gt_txprbsforceerr    => '0',
-            gt_rxprbserr         => open,
-            gt_rxcdrhold         => '0',
-            gt_dmonitorout       => open,
-            gt_rxlpmen           => '0',
-            gt_txprecursor       => gtTxPreCursor,
-            gt_txpostcursor      => gtTxPostCursor,
-            gt_txdiffctrl        => gtTxDiffCtrl,
-            gt_pcsrsvdin         => (others => '0'),
-            gt_txoutclksel       => "101");
-   end generate;
+   U_TenGigEthGthUltraScaleCore : TenGigEthGthUltraScale156p25MHzCore
+      port map (
+         -- Clocks and Resets
+         coreclk              => coreclk,
+         dclk                 => coreclk,
+         txusrclk             => txusrclk,
+         txusrclk2            => txusrclk2,
+         txoutclk             => txClk322,
+         areset_coreclk       => coreRst,
+         txuserrdy            => txUsrRdy,
+         rxrecclk_out         => open,
+         areset               => areset,
+         gttxreset            => status.gtTxRst,
+         gtrxreset            => status.gtRxRst,
+         reset_tx_bufg_gt     => txBufgGtRst,
+         reset_counter_done   => status.rstCntDone,
+         -- Quad PLL Interface
+         qpll0lock            => status.qplllock,
+         qpll0outclk          => qplloutclk,
+         qpll0outrefclk       => qplloutrefclk,
+         qpll0reset           => qpllRst,
+         -- MGT Ports
+         txp                  => gtTxP,
+         txn                  => gtTxN,
+         rxp                  => gtRxP,
+         rxn                  => gtRxN,
+         -- PHY Interface
+         xgmii_txd            => phyTxd,
+         xgmii_txc            => phyTxc,
+         xgmii_rxd            => phyRxd,
+         xgmii_rxc            => phyRxc,
+         -- Configuration and Status
+         sim_speedup_control  => '0',
+         configuration_vector => configurationVector,
+         status_vector        => open,
+         core_status          => status.core_status,
+         tx_resetdone         => status.txRstdone,
+         rx_resetdone         => status.rxRstdone,
+         signal_detect        => status.sigDet,
+         tx_fault             => status.txFault,
+         tx_disable           => status.txDisable,
+         pma_pmd_type         => config.pma_pmd_type,
+         -- DRP interface
+         -- Note: If no arbitration is required on the GT DRP ports 
+         -- then connect REQ to GNT and connect other signals i <= o;         
+         drp_req              => drpReqGnt,
+         drp_gnt              => drpReqGnt,
+         core_to_gt_drpen     => drpEn,
+         core_to_gt_drpwe     => drpWe,
+         core_to_gt_drpaddr   => drpAddr,
+         core_to_gt_drpdi     => drpDi,
+         gt_drprdy            => drpRdy,
+         gt_drpdo             => drpDo,
+         gt_drpen             => drpEn,
+         gt_drpwe             => drpWe,
+         gt_drpaddr           => drpAddr,
+         gt_drpdi             => drpDi,
+         core_to_gt_drprdy    => drpRdy,
+         core_to_gt_drpdo     => drpDo,
+         -- Transceiver Debug Interface
+         gt_txpcsreset        => extRst,
+         gt_txpmareset        => '0',
+         gt_rxpmareset        => '0',
+         gt_txresetdone       => open,
+         gt_rxresetdone       => open,
+         gt_rxpmaresetdone    => open,
+         gt_txbufstatus       => open,
+         gt_rxbufstatus       => open,
+         gt_rxrate            => (others => '0'),
+         gt_eyescantrigger    => '0',
+         gt_eyescanreset      => '0',
+         gt_eyescandataerror  => open,
+         gt_rxpolarity        => gtRxPolarity,
+         gt_txpolarity        => gtTxPolarity,
+         gt_rxdfelpmreset     => '0',
+         gt_txprbsforceerr    => '0',
+         gt_rxprbserr         => open,
+         gt_rxcdrhold         => '0',
+         gt_dmonitorout       => open,
+         gt_rxlpmen           => '0',
+         gt_txprecursor       => gtTxPreCursor,
+         gt_txpostcursor      => gtTxPostCursor,
+         gt_txdiffctrl        => gtTxDiffCtrl,
+         gt_pcsrsvdin         => (others => '0'),
+         gt_txoutclksel       => "101");
 
    -------------------------------------
    -- 10GBASE-R's Reset Module
@@ -571,8 +401,7 @@ begin
    U_TenGigEthReg : entity work.TenGigEthReg
       generic map (
          TPD_G            => TPD_G,
-         EN_AXI_REG_G     => EN_AXI_REG_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
+         EN_AXI_REG_G     => EN_AXI_REG_G)
       port map (
          -- Local Configurations
          localMac       => localMac,

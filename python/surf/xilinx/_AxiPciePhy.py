@@ -30,56 +30,61 @@ class AxiPciePhy(pr.Device):
         # Variables
         ##############################        
         self.addRemoteVariables( 
-            name         = "PCIeConfigurationSpaceHeader",
+            name         = "PcieConfigHdr",
             description  = "PCIe Configuration Space Header",
-            offset       =  0x000,
-            bitSize      =  32,
-            bitOffset    =  0,
+            offset       = 0x000,
+            bitSize      = 32,
+            bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RO",
-            number       =  76,
-            stride       =  4,
-            hidden       =  True,
+            number       = 76,
+            stride       = 4,
+            hidden       = True,
+            overlapEn    = True,
         )        
         
         self.add(pr.RemoteVariable(    
-            name         = "VendorID",
+            name         = "VendorId",
             description  = "Vendor ID",
             offset       =  0x000,
             bitSize      =  16,
             bitOffset    =  0,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         ))   
         
         self.add(pr.RemoteVariable(    
-            name         = "DeviceID",
+            name         = "DeviceId",
             description  = "Device ID",
             offset       =  0x000,
             bitSize      =  16,
             bitOffset    =  16,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         ))             
 
         self.add(pr.RemoteVariable(    
-            name         = "SubsystemVendorID",
+            name         = "SubVendorId",
             description  = "Subsystem Vendor ID",
             offset       =  0x02C,
             bitSize      =  16,
             bitOffset    =  0,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         ))  
 
         self.add(pr.RemoteVariable(    
-            name         = "SubsystemID",
-            description  = "Subsystem ID",
+            name         = "SubDeviceId",
+            description  = "Subsystem Device ID",
             offset       =  0x02C,
             bitSize      =  16,
             bitOffset    =  16,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         ))   
      
         self.add(pr.RemoteVariable(    
@@ -90,6 +95,7 @@ class AxiPciePhy(pr.Device):
             bitOffset    =  0,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         ))   
         
         self.add(pr.RemoteVariable(    
@@ -100,6 +106,7 @@ class AxiPciePhy(pr.Device):
             bitOffset    =  16,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         ))             
      
         self.add(pr.RemoteVariable(    
@@ -110,6 +117,7 @@ class AxiPciePhy(pr.Device):
             bitOffset    =  20,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         ))           
         
         self.add(pr.RemoteVariable(    
@@ -120,6 +128,7 @@ class AxiPciePhy(pr.Device):
             bitOffset    =  11,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         ))          
         
         self.add(pr.RemoteVariable(    
@@ -130,6 +139,7 @@ class AxiPciePhy(pr.Device):
             bitOffset    =  8,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         )) 
 
         self.add(pr.RemoteVariable(    
@@ -140,6 +150,7 @@ class AxiPciePhy(pr.Device):
             bitOffset    =  0,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         ))
         
         self.add(pr.RemoteVariable(    
@@ -150,6 +161,7 @@ class AxiPciePhy(pr.Device):
             bitOffset    =  3,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         ))  
         
         self.add(pr.RemoteVariable(    
@@ -160,6 +172,7 @@ class AxiPciePhy(pr.Device):
             bitOffset    =  1,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         ))  
 
         self.add(pr.RemoteVariable(    
@@ -170,6 +183,7 @@ class AxiPciePhy(pr.Device):
             bitOffset    =  2,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         )) 
 
         ##################################################
@@ -184,6 +198,7 @@ class AxiPciePhy(pr.Device):
             # bitOffset    =  0,
             # base         = pr.UInt,
             # mode         = "RO",
+            # overlapEn    = True,        
         # )) 
         
         # self.add(pr.RemoteVariable(    
@@ -194,6 +209,7 @@ class AxiPciePhy(pr.Device):
             # bitOffset    =  3,
             # base         = pr.UInt,
             # mode         = "RO",
+            # overlapEn    = True,        
         # ))  
         
         # self.add(pr.RemoteVariable(    
@@ -204,6 +220,7 @@ class AxiPciePhy(pr.Device):
             # bitOffset    =  8,
             # base         = pr.UInt,
             # mode         = "RO",
+            # overlapEn    = True,        
         # ))    
 
         self.add(pr.RemoteVariable(    
@@ -214,6 +231,7 @@ class AxiPciePhy(pr.Device):
             bitOffset    =  0,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         ))  
 
         self.add(pr.RemoteVariable(    
@@ -224,6 +242,7 @@ class AxiPciePhy(pr.Device):
             bitOffset    =  12,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         ))          
         
         self.add(pr.RemoteVariable(    
@@ -239,6 +258,7 @@ class AxiPciePhy(pr.Device):
                 3: "8",
             },
             mode         = "RO",
+            overlapEn    = True,        
         ))
         
         self.add(pr.RemoteVariable(    
@@ -249,4 +269,5 @@ class AxiPciePhy(pr.Device):
             bitOffset    =  13,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         ))         

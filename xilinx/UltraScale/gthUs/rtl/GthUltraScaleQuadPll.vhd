@@ -2,7 +2,7 @@
 -- File       : GthUltraScaleQuadPll.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2017-11-01
+-- Last update: 2018-03-14
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Ultrascale GTH QPLL primitive
 -------------------------------------------------------------------------------
@@ -30,9 +30,6 @@ entity GthUltraScaleQuadPll is
       TPD_G               : time                     := 1 ns;
       SIM_RESET_SPEEDUP_G : string                   := "FALSE";
       SIM_VERSION_G       : natural                  := 2;
-      -- AXI-Lite Parameters
-      EN_DRP_G            : boolean                  := true;
-      AXIL_ERROR_RESP_G   : slv(1 downto 0)          := AXI_RESP_DECERR_C;
       -- QPLL Configuration Parameters
       BIAS_CFG0_G         : slv(15 downto 0)         := x"0000";
       BIAS_CFG1_G         : slv(15 downto 0)         := x"0000";
@@ -65,7 +62,8 @@ entity GthUltraScaleQuadPll is
       QPLL_SDM_CFG1_G     : Slv16Array(1 downto 0)   := (others => x"0000");
       QPLL_SDM_CFG2_G     : Slv16Array(1 downto 0)   := (others => x"0000");
       -- Clock Selects
-      QPLL_REFCLK_SEL_G   : Slv3Array(1 downto 0)    := (others => "001"));
+      QPLL_REFCLK_SEL_G   : Slv3Array(1 downto 0)    := (others => "001");
+      EN_DRP_G            : boolean                  := true);
    port (
       qPllRefClk      : in  slv(1 downto 0);
       qPllOutClk      : out slv(1 downto 0);
@@ -80,9 +78,9 @@ entity GthUltraScaleQuadPll is
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
       axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
-      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilReadSlave   : out AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave  : out AxiLiteWriteSlaveType);
+      axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 end entity GthUltraScaleQuadPll;
 
 architecture mapping of GthUltraScaleQuadPll is
@@ -267,7 +265,6 @@ begin
       U_AxiLiteToDrp : entity work.AxiLiteToDrp
          generic map (
             TPD_G            => TPD_G,
-            AXI_ERROR_RESP_G => AXIL_ERROR_RESP_G,
             COMMON_CLK_G     => true,
             EN_ARBITRATION_G => false,
             TIMEOUT_G        => 4096,
@@ -291,19 +288,5 @@ begin
             drpDi           => drpDi,
             drpDo           => drpDo);
    end generate GEN_DRP;
-
-   NO_DRP : if (not EN_DRP_G) generate
-      U_AxiLiteEmpty_1 : entity work.AxiLiteEmpty
-         generic map (
-            TPD_G            => TPD_G,
-            AXI_ERROR_RESP_G => AXIL_ERROR_RESP_G)
-         port map (
-            axiClk         => axilClk,          -- [in]
-            axiClkRst      => axilRst,          -- [in]
-            axiReadMaster  => axilReadMaster,   -- [in]
-            axiReadSlave   => axilReadSlave,    -- [out]
-            axiWriteMaster => axilWriteMaster,  -- [in]
-            axiWriteSlave  => axilWriteSlave);  -- [out]
-   end generate NO_DRP;
 
 end architecture mapping;

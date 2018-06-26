@@ -21,15 +21,21 @@ import pyrogue as pr
 from surf.misc._mcsreader import *
 import click
 import time
+import datetime
 
 class AxiMicronP30(pr.Device):
     def __init__(self,       
             name        = "AxiMicronP30",
             description = "AXI-Lite Micron P30 PROM",
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+        super().__init__(
+            name        = name, 
+            description = description, 
+            size        = (0x1 << 12), 
+            **kwargs)
         
         self._mcs = McsReader()        
+        self._progDone = False 
         
         ##############################
         # Variables
@@ -47,6 +53,7 @@ class AxiMicronP30(pr.Device):
         def LoadMcsFile(arg):
             
             click.secho(('LoadMcsFile: %s' % arg), fg='green')
+            self._progDone = False 
             
             # Start time measurement for profiling
             start = time.time()
@@ -57,8 +64,8 @@ class AxiMicronP30(pr.Device):
             # Open the MCS file
             self._mcs.open(arg)                                           
 
-            print(f' startAddr: {hex(self._mcs.startAddr)}')
-            print(f' endAddr: {hex(self._mcs.endAddr)}')            
+            # print(f' startAddr: {hex(self._mcs.startAddr)}')
+            # print(f' endAddr: {hex(self._mcs.endAddr)}')            
             
             # Erase the PROM
             self.eraseProm()
@@ -72,16 +79,17 @@ class AxiMicronP30(pr.Device):
             # End time measurement for profiling
             end = time.time()
             elapsed = end - start
-            click.secho(('LoadMcsFile() took %d seconds' % int(elapsed)), fg='green')
+            click.secho('LoadMcsFile() took %s to program the PROM' % datetime.timedelta(seconds=int(elapsed)), fg='green')
             
             # Add a power cycle reminder
+            self._progDone = True
             click.secho(
                 "\n\n\
                 ***************************************************\n\
                 ***************************************************\n\
                 The MCS data has been written into the PROM.       \n\
                 To reprogram the FPGA with the new PROM data,      \n\
-                a IPROG CMD, reboot, or power cycle is be required.\n\
+                a IPROG CMD or power cycle is be required.\n\
                 ***************************************************\n\
                 ***************************************************\n\n"\
                 , bg='green',

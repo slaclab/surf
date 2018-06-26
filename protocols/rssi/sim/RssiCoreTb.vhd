@@ -2,7 +2,7 @@
 -- File       : RssiCoreTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-10-28
--- Last update: 2015-10-28
+-- Last update: 2018-05-16
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the RssiCore
 -------------------------------------------------------------------------------
@@ -22,435 +22,340 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
+use work.AxiLitePkg.all;
 use work.SsiPkg.all;
 use work.RssiPkg.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
-entity RssiCoreTb is 
+entity RssiCoreTb is
 
 end RssiCoreTb;
 
 architecture testbed of RssiCoreTb is
 
-   constant CLK_PERIOD_C : time    := 6.4 ns;
-   constant TPD_C        : time    := 0.64 ns;
-   
-   -- RSSI configuration
-   constant WINDOW_ADDR_SIZE_C  : positive := 3;
-   constant SEGMENT_ADDR_SIZE_C : positive := 7;
-   
-   constant PRBS_BYTE_WIDTH_C : positive := 16;
-   constant TSP_BYTE_WIDTH_C  : positive := 16;
-   
-   -- Clocking
-   signal   clk_i                 : sl := '0';
-   signal   rst_i                 : sl := '0';
-   
-   -- UUT   
-   signal   s_intPrbsRst : sl := '0';
-   signal   s_prbsRst    : sl := '0';
+   constant CLK_PERIOD_C : time := 10 ns;  -- 1 us makes it easy to count clock cycles in sim GUI
+   constant TPD_G        : time := CLK_PERIOD_C/4;
 
-   
-   -- RSSI 0   
-   signal   connRq0_i     : sl := '0';
-   signal   closeRq0_i    : sl := '0';
-   signal   inject0_i     : sl := '0';
-   
-   signal   sAppAxisMaster0      : AxiStreamMasterType;
-   signal   sAppAxisSlave0       : AxiStreamSlaveType;
-   signal   mAppAxisMaster0      : AxiStreamMasterType;
-   signal   mAppAxisSlave0       : AxiStreamSlaveType;
+   constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4);
 
-   signal   sTspAxisMaster0      : AxiStreamMasterType;
-   signal   sTspAxisSlave0       : AxiStreamSlaveType;
-   signal   mTspAxisMaster0      : AxiStreamMasterType;
-   signal   mTspAxisSlave0       : AxiStreamSlaveType;   
+   constant AXIL_CONFIG_C : AxiLiteCrossbarMasterConfigArray(0 downto 0) := (
+      0               => (
+         baseAddr     => x"0000_0000",
+         addrBits     => 32,
+         connectivity => x"FFFF"));
 
-   -- RSSI 1
-   signal   connRq1_i     : sl := '0';
-   signal   closeRq1_i    : sl := '0';
-   signal   inject1_i     : sl := '0';
+   constant MAX_CNT_C       : positive := (4096/4);  -- Up to 4kB writes and 4B per word
+   constant SWEEP_C         : boolean  := true;
+   constant APP_ILEAVE_EN_C : boolean  := true;
 
-   signal   sAppAxisMaster1      : AxiStreamMasterType;
-   signal   sAppAxisSlave1       : AxiStreamSlaveType;
-   signal   mAppAxisMaster1      : AxiStreamMasterType;
-   signal   mAppAxisSlave1       : AxiStreamSlaveType;
+   type StateType is (
+      IDLE_S,
+      HDR0_S,
+      HDR1_S,
+      HDR2_S,
+      HDR3_S,
+      HDR4_S,
+      PAYLOAD_S);
 
-   signal   sTspAxisMaster1      : AxiStreamMasterType;
-   signal   sTspAxisSlave1       : AxiStreamSlaveType;
-   signal   mTspAxisMaster1      : AxiStreamMasterType;
-   signal   mTspAxisSlave1       : AxiStreamSlaveType;  
-     
-   signal   s_trig : sl := '0';
-     
-------
+   type RegType is record
+      tid      : slv(31 downto 0);
+      cnt      : slv(31 downto 0);
+      sweep    : slv(31 downto 0);
+      txMaster : AxiStreamMasterType;
+      state    : StateType;
+   end record RegType;
+   constant REG_INIT_C : RegType := (
+      tid      => x"0000_0000",
+      cnt      => x"0000_0000",
+      sweep    => x"0000_0000",
+      txMaster => AXI_STREAM_MASTER_INIT_C,
+      state    => IDLE_S);
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
+
+   signal clk : sl := '0';
+   signal rst : sl := '0';
+
+   constant NUM_XBAR_C : positive := 8;
+
+   signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_XBAR_C-1 downto 0);
+   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_XBAR_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_OK_C);
+   signal axilReadMasters  : AxiLiteReadMasterArray(NUM_XBAR_C-1 downto 0);
+   signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_XBAR_C-1 downto 0)  := (others => AXI_LITE_READ_SLAVE_EMPTY_OK_C);
+
+   signal sSrpMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal sSrpSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+   signal mSrpMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal mSrpSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+
+   signal tspMasters : AxiStreamMasterArray(1 downto 0);
+   signal tspSlaves  : AxiStreamSlaveArray(1 downto 0);
+
+   signal txMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal txSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+   signal rxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal rxSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+
+   signal statusReg : slv(6 downto 0);
+
 begin
-  
-   -- Generate clocks and resets
-   DDR_ClkRst_Inst : entity work.ClkRst
+
+   ---------------------------
+   -- Generate clock and reset
+   ---------------------------
+   U_ClkRst : entity work.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
-         RST_START_DELAY_G => 1 ns,     -- Wait this long into simulation before asserting reset
-         RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long)
+         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
+         RST_HOLD_TIME_G   => 1 us)     -- Hold reset for this long)
       port map (
-         clkP => clk_i,
-         clkN => open,
-         rst  => rst_i,
-         rstL => open); 
+         clkP => clk,
+         rst  => rst);
 
-  -----------------------------
-  -- component instantiation 
-  -----------------------------
-  
-   -- RSSI 0 Server
-   RssiCore0_INST: entity work.RssiCore
-   generic map (
-      TPD_G          => TPD_C,
-      SERVER_G       => true,
-      INIT_SEQ_N_G   => 16#40#,
-      WINDOW_ADDR_SIZE_G   => WINDOW_ADDR_SIZE_C,
-      SEGMENT_ADDR_SIZE_G  => SEGMENT_ADDR_SIZE_C,
-      MAX_NUM_OUTS_SEG_G   => 2**WINDOW_ADDR_SIZE_C,
-      MAX_SEG_SIZE_G       => (2**SEGMENT_ADDR_SIZE_C)*8,
-      CLK_FREQUENCY_G      => 156.25E+6,
-      
-      MAX_RETRANS_CNT_G     => 1,
-      MAX_CUM_ACK_CNT_G     => 10,
-      
-      ACK_TOUT_G            => 250,
-      RETRANS_TOUT_G        => 500,
-      NULL_TOUT_G           => 2000,
-      
-      TSP_AXIS_CONFIG_G  => ssiAxiStreamConfig(TSP_BYTE_WIDTH_C),
-      APP_AXIS_CONFIG_G  => ssiAxiStreamConfig(PRBS_BYTE_WIDTH_C))
-   port map (
-      clk_i       => clk_i,
-      rst_i       => rst_i,
-      openRq_i    => connRq0_i, 
-      closeRq_i   => closeRq0_i,
-      inject_i    => inject0_i,
-      -- 
-      sAppAxisMaster_i => sAppAxisMaster0, -- prbs tx
-      sAppAxisSlave_o  => sAppAxisSlave0,  -- prbs tx
-      
-      --  
-      mAppAxisMaster_o => mAppAxisMaster0, -- prbs rx
-      mAppAxisSlave_i  => mAppAxisSlave0,  -- prbs rx
-      
-      -- 
-      sTspAxisMaster_i => sTspAxisMaster0, --<-- From Peer
-      sTspAxisSlave_o  => sTspAxisSlave0,  --<-- From Peer
-      
-      -- 
-      mTspAxisMaster_o => mTspAxisMaster0, -->-- To Peer 
-      mTspAxisSlave_i  => mTspAxisSlave0); -->-- To Peer
-     
-   -- Transport connection between modules
-   sTspAxisMaster1 <= mTspAxisMaster0;
-   mTspAxisSlave0  <= sTspAxisSlave1; 
-  
-   sTspAxisMaster0 <= mTspAxisMaster1;
-   mTspAxisSlave1  <= sTspAxisSlave0;
+   ---------------------------
+   -- AXI-Lite Crossbar Module
+   ---------------------------
+   GEN_VEC :
+   for i in (NUM_XBAR_C-2) downto 0 generate
+      U_XBAR : entity work.AxiLiteCrossbar
+         generic map (
+            TPD_G              => TPD_G,
+            NUM_SLAVE_SLOTS_G  => 1,
+            NUM_MASTER_SLOTS_G => 1,
+            MASTERS_CONFIG_G   => AXIL_CONFIG_C)
+         port map (
+            sAxiWriteMasters(0) => axilWriteMasters(i),
+            sAxiWriteSlaves(0)  => axilWriteSlaves(i),
+            sAxiReadMasters(0)  => axilReadMasters(i),
+            sAxiReadSlaves(0)   => axilReadSlaves(i),
+            mAxiWriteMasters(0) => axilWriteMasters(i+1),
+            mAxiWriteSlaves(0)  => axilWriteSlaves(i+1),
+            mAxiReadMasters(0)  => axilReadMasters(i+1),
+            mAxiReadSlaves(0)   => axilReadSlaves(i+1),
+            axiClk              => clk,
+            axiClkRst           => rst);
+   end generate GEN_VEC;
 
-   -- RSSI 1 Client      
-   RssiCore1_INST: entity work.RssiCore
-   generic map (
-      TPD_G          => TPD_C,
-      SERVER_G       => false,
-      INIT_SEQ_N_G   => 16#80#,
-      --
-      WINDOW_ADDR_SIZE_G   => WINDOW_ADDR_SIZE_C,
-      SEGMENT_ADDR_SIZE_G  => SEGMENT_ADDR_SIZE_C,
-      MAX_NUM_OUTS_SEG_G   => 2**WINDOW_ADDR_SIZE_C,
-      MAX_SEG_SIZE_G       => (2**SEGMENT_ADDR_SIZE_C)*8,
-      CLK_FREQUENCY_G      => 156.25E+6,
-      
-      MAX_RETRANS_CNT_G     => 1,
-      MAX_CUM_ACK_CNT_G     => 10,
-      
-      ACK_TOUT_G            => 250,
-      RETRANS_TOUT_G        => 500,
-      NULL_TOUT_G           => 2000,
-      
-      --
-      TSP_AXIS_CONFIG_G  => ssiAxiStreamConfig(TSP_BYTE_WIDTH_C),
-      APP_AXIS_CONFIG_G  => ssiAxiStreamConfig(PRBS_BYTE_WIDTH_C))
-   port map (
-      clk_i       => clk_i,
-      rst_i       => rst_i,
-      openRq_i    => connRq1_i, 
-      closeRq_i   => closeRq1_i,
-      inject_i    => inject1_i,
-      
-      -- 
-      sAppAxisMaster_i => sAppAxisMaster1, -- Loopback
-      sAppAxisSlave_o  => sAppAxisSlave1,  -- Loopback
-      
-      -- 
-      mAppAxisMaster_o => mAppAxisMaster1, -- Loopback 
-      mAppAxisSlave_i  => mAppAxisSlave1,  -- Loopback 
-      
-      -- 
-      sTspAxisMaster_i => sTspAxisMaster1, --<-- From Peer
-      sTspAxisSlave_o  => sTspAxisSlave1,  --<-- From Peer
-      
-      -- 
-      mTspAxisMaster_o => mTspAxisMaster1, -->-- To Peer 
-      mTspAxisSlave_i  => mTspAxisSlave1); -->-- To Peer
+   ------------------
+   -- SRPv3 End Point
+   ------------------
+   U_SRPv3 : entity work.SrpV3AxiLite
+      generic map (
+         TPD_G               => TPD_G,
+         SLAVE_READY_EN_G    => true,
+         GEN_SYNC_FIFO_G     => true,
+         AXI_STREAM_CONFIG_G => RSSI_AXIS_CONFIG_C)
+      port map (
+         -- Streaming Slave (Rx) Interface (sAxisClk domain) 
+         sAxisClk         => clk,
+         sAxisRst         => rst,
+         sAxisMaster      => sSrpMaster,
+         sAxisSlave       => sSrpSlave,
+         -- Streaming Master (Tx) Data Interface (mAxisClk domain)
+         mAxisClk         => clk,
+         mAxisRst         => rst,
+         mAxisMaster      => mSrpMaster,
+         mAxisSlave       => mSrpSlave,
+         -- Master AXI-Lite Interface (axilClk domain)
+         axilClk          => clk,
+         axilRst          => rst,
+         mAxilReadMaster  => axilReadMasters(0),
+         mAxilReadSlave   => axilReadSlaves(0),
+         mAxilWriteMaster => axilWriteMasters(0),
+         mAxilWriteSlave  => axilWriteSlaves(0));
 
-   ---------------------------------------
-   -- RSSI 1 Loopback connection
-   -- sAppAxisMaster1 <= mAppAxisMaster1;
-   -- mAppAxisSlave1  <= sAppAxisSlave1;
-   
-   -- mAppAxisSlave1  <= AXI_STREAM_SLAVE_FORCE_C;
-   -- sAppAxisMaster1 <= AXI_STREAM_MASTER_INIT_C;
+   --------------
+   -- RSSI Server
+   --------------
+   U_RssiServer : entity work.RssiCoreWrapper
+      generic map (
+         TPD_G             => TPD_G,
+         SERVER_G          => true,     -- Server
+         APP_ILEAVE_EN_G   => APP_ILEAVE_EN_C,
+         APP_AXIS_CONFIG_G => (0 => RSSI_AXIS_CONFIG_C),
+         TSP_AXIS_CONFIG_G => RSSI_AXIS_CONFIG_C)
+      port map (
+         clk_i                => clk,
+         rst_i                => rst,
+         openRq_i             => '1',
+         -- Application Layer Interface
+         sAppAxisMasters_i(0) => mSrpMaster,
+         sAppAxisSlaves_o(0)  => mSrpSlave,
+         mAppAxisMasters_o(0) => sSrpMaster,
+         mAppAxisSlaves_i(0)  => sSrpSlave,
+         -- Transport Layer Interface
+         sTspAxisMaster_i     => tspMasters(0),
+         sTspAxisSlave_o      => tspSlaves(0),
+         mTspAxisMaster_o     => tspMasters(1),
+         mTspAxisSlave_i      => tspSlaves(1));
 
-   ------Application side data PRBS Tx---------------------------
-   s_prbsRst <= rst_i or s_intPrbsRst;
-    
-   SsiPrbsTx_INST: entity work.SsiPrbsTx
-   generic map (
-      TPD_G                      => TPD_C,
+   --------------
+   -- RSSI Client
+   --------------         
+   U_RssiClient : entity work.RssiCoreWrapper
+      generic map (
+         TPD_G             => TPD_G,
+         SERVER_G          => false,    -- Client
+         APP_ILEAVE_EN_G   => APP_ILEAVE_EN_C,
+         APP_AXIS_CONFIG_G => (0 => AXIS_CONFIG_C),
+         TSP_AXIS_CONFIG_G => RSSI_AXIS_CONFIG_C)
+      port map (
+         clk_i                => clk,
+         rst_i                => rst,
+         openRq_i             => '1',
+         statusReg_o          => statusReg,
+         -- Application Layer Interface
+         sAppAxisMasters_i(0) => txMaster,
+         sAppAxisSlaves_o(0)  => txSlave,
+         mAppAxisMasters_o(0) => rxMaster,
+         mAppAxisSlaves_i(0)  => rxSlave,
+         -- Transport Layer Interface
+         sTspAxisMaster_i     => tspMasters(1),
+         sTspAxisSlave_o      => tspSlaves(1),
+         mTspAxisMaster_o     => tspMasters(0),
+         mTspAxisSlave_i      => tspSlaves(0));
 
-      XIL_DEVICE_G               => "ULTRASCALE",
-
-      CASCADE_SIZE_G             => 1,
-      FIFO_ADDR_WIDTH_G          => 9,
-      FIFO_PAUSE_THRESH_G        => 2**8,
-      PRBS_SEED_SIZE_G           => PRBS_BYTE_WIDTH_C*8,
-      PRBS_TAPS_G                => (0 => 31, 1 => 6, 2 => 2, 3 => 1),
-      MASTER_AXI_STREAM_CONFIG_G => ssiAxiStreamConfig(PRBS_BYTE_WIDTH_C),
-      MASTER_AXI_PIPE_STAGES_G   => 1)
-   port map (
-      mAxisClk        => clk_i,
-      mAxisRst        => s_prbsRst,
-      mAxisMaster     => sAppAxisMaster0,
-      mAxisSlave      => sAppAxisSlave0,
-      locClk          => clk_i,
-      locRst          => s_prbsRst,
-      trig            => s_trig,
-      packetLength    => X"0000_003f",
-      forceEofe       => '0',
-      busy            => open,
-      tDest           => X"00",
-      tId             => X"00"
-      --axilReadMaster  => ,
-      --axilReadSlave   => ,
-      --axilWriteMaster => ,
-      --axilWriteSlave  => 
-   );
-   
-   ------Application side data PRBS Rx---------------------------
-   SsiPrbsRx_INST: entity work.SsiPrbsRx
-   generic map (
-      TPD_G                      => TPD_C,
-
-      XIL_DEVICE_G               => "ULTRASCALE",
-      CASCADE_SIZE_G             => 1,
-      FIFO_ADDR_WIDTH_G          => 4,
-      FIFO_PAUSE_THRESH_G        => 1,
-      PRBS_SEED_SIZE_G           => PRBS_BYTE_WIDTH_C*8,
-      PRBS_TAPS_G                => (0 => 31, 1 => 6, 2 => 2, 3 => 1),
-      SLAVE_AXI_STREAM_CONFIG_G  => ssiAxiStreamConfig(PRBS_BYTE_WIDTH_C),
-      SLAVE_AXI_PIPE_STAGES_G    => 1)
-   port map (
-      sAxisClk        => clk_i,
-      sAxisRst        => s_prbsRst,
-      sAxisMaster     => mAppAxisMaster1, --mAppAxisMaster0,
-      sAxisSlave      => mAppAxisSlave1,  --mAppAxisSlave0,
-      sAxisCtrl       => open,
-      mAxisClk        => clk_i,
-      mAxisRst        => s_prbsRst,
-      --mAxisMaster     => mAxisMaster,
-      --mAxisSlave      => mAxisSlave,
-      --axiClk          => clk_i,
-      --axiRst          => rst_i,
-      --axiReadMaster   => axiReadMaster,
-      --axiReadSlave    => axiReadSlave,
-      --axiWriteMaster  => axiWriteMaster,
-      --axiWriteSlave   => axiWriteSlave,
-      updatedResults  => open,
-      errorDet        => open,
-      busy            => open,
-      errMissedPacket => open,
-      errLength       => open,
-      errDataBus      => open,
-      errEofe         => open,
-      errWordCnt      => open,
-      errbitCnt       => open,
-      packetRate      => open,
-      packetLength    => open);
-   
-   -- readyToggle : process
-   -- begin
-   
-   -- wait for CLK_PERIOD_C*200;
-   -- mAppAxisSlave1  <= AXI_STREAM_SLAVE_INIT_C;
-   -- wait for CLK_PERIOD_C*200;   
-   -- mAppAxisSlave1  <= AXI_STREAM_SLAVE_FORCE_C;
-   
-   -- end process readyToggle;  
-   
-   
-   StimuliProcess : process
+   comb : process (r, rst, statusReg, txSlave) is
+      variable v : RegType;
    begin
-   
-      wait until rst_i = '0';
-      connRq0_i <= '1'; -- Let the client timeout
-      connRq1_i <= '1'; 
-      
-      wait for CLK_PERIOD_C*200;
-            
-      -- Connection request 0
-      wait for CLK_PERIOD_C*100;
-    
-      
-      wait for CLK_PERIOD_C*1;
-      --connRq0_i <= '0';
-      
-      wait for CLK_PERIOD_C*1000;
-      
-      -- Connection request 1
-      connRq1_i <= '1';
-      wait for CLK_PERIOD_C*1;
-      --connRq1_i <= '0';
+      -- Latch the current value
+      v := r;
 
-      -------------------------------------------------------
-      wait for CLK_PERIOD_C*1000;
-      -- Enable PRBS
-      --s_trig <= '1';
-      -------------------------------------------------------
-      
-      -- Request connection close request
-      wait for CLK_PERIOD_C*15000;
-      -- Disable PRBS
-     -- closeRq1_i <= '1';
-      wait for CLK_PERIOD_C*1;
-     -- closeRq1_i <= '0';
-      
-      -- Reset PRBS
-      wait for CLK_PERIOD_C*100;
-      --s_intPrbsRst <= '1';
-      wait for CLK_PERIOD_C*200;
-      --s_intPrbsRst <= '0';
-      
-      -- Reconnect
+      -- Reset the flags
+      if txSlave.tReady = '1' then
+         v.txMaster.tValid := '0';
+         v.txMaster.tLast  := '0';
+         v.txMaster.tUser  := (others => '0');
+      end if;
 
-      -- Connection request 0
+      -- State Machine
+      case r.state is
+         ----------------------------------------------------------------------
+         when IDLE_S =>
+            -- Check if ready to move data
+            if (statusReg(0) = '1') then
+               -- Next state
+               v.state := HDR0_S;
+            end if;
+         ----------------------------------------------------------------------
+         when HDR0_S =>
+            -- Check if ready to move data
+            if (v.txMaster.tValid = '0') then
+               -- Move data
+               v.txMaster.tValid             := '1';
+               v.txMaster.tData(31 downto 0) := x"0000_0103";
+               ssiSetUserSof(AXIS_CONFIG_C, v.txMaster, '1');
+               -- Next state
+               v.state                       := HDR1_S;
+            end if;
+         ----------------------------------------------------------------------
+         when HDR1_S =>
+            -- Check if ready to move data
+            if (v.txMaster.tValid = '0') then
+               -- Move data
+               v.txMaster.tValid             := '1';
+               v.txMaster.tData(31 downto 0) := r.tid;  -- Transaction ID
+               -- Increment the counter
+               v.tid                         := r.tid + 1;
+               -- Next state
+               v.state                       := HDR2_S;
+            end if;
+         ----------------------------------------------------------------------
+         when HDR2_S =>
+            -- Check if ready to move data
+            if (v.txMaster.tValid = '0') then
+               -- Move data
+               v.txMaster.tValid             := '1';
+               v.txMaster.tData(31 downto 0) := x"0000_0000";  -- Addr[31:0]
+               -- Next state
+               v.state                       := HDR3_S;
+            end if;
+         ----------------------------------------------------------------------
+         when HDR3_S =>
+            -- Check if ready to move data
+            if (v.txMaster.tValid = '0') then
+               -- Move data
+               v.txMaster.tValid             := '1';
+               v.txMaster.tData(31 downto 0) := x"0000_0000";  -- Addr[63:32]
+               -- Next state
+               v.state                       := HDR4_S;
+            end if;
+         ----------------------------------------------------------------------
+         when HDR4_S =>
+            -- Check if ready to move data
+            if (v.txMaster.tValid = '0') then
+               -- Move data
+               v.txMaster.tValid := '1';
+               -- Check for sweeping 
+               if (SWEEP_C) then
+                  v.txMaster.tData(31 downto 0) := r.sweep(29 downto 0) & "11";  -- ReqSize[31:0] = varies
+               else
+                  v.txMaster.tData(31 downto 0) := x"0000_0FFF";  -- ReqSize[31:0] = 4kB
+               end if;
+               -- Next state
+               v.state := PAYLOAD_S;
+            end if;
+         ----------------------------------------------------------------------
+         when PAYLOAD_S =>
+            -- Check if ready to move data
+            if (v.txMaster.tValid = '0') then
+               -- Move data
+               v.txMaster.tValid             := '1';
+               v.txMaster.tData(31 downto 0) := toSlv(4*conv_integer(r.cnt), 32);  -- Data = Address 
+               -- Increment the counter
+               v.cnt                         := r.cnt + 1;
+               -- Check for sweeping 
+               if (SWEEP_C) then
+                  -- Check for last transfer
+                  if (r.cnt = r.sweep) then
+                     -- Reset the counter
+                     v.cnt := x"0000_0000";
+                     -- Check for max count
+                     if (r.sweep = (MAX_CNT_C-1)) then
+                        -- Reset the counter
+                        v.sweep := x"0000_0000";
+                     else
+                        -- Increment the counter
+                        v.sweep := r.sweep + 1;
+                     end if;
+                     -- Terminate the frame
+                     v.txMaster.tLast := '1';
+                     -- Next state
+                     v.state          := HDR0_S;
+                  end if;
+               else
+                  -- Check for last transfer
+                  if (r.cnt = (MAX_CNT_C-1)) then
+                     -- Reset the counter
+                     v.cnt            := x"0000_0000";
+                     -- Terminate the frame
+                     v.txMaster.tLast := '1';
+                     -- Next state
+                     v.state          := HDR0_S;
+                  end if;
+               end if;
+            end if;
+      ----------------------------------------------------------------------
+      end case;
 
+      -- Reset
+      if (rst = '1') then
+         v := REG_INIT_C;
+      end if;
 
-      wait for CLK_PERIOD_C*4000;  
-      
-      -- Connection request 1
-      --connRq1_i <= '1';
-      wait for CLK_PERIOD_C*1;
-      --connRq1_i <= '0';
-      
-      -- Let the client resend SYN
-      --wait for CLK_PERIOD_C*10000;
-      --wait for CLK_PERIOD_C*50000;
-      --connRq0_i <= '1';
-      wait for CLK_PERIOD_C*1;
-      --connRq0_i <= '0';    
-      
-      -------------------------------------------------------
-      -- Wait for connection 
-      wait for CLK_PERIOD_C*300;      
-      -- Enable PRBS
-      --s_trig <= '1';
-      
-      
-      -------------------------------------------------------
-      wait for CLK_PERIOD_C*10000;
-      -- Stop PRBS
-      s_trig <= '0';
-      -------------------------------------------------------     
-      
-      
-      -------------------------------------------------------
-      wait for CLK_PERIOD_C*30000;
-      -- Stop PRBS
-      s_trig <= '1';
-      -------------------------------------------------------
-      
-      wait for CLK_PERIOD_C*10000;
-      connRq1_i <= '0'; 
-      connRq0_i <= '0';       
-            
-      -------------------------------------------------------
-      -- Inject fault into RSSI0
-      wait for CLK_PERIOD_C*10000;
-      -- 
-      inject0_i <= '1';
-      wait for CLK_PERIOD_C*20000;
-      -- 
-      inject0_i <= '0';
+      -- Register the variable for next clock cycle
+      rin <= v;
 
-      -------------------------------------------------------
-      -- Inject fault into RSSI1
-      wait for CLK_PERIOD_C*10000;
-      -- 
-      inject1_i <= '1';
-      wait for CLK_PERIOD_C*20000;
-      -- 
-      inject1_i <= '0';
-      
-      -------------------------------------------------------
-      -- Inject fault into RSSI0
-      wait for CLK_PERIOD_C*10000;
-      -- 
-      inject0_i <= '1';
-      wait for CLK_PERIOD_C*20000;
-      -- 
-      inject0_i <= '0';
+      -- Registered Outputs        
+      txMaster <= r.txMaster;
 
-      -------------------------------------------------------
-      -- Inject fault into RSSI1
-      wait for CLK_PERIOD_C*10000;
-      -- 
-      inject1_i <= '1';
-      wait for CLK_PERIOD_C*20000;
-      -- 
-      inject1_i <= '0';
+   end process comb;
 
-      -------------------------------------------------------
-      -- Inject fault into RSSI0 and RSSI1 Repeatedly
-      wait for CLK_PERIOD_C*10000;
-      -- 
-      inject0_i <= '1';
-      inject1_i <= '1';
-      wait for CLK_PERIOD_C*20000;
-      -- 
-      inject0_i <= '0';
-      inject1_i <= '0';      
-      
-      wait for CLK_PERIOD_C*1000;
-      -- 
-      inject0_i <= '1';
-      inject1_i <= '1';
-      wait for CLK_PERIOD_C*20000;
-      -- 
-      inject0_i <= '0';
-      inject1_i <= '0';
-      
-      wait for CLK_PERIOD_C*10000;
-      -- Stop PRBS
-      s_trig <= '0';
-      -------------------------------------------------------     
-      
-      
-      -------------------------------------------------------
-      wait for CLK_PERIOD_C*60000;
-      -- Stop PRBS
-      s_trig <= '1';
-      
-      ------------------------------------------------------
+   seq : process (clk) is
+   begin
+      if rising_edge(clk) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;
 
-      wait;
-   ------------------------------
-   end process StimuliProcess;   
-      
 end testbed;

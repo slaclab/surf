@@ -391,6 +391,10 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
+      
+      -- Combinatorial outputs before the reset
+      arpReqSlaves <= v.arpReqSlaves;
+      ibArpSlave   <= v.ibArpSlave;
 
       -- Reset
       if (rst = '1') then
@@ -400,10 +404,8 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs        
-      arpReqSlaves  <= v.arpReqSlaves;
+      -- Registered Outputs  
       arpAckMasters <= r.arpAckMasters;
-      ibArpSlave    <= v.ibArpSlave;
       obArpMaster   <= r.txArpMaster;
 
    end process comb;

@@ -2,7 +2,7 @@
 -- File       : SaltRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2017-09-29
+-- Last update: 2018-01-11
 -------------------------------------------------------------------------------
 -- Description: SALT RX Engine Module
 -------------------------------------------------------------------------------
@@ -37,7 +37,9 @@ entity SaltRx is
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType;
       -- GMII Interface
+      rxLinkUp    : in  sl;
       rxPktRcvd   : out sl;
+      rxErrDet    : out sl;
       rxEn        : in  sl;
       rxErr       : in  sl;
       rxData      : in  slv(7 downto 0);
@@ -56,12 +58,14 @@ architecture rtl of SaltRx is
 
    type RegType is record
       rxPktRcvd : sl;
+      rxErrDet  : sl;
       sof       : sl;
       eofe      : sl;
       align     : sl;
       seqCnt    : slv(7 downto 0);
       tDest     : slv(7 downto 0);
-      length    : slv(15 downto 0);
+      tKeep     : slv(15 downto 0);
+      size      : slv(15 downto 0);
       cnt       : slv(15 downto 0);
       checksum  : slv(31 downto 0);
       alignCnt  : natural range 0 to 3;
@@ -72,12 +76,14 @@ architecture rtl of SaltRx is
    end record RegType;
    constant REG_INIT_C : RegType := (
       rxPktRcvd => '0',
+      rxErrDet  => '0',
       sof       => '1',
       eofe      => '0',
       align     => '0',
       seqCnt    => (others => '0'),
       tDest     => (others => '0'),
-      length    => (others => '0'),
+      tKeep     => (others => '0'),
+      size      => (others => '0'),
       cnt       => (others => '0'),
       checksum  => (others => '0'),
       alignCnt  => 0,
@@ -94,7 +100,7 @@ architecture rtl of SaltRx is
 
 begin
 
-   comb : process (r, rst, rxData, rxEn, rxErr, txSlave) is
+   comb : process (r, rst, rxData, rxEn, rxErr, rxLinkUp, txSlave) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -102,11 +108,13 @@ begin
 
       -- Reset the flags
       v.rxPktRcvd       := '0';
+      v.rxErrDet        := '0';
       v.rxMaster.tValid := '0';
       if txSlave.tReady = '1' then
          v.txMaster.tValid := '0';
          v.txMaster.tLast  := '0';
          v.txMaster.tUser  := (others => '0');
+         v.txMaster.tKeep  := x"000F";  -- 32-bit interface
       end if;
 
       -- Set the error flag
@@ -173,17 +181,19 @@ begin
          when LENGTH_S =>
             -- Check for valid data
             if r.rxMaster.tValid = '1' then
-               -- Latch the length and tDest
-               v.length   := r.rxMaster.tData(15 downto 0);
+               -- Latch the size, length and tDest
+               v.size     := r.rxMaster.tData(15 downto 0);
+               v.tKeep    := r.rxMaster.tData(15 downto 0);
                v.tDest    := r.rxMaster.tData(23 downto 16);
                -- Update checksum
                v.checksum := r.rxMaster.tData(31 downto 0);
                -- Check for invalid lengths or invalid sequence counter
-               if (v.length = 0) or (v.length > SALT_MAX_WORDS_C) or (r.rxMaster.tData(31 downto 24) /= r.seqCnt) then
+               if (v.size = 0) or (v.size > SALT_MAX_BYTES_C) or (r.rxMaster.tData(31 downto 24) /= r.seqCnt) then
                   -- Set the error flag
-                  v.eofe  := '1';
+                  v.eofe     := '1';
+                  v.rxErrDet := '1';
                   -- Next state
-                  v.state := IDLE_S;
+                  v.state    := IDLE_S;
                else
                   -- Next state
                   v.state := MOVE_S;
@@ -208,15 +218,20 @@ begin
                   -- Set the SOF bit
                   ssiSetUserSof(SSI_SALT_CONFIG_C, v.txMaster, '1');
                end if;
-               -- Check the length
-               if r.cnt = r.length then
+               -- Check the tKeep
+               if r.tKeep > 4 then
+                  -- Decrement the counter to generate tKeep
+                  v.tKeep := r.tKeep - 4;
+               end if;
+               -- Check the size
+               if r.cnt >= r.size then
                   -- Reset the counter
                   v.cnt   := (others => '0');
                   -- Next state
                   v.state := CHECKSUM_S;
                else
                   -- Increment the counter
-                  v.cnt      := r.cnt + 1;
+                  v.cnt      := r.cnt + 4;
                   -- Update checksum
                   v.checksum := r.checksum + r.rxMaster.tData(31 downto 0);
                end if;
@@ -229,9 +244,10 @@ begin
                v.state := DONE_S;
             else
                -- Set the error flag
-               v.eofe  := '1';
+               v.eofe     := '1';
+               v.rxErrDet := '1';
                -- Next state
-               v.state := IDLE_S;
+               v.state    := IDLE_S;
             end if;
          ----------------------------------------------------------------------
          when DONE_S =>
@@ -247,18 +263,24 @@ begin
                elsif r.rxMaster.tData(31 downto 0) = EOF_C then
                   -- Set EOF flag
                   v.txMaster.tLast := '1';
+                  v.txMaster.tKeep := genTKeep(conv_integer(r.tKeep));
                   v.rxPktRcvd      := '1';
                   -- Set EOFE
                   ssiSetUserEofe(SSI_SALT_CONFIG_C, v.txMaster, r.eofe);
+                  -- Set the error flag
+                  v.rxErrDet       := r.eofe;
                elsif r.rxMaster.tData(31 downto 0) = EOFE_C then
                   -- Set EOF flag
                   v.txMaster.tLast := '1';
                   v.rxPktRcvd      := '1';
                   -- Set EOFE
                   ssiSetUserEofe(SSI_SALT_CONFIG_C, v.txMaster, '1');
+                  -- Set the error flag
+                  v.rxErrDet       := '1';
                else
                   -- Set the error flag
-                  v.eofe := '1';
+                  v.eofe     := '1';
+                  v.rxErrDet := '1';
                end if;
                -- Next state
                v.state := IDLE_S;
@@ -276,7 +298,7 @@ begin
       v.txMaster.tDest := r.tDest;
 
       -- Reset
-      if (rst = '1') then
+      if (rst = '1') or (rxLinkUp = '0') then
          v := REG_INIT_C;
       end if;
 
@@ -286,6 +308,7 @@ begin
       -- Outputs        
       txMaster  <= r.txMaster;
       rxPktRcvd <= r.rxPktRcvd;
+      rxErrDet  <= r.rxErrDet;
 
    end process comb;
 

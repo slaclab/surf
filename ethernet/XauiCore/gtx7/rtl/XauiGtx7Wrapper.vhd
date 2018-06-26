@@ -2,7 +2,7 @@
 -- File       : XauiGtx7Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-07
--- Last update: 2016-09-29
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Gtx7 Wrapper for 10 GigE XAUI
 -------------------------------------------------------------------------------
@@ -21,6 +21,7 @@ use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.AxiLitePkg.all;
+use work.EthMacPkg.all;
 use work.XauiPkg.all;
 
 library unisim;
@@ -34,7 +35,6 @@ entity XauiGtx7Wrapper is
       REFCLK_DIV2_G    : boolean             := false;  --  FALSE: gtClkP/N = 156.25 MHz,  TRUE: gtClkP/N = 312.5 MHz
       -- AXI-Lite Configurations
       EN_AXI_REG_G     : boolean             := false;
-      AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C;
       -- AXI Streaming Configurations
       AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
@@ -97,7 +97,6 @@ begin
          TPD_G            => TPD_G,
          -- AXI-Lite Configurations
          EN_AXI_REG_G     => EN_AXI_REG_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
          -- AXI Streaming Configurations
          AXIS_CONFIG_G    => AXIS_CONFIG_G)       
       port map (

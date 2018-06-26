@@ -2,7 +2,7 @@
 -- File       : Gtx7QuadPll.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-06
--- Last update: 2016-03-08
+-- Last update: 2018-04-19
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Xilinx 7-series GTX's QPLL
 -------------------------------------------------------------------------------
@@ -27,15 +27,15 @@ use unisim.vcomponents.all;
 
 entity Gtx7QuadPll is
    generic (
-      TPD_G               : time            := 1 ns;
-      AXI_ERROR_RESP_G    : slv(1 downto 0) := AXI_RESP_DECERR_C;
-      SIM_RESET_SPEEDUP_G : string          := "TRUE";
-      SIM_VERSION_G       : string          := "4.0";
-      QPLL_CFG_G          : bit_vector      := x"0680181";  -- QPLL_CFG_G[6] selects the QPLL frequency band: 0 = upper band, 1 = lower band
-      QPLL_REFCLK_SEL_G   : bit_vector      := "001";
-      QPLL_FBDIV_G        : bit_vector      := "0100100000";
-      QPLL_FBDIV_RATIO_G  : bit             := '1';
-      QPLL_REFCLK_DIV_G   : integer         := 1);
+      TPD_G               : time       := 1 ns;
+      SIM_RESET_SPEEDUP_G : string     := "TRUE";
+      SIM_VERSION_G       : string     := "4.0";
+      QPLL_CFG_G          : bit_vector := x"0680181";  -- QPLL_CFG_G[6] selects the QPLL frequency band: 0 = upper band, 1 = lower band
+      QPLL_REFCLK_SEL_G   : bit_vector := "001";
+      QPLL_FBDIV_G        : bit_vector := "0100100000";
+      QPLL_FBDIV_RATIO_G  : bit        := '1';
+      QPLL_REFCLK_DIV_G   : integer    := 1;
+      EN_DRP_G            : boolean    := true);
    port (
       qPllRefClk      : in  sl;
       qPllOutClk      : out sl;
@@ -49,9 +49,9 @@ entity Gtx7QuadPll is
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
       axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
-      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilReadSlave   : out AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave  : out AxiLiteWriteSlaveType);      
+      axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 end entity Gtx7QuadPll;
 
 architecture mapping of Gtx7QuadPll is
@@ -64,13 +64,13 @@ architecture mapping of Gtx7QuadPll is
    signal gtSouthRefClk1 : sl;
    signal gtGRefClk      : sl;
 
-   signal drpEn   : sl;
-   signal drpWe   : sl;
-   signal drpRdy  : sl;
-   signal drpAddr : slv(7 downto 0);
-   signal drpDi   : slv(15 downto 0);
-   signal drpDo   : slv(15 downto 0);
-   
+   signal drpEn   : sl               := '0';
+   signal drpWe   : sl               := '0';
+   signal drpRdy  : sl               := '0';
+   signal drpAddr : slv(7 downto 0)  := (others => '0');
+   signal drpDi   : slv(15 downto 0) := (others => '0');
+   signal drpDo   : slv(15 downto 0) := (others => '0');
+
 begin
 
    --------------------------------------------------------------------------------------------------
@@ -147,35 +147,36 @@ begin
          BGBYPASSB        => '1',
          BGMONITORENB     => '1',
          BGPDB            => '1',
-         BGRCALOVRD       => "00000",
+         BGRCALOVRD       => "11111",
          PMARSVD          => "00000000",
          RCALENB          => '1');
 
-   U_AxiLiteToDrp : entity work.AxiLiteToDrp
-      generic map (
-         TPD_G            => TPD_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
-         COMMON_CLK_G     => true,
-         EN_ARBITRATION_G => false,
-         TIMEOUT_G        => 4096,
-         ADDR_WIDTH_G     => 8,
-         DATA_WIDTH_G     => 16)      
-      port map (
-         -- AXI-Lite Port
-         axilClk         => axilClk,
-         axilRst         => axilRst,
-         axilReadMaster  => axilReadMaster,
-         axilReadSlave   => axilReadSlave,
-         axilWriteMaster => axilWriteMaster,
-         axilWriteSlave  => axilWriteSlave,
-         -- DRP Interface
-         drpClk          => axilClk,
-         drpRst          => axilRst,
-         drpRdy          => drpRdy,
-         drpEn           => drpEn,
-         drpWe           => drpWe,
-         drpAddr         => drpAddr,
-         drpDi           => drpDi,
-         drpDo           => drpDo);            
+   GEN_DRP : if (EN_DRP_G) generate
+      U_AxiLiteToDrp : entity work.AxiLiteToDrp
+         generic map (
+            TPD_G            => TPD_G,
+            COMMON_CLK_G     => true,
+            EN_ARBITRATION_G => false,
+            TIMEOUT_G        => 4096,
+            ADDR_WIDTH_G     => 8,
+            DATA_WIDTH_G     => 16)
+         port map (
+            -- AXI-Lite Port
+            axilClk         => axilClk,
+            axilRst         => axilRst,
+            axilReadMaster  => axilReadMaster,
+            axilReadSlave   => axilReadSlave,
+            axilWriteMaster => axilWriteMaster,
+            axilWriteSlave  => axilWriteSlave,
+            -- DRP Interface
+            drpClk          => axilClk,
+            drpRst          => axilRst,
+            drpRdy          => drpRdy,
+            drpEn           => drpEn,
+            drpWe           => drpWe,
+            drpAddr         => drpAddr,
+            drpDi           => drpDi,
+            drpDo           => drpDo);
+   end generate GEN_DRP;
 
 end architecture mapping;

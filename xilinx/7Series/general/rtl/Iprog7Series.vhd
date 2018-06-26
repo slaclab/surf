@@ -2,7 +2,7 @@
 -- File       : Iprog7Series.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-11-01
--- Last update: 2015-09-10
+-- Last update: 2017-11-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -69,7 +69,8 @@ begin
    -- Synchronize reset to icapClk
    RstSync_Inst : entity work.RstSync
       generic map (
-         TPD_G => TPD_G)
+         TPD_G         => TPD_G,
+         OUT_REG_RST_G => false)
       port map (
          clk      => icapClk,
          asyncRst => rst,

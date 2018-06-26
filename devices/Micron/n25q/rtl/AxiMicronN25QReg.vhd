@@ -2,7 +2,7 @@
 -- File       : AxiMicronN25QReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2017-11-09
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: MicronN25Q AXI-Lite Register Access
 -------------------------------------------------------------------------------
@@ -28,8 +28,7 @@ entity AxiMicronN25QReg is
       TPD_G            : time             := 1 ns;
       MEM_ADDR_MASK_G  : slv(31 downto 0) := x"00000000";
       AXI_CLK_FREQ_G   : real             := 200.0E+6;  -- units of Hz
-      SPI_CLK_FREQ_G   : real             := 25.0E+6;   -- units of Hz
-      AXI_ERROR_RESP_G : slv(1 downto 0)  := AXI_RESP_SLVERR_C);
+      SPI_CLK_FREQ_G   : real             := 25.0E+6);   -- units of Hz
    port (
       -- FLASH Memory Ports
       csL            : out sl;
@@ -206,7 +205,7 @@ begin
                         -- Next state
                         v.state := SCK_LOW_S;
                      when others =>
-                        axiWriteResp := AXI_ERROR_RESP_G;
+                        axiWriteResp := AXI_RESP_DECERR_C;
                   end case;
                end if;
                -- Send AXI-Lite response
@@ -234,7 +233,7 @@ begin
                      when x"0C" =>
                         v.axiReadSlave.rdata(7 downto 0) := r.status;
                      when others =>
-                        axiReadResp := AXI_ERROR_RESP_G;
+                        axiReadResp := AXI_RESP_DECERR_C;
                   end case;
                   -- Send AXI-Lite Response
                   axiSlaveReadResponse(v.axiReadSlave, axiReadResp);

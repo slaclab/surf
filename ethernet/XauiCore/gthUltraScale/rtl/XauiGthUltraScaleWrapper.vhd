@@ -2,7 +2,7 @@
 -- File       : XauiGthUltraScaleWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2016-09-29
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: GTH Ultra Scale Wrapper for 10 GigE XAUI
 -------------------------------------------------------------------------------
@@ -21,6 +21,7 @@ use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.AxiLitePkg.all;
+use work.EthMacPkg.all;
 use work.XauiPkg.all;
 
 library unisim;
@@ -30,13 +31,9 @@ entity XauiGthUltraScaleWrapper is
    generic (
       TPD_G             : time                := 1 ns;
       EN_WDT_G          : boolean             := false;
-      STABLE_CLK_FREQ_G : real                := 156.25E+6;  -- Support 125MHz, 156.25MHz, or 312.5MHz
-      -- XAUI Configurations
-      XAUI_20GIGE_G     : boolean             := false;
-      REF_CLK_FREQ_G    : real                := 156.25E+6;  -- Support 125MHz, 156.25MHz, or 312.5MHz
+      STABLE_CLK_FREQ_G : real                := 156.25E+6;  -- Support 156.25MHz or 312.5MHz
       -- AXI-Lite Configurations
       EN_AXI_REG_G      : boolean             := false;
-      AXI_ERROR_RESP_G  : slv(1 downto 0)     := AXI_RESP_SLVERR_C;
       -- AXI Streaming Configurations
       AXIS_CONFIG_G     : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
@@ -68,14 +65,14 @@ entity XauiGthUltraScaleWrapper is
       gtTxDiffCtrl       : in  slv(15 downto 0)       := x"CCCC";
       gtRxPolarity       : in  slv(3 downto 0)        := x"0";
       gtTxPolarity       : in  slv(3 downto 0)        := x"0";
-      -- MGT Clock Port (125MHz, 156.25MHz, or 312.5MHz)
+      -- MGT Clock Port (156.25MHz or 312.5MHz)
       gtClkP             : in  sl;
       gtClkN             : in  sl;
       -- MGT Ports
       gtTxP              : out slv(3 downto 0);
       gtTxN              : out slv(3 downto 0);
       gtRxP              : in  slv(3 downto 0);
-      gtRxN              : in  slv(3 downto 0));  
+      gtRxN              : in  slv(3 downto 0));
 end XauiGthUltraScaleWrapper;
 
 architecture mapping of XauiGthUltraScaleWrapper is
@@ -96,7 +93,7 @@ begin
          IB    => gtClkN,
          CEB   => '0',
          ODIV2 => open,
-         O     => refClk);   
+         O     => refClk);
 
    GEN_WDT : if (EN_WDT_G = true) generate
 
@@ -110,7 +107,7 @@ begin
          port map (
             arst   => wdtReset,
             clk    => stableClk,
-            rstOut => extReset);          
+            rstOut => extReset);
 
       U_WTD : entity work.WatchDogRst
          generic map(
@@ -119,16 +116,16 @@ begin
          port map (
             clk    => stableClk,
             monIn  => linkUp,
-            rstOut => wdtRst);      
+            rstOut => wdtRst);
 
       wdtReset <= wdtRst or extRst;
-      
+
    end generate;
 
    BYPASS_WDT : if (EN_WDT_G = false) generate
-      
+
       extReset <= extRst;
-      
+
    end generate;
 
    ----------------------
@@ -137,14 +134,10 @@ begin
    XauiGthUltraScale_Inst : entity work.XauiGthUltraScale
       generic map (
          TPD_G            => TPD_G,
-         -- XAUI Configurations
-         XAUI_20GIGE_G    => XAUI_20GIGE_G,
-         REF_CLK_FREQ_G   => REF_CLK_FREQ_G,
          -- AXI-Lite Configurations
          EN_AXI_REG_G     => EN_AXI_REG_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
          -- AXI Streaming Configurations
-         AXIS_CONFIG_G    => AXIS_CONFIG_G)       
+         AXIS_CONFIG_G    => AXIS_CONFIG_G)
       port map (
          -- Local Configurations
          localMac           => localMac,
@@ -178,6 +171,6 @@ begin
          gtTxP              => gtTxP,
          gtTxN              => gtTxN,
          gtRxP              => gtRxP,
-         gtRxN              => gtRxN);  
+         gtRxN              => gtRxN);
 
 end mapping;

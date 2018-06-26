@@ -1,19 +1,16 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
+-- File       : Pgp3Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: PGPv3 Core
 -------------------------------------------------------------------------------
--- This file is part of SURF. It is subject to
--- the license terms in the LICENSE.txt file found in the top-level directory
--- of this distribution and at:
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
--- No part of SURF, including this file, may be
--- copied, modified, propagated, or distributed except according to the terms
--- contained in the LICENSE.txt file.
+-- This file is part of 'SLAC Firmware Standard Library'.
+-- It is subject to the license terms in the LICENSE.txt file found in the 
+-- top-level directory of this distribution and at: 
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
+-- may be copied, modified, propagated, or distributed except according to 
+-- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -33,7 +30,7 @@ entity Pgp3Core is
       RX_ALIGN_BAD_COUNT_G        : integer               := 16;
       RX_ALIGN_SLIP_WAIT_G        : integer               := 32;
       PGP_TX_ENABLE_G             : boolean               := true;
-      TX_CELL_WORDS_MAX_G         : integer               := 256;  -- Number of 64-bit words per cell
+      TX_CELL_WORDS_MAX_G         : integer               := PGP3_DEFAULT_TX_CELL_WORDS_MAX_C;  -- Number of 64-bit words per cell
       TX_SKP_INTERVAL_G           : integer               := 5000;
       TX_SKP_BURST_SIZE_G         : integer               := 8;
       TX_MUX_MODE_G               : string                := "INDEXED";  -- Or "ROUTED"
@@ -42,8 +39,7 @@ entity Pgp3Core is
       TX_MUX_ILEAVE_EN_G          : boolean               := true;
       TX_MUX_ILEAVE_ON_NOTVALID_G : boolean               := true;
       EN_PGP_MON_G                : boolean               := true;
-      AXIL_CLK_FREQ_G             : real                  := 125.0E+6;
-      AXIL_ERROR_RESP_G           : slv(1 downto 0)       := AXI_RESP_DECERR_C);
+      AXIL_CLK_FREQ_G             : real                  := 125.0E+6);
    port (
       -- Tx User interface
       pgpTxClk     : in  sl;
@@ -80,13 +76,16 @@ entity Pgp3Core is
       phyRxStartSeq : in  sl;
       phyRxSlip     : out sl;
 
+      -- Debug Interface
+      loopback : out slv(2 downto 0);
+
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
       axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
-      axilReadSlave   : out AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;
+      axilReadSlave   : out AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C);
+      axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 end entity Pgp3Core;
 
 architecture rtl of Pgp3Core is
@@ -171,8 +170,7 @@ begin
             WRITE_EN_G         => true,
             STATUS_CNT_WIDTH_G => 32,
             ERROR_CNT_WIDTH_G  => 8,
-            AXIL_CLK_FREQ_G    => AXIL_CLK_FREQ_G,
-            AXIL_ERROR_RESP_G  => AXIL_ERROR_RESP_G)
+            AXIL_CLK_FREQ_G    => AXIL_CLK_FREQ_G)
          port map (
             pgpTxClk        => pgpTxClk,         -- [in]
             pgpTxRst        => pgpTxRst,         -- [in]
@@ -195,10 +193,11 @@ begin
             axilWriteSlave  => axilWriteSlave);  -- [out]
    end generate GEN_PGP_MON;
 
-   NO_PGP_MON: if (not EN_PGP_MON_G) generate
+   NO_PGP_MON : if (not EN_PGP_MON_G) generate
       pgpTxInInt <= pgpTxIn;
       pgpRxInInt <= pgpRxIn;
    end generate NO_PGP_MON;
 
+   loopback <= pgpRxInInt.loopback;
 
 end architecture rtl;

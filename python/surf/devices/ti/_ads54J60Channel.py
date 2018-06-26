@@ -23,20 +23,9 @@ class Ads54J60Channel(pr.Device):
     def __init__( self,       
         name        = "Ads54J60Channel",
         description = "Ads54J60Channel Module",
-        memBase     = None,
-        offset      = 0x00,
-        hidden      = False,
-        verify      = False,
-        expand      = True,
-    ):
-        super().__init__(
-            name        = name,
-            description = description,
-            memBase     = memBase,
-            offset      = offset,
-            hidden      = hidden,
-            expand      = expand,
-        )            
+        verify      =  False,
+        **kwargs):
+        super().__init__(name=name,description=description, **kwargs)         
         
         #######################
         # Paging base addresses

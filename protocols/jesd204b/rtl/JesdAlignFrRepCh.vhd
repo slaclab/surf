@@ -2,7 +2,7 @@
 -- File       : JesdAlignFrRepCh.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-15
--- Last update: 2016-02-12
+-- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: Align bytes and replace control characters with data
 --
@@ -167,22 +167,22 @@ begin
 
       -- Replace the control characters in the data with valid data   
       if(replEnable_i = '1' and dataValid_i = '1') then
-         for I in (SAMPLES_IN_WORD_C-1) downto 0 loop
+         for i in (SAMPLES_IN_WORD_C-1) downto 0 loop
             -- If the A_CHAR_C or F_CHAR_C characters detected in the stream           
-            if (v_twoCharBuffAl(I*F_G) = '1' and
-                (v_twoWordBuffAl((I*F_G*8+7) downto I*F_G*8) = A_CHAR_C or
-                 v_twoWordBuffAl((I*F_G*8+7) downto I*F_G*8) = F_CHAR_C)
+            if (v_twoCharBuffAl(i*F_G) = '1' and
+                (v_twoWordBuffAl((i*F_G*8+7) downto i*F_G*8) = A_CHAR_C or
+                 v_twoWordBuffAl((i*F_G*8+7) downto i*F_G*8) = F_CHAR_C)
                 ) then
                -- If scrambling disabled
                -- Replace the character in the data with the data value from previous frame
                if (scrEnable_i = '0') then
-                  v_twoWordBuffAl((I*F_G*8+7) downto I*F_G*8) := v_twoWordBuffAl((I*F_G*8+8*F_G)+7 downto (I*F_G*8+8*F_G));
-                  v_twoCharBuffAl(I*F_G)                      := '0';
+                  v_twoWordBuffAl((i*F_G*8+7) downto i*F_G*8) := v_twoWordBuffAl((i*F_G*8+8*F_G)+7 downto (i*F_G*8+8*F_G));
+                  v_twoCharBuffAl(i*F_G)                      := '0';
                -- If scrambling enabled
                -- The data value equals char value and only the char flags are cleared
                else
                   v_twoWordBuffAl        := v_twoWordBuffAl;
-                  v_twoCharBuffAl(I*F_G) := '0';
+                  v_twoCharBuffAl(i*F_G) := '0';
                end if;
             end if;
          end loop;
@@ -192,8 +192,8 @@ begin
       -- The error indicates that the characters in the data are possibly misplaced or wrong characters 
       -- have been received.
       if(replEnable_i = '1' and dataValid_i = '1') then
-         for I in (GT_WORD_SIZE_C-1) downto 0 loop
-            if (v_twoCharBuffAl(I) = '1') then
+         for i in (GT_WORD_SIZE_C-1) downto 0 loop
+            if (v_twoCharBuffAl(i) = '1') then
                v_alignErr := '1';
             end if;
          end loop;
@@ -231,6 +231,10 @@ begin
          v.dataValid    := dataValid_i;
       end if;
       
+      -- Combinatorial outputs before the reset
+      positionErr_o     <= v_positionErr;
+      alignErr_o        <= v_alignErr;
+      
       if (rst = '1') then
          v := REG_INIT_C;
       end if;
@@ -239,8 +243,6 @@ begin
       rin <= v;
 
       -- Output assignment
-      positionErr_o     <= v_positionErr;
-      alignErr_o        <= v_alignErr;
       sampleData_o      <= r.sampleData;
       sampleDataValid_o <= r.dataValid;
    -----------------------------------------------------------

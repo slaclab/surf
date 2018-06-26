@@ -38,7 +38,7 @@ architecture tb of Pgp3Tb is
 
    -- component generics
    constant TPD_G               : time    := 1 ns;
-   constant TX_CELL_WORDS_MAX_G : integer := 256;
+   constant TX_CELL_WORDS_MAX_G : integer := PGP3_DEFAULT_TX_CELL_WORDS_MAX_C;
    constant NUM_VC_G            : integer := 4;
    constant SKP_INTERVAL_G      : integer := 5000;
    constant SKP_BURST_SIZE_G    : integer := 8;

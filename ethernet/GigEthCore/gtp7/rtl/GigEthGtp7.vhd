@@ -2,7 +2,7 @@
 -- File       : GigEthGtp7.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-02-07
--- Last update: 2017-05-12
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: 1000BASE-X Ethernet for Gtp7
 -------------------------------------------------------------------------------
@@ -29,7 +29,6 @@ entity GigEthGtp7 is
       TPD_G            : time                := 1 ns;
       -- AXI-Lite Configurations
       EN_AXI_REG_G     : boolean             := false;
-      AXI_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_SLVERR_C;
       -- AXI Streaming Configurations
       AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
@@ -200,11 +199,14 @@ begin
          gt0_pll1outclk_in      => qPllOutClk(1),
          gt0_pll1outrefclk_in   => qPllOutRefClk(1),
          -- Configuration and Status
+         an_restart_config      => '0',         
+         an_adv_config_vector   => GIG_ETH_AN_ADV_CONFIG_INIT_C,
+         an_interrupt           => open,
          configuration_vector   => config.coreConfig,
          status_vector          => status.coreStatus,
          signal_detect          => sigDet);
 
-   status.phyReady <= status.coreStatus(0);
+   status.phyReady <= status.coreStatus(1);
    phyReady        <= status.phyReady;
    qPllReset(1)    <= '1';              -- No using QPLL[1]   
 
@@ -214,8 +216,7 @@ begin
    U_GigEthReg : entity work.GigEthReg
       generic map (
          TPD_G            => TPD_G,
-         EN_AXI_REG_G     => EN_AXI_REG_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
+         EN_AXI_REG_G     => EN_AXI_REG_G)
       port map (
          -- Local Configurations
          localMac       => localMac,

@@ -3,19 +3,19 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-07
--- Last update: 2017-10-04
+-- Last update: 2018-03-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
--- This file is part of SURF. It is subject to
--- the license terms in the LICENSE.txt file found in the top-level directory
--- of this distribution and at:
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
--- No part of SURF, including this file, may be
--- copied, modified, propagated, or distributed except according to the terms
--- contained in the LICENSE.txt file.
+-- This file is part of 'SLAC Firmware Standard Library'.
+-- It is subject to the license terms in the LICENSE.txt file found in the 
+-- top-level directory of this distribution and at: 
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
+-- may be copied, modified, propagated, or distributed except according to 
+-- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -44,7 +44,7 @@ entity Pgp3Rx is
       pgpRxIn      : in  Pgp3RxInType;
       pgpRxOut     : out Pgp3RxOutType;
       pgpRxMasters : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
-      pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
+      pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0); -- Unused
 
       -- Status of local receive fifos
       remRxFifoCtrl  : out AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
@@ -176,9 +176,11 @@ begin
    U_AxiStreamDepacketizer2_1 : entity work.AxiStreamDepacketizer2
       generic map (
          TPD_G               => TPD_G,
-         CRC_EN_G            => true,
---       CRC_POLY_G           => CRC_POLY_G,
-         INPUT_PIPE_STAGES_G => 0)
+         BRAM_EN_G           => false,
+         CRC_MODE_G          => "DATA",
+         CRC_POLY_G          => PGP3_CRC_POLY_C,
+         TDEST_BITS_G        => 4,
+         INPUT_PIPE_STAGES_G => 1)
       port map (
          axisClk     => pgpRxClk,                -- [in]
          axisRst     => pgpRxRst,                -- [in]

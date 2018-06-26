@@ -2,7 +2,7 @@
 -- File       : AxiLiteSrpV0.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-09
--- Last update: 2016-06-09
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: SLAC Register Protocol Version 0, AXI-Lite Interface
 --
@@ -34,8 +34,6 @@ entity AxiLiteSrpV0 is
    generic (
       -- General Config
       TPD_G : time := 1 ns;
-
-      AXIL_ERR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C;
 
       -- FIFO Config
       RESP_THOLD_G        : integer range 0 to (2**24) := 1;      -- =1 = normal operation
@@ -253,10 +251,10 @@ begin
                      axiSlaveWriteResponse(v.sAxilWriteSlave, AXI_RESP_OK_C);
                      v.state := WAIT_AXIL_REQ_S;
                   elsif (rxFifoAxisMaster.tLast = '0') then
-                     axiSlaveWriteResponse(v.sAxilWriteSlave, AXIL_ERR_RESP_G);
+                     axiSlaveWriteResponse(v.sAxilWriteSlave, AXI_RESP_SLVERR_C);
                      v.state := BLEED_S;
                   else
-                     axiSlaveWriteResponse(v.sAxilWriteSlave, AXIL_ERR_RESP_G);
+                     axiSlaveWriteResponse(v.sAxilWriteSlave, AXI_RESP_SLVERR_C);
                      v.state := WAIT_AXIL_REQ_S;                     
                   end if;
 
@@ -275,11 +273,11 @@ begin
                      v.state               := WAIT_AXIL_REQ_S;
                   elsif (rxFifoAxisMaster.tLast = '0') then
                      v.sAxilReadSlave.rdata := (others => '1');
-                     axiSlaveReadResponse(v.sAxilReadSlave, AXIL_ERR_RESP_G);
+                     axiSlaveReadResponse(v.sAxilReadSlave, AXI_RESP_SLVERR_C);
                      v.state := BLEED_S;
                   else
                      v.sAxilReadSlave.rdata := (others => '1');                     
-                     axiSlaveReadResponse(v.sAxilReadSlave, AXIL_ERR_RESP_G);
+                     axiSlaveReadResponse(v.sAxilReadSlave, AXI_RESP_SLVERR_C);
                      v.state               := WAIT_AXIL_REQ_S;                     
                   end if;
                end if;
@@ -287,10 +285,10 @@ begin
             -- Handle timeout
             elsif (r.timeoutCount = TIMEOUT_COUNT_C) then
                if (axilStatus.writeEnable = '1') then
-                  axiSlaveWriteResponse(v.sAxilWriteSlave, AXIL_ERR_RESP_G);
+                  axiSlaveWriteResponse(v.sAxilWriteSlave, AXI_RESP_SLVERR_C);
                else
                   v.sAxilReadSlave.rdata := (others => '1');                  
-                  axiSlaveReadResponse(v.sAxilReadSlave, AXIL_ERR_RESP_G);
+                  axiSlaveReadResponse(v.sAxilReadSlave, AXI_RESP_SLVERR_C);
                end if;
             end if;
 
@@ -300,19 +298,22 @@ begin
                v.state := WAIT_AXIL_REQ_S;
             end if;
       end case;
+      
+      -- Combinatorial outputs before the reset
+      rxFifoAxisSlave <= v.rxFifoAxisSlave;
 
-
+      -- Reset
       if (axilRst = '1') then
          v := REG_INIT_C;
       end if;
 
+      -- Register the variable for next clock cycle
       rin <= v;
 
+      -- Registered Outputs
       sAxilWriteSlave  <= r.sAxilWriteSlave;
       sAxilReadSlave   <= r.sAxilReadSlave;
       txFifoAxisMaster <= r.txFifoAxisMaster;
-      rxFifoAxisSlave  <= v.rxFifoAxisSlave;
-
 
    end process comb;
 

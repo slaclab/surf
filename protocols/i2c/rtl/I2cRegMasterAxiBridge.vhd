@@ -2,7 +2,7 @@
 -- File       : I2cRegMasterAxiBridge.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-23
--- Last update: 2017-05-10
+-- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Maps a number of I2C devices on an I2C bus onto an AXI Bus.
 -------------------------------------------------------------------------------
@@ -31,8 +31,7 @@ entity I2cRegMasterAxiBridge is
       DEVICE_MAP_G     : I2cAxiLiteDevArray     := I2C_AXIL_DEV_ARRAY_DEFAULT_C;
       EN_USER_REG_G    : boolean                := false;
       NUM_WRITE_REG_G  : integer range 1 to 128 := 1;
-      NUM_READ_REG_G   : integer range 1 to 128 := 1;
-      AXI_ERROR_RESP_G : slv(1 downto 0)        := AXI_RESP_SLVERR_C);
+      NUM_READ_REG_G   : integer range 1 to 128 := 1);
 
    port (
       axiClk : in sl;
@@ -190,11 +189,11 @@ begin
                axiSlaveWriteResponse(v.axiWriteSlave);
             else
                -- Send AXI Error response
-               axiSlaveWriteResponse(v.axiWriteSlave, AXI_ERROR_RESP_G);
+               axiSlaveWriteResponse(v.axiWriteSlave, AXI_RESP_DECERR_C);
             end if;
          else
             -- Send AXI Error response
-            axiSlaveWriteResponse(v.axiWriteSlave, AXI_ERROR_RESP_G);
+            axiSlaveWriteResponse(v.axiWriteSlave, AXI_RESP_DECERR_C);
          end if;
       elsif (axiStatus.readEnable = '1') then
          -- Decode address and perform write
@@ -224,18 +223,18 @@ begin
                axiSlaveWriteResponse(v.axiWriteSlave);
             else
                -- Send AXI Error response
-               axiSlaveWriteResponse(v.axiWriteSlave, AXI_ERROR_RESP_G);
+               axiSlaveWriteResponse(v.axiWriteSlave, AXI_RESP_DECERR_C);
             end if;
          else
             -- Send AXI Error response
-            axiSlaveWriteResponse(v.axiWriteSlave, AXI_ERROR_RESP_G);
+            axiSlaveWriteResponse(v.axiWriteSlave, AXI_RESP_DECERR_C);
          end if;
 
       end if;
 
       if (i2cRegMasterOut.regAck = '1' and r.i2cRegMasterIn.regReq = '1') then
          v.i2cRegMasterIn.regReq := '0';
-         axiResp                 := ite(i2cRegMasterOut.regFail = '1', AXI_ERROR_RESP_G, AXI_RESP_OK_C);
+         axiResp                 := ite(i2cRegMasterOut.regFail = '1', AXI_RESP_SLVERR_C, AXI_RESP_OK_C);
          if (r.i2cRegMasterIn.regOp = '1') then
             axiSlaveWriteResponse(v.axiWriteSlave, axiResp);
          else

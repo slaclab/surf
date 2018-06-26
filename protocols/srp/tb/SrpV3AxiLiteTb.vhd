@@ -2,7 +2,7 @@
 -- File       : SrpV3AxiLiteTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-06-18
--- Last update: 2017-06-18
+-- Last update: 2018-01-22
 -------------------------------------------------------------------------------
 -- Description: Simulation testbed for AxiLiteSrpV0
 -------------------------------------------------------------------------------
@@ -69,13 +69,13 @@ architecture tb of SrpV3AxiLiteTb is
 
    signal clk : sl := '0';
    signal rst : sl := '0';
-   
+
    signal debug : slv(1 downto 0) := (others => '0');
 
    signal axilWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-   signal axilWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;
+   signal axilWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_OK_C;
    signal axilReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
-   signal axilReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;
+   signal axilReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_EMPTY_OK_C;
 
    signal sAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal sAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
@@ -95,8 +95,8 @@ architecture tb of SrpV3AxiLiteTb is
 
 begin
 
-   debug(0) <= '1' when (sAxisMaster.tData(63 downto 0) = x"0000_0138_0000_0003") else '0'; 
-   debug(1) <= '1' when (rssiObMaster.tData(63 downto 0) = x"0000_0138_0000_0003") else '0'; 
+   debug(0) <= '1' when (sAxisMaster.tData(63 downto 0) = x"0000_0138_0000_0003")  else '0';
+   debug(1) <= '1' when (rssiObMaster.tData(63 downto 0) = x"0000_0138_0000_0003") else '0';
 
    -----------------------------
    -- Generate clocks and resets
@@ -104,23 +104,12 @@ begin
    U_ClkRst0 : entity work.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
-         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
+         RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long)
       port map (
          clkP => clk,
          rst  => rst);
 
-   U_AxiLiteEmpty : entity work.AxiLiteEmpty
-      generic map (
-         TPD_G            => TPD_G,
-         AXI_ERROR_RESP_G => AXI_RESP_OK_C)
-      port map (
-         axiClk         => clk,
-         axiClkRst      => rst,
-         axiReadMaster  => axilReadMaster,
-         axiReadSlave   => axilReadSlave,
-         axiWriteMaster => axilWriteMaster,
-         axiWriteSlave  => axilWriteSlave);
 
    U_SRPv3 : entity work.SrpV3AxiLite
       generic map (
@@ -269,11 +258,11 @@ begin
          end case;
       end if;
 
-      v.cnt := r.cnt + 1;
+      v.cnt               := r.cnt + 1;
       -- if r.cnt < 16 then
-         v.mAxisSlave.tReady := '1';
+      v.mAxisSlave.tReady := '1';
       -- else
-         -- v.mAxisSlave.tReady := '0';
+      -- v.mAxisSlave.tReady := '0';
       -- end if;
 
       -- Synchronous Reset

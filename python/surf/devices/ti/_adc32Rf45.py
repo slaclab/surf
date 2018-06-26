@@ -26,9 +26,12 @@ class Adc32Rf45(pr.Device):
             name        = "Adc32Rf45",
             description = "Adc32Rf45 Module",
             verify      =  False,
-            expand      =  True,
             **kwargs):
-        super().__init__(name=name, description=description, expand=expand, **kwargs)
+        super().__init__(
+            name        = name, 
+            description = description, 
+            size        = (0x1 << 18), 
+            **kwargs)
         
         ################
         # Base addresses
@@ -48,8 +51,8 @@ class Adc32Rf45(pr.Device):
         #####################
         # Add Device Channels
         #####################
-        self.add(Adc32Rf45Channel(name='CH[0]',description='Channel A',offset=(0x0 << 14),expand=expand,verify=verify))
-        self.add(Adc32Rf45Channel(name='CH[1]',description='Channel B',offset=(0x8 << 14),expand=expand,verify=verify))      
+        self.add(Adc32Rf45Channel(name='CH[0]',description='Channel A',offset=(0x0 << 14),expand=False,verify=verify))
+        self.add(Adc32Rf45Channel(name='CH[1]',description='Channel B',offset=(0x8 << 14),expand=False,verify=verify))      
         
         ##################
         # General Register

@@ -2,7 +2,7 @@
 -- File       : SsiFrameLimiter.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-20
--- Last update: 2017-06-18
+-- Last update: 2018-05-15
 -------------------------------------------------------------------------------
 -- Description: Limits the amount of data being sent across a SSI AXIS bus 
 -------------------------------------------------------------------------------
@@ -118,11 +118,15 @@ begin
    end generate;
 
    comb : process (mAxisRst, r, rxMaster, txSlave) is
-      variable v : RegType;
-      variable i : natural;
+      variable v      : RegType;
+      variable i      : natural;
+      variable sofDet : sl;
    begin
       -- Latch the current value
       v := r;
+
+      -- Check for SOF
+      sofDet := ssiGetUserSof(MASTER_AXI_CONFIG_G, rxMaster);
 
       -- Reset the flags
       v.rxSlave := AXI_STREAM_SLAVE_INIT_C;
@@ -141,7 +145,7 @@ begin
                -- Accept the data
                v.rxSlave.tReady := '1';
                -- Check for SOF
-               if ssiGetUserSof(MASTER_AXI_CONFIG_G, rxMaster) = '1' then
+               if sofDet = '1' then
                   -- Move the data
                   v.txMaster := rxMaster;
                   -- Check for non-EOF
@@ -159,8 +163,15 @@ begin
                v.rxSlave.tReady := '1';
                -- Move the data
                v.txMaster       := rxMaster;
+               -- Check for double SOF
+               if sofDet = '1' then
+                  -- Set EOF and EOFE
+                  v.txMaster.tLast := '1';
+                  ssiSetUserEofe(MASTER_AXI_CONFIG_G, v.txMaster, '1');
+                  -- Next state
+                  v.state          := IDLE_S;
                -- Check for EOF
-               if rxMaster.tLast = '1' then
+               elsif rxMaster.tLast = '1' then
                   -- Next state
                   v.state := IDLE_S;
                -- Check if reach limiter value
@@ -208,6 +219,9 @@ begin
          v.rxSlave.tReady := '1';
       end if;
 
+      -- Combinatorial outputs before the reset
+      rxSlave <= v.rxSlave;
+
       -- Reset
       if (mAxisRst = '1') then
          v := REG_INIT_C;
@@ -216,8 +230,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs              
-      rxSlave  <= v.rxSlave;
+      -- Registered Outputs       
       txMaster <= r.txMaster;
 
    end process comb;

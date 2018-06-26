@@ -2,7 +2,7 @@
 -- File       : SsiPrbsTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2017-09-13
+-- Last update: 2018-05-20
 -------------------------------------------------------------------------------
 -- Description:   This module generates 
 --                PseudoRandom Binary Sequence (PRBS) on Virtual Channel Lane.
@@ -29,27 +29,27 @@ use work.SsiPkg.all;
 entity SsiPrbsTx is
    generic (
       -- General Configurations
-      TPD_G                      : time                       := 1 ns;
-      AXI_ERROR_RESP_G           : slv(1 downto 0)            := AXI_RESP_SLVERR_C;
+      TPD_G                      : time                    := 1 ns;
+      AXI_EN_G                   : sl                      := '1';
       -- FIFO Configurations
-      VALID_THOLD_G              : integer range 0 to (2**24) := 1;
-      VALID_BURST_MODE_G         : boolean                    := false;
-      BRAM_EN_G                  : boolean                    := true;
-      XIL_DEVICE_G               : string                     := "7SERIES";
-      USE_BUILT_IN_G             : boolean                    := false;
-      GEN_SYNC_FIFO_G            : boolean                    := false;
-      ALTERA_SYN_G               : boolean                    := false;
-      ALTERA_RAM_G               : string                     := "M9K";
-      CASCADE_SIZE_G             : natural range 1 to (2**24) := 1;
-      FIFO_ADDR_WIDTH_G          : natural range 4 to 48      := 9;
-      FIFO_PAUSE_THRESH_G        : natural range 1 to (2**24) := 2**8;
+      VALID_THOLD_G              : natural                 := 1;
+      VALID_BURST_MODE_G         : boolean                 := false;
+      BRAM_EN_G                  : boolean                 := true;
+      XIL_DEVICE_G               : string                  := "7SERIES";
+      USE_BUILT_IN_G             : boolean                 := false;
+      GEN_SYNC_FIFO_G            : boolean                 := false;
+      ALTERA_SYN_G               : boolean                 := false;
+      ALTERA_RAM_G               : string                  := "M9K";
+      CASCADE_SIZE_G             : positive                := 1;
+      FIFO_ADDR_WIDTH_G          : positive                := 9;
+      FIFO_PAUSE_THRESH_G        : positive                := 2**8;
       -- PRBS Configurations
-      PRBS_SEED_SIZE_G           : natural range 8 to 128    := 32;
-      PRBS_TAPS_G                : NaturalArray               := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
-      PRBS_INCREMENT_G           : boolean                    := false;  -- Increment mode by default instead of PRBS
+      PRBS_SEED_SIZE_G           : natural range 32 to 128 := 32;
+      PRBS_TAPS_G                : NaturalArray            := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
+      PRBS_INCREMENT_G           : boolean                 := false;  -- Increment mode by default instead of PRBS
       -- AXI Stream Configurations
-      MASTER_AXI_STREAM_CONFIG_G : AxiStreamConfigType        := ssiAxiStreamConfig(16, TKEEP_COMP_C);
-      MASTER_AXI_PIPE_STAGES_G   : natural range 0 to 16      := 0);
+      MASTER_AXI_STREAM_CONFIG_G : AxiStreamConfigType     := ssiAxiStreamConfig(16, TKEEP_COMP_C);
+      MASTER_AXI_PIPE_STAGES_G   : natural range 0 to 16   := 0);
    port (
       -- Master Port (mAxisClk)
       mAxisClk        : in  sl;
@@ -60,7 +60,7 @@ entity SsiPrbsTx is
       locClk          : in  sl;
       locRst          : in  sl                     := '0';
       trig            : in  sl                     := '1';
-      packetLength    : in  slv(31 downto 0)       := X"FFFFFFFF";
+      packetLength    : in  slv(31 downto 0)       := x"00000FFF";
       forceEofe       : in  sl                     := '0';
       busy            : out sl;
       tDest           : in  slv(7 downto 0)        := X"00";
@@ -114,13 +114,13 @@ architecture rtl of SsiPrbsTx is
       busy           => '1',
       overflow       => '0',
       length         => (others => '0'),
-      packetLength   => (others => '0'),
+      packetLength   => x"00000FFF",
       dataCnt        => (others => '0'),
       eventCnt       => toSlv(1, PRBS_SEED_SIZE_G),
       randomData     => (others => '0'),
       txAxisMaster   => AXI_STREAM_MASTER_INIT_C,
       state          => IDLE_S,
-      axiEn          => '0',
+      axiEn          => AXI_EN_G,
       oneShot        => '0',
       trig           => '0',
       cntData        => toSl(PRBS_INCREMENT_G),
@@ -137,10 +137,10 @@ architecture rtl of SsiPrbsTx is
 
 begin
 
---   assert (PRBS_SEED_SIZE_G mod 8 = 0) report "PRBS_SEED_SIZE_G must be a multiple of 8" severity failure;
+   assert ((PRBS_SEED_SIZE_G = 32) or (PRBS_SEED_SIZE_G = 64) or (PRBS_SEED_SIZE_G = 128)) report "PRBS_SEED_SIZE_G must be either [32,64,128]" severity failure;
 
-   comb : process (axilReadMaster, axilWriteMaster, forceEofe, locRst, packetLength, r, tDest, tId,
-                   trig, txCtrl, txSlave) is
+   comb : process (axilReadMaster, axilWriteMaster, forceEofe, locRst,
+                   packetLength, r, tDest, tId, trig, txCtrl, txSlave) is
       variable v             : RegType;
       variable axilStatus    : AxiLiteStatusType;
       variable axilWriteResp : slv(1 downto 0);
@@ -158,28 +158,30 @@ begin
       axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
 
       if (axilStatus.writeEnable = '1') then
-         axilWriteResp := ite(axilWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
+         axilWriteResp := ite(axilWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          case (axilWriteMaster.awaddr(7 downto 0)) is
             when X"00" =>
                v.axiEn   := axilWriteMaster.wdata(0);
                v.trig    := axilWriteMaster.wdata(1);
                -- BIT2 reserved for busy
                -- BIT3 reserved for overflow
-               v.oneShot := axilWriteMaster.wdata(4);
+               -- BIT4 reserved
                v.cntData := axilWriteMaster.wdata(5);
             when X"04" =>
                v.packetLength := axilWriteMaster.wdata(31 downto 0);
             when X"08" =>
                v.tDest := axilWriteMaster.wdata(7 downto 0);
                v.tId   := axilWriteMaster.wdata(15 downto 8);
+            when X"18" =>
+               v.oneShot := axilWriteMaster.wdata(0);
             when others =>
-               axilWriteResp := AXI_ERROR_RESP_G;
+               axilWriteResp := AXI_RESP_DECERR_C;
          end case;
          axiSlaveWriteResponse(v.axilWriteSlave);
       end if;
 
       if (axilStatus.readEnable = '1') then
-         axilReadResp          := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_ERROR_RESP_G);
+         axilReadResp          := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          v.axilReadSlave.rdata := (others => '0');
          case (axilReadMaster.araddr(7 downto 0)) is
             when X"00" =>
@@ -187,7 +189,7 @@ begin
                v.axilReadSlave.rdata(1) := r.trig;
                v.axilReadSlave.rdata(2) := r.busy;
                v.axilReadSlave.rdata(3) := r.overflow;
-               -- BIT4 reserved for oneShot
+               -- BIT4 reserved 
                v.axilReadSlave.rdata(5) := r.cntData;
             when X"04" =>
                v.axilReadSlave.rdata(31 downto 0) := r.packetLength;
@@ -209,7 +211,7 @@ begin
                   v.axilReadSlave.rdata(31 downto 0) := r.randomData(31 downto 0);
                end if;
             when others =>
-               axilReadResp := AXI_ERROR_RESP_G;
+               axilReadResp := AXI_RESP_DECERR_C;
          end case;
          axiSlaveReadResponse(v.axilReadSlave);
       end if;
@@ -275,16 +277,16 @@ begin
                v.txAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) := r.eventCnt;
                -- Generate the next random data word
 --               for i in 0 to PRBS_SEED_SIZE_G-1 loop
-                  v.randomData := lfsrShift(v.randomData, PRBS_TAPS_G, '0');
+               v.randomData                                      := lfsrShift(v.randomData, PRBS_TAPS_G, '0');
 --               end loop;
                -- Increment the counter
-               v.eventCnt := r.eventCnt + 1;
+               v.eventCnt                                        := r.eventCnt + 1;
                -- Increment the counter
-               v.dataCnt  := r.dataCnt + 1;
+               v.dataCnt                                         := r.dataCnt + 1;
                -- Set the SOF bit
                ssiSetUserSof(PRBS_SSI_CONFIG_C, v.txAxisMaster, '1');
                -- Next State
-               v.state    := LENGTH_S;
+               v.state                                           := LENGTH_S;
             end if;
          ----------------------------------------------------------------------
          when LENGTH_S =>
@@ -315,7 +317,7 @@ begin
                end if;
                -- Generate the next random data word
 --               for i in 0 to PRBS_SEED_SIZE_G-1 loop
-                  v.randomData := lfsrShift(v.randomData, PRBS_TAPS_G, '0');
+               v.randomData := lfsrShift(v.randomData, PRBS_TAPS_G, '0');
 --               end loop;
                -- Increment the counter
                v.dataCnt    := r.dataCnt + 1;
@@ -328,9 +330,9 @@ begin
                   -- Set the EOFE bit
                   ssiSetUserEofe(PRBS_SSI_CONFIG_C, v.txAxisMaster, r.overflow);
                   -- Reset the busy flag
-                  v.busy  := '0';
+                  v.busy               := '0';
                   -- Next State
-                  v.state := IDLE_S;
+                  v.state              := IDLE_S;
                end if;
             end if;
       ----------------------------------------------------------------------

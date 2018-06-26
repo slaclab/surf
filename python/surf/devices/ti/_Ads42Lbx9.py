@@ -52,6 +52,7 @@ class Ads42Lbx9Config(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            verify       = False,
         ))
         
         self.add(pr.RemoteVariable(    
@@ -102,6 +103,7 @@ class Ads42Lbx9Config(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            verify       = False,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -212,6 +214,7 @@ class Ads42Lbx9Config(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            verify       = False,
         ))
         
         self.add(pr.RemoteVariable(    

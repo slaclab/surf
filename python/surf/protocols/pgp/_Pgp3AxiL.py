@@ -25,21 +25,18 @@ class Pgp3AxiL(pr.Device):
                  description = "Configuration and status a PGP 3 link",
                  numVc = 4,
                  writeEn = False,
-                 errorCountBits = 4,
-                 statusCountBits = 32,
                  **kwargs):
         super().__init__(description=description, **kwargs)
 
         def addErrorCountVar(**ecvkwargs):
             self.add(pr.RemoteVariable(
-                bitSize      = errorCountBits,
+                bitSize      = 8,
                 mode         = 'RO',
                 bitOffset    = 0,
                 base         = pr.UInt,
                 disp         = '{:d}',
                 pollInterval = 1,
                 **ecvkwargs))
-
 
         self.add(pr.RemoteCommand(
             name        = 'CountReset', 
@@ -50,29 +47,30 @@ class Pgp3AxiL(pr.Device):
         ))
         
         self.add(pr.RemoteVariable(
-            name        = "Loopback", 
-            description = "GT Loopback Mode",
-            offset      = 0x08, 
-            bitSize     = 3, 
-            bitOffset   = 0, 
-            mode        = "RW" if writeEn else 'RO', 
-            base        = pr.UInt,
-        ))
-
-        self.add(pr.RemoteVariable(
-            name   = 'SkipInterval',
-            offset = 0xC,
-            disp   = '{:d}',
-        ))
-        
-        self.add(pr.RemoteVariable(
             name        = "AutoStatus", 
             description = "Auto Status Send Enable (PPI)",
             offset      = 0x04, 
             bitSize     = 1, 
             bitOffset   = 0, 
-            mode        = "RW", 
+            mode        = 'RW', 
             base        = pr.Bool,
+        ))
+        
+        self.add(pr.RemoteVariable(
+            name        = "Loopback", 
+            description = "GT Loopback Mode",
+            offset      = 0x08, 
+            bitSize     = 3, 
+            bitOffset   = 0, 
+            mode        = 'RW' if writeEn else 'RO', 
+            base        = pr.UInt,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name   = 'SkipInterval',
+            mode   = 'RW', 
+            offset = 0xC,
+            disp   = '{:d}',
         ))
 
         ####################
@@ -83,7 +81,7 @@ class Pgp3AxiL(pr.Device):
             offset       = 0x10, 
             bitSize      = 1, 
             bitOffset    = 0, 
-            mode         = "RO",
+            mode         = 'RO',
             base         = pr.Bool, 
             description  = "RX Phy is Ready",
             pollInterval = 1,
@@ -94,7 +92,7 @@ class Pgp3AxiL(pr.Device):
             offset       = 0x10, 
             bitSize      = 1, 
             bitOffset    = 1, 
-            mode         = "RO", 
+            mode         = 'RO', 
             base         = pr.Bool, 
             description  = "Rx Local Link Ready",
             pollInterval = 1,
@@ -105,7 +103,7 @@ class Pgp3AxiL(pr.Device):
             offset       = 0x10, 
             bitSize      = 1, 
             bitOffset    = 2, 
-            mode         = "RO", 
+            mode         = 'RO', 
             base         = pr.Bool, 
             description  = "Rx Remote Link Ready",
             pollInterval = 1,
@@ -116,7 +114,7 @@ class Pgp3AxiL(pr.Device):
             offset       = 0x20, 
             bitSize      = numVc, 
             bitOffset    = 16, 
-            mode         = "RO", 
+            mode         = 'RO', 
             base         = pr.UInt,
             disp         = '{:#_b}',
             description  = "RX Remote Pause Asserted",
@@ -128,7 +126,7 @@ class Pgp3AxiL(pr.Device):
             offset       = 0x20, 
             bitSize      = numVc, 
             bitOffset    = 0, 
-            mode         = "RO", 
+            mode         = 'RO', 
             base         = pr.UInt,
             disp         = '{:#_b}',            
             description  = "Received remote overflow flag",
@@ -140,7 +138,7 @@ class Pgp3AxiL(pr.Device):
             offset       = 0x2C, 
             bitSize      = 32, 
             bitOffset    = 0, 
-            mode         = "RO", 
+            mode         = 'RO', 
             base         = pr.UInt,
             hidden       = True,
             pollInterval = 1,
@@ -149,7 +147,7 @@ class Pgp3AxiL(pr.Device):
         self.add(pr.LinkVariable(
             name         = "RxClockFrequency", 
             units        = "MHz",
-            mode         = "RO",
+            mode         = 'RO',
             dependencies = [self.RxClockFreqRaw], 
             linkedGet    = lambda: self.RxClockFreqRaw.value() * 1.0e-6,
             disp         = '{:0.3f}',
@@ -159,9 +157,9 @@ class Pgp3AxiL(pr.Device):
         self.add(pr.RemoteVariable(
             name         = "RxFrameCount",    
             offset       = 0x24, 
-            bitSize      = statusCountBits, 
+            bitSize      = 32, 
             bitOffset    = 0, 
-            mode         = "RO", 
+            mode         = 'RO', 
             base         = pr.UInt, 
             pollInterval = 1,
         ))
@@ -199,38 +197,48 @@ class Pgp3AxiL(pr.Device):
         )
 
         self.add(pr.RemoteVariable(
-            name    = 'RxOpCodeDataLastRaw',
-            offset  = 0x34,
-            bitSize = 56,
-            base    = pr.UInt,
-            hidden  = True,
+            name         = 'RxOpCodeDataLastRaw',
+            mode         = 'RO',
+            offset       = 0x34,
+            bitSize      = 56,
+            base         = pr.UInt,
+            hidden       = True,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
-            name      = 'RxOpCodeNumLastRaw',
-            offset    = 0x34,
-            bitOffset = 56,            
-            bitSize   = 3,
-            hidden    = True,
+            name         = 'RxOpCodeNumLastRaw',
+            mode         = 'RO',
+            offset       = 0x34,
+            bitOffset    = 56,            
+            bitSize      = 3,
+            hidden       = True,
+            pollInterval = 1,
         ))
 
         self.add(pr.LinkVariable(
             name         = 'RxOpCodeLast',
+            mode         = 'RO',
             dependencies = [self.RxOpCodeDataLastRaw, self.RxOpCodeNumLastRaw],
             linkedGet    = lambda: f'{self.RxOpCodeNumLastRaw.value()} - {self.RxOpCodeDataLastRaw.value():x}',
         ))
 
         self.add(pr.RemoteVariable(
-            name      = 'PhyRxValid',
-            offset    = 0x108,
-            bitOffset = 2,
-            bitSize   = 1,
+            name         = 'PhyRxValid',
+            mode         = 'RO',
+            offset       = 0x108,
+            bitOffset    = 2,
+            bitSize      = 1,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
-            name      = 'PhyRxData',
-            offset    = 0x100,
-            bitOffset = 64,
+            name         = 'PhyRxData',
+            mode         = 'RO',
+            offset       = 0x100,
+            bitOffset    = 0,
+            bitSize      = 64,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -255,7 +263,8 @@ class Pgp3AxiL(pr.Device):
             name         = 'EbRxData',
             mode         = 'RO',            
             offset       = 0x110,
-            bitOffset    = 64,
+            bitOffset    = 0,
+            bitSize      = 64,
             pollInterval = 1,
         ))
 
@@ -292,7 +301,7 @@ class Pgp3AxiL(pr.Device):
             mode         = 'RO',            
             offset       = 0x11C,
             bitOffset    = 1,
-            bitSize      = errorCountBits,
+            bitSize      = 8,
             pollInterval = 1,
         ))
 
@@ -300,6 +309,7 @@ class Pgp3AxiL(pr.Device):
             name         = 'GearboxAligned',
             mode         = 'RO',            
             offset       = 0x120,
+            bitOffset    = 0,
             bitSize      = 1,
             pollInterval = 1,
         ))
@@ -317,6 +327,7 @@ class Pgp3AxiL(pr.Device):
             name         = 'PhyRxInitCnt',
             mode         = 'RO',            
             offset       = 0x130,
+            bitOffset    = 0,
             bitSize      = 4,
             pollInterval = 1,
         ))
@@ -347,7 +358,7 @@ class Pgp3AxiL(pr.Device):
             offset      = 0x84, 
             bitSize     = 1, 
             bitOffset   = 1, 
-            mode        = "RO", 
+            mode        = 'RO', 
             base        = pr.Bool, 
             description = "TX Phy is Ready",
             pollInterval = 1,
@@ -368,7 +379,7 @@ class Pgp3AxiL(pr.Device):
             offset       = 0x8C, 
             bitSize      = numVc, 
             bitOffset    = 16, 
-            mode         = "RO", 
+            mode         = 'RO', 
             base         = pr.UInt,
             disp         = '{:#_b}',            
             description  = "Tx Local Pause Asserted",
@@ -380,7 +391,7 @@ class Pgp3AxiL(pr.Device):
             offset       = 0x8C, 
             bitSize      = numVc,
             bitOffset    = 0, 
-            mode         = "RO", 
+            mode         = 'RO', 
             base         = pr.UInt,
             disp         = '{:#_b}',            
             description  = "Received local overflow flag",
@@ -392,7 +403,7 @@ class Pgp3AxiL(pr.Device):
             offset       = 0x9C, 
             bitSize      = 32, 
             bitOffset    = 0, 
-            mode         = "RO", 
+            mode         = 'RO', 
             base         = pr.UInt,
             hidden       = True,
             pollInterval = 1,
@@ -401,7 +412,7 @@ class Pgp3AxiL(pr.Device):
         self.add(pr.LinkVariable(
             name         = "TxClockFrequency", 
             units        = "MHz", 
-            mode         = "RO",
+            mode         = 'RO',
             dependencies = [self.TxClockFreqRaw], 
             linkedGet    = lambda: self.TxClockFreqRaw.value() * 1.0e-6,
             disp         = '{:0.3f}',
@@ -410,9 +421,9 @@ class Pgp3AxiL(pr.Device):
         self.add(pr.RemoteVariable(
             name         = "TxFrameCount",    
             offset       = 0x90, 
-            bitSize      = statusCountBits, 
+            bitSize      = 32, 
             bitOffset    = 0, 
-            mode         = "RO", 
+            mode         = 'RO', 
             base         = pr.UInt, 
             pollInterval = 1,
         ))
@@ -435,25 +446,30 @@ class Pgp3AxiL(pr.Device):
         )
 
         self.add(pr.RemoteVariable(
-            name    = 'TxOpCodeDataLastRaw',
-            offset  = 0xA4,
-            bitSize = 56,
-            base    = pr.UInt,
-            hidden  = True,
+            name         = 'TxOpCodeDataLastRaw',
+            mode         = 'RO',
+            offset       = 0xA4,
+            bitSize      = 56,
+            base         = pr.UInt,
+            hidden       = True,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
-            name      = 'TxOpCodeNumLastRaw',
-            offset    = 0xA4,
-            bitOffset = 56,            
-            bitSize   = 3,
-            hidden    = True,
+            name         = 'TxOpCodeNumLastRaw',
+            mode         = 'RO',
+            offset       = 0xA4,
+            bitOffset    = 56,            
+            bitSize      = 3,
+            hidden       = True,
+            pollInterval = 1,
         ))
 
         self.add(pr.LinkVariable(
-            name = 'TxOpCodeLast',
+            name         = 'TxOpCodeLast',
+            mode         = 'RO',
             dependencies = [self.TxOpCodeDataLastRaw, self.TxOpCodeNumLastRaw],
-            linkedGet = lambda: f'{self.TxOpCodeNumLastRaw.value()} - {self.TxOpCodeDataLastRaw.value():x}'),
+            linkedGet    = lambda: f'{self.TxOpCodeNumLastRaw.value()} - {self.TxOpCodeDataLastRaw.value():x}'),
         )
 
     def countReset(self):
@@ -465,8 +481,8 @@ class Pgp3GthUs(pr.Device):
                  enMon = True,
                  numVc = 4,                 
                  monWriteEn = False,
-                 monErrorCountBits = 4,
-                 monStatusCountBits = 32,
+                 mon8 = 4,
+                 mon32 = 32,
                  **kwargs):
         super().__init__(self, **kwargs)
         
@@ -475,8 +491,8 @@ class Pgp3GthUs(pr.Device):
                 offset = 0x0,
                 numVc = numVc,
                 writeEn = monWriteEn,
-                errorCountBits = monErrorCountBits,
-                statusCountBits = monStatusCountBits,
+                8 = mon8,
+                32 = mon32,
             ))
 
         if enDrp:

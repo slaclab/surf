@@ -2,7 +2,7 @@
 -- File       : GigEthGtp7Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-03-30
--- Last update: 2016-09-29
+-- Last update: 2018-04-05
 -------------------------------------------------------------------------------
 -- Description: Gtp7 Wrapper for 1000BASE-X Ethernet
 -- Note: This module supports up to a MGT QUAD of 1GigE interfaces
@@ -22,6 +22,7 @@ use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.AxiLitePkg.all;
+use work.EthMacPkg.all;
 use work.GigEthPkg.all;
 
 library unisim;
@@ -39,7 +40,6 @@ entity GigEthGtp7Wrapper is
       CLKOUT0_DIVIDE_F_G : real                             := 8.0;
       -- AXI-Lite Configurations
       EN_AXI_REG_G       : boolean                          := false;
-      AXI_ERROR_RESP_G   : slv(1 downto 0)                  := AXI_RESP_SLVERR_C;
       -- AXI Streaming Configurations
       AXIS_CONFIG_G      : AxiStreamConfigArray(3 downto 0) := (others => AXI_STREAM_CONFIG_INIT_C));
    port (
@@ -73,7 +73,7 @@ entity GigEthGtp7Wrapper is
       gtTxP               : out slv(NUM_LANE_G-1 downto 0);
       gtTxN               : out slv(NUM_LANE_G-1 downto 0);
       gtRxP               : in  slv(NUM_LANE_G-1 downto 0);
-      gtRxN               : in  slv(NUM_LANE_G-1 downto 0));  
+      gtRxN               : in  slv(NUM_LANE_G-1 downto 0));
 end GigEthGtp7Wrapper;
 
 architecture mapping of GigEthGtp7Wrapper is
@@ -109,7 +109,7 @@ begin
          IB    => gtClkN,
          CEB   => '0',
          ODIV2 => open,
-         O     => gtClk);    
+         O     => gtClk);
 
    BUFG_Inst : BUFG
       port map (
@@ -127,7 +127,7 @@ begin
       port map (
          arst   => extRst,
          clk    => refClk,
-         rstOut => refRst);   
+         rstOut => refRst);
 
    ----------------
    -- Clock Manager
@@ -153,7 +153,7 @@ begin
          clkOut(0) => sysClk125,
          clkOut(1) => sysClk62,
          rstOut(0) => sysRst125,
-         rstOut(1) => sysRst62); 
+         rstOut(1) => sysRst62);
 
    -----------
    -- Quad PLL 
@@ -168,7 +168,7 @@ begin
          PLL1_REFCLK_SEL_G    => "111",
          PLL1_FBDIV_IN_G      => 4,
          PLL1_FBDIV_45_IN_G   => 5,
-         PLL1_REFCLK_DIV_IN_G => 1)       
+         PLL1_REFCLK_DIV_IN_G => 1)
       port map (
          qPllRefClk     => (others => sysClk125),
          qPllOutClk     => qPllOutClk,
@@ -180,23 +180,23 @@ begin
          qPllReset      => qpllReset);
 
    -- Once the QPLL is locked, prevent the 
-   -- IP cores from accidently reseting each other
+   -- IP cores from accidentally reseting each other
    qpllReset(0) <= sysRst125 or (uOr(qpllRst) and not(qPllLock(0)));
+   qPllReset(1) <= '1';                 -- No using QPLL[1]   
 
    --------------
    -- GigE Module 
    --------------
    GEN_LANE :
    for i in 0 to NUM_LANE_G-1 generate
-      
+
       U_GigEthGtp7 : entity work.GigEthGtp7
          generic map (
-            TPD_G            => TPD_G,
+            TPD_G         => TPD_G,
             -- AXI-Lite Configurations
-            EN_AXI_REG_G     => EN_AXI_REG_G,
-            AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
+            EN_AXI_REG_G  => EN_AXI_REG_G,
             -- AXI Streaming Configurations
-            AXIS_CONFIG_G    => AXIS_CONFIG_G(i))   
+            AXIS_CONFIG_G => AXIS_CONFIG_G(i))
          port map (
             -- Local Configurations
             localMac           => localMac(i),
@@ -227,12 +227,12 @@ begin
             qPllLock           => qPllLock,
             qPllRefClkLost     => qPllRefClkLost,
             qPllReset(0)       => qpllRst(i),
-            qPllReset(1)       => qpllReset(1),
+            qPllReset(1)       => open,
             -- MGT Ports
             gtTxP              => gtTxP(i),
             gtTxN              => gtTxN(i),
             gtRxP              => gtRxP(i),
-            gtRxN              => gtRxN(i));  
+            gtRxN              => gtRxN(i));
 
    end generate GEN_LANE;
 

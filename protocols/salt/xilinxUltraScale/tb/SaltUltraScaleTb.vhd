@@ -2,7 +2,7 @@
 -- File       : SaltUltraScaleTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-03
--- Last update: 2015-09-04
+-- Last update: 2018-01-11
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the SaltUltraScale
 -------------------------------------------------------------------------------
@@ -33,8 +33,7 @@ architecture testbed of SaltUltraScaleTb is
    constant CLK_PERIOD_C       : time             := 8 ns;
    constant TPD_C              : time             := 1 ns;
    constant STATUS_CNT_WIDTH_C : natural          := 32;
-   constant AXI_ERROR_RESP_C   : slv(1 downto 0)  := AXI_RESP_SLVERR_C;
-   constant TX_PACKET_LENGTH_C : slv(31 downto 0) := toSlv(1501, 32);
+   constant TX_PACKET_LENGTH_C : slv(31 downto 0) := toSlv(128, 32);
    constant NUMBER_PACKET_C    : slv(31 downto 0) := x"0000001F";
 
    -- PRBS Configuration
@@ -79,6 +78,8 @@ architecture testbed of SaltUltraScaleTb is
    signal errEofe         : sl := '0';
    signal updated         : sl := '0';
    signal linkUpL         : sl := '0';
+   signal txEofeSent      : sl := '0';
+   signal rxErrDet        : sl := '0';
 
    signal errWordCnt : slv(31 downto 0) := (others => '0');
    signal errbitCnt  : slv(31 downto 0) := (others => '0');
@@ -89,7 +90,7 @@ architecture testbed of SaltUltraScaleTb is
    signal ibSaltSlave  : AxiStreamSlaveType;
    signal obSaltMaster : AxiStreamMasterType;
    signal obSaltSlave  : AxiStreamSlaveType;
-   
+
 begin
 
    -----------------------------
@@ -98,35 +99,35 @@ begin
    ClkRst_1x : entity work.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
-         RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
+         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long)
       port map (
          clkP => clk,
          clkN => open,
          rst  => rst,
-         rstL => open);          
+         rstL => open);
 
    ClkRst_2p5x : entity work.ClkRst
       generic map (
          CLK_PERIOD_G      => (CLK_PERIOD_C/2.5),
-         RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
+         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long)
       port map (
          clkP => clk2p5x,
          clkN => open,
          rst  => open,
-         rstL => open); 
+         rstL => open);
 
    ClkRst_5x : entity work.ClkRst
       generic map (
          CLK_PERIOD_G      => (CLK_PERIOD_C/5.0),
-         RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
+         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long)
       port map (
          clkP => clk5x,
          clkN => open,
          rst  => clk5xRst,
-         rstL => open);   
+         rstL => open);
 
    SaltDelayCtrl_Inst : entity work.SaltDelayCtrl
       generic map (
@@ -135,7 +136,7 @@ begin
       port map (
          iDelayCtrlRdy => iDelayCtrlRdy,
          refClk        => clk5x,
-         refRst        => clk5xRst);         
+         refRst        => clk5xRst);
 
    -----------------
    -- Data Generator
@@ -159,7 +160,7 @@ begin
          PRBS_TAPS_G                => PRBS_TAPS_C,
          -- AXI Stream Configurations
          MASTER_AXI_STREAM_CONFIG_G => ssiAxiStreamConfig(4),
-         MASTER_AXI_PIPE_STAGES_G   => 1)        
+         MASTER_AXI_PIPE_STAGES_G   => 1)
       port map (
          -- Master Port (mAxisClk)
          mAxisClk     => clk,
@@ -174,7 +175,7 @@ begin
          forceEofe    => FORCE_EOFE_C,
          busy         => open,
          tDest        => (others => '0'),
-         tId          => (others => '0'));    
+         tId          => (others => '0'));
 
    linkUpL <= not(linkUp);
 
@@ -186,8 +187,8 @@ begin
          TPD_G               => TPD_C,
          TX_ENABLE_G         => true,
          RX_ENABLE_G         => true,
-         COMMON_TX_CLK_G     => true,   -- Set to true if sAxisClk and clk are the same clock
-         COMMON_RX_CLK_G     => true,   -- Set to true if mAxisClk and clk are the same clock      
+         COMMON_TX_CLK_G     => true,  -- Set to true if sAxisClk and clk are the same clock
+         COMMON_RX_CLK_G     => true,  -- Set to true if mAxisClk and clk are the same clock      
          SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(4),
          MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(4))
       port map (
@@ -204,6 +205,8 @@ begin
          clk625MHz     => clk5x,
          iDelayCtrlRdy => iDelayCtrlRdy,
          linkUp        => linkUp,
+         txEofeSent    => txEofeSent,
+         rxErrDet      => rxErrDet,
          -- Slave Port
          sAxisClk      => clk,
          sAxisRst      => rst,
@@ -213,7 +216,7 @@ begin
          mAxisClk      => clk,
          mAxisRst      => rst,
          mAxisMaster   => obSaltMaster,
-         mAxisSlave    => obSaltSlave);    
+         mAxisSlave    => obSaltSlave);
 
    ---------------
    -- Data Checker
@@ -223,7 +226,6 @@ begin
          -- General Configurations
          TPD_G                      => TPD_C,
          STATUS_CNT_WIDTH_G         => STATUS_CNT_WIDTH_C,
-         AXI_ERROR_RESP_G           => AXI_ERROR_RESP_C,
          -- FIFO Configurations
          BRAM_EN_G                  => BRAM_EN_C,
          XIL_DEVICE_G               => XIL_DEVICE_C,
@@ -269,7 +271,7 @@ begin
          errWordCnt      => errWordCnt,
          errbitCnt       => errbitCnt,
          packetRate      => open,
-         packetLength    => open);    
+         packetLength    => open);
 
    process(clk)
    begin
@@ -286,37 +288,48 @@ begin
             cnt    <= (others => '0') after TPD_C;
             passed <= '0'             after TPD_C;
             failed <= '0'             after TPD_C;
-         elsif updated = '1' then
-            -- Check for missed packet error
-            if errMissedPacket = '1' then
+         else
+            -- Check for TX Error
+            if txEofeSent = '1' then
                failed <= '1' after TPD_C;
             end if;
-            -- Check for packet length error
-            if errLength = '1' then
+            -- Check for RX Error
+            if rxErrDet = '1' then
                failed <= '1' after TPD_C;
             end if;
-            -- Check for packet data bus error
-            if errDataBus = '1' then
-               failed <= '1' after TPD_C;
-            end if;
-            -- Check for EOFE error
-            if errEofe = '1' then
-               failed <= '1' after TPD_C;
-            end if;
-            -- Check for word error
-            if errWordCnt /= 0 then
-               failed <= '1' after TPD_C;
-            end if;
-            -- Check for bit error
-            if errbitCnt /= 0 then
-               failed <= '1' after TPD_C;
-            end if;
-            -- Check the counter
-            if cnt = NUMBER_PACKET_C then
-               passed <= '1' after TPD_C;
-            else
-               -- Increment the counter
-               cnt <= cnt + 1 after TPD_C;
+            -- Check for SSI PRBS update
+            if updated = '1' then
+               -- Check for missed packet error
+               if errMissedPacket = '1' then
+                  failed <= '1' after TPD_C;
+               end if;
+               -- Check for packet length error
+               if errLength = '1' then
+                  failed <= '1' after TPD_C;
+               end if;
+               -- Check for packet data bus error
+               if errDataBus = '1' then
+                  failed <= '1' after TPD_C;
+               end if;
+               -- Check for EOFE error
+               if errEofe = '1' then
+                  failed <= '1' after TPD_C;
+               end if;
+               -- Check for word error
+               if errWordCnt /= 0 then
+                  failed <= '1' after TPD_C;
+               end if;
+               -- Check for bit error
+               if errbitCnt /= 0 then
+                  failed <= '1' after TPD_C;
+               end if;
+               -- Check the counter
+               if cnt = NUMBER_PACKET_C then
+                  passed <= '1' after TPD_C;
+               else
+                  -- Increment the counter
+                  cnt <= cnt + 1 after TPD_C;
+               end if;
             end if;
          end if;
       end if;
