@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : RoguePgpSim.vhd
+-- File       : RoguePgp2bSim.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-12-05
 -- Last update: 2017-02-02
@@ -29,7 +29,7 @@ use work.AxiStreamPkg.all;
 use work.Pgp2bPkg.all;
 
 
-entity RoguePgpSim is
+entity RoguePgp2bSim is
 
    generic (
       TPD_G           : time                   := 1 ns;
@@ -56,9 +56,9 @@ entity RoguePgpSim is
       pgpRxMasters : out AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0);
       pgpRxSlaves  : in  AxiStreamSlaveArray(NUM_VC_EN_G-1 downto 0));
 
-end entity RoguePgpSim;
+end entity RoguePgp2bSim;
 
-architecture sim of RoguePgpSim is
+architecture sim of RoguePgp2bSim is
 
    constant RX_CLK_PERIOD_C : time := RX_CLK_PERIOD_G * (1000 ms);
 
@@ -118,6 +118,7 @@ begin
          generic map (
             TPD_G         => TPD_G,
             DEST_ID_G     => i,
+            USER_ID_G     => USER_ID_G,
             AXIS_CONFIG_G => SSI_PGP2B_CONFIG_C)
          port map (
             clk         => pgpClk,           -- [in]
