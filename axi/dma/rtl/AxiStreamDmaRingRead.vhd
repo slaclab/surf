@@ -33,6 +33,7 @@ entity AxiStreamDmaRingRead is
 
    generic (
       TPD_G                 : time                     := 1 ns;
+      SYNTH_MODE_G          : string                   := "inferred";
       BUFFERS_G             : natural range 2 to 64    := 64;
       BURST_SIZE_BYTES_G    : natural range 4 to 2**17 := 4096;
       SSI_OUTPUT_G          : boolean                  := false;
@@ -223,8 +224,8 @@ begin
          PIPE_STAGES_G       => 1,
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
-         SYNTH_MODE_G       => SYNTH_MODE_G,
-         MEMORY_TYPE_G      => "distributed",
+         SYNTH_MODE_G        => SYNTH_MODE_G,
+         MEMORY_TYPE_G       => "distributed",
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 6,
          FIFO_FIXED_THRESH_G => true,

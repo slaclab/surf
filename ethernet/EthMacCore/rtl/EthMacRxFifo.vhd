@@ -2,7 +2,7 @@
 -- File       : EthMacRxFifo.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-09-21
--- Last update: 2016-10-21
+-- Last update: 2018-06-26
 -------------------------------------------------------------------------------
 -- Description: Outbound FIFO buffers
 -------------------------------------------------------------------------------
@@ -25,6 +25,8 @@ use work.EthMacPkg.all;
 entity EthMacRxFifo is
    generic (
       TPD_G               : time                := 1 ns;
+      SYNTH_MODE_G        : string              := "inferred";
+      MEMORY_TYPE_G       : string              := "block";
       DROP_ERR_PKT_G      : boolean             := true;
       INT_PIPE_STAGES_G   : natural             := 1;
       PIPE_STAGES_G       : natural             := 1;
@@ -89,8 +91,8 @@ architecture rtl of EthMacRxFifo is
 
 --   attribute dont_touch      : string;
 --   attribute dont_touch of r : signal is "TRUE";   
-   
-   
+
+
 begin
 
    U_Fifo : entity work.SsiFifo
@@ -104,6 +106,8 @@ begin
          OR_DROP_FLAGS_G     => true,
          VALID_THOLD_G       => VALID_THOLD_C,
          -- FIFO configurations
+         SYNTH_MODE_G        => SYNTH_MODE_G,
+         MEMORY_TYPE_G       => ite(PRIM_COMMON_CLK_G, MEMORY_TYPE_G, "block"),
          GEN_SYNC_FIFO_G     => PRIM_COMMON_CLK_G,
          CASCADE_SIZE_G      => CASCADE_SIZE_G,
          CASCADE_PAUSE_SEL_G => CASCADE_PAUSE_SEL_G,
@@ -111,7 +115,7 @@ begin
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => PRIM_CONFIG_G)        
+         MASTER_AXI_CONFIG_G => PRIM_CONFIG_G)
       port map (
          sAxisClk       => sClk,
          sAxisRst       => sRst,
@@ -121,7 +125,7 @@ begin
          mAxisClk       => mPrimClk,
          mAxisRst       => mPrimRst,
          mAxisMaster    => mPrimMaster,
-         mAxisSlave     => mPrimSlave);    
+         mAxisSlave     => mPrimSlave);
 
    BYP_DISABLED : if (BYP_EN_G = false) generate
       sBypCtrl   <= AXI_STREAM_CTRL_UNUSED_C;
@@ -140,6 +144,8 @@ begin
             OR_DROP_FLAGS_G     => true,
             VALID_THOLD_G       => VALID_THOLD_C,
             -- FIFO configurations
+            SYNTH_MODE_G        => SYNTH_MODE_G,
+            MEMORY_TYPE_G       => ite(PRIM_COMMON_CLK_G, MEMORY_TYPE_G, "block"),
             GEN_SYNC_FIFO_G     => PRIM_COMMON_CLK_G,
             CASCADE_SIZE_G      => CASCADE_SIZE_G,
             CASCADE_PAUSE_SEL_G => CASCADE_PAUSE_SEL_G,
@@ -147,7 +153,7 @@ begin
             FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
             -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
-            MASTER_AXI_CONFIG_G => BYP_CONFIG_G)        
+            MASTER_AXI_CONFIG_G => BYP_CONFIG_G)
          port map (
             sAxisClk       => sClk,
             sAxisRst       => sRst,
@@ -157,7 +163,7 @@ begin
             mAxisClk       => mBypClk,
             mAxisRst       => mBypRst,
             mAxisMaster    => mBypMaster,
-            mAxisSlave     => mBypSlave);    
+            mAxisSlave     => mBypSlave);
    end generate;
 
    VLAN_DISABLED : if (VLAN_EN_G = false) generate
@@ -178,6 +184,8 @@ begin
                OR_DROP_FLAGS_G     => true,
                VALID_THOLD_G       => VALID_THOLD_C,
                -- FIFO configurations
+               SYNTH_MODE_G        => SYNTH_MODE_G,
+               MEMORY_TYPE_G       => ite(PRIM_COMMON_CLK_G, MEMORY_TYPE_G, "block"),
                GEN_SYNC_FIFO_G     => PRIM_COMMON_CLK_G,
                CASCADE_SIZE_G      => CASCADE_SIZE_G,
                CASCADE_PAUSE_SEL_G => CASCADE_PAUSE_SEL_G,
@@ -195,7 +203,7 @@ begin
                mAxisClk       => mVlanClk,
                mAxisRst       => mVlanRst,
                mAxisMaster    => mVlanMasters(i),
-               mAxisSlave     => mVlanSlaves(i));    
+               mAxisSlave     => mVlanSlaves(i));
       end generate GEN_VEC;
    end generate;
 
@@ -219,7 +227,7 @@ begin
 
       -- Outputs        
       rxFifoDrop <= r.rxFifoDrop;
-      
+
    end process comb;
 
    seq : process (sClk) is
@@ -228,5 +236,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-   
+
 end rtl;

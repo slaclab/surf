@@ -34,6 +34,8 @@ entity EthMacTop is
       PHY_TYPE_G          : string                   := "XGMII";  -- "GMII", "XGMII", or "XLGMII"
       DROP_ERR_PKT_G      : boolean                  := true;
       JUMBO_G             : boolean                  := true;
+      SYNTH_MODE_G        : string                   := "inferred";
+      MEMORY_TYPE_G       : string                   := "block";      
       -- RX FIFO Configurations
       INT_PIPE_STAGES_G   : natural                  := 1;
       PIPE_STAGES_G       : natural                  := 1;
@@ -306,6 +308,8 @@ begin
    U_RxFifo : entity work.EthMacRxFifo
       generic map (
          TPD_G               => TPD_G,
+         SYNTH_MODE_G        => SYNTH_MODE_G,
+         MEMORY_TYPE_G       => MEMORY_TYPE_G,
          DROP_ERR_PKT_G      => DROP_ERR_PKT_G,
          INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
          PIPE_STAGES_G       => PIPE_STAGES_G,

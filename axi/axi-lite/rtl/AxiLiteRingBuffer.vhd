@@ -27,7 +27,7 @@ entity AxiLiteRingBuffer is
    generic (
       -- General Configurations
       TPD_G            : time                   := 1 ns;
-      BRAM_EN_G        : boolean                := true;
+      MEMORY_TYPE_G    : string                 := "block";
       REG_EN_G         : boolean                := true;
       DATA_WIDTH_G     : positive range 1 to 32 := 32;
       RAM_ADDR_WIDTH_G : positive range 1 to 19 := 10);
@@ -114,7 +114,7 @@ begin
    DualPortRam_1 : entity work.DualPortRam
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => BRAM_EN_G,
+         MEMORY_TYPE_G=> MEMORY_TYPE_G,
          REG_EN_G     => REG_EN_G,
          MODE_G       => "read-first",
          DOB_REG_G    => REG_EN_G,

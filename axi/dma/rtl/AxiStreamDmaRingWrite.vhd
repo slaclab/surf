@@ -31,6 +31,7 @@ use work.AxiStreamDmaRingPkg.all;
 entity AxiStreamDmaRingWrite is
    generic (
       TPD_G                : time                     := 1 ns;
+      SYNTH_MODE_G         : string                   := "inferred";
       BUFFERS_G            : natural range 2 to 64    := 64;
       BURST_SIZE_BYTES_G   : natural range 4 to 2**17 := 4096;
       ENABLE_UNALIGN_G     : boolean                  := false;
