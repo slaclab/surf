@@ -195,8 +195,7 @@ begin
       U_Last : entity work.FifoSync
          generic map (
             TPD_G        => TPD_G,
-            SYNTH_MODE_G => "inferred",
-            BYP_RAM_G    => true, -- BYP_RAM_G only used in "inferred"
+            BYP_RAM_G    => true,
             FWFT_EN_G    => true,
             ADDR_WIDTH_G => FIFO_ADDR_WIDTH_C)
          port map (
