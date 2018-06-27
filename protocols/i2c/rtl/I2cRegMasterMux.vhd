@@ -2,7 +2,7 @@
 -- File       : I2cRegMasterMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-21
--- Last update: 2017-10-27
+-- Last update: 2018-06-27
 -------------------------------------------------------------------------------
 -- Description: Multiplexes access to a single I2cRegMaster module
 -- Attached devices may also lock others out in order to execute multiple
@@ -70,7 +70,7 @@ begin
       selInt := conv_integer(r.sel);
 
       if (r.locked = '0') then
-         v.sel := r.sel + 1;  -- Increment only if no channel has a lock
+         v.sel := r.sel + 1;            -- Increment only if no channel has a lock
       else
          v.locked := lockReq(selInt);   -- Grant lock if requested
       end if;
@@ -84,6 +84,19 @@ begin
          v.sel            := r.sel;
          v.masterIn       := regIn(selInt);
          v.regOut(selInt) := masterOut;
+      end if;
+
+      -- If bus is locked and another input tries to access, respond immediately with a fail code
+      if (r.locked = '1') then
+         for i in NUM_INPUTS_C-1 downto 0 loop
+            if (regIn(i).regReq = '1' and r.sel /= i) then
+               v.regOut(i) := (
+                  regAck => '1',
+                  regFail => '1',
+                  regFailCode => "00001111",
+                  regRdData => (others => '0'))
+            end if;
+         end loop;
       end if;
 
       if (srst = '1') then
