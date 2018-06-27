@@ -30,6 +30,7 @@ void zmqRestart(RogueStreamSimData *data) {
    uint32_t obPort;
    uint32_t ocPort;
    uint32_t sbPort;
+   vhpiTimeT sTime;
 
    ibPort = IB_PORT_BASE + (data->uid*100) + data->dest;
    obPort = OB_PORT_BASE + (data->uid*100) + data->dest;
@@ -54,8 +55,10 @@ void zmqRestart(RogueStreamSimData *data) {
    data->zmqSbSrv = zmq_socket(data->zmqCtx,ZMQ_REP);
    data->zmqOcSrv = zmq_socket(data->zmqCtx,ZMQ_REP);
 
-   vhpi_printf("zmqRestart: Destination %i : id = %i, ib = %i, Ob = %i, Code = %i, Side Data = %i\n",
-         data->dest,data->uid,ibPort,obPort,ocPort,sbPort);
+   vhpi_get_time(&sTime,NULL);
+
+   vhpi_printf("%lu zmqRestart: Destination %i : id = %i, ib = %i, Ob = %i, Code = %i, Side Data = %i\n",
+               sTime, data->dest,data->uid,ibPort,obPort,ocPort,sbPort);
 
    sprintf(buffer,"tcp://*:%i",ibPort);
    if ( zmq_bind(data->zmqIbSrv,buffer) ) {
@@ -94,6 +97,7 @@ void zmqSend ( RogueStreamSimData *data ) {
    int32_t   retA;
    int32_t   retB;
    int32_t   retC;
+   vhpiTimeT sTime;
 
    zmq_msg_init_size(&msgA,1);
    zmq_msg_init_size(&msgB,1);
@@ -111,10 +115,16 @@ void zmqSend ( RogueStreamSimData *data ) {
    zmq_msg_close(&msgB);
    zmq_msg_close(&msgC);
 
-   data->ibSize  = 0;
-
-   if ( retA > 0 && retB >> 0 && retC >> 0 ) data->txCount++;
+   if ( retA > 0 && retB > 0 && retC > 0 ) data->txCount++;
    else data->errCount++;
+
+   vhpi_get_time(&sTime,NULL);
+   vhpi_printf("%lu Send dest: %i, TxCount: %i, ErrCount: %i, Size: %i, Data: 0x%0.2x 0x%0.2x 0x%0.2x 0x%0.2x 0x%0.2x 0x%0.2x 0x%0.2x 0x%0.2x\n",
+               sTime, data->dest, data->txCount, data->errCount, data->ibSize, 
+               data->ibData[0], data->ibData[1], data->ibData[2], data->ibData[3],
+               data->ibData[4], data->ibData[5], data->ibData[6], data->ibData[7]);
+
+   data->ibSize  = 0;
 
    zmq_msg_init(&msgR);
    zmq_msg_recv(&msgR,data->zmqIbSrv,0);
@@ -130,6 +140,7 @@ int zmqRecvData ( RogueStreamSimData *data ) {
    uint8_t * rd;
    uint32_t  rsize;
    zmq_msg_t msg;
+   vhpiTimeT sTime;
 
    rsize = 0;
    cnt   = 0;
@@ -181,6 +192,13 @@ int zmqRecvData ( RogueStreamSimData *data ) {
       data->obSize  = rsize;
       data->obCount = 0;
       data->rxCount++;
+
+      vhpi_get_time(&sTime,NULL);
+      vhpi_printf("%lu Recv dest: %i, RxCount: %i, ErrCount: %i, Size: %i, Data: 0x%0.2x 0x%0.2x 0x%0.2x 0x%0.2x 0x%0.2x 0x%0.2x 0x%0.2x 0x%0.2x\n",
+                  sTime, data->dest, data->rxCount, data->errCount, data->obSize, 
+                  data->obData[0], data->obData[1], data->obData[2], data->obData[3],
+                  data->obData[4], data->obData[5], data->obData[6], data->obData[7]);
+
       return(rsize);
    }
 }
@@ -204,6 +222,7 @@ int zmqRecvOcData ( RogueStreamSimData *data ) {
    uint32_t  rsize;
    zmq_msg_t tMsg;
    zmq_msg_t rMsg;
+   vhpiTimeT sTime;
 
    rsize = 0;
 
@@ -223,6 +242,10 @@ int zmqRecvOcData ( RogueStreamSimData *data ) {
       data->ocDataEn = 1;
       data->ocCount++;
 
+      vhpi_get_time(&sTime,NULL);
+      vhpi_printf("%lu OpCode dest: %i, OcCount: %i, ErrCount: %i, Data: 0x%0.2x\n",
+                  sTime, data->dest, data->ocCount, data->errCount, data->ocData);
+
       // Ack
       zmq_msg_init_size(&tMsg,1);
       ((uint8_t *)zmq_msg_data(&tMsg))[0] = 0xFF;
@@ -241,6 +264,7 @@ int zmqRecvSbData ( RogueStreamSimData *data ) {
    uint32_t  rsize;
    zmq_msg_t rMsg;
    zmq_msg_t tMsg;
+   vhpiTimeT sTime;
 
    rsize = 0;
 
@@ -256,6 +280,10 @@ int zmqRecvSbData ( RogueStreamSimData *data ) {
    if ( rsize == 1 ) {
       data->sbData = rd[0];
       data->sbCount++;
+
+      vhpi_get_time(&sTime,NULL);
+      vhpi_printf("%lu SbData dest: %i, SbCount: %i, ErrCount: %i, Data: 0x%0.2x\n",
+                  sTime, data->dest, data->sbCount, data->errCount, data->sbData);
 
       // Ack
       zmq_msg_init_size(&tMsg,1);
@@ -358,38 +386,9 @@ void RogueStreamSimUpdate ( void *userPtr ) {
    uint32_t dHigh;
    uint32_t uLow;
    uint32_t uHigh;
-   time_t   ctime;
 
    portDataT *portData = (portDataT*) userPtr;
    RogueStreamSimData *data = (RogueStreamSimData*)(portData->stateData);
-
-   time(&ctime);
-   if ((ctime != data->ltime)  &&
-       ((data->lRxCount != data->rxCount) ||
-        (data->lTxCount != data->rxCount) ||
-	(data->lOcCount != data->ocCount) ||
-	(data->lSbCount != data->sbCount) ||
-        (data->lAckCount != data->ackCount) ||
-        (data->lErrCount != data->errCount))) {
-
-     data->ltime = ctime;
-     data->lRxCount = data->rxCount;
-     data->lTxCount = data->rxCount;
-     data->lOcCount = data->ocCount;
-     data->lSbCount = data->sbCount;
-     data->lAckCount = data->ackCount;
-     data->lErrCount = data->errCount;
-      
-      vhpi_printf("Update dest %i: RxCount = %i, TxCount = %i, OcCount = %i, SbCount = %i, errCount = %i\n",
-                  data->dest, data->rxCount,data->txCount,data->ocCount, data->sbCount, data->errCount);
-   }
-
-   // Port not yet assigned
-   if ( data->dest == 256 ) {
-      data->dest = getInt(s_dest);
-      data->uid  = getInt(s_uid);
-      zmqRestart(data);
-   }
 
    // Detect clock edge
    if ( data->currClk != getInt(s_clock) ) {
@@ -416,6 +415,13 @@ void RogueStreamSimUpdate ( void *userPtr ) {
 
          // Data movement
          else {
+
+            // Port not yet assigned
+            if ( data->dest == 256 ) {
+               data->dest = getInt(s_dest);
+               data->uid  = getInt(s_uid);
+               zmqRestart(data);
+            }
 
             // Inbound
             if (getInt(s_ibValid)) {
@@ -461,7 +467,6 @@ void RogueStreamSimUpdate ( void *userPtr ) {
                if ( data->obCount == 0 ) setInt(s_obUserLow,data->obFuser);
                else setInt(s_obUserLow,0);
                setInt(s_obUserHigh,0);
-               
               
                // Get data
                dHigh = 0;
