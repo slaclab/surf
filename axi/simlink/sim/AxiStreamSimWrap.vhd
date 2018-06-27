@@ -33,8 +33,12 @@ entity AxiStreamSimWrap is
       -- FIFO Configurations
       PIPE_STAGES_G       : natural range 0 to 16      := 0;
       VALID_THOLD_G       : integer range 1 to (2**24) := 1;
-      SYNTH_MODE_G        : string                     := "inferred";
-      MEMORY_TYPE_G       : string                     := "block";
+      BRAM_EN_G           : boolean                    := true;
+      XIL_DEVICE_G        : string                     := "7SERIES";
+      USE_BUILT_IN_G      : boolean                    := false;
+      GEN_SYNC_FIFO_G     : boolean                    := false;
+      ALTERA_SYN_G        : boolean                    := false;
+      ALTERA_RAM_G        : string                     := "M9K";
       CASCADE_SIZE_G      : integer range 1 to (2**24) := 1;
       FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
       FIFO_FIXED_THRESH_G : boolean                    := true;
@@ -93,9 +97,12 @@ begin
          PIPE_STAGES_G       => PIPE_STAGES_G,
          VALID_THOLD_G       => VALID_THOLD_G,
          -- FIFO configurations
-         SYNTH_MODE_G        => SYNTH_MODE_G,
-         MEMORY_TYPE_G       => MEMORY_TYPE_G,
+         BRAM_EN_G           => BRAM_EN_G,
+         XIL_DEVICE_G        => XIL_DEVICE_G,
+         USE_BUILT_IN_G      => USE_BUILT_IN_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
+         ALTERA_SYN_G        => ALTERA_SYN_G,
+         ALTERA_RAM_G        => ALTERA_RAM_G,
          CASCADE_SIZE_G      => CASCADE_SIZE_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => FIFO_FIXED_THRESH_G,
@@ -164,9 +171,12 @@ begin
          PIPE_STAGES_G       => PIPE_STAGES_G,
          VALID_THOLD_G       => VALID_THOLD_G,
          -- FIFO configurations
-         SYNTH_MODE_G        => SYNTH_MODE_G,
-         MEMORY_TYPE_G       => MEMORY_TYPE_G,
+         BRAM_EN_G           => BRAM_EN_G,
+         XIL_DEVICE_G        => XIL_DEVICE_G,
+         USE_BUILT_IN_G      => USE_BUILT_IN_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
+         ALTERA_SYN_G        => ALTERA_SYN_G,
+         ALTERA_RAM_G        => ALTERA_RAM_G,
          CASCADE_SIZE_G      => CASCADE_SIZE_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => FIFO_FIXED_THRESH_G,
