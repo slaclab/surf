@@ -26,7 +26,7 @@ entity RogueStreamSimWrap is
    generic (
       TPD_G               : time                   := 1 ns;
       DEST_ID_G           : integer range 0 to 255 := 1;
-      USER_ID_G           : integer range 0 to 100 := 1;
+      USER_ID_G           : integer range 0 to 63  := 1;
       COMMON_MASTER_CLK_G : boolean                := false;
       COMMON_SLAVE_CLK_G  : boolean                := false;
       AXIS_CONFIG_G       : AxiStreamConfigType    := AXI_STREAM_CONFIG_INIT_C

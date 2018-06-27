@@ -33,7 +33,7 @@ entity Pgp3GthUsWrapper is
    generic (
       TPD_G                       : time                   := 1 ns;
       ROGUE_SIM_EN_G              : boolean                := false;
-      ROGUE_SIM_USER_ID_G         : integer range 0 to 100 := 1;
+      ROGUE_SIM_USER_ID_G         : integer range 0 to 63  := 1;
       NUM_LANES_G                 : positive range 1 to 4  := 1;
       NUM_VC_G                    : positive range 1 to 16 := 4;
       REFCLK_G                    : boolean                := false;  --  FALSE: pgpRefClkP/N,  TRUE: pgpRefClkIn

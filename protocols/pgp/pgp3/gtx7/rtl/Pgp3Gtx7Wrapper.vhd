@@ -32,7 +32,7 @@ entity Pgp3Gtx7Wrapper is
    generic (
       TPD_G                       : time                   := 1 ns;
       ROGUE_SIM_EN_G              : boolean                := false;
-      ROGUE_SIM_USER_ID_G         : integer range 0 to 100 := 1;
+      ROGUE_SIM_USER_ID_G         : integer range 0 to 63  := 1;
       NUM_LANES_G                 : positive range 1 to 4  := 1;
       NUM_VC_G                    : positive range 1 to 16 := 4;
       RATE_G                      : string                 := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"

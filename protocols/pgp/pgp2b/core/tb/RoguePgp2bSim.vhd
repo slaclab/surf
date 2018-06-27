@@ -35,7 +35,7 @@ entity RoguePgp2bSim is
       TPD_G           : time                   := 1 ns;
       FIXED_LAT_G     : boolean                := false;
       RX_CLK_PERIOD_G : real                   := 8.0e-9;
-      USER_ID_G       : integer range 0 to 100 := 1;
+      USER_ID_G       : integer range 0 to 63  := 1;
       NUM_VC_EN_G     : integer range 1 to 4   := 4);
 
    port (

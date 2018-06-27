@@ -31,7 +31,7 @@ use unisim.vcomponents.all;
 entity RoguePgp3Sim is
    generic (
       TPD_G     : time                   := 1 ns;
-      USER_ID_G : integer range 0 to 100 := 1;
+      USER_ID_G : integer range 0 to 63  := 1;
       NUM_VC_G  : integer range 1 to 16  := 4);
    port (
       -- GT Ports
