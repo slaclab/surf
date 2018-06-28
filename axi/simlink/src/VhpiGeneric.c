@@ -108,6 +108,7 @@ void VhpiGenericConvertOut( portDataT *portData ) {
 void VhpiGenericCallBack(vhpiCbDataT *cbData ) {
 
    int x;
+   int ret;
 
    // Get user data
    portDataT *portData = (portDataT *)cbData->user_data;
@@ -117,7 +118,8 @@ void VhpiGenericCallBack(vhpiCbDataT *cbData ) {
 
       // Get the inital input values
       if ( portData->portDir[x] != vhpiOut )
-         vhpi_get_value(portData->portHandle[x],portData->portValue[x]);
+         if ( ( ret = vhpi_get_value(portData->portHandle[x],portData->portValue[x])) )
+            vhpi_printf("vhpi_get_value status error %i for port %i\n",ret,x);
    }
 
    // Convert Input values
@@ -135,7 +137,8 @@ void VhpiGenericCallBack(vhpiCbDataT *cbData ) {
    // Set output values
    for (x=0; x < portData->portCount; x++) {
       if ( portData->portDir[x] != vhpiIn ) 
-         vhpi_put_value(portData->portHandle[x],portData->portValue[x], vhpiForcePropagate);
+         if ( (ret = vhpi_put_value(portData->portHandle[x],portData->portValue[x], vhpiForcePropagate)))
+            vhpi_printf("vhpi_put_value status error %i for port %i\n",ret,x);
    }
 }
 
@@ -181,6 +184,8 @@ void VhpiGenericInit(vhpiHandleT compInst, portDataT *portData ) {
       portData->portValue[x]  = (vhpiValueT *) malloc(sizeof(vhpiValueT));
       portData->intValue[x]   = 0;
       portData->outEnable[x]  = 1;
+
+      memset(portData->portValue[x], 0, sizeof(vhpiValueT));
    }
 
    // Copy block name
@@ -202,6 +207,7 @@ void VhpiGenericInit(vhpiHandleT compInst, portDataT *portData ) {
          portData->portValue[x]->format        = vhpiEnumVecVal;
          width = vhpi_value_size(portData->portHandle[x],vhpiEnumVecVal);
          portData->portValue[x]->value.enums   = (vhpiEnumT*)malloc(width);
+         portData->portValue[x]->bufSize       = width;
          for (y=0; y < portData->portWidth[x]; y++ ) 
             portData->portValue[x]->value.enums[y] = 2;
       }
