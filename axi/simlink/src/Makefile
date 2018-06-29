@@ -1,13 +1,23 @@
-# Note:
-# SIMLINK_PWD gets defined in the vivado_vcs_v1.tcl script
+##############################################################################
+## This file is part of 'SLAC Firmware Standard Library'.
+## It is subject to the license terms in the LICENSE.txt file found in the 
+## top-level directory of this distribution and at: 
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+## No part of 'SLAC Firmware Standard Library', including this file, 
+## may be copied, modified, propagated, or distributed except according to 
+## the terms contained in the LICENSE.txt file.
+##############################################################################
+# Note: Need to define VCS_VERSION & VCS_HOME in your synopsys vncs setup script
+#       SIMLINK_PWD gets defined in the ruckus/vivado_vcs.tcl script
+##############################################################################
 
 # Variables
 CC     := gcc
 DEF    := 
 OUT    := $(SIMLINK_PWD)
 OBJ    := $(SIMLINK_PWD)/.obj
-CFLAGS := -Wall -fPIC -I$(VCS_HOME)/include -DVCS_VERSION=$(VCS_VERSION) -I$(ZMQ_PATH)/include
-LFLAGS := -lrt -pthread  -lzmq -L$(ZMQ_PATH)/lib
+CFLAGS := -Wall -fPIC -I$(VCS_HOME)/include -DVCS_VERSION=$(VCS_VERSION) `pkg-config --cflags libzmq`
+LFLAGS := -lrt -pthread `pkg-config --libs libzmq`
 LIB    := $(OUT)/libAxiSim.so
 
 # Local Sources
