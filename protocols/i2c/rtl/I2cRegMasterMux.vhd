@@ -94,7 +94,7 @@ begin
                   regAck => '1',
                   regFail => '1',
                   regFailCode => "00001111",
-                  regRdData => (others => '0'))
+                  regRdData => (others => '0'));
             end if;
          end loop;
       end if;
