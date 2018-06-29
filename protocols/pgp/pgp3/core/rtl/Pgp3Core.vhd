@@ -24,6 +24,7 @@ entity Pgp3Core is
 
    generic (
       TPD_G                       : time                  := 1 ns;
+      SYNTH_MODE_G                : string                := "inferred";
       NUM_VC_G                    : integer range 1 to 16 := 4;
       PGP_RX_ENABLE_G             : boolean               := true;
       RX_ALIGN_GOOD_COUNT_G       : integer               := 128;
@@ -137,6 +138,7 @@ begin
    U_Pgp3Rx_1 : entity work.Pgp3Rx
       generic map (
          TPD_G              => TPD_G,
+         SYNTH_MODE_G       => SYNTH_MODE_G,
          NUM_VC_G           => NUM_VC_G,
          ALIGN_GOOD_COUNT_G => RX_ALIGN_GOOD_COUNT_G,
          ALIGN_BAD_COUNT_G  => RX_ALIGN_BAD_COUNT_G,
@@ -165,6 +167,7 @@ begin
       U_Pgp3Axi_1 : entity work.Pgp3AxiL
          generic map (
             TPD_G              => TPD_G,
+            SYNTH_MODE_G       => SYNTH_MODE_G,
             COMMON_TX_CLK_G    => false,
             COMMON_RX_CLK_G    => false,
             WRITE_EN_G         => true,

@@ -2,7 +2,7 @@
 -- File       : Pgp2bAxi.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2009-05-27
--- Last update: 2018-01-10
+-- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description:
 -- AXI-Lite block to manage the PGP3 interface.
@@ -29,12 +29,13 @@ use work.Pgp3Pkg.all;
 entity Pgp3AxiL is
    generic (
       TPD_G              : time                  := 1 ns;
+      SYNTH_MODE_G       : string                := "inferred";
       COMMON_TX_CLK_G    : boolean               := false;  -- Set to true if axiClk and pgpTxClk are the same clock
       COMMON_RX_CLK_G    : boolean               := false;  -- Set to true if axiClk and pgpRxClk are the same clock
       WRITE_EN_G         : boolean               := false;  -- Set to false when on remote end of a link
       STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32;
       ERROR_CNT_WIDTH_G  : natural range 1 to 32 := 4;
-      AXIL_CLK_FREQ_G     : real                  := 125.0E+6);
+      AXIL_CLK_FREQ_G    : real                  := 125.0E+6);
    port (
 
       -- TX PGP Interface (pgpTxClk)
@@ -189,6 +190,7 @@ begin
    U_RxOpCodeSync : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         SYNTH_MODE_G => SYNTH_MODE_G,
          DATA_WIDTH_G => 51,
          ADDR_WIDTH_G => 2)
       port map (
@@ -242,7 +244,7 @@ begin
          rdRst                  => axilRst
          );
 
-   U_RxErrorIrqEn : process (r.autoStatus)
+   U_RxErrorIrqEn : process (r)
    begin
       rxErrorIrqEn     <= (others => '0');
       rxErrorIrqEn(1)  <= r.autoStatus;
@@ -311,7 +313,7 @@ begin
    U_RxClkFreq : entity work.SyncClockFreq
       generic map (
          TPD_G          => TPD_G,
-         USE_DSP48_G    => "no",
+         SYNTH_MODE_G   => SYNTH_MODE_G,
          REF_CLK_FREQ_G => AXIL_CLK_FREQ_G,
          CNT_WIDTH_G    => 32)
       port map (
@@ -322,12 +324,12 @@ begin
          tooSlow     => open,
          clkIn       => pgpRxClk,
          locClk      => axilClk,
-         refClk      => axilClk
-         );
+         refClk      => axilClk);
 
    U_RxEbDataSync : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         SYNTH_MODE_G => SYNTH_MODE_G,
          DATA_WIDTH_G => 67,
          ADDR_WIDTH_G => 4)
       port map (
@@ -346,6 +348,7 @@ begin
    U_RxPhyDataSync : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         SYNTH_MODE_G => SYNTH_MODE_G,
          DATA_WIDTH_G => 67,
          ADDR_WIDTH_G => 4)
       port map (
@@ -398,6 +401,7 @@ begin
    U_TxOpCodeSync : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         SYNTH_MODE_G => SYNTH_MODE_G,
          DATA_WIDTH_G => 51,
          ADDR_WIDTH_G => 2)
       port map (
@@ -489,7 +493,7 @@ begin
    U_TxClkFreq : entity work.SyncClockFreq
       generic map (
          TPD_G          => TPD_G,
-         USE_DSP48_G    => "no",
+         SYNTH_MODE_G   => SYNTH_MODE_G,
          REF_CLK_FREQ_G => AXIL_CLK_FREQ_G,
          CNT_WIDTH_G    => 32)
       port map (
@@ -500,8 +504,7 @@ begin
          tooSlow     => open,
          clkIn       => pgpTxClk,
          locClk      => axilClk,
-         refClk      => axilClk
-         );
+         refClk      => axilClk);
 
    -------------------------------------
    -- Tx Control Sync
@@ -526,6 +529,7 @@ begin
    U_SKP_SYNC : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         SYNTH_MODE_G => SYNTH_MODE_G,
          DATA_WIDTH_G => 32,
          ADDR_WIDTH_G => 4)
       port map (
@@ -561,7 +565,8 @@ begin
    end process;
 
    -- Async
-   process (axilRst, axilReadMaster, axilWriteMaster, r, rxStatusSync, txStatusSync) is
+   process (axilReadMaster, axilRst, axilWriteMaster, r, rxStatusSync,
+            txStatusSync) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin

@@ -2,7 +2,7 @@
 -- File       : Pgp3Gtx7Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-27
--- Last update: 2018-06-19
+-- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -33,6 +33,8 @@ entity Pgp3Gtx7Wrapper is
       TPD_G                       : time                   := 1 ns;
       ROGUE_SIM_EN_G              : boolean                := false;
       ROGUE_SIM_USER_ID_G         : integer range 0 to 63  := 1;
+      SYNTH_MODE_G                : string                 := "inferred";
+      MEMORY_TYPE_G               : string                 := "block";
       NUM_LANES_G                 : positive range 1 to 4  := 1;
       NUM_VC_G                    : positive range 1 to 16 := 4;
       RATE_G                      : string                 := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
@@ -216,6 +218,7 @@ begin
             generic map (
                TPD_G                       => TPD_G,
                RATE_G                      => RATE_G,
+               SYNTH_MODE_G                => SYNTH_MODE_G,
                ----------------------------------------------------------------------------------------------
                -- PGP Settings
                ----------------------------------------------------------------------------------------------
@@ -333,9 +336,11 @@ begin
       GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
          U_Rogue : entity work.RoguePgp3Sim
             generic map(
-               TPD_G     => TPD_G,
-               USER_ID_G => (ROGUE_SIM_USER_ID_G+i),
-               NUM_VC_G  => NUM_VC_G)
+               TPD_G         => TPD_G,
+               SYNTH_MODE_G  => SYNTH_MODE_G,
+               MEMORY_TYPE_G => MEMORY_TYPE_G,
+               USER_ID_G     => (ROGUE_SIM_USER_ID_G+i),
+               NUM_VC_G      => NUM_VC_G)
             port map(
                -- GT Ports
                pgpRefClk       => pgpRefClk,

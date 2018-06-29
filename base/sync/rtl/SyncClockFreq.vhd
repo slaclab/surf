@@ -2,7 +2,7 @@
 -- File       : SyncClockFreq.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-17
--- Last update: 2017-11-08
+-- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description:   This module measures the frequency of an input clock
 --                with respect to a stable reference clock.
@@ -26,18 +26,19 @@ use work.StdRtlPkg.all;
 entity SyncClockFreq is
    generic (
       TPD_G             : time     := 1 ns;  -- Simulation FF output delay
+      SYNTH_MODE_G      : string   := "inferred";
       USE_DSP48_G       : string   := "no";  -- "no" for no DSP48 implementation, "yes" to use DSP48 slices
-      REF_CLK_FREQ_G    : real     := 200.0E+6;       -- Reference Clock frequency, units of Hz
-      REFRESH_RATE_G    : real     := 1.0E+3;         -- Refresh rate, units of Hz
-      CLK_LOWER_LIMIT_G : real     := 159.0E+6;       -- Lower Limit for clock lock, units of Hz
-      CLK_UPPER_LIMIT_G : real     := 161.0E+6;       -- Lower Limit for clock lock, units of Hz
+      REF_CLK_FREQ_G    : real     := 200.0E+6;  -- Reference Clock frequency, units of Hz
+      REFRESH_RATE_G    : real     := 1.0E+3;    -- Refresh rate, units of Hz
+      CLK_LOWER_LIMIT_G : real     := 159.0E+6;  -- Lower Limit for clock lock, units of Hz
+      CLK_UPPER_LIMIT_G : real     := 161.0E+6;  -- Lower Limit for clock lock, units of Hz
       COMMON_CLK_G      : boolean  := false;  -- Set to true if (locClk = refClk) to save resources else false
       CNT_WIDTH_G       : positive := 32);   -- Counters' width
    port (
       -- Frequency Measurement and Monitoring Outputs (locClk domain)
       freqOut     : out slv(CNT_WIDTH_G-1 downto 0);  -- units of Hz
       freqUpdated : out sl;
-      locked      : out sl;             -- '1' CLK_LOWER_LIMIT_G < clkIn < CLK_UPPER_LIMIT_G
+      locked      : out sl;  -- '1' CLK_LOWER_LIMIT_G < clkIn < CLK_UPPER_LIMIT_G
       tooFast     : out sl;             -- '1' when clkIn > CLK_UPPER_LIMIT_G
       tooSlow     : out sl;             -- '1' when clkIn < CLK_LOWER_LIMIT_G
       -- Clocks
@@ -102,6 +103,7 @@ begin
    SynchronizerFifo_In : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         SYNTH_MODE_G => SYNTH_MODE_G,
          DATA_WIDTH_G => CNT_WIDTH_G)
       port map (
          --Write Ports (wr_clk domain)
@@ -151,6 +153,7 @@ begin
    U_Sync : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         SYNTH_MODE_G => SYNTH_MODE_G,
          COMMON_CLK_G => COMMON_CLK_G,
          DATA_WIDTH_G => CNT_WIDTH_G)
       port map (

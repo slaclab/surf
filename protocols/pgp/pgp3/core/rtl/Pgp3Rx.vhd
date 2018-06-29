@@ -33,6 +33,8 @@ entity Pgp3Rx is
 
    generic (
       TPD_G              : time                  := 1 ns;
+      SYNTH_MODE_G       : string                := "inferred";
+      MEMORY_TYPE_G      : string                := "block";      
       NUM_VC_G           : integer range 1 to 16 := 4;
       ALIGN_GOOD_COUNT_G : integer               := 128;
       ALIGN_BAD_COUNT_G  : integer               := 16;
@@ -136,7 +138,8 @@ begin
    -- Elastic Buffer
    U_Pgp3RxEb_1 : entity work.Pgp3RxEb
       generic map (
-         TPD_G => TPD_G)
+         TPD_G        => TPD_G,
+         SYNTH_MODE_G => SYNTH_MODE_G)         
       port map (
          phyRxClk    => phyRxClk,           -- [in]
          phyRxRst    => phyRxRst,           -- [in]

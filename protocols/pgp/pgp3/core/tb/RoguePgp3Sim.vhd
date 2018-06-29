@@ -2,7 +2,7 @@
 -- File       : RoguePgp3Sim.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-06-19
--- Last update: 2018-06-19
+-- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description: Wrapper on RogueStreamSim to simulate a PGPv3
 -------------------------------------------------------------------------------
@@ -30,9 +30,11 @@ use unisim.vcomponents.all;
 
 entity RoguePgp3Sim is
    generic (
-      TPD_G     : time                   := 1 ns;
-      USER_ID_G : integer range 0 to 63  := 1;
-      NUM_VC_G  : integer range 1 to 16  := 4);
+      TPD_G         : time                  := 1 ns;
+      SYNTH_MODE_G  : string                := "inferred";
+      MEMORY_TYPE_G : string                := "block";
+      USER_ID_G     : integer range 0 to 63 := 1;
+      NUM_VC_G      : integer range 1 to 16 := 4);
    port (
       -- GT Ports
       pgpRefClk       : in  sl;
@@ -96,6 +98,8 @@ begin
       U_PGP_VC : entity work.RogueStreamSimWrap
          generic map (
             TPD_G               => TPD_G,
+            SYNTH_MODE_G        => SYNTH_MODE_G,
+            MEMORY_TYPE_G       => MEMORY_TYPE_G,
             DEST_ID_G           => i,
             USER_ID_G           => USER_ID_G,
             COMMON_MASTER_CLK_G => true,

@@ -2,7 +2,7 @@
 -- File       : Pgp3Gtx7.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2018-06-11
+-- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -33,6 +33,7 @@ entity Pgp3Gtx7 is
    generic (
       TPD_G                       : time                  := 1 ns;
       RATE_G                      : string                := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
+      SYNTH_MODE_G                : string                := "inferred";
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
@@ -202,6 +203,7 @@ begin
    U_Pgp3Core : entity work.Pgp3Core
       generic map (
          TPD_G                       => TPD_G,
+         SYNTH_MODE_G                => SYNTH_MODE_G,
          NUM_VC_G                    => NUM_VC_G,
          PGP_RX_ENABLE_G             => PGP_RX_ENABLE_G,
          RX_ALIGN_GOOD_COUNT_G       => RX_ALIGN_GOOD_COUNT_G,

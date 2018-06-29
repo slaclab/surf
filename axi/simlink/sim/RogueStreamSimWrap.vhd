@@ -2,7 +2,7 @@
 -- File       : RogueStreamSim.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-12-05
--- Last update: 2017-02-02
+-- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Rogue Stream Simulation Module
 -------------------------------------------------------------------------------
@@ -27,6 +27,8 @@ entity RogueStreamSimWrap is
       TPD_G               : time                   := 1 ns;
       DEST_ID_G           : integer range 0 to 255 := 1;
       USER_ID_G           : integer range 0 to 63  := 1;
+      SYNTH_MODE_G        : string                 := "inferred";
+      MEMORY_TYPE_G       : string                 := "block";
       COMMON_MASTER_CLK_G : boolean                := false;
       COMMON_SLAVE_CLK_G  : boolean                := false;
       AXIS_CONFIG_G       : AxiStreamConfigType    := AXI_STREAM_CONFIG_INIT_C
@@ -38,21 +40,21 @@ entity RogueStreamSimWrap is
       rst : in sl;
 
       -- Slave
-      sAxisClk    : in  sl;             -- Set COMMON_SLAVE_CLK_G if same as clk input
+      sAxisClk    : in  sl;  -- Set COMMON_SLAVE_CLK_G if same as clk input
       sAxisRst    : in  sl;
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
 
       -- Master
-      mAxisClk    : in  sl;             -- Set COMMON_MASTER_CLK_G if same as clk input
+      mAxisClk    : in  sl;  -- Set COMMON_MASTER_CLK_G if same as clk input
       mAxisRst    : in  sl;
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType;
 
       -- Sideband Clock and reset, clocked with clk and rst
-      opCode      : out slv(7 downto 0);
-      opCodeEn    : out sl;
-      remData     : out slv(7 downto 0)
+      opCode   : out slv(7 downto 0);
+      opCodeEn : out sl;
+      remData  : out slv(7 downto 0)
       );
 end RogueStreamSimWrap;
 
@@ -83,6 +85,8 @@ begin
    U_IbFifo : entity work.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
+         SYNTH_MODE_G        => SYNTH_MODE_G,
+         MEMORY_TYPE_G       => MEMORY_TYPE_G,
          GEN_SYNC_FIFO_G     => COMMON_SLAVE_CLK_G,
          SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_G,
          MASTER_AXI_CONFIG_G => INT_CONFIG_C)
@@ -139,6 +143,8 @@ begin
    U_ObFifo : entity work.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
+         SYNTH_MODE_G        => SYNTH_MODE_G,
+         MEMORY_TYPE_G       => MEMORY_TYPE_G,
          GEN_SYNC_FIFO_G     => COMMON_MASTER_CLK_G,
          SLAVE_AXI_CONFIG_G  => INT_CONFIG_C,
          MASTER_AXI_CONFIG_G => AXIS_CONFIG_G)

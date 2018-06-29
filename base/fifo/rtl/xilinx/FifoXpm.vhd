@@ -2,7 +2,7 @@
 -- File       : FifoXpm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-06-25
--- Last update: 2018-06-25
+-- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Xilinx XPM FIFO module
 -------------------------------------------------------------------------------

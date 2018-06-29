@@ -26,7 +26,8 @@ use work.Pgp3Pkg.all;
 entity Pgp3RxEb is
 
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G        : time   := 1 ns;
+      SYNTH_MODE_G : string := "inferred");
    port (
       phyRxClk    : in sl;
       phyRxRst    : in sl;
@@ -86,9 +87,10 @@ begin
       end if;
    end process seq;
 
-   U_FifoAsync_1 : entity work.FifoAsync
+   U_FifoAsync_1 : entity work.Fifo
       generic map (
          TPD_G         => TPD_G,
+         SYNTH_MODE_G  => SYNTH_MODE_G,
          MEMORY_TYPE_G => "block",
          FWFT_EN_G     => true,
          PIPE_STAGES_G => 0,
@@ -99,32 +101,22 @@ begin
          wr_clk             => phyRxClk,     -- [in]
          wr_en              => r.fifoWrEn,   -- [in]
          din                => r.fifoIn,     -- [in]
-         wr_data_count      => open,         -- [out]
-         wr_ack             => open,         -- [out]
-         overflow           => overflowInt,     -- [out]
-         prog_full          => open,         -- [out]
-         almost_full        => open,         -- [out]
-         full               => open,         -- [out]
-         not_full           => open,         -- [out]
+         overflow           => overflowInt,  -- [out]
          rd_clk             => pgpRxClk,     -- [in]
          rd_en              => valid,        -- [in]
          dout(63 downto 0)  => pgpRxData,    -- [out]
          dout(65 downto 64) => pgpRxHeader,  -- [out]
          rd_data_count      => status,       -- [out]
-         valid              => valid,        -- [out]
-         underflow          => open,         -- [out]
-         prog_empty         => open,         -- [out]
-         almost_empty       => open,         -- [out]
-         empty              => open);        -- [out]
+         valid              => valid);       -- [out]
 
    U_RstSync_1 : entity work.RstSync
       generic map (
-         TPD_G           => TPD_G)
+         TPD_G => TPD_G)
       port map (
          clk      => pgpRxClk,          -- [in]
-         asyncRst => overflowInt,          -- [in]
-         syncRst  => overflow);     -- [out]
+         asyncRst => overflowInt,       -- [in]
+         syncRst  => overflow);         -- [out]
 
    pgpRxValid <= valid;
 
-end architecture rtl;
+end rtl;

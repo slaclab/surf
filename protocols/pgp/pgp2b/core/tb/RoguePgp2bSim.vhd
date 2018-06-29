@@ -2,7 +2,7 @@
 -- File       : RoguePgp2bSim.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-12-05
--- Last update: 2017-02-02
+-- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description: Wrapper on RogueStreamSim to simulate a PGP lane with 4
 -- virtual channels
@@ -32,11 +32,13 @@ use work.Pgp2bPkg.all;
 entity RoguePgp2bSim is
 
    generic (
-      TPD_G           : time                   := 1 ns;
-      FIXED_LAT_G     : boolean                := false;
-      RX_CLK_PERIOD_G : real                   := 8.0e-9;
-      USER_ID_G       : integer range 0 to 63  := 1;
-      NUM_VC_EN_G     : integer range 1 to 4   := 4);
+      TPD_G           : time                  := 1 ns;
+      SYNTH_MODE_G    : string                := "inferred";
+      MEMORY_TYPE_G   : string                := "block";
+      FIXED_LAT_G     : boolean               := false;
+      RX_CLK_PERIOD_G : real                  := 8.0e-9;
+      USER_ID_G       : integer range 0 to 63 := 1;
+      NUM_VC_EN_G     : integer range 1 to 4  := 4);
 
    port (
       refClkP : in sl;
@@ -117,6 +119,8 @@ begin
       U_RogueStreamSimWrap_PGP_VC : entity work.RogueStreamSimWrap
          generic map (
             TPD_G         => TPD_G,
+            SYNTH_MODE_G  => SYNTH_MODE_G,
+            MEMORY_TYPE_G => MEMORY_TYPE_G,
             DEST_ID_G     => i,
             USER_ID_G     => USER_ID_G,
             AXIS_CONFIG_G => SSI_PGP2B_CONFIG_C)
@@ -136,6 +140,8 @@ begin
    U_RogueStreamSimWrap_OPCODE : entity work.RogueStreamSimWrap
       generic map (
          TPD_G         => TPD_G,
+         SYNTH_MODE_G  => SYNTH_MODE_G,
+         MEMORY_TYPE_G => MEMORY_TYPE_G,
          DEST_ID_G     => 4,
          AXIS_CONFIG_G => SSI_PGP2B_CONFIG_C)
       port map (
