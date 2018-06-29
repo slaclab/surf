@@ -64,8 +64,7 @@ entity Pgp3AxiL is
       axilReadMaster  : in  AxiLiteReadMasterType;
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
-      axilWriteSlave  : out AxiLiteWriteSlaveType
-      );
+      axilWriteSlave  : out AxiLiteWriteSlaveType);
 end Pgp3AxiL;
 
 architecture rtl of Pgp3AxiL is
@@ -97,9 +96,6 @@ architecture rtl of Pgp3AxiL is
 
    signal rxErrorIrqEn : slv(RX_ERROR_COUNTERS_C-1 downto 0);
 
---   signal txFlush         : sl;
---   signal rxFlush         : sl;
---   signal rxReset         : sl;
    signal syncFlowCntlDis : sl;
    signal syncSkpInterval : slv(31 downto 0);
    signal gearboxAlignCnt : SlVectorArray(0 downto 0, 7 downto 0);
@@ -114,7 +110,6 @@ architecture rtl of Pgp3AxiL is
       axilWriteSlave : AxiLiteWriteSlaveType;
       axilReadSlave  : AxiLiteReadSlaveType;
    end record RegType;
-
    constant REG_INIT_C : RegType := (
       countReset     => '0',
       loopBack       => (others => '0'),
@@ -123,8 +118,7 @@ architecture rtl of Pgp3AxiL is
       skpInterval    => X"0000FFF0",
       autoStatus     => '0',
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
-      axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C
-      );
+      axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -158,7 +152,6 @@ architecture rtl of Pgp3AxiL is
       gearboxAligned     : sl;
       gearboxAlignCnt    : slv(7 downto 0);
    end record RxStatusType;
-
    signal rxStatusSync : RxStatusType;
 
    type TxStatusType is record
@@ -174,13 +167,9 @@ architecture rtl of Pgp3AxiL is
       txOpCodeDataLast   : slv(47 downto 0);
       txOpCodeNumberLast : slv(2 downto 0);
    end record TxStatusType;
-
    signal txStatusSync : TxStatusType;
 
-
-
 begin
-
 
    ---------------------------------------
    -- Receive Status
@@ -191,8 +180,7 @@ begin
       generic map (
          TPD_G        => TPD_G,
          SYNTH_MODE_G => SYNTH_MODE_G,
-         DATA_WIDTH_G => 51,
-         ADDR_WIDTH_G => 2)
+         DATA_WIDTH_G => 51)
       port map (
          rst                => r.countReset,
          wr_clk             => pgpRxClk,
@@ -241,8 +229,7 @@ begin
          wrClk                  => pgpRxClk,
          wrRst                  => pgpRxRst,
          rdClk                  => axilClk,
-         rdRst                  => axilRst
-         );
+         rdRst                  => axilRst);
 
    U_RxErrorIrqEn : process (r)
    begin
@@ -300,13 +287,10 @@ begin
          cntRstIn     => r.countReset,
          rollOverEnIn => (others => '1'),
          cntOut       => rxStatusCntOut,
-         irqEnIn      => (others => '0'),
-         irqOut       => open,
          wrClk        => pgpRxClk,
          wrRst        => pgpRxRst,
          rdClk        => axilClk,
-         rdRst        => axilRst
-         );
+         rdRst        => axilRst);
 
    rxStatusSync.frameCount <= muxSlVectorArray(rxStatusCntOut, 0);
 
@@ -317,21 +301,16 @@ begin
          REF_CLK_FREQ_G => AXIL_CLK_FREQ_G,
          CNT_WIDTH_G    => 32)
       port map (
-         freqOut     => rxStatusSync.rxClkFreq,
-         freqUpdated => open,
-         locked      => open,
-         tooFast     => open,
-         tooSlow     => open,
-         clkIn       => pgpRxClk,
-         locClk      => axilClk,
-         refClk      => axilClk);
+         freqOut => rxStatusSync.rxClkFreq,
+         clkIn   => pgpRxClk,
+         locClk  => axilClk,
+         refClk  => axilClk);
 
    U_RxEbDataSync : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          SYNTH_MODE_G => SYNTH_MODE_G,
-         DATA_WIDTH_G => 67,
-         ADDR_WIDTH_G => 4)
+         DATA_WIDTH_G => 67)
       port map (
          rst                => r.countReset,
          wr_clk             => pgpRxClk,
@@ -349,8 +328,7 @@ begin
       generic map (
          TPD_G        => TPD_G,
          SYNTH_MODE_G => SYNTH_MODE_G,
-         DATA_WIDTH_G => 67,
-         ADDR_WIDTH_G => 4)
+         DATA_WIDTH_G => 67)
       port map (
          rst                => r.countReset,
          wr_clk             => phyRxClk,
@@ -382,13 +360,10 @@ begin
          cntRstIn     => r.countReset,
          rollOverEnIn => (others => '1'),
          cntOut       => gearboxAlignCnt,
-         irqEnIn      => (others => '0'),
-         irqOut       => open,
          wrClk        => pgpRxClk,
          wrRst        => pgpRxRst,
          rdClk        => axilClk,
-         rdRst        => axilRst
-         );
+         rdRst        => axilRst);
 
    rxStatusSync.gearboxAlignCnt <= muxSlVectorArray(gearboxAlignCnt, 0);
 
@@ -402,8 +377,7 @@ begin
       generic map (
          TPD_G        => TPD_G,
          SYNTH_MODE_G => SYNTH_MODE_G,
-         DATA_WIDTH_G => 51,
-         ADDR_WIDTH_G => 2)
+         DATA_WIDTH_G => 51)
       port map (
          rst                => r.countReset,
          wr_clk             => pgpTxClk,
@@ -439,13 +413,10 @@ begin
          cntRstIn               => r.countReset,
          rollOverEnIn           => (others => '0'),
          cntOut                 => txErrorCntOut,
-         irqEnIn                => (others => '0'),
-         irqOut                 => open,
          wrClk                  => pgpTxClk,
          wrRst                  => pgpTxRst,
          rdClk                  => axilClk,
-         rdRst                  => axilRst
-         );
+         rdRst                  => axilRst);
 
    -- Map Status
    txStatusSync.phyTxActive <= txErrorOut(0);
@@ -480,13 +451,10 @@ begin
          cntRstIn     => r.countReset,
          rollOverEnIn => (others => '1'),
          cntOut       => txStatusCntOut,
-         irqEnIn      => (others => '0'),
-         irqOut       => open,
          wrClk        => pgpTxClk,
          wrRst        => pgpTxRst,
          rdClk        => axilClk,
-         rdRst        => axilRst
-         );
+         rdRst        => axilRst);
 
    txStatusSync.frameCount <= muxSlVectorArray(txStatusCntOut, 0);
 
@@ -497,14 +465,10 @@ begin
          REF_CLK_FREQ_G => AXIL_CLK_FREQ_G,
          CNT_WIDTH_G    => 32)
       port map (
-         freqOut     => txStatusSync.txClkFreq,
-         freqUpdated => open,
-         locked      => open,
-         tooFast     => open,
-         tooSlow     => open,
-         clkIn       => pgpTxClk,
-         locClk      => axilClk,
-         refClk      => axilClk);
+         freqOut => txStatusSync.txClkFreq,
+         clkIn   => pgpTxClk,
+         locClk  => axilClk,
+         refClk  => axilClk);
 
    -------------------------------------
    -- Tx Control Sync
@@ -513,27 +477,19 @@ begin
    -- Sync flow cntl disable
    U_FlowCntlDis : entity work.Synchronizer
       generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => '1',
-         OUT_POLARITY_G => '1',
-         RST_ASYNC_G    => false,
-         STAGES_G       => 2,
-         INIT_G         => "0")
+         TPD_G => TPD_G)
       port map (
          clk     => pgpTxClk,
          rst     => pgpTxRst,
          dataIn  => r.flowCntlDis,
-         dataOut => syncFlowCntlDis
-         );
+         dataOut => syncFlowCntlDis);
 
    U_SKP_SYNC : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          SYNTH_MODE_G => SYNTH_MODE_G,
-         DATA_WIDTH_G => 32,
-         ADDR_WIDTH_G => 4)
+         DATA_WIDTH_G => 32)
       port map (
-         rst    => '0',
          wr_clk => axilClk,
          din    => r.skpInterval,
          rd_clk => pgpTxClk,
