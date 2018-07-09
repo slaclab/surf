@@ -255,8 +255,7 @@ begin
    U_RxOpCodeSync : entity work.SynchronizerFifo
       generic map (
          TPD_G         => TPD_G,
-         DATA_WIDTH_G  => 8,
-         ADDR_WIDTH_G  => 2)
+         DATA_WIDTH_G  => 8)
       port map (
          rst    => r.countReset,
          wr_clk => pgpRxClk,
@@ -272,8 +271,7 @@ begin
       U_RxDataSync : entity work.SynchronizerFifo
          generic map (
             TPD_G         => TPD_G,
-            DATA_WIDTH_G  => 8,
-            ADDR_WIDTH_G  => 2)
+            DATA_WIDTH_G  => 8)
          port map (
             rst    => axilRst,
             wr_clk => pgpRxClk,
@@ -416,8 +414,7 @@ begin
    U_TxOpCodeSync : entity work.SynchronizerFifo
       generic map (
          TPD_G         => TPD_G,
-         DATA_WIDTH_G  => 8,
-         ADDR_WIDTH_G  => 2)
+         DATA_WIDTH_G  => 8)
       port map (
          rst    => r.countReset,
          wr_clk => pgpTxClk,
@@ -531,8 +528,7 @@ begin
       U_TxDataSync : entity work.SynchronizerFifo
          generic map (
             TPD_G         => TPD_G,
-            DATA_WIDTH_G  => 9,
-            ADDR_WIDTH_G  => 2)
+            DATA_WIDTH_G  => 9)
          port map (
             rst              => axilRst,
             wr_clk           => axilClk,
