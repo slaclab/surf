@@ -354,7 +354,7 @@ begin
                   v.packetActive           := '0';
                   v.tUserLast              := inputAxisMaster.tUser(7 downto 0);
                   v.eof                    := '1';
-                  v.lastByteCount          := toSlv(getTKeep(inputAxisMaster.tKeep), 4);
+                  v.lastByteCount          := toSlv(getTKeep(inputAxisMaster.tKeep(7 downto 0)), 4);
                   v.outputAxisMaster.tLast := '0';
                   -- Next state
                   v.state                  := TAIL_S;
