@@ -83,6 +83,7 @@ architecture rtl of AxiStreamDmaV2Write is
       ackCount      : slv(31 downto 0);
       stCount       : slv(15 downto 0);
       awlen         : slv(AXI_CONFIG_G.LEN_BITS_C-1 downto 0);
+      axiLen        : AxiLenType;
       wMaster       : AxiWriteMasterType;
       slave         : AxiStreamSlaveType;
       state         : StateType;
@@ -100,6 +101,7 @@ architecture rtl of AxiStreamDmaV2Write is
       ackCount      => (others => '0'),
       stCount       => (others => '0'),
       awlen         => (others => '0'),
+      axiLen        => AXI_LEN_INIT_C,
       wMaster       => axiWriteMasterInit(AXI_CONFIG_G, '1', "01", "0000"),
       slave         => AXI_STREAM_SLAVE_INIT_C,
       state         => RESET_S,
@@ -263,19 +265,21 @@ begin
             v.stCount  := (others=>'0');
             v.continue := '0';
             v.lastUser := (others=>'0');
+            -- Determine transfer size aligned to 4k boundaries
+            getAxiLenProc(AXI_CONFIG_G,BURST_BYTES_G,r.dmaWrTrack.maxSize,r.dmaWrTrack.address,r.axiLen,v.axiLen);
             -- Address can be sent
-            if (v.wMaster.awvalid = '0') then
+            if (v.wMaster.awvalid = '0') and (v.axiLen.valid = "11") then
                -- Set the memory address
                v.wMaster.awaddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := 
                   r.dmaWrTrack.address(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0);
-               -- Determine transfer size aligned to 4k boundaries
-               v.wMaster.awlen := getAxiLen(AXI_CONFIG_G,BURST_BYTES_G,r.dmaWrTrack.maxSize,r.dmaWrTrack.address);
                -- Latch AXI awlen value
-               v.awlen := v.wMaster.awlen(AXI_CONFIG_G.LEN_BITS_C-1 downto 0);
+               v.wMaster.awlen := v.axiLen.value;
+               v.awlen         := v.axiLen.value(AXI_CONFIG_G.LEN_BITS_C-1 downto 0);
                -- Check if enough room
                if pause = '0' then
                   -- Set the flag
                   v.wMaster.awvalid := '1';
+                  v.axiLen.valid    := "00";
                   -- Increment the counter
                   v.reqCount := r.reqCount + 1;
                   -- Next state
