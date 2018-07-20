@@ -140,7 +140,7 @@ begin
             almost_full   => almost_full,
             wr_ack        => wr_ack,
             rd_clk        => rd_clk,
-            rd_en         => rd_en,
+            rd_en         => sRdEn,
             dout          => dataOut,
             empty         => empty,
             underflow     => underflow,
