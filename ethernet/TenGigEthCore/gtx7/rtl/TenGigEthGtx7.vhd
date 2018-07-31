@@ -53,7 +53,7 @@ entity TenGigEthGtx7 is
       txFault            : in  sl                     := '0';
       txDisable          : out sl;
       -- Misc. Signals
-      extRst             : in  sl;
+      extRst             : in  sl                     := '0';
       phyClk             : in  sl;
       phyRst             : in  sl;
       phyReady           : out sl;
