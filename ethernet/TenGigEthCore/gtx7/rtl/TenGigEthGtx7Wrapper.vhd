@@ -63,6 +63,12 @@ entity TenGigEthGtx7Wrapper is
       phyClk              : out sl;
       phyRst              : out sl;
       phyReady            : out slv(NUM_LANE_G-1 downto 0);
+      -- Transceiver Debug Interface
+      gtTxPreCursor       : in  slv(4 downto 0)                                := "00000";
+      gtTxPostCursor      : in  slv(4 downto 0)                                := "00000";
+      gtTxDiffCtrl        : in  slv(3 downto 0)                                := "1110";
+      gtRxPolarity        : in  sl                                             := '0';
+      gtTxPolarity        : in  sl                                             := '0';      
       -- MGT Clock Port (156.25 MHz or 312.5 MHz)
       gtRefClk            : in  sl                                             := '0';  -- 156.25 MHz only
       gtClkP              : in  sl                                             := '1';
@@ -158,6 +164,12 @@ begin
             phyClk             => phyClock,
             phyRst             => phyReset,
             phyReady           => phyReady(i),
+            -- Transceiver Debug Interface
+            gtTxPreCursor      => gtTxPreCursor,
+            gtTxPostCursor     => gtTxPostCursor,
+            gtTxDiffCtrl       => gtTxDiffCtrl,
+            gtRxPolarity       => gtRxPolarity,
+            gtTxPolarity       => gtTxPolarity,          
             -- Quad PLL Ports
             qplllock           => qplllock,
             qplloutclk         => qplloutclk,
