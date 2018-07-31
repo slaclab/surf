@@ -59,7 +59,7 @@ entity TenGigEthGtx7Wrapper is
       txFault             : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '0');
       txDisable           : out slv(NUM_LANE_G-1 downto 0);
       -- Misc. Signals
-      extRst              : in  sl;
+      extRst              : in  sl                                             := '0';
       phyClk              : out sl;
       phyRst              : out sl;
       phyReady            : out slv(NUM_LANE_G-1 downto 0);
