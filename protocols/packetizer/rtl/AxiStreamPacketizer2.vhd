@@ -2,7 +2,7 @@
 -- File       : AxiStreamPacketizer2.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-05-02
--- Last update: 2018-06-13
+-- Last update: 2018-08-01
 -------------------------------------------------------------------------------
 -- Description: Formats an AXI-Stream for a transport link.
 -- Sideband fields are placed into the data stream in a header.
@@ -78,6 +78,7 @@ architecture rtl of AxiStreamPacketizer2 is
       crcDataWidth     : slv(2 downto 0);
       crcInit          : slv(31 downto 0);
       crcRem           : slv(31 downto 0);
+      crcIn            : slv(63 downto 0);
       crcReset         : sl;
       tailCrcReady     : sl;
       inputAxisSlave   : AxiStreamSlaveType;
@@ -99,6 +100,7 @@ architecture rtl of AxiStreamPacketizer2 is
       crcDataWidth     => (others => '1'),
       crcInit          => (others => '1'),
       crcRem           => (others => '1'),
+      crcIn            => (others => '1'),
       crcReset         => '0',
       tailCrcReady     => toSl(not CRC_HEAD_TAIL_C),
       inputAxisSlave   => AXI_STREAM_SLAVE_INIT_C,
@@ -187,7 +189,6 @@ begin
          doutb(48 downto 17) => ramCrcRem);
 
    ramAddrr <= inputAxisMaster.tDest(ADDR_WIDTH_C-1 downto 0) when (TDEST_BITS_G > 0) else (others => '0');
-   crcIn    <= endianSwap(rin.outputAxisMaster.tData(63 downto 0));
 
    GEN_CRC : if (CRC_EN_C) generate
 
@@ -412,8 +413,21 @@ begin
       v.outputAxisMaster.tKeep := x"00FF";
       v.outputAxisMaster.tStrb := v.outputAxisMaster.tKeep;
 
+      if (r.state /= TAIL_S) then
+         v.crcIn := v.outputAxisMaster.tData(63 downto 0);
+      else
+         v.crcIn :=
+            makePacketizer2TailTdata(
+               CRC_MODE_C => CRC_MODE_G,
+               eof        => r.eof,
+               tuser      => r.tUserLast,
+               bytes      => r.lastByteCount,
+               crc        => crcOut);
+      end if;
+
       -- Combinatorial outputs before the reset
       inputAxisSlave <= v.inputAxisSlave;
+      crcIn          <= endianSwap(v.crcIn);
 
       -- Reset
       if (axisRst = '1') then
