@@ -2,7 +2,7 @@
 -- File       : UdpEngineDhcp.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-08-12
--- Last update: 2018-08-01
+-- Last update: 2018-08-02
 -------------------------------------------------------------------------------
 -- Description: DHCP Engine
 -------------------------------------------------------------------------------
@@ -274,6 +274,7 @@ begin
                   -- OP/HTYPE/HLEN/HOPS
                   when 0 =>
                      v.txMaster.tData(31 downto 0) := CLIENT_HDR_C;
+                     v.txMaster.tKeep              := x"000F";
                      ssiSetUserSof(DHCP_CONFIG_C, v.txMaster, '1');
                   -- XID
                   when 1 =>
@@ -307,6 +308,7 @@ begin
                         v.txMaster.tData(7 downto 0)   := toSlv(53, 8);  -- code = DHCP Message Type
                         v.txMaster.tData(15 downto 8)  := x"01";  -- len = 1 byte
                         v.txMaster.tData(23 downto 16) := x"01";  -- DHCP Discover = 0x1
+                        v.txMaster.tData(31 downto 24) := x"FF";  -- Endmark
                         v.txMaster.tLast               := '1';
                         -- Start the communication timer
                         v.commCnt                      := COMM_TIMEOUT_C;
@@ -337,6 +339,7 @@ begin
                      v.txMaster.tData(15 downto 0) := r.siaddr(31 downto 16);  -- SIADDR[31:16] 
                   when 65 =>
                      v.txMaster.tData(7 downto 0) := x"FF";    -- Endmark
+                     v.txMaster.tKeep             := x"0001";
                      v.txMaster.tLast             := '1';
                      -- Start the communication timer
                      v.commCnt                    := COMM_TIMEOUT_C;
