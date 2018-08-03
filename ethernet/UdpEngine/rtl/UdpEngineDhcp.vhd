@@ -130,8 +130,12 @@ architecture rtl of UdpEngineDhcp is
    signal txMaster : AxiStreamMasterType;
    signal txSlave  : AxiStreamSlaveType;
 
-   -- attribute dont_touch      : string;
-   -- attribute dont_touch of r : signal is "TRUE";
+   -- attribute dont_touch             : string;
+   -- attribute dont_touch of r        : signal is "TRUE";
+   -- attribute dont_touch of rxMaster : signal is "TRUE";
+   -- attribute dont_touch of rxSlave  : signal is "TRUE";
+   -- attribute dont_touch of txMaster : signal is "TRUE";
+   -- attribute dont_touch of txSlave  : signal is "TRUE";
 
 begin
 
@@ -238,8 +242,8 @@ begin
                v.rxSlave.tReady := '1';
                -- Check for SOF with no EOF
                if (ssiGetUserSof(DHCP_CONFIG_C, rxMaster) = '1') and (rxMaster.tLast = '0') then
-                  -- Check for valid DHCP server OP/HTYPE/HLEN/HOPS
-                  if rxMaster.tData(31 downto 0) = SERVER_HDR_C then
+                  -- Check for valid DHCP server OP/HTYPE/HLEN (ignore HOPS field)
+                  if rxMaster.tData(23 downto 0) = SERVER_HDR_C(23 downto 0) then
                      -- Preset the counter
                      v.cnt   := 1;
                      -- Next state
