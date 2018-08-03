@@ -87,6 +87,7 @@ architecture rtl of AxiStreamDmaV2Read is
       dmaRdDescRet : AxiReadDmaDescRetType;
       first        : sl;
       leftovers    : sl;
+      axiLen       : AxiLenType;
       rMaster      : AxiReadMasterType;
       sMaster      : AxiStreamMasterType;
       reqState     : ReqStateType;
@@ -105,6 +106,7 @@ architecture rtl of AxiStreamDmaV2Read is
       dmaRdDescRet => AXI_READ_DMA_DESC_RET_INIT_C,
       first        => '0',
       leftovers    => '0',
+      axiLen       => AXI_LEN_INIT_C,
       rMaster      => axiReadMasterInit(AXI_CONFIG_G, "01", "0000"),
       sMaster      => axiStreamMasterInit(AXIS_CONFIG_G),
       reqState     => IDLE_S,
@@ -237,12 +239,14 @@ begin
             end if;
          ----------------------------------------------------------------------
          when ADDR_S =>
+            -- Determine transfer size aligned to 4k boundaries
+            getAxiLenProc(AXI_CONFIG_G, BURST_BYTES_G, r.reqSize, r.dmaRdDescReq.address,r.axiLen,v.axiLen);         
             -- Check if ready to make memory request
-            if (r.rMaster.arvalid = '0') then
+            if (r.rMaster.arvalid = '0') and (v.axiLen.valid = "11") then
                -- Set the memory address 
                v.rMaster.araddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := r.dmaRdDescReq.address(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0);
-               -- Determine transfer size aligned to 4k boundaries
-               v.rMaster.arlen                                        := getAxiLen(AXI_CONFIG_G, BURST_BYTES_G, r.reqSize, r.dmaRdDescReq.address);
+               -- Latch AXI arlen value
+               v.rMaster.arlen                                        := v.axiLen.value;
                -- Check for the following:
                --    1) There is enough room in the FIFO for a burst 
                --    2) pending flag
@@ -250,6 +254,7 @@ begin
                if (pause = '0') and (r.pending = false) and (notReqDone = '1') then
                   -- Set the flag
                   v.rMaster.arvalid := '1';
+                  v.axiLen.valid    := "00";
                   -- Next state
                   v.state           := MOVE_S;
                   v.reqState        := NEXT_S;
