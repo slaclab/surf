@@ -853,18 +853,45 @@ package body AxiLitePkg is
    -- Generate evenly distributed address map
    function genAxiLiteConfig (num      : positive;
                               base     : slv(31 downto 0);
-                              baseBot  : integer range 0 to 32;
-                              addrBits : integer range 0 to 32)
+                              baseBot  : integer range 1 to 32;
+                              addrBits : integer range 0 to 31)
       return AxiLiteCrossbarMasterConfigArray is
       variable retConf : AxiLiteCrossbarMasterConfigArray(num-1 downto 0);
       variable addr    : slv(31 downto 0);
    begin
+      
+      -------------------------------------------------------------------------------------------
+      -- Note: These asserts only work in synthesis (not simulation)
+      -- https://forums.xilinx.com/t5/Synthesis/VHDL-assert-statement-within-function/td-p/413463
+      -------------------------------------------------------------------------------------------
 
+      -- Compare the baseBot to addrBits
+      assert (baseBot > addrBits)
+         report "AxiLitePkg.genAxiLiteConfig(): (baseBot > addrBits) condition not meet" 
+         & lf & "num      = "   & integer'image(num) 
+         & lf & "base     = 0x" & hstr(base)
+         & lf & "baseBot  = "   & integer'image(baseBot)
+         & lf & "addrBits = "   & integer'image(addrBits)
+         severity error;
+
+      -- Check that there is enough bits for the number of buses
+      assert (2**(baseBot-addrBits) >= num)
+         report "AxiLitePkg.genAxiLiteConfig(): (2**(baseBot-addrBits) >= num) condition not meet" 
+         & lf & "num      = "   & integer'image(num) 
+         & lf & "base     = 0x" & hstr(base)
+         & lf & "baseBot  = "   & integer'image(baseBot)
+         & lf & "addrBits = "   & integer'image(addrBits)
+         severity error;
+
+      -------------------------------------------------------------------------------------------
       -- Init
+      -------------------------------------------------------------------------------------------
       addr                     := base;
       addr(baseBot-1 downto 0) := (others => '0');
 
+      -------------------------------------------------------------------------------------------
       -- Generate records
+      -------------------------------------------------------------------------------------------
       for i in 0 to num-1 loop
          addr(baseBot-1 downto addrBits) := toSlv(i, baseBot-addrBits);
          retConf(i).baseAddr             := addr;

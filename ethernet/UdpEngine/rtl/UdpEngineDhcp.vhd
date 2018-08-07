@@ -2,7 +2,7 @@
 -- File       : UdpEngineDhcp.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-08-12
--- Last update: 2017-05-10
+-- Last update: 2018-08-02
 -------------------------------------------------------------------------------
 -- Description: DHCP Engine
 -------------------------------------------------------------------------------
@@ -34,9 +34,9 @@ entity UdpEngineDhcp is
       COMM_TIMEOUT_G : positive := 30);
    port (
       -- Local Configurations
-      localMac     : in  slv(47 downto 0);      --  big-Endian configuration
-      localIp      : in  slv(31 downto 0);      --  big-Endian configuration 
-      dhcpIp       : out slv(31 downto 0);      --  big-Endian configuration       
+      localMac     : in  slv(47 downto 0);  --  big-Endian configuration
+      localIp      : in  slv(31 downto 0);  --  big-Endian configuration 
+      dhcpIp       : out slv(31 downto 0);  --  big-Endian configuration       
       -- Interface to DHCP Engine  
       ibDhcpMaster : in  AxiStreamMasterType;
       ibDhcpSlave  : out AxiStreamSlaveType;
@@ -130,8 +130,12 @@ architecture rtl of UdpEngineDhcp is
    signal txMaster : AxiStreamMasterType;
    signal txSlave  : AxiStreamSlaveType;
 
-   -- attribute dont_touch      : string;
-   -- attribute dont_touch of r : signal is "TRUE";
+   -- attribute dont_touch             : string;
+   -- attribute dont_touch of r        : signal is "TRUE";
+   -- attribute dont_touch of rxMaster : signal is "TRUE";
+   -- attribute dont_touch of rxSlave  : signal is "TRUE";
+   -- attribute dont_touch of txMaster : signal is "TRUE";
+   -- attribute dont_touch of txSlave  : signal is "TRUE";
 
 begin
 
@@ -237,8 +241,8 @@ begin
                v.rxSlave.tReady := '1';
                -- Check for SOF with no EOF
                if (ssiGetUserSof(DHCP_CONFIG_C, rxMaster) = '1') and (rxMaster.tLast = '0') then
-                  -- Check for valid DHCP server OP/HTYPE/HLEN/HOPS
-                  if rxMaster.tData(31 downto 0) = SERVER_HDR_C then
+                  -- Check for valid DHCP server OP/HTYPE/HLEN (ignore HOPS field)
+                  if rxMaster.tData(23 downto 0) = SERVER_HDR_C(23 downto 0) then
                      -- Preset the counter
                      v.cnt   := 1;
                      -- Next state
@@ -273,6 +277,7 @@ begin
                   -- OP/HTYPE/HLEN/HOPS
                   when 0 =>
                      v.txMaster.tData(31 downto 0) := CLIENT_HDR_C;
+                     v.txMaster.tKeep              := x"000F";
                      ssiSetUserSof(DHCP_CONFIG_C, v.txMaster, '1');
                   -- XID
                   when 1 =>
@@ -306,6 +311,7 @@ begin
                         v.txMaster.tData(7 downto 0)   := toSlv(53, 8);  -- code = DHCP Message Type
                         v.txMaster.tData(15 downto 8)  := x"01";  -- len = 1 byte
                         v.txMaster.tData(23 downto 16) := x"01";  -- DHCP Discover = 0x1
+                        v.txMaster.tData(31 downto 24) := x"FF";  -- Endmark
                         v.txMaster.tLast               := '1';
                         -- Start the communication timer
                         v.commCnt                      := COMM_TIMEOUT_C;
@@ -321,7 +327,7 @@ begin
                   -- Requested IP address[15:0]
                   when 61 =>
                      v.txMaster.tData(7 downto 0)   := toSlv(50, 8);  -- code = Requested IP address
-                     v.txMaster.tData(15 downto 8)  := x"04";     -- len = 4 byte
+                     v.txMaster.tData(15 downto 8)  := x"04";  -- len = 4 byte
                      v.txMaster.tData(31 downto 16) := r.yiaddr(15 downto 0);  -- YIADDR[15:0]
                   -- Requested IP address[32:16]
                   when 62 =>
@@ -329,18 +335,21 @@ begin
                   -- Server Identifier[15:0]
                   when 63 =>
                      v.txMaster.tData(7 downto 0)   := toSlv(54, 8);  -- code = Server Identifier
-                     v.txMaster.tData(15 downto 8)  := x"04";     -- len = 4 byte
+                     v.txMaster.tData(15 downto 8)  := x"04";  -- len = 4 byte
                      v.txMaster.tData(31 downto 16) := r.siaddr(15 downto 0);  -- SIADDR[15:0]
                   -- Server Identifier[32:16]
                   when 64 =>
                      v.txMaster.tData(15 downto 0) := r.siaddr(31 downto 16);  -- SIADDR[31:16] 
-                     v.txMaster.tLast              := '1';
+                  when 65 =>
+                     v.txMaster.tData(7 downto 0) := x"FF";    -- Endmark
+                     v.txMaster.tKeep             := x"0001";
+                     v.txMaster.tLast             := '1';
                      -- Start the communication timer
-                     v.commCnt                     := COMM_TIMEOUT_C;
+                     v.commCnt                    := COMM_TIMEOUT_C;
                      -- Reset the counter
-                     v.cnt                         := 0;
+                     v.cnt                        := 0;
                      -- Next state
-                     v.state                       := IDLE_S;
+                     v.state                      := IDLE_S;
                   when others =>
                      null;
                end case;
@@ -445,7 +454,7 @@ begin
                         v.decode := CODE_S;
                      end if;
                      -- Check the Code
-                     if (r.opCode = 53) then                      -- Note: Assuming zero padding
+                     if (r.opCode = 53) then  -- Note: Assuming zero padding
                         -- Check for DHCP Message Type
 
                         if (r.len = 1) then
@@ -523,9 +532,9 @@ begin
             end if;
             -- Next state
             v.state := IDLE_S;
-         ----------------------------------------------------------------------
+      ----------------------------------------------------------------------
       end case;
-      
+
       -- Combinatorial outputs before the reset
       rxSlave <= v.rxSlave;
 

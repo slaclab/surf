@@ -261,8 +261,29 @@ package AxiPkg is
       totalBytes : slv;
       address    : slv)
       return slv;
-
-   -- Caclulate the byte count for a read request
+      
+   type AxiLenType is record
+      valid : slv(1 downto 0);
+      max   : natural;        -- valid(0)
+      req   : natural;        -- valid(0)
+      value : slv(7 downto 0);-- valid(1)
+   end record AxiLenType;      
+   constant AXI_LEN_INIT_C : AxiLenType := (
+      valid => "00",
+      value => (others => '0'),
+      max   => 0,
+      req   => 0);    
+   procedure getAxiLenProc (
+      -- Input 
+      axiConfig  : in AxiConfigType;
+      burstBytes : in integer range 1 to 4096 := 4096;
+      totalBytes : in slv;
+      address    : in slv;
+      -- Pipelined signals
+      r          : in    AxiLenType;
+      v          : inout AxiLenType);        
+      
+   -- Calculate the byte count for a read request
    function getAxiReadBytes (
       axiConfig : AxiConfigType;
       axiRead   : AxiReadMasterType)
@@ -369,6 +390,52 @@ package body AxiPkg is
       return getAxiLen(axiConfig, min);
 
    end function getAxiLen;
+   
+   -- getAxiLenProc is functionally the same as getAxiLen()
+   -- but breaks apart the two comparator operations in getAxiLen()
+   -- into two separate clock cycles (instead of one), which helps 
+   -- with meeting timing by breaking apart this long combinatorial chain
+   procedure getAxiLenProc (
+      -- Input 
+      axiConfig  : in AxiConfigType;
+      burstBytes : in integer range 1 to 4096 := 4096;
+      totalBytes : in slv;
+      address    : in slv;
+      -- Pipelined signals
+      r          : in    AxiLenType;
+      v          : inout AxiLenType) is 
+      variable min : natural;      
+   begin
+   
+      --------------------
+      -- First Clock cycle
+      --------------------
+   
+      -- Update valid flag for max/req
+      v.valid(0) := '1';
+      
+      -- Check for 4kB boundary
+      v.max := 4096 - conv_integer(unsigned(address(11 downto 0)));
+
+      if (totalBytes < burstBytes) then
+         v.req := conv_integer(totalBytes);
+      else
+         v.req := burstBytes;
+      end if;
+      
+      ---------------------
+      -- Second Clock cycle
+      ---------------------
+      
+      -- Update valid flag for value
+      v.valid(1) := r.valid(0);
+      
+      min := minimum(r.req, r.max);
+
+      -- Return the AXI Length value
+      v.value := getAxiLen(axiConfig, min);   
+   
+   end procedure;   
 
    -- Calculate the byte count for a read request
    function getAxiReadBytes (
