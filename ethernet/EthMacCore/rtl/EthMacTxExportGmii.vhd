@@ -111,13 +111,13 @@ architecture rtl of EthMacTxExportGmii is
    signal crcDataValid : sl;
    signal crcIn        : slv(7 downto 0);
 
-   attribute dont_touch                 : string;
-   attribute dont_touch of r            : signal is "TRUE";
-   attribute dont_touch of macMaster    : signal is "TRUE";
-   attribute dont_touch of macSlave     : signal is "TRUE";
-   attribute dont_touch of crcOut       : signal is "TRUE";
-   attribute dont_touch of crcDataValid : signal is "TRUE";
-   attribute dont_touch of crcIn        : signal is "TRUE";
+   -- attribute dont_touch                 : string;
+   -- attribute dont_touch of r            : signal is "TRUE";
+   -- attribute dont_touch of macMaster    : signal is "TRUE";
+   -- attribute dont_touch of macSlave     : signal is "TRUE";
+   -- attribute dont_touch of crcOut       : signal is "TRUE";
+   -- attribute dont_touch of crcDataValid : signal is "TRUE";
+   -- attribute dont_touch of crcIn        : signal is "TRUE";
 
 begin
 
