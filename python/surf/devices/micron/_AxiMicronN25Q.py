@@ -167,7 +167,7 @@ class AxiMicronN25Q(pr.Device):
                 # Increment by one block
                 address += ERASE_SIZE
         # Check the corner case
-        if ( address<self._mcs.endAddr ):
+        if ( address<=self._mcs.endAddr ):
             self.eraseCmd(address)
 
     def writeProm(self):
@@ -205,28 +205,28 @@ class AxiMicronN25Q(pr.Device):
                         wordCnt = 0
                         self.setDataReg(dataArray)
                         self.writeCmd(addr)
-            # Check for leftover data
-            if (wordCnt != 0):
-                while(wordCnt != 0):
-                    # Pack the bytes into a 32-bit word
-                    if ( byteCnt==0 ):
-                        wrd = (0xFF) << (8*(3-byteCnt))
-                    else:
-                        wrd |= (0xFF) << (8*(3-byteCnt))
-                    # Increment the counter
-                    byteCnt += 1    
-                    # Check the byte counter
-                    if ( byteCnt==4 ):
-                        byteCnt = 0
-                        dataArray[wordCnt] = wrd
-                        wordCnt += 1
-                        if ( wordCnt==64 ):
-                            wordCnt = 0
-                            self.setDataReg(dataArray)
-                            self.writeCmd(addr)
-                            break
             # Close the status bar
             bar.update(self._mcs.size)
+        
+        # Check for leftover data
+        if ( (wordCnt != 0) or (byteCnt != 0) ):
+            while(wordCnt != 64):
+                # Pack the bytes into a 32-bit word
+                if ( byteCnt==0 ):
+                    wrd = (0xFF) << (8*(3-byteCnt))
+                else:
+                    wrd |= (0xFF) << (8*(3-byteCnt))
+                # Increment the counter
+                byteCnt += 1
+                # Check the byte counter
+                if ( byteCnt==4 ):
+                    byteCnt = 0
+                    dataArray[wordCnt] = wrd
+                    wordCnt += 1
+                    if ( wordCnt==64 ):
+                        self.setDataReg(dataArray)
+                        self.writeCmd(addr)
+                        break
             
     def verifyProm(self): 
         # Wait for last transaction to finish
