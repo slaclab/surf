@@ -2,7 +2,7 @@
 -- File       : WatchDogRst.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-06-17
--- Last update: 2014-06-17
+-- Last update: 2018-05-21
 -------------------------------------------------------------------------------
 -- Description: Watch Dog Reset module
 -------------------------------------------------------------------------------
@@ -24,11 +24,11 @@ use work.StdRtlPkg.all;
 
 entity WatchDogRst is
    generic (
-      TPD_G          : time                           := 1 ns;
-      IN_POLARITY_G  : sl                             := '1';
-      OUT_POLARITY_G : sl                             := '1';
-      USE_DSP48_G    : string                         := "no";
-      DURATION_G     : natural range 0 to ((2**31)-1) := 156250000);
+      TPD_G          : time    := 1 ns;
+      IN_POLARITY_G  : sl      := '1';
+      OUT_POLARITY_G : sl      := '1';
+      USE_DSP48_G    : string  := "no";
+      DURATION_G     : natural := 156250000);
    port (
       clk    : in  sl;
       monIn  : in  sl;
@@ -44,7 +44,7 @@ architecture rtl of WatchDogRst is
 
    attribute use_dsp48        : string;
    attribute use_dsp48 of cnt : signal is USE_DSP48_G;
-   
+
 begin
 
    -- USE_DSP48_G check
@@ -54,11 +54,11 @@ begin
 
    Synchronizer_Inst : entity work.Synchronizer
       generic map (
-         TPD_G => TPD_G)      
+         TPD_G => TPD_G)
       port map (
          clk     => clk,
          dataIn  => monIn,
-         dataOut => monInput);          
+         dataOut => monInput);
 
    process (clk)
    begin
@@ -84,5 +84,5 @@ begin
    end process;
 
    rstOut <= rst;
-   
+
 end rtl;

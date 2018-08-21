@@ -32,97 +32,116 @@ class AxiPciePhy(pr.Device):
         self.addRemoteVariables( 
             name         = "PcieConfigHdr",
             description  = "PCIe Configuration Space Header",
+            offset       = 0x000,
+            bitSize      = 32,
+            bitOffset    = 0,
+            base         = pr.UInt,
+            mode         = "RO",
+            number       = 76,
+            stride       = 4,
+            hidden       = True,
+            overlapEn    = True,
+        )        
+        
+        self.add(pr.RemoteVariable(    
+            name         = "VendorId",
+            description  = "Vendor ID",
             offset       =  0x000,
-            bitSize      =  32,
+            bitSize      =  16,
             bitOffset    =  0,
             base         = pr.UInt,
             mode         = "RO",
-            number       =  76,
-            stride       =  4,
-            hidden       =  True,
-        )        
-        
-        self.add(pr.LinkVariable(
-            name         = 'VendorId',
-            description  = 'Vendor ID',
-            mode         = 'RO',
-            dependencies = [self.PcieConfigHdr[0x000>>2]],
-            disp         = '{:04X}',
-            linkedGet    = lambda: (self.PcieConfigHdr[0x000>>2].value() >> 0) & 0xFFFF
-        ))  
-
-        self.add(pr.LinkVariable(
-            name         = 'DeviceId',
-            description  = 'Device ID',
-            mode         = 'RO',
-            dependencies = [self.PcieConfigHdr[0x000>>2]],
-            disp         = '{:04X}',
-            linkedGet    = lambda: (self.PcieConfigHdr[0x000>>2].value() >> 16) & 0xFFFF
-        )) 
-
-        self.add(pr.LinkVariable(
-            name         = 'SubVendorId',
-            description  = 'SubVendor ID',
-            mode         = 'RO',
-            dependencies = [self.PcieConfigHdr[0x02C>>2]],
-            disp         = '{:04X}',
-            linkedGet    = lambda: (self.PcieConfigHdr[0x02C>>2].value() >> 0) & 0xFFFF
-        ))  
-
-        self.add(pr.LinkVariable(
-            name         = 'SubDeviceId',
-            description  = 'SubDevice ID',
-            mode         = 'RO',
-            dependencies = [self.PcieConfigHdr[0x02C>>2]],
-            disp         = '{:04X}',
-            linkedGet    = lambda: (self.PcieConfigHdr[0x02C>>2].value() >> 16) & 0xFFFF
-        )) 
-        
-        self.add(pr.LinkVariable(
-            name         = 'Command',
-            description  = '',
-            mode         = 'RO',
-            dependencies = [self.PcieConfigHdr[0x004>>2]],
-            disp         = '{:04X}',
-            linkedGet    = lambda: (self.PcieConfigHdr[0x004>>2].value() >> 0) & 0xFFFF
-        ))  
-
-        self.add(pr.LinkVariable(
-            name         = 'Status',
-            description  = '',
-            mode         = 'RO',
-            dependencies = [self.PcieConfigHdr[0x004>>2]],
-            disp         = '{:04X}',
-            linkedGet    = lambda: (self.PcieConfigHdr[0x004>>2].value() >> 16) & 0xFFFF
-        ))    
-
-        self.add(pr.LinkVariable(
-            name         = 'BusNumber',
-            description  = 'Bus Number of port for PCIe',
-            mode         = 'RO',
-            dependencies = [self.PcieConfigHdr[0x010>>2]],
-            disp         = '{:01X}',
-            linkedGet    = lambda: (self.PcieConfigHdr[0x010>>2].value() >> 20) & 0xF
+            overlapEn    = True,        
         ))   
-
-        self.add(pr.LinkVariable(
-            name         = 'DeviceNumber',
-            description  = 'Device Number of port for PCIe',
-            mode         = 'RO',
-            dependencies = [self.PcieConfigHdr[0x010>>2]],
-            disp         = '{:02X}',
-            linkedGet    = lambda: (self.PcieConfigHdr[0x010>>2].value() >> 11) & 0x1F
-        )) 
-
-        self.add(pr.LinkVariable(
-            name         = 'FunctionNumber',
-            description  = 'Function Number of port for PCIe',
-            mode         = 'RO',
-            dependencies = [self.PcieConfigHdr[0x010>>2]],
-            disp         = '{:01X}',
-            linkedGet    = lambda: (self.PcieConfigHdr[0x010>>2].value() >> 3) & 0x7
-        )) 
         
+        self.add(pr.RemoteVariable(    
+            name         = "DeviceId",
+            description  = "Device ID",
+            offset       =  0x000,
+            bitSize      =  16,
+            bitOffset    =  16,
+            base         = pr.UInt,
+            mode         = "RO",
+            overlapEn    = True,        
+        ))             
+
+        self.add(pr.RemoteVariable(    
+            name         = "SubVendorId",
+            description  = "Subsystem Vendor ID",
+            offset       =  0x02C,
+            bitSize      =  16,
+            bitOffset    =  0,
+            base         = pr.UInt,
+            mode         = "RO",
+            overlapEn    = True,        
+        ))  
+
+        self.add(pr.RemoteVariable(    
+            name         = "SubDeviceId",
+            description  = "Subsystem Device ID",
+            offset       =  0x02C,
+            bitSize      =  16,
+            bitOffset    =  16,
+            base         = pr.UInt,
+            mode         = "RO",
+            overlapEn    = True,        
+        ))   
+     
+        self.add(pr.RemoteVariable(    
+            name         = "Command",
+            description  = "",
+            offset       =  0x004,
+            bitSize      =  16,
+            bitOffset    =  0,
+            base         = pr.UInt,
+            mode         = "RO",
+            overlapEn    = True,        
+        ))   
+        
+        self.add(pr.RemoteVariable(    
+            name         = "Status",
+            description  = "",
+            offset       =  0x004,
+            bitSize      =  16,
+            bitOffset    =  16,
+            base         = pr.UInt,
+            mode         = "RO",
+            overlapEn    = True,        
+        ))             
+     
+        self.add(pr.RemoteVariable(    
+            name         = "BusNumber",
+            description  = "Bus Number of port for PCIe.",
+            offset       =  0x010,
+            bitSize      =  4,
+            bitOffset    =  20,
+            base         = pr.UInt,
+            mode         = "RO",
+            overlapEn    = True,        
+        ))           
+        
+        self.add(pr.RemoteVariable(    
+            name         = "DeviceNumber",
+            description  = "Device number of port for PCIe.",
+            offset       =  0x010,
+            bitSize      =  5,
+            bitOffset    =  11,
+            base         = pr.UInt,
+            mode         = "RO",
+            overlapEn    = True,        
+        ))          
+        
+        self.add(pr.RemoteVariable(    
+            name         = "FunctionNumber",
+            description  = "Function number of the port for PCIe. Hard-wired to 0.",
+            offset       =  0x010,
+            bitSize      =  3,
+            bitOffset    =  8,
+            base         = pr.UInt,
+            mode         = "RO",
+            overlapEn    = True,        
+        )) 
+
         self.add(pr.RemoteVariable(    
             name         = "Gen2Capable",
             description  = "If set, underlying integrated block supports PCIe Gen2 speed.",
@@ -131,6 +150,7 @@ class AxiPciePhy(pr.Device):
             bitOffset    =  0,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         ))
         
         self.add(pr.RemoteVariable(    
@@ -141,6 +161,7 @@ class AxiPciePhy(pr.Device):
             bitOffset    =  3,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         ))  
         
         self.add(pr.RemoteVariable(    
@@ -151,6 +172,7 @@ class AxiPciePhy(pr.Device):
             bitOffset    =  1,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         ))  
 
         self.add(pr.RemoteVariable(    
@@ -161,6 +183,7 @@ class AxiPciePhy(pr.Device):
             bitOffset    =  2,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         )) 
 
         ##################################################
@@ -175,6 +198,7 @@ class AxiPciePhy(pr.Device):
             # bitOffset    =  0,
             # base         = pr.UInt,
             # mode         = "RO",
+            # overlapEn    = True,        
         # )) 
         
         # self.add(pr.RemoteVariable(    
@@ -185,6 +209,7 @@ class AxiPciePhy(pr.Device):
             # bitOffset    =  3,
             # base         = pr.UInt,
             # mode         = "RO",
+            # overlapEn    = True,        
         # ))  
         
         # self.add(pr.RemoteVariable(    
@@ -195,6 +220,7 @@ class AxiPciePhy(pr.Device):
             # bitOffset    =  8,
             # base         = pr.UInt,
             # mode         = "RO",
+            # overlapEn    = True,        
         # ))    
 
         self.add(pr.RemoteVariable(    
@@ -205,6 +231,7 @@ class AxiPciePhy(pr.Device):
             bitOffset    =  0,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         ))  
 
         self.add(pr.RemoteVariable(    
@@ -215,6 +242,7 @@ class AxiPciePhy(pr.Device):
             bitOffset    =  12,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         ))          
         
         self.add(pr.RemoteVariable(    
@@ -230,6 +258,7 @@ class AxiPciePhy(pr.Device):
                 3: "8",
             },
             mode         = "RO",
+            overlapEn    = True,        
         ))
         
         self.add(pr.RemoteVariable(    
@@ -240,5 +269,5 @@ class AxiPciePhy(pr.Device):
             bitOffset    =  13,
             base         = pr.UInt,
             mode         = "RO",
-        ))      
-        
+            overlapEn    = True,        
+        ))         

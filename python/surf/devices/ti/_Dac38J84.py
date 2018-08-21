@@ -46,15 +46,16 @@ class Dac38J84(pr.Device):
         self.addRemoteVariables(   
             name         = "DacReg",
             description  = "DAC Registers[125:0]",
-            offset       =  0x00,
-            bitSize      =  16,
-            bitOffset    =  0x00,
+            offset       = 0x00,
+            bitSize      = 16,
+            bitOffset    = 0x00,
             base         = pr.UInt,
             mode         = "RW",
-            number       =  126,
-            stride       =  4,
-            hidden       =  not(debug),   
-            verify       =  False,   
+            number       = 126,
+            stride       = 4,
+            hidden       = not(debug),   
+            verify       = False,   
+            overlapEn    = True,
         )
 
         self.add(pr.RemoteVariable(    
@@ -65,6 +66,7 @@ class Dac38J84(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         ))
 
         self.add(pr.RemoteVariable(    
@@ -75,6 +77,7 @@ class Dac38J84(pr.Device):
             bitOffset    =  8,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         ))
 
         self.addRemoteVariables(   
@@ -87,6 +90,7 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
+            overlapEn    = True,             
         )
 
         self.addRemoteVariables(   
@@ -99,6 +103,7 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
+            overlapEn    = True,             
         )
 
         self.addRemoteVariables(   
@@ -111,6 +116,7 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
+            overlapEn    = True,             
         )
 
         self.addRemoteVariables(   
@@ -123,6 +129,7 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
+            overlapEn    = True,             
         )
 
         self.addRemoteVariables(   
@@ -135,6 +142,7 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
+            overlapEn    = True,             
         )
 
         self.addRemoteVariables(   
@@ -147,6 +155,7 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
+            overlapEn    = True,             
         )
 
         self.addRemoteVariables(   
@@ -159,6 +168,7 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
+            overlapEn    = True,             
         )
 
         self.addRemoteVariables(   
@@ -171,6 +181,7 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
+            overlapEn    = True,             
         )
 
         self.addRemoteVariables(   
@@ -183,6 +194,7 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
+            overlapEn    = True,             
         )
 
         self.addRemoteVariables(   
@@ -195,6 +207,7 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
+            overlapEn    = True,             
         )
 
         self.addRemoteVariables(   
@@ -207,6 +220,7 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
+            overlapEn    = True,             
         )
 
         self.addRemoteVariables(   
@@ -219,6 +233,7 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
+            overlapEn    = True,             
         )
 
         self.addRemoteVariables(   
@@ -231,6 +246,7 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
+            overlapEn    = True,             
         )
 
         self.add(pr.RemoteVariable(    
@@ -241,6 +257,7 @@ class Dac38J84(pr.Device):
             bitOffset    =  0x02,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,             
         ))
 
         self.add(pr.RemoteVariable(    
@@ -251,6 +268,7 @@ class Dac38J84(pr.Device):
             bitOffset    =  0x03,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         ))
 
         self.add(pr.RemoteVariable(    
@@ -261,6 +279,7 @@ class Dac38J84(pr.Device):
             bitOffset    =  12,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         ))
 
         self.add(pr.RemoteVariable(    
@@ -271,6 +290,7 @@ class Dac38J84(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         ))
 
         self.add(pr.RemoteVariable(    
@@ -281,6 +301,7 @@ class Dac38J84(pr.Device):
             bitOffset    =  8,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         ))
 
         self.add(pr.RemoteVariable(    
@@ -291,6 +312,7 @@ class Dac38J84(pr.Device):
             bitOffset    =  3,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         ))
                         
         self.add(pr.RemoteVariable(    
@@ -301,6 +323,7 @@ class Dac38J84(pr.Device):
             bitOffset    =  0,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,        
         ))                        
 
         self.add(pr.RemoteVariable(    
@@ -311,6 +334,7 @@ class Dac38J84(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            overlapEn    = True,        
         ))
 
         self.add(pr.RemoteVariable(    
@@ -321,6 +345,7 @@ class Dac38J84(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            overlapEn    = True,        
         ))
 
         ##############################
@@ -337,6 +362,7 @@ class Dac38J84(pr.Device):
             self.DacReg[106].set(0)
             self.DacReg[107].set(0)
             self.DacReg[108].set(0)
+            self.DacReg[109].set(0)
 
         @self.command(name="Init", description="Initialization sequence for the DAC JESD core",)
         def Init():       

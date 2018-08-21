@@ -555,6 +555,7 @@ class Lmk04828(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = False, # Don't verify because changes during JesdReset() JesdInit() commands
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -655,6 +656,7 @@ class Lmk04828(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -665,6 +667,7 @@ class Lmk04828(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -1055,6 +1058,7 @@ class Lmk04828(pr.Device):
             bitOffset    =  0x05,
             base         = pr.UInt,
             mode         = "RW",
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -1065,6 +1069,7 @@ class Lmk04828(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -1076,6 +1081,7 @@ class Lmk04828(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = False, # Don't verify because changes during JesdReset() JesdInit() commands
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(    

@@ -7,19 +7,10 @@ loadRuckusTcl "$::DIR_PATH/general"
 # Get the family type
 set family [getFpgaFamily]
 
-if { ${family} == "artix7" } {
-   loadRuckusTcl "$::DIR_PATH/7Series"
-}
-
-if { ${family} == "kintex7" } {
-   loadRuckusTcl "$::DIR_PATH/7Series"
-}
-
-if { ${family} == "virtex7" } {
-   loadRuckusTcl "$::DIR_PATH/7Series"
-}
-
-if { ${family} == "zynq" } {
+if { ${family} eq {artix7}  ||
+     ${family} eq {kintex7} ||
+     ${family} eq {virtex7} ||
+     ${family} eq {zynq} } {
    loadRuckusTcl "$::DIR_PATH/7Series"
 }
 
@@ -27,10 +18,8 @@ if { ${family} eq {kintexu} } {
    loadRuckusTcl "$::DIR_PATH/UltraScale"
 }
 
-if { ${family} == "kintexuplus" } {
-   loadRuckusTcl "$::DIR_PATH/UltraScale+"
-}
-
-if { ${family} == "virtexuplus" } {
+if { ${family} eq {kintexuplus} ||
+     ${family} eq {virtexuplus} ||
+     ${family} eq {zynquplus} } {
    loadRuckusTcl "$::DIR_PATH/UltraScale+"
 }

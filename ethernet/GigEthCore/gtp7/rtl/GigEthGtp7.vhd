@@ -199,11 +199,14 @@ begin
          gt0_pll1outclk_in      => qPllOutClk(1),
          gt0_pll1outrefclk_in   => qPllOutRefClk(1),
          -- Configuration and Status
+         an_restart_config      => '0',         
+         an_adv_config_vector   => GIG_ETH_AN_ADV_CONFIG_INIT_C,
+         an_interrupt           => open,
          configuration_vector   => config.coreConfig,
          status_vector          => status.coreStatus,
          signal_detect          => sigDet);
 
-   status.phyReady <= status.coreStatus(0);
+   status.phyReady <= status.coreStatus(1);
    phyReady        <= status.phyReady;
    qPllReset(1)    <= '1';              -- No using QPLL[1]   
 

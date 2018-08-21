@@ -2,7 +2,7 @@
 -- File       : RssiCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-02-25
--- Last update: 2018-03-01
+-- Last update: 2018-05-16
 -------------------------------------------------------------------------------
 -- Description: Wrapper for RSSI + AXIS packetizer 
 -------------------------------------------------------------------------------
@@ -38,6 +38,8 @@ entity RssiCoreWrapper is
       APP_STREAMS_G       : positive             := 1;
       APP_STREAM_ROUTES_G : Slv8Array            := (0 => "--------");
       APP_ILEAVE_EN_G     : boolean              := false;
+      BYP_TX_BUFFER_G     : boolean              := false;
+      BYP_RX_BUFFER_G     : boolean              := false;
       -- AXIS Configurations
       APP_AXIS_CONFIG_G   : AxiStreamConfigArray := (0 => ssiAxiStreamConfig(8, TKEEP_NORMAL_C));
       TSP_AXIS_CONFIG_G   : AxiStreamConfigType  := ssiAxiStreamConfig(16, TKEEP_NORMAL_C);
@@ -121,24 +123,22 @@ begin
 
    GEN_RX :
    for i in (APP_STREAMS_G-1) downto 0 generate
-      U_RxFifo : entity work.AxiStreamFifoV2
+      U_Rx : entity work.AxiStreamResize
          generic map (
+            -- General Configurations
             TPD_G               => TPD_G,
-            SLAVE_READY_EN_G    => true,
-            BRAM_EN_G           => false,
-            GEN_SYNC_FIFO_G     => true,
-            FIFO_ADDR_WIDTH_G   => 4,
-            INT_PIPE_STAGES_G   => 0,
-            PIPE_STAGES_G       => 1,
+            READY_EN_G          => true,
+            -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => APP_AXIS_CONFIG_G(i),
             MASTER_AXI_CONFIG_G => CONV_AXIS_CONFIG_C)
          port map (
-            sAxisClk    => clk_i,
-            sAxisRst    => rst_i,
+            -- Clock and reset
+            axisClk     => clk_i,
+            axisRst     => rst_i,
+            -- Slave Port
             sAxisMaster => sAppAxisMasters_i(i),
             sAxisSlave  => sAppAxisSlaves_o(i),
-            mAxisClk    => clk_i,
-            mAxisRst    => rst_i,
+            -- Master Port
             mAxisMaster => rxMasters(i),
             mAxisSlave  => rxSlaves(i));
    end generate GEN_RX;
@@ -215,8 +215,10 @@ begin
          RETRANSMIT_ENABLE_G => RETRANSMIT_ENABLE_G,
          WINDOW_ADDR_SIZE_G  => WINDOW_ADDR_SIZE_G,
          SEGMENT_ADDR_SIZE_G => SEGMENT_ADDR_SIZE_G,
+         BYP_TX_BUFFER_G     => BYP_TX_BUFFER_G,
+         BYP_RX_BUFFER_G     => BYP_RX_BUFFER_G,
          -- AXIS Configurations
-         APP_AXIS_CONFIG_G   => RSSI_AXIS_CONFIG_C,
+         APP_AXIS_CONFIG_G   => CONV_AXIS_CONFIG_C,
          TSP_AXIS_CONFIG_G   => TSP_AXIS_CONFIG_G,
          -- Version and connection ID
          INIT_SEQ_N_G        => INIT_SEQ_N_G,
@@ -310,6 +312,7 @@ begin
    U_AxiStreamDeMux : entity work.AxiStreamDeMux
       generic map (
          TPD_G          => TPD_G,
+         PIPE_STAGES_G  => 1,
          NUM_MASTERS_G  => APP_STREAMS_G,
          MODE_G         => "ROUTED",
          TDEST_ROUTES_G => APP_STREAM_ROUTES_G)
@@ -326,24 +329,22 @@ begin
 
    GEN_TX :
    for i in (APP_STREAMS_G-1) downto 0 generate
-      U_TxFifo : entity work.AxiStreamFifoV2
+      U_Tx : entity work.AxiStreamResize
          generic map (
+            -- General Configurations
             TPD_G               => TPD_G,
-            SLAVE_READY_EN_G    => true,
-            BRAM_EN_G           => false,
-            GEN_SYNC_FIFO_G     => true,
-            FIFO_ADDR_WIDTH_G   => 4,
-            INT_PIPE_STAGES_G   => 0,
-            PIPE_STAGES_G       => PIPE_STAGES_G,
+            READY_EN_G          => true,
+            -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => CONV_AXIS_CONFIG_C,
             MASTER_AXI_CONFIG_G => APP_AXIS_CONFIG_G(i))
          port map (
-            sAxisClk    => clk_i,
-            sAxisRst    => rst_i,
+            -- Clock and reset
+            axisClk     => clk_i,
+            axisRst     => rst_i,
+            -- Slave Port
             sAxisMaster => txMasters(i),
             sAxisSlave  => txSlaves(i),
-            mAxisClk    => clk_i,
-            mAxisRst    => rst_i,
+            -- Master Port
             mAxisMaster => mAppAxisMasters_o(i),
             mAxisSlave  => mAppAxisSlaves_i(i));
    end generate GEN_TX;

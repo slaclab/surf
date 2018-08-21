@@ -2,7 +2,7 @@
 -- File       : AxiMicronN25QReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-25
--- Last update: 2018-01-08
+-- Last update: 2018-06-22
 -------------------------------------------------------------------------------
 -- Description: MicronN25Q AXI-Lite Register Access
 -------------------------------------------------------------------------------
@@ -25,10 +25,12 @@ use work.AxiLitePkg.all;
 
 entity AxiMicronN25QReg is
    generic (
-      TPD_G            : time             := 1 ns;
-      MEM_ADDR_MASK_G  : slv(31 downto 0) := x"00000000";
-      AXI_CLK_FREQ_G   : real             := 200.0E+6;  -- units of Hz
-      SPI_CLK_FREQ_G   : real             := 25.0E+6);   -- units of Hz
+      TPD_G              : time             := 1 ns;
+      EN_PASSWORD_LOCK_G : boolean          := false;
+      PASSWORD_LOCK_G    : slv(31 downto 0) := x"DEADBEEF";
+      MEM_ADDR_MASK_G    : slv(31 downto 0) := x"00000000";
+      AXI_CLK_FREQ_G     : real             := 200.0E+6;  -- units of Hz
+      SPI_CLK_FREQ_G     : real             := 25.0E+6);  -- units of Hz
    port (
       -- FLASH Memory Ports
       csL            : out sl;
@@ -284,8 +286,15 @@ begin
             end if;
          ----------------------------------------------------------------------
          when SCK_LOW_S =>
-            -- Assert the chip select
-            v.csL := '0';
+            -- Check for password locking
+            if(EN_PASSWORD_LOCK_G) then
+               -- Check if password write to test register
+               if(r.test = PASSWORD_LOCK_G) then
+                  v.csL := '0';
+               end if;
+            else
+               v.csL := '0';
+            end if;
             -- Serial Clock low phase
             v.sck := '0';
             -- Check if the RAM data is updated

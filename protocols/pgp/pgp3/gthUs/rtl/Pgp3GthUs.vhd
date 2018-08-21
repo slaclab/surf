@@ -2,7 +2,7 @@
 -- File       : Pgp3GthUs.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-06-29
--- Last update: 2018-01-22
+-- Last update: 2018-05-08
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -32,6 +32,7 @@ use UNISIM.VCOMPONENTS.all;
 entity Pgp3GthUs is
    generic (
       TPD_G                       : time                  := 1 ns;
+      RATE_G                      : string                := "10.3125Gbps";  -- or "6.25Gbps"     
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
@@ -41,7 +42,7 @@ entity Pgp3GthUs is
       RX_ALIGN_SLIP_WAIT_G        : integer               := 32;
       PGP_TX_ENABLE_G             : boolean               := true;
       NUM_VC_G                    : integer range 1 to 16 := 4;
-      TX_CELL_WORDS_MAX_G         : integer               := 256;  -- Number of 64-bit words per cell
+      TX_CELL_WORDS_MAX_G         : integer               := PGP3_DEFAULT_TX_CELL_WORDS_MAX_C;  -- Number of 64-bit words per cell
       TX_SKP_INTERVAL_G           : integer               := 5000;
       TX_SKP_BURST_SIZE_G         : integer               := 8;
       TX_MUX_MODE_G               : string                := "INDEXED";  -- Or "ROUTED"
@@ -52,7 +53,7 @@ entity Pgp3GthUs is
       EN_DRP_G                    : boolean               := true;
       EN_PGP_MON_G                : boolean               := true;
       TX_POLARITY_G               : sl                    := '0';
-      RX_POLARITY_G               : sl                    := '0';      
+      RX_POLARITY_G               : sl                    := '0';
       AXIL_BASE_ADDR_G            : slv(31 downto 0)      := (others => '0');
       AXIL_CLK_FREQ_G             : real                  := 125.0E+6);
    port (
@@ -142,7 +143,13 @@ architecture rtl of Pgp3GthUs is
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 
+   signal loopback : slv(2 downto 0);
+
 begin
+
+   assert ((RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps"))
+      report "RATE_G: Must be either 6.25Gbps or 10.3125Gbps"
+      severity error;
 
    pgpClk    <= pgpTxClkInt;
    pgpClkRst <= pgpTxRstInt;
@@ -207,24 +214,28 @@ begin
          EN_PGP_MON_G                => EN_PGP_MON_G,
          AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G)
       port map (
+         -- Tx User interface
          pgpTxClk        => pgpTxClkInt,                         -- [in]
          pgpTxRst        => pgpTxRstInt,                         -- [in]
          pgpTxIn         => pgpTxIn,                             -- [in]
          pgpTxOut        => pgpTxOut,                            -- [out]
          pgpTxMasters    => pgpTxMasters,                        -- [in]
          pgpTxSlaves     => pgpTxSlaves,                         -- [out]
+         -- Tx PHY interface
          phyTxActive     => phyTxActive,                         -- [in]
          phyTxReady      => '1',                                 -- [in]
          phyTxStart      => phyTxStart,                          -- [out]
          phyTxSequence   => phyTxSequence,                       -- [out]
          phyTxData       => phyTxData,                           -- [out]
          phyTxHeader     => phyTxHeader,                         -- [out]
+         -- Rx User interface
          pgpRxClk        => pgpTxClkInt,                         -- [in]
          pgpRxRst        => pgpTxRstInt,                         -- [in]
          pgpRxIn         => pgpRxIn,                             -- [in]
          pgpRxOut        => pgpRxOut,                            -- [out]
          pgpRxMasters    => pgpRxMasters,                        -- [out]
          pgpRxCtrl       => pgpRxCtrl,                           -- [in]
+         -- Rx PHY interface
          phyRxClk        => phyRxClk,                            -- [in]
          phyRxRst        => phyRxRst,                            -- [in]
          phyRxInit       => phyRxInit,                           -- [out]
@@ -234,6 +245,9 @@ begin
          phyRxData       => phyRxData,                           -- [in]
          phyRxStartSeq   => phyRxStartSeq,                       -- [in]
          phyRxSlip       => phyRxSlip,                           -- [out]
+         -- Debug Interface
+         loopback        => loopback,                            -- [out]
+         -- AXI-Lite Register Interface (axilClk domain)
          axilClk         => axilClk,                             -- [in]
          axilRst         => axilRst,                             -- [in]
          axilReadMaster  => axilReadMasters(PGP_AXIL_INDEX_C),   -- [in]
@@ -249,6 +263,7 @@ begin
          TPD_G         => TPD_G,
          TX_POLARITY_G => TX_POLARITY_G,
          RX_POLARITY_G => RX_POLARITY_G,
+         RATE_G        => RATE_G,
          EN_DRP_G      => EN_DRP_G)
       port map (
          stableClk       => stableClk,                           -- [in]
@@ -284,7 +299,7 @@ begin
          txHeader        => phyTxHeader,                         -- [in]
          txSequence      => phyTxSequence,                       -- [in]
          txOutClk        => open,                                -- [out]
-         loopback        => pgpRxIn.loopback,                    -- [in]
+         loopback        => loopback,                            -- [in]
          axilClk         => axilClk,                             -- [in]
          axilRst         => axilRst,                             -- [in]
          axilReadMaster  => axilReadMasters(DRP_AXIL_INDEX_C),   -- [in]

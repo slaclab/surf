@@ -72,16 +72,6 @@ class SsiPrbsTx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteCommand(    
-            name         = "OneShot",
-            description  = "",
-            offset       =  0x00,
-            bitSize      =  1,
-            bitOffset    =  0x04,
-            base         = pr.UInt,
-            function     = pr.BaseCommand.touchOne
-        ))
-
         self.add(pr.RemoteVariable(    
             name         = "FwCnt",
             description  = "",
@@ -155,3 +145,13 @@ class SsiPrbsTx(pr.Device):
             pollInterval = 1,
         ))
 
+        self.add(pr.RemoteCommand(    
+            name         = "OneShot",
+            description  = "",
+            offset       =  0x18,
+            bitSize      =  1,
+            bitOffset    =  0,
+            base         = pr.UInt,
+            function     = pr.BaseCommand.touchOne
+        ))
+        

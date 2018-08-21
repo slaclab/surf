@@ -394,8 +394,8 @@ package body Jesd204bPkg is
 
       vSlv := (others => '0');
 
-      for I in (SAMPLES_IN_WORD_C-1) downto 0 loop
-         vSlv(I*8*F_int+8*F_int-1) := '1';
+      for i in (SAMPLES_IN_WORD_C-1) downto 0 loop
+         vSlv(i*8*F_int+8*F_int-1) := '1';
       end loop;
 
       return vSlv;
@@ -418,8 +418,8 @@ package body Jesd204bPkg is
 
       vSlv := data;
 
-      for I in (SAMPLES_IN_WORD_C-1) downto 0 loop
-         vSlv(I*8*F_int+8*F_int-1 downto I*8*F_int) := invSigned(vSlv(I*8*F_int+8*F_int-1 downto I*8*F_int));
+      for i in (SAMPLES_IN_WORD_C-1) downto 0 loop
+         vSlv(i*8*F_int+8*F_int-1 downto i*8*F_int) := invSigned(vSlv(i*8*F_int+8*F_int-1 downto i*8*F_int));
       end loop;
 
       return vSlv;

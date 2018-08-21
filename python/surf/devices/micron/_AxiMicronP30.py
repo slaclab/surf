@@ -21,6 +21,7 @@ import pyrogue as pr
 from surf.misc._mcsreader import *
 import click
 import time
+import datetime
 
 class AxiMicronP30(pr.Device):
     def __init__(self,       
@@ -78,7 +79,7 @@ class AxiMicronP30(pr.Device):
             # End time measurement for profiling
             end = time.time()
             elapsed = end - start
-            click.secho(('LoadMcsFile() took %d seconds' % int(elapsed)), fg='green')
+            click.secho('LoadMcsFile() took %s to program the PROM' % datetime.timedelta(seconds=int(elapsed)), fg='green')
             
             # Add a power cycle reminder
             self._progDone = True
@@ -88,7 +89,7 @@ class AxiMicronP30(pr.Device):
                 ***************************************************\n\
                 The MCS data has been written into the PROM.       \n\
                 To reprogram the FPGA with the new PROM data,      \n\
-                a IPROG CMD, reboot, or power cycle is be required.\n\
+                a IPROG CMD or power cycle is be required.\n\
                 ***************************************************\n\
                 ***************************************************\n\n"\
                 , bg='green',

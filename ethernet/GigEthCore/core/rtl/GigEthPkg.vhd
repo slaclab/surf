@@ -23,8 +23,7 @@ use work.EthMacPkg.all;
 
 package GigEthPkg is
 
-   -- Default MAC is 01:03:00:56:44:00
-   constant MAC_ADDR_INIT_C : slv(47 downto 0) := EMAC_ADDR_INIT_C;
+   constant GIG_ETH_AN_ADV_CONFIG_INIT_C : slv(15 downto 0) := x"0021";-- Refer to PG047
 
    type GigEthConfigType is record
       softRst    : sl;

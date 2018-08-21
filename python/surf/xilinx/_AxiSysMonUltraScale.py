@@ -43,7 +43,7 @@ class AxiSysMonUltraScale(pr.Device):
                 mode         = 'RO', 
                 units        = units,
                 linkedGet    = function,
-                disp         = '{:1.3f}',
+                typeStr      = "Float32",
                 dependencies = [self.variables[name+"Raw"]],
             ))
         
@@ -494,17 +494,17 @@ class AxiSysMonUltraScale(pr.Device):
         value   = var.dependencies[0].get(read=False)
         fpValue = value*(501.3743/4096.0)
         fpValue -= 273.6777
-        return (fpValue)
+        return round(fpValue,3)
 
     @staticmethod
     def convCoreVoltage(var):
         value   = var.dependencies[0].value()
         fpValue = value*(732.0E-6)
-        return fpValue
+        return round(fpValue,3)
 
     @staticmethod
     def convAuxVoltage(var):
-        return var.dependencies[0].value() * 244e-6
+        return round(var.dependencies[0].value() * 244e-6,3)
         
     def simpleView(self):
         # Hide all the variable

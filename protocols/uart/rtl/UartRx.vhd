@@ -2,7 +2,7 @@
 -- File       : UartRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-13
--- Last update: 2016-06-09
+-- Last update: 2018-06-05
 -------------------------------------------------------------------------------
 -- Description: UART Receiver
 -------------------------------------------------------------------------------
@@ -23,44 +23,54 @@ use work.StdRtlPkg.all;
 
 entity UartRx is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G        : time                 := 1 ns;
+      PARITY_G     : string               := "NONE";  -- "NONE" "ODD" "EVEN"
+      DATA_WIDTH_G : integer range 5 to 8 := 8);
    port (
-      clk     : in  sl;
-      rst     : in  sl;
-      baud16x : in  sl;
-      rdData  : out slv(7 downto 0);
-      rdValid : out sl;
-      rdReady   : in  sl;
-      rx      : in  sl);
+      clk         : in  sl;
+      rst         : in  sl;
+      baud16x     : in  sl;
+      rdData      : out slv(DATA_WIDTH_G-1 downto 0);
+      rdValid     : out sl;
+      parityError : out sl;
+      rdReady     : in  sl;
+      rx          : in  sl);
 end entity UartRx;
 
 architecture rtl of UartRx is
 
-   type StateType is (WAIT_START_BIT_S, WAIT_8_S, WAIT_16_S, SAMPLE_RX_S, WAIT_STOP_S, WRITE_OUT_S);
+   type StateType is (WAIT_START_BIT_S, WAIT_8_S, WAIT_16_S, SAMPLE_RX_S, PARITY_S, WAIT_STOP_S, WRITE_OUT_S);
 
    type RegType is
    record
       rdValid      : sl;
-      rdData       : slv(7 downto 0);
-      rxState      : stateType;
-      rxShiftReg   : slv(7 downto 0);
-      rxShiftCount : slv(2 downto 0);
+      rdData       : slv(DATA_WIDTH_G-1 downto 0);
+      rxState      : StateType;
+      waitState    : StateType;
+      rxShiftReg   : slv(DATA_WIDTH_G-1 downto 0);
+      rxShiftCount : slv(3 downto 0);
       baud16xCount : slv(3 downto 0);
+      parity       : sl;
+      parityError  : sl;
    end record regType;
 
    constant REG_INIT_C : RegType := (
       rdValid      => '0',
       rdData       => (others => '0'),
       rxState      => WAIT_START_BIT_S,
+      waitState    => SAMPLE_RX_S,
       rxShiftReg   => (others => '0'),
       rxShiftCount => (others => '0'),
-      baud16xCount => (others => '0'));
+      baud16xCount => (others => '0'),
+      parity       => '0',
+      parityError  => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
    signal rxSync : sl;
    signal rxFall : sl;
+
 
 begin
 
@@ -83,7 +93,16 @@ begin
       v := r;
 
       if (rdReady = '1') then
-         v.rdValid := '0';
+         v.rdValid     := '0';
+         v.parityError := '0';
+      end if;
+
+      if (PARITY_G = "ODD") then
+         v.parity := evenParity(r.rxShiftReg);
+      elsif (PARITY_G = "EVEN") then
+         v.parity := oddParity(r.rxShiftReg);
+      else
+         v.parity := '0';
       end if;
 
       case r.rxState is
@@ -93,6 +112,7 @@ begin
             if (rxFall = '1') then
                v.rxState      := WAIT_8_S;
                v.baud16xCount := "0000";
+               v.rxShiftCount := "0000";
             end if;
 
          -- Wait 8 baud16x counts to find center of start bit
@@ -111,19 +131,31 @@ begin
             if (baud16x = '1') then
                v.baud16xCount := r.baud16xCount + 1;
                if (r.baud16xCount = "1111") then
-                  v.rxState := SAMPLE_RX_S;
+                  v.rxState := r.waitState;
                end if;
             end if;
 
          -- Sample the rx line and shift it in.
          -- Go back and wait 16 for the next bit unless last bit
          when SAMPLE_RX_S =>
-            v.rxShiftReg   := rxSync & r.rxShiftReg(7 downto 1);
+            v.rxShiftReg   := rxSync & r.rxShiftReg(DATA_WIDTH_G-1 downto 1);
             v.rxShiftCount := r.rxShiftCount + 1;
             v.rxState      := WAIT_16_S;
-            if (r.rxShiftCount = "111") then
-               v.rxState := WAIT_STOP_S;
+            v.waitState    := SAMPLE_RX_S;
+            if (r.rxShiftCount = DATA_WIDTH_G-1) then
+               if(PARITY_G /= "NONE") then
+                  v.waitState := PARITY_S;
+               else
+                  v.waitState := WAIT_STOP_S;
+               end if;
             end if;
+
+         -- Samples parity bit on rx line and compare it to the calculated parity
+         -- raises a parityError flag if it does not match          
+         when PARITY_S =>
+            v.rxState     := WAIT_16_S;
+            v.waitState   := WAIT_STOP_S;
+            v.parityError := toSl(r.parity = rxSync);
 
          -- Wait for the stop bit
          when WAIT_STOP_S =>
@@ -133,9 +165,10 @@ begin
 
          -- Put the parallel rx data on the output port.
          when WRITE_OUT_S =>
-            v.rdData  := r.rxShiftReg;
-            v.rdValid := '1';
-            v.rxState := WAIT_START_BIT_S;
+            v.rdData    := r.rxShiftReg;
+            v.rdValid   := '1';
+            v.rxState   := WAIT_START_BIT_S;
+            v.waitState := SAMPLE_RX_S;
 
       end case;
 
@@ -143,9 +176,10 @@ begin
          v := REG_INIT_C;
       end if;
 
-      rin     <= v;
-      rdData  <= r.rdData;
-      rdValid <= r.rdValid;
+      rin         <= v;
+      rdData      <= r.rdData;
+      rdValid     <= r.rdValid;
+      parityError <= r.parityError;
 
    end process comb;
 

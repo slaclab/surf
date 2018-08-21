@@ -2,7 +2,7 @@
 -- File       : Pgp3Gtx7Qpll.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-26
--- Last update: 2018-01-10
+-- Last update: 2018-06-10
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -29,10 +29,10 @@ use unisim.vcomponents.all;
 
 entity Pgp3Gtx7Qpll is
    generic (
-      TPD_G             : time            := 1 ns;
-      EN_DRP_G          : boolean         := true;
-      REFCLK_TYPE_G     : Pgp3RefClkType  := PGP3_REFCLK_312_C;
-      RATE_G            : boolean         := true);  -- true = 10.3125 Gbps, false = 6.25 Gbps
+      TPD_G         : time           := 1 ns;
+      EN_DRP_G      : boolean        := true;
+      REFCLK_TYPE_G : Pgp3RefClkType := PGP3_REFCLK_312_C;
+      RATE_G        : string         := "10.3125Gbps");  -- or "6.25Gbps" or "3.125Gbps"
    port (
       -- Stable Clock and Reset
       stableClk       : in  sl;         -- GT needs a stable clock to "boot up"
@@ -48,9 +48,9 @@ entity Pgp3Gtx7Qpll is
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
       axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
-      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilReadSlave   : out AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave  : out AxiLiteWriteSlaveType);
+      axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 end Pgp3Gtx7Qpll;
 
 architecture mapping of Pgp3Gtx7Qpll is
@@ -58,9 +58,9 @@ architecture mapping of Pgp3Gtx7Qpll is
    impure function GenQpllfbdivTop return integer is
    begin
       -------------------------------
-      -- RATE_G = true = 10.3125 Gbps
+      -- RATE_G = 10.3125Gbps
       -------------------------------
-      if (RATE_G) then
+      if ((RATE_G = "10.3125Gbps")) then
          if (REFCLK_TYPE_G = PGP3_REFCLK_312_C) then
             return 66;
          elsif (REFCLK_TYPE_G = PGP3_REFCLK_156_C) then
@@ -69,7 +69,7 @@ architecture mapping of Pgp3Gtx7Qpll is
             return -1;
          end if;
       -----------------------------
-      -- RATE_G = false = 6.25 Gbps
+      -- RATE_G = 6.25Gbps or 3.125Gbps
       -----------------------------
       else
          if (REFCLK_TYPE_G = PGP3_REFCLK_312_C) then
@@ -135,9 +135,9 @@ architecture mapping of Pgp3Gtx7Qpll is
    impure function GenRefclkDiv return integer is
    begin
       -------------------------------
-      -- RATE_G = true = 10.3125 Gbps
+      -- RATE_G = 10.3125Gbps
       -------------------------------
-      if (RATE_G) then
+      if (RATE_G = "10.3125Gbps") then
          if (REFCLK_TYPE_G = PGP3_REFCLK_312_C) then
             return 2;
          elsif (REFCLK_TYPE_G = PGP3_REFCLK_156_C) then
@@ -146,7 +146,7 @@ architecture mapping of Pgp3Gtx7Qpll is
             return -1;
          end if;
       -----------------------------
-      -- RATE_G = false = 6.25 Gbps
+      -- RATE_G = 6.25Gbps or 3.125Gbps
       -----------------------------
       else
          if (REFCLK_TYPE_G = PGP3_REFCLK_312_C) then
@@ -163,7 +163,7 @@ architecture mapping of Pgp3Gtx7Qpll is
       end if;
    end function;
 
-   constant QPLL_CFG_C         : bit_vector := ite(RATE_G, x"0680181", x"06801C1");
+   constant QPLL_CFG_C         : bit_vector := ite((RATE_G = "10.3125Gbps"), x"0680181", x"06801C1");
    constant QPLL_FBDIV_TOP_C   : positive   := GenQpllfbdivTop;
    constant QPLL_FBDIV_C       : bit_vector := GenQplFfbdivTop(QPLL_FBDIV_TOP_C);
    constant QPLL_FBDIV_RATIO_C : bit        := GenQpllFbdivRatio(QPLL_FBDIV_TOP_C);
@@ -208,6 +208,7 @@ begin
    U_QPLL : entity work.Gtx7QuadPll
       generic map (
          TPD_G              => TPD_G,
+         EN_DRP_G           => EN_DRP_G,
          QPLL_CFG_G         => QPLL_CFG_C,
          QPLL_FBDIV_G       => QPLL_FBDIV_C,
          QPLL_FBDIV_RATIO_G => QPLL_FBDIV_RATIO_C,
