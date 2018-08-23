@@ -2,7 +2,7 @@
 -- File       : AxiMicronMt28ewReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-04-10
--- Last update: 2018-04-11
+-- Last update: 2018-06-22
 -------------------------------------------------------------------------------
 -- Description: This controller is designed around the Micron MT28EW FLASH IC.
 -------------------------------------------------------------------------------
@@ -28,9 +28,11 @@ use unisim.vcomponents.all;
 
 entity AxiMicronMt28ewReg is
    generic (
-      TPD_G           : time             := 1 ns;
-      MEM_ADDR_MASK_G : slv(31 downto 0) := x"00000000";
-      AXI_CLK_FREQ_G  : real             := 200.0E+6);  -- units of Hz
+      TPD_G              : time             := 1 ns;
+      EN_PASSWORD_LOCK_G : boolean          := false;
+      PASSWORD_LOCK_G    : slv(31 downto 0) := x"DEADBEEF";
+      MEM_ADDR_MASK_G    : slv(31 downto 0) := x"00000000";
+      AXI_CLK_FREQ_G     : real             := 200.0E+6);  -- units of Hz
    port (
       -- FLASH Interface 
       flashAddr      : out slv(25 downto 0);
@@ -362,7 +364,15 @@ begin
             end case;
          ----------------------------------------------------------------------
          when DATA_LOW_S =>
-            v.ceL      := '0';
+            -- Check for password locking
+            if(EN_PASSWORD_LOCK_G) then
+               -- Check if password write to test register
+               if(r.test = PASSWORD_LOCK_G) then
+                  v.ceL := '0';
+               end if;
+            else
+               v.ceL := '0';
+            end if;
             v.oeL      := not(r.RnW);
             v.weL      := r.RnW;
             v.tristate := r.RnW;

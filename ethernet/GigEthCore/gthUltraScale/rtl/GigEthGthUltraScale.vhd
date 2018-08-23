@@ -2,7 +2,7 @@
 -- File       : GigEthGthUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-02-07
--- Last update: 2018-04-05
+-- Last update: 2018-07-24
 -------------------------------------------------------------------------------
 -- Description: 1000BASE-X Ethernet for Gth7
 -------------------------------------------------------------------------------
@@ -63,6 +63,53 @@ entity GigEthGthUltraScale is
 end GigEthGthUltraScale;
 
 architecture mapping of GigEthGthUltraScale is
+
+   component GigEthGthUltraScaleCore
+      port (
+         ---------------------
+         -- Transceiver Interface
+         ---------------------
+         gtrefclk               : in  std_logic;  -- Very high quality clock for GT transceiver.
+         txp                    : out std_logic;  -- Differential +ve of serial transmission from PMA to PMD.
+         txn                    : out std_logic;  -- Differential -ve of serial transmission from PMA to PMD.
+         rxp                    : in  std_logic;  -- Differential +ve for serial reception from PMD to PMA.
+         rxn                    : in  std_logic;  -- Differential -ve for serial reception from PMD to PMA.
+         resetdone              : out std_logic;  -- The GT transceiver has completed its reset cycle
+         cplllock               : out std_logic;  -- The GT transceiver has completed its reset cycle
+         mmcm_reset             : out std_logic;
+         txoutclk               : out std_logic;
+         rxoutclk               : out std_logic;
+         userclk                : in  std_logic;
+         userclk2               : in  std_logic;
+         rxuserclk              : in  std_logic;
+         rxuserclk2             : in  std_logic;
+         pma_reset              : in  std_logic;  -- transceiver PMA reset signal
+         mmcm_locked            : in  std_logic;  -- MMCM Locked
+         independent_clock_bufg : in  std_logic;
+         -----------------
+         -- GMII Interface
+         -----------------
+         gmii_txd               : in  std_logic_vector(7 downto 0);  -- Transmit data from client MAC.
+         gmii_tx_en             : in  std_logic;  -- Transmit control signal from client MAC.
+         gmii_tx_er             : in  std_logic;  -- Transmit control signal from client MAC.
+         gmii_rxd               : out std_logic_vector(7 downto 0);  -- Received Data to client MAC.
+         gmii_rx_dv             : out std_logic;  -- Received control signal to client MAC.
+         gmii_rx_er             : out std_logic;  -- Received control signal to client MAC.
+         gmii_isolate           : out std_logic;  -- Tristate control to electrically isolate GMII.
+         --------------------------------------------
+         -- Management: Alternative to MDIO Interface
+         --------------------------------------------
+         configuration_vector   : in  std_logic_vector(4 downto 0);  -- Alternative to MDIO interface.
+         an_interrupt           : out std_logic;  -- Interrupt to processor to signal that Auto-Negotiation has completed
+         an_adv_config_vector   : in  std_logic_vector(15 downto 0);  -- Alternate interface to program REG4 (AN ADV)
+         an_restart_config      : in  std_logic;  -- Alternate signal to modify AN restart bit in REG0
+         ---------------
+         -- General IO's
+         ---------------
+         status_vector          : out std_logic_vector(15 downto 0);  -- Core status.
+         reset                  : in  std_logic;  -- Asynchronous reset for entire core.
+         signal_detect          : in  std_logic);  -- Input from PMD to indicate presence of optical input.
+   end component;
 
    signal config : GigEthConfigType;
    signal status : GigEthStatusType;
@@ -157,7 +204,7 @@ begin
    ------------------
    -- 1000BASE-X core
    ------------------
-   U_GigEthGthUltraScaleCore : entity work.GigEthGthUltraScaleCore
+   U_GigEthGthUltraScaleCore : GigEthGthUltraScaleCore
       port map (
          -- Clocks and Resets
          gtrefclk               => sysClk125,  -- Used as CPLL clock reference

@@ -2,7 +2,7 @@
 -- File       : AxiMicronMt28ewCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-04-10
--- Last update: 2018-04-11
+-- Last update: 2018-06-22
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to Micron MT28EW FLASH IC
 -------------------------------------------------------------------------------
@@ -27,9 +27,11 @@ use unisim.vcomponents.all;
 
 entity AxiMicronMt28ewCore is
    generic (
-      TPD_G           : time             := 1 ns;
-      MEM_ADDR_MASK_G : slv(31 downto 0) := x"00000000";
-      AXI_CLK_FREQ_G  : real             := 200.0E+6);  -- units of Hz
+      TPD_G              : time             := 1 ns;
+      EN_PASSWORD_LOCK_G : boolean          := false;
+      PASSWORD_LOCK_G    : slv(31 downto 0) := x"DEADBEEF";
+      MEM_ADDR_MASK_G    : slv(31 downto 0) := x"00000000";
+      AXI_CLK_FREQ_G     : real             := 200.0E+6);  -- units of Hz
    port (
       -- FLASH Interface 
       flashInOut     : inout AxiMicronMt28ewInOutType;
@@ -64,9 +66,11 @@ begin
 
    U_CTRL : entity work.AxiMicronMt28ewReg
       generic map (
-         TPD_G           => TPD_G,
-         MEM_ADDR_MASK_G => MEM_ADDR_MASK_G,
-         AXI_CLK_FREQ_G  => AXI_CLK_FREQ_G)
+         TPD_G              => TPD_G,
+         EN_PASSWORD_LOCK_G => EN_PASSWORD_LOCK_G,
+         PASSWORD_LOCK_G    => PASSWORD_LOCK_G,
+         MEM_ADDR_MASK_G    => MEM_ADDR_MASK_G,
+         AXI_CLK_FREQ_G     => AXI_CLK_FREQ_G)
       port map (
          -- FLASH Interface 
          flashAddr      => flashOut.addr,

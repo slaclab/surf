@@ -40,7 +40,7 @@ package AxiStreamPacketizer2Pkg is
    subtype PACKETIZER2_HDR_TID_FIELD_C is natural range 31 downto 24;
    subtype PACKETIZER2_HDR_SEQ_FIELD_C is natural range 47 downto 32;
    -- BIT62:BIT48 unused
-   constant PACKETIZER2_HDR_SOF_BIT_C : integer := 63;
+   constant PACKETIZER2_HDR_SOF_BIT_C   : integer := 63;
    ---------------------------------------------------------------
 
    ---------------------------------------------------------------
@@ -91,6 +91,14 @@ package AxiStreamPacketizer2Pkg is
       tid        : slv(7 downto 0)  := (others => '0');
       seq        : slv(15 downto 0) := (others => '0'))
       return AxiStreamMasterType;
+
+   function makePacketizer2TailTdata (
+      CRC_MODE_C : string;
+      eof        : sl               := '1';
+      tuser      : slv(7 downto 0)  := (others => '0');
+      bytes      : slv(3 downto 0)  := "1000";  -- Default 8 bytes
+      crc        : slv(31 downto 0) := (others => '0'))
+      return slv;
 
    function makePacketizer2Tail (
       CRC_MODE_C : string;
@@ -145,6 +153,24 @@ package body AxiStreamPacketizer2Pkg is
       return ret;
    end function makePacketizer2Header;
 
+   function makePacketizer2TailTdata (
+      CRC_MODE_C : string;
+      eof        : sl               := '1';
+      tuser      : slv(7 downto 0)  := (others => '0');
+      bytes      : slv(3 downto 0)  := "1000";
+      crc        : slv(31 downto 0) := (others => '0'))
+      return slv
+   is
+      variable ret : slv(63 downto 0);
+   begin
+      ret                                 := (others => '0');
+      ret(PACKETIZER2_TAIL_EOF_BIT_C)     := eof;
+      ret(PACKETIZER2_TAIL_TUSER_FIELD_C) := tuser;
+      ret(PACKETIZER2_TAIL_BYTES_FIELD_C) := bytes;
+      ret(PACKETIZER2_TAIL_CRC_FIELD_C)   := ite((CRC_MODE_C /= "NONE"), crc, x"00000000");
+      return ret;
+   end function makePacketizer2TailTdata;
+
    function makePacketizer2Tail (
       CRC_MODE_C : string;
       valid      : sl               := '0';
@@ -156,13 +182,16 @@ package body AxiStreamPacketizer2Pkg is
    is
       variable ret : AxiStreamMasterType;
    begin
-      ret                                       := axiStreamMasterInit(PACKETIZER2_AXIS_CFG_C);
-      ret.tValid                                := valid;
-      ret.tData(PACKETIZER2_TAIL_EOF_BIT_C)     := eof;
-      ret.tData(PACKETIZER2_TAIL_TUSER_FIELD_C) := tuser;
-      ret.tData(PACKETIZER2_TAIL_BYTES_FIELD_C) := bytes;
-      ret.tData(PACKETIZER2_TAIL_CRC_FIELD_C)   := ite((CRC_MODE_C /= "NONE"), crc, x"00000000");
-      ret.tLast                                 := '1';
+      ret        := axiStreamMasterInit(PACKETIZER2_AXIS_CFG_C);
+      ret.tValid := valid;
+      ret.tLast  := '1';
+      ret.tData(63 downto 0) :=
+         makePacketizer2TailTdata(
+            CRC_MODE_C => CRC_MODE_C,
+            eof        => eof,
+            tuser      => tuser,
+            bytes      => bytes,
+            crc        => crc);
       return ret;
    end function makePacketizer2Tail;
 

@@ -2,7 +2,7 @@
 -- File       : GigEthGtp7Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-03-30
--- Last update: 2018-04-05
+-- Last update: 2018-08-20
 -------------------------------------------------------------------------------
 -- Description: Gtp7 Wrapper for 1000BASE-X Ethernet
 -- Note: This module supports up to a MGT QUAD of 1GigE interfaces
@@ -170,14 +170,16 @@ begin
          PLL1_FBDIV_45_IN_G   => 5,
          PLL1_REFCLK_DIV_IN_G => 1)
       port map (
-         qPllRefClk     => (others => sysClk125),
-         qPllOutClk     => qPllOutClk,
-         qPllOutRefClk  => qPllOutRefClk,
-         qPllLock       => qPllLock,
-         qPllLockDetClk => (others => sysClk125),
-         qPllRefClkLost => qPllRefClkLost,
-         qPllPowerDown  => "10",        -- power down PLL1 (unused PLL)
-         qPllReset      => qpllReset);
+         qPllRefClk(0)     => sysClk125,
+         qPllRefClk(1)     => sysClk125,
+         qPllOutClk        => qPllOutClk,
+         qPllOutRefClk     => qPllOutRefClk,
+         qPllLock          => qPllLock,
+         qPllLockDetClk(0) => sysClk125,
+         qPllLockDetClk(1) => sysClk125,
+         qPllRefClkLost    => qPllRefClkLost,
+         qPllPowerDown     => "10",     -- power down PLL1 (unused PLL)
+         qPllReset         => qpllReset);
 
    -- Once the QPLL is locked, prevent the 
    -- IP cores from accidentally reseting each other
