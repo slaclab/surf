@@ -42,6 +42,9 @@ entity AxiStreamPacketizer is
       axisClk : in sl;
       axisRst : in sl;
 
+      -- Actual byte count; will be truncated to multiple of word-size
+      maxPktBytes : in  natural := MAX_PACKET_BYTES_G;
+
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
 
@@ -52,7 +55,8 @@ end entity AxiStreamPacketizer;
 
 architecture rtl of AxiStreamPacketizer is
 
-   constant MAX_WORD_COUNT_C : integer := (MAX_PACKET_BYTES_G / 8) - 3;
+   constant PROTO_WORDS_C    : positive := 3;
+   constant MAX_WORD_COUNT_C : positive := (MAX_PACKET_BYTES_G / 8) - PROTO_WORDS_C;
 
    constant AXIS_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
@@ -74,7 +78,7 @@ architecture rtl of AxiStreamPacketizer is
       state            : StateType;
       frameNumber      : slv(11 downto 0);
       packetNumber     : slv(23 downto 0);
-      wordCount        : slv(bitSize(MAX_WORD_COUNT_C)-1 downto 0);
+      wordCount        : natural range 0 to MAX_WORD_COUNT_C;
       eof              : sl;
       tUserLast        : slv(7 downto 0);
       inputAxisSlave   : AxiStreamSlaveType;
@@ -85,7 +89,7 @@ architecture rtl of AxiStreamPacketizer is
       state            => IDLE_S,
       frameNumber      => (others => '0'),
       packetNumber     => (others => '0'),
-      wordCount        => (others => '0'),
+      wordCount        => 0,
       eof              => '0',
       tUserLast        => (others => '0'),
       inputAxisSlave   => AXI_STREAM_SLAVE_INIT_C,
@@ -99,6 +103,7 @@ architecture rtl of AxiStreamPacketizer is
    signal outputAxisMaster : AxiStreamMasterType;
    signal outputAxisSlave  : AxiStreamSlaveType;
 
+   signal maxWords         : natural range 0 to MAX_PACKET_BYTES_G/8;
    -- attribute dont_touch                     : string;
    -- attribute dont_touch of r                : signal is "TRUE";
    -- attribute dont_touch of inputAxisMaster  : signal is "TRUE";
@@ -110,6 +115,8 @@ begin
 
    assert ((MAX_PACKET_BYTES_G rem 8) = 0)
       report "MAX_PACKET_BYTES_G must be a multiple of 8" severity error;
+
+   maxWords <= ite( maxPktBytes > MAX_PACKET_BYTES_G, MAX_PACKET_BYTES_G, maxPktBytes ) / 8;
 
    -----------------
    -- Input pipeline
@@ -126,7 +133,7 @@ begin
          mAxisMaster => inputAxisMaster,
          mAxisSlave  => inputAxisSlave);
 
-   comb : process (axisRst, inputAxisMaster, outputAxisSlave, r) is
+   comb : process (axisRst, inputAxisMaster, outputAxisSlave, r, maxWords) is
       variable v : RegType;
 
    begin
@@ -145,7 +152,7 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Reset the counter
-            v.wordCount := (others => '0');
+            v.wordCount := 0;
             -- Check if ready to move data                         
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
                -- Initialize the AXIS buffer
@@ -187,7 +194,7 @@ begin
                v.wordCount := r.wordCount + 1;
 
                -- Reach max packet size. Append tail.
-               if (r.wordCount = MAX_WORD_COUNT_C) then
+               if (r.wordCount = maxWords - PROTO_WORDS_C) then
                   -- Next state
                   v.state := TAIL_S;
                end if;

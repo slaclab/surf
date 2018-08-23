@@ -43,6 +43,8 @@ entity AxiStreamPacketizer2 is
       axisRst     : in  sl;
       -- Status for phase locking externally
       rearbitrate : out sl;
+      -- Actual byte count; will be truncated to multiple of word-size
+      maxPktBytes : in  natural := MAX_PACKET_BYTES_G;
       -- AXIS Interfaces
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
@@ -52,7 +54,9 @@ end entity AxiStreamPacketizer2;
 
 architecture rtl of AxiStreamPacketizer2 is
 
-   constant MAX_WORD_COUNT_C : positive := (MAX_PACKET_BYTES_G / 8) - 3;
+   constant PROTO_WORDS_C    : positive := 3;
+
+   constant MAX_WORD_COUNT_C : positive := (MAX_PACKET_BYTES_G / 8) - PROTO_WORDS_C;
    constant CRC_EN_C         : boolean  := (CRC_MODE_G /= "NONE");
    constant CRC_HEAD_TAIL_C  : boolean  := (CRC_MODE_G = "FULL");
    constant ADDR_WIDTH_C     : positive := ite((TDEST_BITS_G = 0), 1, TDEST_BITS_G);
@@ -69,7 +73,7 @@ architecture rtl of AxiStreamPacketizer2 is
       packetActive     : sl;
       activeTDest      : slv(ADDR_WIDTH_C-1 downto 0);
       ramWe            : sl;
-      wordCount        : slv(bitSize(MAX_WORD_COUNT_C)-1 downto 0);
+      wordCount        : natural range 0 to MAX_WORD_COUNT_C;
       eof              : sl;
       lastByteCount    : slv(3 downto 0);
       tUserLast        : slv(7 downto 0);
@@ -90,7 +94,7 @@ architecture rtl of AxiStreamPacketizer2 is
       packetActive     => '0',
       activeTDest      => (others => '0'),
       ramWe            => '0',
-      wordCount        => (others => '0'),
+      wordCount        => 0,
       eof              => '0',
       lastByteCount    => "1000",
       tUserLast        => (others => '0'),
@@ -121,6 +125,8 @@ architecture rtl of AxiStreamPacketizer2 is
    signal crcOut : slv(31 downto 0) := (others => '0');
    signal crcRem : slv(31 downto 0) := (others => '1');
 
+   signal maxWords           : natural range 0 to MAX_PACKET_BYTES_G/8;
+
    -- attribute dont_touch                     : string;
    -- attribute dont_touch of r                : signal is "TRUE";
    -- attribute dont_touch of crcOut           : signal is "TRUE";
@@ -141,6 +147,8 @@ begin
 
    assert (TDEST_BITS_G <= 8)
       report "TDEST_BITS_G must be less than or equal to 8" severity error;
+
+   maxWords <= ite( maxPktBytes > MAX_PACKET_BYTES_G, MAX_PACKET_BYTES_G, maxPktBytes ) / 8;
 
    -----------------
    -- Input pipeline
@@ -231,7 +239,7 @@ begin
    end generate;
 
    comb : process (axisRst, crcOut, crcRem, inputAxisMaster, outputAxisSlave,
-                   r, ramCrcRem, ramPacketActiveOut, ramPacketSeqOut) is
+                   r, ramCrcRem, ramPacketActiveOut, ramPacketSeqOut, maxWords) is
       variable v     : RegType;
       variable tdest : slv(7 downto 0);
    begin
@@ -269,7 +277,7 @@ begin
          ----------------------------------------------------------------------
          when HEADER_S =>
             -- Reset the word counter
-            v.wordCount     := (others => '0');
+            v.wordCount     := 0;
             -- Set default tlast.tkeep (8 Bytes)
             v.lastByteCount := "1000";
             -- Pre-load the CRC with the interim remainder 
@@ -327,7 +335,7 @@ begin
                v.wordCount := r.wordCount + 1;
 
                -- Reach max packet size. Append tail.
-               if (r.wordCount = MAX_WORD_COUNT_C) then
+               if (r.wordCount = maxWords - PROTO_WORDS_C) then
                   -- Next state
                   v.state := TAIL_S;
                end if;
