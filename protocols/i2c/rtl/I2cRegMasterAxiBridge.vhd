@@ -2,7 +2,7 @@
 -- File       : I2cRegMasterAxiBridge.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-23
--- Last update: 2018-01-08
+-- Last update: 2018-08-23
 -------------------------------------------------------------------------------
 -- Description: Maps a number of I2C devices on an I2C bus onto an AXI Bus.
 -------------------------------------------------------------------------------
@@ -28,11 +28,7 @@ entity I2cRegMasterAxiBridge is
 
    generic (
       TPD_G            : time                   := 1 ns;
-      DEVICE_MAP_G     : I2cAxiLiteDevArray     := I2C_AXIL_DEV_ARRAY_DEFAULT_C;
-      EN_USER_REG_G    : boolean                := false;
-      NUM_WRITE_REG_G  : integer range 1 to 128 := 1;
-      NUM_READ_REG_G   : integer range 1 to 128 := 1);
-
+      DEVICE_MAP_G     : I2cAxiLiteDevArray     := I2C_AXIL_DEV_ARRAY_DEFAULT_C);
    port (
       axiClk : in sl;
       axiRst : in sl;
@@ -41,11 +37,6 @@ entity I2cRegMasterAxiBridge is
       axiReadSlave   : out AxiLiteReadSlaveType;
       axiWriteMaster : in  AxiLiteWriteMasterType;
       axiWriteSlave  : out AxiLiteWriteSlaveType;
-
-      -- Optional User Read/Write Register Interface
-      readRegister      : in  Slv32Array(0 to NUM_READ_REG_G)  := (others => x"00000000");
-      writeRegisterInit : in  Slv32Array(0 to NUM_WRITE_REG_G) := (others => x"00000000");
-      writeRegister     : out Slv32Array(0 to NUM_WRITE_REG_G);
 
       i2cRegMasterIn  : out I2cRegMasterInType;
       i2cRegMasterOut : in  I2cRegMasterOutType);
@@ -66,11 +57,7 @@ architecture rtl of I2cRegMasterAxiBridge is
    constant I2C_REG_AXI_ADDR_LOW_C  : natural := 2;
    constant I2C_REG_AXI_ADDR_HIGH_C : natural :=
       ite(I2C_REG_ADDR_SIZE_C = 0,
-          ite(EN_USER_REG_G = false,
-              2,
-              --else (EN_USER_REG_G = true)
-              8),                       -- Need minimum size of 8 if user regs enabled
-          -- else (I2C_REG_ADDR_SIZE_C > 0)
+          2,
           I2C_REG_AXI_ADDR_LOW_C + I2C_REG_ADDR_SIZE_C-1);
 
    subtype I2C_REG_AXI_ADDR_RANGE_C is natural range
@@ -86,21 +73,13 @@ architecture rtl of I2cRegMasterAxiBridge is
    subtype I2C_DEV_AXI_ADDR_RANGE_C is natural range
       I2C_DEV_AXI_ADDR_HIGH_C downto I2C_DEV_AXI_ADDR_LOW_C;
 
-   constant USER_AXI_ADDR_HIGH_C : natural := I2C_DEV_AXI_ADDR_HIGH_C+1;
-   constant USER_AXI_ADDR_LOW_C  : natural := I2C_DEV_AXI_ADDR_HIGH_C+1;
-
-   subtype USER_AXI_ADDR_RANGE_C is natural range
-      USER_AXI_ADDR_HIGH_C downto USER_AXI_ADDR_LOW_C;
-
    type RegType is record
-      writeRegister  : Slv32Array(0 to NUM_WRITE_REG_G);
       axiReadSlave   : AxiLiteReadSlaveType;
       axiWriteSlave  : AxiLiteWriteSlaveType;
       i2cRegMasterIn : I2cRegMasterInType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      writeRegister  => (others => x"00000000"),
       axiReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
       axiWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C,
       i2cRegMasterIn => I2C_REG_MASTER_IN_INIT_C);
@@ -108,32 +87,12 @@ architecture rtl of I2cRegMasterAxiBridge is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
---  attribute keep : string;
---   attribute keep of
---      axiReadMaster,
---      axiReadSlave,
---      axiWriteMaster,
---      axiWriteSlave,
---      i2cRegMasterOut,
---      i2cRegMasterIn : signal is "TRUE";
-
---   attribute dont_touch : string;
---   attribute dont_touch of
---      axiReadMaster,
---      axiReadSlave,
---      axiWriteMaster,
---      axiWriteSlave,
---      i2cRegMasterOut,
---      i2cRegMasterIn : signal is "TRUE";
-
-
 begin
 
    -------------------------------------------------------------------------------------------------
    -- Main Comb Process
    -------------------------------------------------------------------------------------------------
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, i2cRegMasterOut, r, readRegister,
-                   writeRegisterInit) is
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, i2cRegMasterOut, r) is
       variable v         : RegType;
       variable devInt    : integer;
       variable axiStatus : AxiLiteStatusType;
@@ -179,18 +138,6 @@ begin
             v.i2cRegMasterIn.regOp  := '1';  -- Write
             v.i2cRegMasterIn.regReq := '1';
 
-         -- User Configuration Address Space
-         elsif (axiWriteMaster.awaddr(USER_AXI_ADDR_RANGE_C) = "1") and (EN_USER_REG_G = true) then
-            -- Check for valid address space range
-            if (axiWriteMaster.awaddr(8 downto 2) < NUM_WRITE_REG_G) and (axiWriteMaster.awaddr(9) = '1') then
-               -- Write the the User Register space
-               v.writeRegister(conv_integer(axiWriteMaster.awaddr(7 downto 2))) := axiWriteMaster.wdata;
-               -- Send AXI response
-               axiSlaveWriteResponse(v.axiWriteSlave);
-            else
-               -- Send AXI Error response
-               axiSlaveWriteResponse(v.axiWriteSlave, AXI_RESP_DECERR_C);
-            end if;
          else
             -- Send AXI Error response
             axiSlaveWriteResponse(v.axiWriteSlave, AXI_RESP_DECERR_C);
@@ -207,27 +154,9 @@ begin
             v.i2cRegMasterIn.regOp  := '0';  -- Read
             v.i2cRegMasterIn.regReq := '1';
 
-         -- User Configuration Address Space
-         elsif (axiReadMaster.araddr(USER_AXI_ADDR_RANGE_C) = "1") and (EN_USER_REG_G = true) then
-            -- Check for valid address space range
-            if (axiReadMaster.araddr(8 downto 2) < NUM_WRITE_REG_G) and (axiReadMaster.araddr(9) = '0') then
-               -- Write the the User Register space
-               v.axiReadSlave.rdata := r.writeRegister(conv_integer(axiReadMaster.araddr(7 downto 2)));
-               -- Send AXI response
-               axiSlaveWriteResponse(v.axiWriteSlave);
-            -- Check for valid address space range
-            elsif (axiReadMaster.araddr(8 downto 2) < NUM_READ_REG_G) and (axiReadMaster.araddr(9) = '1') then
-               -- Write the the User Register space
-               v.axiReadSlave.rdata := readRegister(conv_integer(axiReadMaster.araddr(7 downto 2)));
-               -- Send AXI response
-               axiSlaveWriteResponse(v.axiWriteSlave);
-            else
-               -- Send AXI Error response
-               axiSlaveWriteResponse(v.axiWriteSlave, AXI_RESP_DECERR_C);
-            end if;
          else
             -- Send AXI Error response
-            axiSlaveWriteResponse(v.axiWriteSlave, AXI_RESP_DECERR_C);
+            axiSlaveReadResponse(v.axiWriteSlave, AXI_RESP_DECERR_C);
          end if;
 
       end if;
@@ -252,7 +181,6 @@ begin
       ----------------------------------------------------------------------------------------------
       if (axiRst = '1') then
          v               := REG_INIT_C;
-         v.writeRegister := writeRegisterInit;
       end if;
 
       rin <= v;
@@ -260,7 +188,6 @@ begin
       axiReadSlave   <= r.axiReadSlave;
       axiWriteSlave  <= r.axiWriteSlave;
       i2cRegMasterIn <= r.i2cRegMasterIn;
-      writeRegister  <= r.writeRegister;
 
    end process comb;
 
