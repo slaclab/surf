@@ -181,6 +181,14 @@ package I2cPkg is
 
    function maxAddrSize (constant devMap : I2cAxiLiteDevArray) return natural;
 
+   type I2cAxiLiteAddrMapType is record
+      regAddr  : slv(31 downto 0);
+      axilAddr : slv(31 downto 0);
+      dataSize : integer range 0 to 4;
+   end record;
+
+   type I2cAxiLiteAddrMapArray is array (natural range <>) of I2cAxiLiteAddrMapType;
+
    --------------------------------------------------------------------------------------------------
    -- Opencores i2c
    component i2c_master_byte_ctrl is
