@@ -17,6 +17,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 use work.StdRtlPkg.all;
 use work.RssiPkg.all;
@@ -103,6 +104,8 @@ architecture mapping of RssiCoreWrapper is
    signal rssiNotConnected : sl;
    signal rssiConnected    : sl;
 
+   signal maxObSegSize     : slv(15 downto 0);
+
    -- This should really go in a AxiStreamPacketizerPkg
    constant PACKETIZER_AXIS_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
@@ -173,6 +176,7 @@ begin
             port map (
                axisClk     => clk_i,
                axisRst     => rst_i,
+               maxPktBytes => to_integer( unsigned( maxObSegSize ) ),
                sAxisMaster => packetizerMasters(0),
                sAxisSlave  => packetizerSlaves(0),
                mAxisMaster => packetizerMasters(1),
@@ -192,6 +196,7 @@ begin
             port map (
                axisClk     => clk_i,
                axisRst     => rst_i,
+               maxPktBytes => to_integer( unsigned( maxObSegSize ) ),
                sAxisMaster => packetizerMasters(0),
                sAxisSlave  => packetizerSlaves(0),
                mAxisMaster => packetizerMasters(1),
@@ -257,7 +262,8 @@ begin
          axilWriteMaster  => axilWriteMaster,
          axilWriteSlave   => axilWriteSlave,
          -- Internal statuses
-         statusReg_o      => statusReg);
+         statusReg_o      => statusReg,
+         maxSegSize_o     => maxObSegSize);
 
    statusReg_o      <= statusReg;
    rssiConnected    <= statusReg(0);
