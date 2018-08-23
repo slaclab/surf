@@ -2,7 +2,7 @@
 -- File       : AxiI2cMasterCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-22
--- Last update: 2018-03-07
+-- Last update: 2018-08-22
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to generic I2C master controller
 -------------------------------------------------------------------------------
@@ -28,22 +28,23 @@ use unisim.vcomponents.all;
 
 entity AxiI2cMasterCore is
    generic (
-      TPD_G            : time               := 1 ns;
-      DEVICE_MAP_G     : I2cAxiLiteDevArray := I2C_AXIL_DEV_ARRAY_DEFAULT_C;
-      AXI_CLK_FREQ_G   : real               := 200.0E+6;  -- units of Hz
-      I2C_SCL_FREQ_G   : real               := 100.0E+3;  -- units of Hz
-      I2C_MIN_PULSE_G  : real               := 100.0E-9);  -- units of seconds
+      TPD_G           : time               := 1 ns;
+      DEVICE_MAP_G    : I2cAxiLiteDevArray := I2C_AXIL_DEV_ARRAY_DEFAULT_C;
+      AXI_CLK_FREQ_G  : real               := 200.0E+6;   -- units of Hz
+      I2C_SCL_FREQ_G  : real               := 100.0E+3;   -- units of Hz
+      I2C_MIN_PULSE_G : real               := 100.0E-9);  -- units of seconds
    port (
-      -- DAC Ports
-      i2cInOut       : inout AxiI2cMasterInOutType;
+      -- Clocks and Resets
+      axiClk         : in    sl;
+      axiRst         : in    sl;
       -- AXI-Lite Register Interface
       axiReadMaster  : in    AxiLiteReadMasterType;
       axiReadSlave   : out   AxiLiteReadSlaveType;
       axiWriteMaster : in    AxiLiteWriteMasterType;
       axiWriteSlave  : out   AxiLiteWriteSlaveType;
-      -- Clocks and Resets
-      axiClk         : in    sl;
-      axiRst         : in    sl);
+      -- I2C Bus
+      sda            : inout sl;
+      scl            : inout sl);
 end AxiI2cMasterCore;
 
 architecture mapping of AxiI2cMasterCore is
@@ -65,22 +66,22 @@ begin
    IOBUF_SCL : IOBUF
       port map (
          O  => i2ci.scl,                -- Buffer output
-         IO => i2cInOut.scl,            -- Buffer inout port (connect directly to top-level port)
+         IO => scl,                     -- Buffer inout port (connect directly to top-level port)
          I  => i2co.scl,                -- Buffer input
          T  => i2co.scloen);            -- 3-state enable input, high=input, low=output  
 
    IOBUF_SDA : IOBUF
       port map (
          O  => i2ci.sda,                -- Buffer output
-         IO => i2cInOut.sda,            -- Buffer inout port (connect directly to top-level port)
+         IO => sda,                     -- Buffer inout port (connect directly to top-level port)
          I  => i2co.sda,                -- Buffer input
          T  => i2co.sdaoen);            -- 3-state enable input, high=input, low=output     
 
    I2cRegMasterAxiBridge_Inst : entity work.I2cRegMasterAxiBridge
       generic map (
-         TPD_G            => TPD_G,
-         DEVICE_MAP_G     => DEVICE_MAP_G,
-         EN_USER_REG_G    => false)
+         TPD_G         => TPD_G,
+         DEVICE_MAP_G  => DEVICE_MAP_G,
+         EN_USER_REG_G => false)
       port map (
          -- I2C Interface
          i2cRegMasterIn  => i2cRegMasterIn,
