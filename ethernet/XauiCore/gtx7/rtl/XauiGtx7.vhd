@@ -2,7 +2,7 @@
 -- File       : XauiGtx7.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-12
--- Last update: 2018-01-08
+-- Last update: 2018-08-23
 -------------------------------------------------------------------------------
 -- Description: 10 GigE XAUI for Gtx7
 -------------------------------------------------------------------------------
@@ -26,11 +26,13 @@ use work.EthMacPkg.all;
 
 entity XauiGtx7 is
    generic (
-      TPD_G            : time                := 1 ns;
+      TPD_G           : time                := 1 ns;
+      PAUSE_EN_G      : boolean             := true;
+      PAUSE_512BITS_G : positive            := 8;
       -- AXI-Lite Configurations
-      EN_AXI_REG_G     : boolean             := false;
+      EN_AXI_REG_G    : boolean             := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      AXIS_CONFIG_G   : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
@@ -58,7 +60,7 @@ entity XauiGtx7 is
       gtTxP              : out slv(3 downto 0);
       gtTxN              : out slv(3 downto 0);
       gtRxP              : in  slv(3 downto 0);
-      gtRxN              : in  slv(3 downto 0));  
+      gtRxN              : in  slv(3 downto 0));
 end XauiGtx7;
 
 architecture mapping of XauiGtx7 is
@@ -79,7 +81,7 @@ architecture mapping of XauiGtx7 is
    signal macRxAxisCtrl   : AxiStreamCtrlType;
    signal macTxAxisMaster : AxiStreamMasterType;
    signal macTxAxisSlave  : AxiStreamSlaveType;
-   
+
 begin
 
    phyClk   <= phyClock;
@@ -91,9 +93,11 @@ begin
    --------------------
    U_MAC : entity work.EthMacTop
       generic map (
-         TPD_G         => TPD_G,
-         PHY_TYPE_G    => "XGMII",
-         PRIM_CONFIG_G => AXIS_CONFIG_G)
+         TPD_G           => TPD_G,
+         PAUSE_EN_G      => PAUSE_EN_G,
+         PAUSE_512BITS_G => PAUSE_512BITS_G,
+         PHY_TYPE_G      => "XGMII",
+         PRIM_CONFIG_G   => AXIS_CONFIG_G)
       port map (
          -- Primary Interface
          primClk         => dmaClk,
@@ -112,7 +116,7 @@ begin
          xgmiiRxd        => phyRxd,
          xgmiiRxc        => phyRxc,
          xgmiiTxd        => phyTxd,
-         xgmiiTxc        => phyTxc);      
+         xgmiiTxc        => phyTxc);
 
    --------------------
    -- 10 GigE XAUI Core
@@ -151,7 +155,7 @@ begin
          signal_detect        => (others => '1'),
          debug                => status.debugVector,
          configuration_vector => config.configVector,
-         status_vector        => status.statusVector); 
+         status_vector        => status.statusVector);
 
    status.phyReady <= uAnd(status.debugVector);
 
@@ -165,7 +169,7 @@ begin
          TPD_G           => TPD_G,
          IN_POLARITY_G   => '1',
          OUT_POLARITY_G  => '1',
-         RELEASE_DELAY_G => 4) 
+         RELEASE_DELAY_G => 4)
       port map (
          clk      => gtRefClk,
          asyncRst => status.areset,
@@ -176,19 +180,19 @@ begin
          TPD_G           => TPD_G,
          IN_POLARITY_G   => '0',
          OUT_POLARITY_G  => '1',
-         RELEASE_DELAY_G => 4) 
+         RELEASE_DELAY_G => 4)
       port map (
          clk      => gtRefClk,
          asyncRst => status.clkLock,
-         syncRst  => phyReset);         
+         syncRst  => phyReset);
 
    --------------------------------     
    -- Configuration/Status Register   
    --------------------------------     
    U_XauiReg : entity work.XauiReg
       generic map (
-         TPD_G            => TPD_G,
-         EN_AXI_REG_G     => EN_AXI_REG_G)
+         TPD_G        => TPD_G,
+         EN_AXI_REG_G => EN_AXI_REG_G)
       port map (
          -- Local Configurations
          localMac       => localMac,
@@ -203,6 +207,6 @@ begin
          phyClk         => phyClock,
          phyRst         => phyReset,
          config         => config,
-         status         => status); 
+         status         => status);
 
 end mapping;
