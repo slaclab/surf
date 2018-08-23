@@ -78,7 +78,7 @@ entity RssiAxiLiteRegItf is
 generic (
    -- General Configurations
    TPD_G                : time            := 1 ns;
-   SEGMENT_ADDR_SIZE_G  : positive        := 3;  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
+   SEGMENT_ADDR_SIZE_G  : positive        := 7;  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
    -- Defaults form generics
    TIMEOUT_UNIT_G   : real     := 1.0E-6;
    INIT_SEQ_N_G     : natural  := 16#80#;
@@ -160,7 +160,7 @@ architecture rtl of RssiAxiLiteRegItf is
       initSeqN     => toSlv(INIT_SEQ_N_G, 8),
       version      => toSlv(VERSION_G, 4),
       maxOutsSeg   => toSlv(MAX_NUM_OUTS_SEG_G, 8),
-      maxSegSize   => toSlv((2**SEGMENT_ADDR_SIZE_G)*RSSI_WORD_WIDTH_C, 16),
+      maxSegSize   => toSlv(MAX_SEG_SIZE_G, 16),
       retransTout  => toSlv(RETRANS_TOUT_G, 16),
       cumulAckTout => toSlv(ACK_TOUT_G, 16),
       nullSegTout  => toSlv(NULL_TOUT_G, 16),
@@ -221,6 +221,11 @@ begin
           v.maxOutsSeg  := axilWriteMaster.wdata(7 downto 0);
         when 16#04# =>                  -- ADDR (16)
           v.maxSegSize  := axilWriteMaster.wdata(15 downto 0);
+          if (unsigned(v.maxSegSize) < 8) then
+             v.maxSegSize := toSlv( 8, v.maxSegSize'length);
+          elsif (unsigned(v.maxSegSize) > (2**SEGMENT_ADDR_SIZE_G)*8 ) then
+             v.maxSegSize := toSlv( (2**SEGMENT_ADDR_SIZE_G)*8, v.maxSegSize'length );
+          end if;
         when 16#05# =>                  
           v.retransTout := axilWriteMaster.wdata(15 downto 0);
         when 16#06# =>                  
