@@ -20,8 +20,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
@@ -43,7 +42,7 @@ entity AxiStreamPacketizer is
       axisRst : in sl;
 
       -- Actual byte count; will be truncated to multiple of word-size
-      maxPktBytes : in  natural := MAX_PACKET_BYTES_G;
+      maxPktBytes : in  slv(bitSize(MAX_PACKET_BYTES_G) - 1 downto 0) := toSlv(MAX_PACKET_BYTES_G, bitSize(MAX_PACKET_BYTES_G));
 
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
@@ -55,8 +54,13 @@ end entity AxiStreamPacketizer;
 
 architecture rtl of AxiStreamPacketizer is
 
+   constant LD_WORD_SIZE_C   : positive := 3;
+   constant WORD_SIZE_C      : positive := 2**LD_WORD_SIZE_C;
+
+   subtype  WordCounterType  is unsigned(maxPktBytes'left - LD_WORD_SIZE_C downto 0);
+
    constant PROTO_WORDS_C    : positive := 3;
-   constant MAX_WORD_COUNT_C : positive := (MAX_PACKET_BYTES_G / 8) - PROTO_WORDS_C;
+   constant MAX_WORD_COUNT_C : WordCounterType := to_unsigned(MAX_PACKET_BYTES_G / WORD_SIZE_C, WordCounterType'length);
 
    constant AXIS_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
@@ -76,9 +80,10 @@ architecture rtl of AxiStreamPacketizer is
 
    type RegType is record
       state            : StateType;
-      frameNumber      : slv(11 downto 0);
-      packetNumber     : slv(23 downto 0);
-      wordCount        : natural range 0 to MAX_WORD_COUNT_C;
+      frameNumber      : unsigned(11 downto 0);
+      packetNumber     : unsigned(23 downto 0);
+      wordCount        : WordCounterType;
+      maxWords         : WordCounterType;
       eof              : sl;
       tUserLast        : slv(7 downto 0);
       inputAxisSlave   : AxiStreamSlaveType;
@@ -89,7 +94,8 @@ architecture rtl of AxiStreamPacketizer is
       state            => IDLE_S,
       frameNumber      => (others => '0'),
       packetNumber     => (others => '0'),
-      wordCount        => 0,
+      wordCount        => (others => '0'),
+      maxWords         => (0 => '1', others => '0'),
       eof              => '0',
       tUserLast        => (others => '0'),
       inputAxisSlave   => AXI_STREAM_SLAVE_INIT_C,
@@ -103,7 +109,7 @@ architecture rtl of AxiStreamPacketizer is
    signal outputAxisMaster : AxiStreamMasterType;
    signal outputAxisSlave  : AxiStreamSlaveType;
 
-   signal maxWords         : natural range 0 to MAX_PACKET_BYTES_G/8;
+   signal maxWords         : WordCounterType;
    -- attribute dont_touch                     : string;
    -- attribute dont_touch of r                : signal is "TRUE";
    -- attribute dont_touch of inputAxisMaster  : signal is "TRUE";
@@ -116,7 +122,7 @@ begin
    assert ((MAX_PACKET_BYTES_G rem 8) = 0)
       report "MAX_PACKET_BYTES_G must be a multiple of 8" severity error;
 
-   maxWords <= ite( maxPktBytes > MAX_PACKET_BYTES_G, MAX_PACKET_BYTES_G, maxPktBytes ) / 8;
+   maxWords <= WordCounterType(maxPktBytes(maxPktBytes'left downto WORD_SIZE_C));
 
    -----------------
    -- Input pipeline
@@ -134,7 +140,8 @@ begin
          mAxisSlave  => inputAxisSlave);
 
    comb : process (axisRst, inputAxisMaster, outputAxisSlave, r, maxWords) is
-      variable v : RegType;
+      variable v    : RegType;
+      variable fits : boolean;
 
    begin
       -- Latch the current value
@@ -152,16 +159,32 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Reset the counter
-            v.wordCount := 0;
+            v.wordCount := (others => '0');
+
+            -- Check and register the max. word count
+            -- NOTE: wordCount is compared only after incrementing
+            --       (and doing some work in MOVE_S), thus at least
+            --       one non-protocol word  must fit.
+            if ( maxWords <= to_unsigned(PROTO_WORDS_C, maxWords'length) ) then
+               fits := false;
+            else
+               fits := true;
+               if ( maxWords >= MAX_WORD_COUNT_C ) then
+                  v.maxWords := MAX_WORD_COUNT_C - PROTO_WORDS_C;
+               else
+                  v.maxWords := maxWords - PROTO_WORDS_C;
+               end if;
+            end if;
+
             -- Check if ready to move data                         
-            if (inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
+            if (fits and inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
                -- Initialize the AXIS buffer
                v.outputAxisMaster                     := axiStreamMasterInit(AXIS_CONFIG_C);
                -- Generate the 64-bit header
                v.outputAxisMaster.tValid              := '1';
                v.outputAxisMaster.tData(3 downto 0)   := VERSION_C;
-               v.outputAxisMaster.tData(15 downto 4)  := r.frameNumber;
-               v.outputAxisMaster.tData(39 downto 16) := r.packetNumber;
+               v.outputAxisMaster.tData(15 downto 4)  := slv(r.frameNumber);
+               v.outputAxisMaster.tData(39 downto 16) := slv(r.packetNumber);
                v.outputAxisMaster.tData(47 downto 40) := inputAxisMaster.tDest(7 downto 0);
                v.outputAxisMaster.tData(55 downto 48) := inputAxisMaster.tId(7 downto 0);
                v.outputAxisMaster.tData(63 downto 56) := inputAxisMaster.tUser(7 downto 0);
@@ -194,7 +217,7 @@ begin
                v.wordCount := r.wordCount + 1;
 
                -- Reach max packet size. Append tail.
-               if (r.wordCount = maxWords - PROTO_WORDS_C) then
+               if (r.wordCount = r.maxWords) then
                   -- Next state
                   v.state := TAIL_S;
                end if;
