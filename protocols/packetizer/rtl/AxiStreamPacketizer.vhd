@@ -122,7 +122,7 @@ begin
    assert ((MAX_PACKET_BYTES_G rem 8) = 0)
       report "MAX_PACKET_BYTES_G must be a multiple of 8" severity error;
 
-   maxWords <= WordCounterType(maxPktBytes(maxPktBytes'left downto WORD_SIZE_C));
+   maxWords <= WordCounterType(maxPktBytes(maxPktBytes'left downto LD_WORD_SIZE_C));
 
    -----------------
    -- Input pipeline

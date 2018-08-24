@@ -154,7 +154,7 @@ begin
    assert (TDEST_BITS_G <= 8)
       report "TDEST_BITS_G must be less than or equal to 8" severity error;
 
-   maxWords <= WordCounterType(maxPktBytes(maxPktBytes'left downto WORD_SIZE_C));
+   maxWords <= WordCounterType(maxPktBytes(maxPktBytes'left downto LD_WORD_SIZE_C));
 
    -----------------
    -- Input pipeline
