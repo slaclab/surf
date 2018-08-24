@@ -81,8 +81,8 @@ package I2cPkg is
       regWrData   : slv(31 downto 0);
       regOp       : sl;
       regAddrSkip : sl;
-      regAddrSize : slv(1 downto 0);
-      regDataSize : slv(1 downto 0);
+      regAddrSize : slv(1 downto 0);    -- in bytes
+      regDataSize : slv(1 downto 0);    -- in bytes
       regReq      : sl;
       busReq      : sl;
       endianness  : sl;
@@ -157,8 +157,8 @@ package I2cPkg is
    type I2cAxiLiteDevType is record
       i2cAddress  : slv(9 downto 0);
       i2cTenbit   : sl;
-      dataSize    : integer;
-      addrSize    : integer;
+      dataSize    : integer;            -- in bits
+      addrSize    : integer;            -- in bits
       endianness  : sl;
       repeatStart : sl;
    end record I2cAxiLiteDevType;
@@ -182,9 +182,9 @@ package I2cPkg is
    function maxAddrSize (constant devMap : I2cAxiLiteDevArray) return natural;
 
    type I2cAxiLiteAddrMapType is record
-      regAddr  : slv(31 downto 0);
       axilAddr : slv(31 downto 0);
-      dataSize : integer range 0 to 4;
+      regAddr  : slv(31 downto 0);
+      dataSize : integer range 0 to 4;  -- in bytes
    end record;
 
    type I2cAxiLiteAddrMapArray is array (natural range <>) of I2cAxiLiteAddrMapType;

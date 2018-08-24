@@ -24,12 +24,12 @@ use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.I2cPkg.all;
 
-entity AxilI2cRegMap is
+entity I2cRegMasterAxiMap is
 
    generic (
       TPD_G            : time    := 1 ns;
       AXIL_ADDR_SIZE_G : integer := 8;
-      DEV_CFG_G        : I2cAxiLiteDevType;
+      DEVICE_CFG_G     : I2cAxiLiteDevType;
       ADDR_MAP_G       : I2cAxiLiteAddrMapArray);
 
    port (
@@ -44,9 +44,9 @@ entity AxilI2cRegMap is
       i2cRegMasterIn  : out I2cRegMasterInType;
       i2cRegMasterOut : in  I2cRegMasterOutType);
 
-end entity AxilI2cRegMap;
+end entity I2cRegMasterAxiMap;
 
-architecture rtl of I2cRegMasterAxiBridge is
+architecture rtl of I2cRegMasterAxiMap is
 
    constant READ_C  : boolean := false;
    constant WRITE_C : boolean := true;
@@ -105,10 +105,10 @@ begin
          ret.i2cAddr                                     := DEVICE_CFG_G.i2cAddress;
          ret.tenbit                                      := DEVICE_CFG_G.i2cTenbit;
          ret.regAddr                                     := ADDR_MAP_G(index).regAddr;
-         ret.regWrData(DEVICE_CFG_G.dataSize-1 downto 0) := axiWriteMaster.wData(DEVICE_CFG_G.dataSize-1 downto 0);
+         ret.regWrData(DEVICE_CFG_G.dataSize-1 downto 0) := axiWriteMaster.wData(DEVICE_CFG_G.dataSize-1 downto 0);  --DEVICE_CFG_G.dataSize-1 downto 0);
          ret.regAddrSize                                 := toSlv(wordCount(DEVICE_CFG_G.addrSize, 8) - 1, 2);
          ret.regAddrSkip                                 := toSl(DEVICE_CFG_G.addrSize = 0);
-         ret.regDataSize                                 := toSlv(wordCount(DEVICE_CFG_G.dataSize, 8) - 1, 2);
+         ret.regDataSize                                 := toSlv(ADDR_MAP_G(index).dataSize-1, 2);
          ret.endianness                                  := DEVICE_CFG_G.endianness;
          ret.repeatStart                                 := DEVICE_CFG_G.repeatStart;
          return ret;
