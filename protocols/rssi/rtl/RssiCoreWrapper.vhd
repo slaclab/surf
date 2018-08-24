@@ -166,6 +166,14 @@ begin
          mAxisSlave   => packetizerSlaves(0));
 
    GEN_PACKER : if (BYPASS_CHUNKER_G = false) generate
+      constant MAX_SEGS_BITS_C : positive := bitSize(MAX_SEG_SIZE_G);
+      signal   maxSegs         : slv(MAX_SEGS_BITS_C - 1 downto 0);
+   begin
+
+      maxSegs <= ite(unsigned(maxObSegSize) >= MAX_SEG_SIZE_G,
+                     slv(to_unsigned(MAX_SEG_SIZE_G, maxSegs'length)),
+                     maxObSegSize(maxSegs'range));
+
       PACKER_V1 : if (APP_ILEAVE_EN_G = false) generate
          U_Packetizer : entity work.AxiStreamPacketizer
             generic map (
@@ -176,7 +184,7 @@ begin
             port map (
                axisClk     => clk_i,
                axisRst     => rst_i,
-               maxPktBytes => to_integer( unsigned( maxObSegSize ) ),
+               maxPktBytes => maxSegs,
                sAxisMaster => packetizerMasters(0),
                sAxisSlave  => packetizerSlaves(0),
                mAxisMaster => packetizerMasters(1),
@@ -196,7 +204,7 @@ begin
             port map (
                axisClk     => clk_i,
                axisRst     => rst_i,
-               maxPktBytes => to_integer( unsigned( maxObSegSize ) ),
+               maxPktBytes => maxSegs,
                sAxisMaster => packetizerMasters(0),
                sAxisSlave  => packetizerSlaves(0),
                mAxisMaster => packetizerMasters(1),
