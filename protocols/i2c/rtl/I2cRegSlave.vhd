@@ -2,7 +2,7 @@
 -- File       : I2cRegSlave.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-01-16
--- Last update: 2014-03-13
+-- Last update: 2018-08-24
 -------------------------------------------------------------------------------
 -- Description: Implements an I2C slave attached to a generic RAM interface.
 -- Protocol is simple: Address of configurable size, followed by data of

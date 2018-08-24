@@ -54,14 +54,12 @@ architecture rtl of I2cRegMasterAxiMap is
    constant ADDR_MAP_LENGTH_C : natural := ADDR_MAP_G'length;
 
    type RegType is record
-      writeRegister  : Slv32Array(0 to NUM_WRITE_REG_G);
       axiReadSlave   : AxiLiteReadSlaveType;
       axiWriteSlave  : AxiLiteWriteSlaveType;
       i2cRegMasterIn : I2cRegMasterInType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      writeRegister  => (others => x"00000000"),
       axiReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
       axiWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C,
       i2cRegMasterIn => I2C_REG_MASTER_IN_INIT_C);
@@ -75,31 +73,31 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Main Comb Process
    -------------------------------------------------------------------------------------------------
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, i2cRegMasterOut, r, readRegister,
-                   writeRegisterInit) is
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, i2cRegMasterOut, r) is
       variable v         : RegType;
       variable devInt    : integer;
       variable axiStatus : AxiLiteStatusType;
       variable axiResp   : slv(1 downto 0);
 
       impure function findRegAddr (readN : boolean) return integer is
-         shared variable ret : integer;
+         variable ret : integer;
       begin
          ret := -1;
-         for i in ADDR_MAP_G'range
-         if (readN = READ_C) then
-            if (ADDR_MAP_G(i).axilAddr(AXIL_ADDR_SIZE_G-1 downto 0) = axiReadMaster.araddr(AXIL_ADDR_SIZE_G-1 downto 0)) then
-               ret := i;
-            end if;
-         else
-            if (ADDR_MAP_G(i).axilAddr(AXIL_ADDR_SIZE_G-1 downto 0) = axiReadMaster.awaddr(AXIL_ADDR_SIZE_G-1 downto 0)) then
-               ret := i;
+         for i in ADDR_MAP_G'range loop
+            if (readN = READ_C) then
+               if (ADDR_MAP_G(i).axilAddr(AXIL_ADDR_SIZE_G-1 downto 0) = axiReadMaster.araddr(AXIL_ADDR_SIZE_G-1 downto 0)) then
+                  ret := i;
+               end if;
+            else
+               if (ADDR_MAP_G(i).axilAddr(AXIL_ADDR_SIZE_G-1 downto 0) = axiWriteMaster.awaddr(AXIL_ADDR_SIZE_G-1 downto 0)) then
+                  ret := i;
+               end if;
             end if;
          end loop;
       end function;
 
 
-      impure function setI2cRegMaster (i : integer) return I2cRegMasterInType is
+      impure function setI2cRegMaster (index : integer) return I2cRegMasterInType is
          variable ret : I2cRegMasterInType := I2C_REG_MASTER_IN_INIT_C;
       begin
          ret.i2cAddr                                     := DEVICE_CFG_G.i2cAddress;
@@ -165,7 +163,6 @@ begin
       ----------------------------------------------------------------------------------------------
       if (axiRst = '1') then
          v               := REG_INIT_C;
-         v.writeRegister := writeRegisterInit;
       end if;
 
       rin <= v;
@@ -173,7 +170,6 @@ begin
       axiReadSlave   <= r.axiReadSlave;
       axiWriteSlave  <= r.axiWriteSlave;
       i2cRegMasterIn <= r.i2cRegMasterIn;
-      writeRegister  <= r.writeRegister;
 
    end process comb;
 
