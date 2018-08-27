@@ -2,7 +2,7 @@
 -- File       : AxiLitePkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-02
--- Last update: 2018-08-17
+-- Last update: 2018-08-27
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite Package File
 -------------------------------------------------------------------------------
@@ -437,9 +437,9 @@ package body AxiLitePkg is
       return AxiLiteWriteSlaveType is
    begin
       return (awready => '1',
-              wready => '1',
-              bresp => bresp,
-              bvalid => '1');
+              wready  => '1',
+              bresp   => bresp,
+              bvalid  => '1');
    end function axiLiteWriteSlaveEmptyInit;
 
    function axiReadMasterInit (constant config : AxiLiteCrossbarMasterConfigType) return AxiLiteReadMasterType is
@@ -748,7 +748,9 @@ package body AxiLitePkg is
       variable regTmp : slv(reg'length-1 downto 0);
    begin
       regTmp := reg;
-      axiSlaveRegister(ep, addr, offset, regTmp, "X");
+      if (ep.axiStatus.readEnable = '1') then
+         axiSlaveRegister(ep, addr, offset, regTmp, "X");
+      end if;
    end procedure;
 
    procedure axiSlaveRegister (
@@ -807,7 +809,9 @@ package body AxiLitePkg is
       addrLocal(ADDR_BITS_C+2-1 downto 2) := (others => '-');
       addrLocal(1 downto 0)               := "00";
 --      print("MULTI! - Addr: " & hstr(addrLocal));
-      axiSlaveRegister(ep, addrLocal, 0, tmp);
+      if (ep.axiStatus.readEnable = '1') then
+         axiSlaveRegister(ep, addrLocal, 0, tmp);
+      end if;
    end procedure;
 
    procedure axiWrDetect (
@@ -859,7 +863,7 @@ package body AxiLitePkg is
       variable retConf : AxiLiteCrossbarMasterConfigArray(num-1 downto 0);
       variable addr    : slv(31 downto 0);
    begin
-      
+
       -------------------------------------------------------------------------------------------
       -- Note: These asserts only work in synthesis (not simulation)
       -- https://forums.xilinx.com/t5/Synthesis/VHDL-assert-statement-within-function/td-p/413463
@@ -867,20 +871,20 @@ package body AxiLitePkg is
 
       -- Compare the baseBot to addrBits
       assert (baseBot > addrBits)
-         report "AxiLitePkg.genAxiLiteConfig(): (baseBot > addrBits) condition not meet" 
-         & lf & "num      = "   & integer'image(num) 
+         report "AxiLitePkg.genAxiLiteConfig(): (baseBot > addrBits) condition not meet"
+         & lf & "num      = " & integer'image(num)
          & lf & "base     = 0x" & hstr(base)
-         & lf & "baseBot  = "   & integer'image(baseBot)
-         & lf & "addrBits = "   & integer'image(addrBits)
+         & lf & "baseBot  = " & integer'image(baseBot)
+         & lf & "addrBits = " & integer'image(addrBits)
          severity error;
 
       -- Check that there is enough bits for the number of buses
       assert (2**(baseBot-addrBits) >= num)
-         report "AxiLitePkg.genAxiLiteConfig(): (2**(baseBot-addrBits) >= num) condition not meet" 
-         & lf & "num      = "   & integer'image(num) 
+         report "AxiLitePkg.genAxiLiteConfig(): (2**(baseBot-addrBits) >= num) condition not meet"
+         & lf & "num      = " & integer'image(num)
          & lf & "base     = 0x" & hstr(base)
-         & lf & "baseBot  = "   & integer'image(baseBot)
-         & lf & "addrBits = "   & integer'image(addrBits)
+         & lf & "baseBot  = " & integer'image(baseBot)
+         & lf & "addrBits = " & integer'image(addrBits)
          severity error;
 
       -------------------------------------------------------------------------------------------
