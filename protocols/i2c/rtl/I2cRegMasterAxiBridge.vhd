@@ -2,7 +2,7 @@
 -- File       : I2cRegMasterAxiBridge.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-23
--- Last update: 2018-08-23
+-- Last update: 2018-08-27
 -------------------------------------------------------------------------------
 -- Description: Maps a number of I2C devices on an I2C bus onto an AXI Bus.
 -------------------------------------------------------------------------------
@@ -128,8 +128,7 @@ begin
 
       if (axiStatus.writeEnable = '1') then
 
-         -- Decode address and perform write
-         if (axiWriteMaster.awaddr(USER_AXI_ADDR_RANGE_C) = "0" or not EN_USER_REG_G) then
+
             -- I2C Address Space
             -- Decode i2c device address and send command to I2cRegMaster
             devInt := conv_integer(axiWriteMaster.awaddr(I2C_DEV_AXI_ADDR_RANGE_C));
@@ -138,13 +137,7 @@ begin
             v.i2cRegMasterIn.regOp  := '1';  -- Write
             v.i2cRegMasterIn.regReq := '1';
 
-         else
-            -- Send AXI Error response
-            axiSlaveWriteResponse(v.axiWriteSlave, AXI_RESP_DECERR_C);
-         end if;
       elsif (axiStatus.readEnable = '1') then
-         -- Decode address and perform write
-         if (axiReadMaster.araddr(USER_AXI_ADDR_RANGE_C) = "0" or not EN_USER_REG_G) then
             -- I2C Address Space
             -- Decode i2c device address and send command to I2cRegMaster
             devInt := conv_integer(axiReadMaster.araddr(I2C_DEV_AXI_ADDR_RANGE_C));
@@ -153,11 +146,6 @@ begin
             v.i2cRegMasterIn        := setI2cRegMaster(devInt, READ_C);
             v.i2cRegMasterIn.regOp  := '0';  -- Read
             v.i2cRegMasterIn.regReq := '1';
-
-         else
-            -- Send AXI Error response
-            axiSlaveReadResponse(v.axiWriteSlave, AXI_RESP_DECERR_C);
-         end if;
 
       end if;
 
