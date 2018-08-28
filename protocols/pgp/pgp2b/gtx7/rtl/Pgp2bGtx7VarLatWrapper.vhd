@@ -32,16 +32,30 @@ entity Pgp2bGtx7VarLatWrapper is
    generic (
       TPD_G              : time                    := 1 ns;
       -- MMCM Configurations (Defaults: gtClkP = 125 MHz Configuration)
+      -- See page 40 of https://www.xilinx.com/support/documentation/user_guides/ug362.pdf
+      -- CLKIN_PERIOD_G (ns) is 1/2 of the reference rate because the MMCM gets a div/2 copy
+      -- MMCM internal frequency is set by:
+      --    FVCO = 1000 * CLKFBOUT_MULT_F_G/(CLKIN1_PERIOD_G * DIVCLK_DIVIDE_G)
+      -- And must be within the specified operating range of the PLL (around 1Ghz)
       CLKIN_PERIOD_G     : real                    := 16.0;   -- gtClkP/2
       DIVCLK_DIVIDE_G    : natural range 1 to 106  := 2;
       CLKFBOUT_MULT_F_G  : real range 1.0 to 64.0  := 31.875;
       CLKOUT0_DIVIDE_F_G : real range 1.0 to 128.0 := 6.375;
       -- CPLL Configurations (Defaults: gtClkP = 125 MHz Configuration)
+      -- See page 48 of https://www.xilinx.com/support/documentation/user_guides/ug476_7Series_Transceivers.pdf
+      -- fPllClkOut = fPLLClkIn * ( CPLL_FBDIV_G * CPLL_FBDIV_45_G ) / CPLL_REFCLK_DIV_G
+      --    CPPL_FBDIV_G      = 1,2,3,4,5
+      --    CPPL_FBDIV_45_G   = 4,5
+      --    CPLL_REFCLK_DIV_G = 1,2
+      -- fPllClkOut must bet between 1.6Ghz - 3.3Ghz
       CPLL_REFCLK_SEL_G  : bit_vector              := "001";
       CPLL_FBDIV_G       : natural                 := 5;
       CPLL_FBDIV_45_G    : natural                 := 5;
       CPLL_REFCLK_DIV_G  : natural                 := 1;
       -- MGT Configurations (Defaults: gtClkP = 125 MHz Configuration)
+      -- Rx Line rate = (fPllClkOut * 2) / RXOUT_DIV_G (1,2,4,6,16)
+      -- Tx Line rate = (fPllClkOut * 2) / TXOUT_DIV_G (1,2,4,6,16)
+      -- Set RX_CLK25_DIV and TX_CLK25_DIV so that the input reference clock / setting is close to 25Mhz
       RXOUT_DIV_G        : natural                 := 2;
       TXOUT_DIV_G        : natural                 := 2;
       RX_CLK25_DIV_G     : natural                 := 5;
