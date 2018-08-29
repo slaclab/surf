@@ -340,12 +340,23 @@ class Dac38J84(pr.Device):
         self.add(pr.RemoteVariable(    
             name         = "InitJesd",
             description  = "InitJesd",
+            offset       =  0x128
+            bitSize      =  4,
+            bitOffset    =  0x01,
+            base         = pr.UInt,
+            mode         = "RW",
+            overlapEn    = True,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = "JesdRstN",
+            description  = "JesdRstN",
             offset       =  0x128,
-            bitSize      =  5,
+            bitSize      =  1,
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
-            overlapEn    = True,        
+            overlapEn    = True,
         ))
 
         ##############################
@@ -366,21 +377,22 @@ class Dac38J84(pr.Device):
 
         @self.command(name="Init", description="Initialization sequence for the DAC JESD core",)
         def Init():       
+            self.writeBlocks(force=True)
             self.EnableTx.set(0)
-            self.InitJesd.set(30)
-            self.InitJesd.set(1)
-            self.EnableTx.set(1)     
-            # clearAlarms
-            self.DacReg[100].set(0)
-            self.DacReg[101].set(0)
-            self.DacReg[102].set(0)
-            self.DacReg[103].set(0)
-            self.DacReg[104].set(0)
-            self.DacReg[105].set(0)
-            self.DacReg[106].set(0)
-            self.DacReg[107].set(0)
-            self.DacReg[108].set(0)
-            # Perform a sif_sync
-            sifSync = (self.DacReg[31].get()) | 0x2
-            self.DacReg[31].set(sifSync)
-            self.DacReg[31].set(sifSync&0xFFFD)
+            self.ClearAlarms()
+            self.DacReg[59].set(0x1800)
+            self.DacReg[37].set(0x4000)
+            self.DacReg[60].set(0x228)
+            self.DacReg[60].set(0x28)
+            self.DacReg[62].set(0x108)
+            self.DacReg[76].set(0x1F03)
+            self.DacReg[77].set(0x300)
+            self.DacReg[75].set(0x801)
+            self.DacReg[77].set(0x300)
+            self.DacReg[78].set(0xF2F)
+            self.DacReg[0].set(0x218)
+            self.DacReg[74].set(0xF1E)
+            self.DacReg[74].set(0xF1E)
+            self.DacReg[74].set(0xF1F)
+            self.DacReg[74].set(0xF01)
+            self.EnableTx.set(1)
