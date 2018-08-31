@@ -2,7 +2,7 @@
 -- File       : AxiLitePkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-04-02
--- Last update: 2018-08-27
+-- Last update: 2018-08-31
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite Package File
 -------------------------------------------------------------------------------
@@ -343,7 +343,8 @@ package AxiLitePkg is
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
       offset      : in    integer;
-      reg         : in    slv);
+      reg         : in    slv;
+      allowWrite  : in    boolean := true);
 
    procedure axiSlaveRegister (
       variable ep : inout AxiLiteEndpointType;
@@ -356,7 +357,8 @@ package AxiLitePkg is
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
       offset      : in    integer;
-      reg         : in    sl);
+      reg         : in    sl;
+      allowWrite  : in    boolean := true);
 
    procedure axiSlaveRegister (
       variable ep : inout AxiLiteEndpointType;
@@ -366,7 +368,8 @@ package AxiLitePkg is
    procedure axiSlaveRegisterR (
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
-      regs        : in    slv32Array);
+      regs        : in    slv32Array;
+      allowWrite  : in    boolean := true);
 
    procedure axiWrDetect (
       variable ep : inout AxiLiteEndpointType;
@@ -743,12 +746,13 @@ package body AxiLitePkg is
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
       offset      : in    integer;
-      reg         : in    slv)
+      reg         : in    slv;
+      allowWrite  : in    boolean := true)
    is
       variable regTmp : slv(reg'length-1 downto 0);
    begin
       regTmp := reg;
-      if (ep.axiStatus.readEnable = '1') then
+      if (ep.axiStatus.readEnable = '1' or allowWrite) then
          axiSlaveRegister(ep, addr, offset, regTmp, "X");
       end if;
    end procedure;
@@ -773,12 +777,13 @@ package body AxiLitePkg is
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
       offset      : in    integer;
-      reg         : in    sl)
+      reg         : in    sl;
+      allowWrite  : in    boolean := true)
    is
       variable tmp : slv(0 downto 0);
    begin
       tmp(0) := reg;
-      axiSlaveRegisterR(ep, addr, offset, tmp);
+      axiSlaveRegisterR(ep, addr, offset, tmp, allowWrite);
    end procedure;
 
    procedure axiSlaveRegister (
@@ -809,7 +814,7 @@ package body AxiLitePkg is
       addrLocal(ADDR_BITS_C+2-1 downto 2) := (others => '-');
       addrLocal(1 downto 0)               := "00";
 --      print("MULTI! - Addr: " & hstr(addrLocal));
-      if (ep.axiStatus.readEnable = '1') then
+      if (ep.axiStatus.readEnable = '1') or allowWrite then
          axiSlaveRegister(ep, addrLocal, 0, tmp);
       end if;
    end procedure;
