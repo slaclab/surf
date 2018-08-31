@@ -340,7 +340,7 @@ class Dac38J84(pr.Device):
         self.add(pr.RemoteVariable(    
             name         = "InitJesd",
             description  = "InitJesd",
-            offset       =  0x128
+            offset       =  0x128,
             bitSize      =  4,
             bitOffset    =  0x01,
             base         = pr.UInt,
