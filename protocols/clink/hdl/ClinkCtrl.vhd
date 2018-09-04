@@ -29,6 +29,7 @@ entity ClinkCtrl is
    generic (
       TPD_G              : time                := 1 ns;
       UART_READY_EN_G    : boolean             := true;
+      INV_34_G           : boolean             := false;
       UART_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- Cable In/Out
@@ -59,6 +60,7 @@ end ClinkCtrl;
 architecture rtl of ClinkCtrl is
    signal intCtrl   : slv(3 downto 0);
    signal cblOut    : slv(4 downto 0);
+   signal tmpOut    : slv(4 downto 0);
    signal cblIn     : slv(4 downto 0);
    signal cblDirIn  : slv(4 downto 0);
    signal cblSerOut : sl;
@@ -88,16 +90,20 @@ begin
    -- Camera control bits
    -------------------------------
    cblDirIn(2) <= '0';
-   cblOut(2)   <= camCtrl(0) when chanConfig.swCamCtrlEn(0) = '0' else chanConfig.swCamCtrl(0);
+   tmpOut(2)   <= camCtrl(0) when chanConfig.swCamCtrlEn(0) = '0' else chanConfig.swCamCtrl(0);
+   cblOut(2)   <= tmpOut(2);
 
    cblDirIn(3) <= '0';
-   cblOut(3)   <= camCtrl(1) when chanConfig.swCamCtrlEn(1) = '0' else chanConfig.swCamCtrl(1);
+   tmpOut(3)   <= camCtrl(1) when chanConfig.swCamCtrlEn(1) = '0' else chanConfig.swCamCtrl(1);
+   cblOut(3)   <= (not tmpOut(3)) when INV_34_G else tmpOut(3);
 
    cblDirIn(0) <= '0';
-   cblOut(0)   <= camCtrl(2) when chanConfig.swCamCtrlEn(2) = '0' else chanConfig.swCamCtrl(2);
+   tmpOut(0)   <= camCtrl(2) when chanConfig.swCamCtrlEn(2) = '0' else chanConfig.swCamCtrl(2);
+   cblOut(0)   <= tmpOut(0);
 
    cblDirIn(4) <= '0';
-   cblOut(4)   <= camCtrl(3) when chanConfig.swCamCtrlEn(3) = '0' else chanConfig.swCamCtrl(3);
+   tmpOut(4)   <= camCtrl(3) when chanConfig.swCamCtrlEn(3) = '0' else chanConfig.swCamCtrl(3);
+   cblOut(4)   <= (not tmpOut(4)) when INV_34_G else tmpOut(4);
 
    -------------------------------
    -- UART
@@ -121,6 +127,8 @@ begin
          rxIn          => cblIn(1),
          txOut         => cblSerOut);
 
+   tmpOut(1)   <= '0';
+   cblOut(1)   <= '0';
    cblDirIn(1) <= '1';
 
 end architecture rtl;
