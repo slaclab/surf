@@ -388,8 +388,8 @@ package AxiLitePkg is
    -- Generate evenly distributed address map
    function genAxiLiteConfig (num      : positive;
                               base     : slv(31 downto 0);
-                              baseBot  : integer range 0 to 32;
-                              addrBits : integer range 0 to 32)
+                              baseBot  : integer range 1 to 32;
+                              addrBits : integer range 0 to 31)
       return AxiLiteCrossbarMasterConfigArray;
 
 
