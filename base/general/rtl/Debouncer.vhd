@@ -48,12 +48,14 @@ architecture rtl of Debouncer is
    type RegType is record
       filter      : integer range 0 to CNT_MAX_C;
       iSyncedDly  : sl;
+      initDly     : slv(3 downto 0);
       o           : sl;
    end record RegType;
 
    constant REG_RESET_C : RegType :=
       (filter     => 0,
        iSyncedDly => '0',
+       initDly    => "1111",
        o          => not OUTPUT_POLARITY_G);
 
    signal r       : RegType := REG_RESET_C;
@@ -88,7 +90,10 @@ begin
       
       v.iSyncedDly := iSynced;
       
-      if (r.iSyncedDly /= iSynced) then  -- any edge
+      -- do not run filter for 4 clock cycles after reset
+      v.initDly := r.initDly(3 downto 1) & '0';
+      
+      if (r.iSyncedDly /= iSynced and r.initDly = "0000") then  -- any edge
          v.filter := CNT_MAX_C;
       elsif (r.filter /= 0) then
          v.filter := r.filter - 1;
