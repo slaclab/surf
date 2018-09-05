@@ -2,7 +2,7 @@
 -- File       : adc32rf45.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-05-26
--- Last update: 2018-01-08
+-- Last update: 2018-09-05
 -------------------------------------------------------------------------------
 -- Description: SPI Master Wrapper that includes a state machine for SPI paging
 -------------------------------------------------------------------------------
@@ -25,9 +25,9 @@ use work.AxiLitePkg.all;
 
 entity adc32rf45 is
    generic (
-      TPD_G             : time            := 1 ns;
-      CLK_PERIOD_G      : real            := (1.0/156.25E+6);
-      SPI_SCLK_PERIOD_G : real            := (1.0/10.0E+6));
+      TPD_G             : time := 1 ns;
+      CLK_PERIOD_G      : real := (1.0/156.25E+6);
+      SPI_SCLK_PERIOD_G : real := (1.0/10.0E+6));
    port (
       -- Clock and Reset
       axiClk         : in  sl;
@@ -118,26 +118,53 @@ begin
       case r.state is
          ----------------------------------------------------------------------
          when IDLE_S =>
-            -- Check if write transaction
-            if (axiStatus.writeEnable = '1') then
-               -- Set the flag
-               v.axiRd    := '0';
-               -- Save the data/address
-               v.data     := axiWriteMaster.wdata(7 downto 0);
-               v.addr     := axiWriteMaster.awaddr(13 downto 2);
-               v.xferType := axiWriteMaster.awaddr(17 downto 14);
-               -- Next State
-               v.state    := INIT_S;
-            -- Check if read transaction      
-            elsif (axiStatus.readEnable = '1') then
-               -- Set the flag
-               v.axiRd    := '1';
-               -- Save the data/address
-               v.data     := x"FF";
-               v.addr     := axiReadMaster.araddr(13 downto 2);
-               v.xferType := axiReadMaster.araddr(17 downto 14);
-               -- Next State
-               v.state    := INIT_S;
+            -- Check for basic access
+            if (axiReadMaster.araddr(18) = '0') then
+               -- Check if write transaction
+               if (axiStatus.writeEnable = '1') then
+                  -- Set the flag
+                  v.axiRd    := '0';
+                  -- Save the data/address
+                  v.data     := axiWriteMaster.wdata(7 downto 0);
+                  v.addr     := axiWriteMaster.awaddr(13 downto 2);
+                  v.xferType := axiWriteMaster.awaddr(17 downto 14);
+                  -- Next State
+                  v.state    := INIT_S;
+               -- Check if read transaction      
+               elsif (axiStatus.readEnable = '1') then
+                  -- Set the flag
+                  v.axiRd    := '1';
+                  -- Save the data/address
+                  v.data     := x"FF";
+                  v.addr     := axiReadMaster.araddr(13 downto 2);
+                  v.xferType := axiReadMaster.araddr(17 downto 14);
+                  -- Next State
+                  v.state    := INIT_S;
+               end if;
+            else                        -- Check advance user access
+               -- Check if write transaction
+               if (axiStatus.writeEnable = '1') then
+                  -- Set the flag
+                  v.axiRd      := '0';
+                  -- Save the data/address
+                  v.size       := 1;
+                  v.wrArray(0) := '0' & axiWriteMaster.awaddr(17 downto 2) & axiWriteMaster.wdata(7 downto 0));
+                  -- Reset the counter
+                  v.cnt        := 0;
+                  -- Next State
+                  v.state      := REQ_S;
+               -- Check if read transaction      
+               elsif (axiStatus.readEnable = '1') then
+                  -- Set the flag
+                  v.axiRd      := '1';
+                  -- Save the data/address
+                  v.size       := 1;
+                  v.wrArray(0) := '1' & axiReadMaster.araddr(17 downto 2) & x"FF");
+                  -- Reset the counter
+                  v.cnt        := 0;
+                  -- Next State
+                  v.state      := REQ_S;
+               end if;
             end if;
          ----------------------------------------------------------------------
          when INIT_S =>

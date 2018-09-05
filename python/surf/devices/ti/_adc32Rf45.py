@@ -30,7 +30,7 @@ class Adc32Rf45(pr.Device):
         super().__init__(
             name        = name, 
             description = description, 
-            size        = (0x1 << 18), 
+            size        = (0x1 << 19), 
             **kwargs)
         
         ################
