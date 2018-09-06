@@ -41,21 +41,20 @@ end entity Debouncer;
 
 architecture rtl of Debouncer is
    
-   constant CLK_PERIOD_C   : real      := 1.0/CLK_FREQ_G;
-   constant CNT_MAX_C      : natural   := getTimeRatio(DEBOUNCE_PERIOD_G, CLK_PERIOD_C) - 1;
-   constant POLARITY_EQ_C  : boolean   := ite(INPUT_POLARITY_G = OUTPUT_POLARITY_G, true, false);
+   constant CLK_PERIOD_C   : real            := 1.0/CLK_FREQ_G;
+   constant CNT_MAX_C      : natural         := getTimeRatio(DEBOUNCE_PERIOD_G, CLK_PERIOD_C) - 1;
+   constant POLARITY_EQ_C  : boolean         := ite(INPUT_POLARITY_G = OUTPUT_POLARITY_G, true, false);
+   constant SYNC_INIT_C    : slv(1 downto 0) := (others => not INPUT_POLARITY_G);
    
    type RegType is record
       filter      : integer range 0 to CNT_MAX_C;
       iSyncedDly  : sl;
-      initDly     : slv(3 downto 0);
       o           : sl;
    end record RegType;
 
    constant REG_RESET_C : RegType :=
       (filter     => 0,
-       iSyncedDly => '0',
-       initDly    => "1111",
+       iSyncedDly => not INPUT_POLARITY_G,
        o          => not OUTPUT_POLARITY_G);
 
    signal r       : RegType := REG_RESET_C;
@@ -71,7 +70,7 @@ begin
             RST_POLARITY_G => RST_POLARITY_G,
             RST_ASYNC_G    => RST_ASYNC_G,
             STAGES_G       => 2,
-            INIT_G         => "00")
+            INIT_G         => SYNC_INIT_C)
          port map (
             clk     => clk,
             rst     => rst,
@@ -90,10 +89,7 @@ begin
       
       v.iSyncedDly := iSynced;
       
-      -- do not run filter for 4 clock cycles after reset
-      v.initDly := r.initDly(3 downto 1) & '0';
-      
-      if (r.iSyncedDly /= iSynced and r.initDly = "0000") then  -- any edge
+      if (r.iSyncedDly /= iSynced) then  -- any edge
          v.filter := CNT_MAX_C;
       elsif (r.filter /= 0) then
          v.filter := r.filter - 1;
