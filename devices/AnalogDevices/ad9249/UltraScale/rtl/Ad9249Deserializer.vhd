@@ -176,7 +176,7 @@ begin
 
   idelayRdy_n <= not idelayCtrlRdy;
   adcData <= bitReverse(adcDv7R.masterAdcData(13 downto 7)) & bitReverse(adcDv7R.masterAdcData(6 downto 0))  when BIT_REV_G = '1' 
-             else adcDv7R.masterPixData;
+             else adcDv7R.masterAdcData;
 
 
   -------------------------------------------------------------------------------------------------
