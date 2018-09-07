@@ -490,28 +490,28 @@ begin
 
     case (adcDv7R.gearboxSeq) is
       when "000" =>
-        v.masterAdcData   := adcDv7R.adcDataGearboxIn(15 downto 2);
-        v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
-      when "001" =>
         v.masterAdcData   := adcDv7R.adcDataGearboxIn(13 downto 0);
         v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
-      when "010" =>
+      when "001" =>
         v.masterAdcData   := adcDv7R.adcDataGearboxIn(11 downto 0) & adcDv7R.adcDataGearboxIn_1(15 downto 14);
         v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
-      when "011" =>
+      when "010" =>
         v.masterAdcData   := adcDv7R.adcDataGearboxIn( 9 downto 0) & adcDv7R.adcDataGearboxIn_1(15 downto 12);
         v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
-      when "100" =>
+      when "011" =>
         v.masterAdcData   := adcDv7R.adcDataGearboxIn( 7 downto 0) & adcDv7R.adcDataGearboxIn_1(15 downto  10);
         v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
-      when "101" =>
+      when "100" =>
         v.masterAdcData   := adcDv7R.adcDataGearboxIn( 5 downto 0) & adcDv7R.adcDataGearboxIn_1(15 downto  8);
         v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
-      when "110" =>
+      when "101" =>
         v.masterAdcData   := adcDv7R.adcDataGearboxIn( 3 downto 0) & adcDv7R.adcDataGearboxIn_1(15 downto  6);
         v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
-      when "111" =>
+      when "110" =>
         v.masterAdcData   := adcDv7R.adcDataGearboxIn( 1 downto 0) & adcDv7R.adcDataGearboxIn_1(15 downto  4);
+        v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
+      when "111" =>
+        v.masterAdcData   := adcDv7R.adcDataGearboxIn_1(15 downto  2);
         v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
       when others =>
         v.masterAdcData   := (others => '0');
