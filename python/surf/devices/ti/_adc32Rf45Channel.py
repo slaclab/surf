@@ -67,7 +67,7 @@ class Adc32Rf45Channel(pr.Device):
             description  = "Always set this bit to 1",
             offset       =  (offsetCorrector + (4*0x68)),
             bitSize      =  1,
-            bitOffset    =  6,        # this looks mislabeled in datasheet, should be bit 6 (Ex. 0xC2 freeze offset corr, 0x42 unfreeze offset corr)
+            bitOffset    =  5,
             base         = pr.UInt,
             mode         = "WO",
             value        = 0x1,
