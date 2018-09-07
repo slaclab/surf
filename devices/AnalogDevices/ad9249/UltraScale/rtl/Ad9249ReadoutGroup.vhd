@@ -406,7 +406,7 @@ begin
         delayValueOut => curDelayFrame,
         bitSlip       => adcR.slip,
         gearboxOffset => adcR.gearboxOffset,
-        pixData       => adcFrame
+        adcData       => adcFrame
         );
 
    --------------------------------
@@ -438,7 +438,7 @@ begin
         delayValueOut => curDelayData(i),
         bitSlip       => adcR.slip,
         gearboxOffset => adcR.gearboxOffset,
-        pixData       =>  adcData(i)
+        adcData       => adcData(i)
         );
    end generate;
 
