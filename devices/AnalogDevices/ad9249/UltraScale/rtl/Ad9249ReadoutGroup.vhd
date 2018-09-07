@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-03-19
+-- Last update: 2018-09-07
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -31,7 +31,7 @@ use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.Ad9249Pkg.all;
 
-entity Ad9249ReadoutGroupUS is
+entity Ad9249ReadoutGroup is
    generic (
       TPD_G             : time                 := 1 ns;
       NUM_CHANNELS_G    : natural range 1 to 8 := 8;
@@ -61,10 +61,10 @@ entity Ad9249ReadoutGroupUS is
       adcStreamClk : in  sl;
       adcStreams   : out AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0) :=
       (others => axiStreamMasterInit((false, 2, 8, 0, TKEEP_NORMAL_C, 0, TUSER_NORMAL_C))));
-end Ad9249ReadoutGroupUS;
+end Ad9249ReadoutGroup;
 
 -- Define architecture
-architecture rtl of Ad9249ReadoutGroupUS is
+architecture rtl of Ad9249ReadoutGroup is
 
   attribute keep : string;
 
@@ -383,7 +383,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Deserializers
    -------------------------------------------------------------------------------------------------
-   U_FRAME_DESERIALIZER : entity work.Ad9249DeserializerUS
+   U_FRAME_DESERIALIZER : entity work.Ad9249Deserializer
       generic map (
         TPD_G             => TPD_G,
         NUM_CHANNELS_G    => 8,
@@ -415,7 +415,7 @@ begin
    GenData : for i in NUM_CHANNELS_G-1 downto 0 generate
      
 
-      U_DATA_DESERIALIZER : entity work.Ad9249DeserializerUS
+      U_DATA_DESERIALIZER : entity work.Ad9249Deserializer
       generic map (
         TPD_G             => TPD_G,
         NUM_CHANNELS_G    => 8,

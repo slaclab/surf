@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
--- File       : Ad9249ReadoutClkUS.vhd
+-- File       : Ad9249ReadoutClk.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-03-20
+-- Last update: 2018-09-07
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -34,7 +34,7 @@ use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.Ad9249Pkg.all;
 
-entity Ad9249DeserializerUS is
+entity Ad9249Deserializer is
    generic (
       TPD_G             : time                 := 1 ns;
       NUM_CHANNELS_G    : natural range 1 to 8 := 8;
@@ -63,10 +63,10 @@ entity Ad9249DeserializerUS is
       gearboxOffset   : in slv(2 downto 0) := "000";
       pixData         : out slv(13 downto 0)     
       );
-end Ad9249DeserializerUS;
+end Ad9249Deserializer;
 
 -- Define architecture
-architecture rtl of Ad9249DeserializerUS is
+architecture rtl of Ad9249Deserializer is
 
   attribute keep : string;
   -------------------------------------------------------------------------------------------------
