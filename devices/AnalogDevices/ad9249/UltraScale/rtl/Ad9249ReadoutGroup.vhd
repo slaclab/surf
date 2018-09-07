@@ -424,7 +424,7 @@ begin
             DEFAULT_DELAY_G   => (others => '0'),
             FRAME_PATTERN_G   => FRAME_PATTERN_C,
             ADC_INVERT_CH_G   => ADC_INVERT_CH_G(i),
-            BIT_REV_G         => '0')
+            BIT_REV_G         => '1')
          port map (
             adcClkRst     => adcBitRst,
             idelayCtrlRdy => axilR.idelayCtrlRdy,
