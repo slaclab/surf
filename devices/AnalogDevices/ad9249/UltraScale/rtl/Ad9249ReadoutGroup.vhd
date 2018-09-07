@@ -52,7 +52,7 @@ entity Ad9249ReadoutGroup is
       axilReadSlave   : out AxiLiteReadSlaveType;
 
       -- Reset for adc deserializer
-      adcClkRst : in sl;      
+      adcClkRst : in sl;
 
       -- Serial Data from ADC
       adcSerial : in Ad9249SerialGroupType;
@@ -66,10 +66,10 @@ end Ad9249ReadoutGroup;
 -- Define architecture
 architecture rtl of Ad9249ReadoutGroup is
 
-  attribute keep : string;
+   attribute keep : string;
 
-  constant FRAME_PATTERN_C : slv(13 downto 0) := "00000001111111";
-  
+   constant FRAME_PATTERN_C : slv(13 downto 0) := "00000001111111";
+
    -------------------------------------------------------------------------------------------------
    -- AXIL Registers
    -------------------------------------------------------------------------------------------------
@@ -108,37 +108,37 @@ architecture rtl of Ad9249ReadoutGroup is
    -- ADC Readout Clocked Registers
    -------------------------------------------------------------------------------------------------
    type AdcRegType is record
-      slip           : slv(3 downto 0);
-      count          : slv(5 downto 0);
-      gearBoxOffset  : slv(2 downto 0);
+      slip          : slv(3 downto 0);
+      count         : slv(5 downto 0);
+      gearBoxOffset : slv(2 downto 0);
       --loadDelay      : sl;
       --delayValue     : slv(8 downto 0);
-      locked         : sl;
-      fifoWrData     : Slv16Array(NUM_CHANNELS_G-1 downto 0);
+      locked        : sl;
+      fifoWrData    : Slv16Array(NUM_CHANNELS_G-1 downto 0);
    end record;
 
    constant ADC_REG_INIT_C : AdcRegType := (
-      slip           => (others => '0'),
-      count          => (others => '0'),
-      gearBoxOffset  => (others => '0'),
+      slip          => (others => '0'),
+      count         => (others => '0'),
+      gearBoxOffset => (others => '0'),
       --loadDelay      => '0',
       --delayValue     => (others => '0'),
-      locked         => '0',
-      fifoWrData     => (others => (others => '0')));
+      locked        => '0',
+      fifoWrData    => (others => (others => '0')));
 
    signal adcR   : AdcRegType := ADC_REG_INIT_C;
    signal adcRin : AdcRegType;
 
 
    -- Local Signals
-   signal tmpAdcClk      : sl;
-   signal adcBitClkIoIn  : sl;
-   signal adcBitClkIo    : sl;
-   signal adcBitClkR     : sl;
-   signal adcBitClkRD4   : sl;
-   signal adcBitRst      : sl;
-   signal adcBitIoRst    : sl;
-   signal idelayCtrlRdy  : sl := '1'; 
+   signal tmpAdcClk     : sl;
+   signal adcBitClkIoIn : sl;
+   signal adcBitClkIo   : sl;
+   signal adcBitClkR    : sl;
+   signal adcBitClkRD4  : sl;
+   signal adcBitRst     : sl;
+   signal adcBitIoRst   : sl;
+   signal idelayCtrlRdy : sl := '1';
 
    signal adcFramePad   : sl;
    signal adcFrame      : slv(13 downto 0);
@@ -159,10 +159,10 @@ architecture rtl of Ad9249ReadoutGroup is
    signal debugDataOut   : slv(NUM_CHANNELS_G*16-1 downto 0);
    signal debugDataTmp   : slv16Array(NUM_CHANNELS_G-1 downto 0);
 
-  attribute keep of adcBitClkRD4  : signal is "true";
-  attribute keep of adcBitClkR    : signal is "true";  
-  attribute keep of adcFrame      : signal is "true";
-  attribute keep of adcBitClkIo   : signal is "true";
+   attribute keep of adcBitClkRD4 : signal is "true";
+   attribute keep of adcBitClkR   : signal is "true";
+   attribute keep of adcFrame     : signal is "true";
+   attribute keep of adcBitClkIo  : signal is "true";
 
 begin
    -------------------------------------------------------------------------------------------------
@@ -290,65 +290,65 @@ begin
    -- Create Clocks
    -------------------------------------------------------------------------------------------------
 
-      ------------------------------------------
+   ------------------------------------------
    -- Generate clocks from 156.25 MHz PGP  --
    ------------------------------------------
    -- clkIn     : 350.00 MHz PGP
    -- clkOut(0) : 350.00 MHz adcBitClkIo clock
 
-   
-   U_iserdesClockGen : entity work.ClockManagerUltraScale 
-   generic map(
-      TPD_G                  => 1 ns,
-      TYPE_G                 => "MMCM",  -- or "PLL"
-      INPUT_BUFG_G           => true,
-      FB_BUFG_G              => true,
-      RST_IN_POLARITY_G      => '1',     -- '0' for active low
-      NUM_CLOCKS_G           => 1,
-      -- MMCM attributes
-      BANDWIDTH_G            => "OPTIMIZED",
-      CLKIN_PERIOD_G         => 2.85,    -- Input period in ns );
-      DIVCLK_DIVIDE_G        => 10,
-      CLKFBOUT_MULT_F_G      => 20.0,
-      CLKFBOUT_MULT_G        => 5,
-      CLKOUT0_DIVIDE_F_G     => 1.0,
-      CLKOUT0_DIVIDE_G       => 2,
-      CLKOUT0_PHASE_G        => 0.0,
-      CLKOUT0_DUTY_CYCLE_G   => 0.5,
-      CLKOUT0_RST_HOLD_G     => 3,
-      CLKOUT0_RST_POLARITY_G => '1')
-   port map(
-      clkIn           => adcBitClkIoIn,
-      rstIn           => adcClkRst,
-      clkOut(0)       => tmpAdcClk,
-      rstOut(0)       => adcBitIoRst,
-      locked          => open
-      -- AXI-Lite Interface
-      );
+
+   U_iserdesClockGen : entity work.ClockManagerUltraScale
+      generic map(
+         TPD_G                  => 1 ns,
+         TYPE_G                 => "MMCM",  -- or "PLL"
+         INPUT_BUFG_G           => true,
+         FB_BUFG_G              => true,
+         RST_IN_POLARITY_G      => '1',     -- '0' for active low
+         NUM_CLOCKS_G           => 1,
+         -- MMCM attributes
+         BANDWIDTH_G            => "OPTIMIZED",
+         CLKIN_PERIOD_G         => 2.85,    -- Input period in ns );
+         DIVCLK_DIVIDE_G        => 10,
+         CLKFBOUT_MULT_F_G      => 20.0,
+         CLKFBOUT_MULT_G        => 5,
+         CLKOUT0_DIVIDE_F_G     => 1.0,
+         CLKOUT0_DIVIDE_G       => 2,
+         CLKOUT0_PHASE_G        => 0.0,
+         CLKOUT0_DUTY_CYCLE_G   => 0.5,
+         CLKOUT0_RST_HOLD_G     => 3,
+         CLKOUT0_RST_POLARITY_G => '1')
+      port map(
+         clkIn     => adcBitClkIoIn,
+         rstIn     => adcClkRst,
+         clkOut(0) => tmpAdcClk,
+         rstOut(0) => adcBitIoRst,
+         locked    => open
+       -- AXI-Lite Interface
+         );
 
    AdcClk_I_Ibufds : IBUFDS
       generic map (
-        DQS_BIAS => "FALSE"  -- (FALSE, TRUE)
-      )
+         DQS_BIAS => "FALSE"            -- (FALSE, TRUE)
+         )
       port map (
          I  => adcSerial.dClkP,
          IB => adcSerial.dClkN,
          O  => adcBitClkIoIn);
 
    U_bitClkBufG : BUFG
-     port map (
-       O => adcBitClkIo,
-       I => tmpAdcClk);
-     
+      port map (
+         O => adcBitClkIo,
+         I => tmpAdcClk);
+
    -- Regional clock
    U_AdcBitClkR : BUFGCE_DIV
       generic map (
-        BUFGCE_DIVIDE => 7,     -- 1-8
-        -- Programmable Inversion Attributes: Specifies built-in programmable inversion on specific pins
-        IS_CE_INVERTED => '0',  -- Optional inversion for CE
-        IS_CLR_INVERTED => '0', -- Optional inversion for CLR
-        IS_I_INVERTED => '0'    -- Optional inversion for I
-        )
+         BUFGCE_DIVIDE   => 7,          -- 1-8
+         -- Programmable Inversion Attributes: Specifies built-in programmable inversion on specific pins
+         IS_CE_INVERTED  => '0',        -- Optional inversion for CE
+         IS_CLR_INVERTED => '0',        -- Optional inversion for CLR
+         IS_I_INVERTED   => '0'         -- Optional inversion for I
+         )
       port map (
          I   => adcBitClkIo,
          O   => adcBitClkR,
@@ -358,12 +358,12 @@ begin
    -- Regional clock
    U_AdcBitClkRD4 : BUFGCE_DIV
       generic map (
-        BUFGCE_DIVIDE => 4,     -- 1-8
-        -- Programmable Inversion Attributes: Specifies built-in programmable inversion on specific pins
-        IS_CE_INVERTED => '0',  -- Optional inversion for CE
-        IS_CLR_INVERTED => '0', -- Optional inversion for CLR
-        IS_I_INVERTED => '0'    -- Optional inversion for I
-        )
+         BUFGCE_DIVIDE   => 4,          -- 1-8
+         -- Programmable Inversion Attributes: Specifies built-in programmable inversion on specific pins
+         IS_CE_INVERTED  => '0',        -- Optional inversion for CE
+         IS_CLR_INVERTED => '0',        -- Optional inversion for CLR
+         IS_I_INVERTED   => '0'         -- Optional inversion for I
+         )
       port map (
          I   => adcBitClkIo,
          O   => adcBitClkRD4,
@@ -385,61 +385,61 @@ begin
    -------------------------------------------------------------------------------------------------
    U_FRAME_DESERIALIZER : entity work.Ad9249Deserializer
       generic map (
-        TPD_G             => TPD_G,
-        NUM_CHANNELS_G    => 8,
-        IODELAY_GROUP_G   => "DEFAULT_GROUP",
-        IDELAYCTRL_FREQ_G => 350.0,
-        DEFAULT_DELAY_G   => (others => '0'),
-        FRAME_PATTERN_G   => FRAME_PATTERN_C,
-        ADC_INVERT_CH_G   => '1',
-        BIT_REV_G         => '0')
+         TPD_G             => TPD_G,
+         NUM_CHANNELS_G    => 8,
+         IODELAY_GROUP_G   => "DEFAULT_GROUP",
+         IDELAYCTRL_FREQ_G => 350.0,
+         DEFAULT_DELAY_G   => (others => '0'),
+         FRAME_PATTERN_G   => FRAME_PATTERN_C,
+         ADC_INVERT_CH_G   => '1',
+         BIT_REV_G         => '0')
       port map (
-        adcClkRst     => adcBitRst,
-        idelayCtrlRdy => axilR.idelayCtrlRdy,
-        dClk          => adcBitClkIo,                         -- Data clock
-        dClkDiv4      => adcBitClkRD4,
-        dClkDiv7      => adcBitClkR,
-        sDataP        => adcSerial.fClkP,                       -- Frame clock
-        sDataN        => adcSerial.fClkN,
-        loadDelay     => axilR.frameDelaySet,
-        delay         => axilR.delay,
-        delayValueOut => curDelayFrame,
-        bitSlip       => adcR.slip,
-        gearboxOffset => adcR.gearboxOffset,
-        adcData       => adcFrame
-        );
+         adcClkRst     => adcBitRst,
+         idelayCtrlRdy => axilR.idelayCtrlRdy,
+         dClk          => adcBitClkIo,      -- Data clock
+         dClkDiv4      => adcBitClkRD4,
+         dClkDiv7      => adcBitClkR,
+         sDataP        => adcSerial.fClkP,  -- Frame clock
+         sDataN        => adcSerial.fClkN,
+         loadDelay     => axilR.frameDelaySet,
+         delay         => axilR.delay,
+         delayValueOut => curDelayFrame,
+         bitSlip       => adcR.slip,
+         gearboxOffset => adcR.gearboxOffset,
+         adcData       => adcFrame
+         );
 
    --------------------------------
    -- Data Input, 8 channels
    --------------------------------
    GenData : for i in NUM_CHANNELS_G-1 downto 0 generate
-     
+
 
       U_DATA_DESERIALIZER : entity work.Ad9249Deserializer
-      generic map (
-        TPD_G             => TPD_G,
-        NUM_CHANNELS_G    => 8,
-        IODELAY_GROUP_G   => "DEFAULT_GROUP",
-        IDELAYCTRL_FREQ_G => 350.0,
-        DEFAULT_DELAY_G   => (others => '0'),
-        FRAME_PATTERN_G   => FRAME_PATTERN_C,
-        ADC_INVERT_CH_G   => ADC_INVERT_CH_G(i),
-        BIT_REV_G         => '0')
-      port map (
-        adcClkRst     => adcBitRst,
-        idelayCtrlRdy => axilR.idelayCtrlRdy,
-        dClk          => adcBitClkIo,                         -- Data clock
-        dClkDiv4      => adcBitClkRD4,
-        dClkDiv7      => adcBitClkR,
-        sDataP        => adcSerial.chP(i),                       -- Frame clock
-        sDataN        => adcSerial.chN(i),
-        loadDelay     => axilR.dataDelaySet(i),
-        delay         => axilR.delay,
-        delayValueOut => curDelayData(i),
-        bitSlip       => adcR.slip,
-        gearboxOffset => adcR.gearboxOffset,
-        adcData       => adcData(i)
-        );
+         generic map (
+            TPD_G             => TPD_G,
+            NUM_CHANNELS_G    => 8,
+            IODELAY_GROUP_G   => "DEFAULT_GROUP",
+            IDELAYCTRL_FREQ_G => 350.0,
+            DEFAULT_DELAY_G   => (others => '0'),
+            FRAME_PATTERN_G   => FRAME_PATTERN_C,
+            ADC_INVERT_CH_G   => ADC_INVERT_CH_G(i),
+            BIT_REV_G         => '0')
+         port map (
+            adcClkRst     => adcBitRst,
+            idelayCtrlRdy => axilR.idelayCtrlRdy,
+            dClk          => adcBitClkIo,       -- Data clock
+            dClkDiv4      => adcBitClkRD4,
+            dClkDiv7      => adcBitClkR,
+            sDataP        => adcSerial.chP(i),  -- Frame clock
+            sDataN        => adcSerial.chN(i),
+            loadDelay     => axilR.dataDelaySet(i),
+            delay         => axilR.delay,
+            delayValueOut => curDelayData(i),
+            bitSlip       => adcR.slip,
+            gearboxOffset => adcR.gearboxOffset,
+            adcData       => adcData(i)
+            );
    end generate;
 
    -------------------------------------------------------------------------------------------------
@@ -448,7 +448,7 @@ begin
    adcComb : process (adcData, adcFrame, adcR) is
       variable v : AdcRegType;
    begin
-      v := adcR;      
+      v := adcR;
 
       ----------------------------------------------------------------------------------------------
       -- Slip bits until correct alignment seen
@@ -462,7 +462,7 @@ begin
             v.count  := adcR.count + 1;
             -- increments the gearbox
             if adcR.slip = 0 then
-              v.gearBoxOffset := adcR.gearBoxOffset + 1;
+               v.gearBoxOffset := adcR.gearBoxOffset + 1;
             end if;
          end if;
       end if;
@@ -471,7 +471,7 @@ begin
          v.count := adcR.count + 1;
       end if;
 
-      
+
 
       ----------------------------------------------------------------------------------------------
       -- Look for Frame rising edges and write data to fifos
