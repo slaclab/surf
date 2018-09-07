@@ -2,7 +2,7 @@
 -- File       : TenGigEthGthUltraScaleWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-08
--- Last update: 2018-01-08
+-- Last update: 2018-08-23
 -------------------------------------------------------------------------------
 -- Description: GTH Ultra Scale Wrapper for 10GBASE-R Ethernet
 -- Note: This module supports up to a MGT QUAD of 10GigE interfaces
@@ -27,8 +27,10 @@ use work.TenGigEthPkg.all;
 
 entity TenGigEthGthUltraScaleWrapper is
    generic (
-      TPD_G             : time                             := 1 ns;    
+      TPD_G             : time                             := 1 ns;
       NUM_LANE_G        : natural range 1 to 4             := 1;
+      PAUSE_EN_G        : boolean                          := true;
+      PAUSE_512BITS_G   : positive                         := 8;
       -- QUAD PLL Configurations
       QPLL_REFCLK_SEL_G : slv(2 downto 0)                  := "001";
       -- AXI-Lite Configurations
@@ -78,7 +80,7 @@ entity TenGigEthGthUltraScaleWrapper is
       gtTxP               : out slv(NUM_LANE_G-1 downto 0);
       gtTxN               : out slv(NUM_LANE_G-1 downto 0);
       gtRxP               : in  slv(NUM_LANE_G-1 downto 0);
-      gtRxN               : in  slv(NUM_LANE_G-1 downto 0));  
+      gtRxN               : in  slv(NUM_LANE_G-1 downto 0));
 end TenGigEthGthUltraScaleWrapper;
 
 architecture mapping of TenGigEthGthUltraScaleWrapper is
@@ -108,7 +110,7 @@ begin
       port map (
          arst   => extRst,
          clk    => coreClock,
-         rstOut => coreReset);   
+         rstOut => coreReset);
 
    ----------------------
    -- Common Clock Module 
@@ -116,7 +118,7 @@ begin
    TenGigEthGthUltraScaleClk_Inst : entity work.TenGigEthGthUltraScaleClk
       generic map (
          TPD_G             => TPD_G,
-         QPLL_REFCLK_SEL_G => QPLL_REFCLK_SEL_G)         
+         QPLL_REFCLK_SEL_G => QPLL_REFCLK_SEL_G)
       port map (
          -- MGT Clock Port (156.25 MHz)
          gtRefClk      => gtRefClk,
@@ -129,7 +131,7 @@ begin
          qplllock      => qplllock,
          qplloutclk    => qplloutclk,
          qplloutrefclk => qplloutrefclk,
-         qpllRst       => qpllReset);            
+         qpllRst       => qpllReset);
 
    qpllReset <= uOr(qpllRst) and not(qPllLock);
 
@@ -138,14 +140,16 @@ begin
    ----------------
    GEN_LANE :
    for i in 0 to NUM_LANE_G-1 generate
-      
+
       TenGigEthGthUltraScale_Inst : entity work.TenGigEthGthUltraScale
          generic map (
-            TPD_G            => TPD_G,
+            TPD_G           => TPD_G,
+            PAUSE_EN_G      => PAUSE_EN_G,
+            PAUSE_512BITS_G => PAUSE_512BITS_G,
             -- AXI-Lite Configurations
-            EN_AXI_REG_G     => EN_AXI_REG_G,
+            EN_AXI_REG_G    => EN_AXI_REG_G,
             -- AXI Streaming Configurations
-            AXIS_CONFIG_G    => AXIS_CONFIG_G(i))       
+            AXIS_CONFIG_G   => AXIS_CONFIG_G(i))
          port map (
             -- Local Configurations
             localMac           => localMac(i),
@@ -187,7 +191,7 @@ begin
             gtTxP              => gtTxP(i),
             gtTxN              => gtTxN(i),
             gtRxP              => gtRxP(i),
-            gtRxN              => gtRxN(i));  
+            gtRxN              => gtRxN(i));
 
    end generate GEN_LANE;
 

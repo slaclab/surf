@@ -2,7 +2,7 @@
 -- File       : GigEthLvdsUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-02-07
--- Last update: 2018-01-08
+-- Last update: 2018-08-23
 -------------------------------------------------------------------------------
 -- Description: SGMII Ethernet over LVDS
 -------------------------------------------------------------------------------
@@ -26,11 +26,13 @@ use work.GigEthPkg.all;
 
 entity GigEthLvdsUltraScale is
    generic (
-      TPD_G            : time                := 1 ns;
+      TPD_G           : time                := 1 ns;
+      PAUSE_EN_G      : boolean             := true;
+      PAUSE_512BITS_G : positive            := 8;
       -- AXI-Lite Configurations
-      EN_AXI_REG_G     : boolean             := false;
+      EN_AXI_REG_G    : boolean             := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      AXIS_CONFIG_G   : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
@@ -71,28 +73,28 @@ end GigEthLvdsUltraScale;
 
 architecture mapping of GigEthLvdsUltraScale is
 
-   signal config          : GigEthConfigType;
-   signal status          : GigEthStatusType;
+   signal config : GigEthConfigType;
+   signal status : GigEthStatusType;
 
    signal mAxiReadMaster  : AxiLiteReadMasterType;
    signal mAxiReadSlave   : AxiLiteReadSlaveType;
    signal mAxiWriteMaster : AxiLiteWriteMasterType;
    signal mAxiWriteSlave  : AxiLiteWriteSlaveType;
 
-   signal gmiiTxClk       : sl;
-   signal gmiiTxd         : slv(7 downto 0);
-   signal gmiiTxEn        : sl;
-   signal gmiiTxEr        : sl;
+   signal gmiiTxClk : sl;
+   signal gmiiTxd   : slv(7 downto 0);
+   signal gmiiTxEn  : sl;
+   signal gmiiTxEr  : sl;
 
-   signal gmiiRxClk       : sl;
-   signal gmiiRxd         : slv(7 downto 0);
-   signal gmiiRxDv        : sl;
-   signal gmiiRxEr        : sl;
+   signal gmiiRxClk : sl;
+   signal gmiiRxd   : slv(7 downto 0);
+   signal gmiiRxDv  : sl;
+   signal gmiiRxEr  : sl;
 
-   signal areset          : sl;
-   signal coreRst         : sl;
+   signal areset  : sl;
+   signal coreRst : sl;
 
-   signal delayCtrlRdy    : sl;
+   signal delayCtrlRdy : sl;
 
 begin
 
@@ -134,9 +136,11 @@ begin
    --------------------
    U_MAC : entity work.EthMacTop
       generic map (
-         TPD_G         => TPD_G,
-         PHY_TYPE_G    => "GMII",
-         PRIM_CONFIG_G => AXIS_CONFIG_G)
+         TPD_G           => TPD_G,
+         PAUSE_EN_G      => PAUSE_EN_G,
+         PAUSE_512BITS_G => PAUSE_512BITS_G,
+         PHY_TYPE_G      => "GMII",
+         PRIM_CONFIG_G   => AXIS_CONFIG_G)
       port map (
          -- Primary Interface
          primClk         => dmaClk,
@@ -170,34 +174,34 @@ begin
    U_GigEthLvdsUltraScaleCore : entity work.SaltUltraScaleCore
       port map (
          -- Clocks and Resets
-         clk125m                => sysClk125,
-         clk312                 => sysClk312,
-         clk625                 => sysClk625,
-         idelay_rdy_in          => delayCtrlRdy,
-         mmcm_locked            => mmcmLocked,
-         sgmii_clk_r            => open,
-         sgmii_clk_f            => open,
-         sgmii_clk_en           => open,
-         speed_is_10_100        => speed_is_10_100,
-         speed_is_100           => speed_is_100,
-         reset                  => coreRst,
+         clk125m              => sysClk125,
+         clk312               => sysClk312,
+         clk625               => sysClk625,
+         idelay_rdy_in        => delayCtrlRdy,
+         mmcm_locked          => mmcmLocked,
+         sgmii_clk_r          => open,
+         sgmii_clk_f          => open,
+         sgmii_clk_en         => open,
+         speed_is_10_100      => speed_is_10_100,
+         speed_is_100         => speed_is_100,
+         reset                => coreRst,
          -- PHY Interface
-         gmii_txd               => gmiiTxd,
-         gmii_tx_en             => gmiiTxEn,
-         gmii_tx_er             => gmiiTxEr,
-         gmii_rxd               => gmiiRxd,
-         gmii_rx_dv             => gmiiRxDv,
-         gmii_rx_er             => gmiiRxEr,
-         gmii_isolate           => open,
+         gmii_txd             => gmiiTxd,
+         gmii_tx_en           => gmiiTxEn,
+         gmii_tx_er           => gmiiTxEr,
+         gmii_rxd             => gmiiRxd,
+         gmii_rx_dv           => gmiiRxDv,
+         gmii_rx_er           => gmiiRxEr,
+         gmii_isolate         => open,
          -- MGT Ports
-         txp                    => sgmiiTxP,
-         txn                    => sgmiiTxN,
-         rxp                    => sgmiiRxP,
-         rxn                    => sgmiiRxN,
+         txp                  => sgmiiTxP,
+         txn                  => sgmiiTxN,
+         rxp                  => sgmiiRxP,
+         rxn                  => sgmiiRxN,
          -- Configuration and Status
-         configuration_vector   => config.coreConfig,
-         status_vector          => status.coreStatus,
-         signal_detect          => sigDet);
+         configuration_vector => config.coreConfig,
+         status_vector        => status.coreStatus,
+         signal_detect        => sigDet);
 
    status.phyReady <= status.coreStatus(0);
    phyReady        <= status.phyReady;
@@ -207,8 +211,8 @@ begin
    --------------------------------
    U_GigEthReg : entity work.GigEthReg
       generic map (
-         TPD_G            => TPD_G,
-         EN_AXI_REG_G     => EN_AXI_REG_G)
+         TPD_G        => TPD_G,
+         EN_AXI_REG_G => EN_AXI_REG_G)
       port map (
          -- Local Configurations
          localMac       => localMac,

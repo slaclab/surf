@@ -2,7 +2,7 @@
 -- File       : TenGigEthGtyUltraScaleWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-04-06
--- Last update: 2018-04-06
+-- Last update: 2018-08-23
 -------------------------------------------------------------------------------
 -- Description: GTH Ultra Scale Wrapper for 10GBASE-R Ethernet
 -- Note: This module supports up to a MGT QUAD of 10GigE interfaces
@@ -30,6 +30,8 @@ entity TenGigEthGtyUltraScaleWrapper is
    generic (
       TPD_G             : time                             := 1 ns;
       NUM_LANE_G        : natural range 1 to 4             := 1;
+      PAUSE_EN_G        : boolean                          := true;
+      PAUSE_512BITS_G   : positive                         := 8;
       -- QUAD PLL Configurations
       QPLL_REFCLK_SEL_G : slv(2 downto 0)                  := "001";
       -- AXI-Lite Configurations
@@ -139,11 +141,13 @@ begin
 
       TenGigEthGtyUltraScale_Inst : entity work.TenGigEthGtyUltraScale
          generic map (
-            TPD_G         => TPD_G,
+            TPD_G           => TPD_G,
+            PAUSE_EN_G      => PAUSE_EN_G,
+            PAUSE_512BITS_G => PAUSE_512BITS_G,
             -- AXI-Lite Configurations
-            EN_AXI_REG_G  => EN_AXI_REG_G,
+            EN_AXI_REG_G    => EN_AXI_REG_G,
             -- AXI Streaming Configurations
-            AXIS_CONFIG_G => AXIS_CONFIG_G(i))
+            AXIS_CONFIG_G   => AXIS_CONFIG_G(i))
          port map (
             -- Local Configurations
             localMac           => localMac(i),
