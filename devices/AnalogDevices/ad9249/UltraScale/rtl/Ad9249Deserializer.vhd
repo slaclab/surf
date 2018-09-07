@@ -61,7 +61,7 @@ entity Ad9249Deserializer is
       delayValueOut   : out slv(8 downto 0);
       bitSlip         : in slv(3 downto 0) := "0000";
       gearboxOffset   : in slv(2 downto 0) := "000";
-      pixData         : out slv(13 downto 0)     
+      adcData         : out slv(13 downto 0)     
       );
 end Ad9249Deserializer;
 
@@ -127,19 +127,19 @@ architecture rtl of Ad9249Deserializer is
   type AdcClkDiv7RegType is record
     gearboxCounter      : slv(2 downto 0);
     gearboxSeq          : slv(2 downto 0);
-    masterPixData       : slv(13 downto 0);
+    masterAdcData       : slv(13 downto 0);
     dataAligned         : sl;
-    pixDataGearboxIn    : slv(15 downto 0);
-    pixDataGearboxIn_1  : slv(15 downto 0);
+    adcDataGearboxIn    : slv(15 downto 0);
+    adcDataGearboxIn_1  : slv(15 downto 0);
   end record;
 
   constant ADC_CLK_DV7_REG_INIT_C : AdcClkDiv7RegType := (
     gearboxCounter      => (others => '0'),
     gearboxSeq          => (others => '0'),
-    masterPixData       => (others => '0'),
+    masterAdcData       => (others => '0'),
     dataAligned         => '0',
-    pixDataGearboxIn    => (others => '0'),
-    pixDataGearboxIn_1  => (others => '0')
+    adcDataGearboxIn    => (others => '0'),
+    adcDataGearboxIn_1  => (others => '0')
     );
 
   
@@ -175,8 +175,9 @@ architecture rtl of Ad9249Deserializer is
 begin
 
   idelayRdy_n <= not idelayCtrlRdy;
-  PixData <= adcDv7R.masterPixData(7)&adcDv7R.masterPixData(8)&adcDv7R.masterPixData(9)&adcDv7R.masterPixData(10)&adcDv7R.masterPixData(11)&adcDv7R.masterPixData(12)&adcDv7R.masterPixData(13)&adcDv7R.masterPixData(0)&adcDv7R.masterPixData(1)&adcDv7R.masterPixData(2)&adcDv7R.masterPixData(3)&adcDv7R.masterPixData(4)&adcDv7R.masterPixData(5)&adcDv7R.masterPixData(6)                       when BIT_REV_G = '1'
+  adcData <= bitReverse(adcDv7R.masterAdcData(13 downto 7)) & bitReverse(adcDv7R.masterAdcData(6 downto 0))  when BIT_REV_G = '1' 
              else adcDv7R.masterPixData;
+
 
   -------------------------------------------------------------------------------------------------
   -- Create Clocks
@@ -475,13 +476,13 @@ begin
     v := adcDv7R;
       
     v.gearboxSeq        := adcDv7R.gearboxCounter + gearboxOffset;
-    v.pixDataGearboxIn  := adcDv4R.masterDataDWBS;
+    v.adcDataGearboxIn  := adcDv4R.masterDataDWBS;
 
     -- creates pipeline
-    v.pixDataGearboxIn_1 := adcDv7R.pixDataGearboxIn;
+    v.adcDataGearboxIn_1 := adcDv7R.adcDataGearboxIn;
 
     -- flag that indicates data, or frame signal matches the expected pattern
-    if adcDv7R.masterPixData = FRAME_PATTERN_G then
+    if adcDv7R.masterAdcData = FRAME_PATTERN_G then
       v.dataAligned := '1';
     else
       v.dataAligned := '0';
@@ -489,31 +490,31 @@ begin
 
     case (adcDv7R.gearboxSeq) is
       when "000" =>
-        v.masterPixData   := adcDv7R.pixDataGearboxIn(15 downto 2);
+        v.masterAdcData   := adcDv7R.adcDataGearboxIn(15 downto 2);
         v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
       when "001" =>
-        v.masterPixData   := adcDv7R.pixDataGearboxIn(13 downto 0);
+        v.masterAdcData   := adcDv7R.adcDataGearboxIn(13 downto 0);
         v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
       when "010" =>
-        v.masterPixData   := adcDv7R.pixDataGearboxIn(11 downto 0) & adcDv7R.pixDataGearboxIn_1(15 downto 14);
+        v.masterAdcData   := adcDv7R.adcDataGearboxIn(11 downto 0) & adcDv7R.adcDataGearboxIn_1(15 downto 14);
         v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
       when "011" =>
-        v.masterPixData   := adcDv7R.pixDataGearboxIn( 9 downto 0) & adcDv7R.pixDataGearboxIn_1(15 downto 12);
+        v.masterAdcData   := adcDv7R.adcDataGearboxIn( 9 downto 0) & adcDv7R.adcDataGearboxIn_1(15 downto 12);
         v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
       when "100" =>
-        v.masterPixData   := adcDv7R.pixDataGearboxIn( 7 downto 0) & adcDv7R.pixDataGearboxIn_1(15 downto  10);
+        v.masterAdcData   := adcDv7R.adcDataGearboxIn( 7 downto 0) & adcDv7R.adcDataGearboxIn_1(15 downto  10);
         v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
       when "101" =>
-        v.masterPixData   := adcDv7R.pixDataGearboxIn( 5 downto 0) & adcDv7R.pixDataGearboxIn_1(15 downto  8);
+        v.masterAdcData   := adcDv7R.adcDataGearboxIn( 5 downto 0) & adcDv7R.adcDataGearboxIn_1(15 downto  8);
         v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
       when "110" =>
-        v.masterPixData   := adcDv7R.pixDataGearboxIn( 3 downto 0) & adcDv7R.pixDataGearboxIn_1(15 downto  6);
+        v.masterAdcData   := adcDv7R.adcDataGearboxIn( 3 downto 0) & adcDv7R.adcDataGearboxIn_1(15 downto  6);
         v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
       when "111" =>
-        v.masterPixData   := adcDv7R.pixDataGearboxIn( 1 downto 0) & adcDv7R.pixDataGearboxIn_1(15 downto  4);
+        v.masterAdcData   := adcDv7R.adcDataGearboxIn( 1 downto 0) & adcDv7R.adcDataGearboxIn_1(15 downto  4);
         v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
       when others =>
-        v.masterPixData   := (others => '0');
+        v.masterAdcData   := (others => '0');
         v.gearboxCounter  := (others => '0');
     end case;
 
