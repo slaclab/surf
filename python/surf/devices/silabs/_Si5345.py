@@ -23,8 +23,9 @@ import csv
 
 class Si5345(pr.Device):
     def __init__(self,       
-            name        = "Si5345",
-            description = "Si5345",
+            name         = "Si5345",
+            description  = "Si5345",
+            simpleDisply = True,
             **kwargs):
         super().__init__(name=name, description=description, size=(0x1000<<2), **kwargs)
         
@@ -308,6 +309,7 @@ class Si5345(pr.Device):
             bitSize     = 1,
             bitOffset   = 1,
             mode        = 'RW',
+            hidden      = simpleDisply,
         ))     
 
         self.add(pr.RemoteVariable(
@@ -488,6 +490,7 @@ class Si5345(pr.Device):
             bitSize     = 1,
             bitOffset   = 5,
             mode        = 'RW',
+            hidden      = simpleDisply,
         ))    
 
         self.add(pr.RemoteVariable(
@@ -597,7 +600,8 @@ class Si5345(pr.Device):
                 offset      = ((0x0041+i) << 2),
                 bitSize     = 5,
                 mode        = 'RW',
-            ))          
+                hidden      = simpleDisply,
+            ))         
 
         self.add(pr.RemoteVariable(
             name        = 'OOFXO_DIV_SEL',
@@ -605,7 +609,8 @@ class Si5345(pr.Device):
             offset      = (0x0045 << 2),
             bitSize     = 5,
             mode        = 'RW',
-        ))          
+            hidden      = simpleDisply,
+        ))         
             
         for i in range(4):        
             self.add(pr.RemoteVariable(
@@ -632,6 +637,7 @@ class Si5345(pr.Device):
             bitSize     = 3,
             bitOffset   = 0,
             mode        = 'RW',
+            hidden      = simpleDisply,
         )) 
 
         self.add(pr.RemoteVariable(
@@ -641,6 +647,7 @@ class Si5345(pr.Device):
             bitSize     = 3,
             bitOffset   = 4,
             mode        = 'RW',
+            hidden      = simpleDisply,
         ))
 
         self.add(pr.RemoteVariable(
@@ -650,7 +657,8 @@ class Si5345(pr.Device):
             bitSize     = 3,
             bitOffset   = 0,
             mode        = 'RW',
-        )) 
+            hidden      = simpleDisply,
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'OOF_DETWIN_SEL[3]',
@@ -659,7 +667,8 @@ class Si5345(pr.Device):
             bitSize     = 3,
             bitOffset   = 4,
             mode        = 'RW',
-        ))        
+            hidden      = simpleDisply,
+        ))      
         
         self.add(pr.RemoteVariable(
             name        = 'OOF_ON_LOS',
@@ -668,7 +677,8 @@ class Si5345(pr.Device):
             bitSize     = 4,
             bitOffset   = 0,
             mode        = 'RW',
-        ))         
+            hidden      = simpleDisply,
+        ))       
         
         for i in range(4):        
             self.add(pr.RemoteVariable(
@@ -696,8 +706,9 @@ class Si5345(pr.Device):
                 bitSize     = 2, 
                 bitOffset   = (2*i),   
                 mode        = 'RW',
-            ))            
-            
+                hidden      = simpleDisply,
+            ))           
+                
         for i in range(4):
             self.add(pr.RemoteVariable(
                 name        = ('OOF0_RATIO_REF[%d]' % i), 
@@ -705,7 +716,8 @@ class Si5345(pr.Device):
                 offset      = ((0x005A+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-            ))  
+                hidden      = simpleDisply,
+            ))
 
         for i in range(4):
             self.add(pr.RemoteVariable(
@@ -714,6 +726,7 @@ class Si5345(pr.Device):
                 offset      = ((0x005E+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
+                hidden      = simpleDisply,
             ))
 
         for i in range(4):
@@ -723,7 +736,8 @@ class Si5345(pr.Device):
                 offset      = ((0x0062+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-            ))  
+                hidden      = simpleDisply,
+            ))
 
         for i in range(4):
             self.add(pr.RemoteVariable(
@@ -732,7 +746,8 @@ class Si5345(pr.Device):
                 offset      = ((0x0066+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-            ))            
+                hidden      = simpleDisply,
+            ))           
             
         self.add(pr.RemoteVariable(
             name        = 'LOL_FST_EN',
@@ -751,6 +766,7 @@ class Si5345(pr.Device):
             bitSize     = 4,
             bitOffset   = 4,
             mode        = 'RW',
+            hidden      = simpleDisply,
         ))     
 
         self.add(pr.RemoteVariable(
@@ -760,7 +776,8 @@ class Si5345(pr.Device):
             bitSize     = 2,
             bitOffset   = 2,
             mode        = 'RW',
-        ))   
+            hidden      = simpleDisply,
+        ))  
 
         self.add(pr.RemoteVariable(
             name        = 'LOL_FST_SET_THR_SEL',
@@ -769,6 +786,7 @@ class Si5345(pr.Device):
             bitSize     = 4,
             bitOffset   = 4,
             mode        = 'RW',
+            hidden      = simpleDisply,
         )) 
 
         self.add(pr.RemoteVariable(
@@ -778,6 +796,7 @@ class Si5345(pr.Device):
             bitSize     = 4,
             bitOffset   = 4,
             mode        = 'RW',
+            hidden      = simpleDisply,
         )) 
 
         self.add(pr.RemoteVariable(
@@ -806,6 +825,7 @@ class Si5345(pr.Device):
             bitSize     = 2,
             bitOffset   = 2,
             mode        = 'RW',
+            hidden      = simpleDisply,
         ))          
         
         self.add(pr.RemoteVariable(
@@ -869,7 +889,8 @@ class Si5345(pr.Device):
                 offset      = ((0x00A9+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-            ))  
+                hidden      = simpleDisply,
+            )) 
 
         self.add(pr.RemoteVariable(
             name        = 'ACTIVE_NVM_BANK', 
@@ -922,7 +943,8 @@ class Si5345(pr.Device):
                 offset      = ((0x00EA+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-            )) 
+                hidden      = simpleDisply,
+            ))
 
         self.add(pr.RemoteVariable(
             name        = 'REG_0xF7_INTR',
@@ -932,7 +954,8 @@ class Si5345(pr.Device):
             bitSize     = 1,
             bitOffset   = 0,
             mode        = 'RW',
-        )) 
+            hidden      = simpleDisply,
+        ))
         
         self.add(pr.RemoteVariable(
             name        = 'REG_0xF8_INTR',
@@ -942,6 +965,7 @@ class Si5345(pr.Device):
             bitSize     = 1,
             bitOffset   = 1,
             mode        = 'RW',
+            hidden      = simpleDisply,
         )) 
 
         self.add(pr.RemoteVariable(
@@ -952,6 +976,7 @@ class Si5345(pr.Device):
             bitSize     = 1,
             bitOffset   = 2,
             mode        = 'RO',
+            hidden      = simpleDisply,
         ))   
 
         self.add(pr.RemoteVariable(
@@ -962,6 +987,7 @@ class Si5345(pr.Device):
             bitSize     = 1,
             bitOffset   = 0,
             mode        = 'RO',
+            hidden      = simpleDisply,
         ))
 
         self.add(pr.RemoteVariable(
@@ -972,7 +998,8 @@ class Si5345(pr.Device):
             bitSize     = 1,
             bitOffset   = 1,
             mode        = 'RO',
-        ))  
+            hidden      = simpleDisply,
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'LOSREF_INTR',
@@ -982,7 +1009,8 @@ class Si5345(pr.Device):
             bitSize     = 1,
             bitOffset   = 2,
             mode        = 'RO',
-        ))  
+            hidden      = simpleDisply,
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'LOSVCO_INTR',
@@ -992,6 +1020,7 @@ class Si5345(pr.Device):
             bitSize     = 1,
             bitOffset   = 4,
             mode        = 'RO',
+            hidden      = simpleDisply,
         ))
 
         self.add(pr.RemoteVariable(
@@ -1002,7 +1031,8 @@ class Si5345(pr.Device):
             bitSize     = 1,
             bitOffset   = 5,
             mode        = 'RO',
-        ))   
+            hidden      = simpleDisply,
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'LOS_INTR',
@@ -1011,7 +1041,8 @@ class Si5345(pr.Device):
             bitSize     = 4,
             bitOffset   = 0,
             mode        = 'RO',
-        )) 
+            hidden      = simpleDisply,
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'OOF_INTR',
@@ -1020,6 +1051,7 @@ class Si5345(pr.Device):
             bitSize     = 4,
             bitOffset   = 4,
             mode        = 'RO',
+            hidden      = simpleDisply,
         ))
         
         self.add(pr.RemoteVariable(
@@ -1030,7 +1062,8 @@ class Si5345(pr.Device):
             bitSize     = 1,
             bitOffset   = 1,
             mode        = 'RO',
-        )) 
+            hidden      = simpleDisply,
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'HOLD_INTR',
@@ -1040,7 +1073,8 @@ class Si5345(pr.Device):
             bitSize     = 1,
             bitOffset   = 5,
             mode        = 'RO',
-        ))        
+            hidden      = simpleDisply,
+        )) 
 
         self.add(pr.RemoteVariable(
             name        = 'DEVICE_READY',
@@ -1230,6 +1264,7 @@ class Si5345(pr.Device):
             bitSize     = 8,
             bitOffset   = 0,
             mode        = 'RW',
+            hidden      = simpleDisply,
         ))   
 
         self.add(pr.RemoteVariable(
@@ -1239,6 +1274,7 @@ class Si5345(pr.Device):
             bitSize     = 4,
             bitOffset   = 0,
             mode        = 'RW',
+            hidden      = simpleDisply,
         )) 
 
         self.add(pr.RemoteVariable(
@@ -1249,7 +1285,8 @@ class Si5345(pr.Device):
             bitSize     = 1,
             bitOffset   = 1,
             mode        = 'RW',
-        ))  
+            hidden      = simpleDisply,
+        )) 
 
         self.add(pr.RemoteVariable(
             name        = 'OUT_DIS_LOL_MSK',
@@ -1259,6 +1296,7 @@ class Si5345(pr.Device):
             bitSize     = 1,
             bitOffset   = 5,
             mode        = 'RW',
+            hidden      = simpleDisply,
         ))
 
         self.add(pr.RemoteVariable(
@@ -1279,7 +1317,8 @@ class Si5345(pr.Device):
             bitSize     = 1,
             bitOffset   = 7,
             mode        = 'RW',
-        ))     
+            hidden      = simpleDisply,
+        ))    
 
         self.add(pr.RemoteVariable(
             name        = 'OUT_DIS_MSK_LOL',
@@ -1299,7 +1338,8 @@ class Si5345(pr.Device):
             bitSize     = 1,
             bitOffset   = 5,
             mode        = 'RW',
-        ))   
+            hidden      = simpleDisply,
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'OUT_PDN_ALL',
@@ -1556,7 +1596,8 @@ class Si5345(pr.Device):
                 offset      = ((0x026B+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-            ))   
+                hidden      = simpleDisply,
+            ))  
 
         for i in range(8):
             self.add(pr.RemoteVariable(
@@ -1565,7 +1606,8 @@ class Si5345(pr.Device):
                 offset      = ((0x0278+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-            ))               
+                hidden      = simpleDisply,
+            ))              
             
         self.add(pr.RemoteVariable(
             name        = 'OPN_REVISION',
@@ -1592,7 +1634,8 @@ class Si5345(pr.Device):
                 offset      = ((0x028A+i) << 2),
                 bitSize     = 5,
                 mode        = 'RW',
-            )) 
+                hidden      = simpleDisply,
+            ))
 
         for i in range(4):
             self.add(pr.RemoteVariable(
@@ -1601,7 +1644,8 @@ class Si5345(pr.Device):
                 offset      = ((0x028E+i) << 2),
                 bitSize     = 5,
                 mode        = 'RW',
-            ))             
+                hidden      = simpleDisply,
+            ))           
             
         self.add(pr.RemoteVariable(
             name        = 'FASTLOCK_EXTEND_SCL',
@@ -1610,7 +1654,8 @@ class Si5345(pr.Device):
             bitSize     = 4,
             bitOffset   = 4,
             mode        = 'RW',
-        ))  
+            hidden      = simpleDisply,
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'LOL_SLW_VALWIN_SELX',
@@ -1630,7 +1675,8 @@ class Si5345(pr.Device):
             bitSize     = 1,
             bitOffset   = 1,
             mode        = 'RW',
-        ))       
+            hidden      = simpleDisply,
+        ))   
 
         self.add(pr.RemoteVariable(
             name        = 'FASTLOCK_DLY_ONLOL_EN',
@@ -1640,7 +1686,8 @@ class Si5345(pr.Device):
             bitSize     = 1,
             bitOffset   = 1,
             mode        = 'RW',
-        ))               
+            hidden      = simpleDisply,
+        ))       
             
         for i in range(3):
             self.add(pr.RemoteVariable(
@@ -1649,7 +1696,8 @@ class Si5345(pr.Device):
                 offset      = ((0x029D+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-            ))   
+                hidden      = simpleDisply,
+            )) 
 
         for i in range(3):
             self.add(pr.RemoteVariable(
@@ -1658,7 +1706,8 @@ class Si5345(pr.Device):
                 offset      = ((0x02A9+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-            ))               
+                hidden      = simpleDisply,
+            ))         
             
         self.add(pr.RemoteVariable(
             name        = 'LOL_NOSIG_TIME',
@@ -1667,6 +1716,7 @@ class Si5345(pr.Device):
             bitSize     = 2,
             bitOffset   = 2,
             mode        = 'RW',
+            hidden      = simpleDisply,
         ))
 
         self.add(pr.RemoteVariable(
@@ -1677,7 +1727,8 @@ class Si5345(pr.Device):
             bitSize     = 1,
             bitOffset   = 1,
             mode        = 'RO',
-        ))        
+            hidden      = simpleDisply,
+        ))    
             
         ##############################
         # 15.1 Page 3 Registers Si5345
@@ -1923,6 +1974,7 @@ class Si5345(pr.Device):
             bitSize     = 1,
             bitOffset   = 4,
             mode        = 'RW',
+            hidden      = simpleDisply,
         ))
         
         ##############################
@@ -2117,7 +2169,8 @@ class Si5345(pr.Device):
             bitSize     = 3,
             bitOffset   = 5,
             mode        = 'RW',               
-        ))         
+            hidden      = simpleDisply,
+        ))      
         
         self.add(pr.RemoteVariable(
             name        = 'HOLD_RAMPBYP_NOHIST',
@@ -2127,7 +2180,8 @@ class Si5345(pr.Device):
             bitSize     = 1,
             bitOffset   = 1,
             mode        = 'RW',               
-        ))         
+            hidden      = simpleDisply,
+        ))   
         
         self.add(pr.RemoteVariable(
             name        = 'HOLD_HIST_LEN',
@@ -2136,7 +2190,8 @@ class Si5345(pr.Device):
             bitSize     = 5,
             bitOffset   = 0,
             mode        = 'RW',               
-        )) 
+            hidden      = simpleDisply,
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'HOLD_HIST_DELAY',
@@ -2145,6 +2200,7 @@ class Si5345(pr.Device):
             bitSize     = 5,
             bitOffset   = 0,
             mode        = 'RW',               
+            hidden      = simpleDisply,
         ))
 
         self.add(pr.RemoteVariable(
@@ -2154,7 +2210,8 @@ class Si5345(pr.Device):
             bitSize     = 5,
             bitOffset   = 0,
             mode        = 'RW',               
-        ))        
+            hidden      = simpleDisply,
+        )) 
                 
         for i in range(3):
             self.add(pr.RemoteVariable(
@@ -2163,7 +2220,8 @@ class Si5345(pr.Device):
                 offset      = ((0x0532+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-            ))        
+                hidden      = simpleDisply,
+            ))  
         
         self.add(pr.RemoteVariable(
             name        = 'FORCE_HOLD',
@@ -2312,7 +2370,8 @@ class Si5345(pr.Device):
                 offset      = ((0x053B+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-            ))     
+                hidden      = simpleDisply,
+            ))    
         
         self.add(pr.RemoteVariable(
             name        = 'HSW_COARSE_PM_LEN',
@@ -2321,7 +2380,8 @@ class Si5345(pr.Device):
             bitSize     = 5,
             bitOffset   = 0,
             mode        = 'RW',               
-        ))  
+            hidden      = simpleDisply,
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'HSW_COARSE_PM_DLY',
@@ -2330,7 +2390,8 @@ class Si5345(pr.Device):
             bitSize     = 5,
             bitOffset   = 0,
             mode        = 'RW',               
-        ))       
+            hidden      = simpleDisply,
+        ))  
 
         self.add(pr.RemoteVariable(
             name        = 'HOLD_HIST_VALID',
@@ -2359,7 +2420,8 @@ class Si5345(pr.Device):
             bitSize     = 4,
             bitOffset   = 0,
             mode        = 'RW',               
-        ))   
+            hidden      = simpleDisply,
+        ))
 
         for i in range(2):
             self.add(pr.RemoteVariable(
@@ -2368,7 +2430,8 @@ class Si5345(pr.Device):
                 offset      = ((0x0589+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-            )) 
+                hidden      = simpleDisply,
+            ))
 
         self.add(pr.RemoteVariable(
             name        = 'INIT_LP_CLOSE_HO',
@@ -2388,6 +2451,7 @@ class Si5345(pr.Device):
             bitSize     = 1,
             bitOffset   = 4,
             mode        = 'RW',               
+            hidden      = simpleDisply,
         ))
 
         self.add(pr.RemoteVariable(
@@ -2398,6 +2462,7 @@ class Si5345(pr.Device):
             bitSize     = 1,
             bitOffset   = 5,
             mode        = 'RW',               
+            hidden      = simpleDisply,
         ))
 
         self.add(pr.RemoteVariable(
@@ -2408,6 +2473,7 @@ class Si5345(pr.Device):
             bitSize     = 1,
             bitOffset   = 6,
             mode        = 'RW',               
+            hidden      = simpleDisply,
         ))
 
         self.add(pr.RemoteVariable(
@@ -2418,7 +2484,8 @@ class Si5345(pr.Device):
             bitSize     = 1,
             bitOffset   = 7,
             mode        = 'RW',               
-        ))  
+            hidden      = simpleDisply,
+        ))
 
         for i in range(6):
             self.add(pr.RemoteVariable(
@@ -2427,7 +2494,8 @@ class Si5345(pr.Device):
                 offset      = ((0x059D+i) << 2),
                 bitSize     = 6,
                 mode        = 'RW',
-            ))        
+                hidden      = simpleDisply,
+            ))     
       
         self.add(pr.RemoteVariable(
             name        = 'RAMP_STEP_SIZE',
@@ -2436,7 +2504,8 @@ class Si5345(pr.Device):
             bitSize     = 3,
             bitOffset   = 0,
             mode        = 'RW',               
-        ))  
+            hidden      = simpleDisply,
+        ))
         
         self.add(pr.RemoteVariable(
             name        = 'RAMP_SWITCH_EN',
@@ -2497,6 +2566,7 @@ class Si5345(pr.Device):
             bitSize     = 4,
             bitOffset   = 0,
             mode        = 'RW',               
+            hidden      = simpleDisply,
         ))
 
         for i in range(2):
@@ -2506,7 +2576,8 @@ class Si5345(pr.Device):
                 offset      = ((0x094E+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-            ))  
+                hidden      = simpleDisply,
+            ))
 
         self.add(pr.RemoteVariable(
             name        = 'MXAXB_INTEGER',
@@ -2516,6 +2587,7 @@ class Si5345(pr.Device):
             bitSize     = 1,
             bitOffset   = 0,
             mode        = 'RW',               
+            hidden      = simpleDisply,
         ))
 
         ##############################
@@ -2529,6 +2601,7 @@ class Si5345(pr.Device):
             bitSize     = 5,
             bitOffset   = 0,
             mode        = 'RW',               
+            hidden      = simpleDisply,
         ))
         
         self.add(pr.RemoteVariable(
@@ -2565,7 +2638,8 @@ class Si5345(pr.Device):
                 offset      = ((0x0A14+i) << 2),
                 bitSize     = 3,
                 mode        = 'RW',
-            ))  
+                hidden      = simpleDisply,
+            ))
 
         ##############################
         # 15.1 Page B Registers Si5345
