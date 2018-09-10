@@ -33,23 +33,36 @@ architecture sim of GearboxTb is
 
    -- component generics
    constant TPD_G          : time    := 1 ns;
-   constant INPUT_WIDTH_G  : natural := 66;
-   constant OUTPUT_WIDTH_G : natural := 32;
+   constant INPUT_WIDTH_G  : natural := 10;
+   constant OUTPUT_WIDTH_G : natural := 8;
 
    -- component ports
-   signal clk      : sl;                                           -- [in]
-   signal rst      : sl;                                           -- [in]
-   signal dataIn   : slv(INPUT_WIDTH_G-1 downto 0) := "10" & X"AAAAAAAAAAAAAAA0";  -- [in]
-   signal validIn  : sl                            := '0';         -- [in]
-   signal readyIn  : sl;                                           -- [out]
-   signal dataOut  : slv(OUTPUT_WIDTH_G-1 downto 0);               -- [out]
-   signal validOut : sl;                                           -- [out]
-   signal readyOut : sl;                                           -- [in]
+   signal clk : sl;                     -- [in]
+   signal rst : sl;                     -- [in]
+
+
+   signal dataIn_0     : slv(INPUT_WIDTH_G-1 downto 0) := "1111100010";  -- [in]
+   signal validIn_0    : sl                            := '0';          -- [in]
+   signal readyIn_0    : sl;                                            -- [out]
+   signal dataOut_0    : slv(OUTPUT_WIDTH_G-1 downto 0);                -- [out]
+   signal validOut_0   : sl;                                            -- [out]
+   signal readyOut_0   : sl                            := '1';          -- [in]
+   signal slip_0       : sl                            := '0';
+   signal startOfSeq_0 : sl                            := '0';
+
+--    signal dataIn_1     : slv(OUTPUT_WIDTH_G-1 downto 0) := X"A5";  -- [in]
+--    signal validIn_1    : sl                            := '0';    -- [in]
+--    signal readyIn_1    : sl;                                      -- [out]
+   signal dataOut_1    : slv(INPUT_WIDTH_G-1 downto 0);  -- [out]
+   signal validOut_1   : sl;                             -- [out]
+   signal readyOut_1   : sl := '1';                      -- [in]
+   signal slip_1       : sl := '0';
+   signal startOfSeq_1 : sl := '0';
+                                                         -- 
 
 begin
 
-   -- component instantiation
-   U_Gearbox : entity work.Gearbox
+   U_Gearbox_0 : entity work.Gearbox
       generic map (
          TPD_G          => TPD_G,
          INPUT_WIDTH_G  => INPUT_WIDTH_G,
@@ -57,12 +70,31 @@ begin
       port map (
          clk      => clk,               -- [in]
          rst      => rst,               -- [in]
-         dataIn   => dataIn,            -- [in]
-         validIn  => validIn,           -- [in]
-         readyIn  => readyIn,           -- [out]
-         dataOut  => dataOut,           -- [out]
-         validOut => validOut,          -- [out]
-         readyOut => '1');              -- [in]
+         dataIn   => dataIn_0,          -- [in]
+         validIn  => validIn_0,         -- [in]
+         readyIn  => readyIn_0,         -- [out]
+         dataOut  => dataOut_0,         -- [out]
+         validOut => validOut_0,        -- [out]
+         readyOut => readyOut_0);       -- [in]
+
+   -- component instantiation
+   U_Gearbox_1 : entity work.Gearbox
+      generic map (
+         TPD_G          => TPD_G,
+         INPUT_WIDTH_G  => OUTPUT_WIDTH_G,
+         OUTPUT_WIDTH_G => INPUT_WIDTH_G)
+      port map (
+         clk        => clk,             -- [in]
+         rst        => rst,             -- [in]
+         dataIn     => dataOut_0,       -- [in]
+         validIn    => validOut_0,      -- [in]
+         readyIn    => readyOut_0,      -- [out]
+         dataOut    => dataOut_1,       -- [out]
+         validOut   => validOut_1,      -- [out]
+         readyOut   => readyOut_1,      -- [in]
+         slip       => slip_1,
+         startOfSeq => startOfSeq_1);
+
 
 
    U_ClkRst_1 : entity work.ClkRst
@@ -77,18 +109,48 @@ begin
          rst  => rst);
 
    tb : process is
+      variable count : integer := 0;
    begin
       wait until rst = '1';
       wait until rst = '0';
       wait for 1 us;
       wait until clk = '1';
-      wait until clk = '1';      
-      validIn <= '1' after TPD_G;
+      wait until clk = '1';
+      validIn_0 <= '1' after TPD_G;
 
-      while (true) loop
+--       while (count < 498) loop
+--          wait until clk = '1';
+--          count := count + 1;
+--       end loop;
+--       count := 0;
+
+--       wait until clk = '1';
+--       startOfSeq <= '1';
+
+--       wait until clk = '1';
+--       startOfSeq <= '0';
+      for i in 0 to 10 loop
+         while (count < 100) loop
+            wait until clk = '1';
+            count := count + 1;
+         end loop;
+         count := 0;
+
          wait until clk = '1';
+         slip_1 <= '1';
 
+         wait until clk = '1';
+         slip_1 <= '0';
       end loop;
+
+
+      while (count < 10000) loop
+         wait until clk = '1';
+         count := count + 1;
+      end loop;
+      count := 0;
+
+
 
    end process;
 
