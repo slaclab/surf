@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2017-08-09
+-- Last update: 2018-09-07
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -31,7 +31,7 @@ use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.Ad9249Pkg.all;
 
-entity Ad9249ReadoutGroup is
+entity Ad9249ReadoutGroup7S is
    generic (
       TPD_G             : time                 := 1 ns;
       NUM_CHANNELS_G    : natural range 1 to 8 := 8;
@@ -60,10 +60,10 @@ entity Ad9249ReadoutGroup is
       adcStreamClk : in  sl;
       adcStreams   : out AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0) :=
       (others => axiStreamMasterInit((false, 2, 8, 0, TKEEP_NORMAL_C, 0, TUSER_NORMAL_C))));
-end Ad9249ReadoutGroup;
+end Ad9249ReadoutGroup7S;
 
 -- Define architecture
-architecture rtl of Ad9249ReadoutGroup is
+architecture rtl of Ad9249ReadoutGroup7S is
 
    -------------------------------------------------------------------------------------------------
    -- AXIL Registers
