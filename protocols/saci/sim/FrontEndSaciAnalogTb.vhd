@@ -2,7 +2,7 @@
 -- File       : FrontEndSaciAnalogTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2012-10-02
--- Last update: 2013-03-01
+-- Last update: 2018-05-16
 -------------------------------------------------------------------------------
 -- Description: Simple Saci testbench with Saci Master connected to the
 -- standard Front End Register interface.
@@ -19,7 +19,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
-use work.FrontEndPkg.all;
+use work.FrontEndSaciPkg.all;
 use work.SaciMasterPkg.all;
 
 entity FrontEndSaciAnalogTb is
@@ -39,8 +39,8 @@ architecture testbench of FrontEndSaciAnalogTb is
   signal saciRst   : sl;
 
   -- Front End Register Interface
-  signal frontEndRegCntlIn  : FrontEndRegCntlInType;
-  signal frontEndRegCntlOut : FrontEndRegCntlOutType;
+  signal frontEndRegCntlIn  : FrontEndSaciRegCntlInType;
+  signal frontEndRegCntlOut : FrontEndSaciRegCntlOutType;
 
   -- SACI Master Parallel Interface
   signal saciMasterIn  : SaciMasterInType;
@@ -132,7 +132,7 @@ begin
       pgpTxP       => open);
 
   -- Register Decoder
-  FrontEndRegDecoder_1 : entity work.FrontEndRegDecoder
+  FrontEndSaciRegDecoder_1 : entity work.FrontEndSaciRegDecoder
     generic map (
       DELAY_G => TPD_C)
     port map (

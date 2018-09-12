@@ -2,7 +2,7 @@
 -- File       : SsiPrbsTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-04-02
--- Last update: 2018-02-22
+-- Last update: 2018-05-20
 -------------------------------------------------------------------------------
 -- Description:   This module generates 
 --                PseudoRandom Binary Sequence (PRBS) on Virtual Channel Lane.
@@ -165,13 +165,15 @@ begin
                v.trig    := axilWriteMaster.wdata(1);
                -- BIT2 reserved for busy
                -- BIT3 reserved for overflow
-               v.oneShot := axilWriteMaster.wdata(4);
+               -- BIT4 reserved
                v.cntData := axilWriteMaster.wdata(5);
             when X"04" =>
                v.packetLength := axilWriteMaster.wdata(31 downto 0);
             when X"08" =>
                v.tDest := axilWriteMaster.wdata(7 downto 0);
                v.tId   := axilWriteMaster.wdata(15 downto 8);
+            when X"18" =>
+               v.oneShot := axilWriteMaster.wdata(0);
             when others =>
                axilWriteResp := AXI_RESP_DECERR_C;
          end case;
@@ -187,7 +189,7 @@ begin
                v.axilReadSlave.rdata(1) := r.trig;
                v.axilReadSlave.rdata(2) := r.busy;
                v.axilReadSlave.rdata(3) := r.overflow;
-               -- BIT4 reserved for oneShot
+               -- BIT4 reserved 
                v.axilReadSlave.rdata(5) := r.cntData;
             when X"04" =>
                v.axilReadSlave.rdata(31 downto 0) := r.packetLength;

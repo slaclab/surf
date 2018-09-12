@@ -100,7 +100,9 @@ children:
   hardReset:
     at:
       offset: 0x3F8
-    sizeBits: 1
+    # sizeBits: 1 
+    # CPSW requires all WO variables to be 32-bit size and 32-bit aligned 
+    sizeBits: 32 
     lsBit: 0
     mode: WO
     description: HardReset

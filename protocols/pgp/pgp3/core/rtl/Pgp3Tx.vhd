@@ -8,13 +8,13 @@
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
--- This file is part of SURF. It is subject to
--- the license terms in the LICENSE.txt file found in the top-level directory
--- of this distribution and at:
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
--- No part of SURF, including this file, may be
--- copied, modified, propagated, or distributed except according to the terms
--- contained in the LICENSE.txt file.
+-- This file is part of 'SLAC Firmware Standard Library'.
+-- It is subject to the license terms in the LICENSE.txt file found in the 
+-- top-level directory of this distribution and at: 
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
+-- may be copied, modified, propagated, or distributed except according to 
+-- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -83,6 +83,7 @@ architecture rtl of Pgp3Tx is
    signal packetizedTxMaster : AxiStreamMasterType;
    signal packetizedTxSlave  : AxiStreamSlaveType;
 
+   signal phyTxActiveL   : sl;
    signal protTxValid    : sl;
    signal protTxReady    : sl;
    signal protTxSequence : slv(5 downto 0);
@@ -125,17 +126,22 @@ begin
          dataIn  => locRxLinkReady,                        -- [in]
          dataOut => syncLocRxLinkReady);                   -- [out]
    LOC_STATUS_SYNC : for i in NUM_VC_G-1 downto 0 generate
-      U_SynchronizerVector_1 : entity work.SynchronizerVector
+      U_Synchronizer_pause : entity work.Synchronizer
          generic map (
-            TPD_G   => TPD_G,
-            WIDTH_G => 2)
+            TPD_G => TPD_G)
          port map (
-            clk        => pgpTxClk,                        -- [in]
-            rst        => pgpTxRst,                        -- [in]
-            dataIn(0)  => locRxFifoCtrl(i).pause,          -- [in]
-            dataIn(1)  => locRxFifoCtrl(i).overflow,       -- [in]
-            dataOut(0) => syncLocRxFifoCtrl(i).pause,      -- [out]
-            dataOut(1) => syncLocRxFifoCtrl(i).overflow);  -- [out]
+            clk     => pgpTxClk,                              -- [in]
+            rst     => pgpTxRst,                              -- [in]
+            dataIn  => locRxFifoCtrl(i).pause,                -- [in]
+            dataOut => syncLocRxFifoCtrl(i).pause);           -- [out] 
+      U_Synchronizer_overflow : entity work.SynchronizerOneShot
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk     => pgpTxClk,                              -- [in]
+            rst     => pgpTxRst,                              -- [in]
+            dataIn  => locRxFifoCtrl(i).overflow,             -- [in]
+            dataOut => syncLocRxFifoCtrl(i).overflow);        -- [out]
    end generate;
 
    -- Use synchronized remote status to disable channels from mux selection
@@ -148,7 +154,7 @@ begin
          elsif (pgpTxIn.flowCntlDis = '1') then
             disableSel(i) <= '0';
          else
-            disableSel(i) <= syncRemRxFifoCtrl(i).pause or syncRemRxFifoCtrl(i).overflow;
+            disableSel(i) <= syncRemRxFifoCtrl(i).pause;
          end if;
       end loop;
    end process;
@@ -231,7 +237,7 @@ begin
          TAPS_G           => PGP3_SCRAMBLER_TAPS_C)
       port map (
          clk                        => pgpTxClk,        -- [in]
-         rst                        => pgpTxRst,        -- [in]
+         rst                        => phyTxActiveL,    -- [in]
          inputValid                 => protTxValid,     -- [in]
          inputReady                 => protTxReady,     -- [out]
          inputData                  => protTxData,      -- [in]
@@ -243,5 +249,7 @@ begin
          outputSideband(1 downto 0) => phyTxHeader,     -- [out]
          outputSideband(2)          => phyTxStart,      -- [out]
          outputSideband(8 downto 3) => phyTxSequence);  -- [out]
+
+   phyTxActiveL <= not(phyTxActive);
 
 end architecture rtl;

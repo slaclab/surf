@@ -2,7 +2,7 @@
 -- File       : TenGigEthGth7.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-12
--- Last update: 2018-01-08
+-- Last update: 2018-08-23
 -------------------------------------------------------------------------------
 -- Description: 10GBASE-R Ethernet for Gth7
 -------------------------------------------------------------------------------
@@ -26,11 +26,13 @@ use work.EthMacPkg.all;
 
 entity TenGigEthGth7 is
    generic (
-      TPD_G            : time                := 1 ns;
+      TPD_G           : time                := 1 ns;
+      PAUSE_EN_G      : boolean             := true;
+      PAUSE_512BITS_G : positive            := 8;
       -- AXI-Lite Configurations
-      EN_AXI_REG_G     : boolean             := false;
+      EN_AXI_REG_G    : boolean             := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      AXIS_CONFIG_G   : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
@@ -66,7 +68,7 @@ entity TenGigEthGth7 is
       gtTxP              : out sl;
       gtTxN              : out sl;
       gtRxP              : in  sl;
-      gtRxN              : in  sl);  
+      gtRxN              : in  sl);
 end TenGigEthGth7;
 
 architecture mapping of TenGigEthGth7 is
@@ -104,7 +106,7 @@ architecture mapping of TenGigEthGth7 is
    signal macRxAxisCtrl   : AxiStreamCtrlType;
    signal macTxAxisMaster : AxiStreamMasterType;
    signal macTxAxisSlave  : AxiStreamSlaveType;
-   
+
 begin
 
    phyReady        <= status.phyReady;
@@ -131,7 +133,7 @@ begin
          mAxiReadMaster  => mAxiReadMaster,
          mAxiReadSlave   => mAxiReadSlave,
          mAxiWriteMaster => mAxiWriteMaster,
-         mAxiWriteSlave  => mAxiWriteSlave);    
+         mAxiWriteSlave  => mAxiWriteSlave);
 
    txDisable <= status.txDisable;
 
@@ -148,16 +150,18 @@ begin
          -- Output
          dataOut(0) => status.sigDet,
          dataOut(1) => status.txFault,
-         dataOut(2) => status.txUsrRdy);  
+         dataOut(2) => status.txUsrRdy);
 
    --------------------
    -- Ethernet MAC core
    --------------------
    U_MAC : entity work.EthMacTop
       generic map (
-         TPD_G         => TPD_G,
-         PHY_TYPE_G    => "XGMII",
-         PRIM_CONFIG_G => AXIS_CONFIG_G)
+         TPD_G           => TPD_G,
+         PAUSE_EN_G      => PAUSE_EN_G,
+         PAUSE_512BITS_G => PAUSE_512BITS_G,
+         PHY_TYPE_G      => "XGMII",
+         PRIM_CONFIG_G   => AXIS_CONFIG_G)
       port map (
          -- Primary Interface
          primClk         => dmaClk,
@@ -176,7 +180,7 @@ begin
          xgmiiRxd        => phyRxd,
          xgmiiRxc        => phyRxc,
          xgmiiTxd        => phyTxd,
-         xgmiiTxc        => phyTxc);      
+         xgmiiTxc        => phyTxc);
 
    -----------------
    -- 10GBASE-R core
@@ -259,7 +263,7 @@ begin
          rstCntDone => status.rstCntDone,
          -- Quad PLL Ports
          qplllock   => status.qplllock,
-         qpllRst    => qpllRst); 
+         qpllRst    => qpllRst);
 
    -------------------------------         
    -- Configuration Vector Mapping
@@ -280,8 +284,8 @@ begin
    --------------------------------     
    U_TenGigEthReg : entity work.TenGigEthReg
       generic map (
-         TPD_G            => TPD_G,
-         EN_AXI_REG_G     => EN_AXI_REG_G)
+         TPD_G        => TPD_G,
+         EN_AXI_REG_G => EN_AXI_REG_G)
       port map (
          -- Local Configurations
          localMac       => localMac,
@@ -295,6 +299,6 @@ begin
          axiWriteSlave  => mAxiWriteSlave,
          -- Configuration and Status Interface
          config         => config,
-         status         => status); 
+         status         => status);
 
 end mapping;

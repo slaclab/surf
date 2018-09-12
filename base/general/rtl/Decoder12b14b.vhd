@@ -2,7 +2,7 @@
 -- File       : Decoder12b14b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-10-07
--- Last update: 2017-05-01
+-- Last update: 2018-08-07
 -------------------------------------------------------------------------------
 -- Description: 12B14B Decoder Module
 -------------------------------------------------------------------------------
@@ -67,7 +67,7 @@ architecture rtl of Decoder12b14b is
 
 begin
 
-   comb : process (dataIn, dispIn, r, rst) is
+   comb : process (dataIn, dispIn, r, rst, validIn) is
       variable v         : RegType;
       variable dispInTmp : slv(1 downto 0);
    begin

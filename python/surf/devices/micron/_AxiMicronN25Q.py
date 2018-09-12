@@ -21,6 +21,7 @@ import pyrogue as pr
 from surf.misc._mcsreader import *
 import click
 import time
+import datetime
 
 class AxiMicronN25Q(pr.Device):
     def __init__(self,
@@ -28,7 +29,11 @@ class AxiMicronN25Q(pr.Device):
             description = "AXI-Lite Micron N25Q and Micron MT25Q PROM",
             addrMode    = False, # False = 24-bit Address mode, True = 32-bit Address Mode
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+        super().__init__(
+            name        = name, 
+            description = description, 
+            size        = (0x1 << 10), 
+            **kwargs)
         
         self._mcs      = McsReader()
         self._addrMode = addrMode
@@ -130,7 +135,7 @@ class AxiMicronN25Q(pr.Device):
             # End time measurement for profiling
             end = time.time()
             elapsed = end - start
-            click.secho(('LoadMcsFile() took %d seconds' % int(elapsed)), fg='green')
+            click.secho('LoadMcsFile() took %s to program the PROM' % datetime.timedelta(seconds=int(elapsed)), fg='green')
             
             # Add a power cycle reminder
             self._progDone = True
@@ -140,7 +145,7 @@ class AxiMicronN25Q(pr.Device):
                 ***************************************************\n\
                 The MCS data has been written into the PROM.       \n\
                 To reprogram the FPGA with the new PROM data,      \n\
-                a IPROG CMD, reboot, or power cycle is be required.\n\
+                a IPROG CMD or power cycle is be required.\n\
                 ***************************************************\n\
                 ***************************************************\n\n"\
                 , bg='green',
@@ -162,7 +167,7 @@ class AxiMicronN25Q(pr.Device):
                 # Increment by one block
                 address += ERASE_SIZE
         # Check the corner case
-        if ( address<self._mcs.endAddr ):
+        if ( address<=self._mcs.endAddr ):
             self.eraseCmd(address)
 
     def writeProm(self):
@@ -200,28 +205,28 @@ class AxiMicronN25Q(pr.Device):
                         wordCnt = 0
                         self.setDataReg(dataArray)
                         self.writeCmd(addr)
-            # Check for leftover data
-            if (wordCnt != 0):
-                while(wordCnt != 0):
-                    # Pack the bytes into a 32-bit word
-                    if ( byteCnt==0 ):
-                        wrd = (0xFF) << (8*(3-byteCnt))
-                    else:
-                        wrd |= (0xFF) << (8*(3-byteCnt))
-                    # Increment the counter
-                    byteCnt += 1    
-                    # Check the byte counter
-                    if ( byteCnt==4 ):
-                        byteCnt = 0
-                        dataArray[wordCnt] = wrd
-                        wordCnt += 1
-                        if ( wordCnt==64 ):
-                            wordCnt = 0
-                            self.setDataReg(dataArray)
-                            self.writeCmd(addr)
-                            break
             # Close the status bar
             bar.update(self._mcs.size)
+        
+        # Check for leftover data
+        if ( (wordCnt != 0) or (byteCnt != 0) ):
+            while(wordCnt != 64):
+                # Pack the bytes into a 32-bit word
+                if ( byteCnt==0 ):
+                    wrd = (0xFF) << (8*(3-byteCnt))
+                else:
+                    wrd |= (0xFF) << (8*(3-byteCnt))
+                # Increment the counter
+                byteCnt += 1
+                # Check the byte counter
+                if ( byteCnt==4 ):
+                    byteCnt = 0
+                    dataArray[wordCnt] = wrd
+                    wordCnt += 1
+                    if ( wordCnt==64 ):
+                        self.setDataReg(dataArray)
+                        self.writeCmd(addr)
+                        break
             
     def verifyProm(self): 
         # Wait for last transaction to finish

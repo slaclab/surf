@@ -75,6 +75,10 @@ architecture rtl of AxiAds42lb69Deser is
    
 begin
 
+   assert (XIL_DEVICE_G = "ULTRASCALE" and USE_PLL_G = false) or XIL_DEVICE_G /= "ULTRASCALE"
+      report "ULTRASCALE implementation does not support USE_PLL_G = true"
+      severity failure;
+
    AxiAds42lb69Pll_Inst : entity work.AxiAds42lb69Pll
       generic map(
          TPD_G          => TPD_G,

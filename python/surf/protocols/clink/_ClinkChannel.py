@@ -164,18 +164,18 @@ class ClinkChannel(pr.Device):
             self._tx = surf.protocols.clink.ClinkSerialTx()
             pr.streamConnect(self._tx,serial)
 
-    @pr.command(order=1, value='', name='SendString', description='Send a command string')
-    def sendString(self, arg):
-        if self._tx is not None:
-            self._tx.sendString(arg)
+        @self.command(value='', name='SendString', description='Send a command string')
+        def sendString(arg):
+            if self._tx is not None:
+                self._tx.sendString(arg)
 
-    @pr.command(order=2, name='SendEscape', description='Send an escape charactor')
-    def sendEscape(self):
-        if self._tx is not None:
-            self._tx.sendEscape()
+        @self.command(name='SendEscape', description='Send an escape charactor')
+        def sendEscape():
+            if self._tx is not None:
+                self._tx.sendEscape()
 
-    @pr.command(order=3, name='SendGcp', description='Send gcp command')
-    def sendGcp(self):
-        if self._tx is not None:
-            self._tx.sendString("gcp")
+        @self.command(name='SendGcp', description='Send gcp command')
+        def sendGcp():
+            if self._tx is not None:
+                self._tx.sendString("gcp")
 

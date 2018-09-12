@@ -611,7 +611,7 @@ begin
       axiSlaveRegisterR(axilEp, X"034", 56, rxStatusSync.rxOpCodeNumberLast);
 
       for i in 0 to 15 loop
-         axiSlaveRegisterR(axilEp, X"040"+toSlv(i*4, 8), 0, rxStatusSync.remRxOverflowCnt(i));
+         axiSlaveRegisterR(axilEp, X"040"+toSlv(i*4, 12), 0, rxStatusSync.remRxOverflowCnt(i));
       end loop;
 
 
@@ -662,7 +662,7 @@ begin
 
 
       for i in 0 to 15 loop
-         axiSlaveRegisterR(axilEp, X"0B0"+toSlv(i*4, 8), 0, txStatusSync.locOverflowCnt(i));
+         axiSlaveRegisterR(axilEp, X"0B0"+toSlv(i*4, 12), 0, txStatusSync.locOverflowCnt(i));
       end loop;
 
 
