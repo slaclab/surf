@@ -751,11 +751,11 @@ package body AxiLitePkg is
 
       for i in ((reg'length-1)/32) downto 0 loop
          if i = ((reg'length-1)/32) then
-            highbit := ((reg'length-1) mod 32) + (32*i);
+            highbit := ((reg'length-1) mod 32) + (32*i) + reg'low;
          else
-            highbit := 31 + (32*i);
+            highbit := 31 + (32*i) + reg'low;
          end if;
-         axiSlaveRegisterLegacy(ep, slv(unsigned(addr)+(4*i)), offset, reg(highbit downto (32*i)), constVal);
+         axiSlaveRegisterLegacy(ep, slv(unsigned(addr)+(4*i)), offset, reg(highbit downto (32*i)+reg'low), constVal);
       end loop;
 
    end procedure;
