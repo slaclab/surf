@@ -224,7 +224,7 @@ class AxiPciePhy(pr.Device):
         # ))    
 
         self.add(pr.RemoteVariable(    
-            name         = "LinkRateGen2",
+            name         = "RawLinkRateGen2",
             description  = "0b = 2.5 GT/s (if bit[12] = 0), or 8.0GT/s (if bit[12] = 1), 1b = 5.0 GT/s",
             offset       =  0x144,
             bitSize      =  1,
@@ -232,10 +232,11 @@ class AxiPciePhy(pr.Device):
             base         = pr.UInt,
             mode         = "RO",
             overlapEn    = True,        
+            hidden       = True,            
         ))  
 
         self.add(pr.RemoteVariable(    
-            name         = "LinkRateGen3",
+            name         = "RawLinkRateGen3",
             description  = "Reports the current link rate. 0b = see bit[0]. 1b = 8.0 GT/s",
             offset       =  0x144,
             bitSize      =  1,
@@ -243,10 +244,20 @@ class AxiPciePhy(pr.Device):
             base         = pr.UInt,
             mode         = "RO",
             overlapEn    = True,        
+            hidden       = True,            
+        ))  
+
+        self.add(pr.LinkVariable(
+            name         = 'LinkRate',                 
+            description  = 'LinkRate',  
+            mode         = 'RO', 
+            linkedGet    = lambda: '8.0' if self.RawLinkRateGen3.value() else ( '5.0' if self.RawLinkRateGen2.value() else '2.5'),
+            dependencies = [self.RawLinkRateGen3,self.RawLinkRateGen2],            
+            units        = 'GT/s',
         ))          
         
         self.add(pr.RemoteVariable(    
-            name         = "LinkWidth",
+            name         = "RawLinkWidth",
             description  = "Reports the current link width. 00b = x1, 01b = x2, 10b = x4, 11b = x8.",
             offset       =  0x144,
             bitSize      =  2,
@@ -259,15 +270,31 @@ class AxiPciePhy(pr.Device):
             },
             mode         = "RO",
             overlapEn    = True,        
+            hidden       = True,            
         ))
         
         self.add(pr.RemoteVariable(    
-            name         = "LinkWidth16",
+            name         = "RawLinkWidth16",
             description  = "Reports the current link width. 0b = See bit[2:1]. 1b = x16.",
             offset       =  0x144,
             bitSize      =  1,
             bitOffset    =  13,
             base         = pr.UInt,
             mode         = "RO",
-            overlapEn    = True,        
+            overlapEn    = True,
+            hidden       = True,            
         ))         
+        
+        self.add(pr.LinkVariable(
+            name         = 'LinkWidth',                 
+            description  = 'LinkWidth',  
+            mode         = 'RO', 
+            linkedGet    = lambda: 16 if self.RawLinkWidth16.value() else 2**self.RawLinkWidth.value(),
+            dependencies = [self.RawLinkWidth16,self.RawLinkWidth],      
+            units        = '# of lanes',
+        ))         
+        
+        
+        
+        
+        
