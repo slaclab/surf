@@ -332,7 +332,7 @@ package AxiLitePkg is
       variable axiWriteSlave : in    AxiLiteWriteSlaveType;
       variable axiReadSlave  : in    AxiLiteReadSlaveType);
 
-   procedure axiSlaveRegisterCore (
+   procedure axiSlaveRegisterLegacy (
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
       offset      : in    integer;
@@ -688,7 +688,7 @@ package body AxiLitePkg is
                       ep.axiStatus);
    end procedure;
 
-   procedure axiSlaveRegisterCore (
+   procedure axiSlaveRegisterLegacy (
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
       offset      : in    integer;
@@ -755,7 +755,7 @@ package body AxiLitePkg is
          else
             highbit := 31 + (32*i);
          end if;
-         axiSlaveRegisterCore(ep, slv(unsigned(addr)+(4*i)), offset, reg(highbit downto (32*i)), constVal);
+         axiSlaveRegisterLegacy(ep, slv(unsigned(addr)+(4*i)), offset, reg(highbit downto (32*i)), constVal);
       end loop;
 
    end procedure;
