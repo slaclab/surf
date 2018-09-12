@@ -40,7 +40,7 @@ entity RssiCoreWrapper is
       APP_ILEAVE_EN_G      : boolean              := false;
       BYP_TX_BUFFER_G      : boolean              := false;
       BYP_RX_BUFFER_G      : boolean              := false;
-      ILEAVE_ON_NOTVALID_G : boolean              := true;
+      ILEAVE_ON_NOTVALID_G : boolean              := false;
       -- AXIS Configurations
       APP_AXIS_CONFIG_G    : AxiStreamConfigArray := (0 => ssiAxiStreamConfig(8, TKEEP_NORMAL_C));
       TSP_AXIS_CONFIG_G    : AxiStreamConfigType  := ssiAxiStreamConfig(16, TKEEP_NORMAL_C);
