@@ -151,6 +151,7 @@ class AxiPciePhy(pr.Device):
             base         = pr.UInt,
             mode         = "RO",
             overlapEn    = True,        
+            hidden       = True,             
         ))
         
         self.add(pr.RemoteVariable(    
@@ -161,9 +162,10 @@ class AxiPciePhy(pr.Device):
             bitOffset    =  3,
             base         = pr.UInt,
             mode         = "RO",
-            overlapEn    = True,        
+            overlapEn    = True,
+            hidden       = True,             
         ))  
-        
+                
         self.add(pr.RemoteVariable(    
             name         = "RootPortPresent",
             description  = "Indicates the underlying integrated block is a Root Port when this bit is set. If set, Root Port registers are present in this interface.",
@@ -224,7 +226,7 @@ class AxiPciePhy(pr.Device):
         # ))    
 
         self.add(pr.RemoteVariable(    
-            name         = "RawLinkRateGen2",
+            name         = "LinkRateGen2",
             description  = "0b = 2.5 GT/s (if bit[12] = 0), or 8.0GT/s (if bit[12] = 1), 1b = 5.0 GT/s",
             offset       =  0x144,
             bitSize      =  1,
@@ -236,7 +238,7 @@ class AxiPciePhy(pr.Device):
         ))  
 
         self.add(pr.RemoteVariable(    
-            name         = "RawLinkRateGen3",
+            name         = "LinkRateGen3",
             description  = "Reports the current link rate. 0b = see bit[0]. 1b = 8.0 GT/s",
             offset       =  0x144,
             bitSize      =  1,
@@ -246,35 +248,9 @@ class AxiPciePhy(pr.Device):
             overlapEn    = True,        
             hidden       = True,            
         ))  
-
-        self.add(pr.LinkVariable(
-            name         = 'LinkRate',                 
-            description  = 'LinkRate',  
-            mode         = 'RO', 
-            linkedGet    = lambda: '8.0' if self.RawLinkRateGen3.value() else ( '5.0' if self.RawLinkRateGen2.value() else '2.5'),
-            dependencies = [self.RawLinkRateGen3,self.RawLinkRateGen2],            
-            units        = 'GT/s',
-        ))          
         
         self.add(pr.RemoteVariable(    
-            name         = "RawLinkWidth",
-            description  = "Reports the current link width. 00b = x1, 01b = x2, 10b = x4, 11b = x8.",
-            offset       =  0x144,
-            bitSize      =  2,
-            bitOffset    =  1,
-            enum        = {
-                0: "1", 
-                1: "2", 
-                2: "4", 
-                3: "8",
-            },
-            mode         = "RO",
-            overlapEn    = True,        
-            hidden       = True,            
-        ))
-        
-        self.add(pr.RemoteVariable(    
-            name         = "RawLinkWidth16",
+            name         = "LinkWidth16",
             description  = "Reports the current link width. 0b = See bit[2:1]. 1b = x16.",
             offset       =  0x144,
             bitSize      =  1,
@@ -285,16 +261,42 @@ class AxiPciePhy(pr.Device):
             hidden       = True,            
         ))         
         
+        self.add(pr.RemoteVariable(    
+            name         = "LinkWidth",
+            description  = "Reports the current link width. 00b = x1, 01b = x2, 10b = x4, 11b = x8.",
+            offset       =  0x144,
+            bitSize      =  2,
+            bitOffset    =  1,
+            mode         = "RO",
+            overlapEn    = True,        
+            hidden       = True,            
+        ))        
+        
         self.add(pr.LinkVariable(
-            name         = 'LinkWidth',                 
-            description  = 'LinkWidth',  
+            name         = 'LnkCapSpeed',                 
+            description  = 'LnkCapSpeed',  
             mode         = 'RO', 
-            linkedGet    = lambda: 16 if self.RawLinkWidth16.value() else 2**self.RawLinkWidth.value(),
-            dependencies = [self.RawLinkWidth16,self.RawLinkWidth],      
-            units        = '# of lanes',
+            linkedGet    = lambda: '8.0' if self.Gen3Capable.value() else ( '5.0' if self.Gen2Capable.value() else '2.5'),
+            dependencies = [self.Gen3Capable,self.Gen2Capable],            
+            units        = 'GT/s',
+        ))
+
+        self.add(pr.LinkVariable(
+            name         = 'LnkStaSpeed',                 
+            description  = 'LnkStaSpeed',  
+            mode         = 'RO', 
+            linkedGet    = lambda: '8.0' if self.LinkRateGen3.value() else ( '5.0' if self.LinkRateGen2.value() else '2.5'),
+            dependencies = [self.LinkRateGen3,self.LinkRateGen2],            
+            units        = 'GT/s',
         ))         
         
-        
-        
-        
+        self.add(pr.LinkVariable(
+            name         = 'LnkStaWidth',                 
+            description  = 'LnkStaWidth',  
+            mode         = 'RO', 
+            linkedGet    = lambda: 16 if self.LinkWidth16.value() else 2**self.LinkWidth.value(),
+            dependencies = [self.LinkWidth16,self.LinkWidth],      
+            units        = '# of lanes',
+        ))         
+            
         
