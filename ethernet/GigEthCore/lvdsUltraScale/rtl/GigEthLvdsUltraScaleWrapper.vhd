@@ -27,15 +27,17 @@ use unisim.vcomponents.all;
 
 entity GigEthLvdsUltraScaleWrapper is
    generic (
-      TPD_G             : time                 := 1 ns;
-      NUM_LANE_G        : natural range 1 to 4 := 1;
+      TPD_G             : time                             := 1 ns;
+      NUM_LANE_G        : natural range 1 to 4             := 1;
+      PAUSE_EN_G        : boolean                          := true;
+      PAUSE_512BITS_G   : positive                         := 8;
       -- Clocking Configurations
-      USE_REFCLK_G      : boolean              := false;  --  FALSE: sgmiiClkP/N,  TRUE: sgmiiRefClk
-      CLKIN_PERIOD_G    : real                 := 1.6;
-      DIVCLK_DIVIDE_G   : positive             := 2;
-      CLKFBOUT_MULT_F_G : real                 := 2.0;
+      USE_REFCLK_G      : boolean                          := false;  --  FALSE: sgmiiClkP/N,  TRUE: sgmiiRefClk
+      CLKIN_PERIOD_G    : real                             := 1.6;
+      DIVCLK_DIVIDE_G   : positive                         := 2;
+      CLKFBOUT_MULT_F_G : real                             := 2.0;
       -- AXI-Lite Configurations
-      EN_AXI_REG_G      : boolean              := false;
+      EN_AXI_REG_G      : boolean                          := false;
       -- AXI Streaming Configurations
       AXIS_CONFIG_G     : AxiStreamConfigArray := (0 => AXI_STREAM_CONFIG_INIT_C)
       );
@@ -296,11 +298,13 @@ begin
 
       U_GigEthLvdsUltraScale : entity work.GigEthLvdsUltraScale
          generic map (
-            TPD_G         => TPD_G,
+            TPD_G           => TPD_G,
+            PAUSE_EN_G      => PAUSE_EN_G,
+            PAUSE_512BITS_G => PAUSE_512BITS_G,
             -- AXI-Lite Configurations
-            EN_AXI_REG_G  => EN_AXI_REG_G,
+            EN_AXI_REG_G    => EN_AXI_REG_G,
             -- AXI Streaming Configurations
-            AXIS_CONFIG_G => AXIS_CONFIG_G(i)
+            AXIS_CONFIG_G   => AXIS_CONFIG_G(i)
             )
          port map (
             -- Local Configurations

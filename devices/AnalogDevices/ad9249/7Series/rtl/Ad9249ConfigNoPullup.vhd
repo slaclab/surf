@@ -2,7 +2,7 @@
 -- File       : Ad9249ConfigNoPullup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-23
--- Last update: 2018-01-08
+-- Last update: 2018-09-07
 -------------------------------------------------------------------------------
 -- Description: AD9249 Configuration/Status Module (no pullup version)
 -------------------------------------------------------------------------------
@@ -26,11 +26,11 @@ use work.AxiLitePkg.all;
 
 entity Ad9249ConfigNoPullup is
    generic (
-      TPD_G           : time            := 1 ns;
-      DEN_POLARITY_G  : sl              := '1';
-      CLK_PERIOD_G    : real            := 8.0e-9;
-      CLK_EN_PERIOD_G : real            := 16.0e-9;
-      NUM_CHIPS_G     : positive        := 1);
+      TPD_G           : time     := 1 ns;
+      DEN_POLARITY_G  : sl       := '1';
+      CLK_PERIOD_G    : real     := 8.0e-9;
+      CLK_EN_PERIOD_G : real     := 16.0e-9;
+      NUM_CHIPS_G     : positive := 1);
    port (
 
       axilClk : in sl;
@@ -252,16 +252,16 @@ begin
    begin
       if rising_edge(axilClk) then
          if axilRst = '1' then
-            adcAck   <= '0' after TPD_G;
-            adcSDir  <= '0' after TPD_G;
-            locSDout <= '0' after TPD_G;
-            adcSClk  <= '0' after TPD_G;
-            adcCsb   <= (others => '1') after TPD_G;
-            nextClk  <= '1' after TPD_G;
-            shiftCnt <= (others => '0') after TPD_G;
-            shiftCntEn <= '0' after TPD_G;
-            intShift <= (others => '0') after TPD_G;
-            curState <= ST_IDLE after TPD_G;
+            adcAck     <= '0'             after TPD_G;
+            adcSDir    <= '0'             after TPD_G;
+            locSDout   <= '0'             after TPD_G;
+            adcSClk    <= '0'             after TPD_G;
+            adcCsb     <= (others => '1') after TPD_G;
+            nextClk    <= '1'             after TPD_G;
+            shiftCnt   <= (others => '0') after TPD_G;
+            shiftCntEn <= '0'             after TPD_G;
+            intShift   <= (others => '0') after TPD_G;
+            curState   <= ST_IDLE         after TPD_G;
          elsif axilClkEn = '1' then
 
             -- Next state
@@ -270,23 +270,23 @@ begin
 
             -- Shift count is not enabled
             if shiftCntEn = '0' then
-               adcSClk  <= '0' after TPD_G;
-               locSDout <= '0' after TPD_G;
-               adcSDir  <= '0' after TPD_G;
+               adcSClk  <= '0'             after TPD_G;
+               locSDout <= '0'             after TPD_G;
+               adcSDir  <= '0'             after TPD_G;
                adcCsb   <= (others => '1') after TPD_G;
-               nextClk <= '1' after TPD_G;
+               nextClk  <= '1'             after TPD_G;
 
                -- Wait for shift request
                if shiftEn = '1' then
-                  shiftCntEn <= '1' after TPD_G;
+                  shiftCntEn             <= '1'             after TPD_G;
                   shiftCnt               <= (others => '0') after TPD_G;
-                  intShift(23)           <= adcRdReq     after TPD_G;
-                  intShift(22 downto 21) <= "00"         after TPD_G;
-                  intShift(20 downto 8)  <= adcAddr      after TPD_G;
-                  intShift(7 downto 0)   <= adcWrData    after TPD_G;
+                  intShift(23)           <= adcRdReq        after TPD_G;
+                  intShift(22 downto 21) <= "00"            after TPD_G;
+                  intShift(20 downto 8)  <= adcAddr         after TPD_G;
+                  intShift(7 downto 0)   <= adcWrData       after TPD_G;
                end if;
             else
-               shiftCnt                  <= shiftCnt + 1 after TPD_G;
+               shiftCnt <= shiftCnt + 1 after TPD_G;
 
                -- Clock 0, setup output
                if shiftCnt(7 downto 0) = 0 then
@@ -305,8 +305,8 @@ begin
                   else
                      intShift <= intShift(22 downto 0) & adcSDin after TPD_G;
                      locSDout <= '0'                             after TPD_G;
-                     adcCsb   <= (others => '1') after TPD_G;
-                     nextClk <= '0' after TPD_G;
+                     adcCsb   <= (others => '1')                 after TPD_G;
+                     nextClk  <= '0'                             after TPD_G;
                   end if;
 
                -- Clock 3, clock output

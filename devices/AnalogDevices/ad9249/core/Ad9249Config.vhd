@@ -2,7 +2,7 @@
 -- File       : Ad9249Config.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2013-09-23
--- Last update: 2018-01-08
+-- Last update: 2018-09-07
 -------------------------------------------------------------------------------
 -- Description: AD9249 Configuration/Status Module
 -------------------------------------------------------------------------------
@@ -29,10 +29,10 @@ use work.AxiLitePkg.all;
 entity Ad9249Config is
 
    generic (
-      TPD_G             : time            := 1 ns;
-      NUM_CHIPS_G       : positive        := 1;
-      SCLK_PERIOD_G     : real            := 1.0e-6;
-      AXIL_CLK_PERIOD_G : real            := 8.0e-9);
+      TPD_G             : time     := 1 ns;
+      NUM_CHIPS_G       : positive := 1;
+      SCLK_PERIOD_G     : real     := 1.0e-6;
+      AXIL_CLK_PERIOD_G : real     := 8.0e-9);
    port (
       axilClk : in sl;
       axilRst : in sl;
@@ -117,8 +117,8 @@ begin
 
             -- Any other address is forwarded to the chip via SPI
             if (axilEp.axiStatus.writeEnable = '1' and axilWriteMaster.awaddr(PWDN_ADDR_BIT_C) = '0') then
-               v.wrData(23)           := '0';      -- Write bit
-               v.wrData(22 downto 21) := "00";     -- Number of bytes (1)
+               v.wrData(23)           := '0';     -- Write bit
+               v.wrData(22 downto 21) := "00";    -- Number of bytes (1)
                v.wrData(20 downto 17) := "0000";  -- Unused address bits
                v.wrData(16 downto 8)  := axilWriteMaster.awaddr(10 downto 2);  -- Address
                v.wrData(7 downto 0)   := axilWriteMaster.wdata(7 downto 0);    -- Data
@@ -130,7 +130,7 @@ begin
             if (axilEp.axiStatus.readEnable = '1' and axilReadMaster.araddr(PWDN_ADDR_BIT_C) = '0') then
                v.wrData(23)           := '1';              -- read bit
                v.wrData(22 downto 21) := "00";             -- Number of bytes (1)
-               v.wrData(20 downto 17) := "0000";          -- Unused address bits
+               v.wrData(20 downto 17) := "0000";           -- Unused address bits
                v.wrData(16 downto 8)  := axilReadMaster.araddr(10 downto 2);  -- Address
                v.wrData(7 downto 0)   := (others => '1');  -- Make bus float to Z so slave can
                                                            -- drive during data segment
@@ -139,7 +139,7 @@ begin
                v.state                := WAIT_CYCLE_S;
             end if;
 
-            axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C, v.wrEn);            
+            axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C, v.wrEn);
 
          when WAIT_CYCLE_S =>
             -- Wait 1 cycle for rdEn to drop
@@ -159,7 +159,7 @@ begin
                   axilEp.axiReadSlave.rdata             := (others => '0');
                   axilEp.axiReadSlave.rdata(7 downto 0) := rdData(7 downto 0);
                   axiSlaveReadResponse(axilEp.axiReadSlave);
-                  v.axilReadSlave := axilEp.axiReadSlave;
+                  v.axilReadSlave                       := axilEp.axiReadSlave;
                end if;
             end if;
 
@@ -221,7 +221,7 @@ begin
    adcSclk <= coreSclk;
 
    -- Allow input when doing a read and in the data segment of the shift operation
-   sdioDir <= '1' when shiftCount >= 16 and r.wrData(23)='1' else '0';
+   sdioDir <= '1' when shiftCount >= 16 and r.wrData(23) = '1' else '0';
    SDIO_IOBUFT : IOBUF
       port map (
          I  => coreSDout,

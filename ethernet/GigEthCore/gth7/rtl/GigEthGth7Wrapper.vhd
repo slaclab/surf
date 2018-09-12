@@ -2,7 +2,7 @@
 -- File       : GigEthGth7Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-03-30
--- Last update: 2018-01-08
+-- Last update: 2018-08-23
 -------------------------------------------------------------------------------
 -- Description: Gth7 Wrapper for 1000BASE-X Ethernet
 -- Note: This module supports up to a MGT QUAD of 1GigE interfaces
@@ -32,6 +32,8 @@ entity GigEthGth7Wrapper is
    generic (
       TPD_G              : time                             := 1 ns;
       NUM_LANE_G         : natural range 1 to 4             := 1;
+      PAUSE_EN_G         : boolean                          := true;
+      PAUSE_512BITS_G    : positive                         := 8;
       -- Clocking Configurations
       USE_GTREFCLK_G     : boolean                          := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
       CLKIN_PERIOD_G     : real                             := 8.0;
@@ -73,7 +75,7 @@ entity GigEthGth7Wrapper is
       gtTxP               : out slv(NUM_LANE_G-1 downto 0);
       gtTxN               : out slv(NUM_LANE_G-1 downto 0);
       gtRxP               : in  slv(NUM_LANE_G-1 downto 0);
-      gtRxN               : in  slv(NUM_LANE_G-1 downto 0));  
+      gtRxN               : in  slv(NUM_LANE_G-1 downto 0));
 end GigEthGth7Wrapper;
 
 architecture mapping of GigEthGth7Wrapper is
@@ -102,7 +104,7 @@ begin
          IB    => gtClkN,
          CEB   => '0',
          ODIV2 => open,
-         O     => gtClk);    
+         O     => gtClk);
 
    BUFG_Inst : BUFG
       port map (
@@ -120,7 +122,7 @@ begin
       port map (
          arst   => extRst,
          clk    => refClk,
-         rstOut => refRst);   
+         rstOut => refRst);
 
    ----------------
    -- Clock Manager
@@ -146,21 +148,23 @@ begin
          clkOut(0) => sysClk125,
          clkOut(1) => sysClk62,
          rstOut(0) => sysRst125,
-         rstOut(1) => sysRst62); 
+         rstOut(1) => sysRst62);
 
    --------------
    -- GigE Module 
    --------------
    GEN_LANE :
    for i in 0 to NUM_LANE_G-1 generate
-      
+
       U_GigEthGth7 : entity work.GigEthGth7
          generic map (
-            TPD_G            => TPD_G,
+            TPD_G           => TPD_G,
+            PAUSE_EN_G      => PAUSE_EN_G,
+            PAUSE_512BITS_G => PAUSE_512BITS_G,
             -- AXI-Lite Configurations
-            EN_AXI_REG_G     => EN_AXI_REG_G,
+            EN_AXI_REG_G    => EN_AXI_REG_G,
             -- AXI Streaming Configurations
-            AXIS_CONFIG_G    => AXIS_CONFIG_G(i))   
+            AXIS_CONFIG_G   => AXIS_CONFIG_G(i))
          port map (
             -- Local Configurations
             localMac           => localMac(i),
@@ -189,7 +193,7 @@ begin
             gtTxP              => gtTxP(i),
             gtTxN              => gtTxN(i),
             gtRxP              => gtRxP(i),
-            gtRxN              => gtRxN(i));  
+            gtRxN              => gtRxN(i));
 
    end generate GEN_LANE;
 
