@@ -39,7 +39,9 @@ entity Ad9249ReadoutGroup is
       IDELAYCTRL_FREQ_G : real                 := 200.0;
       DELAY_VALUE_G     : natural              := 1250;
       DEFAULT_DELAY_G   : slv(8 downto 0)      := (others => '0');
-      ADC_INVERT_CH_G   : slv(7 downto 0)      := "00000000");
+      ADC_INVERT_CH_G   : slv(7 downto 0)      := "00000000";
+      USE_MMCME_G       : boolean              := false;
+      SIM_SPEEDUP_G     : boolean              := false);
    port (
       -- Master system clock, 125Mhz
       axilClk : in sl;
@@ -289,43 +291,6 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Create Clocks
    -------------------------------------------------------------------------------------------------
-
-   ------------------------------------------
-   -- Generate clocks from 156.25 MHz PGP  --
-   ------------------------------------------
-   -- clkIn     : 350.00 MHz PGP
-   -- clkOut(0) : 350.00 MHz adcBitClkIo clock
-
-
-   U_iserdesClockGen : entity work.ClockManagerUltraScale
-      generic map(
-         TPD_G                  => 1 ns,
-         TYPE_G                 => "MMCM",  -- or "PLL"
-         INPUT_BUFG_G           => true,
-         FB_BUFG_G              => true,
-         RST_IN_POLARITY_G      => '1',     -- '0' for active low
-         NUM_CLOCKS_G           => 1,
-         -- MMCM attributes
-         BANDWIDTH_G            => "OPTIMIZED",
-         CLKIN_PERIOD_G         => 2.85,    -- Input period in ns );
-         DIVCLK_DIVIDE_G        => 10,
-         CLKFBOUT_MULT_F_G      => 20.0,
-         CLKFBOUT_MULT_G        => 5,
-         CLKOUT0_DIVIDE_F_G     => 1.0,
-         CLKOUT0_DIVIDE_G       => 2,
-         CLKOUT0_PHASE_G        => 0.0,
-         CLKOUT0_DUTY_CYCLE_G   => 0.5,
-         CLKOUT0_RST_HOLD_G     => 3,
-         CLKOUT0_RST_POLARITY_G => '1')
-      port map(
-         clkIn     => adcBitClkIoIn,
-         rstIn     => adcClkRst,
-         clkOut(0) => tmpAdcClk,
-         rstOut(0) => adcBitIoRst,
-         locked    => open
-       -- AXI-Lite Interface
-         );
-
    AdcClk_I_Ibufds : IBUFDS
       generic map (
          DQS_BIAS => "FALSE"            -- (FALSE, TRUE)
@@ -335,10 +300,61 @@ begin
          IB => adcSerial.dClkN,
          O  => adcBitClkIoIn);
 
-   U_bitClkBufG : BUFG
-      port map (
-         O => adcBitClkIo,
-         I => tmpAdcClk);
+   G_MMCM : if USE_MMCME_G = true generate
+      ------------------------------------------
+      -- Generate clocks from 156.25 MHz PGP  --
+      ------------------------------------------
+      -- clkIn     : 350.00 MHz PGP
+      -- clkOut(0) : 350.00 MHz adcBitClkIo clock
+      U_iserdesClockGen : entity work.ClockManagerUltraScale
+         generic map(
+            TPD_G                  => 1 ns,
+            TYPE_G                 => "MMCM",  -- or "PLL"
+            INPUT_BUFG_G           => true,
+            FB_BUFG_G              => true,
+            RST_IN_POLARITY_G      => '1',     -- '0' for active low
+            NUM_CLOCKS_G           => 1,
+            -- MMCM attributes
+            BANDWIDTH_G            => "OPTIMIZED",
+            CLKIN_PERIOD_G         => 2.85,    -- Input period in ns );
+            DIVCLK_DIVIDE_G        => 10,
+            CLKFBOUT_MULT_F_G      => 20.0,
+            CLKFBOUT_MULT_G        => 5,
+            CLKOUT0_DIVIDE_F_G     => 1.0,
+            CLKOUT0_DIVIDE_G       => 2,
+            CLKOUT0_PHASE_G        => 0.0,
+            CLKOUT0_DUTY_CYCLE_G   => 0.5,
+            CLKOUT0_RST_HOLD_G     => 3,
+            CLKOUT0_RST_POLARITY_G => '1')
+         port map(
+            clkIn     => adcBitClkIoIn,
+            rstIn     => adcClkRst,
+            clkOut(0) => tmpAdcClk,
+            rstOut(0) => adcBitIoRst,
+            locked    => open
+         );
+      
+      U_bitClkBufG : BUFG
+         port map (
+            O => adcBitClkIo,
+            I => tmpAdcClk);
+      
+   end generate G_MMCM;
+   
+   G_NO_MMCM : if USE_MMCME_G = false generate
+      adcBitClkIo <= adcBitClkIoIn;
+      U_PwrUpRst : entity work.PwrUpRst
+         generic map (
+            TPD_G          => TPD_G,
+            SIM_SPEEDUP_G  => SIM_SPEEDUP_G,
+            IN_POLARITY_G  => '1',
+            OUT_POLARITY_G => '1')
+         port map (
+            clk    => adcBitClkIoIn,
+            rstOut => adcBitIoRst);
+   end generate G_NO_MMCM;
+
+   
 
    -- Regional clock
    U_AdcBitClkR : BUFGCE_DIV
