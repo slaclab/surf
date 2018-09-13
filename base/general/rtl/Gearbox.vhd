@@ -27,12 +27,12 @@ entity Gearbox is
 
    generic (
       TPD_G          : time    := 1 ns;
-      INPUT_WIDTH_G  : natural := 12;
-      OUTPUT_WIDTH_G : natural := 16);
+      INPUT_WIDTH_G  : natural := 64;
+      OUTPUT_WIDTH_G : natural := 66);
 
    port (
       clk : in sl;
-      rst : in sl;
+      rst : in sl; 
 
       -- input side data and flow control
       dataIn  : in  slv(INPUT_WIDTH_G-1 downto 0);
@@ -52,7 +52,11 @@ end entity Gearbox;
 
 architecture rtl of Gearbox is
 
-   constant SHIFT_WIDTH_C : integer := OUTPUT_WIDTH_G + INPUT_WIDTH_G;
+   constant MAX_C : integer := maximum(OUTPUT_WIDTH_G, INPUT_WIDTH_G);
+   constant MIN_C : integer := minimum(OUTPUT_WIDTH_G, INPUT_WIDTH_G);
+
+   -- Don't need the +1 if slip is not used.
+   constant SHIFT_WIDTH_C : integer := wordCount(MAX_C, MIN_C) * MIN_C + 1;
 
    type RegType is record
       validOut   : sl;
@@ -89,7 +93,7 @@ begin
       -- Slip input by incrementing the writeIndex
       v.slip := slip;
       if (slip = '1' and r.slip = '0') then
-         v.writeIndex := r.writeIndex + 1;
+         v.writeIndex := r.writeIndex - 1;
       end if;
 
 
