@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Gth7RxFixedLatPhaseAligner.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-01
--- Last update: 2015-04-01
 -------------------------------------------------------------------------------
 -- Description:
 -- Used in conjunction for a Xilinx 7 Series GTH.

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamFifoV2.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-09-02
--- Last update: 2016-11-30
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to serve as an async FIFO for AXI Streams. This block also allows the

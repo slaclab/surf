@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SaciPrepRdout.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 07/21/2016
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: The AXI lite master to issue SACI prepare for readout command
 -------------------------------------------------------------------------------

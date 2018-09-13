@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : GlinkDecoder.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2012-03-12
--- Last update: 2015-12-07
 -------------------------------------------------------------------------------
 -- Description: Decoder for the Condition Inversion Master Transition coding
 -- used by the GLink Protocol.

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : XauiGtyUltraScaleWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-08
--- Last update: 2018-08-23
 -------------------------------------------------------------------------------
 -- Description: GTH UltraScale+ Wrapper for 10 GigE XAUI
 -------------------------------------------------------------------------------

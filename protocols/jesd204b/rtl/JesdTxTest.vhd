@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : JesdTxTest.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-14
--- Last update: 2015-04-24
 -------------------------------------------------------------------------------
 -- Description: JesdTx simple module for testing RX
 --              Transmitter module for testing JESD RX module.

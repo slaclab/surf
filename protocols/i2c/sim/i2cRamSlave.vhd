@@ -2,8 +2,6 @@
 -- File       : i2cRamSlave.vhd
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-01-24
--- Last update: 2013-01-28
 -------------------------------------------------------------------------------
 -- Description: Simulation testbed for i2cRamSlave
 -------------------------------------------------------------------------------

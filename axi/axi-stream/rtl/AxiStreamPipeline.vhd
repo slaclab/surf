@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamPipeline.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-05-01
--- Last update: 2016-09-06
 -------------------------------------------------------------------------------
 -- Description:   This module is used to sync a AxiStream bus 
 --                either as a pass through or with pipeline register stages.

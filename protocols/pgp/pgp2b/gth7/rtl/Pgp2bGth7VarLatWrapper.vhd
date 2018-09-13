@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Pgp2bGth7VarLatWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-01
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Example PGP 3.125 Gbps front end wrapper
 -- Note: Default generic configurations are for the Diligent NetFPGA-SUME development board

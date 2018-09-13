@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : DspFp32PreMultAccumTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-09-30
--- Last update: 2017-09-30
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for the DspFp32PreMultAccum module
 -------------------------------------------------------------------------------

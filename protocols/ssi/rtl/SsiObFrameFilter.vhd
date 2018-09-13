@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SsiObFrameFilter.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-05-02
--- Last update: 2017-06-01
 -------------------------------------------------------------------------------
 -- Description:   This module is used to filter out bad SSI frames.
 --

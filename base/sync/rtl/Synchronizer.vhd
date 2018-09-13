@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Synchronizer.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-05-13
--- Last update: 2016-09-13
 -------------------------------------------------------------------------------
 -- Description: A simple multi Flip FLop synchronization module.
 --              Sets attributes to keep synthesis for mucking with FF chain.

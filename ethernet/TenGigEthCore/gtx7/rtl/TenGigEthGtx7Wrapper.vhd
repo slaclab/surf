@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : TenGigEthGtx7Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-03-30
--- Last update: 2018-08-23
 -------------------------------------------------------------------------------
 -- Description: Gtx7 Wrapper for 10GBASE-R Ethernet
 -- Note: This module supports up to a MGT QUAD of 10GigE interfaces

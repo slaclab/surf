@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiI2cEeprom.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-07-11
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Wrapper for AxiI2cEepromCore
 --

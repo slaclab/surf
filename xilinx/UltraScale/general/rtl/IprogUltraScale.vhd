@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : IprogUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-06-18
--- Last update: 2016-04-13
 -------------------------------------------------------------------------------
 -- Description:   Uses the ICAP primitive to internally 
 --                toggle the PROG_B via IPROG command

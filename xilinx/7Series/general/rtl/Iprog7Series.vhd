@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Iprog7Series.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-11-01
--- Last update: 2017-11-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------

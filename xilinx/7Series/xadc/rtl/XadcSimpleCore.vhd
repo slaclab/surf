@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : XadcSimpleCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-01-10
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: This core only measures internal voltages and temperature
 -------------------------------------------------------------------------------
