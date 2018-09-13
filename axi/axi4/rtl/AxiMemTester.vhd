@@ -58,10 +58,12 @@ architecture rtl of AxiMemTester is
    constant STOP_C       : slv(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := STOP_ADDR_G(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0);
    constant STOP_ADDR_C  : slv(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := STOP_C(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 12) & x"000";
 
-   constant DATA_BITS_C : natural         := 8*AXI_CONFIG_G.DATA_BYTES_C;
-   constant AXI_LEN_C   : slv(7 downto 0) := getAxiLen(AXI_CONFIG_G, BURST_LEN_G);
+   constant DATA_BITS_C       : natural         := 8*AXI_CONFIG_G.DATA_BYTES_C;
+   constant AXI_LEN_C         : slv(7 downto 0) := getAxiLen(AXI_CONFIG_G, BURST_LEN_G);
 
    constant PRBS_TAPS_C : NaturalArray := (0 => (DATA_BITS_C-1), 1 => (DATA_BITS_C/2), 2 => (DATA_BITS_C/4));
+   
+   constant DATA_SYNC_BITS_C : natural := ite(DATA_BITS_C<1024, DATA_BITS_C, 1024);
 
    function GenSeed return slv is
       variable retVar : slv(DATA_BITS_C-1 downto 0);
@@ -97,6 +99,8 @@ architecture rtl of AxiMemTester is
       len            : slv(7 downto 0);
       address        : slv(63 downto 0);
       randomData     : slv(DATA_BITS_C-1 downto 0);
+      rData          : slv(DATA_BITS_C-1 downto 0);
+      rPattern       : slv(DATA_BITS_C-1 downto 0);
       state          : StateType;
       axiWriteMaster : AxiWriteMasterType;
       axiReadMaster  : AxiReadMasterType;
@@ -115,6 +119,8 @@ architecture rtl of AxiMemTester is
       len            => AXI_LEN_C,
       address        => (others => '0'),
       randomData     => PRBS_SEED_C,
+      rData          => (others => '0'),
+      rPattern       => (others => '0'),
       state          => IDLE_S,
       axiWriteMaster => AXI_WRITE_MASTER_INIT_C,
       axiReadMaster  => AXI_READ_MASTER_INIT_C);
@@ -126,6 +132,13 @@ architecture rtl of AxiMemTester is
    signal error  : sl;
    signal wTimer : slv(31 downto 0);
    signal rTimer : slv(31 downto 0);
+   signal wErrResp   : sl;
+   signal rErrResp   : sl;
+   signal rErrData   : sl;
+   signal rDataIn       : slv(DATA_SYNC_BITS_C-1 downto 0);
+   signal rPatternIn    : slv(DATA_SYNC_BITS_C-1 downto 0);
+   signal rDataOut      : slv(1023 downto 0);
+   signal rPatternOut   : slv(1023 downto 0);
 
    type RegLiteType is record
       memReady       : sl;
@@ -264,6 +277,9 @@ begin
          ----------------------------------------------------------------------
          when READ_DATA_S =>
             if (v.axiReadMaster.arvalid = '0') and (axiReadSlave.rvalid = '1') then
+               -- Save data for AXIL access
+               v.rData := axiReadSlave.rdata(DATA_BITS_C-1 downto 0);
+               v.rPattern := r.randomData(DATA_BITS_C-1 downto 0);
                -- Compare the data 
                if r.randomData(DATA_BITS_C-1 downto 0) /= axiReadSlave.rdata(DATA_BITS_C-1 downto 0) then
                   -- Set the flag
@@ -395,9 +411,53 @@ begin
          -- Read Ports (rd_clk domain)
          rd_clk => axilClk,
          dout   => rTimer);
-
+   
+   Sync_4 : entity work.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => axilClk,
+         dataIn  => r.wErrResp,
+         dataOut => wErrResp);
+   
+   Sync_5 : entity work.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => axilClk,
+         dataIn  => r.rErrResp,
+         dataOut => rErrResp);
+   
+   Sync_6 : entity work.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => axilClk,
+         dataIn  => r.rErrData,
+         dataOut => rErrData);
+   
+   rDataIn <= r.rData(DATA_SYNC_BITS_C-1 downto 0);
+   Sync_7 : entity work.SynchronizerVector
+      generic map (
+         TPD_G    => TPD_G,
+         WIDTH_G  => DATA_SYNC_BITS_C)
+      port map (
+         clk     => axilClk,
+         dataIn  => rDataIn,
+         dataOut => rDataOut(DATA_SYNC_BITS_C-1 downto 0));
+   
+   rPatternIn <= r.rPattern(DATA_SYNC_BITS_C-1 downto 0);
+   Sync_8 : entity work.SynchronizerVector
+      generic map (
+         TPD_G    => TPD_G,
+         WIDTH_G  => DATA_SYNC_BITS_C)
+      port map (
+         clk     => axilClk,
+         dataIn  => rPatternIn,
+         dataOut => rPatternOut(DATA_SYNC_BITS_C-1 downto 0));
+   
    combLite : process (axilReadMaster, axilRst, axilWriteMaster, done, error,
-                       rLite, rTimer, wTimer) is
+                       rLite, rTimer, wTimer, wErrResp, rErrResp, rErrData, rDataOut, rPatternOut) is
       variable v      : RegLiteType;
       variable regCon : AxiLiteEndPointType;
    begin
@@ -426,6 +486,13 @@ begin
       axiSlaveRegisterR(regCon, x"120", 0, toSlv(AXI_CONFIG_G.ADDR_WIDTH_C, 32));
       axiSlaveRegisterR(regCon, x"124", 0, toSlv(AXI_CONFIG_G.DATA_BYTES_C, 32));
       axiSlaveRegisterR(regCon, x"128", 0, toSlv(AXI_CONFIG_G.ID_BITS_C, 32));
+      axiSlaveRegisterR(regCon, x"12C", 0, wErrResp);
+      axiSlaveRegisterR(regCon, x"12C", 1, rErrResp);
+      axiSlaveRegisterR(regCon, x"12C", 2, rErrData);
+      for i in 0 to 31 loop
+         axiSlaveRegisterR(regCon, x"130"+toSlv(i*4,12), 0, rDataOut(31+i*32 downto 0+i*32));
+         axiSlaveRegisterR(regCon, x"1B0"+toSlv(i*4,12), 0, rPatternOut(31+i*32 downto 0+i*32));
+      end loop;
 
       -- Closeout the transaction
       axiSlaveDefault(regCon, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);

@@ -119,4 +119,56 @@ class AxiMemTester(pr.Device):
             base         = pr.UInt,
             mode         = "RO",
         ))
+        
+        self.add(pr.RemoteVariable(    
+            name         = "WrErrResp",
+            description  = "AXI4 Bus Write Error Response",
+            offset       =  0x12C,
+            bitSize      =  1,
+            bitOffset    =  0,
+            base         = pr.Bool,
+            mode         = "RO",
+        ))
+        
+        self.add(pr.RemoteVariable(    
+            name         = "RdErrResp",
+            description  = "AXI4 Bus Read Error Response",
+            offset       =  0x12C,
+            bitSize      =  1,
+            bitOffset    =  1,
+            base         = pr.Bool,
+            mode         = "RO",
+        ))
+        
+        self.add(pr.RemoteVariable(    
+            name         = "RdErrData",
+            description  = "Read Data Error",
+            offset       =  0x12C,
+            bitSize      =  1,
+            bitOffset    =  2,
+            base         = pr.Bool,
+            mode         = "RO",
+        ))
+        
+        for i in range(32):
+            self.add(pr.RemoteVariable(
+                name        = f'RdData[{i:d}]',
+                description = f'Readback Data Word {i:d}',
+                offset      = 0x130 + (i*4),
+                bitSize     = 32,
+                bitOffset   = 0,
+                base        = pr.UInt,
+                mode        = 'RO',
+            ))
+        
+        for i in range(32):
+            self.add(pr.RemoteVariable(
+                name        = f'RandomData[{i:d}]',
+                description = f'Random Data Pattern Word {i:d}',
+                offset      = 0x1B0 + (i*4),
+                bitSize     = 32,
+                bitOffset   = 0,
+                base        = pr.UInt,
+                mode        = 'RO',
+            ))
 
