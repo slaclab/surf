@@ -202,12 +202,7 @@ begin
       axiSlaveRegisterR(axilEp, x"400", userValues);
       axiSlaveRegisterR(axilEp, x"500", 0, DEVICE_ID_G);
       
-      -- axiSlaveRegisterR(axilEp, x"600", 0, BUILD_INFO_C.gitHash);-- axiSlaveRegisterR() Broken, only first 32-bit show up in software
-      axiSlaveRegisterR(axilEp, x"600", 0, BUILD_INFO_C.gitHash(31 downto 0));
-      axiSlaveRegisterR(axilEp, x"604", 0, BUILD_INFO_C.gitHash(63 downto 32));
-      axiSlaveRegisterR(axilEp, x"608", 0, BUILD_INFO_C.gitHash(95 downto 64));
-      axiSlaveRegisterR(axilEp, x"60C", 0, BUILD_INFO_C.gitHash(127 downto 96));
-      axiSlaveRegisterR(axilEp, x"610", 0, BUILD_INFO_C.gitHash(159 downto 128));
+      axiSlaveRegisterR(axilEp, x"600", 0, BUILD_INFO_C.gitHash);
       
       axiSlaveRegisterR(axilEp, x"700", 0, dnaValue);
       axiSlaveRegisterR(axilEp, x"800", BUILD_STRING_ROM_C);
