@@ -28,7 +28,7 @@ entity OutputBufferReg is
       TPD_G          : time    := 1 ns;
       DIFF_PAIR_G    : boolean := false;
       DDR_CLK_EDGE_G : string  := "OPPOSITE_EDGE";
-      INIT_G         : sl      := '0';
+      INIT_G         : bit     := '0';
       SRTYPE_G       : string  := "SYNC");
    port (
       I  : in  sl;
@@ -49,7 +49,7 @@ begin
    U_ODDR : ODDR
       generic map(
          DDR_CLK_EDGE => DDR_CLK_EDGE_G,  -- "OPPOSITE_EDGE" or "SAME_EDGE" 
-         INIT_G       => '0',  -- Initial value for Q port ('1' or '0')
+         INIT         => INIT_G,  -- Initial value for Q port ('1' or '0')
          SRTYPE       => SRTYPE_G)      -- Reset Type ("ASYNC" or "SYNC")
       port map (
          Q  => outputSig,               -- 1-bit DDR output

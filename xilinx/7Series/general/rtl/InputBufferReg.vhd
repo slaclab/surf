@@ -28,8 +28,8 @@ entity InputBufferReg is
       TPD_G          : time    := 1 ns;
       DIFF_PAIR_G    : boolean := false;
       DDR_CLK_EDGE_G : string  := "OPPOSITE_EDGE";
-      INIT_Q1_G      : sl      := '0';
-      INIT_Q2_G      : sl      := '0';
+      INIT_Q1_G      : bit     := '0';
+      INIT_Q2_G      : bit     := '0';
       SRTYPE_G       : string  := "SYNC");
    port (
       I  : in  sl;
