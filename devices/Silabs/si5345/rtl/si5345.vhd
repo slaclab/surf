@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : si5345.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2018-09-07
--- Last update: 2018-09-07
 -------------------------------------------------------------------------------
 -- Description: SPI Master Wrapper that includes a state machine for SPI paging
 -------------------------------------------------------------------------------
