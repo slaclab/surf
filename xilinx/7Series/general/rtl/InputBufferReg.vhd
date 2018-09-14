@@ -74,7 +74,7 @@ begin
          Q2 => Q2,  -- 1-bit output for negative edge of clock
          C  => C,                       -- 1-bit clock input
          CE => CE,                      -- 1-bit clock enable input
-         D  => D,                       -- 1-bit DDR data input
+         D  => inputSig,                -- 1-bit DDR data input
          R  => R,                       -- 1-bit reset
          S  => S);                      -- 1-bit set
 
