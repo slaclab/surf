@@ -29,7 +29,7 @@ use work.AxiStreamPkg.all;
 entity StreamPatternTester is 
    generic (
       TPD_G             : time := 1 ns;
-      NUM_CHANNELS_G    : integer range 1 to 31 := 8
+      NUM_CHANNELS_G    : integer range 1 to 128 := 8
    );
    port ( 
       -- Master system clock
