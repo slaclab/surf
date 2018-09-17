@@ -81,12 +81,12 @@ architecture rtl of AxiStreamBatcher is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      maxSuperSize    => toSlv(AXIS_WRD_C, 32),
+      maxSuperSize    => toSlv(MAX_SUPER_FRAME_THRESHOLD_G, 32),
       superByteCnt    => toSlv(AXIS_WRD_C, 32),
       subByteCnt      => (others => '0'),
-      maxSubFrame     => toSlv(1, 16),
+      maxSubFrame     => toSlv(MAX_NUMBER_SUB_FRAME_G, 16),
       subFrameCnt     => (others => '0'),
-      maxClkGap       => (others => '0'),
+      maxClkGap       => toSlv(MAX_CLK_GAP_G, 12),
       clkGapCnt       => (others => '0'),
       maxSuperSizeDet => '0',
       maxSubFrameDet  => '0',
