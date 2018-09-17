@@ -27,78 +27,78 @@ entity AxiStreamBatcher is
    generic (
       TPD_G                       : time                := 1 ns;
       MAX_SUPER_FRAME_THRESHOLD_G : positive            := 8192;  -- Units of bytes
-      MAX_NUMBER_SUB_FRAME_G      : positive            := 32;  -- Units of sub-frames
+      MAX_NUMBER_SUB_FRAMES_G     : positive            := 32;  -- Units of sub-frames
       MAX_CLK_GAP_G               : positive            := 256;  -- Units of clock cycles
       AXIS_CONFIG_G               : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
       INPUT_PIPE_STAGES_G         : natural             := 0;
       OUTPUT_PIPE_STAGES_G        : natural             := 1);
    port (
       -- Clock and Reset
-      axisClk      : in  sl;
-      axisRst      : in  sl;
+      axisClk           : in  sl;
+      axisRst           : in  sl;
       -- External Control Interface
-      maxSuperSize : in  slv(31 downto 0) := toSlv(MAX_SUPER_FRAME_THRESHOLD_G, 32);
-      maxSubFrame  : in  slv(15 downto 0) := toSlv(MAX_NUMBER_SUB_FRAME_G, 16);
-      maxClkGap    : in  slv(11 downto 0) := toSlv(MAX_CLK_GAP_G, 12);
+      maxSuperThreshold : in  slv(31 downto 0) := toSlv(MAX_SUPER_FRAME_THRESHOLD_G, 32);
+      maxSubFrames      : in  slv(15 downto 0) := toSlv(MAX_NUMBER_SUB_FRAMES_G, 16);
+      maxClkGap         : in  slv(11 downto 0) := toSlv(MAX_CLK_GAP_G, 12);
       -- AXIS Interfaces
-      sAxisMaster  : in  AxiStreamMasterType;
-      sAxisSlave   : out AxiStreamSlaveType;
-      mAxisMaster  : out AxiStreamMasterType;
-      mAxisSlave   : in  AxiStreamSlaveType);
+      sAxisMaster       : in  AxiStreamMasterType;
+      sAxisSlave        : out AxiStreamSlaveType;
+      mAxisMaster       : out AxiStreamMasterType;
+      mAxisSlave        : in  AxiStreamSlaveType);
 end entity AxiStreamBatcher;
 
 architecture rtl of AxiStreamBatcher is
 
-   constant AXIS_WRD_C : positive := AXIS_CONFIG_G.TDATA_BYTES_C;  -- Units of bytes
+   constant AXIS_WORD_SIZE_C : positive := AXIS_CONFIG_G.TDATA_BYTES_C;  -- Units of bytes
 
    type StateType is (
       HEADER_S,
       SUB_FRAME_S,
       TAIL_S,
-      CHUCK_TAIL_2BYTE_S,
-      CHUCK_TAIL_4BYTE_S,
+      CHUNK_TAIL_2BYTE_S,
+      CHUNK_TAIL_4BYTE_S,
       GAP_S);
 
    type RegType is record
-      maxSuperSize    : slv(31 downto 0);
-      superByteCnt    : slv(31 downto 0);
-      subByteCnt      : slv(31 downto 0);
-      maxSubFrame     : slv(15 downto 0);
-      subFrameCnt     : slv(15 downto 0);
-      maxClkGap       : slv(11 downto 0);
-      clkGapCnt       : slv(11 downto 0);
-      maxSuperSizeDet : sl;
-      maxSubFrameDet  : sl;
-      seqCnt          : slv(7 downto 0);
-      tDest           : slv(7 downto 0);
-      tUserFirst      : slv(7 downto 0);
-      tUserLast       : slv(7 downto 0);
-      lastByteCnt     : slv(4 downto 0);
-      chuckCnt        : natural range 0 to 3;
-      rxSlave         : AxiStreamSlaveType;
-      txMaster        : AxiStreamMasterType;
-      state           : StateType;
+      maxSuperThreshold    : slv(31 downto 0);
+      superByteCnt         : slv(31 downto 0);
+      subByteCnt           : slv(31 downto 0);
+      maxSubFrames         : slv(15 downto 0);
+      subFrameCnt          : slv(15 downto 0);
+      maxClkGap            : slv(11 downto 0);
+      clkGapCnt            : slv(11 downto 0);
+      maxSuperThresholdDet : sl;
+      maxSubFramesDet      : sl;
+      seqCnt               : slv(7 downto 0);
+      tDest                : slv(7 downto 0);
+      tUserFirst           : slv(7 downto 0);
+      tUserLast            : slv(7 downto 0);
+      lastByteCnt          : slv(4 downto 0);
+      chunkCnt             : natural range 0 to 3;
+      rxSlave              : AxiStreamSlaveType;
+      txMaster             : AxiStreamMasterType;
+      state                : StateType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      maxSuperSize    => toSlv(MAX_SUPER_FRAME_THRESHOLD_G, 32),
-      superByteCnt    => toSlv(AXIS_WRD_C, 32),
-      subByteCnt      => (others => '0'),
-      maxSubFrame     => toSlv(MAX_NUMBER_SUB_FRAME_G, 16),
-      subFrameCnt     => (others => '0'),
-      maxClkGap       => toSlv(MAX_CLK_GAP_G, 12),
-      clkGapCnt       => (others => '0'),
-      maxSuperSizeDet => '0',
-      maxSubFrameDet  => '0',
-      seqCnt          => (others => '0'),
-      tDest           => (others => '0'),
-      tUserFirst      => (others => '0'),
-      tUserLast       => (others => '0'),
-      lastByteCnt     => (others => '0'),
-      chuckCnt        => 1,
-      rxSlave         => AXI_STREAM_SLAVE_INIT_C,
-      txMaster        => AXI_STREAM_MASTER_INIT_C,
-      state           => HEADER_S);
+      maxSuperThreshold    => toSlv(MAX_SUPER_FRAME_THRESHOLD_G, 32),
+      superByteCnt         => toSlv(AXIS_WORD_SIZE_C, 32),
+      subByteCnt           => (others => '0'),
+      maxSubFrames         => toSlv(MAX_NUMBER_SUB_FRAMES_G, 16),
+      subFrameCnt          => (others => '0'),
+      maxClkGap            => toSlv(MAX_CLK_GAP_G, 12),
+      clkGapCnt            => (others => '0'),
+      maxSuperThresholdDet => '0',
+      maxSubFramesDet      => '0',
+      seqCnt               => (others => '0'),
+      tDest                => (others => '0'),
+      tUserFirst           => (others => '0'),
+      tUserLast            => (others => '0'),
+      lastByteCnt          => (others => '0'),
+      chunkCnt             => 1,
+      rxSlave              => AXI_STREAM_SLAVE_INIT_C,
+      txMaster             => AXI_STREAM_MASTER_INIT_C,
+      state                => HEADER_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -110,7 +110,7 @@ architecture rtl of AxiStreamBatcher is
 
 begin
 
-   assert (AXIS_WRD_C >= 2)
+   assert (AXIS_WORD_SIZE_C >= 2)
       report "AXIS_CONFIG_G.TDATA_BYTES_C must be >= 2" severity error;
 
    -----------------
@@ -128,28 +128,28 @@ begin
          mAxisMaster => rxMaster,
          mAxisSlave  => rxSlave);
 
-   comb : process (axisRst, maxClkGap, maxSubFrame, maxSuperSize, r, rxMaster,
-                   txSlave) is
+   comb : process (axisRst, maxClkGap, maxSubFrames, maxSuperThreshold, r,
+                   rxMaster, txSlave) is
       variable v : RegType;
 
       procedure doTail is
       begin
          -- Check for end of super-frame condition
-         if (v.maxSuperSizeDet = '1') or (v.maxSubFrameDet = '1') then
+         if (v.maxSuperThresholdDet = '1') or (v.maxSubFramesDet = '1') then
             -- Move the outbound data
             v.txMaster.tValid := '1';
             -- Terminate the super-frame
             v.txMaster.tLast  := '1';
             -- Indicates super-frame terminated
-            if (AXIS_WRD_C = 2) then
-               v.txMaster.tData(13) := v.maxSubFrameDet;
-               v.txMaster.tData(14) := v.maxSuperSizeDet;
-            elsif (AXIS_WRD_C = 4) then
-               v.txMaster.tData(29) := v.maxSubFrameDet;
-               v.txMaster.tData(30) := v.maxSuperSizeDet;
+            if (AXIS_WORD_SIZE_C = 2) then
+               v.txMaster.tData(13) := v.maxSubFramesDet;
+               v.txMaster.tData(14) := v.maxSuperThresholdDet;
+            elsif (AXIS_WORD_SIZE_C = 4) then
+               v.txMaster.tData(29) := v.maxSubFramesDet;
+               v.txMaster.tData(30) := v.maxSuperThresholdDet;
             else
-               v.txMaster.tData(61) := v.maxSubFrameDet;
-               v.txMaster.tData(62) := v.maxSuperSizeDet;
+               v.txMaster.tData(61) := v.maxSubFramesDet;
+               v.txMaster.tData(62) := v.maxSuperThresholdDet;
             end if;
             -- Next state
             v.state := HEADER_S;
@@ -178,15 +178,15 @@ begin
       end if;
 
       -- Check for max. super frame
-      if(r.superByteCnt = r.maxSuperSize) then
+      if(r.superByteCnt = r.maxSuperThreshold) then
          -- Set the flag
-         v.maxSuperSizeDet := '1';
+         v.maxSuperThresholdDet := '1';
       end if;
 
       -- Check for max. super frame
-      if(r.subFrameCnt = r.maxSubFrame) then
+      if(r.subFrameCnt = r.maxSubFrames) then
          -- Set the flag
-         v.maxSubFrameDet := '1';
+         v.maxSubFramesDet := '1';
       end if;
 
       -- Main state machine
@@ -194,31 +194,31 @@ begin
          ----------------------------------------------------------------------
          when HEADER_S =>
             -- Reset the flag
-            v.maxSuperSizeDet                              := '0';
-            v.maxSubFrameDet                               := '0';
+            v.maxSuperThresholdDet                                    := '0';
+            v.maxSubFramesDet                                         := '0';
             -- Sample external signals
-            v.maxSuperSize                                 := maxSuperSize;
-            v.maxSubFrame                                  := maxSubFrame;
-            v.maxClkGap                                    := maxClkGap;
-            -- Floor the maxSuperSize to nearest word increment
+            v.maxSuperThreshold                                       := maxSuperThreshold;
+            v.maxSubFrames                                            := maxSubFrames;
+            v.maxClkGap                                               := maxClkGap;
+            -- Floor the maxSuperThreshold to nearest word increment
             -- This is done to remove the ">" operator in 
-            v.maxSuperSize(bitSize(AXIS_WRD_C)-1 downto 0) := (others => '0');
-            -- Check for zero byte maxSuperSize case
-            if (v.maxSuperSize = 0) then
+            v.maxSuperThreshold(bitSize(AXIS_WORD_SIZE_C)-1 downto 0) := (others => '0');
+            -- Check for zero byte maxSuperThreshold case
+            if (v.maxSuperThreshold = 0) then
                -- Prevent zero case
-               v.maxSuperSize := toSlv(AXIS_WRD_C, 32);
+               v.maxSuperThreshold := toSlv(AXIS_WORD_SIZE_C, 32);
             end if;
-            -- Check for zero maxSubFrame case
-            if (v.maxSubFrame = 0) then
+            -- Check for zero maxSubFrames case
+            if (v.maxSubFrames = 0) then
                -- Prevent zero case
-               v.maxSubFrame := toSlv(1, 16);
+               v.maxSubFrames := toSlv(1, 16);
             end if;
             -- Check if ready to move data
             if (rxMaster.tValid = '1') and (v.txMaster.tValid = '0') then
                -- Send the super-frame header
                v.txMaster.tValid               := '1';
                v.txMaster.tData(3 downto 0)    := x"1";  -- Version = 0x1
-               v.txMaster.tData(7 downto 4)    := toSlv(AXIS_WRD_C-1, 4);
+               v.txMaster.tData(7 downto 4)    := toSlv(AXIS_WORD_SIZE_C-1, 4);
                v.txMaster.tData(15 downto 8)   := r.seqCnt;
                v.txMaster.tData(127 downto 16) := (others => '0');
                ssiSetUserSof(AXIS_CONFIG_G, v.txMaster, '1');
@@ -230,7 +230,7 @@ begin
             -- Reset the sub-frame counter
             v.subFrameCnt  := (others => '0');
             -- Preset the super-frame byte counter
-            v.superByteCnt := toSlv(AXIS_WRD_C, 32);
+            v.superByteCnt := toSlv(AXIS_WORD_SIZE_C, 32);
          ----------------------------------------------------------------------
          when SUB_FRAME_S =>
             -- Check if ready to move data
@@ -260,10 +260,10 @@ begin
                   v.state                                            := TAIL_S;
                else
                   -- Increment the sub-frame byte counter
-                  v.subByteCnt := r.subByteCnt + AXIS_WRD_C;
+                  v.subByteCnt := r.subByteCnt + AXIS_WORD_SIZE_C;
                end if;
                -- Increment the super-frame byte counter
-               v.superByteCnt := r.superByteCnt + AXIS_WRD_C;
+               v.superByteCnt := r.superByteCnt + AXIS_WORD_SIZE_C;
             end if;
          ----------------------------------------------------------------------
          when TAIL_S =>
@@ -279,62 +279,62 @@ begin
                -- Reset the counter
                v.subByteCnt                    := (others => '0');
                -- Check the AXIS width
-               if (AXIS_WRD_C = 2) then
+               if (AXIS_WORD_SIZE_C = 2) then
                   -- Move the outbound data
                   v.txMaster.tValid := '1';
                   -- Next state
-                  v.state           := CHUCK_TAIL_2BYTE_S;
-               elsif (AXIS_WRD_C = 4) then
+                  v.state           := CHUNK_TAIL_2BYTE_S;
+               elsif (AXIS_WORD_SIZE_C = 4) then
                   -- Move the outbound data
                   v.txMaster.tValid := '1';
                   -- Next state
-                  v.state           := CHUCK_TAIL_4BYTE_S;
+                  v.state           := CHUNK_TAIL_4BYTE_S;
                else
                   -- Process the tail
                   doTail;
                end if;
-               -- Preset chuck counter
-               v.chuckCnt     := 1;
+               -- Preset chunk counter
+               v.chunkCnt     := 1;
                -- Increment the super-frame byte counter
-               v.superByteCnt := r.superByteCnt + AXIS_WRD_C;
+               v.superByteCnt := r.superByteCnt + AXIS_WORD_SIZE_C;
             end if;
          ----------------------------------------------------------------------
-         when CHUCK_TAIL_2BYTE_S =>
+         when CHUNK_TAIL_2BYTE_S =>
             -- Check if ready to move data
             if (v.txMaster.tValid = '0') then
                -- Shift the data
                v.txMaster.tData := x"0000" & r.txMaster.tData(127 downto 16);
-               -- Check the chucking counter
-               if r.chuckCnt = 3 then
+               -- Check the chunking counter
+               if r.chunkCnt = 3 then
                   -- Process the tail
                   doTail;
                else
                   -- Move the outbound data
                   v.txMaster.tValid := '1';
                   -- Increment the counter
-                  v.chuckCnt        := r.chuckCnt + 1;
+                  v.chunkCnt        := r.chunkCnt + 1;
                end if;
                -- Increment the super-frame byte counter
-               v.superByteCnt := r.superByteCnt + AXIS_WRD_C;
+               v.superByteCnt := r.superByteCnt + AXIS_WORD_SIZE_C;
             end if;
          ----------------------------------------------------------------------
-         when CHUCK_TAIL_4BYTE_S =>
+         when CHUNK_TAIL_4BYTE_S =>
             -- Check if ready to move data
             if (v.txMaster.tValid = '0') then
                -- Shift the data
                v.txMaster.tData := x"0000_0000" & r.txMaster.tData(127 downto 32);
-               -- Check the chucking counter
-               if r.chuckCnt = 1 then
+               -- Check the chunking counter
+               if r.chunkCnt = 1 then
                   -- Process the tail
                   doTail;
                else
                   -- Move the outbound data
                   v.txMaster.tValid := '1';
                   -- Increment the counter
-                  v.chuckCnt        := r.chuckCnt + 1;
+                  v.chunkCnt        := r.chunkCnt + 1;
                end if;
                -- Increment the super-frame byte counter
-               v.superByteCnt := r.superByteCnt + AXIS_WRD_C;
+               v.superByteCnt := r.superByteCnt + AXIS_WORD_SIZE_C;
             end if;
          ----------------------------------------------------------------------
          when GAP_S =>
@@ -355,9 +355,9 @@ begin
                   -- Terminate the super-frame
                   v.txMaster.tLast  := '1';
                   -- Indicates super-frame terminated due to clock gap 
-                  if (AXIS_WRD_C = 2) then
+                  if (AXIS_WORD_SIZE_C = 2) then
                      v.txMaster.tData(15) := '1';
-                  elsif (AXIS_WRD_C = 4) then
+                  elsif (AXIS_WORD_SIZE_C = 4) then
                      v.txMaster.tData(31) := '1';
                   else
                      v.txMaster.tData(63) := '1';
@@ -373,8 +373,8 @@ begin
       end case;
 
       -- Always the same outbound AXIS stream width
-      v.txMaster.tKeep := genTKeep(AXIS_WRD_C);
-      v.txMaster.tStrb := genTKeep(AXIS_WRD_C);
+      v.txMaster.tKeep := genTKeep(AXIS_WORD_SIZE_C);
+      v.txMaster.tStrb := genTKeep(AXIS_WORD_SIZE_C);
 
       -- Combinatorial outputs before the reset
       rxSlave <= v.rxSlave;
