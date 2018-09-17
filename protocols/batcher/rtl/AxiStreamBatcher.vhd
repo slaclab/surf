@@ -29,7 +29,7 @@ entity AxiStreamBatcher is
       MAX_SUPER_FRAME_THRESHOLD_G : positive            := 8192;  -- Units of bytes
       MAX_NUMBER_SUB_FRAME_G      : positive            := 32;  -- Units of sub-frames
       MAX_CLK_GAP_G               : positive            := 256;  -- Units of clock cycles
-      AXI_CONFIG_G                : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
+      AXIS_CONFIG_G               : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
       INPUT_PIPE_STAGES_G         : natural             := 0;
       OUTPUT_PIPE_STAGES_G        : natural             := 1);
    port (
@@ -49,7 +49,7 @@ end entity AxiStreamBatcher;
 
 architecture rtl of AxiStreamBatcher is
 
-   constant AXIS_WRD_C : positive := AXI_CONFIG_G.TDATA_BYTES_C;  -- Units of bytes
+   constant AXIS_WRD_C : positive := AXIS_CONFIG_G.TDATA_BYTES_C;  -- Units of bytes
 
    type StateType is (
       HEADER_S,
@@ -111,7 +111,7 @@ architecture rtl of AxiStreamBatcher is
 begin
 
    assert (AXIS_WRD_C >= 2)
-      report "AXI_CONFIG_G.TDATA_BYTES_C must be >= 2" severity error;
+      report "AXIS_CONFIG_G.TDATA_BYTES_C must be >= 2" severity error;
 
    -----------------
    -- Input pipeline
@@ -221,7 +221,7 @@ begin
                v.txMaster.tData(7 downto 4)    := toSlv(AXIS_WRD_C-1, 4);
                v.txMaster.tData(15 downto 8)   := r.seqCnt;
                v.txMaster.tData(127 downto 16) := (others => '0');
-               ssiSetUserSof(AXI_CONFIG_G, v.txMaster, '1');
+               ssiSetUserSof(AXIS_CONFIG_G, v.txMaster, '1');
                -- Increment the sequence counter
                v.seqCnt                        := r.seqCnt + 1;
                -- Next state
@@ -243,21 +243,21 @@ begin
                -- Check if first transaction
                if (r.subByteCnt = 0) then
                   -- Sample the first transaction
-                  v.tUserFirst(AXI_CONFIG_G.TUSER_BITS_C-1 downto 0) := axiStreamGetUserField(AXI_CONFIG_G, rxMaster, 0);
+                  v.tUserFirst(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0) := axiStreamGetUserField(AXIS_CONFIG_G, rxMaster, 0);
                   -- Increment the sub-frame counter
-                  v.subFrameCnt                                      := r.subFrameCnt + 1;
+                  v.subFrameCnt                                       := r.subFrameCnt + 1;
                end if;
                -- Check for last transaction in sub-frame
                if (rxMaster.tLast = '1') then
                   -- Get the number of valid bytes in the last transaction of the sub-frame
-                  v.lastByteCnt                                     := toSlv(getTKeep(rxMaster.tKeep), 5);
+                  v.lastByteCnt                                      := toSlv(getTKeep(rxMaster.tKeep), 5);
                   -- Increment the sub-frame byte counter
-                  v.subByteCnt                                      := r.subByteCnt + getTKeep(rxMaster.tKeep);
+                  v.subByteCnt                                       := r.subByteCnt + getTKeep(rxMaster.tKeep);
                   -- Sample the meta data
-                  v.tUserLast(AXI_CONFIG_G.TUSER_BITS_C-1 downto 0) := axiStreamGetUserField(AXI_CONFIG_G, rxMaster);
-                  v.tDest(AXI_CONFIG_G.TDEST_BITS_C-1 downto 0)     := rxMaster.tDest(AXI_CONFIG_G.TDEST_BITS_C-1 downto 0);
+                  v.tUserLast(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0) := axiStreamGetUserField(AXIS_CONFIG_G, rxMaster);
+                  v.tDest(AXIS_CONFIG_G.TDEST_BITS_C-1 downto 0)     := rxMaster.tDest(AXIS_CONFIG_G.TDEST_BITS_C-1 downto 0);
                   -- Next state
-                  v.state                                           := TAIL_S;
+                  v.state                                            := TAIL_S;
                else
                   -- Increment the sub-frame byte counter
                   v.subByteCnt := r.subByteCnt + AXIS_WRD_C;
