@@ -201,7 +201,7 @@ begin
             v.maxSubFrames                                            := maxSubFrames;
             v.maxClkGap                                               := maxClkGap;
             -- Floor the maxSuperThreshold to nearest word increment
-            -- This is done to remove the ">" operator in 
+            -- This is done to remove the ">" operator
             v.maxSuperThreshold(bitSize(AXIS_WORD_SIZE_C)-1 downto 0) := (others => '0');
             -- Check for zero byte maxSuperThreshold case
             if (v.maxSuperThreshold = 0) then
