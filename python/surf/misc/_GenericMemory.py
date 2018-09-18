@@ -18,7 +18,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-import rogue.interfaces.memory
+import rogue.interfaces.memory as rim
 
 class GenericMemory(pr.Device):
     def __init__(   self, 
@@ -71,66 +71,76 @@ class GenericMemory(pr.Device):
             self.checkBlocks()
         
 
-    def writeBlocks(self, force=False, recurse=True, variable=None):
+    def writeBlocks(self, force=False, recurse=True, variable=None, checkEach=False):
         
         if not self.enable.get(): return
 
-        # Retire any in-flight transactions before starting
-        self._root.checkBlocks(recurse=True)
+        """
+        Write all of the blocks held by this Device to memory
+        """
+        self._log.debug(f'Calling {self.path}._writeBlocks')
+        #print(f'Calling {self.path}.writeBlocks(recurse={recurse}, variable={variable}, checkEach={checkEach}')                
 
-        # Process local blocks. 
-        if variable is not None:
-            variable._block.blockingTransaction(rogue.interfaces.memory.Write)
-        else:
-            for block in self._blocks:
-                if block.bulkEn:
-                    block.blockingTransaction(rogue.interfaces.memory.Write)
-
-        # Process rest of tree
-        if recurse:
-            for key,value in self.devices.items():
-                value.readBlocks(recurse=True)
-                
-
-    def readBlocks(self, recurse=True, variable=None):
-
-        if not self.enable.get(): return
-
-        # Retire any in-flight transactions before starting
-        self._root.checkBlocks(recurse=True)
-
-        # Process local blocks. 
-        if variable is not None:
-            variable._block.blockingTransaction(rogue.interfaces.memory.Read)
-            variable._block._updated()
-        else:
-            for block in self._blocks:
-                if block.bulkEn:
-                    block.blockingTransaction(rogue.interfaces.memory.Read)
-                    block._updated()                    
-
-        # Process rest of tree
-        if recurse:
-            for key,value in self.devices.items():
-                value.readBlocks(recurse=True)
-
-
-    def verifyBlocks(self, recurse=True, variable=None):
-
-        if not self.enable.get(): return
-        
-       # Retire any in-flight transactions before starting
-        self._root.checkBlocks(recurse=True)
-        
         # Process local blocks.
         if variable is not None:
-            variable._block.blockingTransaction(rogue.interfaces.memory.Verify)
+            for b in self._getBlocks(variable):
+                if (force or block.stale):                
+                    b.startTransaction(rim.Write, check=checkEach)
+
+        else:
+            for block in self._blocks:
+                if (force or block.stale) and block.bulkEn:
+                    block.startTransaction(rim.Write, check=checkEach)
+
+            if recurse:
+                for key,value in self.devices.items():
+                    value.writeBlocks(force=force, recurse=True, checkEach=checkEach)
+                
+
+    def readBlocks(self, recurse=True, variable=None, checkEach=False):
+
+        if not self.enable.get(): return
+
+        """
+        Perform background reads
+        """
+        self._log.debug(f'Calling {self.path}._readBlocks(recurse={recurse}, variable={variable}, checkEach={checkEach}')
+        #print(f'Calling {self.path}.readBlocks(recurse={recurse}, variable={variable}, checkEach={checkEach})')        
+
+        # Process local blocks. 
+        if variable is not None:
+            for b in self._getBlocks(variable):
+                b.startTransaction(rim.Read, checkEach)
+
         else:
             for block in self._blocks:
                 if block.bulkEn:
-                    block.blockingTransaction(rogue.interfaces.memory.Verify)
+                    block.startTransaction(rim.Read, checkEach)
 
-        # Process rest of tree
-        if recurse:
-            for key,value in self.devices.items():
-                value.verifyBlocks(recurse=True)
+            if recurse:
+                for key,value in self.devices.items():
+                    value.readBlocks(recurse=True, checkEach=checkEach)
+
+
+    def verifyBlocks(self, recurse=True, variable=None, checkEach=False):
+
+        if not self.enable.get(): return
+        
+        """
+        Perform background verify
+        """
+        #print(f'Calling {self.path}.verifyBlocks(recurse={recurse}, variable={variable}, checkEach={checkEach}')                
+
+        # Process local blocks.
+        if variable is not None:
+            for b in self._getBlocks(variable):
+                b.startTransaction(rim.Verify, checkEach)
+
+        else:
+            for block in self._blocks:
+                if block.bulkEn:
+                    block.startTransaction(rim.Verify, checkEach)
+
+            if recurse:
+                for key,value in self.devices.items():
+                    value.verifyBlocks(recurse=True, checkEach=checkEach)
