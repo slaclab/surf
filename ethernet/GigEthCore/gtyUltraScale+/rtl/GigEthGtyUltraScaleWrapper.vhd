@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : GigEthGtyUltraScaleWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2018-04-05
--- Last update: 2018-08-23
 -------------------------------------------------------------------------------
 -- Description: Gty Wrapper for 1000BASE-X Ethernet
 -- Note: This module supports up to a MGT QUAD of 1GigE interfaces

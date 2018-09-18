@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamResize.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-06-16
--- Last update: 2016-06-16
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to resize AXI Streams. Re-sizing is always little endian. 

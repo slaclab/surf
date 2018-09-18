@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiXadcMinimumCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-10-21
--- Last update: 2014-10-21
 -------------------------------------------------------------------------------
 -- Description: Example of a simple XADC IP core w/ AXI-Lite
 -------------------------------------------------------------------------------

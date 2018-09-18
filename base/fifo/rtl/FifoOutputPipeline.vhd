@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : FifoOutputPipeline.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-05-05
--- Last update: 2016-09-06
 -------------------------------------------------------------------------------
 -- Description:   This module is used to sync a FWFT FIFO bus 
 --                either as a pass through or with pipeline register stages.

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : FifoAsyncBuiltIn.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-07-28
--- Last update: 2014-07-14
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Xilinx's built-in SYNC FIFO module
 -------------------------------------------------------------------------------

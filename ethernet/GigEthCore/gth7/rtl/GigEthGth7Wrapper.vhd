@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : GigEthGth7Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-03-30
--- Last update: 2018-08-23
 -------------------------------------------------------------------------------
 -- Description: Gth7 Wrapper for 1000BASE-X Ethernet
 -- Note: This module supports up to a MGT QUAD of 1GigE interfaces

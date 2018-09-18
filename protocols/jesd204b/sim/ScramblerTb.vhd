@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : ScramblerTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-07-06
--- Last update: 2017-07-06
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing JESD Scramblers
 ------------------------------------------------------------------------------

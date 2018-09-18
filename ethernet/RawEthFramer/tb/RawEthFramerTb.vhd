@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : RawEthFramerTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-05-24
--- Last update: 2016-05-26
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the RawEthFramer module
 -------------------------------------------------------------------------------

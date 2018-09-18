@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamDeMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-25
--- Last update: 2017-04-07
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to connect a single incoming AXI stream to multiple outgoing AXI

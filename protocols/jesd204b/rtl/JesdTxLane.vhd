@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : JesdTxLane.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-14
--- Last update: 2015-04-24
 -------------------------------------------------------------------------------
 -- Description: JesdTx transmit single lane module
 --              Transmitter for JESD204b standard.

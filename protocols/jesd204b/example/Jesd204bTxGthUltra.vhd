@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Jesd204bTxGthUltra.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-14
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: JESD204b module containing the GTH Ultrascale MGT transmitter modules
 --              Wrapper module for JESD.

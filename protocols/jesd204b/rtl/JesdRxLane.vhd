@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : JesdRxLane.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-14
--- Last update: 2018-05-04
 -------------------------------------------------------------------------------
 -- Description: JesdRx single lane module
 --              Receiver JESD204b standard.

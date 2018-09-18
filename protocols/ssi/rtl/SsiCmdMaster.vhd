@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SsiCmdMaster.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-09
--- Last update: 2015-06-23
 -------------------------------------------------------------------------------
 -- Description:
 -- Block for Command protocol over the VC.

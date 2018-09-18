@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : TenGigEthGthUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-08
--- Last update: 2018-08-23
 -------------------------------------------------------------------------------
 -- Description: 10GBASE-R Ethernet for GTH Ultra Scale
 -------------------------------------------------------------------------------

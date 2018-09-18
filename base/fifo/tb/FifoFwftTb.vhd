@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : FifoFwftTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-05-05
--- Last update: 2014-05-14
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the FifoFwft module
 -------------------------------------------------------------------------------

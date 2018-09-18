@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : UdpEngineTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-08-20
--- Last update: 2016-09-16
 -------------------------------------------------------------------------------
 -- Description: UDP TX Engine Module
 -- Note: UDP checksum checked in EthMac core

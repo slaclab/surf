@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : IpV4EngineTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-08-12
--- Last update: 2016-09-16
 -------------------------------------------------------------------------------
 -- Description: IPv4 TX Engine Module
 -- Note: IPv4 checksum checked in EthMac core

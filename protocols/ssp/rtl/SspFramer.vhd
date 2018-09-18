@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SspFramer.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-07-14
--- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: SimpleStreamingProtocol - A simple protocol layer for inserting
 -- idle and framing control characters into a raw data stream. The output of

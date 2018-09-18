@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SlvDelay.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-09-14
--- Last update: 2016-06-03
 -------------------------------------------------------------------------------
 -- Description: Shift Register Delay module for std_logic_vectors
 -------------------------------------------------------------------------------

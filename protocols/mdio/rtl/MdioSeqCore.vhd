@@ -4,8 +4,6 @@
 -- File       : MdioSeqCore.vhd
 -- Author     : Till Straumann <strauman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-11-27
--- Last update: 2017-11-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
