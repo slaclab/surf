@@ -36,6 +36,8 @@ entity Ad9249ReadoutGroup is
       TPD_G             : time                 := 1 ns;
       NUM_CHANNELS_G    : natural range 1 to 8 := 8;
       IODELAY_GROUP_G   : string               := "DEFAULT_GROUP";
+      D_DELAY_CASCADE_G : boolean              := false;
+      F_DELAY_CASCADE_G : boolean              := false;
       IDELAYCTRL_FREQ_G : real                 := 200.0;
       DELAY_VALUE_G     : natural              := 1250;
       DEFAULT_DELAY_G   : slv(8 downto 0)      := (others => '0');
@@ -351,6 +353,7 @@ begin
             OUT_POLARITY_G => '1')
          port map (
             clk    => adcBitClkIoIn,
+            arst   => adcClkRst,
             rstOut => adcBitIoRst);
    end generate G_NO_MMCM;
 
@@ -404,6 +407,7 @@ begin
          TPD_G             => TPD_G,
          NUM_CHANNELS_G    => 8,
          IODELAY_GROUP_G   => "DEFAULT_GROUP",
+         IDELAY_CASCADE_G  => F_DELAY_CASCADE_G,
          IDELAYCTRL_FREQ_G => 350.0,
          DEFAULT_DELAY_G   => (others => '0'),
          FRAME_PATTERN_G   => FRAME_PATTERN_C,
@@ -436,6 +440,7 @@ begin
             TPD_G             => TPD_G,
             NUM_CHANNELS_G    => 8,
             IODELAY_GROUP_G   => "DEFAULT_GROUP",
+            IDELAY_CASCADE_G  => D_DELAY_CASCADE_G,
             IDELAYCTRL_FREQ_G => 350.0,
             DEFAULT_DELAY_G   => (others => '0'),
             FRAME_PATTERN_G   => FRAME_PATTERN_C,

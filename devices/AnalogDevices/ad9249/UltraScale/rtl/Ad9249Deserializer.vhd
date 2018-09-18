@@ -36,7 +36,8 @@ entity Ad9249Deserializer is
       TPD_G             : time                 := 1 ns;
       NUM_CHANNELS_G    : natural range 1 to 8 := 8;
       IODELAY_GROUP_G   : string               := "DEFAULT_GROUP";
-      IDELAYCTRL_FREQ_G : real                 := 350.0;
+      IDELAY_CASCADE_G  : boolean              := false;
+      IDELAYCTRL_FREQ_G : real                 := 300.0;
       DEFAULT_DELAY_G   : slv(8 downto 0)      := (others => '0');
       FRAME_PATTERN_G   : slv(13 downto 0)     := "11111110000000";
       ADC_INVERT_CH_G   : sl                   := '0';
@@ -69,7 +70,9 @@ architecture rtl of Ad9249Deserializer is
    -------------------------------------------------------------------------------------------------
    -- ADC Readout Clocked Registers
    -------------------------------------------------------------------------------------------------
-
+   
+   constant CASCADE_C : string := ite(IDELAY_CASCADE_G, "MASTER", "NONE");
+   
    type StateType is (IDLE_S, WAIT_IDELAY_CTRL_RDY_S, LOAD_VALUE_S, WAIT_LOAD_S, LOAD_PULSE_S, WAIT_READ_S, READ_VALUE_S);
 
    type AdcClkRegType is record
@@ -77,7 +80,7 @@ architecture rtl of Ad9249Deserializer is
       waitStateCnt     : slv(3 downto 0);
       -- idelay signals 
       masterCntValueIn : slv(8 downto 0);
-      masterCntValue   : slv(8 downto 0);
+      masterCntValue   : slv(9 downto 0);
       masterCE         : sl;
       masterEn_Vtc     : sl;
       masterLoad       : sl;
@@ -160,7 +163,10 @@ architecture rtl of Ad9249Deserializer is
 
    -- idelay signals
    signal idelayRdy_n    : sl;
-   signal masterCntValue : slv(8 downto 0);
+   signal masterCntValue1 : slv(8 downto 0);
+   signal masterCntValue2 : slv(8 downto 0);
+   signal cascOut    : sl;
+   signal cascRet    : sl;
    -- iserdes signal
    signal masterData     : slv(7 downto 0);
 
@@ -199,7 +205,7 @@ begin
    ----------------------------------------------------------------------------
    U_IDELAYE3_0 : IDELAYE3
       generic map (
-         CASCADE          => "NONE",    -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
+         CASCADE          => CASCADE_C,    -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
          DELAY_FORMAT     => "COUNT",   -- Units of the DELAY_VALUE (COUNT, TIME)
          DELAY_SRC        => "IDATAIN",   -- Delay input (DATAIN, IDATAIN)
          DELAY_TYPE       => "VAR_LOAD",  -- Set the type of tap delay line (FIXED, VARIABLE, VAR_LOAD)
@@ -213,11 +219,11 @@ begin
        -- SYNC)
          )
       port map (
-         CASC_OUT    => open,         -- 1-bit output: Cascade delay output to ODELAY input cascade
-         CNTVALUEOUT => masterCntValue,   -- 9-bit output: Counter value output
+         CASC_IN     => '0',  -- 1-bit input: Cascade delay input from slave ODELAY CASCADE_OUT
+         CASC_OUT    => cascOut,         -- 1-bit output: Cascade delay output to ODELAY input cascade
+         CASC_RETURN => cascRet,  -- 1-bit input: Cascade delay returning from slave ODELAY DATAOUT
+         CNTVALUEOUT => masterCntValue1,   -- 9-bit output: Counter value output
          DATAOUT     => sData_d,        -- 1-bit output: Delayed data output
-         CASC_IN     => '1',  -- 1-bit input: Cascade delay input from slave ODELAY CASCADE_OUT
-         CASC_RETURN => '1',  -- 1-bit input: Cascade delay returning from slave ODELAY DATAOUT
          CE          => adcR.masterCE,  -- 1-bit input: Active high enable increment/decrement input
          CLK         => dClkDiv4,       -- 1-bit input: Clock input
          CNTVALUEIN  => adcR.masterCntValueIn,   -- 9-bit input: Counter value input
@@ -228,7 +234,37 @@ begin
          LOAD        => adcR.masterLoad,  -- 1-bit input: Load DELAY_VALUE input
          RST         => adcClkRst       -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
          );
-
+   
+   G_IdelayCascade: if IDELAY_CASCADE_G = true generate
+      U_ODELAYE3_0 : ODELAYE3
+         generic map (
+            CASCADE => "SLAVE_END",    -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
+            DELAY_FORMAT => "COUNT",   -- Units of the DELAY_VALUE (COUNT, TIME)
+            DELAY_TYPE => "VAR_LOAD",  -- Set the type of tap delay line (FIXED, VARIABLE, VAR_LOAD)
+            DELAY_VALUE => conv_integer(DEFAULT_DELAY_G), -- Input delay value setting
+            IS_CLK_INVERTED => '0',    -- Optional inversion for CLK
+            IS_RST_INVERTED => '0',    -- Optional inversion for RST
+            REFCLK_FREQUENCY => IDELAYCTRL_FREQ_G, -- IDELAYCTRL clock input frequency in MHz (200.0-2400.0)
+            UPDATE_MODE => "ASYNC")    -- Determines when updates to the delay will take effect (ASYNC, MANUAL, SYNC)
+         port map (
+            CASC_IN     => cascOut,       -- 1-bit input: Cascade delay input from slave IDELAY CASCADE_OUT
+            CASC_OUT    => open,          -- 1-bit output: Cascade delay output to IDELAY input cascade 
+            CASC_RETURN => '0',           -- 1-bit input: Cascade delay returning from slave IDELAY DATAOUT 
+            ODATAIN     => '0',           -- 1-bit input: Data input
+            DATAOUT     => cascRet,       -- 1-bit output: Delayed data from ODATAIN input port 
+            CLK         => dClkDiv4,           -- 1-bit input: Clock input 
+            EN_VTC      => adcR.masterEn_Vtc,           -- 1-bit input: Keep delay constant over VT 
+            INC         => '0',           -- 1-bit input: Increment / Decrement tap delay input
+            CE          => adcR.masterCE,           -- 1-bit input: Active high enable increment/decrement input 
+            LOAD        => adcR.masterLoad,   -- 1-bit input: Load DELAY_VALUE input 
+            RST         => adcClkRst,      -- 1-bit input: Asynchronous Reset to the DELAY_VALUE 
+            CNTVALUEIN  => adcR.masterCntValueIn,      -- 9-bit input: Counter value input
+            CNTVALUEOUT => masterCntValue2);   -- 9-bit output: Counter value output 
+   end generate;
+   G_IdelayNoCascade: if IDELAY_CASCADE_G = false generate
+      masterCntValue2   <= (others=>'0');
+      cascRet           <= '0';
+   end generate;
    ----------------------------------------------------------------------------
    -- iserdes3
    ----------------------------------------------------------------------------
@@ -281,7 +317,7 @@ begin
    -----------------------------------------------------------------------------
    -- custom logic 
    -----------------------------------------------------------------------------
-   adcComb : process (adcR, loadDelaySync, masterCntValue, idelayCtrlRdy, idelayRdy_n, delay) is
+   adcComb : process (adcR, loadDelaySync, masterCntValue1, masterCntValue2, idelayCtrlRdy, idelayRdy_n, delay) is
       variable v : AdcClkRegType;
    begin
       v := adcR;
@@ -315,7 +351,7 @@ begin
                v.state := READ_VALUE_S;
             end if;
          when READ_VALUE_S =>
-            v.masterCntValue := masterCntValue;
+            v.masterCntValue := resize(masterCntValue1, 10, '0') + masterCntValue2;
             v.state          := IDLE_S;
          when IDLE_S =>
             v.masterLoad       := '0';
@@ -332,7 +368,11 @@ begin
       adcRin <= v;
 
       --outputs
-      delayValueOut <= adcR.masterCntValue;
+      if IDELAY_CASCADE_G = true then
+         delayValueOut <= adcR.masterCntValue(9 downto 1);
+      else
+         delayValueOut <= adcR.masterCntValue(8 downto 0);
+      end if;
 
    end process adcComb;
 
