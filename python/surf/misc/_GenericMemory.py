@@ -92,7 +92,7 @@ class GenericMemory(pr.Device):
                 value.readBlocks(recurse=True)
                 
 
-    def readBlocks(self, recurse=True, variable=None):
+    def readBlocks(self, recurse=True, variable=None, checkEach=False):
 
         if not self.enable.get(): return
 
