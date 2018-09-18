@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SyncClockFreq.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-17
--- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description:   This module measures the frequency of an input clock
 --                with respect to a stable reference clock.

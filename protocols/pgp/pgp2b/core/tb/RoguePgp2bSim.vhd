@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : RoguePgp2bSim.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-12-05
--- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description: Wrapper on RogueStreamSim to simulate a PGP lane with 4
 -- virtual channels

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : RogueStreamSim.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-12-05
--- Last update: 2018-06-29
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Rogue Stream Simulation Module
 -------------------------------------------------------------------------------

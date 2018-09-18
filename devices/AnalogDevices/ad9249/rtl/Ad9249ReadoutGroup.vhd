@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-05-26
--- Last update: 2017-08-09
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
