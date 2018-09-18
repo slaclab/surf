@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiDualPortRam.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-12-17
--- Last update: 2018-03-09
 -------------------------------------------------------------------------------
 -- Description: A wrapper of StdLib DualPortRam that places an AxiLite
 -- interface on the read/write port. 

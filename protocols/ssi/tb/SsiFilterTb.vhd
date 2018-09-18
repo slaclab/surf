@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SsiFilterTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-03-24
--- Last update: 2016-10-11
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the SsiFifo module
 -------------------------------------------------------------------------------

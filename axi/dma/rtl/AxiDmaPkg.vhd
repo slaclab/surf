@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamDmaRead.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-05-06
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:

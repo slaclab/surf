@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SaltUltraScaleTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-09-03
--- Last update: 2018-01-11
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the SaltUltraScale
 -------------------------------------------------------------------------------

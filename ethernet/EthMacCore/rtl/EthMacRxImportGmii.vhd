@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : EthMacRxImportGmii.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-02-04
--- Last update: 2016-09-14
 -------------------------------------------------------------------------------
 -- Description: 1GbE Import MAC core with GMII interface
 -------------------------------------------------------------------------------

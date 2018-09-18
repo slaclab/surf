@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamGearboxUnpack.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-09-26
 -------------------------------------------------------------------------------
 -- Description: Takes 8 80-bit (5x16) ADC frames and reformats them into
 --              7 80 bit (5x14) frames.

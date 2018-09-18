@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : UdpEngineCoreTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-08-17
--- Last update: 2015-08-25
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the UdpEngineCore module
 -------------------------------------------------------------------------------

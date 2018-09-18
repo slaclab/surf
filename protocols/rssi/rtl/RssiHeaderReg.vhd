@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : RssiHeaderReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-08-09
--- Last update: 2016-01-27
 -------------------------------------------------------------------------------
 -- Description: Combines and decodes the header values from input parameters headerValues_i
 --              Header is selected by xxxHeadSt_i and addressed by addr_i

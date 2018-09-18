@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamDmaWrite.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-25
--- Last update: 2016-12-02
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to transfer a single AXI Stream frame into memory using an AXI

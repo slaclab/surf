@@ -331,7 +331,9 @@ class Xadc(pr.Device):
             self.add(pr.LinkVariable(
                 name=f'Aux[{i}]',
                 units='V',
-                dependencies=[self.AuxRaw[i]],
+                disp='{:1.3f}',
+                mode='RO',
+                variable=self.AuxRaw[i],
                 linkedGet=self.convAuxVoltage))
         
         if (zynq):
@@ -614,6 +616,6 @@ class Xadc(pr.Device):
         # Hide all the variable
         self.hideVariables(hidden=True)
         # Then unhide the most interesting ones
-        vars = ["Temperature", "VccInt", "VccAux", "VccBram"]
+        vars = ["enable", "Temperature", "VccInt", "VccAux", "VccBram"]
         self.hideVariables(hidden=False, variables=vars)
        

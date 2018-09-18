@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamPacketizer
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-09-29
--- Last update: 2018-03-29
 -------------------------------------------------------------------------------
 -- Description: AXI stream DePacketerizer Module (non-interleave only)
 --    Formats an AXI-Stream for a transport link.

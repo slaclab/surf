@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SrpV3AxiLite.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-03-22
--- Last update: 2018-05-16
 -------------------------------------------------------------------------------
 -- Description: SLAC Register Protocol Version 3, AXI-Lite Interface
 --

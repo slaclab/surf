@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SsiPrbsTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-29
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the VcPrbsTx and VcPrbsRx modules
 -------------------------------------------------------------------------------

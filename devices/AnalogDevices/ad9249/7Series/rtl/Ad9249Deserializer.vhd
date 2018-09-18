@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Ad9249Deserializer.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-02-22
--- Last update: 2016-06-10
 -------------------------------------------------------------------------------
 -- Description: 14 bit DDR deserializer using 7 series IDELAYE2 and ISERDESE2.
 -------------------------------------------------------------------------------
@@ -23,10 +21,10 @@ library UNISIM;
 use UNISIM.vcomponents.all;
 
 entity Ad9249Deserializer is
-   
+
    generic (
-      TPD_G : time := 1 ns;
-      IODELAY_GROUP_G : string;
+      TPD_G             : time := 1 ns;
+      IODELAY_GROUP_G   : string;
       IDELAYCTRL_FREQ_G : real := 200.0);
    port (
       clkIo    : in sl;
@@ -35,10 +33,10 @@ entity Ad9249Deserializer is
       rst      : in sl;
       slip     : in sl;
 
-      sysClk : in sl;
+      sysClk   : in  sl;
       curDelay : out slv(4 downto 0);
-      setDelay  : in slv(4 downto 0);
-      setValid    : in sl;
+      setDelay : in  slv(4 downto 0);
+      setValid : in  sl;
 
       iData : in  sl;
       oData : out slv(13 downto 0));
@@ -51,7 +49,7 @@ architecture rtl of Ad9249Deserializer is
    signal shift1  : sl;
    signal shift2  : sl;
 
-   attribute IODELAY_GROUP : string;
+   attribute IODELAY_GROUP            : string;
    attribute IODELAY_GROUP of U_DELAY : label is IODELAY_GROUP_G;
 
 begin
@@ -103,7 +101,7 @@ begin
          SHIFTOUT1    => shift1,        -- Cascade connection to Slave ISERDES
          SHIFTOUT2    => shift2,        -- Cascade connection to Slave ISERDES
          BITSLIP      => slip,          -- 1-bit Invoke Bitslip. This can be used with any 
-                                        -- DATA_WIDTH, cascaded or not.
+                                    -- DATA_WIDTH, cascaded or not.
          CE1          => '1',           -- 1-bit Clock enable input
          CE2          => '1',           -- 1-bit Clock enable input
          CLK          => clkIo,         -- Fast Source Synchronous SERDES clock from BUFIO
@@ -148,7 +146,7 @@ begin
          SHIFTIN1     => shift1,        -- Cascade connections from Master ISERDES
          SHIFTIN2     => shift2,        -- Cascade connections from Master ISERDES
          BITSLIP      => slip,          -- 1-bit Invoke Bitslip. This can be used with any 
-                                        -- DATA_WIDTH, cascaded or not.
+                                    -- DATA_WIDTH, cascaded or not.
          CE1          => '1',           -- 1-bit Clock enable input
          CE2          => '1',           -- 1-bit Clock enable input
          CLK          => clkIo,         -- Fast source synchronous serdes clock

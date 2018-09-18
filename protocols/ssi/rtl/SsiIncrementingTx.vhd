@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SsiIncrementingTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-02
--- Last update: 2014-07-18
 -------------------------------------------------------------------------------
 -- Description:   This module generates 
 --                PseudoRandom Binary Sequence (INCREMENTING) on Virtual Channel Lane.

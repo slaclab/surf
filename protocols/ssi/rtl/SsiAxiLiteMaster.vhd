@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SsiAxiLiteMaster.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-09
--- Last update: 2015-05-29
 -------------------------------------------------------------------------------
 -- Description:
 -- Block for Register protocol.

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : GigEthGtp7Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-03-30
--- Last update: 2018-04-05
 -------------------------------------------------------------------------------
 -- Description: Gtp7 Wrapper for 1000BASE-X Ethernet
 -- Note: This module supports up to a MGT QUAD of 1GigE interfaces
@@ -32,6 +30,8 @@ entity GigEthGtp7Wrapper is
    generic (
       TPD_G              : time                             := 1 ns;
       NUM_LANE_G         : natural range 1 to 4             := 1;
+      PAUSE_EN_G         : boolean                          := true;
+      PAUSE_512BITS_G    : positive                         := 8;
       -- Clocking Configurations
       USE_GTREFCLK_G     : boolean                          := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
       CLKIN_PERIOD_G     : real                             := 8.0;
@@ -170,14 +170,16 @@ begin
          PLL1_FBDIV_45_IN_G   => 5,
          PLL1_REFCLK_DIV_IN_G => 1)
       port map (
-         qPllRefClk     => (others => sysClk125),
-         qPllOutClk     => qPllOutClk,
-         qPllOutRefClk  => qPllOutRefClk,
-         qPllLock       => qPllLock,
-         qPllLockDetClk => (others => sysClk125),
-         qPllRefClkLost => qPllRefClkLost,
-         qPllPowerDown  => "10",        -- power down PLL1 (unused PLL)
-         qPllReset      => qpllReset);
+         qPllRefClk(0)     => sysClk125,
+         qPllRefClk(1)     => sysClk125,
+         qPllOutClk        => qPllOutClk,
+         qPllOutRefClk     => qPllOutRefClk,
+         qPllLock          => qPllLock,
+         qPllLockDetClk(0) => sysClk125,
+         qPllLockDetClk(1) => sysClk125,
+         qPllRefClkLost    => qPllRefClkLost,
+         qPllPowerDown     => "10",     -- power down PLL1 (unused PLL)
+         qPllReset         => qpllReset);
 
    -- Once the QPLL is locked, prevent the 
    -- IP cores from accidentally reseting each other
@@ -192,11 +194,13 @@ begin
 
       U_GigEthGtp7 : entity work.GigEthGtp7
          generic map (
-            TPD_G         => TPD_G,
+            TPD_G           => TPD_G,
+            PAUSE_EN_G      => PAUSE_EN_G,
+            PAUSE_512BITS_G => PAUSE_512BITS_G,
             -- AXI-Lite Configurations
-            EN_AXI_REG_G  => EN_AXI_REG_G,
+            EN_AXI_REG_G    => EN_AXI_REG_G,
             -- AXI Streaming Configurations
-            AXIS_CONFIG_G => AXIS_CONFIG_G(i))
+            AXIS_CONFIG_G   => AXIS_CONFIG_G(i))
          port map (
             -- Local Configurations
             localMac           => localMac(i),

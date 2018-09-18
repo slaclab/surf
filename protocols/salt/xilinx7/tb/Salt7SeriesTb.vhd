@@ -2,8 +2,6 @@
 -- File       : Salt7SeriesTb.vhd
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-09-03
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the Salt7Series
 -------------------------------------------------------------------------------

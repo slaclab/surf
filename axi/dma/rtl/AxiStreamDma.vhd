@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamDma.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-25
--- Last update: 2017-05-03
 -------------------------------------------------------------------------------
 -- Description:
 -- Generic AXI Stream DMA block for frame at a time transfers.

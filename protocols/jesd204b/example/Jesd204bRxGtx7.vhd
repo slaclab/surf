@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Jesd204bRxGtx7.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-14
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: JESD204b receiver module containing the gtx7 MGT
 --              Framework module for JESD receiver module.

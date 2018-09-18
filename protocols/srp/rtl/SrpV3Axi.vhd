@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SrpV3Axi.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-04-14
--- Last update: 2016-05-04
 -------------------------------------------------------------------------------
 -- Description: SLAC Register Protocol Version 3, AXI Interface
 --

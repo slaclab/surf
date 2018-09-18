@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiLiteMaster.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-09
--- Last update: 2016-03-09
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite Master module controlled via REQ/ACK interface
 -------------------------------------------------------------------------------

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : UartAxiLiteMasterTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-06-27
--- Last update: 2016-06-28
 -------------------------------------------------------------------------------
 -- Description: Testbench for design "UartAxiLiteMaster"
 -------------------------------------------------------------------------------

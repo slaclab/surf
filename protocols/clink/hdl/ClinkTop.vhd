@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : ClinkTop.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-11-13
 -------------------------------------------------------------------------------
 -- Description:
 -- CameraLink Top Level

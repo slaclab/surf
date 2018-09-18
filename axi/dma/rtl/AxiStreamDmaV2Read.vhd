@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamDmaV2Read.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-02-02
--- Last update: 2018-03-09
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to transfer a single AXI Stream frame from memory using an AXI

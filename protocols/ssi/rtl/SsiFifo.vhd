@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SsiFifo.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-05-02
--- Last update: 2016-10-17
 -------------------------------------------------------------------------------
 -- Description:   This module is the AXIS FIFO with a frame filter
 --

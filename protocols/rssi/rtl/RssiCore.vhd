@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : RssiCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-08-09
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: The module is based upon RUDP (Cisco implementation) RFC-908, RFC-1151, draft-ietf-sigtran-reliable-udp-00.
 --              The specifications in the drafts are modified by internal simplifications and improvements.
