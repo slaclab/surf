@@ -25,19 +25,19 @@ use work.SsiPkg.all;
 
 entity AxiStreamBatcher is
    generic (
-      TPD_G                       : time                := 1 ns;
-      MAX_SUPER_FRAME_THRESHOLD_G : positive            := 8192;  -- Units of bytes
-      MAX_NUMBER_SUB_FRAMES_G     : positive            := 32;  -- Units of sub-frames
-      MAX_CLK_GAP_G               : positive            := 256;  -- Units of clock cycles
-      AXIS_CONFIG_G               : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      INPUT_PIPE_STAGES_G         : natural             := 0;
-      OUTPUT_PIPE_STAGES_G        : natural             := 1);
+      TPD_G                        : time                := 1 ns;
+      SUPER_FRAME_BYTE_THRESHOLD_G : positive            := 8192;  -- Units of bytes
+      MAX_NUMBER_SUB_FRAMES_G      : positive            := 32;  -- Units of sub-frames
+      MAX_CLK_GAP_G                : positive            := 256;  -- Units of clock cycles
+      AXIS_CONFIG_G                : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
+      INPUT_PIPE_STAGES_G          : natural             := 0;
+      OUTPUT_PIPE_STAGES_G         : natural             := 1);
    port (
       -- Clock and Reset
       axisClk           : in  sl;
       axisRst           : in  sl;
       -- External Control Interface
-      maxSuperThreshold : in  slv(31 downto 0) := toSlv(MAX_SUPER_FRAME_THRESHOLD_G, 32);
+      maxSuperThreshold : in  slv(31 downto 0) := toSlv(SUPER_FRAME_BYTE_THRESHOLD_G, 32);
       maxSubFrames      : in  slv(15 downto 0) := toSlv(MAX_NUMBER_SUB_FRAMES_G, 16);
       maxClkGap         : in  slv(11 downto 0) := toSlv(MAX_CLK_GAP_G, 12);
       -- AXIS Interfaces
@@ -81,7 +81,7 @@ architecture rtl of AxiStreamBatcher is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      maxSuperThreshold    => toSlv(MAX_SUPER_FRAME_THRESHOLD_G, 32),
+      maxSuperThreshold    => toSlv(SUPER_FRAME_BYTE_THRESHOLD_G, 32),
       superByteCnt         => toSlv(AXIS_WORD_SIZE_C, 32),
       subByteCnt           => (others => '0'),
       maxSubFrames         => toSlv(MAX_NUMBER_SUB_FRAMES_G, 16),
