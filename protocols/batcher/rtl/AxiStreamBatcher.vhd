@@ -34,17 +34,17 @@ entity AxiStreamBatcher is
       OUTPUT_PIPE_STAGES_G         : natural             := 1);
    port (
       -- Clock and Reset
-      axisClk           : in  sl;
-      axisRst           : in  sl;
+      axisClk                 : in  sl;
+      axisRst                 : in  sl;
       -- External Control Interface
-      maxSuperThreshold : in  slv(31 downto 0) := toSlv(SUPER_FRAME_BYTE_THRESHOLD_G, 32);
-      maxSubFrames      : in  slv(15 downto 0) := toSlv(MAX_NUMBER_SUB_FRAMES_G, 16);
-      maxClkGap         : in  slv(11 downto 0) := toSlv(MAX_CLK_GAP_G, 12);
+      superFrameByteThreshold : in  slv(31 downto 0) := toSlv(SUPER_FRAME_BYTE_THRESHOLD_G, 32);
+      maxSubFrames            : in  slv(15 downto 0) := toSlv(MAX_NUMBER_SUB_FRAMES_G, 16);
+      maxClkGap               : in  slv(11 downto 0) := toSlv(MAX_CLK_GAP_G, 12);
       -- AXIS Interfaces
-      sAxisMaster       : in  AxiStreamMasterType;
-      sAxisSlave        : out AxiStreamSlaveType;
-      mAxisMaster       : out AxiStreamMasterType;
-      mAxisSlave        : in  AxiStreamSlaveType);
+      sAxisMaster             : in  AxiStreamMasterType;
+      sAxisSlave              : out AxiStreamSlaveType;
+      mAxisMaster             : out AxiStreamMasterType;
+      mAxisSlave              : in  AxiStreamSlaveType);
 end entity AxiStreamBatcher;
 
 architecture rtl of AxiStreamBatcher is
@@ -60,45 +60,45 @@ architecture rtl of AxiStreamBatcher is
       GAP_S);
 
    type RegType is record
-      maxSuperThreshold    : slv(31 downto 0);
-      superByteCnt         : slv(31 downto 0);
-      subByteCnt           : slv(31 downto 0);
-      maxSubFrames         : slv(15 downto 0);
-      subFrameCnt          : slv(15 downto 0);
-      maxClkGap            : slv(11 downto 0);
-      clkGapCnt            : slv(11 downto 0);
-      maxSuperThresholdDet : sl;
-      maxSubFramesDet      : sl;
-      seqCnt               : slv(7 downto 0);
-      tDest                : slv(7 downto 0);
-      tUserFirst           : slv(7 downto 0);
-      tUserLast            : slv(7 downto 0);
-      lastByteCnt          : slv(4 downto 0);
-      chunkCnt             : natural range 0 to 3;
-      rxSlave              : AxiStreamSlaveType;
-      txMaster             : AxiStreamMasterType;
-      state                : StateType;
+      superFrameByteThreshold    : slv(31 downto 0);
+      superByteCnt               : slv(31 downto 0);
+      subByteCnt                 : slv(31 downto 0);
+      maxSubFrames               : slv(15 downto 0);
+      subFrameCnt                : slv(15 downto 0);
+      maxClkGap                  : slv(11 downto 0);
+      clkGapCnt                  : slv(11 downto 0);
+      superFrameByteThresholdDet : sl;
+      maxSubFramesDet            : sl;
+      seqCnt                     : slv(7 downto 0);
+      tDest                      : slv(7 downto 0);
+      tUserFirst                 : slv(7 downto 0);
+      tUserLast                  : slv(7 downto 0);
+      lastByteCnt                : slv(4 downto 0);
+      chunkCnt                   : natural range 0 to 3;
+      rxSlave                    : AxiStreamSlaveType;
+      txMaster                   : AxiStreamMasterType;
+      state                      : StateType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      maxSuperThreshold    => toSlv(SUPER_FRAME_BYTE_THRESHOLD_G, 32),
-      superByteCnt         => toSlv(AXIS_WORD_SIZE_C, 32),
-      subByteCnt           => (others => '0'),
-      maxSubFrames         => toSlv(MAX_NUMBER_SUB_FRAMES_G, 16),
-      subFrameCnt          => (others => '0'),
-      maxClkGap            => toSlv(MAX_CLK_GAP_G, 12),
-      clkGapCnt            => (others => '0'),
-      maxSuperThresholdDet => '0',
-      maxSubFramesDet      => '0',
-      seqCnt               => (others => '0'),
-      tDest                => (others => '0'),
-      tUserFirst           => (others => '0'),
-      tUserLast            => (others => '0'),
-      lastByteCnt          => (others => '0'),
-      chunkCnt             => 1,
-      rxSlave              => AXI_STREAM_SLAVE_INIT_C,
-      txMaster             => AXI_STREAM_MASTER_INIT_C,
-      state                => HEADER_S);
+      superFrameByteThreshold    => toSlv(SUPER_FRAME_BYTE_THRESHOLD_G, 32),
+      superByteCnt               => toSlv(AXIS_WORD_SIZE_C, 32),
+      subByteCnt                 => (others => '0'),
+      maxSubFrames               => toSlv(MAX_NUMBER_SUB_FRAMES_G, 16),
+      subFrameCnt                => (others => '0'),
+      maxClkGap                  => toSlv(MAX_CLK_GAP_G, 12),
+      clkGapCnt                  => (others => '0'),
+      superFrameByteThresholdDet => '0',
+      maxSubFramesDet            => '0',
+      seqCnt                     => (others => '0'),
+      tDest                      => (others => '0'),
+      tUserFirst                 => (others => '0'),
+      tUserLast                  => (others => '0'),
+      lastByteCnt                => (others => '0'),
+      chunkCnt                   => 1,
+      rxSlave                    => AXI_STREAM_SLAVE_INIT_C,
+      txMaster                   => AXI_STREAM_MASTER_INIT_C,
+      state                      => HEADER_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -128,14 +128,14 @@ begin
          mAxisMaster => rxMaster,
          mAxisSlave  => rxSlave);
 
-   comb : process (axisRst, maxClkGap, maxSubFrames, maxSuperThreshold, r,
-                   rxMaster, txSlave) is
+   comb : process (axisRst, maxClkGap, maxSubFrames, r, rxMaster,
+                   superFrameByteThreshold, txSlave) is
       variable v : RegType;
 
       procedure doTail is
       begin
          -- Check for end of super-frame condition
-         if (v.maxSuperThresholdDet = '1') or (v.maxSubFramesDet = '1') then
+         if (v.superFrameByteThresholdDet = '1') or (v.maxSubFramesDet = '1') then
             -- Move the outbound data
             v.txMaster.tValid := '1';
             -- Terminate the super-frame
@@ -143,13 +143,13 @@ begin
             -- Indicates super-frame terminated
             if (AXIS_WORD_SIZE_C = 2) then
                v.txMaster.tData(13) := v.maxSubFramesDet;
-               v.txMaster.tData(14) := v.maxSuperThresholdDet;
+               v.txMaster.tData(14) := v.superFrameByteThresholdDet;
             elsif (AXIS_WORD_SIZE_C = 4) then
                v.txMaster.tData(29) := v.maxSubFramesDet;
-               v.txMaster.tData(30) := v.maxSuperThresholdDet;
+               v.txMaster.tData(30) := v.superFrameByteThresholdDet;
             else
                v.txMaster.tData(61) := v.maxSubFramesDet;
-               v.txMaster.tData(62) := v.maxSuperThresholdDet;
+               v.txMaster.tData(62) := v.superFrameByteThresholdDet;
             end if;
             -- Next state
             v.state := HEADER_S;
@@ -178,9 +178,9 @@ begin
       end if;
 
       -- Check for max. super frame
-      if(r.superByteCnt = r.maxSuperThreshold) then
+      if(r.superByteCnt = r.superFrameByteThreshold) then
          -- Set the flag
-         v.maxSuperThresholdDet := '1';
+         v.superFrameByteThresholdDet := '1';
       end if;
 
       -- Check for max. super frame
@@ -194,19 +194,19 @@ begin
          ----------------------------------------------------------------------
          when HEADER_S =>
             -- Reset the flag
-            v.maxSuperThresholdDet                                    := '0';
-            v.maxSubFramesDet                                         := '0';
+            v.superFrameByteThresholdDet                                    := '0';
+            v.maxSubFramesDet                                               := '0';
             -- Sample external signals
-            v.maxSuperThreshold                                       := maxSuperThreshold;
-            v.maxSubFrames                                            := maxSubFrames;
-            v.maxClkGap                                               := maxClkGap;
-            -- Floor the maxSuperThreshold to nearest word increment
+            v.superFrameByteThreshold                                       := superFrameByteThreshold;
+            v.maxSubFrames                                                  := maxSubFrames;
+            v.maxClkGap                                                     := maxClkGap;
+            -- Floor the superFrameByteThreshold to nearest word increment
             -- This is done to remove the ">" operator
-            v.maxSuperThreshold(bitSize(AXIS_WORD_SIZE_C)-1 downto 0) := (others => '0');
-            -- Check for zero byte maxSuperThreshold case
-            if (v.maxSuperThreshold = 0) then
+            v.superFrameByteThreshold(bitSize(AXIS_WORD_SIZE_C)-1 downto 0) := (others => '0');
+            -- Check for zero byte superFrameByteThreshold case
+            if (v.superFrameByteThreshold = 0) then
                -- Prevent zero case
-               v.maxSuperThreshold := toSlv(AXIS_WORD_SIZE_C, 32);
+               v.superFrameByteThreshold := toSlv(AXIS_WORD_SIZE_C, 32);
             end if;
             -- Check for zero maxSubFrames case
             if (v.maxSubFrames = 0) then
