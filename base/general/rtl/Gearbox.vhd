@@ -25,8 +25,8 @@ entity Gearbox is
 
    generic (
       TPD_G          : time    := 1 ns;
-      INPUT_WIDTH_G  : natural := 64;
-      OUTPUT_WIDTH_G : natural := 66);
+      INPUT_WIDTH_G  : positive := 64;
+      OUTPUT_WIDTH_G : positive := 66);
 
    port (
       clk : in sl;
