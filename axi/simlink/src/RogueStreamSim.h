@@ -102,22 +102,22 @@ void RogueStreamSimInit(vhpiHandleT compInst);
 void RogueStreamSimUpdate ( void *userPtr );
 
 // Start/resetart zeromq server
-void zmqRestart(RogueStreamSimData *data);
+void zmqRestart(RogueStreamSimData *data, portDataT *portData);
 
 // Send a message
-void zmqSend ( RogueStreamSimData *data );
+void zmqSend ( RogueStreamSimData *data, portDataT *portData );
 
 // Receive data if it is available
-int zmqRecvData ( RogueStreamSimData *data );
+int zmqRecvData ( RogueStreamSimData *data, portDataT *portData );
 
 // Ack received data
-void zmqAckData ( RogueStreamSimData *data );
+void zmqAckData ( RogueStreamSimData *data, portDataT *portData );
 
 // Receive opcode if it is available
-int zmqRecvOcData ( RogueStreamSimData *data );
+int zmqRecvOcData ( RogueStreamSimData *data, portDataT *portData );
 
 // Receive side data if it is available
-int zmqRecvSbData ( RogueStreamSimData *data );
+int zmqRecvSbData ( RogueStreamSimData *data, portDataT *portData );
 
 #endif
 
