@@ -25,15 +25,15 @@ entity Gearbox is
 
    generic (
       TPD_G          : time := 1 ns;
-      INPUT_WIDTH_G  : positive;
-      OUTPUT_WIDTH_G : positive);
+      SLAVE_WIDTH_G  : positive;
+      MASTER_WIDTH_G : positive);
 
    port (
       clk : in sl;
       rst : in sl;
 
       -- input side data and flow control
-      slaveData  : in  slv(INPUT_WIDTH_G-1 downto 0);
+      slaveData  : in  slv(SLAVE_WIDTH_G-1 downto 0);
       slaveValid : in  sl := '1';
       slaveReady : out sl;
 
@@ -42,7 +42,7 @@ entity Gearbox is
       slip       : in sl := '0';
 
       -- output side data and flow control
-      masterData  : out slv(OUTPUT_WIDTH_G-1 downto 0);
+      masterData  : out slv(MASTER_WIDTH_G-1 downto 0);
       masterValid : out sl;
       masterReady : in  sl := '1');
 
@@ -50,8 +50,8 @@ end entity Gearbox;
 
 architecture rtl of Gearbox is
 
-   constant MAX_C : integer := maximum(OUTPUT_WIDTH_G, INPUT_WIDTH_G);
-   constant MIN_C : integer := minimum(OUTPUT_WIDTH_G, INPUT_WIDTH_G);
+   constant MAX_C : integer := maximum(MASTER_WIDTH_G, SLAVE_WIDTH_G);
+   constant MIN_C : integer := minimum(MASTER_WIDTH_G, SLAVE_WIDTH_G);
 
    -- Don't need the +1 if slip is not used.
    constant SHIFT_WIDTH_C : integer := wordCount(MAX_C, MIN_C) * MIN_C + 1;
@@ -100,13 +100,13 @@ begin
 
          -- If current write index (assigned last cycle) is greater than output width,
          -- then we have to shift down before assinging an new input
-         if (v.writeIndex >= OUTPUT_WIDTH_G) then
-            v.shiftReg   := slvZero(OUTPUT_WIDTH_G) & r.shiftReg(SHIFT_WIDTH_C-1 downto OUTPUT_WIDTH_G);
-            v.writeIndex := v.writeIndex - OUTPUT_WIDTH_G;
+         if (v.writeIndex >= MASTER_WIDTH_G) then
+            v.shiftReg   := slvZero(MASTER_WIDTH_G) & r.shiftReg(SHIFT_WIDTH_C-1 downto MASTER_WIDTH_G);
+            v.writeIndex := v.writeIndex - MASTER_WIDTH_G;
 
             -- If write index still greater than output width after shift,
             -- then we have a valid word to output
-            if (v.writeIndex >= OUTPUT_WIDTH_G) then
+            if (v.writeIndex >= MASTER_WIDTH_G) then
                v.masterValid := '1';
             end if;
          end if;
@@ -125,13 +125,13 @@ begin
          v.slaveReady := '1';
 
          -- Assign incomming data at proper location in shift reg
-         v.shiftReg(v.writeIndex+INPUT_WIDTH_G-1 downto v.writeIndex) := slaveData;
+         v.shiftReg(v.writeIndex+SLAVE_WIDTH_G-1 downto v.writeIndex) := slaveData;
 
          -- Increment writeIndex
-         v.writeIndex := v.writeIndex + INPUT_WIDTH_G;
+         v.writeIndex := v.writeIndex + SLAVE_WIDTH_G;
 
          -- Assert masterValid
-         if (v.writeIndex >= OUTPUT_WIDTH_G) then
+         if (v.writeIndex >= MASTER_WIDTH_G) then
             v.masterValid := '1';
          end if;
 
@@ -146,7 +146,7 @@ begin
       rin <= v;
 
       masterValid <= r.masterValid;
-      masterData  <= r.shiftReg(OUTPUT_WIDTH_G-1 downto 0);
+      masterData  <= r.shiftReg(MASTER_WIDTH_G-1 downto 0);
 
 
    end process comb;
