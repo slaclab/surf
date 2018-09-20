@@ -123,6 +123,7 @@ architecture rtl of Pgp3Gtp7 is
    signal phyRxSlip   : sl;
    signal slipOneShot : sl;
    signal rxFifoValid : sl;
+   signal rxFifoAFull : sl;
    signal rxFifoReady : sl;
    signal rxFifoData  : slv(65 downto 0);
    signal rxData      : slv(31 downto 0);
@@ -134,6 +135,7 @@ architecture rtl of Pgp3Gtp7 is
    signal phyTxStart   : sl;
    signal phyTxDataRdy : sl;
    signal txFifoValid  : sl;
+   signal txFifoAFull  : sl;
    signal txFifoReady  : sl;
    signal txFifoRead   : sl;
    signal txFifoData   : slv(65 downto 0);
@@ -160,6 +162,39 @@ architecture rtl of Pgp3Gtp7 is
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 
    signal loopback : slv(2 downto 0);
+
+   -- attribute dont_touch                 : string;
+   -- attribute dont_touch of phyRxClkSlow : signal is "TRUE";
+   -- attribute dont_touch of phyRxRstSlow : signal is "TRUE";
+   -- attribute dont_touch of phyRxClkFast : signal is "TRUE";
+   -- attribute dont_touch of phyRxRstFast : signal is "TRUE";
+   -- attribute dont_touch of phyTxClkSlow : signal is "TRUE";
+   -- attribute dont_touch of phyTxRstSlow : signal is "TRUE";
+   -- attribute dont_touch of phyTxClkFast : signal is "TRUE";
+   -- attribute dont_touch of phyTxRstFast : signal is "TRUE";
+   -- attribute dont_touch of phyRxInit    : signal is "TRUE";
+   -- attribute dont_touch of phyRxActive  : signal is "TRUE";
+   -- attribute dont_touch of phyRxValid   : signal is "TRUE";
+   -- attribute dont_touch of phyRxHeader  : signal is "TRUE";
+   -- attribute dont_touch of phyRxData    : signal is "TRUE";
+   -- attribute dont_touch of phyRxSlip    : signal is "TRUE";
+   -- attribute dont_touch of slipOneShot  : signal is "TRUE";
+   -- attribute dont_touch of rxFifoValid  : signal is "TRUE";
+   -- attribute dont_touch of rxFifoAFull  : signal is "TRUE";
+   -- attribute dont_touch of rxFifoReady  : signal is "TRUE";
+   -- attribute dont_touch of rxFifoData   : signal is "TRUE";
+   -- attribute dont_touch of rxData       : signal is "TRUE";
+   -- attribute dont_touch of phyTxActive  : signal is "TRUE";
+   -- attribute dont_touch of phyTxHeader  : signal is "TRUE";
+   -- attribute dont_touch of phyTxData    : signal is "TRUE";
+   -- attribute dont_touch of phyTxStart   : signal is "TRUE";
+   -- attribute dont_touch of phyTxDataRdy : signal is "TRUE";
+   -- attribute dont_touch of txFifoValid  : signal is "TRUE";
+   -- attribute dont_touch of txFifoAFull  : signal is "TRUE";
+   -- attribute dont_touch of txFifoReady  : signal is "TRUE";
+   -- attribute dont_touch of txFifoRead   : signal is "TRUE";
+   -- attribute dont_touch of txFifoData   : signal is "TRUE";
+   -- attribute dont_touch of txData       : signal is "TRUE";
 
 begin
 
@@ -284,7 +319,7 @@ begin
          -- Write Ports (wr_clk domain)
          wr_clk            => phyTxClkSlow,
          wr_en             => phyTxStart,
-         almost_full       => phyTxDataRdy,
+         almost_full       => txFifoAFull,
          din(65 downto 64) => phyTxHeader,
          din(63 downto 0)  => phyTxData,
          -- Read Ports (rd_clk domain)
@@ -292,6 +327,8 @@ begin
          valid             => txFifoValid,
          rd_en             => txFifoRead,
          dout              => txFifoData);
+
+   phyTxDataRdy <= not(txFifoAFull);
 
    -------------
    -- TX Gearbox
@@ -392,7 +429,7 @@ begin
          dataOut  => rxFifoData,
          validOut => rxFifoValid,
          readyOut => rxFifoReady);
-
+         
    ----------
    -- RX SYNC
    ----------
@@ -412,13 +449,15 @@ begin
          wr_clk             => phyRxClkFast,
          wr_en              => rxFifoValid,
          din                => rxFifoData,
-         almost_full        => rxFifoReady,
+         almost_full        => rxFifoAFull,
          -- Read Ports (rd_clk domain)
          rd_clk             => phyRxClkSlow,
          valid              => phyRxValid,
          rd_en              => '1',
          dout(65 downto 64) => phyRxHeader,
          dout(63 downto 0)  => phyRxData);
+         
+   rxFifoReady <= not(rxFifoAFull);         
 
    U_phyRxSlip : entity work.SynchronizerOneShot
       generic map (
