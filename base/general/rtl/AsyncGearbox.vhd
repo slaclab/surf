@@ -25,8 +25,8 @@ entity AsyncGearbox is
 
    generic (
       TPD_G          : time := 1 ns;
-      INPUT_WIDTH_G  : positive;
-      OUTPUT_WIDTH_G : positive;
+      SLAVE_WIDTH_G  : positive;
+      MASTER_WIDTH_G : positive;
 
       -- Async FIFO generics
       FIFO_BRAM_EN_G     : boolean               := true;
@@ -37,7 +37,7 @@ entity AsyncGearbox is
       slaveRst : in sl;
 
       -- input side data and flow control
-      slaveData  : in  slv(INPUT_WIDTH_G-1 downto 0);
+      slaveData  : in  slv(SLAVE_WIDTH_G-1 downto 0);
       slaveValid : in  sl := '1';
       slaveReady : out sl;
 
@@ -48,7 +48,7 @@ entity AsyncGearbox is
       masterRst : in sl;
 
       -- output side data and flow control
-      masterData  : out slv(OUTPUT_WIDTH_G-1 downto 0);
+      masterData  : out slv(MASTER_WIDTH_G-1 downto 0);
       masterValid : out sl;
       masterReady : in  sl := '1');
 
@@ -56,23 +56,23 @@ end entity AsyncGearbox;
 
 architecture rtl of AsyncGearbox is
 
-   constant INPUT_FASTER_C : boolean := INPUT_WIDTH_G <= OUTPUT_WIDTH_G;
+   constant SLAVE_FASTER_C : boolean := SLAVE_WIDTH_G <= MASTER_WIDTH_G;
 
    signal fastClk : sl;
    signal fastRst : sl;
 
-   signal gearboxDataIn   : slv(INPUT_WIDTH_G-1 downto 0);
+   signal gearboxDataIn   : slv(SLAVE_WIDTH_G-1 downto 0);
    signal gearboxValidIn  : sl;
    signal gearboxReadyIn  : sl;
-   signal gearboxDataOut  : slv(OUTPUT_WIDTH_G-1 downto 0);
+   signal gearboxDataOut  : slv(MASTER_WIDTH_G-1 downto 0);
    signal gearboxValidOut : sl;
    signal gearboxReadyOut : sl;
    signal gearboxSlip     : sl;
 
 begin
 
-   fastClk <= clkIn when INPUT_FASTER_C else clkOut;
-   fastRst <= rstIn when INPUT_FASTER_C else rstOut;
+   fastClk <= slaveClk when SLAVE_FASTER_C else masterClk;
+   fastRst <= slaveRst when SLAVE_FASTER_C else masterRst;
 
    U_SynchronizerOneShot_1 : entity work.SynchronizerOneShot
       generic map (
@@ -84,12 +84,12 @@ begin
          dataOut => gearboxSlip);       -- [out]
 
 
-   INPUT_FIFO_GEN : if (not INPUT_FASTER_C) generate
+   SLAVE_FIFO_GEN : if (not SLAVE_FASTER_C) generate
       U_FifoAsync_1 : entity work.FifoAsync
          generic map (
             TPD_G         => TPD_G,
             FWFT_EN_G     => true,
-            DATA_WIDTH_G  => INPUT_WIDTH_G,
+            DATA_WIDTH_G  => SLAVE_WIDTH_G,
             BRAM_EN_G     => FIFO_BRAM_EN_G,
             PIPE_STAGES_G => FIFO_PIPE_STAGES_G,
             ADDR_WIDTH_G  => FIFO_ADDR_WIDTH_G
@@ -103,19 +103,19 @@ begin
             rd_en  => gearboxReadyIn,   -- [in]
             dout   => gearboxDataIn,    -- [out]
             valid  => gearboxValidIn);  -- [out]
-   end generate INPUT_FIFO_GEN;
+   end generate SLAVE_FIFO_GEN;
 
-   NO_INPUT_FIFO_GEN : if (INPUT_FASTER_C) generate
+   NO_SLAVE_FIFO_GEN : if (SLAVE_FASTER_C) generate
       readyIn        <= gearboxReadyIn;
       gearboxValidIn <= validIn;
       gearboxDataIn  <= dataIn;
-   end generate NO_INPUT_FIFO_GEN;
+   end generate NO_SLAVE_FIFO_GEN;
 
    U_Gearbox_1 : entity work.Gearbox
       generic map (
          TPD_G          => TPD_G,
-         INPUT_WIDTH_G  => OUTPUT_WIDTH_G,
-         OUTPUT_WIDTH_G => INPUT_WIDTH_G)
+         SLAVE_WIDTH_G  => SLAVE_WIDTH_G,
+         MASTER_WIDTH_G => MASTER_WIDTH_G)
       port map (
          clk         => fastClk,          -- [in]
          rst         => fastRst,          -- [in]
@@ -127,12 +127,12 @@ begin
          masterReady => gearboxReadyOut,  -- [in]
          slip        => gearboxSlip);
 
-   OUTPUT_FIFO_GEN : if (INPUT_FASTER_C) generate
+   MASTER_FIFO_GEN : if (SLAVE_FASTER_C) generate
       U_FifoAsync_1 : entity work.FifoAsync
          generic map (
             TPD_G         => TPD_G,
             FWFT_EN_G     => true,
-            DATA_WIDTH_G  => OUTPUT_WIDTH_G,
+            DATA_WIDTH_G  => MASTER_WIDTH_G,
             BRAM_EN_G     => FIFO_BRAM_EN_G,
             PIPE_STAGES_G => FIFO_PIPE_STAGES_G,
             ADDR_WIDTH_G  => FIFO_ADDR_WIDTH_G)
@@ -145,11 +145,11 @@ begin
             rd_en  => masterReady,      -- [in]
             dout   => dataOut,          -- [out]
             valid  => masterValid);     -- [out]
-   end generate INPUT_FIFO_GEN;
+   end generate MASTER_FIFO_GEN;
 
-   NO_INPUT_FIFO_GEN : if (INPUT_FASTER_C) generate
+   NO_MASTER_FIFO_GEN : if (INPUT_FASTER_C) generate
       gearboxReadyOut <= masterReady;
       masterData      <= gearboxDataOut;
       masterValid     <= gearboxValidOut;
-   end generate NO_INPUT_FIFO_GEN;
+   end generate NO_MASTER_FIFO_GEN;
 end architecture rtl;
