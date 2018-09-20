@@ -53,61 +53,35 @@ end Pgp3Gtp7Qpll;
 
 architecture mapping of Pgp3Gtp7Qpll is
 
-   ------------------------------------------------------------------------
-   -- | SPEED | Ref Clk | FBDIV_IN_C | FBDIV_45_IN_C | REFCLK_DIV_IN_C | --
-   ------------------------------------------------------------------------
-   -- |   3   |  125    |     ?      |      ?        |        ?        | --
-   -- |   6   |  125    |     ?      |      ?        |        ?        | --
-   -- |   3   |  250    |     5      |      5        |        2        | --
-   -- |   6   |  250    |     5      |      5        |        2        | --
-   -- |   3   |  156    |     ?      |      ?        |        ?        | --
-   -- |   6   |  156    |     ?      |      ?        |        ?        | --  
-   -- |   3   |  312    |     ?      |      ?        |        ?        | --
-   -- |   6   |  312    |     ?      |      ?        |        ?        | --     
-   ------------------------------------------------------------------------
+   ----------------------------------------------------------------
+   -- | Ref Clk | FBDIV_IN_C | FBDIV_45_IN_C | REFCLK_DIV_IN_C | --
+   ----------------------------------------------------------------
+   -- |   312   |     4      |      5        |        2        | -- 
+   -- |   156   |     4      |      5        |        1        | --
+   -- |   250   |     5      |      5        |        2        | --
+   -- |   125   |     5      |      5        |        1        | --
+   ----------------------------------------------------------------
 
    impure function GenQpllFbDiv return integer is
    begin
-      if (REFCLK_TYPE_G = PGP3_REFCLK_312_C) then
-         return -1;                     -- TBD
-      elsif (REFCLK_TYPE_G = PGP3_REFCLK_156_C) then
-         return -1;                     -- TBD
-      elsif (REFCLK_TYPE_G = PGP3_REFCLK_250_C) then
+      if (REFCLK_TYPE_G = PGP3_REFCLK_312_C) or (REFCLK_TYPE_G = PGP3_REFCLK_156_C) then
+         return 4;
+      elsif (REFCLK_TYPE_G = PGP3_REFCLK_250_C) or (REFCLK_TYPE_G = PGP3_REFCLK_125_C) then
          return 5;
-      elsif (REFCLK_TYPE_G = PGP3_REFCLK_125_C) then
-         return -1;                     -- TBD
       else
          return -1;
       end if;
    end function;
    constant FBDIV_IN_C : positive := GenQpllFbDiv;
 
-   impure function GenQpllFbDiv45 return integer is
-   begin
-      if (REFCLK_TYPE_G = PGP3_REFCLK_312_C) then
-         return -1;                     -- TBD
-      elsif (REFCLK_TYPE_G = PGP3_REFCLK_156_C) then
-         return -1;                     -- TBD
-      elsif (REFCLK_TYPE_G = PGP3_REFCLK_250_C) then
-         return 5;
-      elsif (REFCLK_TYPE_G = PGP3_REFCLK_125_C) then
-         return -1;                     -- TBD
-      else
-         return -1;
-      end if;
-   end function;
-   constant FBDIV_45_IN_C : positive := GenQpllFbDiv45;
+   constant FBDIV_45_IN_C : positive := 5;
 
    impure function GenQpllRefDiv return integer is
    begin
-      if (REFCLK_TYPE_G = PGP3_REFCLK_312_C) then
-         return -1;                     -- TBD
-      elsif (REFCLK_TYPE_G = PGP3_REFCLK_156_C) then
-         return -1;                     -- TBD
-      elsif (REFCLK_TYPE_G = PGP3_REFCLK_250_C) then
+      if (REFCLK_TYPE_G = PGP3_REFCLK_312_C) or (REFCLK_TYPE_G = PGP3_REFCLK_250_C) then
          return 2;
-      elsif (REFCLK_TYPE_G = PGP3_REFCLK_125_C) then
-         return -1;                     -- TBD
+      elsif (REFCLK_TYPE_G = PGP3_REFCLK_156_C) or (REFCLK_TYPE_G = PGP3_REFCLK_125_C) then
+         return 1;
       else
          return -1;
       end if;

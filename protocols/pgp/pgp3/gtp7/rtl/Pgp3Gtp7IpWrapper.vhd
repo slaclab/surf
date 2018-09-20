@@ -304,11 +304,11 @@ begin
    rxUsrClk2    <= rxPllClk(2);
    rxUsrClk2Rst <= rxPllRst(2);
 
-   txUsrClk0    <= rxPllClk(0);
-   txUsrClk0Rst <= rxPllRst(0);
+   txUsrClk0    <= txPllClk(0);
+   txUsrClk0Rst <= txPllRst(0);
 
-   txUsrClk2    <= rxPllClk(2);
-   txUsrClk2Rst <= rxPllRst(2);
+   txUsrClk2    <= txPllClk(2);
+   txUsrClk2Rst <= txPllRst(2);
 
    U_RX_PLL : entity work.ClockManager7
       generic map(
