@@ -146,7 +146,7 @@ architecture rtl of SsiPrbsRx is
    signal rxAxisMaster : AxiStreamMasterType;
    signal rxAxisSlave : AxiStreamSlaveType;
 
-   signal axisCtrl : AxiStreamCtrlArray(0 to 0);
+   signal axisCtrl : AxiStreamCtrlArray(1 downto 0) := (others => AXI_STREAM_CTRL_UNUSED_C);
 
    constant STATUS_SIZE_C : positive := 10;
 
@@ -459,8 +459,8 @@ begin
          WIDTH_G        => STATUS_SIZE_C)
       port map (
          -- Input Status bit Signals (wrClk domain)   
-         statusIn(9)  => '0',
-         statusIn(8)  => '0',
+         statusIn(9)  => axisCtrl(1).pause,
+         statusIn(8)  => axisCtrl(1).overflow,
          statusIn(7)  => axisCtrl(0).pause,
          statusIn(6)  => axisCtrl(0).overflow,
          statusIn(5)  => r.errBitStrb,
@@ -470,8 +470,8 @@ begin
          statusIn(1)  => r.errLength,
          statusIn(0)  => r.errMissedPacket,
          -- Output Status bit Signals (rdClk domain) 
-         statusOut(9) => '0',
-         statusOut(8) => '0',
+         statusOut(9) => pause(1),
+         statusOut(8) => overflow(1),
          statusOut(7) => pause(0),
          statusOut(6) => overflow(0),
          statusOut(5) => errBitStrbSync,
