@@ -88,8 +88,8 @@ entity Pgp3Gtx7Wrapper is
       pgpTxSlaves       : out AxiStreamSlaveArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
       -- Frame Receive Interface
       pgpRxMasters      : out AxiStreamMasterArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
-      pgpRxCtrl         : in  AxiStreamCtrlArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);  -- Unused in implementation only
-      pgpRxSlaves       : in  AxiStreamSlaveArray((NUM_LANES_G*NUM_VC_G)-1 downto 0) := (others => AXI_STREAM_SLAVE_FORCE_C);  -- Unused in simulation only
+      pgpRxCtrl         : in  AxiStreamCtrlArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);  -- Used in implementation only
+      pgpRxSlaves       : in  AxiStreamSlaveArray((NUM_LANES_G*NUM_VC_G)-1 downto 0) := (others => AXI_STREAM_SLAVE_FORCE_C);  -- Used in simulation only
       -- Debug Interface 
       txPreCursor       : in  Slv5Array(NUM_LANES_G-1 downto 0)                      := (others => "00111");
       txPostCursor      : in  Slv5Array(NUM_LANES_G-1 downto 0)                      := (others => "00111");
