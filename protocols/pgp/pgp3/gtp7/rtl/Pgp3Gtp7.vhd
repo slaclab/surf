@@ -137,7 +137,6 @@ architecture rtl of Pgp3Gtp7 is
    signal txFifoValid  : sl;
    signal txFifoAFull  : sl;
    signal txFifoReady  : sl;
-   signal txFifoRead   : sl;
    signal txFifoData   : slv(65 downto 0);
    signal txData       : slv(31 downto 0);
 
@@ -163,38 +162,37 @@ architecture rtl of Pgp3Gtp7 is
 
    signal loopback : slv(2 downto 0);
 
-   -- attribute dont_touch                 : string;
-   -- attribute dont_touch of phyRxClkSlow : signal is "TRUE";
-   -- attribute dont_touch of phyRxRstSlow : signal is "TRUE";
-   -- attribute dont_touch of phyRxClkFast : signal is "TRUE";
-   -- attribute dont_touch of phyRxRstFast : signal is "TRUE";
-   -- attribute dont_touch of phyTxClkSlow : signal is "TRUE";
-   -- attribute dont_touch of phyTxRstSlow : signal is "TRUE";
-   -- attribute dont_touch of phyTxClkFast : signal is "TRUE";
-   -- attribute dont_touch of phyTxRstFast : signal is "TRUE";
-   -- attribute dont_touch of phyRxInit    : signal is "TRUE";
-   -- attribute dont_touch of phyRxActive  : signal is "TRUE";
-   -- attribute dont_touch of phyRxValid   : signal is "TRUE";
-   -- attribute dont_touch of phyRxHeader  : signal is "TRUE";
-   -- attribute dont_touch of phyRxData    : signal is "TRUE";
-   -- attribute dont_touch of phyRxSlip    : signal is "TRUE";
-   -- attribute dont_touch of slipOneShot  : signal is "TRUE";
-   -- attribute dont_touch of rxFifoValid  : signal is "TRUE";
-   -- attribute dont_touch of rxFifoAFull  : signal is "TRUE";
-   -- attribute dont_touch of rxFifoReady  : signal is "TRUE";
-   -- attribute dont_touch of rxFifoData   : signal is "TRUE";
-   -- attribute dont_touch of rxData       : signal is "TRUE";
-   -- attribute dont_touch of phyTxActive  : signal is "TRUE";
-   -- attribute dont_touch of phyTxHeader  : signal is "TRUE";
-   -- attribute dont_touch of phyTxData    : signal is "TRUE";
-   -- attribute dont_touch of phyTxStart   : signal is "TRUE";
-   -- attribute dont_touch of phyTxDataRdy : signal is "TRUE";
-   -- attribute dont_touch of txFifoValid  : signal is "TRUE";
-   -- attribute dont_touch of txFifoAFull  : signal is "TRUE";
-   -- attribute dont_touch of txFifoReady  : signal is "TRUE";
-   -- attribute dont_touch of txFifoRead   : signal is "TRUE";
-   -- attribute dont_touch of txFifoData   : signal is "TRUE";
-   -- attribute dont_touch of txData       : signal is "TRUE";
+   attribute dont_touch                 : string;
+   attribute dont_touch of phyRxClkSlow : signal is "TRUE";
+   attribute dont_touch of phyRxRstSlow : signal is "TRUE";
+   attribute dont_touch of phyRxClkFast : signal is "TRUE";
+   attribute dont_touch of phyRxRstFast : signal is "TRUE";
+   attribute dont_touch of phyTxClkSlow : signal is "TRUE";
+   attribute dont_touch of phyTxRstSlow : signal is "TRUE";
+   attribute dont_touch of phyTxClkFast : signal is "TRUE";
+   attribute dont_touch of phyTxRstFast : signal is "TRUE";
+   attribute dont_touch of phyRxInit    : signal is "TRUE";
+   attribute dont_touch of phyRxActive  : signal is "TRUE";
+   attribute dont_touch of phyRxValid   : signal is "TRUE";
+   attribute dont_touch of phyRxHeader  : signal is "TRUE";
+   attribute dont_touch of phyRxData    : signal is "TRUE";
+   attribute dont_touch of phyRxSlip    : signal is "TRUE";
+   attribute dont_touch of slipOneShot  : signal is "TRUE";
+   attribute dont_touch of rxFifoValid  : signal is "TRUE";
+   attribute dont_touch of rxFifoAFull  : signal is "TRUE";
+   attribute dont_touch of rxFifoReady  : signal is "TRUE";
+   attribute dont_touch of rxFifoData   : signal is "TRUE";
+   attribute dont_touch of rxData       : signal is "TRUE";
+   attribute dont_touch of phyTxActive  : signal is "TRUE";
+   attribute dont_touch of phyTxHeader  : signal is "TRUE";
+   attribute dont_touch of phyTxData    : signal is "TRUE";
+   attribute dont_touch of phyTxStart   : signal is "TRUE";
+   attribute dont_touch of phyTxDataRdy : signal is "TRUE";
+   attribute dont_touch of txFifoValid  : signal is "TRUE";
+   attribute dont_touch of txFifoAFull  : signal is "TRUE";
+   attribute dont_touch of txFifoReady  : signal is "TRUE";
+   attribute dont_touch of txFifoData   : signal is "TRUE";
+   attribute dont_touch of txData       : signal is "TRUE";
 
 begin
 
@@ -306,16 +304,14 @@ begin
    ----------
    U_TxSync : entity work.FifoAsync
       generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => '0',
-         BRAM_EN_G      => false,
-         FWFT_EN_G      => true,
-         DATA_WIDTH_G   => 66,
-         ADDR_WIDTH_G   => 4,
-         INIT_G         => (PGP3_K_HEADER_C & x"9999_9999_9999_9999"))  -- PGP3_IDLE_C
+         TPD_G        => TPD_G,
+         BRAM_EN_G    => false,
+         FWFT_EN_G    => true,
+         DATA_WIDTH_G => 66,
+         ADDR_WIDTH_G => 4)
       port map (
          -- Asynchronous Reset
-         rst               => phyTxActive,
+         rst               => phyTxRstSlow,
          -- Write Ports (wr_clk domain)
          wr_clk            => phyTxClkSlow,
          wr_en             => phyTxStart,
@@ -325,7 +321,7 @@ begin
          -- Read Ports (rd_clk domain)
          rd_clk            => phyTxClkFast,
          valid             => txFifoValid,
-         rd_en             => txFifoRead,
+         rd_en             => txFifoReady,
          dout              => txFifoData);
 
    phyTxDataRdy <= not(txFifoAFull);
@@ -345,7 +341,7 @@ begin
          -- Input side data and flow control
          dataIn  => txFifoData,
          validIn => txFifoValid,
-         readyIn => txFifoRead,
+         readyIn => txFifoReady,
          -- Output side data and flow control
          dataOut => txData);
 
@@ -429,22 +425,20 @@ begin
          dataOut  => rxFifoData,
          validOut => rxFifoValid,
          readyOut => rxFifoReady);
-         
+
    ----------
    -- RX SYNC
    ----------
    U_RxSync : entity work.FifoAsync
       generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => '0',
-         BRAM_EN_G      => false,
-         FWFT_EN_G      => true,
-         DATA_WIDTH_G   => 66,
-         ADDR_WIDTH_G   => 4,
-         INIT_G         => (PGP3_K_HEADER_C & x"9999_9999_9999_9999"))  -- PGP3_IDLE_C   
+         TPD_G        => TPD_G,
+         BRAM_EN_G    => false,
+         FWFT_EN_G    => true,
+         DATA_WIDTH_G => 66,
+         ADDR_WIDTH_G => 4)
       port map (
          -- Asynchronous Reset
-         rst                => phyRxActive,
+         rst                => phyRxRstFast,
          -- Write Ports (wr_clk domain)
          wr_clk             => phyRxClkFast,
          wr_en              => rxFifoValid,
@@ -456,8 +450,8 @@ begin
          rd_en              => '1',
          dout(65 downto 64) => phyRxHeader,
          dout(63 downto 0)  => phyRxData);
-         
-   rxFifoReady <= not(rxFifoAFull);         
+
+   rxFifoReady <= not(rxFifoAFull);
 
    U_phyRxSlip : entity work.SynchronizerOneShot
       generic map (
