@@ -24,14 +24,15 @@ use work.StdRtlPkg.all;
 entity AsyncGearbox is
 
    generic (
-      TPD_G          : time := 1 ns;
-      SLAVE_WIDTH_G  : positive;
-      MASTER_WIDTH_G : positive;
-
+      TPD_G                : time     := 1 ns;
+      SLAVE_WIDTH_G        : positive;
+      MASTER_WIDTH_G       : positive;
+      -- Pipelining generics
+      INPUT_PIPE_STAGES_G  : natural  := 0;
+      OUTPUT_PIPE_STAGES_G : natural  := 0;
       -- Async FIFO generics
-      FIFO_BRAM_EN_G     : boolean               := true;
-      FIFO_PIPE_STAGES_G : natural range 0 to 16 := 0;
-      FIFO_ADDR_WIDTH_G  : integer range 2 to 48 := 4);
+      FIFO_BRAM_EN_G       : boolean  := false;
+      FIFO_ADDR_WIDTH_G    : positive := 4);
    port (
       slaveClk : in sl;
       slaveRst : in sl;
@@ -54,7 +55,7 @@ entity AsyncGearbox is
 
 end entity AsyncGearbox;
 
-architecture rtl of AsyncGearbox is
+architecture mapping of AsyncGearbox is
 
    constant SLAVE_FASTER_C : boolean := SLAVE_WIDTH_G <= MASTER_WIDTH_G;
 
@@ -68,6 +69,7 @@ architecture rtl of AsyncGearbox is
    signal gearboxValidOut : sl;
    signal gearboxReadyOut : sl;
    signal gearboxSlip     : sl;
+   signal almostFull      : sl;
 
 begin
 
@@ -83,7 +85,6 @@ begin
          dataIn  => slip,               -- [in]
          dataOut => gearboxSlip);       -- [out]
 
-
    SLAVE_FIFO_GEN : if (not SLAVE_FASTER_C) generate
       U_FifoAsync_1 : entity work.FifoAsync
          generic map (
@@ -91,24 +92,40 @@ begin
             FWFT_EN_G     => true,
             DATA_WIDTH_G  => SLAVE_WIDTH_G,
             BRAM_EN_G     => FIFO_BRAM_EN_G,
-            PIPE_STAGES_G => FIFO_PIPE_STAGES_G,
+            PIPE_STAGES_G => INPUT_PIPE_STAGES_G,
             ADDR_WIDTH_G  => FIFO_ADDR_WIDTH_G
             )
          port map (
-            rst    => rstIn,            -- [in]
-            wr_clk => clkIn,            -- [in]
-            wr_en  => validIn,          -- [in]
-            din    => dataIn,           -- [in]
-            rd_clk => clkOut,           -- [in]
-            rd_en  => gearboxReadyIn,   -- [in]
-            dout   => gearboxDataIn,    -- [out]
-            valid  => gearboxValidIn);  -- [out]
+            rst         => slaveRst,         -- [in]
+            wr_clk      => slaveClk,         -- [in]
+            wr_en       => slaveValid,       -- [in]
+            din         => slaveData,        -- [in]
+            almost_full => almostFull,       -- [out]
+            rd_clk      => fastClk,          -- [in]
+            rd_en       => gearboxReadyIn,   -- [in]
+            dout        => gearboxDataIn,    -- [out]
+            valid       => gearboxValidIn);  -- [out]
+      slaveReady <= not(almostFull);
    end generate SLAVE_FIFO_GEN;
 
    NO_SLAVE_FIFO_GEN : if (SLAVE_FASTER_C) generate
-      readyIn        <= gearboxReadyIn;
-      gearboxValidIn <= validIn;
-      gearboxDataIn  <= dataIn;
+      U_Input : entity work.FifoOutputPipeline
+         generic map (
+            TPD_G         => TPD_G,
+            DATA_WIDTH_G  => SLAVE_WIDTH_G,
+            PIPE_STAGES_G => INPUT_PIPE_STAGES_G)
+         port map (
+            -- Clock and Reset
+            clk    => slaveClk,
+            rst    => slaveRst,
+            -- Slave Port
+            sData  => slaveData,
+            sValid => slaveValid,
+            sRdEn  => slaveReady,
+            -- Master Port
+            mData  => gearboxDataIn,
+            mValid => gearboxValidIn,
+            mRdEn  => gearboxReadyIn);
    end generate NO_SLAVE_FIFO_GEN;
 
    U_Gearbox_1 : entity work.Gearbox
@@ -125,7 +142,7 @@ begin
          masterData  => gearboxDataOut,   -- [out]
          masterValid => gearboxValidOut,  -- [out]
          masterReady => gearboxReadyOut,  -- [in]
-         slip        => gearboxSlip);
+         slip        => gearboxSlip);     -- [in]
 
    MASTER_FIFO_GEN : if (SLAVE_FASTER_C) generate
       U_FifoAsync_1 : entity work.FifoAsync
@@ -134,22 +151,39 @@ begin
             FWFT_EN_G     => true,
             DATA_WIDTH_G  => MASTER_WIDTH_G,
             BRAM_EN_G     => FIFO_BRAM_EN_G,
-            PIPE_STAGES_G => FIFO_PIPE_STAGES_G,
+            PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G,
             ADDR_WIDTH_G  => FIFO_ADDR_WIDTH_G)
          port map (
-            rst    => fastRst,          -- [in]
-            wr_clk => fastClk,          -- [in]
-            wr_en  => gearboxValidOut,  -- [in]
-            din    => gearboxDataOut,   -- [in]
-            rd_clk => masterClk,        -- [in]
-            rd_en  => masterReady,      -- [in]
-            dout   => dataOut,          -- [out]
-            valid  => masterValid);     -- [out]
+            rst         => fastRst,          -- [in]
+            wr_clk      => fastClk,          -- [in]
+            wr_en       => gearboxValidOut,  -- [in]
+            din         => gearboxDataOut,   -- [in]
+            almost_full => almostFull,       -- [out]
+            rd_clk      => masterClk,        -- [in]
+            rd_en       => masterReady,      -- [in]
+            dout        => masterData,       -- [out]
+            valid       => masterValid);     -- [out]
+      gearboxReadyOut <= not(almostFull);
    end generate MASTER_FIFO_GEN;
 
-   NO_MASTER_FIFO_GEN : if (INPUT_FASTER_C) generate
-      gearboxReadyOut <= masterReady;
-      masterData      <= gearboxDataOut;
-      masterValid     <= gearboxValidOut;
+   NO_MASTER_FIFO_GEN : if (SLAVE_FASTER_C) generate
+      U_Output : entity work.FifoOutputPipeline
+         generic map (
+            TPD_G         => TPD_G,
+            DATA_WIDTH_G  => MASTER_WIDTH_G,
+            PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)
+         port map (
+            -- Clock and Reset
+            clk    => masterClk,
+            rst    => masterRst,
+            -- Slave Port
+            sData  => gearboxDataOut,
+            sValid => gearboxValidOut,
+            sRdEn  => gearboxReadyOut,
+            -- Master Port
+            mData  => masterData,
+            mValid => masterValid,
+            mRdEn  => masterReady);
    end generate NO_MASTER_FIFO_GEN;
-end architecture rtl;
+
+end mapping;
