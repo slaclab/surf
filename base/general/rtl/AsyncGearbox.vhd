@@ -166,7 +166,7 @@ begin
       gearboxReadyOut <= not(almostFull);
    end generate MASTER_FIFO_GEN;
 
-   NO_MASTER_FIFO_GEN : if (SLAVE_FASTER_C) generate
+   NO_MASTER_FIFO_GEN : if (not SLAVE_FASTER_C) generate
       U_Output : entity work.FifoOutputPipeline
          generic map (
             TPD_G         => TPD_G,
