@@ -5,13 +5,13 @@
 -------------------------------------------------------------------------------
 -- Description: A generic gearbox with asynchronous input and output clocks
 -------------------------------------------------------------------------------
--- This file is part of SURF. It is subject to
--- the license terms in the LICENSE.txt file found in the top-level directory
--- of this distribution and at:
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
--- No part of SURF, including this file, may be
--- copied, modified, propagated, or distributed except according to the terms
--- contained in the LICENSE.txt file.
+-- This file is part of 'SLAC Firmware Standard Library'.
+-- It is subject to the license terms in the LICENSE.txt file found in the 
+-- top-level directory of this distribution and at: 
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
+-- may be copied, modified, propagated, or distributed except according to 
+-- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -70,6 +70,7 @@ architecture mapping of AsyncGearbox is
    signal gearboxReadyOut : sl;
    signal gearboxSlip     : sl;
    signal almostFull      : sl;
+   signal writeEnable     : sl;
 
 begin
 
@@ -98,14 +99,15 @@ begin
          port map (
             rst         => slaveRst,         -- [in]
             wr_clk      => slaveClk,         -- [in]
-            wr_en       => slaveValid,       -- [in]
+            wr_en       => writeEnable,      -- [in]
             din         => slaveData,        -- [in]
             almost_full => almostFull,       -- [out]
             rd_clk      => fastClk,          -- [in]
             rd_en       => gearboxReadyIn,   -- [in]
             dout        => gearboxDataIn,    -- [out]
             valid       => gearboxValidIn);  -- [out]
-      slaveReady <= not(almostFull);
+      slaveReady  <= not(almostFull);
+      writeEnable <= slaveValid and not(almostFull);
    end generate SLAVE_FIFO_GEN;
 
    NO_SLAVE_FIFO_GEN : if (SLAVE_FASTER_C) generate
@@ -156,7 +158,7 @@ begin
          port map (
             rst         => fastRst,          -- [in]
             wr_clk      => fastClk,          -- [in]
-            wr_en       => gearboxValidOut,  -- [in]
+            wr_en       => writeEnable,      -- [in]
             din         => gearboxDataOut,   -- [in]
             almost_full => almostFull,       -- [out]
             rd_clk      => masterClk,        -- [in]
@@ -164,6 +166,7 @@ begin
             dout        => masterData,       -- [out]
             valid       => masterValid);     -- [out]
       gearboxReadyOut <= not(almostFull);
+      writeEnable     <= gearboxValidOut and not(almostFull);
    end generate MASTER_FIFO_GEN;
 
    NO_MASTER_FIFO_GEN : if (not SLAVE_FASTER_C) generate
