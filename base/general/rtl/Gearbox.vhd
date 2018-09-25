@@ -5,13 +5,13 @@
 -------------------------------------------------------------------------------
 -- Description: A generic gearbox
 -------------------------------------------------------------------------------
--- This file is part of SURF. It is subject to
--- the license terms in the LICENSE.txt file found in the top-level directory
--- of this distribution and at:
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
--- No part of SURF, including this file, may be
--- copied, modified, propagated, or distributed except according to the terms
--- contained in the LICENSE.txt file.
+-- This file is part of 'SLAC Firmware Standard Library'.
+-- It is subject to the license terms in the LICENSE.txt file found in the 
+-- top-level directory of this distribution and at: 
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
+-- may be copied, modified, propagated, or distributed except according to 
+-- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -62,6 +62,7 @@ architecture rtl of Gearbox is
       writeIndex  : integer range 0 to SHIFT_WIDTH_C-1;
       slaveReady  : sl;
       slip        : sl;
+      slipReq     : sl;
    end record;
 
    constant REG_INIT_C : RegType := (
@@ -69,11 +70,15 @@ architecture rtl of Gearbox is
       shiftReg    => (others => '0'),
       writeIndex  => 0,
       slaveReady  => '0',
-      slip        => '0');
+      slip        => '0',
+      slipReq     => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   attribute dont_touch      : string;
+   attribute dont_touch of r : signal is "TRUE";   
+   
 begin
 
    comb : process (slaveData, r, masterReady, rst, slip, startOfSeq, slaveValid) is
@@ -88,18 +93,26 @@ begin
          v.masterValid := '0';
       end if;
 
-      -- Slip input by incrementing the writeIndex
+      -- Check for a slip request (rising edge of slip input)
       v.slip := slip;
-      if (slip = '1' and r.slip = '0') then
-         v.writeIndex := r.writeIndex - 1;
+      if (slip = '1') and (r.slip = '0') then
+         -- Set the flag
+         v.slipReq := '1';
       end if;
-
+      
+      -- Check if ready to slip
+      if (r.slipReq = '1') and (r.writeIndex /= 0) then
+         -- Slip the index by 1
+         v.writeIndex := r.writeIndex - 1;
+         -- Reset the flag
+         v.slipReq := '0';
+      end if;
 
       -- Only do anything if ready for data output
       if (v.masterValid = '0') then
 
          -- If current write index (assigned last cycle) is greater than output width,
-         -- then we have to shift down before assinging an new input
+         -- then we have to shift down before assigning an new input
          if (v.writeIndex >= MASTER_WIDTH_G) then
             v.shiftReg   := slvZero(MASTER_WIDTH_G) & r.shiftReg(SHIFT_WIDTH_C-1 downto MASTER_WIDTH_G);
             v.writeIndex := v.writeIndex - MASTER_WIDTH_G;
@@ -124,7 +137,7 @@ begin
          -- Accept the input word
          v.slaveReady := '1';
 
-         -- Assign incomming data at proper location in shift reg
+         -- Assign incoming data at proper location in shift reg
          v.shiftReg(v.writeIndex+SLAVE_WIDTH_G-1 downto v.writeIndex) := slaveData;
 
          -- Increment writeIndex
