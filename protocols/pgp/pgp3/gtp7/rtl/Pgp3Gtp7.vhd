@@ -29,6 +29,7 @@ use UNISIM.VCOMPONENTS.all;
 entity Pgp3Gtp7 is
    generic (
       TPD_G                       : time                  := 1 ns;
+      SIM_PLL_EMULATION_G         : boolean               := false;
       RATE_G                      : string                := "6.25Gbps";  -- or "3.125Gbps"
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
@@ -105,41 +106,32 @@ end Pgp3Gtp7;
 architecture rtl of Pgp3Gtp7 is
 
    -- Clocks and Resets
-   signal phyRxClkSlow : sl;
-   signal phyRxRstSlow : sl;
-   signal phyRxClkFast : sl;
-   signal phyRxRstFast : sl;
-   signal phyTxClkSlow : sl;
-   signal phyTxRstSlow : sl;
-   signal phyTxClkFast : sl;
-   signal phyTxRstFast : sl;
+   signal phyRxClkSlow : sl := '0';
+   signal phyRxRstSlow : sl := '1';
+   signal phyRxClkFast : sl := '0';
+   signal phyRxRstFast : sl := '1';
+   signal phyTxClkSlow : sl := '0';
+   signal phyTxRstSlow : sl := '1';
+   signal phyTxClkFast : sl := '0';
+   signal phyTxRstFast : sl := '1';
 
    -- PgpRx Signals
-   signal phyRxInit   : sl;
-   signal phyRxActive : sl;
-   signal phyRxValid  : sl;
-   signal phyRxHeader : slv(1 downto 0);
-   signal phyRxData   : slv(63 downto 0);
-   signal phyRxSlip   : sl;
-   signal slipOneShot : sl;
-   signal rxFifoValid : sl;
-   signal rxFifoAFull : sl;
-   signal rxFifoReady : sl;
-   signal rxFifoData  : slv(65 downto 0);
-   signal rxData      : slv(31 downto 0);
+   signal phyRxInit   : sl               := '0';
+   signal phyRxActive : sl               := '0';
+   signal phyRxValid  : sl               := '0';
+   signal phyRxHeader : slv(1 downto 0)  := (others => '0');
+   signal phyRxData   : slv(63 downto 0) := (others => '0');
+   signal phyRxSlip   : sl               := '0';
+   signal rxData      : slv(31 downto 0) := (others => '0');
+   signal locRxOut    : Pgp3RxOutType;
 
    -- PgpTx Signals
-   signal phyTxActive  : sl;
-   signal phyTxHeader  : slv(1 downto 0);
-   signal phyTxData    : slv(63 downto 0);
-   signal phyTxStart   : sl;
-   signal phyTxDataRdy : sl;
-   signal txFifoValid  : sl;
-   signal txFifoAFull  : sl;
-   signal txFifoReady  : sl;
-   signal txFifoData   : slv(65 downto 0);
-   signal txData       : slv(31 downto 0);
-
+   signal phyTxActive  : sl               := '0';
+   signal phyTxHeader  : slv(1 downto 0)  := (others => '0');
+   signal phyTxData    : slv(63 downto 0) := (others => '0');
+   signal phyTxStart   : sl               := '0';
+   signal phyTxDataRdy : sl               := '0';
+   signal txData       : slv(31 downto 0) := (others => '0');
 
    constant NUM_AXIL_MASTERS_C : integer := 2;
    constant PGP_AXIL_INDEX_C   : integer := 0;
@@ -160,7 +152,7 @@ architecture rtl of Pgp3Gtp7 is
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 
-   signal loopback : slv(2 downto 0);
+   signal loopback : slv(2 downto 0) := (others => '0');
 
    attribute dont_touch                 : string;
    attribute dont_touch of phyRxClkSlow : signal is "TRUE";
@@ -177,21 +169,12 @@ architecture rtl of Pgp3Gtp7 is
    attribute dont_touch of phyRxHeader  : signal is "TRUE";
    attribute dont_touch of phyRxData    : signal is "TRUE";
    attribute dont_touch of phyRxSlip    : signal is "TRUE";
-   attribute dont_touch of slipOneShot  : signal is "TRUE";
-   attribute dont_touch of rxFifoValid  : signal is "TRUE";
-   attribute dont_touch of rxFifoAFull  : signal is "TRUE";
-   attribute dont_touch of rxFifoReady  : signal is "TRUE";
-   attribute dont_touch of rxFifoData   : signal is "TRUE";
    attribute dont_touch of rxData       : signal is "TRUE";
    attribute dont_touch of phyTxActive  : signal is "TRUE";
    attribute dont_touch of phyTxHeader  : signal is "TRUE";
    attribute dont_touch of phyTxData    : signal is "TRUE";
    attribute dont_touch of phyTxStart   : signal is "TRUE";
    attribute dont_touch of phyTxDataRdy : signal is "TRUE";
-   attribute dont_touch of txFifoValid  : signal is "TRUE";
-   attribute dont_touch of txFifoAFull  : signal is "TRUE";
-   attribute dont_touch of txFifoReady  : signal is "TRUE";
-   attribute dont_touch of txFifoData   : signal is "TRUE";
    attribute dont_touch of txData       : signal is "TRUE";
 
 begin
@@ -202,6 +185,7 @@ begin
 
    pgpClk    <= phyTxClkSlow;
    pgpClkRst <= phyTxRstSlow;
+   pgpRxOut  <= locRxOut;
 
    GEN_XBAR : if (EN_DRP_G and EN_PGP_MON_G) generate
       U_XBAR : entity work.AxiLiteCrossbar
@@ -276,7 +260,7 @@ begin
          pgpRxClk        => phyTxClkSlow,                        -- [in]
          pgpRxRst        => phyTxRstSlow,                        -- [in]
          pgpRxIn         => pgpRxIn,                             -- [in]
-         pgpRxOut        => pgpRxOut,                            -- [out]
+         pgpRxOut        => locRxOut,                            -- [out]
          pgpRxMasters    => pgpRxMasters,                        -- [out]
          pgpRxCtrl       => pgpRxCtrl,                           -- [in]
          -- Rx PHY interface
@@ -299,62 +283,42 @@ begin
          axilWriteMaster => axilWriteMasters(PGP_AXIL_INDEX_C),  -- [in]
          axilWriteSlave  => axilWriteSlaves(PGP_AXIL_INDEX_C));  -- [out]
 
-   ----------
-   -- TX SYNC
-   ----------
-   U_TxSync : entity work.FifoAsync
-      generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         FWFT_EN_G    => true,
-         DATA_WIDTH_G => 66,
-         ADDR_WIDTH_G => 4)
-      port map (
-         -- Asynchronous Reset
-         rst               => phyTxRstSlow,
-         -- Write Ports (wr_clk domain)
-         wr_clk            => phyTxClkSlow,
-         wr_en             => phyTxStart,
-         almost_full       => txFifoAFull,
-         din(65 downto 64) => phyTxHeader,
-         din(63 downto 0)  => phyTxData,
-         -- Read Ports (rd_clk domain)
-         rd_clk            => phyTxClkFast,
-         valid             => txFifoValid,
-         rd_en             => txFifoReady,
-         dout              => txFifoData);
-
-   phyTxDataRdy <= not(txFifoAFull);
-
    -------------
    -- TX Gearbox
    -------------
-   U_TxGearbox : entity work.Gearbox
+   U_TxGearbox : entity work.AsyncGearbox
       generic map (
-         TPD_G          => TPD_G,
-         INPUT_WIDTH_G  => 66,
-         OUTPUT_WIDTH_G => 32)
+         TPD_G             => TPD_G,
+         SLAVE_WIDTH_G     => 66,
+         MASTER_WIDTH_G    => 32,
+         FIFO_BRAM_EN_G    => false,
+         FIFO_ADDR_WIDTH_G => 4)
       port map (
-         -- Clock and Reset
-         clk     => phyTxClkFast,
-         rst     => phyTxRstFast,
-         -- Input side data and flow control
-         dataIn  => txFifoData,
-         validIn => txFifoValid,
-         readyIn => txFifoReady,
-         -- Output side data and flow control
-         dataOut => txData);
+         -- Slave Interface
+         slaveClk                => phyTxClkSlow,
+         slaveRst                => phyTxRstSlow,
+         slaveData(65 downto 64) => phyTxHeader,
+         slaveData(63 downto 0)  => phyTxData,
+         slaveValid              => phyTxStart,
+         slaveReady              => phyTxDataRdy,
+         -- Master Interface
+         masterClk               => phyTxClkFast,
+         masterRst               => phyTxRstFast,
+         masterData              => txData,
+         masterValid             => open,
+         masterReady             => '1');
 
    --------------------------
    -- Wrapper for GTH IP core
    --------------------------
    U_Pgp3Gtp7IpWrapper : entity work.Pgp3Gtp7IpWrapper
       generic map (
-         TPD_G         => TPD_G,
-         TX_POLARITY_G => TX_POLARITY_G,
-         RX_POLARITY_G => RX_POLARITY_G,
-         EN_DRP_G      => EN_DRP_G,
-         RATE_G        => RATE_G)
+         TPD_G               => TPD_G,
+         SIM_PLL_EMULATION_G => SIM_PLL_EMULATION_G,
+         TX_POLARITY_G       => TX_POLARITY_G,
+         RX_POLARITY_G       => RX_POLARITY_G,
+         EN_DRP_G            => EN_DRP_G,
+         RATE_G              => RATE_G)
       port map (
          stableClk       => stableClk,
          stableRst       => stableRst,
@@ -377,6 +341,7 @@ begin
          gtTxN           => pgpGtTxN,
          -- Rx ports
          rxReset         => phyRxInit,
+         rxDataValid     => locRxOut.gearboxAligned,
          rxResetDone     => phyRxActive,
          rxUsrClk0       => phyRxClkSlow,
          rxUsrClk0Rst    => phyRxRstSlow,
@@ -406,59 +371,29 @@ begin
 
    -------------
    -- RX Gearbox
-   -------------
-   U_RxGearbox : entity work.Gearbox
+   -------------         
+   U_RxGearbox : entity work.AsyncGearbox
       generic map (
-         TPD_G          => TPD_G,
-         INPUT_WIDTH_G  => 32,
-         OUTPUT_WIDTH_G => 66)
+         TPD_G             => TPD_G,
+         SLAVE_WIDTH_G     => 32,
+         MASTER_WIDTH_G    => 66,
+         FIFO_BRAM_EN_G    => false,
+         FIFO_ADDR_WIDTH_G => 4)
       port map (
-         -- Clock and Reset
-         clk      => phyRxClkFast,
-         rst      => phyRxRstFast,
-         -- Input side data and flow control
-         dataIn   => rxData,
-         validIn  => phyRxActive,
+         -- Slave Interface
+         slaveClk                 => phyRxClkFast,
+         slaveRst                 => phyRxRstFast,
+         slaveData                => rxData,
+         slaveValid               => '1',
+         slaveReady               => open,
          -- sequencing and slip
-         slip     => slipOneShot,
-         -- Output side data and flow control
-         dataOut  => rxFifoData,
-         validOut => rxFifoValid,
-         readyOut => rxFifoReady);
-
-   ----------
-   -- RX SYNC
-   ----------
-   U_RxSync : entity work.FifoAsync
-      generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         FWFT_EN_G    => true,
-         DATA_WIDTH_G => 66,
-         ADDR_WIDTH_G => 4)
-      port map (
-         -- Asynchronous Reset
-         rst                => phyRxRstFast,
-         -- Write Ports (wr_clk domain)
-         wr_clk             => phyRxClkFast,
-         wr_en              => rxFifoValid,
-         din                => rxFifoData,
-         almost_full        => rxFifoAFull,
-         -- Read Ports (rd_clk domain)
-         rd_clk             => phyRxClkSlow,
-         valid              => phyRxValid,
-         rd_en              => '1',
-         dout(65 downto 64) => phyRxHeader,
-         dout(63 downto 0)  => phyRxData);
-
-   rxFifoReady <= not(rxFifoAFull);
-
-   U_phyRxSlip : entity work.SynchronizerOneShot
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk     => phyRxClkFast,
-         dataIn  => phyRxSlip,
-         dataOut => slipOneShot);
+         slip                     => phyRxSlip,
+         -- Master Interface
+         masterClk                => phyRxClkSlow,
+         masterRst                => phyRxRstSlow,
+         masterData(65 downto 64) => phyRxHeader,
+         masterData(63 downto 0)  => phyRxData,
+         masterValid              => phyRxValid,
+         masterReady              => '1');
 
 end rtl;

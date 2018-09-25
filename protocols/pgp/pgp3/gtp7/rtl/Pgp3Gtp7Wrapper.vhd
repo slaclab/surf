@@ -29,6 +29,7 @@ use unisim.vcomponents.all;
 entity Pgp3Gtp7Wrapper is
    generic (
       TPD_G                       : time                   := 1 ns;
+      SIM_PLL_EMULATION_G         : boolean                := false;
       ROGUE_SIM_EN_G              : boolean                := false;
       ROGUE_SIM_USER_ID_G         : integer range 0 to 100 := 1;
       NUM_LANES_G                 : positive range 1 to 4  := 1;
@@ -214,6 +215,7 @@ begin
          U_Pgp : entity work.Pgp3Gtp7
             generic map (
                TPD_G                       => TPD_G,
+               SIM_PLL_EMULATION_G         => SIM_PLL_EMULATION_G,
                RATE_G                      => RATE_G,
                ----------------------------------------------------------------------------------------------
                -- PGP Settings
@@ -309,6 +311,7 @@ begin
       U_TX_PLL : entity work.ClockManager7
          generic map(
             TPD_G              => TPD_G,
+            SIMULATION_G       => SIM_PLL_EMULATION_G,
             TYPE_G             => "MMCM",
             BANDWIDTH_G        => "OPTIMIZED",
             INPUT_BUFG_G       => true,
