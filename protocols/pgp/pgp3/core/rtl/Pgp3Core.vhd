@@ -53,7 +53,6 @@ entity Pgp3Core is
       phyTxActive   : in  sl;
       phyTxReady    : in  sl;
       phyTxStart    : out sl;
-      phyTxSequence : out slv(5 downto 0);
       phyTxData     : out slv(63 downto 0);
       phyTxHeader   : out slv(1 downto 0);
 
@@ -130,7 +129,6 @@ begin
          phyTxActive    => phyTxActive,     --[in]
          phyTxReady     => phyTxReady,      -- [in]
          phyTxStart     => phyTxStart,      -- [out]
-         phyTxSequence  => phyTxSequence,   -- [out]
          phyTxData      => phyTxData,       -- [out]
          phyTxHeader    => phyTxHeader);    -- [out]
 

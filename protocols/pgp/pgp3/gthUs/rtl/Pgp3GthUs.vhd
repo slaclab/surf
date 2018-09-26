@@ -118,7 +118,6 @@ architecture rtl of Pgp3GthUs is
 --   signal gtTxUserReset : sl;
    signal phyTxActive   : sl;
    signal phyTxStart    : sl;
-   signal phyTxSequence : slv(5 downto 0);
    signal phyTxData     : slv(63 downto 0);
    signal phyTxHeader   : slv(1 downto 0);
 
@@ -223,7 +222,6 @@ begin
          phyTxActive     => phyTxActive,                         -- [in]
          phyTxReady      => '1',                                 -- [in]
          phyTxStart      => phyTxStart,                          -- [out]
-         phyTxSequence   => phyTxSequence,                       -- [out]
          phyTxData       => phyTxData,                           -- [out]
          phyTxHeader     => phyTxHeader,                         -- [out]
          -- Rx User interface
@@ -295,7 +293,6 @@ begin
          txUsrClkRst     => pgpTxRstInt,                         -- [out]
          txData          => phyTxData,                           -- [in]
          txHeader        => phyTxHeader,                         -- [in]
-         txSequence      => phyTxSequence,                       -- [in]
          txOutClk        => open,                                -- [out]
          loopback        => loopback,                            -- [in]
          axilClk         => axilClk,                             -- [in]

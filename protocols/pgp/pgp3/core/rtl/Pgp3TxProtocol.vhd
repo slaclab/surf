@@ -57,7 +57,6 @@ entity Pgp3TxProtocol is
       protTxReady    : in  sl;
       protTxValid    : out sl;
       protTxStart    : out sl;
-      protTxSequence : out slv(5 downto 0);
       protTxData     : out slv(63 downto 0);
       protTxHeader   : out slv(1 downto 0));
 
@@ -80,7 +79,6 @@ architecture rtl of Pgp3TxProtocol is
       frameTxErr        : sl;
       protTxValid       : sl;
       protTxStart       : sl;
-      protTxSequence    : slv(5 downto 0);
       protTxData        : slv(63 downto 0);
       protTxHeader      : slv(1 downto 0);
    end record RegType;
@@ -100,7 +98,6 @@ architecture rtl of Pgp3TxProtocol is
       frameTxErr        => '0',
       protTxValid       => '0',
       protTxStart       => '0',
-      protTxSequence    => (others => '0'),
       protTxData        => (others => '0'),
       protTxHeader      => (others => '0'));
 
@@ -172,13 +169,6 @@ begin
             v.linkReady   := '1';
             v.protTxStart := '1';
             v.protTxValid := '1';
-            -- Check for max seq count
-            if(r.protTxSequence = 32) then
-               v.protTxSequence := (others => '0');
-            else
-               -- Increment the counter
-               v.protTxSequence := r.protTxSequence + 1;
-            end if;
          else
             -- Increment the counter
             v.startupCount := r.startupCount + 1;
@@ -283,7 +273,6 @@ begin
          if (pgpTxIn.disable = '1') then
             v.linkReady      := '0';
             v.protTxStart    := '0';
-            v.protTxSequence := (others => '0');
             v.startupCount   := 0;
             v.protTxData     := (others => '0');
             v.protTxHeader   := (others => '0');
@@ -295,7 +284,6 @@ begin
       if (phyTxActive = '0') then
          v.linkReady      := '0';
          v.protTxStart    := '0';
-         v.protTxSequence := (others => '0');
          v.startupCount   := 0;
       end if;
 
@@ -320,7 +308,6 @@ begin
       protTxHeader   <= r.protTxHeader;
       protTxValid    <= r.protTxValid;
       protTxStart    <= r.protTxStart;
-      protTxSequence <= r.protTxSequence;
 
       pgpTxOut.phyTxActive <= phyTxActive;
       pgpTxOut.linkReady   <= r.linkReady;

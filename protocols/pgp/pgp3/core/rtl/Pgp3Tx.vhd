@@ -60,7 +60,6 @@ entity Pgp3Tx is
       phyTxActive   : in  sl;
       phyTxReady    : in  sl;
       phyTxStart    : out sl;
-      phyTxSequence : out slv(5 downto 0);
       phyTxData     : out slv(63 downto 0);
       phyTxHeader   : out slv(1 downto 0));
 
@@ -85,7 +84,6 @@ architecture rtl of Pgp3Tx is
    signal phyTxActiveL   : sl;
    signal protTxValid    : sl;
    signal protTxReady    : sl;
-   signal protTxSequence : slv(5 downto 0);
    signal protTxStart    : sl;
    signal protTxData     : slv(63 downto 0);
    signal protTxHeader   : slv(1 downto 0);
@@ -222,7 +220,6 @@ begin
          protTxReady    => protTxReady,         -- [in]
          protTxValid    => protTxValid,         -- [out]
          protTxStart    => protTxStart,         -- [out]
-         protTxSequence => protTxSequence,      -- [out]
          protTxData     => protTxData,          -- [out]
          protTxHeader   => protTxHeader);       -- [out]
 
@@ -232,7 +229,7 @@ begin
          TPD_G            => TPD_G,
          DIRECTION_G      => "SCRAMBLER",
          DATA_WIDTH_G     => 64,
-         SIDEBAND_WIDTH_G => 9,
+         SIDEBAND_WIDTH_G => 3,
          TAPS_G           => PGP3_SCRAMBLER_TAPS_C)
       port map (
          clk                        => pgpTxClk,        -- [in]
@@ -242,12 +239,10 @@ begin
          inputData                  => protTxData,      -- [in]
          inputSideband(1 downto 0)  => protTxHeader,    -- [in]
          inputSideband(2)           => protTxStart,     -- [in]
-         inputSideband(8 downto 3)  => protTxSequence,  -- [in]
          outputReady                => phyTxReady,      -- [in]
          outputData                 => phyTxData,       -- [out]
          outputSideband(1 downto 0) => phyTxHeader,     -- [out]
-         outputSideband(2)          => phyTxStart,      -- [out]
-         outputSideband(8 downto 3) => phyTxSequence);  -- [out]
+         outputSideband(2)          => phyTxStart);     -- [out]
 
    phyTxActiveL <= not(phyTxActive);
 

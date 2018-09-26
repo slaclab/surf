@@ -126,7 +126,6 @@ architecture rtl of Pgp3Gtx7 is
    signal phyTxActive   : sl;
    signal phyTxStart    : sl;
    signal phyTxDataRdy  : sl;
-   signal phyTxSequence : slv(5 downto 0);
    signal phyTxData     : slv(63 downto 0);
    signal phyTxHeader   : slv(1 downto 0);
 
@@ -228,7 +227,6 @@ begin
          phyTxActive     => phyTxActive,                         -- [in]
          phyTxReady      => phyTxDataRdy,                        -- [in]
          phyTxStart      => phyTxStart,                          -- [out]
-         phyTxSequence   => phyTxSequence,                       -- [out]
          phyTxData       => phyTxData,                           -- [out]
          phyTxHeader     => phyTxHeader,                         -- [out]
          -- Rx User interface
