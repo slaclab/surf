@@ -349,8 +349,8 @@ begin
          CLKFBOUT_MULT_F_G  => ite((RATE_G = "6.25Gbps"), 3.0, 6.0),  -- VCO = 1171.875 MHz
          -------------------------------------------------------------------------------------------------------------
          -- CLKOUT0_DIVIDE_F_G => ite((RATE_G = "6.25Gbps"), 12.375, 24.75),  -- 94.697 MHz for 6.25Gbps configuration
-         -- Running CLKOUT0 slightly faster than 94.697 MHz to prevent accidental back pressure using initialization
-         -- Later the Pgp3RxEb.vhd will get the RX data back to TX's 94.697 MHz 
+         -- Running CLKOUT0 slightly faster than 94.697 MHz because observing the RX ASYNC FIFO back pressuring 
+         -- when using fractional divides
          CLKOUT0_DIVIDE_F_G => ite((RATE_G = "6.25Gbps"), 12.0, 24.0),
          -------------------------------------------------------------------------------------------------------------
          CLKOUT1_DIVIDE_G   => ite((RATE_G = "6.25Gbps"), 3, 6),  -- 390.625 MHz for 6.25Gbps configuration
