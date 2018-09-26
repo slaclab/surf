@@ -26,7 +26,7 @@ entity Pgp3Gtp7Tb is end Pgp3Gtp7Tb;
 
 architecture testbed of Pgp3Gtp7Tb is
 
-   constant CLK_PERIOD_C : time := 8 ns;
+   constant CLK_PERIOD_C : time := 4 ns;
    constant TPD_G        : time := CLK_PERIOD_C/4;
 
    signal gtClkP : sl := '0';
@@ -78,7 +78,7 @@ begin
          NUM_LANES_G         => 1,
          NUM_VC_G            => 4,
          RATE_G              => "6.25Gbps",
-         REFCLK_TYPE_G       => PGP3_REFCLK_125_C)
+         REFCLK_TYPE_G       => PGP3_REFCLK_250_C)
       port map (
          -- Stable Clock and Reset
          stableClk         => stableClk,

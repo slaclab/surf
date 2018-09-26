@@ -51,22 +51,24 @@ entity Pgp3Gtp7IpWrapper is
       gtTxP           : out sl;
       gtTxN           : out sl;
       -- Rx ports
+      rxUsrClk        : out sl;
+      rxUsrClkRst     : out sl;
       rxReset         : in  sl;
-      rxDataValid     : in  sl;
       rxResetDone     : out sl;
-      rxUsrClk0       : out sl;
-      rxUsrClk0Rst    : out sl;
-      rxUsrClk2       : out sl;
-      rxUsrClk2Rst    : out sl;
-      rxData          : out slv(31 downto 0);
+      rxValid         : out sl;
+      rxHeader        : out slv(1 downto 0);
+      rxData          : out slv(63 downto 0);
+      rxSlip          : in  sl;
+      rxAligned       : in  sl;
       -- Tx Ports
+      txUsrClk        : out sl;
+      txUsrClkRst     : out sl;
       txReset         : in  sl;
       txResetDone     : out sl;
-      txUsrClk0       : out sl;
-      txUsrClk0Rst    : out sl;
-      txUsrClk2       : out sl;
-      txUsrClk2Rst    : out sl;
-      txData          : in  slv(31 downto 0);
+      txHeader        : in  slv(1 downto 0);
+      txData          : in  slv(63 downto 0);
+      txStart         : in  sl;
+      txReady         : out sl;
       -- Debug Interface 
       loopback        : in  slv(2 downto 0);
       txPreCursor     : in  slv(4 downto 0);
@@ -136,6 +138,12 @@ architecture mapping of Pgp3Gtp7IpWrapper is
          --------------- Receive Ports - RX Fabric Output Control Ports -------------
          gt0_rxoutclk_out            : out std_logic;
          gt0_rxoutclkfabric_out      : out std_logic;
+         ---------------------- Receive Ports - RX Gearbox Ports --------------------
+         gt0_rxdatavalid_out         : out std_logic;
+         gt0_rxheader_out            : out std_logic_vector(1 downto 0);
+         gt0_rxheadervalid_out       : out std_logic;
+         --------------------- Receive Ports - RX Gearbox Ports  --------------------
+         gt0_rxgearboxslip_in        : in  std_logic;
          ------------- Receive Ports - RX Initialization and Reset Ports ------------
          gt0_gtrxreset_in            : in  std_logic;
          gt0_rxlpmreset_in           : in  std_logic;
@@ -163,6 +171,9 @@ architecture mapping of Pgp3Gtp7IpWrapper is
          gt0_txoutclk_out            : out std_logic;
          gt0_txoutclkfabric_out      : out std_logic;
          gt0_txoutclkpcs_out         : out std_logic;
+         --------------------- Transmit Ports - TX Gearbox Ports --------------------
+         gt0_txheader_in             : in  std_logic_vector(1 downto 0);
+         gt0_txsequence_in           : in  std_logic_vector(6 downto 0);
          ------------- Transmit Ports - TX Initialization and Reset Ports -----------
          gt0_txpcsreset_in           : in  std_logic;
          gt0_txpmareset_in           : in  std_logic;
@@ -233,6 +244,12 @@ architecture mapping of Pgp3Gtp7IpWrapper is
          --------------- Receive Ports - RX Fabric Output Control Ports -------------
          gt0_rxoutclk_out            : out std_logic;
          gt0_rxoutclkfabric_out      : out std_logic;
+         ---------------------- Receive Ports - RX Gearbox Ports --------------------
+         gt0_rxdatavalid_out         : out std_logic;
+         gt0_rxheader_out            : out std_logic_vector(1 downto 0);
+         gt0_rxheadervalid_out       : out std_logic;
+         --------------------- Receive Ports - RX Gearbox Ports  --------------------
+         gt0_rxgearboxslip_in        : in  std_logic;
          ------------- Receive Ports - RX Initialization and Reset Ports ------------
          gt0_gtrxreset_in            : in  std_logic;
          gt0_rxlpmreset_in           : in  std_logic;
@@ -260,6 +277,9 @@ architecture mapping of Pgp3Gtp7IpWrapper is
          gt0_txoutclk_out            : out std_logic;
          gt0_txoutclkfabric_out      : out std_logic;
          gt0_txoutclkpcs_out         : out std_logic;
+         --------------------- Transmit Ports - TX Gearbox Ports --------------------
+         gt0_txheader_in             : in  std_logic_vector(1 downto 0);
+         gt0_txsequence_in           : in  std_logic_vector(6 downto 0);
          ------------- Transmit Ports - TX Initialization and Reset Ports -----------
          gt0_txpcsreset_in           : in  std_logic;
          gt0_txpmareset_in           : in  std_logic;
@@ -277,10 +297,10 @@ architecture mapping of Pgp3Gtp7IpWrapper is
          );
    end component;
 
-   signal gtRxOutClk  : sl;
-   signal gtRxPllRst  : sl;
-   signal gtRxPllLock : sl;
-   signal slipOneShot : sl;
+   signal gtRxOutClk    : sl;
+   signal gtRxPllRst    : sl;
+   signal gtRxPllLock   : sl;
+   signal rxSlipGearbox : sl;
 
    signal rxPllClk : slv(2 downto 0);
    signal rxPllRst : slv(2 downto 0);
@@ -298,19 +318,22 @@ architecture mapping of Pgp3Gtp7IpWrapper is
    signal drpWe   : sl               := '0';
    signal drpRdy  : sl               := '0';
 
+   signal txHeaderGearbox   : slv(1 downto 0);
+   signal txDataGearbox     : slv(31 downto 0);
+   signal txSequenceGearbox : slv(6 downto 0);
+
+   signal rxHeaderValidGearbox : sl;
+   signal rxHeaderGearbox      : slv(1 downto 0);
+   signal rxDataValidGearbox   : sl;
+   signal rxDataGearbox        : slv(31 downto 0);
+
 begin
 
-   rxUsrClk0    <= rxPllClk(0);
-   rxUsrClk0Rst <= rxPllRst(0);
+   rxUsrClk    <= rxPllClk(0);
+   rxUsrClkRst <= rxPllRst(0);
 
-   rxUsrClk2    <= rxPllClk(2);
-   rxUsrClk2Rst <= rxPllRst(2);
-
-   txUsrClk0    <= txPllClk(0);
-   txUsrClk0Rst <= txPllRst(0);
-
-   txUsrClk2    <= txPllClk(2);
-   txUsrClk2Rst <= txPllRst(2);
+   txUsrClk    <= txPllClk(0);
+   txUsrClkRst <= txPllRst(0);
 
    U_RX_PLL : entity work.ClockManager7
       generic map(
@@ -328,7 +351,7 @@ begin
          -- CLKOUT0_DIVIDE_F_G => ite((RATE_G = "6.25Gbps"), 12.375, 24.75),  -- 94.697 MHz for 6.25Gbps configuration
          -- Running CLKOUT0 slightly faster than 94.697 MHz to prevent accidental back pressure using initialization
          -- Later the Pgp3RxEb.vhd will get the RX data back to TX's 94.697 MHz 
-         CLKOUT0_DIVIDE_F_G => ite((RATE_G = "6.25Gbps"), 12.0, 24.0), 
+         CLKOUT0_DIVIDE_F_G => ite((RATE_G = "6.25Gbps"), 12.0, 24.0),
          -------------------------------------------------------------------------------------------------------------
          CLKOUT1_DIVIDE_G   => ite((RATE_G = "6.25Gbps"), 3, 6),  -- 390.625 MHz for 6.25Gbps configuration
          CLKOUT2_DIVIDE_G   => ite((RATE_G = "6.25Gbps"), 6, 12))  -- 195.312  MHz for 6.25Gbps configuration
@@ -345,6 +368,50 @@ begin
    txUsrClkInt  <= txPllClk(1);
    txUsrClk2Int <= txPllClk(2);
 
+   U_TxGearbox : entity work.Pgp3Gtp7TxGearbox
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         -- Slave Interface
+         phyTxClkSlow => txPllClk(0),
+         phyTxRstSlow => txPllRst(0),
+         phyTxHeader  => txHeader,
+         phyTxData    => txData,
+         phyTxStart   => txStart,
+         phyTxDataRdy => txReady,
+         -- Master Interface
+         phyTxClkFast => txPllClk(2),
+         phyTxRstFast => txPllRst(2),
+         txHeader     => txHeaderGearbox,
+         txData       => txDataGearbox,
+         txSequence   => txSequenceGearbox);
+
+   U_RxGearbox : entity work.Pgp3Gtp7RxGearbox
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         -- Slave Interface
+         phyRxClkFast  => rxPllClk(2),
+         phyRxRstFast  => rxPllRst(2),
+         rxHeaderValid => rxHeaderValidGearbox,
+         rxHeader      => rxHeaderGearbox,
+         rxDataValid   => rxDataValidGearbox,
+         rxData        => rxDataGearbox,
+         -- Master Interface
+         phyRxClkSlow  => rxPllClk(0),
+         phyRxRstSlow  => rxPllRst(0),
+         phyRxValid    => rxValid,
+         phyRxHeader   => rxHeader,
+         phyRxData     => rxData);
+
+   U_RxSlip : entity work.SynchronizerOneShot
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => rxUsrClk2Int,
+         dataIn  => rxSlip,
+         dataOut => rxSlipGearbox);
+
    GEN_6G : if (RATE_G = "6.25Gbps") generate
       U_Pgp3Gtp7Ip6G : Pgp3Gtp7Ip6G
          port map (
@@ -354,7 +421,7 @@ begin
             DONT_RESET_ON_DATA_ERROR_IN => '0',
             GT0_TX_FSM_RESET_DONE_OUT   => txResetDone,
             GT0_RX_FSM_RESET_DONE_OUT   => rxResetDone,
-            GT0_DATA_VALID_IN           => rxDataValid,
+            GT0_DATA_VALID_IN           => rxAligned,
             GT0_DRP_BUSY_OUT            => open,
             GT0_TX_MMCM_LOCK_IN         => gtTxPllLock,
             GT0_TX_MMCM_RESET_OUT       => gtTxPllRst,
@@ -387,7 +454,7 @@ begin
             gt0_rxusrclk_in             => rxUsrClkInt,  -- 390.62 MHz (2.56 ns period)
             gt0_rxusrclk2_in            => rxUsrClk2Int,  -- 195.31 MHz (5.12 ns period)
             ------------------ Receive Ports - FPGA RX interface Ports -----------------
-            gt0_rxdata_out              => rxData,
+            gt0_rxdata_out              => rxDataGearbox,
             --------------------------- Receive Ports - RX AFE -------------------------
             gt0_gtprxp_in               => gtRxP,
             ------------------------ Receive Ports - RX AFE Ports ----------------------
@@ -403,6 +470,12 @@ begin
             --------------- Receive Ports - RX Fabric Output Control Ports -------------
             gt0_rxoutclk_out            => gtRxOutClk,  -- 390.62 MHz (2.56 ns period)
             gt0_rxoutclkfabric_out      => open,  -- 156.25 MHz (6.400 ns period)
+            ---------------------- Receive Ports - RX Gearbox Ports --------------------
+            gt0_rxdatavalid_out         => rxDataValidGearbox,
+            gt0_rxheader_out            => rxHeaderGearbox,
+            gt0_rxheadervalid_out       => rxHeaderValidGearbox,
+            --------------------- Receive Ports - RX Gearbox Ports  --------------------
+            gt0_rxgearboxslip_in        => rxSlipGearbox,
             ------------- Receive Ports - RX Initialization and Reset Ports ------------
             gt0_gtrxreset_in            => '0',
             gt0_rxlpmreset_in           => '0',
@@ -424,7 +497,7 @@ begin
             --------------- Transmit Ports - TX Configurable Driver Ports --------------
             gt0_txdiffctrl_in           => txDiffCtrl,
             ------------------ Transmit Ports - TX Data Path interface -----------------
-            gt0_txdata_in               => txData,
+            gt0_txdata_in               => txDataGearbox,
             ---------------- Transmit Ports - TX Driver and OOB signaling --------------
             gt0_gtptxn_out              => gtTxN,
             gt0_gtptxp_out              => gtTxP,
@@ -432,6 +505,9 @@ begin
             gt0_txoutclk_out            => gtTxOutClk,  -- 390.62 MHz (2.56 ns period)
             gt0_txoutclkfabric_out      => open,  -- 156.25 MHz (6.4 ns period)
             gt0_txoutclkpcs_out         => open,
+            --------------------- Transmit Ports - TX Gearbox Ports --------------------
+            gt0_txheader_in             => txHeaderGearbox,
+            gt0_txsequence_in           => txSequenceGearbox,
             ------------- Transmit Ports - TX Initialization and Reset Ports -----------
             gt0_txpcsreset_in           => '0',
             gt0_txpmareset_in           => '0',
@@ -458,7 +534,7 @@ begin
             DONT_RESET_ON_DATA_ERROR_IN => '0',
             GT0_TX_FSM_RESET_DONE_OUT   => txResetDone,
             GT0_RX_FSM_RESET_DONE_OUT   => rxResetDone,
-            GT0_DATA_VALID_IN           => '1',
+            GT0_DATA_VALID_IN           => rxAligned,
             GT0_DRP_BUSY_OUT            => open,
             GT0_TX_MMCM_LOCK_IN         => gtTxPllLock,
             GT0_TX_MMCM_RESET_OUT       => gtTxPllRst,
@@ -491,7 +567,7 @@ begin
             gt0_rxusrclk_in             => rxUsrClkInt,  -- 195.31 MHz (5.12 ns period)
             gt0_rxusrclk2_in            => rxUsrClk2Int,  -- 97.655 MHz (10.24 ns period)
             ------------------ Receive Ports - FPGA RX interface Ports -----------------
-            gt0_rxdata_out              => rxData,
+            gt0_rxdata_out              => rxDataGearbox,
             --------------------------- Receive Ports - RX AFE -------------------------
             gt0_gtprxp_in               => gtRxP,
             ------------------------ Receive Ports - RX AFE Ports ----------------------
@@ -507,6 +583,12 @@ begin
             --------------- Receive Ports - RX Fabric Output Control Ports -------------
             gt0_rxoutclk_out            => gtRxOutClk,  -- 195.31 MHz (5.12 ns period)
             gt0_rxoutclkfabric_out      => open,  -- 156.25 MHz (6.400 ns period)
+            ---------------------- Receive Ports - RX Gearbox Ports --------------------
+            gt0_rxdatavalid_out         => rxDataValidGearbox,
+            gt0_rxheader_out            => rxHeaderGearbox,
+            gt0_rxheadervalid_out       => rxHeaderValidGearbox,
+            --------------------- Receive Ports - RX Gearbox Ports  --------------------
+            gt0_rxgearboxslip_in        => rxSlipGearbox,
             ------------- Receive Ports - RX Initialization and Reset Ports ------------
             gt0_gtrxreset_in            => '0',
             gt0_rxlpmreset_in           => '0',
@@ -528,7 +610,7 @@ begin
             --------------- Transmit Ports - TX Configurable Driver Ports --------------
             gt0_txdiffctrl_in           => txDiffCtrl,
             ------------------ Transmit Ports - TX Data Path interface -----------------
-            gt0_txdata_in               => txData,
+            gt0_txdata_in               => txDataGearbox,
             ---------------- Transmit Ports - TX Driver and OOB signaling --------------
             gt0_gtptxn_out              => gtTxN,
             gt0_gtptxp_out              => gtTxP,
@@ -536,6 +618,9 @@ begin
             gt0_txoutclk_out            => gtTxOutClk,  -- 195.31 MHz (5.12 ns period)
             gt0_txoutclkfabric_out      => open,  -- 156.25 MHz (6.4 ns period)
             gt0_txoutclkpcs_out         => open,
+            --------------------- Transmit Ports - TX Gearbox Ports --------------------
+            gt0_txheader_in             => txHeaderGearbox,
+            gt0_txsequence_in           => txSequenceGearbox,
             ------------- Transmit Ports - TX Initialization and Reset Ports -----------
             gt0_txpcsreset_in           => '0',
             gt0_txpmareset_in           => '0',

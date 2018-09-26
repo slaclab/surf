@@ -106,14 +106,10 @@ end Pgp3Gtp7;
 architecture rtl of Pgp3Gtp7 is
 
    -- Clocks and Resets
-   signal phyRxClkSlow : sl := '0';
-   signal phyRxRstSlow : sl := '1';
-   signal phyRxClkFast : sl := '0';
-   signal phyRxRstFast : sl := '1';
-   signal phyTxClkSlow : sl := '0';
-   signal phyTxRstSlow : sl := '1';
-   signal phyTxClkFast : sl := '0';
-   signal phyTxRstFast : sl := '1';
+   signal phyRxClk : sl := '0';
+   signal phyRxRst : sl := '1';
+   signal phyTxClk : sl := '0';
+   signal phyTxRst : sl := '1';
 
    -- PgpRx Signals
    signal phyRxInit   : sl               := '0';
@@ -122,7 +118,6 @@ architecture rtl of Pgp3Gtp7 is
    signal phyRxHeader : slv(1 downto 0)  := (others => '0');
    signal phyRxData   : slv(63 downto 0) := (others => '0');
    signal phyRxSlip   : sl               := '0';
-   signal rxData      : slv(31 downto 0) := (others => '0');
    signal locRxOut    : Pgp3RxOutType;
 
    -- PgpTx Signals
@@ -131,7 +126,6 @@ architecture rtl of Pgp3Gtp7 is
    signal phyTxData    : slv(63 downto 0) := (others => '0');
    signal phyTxStart   : sl               := '0';
    signal phyTxDataRdy : sl               := '0';
-   signal txData       : slv(31 downto 0) := (others => '0');
 
    constant NUM_AXIL_MASTERS_C : integer := 2;
    constant PGP_AXIL_INDEX_C   : integer := 0;
@@ -155,27 +149,21 @@ architecture rtl of Pgp3Gtp7 is
    signal loopback : slv(2 downto 0) := (others => '0');
 
    attribute dont_touch                 : string;
-   attribute dont_touch of phyRxClkSlow : signal is "TRUE";
-   attribute dont_touch of phyRxRstSlow : signal is "TRUE";
-   attribute dont_touch of phyRxClkFast : signal is "TRUE";
-   attribute dont_touch of phyRxRstFast : signal is "TRUE";
-   attribute dont_touch of phyTxClkSlow : signal is "TRUE";
-   attribute dont_touch of phyTxRstSlow : signal is "TRUE";
-   attribute dont_touch of phyTxClkFast : signal is "TRUE";
-   attribute dont_touch of phyTxRstFast : signal is "TRUE";
+   attribute dont_touch of phyRxClk     : signal is "TRUE";
+   attribute dont_touch of phyRxRst     : signal is "TRUE";
+   attribute dont_touch of phyTxClk     : signal is "TRUE";
+   attribute dont_touch of phyTxRst     : signal is "TRUE";
    attribute dont_touch of phyRxInit    : signal is "TRUE";
    attribute dont_touch of phyRxActive  : signal is "TRUE";
    attribute dont_touch of phyRxValid   : signal is "TRUE";
    attribute dont_touch of phyRxHeader  : signal is "TRUE";
    attribute dont_touch of phyRxData    : signal is "TRUE";
    attribute dont_touch of phyRxSlip    : signal is "TRUE";
-   attribute dont_touch of rxData       : signal is "TRUE";
    attribute dont_touch of phyTxActive  : signal is "TRUE";
    attribute dont_touch of phyTxHeader  : signal is "TRUE";
    attribute dont_touch of phyTxData    : signal is "TRUE";
    attribute dont_touch of phyTxStart   : signal is "TRUE";
    attribute dont_touch of phyTxDataRdy : signal is "TRUE";
-   attribute dont_touch of txData       : signal is "TRUE";
 
 begin
 
@@ -183,8 +171,8 @@ begin
       report "RATE_G: Must be either 3.125Gbps, 6.25Gbps"
       severity error;
 
-   pgpClk    <= phyTxClkSlow;
-   pgpClkRst <= phyTxRstSlow;
+   pgpClk    <= phyTxClk;
+   pgpClkRst <= phyTxRst;
    pgpRxOut  <= locRxOut;
 
    GEN_XBAR : if (EN_DRP_G and EN_PGP_MON_G) generate
@@ -244,8 +232,8 @@ begin
          AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G)
       port map (
          -- Tx User interface
-         pgpTxClk        => phyTxClkSlow,                        -- [in]
-         pgpTxRst        => phyTxRstSlow,                        -- [in]
+         pgpTxClk        => phyTxClk,                            -- [in]
+         pgpTxRst        => phyTxRst,                            -- [in]
          pgpTxIn         => pgpTxIn,                             -- [in]
          pgpTxOut        => pgpTxOut,                            -- [out]
          pgpTxMasters    => pgpTxMasters,                        -- [in]
@@ -257,15 +245,15 @@ begin
          phyTxStart      => phyTxStart,                          -- [out]
          phyTxReady      => phyTxDataRdy,                        -- [in]
          -- Rx User interface
-         pgpRxClk        => phyTxClkSlow,                        -- [in]
-         pgpRxRst        => phyTxRstSlow,                        -- [in]
+         pgpRxClk        => phyTxClk,                            -- [in]
+         pgpRxRst        => phyTxRst,                            -- [in]
          pgpRxIn         => pgpRxIn,                             -- [in]
          pgpRxOut        => locRxOut,                            -- [out]
          pgpRxMasters    => pgpRxMasters,                        -- [out]
          pgpRxCtrl       => pgpRxCtrl,                           -- [in]
          -- Rx PHY interface
-         phyRxClk        => phyRxClkSlow,                        -- [in]
-         phyRxRst        => phyRxRstSlow,                        -- [in]
+         phyRxClk        => phyRxClk,                            -- [in]
+         phyRxRst        => phyRxRst,                            -- [in]
          phyRxInit       => phyRxInit,                           -- [out]
          phyRxActive     => phyRxActive,                         -- [in]
          phyRxValid      => phyRxValid,                          -- [in]
@@ -282,31 +270,6 @@ begin
          axilReadSlave   => axilReadSlaves(PGP_AXIL_INDEX_C),    -- [out]
          axilWriteMaster => axilWriteMasters(PGP_AXIL_INDEX_C),  -- [in]
          axilWriteSlave  => axilWriteSlaves(PGP_AXIL_INDEX_C));  -- [out]
-
-   -------------
-   -- TX Gearbox
-   -------------
-   U_TxGearbox : entity work.AsyncGearbox
-      generic map (
-         TPD_G             => TPD_G,
-         SLAVE_WIDTH_G     => 66,
-         MASTER_WIDTH_G    => 32,
-         FIFO_BRAM_EN_G    => false,
-         FIFO_ADDR_WIDTH_G => 4)
-      port map (
-         -- Slave Interface
-         slaveClk                => phyTxClkSlow,
-         slaveRst                => phyTxRstSlow,
-         slaveData(65 downto 64) => phyTxHeader,
-         slaveData(63 downto 0)  => phyTxData,
-         slaveValid              => phyTxStart,
-         slaveReady              => phyTxDataRdy,
-         -- Master Interface
-         masterClk               => phyTxClkFast,
-         masterRst               => phyTxRstFast,
-         masterData              => txData,
-         masterValid             => open,
-         masterReady             => '1');
 
    --------------------------
    -- Wrapper for GTH IP core
@@ -340,22 +303,24 @@ begin
          gtTxP           => pgpGtTxP,
          gtTxN           => pgpGtTxN,
          -- Rx ports
+         rxUsrClk        => phyRxClk,
+         rxUsrClkRst     => phyRxRst,
          rxReset         => phyRxInit,
-         rxDataValid     => locRxOut.gearboxAligned,
          rxResetDone     => phyRxActive,
-         rxUsrClk0       => phyRxClkSlow,
-         rxUsrClk0Rst    => phyRxRstSlow,
-         rxUsrClk2       => phyRxClkFast,
-         rxUsrClk2Rst    => phyRxRstFast,
-         rxData          => rxData,
+         rxValid         => phyRxValid,
+         rxHeader        => phyRxHeader,
+         rxData          => phyRxData,
+         rxSlip          => phyRxSlip,
+         rxAligned       => locRxOut.gearboxAligned,
          -- Tx Ports
-         txReset         => '0',
+         txUsrClk        => phyTxClk,
+         txUsrClkRst     => phyTxRst,
+         txReset         => stableRst,
          txResetDone     => phyTxActive,
-         txUsrClk0       => phyTxClkSlow,
-         txUsrClk0Rst    => phyTxRstSlow,
-         txUsrClk2       => phyTxClkFast,
-         txUsrClk2Rst    => phyTxRstFast,
-         txData          => txData,
+         txHeader        => phyTxHeader,
+         txData          => phyTxData,
+         txStart         => phyTxStart,
+         txReady         => phyTxDataRdy,
          -- Debug Interface 
          loopback        => loopback,
          txPreCursor     => txPreCursor,
@@ -368,32 +333,5 @@ begin
          axilReadSlave   => axilReadSlaves(DRP_AXIL_INDEX_C),
          axilWriteMaster => axilWriteMasters(DRP_AXIL_INDEX_C),
          axilWriteSlave  => axilWriteSlaves(DRP_AXIL_INDEX_C));
-
-   -------------
-   -- RX Gearbox
-   -------------         
-   U_RxGearbox : entity work.AsyncGearbox
-      generic map (
-         TPD_G             => TPD_G,
-         SLAVE_WIDTH_G     => 32,
-         MASTER_WIDTH_G    => 66,
-         FIFO_BRAM_EN_G    => false,
-         FIFO_ADDR_WIDTH_G => 4)
-      port map (
-         -- Slave Interface
-         slaveClk                 => phyRxClkFast,
-         slaveRst                 => phyRxRstFast,
-         slaveData                => rxData,
-         slaveValid               => '1',
-         slaveReady               => open,
-         -- sequencing and slip
-         slip                     => phyRxSlip,
-         -- Master Interface
-         masterClk                => phyRxClkSlow,
-         masterRst                => phyRxRstSlow,
-         masterData(65 downto 64) => phyRxHeader,
-         masterData(63 downto 0)  => phyRxData,
-         masterValid              => phyRxValid,
-         masterReady              => '1');
 
 end rtl;
