@@ -121,9 +121,9 @@ begin
             v.txHeader := fifoData(65 downto 64);
             -- Check the phase of the 32-bit chucking
             if (v.txSequence(0) = '0') then
-               v.txData := fifoData(31 downto 0);
-            else
                v.txData   := fifoData(63 downto 32);
+            else
+               v.txData := fifoData(31 downto 0);
                -- Read the FIFO
                v.fifoRead := '1';
             end if;
