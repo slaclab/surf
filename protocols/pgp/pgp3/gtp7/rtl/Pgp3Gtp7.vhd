@@ -148,22 +148,22 @@ architecture rtl of Pgp3Gtp7 is
 
    signal loopback : slv(2 downto 0) := (others => '0');
 
-   attribute dont_touch                 : string;
-   attribute dont_touch of phyRxClk     : signal is "TRUE";
-   attribute dont_touch of phyRxRst     : signal is "TRUE";
-   attribute dont_touch of phyTxClk     : signal is "TRUE";
-   attribute dont_touch of phyTxRst     : signal is "TRUE";
-   attribute dont_touch of phyRxInit    : signal is "TRUE";
-   attribute dont_touch of phyRxActive  : signal is "TRUE";
-   attribute dont_touch of phyRxValid   : signal is "TRUE";
-   attribute dont_touch of phyRxHeader  : signal is "TRUE";
-   attribute dont_touch of phyRxData    : signal is "TRUE";
-   attribute dont_touch of phyRxSlip    : signal is "TRUE";
-   attribute dont_touch of phyTxActive  : signal is "TRUE";
-   attribute dont_touch of phyTxHeader  : signal is "TRUE";
-   attribute dont_touch of phyTxData    : signal is "TRUE";
-   attribute dont_touch of phyTxStart   : signal is "TRUE";
-   attribute dont_touch of phyTxDataRdy : signal is "TRUE";
+   -- attribute dont_touch                 : string;
+   -- attribute dont_touch of phyRxClk     : signal is "TRUE";
+   -- attribute dont_touch of phyRxRst     : signal is "TRUE";
+   -- attribute dont_touch of phyTxClk     : signal is "TRUE";
+   -- attribute dont_touch of phyTxRst     : signal is "TRUE";
+   -- attribute dont_touch of phyRxInit    : signal is "TRUE";
+   -- attribute dont_touch of phyRxActive  : signal is "TRUE";
+   -- attribute dont_touch of phyRxValid   : signal is "TRUE";
+   -- attribute dont_touch of phyRxHeader  : signal is "TRUE";
+   -- attribute dont_touch of phyRxData    : signal is "TRUE";
+   -- attribute dont_touch of phyRxSlip    : signal is "TRUE";
+   -- attribute dont_touch of phyTxActive  : signal is "TRUE";
+   -- attribute dont_touch of phyTxHeader  : signal is "TRUE";
+   -- attribute dont_touch of phyTxData    : signal is "TRUE";
+   -- attribute dont_touch of phyTxStart   : signal is "TRUE";
+   -- attribute dont_touch of phyTxDataRdy : signal is "TRUE";
 
 begin
 
