@@ -10,4 +10,7 @@
 
 create_clock -period 5.120 [get_pins -hier -filter {name=~*gt0_Pgp3Gtp7Ip3G_i*gtpe2_i*TXOUTCLK}]
 create_clock -period 5.120 [get_pins -hier -filter {name=~*gt0_Pgp3Gtp7Ip3G_i*gtpe2_i*RXOUTCLK}]
-set_false_path -to [get_cells -hierarchical -filter {NAME =~ *data_sync_reg1}]
+set_false_path -to [get_pins -hierarchical -filter {NAME =~ *_txfsmresetdone_r*/CLR}]
+set_false_path -to [get_pins -hierarchical -filter {NAME =~ *_txfsmresetdone_r*/D}]
+set_false_path -to [get_pins -hierarchical -filter {NAME =~ *_rxfsmresetdone_r*/CLR}]
+set_false_path -to [get_pins -hierarchical -filter {NAME =~ *_rxfsmresetdone_r*/D}]
