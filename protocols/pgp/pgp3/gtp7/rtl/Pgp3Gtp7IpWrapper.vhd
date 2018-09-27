@@ -24,12 +24,11 @@ use unisim.vcomponents.all;
 
 entity Pgp3Gtp7IpWrapper is
    generic (
-      TPD_G               : time    := 1 ns;
-      SIM_PLL_EMULATION_G : boolean := false;
-      EN_DRP_G            : boolean := true;
-      RATE_G              : string  := "6.25Gbps";  -- or "3.125Gbps"
-      TX_POLARITY_G       : sl      := '0';
-      RX_POLARITY_G       : sl      := '0');
+      TPD_G         : time    := 1 ns;
+      EN_DRP_G      : boolean := true;
+      RATE_G        : string  := "6.25Gbps";  -- or "3.125Gbps"
+      TX_POLARITY_G : sl      := '0';
+      RX_POLARITY_G : sl      := '0');
    port (
       stableClk       : in  sl;
       stableRst       : in  sl;
@@ -337,24 +336,18 @@ begin
 
    U_RX_PLL : entity work.ClockManager7
       generic map(
-         TPD_G              => TPD_G,
-         SIMULATION_G       => SIM_PLL_EMULATION_G,
-         TYPE_G             => "MMCM",
-         BANDWIDTH_G        => "OPTIMIZED",
-         INPUT_BUFG_G       => true,
-         FB_BUFG_G          => false,
-         NUM_CLOCKS_G       => 3,
-         CLKIN_PERIOD_G     => ite((RATE_G = "6.25Gbps"), 2.56, 5.12),
-         DIVCLK_DIVIDE_G    => 1,
-         CLKFBOUT_MULT_F_G  => ite((RATE_G = "6.25Gbps"), 3.0, 6.0),  -- VCO = 1171.875 MHz
-         -------------------------------------------------------------------------------------------------------------
-         -- CLKOUT0_DIVIDE_F_G => ite((RATE_G = "6.25Gbps"), 12.375, 24.75),  -- 94.697 MHz for 6.25Gbps configuration
-         -- Running CLKOUT0 slightly faster than 94.697 MHz because observing the RX ASYNC FIFO back pressuring 
-         -- when using fractional divides
-         CLKOUT0_DIVIDE_F_G => ite((RATE_G = "6.25Gbps"), 12.0, 24.0),
-         -------------------------------------------------------------------------------------------------------------
-         CLKOUT1_DIVIDE_G   => ite((RATE_G = "6.25Gbps"), 3, 6),  -- 390.625 MHz for 6.25Gbps configuration
-         CLKOUT2_DIVIDE_G   => ite((RATE_G = "6.25Gbps"), 6, 12))  -- 195.312  MHz for 6.25Gbps configuration
+         TPD_G            => TPD_G,
+         TYPE_G           => "PLL",
+         BANDWIDTH_G      => "OPTIMIZED",
+         INPUT_BUFG_G     => true,
+         FB_BUFG_G        => true,
+         NUM_CLOCKS_G     => 3,
+         CLKIN_PERIOD_G   => ite((RATE_G = "6.25Gbps"), 2.56, 5.12),
+         DIVCLK_DIVIDE_G  => 1,
+         CLKFBOUT_MULT_G  => ite((RATE_G = "6.25Gbps"), 3, 6),  -- VCO = 1171.875 MHz
+         CLKOUT0_DIVIDE_G => ite((RATE_G = "6.25Gbps"), 12, 24),  --- 97.656 MHz for 6.25Gbps configuration
+         CLKOUT1_DIVIDE_G => ite((RATE_G = "6.25Gbps"), 3, 6),  -- 390.625 MHz for 6.25Gbps configuration
+         CLKOUT2_DIVIDE_G => ite((RATE_G = "6.25Gbps"), 6, 12))  -- 195.312  MHz for 6.25Gbps configuration
       port map(
          clkIn  => gtRxOutClk,
          rstIn  => gtRxPllRst,

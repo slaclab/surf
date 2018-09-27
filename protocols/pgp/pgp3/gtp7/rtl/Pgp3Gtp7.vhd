@@ -29,7 +29,6 @@ use UNISIM.VCOMPONENTS.all;
 entity Pgp3Gtp7 is
    generic (
       TPD_G                       : time                  := 1 ns;
-      SIM_PLL_EMULATION_G         : boolean               := false;
       RATE_G                      : string                := "6.25Gbps";  -- or "3.125Gbps"
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
@@ -277,7 +276,6 @@ begin
    U_Pgp3Gtp7IpWrapper : entity work.Pgp3Gtp7IpWrapper
       generic map (
          TPD_G               => TPD_G,
-         SIM_PLL_EMULATION_G => SIM_PLL_EMULATION_G,
          TX_POLARITY_G       => TX_POLARITY_G,
          RX_POLARITY_G       => RX_POLARITY_G,
          EN_DRP_G            => EN_DRP_G,
