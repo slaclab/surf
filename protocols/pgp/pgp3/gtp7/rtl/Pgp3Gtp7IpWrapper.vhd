@@ -24,11 +24,17 @@ use unisim.vcomponents.all;
 
 entity Pgp3Gtp7IpWrapper is
    generic (
-      TPD_G         : time    := 1 ns;
-      EN_DRP_G      : boolean := true;
-      RATE_G        : string  := "6.25Gbps";  -- or "3.125Gbps"
-      TX_POLARITY_G : sl      := '0';
-      RX_POLARITY_G : sl      := '0');
+      TPD_G            : time    := 1 ns;
+      EN_DRP_G         : boolean := true;
+      RATE_G           : string  := "6.25Gbps";  -- or "3.125Gbps"
+      CLKIN_PERIOD_G   : real;
+      BANDWIDTH_G      : string;
+      CLKFBOUT_MULT_G  : positive;
+      CLKOUT0_DIVIDE_G : positive;
+      CLKOUT1_DIVIDE_G : positive;
+      CLKOUT2_DIVIDE_G : positive;
+      TX_POLARITY_G    : sl      := '0';
+      RX_POLARITY_G    : sl      := '0');
    port (
       stableClk       : in  sl;
       stableRst       : in  sl;
@@ -338,16 +344,16 @@ begin
       generic map(
          TPD_G            => TPD_G,
          TYPE_G           => "PLL",
-         BANDWIDTH_G      => "HIGH",
+         BANDWIDTH_G      => BANDWIDTH_G,
          INPUT_BUFG_G     => true,
          FB_BUFG_G        => true,
          NUM_CLOCKS_G     => 3,
-         CLKIN_PERIOD_G   => ite((RATE_G = "6.25Gbps"), 2.56, 5.12),
+         CLKIN_PERIOD_G   => CLKIN_PERIOD_G,
          DIVCLK_DIVIDE_G  => 1,
-         CLKFBOUT_MULT_G  => ite((RATE_G = "6.25Gbps"), 4, 8),  -- VCO = 1562.5 MHz
-         CLKOUT0_DIVIDE_G => ite((RATE_G = "6.25Gbps"), 16, 32),  --- 97.656 MHz for 6.25Gbps configuration
-         CLKOUT1_DIVIDE_G => ite((RATE_G = "6.25Gbps"), 4, 8),  -- 390.625 MHz for 6.25Gbps configuration
-         CLKOUT2_DIVIDE_G => ite((RATE_G = "6.25Gbps"), 8, 16))  -- 195.312  MHz for 6.25Gbps configuration
+         CLKFBOUT_MULT_G  => CLKFBOUT_MULT_G,
+         CLKOUT0_DIVIDE_G => CLKOUT0_DIVIDE_G,
+         CLKOUT1_DIVIDE_G => CLKOUT1_DIVIDE_G,
+         CLKOUT2_DIVIDE_G => CLKOUT2_DIVIDE_G)
       port map(
          clkIn  => gtRxOutClk,
          rstIn  => gtRxPllRst,

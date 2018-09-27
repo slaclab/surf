@@ -30,6 +30,12 @@ entity Pgp3Gtp7 is
    generic (
       TPD_G                       : time                  := 1 ns;
       RATE_G                      : string                := "6.25Gbps";  -- or "3.125Gbps"
+      CLKIN_PERIOD_G              : real;
+      BANDWIDTH_G                 : string;
+      CLKFBOUT_MULT_G             : positive;
+      CLKOUT0_DIVIDE_G            : positive;
+      CLKOUT1_DIVIDE_G            : positive;
+      CLKOUT2_DIVIDE_G            : positive;
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
@@ -275,11 +281,17 @@ begin
    --------------------------
    U_Pgp3Gtp7IpWrapper : entity work.Pgp3Gtp7IpWrapper
       generic map (
-         TPD_G               => TPD_G,
-         TX_POLARITY_G       => TX_POLARITY_G,
-         RX_POLARITY_G       => RX_POLARITY_G,
-         EN_DRP_G            => EN_DRP_G,
-         RATE_G              => RATE_G)
+         TPD_G            => TPD_G,
+         CLKIN_PERIOD_G   => CLKIN_PERIOD_G,
+         BANDWIDTH_G      => BANDWIDTH_G,
+         CLKFBOUT_MULT_G  => CLKFBOUT_MULT_G,
+         CLKOUT0_DIVIDE_G => CLKOUT0_DIVIDE_G,
+         CLKOUT1_DIVIDE_G => CLKOUT1_DIVIDE_G,
+         CLKOUT2_DIVIDE_G => CLKOUT2_DIVIDE_G,
+         TX_POLARITY_G    => TX_POLARITY_G,
+         RX_POLARITY_G    => RX_POLARITY_G,
+         EN_DRP_G         => EN_DRP_G,
+         RATE_G           => RATE_G)
       port map (
          stableClk       => stableClk,
          stableRst       => stableRst,
