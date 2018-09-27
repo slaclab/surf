@@ -312,16 +312,16 @@ begin
          generic map(
             TPD_G            => TPD_G,
             TYPE_G           => "PLL",
-            BANDWIDTH_G      => "OPTIMIZED",
+            BANDWIDTH_G      => "HIGH",
             INPUT_BUFG_G     => true,
             FB_BUFG_G        => true,
             NUM_CLOCKS_G     => 3,
             CLKIN_PERIOD_G   => ite((RATE_G = "6.25Gbps"), 2.56, 5.12),
             DIVCLK_DIVIDE_G  => 1,
-            CLKFBOUT_MULT_G  => ite((RATE_G = "6.25Gbps"), 3, 6),  -- VCO = 1171.875 MHz
-            CLKOUT0_DIVIDE_G => ite((RATE_G = "6.25Gbps"), 12, 24),  --- 97.656 MHz for 6.25Gbps configuration
-            CLKOUT1_DIVIDE_G => ite((RATE_G = "6.25Gbps"), 3, 6),  -- 390.625 MHz for 6.25Gbps configuration
-            CLKOUT2_DIVIDE_G => ite((RATE_G = "6.25Gbps"), 6, 12))  -- 195.312  MHz for 6.25Gbps configuration
+            CLKFBOUT_MULT_G  => ite((RATE_G = "6.25Gbps"), 4, 8),  -- VCO = 1562.5 MHz
+            CLKOUT0_DIVIDE_G => ite((RATE_G = "6.25Gbps"), 16, 32),  --- 97.656 MHz for 6.25Gbps configuration
+            CLKOUT1_DIVIDE_G => ite((RATE_G = "6.25Gbps"), 4, 8),  -- 390.625 MHz for 6.25Gbps configuration
+            CLKOUT2_DIVIDE_G => ite((RATE_G = "6.25Gbps"), 8, 16))  -- 195.312  MHz for 6.25Gbps configuration
          port map(
             clkIn  => gtTxOutClk(0),
             rstIn  => gtTxPllRst(0),
