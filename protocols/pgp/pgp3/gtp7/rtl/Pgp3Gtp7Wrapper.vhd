@@ -95,6 +95,8 @@ entity Pgp3Gtp7Wrapper is
       txPreCursor       : in  Slv5Array(NUM_LANES_G-1 downto 0)                      := (others => "00111");
       txPostCursor      : in  Slv5Array(NUM_LANES_G-1 downto 0)                      := (others => "00111");
       txDiffCtrl        : in  Slv4Array(NUM_LANES_G-1 downto 0)                      := (others => "1111");
+      debugClk          : out slv(2 downto 0);  -- Copy of the TX PLL Clocks
+      debugRst          : out slv(2 downto 0);  -- Copy of the TX PLL Resets
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk           : in  sl                                                     := '0';  -- Stable Clock
       axilRst           : in  sl                                                     := '0';
@@ -320,11 +322,11 @@ begin
             CLKIN_PERIOD_G     => ite((RATE_G = "6.25Gbps"), 2.56, 5.12),
             DIVCLK_DIVIDE_G    => 1,
             CLKFBOUT_MULT_F_G  => ite((RATE_G = "6.25Gbps"), 3.0, 6.0),  -- VCO = 1171.875 MHz
-         -------------------------------------------------------------------------------------------------------------
-         -- CLKOUT0_DIVIDE_F_G => ite((RATE_G = "6.25Gbps"), 12.375, 24.75),  -- 94.697 MHz for 6.25Gbps configuration
-         -- Running CLKOUT0 slightly faster than 94.697 MHz because observing the TX ASYNC FIFO becoming empty during 
-         -- running when using fractional divides          
-            CLKOUT0_DIVIDE_F_G => ite((RATE_G = "6.25Gbps"), 12.0, 24.0),            
+            -------------------------------------------------------------------------------------------------------------
+            -- CLKOUT0_DIVIDE_F_G => ite((RATE_G = "6.25Gbps"), 12.375, 24.75),  -- 94.697 MHz for 6.25Gbps configuration
+            -- Running CLKOUT0 slightly faster than 94.697 MHz because observing the TX ASYNC FIFO becoming empty during 
+            -- running when using fractional divides          
+            CLKOUT0_DIVIDE_F_G => ite((RATE_G = "6.25Gbps"), 12.0, 24.0),
             CLKOUT1_DIVIDE_G   => ite((RATE_G = "6.25Gbps"), 3, 6),  -- 390.625 MHz for 6.25Gbps configuration
             CLKOUT2_DIVIDE_G   => ite((RATE_G = "6.25Gbps"), 6, 12))  -- 195.312  MHz for 6.25Gbps configuration
          port map(
@@ -333,6 +335,9 @@ begin
             clkOut => txPllClk,
             rstOut => txPllRst,
             locked => pllLock);
+
+      debugClk <= txPllClk;
+      debugRst <= txPllRst;
 
    end generate REAL_PGP;
 
