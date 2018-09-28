@@ -33,6 +33,7 @@ entity Pgp3Gtp7Wrapper is
       ROGUE_SIM_USER_ID_G         : integer range 0 to 100 := 1;
       NUM_LANES_G                 : positive range 1 to 4  := 1;
       NUM_VC_G                    : positive range 1 to 16 := 4;
+      SPEED_GRADE_G               : positive range 1 to 3  := 3;
       RATE_G                      : string                 := "6.25Gbps";  -- or "3.125Gbps"
       REFCLK_TYPE_G               : Pgp3RefClkType         := PGP3_REFCLK_250_C;
       REFCLK_G                    : boolean                := false;  --  FALSE: use pgpRefClkP/N,  TRUE: use pgpRefClkIn
@@ -107,12 +108,17 @@ end Pgp3Gtp7Wrapper;
 
 architecture rtl of Pgp3Gtp7Wrapper is
 
-   constant CLKIN_PERIOD_C   : real     := ite((RATE_G = "6.25Gbps"), 2.56, 5.12);  -- 390.625 MHz for 6.25Gbps configuration
-   constant BANDWIDTH_C      : string   := "HIGH";
-   constant CLKFBOUT_MULT_C  : positive := ite((RATE_G = "6.25Gbps"), 4, 8);  -- VCO = 1562.5 MHz
-   constant CLKOUT0_DIVIDE_C : positive := ite((RATE_G = "6.25Gbps"), 16, 32);  -- 97.656 MHz for 6.25Gbps configuration
-   constant CLKOUT1_DIVIDE_C : positive := ite((RATE_G = "6.25Gbps"), 4, 8);  -- 390.625 MHz for 6.25Gbps configuration
-   constant CLKOUT2_DIVIDE_C : positive := ite((RATE_G = "6.25Gbps"), 8, 16);  -- 195.312 MHz for 6.25Gbps configuration
+   constant CLKIN_PERIOD_C : real := ite((RATE_G = "6.25Gbps"), 2.56, 5.12);  -- 390.625 MHz for 6.25Gbps configuration
+
+   constant BANDWIDTH_C : string := ite((SPEED_GRADE_G = 3), "HIGH", "OPTIMIZED");
+
+   constant CLKFBOUT_MULT_C : positive := ite((SPEED_GRADE_G = 3), ite((RATE_G = "6.25Gbps"), 4, 8), ite((RATE_G = "6.25Gbps"), 3, 6));
+
+   constant CLKOUT0_DIVIDE_C : positive := ite((SPEED_GRADE_G = 3), ite((RATE_G = "6.25Gbps"), 16, 32), ite((RATE_G = "6.25Gbps"), 12, 24));  -- 97.656 MHz for 6.25Gbps configuration
+
+   constant CLKOUT1_DIVIDE_C : positive := ite((SPEED_GRADE_G = 3), ite((RATE_G = "6.25Gbps"), 4, 8), ite((RATE_G = "6.25Gbps"), 3, 6));  -- 390.625 MHz for 6.25Gbps configuration
+
+   constant CLKOUT2_DIVIDE_C : positive := ite((SPEED_GRADE_G = 3), ite((RATE_G = "6.25Gbps"), 8, 16), ite((RATE_G = "6.25Gbps"), 6, 12));  -- 195.312 MHz for 6.25Gbps configuration
 
    signal qPllOutClk     : Slv2Array(3 downto 0) := (others => "00");
    signal qPllOutRefClk  : Slv2Array(3 downto 0) := (others => "00");
