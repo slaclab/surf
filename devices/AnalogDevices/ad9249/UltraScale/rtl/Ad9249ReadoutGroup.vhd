@@ -344,7 +344,14 @@ begin
    end generate G_MMCM;
    
    G_NO_MMCM : if USE_MMCME_G = false generate
-      adcBitClkIo <= adcBitClkIoIn;
+      
+      tmpAdcClk <= adcBitClkIoIn;
+      
+      U_bitClkBufG : BUFG
+         port map (
+            O => adcBitClkIo,
+            I => tmpAdcClk);
+      
       U_PwrUpRst : entity work.PwrUpRst
          generic map (
             TPD_G          => TPD_G,
@@ -352,9 +359,10 @@ begin
             IN_POLARITY_G  => '1',
             OUT_POLARITY_G => '1')
          port map (
-            clk    => adcBitClkIoIn,
+            clk    => adcBitClkIo,
             arst   => adcClkRst,
             rstOut => adcBitIoRst);
+      
    end generate G_NO_MMCM;
 
    
