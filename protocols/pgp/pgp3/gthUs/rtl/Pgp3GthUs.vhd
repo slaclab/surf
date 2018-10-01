@@ -47,9 +47,9 @@ entity Pgp3GthUs is
       TX_MUX_TDEST_ROUTES_G       : Slv8Array             := (0      => "--------");  -- Only used in ROUTED mode
       TX_MUX_TDEST_LOW_G          : integer range 0 to 7  := 0;
       TX_MUX_ILEAVE_EN_G          : boolean               := true;
-      TX_MUX_ILEAVE_ON_NOTVALID_G : boolean               := true;
-      EN_DRP_G                    : boolean               := true;
-      EN_PGP_MON_G                : boolean               := true;
+      TX_MUX_ILEAVE_ON_NOTVALID_G : boolean               := false;
+      EN_DRP_G                    : boolean               := false;
+      EN_PGP_MON_G                : boolean               := false;
       TX_POLARITY_G               : sl                    := '0';
       RX_POLARITY_G               : sl                    := '0';
       AXIL_BASE_ADDR_G            : slv(31 downto 0)      := (others => '0');
