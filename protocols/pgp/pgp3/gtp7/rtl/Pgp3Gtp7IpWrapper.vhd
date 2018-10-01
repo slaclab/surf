@@ -302,13 +302,16 @@ architecture mapping of Pgp3Gtp7IpWrapper is
          );
    end component;
 
-   signal gtRxOutClk    : sl;
-   signal gtRxPllRst    : sl;
-   signal gtRxPllLock   : sl;
-   signal rxSlipGearbox : sl;
+   signal gtRxOutClk     : sl;
+   signal gtRxOutClkBufg : sl;
+   signal clkFb          : sl;
+   signal gtRxPllRst     : sl;
+   signal gtRxPllLock    : sl;
+   signal rxSlipGearbox  : sl;
 
-   signal rxPllClk : slv(2 downto 0);
-   signal rxPllRst : slv(2 downto 0);
+   signal pllOut   : slv(2 downto 1);
+   signal rxPllClk : slv(2 downto 1);
+   signal rxPllRst : slv(2 downto 1);
 
    signal rxUsrClkInt  : sl;
    signal rxUsrClk2Int : sl;
@@ -334,32 +337,67 @@ architecture mapping of Pgp3Gtp7IpWrapper is
 
 begin
 
-   rxUsrClk    <= rxPllClk(0);
-   rxUsrClkRst <= rxPllRst(0);
+   rxUsrClk    <= txPllClk(0);
+   rxUsrClkRst <= txPllRst(0);
 
    txUsrClk    <= txPllClk(0);
    txUsrClkRst <= txPllRst(0);
 
-   U_RX_PLL : entity work.ClockManager7
-      generic map(
-         TPD_G            => TPD_G,
-         TYPE_G           => "PLL",
-         BANDWIDTH_G      => BANDWIDTH_G,
-         INPUT_BUFG_G     => true,
-         FB_BUFG_G        => true,
-         NUM_CLOCKS_G     => 3,
-         CLKIN_PERIOD_G   => CLKIN_PERIOD_G,
-         DIVCLK_DIVIDE_G  => 1,
-         CLKFBOUT_MULT_G  => CLKFBOUT_MULT_G,
-         CLKOUT0_DIVIDE_G => CLKOUT0_DIVIDE_G,
-         CLKOUT1_DIVIDE_G => CLKOUT1_DIVIDE_G,
-         CLKOUT2_DIVIDE_G => CLKOUT2_DIVIDE_G)
-      port map(
-         clkIn  => gtRxOutClk,
-         rstIn  => gtRxPllRst,
-         clkOut => rxPllClk,
-         rstOut => rxPllRst,
-         locked => gtRxPllLock);
+   U_Bufg : BUFG
+      port map (
+         I => gtRxOutClk,
+         O => gtRxOutClkBufg);
+
+   U_RX_PLL : PLLE2_ADV
+      generic map (
+         BANDWIDTH      => BANDWIDTH_G,
+         CLKIN1_PERIOD  => CLKIN_PERIOD_G,
+         DIVCLK_DIVIDE  => 1,
+         CLKFBOUT_MULT  => CLKFBOUT_MULT_G,
+         CLKOUT0_DIVIDE => CLKOUT0_DIVIDE_G,
+         CLKOUT1_DIVIDE => CLKOUT1_DIVIDE_G,
+         CLKOUT2_DIVIDE => CLKOUT2_DIVIDE_G)
+      port map (
+         DCLK     => axilClk,
+         DRDY     => open,
+         DEN      => '0',
+         DWE      => '0',
+         DADDR    => (others => '0'),
+         DI       => (others => '0'),
+         DO       => open,
+         PWRDWN   => '0',
+         RST      => gtRxPllRst,
+         CLKIN1   => gtRxOutClkBufg,
+         CLKIN2   => '0',
+         CLKINSEL => '1',
+         CLKFBOUT => clkFb,
+         CLKFBIN  => clkFb,
+         LOCKED   => gtRxPllLock,
+         CLKOUT0  => open,
+         CLKOUT1  => pllOut(1),
+         CLKOUT2  => pllOut(2));
+
+   U_rxPllClk1 : BUFG
+      port map (
+         I => pllOut(1),
+         O => rxPllClk(1));
+
+   U_rxPllClk2 : BUFG
+      port map (
+         I => pllOut(2),
+         O => rxPllClk(2));
+
+   GEN_RST : for i in 2 downto 1 generate
+      U_RstSync : entity work.RstSync
+         generic map (
+            TPD_G          => TPD_G,
+            IN_POLARITY_G  => '0',
+            OUT_POLARITY_G => '1')
+         port map (
+            clk      => rxPllClk(i),
+            asyncRst => gtRxPllLock,
+            syncRst  => rxPllRst(i));
+   end generate;
 
    rxUsrClkInt  <= rxPllClk(1);
    rxUsrClk2Int <= rxPllClk(2);
@@ -397,8 +435,8 @@ begin
          rxDataValid   => rxDataValidGearbox,
          rxData        => rxDataGearbox,
          -- Master Interface
-         phyRxClkSlow  => rxPllClk(0),
-         phyRxRstSlow  => rxPllRst(0),
+         phyRxClkSlow  => txPllClk(0),
+         phyRxRstSlow  => txPllRst(0),
          phyRxValid    => rxValid,
          phyRxHeader   => rxHeader,
          phyRxData     => rxData);

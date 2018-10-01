@@ -129,13 +129,16 @@ architecture rtl of Pgp3Gtp7Wrapper is
    signal gtTxOutClk   : slv(3 downto 0) := (others => '0');
    signal gtTxPllRst   : slv(3 downto 0) := (others => '0');
    signal gtTxPllLock  : slv(3 downto 0) := (others => '0');
+   signal pllOut       : slv(2 downto 0) := (others => '0');
    signal txPllClk     : slv(2 downto 0) := (others => '0');
    signal txPllRst     : slv(2 downto 0) := (others => '0');
    signal lockedStrobe : slv(3 downto 0) := (others => '0');
    signal pllLock      : sl;
 
-   signal pgpRefClkDiv2 : sl;
-   signal pgpRefClk     : sl;
+   signal pgpRefClkDiv2  : sl;
+   signal pgpRefClk      : sl;
+   signal clkFb          : sl;
+   signal gtTxOutClkBufg : sl;
 
    constant NUM_AXIL_MASTERS_C : integer := NUM_LANES_G+1;
    constant QPLL_AXIL_INDEX_C  : integer := NUM_AXIL_MASTERS_C-1;
@@ -327,26 +330,66 @@ begin
 
       end generate GEN_LANE;
 
-      U_TX_PLL : entity work.ClockManager7
-         generic map(
-            TPD_G            => TPD_G,
-            TYPE_G           => "PLL",
-            BANDWIDTH_G      => BANDWIDTH_C,
-            INPUT_BUFG_G     => true,
-            FB_BUFG_G        => true,
-            NUM_CLOCKS_G     => 3,
-            CLKIN_PERIOD_G   => CLKIN_PERIOD_C,
-            DIVCLK_DIVIDE_G  => 1,
-            CLKFBOUT_MULT_G  => CLKFBOUT_MULT_C,
-            CLKOUT0_DIVIDE_G => CLKOUT0_DIVIDE_C,
-            CLKOUT1_DIVIDE_G => CLKOUT1_DIVIDE_C,
-            CLKOUT2_DIVIDE_G => CLKOUT2_DIVIDE_C)
-         port map(
-            clkIn  => gtTxOutClk(0),
-            rstIn  => gtTxPllRst(0),
-            clkOut => txPllClk,
-            rstOut => txPllRst,
-            locked => pllLock);
+      U_Bufg : BUFH
+         port map (
+            I => gtTxOutClk(0),
+            O => gtTxOutClkBufg);
+
+      U_TX_PLL : PLLE2_ADV
+         generic map (
+            BANDWIDTH      => BANDWIDTH_C,
+            CLKIN1_PERIOD  => CLKIN_PERIOD_C,
+            DIVCLK_DIVIDE  => 1,
+            CLKFBOUT_MULT  => CLKFBOUT_MULT_C,
+            CLKOUT0_DIVIDE => CLKOUT0_DIVIDE_C,
+            CLKOUT1_DIVIDE => CLKOUT1_DIVIDE_C,
+            CLKOUT2_DIVIDE => CLKOUT2_DIVIDE_C)
+         port map (
+            DCLK     => axilClk,
+            DRDY     => open,
+            DEN      => '0',
+            DWE      => '0',
+            DADDR    => (others => '0'),
+            DI       => (others => '0'),
+            DO       => open,
+            PWRDWN   => '0',
+            RST      => gtTxPllRst(0),
+            CLKIN1   => gtTxOutClkBufg,
+            CLKIN2   => '0',
+            CLKINSEL => '1',
+            CLKFBOUT => clkFb,
+            CLKFBIN  => clkFb,
+            LOCKED   => pllLock,
+            CLKOUT0  => pllOut(0),
+            CLKOUT1  => pllOut(1),
+            CLKOUT2  => pllOut(2));
+
+      U_txPllClk0 : BUFG
+         port map (
+            I => pllOut(0),
+            O => txPllClk(0));
+
+      U_txPllClk1 : BUFG
+         port map (
+            I => pllOut(1),
+            O => txPllClk(1));
+
+      U_txPllClk2 : BUFG
+         port map (
+            I => pllOut(2),
+            O => txPllClk(2));
+
+      GEN_RST : for i in 2 downto 0 generate
+         U_RstSync : entity work.RstSync
+            generic map (
+               TPD_G          => TPD_G,
+               IN_POLARITY_G  => '0',
+               OUT_POLARITY_G => '1')
+            port map (
+               clk      => txPllClk(i),
+               asyncRst => pllLock,
+               syncRst  => txPllRst(i));
+      end generate;
 
       debugClk <= txPllClk;
       debugRst <= txPllRst;
