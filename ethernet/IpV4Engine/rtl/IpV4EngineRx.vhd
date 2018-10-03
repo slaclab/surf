@@ -257,9 +257,9 @@ begin
                -- Accept the data
                v.rxSlave.tReady     := '1';
                -- Move the data
-               v.txMaster.tValid    := '1';
-               v.txMaster.tData     := r.tData;
-               v.txMaster.tKeep     := r.tKeep;
+               v.txMaster.tValid              := '1';
+               v.txMaster.tData(127 downto 0) := r.tData;
+               v.txMaster.tKeep(15 downto 0)  := r.tKeep;
                -- Track the leftovers
                v.tData(15 downto 0) := rxMaster.tData(127 downto 112);
                v.tKeep(1 downto 0)  := rxMaster.tKeep(15 downto 14);
@@ -336,10 +336,10 @@ begin
             -- Check for data
             if (v.txMaster.tValid = '0') then
                -- Move the data
-               v.txMaster.tValid := '1';
-               v.txMaster.tData  := r.tData;
-               v.txMaster.tKeep  := r.tKeep;
-               v.txMaster.tLast  := '1';
+               v.txMaster.tValid              := '1';
+               v.txMaster.tData(127 downto 0) := r.tData;
+               v.txMaster.tKeep(15 downto 0)  := r.tKeep;
+               v.txMaster.tLast               := '1';
                ssiSetUserEofe(EMAC_AXIS_CONFIG_C, v.txMaster, r.eofe);
                -- Next state
                v.state           := IDLE_S;

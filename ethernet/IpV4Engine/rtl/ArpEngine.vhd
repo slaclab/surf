@@ -368,8 +368,8 @@ begin
             -- Check if ready to move data
             if v.txArpMaster.tValid = '0' then
                -- Move data
-               v.txArpMaster.tValid := '1';
-               v.txArpMaster.tData  := r.tData(r.cnt);
+               v.txArpMaster.tValid               := '1';
+               v.txArpMaster.tData(127 downto 0)  := r.tData(r.cnt);
                -- Increment the counter
                v.cnt                := r.cnt + 1;
                if r.cnt = 0 then

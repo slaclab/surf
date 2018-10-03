@@ -350,8 +350,8 @@ begin
                -- Move data
                v.sMaster        := rxMaster;
                -- Fill in the TCP/UDP checksum
-               v.tKeep          := rxMaster.tKeep;
-               v.tData          := rxMaster.tData;
+               v.tKeep          := rxMaster.tKeep(15 downto 0);
+               v.tData          := rxMaster.tData(127 downto 0);
                -- Check if NON-VLAN
                if (VLAN_G = false) then
                   -- Fill in the IPv4 header checksum
@@ -404,8 +404,8 @@ begin
                -- Move data
                v.sMaster        := rxMaster;
                -- Fill in the TCP/UDP checksum
-               v.tData          := rxMaster.tData;
-               v.tKeep          := rxMaster.tKeep;
+               v.tData          := rxMaster.tData(127 downto 0); 
+               v.tKeep          := rxMaster.tKeep(15 downto 0);
                -- Check for TCP data with inbound checksum
                if (r.ipv4Det(0) = '1') and (r.tcpDet(0) = '1') and (r.tcpFlag = '0') then
                   -- Set the flag

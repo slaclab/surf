@@ -1249,10 +1249,10 @@ begin
             if (r.txSegmentAddr >= r.windowArray(conv_integer(r.txBufferAddr)).segSize) then
 
                -- Send EOF at the end of the segment
-               v.tspSsiMaster.valid := '1';
-               v.tspSsiMaster.eof   := '1';
-               v.tspSsiMaster.eofe  := '0';
-               v.tspSsiMaster.keep  := r.windowArray(conv_integer(r.txBufferAddr)).keep;
+               v.tspSsiMaster.valid                              := '1';
+               v.tspSsiMaster.eof                                := '1';
+               v.tspSsiMaster.eofe                               := '0';
+               v.tspSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0) := r.windowArray(conv_integer(r.txBufferAddr)).keep;
                --
                v.txSegmentAddr      := r.txSegmentAddr;
                --
@@ -1435,10 +1435,10 @@ begin
             if (r.txSegmentAddr >= r.windowArray(conv_integer(r.txBufferAddr)).segSize) then
 
                -- Send EOF at the end of the segment
-               v.tspSsiMaster.valid := '1';
-               v.tspSsiMaster.eof   := '1';
-               v.tspSsiMaster.eofe  := '0';
-               v.tspSsiMaster.keep  := r.windowArray(conv_integer(r.txBufferAddr)).keep;
+               v.tspSsiMaster.valid                              := '1';
+               v.tspSsiMaster.eof                                := '1';
+               v.tspSsiMaster.eofe                               := '0';
+               v.tspSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0) := r.windowArray(conv_integer(r.txBufferAddr)).keep;
                --
                v.txSegmentAddr      := r.txSegmentAddr;
                -- 

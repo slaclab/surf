@@ -290,8 +290,8 @@ begin
                -- Move the data
                v.mAxisMaster := sAxisMaster;
                -- Fill in the TCP/UDP checksum
-               v.tKeep       := sAxisMaster.tKeep;
-               v.tData       := sAxisMaster.tData;
+               v.tKeep       := sAxisMaster.tKeep(15 downto 0);
+               v.tData       := sAxisMaster.tData(127 downto 0);
                -- Check if NON-VLAN
                if (VLAN_G = false) then
                   -- Fill in the IPv4 header checksum
@@ -348,8 +348,8 @@ begin
                -- Move the data
                v.mAxisMaster := sAxisMaster;
                -- Fill in the TCP/UDP checksum
-               v.tData       := sAxisMaster.tData;
-               v.tKeep       := sAxisMaster.tKeep;
+               v.tData       := sAxisMaster.tData(127 downto 0);
+               v.tKeep       := sAxisMaster.tKeep(15 downto 0);
                -- Check for TCP data with inbound checksum
                if (r.ipv4Det(0) = '1') and (r.tcpDet(0) = '1') and (r.tcpFlag = '0') then
                   -- Set the flag

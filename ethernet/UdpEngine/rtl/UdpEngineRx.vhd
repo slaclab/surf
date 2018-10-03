@@ -360,8 +360,8 @@ begin
                               -- Next state
                               v.state   := LAST_S;
                            else
-                              v.clientMaster.tKeep := rxMaster.tKeep(11 downto 0) & x"F";
-                              v.clientMaster.tLast := '1';
+                              v.clientMaster.tKeep(15 downto 0) := rxMaster.tKeep(11 downto 0) & x"F";
+                              v.clientMaster.tLast              := '1';
                               -- Next state
                               v.state              := IDLE_S;
                            end if;
