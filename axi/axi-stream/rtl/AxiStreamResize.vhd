@@ -196,11 +196,11 @@ begin
             
             -- Check for TKEEP_COUNT_C mode on slave side only
             if (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) and (MASTER_AXI_CONFIG_G.TKEEP_MODE_C /= TKEEP_COUNT_C) then
-               mAxisMaster.tkeep <= genTKeep(conv_integer(sAxisMaster.tkeep(4 downto 0)));
+               mAxisMaster.tkeep <= genTKeep(conv_integer(sAxisMaster.tkeep(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C) downto 0)));
          
             -- Check for TKEEP_COUNT_C mode on master side only
             elsif (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C /= TKEEP_COUNT_C) and (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-               mAxisMaster.tkeep <= toSlv(getTKeep(sAxisMaster.tKeep,SLAVE_AXI_CONFIG_G) ,16);
+               mAxisMaster.tkeep <= toSlv(getTKeep(sAxisMaster.tKeep,SLAVE_AXI_CONFIG_G),AXI_STREAM_MAX_TKEEP_WIDTH_C);
             
             -- Else both sides are TKEEP_COUNT_C mode
             else
