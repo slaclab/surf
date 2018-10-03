@@ -185,7 +185,7 @@ begin
 
       -- Count number of bytes in return data
       if (AXIS_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-         bytes := conv_integer(intAxisMaster.tKeep(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C) downto 0));
+         bytes := conv_integer(intAxisMaster.tKeep(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C)-1 downto 0));
       else
          bytes := getTKeep(intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0),AXIS_CONFIG_G);
       end if;

@@ -323,9 +323,9 @@ begin
                   -- Terminate the frame
                   v.sMaster.tLast := not r.dmaRdDescReq.continue;
                   if (AXIS_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-                     v.sMaster.tKeep := toSlv(conv_integer(r.size(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C) downto 0)),AXI_STREAM_MAX_TKEEP_WIDTH_C);
+                     v.sMaster.tKeep := toSlv(conv_integer(r.size(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C)-1 downto 0)),AXI_STREAM_MAX_TKEEP_WIDTH_C);
                   else
-                     v.sMaster.tKeep := genTKeep(conv_integer(r.size(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C) downto 0)));
+                     v.sMaster.tKeep := genTKeep(conv_integer(r.size(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C)-1 downto 0)));
                   end if;
                   v.sMaster.tStrb      := v.sMaster.tKeep;
                   -- Set last user field

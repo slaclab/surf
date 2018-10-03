@@ -558,7 +558,7 @@ package body AxiStreamPkg is
       -- Keep
       size := size + ite((c.TKEEP_MODE_C = TKEEP_NORMAL_C), c.TDATA_BYTES_C,  -- TKEEP_NORMAL_C
                          ite((c.TKEEP_MODE_C = TKEEP_COMP_C), bitSize(c.TDATA_BYTES_C-1),  -- TKEEP_COMP_C
-                             ite((c.TKEEP_MODE_C = TKEEP_COUNT_C), 5,  -- TKEEP_COUNT_C
+                             ite((c.TKEEP_MODE_C = TKEEP_COUNT_C), bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C),  -- TKEEP_COUNT_C
                                  0)));  -- TKEEP_FIXED_C
 
       -- User bits
@@ -594,7 +594,7 @@ package body AxiStreamPkg is
          -- Assume lsb is present
          assignSlv(i, retValue, toSlv(getTKeep(din.tKeep(c.TDATA_BYTES_C-1 downto 1),c), bitSize(c.TDATA_BYTES_C-1)));
       elsif c.TKEEP_MODE_C = TKEEP_COUNT_C then
-         assignSlv(i, retValue, din.tKeep(4 downto 0));
+         assignSlv(i, retValue, din.tKeep(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C)-1 downto 0));
       end if;
       -- TKEEP_FIXED_C uses 0 bits
 
@@ -656,7 +656,7 @@ package body AxiStreamPkg is
          assignRecord(i, din, keep);
          master.tKeep := genTKeep(conv_integer(keep)+1);
       elsif c.TKEEP_MODE_C = TKEEP_COUNT_C then
-         assignRecord(i, din, master.tKeep(4 downto 0));
+         assignRecord(i, din, master.tKeep(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C)-1 downto 0));
       else                              -- KEEP_MODE_C = TKEEP_FIXED_C
          master.tKeep := genTKeep(c.TDATA_BYTES_C);
       end if;
