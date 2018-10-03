@@ -60,9 +60,9 @@ package SsiPkg is
    -------------------------------------------------------------------------------------------------
    type SsiMasterType is record
       valid  : sl;
-      data   : slv(127 downto 0);
-      strb   : slv(15 downto 0);
-      keep   : slv(15 downto 0);
+      data   : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0);
+      strb   : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
+      keep   : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
       dest   : slv(SSI_TDEST_BITS_C-1 downto 0);
       packed : sl;
       sof    : sl;
