@@ -53,7 +53,7 @@ architecture rtl of AxiStreamMon is
       armed        : sl;
       frameSent    : sl;
       tValid       : sl;
-      tKeep        : slv(15 downto 0);
+      tKeep        : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
       updated      : sl;
       updateStat   : sl;
       timer        : natural range 0 to TIMEOUT_C;
@@ -175,7 +175,7 @@ begin
       -- Check if last cycle had data moving
       if r.tValid = '1' then
          -- Update the accumulator 
-         v.accum := r.accum + getTKeep(r.tKeep);
+         v.accum := r.accum + getTKeep(r.tKeep,AXIS_CONFIG_G);
       end if;
 
       -- Increment the timer
@@ -192,7 +192,7 @@ begin
          if r.tValid = '0' then
             v.accum := (others => '0');
          else
-            v.accum := toSlv(getTKeep(r.tKeep), 40);
+            v.accum := toSlv(getTKeep(r.tKeep,AXIS_CONFIG_G), 40);
          end if;
       end if;
 

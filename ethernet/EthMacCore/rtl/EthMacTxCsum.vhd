@@ -363,8 +363,8 @@ begin
                      v.tData := rxMaster.tData(127 downto 80) & x"00000000" & rxMaster.tData(47 downto 0);
                   end if;
                   -- Track the number of bytes 
-                  v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep) - 2;
-                  v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep) - 2;
+                  v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep,EMAC_AXIS_CONFIG_C) - 2;
+                  v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep,EMAC_AXIS_CONFIG_C) - 2;
                else
                   -- Fill in the IPv4 header checksum
                   v.ipv4Hdr(14) := rxMaster.tData(7 downto 0);  -- Source IP Address
@@ -379,8 +379,8 @@ begin
                      v.tData := rxMaster.tData(127 downto 112) & x"00000000" & rxMaster.tData(79 downto 0);
                   end if;
                   -- Track the number of bytes 
-                  v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep) - 6;
-                  v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep) - 6;
+                  v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep,EMAC_AXIS_CONFIG_C) - 6;
+                  v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep,EMAC_AXIS_CONFIG_C) - 6;
                end if;
                -- Check for EOF
                if (rxMaster.tLast = '1') then
@@ -420,8 +420,8 @@ begin
                   end if;
                end if;
                -- Track the number of bytes 
-               v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep);
-               v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep);
+               v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep,EMAC_AXIS_CONFIG_C);
+               v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep,EMAC_AXIS_CONFIG_C);
                -- Check for EOF
                if (rxMaster.tLast = '1') or (v.ipv4Len(0) > MAX_FRAME_SIZE_C) then
                   -- Save the EOFE value

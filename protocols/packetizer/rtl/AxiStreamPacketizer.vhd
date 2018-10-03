@@ -30,7 +30,7 @@ entity AxiStreamPacketizer is
    generic (
       TPD_G                : time             := 1 ns;
       MAX_PACKET_BYTES_G   : integer          := 1440;  -- Must be a multiple of 8
-      MIN_TKEEP_G          : slv(15 downto 0) := X"0001";
+      MIN_TKEEP_G          : slv(7 downto 0)  := x"01";
       OUTPUT_SSI_G         : boolean          := true;  -- SSI compliant output (SOF on tuser)
       INPUT_PIPE_STAGES_G  : integer          := 0;
       OUTPUT_PIPE_STAGES_G : integer          := 0);
@@ -179,7 +179,7 @@ begin
                v.outputAxisMaster.tUser := (others => '0');
                v.outputAxisMaster.tDest := (others => '0');
                v.outputAxisMaster.tId   := (others => '0');
-               v.outputAxisMaster.tKeep := x"00FF";
+               v.outputAxisMaster.tKeep := toSlv(255,AXI_STREAM_MAX_TKEEP_WIDTH_C);
 
                -- Increment word count with each txn
                v.wordCount := r.wordCount + 1;
@@ -203,34 +203,34 @@ begin
                   ----------------------------------------------------------------------
                   -- Generate the TAIL with respect to the TKEEP
                   ----------------------------------------------------------------------
-                  case (inputAxisMaster.tKeep) is
-                     when x"0000" =>
-                        v.outputAxisMaster.tKeep             := (x"0001" or MIN_TKEEP_G);
+                  case (inputAxisMaster.tKeep(7 downto 0)) is
+                     when x"00" =>
+                        v.outputAxisMaster.tKeep(7 downto 0) := (x"01" or MIN_TKEEP_G);
                         v.outputAxisMaster.tData(7 downto 0) := '1' & inputAxisMaster.tUser(6 downto 0);
-                     when x"0001" =>
-                        v.outputAxisMaster.tKeep              := (x"0003" or MIN_TKEEP_G);
+                     when x"01" =>
+                        v.outputAxisMaster.tKeep(7 downto 0)  := (x"03" or MIN_TKEEP_G);
                         v.outputAxisMaster.tData(15 downto 8) := '1' & inputAxisMaster.tUser(14 downto 8);
-                     when x"0003" =>
-                        v.outputAxisMaster.tKeep               := (x"0007" or MIN_TKEEP_G);
+                     when x"03" =>
+                        v.outputAxisMaster.tKeep(7 downto 0)   := (x"07" or MIN_TKEEP_G);
                         v.outputAxisMaster.tData(23 downto 16) := '1' & inputAxisMaster.tUser(22 downto 16);
-                     when x"0007" =>
-                        v.outputAxisMaster.tKeep               := (x"000F" or MIN_TKEEP_G);
+                     when x"07" =>
+                        v.outputAxisMaster.tKeep(7 downto 0)   := (x"0F" or MIN_TKEEP_G);
                         v.outputAxisMaster.tData(31 downto 24) := '1' & inputAxisMaster.tUser(30 downto 24);
-                     when x"000F" =>
-                        v.outputAxisMaster.tKeep               := (x"001F" or MIN_TKEEP_G);
+                     when x"0F" =>
+                        v.outputAxisMaster.tKeep(7 downto 0)   := (x"1F" or MIN_TKEEP_G);
                         v.outputAxisMaster.tData(39 downto 32) := '1' & inputAxisMaster.tUser(38 downto 32);
-                     when x"001F" =>
-                        v.outputAxisMaster.tKeep               := (x"003F" or MIN_TKEEP_G);
+                     when x"1F" =>
+                        v.outputAxisMaster.tKeep(7 downto 0)   := (x"3F" or MIN_TKEEP_G);
                         v.outputAxisMaster.tData(47 downto 40) := '1' & inputAxisMaster.tUser(46 downto 40);
-                     when x"003F" =>
-                        v.outputAxisMaster.tKeep               := (x"007F" or MIN_TKEEP_G);
+                     when x"3F" =>
+                        v.outputAxisMaster.tKeep(7 downto 0)   := (x"7F" or MIN_TKEEP_G);
                         v.outputAxisMaster.tData(55 downto 48) := '1' & inputAxisMaster.tUser(54 downto 48);
-                     when x"007F" =>
-                        v.outputAxisMaster.tKeep               := (x"00FF" or MIN_TKEEP_G);
+                     when x"7F" =>
+                        v.outputAxisMaster.tKeep(7 downto 0)   := (x"FF" or MIN_TKEEP_G);
                         v.outputAxisMaster.tData(63 downto 56) := '1' & inputAxisMaster.tUser(62 downto 56);
                      when others =>
                         -- No room for TAIL this cycle and will add it in the next state
-                        v.outputAxisMaster.tKeep := (x"00FF" or MIN_TKEEP_G);
+                        v.outputAxisMaster.tKeep(7 downto 0) := (x"FF" or MIN_TKEEP_G);
                         -- Save the tUser at tLast
                         v.tUserLast              := inputAxisMaster.tUser(7 downto 0);
                         -- Set the flag
@@ -250,7 +250,7 @@ begin
             if (v.outputAxisMaster.tValid = '0') then
                -- Generate the footer
                v.outputAxisMaster.tValid            := '1';
-               v.outputAxisMaster.tKeep             := MIN_TKEEP_G;  --X"0001";
+               v.outputAxisMaster.tKeep(7 downto 0) := MIN_TKEEP_G;  --x"01";
                v.outputAxisMaster.tData             := (others => '0');
                v.outputAxisMaster.tData(7)          := r.eof;
                v.outputAxisMaster.tData(6 downto 0) := r.tUserLast(6 downto 0);

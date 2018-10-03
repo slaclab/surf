@@ -99,7 +99,7 @@ begin
       if (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
          byteCnt := conv_integer(sAxisMaster.tKeep(4 downto 0));
       else
-         byteCnt := getTKeep(sAxisMaster.tKeep);
+         byteCnt := getTKeep(sAxisMaster.tKeep,SLAVE_AXI_CONFIG_G);
       end if;
 
       -- Init ready
@@ -200,7 +200,7 @@ begin
          
             -- Check for TKEEP_COUNT_C mode on master side only
             elsif (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C /= TKEEP_COUNT_C) and (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-               mAxisMaster.tkeep <= toSlv(getTKeep(sAxisMaster.tKeep) ,16);
+               mAxisMaster.tkeep <= toSlv(getTKeep(sAxisMaster.tKeep,SLAVE_AXI_CONFIG_G) ,16);
             
             -- Else both sides are TKEEP_COUNT_C mode
             else
@@ -215,7 +215,7 @@ begin
          mAxisMaster       <= r.obMaster;
          mAxisMaster.tUser <= (others=>'0');
          if (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-            mAxisMaster.tKeep <= toSlv(getTKeep(r.obMaster.tKeep) ,16);
+            mAxisMaster.tKeep <= toSlv(getTKeep(r.obMaster.tKeep,MASTER_AXI_CONFIG_G) ,16);
          end if;
 
          for i in 0 to 15 loop

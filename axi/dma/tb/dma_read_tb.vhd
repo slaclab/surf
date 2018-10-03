@@ -218,7 +218,7 @@ begin
                   v.failed(2) := '1';
                end if;
                -- Increment the byte counter
-               v.byteCnt := r.byteCnt + getTKeep(axisMaster.tKeep);
+               v.byteCnt := r.byteCnt + getTKeep(axisMaster.tKeep,AXIS_CONFIG_C);
                -- Check for EOF
                if (axisMaster.tLast = '1') then
                   -- Check the firstUser

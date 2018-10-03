@@ -309,7 +309,7 @@ begin
                      v.protLen(0)(7 downto 0)   := sAxisMaster.tData(63 downto 56);
                   end if;
                   -- Track the number of bytes (include IPv4 header offset from previous state)
-                  v.byteCnt := getTKeep(sAxisMaster.tKeep) + 18;
+                  v.byteCnt := getTKeep(sAxisMaster.tKeep,EMAC_AXIS_CONFIG_C) + 18;
                else
                   -- Fill in the IPv4 header checksum
                   v.ipv4Hdr(14) := sAxisMaster.tData(7 downto 0);  -- Source IP Address
@@ -330,7 +330,7 @@ begin
                      v.protLen(0)(7 downto 0)   := sAxisMaster.tData(95 downto 88);
                   end if;
                   -- Track the number of bytes (include IPv4 header offset from previous state)
-                  v.byteCnt := getTKeep(sAxisMaster.tKeep) + 14;
+                  v.byteCnt := getTKeep(sAxisMaster.tKeep,EMAC_AXIS_CONFIG_C) + 14;
                end if;
                -- Check for EOF
                if (sAxisMaster.tLast = '1') then
@@ -372,7 +372,7 @@ begin
                   end if;
                end if;
                -- Track the number of bytes 
-               v.byteCnt := r.byteCnt + getTKeep(sAxisMaster.tKeep);
+               v.byteCnt := r.byteCnt + getTKeep(sAxisMaster.tKeep,EMAC_AXIS_CONFIG_C);
                -- Check for EOF
                if (sAxisMaster.tLast = '1') or (v.byteCnt > MAX_FRAME_SIZE_C) then
                   -- Check for overflow condition

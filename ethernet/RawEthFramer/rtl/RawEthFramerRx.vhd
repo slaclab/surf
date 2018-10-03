@@ -101,7 +101,7 @@ begin
          v.ibAppMaster.tValid := '0';
          v.ibAppMaster.tLast  := '0';
          v.ibAppMaster.tUser  := (others => '0');
-         v.ibAppMaster.tKeep  := x"00FF";
+         v.ibAppMaster.tKeep  := toSlv(255,AXI_STREAM_MAX_TKEEP_WIDTH_C);
       end if;
 
       -- State Machine

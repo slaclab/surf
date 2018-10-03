@@ -185,9 +185,9 @@ begin
 
       -- Count number of bytes in return data
       if (AXIS_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-         bytes := conv_integer(intAxisMaster.tKeep(4 downto 0));-- Assumes max AXIS.TDATA width of 128-bits
+         bytes := conv_integer(intAxisMaster.tKeep(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C) downto 0));
       else
-         bytes := getTKeep(intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0));
+         bytes := getTKeep(intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0),AXIS_CONFIG_G);
       end if;
       
       -- State machine
@@ -315,9 +315,9 @@ begin
                   v.wMaster.wdata((DATA_BYTES_C*8)-1 downto 0) := intAxisMaster.tData((DATA_BYTES_C*8)-1 downto 0);
                   -- Set byte write strobes
                   if (AXIS_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-                     v.wMaster.wstrb(15 downto 0)             := genTKeep(bytes);
+                     v.wMaster.wstrb(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0) := genTKeep(bytes);
                   else
-                     v.wMaster.wstrb(DATA_BYTES_C-1 downto 0) := intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0);
+                     v.wMaster.wstrb(DATA_BYTES_C-1 downto 0)                 := intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0);
                   end if;                  
                   -- Address and size increment
                   v.dmaWrTrack.address := r.dmaWrTrack.address + DATA_BYTES_C;

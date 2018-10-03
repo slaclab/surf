@@ -167,7 +167,7 @@ begin
          v.sMaster.tUser  := (others => '0');
          v.sMaster.tStrb  := (others => '1');
          if (AXIS_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-            v.sMaster.tKeep := toSlv(AXIS_CONFIG_G.TDATA_BYTES_C, 16);
+            v.sMaster.tKeep := toSlv(AXIS_CONFIG_G.TDATA_BYTES_C, AXI_STREAM_MAX_TKEEP_WIDTH_C);
          else
             v.sMaster.tKeep := (others => '1');
          end if;
@@ -323,11 +323,11 @@ begin
                   -- Terminate the frame
                   v.sMaster.tLast := not r.dmaRdDescReq.continue;
                   if (AXIS_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-                     v.sMaster.tKeep := "00000000000" & r.size(4 downto 0);
+                     v.sMaster.tKeep := toSlv(conv_integer(r.size(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C) downto 0)),AXI_STREAM_MAX_TKEEP_WIDTH_C-1);
                   else
-                     v.sMaster.tKeep := genTKeep(conv_integer(r.size(4 downto 0)));
+                     v.sMaster.tKeep := genTKeep(conv_integer(r.size(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C) downto 0)));
                   end if;
-                  v.sMaster.tStrb      := genTKeep(conv_integer(r.size(4 downto 0)));
+                  v.sMaster.tStrb      := v.sMaster.tKeep;
                   -- Set last user field
                   axiStreamSetUserField (AXIS_CONFIG_G, v.sMaster, r.dmaRdDescReq.lastUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0));
                   -- Set the flags

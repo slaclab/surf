@@ -30,7 +30,7 @@ entity AxiStreamPacketizerMux is
    generic (
       TPD_G                : time                  := 1 ns;
       MAX_PACKET_BYTES_G   : integer               := 1440;  -- Must be a multiple of 8
-      MIN_TKEEP_G          : slv(15 downto 0)      := X"0001";
+      MIN_TKEEP_G          : slv(7 downto 0)       := x"01";
       INPUT_PIPE_STAGES_G  : integer               := 0;
       OUTPUT_PIPE_STAGES_G : integer               := 0;
       NUM_SLAVES_G         : integer range 1 to 32 := 4;
@@ -263,24 +263,24 @@ begin
 
                   -- Need to either append tail to current txn or put tail on next txn (TAIL_S)
                   -- depending on tKeep
-                  v.outputAxisMaster.tKeep := MIN_TKEEP_G or (selData.tKeep(14 downto 0) & '1');
+                  v.outputAxisMaster.tKeep(7 downto 0) := MIN_TKEEP_G or (selData.tKeep(6 downto 0) & '1');
 
-                  case (selData.tKeep) is
-                     when X"0000" =>
+                  case (selData.tKeep(7 downto 0)) is
+                     when X"00" =>
                         v.outputAxisMaster.tData(7 downto 0) := '1' & selData.tUser(6 downto 0);
-                     when X"0001" =>
+                     when X"01" =>
                         v.outputAxisMaster.tData(15 downto 8) := '1' & selData.tUser(14 downto 8);
-                     when X"0003" =>
+                     when X"03" =>
                         v.outputAxisMaster.tData(23 downto 16) := '1' & selData.tUser(22 downto 16);
-                     when X"0007" =>
+                     when X"07" =>
                         v.outputAxisMaster.tData(31 downto 24) := '1' & selData.tUser(30 downto 24);
-                     when X"000F" =>
+                     when X"0F" =>
                         v.outputAxisMaster.tData(39 downto 32) := '1' & selData.tUser(38 downto 32);
-                     when X"001F" =>
+                     when X"1F" =>
                         v.outputAxisMaster.tData(47 downto 40) := '1' & selData.tUser(46 downto 40);
-                     when X"003F" =>
+                     when X"3F" =>
                         v.outputAxisMaster.tData(55 downto 48) := '1' & selData.tUser(54 downto 48);
-                     when X"007F" =>
+                     when X"7F" =>
                         v.outputAxisMaster.tData(63 downto 56) := '1' & selData.tUser(62 downto 56);
                      when others =>     --X"0FFF" or anything else
                         -- Full tkeep. Add new word for tail
@@ -301,7 +301,7 @@ begin
             -- Insert tail when master side is ready for it
             if (v.outputAxisMaster.tValid = '0') then
                v.outputAxisMaster.tValid            := '1';
-               v.outputAxisMaster.tKeep             := MIN_TKEEP_G;  --X"0001";
+               v.outputAxisMaster.tKeep(7 downto 0) := MIN_TKEEP_G;  --x"01";
                v.outputAxisMaster.tData             := (others => '0');
                v.outputAxisMaster.tData(7)          := r.eof;
                v.outputAxisMaster.tData(6 downto 0) := r.tUserLast(6 downto 0);

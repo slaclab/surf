@@ -259,7 +259,7 @@ begin
       end if;
 
       -- Count number of bytes in return data
-      bytes := getTKeep(intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0));
+      bytes := getTKeep(intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0),LOC_AXIS_CONFIG_C);
 
       -- Check the AXI stream data cache
       if (lastDet = '1') or (cache.pause = '1') then

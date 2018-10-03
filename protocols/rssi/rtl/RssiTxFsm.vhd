@@ -598,7 +598,7 @@ begin
                v.rxSegmentWe   := '1';
 
                -- Save packet tKeep of last data word
-               v.windowArray(conv_integer(r.rxBufferAddr)).keep    := appSsiMaster_i.keep;
+               v.windowArray(conv_integer(r.rxBufferAddr)).keep    := appSsiMaster_i.keep(RSSI_WORD_WIDTH_C-1 downto 0);
                v.windowArray(conv_integer(r.rxBufferAddr)).segSize := conv_integer(r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0));
 
                v.appState := SEG_RDY_S;
@@ -638,7 +638,7 @@ begin
             if (appSsiMaster_i.eof = '1' and appSsiMaster_i.valid = '1') then
 
                -- Save packet tKeep of last data word
-               v.windowArray(conv_integer(r.rxBufferAddr)).keep := appSsiMaster_i.keep;
+               v.windowArray(conv_integer(r.rxBufferAddr)).keep := appSsiMaster_i.keep(RSSI_WORD_WIDTH_C-1 downto 0);
 
                -- Save packet length (+1 because it has not incremented for EOF yet)
                v.windowArray(conv_integer(r.rxBufferAddr)).segSize := conv_integer(r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0))+1;

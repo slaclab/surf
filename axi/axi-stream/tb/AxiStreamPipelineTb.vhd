@@ -28,8 +28,8 @@ architecture testbed of AxiStreamPipelineTb is
    constant CLK_PERIOD_C  : time              := 4 ns;
    constant TPD_C         : time              := CLK_PERIOD_C/4;
    constant PIPE_STAGES_C : natural           := 1;
-   constant MAX_CNT_C     : slv(127 downto 0) := x"000000000000000019999997E241C000";
-   -- constant MAX_CNT_C     : slv(127 downto 0) := x"000000000000000000000000000000FF";
+   constant MAX_CNT_C     : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := x"000000000000000019999997E241C000";
+   -- constant MAX_CNT_C     : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := x"000000000000000000000000000000FF";
    constant PRBS_TAPS_C   : NaturalArray      := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
 
    type RegType is record
@@ -37,14 +37,14 @@ architecture testbed of AxiStreamPipelineTb is
       failed      : sl;
       wrPbrs      : slv(31 downto 0);
       wrSof       : sl;
-      wrPkt       : slv(127 downto 0);
-      wrCnt       : slv(127 downto 0);
-      wrSize      : slv(127 downto 0);
+      wrPkt       : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0);
+      wrCnt       : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0);
+      wrSize      : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0);
       rdPbrs      : slv(31 downto 0);
       rdSof       : sl;
-      rdPkt       : slv(127 downto 0);
-      rdCnt       : slv(127 downto 0);
-      rdSize      : slv(127 downto 0);
+      rdPkt       : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0);
+      rdCnt       : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0);
+      rdSize      : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0);
       sAxisMaster : AxiStreamMasterType;
       mAxisSlave  : AxiStreamSlaveType;
    end record RegType;

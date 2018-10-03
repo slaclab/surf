@@ -379,9 +379,9 @@ begin
                   v.txArpMaster.tLast := '1';
                   -- Set the tKeep
                   if (VLAN_G = false) then
-                     v.txArpMaster.tKeep := x"03FF";
+                     v.txArpMaster.tKeep(15 downto 0) := x"03FF";
                   else
-                     v.txArpMaster.tKeep := x"3FFF";
+                     v.txArpMaster.tKeep(15 downto 0) := x"3FFF";
                   end if;
                   -- Next state
                   v.state := IDLE_S;

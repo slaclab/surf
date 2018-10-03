@@ -504,7 +504,7 @@ begin
             if (tspSsiMaster_i.eof = '1' and tspSsiMaster_i.valid = '1') then
               
                -- Save tKeep of the last packet
-               v.windowArray(conv_integer(r.rxBufferAddr)).keep   := tspSsiMaster_i.keep;
+               v.windowArray(conv_integer(r.rxBufferAddr)).keep   := tspSsiMaster_i.keep(RSSI_WORD_WIDTH_C-1 downto 0);
                
                -- Save packet length (+1 because it has not incremented for EOF yet)
                v.windowArray(conv_integer(r.rxBufferAddr)).segSize := conv_integer(r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0))+1;     
@@ -631,15 +631,15 @@ begin
                
                if (appSsiSlave_i.pause = '0') then
                
-                  v.appSsiMaster.sof    := '1';
-                  v.appSsiMaster.valid  := '1';
-                  v.appSsiMaster.strb   := (others => '1');
-                  v.appSsiMaster.dest   := (others => '0');
-                  v.appSsiMaster.keep   := r.windowArray(conv_integer(r.txBufferAddr)).keep;
-                  v.appSsiMaster.eof    := '1';
-                  v.appSsiMaster.eofe   := '0';
+                  v.appSsiMaster.sof                                  := '1';
+                  v.appSsiMaster.valid                                := '1';
+                  v.appSsiMaster.strb                                 := (others => '1');
+                  v.appSsiMaster.dest                                 := (others => '0');
+                  v.appSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0)   := r.windowArray(conv_integer(r.txBufferAddr)).keep;
+                  v.appSsiMaster.eof                                  := '1';
+                  v.appSsiMaster.eofe                                 := '0';
                   v.appSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdBuffData_i;
-                  v.txSegmentAddr       := r.txSegmentAddr;
+                  v.txSegmentAddr                                     := r.txSegmentAddr;
 
                   v.appState  := SENT_S;              
                end if;    
@@ -695,11 +695,11 @@ begin
             if  (r.txSegmentAddr >= r.windowArray(conv_integer(r.txBufferAddr)).segSize) then
 
                -- Send EOF at the end of the segment
-               v.appSsiMaster.valid  := '1';               
-               v.appSsiMaster.eof    := '1';
-               v.appSsiMaster.keep   := r.windowArray(conv_integer(r.txBufferAddr)).keep;
-               v.appSsiMaster.eofe   := '0';
-               v.txSegmentAddr       := r.txSegmentAddr;
+               v.appSsiMaster.valid                               := '1';               
+               v.appSsiMaster.eof                                 := '1';
+               v.appSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0)  := r.windowArray(conv_integer(r.txBufferAddr)).keep;
+               v.appSsiMaster.eofe                                := '0';
+               v.txSegmentAddr                                    := r.txSegmentAddr;
                
                v.appState   := SENT_S;
                

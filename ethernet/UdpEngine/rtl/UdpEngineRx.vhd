@@ -180,7 +180,7 @@ begin
                -- Check for SOF with no EOF
                if (ssiGetUserSof(EMAC_AXIS_CONFIG_C, rxMaster) = '1') and (rxMaster.tLast = '0') then
                   -- Latch the first header
-                  v.tData := rxMaster.tData;
+                  v.tData := rxMaster.tData(127 downto 0);
                   -- Next state
                   v.state := CHECK_PORT_S;
                end if;
@@ -313,10 +313,10 @@ begin
                               -- Next state
                               v.state   := LAST_S;
                            else
-                              v.serverMaster.tKeep := rxMaster.tKeep(11 downto 0) & x"F";
-                              v.serverMaster.tLast := '1';
+                              v.serverMaster.tKeep(15 downto 0) := rxMaster.tKeep(11 downto 0) & x"F";
+                              v.serverMaster.tLast              := '1';
                               -- Next state
-                              v.state              := IDLE_S;
+                              v.state                           := IDLE_S;
                            end if;
                         end if;
                      end if;
@@ -415,39 +415,39 @@ begin
                   -- Check if ready to move data
                   if (v.serverMaster.tValid = '0') then
                      -- Move the data
-                     v.serverMaster.tValid := '1';
-                     v.serverMaster.tData  := r.tData;
-                     v.serverMaster.tKeep  := genTKeep(conv_integer(r.byteCnt));
-                     v.serverMaster.tLast  := '1';
+                     v.serverMaster.tValid              := '1';
+                     v.serverMaster.tData(127 downto 0) := r.tData;
+                     v.serverMaster.tKeep               := genTKeep(conv_integer(r.byteCnt));
+                     v.serverMaster.tLast               := '1';
                      ssiSetUserSof(EMAC_AXIS_CONFIG_C, v.serverMaster, r.sof);
                      -- Next state
-                     v.state               := IDLE_S;
+                     v.state                            := IDLE_S;
                   end if;
                ----------------------------------------------------------------------
                when CLIENT_S =>
                   -- Check if ready to move data
                   if (v.clientMaster.tValid = '0') then
                      -- Move the data
-                     v.clientMaster.tValid := '1';
-                     v.clientMaster.tData  := r.tData;
-                     v.clientMaster.tKeep  := genTKeep(conv_integer(r.byteCnt));
-                     v.clientMaster.tLast  := '1';
+                     v.clientMaster.tValid              := '1';
+                     v.clientMaster.tData(127 downto 0) := r.tData;
+                     v.clientMaster.tKeep               := genTKeep(conv_integer(r.byteCnt));
+                     v.clientMaster.tLast               := '1';
                      ssiSetUserSof(EMAC_AXIS_CONFIG_C, v.clientMaster, r.sof);
                      -- Next state
-                     v.state               := IDLE_S;
+                     v.state                            := IDLE_S;
                   end if;
                ----------------------------------------------------------------------
                when DHCP_S =>
                   -- Check if ready to move data
                   if (v.dhcpMaster.tValid = '0') then
                      -- Move the data
-                     v.dhcpMaster.tValid := '1';
-                     v.dhcpMaster.tData  := r.tData;
-                     v.dhcpMaster.tKeep  := genTKeep(conv_integer(r.byteCnt));
-                     v.dhcpMaster.tLast  := '1';
+                     v.dhcpMaster.tValid              := '1';
+                     v.dhcpMaster.tData(127 downto 0) := r.tData;
+                     v.dhcpMaster.tKeep               := genTKeep(conv_integer(r.byteCnt));
+                     v.dhcpMaster.tLast               := '1';
                      ssiSetUserSof(EMAC_AXIS_CONFIG_C, v.dhcpMaster, r.sof);
                      -- Next state
-                     v.state             := IDLE_S;
+                     v.state                          := IDLE_S;
                   end if;
                ----------------------------------------------------------------------
                when NULL_S =>

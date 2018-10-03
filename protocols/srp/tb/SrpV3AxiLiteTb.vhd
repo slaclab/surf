@@ -246,7 +246,7 @@ begin
                v.sAxisMaster.tData(11 downto 0)   := r.reqSize;
                v.sAxisMaster.tData(127 downto 12) := (others => '0');
                v.sAxisMaster.tLast                := '1';
-               v.sAxisMaster.tKeep                := x"000F";
+               v.sAxisMaster.tKeep(15 downto 0)   := x"000F";
                v.tid                              := r.tid + 1;
                v.addr                             := r.addr + 4;
                v.reqSize                          := r.reqSize + 4;
