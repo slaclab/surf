@@ -263,7 +263,7 @@ begin
       ----------------------------------------------------------------------
       end case;
 
-      -- Combinatoral outputs
+      -- Combinatorial outputs
       axisSlave <= v.axisSlave;
       
       -- Reset      
