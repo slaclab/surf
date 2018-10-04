@@ -23,8 +23,8 @@ use work.StdRtlPkg.all;
 
 package AxiStreamPkg is
 
-   constant AXI_STREAM_MAX_TDATA_WIDTH_C : positive := 256; -- Units of bits
-   constant AXI_STREAM_MAX_TKEEP_WIDTH_C : positive := (AXI_STREAM_MAX_TDATA_WIDTH_C/8); -- Units of bytes
+   constant AXI_STREAM_MAX_TDATA_WIDTH_C : positive := 256;  -- Units of bits
+   constant AXI_STREAM_MAX_TKEEP_WIDTH_C : positive := (AXI_STREAM_MAX_TDATA_WIDTH_C/8);  -- Units of bytes
 
    type AxiStreamMasterType is record
       tValid : sl;
@@ -212,7 +212,7 @@ package body AxiStreamPkg is
    begin
 
       if bytePos = -1 then
-         ret := getTKeep(axisMaster.tKeep,axisConfig)-1;
+         ret := getTKeep(axisMaster.tKeep, axisConfig)-1;
          if (ret > axisConfig.TDATA_BYTES_C) then
             ret := axisConfig.TDATA_BYTES_C-1;
          end if;
@@ -365,7 +365,7 @@ package body AxiStreamPkg is
          -- .....................................
          ----------------------------------------------------
          if (tKeepFull(i) = '1') then
-            retVar := i;
+            retVar := (i+1);
          end if;
       end loop;
       return retVar;
@@ -377,10 +377,10 @@ package body AxiStreamPkg is
       signal master     : out AxiStreamMasterType;
       signal slave      : in  AxiStreamSlaveType;
       tData             : in  slv;
-      tKeep             : in  slv               := "X";
-      tLast             : in  sl                := '0';
-      tDest             : in  slv(7 downto 0)   := X"00";
-      tId               : in  slv(7 downto 0)   := X"00";
+      tKeep             : in  slv                                          := "X";
+      tLast             : in  sl                                           := '0';
+      tDest             : in  slv(7 downto 0)                              := X"00";
+      tId               : in  slv(7 downto 0)                              := X"00";
       tUser             : in  slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := (others => '0')) is
    begin
       -- Wait for rising edge
@@ -567,16 +567,16 @@ package body AxiStreamPkg is
       size := size + c.TDATA_BYTES_C*8;
 
       -- Keep
-      size := size + ite((c.TKEEP_MODE_C = TKEEP_NORMAL_C), c.TDATA_BYTES_C,  -- TKEEP_NORMAL_C
-                         ite((c.TKEEP_MODE_C = TKEEP_COMP_C), bitSize(c.TDATA_BYTES_C-1),  -- TKEEP_COMP_C
-                             ite((c.TKEEP_MODE_C = TKEEP_COUNT_C), bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C),  -- TKEEP_COUNT_C
-                                 0)));  -- TKEEP_FIXED_C
+      size := size + ite((c.TKEEP_MODE_C = TKEEP_NORMAL_C), c.TDATA_BYTES_C,                       -- TKEEP_NORMAL_C
+                     ite((c.TKEEP_MODE_C = TKEEP_COMP_C), bitSize(c.TDATA_BYTES_C-1),              -- TKEEP_COMP_C
+                     ite((c.TKEEP_MODE_C = TKEEP_COUNT_C), bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C),  -- TKEEP_COUNT_C
+                     0)));  -- TKEEP_FIXED_C
 
       -- User bits
       size := size + ite(c.TUSER_MODE_C = TUSER_FIRST_LAST_C, c.TUSER_BITS_C*2,
-                         ite(c.TUSER_MODE_C = TUSER_LAST_C, c.TUSER_BITS_C,
-                             ite(c.TUSER_MODE_C = TUSER_NORMAL_C, c.TDATA_BYTES_C * c.TUSER_BITS_C,
-                                 0)));  -- TUSER_NONE_C
+                     ite(c.TUSER_MODE_C = TUSER_LAST_C, c.TUSER_BITS_C,
+                     ite(c.TUSER_MODE_C = TUSER_NORMAL_C, c.TDATA_BYTES_C * c.TUSER_BITS_C,
+                     0)));  -- TUSER_NONE_C
 
       size := size + ite(c.TSTRB_EN_C, c.TDATA_BYTES_C, 0);  -- Strobe bits
       size := size + c.TDEST_BITS_C;
@@ -603,7 +603,7 @@ package body AxiStreamPkg is
          assignSlv(i, retValue, din.tKeep(c.TDATA_BYTES_C-1 downto 0));
       elsif c.TKEEP_MODE_C = TKEEP_COMP_C then
          -- Assume lsb is present
-         assignSlv(i, retValue, toSlv(getTKeep(din.tKeep(c.TDATA_BYTES_C-1 downto 1),c), bitSize(c.TDATA_BYTES_C-1)));
+         assignSlv(i, retValue, toSlv(getTKeep(din.tKeep(c.TDATA_BYTES_C-1 downto 1), c), bitSize(c.TDATA_BYTES_C-1)));
       elsif c.TKEEP_MODE_C = TKEEP_COUNT_C then
          assignSlv(i, retValue, din.tKeep(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C)-1 downto 0));
       end if;

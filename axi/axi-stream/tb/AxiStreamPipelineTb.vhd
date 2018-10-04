@@ -28,8 +28,8 @@ architecture testbed of AxiStreamPipelineTb is
    constant CLK_PERIOD_C  : time              := 4 ns;
    constant TPD_C         : time              := CLK_PERIOD_C/4;
    constant PIPE_STAGES_C : natural           := 1;
-   constant MAX_CNT_C     : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := x"000000000000000019999997E241C000";
-   -- constant MAX_CNT_C     : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := x"000000000000000000000000000000FF";
+   constant MAX_CNT_C     : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := resize(x"000000000000000019999997E241C000",AXI_STREAM_MAX_TDATA_WIDTH_C);
+   -- constant MAX_CNT_C     : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := resize(x"000000000000000000000000000000FF",AXI_STREAM_MAX_TDATA_WIDTH_C);
    constant PRBS_TAPS_C   : NaturalArray      := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
 
    type RegType is record

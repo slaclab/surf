@@ -120,6 +120,7 @@ begin
       generic map (
          -- General Configurations
          TPD_G                      => TPD_C,
+         AXI_EN_G                   => '0',
          -- FIFO configurations
          BRAM_EN_G                  => BRAM_EN_C,
          XIL_DEVICE_G               => XIL_DEVICE_C,

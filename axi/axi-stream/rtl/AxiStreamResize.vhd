@@ -117,7 +117,7 @@ begin
          ibM.tKeep := genTKeep(byteCnt);
       end if;
 
-      for i in 0 to 15 loop
+      for i in 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
          ibM.tUser((i*8)+(SLV_USER_C-1) downto (i*8)) := sAxisMaster.tUser((i*SLV_USER_C)+(SLV_USER_C-1) downto (i*SLV_USER_C));
       end loop;
 
@@ -215,10 +215,10 @@ begin
          mAxisMaster       <= r.obMaster;
          mAxisMaster.tUser <= (others=>'0');
          if (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-            mAxisMaster.tKeep <= toSlv(getTKeep(r.obMaster.tKeep,MASTER_AXI_CONFIG_G) ,16);
+            mAxisMaster.tKeep <= toSlv(getTKeep(r.obMaster.tKeep,MASTER_AXI_CONFIG_G), AXI_STREAM_MAX_TKEEP_WIDTH_C);
          end if;
 
-         for i in 0 to 15 loop
+         for i in 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
             mAxisMaster.tUser((i*MST_USER_C)+(MST_USER_C-1) downto (i*MST_USER_C)) <= r.obMaster.tUser((i*8)+(MST_USER_C-1) downto (i*8));
          end loop;
       end if;

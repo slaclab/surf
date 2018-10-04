@@ -126,7 +126,7 @@ begin
          v.ibMacMaster.tValid := '0';
          v.ibMacMaster.tLast  := '0';
          v.ibMacMaster.tUser  := (others => '0');
-         v.ibMacMaster.tKeep  := toSlv(255,AXI_STREAM_MAX_TKEEP_WIDTH_C);
+         v.ibMacMaster.tKeep  := resize(x"00FF",AXI_STREAM_MAX_TKEEP_WIDTH_C);
       end if;
 
       -- Update variables
