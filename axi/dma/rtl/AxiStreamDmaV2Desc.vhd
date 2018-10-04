@@ -601,15 +601,19 @@ begin
 
             if DESC_128_EN_C then
                v.dmaWrDescAck(i).address(63 downto 40) := r.buffBaseAddr(31 downto 8);
-               v.dmaWrDescAck(i).address(39 downto  8) := wrFifoDout(63 downto 32);
+               v.dmaWrDescAck(i).address(39 downto  4) := wrFifoDout(63 downto 28);
+               v.dmaWrDescAck(i).address(3  downto  0) := (others=>'0');
             else
-               v.dmaWrDescAck(i).address := r.buffBaseAddr & r.wrAddr;
+               v.dmaWrDescAck(i).address(63 downto 32) := r.buffBaseAddr;
+               v.dmaWrDescAck(i).address(31 downto  0) := r.wrAddr;
             end if;
 
             v.dmaWrDescAck(i).dropEn  := r.dropEn;
             v.dmaWrDescAck(i).contEn  := r.contEn;
-            v.dmaWrDescAck(i).buffId  := wrFifoDout(31 downto 0);
             v.dmaWrDescAck(i).maxSize := r.maxSize;
+
+            v.dmaWrDescAck(i).buffId(27 downto 0) := wrFifoDout(27 downto 0);
+
          end loop;
 
          v.dmaWrDescAck(conv_integer(r.wrReqNum)).valid := '1';
@@ -706,7 +710,7 @@ begin
             if DESC_128_EN_C then
                v.axiWriteMaster.wdata(127)            := '1';
                v.axiWriteMaster.wdata(126 downto 108) := (others=>'0');
-               v.axiWriteMaster.wdata(107 downto 104) := toSlv(descIndex,4);
+               v.axiWriteMaster.wdata(107 downto 104) := toSlv(descIndex,4); -- Channel
                v.axiWriteMaster.wdata(103 downto  96) := dmaWrDescRet(descIndex).dest;
                v.axiWriteMaster.wdata(95  downto  64) := dmaWrDescRet(descIndex).size;
                v.axiWriteMaster.wdata(63  downto  32) := dmaWrDescRet(descIndex).buffId;
@@ -850,31 +854,35 @@ begin
       -- Format request, 128-bits
       if DESC_128_EN_C then
          dmaRdReq.address(63 downto 40) := r.buffBaseAddr(31 downto 8);
-         dmaRdReq.address(39 downto  8) := rdFifoDout(127 downto 96);
-         dmaRdReq.address(7  downto  8) := (others=>'0');
-         dmaRdReq.buffId                := rdFifoDout(95 downto 64);
+         dmaRdReq.address(39 downto  4) := rdFifoDout(127 downto 92);
+         dmaRdReq.address(3  downto  0) := (others=>'0');
+         dmaRdReq.buffId(27 downto 0)   := rdFifoDout(91 downto 64);
          dmaRdReq.size                  := rdFifoDout(63 downto 32);
          dmaRdReq.firstUser             := rdFifoDout(31 downto 24);
          dmaRdReq.lastUser              := rdFifoDout(23 downto 16);
+         dmaRdReq.dest                  := rdFifoDout(15 downto  8);
          dmaRdReq.continue              := rdFifoDout(3);
+
+         rdIndex := conv_integer(rdFifoDout(7 downto 4));
 
       -- Format request, 64-bits
       else 
-         dmaRdReq.address             := r.buffBaseAddr & r.rdAddr;
-         dmaRdReq.dest                := rdFifoDout(63 downto 56);
-         dmaRdReq.size(23 downto 0)   := rdFifoDout(55 downto 32);
-         dmaRdReq.firstUser           := rdFifoDout(31 downto 24);
-         dmaRdReq.lastUser            := rdFifoDout(23 downto 16);
-         dmaRdReq.buffId(11 downto 0) := rdFifoDout(15 downto 4);
-         dmaRdReq.continue            := rdFifoDout(3);
-      end if;
+         dmaRdReq.address(63 downto 32) := r.buffBaseAddr;
+         dmaRdReq.address(31 downto  0) := r.rdAddr;
+         dmaRdReq.dest                  := rdFifoDout(63 downto 56);
+         dmaRdReq.size(23 downto 0)     := rdFifoDout(55 downto 32);
+         dmaRdReq.firstUser             := rdFifoDout(31 downto 24);
+         dmaRdReq.lastUser              := rdFifoDout(23 downto 16);
+         dmaRdReq.buffId(11 downto 0)   := rdFifoDout(15 downto 4);
+         dmaRdReq.continue              := rdFifoDout(3);
 
-      -- Upper dest bits select channel
-      if CHAN_COUNT_G > 1 then
-         rdIndex                               := conv_integer(dmaRdReq.dest(7 downto 8-CHAN_SIZE_C));
-         dmaRdReq.dest(7 downto 8-CHAN_SIZE_C) := (others => '0');
-      else
-         rdIndex := 0;
+         -- Upper dest bits select channel
+         if CHAN_COUNT_G > 1 then
+            rdIndex                               := conv_integer(dmaRdReq.dest(7 downto 8-CHAN_SIZE_C));
+            dmaRdReq.dest(7 downto 8-CHAN_SIZE_C) := (others => '0');
+         else
+            rdIndex := 0;
+         end if;
       end if;
 
       -- Pull next entry if we are not waiting for ack on given channel
