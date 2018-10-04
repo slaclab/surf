@@ -41,7 +41,7 @@ entity SsiPrbsRx is
       FIFO_ADDR_WIDTH_G          : positive                 := 9;
       FIFO_PAUSE_THRESH_G        : positive                 := 2**8;
       -- PRBS Config
-      PRBS_SEED_SIZE_G           : positive range 32 to 128 := 32;
+      PRBS_SEED_SIZE_G           : positive range 32 to 256 := 32;
       PRBS_TAPS_G                : NaturalArray             := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
       -- AXI Stream IO Config
       SLAVE_AXI_STREAM_CONFIG_G  : AxiStreamConfigType      := ssiAxiStreamConfig(4);
@@ -211,7 +211,7 @@ architecture rtl of SsiPrbsRx is
 
 begin
 
-   assert ((PRBS_SEED_SIZE_G = 32) or (PRBS_SEED_SIZE_G = 64) or (PRBS_SEED_SIZE_G = 128)) report "PRBS_SEED_SIZE_G must be either [32,64,128]" severity failure;
+   assert ((PRBS_SEED_SIZE_G = 32) or (PRBS_SEED_SIZE_G = 64) or (PRBS_SEED_SIZE_G = 128) or (PRBS_SEED_SIZE_G = 256)) report "PRBS_SEED_SIZE_G must be either [32,64,128,256]" severity failure;
 
    sAxisCtrl <= axisCtrl(0);
 
