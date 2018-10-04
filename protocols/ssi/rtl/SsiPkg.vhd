@@ -39,7 +39,7 @@ package SsiPkg is
       tLast  => '1',                                   -- EOF
       tDest  => (others => '0'),
       tId    => (others => '0'),
-      tUser  => x"01010101010101010101010101010101");  -- EOFE   
+      tUser  => (others => '1'));  -- EOFE   
 
    -------------------------------------------------------------------------------------------------
    -- Build an SSI configuration

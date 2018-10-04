@@ -19,11 +19,12 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
+-- use work.TextUtilPkg.all;
 
 package AxiStreamPkg is
 
-   constant AXI_STREAM_MAX_TDATA_WIDTH_C : positive := 256;
-   constant AXI_STREAM_MAX_TKEEP_WIDTH_C : positive := (AXI_STREAM_MAX_TDATA_WIDTH_C/8);
+   constant AXI_STREAM_MAX_TDATA_WIDTH_C : positive := 256; -- Units of bits
+   constant AXI_STREAM_MAX_TKEEP_WIDTH_C : positive := (AXI_STREAM_MAX_TDATA_WIDTH_C/8); -- Units of bytes
 
    type AxiStreamMasterType is record
       tValid : sl;
@@ -168,7 +169,7 @@ package AxiStreamPkg is
    function ite(i : boolean; t : TUserModeType; e : TUserModeType) return TUserModeType;
    function ite(i : boolean; t : TKeepModeType; e : TKeepModeType) return TKeepModeType;
 
-   function genTKeep (bytes           : integer range 0 to 16) return slv;
+   function genTKeep (bytes           : natural range 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C) return slv;
    function genTKeep (constant config : AxiStreamConfigType) return slv;
 
    function getTKeep (tKeep : slv; axisConfig : AxiStreamConfigType) return natural;
@@ -330,7 +331,7 @@ package body AxiStreamPkg is
       if (i) then return t; else return e; end if;
    end function ite;
 
-   function genTKeep (bytes : integer range 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C) return slv is
+   function genTKeep (bytes : natural range 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C) return slv is
       variable retVar : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
    begin
       retVar := (others => '0');
@@ -353,6 +354,16 @@ package body AxiStreamPkg is
       retVar    := 0;
       tKeepFull := resize(tKeep, AXI_STREAM_MAX_TKEEP_WIDTH_C);
       for i in 0 to axisConfig.TDATA_BYTES_C-1 loop
+         -- report "AxiStreamPkg::genTKeep( i:" & integer'image(i) & ")" severity warning;
+         ----------------------------------------------------
+         -- Confirmed in simulation the for loop ordering is:
+         ----------------------------------------------------
+         -- Warning: AxiStreamPkg::genTKeep( i:0)
+         -- Warning: AxiStreamPkg::genTKeep( i:1)
+         -- Warning: AxiStreamPkg::genTKeep( i:2)
+         -- .....................................
+         -- .....................................
+         ----------------------------------------------------
          if (tKeepFull(i) = '1') then
             retVar := i;
          end if;
