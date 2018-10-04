@@ -82,7 +82,7 @@ begin
            (MST_BYTES_C >= SLV_BYTES_C and MST_BYTES_C mod SLV_BYTES_C = 0))
       report "Data widths must be even number multiples of each other" severity failure;
 
-   -- When going from a large bus to a small bus, ready is neccessary
+   -- When going from a large bus to a small bus, ready is necessary
    assert (SLV_BYTES_C <= MST_BYTES_C or READY_EN_G = true)  
       report "READY_EN_G must be true if slave width is great than master" severity failure;
 
