@@ -212,8 +212,12 @@ begin
                -- Current destination matches incoming frame
                if r.dmaWrTrack.dest = intAxisMaster.tDest and r.dmaWrTrack.inUse = '1' then
                   if r.dmaWrTrack.dropEn = '1' then
+                        -- Next state
                      v.state := DUMP_S;
                   else
+                     -- Determine transfer size aligned to 4k boundaries
+                     getAxiLenProc(AXI_CONFIG_G,BURST_BYTES_G,v.dmaWrTrack.maxSize,v.dmaWrTrack.address,r.axiLen,v.axiLen);                   
+                     -- Next state
                      v.state := ADDR_S;
                   end if;
 
@@ -226,13 +230,19 @@ begin
                   -- Is entry valid or do we need a new buffer
                   if trackData.inUse = '1' then
                      if trackData.dropEn = '1' then
+                        -- Next state
                         v.state := DUMP_S;
                      else
+                        -- Determine transfer size aligned to 4k boundaries
+                        getAxiLenProc(AXI_CONFIG_G,BURST_BYTES_G,v.dmaWrTrack.maxSize,v.dmaWrTrack.address,r.axiLen,v.axiLen);                     
+                        -- Next state
                         v.state := ADDR_S;
                      end if;
                   else
-                     v.state := REQ_S;
+                     -- Request a new descriptor
                      v.dmaWrDescReq.valid := '1';
+                     -- Next state
+                     v.state := REQ_S;
                   end if;
                end if;
             end if;
@@ -252,8 +262,12 @@ begin
 
                -- Descriptor return calls for dumping frame?
                if dmaWrDescAck.dropEn = '1' then
+                  -- Next state
                   v.state := DUMP_S;
                else
+                  -- Determine transfer size aligned to 4k boundaries
+                  getAxiLenProc(AXI_CONFIG_G,BURST_BYTES_G,v.dmaWrTrack.maxSize,v.dmaWrTrack.address,r.axiLen,v.axiLen);
+                  -- Next state
                   v.state := ADDR_S;
                end if;
             end if;
