@@ -232,7 +232,7 @@ begin
          IDATAIN     => sData_i,        -- 1-bit input: Data input from the IOBUF
          INC         => '0',            -- 1-bit input: Increment / Decrement tap delay input
          LOAD        => adcR.masterLoad,  -- 1-bit input: Load DELAY_VALUE input
-         RST         => adcClkRst       -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
+         RST         => '0'       -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
          );
    
    G_IdelayCascade: if IDELAY_CASCADE_G = true generate
@@ -257,7 +257,7 @@ begin
             INC         => '0',           -- 1-bit input: Increment / Decrement tap delay input
             CE          => adcR.masterCE,           -- 1-bit input: Active high enable increment/decrement input 
             LOAD        => adcR.masterLoad,   -- 1-bit input: Load DELAY_VALUE input 
-            RST         => adcClkRst,      -- 1-bit input: Asynchronous Reset to the DELAY_VALUE 
+            RST         => '0',      -- 1-bit input: Asynchronous Reset to the DELAY_VALUE 
             CNTVALUEIN  => adcR.masterCntValueIn,      -- 9-bit input: Counter value input
             CNTVALUEOUT => masterCntValue2);   -- 9-bit output: Counter value output 
    end generate;
