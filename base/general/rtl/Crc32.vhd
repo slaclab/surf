@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Crc32.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-05-01
--- Last update: 2018-03-01
 -------------------------------------------------------------------------------
 -- Description:
 -- This is an implementation of a generic N-byte input CRC32 calculation.

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiVersion.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-05-20
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Creates AXI accessible registers containing configuration
 -- information.

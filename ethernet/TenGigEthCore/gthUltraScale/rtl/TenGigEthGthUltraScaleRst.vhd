@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : TenGigEthGthUltraScaleRst.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-05-04
--- Last update: 2015-12-03
 -------------------------------------------------------------------------------
 -- Description: 10GBASE-R Ethernet Reset Module
 -------------------------------------------------------------------------------

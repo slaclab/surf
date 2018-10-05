@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiLiteRingBuffer.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-05-02
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Wrapper for simple BRAM based ring buffer with AXI-Lite interface
 -------------------------------------------------------------------------------

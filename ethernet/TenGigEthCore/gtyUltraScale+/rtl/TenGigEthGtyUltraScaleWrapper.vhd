@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : TenGigEthGtyUltraScaleWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2018-04-06
--- Last update: 2018-08-23
 -------------------------------------------------------------------------------
 -- Description: GTH Ultra Scale Wrapper for 10GBASE-R Ethernet
 -- Note: This module supports up to a MGT QUAD of 10GigE interfaces

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : I2cRegMaster.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-01-22
--- Last update: 2016-07-11
 -------------------------------------------------------------------------------
 -- Description:
 --   PRESCALE_G = (clk_freq / (5 * i2c_freq)) - 1

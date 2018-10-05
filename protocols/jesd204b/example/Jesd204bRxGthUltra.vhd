@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Jesd204bRxGthUltra.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-14
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: JESD204b receiver module containing the GTH Ultrascale MGT
 --              Wrapper module for JESD receiver.

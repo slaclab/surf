@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiI2cEepromCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-07-11
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite Read/ModifyWrite for standard EEPROM Module
 --

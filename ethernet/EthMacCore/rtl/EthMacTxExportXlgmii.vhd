@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : EthMacTxExportXlgmii.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-09-13
--- Last update: 2017-05-10
 -------------------------------------------------------------------------------
 -- Description: 40GbE Export MAC core with XLGMII interface
 -------------------------------------------------------------------------------

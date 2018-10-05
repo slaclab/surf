@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Pgp2bPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2009-05-27
--- Last update: 2017-11-13
 -------------------------------------------------------------------------------
 -- Description:
 -- PGP ID and other global constants.

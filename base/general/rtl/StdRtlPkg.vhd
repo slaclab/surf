@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : StdRtlPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-05-01
 -------------------------------------------------------------------------------
 -- Description: Standard RTL Package File
 ------------------------------------------------------------------------------
@@ -790,7 +789,7 @@ package body StdRtlPkg is
       inp := resize(vector, BYTES_C*8);
       
       for i in BYTES_C-1 downto 0 loop
-         ret(7+(8*i) downto 8*i) := inp(7+(8*(7-i)) downto (8*(7-i)));
+         ret(7+(8*i) downto 8*i) := inp(7+(8*(BYTES_C-1-i)) downto (8*(BYTES_C-1-i)));
       end loop;
       return ret;
    end function;

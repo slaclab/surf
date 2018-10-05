@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : I2cRegMasterMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-09-21
--- Last update: 2018-06-27
 -------------------------------------------------------------------------------
 -- Description: Multiplexes access to a single I2cRegMaster module
 -- Attached devices may also lock others out in order to execute multiple

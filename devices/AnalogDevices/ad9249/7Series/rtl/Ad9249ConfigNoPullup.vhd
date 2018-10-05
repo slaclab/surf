@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Ad9249ConfigNoPullup.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-09-23
--- Last update: 2018-09-07
 -------------------------------------------------------------------------------
 -- Description: AD9249 Configuration/Status Module (no pullup version)
 -------------------------------------------------------------------------------

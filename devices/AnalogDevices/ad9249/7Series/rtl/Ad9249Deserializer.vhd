@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Ad9249Deserializer.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-02-22
--- Last update: 2018-09-07
 -------------------------------------------------------------------------------
 -- Description: 14 bit DDR deserializer using 7 series IDELAYE2 and ISERDESE2.
 -------------------------------------------------------------------------------
