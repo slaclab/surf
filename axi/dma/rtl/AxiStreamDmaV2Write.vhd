@@ -215,8 +215,6 @@ begin
                         -- Next state
                      v.state := DUMP_S;
                   else
-                     -- Determine transfer size aligned to 4k boundaries
-                     getAxiLenProc(AXI_CONFIG_G,BURST_BYTES_G,v.dmaWrTrack.maxSize,v.dmaWrTrack.address,r.axiLen,v.axiLen);                   
                      -- Next state
                      v.state := ADDR_S;
                   end if;
@@ -233,8 +231,6 @@ begin
                         -- Next state
                         v.state := DUMP_S;
                      else
-                        -- Determine transfer size aligned to 4k boundaries
-                        getAxiLenProc(AXI_CONFIG_G,BURST_BYTES_G,v.dmaWrTrack.maxSize,v.dmaWrTrack.address,r.axiLen,v.axiLen);                     
                         -- Next state
                         v.state := ADDR_S;
                      end if;
@@ -265,8 +261,6 @@ begin
                   -- Next state
                   v.state := DUMP_S;
                else
-                  -- Determine transfer size aligned to 4k boundaries
-                  getAxiLenProc(AXI_CONFIG_G,BURST_BYTES_G,v.dmaWrTrack.maxSize,v.dmaWrTrack.address,r.axiLen,v.axiLen);
                   -- Next state
                   v.state := ADDR_S;
                end if;
