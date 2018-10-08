@@ -29,7 +29,7 @@ entity Pgp3Gtp7TxGearbox is
       phyTxRstSlow : in  sl;
       phyTxHeader  : in  slv(1 downto 0);
       phyTxData    : in  slv(63 downto 0);
-      phyTxStart   : in  sl;
+      phyTxValid   : in  sl;
       phyTxDataRdy : out sl;
       -- Master Interface
       phyTxClkFast : in  sl;
@@ -88,7 +88,7 @@ begin
          valid             => fifoValid);
 
    phyTxDataRdy <= not(almostFull);
-   writeEnable  <= phyTxStart and not(almostFull);
+   writeEnable  <= phyTxValid and not(almostFull);
 
    comb : process (fifoData, fifoValid, phyTxRstFast, r) is
       variable v : RegType;
@@ -121,9 +121,9 @@ begin
             v.txHeader := fifoData(65 downto 64);
             -- Check the phase of the 32-bit chucking
             if (v.txSequence(0) = '0') then
-               v.txData   := fifoData(63 downto 32);
+               v.txData := fifoData(63 downto 32);
             else
-               v.txData := fifoData(31 downto 0);
+               v.txData   := fifoData(31 downto 0);
                -- Read the FIFO
                v.fifoRead := '1';
             end if;

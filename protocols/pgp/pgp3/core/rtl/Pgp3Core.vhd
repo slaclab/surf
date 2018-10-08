@@ -52,6 +52,7 @@ entity Pgp3Core is
       -- Tx PHY interface
       phyTxActive   : in  sl;
       phyTxReady    : in  sl;
+      phyTxValid    : out sl;
       phyTxStart    : out sl;
       phyTxData     : out slv(63 downto 0);
       phyTxHeader   : out slv(1 downto 0);
@@ -128,6 +129,7 @@ begin
          remRxLinkReady => remRxLinkReady,  -- [in]
          phyTxActive    => phyTxActive,     --[in]
          phyTxReady     => phyTxReady,      -- [in]
+         phyTxValid     => phyTxValid,      -- [out]
          phyTxStart     => phyTxStart,      -- [out]
          phyTxData      => phyTxData,       -- [out]
          phyTxHeader    => phyTxHeader);    -- [out]

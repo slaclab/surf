@@ -72,7 +72,7 @@ entity Pgp3Gtp7IpWrapper is
       txResetDone     : out sl;
       txHeader        : in  slv(1 downto 0);
       txData          : in  slv(63 downto 0);
-      txStart         : in  sl;
+      txValid         : in  sl;
       txReady         : out sl;
       -- Debug Interface 
       loopback        : in  slv(2 downto 0);
@@ -414,7 +414,7 @@ begin
          phyTxRstSlow => txPllRst(0),
          phyTxHeader  => txHeader,
          phyTxData    => txData,
-         phyTxStart   => txStart,
+         phyTxValid   => txValid,
          phyTxDataRdy => txReady,
          -- Master Interface
          phyTxClkFast => txPllClk(2),

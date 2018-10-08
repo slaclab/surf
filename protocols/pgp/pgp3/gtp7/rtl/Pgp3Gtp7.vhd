@@ -129,7 +129,7 @@ architecture rtl of Pgp3Gtp7 is
    signal phyTxActive  : sl               := '0';
    signal phyTxHeader  : slv(1 downto 0)  := (others => '0');
    signal phyTxData    : slv(63 downto 0) := (others => '0');
-   signal phyTxStart   : sl               := '0';
+   signal phyTxValid   : sl               := '0';
    signal phyTxDataRdy : sl               := '0';
 
    constant NUM_AXIL_MASTERS_C : integer := 2;
@@ -167,7 +167,7 @@ architecture rtl of Pgp3Gtp7 is
    -- attribute dont_touch of phyTxActive  : signal is "TRUE";
    -- attribute dont_touch of phyTxHeader  : signal is "TRUE";
    -- attribute dont_touch of phyTxData    : signal is "TRUE";
-   -- attribute dont_touch of phyTxStart   : signal is "TRUE";
+   -- attribute dont_touch of phyTxValid   : signal is "TRUE";
    -- attribute dont_touch of phyTxDataRdy : signal is "TRUE";
 
 begin
@@ -247,7 +247,7 @@ begin
          phyTxActive     => phyTxActive,                         -- [in]
          phyTxHeader     => phyTxHeader,                         -- [out]
          phyTxData       => phyTxData,                           -- [out]
-         phyTxStart      => phyTxStart,                          -- [out]
+         phyTxValid      => phyTxValid,                          -- [out]
          phyTxReady      => phyTxDataRdy,                        -- [in]
          -- Rx User interface
          pgpRxClk        => phyTxClk,                            -- [in]
@@ -329,7 +329,7 @@ begin
          txResetDone     => phyTxActive,
          txHeader        => phyTxHeader,
          txData          => phyTxData,
-         txStart         => phyTxStart,
+         txValid         => phyTxValid,
          txReady         => phyTxDataRdy,
          -- Debug Interface 
          loopback        => loopback,

@@ -59,6 +59,7 @@ entity Pgp3Tx is
       -- PHY interface
       phyTxActive   : in  sl;
       phyTxReady    : in  sl;
+      phyTxValid    : out sl;
       phyTxStart    : out sl;
       phyTxData     : out slv(63 downto 0);
       phyTxHeader   : out slv(1 downto 0));
@@ -234,15 +235,20 @@ begin
       port map (
          clk                        => pgpTxClk,        -- [in]
          rst                        => phyTxActiveL,    -- [in]
+         -- Input Interface
          inputValid                 => protTxValid,     -- [in]
          inputReady                 => protTxReady,     -- [out]
          inputData                  => protTxData,      -- [in]
          inputSideband(1 downto 0)  => protTxHeader,    -- [in]
          inputSideband(2)           => protTxStart,     -- [in]
+         inputSideband(8 downto 3)  => protTxSequence,  -- [in]
+         -- Output Interface
+         outputValid                => phyTxValid,      -- [out]
          outputReady                => phyTxReady,      -- [in]
          outputData                 => phyTxData,       -- [out]
          outputSideband(1 downto 0) => phyTxHeader,     -- [out]
-         outputSideband(2)          => phyTxStart);     -- [out]
+         outputSideband(2)          => phyTxStart,      -- [out]
+         outputSideband(8 downto 3) => phyTxSequence);  -- [out]
 
    phyTxActiveL <= not(phyTxActive);
 
