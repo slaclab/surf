@@ -74,6 +74,7 @@ architecture rtl of Pgp3TxProtocol is
       skpCount          : slv(31 downto 0);
       startupCount      : integer;
       pgpTxSlave        : AxiStreamSlaveType;
+      opCodeReady       : sl;
       linkReady         : sl;
       frameTx           : sl;
       frameTxErr        : sl;
@@ -93,6 +94,7 @@ architecture rtl of Pgp3TxProtocol is
       skpCount          => (others => '0'),
       startupCount      => 0,
       pgpTxSlave        => AXI_STREAM_SLAVE_INIT_C,
+      opCodeReady       => '0',
       linkReady         => '0',
       frameTx           => '0',
       frameTxErr        => '0',
@@ -150,6 +152,7 @@ begin
 
       -- Don't accept new frame data by default
       v.pgpTxSlave.tReady := '0';
+      v.opCodeReady       := '0';
 
       v.frameTx    := '0';
       v.frameTxErr := '0';
@@ -230,11 +233,17 @@ begin
 
          -- USER codes override data and delay SKP if they happen to coincide
          if (pgpTxIn.opCodeEn = '1' and dataEn = '1') then
-            v.pgpTxSlave.tReady                      := '0';  -- Override any data acceptance.
+            -- Override any data acceptance.
+            v.pgpTxSlave.tReady := '0';  
+            -- Accept the op-code
+            v.opCodeReady       := '1';            
+            
+            -- Update the TX data bus
             v.protTxData(PGP3_BTF_FIELD_C)           := PGP3_USER_C(conv_integer(pgpTxIn.opCodeNumber));
             v.protTxData(PGP3_USER_CHECKSUM_FIELD_C) := pgp3OpCodeChecksum(pgpTxIn.opCodeData);
             v.protTxData(PGP3_USER_OPCODE_FIELD_C)   := pgpTxIn.opCodeData;
             v.protTxHeader                           := PGP3_K_HEADER_C;
+            
             -- If skip was interrupted, hold it for next cycle
             if (r.skpCount = SKP_INTERVAL_G-1) then
                v.skpCount := r.skpCount;
@@ -295,15 +304,9 @@ begin
          v.overflowEventSent := (others => '0');
       end if;
 
-      -- Combinatorial outputs before the reset
+      -- Outputs
       pgpTxSlave <= v.pgpTxSlave;
-
-      if (pgpTxRst = '1') then
-         v := REG_INIT_C;
-      end if;
-
-      rin <= v;
-
+      
       protTxData     <= r.protTxData;
       protTxHeader   <= r.protTxHeader;
       protTxValid    <= r.protTxValid;
@@ -313,6 +316,7 @@ begin
       pgpTxOut.linkReady   <= r.linkReady;
       pgpTxOut.frameTx     <= r.frameTx;
       pgpTxOut.frameTxErr  <= r.frameTxErr;
+      pgpTxOut.opCodeReady <= v.opCodeReady;
 
       for i in 15 downto 0 loop
          if (i < NUM_VC_G) then
@@ -323,6 +327,14 @@ begin
             pgpTxOut.locPause(i)    <= '0';
          end if;
       end loop;
+      
+      -- Reset  
+      if (pgpTxRst = '1') then
+         v := REG_INIT_C;
+      end if;
+
+      -- Register the variable for next clock cycle   
+      rin <= v;      
 
    end process comb;
 

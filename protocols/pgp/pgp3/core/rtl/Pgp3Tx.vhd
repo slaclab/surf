@@ -241,14 +241,12 @@ begin
          inputData                  => protTxData,      -- [in]
          inputSideband(1 downto 0)  => protTxHeader,    -- [in]
          inputSideband(2)           => protTxStart,     -- [in]
-         inputSideband(8 downto 3)  => protTxSequence,  -- [in]
          -- Output Interface
          outputValid                => phyTxValid,      -- [out]
          outputReady                => phyTxReady,      -- [in]
          outputData                 => phyTxData,       -- [out]
          outputSideband(1 downto 0) => phyTxHeader,     -- [out]
-         outputSideband(2)          => phyTxStart,      -- [out]
-         outputSideband(8 downto 3) => phyTxSequence);  -- [out]
+         outputSideband(2)          => phyTxStart);     -- [out]
 
    phyTxActiveL <= not(phyTxActive);
 
