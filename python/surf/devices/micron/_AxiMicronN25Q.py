@@ -17,8 +17,8 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-import pyrogue as pr
-from surf.misc._mcsreader import *
+import pyrogue   as pr
+import surf.misc as misc
 import click
 import time
 import datetime
@@ -35,7 +35,7 @@ class AxiMicronN25Q(pr.Device):
             size        = (0x1 << 10), 
             **kwargs)
         
-        self._mcs      = McsReader()
+        self._mcs      = misc.McsReader()
         self._addrMode = addrMode
         self._progDone = False
         
