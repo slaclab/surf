@@ -54,7 +54,6 @@ entity Ad9249Deserializer is
       sDataP        : in  sl;           -- Frame clock
       sDataN        : in  sl;
       -- Signal to control data gearboxes
-      delayClk      : in  sl;
       loadDelay     : in  sl;
       delay         : in  slv(8 downto 0) := "000000000";
       delayValueOut : out slv(8 downto 0);
@@ -194,7 +193,7 @@ begin
          CNTVALUEOUT => masterCntValue1,   -- 9-bit output: Counter value output
          DATAOUT     => sData_d,        -- 1-bit output: Delayed data output
          CE          => '0',  -- 1-bit input: Active high enable increment/decrement input
-         CLK         => delayClk,       -- 1-bit input: Clock input
+         CLK         => dClkDiv4,       -- 1-bit input: Clock input
          CNTVALUEIN  => delay,   -- 9-bit input: Counter value input
          DATAIN      => '1',            -- 1-bit input: Data input from the logic
          EN_VTC      => '0',  -- 1-bit input: Keep delay constant over VT
@@ -224,7 +223,7 @@ begin
             CASC_RETURN => '0',           -- 1-bit input: Cascade delay returning from slave IDELAY DATAOUT 
             ODATAIN     => '0',           -- 1-bit input: Data input
             DATAOUT     => cascRet,       -- 1-bit output: Delayed data from ODATAIN input port 
-            CLK         => delayClk,           -- 1-bit input: Clock input 
+            CLK         => dClkDiv4,           -- 1-bit input: Clock input 
             EN_VTC      => '0',           -- 1-bit input: Keep delay constant over VT 
             INC         => '0',           -- 1-bit input: Increment / Decrement tap delay input
             CE          => '0',           -- 1-bit input: Active high enable increment/decrement input 

@@ -162,6 +162,9 @@ architecture rtl of Ad9249ReadoutGroup is
    signal debugDataValid : sl;
    signal debugDataOut   : slv(NUM_CHANNELS_G*16-1 downto 0);
    signal debugDataTmp   : slv16Array(NUM_CHANNELS_G-1 downto 0);
+   
+   signal frameDelay    : slv(8 downto 0);
+   signal frameDelaySet : sl;
 
    attribute keep of adcBitClkRD4 : signal is "true";
    attribute keep of adcBitClkR   : signal is "true";
@@ -434,20 +437,38 @@ begin
          dClkDiv7      => adcBitClkR,
          sDataP        => adcSerial.fClkP,  -- Frame clock
          sDataN        => adcSerial.fClkN,
-         delayClk      => axilClk,
-         loadDelay     => axilR.frameDelaySet,
-         delay         => axilR.delay,
+         loadDelay     => frameDelaySet,
+         delay         => frameDelay,
          delayValueOut => curDelayFrame,
          bitSlip       => adcR.slip,
          gearboxOffset => adcR.gearboxOffset,
          adcData       => adcFrame
          );
-
+   
+   U_FrmDlyFifo : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         BRAM_EN_G    => false,
+         DATA_WIDTH_G => 9,
+         ADDR_WIDTH_G => 4,
+         INIT_G       => "0")
+      port map (
+         rst    => axilRst,
+         wr_clk => axilClk,
+         wr_en  => axilR.frameDelaySet,
+         din    => axilR.delay,
+         rd_clk => adcBitClkRD4,
+         rd_en  => '1',
+         valid  => frameDelaySet,
+         dout   => frameDelay);
+   
    --------------------------------
    -- Data Input, 8 channels
    --------------------------------
    GenData : for i in NUM_CHANNELS_G-1 downto 0 generate
-
+      signal dataDelaySet : slv(NUM_CHANNELS_G-1 downto 0);
+      signal dataDelay    : slv9Array(NUM_CHANNELS_G-1 downto 0);
+   begin
 
       U_DATA_DESERIALIZER : entity work.Ad9249Deserializer
          generic map (
@@ -468,14 +489,32 @@ begin
             dClkDiv7      => adcBitClkR,
             sDataP        => adcSerial.chP(i),  -- Frame clock
             sDataN        => adcSerial.chN(i),
-            delayClk      => axilClk,
-            loadDelay     => axilR.dataDelaySet(i),
-            delay         => axilR.delay,
+            loadDelay     => dataDelaySet(i),
+            delay         => dataDelay(i),
             delayValueOut => curDelayData(i),
             bitSlip       => adcR.slip,
             gearboxOffset => adcR.gearboxOffset,
             adcData       => adcData(i)
             );
+      
+      
+      U_DataDlyFifo : entity work.SynchronizerFifo
+         generic map (
+            TPD_G        => TPD_G,
+            BRAM_EN_G    => false,
+            DATA_WIDTH_G => 9,
+            ADDR_WIDTH_G => 4,
+            INIT_G       => "0")
+         port map (
+            rst    => axilRst,
+            wr_clk => axilClk,
+            wr_en  => axilR.dataDelaySet(i),
+            din    => axilR.delay,
+            rd_clk => adcBitClkRD4,
+            rd_en  => '1',
+            valid  => dataDelaySet(i),
+            dout   => dataDelay(i));
+      
    end generate;
 
    -------------------------------------------------------------------------------------------------
