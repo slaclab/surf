@@ -34,19 +34,15 @@ use work.Ad9249Pkg.all;
 entity Ad9249Deserializer is
    generic (
       TPD_G             : time                 := 1 ns;
-      NUM_CHANNELS_G    : natural range 1 to 8 := 8;
       IODELAY_GROUP_G   : string               := "DEFAULT_GROUP";
       IDELAY_CASCADE_G  : boolean              := false;
       IDELAYCTRL_FREQ_G : real                 := 300.0;
       DEFAULT_DELAY_G   : slv(8 downto 0)      := (others => '0');
-      FRAME_PATTERN_G   : slv(13 downto 0)     := "11111110000000";
       ADC_INVERT_CH_G   : sl                   := '0';
       BIT_REV_G         : sl                   := '0');
    port (
       -- Reset for adc deserializer
       adcClkRst     : in  sl;
-      -- Signals to/from idelayCtrl
-      idelayCtrlRdy : in  sl;
       -- Serial Data from ADC
       dClk          : in  sl;           -- Data clock
       dClkDiv4      : in  sl;
@@ -105,7 +101,6 @@ architecture rtl of Ad9249Deserializer is
       gearboxCounter     : slv(2 downto 0);
       gearboxSeq         : slv(2 downto 0);
       masterAdcData      : slv(13 downto 0);
-      dataAligned        : sl;
       adcDataGearboxIn   : slv(15 downto 0);
       adcDataGearboxIn_1 : slv(15 downto 0);
    end record;
@@ -114,7 +109,6 @@ architecture rtl of Ad9249Deserializer is
       gearboxCounter     => (others => '0'),
       gearboxSeq         => (others => '0'),
       masterAdcData      => (others => '0'),
-      dataAligned        => '0',
       adcDataGearboxIn   => (others => '0'),
       adcDataGearboxIn_1 => (others => '0')
       );
@@ -398,13 +392,6 @@ begin
 
       -- creates pipeline
       v.adcDataGearboxIn_1 := adcDv7R.adcDataGearboxIn;
-
-      -- flag that indicates data, or frame signal matches the expected pattern
-      if adcDv7R.masterAdcData = FRAME_PATTERN_G then
-         v.dataAligned := '1';
-      else
-         v.dataAligned := '0';
-      end if;
 
       case (adcDv7R.gearboxSeq) is
          when "000" =>

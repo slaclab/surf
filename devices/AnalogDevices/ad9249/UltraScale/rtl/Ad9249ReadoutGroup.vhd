@@ -82,7 +82,6 @@ architecture rtl of Ad9249ReadoutGroup is
       axilReadSlave  : AxiLiteReadSlaveType;
       delay          : slv(8 downto 0);
       dataDelaySet   : slv(NUM_CHANNELS_G-1 downto 0);
-      idelayCtrlRdy  : sl;
       frameDelaySet  : sl;
       freezeDebug    : sl;
       readoutDebug0  : slv16Array(NUM_CHANNELS_G-1 downto 0);
@@ -95,7 +94,6 @@ architecture rtl of Ad9249ReadoutGroup is
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       delay          => DEFAULT_DELAY_G,
       dataDelaySet   => (others => '1'),
-      idelayCtrlRdy  => '0',
       frameDelaySet  => '1',
       freezeDebug    => '0',
       readoutDebug0  => (others => (others => '0')),
@@ -142,7 +140,6 @@ architecture rtl of Ad9249ReadoutGroup is
    signal adcBitClkRD4  : sl;
    signal adcBitRst     : sl;
    signal adcBitIoRst   : sl;
-   signal idelayCtrlRdy : sl := '1';
 
    signal adcFramePad   : sl;
    signal adcFrame      : slv(13 downto 0);
@@ -219,7 +216,7 @@ begin
    -- AXIL Interface
    -------------------------------------------------------------------------------------------------
    axilComb : process (adcFrameSync, axilR, axilReadMaster, axilRst, axilWriteMaster, curDelayData,
-                       curDelayFrame, debugDataTmp, debugDataValid, lockedFallCount, lockedSync, idelayCtrlRdy, adcClkRst) is
+                       curDelayFrame, debugDataTmp, debugDataValid, lockedFallCount, lockedSync, adcClkRst) is
       variable v      : AxilRegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -229,9 +226,6 @@ begin
       v.frameDelaySet       := '0';
       v.axilReadSlave.rdata := (others => '0');
       v.lockedCountRst      := '0';
-
-      --updates ctrl signal status
-      v.idelayCtrlRdy := idelayCtrlRdy;
 
       -- Store last two samples read from ADC
       if (debugDataValid = '1' and axilR.freezeDebug = '0') then
@@ -421,17 +415,14 @@ begin
    U_FRAME_DESERIALIZER : entity work.Ad9249Deserializer
       generic map (
          TPD_G             => TPD_G,
-         NUM_CHANNELS_G    => 8,
          IODELAY_GROUP_G   => "DEFAULT_GROUP",
          IDELAY_CASCADE_G  => F_DELAY_CASCADE_G,
          IDELAYCTRL_FREQ_G => 350.0,
          DEFAULT_DELAY_G   => (others => '0'),
-         FRAME_PATTERN_G   => FRAME_PATTERN_C,
          ADC_INVERT_CH_G   => '1',
          BIT_REV_G         => '0')
       port map (
          adcClkRst     => adcBitRst,
-         idelayCtrlRdy => axilR.idelayCtrlRdy,
          dClk          => adcBitClkIo,      -- Data clock
          dClkDiv4      => adcBitClkRD4,
          dClkDiv7      => adcBitClkR,
@@ -473,17 +464,14 @@ begin
       U_DATA_DESERIALIZER : entity work.Ad9249Deserializer
          generic map (
             TPD_G             => TPD_G,
-            NUM_CHANNELS_G    => 8,
             IODELAY_GROUP_G   => "DEFAULT_GROUP",
             IDELAY_CASCADE_G  => D_DELAY_CASCADE_G,
             IDELAYCTRL_FREQ_G => 350.0,
             DEFAULT_DELAY_G   => (others => '0'),
-            FRAME_PATTERN_G   => FRAME_PATTERN_C,
             ADC_INVERT_CH_G   => ADC_INVERT_CH_G(i),
             BIT_REV_G         => '1')
          port map (
             adcClkRst     => adcBitRst,
-            idelayCtrlRdy => axilR.idelayCtrlRdy,
             dClk          => adcBitClkIo,       -- Data clock
             dClkDiv4      => adcBitClkRD4,
             dClkDiv7      => adcBitClkR,
