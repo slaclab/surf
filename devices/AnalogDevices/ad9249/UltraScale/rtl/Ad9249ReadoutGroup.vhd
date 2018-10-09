@@ -216,7 +216,7 @@ begin
    -- AXIL Interface
    -------------------------------------------------------------------------------------------------
    axilComb : process (adcFrameSync, axilR, axilReadMaster, axilRst, axilWriteMaster, curDelayData,
-                       curDelayFrame, debugDataTmp, debugDataValid, lockedFallCount, lockedSync, idelayCtrlRdy) is
+                       curDelayFrame, debugDataTmp, debugDataValid, lockedFallCount, lockedSync, idelayCtrlRdy, adcClkRst) is
       variable v      : AxilRegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -225,6 +225,7 @@ begin
       v.dataDelaySet        := (others => '0');
       v.frameDelaySet       := '0';
       v.axilReadSlave.rdata := (others => '0');
+      v.lockedCountRst      := '0';
 
       --updates ctrl signal status
       v.idelayCtrlRdy := idelayCtrlRdy;
@@ -270,6 +271,10 @@ begin
       axiSlaveRegister(axilEp, X"A0", 0, v.freezeDebug);
 
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
+      
+      if adcClkRst = '1' then
+         v.lockedCountRst := '1';
+      end if;
 
       if (axilRst = '1') then
          v := AXIL_REG_INIT_C;
@@ -429,6 +434,7 @@ begin
          dClkDiv7      => adcBitClkR,
          sDataP        => adcSerial.fClkP,  -- Frame clock
          sDataN        => adcSerial.fClkN,
+         delayClk      => axilClk,
          loadDelay     => axilR.frameDelaySet,
          delay         => axilR.delay,
          delayValueOut => curDelayFrame,
@@ -462,6 +468,7 @@ begin
             dClkDiv7      => adcBitClkR,
             sDataP        => adcSerial.chP(i),  -- Frame clock
             sDataN        => adcSerial.chN(i),
+            delayClk      => axilClk,
             loadDelay     => axilR.dataDelaySet(i),
             delay         => axilR.delay,
             delayValueOut => curDelayData(i),
