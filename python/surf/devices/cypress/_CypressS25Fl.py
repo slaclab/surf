@@ -18,6 +18,8 @@ import pyrogue             as pr
 import surf.devices.micron as micron
 import surf.misc           as misc
 import click
+import time
+import datetime
 
 class CypressS25Fl(micron.AxiMicronN25Q):
     def __init__(self,
@@ -38,54 +40,54 @@ class CypressS25Fl(micron.AxiMicronN25Q):
         self.FLAG_STATUS_REG = (0x05 << 16)
         self.FLAG_STATUS_RDY = (0x01)
         self.BRAC_CMD        = (0xB9 << 16)
-
-        def LoadMcsFile(arg):
-            
-            click.secho(('LoadMcsFile: %s' % arg), fg='green')
-            self._progDone = False 
-            
-            # Start time measurement for profiling
-            start = time.time()
-            
-            # Reset the SPI interface
-            self.resetFlash()
-            
-            # Print the status registers
-            print("CypressS25Fl Manufacturer ID Code  = {}".format(hex(self.getManufacturerId())))
-            print("CypressS25Fl Manufacturer Type     = {}".format(hex(self.getManufacturerType())))
-            print("CypressS25Fl Manufacturer Capacity = {}".format(hex(self.getManufacturerCapacity())))
-            print("CypressS25Fl Status Register       = {}".format(hex(self.getPromStatusReg())))
-            
-            # Open the MCS file
-            self._mcs.open(arg)
-            
-            # Erase the PROM
-            self.eraseProm()
-            
-            # # Write to the PROM
-            # self.writeProm()
-            
-            # # Verify the PROM
-            # self.verifyProm()
-            
-            # End time measurement for profiling
-            end = time.time()
-            elapsed = end - start
-            click.secho('LoadMcsFile() took %s to program the PROM' % datetime.timedelta(seconds=int(elapsed)), fg='green')
-            
-            # Add a power cycle reminder
-            self._progDone = True
-            click.secho(
-                "\n\n\
-                ***************************************************\n\
-                ***************************************************\n\
-                The MCS data has been written into the PROM.       \n\
-                To reprogram the FPGA with the new PROM data,      \n\
-                a IPROG CMD or power cycle is be required.\n\
-                ***************************************************\n\
-                ***************************************************\n\n"\
-                , bg='green',
-            )        
+        
+    def _LoadMcsFile(self,arg):
+        
+        click.secho(('LoadMcsFile: %s' % arg), fg='green')
+        self._progDone = False 
+        
+        # Start time measurement for profiling
+        start = time.time()
+        
+        # Reset the SPI interface
+        self.resetFlash()
+        
+        # Print the status registers
+        print("CypressS25Fl Manufacturer ID Code  = {}".format(hex(self.getManufacturerId())))
+        print("CypressS25Fl Manufacturer Type     = {}".format(hex(self.getManufacturerType())))
+        print("CypressS25Fl Manufacturer Capacity = {}".format(hex(self.getManufacturerCapacity())))
+        print("CypressS25Fl Status Register       = {}".format(hex(self.getPromStatusReg())))
+        
+        # Open the MCS file
+        self._mcs.open(arg)
+        
+        # Erase the PROM
+        self.eraseProm()
+        
+        # Write to the PROM
+        self.writeProm()
+        
+        # Verify the PROM
+        self.verifyProm()
+        
+        # End time measurement for profiling
+        end = time.time()
+        elapsed = end - start
+        click.secho('LoadMcsFile() took %s to program the PROM' % datetime.timedelta(seconds=int(elapsed)), fg='green')
+        
+        # Add a power cycle reminder
+        self._progDone = True
+        click.secho(
+            "\n\n\
+            ***************************************************\n\
+            ***************************************************\n\
+            The MCS data has been written into the PROM.       \n\
+            To reprogram the FPGA with the new PROM data,      \n\
+            a IPROG CMD or power cycle is be required.\n\
+            ***************************************************\n\
+            ***************************************************\n\n"\
+            , bg='green',
+        )        
 
     def resetFlash(self):
         # Send the "Mode Bit Reset" command
