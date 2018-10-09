@@ -358,6 +358,7 @@ begin
          generic map (
             TPD_G          => TPD_G,
             SIM_SPEEDUP_G  => SIM_SPEEDUP_G,
+            DURATION_G     => 511,
             IN_POLARITY_G  => '1',
             OUT_POLARITY_G => '1')
          port map (
