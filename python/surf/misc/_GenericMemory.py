@@ -72,75 +72,10 @@ class GenericMemory(pr.Device):
         
 
     def writeBlocks(self, force=False, recurse=True, variable=None, checkEach=False):
-        
-        if not self.enable.get(): return
-
-        """
-        Write all of the blocks held by this Device to memory
-        """
-        self._log.debug(f'Calling {self.path}._writeBlocks')
-        #print(f'Calling {self.path}.writeBlocks(recurse={recurse}, variable={variable}, checkEach={checkEach}')                
-
-        # Process local blocks.
-        if variable is not None:
-            for b in self._getBlocks(variable):
-                if (force or block.stale):                
-                    b.startTransaction(rim.Write, check=checkEach)
-
-        else:
-            for block in self._blocks:
-                if (force or block.stale) and block.bulkEn:
-                    block.startTransaction(rim.Write, check=checkEach)
-
-            if recurse:
-                for key,value in self.devices.items():
-                    value.writeBlocks(force=force, recurse=True, checkEach=checkEach)
-                
+        super().writeBlocks(force=force, recurse=recurse, variable=variable, checkEach=True)
 
     def readBlocks(self, recurse=True, variable=None, checkEach=False):
-
-        if not self.enable.get(): return
-
-        """
-        Perform background reads
-        """
-        self._log.debug(f'Calling {self.path}._readBlocks(recurse={recurse}, variable={variable}, checkEach={checkEach}')
-        #print(f'Calling {self.path}.readBlocks(recurse={recurse}, variable={variable}, checkEach={checkEach})')        
-
-        # Process local blocks. 
-        if variable is not None:
-            for b in self._getBlocks(variable):
-                b.startTransaction(rim.Read, checkEach)
-
-        else:
-            for block in self._blocks:
-                if block.bulkEn:
-                    block.startTransaction(rim.Read, checkEach)
-
-            if recurse:
-                for key,value in self.devices.items():
-                    value.readBlocks(recurse=True, checkEach=checkEach)
-
+        super().readBlocks(recurse=recurse, variable=variable, checkEach=True)
 
     def verifyBlocks(self, recurse=True, variable=None, checkEach=False):
-
-        if not self.enable.get(): return
-        
-        """
-        Perform background verify
-        """
-        #print(f'Calling {self.path}.verifyBlocks(recurse={recurse}, variable={variable}, checkEach={checkEach}')                
-
-        # Process local blocks.
-        if variable is not None:
-            for b in self._getBlocks(variable):
-                b.startTransaction(rim.Verify, checkEach)
-
-        else:
-            for block in self._blocks:
-                if block.bulkEn:
-                    block.startTransaction(rim.Verify, checkEach)
-
-            if recurse:
-                for key,value in self.devices.items():
-                    value.verifyBlocks(recurse=True, checkEach=checkEach)
+        super().verifyBlocks(recurse=recurse, variable=variable, checkEach=True)
