@@ -338,21 +338,11 @@ begin
             locked    => open
          );
       
-      U_bitClkBufG : BUFG
-         port map (
-            O => adcBitClkIo,
-            I => tmpAdcClk);
-      
    end generate G_MMCM;
    
    G_NO_MMCM : if USE_MMCME_G = false generate
       
       tmpAdcClk <= adcBitClkIoIn;
-      
-      U_bitClkBufG : BUFG
-         port map (
-            O => adcBitClkIo,
-            I => tmpAdcClk);
       
       U_PwrUpRst : entity work.PwrUpRst
          generic map (
@@ -368,7 +358,10 @@ begin
       
    end generate G_NO_MMCM;
 
-   
+   U_bitClkBufG : BUFG
+      port map (
+         I => tmpAdcClk,
+         O => adcBitClkIo);
 
    -- Regional clock
    U_AdcBitClkR : BUFGCE_DIV
