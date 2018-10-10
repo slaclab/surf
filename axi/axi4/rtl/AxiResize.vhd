@@ -111,10 +111,10 @@ begin
          rdIdx := conv_integer(r.rdCount);
 
          -- Update the number of bytes
-         rdBytes := (rdIdx+1) * MST_BYTES_C;
+         rdBytes := (rdIdx+1) * SLV_BYTES_C;
 
          -- Update the byte counter pointer
-         rdByteCnt := MST_BYTES_C;
+         rdByteCnt := SLV_BYTES_C;
 
          -- Initialize the ready signal
          v.rdMaster.rready := '0';
