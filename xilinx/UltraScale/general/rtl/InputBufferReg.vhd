@@ -27,17 +27,13 @@ entity InputBufferReg is
    generic (
       TPD_G          : time    := 1 ns;
       DIFF_PAIR_G    : boolean := false;
-      DDR_CLK_EDGE_G : string  := "OPPOSITE_EDGE";
-      INIT_Q1_G      : bit     := '0';
-      INIT_Q2_G      : bit     := '0';
-      SRTYPE_G       : string  := "SYNC");
+      DDR_CLK_EDGE_G : string  := "OPPOSITE_EDGE");
    port (
       I  : in  sl;
       IB : in  sl := '1';
       C  : in  sl;
       CE : in  sl := '1';
       R  : in  sl := '0';
-      S  : in  sl := '0';
       Q1 : out sl;
       Q2 : out sl);
 end InputBufferReg;
@@ -45,6 +41,7 @@ end InputBufferReg;
 architecture rtl of InputBufferReg is
 
    signal inputSig : sl;
+   signal CB       : sl;
 
 begin
 
@@ -63,19 +60,17 @@ begin
             O  => inputSig);
    end generate;
 
-   U_IDDR : IDDR
+   U_IDDR : IDDRE1
       generic map (
-         DDR_CLK_EDGE => DDR_CLK_EDGE_G,  -- "OPPOSITE_EDGE", "SAME_EDGE", or "SAME_EDGE_PIPELINED"
-         INIT_Q1      => INIT_Q1_G,     -- Initial value of Q1: '0' or '1'
-         INIT_Q2      => INIT_Q2_G,     -- Initial value of Q2: '0' or '1'
-         SRTYPE       => SRTYPE_G)      -- Set/Reset type: "SYNC" or "ASYNC" 
+         DDR_CLK_EDGE => DDR_CLK_EDGE_G)  -- "OPPOSITE_EDGE", "SAME_EDGE", or "SAME_EDGE_PIPELINED"
       port map (
-         Q1 => Q1,  -- 1-bit output for positive edge of clock 
-         Q2 => Q2,  -- 1-bit output for negative edge of clock
-         C  => C,                       -- 1-bit clock input
-         CE => CE,                      -- 1-bit clock enable input
-         D  => inputSig,                -- 1-bit DDR data input
-         R  => R,                       -- 1-bit reset
-         S  => S);                      -- 1-bit set
+         Q1 => Q1,  -- 1-bit output: Registered parallel output 1
+         Q2 => Q2,  -- 1-bit output: Registered parallel output 2
+         C  => C,                       -- 1-bit input: High-speed clock
+         CB => CB,  -- 1-bit input: Inversion of High-speed clock C
+         D  => D,                       -- 1-bit input: Serial Data Input
+         R  => R);  -- 1-bit input: Active High Async Reset      
+
+   CB <= not(C);
 
 end rtl;

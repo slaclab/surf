@@ -25,12 +25,17 @@ use unisim.vcomponents.all;
 
 entity OutputBufferReg is
    generic (
-      TPD_G       : time    := 1 ns;
-      DIFF_PAIR_G : boolean := false);
+      TPD_G          : time    := 1 ns;
+      DIFF_PAIR_G    : boolean := false;
+      DDR_CLK_EDGE_G : string  := "OPPOSITE_EDGE";
+      INIT_G         : bit     := '0';
+      SRTYPE_G       : string  := "SYNC");
    port (
       I  : in  sl;
       C  : in  sl;
-      SR : in  sl := '0';
+      CE : in  sl := '1';
+      R  : in  sl := '0';
+      S  : in  sl := '0';
       T  : in  sl := '0';  -- optional tristate (0 = enabled, 1 = high z output)
       O  : out sl;
       OB : out sl := '1');
@@ -42,13 +47,18 @@ architecture rtl of OutputBufferReg is
 
 begin
 
-   U_ODDR : ODDRE1
+   U_ODDR : ODDR
+      generic map(
+         DDR_CLK_EDGE => DDR_CLK_EDGE_G,  -- "OPPOSITE_EDGE" or "SAME_EDGE" 
+         INIT         => INIT_G,  -- Initial value for Q port ('1' or '0')
+         SRTYPE       => SRTYPE_G)      -- Reset Type ("ASYNC" or "SYNC")
       port map (
-         Q  => outputSig,               -- 1-bit output: Data output to IOB
-         C  => C,                       -- 1-bit input: High-speed clock input
-         D1 => I,                       -- 1-bit input: Parallel data input 1
-         D2 => I,                       -- 1-bit input: Parallel data input 2
-         SR => SR);                     -- 1-bit input: Active High Async Reset
+         Q  => outputSig,               -- 1-bit DDR output
+         C  => C,                       -- 1-bit clock input
+         CE => CE,                      -- 1-bit clock enable input
+         D1 => I,                       -- 1-bit data input (positive edge)
+         D2 => I,                       -- 1-bit data input (negative edge)
+         R  => R);                      -- 1-bit reset input
 
    GEN_OBUF : if (DIFF_PAIR_G = false) generate
       U_OBUFDS : OBUFT
