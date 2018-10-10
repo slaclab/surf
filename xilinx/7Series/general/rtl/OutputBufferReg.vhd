@@ -42,7 +42,7 @@ architecture rtl of OutputBufferReg is
 
 begin
 
-   U_ODDR : outputSig
+   U_ODDR : ODDRE1
       port map (
          Q  => outputSig,               -- 1-bit output: Data output to IOB
          C  => C,                       -- 1-bit input: High-speed clock input
