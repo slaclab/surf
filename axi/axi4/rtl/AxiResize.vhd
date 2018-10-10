@@ -114,7 +114,7 @@ begin
          rdBytes := (rdIdx+1) * SLV_BYTES_C;
 
          -- Update the byte counter pointer
-         rdByteCnt := SLV_BYTES_C;
+         rdByteCnt := MST_BYTES_C;
 
          -- Initialize the ready signal
          v.rdMaster.rready := '0';
