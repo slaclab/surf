@@ -380,7 +380,7 @@ begin
          IS_I_INVERTED   => '0'         -- Optional inversion for I
          )
       port map (
-         I   => adcBitClkIo,
+         I   => tmpAdcClk,
          O   => adcBitClkR,
          CE  => '1',
          CLR => '0');
@@ -395,7 +395,7 @@ begin
          IS_I_INVERTED   => '0'         -- Optional inversion for I
          )
       port map (
-         I   => adcBitClkIo,
+         I   => tmpAdcClk,
          O   => adcBitClkRD4,
          CE  => '1',
          CLR => '0');
