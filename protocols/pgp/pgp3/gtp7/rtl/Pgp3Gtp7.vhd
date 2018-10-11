@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : Pgp3GthUs.vhd
+-- File       : Pgp3Gtp7.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 
@@ -18,7 +18,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.AxiLitePkg.all;
@@ -27,10 +26,16 @@ use work.Pgp3Pkg.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
 
-entity Pgp3GthUs is
+entity Pgp3Gtp7 is
    generic (
       TPD_G                       : time                  := 1 ns;
-      RATE_G                      : string                := "10.3125Gbps";  -- or "6.25Gbps"     
+      RATE_G                      : string                := "6.25Gbps";  -- or "3.125Gbps"
+      CLKIN_PERIOD_G              : real;
+      BANDWIDTH_G                 : string;
+      CLKFBOUT_MULT_G             : positive;
+      CLKOUT0_DIVIDE_G            : positive;
+      CLKOUT1_DIVIDE_G            : positive;
+      CLKOUT2_DIVIDE_G            : positive;
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
@@ -53,37 +58,47 @@ entity Pgp3GthUs is
       TX_POLARITY_G               : sl                    := '0';
       RX_POLARITY_G               : sl                    := '0';
       AXIL_BASE_ADDR_G            : slv(31 downto 0)      := (others => '0');
-      AXIL_CLK_FREQ_G             : real                  := 125.0E+6);
+      AXIL_CLK_FREQ_G             : real                  := 156.25E+6);
    port (
       -- Stable Clock and Reset
-      stableClk    : in  sl;            -- GT needs a stable clock to "boot up"
-      stableRst    : in  sl;
+      stableClk       : in  sl;         -- GT needs a stable clock to "boot up"
+      stableRst       : in  sl;
       -- QPLL Interface
-      qpllLock     : in  slv(1 downto 0);
-      qpllclk      : in  slv(1 downto 0);
-      qpllrefclk   : in  slv(1 downto 0);
-      qpllRst      : out slv(1 downto 0);
+      qPllOutClk      : in  slv(1 downto 0);
+      qPllOutRefClk   : in  slv(1 downto 0);
+      qPllLock        : in  slv(1 downto 0);
+      qPllRefClkLost  : in  slv(1 downto 0);
+      qpllRst         : out slv(1 downto 0);
+      -- TX PLL Interface
+      gtTxOutClk      : out sl;
+      gtTxPllRst      : out sl;
+      txPllClk        : in  slv(2 downto 0);
+      txPllRst        : in  slv(2 downto 0);
+      gtTxPllLock     : in  sl;
       -- Gt Serial IO
-      pgpGtTxP     : out sl;
-      pgpGtTxN     : out sl;
-      pgpGtRxP     : in  sl;
-      pgpGtRxN     : in  sl;
+      pgpGtTxP        : out sl;
+      pgpGtTxN        : out sl;
+      pgpGtRxP        : in  sl;
+      pgpGtRxN        : in  sl;
       -- Clocking
-      pgpClk       : out sl;
-      pgpClkRst    : out sl;
+      pgpClk          : out sl;
+      pgpClkRst       : out sl;
       -- Non VC Rx Signals
-      pgpRxIn      : in  Pgp3RxInType;
-      pgpRxOut     : out Pgp3RxOutType;
+      pgpRxIn         : in  Pgp3RxInType;
+      pgpRxOut        : out Pgp3RxOutType;
       -- Non VC Tx Signals
-      pgpTxIn      : in  Pgp3TxInType;
-      pgpTxOut     : out Pgp3TxOutType;
+      pgpTxIn         : in  Pgp3TxInType;
+      pgpTxOut        : out Pgp3TxOutType;
       -- Frame Transmit Interface
-      pgpTxMasters : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
-      pgpTxSlaves  : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
+      pgpTxMasters    : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
+      pgpTxSlaves     : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
       -- Frame Receive Interface
-      pgpRxMasters : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
-      pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
-
+      pgpRxMasters    : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
+      pgpRxCtrl       : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
+      -- Debug Interface 
+      txPreCursor     : in  slv(4 downto 0)        := "00111";
+      txPostCursor    : in  slv(4 downto 0)        := "00111";
+      txDiffCtrl      : in  slv(3 downto 0)        := "1111";
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
@@ -91,35 +106,31 @@ entity Pgp3GthUs is
       axilReadSlave   : out AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
       axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
-end Pgp3GthUs;
+end Pgp3Gtp7;
 
-architecture rtl of Pgp3GthUs is
+architecture rtl of Pgp3Gtp7 is
 
-   -- clocks
-   signal pgpRxClkInt : sl;
-   signal pgpRxRstInt : sl;
-   signal pgpTxClkInt : sl;
-   signal pgpTxRstInt : sl;
+   -- Clocks and Resets
+   signal phyRxClk : sl := '0';
+   signal phyRxRst : sl := '1';
+   signal phyTxClk : sl := '0';
+   signal phyTxRst : sl := '1';
 
    -- PgpRx Signals
---   signal gtRxUserReset : sl;
-   signal phyRxClk      : sl;
-   signal phyRxRst      : sl;
-   signal phyRxInit     : sl;
-   signal phyRxActive   : sl;
-   signal phyRxValid    : sl;
-   signal phyRxHeader   : slv(1 downto 0);
-   signal phyRxData     : slv(63 downto 0);
-   signal phyRxStartSeq : sl;
-   signal phyRxSlip     : sl;
-
+   signal phyRxInit   : sl               := '0';
+   signal phyRxActive : sl               := '0';
+   signal phyRxValid  : sl               := '0';
+   signal phyRxHeader : slv(1 downto 0)  := (others => '0');
+   signal phyRxData   : slv(63 downto 0) := (others => '0');
+   signal phyRxSlip   : sl               := '0';
+   signal locRxOut    : Pgp3RxOutType;
 
    -- PgpTx Signals
---   signal gtTxUserReset : sl;
-   signal phyTxActive   : sl;
-   signal phyTxStart    : sl;
-   signal phyTxData     : slv(63 downto 0);
-   signal phyTxHeader   : slv(1 downto 0);
+   signal phyTxActive  : sl               := '0';
+   signal phyTxHeader  : slv(1 downto 0)  := (others => '0');
+   signal phyTxData    : slv(63 downto 0) := (others => '0');
+   signal phyTxValid   : sl               := '0';
+   signal phyTxDataRdy : sl               := '0';
 
    constant NUM_AXIL_MASTERS_C : integer := 2;
    constant PGP_AXIL_INDEX_C   : integer := 0;
@@ -140,19 +151,34 @@ architecture rtl of Pgp3GthUs is
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 
-   signal loopback : slv(2 downto 0);
+   signal loopback : slv(2 downto 0) := (others => '0');
+
+   -- attribute dont_touch                 : string;
+   -- attribute dont_touch of phyRxClk     : signal is "TRUE";
+   -- attribute dont_touch of phyRxRst     : signal is "TRUE";
+   -- attribute dont_touch of phyTxClk     : signal is "TRUE";
+   -- attribute dont_touch of phyTxRst     : signal is "TRUE";
+   -- attribute dont_touch of phyRxInit    : signal is "TRUE";
+   -- attribute dont_touch of phyRxActive  : signal is "TRUE";
+   -- attribute dont_touch of phyRxValid   : signal is "TRUE";
+   -- attribute dont_touch of phyRxHeader  : signal is "TRUE";
+   -- attribute dont_touch of phyRxData    : signal is "TRUE";
+   -- attribute dont_touch of phyRxSlip    : signal is "TRUE";
+   -- attribute dont_touch of phyTxActive  : signal is "TRUE";
+   -- attribute dont_touch of phyTxHeader  : signal is "TRUE";
+   -- attribute dont_touch of phyTxData    : signal is "TRUE";
+   -- attribute dont_touch of phyTxValid   : signal is "TRUE";
+   -- attribute dont_touch of phyTxDataRdy : signal is "TRUE";
 
 begin
 
-   assert ((RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps"))
-      report "RATE_G: Must be either 6.25Gbps or 10.3125Gbps"
+   assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps"))
+      report "RATE_G: Must be either 3.125Gbps, 6.25Gbps"
       severity error;
 
-   pgpClk    <= pgpTxClkInt;
-   pgpClkRst <= pgpTxRstInt;
-
-   --gtRxUserReset <= phyRxInit or pgpRxIn.resetRx;
-   --gtTxUserReset <= pgpTxRst;
+   pgpClk    <= phyTxClk;
+   pgpClkRst <= phyTxRst;
+   pgpRxOut  <= locRxOut;
 
    GEN_XBAR : if (EN_DRP_G and EN_PGP_MON_G) generate
       U_XBAR : entity work.AxiLiteCrossbar
@@ -175,7 +201,7 @@ begin
    end generate GEN_XBAR;
 
    -- If DRP or PGP_MON not enabled, no crossbar needed
-   -- If neither enabled, default values will auto-terminate the bus   
+   -- If neither enabled, default values will auto-terminate the bus      
    GEN_DRP_ONLY : if (EN_DRP_G and not EN_PGP_MON_G) generate
       axilWriteSlave                     <= axilWriteSlaves(DRP_AXIL_INDEX_C);
       axilWriteMasters(DRP_AXIL_INDEX_C) <= axilWriteMaster;
@@ -190,8 +216,7 @@ begin
       axilReadMasters(PGP_AXIL_INDEX_C)  <= axilReadMaster;
    end generate GEN_PGP_MON_ONLY;
 
-
-   U_Pgp3Core_1 : entity work.Pgp3Core
+   U_Pgp3Core : entity work.Pgp3Core
       generic map (
          TPD_G                       => TPD_G,
          NUM_VC_G                    => NUM_VC_G,
@@ -212,23 +237,23 @@ begin
          AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G)
       port map (
          -- Tx User interface
-         pgpTxClk        => pgpTxClkInt,                         -- [in]
-         pgpTxRst        => pgpTxRstInt,                         -- [in]
+         pgpTxClk        => phyTxClk,                            -- [in]
+         pgpTxRst        => phyTxRst,                            -- [in]
          pgpTxIn         => pgpTxIn,                             -- [in]
          pgpTxOut        => pgpTxOut,                            -- [out]
          pgpTxMasters    => pgpTxMasters,                        -- [in]
          pgpTxSlaves     => pgpTxSlaves,                         -- [out]
          -- Tx PHY interface
          phyTxActive     => phyTxActive,                         -- [in]
-         phyTxReady      => '1',                                 -- [in]
-         phyTxStart      => phyTxStart,                          -- [out]
-         phyTxData       => phyTxData,                           -- [out]
          phyTxHeader     => phyTxHeader,                         -- [out]
+         phyTxData       => phyTxData,                           -- [out]
+         phyTxValid      => phyTxValid,                          -- [out]
+         phyTxReady      => phyTxDataRdy,                        -- [in]
          -- Rx User interface
-         pgpRxClk        => pgpTxClkInt,                         -- [in]
-         pgpRxRst        => pgpTxRstInt,                         -- [in]
+         pgpRxClk        => phyTxClk,                            -- [in]
+         pgpRxRst        => phyTxRst,                            -- [in]
          pgpRxIn         => pgpRxIn,                             -- [in]
-         pgpRxOut        => pgpRxOut,                            -- [out]
+         pgpRxOut        => locRxOut,                            -- [out]
          pgpRxMasters    => pgpRxMasters,                        -- [out]
          pgpRxCtrl       => pgpRxCtrl,                           -- [in]
          -- Rx PHY interface
@@ -239,7 +264,7 @@ begin
          phyRxValid      => phyRxValid,                          -- [in]
          phyRxHeader     => phyRxHeader,                         -- [in]
          phyRxData       => phyRxData,                           -- [in]
-         phyRxStartSeq   => phyRxStartSeq,                       -- [in]
+         phyRxStartSeq   => '0',                                 -- [in]
          phyRxSlip       => phyRxSlip,                           -- [out]
          -- Debug Interface
          loopback        => loopback,                            -- [out]
@@ -254,53 +279,69 @@ begin
    --------------------------
    -- Wrapper for GTH IP core
    --------------------------
-   U_Pgp3GthUsIpWrapper_1 : entity work.Pgp3GthUsIpWrapper
+   U_Pgp3Gtp7IpWrapper : entity work.Pgp3Gtp7IpWrapper
       generic map (
-         TPD_G         => TPD_G,
-         TX_POLARITY_G => TX_POLARITY_G,
-         RX_POLARITY_G => RX_POLARITY_G,
-         RATE_G        => RATE_G,
-         EN_DRP_G      => EN_DRP_G)
+         TPD_G            => TPD_G,
+         CLKIN_PERIOD_G   => CLKIN_PERIOD_G,
+         BANDWIDTH_G      => BANDWIDTH_G,
+         CLKFBOUT_MULT_G  => CLKFBOUT_MULT_G,
+         CLKOUT0_DIVIDE_G => CLKOUT0_DIVIDE_G,
+         CLKOUT1_DIVIDE_G => CLKOUT1_DIVIDE_G,
+         CLKOUT2_DIVIDE_G => CLKOUT2_DIVIDE_G,
+         TX_POLARITY_G    => TX_POLARITY_G,
+         RX_POLARITY_G    => RX_POLARITY_G,
+         EN_DRP_G         => EN_DRP_G,
+         RATE_G           => RATE_G)
       port map (
-         stableClk       => stableClk,                           -- [in]
-         stableRst       => stableRst,                           -- [in]
-         qpllLock        => qpllLock,                            -- [in]
-         qpllclk         => qpllclk,                             -- [in]
-         qpllrefclk      => qpllrefclk,                          -- [in]
-         qpllRst         => qpllRst,                             -- [out]
-         gtRxP           => pgpGtRxP,                            -- [in]
-         gtRxN           => pgpGtRxN,                            -- [in]
-         gtTxP           => pgpGtTxP,                            -- [out]
-         gtTxN           => pgpGtTxN,                            -- [out]
-         rxReset         => phyRxInit,                           -- [in]
-         rxUsrClkActive  => open,                                -- [out]
-         rxResetDone     => phyRxActive,                         -- [out]
-         rxUsrClk        => open,                                -- [out]
-         rxUsrClk2       => phyRxClk,                            -- [out]
-         rxUsrClkRst     => phyRxRst,                            -- [out]
-         rxData          => phyRxData,                           -- [out]
-         rxDataValid     => phyRxValid,                          -- [out]
-         rxHeader        => phyRxHeader,                         -- [out]
-         rxHeaderValid   => open,                                -- [out]
-         rxStartOfSeq    => phyRxStartSeq,                       -- [out]
-         rxGearboxSlip   => phyRxSlip,                           -- [in]
-         rxOutClk        => open,                                -- [out]
-         txReset         => '0',                                 -- [in]
-         txUsrClkActive  => open,                                -- [out]
-         txResetDone     => phyTxActive,                         -- [out]
-         txUsrClk        => open,                                -- [out]
-         txUsrClk2       => pgpTxClkInt,                         -- [out]
-         txUsrClkRst     => pgpTxRstInt,                         -- [out]
-         txData          => phyTxData,                           -- [in]
-         txHeader        => phyTxHeader,                         -- [in]
-         txOutClk        => open,                                -- [out]
-         loopback        => loopback,                            -- [in]
-         axilClk         => axilClk,                             -- [in]
-         axilRst         => axilRst,                             -- [in]
-         axilReadMaster  => axilReadMasters(DRP_AXIL_INDEX_C),   -- [in]
-         axilReadSlave   => axilReadSlaves(DRP_AXIL_INDEX_C),    -- [out]
-         axilWriteMaster => axilWriteMasters(DRP_AXIL_INDEX_C),  -- [in]
-         axilWriteSlave  => axilWriteSlaves(DRP_AXIL_INDEX_C));  -- [out]
-
+         stableClk       => stableClk,
+         stableRst       => stableRst,
+         -- QPLL Interface
+         qPllOutClk      => qPllOutClk,
+         qPllOutRefClk   => qPllOutRefClk,
+         qPllLock        => qPllLock,
+         qpllRefClkLost  => qpllRefClkLost,
+         qpllRst         => qpllRst,
+         -- TX PLL Interface
+         gtTxOutClk      => gtTxOutClk,
+         gtTxPllRst      => gtTxPllRst,
+         txPllClk        => txPllClk,
+         txPllRst        => txPllRst,
+         gtTxPllLock     => gtTxPllLock,
+         -- GTH FPGA IO
+         gtRxP           => pgpGtRxP,
+         gtRxN           => pgpGtRxN,
+         gtTxP           => pgpGtTxP,
+         gtTxN           => pgpGtTxN,
+         -- Rx ports
+         rxUsrClk        => phyRxClk,
+         rxUsrClkRst     => phyRxRst,
+         rxReset         => phyRxInit,
+         rxResetDone     => phyRxActive,
+         rxValid         => phyRxValid,
+         rxHeader        => phyRxHeader,
+         rxData          => phyRxData,
+         rxSlip          => phyRxSlip,
+         rxAligned       => locRxOut.gearboxAligned,
+         -- Tx Ports
+         txUsrClk        => phyTxClk,
+         txUsrClkRst     => phyTxRst,
+         txReset         => stableRst,
+         txResetDone     => phyTxActive,
+         txHeader        => phyTxHeader,
+         txData          => phyTxData,
+         txValid         => phyTxValid,
+         txReady         => phyTxDataRdy,
+         -- Debug Interface 
+         loopback        => loopback,
+         txPreCursor     => txPreCursor,
+         txPostCursor    => txPostCursor,
+         txDiffCtrl      => txDiffCtrl,
+         -- AXI-Lite DRP Interface
+         axilClk         => axilClk,
+         axilRst         => axilRst,
+         axilReadMaster  => axilReadMasters(DRP_AXIL_INDEX_C),
+         axilReadSlave   => axilReadSlaves(DRP_AXIL_INDEX_C),
+         axilWriteMaster => axilWriteMasters(DRP_AXIL_INDEX_C),
+         axilWriteSlave  => axilWriteSlaves(DRP_AXIL_INDEX_C));
 
 end rtl;

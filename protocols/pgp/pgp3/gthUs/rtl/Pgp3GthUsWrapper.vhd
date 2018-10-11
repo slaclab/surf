@@ -52,9 +52,9 @@ entity Pgp3GthUsWrapper is
       TX_MUX_TDEST_LOW_G          : integer range 0 to 7   := 0;
       TX_MUX_ILEAVE_EN_G          : boolean                := true;
       TX_MUX_ILEAVE_ON_NOTVALID_G : boolean                := true;
-      EN_PGP_MON_G                : boolean                := true;
-      EN_GTH_DRP_G                : boolean                := true;
-      EN_QPLL_DRP_G               : boolean                := true;
+      EN_PGP_MON_G                : boolean                := false;
+      EN_GTH_DRP_G                : boolean                := false;
+      EN_QPLL_DRP_G               : boolean                := false;
       TX_POLARITY_G               : slv(3 downto 0)        := x"0";
       RX_POLARITY_G               : slv(3 downto 0)        := x"0";
       AXIL_BASE_ADDR_G            : slv(31 downto 0)       := (others => '0');
@@ -88,8 +88,8 @@ entity Pgp3GthUsWrapper is
       pgpTxSlaves       : out AxiStreamSlaveArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
       -- Frame Receive Interface
       pgpRxMasters      : out AxiStreamMasterArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
-      pgpRxCtrl         : in  AxiStreamCtrlArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);  -- Unused in implementation only
-      pgpRxSlaves       : in  AxiStreamSlaveArray((NUM_LANES_G*NUM_VC_G)-1 downto 0) := (others => AXI_STREAM_SLAVE_FORCE_C);  -- Unused in simulation only
+      pgpRxCtrl         : in  AxiStreamCtrlArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);  -- Used in implementation only
+      pgpRxSlaves       : in  AxiStreamSlaveArray((NUM_LANES_G*NUM_VC_G)-1 downto 0) := (others => AXI_STREAM_SLAVE_FORCE_C);  -- Used in simulation only
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk           : in  sl                                                     := '0';  -- Stable Clock
       axilRst           : in  sl                                                     := '0';
