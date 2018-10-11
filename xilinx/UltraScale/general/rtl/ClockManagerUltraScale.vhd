@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : ClockManagerUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-07-09
--- Last update: 2018-06-21
 -------------------------------------------------------------------------------
 -- Description: A wrapper over MMCM/PLL to avoid coregen use.
 -------------------------------------------------------------------------------

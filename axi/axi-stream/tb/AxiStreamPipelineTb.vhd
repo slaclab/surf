@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamPipelineTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-05-02
--- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the AxiStreamPipelineTb module
 -------------------------------------------------------------------------------

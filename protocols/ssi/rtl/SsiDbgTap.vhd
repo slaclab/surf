@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SsiDbgTap.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-06-18
--- Last update: 2017-06-18
 -------------------------------------------------------------------------------
 -- Description: SSI debug tap, intended to be connect to chipscope for debugging
 -------------------------------------------------------------------------------

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : DspAddSub.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-09-12
--- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: Generalized DSP inferred DSP inferred add/sub 
 -- Equation: p = a +/- b

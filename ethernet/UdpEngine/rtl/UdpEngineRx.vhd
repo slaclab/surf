@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : UdpEngineRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-08-20
--- Last update: 2017-10-18
 -------------------------------------------------------------------------------
 -- Description: UDP RX Engine Module
 -- Note: UDP checksum checked in EthMac core

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : OctalPortRam.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-04-12
--- Last update: 2016-04-19
 -------------------------------------------------------------------------------
 -- Description:   This module infers a Quad Port RAM as distributed RAM
 -------------------------------------------------------------------------------

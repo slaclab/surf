@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : JesdIlasGen.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-15
--- Last update: 2015-04-15
 -------------------------------------------------------------------------------
 -- Description: Initial lane alignment sequence Generator
 --              Adds A na R characters at the LMFC borders.

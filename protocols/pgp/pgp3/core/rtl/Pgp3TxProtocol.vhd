@@ -2,7 +2,6 @@
 -- Title      : PGP3 Transmit Protocol
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-03-30
 -------------------------------------------------------------------------------
 -- Description: 
 -- Takes pre-packetized AxiStream frames and creates a PGP3 66/64 protocol

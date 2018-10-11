@@ -1,8 +1,6 @@
  -------------------------------------------------------------------------------
 -- File       : EthCrc32Pkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-09-25
--- Last update: 2017-09-25
 -------------------------------------------------------------------------------
 -- Description: Ethernet CRC32 Ethernet/AAL5 Package File
 -- Polynomial: x^32 + x^26 + x^23 + x^22 + x^16 + x^12 + x^11 + x^10 + x^8 + x^7 + x^5 + x^4 + x^2 + x^1 + 1

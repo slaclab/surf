@@ -151,6 +151,7 @@ class AxiPciePhy(pr.Device):
             base         = pr.UInt,
             mode         = "RO",
             overlapEn    = True,        
+            hidden       = True,             
         ))
         
         self.add(pr.RemoteVariable(    
@@ -161,9 +162,10 @@ class AxiPciePhy(pr.Device):
             bitOffset    =  3,
             base         = pr.UInt,
             mode         = "RO",
-            overlapEn    = True,        
+            overlapEn    = True,
+            hidden       = True,             
         ))  
-        
+                
         self.add(pr.RemoteVariable(    
             name         = "RootPortPresent",
             description  = "Indicates the underlying integrated block is a Root Port when this bit is set. If set, Root Port registers are present in this interface.",
@@ -232,6 +234,7 @@ class AxiPciePhy(pr.Device):
             base         = pr.UInt,
             mode         = "RO",
             overlapEn    = True,        
+            hidden       = True,            
         ))  
 
         self.add(pr.RemoteVariable(    
@@ -243,23 +246,8 @@ class AxiPciePhy(pr.Device):
             base         = pr.UInt,
             mode         = "RO",
             overlapEn    = True,        
-        ))          
-        
-        self.add(pr.RemoteVariable(    
-            name         = "LinkWidth",
-            description  = "Reports the current link width. 00b = x1, 01b = x2, 10b = x4, 11b = x8.",
-            offset       =  0x144,
-            bitSize      =  2,
-            bitOffset    =  1,
-            enum        = {
-                0: "1", 
-                1: "2", 
-                2: "4", 
-                3: "8",
-            },
-            mode         = "RO",
-            overlapEn    = True,        
-        ))
+            hidden       = True,            
+        ))  
         
         self.add(pr.RemoteVariable(    
             name         = "LinkWidth16",
@@ -269,5 +257,46 @@ class AxiPciePhy(pr.Device):
             bitOffset    =  13,
             base         = pr.UInt,
             mode         = "RO",
-            overlapEn    = True,        
+            overlapEn    = True,
+            hidden       = True,            
         ))         
+        
+        self.add(pr.RemoteVariable(    
+            name         = "LinkWidth",
+            description  = "Reports the current link width. 00b = x1, 01b = x2, 10b = x4, 11b = x8.",
+            offset       =  0x144,
+            bitSize      =  2,
+            bitOffset    =  1,
+            mode         = "RO",
+            overlapEn    = True,        
+            hidden       = True,            
+        ))        
+        
+        self.add(pr.LinkVariable(
+            name         = 'LnkCapSpeed',                 
+            description  = 'LnkCapSpeed',  
+            mode         = 'RO', 
+            linkedGet    = lambda: '8.0' if self.Gen3Capable.value() else ( '5.0' if self.Gen2Capable.value() else '2.5'),
+            dependencies = [self.Gen3Capable,self.Gen2Capable],            
+            units        = 'GT/s',
+        ))
+
+        self.add(pr.LinkVariable(
+            name         = 'LnkStaSpeed',                 
+            description  = 'LnkStaSpeed',  
+            mode         = 'RO', 
+            linkedGet    = lambda: '8.0' if self.LinkRateGen3.value() else ( '5.0' if self.LinkRateGen2.value() else '2.5'),
+            dependencies = [self.LinkRateGen3,self.LinkRateGen2],            
+            units        = 'GT/s',
+        ))         
+        
+        self.add(pr.LinkVariable(
+            name         = 'LnkStaWidth',                 
+            description  = 'LnkStaWidth',  
+            mode         = 'RO', 
+            linkedGet    = lambda: 16 if self.LinkWidth16.value() else 2**self.LinkWidth.value(),
+            dependencies = [self.LinkWidth16,self.LinkWidth],      
+            units        = '# of lanes',
+        ))         
+            
+        

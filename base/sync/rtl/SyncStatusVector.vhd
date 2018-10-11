@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SyncStatusVector.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-11
--- Last update: 2014-06-02
 -------------------------------------------------------------------------------
 -- Description: General Purpose Status Vector and Status Counter module
 -------------------------------------------------------------------------------

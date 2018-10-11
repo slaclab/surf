@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : JesdTestSigGen.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-15
--- Last update: 2015-04-15
 -------------------------------------------------------------------------------
 -- Description: Outputs a digital signal depending on thresholds
 --              This is a test module so only F_G = 2 

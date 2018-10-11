@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SsiInsertSof.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-08-18
--- Last update: 2015-10-23
 -------------------------------------------------------------------------------
 -- Description: Inserts the SOF for converting a generic AXIS into a SSI bus
 -------------------------------------------------------------------------------

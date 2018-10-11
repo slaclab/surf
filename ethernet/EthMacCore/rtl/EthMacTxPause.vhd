@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : EthMacTxPause.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-09-22
--- Last update: 2016-10-20
 -------------------------------------------------------------------------------
 -- Description:
 -- Generic pause frame generator for Ethernet MACs.  This module as acts as

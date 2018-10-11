@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : ClinkUart.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-11-13
 -------------------------------------------------------------------------------
 -- Description:
 -- CameraLink UART RX/TX

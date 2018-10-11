@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : GigEthGtyUltraScaleWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2018-04-05
--- Last update: 2018-04-05
 -------------------------------------------------------------------------------
 -- Description: Gty Wrapper for 1000BASE-X Ethernet
 -- Note: This module supports up to a MGT QUAD of 1GigE interfaces
@@ -32,6 +30,8 @@ entity GigEthGtyUltraScaleWrapper is
    generic (
       TPD_G              : time                             := 1 ns;
       NUM_LANE_G         : natural range 1 to 4             := 1;
+      PAUSE_EN_G         : boolean                          := true;
+      PAUSE_512BITS_G    : positive                         := 8;
       -- Clocking Configurations
       USE_GTREFCLK_G     : boolean                          := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
       CLKIN_PERIOD_G     : real                             := 8.0;
@@ -164,11 +164,13 @@ begin
 
       U_GigEthGtyUltraScale : entity work.GigEthGtyUltraScale
          generic map (
-            TPD_G         => TPD_G,
+            TPD_G           => TPD_G,
+            PAUSE_EN_G      => PAUSE_EN_G,
+            PAUSE_512BITS_G => PAUSE_512BITS_G,
             -- AXI-Lite Configurations
-            EN_AXI_REG_G  => EN_AXI_REG_G,
+            EN_AXI_REG_G    => EN_AXI_REG_G,
             -- AXI Streaming Configurations
-            AXIS_CONFIG_G => AXIS_CONFIG_G(i))
+            AXIS_CONFIG_G   => AXIS_CONFIG_G(i))
          port map (
             -- Local Configurations
             localMac           => localMac(i),

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : MicroblazeBasicCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-05-16
--- Last update: 2016-07-14
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Microblaze Basic Core for "90% case"
 -------------------------------------------------------------------------------
