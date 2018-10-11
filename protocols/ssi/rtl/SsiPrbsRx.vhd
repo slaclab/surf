@@ -31,9 +31,12 @@ entity SsiPrbsRx is
       STATUS_CNT_WIDTH_G         : natural range 1 to 32    := 32;
       -- FIFO configurations
       SLAVE_READY_EN_G           : boolean                  := true;
-      SYNTH_MODE_G               : string                   := "inferred";
-      MEMORY_TYPE_G              : string                   := "block"; 
+      BRAM_EN_G                  : boolean                  := true;
+      XIL_DEVICE_G               : string                   := "7SERIES";
+      USE_BUILT_IN_G             : boolean                  := false;
       GEN_SYNC_FIFO_G            : boolean                  := false;
+      ALTERA_SYN_G               : boolean                  := false;
+      ALTERA_RAM_G               : string                   := "M9K";
       CASCADE_SIZE_G             : positive                 := 1;
       FIFO_ADDR_WIDTH_G          : positive                 := 9;
       FIFO_PAUSE_THRESH_G        : positive                 := 2**8;
@@ -42,9 +45,7 @@ entity SsiPrbsRx is
       PRBS_TAPS_G                : NaturalArray             := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
       -- AXI Stream IO Config
       SLAVE_AXI_STREAM_CONFIG_G  : AxiStreamConfigType      := ssiAxiStreamConfig(4);
-      SLAVE_AXI_PIPE_STAGES_G    : natural range 0 to 16    := 0;
-      MASTER_AXI_STREAM_CONFIG_G : AxiStreamConfigType      := ssiAxiStreamConfig(4);
-      MASTER_AXI_PIPE_STAGES_G   : natural range 0 to 16    := 0);
+      SLAVE_AXI_PIPE_STAGES_G    : natural range 0 to 16    := 0);
    port (
       -- Streaming RX Data Interface (sAxisClk domain) 
       sAxisClk        : in  sl;
@@ -52,11 +53,6 @@ entity SsiPrbsRx is
       sAxisMaster     : in  AxiStreamMasterType;
       sAxisSlave      : out AxiStreamSlaveType;
       sAxisCtrl       : out AxiStreamCtrlType;
-      -- Optional: Streaming TX Data Interface (mAxisClk domain)
-      mAxisClk        : in  sl;  -- Note: a clock must always be applied to this port
-      mAxisRst        : in  sl                     := '0';
-      mAxisMaster     : out AxiStreamMasterType;
-      mAxisSlave      : in  AxiStreamSlaveType     := AXI_STREAM_SLAVE_FORCE_C;
       -- Optional: AXI-Lite Register Interface (axiClk domain)
       axiClk          : in  sl                     := '0';
       axiRst          : in  sl                     := '0';
@@ -89,8 +85,7 @@ architecture rtl of SsiPrbsRx is
       IDLE_S,
       LENGTH_S,
       DATA_S,
-      BIT_ERR_S,
-      SEND_RESULT_S);
+      BIT_ERR_S);
 
    type RegType is record
       busy            : sl;
@@ -116,7 +111,6 @@ architecture rtl of SsiPrbsRx is
       startTime       : slv(31 downto 0);
       packetRate      : slv(31 downto 0);
       rxAxisSlave     : AxiStreamSlaveType;
-      txAxisMaster    : AxiStreamMasterType;
       state           : StateType;
    end record;
 
@@ -144,19 +138,15 @@ architecture rtl of SsiPrbsRx is
       startTime       => (others => '1'),
       packetRate      => (others => '1'),
       rxAxisSlave     => AXI_STREAM_SLAVE_INIT_C,
-      txAxisMaster    => AXI_STREAM_MASTER_INIT_C,
       state           => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal txAxisMaster,
-      rxAxisMaster : AxiStreamMasterType;
+   signal rxAxisMaster : AxiStreamMasterType;
+   signal rxAxisSlave : AxiStreamSlaveType;
 
-   signal txAxisSlave,
-      rxAxisSlave : AxiStreamSlaveType;
-
-   signal axisCtrl : AxiStreamCtrlArray(0 to 1);
+   signal axisCtrl : AxiStreamCtrlArray(1 downto 0) := (others => AXI_STREAM_CTRL_UNUSED_C);
 
    constant STATUS_SIZE_C : positive := 10;
 
@@ -220,9 +210,12 @@ begin
          PIPE_STAGES_G       => SLAVE_AXI_PIPE_STAGES_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
          -- FIFO configurations
-         SYNTH_MODE_G        => SYNTH_MODE_G,
-         MEMORY_TYPE_G       => MEMORY_TYPE_G,
+         BRAM_EN_G           => BRAM_EN_G,
+         XIL_DEVICE_G        => XIL_DEVICE_G,
+         USE_BUILT_IN_G      => USE_BUILT_IN_G,
          GEN_SYNC_FIFO_G     => true,
+         ALTERA_SYN_G        => ALTERA_SYN_G,
+         ALTERA_RAM_G        => ALTERA_RAM_G,
          CASCADE_SIZE_G      => CASCADE_SIZE_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => true,
@@ -243,26 +236,12 @@ begin
          mAxisMaster => rxAxisMaster,
          mAxisSlave  => rxAxisSlave);
 
-
-   comb : process (r, rxAxisMaster, sAxisRst, txAxisSlave) is
+   comb : process (r, rxAxisMaster, sAxisRst) is
       variable i : integer;
       variable v : RegType;
    begin
       -- Latch the current value
       v := r;
-
-      -- Set the AXIS configurations
-      v.txAxisMaster.tKeep := (others => '0');
-      v.txAxisMaster.tStrb := (others => '0');
-      for i in 0 to MASTER_PRBS_SSI_CONFIG_C.TDATA_BYTES_C-1 loop
-         v.txAxisMaster.tKeep(i) := '1';
-         v.txAxisMaster.tStrb(i) := '1';
-      end loop;
-      if txAxisSlave.tReady = '1' then
-         v.txAxisMaster.tValid := '0';
-         v.txAxisMaster.tLast  := '0';
-         v.txAxisMaster.tUser  := (others => '0');
-      end if;
 
       -- Reset strobe signals
       v.updatedResults     := '0';
@@ -368,7 +347,7 @@ begin
                   -- Reset the counter
                   v.dataCnt := (others => '0');
                   -- Next State
-                  v.state   := SEND_RESULT_S;
+                  v.state   := IDLE_S;
                elsif r.dataCnt /= MAX_CNT_C then
                   -- Increment the counter
                   v.dataCnt := r.dataCnt + 1;
@@ -411,51 +390,11 @@ begin
                -- Check if there was an eof flag
                if r.eof = '1' then
                   -- Next State
-                  v.state := SEND_RESULT_S;
+                  v.state := IDLE_S;
                else
                   -- Next State
                   v.state := DATA_S;
                end if;
-            end if;
-         ----------------------------------------------------------------------
-         when SEND_RESULT_S =>
-            -- Check the upstream buffer status
-            if (v.txAxisMaster.tValid = '0') then
-               -- Sending Data 
-               v.txAxisMaster.tValid := '1';
-               -- Increment the data counter
-               v.txCnt               := r.txCnt + 1;
-               -- Send data w.r.t. the counter
-               case (r.txCnt) is
-                  when x"0" =>
-                     -- Update strobe for the results
-                     v.updatedResults                   := '1';
-                     -- Write the data to the TX virtual channel
-                     v.txAxisMaster.tData(31 downto 16) := x"FFFF";  -- static pattern for software alignment
-                     v.txAxisMaster.tData(15 downto 0)  := (others => '0');
-                  when x"1" =>
-                     v.txAxisMaster.tData(31 downto 0) := r.packetLength;
-                  when x"2" =>
-                     v.txAxisMaster.tData(31 downto 0) := r.packetRate;
-                  when x"3" =>
-                     v.txAxisMaster.tData(31 downto 0) := r.errWordCnt;
-                  when x"4" =>
-                     v.txAxisMaster.tData(31 downto 0) := r.errbitCnt;
-                  when others =>
-                     -- Reset the counter
-                     v.txCnt                           := (others => '0');
-                     -- Send the last word
-                     v.txAxisMaster.tLast              := '1';
-                     v.txAxisMaster.tData(31 downto 4) := (others => '0');
-                     v.txAxisMaster.tData(3)           := r.errDataBus;
-                     v.txAxisMaster.tData(2)           := r.eofe;
-                     v.txAxisMaster.tData(1)           := r.errLength;
-                     v.txAxisMaster.tData(0)           := r.errMissedPacket;
-                     -- Reset the busy flag
-                     v.busy                            := '0';
-                     -- Next State
-                     v.state                           := IDLE_S;
-               end case;
             end if;
       ----------------------------------------------------------------------
       end case;
@@ -472,7 +411,6 @@ begin
       rin <= v;
 
       -- Outputs
-      txAxisMaster    <= r.txAxisMaster;
       updatedResults  <= r.updatedResults;
       errMissedPacket <= r.errMissedPacket;
       errLength       <= r.errLength;
@@ -493,36 +431,6 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-
-   AxiStreamFifo_Tx : entity work.AxiStreamFifoV2
-      generic map(
-         -- General Configurations
-         TPD_G               => TPD_G,
-         INT_PIPE_STAGES_G   => MASTER_AXI_PIPE_STAGES_G,
-         PIPE_STAGES_G       => MASTER_AXI_PIPE_STAGES_G,
-         -- FIFO configurations
-         SYNTH_MODE_G        => SYNTH_MODE_G,
-         MEMORY_TYPE_G       => MEMORY_TYPE_G,
-         GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
-         CASCADE_SIZE_G      => CASCADE_SIZE_G,
-         FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
-         FIFO_FIXED_THRESH_G => true,
-         FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
-         -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => MASTER_PRBS_SSI_CONFIG_C,
-         MASTER_AXI_CONFIG_G => MASTER_AXI_STREAM_CONFIG_G)
-      port map (
-         -- Slave Port
-         sAxisClk    => sAxisClk,
-         sAxisRst    => sAxisRst,
-         sAxisMaster => txAxisMaster,
-         sAxisSlave  => txAxisSlave,
-         sAxisCtrl   => axisCtrl(1),
-         -- Master Port
-         mAxisClk    => mAxisClk,
-         mAxisRst    => mAxisRst,
-         mAxisMaster => mAxisMaster,
-         mAxisSlave  => mAxisSlave);
 
    SyncFifo_Inst : entity work.SynchronizerFifo
       generic map (
