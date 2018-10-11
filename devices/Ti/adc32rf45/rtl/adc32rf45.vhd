@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : adc32rf45.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-05-26
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: SPI Master Wrapper that includes a state machine for SPI paging
 -------------------------------------------------------------------------------

@@ -36,6 +36,7 @@ entity OutputBufferReg is
       CE : in  sl := '1';
       R  : in  sl := '0';
       S  : in  sl := '0';
+      T  : in  sl := '0';  -- optional tristate (0 = enabled, 1 = high z output)
       O  : out sl;
       OB : out sl := '1');
 end OutputBufferReg;
@@ -60,16 +61,18 @@ begin
          R  => R);                      -- 1-bit reset input
 
    GEN_OBUF : if (DIFF_PAIR_G = false) generate
-      U_OBUFDS : OBUF
+      U_OBUFDS : OBUFT
          port map (
             I => outputSig,
+            T => T,
             O => O);
    end generate;
 
    GEN_OBUFDS : if (DIFF_PAIR_G = true) generate
-      U_OBUFDS : OBUFDS
+      U_OBUFDS : OBUFTDS
          port map (
             I  => outputSig,
+            T  => T,
             O  => O,
             OB => OB);
    end generate;

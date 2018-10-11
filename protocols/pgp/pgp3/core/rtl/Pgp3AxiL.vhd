@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Pgp2bAxi.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2009-05-27
--- Last update: 2018-01-10
 -------------------------------------------------------------------------------
 -- Description:
 -- AXI-Lite block to manage the PGP3 interface.

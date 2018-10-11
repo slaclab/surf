@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : IpV4EngineCoreTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-08-17
--- Last update: 2015-08-18
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the IpV4EngineCore
 -------------------------------------------------------------------------------

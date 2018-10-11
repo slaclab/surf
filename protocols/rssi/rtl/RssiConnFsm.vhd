@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : RssiConnFsm.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-08-09
--- Last update: 2016-06-23
 -------------------------------------------------------------------------------
 -- Description: Connection establishment mechanism:
 --                - Connection open/close request,

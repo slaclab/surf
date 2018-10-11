@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : RssiAxiLiteRegItf.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-01-15
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description:  Register decoding for RSSI core
 --               0x00 (RW)- Control register [4:0]:

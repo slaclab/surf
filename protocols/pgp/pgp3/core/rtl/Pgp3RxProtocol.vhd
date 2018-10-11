@@ -2,7 +2,6 @@
 -- Title      : PGP3 Receive Protocol
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-03-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------

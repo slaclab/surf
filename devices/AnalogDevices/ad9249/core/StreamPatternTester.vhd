@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : StreamPatternTester.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 05/27/2016
--- Last update: 05/27/2016
 -------------------------------------------------------------------------------
 -- Description:   Test which compares the data stream to selected pattern
 --                Designed for the automated delay alignment of the fast LVDS lines  
@@ -29,7 +27,7 @@ use work.AxiStreamPkg.all;
 entity StreamPatternTester is 
    generic (
       TPD_G             : time := 1 ns;
-      NUM_CHANNELS_G    : integer range 1 to 31 := 8
+      NUM_CHANNELS_G    : integer range 1 to 128 := 8
    );
    port ( 
       -- Master system clock

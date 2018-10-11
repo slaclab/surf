@@ -232,30 +232,40 @@ class Ad9249ReadoutGroup(pr.Device):
     def __init__(self,       
             name        = 'Ad9249ReadoutGroup',
             description = 'Configure readout of 1 bank of an AD9249',
+            fpga        = '7series',
             channels    = 8,
             **kwargs):
         assert (channels > 0 and channels <= 8), f'channels ({channels}) must be between 0 and 8'
         super().__init__(name=name, description=description, **kwargs)   
         
+        if fpga == '7series':
+           delayBits = 6
+        elif fpga == 'ultrascale':
+           delayBits = 10
+        else:
+           delayBits = 6
+        
         for i in range(channels):
             self.add(pr.RemoteVariable(
-                name        = f'ChannelDelay[{i}]',
-                description = f'IDELAY value for serial channel {i}',
-                offset      = i*4,
-                bitSize     = 5,
-                bitOffset   = 0,
-                base        = pr.UInt,
-                mode        = 'RW',
+                name         = f'ChannelDelay[{i}]',
+                description  = f'IDELAY value for serial channel {i}',
+                offset       = i*4,
+                bitSize      = delayBits,
+                bitOffset    = 0,
+                base         = pr.UInt,
+                mode         = 'RW',
+                verify       = False,
             ))
 
         self.add(pr.RemoteVariable(
             name        = 'FrameDelay',
             description = 'IDELAY value for FCO',
             offset      = 0x20,
-            bitSize     = 5,
+            bitSize     = delayBits,
             bitOffset   = 0,
             base        = pr.UInt,
             mode        = 'RW',
+            verify       = False,
         ))
 
         self.add(pr.RemoteVariable(
@@ -318,17 +328,34 @@ class Ad9249ReadoutGroup(pr.Device):
             bitOffset=0,
             base=pr.UInt,
             function=pr.RemoteCommand.touch))
+    
+    @staticmethod   
+    def setDelay(var, value, write):
+        iValue = value + 512
+        var.dependencies[0].set(iValue, write)
+        var.dependencies[0].set(value, write)
+    
+    @staticmethod   
+    def getDelay(var, read):
+       return var.dependencies[0].get(read)
 
-    def readBlocks(self, recurse=True, variable=None):
-        if variable is not None:
-            variable._block.backgroundTransaction(rim.Read)
-        else:
-            self.FreezeDebug(1)
-            for block in self._blocks:
-                if block.bulkEn:
-                    block.backgroundTransaction(rim.Read)
-            self.FreezeDebug(0)
+    def readBlocks(self, recurse=True, variable=None, checkEach=False): 
+         if variable is not None: 
+             freeze = isinstance(variable, list) and any(v.name.startswith('AdcChannel') for v in variable) 
+             if freeze: 
+                 self.FreezeDebug(1) 
+             for b in self._getBlocks(variable): 
+                 b.startTransaction(rim.Read, checkEach) 
+             if freeze: 
+                 self.FreezeDebug(0) 
+         else: 
+             self.FreezeDebug(1) 
+             for block in self._blocks: 
+                 if block.bulkEn: 
+                     block.startTransaction(rim.Read, checkEach) 
+             self.FreezeDebug(0) 
+ 
 
-            if recurse:
-                for key, value in self.devices.items():
-                    value.readBlocks(recurse=True)
+             if recurse: 
+                 for key, value in self.devices.items(): 
+                     value.readBlocks(recurse=True, checkEach=checkEach) 

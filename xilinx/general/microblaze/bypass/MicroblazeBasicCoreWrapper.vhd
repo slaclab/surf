@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : MicroblazeBasicCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-05-16
--- Last update: 2017-08-10
 -------------------------------------------------------------------------------
 -- Description: "BYPASS" Wrapper for Microblaze Basic Core
 -------------------------------------------------------------------------------

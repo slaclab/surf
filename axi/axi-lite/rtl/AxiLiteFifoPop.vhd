@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiLiteFifoPop.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-04-02
--- Last update: 2016-04-26
 -------------------------------------------------------------------------------
 -- Description:
 -- Supports reading of general purpose FIFOs from the AxiLite bus.

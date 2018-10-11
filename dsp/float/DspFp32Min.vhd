@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : DspFp32Min.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-09-18
--- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: 32-bit Floating Point DSP inferred minimum module  
 -- Equation: p = min(a[i])

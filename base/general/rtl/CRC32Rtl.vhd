@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : CRC32Rtl.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-05-01
--- Last update: 2018-03-15
 -------------------------------------------------------------------------------
 -- Description:
 -- VHDL source file for CRC32 calculation to replace macro of Virtex5 in Virtex6 and Spartan6.

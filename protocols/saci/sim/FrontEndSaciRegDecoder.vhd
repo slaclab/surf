@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : FrontEndSaciRegDecoder.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2012-05-07
--- Last update: 2018-05-16
 -------------------------------------------------------------------------------
 -- Description: Decodes register addresses from the Front End interface.
 -------------------------------------------------------------------------------

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamShift.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-25
--- Last update: 2016-10-27
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to shift data bytes within an AXI stream. Both left and right shifting

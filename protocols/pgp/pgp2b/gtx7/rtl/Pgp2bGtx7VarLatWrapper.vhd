@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Pgp2bGtx7VarLatWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-01-29
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Example PGP 3.125 Gbps front end wrapper
 -- Note: Default generic configurations are for the KC705 development board

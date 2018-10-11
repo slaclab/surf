@@ -22,55 +22,57 @@ import pyrogue as pr
 
 class Pgp2bAxi(pr.Device):
     def __init__(self, 
-            name        = "Pgp2bAxi",
-            description = "Configuration and status of a downstream PGP link",
-            **kwargs):
+                 name        = "Pgp2bAxi",
+                 description = "Configuration and status of a downstream PGP link",
+                 writeEn = True,
+                 **kwargs):
         super().__init__(name=name, description=description, **kwargs) 
-        
-        self.add(pr.RemoteVariable(
-            name        = "Loopback", 
-            description = "GT Loopback Mode",
-            offset      = 0xC, 
-            bitSize     = 3, 
-            bitOffset   = 0, 
-            mode        = "RW", 
-            base        = pr.UInt,
-            enum = {0: 'No',
-                    1: 'Near-end PCS',
-                    2: 'Near-end PMA',
-                    4: 'Far-end PMA',
-                    6: 'Far-end PCS'},
-        ))
-        
-        self.add(pr.RemoteVariable(
-            name        = "LocData", 
-            description = "Sideband data to transmit",
-            offset      = 0x10, 
-            bitSize     = 8, 
-            bitOffset   = 0, 
-            mode        = "RW", 
-            base        = pr.UInt,
-        ))
-        
-        self.add(pr.RemoteVariable(
-            name        = "LocDataEn", 
-            description = "Enable sideband data to transmit",
-            offset      = 0x10, 
-            bitSize     = 1, 
-            bitOffset   = 8, 
-            mode        = "RW", 
-            base        = pr.Bool,
-        ))
-        
-        self.add(pr.RemoteVariable(
-            name        = "AutoStatus", 
-            description = "Auto Status Send Enable (PPI)",
-            offset      = 0x14, 
-            bitSize     = 1, 
-            bitOffset   = 0, 
-            mode        = "RW", 
-            base        = pr.Bool,
-        ))
+
+        if writeEn:
+            self.add(pr.RemoteVariable(
+                name        = "Loopback", 
+                description = "GT Loopback Mode",
+                offset      = 0xC, 
+                bitSize     = 3, 
+                bitOffset   = 0, 
+                mode        = "RW", 
+                base        = pr.UInt,
+                enum = {0: 'No',
+                        1: 'Near-end PCS',
+                        2: 'Near-end PMA',
+                        4: 'Far-end PMA',
+                        6: 'Far-end PCS'},
+            ))
+
+            self.add(pr.RemoteVariable(
+                name        = "LocData", 
+                description = "Sideband data to transmit",
+                offset      = 0x10, 
+                bitSize     = 8, 
+                bitOffset   = 0, 
+                mode        = "RW", 
+                base        = pr.UInt,
+            ))
+
+            self.add(pr.RemoteVariable(
+                name        = "LocDataEn", 
+                description = "Enable sideband data to transmit",
+                offset      = 0x10, 
+                bitSize     = 1, 
+                bitOffset   = 8, 
+                mode        = "RW", 
+                base        = pr.Bool,
+            ))
+
+            self.add(pr.RemoteVariable(
+                name        = "AutoStatus", 
+                description = "Auto Status Send Enable (PPI)",
+                offset      = 0x14, 
+                bitSize     = 1, 
+                bitOffset   = 0, 
+                mode        = "RW", 
+                base        = pr.Bool,
+            ))
 
         self.add(pr.RemoteVariable(
             name        = "RxPhyReady",       
@@ -215,7 +217,8 @@ class Pgp2bAxi(pr.Device):
         for offset, name in enumerate(countVars):
             self.add(pr.RemoteVariable(
                 name        = name, 
-                offset      = ((offset*4)+0x28), 
+                offset      = ((offset*4)+0x28),
+                disp        = '{:d}',
                 bitSize     = 32, 
                 bitOffset   = 0, 
                 mode        = "RO", 
@@ -251,7 +254,8 @@ class Pgp2bAxi(pr.Device):
             bitSize     = 8, 
             bitOffset   = 0, 
             mode        = "RO", 
-            base        = pr.UInt, 
+            base        = pr.UInt,
+            disp        = "{:d}",
             description = "",
             pollInterval = 1,
         ))
@@ -262,7 +266,8 @@ class Pgp2bAxi(pr.Device):
             bitSize     = 8, 
             bitOffset   = 0, 
             mode        = "RO", 
-            base        = pr.UInt, 
+            base        = pr.UInt,
+            disp        = "{:d}",            
             description = "",
             pollInterval = 1,
         ))
@@ -308,17 +313,20 @@ class Pgp2bAxi(pr.Device):
 #             self.ResetRx.set(0, False)
 #             self.ResetTx.set(0, False)
 #             self.ResetTx._block.startTransaction(rim.Write, check=True)
-            
-        self.add(pr.RemoteCommand(
-            name        = "Flush", 
-            offset      = 0x08, 
-            bitSize     = 1, 
-            bitOffset   = 0, 
-            function    = pr.BaseCommand.toggle,
-        ))
+
+
+        if writeEn:
+            self.add(pr.RemoteCommand(
+                name        = "Flush", 
+                offset      = 0x08, 
+                bitSize     = 1, 
+                bitOffset   = 0, 
+                function    = pr.BaseCommand.toggle,
+                ))
 
         def softReset(self):
-            self.Flush()
+            if writeEn:
+                self.Flush()
 
         def hardReset(self):
             self.ResetTxRx()

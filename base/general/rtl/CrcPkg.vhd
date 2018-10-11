@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : CrcPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-21
--- Last update: 2014-04-21
 -------------------------------------------------------------------------------
 -- Description: This package defines a few functions that are useful for 
 --              computing CRC values.   
