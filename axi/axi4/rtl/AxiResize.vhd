@@ -55,7 +55,7 @@ architecture rtl of AxiResize is
    constant MAX_BYTES_C : integer := maximum(SLV_BYTES_C, MST_BYTES_C);
    constant COUNT_C     : integer := ite(SLV_BYTES_C > MST_BYTES_C, SLV_BYTES_C / MST_BYTES_C, MST_BYTES_C / SLV_BYTES_C);
    constant BIT_CNT_C   : integer := bitSize(COUNT_C);
-   constant SHIFT_C    : integer  := log2(BIT_CNT_C);
+   constant SHIFT_C     : integer := log2(BIT_CNT_C);
 
    type RegType is record
       rdCount  : slv(BIT_CNT_C-1 downto 0);
@@ -98,7 +98,7 @@ begin
          variable rdBytes   : integer;  -- byte version of counter
          variable wrBytes   : integer;  -- byte version of counter
          variable arlen     : slv(7 downto 0);
-         variable awlen     : slv(7 downto 0); 
+         variable awlen     : slv(7 downto 0);
       begin
          -- Latch the current value
          v := r;
@@ -106,7 +106,7 @@ begin
          ----------------------------------------------------------------------
          --                AXI Read Resizing Logic                           --
          ----------------------------------------------------------------------         
-         
+
          -- Update the indexes
          rdIdx := conv_integer(r.rdCount);
 
@@ -128,7 +128,7 @@ begin
          ibRdM := mAxiReadSlave;
 
          -- Pipeline advance
-         if (v.rdSlave.rvalid = '0') and (ibRdM.rvalid = '1') then
+         if (v.rdSlave.rvalid = '0') then
 
             -- Increasing size
             if SLV_BYTES_C > MST_BYTES_C then
@@ -147,11 +147,13 @@ begin
                v.rdSlave.rlast := ibRdM.rlast;
 
                -- Determine if we move data
-               if r.rdCount = (COUNT_C-1) or ibRdM.rlast = '1' then
-                  v.rdSlave.rvalid := '1';
-                  v.rdCount        := (others => '0');
-               else
-                  v.rdCount := r.rdCount + 1;
+               if (ibRdM.rvalid = '1') then
+                  if r.rdCount = (COUNT_C-1) or ibRdM.rlast = '1' then
+                     v.rdSlave.rvalid := '1';
+                     v.rdCount        := (others => '0');
+                  else
+                     v.rdCount := r.rdCount + 1;
+                  end if;
                end if;
 
             -- Decreasing size
@@ -165,14 +167,16 @@ begin
                v.rdSlave.rresp := ibRdM.rresp;
 
                -- Determine if we move data
-               if (r.rdCount = (COUNT_C-1)) or ((rdBytes >= rdByteCnt) and (ibRdM.rlast = '1')) then
-                  v.rdCount         := (others => '0');
-                  v.rdMaster.rready := '1';
-                  v.rdSlave.rlast   := ibRdM.rlast;
-               else
-                  v.rdCount         := r.rdCount + 1;
-                  v.rdMaster.rready := '0';
-                  v.rdSlave.rlast   := '0';
+               if (ibRdM.rvalid = '1') then
+                  if (r.rdCount = (COUNT_C-1)) or ((rdBytes >= rdByteCnt) and (ibRdM.rlast = '1')) then
+                     v.rdCount         := (others => '0');
+                     v.rdMaster.rready := '1';
+                     v.rdSlave.rlast   := ibRdM.rlast;
+                  else
+                     v.rdCount         := r.rdCount + 1;
+                     v.rdMaster.rready := '0';
+                     v.rdSlave.rlast   := '0';
+                  end if;
                end if;
 
                -- Drop transfers, except on tLast
@@ -182,13 +186,13 @@ begin
          end if;
 
          if MST_BYTES_C > SLV_BYTES_C then
-            arlen(7 downto 7-SHIFT_C+1) := (others=>'0');
-            arlen(7-SHIFT_C downto 0)   := sAxiReadMaster.arlen(7 downto SHIFT_C);            
+            arlen(7 downto 7-SHIFT_C+1) := (others => '0');
+            arlen(7-SHIFT_C downto 0)   := sAxiReadMaster.arlen(7 downto SHIFT_C);
          else
             arlen(7 downto SHIFT_C)   := sAxiReadMaster.arlen(7-SHIFT_C downto 0);
-            arlen(SHIFT_C-1 downto 0) := (others=>'1');      
-         end if;         
-         
+            arlen(SHIFT_C-1 downto 0) := (others => '1');
+         end if;
+
          ---------------------------
          -- mAxiReadMaster's Outputs
          ---------------------------
@@ -244,7 +248,7 @@ begin
          ibWrM := sAxiWriteMaster;
 
          -- Pipeline advance
-         if (v.wrMaster.wvalid = '0') and (ibWrM.wvalid = '1') then
+         if (v.wrMaster.wvalid = '0') then
 
             -- Increasing size
             if MST_BYTES_C > SLV_BYTES_C then
@@ -260,15 +264,17 @@ begin
                v.wrMaster.wdata((SLV_BYTES_C*8*wrIdx)+((SLV_BYTES_C*8)-1) downto (SLV_BYTES_C*8*wrIdx)) := ibWrM.wdata((SLV_BYTES_C*8)-1 downto 0);
                v.wrMaster.wstrb((SLV_BYTES_C*wrIdx)+(SLV_BYTES_C-1) downto (SLV_BYTES_C*wrIdx))         := ibWrM.wstrb(SLV_BYTES_C-1 downto 0);
 
-               v.wrMaster.wid   := ibWrM.wid; --- The WID signal is implemented only in AXI3
+               v.wrMaster.wid   := ibWrM.wid;  --- The WID signal is implemented only in AXI3
                v.wrMaster.wlast := ibWrM.wlast;
 
                -- Determine if we move data
-               if r.wrCount = (COUNT_C-1) or ibWrM.wlast = '1' then
-                  v.wrMaster.wvalid := '1';
-                  v.wrCount         := (others => '0');
-               else
-                  v.wrCount := r.wrCount + 1;
+               if (ibWrM.wvalid = '1') then
+                  if r.wrCount = (COUNT_C-1) or ibWrM.wlast = '1' then
+                     v.wrMaster.wvalid := '1';
+                     v.wrCount         := (others => '0');
+                  else
+                     v.wrCount := r.wrCount + 1;
+                  end if;
                end if;
 
             -- Decreasing size
@@ -279,17 +285,19 @@ begin
                v.wrMaster.wdata((MST_BYTES_C*8)-1 downto 0) := ibWrM.wdata((MST_BYTES_C*8*wrIdx)+((MST_BYTES_C*8)-1) downto (MST_BYTES_C*8*wrIdx));
                v.wrMaster.wstrb(MST_BYTES_C-1 downto 0)     := ibWrM.wstrb((MST_BYTES_C*wrIdx)+(MST_BYTES_C-1) downto (MST_BYTES_C*wrIdx));
 
-               v.wrMaster.wid := ibWrM.wid; -- The WID signal is implemented only in AXI3
+               v.wrMaster.wid := ibWrM.wid;  -- The WID signal is implemented only in AXI3
 
                -- Determine if we move data
-               if (r.wrCount = (COUNT_C-1)) or ((wrBytes >= wrByteCnt) and (ibWrM.wlast = '1')) then
-                  v.wrCount        := (others => '0');
-                  v.wrSlave.wready := '1';
-                  v.wrMaster.wlast := ibWrM.wlast;
-               else
-                  v.wrCount        := r.wrCount + 1;
-                  v.wrSlave.wready := '0';
-                  v.wrMaster.wlast := '0';
+               if (ibWrM.wvalid = '1') then
+                  if (r.wrCount = (COUNT_C-1)) or ((wrBytes >= wrByteCnt) and (ibWrM.wlast = '1')) then
+                     v.wrCount        := (others => '0');
+                     v.wrSlave.wready := '1';
+                     v.wrMaster.wlast := ibWrM.wlast;
+                  else
+                     v.wrCount        := r.wrCount + 1;
+                     v.wrSlave.wready := '0';
+                     v.wrMaster.wlast := '0';
+                  end if;
                end if;
 
                -- Drop transfers with no wstrb bits set, except on wlast
@@ -299,13 +307,13 @@ begin
          end if;
 
          if MST_BYTES_C > SLV_BYTES_C then
-            awlen(7 downto 7-SHIFT_C+1) := (others=>'0');
+            awlen(7 downto 7-SHIFT_C+1) := (others => '0');
             awlen(7-SHIFT_C downto 0)   := sAxiWriteMaster.awlen(7 downto SHIFT_C);
          else
             awlen(7 downto SHIFT_C)   := sAxiWriteMaster.awlen(7-SHIFT_C downto 0);
-            awlen(SHIFT_C-1 downto 0) := (others=>'1');         
-         end if;              
-         
+            awlen(SHIFT_C-1 downto 0) := (others => '1');
+         end if;
+
          ----------------------------
          -- mAxiWriteMaster's Outputs
          ----------------------------
