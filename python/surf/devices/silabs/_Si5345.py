@@ -514,8 +514,8 @@ class Si5345(pr.Device):
 
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name        = ('LOS_VAL_TIME[%d]' % i), 
-                description = ('Clock Input[%d]' % i),
+                name        = f'LOS_VAL_TIME[{i}]',
+                description = f'Clock Input[{i}]',
                 offset      = (0x002D << 2),
                 bitSize     = 2, 
                 bitOffset   = (2*i), 
@@ -530,14 +530,14 @@ class Si5345(pr.Device):
             
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name        = ('LOS_TRG_THR_LO[%d]' % i), 
+                name        = f'LOS_TRG_THR_LO[{i}]',            
                 description = 'Trigger Threshold 16-bit Threshold Value',
                 offset      = ((0x002E+(2*i)) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
             ))  
             self.add(pr.RemoteVariable(
-                name        = ('LOS_TRG_THR_HI[%d]' % i), 
+                name        = f'LOS_TRG_THR_HI[{i}]',              
                 description = 'Trigger Threshold 16-bit Threshold Value',
                 offset      = ((0x002F+(2*i)) << 2),
                 bitSize     = 8,
@@ -546,14 +546,14 @@ class Si5345(pr.Device):
 
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name        = ('LOS_CLR_THR_LO[%d]' % i), 
+                name        = f'LOS_CLR_THR_LO[{i}]',
                 description = 'Clear Threshold 16-bit Threshold Value',
                 offset      = ((0x0036+(2*i)) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
             ))  
             self.add(pr.RemoteVariable(
-                name        = ('LOS_CLR_THR_HI[%d]' % i), 
+                name        = f'LOS_CLR_THR_HI[{i}]',
                 description = 'Clear Threshold 16-bit Threshold Value',
                 offset      = ((0x0037+(2*i)) << 2),
                 bitSize     = 8,
@@ -595,7 +595,7 @@ class Si5345(pr.Device):
         
         for i in range(4):        
             self.add(pr.RemoteVariable(
-                name        = ('OOF_DIV_SEL[%d]' % i),
+                name        = f'OOF_DIV_SEL[{i}]',
                 description = 'Sets a divider for the OOF circuitry for each input clock 0,1,2,3. The divider value is 2OOFx_DIV_SEL. CBPro sets these dividers.',
                 offset      = ((0x0041+i) << 2),
                 bitSize     = 5,
@@ -614,7 +614,7 @@ class Si5345(pr.Device):
             
         for i in range(4):        
             self.add(pr.RemoteVariable(
-                name        = ('OOF_SET_THR[%d]' % i),
+                name        = f'OOF_SET_THR[{i}]',
                 description = 'OOF Set threshold. Range is up to 500 ppm in steps of 1/16 ppm.',
                 offset      = ((0x0046+i) << 2),
                 bitSize     = 8,
@@ -623,7 +623,7 @@ class Si5345(pr.Device):
 
         for i in range(4):        
             self.add(pr.RemoteVariable(
-                name        = ('OOF_CLR_THR[%d]' % i),
+                name        = f'OOF_CLR_THR[{i}]',
                 description = 'OOF Clear threshold. Range is up to 500 ppm in steps of 1/16 ppm.',
                 offset      = ((0x004A+i) << 2),
                 bitSize     = 8,
@@ -682,7 +682,7 @@ class Si5345(pr.Device):
         
         for i in range(4):        
             self.add(pr.RemoteVariable(
-                name        = ('FAST_OOF_SET_THR[%d]' % i),
+                name        = f'FAST_OOF_SET_THR[{i}]',
                 description = '(1+ value) x 1000 ppm',
                 offset      = ((0x0051+i) << 2),
                 bitSize     = 4,
@@ -691,7 +691,7 @@ class Si5345(pr.Device):
 
         for i in range(4):        
             self.add(pr.RemoteVariable(
-                name        = ('FAST_OOF_CLR_THR[%d]' % i),
+                name        = f'FAST_OOF_CLR_THR[{i}]',
                 description = '(1+ value) x 1000 ppm',
                 offset      = ((0x0055+i) << 2),
                 bitSize     = 4,
@@ -700,7 +700,7 @@ class Si5345(pr.Device):
             
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name        = ('FAST_OOF_DETWIN_SEL[%d]' % i), 
+                name        = f'FAST_OOF_DETWIN_SEL[{i}]',
                 description = 'Values calculated by CBPro.',
                 offset      = (0x0059 << 2),
                 bitSize     = 2, 
@@ -711,7 +711,7 @@ class Si5345(pr.Device):
                 
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name        = ('OOF0_RATIO_REF[%d]' % i), 
+                name        = f'OOF0_RATIO_REF[{i}]',
                 description = 'Values calculated by CBPro.',
                 offset      = ((0x005A+i) << 2),
                 bitSize     = 8,
@@ -721,7 +721,7 @@ class Si5345(pr.Device):
 
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name        = ('OOF1_RATIO_REF[%d]' % i), 
+                name        = f'OOF1_RATIO_REF[{i}]',
                 description = 'Values calculated by CBPro.',
                 offset      = ((0x005E+i) << 2),
                 bitSize     = 8,
@@ -731,7 +731,7 @@ class Si5345(pr.Device):
 
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name        = ('OOF2_RATIO_REF[%d]' % i), 
+                name        = f'OOF2_RATIO_REF[{i}]',
                 description = 'Values calculated by CBPro.',
                 offset      = ((0x0062+i) << 2),
                 bitSize     = 8,
@@ -741,7 +741,7 @@ class Si5345(pr.Device):
 
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name        = ('OOF3_RATIO_REF[%d]' % i), 
+                name        = f'OOF3_RATIO_REF[{i}]',
                 description = 'Values calculated by CBPro.',
                 offset      = ((0x0066+i) << 2),
                 bitSize     = 8,
@@ -884,7 +884,7 @@ class Si5345(pr.Device):
 
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name        = ('LOL_CLR_DELAY_DIV256[%d]' % i), 
+                name        = f'LOL_CLR_DELAY_DIV256[{i}]',
                 description = 'Set by CBPro.',
                 offset      = ((0x00A9+i) << 2),
                 bitSize     = 8,
@@ -938,7 +938,7 @@ class Si5345(pr.Device):
 
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name        = ('FASTLOCK_EXTEND[%d]' % i), 
+                name        = f'FASTLOCK_EXTEND[{i}]',
                 description = 'Set by CBPro.',
                 offset      = ((0x00EA+i) << 2),
                 bitSize     = 8,
@@ -1101,7 +1101,7 @@ class Si5345(pr.Device):
 
         for i in range(10):
             self.add(pr.RemoteVariable(
-                name        = ('OUT_PDN[%d]' % i), 
+                name        = f'OUT_PDN[{i}]',
                 description = 'Output driver: 0 to power up the regulator, 1 to power down the regulator. Clock outputs will be weakly pulled low.',
                 offset      = ( ((0x0108+(5*i)) << 2) if (i!=9) else ((0x0108+(5*i)+5) << 2) ),
                 base        = pr.Bool,
@@ -1111,7 +1111,7 @@ class Si5345(pr.Device):
             ))
             
             self.add(pr.RemoteVariable(
-                name        = ('OUT_OE[%d]' % i), 
+                name        = f'OUT_OE[{i}]',
                 description = 'Output driver: 0 to disable the output, 1 to enable the output',
                 offset      = ( ((0x0108+(5*i)) << 2) if (i!=9) else ((0x0108+(5*i)+5) << 2) ),
                 base        = pr.Bool,
@@ -1121,7 +1121,7 @@ class Si5345(pr.Device):
             ))   
 
             self.add(pr.RemoteVariable(
-                name        = ('OUT_RDIV_FORCE2[%d]' % i), 
+                name        = f'OUT_RDIV_FORCE2[{i}]',
                 description = '0 R0 divider value is set by R0_REG, 1 R0 divider value is forced into divide by 2',
                 offset      = ( ((0x0108+(5*i)) << 2) if (i!=9) else ((0x0108+(5*i)+5) << 2) ),
                 base        = pr.Bool,
@@ -1131,7 +1131,7 @@ class Si5345(pr.Device):
             ))               
 
             self.add(pr.RemoteVariable(
-                name        = ('OUT_FORMAT[%d]' % i), 
+                name        = f'OUT_FORMAT[{i}]',
                 description = 'OUT_FORMAT',
                 offset      = ( ((0x0109+(5*i)) << 2) if (i!=9) else ((0x0109+(5*i)+5) << 2) ),
                 bitSize     = 2,
@@ -1148,7 +1148,7 @@ class Si5345(pr.Device):
             ))
 
             self.add(pr.RemoteVariable(
-                name        = ('OUT_SYNC_EN[%d]' % i), 
+                name        = f'OUT_SYNC_EN[{i}]',
                 description = 'enable/disable synchronized (glitchless) operation. When enabled, the power down and output enables are synchronized to the output clock.',
                 offset      = ( ((0x0109+(5*i)) << 2) if (i!=9) else ((0x0109+(5*i)+5) << 2) ),
                 base        = pr.Bool,
@@ -1158,7 +1158,7 @@ class Si5345(pr.Device):
             ))    
 
             self.add(pr.RemoteVariable(
-                name        = ('OUT_DIS_STATE[%d]' % i), 
+                name        = f'OUT_DIS_STATE[{i}]',
                 description = 'Determines the state of an output driver when disabled',
                 offset      = ( ((0x0109+(5*i)) << 2) if (i!=9) else ((0x0109+(5*i)+5) << 2) ),
                 bitSize     = 2,
@@ -1171,7 +1171,7 @@ class Si5345(pr.Device):
             ))
             
             self.add(pr.RemoteVariable(
-                name        = ('OUT_CMOS_DRV[%d]' % i), 
+                name        = f'OUT_CMOS_DRV[{i}]',
                 description = 'LVCMOS output impedance.',
                 offset      = ( ((0x0109+(5*i)) << 2) if (i!=9) else ((0x0109+(5*i)+5) << 2) ),
                 bitSize     = 2,
@@ -1185,7 +1185,7 @@ class Si5345(pr.Device):
             ))
 
             self.add(pr.RemoteVariable(
-                name        = ('OUT_CM[%d]' % i), 
+                name        = f'OUT_CM[{i}]',
                 description = 'This field only applies when OUT0_FORMAT=1 or 2. See Table 6.10 Settings for LVDS, LVPECL, and HCSL on page 41 and 18. Setting the Differential Output Driver to Non-Standard Amplitudes for details of the settings.',
                 offset      = ( ((0x010A+(5*i)) << 2) if (i!=9) else ((0x010A+(5*i)+5) << 2) ),
                 bitSize     = 4,
@@ -1194,7 +1194,7 @@ class Si5345(pr.Device):
             ))
 
             self.add(pr.RemoteVariable(
-                name        = ('OUT_AMPL[%d]' % i), 
+                name        = f'OUT_AMPL[{i}]',
                 description = 'This field only applies when OUT0_FORMAT=1, 2, or 3. See Table 5.5 Hitless Switching Enable Bit on page 22 and 18. Setting the Differential Output Driver to Non-Standard Amplitudes for details of the settings.',
                 offset      = ( ((0x010A+(5*i)) << 2) if (i!=9) else ((0x010A+(5*i)+5) << 2) ),
                 bitSize     = 3,
@@ -1203,7 +1203,7 @@ class Si5345(pr.Device):
             ))            
 
             self.add(pr.RemoteVariable(
-                name        = ('OUT_MUX_SEL[%d]' % i), 
+                name        = f'OUT_MUX_SEL[{i}]',
                 description = 'Output driver 0 input mux select.This selects the source of the multisynth',
                 offset      = ( ((0x010B+(5*i)) << 2) if (i!=9) else ((0x010B+(5*i)+5) << 2) ),
                 bitSize     = 3,
@@ -1219,7 +1219,7 @@ class Si5345(pr.Device):
             ))
             
             self.add(pr.RemoteVariable(
-                name        = ('OUT_VDD_SEL_EN[%d]' % i), 
+                name        = f'OUT_VDD_SEL_EN[{i}]',
                 description = '1 = Enable OUT0_VDD_SEL',
                 offset      = ( ((0x010B+(5*i)) << 2) if (i!=9) else ((0x010B+(5*i)+5) << 2) ),
                 base        = pr.Bool,
@@ -1229,7 +1229,7 @@ class Si5345(pr.Device):
             ))            
 
             self.add(pr.RemoteVariable(
-                name        = ('OUT_VDD_SEL[%d]' % i), 
+                name        = f'OUT_VDD_SEL[{i}]',
                 description = 'Must be set to the VDD0 voltage.',
                 offset      = ( ((0x010B+(5*i)) << 2) if (i!=9) else ((0x010B+(5*i)+5) << 2) ),
                 bitSize     = 2,
@@ -1243,7 +1243,7 @@ class Si5345(pr.Device):
             ))  
 
             self.add(pr.RemoteVariable(
-                name        = ('OUT_INV[%d]' % i), 
+                name        = f'OUT_INV[{i}]',
                 description = 'OUT_INV',
                 offset      = ( ((0x010B+(5*i)) << 2) if (i!=9) else ((0x010B+(5*i)+5) << 2) ),
                 bitSize     = 2,
@@ -1372,7 +1372,7 @@ class Si5345(pr.Device):
             
         for i in range(6):
             self.add(pr.RemoteVariable(
-                name        = ('P0_NUM[%d]' % i), 
+                name        = f'P0_NUM[{i}]',
                 description = 'P0 Divider Numerator',
                 offset      = ((0x0208+i) << 2),
                 bitSize     = 8,
@@ -1381,7 +1381,7 @@ class Si5345(pr.Device):
 
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name        = ('P0_DEN[%d]' % i), 
+                name        = f'P0_DEN[{i}]',
                 description = 'P0 Divider Denominator',
                 offset      = ((0x020E+i) << 2),
                 bitSize     = 8,
@@ -1390,7 +1390,7 @@ class Si5345(pr.Device):
             
         for i in range(6):
             self.add(pr.RemoteVariable(
-                name        = ('P1_NUM[%d]' % i), 
+                name        = f'P1_NUM[{i}]',
                 description = 'P1 Divider Numerator',
                 offset      = ((0x0212+i) << 2),
                 bitSize     = 8,
@@ -1399,7 +1399,7 @@ class Si5345(pr.Device):
 
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name        = ('P1_DEN[%d]' % i), 
+                name        = f'P1_DEN[{i}]',
                 description = 'P1 Divider Denominator',
                 offset      = ((0x0218+i) << 2),
                 bitSize     = 8,
@@ -1408,7 +1408,7 @@ class Si5345(pr.Device):
 
         for i in range(6):
             self.add(pr.RemoteVariable(
-                name        = ('P2_NUM[%d]' % i), 
+                name        = f'P2_NUM[{i}]',
                 description = 'P2 Divider Numerator',
                 offset      = ((0x021C+i) << 2),
                 bitSize     = 8,
@@ -1417,7 +1417,7 @@ class Si5345(pr.Device):
 
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name        = ('P2_DEN[%d]' % i), 
+                name        = f'P2_DEN[{i}]',
                 description = 'P2 Divider Denominator',
                 offset      = ((0x0222+i) << 2),
                 bitSize     = 8,
@@ -1426,7 +1426,7 @@ class Si5345(pr.Device):
 
         for i in range(6):
             self.add(pr.RemoteVariable(
-                name        = ('P3_NUM[%d]' % i), 
+                name        = f'P3_NUM[{i}]',
                 description = 'P3 Divider Numerator',
                 offset      = ((0x0226+i) << 2),
                 bitSize     = 8,
@@ -1435,7 +1435,7 @@ class Si5345(pr.Device):
 
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name        = ('P3_DEN[%d]' % i), 
+                name        = f'P3_DEN[{i}]',
                 description = 'P3 Divider Denominator',
                 offset      = ((0x022C+i) << 2),
                 bitSize     = 8,
@@ -1453,7 +1453,7 @@ class Si5345(pr.Device):
 
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name        = ('P_FRACN_MODE[%d]' % i), 
+                name        = f'P_FRACN_MODE[{i}]',
                 description = 'input divider fractional mode. Must be set to 0xB for proper operation.',
                 offset      = ((0x0231+i) << 2),
                 bitSize     = 4,
@@ -1462,18 +1462,18 @@ class Si5345(pr.Device):
             ))  
 
             self.add(pr.RemoteVariable(
-                name        = ('P_FRAC_EN[%d]' % i), 
+                name        = f'P_FRAC_EN[{i}]',
                 description = 'input divider fractional enable, 0: Integer-only division, 1: Fractional (or Integer) division',
                 offset      = ((0x0231+i) << 2),
                 base        = pr.Bool,
-            bitSize     = 1,
+                bitSize     = 1,
                 bitOffset   = 4,
                 mode        = 'RW',
             ))              
             
         for i in range(6):
             self.add(pr.RemoteVariable(
-                name        = ('MXAXB_NUM[%d]' % i), 
+                name        = f'MXAXB_NUM[{i}]',
                 description = 'MXAXB Divider Numerator',
                 offset      = ((0x0235+i) << 2),
                 bitSize     = 8,
@@ -1482,7 +1482,7 @@ class Si5345(pr.Device):
 
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name        = ('MXAXB_DEN[%d]' % i), 
+                name        = f'MXAXB_DEN[{i}]',
                 description = 'MXAXB Divider Denominator',
                 offset      = ((0x023B+i) << 2),
                 bitSize     = 8,
@@ -1501,7 +1501,7 @@ class Si5345(pr.Device):
             
         for i in range(3):
             self.add(pr.RemoteVariable(
-                name        = ('R0_REG[%d]' % i), 
+                name        = f'R0_REG[{i}]',
                 description = 'R0 Divider: divide value = (REG+1) x 2',
                 offset      = ((0x024A+i) << 2),
                 bitSize     = 8,
@@ -1510,7 +1510,7 @@ class Si5345(pr.Device):
 
         for i in range(3):
             self.add(pr.RemoteVariable(
-                name        = ('R1_REG[%d]' % i), 
+                name        = f'R1_REG[{i}]',
                 description = 'R1 Divider: divide value = (REG+1) x 2',
                 offset      = ((0x024D+i) << 2),
                 bitSize     = 8,
@@ -1519,7 +1519,7 @@ class Si5345(pr.Device):
 
         for i in range(3):
             self.add(pr.RemoteVariable(
-                name        = ('R2_REG[%d]' % i), 
+                name        = f'R2_REG[{i}]',
                 description = 'R2 Divider: divide value = (REG+1) x 2',
                 offset      = ((0x0250+i) << 2),
                 bitSize     = 8,
@@ -1528,7 +1528,7 @@ class Si5345(pr.Device):
 
         for i in range(3):
             self.add(pr.RemoteVariable(
-                name        = ('R3_REG[%d]' % i), 
+                name        = f'R3_REG[{i}]',
                 description = 'R3 Divider: divide value = (REG+1) x 2',
                 offset      = ((0x0256+i) << 2),
                 bitSize     = 8,
@@ -1537,7 +1537,7 @@ class Si5345(pr.Device):
 
         for i in range(3):
             self.add(pr.RemoteVariable(
-                name        = ('R4_REG[%d]' % i), 
+                name        = f'R4_REG[{i}]',
                 description = 'R4 Divider: divide value = (REG+1) x 2',
                 offset      = ((0x0256+i) << 2),
                 bitSize     = 8,
@@ -1546,7 +1546,7 @@ class Si5345(pr.Device):
 
         for i in range(3):
             self.add(pr.RemoteVariable(
-                name        = ('R5_REG[%d]' % i), 
+                name        = f'R5_REG[{i}]',
                 description = 'R5 Divider: divide value = (REG+1) x 2',
                 offset      = ((0x0259+i) << 2),
                 bitSize     = 8,
@@ -1555,7 +1555,7 @@ class Si5345(pr.Device):
 
         for i in range(3):
             self.add(pr.RemoteVariable(
-                name        = ('R6_REG[%d]' % i), 
+                name        = f'R6_REG[{i}]',
                 description = 'R6 Divider: divide value = (REG+1) x 2',
                 offset      = ((0x025C+i) << 2),
                 bitSize     = 8,
@@ -1564,7 +1564,7 @@ class Si5345(pr.Device):
 
         for i in range(3):
             self.add(pr.RemoteVariable(
-                name        = ('R7_REG[%d]' % i), 
+                name        = f'R7_REG[{i}]',
                 description = 'R7 Divider: divide value = (REG+1) x 2',
                 offset      = ((0x025F+i) << 2),
                 bitSize     = 8,
@@ -1573,7 +1573,7 @@ class Si5345(pr.Device):
 
         for i in range(3):
             self.add(pr.RemoteVariable(
-                name        = ('R8_REG[%d]' % i), 
+                name        = f'R8_REG[{i}]', 
                 description = 'R8 Divider: divide value = (REG+1) x 2',
                 offset      = ((0x0262+i) << 2),
                 bitSize     = 8,
@@ -1582,7 +1582,7 @@ class Si5345(pr.Device):
 
         for i in range(3):
             self.add(pr.RemoteVariable(
-                name        = ('R9_REG[%d]' % i), 
+                name        = f'R9_REG[{i}]', 
                 description = 'R9 Divider: divide value = (REG+1) x 2',
                 offset      = ((0x0268+i) << 2),
                 bitSize     = 8,
@@ -1591,7 +1591,7 @@ class Si5345(pr.Device):
 
         for i in range(8):
             self.add(pr.RemoteVariable(
-                name        = ('DESIGN_ID[%d]' % i), 
+                name        = f'DESIGN_ID[{i}]', 
                 description = 'ASCII encoded string defined by CBPro user',
                 offset      = ((0x026B+i) << 2),
                 bitSize     = 8,
@@ -1601,7 +1601,7 @@ class Si5345(pr.Device):
 
         for i in range(8):
             self.add(pr.RemoteVariable(
-                name        = ('OPN_ID[%d]' % i), 
+                name        = f'OPN_ID[{i}]', 
                 description = 'OPN unique identifier. ASCII encoded by CBPro user',
                 offset      = ((0x0278+i) << 2),
                 bitSize     = 8,
@@ -1629,7 +1629,7 @@ class Si5345(pr.Device):
             
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name        = ('OOF_TRG_THR_EXT[%d]' % i), 
+                name        = f'OOF_TRG_THR_EXT[{i}]', 
                 description = 'Set by CBPro.',
                 offset      = ((0x028A+i) << 2),
                 bitSize     = 5,
@@ -1639,7 +1639,7 @@ class Si5345(pr.Device):
 
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name        = ('OOF_CLR_THR_EXT[%d]' % i), 
+                name        = f'OOF_CLR_THR_EXT[{i}]', 
                 description = 'Set by CBPro.',
                 offset      = ((0x028E+i) << 2),
                 bitSize     = 5,
@@ -1691,7 +1691,7 @@ class Si5345(pr.Device):
             
         for i in range(3):
             self.add(pr.RemoteVariable(
-                name        = ('FASTLOCK_DLY_ONLOL[%d]' % i), 
+                name        = f'FASTLOCK_DLY_ONLOL[{i}]',
                 description = 'Set by CBPro.',
                 offset      = ((0x029D+i) << 2),
                 bitSize     = 8,
@@ -1701,7 +1701,7 @@ class Si5345(pr.Device):
 
         for i in range(3):
             self.add(pr.RemoteVariable(
-                name        = ('FASTLOCK_DLY_ONSW[%d]' % i), 
+                name        = f'FASTLOCK_DLY_ONSW[{i}]',
                 description = 'Set by CBPro.',
                 offset      = ((0x02A9+i) << 2),
                 bitSize     = 8,
@@ -1736,7 +1736,7 @@ class Si5345(pr.Device):
             
         for i in range(6):
             self.add(pr.RemoteVariable(
-                name        = ('N0_NUM[%d]' % i), 
+                name        = f'N0_NUM[{i}]',
                 description = 'N0 Numerator',
                 offset      = ((0x0302+i) << 2),
                 bitSize     = 8,
@@ -1745,7 +1745,7 @@ class Si5345(pr.Device):
 
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name        = ('N0_DEN[%d]' % i), 
+                name        = f'N0_DEN[{i}]',
                 description = 'N0 Denominator',
                 offset      = ((0x0308+i) << 2),
                 bitSize     = 8,
@@ -1764,7 +1764,7 @@ class Si5345(pr.Device):
         
         for i in range(6):
             self.add(pr.RemoteVariable(
-                name        = ('N1_NUM[%d]' % i), 
+                name        = f'N1_NUM[{i}]',
                 description = 'N1 Numerator',
                 offset      = ((0x030D+i) << 2),
                 bitSize     = 8,
@@ -1772,8 +1772,8 @@ class Si5345(pr.Device):
             )) 
 
         for i in range(4):
-            self.add(pr.RemoteVariable(
-                name        = ('N1_DEN[%d]' % i), 
+            self.add(pr.RemoteVariable( 
+                name        = f'N1_DEN[{i}]',
                 description = 'N1 Denominator',
                 offset      = ((0x0313+i) << 2),
                 bitSize     = 8,
@@ -1792,7 +1792,7 @@ class Si5345(pr.Device):
         
         for i in range(6):
             self.add(pr.RemoteVariable(
-                name        = ('N2_NUM[%d]' % i), 
+                name        = f'N2_NUM[{i}]',
                 description = 'N2 Numerator',
                 offset      = ((0x0318+i) << 2),
                 bitSize     = 8,
@@ -1801,7 +1801,7 @@ class Si5345(pr.Device):
 
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name        = ('N2_DEN[%d]' % i), 
+                name        = f'N2_DEN[{i}]',
                 description = 'N2 Denominator',
                 offset      = ((0x031E+i) << 2),
                 bitSize     = 8,
@@ -1820,7 +1820,7 @@ class Si5345(pr.Device):
         
         for i in range(6):
             self.add(pr.RemoteVariable(
-                name        = ('N3_NUM[%d]' % i), 
+                name        = f'N3_NUM[{i}]',
                 description = 'N3 Numerator',
                 offset      = ((0x0323+i) << 2),
                 bitSize     = 8,
@@ -1829,7 +1829,7 @@ class Si5345(pr.Device):
 
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name        = ('N3_DEN[%d]' % i), 
+                name        = f'N3_DEN[{i}]',
                 description = 'N3 Denominator',
                 offset      = ((0x0329+i) << 2),
                 bitSize     = 8,
@@ -1848,7 +1848,7 @@ class Si5345(pr.Device):
         
         for i in range(6):
             self.add(pr.RemoteVariable(
-                name        = ('N4_NUM[%d]' % i), 
+                name        = f'N4_NUM[{i}]',
                 description = 'N4 Numerator',
                 offset      = ((0x032E+i) << 2),
                 bitSize     = 8,
@@ -1857,7 +1857,7 @@ class Si5345(pr.Device):
 
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name        = ('N4_DEN[%d]' % i), 
+                name        = f'N4_DEN[{i}]', 
                 description = 'N4 Denominator',
                 offset      = ((0x0334+i) << 2),
                 bitSize     = 8,
@@ -1895,7 +1895,7 @@ class Si5345(pr.Device):
         
         for i in range(6):
             self.add(pr.RemoteVariable(
-                name        = ('N0_FSTEPW[%d]' % i), 
+                name        = f'N0_FSTEPW[{i}]', 
                 description = 'N0 Frequency Step Word',
                 offset      = ((0x033B+i) << 2),
                 bitSize     = 8,
@@ -1904,7 +1904,7 @@ class Si5345(pr.Device):
 
         for i in range(6):
             self.add(pr.RemoteVariable(
-                name        = ('N1_FSTEPW[%d]' % i), 
+                name        = f'N1_FSTEPW[{i}]', 
                 description = 'N1 Frequency Step Word',
                 offset      = ((0x0341+i) << 2),
                 bitSize     = 8,
@@ -1913,7 +1913,7 @@ class Si5345(pr.Device):
 
         for i in range(6):
             self.add(pr.RemoteVariable(
-                name        = ('N2_FSTEPW[%d]' % i), 
+                name        = f'N2_FSTEPW[{i}]', 
                 description = 'N2 Frequency Step Word',
                 offset      = ((0x0347+i) << 2),
                 bitSize     = 8,
@@ -1922,7 +1922,7 @@ class Si5345(pr.Device):
 
         for i in range(6):
             self.add(pr.RemoteVariable(
-                name        = ('N3_FSTEPW[%d]' % i), 
+                name        = f'N3_FSTEPW[{i}]', 
                 description = 'N3 Frequency Step Word',
                 offset      = ((0x034D+i) << 2),
                 bitSize     = 8,
@@ -1931,7 +1931,7 @@ class Si5345(pr.Device):
 
         for i in range(6):
             self.add(pr.RemoteVariable(
-                name        = ('N4_FSTEPW[%d]' % i), 
+                name        = f'N4_FSTEPW[{i}]', 
                 description = 'N4 Frequency Step Word',
                 offset      = ((0x0353+i) << 2),
                 bitSize     = 8,
@@ -1998,7 +1998,7 @@ class Si5345(pr.Device):
         
         for i in range(6):
             self.add(pr.RemoteVariable(
-                name        = ('BW_PLL[%d]' % i), 
+                name        = f'BW_PLL[{i}]', 
                 description = 'PLL loop bandwidth parameter',
                 offset      = ((0x0508+i) << 2),
                 bitSize     = 6,
@@ -2007,7 +2007,7 @@ class Si5345(pr.Device):
 
         for i in range(6):
             self.add(pr.RemoteVariable(
-                name        = ('FAST_LOCK_BW_PLL[%d]' % i), 
+                name        = f'FAST_LOCK_BW_PLL[{i}]', 
                 description = 'PLL Fast Lock Loop Bandwidth parameter',
                 offset      = ((0x050E+i) << 2),
                 bitSize     = 6,
@@ -2026,7 +2026,7 @@ class Si5345(pr.Device):
                 
         for i in range(7):
             self.add(pr.RemoteVariable(
-                name        = ('M_NUM[%d]' % i), 
+                name        = f'M_NUM[{i}]', 
                 description = 'M Divider Numerator',
                 offset      = ((0x0515+i) << 2),
                 bitSize     = 8,
@@ -2035,7 +2035,7 @@ class Si5345(pr.Device):
 
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name        = ('M_DEN[%d]' % i), 
+                name        = f'M_DEN[{i}]', 
                 description = 'M Divider Denominator',
                 offset      = ((0x051C+i) << 2),
                 bitSize     = 8,
@@ -2215,7 +2215,7 @@ class Si5345(pr.Device):
                 
         for i in range(3):
             self.add(pr.RemoteVariable(
-                name        = ('HOLD_15M_CYC_COUNT_PLLB[%d]' % i), 
+                name        = f'HOLD_15M_CYC_COUNT_PLLB[{i}]', 
                 description = 'Value calculated by CBPro',
                 offset      = ((0x0532+i) << 2),
                 bitSize     = 8,
@@ -2365,7 +2365,7 @@ class Si5345(pr.Device):
 
         for i in range(2):
             self.add(pr.RemoteVariable(
-                name        = ('HSW_PHMEAS_THR[%d]' % i), 
+                name        = f'HSW_PHMEAS_THR[{i}]', 
                 description = '10-bit value. Set by CBPro.',
                 offset      = ((0x053B+i) << 2),
                 bitSize     = 8,
@@ -2425,7 +2425,7 @@ class Si5345(pr.Device):
 
         for i in range(2):
             self.add(pr.RemoteVariable(
-                name        = ('PFD_EN_DELAY[%d]' % i), 
+                name        = f'PFD_EN_DELAY[{i}]', 
                 description = 'Set by CBPro.',
                 offset      = ((0x0589+i) << 2),
                 bitSize     = 8,
@@ -2489,7 +2489,7 @@ class Si5345(pr.Device):
 
         for i in range(6):
             self.add(pr.RemoteVariable(
-                name        = ('HOLDEXIT_BW[%d]' % i), 
+                name        = f'HOLDEXIT_BW[{i}]', 
                 description = 'Set by CBPro.',
                 offset      = ((0x059D+i) << 2),
                 bitSize     = 6,
@@ -2571,7 +2571,7 @@ class Si5345(pr.Device):
 
         for i in range(2):
             self.add(pr.RemoteVariable(
-                name        = ('REFCLK_HYS_SEL[%d]' % i), 
+                name        = f'REFCLK_HYS_SEL[{i}]', 
                 description = 'Value calculated in CBPro',
                 offset      = ((0x094E+i) << 2),
                 bitSize     = 8,
@@ -2633,7 +2633,7 @@ class Si5345(pr.Device):
 
         for i in range(5):
             self.add(pr.RemoteVariable(
-                name        = ('N_HIGH_FREQ[%d]' % i), 
+                name        = f'N_HIGH_FREQ[{i}]', 
                 description = 'Set by CBPro.',
                 offset      = ((0x0A14+i) << 2),
                 bitSize     = 3,
@@ -2703,7 +2703,7 @@ class Si5345(pr.Device):
         
         for i in range(2):
             self.add(pr.RemoteVariable(
-                name        = ('VCO_RESET_CALCODE[%d]' % i), 
+                name        = f'VCO_RESET_CALCODE[{i}]', 
                 description = '12-bit value. Controls the VCO frequency when a reset occurs.',
                 offset      = ((0x0B57+i) << 2),
                 bitSize     = 8,
