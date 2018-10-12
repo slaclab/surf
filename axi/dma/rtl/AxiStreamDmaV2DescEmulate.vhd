@@ -2,8 +2,8 @@
 -- File       : AxiStreamDmaV2DescEmulate.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description:
--- Descriptor manager for AXI DMA read and write engines.
+-- Description: Emulates the firmware/software descriptor manager 
+--              for AXI DMA read and write engines.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -30,7 +30,6 @@ entity AxiStreamDmaV2DescEmulate is
    generic (
       TPD_G             : time                  := 1 ns;
       AXI_CACHE_G       : slv(3 downto 0)       := "0000";
-      READ_EN_G         : boolean               := false;
       CHAN_COUNT_G      : integer range 1 to 16 := 1;
       AXIL_BASE_ADDR_G  : slv(31 downto 0)      := x"00000000";
       AXI_READY_EN_G    : boolean               := false;
@@ -44,13 +43,13 @@ entity AxiStreamDmaV2DescEmulate is
       axiRst          : in  sl;
       -- Local AXI Lite Bus
       axilReadMaster  : in  AxiLiteReadMasterType;
-      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilReadSlave   : out AxiLiteReadSlaveType         := AXI_LITE_READ_SLAVE_EMPTY_OK_C;
       axilWriteMaster : in  AxiLiteWriteMasterType;
-      axilWriteSlave  : out AxiLiteWriteSlaveType;
+      axilWriteSlave  : out AxiLiteWriteSlaveType        := AXI_LITE_WRITE_SLAVE_EMPTY_OK_C;
       -- Additional signals
-      interrupt       : out sl;
-      online          : out slv(CHAN_COUNT_G-1 downto 0);
-      acknowledge     : out slv(CHAN_COUNT_G-1 downto 0);
+      interrupt       : out sl                           := '0';
+      online          : out slv(CHAN_COUNT_G-1 downto 0) := (others => '0');
+      acknowledge     : out slv(CHAN_COUNT_G-1 downto 0) := (others => '0');
       -- DMA write descriptor request, ack and return
       dmaWrDescReq    : in  AxiWriteDmaDescReqArray(CHAN_COUNT_G-1 downto 0);
       dmaWrDescAck    : out AxiWriteDmaDescAckArray(CHAN_COUNT_G-1 downto 0);
@@ -62,101 +61,113 @@ entity AxiStreamDmaV2DescEmulate is
       dmaRdDescRet    : in  AxiReadDmaDescRetArray(CHAN_COUNT_G-1 downto 0);
       dmaRdDescRetAck : out slv(CHAN_COUNT_G-1 downto 0);
       -- Config
-      axiRdCache      : out slv(3 downto 0);
-      axiWrCache      : out slv(3 downto 0);
+      axiRdCache      : out slv(3 downto 0)              := AXI_CACHE_G;
+      axiWrCache      : out slv(3 downto 0)              := AXI_CACHE_G;
       -- AXI Interface
       axiWriteMaster  : out AxiWriteMasterType;
       axiWriteSlave   : in  AxiWriteSlaveType;
-      axiWriteCtrl    : in  AxiCtrlType := AXI_CTRL_UNUSED_C);
+      axiWriteCtrl    : in  AxiCtrlType                  := AXI_CTRL_UNUSED_C);
 end AxiStreamDmaV2DescEmulate;
 
 architecture rtl of AxiStreamDmaV2DescEmulate is
 
    type RegType is record
-
-      -- Write descriptor interface
       dmaWrDescAck    : AxiWriteDmaDescAckArray(CHAN_COUNT_G-1 downto 0);
       dmaWrDescRetAck : slv(CHAN_COUNT_G-1 downto 0);
-
-      -- Read descriptor interface
       dmaRdDescReq    : AxiReadDmaDescReqArray(CHAN_COUNT_G-1 downto 0);
       dmaRdDescRetAck : slv(CHAN_COUNT_G-1 downto 0);
-
+      wrIndex         : Slv8Array(CHAN_COUNT_G-1 downto 0);
+      rdIndex         : Slv8Array(CHAN_COUNT_G-1 downto 0);
+      fillCnt         : Slv8Array(CHAN_COUNT_G-1 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       dmaWrDescAck    => (others => AXI_WRITE_DMA_DESC_ACK_INIT_C),
       dmaWrDescRetAck => (others => '0'),
       dmaRdDescReq    => (others => AXI_READ_DMA_DESC_REQ_INIT_C),
-      dmaRdDescRetAck => (others => '0'));
+      dmaRdDescRetAck => (others => '0'),
+      wrIndex         => (others => (others => '0')),
+      rdIndex         => (others => (others => '0')),
+      fillCnt         => (others => (others => '0')));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
 
-   axilReadSlave   <= AXI_LITE_READ_SLAVE_INIT_C;
-   axilWriteSlave  <= AXI_LITE_WRITE_SLAVE_INIT_C;
-   interrupt       <= '0';
-   online          <= (others=>'0');
-   acknowledge     <= (others=>'0');
-   axiWriteMaster  <= AXI_WRITE_MASTER_INIT_C;
+   axilReadSlave  <= AXI_LITE_READ_SLAVE_EMPTY_OK_C;
+   axilWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_OK_C;
+   interrupt      <= '0';
+   online         <= (others => '0');
+   acknowledge    <= (others => '0');
+   axiWriteMaster <= AXI_WRITE_MASTER_INIT_C;
 
-   comb : process (axiRst, r, dmaRdDescAck, dmaRdDescRet, dmaWrDescReq, dmaWrDescRet) is
+   comb : process (axiRst, dmaRdDescRet, dmaWrDescReq, dmaWrDescRet, r) is
       variable v : RegType;
+      variable i : natural;
    begin
+      -- Latch the current value   
+      v := r;
 
-      --------------------------------------
-      -- Write Descriptor Requests
-      --------------------------------------
+      -- Loop through the DMA lanes
+      for i in CHAN_COUNT_G-1 downto 0 loop
 
-      -- Clear acks
-      for i in 0 to CHAN_COUNT_G-1 loop
+         -- Reset strobes
          v.dmaWrDescAck(i).valid := '0';
+         v.dmaRdDescReq(i).valid := '0';
+         v.dmaWrDescRetAck(i)    := '0';
+         v.dmaRdDescRetAck(i)    := '0';
 
-         if dmaWrDescReq(i).valid = '1' then
-            v.dmaWrDescAck(i).valid    := '1';
-            v.dmaWrDescAck(i).address  := r.dmaWrDescAck(i).Address  + 8192;
-            v.dmaWrDescAck(i).dropEn   := '0';
-            v.dmaWrDescAck(i).maxSize  := x"FFFFFFFF";
-            v.dmaWrDescAck(i).contEn   :='1';
-            v.dmaWrDescAck(i).buffId   := r.dmaWrDescAck(i).buffId + 1;
+         -- Flow control
+         if dmaRdDescRet(i).valid = '1' then
+            -- Reset the flag
+            v.dmaRdDescRetAck(i) := '1';
+            -- Increment the read index
+            v.rdIndex(i)         := r.rdIndex(i) + 1;
          end if;
-      end loop;
 
-      --------------------------------------
-      -- Read/Write Descriptor Returns
-      --------------------------------------
+         -- Update the fill counter
+         v.fillCnt(i) := r.wrIndex(i) - r.rdIndex(i);
 
-      for i in 0 to CHAN_COUNT_G-1 loop
-         v.dmaWrDescRetAck(i) := dmaWrDescRet(i).valid;
-         v.dmaRdDescRetAck(i) := dmaRdDescRet(i).valid;
-      end loop;
-
-      --------------------------------------
-      -- Read Descriptor Requests
-      --------------------------------------
-
-      -- Clear requests
-      for i in 0 to CHAN_COUNT_G-1 loop
-         if dmaRdDescAck(i) = '1' then
-            v.dmaRdDescReq(i).valid := '0';
+         -- Check for the REQ and not out of buffers
+         if (dmaWrDescReq(i).valid = '1') and (r.dmaWrDescAck(i).valid = '0') and (r.fillCnt(i) /= x"FF") then
+            -- Send the write descriptor
+            v.dmaWrDescAck(i).valid                 := '1';
+            v.dmaWrDescAck(i).address(19 downto 12) := r.wrIndex(i);  -- Write index
+            v.dmaWrDescAck(i).address(23 downto 20) := toSlv(i, 4);  -- DMA Channel index
+            v.dmaWrDescAck(i).dropEn                := '0';
+            v.dmaWrDescAck(i).maxSize               := toSlv(2**12, 32);  -- 4kB buffers
+            v.dmaWrDescAck(i).contEn                := '1';
+            v.dmaWrDescAck(i).buffId(7 downto 0)    := r.wrIndex(i);
+            -- Increment the write index
+            v.wrIndex(i)                            := r.wrIndex(i) + 1;
          end if;
+
+         -- Check for the return descriptor   
+         if (dmaWrDescRet(i).valid = '1') and (r.dmaWrDescRetAck(i) = '0') then
+            -- Respond with ACK
+            v.dmaWrDescRetAck(i)                    := '1';
+            -- Send the read request
+            v.dmaRdDescReq(i)                       := AXI_READ_DMA_DESC_REQ_INIT_C;
+            v.dmaRdDescReq(i).valid                 := '1';
+            v.dmaRdDescReq(i).address(19 downto 12) := dmaWrDescRet(i).buffId(7 downto 0);  -- Write index
+            v.dmaRdDescReq(i).address(23 downto 20) := toSlv(i, 4);  -- DMA Channel index            
+            v.dmaRdDescReq(i).buffId                := dmaWrDescRet(i).buffId;
+            v.dmaRdDescReq(i).firstUser             := dmaWrDescRet(i).firstUser;
+            v.dmaRdDescReq(i).lastUser              := dmaWrDescRet(i).lastUser;
+            v.dmaRdDescReq(i).size                  := dmaWrDescRet(i).size;
+            v.dmaRdDescReq(i).continue              := dmaWrDescRet(i).continue;
+            v.dmaRdDescReq(i).id                    := dmaWrDescRet(i).id;
+            v.dmaRdDescReq(i).dest                  := dmaWrDescRet(i).dest;
+         end if;
+         
       end loop;
 
-      for i in 0 to CHAN_COUNT_G-1 loop
-         if v.dmaRdDescReq(i).valid = '0' and READ_EN_G then
-            v.dmaRdDescReq(i)                     := AXI_READ_DMA_DESC_REQ_INIT_C;
-            v.dmaRdDescReq(i).valid               := '1';
-            v.dmaRdDescReq(i).address             := r.dmaRdDescReq(i).address + 8192;
-            v.dmaRdDescReq(i).dest                := (others=>'0');
-            v.dmaRdDescReq(i).size(23 downto 0)   := x"001000";
-            v.dmaRdDescReq(i).firstUser           := (others=>'0');
-            v.dmaRdDescReq(i).lastUser            := (others=>'0');
-            v.dmaRdDescReq(i).buffId(11 downto 0) := r.dmaRdDescReq(i).buffId(11 downto 0) + 1;
-            v.dmaRdDescReq(i).continue            := '0';
-         end if;
-      end loop;
+      -- Outputs
+      dmaWrDescAck    <= r.dmaWrDescAck;
+      dmaWrDescRetAck <= r.dmaWrDescRetAck;
+      dmaRdDescReq    <= r.dmaRdDescReq;
+      dmaRdDescRetAck <= r.dmaRdDescRetAck;
 
       -- Reset      
       if (axiRst = '1') then
@@ -165,13 +176,6 @@ begin
 
       -- Register the variable for next clock cycle      
       rin <= v;
-
-      dmaWrDescAck    <= r.dmaWrDescAck;
-      dmaWrDescRetAck <= r.dmaWrDescRetAck;
-      dmaRdDescReq    <= r.dmaRdDescReq;
-      dmaRdDescRetAck <= r.dmaRdDescRetAck;
-      axiRdCache      <= AXI_CACHE_G;
-      axiWrCache      <= AXI_CACHE_G;
 
    end process comb;
 
@@ -183,4 +187,3 @@ begin
    end process seq;
 
 end rtl;
-
