@@ -19,8 +19,6 @@
 
 import pyrogue as pr
 
-from surf.misc._GenericMemory import *
-
 class Axi24LC64FT(pr.Device):
     def __init__(self,       
             name        = "Axi24LC64FT",
@@ -33,8 +31,11 @@ class Axi24LC64FT(pr.Device):
         ##############################
         # Variables
         ##############################
-        self.add(GenericMemory(
-                                offset      = 0x00,
-                                nelms       = nelms,
-                                instantiate = instantiate,
-                              ))
+        if (instantiate):
+            pr.MemoryDevice(
+                name        = "Mem",
+                description = "Memory Array",        
+                size        = (4*nelms),
+                # nelms     = nelms,
+            )
+            
