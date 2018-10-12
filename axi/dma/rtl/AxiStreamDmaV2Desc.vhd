@@ -643,8 +643,13 @@ begin
       end if;
 
       -- Generate descriptor ring addresses
-      v.wrMemAddr := r.wrBaseAddr + (r.wrIndex & "000");
-      v.rdMemAddr := r.rdBaseAddr + (r.rdIndex & "000");
+      if DESC_128_EN_C then
+         v.wrMemAddr := r.wrBaseAddr + (r.wrIndex & "0000");
+         v.rdMemAddr := r.rdBaseAddr + (r.rdIndex & "0000");
+      else
+         v.wrMemAddr := r.wrBaseAddr + (r.wrIndex & "000");
+         v.rdMemAddr := r.rdBaseAddr + (r.rdIndex & "000");
+      end if;
 
       -- State machine
       case r.descState is
@@ -704,7 +709,6 @@ begin
 
             -- Write data channel
             v.axiWriteMaster.wlast := '1';
-            v.axiWriteMaster.wstrb := resize(x"FF", 128);
 
             -- Descriptor data, 128-bits
             if DESC_128_EN_C then
@@ -720,6 +724,8 @@ begin
                v.axiWriteMaster.wdata(3)              := dmaWrDescRet(descIndex).continue;
                v.axiWriteMaster.wdata(2   downto   0) := dmaWrDescRet(descIndex).result;
 
+               v.axiWriteMaster.wstrb := resize(x"FFFF", 128);
+
             -- Descriptor data, 64-bits
             else
                v.axiWriteMaster.wdata(63 downto 56) := dmaWrDescRet(descIndex).dest;
@@ -729,6 +735,8 @@ begin
                v.axiWriteMaster.wdata(15 downto 4)  := dmaWrDescRet(descIndex).buffId(11 downto 0);
                v.axiWriteMaster.wdata(3)            := dmaWrDescRet(descIndex).continue;
                v.axiWriteMaster.wdata(2 downto 0)   := dmaWrDescRet(descIndex).result;
+
+               v.axiWriteMaster.wstrb := resize(x"FF", 128);
 
                -- Encoded channel into upper destination bits
                if CHAN_COUNT_G > 1 then
@@ -796,10 +804,16 @@ begin
 
       end case;
       
-      -- Copy the lowest 64-bit word to the entire bus (refer to  "section 9.3 Narrow transfers" of the AMBA spec)
-      for i in 15 downto 1 loop
-         v.axiWriteMaster.wdata((64*i)+63 downto (64*i)) := v.axiWriteMaster.wdata(63 downto 0);
-      end loop;      
+      -- Copy the lowest words to the entire bus (refer to  "section 9.3 Narrow transfers" of the AMBA spec)
+      if DESC_128_EN_C then
+         for i in 7 downto 1 loop
+            v.axiWriteMaster.wdata((128*i)+127 downto (128*i)) := v.axiWriteMaster.wdata(127 downto 0);
+         end loop;      
+      else
+         for i in 15 downto 1 loop
+            v.axiWriteMaster.wdata((64*i)+63 downto (64*i)) := v.axiWriteMaster.wdata(63 downto 0);
+         end loop;      
+      end if;
 
       -- Drive interrupt, avoid false firings during ack
       if r.intReqCount /= 0 and r.intSwAckReq = '0' then
