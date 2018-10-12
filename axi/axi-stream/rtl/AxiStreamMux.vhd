@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-25
--- Last update: 2017-12-14
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to connect multiple incoming AXI streams into a single encoded

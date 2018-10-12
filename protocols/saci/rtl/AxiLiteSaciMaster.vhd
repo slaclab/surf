@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiLiteSaciMaster2.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-06-01
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: New and improved version of the AxiLiteSaciMaster.
 -------------------------------------------------------------------------------

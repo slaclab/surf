@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : ClinkFraming.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-11-13
 -------------------------------------------------------------------------------
 -- Description:
 -- CameraLink framing module

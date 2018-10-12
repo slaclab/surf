@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamBytePackerTbRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-11-13
 -------------------------------------------------------------------------------
 -- Description:
 -- AxiStream data packer tester, tx module

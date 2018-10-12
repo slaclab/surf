@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Jesd204bRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-14
--- Last update: 2018-05-03
 -------------------------------------------------------------------------------
 -- Description: JESD204b multi-lane receiver module
 --              Receiver JESD204b module.
@@ -36,9 +34,6 @@ use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-
 use work.Jesd204bPkg.all;
 
 entity Jesd204bRx is
@@ -70,10 +65,6 @@ entity Jesd204bRx is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
-
-      -- Legacy Interface that we will remove in the future
-      rxAxisMasterArr_o : out AxiStreamMasterArray(L_G-1 downto 0);
-      rxCtrlArr_i       : in  AxiStreamCtrlArray(L_G-1 downto 0) := (others => AXI_STREAM_CTRL_UNUSED_C);
 
       -- Sample data output (Use if external data acquisition core is attached)
       sampleDataArr_o : out sampleDataArray(L_G-1 downto 0);
@@ -176,9 +167,6 @@ begin
    -- Check JESD generics
    assert (((K_G * F_G) mod GT_WORD_SIZE_C) = 0) report "K_G setting is incorrect" severity failure;
    assert (F_G = 1 or F_G = 2 or (F_G = 4 and GT_WORD_SIZE_C = 4)) report "F_G setting must be 1,2,or 4*" severity failure;
-
-   -- Legacy Interface that we will remove in the future
-   rxAxisMasterArr_o <= (others => AXI_STREAM_MASTER_INIT_C);
 
    -----------------------------------------------------------
    -- AXI Lite AXI clock domain crossed

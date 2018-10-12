@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Pgp2bRxCell.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2009-05-27
--- Last update: 2017-03-28
 -------------------------------------------------------------------------------
 -- Description:
 -- Cell Receive interface module for the Pretty Good Protocol core. 

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Pgp2bTxCell.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2009-05-27
--- Last update: 2017-03-28
 -------------------------------------------------------------------------------
 -- Description:
 -- Cell Transmit interface module for the Pretty Good Protocol core. 

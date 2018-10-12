@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : ClockDivider.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-06-01
--- Last update: 2016-09-22
 -------------------------------------------------------------------------------
 -- Description: A clock divider with programmable duty cycle and phase delay.
 -------------------------------------------------------------------------------

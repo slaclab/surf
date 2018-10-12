@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : EthMacTxExportGmii.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-02-04
--- Last update: 2017-10-19
 -------------------------------------------------------------------------------
 -- Description: 1GbE Export MAC core with GMII interface
 -------------------------------------------------------------------------------
@@ -76,7 +74,7 @@ architecture rtl of EthMacTxExportGmii is
       gmiiTxEr       : sl;
       gmiiTxd        : slv(7 downto 0);
       txCount        : slv(7 downto 0);
-      txData_d       : slv(7 downto 0);
+      txData         : slv(7 downto 0);
       txCountEn      : sl;
       txUnderRun     : sl;
       txLinkNotReady : sl;
@@ -92,7 +90,7 @@ architecture rtl of EthMacTxExportGmii is
       gmiiTxEr       => '0',
       gmiiTxd        => (others => '0'),
       txCount        => (others => '0'),
-      txData_d       => (others => '0'),
+      txData         => (others => '0'),
       txCountEn      => '0',
       txUnderRun     => '0',
       txLinkNotReady => '0',
@@ -121,32 +119,22 @@ architecture rtl of EthMacTxExportGmii is
 
 begin
 
-   DATA_MUX : entity work.AxiStreamFifoV2
+   U_Resize : entity work.AxiStreamResize
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
-         INT_PIPE_STAGES_G   => 0,
-         PIPE_STAGES_G       => 1,
-         SLAVE_READY_EN_G    => true,
-         VALID_THOLD_G       => 1,
-         -- FIFO configurations
-         BRAM_EN_G           => false,
-         USE_BUILT_IN_G      => false,
-         GEN_SYNC_FIFO_G     => true,
-         CASCADE_SIZE_G      => 1,
-         FIFO_ADDR_WIDTH_G   => 4,
+         READY_EN_G          => true,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,  -- 128-bit AXI stream interface  
-         MASTER_AXI_CONFIG_G => AXI_CONFIG_C)  -- 8-bit AXI stream interface          
+         MASTER_AXI_CONFIG_G => AXI_CONFIG_C)  -- 8-bit AXI stream interface  
       port map (
+         -- Clock and reset
+         axisClk     => ethClk,
+         axisRst     => ethRst,
          -- Slave Port
-         sAxisClk    => ethClk,
-         sAxisRst    => ethRst,
          sAxisMaster => macObMaster,    -- 128-bit AXI stream interface 
          sAxisSlave  => macObSlave,
          -- Master Port
-         mAxisClk    => ethClk,
-         mAxisRst    => ethRst,
          mAxisMaster => macMaster,      -- 8-bit AXI stream interface 
          mAxisSlave  => macSlave);
 
@@ -167,10 +155,11 @@ begin
       case r.state is
          ----------------------------------------------------------------------      
          when IDLE_S =>
+            -- Reset the flags
             v.crcReset := '1';
-            v.TxCount  := x"00";
-            v.txData_d := x"07";
-            v.gmiiTxd  := x"07";
+            v.txCount  := x"00";
+            v.txData   := x"55";        -- Preset to PREAMBLE CHAR
+            v.gmiiTxd  := x"00";
             v.gmiiTxEn := '0';
             v.gmiiTxEr := '0';
             -- Wait for start flag
@@ -180,38 +169,36 @@ begin
                   v.state := TX_PREAMBLE_S;
                -- Phy is not ready dump data
                else
-                  v.state          := DUMP_S;
                   v.txLinkNotReady := '1';
+                  v.state          := DUMP_S;
                end if;
             end if;
          ----------------------------------------------------------------------      
          when TX_PREAMBLE_S =>
+            v.crcReset := '0';
             v.gmiiTxEn := '1';
-            if (r.TxCount = x"07") then
-               v.CrcReset := '0';
-               v.txData_d := x"D5";
-               v.gmiiTxd  := r.txData_d;
-               v.TxCount  := x"00";
-               v.state    := TX_DATA_S;
+            v.gmiiTxd  := r.txData;
+            if (r.txCount = x"06") then
+               v.txCount := x"00";
+               v.txData  := x"D5";      -- Set to SFD char
+               v.state   := TX_DATA_S;
             else
-               v.TxCount  := r.TxCount +1;
-               v.txData_d := x"55";
-               v.gmiiTxd  := r.txData_d;
-               v.state    := TX_PREAMBLE_S;
+               v.txCount := r.txCount +1;
+               v.txData  := x"55";      -- Set to PREAMBLE char
             end if;
          ----------------------------------------------------------------------      
          when TX_DATA_S =>
             v.macSlave.tReady := '1';
             v.crcDataValid    := '1';
             v.crcIn           := macMaster.tdata(7 downto 0);
-            v.txData_d        := macMaster.tdata(7 downto 0);
-            v.gmiiTxd         := r.txData_d;
-            if (r.TxCount < x"3C") then  -- Minimum frame of 64 includes 4byte FCS
-               v.TxCount := r.TxCount + 1;
+            v.txData          := macMaster.tdata(7 downto 0);
+            v.gmiiTxd         := r.txData;
+            if (r.txCount < x"3C") then  -- Minimum frame of 60B (= 84B - 8B Preamble - 4B CRC - 12B intergap)
+               v.txCount := r.txCount + 1;
             end if;
             if (macMaster.tValid = '1') then
                if (macMaster.tlast = '1') then
-                  if (v.TxCount = x"3C") then
+                  if (v.txCount = x"3C") then
                      v.state := TX_CRC_S;
                   else
                      v.state := PAD_S;
@@ -226,16 +213,16 @@ begin
          when PAD_S =>
             v.crcDataValid := '1';
             v.crcIn        := x"00";
-            v.txData_d     := x"00";
-            v.gmiiTxd      := r.txData_d;
-            if (r.TxCount < x"3C") then
-               v.TxCount := v.TxCount + 1;
+            v.txData       := x"00";
+            v.gmiiTxd      := r.txData;
+            if (r.txCount < x"3C") then
+               v.txCount := v.txCount + 1;
             else
                v.state := TX_CRC_S;
             end if;
          ----------------------------------------------------------------------      
          when TX_CRC_S =>
-            v.gmiiTxd := r.txData_d;
+            v.gmiiTxd := r.txData;
             v.state   := TX_CRC0_S;
          ----------------------------------------------------------------------      
          when TX_CRC0_S =>
@@ -253,27 +240,29 @@ begin
          when TX_CRC3_S =>
             v.txCountEn := '1';
             v.gmiitxd   := crcOut(7 downto 0);
-            v.TxCount   := x"00";
+            v.txCount   := x"00";
             v.state     := INTERGAP_S;
          ----------------------------------------------------------------------      
          when DUMP_S =>
             v.gmiiTxEn        := '0';
+            v.gmiiTxd         := x"00";
             v.macSlave.tReady := '1';
-            v.TxCount         := x"00";
+            v.txCount         := x"00";
             if ((macMaster.tValid = '1') and (macMaster.tlast = '1')) then
                v.state := INTERGAP_S;
             end if;
          ----------------------------------------------------------------------      
          when INTERGAP_S =>
             v.gmiiTxEn := '0';
-            v.TxCount  := r.TxCount +1;
-            if r.TxCount = x"0A" then   -- 12 Octels - IDLE state
-               v.TxCount := x"00";
+            v.gmiiTxd  := x"00";
+            v.txCount  := r.txCount +1;
+            if r.txCount = x"0A" then  -- 12 Octels (11 in INTERGAP_S + 1 in IDLE_S)
+               v.txCount := x"00";
                v.state   := IDLE_S;
             end if;
       ----------------------------------------------------------------------      
       end case;
-      
+
       -- Combinatorial outputs before the reset
       macSlave     <= v.macSlave;
       crcDataValid <= v.crcDataValid;

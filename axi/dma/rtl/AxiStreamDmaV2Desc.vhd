@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamDmaV2Desc.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-02-02
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description:
 -- Descriptor manager for AXI DMA read and write engines.

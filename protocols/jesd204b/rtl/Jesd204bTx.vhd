@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Jesd204bTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-14
 -------------------------------------------------------------------------------
 -- Description: JESD204b multi-lane transmitter module
 --              Transmitter JESD204b module.
@@ -34,9 +33,6 @@ use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-
 use work.Jesd204bPkg.all;
 
 entity Jesd204bTx is
@@ -62,10 +58,6 @@ entity Jesd204bTx is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
-
-      -- Legacy Interface that we will remove in the future
-      txAxisMasterArr_i : in  AxiStreamMasterArray(L_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-      txAxisSlaveArr_o  : out AxiStreamSlaveArray(L_G-1 downto 0);
 
       -- JESD
       -- Clocks and Resets   
@@ -159,9 +151,6 @@ architecture rtl of Jesd204bTx is
    signal s_jesdGtTxArr  : jesdGtTxLaneTypeArray(L_G-1 downto 0);
 
 begin
-
-   -- Legacy Interface that we will remove in the future
-   txAxisSlaveArr_o <= (others => AXI_STREAM_SLAVE_FORCE_C);
 
    ----------------------
    -- Input data register

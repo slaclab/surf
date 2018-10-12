@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SaciSlaveWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-06-17
--- Last update: 2016-06-17
 -------------------------------------------------------------------------------
 -- Description: Simulation testbed for SaciSlaveWrapper
 -------------------------------------------------------------------------------

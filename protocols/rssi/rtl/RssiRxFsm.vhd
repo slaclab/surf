@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : RssiRxFsm.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-06-11
--- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: Receiver FSM
 --              Receiver has the following functionality:

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : RssiTxFsm.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-08-09
--- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: Transmitter FSM
 --              Transmitter has the following functionality:

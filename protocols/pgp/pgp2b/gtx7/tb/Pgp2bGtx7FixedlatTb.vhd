@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Pgp2bGtx7FixedLatTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-10-27
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for Pgp2bGtx7FixedLat
 -------------------------------------------------------------------------------

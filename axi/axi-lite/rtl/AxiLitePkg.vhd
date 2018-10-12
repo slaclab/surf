@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiLitePkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-04-02
--- Last update: 2018-01-29
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite Package File
 -------------------------------------------------------------------------------
@@ -332,6 +330,13 @@ package AxiLitePkg is
       variable axiWriteSlave : in    AxiLiteWriteSlaveType;
       variable axiReadSlave  : in    AxiLiteReadSlaveType);
 
+   procedure axiSlaveRegisterLegacy (
+      variable ep : inout AxiLiteEndpointType;
+      addr        : in    slv;
+      offset      : in    integer;
+      reg         : inout slv;
+      constVal    : in    slv := "X");
+      
    procedure axiSlaveRegister (
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
@@ -388,8 +393,8 @@ package AxiLitePkg is
    -- Generate evenly distributed address map
    function genAxiLiteConfig (num      : positive;
                               base     : slv(31 downto 0);
-                              baseBot  : integer range 0 to 32;
-                              addrBits : integer range 0 to 32)
+                              baseBot  : integer range 1 to 32;
+                              addrBits : integer range 0 to 31)
       return AxiLiteCrossbarMasterConfigArray;
 
 
@@ -437,9 +442,9 @@ package body AxiLitePkg is
       return AxiLiteWriteSlaveType is
    begin
       return (awready => '1',
-              wready => '1',
-              bresp => bresp,
-              bvalid => '1');
+              wready  => '1',
+              bresp   => bresp,
+              bvalid  => '1');
    end function axiLiteWriteSlaveEmptyInit;
 
    function axiReadMasterInit (constant config : AxiLiteCrossbarMasterConfigType) return AxiLiteReadMasterType is
@@ -681,10 +686,7 @@ package body AxiLitePkg is
                       ep.axiStatus);
    end procedure;
 
-
-
-
-   procedure axiSlaveRegister (
+   procedure axiSlaveRegisterLegacy (
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
       offset      : in    integer;
@@ -732,10 +734,27 @@ package body AxiLitePkg is
             axiSlaveWriteResponse(ep.axiWriteSlave);
          end if;
       end if;
+      
+   end procedure;
 
-      if (REG_HIGH_BIT_C < reg'high) then
-         axiSlaveRegister(ep, slv(unsigned(NORMAL_ADDR_C)+4), 0, reg(reg'high downto REG_HIGH_BIT_C+1), "X");
-      end if;
+   procedure axiSlaveRegister (
+      variable ep : inout AxiLiteEndpointType;
+      addr        : in    slv;
+      offset      : in    integer;
+      reg         : inout slv;
+      constVal    : in    slv := "X")
+   is
+      variable highbit : integer;
+   begin
+
+      for i in ((reg'length-1)/32) downto 0 loop
+         if i = ((reg'length-1)/32) then
+            highbit := ((reg'length-1) mod 32) + (32*i) + reg'low;
+         else
+            highbit := 31 + (32*i) + reg'low;
+         end if;
+         axiSlaveRegisterLegacy(ep, slv(unsigned(addr)+(4*i)), offset, reg(highbit downto (32*i)+reg'low), constVal);
+      end loop;
 
    end procedure;
 
@@ -748,7 +767,9 @@ package body AxiLitePkg is
       variable regTmp : slv(reg'length-1 downto 0);
    begin
       regTmp := reg;
-      axiSlaveRegister(ep, addr, offset, regTmp, "X");
+      if (ep.axiStatus.readEnable = '1') then
+         axiSlaveRegister(ep, addr, offset, regTmp, "X");
+      end if;
    end procedure;
 
    procedure axiSlaveRegister (
@@ -796,18 +817,11 @@ package body AxiLitePkg is
       addr        : in    slv;
       regs        : in    slv32Array)
    is
-      constant ADDR_BITS_C : integer                     := log2(regs'length);
-      variable addrLocal   : slv(addr'length-1 downto 0) := addr;
-      variable tmp         : slv(31 downto 0);
    begin
-      -- Select regs word based on araddr
-      tmp := regs(to_integer(unsigned(ep.axiReadMaster.araddr(ADDR_BITS_C+2-1 downto 2))));
+      for i in regs'range loop
+         axiSlaveRegisterR(ep, slv(unsigned(addr) + to_unsigned(i*4, addr'length)), 0, regs(i));
+      end loop;
 
-      addrLocal                           := addr;
-      addrLocal(ADDR_BITS_C+2-1 downto 2) := (others => '-');
-      addrLocal(1 downto 0)               := "00";
---      print("MULTI! - Addr: " & hstr(addrLocal));
-      axiSlaveRegister(ep, addrLocal, 0, tmp);
    end procedure;
 
    procedure axiWrDetect (
@@ -859,7 +873,7 @@ package body AxiLitePkg is
       variable retConf : AxiLiteCrossbarMasterConfigArray(num-1 downto 0);
       variable addr    : slv(31 downto 0);
    begin
-      
+
       -------------------------------------------------------------------------------------------
       -- Note: These asserts only work in synthesis (not simulation)
       -- https://forums.xilinx.com/t5/Synthesis/VHDL-assert-statement-within-function/td-p/413463
@@ -867,20 +881,20 @@ package body AxiLitePkg is
 
       -- Compare the baseBot to addrBits
       assert (baseBot > addrBits)
-         report "AxiLitePkg.genAxiLiteConfig(): (baseBot > addrBits) condition not meet" 
-         & lf & "num      = "   & integer'image(num) 
+         report "AxiLitePkg.genAxiLiteConfig(): (baseBot > addrBits) condition not meet"
+         & lf & "num      = " & integer'image(num)
          & lf & "base     = 0x" & hstr(base)
-         & lf & "baseBot  = "   & integer'image(baseBot)
-         & lf & "addrBits = "   & integer'image(addrBits)
+         & lf & "baseBot  = " & integer'image(baseBot)
+         & lf & "addrBits = " & integer'image(addrBits)
          severity error;
 
       -- Check that there is enough bits for the number of buses
       assert (2**(baseBot-addrBits) >= num)
-         report "AxiLitePkg.genAxiLiteConfig(): (2**(baseBot-addrBits) >= num) condition not meet" 
-         & lf & "num      = "   & integer'image(num) 
+         report "AxiLitePkg.genAxiLiteConfig(): (2**(baseBot-addrBits) >= num) condition not meet"
+         & lf & "num      = " & integer'image(num)
          & lf & "base     = 0x" & hstr(base)
-         & lf & "baseBot  = "   & integer'image(baseBot)
-         & lf & "addrBits = "   & integer'image(addrBits)
+         & lf & "baseBot  = " & integer'image(baseBot)
+         & lf & "addrBits = " & integer'image(addrBits)
          severity error;
 
       -------------------------------------------------------------------------------------------
@@ -957,9 +971,9 @@ package body AxiLitePkg is
 
       print(debug, "AxiLitePkg::axiLiteBusSimWrite(addr:" & hstr(addr) & ", data: " & hstr(dataTmp) & ")");
       if (axilWriteSlave.bresp = AXI_RESP_SLVERR_C) then
-         report "AxiLitePkg::axiLiteBusSimWrite(): - BRESP = SLAVE_ERROR" severity warning;
+         report "AxiLitePkg::axiLiteBusSimWrite( addr:" & hstr(addr) & "): - BRESP = SLAVE_ERROR" severity warning;
       elsif (axilWriteSlave.bresp = AXI_RESP_DECERR_C) then
-         report "AxiLitePkg::axiLiteBusSimWrite(): BRESP = DECODE_ERROR" severity warning;
+         report "AxiLitePkg::axiLiteBusSimWrite( addr:" & hstr(addr) & "): BRESP = DECODE_ERROR" severity warning;
       end if;
 
 
@@ -1008,9 +1022,9 @@ package body AxiLitePkg is
 
       -- Done. Check for errors
       if (axilReadSlave.rresp = AXI_RESP_SLVERR_C) then
-         report "AxiLitePkg::axiLiteBusSimRead(): - RRESP = SLAVE_ERROR" severity warning;
+         report "AxiLitePkg::axiLiteBusSimRead( addr:" & hstr(addr) & "): RRESP = SLAVE_ERROR" severity warning;
       elsif (axilReadSlave.rresp = AXI_RESP_DECERR_C) then
-         report "AxiLitePkg::axiLiteBusSimRead(): RRESP = DECODE_ERROR" severity warning;
+         report "AxiLitePkg::axiLiteBusSimRead( addr:" & hstr(addr) & "): RRESP = DECODE_ERROR" severity warning;
       else
          dataTmp := axilReadSlave.rdata;
          print(debug, "AxiLitePkg::axiLiteBusSimRead( addr:" & hstr(addr) & ", data: " & hstr(axilReadSlave.rdata) & ")");

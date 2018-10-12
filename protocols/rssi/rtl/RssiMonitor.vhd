@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : RssiMonitor.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-08-09
--- Last update: 2016-01-27
 -------------------------------------------------------------------------------
 -- Description: 
 --  Handles RSSI counters, timeouts, and statuses:

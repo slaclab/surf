@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiLiteWriteFilterTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-11-13
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Testbench for design "AxiLiteAsync"
 -------------------------------------------------------------------------------
