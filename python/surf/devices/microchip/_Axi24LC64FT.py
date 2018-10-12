@@ -19,8 +19,6 @@
 
 import pyrogue as pr
 
-from surf.misc._GenericMemory import *
-
 class Axi24LC64FT(pr.Device):
     def __init__(self,       
             name        = "Axi24LC64FT",
