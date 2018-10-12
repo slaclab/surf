@@ -102,7 +102,8 @@ begin
    acknowledge    <= (others => '0');
    axiWriteMaster <= AXI_WRITE_MASTER_INIT_C;
 
-   comb : process (axiRst, dmaRdDescRet, dmaWrDescReq, dmaWrDescRet, r) is
+   comb : process (axiRst, dmaRdDescAck, dmaRdDescRet, dmaWrDescReq,
+                   dmaWrDescRet, r) is
       variable v : RegType;
       variable i : natural;
    begin
@@ -114,11 +115,12 @@ begin
 
          -- Reset strobes
          v.dmaWrDescAck(i).valid := '0';
-         v.dmaRdDescReq(i).valid := '0';
          v.dmaWrDescRetAck(i)    := '0';
-         v.dmaRdDescRetAck(i)    := '0';
 
          -- Flow control
+         if dmaRdDescAck(i) = '1' then
+            v.dmaRdDescReq(i).valid := '0';
+         end if;
          if dmaRdDescRet(i).valid = '1' then
             -- Reset the flag
             v.dmaRdDescRetAck(i) := '1';
@@ -144,7 +146,7 @@ begin
          end if;
 
          -- Check for the return descriptor   
-         if (dmaWrDescRet(i).valid = '1') and (r.dmaWrDescRetAck(i) = '0') then
+         if (dmaWrDescRet(i).valid = '1') and (v.dmaRdDescReq(i).valid = '0') then
             -- Respond with ACK
             v.dmaWrDescRetAck(i)                    := '1';
             -- Send the read request
@@ -160,7 +162,7 @@ begin
             v.dmaRdDescReq(i).id                    := dmaWrDescRet(i).id;
             v.dmaRdDescReq(i).dest                  := dmaWrDescRet(i).dest;
          end if;
-         
+
       end loop;
 
       -- Outputs
