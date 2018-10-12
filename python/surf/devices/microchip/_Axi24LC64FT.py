@@ -33,8 +33,11 @@ class Axi24LC64FT(pr.Device):
         ##############################
         # Variables
         ##############################
-        self.add(GenericMemory(
-                                offset      = 0x00,
-                                nelms       = nelms,
-                                instantiate = instantiate,
-                              ))
+        if (instantiate):
+            pr.MemoryDevice(
+                name        = "Mem",
+                description = "Memory Array",        
+                size        = (4*nelms),
+                # nelms     = nelms,
+            )
+            

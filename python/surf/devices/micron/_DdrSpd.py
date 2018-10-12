@@ -19,28 +19,25 @@
 
 import pyrogue as pr
 
-from surf.misc._GenericMemory import *
-
 class DdrSpd(pr.Device):
     def __init__(   self, 
                     name        = "DdrSpd", 
                     description = "Lookup tool at www.micron.com/spd", 
-                    memBase     =  None, 
-                    offset      =  0x0, 
-                    hidden      =  False, 
                     nelms       =  0x100, 
                     instantiate =  True,
-                    expand	=  True,
                 ):
-        super().__init__(name, description, memBase, offset, hidden, expand=expand)   
+        super().__init__(name=name, description=description, **kwargs)         
 
         ##############################
         # Variables
         ##############################
-        self.add(GenericMemory(
-                                offset      = 0x00,
-                                nelms       = nelms,
-                                instantiate = instantiate,
-                                bitSize     = 8,
-                                mode        = "RO",
-                              ))
+        if (instantiate):
+            pr.MemoryDevice(
+                name        = "Mem",
+                description = "Memory Array",        
+                size        = (4*nelms),
+                # nelms     = nelms,
+                # mode      = "RO",
+                wordBitSize = 8,
+                # bitSize   = 8,
+            )        
