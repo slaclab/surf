@@ -222,6 +222,7 @@ begin
             v.ackCnt                                      := (others => '0');
             -- Reset flags
             v.pending                                     := false;
+            v.axiLen.valid                                := "00";
             -- Check for DMA request 
             if dmaRdDescReq.valid = '1' then
                v.dmaRdDescAck  := '1';
