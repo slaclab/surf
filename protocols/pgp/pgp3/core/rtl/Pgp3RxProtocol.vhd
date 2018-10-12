@@ -188,6 +188,8 @@ begin
                         -- Verify checksun
                         if (protRxData(PGP3_USER_CHECKSUM_FIELD_C) = opCodeChecksum) then
                            v.pgpRxOut.opCodeEn := '1';
+                        else
+                           v.pgpRxOut.linkError := '1';
                         end if;
                      end if;
                   end loop;

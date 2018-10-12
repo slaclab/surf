@@ -25,9 +25,10 @@ use unisim.vcomponents.all;
 
 entity XadcSimpleCore is
    generic (
-      TPD_G              : time   := 1 ns;
-      SIM_DEVICE_G       : string := "7SERIES";
-      SIM_MONITOR_FILE_G : string := "design.txt";
+      TPD_G              : time    := 1 ns;
+      COMMON_CLK_G       : boolean := true;
+      SIM_DEVICE_G       : string  := "7SERIES";
+      SIM_MONITOR_FILE_G : string  := "design.txt";
 
       -- Global XADC configurations
       SEQUENCER_MODE_G : string                 := "DEFAULT";  -- SINGLE_PASS, CONTINUOUS, SINGLE_CHANNEL,
@@ -128,6 +129,8 @@ entity XadcSimpleCore is
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
       --XADC I/O ports
+      xadcClk         : in  sl               := '0';
+      xadcRst         : in  sl               := '0';
       vpIn            : in  sl               := '0';
       vnIn            : in  sl               := '0';
       vAuxP           : in  slv(15 downto 0) := (others => '0');
@@ -314,6 +317,8 @@ architecture rtl of XadcSimpleCore is
    -------------------------------------------------------------------------------------------------
    -- Signals
    -------------------------------------------------------------------------------------------------
+   signal drpClk    : sl;
+   signal drpRst    : sl;
    signal drpAddr   : slv(6 downto 0);
    signal drpEn     : sl;
    signal drpDi     : slv(15 downto 0);
@@ -324,10 +329,20 @@ architecture rtl of XadcSimpleCore is
 
 begin
 
+   DRP_COMMON_CLK_GEN : if (COMMON_CLK_G) generate
+      drpClk <= axilClk;
+      drpRst <= axilRst;
+   end generate;
+
+   DRP_ASYNC_CLK_GEN : if (not COMMON_CLK_G) generate
+      drpClk <= xadcClk;
+      drpRst <= xadcRst;
+   end generate;
+
    U_AxiLiteToDrp_1 : entity work.AxiLiteToDrp
       generic map (
          TPD_G            => TPD_G,
-         COMMON_CLK_G     => true,
+         COMMON_CLK_G     => COMMON_CLK_G,
          EN_ARBITRATION_G => false,
          TIMEOUT_G        => 4096,
          ADDR_WIDTH_G     => 7,
@@ -339,8 +354,8 @@ begin
          axilReadSlave   => axilReadSlave,    -- [out]
          axilWriteMaster => axilWriteMaster,  -- [in]
          axilWriteSlave  => axilWriteSlave,   -- [out]
-         drpClk          => axilClk,          -- [in]
-         drpRst          => axilRst,          -- [in]
+         drpClk          => drpClk,           -- [in]
+         drpRst          => drpRst,           -- [in]
          drpRdy          => drpRdy,           -- [in]
          drpEn           => drpEn,            -- [out]
          drpWe           => drpWe,            -- [out]
@@ -389,7 +404,7 @@ begin
          CONVST       => convSt,
          CONVSTCLK    => convStClk,
          DADDR        => drpAddr,
-         DCLK         => axilClk,
+         DCLK         => drpClk,
          DEN          => drpEn,
          DI           => drpDi,
          DWE          => drpWe,

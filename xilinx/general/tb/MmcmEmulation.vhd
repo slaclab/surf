@@ -66,16 +66,25 @@ end entity MmcmEmulation;
 
 architecture MmcmEmulation of MmcmEmulation is
 
-   constant VCO_PERIOD_C : time := (real(DIVCLK_DIVIDE_G)*CLKIN_PERIOD_G*(1 ns))/(CLKFBOUT_MULT_F_G);
+   constant VCO_PERIOD_REAL_C : real := (real(DIVCLK_DIVIDE_G)*CLKIN_PERIOD_G)/(CLKFBOUT_MULT_F_G);
+
+   constant CLKOUT_PERIOD_REAL_C : RealArray := (
+      0 => (VCO_PERIOD_REAL_C*CLKOUT0_DIVIDE_F_G),
+      1 => (VCO_PERIOD_REAL_C*CLKOUT1_DIVIDE_G),
+      2 => (VCO_PERIOD_REAL_C*CLKOUT2_DIVIDE_G),
+      3 => (VCO_PERIOD_REAL_C*CLKOUT3_DIVIDE_G),
+      4 => (VCO_PERIOD_REAL_C*CLKOUT4_DIVIDE_G),
+      5 => (VCO_PERIOD_REAL_C*CLKOUT5_DIVIDE_G),
+      6 => (VCO_PERIOD_REAL_C*CLKOUT6_DIVIDE_G));
 
    constant CLKOUT_PERIOD_C : TimeArray := (
-      0 => (VCO_PERIOD_C*CLKOUT0_DIVIDE_F_G),
-      1 => (VCO_PERIOD_C*CLKOUT1_DIVIDE_G),
-      2 => (VCO_PERIOD_C*CLKOUT2_DIVIDE_G),
-      3 => (VCO_PERIOD_C*CLKOUT3_DIVIDE_G),
-      4 => (VCO_PERIOD_C*CLKOUT4_DIVIDE_G),
-      5 => (VCO_PERIOD_C*CLKOUT5_DIVIDE_G),
-      6 => (VCO_PERIOD_C*CLKOUT6_DIVIDE_G));
+      0 => (CLKOUT_PERIOD_REAL_C(0)*(1 ns)),
+      1 => (CLKOUT_PERIOD_REAL_C(1)*(1 ns)),
+      2 => (CLKOUT_PERIOD_REAL_C(2)*(1 ns)),
+      3 => (CLKOUT_PERIOD_REAL_C(3)*(1 ns)),
+      4 => (CLKOUT_PERIOD_REAL_C(4)*(1 ns)),
+      5 => (CLKOUT_PERIOD_REAL_C(5)*(1 ns)),
+      6 => (CLKOUT_PERIOD_REAL_C(6)*(1 ns)));
 
    constant PHASE_OFFSET_C : TimeArray(6 downto 0) := (others => (1 ps));  -- place holder for future feature support      
 
@@ -127,8 +136,8 @@ begin
                   phasedUp(i) <= '0';
                else
                   wait for 10 us;
-                  wait until CLKIN = '0';
-                  wait until CLKIN = '1';
+                  wait until ((CLKIN = '0') or (RST = '1'));
+                  wait until ((CLKIN = '1') or (RST = '1'));
                   wait for PHASE_OFFSET_C(i);
                   phasedUp(i) <= '1';
                end if;
