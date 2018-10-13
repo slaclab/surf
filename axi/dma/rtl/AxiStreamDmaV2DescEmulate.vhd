@@ -116,6 +116,7 @@ begin
          -- Reset strobes
          v.dmaWrDescAck(i).valid := '0';
          v.dmaWrDescRetAck(i)    := '0';
+         v.dmaRdDescRetAck(i)    := '0';
 
          -- Flow control
          if dmaRdDescAck(i) = '1' then
@@ -146,11 +147,10 @@ begin
          end if;
 
          -- Check for the return descriptor   
-         if (dmaWrDescRet(i).valid = '1') and (v.dmaRdDescReq(i).valid = '0') then
+         if (dmaWrDescRet(i).valid = '1') and (r.dmaRdDescReq(i).valid = '0') then
             -- Respond with ACK
             v.dmaWrDescRetAck(i)                    := '1';
             -- Send the read request
-            v.dmaRdDescReq(i)                       := AXI_READ_DMA_DESC_REQ_INIT_C;
             v.dmaRdDescReq(i).valid                 := '1';
             v.dmaRdDescReq(i).address(19 downto 12) := dmaWrDescRet(i).buffId(7 downto 0);  -- Write index
             v.dmaRdDescReq(i).address(23 downto 20) := toSlv(i, 4);  -- DMA Channel index            
