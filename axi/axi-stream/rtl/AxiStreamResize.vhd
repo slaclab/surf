@@ -97,7 +97,7 @@ begin
       idx     := conv_integer(r.count);
       bytes   := (idx+1) * MST_BYTES_C;
       if (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-         byteCnt := conv_integer(sAxisMaster.tKeep(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C)-1 downto 0));
+         byteCnt := conv_integer(sAxisMaster.tKeep(bitSize(SLAVE_AXI_CONFIG_G.TDATA_BYTES_C)-1 downto 0));
       else
          byteCnt := getTKeep(sAxisMaster.tKeep,SLAVE_AXI_CONFIG_G);
       end if;
@@ -196,7 +196,7 @@ begin
             
             -- Check for TKEEP_COUNT_C mode on slave side only
             if (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) and (MASTER_AXI_CONFIG_G.TKEEP_MODE_C /= TKEEP_COUNT_C) then
-               mAxisMaster.tkeep <= genTKeep(conv_integer(sAxisMaster.tkeep(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C)-1 downto 0)));
+               mAxisMaster.tkeep <= genTKeep(conv_integer(sAxisMaster.tkeep(bitSize(SLAVE_AXI_CONFIG_G.TDATA_BYTES_C)-1 downto 0)));
          
             -- Check for TKEEP_COUNT_C mode on master side only
             elsif (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C /= TKEEP_COUNT_C) and (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
