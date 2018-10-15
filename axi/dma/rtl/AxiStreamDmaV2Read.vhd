@@ -216,7 +216,9 @@ begin
             v.dmaRdDescRet.buffId                         := dmaRdDescReq.buffId;
             v.dmaRdDescRet.result                         := (others => '0');
             -- Force address alignment
-            v.dmaRdDescReq.address(ADDR_LSB_C-1 downto 0) := (others => '0');
+            if (DATA_BYTES_C > 1) then
+               v.dmaRdDescReq.address(ADDR_LSB_C-1 downto 0) := (others => '0');
+            end if;
             -- Reset the counters
             v.reqCnt                                      := (others => '0');
             v.ackCnt                                      := (others => '0');

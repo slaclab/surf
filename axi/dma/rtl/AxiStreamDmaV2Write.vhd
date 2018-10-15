@@ -329,7 +329,10 @@ begin
                   end if;                  
                   -- Address and size increment
                   v.dmaWrTrack.address := r.dmaWrTrack.address + DATA_BYTES_C;
-                  v.dmaWrTrack.address(ADDR_LSB_C-1 downto 0) := (others => '0');
+                  -- Force address alignment
+                  if (DATA_BYTES_C > 1) then
+                     v.dmaWrTrack.address(ADDR_LSB_C-1 downto 0) := (others => '0');
+                  end if;
                   -- Increment the byte counter
                   v.dmaWrTrack.size    := r.dmaWrTrack.size + bytes;
                   v.dmaWrTrack.maxSize := r.dmaWrTrack.maxSize - bytes;
