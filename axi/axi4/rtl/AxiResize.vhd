@@ -55,7 +55,7 @@ architecture rtl of AxiResize is
    constant MAX_BYTES_C : integer := maximum(SLV_BYTES_C, MST_BYTES_C);
    constant COUNT_C     : integer := ite(SLV_BYTES_C > MST_BYTES_C, SLV_BYTES_C / MST_BYTES_C, MST_BYTES_C / SLV_BYTES_C);
    constant BIT_CNT_C   : integer := bitSize(COUNT_C);
-   constant SHIFT_C     : integer := log2(BIT_CNT_C);
+   constant SHIFT_C     : integer := log2(COUNT_C);
 
    type RegType is record
       rdCount  : slv(BIT_CNT_C-1 downto 0);
