@@ -346,6 +346,8 @@ begin
                   end if;
                   -- Reset the counter
                   v.dataCnt := (others => '0');
+                  -- Update strobe for the results
+                  v.updatedResults := '1';                  
                   -- Next State
                   v.state   := IDLE_S;
                elsif r.dataCnt /= MAX_CNT_C then
@@ -389,6 +391,8 @@ begin
                v.bitPntr := (others => '0');
                -- Check if there was an eof flag
                if r.eof = '1' then
+                  -- Update strobe for the results
+                  v.updatedResults := '1';
                   -- Next State
                   v.state := IDLE_S;
                else
@@ -399,18 +403,8 @@ begin
       ----------------------------------------------------------------------
       end case;
 
-      -- Combinatorial Outputs
-      rxAxisSlave <= v.rxAxisSlave;
-
-      -- Reset
-      if (sAxisRst = '1') then
-         v := REG_INIT_C;
-      end if;
-
-      -- Register the variable for next clock cycle
-      rin <= v;
-
       -- Outputs
+      rxAxisSlave     <= v.rxAxisSlave;
       updatedResults  <= r.updatedResults;
       errMissedPacket <= r.errMissedPacket;
       errLength       <= r.errLength;
@@ -422,6 +416,14 @@ begin
       busy            <= r.busy;
       packetLength    <= r.packetLength;
       errorDet        <= r.errorDet;
+
+      -- Reset
+      if (sAxisRst = '1') then
+         v := REG_INIT_C;
+      end if;
+
+      -- Register the variable for next clock cycle
+      rin <= v;
 
    end process comb;
 
