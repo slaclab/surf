@@ -58,7 +58,7 @@ end AxiStreamDmaV2Read;
 architecture rtl of AxiStreamDmaV2Read is
 
    constant DATA_BYTES_C : positive := AXIS_CONFIG_G.TDATA_BYTES_C;
-   constant ADDR_LSB_C   : natural  := bitSize(DATA_BYTES_C-1);
+   constant ADDR_LSB_C   : natural  := ite((DATA_BYTES_C=1),0,bitSize(DATA_BYTES_C-1));
    constant PEND_LSB_C   : natural  := bitSize(PEND_THRESH_G-1);
 
    type ReqStateType is (
