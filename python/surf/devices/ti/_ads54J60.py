@@ -19,7 +19,7 @@
 
 import pyrogue as pr
 import time
-from surf.devices.ti._ads54J60Channel import *
+import surf.devices.ti as ti
 
 class Ads54J60(pr.Device):
     def __init__( self,       
@@ -49,8 +49,8 @@ class Ads54J60(pr.Device):
         #####################
         # Add Device Channels
         #####################
-        self.add(Ads54J60Channel(name='CH[0]',description='Channel A',offset=chA,expand=False,verify=verify,))
-        self.add(Ads54J60Channel(name='CH[1]',description='Channel B',offset=chB,expand=False,verify=verify,))      
+        self.add(ti.Ads54J60Channel(name='CH[0]',description='Channel A',offset=chA,expand=False,verify=verify,))
+        self.add(ti.Ads54J60Channel(name='CH[1]',description='Channel B',offset=chB,expand=False,verify=verify,))      
         
         ##################
         # General Register
