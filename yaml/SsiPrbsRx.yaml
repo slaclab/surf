@@ -153,15 +153,12 @@ SsiPrbsRx: &SsiPrbsRx
       mode: RW
       description: ''         
     #########################################################
-    # CPSW requires all WO variables to be 32-bit size and 32-bit aligned 
-    # which makes this command not supported unless we rewrite the firmware
-    #########################################################
-    # CntRst:
-      # at:
-        # offset: 0x3FC
-      # class: IntField
-      # name: CntRst
-      # sizeBits: 1
-      # mode: WO
-      # description: Status counter reset      
+    CntRst:
+      at:
+        offset: 0x3FC
+      class: IntField
+      name: CntRst
+      sizeBits: 1
+      mode: WO
+      description: Status counter reset      
     #########################################################
