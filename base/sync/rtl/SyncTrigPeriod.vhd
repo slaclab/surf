@@ -45,6 +45,7 @@ architecture rtl of SyncTrigPeriod is
    constant MAX_CNT_C : slv(CNT_WIDTH_G-1 downto 0) := (others => '1');
 
    type RegType is record
+      armed     : sl;
       cnt       : slv(CNT_WIDTH_G-1 downto 0);
       period    : slv(CNT_WIDTH_G-1 downto 0);
       periodMax : slv(CNT_WIDTH_G-1 downto 0);
@@ -52,6 +53,7 @@ architecture rtl of SyncTrigPeriod is
    end record;
 
    constant REG_INIT_C : RegType := (
+      armed     => '0',
       cnt       => (others => '0'),
       period    => (others => '0'),
       periodMax => (others => '0'),
@@ -90,21 +92,31 @@ begin
       -- Check for a trigger
       if (trig = '1') then
 
-         -- Save the current period value
-         v.period := v.cnt;
+         -- Check for first trigger strobe after reset
+         if (r.armed = '0') then
 
-         -- Check for max value
-         if (v.cnt > r.periodMax) then
-            v.periodMax := v.cnt;
+            -- Set the flag
+            v.armed := '1';
+
+         else
+
+            -- Save the current period value
+            v.period := v.cnt;
+
+            -- Check for max value
+            if (v.cnt > r.periodMax) then
+               v.periodMax := v.cnt;
+            end if;
+
+            -- Check for min value
+            if (v.cnt < r.periodMin) then
+               v.periodMin := v.cnt;
+            end if;
+
+            -- Reset the counter
+            v.cnt := (others => '0');
+
          end if;
-
-         -- Check for min value
-         if (v.cnt < r.periodMin) then
-            v.periodMin := v.cnt;
-         end if;
-
-         -- Reset the counter
-         v.cnt := (others => '0');
 
       end if;
 
