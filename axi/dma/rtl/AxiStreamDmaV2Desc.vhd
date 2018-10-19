@@ -857,7 +857,6 @@ begin
          if dmaRdDescAck(i) = '1' then
             v.dmaRdDescReq(i).valid := '0';
          end if;
-            v.dmaWrDescAck(i).address := r.buffBaseAddr & r.wrAddr;
       end loop;
 
       dmaRdReq       := AXI_READ_DMA_DESC_REQ_INIT_C;
