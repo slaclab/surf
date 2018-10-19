@@ -196,7 +196,7 @@ package AxiDmaPkg is
 
    type AxiWriteDmaDescAckArray is array (natural range<>) of AxiWriteDmaDescAckType;
 
-   constant AXI_WRITE_DMA_DESC_ACK_SIZE_C : integer := 131;
+   constant AXI_WRITE_DMA_DESC_ACK_SIZE_C : integer := 130;
 
    function toSlv (r : AxiWriteDmaDescAckType ) return slv;
    function toAxiWriteDmaDescAck (din : slv; valid : sl) return AxiWriteDmaDescAckType;
