@@ -476,6 +476,8 @@ begin
       axiSlaveRegister(regCon, x"030", 0, v.acknowledge);
 
       axiSlaveRegisterR(regCon, x"034", 0, toSlv(CHAN_COUNT_G, 8));
+      axiSlaveRegisterR(regCon, x"034", 8, toSlv(AXI_CONFIG_G.ADDR_WIDTH_C, 8));
+      axiSlaveRegisterR(regCon, x"034", 16,toSlv(AXI_CONFIG_G.DATA_BYTES_C, 8));
       axiSlaveRegisterR(regCon, x"038", 0, toSlv(DESC_AWIDTH_G, 8));
       axiSlaveRegister(regCon, x"03C",  0, v.descWrCache);
       axiSlaveRegister(regCon, x"03C",  8, v.buffWrCache);
