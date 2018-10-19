@@ -218,7 +218,7 @@ begin
                -- Send the super-frame header
                v.txMaster.tValid               := '1';
                v.txMaster.tData(3 downto 0)    := x"1";  -- Version = 0x1
-               v.txMaster.tData(7 downto 4)    := toSlv(AXIS_WORD_SIZE_C-1, 4);
+               v.txMaster.tData(7 downto 4)    := toSlv(log2(AXIS_WORD_SIZE_C/2), 4);
                v.txMaster.tData(15 downto 8)   := r.seqCnt;
                v.txMaster.tData(127 downto 16) := (others => '0');
                ssiSetUserSof(AXIS_CONFIG_G, v.txMaster, '1');
