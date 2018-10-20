@@ -26,9 +26,9 @@ use work.SsiPkg.all;
 entity AxiStreamBatcher is
    generic (
       TPD_G                        : time                := 1 ns;
-      SUPER_FRAME_BYTE_THRESHOLD_G : positive            := 8192;  -- Units of bytes
       MAX_NUMBER_SUB_FRAMES_G      : positive            := 32;  -- Units of sub-frames
-      MAX_CLK_GAP_G                : positive            := 256;  -- Units of clock cycles
+      SUPER_FRAME_BYTE_THRESHOLD_G : natural             := 8192;  -- Units of bytes
+      MAX_CLK_GAP_G                : natural             := 256;  -- Units of clock cycles
       AXIS_CONFIG_G                : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
       INPUT_PIPE_STAGES_G          : natural             := 0;
       OUTPUT_PIPE_STAGES_G         : natural             := 1);
@@ -40,6 +40,7 @@ entity AxiStreamBatcher is
       superFrameByteThreshold : in  slv(31 downto 0) := toSlv(SUPER_FRAME_BYTE_THRESHOLD_G, 32);
       maxSubFrames            : in  slv(15 downto 0) := toSlv(MAX_NUMBER_SUB_FRAMES_G, 16);
       maxClkGap               : in  slv(11 downto 0) := toSlv(MAX_CLK_GAP_G, 12);
+      idle                    : out sl;
       -- AXIS Interfaces
       sAxisMaster             : in  AxiStreamMasterType;
       sAxisSlave              : out AxiStreamSlaveType;
@@ -73,7 +74,7 @@ architecture rtl of AxiStreamBatcher is
       tDest                      : slv(7 downto 0);
       tUserFirst                 : slv(7 downto 0);
       tUserLast                  : slv(7 downto 0);
-      lastByteCnt                : slv(4 downto 0);
+      lastByteCnt                : slv(7 downto 0);
       chunkCnt                   : natural range 0 to 3;
       rxSlave                    : AxiStreamSlaveType;
       txMaster                   : AxiStreamMasterType;
@@ -140,21 +141,10 @@ begin
             v.txMaster.tValid := '1';
             -- Terminate the super-frame
             v.txMaster.tLast  := '1';
-            -- Indicates super-frame terminated
-            if (AXIS_WORD_SIZE_C = 2) then
-               v.txMaster.tData(13) := v.maxSubFramesDet;
-               v.txMaster.tData(14) := v.superFrameByteThresholdDet;
-            elsif (AXIS_WORD_SIZE_C = 4) then
-               v.txMaster.tData(29) := v.maxSubFramesDet;
-               v.txMaster.tData(30) := v.superFrameByteThresholdDet;
-            else
-               v.txMaster.tData(61) := v.maxSubFramesDet;
-               v.txMaster.tData(62) := v.superFrameByteThresholdDet;
-            end if;
             -- Next state
-            v.state := HEADER_S;
-         -- Check if new data to move
-         elsif (rxMaster.tValid = '1') then
+            v.state           := HEADER_S;
+         -- Check if new data to move or bypassing clock gap
+         elsif (rxMaster.tValid = '1') or (r.maxClkGap = 0) then
             -- Move the outbound data
             v.txMaster.tValid := '1';
             -- Next state
@@ -178,7 +168,7 @@ begin
       end if;
 
       -- Check for max. super frame
-      if(r.superByteCnt = r.superFrameByteThreshold) then
+      if(r.superByteCnt = r.superFrameByteThreshold) and (r.superFrameByteThreshold /= 0) then
          -- Set the flag
          v.superFrameByteThresholdDet := '1';
       end if;
@@ -250,9 +240,9 @@ begin
                -- Check for last transaction in sub-frame
                if (rxMaster.tLast = '1') then
                   -- Get the number of valid bytes in the last transaction of the sub-frame
-                  v.lastByteCnt                                      := toSlv(getTKeep(rxMaster.tKeep), 5);
+                  v.lastByteCnt                                      := toSlv(getTKeep(rxMaster.tKeep, AXIS_CONFIG_G), 8);
                   -- Increment the sub-frame byte counter
-                  v.subByteCnt                                       := r.subByteCnt + getTKeep(rxMaster.tKeep);
+                  v.subByteCnt                                       := r.subByteCnt + getTKeep(rxMaster.tKeep, AXIS_CONFIG_G);
                   -- Sample the meta data
                   v.tUserLast(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0) := axiStreamGetUserField(AXIS_CONFIG_G, rxMaster);
                   v.tDest(AXIS_CONFIG_G.TDEST_BITS_C-1 downto 0)     := rxMaster.tDest(AXIS_CONFIG_G.TDEST_BITS_C-1 downto 0);
@@ -270,14 +260,14 @@ begin
             -- Check if ready to move data
             if (v.txMaster.tValid = '0') then
                -- Set the sub-frame tail data field
-               v.txMaster.tData(31 downto 0)   := r.subByteCnt;
-               v.txMaster.tData(39 downto 32)  := r.tDest;
-               v.txMaster.tData(47 downto 40)  := r.tUserFirst;
-               v.txMaster.tData(55 downto 48)  := r.tUserLast;
-               v.txMaster.tData(60 downto 56)  := r.lastByteCnt;
-               v.txMaster.tData(127 downto 61) := (others => '0');
+               v.txMaster.tData               := (others => '0');
+               v.txMaster.tData(31 downto 0)  := r.subByteCnt;
+               v.txMaster.tData(39 downto 32) := r.tDest;
+               v.txMaster.tData(47 downto 40) := r.tUserFirst;
+               v.txMaster.tData(55 downto 48) := r.tUserLast;
+               v.txMaster.tData(63 downto 56) := r.lastByteCnt;
                -- Reset the counter
-               v.subByteCnt                    := (others => '0');
+               v.subByteCnt                   := (others => '0');
                -- Check the AXIS width
                if (AXIS_WORD_SIZE_C = 2) then
                   -- Move the outbound data
@@ -303,7 +293,7 @@ begin
             -- Check if ready to move data
             if (v.txMaster.tValid = '0') then
                -- Shift the data
-               v.txMaster.tData := x"0000" & r.txMaster.tData(127 downto 16);
+               v.txMaster.tData(63 downto 0) := x"0000" & r.txMaster.tData(63 downto 16);
                -- Check the chunking counter
                if r.chunkCnt = 3 then
                   -- Process the tail
@@ -322,7 +312,7 @@ begin
             -- Check if ready to move data
             if (v.txMaster.tValid = '0') then
                -- Shift the data
-               v.txMaster.tData := x"0000_0000" & r.txMaster.tData(127 downto 32);
+               v.txMaster.tData(63 downto 0) := x"0000_0000" & r.txMaster.tData(63 downto 32);
                -- Check the chunking counter
                if r.chunkCnt = 1 then
                   -- Process the tail
@@ -354,16 +344,8 @@ begin
                   v.txMaster.tValid := '1';
                   -- Terminate the super-frame
                   v.txMaster.tLast  := '1';
-                  -- Indicates super-frame terminated due to clock gap 
-                  if (AXIS_WORD_SIZE_C = 2) then
-                     v.txMaster.tData(15) := '1';
-                  elsif (AXIS_WORD_SIZE_C = 4) then
-                     v.txMaster.tData(31) := '1';
-                  else
-                     v.txMaster.tData(63) := '1';
-                  end if;
                   -- Next state
-                  v.state := HEADER_S;
+                  v.state           := HEADER_S;
                end if;
             else
                -- Increment the counter
@@ -376,8 +358,14 @@ begin
       v.txMaster.tKeep := genTKeep(AXIS_WORD_SIZE_C);
       v.txMaster.tStrb := genTKeep(AXIS_WORD_SIZE_C);
 
-      -- Combinatorial outputs before the reset
-      rxSlave <= v.rxSlave;
+      -- Outputs
+      rxSlave  <= v.rxSlave;
+      txMaster <= r.txMaster;
+      if (r.state = HEADER_S) then
+         idle <= '1';
+      else
+         idle <= '0';
+      end if;
 
       -- Reset
       if (axisRst = '1') then
@@ -386,9 +374,6 @@ begin
 
       -- Register the variable for next clock cycle
       rin <= v;
-
-      -- Registered Outputs
-      txMaster <= r.txMaster;
 
    end process comb;
 
