@@ -114,7 +114,9 @@ entity RssiCore is
       axilWriteSlave  : out AxiLiteWriteSlaveType;
 
       -- Internal statuses
-      statusReg_o : out slv(6 downto 0));
+      statusReg_o     : out slv(6 downto 0);
+
+      maxSegSize_o    : out slv(15 downto 0));
 end entity RssiCore;
 
 architecture rtl of RssiCore is
@@ -866,5 +868,7 @@ begin
             frameRate  => frameRate(i),
             bandwidth  => bandwidth(i));  
    end generate PACKET_RATE;         
+
+   maxSegSize_o <= s_rxRssiParam.maxSegSize;
    
 end architecture rtl;
