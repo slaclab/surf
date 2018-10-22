@@ -85,12 +85,12 @@ begin
 
       -- Reset the flags
       v.rxSlave.tReady := '0';
-      if (txSlave.tReady = '1') and (remotePause = '0') then
+      if (txSlave.tReady = '1') then
          v.txMaster.tValid := '0';
       end if;
 
       -- Check if ready to move data
-      if (v.txMaster.tValid = '0') and (rxMaster.tValid = '1') then
+      if (v.txMaster.tValid = '0') and (rxMaster.tValid = '1') and (remotePause = '0') then
          -- Accept the data
          v.rxSlave.tReady := '1';
          -- Move the data
