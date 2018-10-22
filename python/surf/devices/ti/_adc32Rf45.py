@@ -19,7 +19,7 @@
 
 import pyrogue as pr
 import time
-from surf.devices.ti._adc32Rf45Channel import *
+import surf.devices.ti as ti
 
 class Adc32Rf45(pr.Device):
     def __init__( self,       
@@ -52,8 +52,8 @@ class Adc32Rf45(pr.Device):
         #####################
         # Add Device Channels
         #####################
-        self.add(Adc32Rf45Channel(name='CH[0]',description='Channel A',offset=(0x0 << 14),expand=False,verify=verify))
-        self.add(Adc32Rf45Channel(name='CH[1]',description='Channel B',offset=(0x8 << 14),expand=False,verify=verify))      
+        self.add(ti.Adc32Rf45Channel(name='CH[0]',description='Channel A',offset=(0x0 << 14),expand=False,verify=verify))
+        self.add(ti.Adc32Rf45Channel(name='CH[1]',description='Channel B',offset=(0x8 << 14),expand=False,verify=verify))      
         
         ##################
         # General Register
