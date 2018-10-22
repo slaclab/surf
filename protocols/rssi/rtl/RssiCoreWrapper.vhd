@@ -39,7 +39,6 @@ entity RssiCoreWrapper is
       APP_ILEAVE_EN_G      : boolean              := false;
       BYP_TX_BUFFER_G      : boolean              := false;
       BYP_RX_BUFFER_G      : boolean              := false;
-      ILEAVE_ON_NOTVALID_G : boolean              := false;
       -- AXIS Configurations
       APP_AXIS_CONFIG_G    : AxiStreamConfigArray := (0 => ssiAxiStreamConfig(8, TKEEP_NORMAL_C));
       TSP_AXIS_CONFIG_G    : AxiStreamConfigType  := ssiAxiStreamConfig(16, TKEEP_NORMAL_C);
@@ -91,6 +90,9 @@ architecture mapping of RssiCoreWrapper is
 
    signal rxMasters : AxiStreamMasterArray(APP_STREAMS_G-1 downto 0);
    signal rxSlaves  : AxiStreamSlaveArray(APP_STREAMS_G-1 downto 0);
+   
+   signal ibMasters : AxiStreamMasterArray(APP_STREAMS_G-1 downto 0);
+   signal ibSlaves  : AxiStreamSlaveArray(APP_STREAMS_G-1 downto 0);   
 
    signal depacketizerMasters : AxiStreamMasterArray(1 downto 0);
    signal depacketizerSlaves  : AxiStreamSlaveArray(1 downto 0);
@@ -106,6 +108,8 @@ architecture mapping of RssiCoreWrapper is
    signal rssiConnected    : sl;
 
    signal maxObSegSize     : slv(15 downto 0);
+   signal remotePause      : slv(7 downto 0);
+   signal pause            : slv(APP_STREAMS_G-1 downto 0);
 
    -- This should really go in a AxiStreamPacketizerPkg
    constant PACKETIZER_AXIS_CONFIG_C : AxiStreamConfigType := (
@@ -125,6 +129,7 @@ begin
 
    GEN_RX :
    for i in (APP_STREAMS_G-1) downto 0 generate
+   
       U_Rx : entity work.AxiStreamResize
          generic map (
             -- General Configurations
@@ -143,6 +148,33 @@ begin
             -- Master Port
             mAxisMaster => rxMasters(i),
             mAxisSlave  => rxSlaves(i));
+            
+      PACKER_V1 : if (APP_ILEAVE_EN_G = false) generate
+         -- Non-interleaved RSSI doesn't support application pause feature
+         ibMasters(i) <= rxMasters(i);
+         rxSlaves(i)  <= ibSlaves(i);
+      end generate;
+      
+      PACKER_V2 : if (APP_ILEAVE_EN_G = true) generate
+         U_PauseFlowControl : entity work.AxiStreamPauseFlowControl
+            generic map (
+               TPD_G => TPD_G)
+            port map (
+               -- Clock and reset
+               axisClk     => clk_i,
+               axisRst     => rst_i,
+               -- Remote Pause Flow Control
+               remotePause => pause(i),
+               -- Slave Port
+               sAxisMaster => rxMasters(i),
+               sAxisSlave  => rxSlaves(i),
+               -- Master Port
+               mAxisMaster => ibMasters(i),
+               mAxisSlave  => ibSlaves(i));
+      end generate;  
+
+      pause(i) <= remotePause(i) when(i<7) else remotePause(7);
+            
    end generate GEN_RX;
 
    U_AxiStreamMux : entity work.AxiStreamMux
@@ -152,7 +184,7 @@ begin
          MODE_G               => "ROUTED",
          TDEST_ROUTES_G       => APP_STREAM_ROUTES_G,
          ILEAVE_EN_G          => APP_ILEAVE_EN_G,
-         ILEAVE_ON_NOTVALID_G => ILEAVE_ON_NOTVALID_G,
+         ILEAVE_ON_NOTVALID_G => true,
          ILEAVE_REARB_G       => (MAX_SEG_SIZE_G/CONV_AXIS_CONFIG_C.TDATA_BYTES_C),
          PIPE_STAGES_G        => 1)
       port map (
@@ -160,8 +192,8 @@ begin
          axisClk      => clk_i,
          axisRst      => rst_i,
          -- Slaves
-         sAxisMasters => rxMasters,
-         sAxisSlaves  => rxSlaves,
+         sAxisMasters => ibMasters,
+         sAxisSlaves  => ibSlaves,
          -- Master
          mAxisMaster  => packetizerMasters(0),
          mAxisSlave   => packetizerSlaves(0));
@@ -191,6 +223,7 @@ begin
                mAxisMaster => packetizerMasters(1),
                mAxisSlave  => packetizerSlaves(1));
       end generate;
+      
       PACKER_V2 : if (APP_ILEAVE_EN_G = true) generate
          U_Packetizer : entity work.AxiStreamPacketizer2
             generic map (
@@ -211,6 +244,7 @@ begin
                mAxisMaster => packetizerMasters(1),
                mAxisSlave  => packetizerSlaves(1));
       end generate;
+      
    end generate;
 
    BYPASS_PACKER : if (BYPASS_CHUNKER_G = true) generate
@@ -274,6 +308,7 @@ begin
          axilWriteSlave   => axilWriteSlave,
          -- Internal statuses
          statusReg_o      => statusReg,
+         remotePause_o    => remotePause,
          maxSegSize_o     => maxObSegSize);
 
    statusReg_o      <= statusReg;

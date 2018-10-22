@@ -115,7 +115,7 @@ entity RssiCore is
 
       -- Internal statuses
       statusReg_o     : out slv(6 downto 0);
-      appPause_o      : out slv(7 downto 0);
+      remotePause_o   : out slv(7 downto 0);
       maxSegSize_o    : out slv(15 downto 0));
 end entity RssiCore;
 
@@ -693,7 +693,7 @@ begin
       port map (
          clk_i          => clk_i,
          rst_i          => rst_i,
-         appPause_o     => appPause_o,
+         remotePause_o  => remotePause_o,
          connActive_i   => s_connActive,
          rxWindowSize_i => s_rxWindowSize,
          rxBufferSize_i => s_rxBufferSize,
