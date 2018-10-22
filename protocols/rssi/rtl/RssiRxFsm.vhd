@@ -59,6 +59,9 @@ entity RssiRxFsm is
       clk_i      : in  sl;
       rst_i      : in  sl;
       
+      -- Optional Application Pause
+      appPause_o : out slv(7 downto 0);
+      
       -- Connection FSM indicating active connection
       connActive_i   : in  sl;
       
@@ -143,6 +146,8 @@ architecture rtl of RssiRxFsm is
 
    type RegType is record
       
+      appPause : slv(7 downto 0); 
+      
       -- Resception buffer window
       windowArray    : WindowTypeArray(0 to 2 ** WINDOW_ADDR_SIZE_G-1);      
       
@@ -200,6 +205,8 @@ architecture rtl of RssiRxFsm is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      
+      appPause => (others => '0'),
       
       -- Rx buffer window
       windowArray    => (0 to 2 ** WINDOW_ADDR_SIZE_G-1 => WINDOW_INIT_C),
@@ -348,6 +355,9 @@ begin
                v.rxHeadLen := r.headerData (55 downto 48);
                v.rxSeqN    := r.headerData (47 downto 40);
                v.rxAckN    := r.headerData (39 downto 32);
+               
+               v.appPause := r.headerData(23 downto 16);
+               
             end if;
             
             -- Checksum commands
@@ -777,6 +787,7 @@ begin
       chksumStrobe_o <= r.chkStb;
       chksumLength_o <= r.chkLen;
       rxParam_o      <= r.rxParam;    
+      appPause_o     <= r.appPause;    
       
       -- Application side SSI output
       appSsiMaster_o <= r.appSsiMaster;      
