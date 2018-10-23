@@ -80,7 +80,6 @@ entity RssiTxFsm is
       sndRst_i    : in sl;
       sndResend_i : in sl;
       sndNull_i   : in sl;
-      remoteBusy_i: in sl;
 
       -- Window buff size (Depends on the number of outstanding segments)
       windowSize_i : in integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
@@ -356,7 +355,7 @@ begin
    s_headerAndChksum <= rdHeaderData_i(63 downto 16) & s_chksum(15 downto 0);
 
    ----------------------------------------------------------------------------------------------- 
-   comb : process (r, rst_i, appSsiMaster_i, sndSyn_i, sndAck_i, connActive_i, closed_i, sndRst_i, initSeqN_i, windowSize_i, headerRdy_i, ack_i, ackN_i, bufferSize_i, remoteBusy_i,
+   comb : process (r, rst_i, appSsiMaster_i, sndSyn_i, sndAck_i, connActive_i, closed_i, sndRst_i, initSeqN_i, windowSize_i, headerRdy_i, ack_i, ackN_i, bufferSize_i,
                    sndResend_i, sndNull_i, tspSsiSlave_i, rdHeaderData_i, rdBuffData_i, s_headerAndChksum, chksumValid_i, headerLength_i, injectFault_i) is
 
       variable v : RegType;
@@ -837,7 +836,7 @@ begin
             -- Next state condition   
             if (sndRst_i = '1') then
                v.tspState := RST_WE_S;
-            elsif (r.sndData = '1') and (r.bufferFull = '0') and (remoteBusy_i = '0') then
+            elsif (r.sndData = '1') and (r.bufferFull = '0') then
                v.ackSndData := '1';
                v.tspState   := DATA_WE_S;
             elsif (sndResend_i = '1' and r.bufferEmpty = '0') then

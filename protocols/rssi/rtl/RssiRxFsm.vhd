@@ -59,6 +59,9 @@ entity RssiRxFsm is
       clk_i      : in  sl;
       rst_i      : in  sl;
       
+      -- RX Buffer Full
+      rxBufferFull_o : out sl;
+      
       -- Connection FSM indicating active connection
       connActive_i   : in  sl;
       
@@ -777,6 +780,7 @@ begin
       chksumStrobe_o <= r.chkStb;
       chksumLength_o <= r.chkLen;
       rxParam_o      <= r.rxParam;    
+      rxBufferFull_o <= not(r.windowArray(conv_integer(r.rxBufferAddr)).occupied);    
       
       -- Application side SSI output
       appSsiMaster_o <= r.appSsiMaster;      
