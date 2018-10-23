@@ -476,6 +476,8 @@ begin
       axiSlaveRegister(regCon, x"030", 0, v.acknowledge);
 
       axiSlaveRegisterR(regCon, x"034", 0, toSlv(CHAN_COUNT_G, 8));
+      axiSlaveRegisterR(regCon, x"034", 8, toSlv(AXI_CONFIG_G.ADDR_WIDTH_C, 8));
+      axiSlaveRegisterR(regCon, x"034", 16,toSlv(AXI_CONFIG_G.DATA_BYTES_C, 8));
       axiSlaveRegisterR(regCon, x"038", 0, toSlv(DESC_AWIDTH_G, 8));
       axiSlaveRegister(regCon, x"03C",  0, v.descWrCache);
       axiSlaveRegister(regCon, x"03C",  8, v.buffWrCache);
@@ -763,7 +765,6 @@ begin
 
             -- Write data channel
             v.axiWriteMaster.wlast := '1';
-            v.axiWriteMaster.wstrb := resize(x"FF", 128);
 
             -- Descriptor data, 128-bits
             if DESC_128_EN_C then
@@ -773,6 +774,8 @@ begin
                v.axiWriteMaster.wdata(31  downto  3) := (others => '0');
                v.axiWriteMaster.wdata(2   downto  0) := dmaWrDescRet(descIndex).result;
 
+               v.axiWriteMaster.wstrb := resize(x"FFFF", 128);
+
             -- Descriptor data, 64-bits
             else
                v.axiWriteMaster.wdata(63 downto 32) := x"00000001";
@@ -780,6 +783,9 @@ begin
                v.axiWriteMaster.wdata(15 downto 4)  := dmaRdDescRet(descIndex).buffId(11 downto 0);
                v.axiWriteMaster.wdata(3)            := '0';
                v.axiWriteMaster.wdata(2 downto 0)   := dmaRdDescRet(descIndex).result;
+
+               v.axiWriteMaster.wstrb := resize(x"FF", 128);
+
             end if;
 
             v.axiWriteMaster.awvalid := '1';
@@ -857,7 +863,6 @@ begin
          if dmaRdDescAck(i) = '1' then
             v.dmaRdDescReq(i).valid := '0';
          end if;
-            v.dmaWrDescAck(i).address := r.buffBaseAddr & r.wrAddr;
       end loop;
 
       dmaRdReq       := AXI_READ_DMA_DESC_REQ_INIT_C;

@@ -15,6 +15,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 use work.StdRtlPkg.all;
 use work.RssiPkg.all;
@@ -104,6 +105,8 @@ architecture mapping of RssiCoreWrapper is
    signal rssiNotConnected : sl;
    signal rssiConnected    : sl;
 
+   signal maxObSegSize     : slv(15 downto 0);
+
    -- This should really go in a AxiStreamPacketizerPkg
    constant PACKETIZER_AXIS_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
@@ -164,6 +167,14 @@ begin
          mAxisSlave   => packetizerSlaves(0));
 
    GEN_PACKER : if (BYPASS_CHUNKER_G = false) generate
+      constant MAX_SEGS_BITS_C : positive := bitSize(MAX_SEG_SIZE_G);
+      signal   maxSegs         : slv(MAX_SEGS_BITS_C - 1 downto 0);
+   begin
+
+      maxSegs <= ite(unsigned(maxObSegSize) >= MAX_SEG_SIZE_G,
+                     slv(to_unsigned(MAX_SEG_SIZE_G, maxSegs'length)),
+                     maxObSegSize(maxSegs'range));
+
       PACKER_V1 : if (APP_ILEAVE_EN_G = false) generate
          U_Packetizer : entity work.AxiStreamPacketizer
             generic map (
@@ -174,6 +185,7 @@ begin
             port map (
                axisClk     => clk_i,
                axisRst     => rst_i,
+               maxPktBytes => maxSegs,
                sAxisMaster => packetizerMasters(0),
                sAxisSlave  => packetizerSlaves(0),
                mAxisMaster => packetizerMasters(1),
@@ -193,6 +205,7 @@ begin
             port map (
                axisClk     => clk_i,
                axisRst     => rst_i,
+               maxPktBytes => maxSegs,
                sAxisMaster => packetizerMasters(0),
                sAxisSlave  => packetizerSlaves(0),
                mAxisMaster => packetizerMasters(1),
@@ -260,7 +273,8 @@ begin
          axilWriteMaster  => axilWriteMaster,
          axilWriteSlave   => axilWriteSlave,
          -- Internal statuses
-         statusReg_o      => statusReg);
+         statusReg_o      => statusReg,
+         maxSegSize_o     => maxObSegSize);
 
    statusReg_o      <= statusReg;
    rssiConnected    <= statusReg(0);
