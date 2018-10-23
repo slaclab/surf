@@ -499,7 +499,6 @@ begin
          clk_i        => clk_i,
          rst_i        => rst_i,
          connActive_i => s_connActive,
-         rxBufferFull_i => s_rxBufferFull,
 
          rssiParam_i     => s_rssiParam,
          rxFlags_i       => s_rxFlags,

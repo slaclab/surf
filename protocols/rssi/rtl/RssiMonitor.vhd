@@ -56,9 +56,6 @@ entity RssiMonitor is
       
       -- Connection FSM indicating active connection      
       connActive_i : in  sl;
-      
-      -- RX Buffer Full
-      rxBufferFull_i : in  sl;
 
       -- Timeout and counter values
       rssiParam_i  : in  RssiParamType;
@@ -125,10 +122,9 @@ architecture rtl of RssiMonitor is
       retransMax     : sl;
       
       -- Null packet send/timeout
-      nullToutCnt  : slv(rssiParam_i.nullSegTout'left + bitSize(SAMPLES_PER_TIME_C) downto 0);      
-      sndNull      : sl;
-      nullTout     : sl;
-      rxBufferFull : sl;
+      nullToutCnt : slv(rssiParam_i.nullSegTout'left + bitSize(SAMPLES_PER_TIME_C) downto 0);      
+      sndNull     : sl;
+      nullTout    : sl;
       
       -- Ack packet cumulative/timeout
       ackToutCnt  : slv(rssiParam_i.cumulAckTout'left + bitSize(SAMPLES_PER_TIME_C) downto 0);
@@ -156,10 +152,9 @@ architecture rtl of RssiMonitor is
       retransMax        => '0',
       
       -- Null packet send/timeout
-      nullToutCnt  => (others=>'0'),     
-      sndnull      => '0',
-      nullTout     => '0',
-      rxBufferFull => '0',
+      nullToutCnt => (others=>'0'),     
+      sndnull     => '0',
+      nullTout    => '0',
       
       -- Ack packet cumulative/timeout
       ackToutCnt  => (others=>'0'),     
@@ -190,7 +185,7 @@ begin
    s_status(4) <= peerConnTout_i;
    s_status(5) <= paramReject_i;   
    
-   comb : process (r, rst_i, rxFlags_i, rssiParam_i, rxValid_i, rxDrop_i, dataHeadSt_i, rstHeadSt_i, nullHeadSt_i, ackHeadSt_i, rxBufferFull_i,
+   comb : process (r, rst_i, rxFlags_i, rssiParam_i, rxValid_i, rxDrop_i, dataHeadSt_i, rstHeadSt_i, nullHeadSt_i, ackHeadSt_i, 
                    connActive_i, rxLastSeqN_i, rxWindowSize_i, txBufferEmpty_i, s_status) is
       variable v : RegType;
    begin
@@ -292,8 +287,6 @@ begin
           v.sndNull := '0'; 
       elsif (r.nullToutCnt >= (conv_integer(rssiParam_i.nullSegTout) * SAMPLES_PER_TIME_DIV3_C)  ) then -- send null segments if timeout/2 reached
          v.sndNull := '1';
-      elsif (rxBufferFull_i = '1') and (r.rxBufferFull = '0') then -- Check for RX buffer full event
-         v.sndNull := '1';
       end if;
       
       -- Timeout not applicable
@@ -320,21 +313,10 @@ begin
       elsif (r.nullToutCnt >= (conv_integer(rssiParam_i.nullSegTout) * SAMPLES_PER_TIME_C)  ) then
          v.nullTout := '1';
       end if;
-      
-      -- Null request SRFF 
-      if (connActive_i = '0' or
-          dataHeadSt_i = '1' or
-          rstHeadSt_i  = '1' or
-          nullHeadSt_i = '1') then
-          v.sndNull := '0'; 
-      elsif (rxBufferFull_i = '1') and (r.rxBufferFull = '0') then -- Check for RX buffer full event
-         v.sndNull := '1';
-      end if;
-      
+
+      -- Null sending not applicable
+      v.sndNull := '0';
    end if;
-   
-   -- Check a delayed copy
-   v.rxBufferFull := rxBufferFull_i;
 
    -- /////////////////////////////////////////////////////////
    ------------------------------------------------------------
