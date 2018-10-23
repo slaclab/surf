@@ -780,7 +780,7 @@ begin
       chksumStrobe_o <= r.chkStb;
       chksumLength_o <= r.chkLen;
       rxParam_o      <= r.rxParam;    
-      rxBufferFull_o <= not(r.windowArray(conv_integer(r.rxBufferAddr)).occupied);    
+      rxBufferFull_o <= r.windowArray(conv_integer(r.rxBufferAddr)).occupied;    
       
       -- Application side SSI output
       appSsiMaster_o <= r.appSsiMaster;      
