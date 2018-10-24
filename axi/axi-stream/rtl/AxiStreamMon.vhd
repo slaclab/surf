@@ -175,7 +175,11 @@ begin
       -- Check if last cycle had data moving
       if r.tValid = '1' then
          -- Update the accumulator 
-         v.accum := r.accum + getTKeep(r.tKeep,AXIS_CONFIG_G);
+         if (AXIS_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
+            v.accum := r.accum + conv_integer(r.tKeep(bitSize(AXIS_CONFIG_G.TDATA_BYTES_C)-1 downto 0));
+         else
+            v.accum := r.accum + getTKeep(r.tKeep, AXIS_CONFIG_G);
+         end if;
       end if;
 
       -- Increment the timer
@@ -192,7 +196,11 @@ begin
          if r.tValid = '0' then
             v.accum := (others => '0');
          else
-            v.accum := toSlv(getTKeep(r.tKeep,AXIS_CONFIG_G), 40);
+            if (AXIS_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
+               v.accum := resize(r.tKeep(bitSize(AXIS_CONFIG_G.TDATA_BYTES_C)-1 downto 0), 40);
+            else
+               v.accum := toSlv(getTKeep(r.tKeep, AXIS_CONFIG_G), 40);
+            end if;
          end if;
       end if;
 
