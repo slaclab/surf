@@ -126,7 +126,7 @@ architecture rtl of RssiCore is
    constant FIFO_ADDR_WIDTH_C   : positive := ite((SEGMENT_ADDR_SIZE_G < 7), 9, SEGMENT_ADDR_SIZE_G+2);  -- min. 4 segment buffering
    constant FIFO_PAUSE_THRESH_C : positive := (2**FIFO_ADDR_WIDTH_C) - (2**(SEGMENT_ADDR_SIZE_G+1));  -- pause threshold = FIFO_FULL - (2 x segment buffers)   
 
-   signal s_rxBufferFull : sl;
+   signal s_rxBuffBusy : sl;
 
    -- RSSI Parameters
    signal s_appRssiParam : RssiParamType;
@@ -500,6 +500,7 @@ begin
          rst_i        => rst_i,
          connActive_i => s_connActive,
 
+         rxBuffBusy_i    => s_rxBuffBusy,
          rssiParam_i     => s_rssiParam,
          rxFlags_i       => s_rxFlags,
          rxValid_i       => s_rxValidSeg,
@@ -551,7 +552,7 @@ begin
          dataHeadSt_i => s_dataHeadSt,
          nullHeadSt_i => s_nullHeadSt,
          ackHeadSt_i  => s_ackHeadSt,
-         busyHeadSt_i => s_rxBufferFull,
+         busyHeadSt_i => s_rxBuffBusy,
 
          ack_i          => s_txAckF,    -- Connected to ConnectFSM
          txSeqN_i       => s_txSeqN,
@@ -690,7 +691,7 @@ begin
       port map (
          clk_i          => clk_i,
          rst_i          => rst_i,
-         rxBufferFull_o => s_rxBufferFull,
+         rxBuffBusy_o   => s_rxBuffBusy,
          connActive_i   => s_connActive,
          rxWindowSize_i => s_rxWindowSize,
          rxBufferSize_i => s_rxBufferSize,
