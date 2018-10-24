@@ -146,6 +146,7 @@ architecture rtl of AxiStreamDmaV2Desc is
       contEn       : sl;
       dropEn       : sl;
       enable       : sl;
+      forceInt     : sl;
       intEnable    : sl;
       online       : slv(CHAN_COUNT_G-1 downto 0);
       acknowledge  : slv(CHAN_COUNT_G-1 downto 0);
@@ -208,6 +209,7 @@ architecture rtl of AxiStreamDmaV2Desc is
       contEn          => '0',
       dropEn          => '0',
       enable          => '0',
+      forceInt        => '0',
       intEnable       => '0',
       online          => (others => '0'),
       acknowledge     => (others => '0'),
@@ -512,6 +514,8 @@ begin
          axiSlaveRegister(regCon, x"070", 0, v.fifoDin);
          axiWrDetect(regCon, x"070", v.wrFifoWr(1));
       end if;
+
+      axiSlaveRegister(regCon, x"080", 0, v.forceInt);
 
       -- End transaction block
       axiSlaveDefault(regCon, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
@@ -820,7 +824,7 @@ begin
       end if;
 
       -- Drive interrupt, avoid false firings during ack
-      if r.intReqCount /= 0 and r.intSwAckReq = '0' then
+      if (r.intReqCount /= 0 or r.forceInt = '1') and r.intSwAckReq = '0' then
          v.interrupt := r.intEnable;
       else
          v.interrupt := '0';
@@ -828,6 +832,7 @@ begin
 
       -- Ack request from software
       if r.intSwAckReq = '1' then
+         v.forceInt := '0';
 
          -- DSPs are done
          if intSwAckEn = '1' then
@@ -852,6 +857,7 @@ begin
          v.intReqEn    := '0';
          v.intReqCount := (others => '0');
          v.interrupt   := '0';
+         v.forceInt    := '0';
       end if;
 
       --------------------------------------
