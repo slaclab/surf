@@ -30,6 +30,7 @@ entity AxiLiteCrossbar is
       NUM_MASTER_SLOTS_G : natural range 1 to 64            := 4;
       DEC_ERROR_RESP_G   : slv(1 downto 0)                  := AXI_RESP_DECERR_C;
       MASTERS_CONFIG_G   : AxiLiteCrossbarMasterConfigArray := AXIL_XBAR_CFG_DEFAULT_C;
+      ID_MAPPING_G       : string                           := "INDEXED";   
       DEBUG_G            : boolean                          := false);
    port (
       axiClk    : in sl;
@@ -121,6 +122,9 @@ architecture rtl of AxiLiteCrossbar is
    signal rin : RegType;
 
    type AxiStatusArray is array (natural range <>) of AxiLiteStatusType;
+   
+   signal sReadMasters : AxiLiteReadMasterArray(NUM_SLAVE_SLOTS_G-1 downto 0);
+   signal sWriteMasters : AxiLiteWriteMasterArray(NUM_SLAVE_SLOTS_G-1 downto 0);   
 
 begin
 
@@ -137,28 +141,57 @@ begin
             "  connectivity: " & hstr(MASTERS_CONFIG_G(i).connectivity));
    end generate printCfg;
 
-   comb : process (axiClkRst, mAxiReadSlaves, mAxiWriteSlaves, r, sAxiReadMasters, sAxiWriteMasters) is
+   -----------------------
+   -- Update the ARID/AWID
+   -----------------------
+   ID_MAPPING : process (sAxiReadMasters,sAxiWriteMasters) is
+      variable rd : AxiLiteReadMasterArray(NUM_SLAVE_SLOTS_G-1 downto 0);
+      variable wr : AxiLiteWriteMasterArray(NUM_SLAVE_SLOTS_G-1 downto 0);
+      variable i  : natural;
+   begin
+      rd := sAxiReadMasters;
+      wr := sAxiWriteMasters;
+      for i in NUM_SLAVE_SLOTS_G-1 downto 0 loop
+         if ID_MAPPING_G = "INDEXED" then
+            rd(i).arid := toSlv(i, 4);
+            wr(i).awid := toSlv(i, 4);
+         end if;
+         -- Else pass through the IDs (Untouched)
+      end loop;
+      sReadMasters  <= rd;
+      sWriteMasters <= wr;
+   end process ID_MAPPING;   
+
+   comb : process (axiClkRst, mAxiReadSlaves, mAxiWriteSlaves, r, sReadMasters, sWriteMasters) is
       variable v            : RegType;
       variable sAxiStatuses : AxiStatusArray(NUM_SLAVE_SLOTS_G-1 downto 0);
       variable mRdReqs      : slv(NUM_SLAVE_SLOTS_G-1 downto 0);
       variable mWrReqs      : slv(NUM_SLAVE_SLOTS_G-1 downto 0);
+      variable wrIndex      : natural;
+      variable rdIndex      : natural;
    begin
+      -- Latch the current value   
       v := r;
 
       -- Control slave side outputs
       for s in NUM_SLAVE_SLOTS_G-1 downto 0 loop
+      
+         -- Update the write/read index pointers
+         wrIndex := conv_integer(sWriteMasters(s).awid);
+         rdIndex := conv_integer(sReadMasters(s).arid);
 
+         -- Reset the strobing flags
          v.sAxiWriteSlaves(s).awready := '0';
          v.sAxiWriteSlaves(s).wready  := '0';
          v.sAxiReadSlaves(s).arready  := '0';
 
          -- Reset resp valid
-         if (sAxiWriteMasters(s).bready = '1') then
+         if (sWriteMasters(s).bready = '1') then
             v.sAxiWriteSlaves(s).bvalid := '0';
          end if;
 
          -- Reset rvalid upon rready
-         if (sAxiReadMasters(s).rready = '1') then
+         if (sReadMasters(s).rready = '1') then
             v.sAxiReadSlaves(s).rvalid := '0';
          end if;
 
@@ -166,17 +199,17 @@ begin
          case (r.slave(s).wrState) is
             when S_WAIT_AXI_TXN_S =>
 
-               -- Incomming write
-               if (sAxiWriteMasters(s).awvalid = '1' and sAxiWriteMasters(s).wvalid = '1') then
+               -- Incoming write
+               if (sWriteMasters(s).awvalid = '1' and sWriteMasters(s).wvalid = '1') then
 
                   for m in MASTERS_CONFIG_G'range loop
                      -- Check for address match
-                     if (sAxiWriteMasters(s).awaddr(31 downto MASTERS_CONFIG_G(m).addrBits) =
+                     if (sWriteMasters(s).awaddr(31 downto MASTERS_CONFIG_G(m).addrBits) =
                          MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits) and
-                         MASTERS_CONFIG_G(m).connectivity(s) = '1') then
+                         MASTERS_CONFIG_G(m).connectivity(wrIndex) = '1') then
                         v.slave(s).wrReqs(m) := '1';
                         v.slave(s).wrReqNum  := conv_std_logic_vector(m, REQ_NUM_SIZE_C);
---                        print("AxiLiteCrossbar: Slave  " & str(s) & " reqd Master " & str(m) & " Write addr " & hstr(sAxiWriteMasters(s).awaddr));
+--                        print("AxiLiteCrossbar: Slave  " & str(s) & " reqd Master " & str(m) & " Write addr " & hstr(sWriteMasters(s).awaddr));
                      end if;
                   end loop;
 
@@ -194,7 +227,7 @@ begin
 
             -- Send error
             when S_DEC_ERR_S =>
-               if (sAxiWriteMasters(s).bready = '1') then
+               if (sWriteMasters(s).bready = '1') then
                   v.slave(s).wrState := S_WAIT_AXI_TXN_S;
                end if;
 
@@ -218,7 +251,7 @@ begin
                      v.sAxiWriteSlaves(s).bvalid := mAxiWriteSlaves(m).bvalid;
 
                      -- bvalid or rvalid indicates txn concluding
-                     if (r.sAxiWriteSlaves(s).bvalid = '1' and sAxiWriteMasters(s).bready = '1') then
+                     if (r.sAxiWriteSlaves(s).bvalid = '1' and sWriteMasters(s).bready = '1') then
                         v.sAxiWriteSlaves(s) := AXI_LITE_WRITE_SLAVE_INIT_C;
                         v.slave(s).wrReqs    := (others => '0');
                         v.slave(s).wrState   := S_WAIT_AXI_TXN_S;
@@ -231,13 +264,13 @@ begin
          case (r.slave(s).rdState) is
             when S_WAIT_AXI_TXN_S =>
 
-               -- Incomming read
-               if (sAxiReadMasters(s).arvalid = '1') then
+               -- Incoming read
+               if (sReadMasters(s).arvalid = '1') then
                   for m in MASTERS_CONFIG_G'range loop
                      -- Check for address match
-                     if (sAxiReadMasters(s).araddr(31 downto MASTERS_CONFIG_G(m).addrBits) =
+                     if (sReadMasters(s).araddr(31 downto MASTERS_CONFIG_G(m).addrBits) =
                          MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits) and
-                         MASTERS_CONFIG_G(m).connectivity(s) = '1') then
+                         MASTERS_CONFIG_G(m).connectivity(rdIndex) = '1') then
                         v.slave(s).rdReqs(m) := '1';
                         v.slave(s).rdReqNum  := conv_std_logic_vector(m, REQ_NUM_SIZE_C);
                      end if;
@@ -257,7 +290,7 @@ begin
 
             -- Error
             when S_DEC_ERR_S =>
-               if (sAxiReadMasters(s).rready = '1') then
+               if (sReadMasters(s).rready = '1') then
                   v.slave(s).rdState := S_WAIT_AXI_TXN_S;
                end if;
 
@@ -281,7 +314,7 @@ begin
                      v.sAxiReadSlaves(s).rvalid := mAxiReadSlaves(m).rvalid;
 
                      -- rvalid indicates txn concluding
-                     if (r.sAxiReadSlaves(s).rvalid = '1' and sAxiReadMasters(s).rready = '1') then
+                     if (r.sAxiReadSlaves(s).rvalid = '1' and sReadMasters(s).rready = '1') then
                         v.sAxiReadSlaves(s) := AXI_LITE_READ_SLAVE_INIT_C;
                         v.slave(s).rdReqs   := (others => '0');
                         v.slave(s).rdState  := S_WAIT_AXI_TXN_S;  --S_WAIT_DONE_S;
@@ -320,7 +353,7 @@ begin
                -- busses to this master's outputs.
                if (r.master(m).wrValid = '1') then
                   v.master(m).wrAcks    := r.master(m).wrAcks;
-                  v.mAxiWriteMasters(m) := sAxiWriteMasters(conv_integer(r.master(m).wrAckNum));
+                  v.mAxiWriteMasters(m) := sWriteMasters(conv_integer(r.master(m).wrAckNum));
                   v.master(m).wrState   := M_WAIT_READYS_S;
                end if;
 
@@ -373,10 +406,10 @@ begin
                end if;
 
                -- Upon valid request (set 1 cycle previous by arbitrate()), connect slave side
-               -- busses to this master's outputs.
+               -- buses to this master's outputs.
                if (r.master(m).rdValid = '1') then
                   v.master(m).rdAcks   := r.master(m).rdAcks;
-                  v.mAxiReadMasters(m) := sAxiReadMasters(conv_integer(r.master(m).rdAckNum));
+                  v.mAxiReadMasters(m) := sReadMasters(conv_integer(r.master(m).rdAckNum));
                   v.master(m).rdState  := M_WAIT_READYS_S;
                end if;
 
@@ -412,12 +445,15 @@ begin
 
       end loop;
 
+      -- Reset
       if (axiClkRst = '1') then
          v := REG_INIT_C;
       end if;
 
+      -- Register the variable for next clock cycle
       rin <= v;
 
+      -- Outputs 
       sAxiReadSlaves   <= r.sAxiReadSlaves;
       sAxiWriteSlaves  <= r.sAxiWriteSlaves;
       mAxiReadMasters  <= r.mAxiReadMasters;

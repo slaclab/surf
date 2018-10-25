@@ -56,6 +56,7 @@ package AxiLitePkg is
       -- Read Address channel
       araddr  : slv(31 downto 0);
       arprot  : slv(2 downto 0);
+      arid    : slv(3 downto 0);
       arvalid : sl;
       -- Read data channel
       rready  : sl;
@@ -63,9 +64,12 @@ package AxiLitePkg is
 
    -- Initialization constants
    constant AXI_LITE_READ_MASTER_INIT_C : AxiLiteReadMasterType := (
+      -- Read Address channel
       araddr  => (others => '0'),
       arprot  => (others => '0'),
+      arid    => (others => '0'),
       arvalid => '0',
+      -- Read data channel
       rready  => '1'
       );
 
@@ -117,6 +121,7 @@ package AxiLitePkg is
       -- Write address channel
       awaddr  : slv(31 downto 0);
       awprot  : slv(2 downto 0);
+      awid    : slv(3 downto 0);
       awvalid : sl;
       -- Write data channel
       wdata   : slv(31 downto 0);
@@ -128,12 +133,16 @@ package AxiLitePkg is
 
    -- Initialization constants
    constant AXI_LITE_WRITE_MASTER_INIT_C : AxiLiteWriteMasterType := (
+      -- Write address channel
       awaddr  => (others => '0'),
       awprot  => (others => '0'),
+      awid    => (others => '0'),
       awvalid => '0',
+      -- Write data channel
       wdata   => (others => '0'),
       wstrb   => (others => '1'),
       wvalid  => '0',
+      -- Write ack channel
       bready  => '1'
       );
 
