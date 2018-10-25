@@ -31,7 +31,7 @@ use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.Ad9249Pkg.all;
 
-entity Ad9249ReadoutGroup7S is
+entity Ad9249ReadoutGroup is
    generic (
       TPD_G             : time                 := 1 ns;
       NUM_CHANNELS_G    : natural range 1 to 8 := 8;
@@ -60,10 +60,10 @@ entity Ad9249ReadoutGroup7S is
       adcStreamClk : in  sl;
       adcStreams   : out AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0) :=
       (others => axiStreamMasterInit((false, 2, 8, 0, TKEEP_NORMAL_C, 0, TUSER_NORMAL_C))));
-end Ad9249ReadoutGroup7S;
+end Ad9249ReadoutGroup;
 
 -- Define architecture
-architecture rtl of Ad9249ReadoutGroup7S is
+architecture rtl of Ad9249ReadoutGroup is
 
    -------------------------------------------------------------------------------------------------
    -- AXIL Registers
