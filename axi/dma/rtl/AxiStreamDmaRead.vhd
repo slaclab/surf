@@ -233,6 +233,8 @@ begin
                      v.rMaster.arlen := resize(r.reqSize(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C)-1, 8);
                   end if;
                end if;
+               -- Update the Protection control
+               v.rMaster.arprot := r.dmaReq.prot;               
                -- There is enough room in the FIFO for a burst
                if (pause = '0') then
                   -- Set the flag
