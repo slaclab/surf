@@ -1,14 +1,11 @@
 -------------------------------------------------------------------------------
--- File       : SrpV3AxiLite.vhd
+-- File       : SrpV3AxiLiteFull.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SLAC Register Protocol Version 3, AXI-Lite Interface
 --
 -- Documentation: https://confluence.slac.stanford.edu/x/cRmVD
 --
--- Note: This module only supports 32-bit aligned addresses and 32-bit transactions.  
---       For non 32-bit aligned addresses or non 32-bit transactions, use
---       the SrpV3Axi.vhd module with the AxiToAxiLite.vhd bridge
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

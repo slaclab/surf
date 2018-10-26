@@ -80,7 +80,6 @@ entity RssiTxFsm is
       sndRst_i    : in sl;
       sndResend_i : in sl;
       sndNull_i   : in sl;
-      remoteBusy_i: in sl;
 
       -- Window buff size (Depends on the number of outstanding segments)
       windowSize_i : in integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
@@ -356,7 +355,7 @@ begin
    s_headerAndChksum <= rdHeaderData_i(63 downto 16) & s_chksum(15 downto 0);
 
    ----------------------------------------------------------------------------------------------- 
-   comb : process (r, rst_i, appSsiMaster_i, sndSyn_i, sndAck_i, connActive_i, closed_i, sndRst_i, initSeqN_i, windowSize_i, headerRdy_i, ack_i, ackN_i, bufferSize_i, remoteBusy_i,
+   comb : process (r, rst_i, appSsiMaster_i, sndSyn_i, sndAck_i, connActive_i, closed_i, sndRst_i, initSeqN_i, windowSize_i, headerRdy_i, ack_i, ackN_i, bufferSize_i,
                    sndResend_i, sndNull_i, tspSsiSlave_i, rdHeaderData_i, rdBuffData_i, s_headerAndChksum, chksumValid_i, headerLength_i, injectFault_i) is
 
       variable v : RegType;
@@ -598,7 +597,7 @@ begin
                v.rxSegmentWe   := '1';
 
                -- Save packet tKeep of last data word
-               v.windowArray(conv_integer(r.rxBufferAddr)).keep    := appSsiMaster_i.keep;
+               v.windowArray(conv_integer(r.rxBufferAddr)).keep    := appSsiMaster_i.keep(RSSI_WORD_WIDTH_C-1 downto 0);
                v.windowArray(conv_integer(r.rxBufferAddr)).segSize := conv_integer(r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0));
 
                v.appState := SEG_RDY_S;
@@ -638,7 +637,7 @@ begin
             if (appSsiMaster_i.eof = '1' and appSsiMaster_i.valid = '1') then
 
                -- Save packet tKeep of last data word
-               v.windowArray(conv_integer(r.rxBufferAddr)).keep := appSsiMaster_i.keep;
+               v.windowArray(conv_integer(r.rxBufferAddr)).keep := appSsiMaster_i.keep(RSSI_WORD_WIDTH_C-1 downto 0);
 
                -- Save packet length (+1 because it has not incremented for EOF yet)
                v.windowArray(conv_integer(r.rxBufferAddr)).segSize := conv_integer(r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0))+1;
@@ -837,7 +836,7 @@ begin
             -- Next state condition   
             if (sndRst_i = '1') then
                v.tspState := RST_WE_S;
-            elsif (r.sndData = '1') and (r.bufferFull = '0') and (remoteBusy_i = '0') then
+            elsif (r.sndData = '1') and (r.bufferFull = '0') then
                v.ackSndData := '1';
                v.tspState   := DATA_WE_S;
             elsif (sndResend_i = '1' and r.bufferEmpty = '0') then
@@ -1249,10 +1248,10 @@ begin
             if (r.txSegmentAddr >= r.windowArray(conv_integer(r.txBufferAddr)).segSize) then
 
                -- Send EOF at the end of the segment
-               v.tspSsiMaster.valid := '1';
-               v.tspSsiMaster.eof   := '1';
-               v.tspSsiMaster.eofe  := '0';
-               v.tspSsiMaster.keep  := r.windowArray(conv_integer(r.txBufferAddr)).keep;
+               v.tspSsiMaster.valid                              := '1';
+               v.tspSsiMaster.eof                                := '1';
+               v.tspSsiMaster.eofe                               := '0';
+               v.tspSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0) := r.windowArray(conv_integer(r.txBufferAddr)).keep;
                --
                v.txSegmentAddr      := r.txSegmentAddr;
                --
@@ -1435,10 +1434,10 @@ begin
             if (r.txSegmentAddr >= r.windowArray(conv_integer(r.txBufferAddr)).segSize) then
 
                -- Send EOF at the end of the segment
-               v.tspSsiMaster.valid := '1';
-               v.tspSsiMaster.eof   := '1';
-               v.tspSsiMaster.eofe  := '0';
-               v.tspSsiMaster.keep  := r.windowArray(conv_integer(r.txBufferAddr)).keep;
+               v.tspSsiMaster.valid                              := '1';
+               v.tspSsiMaster.eof                                := '1';
+               v.tspSsiMaster.eofe                               := '0';
+               v.tspSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0) := r.windowArray(conv_integer(r.txBufferAddr)).keep;
                --
                v.txSegmentAddr      := r.txSegmentAddr;
                -- 

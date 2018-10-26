@@ -276,7 +276,7 @@ begin
                   -- OP/HTYPE/HLEN/HOPS
                   when 0 =>
                      v.txMaster.tData(31 downto 0) := CLIENT_HDR_C;
-                     v.txMaster.tKeep              := x"000F";
+                     v.txMaster.tKeep(15 downto 0) := x"000F";
                      ssiSetUserSof(DHCP_CONFIG_C, v.txMaster, '1');
                   -- XID
                   when 1 =>
@@ -340,15 +340,15 @@ begin
                   when 64 =>
                      v.txMaster.tData(15 downto 0) := r.siaddr(31 downto 16);  -- SIADDR[31:16] 
                   when 65 =>
-                     v.txMaster.tData(7 downto 0) := x"FF";    -- Endmark
-                     v.txMaster.tKeep             := x"0001";
-                     v.txMaster.tLast             := '1';
+                     v.txMaster.tData(7 downto 0)  := x"FF";    -- Endmark
+                     v.txMaster.tKeep(15 downto 0) := x"0001";
+                     v.txMaster.tLast              := '1';
                      -- Start the communication timer
-                     v.commCnt                    := COMM_TIMEOUT_C;
+                     v.commCnt                     := COMM_TIMEOUT_C;
                      -- Reset the counter
-                     v.cnt                        := 0;
+                     v.cnt                         := 0;
                      -- Next state
-                     v.state                      := IDLE_S;
+                     v.state                       := IDLE_S;
                   when others =>
                      null;
                end case;
@@ -495,7 +495,7 @@ begin
                   v.index := r.index + 1;
                end if;
                -- Check for last transfer
-               if (rxMaster.tLast = '1') and (getTKeep(tKeep) = (r.index+1)) then
+               if (rxMaster.tLast = '1') and (getTKeep(tKeep,DHCP_CONFIG_C) = (r.index+1)) then
                   -- Check for no EOFE
                   if ssiGetUserEofe(DHCP_CONFIG_C, rxMaster) = '0' then
                      -- Next state

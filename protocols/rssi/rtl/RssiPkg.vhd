@@ -93,7 +93,7 @@ package RssiPkg is
    type WindowType is record
       seqN     : slv(7 downto 0);
       segType  : slv(2 downto 0);
-      keep     : slv(15 downto 0);
+      keep     : slv(RSSI_WORD_WIDTH_C-1 downto 0);
       segSize  : natural;
       occupied : sl;
    end record WindowType;

@@ -445,10 +445,18 @@ package body AxiPkg is
    begin
       tempSlv := (others => '0');
 
-      tempSlv(AxiConfig.LEN_BITS_C+addrLsb downto addrLsb)
-         := axiRead.arlen(AxiConfig.LEN_BITS_C-1 downto 0) + toSlv(1, AxiConfig.LEN_BITS_C+1);
+      if (AxiConfig.DATA_BYTES_C>1) then
 
-      tempSlv := tempSlv - axiRead.araddr(addrLsb-1 downto 0);
+         tempSlv(AxiConfig.LEN_BITS_C+addrLsb downto addrLsb)
+            := axiRead.arlen(AxiConfig.LEN_BITS_C-1 downto 0) + toSlv(1, AxiConfig.LEN_BITS_C+1);
+
+         tempSlv := tempSlv - axiRead.araddr(addrLsb-1 downto 0);
+
+      else
+
+         tempSlv(AxiConfig.LEN_BITS_C downto 0) := axiRead.arlen(AxiConfig.LEN_BITS_C-1 downto 0) + toSlv(1, AxiConfig.LEN_BITS_C+1);
+
+      end if;
 
       return(tempSlv);
    end function getAxiReadBytes;

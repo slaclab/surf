@@ -43,7 +43,8 @@ package SrpV3Pkg is
       request : sl;
       remVer  : slv(7 downto 0);
       opCode  : slv(1 downto 0);
-      spare   : slv(13 downto 0);
+      spare   : slv(10 downto 0);
+      prot    : slv(2 downto 0);
       tid     : slv(31 downto 0);
       addr    : slv(63 downto 0);
       reqSize : slv(31 downto 0);
@@ -54,6 +55,7 @@ package SrpV3Pkg is
       remVer  => (others => '0'),
       opCode  => (others => '0'),
       spare   => (others => '0'),
+      prot    => (others => '0'),
       tid     => (others => '0'),
       addr    => (others => '0'),
       reqSize => (others => '0'));
