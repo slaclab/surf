@@ -204,7 +204,7 @@ begin
                v.ibArpSlave.tReady := '1';
                -- Word[0]
                if r.cnt = 0 then
-                  v.tData(0) := ibArpMaster.tData;
+                  v.tData(0) := ibArpMaster.tData(127 downto 0);
                   if (ssiGetUserSof(EMAC_AXIS_CONFIG_C, ibArpMaster) = '1') then
                      -- Increment the counter
                      v.cnt := r.cnt + 1;
@@ -214,7 +214,7 @@ begin
                   end if;
                -- Word[1]
                elsif r.cnt = 1 then
-                  v.tData(1) := ibArpMaster.tData;
+                  v.tData(1) := ibArpMaster.tData(127 downto 0);
                   if (ibArpMaster.tLast = '0') then
                      -- Increment the counter
                      v.cnt := r.cnt + 1;
@@ -224,7 +224,7 @@ begin
                   end if;
                -- Word[2]
                elsif r.cnt = 2 then
-                  v.tData(2) := ibArpMaster.tData;
+                  v.tData(2) := ibArpMaster.tData(127 downto 0);
                   if (ibArpMaster.tLast = '0') then
                      -- Increment the counter
                      v.cnt := r.cnt + 1;
@@ -368,8 +368,8 @@ begin
             -- Check if ready to move data
             if v.txArpMaster.tValid = '0' then
                -- Move data
-               v.txArpMaster.tValid := '1';
-               v.txArpMaster.tData  := r.tData(r.cnt);
+               v.txArpMaster.tValid               := '1';
+               v.txArpMaster.tData(127 downto 0)  := r.tData(r.cnt);
                -- Increment the counter
                v.cnt                := r.cnt + 1;
                if r.cnt = 0 then
@@ -379,9 +379,9 @@ begin
                   v.txArpMaster.tLast := '1';
                   -- Set the tKeep
                   if (VLAN_G = false) then
-                     v.txArpMaster.tKeep := x"03FF";
+                     v.txArpMaster.tKeep(15 downto 0) := x"03FF";
                   else
-                     v.txArpMaster.tKeep := x"3FFF";
+                     v.txArpMaster.tKeep(15 downto 0) := x"3FFF";
                   end if;
                   -- Next state
                   v.state := IDLE_S;

@@ -80,7 +80,7 @@ begin
 
       -- Register input and compute size
       v.inMaster := sAxisMaster;
-      v.inTop    := getTKeep(sAxisMaster.tKeep(MAX_IN_BYTE_C downto 0))-1;
+      v.inTop    := getTKeep(sAxisMaster.tKeep(MAX_IN_BYTE_C downto 0),SLAVE_CONFIG_G)-1;
 
       -- Pending output from current
       if r.curMaster.tValid = '1' then

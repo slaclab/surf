@@ -327,8 +327,8 @@ begin
                if (v.size = 0) then
                   -- Terminate the frame
                   v.sMaster.tLast := '1';
-                  v.sMaster.tKeep := genTKeep(conv_integer(r.size(4 downto 0)));
-                  v.sMaster.tStrb := genTKeep(conv_integer(r.size(4 downto 0)));
+                  v.sMaster.tKeep := genTKeep(conv_integer(r.size(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C)-1 downto 0)));
+                  v.sMaster.tStrb := genTKeep(conv_integer(r.size(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C)-1 downto 0)));
                   -- Check for first transfer
                   if (r.first = '1') then
                      -- Compensate the tKeep and tStrb via shift module

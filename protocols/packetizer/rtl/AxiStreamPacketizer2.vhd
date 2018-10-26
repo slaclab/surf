@@ -382,7 +382,7 @@ begin
                   v.packetActive           := '0';
                   v.tUserLast              := inputAxisMaster.tUser(7 downto 0);
                   v.eof                    := '1';
-                  v.lastByteCount          := toSlv(getTKeep(inputAxisMaster.tKeep(7 downto 0)), 4);
+                  v.lastByteCount          := toSlv(getTKeep(inputAxisMaster.tKeep(7 downto 0),PACKETIZER2_AXIS_CFG_C), 4);
                   v.outputAxisMaster.tLast := '0';
                   -- Next state
                   v.state                  := TAIL_S;
@@ -438,7 +438,7 @@ begin
       end case;
 
       -- Always a 64-bit transfer
-      v.outputAxisMaster.tKeep := x"00FF";
+      v.outputAxisMaster.tKeep(7 downto 0) := x"FF";
       v.outputAxisMaster.tStrb := v.outputAxisMaster.tKeep;
 
       if (r.state /= TAIL_S) then

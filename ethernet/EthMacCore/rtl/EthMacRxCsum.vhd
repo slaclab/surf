@@ -290,8 +290,8 @@ begin
                -- Move the data
                v.mAxisMaster := sAxisMaster;
                -- Fill in the TCP/UDP checksum
-               v.tKeep       := sAxisMaster.tKeep;
-               v.tData       := sAxisMaster.tData;
+               v.tKeep       := sAxisMaster.tKeep(15 downto 0);
+               v.tData       := sAxisMaster.tData(127 downto 0);
                -- Check if NON-VLAN
                if (VLAN_G = false) then
                   -- Fill in the IPv4 header checksum
@@ -309,7 +309,7 @@ begin
                      v.protLen(0)(7 downto 0)   := sAxisMaster.tData(63 downto 56);
                   end if;
                   -- Track the number of bytes (include IPv4 header offset from previous state)
-                  v.byteCnt := getTKeep(sAxisMaster.tKeep) + 18;
+                  v.byteCnt := getTKeep(sAxisMaster.tKeep,EMAC_AXIS_CONFIG_C) + 18;
                else
                   -- Fill in the IPv4 header checksum
                   v.ipv4Hdr(14) := sAxisMaster.tData(7 downto 0);  -- Source IP Address
@@ -330,7 +330,7 @@ begin
                      v.protLen(0)(7 downto 0)   := sAxisMaster.tData(95 downto 88);
                   end if;
                   -- Track the number of bytes (include IPv4 header offset from previous state)
-                  v.byteCnt := getTKeep(sAxisMaster.tKeep) + 14;
+                  v.byteCnt := getTKeep(sAxisMaster.tKeep,EMAC_AXIS_CONFIG_C) + 14;
                end if;
                -- Check for EOF
                if (sAxisMaster.tLast = '1') then
@@ -348,8 +348,8 @@ begin
                -- Move the data
                v.mAxisMaster := sAxisMaster;
                -- Fill in the TCP/UDP checksum
-               v.tData       := sAxisMaster.tData;
-               v.tKeep       := sAxisMaster.tKeep;
+               v.tData       := sAxisMaster.tData(127 downto 0);
+               v.tKeep       := sAxisMaster.tKeep(15 downto 0);
                -- Check for TCP data with inbound checksum
                if (r.ipv4Det(0) = '1') and (r.tcpDet(0) = '1') and (r.tcpFlag = '0') then
                   -- Set the flag
@@ -372,7 +372,7 @@ begin
                   end if;
                end if;
                -- Track the number of bytes 
-               v.byteCnt := r.byteCnt + getTKeep(sAxisMaster.tKeep);
+               v.byteCnt := r.byteCnt + getTKeep(sAxisMaster.tKeep,EMAC_AXIS_CONFIG_C);
                -- Check for EOF
                if (sAxisMaster.tLast = '1') or (v.byteCnt > MAX_FRAME_SIZE_C) then
                   -- Check for overflow condition
