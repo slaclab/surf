@@ -75,6 +75,11 @@ begin
       generic map (
          TPD_G          => TPD_G,
          ------------------------------
+         -- Select Either XPM or inferred
+         ------------------------------
+         SYNTH_MODE_G   => "inferred",
+         -- SYNTH_MODE_G => "xpm",
+         ------------------------------
          -- LUT RAM
          ------------------------------
          -- MEMORY_TYPE_G  => "distributed",
