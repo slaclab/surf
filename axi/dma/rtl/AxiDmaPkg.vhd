@@ -45,6 +45,7 @@ package AxiDmaPkg is
       drop    : sl;
       address : slv(63 downto 0);
       maxSize : slv(31 downto 0);
+      prot    : slv(2 downto 0);
    end record;
 
    -- Initialization constants
@@ -52,8 +53,8 @@ package AxiDmaPkg is
       request => '0',
       drop    => '0',
       address => (others=>'0'),
-      maxSize => (others=>'0')
-   );
+      maxSize => (others=>'0'),
+      prot    => (others=>'0'));
 
    -- Array
    type AxiWriteDmaReqArray is array (natural range<>) of AxiWriteDmaReqType;
@@ -106,6 +107,7 @@ package AxiDmaPkg is
       lastUser  : slv(7 downto 0);
       dest      : slv(7 downto 0);
       id        : slv(7 downto 0);
+      prot      : slv(2 downto 0);
    end record;
 
    -- Initialization constants
@@ -116,8 +118,8 @@ package AxiDmaPkg is
       firstUser => (others=>'0'),
       lastUser  => (others=>'0'),
       dest      => (others=>'0'),
-      id        => (others=>'0')
-   );
+      id        => (others=>'0'),
+      prot      => (others=>'0'));
 
    -- Array
    type AxiReadDmaReqArray is array (natural range<>) of AxiReadDmaReqType;
