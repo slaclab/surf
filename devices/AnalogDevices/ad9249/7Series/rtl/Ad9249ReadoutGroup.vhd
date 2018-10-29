@@ -78,6 +78,7 @@ architecture rtl of Ad9249ReadoutGroup is
       readoutDebug0  : slv16Array(NUM_CHANNELS_G-1 downto 0);
       readoutDebug1  : slv16Array(NUM_CHANNELS_G-1 downto 0);
       lockedCountRst : sl;
+      invert         : sl;
    end record;
 
    constant AXIL_REG_INIT_C : AxilRegType := (
@@ -89,7 +90,9 @@ architecture rtl of Ad9249ReadoutGroup is
       freezeDebug    => '0',
       readoutDebug0  => (others => (others => '0')),
       readoutDebug1  => (others => (others => '0')),
-      lockedCountRst => '0');
+      lockedCountRst => '0',
+      invert         => '0'
+   );
 
    signal lockedSync      : sl;
    signal lockedFallCount : slv(15 downto 0);
@@ -142,6 +145,8 @@ architecture rtl of Ad9249ReadoutGroup is
    signal debugDataValid : sl;
    signal debugDataOut   : slv(NUM_CHANNELS_G*16-1 downto 0);
    signal debugDataTmp   : slv16Array(NUM_CHANNELS_G-1 downto 0);
+   
+   signal invertSync    : sl;
 
 begin
    -------------------------------------------------------------------------------------------------
@@ -186,6 +191,15 @@ begin
          rst     => axilRst,
          dataIn  => adcFrame,
          dataOut => adcFrameSync);
+   
+   Synchronizer_2 : entity work.Synchronizer
+      generic map (
+         TPD_G    => TPD_G,
+         STAGES_G => 2)
+      port map (
+         clk     => adcBitClkR,
+         dataIn  => axilR.invert,
+         dataOut => invertSync);
 
    -------------------------------------------------------------------------------------------------
    -- AXIL Interface
@@ -232,6 +246,8 @@ begin
       axiSlaveRegisterR(axilEp, X"30", 16, lockedSync);
       axiSlaveRegisterR(axilEp, X"34", 0, adcFrameSync);
       axiSlaveRegister(axilEp, X"38", 0, v.lockedCountRst);
+      
+      axiSlaveRegister(axilEp, X"40", 0, v.invert);
 
       -- Debug registers. Output the last 2 words received
       for i in 0 to NUM_CHANNELS_G-1 loop
@@ -375,7 +391,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- ADC Bit Clocked Logic
    -------------------------------------------------------------------------------------------------
-   adcComb : process (adcData, adcFrame, adcR) is
+   adcComb : process (adcData, adcFrame, adcR, invertSync) is
       variable v : AdcRegType;
    begin
       v := adcR;
@@ -405,7 +421,11 @@ begin
       for i in NUM_CHANNELS_G-1 downto 0 loop
          if (adcR.locked = '1' and adcFrame = "11111110000000") then
             -- Locked, output adc data
-            v.fifoWrData(i) := "00" & adcData(i);
+            if invertSync = '1' then
+               v.fifoWrData(i) := "00" & (x"3FFF" - adcData(i));
+            else
+               v.fifoWrData(i) := "00" & adcData(i);
+            end if;
          else
             -- Not locked
             v.fifoWrData(i) := (others => '1');  --"10" & "00000000000000";

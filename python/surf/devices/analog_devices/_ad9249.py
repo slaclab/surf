@@ -297,6 +297,16 @@ class Ad9249ReadoutGroup(pr.Device):
             base        = pr.UInt,
             mode        = 'RO',
         ))
+        
+        self.add(pr.RemoteVariable(
+            name        = 'Invert',
+            description = 'Optional ADC data inversion (offset binary only)',
+            offset      = 0x40,
+            bitSize     = 1,
+            bitOffset   = 0,
+            base        = pr.Bool,
+            mode        = 'RW',
+        ))
 
         for i in range(channels):
             self.add(pr.RemoteVariable(
