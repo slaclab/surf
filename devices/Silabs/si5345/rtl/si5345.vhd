@@ -151,10 +151,10 @@ begin
             -- Check if write transaction 
             if (r.axiRd = '0') then
                -- Write Data
-               v.wrArray(2) := x"40" & r.data;
+               v.wrArray(3) := x"40" & r.data;
             else
                -- Read Data
-               v.wrArray(2) := x"80" & x"FF";
+               v.wrArray(3) := x"80" & x"FF";
             end if;
             -- Next State
             v.state := REQ_S;
