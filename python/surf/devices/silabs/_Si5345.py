@@ -2285,9 +2285,9 @@ class Si5345(pr.Device):
             enum        = {
                 0x0: 'no priority', 
                 0x1: 'priority 1', 
-                0x1: 'priority 2', 
-                0x1: 'priority 3', 
-                0x1: 'priority 4', 
+                0x2: 'priority 2', 
+                0x3: 'priority 3', 
+                0x4: 'priority 4', 
             },                  
         ))
 
@@ -2301,9 +2301,9 @@ class Si5345(pr.Device):
             enum        = {
                 0x0: 'no priority', 
                 0x1: 'priority 1', 
-                0x1: 'priority 2', 
-                0x1: 'priority 3', 
-                0x1: 'priority 4', 
+                0x2: 'priority 2', 
+                0x3: 'priority 3', 
+                0x4: 'priority 4', 
             },                  
         ))        
            
@@ -2317,9 +2317,9 @@ class Si5345(pr.Device):
             enum        = {
                 0x0: 'no priority', 
                 0x1: 'priority 1', 
-                0x1: 'priority 2', 
-                0x1: 'priority 3', 
-                0x1: 'priority 4', 
+                0x2: 'priority 2', 
+                0x3: 'priority 3', 
+                0x4: 'priority 4', 
             },                  
         ))
 
@@ -2333,9 +2333,9 @@ class Si5345(pr.Device):
             enum        = {
                 0x0: 'no priority', 
                 0x1: 'priority 1', 
-                0x1: 'priority 2', 
-                0x1: 'priority 3', 
-                0x1: 'priority 4', 
+                0x2: 'priority 2', 
+                0x3: 'priority 3', 
+                0x4: 'priority 4', 
             },                  
         ))             
                 
