@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : EthMacTxExportGmii.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-02-04
--- Last update: 2018-08-11
 -------------------------------------------------------------------------------
 -- Description: 1GbE Export MAC core with GMII interface
 -------------------------------------------------------------------------------

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiLiteSaciMasterTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-06-17
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Simulation testbed for AxiLiteSaciMaster2
 -------------------------------------------------------------------------------

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : JesdSysrefDly.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-15
--- Last update: 2015-04-15
 -------------------------------------------------------------------------------
 -- Description: Delay sysref signal to align timing on two different receiver devices (FPGA, DAC). 
 --              The receiver devices in this core are already aligned and separate delay for separate 

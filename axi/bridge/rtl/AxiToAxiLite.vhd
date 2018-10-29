@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiToAxiLite.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-03-06
--- Last update: 2017-11-03
 -------------------------------------------------------------------------------
 -- Description: AXI4-to-AXI-Lite bridge
 --

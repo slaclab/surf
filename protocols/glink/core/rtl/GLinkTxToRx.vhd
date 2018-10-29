@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : GLinkTxToRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-05-20
--- Last update: 2014-05-20
 -------------------------------------------------------------------------------
 -- Description: Wrapper for GLinkEncoder/GLinkDecoder loopback testing
 -------------------------------------------------------------------------------

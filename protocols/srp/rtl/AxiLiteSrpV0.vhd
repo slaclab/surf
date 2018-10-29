@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiLiteSrpV0.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-09
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: SLAC Register Protocol Version 0, AXI-Lite Interface
 --
@@ -213,7 +211,7 @@ begin
                v.txFifoAxisMaster.tData(63 downto 62)  := "01";               
                v.txFifoAxisMaster.tData(95 downto 64)  := sAxilWriteMaster.wdata(31 downto 0);
                v.txFifoAxisMaster.tData(127 downto 96) := (others => '0');
-               v.txFifoAxisMaster.tKeep                := X"FFFF";
+               v.txFifoAxisMaster.tKeep(15 downto 0)   := X"FFFF";
                v.txFifoAxisMaster.tValid               := '1';
                v.txFifoAxisMaster.tLast                := '1';
                ssiSetUserSof(INTERNAL_AXIS_CFG_C, v.txFifoAxisMaster, '1');
@@ -224,7 +222,7 @@ begin
                v.txFifoAxisMaster.tData(63 downto 62)  := "00";
                v.txFifoAxisMaster.tData(95 downto 64)  := (others => '0');
                v.txFifoAxisMaster.tData(127 downto 96) := (others => '0');
-               v.txFifoAxisMaster.tKeep                := X"FFFF";
+               v.txFifoAxisMaster.tKeep(15 downto 0)   := X"FFFF";
                v.txFifoAxisMaster.tValid               := '1';
                v.txFifoAxisMaster.tLast                := '1';
                ssiSetUserSof(INTERNAL_AXIS_CFG_C, v.txFifoAxisMaster, '1');
@@ -244,7 +242,7 @@ begin
                       rxFifoAxisMaster.tData(63 downto 62) = "01" and
                       rxFifoAxisMaster.tData(95 downto 64) = sAxilWriteMaster.wdata and
                       rxFifoAxisMaster.tData(127 downto 96) = 0 and
-                      rxFifoAxisMaster.tKeep = X"FFFF" and
+                      rxFifoAxisMaster.tKeep(15 downto 0) = X"FFFF" and
                       rxFifoAxisMaster.tLast = '1' and
                       ssiGetUserSof(INTERNAL_AXIS_CFG_C, rxFifoAxisMaster) = '1')
                   then
@@ -264,7 +262,7 @@ begin
                       rxFifoAxisMaster.tData(61 downto 32) = sAxilReadMaster.araddr(31 downto 2) and
                       rxFifoAxisMaster.tData(63 downto 62) = "00" and                      
                       rxFifoAxisMaster.tData(127 downto 96) = 0 and
-                      rxFifoAxisMaster.tKeep = X"FFFF" and
+                      rxFifoAxisMaster.tKeep(15 downto 0) = X"FFFF" and
                       rxFifoAxisMaster.tLast = '1' and
                       ssiGetUserSof(INTERNAL_AXIS_CFG_C, rxFifoAxisMaster) = '1')
                   then

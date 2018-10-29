@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamResize.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-06-16
--- Last update: 2016-06-16
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to resize AXI Streams. Re-sizing is always little endian. 
@@ -84,7 +82,7 @@ begin
            (MST_BYTES_C >= SLV_BYTES_C and MST_BYTES_C mod SLV_BYTES_C = 0))
       report "Data widths must be even number multiples of each other" severity failure;
 
-   -- When going from a large bus to a small bus, ready is neccessary
+   -- When going from a large bus to a small bus, ready is necessary
    assert (SLV_BYTES_C <= MST_BYTES_C or READY_EN_G = true)  
       report "READY_EN_G must be true if slave width is great than master" severity failure;
 
@@ -99,9 +97,9 @@ begin
       idx     := conv_integer(r.count);
       bytes   := (idx+1) * MST_BYTES_C;
       if (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-         byteCnt := conv_integer(sAxisMaster.tKeep(4 downto 0));
+         byteCnt := conv_integer(sAxisMaster.tKeep(bitSize(SLAVE_AXI_CONFIG_G.TDATA_BYTES_C)-1 downto 0));
       else
-         byteCnt := getTKeep(sAxisMaster.tKeep);
+         byteCnt := getTKeep(sAxisMaster.tKeep,SLAVE_AXI_CONFIG_G);
       end if;
 
       -- Init ready
@@ -119,7 +117,7 @@ begin
          ibM.tKeep := genTKeep(byteCnt);
       end if;
 
-      for i in 0 to 15 loop
+      for i in 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
          ibM.tUser((i*8)+(SLV_USER_C-1) downto (i*8)) := sAxisMaster.tUser((i*SLV_USER_C)+(SLV_USER_C-1) downto (i*SLV_USER_C));
       end loop;
 
@@ -198,11 +196,11 @@ begin
             
             -- Check for TKEEP_COUNT_C mode on slave side only
             if (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) and (MASTER_AXI_CONFIG_G.TKEEP_MODE_C /= TKEEP_COUNT_C) then
-               mAxisMaster.tkeep <= genTKeep(conv_integer(sAxisMaster.tkeep(4 downto 0)));
+               mAxisMaster.tkeep <= genTKeep(conv_integer(sAxisMaster.tkeep(bitSize(SLAVE_AXI_CONFIG_G.TDATA_BYTES_C)-1 downto 0)));
          
             -- Check for TKEEP_COUNT_C mode on master side only
             elsif (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C /= TKEEP_COUNT_C) and (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-               mAxisMaster.tkeep <= toSlv(getTKeep(sAxisMaster.tKeep) ,16);
+               mAxisMaster.tkeep <= toSlv(getTKeep(sAxisMaster.tKeep,SLAVE_AXI_CONFIG_G),AXI_STREAM_MAX_TKEEP_WIDTH_C);
             
             -- Else both sides are TKEEP_COUNT_C mode
             else
@@ -217,10 +215,10 @@ begin
          mAxisMaster       <= r.obMaster;
          mAxisMaster.tUser <= (others=>'0');
          if (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-            mAxisMaster.tKeep <= toSlv(getTKeep(r.obMaster.tKeep) ,16);
+            mAxisMaster.tKeep <= toSlv(getTKeep(r.obMaster.tKeep,MASTER_AXI_CONFIG_G), AXI_STREAM_MAX_TKEEP_WIDTH_C);
          end if;
 
-         for i in 0 to 15 loop
+         for i in 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
             mAxisMaster.tUser((i*MST_USER_C)+(MST_USER_C-1) downto (i*MST_USER_C)) <= r.obMaster.tUser((i*8)+(MST_USER_C-1) downto (i*8));
          end loop;
       end if;

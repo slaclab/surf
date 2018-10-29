@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : EthMacRxPause.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-09-21
--- Last update: 2016-10-20
 -------------------------------------------------------------------------------
 -- Description:
 -- Generic pause frame receiver for Ethernet MACs. Pause frames are dropped

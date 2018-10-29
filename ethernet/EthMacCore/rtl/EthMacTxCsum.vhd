@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : EthMacTxCsum.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-09-08
--- Last update: 2018-01-31
 -------------------------------------------------------------------------------
 -- Description: TX Checksum Hardware Offloading Engine
 -- https://docs.google.com/spreadsheets/d/1_1M1keasfq8RLmRYHkO0IlRhMq5YZTgJ7OGrWvkib8I/edit?usp=sharing
@@ -352,8 +350,8 @@ begin
                -- Move data
                v.sMaster        := rxMaster;
                -- Fill in the TCP/UDP checksum
-               v.tKeep          := rxMaster.tKeep;
-               v.tData          := rxMaster.tData;
+               v.tKeep          := rxMaster.tKeep(15 downto 0);
+               v.tData          := rxMaster.tData(127 downto 0);
                -- Check if NON-VLAN
                if (VLAN_G = false) then
                   -- Fill in the IPv4 header checksum
@@ -365,8 +363,8 @@ begin
                      v.tData := rxMaster.tData(127 downto 80) & x"00000000" & rxMaster.tData(47 downto 0);
                   end if;
                   -- Track the number of bytes 
-                  v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep) - 2;
-                  v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep) - 2;
+                  v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep,EMAC_AXIS_CONFIG_C) - 2;
+                  v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep,EMAC_AXIS_CONFIG_C) - 2;
                else
                   -- Fill in the IPv4 header checksum
                   v.ipv4Hdr(14) := rxMaster.tData(7 downto 0);  -- Source IP Address
@@ -381,8 +379,8 @@ begin
                      v.tData := rxMaster.tData(127 downto 112) & x"00000000" & rxMaster.tData(79 downto 0);
                   end if;
                   -- Track the number of bytes 
-                  v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep) - 6;
-                  v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep) - 6;
+                  v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep,EMAC_AXIS_CONFIG_C) - 6;
+                  v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep,EMAC_AXIS_CONFIG_C) - 6;
                end if;
                -- Check for EOF
                if (rxMaster.tLast = '1') then
@@ -406,8 +404,8 @@ begin
                -- Move data
                v.sMaster        := rxMaster;
                -- Fill in the TCP/UDP checksum
-               v.tData          := rxMaster.tData;
-               v.tKeep          := rxMaster.tKeep;
+               v.tData          := rxMaster.tData(127 downto 0); 
+               v.tKeep          := rxMaster.tKeep(15 downto 0);
                -- Check for TCP data with inbound checksum
                if (r.ipv4Det(0) = '1') and (r.tcpDet(0) = '1') and (r.tcpFlag = '0') then
                   -- Set the flag
@@ -422,8 +420,8 @@ begin
                   end if;
                end if;
                -- Track the number of bytes 
-               v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep);
-               v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep);
+               v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep,EMAC_AXIS_CONFIG_C);
+               v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep,EMAC_AXIS_CONFIG_C);
                -- Check for EOF
                if (rxMaster.tLast = '1') or (v.ipv4Len(0) > MAX_FRAME_SIZE_C) then
                   -- Save the EOFE value

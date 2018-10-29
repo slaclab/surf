@@ -41,8 +41,6 @@ AxiSysMonUltraScale: &AxiSysMonUltraScale
       class: IntField
       name: CONVSTR
       mode: WO
-      # CPSW requires all WO variables to be 32-bit size and 32-bit aligned 
-      sizeBits: 32     
       description: CONVST Register
     #########################################################
     SYSMONRR:
@@ -51,8 +49,6 @@ AxiSysMonUltraScale: &AxiSysMonUltraScale
       class: IntField
       name: SYSMONRR
       mode: WO
-      # CPSW requires all WO variables to be 32-bit size and 32-bit aligned 
-      sizeBits: 32    
       description: SYSMON Hard Macro Reset Register
     #########################################################
     GIER:

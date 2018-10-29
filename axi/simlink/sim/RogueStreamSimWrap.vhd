@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : RogueStreamSim.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-12-05
--- Last update: 2017-02-02
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Rogue Stream Simulation Module
 -------------------------------------------------------------------------------
@@ -129,9 +127,9 @@ begin
    obMaster.tDest <= toSlv(DEST_ID_G, 8);
    obMaster.tId   <= (others => '0');
 
-   obMaster.tKeep(15 downto 8)   <= (others => '0');
-   obMaster.tData(127 downto 64) <= (others => '0');
-   obMaster.tUser(127 downto 64) <= (others => '0');
+   obMaster.tKeep(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 8)   <= (others => '0');
+   obMaster.tData(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 64) <= (others => '0');
+   obMaster.tUser(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 64) <= (others => '0');
 
    ------------------------------------
    -- Outbound

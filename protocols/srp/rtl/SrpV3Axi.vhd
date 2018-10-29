@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SrpV3Axi.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-04-14
--- Last update: 2016-05-04
 -------------------------------------------------------------------------------
 -- Description: SLAC Register Protocol Version 3, AXI Interface
 --
@@ -199,6 +197,7 @@ begin
 
       v.wrDmaReq.request := srpReq.request and toSl(srpReq.opcode = SRP_WRITE_C or srpReq.opcode = SRP_POSTED_WRITE_C) and not addrError;
       v.wrDmaReq.address := srpReq.addr;
+      v.wrDmaReq.prot    := srpReq.prot;
       -- This helps the DMA engines trim their unaligned access logic
       if (UNALIGNED_ACCESS_G = false and BYTE_ACCESS_G = false) then
          v.wrDmaReq.address(1 downto 0) := (others => '0');
@@ -207,6 +206,7 @@ begin
 
       v.rdDmaReq.request   := srpReq.request and toSl(srpReq.opcode = SRP_READ_C) and not addrError;
       v.rdDmaReq.address   := srpReq.addr;
+      v.rdDmaReq.prot      := srpReq.prot;
       if (UNALIGNED_ACCESS_G = false and BYTE_ACCESS_G = false) then
          v.rdDmaReq.address(1 downto 0) := (others => '0');
       end if;

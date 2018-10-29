@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamBytePackerTbRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-11-13
 -------------------------------------------------------------------------------
 -- Description:
 -- AxiStream data packer tester, tx module
@@ -62,7 +61,7 @@ begin
 
       if sAxisMaster.tValid = '1' then
 
-         inTop := getTKeep(sAxisMaster.tKeep(AXIS_CONFIG_G.TDATA_BYTES_C-1 downto 0))-1;
+         inTop := getTKeep(sAxisMaster.tKeep(AXIS_CONFIG_G.TDATA_BYTES_C-1 downto 0),AXIS_CONFIG_G)-1;
 
          for i in 0 to inTop loop
             if sAxisMaster.tData(i*8+7 downto i*8) /= toSlv(v.byteCount,8) then

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SynchronizerOneShotTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-09-22
--- Last update: 2016-09-22
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for the SynchronizerOneShot module
 -------------------------------------------------------------------------------

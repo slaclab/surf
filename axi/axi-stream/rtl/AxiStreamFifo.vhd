@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamFifo.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-25
--- Last update: 2016-08-31
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to serve as an async FIFO for AXI Streams. This block also allows the
@@ -79,7 +77,7 @@ entity AxiStreamFifo is
       mAxisRst    : in  sl;
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType;
-      mTLastTUser : out slv(127 downto 0));  -- when VALID_THOLD_G /= 1, used to look ahead at tLast's tUser
+      mTLastTUser : out slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0));  -- when VALID_THOLD_G /= 1, used to look ahead at tLast's tUser
 end AxiStreamFifo;
 
 architecture rtl of AxiStreamFifo is
@@ -139,7 +137,7 @@ architecture rtl of AxiStreamFifo is
       if KEEP_MODE_C = TKEEP_NORMAL_C then
          assignSlv(i, retValue, din.tKeep(KEEP_BITS_C-1 downto 0));
       elsif KEEP_MODE_C = TKEEP_COMP_C then
-         assignSlv(i, retValue, toSlv(getTKeep(din.tKeep(DATA_BYTES_C-1 downto 1)), KEEP_BITS_C));  -- Assume lsb is present
+         assignSlv(i, retValue, toSlv(getTKeep(din.tKeep(DATA_BYTES_C-1 downto 1),FIFO_AXIS_CONFIG_C), KEEP_BITS_C));  -- Assume lsb is present
       end if;
 
       -- Pack user bits
@@ -198,7 +196,7 @@ architecture rtl of AxiStreamFifo is
       -- Get keep bits
       if KEEP_MODE_C = TKEEP_NORMAL_C then
          assignRecord(i, din, master.tKeep(KEEP_BITS_C-1 downto 0));
-         byteCnt := getTKeep(master.tKeep);
+         byteCnt := getTKeep(master.tKeep,MASTER_AXI_CONFIG_G);
       elsif KEEP_MODE_C = TKEEP_COMP_C then
          byteCnt      := conv_integer(din((KEEP_BITS_C+i)-1 downto i))+1;
          master.tKeep := genTKeep(byteCnt);
