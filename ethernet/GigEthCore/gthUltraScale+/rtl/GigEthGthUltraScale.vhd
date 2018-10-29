@@ -2,7 +2,7 @@
 -- File       : GigEthGthUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-02-07
--- Last update: 2018-01-08
+-- Last update: 2018-08-23
 -------------------------------------------------------------------------------
 -- Description: 1000BASE-X Ethernet for Gth7
 -------------------------------------------------------------------------------
@@ -26,11 +26,13 @@ use work.GigEthPkg.all;
 
 entity GigEthGthUltraScale is
    generic (
-      TPD_G            : time                := 1 ns;
+      TPD_G           : time                := 1 ns;
+      PAUSE_EN_G      : boolean             := true;
+      PAUSE_512BITS_G : positive            := 8;
       -- AXI-Lite Configurations
-      EN_AXI_REG_G     : boolean             := false;
+      EN_AXI_REG_G    : boolean             := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      AXIS_CONFIG_G   : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
@@ -125,9 +127,11 @@ begin
    --------------------
    U_MAC : entity work.EthMacTop
       generic map (
-         TPD_G         => TPD_G,
-         PHY_TYPE_G    => "GMII",
-         PRIM_CONFIG_G => AXIS_CONFIG_G)
+         TPD_G           => TPD_G,
+         PAUSE_EN_G      => PAUSE_EN_G,
+         PAUSE_512BITS_G => PAUSE_512BITS_G,
+         PHY_TYPE_G      => "GMII",
+         PRIM_CONFIG_G   => AXIS_CONFIG_G)
       port map (
          -- Primary Interface
          primClk         => dmaClk,
@@ -184,11 +188,14 @@ begin
          rxp                    => gtRxP,
          rxn                    => gtRxN,
          -- Configuration and Status
+         an_restart_config      => '0',
+         an_adv_config_vector   => GIG_ETH_AN_ADV_CONFIG_INIT_C,
+         an_interrupt           => open,
          configuration_vector   => config.coreConfig,
          status_vector          => status.coreStatus,
          signal_detect          => sigDet);
 
-   status.phyReady <= status.coreStatus(0);
+   status.phyReady <= status.coreStatus(1);
    phyReady        <= status.phyReady;
 
    --------------------------------     
@@ -196,8 +203,8 @@ begin
    --------------------------------     
    U_GigEthReg : entity work.GigEthReg
       generic map (
-         TPD_G            => TPD_G,
-         EN_AXI_REG_G     => EN_AXI_REG_G)
+         TPD_G        => TPD_G,
+         EN_AXI_REG_G => EN_AXI_REG_G)
       port map (
          -- Local Configurations
          localMac       => localMac,

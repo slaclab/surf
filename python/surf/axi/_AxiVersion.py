@@ -134,6 +134,11 @@ class AxiVersion(pr.Device):
             base         = pr.UInt,
             mode         = 'RW',
         ))
+        
+        @self.command(description  = 'Toggle UserReset')
+        def UserRst():
+            self.UserReset.set(1)
+            self.UserReset.set(0)
 
         self.add(pr.RemoteVariable(   
             name         = 'FdSerial',
@@ -254,18 +259,22 @@ class AxiVersion(pr.Device):
         print('AxiVersion count reset called')
         
     def printStatus(self):
-        self.UpTimeCnt.get()
-        self.BuildStamp.get()
-        gitHash = self.GitHash.get()
-        print("FwVersion    = {}".format(hex(self.FpgaVersion.get())))
-        print("UpTime       = {}".format(self.UpTime.get()))
-        if (gitHash != 0):
-            print("GitHash      = {}".format(hex(self.GitHash.get())))
-        else:
-            print("GitHash      = dirty (uncommitted code)")
-        print("XilinxDnaId  = {}".format(hex(self.DeviceDna.get())))
-        print("FwTarget     = {}".format(self.ImageName.get()))
-        print("BuildEnv     = {}".format(self.BuildEnv.get()))
-        print("BuildServer  = {}".format(self.BuildServer.get()))
-        print("BuildDate    = {}".format(self.BuildDate.get()))
-        print("Builder      = {}".format(self.Builder.get()))
+        try:
+            self.UpTimeCnt.get()
+            self.BuildStamp.get()
+            gitHash = self.GitHash.get()
+            print("FwVersion    = {}".format(hex(self.FpgaVersion.get())))
+            print("UpTime       = {}".format(self.UpTime.get()))
+            if (gitHash != 0):
+                print("GitHash      = {}".format(hex(self.GitHash.get())))
+            else:
+                print("GitHash      = dirty (uncommitted code)")
+            print("XilinxDnaId  = {}".format(hex(self.DeviceDna.get())))
+            print("FwTarget     = {}".format(self.ImageName.get()))
+            print("BuildEnv     = {}".format(self.BuildEnv.get()))
+            print("BuildServer  = {}".format(self.BuildServer.get()))
+            print("BuildDate    = {}".format(self.BuildDate.get()))
+            print("Builder      = {}".format(self.Builder.get()))
+        except Exception as e:
+            print("Failed to get AxiVersion status")
+

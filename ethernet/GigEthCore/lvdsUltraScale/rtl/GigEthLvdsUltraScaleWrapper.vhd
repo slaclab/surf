@@ -19,6 +19,7 @@ use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.AxiLitePkg.all;
+use work.EthMacPkg.all;
 use work.GigEthPkg.all;
 
 library unisim;
@@ -26,18 +27,20 @@ use unisim.vcomponents.all;
 
 entity GigEthLvdsUltraScaleWrapper is
    generic (
-      TPD_G              : time                             := 1 ns;
-      NUM_LANE_G         : natural range 1 to 4             := 1;
+      TPD_G             : time                             := 1 ns;
+      NUM_LANE_G        : natural range 1 to 4             := 1;
+      PAUSE_EN_G        : boolean                          := true;
+      PAUSE_512BITS_G   : positive                         := 8;
       -- Clocking Configurations
-      USE_REFCLK_G       : boolean                          := false;  --  FALSE: sgmiiClkP/N,  TRUE: sgmiiRefClk
-      CLKIN_PERIOD_G     : real                             := 1.6;
-      DIVCLK_DIVIDE_G    : positive                         := 2;
-      CLKFBOUT_MULT_F_G  : real                             := 2.0;
+      USE_REFCLK_G      : boolean                          := false;  --  FALSE: sgmiiClkP/N,  TRUE: sgmiiRefClk
+      CLKIN_PERIOD_G    : real                             := 1.6;
+      DIVCLK_DIVIDE_G   : positive                         := 2;
+      CLKFBOUT_MULT_F_G : real                             := 2.0;
       -- AXI-Lite Configurations
-      EN_AXI_REG_G       : boolean                          := false;
+      EN_AXI_REG_G      : boolean                          := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G      : AxiStreamConfigArray(3 downto 0) := (others => AXI_STREAM_CONFIG_INIT_C)
-   );
+      AXIS_CONFIG_G     : AxiStreamConfigArray(3 downto 0) := (others => AXI_STREAM_CONFIG_INIT_C)
+      );
    port (
       -- Local Configurations
       localMac            : in  Slv48Array(NUM_LANE_G-1 downto 0)              := (others => MAC_ADDR_INIT_C);
@@ -73,7 +76,7 @@ entity GigEthLvdsUltraScaleWrapper is
       sgmiiTxN            : out slv(NUM_LANE_G-1 downto 0);
       sgmiiRxP            : in  slv(NUM_LANE_G-1 downto 0);
       sgmiiRxN            : in  slv(NUM_LANE_G-1 downto 0)
-   );
+      );
 end GigEthLvdsUltraScaleWrapper;
 
 architecture mapping of GigEthLvdsUltraScaleWrapper is
@@ -81,26 +84,26 @@ architecture mapping of GigEthLvdsUltraScaleWrapper is
    -- reset is asserted for 2*RST_DURATION_C
    constant RST_DURATION_C : natural range 0 to ((2**30)-1) := 156250000;
 
-   constant NUM_CLOCKS_C   : natural := 3;
+   constant NUM_CLOCKS_C : natural := 3;
 
-   signal sgmiiClk     : sl;
-   signal refClk       : sl;
-   signal refRst       : sl := '1';
-   signal sysClk12NB   : sl;
-   signal sysClk125    : sl;
-   signal sysRst125    : sl;
-   signal sysClk312    : sl;
-   signal sysRst312    : sl;
-   signal sysClk625    : sl;
-   signal sysRst625    : sl;
-   signal sysClkNB     : slv(6 downto 0);
-   signal sysClkB      : slv(6 downto 0);
-   signal sysRst       : slv(6 downto 0);
-   signal locked       : sl;
-   signal clkFb        : sl;
-   signal extRstSync   : sl;
-   signal refCE        : sl := '0';
-   signal refRstCnt    : natural range 0 to RST_DURATION_C := RST_DURATION_C;
+   signal sgmiiClk   : sl;
+   signal refClk     : sl;
+   signal refRst     : sl                                := '1';
+   signal sysClk12NB : sl;
+   signal sysClk125  : sl;
+   signal sysRst125  : sl;
+   signal sysClk312  : sl;
+   signal sysRst312  : sl;
+   signal sysClk625  : sl;
+   signal sysRst625  : sl;
+   signal sysClkNB   : slv(6 downto 0);
+   signal sysClkB    : slv(6 downto 0);
+   signal sysRst     : slv(6 downto 0);
+   signal locked     : sl;
+   signal clkFb      : sl;
+   signal extRstSync : sl;
+   signal refCE      : sl                                := '0';
+   signal refRstCnt  : natural range 0 to RST_DURATION_C := RST_DURATION_C;
 
 begin
 
@@ -112,14 +115,14 @@ begin
    -----------------------------
    IBUFGDS_SGMII : IBUFGDS
       generic map (
-         DIFF_TERM    => FALSE,
-         IBUF_LOW_PWR => FALSE
-      )
+         DIFF_TERM    => false,
+         IBUF_LOW_PWR => false
+         )
       port map (
-         I     => sgmiiClkP,
-         IB    => sgmiiClkN,
-         O     => sgmiiClk
-      );
+         I  => sgmiiClkP,
+         IB => sgmiiClkN,
+         O  => sgmiiClk
+         );
 
    refClk <= sgmiiClk when(USE_REFCLK_G = false) else sgmiiRefClk;
 
@@ -132,15 +135,15 @@ begin
    -----------------
    U_RstSync : entity work.RstSync
       generic map (
-         TPD_G           => TPD_G,
-         IN_POLARITY_G   => '1',
-         OUT_POLARITY_G  => '1'
-      )
+         TPD_G          => TPD_G,
+         IN_POLARITY_G  => '1',
+         OUT_POLARITY_G => '1'
+         )
       port map (
-         clk            => refClk,
-         asyncRst       => extRst,
-         syncRst        => extRstSync
-      );
+         clk      => refClk,
+         asyncRst => extRst,
+         syncRst  => extRstSync
+         );
 
    -- don't reset refCE in order to reduce possible
    -- timing problems. This leads to uncertainty of
@@ -148,21 +151,21 @@ begin
    -- an issue.
    process (refClk)
    begin
-      if ( rising_edge(refClk) ) then
+      if (rising_edge(refClk)) then
          refCE <= not refCE;
       end if;
    end process;
 
    process (refClk)
    begin
-      if ( rising_edge(refClk) ) then
-         if ( extRstSync = '1' ) then
+      if (rising_edge(refClk)) then
+         if (extRstSync = '1') then
             refRst    <= '1' after TPD_G;
-            refRstCnt <=  0  after TPD_G;
+            refRstCnt <= 0   after TPD_G;
          else
-            if ( refCE = '1' ) then
-               if ( refRstCnt = RST_DURATION_C ) then
-                  refRst    <= '0' after TPD_G;
+            if (refCE = '1') then
+               if (refRstCnt = RST_DURATION_C) then
+                  refRst <= '0' after TPD_G;
                else
                   refRstCnt <= refRstCnt + 1 after TPD_G;
                end if;
@@ -194,50 +197,50 @@ begin
    -- the BUFG in the feedback chain.
    U_MMCM : MMCME3_BASE
       generic map(
-         CLKOUT0_DIVIDE_F   => 5.0,
-         CLKOUT1_DIVIDE     => 2,
-         CLKOUT2_DIVIDE     => 1,
-         CLKOUT3_DIVIDE     => 50,
-         CLKOUT4_DIVIDE     => 50,
-         CLKOUT4_CASCADE    => "TRUE",
-         CLKOUT6_DIVIDE     => 10,
-         CLKFBOUT_MULT_F    => CLKFBOUT_MULT_F_G,
-         DIVCLK_DIVIDE      => DIVCLK_DIVIDE_G,
-         CLKIN1_PERIOD      => CLKIN_PERIOD_G
-      )
+         CLKOUT0_DIVIDE_F => 5.0,
+         CLKOUT1_DIVIDE   => 2,
+         CLKOUT2_DIVIDE   => 1,
+         CLKOUT3_DIVIDE   => 50,
+         CLKOUT4_DIVIDE   => 50,
+         CLKOUT4_CASCADE  => "TRUE",
+         CLKOUT6_DIVIDE   => 10,
+         CLKFBOUT_MULT_F  => CLKFBOUT_MULT_F_G,
+         DIVCLK_DIVIDE    => DIVCLK_DIVIDE_G,
+         CLKIN1_PERIOD    => CLKIN_PERIOD_G
+         )
       port map (
-         CLKIN1             => refClk,
-         RST                => refRst,
-         CLKFBIN            => clkFb,
-         CLKFBOUT           => clkFb,
-         CLKOUT0            => sysClkNB(0),
-         CLKOUT1            => sysClkNB(1),
-         CLKOUT2            => sysClkNB(2),
-         CLKOUT3            => sysClkNB(3),
-         CLKOUT4            => sysClkNB(4),
-         CLKOUT5            => sysClkNB(5),
-         CLKOUT6            => sysClkNB(6),
-         LOCKED             => locked,
-         PWRDWN             => '0'
-      );
+         CLKIN1   => refClk,
+         RST      => refRst,
+         CLKFBIN  => clkFb,
+         CLKFBOUT => clkFb,
+         CLKOUT0  => sysClkNB(0),
+         CLKOUT1  => sysClkNB(1),
+         CLKOUT2  => sysClkNB(2),
+         CLKOUT3  => sysClkNB(3),
+         CLKOUT4  => sysClkNB(4),
+         CLKOUT5  => sysClkNB(5),
+         CLKOUT6  => sysClkNB(6),
+         LOCKED   => locked,
+         PWRDWN   => '0'
+         );
 
    GEN_BUFG : for i in 0 to NUM_CLOCKS_C - 1 generate
       U_BUFG_125 : BUFG
          port map (
-            I                  => sysClkNB(i),
-            O                  => sysClkB(i)
-         );
+            I => sysClkNB(i),
+            O => sysClkB(i)
+            );
 
-      U_RESET    : entity work.RstSync
+      U_RESET : entity work.RstSync
          generic map (
-            TPD_G              => TPD_G,
-            IN_POLARITY_G      => '0'
-         )
+            TPD_G         => TPD_G,
+            IN_POLARITY_G => '0'
+            )
          port map (
-            clk                => sysClkB(i),
-            asyncRst           => locked,
-            syncRst            => sysRst(i)
-         );
+            clk      => sysClkB(i),
+            asyncRst => locked,
+            syncRst  => sysRst(i)
+            );
    end generate;
 
    sysClk125 <= sysClkB(0);
@@ -279,28 +282,30 @@ begin
             sel12p50 => speed_is_10_100(i),
             sel1p250 => speed_is_10,
             O        => ethClk
-         );
+            );
 
       -- Generate reset synchronous to the currently selected clock
-      U_RESET    : entity work.RstSync
+      U_RESET : entity work.RstSync
          generic map (
-            TPD_G              => TPD_G,
-            IN_POLARITY_G      => '0'
-         )
+            TPD_G         => TPD_G,
+            IN_POLARITY_G => '0'
+            )
          port map (
-            clk                => ethClk,
-            asyncRst           => locked,
-            syncRst            => ethRst
-         );
+            clk      => ethClk,
+            asyncRst => locked,
+            syncRst  => ethRst
+            );
 
       U_GigEthLvdsUltraScale : entity work.GigEthLvdsUltraScale
          generic map (
-            TPD_G            => TPD_G,
+            TPD_G           => TPD_G,
+            PAUSE_EN_G      => PAUSE_EN_G,
+            PAUSE_512BITS_G => PAUSE_512BITS_G,
             -- AXI-Lite Configurations
-            EN_AXI_REG_G     => EN_AXI_REG_G,
+            EN_AXI_REG_G    => EN_AXI_REG_G,
             -- AXI Streaming Configurations
-            AXIS_CONFIG_G    => AXIS_CONFIG_G(i)
-         )
+            AXIS_CONFIG_G   => AXIS_CONFIG_G(i)
+            )
          port map (
             -- Local Configurations
             localMac           => localMac(i),
@@ -336,7 +341,7 @@ begin
             sgmiiTxN           => sgmiiTxN(i),
             sgmiiRxP           => sgmiiRxP(i),
             sgmiiRxN           => sgmiiRxN(i)
-         );
+            );
 
    end generate GEN_LANE;
 

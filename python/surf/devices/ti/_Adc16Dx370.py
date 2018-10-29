@@ -70,6 +70,7 @@ class Adc16Dx370(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -90,6 +91,7 @@ class Adc16Dx370(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -100,6 +102,7 @@ class Adc16Dx370(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -110,6 +113,7 @@ class Adc16Dx370(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -120,6 +124,7 @@ class Adc16Dx370(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -280,6 +285,7 @@ class Adc16Dx370(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -290,6 +296,7 @@ class Adc16Dx370(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -300,6 +307,7 @@ class Adc16Dx370(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -310,6 +318,7 @@ class Adc16Dx370(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -320,6 +329,7 @@ class Adc16Dx370(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -330,6 +340,7 @@ class Adc16Dx370(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -340,6 +351,7 @@ class Adc16Dx370(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -350,6 +362,7 @@ class Adc16Dx370(pr.Device):
             bitOffset    =  0x01,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -360,6 +373,7 @@ class Adc16Dx370(pr.Device):
             bitOffset    =  0x02,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -370,6 +384,7 @@ class Adc16Dx370(pr.Device):
             bitOffset    =  0x03,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -380,6 +395,7 @@ class Adc16Dx370(pr.Device):
             bitOffset    =  0x04,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -390,6 +406,7 @@ class Adc16Dx370(pr.Device):
             bitOffset    =  0x05,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -400,6 +417,7 @@ class Adc16Dx370(pr.Device):
             bitOffset    =  0x06,
             base         = pr.UInt,
             mode         = "RO",
+            overlapEn    = True,
         ))
 
         ##############################

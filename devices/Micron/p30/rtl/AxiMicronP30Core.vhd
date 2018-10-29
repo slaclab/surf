@@ -2,7 +2,7 @@
 -- File       : AxiMicronP30Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-06-23
--- Last update: 2018-01-08
+-- Last update: 2018-06-22
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to FLASH Memory
 -------------------------------------------------------------------------------
@@ -27,9 +27,11 @@ use unisim.vcomponents.all;
 
 entity AxiMicronP30Core is
    generic (
-      TPD_G            : time                := 1 ns;
-      MEM_ADDR_MASK_G  : slv(31 downto 0)    := x"00000000";
-      AXI_CLK_FREQ_G   : real                := 200.0E+6);  -- units of Hz
+      TPD_G              : time             := 1 ns;
+      EN_PASSWORD_LOCK_G : boolean          := false;
+      PASSWORD_LOCK_G    : slv(31 downto 0) := x"DEADBEEF";
+      MEM_ADDR_MASK_G    : slv(31 downto 0) := x"00000000";
+      AXI_CLK_FREQ_G     : real             := 200.0E+6);  -- units of Hz
    port (
       -- FLASH Interface 
       flashIn        : in    AxiMicronP30InType;
@@ -65,9 +67,11 @@ begin
 
    U_CTRL : entity work.AxiMicronP30Reg
       generic map (
-         TPD_G            => TPD_G,
-         MEM_ADDR_MASK_G  => MEM_ADDR_MASK_G,
-         AXI_CLK_FREQ_G   => AXI_CLK_FREQ_G)
+         TPD_G              => TPD_G,
+         EN_PASSWORD_LOCK_G => EN_PASSWORD_LOCK_G,
+         PASSWORD_LOCK_G    => PASSWORD_LOCK_G,
+         MEM_ADDR_MASK_G    => MEM_ADDR_MASK_G,
+         AXI_CLK_FREQ_G     => AXI_CLK_FREQ_G)
       port map (
          -- FLASH Interface 
          flashAddr      => flashOut.addr,
@@ -88,5 +92,5 @@ begin
          -- Clocks and Resets
          axiClk         => axiClk,
          axiRst         => axiRst);
-         
+
 end mapping;
