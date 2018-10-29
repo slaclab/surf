@@ -204,6 +204,33 @@ package AxiLitePkg is
       axiWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C,
       axiStatus      => AXI_LITE_STATUS_INIT_C);
 
+   ----------------------------------------------------------------------------------
+   -- Constants for endpoint abstractions (migrated from legacy AxiLiteMasterPkg.vhd)
+   ----------------------------------------------------------------------------------
+   type AxiLiteReqType is record
+      request   : sl;
+      rnw     : sl;
+      address : slv(31 downto 0);
+      wrData  : slv(31 downto 0);
+   end record AxiLiteReqType;
+
+   constant AXI_LITE_REQ_INIT_C : AxiLiteReqType := (
+      request   => '0',
+      rnw     => '1',
+      address => (others => '0'),
+      wrData  => (others => '0'));
+
+   type AxiLiteAckType is record
+      done  : sl;
+      resp   : slv(1 downto 0);
+      rdData : slv(31 downto 0);
+   end record AxiLiteAckType;
+
+   constant AXI_LITE_ACK_INIT_C : AxiLiteAckType := (
+      done  => '0',
+      resp   => (others => '0'),
+      rdData => (others => '0'));      
+      
    -------------------------------------------------------------------------------------------------
    -- Crossbar Config Generic Types
    -------------------------------------------------------------------------------------------------
