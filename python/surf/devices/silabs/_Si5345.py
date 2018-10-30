@@ -20,6 +20,7 @@
 
 import pyrogue as pr
 import csv
+import click
 
 class Si5345(pr.Device):
     def __init__(self,       
@@ -28,6 +29,41 @@ class Si5345(pr.Device):
             simpleDisply = True,
             **kwargs):
         super().__init__(name=name, description=description, size=(0x1000<<2), **kwargs)
+        
+        self.add(pr.LocalVariable(    
+            name         = "CsvFilePath",
+            description  = "Used if command's argument is empty",
+            mode         = "RW",
+            value        = "",            
+        ))            
+                        
+        ##############################
+        # Commands
+        ##############################           
+        @self.command(value='',description="Load the .CSV from CBPro.",)
+        def LoadCsvFile(arg):
+            # Check if non-empty argument 
+            if (arg != ""):
+                path = arg
+            else:
+                # Use the variable path instead
+                path = self.CsvFilePath.get()            
+            # Print the path that was used
+            click.secho( ('Si5345.LoadCsvFile(): %s' % path ), fg='green')    
+            # Open the .CSV file
+            with open(path) as csvfile:
+                reader = csv.reader(csvfile, delimiter=',', quoting=csv.QUOTE_NONE) 
+                # Loop through the rows in the CSV file
+                for row in reader:     
+                    if (row[0]!='Address'):
+                        self._rawWrite(
+                            offset = (int(row[0],16)<<2),
+                            data   = int(row[1],16),
+                        )           
+        
+            # Update local RemoteVariables and verify conflagration
+            self.readBlocks(recurse=True)
+            self.checkBlocks(recurse=True)
         
         ##############################
         # 15.1 Page 0 Registers Si5345
@@ -2709,25 +2745,4 @@ class Si5345(pr.Device):
                 bitSize     = 8,
                 mode        = 'RW',
             ))          
-
-        ##############################
-        # Commands
-        ##############################           
-        @self.command(value='',description="Load the .CSV from CBPro.",)
-        def LoadCsvFile(arg):
-            # Check if non-empty argument 
-            if (arg != ""):
-                path = arg
-            else:
-                # Use the variable path instead
-                path = self.CsvFilePath.get()            
-                
-            # Open the .CSV file
-            with open(path) as csvfile:
-                reader = csv.reader(csvfile, delimiter=',', quoting=csv.QUOTE_NONE) 
-                # Loop through the rows in the CSV file
-                for row in reader:     
-                    self._rawWrite(
-                        offset = (row['Address']<<2),
-                        data   = row['Data'],
-                    )                
+            
