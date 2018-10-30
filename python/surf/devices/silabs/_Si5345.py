@@ -66,6 +66,27 @@ class Si5345(pr.Device):
             self.checkBlocks(recurse=True)
         
         ##############################
+        # Devices
+        ##############################
+        self.add(Si5345Page0(offset=0x0,simpleDisply=simpleDisply,expand=False))
+        self.add(Si5345Page1(offset=0x0,simpleDisply=simpleDisply,expand=False))
+        self.add(Si5345Page2(offset=0x0,simpleDisply=simpleDisply,expand=False))
+        self.add(Si5345Page3(offset=0x0,simpleDisply=simpleDisply,expand=False))
+        self.add(Si5345Page4(offset=0x0,simpleDisply=simpleDisply,expand=False))
+        self.add(Si5345Page5(offset=0x0,simpleDisply=simpleDisply,expand=False))
+        self.add(Si5345Page9(offset=0x0,simpleDisply=simpleDisply,expand=False))
+        self.add(Si5345PageA(offset=0x0,simpleDisply=simpleDisply,expand=False))
+        self.add(Si5345PageB(offset=0x0,simpleDisply=simpleDisply,expand=False))
+        
+class Si5345Page0(pr.Device):
+    def __init__(self,       
+            name         = "Page0",
+            description  = "Alarms, interrupts, reset, other configuration",
+            simpleDisply = True,
+            **kwargs):
+        super().__init__(name=name, description=description, **kwargs)       
+        
+        ##############################
         # 15.1 Page 0 Registers Si5345
         ##############################
                                              
@@ -1120,7 +1141,15 @@ class Si5345(pr.Device):
             bitOffset   = 0,
             mode        = 'RO',
         ))        
-
+        
+class Si5345Page1(pr.Device):
+    def __init__(self,       
+            name         = "Page1",
+            description  = "Clock output configuration",
+            simpleDisply = True,
+            **kwargs):
+        super().__init__(name=name, description=description, **kwargs)  
+        
         ##############################
         # 15.1 Page 1 Registers Si5345
         ##############################
@@ -1386,6 +1415,14 @@ class Si5345(pr.Device):
             bitOffset   = 0,
             mode        = 'RW',
         ))           
+            
+class Si5345Page2(pr.Device):
+    def __init__(self,       
+            name         = "Page2",
+            description  = "P,R dividers, scratch area",
+            simpleDisply = True,
+            **kwargs):
+        super().__init__(name=name, description=description, **kwargs)              
             
         ##############################
         # 15.1 Page 2 Registers Si5345
@@ -1766,6 +1803,14 @@ class Si5345(pr.Device):
             hidden      = simpleDisply,
         ))    
             
+class Si5345Page3(pr.Device):
+    def __init__(self,       
+            name         = "Page3",
+            description  = "Output N dividers, N divider Finc/Fdec",
+            simpleDisply = True,
+            **kwargs):
+        super().__init__(name=name, description=description, **kwargs)              
+            
         ##############################
         # 15.1 Page 3 Registers Si5345
         ##############################
@@ -1974,6 +2019,14 @@ class Si5345(pr.Device):
                 mode        = 'RW',
             ))             
         
+class Si5345Page4(pr.Device):
+    def __init__(self,       
+            name         = "Page4",
+            description  = "ZD mode configuration",
+            simpleDisply = True,
+            **kwargs):
+        super().__init__(name=name, description=description, **kwargs)         
+        
         ##############################
         # 15.1 Page 4 Registers Si5345
         ##############################        
@@ -2012,6 +2065,14 @@ class Si5345(pr.Device):
             mode        = 'RW',
             hidden      = simpleDisply,
         ))
+        
+class Si5345Page5(pr.Device):
+    def __init__(self,       
+            name         = "Page5",
+            description  = "M divider, BW, holdover, input switch, FINC/DEC",
+            simpleDisply = True,
+            **kwargs):
+        super().__init__(name=name, description=description, **kwargs) 
         
         ##############################
         # 15.1 Page 5 Registers Si5345
@@ -2553,6 +2614,14 @@ class Si5345(pr.Device):
             mode        = 'RW',               
         ))  
 
+class Si5345Page9(pr.Device):
+    def __init__(self,       
+            name         = "Page9",
+            description  = "Control IO configuration",
+            simpleDisply = True,
+            **kwargs):
+        super().__init__(name=name, description=description, **kwargs)         
+        
         ##############################
         # 15.1 Page 9 Registers Si5345
         ##############################
@@ -2626,6 +2695,14 @@ class Si5345(pr.Device):
             hidden      = simpleDisply,
         ))
 
+class Si5345PageA(pr.Device):
+    def __init__(self,       
+            name         = "PageA",
+            description  = "",
+            simpleDisply = True,
+            **kwargs):
+        super().__init__(name=name, description=description, **kwargs)           
+        
         ##############################
         # 15.1 Page A Registers Si5345
         ##############################
@@ -2677,6 +2754,14 @@ class Si5345(pr.Device):
                 hidden      = simpleDisply,
             ))
 
+class Si5345PageB(pr.Device):
+    def __init__(self,       
+            name         = "PageB",
+            description  = "",
+            simpleDisply = True,
+            **kwargs):
+        super().__init__(name=name, description=description, **kwargs)              
+            
         ##############################
         # 15.1 Page B Registers Si5345
         ##############################        
