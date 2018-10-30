@@ -560,3 +560,12 @@ class Sa56004x(pr.Device):
         
         ############################################################################
         
+        # Default to simple view
+        self.simpleView()        
+        
+    def simpleView(self):
+        # Hide all the variable
+        self.hideVariables(hidden=True)
+        # Then unhide the most interesting ones
+        vars = ['LocalTemperature', 'RemoteTemperature']
+        self.hideVariables(hidden=False, variables=vars)        
