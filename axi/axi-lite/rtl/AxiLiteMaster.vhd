@@ -20,17 +20,16 @@ use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
-use work.AxiLiteMasterPkg.all;
 
 entity AxiLiteMaster is
    generic (
       -- General Config
       TPD_G : time := 1 ns);
    port (
-      axilClk          : in  sl;
-      axilRst          : in  sl;
-      req              : in  AxiLiteMasterReqType;
-      ack              : out AxiLiteMasterAckType;
+      axilClk         : in  sl;
+      axilRst         : in  sl;
+      req             : in  AxiLiteReqType;
+      ack             : out AxiLiteAckType;
       axilWriteMaster : out AxiLiteWriteMasterType;
       axilWriteSlave  : in  AxiLiteWriteSlaveType;
       axilReadMaster  : out AxiLiteReadMasterType;
@@ -44,14 +43,14 @@ architecture rtl of AxiLiteMaster is
    type StateType is (S_IDLE_C, S_WRITE_C, S_WRITE_AXI_C, S_READ_C, S_READ_AXI_C);
 
    type RegType is record
-      ack              : AxiLiteMasterAckType;
+      ack              : AxiLiteAckType;
       state            : StateType;
       axilWriteMaster : AxiLiteWriteMasterType;
       axilReadMaster  : AxiLiteReadMasterType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      ack              =>  AXI_LITE_MASTER_ACK_INIT_C,
+      ack              =>  AXI_LITE_ACK_INIT_C,
       state            => S_IDLE_C,
       axilWriteMaster => AXI_LITE_WRITE_MASTER_INIT_C,
       axilReadMaster  => AXI_LITE_READ_MASTER_INIT_C);
@@ -80,7 +79,7 @@ begin
             v.axilReadMaster  := AXI_LITE_READ_MASTER_INIT_C;
 
             if (req.request = '0') then
-               v.ack := AXI_LITE_MASTER_ACK_INIT_C;
+               v.ack := AXI_LITE_ACK_INIT_C;
             end if;
 
             -- Frame is starting
