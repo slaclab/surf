@@ -60,12 +60,10 @@ architecture rtl of AxiStreamBatcherEventBuilder is
 
    type StateType is (
       IDLE_S,
-      ARB_S,
       MOVE_S);
 
    type RegType is record
       ready        : sl;
-      subFrameMask : slv(NUM_SLAVES_G-1 downto 0);
       maxSubFrames : slv(15 downto 0);
       accept       : slv(NUM_SLAVES_G-1 downto 0);
       index        : natural range 0 to NUM_SLAVES_G-1;
@@ -76,7 +74,6 @@ architecture rtl of AxiStreamBatcherEventBuilder is
 
    constant REG_INIT_C : RegType := (
       ready        => '0',
-      subFrameMask => (others => '0'),
       maxSubFrames => toSlv(NUM_SLAVES_G, 16),
       accept       => (others => '0'),
       index        => 0,
@@ -146,31 +143,6 @@ begin
    comb : process (axisRst, batcherIdle, r, rxMasters, txSlave) is
       variable v : RegType;
       variable i : natural;
-
-      procedure procQueue is
-      begin
-         -- Check if move selected channel
-         if (v.accept(r.index) = '1') then  -- Using variable instead of register in-case in the IDLE_S state
-            -- Next state
-            v.state := MOVE_S;
-         else
-            -- Check for last sample
-            if (r.index = NUM_SLAVES_G-1) then
-               -- Reset the counter
-               v.index := 0;
-               -- Reset the flag
-               v.ready := '0';
-               -- Next state
-               v.state := IDLE_S;
-            else
-               -- Increment the counter
-               v.index := r.index + 1;
-               -- Next state
-               v.state := ARB_S;
-            end if;
-         end if;
-      end procedure procQueue;
-
    begin
       -- Latch the current value
       v := r;
@@ -183,50 +155,37 @@ begin
          v.txMaster.tValid := '0';
       end if;
 
-      -- Loop through RX channels
-      v.ready := '1';
-      for i in (NUM_SLAVES_G-1) downto 0 loop
-         -- Check if no data
-         if (rxMasters(i).tValid = '0') then
-            -- Reset the flag
-            v.ready := '0';
-         else
-            -- Check for NULL frame
-            if (rxMasters(i).tLast = '1') and (rxMasters(i).tKeep(AXIS_CONFIG_G.TDATA_BYTES_C-1 downto 0) = 0) then
-               -- NULL frame detected
-               v.subFrameMask(i) := '0';
-            else
-               -- Normal frame detected
-               v.subFrameMask(i) := '1';
-            end if;
-         end if;
-      end loop;
-
-      -- Main state machine
+      -- State machine
       case r.state is
          ----------------------------------------------------------------------
          when IDLE_S =>
+            -- Loop through RX channels
+            v.ready := '1';
+            for i in (NUM_SLAVES_G-1) downto 0 loop
+               -- Check if no data
+               if (rxMasters(i).tValid = '0') then
+                  -- Reset the flag
+                  v.ready := '0';
+               else
+                  -- Check for NULL frame
+                  if (rxMasters(i).tLast = '1') and (rxMasters(i).tKeep(0) = '0') then
+                     -- NULL frame detected
+                     v.accept(i) := '0';
+                  else
+                     -- Normal frame detected
+                     v.accept(i) := '1';
+                  end if;
+               end if;
+            end loop;
             -- Check if ready to move data
             if (batcherIdle = '1') and (r.ready = '1') then
+               -- Reset the flag
+               v.ready        := '0';
                -- Set the sub-frame count
-               v.maxSubFrames := resize(onesCount(r.subFrameMask), 16);
-               -- Set the accept masks
-               v.accept       := r.subFrameMask;
-               -- Loop through RX channels
-               for i in (NUM_SLAVES_G-1) downto 0 loop
-                  -- Check for NULL frame
-                  if (r.subFrameMask(i) = '0') then
-                     -- Drop the NULL frame
-                     v.rxSlaves(i).tReady := '1';
-                  end if;
-               end loop;
-               -- Process the queue
-               procQueue;
+               v.maxSubFrames := resize(onesCount(r.accept), 16);
+               -- Next state
+               v.state        := MOVE_S;
             end if;
-         ----------------------------------------------------------------------
-         when ARB_S =>
-            -- Process the queue
-            procQueue;
          ----------------------------------------------------------------------
          when MOVE_S =>
             -- Check if ready to move data
@@ -234,21 +193,19 @@ begin
                -- Move the data
                v.rxSlaves(r.index).tReady := '1';
                v.txMaster                 := rxMasters(r.index);
+               -- Only forward the non-NULL frames
+               v.txMaster.tValid          := r.accept(r.index);
                -- Check for the last transfer
                if (rxMasters(r.index).tLast = '1') then
                   -- Check for last channel
                   if (r.index = NUM_SLAVES_G-1) then
                      -- Reset the counter
                      v.index := 0;
-                     -- Reset the flag
-                     v.ready := '0';
                      -- Next state
                      v.state := IDLE_S;
                   else
                      -- Increment the counter
                      v.index := r.index + 1;
-                     -- Next state
-                     v.state := ARB_S;
                   end if;
                end if;
             end if;
