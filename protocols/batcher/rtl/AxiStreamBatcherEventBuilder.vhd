@@ -167,8 +167,8 @@ begin
                   -- Reset the flag
                   v.ready := '0';
                else
-                  -- Check for NULL frame
-                  if (rxMasters(i).tLast = '1') and (rxMasters(i).tKeep(0) = '0') then
+                  -- Check for NULL frame (defined as a single word transaction)
+                  if (rxMasters(i).tLast = '1') then
                      -- NULL frame detected
                      v.accept(i) := '0';
                   else
