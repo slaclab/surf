@@ -47,10 +47,6 @@ entity AxiStreamBatcherEventBuilder is
       -- Clock and Reset
       axisClk      : in  sl;
       axisRst      : in  sl;
-      -- Event Interface
-      eventValid   : in  sl;
-      eventSelect  : in  slv(NUM_SLAVES_G-1 downto 0);
-      eventReady   : out sl;
       -- AXIS Interfaces
       sAxisMasters : in  AxiStreamMasterArray(NUM_SLAVES_G-1 downto 0);
       sAxisSlaves  : out AxiStreamSlaveArray(NUM_SLAVES_G-1 downto 0);
@@ -64,14 +60,12 @@ architecture rtl of AxiStreamBatcherEventBuilder is
 
    type StateType is (
       IDLE_S,
-      ARB_S,
       MOVE_S);
 
    type RegType is record
-      queueRead    : sl;
+      ready        : sl;
       maxSubFrames : slv(15 downto 0);
       accept       : slv(NUM_SLAVES_G-1 downto 0);
-      blowoff      : slv(NUM_SLAVES_G-1 downto 0);
       index        : natural range 0 to NUM_SLAVES_G-1;
       rxSlaves     : AxiStreamSlaveArray(NUM_SLAVES_G-1 downto 0);
       txMaster     : AxiStreamMasterType;
@@ -79,10 +73,9 @@ architecture rtl of AxiStreamBatcherEventBuilder is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      queueRead    => '0',
+      ready        => '0',
       maxSubFrames => toSlv(NUM_SLAVES_G, 16),
       accept       => (others => '0'),
-      blowoff      => (others => '0'),
       index        => 0,
       rxSlaves     => (others => AXI_STREAM_SLAVE_INIT_C),
       txMaster     => AXI_STREAM_MASTER_INIT_C,
@@ -97,40 +90,9 @@ architecture rtl of AxiStreamBatcherEventBuilder is
    signal txMaster        : AxiStreamMasterType;
    signal txSlave         : AxiStreamSlaveType;
 
-   signal writeEnable  : sl;
-   signal almostFull   : sl;
-   signal queueRead    : sl;
-   signal queueValid   : sl;
-   signal queueSelect  : slv(NUM_SLAVES_G-1 downto 0);
-   signal maxSubFrames : slv(15 downto 0);
-   signal batcherIdle  : sl;
+   signal batcherIdle : sl;
 
 begin
-
-   --------------
-   -- Event Queue
-   --------------
-   U_Queue : entity work.FifoSync
-      generic map (
-         TPD_G        => TPD_G,
-         FWFT_EN_G    => true,
-         DATA_WIDTH_G => NUM_SLAVES_G,
-         BRAM_EN_G    => false,
-         ADDR_WIDTH_G => 4)
-      port map (
-         clk         => axisClk,
-         rst         => axisRst,
-         -- Write Ports
-         wr_en       => writeEnable,
-         din         => eventSelect,
-         almost_full => almostFull,
-         -- Read Ports
-         rd_en       => queueRead,
-         dout        => queueSelect,
-         valid       => queueValid);
-
-   eventReady  <= not(almostFull);
-   writeEnable <= eventValid and not(almostFull);
 
    -------------------------
    -- Override Inbound TDEST
@@ -178,39 +140,14 @@ begin
             mAxisSlave  => rxSlaves(i));
    end generate GEN_VEC;
 
-   comb : process (axisRst, batcherIdle, queueSelect, queueValid, r, rxMasters,
-                   txSlave) is
+   comb : process (axisRst, batcherIdle, r, rxMasters, txSlave) is
       variable v : RegType;
       variable i : natural;
-
-      procedure procQueue is
-      begin
-         -- Check if move selected channel
-         if (v.accept(r.index) = '1') then  -- Using variable instead of register in-case in the IDLE_S state
-            -- Next state
-            v.state := MOVE_S;
-         else
-            -- Check for last sample
-            if (r.index = NUM_SLAVES_G-1) then
-               -- Reset the counter
-               v.index := 0;
-               -- Next state
-               v.state := IDLE_S;
-            else
-               -- Increment the counter
-               v.index := r.index + 1;
-               -- Next state
-               v.state := ARB_S;
-            end if;
-         end if;
-      end procedure procQueue;
-
    begin
       -- Latch the current value
       v := r;
 
       -- Reset the flow control strobes
-      v.queueRead := '0';
       for i in (NUM_SLAVES_G-1) downto 0 loop
          v.rxSlaves(i).tReady := '0';
       end loop;
@@ -218,40 +155,39 @@ begin
          v.txMaster.tValid := '0';
       end if;
 
-      -- Loop through RX channels
-      for i in (NUM_SLAVES_G-1) downto 0 loop
-         -- Check for blow off bit
-         if (r.blowoff(i) = '1') then
-            -- Blow off the data
-            v.rxSlaves(i).tReady := '1';
-            -- Check for the last transfer
-            if (rxMasters(i).tValid = '1') and (rxMasters(i).tLast = '1') then
-               -- Reset the flag
-               v.blowoff(i) := '0';
-            end if;
-         end if;
-      end loop;
-
-      -- Main state machine
+      -- State machine
       case r.state is
          ----------------------------------------------------------------------
          when IDLE_S =>
+            -- Loop through RX channels
+            v.ready := '1';
+            for i in (NUM_SLAVES_G-1) downto 0 loop
+               -- Check if no data
+               if (rxMasters(i).tValid = '0') then
+                  -- Reset the flag
+                  v.ready := '0';
+               else
+                  -- Check for NULL frame (defined as a single word transaction with EOFE asserted and byte count = 1)
+                  if (rxMasters(i).tLast = '1') and  -- TLAST asserted
+                  (ssiGetUserEofe(AXIS_CONFIG_G, rxMasters(i)) = '1') and  -- EOFE flag set
+                  (getTKeep(rxMasters(i).tKeep(AXIS_CONFIG_G.TDATA_BYTES_C-1 downto 0), AXIS_CONFIG_G) = 1) then  -- byte count = 1
+                     -- NULL frame detected
+                     v.accept(i) := '0';
+                  else
+                     -- Normal frame detected
+                     v.accept(i) := '1';
+                  end if;
+               end if;
+            end loop;
             -- Check if ready to move data
-            if (batcherIdle = '1') and (queueValid = '1') and (r.accept = 0) and (r.blowoff = 0) then
-               -- Accept the queue data
-               v.queueRead    := '1';
+            if (batcherIdle = '1') and (r.ready = '1') then
+               -- Reset the flag
+               v.ready        := '0';
                -- Set the sub-frame count
-               v.maxSubFrames := resize(onesCount(queueSelect), 16);
-               -- Set the masks
-               v.accept       := queueSelect;
-               v.blowoff      := not(queueSelect);
-               -- Process the queue
-               procQueue;
+               v.maxSubFrames := resize(onesCount(r.accept), 16);
+               -- Next state
+               v.state        := MOVE_S;
             end if;
-         ----------------------------------------------------------------------
-         when ARB_S =>
-            -- Process the queue
-            procQueue;
          ----------------------------------------------------------------------
          when MOVE_S =>
             -- Check if ready to move data
@@ -259,6 +195,8 @@ begin
                -- Move the data
                v.rxSlaves(r.index).tReady := '1';
                v.txMaster                 := rxMasters(r.index);
+               -- Only forward the non-NULL frames
+               v.txMaster.tValid          := r.accept(r.index);
                -- Check for the last transfer
                if (rxMasters(r.index).tLast = '1') then
                   -- Check for last channel
@@ -270,8 +208,6 @@ begin
                   else
                      -- Increment the counter
                      v.index := r.index + 1;
-                     -- Next state
-                     v.state := ARB_S;
                   end if;
                end if;
             end if;
@@ -279,9 +215,8 @@ begin
       end case;
 
       -- Outputs
-      queueRead <= v.queueRead;
-      rxSlaves  <= v.rxSlaves;
-      txMaster  <= r.txMaster;
+      rxSlaves <= v.rxSlaves;
+      txMaster <= r.txMaster;
 
       -- Reset
       if (axisRst = '1') then
