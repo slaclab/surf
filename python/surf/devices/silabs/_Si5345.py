@@ -27,6 +27,7 @@ class Si5345(pr.Device):
             name         = "Si5345",
             description  = "Si5345",
             simpleDisply = True,
+            advanceUser  = False,
             **kwargs):
         super().__init__(name=name, description=description, size=(0x1000<<2), **kwargs)
         
@@ -47,9 +48,14 @@ class Si5345(pr.Device):
                 path = arg
             else:
                 # Use the variable path instead
-                path = self.CsvFilePath.get()            
+                path = self.CsvFilePath.get()  
+                
             # Print the path that was used
             click.secho( ('Si5345.LoadCsvFile(): %s' % path ), fg='green')    
+
+            # Power down during the configuration load
+            self.Config.PDN.set(True)
+            
             # Open the .CSV file
             with open(path) as csvfile:
                 reader = csv.reader(csvfile, delimiter=',', quoting=csv.QUOTE_NONE) 
@@ -64,23 +70,29 @@ class Si5345(pr.Device):
             # Update local RemoteVariables and verify conflagration
             self.readBlocks(recurse=True)
             self.checkBlocks(recurse=True)
+            
+            # Power Up after the configuration load
+            self.Config.PDN.set(False)            
+            
+            # Clear the internal error flags
+            self.Config.ClearIntErrFlag()
         
         ##############################
         # Devices
         ##############################
         self.add(Si5345Page0(offset=0x0,simpleDisply=simpleDisply,expand=False))
-        self.add(Si5345Page1(offset=0x0,simpleDisply=simpleDisply,expand=False))
-        self.add(Si5345Page2(offset=0x0,simpleDisply=simpleDisply,expand=False))
-        self.add(Si5345Page3(offset=0x0,simpleDisply=simpleDisply,expand=False))
-        self.add(Si5345Page4(offset=0x0,simpleDisply=simpleDisply,expand=False))
-        self.add(Si5345Page5(offset=0x0,simpleDisply=simpleDisply,expand=False))
-        self.add(Si5345Page9(offset=0x0,simpleDisply=simpleDisply,expand=False))
-        self.add(Si5345PageA(offset=0x0,simpleDisply=simpleDisply,expand=False))
-        self.add(Si5345PageB(offset=0x0,simpleDisply=simpleDisply,expand=False))
+        self.add(Si5345Page1(offset=0x0,simpleDisply=simpleDisply,expand=False,hidden=advanceUser))
+        self.add(Si5345Page2(offset=0x0,simpleDisply=simpleDisply,expand=False,hidden=advanceUser))
+        self.add(Si5345Page3(offset=0x0,simpleDisply=simpleDisply,expand=False,hidden=advanceUser))
+        self.add(Si5345Page4(offset=0x0,simpleDisply=simpleDisply,expand=False,hidden=advanceUser))
+        self.add(Si5345Page5(offset=0x0,simpleDisply=simpleDisply,expand=False,hidden=advanceUser))
+        self.add(Si5345Page9(offset=0x0,simpleDisply=simpleDisply,expand=False,hidden=advanceUser))
+        self.add(Si5345PageA(offset=0x0,simpleDisply=simpleDisply,expand=False,hidden=advanceUser))
+        self.add(Si5345PageB(offset=0x0,simpleDisply=simpleDisply,expand=False,hidden=advanceUser))
         
 class Si5345Page0(pr.Device):
     def __init__(self,       
-            name         = "Page0",
+            name         = "Config",
             description  = "Alarms, interrupts, reset, other configuration",
             simpleDisply = True,
             **kwargs):
@@ -163,7 +175,7 @@ class Si5345Page0(pr.Device):
             description = 'Device temperature grading, 0 = Industrial (40 C to 85 C) ambient conditions',
             offset      = (0x0009 << 2),
             bitSize     = 8,
-            mode        = 'RW',
+            mode        = 'RO',
         )) 
 
         self.add(pr.RemoteVariable(
@@ -171,7 +183,7 @@ class Si5345Page0(pr.Device):
             description = 'Package ID, 0 = 9x9 mm 64 QFN',
             offset      = (0x000A << 2),
             bitSize     = 8,
-            mode        = 'RW',
+            mode        = 'RO',
         ))   
 
         self.add(pr.RemoteVariable(
@@ -180,7 +192,8 @@ class Si5345Page0(pr.Device):
             offset      = (0x000B << 2),
             bitSize     = 7,
             mode        = 'RO',
-        ))           
+            hidden      = simpleDisply,
+        ))      
 
         self.add(pr.RemoteVariable(
             name        = 'SYSINCAL',
@@ -190,6 +203,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 0,
             mode        = 'RO',
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -200,6 +214,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 1,
             mode        = 'RO',
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -210,7 +225,8 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 3,
             mode        = 'RO',
-        ))   
+            pollInterval = 1,
+        ))  
 
         self.add(pr.RemoteVariable(
             name        = 'SMBUS_TIMEOUT',
@@ -220,7 +236,8 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 5,
             mode        = 'RO',
-        ))   
+            hidden      = simpleDisply,
+        )) 
 
         self.add(pr.RemoteVariable(
             name        = 'LOS',
@@ -229,7 +246,8 @@ class Si5345Page0(pr.Device):
             bitSize     = 4,
             bitOffset   = 0,
             mode        = 'RO',
-        ))  
+            pollInterval = 1,
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'OOF',
@@ -238,7 +256,8 @@ class Si5345Page0(pr.Device):
             bitSize     = 4,
             bitOffset   = 4,
             mode        = 'RO',
-        ))   
+            pollInterval = 1,
+        )) 
 
         self.add(pr.RemoteVariable(
             name        = 'LOL',
@@ -248,7 +267,8 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 1,
             mode        = 'RO',
-        ))   
+            pollInterval = 1,
+        )) 
 
         self.add(pr.RemoteVariable(
             name        = 'HOLD',
@@ -258,7 +278,8 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 5,
             mode        = 'RO',
-        )) 
+            pollInterval = 1,
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'CAL_PLL',
@@ -268,8 +289,17 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 5,
             mode        = 'RO',
-        ))  
+            pollInterval = 1,
+        )) 
 
+        self.add(pr.RemoteCommand(   
+            name         = 'ClearIntErrFlag',
+            description  = 'command to clears the internal error flags',
+            offset       = (0x0011 << 2),
+            bitSize      = 1,
+            function     = lambda cmd: cmd.post(0),
+        ))        
+        
         self.add(pr.RemoteVariable(
             name        = 'SYSINCAL_FLG',
             description = 'Sticky version of SYSINCAL. Write a 0 to this bit to clear.',
@@ -277,8 +307,9 @@ class Si5345Page0(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 0,
-            mode        = 'RW',
-        )) 
+            mode        = 'RO',
+            pollInterval = 1,
+        ))
         
         self.add(pr.RemoteVariable(
             name        = 'LOSXAXB_FLG',
@@ -287,8 +318,9 @@ class Si5345Page0(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 1,
-            mode        = 'RW',
-        )) 
+            mode        = 'RO',
+            pollInterval = 1,
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'XAXB_ERR_FLG',
@@ -297,8 +329,9 @@ class Si5345Page0(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 3,
-            mode        = 'RW',
-        )) 
+            mode        = 'RO',
+            pollInterval = 1,
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'SMBUS_TIMEOUT_FLG',
@@ -307,8 +340,9 @@ class Si5345Page0(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 5,
-            mode        = 'RW',
-        ))   
+            mode        = 'RO',
+            hidden      = simpleDisply,
+        ))  
 
         self.add(pr.RemoteVariable(
             name        = 'LOS_FLG',
@@ -316,7 +350,7 @@ class Si5345Page0(pr.Device):
             offset      = (0x0012 << 2),
             bitSize     = 4,
             bitOffset   = 0,
-            mode        = 'RW',
+            mode        = 'RO',
         )) 
 
         self.add(pr.RemoteVariable(
@@ -325,7 +359,7 @@ class Si5345Page0(pr.Device):
             offset      = (0x0012 << 2),
             bitSize     = 4,
             bitOffset   = 4,
-            mode        = 'RW',
+            mode        = 'RO',
         ))    
 
         self.add(pr.RemoteVariable(
@@ -335,7 +369,7 @@ class Si5345Page0(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 1,
-            mode        = 'RW',
+            mode        = 'RO',
         ))    
 
         self.add(pr.RemoteVariable(
@@ -345,7 +379,7 @@ class Si5345Page0(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 5,
-            mode        = 'RW',
+            mode        = 'RO',
         ))  
 
         self.add(pr.RemoteVariable(
@@ -355,7 +389,7 @@ class Si5345Page0(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 5,
-            mode        = 'RW',
+            mode        = 'RO',
         )) 
 
         self.add(pr.RemoteVariable(
@@ -377,7 +411,8 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 0,
             mode        = 'RW',
-        )) 
+            hidden      = simpleDisply,
+        ))   
 
         self.add(pr.RemoteVariable(
             name        = 'LOSXAXB_INTR_MSK',
@@ -387,7 +422,8 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 1,
             mode        = 'RW',
-        ))  
+            hidden      = simpleDisply,
+        ))   
 
         self.add(pr.RemoteVariable(
             name        = 'SMBUS_TIMEOUT_FLG_MSK',
@@ -397,6 +433,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 5,
             mode        = 'RW',
+            hidden      = simpleDisply,
         ))  
 
         self.add(pr.RemoteVariable(
@@ -418,7 +455,8 @@ class Si5345Page0(pr.Device):
             bitSize     = 4,
             bitOffset   = 0,
             mode        = 'RW',
-        ))   
+            hidden      = simpleDisply,
+        ))    
 
         self.add(pr.RemoteVariable(
             name        = 'OOF_INTR_MSK',
@@ -427,7 +465,8 @@ class Si5345Page0(pr.Device):
             bitSize     = 4,
             bitOffset   = 4,
             mode        = 'RW',
-        ))  
+            hidden      = simpleDisply,
+        ))   
 
         self.add(pr.RemoteVariable(
             name        = 'LOL_INTR_MSK',
@@ -437,6 +476,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 1,
             mode        = 'RW',
+            hidden      = simpleDisply,
         ))  
 
         self.add(pr.RemoteVariable(
@@ -447,7 +487,8 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 5,
             mode        = 'RW',
-        ))
+            hidden      = simpleDisply,
+        )) 
 
         self.add(pr.RemoteVariable(
             name        = 'CAL_INTR_MSK',
@@ -457,7 +498,8 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 5,
             mode        = 'RW',
-        ))        
+            hidden      = simpleDisply,
+        ))         
 
         self.add(pr.RemoteCommand(  
             name         = "SOFT_RST_ALL",
@@ -480,24 +522,24 @@ class Si5345Page0(pr.Device):
         )) 
 
         self.add(pr.RemoteCommand(  
-            name         = "FINC",
-            description  = "1 a rising edge will cause the selected MultiSynth to increment the output frequency by the Nx_FSTEPW parameter. See registers 0x03390x0358",
-            offset       = (0x001D << 2),
-            bitSize      = 1,
-            bitOffset    = 0,
-            # hidden       = True,
-            function     = pr.BaseCommand.toggle,
-        ))
+            name        = "FINC",
+            description = "1 a rising edge will cause the selected MultiSynth to increment the output frequency by the Nx_FSTEPW parameter. See registers 0x03390x0358",
+            offset      = (0x001D << 2),
+            bitSize     = 1,
+            bitOffset   = 0,
+            function    = pr.BaseCommand.toggle,
+            hidden      = simpleDisply,
+        )) 
         
         self.add(pr.RemoteCommand(  
-            name         = "FDEC",
-            description  = "1 a rising edge will cause the selected MultiSynth to decrement the output frequency by the Nx_FSTEPW parameter. See registers 0x03390x0358",
-            offset       = (0x001D << 2),
-            bitSize      = 1,
-            bitOffset    = 1,
-            # hidden       = True,
-            function     = pr.BaseCommand.toggle,
-        ))         
+            name        = "FDEC",
+            description = "1 a rising edge will cause the selected MultiSynth to decrement the output frequency by the Nx_FSTEPW parameter. See registers 0x03390x0358",
+            offset      = (0x001D << 2),
+            bitSize     = 1,
+            bitOffset   = 1,
+            function    = pr.BaseCommand.toggle,
+            hidden      = simpleDisply,
+        ))          
 
         self.add(pr.RemoteVariable(
             name        = 'PDN',
@@ -525,7 +567,6 @@ class Si5345Page0(pr.Device):
             offset       = (0x001E << 2),
             bitSize      = 1,
             bitOffset    = 2,
-            # hidden       = True,
             function     = pr.BaseCommand.toggle,
         ))    
     
@@ -537,6 +578,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 3,
             mode        = 'RW',
+            hidden      = simpleDisply,
         )) 
         
         self.add(pr.RemoteVariable(
@@ -592,6 +634,7 @@ class Si5345Page0(pr.Device):
                 offset      = ((0x002E+(2*i)) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
+                hidden      = simpleDisply,
             ))  
             self.add(pr.RemoteVariable(
                 name        = f'LOS_TRG_THR_HI[{i}]',              
@@ -599,7 +642,9 @@ class Si5345Page0(pr.Device):
                 offset      = ((0x002F+(2*i)) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-            ))   
+                hidden      = simpleDisply,
+            ))  
+   
 
         for i in range(4):
             self.add(pr.RemoteVariable(
@@ -608,14 +653,18 @@ class Si5345Page0(pr.Device):
                 offset      = ((0x0036+(2*i)) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
+                hidden      = simpleDisply,
             ))  
+
             self.add(pr.RemoteVariable(
                 name        = f'LOS_CLR_THR_HI[{i}]',
                 description = 'Clear Threshold 16-bit Threshold Value',
                 offset      = ((0x0037+(2*i)) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-            ))               
+                hidden      = simpleDisply,
+            ))  
+           
 
         self.add(pr.RemoteVariable(
             name        = 'OOF_EN',
@@ -676,7 +725,8 @@ class Si5345Page0(pr.Device):
                 offset      = ((0x0046+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-            ))   
+                hidden      = simpleDisply,
+            ))    
 
         for i in range(4):        
             self.add(pr.RemoteVariable(
@@ -685,7 +735,8 @@ class Si5345Page0(pr.Device):
                 offset      = ((0x004A+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-            ))               
+                hidden      = simpleDisply,
+            ))                
         
         self.add(pr.RemoteVariable(
             name        = 'OOF_DETWIN_SEL[0]',
@@ -744,7 +795,8 @@ class Si5345Page0(pr.Device):
                 offset      = ((0x0051+i) << 2),
                 bitSize     = 4,
                 mode        = 'RW',
-            ))  
+                hidden      = simpleDisply,
+            ))   
 
         for i in range(4):        
             self.add(pr.RemoteVariable(
@@ -753,7 +805,8 @@ class Si5345Page0(pr.Device):
                 offset      = ((0x0055+i) << 2),
                 bitSize     = 4,
                 mode        = 'RW',
-            ))              
+                hidden      = simpleDisply,
+            ))               
             
         for i in range(4):
             self.add(pr.RemoteVariable(
