@@ -54,7 +54,7 @@ class Si5345(pr.Device):
             click.secho( ('Si5345.LoadCsvFile(): %s' % path ), fg='green')    
 
             # Power down during the configuration load
-            self.Config.PDN.set(True)
+            self.Page0.PDN.set(True)
             
             # Open the .CSV file
             with open(path) as csvfile:
@@ -72,10 +72,10 @@ class Si5345(pr.Device):
             self.checkBlocks(recurse=True)
             
             # Power Up after the configuration load
-            self.Config.PDN.set(False)            
+            self.Page0.PDN.set(False)            
             
             # Clear the internal error flags
-            self.Config.ClearIntErrFlag()
+            self.Page0.ClearIntErrFlag()
         
         ##############################
         # Devices
@@ -92,7 +92,7 @@ class Si5345(pr.Device):
         
 class Si5345Page0(pr.Device):
     def __init__(self,       
-            name         = "Config",
+            name         = "Page0",
             description  = "Alarms, interrupts, reset, other configuration",
             simpleDisply = True,
             **kwargs):
