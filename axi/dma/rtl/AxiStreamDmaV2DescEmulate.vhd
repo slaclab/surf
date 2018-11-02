@@ -29,6 +29,8 @@ use work.ArbiterPkg.all;
 entity AxiStreamDmaV2DescEmulate is
    generic (
       TPD_G             : time                  := 1 ns;
+      SYNTH_MODE_G      : string                := "inferred";
+      MEMORY_TYPE_G     : string                := "block";  
       AXI_CACHE_G       : slv(3 downto 0)       := "0000";
       CHAN_COUNT_G      : integer range 1 to 16 := 1;
       AXIL_BASE_ADDR_G  : slv(31 downto 0)      := x"00000000";
