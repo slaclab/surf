@@ -18,8 +18,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiLiteToIpBus is
    generic (
@@ -74,7 +75,7 @@ architecture rtl of AxiLiteToIpBus is
 
 begin
 
-   U_AxiLiteSlave : entity work.AxiLiteSlave
+   U_AxiLiteSlave : entity surf.AxiLiteSlave
       generic map (
          TPD_G => TPD_G)
       port map (

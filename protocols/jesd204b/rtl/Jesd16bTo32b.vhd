@@ -18,7 +18,8 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity Jesd16bTo32b is
    generic (
@@ -99,7 +100,7 @@ begin
 
    end process comb;
 
-   U_FIFO : entity work.FifoAsync
+   U_FIFO : entity surf.FifoAsync
       generic map (
          TPD_G         => TPD_G,
          BRAM_EN_G     => false,

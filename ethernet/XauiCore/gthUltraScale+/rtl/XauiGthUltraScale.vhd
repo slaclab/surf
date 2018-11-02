@@ -16,11 +16,12 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.XauiPkg.all;
-use work.EthMacPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.XauiPkg.all;
+use surf.EthMacPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -100,7 +101,7 @@ begin
    --------------------
    -- Ethernet MAC core
    --------------------
-   U_MAC : entity work.EthMacTop
+   U_MAC : entity surf.EthMacTop
       generic map (
          TPD_G           => TPD_G,
          PAUSE_EN_G      => PAUSE_EN_G,
@@ -130,7 +131,7 @@ begin
    --------------------
    -- 10 GigE XAUI Core
    --------------------
-   U_XauiGthUltraScaleCore : entity work.XauiGthUltraScale156p25MHz10GigECore
+   U_XauiGthUltraScaleCore : entity surf.XauiGthUltraScale156p25MHz10GigECore
       port map (
          -- Clocks and Resets
          dclk                         => phyClock,
@@ -248,7 +249,7 @@ begin
    --------------------------
    status.areset <= config.softRst or extRst;
 
-   RstSync_Inst : entity work.RstSync
+   RstSync_Inst : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          IN_POLARITY_G   => '0',
@@ -262,7 +263,7 @@ begin
    --------------------------------     
    -- Configuration/Status Register   
    --------------------------------     
-   U_XauiReg : entity work.XauiReg
+   U_XauiReg : entity surf.XauiReg
       generic map (
          TPD_G        => TPD_G,
          EN_AXI_REG_G => EN_AXI_REG_G)

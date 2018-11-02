@@ -18,9 +18,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.TextUtilPkg.all;
-use work.AxiLitePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.TextUtilPkg.all;
+use surf.AxiLitePkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
@@ -58,7 +59,7 @@ architecture sim of UartAxiLiteMasterTb is
 
 begin
 
-   U_ClkRst_1 : entity work.ClkRst
+   U_ClkRst_1 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => (1.0/CLK_FREQ_G)* 1 sec,
          CLK_DELAY_G       => 1 ns,
@@ -70,7 +71,7 @@ begin
          rst  => rst);
 
 
-   U_UartWrapper_1 : entity work.UartWrapper
+   U_UartWrapper_1 : entity surf.UartWrapper
       generic map (
          TPD_G             => TPD_G,
          CLK_FREQ_G        => CLK_FREQ_G,
@@ -90,7 +91,7 @@ begin
          rx      => rx);                -- [in]  
 
    -- component instantiation
-   U_UartAxiLiteMaster : entity work.UartAxiLiteMaster
+   U_UartAxiLiteMaster : entity surf.UartAxiLiteMaster
       generic map (
          TPD_G             => TPD_G,
          AXIL_CLK_FREQ_G   => CLK_FREQ_G,
@@ -108,7 +109,7 @@ begin
          rx               => tx);              -- [in]
 
 
-   U_AxiDualPortRam_1 : entity work.AxiDualPortRam
+   U_AxiDualPortRam_1 : entity surf.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
          BRAM_EN_G    => false,

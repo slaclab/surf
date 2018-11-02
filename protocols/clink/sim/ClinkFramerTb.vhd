@@ -13,15 +13,16 @@
 ------------------------------------------------------------------------------
 
 library ieee;
-use work.all;
+use surf.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 library unisim;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.ClinkPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.ClinkPkg.all;
 
 entity ClinkFramerTb is end ClinkFramerTb;
 
@@ -65,7 +66,7 @@ begin
    -----------------------------
    -- Generate a Clock and Reset
    -----------------------------
-   U_ClkRst : entity work.ClkRst
+   U_ClkRst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
@@ -141,7 +142,7 @@ begin
 
    dataSlave <= AXI_STREAM_SLAVE_FORCE_C;
 
-   U_Uart : entity work.ClinkUart
+   U_Uart : entity surf.ClinkUart
       generic map (
          TPD_G              => TPD_G,
          CLK_FREQ_G         => 200.0e6)

@@ -17,9 +17,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiLtc2270Pkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiLtc2270Pkg.all;
 
 entity AxiLtc2270Core is
    generic (
@@ -59,7 +60,7 @@ begin
    adcValid <= status.adcValid;
    adcData  <= status.adcData;
 
-   AxiLtc2270Reg_Inst : entity work.AxiLtc2270Reg
+   AxiLtc2270Reg_Inst : entity surf.AxiLtc2270Reg
       generic map(
          TPD_G              => TPD_G,
          DMODE_INIT_G       => DMODE_INIT_G,
@@ -86,7 +87,7 @@ begin
          axiRst         => axiRst,
          refclk200MHz   => refclk200MHz);   
 
-   AxiLtc2270Deser_Inst : entity work.AxiLtc2270Deser
+   AxiLtc2270Deser_Inst : entity surf.AxiLtc2270Deser
       generic map(
          TPD_G           => TPD_G,
          DELAY_INIT_G    => DELAY_INIT_G,

@@ -18,10 +18,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.RawEthFramerPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.RawEthFramerPkg.all;
 
 entity RawEthFramerTx is
    generic (
@@ -94,7 +95,7 @@ architecture rtl of RawEthFramerTx is
    
 begin
 
-   U_MinEthCache : entity work.QuadPortRam
+   U_MinEthCache : entity surf.QuadPortRam
       generic map (
          TPD_G        => TPD_G,
          REG_EN_G     => false,         -- 1 cycle read

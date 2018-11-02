@@ -16,11 +16,12 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.EthMacPkg.all;
-use work.GigEthPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.EthMacPkg.all;
+use surf.GigEthPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -133,7 +134,7 @@ begin
    -- This must be accompanied by an XDC which relaxes
    -- timing by means of a multicyle path.
    -----------------
-   U_RstSync : entity work.RstSync
+   U_RstSync : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '1',
@@ -231,7 +232,7 @@ begin
             O => sysClkB(i)
             );
 
-      U_RESET : entity work.RstSync
+      U_RESET : entity surf.RstSync
          generic map (
             TPD_G         => TPD_G,
             IN_POLARITY_G => '0'
@@ -274,7 +275,7 @@ begin
       -- says how much phase shift the cascading actually introduces)
       -- hoping to balance things a bit.
 
-      U_BUFGMUX_CASC : entity work.GigEthLvdsClockMux
+      U_BUFGMUX_CASC : entity surf.GigEthLvdsClockMux
          port map (
             clk125p0 => sysClkNB(0),
             clk12p50 => sysClkNB(3),
@@ -285,7 +286,7 @@ begin
             );
 
       -- Generate reset synchronous to the currently selected clock
-      U_RESET : entity work.RstSync
+      U_RESET : entity surf.RstSync
          generic map (
             TPD_G         => TPD_G,
             IN_POLARITY_G => '0'
@@ -296,7 +297,7 @@ begin
             syncRst  => ethRst
             );
 
-      U_GigEthLvdsUltraScale : entity work.GigEthLvdsUltraScale
+      U_GigEthLvdsUltraScale : entity surf.GigEthLvdsUltraScale
          generic map (
             TPD_G           => TPD_G,
             PAUSE_EN_G      => PAUSE_EN_G,

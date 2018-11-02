@@ -16,7 +16,8 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
@@ -62,7 +63,7 @@ begin
          dataOut => dataOut);           -- [out]
 
    
-   U_ClkRst_1 : entity work.ClkRst
+   U_ClkRst_1 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 5 ns,
          CLK_DELAY_G       => 1 ns,
@@ -73,7 +74,7 @@ begin
          clkP => clk,
          rst  => rst);
    
-   U_ClkRst_2 : entity work.ClkRst
+   U_ClkRst_2 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 5 ns,
          CLK_DELAY_G       => 3 ns,

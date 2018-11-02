@@ -16,7 +16,8 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -434,7 +435,7 @@ begin
    -- 9. Wait DATA_VALID (aligned) - 100 us
    --10. Wait 1 us, Set rxFsmResetDone. 
    --------------------------------------------------------------------------------------------------
-   Gth7RxRst_Inst : entity work.Gth7RxRst
+   Gth7RxRst_Inst : entity surf.Gth7RxRst
       generic map (
          TPD_G                  => TPD_G,
          EXAMPLE_SIMULATION     => 0,
@@ -471,7 +472,7 @@ begin
    --------------------------------------------------------------------------------------------------
    -- Synchronize rxFsmResetDone to rxUsrClk to use as reset for external logic.
    --------------------------------------------------------------------------------------------------
-   RstSync_RxResetDone : entity work.RstSync
+   RstSync_RxResetDone : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
@@ -490,7 +491,7 @@ begin
          O => rxOutClkBufg);
 
    GTX7_RX_REC_CLK_MONITOR_GEN : if (RX_BUF_EN_G = false) generate
-      Gth7RecClkMonitor_Inst : entity work.Gth7RecClkMonitor
+      Gth7RecClkMonitor_Inst : entity surf.Gth7RecClkMonitor
          generic map (
             COUNTER_UPPER_VALUE      => 15,
             GCLK_COUNTER_UPPER_VALUE => 15,
@@ -532,7 +533,7 @@ begin
    -- Use special fixed latency aligner when RX_BUF_EN_G=false and RX_ALIGN_FIXED_LAT_G=true
    -------------------------------------------------------------------------------------------------
    RX_AUTO_ALIGN_GEN : if (RX_BUF_EN_G = false and RX_ALIGN_MODE_G = "GT") generate
-      Gth7AutoPhaseAligner_Rx : entity work.Gth7AutoPhaseAligner
+      Gth7AutoPhaseAligner_Rx : entity surf.Gth7AutoPhaseAligner
          generic map (
             GT_TYPE => "GTX")
          port map (
@@ -547,7 +548,7 @@ begin
    end generate;
 
    RX_FIX_LAT_ALIGN_GEN : if (RX_BUF_EN_G = false and RX_ALIGN_MODE_G = "FIXED_LAT") generate
-      Gth7RxFixedLatPhaseAligner_Inst : entity work.Gth7RxFixedLatPhaseAligner
+      Gth7RxFixedLatPhaseAligner_Inst : entity surf.Gth7RxFixedLatPhaseAligner
          generic map (
             TPD_G       => TPD_G,
             WORD_SIZE_G => RX_EXT_DATA_WIDTH_G,
@@ -611,7 +612,7 @@ begin
    --------------------------------------------------------------------------------------------------
    -- Tx Reset Module
    --------------------------------------------------------------------------------------------------
-   Gth7TxRst_Inst : entity work.Gth7TxRst
+   Gth7TxRst_Inst : entity surf.Gth7TxRst
       generic map (
          TPD_G                  => TPD_G,
          GT_TYPE                => "GTX",
@@ -638,7 +639,7 @@ begin
    --------------------------------------------------------------------------------------------------
    -- Synchronize rxFsmResetDone to rxUsrClk to use as reset for external logic.
    --------------------------------------------------------------------------------------------------
-   RstSync_Tx : entity work.RstSync
+   RstSync_Tx : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
@@ -654,7 +655,7 @@ begin
    -------------------------------------------------------------------------------------------------
    TxAutoPhaseAlignGen : if (TX_BUF_EN_G = false and TX_PHASE_ALIGN_G = "AUTO") generate
       
-      PhaseAlign_Tx : entity work.Gth7AutoPhaseAligner
+      PhaseAlign_Tx : entity surf.Gth7AutoPhaseAligner
          generic map (
             GT_TYPE => "GTX")
          port map (
@@ -672,7 +673,7 @@ begin
    end generate TxAutoPhaseAlignGen;
 
    TxManualPhaseAlignGen : if (TX_BUF_EN_G = false and TX_PHASE_ALIGN_G = "MANUAL") generate
-      Gth7TxManualPhaseAligner_1 : entity work.Gth7TxManualPhaseAligner
+      Gth7TxManualPhaseAligner_1 : entity surf.Gth7TxManualPhaseAligner
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -1324,7 +1325,7 @@ begin
          TXCOMWAKE                  => '0');
 
    ------------------------- Soft Fix for Production Silicon----------------------
-   Gth7RxRstSeq_Inst : entity work.Gth7RxRstSeq
+   Gth7RxRstSeq_Inst : entity surf.Gth7RxRstSeq
       port map(
          RST_IN         => rxUserResetIn,
          GTRXRESET_IN   => gtRxReset,

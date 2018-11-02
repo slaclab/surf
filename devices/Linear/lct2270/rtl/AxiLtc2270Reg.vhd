@@ -18,9 +18,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiLtc2270Pkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiLtc2270Pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -434,7 +435,7 @@ begin
    for ch in 0 to 1 generate
       GEN_DAT_CONFIG :
       for i in 0 to 7 generate
-         SyncOut_delayIn_data : entity work.SynchronizerFifo
+         SyncOut_delayIn_data : entity surf.SynchronizerFifo
             generic map (
                TPD_G        => TPD_G,
                DATA_WIDTH_G => 5)
@@ -446,7 +447,7 @@ begin
       end generate GEN_DAT_CONFIG;
    end generate GEN_CH_CONFIG;
 
-   SyncOut_delayIn_load : entity work.RstSync
+   SyncOut_delayIn_load : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          RELEASE_DELAY_G => 32)   
@@ -455,7 +456,7 @@ begin
          asyncRst => regOut.delayIn.load,
          syncRst  => config.delayIn.load); 
 
-   SyncOut_delayIn_rst : entity work.RstSync
+   SyncOut_delayIn_rst : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          RELEASE_DELAY_G => 16)   
@@ -470,7 +471,7 @@ begin
    regIn.adcData  <= status.adcData;
    regIn.adcValid <= status.adcValid;
 
-   SyncIn_delayOut_rdy : entity work.Synchronizer
+   SyncIn_delayOut_rdy : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -482,7 +483,7 @@ begin
    for ch in 0 to 1 generate
       GEN_DAT_STATUS :
       for i in 0 to 7 generate
-         SyncIn_delayOut_data : entity work.SynchronizerFifo
+         SyncIn_delayOut_data : entity surf.SynchronizerFifo
             generic map (
                TPD_G        => TPD_G,
                DATA_WIDTH_G => 5)

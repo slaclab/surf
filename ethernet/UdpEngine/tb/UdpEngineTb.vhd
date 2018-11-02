@@ -18,10 +18,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.EthMacPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.EthMacPkg.all;
 
 entity UdpEngineTb is end UdpEngineTb;
 
@@ -75,7 +76,7 @@ architecture testbed of UdpEngineTb is
    
 begin
 
-   ClkRst_Inst : entity work.ClkRst
+   ClkRst_Inst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
@@ -90,7 +91,7 @@ begin
    ibServerMasters(1) <= obServerMasters(1);
    obServerSlaves(1)  <= ibServerSlaves(1);
 
-   UdpEngine_Remote : entity work.UdpEngine
+   UdpEngine_Remote : entity surf.UdpEngine
       generic map (
          -- Simulation Generics
          TPD_G              => TPD_C,
@@ -140,7 +141,7 @@ begin
          clk                => clk,
          rst                => rst);       
 
-   IpV4Engine_Remote : entity work.IpV4Engine
+   IpV4Engine_Remote : entity surf.IpV4Engine
       generic map (
          TPD_G            => TPD_C,
          SIM_ERROR_HALT_G => SIM_ERROR_HALT_C,
@@ -172,7 +173,7 @@ begin
          clk                  => clk,
          rst                  => rst);  
 
-   MAC_FIFO_0 : entity work.AxiStreamFifoV2
+   MAC_FIFO_0 : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_C,
@@ -200,7 +201,7 @@ begin
          mAxisMaster => obMacMasters(1),
          mAxisSlave  => obMacSlaves(1));    
 
-   MAC_FIFO_1 : entity work.AxiStreamFifoV2
+   MAC_FIFO_1 : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_C,
@@ -228,7 +229,7 @@ begin
          mAxisMaster => obMacMasters(0),
          mAxisSlave  => obMacSlaves(0));   
 
-   IpV4Engine_Local : entity work.IpV4Engine
+   IpV4Engine_Local : entity surf.IpV4Engine
       generic map (
          TPD_G            => TPD_C,
          SIM_ERROR_HALT_G => SIM_ERROR_HALT_C,
@@ -260,7 +261,7 @@ begin
          clk                  => clk,
          rst                  => rst); 
 
-   UdpEngine_Local : entity work.UdpEngine
+   UdpEngine_Local : entity surf.UdpEngine
       generic map (
          -- Simulation Generics
          TPD_G              => TPD_C,
@@ -310,7 +311,7 @@ begin
          clk                => clk,
          rst                => rst);    
 
-   UdpEngineCoreTb_Inst : entity work.UdpEngineCoreTb
+   UdpEngineCoreTb_Inst : entity surf.UdpEngineCoreTb
       generic map (
          TPD_G => TPD_C)
       port map (

@@ -16,7 +16,8 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SynchronizerOneShotCntVector is
    generic (
@@ -68,7 +69,7 @@ begin
    GEN_VEC :
    for i in (WIDTH_G-1) downto 0 generate
       
-      SyncOneShotCnt_Inst : entity work.SynchronizerOneShotCnt
+      SyncOneShotCnt_Inst : entity surf.SynchronizerOneShotCnt
          generic map (
             TPD_G           => TPD_G,
             RST_POLARITY_G  => RST_POLARITY_G,

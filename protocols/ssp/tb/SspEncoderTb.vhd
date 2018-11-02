@@ -16,7 +16,8 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
@@ -49,7 +50,7 @@ architecture sim of SspEncoderTb is
 begin
 
    -- component instantiation
-   Encoder : entity work.SspEncoder
+   Encoder : entity surf.SspEncoder
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
@@ -61,7 +62,7 @@ begin
          dataIn  => dataIn,
          dataOut => encData);
 
-   Decoder : entity work.SspDecoder
+   Decoder : entity surf.SspDecoder
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,

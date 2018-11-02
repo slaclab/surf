@@ -18,7 +18,8 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -99,7 +100,7 @@ begin
          O   => locClkInvR);
    
 
-   RstSync_Inst : entity work.RstSync
+   RstSync_Inst : entity surf.RstSync
       generic map (
          TPD_G         => TPD_G,
          IN_POLARITY_G => RST_POLARITY_G)
@@ -179,7 +180,7 @@ begin
          DIN   => '0',
          DOUT  => dnaDout);
 
-   SyncValid : entity work.Synchronizer
+   SyncValid : entity surf.Synchronizer
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => 3)
@@ -188,7 +189,7 @@ begin
          dataIn  => r.dnaValid,
          dataOut => dnaValid);
 
-   SyncData : entity work.SynchronizerVector
+   SyncData : entity surf.SynchronizerVector
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => 2,

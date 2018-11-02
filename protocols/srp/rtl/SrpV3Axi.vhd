@@ -21,12 +21,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.AxiPkg.all;
-use work.AxiDmaPkg.all;
-use work.SrpV3Pkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.AxiPkg.all;
+use surf.AxiDmaPkg.all;
+use surf.SrpV3Pkg.all;
 
 entity SrpV3Axi is
    generic (
@@ -107,7 +108,7 @@ architecture rtl of SrpV3Axi is
 
 begin
 
-   U_SrpV3Core_1 : entity work.SrpV3Core
+   U_SrpV3Core_1 : entity surf.SrpV3Core
       generic map (
          TPD_G               => TPD_G,
          PIPE_STAGES_G       => PIPE_STAGES_G,
@@ -142,7 +143,7 @@ begin
          srpRdMaster => srpRdMaster,    -- [in]
          srpRdSlave  => srpRdSlave);    -- [out]
 
-   U_AxiStreamDmaWrite_1 : entity work.AxiStreamDmaWrite
+   U_AxiStreamDmaWrite_1 : entity surf.AxiStreamDmaWrite
       generic map (
          TPD_G             => TPD_G,
          AXI_READY_EN_G    => true,
@@ -162,7 +163,7 @@ begin
          axiWriteSlave  => axiWriteSlave,       -- [in]
          axiWriteCtrl   => AXI_CTRL_UNUSED_C);  -- [in]
 
-   U_AxiStreamDmaRead_1 : entity work.AxiStreamDmaRead
+   U_AxiStreamDmaRead_1 : entity surf.AxiStreamDmaRead
       generic map (
          TPD_G           => TPD_G,
          AXIS_READY_EN_G => true,

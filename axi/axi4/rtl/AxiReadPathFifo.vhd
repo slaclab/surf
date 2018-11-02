@@ -18,8 +18,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiPkg.all;
 
 entity AxiReadPathFifo is
    generic (
@@ -285,7 +286,7 @@ begin
    -- FIFOs
    -------------------------
 
-   U_AddrFifo : entity work.FifoCascade
+   U_AddrFifo : entity surf.FifoCascade
       generic map (
          TPD_G              => TPD_G,
          CASCADE_SIZE_G     => ADDR_CASCADE_SIZE_G,
@@ -330,7 +331,7 @@ begin
          empty         => open
          );
 
-   U_DataFifo : entity work.FifoCascade
+   U_DataFifo : entity surf.FifoCascade
       generic map (
          TPD_G              => TPD_G,
          CASCADE_SIZE_G     => DATA_CASCADE_SIZE_G,

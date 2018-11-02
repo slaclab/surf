@@ -19,9 +19,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.TextUtilPkg.all;
-use work.AxiLitePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.TextUtilPkg.all;
+use surf.AxiLitePkg.all;
 
 entity UartAxiLiteMaster is
 
@@ -114,7 +115,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Instantiate UART
    -------------------------------------------------------------------------------------------------
-   U_UartWrapper_1 : entity work.UartWrapper
+   U_UartWrapper_1 : entity surf.UartWrapper
       generic map (
          TPD_G             => TPD_G,
          CLK_FREQ_G        => AXIL_CLK_FREQ_G,
@@ -136,7 +137,7 @@ begin
          tx      => tx,                 -- [out]
          rx      => rx);                -- [in]
 
-   U_AxiLiteMaster_1 : entity work.AxiLiteMaster
+   U_AxiLiteMaster_1 : entity surf.AxiLiteMaster
       generic map (
          TPD_G => TPD_G)
       port map (

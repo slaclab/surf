@@ -15,9 +15,10 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use work.StdRtlPkg.all;
-use work.TextUtilPkg.all;
-use work.AxiLitePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.TextUtilPkg.all;
+use surf.AxiLitePkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
@@ -54,7 +55,7 @@ architecture tb of AxiLiteAsyncTb is
    signal intAxiWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;  -- [in]
 begin
 
-   U_AxiLiteCrossbar_1 : entity work.AxiLiteCrossbar
+   U_AxiLiteCrossbar_1 : entity surf.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
          NUM_SLAVE_SLOTS_G  => 1,
@@ -79,7 +80,7 @@ begin
          mAxiReadSlaves(0)   => intAxiReadSlave);   -- [in]
 
    -- component instantiation
-   U_AxiLiteAsync : entity work.AxiLiteAsync
+   U_AxiLiteAsync : entity surf.AxiLiteAsync
       generic map (
          TPD_G           => TPD_G,
          NUM_ADDR_BITS_G => NUM_ADDR_BITS_G,
@@ -98,7 +99,7 @@ begin
          mAxiWriteMaster => mAxiWriteMaster,        -- [out]
          mAxiWriteSlave  => mAxiWriteSlave);        -- [in]
 
-   U_AxiDualPortRam_1 : entity work.AxiDualPortRam
+   U_AxiDualPortRam_1 : entity surf.AxiDualPortRam
       generic map (
          TPD_G            => TPD_G,
          BRAM_EN_G        => true,
@@ -119,7 +120,7 @@ begin
          axiWriteSlave  => mAxiWriteSlave);  -- [out]
 
 
-   U_ClkRst_1 : entity work.ClkRst
+   U_ClkRst_1 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 8 ns,
          CLK_DELAY_G       => 1 ns,
@@ -130,7 +131,7 @@ begin
          clkP => sAxiClk,
          rst  => sAxiClkRst);
 
-   U_ClkRst_2 : entity work.ClkRst
+   U_ClkRst_2 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 5 ns,
          CLK_DELAY_G       => 1 ns,

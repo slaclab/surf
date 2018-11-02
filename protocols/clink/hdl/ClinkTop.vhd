@@ -18,10 +18,11 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
-use work.ClinkPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.ClinkPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
@@ -250,7 +251,7 @@ begin
    ---------------------------------
    -- Data Processing
    ---------------------------------
-   U_Framer0 : entity work.ClinkFraming
+   U_Framer0 : entity surf.ClinkFraming
       generic map (
          TPD_G              => TPD_G,
          DATA_AXIS_CONFIG_G => DATA_AXIS_CONFIG_G)
@@ -271,7 +272,7 @@ begin
    -- Dual data processing enable
    U_DualFrameEn: if CHAN_COUNT_G = 2 generate
 
-      U_Framer1 : entity work.ClinkFraming
+      U_Framer1 : entity surf.ClinkFraming
          generic map (
             TPD_G              => TPD_G,
             DATA_AXIS_CONFIG_G => DATA_AXIS_CONFIG_G)

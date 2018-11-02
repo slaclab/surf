@@ -20,8 +20,9 @@ library ieee_proposed;
 use ieee_proposed.fixed_float_types.all;
 use ieee_proposed.float_pkg.all;
 
-use work.StdRtlPkg.all;
-use work.DspPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.DspPkg.all;
 
 entity DspFp32PreMultAccumTb is end DspFp32PreMultAccumTb;
 
@@ -44,7 +45,7 @@ architecture testbed of DspFp32PreMultAccumTb is
 
 begin
 
-   U_ClkRst : entity work.ClkRst
+   U_ClkRst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 10 ns,
          RST_START_DELAY_G => 1 ns,
@@ -83,7 +84,7 @@ begin
    -------------------------------------------
    -- Equation: p = sum(+/-(a x b)[i])
    -------------------------------------------
-   U_DspCore : entity work.DspFp32PreMultAccum
+   U_DspCore : entity surf.DspFp32PreMultAccum
       generic map (
          TPD_G => TPD_G)
       port map (

@@ -19,7 +19,8 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity PwrUpRst is
    generic (
@@ -53,7 +54,7 @@ begin
       report "USE_DSP48_G must be either yes, no, auto, or automax"
       severity failure;
 
-   RstSync_Inst : entity work.RstSync
+   RstSync_Inst : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => IN_POLARITY_G,

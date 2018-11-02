@@ -16,9 +16,10 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use work.StdRtlPkg.all;
-use work.FrontEndSaciPkg.all;
-use work.SaciMasterPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.FrontEndSaciPkg.all;
+use surf.SaciMasterPkg.all;
 
 entity FrontEndSaciAnalogTb is
 
@@ -65,7 +66,7 @@ architecture testbench of FrontEndSaciAnalogTb is
 begin
 
   -- Create 156.25 MHz system clock and main reset
-  ClkRst_1 : entity work.ClkRst
+  ClkRst_1 : entity surf.ClkRst
     generic map (
       CLK_PERIOD_G      => 6.4 ns,
       RST_START_DELAY_G => 1 ns,
@@ -77,7 +78,7 @@ begin
       rstL => open);
 
   -- Create 1 MHz SACI Serial Clock
-  ClkRst_2 : entity work.ClkRst
+  ClkRst_2 : entity surf.ClkRst
     generic map (
       CLK_PERIOD_G => 1 us)
     port map (
@@ -87,7 +88,7 @@ begin
       rstL => open);
 
   -- Synchronize main reset to sysClk125
-  RstSync_1 : entity work.RstSync
+  RstSync_1 : entity surf.RstSync
     generic map (
       DELAY_G => TPD_C)
     port map (
@@ -96,7 +97,7 @@ begin
       syncRst  => pgpRst);
 
   -- Synchronize main reset to SACI serial clock
-  RstSync_2 : entity work.RstSync
+  RstSync_2 : entity surf.RstSync
     generic map (
       DELAY_G => TPD_C)
     port map (
@@ -107,7 +108,7 @@ begin
   --------------------------------------------------------------------------------------------------
 
   -- Front End register interface
-  Pgp2FrontEnd_1 : entity work.Pgp2FrontEnd
+  Pgp2FrontEnd_1 : entity surf.Pgp2FrontEnd
     port map (
       pgpRefClk    => gtpClk,
       pgpRefClkOut => pgpClk,
@@ -130,7 +131,7 @@ begin
       pgpTxP       => open);
 
   -- Register Decoder
-  FrontEndSaciRegDecoder_1 : entity work.FrontEndSaciRegDecoder
+  FrontEndSaciRegDecoder_1 : entity surf.FrontEndSaciRegDecoder
     generic map (
       DELAY_G => TPD_C)
     port map (
@@ -141,7 +142,7 @@ begin
       saciMasterIn       => saciMasterIn,
       saciMasterOut      => saciMasterOut);
 
-  SaciMaster_1 : entity work.SaciMaster
+  SaciMaster_1 : entity surf.SaciMaster
     generic map (
       TPD_G                 => TPD_C,
       SYNCHRONIZE_CONTROL_G => true)
@@ -160,7 +161,7 @@ begin
 
   -- ASIC Side
   -- Create Asic Reset
-  ClkRst_3 : entity work.ClkRst
+  ClkRst_3 : entity surf.ClkRst
     generic map (
       RST_START_DELAY_G => 1 ns,
       RST_HOLD_TIME_G   => 6 us)
@@ -171,7 +172,7 @@ begin
       rstL => asicRstL);
 
 
-  SaciSlaveWrapper_0 : entity work.SaciSlaveWrapper
+  SaciSlaveWrapper_0 : entity surf.SaciSlaveWrapper
     port map (
       asicRstL => asicRstL,
       saciClk  => saciClk,
@@ -179,7 +180,7 @@ begin
       saciCmd  => saciCmd,
       saciRsp  => saciRsp);
 
-  SaciSlaveWrapper_1 : entity work.SaciSlaveWrapper
+  SaciSlaveWrapper_1 : entity surf.SaciSlaveWrapper
     port map (
       asicRstL => asicRstL,
       saciClk  => saciClk,

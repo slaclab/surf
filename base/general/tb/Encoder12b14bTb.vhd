@@ -18,9 +18,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.Code12b14bPkg.all;
-use work.TextUtilPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Code12b14bPkg.all;
+use surf.TextUtilPkg.all;
 
 
 ----------------------------------------------------------------------------------------------------
@@ -63,7 +64,7 @@ begin
    dispOutInt <= toDisparityOutType(dispOut);
 
    -- component instantiation
-   U_Encoder12b14b : entity work.Encoder12b14b
+   U_Encoder12b14b : entity surf.Encoder12b14b
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
@@ -81,7 +82,7 @@ begin
          invalidK => invalidK);         -- [out]
 
 
-   U_ClkRst_1 : entity work.ClkRst
+   U_ClkRst_1 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 10 ns,
          CLK_DELAY_G       => 1 ns,

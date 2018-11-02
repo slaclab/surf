@@ -18,7 +18,8 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity JesdSysrefMon is
    generic (
@@ -54,7 +55,7 @@ architecture rtl of JesdSysrefMon is
 
 begin
 
-   U_RstOneShot : entity work.SynchronizerOneShot
+   U_RstOneShot : entity surf.SynchronizerOneShot
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -106,7 +107,7 @@ begin
       end if;
    end process seq;
 
-   U_sync : entity work.SynchronizerFifo
+   U_sync : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 32)

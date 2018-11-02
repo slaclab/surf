@@ -15,10 +15,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.Pgp3Pkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Pgp3Pkg.all;
 
 entity Pgp3Core is
 
@@ -104,7 +105,7 @@ begin
    pgpRxOut <= pgpRxOutInt;
    pgpTxOut <= pgpTxOutInt;
 
-   U_Pgp3Tx_1 : entity work.Pgp3Tx
+   U_Pgp3Tx_1 : entity surf.Pgp3Tx
       generic map (
          TPD_G                    => TPD_G,
          NUM_VC_G                 => NUM_VC_G,
@@ -134,7 +135,7 @@ begin
          phyTxData      => phyTxData,       -- [out]
          phyTxHeader    => phyTxHeader);    -- [out]
 
-   U_Pgp3Rx_1 : entity work.Pgp3Rx
+   U_Pgp3Rx_1 : entity surf.Pgp3Rx
       generic map (
          TPD_G              => TPD_G,
          NUM_VC_G           => NUM_VC_G,
@@ -162,7 +163,7 @@ begin
          phyRxSlip      => phyRxSlip);      -- [out]
 
    GEN_PGP_MON : if (EN_PGP_MON_G) generate
-      U_Pgp3Axi_1 : entity work.Pgp3AxiL
+      U_Pgp3Axi_1 : entity surf.Pgp3AxiL
          generic map (
             TPD_G              => TPD_G,
             COMMON_TX_CLK_G    => false,

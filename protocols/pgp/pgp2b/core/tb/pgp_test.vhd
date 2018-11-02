@@ -21,11 +21,12 @@ use ieee.std_logic_unsigned.all;
 Library unisim;
 use unisim.vcomponents.all;
 
-use work.StdRtlPkg.all;
-use work.Pgp2bPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.SsiPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.SsiPkg.all;
 
 entity pgp_test is end pgp_test;
 
@@ -145,7 +146,7 @@ begin
          end if;
       end process;
 
-      U_SsiPrbsTx : entity work.SsiPrbsTx
+      U_SsiPrbsTx : entity surf.SsiPrbsTx
          generic map (
             TPD_G                      => 1 ns,
             ALTERA_SYN_G               => false,
@@ -176,7 +177,7 @@ begin
             tId          => (others=>'0')
          );
 
-         U_TxFifo : entity work.AxiStreamFifoV2
+         U_TxFifo : entity surf.AxiStreamFifoV2
             generic map (
                TPD_G               => 1 ns,
                PIPE_STAGES_G       => 1,
@@ -210,7 +211,7 @@ begin
 
    --prbsTxMasters(3 downto 1) <= (others=>AXI_STREAM_MASTER_INIT_C);
 
-   U_PgpTxMux : entity work.AxiStreamDeMux 
+   U_PgpTxMux : entity surf.AxiStreamDeMux 
       generic map (
          TPD_G         => 1 ns,
          NUM_MASTERS_G => 4
@@ -273,7 +274,7 @@ begin
    -- PRBS receiver
    U_RxGen: for i in 0 to 0 generate 
 
-      AxiStreamFifo_Rx : entity work.AxiStreamFifoV2
+      AxiStreamFifo_Rx : entity surf.AxiStreamFifoV2
          generic map(
             -- General Configurations
             TPD_G               => 1 ns,

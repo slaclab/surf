@@ -18,7 +18,8 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity FifoSync is
    generic (
@@ -190,7 +191,7 @@ begin
 
    FWFT_Gen : if (FWFT_EN_G = true) generate
       
-      FifoOutputPipeline_Inst : entity work.FifoOutputPipeline
+      FifoOutputPipeline_Inst : entity surf.FifoOutputPipeline
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => RST_POLARITY_G,
@@ -310,7 +311,7 @@ begin
    end generate;
 
    GEN_RAM : if (BYP_RAM_G = false) generate
-      SimpleDualPortRam_Inst : entity work.SimpleDualPortRam
+      SimpleDualPortRam_Inst : entity surf.SimpleDualPortRam
          generic map(
             TPD_G          => TPD_G,
             RST_POLARITY_G => '1',      -- portB.rst already converted to active high

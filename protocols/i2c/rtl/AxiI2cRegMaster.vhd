@@ -16,9 +16,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.I2cPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.I2cPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -61,7 +62,7 @@ architecture mapping of AxiI2cRegMaster is
 
 begin
 
-   I2cRegMasterAxiBridge_Inst : entity work.I2cRegMasterAxiBridge
+   I2cRegMasterAxiBridge_Inst : entity surf.I2cRegMasterAxiBridge
       generic map (
          TPD_G        => TPD_G,
          DEVICE_MAP_G => DEVICE_MAP_G)
@@ -78,7 +79,7 @@ begin
          axiClk          => axiClk,
          axiRst          => axiRst);
 
-   I2cRegMaster_Inst : entity work.I2cRegMaster
+   I2cRegMaster_Inst : entity surf.I2cRegMaster
       generic map(
          TPD_G                => TPD_G,
          OUTPUT_EN_POLARITY_G => 0,

@@ -18,8 +18,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.TextUtilPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.TextUtilPkg.all;
 ----------------------------------------------------------------------------------------------------
 
 entity Ssp12b14bTb is
@@ -59,7 +60,7 @@ architecture tb of Ssp12b14bTb is
 begin
 
    -- component instantiation
-   U_SspEncoder12b14b : entity work.SspEncoder12b14b
+   U_SspEncoder12b14b : entity surf.SspEncoder12b14b
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
@@ -76,7 +77,7 @@ begin
          dataOut => encDataOut);        -- [out]
 
    decDataIn <= encDataOut;
-   U_SspDecoder12b14b_1 : entity work.SspDecoder12b14b
+   U_SspDecoder12b14b_1 : entity surf.SspDecoder12b14b
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
@@ -94,7 +95,7 @@ begin
          dispError => decDispError);    -- [out]
 
 
-   U_ClkRst_1 : entity work.ClkRst
+   U_ClkRst_1 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 4 ns,
          CLK_DELAY_G       => 1 ns,

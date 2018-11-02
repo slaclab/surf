@@ -17,10 +17,11 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.Pgp2bPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Pgp2bPkg.all;
 
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
@@ -107,7 +108,7 @@ begin
    pgpTxResetDone <= phyTxReady;
    pgpRxResetDone <= phyRxReady;
 
-   U_RstSync_1 : entity work.SynchronizerOneShot
+   U_RstSync_1 : entity surf.SynchronizerOneShot
       generic map (
          TPD_G         => TPD_G,
          PULSE_WIDTH_G => 125000000)
@@ -118,7 +119,7 @@ begin
 
    gtHardReset <= resetGtSync or stableRst;
 
-   U_RstSync_4 : entity work.SynchronizerOneShot
+   U_RstSync_4 : entity surf.SynchronizerOneShot
       generic map (
          TPD_G         => TPD_G,
          PULSE_WIDTH_G => 12500000)
@@ -129,7 +130,7 @@ begin
 
 
    -- Sync pgpRxIn.rxReset to stableClk and tie to gtRxUserReset
-   U_RstSync_2 : entity work.SynchronizerOneShot
+   U_RstSync_2 : entity surf.SynchronizerOneShot
       generic map (
          TPD_G         => TPD_G,
          PULSE_WIDTH_G => 125000000)
@@ -140,7 +141,7 @@ begin
 
    gtRxUserReset <= phyRxInitSync or resetRxSync;
 
-   U_RstSync_3 : entity work.SynchronizerOneShot
+   U_RstSync_3 : entity surf.SynchronizerOneShot
       generic map (
          TPD_G         => TPD_G,
          PULSE_WIDTH_G => 125000000)
@@ -149,7 +150,7 @@ begin
          dataIn  => pgpTxIn.resetTx,    -- [in]
          dataOut => gtTxUserReset);     -- [out]
 
-   U_Pgp2bLane : entity work.Pgp2bLane
+   U_Pgp2bLane : entity surf.Pgp2bLane
       generic map (
          LANE_CNT_G        => 1,
          VC_INTERLEAVE_G   => VC_INTERLEAVE_G,
@@ -181,7 +182,7 @@ begin
    --------------------------
    -- Wrapper for GTH IP core
    --------------------------
-   PgpGthCoreWrapper_1 : entity work.PgpGthCoreWrapper
+   PgpGthCoreWrapper_1 : entity surf.PgpGthCoreWrapper
       generic map (
          TPD_G             => TPD_G)
       port map (

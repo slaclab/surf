@@ -16,9 +16,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.EthMacPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.EthMacPkg.all;
 
 entity EthMacTxFifo is
    generic (
@@ -69,7 +70,7 @@ begin
    end generate;
 
    PRIM_FIFO : if ((PRIM_COMMON_CLK_G = false) or (PRIM_CONFIG_G /= EMAC_AXIS_CONFIG_C)) generate
-      U_Fifo : entity work.AxiStreamFifoV2
+      U_Fifo : entity surf.AxiStreamFifoV2
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
@@ -109,7 +110,7 @@ begin
       end generate;
 
       BYP_FIFO : if ((BYP_COMMON_CLK_G = false) or (BYP_CONFIG_G /= EMAC_AXIS_CONFIG_C)) generate
-         U_Fifo : entity work.AxiStreamFifoV2
+         U_Fifo : entity surf.AxiStreamFifoV2
             generic map (
                -- General Configurations
                TPD_G               => TPD_G,
@@ -151,7 +152,7 @@ begin
 
       VLAN_FIFO : if ((VLAN_COMMON_CLK_G = false) or (VLAN_CONFIG_G /= EMAC_AXIS_CONFIG_C)) generate
          GEN_VEC : for i in (VLAN_SIZE_G-1) downto 0 generate
-            U_Fifo : entity work.AxiStreamFifoV2
+            U_Fifo : entity surf.AxiStreamFifoV2
                generic map (
                   -- General Configurations
                   TPD_G               => TPD_G,

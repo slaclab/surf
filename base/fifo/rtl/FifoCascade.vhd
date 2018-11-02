@@ -17,7 +17,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity FifoCascade is
    generic (
@@ -96,7 +97,7 @@ begin
       prog_full      <= progFull;
       progFullVec(0) <= progFull;
 
-      Fifo_1xStage : entity work.Fifo
+      Fifo_1xStage : entity surf.Fifo
          generic map (
             TPD_G           => TPD_G,
             RST_POLARITY_G  => RST_POLARITY_G,
@@ -152,7 +153,7 @@ begin
       prog_full                     <= progFull;
       progFullVec(CASCADE_SIZE_G-1) <= progFull;
 
-      Fifo_First_Stage : entity work.Fifo
+      Fifo_First_Stage : entity surf.Fifo
          generic map (
             TPD_G           => TPD_G,
             RST_POLARITY_G  => RST_POLARITY_G,
@@ -198,7 +199,7 @@ begin
          GEN_MULTI_STAGE :
          for i in (CASCADE_SIZE_G-2) downto 1 generate
             
-            Fifo_Middle_Stage : entity work.Fifo
+            Fifo_Middle_Stage : entity surf.Fifo
                generic map (
                   TPD_G           => TPD_G,
                   RST_POLARITY_G  => RST_POLARITY_G,
@@ -237,7 +238,7 @@ begin
          end generate GEN_MULTI_STAGE;
       end generate;
 
-      Fifo_Last_Stage : entity work.Fifo
+      Fifo_Last_Stage : entity surf.Fifo
          generic map (
             TPD_G           => TPD_G,
             RST_POLARITY_G  => RST_POLARITY_G,

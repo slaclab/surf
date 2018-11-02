@@ -18,9 +18,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity ClinkUart is
    generic (
@@ -128,7 +129,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- UART transmitter
    -------------------------------------------------------------------------------------------------
-   U_UartTx_1 : entity work.UartTx
+   U_UartTx_1 : entity surf.UartTx
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -143,7 +144,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- UART Receiver
    -------------------------------------------------------------------------------------------------
-   U_UartRx_1 : entity work.UartRx
+   U_UartRx_1 : entity surf.UartRx
       generic map (
          TPD_G => TPD_G)
       port map (

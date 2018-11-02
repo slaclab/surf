@@ -18,10 +18,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.Pgp3Pkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.Pgp3Pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -80,7 +81,7 @@ begin
 
    clk <= pgpRefClk;
 
-   PwrUpRst_Inst : entity work.PwrUpRst
+   PwrUpRst_Inst : entity surf.PwrUpRst
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '1',
@@ -91,7 +92,7 @@ begin
          rstOut => rst);
 
    GEN_VEC : for i in NUM_VC_G-1 downto 0 generate
-      U_PGP_VC : entity work.RogueStreamSimWrap
+      U_PGP_VC : entity surf.RogueStreamSimWrap
          generic map (
             TPD_G               => TPD_G,
             DEST_ID_G           => i,

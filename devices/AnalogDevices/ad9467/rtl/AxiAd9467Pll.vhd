@@ -16,7 +16,8 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -114,7 +115,7 @@ begin
          I => clkFeedBack,
          O => clkFeedBackOut);
 
-   ClkOutBufDiff_Inst : entity work.ClkOutBufDiff
+   ClkOutBufDiff_Inst : entity surf.ClkOutBufDiff
       port map (
          clkIn   => clkFeedBackOut,
          clkOutP => adcClkOutP,

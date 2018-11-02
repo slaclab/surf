@@ -20,8 +20,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.Jesd204bPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Jesd204bPkg.all;
 
 entity JesdTxTest is
    generic (
@@ -118,7 +119,7 @@ begin
    );
 
    -- Synchronization FSM
-   syncFSM_INST : entity work.JesdSyncFsmTxTest
+   syncFSM_INST : entity surf.JesdSyncFsmTxTest
       generic map (
          TPD_G          => TPD_G)
       port map (

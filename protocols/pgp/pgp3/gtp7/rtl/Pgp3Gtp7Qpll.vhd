@@ -18,9 +18,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.Pgp3Pkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Pgp3Pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -114,7 +115,7 @@ begin
          ----------------------------------------------------------------------------
          -- Prevent the gtQPllRst of this lane disrupting the other lanes in the QUAD
          ----------------------------------------------------------------------------
-         U_PwrUpRst : entity work.PwrUpRst
+         U_PwrUpRst : entity surf.PwrUpRst
             generic map (
                TPD_G      => TPD_G,
                DURATION_G => 12500)
@@ -134,7 +135,7 @@ begin
    qPllRefClk     <= pgpRefClk & pgpRefClk;
    qPllLockDetClk <= stableClk & stableClk;
 
-   U_QPLL : entity work.Gtp7QuadPll
+   U_QPLL : entity surf.Gtp7QuadPll
       generic map (
          TPD_G                => TPD_G,
          PLL0_FBDIV_IN_G      => FBDIV_IN_C,

@@ -16,10 +16,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.Pgp2bPkg.all;
-use work.AxiLitePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.AxiLitePkg.all;
 
 entity Pgp2bGtx7VarLat is
    generic (
@@ -126,7 +127,7 @@ architecture mapping of Pgp2bGtx7VarLat is
 
 begin
 
-   MuliLane_Inst : entity work.Pgp2bGtx7MultiLane
+   MuliLane_Inst : entity surf.Pgp2bGtx7MultiLane
       generic map (
          -- Sim Generics
          TPD_G                 => TPD_G,

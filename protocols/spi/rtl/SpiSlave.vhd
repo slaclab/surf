@@ -17,7 +17,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SpiSlave is
    generic (
@@ -80,7 +81,7 @@ architecture rtl of SpiSlave is
 
 begin
 
-   SEL_SYNCHRONIZER : entity work.Synchronizer
+   SEL_SYNCHRONIZER : entity surf.Synchronizer
       generic map (
          TPD_G  => TPD_G,
          STAGES_G => 3,
@@ -91,7 +92,7 @@ begin
          dataIn  => selL,
          dataOut => selLSync);
 
-   SCLK_SYNCHRONIZER : entity work.Synchronizer
+   SCLK_SYNCHRONIZER : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -100,7 +101,7 @@ begin
          dataIn  => sclk,
          dataOut => sclkSync);
 
-   MOSI_SYNCHRONIZER : entity work.Synchronizer
+   MOSI_SYNCHRONIZER : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (

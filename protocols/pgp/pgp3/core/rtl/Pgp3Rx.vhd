@@ -21,11 +21,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.Pgp3Pkg.all;
-use work.AxiStreamPacketizer2Pkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.Pgp3Pkg.all;
+use surf.AxiStreamPacketizer2Pkg.all;
 
 entity Pgp3Rx is
 
@@ -98,7 +99,7 @@ begin
    remRxFifoCtrl  <= remRxFifoCtrlInt;
 
    -- Gearbox aligner
-   U_Pgp3RxGearboxAligner_1 : entity work.Pgp3RxGearboxAligner
+   U_Pgp3RxGearboxAligner_1 : entity surf.Pgp3RxGearboxAligner
       generic map (
          TPD_G        => TPD_G,
          GOOD_COUNT_G => ALIGN_GOOD_COUNT_G,
@@ -114,7 +115,7 @@ begin
 
    -- Unscramble the data for 64b66b
    unscramblerValid <= gearboxAligned and phyRxValid;
-   U_Scrambler_1 : entity work.Scrambler
+   U_Scrambler_1 : entity surf.Scrambler
       generic map (
          TPD_G            => TPD_G,
          DIRECTION_G      => "DESCRAMBLER",
@@ -132,7 +133,7 @@ begin
          outputSideband => unscrambledHeader);  -- [out]
 
    -- Elastic Buffer
-   U_Pgp3RxEb_1 : entity work.Pgp3RxEb
+   U_Pgp3RxEb_1 : entity surf.Pgp3RxEb
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -150,7 +151,7 @@ begin
          status      => ebStatus);          -- [out]
 
    -- Main RX protocol logic
-   U_Pgp3RxProtocol_1 : entity work.Pgp3RxProtocol
+   U_Pgp3RxProtocol_1 : entity surf.Pgp3RxProtocol
       generic map (
          TPD_G    => TPD_G,
          NUM_VC_G => NUM_VC_G)
@@ -171,7 +172,7 @@ begin
          protRxHeader   => ebHeader);          -- [in]
 
    -- Depacketize the RX data frames
-   U_AxiStreamDepacketizer2_1 : entity work.AxiStreamDepacketizer2
+   U_AxiStreamDepacketizer2_1 : entity surf.AxiStreamDepacketizer2
       generic map (
          TPD_G               => TPD_G,
          BRAM_EN_G           => false,
@@ -190,7 +191,7 @@ begin
          mAxisSlave  => depacketizedAxisSlave);  -- [in]
 
    -- Demultiplex the depacketized streams
-   U_AxiStreamDeMux_1 : entity work.AxiStreamDeMux
+   U_AxiStreamDeMux_1 : entity surf.AxiStreamDeMux
       generic map (
          TPD_G         => TPD_G,
          NUM_MASTERS_G => NUM_VC_G,

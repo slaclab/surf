@@ -18,7 +18,8 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity Pgp3Gtp7TxGearbox is
    generic (
@@ -66,7 +67,7 @@ architecture rtl of Pgp3Gtp7TxGearbox is
 
 begin
 
-   U_FifoAsync : entity work.FifoAsync
+   U_FifoAsync : entity surf.FifoAsync
       generic map (
          TPD_G        => TPD_G,
          FWFT_EN_G    => true,

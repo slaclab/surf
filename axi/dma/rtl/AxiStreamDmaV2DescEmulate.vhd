@@ -20,11 +20,12 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 use ieee.NUMERIC_STD.all;
 
-use work.StdRtlPkg.all;
-use work.AxiPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiDmaPkg.all;
-use work.ArbiterPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiDmaPkg.all;
+use surf.ArbiterPkg.all;
 
 entity AxiStreamDmaV2DescEmulate is
    generic (

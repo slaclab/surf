@@ -16,9 +16,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiDac7654Pkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiDac7654Pkg.all;
 
 entity AxiDac7654Core is
    generic (
@@ -45,7 +46,7 @@ architecture mapping of AxiDac7654Core is
    
 begin
 
-   AxiDac7654Reg_Inst : entity work.AxiDac7654Reg
+   AxiDac7654Reg_Inst : entity surf.AxiDac7654Reg
       generic map(
          TPD_G              => TPD_G,
          STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G)
@@ -61,7 +62,7 @@ begin
          status         => status,
          config         => config);
 
-   AxiDac7654Spi_Inst : entity work.AxiDac7654Spi
+   AxiDac7654Spi_Inst : entity surf.AxiDac7654Spi
       generic map(
          TPD_G          => TPD_G,
          AXI_CLK_FREQ_G => AXI_CLK_FREQ_G)

@@ -16,9 +16,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.StdRtlPkg.all;
-use work.i2cPkg.all;
-use work.txt_util_p.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.i2cPkg.all;
+use surf.txt_util_p.all;
 
 package i2cRegMasterPkg is
 

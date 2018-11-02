@@ -17,8 +17,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.GlinkPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.GlinkPkg.all;
 
 entity GLinkGtx7FixedLat is
    generic (
@@ -125,7 +126,7 @@ begin
       
       txClk <= gLinkTxRefClk;
 
-      Synchronizer_0 : entity work.Synchronizer
+      Synchronizer_0 : entity surf.Synchronizer
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -133,7 +134,7 @@ begin
             dataIn  => gtTxRstDone,
             dataOut => txReady);  
 
-      SyncFifo_TX : entity work.SynchronizerFifo
+      SyncFifo_TX : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
             INIT_G       => toSlv(GLINK_TX_UNUSED_C),
@@ -152,7 +153,7 @@ begin
 
       gtTxRst <= not(gtTxRstDone) or gLinkTxSync.linkRst;
 
-      GLinkEncoder_Inst : entity work.GLinkEncoder
+      GLinkEncoder_Inst : entity surf.GLinkEncoder
          generic map (
             TPD_G          => TPD_G,
             FLAGSEL_G      => FLAGSEL_G,
@@ -179,7 +180,7 @@ begin
       
       rxClk <= rxRecClk;
 
-      Synchronizer_1 : entity work.Synchronizer
+      Synchronizer_1 : entity surf.Synchronizer
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -187,7 +188,7 @@ begin
             dataIn  => gtRxRstDone,
             dataOut => rxReady); 
 
-      SyncFifo_RX : entity work.SynchronizerFifo
+      SyncFifo_RX : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
             INIT_G       => toSlv(GLINK_RX_INIT_C),
@@ -210,7 +211,7 @@ begin
       rxRst   <= '0';
       gtRxRst <= not(gtRxRstDone) or rxRst;
 
-      GLinkDecoder_Inst : entity work.GLinkDecoder
+      GLinkDecoder_Inst : entity surf.GLinkDecoder
          generic map (
             TPD_G          => TPD_G,
             FLAGSEL_G      => FLAGSEL_G,
@@ -244,7 +245,7 @@ begin
    txUserReset <= gLinkTx.linkRst or gLinkTxRst;
 
    -- GTX 7 Core in Fixed Latency mode
-   Gtx7Core_Inst : entity work.GLinkGtx7Core
+   Gtx7Core_Inst : entity surf.GLinkGtx7Core
       generic map (
          TPD_G                 => TPD_G,
          SIM_GTRESET_SPEEDUP_G => SIM_GTRESET_SPEEDUP_G,

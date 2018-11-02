@@ -30,8 +30,9 @@ use ieee_proposed.fixed_float_types.all;
 use ieee_proposed.float_pkg.all;
 -- synthesis translate_on
 
-use work.StdRtlPkg.all;
-use work.DspPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.DspPkg.all;
 
 entity DspFp32Rectifier is
    generic (
@@ -128,7 +129,7 @@ begin
       end if;
    end process seq;
 
-   U_Pipe : entity work.FifoOutputPipeline
+   U_Pipe : entity surf.FifoOutputPipeline
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,

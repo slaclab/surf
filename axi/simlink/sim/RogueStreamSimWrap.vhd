@@ -17,8 +17,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 
 entity RogueStreamSimWrap is
    generic (
@@ -78,7 +79,7 @@ begin
    ------------------------------------
    -- Inbound
    ------------------------------------
-   U_IbFifo : entity work.AxiStreamFifoV2
+   U_IbFifo : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          GEN_SYNC_FIFO_G     => COMMON_SLAVE_CLK_G,
@@ -97,7 +98,7 @@ begin
    ------------------------------------
    -- Sim Core
    ------------------------------------
-   U_RogueStreamSim : entity work.RogueStreamSim
+   U_RogueStreamSim : entity surf.RogueStreamSim
       port map(
          clock      => clk,
          reset      => rst,
@@ -134,7 +135,7 @@ begin
    ------------------------------------
    -- Outbound
    ------------------------------------
-   U_ObFifo : entity work.AxiStreamFifoV2
+   U_ObFifo : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          GEN_SYNC_FIFO_G     => COMMON_MASTER_CLK_G,

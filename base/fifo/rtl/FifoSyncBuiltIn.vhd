@@ -18,7 +18,8 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 library UNISIM;
 use UNISIM.vcomponents.all;
@@ -165,7 +166,7 @@ begin
       report "USE_DSP48_G must be either yes, no, auto, or automax"
       severity failure;
 
-   RstSync_FULL : entity work.RstSync
+   RstSync_FULL : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          IN_POLARITY_G   => RST_POLARITY_G,
@@ -175,7 +176,7 @@ begin
          asyncRst => rst,
          syncRst  => rstFlags); 
 
-   SynchronizerEdge_FULL : entity work.SynchronizerEdge
+   SynchronizerEdge_FULL : entity surf.SynchronizerEdge
       generic map (
          TPD_G => TPD_G)   
       port map (
@@ -183,7 +184,7 @@ begin
          dataIn     => rstFlags,
          risingEdge => rstDet);                 
 
-   RstSync_FIFO : entity work.RstSync
+   RstSync_FIFO : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          RELEASE_DELAY_G => 6)   
@@ -273,7 +274,7 @@ begin
 
    FWFT_Gen : if (FWFT_EN_G = true) generate
       
-      FifoOutputPipeline_Inst : entity work.FifoOutputPipeline
+      FifoOutputPipeline_Inst : entity surf.FifoOutputPipeline
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => RST_POLARITY_G,

@@ -18,9 +18,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiAds42lb69Pkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiAds42lb69Pkg.all;
 
 entity AxiAds42lb69Reg is
    generic (
@@ -344,7 +345,7 @@ begin
 
    GEN_ADC_SMPL :
    for ch in 0 to 1 generate
-      SyncOut_delayIn_data : entity work.SynchronizerFifo
+      SyncOut_delayIn_data : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
             DATA_WIDTH_G => 16)

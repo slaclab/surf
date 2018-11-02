@@ -18,10 +18,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.Pgp2bPkg.all;
-use work.AxiLitePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.AxiLitePkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -138,7 +139,7 @@ begin
          I => refClkDiv2,
          O => stableClock);           
 
-   RstSync_Inst : entity work.RstSync
+   RstSync_Inst : entity surf.RstSync
       generic map(
          TPD_G => TPD_G)   
       port map (
@@ -146,7 +147,7 @@ begin
          asyncRst => extRst,
          syncRst  => extRstSync);          
 
-   ClockManager7_Inst : entity work.ClockManager7
+   ClockManager7_Inst : entity surf.ClockManager7
       generic map(
          TPD_G              => TPD_G,
          TYPE_G             => "MMCM",
@@ -166,7 +167,7 @@ begin
          clkOut(0) => pgpClock,
          rstOut(0) => pgpReset); 
 
-   Pgp2bGtx7VarLat_Inst : entity work.Pgp2bGtx7VarLat
+   Pgp2bGtx7VarLat_Inst : entity surf.Pgp2bGtx7VarLat
       generic map (
          TPD_G             => TPD_G,
          -- CPLL Configurations

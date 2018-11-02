@@ -25,8 +25,9 @@ use ieee.std_logic_unsigned.all;
 
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.jesd204bpkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.jesd204bpkg.all;
 
 entity JesdTestStreamTx is
    generic (

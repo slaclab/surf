@@ -21,8 +21,9 @@ use ieee.std_logic_unsigned.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity Ad9249Config is
 
@@ -186,7 +187,7 @@ begin
       end if;
    end process seq;
 
-   SpiMaster_1 : entity work.SpiMaster
+   SpiMaster_1 : entity surf.SpiMaster
       generic map (
          TPD_G             => TPD_G,
          NUM_CHIPS_G       => NUM_CHIPS_G*2,

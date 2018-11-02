@@ -16,9 +16,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiSy56040Pkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiSy56040Pkg.all;
 
 entity AxiSy56040Core is
    generic (
@@ -42,7 +43,7 @@ architecture mapping of AxiSy56040Core is
 
 begin
 
-   AxiSy56040Reg_Inst : entity work.AxiSy56040Reg
+   AxiSy56040Reg_Inst : entity surf.AxiSy56040Reg
       generic map (
          TPD_G            => TPD_G,
          AXI_CLK_FREQ_G   => AXI_CLK_FREQ_G,

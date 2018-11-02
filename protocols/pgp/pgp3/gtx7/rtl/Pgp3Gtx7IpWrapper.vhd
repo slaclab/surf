@@ -16,8 +16,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -436,7 +437,7 @@ begin
    txUsrClk  <= txUsrClkInt;
    txUsrClk2 <= txUsrClk2Int;
 
-   U_RX_PLL : entity work.ClockManager7
+   U_RX_PLL : entity surf.ClockManager7
       generic map(
          TPD_G            => TPD_G,
          TYPE_G           => "PLL",
@@ -794,7 +795,7 @@ begin
    end generate;
 
    GEN_DRP : if (EN_DRP_G) generate
-      U_AxiLiteToDrp_1 : entity work.AxiLiteToDrp
+      U_AxiLiteToDrp_1 : entity surf.AxiLiteToDrp
          generic map (
             TPD_G            => TPD_G,
             COMMON_CLK_G     => false,

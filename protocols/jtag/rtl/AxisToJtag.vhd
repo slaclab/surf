@@ -24,9 +24,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxisToJtagPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxisToJtagPkg.all;
 
 --
 -- This module implements a simple protocol for encoding XVC transactions over
@@ -424,7 +425,7 @@ begin
    -- is routed to Ob.
    -- We use this to splice locally generated info (reply header and
    -- memory playback data) into the output stream.
-   U_MUX  : entity work.AxiStreamSelector
+   U_MUX  : entity surf.AxiStreamSelector
       generic map (
          TPD_G           => TPD_G
       )
@@ -442,7 +443,7 @@ begin
 
    -- The core which does all the JTAG work (while this module deals with
    -- the protocol and housekeeping.
-   U_JTAG : entity work.AxisToJtagCore
+   U_JTAG : entity surf.AxisToJtagCore
       generic map (
          TPD_G           => TPD_G,
          AXIS_WIDTH_G    => AXIS_WIDTH_G,

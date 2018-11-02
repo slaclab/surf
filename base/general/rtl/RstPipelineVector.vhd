@@ -16,7 +16,8 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity RstPipelineVector is
    generic (
@@ -39,7 +40,7 @@ begin
    GEN_VEC :
    for i in (WIDTH_G-1) downto 0 generate
 
-      U_RstPipeline : entity work.RstPipeline
+      U_RstPipeline : entity surf.RstPipeline
          generic map (
             TPD_G         => TPD_G,
             INV_RST_G     => INV_RST_G,

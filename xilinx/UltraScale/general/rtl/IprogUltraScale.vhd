@@ -19,7 +19,8 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -96,7 +97,7 @@ begin
          CLR => '0',
          O   => divClk);         
 
-   RstSync_Inst : entity work.RstSync
+   RstSync_Inst : entity surf.RstSync
       generic map (
          TPD_G         => TPD_G,
          IN_POLARITY_G => RST_POLARITY_G)
@@ -105,7 +106,7 @@ begin
          asyncRst => rst,
          syncRst  => icape2Rst);
 
-   SynchronizerOneShot_1 : entity work.SynchronizerOneShot
+   SynchronizerOneShot_1 : entity surf.SynchronizerOneShot
       generic map (
          TPD_G => TPD_G)
       port map (

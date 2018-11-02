@@ -18,7 +18,8 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity FifoAsync is
    generic (
@@ -171,7 +172,7 @@ begin
    -------------------------------
    -- rd_clk domain
    -------------------------------
-   READ_RstSync : entity work.RstSync
+   READ_RstSync : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          IN_POLARITY_G   => RST_POLARITY_G,
@@ -200,7 +201,7 @@ begin
 
    FWFT_Gen : if (FWFT_EN_G = true) generate
 
-      FifoOutputPipeline_Inst : entity work.FifoOutputPipeline
+      FifoOutputPipeline_Inst : entity surf.FifoOutputPipeline
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => '1',
@@ -242,7 +243,7 @@ begin
       end process;
    end generate;
 
-   SynchronizerVector_0 : entity work.SynchronizerVector
+   SynchronizerVector_0 : entity surf.SynchronizerVector
       generic map (
          TPD_G       => TPD_G,
          RST_ASYNC_G => false,
@@ -255,7 +256,7 @@ begin
          dataIn  => wrReg_wrGray,
          dataOut => rdReg_wrGray);
 
-   Synchronizer_0 : entity work.Synchronizer
+   Synchronizer_0 : entity surf.Synchronizer
       generic map (
          TPD_G       => TPD_G,
          RST_ASYNC_G => false,
@@ -312,7 +313,7 @@ begin
    -------------------------------
    -- wr_clk domain
    -------------------------------   
-   WRITE_RstSync : entity work.RstSync
+   WRITE_RstSync : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          IN_POLARITY_G   => RST_POLARITY_G,
@@ -358,7 +359,7 @@ begin
       end if;
    end process;
 
-   SynchronizerVector_1 : entity work.SynchronizerVector
+   SynchronizerVector_1 : entity surf.SynchronizerVector
       generic map (
          TPD_G       => TPD_G,
          RST_ASYNC_G => false,
@@ -371,7 +372,7 @@ begin
          dataIn  => rdReg_rdGray,
          dataOut => wrReg_rdGray);
 
-   Synchronizer_1 : entity work.Synchronizer
+   Synchronizer_1 : entity surf.Synchronizer
       generic map (
          TPD_G       => TPD_G,
          RST_ASYNC_G => false,
@@ -449,7 +450,7 @@ begin
    portB.addr <= rdReg.raddr;
    portB.din  <= (others => '0');
 
-   SimpleDualPortRam_Inst : entity work.SimpleDualPortRam
+   SimpleDualPortRam_Inst : entity surf.SimpleDualPortRam
       generic map(
          TPD_G        => TPD_G,
          BRAM_EN_G    => BRAM_EN_G,

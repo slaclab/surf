@@ -18,8 +18,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -445,7 +446,7 @@ begin
       end if;
    end process seq;
 
-   U_Ram : entity work.SimpleDualPortRam
+   U_Ram : entity surf.SimpleDualPortRam
       generic map(
          BRAM_EN_G    => true,
          DATA_WIDTH_G => 16,

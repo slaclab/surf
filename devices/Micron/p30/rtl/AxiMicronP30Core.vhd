@@ -16,9 +16,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiMicronP30Pkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiMicronP30Pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -63,7 +64,7 @@ begin
             T  => flashTri);  -- 3-state enable input, high=input, low=output     
    end generate GEN_IOBUF;
 
-   U_CTRL : entity work.AxiMicronP30Reg
+   U_CTRL : entity surf.AxiMicronP30Reg
       generic map (
          TPD_G              => TPD_G,
          EN_PASSWORD_LOCK_G => EN_PASSWORD_LOCK_G,

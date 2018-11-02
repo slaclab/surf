@@ -18,9 +18,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiAd5780Pkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiAd5780Pkg.all;
 
 entity AxiAd5780Reg is
    generic (
@@ -196,7 +197,7 @@ begin
    ------------------------------- 
    regIn.dacData <= status.dacData;
 
-   SyncTrigRate_Inst : entity work.SyncTrigRate
+   SyncTrigRate_Inst : entity surf.SyncTrigRate
       generic map (
          TPD_G          => TPD_G,
          COMMON_CLK_G   => true,

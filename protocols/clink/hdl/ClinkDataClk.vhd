@@ -22,7 +22,8 @@ use ieee.math_real.all;
 library unisim;
 use unisim.vcomponents.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity ClinkDataClk is
    generic ( 
@@ -136,7 +137,7 @@ begin
 
    genReset <= lockedLoc and (not rstIn);
 
-   U_RstSync : entity work.RstSync
+   U_RstSync : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          IN_POLARITY_G   => '0',

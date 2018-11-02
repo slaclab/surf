@@ -16,11 +16,12 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.EthMacPkg.all;
-use work.GigEthPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.EthMacPkg.all;
+use surf.GigEthPkg.all;
 
 entity GigEthGtp7 is
    generic (
@@ -70,6 +71,50 @@ end GigEthGtp7;
 
 architecture mapping of GigEthGtp7 is
 
+   component GigEthGtp7Core
+      port (
+         gtrefclk               : in  std_logic;
+         gtrefclk_bufg          : in  std_logic;
+         txp                    : out std_logic;
+         txn                    : out std_logic;
+         rxp                    : in  std_logic;
+         rxn                    : in  std_logic;
+         resetdone              : out std_logic;
+         cplllock               : out std_logic;
+         mmcm_reset             : out std_logic;
+         txoutclk               : out std_logic;
+         rxoutclk               : out std_logic;
+         userclk                : in  std_logic;
+         userclk2               : in  std_logic;
+         rxuserclk              : in  std_logic;
+         rxuserclk2             : in  std_logic;
+         pma_reset              : in  std_logic;
+         mmcm_locked            : in  std_logic;
+         independent_clock_bufg : in  std_logic;
+         gmii_txd               : in  std_logic_vector (7 downto 0);
+         gmii_tx_en             : in  std_logic;
+         gmii_tx_er             : in  std_logic;
+         gmii_rxd               : out std_logic_vector (7 downto 0);
+         gmii_rx_dv             : out std_logic;
+         gmii_rx_er             : out std_logic;
+         gmii_isolate           : out std_logic;
+         configuration_vector   : in  std_logic_vector (4 downto 0);
+         an_interrupt           : out std_logic;
+         an_adv_config_vector   : in  std_logic_vector (15 downto 0);
+         an_restart_config      : in  std_logic;
+         status_vector          : out std_logic_vector (15 downto 0);
+         reset                  : in  std_logic;
+         signal_detect          : in  std_logic;
+         gt0_pll0outclk_in      : in  std_logic;
+         gt0_pll0outrefclk_in   : in  std_logic;
+         gt0_pll1outclk_in      : in  std_logic;
+         gt0_pll1outrefclk_in   : in  std_logic;
+         gt0_pll0refclklost_in  : in  std_logic;
+         gt0_pll0lock_in        : in  std_logic;
+         gt0_pll0reset_out      : out std_logic
+         );
+   end component;
+
    signal config : GigEthConfigType;
    signal status : GigEthStatusType;
 
@@ -96,7 +141,7 @@ begin
    ------------------
    -- Synchronization 
    ------------------
-   U_AxiLiteAsync : entity work.AxiLiteAsync
+   U_AxiLiteAsync : entity surf.AxiLiteAsync
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -117,7 +162,7 @@ begin
 
    areset <= extRst or config.softRst or sysRst125;
 
-   U_PwrUpRst : entity work.PwrUpRst
+   U_PwrUpRst : entity surf.PwrUpRst
       generic map (
          TPD_G      => TPD_G,
          DURATION_G => 1000)
@@ -129,7 +174,7 @@ begin
    --------------------
    -- Ethernet MAC core
    --------------------
-   U_MAC : entity work.EthMacTop
+   U_MAC : entity surf.EthMacTop
       generic map (
          TPD_G           => TPD_G,
          PAUSE_EN_G      => PAUSE_EN_G,
@@ -161,7 +206,7 @@ begin
    ------------------
    -- 1000BASE-X core
    ------------------
-   U_GigEthGtp7Core : entity work.GigEthGtp7Core
+   U_GigEthGtp7Core : GigEthGtp7Core
       port map (
          -- Clocks and Resets
          gtrefclk_bufg          => sysClk125,  -- Used as DRP clock in IP core
@@ -215,7 +260,7 @@ begin
    --------------------------------     
    -- Configuration/Status Register   
    --------------------------------     
-   U_GigEthReg : entity work.GigEthReg
+   U_GigEthReg : entity surf.GigEthReg
       generic map (
          TPD_G        => TPD_G,
          EN_AXI_REG_G => EN_AXI_REG_G)

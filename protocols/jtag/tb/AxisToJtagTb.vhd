@@ -22,9 +22,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.TextUtilPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.TextUtilPkg.all;
 
 
 -- use this module if a reliable stream is available (reliable network to host)
@@ -345,7 +346,7 @@ begin
       end if;
    end process P_CLK;
 
-   U_DUT : entity work.AxisToJtag
+   U_DUT : entity surf.AxisToJtag
       generic map (
          TPD_G           => TPD_C,
          MEM_DEPTH_G     => 4

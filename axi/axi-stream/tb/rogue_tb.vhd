@@ -21,8 +21,9 @@ use ieee.std_logic_unsigned.all;
 Library unisim;
 use unisim.vcomponents.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 
 entity rogue_tb is end rogue_tb;
 

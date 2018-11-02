@@ -17,11 +17,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.Pgp2bPkg.all;
-use work.AxiLitePkg.all;
-use work.Gtx7CfgPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Gtx7CfgPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -198,7 +199,7 @@ begin
 
 
    -- Power Up Reset      
-   PwrUpRst_Inst : entity work.PwrUpRst
+   PwrUpRst_Inst : entity surf.PwrUpRst
       generic map (
          TPD_G          => TPD_G,
          SIM_SPEEDUP_G  => SIMULATION_G,
@@ -233,7 +234,7 @@ begin
                    txRefClk;
 
    TX_CM_GEN : if (TX_CM_EN_G) generate
-      ClockManager7_TX : entity work.ClockManager7
+      ClockManager7_TX : entity surf.ClockManager7
          generic map(
             TPD_G              => TPD_G,
             TYPE_G             => TX_CM_TYPE_G,
@@ -262,7 +263,7 @@ begin
                i => pgpTxClkBase,
                o => pgpTxClk);
 
-         RstSync_pgpTxRst : entity work.RstSync
+         RstSync_pgpTxRst : entity surf.RstSync
             generic map (
                TPD_G           => TPD_G,
                RELEASE_DELAY_G => 16,
@@ -279,7 +280,7 @@ begin
    end generate NO_TX_CM_GEN;
 
    -- PGP RX Reset
-   RstSync_pgpTxRst : entity work.RstSync
+   RstSync_pgpTxRst : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          RELEASE_DELAY_G => 16,
@@ -307,7 +308,7 @@ begin
    rxPllLock <= ite((RX_PLL_G = "QPLL"), qPllLock, gtCPllLock);
 
    QPLL_GEN : if (TX_PLL_G = "QPLL" or RX_PLL_G = "QPLL") generate
-      QPllCore_1 : entity work.Gtx7QuadPll
+      QPllCore_1 : entity surf.Gtx7QuadPll
          generic map (
             QPLL_REFCLK_SEL_G  => "001",
             QPLL_FBDIV_G       => QPLL_CFG_G.QPLL_FBDIV_G,
@@ -323,7 +324,7 @@ begin
             qPllReset      => qPllReset);
    end generate QPLL_GEN;
 
-   Pgp2bGtx7Fixedlat_Inst : entity work.Pgp2bGtx7Fixedlat
+   Pgp2bGtx7Fixedlat_Inst : entity surf.Pgp2bGtx7Fixedlat
       generic map (
          TPD_G                 => TPD_G,
          SIM_GTRESET_SPEEDUP_G => SIM_GTRESET_SPEEDUP_G,
@@ -411,7 +412,7 @@ begin
    -- Clock manager to clean up recovered clock
    -------------------------------------------------------------------------------------------------
    RxClkMmcmGen : if (RX_CM_EN_G) generate
-      ClockManager7_1 : entity work.ClockManager7
+      ClockManager7_1 : entity surf.ClockManager7
          generic map (
             TPD_G              => TPD_G,
             TYPE_G             => RX_CM_TYPE_G,
@@ -431,7 +432,7 @@ begin
             locked    => pgpRxMmcmLocked);
 
       -- I think this is right, sync reset to mmcm clk
-      RstSync_1 : entity work.RstSync
+      RstSync_1 : entity surf.RstSync
          generic map (
             TPD_G => TPD_G)
          port map (

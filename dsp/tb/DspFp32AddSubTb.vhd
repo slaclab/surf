@@ -20,8 +20,9 @@ library ieee_proposed;
 use ieee_proposed.fixed_float_types.all;
 use ieee_proposed.float_pkg.all;
 
-use work.StdRtlPkg.all;
-use work.DspPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.DspPkg.all;
 
 entity DspFp32AddSubTb is end DspFp32AddSubTb;
 
@@ -38,7 +39,7 @@ architecture testbed of DspFp32AddSubTb is
 
 begin
 
-   U_ClkRst : entity work.ClkRst
+   U_ClkRst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 10 ns,
          RST_START_DELAY_G => 1 ns,
@@ -60,7 +61,7 @@ begin
       end if;
    end process;
 
-   U_Add : entity work.DspFp32AddSub
+   U_Add : entity surf.DspFp32AddSub
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -70,7 +71,7 @@ begin
          add  => '1',
          pOut => add);
 
-   U_Sub : entity work.DspFp32AddSub
+   U_Sub : entity surf.DspFp32AddSub
       generic map (
          TPD_G => TPD_G)
       port map (

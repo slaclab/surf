@@ -18,9 +18,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiPkg.all;
 
 entity AxiMemTester is
    generic (
@@ -370,7 +371,7 @@ begin
       end if;
    end process seq;
 
-   Sync_0 : entity work.Synchronizer
+   Sync_0 : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -378,7 +379,7 @@ begin
          dataIn  => r.done,
          dataOut => done);
 
-   Sync_1 : entity work.Synchronizer
+   Sync_1 : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -386,7 +387,7 @@ begin
          dataIn  => r.error,
          dataOut => error);
 
-   Sync_2 : entity work.SynchronizerFifo
+   Sync_2 : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 32)
@@ -398,7 +399,7 @@ begin
          rd_clk => axilClk,
          dout   => wTimer);
 
-   Sync_3 : entity work.SynchronizerFifo
+   Sync_3 : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 32)
@@ -410,7 +411,7 @@ begin
          rd_clk => axilClk,
          dout   => rTimer);
    
-   Sync_4 : entity work.Synchronizer
+   Sync_4 : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -418,7 +419,7 @@ begin
          dataIn  => r.wErrResp,
          dataOut => wErrResp);
    
-   Sync_5 : entity work.Synchronizer
+   Sync_5 : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -426,7 +427,7 @@ begin
          dataIn  => r.rErrResp,
          dataOut => rErrResp);
    
-   Sync_6 : entity work.Synchronizer
+   Sync_6 : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -435,7 +436,7 @@ begin
          dataOut => rErrData);
    
    rDataIn <= r.rData(DATA_SYNC_BITS_C-1 downto 0);
-   Sync_7 : entity work.SynchronizerVector
+   Sync_7 : entity surf.SynchronizerVector
       generic map (
          TPD_G    => TPD_G,
          WIDTH_G  => DATA_SYNC_BITS_C)
@@ -445,7 +446,7 @@ begin
          dataOut => rDataOut(DATA_SYNC_BITS_C-1 downto 0));
    
    rPatternIn <= r.rPattern(DATA_SYNC_BITS_C-1 downto 0);
-   Sync_8 : entity work.SynchronizerVector
+   Sync_8 : entity surf.SynchronizerVector
       generic map (
          TPD_G    => TPD_G,
          WIDTH_G  => DATA_SYNC_BITS_C)

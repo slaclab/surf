@@ -19,10 +19,11 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.AxiStreamPacketizer2Pkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.AxiStreamPacketizer2Pkg.all;
 
 entity AxiStreamPacketizer2 is
    generic (
@@ -159,7 +160,7 @@ begin
    -----------------
    -- Input pipeline
    -----------------
-   U_Input : entity work.AxiStreamPipeline
+   U_Input : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => INPUT_PIPE_STAGES_G)
@@ -175,7 +176,7 @@ begin
    -- Packet Count ram
    -- track current frame number, packet count and physical channel for each tDest
    -------------------------------------------------------------------------------
-   U_DualPortRam_1 : entity work.DualPortRam
+   U_DualPortRam_1 : entity surf.DualPortRam
       generic map (
          TPD_G        => TPD_G,
          BRAM_EN_G    => BRAM_EN_G,
@@ -205,7 +206,7 @@ begin
    GEN_CRC : if (CRC_EN_C) generate
 
       ETH_CRC : if (CRC_POLY_G = x"04C11DB7") generate
-         U_Crc32 : entity work.Crc32Parallel
+         U_Crc32 : entity surf.Crc32Parallel
             generic map (
                TPD_G            => TPD_G,
                INPUT_REGISTER_G => false,
@@ -223,7 +224,7 @@ begin
       end generate;
 
       GENERNAL_CRC : if (CRC_POLY_G /= x"04C11DB7") generate
-         U_Crc32 : entity work.Crc32
+         U_Crc32 : entity surf.Crc32
             generic map (
                TPD_G            => TPD_G,
                INPUT_REGISTER_G => false,
@@ -481,7 +482,7 @@ begin
    ------------------
    -- Output pipeline
    ------------------
-   U_Output : entity work.AxiStreamPipeline
+   U_Output : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)

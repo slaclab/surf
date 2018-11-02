@@ -21,8 +21,9 @@ use ieee.std_logic_unsigned.all;
 Library unisim;
 use unisim.vcomponents.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 
 entity fifo_tb is end fifo_tb;
 
@@ -87,7 +88,7 @@ begin
    end process;
 
    GEN_SRC: for i in 0 to EP_COUNT_C-1 generate
-      PrbsTx : entity work.SsiPrbsTx
+      PrbsTx : entity surf.SsiPrbsTx
          generic map (
             TPD_G                      => TPD_C,
             GEN_SYNC_FIFO_G            => true,
@@ -193,7 +194,7 @@ begin
       );
 
    GEN_DST: for i in 0 to EP_COUNT_C-1 generate
-      SsiPrbsRx_Inst : entity work.SsiPrbsRx
+      SsiPrbsRx_Inst : entity surf.SsiPrbsRx
          generic map (
             -- General Configurations
             TPD_G                      => TPD_C,

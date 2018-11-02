@@ -27,8 +27,9 @@ use ieee.std_logic_1164.all;
 use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiLiteFifoPop is
    generic (
@@ -126,7 +127,7 @@ begin
    -- pop FIFOs
    -----------------------------------------
    U_ReadFifo : for i in 0 to POP_FIFO_COUNT_G-1 generate
-      U_FIfo : entity work.FifoCascade 
+      U_FIfo : entity surf.FifoCascade 
          generic map (
             TPD_G              => TPD_G,
             CASCADE_SIZE_G     => 1,
@@ -184,7 +185,7 @@ begin
    -----------------------------------------
    U_LoopFifoEn : if LOOP_FIFO_EN_G generate
       U_LoopFifo : for i in 0 to LOOP_FIFO_COUNT_G-1 generate
-         U_FIfo : entity work.FifoCascade 
+         U_FIfo : entity surf.FifoCascade 
             generic map (
                TPD_G              => TPD_G,
                CASCADE_SIZE_G     => 1,

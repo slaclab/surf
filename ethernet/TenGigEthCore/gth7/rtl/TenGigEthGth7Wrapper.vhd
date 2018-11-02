@@ -17,11 +17,12 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.EthMacPkg.all;
-use work.TenGigEthPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.EthMacPkg.all;
+use surf.TenGigEthPkg.all;
 
 entity TenGigEthGth7Wrapper is
    generic (
@@ -94,7 +95,7 @@ begin
    ----------------------
    -- Common Clock Module 
    ----------------------
-   TenGigEthGth7Clk_Inst : entity work.TenGigEthGth7Clk
+   TenGigEthGth7Clk_Inst : entity surf.TenGigEthGth7Clk
       generic map (
          TPD_G             => TPD_G,
          USE_GTREFCLK_G    => USE_GTREFCLK_G,
@@ -123,7 +124,7 @@ begin
    GEN_LANE :
    for i in 0 to NUM_LANE_G-1 generate
 
-      TenGigEthGth7_Inst : entity work.TenGigEthGth7
+      TenGigEthGth7_Inst : entity surf.TenGigEthGth7
          generic map (
             TPD_G           => TPD_G,
             PAUSE_EN_G      => PAUSE_EN_G,

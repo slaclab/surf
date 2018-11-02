@@ -18,7 +18,8 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SyncTrigRate is
    generic (
@@ -89,7 +90,7 @@ begin
 
    GEN_ONE_SHOT : if (ONE_SHOT_G = true) generate
 
-      U_OneShot : entity work.SynchronizerOneShot
+      U_OneShot : entity surf.SynchronizerOneShot
          generic map (
             TPD_G          => TPD_G,
             IN_POLARITY_G  => IN_POLARITY_G,
@@ -115,7 +116,7 @@ begin
       end if;
    end process;
 
-   SyncIn_trigCnt : entity work.SynchronizerFifo
+   SyncIn_trigCnt : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G,
@@ -195,7 +196,7 @@ begin
       end if;
    end process seq;
 
-   SyncOut_rate : entity work.SynchronizerFifo
+   SyncOut_rate : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G,
@@ -208,7 +209,7 @@ begin
          valid  => trigRateUpdated,
          dout   => trigRateOut);
 
-   SyncOut_rateMax : entity work.SynchronizerFifo
+   SyncOut_rateMax : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G,
@@ -220,7 +221,7 @@ begin
          rd_clk => locClk,
          dout   => trigRateOutMax);
 
-   SyncOut_rateMin : entity work.SynchronizerFifo
+   SyncOut_rateMin : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G,

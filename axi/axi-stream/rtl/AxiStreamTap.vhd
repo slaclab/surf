@@ -17,9 +17,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.NUMERIC_STD.all;
-use work.StdRtlPkg.all;
-use work.ArbiterPkg.all;
-use work.AxiStreamPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.ArbiterPkg.all;
+use surf.AxiStreamPkg.all;
 
 entity AxiStreamTap is
    generic (

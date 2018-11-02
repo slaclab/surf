@@ -18,7 +18,8 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 library UNISIM;
 use UNISIM.vcomponents.all;
@@ -168,7 +169,7 @@ begin
    -------------------------------
    -- Resets
    -------------------------------   
-   RstSync_FULL : entity work.RstSync
+   RstSync_FULL : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          IN_POLARITY_G   => RST_POLARITY_G,
@@ -178,7 +179,7 @@ begin
          asyncRst => rst,
          syncRst  => rstFull); 
 
-   SynchronizerEdge_FULL : entity work.SynchronizerEdge
+   SynchronizerEdge_FULL : entity surf.SynchronizerEdge
       generic map (
          TPD_G => TPD_G)   
       port map (
@@ -186,7 +187,7 @@ begin
          dataIn     => rstFull,
          risingEdge => rstDet);                 
 
-   RstSync_FIFO : entity work.RstSync
+   RstSync_FIFO : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          RELEASE_DELAY_G => 6)   
@@ -195,7 +196,7 @@ begin
          asyncRst => rstDet,
          syncRst  => fifoWrRst); 
 
-   RstSync_RD : entity work.RstSync
+   RstSync_RD : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          IN_POLARITY_G   => RST_POLARITY_G,
@@ -205,7 +206,7 @@ begin
          asyncRst => rst,
          syncRst  => fifoRdRst);          
 
-   RstSync_EMPTY : entity work.RstSync
+   RstSync_EMPTY : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          IN_POLARITY_G   => RST_POLARITY_G,
@@ -244,7 +245,7 @@ begin
    -------------------------------
    -- wr_clk domain
    -------------------------------  
-   SynchronizerVector_0 : entity work.SynchronizerVector
+   SynchronizerVector_0 : entity surf.SynchronizerVector
       generic map (
          TPD_G       => TPD_G,
          RST_ASYNC_G => false,
@@ -290,7 +291,7 @@ begin
    -------------------------------
    -- rd_clk domain
    -------------------------------
-   SynchronizerVector_1 : entity work.SynchronizerVector
+   SynchronizerVector_1 : entity surf.SynchronizerVector
       generic map (
          TPD_G       => TPD_G,
          RST_ASYNC_G => false,
@@ -328,7 +329,7 @@ begin
 
    FWFT_Gen : if (FWFT_EN_G = true) generate
       
-      FifoOutputPipeline_Inst : entity work.FifoOutputPipeline
+      FifoOutputPipeline_Inst : entity surf.FifoOutputPipeline
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => '1',

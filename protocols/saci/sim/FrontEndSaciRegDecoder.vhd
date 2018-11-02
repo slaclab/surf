@@ -16,11 +16,12 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.StdRtlPkg.all;
-use work.SynchronizePkg.all;
-use work.Version.all;
-use work.FrontEndPkg.all;
-use work.SaciMasterPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.SynchronizePkg.all;
+use surf.Version.all;
+use surf.FrontEndPkg.all;
+use surf.SaciMasterPkg.all;
 
 entity FrontEndSaciRegDecoder is
   

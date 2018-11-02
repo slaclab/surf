@@ -18,9 +18,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.AxiStreamPkg.all;
-use work.StdRtlPkg.all;
-use work.EthMacPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.StdRtlPkg.all;
+use surf.EthMacPkg.all;
 
 entity EthMacTop is
    generic (
@@ -135,7 +137,7 @@ begin
    ----------
    -- TX FIFO
    ----------
-   U_TxFifo : entity work.EthMacTxFifo
+   U_TxFifo : entity surf.EthMacTxFifo
       generic map (
          TPD_G             => TPD_G,
          PRIM_COMMON_CLK_G => PRIM_COMMON_CLK_G,
@@ -176,7 +178,7 @@ begin
    ------------
    -- TX Module
    ------------
-   U_Tx : entity work.EthMacTx
+   U_Tx : entity surf.EthMacTx
       generic map (
          -- Simulation Generics
          TPD_G           => TPD_G,
@@ -230,7 +232,7 @@ begin
    ---------------------      
    -- Flow Control Logic
    ---------------------      
-   U_FlowCtrl : entity work.EthMacFlowCtrl
+   U_FlowCtrl : entity surf.EthMacFlowCtrl
       generic map (
          TPD_G       => TPD_G,
          BYP_EN_G    => BYP_EN_G,
@@ -250,7 +252,7 @@ begin
    ------------
    -- RX Module
    ------------      
-   U_Rx : entity work.EthMacRx
+   U_Rx : entity surf.EthMacRx
       generic map (
          -- Simulation Generics
          TPD_G          => TPD_G,
@@ -301,7 +303,7 @@ begin
    ----------
    -- RX FIFO
    ----------         
-   U_RxFifo : entity work.EthMacRxFifo
+   U_RxFifo : entity surf.EthMacRxFifo
       generic map (
          TPD_G               => TPD_G,
          DROP_ERR_PKT_G      => DROP_ERR_PKT_G,

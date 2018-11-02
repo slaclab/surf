@@ -20,11 +20,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.Pgp3Pkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.Pgp3Pkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
@@ -117,7 +118,7 @@ begin
 --    end process;
 
 
-   U_ClkRst_1 : entity work.ClkRst
+   U_ClkRst_1 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 10 ns,
          CLK_DELAY_G       => 1 ns,
@@ -128,7 +129,7 @@ begin
          clkP => axisClk,
          rst  => axisRst);
 
-   U_PrbsChannels_0 : entity work.PrbsChannels
+   U_PrbsChannels_0 : entity surf.PrbsChannels
       generic map (
          TPD_G      => TPD_G,
          CHANNELS_G => NUM_VC_G)
@@ -145,7 +146,7 @@ begin
          axilClk   => axisClk,              -- [in]
          axilRst   => axisRst);             -- [in]
 
-   U_Pgp3Core_0 : entity work.Pgp3Core
+   U_Pgp3Core_0 : entity surf.Pgp3Core
       generic map (
          TPD_G    => TPD_G,
          NUM_VC_G => NUM_VC_G)
@@ -193,7 +194,7 @@ begin
          phyRxSlip     => open);              -- [out]
 
 
-   U_PrbsChannels_1 : entity work.PrbsChannels
+   U_PrbsChannels_1 : entity surf.PrbsChannels
       generic map (
          TPD_G      => TPD_G,
          CHANNELS_G => NUM_VC_G)
@@ -211,7 +212,7 @@ begin
          axilRst   => axisRst);             -- [in]
 
 
-   U_Pgp3Core_1 : entity work.Pgp3Core
+   U_Pgp3Core_1 : entity surf.Pgp3Core
       generic map (
          TPD_G    => TPD_G,
          NUM_VC_G => NUM_VC_G)

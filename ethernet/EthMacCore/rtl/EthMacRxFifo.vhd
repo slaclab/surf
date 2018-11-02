@@ -16,9 +16,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.EthMacPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.EthMacPkg.all;
 
 entity EthMacRxFifo is
    generic (
@@ -91,7 +92,7 @@ architecture rtl of EthMacRxFifo is
    
 begin
 
-   U_Fifo : entity work.SsiFifo
+   U_Fifo : entity surf.SsiFifo
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -128,7 +129,7 @@ begin
    end generate;
 
    BYP_ENABLED : if (BYP_EN_G = true) generate
-      U_Fifo : entity work.SsiFifo
+      U_Fifo : entity surf.SsiFifo
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
@@ -167,7 +168,7 @@ begin
 
    VLAN_ENABLED : if (VLAN_EN_G = true) generate
       GEN_VEC : for i in (VLAN_SIZE_G-1) downto 0 generate
-         U_Fifo : entity work.SsiFifo
+         U_Fifo : entity surf.SsiFifo
             generic map (
                -- General Configurations
                TPD_G               => TPD_G,

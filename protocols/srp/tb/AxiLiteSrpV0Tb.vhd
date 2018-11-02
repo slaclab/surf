@@ -18,10 +18,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
@@ -71,7 +72,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Create clocks
    -------------------------------------------------------------------------------------------------
-   U_ClkRst_AXIS : entity work.ClkRst
+   U_ClkRst_AXIS : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 6.4 ns,
          CLK_DELAY_G       => 1 ns,
@@ -82,7 +83,7 @@ begin
          clkP => axisClk,
          rst  => axisRst);
 
-   U_ClkRst_AXIL : entity work.ClkRst
+   U_ClkRst_AXIL : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 8.0 ns,
          CLK_DELAY_G       => 1 ns,
@@ -96,7 +97,7 @@ begin
    ----------------------------------------------------------------------------------------------
    -- Instantiate UUT
    ----------------------------------------------------------------------------------------------
-   U_AxiLiteSrpV0 : entity work.AxiLiteSrpV0
+   U_AxiLiteSrpV0 : entity surf.AxiLiteSrpV0
       generic map (
          TPD_G               => TPD_G,
          RESP_THOLD_G        => RESP_THOLD_G,
@@ -131,7 +132,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Connect to SrpV0AxiLite
    -------------------------------------------------------------------------------------------------
-   U_SrpV0AxiLite_1 : entity work.SrpV0AxiLite
+   U_SrpV0AxiLite_1 : entity surf.SrpV0AxiLite
       generic map (
          TPD_G               => TPD_G,
          RESP_THOLD_G        => RESP_THOLD_G,
@@ -166,7 +167,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Connect SrpV0AxiLite to a RAM
    -------------------------------------------------------------------------------------------------
-   U_AxiDualPortRam_1 : entity work.AxiDualPortRam
+   U_AxiDualPortRam_1 : entity surf.AxiDualPortRam
       generic map (
          TPD_G            => TPD_G,
          BRAM_EN_G        => true,

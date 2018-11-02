@@ -18,7 +18,8 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity Iprog7SeriesCore is
    generic (
@@ -84,7 +85,7 @@ architecture rtl of Iprog7SeriesCore is
 begin
 
    -- Synchronize reload addr to icap clk
-   SynchronizerAddress_1 : entity work.SynchronizerVector
+   SynchronizerAddress_1 : entity surf.SynchronizerVector
       generic map (
          TPD_G         => TPD_G,
          BYPASS_SYNC_G => BYPASS_SYNC_C,
@@ -97,7 +98,7 @@ begin
          dataOut => icapReloadAddr);
 
    -- Capture edge of start on icapClk
-   SynchronizerStart_1 : entity work.SynchronizerEdge
+   SynchronizerStart_1 : entity surf.SynchronizerEdge
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => 3)

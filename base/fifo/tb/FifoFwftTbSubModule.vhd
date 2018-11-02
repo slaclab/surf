@@ -18,7 +18,8 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity FifoTbSubModule is
    generic (
@@ -72,7 +73,7 @@ begin
       end if;
    end process;
 
-   Fifo_Inst : entity work.Fifo
+   Fifo_Inst : entity surf.Fifo
       generic map (
          TPD_G           => TPD_G,
          GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_G,

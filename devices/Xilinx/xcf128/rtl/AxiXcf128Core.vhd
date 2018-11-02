@@ -17,9 +17,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiXcf128Pkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiXcf128Pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -65,7 +66,7 @@ begin
    xcfOut.latch <= config.latch;
    xcfOut.addr  <= config.addr;
 
-   AxiXcf128Reg_Inst : entity work.AxiXcf128Reg
+   AxiXcf128Reg_Inst : entity surf.AxiXcf128Reg
       generic map(
          TPD_G            => TPD_G,
          AXI_CLK_FREQ_G   => AXI_CLK_FREQ_G)

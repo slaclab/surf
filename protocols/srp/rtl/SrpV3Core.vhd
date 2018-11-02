@@ -24,11 +24,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.AxiLitePkg.all;
-use work.SrpV3Pkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.AxiLitePkg.all;
+use surf.SrpV3Pkg.all;
 
 entity SrpV3Core is
    generic (
@@ -154,7 +155,7 @@ begin
 
    sAxisCtrl <= sCtrl;
 
-   RX_FIFO : entity work.SsiFifo
+   RX_FIFO : entity surf.SsiFifo
       generic map (
          -- General Configurations
          TPD_G                  => TPD_G,
@@ -195,7 +196,7 @@ begin
    end generate;
 
    GEN_ASYNC_SLAVE : if (GEN_SYNC_FIFO_G = false) generate
-      Sync_Ctrl : entity work.SynchronizerVector
+      Sync_Ctrl : entity surf.SynchronizerVector
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => 2,
@@ -207,7 +208,7 @@ begin
             dataIn(1)  => sCtrl.idle,
             dataOut(0) => rxCtrl.pause,
             dataOut(1) => rxCtrl.idle);
-      Sync_Overflow : entity work.SynchronizerOneShot
+      Sync_Overflow : entity surf.SynchronizerOneShot
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -677,7 +678,7 @@ begin
       end if;
    end process seq;
 
-   TX_FIFO : entity work.AxiStreamFifoV2
+   TX_FIFO : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -709,7 +710,7 @@ begin
          mAxisSlave  => mAxisSlave);
 
    -- Pipeline the rdData and wrData streams
-   U_AxiStreamPipeline_rdData : entity work.AxiStreamPipeline
+   U_AxiStreamPipeline_rdData : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => 0)
@@ -721,7 +722,7 @@ begin
          mAxisMaster => srpRdMasterInt,  -- [out]
          mAxisSlave  => srpRdSlaveInt);  -- [in]
 
-   U_AxiStreamPipeline_wrData : entity work.AxiStreamPipeline
+   U_AxiStreamPipeline_wrData : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => 0)

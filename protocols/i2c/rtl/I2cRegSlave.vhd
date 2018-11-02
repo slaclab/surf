@@ -19,8 +19,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.I2cPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.I2cPkg.all;
 
 entity I2cRegSlave is
    generic (
@@ -94,7 +95,7 @@ architecture rtl of I2cRegSlave is
    
 begin
 
-   I2cSlave_1 : entity work.I2cSlave
+   I2cSlave_1 : entity surf.I2cSlave
       generic map (
          TENBIT_G             => TENBIT_G,
          I2C_ADDR_G           => I2C_ADDR_G,

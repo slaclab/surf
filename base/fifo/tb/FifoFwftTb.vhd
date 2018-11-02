@@ -17,7 +17,8 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity FifoFwftTb is end FifoFwftTb;
 
@@ -142,7 +143,7 @@ begin
    end process;
 
    -- Generate clocks and resets
-   ClkRst_Write : entity work.ClkRst
+   ClkRst_Write : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => WRITE_CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
@@ -153,7 +154,7 @@ begin
          rst  => rst,
          rstL => open); 
 
-   ClkRst_Read : entity work.ClkRst
+   ClkRst_Read : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => READ_CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
@@ -169,7 +170,7 @@ begin
    GEN_TEST_MODULES :
    for i in 0 to CONFIG_TEST_SIZE_C generate
       subRdClk(i) <= ite(SIM_CONFIG_C(i).GEN_SYNC_FIFO_G, wrClk, rdClk);
-      FifoTbSubModule_Inst : entity work.FifoTbSubModule
+      FifoTbSubModule_Inst : entity surf.FifoTbSubModule
          generic map (
             TPD_G           => TPD_C,
             GEN_SYNC_FIFO_G => SIM_CONFIG_C(i).GEN_SYNC_FIFO_G,

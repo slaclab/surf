@@ -126,7 +126,7 @@ architecture RTL of Gtx7AutoPhaseAligner is
    
 begin
 
- sync_PHALIGNDONE : entity work.Synchronizer
+ sync_PHALIGNDONE : entity surf.Synchronizer
   port map
          (
             clk             =>  STABLE_CLOCK,
@@ -134,7 +134,7 @@ begin
             dataOut        =>  phaligndone_sync 
          );
 
-  sync_DLYSRESETDONE : entity work.Synchronizer
+  sync_DLYSRESETDONE : entity surf.Synchronizer
   port map
          (
             clk             =>  STABLE_CLOCK,

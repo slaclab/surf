@@ -18,13 +18,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiPkg.all;
-use work.AxiDmaPkg.all;
-use work.AxiStreamDmaRingPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiPkg.all;
+use surf.AxiDmaPkg.all;
+use surf.AxiStreamDmaRingPkg.all;
 
 entity AxiStreamDmaRingRead is
 
@@ -121,7 +122,7 @@ begin
 
 
    -- Axi Lite Bus master
-   U_AxiLiteMaster_1 : entity work.AxiLiteMaster
+   U_AxiLiteMaster_1 : entity surf.AxiLiteMaster
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -135,7 +136,7 @@ begin
          axilReadSlave   => axilReadSlave);   -- [in]
 
    -- DMA Write block
-   U_AxiStreamDmaRead_1 : entity work.AxiStreamDmaRead
+   U_AxiStreamDmaRead_1 : entity surf.AxiStreamDmaRead
       generic map (
          TPD_G           => TPD_G,
          AXIS_READY_EN_G => AXI_STREAM_READY_EN_G,
@@ -156,7 +157,7 @@ begin
 
    -- Main logic runs on AXI-Lite clk, which may be different from the DMA AXI clk
    -- Synchronize the request/ack bus if necessary
-   U_Synchronizer_Req : entity work.Synchronizer
+   U_Synchronizer_Req : entity surf.Synchronizer
       generic map (
          TPD_G         => TPD_G,
          STAGES_G      => 4,
@@ -167,7 +168,7 @@ begin
          dataIn  => r.dmaReq.request,    -- [in]
          dataOut => dmaReqAxi.request);  -- [out]
 
-   U_SynchronizerFifo_ReqData : entity work.SynchronizerVector
+   U_SynchronizerFifo_ReqData : entity surf.SynchronizerVector
       generic map (
          TPD_G         => TPD_G,
          BYPASS_SYNC_G => false,
@@ -189,7 +190,7 @@ begin
          dataOut(119 downto 112) => dmaReqAxi.dest,
          dataOut(127 downto 120) => dmaReqAxi.id);
 
-   U_Synchronizer_Ack : entity work.Synchronizer
+   U_Synchronizer_Ack : entity surf.Synchronizer
       generic map (
          TPD_G         => TPD_G,
          STAGES_G      => 4,
@@ -200,7 +201,7 @@ begin
          dataIn  => dmaAckAxi.done,     -- [in]
          dataOut => dmaAck.done);       -- [out]
 
-   U_SynchronizerFifo_Ack : entity work.SynchronizerVector
+   U_SynchronizerFifo_Ack : entity surf.SynchronizerVector
       generic map (
          TPD_G         => TPD_G,
          BYPASS_SYNC_G => false,
@@ -214,7 +215,7 @@ begin
          dataOut(0)          => dmaAck.readError,      -- [out]
          dataOut(2 downto 1) => dmaAck.errorValue);    -- [out]
 
-   U_AxiStreamFifo_Status : entity work.AxiStreamFifoV2
+   U_AxiStreamFifo_Status : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          PIPE_STAGES_G       => 1,

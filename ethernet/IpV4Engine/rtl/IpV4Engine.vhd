@@ -16,9 +16,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.EthMacPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.EthMacPkg.all;
 
 entity IpV4Engine is
    generic (
@@ -89,7 +90,7 @@ architecture mapping of IpV4Engine is
 
 begin
 
-   U_EthFrameDeMux : entity work.IpV4EngineDeMux
+   U_EthFrameDeMux : entity surf.IpV4EngineDeMux
       generic map (
          TPD_G  => TPD_G,
          VLAN_G => VLAN_G)
@@ -108,7 +109,7 @@ begin
          clk          => clk,
          rst          => rst);
 
-   U_EthFrameMux : entity work.AxiStreamMux
+   U_EthFrameMux : entity surf.AxiStreamMux
       generic map (
          TPD_G        => TPD_G,
          NUM_SLAVES_G => 2)
@@ -126,7 +127,7 @@ begin
          mAxisSlave      => ibMacSlave);
 
    GEN_ARP : if (ARP_G = true) generate
-      U_ArpEngine : entity work.ArpEngine
+      U_ArpEngine : entity surf.ArpEngine
          generic map (
             TPD_G         => TPD_G,
             CLIENT_SIZE_G => CLIENT_SIZE_G,
@@ -159,7 +160,7 @@ begin
       obArpMaster   <= AXI_STREAM_MASTER_INIT_C;
    end generate;
 
-   U_IpV4EngineRx : entity work.IpV4EngineRx
+   U_IpV4EngineRx : entity surf.IpV4EngineRx
       generic map (
          TPD_G           => TPD_G,
          PROTOCOL_SIZE_G => (PROTOCOL_SIZE_G+1),
@@ -178,7 +179,7 @@ begin
          clk               => clk,
          rst               => rst);
 
-   U_IpV4EngineTx : entity work.IpV4EngineTx
+   U_IpV4EngineTx : entity surf.IpV4EngineTx
       generic map (
          TPD_G           => TPD_G,
          PROTOCOL_SIZE_G => (PROTOCOL_SIZE_G+1),
@@ -201,7 +202,7 @@ begin
          rst               => rst);
 
    GEN_ICMP : if (ICMP_G = true) generate
-      U_IcmpEngine : entity work.IcmpEngine
+      U_IcmpEngine : entity surf.IcmpEngine
          generic map (
             TPD_G => TPD_G)
          port map (

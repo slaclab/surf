@@ -18,10 +18,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.EthMacPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.EthMacPkg.all;
 
 entity UdpEngineWrapper is
    generic (
@@ -115,7 +116,7 @@ begin
    ------------------
    -- IPv4/ICMP/ARP Engine
    ------------------
-   IpV4Engine_Inst : entity work.IpV4Engine
+   IpV4Engine_Inst : entity surf.IpV4Engine
       generic map (
          TPD_G           => TPD_G,
          PROTOCOL_SIZE_G => 1,
@@ -151,7 +152,7 @@ begin
    -------------
    -- UDP Engine
    -------------
-   UdpEngine_Inst : entity work.UdpEngine
+   UdpEngine_Inst : entity surf.UdpEngine
       generic map (
          -- Simulation Generics
          TPD_G          => TPD_G,

@@ -16,7 +16,8 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 library UNISIM;
 use UNISIM.vcomponents.all;
@@ -49,7 +50,7 @@ architecture mapping of SaltDelayCtrl is
 
 begin
 
-   RstSync_Inst : entity work.RstSync
+   RstSync_Inst : entity surf.RstSync
       generic map (
          TPD_G         => TPD_G,
          BYPASS_SYNC_G => not REF_RST_SYNC_G)

@@ -72,9 +72,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.StdRtlPkg.all;
-use work.I2cPkg.all;
-use work.stdlib.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.I2cPkg.all;
+use surf.stdlib.all;
 
 
 entity I2cSlave is

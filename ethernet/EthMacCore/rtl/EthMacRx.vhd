@@ -18,9 +18,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.AxiStreamPkg.all;
-use work.StdRtlPkg.all;
-use work.EthMacPkg.all;
+library surf;
+use surf.AxiStreamPkg.all;
+use surf.StdRtlPkg.all;
+use surf.EthMacPkg.all;
 
 entity EthMacRx is
    generic (
@@ -84,7 +85,7 @@ begin
    -------------------
    -- RX Import Module
    -------------------
-   U_Import : entity work.EthMacRxImport
+   U_Import : entity surf.EthMacRxImport
       generic map (
          TPD_G      => TPD_G,
          PHY_TYPE_G => PHY_TYPE_G)
@@ -112,7 +113,7 @@ begin
    ------------------
    -- RX Pause Module
    ------------------
-   U_Pause : entity work.EthMacRxPause
+   U_Pause : entity surf.EthMacRxPause
       generic map (
          TPD_G       => TPD_G,
          PAUSE_EN_G  => PAUSE_EN_G,
@@ -135,7 +136,7 @@ begin
    ------------------------------
    -- RX Non-VLAN Checksum Module
    ------------------------------
-   U_Csum : entity work.EthMacRxCsum
+   U_Csum : entity surf.EthMacRxCsum
       generic map (
          TPD_G   => TPD_G,
          JUMBO_G => JUMBO_G,
@@ -158,7 +159,7 @@ begin
    GEN_VLAN : if (VLAN_EN_G = true) generate
       GEN_VEC :
       for i in (VLAN_SIZE_G-1) downto 0 generate
-         U_Csum : entity work.EthMacRxCsum
+         U_Csum : entity surf.EthMacRxCsum
             generic map (
                TPD_G   => TPD_G,
                JUMBO_G => JUMBO_G,
@@ -185,7 +186,7 @@ begin
    -------------------
    -- RX Bypass Module
    -------------------      
-   U_Bypass : entity work.EthMacRxBypass
+   U_Bypass : entity surf.EthMacRxBypass
       generic map (
          TPD_G          => TPD_G,
          BYP_EN_G       => BYP_EN_G,
@@ -204,7 +205,7 @@ begin
    -------------------
    -- RX Filter Module
    -------------------      
-   U_Filter : entity work.EthMacRxFilter
+   U_Filter : entity surf.EthMacRxFilter
       generic map (
          TPD_G     => TPD_G,
          FILT_EN_G => FILT_EN_G) 

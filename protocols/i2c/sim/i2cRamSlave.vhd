@@ -17,8 +17,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.StdRtlPkg.all;
-use work.i2cPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.i2cPkg.all;
 
 entity i2cRamSlave is
   
@@ -57,7 +58,7 @@ architecture rtl of i2cRamSlave is
 
 begin
 
-  i2cRegSlave_1 : entity work.i2cRegSlave
+  i2cRegSlave_1 : entity surf.i2cRegSlave
     generic map (
       TENBIT_G             => TENBIT_G,
       I2C_ADDR_G           => I2C_ADDR_G,

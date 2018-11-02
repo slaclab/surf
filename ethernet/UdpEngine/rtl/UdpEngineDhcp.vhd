@@ -18,10 +18,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.EthMacPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.EthMacPkg.all;
 
 entity UdpEngineDhcp is
    generic (
@@ -137,7 +138,7 @@ architecture rtl of UdpEngineDhcp is
 
 begin
 
-   FIFO_RX : entity work.AxiStreamFifoV2
+   FIFO_RX : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -558,7 +559,7 @@ begin
       end if;
    end process seq;
 
-   FIFO_TX : entity work.AxiStreamFifoV2
+   FIFO_TX : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,

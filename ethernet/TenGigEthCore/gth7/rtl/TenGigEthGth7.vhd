@@ -16,11 +16,12 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.TenGigEthPkg.all;
-use work.EthMacPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.TenGigEthPkg.all;
+use surf.EthMacPkg.all;
 
 entity TenGigEthGth7 is
    generic (
@@ -71,6 +72,58 @@ end TenGigEthGth7;
 
 architecture mapping of TenGigEthGth7 is
 
+   component TenGigEthGth7Core
+      port (
+         dclk                 : in  std_logic;
+         rxrecclk_out         : out std_logic;
+         coreclk              : in  std_logic;
+         txusrclk             : in  std_logic;
+         txusrclk2            : in  std_logic;
+         txoutclk             : out std_logic;
+         areset               : in  std_logic;
+         areset_coreclk       : in  std_logic;
+         gttxreset            : in  std_logic;
+         gtrxreset            : in  std_logic;
+         sim_speedup_control  : in  std_logic;
+         txuserrdy            : in  std_logic;
+         qplllock             : in  std_logic;
+         qplloutclk           : in  std_logic;
+         qplloutrefclk        : in  std_logic;
+         reset_counter_done   : in  std_logic;
+         xgmii_txd            : in  std_logic_vector (63 downto 0);
+         xgmii_txc            : in  std_logic_vector (7 downto 0);
+         xgmii_rxd            : out std_logic_vector (63 downto 0);
+         xgmii_rxc            : out std_logic_vector (7 downto 0);
+         txp                  : out std_logic;
+         txn                  : out std_logic;
+         rxp                  : in  std_logic;
+         rxn                  : in  std_logic;
+         configuration_vector : in  std_logic_vector (535 downto 0);
+         status_vector        : out std_logic_vector (447 downto 0);
+         core_status          : out std_logic_vector (7 downto 0);
+         tx_resetdone         : out std_logic;
+         rx_resetdone         : out std_logic;
+         signal_detect        : in  std_logic;
+         tx_fault             : in  std_logic;
+         drp_req              : out std_logic;
+         drp_gnt              : in  std_logic;
+         drp_den_o            : out std_logic;
+         drp_dwe_o            : out std_logic;
+         drp_daddr_o          : out std_logic_vector (15 downto 0);
+         drp_di_o             : out std_logic_vector (15 downto 0);
+         drp_drdy_i           : in  std_logic;
+         drp_drpdo_i          : in  std_logic_vector (15 downto 0);
+         drp_den_i            : in  std_logic;
+         drp_dwe_i            : in  std_logic;
+         drp_daddr_i          : in  std_logic_vector (15 downto 0);
+         drp_di_i             : in  std_logic_vector (15 downto 0);
+         drp_drdy_o           : out std_logic;
+         drp_drpdo_o          : out std_logic_vector (15 downto 0);
+         pma_pmd_type         : in  std_logic_vector (2 downto 0);
+         tx_disable           : out std_logic
+         );
+   end component;
+
    signal mAxiReadMaster  : AxiLiteReadMasterType;
    signal mAxiReadSlave   : AxiLiteReadSlaveType;
    signal mAxiWriteMaster : AxiLiteWriteMasterType;
@@ -114,7 +167,7 @@ begin
    ------------------
    -- Synchronization 
    ------------------
-   U_AxiLiteAsync : entity work.AxiLiteAsync
+   U_AxiLiteAsync : entity surf.AxiLiteAsync
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -135,7 +188,7 @@ begin
 
    txDisable <= status.txDisable;
 
-   U_Sync : entity work.SynchronizerVector
+   U_Sync : entity surf.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 3)
@@ -153,7 +206,7 @@ begin
    --------------------
    -- Ethernet MAC core
    --------------------
-   U_MAC : entity work.EthMacTop
+   U_MAC : entity surf.EthMacTop
       generic map (
          TPD_G           => TPD_G,
          PAUSE_EN_G      => PAUSE_EN_G,
@@ -183,7 +236,7 @@ begin
    -----------------
    -- 10GBASE-R core
    -----------------
-   U_TenGigEthGth7Core : entity work.TenGigEthGth7Core
+   U_TenGigEthGth7Core : TenGigEthGth7Core
       port map (
          -- Clocks and Resets
          rxrecclk_out         => open,
@@ -244,7 +297,7 @@ begin
    -------------------------------------
    -- 10GBASE-R's Reset Module
    -------------------------------------        
-   U_TenGigEthRst : entity work.TenGigEthRst
+   U_TenGigEthRst : entity surf.TenGigEthRst
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -280,7 +333,7 @@ begin
    --------------------------------     
    -- Configuration/Status Register   
    --------------------------------     
-   U_TenGigEthReg : entity work.TenGigEthReg
+   U_TenGigEthReg : entity surf.TenGigEthReg
       generic map (
          TPD_G        => TPD_G,
          EN_AXI_REG_G => EN_AXI_REG_G)

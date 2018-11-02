@@ -22,10 +22,11 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.TextUtilPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.TextUtilPkg.all;
 
-use work.MdioPkg.all;
+use surf.MdioPkg.all;
 
 entity MdioSeqCoreTb is
 end entity MdioSeqCoreTb;
@@ -110,7 +111,7 @@ begin
       end if;
    end process P_INI;
 
-   U_SLV : entity work.MdioSlv
+   U_SLV : entity surf.MdioSlv
       port map (
          mdc => mdc,
          mdi => mdiLoc,
@@ -129,7 +130,7 @@ begin
 
    mdi <= mdiLoc and mdo;
 
-   U_DUT : entity work.MdioSeqCore
+   U_DUT : entity surf.MdioSeqCore
       generic map (
          DIV_G        => 3,
          MDIO_PROG_G  => PROG_C

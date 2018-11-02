@@ -21,10 +21,11 @@ use ieee.std_logic_unsigned.all;
 library unisim;
 use unisim.vcomponents.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.EthMacPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.EthMacPkg.all;
 
 entity EthMacTb is
 end EthMacTb;
@@ -55,7 +56,7 @@ architecture testbed of EthMacTb is
 
 begin
 
-   ClkRst_Inst : entity work.ClkRst
+   ClkRst_Inst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
@@ -69,7 +70,7 @@ begin
    ----------
    -- PRBS TX
    ----------
-   U_TX : entity work.SsiPrbsTx
+   U_TX : entity surf.SsiPrbsTx
       generic map (
          TPD_G                      => TPD_G,
          CASCADE_SIZE_G             => 1,
@@ -92,7 +93,7 @@ begin
    ----------------------
    -- IPv4/ARP/UDP Engine
    ----------------------
-   U_UDP_Client : entity work.UdpEngineWrapper
+   U_UDP_Client : entity surf.UdpEngineWrapper
       generic map (
          TPD_G               => TPD_G,
          SERVER_EN_G         => false,
@@ -122,7 +123,7 @@ begin
    --------------------
    -- Ethernet MAC core
    --------------------
-   U_MAC0 : entity work.EthMacTop
+   U_MAC0 : entity surf.EthMacTop
       generic map (
          TPD_G         => TPD_G,
          PHY_TYPE_G    => "XGMII",
@@ -147,7 +148,7 @@ begin
          xgmiiTxc        => phyC(1));  
    ethConfig(0).macAddress <= MAC_ADDR_C(0);
 
-   U_MAC1 : entity work.EthMacTop
+   U_MAC1 : entity surf.EthMacTop
       generic map (
          TPD_G         => TPD_G,
          PHY_TYPE_G    => "XGMII",
@@ -175,7 +176,7 @@ begin
    ----------------------
    -- IPv4/ARP/UDP Engine
    ----------------------
-   U_UDP_Server : entity work.UdpEngineWrapper
+   U_UDP_Server : entity surf.UdpEngineWrapper
       generic map (
          TPD_G       => TPD_G,
          SERVER_EN_G => true,
@@ -201,7 +202,7 @@ begin
    ----------
    -- PRBS RX
    ----------
-   U_RX : entity work.SsiPrbsRx
+   U_RX : entity surf.SsiPrbsRx
       generic map (
          TPD_G                     => TPD_G,
          CASCADE_SIZE_G            => 1,

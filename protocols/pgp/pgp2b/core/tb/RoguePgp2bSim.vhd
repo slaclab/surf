@@ -22,9 +22,10 @@ use ieee.std_logic_unsigned.all;
 library unisim;
 use unisim.vcomponents.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.Pgp2bPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.Pgp2bPkg.all;
 
 
 entity RoguePgp2bSim is
@@ -74,7 +75,7 @@ begin
          IB => refClkM,
          O  => pgpClk);
 
-   PwrUpRst_Inst : entity work.PwrUpRst
+   PwrUpRst_Inst : entity surf.PwrUpRst
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '1',
@@ -97,7 +98,7 @@ begin
 
    -- If fixed late, create an internal clock to emulate recovered clock
    FIXED_LAT : if (FIXED_LAT_G) generate
-      U_ClkRst_1 : entity work.ClkRst
+      U_ClkRst_1 : entity surf.ClkRst
          generic map (
             CLK_PERIOD_G    => RX_CLK_PERIOD_C,
             CLK_DELAY_G     => 0.14159 ns,
@@ -112,7 +113,7 @@ begin
    end generate FIXED_LAT;
 
    GEN_AXIS_LANE : for i in NUM_VC_EN_G-1 downto 0 generate
-      U_RogueStreamSimWrap_PGP_VC : entity work.RogueStreamSimWrap
+      U_RogueStreamSimWrap_PGP_VC : entity surf.RogueStreamSimWrap
          generic map (
             TPD_G         => TPD_G,
             DEST_ID_G     => i,
@@ -131,7 +132,7 @@ begin
             mAxisSlave  => pgpRxSlaves(i));  -- [in]
    end generate GEN_AXIS_LANE;
 
-   U_RogueStreamSimWrap_OPCODE : entity work.RogueStreamSimWrap
+   U_RogueStreamSimWrap_OPCODE : entity surf.RogueStreamSimWrap
       generic map (
          TPD_G         => TPD_G,
          DEST_ID_G     => 4,

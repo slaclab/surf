@@ -20,8 +20,9 @@ use ieee.std_logic_1164.all;
 use IEEE.STD_LOGIC_UNSIGNED.all;
 use IEEE.STD_LOGIC_ARITH.all;
 
-use work.StdRtlPkg.all;
-use work.Code10b12bPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Code10b12bPkg.all;
 
 entity SspEncoder10b12b is
 
@@ -54,7 +55,7 @@ architecture rtl of SspEncoder10b12b is
 
 begin
 
-   SspFramer_1 : entity work.SspFramer
+   SspFramer_1 : entity surf.SspFramer
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => RST_POLARITY_G,
@@ -82,7 +83,7 @@ begin
          readyOut => readyInt,
          dataKOut => framedDataK);
 
-   Encoder10b12b_1 : entity work.Encoder10b12b
+   Encoder10b12b_1 : entity surf.Encoder10b12b
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,

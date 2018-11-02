@@ -78,7 +78,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 --library grlib;
-use work.stdlib.all;
+use surf.stdlib.all;
 
 entity i2c_master_byte_ctrl is
   generic (filter : integer; dynfilt : integer);

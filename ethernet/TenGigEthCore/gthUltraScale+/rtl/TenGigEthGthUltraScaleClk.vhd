@@ -16,7 +16,8 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -81,7 +82,7 @@ begin
    qpllReset(0) <= qpllRst(0) or coreRst;
    qpllReset(1) <= qpllRst(1) or coreRst;
 
-   GthUltraScaleQuadPll_Inst : entity work.GthUltraScaleQuadPll
+   GthUltraScaleQuadPll_Inst : entity surf.GthUltraScaleQuadPll
       generic map (
          -- Simulation Parameters
          TPD_G              => TPD_G,

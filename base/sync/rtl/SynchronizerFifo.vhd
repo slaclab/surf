@@ -18,7 +18,8 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SynchronizerFifo is
    generic (
@@ -57,7 +58,7 @@ begin
 
    GEN_ASYNC : if (COMMON_CLK_G = false) generate
 
-      FifoAsync_1 : entity work.FifoAsync
+      FifoAsync_1 : entity surf.FifoAsync
          generic map (
             TPD_G         => TPD_G,
             BRAM_EN_G     => BRAM_EN_G,

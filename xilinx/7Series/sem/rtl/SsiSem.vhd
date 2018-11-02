@@ -18,12 +18,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.TextUtilPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.SemPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.TextUtilPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.SemPkg.all;
 
 entity SsiSem is
    generic (
@@ -110,7 +111,7 @@ begin
    ------------------------------   
    --  Soft Error Mitigation Core
    ------------------------------   
-   U_Sem : entity work.SemWrapper
+   U_Sem : entity surf.SemWrapper
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -124,7 +125,7 @@ begin
    ------------------------
    -- Sync the Module index
    ------------------------
-   U_SyncFifo : entity work.SynchronizerFifo
+   U_SyncFifo : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_AXIL_CLK_G,
@@ -141,7 +142,7 @@ begin
    -------------------------------------
    -- Synchronize AXI-Lite bus to semClk
    -------------------------------------
-   U_AxiLiteAsync : entity work.AxiLiteAsync
+   U_AxiLiteAsync : entity surf.AxiLiteAsync
       generic map (
          TPD_G            => TPD_G,
          COMMON_CLK_G     => COMMON_AXIL_CLK_G)
@@ -162,7 +163,7 @@ begin
    ---------------------------------
    -- Synchronize AXIS bus to semClk
    ---------------------------------
-   U_TxFifo : entity work.AxiStreamFifoV2
+   U_TxFifo : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => false,
@@ -186,7 +187,7 @@ begin
          mAxisMaster => semObAxisMaster,
          mAxisSlave  => semObAxisSlave);
 
-   U_RxFifo : entity work.AxiStreamFifoV2
+   U_RxFifo : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => true,

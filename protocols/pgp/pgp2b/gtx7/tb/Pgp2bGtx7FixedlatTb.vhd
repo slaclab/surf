@@ -160,7 +160,7 @@ begin
          axilWriteSlave   => axilWriteSlave);   -- [out]
 
    
---    U_ClkRst_1 : entity work.ClkRst
+--    U_ClkRst_1 : entity surf.ClkRst
 --       generic map (
 --          CLK_PERIOD_G      => 10 ns,
 --          CLK_DELAY_G       => 1 ns,

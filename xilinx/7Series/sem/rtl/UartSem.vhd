@@ -18,8 +18,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.SemPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.SemPkg.all;
 
 entity UartSem is
    generic (
@@ -60,7 +61,7 @@ begin
    ------------------------------   
    --  Soft Error Mitigation Core
    ------------------------------   
-   U_Sem : entity work.SemWrapper
+   U_Sem : entity surf.SemWrapper
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -80,7 +81,7 @@ begin
    --------------------
    --  UART Serdes Core
    --------------------
-   U_Uart : entity work.UartWrapper
+   U_Uart : entity surf.UartWrapper
       generic map (
          TPD_G             => TPD_G,
          CLK_FREQ_G        => CLK_FREQ_G,

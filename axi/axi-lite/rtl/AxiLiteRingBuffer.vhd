@@ -18,8 +18,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiLiteRingBuffer is
    generic (
@@ -109,7 +110,7 @@ begin
    ----------------------
    -- Instantiate the RAM
    ----------------------
-   DualPortRam_1 : entity work.DualPortRam
+   DualPortRam_1 : entity surf.DualPortRam
       generic map (
          TPD_G        => TPD_G,
          BRAM_EN_G    => BRAM_EN_G,
@@ -133,7 +134,7 @@ begin
    -------------------------------
    -- Synchronize AXI registers to data clock dataClk
    -------------------------------
-   Synchronizer_bufferEn : entity work.Synchronizer
+   Synchronizer_bufferEn : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -142,7 +143,7 @@ begin
          dataIn  => axilR.bufferEnable,
          dataOut => axilBufferEnable);
 
-   Synchronizer_bufferClear : entity work.SynchronizerOneShot
+   Synchronizer_bufferClear : entity surf.SynchronizerOneShot
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -206,7 +207,7 @@ begin
    -----------------------------------------------------
    -- Synchronize write address across to AXI-Lite clock
    -----------------------------------------------------
-   SynchronizerFifo_1 : entity work.SynchronizerFifo
+   SynchronizerFifo_1 : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => RAM_ADDR_WIDTH_G)
@@ -217,7 +218,7 @@ begin
          rd_clk => axilClk,
          dout   => axilFirstAddr);
 
-   SynchronizerFifo_2 : entity work.SynchronizerFifo
+   SynchronizerFifo_2 : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => RAM_ADDR_WIDTH_G)
@@ -228,7 +229,7 @@ begin
          rd_clk => axilClk,
          dout   => axilLength);   
 
-   Synchronizer_dataBufferEn : entity work.Synchronizer
+   Synchronizer_dataBufferEn : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -237,7 +238,7 @@ begin
          dataIn  => bufferEnable,
          dataOut => extBufferEnable);
 
-   Synchronizer_dataBufferClr : entity work.Synchronizer
+   Synchronizer_dataBufferClr : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (

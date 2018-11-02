@@ -19,8 +19,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.I2cPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.I2cPkg.all;
 
 entity I2cRegMaster is
    
@@ -102,7 +103,7 @@ architecture rtl of I2cRegMaster is
 
 begin
 
-   i2cMaster_1 : entity work.I2cMaster
+   i2cMaster_1 : entity surf.I2cMaster
       generic map (
          TPD_G                => TPD_G,
          OUTPUT_EN_POLARITY_G => OUTPUT_EN_POLARITY_G,

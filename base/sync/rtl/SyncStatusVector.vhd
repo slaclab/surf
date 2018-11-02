@@ -18,7 +18,8 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SyncStatusVector is
    generic (
@@ -109,7 +110,7 @@ architecture rtl of SyncStatusVector is
    
 begin
 
-   SyncVec_Inst : entity work.SynchronizerVector
+   SyncVec_Inst : entity surf.SynchronizerVector
       generic map (
          TPD_G         => TPD_G,
          BYPASS_SYNC_G => COMMON_CLK_G,
@@ -120,7 +121,7 @@ begin
          dataIn  => statusIn,
          dataOut => statusOut);
 
-   SyncOneShotCntVec_Inst : entity work.SynchronizerOneShotCntVector
+   SyncOneShotCntVec_Inst : entity surf.SynchronizerOneShotCntVector
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => RST_POLARITY_G,

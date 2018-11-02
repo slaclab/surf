@@ -17,8 +17,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.SsiCmdMasterPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.SsiCmdMasterPkg.all;
 
 entity SsiCmdMasterPulser is
    generic (

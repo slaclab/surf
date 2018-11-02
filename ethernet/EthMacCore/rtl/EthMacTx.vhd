@@ -18,9 +18,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.AxiStreamPkg.all;
-use work.StdRtlPkg.all;
-use work.EthMacPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.StdRtlPkg.all;
+use surf.EthMacPkg.all;
 
 entity EthMacTx is
    generic (
@@ -90,7 +92,7 @@ begin
    -------------------
    -- TX Bypass Module
    -------------------
-   U_Bypass : entity work.EthMacTxBypass
+   U_Bypass : entity surf.EthMacTxBypass
       generic map (
          TPD_G    => TPD_G,
          BYP_EN_G => BYP_EN_G) 
@@ -111,7 +113,7 @@ begin
    ------------------------------
    -- TX Non-VLAN Checksum Module
    ------------------------------
-   U_Csum : entity work.EthMacTxCsum
+   U_Csum : entity surf.EthMacTxCsum
       generic map (
          TPD_G          => TPD_G,
          DROP_ERR_PKT_G => DROP_ERR_PKT_G,
@@ -138,7 +140,7 @@ begin
    GEN_VLAN : if (VLAN_EN_G = true) generate
       GEN_VEC :
       for i in (VLAN_SIZE_G-1) downto 0 generate
-         U_Csum : entity work.EthMacTxCsum
+         U_Csum : entity surf.EthMacTxCsum
             generic map (
                TPD_G          => TPD_G,
                DROP_ERR_PKT_G => DROP_ERR_PKT_G,
@@ -170,7 +172,7 @@ begin
    ------------------
    -- TX Pause Module
    ------------------
-   U_Pause : entity work.EthMacTxPause
+   U_Pause : entity surf.EthMacTxPause
       generic map (
          TPD_G           => TPD_G,
          PAUSE_EN_G      => PAUSE_EN_G,
@@ -204,7 +206,7 @@ begin
    -----------------------
    -- TX MAC Export Module 
    -----------------------
-   U_Export : entity work.EthMacTxExport
+   U_Export : entity surf.EthMacTxExport
       generic map (
          TPD_G      => TPD_G,
          PHY_TYPE_G => PHY_TYPE_G)

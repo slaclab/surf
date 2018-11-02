@@ -18,10 +18,11 @@ LIBRARY ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
-use work.Pgp2bPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity Pgp2bTx is 
    generic (
@@ -339,7 +340,7 @@ begin
       crcTxInAdjust(7 downto 0)  <= crcTxIn(31 downto 24);
    end generate CRC_TX_2xLANE;
 
-   Tx_CRC : entity work.CRC32Rtl
+   Tx_CRC : entity surf.CRC32Rtl
       generic map(
          CRC_INIT => x"FFFFFFFF")
       port map(

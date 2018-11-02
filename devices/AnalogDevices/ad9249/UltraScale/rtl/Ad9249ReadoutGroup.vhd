@@ -24,10 +24,11 @@ use ieee.std_logic_unsigned.all;
 library UNISIM;
 use UNISIM.vcomponents.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.Ad9249Pkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.Ad9249Pkg.all;
 
 entity Ad9249ReadoutGroup is
    generic (
@@ -171,7 +172,7 @@ begin
    -- Synchronize adcR.locked across to axil clock domain and count falling edges on it
    -------------------------------------------------------------------------------------------------
 
-   SynchronizerOneShotCnt_1 : entity work.SynchronizerOneShotCnt
+   SynchronizerOneShotCnt_1 : entity surf.SynchronizerOneShotCnt
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
@@ -189,7 +190,7 @@ begin
          rdClk      => axilClk,
          rdRst      => axilRst);
 
-   Synchronizer_1 : entity work.Synchronizer
+   Synchronizer_1 : entity surf.Synchronizer
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => 2)
@@ -199,7 +200,7 @@ begin
          dataIn  => adcR.locked,
          dataOut => lockedSync);
 
-   SynchronizerVec_1 : entity work.SynchronizerVector
+   SynchronizerVec_1 : entity surf.SynchronizerVector
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => 2,
@@ -308,7 +309,7 @@ begin
       ------------------------------------------
       -- clkIn     : 350.00 MHz PGP
       -- clkOut(0) : 350.00 MHz adcBitClkIo clock
-      U_iserdesClockGen : entity work.ClockManagerUltraScale
+      U_iserdesClockGen : entity surf.ClockManagerUltraScale
          generic map(
             TPD_G                  => 1 ns,
             TYPE_G                 => "MMCM",  -- or "PLL"
@@ -352,7 +353,7 @@ begin
             O => adcBitClkIo,
             I => tmpAdcClk);
       
-      U_PwrUpRst : entity work.PwrUpRst
+      U_PwrUpRst : entity surf.PwrUpRst
          generic map (
             TPD_G          => TPD_G,
             SIM_SPEEDUP_G  => SIM_SPEEDUP_G,
@@ -399,7 +400,7 @@ begin
          CLR => '0');
 
    -- Regional clock reset
-   ADC_BITCLK_RST_SYNC : entity work.RstSync
+   ADC_BITCLK_RST_SYNC : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          RELEASE_DELAY_G => 5)
@@ -411,7 +412,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Deserializers
    -------------------------------------------------------------------------------------------------
-   U_FRAME_DESERIALIZER : entity work.Ad9249Deserializer
+   U_FRAME_DESERIALIZER : entity surf.Ad9249Deserializer
       generic map (
          TPD_G             => TPD_G,
          IODELAY_GROUP_G   => "DEFAULT_GROUP",
@@ -435,7 +436,7 @@ begin
          adcData       => adcFrame
          );
    
-   U_FrmDlyFifo : entity work.SynchronizerFifo
+   U_FrmDlyFifo : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          BRAM_EN_G    => false,
@@ -460,7 +461,7 @@ begin
       signal dataDelay    : slv9Array(NUM_CHANNELS_G-1 downto 0);
    begin
 
-      U_DATA_DESERIALIZER : entity work.Ad9249Deserializer
+      U_DATA_DESERIALIZER : entity surf.Ad9249Deserializer
          generic map (
             TPD_G             => TPD_G,
             IODELAY_GROUP_G   => "DEFAULT_GROUP",
@@ -485,7 +486,7 @@ begin
             );
       
       
-      U_DataDlyFifo : entity work.SynchronizerFifo
+      U_DataDlyFifo : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
             BRAM_EN_G    => false,
@@ -574,7 +575,7 @@ begin
    end generate;
 
    -- Single fifo to synchronize adc data to the Stream clock
-   U_DataFifo : entity work.SynchronizerFifo
+   U_DataFifo : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          BRAM_EN_G    => false,
@@ -591,7 +592,7 @@ begin
          valid  => fifoDataValid,
          dout   => fifoDataOut);
 
-   U_DataFifoDebug : entity work.SynchronizerFifo
+   U_DataFifoDebug : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          BRAM_EN_G    => false,

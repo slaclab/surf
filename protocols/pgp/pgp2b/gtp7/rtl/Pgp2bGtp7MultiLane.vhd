@@ -17,10 +17,11 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.Pgp2bPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
 
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
@@ -182,7 +183,7 @@ begin
    gtRxUserResetIn <= gtRxUserReset or pgpRxReset;
    gtTxUserResetIn <= pgpTxReset;
 
-   U_Pgp2bLane : entity work.Pgp2bLane
+   U_Pgp2bLane : entity surf.Pgp2bLane
       generic map (
          TPD_G             => TPD_G,
          LANE_CNT_G        => 1,
@@ -226,7 +227,7 @@ begin
          rxChBondIn(i) <= rxChBondOut(i-1);
       end generate Bond_Slaves;
 
-      Gtp7Core_Inst : entity work.Gtp7Core
+      Gtp7Core_Inst : entity surf.Gtp7Core
          generic map (
             TPD_G                    => TPD_G,
             SIM_GTRESET_SPEEDUP_G    => SIM_GTRESET_SPEEDUP_G,
@@ -372,7 +373,7 @@ begin
             drpDi            => drpDi(i),
             drpDo            => drpDo(i));            
 
-      U_AxiLiteToDrp : entity work.AxiLiteToDrp
+      U_AxiLiteToDrp : entity surf.AxiLiteToDrp
          generic map (
             TPD_G            => TPD_G,
             COMMON_CLK_G     => COMMON_CLK_G,
@@ -402,7 +403,7 @@ begin
    end generate GTP7_CORE_GEN;
 
    GEN_RST : if (COMMON_CLK_G = false) generate   
-      U_RstSync : entity work.RstSync
+      U_RstSync : entity surf.RstSync
          generic map (
             TPD_G => TPD_G)      
          port map (

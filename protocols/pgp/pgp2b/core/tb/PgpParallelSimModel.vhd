@@ -16,9 +16,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.Pgp2bPkg.all;
-use work.AxiStreamPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.AxiStreamPkg.all;
 
 entity PgpParallelSimModel is
    generic (
@@ -78,7 +79,7 @@ architecture mapping of PgpParallelSimModel is
    
 begin
 
-   U_CableDelay : entity work.SlvDelay
+   U_CableDelay : entity surf.SlvDelay
       generic map (
          TPD_G   => TPD_G,
          DELAY_G => CABLE_DELAY_C,
@@ -88,7 +89,7 @@ begin
          din  => pgpIn,
          dout => pgpInDly); 
 
-   U_RxSerDelay : entity work.SlvDelay
+   U_RxSerDelay : entity surf.SlvDelay
       generic map (
          TPD_G   => TPD_G,
          DELAY_G => RX_SER_DELAY_C,
@@ -98,7 +99,7 @@ begin
          din  => pgpInDly,
          dout => dataIn);                 
 
-   U_Decoder8b10b : entity work.Decoder8b10b
+   U_Decoder8b10b : entity surf.Decoder8b10b
       generic map (
          TPD_G       => TPD_G,
          NUM_BYTES_G => 2)
@@ -114,7 +115,7 @@ begin
    phyTxReady <= not(rst);
    phyRxReady <= not(rst);
 
-   U_Pgp2bLane : entity work.Pgp2bLane
+   U_Pgp2bLane : entity surf.Pgp2bLane
       generic map (
          TPD_G             => TPD_G,
          LANE_CNT_G        => 1,
@@ -144,7 +145,7 @@ begin
          phyRxReady       => phyRxReady,
          phyRxInit        => open);
 
-   U_Encoder8b10b : entity work.Encoder8b10b
+   U_Encoder8b10b : entity surf.Encoder8b10b
       generic map (
          TPD_G       => TPD_G,
          NUM_BYTES_G => 2)
@@ -155,7 +156,7 @@ begin
          dataKIn => phyTxLanesOut(0).dataK,
          dataOut => dataOut);
 
-   U_TxSerDelay : entity work.SlvDelay
+   U_TxSerDelay : entity surf.SlvDelay
       generic map (
          TPD_G   => TPD_G,
          DELAY_G => TX_SER_DELAY_C,

@@ -17,7 +17,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity FifoMux is
    generic (
@@ -187,7 +188,7 @@ begin
    -------------
    -- Module reset should be driven by wr_clk
    -- Must synchronize it over to the rd_clk
-   RstSync_RdRst : entity work.RstSync
+   RstSync_RdRst : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => RST_POLARITY_G,
@@ -255,7 +256,7 @@ begin
    --------
    -- Fifo
    --------
-   FifoCascade_Inst : entity work.FifoCascade
+   FifoCascade_Inst : entity surf.FifoCascade
       generic map (
          TPD_G              => TPD_G,
          CASCADE_SIZE_G     => CASCADE_SIZE_G,
