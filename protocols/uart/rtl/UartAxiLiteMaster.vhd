@@ -22,7 +22,6 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.TextUtilPkg.all;
 use work.AxiLitePkg.all;
-use work.AxiLiteMasterPkg.all;
 
 entity UartAxiLiteMaster is
 
@@ -65,7 +64,7 @@ architecture rtl of UartAxiLiteMaster is
    type RegType is record
       state       : StateType;
       count       : slv(2 downto 0);
-      axilReq     : AxiLiteMasterReqType;
+      axilReq     : AxiLiteReqType;
       rdData      : slv(31 downto 0);
       uartTxData  : slv(7 downto 0);
       uartTxValid : sl;
@@ -75,7 +74,7 @@ architecture rtl of UartAxiLiteMaster is
    constant REG_INIT_C : RegType := (
       state       => WAIT_START_S,
       count       => (others => '0'),
-      axilReq     => AXI_LITE_MASTER_REQ_INIT_C,
+      axilReq     => AXI_LITE_REQ_INIT_C,
       rdData      => (others => '0'),
       uartTxData  => (others => '0'),
       uartTxValid => '0',
@@ -84,8 +83,8 @@ architecture rtl of UartAxiLiteMaster is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
---   signal axilReq : AxiLiteMasterReqType;
-   signal axilAck : AxiLiteMasterAckType;
+--   signal axilReq : AxiLiteReqType;
+   signal axilAck : AxiLiteAckType;
 
    signal uartRxData  : slv(7 downto 0);
    signal uartRxValid : sl;

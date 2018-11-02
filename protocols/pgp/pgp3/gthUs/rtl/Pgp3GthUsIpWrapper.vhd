@@ -61,7 +61,6 @@ entity Pgp3GthUsIpWrapper is
       txUsrClkRst    : out sl;
       txData         : in  slv(63 downto 0);
       txHeader       : in  slv(1 downto 0);
-      txSequence     : in  slv(5 downto 0);
       txOutClk       : out sl;
       loopback       : in  slv(2 downto 0);
 

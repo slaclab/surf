@@ -45,6 +45,7 @@ package AxiDmaPkg is
       drop    : sl;
       address : slv(63 downto 0);
       maxSize : slv(31 downto 0);
+      prot    : slv(2 downto 0);
    end record;
 
    -- Initialization constants
@@ -52,8 +53,8 @@ package AxiDmaPkg is
       request => '0',
       drop    => '0',
       address => (others=>'0'),
-      maxSize => (others=>'0')
-   );
+      maxSize => (others=>'0'),
+      prot    => (others=>'0'));
 
    -- Array
    type AxiWriteDmaReqArray is array (natural range<>) of AxiWriteDmaReqType;
@@ -106,6 +107,7 @@ package AxiDmaPkg is
       lastUser  : slv(7 downto 0);
       dest      : slv(7 downto 0);
       id        : slv(7 downto 0);
+      prot      : slv(2 downto 0);
    end record;
 
    -- Initialization constants
@@ -116,8 +118,8 @@ package AxiDmaPkg is
       firstUser => (others=>'0'),
       lastUser  => (others=>'0'),
       dest      => (others=>'0'),
-      id        => (others=>'0')
-   );
+      id        => (others=>'0'),
+      prot      => (others=>'0'));
 
    -- Array
    type AxiReadDmaReqArray is array (natural range<>) of AxiReadDmaReqType;
@@ -182,7 +184,7 @@ package AxiDmaPkg is
       dropEn     : sl;              
       maxSize    : slv(31 downto 0);
       contEn     : sl;              
-      buffId     : slv(15 downto 0);
+      buffId     : slv(31 downto 0);
    end record;
 
    constant AXI_WRITE_DMA_DESC_ACK_INIT_C : AxiWriteDmaDescAckType := ( 
@@ -196,7 +198,7 @@ package AxiDmaPkg is
 
    type AxiWriteDmaDescAckArray is array (natural range<>) of AxiWriteDmaDescAckType;
 
-   constant AXI_WRITE_DMA_DESC_ACK_SIZE_C : integer := 114;
+   constant AXI_WRITE_DMA_DESC_ACK_SIZE_C : integer := 130;
 
    function toSlv (r : AxiWriteDmaDescAckType ) return slv;
    function toAxiWriteDmaDescAck (din : slv; valid : sl) return AxiWriteDmaDescAckType;
@@ -208,14 +210,14 @@ package AxiDmaPkg is
 
    type AxiWriteDmaDescRetType is record
       valid      : sl;
-      buffId     : slv(15 downto 0); 
+      buffId     : slv(31 downto 0); 
       firstUser  : slv(7  downto 0);
       lastUser   : slv(7  downto 0);
       size       : slv(31 downto 0);
       continue   : sl;
       result     : slv(2  downto 0);
       dest       : slv(7  downto 0);
-      id         : slv(7  downto 0);
+      id         : slv(7  downto 0); -- TID
    end record;
 
    constant AXI_WRITE_DMA_DESC_RET_INIT_C : AxiWriteDmaDescRetType := ( 
@@ -232,7 +234,7 @@ package AxiDmaPkg is
 
    type AxiWriteDmaDescRetArray is array (natural range<>) of AxiWriteDmaDescRetType;
 
-   constant AXI_WRITE_DMA_DESC_RET_SIZE_C : integer := 84;
+   constant AXI_WRITE_DMA_DESC_RET_SIZE_C : integer := 100;
 
    function toSlv (r : AxiWriteDmaDescRetType ) return slv;
    function toAxiWriteDmaDescRet (din : slv; valid : sl) return AxiWriteDmaDescRetType;
@@ -251,8 +253,8 @@ package AxiDmaPkg is
       firstUser  : slv(7 downto 0);  
       contEn     : sl;
       dropEn     : sl;
-      id         : slv(7  downto 0);
-      buffId     : slv(15 downto 0);
+      id         : slv(7  downto 0); -- TID
+      buffId     : slv(31 downto 0);
       overflow   : sl;
    end record;
 
@@ -272,7 +274,7 @@ package AxiDmaPkg is
 
    type AxiWriteDmaTrackArray is array (natural range<>) of AxiWriteDmaTrackType;
 
-   constant AXI_WRITE_DMA_TRACK_SIZE_C : integer := 172;
+   constant AXI_WRITE_DMA_TRACK_SIZE_C : integer := 188;
 
    function toSlv (r : AxiWriteDmaTrackType ) return slv;
    function toAxiWriteDmaTrack (din : slv ) return AxiWriteDmaTrackType;
@@ -285,7 +287,7 @@ package AxiDmaPkg is
    type AxiReadDmaDescReqType is record
       valid      : sl;
       address    : slv(63 downto 0);
-      buffId     : slv(15 downto 0); 
+      buffId     : slv(31 downto 0); 
       firstUser  : slv(7  downto 0);
       lastUser   : slv(7  downto 0);
       size       : slv(31 downto 0);
@@ -302,13 +304,13 @@ package AxiDmaPkg is
       lastUser   => (others=>'0'),
       size       => (others=>'0'),
       continue   => '0',
-      id         => (others=>'0'),
+      id         => (others=>'0'), -- TID
       dest       => (others=>'0')
    );
 
    type AxiReadDmaDescReqArray is array (natural range<>) of AxiReadDmaDescReqType;
 
-   constant AXI_READ_DMA_DESC_REQ_SIZE_C : integer := 145;
+   constant AXI_READ_DMA_DESC_REQ_SIZE_C : integer := 161;
 
    function toSlv (r : AxiReadDmaDescReqType ) return slv;
    function toAxiReadDmaDescReq (din : slv; valid : sl) return AxiReadDmaDescReqType;
@@ -320,7 +322,7 @@ package AxiDmaPkg is
 
    type AxiReadDmaDescRetType is record
       valid      : sl;
-      buffId     : slv(15 downto 0); 
+      buffId     : slv(31 downto 0); 
       result     : slv(2  downto 0);
    end record;
 
@@ -332,7 +334,7 @@ package AxiDmaPkg is
 
    type AxiReadDmaDescRetArray is array (natural range<>) of AxiReadDmaDescRetType;
 
-   constant AXI_READ_DMA_DESC_RET_SIZE_C : integer := 19;
+   constant AXI_READ_DMA_DESC_RET_SIZE_C : integer := 35;
 
    function toSlv (r : AxiReadDmaDescRetType ) return slv;
    function toAxiReadDmaDescRet (din : slv; valid : sl) return AxiReadDmaDescRetType;

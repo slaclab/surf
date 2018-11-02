@@ -120,6 +120,7 @@ begin
       generic map (
          -- General Configurations
          TPD_G                      => TPD_C,
+         AXI_EN_G                   => '0',
          -- FIFO configurations
          CASCADE_SIZE_G             => CASCADE_SIZE_C,
          FIFO_ADDR_WIDTH_G          => FIFO_ADDR_WIDTH_C,

@@ -93,6 +93,7 @@ architecture rtl of SrpV3AxiLite is
       hdrCnt           : slv(3 downto 0);
       remVer           : slv(7 downto 0);
       opCode           : slv(1 downto 0);
+      prot             : slv(2 downto 0);
       timeoutSize      : slv(7 downto 0);
       timeoutCnt       : slv(7 downto 0);
       tid              : slv(31 downto 0);
@@ -122,6 +123,7 @@ architecture rtl of SrpV3AxiLite is
       hdrCnt           => (others => '0'),
       remVer           => (others => '0'),
       opCode           => (others => '0'),
+      prot             => (others => '0'),
       timeoutSize      => (others => '0'),
       timeoutCnt       => (others => '0'),
       tid              => (others => '0'),
@@ -342,6 +344,7 @@ begin
                   v.remVer         := rxMaster.tData(7 downto 0);
                   v.opCode         := rxMaster.tData(9 downto 8);
                   v.ignoreMemResp  := rxMaster.tData(14);
+                  v.prot           := rxMaster.tData(23 downto 21);
                   v.timeoutSize    := rxMaster.tData(31 downto 24);
                   -- Reset other header fields
                   v.tid            := (others => '0');
@@ -465,7 +468,8 @@ begin
                      v.txMaster.tData(12)           := '0';  -- WriteEn:         0 = write operations are not supported
                      v.txMaster.tData(13)           := '0';  -- ReadEn:          0 = read operations are not supported
                      v.txMaster.tData(14)           := r.ignoreMemResp;
-                     v.txMaster.tData(23 downto 15) := (others => '0');  -- Reserved
+                     v.txMaster.tData(20 downto 15) := (others => '0');  -- Reserved
+                     v.txMaster.tData(23 downto 21) := r.prot;
                      v.txMaster.tData(31 downto 24) := r.timeoutSize;
                   when x"1" => v.txMaster.tData(31 downto 0) := r.tid(31 downto 0);
                   when x"2" => v.txMaster.tData(31 downto 0) := r.addr(31 downto 0);
@@ -570,6 +574,8 @@ begin
                -- Start AXI-Lite transaction
                v.mAxilReadMaster.arvalid := '1';
                v.mAxilReadMaster.rready  := '1';
+               -- Update the Protection control
+               v.mAxilReadMaster.arprot  := r.prot;                
                -- Reset the timer
                v.timer                   := 0;
                v.timeoutCnt              := (others => '0');
@@ -675,6 +681,8 @@ begin
                   v.mAxilWriteMaster.awvalid    := '1';
                   v.mAxilWriteMaster.wvalid     := '1';
                   v.mAxilWriteMaster.bready     := '1';
+                  -- Update the Protection control
+                  v.mAxilWriteMaster.awprot     := r.prot;                   
                   -- Reset the timer
                   v.timer                       := 0;
                   v.timeoutCnt                  := (others => '0');

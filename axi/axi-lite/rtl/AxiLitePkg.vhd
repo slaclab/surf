@@ -204,6 +204,33 @@ package AxiLitePkg is
       axiWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C,
       axiStatus      => AXI_LITE_STATUS_INIT_C);
 
+   ----------------------------------------------------------------------------------
+   -- Constants for endpoint abstractions (migrated from legacy AxiLiteMasterPkg.vhd)
+   ----------------------------------------------------------------------------------
+   type AxiLiteReqType is record
+      request   : sl;
+      rnw     : sl;
+      address : slv(31 downto 0);
+      wrData  : slv(31 downto 0);
+   end record AxiLiteReqType;
+
+   constant AXI_LITE_REQ_INIT_C : AxiLiteReqType := (
+      request   => '0',
+      rnw     => '1',
+      address => (others => '0'),
+      wrData  => (others => '0'));
+
+   type AxiLiteAckType is record
+      done  : sl;
+      resp   : slv(1 downto 0);
+      rdData : slv(31 downto 0);
+   end record AxiLiteAckType;
+
+   constant AXI_LITE_ACK_INIT_C : AxiLiteAckType := (
+      done  => '0',
+      resp   => (others => '0'),
+      rdData => (others => '0'));      
+      
    -------------------------------------------------------------------------------------------------
    -- Crossbar Config Generic Types
    -------------------------------------------------------------------------------------------------
@@ -280,7 +307,7 @@ package AxiLitePkg is
       offset                 : in    integer;
       reg                    : inout slv;
       constAssign            : in    boolean := false;
-      constVal               : in    slv     := "0");      
+      constVal               : in    slv     := "0");
 
    procedure axiSlaveRegister (
       signal axiReadMaster  : in    AxiLiteReadMasterType;
@@ -342,7 +369,7 @@ package AxiLitePkg is
       addr        : in    slv;
       offset      : in    integer;
       reg         : inout slv;
-      constVal    : in    slv := "X");      
+      constVal    : in    slv := "X");
 
    procedure axiSlaveRegisterR (
       variable ep : inout AxiLiteEndpointType;
@@ -442,9 +469,9 @@ package body AxiLitePkg is
       return AxiLiteWriteSlaveType is
    begin
       return (awready => '1',
-              wready => '1',
-              bresp => bresp,
-              bvalid => '1');
+              wready  => '1',
+              bresp   => bresp,
+              bvalid  => '1');
    end function axiLiteWriteSlaveEmptyInit;
 
    function axiReadMasterInit (constant config : AxiLiteCrossbarMasterConfigType) return AxiLiteReadMasterType is
@@ -767,7 +794,9 @@ package body AxiLitePkg is
       variable regTmp : slv(reg'length-1 downto 0);
    begin
       regTmp := reg;
-      axiSlaveRegister(ep, addr, offset, regTmp, "X");
+      if (ep.axiStatus.readEnable = '1') then
+         axiSlaveRegister(ep, addr, offset, regTmp, "X");
+      end if;
    end procedure;
 
    procedure axiSlaveRegister (
@@ -871,7 +900,7 @@ package body AxiLitePkg is
       variable retConf : AxiLiteCrossbarMasterConfigArray(num-1 downto 0);
       variable addr    : slv(31 downto 0);
    begin
-      
+
       -------------------------------------------------------------------------------------------
       -- Note: These asserts only work in synthesis (not simulation)
       -- https://forums.xilinx.com/t5/Synthesis/VHDL-assert-statement-within-function/td-p/413463
@@ -879,20 +908,20 @@ package body AxiLitePkg is
 
       -- Compare the baseBot to addrBits
       assert (baseBot > addrBits)
-         report "AxiLitePkg.genAxiLiteConfig(): (baseBot > addrBits) condition not meet" 
-         & lf & "num      = "   & integer'image(num) 
+         report "AxiLitePkg.genAxiLiteConfig(): (baseBot > addrBits) condition not meet"
+         & lf & "num      = " & integer'image(num)
          & lf & "base     = 0x" & hstr(base)
-         & lf & "baseBot  = "   & integer'image(baseBot)
-         & lf & "addrBits = "   & integer'image(addrBits)
+         & lf & "baseBot  = " & integer'image(baseBot)
+         & lf & "addrBits = " & integer'image(addrBits)
          severity error;
 
       -- Check that there is enough bits for the number of buses
       assert (2**(baseBot-addrBits) >= num)
-         report "AxiLitePkg.genAxiLiteConfig(): (2**(baseBot-addrBits) >= num) condition not meet" 
-         & lf & "num      = "   & integer'image(num) 
+         report "AxiLitePkg.genAxiLiteConfig(): (2**(baseBot-addrBits) >= num) condition not meet"
+         & lf & "num      = " & integer'image(num)
          & lf & "base     = 0x" & hstr(base)
-         & lf & "baseBot  = "   & integer'image(baseBot)
-         & lf & "addrBits = "   & integer'image(addrBits)
+         & lf & "baseBot  = " & integer'image(baseBot)
+         & lf & "addrBits = " & integer'image(addrBits)
          severity error;
 
       -------------------------------------------------------------------------------------------

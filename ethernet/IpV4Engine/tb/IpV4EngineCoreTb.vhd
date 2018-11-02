@@ -281,7 +281,7 @@ begin
                         end if;
                      end loop;
                      -- Check for errors
-                     if (v.tKeep /= ibProtocolMaster.tKeep) then
+                     if (v.tKeep(15 downto 0) /= ibProtocolMaster.tKeep(15 downto 0)) then
                         v.failed(4) := '1';
                      end if;
                      -- Check the counter
@@ -296,7 +296,7 @@ begin
                         v.failed(5) := '1';
                      end if;
                      -- Check for full word transfer and full size
-                     if (ibProtocolMaster.tKeep = x"FFFF") and (r.rxWordCnt = 255) then
+                     if (ibProtocolMaster.tKeep(15 downto 0) = x"FFFF") and (r.rxWordCnt = 255) then
                         -- Next state
                         v.state := DONE_S;
                      end if;

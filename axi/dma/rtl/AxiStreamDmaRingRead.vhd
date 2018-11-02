@@ -22,7 +22,6 @@ use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
 use work.AxiLitePkg.all;
-use work.AxiLiteMasterPkg.all;
 use work.AxiPkg.all;
 use work.AxiDmaPkg.all;
 use work.AxiStreamDmaRingPkg.all;
@@ -90,7 +89,7 @@ architecture rtl of AxiStreamDmaRingRead is
       endAddr        : slv(63 downto 0);
       mode           : slv(31 downto 0);
       state          : StateType;
-      axilReq        : AxiLiteMasterReqType;
+      axilReq        : AxiLiteReqType;
       dmaReq         : AxiReadDmaReqType;
       intStatusSlave : AxiStreamSlaveType;
    end record RegType;
@@ -100,7 +99,7 @@ architecture rtl of AxiStreamDmaRingRead is
       endAddr        => (others => '0'),
       mode           => (others => '0'),
       state          => START_LOW_S,
-      axilReq        => AXI_LITE_MASTER_REQ_INIT_C,
+      axilReq        => AXI_LITE_REQ_INIT_C,
       dmaReq         => AXI_READ_DMA_REQ_INIT_C,
       intStatusSlave => AXI_STREAM_SLAVE_INIT_C);
 
@@ -109,7 +108,7 @@ architecture rtl of AxiStreamDmaRingRead is
 
    signal intStatusMaster : AxiStreamMasterType;
 
-   signal axilAck : AxiLiteMasterAckType;
+   signal axilAck : AxiLiteAckType;
    signal dmaAck  : AxiReadDmaAckType;
 
 

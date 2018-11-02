@@ -262,7 +262,7 @@ begin
       end if;
 
       -- Count number of bytes in return data
-      bytes := getTKeep(intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0));
+      bytes := getTKeep(intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0),LOC_AXIS_CONFIG_C);
 
       -- Check the AXI stream data cache
       if (lastDet = '1') or (cache.pause = '1') then
@@ -322,6 +322,8 @@ begin
                      v.wMaster.awlen := resize(r.dmaReq.maxSize(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C)-1, 8);
                   end if;
                end if;
+               -- Update the Protection control
+               v.wMaster.awprot := r.dmaReq.prot;
                -- Latch AXI awlen value
                v.awlen     := v.wMaster.awlen(AXI_CONFIG_G.LEN_BITS_C-1 downto 0);
                -- Update the threshold

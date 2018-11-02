@@ -49,8 +49,8 @@ entity Pgp3GthUs is
       TX_MUX_TDEST_LOW_G          : integer range 0 to 7  := 0;
       TX_MUX_ILEAVE_EN_G          : boolean               := true;
       TX_MUX_ILEAVE_ON_NOTVALID_G : boolean               := true;
-      EN_DRP_G                    : boolean               := true;
-      EN_PGP_MON_G                : boolean               := true;
+      EN_DRP_G                    : boolean               := false;
+      EN_PGP_MON_G                : boolean               := false;
       TX_POLARITY_G               : sl                    := '0';
       RX_POLARITY_G               : sl                    := '0';
       AXIL_BASE_ADDR_G            : slv(31 downto 0)      := (others => '0');
@@ -119,7 +119,6 @@ architecture rtl of Pgp3GthUs is
 --   signal gtTxUserReset : sl;
    signal phyTxActive   : sl;
    signal phyTxStart    : sl;
-   signal phyTxSequence : slv(5 downto 0);
    signal phyTxData     : slv(63 downto 0);
    signal phyTxHeader   : slv(1 downto 0);
 
@@ -225,7 +224,6 @@ begin
          phyTxActive     => phyTxActive,                         -- [in]
          phyTxReady      => '1',                                 -- [in]
          phyTxStart      => phyTxStart,                          -- [out]
-         phyTxSequence   => phyTxSequence,                       -- [out]
          phyTxData       => phyTxData,                           -- [out]
          phyTxHeader     => phyTxHeader,                         -- [out]
          -- Rx User interface
@@ -297,7 +295,6 @@ begin
          txUsrClkRst     => pgpTxRstInt,                         -- [out]
          txData          => phyTxData,                           -- [in]
          txHeader        => phyTxHeader,                         -- [in]
-         txSequence      => phyTxSequence,                       -- [in]
          txOutClk        => open,                                -- [out]
          loopback        => loopback,                            -- [in]
          axilClk         => axilClk,                             -- [in]

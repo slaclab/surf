@@ -41,6 +41,8 @@ class Lmk04828(pr.Device):
             hidden      = hidden,
             expand      = expand,
         )
+        
+        self.sysrefMode = 2 # 2 pulse sysref mode, 3 continuouse sysref mode
 
         ##############################
         # Variables
@@ -1368,7 +1370,7 @@ class Lmk04828(pr.Device):
 
         @self.command(description="Powerup the sysref lines",)
         def PwrUpSysRef():
-            self.EnableSysRef.set(2) # 2 pulse sysref mode, 3 continuouse sysref mode
+            self.EnableSysRef.set(self.sysrefMode)
             self.LmkReg_0x0143.set(0x12)
             self.LmkReg_0x0143.set(0x32)
             self.LmkReg_0x0143.set(0x12)
@@ -1383,6 +1385,7 @@ class Lmk04828(pr.Device):
 
         @self.command(description="Synchronize LMK internal counters. Warning this function will power off and power on all the system clocks",)
         def Init():
+            self.sysrefMode = self.EnableSysRef.get()
             self.LmkReg_0x0139.set(0x0)
             self.LmkReg_0x0143.set(0x11)
             self.LmkReg_0x0140.set(0x0)

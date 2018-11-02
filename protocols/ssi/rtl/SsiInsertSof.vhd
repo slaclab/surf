@@ -25,7 +25,7 @@ use work.SsiPkg.all;
 entity SsiInsertSof is
    generic (
       TPD_G               : time                := 1 ns;
-      TUSER_MASK_G        : slv(127 downto 0)   := (others => '1');  -- '1' = masked off bit
+      TUSER_MASK_G        : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0)   := (others => '1');  -- '1' = masked off bit
       COMMON_CLK_G        : boolean             := false;  -- True if sAxisClk and mAxisClk are the same clock
       INSERT_USER_HDR_G   : boolean             := false;  -- If True the module adds one user header word (mUserHdr = user header data)
       SLAVE_FIFO_G        : boolean             := true;
@@ -42,7 +42,7 @@ entity SsiInsertSof is
       -- Master Port
       mAxisClk    : in  sl;
       mAxisRst    : in  sl;
-      mUserHdr    : in  slv(127 downto 0) := (others => '0');
+      mUserHdr    : in  slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := (others => '0');
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType);      
 end SsiInsertSof;
@@ -134,7 +134,7 @@ begin
                   -- Move the data
                   v.txMaster       := rxMaster;
                   -- Mask off the TUSER bits
-                  for i in 127 downto 0 loop
+                  for i in AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0 loop
                      if TUSER_MASK_G(i) = '1' then
                         v.txMaster.tUser(i) := '0';
                      end if;
@@ -167,7 +167,7 @@ begin
                -- Move the data
                v.txMaster       := rxMaster;
                -- Mask off the TUSER bits
-               for i in 127 downto 0 loop
+               for i in AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0 loop
                   if TUSER_MASK_G(i) = '1' then
                      v.txMaster.tUser(i) := '0';
                   end if;
