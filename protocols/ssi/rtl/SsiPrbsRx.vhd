@@ -41,7 +41,7 @@ entity SsiPrbsRx is
       FIFO_ADDR_WIDTH_G          : positive                 := 9;
       FIFO_PAUSE_THRESH_G        : positive                 := 2**8;
       -- PRBS Config
-      PRBS_SEED_SIZE_G           : positive range 32 to 128 := 32;
+      PRBS_SEED_SIZE_G           : positive range 32 to 256 := 32;
       PRBS_TAPS_G                : NaturalArray             := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
       -- AXI Stream IO Config
       SLAVE_AXI_STREAM_CONFIG_G  : AxiStreamConfigType      := ssiAxiStreamConfig(4);
@@ -198,7 +198,7 @@ architecture rtl of SsiPrbsRx is
 
 begin
 
-   assert ((PRBS_SEED_SIZE_G = 32) or (PRBS_SEED_SIZE_G = 64) or (PRBS_SEED_SIZE_G = 128)) report "PRBS_SEED_SIZE_G must be either [32,64,128]" severity failure;
+   assert ((PRBS_SEED_SIZE_G = 32) or (PRBS_SEED_SIZE_G = 64) or (PRBS_SEED_SIZE_G = 128) or (PRBS_SEED_SIZE_G = 256)) report "PRBS_SEED_SIZE_G must be either [32,64,128,256]" severity failure;
 
    sAxisCtrl <= axisCtrl(0);
 
@@ -346,6 +346,8 @@ begin
                   end if;
                   -- Reset the counter
                   v.dataCnt := (others => '0');
+                  -- Update strobe for the results
+                  v.updatedResults := '1';                  
                   -- Next State
                   v.state   := IDLE_S;
                elsif r.dataCnt /= MAX_CNT_C then
@@ -389,6 +391,8 @@ begin
                v.bitPntr := (others => '0');
                -- Check if there was an eof flag
                if r.eof = '1' then
+                  -- Update strobe for the results
+                  v.updatedResults := '1';
                   -- Next State
                   v.state := IDLE_S;
                else
@@ -399,18 +403,8 @@ begin
       ----------------------------------------------------------------------
       end case;
 
-      -- Combinatorial Outputs
-      rxAxisSlave <= v.rxAxisSlave;
-
-      -- Reset
-      if (sAxisRst = '1') then
-         v := REG_INIT_C;
-      end if;
-
-      -- Register the variable for next clock cycle
-      rin <= v;
-
       -- Outputs
+      rxAxisSlave     <= v.rxAxisSlave;
       updatedResults  <= r.updatedResults;
       errMissedPacket <= r.errMissedPacket;
       errLength       <= r.errLength;
@@ -422,6 +416,14 @@ begin
       busy            <= r.busy;
       packetLength    <= r.packetLength;
       errorDet        <= r.errorDet;
+
+      -- Reset
+      if (sAxisRst = '1') then
+         v := REG_INIT_C;
+      end if;
+
+      -- Register the variable for next clock cycle
+      rin <= v;
 
    end process comb;
 

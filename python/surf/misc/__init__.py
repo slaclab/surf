@@ -8,4 +8,4 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
-from surf.misc._mcsreader import *
+from surf.misc._McsReader import *

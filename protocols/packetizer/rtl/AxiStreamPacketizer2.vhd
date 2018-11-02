@@ -17,8 +17,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
@@ -28,7 +27,7 @@ use work.AxiStreamPacketizer2Pkg.all;
 entity AxiStreamPacketizer2 is
    generic (
       TPD_G                : time             := 1 ns;
-      MEMORY_TYPE_G        : string           := "distributed"; 
+      BRAM_EN_G            : boolean          := false;
       CRC_MODE_G           : string           := "DATA";  -- or "NONE" or "FULL"
       CRC_POLY_G           : slv(31 downto 0) := x"04C11DB7";
       MAX_PACKET_BYTES_G   : positive         := 256*8;  -- Must be a multiple of 8
@@ -41,6 +40,8 @@ entity AxiStreamPacketizer2 is
       axisRst     : in  sl;
       -- Status for phase locking externally
       rearbitrate : out sl;
+      -- Actual byte count; will be truncated to multiple of word-size
+      maxPktBytes : in  slv(bitSize(MAX_PACKET_BYTES_G) - 1 downto 0) := toSlv(MAX_PACKET_BYTES_G, bitSize(MAX_PACKET_BYTES_G));
       -- AXIS Interfaces
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
@@ -50,8 +51,14 @@ end entity AxiStreamPacketizer2;
 
 architecture rtl of AxiStreamPacketizer2 is
 
-   constant BRAM_EN_C        : boolean  := (MEMORY_TYPE_G/="distributed");
-   constant MAX_WORD_COUNT_C : positive := (MAX_PACKET_BYTES_G / 8) - 3;
+
+   constant LD_WORD_SIZE_C   : positive := 3;
+   constant WORD_SIZE_C      : positive := 2**LD_WORD_SIZE_C;
+
+   subtype  WordCounterType  is unsigned(maxPktBytes'left - LD_WORD_SIZE_C downto 0);
+
+   constant PROTO_WORDS_C    : positive := 3;
+   constant MAX_WORD_COUNT_C : WordCounterType := to_unsigned(MAX_PACKET_BYTES_G / WORD_SIZE_C, WordCounterType'length);
    constant CRC_EN_C         : boolean  := (CRC_MODE_G /= "NONE");
    constant CRC_HEAD_TAIL_C  : boolean  := (CRC_MODE_G = "FULL");
    constant ADDR_WIDTH_C     : positive := ite((TDEST_BITS_G = 0), 1, TDEST_BITS_G);
@@ -68,7 +75,8 @@ architecture rtl of AxiStreamPacketizer2 is
       packetActive     : sl;
       activeTDest      : slv(ADDR_WIDTH_C-1 downto 0);
       ramWe            : sl;
-      wordCount        : slv(bitSize(MAX_WORD_COUNT_C)-1 downto 0);
+      wordCount        : WordCounterType;
+      maxWords         : WordCounterType;
       eof              : sl;
       lastByteCount    : slv(3 downto 0);
       tUserLast        : slv(7 downto 0);
@@ -91,6 +99,7 @@ architecture rtl of AxiStreamPacketizer2 is
       activeTDest      => (others => '0'),
       ramWe            => '0',
       wordCount        => (others => '0'),
+      maxWords         => (0 => '1', others => '0'),
       eof              => '0',
       lastByteCount    => "1000",
       tUserLast        => (others => '0'),
@@ -122,6 +131,8 @@ architecture rtl of AxiStreamPacketizer2 is
    signal crcOut : slv(31 downto 0) := (others => '0');
    signal crcRem : slv(31 downto 0) := (others => '1');
 
+   signal maxWords           : WordCounterType;
+
    -- attribute dont_touch                     : string;
    -- attribute dont_touch of r                : signal is "TRUE";
    -- attribute dont_touch of crcOut           : signal is "TRUE";
@@ -134,14 +145,16 @@ architecture rtl of AxiStreamPacketizer2 is
 
 begin
 
-   assert ((MAX_PACKET_BYTES_G rem 8) = 0)
-      report "MAX_PACKET_BYTES_G must be a multiple of 8" severity error;
+   assert ((MAX_PACKET_BYTES_G rem WORD_SIZE_C) = 0)
+      report "MAX_PACKET_BYTES_G must be a multiple of " & integer'image(WORD_SIZE_C) severity error;
 
    assert ((CRC_MODE_G = "NONE") or (CRC_MODE_G = "DATA") or (CRC_MODE_G = "FULL"))
       report "CRC_MODE_G must be NONE or DATA or FULL" severity error;
 
    assert (TDEST_BITS_G <= 8)
       report "TDEST_BITS_G must be less than or equal to 8" severity error;
+
+   maxWords <= WordCounterType(maxPktBytes(maxPktBytes'left downto LD_WORD_SIZE_C));
 
    -----------------
    -- Input pipeline
@@ -165,7 +178,7 @@ begin
    U_DualPortRam_1 : entity work.DualPortRam
       generic map (
          TPD_G        => TPD_G,
-         MEMORY_TYPE_G=> MEMORY_TYPE_G,
+         BRAM_EN_G    => BRAM_EN_G,
          REG_EN_G     => false,
          DOA_REG_G    => false,
          DOB_REG_G    => false,
@@ -196,7 +209,7 @@ begin
             generic map (
                TPD_G            => TPD_G,
                INPUT_REGISTER_G => false,
-               BYTE_WIDTH_G     => 8,
+               BYTE_WIDTH_G     => WORD_SIZE_C,
                CRC_INIT_G       => X"FFFFFFFF")
             port map (
                crcOut       => crcOut,
@@ -214,7 +227,7 @@ begin
             generic map (
                TPD_G            => TPD_G,
                INPUT_REGISTER_G => false,
-               BYTE_WIDTH_G     => 8,
+               BYTE_WIDTH_G     => WORD_SIZE_C,
                CRC_INIT_G       => X"FFFFFFFF",
                CRC_POLY_G       => CRC_POLY_G)
             port map (
@@ -231,9 +244,10 @@ begin
    end generate;
 
    comb : process (axisRst, crcOut, crcRem, inputAxisMaster, outputAxisSlave,
-                   r, ramCrcRem, ramPacketActiveOut, ramPacketSeqOut) is
+                   r, ramCrcRem, ramPacketActiveOut, ramPacketSeqOut, maxWords) is
       variable v     : RegType;
       variable tdest : slv(7 downto 0);
+      variable fits  : boolean;
    begin
       -- Latch the current value
       v := r;
@@ -271,7 +285,7 @@ begin
             -- Reset the word counter
             v.wordCount     := (others => '0');
             -- Set default tlast.tkeep (8 Bytes)
-            v.lastByteCount := "1000";
+            v.lastByteCount := slv(to_unsigned(WORD_SIZE_C, bitSize(WORD_SIZE_C)));
             -- Pre-load the CRC with the interim remainder 
             v.crcInit       := ramCrcRem;
             -- Reset the CRC (which pre-loads it with crcInit)
@@ -279,8 +293,23 @@ begin
             -- Use header in CRC if enabled
             v.crcDataValid  := toSl(CRC_HEAD_TAIL_C);
 
+            -- Check and register the max. word count
+            -- NOTE: wordCount is compared only after incrementing
+            --       (and doing some work in MOVE_S), thus at least
+            --       one non-protocol word  must fit.
+            if ( maxWords <= to_unsigned(PROTO_WORDS_C, maxWords'length) ) then
+               fits := false;
+            else
+               fits := true;
+               if ( maxWords >= MAX_WORD_COUNT_C ) then
+                  v.maxWords := MAX_WORD_COUNT_C - PROTO_WORDS_C;
+               else
+                  v.maxWords := maxWords - PROTO_WORDS_C;
+               end if;
+            end if;
+
             -- Check if ready to move data
-            if (inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
+            if (fits and inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
                tdest                          := x"00";
                tdest(ADDR_WIDTH_C-1 downto 0) := inputAxisMaster.tDest(ADDR_WIDTH_C-1 downto 0);
                v.outputAxisMaster :=
@@ -300,7 +329,7 @@ begin
                end if;
 
                -- Increment the sequence counter
-               v.packetSeq    := ramPacketSeqOut + 1;
+               v.packetSeq    := slv(unsigned(ramPacketSeqOut) + 1);
                -- Set the flag
                v.packetActive := '1';
                -- Latch the current TDEST for TDEST change detection in next state
@@ -327,7 +356,7 @@ begin
                v.wordCount := r.wordCount + 1;
 
                -- Reach max packet size. Append tail.
-               if (r.wordCount = MAX_WORD_COUNT_C) then
+               if (r.wordCount = r.maxWords) then
                   -- Next state
                   v.state := TAIL_S;
                end if;
@@ -353,7 +382,7 @@ begin
                   v.packetActive           := '0';
                   v.tUserLast              := inputAxisMaster.tUser(7 downto 0);
                   v.eof                    := '1';
-                  v.lastByteCount          := toSlv(getTKeep(inputAxisMaster.tKeep(7 downto 0)), 4);
+                  v.lastByteCount          := toSlv(getTKeep(inputAxisMaster.tKeep(7 downto 0),PACKETIZER2_AXIS_CFG_C), 4);
                   v.outputAxisMaster.tLast := '0';
                   -- Next state
                   v.state                  := TAIL_S;
@@ -396,7 +425,7 @@ begin
                   v.eof       := '0';
                   v.tUserLast := (others => '0');
                   -- Check for BRAM used
-                  if (BRAM_EN_C) then
+                  if (BRAM_EN_G) then
                      -- Next state (1 cycle read latency)
                      v.state := IDLE_S;
                   else
@@ -409,7 +438,7 @@ begin
       end case;
 
       -- Always a 64-bit transfer
-      v.outputAxisMaster.tKeep := x"00FF";
+      v.outputAxisMaster.tKeep(7 downto 0) := x"FF";
       v.outputAxisMaster.tStrb := v.outputAxisMaster.tKeep;
 
       if (r.state /= TAIL_S) then
