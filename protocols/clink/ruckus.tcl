@@ -10,10 +10,10 @@ if {  ${family} == "artix7" ||
       ${family} == "zynq" } {
                          
    # Load Source Code
-   loadSource -dir "$::DIR_PATH/hdl/"
+   loadSource -lib surf -dir "$::DIR_PATH/hdl/"
 
    # Load Simulation
-   loadSource -sim_only -dir "$::DIR_PATH/sim/"
+   loadSource -lib surf -sim_only -dir "$::DIR_PATH/sim/"
 
 }
 

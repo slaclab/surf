@@ -4,16 +4,16 @@ source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 # Load Source Code
 if { $::env(VIVADO_VERSION) >= 2016.4 } {
 
-   loadSource -dir  "$::DIR_PATH/rtl"
+   loadSource -lib surf -dir  "$::DIR_PATH/rtl"
    
-   loadSource -path "$::DIR_PATH/ip/SaltUltraScaleCore.dcp"
-   # loadIpCore -path "$::DIR_PATH/ip/SaltUltraScaleCore.xci"
+   # loadIpCore -lib surf -path "$::DIR_PATH/ip/SaltUltraScaleCore.xci"
+   loadSource -lib surf -path "$::DIR_PATH/ip/SaltUltraScaleCore.dcp"
    
-   loadSource -path "$::DIR_PATH/images/SaltUltraScaleRxOnly.dcp"
-   loadSource -path "$::DIR_PATH/images/SaltUltraScaleTxOnly.dcp"
+   loadSource -lib surf -path "$::DIR_PATH/images/SaltUltraScaleRxOnly.dcp"
+   loadSource -lib surf -path "$::DIR_PATH/images/SaltUltraScaleTxOnly.dcp"
 
    # Load Simulation
-   loadSource -sim_only -dir "$::DIR_PATH/tb/"
+   loadSource -lib surf -sim_only -dir "$::DIR_PATH/tb/"
    
 } else {
    puts "\n\nWARNING: $::DIR_PATH requires Vivado 2016.4 (or later)\n\n"
