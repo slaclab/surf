@@ -24,10 +24,10 @@ import click
 
 class Si5345(pr.Device):
     def __init__(self,       
-            name         = "Si5345",
-            description  = "Si5345",
-            simpleDisply = True,
-            advanceUser  = False,
+            name          = "Si5345",
+            description   = "Si5345",
+            simpleDisplay = True,
+            advanceUser   = False,
             **kwargs):
         super().__init__(name=name, description=description, size=(0x1000<<2), **kwargs)
         
@@ -80,21 +80,21 @@ class Si5345(pr.Device):
         ##############################
         # Devices
         ##############################
-        self.add(Si5345Page0(offset=0x0,simpleDisply=simpleDisply,expand=False))
-        self.add(Si5345Page1(offset=0x0,simpleDisply=simpleDisply,expand=False,hidden=advanceUser))
-        self.add(Si5345Page2(offset=0x0,simpleDisply=simpleDisply,expand=False,hidden=advanceUser))
-        self.add(Si5345Page3(offset=0x0,simpleDisply=simpleDisply,expand=False,hidden=advanceUser))
-        self.add(Si5345Page4(offset=0x0,simpleDisply=simpleDisply,expand=False,hidden=advanceUser))
-        self.add(Si5345Page5(offset=0x0,simpleDisply=simpleDisply,expand=False,hidden=advanceUser))
-        self.add(Si5345Page9(offset=0x0,simpleDisply=simpleDisply,expand=False,hidden=advanceUser))
-        self.add(Si5345PageA(offset=0x0,simpleDisply=simpleDisply,expand=False,hidden=advanceUser))
-        self.add(Si5345PageB(offset=0x0,simpleDisply=simpleDisply,expand=False,hidden=advanceUser))
+        self.add(Si5345Page0(offset=0x0,simpleDisplay=simpleDisplay,expand=False))
+        self.add(Si5345Page1(offset=0x0,simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
+        self.add(Si5345Page2(offset=0x0,simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
+        self.add(Si5345Page3(offset=0x0,simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
+        self.add(Si5345Page4(offset=0x0,simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
+        self.add(Si5345Page5(offset=0x0,simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
+        self.add(Si5345Page9(offset=0x0,simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
+        self.add(Si5345PageA(offset=0x0,simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
+        self.add(Si5345PageB(offset=0x0,simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
         
 class Si5345Page0(pr.Device):
     def __init__(self,       
             name         = "Page0",
             description  = "Alarms, interrupts, reset, other configuration",
-            simpleDisply = True,
+            simpleDisplay = True,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)       
         
@@ -192,7 +192,7 @@ class Si5345Page0(pr.Device):
             offset      = (0x000B << 2),
             bitSize     = 7,
             mode        = 'RO',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))      
 
         self.add(pr.RemoteVariable(
@@ -236,7 +236,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 5,
             mode        = 'RO',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         )) 
 
         self.add(pr.RemoteVariable(
@@ -341,7 +341,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 5,
             mode        = 'RO',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))  
 
         self.add(pr.RemoteVariable(
@@ -400,7 +400,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 1,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))     
 
         self.add(pr.RemoteVariable(
@@ -411,7 +411,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 0,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))   
 
         self.add(pr.RemoteVariable(
@@ -422,7 +422,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 1,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))   
 
         self.add(pr.RemoteVariable(
@@ -433,7 +433,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 5,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))  
 
         self.add(pr.RemoteVariable(
@@ -455,7 +455,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 4,
             bitOffset   = 0,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))    
 
         self.add(pr.RemoteVariable(
@@ -465,7 +465,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 4,
             bitOffset   = 4,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))   
 
         self.add(pr.RemoteVariable(
@@ -476,7 +476,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 1,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))  
 
         self.add(pr.RemoteVariable(
@@ -487,7 +487,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 5,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         )) 
 
         self.add(pr.RemoteVariable(
@@ -498,7 +498,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 5,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))         
 
         self.add(pr.RemoteCommand(  
@@ -528,7 +528,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 0,
             function    = pr.BaseCommand.toggle,
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         )) 
         
         self.add(pr.RemoteCommand(  
@@ -538,7 +538,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 1,
             function    = pr.BaseCommand.toggle,
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))          
 
         self.add(pr.RemoteVariable(
@@ -578,7 +578,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 3,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         )) 
         
         self.add(pr.RemoteVariable(
@@ -589,7 +589,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 5,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))    
 
         self.add(pr.RemoteVariable(
@@ -634,7 +634,7 @@ class Si5345Page0(pr.Device):
                 offset      = ((0x002E+(2*i)) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-                hidden      = simpleDisply,
+                hidden      = simpleDisplay,
             ))  
             self.add(pr.RemoteVariable(
                 name        = f'LOS_TRG_THR_HI[{i}]',              
@@ -642,7 +642,7 @@ class Si5345Page0(pr.Device):
                 offset      = ((0x002F+(2*i)) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-                hidden      = simpleDisply,
+                hidden      = simpleDisplay,
             ))  
    
 
@@ -653,7 +653,7 @@ class Si5345Page0(pr.Device):
                 offset      = ((0x0036+(2*i)) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-                hidden      = simpleDisply,
+                hidden      = simpleDisplay,
             ))  
 
             self.add(pr.RemoteVariable(
@@ -662,7 +662,7 @@ class Si5345Page0(pr.Device):
                 offset      = ((0x0037+(2*i)) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-                hidden      = simpleDisply,
+                hidden      = simpleDisplay,
             ))  
            
 
@@ -706,7 +706,7 @@ class Si5345Page0(pr.Device):
                 offset      = ((0x0041+i) << 2),
                 bitSize     = 5,
                 mode        = 'RW',
-                hidden      = simpleDisply,
+                hidden      = simpleDisplay,
             ))         
 
         self.add(pr.RemoteVariable(
@@ -715,7 +715,7 @@ class Si5345Page0(pr.Device):
             offset      = (0x0045 << 2),
             bitSize     = 5,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))         
             
         for i in range(4):        
@@ -725,7 +725,7 @@ class Si5345Page0(pr.Device):
                 offset      = ((0x0046+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-                hidden      = simpleDisply,
+                hidden      = simpleDisplay,
             ))    
 
         for i in range(4):        
@@ -735,7 +735,7 @@ class Si5345Page0(pr.Device):
                 offset      = ((0x004A+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-                hidden      = simpleDisply,
+                hidden      = simpleDisplay,
             ))                
         
         self.add(pr.RemoteVariable(
@@ -745,7 +745,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 3,
             bitOffset   = 0,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         )) 
 
         self.add(pr.RemoteVariable(
@@ -755,7 +755,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 3,
             bitOffset   = 4,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -765,7 +765,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 3,
             bitOffset   = 0,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -775,7 +775,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 3,
             bitOffset   = 4,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))      
         
         self.add(pr.RemoteVariable(
@@ -785,7 +785,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 4,
             bitOffset   = 0,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))       
         
         for i in range(4):        
@@ -795,7 +795,7 @@ class Si5345Page0(pr.Device):
                 offset      = ((0x0051+i) << 2),
                 bitSize     = 4,
                 mode        = 'RW',
-                hidden      = simpleDisply,
+                hidden      = simpleDisplay,
             ))   
 
         for i in range(4):        
@@ -805,7 +805,7 @@ class Si5345Page0(pr.Device):
                 offset      = ((0x0055+i) << 2),
                 bitSize     = 4,
                 mode        = 'RW',
-                hidden      = simpleDisply,
+                hidden      = simpleDisplay,
             ))               
             
         for i in range(4):
@@ -816,7 +816,7 @@ class Si5345Page0(pr.Device):
                 bitSize     = 2, 
                 bitOffset   = (2*i),   
                 mode        = 'RW',
-                hidden      = simpleDisply,
+                hidden      = simpleDisplay,
             ))           
                 
         for i in range(4):
@@ -826,7 +826,7 @@ class Si5345Page0(pr.Device):
                 offset      = ((0x005A+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-                hidden      = simpleDisply,
+                hidden      = simpleDisplay,
             ))
 
         for i in range(4):
@@ -836,7 +836,7 @@ class Si5345Page0(pr.Device):
                 offset      = ((0x005E+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-                hidden      = simpleDisply,
+                hidden      = simpleDisplay,
             ))
 
         for i in range(4):
@@ -846,7 +846,7 @@ class Si5345Page0(pr.Device):
                 offset      = ((0x0062+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-                hidden      = simpleDisply,
+                hidden      = simpleDisplay,
             ))
 
         for i in range(4):
@@ -856,7 +856,7 @@ class Si5345Page0(pr.Device):
                 offset      = ((0x0066+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-                hidden      = simpleDisply,
+                hidden      = simpleDisplay,
             ))           
             
         self.add(pr.RemoteVariable(
@@ -876,7 +876,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 4,
             bitOffset   = 4,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))     
 
         self.add(pr.RemoteVariable(
@@ -886,7 +886,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 2,
             bitOffset   = 2,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))  
 
         self.add(pr.RemoteVariable(
@@ -896,7 +896,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 4,
             bitOffset   = 4,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         )) 
 
         self.add(pr.RemoteVariable(
@@ -906,7 +906,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 4,
             bitOffset   = 4,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         )) 
 
         self.add(pr.RemoteVariable(
@@ -935,7 +935,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 2,
             bitOffset   = 2,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))          
         
         self.add(pr.RemoteVariable(
@@ -999,7 +999,7 @@ class Si5345Page0(pr.Device):
                 offset      = ((0x00A9+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-                hidden      = simpleDisply,
+                hidden      = simpleDisplay,
             )) 
 
         self.add(pr.RemoteVariable(
@@ -1053,7 +1053,7 @@ class Si5345Page0(pr.Device):
                 offset      = ((0x00EA+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-                hidden      = simpleDisply,
+                hidden      = simpleDisplay,
             ))
 
         self.add(pr.RemoteVariable(
@@ -1064,7 +1064,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 0,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))
         
         self.add(pr.RemoteVariable(
@@ -1075,7 +1075,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 1,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         )) 
 
         self.add(pr.RemoteVariable(
@@ -1086,7 +1086,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 2,
             mode        = 'RO',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))   
 
         self.add(pr.RemoteVariable(
@@ -1097,7 +1097,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 0,
             mode        = 'RO',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -1108,7 +1108,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 1,
             mode        = 'RO',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -1119,7 +1119,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 2,
             mode        = 'RO',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -1130,7 +1130,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 4,
             mode        = 'RO',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -1141,7 +1141,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 5,
             mode        = 'RO',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -1151,7 +1151,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 4,
             bitOffset   = 0,
             mode        = 'RO',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -1161,7 +1161,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 4,
             bitOffset   = 4,
             mode        = 'RO',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))
         
         self.add(pr.RemoteVariable(
@@ -1172,7 +1172,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 1,
             mode        = 'RO',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -1183,7 +1183,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 1,
             bitOffset   = 5,
             mode        = 'RO',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         )) 
 
         self.add(pr.RemoteVariable(
@@ -1199,7 +1199,7 @@ class Si5345Page1(pr.Device):
     def __init__(self,       
             name         = "Page1",
             description  = "Clock output configuration",
-            simpleDisply = True,
+            simpleDisplay = True,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)  
         
@@ -1382,7 +1382,7 @@ class Si5345Page1(pr.Device):
             bitSize     = 8,
             bitOffset   = 0,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))   
 
         self.add(pr.RemoteVariable(
@@ -1392,7 +1392,7 @@ class Si5345Page1(pr.Device):
             bitSize     = 4,
             bitOffset   = 0,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         )) 
 
         self.add(pr.RemoteVariable(
@@ -1403,7 +1403,7 @@ class Si5345Page1(pr.Device):
             bitSize     = 1,
             bitOffset   = 1,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         )) 
 
         self.add(pr.RemoteVariable(
@@ -1414,7 +1414,7 @@ class Si5345Page1(pr.Device):
             bitSize     = 1,
             bitOffset   = 5,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -1435,7 +1435,7 @@ class Si5345Page1(pr.Device):
             bitSize     = 1,
             bitOffset   = 7,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))    
 
         self.add(pr.RemoteVariable(
@@ -1456,7 +1456,7 @@ class Si5345Page1(pr.Device):
             bitSize     = 1,
             bitOffset   = 5,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -1473,7 +1473,7 @@ class Si5345Page2(pr.Device):
     def __init__(self,       
             name         = "Page2",
             description  = "P,R dividers, scratch area",
-            simpleDisply = True,
+            simpleDisplay = True,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)              
             
@@ -1722,7 +1722,7 @@ class Si5345Page2(pr.Device):
                 offset      = ((0x026B+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-                hidden      = simpleDisply,
+                hidden      = simpleDisplay,
             ))  
 
         for i in range(8):
@@ -1732,7 +1732,7 @@ class Si5345Page2(pr.Device):
                 offset      = ((0x0278+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-                hidden      = simpleDisply,
+                hidden      = simpleDisplay,
             ))              
             
         self.add(pr.RemoteVariable(
@@ -1760,7 +1760,7 @@ class Si5345Page2(pr.Device):
                 offset      = ((0x028A+i) << 2),
                 bitSize     = 5,
                 mode        = 'RW',
-                hidden      = simpleDisply,
+                hidden      = simpleDisplay,
             ))
 
         for i in range(4):
@@ -1770,7 +1770,7 @@ class Si5345Page2(pr.Device):
                 offset      = ((0x028E+i) << 2),
                 bitSize     = 5,
                 mode        = 'RW',
-                hidden      = simpleDisply,
+                hidden      = simpleDisplay,
             ))           
             
         self.add(pr.RemoteVariable(
@@ -1780,7 +1780,7 @@ class Si5345Page2(pr.Device):
             bitSize     = 4,
             bitOffset   = 4,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -1801,7 +1801,7 @@ class Si5345Page2(pr.Device):
             bitSize     = 1,
             bitOffset   = 1,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))   
 
         self.add(pr.RemoteVariable(
@@ -1812,7 +1812,7 @@ class Si5345Page2(pr.Device):
             bitSize     = 1,
             bitOffset   = 1,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))       
             
         for i in range(3):
@@ -1822,7 +1822,7 @@ class Si5345Page2(pr.Device):
                 offset      = ((0x029D+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-                hidden      = simpleDisply,
+                hidden      = simpleDisplay,
             )) 
 
         for i in range(3):
@@ -1832,7 +1832,7 @@ class Si5345Page2(pr.Device):
                 offset      = ((0x02A9+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-                hidden      = simpleDisply,
+                hidden      = simpleDisplay,
             ))         
             
         self.add(pr.RemoteVariable(
@@ -1842,7 +1842,7 @@ class Si5345Page2(pr.Device):
             bitSize     = 2,
             bitOffset   = 2,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -1853,14 +1853,14 @@ class Si5345Page2(pr.Device):
             bitSize     = 1,
             bitOffset   = 1,
             mode        = 'RO',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))    
             
 class Si5345Page3(pr.Device):
     def __init__(self,       
             name         = "Page3",
             description  = "Output N dividers, N divider Finc/Fdec",
-            simpleDisply = True,
+            simpleDisplay = True,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)              
             
@@ -2076,7 +2076,7 @@ class Si5345Page4(pr.Device):
     def __init__(self,       
             name         = "Page4",
             description  = "ZD mode configuration",
-            simpleDisply = True,
+            simpleDisplay = True,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)         
         
@@ -2116,14 +2116,14 @@ class Si5345Page4(pr.Device):
             bitSize     = 1,
             bitOffset   = 4,
             mode        = 'RW',
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))
         
 class Si5345Page5(pr.Device):
     def __init__(self,       
             name         = "Page5",
             description  = "M divider, BW, holdover, input switch, FINC/DEC",
-            simpleDisply = True,
+            simpleDisplay = True,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs) 
         
@@ -2319,7 +2319,7 @@ class Si5345Page5(pr.Device):
             bitSize     = 3,
             bitOffset   = 5,
             mode        = 'RW',               
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))      
         
         self.add(pr.RemoteVariable(
@@ -2330,7 +2330,7 @@ class Si5345Page5(pr.Device):
             bitSize     = 1,
             bitOffset   = 1,
             mode        = 'RW',               
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))   
         
         self.add(pr.RemoteVariable(
@@ -2340,7 +2340,7 @@ class Si5345Page5(pr.Device):
             bitSize     = 5,
             bitOffset   = 0,
             mode        = 'RW',               
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -2350,7 +2350,7 @@ class Si5345Page5(pr.Device):
             bitSize     = 5,
             bitOffset   = 0,
             mode        = 'RW',               
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -2360,7 +2360,7 @@ class Si5345Page5(pr.Device):
             bitSize     = 5,
             bitOffset   = 0,
             mode        = 'RW',               
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         )) 
                 
         for i in range(3):
@@ -2370,7 +2370,7 @@ class Si5345Page5(pr.Device):
                 offset      = ((0x0532+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-                hidden      = simpleDisply,
+                hidden      = simpleDisplay,
             ))  
         
         self.add(pr.RemoteVariable(
@@ -2520,7 +2520,7 @@ class Si5345Page5(pr.Device):
                 offset      = ((0x053B+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-                hidden      = simpleDisply,
+                hidden      = simpleDisplay,
             ))    
         
         self.add(pr.RemoteVariable(
@@ -2530,7 +2530,7 @@ class Si5345Page5(pr.Device):
             bitSize     = 5,
             bitOffset   = 0,
             mode        = 'RW',               
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -2540,7 +2540,7 @@ class Si5345Page5(pr.Device):
             bitSize     = 5,
             bitOffset   = 0,
             mode        = 'RW',               
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))  
 
         self.add(pr.RemoteVariable(
@@ -2570,7 +2570,7 @@ class Si5345Page5(pr.Device):
             bitSize     = 4,
             bitOffset   = 0,
             mode        = 'RW',               
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))
 
         for i in range(2):
@@ -2580,7 +2580,7 @@ class Si5345Page5(pr.Device):
                 offset      = ((0x0589+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-                hidden      = simpleDisply,
+                hidden      = simpleDisplay,
             ))
 
         self.add(pr.RemoteVariable(
@@ -2601,7 +2601,7 @@ class Si5345Page5(pr.Device):
             bitSize     = 1,
             bitOffset   = 4,
             mode        = 'RW',               
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -2612,7 +2612,7 @@ class Si5345Page5(pr.Device):
             bitSize     = 1,
             bitOffset   = 5,
             mode        = 'RW',               
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -2623,7 +2623,7 @@ class Si5345Page5(pr.Device):
             bitSize     = 1,
             bitOffset   = 6,
             mode        = 'RW',               
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -2634,7 +2634,7 @@ class Si5345Page5(pr.Device):
             bitSize     = 1,
             bitOffset   = 7,
             mode        = 'RW',               
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))
 
         for i in range(6):
@@ -2644,7 +2644,7 @@ class Si5345Page5(pr.Device):
                 offset      = ((0x059D+i) << 2),
                 bitSize     = 6,
                 mode        = 'RW',
-                hidden      = simpleDisply,
+                hidden      = simpleDisplay,
             ))     
       
         self.add(pr.RemoteVariable(
@@ -2654,7 +2654,7 @@ class Si5345Page5(pr.Device):
             bitSize     = 3,
             bitOffset   = 0,
             mode        = 'RW',               
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))
         
         self.add(pr.RemoteVariable(
@@ -2671,7 +2671,7 @@ class Si5345Page9(pr.Device):
     def __init__(self,       
             name         = "Page9",
             description  = "Control IO configuration",
-            simpleDisply = True,
+            simpleDisplay = True,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)         
         
@@ -2724,7 +2724,7 @@ class Si5345Page9(pr.Device):
             bitSize     = 4,
             bitOffset   = 0,
             mode        = 'RW',               
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))
 
         for i in range(2):
@@ -2734,7 +2734,7 @@ class Si5345Page9(pr.Device):
                 offset      = ((0x094E+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
-                hidden      = simpleDisply,
+                hidden      = simpleDisplay,
             ))
 
         self.add(pr.RemoteVariable(
@@ -2745,14 +2745,14 @@ class Si5345Page9(pr.Device):
             bitSize     = 1,
             bitOffset   = 0,
             mode        = 'RW',               
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))
 
 class Si5345PageA(pr.Device):
     def __init__(self,       
             name         = "PageA",
             description  = "",
-            simpleDisply = True,
+            simpleDisplay = True,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)           
         
@@ -2767,7 +2767,7 @@ class Si5345PageA(pr.Device):
             bitSize     = 5,
             bitOffset   = 0,
             mode        = 'RW',               
-            hidden      = simpleDisply,
+            hidden      = simpleDisplay,
         ))
         
         self.add(pr.RemoteVariable(
@@ -2804,14 +2804,14 @@ class Si5345PageA(pr.Device):
                 offset      = ((0x0A14+i) << 2),
                 bitSize     = 3,
                 mode        = 'RW',
-                hidden      = simpleDisply,
+                hidden      = simpleDisplay,
             ))
 
 class Si5345PageB(pr.Device):
     def __init__(self,       
             name         = "PageB",
             description  = "",
-            simpleDisply = True,
+            simpleDisplay = True,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)              
             
