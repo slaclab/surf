@@ -2751,7 +2751,6 @@ class Si5345Page9(pr.Device):
 class Si5345PageA(pr.Device):
     def __init__(self,       
             name         = "PageA",
-            description  = "",
             simpleDisplay = True,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)           
@@ -2810,7 +2809,6 @@ class Si5345PageA(pr.Device):
 class Si5345PageB(pr.Device):
     def __init__(self,       
             name         = "PageB",
-            description  = "",
             simpleDisplay = True,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)              
