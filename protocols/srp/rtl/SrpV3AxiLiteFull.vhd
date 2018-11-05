@@ -80,7 +80,7 @@ begin
          ALTERA_SYN_G        => ALTERA_SYN_G,
          ALTERA_RAM_G        => ALTERA_RAM_G,
          AXI_CLK_FREQ_G      => AXIL_CLK_FREQ_G,
-         AXI_CONFIG_G        => (32, 4, 1, 0),
+         AXI_CONFIG_G        => axiConfig(32, 4, 1, 0),
 --          AXI_BURST_G         => AXI_BURST_G,
 --          AXI_CACHE_G         => AXI_CACHE_G,
 --          ACK_WAIT_BVALID_G   => ACK_WAIT_BVALID_G,

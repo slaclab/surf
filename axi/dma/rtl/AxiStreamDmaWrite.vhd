@@ -69,7 +69,7 @@ architecture rtl of AxiStreamDmaWrite is
    constant DATA_BYTES_C      : integer         := LOC_AXIS_CONFIG_C.TDATA_BYTES_C;
    constant ADDR_LSB_C        : integer         := bitSize(DATA_BYTES_C-1);
    constant AWLEN_C           : slv(7 downto 0) := getAxiLen(AXI_CONFIG_G, 4096);
-   constant FIFO_ADDR_WIDTH_C : natural         := (AXI_CONFIG_G.LEN_BITS_C+1);
+   constant FIFO_ADDR_WIDTH_C : natural         := ite((AXI_CONFIG_G.LEN_BITS_C<3),4,(AXI_CONFIG_G.LEN_BITS_C+1));
 
    type StateType is (
       IDLE_S,
@@ -324,7 +324,7 @@ begin
                -- Latch AXI awlen value
                v.awlen     := v.wMaster.awlen(AXI_CONFIG_G.LEN_BITS_C-1 downto 0);
                -- Update the threshold
-               v.threshold := '0' & v.awlen;
+               v.threshold := resize(v.awlen, FIFO_ADDR_WIDTH_C);
                v.threshold := v.threshold + 1;
                -- DMA request has dropped. Abort. This is needed to disable engine while it
                -- is still waiting for an inbound frame.
@@ -355,7 +355,7 @@ begin
                -- Latch AXI awlen value
                v.awlen     := v.wMaster.awlen(AXI_CONFIG_G.LEN_BITS_C-1 downto 0);
                -- Update the threshold
-               v.threshold := '0' & v.awlen;
+               v.threshold := resize(v.awlen, FIFO_ADDR_WIDTH_C);
                v.threshold := v.threshold + 1;
                -- DMA request has dropped. Abort. This is needed to disable engine while it
                -- is still waiting for an inbound frame.
