@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : ClkRst.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2012-09-18
--- Last update: 2013-03-27
 -------------------------------------------------------------------------------
 -- Description: Provides a clocks and reset signal to UUT in simulation.
 --              Assumes active high reset.

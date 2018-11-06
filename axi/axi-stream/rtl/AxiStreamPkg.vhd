@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-24
--- Last update: 2017-02-09
 -------------------------------------------------------------------------------
 -- Description: AXI Stream Package File
 -------------------------------------------------------------------------------
@@ -21,18 +19,22 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
+-- use work.TextUtilPkg.all;
 
 package AxiStreamPkg is
 
+   constant AXI_STREAM_MAX_TDATA_WIDTH_C : positive := 512;  -- Units of bits
+   constant AXI_STREAM_MAX_TKEEP_WIDTH_C : positive := (AXI_STREAM_MAX_TDATA_WIDTH_C/8);  -- Units of bytes
+
    type AxiStreamMasterType is record
       tValid : sl;
-      tData  : slv(127 downto 0);
-      tStrb  : slv(15 downto 0);
-      tKeep  : slv(15 downto 0);
+      tData  : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0);
+      tStrb  : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
+      tKeep  : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
       tLast  : sl;
       tDest  : slv(7 downto 0);
       tId    : slv(7 downto 0);
-      tUser  : slv(127 downto 0);
+      tUser  : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0);
    end record AxiStreamMasterType;
 
    constant AXI_STREAM_MASTER_INIT_C : AxiStreamMasterType := (
@@ -70,7 +72,7 @@ package AxiStreamPkg is
 
    type AxiStreamConfigType is record
       TSTRB_EN_C    : boolean;
-      TDATA_BYTES_C : natural range 1 to 16;
+      TDATA_BYTES_C : natural range 1 to AXI_STREAM_MAX_TKEEP_WIDTH_C;
       TDEST_BITS_C  : natural range 0 to 8;
       TID_BITS_C    : natural range 0 to 8;
       TKEEP_MODE_C  : TkeepModeType;
@@ -167,10 +169,10 @@ package AxiStreamPkg is
    function ite(i : boolean; t : TUserModeType; e : TUserModeType) return TUserModeType;
    function ite(i : boolean; t : TKeepModeType; e : TKeepModeType) return TKeepModeType;
 
-   function genTKeep (bytes           : integer range 0 to 16) return slv;
+   function genTKeep (bytes           : natural range 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C) return slv;
    function genTKeep (constant config : AxiStreamConfigType) return slv;
 
-   function getTKeep (tKeep : slv) return natural;
+   function getTKeep (tKeep : slv; axisConfig : AxiStreamConfigType) return natural;
 
 end package AxiStreamPkg;
 
@@ -210,7 +212,7 @@ package body AxiStreamPkg is
    begin
 
       if bytePos = -1 then
-         ret := getTKeep(axisMaster.tKeep)-1;
+         ret := getTKeep(axisMaster.tKeep, axisConfig)-1;
          if (ret > axisConfig.TDATA_BYTES_C) then
             ret := axisConfig.TDATA_BYTES_C-1;
          end if;
@@ -236,7 +238,7 @@ package body AxiStreamPkg is
 
       pos := axiStreamGetUserPos(axisConfig, axisMaster, bytePos);
 
-      ret := ite(axisConfig.TUSER_BITS_C>0,
+      ret := ite(axisConfig.TUSER_BITS_C > 0,
                  axisMaster.tUser((axisConfig.TUSER_BITS_C*pos)+axisConfig.TUSER_BITS_C-1 downto ((axisConfig.TUSER_BITS_C*pos))),
                  "0");
 
@@ -329,27 +331,14 @@ package body AxiStreamPkg is
       if (i) then return t; else return e; end if;
    end function ite;
 
-   function genTKeep (bytes : integer range 0 to 16) return slv is
+   function genTKeep (bytes : natural range 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C) return slv is
+      variable retVar : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
    begin
-      case bytes is
-         when 0  => return X"0000";
-         when 1  => return X"0001";
-         when 2  => return X"0003";
-         when 3  => return X"0007";
-         when 4  => return X"000F";
-         when 5  => return X"001F";
-         when 6  => return X"003F";
-         when 7  => return X"007F";
-         when 8  => return X"00FF";
-         when 9  => return X"01FF";
-         when 10 => return X"03FF";
-         when 11 => return X"07FF";
-         when 12 => return X"0FFF";
-         when 13 => return X"1FFF";
-         when 14 => return X"3FFF";
-         when 15 => return X"7FFF";
-         when 16 => return X"FFFF";
-      end case;
+      retVar := (others => '0');
+      if bytes /= 0 then
+         retVar(bytes-1 downto 0) := (others => '1');
+      end if;
+      return retVar;
    end function genTKeep;
 
    function genTKeep (constant config : AxiStreamConfigType) return slv is
@@ -357,30 +346,29 @@ package body AxiStreamPkg is
       return genTKeep(config.TDATA_BYTES_C);
    end function genTKeep;
 
-   function getTKeep (tKeep : slv) return natural is
-      variable tKeepFull : slv(15 downto 0);
+   function getTKeep (tKeep : slv; axisConfig : AxiStreamConfigType) return natural is
+      variable tKeepFull : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
+      variable retVar    : natural;
+      variable i         : natural;
    begin
-      tKeepFull := resize(tKeep, 16);
-      case tKeepFull is
-         when X"0000" => return 0;
-         when X"0001" => return 1;
-         when X"0003" => return 2;
-         when X"0007" => return 3;
-         when X"000F" => return 4;
-         when X"001F" => return 5;
-         when X"003F" => return 6;
-         when X"007F" => return 7;
-         when X"00FF" => return 8;
-         when X"01FF" => return 9;
-         when X"03FF" => return 10;
-         when X"07FF" => return 11;
-         when X"0FFF" => return 12;
-         when X"1FFF" => return 13;
-         when X"3FFF" => return 14;
-         when X"7FFF" => return 15;
-         when X"FFFF" => return 16;
-         when others  => return 0;
-      end case;
+      retVar    := 0;
+      tKeepFull := resize(tKeep, AXI_STREAM_MAX_TKEEP_WIDTH_C);
+      for i in 0 to axisConfig.TDATA_BYTES_C-1 loop
+         -- report "AxiStreamPkg::genTKeep( i:" & integer'image(i) & ")" severity warning;
+         ----------------------------------------------------
+         -- Confirmed in simulation the for loop ordering is:
+         ----------------------------------------------------
+         -- Warning: AxiStreamPkg::genTKeep( i:0)
+         -- Warning: AxiStreamPkg::genTKeep( i:1)
+         -- Warning: AxiStreamPkg::genTKeep( i:2)
+         -- .....................................
+         -- .....................................
+         ----------------------------------------------------
+         if (tKeepFull(i) = '1') then
+            retVar := (i+1);
+         end if;
+      end loop;
+      return retVar;
    end function getTKeep;
 
    procedure axiStreamSimSendTxn (
@@ -389,11 +377,11 @@ package body AxiStreamPkg is
       signal master     : out AxiStreamMasterType;
       signal slave      : in  AxiStreamSlaveType;
       tData             : in  slv;
-      tKeep             : in  slv               := "X";
-      tLast             : in  sl                := '0';
-      tDest             : in  slv(7 downto 0)   := X"00";
-      tId               : in  slv(7 downto 0)   := X"00";
-      tUser             : in  slv(127 downto 0) := (others => '0')) is
+      tKeep             : in  slv                                          := "X";
+      tLast             : in  sl                                           := '0';
+      tDest             : in  slv(7 downto 0)                              := X"00";
+      tId               : in  slv(7 downto 0)                              := X"00";
+      tUser             : in  slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := (others => '0')) is
    begin
       -- Wait for rising edge
       wait until clk = '1';
@@ -401,9 +389,9 @@ package body AxiStreamPkg is
       -- Set the bus
       master        <= axiStreamMasterInit(CONFIG_C);
       master.tValid <= '1';
-      master.tData  <= resize(tdata, 128);
+      master.tData  <= resize(tdata, AXI_STREAM_MAX_TDATA_WIDTH_C);
       if (tKeep /= "X") then
-         master.tKeep <= resize(tkeep, 16);
+         master.tKeep <= resize(tkeep, AXI_STREAM_MAX_TKEEP_WIDTH_C);
       end if;
       master.tLast <= tlast;
       master.tDest <= tDest;
@@ -423,7 +411,7 @@ package body AxiStreamPkg is
       signal master     : in  AxiStreamMasterType;
       signal slave      : out AxiStreamSlaveType;
       tData             : out slv;
-      tKeep             : out slv(15 downto 0);
+      tKeep             : out slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
       tLast             : out sl;
       tDest             : out slv(7 downto 0);
       tId               : out slv(7 downto 0);
@@ -579,16 +567,16 @@ package body AxiStreamPkg is
       size := size + c.TDATA_BYTES_C*8;
 
       -- Keep
-      size := size + ite( (c.TKEEP_MODE_C = TKEEP_NORMAL_C), c.TDATA_BYTES_C,          -- TKEEP_NORMAL_C
-                     ite( (c.TKEEP_MODE_C = TKEEP_COMP_C), bitSize(c.TDATA_BYTES_C-1), -- TKEEP_COMP_C
-                     ite( (c.TKEEP_MODE_C = TKEEP_COUNT_C), 5,                         -- TKEEP_COUNT_C
-                     0)));                                                             -- TKEEP_FIXED_C
+      size := size + ite((c.TKEEP_MODE_C = TKEEP_NORMAL_C), c.TDATA_BYTES_C,                       -- TKEEP_NORMAL_C
+                     ite((c.TKEEP_MODE_C = TKEEP_COMP_C), bitSize(c.TDATA_BYTES_C-1),              -- TKEEP_COMP_C
+                     ite((c.TKEEP_MODE_C = TKEEP_COUNT_C), bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C),  -- TKEEP_COUNT_C
+                     0)));  -- TKEEP_FIXED_C
 
       -- User bits
       size := size + ite(c.TUSER_MODE_C = TUSER_FIRST_LAST_C, c.TUSER_BITS_C*2,
-                         ite(c.TUSER_MODE_C = TUSER_LAST_C, c.TUSER_BITS_C,
-                             ite(c.TUSER_MODE_C = TUSER_NORMAL_C, c.TDATA_BYTES_C * c.TUSER_BITS_C,
-                                 0)));  -- TUSER_NONE_C
+                     ite(c.TUSER_MODE_C = TUSER_LAST_C, c.TUSER_BITS_C,
+                     ite(c.TUSER_MODE_C = TUSER_NORMAL_C, c.TDATA_BYTES_C * c.TUSER_BITS_C,
+                     0)));  -- TUSER_NONE_C
 
       size := size + ite(c.TSTRB_EN_C, c.TDATA_BYTES_C, 0);  -- Strobe bits
       size := size + c.TDEST_BITS_C;
@@ -615,9 +603,9 @@ package body AxiStreamPkg is
          assignSlv(i, retValue, din.tKeep(c.TDATA_BYTES_C-1 downto 0));
       elsif c.TKEEP_MODE_C = TKEEP_COMP_C then
          -- Assume lsb is present
-         assignSlv(i, retValue, toSlv(getTKeep(din.tKeep(c.TDATA_BYTES_C-1 downto 1)), bitSize(c.TDATA_BYTES_C-1)));
+         assignSlv(i, retValue, toSlv(getTKeep(din.tKeep(c.TDATA_BYTES_C-1 downto 1), c), bitSize(c.TDATA_BYTES_C-1)));
       elsif c.TKEEP_MODE_C = TKEEP_COUNT_C then
-         assignSlv(i, retValue, din.tKeep(4 downto 0));
+         assignSlv(i, retValue, din.tKeep(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C)-1 downto 0));
       end if;
       -- TKEEP_FIXED_C uses 0 bits
 
@@ -679,7 +667,7 @@ package body AxiStreamPkg is
          assignRecord(i, din, keep);
          master.tKeep := genTKeep(conv_integer(keep)+1);
       elsif c.TKEEP_MODE_C = TKEEP_COUNT_C then
-         assignRecord(i, din, master.tKeep(4 downto 0));       
+         assignRecord(i, din, master.tKeep(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C)-1 downto 0));
       else                              -- KEEP_MODE_C = TKEEP_FIXED_C
          master.tKeep := genTKeep(c.TDATA_BYTES_C);
       end if;

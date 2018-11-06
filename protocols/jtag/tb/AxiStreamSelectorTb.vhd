@@ -4,8 +4,6 @@
 -- File       : AxisStreamSelectorTb.vhd
 -- Author     : Till Straumann <strauman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-12-05
--- Last update: 2017-12-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------

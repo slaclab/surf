@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamFlush.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-06-16
--- Last update: 2016-06-16
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to flush AXI Stream frames, being mindfull of frame boundaries.

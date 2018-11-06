@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : UartAxiLiteMaster.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-06-09
--- Last update: 2018-06-09
 -------------------------------------------------------------------------------
 -- Description: Ties together everything needed for a full duplex UART.
 -- This includes Baud Rate Generator, Transmitter, Receiver and FIFOs.

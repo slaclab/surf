@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SaltUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-06-15
--- Last update: 2017-12-22
 -------------------------------------------------------------------------------
 -- Description: SLAC Asynchronous Logic Transceiver (SALT) UltraScale Core
 -------------------------------------------------------------------------------

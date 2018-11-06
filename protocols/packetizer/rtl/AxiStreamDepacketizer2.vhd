@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamPacketizer2.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-05-02
--- Last update: 2018-05-16
 -------------------------------------------------------------------------------
 -- Description: Formats an AXI-Stream for a transport link.
 -- Sideband fields are placed into the data stream in a header.

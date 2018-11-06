@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SynchronizerEdge.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-05-13
--- Last update: 2016-09-22
 -------------------------------------------------------------------------------
 -- Description: A simple multi Flip FLop synchronization module.
 -------------------------------------------------------------------------------

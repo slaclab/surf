@@ -2,8 +2,6 @@
 -- Title      : Pgp3 Receive Block
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-04-07
--- Last update: 2018-03-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------

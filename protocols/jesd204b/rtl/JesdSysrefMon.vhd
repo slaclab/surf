@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : JesdSysrefMon.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2018-05-08
--- Last update: 2018-05-08
 -------------------------------------------------------------------------------
 -- Description: Monitors the time between sysref rising edge detections
 -------------------------------------------------------------------------------

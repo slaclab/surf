@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SsiCmdMasterPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-25
--- Last update: 2014-04-30
 -------------------------------------------------------------------------------
 -- Description: SSI Command Master Pulser Module Package File
 -------------------------------------------------------------------------------

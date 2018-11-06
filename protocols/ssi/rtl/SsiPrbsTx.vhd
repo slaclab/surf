@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SsiPrbsTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-02
--- Last update: 2018-05-20
 -------------------------------------------------------------------------------
 -- Description:   This module generates 
 --                PseudoRandom Binary Sequence (PRBS) on Virtual Channel Lane.
@@ -44,7 +42,7 @@ entity SsiPrbsTx is
       FIFO_ADDR_WIDTH_G          : positive                := 9;
       FIFO_PAUSE_THRESH_G        : positive                := 2**8;
       -- PRBS Configurations
-      PRBS_SEED_SIZE_G           : natural range 32 to 128 := 32;
+      PRBS_SEED_SIZE_G           : natural range 32 to 256 := 32;
       PRBS_TAPS_G                : NaturalArray            := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
       PRBS_INCREMENT_G           : boolean                 := false;  -- Increment mode by default instead of PRBS
       -- AXI Stream Configurations
@@ -137,7 +135,7 @@ architecture rtl of SsiPrbsTx is
 
 begin
 
-   assert ((PRBS_SEED_SIZE_G = 32) or (PRBS_SEED_SIZE_G = 64) or (PRBS_SEED_SIZE_G = 128)) report "PRBS_SEED_SIZE_G must be either [32,64,128]" severity failure;
+   assert ((PRBS_SEED_SIZE_G = 32) or (PRBS_SEED_SIZE_G = 64) or (PRBS_SEED_SIZE_G = 128) or (PRBS_SEED_SIZE_G = 256)) report "PRBS_SEED_SIZE_G must be either [32,64,128,256]" severity failure;
 
    comb : process (axilReadMaster, axilWriteMaster, forceEofe, locRst,
                    packetLength, r, tDest, tId, trig, txCtrl, txSlave) is

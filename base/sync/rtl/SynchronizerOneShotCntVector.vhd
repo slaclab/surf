@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SynchronizerOneShotCntVector.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-11
--- Last update: 2014-05-27
 -------------------------------------------------------------------------------
 -- Description: Wrapper for multiple SynchronizerOneShotCnt modules
 -------------------------------------------------------------------------------

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : JesdAlignFrRepCh.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-15
--- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: Align bytes and replace control characters with data
 --

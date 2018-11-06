@@ -8,5 +8,5 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
-from surf.devices.analog_devices._ad9249 import *
-from surf.devices.analog_devices._ad5780 import *
+from surf.devices.analog_devices._Ad9249 import *
+from surf.devices.analog_devices._Ad5780 import *

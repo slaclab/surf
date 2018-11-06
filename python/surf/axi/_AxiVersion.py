@@ -63,7 +63,7 @@ class AxiVersion(pr.Device):
             bitOffset    = 0x00,
             base         = pr.UInt,
             mode         = 'RW',
-            disp         = '{:#08x}'            
+            disp         = '{:#08x}',
         ))
 
         self.add(pr.RemoteVariable(   
@@ -77,14 +77,16 @@ class AxiVersion(pr.Device):
             mode         = 'RO',
             disp         = '{:d}',
             units        = 'seconds',
-            pollInterval = 1
+            pollInterval = 1,
         ))
 
         self.add(pr.LinkVariable(
-            name = 'UpTime',
-            mode = 'RO',
+            name         = 'UpTime',
+            description  = 'Time since power up or last firmware reload',
+            mode         = 'RO',
             dependencies = [self.UpTimeCnt],
-            linkedGet = lambda: str(datetime.timedelta(seconds=self.UpTimeCnt.value()))
+            linkedGet    = lambda: str(datetime.timedelta(seconds=self.UpTimeCnt.value())),
+            units        = 'HH:MM:SS',
         ))
 
         self.add(pr.RemoteVariable(   
@@ -148,6 +150,7 @@ class AxiVersion(pr.Device):
             bitOffset    = 0x00,
             base         = pr.UInt,
             mode         = 'RO',
+            hidden       = True,
         ))
 
         self.addRemoteVariables(   
@@ -190,7 +193,7 @@ class AxiVersion(pr.Device):
             mode         = 'RO',
             dependencies = [self.GitHash],
             disp         = '{:07x}',
-            linkedGet    = lambda: self.GitHash.value() >> 132
+            linkedGet    = lambda: self.GitHash.value() >> 132,
         ))
 
         self.add(pr.RemoteVariable(   
@@ -259,18 +262,22 @@ class AxiVersion(pr.Device):
         print('AxiVersion count reset called')
         
     def printStatus(self):
-        self.UpTimeCnt.get()
-        self.BuildStamp.get()
-        gitHash = self.GitHash.get()
-        print("FwVersion    = {}".format(hex(self.FpgaVersion.get())))
-        print("UpTime       = {}".format(self.UpTime.get()))
-        if (gitHash != 0):
-            print("GitHash      = {}".format(hex(self.GitHash.get())))
-        else:
-            print("GitHash      = dirty (uncommitted code)")
-        print("XilinxDnaId  = {}".format(hex(self.DeviceDna.get())))
-        print("FwTarget     = {}".format(self.ImageName.get()))
-        print("BuildEnv     = {}".format(self.BuildEnv.get()))
-        print("BuildServer  = {}".format(self.BuildServer.get()))
-        print("BuildDate    = {}".format(self.BuildDate.get()))
-        print("Builder      = {}".format(self.Builder.get()))
+        try:
+            self.UpTimeCnt.get()
+            self.BuildStamp.get()
+            gitHash = self.GitHash.get()
+            print("FwVersion    = {}".format(hex(self.FpgaVersion.get())))
+            print("UpTime       = {}".format(self.UpTime.get()))
+            if (gitHash != 0):
+                print("GitHash      = {}".format(hex(self.GitHash.get())))
+            else:
+                print("GitHash      = dirty (uncommitted code)")
+            print("XilinxDnaId  = {}".format(hex(self.DeviceDna.get())))
+            print("FwTarget     = {}".format(self.ImageName.get()))
+            print("BuildEnv     = {}".format(self.BuildEnv.get()))
+            print("BuildServer  = {}".format(self.BuildServer.get()))
+            print("BuildDate    = {}".format(self.BuildDate.get()))
+            print("Builder      = {}".format(self.Builder.get()))
+        except Exception as e:
+            print("Failed to get AxiVersion status")
+

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : RssiPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-08-09
--- Last update: 2016-07-12
 -------------------------------------------------------------------------------
 -- Description: RSSI Package File
 -------------------------------------------------------------------------------
@@ -95,7 +93,7 @@ package RssiPkg is
    type WindowType is record
       seqN     : slv(7 downto 0);
       segType  : slv(2 downto 0);
-      keep     : slv(15 downto 0);
+      keep     : slv(RSSI_WORD_WIDTH_C-1 downto 0);
       segSize  : natural;
       occupied : sl;
    end record WindowType;

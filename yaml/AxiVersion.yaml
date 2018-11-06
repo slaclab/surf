@@ -66,9 +66,7 @@ AxiVersion: &AxiVersion
         offset: 0x10C
       class: IntField
       mode: WO
-      #sizeBits: 1
-      # CPSW requires all WO variables to be 32-bit size and 32-bit aligned 
-      sizeBits: 32          
+      sizeBits: 1
       description: Optional User Reset 
     #########################################################
     FdSerial:

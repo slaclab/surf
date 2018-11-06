@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamDepacketizer
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-09-29
--- Last update: 2018-03-29
 -------------------------------------------------------------------------------
 -- Description: AXI stream DePacketerizer Module (non-interleave only)
 --    Formats an AXI-Stream for a transport link.
@@ -257,7 +255,7 @@ begin
                -- End of frame
                if (inputAxisMaster.tLast = '1') then
                   -- Check tkeep to find tail byte (and strip it out)
-                  v.outputAxisMaster(1).tKeep := '0' & inputAxisMaster.tKeep(15 downto 1);
+                  v.outputAxisMaster(1).tKeep(15 downto 0) := '0' & inputAxisMaster.tKeep(15 downto 1);
                   case (inputAxisMaster.tKeep(7 downto 0)) is
                      when X"01" =>
                         -- Single byte tail, append tUser to previous txn which has been held

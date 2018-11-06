@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiLiteAsync.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-04-02
--- Last update: 2017-11-07
 -------------------------------------------------------------------------------
 -- Description:
 -- Asynchronous bridge for AXI Lite bus. Allows AXI transactions to cross 

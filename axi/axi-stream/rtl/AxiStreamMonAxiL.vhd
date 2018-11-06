@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamMonAxiL.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-07-14
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: AXI Stream Monitor Module
 -------------------------------------------------------------------------------
@@ -36,8 +34,8 @@ entity AxiStreamMonAxiL is
       -- AXIS Stream Interface
       axisClk          : in  sl;
       axisRst          : in  sl;
-      axisMaster       : in  AxiStreamMasterArray(AXIS_NUM_SLOTS_G-1 downto 0);
-      axisSlave        : in  AxiStreamSlaveArray(AXIS_NUM_SLOTS_G-1 downto 0);
+      axisMasters      : in  AxiStreamMasterArray(AXIS_NUM_SLOTS_G-1 downto 0);
+      axisSlaves       : in  AxiStreamSlaveArray(AXIS_NUM_SLOTS_G-1 downto 0);
       -- AXI lite slave port for register access
       axilClk          : in  std_logic;
       axilRst          : in  std_logic;
@@ -110,8 +108,8 @@ begin
             -- AXIS Stream Interface
             axisClk    => axisClk,
             axisRst    => axisReset,
-            axisMaster => axisMaster(i),
-            axisSlave  => axisSlave(i),
+            axisMaster => axisMasters(i),
+            axisSlave  => axisSlaves(i),
             -- Status Interface
             statusClk  => axilClk,
             statusRst  => r.rstCnt,

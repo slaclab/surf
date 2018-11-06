@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : JesdSyncFsmTx.vhd 
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-14
--- Last update: 2015-04-14
 -------------------------------------------------------------------------------
 -- Description: Synchronizer TX Finite state machine
 --              Finite state machine for sub-class 1 and sub-class 0 deterministic latency
