@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : si5345.vhd
+-- File       : Si5345.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SPI Master Wrapper that includes a state machine for SPI paging
@@ -21,7 +21,7 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 
-entity si5345 is
+entity Si5345 is
    generic (
       TPD_G             : time := 1 ns;
       CLK_PERIOD_G      : real := (1.0/156.25E+6);
@@ -41,20 +41,20 @@ entity si5345 is
       coreSDin       : in  sl;
       coreSDout      : out sl;
       coreCsb        : out sl);
-end entity si5345;
+end entity Si5345;
 
-architecture rtl of si5345 is
+architecture rtl of Si5345 is
 
-   constant DLY_C : natural := 2*integer(SPI_SCLK_PERIOD_G/CLK_PERIOD_G);  -- 2 SCLK delay between SPI cycles
+   constant DLY_C : natural := 4*integer(SPI_SCLK_PERIOD_G/CLK_PERIOD_G);  -- >= 2 SCLK delay between SPI cycles
 
    type StateType is (
       IDLE_S,
       INIT_S,
       REQ_S,
-      ACK_S);
+      ACK_S,
+      DONE_S);
 
    type RegType is record
-      rst           : sl;
       axiRd         : sl;
       wrEn          : sl;
       wrData        : slv(15 downto 0);
@@ -62,7 +62,7 @@ architecture rtl of si5345 is
       addr          : slv(7 downto 0);
       page          : slv(7 downto 0);
       timer         : natural range 0 to DLY_C;
-      cnt           : natural range 0 to 3;
+      cnt           : natural range 0 to 4;
       wrArray       : Slv16Array(3 downto 0);
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
@@ -70,7 +70,6 @@ architecture rtl of si5345 is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      rst           => '0',
       axiRd         => '0',
       wrEn          => '0',
       wrData        => (others => '0'),
@@ -87,8 +86,15 @@ architecture rtl of si5345 is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal rdEn   : sl;
-   signal rdData : slv(15 downto 0);
+   signal freeRunClk : sl;
+   signal rdEn       : sl;
+   signal rdData     : slv(15 downto 0);
+
+   -- attribute dont_touch               : string;
+   -- attribute dont_touch of r          : signal is "TRUE";
+   -- attribute dont_touch of freeRunClk : signal is "TRUE";
+   -- attribute dont_touch of rdEn       : signal is "TRUE";
+   -- attribute dont_touch of rdData     : signal is "TRUE";
 
 begin
 
@@ -99,8 +105,10 @@ begin
       -- Latch the current value   
       v := r;
 
-      -- Reset strobes
-      v.wrEn := '0';
+      -- Flow Control
+      if (rdEn = '0') then
+         v.wrEn := '0';
+      end if;
 
       -- Increment the timer
       if (r.timer /= DLY_C) then
@@ -114,6 +122,8 @@ begin
       case r.state is
          ----------------------------------------------------------------------
          when IDLE_S =>
+            -- Reset the timer
+            v.timer := 0;
             -- Check if write transaction
             if (axiStatus.writeEnable = '1') then
                -- Set the flag
@@ -151,10 +161,10 @@ begin
             -- Check if write transaction 
             if (r.axiRd = '0') then
                -- Write Data
-               v.wrArray(2) := x"40" & r.data;
+               v.wrArray(3) := x"40" & r.data;
             else
                -- Read Data
-               v.wrArray(2) := x"80" & x"FF";
+               v.wrArray(3) := x"80" & x"FF";
             end if;
             -- Next State
             v.state := REQ_S;
@@ -165,8 +175,6 @@ begin
                -- Start the transaction
                v.wrEn   := '1';
                v.wrData := r.wrArray(r.cnt);
-               -- Increment the counter
-               v.cnt    := r.cnt + 1;
                --- Next state
                v.state  := ACK_S;
             end if;
@@ -176,6 +184,8 @@ begin
             if (rdEn = '1') and (r.wrEn = '0') then
                -- Reset the timer
                v.timer := 0;
+               -- Increment the counter
+               v.cnt    := r.cnt + 1;               
                -- Check for last transaction
                if (r.cnt = 3) then
                   -- Reset the counter
@@ -188,14 +198,31 @@ begin
                      axiSlaveReadResponse(v.axiReadSlave);
                   end if;
                   --- Next state
-                  v.state := IDLE_S;
+                  v.state := DONE_S;
                else
                   --- Next state
                   v.state := REQ_S;
                end if;
             end if;
+         ----------------------------------------------------------------------
+         when DONE_S =>
+            -- Check for min. chip select gap
+            if (r.timer = DLY_C) then
+               --- Next state
+               v.state := IDLE_S;
+            end if;
       ----------------------------------------------------------------------
       end case;
+
+      -- Outputs 
+      axiWriteSlave <= r.axiWriteSlave;
+      axiReadSlave  <= r.axiReadSlave;
+      coreRst       <= axiRst;
+      if (r.state = IDLE_S) then
+         freeRunClk <= '0';
+      else
+         freeRunClk <= '1';
+      end if;
 
       -- Reset
       if (axiRst = '1') then
@@ -204,11 +231,6 @@ begin
 
       -- Register the variable for next clock cycle
       rin <= v;
-
-      -- Outputs 
-      axiWriteSlave <= r.axiWriteSlave;
-      axiReadSlave  <= r.axiReadSlave;
-      coreRst       <= (r.rst or axiRst);
 
    end process comb;
 
@@ -229,16 +251,17 @@ begin
          CLK_PERIOD_G      => CLK_PERIOD_G,
          SPI_SCLK_PERIOD_G => SPI_SCLK_PERIOD_G)
       port map (
-         clk       => axiClk,
-         sRst      => axiRst,
-         chipSel   => "0",
-         wrEn      => r.wrEn,
-         wrData    => r.wrData,
-         rdEn      => rdEn,
-         rdData    => rdData,
-         spiCsL(0) => coreCsb,
-         spiSclk   => coreSclk,
-         spiSdi    => coreSDout,
-         spiSdo    => coreSDin);
+         clk        => axiClk,
+         sRst       => axiRst,
+         chipSel    => "0",
+         freeRunClk => freeRunClk,
+         wrEn       => r.wrEn,
+         wrData     => r.wrData,
+         rdEn       => rdEn,
+         rdData     => rdData,
+         spiCsL(0)  => coreCsb,
+         spiSclk    => coreSclk,
+         spiSdi     => coreSDout,
+         spiSdo     => coreSDin);
 
 end architecture rtl;
