@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : si5345.vhd
+-- File       : Si5345.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SPI Master Wrapper that includes a state machine for SPI paging
@@ -21,7 +21,7 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 
-entity si5345 is
+entity Si5345 is
    generic (
       TPD_G             : time := 1 ns;
       CLK_PERIOD_G      : real := (1.0/156.25E+6);
@@ -41,9 +41,9 @@ entity si5345 is
       coreSDin       : in  sl;
       coreSDout      : out sl;
       coreCsb        : out sl);
-end entity si5345;
+end entity Si5345;
 
-architecture rtl of si5345 is
+architecture rtl of Si5345 is
 
    constant DLY_C : natural := 4*integer(SPI_SCLK_PERIOD_G/CLK_PERIOD_G);  -- >= 2 SCLK delay between SPI cycles
 
