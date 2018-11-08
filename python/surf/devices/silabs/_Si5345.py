@@ -2753,7 +2753,7 @@ class Si5345PageA(pr.Device):
             name         = "PageA",
             simpleDisplay = True,
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs)           
+        super().__init__(name=name, **kwargs)           
         
         ##############################
         # 15.1 Page A Registers Si5345
@@ -2811,7 +2811,7 @@ class Si5345PageB(pr.Device):
             name         = "PageB",
             simpleDisplay = True,
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs)              
+        super().__init__(name=name, **kwargs)              
             
         ##############################
         # 15.1 Page B Registers Si5345
