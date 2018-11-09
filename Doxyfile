@@ -817,6 +817,7 @@ RECURSIVE              = YES
 # run.
 
 EXCLUDE                = protocols/i2c/rtl/orig
+EXCLUDE               += base/vhdl-libs
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
