@@ -27,6 +27,7 @@ entity SaciPrepRdout is
    generic (
       TPD_G              : time             := 1 ns;
       MASK_REG_ADDR_G    : slv(31 downto 0) := x"00000034";
+      MASK_REG_READ_G    : boolean          := true;
       SACI_BASE_ADDR_G   : slv(31 downto 0) := x"02000000";
       SACI_NUM_CHIPS_G   : natural range 1 to 4 := 4
    );
@@ -39,16 +40,19 @@ entity SaciPrepRdout is
       prepRdoutAck      : out sl;
       
       -- Optional AXI lite slave port for status readout
-      sAxilWriteMaster  : in  AxiLiteWriteMasterType;
+      sAxilWriteMaster  : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
       sAxilWriteSlave   : out AxiLiteWriteSlaveType;
-      sAxilReadMaster   : in  AxiLiteReadMasterType;
+      sAxilReadMaster   : in  AxiLiteReadMasterType := AXI_LITE_READ_MASTER_INIT_C;
       sAxilReadSlave    : out AxiLiteReadSlaveType;
       
       -- AXI lite master port for command issue
       mAxilWriteMaster  : out AxiLiteWriteMasterType;
       mAxilWriteSlave   : in  AxiLiteWriteSlaveType;
       mAxilReadMaster   : out AxiLiteReadMasterType;
-      mAxilReadSlave    : in  AxiLiteReadSlaveType
+      mAxilReadSlave    : in  AxiLiteReadSlaveType;
+      
+      -- optianally provide ASIC mask
+      asicMask          : in slv(SACI_NUM_CHIPS_G-1 downto 0) := (others=>'0')
    );
 
 end SaciPrepRdout;
@@ -98,7 +102,7 @@ architecture rtl of SaciPrepRdout is
 
 begin
 
-   comb : process (axilRst, sAxilReadMaster, sAxilWriteMaster, mAxilReadSlave, mAxilWriteSlave, r, prepRdoutReq) is
+   comb : process (axilRst, sAxilReadMaster, sAxilWriteMaster, mAxilReadSlave, mAxilWriteSlave, r, prepRdoutReq, asicMask) is
       variable v        : RegType;
       variable regCon   : AxiLiteEndPointType;
    begin
@@ -127,7 +131,12 @@ begin
 
             -- If we see a multi-pixel write request, handle it
             if (prepRdoutReq = '1') then
+               if MASK_REG_READ_G = true then
                   v.state     := S_READ_C;
+               else
+                  v.asicMask  := asicMask;
+                  v.state     := S_IS_ASIC_C;
+               end if;
             end if;
             
          -- Read the ASIC mask
