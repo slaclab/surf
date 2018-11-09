@@ -23,7 +23,6 @@ env:
 addons:
   apt:
     packages:
-      - ghdl
       - doxygen
       - doxygen-doc
       - doxygen-latex
