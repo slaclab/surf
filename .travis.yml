@@ -1,5 +1,5 @@
 # This will run on Travis' 'new' container-based infrastructure
-sudo: false
+sudo: true
 
 # Blacklist
 branches:
@@ -29,6 +29,15 @@ addons:
       - doxygen-gui
       - graphviz
 
+before_install:
+  - sudo add-apt-repository ppa:pgavin/ghdl -y
+  - sudo apt-get update -q
+  - sudo apt-get install ghdl -y
+
+# Run GHDL (VHDL verification and syntax checking)
+script:
+  - make
+
 stages:
     # On master branch (but not on PRs to master) or in tagged releases
     # generate and deploy the documentation
@@ -38,7 +47,6 @@ stages:
     # only try to generate the documentation
     - name: generate
       if: (branch != master OR (type == pull_request)) AND tag IS blank
-
 
 # Generate and deploy documentation
 jobs:
