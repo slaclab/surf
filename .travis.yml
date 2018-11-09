@@ -30,13 +30,16 @@ addons:
       - graphviz
 
 before_install:
-  - sudo add-apt-repository ppa:pgavin/ghdl -y
-  - sudo apt-get update -q
-  - sudo apt-get install ghdl -y
+  - wget http://mirrors.kernel.org/ubuntu/pool/universe/g/gnat-4.6/libgnat-4.6_4.6.4-0ubuntu5_amd64.deb
+  - sudo dpkg --install  libgnat-4.6_4.6.4-0ubuntu5_amd64.deb
+  - wget https://github.com/ghdl/ghdl/releases/download/v0.35/ghdl-0.35-llvm-3.8-ubuntu14.tgz
+  - tar xzf ghdl-0.35-llvm-3.8-ubuntu14.tgz
+  - export PATH=$PWD/bin:$PATH
+  - export LD_LIBRARY_PATH=$PWD/lib:$LD_LIBRARY_PATH
 
-# Run GHDL (VHDL verification and syntax checking)
-script:
-  - make
+# # Run GHDL (VHDL verification and syntax checking)
+# script:
+#   - make
 
 stages:
     # On master branch (but not on PRs to master) or in tagged releases
