@@ -109,7 +109,7 @@ if [ -d "doxygen/html" ] && [ -f "doxygen/html/index.html" ]; then
         # The ouput is redirected to /dev/null to hide any sensitive credential data
         # that might otherwise be exposed.
         echo 'Force push to the remote gh-pages branch'
-        git push --force "https://${GH_REPO_TOKEN}@${GH_REPO_REF}" > /dev/null 2>&1
+        git push --force "https://${GH_REPO_TOKEN}@${GH_REPO_REF}" > /dev/null 2>&1 || true
     fi
 else
     echo '' >&2
