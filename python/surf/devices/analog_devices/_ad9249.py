@@ -181,6 +181,42 @@ class Ad9249ConfigGroup(pr.Device):
                 0: 'Offset Binary',
             },
         ))
+        
+        self.add(pr.RemoteVariable(
+            name        = 'UserPatt1Lsb', 
+            offset      = (0x19*4), 
+            bitSize     = 8, 
+            bitOffset   = 0,
+        ))
+        
+        self.add(pr.RemoteVariable(
+            name        = 'UserPatt1Msb', 
+            offset      = (0x1A*4), 
+            bitSize     = 8, 
+            bitOffset   = 0,
+        ))
+        
+        self.add(pr.RemoteVariable(
+            name        = 'UserPatt2Lsb', 
+            offset      = (0x1B*4), 
+            bitSize     = 8, 
+            bitOffset   = 0,
+        ))
+        
+        self.add(pr.RemoteVariable(
+            name        = 'UserPatt2Msb', 
+            offset      = (0x1C*4), 
+            bitSize     = 8, 
+            bitOffset   = 0,
+        ))
+        
+        self.add(pr.RemoteVariable(
+            name        = 'LvdsLsbFirst', 
+            offset      = (0x21*4), 
+            bitSize     = 1, 
+            bitOffset   = 7, 
+            base        = pr.Bool,
+        ))
 
 class Ad9249ChipConfig(pr.Device):
     def __init__(self,       
