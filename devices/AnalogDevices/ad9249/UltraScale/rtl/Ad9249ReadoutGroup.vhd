@@ -72,7 +72,7 @@ architecture rtl of Ad9249ReadoutGroup is
 
    attribute keep : string;
 
-   constant FRAME_PATTERN_C : slv(13 downto 0) := "00000001111111";
+   constant FRAME_PATTERN_C : slv(13 downto 0) := "11111110000000";
 
    -------------------------------------------------------------------------------------------------
    -- AXIL Registers
