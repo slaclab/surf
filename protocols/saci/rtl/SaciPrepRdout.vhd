@@ -239,14 +239,8 @@ begin
             if v.mAxilWriteMaster.awvalid = '0' and
                v.mAxilWriteMaster.wvalid = '0' and
                v.mAxilWriteMaster.bready = '0' then
-               
-               if mAxilWriteSlave.bresp /= AXI_RESP_OK_C or r.timer = 0 then
-                  v.state    := S_IDLE_C;
-               else
-                  v.asicCnt  := r.asicCnt + 1;
-                  v.state    := S_IS_ASIC_C;
-               end if;
-               
+               v.asicCnt  := r.asicCnt + 1;
+               v.state    := S_IS_ASIC_C;
             end if;
             
       end case;
