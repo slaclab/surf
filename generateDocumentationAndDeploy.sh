@@ -56,6 +56,9 @@ set -e
 mkdir code_docs
 cd code_docs
 
+# Instal git-lfs
+git-lfs install
+
 # Get the current gh-pages branch
 git clone -b gh-pages https://git@$GH_REPO_REF
 cd $GH_REPO_NAME
