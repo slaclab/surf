@@ -132,10 +132,9 @@ architecture rtl of Pgp2bGth7FixedLatWrapper is
       gtQPllReset : sl := '0';
    
    attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of
-      PwrUpRst_Inst,
-      QPllCore_1,
-      Pgp2bGth7Fixedlat_Inst : label is "TRUE";
+   attribute KEEP_HIERARCHY of PwrUpRst_Inst          : label is "TRUE";
+   attribute KEEP_HIERARCHY of QPllCore_1             : label is "TRUE";
+   attribute KEEP_HIERARCHY of Pgp2bGth7Fixedlat_Inst : label is "TRUE";
    
 begin
 

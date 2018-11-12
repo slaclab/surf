@@ -87,10 +87,9 @@ architecture Pgp2bRx of Pgp2bRx is
    signal overflow         : slv(3 downto 0);
 
    attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of 
-      U_Pgp2bRxPhy,
-      U_Pgp2bRxCell,
-      Rx_CRC : label is "TRUE";
+   attribute KEEP_HIERARCHY of U_Pgp2bRxPhy  : label is "TRUE";
+   attribute KEEP_HIERARCHY of U_Pgp2bRxCell : label is "TRUE";
+   attribute KEEP_HIERARCHY of Rx_CRC        : label is "TRUE";
    
 begin 
 

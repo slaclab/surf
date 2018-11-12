@@ -138,19 +138,18 @@ architecture RTL of GLinkGtx7RxRst is
    signal plllock_sync          : std_logic := '0';
    signal phalignment_done_sync : std_logic := '0';
    
-  signal fsmCnt : std_logic_vector(15 downto 0);     
+   signal fsmCnt : std_logic_vector(15 downto 0);     
    
    attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of 
-      Synchronizer_run_phase_alignment,
-      Synchronizer_fsm_reset_done,
-      Synchronizer_SOFT_RESET,
-      Synchronizer_RXRESETDONE,
-      Synchronizer_time_out_wait_bypass,
-      Synchronizer_mmcm_lock_reclocked,
-      Synchronizer_data_valid,
-      Synchronizer_PLLLOCK,
-      Synchronizer_PHALIGNMENT_DONE : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_run_phase_alignment   : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_fsm_reset_done        : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_SOFT_RESET            : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_RXRESETDONE           : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_time_out_wait_bypass  : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_mmcm_lock_reclocked   : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_data_valid            : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_PLLLOCK               : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_PHALIGNMENT_DONE      : label is "TRUE";
    
 begin
 

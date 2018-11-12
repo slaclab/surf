@@ -198,4 +198,4 @@ begin
       end if;
    end process seq;
 
-end rtl;
+end architecture rtl;

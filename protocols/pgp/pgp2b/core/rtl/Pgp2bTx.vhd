@@ -99,11 +99,10 @@ architecture Pgp2bTx of Pgp2bTx is
    signal intTxSlaves      : AxiStreamSlaveArray(3 downto 0);
 
    attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of 
-      U_Pgp2bTxPhy,
-      U_Pgp2bTxSched,
-      U_Pgp2bTxCell,
-      Tx_CRC : label is "TRUE";
+   attribute KEEP_HIERARCHY of U_Pgp2bTxPhy   : label is "TRUE";
+   attribute KEEP_HIERARCHY of U_Pgp2bTxSched : label is "TRUE";
+   attribute KEEP_HIERARCHY of U_Pgp2bTxCell  : label is "TRUE";
+   attribute KEEP_HIERARCHY of Tx_CRC         : label is "TRUE";
    
 begin 
 

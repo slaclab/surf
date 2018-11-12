@@ -197,24 +197,23 @@ architecture RTL of Gth7RxRst is
   signal fsmCnt : std_logic_vector(15 downto 0);   
   
    attribute dont_touch : string;
-   attribute dont_touch of rx_state,
-      reset_time_out,
-      recclk_mon_restart_count,
-      retry_counter_int,
-      time_out_wait_bypass_s3,
-      data_valid_sync : signal is "TRUE";    
+   attribute dont_touch of rx_state                 : signal is "TRUE"; 
+   attribute dont_touch of reset_time_out           : signal is "TRUE"; 
+   attribute dont_touch of recclk_mon_restart_count : signal is "TRUE"; 
+   attribute dont_touch of retry_counter_int        : signal is "TRUE"; 
+   attribute dont_touch of time_out_wait_bypass_s3  : signal is "TRUE"; 
+   attribute dont_touch of data_valid_sync          : signal is "TRUE";    
    
    attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of 
-      Synchronizer_run_phase_alignment,
-      Synchronizer_fsm_reset_done,
-      Synchronizer_SOFT_RESET,
-      Synchronizer_RXRESETDONE,
-      Synchronizer_time_out_wait_bypass,
-      Synchronizer_mmcm_lock_reclocked,
-      Synchronizer_data_valid,
-      Synchronizer_PLLLOCK,
-      Synchronizer_PHALIGNMENT_DONE : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_run_phase_alignment   : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_fsm_reset_done        : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_SOFT_RESET            : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_RXRESETDONE           : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_time_out_wait_bypass  : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_mmcm_lock_reclocked   : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_data_valid            : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_PLLLOCK               : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_PHALIGNMENT_DONE      : label is "TRUE";
    
 begin
 

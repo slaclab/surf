@@ -169,14 +169,13 @@ architecture RTL of Gth7TxRst is
    signal plllock_sync : std_logic := '0';
    
    attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of 
-      Synchronizer_run_phase_alignment,
-      Synchronizer_fsm_reset_done,
-      Synchronizer_SOFT_RESET,
-      Synchronizer_TXRESETDONE,
-      Synchronizer_time_out_wait_bypass,
-      Synchronizer_mmcm_lock_reclocked,
-      Synchronizer_PLLLOCK : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_run_phase_alignment   : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_fsm_reset_done         : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_SOFT_RESET             : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_TXRESETDONE            : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_time_out_wait_bypass   : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_mmcm_lock_reclocked    : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_PLLLOCK                : label is "TRUE";
    
 begin
 
