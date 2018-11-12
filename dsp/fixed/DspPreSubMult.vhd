@@ -19,8 +19,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-library surf;
-use surf.StdRtlPkg.all;
+use work.StdRtlPkg.all;
 
 entity DspPreSubMult is
    generic (
@@ -152,7 +151,7 @@ begin
       end if;
    end process seq;
 
-   U_Pipe : entity surf.FifoOutputPipeline
+   U_Pipe : entity work.FifoOutputPipeline
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,

@@ -18,8 +18,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-library surf;
-use surf.StdRtlPkg.all;
+use work.StdRtlPkg.all;
 
 entity DspComparatorTb is end DspComparatorTb;
 
@@ -39,7 +38,7 @@ architecture testbed of DspComparatorTb is
 
 begin
 
-   U_ClkRst : entity surf.ClkRst
+   U_ClkRst : entity work.ClkRst
       generic map (
          CLK_PERIOD_G      => 10 ns,
          RST_START_DELAY_G => 1 ns,
@@ -62,7 +61,7 @@ begin
       end if;
    end process;
 
-   U_DspComparator : entity surf.DspComparator
+   U_DspComparator : entity work.DspComparator
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 8)
