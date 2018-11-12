@@ -70,11 +70,9 @@ git config --global user.email "travis@travis-ci.org"
 git config --global user.name "Travis CI"
 
 # Remove everything currently in the gh-pages branch.
-# GitHub is smart enough to know which files have changed and which files have
-# stayed the same and will only update the changed files. So the gh-pages branch
-# can be safely cleaned, and it is sure that everything pushed later is the new
-# documentation.
-rm -rf *
+CURRENTCOMMIT=`git rev-parse HEAD`
+git reset --hard `git rev-list HEAD | tail -n 1` # Reset working tree to initial commit
+git reset --soft $CURRENTCOMMIT # Move HEAD back to where it was
 
 # Need to create a .nojekyll file to allow filenames starting with an underscore
 # to be seen on the gh-pages site. Therefore creating an empty .nojekyll file.
