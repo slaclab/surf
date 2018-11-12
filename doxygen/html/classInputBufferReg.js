@@ -1,0 +1,25 @@
+var classInputBufferReg =
+[
+    [ "rtl", "classInputBufferReg_1_1rtl.html", "classInputBufferReg_1_1rtl" ],
+    [ "TPD_G", "classInputBufferReg.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "DIFF_PAIR_G", "classInputBufferReg.html#a54ec304cbe9558ce7df625cf740f3b6f", null ],
+    [ "DDR_CLK_EDGE_G", "classInputBufferReg.html#ab5e8c91e942cce36be8cfb540cc0fc76", null ],
+    [ "INIT_Q1_G", "classInputBufferReg.html#ab6b9d3be78b345139c2b0161119fa765", null ],
+    [ "INIT_Q2_G", "classInputBufferReg.html#ab2dc3339102697559fb67d219ae72aa6", null ],
+    [ "SRTYPE_G", "classInputBufferReg.html#a20ddb88e6953188d8760aae7438ef8ba", null ],
+    [ "I", "classInputBufferReg.html#ad637731bac89810d3730fcb1f430b863", null ],
+    [ "IB", "classInputBufferReg.html#ad1c489a005f0c4f9816d4db3db57476c", null ],
+    [ "C", "classInputBufferReg.html#a50e4ce7d828478ea1e30fe0d7a05b0d8", null ],
+    [ "CE", "classInputBufferReg.html#a427a5d985a40a4f5050a8af90d575915", null ],
+    [ "R", "classInputBufferReg.html#a29d21962a0ef2cdc1550b1cd1be9f760", null ],
+    [ "S", "classInputBufferReg.html#ab7195094e9ff980822a8a130207ec874", null ],
+    [ "Q1", "classInputBufferReg.html#aa3148ea0968e075237268c0c256bd8b2", null ],
+    [ "Q2", "classInputBufferReg.html#a94260ec07af686b935fa606fefe7bb21", null ],
+    [ "ieee", "classInputBufferReg.html#a0a6af6eef40212dbaf130d57ce711256", null ],
+    [ "std_logic_1164", "classInputBufferReg.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "std_logic_unsigned", "classInputBufferReg.html#a598da929e807d58939b47499e8bc9fa8", null ],
+    [ "std_logic_arith", "classInputBufferReg.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
+    [ "StdRtlPkg", "classInputBufferReg.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
+    [ "unisim", "classInputBufferReg.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
+    [ "vcomponents", "classInputBufferReg.html#aa1cb22e959d47364391e5eb4ef86927c", null ]
+];

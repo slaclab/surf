@@ -1,0 +1,26 @@
+var classTenGigEthGtyUltraScale_1_1mapping =
+[
+    [ "TenGigEthGtyUltraScale156p25MHzCore", "classTenGigEthGtyUltraScale_1_1mapping.html#ae3678619042d1ce7147e74fe3f91064a", null ],
+    [ "mAxiReadMaster", "classTenGigEthGtyUltraScale_1_1mapping.html#aba1048e5d2c774fa5a192c5f0fadb833", null ],
+    [ "mAxiReadSlave", "classTenGigEthGtyUltraScale_1_1mapping.html#a29c6f734b91c8da244db7aae52de65d2", null ],
+    [ "mAxiWriteMaster", "classTenGigEthGtyUltraScale_1_1mapping.html#a863b704e452e2131afb2459f1852f1cb", null ],
+    [ "mAxiWriteSlave", "classTenGigEthGtyUltraScale_1_1mapping.html#ae08025302ac0712de9909fca4899956c", null ],
+    [ "phyRxd", "classTenGigEthGtyUltraScale_1_1mapping.html#a5a5d0cef7b9aca7f556d5cb4bc638896", null ],
+    [ "phyRxc", "classTenGigEthGtyUltraScale_1_1mapping.html#a2df8aacc7dee766a5abc8658aa6386ee", null ],
+    [ "phyTxd", "classTenGigEthGtyUltraScale_1_1mapping.html#aa9dba38a5e93b15e4e8b2f16835d3f7a", null ],
+    [ "phyTxc", "classTenGigEthGtyUltraScale_1_1mapping.html#a2f4ae02c395f4b0baef291983a3dff80", null ],
+    [ "txGtClk", "classTenGigEthGtyUltraScale_1_1mapping.html#a7e2014753333143b83a77d0512f4fd4a", null ],
+    [ "phyClock", "classTenGigEthGtyUltraScale_1_1mapping.html#a91a7e597f7fa3f7a80c0a3540d31b231", null ],
+    [ "phyReset", "classTenGigEthGtyUltraScale_1_1mapping.html#af42ea83cda8af1d2da4f9dcba8fffe37", null ],
+    [ "config", "classTenGigEthGtyUltraScale_1_1mapping.html#a188c848fbab75aaa4fc8ac0c1f6cd9df", null ],
+    [ "status", "classTenGigEthGtyUltraScale_1_1mapping.html#a80b9d55d15a4369eae2b9e7aa9f6e920", null ],
+    [ "macRxAxisMaster", "classTenGigEthGtyUltraScale_1_1mapping.html#a440d743f767da7bc894104e8986ba2a5", null ],
+    [ "macRxAxisCtrl", "classTenGigEthGtyUltraScale_1_1mapping.html#aff388a880a9eb8a597cd070bc685c9f0", null ],
+    [ "macTxAxisMaster", "classTenGigEthGtyUltraScale_1_1mapping.html#ad8595c16823441909f84e3fd8c60e02c", null ],
+    [ "macTxAxisSlave", "classTenGigEthGtyUltraScale_1_1mapping.html#abd5c56338d1f988abe5cea26875dcca1", null ],
+    [ "u_axiliteasync", "classTenGigEthGtyUltraScale_1_1mapping.html#a6ad3250ab0e43c9bc8fd00cbe469ac50", null ],
+    [ "u_mac", "classTenGigEthGtyUltraScale_1_1mapping.html#aab275e58cb52292716e8361bbfcf87c3", null ],
+    [ "u_tengigethgtyultrascalecore", "classTenGigEthGtyUltraScale_1_1mapping.html#a5ef0a1462409ba16dec9a66794e7b589", null ],
+    [ "u_tengigethrst", "classTenGigEthGtyUltraScale_1_1mapping.html#a20e9f90981ff5538e81cf5f741ff8ee6", null ],
+    [ "u_tengigethreg", "classTenGigEthGtyUltraScale_1_1mapping.html#a234e87db55c8f716d44fae6ef827f0ac", null ]
+];

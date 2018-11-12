@@ -1,0 +1,4 @@
+<map id="I2cMaster" name="I2cMaster">
+<area shape="rect" id="node2" href="$classi2c__master__byte__ctrl.html" title="i2c_master_byte_ctrl" alt="" coords="5,80,148,107"/>
+<area shape="rect" id="node3" href="$classi2c__master__bit__ctrl.html" title="i2c_master_bit_ctrl" alt="" coords="11,5,143,32"/>
+</map>

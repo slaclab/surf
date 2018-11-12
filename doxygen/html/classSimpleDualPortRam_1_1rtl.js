@@ -1,0 +1,27 @@
+var classSimpleDualPortRam_1_1rtl =
+[
+    [ "PROCESS_84", "classSimpleDualPortRam_1_1rtl.html#ab307b5b3ff62c634d1bfd01e8e715e6c", null ],
+    [ "PROCESS_85", "classSimpleDualPortRam_1_1rtl.html#a606caafc39ba0c4e3ebc4bf30105d635", null ],
+    [ "PROCESS_86", "classSimpleDualPortRam_1_1rtl.html#a0a7b20c26be2ce2477040d6453bba674", null ],
+    [ "PROCESS_87", "classSimpleDualPortRam_1_1rtl.html#ad51f7f582b3bc62d9db18ac4d7634f1b", null ],
+    [ "BYTE_WIDTH_C", "classSimpleDualPortRam_1_1rtl.html#af3be7b850d222fc8035417e77b9d49c4", null ],
+    [ "NUM_BYTES_C", "classSimpleDualPortRam_1_1rtl.html#a905ac2c38735862812629186c1507281", null ],
+    [ "FULL_DATA_WIDTH_C", "classSimpleDualPortRam_1_1rtl.html#af440a0d0ae6bcad9bbeb43fab9f8f64c", null ],
+    [ "INIT_C", "classSimpleDualPortRam_1_1rtl.html#a53a5fd6931ab8097e6321a6b44517f0f", null ],
+    [ "XST_BRAM_STYLE_C", "classSimpleDualPortRam_1_1rtl.html#aa4c9df209dcead79fc0eefcf35319f43", null ],
+    [ "ALTERA_BRAM_STYLE_C", "classSimpleDualPortRam_1_1rtl.html#a8908c955c7270d2826128d09541042e7", null ],
+    [ "mem_type", "classSimpleDualPortRam_1_1rtl.html#a66a03cd9bb7ba1ad379bed34b026e9d2", null ],
+    [ "mem", "classSimpleDualPortRam_1_1rtl.html#a1e1c502e4c8edb68da87f31761d879ab", null ],
+    [ "doutBInt", "classSimpleDualPortRam_1_1rtl.html#a230075a56145a2eb6ace12df1829ca6f", null ],
+    [ "weaByteInt", "classSimpleDualPortRam_1_1rtl.html#a8333af5eaec82974c77e8a011f49fd70", null ],
+    [ "ram_style", "classSimpleDualPortRam_1_1rtl.html#aa6eb19062c4c41e00a354d155feabfce", null ],
+    [ "ram_style", "classSimpleDualPortRam_1_1rtl.html#a94d94ffdc521cfce4b035be6437a41db", null ],
+    [ "ram_extract", "classSimpleDualPortRam_1_1rtl.html#a85e7413243ede97aae10f5465ce14df5", null ],
+    [ "ram_extract", "classSimpleDualPortRam_1_1rtl.html#aa18d3a2bbd2dfe34f371ab6244f78539", null ],
+    [ "syn_ramstyle", "classSimpleDualPortRam_1_1rtl.html#a1440e400ee512d39b0e6e02fb4579cb9", null ],
+    [ "syn_ramstyle", "classSimpleDualPortRam_1_1rtl.html#ae7d75a7e78eba5bb9aeb6f6e796d83db", null ],
+    [ "syn_keep", "classSimpleDualPortRam_1_1rtl.html#ae1e793432d458504a8b9680fad506c38", null ],
+    [ "syn_keep", "classSimpleDualPortRam_1_1rtl.html#a67019486f30c001282362e115378b6e5", null ],
+    [ "ramstyle", "classSimpleDualPortRam_1_1rtl.html#a90c7c609fb2f005b1f71e5b8c3d246f1", null ],
+    [ "ramstyle", "classSimpleDualPortRam_1_1rtl.html#ab31683d65f6dd11cfe9a5e1366b41447", null ]
+];

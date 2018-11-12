@@ -1,0 +1,25 @@
+var classAxiAd5780Reg =
+[
+    [ "rtl", "classAxiAd5780Reg_1_1rtl.html", "classAxiAd5780Reg_1_1rtl" ],
+    [ "TPD_G", "classAxiAd5780Reg.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "STATUS_CNT_WIDTH_G", "classAxiAd5780Reg.html#a88ffac2ab61bb803af9237ba80978c17", null ],
+    [ "USE_DSP48_G", "classAxiAd5780Reg.html#a7a8db7e7131ac4fe84ceeb9010cb34c7", null ],
+    [ "AXI_CLK_FREQ_G", "classAxiAd5780Reg.html#a82571368c463a52e90b4676481bb0826", null ],
+    [ "SPI_CLK_FREQ_G", "classAxiAd5780Reg.html#a86d8df2f785854df97f17242a39a6b48", null ],
+    [ "axiReadMaster", "classAxiAd5780Reg.html#ac847742920ba32301ddc91cf13d6f5fe", null ],
+    [ "axiReadSlave", "classAxiAd5780Reg.html#af5301f308dc850ff6d3b80315d2e644c", null ],
+    [ "axiWriteMaster", "classAxiAd5780Reg.html#abf08eac4311749af56c8ec14b1903091", null ],
+    [ "axiWriteSlave", "classAxiAd5780Reg.html#a0eb32e5fab67488b94fb47c9fe42e97f", null ],
+    [ "status", "classAxiAd5780Reg.html#ab3a03abb89c1b247f237dc1a1d38a5e4", null ],
+    [ "config", "classAxiAd5780Reg.html#a669dbb40f5f9783f600f60cf4466b058", null ],
+    [ "axiClk", "classAxiAd5780Reg.html#a7d8781c632c75ab0fdde6e592fd13d60", null ],
+    [ "axiRst", "classAxiAd5780Reg.html#a399a775bae9ae4819d5af6838a95e28e", null ],
+    [ "dacRst", "classAxiAd5780Reg.html#af4fa38f5f4c1749a15c692d03051e483", null ],
+    [ "ieee", "classAxiAd5780Reg.html#a0a6af6eef40212dbaf130d57ce711256", null ],
+    [ "std_logic_1164", "classAxiAd5780Reg.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "std_logic_unsigned", "classAxiAd5780Reg.html#a598da929e807d58939b47499e8bc9fa8", null ],
+    [ "std_logic_arith", "classAxiAd5780Reg.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
+    [ "StdRtlPkg", "classAxiAd5780Reg.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
+    [ "AxiLitePkg", "classAxiAd5780Reg.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
+    [ "AxiAd5780Pkg", "classAxiAd5780Reg.html#ad91391f52fcf32e35973b88a753499cd", null ]
+];

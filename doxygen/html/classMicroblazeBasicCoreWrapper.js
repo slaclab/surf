@@ -1,0 +1,25 @@
+var classMicroblazeBasicCoreWrapper =
+[
+    [ "MicroblazeBasicCoreWrapper.mapping", "classMicroblazeBasicCoreWrapper_1_1mapping.html", "classMicroblazeBasicCoreWrapper_1_1mapping" ],
+    [ "TPD_G", "classMicroblazeBasicCoreWrapper.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "AXIL_RESP_C", "classMicroblazeBasicCoreWrapper.html#a1135186fd3e2138aa1ccdfae0ee8b240", null ],
+    [ "AXIL_ADDR_MSB_C", "classMicroblazeBasicCoreWrapper.html#a250148307488f750d037da4b30fd915f", null ],
+    [ "mAxilWriteMaster", "classMicroblazeBasicCoreWrapper.html#a10ef6b8e9a94c06fcae36a87645fcf9f", null ],
+    [ "mAxilWriteSlave", "classMicroblazeBasicCoreWrapper.html#afde89d75af3e29180fd91550de27927d", null ],
+    [ "mAxilReadMaster", "classMicroblazeBasicCoreWrapper.html#a951cb0795e99f7e459cd3ba888623e5d", null ],
+    [ "mAxilReadSlave", "classMicroblazeBasicCoreWrapper.html#a4f75f613ba88e0262eafdb37932247dc", null ],
+    [ "sAxisMaster", "classMicroblazeBasicCoreWrapper.html#af23b9264769b7c49b012201765d6430c", null ],
+    [ "sAxisSlave", "classMicroblazeBasicCoreWrapper.html#a4e7681b5766a6f51851dfb086a6bf45a", null ],
+    [ "mAxisMaster", "classMicroblazeBasicCoreWrapper.html#afd4f0f4d2e88b311f2a3b3705b317922", null ],
+    [ "mAxisSlave", "classMicroblazeBasicCoreWrapper.html#a9c21bd81be726446a739700ad311f4ad", null ],
+    [ "interrupt", "classMicroblazeBasicCoreWrapper.html#a40a7e5a197507fd68306be5bb0081104", null ],
+    [ "clk", "classMicroblazeBasicCoreWrapper.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
+    [ "pllLock", "classMicroblazeBasicCoreWrapper.html#ac2dc258b5027b78853d7c1b9d619fefd", null ],
+    [ "rst", "classMicroblazeBasicCoreWrapper.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],
+    [ "ieee", "classMicroblazeBasicCoreWrapper.html#a0a6af6eef40212dbaf130d57ce711256", null ],
+    [ "std_logic_1164", "classMicroblazeBasicCoreWrapper.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "StdRtlPkg", "classMicroblazeBasicCoreWrapper.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
+    [ "AxiStreamPkg", "classMicroblazeBasicCoreWrapper.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
+    [ "AxiLitePkg", "classMicroblazeBasicCoreWrapper.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
+    [ "SsiPkg", "classMicroblazeBasicCoreWrapper.html#a8b54e22b2a07048034b61d5e4ba396e3", null ]
+];

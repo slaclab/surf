@@ -1,0 +1,26 @@
+var classads54j60 =
+[
+    [ "rtl", "classads54j60_1_1rtl.html", "classads54j60_1_1rtl" ],
+    [ "TPD_G", "classads54j60.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "CLK_PERIOD_G", "classads54j60.html#a3f58e22548e92b316dd3fb108f7d1852", null ],
+    [ "SPI_SCLK_PERIOD_G", "classads54j60.html#aebe5ffca24428c7d9d3dcb45023804dc", null ],
+    [ "axiClk", "classads54j60.html#a7d8781c632c75ab0fdde6e592fd13d60", null ],
+    [ "axiRst", "classads54j60.html#a399a775bae9ae4819d5af6838a95e28e", null ],
+    [ "axiReadMaster", "classads54j60.html#ac847742920ba32301ddc91cf13d6f5fe", null ],
+    [ "axiReadSlave", "classads54j60.html#af5301f308dc850ff6d3b80315d2e644c", null ],
+    [ "axiWriteMaster", "classads54j60.html#abf08eac4311749af56c8ec14b1903091", null ],
+    [ "axiWriteSlave", "classads54j60.html#a0eb32e5fab67488b94fb47c9fe42e97f", null ],
+    [ "coreBusyIn", "classads54j60.html#a067379b7f2fedd7402220c384cd1014f", null ],
+    [ "coreBusyOut", "classads54j60.html#a9f8816611f69790e95d3477e8de737d9", null ],
+    [ "coreRst", "classads54j60.html#a1595d8506b38ed37c57a898de800b108", null ],
+    [ "coreSclk", "classads54j60.html#a656e835a0890a162151082bef7ac3400", null ],
+    [ "coreSDin", "classads54j60.html#a235365c8c85be8348cd9dcfd86cf53d8", null ],
+    [ "coreSDout", "classads54j60.html#ab494f9de512f117c98fe32f8f93e22e7", null ],
+    [ "coreCsb", "classads54j60.html#aaabc1205d85a1e0dfbb414fa8b00ab04", null ],
+    [ "ieee", "classads54j60.html#a0a6af6eef40212dbaf130d57ce711256", null ],
+    [ "std_logic_1164", "classads54j60.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "std_logic_arith", "classads54j60.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
+    [ "std_logic_unsigned", "classads54j60.html#a598da929e807d58939b47499e8bc9fa8", null ],
+    [ "StdRtlPkg", "classads54j60.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
+    [ "AxiLitePkg", "classads54j60.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ]
+];

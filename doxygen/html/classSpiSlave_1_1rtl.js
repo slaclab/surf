@@ -1,0 +1,27 @@
+var classSpiSlave_1_1rtl =
+[
+    [ "seq", "classSpiSlave_1_1rtl.html#ae8896e195ae00ae797895c15b647ba41", null ],
+    [ "isLeadingEdge", "classSpiSlave_1_1rtl.html#a01f17e6568acd72c6361368348e02eb4", null ],
+    [ "isTrailingEdge", "classSpiSlave_1_1rtl.html#a47c6d200a3448fdd0e05bc4bf3e1968e", null ],
+    [ "shift", "classSpiSlave_1_1rtl.html#ab3c44a76dd678c93affe68a1f8a980ab", null ],
+    [ "sample", "classSpiSlave_1_1rtl.html#a6ad492ae3f3437963b8df4ab045165f1", null ],
+    [ "comb", "classSpiSlave_1_1rtl.html#a97c26cf38092f83e96b0c12bfa2ada0e", null ],
+    [ "MAX_COUNT_C", "classSpiSlave_1_1rtl.html#a558462ebf679c2fbf6a24b888f7af1cb", null ],
+    [ "RegType", "classSpiSlave_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
+    [ "mosiLast", "classSpiSlave_1_1rtl.html#aa66079c3202a5f92f852f8b7032022ac", null ],
+    [ "sclkLast", "classSpiSlave_1_1rtl.html#a3fe0d5167df6db1caa7f87a1f3e30683", null ],
+    [ "selLLast", "classSpiSlave_1_1rtl.html#af24ddf388bb29b86415f5dca2742fc6b", null ],
+    [ "shiftReg", "classSpiSlave_1_1rtl.html#af66dbc295f5a5689c0a24debd0ccc54b", null ],
+    [ "shiftCnt", "classSpiSlave_1_1rtl.html#a1cc8495c975afed13ed330f691402660", null ],
+    [ "gotSclk", "classSpiSlave_1_1rtl.html#ab7c61f0c4334eece399d8b034eef7f82", null ],
+    [ "wrStb", "classSpiSlave_1_1rtl.html#a6028ab0d30befd82d15593643ae73384", null ],
+    [ "REG_INIT_C", "classSpiSlave_1_1rtl.html#af64569033b6e4fdf1a4f64b69043a016", null ],
+    [ "r", "classSpiSlave_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3", null ],
+    [ "rin", "classSpiSlave_1_1rtl.html#a758a8cbb78916a3911d410a62191310d", null ],
+    [ "mosiSync", "classSpiSlave_1_1rtl.html#ad57e3874173ca26adf4f90d9e2adc895", null ],
+    [ "sclkSync", "classSpiSlave_1_1rtl.html#a6aa5cf59e4bd9b9f7b34af0fb303c6bd", null ],
+    [ "selLSync", "classSpiSlave_1_1rtl.html#a6517d89ad515c729d127daf881cbe668", null ],
+    [ "sel_synchronizer", "classSpiSlave_1_1rtl.html#aa4b73dff8472faa5635f3096ea33b97a", null ],
+    [ "sclk_synchronizer", "classSpiSlave_1_1rtl.html#a2b78d91326c8fab755af28ab2d307bd1", null ],
+    [ "mosi_synchronizer", "classSpiSlave_1_1rtl.html#add34f3c1728b77add11fed358be0fab5", null ]
+];
