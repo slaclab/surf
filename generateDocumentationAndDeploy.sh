@@ -87,10 +87,8 @@ echo "" > .nojekyll
 ##### Generate the Doxygen code documentation and log the output.          #####
 echo 'Generating Doxygen code documentation...'
 doxygen -v
-ls -lath
-echo $DOXYFILE
-echo $TRAVIS_BUILD_DIR
-ls -lath $TRAVIS_BUILD_DIR
+# Update the INPUT configuration 
+echo "INPUT += $TRAVIS_BUILD_DIR" >> $DOXYFILE
 # Redirect both stderr and stdout to the log file AND the console.
 doxygen $DOXYFILE 2>&1 | tee doxygen.log
 
