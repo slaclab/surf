@@ -225,7 +225,7 @@ begin
       );
 
 
-   U_Pgp: entity work.Pgp2bLane 
+   U_Pgp: entity surf.Pgp2bLane 
       generic map (
          TPD_G             => 1 ns,
          LANE_CNT_G        => 1,
@@ -304,7 +304,7 @@ begin
             mAxisMaster => iprbsRxMasters(i),
             mAxisSlave  => iprbsRxSlaves(i));
 
-      U_SsiPrbsRx: entity work.SsiPrbsRx 
+      U_SsiPrbsRx: entity surf.SsiPrbsRx 
          generic map (
             TPD_G                      => 1 ns,
             STATUS_CNT_WIDTH_G         => 32,

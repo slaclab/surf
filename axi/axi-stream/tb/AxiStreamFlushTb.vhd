@@ -93,7 +93,7 @@ begin
          tDest        => (others => '0'),
          tId          => (others => '0'));     
 
-   U_Flush: entity work.AxiStreamFlush
+   U_Flush: entity surf.AxiStreamFlush
       generic map (
          TPD_G         => TPD_C,
          AXIS_CONFIG_G => AXI_STREAM_CONFIG_C,

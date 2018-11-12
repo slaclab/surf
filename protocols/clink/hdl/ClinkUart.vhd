@@ -107,7 +107,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Transmit FIFO
    -------------------------------------------------------------------------------------------------
-   U_TxFifo: entity work.AxiStreamFifoV2
+   U_TxFifo: entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          GEN_SYNC_FIFO_G     => false,
@@ -176,7 +176,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Receive FIFO
    -------------------------------------------------------------------------------------------------
-   U_RxFifo: entity work.AxiStreamFifoV2
+   U_RxFifo: entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          GEN_SYNC_FIFO_G     => false,

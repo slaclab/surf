@@ -94,7 +94,7 @@ architecture tb of Pgp2bGtx7FixedLatTb is
 begin
 
    -- component instantiation
-   U_Pgp2bGtx7FixedLatWrapper: entity work.Pgp2bGtx7FixedLatWrapper
+   U_Pgp2bGtx7FixedLatWrapper: entity surf.Pgp2bGtx7FixedLatWrapper
       generic map (
          VC_INTERLEAVE_G         => VC_INTERLEAVE_G,
          PAYLOAD_CNT_TOP_G       => PAYLOAD_CNT_TOP_G,

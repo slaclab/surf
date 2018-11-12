@@ -98,7 +98,6 @@ architecture structure of AxiRam is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-
    signal wrEn   : sl;
    signal wrData : slv(DATA_WIDTH_C-1 downto 0);
    signal wrAddr : slv(ADDR_WIDTH_C-1 downto 0);
@@ -115,7 +114,7 @@ begin
       report "AxiRam: Inferred SimpleDualPortRam does not support zero latency reads" severity failure;
 
    GEN_XPM : if (SYNTH_MODE_G = "xpm") generate
-      U_RAM : entity work.SimpleDualPortRamXpm
+      U_RAM : entity surf.SimpleDualPortRamXpm
          generic map (
             TPD_G          => TPD_G,
             COMMON_CLK_G   => true,
@@ -141,7 +140,7 @@ begin
    end generate;
 
    GEN_ALTERA : if (SYNTH_MODE_G = "altera_mf") generate
-      U_RAM : entity work.SimpleDualPortRamAlteraMf
+      U_RAM : entity surf.SimpleDualPortRamAlteraMf
          generic map (
             TPD_G          => TPD_G,
             COMMON_CLK_G   => true,
@@ -167,7 +166,7 @@ begin
    end generate;
 
    GEN_INFERRED : if (SYNTH_MODE_G = "inferred") generate
-      U_RAM : entity work.SimpleDualPortRam
+      U_RAM : entity surf.SimpleDualPortRam
          generic map (
             TPD_G        => TPD_G,
             BRAM_EN_G    => ite(READ_LATENCY_G = 0, false, true),

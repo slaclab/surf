@@ -105,7 +105,7 @@ begin
    U_TxEnGen: if TX_ENABLE_G = true generate
 
       -- Transmit
-      U_Pgp2bTx: entity work.Pgp2bTx 
+      U_Pgp2bTx: entity surf.Pgp2bTx 
          generic map (
             TPD_G              => TPD_G,
             TX_LANE_CNT_G      => LANE_CNT_G,
@@ -142,7 +142,7 @@ begin
    U_RxEnGen: if RX_ENABLE_G = true generate
 
       -- Receive
-      U_Pgp2bRx: entity work.Pgp2bRx 
+      U_Pgp2bRx: entity surf.Pgp2bRx 
          generic map (
             TPD_G              => TPD_G,
             RX_LANE_CNT_G      => LANE_CNT_G,

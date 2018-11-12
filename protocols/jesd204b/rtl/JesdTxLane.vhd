@@ -137,7 +137,7 @@ begin
    
    ----------------------------------------------------     
    -- Initial Synchronization Data Sequence (ILAS)
-   ilasGen_INST: entity work.JesdIlasGen
+   ilasGen_INST: entity surf.JesdIlasGen
       generic map (
          TPD_G => TPD_G,
          F_G   => F_G)
@@ -152,7 +152,7 @@ begin
       
    ----------------------------------------------------     
    -- Sample data with added synchronization characters TODO
-   AlignChGen_INST: entity work.JesdAlignChGen
+   AlignChGen_INST: entity surf.JesdAlignChGen
       generic map (
          TPD_G => TPD_G,
          F_G   => F_G)

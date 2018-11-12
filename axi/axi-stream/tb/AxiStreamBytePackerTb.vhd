@@ -84,7 +84,7 @@ begin
             axiRst      => axiRst,
             mAxisMaster => testInMaster(i));
 
-      U_Pack: entity work.AxiStreamBytePacker
+      U_Pack: entity surf.AxiStreamBytePacker
          generic map (
             TPD_G           => TPD_G,
             SLAVE_CONFIG_G  => SRC_CONFIG_C,

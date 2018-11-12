@@ -110,7 +110,7 @@ begin
             tId          => (others => '0')
          );     
 
-      U_AxiStreamFifo: entity work.AxiStreamFifoV2
+      U_AxiStreamFifo: entity surf.AxiStreamFifoV2
          generic map (
             TPD_G                  => TPD_C,
             FIFO_ADDR_WIDTH_G      => 9,
@@ -131,7 +131,7 @@ begin
          );
    end generate GEN_SRC;
 
-   U_Mux: entity work.AxiStreamMux 
+   U_Mux: entity surf.AxiStreamMux 
       generic map (
          TPD_G          => TPD_C,
          NUM_SLAVES_G   => EP_COUNT_C,
@@ -146,7 +146,7 @@ begin
          axisRst      => axiClkRst
       );
 
-   U_AxiStreamFifo: entity work.AxiStreamFifoV2
+   U_AxiStreamFifo: entity surf.AxiStreamFifoV2
       generic map (
          TPD_G                  => TPD_C,
          INT_PIPE_STAGES_G      => 1,
@@ -179,7 +179,7 @@ begin
          mAxisSlave  => fifoSlave
       );
 
-   U_DeMux: entity work.AxiStreamDeMux 
+   U_DeMux: entity surf.AxiStreamDeMux 
       generic map (
          TPD_G         => TPD_C,
          NUM_MASTERS_G => EP_COUNT_C,

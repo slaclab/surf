@@ -114,7 +114,7 @@ begin
 
 
    -- PHY Logic
-   U_Pgp2bRxPhy: entity work.Pgp2bRxPhy 
+   U_Pgp2bRxPhy: entity surf.Pgp2bRxPhy 
       generic map ( 
          TPD_G            => TPD_G,
          RX_LANE_CNT_G    => RX_LANE_CNT_G
@@ -147,7 +147,7 @@ begin
 
 
    -- Cell Receiver
-   U_Pgp2bRxCell: entity work.Pgp2bRxCell 
+   U_Pgp2bRxCell: entity surf.Pgp2bRxCell 
       generic map ( 
          TPD_G                => TPD_G,
          RX_LANE_CNT_G        => RX_LANE_CNT_G, 

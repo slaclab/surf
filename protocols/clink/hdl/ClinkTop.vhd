@@ -128,7 +128,7 @@ begin
          RST    => dlyRst); -- 1-bit input: Active high reset input
 
    -- Connector 0, Half 0, Control for Base,Medium,Full,Deca
-   U_Cbl0Half0: entity work.ClinkCtrl
+   U_Cbl0Half0: entity surf.ClinkCtrl
       generic map (
          TPD_G              => TPD_G,
          UART_READY_EN_G    => UART_READY_EN_G,
@@ -153,7 +153,7 @@ begin
          mUartSlave   => mUartSlaves(0));
 
    -- Connector 0, Half 1, Data X for Base,Medium,Full,Deca
-   U_Cbl0Half1: entity work.ClinkData
+   U_Cbl0Half1: entity surf.ClinkData
       generic map ( TPD_G => TPD_G)
       port map (
          cblHalfP   => cbl0Half1P,
@@ -172,7 +172,7 @@ begin
    U_DualCtrlEn: if CHAN_COUNT_G = 2 generate
 
       -- Connector 1, Half 0, Control Base, Data Z for Med, Full, Deca
-      U_Cbl1Half0: entity work.ClinkCtrl
+      U_Cbl1Half0: entity surf.ClinkCtrl
          generic map (
             TPD_G              => TPD_G,
             UART_READY_EN_G    => UART_READY_EN_G,
@@ -207,7 +207,7 @@ begin
    U_DualCtrlDis: if CHAN_COUNT_G = 1 generate
 
       -- Connector 1, Half 0, Control Base, Data Z for Med, Full, Deca
-      U_Cbl1Half0: entity work.ClinkData
+      U_Cbl1Half0: entity surf.ClinkData
          generic map ( 
             TPD_G    => TPD_G,
             INV_34_G => true)
@@ -233,7 +233,7 @@ begin
    end generate;
 
    -- Connector 1, Half 1, Data X for Base, Data Y for Med, Full, Deca
-   U_Cbl1Half1: entity work.ClinkData
+   U_Cbl1Half1: entity surf.ClinkData
       generic map ( TPD_G => TPD_G )
       port map (
          cblHalfP   => cbl1Half1P,
@@ -307,7 +307,7 @@ begin
    ---------------------------------
    -- AXIL Clock Transition
    ---------------------------------
-   U_AxilAsync: entity work.AxiLiteAsync
+   U_AxilAsync: entity surf.AxiLiteAsync
       generic map (
          TPD_G            => TPD_G,
          COMMON_CLK_G     => false)

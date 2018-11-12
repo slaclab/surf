@@ -102,7 +102,7 @@ begin
    -------------------------------
    -- UART
    -------------------------------
-   U_Uart: entity work.ClinkUart
+   U_Uart: entity surf.ClinkUart
       generic map (
          TPD_G              => TPD_G,
          UART_READY_EN_G    => UART_READY_EN_G,

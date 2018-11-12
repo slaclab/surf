@@ -108,7 +108,7 @@ begin
   --------------------------------------------------------------------------------------------------
 
   -- Front End register interface
-  Pgp2FrontEnd_1: entity work.Pgp2FrontEnd
+  Pgp2FrontEnd_1: entity surf.Pgp2FrontEnd
     port map (
       pgpRefClk    => gtpClk,
       pgpRefClkOut => pgpClk,
@@ -131,7 +131,7 @@ begin
       pgpTxP       => open);
 
   -- Register Decoder
-  FrontEndSaciRegDecoder_1: entity work.FrontEndSaciRegDecoder
+  FrontEndSaciRegDecoder_1: entity surf.FrontEndSaciRegDecoder
     generic map (
       DELAY_G => TPD_C)
     port map (
@@ -172,7 +172,7 @@ begin
       rstL => asicRstL);
 
   SaciSlaveGen: for i in 0 to 1 generate
-    SaciSlaveWrapper_i: entity work.SaciSlaveWrapper
+    SaciSlaveWrapper_i: entity surf.SaciSlaveWrapper
       port map (
         asicRstL => asicRstL,
         saciClk  => saciClk,

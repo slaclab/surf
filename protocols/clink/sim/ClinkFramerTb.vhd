@@ -117,7 +117,7 @@ begin
    end process;
 
 
-   U_Framing: entity work.ClinkFraming
+   U_Framing: entity surf.ClinkFraming
       generic map (
          TPD_G              => TPD_G,
          DATA_AXIS_CONFIG_G => AXIS_CONFIG_C)

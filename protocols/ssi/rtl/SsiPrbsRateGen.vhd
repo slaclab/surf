@@ -98,7 +98,7 @@ begin
    mAxisMaster <= iAxisMaster;
    iAxisSlave  <= mAxisSlave;
 
-   U_PrbsTx: entity work.SsiPrbsTx 
+   U_PrbsTx: entity surf.SsiPrbsTx 
       generic map (
          TPD_G                      => TPD_G,
          VALID_THOLD_G              => VALID_THOLD_G,
@@ -121,7 +121,7 @@ begin
          busy            => busy,
          packetLength    => r.packetLength);
 
-   U_Monitor: entity work.AxiStreamMon
+   U_Monitor: entity surf.AxiStreamMon
       generic map (
          TPD_G           => TPD_G,
          COMMON_CLK_G    => true,

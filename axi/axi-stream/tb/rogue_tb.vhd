@@ -58,7 +58,7 @@ begin
       wait;
    end process;
 
-   U_RogueSim: entity work.RogueStreamSimWrap
+   U_RogueSim: entity surf.RogueStreamSimWrap
       generic map (
          TPD_G               => 1 ns,
          DEST_ID_G           => 20,

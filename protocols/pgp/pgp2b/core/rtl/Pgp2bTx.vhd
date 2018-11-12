@@ -108,7 +108,7 @@ begin
 
    -- Sync flow control & buffer status
    U_VcFlowGen: for i in 0 to 3 generate
-      U_Sync: entity work.SynchronizerVector
+      U_Sync: entity surf.SynchronizerVector
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => '1',
@@ -130,7 +130,7 @@ begin
    end generate;
 
 
-   U_LinkReady: entity work.Synchronizer
+   U_LinkReady: entity surf.Synchronizer
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
@@ -177,7 +177,7 @@ begin
    end process;
 
    -- Physical Interface
-   U_Pgp2bTxPhy: entity work.Pgp2bTxPhy 
+   U_Pgp2bTxPhy: entity surf.Pgp2bTxPhy 
       generic map (
          TPD_G             => TPD_G,
          TX_LANE_CNT_G     => TX_LANE_CNT_G
@@ -203,7 +203,7 @@ begin
 
 
    -- Scheduler
-   U_Pgp2bTxSched: entity work.Pgp2bTxSched 
+   U_Pgp2bTxSched: entity surf.Pgp2bTxSched 
       generic map (
          TPD_G             => TPD_G,
          VC_INTERLEAVE_G   => VC_INTERLEAVE_G,
@@ -233,7 +233,7 @@ begin
 
 
    -- Cell Transmitter
-   U_Pgp2bTxCell: entity work.Pgp2bTxCell 
+   U_Pgp2bTxCell: entity surf.Pgp2bTxCell 
       generic map (
          TPD_G             => TPD_G,
          TX_LANE_CNT_G     => TX_LANE_CNT_G
@@ -302,7 +302,7 @@ begin
    U_Vc_Gen: for i in 0 to 3 generate
 
       -- Add pipeline stages to ensure ready stays asserted
-      U_InputPipe: entity work.AxiStreamPipeline 
+      U_InputPipe: entity surf.AxiStreamPipeline 
          generic map (
             TPD_G         => TPD_G,
             PIPE_STAGES_G => 0

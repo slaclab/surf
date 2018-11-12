@@ -491,7 +491,7 @@ begin
    --------------------------
    -- Tracking RAM
    --------------------------
-   U_TrackRam: entity work.DualPortRam 
+   U_TrackRam: entity surf.DualPortRam 
       generic map (
          TPD_G          => TPD_G,
          MODE_G         => "write-first",

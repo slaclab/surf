@@ -407,7 +407,7 @@ begin
    ---------------------------------
    -- Frame Packing
    ---------------------------------
-   U_Pack: entity work.AxiStreamBytePacker
+   U_Pack: entity surf.AxiStreamBytePacker
       generic map (
          TPD_G           => TPD_G,
          SLAVE_CONFIG_G  => SLV_CONFIG_C,
@@ -421,7 +421,7 @@ begin
    ---------------------------------
    -- Data FIFO
    ---------------------------------
-   U_DataFifo: entity work.AxiStreamFifoV2
+   U_DataFifo: entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => false,

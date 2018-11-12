@@ -91,7 +91,7 @@ begin
       wait;
    end process;
 
-   U_AxiMasterSim: entity work.AxiSimMasterWrap 
+   U_AxiMasterSim: entity surf.AxiSimMasterWrap 
       generic map (
          TPD_G       => 1 ns,
          MASTER_ID_G => 1
@@ -179,7 +179,7 @@ begin
       );
 
 
-   U_AxiWritePathFifo: entity work.AxiWritePathFifo 
+   U_AxiWritePathFifo: entity surf.AxiWritePathFifo 
       generic map (
          TPD_G                    => 1 ns,
          XIL_DEVICE_G             => "7SERIES",
@@ -224,7 +224,7 @@ begin
 
 
 
-   U_AxiReadPathFifo: entity work.AxiReadPathFifo 
+   U_AxiReadPathFifo: entity surf.AxiReadPathFifo 
       generic map (
          TPD_G                    => 1 ns,
          XIL_DEVICE_G             => "7SERIES",
@@ -258,7 +258,7 @@ begin
          mAxiReadSlave  => simAxiReadSlave
       );
 
-   U_AxiSlaveSim: entity work.AxiSimSlaveWrap 
+   U_AxiSlaveSim: entity surf.AxiSimSlaveWrap 
       generic map (
          TPD_G      => 1 ns,
          SLAVE_ID_G => 2

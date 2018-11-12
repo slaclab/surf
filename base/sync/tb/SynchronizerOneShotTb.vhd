@@ -47,7 +47,7 @@ architecture sim of SynchronizerOneShotTb is
 begin
 
    -- component instantiation
-   U_SynchronizerOneShot: entity work.SynchronizerOneShot
+   U_SynchronizerOneShot: entity surf.SynchronizerOneShot
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => RST_POLARITY_G,
