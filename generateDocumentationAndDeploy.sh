@@ -87,8 +87,14 @@ echo "" > .nojekyll
 ##### Generate the Doxygen code documentation and log the output.          #####
 echo 'Generating Doxygen code documentation...'
 doxygen -v
+
 # Update the INPUT configuration 
 echo "INPUT += $TRAVIS_BUILD_DIR" >> $DOXYFILE
+
+# Update the EXCLUDE configuration
+echo "EXCLUDE  = $TRAVIS_BUILD_DIR/protocols/i2c/rtl/orig" >> $DOXYFILE
+echo "EXCLUDE += $TRAVIS_BUILD_DIR/base/vhdl-libs"         >> $DOXYFILE
+
 # Redirect both stderr and stdout to the log file AND the console.
 doxygen $DOXYFILE 2>&1 | tee doxygen.log
 
