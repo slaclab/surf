@@ -1,18 +1,7 @@
-Warning: ignoring unsupported tag `ALLOW_UNICODE_NAMES    =' at line 79, file /home/travis/build/slaclab/surf/Doxyfile
-Warning: ignoring unsupported tag `TOC_INCLUDE_HEADINGS   =' at line 313, file /home/travis/build/slaclab/surf/Doxyfile
-Warning: ignoring unsupported tag `GROUP_NESTED_COMPOUNDS =' at line 370, file /home/travis/build/slaclab/surf/Doxyfile
-Warning: ignoring unsupported tag `HIDE_COMPOUND_REFERENCE=' at line 541, file /home/travis/build/slaclab/surf/Doxyfile
-Warning: ignoring unsupported tag `WARN_AS_ERROR          =' at line 765, file /home/travis/build/slaclab/surf/Doxyfile
-Warning: ignoring unsupported tag `HTML_DYNAMIC_MENUS     =' at line 1195, file /home/travis/build/slaclab/surf/Doxyfile
-Warning: ignoring unsupported tag `LATEX_EXTRA_STYLESHEET =' at line 1710, file /home/travis/build/slaclab/surf/Doxyfile
-Warning: ignoring unsupported tag `LATEX_TIMESTAMP        =' at line 1777, file /home/travis/build/slaclab/surf/Doxyfile
-Warning: ignoring unsupported tag `RTF_SOURCE_CODE        =' at line 1843, file /home/travis/build/slaclab/surf/Doxyfile
-Warning: ignoring unsupported tag `MAN_SUBDIR             =' at line 1878, file /home/travis/build/slaclab/surf/Doxyfile
-Warning: ignoring unsupported tag `DOCBOOK_PROGRAMLISTING =' at line 1941, file /home/travis/build/slaclab/surf/Doxyfile
-Warning: ignoring unsupported tag `PLANTUML_JAR_PATH      =' at line 2370, file /home/travis/build/slaclab/surf/Doxyfile
-Warning: ignoring unsupported tag `PLANTUML_CFG_FILE      =' at line 2375, file /home/travis/build/slaclab/surf/Doxyfile
-Warning: ignoring unsupported tag `PLANTUML_INCLUDE_PATH  =' at line 2380, file /home/travis/build/slaclab/surf/Doxyfile
-Warning: enabling OPTIMIZE_OUTPUT_VHDL assumes the following settings:
+warning: ignoring unsupported tag `TOC_INCLUDE_HEADINGS   =' at line 313, file /home/travis/build/slaclab/surf/Doxyfile
+warning: ignoring unsupported tag `HTML_DYNAMIC_MENUS     =' at line 1195, file /home/travis/build/slaclab/surf/Doxyfile
+warning: ignoring unsupported tag `PLANTUML_CFG_FILE      =' at line 2375, file /home/travis/build/slaclab/surf/Doxyfile
+warning: enabling OPTIMIZE_OUTPUT_VHDL assumes the following settings:
   INHERIT_DOCS           = NO (was YES)
   HIDE_SCOPE_NAMES       = YES (was NO)
   EXTRACT_PRIVATE        = YES (was NO)
@@ -25,7 +14,7 @@ Searching for dot files...
 Searching for msc files...
 Searching for dia files...
 Searching for files to exclude
-Searching for files to process...
+Searching INPUT for files to process...
 Searching for files in directory /home/travis/build/slaclab/surf/code_docs/surf
 Searching for files in directory /home/travis/build/slaclab/surf/code_docs/surf/doxygen
 Reading and parsing tag files
@@ -102,6 +91,7 @@ Generating file index...
 Generating file member index...
 Generating example index...
 finalizing index lists...
+writing tag file...
 Running dot...
 Generating dot graphs using 2 parallel threads...
 Running dot for graph 1/1
