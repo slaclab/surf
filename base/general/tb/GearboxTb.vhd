@@ -89,8 +89,8 @@ begin
    U_Gearbox_0 : entity surf.Gearbox
       generic map (
          TPD_G          => TPD_G,
-         INPUT_WIDTH_G  => INPUT_WIDTH_G,
-         OUTPUT_WIDTH_G => OUTPUT_WIDTH_G)
+         SLAVE_WIDTH_G  => INPUT_WIDTH_G,
+         MASTER_WIDTH_G => OUTPUT_WIDTH_G)
       port map (
          clk         => clk32,           -- [in]
          rst         => rst32,           -- [in]
@@ -105,8 +105,8 @@ begin
    U_Gearbox_1 : entity surf.Gearbox
       generic map (
          TPD_G          => TPD_G,
-         INPUT_WIDTH_G  => OUTPUT_WIDTH_G,
-         OUTPUT_WIDTH_G => INPUT_WIDTH_G)
+         SLAVE_WIDTH_G  => OUTPUT_WIDTH_G,
+         MASTER_WIDTH_G => INPUT_WIDTH_G)
       port map (
          clk         => clk32,          -- [in]
          rst         => rst32,          -- [in]

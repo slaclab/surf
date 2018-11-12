@@ -57,7 +57,7 @@ class Ltc4151(pr.Device):
         
         self.add(pr.LinkVariable(
             name         = 'Iin', 
-            description  = 'Current Measurment',
+            description  = 'Current Measurement',
             mode         = 'RO', 
             units        = 'A',
             disp         = '{:1.3f}',
@@ -91,7 +91,7 @@ class Ltc4151(pr.Device):
         
         self.add(pr.LinkVariable(
             name         = 'Vin', 
-            description  = 'Voltage Measurment',
+            description  = 'Voltage Measurement',
             mode         = 'RO', 
             units        = 'V',
             disp         = '{:1.3f}',
@@ -101,7 +101,7 @@ class Ltc4151(pr.Device):
         
         self.add(pr.LinkVariable(
             name         = 'Pin', 
-            description  = 'Power Measurment',
+            description  = 'Power Measurement',
             mode         = 'RO', 
             units        = 'W',
             disp         = '{:1.3f}',
@@ -135,7 +135,7 @@ class Ltc4151(pr.Device):
         
         self.add(pr.LinkVariable(
             name         = 'ADC Input', 
-            description  = 'ADC Voltage Measurment',
+            description  = 'ADC Voltage Measurement',
             mode         = 'RO', 
             units        = 'V',
             disp         = '{:1.3f}',
@@ -151,5 +151,6 @@ class Ltc4151(pr.Device):
             bitOffset   = 0, 
             base        = pr.UInt,
             mode        = 'RW',
+            hidden       = True,
         ))
         

@@ -68,7 +68,7 @@ begin
       a := signed(ain);
 
       -- Process the data
-      v.p := xor(a);
+      v.p := uXor(a);
 
       -- Register the variable for next clock cycle
       rin <= v;

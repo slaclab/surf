@@ -31,7 +31,7 @@ entity SimpleDualPortRam is
       ALTERA_RAM_G   : string                     := "M9K";
       BYTE_WR_EN_G   : boolean                    := false;
       DATA_WIDTH_G   : integer range 1 to (2**24) := 16;
-      BYTE_WIDTH_G   : integer                    := 8;    -- If BRAM, should be multiple or 8 or 9
+      BYTE_WIDTH_G   : integer                    := 8;  -- If BRAM, should be multiple or 8 or 9
       ADDR_WIDTH_G   : integer range 1 to (2**24) := 4;
       INIT_G         : slv                        := "0");
    port (
@@ -45,16 +45,17 @@ entity SimpleDualPortRam is
       -- Port B
       clkb    : in  sl                                                    := '0';
       enb     : in  sl                                                    := '1';
+      regceb  : in  sl                                                    := '1';
       rstb    : in  sl                                                    := not(RST_POLARITY_G);
       addrb   : in  slv(ADDR_WIDTH_G-1 downto 0)                          := (others => '0');
       doutb   : out slv(DATA_WIDTH_G-1 downto 0));
 end SimpleDualPortRam;
 
 architecture rtl of SimpleDualPortRam is
-   
+
    -- Set byte width to word width if byte writes not enabled
    -- Otherwise block ram parity bits wont be utilized
-   constant BYTE_WIDTH_C : natural := ite(BYTE_WR_EN_G, BYTE_WIDTH_G, DATA_WIDTH_G);
+   constant BYTE_WIDTH_C      : natural := ite(BYTE_WR_EN_G, BYTE_WIDTH_G, DATA_WIDTH_G);
    constant NUM_BYTES_C       : natural := wordCount(DATA_WIDTH_G, BYTE_WIDTH_C);
    constant FULL_DATA_WIDTH_C : natural := NUM_BYTES_C*BYTE_WIDTH_C;
 
@@ -141,7 +142,9 @@ begin
          process (clkb)
          begin
             if (rising_edge(clkb)) then
-               doutb <= doutBInt(DATA_WIDTH_G-1 downto 0) after TPD_G;
+               if regceb = '1' then
+                  doutb <= doutBInt(DATA_WIDTH_G-1 downto 0) after TPD_G;
+               end if;
             end if;
          end process;
       end generate REG;

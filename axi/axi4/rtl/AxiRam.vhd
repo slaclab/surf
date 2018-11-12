@@ -22,12 +22,10 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiPkg.all;
 
-library xpm;
-use xpm.vcomponents.all;
-
 entity AxiRam is
    generic (
       TPD_G          : time                 := 1 ns;
+      SYNTH_MODE_G   : string               := "inferred";
       MEMORY_TYPE_G  : string               := "block";
       READ_LATENCY_G : natural range 0 to 2 := 2;
       AXI_CONFIG_G   : AxiConfigType        := axiConfig(16, 8, 4, 8));
@@ -45,11 +43,10 @@ end AxiRam;
 
 architecture structure of AxiRam is
 
-   constant DATA_BYTES_C  : positive := AXI_CONFIG_G.DATA_BYTES_C;
-   constant DATA_WIDTH_C  : positive := 8*DATA_BYTES_C;
-   constant OFFSET_C      : positive := ite(DATA_BYTES_C = 1, 0, log2(DATA_BYTES_C));
-   constant ADDR_WIDTH_C  : positive := AXI_CONFIG_G.ADDR_WIDTH_C-OFFSET_C;
-   constant MEMORY_SIZE_C : positive := DATA_WIDTH_C*(2**ADDR_WIDTH_C);
+   constant DATA_BYTES_C : positive := AXI_CONFIG_G.DATA_BYTES_C;
+   constant DATA_WIDTH_C : positive := 8*DATA_BYTES_C;
+   constant OFFSET_C     : positive := ite(DATA_BYTES_C = 1, 0, log2(DATA_BYTES_C));
+   constant ADDR_WIDTH_C : positive := AXI_CONFIG_G.ADDR_WIDTH_C-OFFSET_C;
 
    type WrStateType is (
       WR_ADDR_S,
@@ -113,48 +110,86 @@ architecture structure of AxiRam is
 
 begin
 
-   U_RAM : xpm_memory_sdpram
-      generic map (
-         ADDR_WIDTH_A            => ADDR_WIDTH_C,
-         ADDR_WIDTH_B            => ADDR_WIDTH_C,
-         AUTO_SLEEP_TIME         => 0,  -- 0 - Disable auto-sleep feature
-         BYTE_WRITE_WIDTH_A      => 8,  -- 8- 8-bit byte-wide writes, legal when WRITE_DATA_WIDTH_A is an integer multiple of 8
-         CLOCKING_MODE           => "common_clock",   -- SYNC RAM mode
-         ECC_MODE                => "no_ecc",         -- Default value = no_ecc
-         MEMORY_INIT_FILE        => "none",   -- Default value = none
-         MEMORY_INIT_PARAM       => "0",      -- Default value = 0
-         MEMORY_OPTIMIZATION     => "false",  -- "false" to disable the optimization of unused memory or bits in the memory structure 
-         MEMORY_PRIMITIVE        => MEMORY_TYPE_G,
-         MEMORY_SIZE             => MEMORY_SIZE_C,
-         MESSAGE_CONTROL         => 0,  -- Default value = 0
-         READ_DATA_WIDTH_B       => DATA_WIDTH_C,
-         READ_LATENCY_B          => READ_LATENCY_G,
-         READ_RESET_VALUE_B      => "0",      -- Default value = 0
-         USE_EMBEDDED_CONSTRAINT => 0,  -- Default value = 0
-         USE_MEM_INIT            => 1,  -- Default value = 1
-         WAKEUP_TIME             => "disable_sleep",  -- "disable_sleep" to disable dynamic power saving option
-         WRITE_DATA_WIDTH_A      => DATA_WIDTH_C,
-         WRITE_MODE_B            => ite(READ_LATENCY_G = 0, "read_first", "no_change"))  -- Default value = no_change
-      port map (
-         -- Write Interface
-         ena            => wrEn,
-         clka           => axiClk,
-         addra          => wrAddr,
-         dina           => wrData,
-         wea            => wstrb,
-         -- Read Interface
-         enb            => rdEn(0),
-         clkb           => axiClk,
-         addrb          => rdAddr,
-         doutb          => rdData,
-         regceb         => rdEn(1),
-         -- Misc.Interface
-         rstb           => '0',
-         dbiterrb       => open,
-         sbiterrb       => open,
-         injectdbiterra => '0',
-         injectsbiterra => '0',
-         sleep          => '0');
+   assert (SYNTH_MODE_G /= "inferred") or
+      ((SYNTH_MODE_G = "inferred") and (READ_LATENCY_G > 0))
+      report "AxiRam: Inferred SimpleDualPortRam does not support zero latency reads" severity failure;
+
+   GEN_XPM : if (SYNTH_MODE_G = "xpm") generate
+      U_RAM : entity work.SimpleDualPortRamXpm
+         generic map (
+            TPD_G          => TPD_G,
+            COMMON_CLK_G   => true,
+            MEMORY_TYPE_G  => MEMORY_TYPE_G,
+            READ_LATENCY_G => READ_LATENCY_G,
+            DATA_WIDTH_G   => DATA_WIDTH_C,
+            BYTE_WR_EN_G   => true,
+            BYTE_WIDTH_G   => 8,
+            ADDR_WIDTH_G   => ADDR_WIDTH_C)
+         port map (
+            -- Port A     
+            ena    => wrEn,
+            clka   => axiClk,
+            addra  => wrAddr,
+            dina   => wrData,
+            wea    => wstrb,
+            -- Read Interface
+            enb    => rdEn(0),
+            clkb   => axiClk,
+            addrb  => rdAddr,
+            doutb  => rdData,
+            regceb => rdEn(1));
+   end generate;
+
+   GEN_ALTERA : if (SYNTH_MODE_G = "altera_mf") generate
+      U_RAM : entity work.SimpleDualPortRamAlteraMf
+         generic map (
+            TPD_G          => TPD_G,
+            COMMON_CLK_G   => true,
+            MEMORY_TYPE_G  => MEMORY_TYPE_G,
+            READ_LATENCY_G => READ_LATENCY_G,
+            DATA_WIDTH_G   => DATA_WIDTH_C,
+            BYTE_WR_EN_G   => true,
+            BYTE_WIDTH_G   => 8,
+            ADDR_WIDTH_G   => ADDR_WIDTH_C)
+         port map (
+            -- Port A     
+            ena    => wrEn,
+            clka   => axiClk,
+            addra  => wrAddr,
+            dina   => wrData,
+            wea    => wstrb,
+            -- Read Interface
+            enb    => rdEn(0),
+            clkb   => axiClk,
+            addrb  => rdAddr,
+            doutb  => rdData,
+            regceb => rdEn(1));
+   end generate;
+
+   GEN_INFERRED : if (SYNTH_MODE_G = "inferred") generate
+      U_RAM : entity work.SimpleDualPortRam
+         generic map (
+            TPD_G        => TPD_G,
+            BRAM_EN_G    => ite(READ_LATENCY_G = 0, false, true),
+            DOB_REG_G    => ite(READ_LATENCY_G = 2, true, false),
+            BYTE_WR_EN_G => true,
+            DATA_WIDTH_G => DATA_WIDTH_C,
+            BYTE_WIDTH_G => 8,
+            ADDR_WIDTH_G => ADDR_WIDTH_C)
+         port map (
+            -- Port A     
+            ena     => wrEn,
+            clka    => axiClk,
+            addra   => wrAddr,
+            dina    => wrData,
+            weaByte => wstrb,
+            -- Read Interface
+            enb     => rdEn(0),
+            clkb    => axiClk,
+            addrb   => rdAddr,
+            doutb   => rdData,
+            regceb  => rdEn(1));
+   end generate;
 
    comb : process (axiRst, r, rdData, sAxiReadMaster, sAxiWriteMaster) is
       variable v : RegType;

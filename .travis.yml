@@ -1,0 +1,62 @@
+# This will run on Travis' 'new' container-based infrastructure
+sudo: true
+
+# Setup for Ubuntu Xenial (Ubuntu 16.04)
+dist: xenial
+
+# Blacklist
+branches:
+  except:
+    - gh-pages
+
+language:
+  - python
+
+python:
+  - 3.6
+
+# Environment variables
+env:
+  global:
+    - GH_REPO_NAME: surf
+    - DOXYFILE: $TRAVIS_BUILD_DIR/Doxyfile
+    - GH_REPO_REF: github.com/slaclab/surf.git
+
+# Install dependencies
+addons:
+  apt:
+    packages:
+      - doxygen
+      - doxygen-doc
+      - doxygen-latex
+      - doxygen-gui
+      - graphviz
+
+stages:
+    # On master branch (but not on PRs to master) or in tagged releases
+    # generate and deploy the documentation
+    - name: generate_and_deploy
+      if: (branch = master AND NOT (type = pull_request)) OR tag IS present
+    # On all other branches or PRs, but not on tagged releases
+    # only try to generate the documentation
+    - name: generate
+      if: (branch != master OR (type == pull_request)) AND tag IS blank
+
+# Generate and deploy documentation
+jobs:
+  include:
+    # Stage to only generate the documentation
+    - &documentation_stage
+      stage: generate
+      name: "Generate Documentation"
+      before_script:
+        - cd $TRAVIS_BUILD_DIR
+        - chmod +x generateDocumentationAndDeploy.sh
+      script: ./generateDocumentationAndDeploy.sh 0
+
+    # Stage to generate and deploy the documentation
+    - <<: *documentation_stage
+      stage: generate_and_deploy
+      name: "Generate and Deploy Documentation"
+      script: ./generateDocumentationAndDeploy.sh 1
+
