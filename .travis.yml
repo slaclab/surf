@@ -1,6 +1,9 @@
 # This will run on Travis' 'new' container-based infrastructure
 sudo: true
 
+# Setup for Ubuntu Xenial (Ubuntu 16.04)
+dist: xenial
+
 # Blacklist
 branches:
   except:
