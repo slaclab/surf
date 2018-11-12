@@ -56,11 +56,11 @@ set -e
 mkdir code_docs
 cd code_docs
 
-# Instal git-lfs
+# Install git-lfs (in case not done yet)
 git-lfs install
 
 # Get the current gh-pages branch
-git clone -b gh-pages https://git@$GH_REPO_REF
+git clone --recursive https://git@$GH_REPO_REF -b gh-pages
 cd $GH_REPO_NAME
 
 ##### Configure git.
@@ -85,6 +85,7 @@ echo "" > .nojekyll
 ################################################################################
 ##### Generate the Doxygen code documentation and log the output.          #####
 echo 'Generating Doxygen code documentation...'
+doxygen -v
 # Redirect both stderr and stdout to the log file AND the console.
 doxygen $DOXYFILE 2>&1 | tee doxygen.log
 
