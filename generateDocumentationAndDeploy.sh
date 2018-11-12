@@ -60,19 +60,22 @@ cd code_docs
 git-lfs install
 
 # Get the current gh-pages branch
-git clone --recursive https://git@$GH_REPO_REF -b gh-pages
+git clone -b gh-pages https://git@$GH_REPO_REF
 cd $GH_REPO_NAME
 
 ##### Configure git.
 # Set the push default to simple i.e. push only the current branch.
 git config --global push.default simple
+# Pretend to be an user called Travis CI.
 git config --global user.email "travis@travis-ci.org"
 git config --global user.name "Travis CI"
 
 # Remove everything currently in the gh-pages branch.
-CURRENTCOMMIT=`git rev-parse HEAD`
-git reset --hard `git rev-list HEAD | tail -n 1` # Reset working tree to initial commit
-git reset --soft $CURRENTCOMMIT # Move HEAD back to where it was
+# GitHub is smart enough to know which files have changed and which files have
+# stayed the same and will only update the changed files. So the gh-pages branch
+# can be safely cleaned, and it is sure that everything pushed later is the new
+# documentation.
+rm -rf *
 
 # Need to create a .nojekyll file to allow filenames starting with an underscore
 # to be seen on the gh-pages site. Therefore creating an empty .nojekyll file.
@@ -85,6 +88,8 @@ echo "" > .nojekyll
 echo 'Generating Doxygen code documentation...'
 doxygen -v
 ls -lath
+echo $(TRAVIS_BUILD_DIR)
+ls -lath $(TRAVIS_BUILD_DIR)
 # Redirect both stderr and stdout to the log file AND the console.
 doxygen $DOXYFILE 2>&1 | tee doxygen.log
 
