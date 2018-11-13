@@ -25,6 +25,7 @@ use surf.AxiLitePkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for AxiMicronMt28ewReg
 entity AxiMicronMt28ewReg is
    generic (
       TPD_G              : time             := 1 ns;

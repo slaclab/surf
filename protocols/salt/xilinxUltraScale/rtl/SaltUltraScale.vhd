@@ -24,6 +24,7 @@ use surf.SsiPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for SaltUltraScale
 entity SaltUltraScale is
    generic (
       TPD_G               : time                := 1 ns;

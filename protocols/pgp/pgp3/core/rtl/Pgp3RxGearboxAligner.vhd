@@ -27,6 +27,7 @@ use ieee.std_logic_arith.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for Pgp3RxGearboxAligner
 entity Pgp3RxGearboxAligner is
 
    generic (

@@ -21,6 +21,7 @@ use ieee.std_logic_arith.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for Jesd16bTo32b
 entity Jesd16bTo32b is
    generic (
       TPD_G : time := 1 ns);
@@ -41,6 +42,7 @@ entity Jesd16bTo32b is
       dataOut   : out slv(31 downto 0));
 end Jesd16bTo32b;
 
+--! architecture declaration
 architecture rtl of Jesd16bTo32b is
 
    type RegType is record

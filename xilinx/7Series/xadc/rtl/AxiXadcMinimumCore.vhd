@@ -20,6 +20,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
+--! Entity declaration for AxiXadcMinimumCore
 entity AxiXadcMinimumCore is
    generic (
       TPD_G : time := 1 ns);

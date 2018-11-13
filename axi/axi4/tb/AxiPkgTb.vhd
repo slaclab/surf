@@ -16,9 +16,8 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiPkg.all;
 
-entity AxiPkgTb is
-
-end entity AxiPkgTb;
+--! Entity declaration for AxiPkgTb
+entity AxiPkgTb is end AxiPkgTb;
 
 architecture tb of AxiPkgTb is
 

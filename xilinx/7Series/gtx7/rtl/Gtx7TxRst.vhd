@@ -73,6 +73,7 @@ use IEEE.NUMERIC_STD.all;
 
 library surf;
 
+--! Entity declaration for Gtx7TxRst
 entity Gtx7TxRst is
    generic(
       TPD_G                  : time                  := 1 ns;

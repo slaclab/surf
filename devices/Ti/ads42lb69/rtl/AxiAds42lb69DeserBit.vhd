@@ -25,6 +25,7 @@ use surf.AxiAds42lb69Pkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for AxiAds42lb69DeserBit
 entity AxiAds42lb69DeserBit is
    generic (
       TPD_G           : time            := 1 ns;

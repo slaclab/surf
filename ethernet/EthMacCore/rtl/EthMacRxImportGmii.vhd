@@ -23,6 +23,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for EthMacRxImportGmii
 entity EthMacRxImportGmii is
    generic (
       TPD_G : time := 1 ns);
@@ -42,6 +43,7 @@ entity EthMacRxImportGmii is
       rxCrcError  : out sl);
 end EthMacRxImportGmii;
 
+--! architecture declaration
 architecture rtl of EthMacRxImportGmii is
 
    constant SFD_C : slv(7 downto 0) := x"D5";

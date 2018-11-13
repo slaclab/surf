@@ -23,6 +23,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
+--! Entity declaration for AxiStreamBatcherEventBuilder
 entity AxiStreamBatcherEventBuilder is
    generic (
       TPD_G : time := 1 ns;
@@ -55,6 +56,7 @@ entity AxiStreamBatcherEventBuilder is
       mAxisSlave   : in  AxiStreamSlaveType);
 end entity AxiStreamBatcherEventBuilder;
 
+--! architecture declaration
 architecture rtl of AxiStreamBatcherEventBuilder is
 
    constant DEST_SIZE_C : integer := bitSize(NUM_SLAVES_G-1);

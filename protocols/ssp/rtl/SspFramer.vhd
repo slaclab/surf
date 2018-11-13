@@ -23,6 +23,7 @@ use IEEE.STD_LOGIC_ARITH.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for SspFramer
 entity SspFramer is
 
    generic (
@@ -55,6 +56,7 @@ entity SspFramer is
 
 end entity SspFramer;
 
+--! architecture declaration
 architecture rtl of SspFramer is
 
    constant IDLE_MODE_C : sl := '0';

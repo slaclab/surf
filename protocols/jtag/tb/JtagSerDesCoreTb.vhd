@@ -25,6 +25,7 @@ use ieee.numeric_std.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for JtagSerDesCoreTb
 entity JtagSerDesCoreTb is
 end entity JtagSerDesCoreTb;
 

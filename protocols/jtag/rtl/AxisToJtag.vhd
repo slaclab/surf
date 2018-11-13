@@ -159,6 +159,7 @@ use surf.AxisToJtagPkg.all;
 -- transaction then the core detects a retried operation and does not actually execute
 -- it again on JTAG but plays back the stored TDO response to the requestor.
 
+--! Entity declaration for AxisToJtag
 entity AxisToJtag is
    generic (
       TPD_G            : time                       := 1 ns;

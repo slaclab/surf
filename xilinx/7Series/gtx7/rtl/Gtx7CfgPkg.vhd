@@ -23,6 +23,7 @@ use IEEE.math_real.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Package declaration for Gtx7CfgPkg
 package Gtx7CfgPkg is
 
    constant GTX7CFG_0_C : sl := '0';

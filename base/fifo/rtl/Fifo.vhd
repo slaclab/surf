@@ -20,6 +20,7 @@ use ieee.numeric_std.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for Fifo
 entity Fifo is
    generic (
       TPD_G           : time                       := 1 ns;
@@ -66,6 +67,7 @@ entity Fifo is
       empty         : out sl);
 end Fifo;
 
+--! architecture declaration
 architecture rtl of Fifo is
 
    constant INIT_C   : slv(DATA_WIDTH_G-1 downto 0) := ite(INIT_G = "0", slvZero(DATA_WIDTH_G), INIT_G);

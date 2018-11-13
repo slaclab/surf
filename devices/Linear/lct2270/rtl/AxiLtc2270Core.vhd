@@ -22,6 +22,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiLtc2270Pkg.all;
 
+--! Entity declaration for AxiLtc2270Core
 entity AxiLtc2270Core is
    generic (
       TPD_G              : time                            := 1 ns;

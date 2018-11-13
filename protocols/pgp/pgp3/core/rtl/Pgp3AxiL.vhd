@@ -25,6 +25,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.Pgp3Pkg.all;
 
+--! Entity declaration for Pgp3AxiL
 entity Pgp3AxiL is
    generic (
       TPD_G              : time                  := 1 ns;

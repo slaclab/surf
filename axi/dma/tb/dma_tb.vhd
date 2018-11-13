@@ -14,10 +14,10 @@
 ------------------------------------------------------------------------------
 
 LIBRARY ieee;
-USE work.ALL;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
+
 Library unisim;
 use unisim.vcomponents.all;
 
@@ -27,6 +27,7 @@ use surf.AxiPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Entity declaration for dma_tb
 entity dma_tb is end dma_tb;
 
 -- Define architecture

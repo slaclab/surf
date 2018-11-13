@@ -21,6 +21,7 @@ use ieee.std_logic_unsigned.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for FifoTbSubModule
 entity FifoTbSubModule is
    generic (
       TPD_G           : time                  := 1 ns;
@@ -36,6 +37,7 @@ entity FifoTbSubModule is
       failed : out sl := '0');   
 end FifoTbSubModule;
 
+--! architecture declaration
 architecture mapping of FifoTbSubModule is
 
    signal wrEn,

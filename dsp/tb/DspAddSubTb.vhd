@@ -21,8 +21,10 @@ use ieee.std_logic_arith.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for DspAddSubTb
 entity DspAddSubTb is end DspAddSubTb;
 
+--! architecture declaration
 architecture testbed of DspAddSubTb is
 
    constant TPD_G : time := 2.5 ns;

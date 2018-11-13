@@ -22,12 +22,12 @@ use surf.AxiLitePkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
-entity AxiLiteAsyncTb is
-
-end entity AxiLiteAsyncTb;
+--! Entity declaration for AxiLiteAsyncTb
+entity AxiLiteAsyncTb is end AxiLiteAsyncTb;
 
 ----------------------------------------------------------------------------------------------------
 
+--! architecture declaration
 architecture tb of AxiLiteAsyncTb is
 
    -- component generics

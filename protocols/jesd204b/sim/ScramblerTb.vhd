@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.Jesd204bPkg.all;
 
+--! Entity declaration for ScramblerTb
 entity ScramblerTb is
 end entity;
 

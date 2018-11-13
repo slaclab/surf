@@ -15,6 +15,7 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
@@ -24,6 +25,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.Pgp3Pkg.all;
 
+--! Entity declaration for Pgp3RxEb
 entity Pgp3RxEb is
 
    generic (

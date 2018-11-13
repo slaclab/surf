@@ -31,6 +31,7 @@ use surf.SsiPkg.all;
 use surf.AxiLitePkg.all;
 use surf.SrpV3Pkg.all;
 
+--! Entity declaration for SrpV3Core
 entity SrpV3Core is
    generic (
       TPD_G               : time                    := 1 ns;

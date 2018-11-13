@@ -27,6 +27,7 @@ use surf.Pgp3Pkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for RoguePgp3Sim
 entity RoguePgp3Sim is
    generic (
       TPD_G     : time                   := 1 ns;

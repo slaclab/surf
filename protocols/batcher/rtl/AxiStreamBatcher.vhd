@@ -24,6 +24,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
+--! Entity declaration for AxiStreamBatcher
 entity AxiStreamBatcher is
    generic (
       TPD_G                        : time                := 1 ns;
@@ -49,6 +50,7 @@ entity AxiStreamBatcher is
       mAxisSlave              : in  AxiStreamSlaveType);
 end entity AxiStreamBatcher;
 
+--! architecture declaration
 architecture rtl of AxiStreamBatcher is
 
    constant AXIS_WORD_SIZE_C : positive := AXIS_CONFIG_G.TDATA_BYTES_C;  -- Units of bytes

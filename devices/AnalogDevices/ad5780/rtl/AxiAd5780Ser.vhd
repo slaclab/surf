@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiAd5780Pkg.all;
 
+--! Entity declaration for AxiAd5780Ser
 entity AxiAd5780Ser is
    generic (
       TPD_G          : time := 1 ns;

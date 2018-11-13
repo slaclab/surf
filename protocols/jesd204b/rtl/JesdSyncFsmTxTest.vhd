@@ -24,6 +24,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.Jesd204bPkg.all;
 
+--! Entity declaration for JesdSyncFsmTxTest
 entity JesdSyncFsmTxTest is
    generic (
       TPD_G       : time     := 1 ns);    

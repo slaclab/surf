@@ -36,6 +36,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.Jesd204bPkg.all;
 
+--! Entity declaration for Jesd204bTx
 entity Jesd204bTx is
    generic (
       TPD_G        : time                   := 1 ns;

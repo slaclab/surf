@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
+--! Entity declaration for AxiLiteSlave
 entity AxiLiteSlave is
    generic (
       TPD_G : time := 1 ns);
@@ -36,6 +37,7 @@ entity AxiLiteSlave is
       axilReadSlave   : out AxiLiteReadSlaveType);
 end entity AxiLiteSlave;
 
+--! architecture declaration
 architecture rtl of AxiLiteSlave is
 
    type StateType is (

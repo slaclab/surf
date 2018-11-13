@@ -27,7 +27,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.Pgp2bPkg.all;
 
-
+--! Entity declaration for RoguePgp2bSim
 entity RoguePgp2bSim is
 
    generic (

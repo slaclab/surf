@@ -21,6 +21,7 @@ use surf.StdRtlPkg.all;
 use surf.SsiPkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Package declaration for RssiPkg
 package RssiPkg is
 
    --------------------------------------------------------------------------

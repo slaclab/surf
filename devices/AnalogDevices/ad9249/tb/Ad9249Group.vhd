@@ -17,6 +17,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 use surf.TextUtilPkg.all;
@@ -24,7 +25,7 @@ use surf.TextUtilPkg.all;
 library UNISIM;
 use UNISIM.vcomponents.all;
 
-
+--! Entity declaration for Ad9249Group
 entity Ad9249Group is
 
    generic (

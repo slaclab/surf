@@ -19,6 +19,7 @@ use ieee.numeric_std.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Package declaration for Code8b10bPkg
 package Code8b10bPkg is
 
    -------------------------------------------------------------------------------------------------

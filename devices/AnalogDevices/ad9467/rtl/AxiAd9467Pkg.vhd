@@ -19,6 +19,7 @@ use ieee.std_logic_1164.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Package declaration for AxiAd9467Pkg
 package AxiAd9467Pkg is
    
    type AxiAd9467InType is record

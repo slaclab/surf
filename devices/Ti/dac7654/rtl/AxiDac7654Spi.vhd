@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiDac7654Pkg.all;
 
+--! Entity declaration for AxiDac7654Spi
 entity AxiDac7654Spi is
    generic (
       TPD_G          : time := 1 ns;

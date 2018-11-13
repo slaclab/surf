@@ -14,7 +14,6 @@
 ------------------------------------------------------------------------------
 
 LIBRARY ieee;
-USE work.ALL;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
@@ -31,6 +30,7 @@ use surf.SsiCmdMasterPkg.all;
 use surf.Pgp2bPkg.all;
 use surf.I2cPkg.all;
 
+--! Entity declaration for vcs_tb
 entity vcs_tb is end vcs_tb;
 
 -- Define architecture

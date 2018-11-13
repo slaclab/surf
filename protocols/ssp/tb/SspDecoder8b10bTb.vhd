@@ -21,12 +21,14 @@ use surf.StdRtlPkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
+--! Entity declaration for SspDecoder8b10bTb
 entity SspDecoder8b10bTb is
 
 end entity SspDecoder8b10bTb;
 
 ----------------------------------------------------------------------------------------------------
 
+--! architecture declaration
 architecture sim of SspDecoder8b10bTb is
 
    -- component generics

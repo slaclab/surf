@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
+--! Entity declaration for AxiMicronN25QReg
 entity AxiMicronN25QReg is
    generic (
       TPD_G              : time             := 1 ns;

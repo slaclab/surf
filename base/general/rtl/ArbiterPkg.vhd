@@ -20,6 +20,7 @@ library surf;
 use surf.StdRtlPkg.all;
 --use surf.TextUtilPkg.all;
 
+--! Package declaration for ArbiterPkg
 package ArbiterPkg is
 
    function priorityEncode (v : slv; p : integer) return slv;

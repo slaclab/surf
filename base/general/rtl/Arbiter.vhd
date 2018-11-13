@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.ArbiterPkg.all;
 
+--! Entity declaration for Arbiter
 entity Arbiter is
    generic (
       TPD_G          : time     := 1 ns;

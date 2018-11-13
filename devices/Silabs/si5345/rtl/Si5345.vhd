@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
+--! Entity declaration for Si5345
 entity Si5345 is
    generic (
       TPD_G             : time := 1 ns;

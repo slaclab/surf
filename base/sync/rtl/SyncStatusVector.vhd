@@ -21,6 +21,7 @@ use ieee.std_logic_arith.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for SyncStatusVector
 entity SyncStatusVector is
    generic (
       TPD_G           : time     := 1 ns; -- Simulation FF output delay

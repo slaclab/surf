@@ -24,6 +24,7 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
+--! Entity declaration for AxiStreamFlushTb
 entity AxiStreamFlushTb is end AxiStreamFlushTb;
 
 architecture testbed of AxiStreamFlushTb is

@@ -23,6 +23,7 @@ use surf.StdRtlPkg.all;
 use surf.EthMacPkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Entity declaration for EthMacRxBypass
 entity EthMacRxBypass is
    generic (
       TPD_G          : time             := 1 ns;
@@ -40,6 +41,7 @@ entity EthMacRxBypass is
       mBypMaster  : out AxiStreamMasterType);
 end EthMacRxBypass;
 
+--! architecture declaration
 architecture rtl of EthMacRxBypass is
 
    type StateType is (

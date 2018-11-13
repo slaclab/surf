@@ -21,6 +21,7 @@ use ieee.std_logic_arith.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for SynchronizerFifoTb
 entity SynchronizerFifoTb is end SynchronizerFifoTb;
 
 architecture testbed of SynchronizerFifoTb is

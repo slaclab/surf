@@ -21,6 +21,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.TextUtilPkg.all;
 
+--! Package declaration for AxiLitePkg
 package AxiLitePkg is
 
    -------------------------------------------------------------------------------------------------

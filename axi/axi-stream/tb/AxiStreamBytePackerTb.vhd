@@ -23,6 +23,7 @@ use surf.AxiStreamPkg.all;
 
 library unisim;
 
+--! Entity declaration for AxiStreamBytePackerTb
 entity AxiStreamBytePackerTb is end AxiStreamBytePackerTb;
 
 -- Define architecture

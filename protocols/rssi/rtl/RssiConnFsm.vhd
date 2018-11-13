@@ -25,6 +25,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.RssiPkg.all;
 
+--! Entity declaration for RssiConnFsm
 entity RssiConnFsm is
    generic (
       TPD_G        : time     := 1 ns;

@@ -23,6 +23,7 @@ use surf.AxiStreamPkg.all;
 use surf.StdRtlPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for EthMacTxShift
 entity EthMacTxShift is
    generic (
       TPD_G      : time    := 1 ns;
@@ -40,6 +41,7 @@ entity EthMacTxShift is
       txShift     : in  slv(3 downto 0));
 end EthMacTxShift;
 
+--! architecture declaration
 architecture mapping of EthMacTxShift is
 
 begin

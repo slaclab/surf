@@ -33,6 +33,7 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.SsiCmdMasterPkg.all;
 
+--! Entity declaration for SsiCmdMaster
 entity SsiCmdMaster is
    generic (
       TPD_G : time := 1 ns;

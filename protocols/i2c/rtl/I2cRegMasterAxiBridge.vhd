@@ -23,6 +23,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.I2cPkg.all;
 
+--! Entity declaration for I2cRegMasterAxiBridge
 entity I2cRegMasterAxiBridge is
 
    generic (

@@ -19,6 +19,7 @@ use ieee.std_logic_1164.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Package declaration for AxiMicronMt28ewPkg
 package AxiMicronMt28ewPkg is
 
    type AxiMicronMt28ewInOutType is record

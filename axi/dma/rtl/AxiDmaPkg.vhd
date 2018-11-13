@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Package declaration for AxiDmaPkg
 package AxiDmaPkg is
 
    -------------------------------------

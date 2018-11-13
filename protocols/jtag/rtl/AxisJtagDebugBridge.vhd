@@ -29,7 +29,8 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxisToJtagPkg.all;
 
--- Connect AxisToJtag to a debug bridge IP (convenience wrapper)
+--! Entity declaration for AxisJtagDebugBridge
+--! Connect AxisToJtag to a debug bridge IP (convenience wrapper)
 entity AxisJtagDebugBridge is
    generic (
       TPD_G            : time                       := 1 ns;

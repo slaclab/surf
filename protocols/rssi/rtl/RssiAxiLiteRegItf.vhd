@@ -73,6 +73,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.RssiPkg.all;
 
+--! Entity declaration for RssiAxiLiteRegItf
 entity RssiAxiLiteRegItf is
 generic (
    -- General Configurations

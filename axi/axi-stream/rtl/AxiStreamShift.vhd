@@ -26,6 +26,7 @@ use surf.StdRtlPkg.all;
 use surf.ArbiterPkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Entity declaration for AxiStreamShift
 entity AxiStreamShift is
    generic (
       TPD_G          : time                  := 1 ns;

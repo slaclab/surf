@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 -- use surf.TextUtilPkg.all;
 
+--! Package declaration for AxiStreamPkg
 package AxiStreamPkg is
 
    constant AXI_STREAM_MAX_TDATA_WIDTH_C : positive := 512;  -- Units of bits

@@ -24,6 +24,7 @@ use surf.AxiLitePkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for Gtp7QuadPll
 entity Gtp7QuadPll is
    generic (
       TPD_G                : time                 := 1 ns;

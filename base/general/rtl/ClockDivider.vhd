@@ -21,6 +21,7 @@ use ieee.std_logic_unsigned.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for ClockDivider
 entity ClockDivider is
 
    generic (

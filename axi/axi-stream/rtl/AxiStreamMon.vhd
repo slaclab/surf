@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Entity declaration for AxiStreamMon
 entity AxiStreamMon is
    generic (
       TPD_G           : time                := 1 ns;

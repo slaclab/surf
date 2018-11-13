@@ -22,6 +22,7 @@ use surf.AxiLitePkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
+--! Entity declaration for AxiLiteSaciMasterTb
 entity AxiLiteSaciMasterTb is
 
 end entity AxiLiteSaciMasterTb;

@@ -75,6 +75,7 @@ use ieee.std_logic_arith.all;
 
 library surf;
 
+--! Entity declaration for Gth7RxRst
 entity Gth7RxRst is
    generic(
       TPD_G                  : time                  := 1 ns;
@@ -124,7 +125,7 @@ end Gth7RxRst;
 -- * 
 
 
-
+--! architecture declaration
 architecture RTL of Gth7RxRst is
    type rx_rst_fsm_type is(
       INIT, ASSERT_ALL_RESETS, RELEASE_PLL_RESET, VERIFY_RECCLK_STABLE,

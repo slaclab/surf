@@ -29,6 +29,7 @@ use surf.AxiPkg.all;
 use surf.AxiDmaPkg.all;
 use surf.SrpV3Pkg.all;
 
+--! Entity declaration for SrpV3Axi
 entity SrpV3Axi is
    generic (
       TPD_G               : time                    := 1 ns;

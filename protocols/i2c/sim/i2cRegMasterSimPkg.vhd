@@ -21,6 +21,7 @@ use surf.StdRtlPkg.all;
 use surf.i2cPkg.all;
 use surf.txt_util_p.all;
 
+--! Package declaration for i2cRegMasterPkg
 package i2cRegMasterPkg is
 
   procedure writeI2cReg (

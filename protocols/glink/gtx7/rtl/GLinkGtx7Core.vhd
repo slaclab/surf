@@ -22,6 +22,7 @@ use surf.StdRtlPkg.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
 
+--! Entity declaration for GLinkGtx7Core
 entity GLinkGtx7Core is
    
    generic (

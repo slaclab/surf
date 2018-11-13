@@ -15,10 +15,12 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
+--! Entity declaration for PgpGthCoreWrapper
 entity PgpGthCoreWrapper is
 
    generic (

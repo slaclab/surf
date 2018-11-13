@@ -47,6 +47,7 @@ use surf.RssiPkg.all;
 use surf.SsiPkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Entity declaration for RssiTxFsm
 entity RssiTxFsm is
    generic (
       TPD_G : time := 1 ns;

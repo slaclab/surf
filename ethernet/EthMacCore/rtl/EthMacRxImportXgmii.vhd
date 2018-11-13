@@ -24,6 +24,7 @@ use surf.AxiStreamPkg.all;
 use surf.StdRtlPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for EthMacRxImportXgmii
 entity EthMacRxImportXgmii is
    generic (
       TPD_G : time := 1 ns);
@@ -42,6 +43,7 @@ entity EthMacRxImportXgmii is
       rxCrcError  : out sl);
 end EthMacRxImportXgmii;
 
+--! architecture declaration
 architecture rtl of EthMacRxImportXgmii is
 
    constant AXI_CONFIG_C : AxiStreamConfigType := (

@@ -22,9 +22,10 @@ library surf;
 use surf.StdRtlPkg.all;
 --use surf.TextUtilPkg.all;
 
+--! Package declaration for Code10b12bPkg
 package Code10b12bPkg is
 
-   -- Delcare input constants for commas and other important K_CODES
+   -- Declare input constants for commas and other important K_CODES
    constant K_28_3_C  : slv(9 downto 0) := "0001111100";  -- 0x07C -> 0x8FC, 0x703
    constant K_28_11_C : slv(9 downto 0) := "0101111100";  -- 0x17C -> 0x2FC, 0xD03
    constant K_28_19_C : slv(9 downto 0) := "1001111100";  -- 0x27C -> 0x4FC, 0xB03

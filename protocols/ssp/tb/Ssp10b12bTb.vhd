@@ -23,12 +23,14 @@ use surf.StdRtlPkg.all;
 use surf.TextUtilPkg.all;
 ----------------------------------------------------------------------------------------------------
 
+--! Entity declaration for Ssp10b12bTb
 entity Ssp10b12bTb is
 
 end entity Ssp10b12bTb;
 
 ----------------------------------------------------------------------------------------------------
 
+--! architecture declaration
 architecture tb of Ssp10b12bTb is
 
    -- component generics

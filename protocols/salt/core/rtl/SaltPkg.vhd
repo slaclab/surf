@@ -15,10 +15,12 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Package declaration for SaltPkg
 package SaltPkg is
 
    constant SSI_GMII_CONFIG_C : AxiStreamConfigType := (

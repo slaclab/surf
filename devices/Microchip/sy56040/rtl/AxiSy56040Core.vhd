@@ -21,6 +21,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiSy56040Pkg.all;
 
+--! Entity declaration for AxiSy56040Core
 entity AxiSy56040Core is
    generic (
       TPD_G            : time                  := 1 ns;

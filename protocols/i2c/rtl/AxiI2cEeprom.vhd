@@ -36,6 +36,7 @@ use surf.I2cPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for AxiI2cEeprom
 entity AxiI2cEeprom is
    generic (
       TPD_G            : time            := 1 ns;

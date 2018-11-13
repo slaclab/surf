@@ -21,6 +21,7 @@ use ieee.std_logic_unsigned.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for Pgp3Gtp7TxGearbox
 entity Pgp3Gtp7TxGearbox is
    generic (
       TPD_G : time := 1 ns);

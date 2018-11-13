@@ -15,9 +15,11 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for SaciSlaveWrapper
 entity SaciSlaveWrapper is
   generic (
     TPD_G : time := 1 ns);

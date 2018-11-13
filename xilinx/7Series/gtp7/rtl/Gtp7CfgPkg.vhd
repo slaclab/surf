@@ -13,7 +13,6 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 use IEEE.STD_LOGIC_UNSIGNED.all;
@@ -23,6 +22,7 @@ use IEEE.math_real.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for Gtp7CfgPkg
 package Gtp7CfgPkg is
 
    -------------------------------------------------------------------------------------------------

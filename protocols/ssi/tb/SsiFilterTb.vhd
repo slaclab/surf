@@ -23,6 +23,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
+--! Entity declaration for SsiFilterTb
 entity SsiFilterTb is end SsiFilterTb;
 
 architecture testbed of SsiFilterTb is

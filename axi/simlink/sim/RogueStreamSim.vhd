@@ -14,11 +14,11 @@
 -------------------------------------------------------------------------------
 
 LIBRARY ieee;
-USE work.ALL;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
+--! Entity declaration for RogueStreamSim
 entity RogueStreamSim is port (
       clock        : in    std_logic;
       reset        : in    std_logic;

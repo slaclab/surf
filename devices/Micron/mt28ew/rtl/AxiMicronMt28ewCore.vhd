@@ -24,6 +24,7 @@ use surf.AxiMicronMt28ewPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for AxiMicronMt28ewCore
 entity AxiMicronMt28ewCore is
    generic (
       TPD_G              : time             := 1 ns;

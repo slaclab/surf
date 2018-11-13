@@ -27,6 +27,7 @@ use surf.Gtp7CfgPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for Pgp2bGtp7FixedLatWrapper
 entity Pgp2bGtp7FixedLatWrapper is
    generic (
       TPD_G                   : time                 := 1 ns;

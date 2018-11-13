@@ -24,6 +24,7 @@ use surf.StdRtlPkg.all;
 library xpm;
 use xpm.vcomponents.all;
 
+--! Entity declaration for SimpleDualPortRamXpm
 entity SimpleDualPortRamXpm is
    generic (
       TPD_G          : time                       := 1 ns;

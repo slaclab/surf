@@ -24,6 +24,7 @@ use surf.StdRtlPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for AxiAd9467DeserBit
 entity AxiAd9467DeserBit is
    generic (
       TPD_G           : time            := 1 ns;

@@ -24,6 +24,7 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.SaltPkg.all;
 
+--! Entity declaration for SaltRx
 entity SaltRx is
    generic (
       TPD_G               : time                := 1 ns;

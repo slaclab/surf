@@ -25,6 +25,7 @@ use unisim.vcomponents.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Package declaration for ClockManager7Pkg
 package ClockManager7Pkg is
    type ClockManager7CfgType is record
       CLKIN_PERIOD_G         : real;

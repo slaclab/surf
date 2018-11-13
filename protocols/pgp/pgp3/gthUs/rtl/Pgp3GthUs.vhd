@@ -28,6 +28,7 @@ use surf.Pgp3Pkg.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
 
+--! Entity declaration for Pgp3GthUs
 entity Pgp3GthUs is
    generic (
       TPD_G                       : time                  := 1 ns;

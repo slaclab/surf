@@ -24,6 +24,7 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
+--! Entity declaration for AxiStreamMuxTb
 entity AxiStreamMuxTb is end AxiStreamMuxTb;
 
 architecture testbed of AxiStreamMuxTb is

@@ -27,6 +27,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Entity declaration for AxiStreamSelector
 entity AxiStreamSelector is
    generic (
       TPD_G : time := 1 ns

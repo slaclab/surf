@@ -19,6 +19,7 @@ use ieee.std_logic_1164.all;
 use ieee.fixed_float_types.all;
 use ieee.float_pkg.all;
 
+--! Package declaration for DspPkg
 package DspPkg is
 
    -- IEEE 754 half precision: https://en.wikipedia.org/wiki/Half-precision_floating-point_format

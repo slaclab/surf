@@ -28,6 +28,7 @@ use surf.SsiPkg.all;
 use surf.Pgp3Pkg.all;
 use surf.AxiStreamPacketizer2Pkg.all;
 
+--! Entity declaration for Pgp3Rx
 entity Pgp3Rx is
 
    generic (

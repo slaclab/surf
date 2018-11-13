@@ -21,6 +21,7 @@ use ieee.std_logic_arith.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Package declaration for SsiCmdMasterPkg
 package SsiCmdMasterPkg is
 
    type SsiCmdMasterType is record

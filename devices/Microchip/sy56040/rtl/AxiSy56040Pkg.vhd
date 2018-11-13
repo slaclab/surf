@@ -19,6 +19,7 @@ use ieee.std_logic_1164.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Package declaration for AxiSy56040Pkg
 package AxiSy56040Pkg is
 
    type AxiSy56040OutType is record

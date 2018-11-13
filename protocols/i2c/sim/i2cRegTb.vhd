@@ -22,6 +22,7 @@ use surf.StdRtlPkg.all;
 use surf.i2cPkg.all;
 use surf.i2cRegMasterPkg.all;
 
+--! Entity declaration for i2cRegTb
 entity i2cRegTb is
 
 end entity i2cRegTb;

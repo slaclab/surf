@@ -23,6 +23,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiPkg.all;
 
+--! Entity declaration for AxiMemTester
 entity AxiMemTester is
    generic (
       TPD_G            : time                     := 1 ns;
@@ -50,6 +51,7 @@ entity AxiMemTester is
       axiReadSlave    : in  AxiReadSlaveType);
 end AxiMemTester;
 
+--! architecture declaration
 architecture rtl of AxiMemTester is
 
    constant START_C      : slv(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := START_ADDR_G(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0);

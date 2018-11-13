@@ -17,9 +17,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for ClkRst
 entity ClkRst is
   generic (
     CLK_PERIOD_G      : time    := 10 ns;

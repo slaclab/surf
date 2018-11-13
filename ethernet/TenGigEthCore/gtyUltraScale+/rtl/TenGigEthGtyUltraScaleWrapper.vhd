@@ -25,6 +25,7 @@ use surf.EthMacPkg.all;
 use surf.EthMacPkg.all;
 use surf.TenGigEthPkg.all;
 
+--! Entity declaration for TenGigEthGtyUltraScaleWrapper
 entity TenGigEthGtyUltraScaleWrapper is
    generic (
       TPD_G             : time                             := 1 ns;
@@ -79,6 +80,7 @@ entity TenGigEthGtyUltraScaleWrapper is
       gtRxN               : in  slv(NUM_LANE_G-1 downto 0));
 end TenGigEthGtyUltraScaleWrapper;
 
+--! architecture declaration
 architecture mapping of TenGigEthGtyUltraScaleWrapper is
 
    signal qplllock      : slv(1 downto 0);

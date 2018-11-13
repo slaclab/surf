@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
+--! Entity declaration for AxiLiteRingBuffer
 entity AxiLiteRingBuffer is
    generic (
       -- General Configurations
@@ -47,6 +48,7 @@ entity AxiLiteRingBuffer is
       axilWriteSlave  : out AxiLiteWriteSlaveType);
 end AxiLiteRingBuffer;
 
+--! architecture declaration
 architecture rtl of AxiLiteRingBuffer is
 
    ------------------------------

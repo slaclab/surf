@@ -23,6 +23,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiAd5780Pkg.all;
 
+--! Entity declaration for AxiAd5780Reg
 entity AxiAd5780Reg is
    generic (
       TPD_G              : time                  := 1 ns;

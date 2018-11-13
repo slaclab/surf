@@ -25,6 +25,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Entity declaration for AxiStreamSelectorTb
 entity AxiStreamSelectorTb is
 end entity AxiStreamSelectorTb;
 

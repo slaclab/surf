@@ -25,6 +25,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiPkg.all;
 
+--! Entity declaration for AxiToAxiLite
 entity AxiToAxiLite is
    generic (
       TPD_G           : time    := 1 ns;
@@ -45,6 +46,7 @@ entity AxiToAxiLite is
       axilWriteSlave  : in  AxiLiteWriteSlaveType);
 end AxiToAxiLite;
 
+--! architecture declaration
 architecture mapping of AxiToAxiLite is
 
 begin

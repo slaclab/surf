@@ -15,9 +15,11 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Package declaration for FrontEndSaciPkg
 package FrontEndSaciPkg is
 
   -- Register Interface

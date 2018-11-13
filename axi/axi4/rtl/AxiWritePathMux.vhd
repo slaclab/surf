@@ -24,6 +24,7 @@ use surf.StdRtlPkg.all;
 use surf.ArbiterPkg.all;
 use surf.AxiPkg.all;
 
+--! Entity declaration for AxiWritePathMux
 entity AxiWritePathMux is
    generic (
       TPD_G        : time                  := 1 ns;

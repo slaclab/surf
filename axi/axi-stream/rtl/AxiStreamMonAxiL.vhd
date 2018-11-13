@@ -23,7 +23,7 @@ use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 use surf.SsiPkg.all;
 
-
+--! Entity declaration for AxiStreamMonAxiL
 entity AxiStreamMonAxiL is
    generic (
       TPD_G           : time                := 1 ns;
@@ -46,6 +46,7 @@ entity AxiStreamMonAxiL is
       sAxilReadSlave   : out AxiLiteReadSlaveType);
 end AxiStreamMonAxiL;
 
+--! architecture declaration
 architecture rtl of AxiStreamMonAxiL is
 
    type RegType is record

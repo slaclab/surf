@@ -55,6 +55,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.Jesd204bPkg.all;
 
+--! Entity declaration for JesdRxLane
 entity JesdRxLane is
    generic (
       TPD_G : time     := 1 ns;

@@ -20,6 +20,7 @@ use ieee.std_logic_1164.all;
 -- arithmetic functions with signed or unsigned values
 --use ieee.numeric_std.all;
  
+ --! Entity declaration for chksum_tb
 entity chksum_tb is
 end chksum_tb;
  

@@ -19,6 +19,7 @@ use ieee.std_logic_1164.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Package declaration for AxiDac7654Pkg
 package AxiDac7654Pkg is
    
    type AxiDac7654InType is record

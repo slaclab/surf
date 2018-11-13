@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Package declaration for EthMacPkg
 package EthMacPkg is
 
    -- Default MAC is 08:00:56:00:00:00

@@ -25,6 +25,7 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for SrpV3AxiLiteTb
 entity SrpV3AxiLiteTb is
 
 end entity SrpV3AxiLiteTb;

@@ -14,10 +14,10 @@
 ------------------------------------------------------------------------------
 
 LIBRARY ieee;
-USE work.ALL;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
+
 Library unisim;
 use unisim.vcomponents.all;
 
@@ -25,6 +25,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Entity declaration for fifo_tb
 entity fifo_tb is end fifo_tb;
 
 -- Define architecture

@@ -15,11 +15,12 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-
 use ieee.numeric_std.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Package declaration for Jesd204bPkg
 package Jesd204bPkg is
 
 -- Constant definitions

@@ -25,6 +25,7 @@ use surf.AxiLitePkg.all;
 use surf.SsiPkg.all;
 use surf.RssiPkg.all;
 
+--! Entity declaration for RssiCoreTb
 entity RssiCoreTb is
 
 end RssiCoreTb;

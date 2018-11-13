@@ -21,6 +21,7 @@ use ieee.std_logic_arith.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for Jesd32bTo16b
 entity Jesd32bTo16b is
    generic (
       TPD_G : time := 1 ns);

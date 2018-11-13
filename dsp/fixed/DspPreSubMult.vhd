@@ -22,6 +22,7 @@ use ieee.numeric_std.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for DspPreSubMult
 entity DspPreSubMult is
    generic (
       TPD_G          : time                 := 1 ns;
@@ -46,6 +47,7 @@ entity DspPreSubMult is
       pOut    : out slv(B_WIDTH_G + C_WIDTH_G downto 0));
 end DspPreSubMult;
 
+--! architecture declaration
 architecture rtl of DspPreSubMult is
 
    type RegType is record

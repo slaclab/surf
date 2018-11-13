@@ -23,6 +23,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.I2cPkg.all;
 
+--! Entity declaration for I2cRegMaster
 entity I2cRegMaster is
    
    generic (

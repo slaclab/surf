@@ -29,6 +29,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.jesd204bpkg.all;
 
+--! Entity declaration for JesdLmfcGen
 entity JesdLmfcGen is
    generic (
       TPD_G        : time   := 1 ns;

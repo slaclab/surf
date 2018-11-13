@@ -25,6 +25,7 @@ use surf.Pgp2bPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
+--! Entity declaration for Pgp2bLane
 entity Pgp2bLane is 
    generic (
       TPD_G             : time                             := 1 ns;

@@ -23,6 +23,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.EthCrc32Pkg.all;
 
+--! Entity declaration for EthCrc32Parallel
 entity EthCrc32Parallel is
    generic (
       TPD_G        : time                   := 1 ns;
@@ -38,6 +39,7 @@ entity EthCrc32Parallel is
       crcOut       : out slv(31 downto 0));
 end EthCrc32Parallel;
 
+--! architecture declaration
 architecture rtl of EthCrc32Parallel is
 
    type RegType is record

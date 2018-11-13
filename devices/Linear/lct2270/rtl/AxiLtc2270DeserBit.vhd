@@ -25,6 +25,7 @@ use surf.AxiLtc2270Pkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for AxiLtc2270DeserBit
 entity AxiLtc2270DeserBit is
    generic (
       TPD_G           : time            := 1 ns;

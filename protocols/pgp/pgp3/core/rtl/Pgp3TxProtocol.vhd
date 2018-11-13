@@ -29,6 +29,7 @@ use surf.AxiStreamPacketizer2Pkg.all;
 use surf.SsiPkg.all;
 use surf.Pgp3Pkg.all;
 
+--! Entity declaration for Pgp3TxProtocol
 entity Pgp3TxProtocol is
 
    generic (

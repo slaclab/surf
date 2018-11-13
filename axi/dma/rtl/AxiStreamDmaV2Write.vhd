@@ -26,6 +26,7 @@ use surf.AxiStreamPkg.all;
 use surf.AxiPkg.all;
 use surf.AxiDmaPkg.all;
 
+--! Entity declaration for AxiStreamDmaV2Write
 entity AxiStreamDmaV2Write is
    generic (
       TPD_G             : time                    := 1 ns;

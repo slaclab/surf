@@ -26,6 +26,7 @@ use surf.AxiStreamPkg.all;
 use surf.StdRtlPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for EthMacRxPause
 entity EthMacRxPause is
    generic (
       TPD_G       : time                  := 1 ns;
@@ -47,6 +48,7 @@ entity EthMacRxPause is
       rxPauseValue : out slv(15 downto 0));
 end EthMacRxPause;
 
+--! architecture declaration
 architecture rtl of EthMacRxPause is
 
    type StateType is (

@@ -19,6 +19,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.Code8b10bPkg.all;
 
+--! Entity declaration for Decoder8b10b
 entity Decoder8b10b is
 
    generic (

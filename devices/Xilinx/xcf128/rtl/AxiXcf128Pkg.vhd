@@ -19,6 +19,7 @@ use ieee.std_logic_1164.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Package declaration for AxiXcf128Pkg
 package AxiXcf128Pkg is
 
    type AxiXcf128InOutType is record

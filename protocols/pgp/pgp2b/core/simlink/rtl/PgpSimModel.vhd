@@ -24,6 +24,7 @@ use surf.Pgp2bPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
+--! Entity declaration for PgpSimModel
 entity PgpSimModel is 
    generic (
       TPD_G       : time := 1 ns;

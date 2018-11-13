@@ -21,6 +21,7 @@ use ieee.std_logic_unsigned.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for FifoAsync
 entity FifoAsync is
    generic (
       TPD_G          : time                       := 1 ns;
@@ -63,6 +64,7 @@ entity FifoAsync is
       empty         : out sl);
 end FifoAsync;
 
+--! architecture declaration
 architecture rtl of FifoAsync is
 
    constant INIT_C      : slv(DATA_WIDTH_G-1 downto 0) := ite(INIT_G = "0", slvZero(DATA_WIDTH_G), INIT_G);

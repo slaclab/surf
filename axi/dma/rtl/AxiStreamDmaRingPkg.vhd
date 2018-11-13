@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Package declaration for AxiStreamDmaRingPkg
 package AxiStreamDmaRingPkg is
 
    constant AXIL_MASTERS_C : integer := 6;

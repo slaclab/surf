@@ -28,6 +28,7 @@ use surf.TextUtilPkg.all;
 
 use surf.MdioPkg.all;
 
+--! Entity declaration for MdioLinkIrqHandlerTb
 entity MdioLinkIrqHandlerTb is
 end entity MdioLinkIrqHandlerTb;
 

@@ -22,6 +22,7 @@ use ieee.numeric_std.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for DspXor
 entity DspXor is
    generic (
       TPD_G          : time                    := 1 ns;
@@ -38,6 +39,7 @@ entity DspXor is
       pOut : out sl);
 end DspXor;
 
+--! architecture declaration
 architecture rtl of DspXor is
 
    type RegType is record

@@ -26,6 +26,7 @@ use surf.Pgp2bPkg.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
 
+--! Entity declaration for Pgp2bGthUltra
 entity Pgp2bGthUltra is
    generic (
       TPD_G             : time                 := 1 ns;

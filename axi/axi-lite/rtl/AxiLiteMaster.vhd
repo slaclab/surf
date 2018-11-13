@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
+--! Entity declaration for AxiLiteMaster
 entity AxiLiteMaster is
    generic (
       -- General Config
@@ -39,6 +40,7 @@ entity AxiLiteMaster is
 
 end AxiLiteMaster;
 
+--! architecture declaration
 architecture rtl of AxiLiteMaster is
 
    type StateType is (S_IDLE_C, S_WRITE_C, S_WRITE_AXI_C, S_READ_C, S_READ_AXI_C);

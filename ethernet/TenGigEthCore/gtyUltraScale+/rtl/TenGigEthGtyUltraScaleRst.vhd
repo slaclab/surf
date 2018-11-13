@@ -24,6 +24,7 @@ use surf.StdRtlPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for TenGigEthGtyUltraScaleRst
 entity TenGigEthGtyUltraScaleRst is
    generic (
       TPD_G : time := 1 ns);
@@ -38,6 +39,7 @@ entity TenGigEthGtyUltraScaleRst is
       phyReady  : out sl);
 end TenGigEthGtyUltraScaleRst;
 
+--! architecture declaration
 architecture rtl of TenGigEthGtyUltraScaleRst is
 
    signal phyClock : sl;

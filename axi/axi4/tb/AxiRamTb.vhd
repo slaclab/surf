@@ -23,6 +23,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiPkg.all;
 use surf.AxiLitePkg.all;
 
+--! Entity declaration for AxiRamTb
 entity AxiRamTb is end AxiRamTb;
 
 architecture testbed of AxiRamTb is

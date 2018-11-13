@@ -28,6 +28,7 @@ use surf.SsiPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiPkg.all;
 
+--! Entity declaration for SrpV3AxiLiteFull
 entity SrpV3AxiLiteFull is
    generic (
       TPD_G               : time                    := 1 ns;

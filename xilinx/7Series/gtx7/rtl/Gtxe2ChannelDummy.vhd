@@ -22,6 +22,7 @@ use surf.StdRtlPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for Gtxe2ChannelDummy
 entity Gtxe2ChannelDummy is
    generic (
       TPD_G   : time     := 1 ns;

@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
+--! Entity declaration for AxiLiteToDrp
 entity AxiLiteToDrp is
    generic (
       TPD_G            : time                   := 1 ns;
@@ -52,6 +53,7 @@ entity AxiLiteToDrp is
       drpDo           : in  slv(DATA_WIDTH_G-1 downto 0));      
 end entity AxiLiteToDrp;
 
+--! architecture declaration
 architecture rtl of AxiLiteToDrp is
 
    type StateType is (

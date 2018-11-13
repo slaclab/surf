@@ -24,6 +24,7 @@ use surf.AxiStreamPkg.all;
 use surf.StdRtlPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for EthMacTxExportXlgmii
 entity EthMacTxExportXlgmii is
    generic (
       TPD_G : time := 1 ns);
@@ -46,6 +47,7 @@ entity EthMacTxExportXlgmii is
       txLinkNotReady : out sl);
 end EthMacTxExportXlgmii;
 
+--! architecture declaration
 architecture rtl of EthMacTxExportXlgmii is
 
 begin

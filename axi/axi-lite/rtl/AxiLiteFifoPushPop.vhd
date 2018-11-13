@@ -24,6 +24,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
+--! Entity declaration for AxiLiteFifoPushPop
 entity AxiLiteFifoPushPop is
    generic (
       TPD_G              : time                       := 1 ns;
@@ -82,6 +83,7 @@ entity AxiLiteFifoPushPop is
    );
 end AxiLiteFifoPushPop;
 
+--! architecture declaration
 architecture structure of AxiLiteFifoPushPop is
 
    constant POP_SIZE_C    : integer := bitSize(POP_FIFO_COUNT_G-1);

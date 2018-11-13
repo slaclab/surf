@@ -24,6 +24,7 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
+--! Entity declaration for SaltUltraScaleTb
 entity SaltUltraScaleTb is end SaltUltraScaleTb;
 
 architecture testbed of SaltUltraScaleTb is

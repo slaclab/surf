@@ -25,6 +25,7 @@ use surf.AxiLitePkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
+--! Entity declaration for UartAxiLiteMasterTb
 entity UartAxiLiteMasterTb is
 
 end entity UartAxiLiteMasterTb;

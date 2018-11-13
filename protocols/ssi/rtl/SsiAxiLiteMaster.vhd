@@ -55,6 +55,7 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.AxiLitePkg.all;
 
+--! Entity declaration for SsiAxiLiteMaster
 entity SsiAxiLiteMaster is
    generic (
       -- General Config

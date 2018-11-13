@@ -21,6 +21,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiDac7654Pkg.all;
 
+--! Entity declaration for AxiDac7654Core
 entity AxiDac7654Core is
    generic (
       TPD_G              : time                  := 1 ns;

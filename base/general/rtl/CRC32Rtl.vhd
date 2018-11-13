@@ -29,6 +29,7 @@ use ieee.std_logic_unsigned.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for CRC32Rtl
 entity CRC32Rtl is
    generic (
       CRC_INIT : slv(31 downto 0) := x"FFFFFFFF");

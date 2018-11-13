@@ -67,6 +67,7 @@ use ieee.numeric_std.all;
 
 library surf;
 
+--! Entity declaration for Gtp7RxRstSeq
 entity Gtp7RxRstSeq is
    generic(
       TPD_G : time := 1 ns);  

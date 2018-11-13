@@ -28,6 +28,7 @@ use surf.StdRtlPkg.all;
 -- Serialize a TMS/TDI word pair into JTAG signals and deserialize
 -- TDO into a paralle output word.
 
+--! Entity declaration for JtagSerDesCore
 entity JtagSerDesCore is
    generic (
       TPD_G        : time     := 1 ns;

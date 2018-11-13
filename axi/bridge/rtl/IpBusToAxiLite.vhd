@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
+--! Entity declaration for IpBusToAxiLite
 entity IpBusToAxiLite is
    generic (
       TPD_G : time := 1 ns);
@@ -44,6 +45,7 @@ entity IpBusToAxiLite is
       axilWriteSlave  : in  AxiLiteWriteSlaveType);
 end IpBusToAxiLite;
 
+--! architecture declaration
 architecture rtl of IpBusToAxiLite is
 
    type StateType is (

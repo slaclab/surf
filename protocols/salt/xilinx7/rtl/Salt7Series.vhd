@@ -21,6 +21,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
+--! Entity declaration for Salt7Series
 entity Salt7Series is
    generic (
       TPD_G               : time                := 1 ns;

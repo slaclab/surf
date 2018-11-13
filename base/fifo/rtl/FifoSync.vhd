@@ -21,6 +21,7 @@ use ieee.std_logic_unsigned.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for FifoSync
 entity FifoSync is
    generic (
       TPD_G          : time                       := 1 ns;
@@ -59,6 +60,7 @@ entity FifoSync is
       empty        : out sl);
 end FifoSync;
 
+--! architecture declaration
 architecture rtl of FifoSync is
    constant INIT_C      : slv(DATA_WIDTH_G-1 downto 0) := ite(INIT_G = "0", slvZero(DATA_WIDTH_G), INIT_G);
    constant RAM_DEPTH_C : integer                      := 2**ADDR_WIDTH_G;

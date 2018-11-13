@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
+--! Entity declaration for AxiLiteWriteFilter
 entity AxiLiteWriteFilter is
    generic (
       TPD_G            : time            := 1 ns;
@@ -41,6 +42,7 @@ entity AxiLiteWriteFilter is
       mAxilWriteSlave  : in  AxiLiteWriteSlaveType);
 end entity AxiLiteWriteFilter;
 
+--! architecture declaration
 architecture rtl of AxiLiteWriteFilter is
 
    type StateType is (

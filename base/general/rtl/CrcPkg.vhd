@@ -25,9 +25,11 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Package declaration for CrcPkg
 package CrcPkg is 
 
    function crcByteLookup (inByte : slv; constant poly : slv) return slv;

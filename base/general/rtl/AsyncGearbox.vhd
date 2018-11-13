@@ -22,6 +22,7 @@ use ieee.std_logic_unsigned.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for AsyncGearbox
 entity AsyncGearbox is
 
    generic (

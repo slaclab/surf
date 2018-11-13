@@ -22,6 +22,7 @@ use ieee.std_logic_arith.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for PwrUpRst
 entity PwrUpRst is
    generic (
       TPD_G          : time                           := 1 ns;

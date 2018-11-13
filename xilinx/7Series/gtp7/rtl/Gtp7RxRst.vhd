@@ -74,6 +74,7 @@ use ieee.std_logic_unsigned.all;
 
 library surf;
 
+--! Entity declaration for Gtp7RxRst
 entity Gtp7RxRst is
    generic(
       TPD_G                  : time                  := 1 ns;

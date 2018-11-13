@@ -17,11 +17,13 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.NUMERIC_STD.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 use surf.ArbiterPkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Entity declaration for AxiStreamTap
 entity AxiStreamTap is
    generic (
       TPD_G         : time                   := 1 ns;

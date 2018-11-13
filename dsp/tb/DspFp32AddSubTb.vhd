@@ -24,8 +24,10 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.DspPkg.all;
 
+--! Entity declaration for DspFp32AddSubTb
 entity DspFp32AddSubTb is end DspFp32AddSubTb;
 
+--! architecture declaration
 architecture testbed of DspFp32AddSubTb is
 
    constant TPD_G : time := 2.5 ns;

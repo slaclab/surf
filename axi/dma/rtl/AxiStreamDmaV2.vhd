@@ -26,6 +26,7 @@ use surf.AxiLitePkg.all;
 use surf.AxiPkg.all;
 use surf.AxiDmaPkg.all;
 
+--! Entity declaration for AxiStreamDmaV2
 entity AxiStreamDmaV2 is
    generic (
       TPD_G             : time                     := 1 ns;

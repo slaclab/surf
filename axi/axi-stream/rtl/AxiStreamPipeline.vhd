@@ -21,6 +21,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Entity declaration for AxiStreamPipeline
 entity AxiStreamPipeline is
    generic (
       TPD_G         : time                  := 1 ns;

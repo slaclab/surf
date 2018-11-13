@@ -29,6 +29,7 @@ use surf.Pgp3Pkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
+--! Entity declaration for Pgp3Tb2
 entity Pgp3Tb2 is
 
 end entity Pgp3Tb2;

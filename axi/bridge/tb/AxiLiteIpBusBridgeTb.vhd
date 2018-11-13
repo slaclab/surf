@@ -23,8 +23,10 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.BuildInfoPkg.all;
 
+--! Entity declaration for AxiLiteIpBusBridgeTb
 entity AxiLiteIpBusBridgeTb is end AxiLiteIpBusBridgeTb;
 
+--! architecture declaration
 architecture testbed of AxiLiteIpBusBridgeTb is
 
    constant GET_BUILD_INFO_C : BuildInfoRetType := toBuildInfo(BUILD_INFO_C);

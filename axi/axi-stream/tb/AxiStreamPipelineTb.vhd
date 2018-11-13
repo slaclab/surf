@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Entity declaration for AxiStreamPipelineTb
 entity AxiStreamPipelineTb is end AxiStreamPipelineTb;
 
 architecture testbed of AxiStreamPipelineTb is

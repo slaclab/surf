@@ -15,6 +15,7 @@
 -- copied, modified, propagated, or distributed except according to the terms
 -- contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
@@ -28,6 +29,7 @@ use surf.SsiPkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
+--! Entity declaration for AxiStreamPacketizer2Tb
 entity AxiStreamPacketizer2Tb is
 
 end entity AxiStreamPacketizer2Tb;

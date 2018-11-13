@@ -23,6 +23,7 @@ use surf.AxiStreamPkg.all;
 use surf.StdRtlPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for EthMacRx
 entity EthMacRx is
    generic (
       -- Simulation Generics
@@ -72,6 +73,7 @@ entity EthMacRx is
       rxCrcError   : out sl);
 end EthMacRx;
 
+--! architecture declaration
 architecture mapping of EthMacRx is
 
    signal macIbMaster  : AxiStreamMasterType;

@@ -26,6 +26,7 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.SemPkg.all;
 
+--! Entity declaration for SsiSem
 entity SsiSem is
    generic (
       TPD_G               : time                := 1 ns;

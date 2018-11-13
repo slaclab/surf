@@ -24,8 +24,10 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.DspPkg.all;
 
+--! Entity declaration for DspFp32PreMultAccumTb
 entity DspFp32PreMultAccumTb is end DspFp32PreMultAccumTb;
 
+--! architecture declaration
 architecture testbed of DspFp32PreMultAccumTb is
 
    constant TPD_G : time := 2.5 ns;

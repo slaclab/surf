@@ -27,6 +27,7 @@ use surf.Pgp3Pkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for Pgp3Gtp7Wrapper
 entity Pgp3Gtp7Wrapper is
    generic (
       TPD_G                       : time                   := 1 ns;

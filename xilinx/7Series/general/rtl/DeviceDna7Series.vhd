@@ -24,6 +24,7 @@ use surf.StdRtlPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for DeviceDna7Series
 entity DeviceDna7Series is
    generic (
       TPD_G           : time       := 1 ns;

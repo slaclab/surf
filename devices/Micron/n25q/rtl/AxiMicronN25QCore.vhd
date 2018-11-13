@@ -25,6 +25,7 @@ use surf.AxiLitePkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for AxiMicronN25QCore
 entity AxiMicronN25QCore is
    generic (
       TPD_G              : time             := 1 ns;

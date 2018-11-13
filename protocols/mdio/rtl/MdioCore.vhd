@@ -28,6 +28,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.MdioPkg.all;
 
+--! Entity declaration for MdioCore
 entity MdioCore is
    generic (
       TPD_G               : time                            := 1 ns;

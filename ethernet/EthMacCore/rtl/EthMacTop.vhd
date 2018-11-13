@@ -24,6 +24,7 @@ use surf.AxiStreamPkg.all;
 use surf.StdRtlPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for EthMacTop
 entity EthMacTop is
    generic (
       -- Simulation Generics
@@ -103,6 +104,7 @@ entity EthMacTop is
       ethStatus        : out EthMacStatusType);
 end EthMacTop;
 
+--! architecture declaration
 architecture mapping of EthMacTop is
 
    signal sPrimMaster : AxiStreamMasterType;

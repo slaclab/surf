@@ -26,6 +26,7 @@ use surf.StdRtlPkg.all;
 use surf.RssiPkg.all;
 use ieee.math_real.all;
 
+--! Entity declaration for RssiHeaderReg
 entity RssiHeaderReg is
    generic (
       TPD_G        : time     := 1 ns;

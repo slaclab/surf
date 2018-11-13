@@ -22,6 +22,7 @@ use surf.StdRtlPkg.all;
 library UNISIM;
 use UNISIM.vcomponents.all;
 
+--! Entity declaration for SaltDelayCtrl
 entity SaltDelayCtrl is
    generic (
       TPD_G           : time    := 1 ns;

@@ -28,6 +28,7 @@ use surf.AxiDmaPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Entity declaration for dma_read_tb
 entity dma_read_tb is end dma_read_tb;
 
 -- Define architecture

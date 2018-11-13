@@ -26,6 +26,7 @@ use surf.TextUtilPkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
+--! Entity declaration for Code12b14bTb
 entity Code12b14bTb is
 
 end entity Code12b14bTb;

@@ -80,6 +80,7 @@ use ieee.std_logic_1164.all;
 --library grlib;
 use surf.stdlib.all;
 
+--! Entity declaration for i2c_master_byte_ctrl
 entity i2c_master_byte_ctrl is
   generic (filter : integer; dynfilt : integer);
   port (

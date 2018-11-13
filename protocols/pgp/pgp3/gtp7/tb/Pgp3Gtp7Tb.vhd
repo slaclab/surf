@@ -23,6 +23,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.Pgp3Pkg.all;
 
+--! Entity declaration for Pgp3Gtp7Tb
 entity Pgp3Gtp7Tb is end Pgp3Gtp7Tb;
 
 architecture testbed of Pgp3Gtp7Tb is

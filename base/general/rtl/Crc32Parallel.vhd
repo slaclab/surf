@@ -38,6 +38,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.CrcPkg.all;
 
+--! Entity declaration for Crc32Parallel
 entity Crc32Parallel is
    generic (
       TPD_G            : time             := 1 ns;

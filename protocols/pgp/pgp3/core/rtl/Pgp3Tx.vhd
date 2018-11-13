@@ -27,6 +27,7 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.Pgp3Pkg.all;
 
+--! Entity declaration for Pgp3Tx
 entity Pgp3Tx is
 
    generic (

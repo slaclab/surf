@@ -21,6 +21,7 @@ use ieee.std_logic_unsigned.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for SaciMultiPixelPkg
 package SaciMultiPixelPkg is
 
    constant FPGA_VERSION_C : slv(31 downto 0) := x"00000000";

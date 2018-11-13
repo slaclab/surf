@@ -23,6 +23,7 @@ use IEEE.STD_LOGIC_ARITH.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for SspDeframer
 entity SspDeframer is
 
    generic (
@@ -53,6 +54,7 @@ entity SspDeframer is
 
 end entity SspDeframer;
 
+--! architecture declaration
 architecture rtl of SspDeframer is
 
    constant WAIT_SOF_S : sl := '0';

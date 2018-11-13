@@ -25,6 +25,7 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for SsiFifoTb
 entity SsiFifoTb is end SsiFifoTb;
 
 architecture testbed of SsiFifoTb is

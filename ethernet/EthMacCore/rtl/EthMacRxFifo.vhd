@@ -21,6 +21,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for EthMacRxFifo
 entity EthMacRxFifo is
    generic (
       TPD_G               : time                := 1 ns;
@@ -70,6 +71,7 @@ entity EthMacRxFifo is
       mVlanSlaves  : in  AxiStreamSlaveArray(VLAN_SIZE_G-1 downto 0));
 end EthMacRxFifo;
 
+--! architecture declaration
 architecture rtl of EthMacRxFifo is
 
    constant VALID_THOLD_C : natural := ite(DROP_ERR_PKT_G, 0, 1);

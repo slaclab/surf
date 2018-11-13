@@ -21,6 +21,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for EthMacTxFifo
 entity EthMacTxFifo is
    generic (
       TPD_G             : time                := 1 ns;
@@ -60,6 +61,7 @@ entity EthMacTxFifo is
       mVlanSlaves  : in  AxiStreamSlaveArray(VLAN_SIZE_G-1 downto 0));
 end EthMacTxFifo;
 
+--! architecture declaration
 architecture mapping of EthMacTxFifo is
 
 begin

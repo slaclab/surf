@@ -21,6 +21,7 @@ use ieee.numeric_std.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Package declaration for GLinkPkg
 package GLinkPkg is
 
    type GLinkTxType is record

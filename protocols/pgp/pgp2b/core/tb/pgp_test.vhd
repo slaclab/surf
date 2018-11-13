@@ -14,10 +14,10 @@
 -------------------------------------------------------------------------------
 
 LIBRARY ieee;
-USE work.ALL;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
+
 Library unisim;
 use unisim.vcomponents.all;
 
@@ -28,9 +28,10 @@ use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 use surf.SsiPkg.all;
 
+--! Entity declaration for pgp_test
 entity pgp_test is end pgp_test;
 
--- Define architecture
+--! Define architecture
 architecture pgp_test of pgp_test is
 
    signal locClk            : sl;

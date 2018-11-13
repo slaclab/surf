@@ -20,8 +20,10 @@ use surf.StdRtlPkg.all;
 use surf.TextUtilPkg.all;
 use surf.AxiLitePkg.all;
 
-entity AxiLiteWriteFilterTb is
-end entity AxiLiteWriteFilterTb;
+--! Entity declaration for AxiLiteWriteFilterTb
+entity AxiLiteWriteFilterTb is end AxiLiteWriteFilterTb;
+
+--! architecture declaration
 architecture tb of AxiLiteWriteFilterTb is
 
    constant CLK_PERIOD_C : time := 10 ns;

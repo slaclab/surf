@@ -23,6 +23,7 @@ use surf.AxiLitePkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for Pgp3Gtx7IpWrapper
 entity Pgp3Gtx7IpWrapper is
    generic (
       TPD_G         : time    := 1 ns;

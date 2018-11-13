@@ -25,6 +25,7 @@ use surf.SemPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for SemWrapper
 entity SemWrapper is
    generic (
       TPD_G : time := 1 ns);

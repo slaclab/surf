@@ -24,6 +24,7 @@ use surf.AxiStreamPkg.all;
 use surf.StdRtlPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for EthMacTx
 entity EthMacTx is
    generic (
       -- Simulation Generics
@@ -76,6 +77,7 @@ entity EthMacTx is
       txLinkNotReady : out sl);  
 end EthMacTx;
 
+--! architecture declaration
 architecture mapping of EthMacTx is
 
    signal bypassMaster : AxiStreamMasterType;

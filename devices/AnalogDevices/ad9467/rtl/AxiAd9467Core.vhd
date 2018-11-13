@@ -21,6 +21,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiAd9467Pkg.all;
 
+--! Entity declaration for AxiAd9467Core
 entity AxiAd9467Core is
    generic (
       TPD_G              : time                  := 1 ns;

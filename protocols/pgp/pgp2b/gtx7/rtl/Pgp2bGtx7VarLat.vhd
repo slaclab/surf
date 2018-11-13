@@ -22,6 +22,7 @@ use surf.AxiStreamPkg.all;
 use surf.Pgp2bPkg.all;
 use surf.AxiLitePkg.all;
 
+--! Entity declaration for Pgp2bGtx7VarLat
 entity Pgp2bGtx7VarLat is
    generic (
       TPD_G                 : time       := 1 ns;

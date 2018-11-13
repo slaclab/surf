@@ -24,6 +24,7 @@ use surf.SsiPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 
+--! Entity declaration for RssiCoreWrapper
 entity RssiCoreWrapper is
    generic (
       TPD_G                : time                 := 1 ns;

@@ -23,6 +23,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
+--! Entity declaration for AxiVersion
 entity AxiVersion is
    generic (
       TPD_G              : time                   := 1 ns;
@@ -64,6 +65,7 @@ entity AxiVersion is
       fdSerSdio      : inout sl                  := 'Z');
 end AxiVersion;
 
+--! architecture declaration
 architecture rtl of AxiVersion is
 
    constant RELOAD_COUNT_C : integer          := integer(AUTO_RELOAD_TIME_G / CLK_PERIOD_G);

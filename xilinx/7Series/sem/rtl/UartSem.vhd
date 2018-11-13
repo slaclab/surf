@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.SemPkg.all;
 
+--! Entity declaration for UartSem
 entity UartSem is
    generic (
       TPD_G             : time     := 1 ns;

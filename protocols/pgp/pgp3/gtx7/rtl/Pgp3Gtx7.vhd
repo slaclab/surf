@@ -18,7 +18,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -28,6 +27,7 @@ use surf.Pgp3Pkg.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
 
+--! Entity declaration for Pgp3Gtx7
 entity Pgp3Gtx7 is
    generic (
       TPD_G                       : time                  := 1 ns;

@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
+--! Entity declaration for ads54j60
 entity ads54j60 is
    generic (
       TPD_G             : time            := 1 ns;

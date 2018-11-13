@@ -23,6 +23,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
+--! Entity declaration for AxiDualPortRam
 entity AxiDualPortRam is
 
    generic (
@@ -62,6 +63,7 @@ entity AxiDualPortRam is
 
 end entity AxiDualPortRam;
 
+--! architecture declaration
 architecture rtl of AxiDualPortRam is
 
    -- Number of Axi address bits that need to be manually decoded

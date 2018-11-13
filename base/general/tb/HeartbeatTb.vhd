@@ -21,6 +21,7 @@ use ieee.std_logic_arith.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for HeartbeatTb
 entity HeartbeatTb is end HeartbeatTb;
 
 architecture testbed of HeartbeatTb is

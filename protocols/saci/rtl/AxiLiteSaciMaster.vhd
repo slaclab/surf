@@ -23,6 +23,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.SaciMasterPkg.all;
 
+--! Entity declaration for AxiLiteSaciMaster
 entity AxiLiteSaciMaster is
    generic (
       TPD_G              : time                  := 1 ns;

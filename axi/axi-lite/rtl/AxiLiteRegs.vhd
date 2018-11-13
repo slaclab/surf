@@ -21,6 +21,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
+--! Entity declaration for AxiLiteRegs
 entity AxiLiteRegs is
    generic (
       TPD_G            : time                  := 1 ns;
@@ -39,6 +40,7 @@ entity AxiLiteRegs is
       readRegister   : in  Slv32Array(NUM_READ_REG_G-1 downto 0) := (others => (others => '0')));
 end AxiLiteRegs;
 
+--! architecture declaration
 architecture rtl of AxiLiteRegs is
 
    type RegType is record

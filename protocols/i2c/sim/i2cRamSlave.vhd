@@ -17,10 +17,12 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 use surf.i2cPkg.all;
 
+--! Entity declaration for i2cRamSlave
 entity i2cRamSlave is
   
   generic (

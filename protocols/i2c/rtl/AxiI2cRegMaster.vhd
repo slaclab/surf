@@ -24,6 +24,7 @@ use surf.I2cPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for AxiI2cRegMaster
 entity AxiI2cRegMaster is
    generic (
       TPD_G           : time               := 1 ns;

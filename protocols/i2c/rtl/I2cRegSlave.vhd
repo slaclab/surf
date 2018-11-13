@@ -23,6 +23,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.I2cPkg.all;
 
+--! Entity declaration for I2cRegSlave
 entity I2cRegSlave is
    generic (
       TPD_G                : time                    := 1 ns;

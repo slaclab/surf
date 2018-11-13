@@ -40,6 +40,7 @@ use surf.MdioPkg.all;
 --    stored and passed back to the user in the 'args' array for
 --    further processing by the user.
 
+--! Entity declaration for MdioLinkIrqHandler
 entity MdioLinkIrqHandler is
    generic (
       TPD_G               : time                            := 1 ns;

@@ -59,6 +59,7 @@ use surf.MdioPkg.all;
 -- When any read transaction completes 'rs' is asserted for one cycle and readback
 -- data is presented at 'din' (valid while 'don' is asserted).
 
+--! Entity declaration for MdioSeqCore
 entity MdioSeqCore is
    generic (
       TPD_G               : time                            := 1 ns;

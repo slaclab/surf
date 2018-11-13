@@ -24,6 +24,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.Code10b12bPkg.all;
 
+--! Entity declaration for SspEncoder10b12b
 entity SspEncoder10b12b is
 
    generic (
@@ -46,6 +47,7 @@ entity SspEncoder10b12b is
 
 end entity SspEncoder10b12b;
 
+--! architecture declaration
 architecture rtl of SspEncoder10b12b is
 
    signal framedData  : slv(9 downto 0);

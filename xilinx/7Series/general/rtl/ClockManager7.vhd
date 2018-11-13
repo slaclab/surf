@@ -26,6 +26,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
+--! Entity declaration for ClockManager7
 entity ClockManager7 is
    generic (
       TPD_G                  : time                             := 1 ns;

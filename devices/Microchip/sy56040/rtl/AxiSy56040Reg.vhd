@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
+--! Entity declaration for AxiSy56040Reg
 entity AxiSy56040Reg is
    generic (
       TPD_G            : time                  := 1 ns;

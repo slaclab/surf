@@ -21,6 +21,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.SaciMasterPkg.all;
 
+--! Entity declaration for SaciMaster
 entity SaciMaster is
   
   generic (

@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiPkg.all;
 
+--! Entity declaration for AxiRam
 entity AxiRam is
    generic (
       TPD_G          : time                 := 1 ns;

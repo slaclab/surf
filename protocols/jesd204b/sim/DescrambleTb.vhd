@@ -24,6 +24,8 @@ use surf.AxiLitePkg.all;
 use surf.Jesd204bPkg.all;
 
 --------------------------------------------------------------------------------
+
+--! Entity declaration for DescrambleTb
 entity DescrambleTb is
 
 end entity;

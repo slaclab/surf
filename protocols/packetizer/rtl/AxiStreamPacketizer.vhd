@@ -25,6 +25,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
+--! Entity declaration for AxiStreamPacketizer
 entity AxiStreamPacketizer is
 
    generic (

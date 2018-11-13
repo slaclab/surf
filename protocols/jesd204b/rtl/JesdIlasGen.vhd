@@ -23,6 +23,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.jesd204bpkg.all;
 
+--! Entity declaration for JesdIlasGen
 entity JesdIlasGen is
    generic (
       TPD_G        : time   := 1 ns;

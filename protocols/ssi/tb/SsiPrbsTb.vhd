@@ -24,6 +24,7 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
+--! Entity declaration for SsiPrbsTb
 entity SsiPrbsTb is end SsiPrbsTb;
 
 architecture testbed of SsiPrbsTb is

@@ -20,6 +20,7 @@ use ieee.std_logic_1164.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for FifoOutputPipeline
 entity FifoOutputPipeline is
    generic (
       TPD_G          : time                       := 1 ns;
@@ -41,6 +42,7 @@ entity FifoOutputPipeline is
       rst    : in  sl := not RST_POLARITY_G);              -- Optional reset
 end FifoOutputPipeline;
 
+--! architecture declaration
 architecture rtl of FifoOutputPipeline is
 
    constant PIPE_STAGES_C : natural := PIPE_STAGES_G+1;

@@ -22,6 +22,7 @@ use ieee.numeric_std.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for DspSquareDiffMult
 entity DspSquareDiffMult is
    generic (
       TPD_G          : time                 := 1 ns;
@@ -43,6 +44,7 @@ entity DspSquareDiffMult is
       pOut    : out slv(2 * WIDTH_G + 1 downto 0));
 end DspSquareDiffMult;
 
+--! architecture declaration
 architecture rtl of DspSquareDiffMult is
 
    type RegType is record

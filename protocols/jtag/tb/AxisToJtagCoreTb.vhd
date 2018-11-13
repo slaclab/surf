@@ -26,6 +26,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Entity declaration for AxisToJtagCoreTb
 entity AxisToJtagCoreTb is
 end entity AxisToJtagCoreTb;
 

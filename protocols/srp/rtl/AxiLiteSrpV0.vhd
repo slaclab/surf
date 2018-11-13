@@ -29,6 +29,7 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.AxiLitePkg.all;
 
+--! Entity declaration for AxiLiteSrpV0
 entity AxiLiteSrpV0 is
    generic (
       -- General Config

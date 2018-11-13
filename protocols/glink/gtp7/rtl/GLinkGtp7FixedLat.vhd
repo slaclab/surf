@@ -21,6 +21,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.GlinkPkg.all;
 
+--! Entity declaration for GLinkGtp7FixedLat
 entity GLinkGtp7FixedLat is
    generic (
       -- GLink Settings

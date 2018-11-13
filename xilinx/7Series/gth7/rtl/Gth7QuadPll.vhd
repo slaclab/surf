@@ -24,6 +24,7 @@ use surf.AxiLitePkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for Gth7QuadPll
 entity Gth7QuadPll is
    generic (
       TPD_G               : time       := 1 ns;
@@ -53,6 +54,7 @@ entity Gth7QuadPll is
       axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 end entity Gth7QuadPll;
 
+--! architecture declaration
 architecture mapping of Gth7QuadPll is
 
    signal gtRefClk0      : sl;

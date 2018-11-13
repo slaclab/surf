@@ -22,6 +22,7 @@ use UNISIM.vcomponents.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for Ad9249
 entity Ad9249 is
 
    generic (

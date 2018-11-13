@@ -25,6 +25,7 @@ use surf.AxiLitePkg.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
 
+--! Entity declaration for Pgp2bGtp7FixedLat
 entity Pgp2bGtp7FixedLat is
    generic (
       TPD_G : time := 1 ns;

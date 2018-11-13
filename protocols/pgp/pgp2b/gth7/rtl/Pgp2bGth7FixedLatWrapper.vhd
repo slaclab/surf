@@ -26,6 +26,7 @@ use surf.AxiLitePkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for Pgp2bGth7FixedLatWrapper
 entity Pgp2bGth7FixedLatWrapper is
    generic (
       -- Select Master or Slave

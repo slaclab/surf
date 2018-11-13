@@ -16,7 +16,6 @@
 -------------------------------------------------------------------------------
 
 LIBRARY ieee;
-use surf.all;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
@@ -25,6 +24,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Entity declaration for StreamPatternTester
 entity StreamPatternTester is 
    generic (
       TPD_G             : time := 1 ns;

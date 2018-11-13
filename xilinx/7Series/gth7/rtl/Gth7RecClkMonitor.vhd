@@ -123,6 +123,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
+--! Entity declaration for Gth7RecClkMonitor
 ENTITY Gth7RecClkMonitor is
    generic(
       COUNTER_UPPER_VALUE      : integer := 20; --ppm counter. For 2^20 cntr.  
@@ -147,7 +148,7 @@ ENTITY Gth7RecClkMonitor is
 	);
 end ENTITY Gth7RecClkMonitor;
 
-
+--! architecture declaration
 ARCHITECTURE RTL of Gth7RecClkMonitor is
 
 --------------------------------------------------------------------------------

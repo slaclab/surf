@@ -23,6 +23,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.I2cPkg.all;
 
+--! Entity declaration for Sff8472
 entity Sff8472 is
    generic (
       TPD_G           : time := 1 ns;

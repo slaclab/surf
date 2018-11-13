@@ -21,6 +21,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
+--! Package declaration for SrpV3Pkg
 package SrpV3Pkg is
 
 --    constant SRP_AXIS_CONFIG_C : AxiStreamConfigType := (

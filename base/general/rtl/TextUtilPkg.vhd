@@ -16,9 +16,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use std.textio.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Package declaration for TextUtilPkg
 package TextUtilPkg is
 
    -- prints a message to the screen

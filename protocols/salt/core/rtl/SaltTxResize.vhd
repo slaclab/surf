@@ -23,6 +23,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SaltPkg.all;
 
+--! Entity declaration for SaltTxResize
 entity SaltTxResize is
    generic (
       TPD_G : time := 1 ns);

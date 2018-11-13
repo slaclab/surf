@@ -23,6 +23,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiPkg.all;
 
+--! Entity declaration for AxiWriteEmulate
 entity AxiWriteEmulate is
    generic (
       TPD_G        : time          := 1 ns;

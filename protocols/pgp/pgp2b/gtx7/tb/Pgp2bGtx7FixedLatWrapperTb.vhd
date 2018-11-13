@@ -25,6 +25,7 @@ use surf.Pgp2bPkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
+--! Entity declaration for Pgp2bGtx7FixedLatWrapperTb
 entity Pgp2bGtx7FixedLatWrapperTb is
 
 end entity Pgp2bGtx7FixedLatWrapperTb;

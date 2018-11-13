@@ -21,6 +21,7 @@ use ieee.std_logic_unsigned.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for QuadPortRam
 entity QuadPortRam is
    generic (
       TPD_G          : time                       := 1 ns;

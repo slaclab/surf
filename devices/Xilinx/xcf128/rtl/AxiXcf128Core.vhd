@@ -25,6 +25,7 @@ use surf.AxiXcf128Pkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for AxiXcf128Core
 entity AxiXcf128Core is
    generic (
       TPD_G            : time            := 1 ns;

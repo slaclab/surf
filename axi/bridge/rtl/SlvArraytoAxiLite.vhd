@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
+--! Entity declaration for SlvArraytoAxiLite
 entity SlvArraytoAxiLite is
    generic (
       TPD_G        : time       := 1 ns;
@@ -42,6 +43,7 @@ entity SlvArraytoAxiLite is
       axilWriteSlave  : in  AxiLiteWriteSlaveType);
 end entity SlvArraytoAxiLite;
 
+--! architecture declaration
 architecture rtl of SlvArraytoAxiLite is
 
    type StateType is (

@@ -123,6 +123,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
+--! Entity declaration for Gtx7RecClkMonitor
 ENTITY Gtx7RecClkMonitor is
    generic(
       COUNTER_UPPER_VALUE      : integer := 20; --ppm counter. For 2^20 cntr.  

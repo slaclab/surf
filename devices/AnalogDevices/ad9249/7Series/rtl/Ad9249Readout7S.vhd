@@ -21,15 +21,16 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-library UNISIM;
-use UNISIM.vcomponents.all;
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.Ad9249Pkg.all;
 
+library UNISIM;
+use UNISIM.vcomponents.all;
+
+--! Entity declaration for Ad9249ReadoutGroup7S
 entity Ad9249ReadoutGroup7S is
    generic (
       TPD_G             : time                 := 1 ns;

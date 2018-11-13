@@ -25,6 +25,7 @@ use surf.AxiAd9467Pkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for AxiAd9467Deser
 entity AxiAd9467Deser is
    generic (
       TPD_G           : time              := 1 ns;

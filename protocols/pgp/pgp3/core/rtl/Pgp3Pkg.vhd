@@ -26,6 +26,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
+--! Package declaration for Pgp3Pkg
 package Pgp3Pkg is
 
    constant PGP3_VERSION_C : slv(2 downto 0) := "011";

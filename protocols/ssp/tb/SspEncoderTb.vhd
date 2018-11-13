@@ -21,12 +21,14 @@ use surf.StdRtlPkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
+--! Entity declaration for SspEncoderTb
 entity SspEncoderTb is
 
 end entity SspEncoderTb;
 
 ----------------------------------------------------------------------------------------------------
 
+--! architecture declaration
 architecture sim of SspEncoderTb is
 
    -- component generics

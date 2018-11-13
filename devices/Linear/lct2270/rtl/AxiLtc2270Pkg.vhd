@@ -12,12 +12,14 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Package declaration for AxiLtc2270Pkg
 package AxiLtc2270Pkg is
 
    type AxiLtc2270InType is record

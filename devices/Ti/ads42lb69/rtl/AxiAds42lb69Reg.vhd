@@ -23,6 +23,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiAds42lb69Pkg.all;
 
+--! Entity declaration for AxiAds42lb69Reg
 entity AxiAds42lb69Reg is
    generic (
       TPD_G              : time              := 1 ns;

@@ -15,9 +15,11 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for Gth7TxManualPhaseAligner
 entity Gth7TxManualPhaseAligner is
    generic (
       TPD_G : time := 1 ns);
@@ -39,6 +41,7 @@ entity Gth7TxManualPhaseAligner is
       gtTxDlyEn         : out sl);
 end Gth7TxManualPhaseAligner;
 
+--! architecture declaration
 architecture rtl of Gth7TxManualPhaseAligner is
 
    type StateType is (

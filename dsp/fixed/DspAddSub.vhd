@@ -21,6 +21,7 @@ use ieee.numeric_std.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for DspAddSub
 entity DspAddSub is
    generic (
       TPD_G          : time                   := 1 ns;
@@ -43,6 +44,7 @@ entity DspAddSub is
       pOut    : out slv(WIDTH_G-1 downto 0));
 end DspAddSub;
 
+--! architecture declaration
 architecture rtl of DspAddSub is
 
    type RegType is record

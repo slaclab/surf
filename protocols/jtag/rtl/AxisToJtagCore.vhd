@@ -93,6 +93,7 @@ use surf.AxiStreamPkg.all;
 -- TKEEP/TSTROBE/TUSR/TDEST/TID: unused; not generated or inspected.
 --
 
+--! Entity declaration for AxisToJtagCore
 entity AxisToJtagCore is
    generic (
       TPD_G            : time                  := 1 ns;

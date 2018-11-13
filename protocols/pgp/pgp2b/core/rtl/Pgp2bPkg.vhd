@@ -16,11 +16,13 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
+--! Package declaration for Pgp2bPkg
 package Pgp2bPkg is
 
    -----------------------------------------------------

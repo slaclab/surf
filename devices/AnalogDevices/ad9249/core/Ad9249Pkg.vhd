@@ -15,10 +15,12 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Package declaration for Ad9249Pkg
 package Ad9249Pkg is
 
    -- Interface to AD9249 chip

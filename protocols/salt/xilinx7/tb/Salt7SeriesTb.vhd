@@ -25,6 +25,7 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
+--! Entity declaration for Salt7SeriesTb
 entity Salt7SeriesTb is end Salt7SeriesTb;
 
 architecture testbed of Salt7SeriesTb is

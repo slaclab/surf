@@ -67,6 +67,7 @@ use ieee.numeric_std.all;
 
 library surf;
 
+--! Entity declaration for Gth7RxRstSeq
 entity Gth7RxRstSeq is
    generic(
       TPD_G : time := 1 ns);  
@@ -87,6 +88,7 @@ entity Gth7RxRstSeq is
       );
 end Gth7RxRstSeq;
 
+--! architecture declaration
 architecture Behavioral of Gth7RxRstSeq is
 
    type state_type is (

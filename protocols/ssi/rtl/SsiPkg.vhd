@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Package declaration for SsiPkg
 package SsiPkg is
 
    constant SSI_EOFE_C : natural := 0;

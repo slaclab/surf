@@ -22,6 +22,7 @@ use surf.StdRtlPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for TenGigEthGtyUltraScaleClk
 entity TenGigEthGtyUltraScaleClk is
    generic (
       TPD_G             : time            := 1 ns;
@@ -42,6 +43,7 @@ entity TenGigEthGtyUltraScaleClk is
       qpllRst       : in  slv(1 downto 0));
 end TenGigEthGtyUltraScaleClk;
 
+--! architecture declaration
 architecture mapping of TenGigEthGtyUltraScaleClk is
 
    signal refClk     : sl;

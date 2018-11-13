@@ -26,6 +26,7 @@ use surf.Pgp3Pkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for Pgp3Gtp7Qpll
 entity Pgp3Gtp7Qpll is
    generic (
       TPD_G         : time           := 1 ns;

@@ -27,6 +27,7 @@ use UNISIM.vcomponents.all;
 library UNIMACRO;
 use UNIMACRO.vcomponents.all;
 
+--! Entity declaration for FifoSyncBuiltIn
 entity FifoSyncBuiltIn is
    generic (
       TPD_G          : time                    := 1 ns;
@@ -60,6 +61,7 @@ entity FifoSyncBuiltIn is
       empty        : out sl);      
 end FifoSyncBuiltIn;
 
+--! architecture declaration
 architecture mapping of FifoSyncBuiltIn is
    
    function GetFifoType (d_width : in integer; a_width : in integer) return string is

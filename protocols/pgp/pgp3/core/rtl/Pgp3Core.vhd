@@ -12,6 +12,7 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 
@@ -21,6 +22,7 @@ use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 use surf.Pgp3Pkg.all;
 
+--! Entity declaration for Pgp3Core
 entity Pgp3Core is
 
    generic (

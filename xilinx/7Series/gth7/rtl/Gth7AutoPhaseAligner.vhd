@@ -77,6 +77,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
+--! Entity declaration for Gth7AutoPhaseAligner
 entity Gth7AutoPhaseAligner is     
   Generic( 
            GT_TYPE                  : string  := "GTX"
@@ -94,6 +95,7 @@ entity Gth7AutoPhaseAligner is
            );
 end Gth7AutoPhaseAligner;
 
+--! architecture declaration
 architecture RTL of Gth7AutoPhaseAligner is
 
 --  component gtwizard_v2_5_sync_block

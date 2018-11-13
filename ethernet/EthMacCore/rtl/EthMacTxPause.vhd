@@ -26,6 +26,7 @@ use surf.AxiStreamPkg.all;
 use surf.StdRtlPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for EthMacTxPause
 entity EthMacTxPause is
    generic (
       TPD_G           : time                    := 1 ns;
@@ -58,6 +59,7 @@ entity EthMacTxPause is
       pauseTx      : out sl);
 end EthMacTxPause;
 
+--! architecture declaration
 architecture rtl of EthMacTxPause is
 
    constant CNT_BITS_C : integer := bitSize(PAUSE_512BITS_G);

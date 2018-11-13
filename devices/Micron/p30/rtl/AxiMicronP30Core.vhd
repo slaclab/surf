@@ -24,6 +24,7 @@ use surf.AxiMicronP30Pkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for AxiMicronP30Core
 entity AxiMicronP30Core is
    generic (
       TPD_G              : time             := 1 ns;

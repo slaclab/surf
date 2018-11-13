@@ -23,6 +23,7 @@ use surf.AxiLitePkg.all;
 use surf.ArbiterPkg.all;
 use surf.TextUtilPkg.all;
 
+--! Entity declaration for AxiLiteCrossbar
 entity AxiLiteCrossbar is
 
    generic (
@@ -52,6 +53,7 @@ entity AxiLiteCrossbar is
 
 end entity AxiLiteCrossbar;
 
+--! architecture declaration
 architecture rtl of AxiLiteCrossbar is
 
    type SlaveStateType is (S_WAIT_AXI_TXN_S, S_DEC_ERR_S, S_ACK_S, S_TXN_S);

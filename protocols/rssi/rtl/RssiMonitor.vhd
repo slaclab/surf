@@ -39,6 +39,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.RssiPkg.all;
 
+--! Entity declaration for RssiMonitor
 entity RssiMonitor is
    generic (
       TPD_G               : time     := 1 ns;

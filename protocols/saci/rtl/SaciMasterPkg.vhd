@@ -16,9 +16,11 @@
 library IEEE;
 use IEEE.std_logic_1164.all;
 use ieee.numeric_std.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Package declaration for SaciMasterPkg
 package SaciMasterPkg is
 
   constant SACI_WRITE_C      : sl       := '1';

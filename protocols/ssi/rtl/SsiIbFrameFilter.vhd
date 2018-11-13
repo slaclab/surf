@@ -26,6 +26,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
+--! Entity declaration for SsiIbFrameFilter
 entity SsiIbFrameFilter is
    generic (
       TPD_G             : time                := 1 ns;

@@ -18,6 +18,7 @@ use ieee.std_logic_1164.all;
 
 ----------------------------------------------------------------------------------------------------
 
+--! Entity declaration for Pgp2bGtx7VarLatWrapperTb
 entity Pgp2bGtx7VarLatWrapperTb is
 
 end entity Pgp2bGtx7VarLatWrapperTb;

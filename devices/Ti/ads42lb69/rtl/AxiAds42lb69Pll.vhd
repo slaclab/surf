@@ -22,6 +22,7 @@ use surf.StdRtlPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for AxiAds42lb69Pll
 entity AxiAds42lb69Pll is
    generic (
       TPD_G          : time    := 1 ns;

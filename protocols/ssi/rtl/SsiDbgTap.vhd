@@ -23,6 +23,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
+--! Entity declaration for SsiDbgTap
 entity SsiDbgTap is
    generic (
       TPD_G        : time                := 1 ns;
@@ -36,6 +37,7 @@ entity SsiDbgTap is
       axisSlave  : in AxiStreamSlaveType);
 end SsiDbgTap;
 
+--! architecture declaration
 architecture rtl of SsiDbgTap is
 
    type StateType is (

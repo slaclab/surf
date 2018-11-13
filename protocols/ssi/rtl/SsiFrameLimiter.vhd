@@ -23,6 +23,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
+--! Entity declaration for SsiFrameLimiter
 entity SsiFrameLimiter is
    generic (
       TPD_G               : time                := 1 ns;

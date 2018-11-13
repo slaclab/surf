@@ -23,6 +23,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.Jesd204bPkg.all;
 
+--! Entity declaration for Jesd204bTb
 entity Jesd204bTb is
 end Jesd204bTb;
 

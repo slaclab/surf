@@ -24,6 +24,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.Code8b10bPkg.all;
 
+--! Entity declaration for SspDecoder8b10b
 entity SspDecoder8b10b is
 
    generic (
@@ -44,6 +45,7 @@ entity SspDecoder8b10b is
 
 end entity SspDecoder8b10b;
 
+--! architecture declaration
 architecture rtl of SspDecoder8b10b is
 
    signal validDec    : sl;

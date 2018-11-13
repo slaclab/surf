@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Entity declaration for EthMacFlowCtrl
 entity EthMacFlowCtrl is
    generic (
       TPD_G       : time                  := 1 ns;
@@ -40,6 +41,7 @@ entity EthMacFlowCtrl is
       flowCtrl : out AxiStreamCtrlType);
 end EthMacFlowCtrl;
 
+--! architecture declaration
 architecture rtl of EthMacFlowCtrl is
 
    type RegType is record

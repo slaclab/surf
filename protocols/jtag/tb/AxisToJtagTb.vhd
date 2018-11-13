@@ -30,6 +30,7 @@ use surf.TextUtilPkg.all;
 
 -- use this module if a reliable stream is available (reliable network to host)
 
+--! Entity declaration for AxisToJtagTb
 entity AxisToJtagTb is
 end entity AxisToJtagTb;
 

@@ -32,6 +32,7 @@ use std.textio.all;
 --library grlib;
 --use grlib.version.all;
 
+--! Package declaration for stdlib
 package stdlib is
 
 --constant LIBVHDL_VERSION : integer := grlib_version;

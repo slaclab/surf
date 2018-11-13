@@ -20,6 +20,7 @@ use ieee.numeric_std.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for FifoMux
 entity FifoMux is
    generic (
       TPD_G              : time                       := 1 ns;
@@ -70,6 +71,7 @@ entity FifoMux is
       empty         : out sl);
 end FifoMux;
 
+--! architecture declaration
 architecture rtl of FifoMux is
 
    constant FIFO_DATA_WIDTH_C : integer := ite(WR_DATA_WIDTH_G > RD_DATA_WIDTH_G, WR_DATA_WIDTH_G, RD_DATA_WIDTH_G);

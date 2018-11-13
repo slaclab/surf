@@ -18,6 +18,7 @@ use IEEE.STD_LOGIC_1164.all;
 use IEEE.NUMERIC_STD.all;
 use ieee.math_real.all;
 
+--! Package declaration for StdRtlPkg
 package StdRtlPkg is
 
    -- Useful for pre compiler

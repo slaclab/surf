@@ -24,6 +24,7 @@ use surf.StdRtlPkg.all;
 use surf.TextUtilPkg.all;
 use surf.AxiLitePkg.all;
 
+--! Entity declaration for UartAxiLiteMaster
 entity UartAxiLiteMaster is
 
    generic (

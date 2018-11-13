@@ -22,6 +22,7 @@ use surf.StdRtlPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for Dsp48Comparator4x12b
 entity Dsp48Comparator4x12b is
    generic (
       TPD_G              : time    := 1 ns;

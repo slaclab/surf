@@ -23,6 +23,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiPkg.all;
 
+--! Entity declaration for AxiWritePathFifo
 entity AxiWritePathFifo is
    generic (
 

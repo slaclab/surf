@@ -19,6 +19,7 @@ use ieee.numeric_std.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
+--! Entity declaration for GLinkGtx7RxRst
 entity GLinkGtx7RxRst is
    generic(
       TPD_G                  : time                  := 1 ns;

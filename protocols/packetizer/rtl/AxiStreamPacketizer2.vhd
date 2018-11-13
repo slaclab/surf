@@ -25,6 +25,7 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.AxiStreamPacketizer2Pkg.all;
 
+--! Entity declaration for AxiStreamPacketizer2
 entity AxiStreamPacketizer2 is
    generic (
       TPD_G                : time             := 1 ns;

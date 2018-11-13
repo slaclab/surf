@@ -21,6 +21,7 @@ use ieee.std_logic_unsigned.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for SynchronizerOneShotCnt
 entity SynchronizerOneShotCnt is
    generic (
       TPD_G           : time     := 1 ns; -- Simulation FF output delay

@@ -21,6 +21,7 @@ use surf.StdRtlPkg.all;
 use surf.Pgp2bPkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Entity declaration for PgpParallelSimModel
 entity PgpParallelSimModel is
    generic (
       TPD_G                 : time                 := 1 ns;

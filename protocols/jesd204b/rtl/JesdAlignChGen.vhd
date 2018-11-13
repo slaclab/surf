@@ -35,6 +35,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.jesd204bpkg.all;
 
+--! Entity declaration for JesdAlignChGen
 entity JesdAlignChGen is
    generic (
       TPD_G : time     := 1 ns;

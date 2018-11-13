@@ -72,12 +72,13 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 use surf.I2cPkg.all;
 use surf.stdlib.all;
 
-
+--! Entity declaration for I2cSlave
 entity I2cSlave is
    generic (
       TPD_G                : time                    := 1 ns;

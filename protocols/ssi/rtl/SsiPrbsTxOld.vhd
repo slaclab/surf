@@ -24,6 +24,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
+--! Entity declaration for SsiPrbsTxOld
 entity SsiPrbsTxOld is
    generic (
       -- General Configurations

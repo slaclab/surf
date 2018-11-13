@@ -18,9 +18,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 use ieee.math_real.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for SpiMaster
 entity SpiMaster is
    generic (
       TPD_G             : time                  := 1 ns;

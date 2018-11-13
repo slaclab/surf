@@ -20,6 +20,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
+--! Package declaration for AxiStreamPacketizer2Pkg
 package AxiStreamPacketizer2Pkg is
 
    constant PACKETIZER2_VERSION_C : slv(3 downto 0) := x"2";

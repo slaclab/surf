@@ -26,6 +26,7 @@ use surf.AxiLtc2270Pkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for AxiLtc2270Reg
 entity AxiLtc2270Reg is
    generic (
       TPD_G              : time                            := 1 ns;

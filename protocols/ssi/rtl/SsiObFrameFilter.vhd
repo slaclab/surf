@@ -26,6 +26,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
+--! Entity declaration for SsiObFrameFilter
 entity SsiObFrameFilter is
    generic (
       TPD_G             : time                := 1 ns;
@@ -48,6 +49,7 @@ entity SsiObFrameFilter is
       axisRst        : in  sl);
 end SsiObFrameFilter;
 
+--! architecture declaration
 architecture rtl of SsiObFrameFilter is
 
    type StateType is (
@@ -260,4 +262,4 @@ begin
 
    end generate;
 
-end rtl;
+end architecture rtl;

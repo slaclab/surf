@@ -25,9 +25,11 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Package declaration for I2cPkg
 package I2cPkg is
 
    type i2c_in_type is record

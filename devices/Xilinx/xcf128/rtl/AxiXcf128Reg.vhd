@@ -23,6 +23,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiXcf128Pkg.all;
 
+--! Entity declaration for AxiXcf128Reg
 entity AxiXcf128Reg is
    generic (
       TPD_G            : time            := 1 ns;

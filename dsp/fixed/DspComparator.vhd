@@ -20,6 +20,7 @@ use ieee.numeric_std.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for DspComparator
 entity DspComparator is
    generic (
       TPD_G          : time                   := 1 ns;
@@ -45,6 +46,7 @@ entity DspComparator is
       lsEq    : out sl);                -- less than or equal to    (a <= b)
 end DspComparator;
 
+--! architecture declaration
 architecture rtl of DspComparator is
 
    type RegType is record

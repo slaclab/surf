@@ -16,9 +16,11 @@
 library IEEE;
 use IEEE.std_logic_1164.all;
 use ieee.numeric_std.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for SaciSlave
 entity SaciSlave is
   
   generic (

@@ -21,6 +21,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.SsiCmdMasterPkg.all;
 
+--! Entity declaration for SsiCmdMasterPulser
 entity SsiCmdMasterPulser is
    generic (
       TPD_G          : time     := 1 ns;  -- Simulation FF output delay

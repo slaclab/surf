@@ -26,6 +26,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiPkg.all;
 
+--! Entity declaration for AxiResize
 entity AxiResize is
    generic (
       -- General Configurations

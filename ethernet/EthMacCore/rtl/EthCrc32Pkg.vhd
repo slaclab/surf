@@ -22,6 +22,7 @@ use ieee.std_logic_arith.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Package declaration for EthCrc32Pkg
 package EthCrc32Pkg is
 
    function crc32Parallel1Byte (crcCur : slv(31 downto 0); data : slv(7 downto 0)) return slv;

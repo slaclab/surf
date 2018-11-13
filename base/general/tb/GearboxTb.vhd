@@ -24,6 +24,7 @@ library surf;
 use surf.StdRtlPkg.all;
 ----------------------------------------------------------------------------------------------------
 
+--! Entity declaration for GearboxTb
 entity GearboxTb is
 
 end entity GearboxTb;

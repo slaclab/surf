@@ -13,12 +13,13 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for Gtx7TxManualPhaseAligner
 entity Gtx7TxManualPhaseAligner is
    generic (
       TPD_G : time := 1 ns);

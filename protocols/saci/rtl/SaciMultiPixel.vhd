@@ -21,6 +21,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.SaciMultiPixelPkg.all;
 
+--! Entity declaration for SaciMultiPixel
 entity SaciMultiPixel is
    generic (
       TPD_G              : time             := 1 ns;

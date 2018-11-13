@@ -40,10 +40,12 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 use surf.I2cPkg.all;
 
+--! Entity declaration for I2cMaster
 entity I2cMaster is
    generic (
       TPD_G                : time                   := 1 ns;  -- Simulated propagation delay

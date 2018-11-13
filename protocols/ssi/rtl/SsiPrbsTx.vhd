@@ -25,6 +25,7 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
+--! Entity declaration for SsiPrbsTx
 entity SsiPrbsTx is
    generic (
       -- General Configurations

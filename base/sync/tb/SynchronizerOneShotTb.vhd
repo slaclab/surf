@@ -21,6 +21,7 @@ use surf.StdRtlPkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
+--! Entity declaration for SynchronizerOneShotTb
 entity SynchronizerOneShotTb is
 
 end entity SynchronizerOneShotTb;

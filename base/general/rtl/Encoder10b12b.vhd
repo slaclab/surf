@@ -15,10 +15,12 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 use surf.Code10b12bPkg.all;
 
+--! Entity declaration for Encoder10b12b
 entity Encoder10b12b is
 
    generic (

@@ -22,13 +22,13 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
-
 use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
 use surf.jesd204bpkg.all;
 
+--! Entity declaration for JesdTestStreamTx
 entity JesdTestStreamTx is
    generic (
       TPD_G        : time   := 1 ns;

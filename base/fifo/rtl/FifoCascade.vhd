@@ -20,6 +20,7 @@ use ieee.numeric_std.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for FifoCascade
 entity FifoCascade is
    generic (
       TPD_G              : time                       := 1 ns;
@@ -69,6 +70,7 @@ entity FifoCascade is
       empty         : out sl);
 end FifoCascade;
 
+--! architecture declaration
 architecture mapping of FifoCascade is
 
    constant GEN_SYNC_FIFO_FIRST_C : boolean := ite(LAST_STAGE_ASYNC_G, true, GEN_SYNC_FIFO_G);

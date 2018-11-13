@@ -24,6 +24,7 @@ use UNISIM.VCOMPONENTS.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for DS2411Core
 entity DS2411Core is
    generic (
       TPD_G        : time             := 1 ns;

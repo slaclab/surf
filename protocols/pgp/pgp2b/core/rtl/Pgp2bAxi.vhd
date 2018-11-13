@@ -105,6 +105,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.Pgp2bPkg.all;
 
+--! Entity declaration for Pgp2bAxi
 entity Pgp2bAxi is
    generic (
       TPD_G              : time                  := 1 ns;

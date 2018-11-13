@@ -24,6 +24,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
+--! Entity declaration for AxiLiteFifoPush
 entity AxiLiteFifoPush is
    generic (
       TPD_G              : time                  := 1 ns;
@@ -56,6 +57,7 @@ entity AxiLiteFifoPush is
    );
 end AxiLiteFifoPush;
 
+--! architecture declaration
 architecture structure of AxiLiteFifoPush is
 
    constant PUSH_SIZE_C  : integer := bitSize(PUSH_FIFO_COUNT_G-1);

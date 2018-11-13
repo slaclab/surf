@@ -27,6 +27,7 @@ use surf.AxiLitePkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for Pgp2bGth7VarLatWrapper
 entity Pgp2bGth7VarLatWrapper is
    generic (
       TPD_G             : time                 := 1 ns;

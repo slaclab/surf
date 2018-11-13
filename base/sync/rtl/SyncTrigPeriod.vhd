@@ -21,6 +21,7 @@ use ieee.std_logic_arith.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for SyncTrigPeriod
 entity SyncTrigPeriod is
    generic (
       TPD_G         : time     := 1 ns;   -- Simulation FF output delay

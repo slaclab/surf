@@ -73,6 +73,7 @@ use IEEE.NUMERIC_STD.all;
 
 library surf;
 
+--! Entity declaration for Gth7TxRst
 entity Gth7TxRst is
    generic(
       TPD_G                  : time                  := 1 ns;
@@ -112,7 +113,7 @@ end Gth7TxRst;
 -- * 
 
 
-
+--! architecture declaration
 architecture RTL of Gth7TxRst is
 
    type tx_rst_fsm_type is(

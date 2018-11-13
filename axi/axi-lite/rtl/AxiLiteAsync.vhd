@@ -24,6 +24,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
+--! Entity declaration for AxiLiteAsync
 entity AxiLiteAsync is
    generic (
       TPD_G            : time                  := 1 ns;
@@ -48,6 +49,7 @@ entity AxiLiteAsync is
       mAxiWriteSlave  : in  AxiLiteWriteSlaveType);
 end AxiLiteAsync;
 
+--! architecture declaration
 architecture STRUCTURE of AxiLiteAsync is
 
    signal s2mRst : sl;                  -- Slave rst sync'd to master clk

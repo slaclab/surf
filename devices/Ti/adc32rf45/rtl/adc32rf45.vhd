@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
+--! Entity declaration for adc32rf45
 entity adc32rf45 is
    generic (
       TPD_G             : time := 1 ns;

@@ -20,6 +20,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.GlinkPkg.all;
 
+--! Entity declaration for GLinkTxToRx
 entity GLinkTxToRx is
    generic (
       TPD_G          : time    := 1 ns;

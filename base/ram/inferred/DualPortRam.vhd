@@ -20,6 +20,7 @@ use ieee.std_logic_unsigned.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for DualPortRam
 entity DualPortRam is
    -- MODE_G = {"no-change","read-first","write-first"}
    generic (

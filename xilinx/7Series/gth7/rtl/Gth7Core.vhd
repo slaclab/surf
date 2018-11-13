@@ -22,6 +22,7 @@ use surf.StdRtlPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for Gth7Core
 entity Gth7Core is
    generic (
       TPD_G                    : time            := 1 ns;
@@ -205,6 +206,7 @@ entity Gth7Core is
       drpDo          : out slv(15 downto 0));      
 end entity Gth7Core;
 
+--! architecture declaration
 architecture rtl of Gth7Core is
 
    function getOutClkSelVal (OUT_CLK_SRC : string) return bit_vector is

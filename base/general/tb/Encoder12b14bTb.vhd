@@ -20,12 +20,13 @@ use ieee.std_logic_unsigned.all;
 
 library surf;
 use surf.StdRtlPkg.all;
-use work.Code12b14bPkg.all;
-use work.TextUtilPkg.all;
+use surf.Code12b14bPkg.all;
+use surf.TextUtilPkg.all;
 
 
 ----------------------------------------------------------------------------------------------------
 
+--! Entity declaration for Encoder12b14bTb
 entity Encoder12b14bTb is
 
 end entity Encoder12b14bTb;

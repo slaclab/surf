@@ -30,6 +30,7 @@ use ieee.numeric_std.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for Gth7RxFixedLatPhaseAligner
 entity Gth7RxFixedLatPhaseAligner is
    
    generic (
@@ -50,6 +51,7 @@ entity Gth7RxFixedLatPhaseAligner is
 
 end entity Gth7RxFixedLatPhaseAligner;
 
+--! architecture declaration
 architecture rtl of Gth7RxFixedLatPhaseAligner is
 
    constant SLIDE_WAIT_C : integer := 32;  -- Dictated by UG476 GTX Tranceiver Guide

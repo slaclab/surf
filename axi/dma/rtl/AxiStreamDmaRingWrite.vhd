@@ -27,6 +27,7 @@ use surf.AxiPkg.all;
 use surf.AxiDmaPkg.all;
 use surf.AxiStreamDmaRingPkg.all;
 
+--! Entity declaration for AxiStreamDmaRingWrite
 entity AxiStreamDmaRingWrite is
    generic (
       TPD_G                : time                     := 1 ns;

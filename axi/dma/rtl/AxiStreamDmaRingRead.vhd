@@ -27,6 +27,7 @@ use surf.AxiPkg.all;
 use surf.AxiDmaPkg.all;
 use surf.AxiStreamDmaRingPkg.all;
 
+--! Entity declaration for AxiStreamDmaRingRead
 entity AxiStreamDmaRingRead is
 
    generic (

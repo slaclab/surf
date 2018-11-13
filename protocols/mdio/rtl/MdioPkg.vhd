@@ -25,6 +25,7 @@ use ieee.numeric_std.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Package declaration for MdioPkg
 package MdioPkg is
 
    subtype PhyAddrType is slv( 4 downto 0);

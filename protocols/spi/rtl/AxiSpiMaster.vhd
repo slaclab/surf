@@ -27,13 +27,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
+library unisim;
+use unisim.vcomponents.all;
+
+--! Entity declaration for AxiSpiMaster
 entity AxiSpiMaster is
    generic (
       TPD_G             : time            := 1 ns;

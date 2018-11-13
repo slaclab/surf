@@ -27,6 +27,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.Jesd204bPkg.all;
 
+--! Entity declaration for JesdSysrefDly
 entity JesdSysrefDly is
    generic (
       TPD_G        : time       := 1 ns;

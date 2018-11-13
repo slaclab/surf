@@ -26,6 +26,7 @@ use surf.SsiPkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
+--! Entity declaration for AxiLiteSrpV0Tb
 entity AxiLiteSrpV0Tb is
 
 end entity AxiLiteSrpV0Tb;

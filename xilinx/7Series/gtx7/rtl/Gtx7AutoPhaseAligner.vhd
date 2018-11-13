@@ -77,6 +77,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
+--! Entity declaration for Gtx7AutoPhaseAligner
 entity Gtx7AutoPhaseAligner is     
   Generic( 
            GT_TYPE                  : string  := "GTX"

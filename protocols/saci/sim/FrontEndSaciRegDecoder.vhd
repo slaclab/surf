@@ -16,6 +16,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 use surf.SynchronizePkg.all;
@@ -23,6 +24,7 @@ use surf.Version.all;
 use surf.FrontEndPkg.all;
 use surf.SaciMasterPkg.all;
 
+--! Entity declaration for FrontEndSaciRegDecoder
 entity FrontEndSaciRegDecoder is
   
   generic (

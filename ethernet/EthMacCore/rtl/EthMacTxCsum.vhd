@@ -24,6 +24,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for EthMacTxCsum
 entity EthMacTxCsum is
    generic (
       TPD_G          : time             := 1 ns;
@@ -46,6 +47,7 @@ entity EthMacTxCsum is
       mAxisSlave  : in  AxiStreamSlaveType);
 end EthMacTxCsum;
 
+--! architecture declaration
 architecture rtl of EthMacTxCsum is
 
    constant MAX_FRAME_SIZE_C : natural := ite(JUMBO_G, 9000, 1500);

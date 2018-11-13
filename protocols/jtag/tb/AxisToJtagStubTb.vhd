@@ -27,6 +27,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxisToJtagPkg.all;
 
+--! Entity declaration for AxisToJtagStubTb
 entity AxisToJtagStubTb is
 end entity AxisToJtagStubTb;
 

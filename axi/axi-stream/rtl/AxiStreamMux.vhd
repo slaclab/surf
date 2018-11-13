@@ -25,6 +25,7 @@ use surf.StdRtlPkg.all;
 use surf.ArbiterPkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Entity declaration for AxiStreamMux
 entity AxiStreamMux is
    generic (
       TPD_G                : time                  := 1 ns;

@@ -16,9 +16,11 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for RstSync
 entity RstSync is
    generic (
       TPD_G           : time                             := 1 ns;   -- Simulation FF output delay

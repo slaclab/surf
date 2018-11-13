@@ -26,6 +26,7 @@ use surf.AxiStreamPkg.all;
 use surf.AxiPkg.all;
 use surf.AxiDmaPkg.all;
 
+--! Entity declaration for AxiStreamDmaRead
 entity AxiStreamDmaRead is
    generic (
       TPD_G           : time                := 1 ns;

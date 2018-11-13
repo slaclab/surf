@@ -25,6 +25,7 @@ use unisim.vcomponents.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for ClinkDataClk
 entity ClinkDataClk is
    generic ( 
       TPD_G         : time    := 1 ns;

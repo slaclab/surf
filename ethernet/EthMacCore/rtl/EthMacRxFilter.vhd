@@ -23,6 +23,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for EthMacRxFilter
 entity EthMacRxFilter is
    generic (
       TPD_G     : time    := 1 ns;
@@ -42,6 +43,7 @@ entity EthMacRxFilter is
       filtEnable  : in  sl);
 end EthMacRxFilter;
 
+--! architecture declaration
 architecture rtl of EthMacRxFilter is
 
    type StateType is (

@@ -27,6 +27,7 @@ use surf.StdRtlPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for Iprog7Series
 entity Iprog7Series is
    generic (
       TPD_G          : time    := 1 ns;

@@ -26,7 +26,8 @@ use surf.TextUtilPkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
-entity Code10b12bTb is
+--! Entity declaration for Code10b12bTb
+entity Code10b12bTb is 
 
 end entity Code10b12bTb;
 

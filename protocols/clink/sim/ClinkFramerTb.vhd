@@ -24,6 +24,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.ClinkPkg.all;
 
+--! Entity declaration for ClinkFramerTb
 entity ClinkFramerTb is end ClinkFramerTb;
 
 -- Define architecture

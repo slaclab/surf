@@ -26,6 +26,7 @@ use surf.AxiLitePkg.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
 
+--! Entity declaration for Pgp2bGtx7MultiLane
 entity Pgp2bGtx7MultiLane is
    generic (
       TPD_G                 : time       := 1 ns;

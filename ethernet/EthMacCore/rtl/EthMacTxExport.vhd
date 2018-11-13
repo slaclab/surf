@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Entity declaration for EthMacTxExport
 entity EthMacTxExport is
    generic (
       TPD_G      : time   := 1 ns;
@@ -51,6 +52,7 @@ entity EthMacTxExport is
       txLinkNotReady : out sl);
 end EthMacTxExport;
 
+--! architecture declaration
 architecture mapping of EthMacTxExport is
 
 begin

@@ -123,7 +123,8 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
-ENTITY Gtp7RecClkMonitor is
+--! Entity declaration for Gtp7RecClkMonitor
+entity Gtp7RecClkMonitor is
    generic(
       COUNTER_UPPER_VALUE      : integer := 20; --ppm counter. For 2^20 cntr.  
       GCLK_COUNTER_UPPER_VALUE : integer := 20; --ppm counter. For 2^20 cntr.
@@ -145,10 +146,10 @@ ENTITY Gtp7RecClkMonitor is
 	RECCLK_STABLE : out std_logic;
         EXEC_RESTART  : out std_logic
 	);
-end ENTITY Gtp7RecClkMonitor;
+end entity Gtp7RecClkMonitor;
 
-
-ARCHITECTURE RTL of Gtp7RecClkMonitor is
+--! architecture declaration
+architecture RTL of Gtp7RecClkMonitor is
 
 --------------------------------------------------------------------------------
 -- Declaration of wires/regs
@@ -456,6 +457,4 @@ end process;
 
 
 
-end RTL;
-
-
+end architecture RTL;

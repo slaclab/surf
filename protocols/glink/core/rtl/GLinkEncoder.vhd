@@ -21,6 +21,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.GLinkPkg.all;
 
+--! Entity declaration for GLinkEncoder
 entity GLinkEncoder is
    generic (
       TPD_G          : time    := 1 ns;
