@@ -88,8 +88,7 @@ entity Pgp2bLane is
 
 end Pgp2bLane;
 
-
--- Define architecture
+--! architecture declaration
 architecture Pgp2bLane of Pgp2bLane is
 
    -- Local Signals

@@ -48,6 +48,7 @@ entity SaciMultiPixel is
 
 end SaciMultiPixel;
 
+--! architecture declaration
 architecture rtl of SaciMultiPixel is
 
    type StateType is (S_IDLE_C, S_IS_ASIC_C, S_WRITE_C, S_WRITE_AXI_C,

@@ -108,6 +108,7 @@ entity Pgp3Gtp7Wrapper is
       axilWriteSlave    : out AxiLiteWriteSlaveType                                  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 end Pgp3Gtp7Wrapper;
 
+--! architecture declaration
 architecture rtl of Pgp3Gtp7Wrapper is
 
    constant CLKIN_PERIOD_C : real := ite((RATE_G = "6.25Gbps"), 2.56, 5.12);  -- 390.625 MHz for 6.25Gbps configuration

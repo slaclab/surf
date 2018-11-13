@@ -56,6 +56,7 @@ entity Crc32Parallel is
       crcReset     : in  sl);  -- initializes CRC logic to crcInit     
 end Crc32Parallel;
 
+--! architecture declaration
 architecture rtl of Crc32Parallel is
 
    type RegType is record

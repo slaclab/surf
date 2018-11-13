@@ -34,6 +34,7 @@ use surf.TextUtilPkg.all;
 entity AxisToJtagTb is
 end entity AxisToJtagTb;
 
+--! architecture declaration
 architecture AxisToJtagTbImpl of AxisToJtagTb is
 
    constant TPD_C : time := 5 ns;

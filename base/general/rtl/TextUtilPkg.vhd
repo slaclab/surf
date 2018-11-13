@@ -125,6 +125,7 @@ package TextUtilPkg is
 
 end TextUtilPkg;
 
+--! package body declaration
 package body TextUtilPkg is
 
    -- prints text to the screen

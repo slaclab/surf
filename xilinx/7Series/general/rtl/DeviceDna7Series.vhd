@@ -40,6 +40,7 @@ entity DeviceDna7Series is
       dnaValid : out sl);
 end DeviceDna7Series;
 
+--! architecture declaration
 architecture rtl of DeviceDna7Series is
 
    constant DNA_SHIFT_LENGTH_C : natural := 64;

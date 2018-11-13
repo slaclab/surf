@@ -79,6 +79,7 @@ package AxiStreamDmaRingPkg is
 
 end package AxiStreamDmaRingPkg;
 
+--! package body declaration
 package body AxiStreamDmaRingPkg is
 
    function getBufferAddr (

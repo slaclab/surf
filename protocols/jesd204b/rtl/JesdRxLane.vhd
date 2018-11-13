@@ -96,6 +96,7 @@ entity JesdRxLane is
       sampleData_o  : out slv((GT_WORD_SIZE_C*8)-1 downto 0));
 end JesdRxLane;
 
+--! architecture declaration
 architecture rtl of JesdRxLane is
 
    constant ERR_REG_WIDTH_C : positive := 4+2*GT_WORD_SIZE_C;

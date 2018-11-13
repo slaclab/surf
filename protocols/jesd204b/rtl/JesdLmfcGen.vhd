@@ -49,6 +49,7 @@ entity JesdLmfcGen is
    );
 end entity JesdLmfcGen;
 
+--! architecture declaration
 architecture rtl of JesdLmfcGen is
    
    constant PERIOD_C    : positive := ((K_G * F_G)/GT_WORD_SIZE_C)-1;

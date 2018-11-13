@@ -27,6 +27,7 @@ entity FrontEndSaciAnalogTb is
 
 end entity FrontEndSaciAnalogTb;
 
+--! architecture declaration
 architecture testbench of FrontEndSaciAnalogTb is
 
   constant TPD_C : time := 1 ns;

@@ -2,7 +2,7 @@
 -- File       : SsiPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: SSI Package File
+--! \brief SSI Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -110,8 +110,8 @@ package SsiPkg is
       axisConfig : AxiStreamConfigType)
       return SsiSlaveType;
 
---   constant SSI_MASTER_INIT_C : SsiMasterType := axis2SsiMaster(SSI_CONFIG_INIT_C, AXI_STREAM_MASTER_INIT_C);
---   constant SSI_SLAVE_INIT_C  : SsiSlaveType  := axis2SsiSlave(AXI_STREAM_SLAVE_INIT_C, AXI_STREAM_CTRL_UNUSED_C);
+  -- constant SSI_MASTER_INIT_C : SsiMasterType := axis2SsiMaster(SSI_CONFIG_INIT_C, AXI_STREAM_MASTER_INIT_C);
+  -- constant SSI_SLAVE_INIT_C  : SsiSlaveType  := axis2SsiSlave(AXI_STREAM_SLAVE_INIT_C, AXI_STREAM_CTRL_UNUSED_C);
 
 
    -------------------------------------------------------------------------------------------------
@@ -142,6 +142,7 @@ package SsiPkg is
 
 end package SsiPkg;
 
+--! package body declaration
 package body SsiPkg is
 
    function ssiAxiStreamConfig (

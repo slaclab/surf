@@ -19,11 +19,11 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 use ieee.math_real.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 library surf;
 use surf.StdRtlPkg.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 --! Entity declaration for ClinkDataClk
 entity ClinkDataClk is
@@ -38,6 +38,7 @@ entity ClinkDataClk is
       clinkRst   : out sl);
 end entity ClinkDataClk;
 
+--! architecture declaration
 architecture rtl of ClinkDataClk is
 
    signal clkInLoc   : sl;

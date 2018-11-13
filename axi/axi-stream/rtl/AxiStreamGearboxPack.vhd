@@ -47,6 +47,7 @@ entity AxiStreamGearboxPack is
 
 end entity AxiStreamGearboxPack;
 
+--! architecture declaration
 architecture rtl of AxiStreamGearboxPack is
 
 

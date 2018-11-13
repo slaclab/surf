@@ -39,6 +39,7 @@ entity Dsp48Comparator4x12b is
       rst      : in  sl := '0');
 end Dsp48Comparator4x12b;
 
+--! architecture declaration
 architecture mapping of Dsp48Comparator4x12b is
 
    signal carryOut : slv(3 downto 0);

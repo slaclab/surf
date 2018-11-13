@@ -45,6 +45,7 @@ entity SpiSlave is
 
 end entity SpiSlave;
 
+--! architecture declaration
 architecture rtl of SpiSlave is
 
    constant MAX_COUNT_C : integer := WORD_SIZE_G-1;

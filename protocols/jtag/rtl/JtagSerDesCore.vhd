@@ -57,6 +57,7 @@ entity JtagSerDesCore is
    );
 end entity JtagSerDesCore;
 
+--! architecture declaration
 architecture JtagSerDesCoreImpl of JtagSerDesCore is
 
    type StateType is (IDLE_S, SHIFT_S, WAI_S);

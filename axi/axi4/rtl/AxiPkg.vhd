@@ -291,6 +291,7 @@ package AxiPkg is
 
 end package AxiPkg;
 
+--! package body declaration
 package body AxiPkg is
 
    function axiConfig (

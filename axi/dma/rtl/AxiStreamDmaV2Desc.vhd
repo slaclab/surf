@@ -86,6 +86,7 @@ entity AxiStreamDmaV2Desc is
       axiWriteCtrl    : in  AxiCtrlType := AXI_CTRL_UNUSED_C);
 end AxiStreamDmaV2Desc;
 
+--! architecture declaration
 architecture rtl of AxiStreamDmaV2Desc is
 
    -- Descriptor width, 64-bits or 128-bits

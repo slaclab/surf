@@ -55,6 +55,7 @@ entity AxiLtc2270Reg is
       refClk200MHz   : in    sl);      
 end AxiLtc2270Reg;
 
+--! architecture declaration
 architecture rtl of AxiLtc2270Reg is
 
    constant HALF_SCLK_C  : natural := getTimeRatio(AXI_CLK_FREQ_G, 8.0E+06);

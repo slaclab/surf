@@ -28,6 +28,7 @@ end entity SynchronizerOneShotTb;
 
 ----------------------------------------------------------------------------------------------------
 
+--! architecture declaration
 architecture sim of SynchronizerOneShotTb is
 
    -- component generics

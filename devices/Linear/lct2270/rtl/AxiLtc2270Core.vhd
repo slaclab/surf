@@ -51,6 +51,7 @@ entity AxiLtc2270Core is
       refclk200MHz   : in    sl);
 end AxiLtc2270Core;
 
+--! architecture declaration
 architecture mapping of AxiLtc2270Core is
    
    signal status : AxiLtc2270StatusType;

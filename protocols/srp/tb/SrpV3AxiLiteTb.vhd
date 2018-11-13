@@ -30,6 +30,7 @@ entity SrpV3AxiLiteTb is
 
 end entity SrpV3AxiLiteTb;
 
+--! architecture declaration
 architecture tb of SrpV3AxiLiteTb is
 
    constant ETH_AXIS_CONFIG_C  : AxiStreamConfigType              := ssiAxiStreamConfig(8, TKEEP_COMP_C, TUSER_FIRST_LAST_C, 8);  -- Use 8 tDest bits

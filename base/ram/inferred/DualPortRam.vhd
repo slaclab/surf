@@ -56,6 +56,7 @@ entity DualPortRam is
       regceb  : in  sl                                                    := '1');
 end DualPortRam;
 
+--! architecture declaration
 architecture mapping of DualPortRam is
 
    constant FORCE_RST_C : sl := not(RST_POLARITY_G);

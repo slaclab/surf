@@ -50,6 +50,7 @@ entity JesdTestSigGen is
    );
 end entity JesdTestSigGen;
 
+--! architecture declaration
 architecture rtl of JesdTestSigGen is
   
    type RegType is record

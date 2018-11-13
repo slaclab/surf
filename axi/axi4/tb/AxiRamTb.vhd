@@ -26,6 +26,7 @@ use surf.AxiLitePkg.all;
 --! Entity declaration for AxiRamTb
 entity AxiRamTb is end AxiRamTb;
 
+--! architecture declaration
 architecture testbed of AxiRamTb is
 
    constant CLK_PERIOD_C : time := 10 ns;

@@ -28,6 +28,7 @@ use surf.SsiPkg.all;
 --! Entity declaration for Salt7SeriesTb
 entity Salt7SeriesTb is end Salt7SeriesTb;
 
+--! architecture declaration
 architecture testbed of Salt7SeriesTb is
 
    -- General Configurations

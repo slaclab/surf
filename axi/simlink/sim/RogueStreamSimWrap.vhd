@@ -56,7 +56,7 @@ entity RogueStreamSimWrap is
       );
 end RogueStreamSimWrap;
 
--- Define architecture
+--! architecture declaration
 architecture RogueStreamSimWrap of RogueStreamSimWrap is
 
    -- Internal configuration

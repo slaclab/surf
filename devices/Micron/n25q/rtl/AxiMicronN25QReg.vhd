@@ -50,6 +50,7 @@ entity AxiMicronN25QReg is
       axiRst         : in  sl);
 end AxiMicronN25QReg;
 
+--! architecture declaration
 architecture rtl of AxiMicronN25QReg is
 
    constant DOUBLE_SCK_FREQ_C : real    := SPI_CLK_FREQ_G * 2.0;

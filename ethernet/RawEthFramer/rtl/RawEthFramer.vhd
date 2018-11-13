@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Entity declaration for RawEthFramer
 entity RawEthFramer is
    generic (
       TPD_G      : time             := 1 ns;
@@ -46,6 +47,7 @@ entity RawEthFramer is
       rst         : in  sl);
 end RawEthFramer;
 
+--! architecture declaration
 architecture rtl of RawEthFramer is
 
    type StateType is (

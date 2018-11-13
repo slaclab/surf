@@ -124,6 +124,7 @@ entity Pgp2bGtx7VarLat is
       axilWriteSlave   : out AxiLiteWriteSlaveType);             
 end Pgp2bGtx7VarLat;
 
+--! architecture declaration
 architecture mapping of Pgp2bGtx7VarLat is
 
 begin

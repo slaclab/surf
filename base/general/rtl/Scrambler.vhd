@@ -50,6 +50,7 @@ entity Scrambler is
 
 end entity Scrambler;
 
+--! architecture declaration
 architecture rtl of Scrambler is
 
    constant SCRAMBLER_WIDTH_C : integer := maximum(TAPS_G);

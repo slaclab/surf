@@ -33,7 +33,7 @@ use surf.I2cPkg.all;
 --! Entity declaration for stream_tb
 entity stream_tb is end stream_tb;
 
--- Define architecture
+--! architecture declaration
 architecture stream_tb of stream_tb is
 
    signal axiClk            : sl;

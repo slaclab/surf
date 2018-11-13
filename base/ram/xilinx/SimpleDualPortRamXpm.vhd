@@ -52,6 +52,7 @@ entity SimpleDualPortRamXpm is
       doutb  : out slv(DATA_WIDTH_G-1 downto 0));
 end SimpleDualPortRamXpm;
 
+--! architecture declaration
 architecture rtl of SimpleDualPortRamXpm is
 
    signal resetB : sl;

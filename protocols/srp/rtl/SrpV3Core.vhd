@@ -72,6 +72,7 @@ entity SrpV3Core is
       srpRdSlave  : out AxiStreamSlaveType);
 end SrpV3Core;
 
+--! architecture declaration
 architecture rtl of SrpV3Core is
 
    constant TIMEOUT_C : natural := (getTimeRatio(SRP_CLK_FREQ_G, 10.0) - 1);  -- 100 ms timeout

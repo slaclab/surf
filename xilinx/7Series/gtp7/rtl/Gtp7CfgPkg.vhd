@@ -22,7 +22,7 @@ use IEEE.math_real.all;
 library surf;
 use surf.StdRtlPkg.all;
 
---! Entity declaration for Gtp7CfgPkg
+--! Package declaration for Gtp7CfgPkg
 package Gtp7CfgPkg is
 
    -------------------------------------------------------------------------------------------------
@@ -51,6 +51,7 @@ package Gtp7CfgPkg is
 
 end package Gtp7CfgPkg;
 
+--! package body declaration
 package body Gtp7CfgPkg is
 
    -------------------------------------------------------------------------------------------------

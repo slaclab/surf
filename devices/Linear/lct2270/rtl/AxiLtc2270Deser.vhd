@@ -56,6 +56,7 @@ entity AxiLtc2270Deser is
       refclk200MHz : in  sl);
 end AxiLtc2270Deser;
 
+--! architecture declaration
 architecture rtl of AxiLtc2270Deser is
 
    signal adcInClk,

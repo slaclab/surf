@@ -44,6 +44,7 @@ entity AxiDac7654Spi is
       axiRst  : in  sl);     
 end AxiDac7654Spi;
 
+--! architecture declaration
 architecture rtl of AxiDac7654Spi is
 
    constant AXI_CLK_PERIOD_C : real    := 1.0 / AXI_CLK_FREQ_G;

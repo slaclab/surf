@@ -46,6 +46,7 @@ entity AxiStreamTap is
       axisRst      : in  sl);
 end AxiStreamTap;
 
+--! architecture declaration
 architecture structure of AxiStreamTap is
 
    constant ROUTES_C : Slv8Array := (0 => "--------", 

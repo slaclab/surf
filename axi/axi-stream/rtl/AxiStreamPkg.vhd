@@ -178,6 +178,7 @@ package AxiStreamPkg is
 
 end package AxiStreamPkg;
 
+--! package body declaration
 package body AxiStreamPkg is
 
    function axiStreamMasterInit (constant config : AxiStreamConfigType) return AxiStreamMasterType is

@@ -141,6 +141,7 @@ package Jesd204bPkg is
 
 end Jesd204bPkg;
 
+--! package body declaration
 package body Jesd204bPkg is
 
 -- Functions

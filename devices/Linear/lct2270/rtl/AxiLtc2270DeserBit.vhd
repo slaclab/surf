@@ -46,6 +46,7 @@ entity AxiLtc2270DeserBit is
       refClk200MHz : in  sl);
 end AxiLtc2270DeserBit;
 
+--! architecture declaration
 architecture rtl of AxiLtc2270DeserBit is
    
    signal data,

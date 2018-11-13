@@ -24,8 +24,10 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for IpV4EngineTb
 entity IpV4EngineTb is end IpV4EngineTb;
 
+--! architecture declaration
 architecture testbed of IpV4EngineTb is
 
    constant CLK_PERIOD_C : time             := 6.4 ns;

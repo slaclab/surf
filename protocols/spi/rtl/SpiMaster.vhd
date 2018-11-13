@@ -52,6 +52,7 @@ entity SpiMaster is
       spiSdo     : in  sl);
 end SpiMaster;
 
+--! architecture declaration
 architecture rtl of SpiMaster is
 
    constant SPI_CLK_PERIOD_DIV2_CYCLES_C : integer := integer(SPI_SCLK_PERIOD_G / (2.0*CLK_PERIOD_G));

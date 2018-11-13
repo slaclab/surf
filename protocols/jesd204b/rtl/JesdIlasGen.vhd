@@ -47,6 +47,7 @@ entity JesdIlasGen is
    );
 end entity JesdIlasGen;
 
+--! architecture declaration
 architecture rtl of JesdIlasGen is
    
    type RegType is record

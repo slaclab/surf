@@ -38,6 +38,7 @@ entity AxiStreamPipeline is
       mAxisSlave  : in  AxiStreamSlaveType);
 end AxiStreamPipeline;
 
+--! architecture declaration
 architecture rtl of AxiStreamPipeline is
 
    constant PIPE_STAGES_C : natural := PIPE_STAGES_G+1;

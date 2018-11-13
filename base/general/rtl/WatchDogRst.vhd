@@ -35,6 +35,7 @@ entity WatchDogRst is
       rstOut : out sl);
 end WatchDogRst;
 
+--! architecture declaration
 architecture rtl of WatchDogRst is
 
    signal rst      : sl := not(OUT_POLARITY_G);

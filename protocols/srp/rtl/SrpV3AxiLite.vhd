@@ -66,6 +66,7 @@ entity SrpV3AxiLite is
       mAxilReadSlave   : in  AxiLiteReadSlaveType);
 end SrpV3AxiLite;
 
+--! architecture declaration
 architecture rtl of SrpV3AxiLite is
 
    constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_COMP_C, TUSER_FIRST_LAST_C, 8);

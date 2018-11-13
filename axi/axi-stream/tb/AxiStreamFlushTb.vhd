@@ -27,6 +27,7 @@ use surf.SsiPkg.all;
 --! Entity declaration for AxiStreamFlushTb
 entity AxiStreamFlushTb is end AxiStreamFlushTb;
 
+--! architecture declaration
 architecture testbed of AxiStreamFlushTb is
 
    -- Constants

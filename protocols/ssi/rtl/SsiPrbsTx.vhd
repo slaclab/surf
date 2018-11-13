@@ -72,6 +72,7 @@ entity SsiPrbsTx is
       axilWriteSlave  : out AxiLiteWriteSlaveType);
 end SsiPrbsTx;
 
+--! architecture declaration
 architecture rtl of SsiPrbsTx is
 
    constant PRBS_BYTES_C : natural := wordCount(PRBS_SEED_SIZE_G, 8);

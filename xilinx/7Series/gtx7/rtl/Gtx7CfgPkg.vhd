@@ -100,6 +100,7 @@ package Gtx7CfgPkg is
 
 end package Gtx7CfgPkg;
 
+--! package body declaration
 package body Gtx7CfgPkg is
 
    -------------------------------------------------------------------------------------------------

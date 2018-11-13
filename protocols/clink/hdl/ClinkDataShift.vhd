@@ -53,6 +53,7 @@ entity ClinkDataShift is
       bitSlip    : in  sl);
 end ClinkDataShift;
 
+--! architecture declaration
 architecture structure of ClinkDataShift is
 
    signal intClk        : sl;

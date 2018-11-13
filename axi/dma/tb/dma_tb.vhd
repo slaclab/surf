@@ -30,7 +30,7 @@ use surf.AxiStreamPkg.all;
 --! Entity declaration for dma_tb
 entity dma_tb is end dma_tb;
 
--- Define architecture
+--! architecture declaration
 architecture dma_tb of dma_tb is
 
    signal axiClk            : sl;

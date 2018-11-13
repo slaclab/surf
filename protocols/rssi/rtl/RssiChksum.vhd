@@ -65,6 +65,7 @@ entity RssiChksum is
    );
 end entity RssiChksum;
 
+--! architecture declaration
 architecture rtl of RssiChksum is
 
    constant RATIO_C : positive := DATA_WIDTH_G/CSUM_WIDTH_G;

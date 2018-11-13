@@ -24,6 +24,7 @@ use surf.StdRtlPkg.all;
 --! Entity declaration for HeartbeatTb
 entity HeartbeatTb is end HeartbeatTb;
 
+--! architecture declaration
 architecture testbed of HeartbeatTb is
    signal clkIn  : slv(2 downto 0);
    signal clkOut : slv(2 downto 0);

@@ -40,6 +40,7 @@ entity AxiDac7654Core is
       axiWriteSlave  : out AxiLiteWriteSlaveType);
 end AxiDac7654Core;
 
+--! architecture declaration
 architecture mapping of AxiDac7654Core is
    
    signal status : AxiDac7654StatusType;

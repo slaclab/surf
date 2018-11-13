@@ -62,6 +62,7 @@ entity SsiPrbsTxOld is
       tId          : in  slv(7 downto 0)  := X"00");
 end SsiPrbsTxOld;
 
+--! architecture declaration
 architecture rtl of SsiPrbsTxOld is
 
    constant PRBS_BYTES_C      : natural             := (PRBS_SEED_SIZE_G/8);

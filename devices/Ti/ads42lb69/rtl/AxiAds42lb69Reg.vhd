@@ -47,6 +47,7 @@ entity AxiAds42lb69Reg is
    );      
 end AxiAds42lb69Reg;
 
+--! architecture declaration
 architecture rtl of AxiAds42lb69Reg is
    
    constant TIMEOUT_1S_C : natural := ite(SIM_SPEEDUP_G, 1000, getTimeRatio(ADC_CLK_FREQ_G, 1.0E+00));

@@ -25,6 +25,7 @@ end entity Pgp2bGtx7FixedLatTb;
 
 ----------------------------------------------------------------------------------------------------
 
+--! architecture declaration
 architecture tb of Pgp2bGtx7FixedLatTb is
 
    -- component generics

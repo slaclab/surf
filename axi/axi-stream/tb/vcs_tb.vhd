@@ -33,7 +33,7 @@ use surf.I2cPkg.all;
 --! Entity declaration for vcs_tb
 entity vcs_tb is end vcs_tb;
 
--- Define architecture
+--! architecture declaration
 architecture vcs_tb of vcs_tb is
 
    signal pgpClk            : sl;

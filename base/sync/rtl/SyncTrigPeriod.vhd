@@ -42,6 +42,7 @@ entity SyncTrigPeriod is
       periodMin : out slv(CNT_WIDTH_G-1 downto 0));  -- units of clock cycles
 end SyncTrigPeriod;
 
+--! architecture declaration
 architecture rtl of SyncTrigPeriod is
 
    constant MAX_CNT_C : slv(CNT_WIDTH_G-1 downto 0) := (others => '1');

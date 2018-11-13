@@ -23,6 +23,7 @@ use surf.AxiLitePkg.all;
 use surf.XauiPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for XauiGtx7
 entity XauiGtx7 is
    generic (
       TPD_G           : time                := 1 ns;
@@ -62,6 +63,7 @@ entity XauiGtx7 is
       gtRxN              : in  slv(3 downto 0));
 end XauiGtx7;
 
+--! architecture declaration
 architecture mapping of XauiGtx7 is
 
    signal phyRxd : slv(63 downto 0);

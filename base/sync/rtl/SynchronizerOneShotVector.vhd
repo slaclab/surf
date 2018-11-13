@@ -38,6 +38,7 @@ entity SynchronizerOneShotVector is
       dataOut : out slv(WIDTH_G-1 downto 0));  -- synced data
 end SynchronizerOneShotVector;
 
+--! architecture declaration
 architecture mapping of SynchronizerOneShotVector is
 
    type PolarityVectorArray is array (WIDTH_G-1 downto 0) of sl;

@@ -37,6 +37,7 @@ entity PwrUpRst is
       rstOut : out sl);
 end PwrUpRst;
 
+--! architecture declaration
 architecture rtl of PwrUpRst is
 
    constant CNT_SIZE_C : natural := ite(SIM_SPEEDUP_G, 127, DURATION_G);

@@ -113,7 +113,7 @@ end Gtx7TxRst;
 -- * 
 
 
-
+--! architecture declaration
 architecture RTL of Gtx7TxRst is
 
    type tx_rst_fsm_type is(

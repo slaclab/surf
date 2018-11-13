@@ -24,6 +24,7 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for ArpEngine
 entity ArpEngine is
    generic (
       TPD_G         : time     := 1 ns;
@@ -49,6 +50,7 @@ entity ArpEngine is
       rst           : in  sl);
 end ArpEngine;
 
+--! architecture declaration
 architecture rtl of ArpEngine is
 
    -- ARP Constants

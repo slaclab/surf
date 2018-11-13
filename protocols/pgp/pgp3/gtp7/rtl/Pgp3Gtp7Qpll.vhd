@@ -53,6 +53,7 @@ entity Pgp3Gtp7Qpll is
       axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 end Pgp3Gtp7Qpll;
 
+--! architecture declaration
 architecture mapping of Pgp3Gtp7Qpll is
 
    ----------------------------------------------------------------

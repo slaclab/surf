@@ -40,6 +40,7 @@ entity ClockDivider is
 
 end entity ClockDivider;
 
+--! architecture declaration
 architecture rtl of ClockDivider is
 
    type StateType is (DELAY_S, CLOCK_S);

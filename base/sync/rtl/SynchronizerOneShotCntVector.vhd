@@ -49,6 +49,7 @@ entity SynchronizerOneShotCntVector is
       rdRst      : in  sl := not RST_POLARITY_G);      
 end SynchronizerOneShotCntVector;
 
+--! architecture declaration
 architecture mapping of SynchronizerOneShotCntVector is
 
    function fillVectorArray (INPUT : slv) return slv is

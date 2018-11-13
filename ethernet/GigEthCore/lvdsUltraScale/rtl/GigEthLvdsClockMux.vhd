@@ -22,6 +22,7 @@ use surf.StdRtlPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for GigEthLvdsClockMux
 entity GigEthLvdsClockMux is
    port (
       clk125p0   : in  sl;
@@ -33,6 +34,7 @@ entity GigEthLvdsClockMux is
    );
 end entity GigEthLvdsClockMux;
 
+--! architecture declaration
 architecture GigEthLvdsClockMuxImpl of GigEthLvdsClockMux is
    signal bufCasc : sl;
 begin

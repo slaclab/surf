@@ -45,6 +45,7 @@ entity Si5345 is
       coreCsb        : out sl);
 end entity Si5345;
 
+--! architecture declaration
 architecture rtl of Si5345 is
 
    constant DLY_C : natural := 4*integer(SPI_SCLK_PERIOD_G/CLK_PERIOD_G);  -- >= 2 SCLK delay between SPI cycles

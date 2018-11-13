@@ -47,6 +47,7 @@ entity AxiMicronP30Core is
       axiRst         : in    sl);
 end AxiMicronP30Core;
 
+--! architecture declaration
 architecture mapping of AxiMicronP30Core is
 
    signal flashDin  : slv(15 downto 0);

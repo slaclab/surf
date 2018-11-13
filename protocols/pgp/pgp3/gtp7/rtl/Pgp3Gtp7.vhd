@@ -110,6 +110,7 @@ entity Pgp3Gtp7 is
       axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 end Pgp3Gtp7;
 
+--! architecture declaration
 architecture rtl of Pgp3Gtp7 is
 
    -- Clocks and Resets

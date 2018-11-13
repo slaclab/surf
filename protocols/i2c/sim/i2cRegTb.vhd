@@ -27,6 +27,7 @@ entity i2cRegTb is
 
 end entity i2cRegTb;
 
+--! architecture declaration
 architecture tb of i2cRegTb is
 
   constant TPD_C : time := 1 ns;

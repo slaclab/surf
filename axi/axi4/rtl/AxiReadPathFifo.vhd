@@ -74,6 +74,7 @@ entity AxiReadPathFifo is
       mAxiReadSlave  : in  AxiReadSlaveType);
 end AxiReadPathFifo;
 
+--! architecture declaration
 architecture rtl of AxiReadPathFifo is
 
    constant ADDR_BITS_C  : integer := AXI_CONFIG_G.ADDR_WIDTH_C - ADDR_LSB_G;

@@ -16,9 +16,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 
+--! Entity declaration for MmcmEmulation
 entity MmcmEmulation is
    generic (
       CLKIN_PERIOD_G         : real                       := 10.0;
@@ -65,6 +67,7 @@ entity MmcmEmulation is
       CLKOUT6 : out sl);
 end entity MmcmEmulation;
 
+--! architecture declaration
 architecture MmcmEmulation of MmcmEmulation is
 
    constant VCO_PERIOD_REAL_C : real := (real(DIVCLK_DIVIDE_G)*CLKIN_PERIOD_G)/(CLKFBOUT_MULT_F_G);

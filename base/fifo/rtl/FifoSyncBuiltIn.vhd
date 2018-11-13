@@ -21,11 +21,11 @@ use ieee.std_logic_arith.all;
 library surf;
 use surf.StdRtlPkg.all;
 
-library UNISIM;
-use UNISIM.vcomponents.all;
+library unisim;
+use unisim.vcomponents.all;
 
-library UNIMACRO;
-use UNIMACRO.vcomponents.all;
+library unimacro;
+use unimacro.vcomponents.all;
 
 --! Entity declaration for FifoSyncBuiltIn
 entity FifoSyncBuiltIn is

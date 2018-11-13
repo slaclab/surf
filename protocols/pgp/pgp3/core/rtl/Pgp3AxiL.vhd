@@ -67,6 +67,7 @@ entity Pgp3AxiL is
       );
 end Pgp3AxiL;
 
+--! architecture declaration
 architecture rtl of Pgp3AxiL is
 
    constant STATUS_OUT_TOP_C : integer := ite(STATUS_CNT_WIDTH_G > 7, 7, STATUS_CNT_WIDTH_G-1);

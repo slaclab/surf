@@ -54,6 +54,7 @@ entity JesdSyncFsmTxTest is
    );
 end JesdSyncFsmTxTest;
 
+--! architecture declaration
 architecture rtl of JesdSyncFsmTxTest is
 
    type stateType is (

@@ -26,6 +26,7 @@ use surf.GigEthPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for GigEthLvdsUltraScaleWrapper
 entity GigEthLvdsUltraScaleWrapper is
    generic (
       TPD_G             : time                             := 1 ns;
@@ -80,6 +81,7 @@ entity GigEthLvdsUltraScaleWrapper is
       );
 end GigEthLvdsUltraScaleWrapper;
 
+--! architecture declaration
 architecture mapping of GigEthLvdsUltraScaleWrapper is
 
    -- reset is asserted for 2*RST_DURATION_C

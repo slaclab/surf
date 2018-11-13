@@ -150,6 +150,7 @@ entity RssiTxFsm is
       );
 end entity RssiTxFsm;
 
+--! architecture declaration
 architecture rtl of RssiTxFsm is
 
    -- Init SSI bus

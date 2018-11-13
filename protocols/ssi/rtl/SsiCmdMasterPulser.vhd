@@ -39,6 +39,7 @@ entity SsiCmdMasterPulser is
       locRst      : in  sl);
 end SsiCmdMasterPulser;
 
+--! architecture declaration
 architecture rtl of SsiCmdMasterPulser is
    
    signal pulse : sl                                    := '0';

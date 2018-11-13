@@ -16,6 +16,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
+library xaui_v12_1;
+use xaui_v12_1.all;
+
+--! Entity declaration for XauiGth7Core
 entity XauiGth7Core is
     port (
       dclk                     : in  std_logic;
@@ -50,9 +54,7 @@ entity XauiGth7Core is
 );
 end XauiGth7Core;
 
-library xaui_v12_1;
-use xaui_v12_1.all;
-
+--! architecture declaration
 architecture wrapper of XauiGth7Core is
 
   component XauiGth7Core_block is

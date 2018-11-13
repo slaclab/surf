@@ -228,6 +228,7 @@ entity Gtp7Core is
       drpDo          : out slv(15 downto 0));
 end entity Gtp7Core;
 
+--! architecture declaration
 architecture rtl of Gtp7Core is
 
    function getOutClkSelVal (OUT_CLK_SRC : string) return bit_vector is

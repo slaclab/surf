@@ -42,6 +42,7 @@ entity AxiXcf128Reg is
       axiRst         : in  sl);      
 end AxiXcf128Reg;
 
+--! architecture declaration
 architecture rtl of AxiXcf128Reg is
 
    constant MAX_CNT_C : natural := (getTimeRatio(AXI_CLK_FREQ_G, 10.0E+6))-1;

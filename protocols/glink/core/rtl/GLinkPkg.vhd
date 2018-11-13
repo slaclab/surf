@@ -133,6 +133,7 @@ package GLinkPkg is
    
 end package GLinkPkg;
 
+--! package body declaration
 package body GLinkPkg is
 
    function toSlv (vec : GLinkTxType) return slv is

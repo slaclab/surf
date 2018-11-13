@@ -85,6 +85,7 @@ entity Pgp2bGth7VarLatWrapper is
       axilWriteSlave  : out AxiLiteWriteSlaveType);  
 end Pgp2bGth7VarLatWrapper;
 
+--! architecture declaration
 architecture mapping of Pgp2bGth7VarLatWrapper is
 
 begin

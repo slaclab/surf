@@ -56,6 +56,7 @@ entity AxiStreamDmaRead is
       axiReadSlave  : in  AxiReadSlaveType);
 end AxiStreamDmaRead;
 
+--! architecture declaration
 architecture rtl of AxiStreamDmaRead is
 
    constant DATA_BYTES_C : integer         := AXIS_CONFIG_G.TDATA_BYTES_C;

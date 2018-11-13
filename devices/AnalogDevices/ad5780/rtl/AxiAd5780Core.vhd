@@ -45,6 +45,7 @@ entity AxiAd5780Core is
       axiRst         : in  sl);
 end AxiAd5780Core;
 
+--! architecture declaration
 architecture rtl of AxiAd5780Core is
    
    signal status : AxiAd5780StatusType;

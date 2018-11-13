@@ -17,6 +17,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+--! Entity declaration for GtpTxPhaseAligner
 entity GtpTxPhaseAligner is
   
   generic (
@@ -32,6 +33,7 @@ entity GtpTxPhaseAligner is
 
 end entity GtpTxPhaseAligner;
 
+--! architecture declaration
 architecture rtl of GtpTxPhaseAligner is
 
   type StateType is (PHASE_ALIGN_S, SET_PHASE_S, ALIGNED_S);

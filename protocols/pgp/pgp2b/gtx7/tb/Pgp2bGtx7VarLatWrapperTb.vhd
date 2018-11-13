@@ -25,6 +25,7 @@ end entity Pgp2bGtx7VarLatWrapperTb;
 
 ----------------------------------------------------------------------------------------------------
 
+--! architecture declaration
 architecture tb of Pgp2bGtx7VarLatWrapperTb is
 
    -- component generics

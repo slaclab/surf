@@ -36,6 +36,7 @@ end entity AxiStreamPacketizer2Tb;
 
 ----------------------------------------------------------------------------------------------------
 
+--! architecture declaration
 architecture tb of AxiStreamPacketizer2Tb is
 
    -- component generics

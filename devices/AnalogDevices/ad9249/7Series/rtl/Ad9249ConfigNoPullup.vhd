@@ -50,8 +50,7 @@ entity Ad9249ConfigNoPullup is
       );
 end Ad9249ConfigNoPullup;
 
-
--- Define architecture
+--! architecture declaration
 architecture rtl of Ad9249ConfigNoPullup is
 
    constant SPI_CLK_PERIOD_DIV2_CYCLES_C : integer := integer(CLK_EN_PERIOD_G / CLK_PERIOD_G) / 2;

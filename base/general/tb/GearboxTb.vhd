@@ -31,6 +31,7 @@ end entity GearboxTb;
 
 ----------------------------------------------------------------------------------------------------
 
+--! architecture declaration
 architecture sim of GearboxTb is
 
    -- component generics

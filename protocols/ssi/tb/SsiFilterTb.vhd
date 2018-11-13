@@ -26,6 +26,7 @@ use surf.SsiPkg.all;
 --! Entity declaration for SsiFilterTb
 entity SsiFilterTb is end SsiFilterTb;
 
+--! architecture declaration
 architecture testbed of SsiFilterTb is
 
    constant SLOW_CLK_PERIOD_C : time := 6.4 ns;

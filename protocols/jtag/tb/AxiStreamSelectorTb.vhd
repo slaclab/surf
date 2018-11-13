@@ -29,6 +29,7 @@ use surf.AxiStreamPkg.all;
 entity AxiStreamSelectorTb is
 end entity AxiStreamSelectorTb;
 
+--! architecture declaration
 architecture AxiStreamSelectorTbImpl of AxiStreamSelectorTb is
 
    constant DW_C : positive := 8;

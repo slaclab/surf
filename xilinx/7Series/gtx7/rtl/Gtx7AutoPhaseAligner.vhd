@@ -95,6 +95,7 @@ entity Gtx7AutoPhaseAligner is
            );
 end Gtx7AutoPhaseAligner;
 
+--! architecture declaration
 architecture RTL of Gtx7AutoPhaseAligner is
 
 --  component gtwizard_v2_5_sync_block

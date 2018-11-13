@@ -32,6 +32,7 @@ use surf.MdioPkg.all;
 entity MdioLinkIrqHandlerTb is
 end entity MdioLinkIrqHandlerTb;
 
+--! architecture declaration
 architecture a of MdioLinkIrqHandlerTb is
 
    signal mdo     : sl;

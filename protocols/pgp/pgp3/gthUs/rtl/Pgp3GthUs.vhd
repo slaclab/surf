@@ -95,6 +95,7 @@ entity Pgp3GthUs is
       axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 end Pgp3GthUs;
 
+--! architecture declaration
 architecture rtl of Pgp3GthUs is
 
    -- clocks

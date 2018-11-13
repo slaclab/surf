@@ -54,6 +54,7 @@ entity Ad9249Group is
 
 end entity Ad9249Group;
 
+--! architecture declaration
 architecture behavioral of Ad9249Group is
 
    constant CLK_PERIOD_C : real := real(CLK_PERIOD_G / 1 ns);

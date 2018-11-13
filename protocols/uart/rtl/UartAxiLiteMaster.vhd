@@ -50,6 +50,7 @@ entity UartAxiLiteMaster is
 
 end entity UartAxiLiteMaster;
 
+--! architecture declaration
 architecture rtl of UartAxiLiteMaster is
 
    type StateType is (

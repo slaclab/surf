@@ -41,6 +41,7 @@ entity Iprog7SeriesCore is
 
 end Iprog7SeriesCore;
 
+--! architecture declaration
 architecture rtl of Iprog7SeriesCore is
 
    constant BYPASS_SYNC_C : boolean := not SYNC_RELOAD_G;

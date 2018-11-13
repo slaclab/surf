@@ -37,6 +37,7 @@ entity Synchronizer is
       dataOut : out sl);                -- synced data
 end Synchronizer;
 
+--! architecture declaration
 architecture rtl of Synchronizer is
 
    constant INIT_C : slv(STAGES_G-1 downto 0) := ite(INIT_G = "0", slvZero(STAGES_G), INIT_G);

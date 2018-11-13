@@ -36,6 +36,7 @@ end entity Pgp3Tb2;
 
 ----------------------------------------------------------------------------------------------------
 
+--! architecture declaration
 architecture tb of Pgp3Tb2 is
 
    -- component generics

@@ -51,6 +51,7 @@ entity AxiStreamPacketizer2 is
       mAxisSlave  : in  AxiStreamSlaveType);
 end entity AxiStreamPacketizer2;
 
+--! architecture declaration
 architecture rtl of AxiStreamPacketizer2 is
 
 

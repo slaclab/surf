@@ -47,6 +47,7 @@ entity AxiI2cRegMaster is
 
 end AxiI2cRegMaster;
 
+--! architecture declaration
 architecture mapping of AxiI2cRegMaster is
 
    -- Note: PRESCALE_G = (clk_freq / (5 * i2c_freq)) - 1

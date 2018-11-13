@@ -148,7 +148,7 @@ ENTITY Gtx7RecClkMonitor is
 	);
 end ENTITY Gtx7RecClkMonitor;
 
-
+--! architecture declaration
 ARCHITECTURE RTL of Gtx7RecClkMonitor is
 
 --------------------------------------------------------------------------------

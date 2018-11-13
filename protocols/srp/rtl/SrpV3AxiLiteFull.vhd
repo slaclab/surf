@@ -62,6 +62,7 @@ entity SrpV3AxiLiteFull is
       mAxilReadSlave   : in  AxiLiteReadSlaveType);
 end SrpV3AxiLiteFull;
 
+--! architecture declaration
 architecture rtl of SrpV3AxiLiteFull is
 
    signal axiReadMaster  : AxiReadMasterType;

@@ -24,6 +24,7 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for IpV4EngineLoopback
 entity IpV4EngineLoopback is
    generic (
       TPD_G      : time            := 1 ns;
@@ -48,6 +49,7 @@ entity IpV4EngineLoopback is
       rst              : in  sl);
 end IpV4EngineLoopback;
 
+--! architecture declaration
 architecture rtl of IpV4EngineLoopback is
 
    type StateType is (

@@ -24,6 +24,7 @@ use surf.StdRtlPkg.all;
 --! Entity declaration for SynchronizerFifoTb
 entity SynchronizerFifoTb is end SynchronizerFifoTb;
 
+--! architecture declaration
 architecture testbed of SynchronizerFifoTb is
    type TestClkType is array(4 downto 0) of time;
    constant WRITE_CLK_ARRAY_C : TestClkType := (

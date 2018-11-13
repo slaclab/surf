@@ -20,6 +20,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.EthMacPkg.all;
 
+--! Package declaration for GigEthPkg
 package GigEthPkg is
 
    constant GIG_ETH_AN_ADV_CONFIG_INIT_C : slv(15 downto 0) := x"0021";-- Refer to PG047

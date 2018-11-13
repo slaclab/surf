@@ -24,6 +24,7 @@ use surf.AxiLitePkg.all;
 use surf.EthMacPkg.all;
 use surf.TenGigEthPkg.all;
 
+--! Entity declaration for TenGigEthGtx7Wrapper
 entity TenGigEthGtx7Wrapper is
    generic (
       TPD_G             : time                             := 1 ns;
@@ -82,6 +83,7 @@ entity TenGigEthGtx7Wrapper is
       gtRxN               : in  slv(NUM_LANE_G-1 downto 0));
 end TenGigEthGtx7Wrapper;
 
+--! architecture declaration
 architecture mapping of TenGigEthGtx7Wrapper is
 
    signal phyClock : sl;

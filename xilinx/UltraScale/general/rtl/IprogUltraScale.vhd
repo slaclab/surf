@@ -25,6 +25,7 @@ use surf.StdRtlPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for IprogUltraScale
 entity IprogUltraScale is
    generic (
       TPD_G          : time    := 1 ns;
@@ -39,6 +40,7 @@ entity IprogUltraScale is
       bootAddress : in slv(31 downto 0) := X"00000000");
 end IprogUltraScale;
 
+--! architecture declaration
 architecture rtl of IprogUltraScale is
 
    function selectMapBitSwapping (input : slv) return slv is

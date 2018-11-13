@@ -64,6 +64,7 @@ entity AxiSpiMaster is
       );
 end entity AxiSpiMaster;
 
+--! architecture declaration
 architecture rtl of AxiSpiMaster is
 
    -- AdcCore Outputs

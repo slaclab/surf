@@ -41,6 +41,7 @@ entity GLinkDecoder is
       decoderErrorL : out sl);  
 end entity GLinkDecoder;
 
+--! architecture declaration
 architecture rtl of GLinkDecoder is
 
    type RegType is record

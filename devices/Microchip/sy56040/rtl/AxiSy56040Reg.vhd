@@ -44,6 +44,7 @@ entity AxiSy56040Reg is
       axiRst         : in  sl);
 end AxiSy56040Reg;
 
+--! architecture declaration
 architecture rtl of AxiSy56040Reg is
 
    constant PULSE_WIDTH_C : real    := 10.0E-9;              -- units of seconds

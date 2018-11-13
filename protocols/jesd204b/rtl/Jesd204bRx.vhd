@@ -99,6 +99,7 @@ entity Jesd204bRx is
       );
 end Jesd204bRx;
 
+--! architecture declaration
 architecture rtl of Jesd204bRx is
 
 -- Register

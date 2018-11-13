@@ -42,6 +42,7 @@ entity AxiRam is
       sAxiReadSlave   : out AxiReadSlaveType);
 end AxiRam;
 
+--! architecture declaration
 architecture structure of AxiRam is
 
    constant DATA_BYTES_C : positive := AXI_CONFIG_G.DATA_BYTES_C;
@@ -98,7 +99,7 @@ architecture structure of AxiRam is
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-
+   
    signal wrEn   : sl;
    signal wrData : slv(DATA_WIDTH_C-1 downto 0);
    signal wrAddr : slv(ADDR_WIDTH_C-1 downto 0);

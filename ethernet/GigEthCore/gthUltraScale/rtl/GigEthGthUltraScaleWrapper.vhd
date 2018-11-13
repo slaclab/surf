@@ -27,6 +27,7 @@ use surf.GigEthPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for GigEthGthUltraScaleWrapper
 entity GigEthGthUltraScaleWrapper is
    generic (
       TPD_G              : time                             := 1 ns;
@@ -77,6 +78,7 @@ entity GigEthGthUltraScaleWrapper is
       gtRxN               : in  slv(NUM_LANE_G-1 downto 0));
 end GigEthGthUltraScaleWrapper;
 
+--! architecture declaration
 architecture mapping of GigEthGthUltraScaleWrapper is
 
    signal gtClk     : sl;

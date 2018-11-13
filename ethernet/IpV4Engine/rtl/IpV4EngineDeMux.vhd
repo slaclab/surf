@@ -24,6 +24,7 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for IpV4EngineDeMux
 entity IpV4EngineDeMux is
    generic (
       TPD_G  : time    := 1 ns;
@@ -44,6 +45,7 @@ entity IpV4EngineDeMux is
       rst          : in  sl);      
 end IpV4EngineDeMux;
 
+--! architecture declaration
 architecture rtl of IpV4EngineDeMux is
 
    constant BROADCAST_MAC_C : slv(47 downto 0) := (others => '1');

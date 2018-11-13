@@ -38,6 +38,7 @@ entity AxiXadcMinimumCore is
       axiRst         : in  sl);
 end entity AxiXadcMinimumCore;
 
+--! architecture declaration
 architecture mapping of AxiXadcMinimumCore is
 
    component AxiXadcMinimum

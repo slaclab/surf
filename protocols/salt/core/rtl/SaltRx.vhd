@@ -47,6 +47,7 @@ entity SaltRx is
       rst         : in  sl);
 end SaltRx;
 
+--! architecture declaration
 architecture rtl of SaltRx is
 
    type StateType is (

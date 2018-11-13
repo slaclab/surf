@@ -42,6 +42,7 @@ entity GLinkTxToRx is
       rst           : in  sl);
 end GLinkTxToRx;
 
+--! architecture declaration
 architecture mapping of GLinkTxToRx is
    
    signal encodedData : slv(19 downto 0);

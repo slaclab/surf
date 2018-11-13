@@ -67,6 +67,7 @@ entity AxiStreamMux is
       mAxisSlave  : in  AxiStreamSlaveType);
 end AxiStreamMux;
 
+--! architecture declaration
 architecture rtl of AxiStreamMux is
 
    constant DEST_SIZE_C : integer := bitSize(NUM_SLAVES_G-1);

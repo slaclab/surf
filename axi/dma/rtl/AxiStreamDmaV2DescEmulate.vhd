@@ -71,6 +71,7 @@ entity AxiStreamDmaV2DescEmulate is
       axiWriteCtrl    : in  AxiCtrlType                  := AXI_CTRL_UNUSED_C);
 end AxiStreamDmaV2DescEmulate;
 
+--! architecture declaration
 architecture rtl of AxiStreamDmaV2DescEmulate is
 
    type RegType is record

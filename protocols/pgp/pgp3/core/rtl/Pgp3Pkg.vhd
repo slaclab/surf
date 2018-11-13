@@ -216,6 +216,7 @@ package Pgp3Pkg is
 
 end package Pgp3Pkg;
 
+--! package body declaration
 package body Pgp3Pkg is
 
    function pgp3MakeLinkInfo (

@@ -33,6 +33,7 @@ entity AxiAd9467Mon is
       adcDataMon : out Slv16Array(0 to 15));            
 end AxiAd9467Mon;
 
+--! architecture declaration
 architecture rtl of AxiAd9467Mon is
    
    constant MAX_CNT_C : natural := getTimeRatio(ADC_CLK_FREQ_G, 1.0);  -- 1 second refresh rate

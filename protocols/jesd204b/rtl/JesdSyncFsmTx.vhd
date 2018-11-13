@@ -66,6 +66,7 @@ entity JesdSyncFsmTx is
    );
 end JesdSyncFsmTx;
 
+--! architecture declaration
 architecture rtl of JesdSyncFsmTx is
 
    type stateType is (

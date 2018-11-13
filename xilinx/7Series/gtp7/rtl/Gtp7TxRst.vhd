@@ -119,6 +119,7 @@ end Gtp7TxRst;
 --   => signal which PLL has been reset
 -- * 
 
+--! architecture declaration
 architecture RTL of Gtp7TxRst is
 
    type tx_rst_fsm_type is(

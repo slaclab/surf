@@ -55,7 +55,7 @@ entity Pgp2bRx is
    );
 end Pgp2bRx;
 
--- Define architecture
+--! architecture declaration
 architecture Pgp2bRx of Pgp2bRx is
 
    -- Local Signals

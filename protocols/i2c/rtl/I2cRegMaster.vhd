@@ -42,6 +42,7 @@ entity I2cRegMaster is
 
 end entity I2cRegMaster;
 
+--! architecture declaration
 architecture rtl of I2cRegMaster is
 
    type StateType is (

@@ -50,6 +50,7 @@ entity AxiStreamFlush is
       mAxisCtrl   : in  AxiStreamCtrlType);
 end AxiStreamFlush;
 
+--! architecture declaration
 architecture rtl of AxiStreamFlush is
 
    type StateType is ( IDLE_S, MOVE_S, FLUSH_S );

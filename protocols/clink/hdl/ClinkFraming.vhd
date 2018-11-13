@@ -49,6 +49,7 @@ entity ClinkFraming is
       dataSlave    : in  AxiStreamSlaveType);
 end ClinkFraming;
 
+--! architecture declaration
 architecture rtl of ClinkFraming is
 
    constant SLV_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(dataBytes=>10,tDestBits=>0);

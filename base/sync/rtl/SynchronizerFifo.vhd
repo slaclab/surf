@@ -48,6 +48,7 @@ entity SynchronizerFifo is
       dout   : out slv(DATA_WIDTH_G-1 downto 0));
 end SynchronizerFifo;
 
+--! architecture declaration
 architecture rtl of SynchronizerFifo is
    
    constant INIT_C : slv(DATA_WIDTH_G-1 downto 0) := ite(INIT_G = "0", slvZero(DATA_WIDTH_G), INIT_G);

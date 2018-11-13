@@ -36,6 +36,7 @@ entity JesdSysrefMon is
       sysRefPeriodmax : out slv(15 downto 0));
 end entity JesdSysrefMon;
 
+--! architecture declaration
 architecture rtl of JesdSysrefMon is
 
    type RegType is record

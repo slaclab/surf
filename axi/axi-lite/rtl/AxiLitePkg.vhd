@@ -454,6 +454,7 @@ package AxiLitePkg is
 
 end AxiLitePkg;
 
+--! package body declaration
 package body AxiLitePkg is
 
    function axiLiteReadSlaveEmptyInit (

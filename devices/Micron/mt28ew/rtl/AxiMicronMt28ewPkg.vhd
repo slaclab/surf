@@ -2,7 +2,7 @@
 -- File       : AxiMicronMt28ewPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: AxiMicronMt28ew Package File
+--! \brief AxiMicronMt28ew Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -38,4 +38,4 @@ package AxiMicronMt28ewPkg is
    type AxiMicronMt28ewOutArray is array (natural range <>) of AxiMicronMt28ewOutType;
    type AxiMicronMt28ewOutVectorArray is array (integer range<>, integer range<>)of AxiMicronMt28ewOutType;
 
-end package;
+end package AxiMicronMt28ewPkg;

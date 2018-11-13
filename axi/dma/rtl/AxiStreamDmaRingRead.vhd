@@ -71,6 +71,7 @@ entity AxiStreamDmaRingRead is
 
 end entity AxiStreamDmaRingRead;
 
+--! architecture declaration
 architecture rtl of AxiStreamDmaRingRead is
 
    constant DMA_ADDR_LOW_C : integer := log2(BURST_SIZE_BYTES_G);

@@ -60,7 +60,7 @@ entity JesdTxTest is
     );
 end JesdTxTest;
 
-
+--! architecture declaration
 architecture rtl of JesdTxTest is
 
    -- Register type

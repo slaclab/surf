@@ -64,6 +64,7 @@ entity SsiIncrementingTx is
 
 end SsiIncrementingTx;
 
+--! architecture declaration
 architecture rtl of SsiIncrementingTx is
 
    constant PRBS_BYTES_C      : natural             := PRBS_SEED_SIZE_G / 8;

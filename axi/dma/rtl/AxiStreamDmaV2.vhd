@@ -70,6 +70,7 @@ entity AxiStreamDmaV2 is
       axiWriteCtrl    : in  AxiCtrlArray(CHAN_COUNT_G downto 0));
 end AxiStreamDmaV2;
 
+--! architecture declaration
 architecture structure of AxiStreamDmaV2 is
 
    signal dmaWrDescReq    : AxiWriteDmaDescReqArray(CHAN_COUNT_G-1 downto 0);

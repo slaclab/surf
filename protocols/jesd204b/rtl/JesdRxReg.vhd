@@ -72,6 +72,7 @@ entity JesdRxReg is
       rxPolarity        : out slv(L_G-1 downto 0));
 end JesdRxReg;
 
+--! architecture declaration
 architecture rtl of JesdRxReg is
 
    type RegType is record

@@ -130,6 +130,7 @@ port (
 );   
 end RssiAxiLiteRegItf;
 
+--! architecture declaration
 architecture rtl of RssiAxiLiteRegItf is
 
   type RegType is record

@@ -24,6 +24,7 @@ use ieee.std_logic_1164.all;
 entity chksum_tb is
 end chksum_tb;
  
+ --! architecture declaration
 architecture behavior of chksum_tb is 
  
     -- component declaration for the unit under test (uut)

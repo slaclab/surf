@@ -119,6 +119,7 @@ end component;
 
 end;
 
+--! package body declaration
 package body stdlib is
 
 function notx(d : std_logic_vector) return boolean is

@@ -25,6 +25,7 @@ use surf.AxiStreamPkg.all;
 --! Entity declaration for AxiStreamPipelineTb
 entity AxiStreamPipelineTb is end AxiStreamPipelineTb;
 
+--! architecture declaration
 architecture testbed of AxiStreamPipelineTb is
 
    constant CLK_PERIOD_C  : time              := 4 ns;

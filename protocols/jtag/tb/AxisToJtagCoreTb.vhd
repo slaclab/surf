@@ -30,6 +30,7 @@ use surf.AxiStreamPkg.all;
 entity AxisToJtagCoreTb is
 end entity AxisToJtagCoreTb;
 
+--! architecture declaration
 architecture AxisToJtagCoreTbImpl of AxisToJtagCoreTb is
 
    constant  W_C         : positive := 2;

@@ -57,6 +57,7 @@ entity AxiStreamDmaWrite is
       axiWriteCtrl   : in  AxiCtrlType := AXI_CTRL_UNUSED_C);
 end AxiStreamDmaWrite;
 
+--! architecture declaration
 architecture rtl of AxiStreamDmaWrite is
 
    constant LOC_AXIS_CONFIG_C : AxiStreamConfigType := (

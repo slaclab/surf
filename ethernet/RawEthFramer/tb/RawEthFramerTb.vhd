@@ -24,8 +24,10 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for RawEthFramerTb
 entity RawEthFramerTb is end RawEthFramerTb;
 
+--! architecture declaration
 architecture testbed of RawEthFramerTb is
 
    constant CLK_PERIOD_C : time := 6.4 ns;

@@ -43,6 +43,7 @@ entity OutputBufferReg is
       OB : out sl := '1');
 end OutputBufferReg;
 
+--! architecture declaration
 architecture rtl of OutputBufferReg is
 
    signal outputSig : sl;

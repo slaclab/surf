@@ -71,6 +71,7 @@ entity SrpV3Axi is
       axiReadSlave   : in  AxiReadSlaveType);
 end SrpV3Axi;
 
+--! architecture declaration
 architecture rtl of SrpV3Axi is
 
    constant DMA_AXIS_CONFIG_C : AxiStreamConfigType := (

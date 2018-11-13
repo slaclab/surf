@@ -110,8 +110,7 @@ entity Pgp2bTxCell is
 
 end Pgp2bTxCell;
 
-
--- Define architecture
+--! architecture declaration
 architecture Pgp2bTxCell of Pgp2bTxCell is
 
    -- Local Signals

@@ -55,6 +55,7 @@ entity AxiAds42lb69Core is
       refclk200MHz   : in  sl);
 end AxiAds42lb69Core;
 
+--! architecture declaration
 architecture mapping of AxiAds42lb69Core is
 
    signal status     : AxiAds42lb69StatusType;

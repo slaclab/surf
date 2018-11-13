@@ -18,13 +18,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
+library unisim;
+use unisim.vcomponents.all;
+
+--! Entity declaration for ClockManagerUltraScale
 entity ClockManagerUltraScale is
    generic (
       TPD_G                  : time                             := 1 ns;
@@ -91,6 +92,7 @@ entity ClockManagerUltraScale is
       axilWriteSlave  : out AxiLiteWriteSlaveType);
 end entity ClockManagerUltraScale;
 
+--! architecture declaration
 architecture rtl of ClockManagerUltraScale is
 
    constant RST_HOLD_C : IntegerArray(0 to 6) := (

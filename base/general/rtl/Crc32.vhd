@@ -51,6 +51,7 @@ entity Crc32 is
       crcReset     : in  sl);           -- initializes CRC logic to crcInit
 end Crc32;
 
+--! architecture declaration
 architecture rtl of Crc32 is
 
    type RegType is record

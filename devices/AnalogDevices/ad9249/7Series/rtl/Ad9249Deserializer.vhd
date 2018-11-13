@@ -20,8 +20,8 @@ use ieee.std_logic_1164.all;
 library surf;
 use surf.StdRtlPkg.all;
 
-library UNISIM;
-use UNISIM.vcomponents.all;
+library unisim;
+use unisim.vcomponents.all;
 
 --! Entity declaration for Ad9249Deserializer
 entity Ad9249Deserializer is
@@ -47,6 +47,7 @@ entity Ad9249Deserializer is
 
 end entity Ad9249Deserializer;
 
+--! architecture declaration
 architecture rtl of Ad9249Deserializer is
 
    signal dlyData : sl;

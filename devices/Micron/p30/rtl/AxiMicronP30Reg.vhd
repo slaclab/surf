@@ -55,6 +55,7 @@ entity AxiMicronP30Reg is
       axiRst         : in  sl);
 end AxiMicronP30Reg;
 
+--! architecture declaration
 architecture rtl of AxiMicronP30Reg is
 
    constant HALF_CYCLE_PERIOD_C : real := 128.0E-9;  -- units of seconds

@@ -37,6 +37,7 @@ entity UartRx is
       rx          : in  sl);
 end entity UartRx;
 
+--! architecture declaration
 architecture rtl of UartRx is
 
    type StateType is (WAIT_START_BIT_S, WAIT_8_S, WAIT_16_S, SAMPLE_RX_S, PARITY_S, WAIT_STOP_S, WRITE_OUT_S);

@@ -27,6 +27,7 @@ use surf.SsiPkg.all;
 --! Entity declaration for SsiPrbsTb
 entity SsiPrbsTb is end SsiPrbsTb;
 
+--! architecture declaration
 architecture testbed of SsiPrbsTb is
 
    function PrbsAxiStreamConfig (

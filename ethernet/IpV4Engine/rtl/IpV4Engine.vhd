@@ -21,6 +21,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for IpV4Engine
 entity IpV4Engine is
    generic (
       TPD_G           : time            := 1 ns;  -- Simulation parameter only
@@ -56,6 +57,7 @@ entity IpV4Engine is
       rst               : in  sl);
 end IpV4Engine;
 
+--! architecture declaration
 architecture mapping of IpV4Engine is
 
    function GenIPv4List (foo : Slv8Array(PROTOCOL_SIZE_G-1 downto 0)) return Slv8Array is

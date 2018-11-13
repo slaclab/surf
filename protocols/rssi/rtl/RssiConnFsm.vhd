@@ -94,6 +94,7 @@ entity RssiConnFsm is
    );
 end entity RssiConnFsm;
 
+--! architecture declaration
 architecture rtl of RssiConnFsm is
    --
    constant SAMPLES_PER_TIME_C : integer := integer(TIMEOUT_UNIT_G * CLK_FREQUENCY_G);

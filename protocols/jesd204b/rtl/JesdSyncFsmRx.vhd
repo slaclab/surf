@@ -99,6 +99,7 @@ entity JesdSyncFsmRx is
     );
 end JesdSyncFsmRx;
 
+--! architecture declaration
 architecture rtl of JesdSyncFsmRx is
 
    type stateType is (

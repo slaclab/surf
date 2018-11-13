@@ -46,6 +46,7 @@ entity Pgp3RxGearboxAligner is
 
 end entity Pgp3RxGearboxAligner;
 
+--! architecture declaration
 architecture rtl of Pgp3RxGearboxAligner is
 
    constant GOOD_COUNT_WIDTH_C : integer := log2(maximum(GOOD_COUNT_G, SLIP_WAIT_G));

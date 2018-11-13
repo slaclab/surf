@@ -87,6 +87,7 @@ entity OctalPortRam is
       douth   : out slv(DATA_WIDTH_G-1 downto 0));
 end OctalPortRam;
 
+--! architecture declaration
 architecture rtl of OctalPortRam is
 
    -- Initial RAM Values

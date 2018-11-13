@@ -41,6 +41,7 @@ entity SemWrapper is
       semOb          : out SemObType);
 end entity SemWrapper;
 
+--! architecture declaration
 architecture mapping of SemWrapper is
 
    component SemCore

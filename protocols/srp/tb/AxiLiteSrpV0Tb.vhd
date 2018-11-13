@@ -33,6 +33,7 @@ end entity AxiLiteSrpV0Tb;
 
 ----------------------------------------------------------------------------------------------------
 
+--! architecture declaration
 architecture tb of AxiLiteSrpV0Tb is
 
    -- component generics

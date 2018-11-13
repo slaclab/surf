@@ -19,6 +19,7 @@ use surf.AxiPkg.all;
 --! Entity declaration for AxiPkgTb
 entity AxiPkgTb is end AxiPkgTb;
 
+--! architecture declaration
 architecture tb of AxiPkgTb is
 
    constant AXI_CFG_C : AxiConfigType := (

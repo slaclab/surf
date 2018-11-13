@@ -23,6 +23,7 @@ use surf.AxiLitePkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for GtyUltraScaleQuadPll
 entity GtyUltraScaleQuadPll is
    generic (
       -- Simulation Parameters
@@ -85,6 +86,7 @@ entity GtyUltraScaleQuadPll is
       axilWriteSlave  : out AxiLiteWriteSlaveType);
 end entity GtyUltraScaleQuadPll;
 
+--! architecture declaration
 architecture mapping of GtyUltraScaleQuadPll is
 
    signal gtRefClk0      : slv(1 downto 0);

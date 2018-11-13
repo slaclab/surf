@@ -128,7 +128,7 @@ entity Pgp2bGth7MultiLane is
       axilWriteSlaves  : out AxiLiteWriteSlaveArray((LANE_CNT_G-1) downto 0));    
 end Pgp2bGth7MultiLane;
 
--- Define architecture
+--! architecture declaration
 architecture rtl of Pgp2bGth7MultiLane is
    --------------------------------------------------------------------------------------------------
    -- Constants

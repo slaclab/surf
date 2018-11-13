@@ -35,6 +35,7 @@ entity Gtxe2ChannelDummy is
       gtTxN  : out slv(WIDTH_G-1 downto 0));
 end entity Gtxe2ChannelDummy;
 
+--! architecture declaration
 architecture mapping of Gtxe2ChannelDummy is
 
 begin

@@ -93,6 +93,7 @@ entity AxiStreamFifoV2 is
       mTLastTUser : out slv(7 downto 0));  -- when VALID_THOLD_G /= 1, used to look ahead at tLast's tUser
 end AxiStreamFifoV2;
 
+--! architecture declaration
 architecture rtl of AxiStreamFifoV2 is
 
    constant LAST_FIFO_ADDR_WIDTH_C : integer range 4 to 48 :=

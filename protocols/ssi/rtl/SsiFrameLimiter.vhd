@@ -50,6 +50,7 @@ entity SsiFrameLimiter is
       mAxisSlave  : in  AxiStreamSlaveType);
 end SsiFrameLimiter;
 
+--! architecture declaration
 architecture rtl of SsiFrameLimiter is
 
    constant TIMEOUT_C : natural := getTimeRatio(MAXIS_CLK_FREQ_G * TIMEOUT_G, 1.0);

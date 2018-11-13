@@ -41,6 +41,7 @@ entity Decoder8b10b is
 
 end entity Decoder8b10b;
 
+--! architecture declaration
 architecture rtl of Decoder8b10b is
 
    type RegType is record

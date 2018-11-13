@@ -32,6 +32,7 @@ entity SaciSlaveWrapper is
 
 end entity SaciSlaveWrapper;
 
+--! architecture declaration
 architecture rtl of SaciSlaveWrapper is
   
   signal saciSlaveRstL : sl;

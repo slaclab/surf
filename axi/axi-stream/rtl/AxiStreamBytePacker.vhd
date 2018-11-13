@@ -45,6 +45,7 @@ entity AxiStreamBytePacker is
       mAxisMaster  : out AxiStreamMasterType);
 end AxiStreamBytePacker;
 
+--! architecture declaration
 architecture rtl of AxiStreamBytePacker is
 
    constant MAX_IN_BYTE_C  : integer := SLAVE_CONFIG_G.TDATA_BYTES_C-1;

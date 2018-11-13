@@ -230,6 +230,7 @@ entity GLinkGtx7Core is
 
 end entity GLinkGtx7Core;
 
+--! architecture declaration
 architecture rtl of GLinkGtx7Core is
 
    function getOutClkSelVal (OUT_CLK_SRC : string) return bit_vector is

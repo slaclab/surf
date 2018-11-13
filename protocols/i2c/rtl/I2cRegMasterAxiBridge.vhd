@@ -43,6 +43,7 @@ entity I2cRegMasterAxiBridge is
 
 end entity I2cRegMasterAxiBridge;
 
+--! architecture declaration
 architecture rtl of I2cRegMasterAxiBridge is
 
    constant READ_C  : boolean := false;

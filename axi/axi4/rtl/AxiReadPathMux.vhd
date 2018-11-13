@@ -45,6 +45,7 @@ entity AxiReadPathMux is
       );
 end AxiReadPathMux;
 
+--! architecture declaration
 architecture structure of AxiReadPathMux is
 
    constant DEST_SIZE_C : integer := bitSize(NUM_SLAVES_G-1);

@@ -68,6 +68,7 @@ entity PgpGthCoreWrapper is
 
 end entity PgpGthCoreWrapper;
 
+--! architecture declaration
 architecture mapping of PgpGthCoreWrapper is
 
    component PgpGthCore

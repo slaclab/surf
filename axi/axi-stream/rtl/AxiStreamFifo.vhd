@@ -82,6 +82,7 @@ entity AxiStreamFifo is
       mTLastTUser : out slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0));  -- when VALID_THOLD_G /= 1, used to look ahead at tLast's tUser
 end AxiStreamFifo;
 
+--! architecture declaration
 architecture rtl of AxiStreamFifo is
 
    constant FIFO_AXIS_CONFIG_C : AxiStreamConfigType := ite(SLAVE_AXI_CONFIG_G.TDATA_BYTES_C > MASTER_AXI_CONFIG_G.TDATA_BYTES_C, SLAVE_AXI_CONFIG_G, MASTER_AXI_CONFIG_G);

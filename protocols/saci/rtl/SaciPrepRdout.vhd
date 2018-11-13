@@ -53,6 +53,7 @@ entity SaciPrepRdout is
 
 end SaciPrepRdout;
 
+--! architecture declaration
 architecture rtl of SaciPrepRdout is
 
    type StateType is (S_IDLE_C, S_IS_ASIC_C, S_WRITE_C, S_WRITE_AXI_C, S_READ_C, S_READ_AXI_C);

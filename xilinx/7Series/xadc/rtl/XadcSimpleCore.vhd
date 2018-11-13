@@ -148,6 +148,7 @@ entity XadcSimpleCore is
       muxAddr         : out slv(4 downto 0));
 end XadcSimpleCore;
 
+--! architecture declaration
 architecture rtl of XadcSimpleCore is
 
    function convTemp (temp : real) return slv is

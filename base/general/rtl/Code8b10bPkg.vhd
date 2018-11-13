@@ -59,6 +59,7 @@ package Code8b10bPkg is
 
 end package Code8b10bPkg;
 
+--! package body declaration
 package body Code8b10bPkg is
 
    procedure encode8b10b (

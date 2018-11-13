@@ -35,6 +35,7 @@ entity Gtpe2ChannelDummy is
       gtTxN  : out slv(WIDTH_G-1 downto 0));
 end entity Gtpe2ChannelDummy;
 
+--! architecture declaration
 architecture mapping of Gtpe2ChannelDummy is
 
    signal qPllOutClk    : slv(1 downto 0);

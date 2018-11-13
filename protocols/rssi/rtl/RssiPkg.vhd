@@ -119,6 +119,7 @@ package RssiPkg is
 
 end RssiPkg;
 
+--! package body declaration
 package body RssiPkg is
 
    --------------------------------------------------------------------------  

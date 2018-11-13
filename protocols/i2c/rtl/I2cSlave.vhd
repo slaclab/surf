@@ -103,6 +103,7 @@ entity I2cSlave is
       );
 end entity I2cSlave;
 
+--! architecture declaration
 architecture rtl of I2cSlave is
    -----------------------------------------------------------------------------
    -- Constants

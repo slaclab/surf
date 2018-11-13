@@ -35,6 +35,7 @@ entity SaciSlaveRam is
 
 end entity SaciSlaveRam;
 
+--! architecture declaration
 architecture rtl of SaciSlaveRam is
 
   type RamType is array (0 to 2**19) of slv(31 downto 0);

@@ -46,6 +46,7 @@ entity SyncClockFreq is
       refClk      : in  sl);            -- Stable Reference Clock
 end SyncClockFreq;
 
+--! architecture declaration
 architecture rtl of SyncClockFreq is
 
    constant REFRESH_MAX_CNT_C : natural := getTimeRatio(REF_CLK_FREQ_G, REFRESH_RATE_G);

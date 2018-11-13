@@ -227,6 +227,7 @@ package I2cPkg is
 
 end;
 
+--! package body declaration
 package body I2cPkg is
 
    function MakeI2cAxiLiteDevType (

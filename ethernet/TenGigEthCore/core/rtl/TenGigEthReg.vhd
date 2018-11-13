@@ -24,6 +24,7 @@ use surf.AxiLitePkg.all;
 use surf.EthMacPkg.all;
 use surf.TenGigEthPkg.all;
 
+--! Entity declaration for TenGigEthReg
 entity TenGigEthReg is
    generic (
       TPD_G        : time    := 1 ns;
@@ -44,6 +45,7 @@ entity TenGigEthReg is
       status         : in  TenGigEthStatus);
 end TenGigEthReg;
 
+--! architecture declaration
 architecture rtl of TenGigEthReg is
 
    constant STATUS_SIZE_C : positive := 32;

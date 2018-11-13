@@ -42,6 +42,7 @@ entity AxiAd9467Spi is
       adcSpiOut : out   AxiAd9467SpiOutType);
 end AxiAd9467Spi;
 
+--! architecture declaration
 architecture rtl of AxiAd9467Spi is
 
    constant MAX_CNT_C : natural := getTimeRatio(AXI_CLK_FREQ_G, 50.0E+6);

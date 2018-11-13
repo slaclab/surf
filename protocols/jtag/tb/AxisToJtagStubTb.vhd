@@ -31,6 +31,7 @@ use surf.AxisToJtagPkg.all;
 entity AxisToJtagStubTb is
 end entity AxisToJtagStubTb;
 
+--! architecture declaration
 architecture AxisToJtagStubTbImpl of AxisToJtagStubTb is
 
    signal clk : sl := '0';

@@ -48,6 +48,7 @@ entity AxiLiteSaciMaster is
       axilWriteSlave  : out AxiLiteWriteSlaveType);
 end AxiLiteSaciMaster;
 
+--! architecture declaration
 architecture rtl of AxiLiteSaciMaster is
 
    constant CHIP_BITS_C : integer := log2(SACI_NUM_CHIPS_G);

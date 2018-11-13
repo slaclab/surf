@@ -73,6 +73,7 @@ entity JesdAlignFrRepCh is
       );
 end entity JesdAlignFrRepCh;
 
+--! architecture declaration
 architecture rtl of JesdAlignFrRepCh is
    -- How many samples is in a GT word
    constant SAMPLES_IN_WORD_C : positive := (GT_WORD_SIZE_C/F_G);

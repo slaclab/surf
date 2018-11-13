@@ -57,6 +57,7 @@ entity AxiStreamDmaV2Write is
       axiWriteCtrl    : in  AxiCtrlType := AXI_CTRL_UNUSED_C);
 end AxiStreamDmaV2Write;
 
+--! architecture declaration
 architecture rtl of AxiStreamDmaV2Write is
 
    constant DATA_BYTES_C      : integer := AXIS_CONFIG_G.TDATA_BYTES_C;

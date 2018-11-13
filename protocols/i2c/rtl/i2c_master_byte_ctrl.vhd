@@ -117,6 +117,7 @@ entity i2c_master_byte_ctrl is
 	);
 end entity i2c_master_byte_ctrl;
 
+--! architecture declaration
 architecture structural of i2c_master_byte_ctrl is
 	component i2c_master_bit_ctrl is
         generic (filter : integer; dynfilt : integer);

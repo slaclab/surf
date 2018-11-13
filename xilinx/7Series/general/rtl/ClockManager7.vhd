@@ -94,6 +94,7 @@ entity ClockManager7 is
       axilWriteSlave  : out AxiLiteWriteSlaveType);
 end entity ClockManager7;
 
+--! architecture declaration
 architecture rtl of ClockManager7 is
 
    constant RST_HOLD_C : IntegerArray(0 to 6) := (

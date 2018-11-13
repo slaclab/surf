@@ -91,6 +91,7 @@ entity Pgp3Core is
       axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 end entity Pgp3Core;
 
+--! architecture declaration
 architecture rtl of Pgp3Core is
 
    signal locRxLinkReady : sl;

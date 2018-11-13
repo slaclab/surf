@@ -37,6 +37,7 @@ entity SynchronizerVector is
       dataOut : out slv(WIDTH_G-1 downto 0));  -- synced data
 end SynchronizerVector;
 
+--! architecture declaration
 architecture rtl of SynchronizerVector is
 
    type RegArray is array (WIDTH_G-1 downto 0) of slv(STAGES_G-1 downto 0);

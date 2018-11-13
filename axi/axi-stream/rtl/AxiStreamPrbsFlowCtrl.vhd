@@ -41,6 +41,7 @@ entity AxiStreamPrbsFlowCtrl is
       mAxisSlave  : in  AxiStreamSlaveType);
 end AxiStreamPrbsFlowCtrl;
 
+--! architecture declaration
 architecture rtl of AxiStreamPrbsFlowCtrl is
 
    type RegType is record

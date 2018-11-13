@@ -51,6 +51,7 @@ entity Ad9249Config is
 
 end entity Ad9249Config;
 
+--! architecture declaration
 architecture rtl of Ad9249Config is
 
    -- AdcCore Outputs

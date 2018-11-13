@@ -58,6 +58,7 @@ entity SsiSem is
       semIbAxisSlave  : out AxiStreamSlaveType);
 end entity SsiSem;
 
+--! architecture declaration
 architecture rtl of SsiSem is
 
    constant SEM_AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(8);

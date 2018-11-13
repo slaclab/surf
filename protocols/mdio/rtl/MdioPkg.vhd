@@ -127,6 +127,7 @@ package MdioPkg is
 
 end package MdioPkg;
 
+--! package body declaration
 package body MdioPkg is
 
    function mdioReadCommand(

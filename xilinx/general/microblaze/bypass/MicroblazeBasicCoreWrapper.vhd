@@ -22,6 +22,7 @@ use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 use surf.SsiPkg.all;
 
+--! Entity declaration for MicroblazeBasicCoreWrapper
 entity MicroblazeBasicCoreWrapper is
    generic (
       TPD_G           : time    := 1 ns;
@@ -47,6 +48,7 @@ entity MicroblazeBasicCoreWrapper is
       rst              : in  sl);
 end MicroblazeBasicCoreWrapper;
 
+--! architecture declaration
 architecture mapping of MicroblazeBasicCoreWrapper is
 
 begin

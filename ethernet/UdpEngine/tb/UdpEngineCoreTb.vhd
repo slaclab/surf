@@ -24,6 +24,7 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for UdpEngineCoreTb
 entity UdpEngineCoreTb is
    generic (
       TPD_G : time := 1 ns);
@@ -41,6 +42,7 @@ entity UdpEngineCoreTb is
       rst            : in  sl);
 end UdpEngineCoreTb;
 
+--! architecture declaration
 architecture rtl of UdpEngineCoreTb is
 
    type StateType is (

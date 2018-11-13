@@ -68,6 +68,7 @@ entity SaltUltraScale is
       mAxisSlave    : in  AxiStreamSlaveType);
 end SaltUltraScale;
 
+--! architecture declaration
 architecture mapping of SaltUltraScale is
 
    component SaltUltraScaleCore

@@ -35,6 +35,7 @@ entity Ad9249Serializer is
 
 end entity Ad9249Serializer;
 
+--! architecture declaration
 architecture rtl of Ad9249Serializer is
 
    signal shift1 : sl;

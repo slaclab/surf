@@ -61,6 +61,7 @@ entity AxiStreamScatterGather is
 
 end entity AxiStreamScatterGather;
 
+--! architecture declaration
 architecture rtl of AxiStreamScatterGather is
 
    constant SEQUENCE_LENGTH_C    : integer := MASTER_AXIS_CONFIG_G.TDATA_BYTES_C/SLAVE_AXIS_CONFIG_G.TDATA_BYTES_C;

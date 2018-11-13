@@ -50,6 +50,7 @@ entity AxiStreamShift is
       mAxisSlave  : in  AxiStreamSlaveType);
 end AxiStreamShift;
 
+--! architecture declaration
 architecture rtl of AxiStreamShift is
 
    type StateType is (S_IDLE_C, S_FIRST_C, S_SHIFT_C, S_LAST_C);

@@ -27,6 +27,7 @@ use surf.SsiPkg.all;
 --! Entity declaration for SaltUltraScaleTb
 entity SaltUltraScaleTb is end SaltUltraScaleTb;
 
+--! architecture declaration
 architecture testbed of SaltUltraScaleTb is
 
    -- General Configurations

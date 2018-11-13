@@ -24,6 +24,7 @@ use surf.AxiLitePkg.all;
 use surf.EthMacPkg.all;
 use surf.GigEthPkg.all;
 
+--! Entity declaration for GigEthReg
 entity GigEthReg is
    generic (
       TPD_G        : time    := 1 ns;
@@ -44,6 +45,7 @@ entity GigEthReg is
       status         : in  GigEthStatusType);
 end GigEthReg;
 
+--! architecture declaration
 architecture rtl of GigEthReg is
 
    constant STATUS_SIZE_C : positive := 32;

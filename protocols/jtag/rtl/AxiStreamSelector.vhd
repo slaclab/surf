@@ -44,6 +44,7 @@ entity AxiStreamSelector is
    );
 end entity AxiStreamSelector;
 
+--! architecture declaration
 architecture AxiStreamSelectorImpl of AxiStreamSelector is
 
    type RegType is record

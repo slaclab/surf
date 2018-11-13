@@ -44,6 +44,7 @@ entity AxiXcf128Core is
       axiRst         : in    sl);
 end AxiXcf128Core;
 
+--! architecture declaration
 architecture mapping of AxiXcf128Core is
 
    signal status : AxiXcf128StatusType;

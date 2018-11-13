@@ -52,6 +52,7 @@ entity AxiStreamResize is
    );
 end AxiStreamResize;
 
+--! architecture declaration
 architecture rtl of AxiStreamResize is
 
    constant SLV_BYTES_C : integer := SLAVE_AXI_CONFIG_G.TDATA_BYTES_C;

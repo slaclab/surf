@@ -23,6 +23,7 @@ use surf.GlinkPkg.all;
 --! Entity declaration for GLinkGtx7FixedLatTb
 entity GLinkGtx7FixedLatTb is end GLinkGtx7FixedLatTb;
 
+--! architecture declaration
 architecture testbed of GLinkGtx7FixedLatTb is
 
    signal gtClk,

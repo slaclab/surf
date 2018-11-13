@@ -50,6 +50,7 @@ entity SaciSlave2 is
 
 end entity SaciSlave2;
 
+--! architecture declaration
 architecture rtl of SaciSlave2 is
 
   type StateType is (WAIT_START_S, SHIFT_IN_S);

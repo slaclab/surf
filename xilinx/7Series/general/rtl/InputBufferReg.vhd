@@ -44,6 +44,7 @@ entity InputBufferReg is
       Q2 : out sl);
 end InputBufferReg;
 
+--! architecture declaration
 architecture rtl of InputBufferReg is
 
    signal inputSig : sl;

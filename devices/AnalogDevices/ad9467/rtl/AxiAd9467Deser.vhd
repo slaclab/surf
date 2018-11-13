@@ -47,6 +47,7 @@ entity AxiAd9467Deser is
       delayOut     : out AxiAd9467DelayOutType);
 end AxiAd9467Deser;
 
+--! architecture declaration
 architecture rtl of AxiAd9467Deser is
 
    signal adcDataPs,

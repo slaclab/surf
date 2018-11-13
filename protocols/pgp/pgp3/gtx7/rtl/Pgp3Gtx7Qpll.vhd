@@ -53,6 +53,7 @@ entity Pgp3Gtx7Qpll is
       axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 end Pgp3Gtx7Qpll;
 
+--! architecture declaration
 architecture mapping of Pgp3Gtx7Qpll is
 
    impure function GenQpllfbdivTop return integer is

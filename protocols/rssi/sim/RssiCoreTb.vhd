@@ -30,6 +30,7 @@ entity RssiCoreTb is
 
 end RssiCoreTb;
 
+--! architecture declaration
 architecture testbed of RssiCoreTb is
 
    constant CLK_PERIOD_C : time := 10 ns;  -- 1 us makes it easy to count clock cycles in sim GUI

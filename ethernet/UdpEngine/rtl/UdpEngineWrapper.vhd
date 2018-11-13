@@ -24,6 +24,7 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for UdpEngineWrapper
 entity UdpEngineWrapper is
    generic (
       -- Simulation Generics
@@ -77,6 +78,7 @@ entity UdpEngineWrapper is
       rst              : in  sl);
 end UdpEngineWrapper;
 
+--! architecture declaration
 architecture rtl of UdpEngineWrapper is
 
    type RegType is record

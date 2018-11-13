@@ -44,6 +44,7 @@ entity AxiAds42lb69Pll is
       adcClock  : out  sl);                
 end AxiAds42lb69Pll;
 
+--! architecture declaration
 architecture mapping of AxiAds42lb69Pll is
 
    constant ADC_CLK_PERIOD_NS_C : real := 1.0E+9 / ADC_CLK_FREQ_G;

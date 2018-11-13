@@ -48,6 +48,7 @@ entity Pgp3RxEb is
 
 end entity Pgp3RxEb;
 
+--! architecture declaration
 architecture rtl of Pgp3RxEb is
 
    type RegType is record

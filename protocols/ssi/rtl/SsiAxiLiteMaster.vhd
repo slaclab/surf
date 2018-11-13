@@ -102,6 +102,7 @@ entity SsiAxiLiteMaster is
 
 end SsiAxiLiteMaster;
 
+--! architecture declaration
 architecture rtl of SsiAxiLiteMaster is
 
    constant SLAVE_FIFO_SSI_CONFIG_C  : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_COMP_C);

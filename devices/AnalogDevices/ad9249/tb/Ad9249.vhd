@@ -49,6 +49,7 @@ entity Ad9249 is
 
 end entity Ad9249;
 
+--! architecture declaration
 architecture top of Ad9249 is
 
    signal clk : sl;

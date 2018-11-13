@@ -66,6 +66,7 @@ entity I2cMaster is
       );
 end entity I2cMaster;
 
+--! architecture declaration
 architecture rtl of I2cMaster is
    -----------------------------------------------------------------------------
    -- Constants

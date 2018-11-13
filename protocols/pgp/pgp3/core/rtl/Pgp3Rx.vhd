@@ -66,6 +66,7 @@ entity Pgp3Rx is
 
 end entity Pgp3Rx;
 
+--! architecture declaration
 architecture rtl of Pgp3Rx is
 
    constant SCRAMBLER_TAPS_C : IntegerArray := (0 => 39, 1 => 58);

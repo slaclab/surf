@@ -20,6 +20,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.EthMacPkg.all;
 
+--! Package declaration for TenGigEthPkg
 package TenGigEthPkg is
 
    type TenGigEthConfig is record

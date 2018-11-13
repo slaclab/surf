@@ -32,6 +32,7 @@ end entity UartAxiLiteMasterTb;
 
 ----------------------------------------------------------------------------------------------------
 
+--! architecture declaration
 architecture sim of UartAxiLiteMasterTb is
 
    -- component generics

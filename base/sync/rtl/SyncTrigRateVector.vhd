@@ -43,6 +43,7 @@ entity SyncTrigRateVector is
       refClk          : in  sl);        
 end SyncTrigRateVector;
 
+--! architecture declaration
 architecture mapping of SyncTrigRateVector is
 
    type MyVectorArray is array (WIDTH_G-1 downto 0) of sl;

@@ -20,6 +20,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Entity declaration for UdpEngine
 entity UdpEngine is
    generic (
       -- Simulation Generics
@@ -71,6 +72,7 @@ entity UdpEngine is
       rst              : in  sl);
 end UdpEngine;
 
+--! architecture declaration
 architecture mapping of UdpEngine is
 
    signal clientRemoteDet : slv(CLIENT_SIZE_G-1 downto 0);

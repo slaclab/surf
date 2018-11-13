@@ -60,6 +60,7 @@ entity AxiI2cEeprom is
       axilRst         : in    sl);     
 end AxiI2cEeprom;
 
+--! architecture declaration
 architecture mapping of AxiI2cEeprom is
 
    signal i2ci : i2c_in_type;

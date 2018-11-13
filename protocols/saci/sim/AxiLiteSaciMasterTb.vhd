@@ -29,6 +29,7 @@ end entity AxiLiteSaciMasterTb;
 
 ----------------------------------------------------------------------------------------------------
 
+--! architecture declaration
 architecture sim of AxiLiteSaciMasterTb is
 
    -- component generics

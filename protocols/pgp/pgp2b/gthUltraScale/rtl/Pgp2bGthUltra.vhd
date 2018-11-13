@@ -84,6 +84,7 @@ entity Pgp2bGthUltra is
       axilWriteSlave  : out AxiLiteWriteSlaveType);
 end Pgp2bGthUltra;
 
+--! architecture declaration
 architecture mapping of Pgp2bGthUltra is
 
    signal resetGtSync : sl;

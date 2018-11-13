@@ -75,6 +75,7 @@ entity AxiLiteSrpV0 is
 
 end AxiLiteSrpV0;
 
+--! architecture declaration
 architecture rtl of AxiLiteSrpV0 is
 
    constant INTERNAL_AXIS_CFG_C : AxiStreamConfigType := ssiAxiStreamConfig(16, TKEEP_COMP_C);

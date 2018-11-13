@@ -40,6 +40,7 @@ entity AxiAd9467Pll is
       adcRst     : in  sl);
 end AxiAd9467Pll;
 
+--! architecture declaration
 architecture mapping of AxiAd9467Pll is
 
    constant ADC_CLK_PERIOD_C    : real := 1.0 / ADC_CLK_FREQ_G;

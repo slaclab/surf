@@ -24,6 +24,7 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.RawEthFramerPkg.all;
 
+--! Entity declaration for RawEthFramerRx
 entity RawEthFramerRx is
    generic (
       TPD_G      : time             := 1 ns;
@@ -46,6 +47,7 @@ entity RawEthFramerRx is
       rst         : in  sl);
 end RawEthFramerRx;
 
+--! architecture declaration
 architecture rtl of RawEthFramerRx is
 
    constant BC_MAC_C : slv(47 downto 0) := x"FFFFFFFFFFFF";

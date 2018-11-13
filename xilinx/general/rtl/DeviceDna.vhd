@@ -20,6 +20,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.TextUtilPkg.all;
 
+--! Entity declaration for DeviceDna
 entity DeviceDna is
    generic (
       TPD_G           : time     := 1 ns;
@@ -36,6 +37,7 @@ entity DeviceDna is
       dnaValid : out sl);
 end DeviceDna;
 
+--! architecture declaration
 architecture rtl of DeviceDna is
 
    component DeviceDna7Series is

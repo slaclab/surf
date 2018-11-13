@@ -343,6 +343,7 @@ package AxiDmaPkg is
 
 end package AxiDmaPkg;
 
+--! package body declaration
 package body AxiDmaPkg is
 
    function toSlv (r : AxiWriteDmaDescReqType ) return slv is

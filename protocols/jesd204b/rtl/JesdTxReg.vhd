@@ -79,6 +79,7 @@ entity JesdTxReg is
       loopback     : out slv(L_G-1 downto 0));
 end JesdTxReg;
 
+--! architecture declaration
 architecture rtl of JesdTxReg is
 
    type RegType is record

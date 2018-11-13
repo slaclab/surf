@@ -44,6 +44,7 @@ entity AxiStreamRepeater is
       mAxisSlaves  : in  AxiStreamSlaveArray(NUM_MASTERS_G-1 downto 0));
 end AxiStreamRepeater;
 
+--! architecture declaration
 architecture structure of AxiStreamRepeater is
 
    type RegType is record

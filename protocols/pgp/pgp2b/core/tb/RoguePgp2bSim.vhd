@@ -57,6 +57,7 @@ entity RoguePgp2bSim is
 
 end entity RoguePgp2bSim;
 
+--! architecture declaration
 architecture sim of RoguePgp2bSim is
 
    constant RX_CLK_PERIOD_C : time := RX_CLK_PERIOD_G * (1000 ms);

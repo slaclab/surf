@@ -29,6 +29,7 @@ use surf.StdRtlPkg.all;
 entity JtagSerDesCoreTb is
 end entity JtagSerDesCoreTb;
 
+--! architecture declaration
 architecture JtagSerDesCoreTbImpl of JtagSerDesCoreTb is
   constant W_C : positive := 4;
   constant D_C : positive := 2;

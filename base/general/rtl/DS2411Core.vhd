@@ -42,6 +42,7 @@ entity DS2411Core is
       fdValid   : out   sl);
 end DS2411Core;
 
+--! architecture declaration
 architecture rtl of DS2411Core is
    type StateType is (
       ST_START,

@@ -59,6 +59,7 @@ entity ClinkCtrl is
       mUartSlave  : in  AxiStreamSlaveType);
 end ClinkCtrl;
 
+--! architecture declaration
 architecture rtl of ClinkCtrl is
    signal intCtrl   : slv(3 downto 0);
    signal cblOut    : slv(4 downto 0);

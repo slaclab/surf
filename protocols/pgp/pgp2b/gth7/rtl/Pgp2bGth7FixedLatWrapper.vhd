@@ -105,6 +105,7 @@ entity Pgp2bGth7FixedLatWrapper is
       axilWriteSlave   : out AxiLiteWriteSlaveType); 
 end Pgp2bGth7FixedLatWrapper;
 
+--! architecture declaration
 architecture rtl of Pgp2bGth7FixedLatWrapper is
 
    signal gtClk,

@@ -46,6 +46,7 @@ entity AxiStreamMon is
       bandwidthMin : out slv(63 downto 0));            -- units of Byte/s
 end AxiStreamMon;
 
+--! architecture declaration
 architecture rtl of AxiStreamMon is
 
    constant TKEEP_C   : natural := AXIS_CONFIG_G.TDATA_BYTES_C;

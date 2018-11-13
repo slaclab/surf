@@ -57,6 +57,7 @@ entity AsyncGearbox is
 
 end entity AsyncGearbox;
 
+--! architecture declaration
 architecture mapping of AsyncGearbox is
 
    constant SLAVE_FASTER_C : boolean := SLAVE_WIDTH_G <= MASTER_WIDTH_G;

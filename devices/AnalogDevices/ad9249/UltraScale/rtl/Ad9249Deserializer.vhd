@@ -27,8 +27,8 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.Ad9249Pkg.all;
 
-library UNISIM;
-use UNISIM.vcomponents.all;
+library unisim;
+use unisim.vcomponents.all;
 
 --! Entity declaration for Ad9249Deserializer
 entity Ad9249Deserializer is
@@ -59,7 +59,7 @@ entity Ad9249Deserializer is
       );
 end Ad9249Deserializer;
 
--- Define architecture
+--! architecture declaration
 architecture rtl of Ad9249Deserializer is
 
    attribute keep : string;
@@ -439,5 +439,5 @@ begin
          adcDv7R <= adcDv7Rin after TPD_G;
       end if;
    end process;
-end rtl;
+end architecture rtl;
 

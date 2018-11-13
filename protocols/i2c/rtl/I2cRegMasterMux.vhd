@@ -41,6 +41,7 @@ entity I2cRegMasterMux is
       masterOut : in  I2cRegMasterOutType);
 end entity I2cRegMasterMux;
 
+--! architecture declaration
 architecture rtl of I2cRegMasterMux is
 
    type RegType is record

@@ -52,6 +52,7 @@ entity AxisJtagDebugBridge is
    );
 end entity AxisJtagDebugBridge;
 
+--! architecture declaration
 architecture AxisJtagDebugBridgeImpl of AxisJtagDebugBridge is
 
    -- IP
@@ -110,6 +111,7 @@ begin
 
 end architecture AxisJtagDebugBridgeImpl;
 
+--! architecture declaration
 architecture AxisJtagDebugBridgeStub of AxisJtagDebugBridge is
 
    type StateType is (READY_S, SKIP_S, REPLY_S);

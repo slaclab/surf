@@ -26,6 +26,7 @@ use surf.Pgp3Pkg.all;
 --! Entity declaration for Pgp3Gtp7Tb
 entity Pgp3Gtp7Tb is end Pgp3Gtp7Tb;
 
+--! architecture declaration
 architecture testbed of Pgp3Gtp7Tb is
 
    constant CLK_PERIOD_C : time := 4 ns;

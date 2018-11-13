@@ -51,6 +51,7 @@ entity I2cRegSlave is
       i2co   : out i2c_out_type);
 end entity I2cRegSlave;
 
+--! architecture declaration
 architecture rtl of I2cRegSlave is
 
    type StateType is (IDLE_S, ADDR_S, WRITE_DATA_S, READ_DATA_S);

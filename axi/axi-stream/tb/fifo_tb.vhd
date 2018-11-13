@@ -28,7 +28,7 @@ use surf.AxiStreamPkg.all;
 --! Entity declaration for fifo_tb
 entity fifo_tb is end fifo_tb;
 
--- Define architecture
+--! architecture declaration
 architecture fifo_tb of fifo_tb is
 
    constant SRC_CONFIG_C : AxiStreamConfigType := (

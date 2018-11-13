@@ -49,6 +49,7 @@ entity ClinkUart is
       txOut           : out sl);
 end ClinkUart;
 
+--! architecture declaration
 architecture rtl of ClinkUart is
 
    constant INT_FREQ_C : integer := 200000000;

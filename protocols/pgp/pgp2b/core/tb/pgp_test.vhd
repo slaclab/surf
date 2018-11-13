@@ -31,7 +31,7 @@ use surf.SsiPkg.all;
 --! Entity declaration for pgp_test
 entity pgp_test is end pgp_test;
 
---! Define architecture
+--! architecture declaration
 architecture pgp_test of pgp_test is
 
    signal locClk            : sl;

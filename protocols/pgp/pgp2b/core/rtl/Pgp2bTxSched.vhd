@@ -67,8 +67,7 @@ entity Pgp2bTxSched is
 
 end Pgp2bTxSched;
 
-
--- Define architecture
+--! architecture declaration
 architecture Pgp2bTxSched of Pgp2bTxSched is
 
    -- Local Signals

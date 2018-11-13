@@ -23,6 +23,7 @@ use surf.AxiLitePkg.all;
 use surf.EthMacPkg.all;
 use surf.GigEthPkg.all;
 
+--! Entity declaration for GigEthGtyUltraScale
 entity GigEthGtyUltraScale is
    generic (
       TPD_G           : time                := 1 ns;
@@ -63,6 +64,7 @@ entity GigEthGtyUltraScale is
       gtRxN              : in  sl);
 end GigEthGtyUltraScale;
 
+--! architecture declaration
 architecture mapping of GigEthGtyUltraScale is
 
    component GigEthGtyUltraScaleCore

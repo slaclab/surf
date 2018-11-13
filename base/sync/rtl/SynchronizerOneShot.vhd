@@ -37,6 +37,7 @@ entity SynchronizerOneShot is
       dataOut : out sl);                -- synced one-shot pulse
 end SynchronizerOneShot;
 
+--! architecture declaration
 architecture rtl of SynchronizerOneShot is
 
    type StateType is (

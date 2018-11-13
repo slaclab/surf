@@ -35,6 +35,7 @@ entity RstSync is
       syncRst  : out sl);
 end RstSync;
 
+--! architecture declaration
 architecture rtl of RstSync is
 
    signal syncInt : sl := OUT_POLARITY_G;

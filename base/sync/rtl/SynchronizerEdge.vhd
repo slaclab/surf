@@ -38,6 +38,7 @@ entity SynchronizerEdge is
       fallingEdge : out sl);                       -- Falling edge detected
 end SynchronizerEdge;
 
+--! architecture declaration
 architecture rtl of SynchronizerEdge is
 
    constant INIT_C : slv(STAGES_G-1 downto 0) := ite(INIT_G = "0", slvZero(STAGES_G), INIT_G);

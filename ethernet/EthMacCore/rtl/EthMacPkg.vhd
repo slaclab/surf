@@ -144,6 +144,7 @@ package EthMacPkg is
 
 end package EthMacPkg;
 
+--! package body declaration
 package body EthMacPkg is
 
    function EthPortArrayBigEndian (portNum : PositiveArray; portSize : positive) return Slv16Array is

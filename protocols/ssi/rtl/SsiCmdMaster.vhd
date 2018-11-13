@@ -70,6 +70,7 @@ entity SsiCmdMaster is
       );
 end SsiCmdMaster;
 
+--! architecture declaration
 architecture rtl of SsiCmdMaster is
 
    signal fifoAxisMaster : AxiStreamMasterType;

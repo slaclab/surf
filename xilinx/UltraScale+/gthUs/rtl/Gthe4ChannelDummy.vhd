@@ -22,6 +22,7 @@ use surf.StdRtlPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for Gthe4ChannelDummy
 entity Gthe4ChannelDummy is
    generic (
       TPD_G   : time     := 1 ns;
@@ -34,6 +35,7 @@ entity Gthe4ChannelDummy is
       gtTxN  : out slv(WIDTH_G-1 downto 0));
 end entity Gthe4ChannelDummy;
 
+--! architecture declaration
 architecture mapping of Gthe4ChannelDummy is
 
 begin

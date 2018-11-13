@@ -97,6 +97,7 @@ entity Jesd204bTx is
       leds_o  : out slv(1 downto 0));
 end Jesd204bTx;
 
+--! architecture declaration
 architecture rtl of Jesd204bTx is
 
    -- Internal signals

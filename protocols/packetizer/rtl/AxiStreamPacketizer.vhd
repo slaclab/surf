@@ -52,6 +52,7 @@ entity AxiStreamPacketizer is
 
 end entity AxiStreamPacketizer;
 
+--! architecture declaration
 architecture rtl of AxiStreamPacketizer is
 
    constant LD_WORD_SIZE_C   : positive := 3;

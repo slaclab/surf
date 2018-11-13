@@ -24,6 +24,7 @@ use surf.StdRtlPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for DeviceDnaUltraScale
 entity DeviceDnaUltraScale is
    generic (
       TPD_G           : time    := 1 ns;
@@ -39,6 +40,7 @@ entity DeviceDnaUltraScale is
       dnaValid : out sl);
 end DeviceDnaUltraScale;
 
+--! architecture declaration
 architecture rtl of DeviceDnaUltraScale is
    
    constant DNA_SHIFT_LENGTH_C : natural := 96;

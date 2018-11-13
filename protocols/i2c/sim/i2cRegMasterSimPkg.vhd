@@ -66,6 +66,7 @@ package i2cRegMasterPkg is
 
 end package i2cRegMasterPkg;
 
+--! package body declaration
 package body i2cRegMasterPkg is
 
   procedure writeI2cReg (

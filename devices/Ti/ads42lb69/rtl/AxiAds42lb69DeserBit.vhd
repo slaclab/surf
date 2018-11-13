@@ -48,6 +48,7 @@ entity AxiAds42lb69DeserBit is
       clk          : in  sl);
 end AxiAds42lb69DeserBit;
 
+--! architecture declaration
 architecture rtl of AxiAds42lb69DeserBit is
    
    signal data       : sl;

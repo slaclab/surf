@@ -19,7 +19,7 @@ use ieee.std_logic_1164.all;
 library surf;
 use surf.StdRtlPkg.all;
 
---! Entity declaration for AxiAd5780Pkg
+--! Package declaration for AxiAd5780Pkg
 package AxiAd5780Pkg is
    
    type AxiAd5780InType is record

@@ -44,6 +44,7 @@ entity CRC32Rtl is
       CRCRESET     : in  sl);    -- to set CRC logic to value in crc_cNIT
 end CRC32Rtl;
 
+--! architecture declaration
 architecture rtl of CRC32Rtl is
 
    -- Local Signals

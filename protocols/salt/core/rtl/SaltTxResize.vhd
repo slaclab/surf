@@ -39,6 +39,7 @@ entity SaltTxResize is
       txData   : out slv(7 downto 0));
 end SaltTxResize;
 
+--! architecture declaration
 architecture rtl of SaltTxResize is
 
    type StateType is (

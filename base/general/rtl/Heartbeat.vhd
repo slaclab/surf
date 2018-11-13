@@ -34,6 +34,7 @@ entity Heartbeat is
       o   : out sl);
 end entity Heartbeat;
 
+--! architecture declaration
 architecture rtl of Heartbeat is
    
    constant CNT_MAX_C  : natural := getTimeRatio(PERIOD_OUT_G, (2.0 * PERIOD_IN_G));

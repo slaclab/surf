@@ -65,6 +65,7 @@ entity Salt7Series is
       mAxisSlave  : in  AxiStreamSlaveType);
 end Salt7Series;
 
+--! architecture declaration
 architecture mapping of Salt7Series is
 
    component Salt7SeriesCore

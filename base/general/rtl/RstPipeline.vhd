@@ -33,6 +33,7 @@ entity RstPipeline is
       rstOut : out sl);
 end RstPipeline;
 
+--! architecture declaration
 architecture rtl of RstPipeline is
 
    constant INIT_C : slv(PIPE_STAGES_G-1 downto 0) := ite(INIT_G = "1", slvOne(PIPE_STAGES_G), INIT_G);

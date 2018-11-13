@@ -28,6 +28,7 @@ use surf.EthMacPkg.all;
 --! Entity declaration for SsiFifoTb
 entity SsiFifoTb is end SsiFifoTb;
 
+--! architecture declaration
 architecture testbed of SsiFifoTb is
 
    -- Constants

@@ -50,6 +50,7 @@ entity Pgp3GthUsQpll is
       axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 end Pgp3GthUsQpll;
 
+--! architecture declaration
 architecture mapping of Pgp3GthUsQpll is
 
    constant QPLL_CP_C    : slv(9 downto 0) := ite((RATE_G = "10.3125Gbps"), "0000011111", "0111111111");

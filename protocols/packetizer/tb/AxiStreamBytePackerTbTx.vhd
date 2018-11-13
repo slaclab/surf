@@ -37,6 +37,7 @@ entity AxiStreamBytePackerTbTx is
       mAxisMaster  : out AxiStreamMasterType);
 end AxiStreamBytePackerTbTx;
 
+--! architecture declaration
 architecture rtl of AxiStreamBytePackerTbTx is
 
    type RegType is record

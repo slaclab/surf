@@ -108,6 +108,7 @@ entity RssiMonitor is
    );
 end entity RssiMonitor;
 
+--! architecture declaration
 architecture rtl of RssiMonitor is
   
    constant SAMPLES_PER_TIME_C : integer := integer(TIMEOUT_UNIT_G * CLK_FREQUENCY_G);

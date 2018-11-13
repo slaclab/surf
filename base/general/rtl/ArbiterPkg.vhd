@@ -34,6 +34,7 @@ package ArbiterPkg is
 
 end package ArbiterPkg;
 
+--! package body declaration
 package body ArbiterPkg is
 
    -- Priority encoder with index p having top priority

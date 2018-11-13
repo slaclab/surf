@@ -33,6 +33,7 @@ end entity Encoder12b14bTb;
 
 ----------------------------------------------------------------------------------------------------
 
+--! architecture declaration
 architecture sim of Encoder12b14bTb is
 
    -- component generics

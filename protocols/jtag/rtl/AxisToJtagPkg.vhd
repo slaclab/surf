@@ -160,7 +160,7 @@ use surf.AxiStreamPkg.all;
 -- transaction then the core detects a retried operation and does not actually execute
 -- it again on JTAG but plays back the stored TDO response to the requestor.
 
---! Entity declaration for AxisToJtagPkg
+--! Package declaration for AxisToJtagPkg
 package AxisToJtagPkg is
 
    -- bit indices in the header word
@@ -230,6 +230,7 @@ package AxisToJtagPkg is
 
 end package AxisToJtagPkg;
 
+--! package body declaration
 package body AxisToJtagPkg is
 
    function getVersion(

@@ -17,6 +17,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+--! Entity declaration for GtpRxCommaAligner
 entity GtpRxCommaAligner is
   
   generic (
@@ -35,6 +36,7 @@ entity GtpRxCommaAligner is
 
 end entity GtpRxCommaAligner;
 
+--! architecture declaration
 architecture rtl of GtpRxCommaAligner is
 
   constant RAW_COMMA_C : std_logic_vector(9 downto 0) := "0101111100";

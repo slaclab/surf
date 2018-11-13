@@ -41,6 +41,7 @@ entity Pgp3Gtp7TxGearbox is
       txSequence   : out slv(6 downto 0));
 end Pgp3Gtp7TxGearbox;
 
+--! architecture declaration
 architecture rtl of Pgp3Gtp7TxGearbox is
 
    type RegType is record

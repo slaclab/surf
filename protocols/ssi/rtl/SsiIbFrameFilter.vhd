@@ -49,6 +49,7 @@ entity SsiIbFrameFilter is
       axisRst        : in  sl);
 end SsiIbFrameFilter;
 
+--! architecture declaration
 architecture rtl of SsiIbFrameFilter is
 
    type StateType is (

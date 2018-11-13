@@ -50,6 +50,7 @@ entity AxiResize is
       mAxiWriteSlave  : in  AxiWriteSlaveType);
 end AxiResize;
 
+--! architecture declaration
 architecture rtl of AxiResize is
 
    constant SLV_BYTES_C : integer := SLAVE_AXI_CONFIG_G.DATA_BYTES_C;

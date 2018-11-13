@@ -32,6 +32,7 @@ entity SaciSlaveWrapperAnalog is
 
 end entity SaciSlaveWrapperAnalog;
 
+--! architecture declaration
 architecture rtl of SaciSlaveWrapperAnalog is
   
   signal saciSlaveRstL : sl;

@@ -45,6 +45,7 @@ entity adc32rf45 is
       coreCsb        : out sl);
 end entity adc32rf45;
 
+--! architecture declaration
 architecture rtl of adc32rf45 is
 
    constant DLY_C : natural := integer(1.0E-6/CLK_PERIOD_G);  -- min. 1us delay between SPI cycles

@@ -93,6 +93,7 @@ entity SyncStatusVector is
       rdRst        : in  sl := '0');
 end SyncStatusVector;
 
+--! architecture declaration
 architecture rtl of SyncStatusVector is
 
    type RegType is record

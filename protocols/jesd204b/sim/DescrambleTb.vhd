@@ -31,6 +31,7 @@ entity DescrambleTb is
 end entity;
 --------------------------------------------------------------------------------
 
+--! architecture declaration
 architecture Bhv of DescrambleTb is
    -----------------------------
    -- Port Signals 

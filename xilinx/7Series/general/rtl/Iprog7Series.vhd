@@ -41,6 +41,7 @@ entity Iprog7Series is
       bootAddress : in slv(31 downto 0) := X"00000000");
 end Iprog7Series;
 
+--! architecture declaration
 architecture rtl of Iprog7Series is
 
    signal icapClk    : sl;

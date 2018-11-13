@@ -48,6 +48,7 @@ entity SsiInsertSof is
       mAxisSlave  : in  AxiStreamSlaveType);      
 end SsiInsertSof;
 
+--! architecture declaration
 architecture rtl of SsiInsertSof is
 
    type StateType is (

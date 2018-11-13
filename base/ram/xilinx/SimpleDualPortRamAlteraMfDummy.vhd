@@ -49,6 +49,7 @@ entity SimpleDualPortRamAlteraMf is
       doutb  : out slv(DATA_WIDTH_G-1 downto 0)                                                := (others => '0'));
 end SimpleDualPortRamAlteraMf;
 
+--! architecture declaration
 architecture rtl of SimpleDualPortRamAlteraMf is
 
 begin

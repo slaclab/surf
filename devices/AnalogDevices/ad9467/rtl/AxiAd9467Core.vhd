@@ -51,6 +51,7 @@ entity AxiAd9467Core is
       axiWriteSlave  : out   AxiLiteWriteSlaveType);
 end AxiAd9467Core;
 
+--! architecture declaration
 architecture mapping of AxiAd9467Core is
    
    signal status : AxiAd9467StatusType;

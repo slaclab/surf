@@ -164,6 +164,7 @@ package EthCrc32Pkg is
 
 end package EthCrc32Pkg;
 
+--! package body declaration
 package body EthCrc32Pkg is
 
    function crc32Parallel1Byte (crcCur : slv(31 downto 0); data : slv(7 downto 0)) return slv is

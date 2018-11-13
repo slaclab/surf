@@ -24,6 +24,7 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for IcmpEngine
 entity IcmpEngine is
    generic (
       TPD_G : time := 1 ns);
@@ -40,6 +41,7 @@ entity IcmpEngine is
       rst          : in  sl);
 end IcmpEngine;
 
+--! architecture declaration
 architecture rtl of IcmpEngine is
 
    type StateType is (

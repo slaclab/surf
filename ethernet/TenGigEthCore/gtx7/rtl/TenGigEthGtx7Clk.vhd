@@ -22,6 +22,7 @@ use surf.StdRtlPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for TenGigEthGtx7Clk
 entity TenGigEthGtx7Clk is
    generic (
       TPD_G             : time       := 1 ns;
@@ -45,6 +46,7 @@ entity TenGigEthGtx7Clk is
       qpllRst       : in  sl);      
 end TenGigEthGtx7Clk;
 
+--! architecture declaration
 architecture mapping of TenGigEthGtx7Clk is
 
    constant QPLL_REFCLK_SEL_C : bit_vector := ite(USE_GTREFCLK_G, "111", QPLL_REFCLK_SEL_G);

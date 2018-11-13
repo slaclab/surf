@@ -48,6 +48,7 @@ entity SyncTrigRate is
       refRst          : in  sl := '0');
 end SyncTrigRate;
 
+--! architecture declaration
 architecture rtl of SyncTrigRate is
 
    constant TIMEOUT_C : natural := getTimeRatio(REF_CLK_FREQ_G, REFRESH_RATE_G)-1;

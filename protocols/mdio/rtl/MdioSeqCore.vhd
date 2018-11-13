@@ -87,6 +87,7 @@ entity MdioSeqCore is
    );
 end entity MdioSeqCore;
 
+--! architecture declaration
 architecture MdioSeqCoreImpl of MdioSeqCore is
 
    type StateType is ( IDLE, TRIG, PROG );

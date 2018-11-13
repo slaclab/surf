@@ -60,6 +60,7 @@ entity TrueDualPortRam is
       regceb  : in  sl                                                    := '1');  -- Clock enable for extra output reg. Only used when DOA_REG_G = true
 end TrueDualPortRam;
 
+--! architecture declaration
 architecture rtl of TrueDualPortRam is
 
    -- Set byte width to word width if byte writes not enabled

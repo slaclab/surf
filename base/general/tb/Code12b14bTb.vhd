@@ -33,6 +33,7 @@ end entity Code12b14bTb;
 
 ----------------------------------------------------------------------------------------------------
 
+--! architecture declaration
 architecture sim of Code12b14bTb is
 
    -- component generics

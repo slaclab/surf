@@ -50,6 +50,7 @@ entity Gearbox is
 
 end entity Gearbox;
 
+--! architecture declaration
 architecture rtl of Gearbox is
 
    constant MAX_C : integer := maximum(MASTER_WIDTH_G, SLAVE_WIDTH_G);

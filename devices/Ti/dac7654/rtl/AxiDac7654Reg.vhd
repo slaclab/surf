@@ -41,6 +41,7 @@ entity AxiDac7654Reg is
       config         : out AxiDac7654ConfigType);      
 end AxiDac7654Reg;
 
+--! architecture declaration
 architecture rtl of AxiDac7654Reg is
    
    type StateType is (

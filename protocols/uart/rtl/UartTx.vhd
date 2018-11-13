@@ -37,6 +37,7 @@ entity UartTx is
       tx      : out sl);
 end entity UartTx;
 
+--! architecture declaration
 architecture RTL of UartTx is
    constant PARITY_BITS_C     : integer := ite(PARITY_G = "NONE", 0, 1);
    constant START_BIT_C       : integer := 1;

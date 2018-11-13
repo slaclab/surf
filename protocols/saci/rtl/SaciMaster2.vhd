@@ -55,6 +55,7 @@ entity SaciMaster2 is
 
 end entity SaciMaster2;
 
+--! architecture declaration
 architecture rtl of SaciMaster2 is
 
    constant SACI_CLK_HALF_PERIOD_C  : integer := integer(SACI_CLK_PERIOD_G / (2.0*SYS_CLK_PERIOD_G))-1;

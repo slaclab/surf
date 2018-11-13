@@ -24,8 +24,10 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for UdpEngineTb
 entity UdpEngineTb is end UdpEngineTb;
 
+--! architecture declaration
 architecture testbed of UdpEngineTb is
 
    constant CLK_PERIOD_C : time             := 6.4 ns;

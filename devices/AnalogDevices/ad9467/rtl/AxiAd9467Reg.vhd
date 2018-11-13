@@ -47,6 +47,7 @@ entity AxiAd9467Reg is
       refClk200MHz   : in  sl);      
 end AxiAd9467Reg;
 
+--! architecture declaration
 architecture rtl of AxiAd9467Reg is
 
    function CompressAddressSpace (vec : slv(7 downto 0)) return slv is

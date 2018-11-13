@@ -57,6 +57,7 @@ entity AxiStreamDmaV2Read is
       axiReadSlave    : in  AxiReadSlaveType);
 end AxiStreamDmaV2Read;
 
+--! architecture declaration
 architecture rtl of AxiStreamDmaV2Read is
 
    constant DATA_BYTES_C : positive := AXIS_CONFIG_G.TDATA_BYTES_C;

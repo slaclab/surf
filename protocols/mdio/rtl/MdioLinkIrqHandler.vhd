@@ -75,6 +75,7 @@ entity MdioLinkIrqHandler is
    );
 end entity MdioLinkIrqHandler;
 
+--! architecture declaration
 architecture MdioLinkIrqHandlerImpl of MdioLinkIrqHandler is
 
    type StateType is (INIT, START_HDLR, HDLR_DONE, IDLE, WAIT_FOR_MDIO);

@@ -26,6 +26,7 @@ use surf.XauiPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for XauiGtx7Wrapper
 entity XauiGtx7Wrapper is
    generic (
       TPD_G           : time                := 1 ns;
@@ -71,6 +72,7 @@ entity XauiGtx7Wrapper is
       gtRxN              : in  slv(3 downto 0));
 end XauiGtx7Wrapper;
 
+--! architecture declaration
 architecture mapping of XauiGtx7Wrapper is
 
    signal phyClock     : sl;

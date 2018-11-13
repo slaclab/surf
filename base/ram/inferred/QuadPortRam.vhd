@@ -63,6 +63,7 @@ entity QuadPortRam is
       doutd   : out slv(DATA_WIDTH_G-1 downto 0));
 end QuadPortRam;
 
+--! architecture declaration
 architecture rtl of QuadPortRam is
 
    -- Initial RAM Values

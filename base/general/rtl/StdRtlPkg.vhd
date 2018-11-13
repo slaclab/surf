@@ -702,6 +702,7 @@ package StdRtlPkg is
    
 end StdRtlPkg;
 
+--! package body declaration
 package body StdRtlPkg is
 
    function slvAll (size : positive; value : sl) return slv is

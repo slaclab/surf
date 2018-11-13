@@ -125,7 +125,7 @@ entity Pgp2bGtp7MultiLane is
 
 end Pgp2bGtp7MultiLane;
 
--- Define architecture
+--! architecture declaration
 architecture rtl of Pgp2bGtp7MultiLane is
    --------------------------------------------------------------------------------------------------
    -- Types

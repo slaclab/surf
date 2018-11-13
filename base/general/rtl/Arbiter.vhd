@@ -39,6 +39,7 @@ entity Arbiter is
       ack      : out slv(REQ_SIZE_G-1 downto 0));
 end entity Arbiter;
 
+--! architecture declaration
 architecture rtl of Arbiter is
 
    constant SELECTED_SIZE_C : integer := bitSize(REQ_SIZE_G-1);

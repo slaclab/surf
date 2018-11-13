@@ -52,6 +52,7 @@ entity SimpleDualPortRam is
       doutb   : out slv(DATA_WIDTH_G-1 downto 0));
 end SimpleDualPortRam;
 
+--! architecture declaration
 architecture rtl of SimpleDualPortRam is
 
    -- Set byte width to word width if byte writes not enabled

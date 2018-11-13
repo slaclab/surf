@@ -64,6 +64,7 @@ entity Pgp3TxProtocol is
 
 end entity Pgp3TxProtocol;
 
+--! architecture declaration
 architecture rtl of Pgp3TxProtocol is
 
    type RegType is record

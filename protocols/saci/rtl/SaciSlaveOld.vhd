@@ -50,6 +50,7 @@ entity SaciSlaveOld is
 
 end entity SaciSlaveOld;
 
+--! architecture declaration
 architecture rtl of SaciSlaveOld is
 
   type StateType is (IDLE_S,

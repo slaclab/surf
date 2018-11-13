@@ -46,6 +46,7 @@ entity AxiWritePathMux is
       );
 end AxiWritePathMux;
 
+--! architecture declaration
 architecture structure of AxiWritePathMux is
 
    constant DEST_SIZE_C : integer := bitSize(NUM_SLAVES_G-1);

@@ -50,6 +50,7 @@ entity AxiStreamDepacketizer2 is
       mAxisSlave  : in  AxiStreamSlaveType);
 end entity AxiStreamDepacketizer2;
 
+--! architecture declaration
 architecture rtl of AxiStreamDepacketizer2 is
 
    constant CRC_EN_C        : boolean  := (CRC_MODE_G /= "NONE");

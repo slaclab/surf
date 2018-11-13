@@ -46,6 +46,7 @@ entity AxiStreamDeMux is
       mAxisSlaves  : in  AxiStreamSlaveArray(NUM_MASTERS_G-1 downto 0));
 end AxiStreamDeMux;
 
+--! architecture declaration
 architecture structure of AxiStreamDeMux is
 
    type RegType is record

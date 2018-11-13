@@ -27,6 +27,7 @@ use surf.Jesd204bPkg.all;
 entity Jesd204bTb is
 end Jesd204bTb;
 
+--! architecture declaration
 architecture tb of Jesd204bTb is
 
    constant CLK_PERIOD_C : time := 1 us;  -- 1 us makes it easy to count clock cycles in sim GUI

@@ -32,6 +32,7 @@ use surf.MdioPkg.all;
 entity MdioSeqCoreTb is
 end entity MdioSeqCoreTb;
 
+--! architecture declaration
 architecture a of MdioSeqCoreTb is
    signal mdo     : sl;
    signal mdi     : sl := 'X';

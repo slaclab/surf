@@ -25,6 +25,7 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for UdpEngineTx
 entity UdpEngineTx is
    generic (
       -- Simulation Generics
@@ -51,6 +52,7 @@ entity UdpEngineTx is
       rst          : in  sl);
 end UdpEngineTx;
 
+--! architecture declaration
 architecture rtl of UdpEngineTx is
 
    constant PORT_C : Slv16Array(SIZE_G-1 downto 0) := EthPortArrayBigEndian(PORT_G, SIZE_G);

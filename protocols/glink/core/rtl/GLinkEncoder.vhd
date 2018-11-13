@@ -36,6 +36,7 @@ entity GLinkEncoder is
       encodedData : out slv(19 downto 0));
 end GLinkEncoder;
 
+--! architecture declaration
 architecture rtl of GLinkEncoder is
 
    function disparity (vec : slv(19 downto 0)) return signed is

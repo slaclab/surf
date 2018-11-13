@@ -27,6 +27,7 @@ use surf.GigEthPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for GigEthGtx7Wrapper
 entity GigEthGtx7Wrapper is
    generic (
       TPD_G              : time                             := 1 ns;
@@ -77,6 +78,7 @@ entity GigEthGtx7Wrapper is
       gtRxN               : in  slv(NUM_LANE_G-1 downto 0));
 end GigEthGtx7Wrapper;
 
+--! architecture declaration
 architecture mapping of GigEthGtx7Wrapper is
 
    signal gtClk     : sl;

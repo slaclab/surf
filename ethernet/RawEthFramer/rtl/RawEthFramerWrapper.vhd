@@ -23,6 +23,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Entity declaration for RawEthFramerWrapper
 entity RawEthFramerWrapper is
    generic (
       TPD_G            : time             := 1 ns;
@@ -50,6 +51,7 @@ entity RawEthFramerWrapper is
       rst             : in  sl);
 end RawEthFramerWrapper;
 
+--! architecture declaration
 architecture mapping of RawEthFramerWrapper is
 
    signal tDest     : slv(7 downto 0);

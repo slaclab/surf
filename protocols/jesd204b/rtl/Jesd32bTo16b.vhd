@@ -42,6 +42,7 @@ entity Jesd32bTo16b is
       dataOut   : out slv(15 downto 0));
 end Jesd32bTo16b;
 
+--! architecture declaration
 architecture rtl of Jesd32bTo16b is
 
    type RegType is record

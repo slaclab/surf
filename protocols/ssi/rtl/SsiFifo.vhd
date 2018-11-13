@@ -70,6 +70,7 @@ entity SsiFifo is
       mAxisTermFrame  : out sl);
 end SsiFifo;
 
+--! architecture declaration
 architecture mapping of SsiFifo is
    
    signal rxMaster   : AxiStreamMasterType;

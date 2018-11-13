@@ -44,6 +44,7 @@ entity Sff8472 is
       axilRst         : in    sl);
 end Sff8472;
 
+--! architecture declaration
 architecture mapping of Sff8472 is
 
    constant DEVICE_MAP_C : I2cAxiLiteDevArray(0 to 1) := (

@@ -67,6 +67,7 @@ entity AxiStreamDma is
       axiWriteCtrl    : in  AxiCtrlType);
 end AxiStreamDma;
 
+--! architecture declaration
 architecture structure of AxiStreamDma is
 
    constant PUSH_ADDR_WIDTH_C : integer := FREE_ADDR_WIDTH_G;

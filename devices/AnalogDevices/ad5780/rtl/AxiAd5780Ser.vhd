@@ -46,6 +46,7 @@ entity AxiAd5780Ser is
       dacRst        : in  sl); 
 end AxiAd5780Ser;
 
+--! architecture declaration
 architecture rtl of AxiAd5780Ser is
 
    constant CS_WAIT_C : natural := (getTimeRatio(AXI_CLK_FREQ_G, 20.0E+6));  -- 50 ns wait min.

@@ -24,6 +24,7 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for IpV4EngineCoreTb
 entity IpV4EngineCoreTb is
    generic (
       TPD_G        : time := 1 ns;
@@ -54,6 +55,7 @@ entity IpV4EngineCoreTb is
       rst              : in  sl);
 end IpV4EngineCoreTb;
 
+--! architecture declaration
 architecture rtl of IpV4EngineCoreTb is
 
    type StateType is (

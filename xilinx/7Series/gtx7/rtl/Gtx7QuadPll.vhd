@@ -54,6 +54,7 @@ entity Gtx7QuadPll is
       axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 end entity Gtx7QuadPll;
 
+--! architecture declaration
 architecture mapping of Gtx7QuadPll is
 
    signal gtRefClk0      : sl;

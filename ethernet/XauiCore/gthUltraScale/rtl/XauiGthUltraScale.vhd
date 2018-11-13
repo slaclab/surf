@@ -26,6 +26,7 @@ use surf.EthMacPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for XauiGthUltraScale
 entity XauiGthUltraScale is
    generic (
       TPD_G           : time                := 1 ns;
@@ -71,6 +72,7 @@ entity XauiGthUltraScale is
       gtRxN              : in  slv(3 downto 0));
 end XauiGthUltraScale;
 
+--! architecture declaration
 architecture mapping of XauiGthUltraScale is
 
    component XauiGthUltraScale156p25MHz10GigECore

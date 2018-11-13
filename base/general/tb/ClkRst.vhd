@@ -37,6 +37,7 @@ entity ClkRst is
 
 end entity ClkRst;
 
+--! architecture declaration
 architecture ClkRst of ClkRst is
 
   signal clkFb : sl := '0';

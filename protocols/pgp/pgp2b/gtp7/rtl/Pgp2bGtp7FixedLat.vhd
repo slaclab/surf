@@ -134,8 +134,7 @@ entity Pgp2bGtp7FixedLat is
 
 end Pgp2bGtp7FixedLat;
 
-
--- Define architecture
+--! architecture declaration
 architecture rtl of Pgp2bGtp7FixedLat is
 
    --------------------------------------------------------------------------------------------------

@@ -76,6 +76,7 @@ entity SsiPrbsRx is
       packetLength    : out slv(31 downto 0));
 end SsiPrbsRx;
 
+--! architecture declaration
 architecture rtl of SsiPrbsRx is
 
    constant MAX_CNT_C                : slv(31 downto 0)    := (others => '1');

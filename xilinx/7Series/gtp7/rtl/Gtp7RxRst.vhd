@@ -131,6 +131,7 @@ end Gtp7RxRst;
 --   => signal which PLL has been reset
 -- * 
 
+--! architecture declaration
 architecture RTL of Gtp7RxRst is
    type rx_rst_fsm_type is(
       INIT, ASSERT_ALL_RESETS, RELEASE_PLL_RESET, VERIFY_RECCLK_STABLE,

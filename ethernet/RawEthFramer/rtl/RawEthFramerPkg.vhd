@@ -23,6 +23,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
+--! Package declaration for RawEthFramerPkg
 package RawEthFramerPkg is
 
    -- Ethernet Broadcast Frame
@@ -47,6 +48,7 @@ package RawEthFramerPkg is
 
 end package RawEthFramerPkg;
 
+--! package body declaration
 package body RawEthFramerPkg is
 
    function ssiGetUserBcf (

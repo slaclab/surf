@@ -49,7 +49,7 @@ entity RogueStreamSim is port (
    );
 end RogueStreamSim;
 
--- Define architecture
+--! architecture declaration
 architecture RogueStreamSim of RogueStreamSim is
    Attribute FOREIGN of RogueStreamSim: architecture is 
       "vhpi:AxiSim:VhpiGenericElab:RogueStreamSimInit:RogueStreamSim";

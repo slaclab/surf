@@ -61,6 +61,7 @@ entity JesdTestStreamTx is
    );
 end entity JesdTestStreamTx;
 
+--! architecture declaration
 architecture rtl of JesdTestStreamTx is
    
    constant SAM_IN_WORD_C    : positive := (GT_WORD_SIZE_C/F_G);

@@ -27,9 +27,11 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for EthMacTb
 entity EthMacTb is
 end EthMacTb;
 
+--! architecture declaration
 architecture testbed of EthMacTb is
 
    constant CLK_PERIOD_C : time := 6.4 ns;

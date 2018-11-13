@@ -27,6 +27,7 @@ entity FrontEndSaciTb is
 
 end entity FrontEndSaciTb;
 
+--! architecture declaration
 architecture testbench of FrontEndSaciTb is
 
   constant TPD_C : time := 1 ns;

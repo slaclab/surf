@@ -51,6 +51,7 @@ entity Gtx7RxFixedLatPhaseAligner is
 
 end entity Gtx7RxFixedLatPhaseAligner;
 
+--! architecture declaration
 architecture rtl of Gtx7RxFixedLatPhaseAligner is
 
    constant SLIDE_WAIT_C : integer := 32;  -- Dictated by UG476 GTX Tranceiver Guide

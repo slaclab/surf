@@ -52,6 +52,7 @@ entity SsiPrbsRateGen is
       axilWriteSlave  : out AxiLiteWriteSlaveType);
 end SsiPrbsRateGen;
 
+--! architecture declaration
 architecture rtl of SsiPrbsRateGen is
 
    type RegType is record

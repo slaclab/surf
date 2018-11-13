@@ -53,6 +53,7 @@ entity AxiMicronMt28ewReg is
       axiRst         : in  sl);
 end AxiMicronMt28ewReg;
 
+--! architecture declaration
 architecture rtl of AxiMicronMt28ewReg is
 
    constant HALF_CYCLE_PERIOD_C : real := 128.0E-9;  -- units of seconds

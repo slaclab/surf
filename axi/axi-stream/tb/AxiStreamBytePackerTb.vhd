@@ -26,7 +26,7 @@ library unisim;
 --! Entity declaration for AxiStreamBytePackerTb
 entity AxiStreamBytePackerTb is end AxiStreamBytePackerTb;
 
--- Define architecture
+--! architecture declaration
 architecture test of AxiStreamBytePackerTb is
 
    constant SRC_CONFIG_C : AxiStreamConfigType := (

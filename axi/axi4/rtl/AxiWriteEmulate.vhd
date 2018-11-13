@@ -39,6 +39,7 @@ entity AxiWriteEmulate is
       axiWriteSlave  : out AxiWriteSlaveType);
 end AxiWriteEmulate;
 
+--! architecture declaration
 architecture structure of AxiWriteEmulate is
 
    type StateType is (

@@ -26,6 +26,7 @@ use surf.Jesd204bPkg.all;
 entity ScramblerTb is
 end entity;
 
+--! architecture declaration
 architecture testbed of ScramblerTb is
 
    constant TPD_C           : time := 1 ns;

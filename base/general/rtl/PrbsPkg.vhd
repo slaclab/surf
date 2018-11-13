@@ -35,6 +35,7 @@ package PrbsPkg is
 
 end PrbsPkg;
 
+--! package body declaration
 package body PrbsPkg is
 -------------------------------------------------------------------------------
    function getPrbs1xTap (input : slv; tap0 : natural) return slv is

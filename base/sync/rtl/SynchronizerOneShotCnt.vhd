@@ -48,10 +48,9 @@ entity SynchronizerOneShotCnt is
       wrRst      : in  sl := not RST_POLARITY_G;
       rdClk      : in  sl;                         -- clock to be SYNC'd to
       rdRst      : in  sl := not RST_POLARITY_G);   
-begin
-
 end SynchronizerOneShotCnt;
 
+--! architecture declaration
 architecture rtl of SynchronizerOneShotCnt is
 
    constant MAX_CNT_C : slv(CNT_WIDTH_G-1 downto 0) := (others => '1');

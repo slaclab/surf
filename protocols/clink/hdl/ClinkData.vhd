@@ -51,6 +51,7 @@ entity ClinkData is
       parReady   : in  sl);
 end ClinkData;
 
+--! architecture declaration
 architecture rtl of ClinkData is
 
    type LinkState is (RESET_S, WAIT_C_S, SHIFT_C_S, CHECK_C_S, LOAD_C_S, SHIFT_D_S, CHECK_D_S, DONE_S);

@@ -46,9 +46,8 @@ entity StreamPatternTester is
    );
 end StreamPatternTester;
 
-
--- Define architecture
-architecture RTL of StreamPatternTester is
+--! architecture declaration
+architecture rtl of StreamPatternTester is
 
    -------------------------------------------------------------------------------------------------
    -- AXIL Registers
@@ -176,5 +175,5 @@ begin
    testPassed <= '1' when testDone = '1' and passCnt = unsigned(axilR.testSamples) else '0';
    testFailed <= '1' when testDone = '1' and passCnt < unsigned(axilR.testSamples) else '0';
 
-end RTL;
+end architecture rtl;
 

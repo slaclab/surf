@@ -200,6 +200,7 @@ entity AxisToJtag is
    );
 end entity AxisToJtag;
 
+--! architecture declaration
 architecture AxisToJtagImpl of AxisToJtag is
 
    constant WORD_SIZE_C : positive := 8*AXIS_WIDTH_G;

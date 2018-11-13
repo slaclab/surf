@@ -68,6 +68,7 @@ entity JesdAlignChGen is
       );
 end entity JesdAlignChGen;
 
+--! architecture declaration
 architecture rtl of JesdAlignChGen is
 
    -- How many samples is in a GT word

@@ -91,6 +91,7 @@ entity GLinkGtx7FixedLat is
 
 end GLinkGtx7FixedLat;
 
+--! architecture declaration
 architecture rtl of GLinkGtx7FixedLat is
    
    constant FIXED_ALIGN_COMMA_0_C : slv(19 downto 0) := bitReverse((GLINK_VALID_IDLE_WORDS_C(0) & GLINK_CONTROL_WORD_C));  -- FF0

@@ -23,6 +23,7 @@ use surf.AxiLitePkg.all;
 use surf.TenGigEthPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for TenGigEthGthUltraScale
 entity TenGigEthGthUltraScale is
    generic (
       TPD_G           : time                := 1 ns;
@@ -73,6 +74,7 @@ entity TenGigEthGthUltraScale is
       gtRxN              : in  sl);
 end TenGigEthGthUltraScale;
 
+--! architecture declaration
 architecture mapping of TenGigEthGthUltraScale is
 
    component TenGigEthGthUltraScale156p25MHzCore

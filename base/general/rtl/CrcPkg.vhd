@@ -47,6 +47,7 @@ package CrcPkg is
    
 end CrcPkg;
 
+--! package body declaration
 package body CrcPkg is
 
    -------------------------------------------------------------------------------------------------

@@ -15,11 +15,14 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 
+library UNISIM;
+use UNISIM.VCOMPONENTS.all;
+
+--! Entity declaration for Gtp16FixedLatCore
 entity Gtp16FixedLatCore is
    generic (
       TPD_G : time := 1 ns;
@@ -86,6 +89,7 @@ entity Gtp16FixedLatCore is
 
 end Gtp16FixedLatCore;
 
+--! architecture declaration
 architecture rtl of Gtp16FixedLatCore is
 
    signal gtpPllLockDetInt : sl;

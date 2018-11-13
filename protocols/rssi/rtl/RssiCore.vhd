@@ -121,6 +121,7 @@ entity RssiCore is
       maxSegSize_o    : out slv(15 downto 0));
 end entity RssiCore;
 
+--! architecture declaration
 architecture rtl of RssiCore is
 
    constant BUFFER_ADDR_WIDTH_C : positive := (SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G);

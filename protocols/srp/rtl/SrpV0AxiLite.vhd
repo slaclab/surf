@@ -76,6 +76,7 @@ entity SrpV0AxiLite is
 
 end SrpV0AxiLite;
 
+--! architecture declaration
 architecture rtl of SrpV0AxiLite is
 
    constant SLAVE_FIFO_SSI_CONFIG_C  : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_COMP_C);

@@ -13,14 +13,16 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
+library ieee;
+use ieee.std_logic_1164.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
+library unisim;
+use unisim.vcomponents.all;
 
+--! Entity declaration for ClkOutBufDiff
 entity ClkOutBufDiff is
    generic (
       TPD_G          : time    := 1 ns;
@@ -35,6 +37,7 @@ entity ClkOutBufDiff is
       clkOutN : out sl);                       -- differential output buffer
 end ClkOutBufDiff;
 
+--! architecture declaration
 architecture rtl of ClkOutBufDiff is
 
    signal clkDdr : sl;

@@ -68,6 +68,7 @@ entity Pgp3Tx is
 
 end entity Pgp3Tx;
 
+--! architecture declaration
 architecture rtl of Pgp3Tx is
 
    -- Synchronized statuses

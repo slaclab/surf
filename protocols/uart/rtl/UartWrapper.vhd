@@ -51,6 +51,7 @@ entity UartWrapper is
 
 end entity UartWrapper;
 
+--! architecture declaration
 architecture rtl of UartWrapper is
 
    signal uartTxData  : slv(7 downto 0);

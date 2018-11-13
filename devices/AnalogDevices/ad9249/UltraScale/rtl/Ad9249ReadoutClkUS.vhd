@@ -71,7 +71,7 @@ entity Ad9249ReadoutClkUS is
       );
 end Ad9249ReadoutClkUS;
 
--- Define architecture
+--! architecture declaration
 architecture rtl of Ad9249ReadoutClkUS is
    -------------------------------------------------------------------------------------------------
    -- ADC Readout Clocked Registers

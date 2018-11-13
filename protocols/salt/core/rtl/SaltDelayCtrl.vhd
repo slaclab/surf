@@ -35,6 +35,7 @@ entity SaltDelayCtrl is
       refRst        : in  sl);
 end SaltDelayCtrl;
 
+--! architecture declaration
 architecture mapping of SaltDelayCtrl is
 
    signal syncRst : sl;

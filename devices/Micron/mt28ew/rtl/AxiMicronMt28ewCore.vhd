@@ -46,6 +46,7 @@ entity AxiMicronMt28ewCore is
       axiRst         : in    sl);
 end AxiMicronMt28ewCore;
 
+--! architecture declaration
 architecture mapping of AxiMicronMt28ewCore is
 
    signal flashDin  : slv(15 downto 0);

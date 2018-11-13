@@ -46,6 +46,7 @@ entity AxiAd5780Reg is
       dacRst         : out sl);      
 end AxiAd5780Reg;
 
+--! architecture declaration
 architecture rtl of AxiAd5780Reg is
 
    constant DOUBLE_SCK_FREQ_C      : real             := SPI_CLK_FREQ_G * 2.0E+0;

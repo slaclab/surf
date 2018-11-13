@@ -45,6 +45,7 @@ entity Encoder12b14b is
 
 end entity Encoder12b14b;
 
+--! architecture declaration
 architecture rtl of Encoder12b14b is
 
    type RegType is record

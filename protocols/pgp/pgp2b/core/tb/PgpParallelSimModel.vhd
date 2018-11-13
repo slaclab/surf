@@ -58,6 +58,7 @@ entity PgpParallelSimModel is
       pgpOut       : out slv(19 downto 0));       
 end PgpParallelSimModel;
 
+--! architecture declaration
 architecture mapping of PgpParallelSimModel is
 
    constant SPEED_OF_LIGHT_C    : real    := 299792458.0;  -- speed of light in a vacuum (m/s)

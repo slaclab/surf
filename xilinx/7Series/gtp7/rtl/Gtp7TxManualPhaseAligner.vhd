@@ -41,6 +41,7 @@ entity Gtp7TxManualPhaseAligner is
       gtTxDlyEn         : out sl);
 end Gtp7TxManualPhaseAligner;
 
+--! architecture declaration
 architecture rtl of Gtp7TxManualPhaseAligner is
 
    type StateType is (

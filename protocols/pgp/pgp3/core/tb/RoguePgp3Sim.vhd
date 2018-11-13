@@ -64,6 +64,7 @@ entity RoguePgp3Sim is
       axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_OK_C);
 end entity RoguePgp3Sim;
 
+--! architecture declaration
 architecture sim of RoguePgp3Sim is
 
    signal clk : sl := '0';

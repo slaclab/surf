@@ -72,6 +72,7 @@ entity RssiHeaderReg is
    );
 end entity RssiHeaderReg;
 
+--! architecture declaration
 architecture rtl of RssiHeaderReg is
   
    type RegType is record

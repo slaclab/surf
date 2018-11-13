@@ -89,6 +89,7 @@ entity RssiCoreWrapper is
       statusReg_o       : out slv(6 downto 0));
 end entity RssiCoreWrapper;
 
+--! architecture declaration
 architecture mapping of RssiCoreWrapper is
 
    signal rxMasters : AxiStreamMasterArray(APP_STREAMS_G-1 downto 0);

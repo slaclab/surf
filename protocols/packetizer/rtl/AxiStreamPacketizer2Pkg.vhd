@@ -112,6 +112,7 @@ package AxiStreamPacketizer2Pkg is
 
 end package AxiStreamPacketizer2Pkg;
 
+--! package body declaration
 package body AxiStreamPacketizer2Pkg is
 
    function crcStrToSlv (CRC_MODE_C : string) return slv is

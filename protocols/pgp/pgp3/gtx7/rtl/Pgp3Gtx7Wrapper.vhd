@@ -105,6 +105,7 @@ entity Pgp3Gtx7Wrapper is
       axilWriteSlave    : out AxiLiteWriteSlaveType                                  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 end Pgp3Gtx7Wrapper;
 
+--! architecture declaration
 architecture rtl of Pgp3Gtx7Wrapper is
 
    signal qpllLock       : slv(3 downto 0) := (others => '0');

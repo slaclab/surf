@@ -123,6 +123,7 @@ entity RssiRxFsm is
    );
 end entity RssiRxFsm;
 
+--! architecture declaration
 architecture rtl of RssiRxFsm is
    -- Init SSI bus
    constant SSI_MASTER_INIT_C   : SsiMasterType := axis2SsiMaster(RSSI_AXIS_CONFIG_C, AXI_STREAM_MASTER_INIT_C);

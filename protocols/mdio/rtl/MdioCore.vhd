@@ -53,6 +53,7 @@ entity MdioCore is
    );
 end entity MdioCore;
 
+--! architecture declaration
 architecture MdioCoreImpl of MdioCore is
 
    constant DIV_BITS_C : positive := bitSize( DIV_G - 1);

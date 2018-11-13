@@ -41,6 +41,7 @@ entity Pgp3Gtp7RxGearbox is
       phyRxData     : out slv(63 downto 0));
 end Pgp3Gtp7RxGearbox;
 
+--! architecture declaration
 architecture rtl of Pgp3Gtp7RxGearbox is
 
    type RegType is record

@@ -111,6 +111,7 @@ entity Pgp2bGtx7VarLatWrapper is
       axilWriteSlave  : out AxiLiteWriteSlaveType);  
 end Pgp2bGtx7VarLatWrapper;
 
+--! architecture declaration
 architecture mapping of Pgp2bGtx7VarLatWrapper is
 
    signal refClk      : sl;

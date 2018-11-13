@@ -45,6 +45,7 @@ entity SaltTx is
       txData      : out slv(7 downto 0));
 end SaltTx;
 
+--! architecture declaration
 architecture rtl of SaltTx is
 
    type StateType is (

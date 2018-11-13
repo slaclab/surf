@@ -78,6 +78,7 @@ entity AxiStreamDmaRingWrite is
 
 end entity AxiStreamDmaRingWrite;
 
+--! architecture declaration
 architecture rtl of AxiStreamDmaRingWrite is
 
    -- Ram contents represent AXI address shifted by 2

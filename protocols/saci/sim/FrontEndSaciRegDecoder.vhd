@@ -44,6 +44,7 @@ entity FrontEndSaciRegDecoder is
 
 end entity FrontEndSaciRegDecoder;
 
+--! architecture declaration
 architecture rtl of FrontEndSaciRegDecoder is
 
   constant FRONT_END_REG_WRITE_C : sl := '1';

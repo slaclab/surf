@@ -33,6 +33,7 @@ entity UartBrg is
 
 end entity UartBrg;
 
+--! architecture declaration
 architecture rtl of UartBrg is
 
    constant CLK_DIV_C : integer := integer(CLK_FREQ_G / real(BAUD_RATE_G * MULTIPLIER_G)) - 1;

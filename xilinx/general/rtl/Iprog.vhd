@@ -20,6 +20,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.TextUtilPkg.all;
 
+--! Entity declaration for Iprog
 entity Iprog is
    generic (
       TPD_G          : time     := 1 ns;
@@ -35,6 +36,7 @@ entity Iprog is
       bootAddress : in slv(31 downto 0) := X"00000000");
 end Iprog;
 
+--! architecture declaration
 architecture rtl of Iprog is
 
    component Iprog7Series is

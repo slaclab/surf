@@ -62,6 +62,7 @@ entity AxiI2cEepromCore is
       axilRst         : in  sl);     
 end AxiI2cEepromCore;
 
+--! architecture declaration
 architecture rtl of AxiI2cEepromCore is
 
    -- Note: PRESCALE_G = (clk_freq / (5 * i2c_freq)) - 1

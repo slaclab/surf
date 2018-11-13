@@ -24,6 +24,7 @@ use surf.StdRtlPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for TenGigEthRst
 entity TenGigEthRst is
    generic (
       TPD_G : time := 1 ns);
@@ -45,6 +46,7 @@ entity TenGigEthRst is
       qpllRst     : out sl);      
 end TenGigEthRst;
 
+--! architecture declaration
 architecture rtl of TenGigEthRst is
 
    signal txClock : sl;

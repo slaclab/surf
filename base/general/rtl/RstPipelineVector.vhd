@@ -34,6 +34,7 @@ entity RstPipelineVector is
       rstOut : out slv(WIDTH_G-1 downto 0));
 end RstPipelineVector;
 
+--! architecture declaration
 architecture mapping of RstPipelineVector is
 
 begin

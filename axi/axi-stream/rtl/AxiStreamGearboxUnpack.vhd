@@ -49,6 +49,7 @@ entity AxiStreamGearboxUnpack is
 
 end entity AxiStreamGearboxUnpack;
 
+--! architecture declaration
 architecture rtl of AxiStreamGearboxUnpack is
    
    constant STREAM_WIDTH_C    : integer                           := AXI_STREAM_CONFIG_G.TDATA_BYTES_C*8;

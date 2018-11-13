@@ -24,6 +24,7 @@ use surf.StdRtlPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for InputBufferReg
 entity InputBufferReg is
    generic (
       TPD_G          : time    := 1 ns;
@@ -39,6 +40,7 @@ entity InputBufferReg is
       Q2 : out sl);
 end InputBufferReg;
 
+--! architecture declaration
 architecture rtl of InputBufferReg is
 
    signal inputSig : sl;

@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 
+--! Entity declaration for UdpEngineArp
 entity UdpEngineArp is
    generic (
       TPD_G          : time     := 1 ns;
@@ -45,6 +46,7 @@ entity UdpEngineArp is
       rst             : in  sl);
 end UdpEngineArp;
 
+--! architecture declaration
 architecture rtl of UdpEngineArp is
 
    constant TIMER_1_SEC_C : natural := getTimeRatio(CLK_FREQ_G, 1.0);

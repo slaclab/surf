@@ -125,6 +125,7 @@ entity Pgp2bGtp7FixedLatWrapper is
       axilWriteSlave   : out AxiLiteWriteSlaveType);
 end Pgp2bGtp7FixedLatWrapper;
 
+--! architecture declaration
 architecture rtl of Pgp2bGtp7FixedLatWrapper is
 
    constant PLL0_CFG_C : Gtp7QPllCfgType := ite(TX_PLL_G = "PLL0", TX_PLL_CFG_G, RX_PLL_CFG_G);

@@ -39,6 +39,7 @@ entity AxiReadEmulate is
       axiReadSlave  : out AxiReadSlaveType);
 end AxiReadEmulate;
 
+--! architecture declaration
 architecture structure of AxiReadEmulate is
 
    type StateType is (

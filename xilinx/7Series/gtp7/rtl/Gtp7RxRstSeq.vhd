@@ -89,6 +89,7 @@ entity Gtp7RxRstSeq is
       );
 end Gtp7RxRstSeq;
 
+--! architecture declaration
 architecture Behavioral of Gtp7RxRstSeq is
 
    type state_type is (

@@ -27,7 +27,7 @@ use surf.ClinkPkg.all;
 --! Entity declaration for ClinkFramerTb
 entity ClinkFramerTb is end ClinkFramerTb;
 
--- Define architecture
+--! architecture declaration
 architecture test of ClinkFramerTb is
 
    constant AXIS_CONFIG_C : AxiStreamConfigType := (

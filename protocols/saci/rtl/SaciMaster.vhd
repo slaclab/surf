@@ -44,6 +44,7 @@ entity SaciMaster is
 
 end entity SaciMaster;
 
+--! architecture declaration
 architecture rtl of SaciMaster is
 
   type SynchronizerType is record

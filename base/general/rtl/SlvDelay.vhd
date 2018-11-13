@@ -41,6 +41,7 @@ entity SlvDelay is
       dout  : out slv(WIDTH_G-1 downto 0));
 end entity SlvDelay;
 
+--! architecture declaration
 architecture rtl of SlvDelay is
 
    constant INIT_C : slv(WIDTH_G-1 downto 0) := ite(INIT_G = "0", slvZero(WIDTH_G), INIT_G);

@@ -89,6 +89,7 @@ entity JesdTxLane is
    );
 end JesdTxLane;
 
+--! architecture declaration
 architecture rtl of JesdTxLane is
 
    -- Internal signals

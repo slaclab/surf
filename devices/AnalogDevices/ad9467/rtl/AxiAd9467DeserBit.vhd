@@ -45,6 +45,7 @@ entity AxiAd9467DeserBit is
       refClk200MHz : in  sl);
 end AxiAd9467DeserBit;
 
+--! architecture declaration
 architecture rtl of AxiAd9467DeserBit is
    
    signal data,

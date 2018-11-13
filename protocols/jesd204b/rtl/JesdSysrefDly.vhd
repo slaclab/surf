@@ -47,6 +47,7 @@ entity JesdSysrefDly is
    );
 end entity JesdSysrefDly;
 
+--! architecture declaration
 architecture rtl of JesdSysrefDly is
    
    type RegType is record

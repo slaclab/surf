@@ -141,6 +141,7 @@ package Code10b12bPkg is
 
 end package Code10b12bPkg;
 
+--! package body declaration
 package body Code10b12bPkg is
 
    function toString (code : slv(9 downto 0); k : sl) return string is

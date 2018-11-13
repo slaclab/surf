@@ -23,6 +23,7 @@ use surf.AxiLitePkg.all;
 use surf.EthMacPkg.all;
 use surf.GigEthPkg.all;
 
+--! Entity declaration for GigEthGth7
 entity GigEthGth7 is
    generic (
       TPD_G           : time                := 1 ns;
@@ -63,6 +64,7 @@ entity GigEthGth7 is
       gtRxN              : in  sl);
 end GigEthGth7;
 
+--! architecture declaration
 architecture mapping of GigEthGth7 is
 
    component GigEthGth7Core

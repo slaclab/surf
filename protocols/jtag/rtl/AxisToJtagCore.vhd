@@ -122,6 +122,7 @@ entity AxisToJtagCore is
    );
 end entity AxisToJtagCore;
 
+--! architecture declaration
 architecture AxisToJtagCoreImpl of AxisToJtagCore is
 
 

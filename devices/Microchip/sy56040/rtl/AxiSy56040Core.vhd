@@ -40,6 +40,7 @@ entity AxiSy56040Core is
       axiRst         : in  sl);
 end AxiSy56040Core;
 
+--! architecture declaration
 architecture mapping of AxiSy56040Core is
 
 begin

@@ -40,6 +40,7 @@ entity Debouncer is
       o   : out sl);
 end entity Debouncer;
 
+--! architecture declaration
 architecture rtl of Debouncer is
    
    constant CLK_PERIOD_C   : real            := 1.0/CLK_FREQ_G;

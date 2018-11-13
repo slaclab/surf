@@ -31,7 +31,7 @@ use surf.AxiStreamPkg.all;
 --! Entity declaration for dma_read_tb
 entity dma_read_tb is end dma_read_tb;
 
--- Define architecture
+--! architecture declaration
 architecture dma_read_tb of dma_read_tb is
 
    constant CLK_PERIOD_C   : time    := 4 ns;

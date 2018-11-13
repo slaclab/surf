@@ -60,6 +60,7 @@ entity AxiAds42lb69Deser is
       refClk200MHz : in  sl);
 end AxiAds42lb69Deser;
 
+--! architecture declaration
 architecture rtl of AxiAds42lb69Deser is
 
    signal adcClock  : sl;

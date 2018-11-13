@@ -23,6 +23,7 @@ use surf.AxiLitePkg.all;
 use surf.EthMacPkg.all;
 use surf.GigEthPkg.all;
 
+--! Entity declaration for GigEthLvdsUltraScale
 entity GigEthLvdsUltraScale is
    generic (
       TPD_G           : time                := 1 ns;
@@ -70,6 +71,7 @@ entity GigEthLvdsUltraScale is
       sgmiiRxN           : in  sl);
 end GigEthLvdsUltraScale;
 
+--! architecture declaration
 architecture mapping of GigEthLvdsUltraScale is
 
    signal config : GigEthConfigType;

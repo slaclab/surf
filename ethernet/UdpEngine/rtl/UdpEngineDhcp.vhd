@@ -24,6 +24,7 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.EthMacPkg.all;
 
+--! Entity declaration for UdpEngineDhcp
 entity UdpEngineDhcp is
    generic (
       -- Simulation Generics
@@ -46,6 +47,7 @@ entity UdpEngineDhcp is
       rst          : in  sl);
 end UdpEngineDhcp;
 
+--! architecture declaration
 architecture rtl of UdpEngineDhcp is
 
    constant DHCP_CONFIG_C  : AxiStreamConfigType := ssiAxiStreamConfig(4);

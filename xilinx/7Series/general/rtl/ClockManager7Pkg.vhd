@@ -133,6 +133,7 @@ package ClockManager7Pkg is
    
 end package ClockManager7Pkg;
 
+--! package body declaration
 package body ClockManager7Pkg is
 
    function makeClockManager7Cfg (

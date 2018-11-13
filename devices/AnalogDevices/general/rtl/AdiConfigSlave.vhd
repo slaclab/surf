@@ -44,6 +44,7 @@ entity AdiConfigSlave is
 
 end entity AdiConfigSlave;
 
+--! architecture declaration
 architecture behavioral of AdiConfigSlave is
 
    type StateType is (

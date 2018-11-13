@@ -44,6 +44,7 @@ entity i2cRamSlave is
 
 end entity i2cRamSlave;
 
+--! architecture declaration
 architecture rtl of i2cRamSlave is
 
   type RamType is array (0 to 2**(8*ADDR_SIZE_G)-1) of slv(8*DATA_SIZE_G-1 downto 0);

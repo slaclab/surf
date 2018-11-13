@@ -42,6 +42,7 @@ entity UartSem is
       uartRx         : in  sl);
 end entity UartSem;
 
+--! architecture declaration
 architecture mapping of UartSem is
 
    signal wrData  : sl;

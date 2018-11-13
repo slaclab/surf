@@ -38,6 +38,7 @@ entity AxiStreamBytePackerTbRx is
       fail         : out sl);
 end AxiStreamBytePackerTbRx;
 
+--! architecture declaration
 architecture rtl of AxiStreamBytePackerTbRx is
 
    type RegType is record

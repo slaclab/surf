@@ -26,6 +26,7 @@ use surf.XauiPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! Entity declaration for XauiGtyUltraScaleWrapper
 entity XauiGtyUltraScaleWrapper is
    generic (
       TPD_G             : time                := 1 ns;
@@ -76,6 +77,7 @@ entity XauiGtyUltraScaleWrapper is
       gtRxN              : in  slv(3 downto 0));
 end XauiGtyUltraScaleWrapper;
 
+--! architecture declaration
 architecture mapping of XauiGtyUltraScaleWrapper is
 
    signal refClk   : sl;

@@ -53,6 +53,7 @@ entity AxiMicronN25QCore is
       axiRst         : in  sl);
 end AxiMicronN25QCore;
 
+--! architecture declaration
 architecture mapping of AxiMicronN25QCore is
 
 begin

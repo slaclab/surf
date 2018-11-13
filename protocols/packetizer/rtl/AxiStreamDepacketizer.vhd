@@ -49,6 +49,7 @@ entity AxiStreamDepacketizer is
 
 end entity AxiStreamDepacketizer;
 
+--! architecture declaration
 architecture rtl of AxiStreamDepacketizer is
 
    constant AXIS_CONFIG_C : AxiStreamConfigType := (

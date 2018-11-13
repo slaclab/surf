@@ -24,6 +24,7 @@ use surf.AxiLitePkg.all;
 use surf.EthMacPkg.all;
 use surf.XauiPkg.all;
 
+--! Entity declaration for XauiReg
 entity XauiReg is
    generic (
       TPD_G        : time    := 1 ns;
@@ -45,6 +46,7 @@ entity XauiReg is
       status         : in  XauiStatus);
 end XauiReg;
 
+--! architecture declaration
 architecture rtl of XauiReg is
 
    constant STATUS_SIZE_C : positive := 32;

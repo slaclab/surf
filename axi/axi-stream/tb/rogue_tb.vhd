@@ -28,7 +28,7 @@ use surf.AxiStreamPkg.all;
 --! Entity declaration for rogue_tb
 entity rogue_tb is end rogue_tb;
 
--- Define architecture
+--! architecture declaration
 architecture rogue_tb of rogue_tb is
 
    constant TPD_C     : time := 1 ns;

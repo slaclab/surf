@@ -90,6 +90,7 @@ entity Pgp3Gtp7IpWrapper is
       axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 end entity Pgp3Gtp7IpWrapper;
 
+--! architecture declaration
 architecture mapping of Pgp3Gtp7IpWrapper is
 
    component Pgp3Gtp7Ip6G

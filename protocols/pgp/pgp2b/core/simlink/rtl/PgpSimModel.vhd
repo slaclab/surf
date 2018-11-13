@@ -62,8 +62,7 @@ entity PgpSimModel is
 
 end PgpSimModel;
 
-
--- Define architecture
+--! architecture declaration
 architecture PgpSimModel of PgpSimModel is
 
    signal muxedTxMaster      : AxiStreamMasterType;

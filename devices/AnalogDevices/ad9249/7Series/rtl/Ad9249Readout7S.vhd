@@ -62,7 +62,7 @@ entity Ad9249ReadoutGroup7S is
       (others => axiStreamMasterInit((false, 2, 8, 0, TKEEP_NORMAL_C, 0, TUSER_NORMAL_C))));
 end Ad9249ReadoutGroup7S;
 
--- Define architecture
+--! architecture declaration
 architecture rtl of Ad9249ReadoutGroup7S is
 
    -------------------------------------------------------------------------------------------------

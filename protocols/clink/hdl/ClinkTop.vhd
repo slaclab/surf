@@ -85,6 +85,7 @@ entity ClinkTop is
       axilWriteSlave  : out AxiLiteWriteSlaveType);
 end ClinkTop;
 
+--! architecture declaration
 architecture rtl of ClinkTop is
 
    type RegType is record
