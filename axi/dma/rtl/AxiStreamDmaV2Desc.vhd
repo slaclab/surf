@@ -139,7 +139,6 @@ architecture rtl of AxiStreamDmaV2Desc is
       axiWriteMaster : AxiWriteMasterType;
 
       -- Configuration
-      buffBaseAddr : slv(31 downto 0);   -- For buffer entries
       wrBaseAddr   : slv(63 downto 0);   -- For wr ring buffer
       rdBaseAddr   : slv(63 downto 0);   -- For rd ring buffer
       maxSize      : slv(31 downto 0);
@@ -202,7 +201,6 @@ architecture rtl of AxiStreamDmaV2Desc is
       axilReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C,
       axiWriteMaster  => axiWriteMasterInit(AXI_CONFIG_G, '1', "01", "0000"),
-      buffBaseAddr    => (others => '0'),
       wrBaseAddr      => (others => '0'),
       rdBaseAddr      => (others => '0'),
       maxSize         => (others => '0'),
@@ -472,7 +470,6 @@ begin
       axiSlaveRegister(regCon, x"018", 0, v.rdBaseAddr(31 downto 0));
       axiSlaveRegister(regCon, x"01C", 0, v.rdBaseAddr(63 downto 32));
       axiSlaveRegister(regCon, x"020", 0, v.fifoReset);
-      axiSlaveRegister(regCon, x"024", 0, v.buffBaseAddr);
       axiSlaveRegister(regCon, x"028", 0, v.maxSize);
       axiSlaveRegister(regCon, x"02C", 0, v.online);
       axiSlaveRegister(regCon, x"030", 0, v.acknowledge);
@@ -604,11 +601,11 @@ begin
          for i in 0 to CHAN_COUNT_G-1 loop
 
             if DESC_128_EN_C then
-               v.dmaWrDescAck(i).address(63 downto 40) := r.buffBaseAddr(31 downto 8);
+               v.dmaWrDescAck(i).address(63 downto 40) := (others=>'0');
                v.dmaWrDescAck(i).address(39 downto  4) := wrFifoDout(63 downto 28);
                v.dmaWrDescAck(i).address(3  downto  0) := (others=>'0');
             else
-               v.dmaWrDescAck(i).address(63 downto 32) := r.buffBaseAddr;
+               v.dmaWrDescAck(i).address(63 downto 32) := (others=>'0');
                v.dmaWrDescAck(i).address(31 downto  0) := r.wrAddr;
             end if;
 
@@ -876,7 +873,7 @@ begin
 
       -- Format request, 128-bits
       if DESC_128_EN_C then
-         dmaRdReq.address(63 downto 40) := r.buffBaseAddr(31 downto 8);
+         dmaRdReq.address(63 downto 40) := (others=>'0');
          dmaRdReq.address(39 downto  4) := rdFifoDout(127 downto 92);
          dmaRdReq.address(3  downto  0) := (others=>'0');
          dmaRdReq.buffId(27 downto 0)   := rdFifoDout(91 downto 64);
@@ -890,7 +887,7 @@ begin
 
       -- Format request, 64-bits
       else 
-         dmaRdReq.address(63 downto 32) := r.buffBaseAddr;
+         dmaRdReq.address(63 downto 32) := (others=>'0');
          dmaRdReq.address(31 downto  0) := r.rdAddr;
          dmaRdReq.dest                  := rdFifoDout(63 downto 56);
          dmaRdReq.size(23 downto 0)     := rdFifoDout(55 downto 32);
