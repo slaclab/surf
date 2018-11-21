@@ -25,7 +25,7 @@ package AxiRssiPkg is
 
    --! Default RSSI AXI configuration
    constant RSSI_AXI_CONFIG_C : AxiConfigType := (
-      ADDR_WIDTH_C => 14,               -- 2^14 = 16kB buffer
+      ADDR_WIDTH_C => 13,               -- 2^13 = 8kB buffer
       DATA_BYTES_C => 8,                -- 8 bytes = 64-bits
       ID_BITS_C    => 2,
       LEN_BITS_C   => 8);               -- Up to 4kB bursting

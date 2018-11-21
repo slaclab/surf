@@ -52,9 +52,7 @@ entity AxiRssiCore is
       SERVER_G            : boolean             := true;  --! Module is server or client      
       -- AXI Configurations
       MAX_SEG_SIZE_G      : positive            := 1024;  --! max. payload size (units of bytes)
-      AXI_CONFIG_G        : AxiConfigType       := RSSI_AXI_CONFIG_C;  --! Defines the AXI configuration but ADDR_WIDTH_C should be defined as the space for RSSI and maybe not the entire mememory address space
-      BYP_TX_BUFFER_G     : boolean             := false;
-      BYP_RX_BUFFER_G     : boolean             := false;
+      AXI_CONFIG_G        : AxiConfigType       := RSSI_AXI_CONFIG_C;  --! Defines the AXI configuration but ADDR_WIDTH_C should be defined as the space for RSSI and maybe not the entire memory address space
       -- AXIS Configurations
       APP_AXIS_CONFIG_G   : AxiStreamConfigType := ssiAxiStreamConfig(8, TKEEP_NORMAL_C);
       TSP_AXIS_CONFIG_G   : AxiStreamConfigType := ssiAxiStreamConfig(16, TKEEP_NORMAL_C);
@@ -76,12 +74,18 @@ entity AxiRssiCore is
    port (
       clk              : in  sl;
       rst              : in  sl;
-      -- AXI Segment Buffer Interface
-      axiOffset        : in  slv(63 downto 0)       := (others => '0');  --! Used to apply an address offset to the master AXI transactions
-      mAxiWriteMaster  : out AxiWriteMasterType;
-      mAxiWriteSlave   : in  AxiWriteSlaveType;
-      mAxiReadMaster   : out AxiReadMasterType;
-      mAxiReadSlave    : in  AxiReadSlaveType;
+      -- AXI TX Segment Buffer Interface
+      txAxiOffset      : in  slv(63 downto 0);  --! Used to apply an address offset to the master AXI transactions
+      txAxiWriteMaster : out AxiWriteMasterType;
+      txAxiWriteSlave  : in  AxiWriteSlaveType;
+      txAxiReadMaster  : out AxiReadMasterType;
+      txAxiReadSlave   : in  AxiReadSlaveType;
+      -- AXI RX Segment Buffer Interface
+      rxAxiOffset      : in  slv(63 downto 0);  --! Used to apply an address offset to the master AXI transactions
+      rxAxiWriteMaster : out AxiWriteMasterType;
+      rxAxiWriteSlave  : in  AxiWriteSlaveType;
+      rxAxiReadMaster  : out AxiReadMasterType;
+      rxAxiReadSlave   : in  AxiReadSlaveType;
       -- High level  Application side interface
       openRq           : in  sl                     := '0';
       closeRq          : in  sl                     := '0';
@@ -111,25 +115,14 @@ architecture rtl of AxiRssiCore is
    constant INT_AXI_CONFIG_C : AxiConfigType := axiConfig(
       ADDR_WIDTH_C => AXI_CONFIG_G.ADDR_WIDTH_C,
       DATA_BYTES_C => RSSI_WORD_WIDTH_C,
-      ID_BITS_C    => 2,
+      ID_BITS_C    => AXI_CONFIG_G.ID_BITS_C,
       LEN_BITS_C   => AXI_CONFIG_G.LEN_BITS_C);
 
-   constant BYP_DET_G : boolean := (BYP_TX_BUFFER_G or BYP_RX_BUFFER_G);
-
-   constant MAX_SEGS_BITS_C : positive := bitSize(MAX_SEG_SIZE_G);
-
+   constant MAX_SEGS_BITS_C     : positive := bitSize(MAX_SEG_SIZE_G-1);
    constant SEGMENT_ADDR_SIZE_C : positive := (MAX_SEGS_BITS_C-3);  --! 2^SEGMENT_ADDR_SIZE_C = Number of 64 bit wide data words
-
-   constant WINDOW_ADDR_SIZE_C : positive := ite(  --! 2^WINDOW_ADDR_SIZE_C  = Max number of segments in buffer
-      BYP_DET_G, (AXI_CONFIG_G.ADDR_WIDTH_C-MAX_SEGS_BITS_C),  -- Use full address space
-      (AXI_CONFIG_G.ADDR_WIDTH_C-MAX_SEGS_BITS_C-1));  -- partition address space in half for TX segments and RX segments
-
-   constant MAX_NUM_OUTS_SEG_C : positive := (2**WINDOW_ADDR_SIZE_C);  --! MAX_NUM_OUTS_SEG_C=(2**WINDOW_ADDR_SIZE_G)
-
-   constant HALF_BUFFER_WIDTH_C : natural := ite(BYP_DET_G, 0,  -- Use full address space
-                                                 2**(AXI_CONFIG_G.ADDR_WIDTH_C-1));  -- partition address space in half for TX segments and RX segments
-   constant AXI_TX_ADDR_OFFSET_C : slv(63 downto 0) := toSlv(0, 64);
-   constant AXI_RX_ADDR_OFFSET_C : slv(63 downto 0) := toSlv(HALF_BUFFER_WIDTH_C, 64);
+   constant WINDOW_ADDR_SIZE_C  : positive := (AXI_CONFIG_G.ADDR_WIDTH_C-MAX_SEGS_BITS_C);  --! 2^WINDOW_ADDR_SIZE_C  = Max number of segments in buffer
+   constant MAX_NUM_OUTS_SEG_C  : positive := (2**WINDOW_ADDR_SIZE_C);  --! MAX_NUM_OUTS_SEG_C=(2**WINDOW_ADDR_SIZE_C)
+   constant AXI_BURST_BYTES_C   : positive := ite((MAX_SEG_SIZE_G > 4096), 4096, 2**MAX_SEGS_BITS_C);  -- Enforce power of 2 and up to 4kB AXI burst
 
    -- RSSI Parameters
    signal s_appRssiParam : RssiParamType;
@@ -151,7 +144,6 @@ architecture rtl of AxiRssiCore is
    signal s_openRq     : sl;
    signal s_intCloseRq : sl;
    signal s_txAckF     : sl;
-   signal s_rstFifo    : sl;  --! Application Fifo reset when connection is closed
 
    -- Fault injection
    signal s_injectFaultReg : sl;
@@ -232,18 +224,6 @@ architecture rtl of AxiRssiCore is
    signal s_frameRate    : Slv32Array(1 downto 0);
    signal s_bandwidth    : Slv64Array(1 downto 0);
 
-   -- AXI Memory Interface for segment buffering
-   signal s_axiWriteMasters : AxiWriteMasterArray(1 downto 0);
-   signal s_axiWriteSlaves  : AxiWriteSlaveArray(1 downto 0);
-   signal s_axiReadMasters  : AxiReadMasterArray(1 downto 0);
-   signal s_axiReadSlaves   : AxiReadSlaveArray(1 downto 0);
-   signal s_axiWriteMaster  : AxiWriteMasterType;
-   signal s_axiWriteSlave   : AxiWriteSlaveType;
-   signal s_axiReadMaster   : AxiReadMasterType;
-   signal s_axiReadSlave    : AxiReadSlaveType;
-   signal s_axiTxOffset     : slv(63 downto 0);
-   signal s_axiRxOffset     : slv(63 downto 0);
-
 begin
 
    assert (MAX_NUM_OUTS_SEG_C <= 256)
@@ -251,62 +231,6 @@ begin
 
    statusReg  <= s_statusReg;
    maxSegSize <= s_rxRssiParam.maxSegSize;
-
-   s_axiTxOffset <= axiOffset + AXI_TX_ADDR_OFFSET_C;
-   s_axiRxOffset <= axiOffset + AXI_RX_ADDR_OFFSET_C;
-
-   ----------------------------------------
-   -- AXI Memory Segment MUX'ing and Resize
-   ----------------------------------------
-   U_AxiReadPathMux : entity work.AxiReadPathMux
-      generic map (
-         TPD_G        => TPD_G,
-         NUM_SLAVES_G => 2)
-      port map (
-         -- Clock and reset
-         axiClk          => clk,
-         axiRst          => rst,
-         -- Slaves
-         sAxiReadMasters => s_axiReadMasters,
-         sAxiReadSlaves  => s_axiReadSlaves,
-         -- Master
-         mAxiReadMaster  => s_axiReadMaster,
-         mAxiReadSlave   => s_AxiReadSlave);
-
-   U_AxiWritePathMux : entity work.AxiWritePathMux
-      generic map (
-         TPD_G        => TPD_G,
-         NUM_SLAVES_G => 2)
-      port map (
-         -- Clock and reset
-         axiClk           => clk,
-         axiRst           => rst,
-         -- Slaves
-         sAxiWriteMasters => s_axiWriteMasters,
-         sAxiWriteSlaves  => s_axiWriteSlaves,
-         -- Master
-         mAxiWriteMaster  => s_axiWriteMaster,
-         mAxiWriteSlave   => s_axiWriteSlave);
-
-   U_AxiResize : entity work.AxiResize
-      generic map (
-         TPD_G               => TPD_G,
-         SLAVE_AXI_CONFIG_G  => INT_AXI_CONFIG_C,
-         MASTER_AXI_CONFIG_G => AXI_CONFIG_G)
-      port map (
-         -- Clock and reset
-         axiClk          => clk,
-         axiRst          => rst,
-         -- Slave Port
-         sAxiReadMaster  => s_axiReadMaster,
-         sAxiReadSlave   => s_axiReadSlave,
-         sAxiWriteMaster => s_axiWriteMaster,
-         sAxiWriteSlave  => s_axiWriteSlave,
-         -- Master Port
-         mAxiReadMaster  => mAxiReadMaster,
-         mAxiReadSlave   => mAxiReadSlave,
-         mAxiWriteMaster => mAxiWriteMaster,
-         mAxiWriteSlave  => mAxiWriteSlave);
 
    ---------------------
    -- Register interface
@@ -552,7 +476,7 @@ begin
       port map (
          -- Clock and reset
          axisClk     => clk,
-         axisRst     => s_rstFifo,
+         axisRst     => rst,
          -- Slave Port
          sAxisMaster => s_monMasters(0),
          sAxisSlave  => s_monSlaves(0),
@@ -562,7 +486,6 @@ begin
 
    s_monMasters(0) <= sAppAxisMaster;
    sAppAxisSlave   <= s_monSlaves(0);
-   s_rstFifo       <= rst or not s_connActive;  -- Application Fifo reset when connection is closed
 
    -----------------------------------
    -- Transmitter Finite State Machine
@@ -571,7 +494,7 @@ begin
       generic map (
          TPD_G               => TPD_G,
          AXI_CONFIG_G        => INT_AXI_CONFIG_C,
-         BYP_BUFFER_G        => BYP_TX_BUFFER_G,
+         BURST_BYTES_G       => AXI_BURST_BYTES_C,
          WINDOW_ADDR_SIZE_G  => WINDOW_ADDR_SIZE_C,
          SEGMENT_ADDR_SIZE_G => SEGMENT_ADDR_SIZE_C,
          HEADER_CHKSUM_EN_G  => HEADER_CHKSUM_EN_G)
@@ -579,11 +502,11 @@ begin
          clk_i             => clk,
          rst_i             => rst,
          -- AXI Segment Buffer Interface
-         axiOffset_i       => s_axiTxOffset,
-         mAxiWriteMaster_o => s_axiWriteMasters(0),
-         mAxiWriteSlave_i  => s_axiWriteSlaves(0),
-         mAxiReadMaster_o  => s_axiReadMasters(0),
-         mAxiReadSlave_i   => s_axiReadSlaves(0),
+         axiOffset_i       => txAxiOffset,
+         mAxiWriteMaster_o => txAxiWriteMaster,
+         mAxiWriteSlave_i  => txAxiWriteSlave,
+         mAxiReadMaster_o  => txAxiReadMaster,
+         mAxiReadSlave_i   => txAxiReadSlave,
          -- Inbound Application Interface
          appMaster_i       => s_mAppAxisMaster,
          appSlave_o        => s_mAppAxisSlave,
@@ -689,7 +612,7 @@ begin
       generic map (
          TPD_G               => TPD_G,
          AXI_CONFIG_G        => INT_AXI_CONFIG_C,
-         BYP_BUFFER_G        => BYP_RX_BUFFER_G,
+         BURST_BYTES_G       => AXI_BURST_BYTES_C,
          WINDOW_ADDR_SIZE_G  => WINDOW_ADDR_SIZE_C,
          HEADER_CHKSUM_EN_G  => HEADER_CHKSUM_EN_G,
          SEGMENT_ADDR_SIZE_G => SEGMENT_ADDR_SIZE_C)
@@ -697,11 +620,11 @@ begin
          clk_i             => clk,
          rst_i             => rst,
          -- AXI Segment Buffer Interface
-         axiOffset_i       => s_axiRxOffset,
-         mAxiWriteMaster_o => s_axiWriteMasters(1),
-         mAxiWriteSlave_i  => s_axiWriteSlaves(1),
-         mAxiReadMaster_o  => s_axiReadMasters(1),
-         mAxiReadSlave_i   => s_axiReadSlaves(1),
+         axiOffset_i       => rxAxiOffset,
+         mAxiWriteMaster_o => rxAxiWriteMaster,
+         mAxiWriteSlave_i  => rxAxiWriteSlave,
+         mAxiReadMaster_o  => rxAxiReadMaster,
+         mAxiReadSlave_i   => rxAxiReadSlave,
          -- Inbound Transport Interface
          tspMaster_i       => s_mTspAxisMaster,
          tspSlave_o        => s_mTspAxisSlave,
@@ -749,7 +672,7 @@ begin
       port map (
          -- Clock and reset
          axisClk     => clk,
-         axisRst     => s_rstFifo,
+         axisRst     => rst,
          -- Slave Port
          sAxisMaster => s_sAppAxisMaster,
          sAxisSlave  => s_sAppAxisSlave,

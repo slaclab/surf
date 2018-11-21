@@ -53,7 +53,7 @@ entity AxiRssiTxFsm is
    generic (
       TPD_G               : time          := 1 ns;
       AXI_CONFIG_G        : AxiConfigType := RSSI_AXI_CONFIG_C;
-      BYP_BUFFER_G        : boolean       := false;
+      BURST_BYTES_G       : positive      := 1024;
       WINDOW_ADDR_SIZE_G  : positive      := 3;  -- 2^WINDOW_ADDR_SIZE_G  = Number of segments
       SEGMENT_ADDR_SIZE_G : positive      := 7;  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
       HEADER_CHKSUM_EN_G  : boolean       := true);
@@ -289,6 +289,7 @@ begin
          AXI_READY_EN_G    => true,
          AXIS_CONFIG_G     => RSSI_AXIS_CONFIG_C,
          AXI_CONFIG_G      => AXI_CONFIG_G,
+         BURST_BYTES_G     => BURST_BYTES_G,
          AXI_BURST_G       => "01",     -- INCR
          AXI_CACHE_G       => "0011",   -- Cacheable
          SW_CACHE_EN_G     => false,
@@ -499,7 +500,7 @@ begin
          -- -- Next state condition 
          -- if (r.eackAddr = r.nextSentAddr) then
          -- -- If the acked seqN is not found go to error state
-         -- v.appState   := IDLE_S;
+         -- v.ackState   := IDLE_S;
          -- end if;
          ----------------------------------------------------------------------
          when ERR_S =>
@@ -553,10 +554,6 @@ begin
                v.appBusy  := '1';
                -- Next state
                v.appState := IDLE_S;
-            -- Check if bypassing buffer
-            elsif (BYP_BUFFER_G = true) then
-               -- Blow off the data
-               v.appSlave.tReady := '1';
             -- Check for data
             elsif (appMaster_i.tValid = '1') then
                -- Check if SOF
@@ -649,8 +646,9 @@ begin
       -- /////////////////////////////////////////////////////////  
 
       -- Reset strobes
-      v.buffWe   := '0';
-      v.buffSent := '0';
+      v.buffWe     := '0';
+      v.buffSent   := '0';
+      v.rdDmaSlave := AXI_STREAM_SLAVE_INIT_C;
       if (tspSlave_i.tReady = '1') then
          v.tspMaster.tValid := '0';
          v.tspMaster.tLast  := '0';
@@ -737,7 +735,7 @@ begin
                -- Next state
                v.tspState := NSYN_H_S;
             -- Check for DATA
-            elsif (r.sndData = '1') and (r.bufferFull = '0') and (BYP_BUFFER_G = false) then
+            elsif (r.sndData = '1') and (r.bufferFull = '0') then
                -- Set the flags
                v.ackSndData    := '1';
                v.dataH         := '1';
@@ -991,7 +989,7 @@ begin
                   v.tspMaster.tData(55 downto 48) := v.checksum(15 downto 8);
                end if;
                -- Check for a Null or Rst packet
-               if (r.windowArray(txBufIdx).segType(2) = '1') or (r.windowArray(txBufIdx).segType(1) = '1') or (BYP_BUFFER_G = true) then
+               if (r.windowArray(txBufIdx).segType(2) = '1') or (r.windowArray(txBufIdx).segType(1) = '1') then
                   -- Set EOF flag
                   v.tspMaster.tLast := '1';
                   -- Next state

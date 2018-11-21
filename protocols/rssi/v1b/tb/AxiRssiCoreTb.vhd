@@ -59,16 +59,15 @@ architecture testbed of AxiRssiCoreTb is
    signal tspMasters : AxiStreamMasterArray(1 downto 0);
    signal tspSlaves  : AxiStreamSlaveArray(1 downto 0);
 
-   signal axiWriteMasters : AxiWriteMasterArray(1 downto 0);
-   signal axiWriteSlaves  : AxiWriteSlaveArray(1 downto 0);
-   signal axiReadMasters  : AxiReadMasterArray(1 downto 0);
-   signal axiReadSlaves   : AxiReadSlaveArray(1 downto 0);
+   signal axiWriteMasters : AxiWriteMasterArray(3 downto 0);
+   signal axiWriteSlaves  : AxiWriteSlaveArray(3 downto 0);
+   signal axiReadMasters  : AxiReadMasterArray(3 downto 0);
+   signal axiReadSlaves   : AxiReadSlaveArray(3 downto 0);
 
    signal rxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal rxSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
 
-   signal statusReg : slv(6 downto 0);
-
+   signal linkUp         : sl;
    signal updatedResults : sl;
    signal errorDet       : sl;
    signal rxBusy         : sl;
@@ -119,16 +118,24 @@ begin
          SERVER_G          => true,     -- Server
          AXI_CONFIG_G      => RSSI_AXI_CONFIG_C,
          APP_AXIS_CONFIG_G => (0 => RSSI_AXIS_CONFIG_C),
-         TSP_AXIS_CONFIG_G => RSSI_AXIS_CONFIG_C)
+         TSP_AXIS_CONFIG_G => RSSI_AXIS_CONFIG_C,
+         MAX_CUM_ACK_CNT_G => 1)
       port map (
          clk                => clk,
          rst                => rst,
          openRq             => '1',
-         -- AXI Segment Buffer Interface
-         mAxiWriteMaster    => axiWriteMasters(0),
-         mAxiWriteSlave     => axiWriteSlaves(0),
-         mAxiReadMaster     => axiReadMasters(0),
-         mAxiReadSlave      => axiReadSlaves(0),
+         -- AXI TX Segment Buffer Interface
+         txAxiOffset        => (others => '0'),
+         txAxiWriteMaster   => axiWriteMasters(0),
+         txAxiWriteSlave    => axiWriteSlaves(0),
+         txAxiReadMaster    => axiReadMasters(0),
+         txAxiReadSlave     => axiReadSlaves(0),
+         -- AXI RX Segment Buffer Interface
+         rxAxiOffset        => (others => '0'),
+         rxAxiWriteMaster   => axiWriteMasters(1),
+         rxAxiWriteSlave    => axiWriteSlaves(1),
+         rxAxiReadMaster    => axiReadMasters(1),
+         rxAxiReadSlave     => axiReadSlaves(1),
          -- Application Layer Interface
          sAppAxisMasters(0) => txMaster,
          sAppAxisSlaves(0)  => txSlave,
@@ -148,17 +155,25 @@ begin
          SERVER_G          => false,    -- Client
          AXI_CONFIG_G      => RSSI_AXI_CONFIG_C,
          APP_AXIS_CONFIG_G => (0 => RSSI_AXIS_CONFIG_C),
-         TSP_AXIS_CONFIG_G => RSSI_AXIS_CONFIG_C)
+         TSP_AXIS_CONFIG_G => RSSI_AXIS_CONFIG_C,
+         MAX_CUM_ACK_CNT_G => 1)
       port map (
          clk                => clk,
          rst                => rst,
          openRq             => '1',
-         statusReg          => statusReg,
-         -- AXI Segment Buffer Interface
-         mAxiWriteMaster    => axiWriteMasters(1),
-         mAxiWriteSlave     => axiWriteSlaves(1),
-         mAxiReadMaster     => axiReadMasters(1),
-         mAxiReadSlave      => axiReadSlaves(1),
+         linkUp             => linkUp,
+         -- AXI TX Segment Buffer Interface
+         txAxiOffset        => (others => '0'),
+         txAxiWriteMaster   => axiWriteMasters(2),
+         txAxiWriteSlave    => axiWriteSlaves(2),
+         txAxiReadMaster    => axiReadMasters(2),
+         txAxiReadSlave     => axiReadSlaves(2),
+         -- AXI RX Segment Buffer Interface
+         rxAxiOffset        => (others => '0'),
+         rxAxiWriteMaster   => axiWriteMasters(3),
+         rxAxiWriteSlave    => axiWriteSlaves(3),
+         rxAxiReadMaster    => axiReadMasters(3),
+         rxAxiReadSlave     => axiReadSlaves(3),
          -- Application Layer Interface
          sAppAxisMasters(0) => AXI_STREAM_MASTER_INIT_C,
          mAppAxisMasters(0) => rxMaster,
@@ -172,7 +187,7 @@ begin
    -------------
    -- AXI Memory
    -------------
-   GEN_VEC : for i in 1 downto 0 generate
+   GEN_VEC : for i in 3 downto 0 generate
       U_MEM : entity work.AxiRam
          generic map (
             TPD_G        => TPD_G,
@@ -208,7 +223,7 @@ begin
          errorDet       => errorDet,
          busy           => rxBusy);
 
-   comb : process (errorDet, r, rst, txBusy) is
+   comb : process (errorDet, linkUp, r, rst, txBusy) is
       variable v : RegType;
    begin
       -- Latch the current value   
@@ -217,16 +232,25 @@ begin
       -- Keep delay copies
       v.errorDet := errorDet;
       v.txBusy   := txBusy;
-      v.trig     := not(r.txBusy);
+      v.trig     := not(r.txBusy) and linkUp;
 
-      -- Check for rising edge
+      -- Check for the packet completion 
       if (txBusy = '1') and (r.txBusy = '0') then
+         -- Sweeping the packet size size
          v.packetLength := r.packetLength + 1;
       end if;
 
       -- Reset      
       if (rst = '1') then
          v := REG_INIT_C;
+      end if;
+
+      ---------------------------------
+      -- Simulation Error Self-checking
+      ---------------------------------
+      if r.errorDet = '1' then
+         assert false
+            report "Simulation Failed!" severity failure;
       end if;
 
       -- Register the variable for next clock cycle      
@@ -240,13 +264,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-
-   process(r)
-   begin
-      if r.errorDet = '1' then
-         assert false
-            report "Simulation Failed!" severity failure;
-      end if;
-   end process;
 
 end testbed;

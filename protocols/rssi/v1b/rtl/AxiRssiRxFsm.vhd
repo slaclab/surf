@@ -55,7 +55,7 @@ entity AxiRssiRxFsm is
    generic (
       TPD_G               : time          := 1 ns;
       AXI_CONFIG_G        : AxiConfigType := RSSI_AXI_CONFIG_C;
-      BYP_BUFFER_G        : boolean       := false;
+      BURST_BYTES_G       : positive      := 1024;
       WINDOW_ADDR_SIZE_G  : positive      := 7;  -- 2^WINDOW_ADDR_SIZE_G  = Number of segments
       HEADER_CHKSUM_EN_G  : boolean       := true;
       SEGMENT_ADDR_SIZE_G : positive      := 3);  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
@@ -207,6 +207,7 @@ begin
          AXI_READY_EN_G    => true,
          AXIS_CONFIG_G     => RSSI_AXIS_CONFIG_C,
          AXI_CONFIG_G      => AXI_CONFIG_G,
+         BURST_BYTES_G     => BURST_BYTES_G,
          AXI_BURST_G       => "01",     -- INCR
          AXI_CACHE_G       => "0011",   -- Cacheable
          SW_CACHE_EN_G     => false,
@@ -452,14 +453,9 @@ begin
                -- Valid data segment
                if (r.rxF.data = '1' and v.rxF.nul = '0' and v.rxF.rst = '0') then
 
-                  -- Check if bypassing the RX buffering
-                  if (BYP_BUFFER_G = true) then
-                     -- Next State
-                     v.tspState := VALID_S;
-
                   -- Wait if the buffer full
                   -- Note: Deadlock possibility! If the peer is not accepting data!
-                  elsif (r.windowArray(rxBufIdx).occupied = '0') then
+                  if (r.windowArray(rxBufIdx).occupied = '0') then
                      -- Start the DMA write transaction
                      v.wrReq.request := '1';
                      -- Next State             
@@ -589,7 +585,8 @@ begin
                v.rxLastSeqN   := r.inOrderSeqN;
             -- Data segment in buffer only one word long take TKEEP and apply EOF
             elsif (r.windowArray(txBufIdx).occupied = '1' and
-                   r.windowArray(txBufIdx).segType = "001"  -- Data segment type
+                   r.windowArray(txBufIdx).segType = "001" and  -- Data segment type
+                   rdAck.idle = '1'     -- DMA IDLE
                    ) then
                -- Start the DMA read transaction
                v.rdReq.request := '1';
@@ -622,7 +619,7 @@ begin
                end if;
 
                -- Next State
-               v.tspState := IDLE_S;
+               v.appState := IDLE_S;
             end if;
       ----------------------------------------------------------------------
       end case;

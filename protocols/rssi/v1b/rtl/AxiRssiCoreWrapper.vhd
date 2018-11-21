@@ -28,11 +28,9 @@ use work.SsiPkg.all;
 entity AxiRssiCoreWrapper is
    generic (
       TPD_G                : time                 := 1 ns;
-      SERVER_G             : boolean              := true;  -- Module is server or client 
-      JUMBO_G              : boolean              := false;
-      AXI_CONFIG_G         : AxiConfigType        := RSSI_AXI_CONFIG_C;
-      BYP_TX_BUFFER_G      : boolean              := false;
-      BYP_RX_BUFFER_G      : boolean              := false;
+      SERVER_G             : boolean              := true;  --! Module is server or client      
+      JUMBO_G              : boolean              := false;  --! true=8192 byte payload, false=1024 byte payload
+      AXI_CONFIG_G         : AxiConfigType        := RSSI_AXI_CONFIG_C;  --! Defines the AXI configuration but ADDR_WIDTH_C should be defined as the space for RSSI and "maybe" not the entire memory address space available 
       -- AXIS Configurations
       APP_STREAMS_G        : positive             := 1;
       APP_STREAM_ROUTES_G  : Slv8Array            := (0 => "--------");
@@ -52,12 +50,18 @@ entity AxiRssiCoreWrapper is
       -- Clock and Reset
       clk              : in  sl;
       rst              : in  sl;
-      -- AXI Segment Buffer Interface
-      axiOffset        : in  slv(63 downto 0)       := (others => '0');
-      mAxiWriteMaster  : out AxiWriteMasterType;
-      mAxiWriteSlave   : in  AxiWriteSlaveType;
-      mAxiReadMaster   : out AxiReadMasterType;
-      mAxiReadSlave    : in  AxiReadSlaveType;
+      -- AXI TX Segment Buffer Interface
+      txAxiOffset      : in  slv(63 downto 0);  --! Used to apply an address offset to the master AXI transactions
+      txAxiWriteMaster : out AxiWriteMasterType;
+      txAxiWriteSlave  : in  AxiWriteSlaveType;
+      txAxiReadMaster  : out AxiReadMasterType;
+      txAxiReadSlave   : in  AxiReadSlaveType;
+      -- AXI RX Segment Buffer Interface
+      rxAxiOffset      : in  slv(63 downto 0);  --! Used to apply an address offset to the master AXI transactions
+      rxAxiWriteMaster : out AxiWriteMasterType;
+      rxAxiWriteSlave  : in  AxiWriteSlaveType;
+      rxAxiReadMaster  : out AxiReadMasterType;
+      rxAxiReadSlave   : in  AxiReadSlaveType;
       -- SSI Application side
       sAppAxisMasters  : in  AxiStreamMasterArray(APP_STREAMS_G-1 downto 0);
       sAppAxisSlaves   : out AxiStreamSlaveArray(APP_STREAMS_G-1 downto 0);
@@ -72,13 +76,12 @@ entity AxiRssiCoreWrapper is
       openRq           : in  sl                     := '0';
       closeRq          : in  sl                     := '0';
       inject           : in  sl                     := '0';
-      -- AXI-Lite Register Interface
+      linkUp           : out sl;
+      -- Optional AXI-Lite Register Interface
       sAxilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
       sAxilReadSlave   : out AxiLiteReadSlaveType;
       sAxilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-      sAxilWriteSlave  : out AxiLiteWriteSlaveType;
-      -- Internal statuses
-      statusReg        : out slv(6 downto 0));
+      sAxilWriteSlave  : out AxiLiteWriteSlaveType);
 end entity AxiRssiCoreWrapper;
 
 architecture mapping of AxiRssiCoreWrapper is
@@ -118,7 +121,7 @@ begin
 
    maxSegs <= ite(unsigned(maxObSegSize) >= MAX_SEG_SIZE_C, slv(to_unsigned(MAX_SEG_SIZE_C, maxSegs'length)), maxObSegSize(maxSegs'range));
 
-   statusReg        <= status;
+   linkUp           <= status(0);
    rssiConnected    <= status(0);
    rssiNotConnected <= not(rssiConnected);
 
@@ -191,8 +194,6 @@ begin
          -- AXI Configurations
          MAX_SEG_SIZE_G    => MAX_SEG_SIZE_C,
          AXI_CONFIG_G      => AXI_CONFIG_G,
-         BYP_TX_BUFFER_G   => BYP_TX_BUFFER_G,
-         BYP_RX_BUFFER_G   => BYP_RX_BUFFER_G,
          -- AXIS Configurations
          APP_AXIS_CONFIG_G => PACKETIZER_AXIS_CONFIG_C,
          TSP_AXIS_CONFIG_G => TSP_AXIS_CONFIG_G,
@@ -209,12 +210,18 @@ begin
          -- Clock and Reset
          clk              => clk,
          rst              => rst,
-         -- AXI Segment Buffer Interface
-         axiOffset        => axiOffset,
-         mAxiWriteMaster  => mAxiWriteMaster,
-         mAxiWriteSlave   => mAxiWriteSlave,
-         mAxiReadMaster   => mAxiReadMaster,
-         mAxiReadSlave    => mAxiReadSlave,
+         -- AXI TX Segment Buffer Interface
+         txAxiOffset      => txAxiOffset,
+         txAxiWriteMaster => txAxiWriteMaster,
+         txAxiWriteSlave  => txAxiWriteSlave,
+         txAxiReadMaster  => txAxiReadMaster,
+         txAxiReadSlave   => txAxiReadSlave,
+         -- AXI RX Segment Buffer Interface
+         rxAxiOffset      => rxAxiOffset,
+         rxAxiWriteMaster => rxAxiWriteMaster,
+         rxAxiWriteSlave  => rxAxiWriteSlave,
+         rxAxiReadMaster  => rxAxiReadMaster,
+         rxAxiReadSlave   => rxAxiReadSlave,
          -- SSI Application side
          sAppAxisMaster   => packetizerMasters(1),
          sAppAxisSlave    => packetizerSlaves(1),
