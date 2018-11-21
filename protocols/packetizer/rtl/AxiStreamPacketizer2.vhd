@@ -30,7 +30,7 @@ entity AxiStreamPacketizer2 is
       BRAM_EN_G            : boolean          := false;
       CRC_MODE_G           : string           := "DATA";  -- or "NONE" or "FULL"
       CRC_POLY_G           : slv(31 downto 0) := x"04C11DB7";
-      MAX_PACKET_BYTES_G   : positive         := 256*8;  -- Must be a multiple of 8
+      MAX_PACKET_BYTES_G   : positive         := 256*8;   -- Must be a multiple of 8
       TDEST_BITS_G         : natural          := 8;
       INPUT_PIPE_STAGES_G  : natural          := 0;
       OUTPUT_PIPE_STAGES_G : natural          := 0);
@@ -52,16 +52,16 @@ end entity AxiStreamPacketizer2;
 architecture rtl of AxiStreamPacketizer2 is
 
 
-   constant LD_WORD_SIZE_C   : positive := 3;
-   constant WORD_SIZE_C      : positive := 2**LD_WORD_SIZE_C;
+   constant LD_WORD_SIZE_C : positive := 3;
+   constant WORD_SIZE_C    : positive := 2**LD_WORD_SIZE_C;
 
-   subtype  WordCounterType  is unsigned(maxPktBytes'left - LD_WORD_SIZE_C downto 0);
+   subtype WordCounterType is unsigned(maxPktBytes'left - LD_WORD_SIZE_C downto 0);
 
-   constant PROTO_WORDS_C    : positive := 3;
+   constant PROTO_WORDS_C    : positive        := 3;
    constant MAX_WORD_COUNT_C : WordCounterType := to_unsigned(MAX_PACKET_BYTES_G / WORD_SIZE_C, WordCounterType'length);
-   constant CRC_EN_C         : boolean  := (CRC_MODE_G /= "NONE");
-   constant CRC_HEAD_TAIL_C  : boolean  := (CRC_MODE_G = "FULL");
-   constant ADDR_WIDTH_C     : positive := ite((TDEST_BITS_G = 0), 1, TDEST_BITS_G);
+   constant CRC_EN_C         : boolean         := (CRC_MODE_G /= "NONE");
+   constant CRC_HEAD_TAIL_C  : boolean         := (CRC_MODE_G = "FULL");
+   constant ADDR_WIDTH_C     : positive        := ite((TDEST_BITS_G = 0), 1, TDEST_BITS_G);
 
    type StateType is (
       IDLE_S,
@@ -99,7 +99,7 @@ architecture rtl of AxiStreamPacketizer2 is
       activeTDest      => (others => '0'),
       ramWe            => '0',
       wordCount        => (others => '0'),
-      maxWords         => (0 => '1', others => '0'),
+      maxWords         => to_unsigned(1, WordCounterType'length),
       eof              => '0',
       lastByteCount    => "1000",
       tUserLast        => (others => '0'),
@@ -131,7 +131,7 @@ architecture rtl of AxiStreamPacketizer2 is
    signal crcOut : slv(31 downto 0) := (others => '0');
    signal crcRem : slv(31 downto 0) := (others => '1');
 
-   signal maxWords           : WordCounterType;
+   signal maxWords : WordCounterType;
 
    -- attribute dont_touch                     : string;
    -- attribute dont_touch of r                : signal is "TRUE";
@@ -297,11 +297,11 @@ begin
             -- NOTE: wordCount is compared only after incrementing
             --       (and doing some work in MOVE_S), thus at least
             --       one non-protocol word  must fit.
-            if ( maxWords <= to_unsigned(PROTO_WORDS_C, maxWords'length) ) then
+            if (maxWords <= to_unsigned(PROTO_WORDS_C, maxWords'length)) then
                fits := false;
             else
                fits := true;
-               if ( maxWords >= MAX_WORD_COUNT_C ) then
+               if (maxWords >= MAX_WORD_COUNT_C) then
                   v.maxWords := MAX_WORD_COUNT_C - PROTO_WORDS_C;
                else
                   v.maxWords := maxWords - PROTO_WORDS_C;
@@ -382,7 +382,7 @@ begin
                   v.packetActive           := '0';
                   v.tUserLast              := inputAxisMaster.tUser(7 downto 0);
                   v.eof                    := '1';
-                  v.lastByteCount          := toSlv(getTKeep(inputAxisMaster.tKeep(7 downto 0),PACKETIZER2_AXIS_CFG_C), 4);
+                  v.lastByteCount          := toSlv(getTKeep(inputAxisMaster.tKeep(7 downto 0), PACKETIZER2_AXIS_CFG_C), 4);
                   v.outputAxisMaster.tLast := '0';
                   -- Next state
                   v.state                  := TAIL_S;
@@ -439,7 +439,7 @@ begin
 
       -- Always a 64-bit transfer
       v.outputAxisMaster.tKeep(7 downto 0) := x"FF";
-      v.outputAxisMaster.tStrb := v.outputAxisMaster.tKeep;
+      v.outputAxisMaster.tStrb             := v.outputAxisMaster.tKeep;
 
       if (r.state /= TAIL_S) then
          v.crcIn := v.outputAxisMaster.tData(63 downto 0);

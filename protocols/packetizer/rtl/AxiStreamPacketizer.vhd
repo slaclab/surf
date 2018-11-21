@@ -27,12 +27,12 @@ use work.SsiPkg.all;
 entity AxiStreamPacketizer is
 
    generic (
-      TPD_G                : time             := 1 ns;
-      MAX_PACKET_BYTES_G   : integer          := 1440;  -- Must be a multiple of 8
-      MIN_TKEEP_G          : slv(7 downto 0)  := x"01";
-      OUTPUT_SSI_G         : boolean          := true;  -- SSI compliant output (SOF on tuser)
-      INPUT_PIPE_STAGES_G  : integer          := 0;
-      OUTPUT_PIPE_STAGES_G : integer          := 0);
+      TPD_G                : time            := 1 ns;
+      MAX_PACKET_BYTES_G   : integer         := 1440;  -- Must be a multiple of 8
+      MIN_TKEEP_G          : slv(7 downto 0) := x"01";
+      OUTPUT_SSI_G         : boolean         := true;  -- SSI compliant output (SOF on tuser)
+      INPUT_PIPE_STAGES_G  : integer         := 0;
+      OUTPUT_PIPE_STAGES_G : integer         := 0);
 
    port (
       -- AXI-Lite Interface for local registers 
@@ -40,7 +40,7 @@ entity AxiStreamPacketizer is
       axisRst : in sl;
 
       -- Actual byte count; will be truncated to multiple of word-size
-      maxPktBytes : in  slv(bitSize(MAX_PACKET_BYTES_G) - 1 downto 0) := toSlv(MAX_PACKET_BYTES_G, bitSize(MAX_PACKET_BYTES_G));
+      maxPktBytes : in slv(bitSize(MAX_PACKET_BYTES_G) - 1 downto 0) := toSlv(MAX_PACKET_BYTES_G, bitSize(MAX_PACKET_BYTES_G));
 
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
@@ -52,12 +52,12 @@ end entity AxiStreamPacketizer;
 
 architecture rtl of AxiStreamPacketizer is
 
-   constant LD_WORD_SIZE_C   : positive := 3;
-   constant WORD_SIZE_C      : positive := 2**LD_WORD_SIZE_C;
+   constant LD_WORD_SIZE_C : positive := 3;
+   constant WORD_SIZE_C    : positive := 2**LD_WORD_SIZE_C;
 
-   subtype  WordCounterType  is unsigned(maxPktBytes'left - LD_WORD_SIZE_C downto 0);
+   subtype WordCounterType is unsigned(maxPktBytes'left - LD_WORD_SIZE_C downto 0);
 
-   constant PROTO_WORDS_C    : positive := 3;
+   constant PROTO_WORDS_C    : positive        := 3;
    constant MAX_WORD_COUNT_C : WordCounterType := to_unsigned(MAX_PACKET_BYTES_G / WORD_SIZE_C, WordCounterType'length);
 
    constant AXIS_CONFIG_C : AxiStreamConfigType := (
@@ -93,7 +93,7 @@ architecture rtl of AxiStreamPacketizer is
       frameNumber      => (others => '0'),
       packetNumber     => (others => '0'),
       wordCount        => (others => '0'),
-      maxWords         => (0 => '1', others => '0'),
+      maxWords         => to_unsigned(1, WordCounterType'length),
       eof              => '0',
       tUserLast        => (others => '0'),
       inputAxisSlave   => AXI_STREAM_SLAVE_INIT_C,
@@ -107,7 +107,7 @@ architecture rtl of AxiStreamPacketizer is
    signal outputAxisMaster : AxiStreamMasterType;
    signal outputAxisSlave  : AxiStreamSlaveType;
 
-   signal maxWords         : WordCounterType;
+   signal maxWords : WordCounterType;
    -- attribute dont_touch                     : string;
    -- attribute dont_touch of r                : signal is "TRUE";
    -- attribute dont_touch of inputAxisMaster  : signal is "TRUE";
@@ -163,11 +163,11 @@ begin
             -- NOTE: wordCount is compared only after incrementing
             --       (and doing some work in MOVE_S), thus at least
             --       one non-protocol word  must fit.
-            if ( maxWords <= to_unsigned(PROTO_WORDS_C, maxWords'length) ) then
+            if (maxWords <= to_unsigned(PROTO_WORDS_C, maxWords'length)) then
                fits := false;
             else
                fits := true;
-               if ( maxWords >= MAX_WORD_COUNT_C ) then
+               if (maxWords >= MAX_WORD_COUNT_C) then
                   v.maxWords := MAX_WORD_COUNT_C - PROTO_WORDS_C;
                else
                   v.maxWords := maxWords - PROTO_WORDS_C;
@@ -209,7 +209,7 @@ begin
                v.outputAxisMaster.tUser := (others => '0');
                v.outputAxisMaster.tDest := (others => '0');
                v.outputAxisMaster.tId   := (others => '0');
-               v.outputAxisMaster.tKeep := resize(x"00FF",AXI_STREAM_MAX_TKEEP_WIDTH_C);
+               v.outputAxisMaster.tKeep := resize(x"00FF", AXI_STREAM_MAX_TKEEP_WIDTH_C);
 
                -- Increment word count with each txn
                v.wordCount := r.wordCount + 1;
@@ -262,13 +262,13 @@ begin
                         -- No room for TAIL this cycle and will add it in the next state
                         v.outputAxisMaster.tKeep(7 downto 0) := (x"FF" or MIN_TKEEP_G);
                         -- Save the tUser at tLast
-                        v.tUserLast              := inputAxisMaster.tUser(7 downto 0);
+                        v.tUserLast                          := inputAxisMaster.tUser(7 downto 0);
                         -- Set the flag
-                        v.eof                    := '1';
+                        v.eof                                := '1';
                         -- Reset the flag
-                        v.outputAxisMaster.tLast := '0';
+                        v.outputAxisMaster.tLast             := '0';
                         -- Next state
-                        v.state                  := TAIL_S;
+                        v.state                              := TAIL_S;
                   end case;
                   ----------------------------------------------------------------------
 
