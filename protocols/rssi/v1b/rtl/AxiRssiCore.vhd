@@ -39,6 +39,7 @@ use ieee.std_logic_arith.all;
 use ieee.math_real.all;
 
 use work.StdRtlPkg.all;
+use work.AxiPkg.all;
 use work.AxiStreamPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiRssiPkg.all;
@@ -51,7 +52,7 @@ entity AxiRssiCore is
       SERVER_G            : boolean             := true;  --! Module is server or client      
       -- AXI Configurations
       MAX_SEG_SIZE_G      : positive            := 1024;  --! max. payload size (units of bytes)
-      AXI_CONFIG_G        : AxiConfigType       := RSSI_AXI_CONFIG_G;  --! Defines the AXI configuration but ADDR_WIDTH_C should be defined as the space for RSSI and maybe not the entire mememory address space
+      AXI_CONFIG_G        : AxiConfigType       := RSSI_AXI_CONFIG_C;  --! Defines the AXI configuration but ADDR_WIDTH_C should be defined as the space for RSSI and maybe not the entire mememory address space
       BYP_TX_BUFFER_G     : boolean             := false;
       BYP_RX_BUFFER_G     : boolean             := false;
       -- AXIS Configurations
@@ -125,11 +126,10 @@ architecture rtl of AxiRssiCore is
 
    constant MAX_NUM_OUTS_SEG_C : positive := (2**WINDOW_ADDR_SIZE_C);  --! MAX_NUM_OUTS_SEG_C=(2**WINDOW_ADDR_SIZE_G)
 
-   constant HALF_BUFFER_WIDTH_C : natural := ite(BYP_DET_G, toSlv(0, 64),  -- Use full address space
-                                                 toSlv(2**(AXI_CONFIG_G.ADDR_WIDTH_C-1), 64));  -- partition address space in half for TX segments and RX segments
-
-   constant AXI_TX_ADDR_OFFSET_C : natural := toSlv(0, 64);
-   constant AXI_RX_ADDR_OFFSET_C : natural := toSlv(HALF_BUFFER_WIDTH_C, 64);
+   constant HALF_BUFFER_WIDTH_C : natural := ite(BYP_DET_G, 0,  -- Use full address space
+                                                 2**(AXI_CONFIG_G.ADDR_WIDTH_C-1));  -- partition address space in half for TX segments and RX segments
+   constant AXI_TX_ADDR_OFFSET_C : slv(63 downto 0) := toSlv(0, 64);
+   constant AXI_RX_ADDR_OFFSET_C : slv(63 downto 0) := toSlv(HALF_BUFFER_WIDTH_C, 64);
 
    -- RSSI Parameters
    signal s_appRssiParam : RssiParamType;
@@ -182,29 +182,25 @@ architecture rtl of AxiRssiCore is
    signal s_rxLastAckN : slv(7 downto 0);
 
    -- Tx Header Interface
-   signal s_headerAddr : slv(7 downto 0);
-   signal s_headerData : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
-   signal s_headerRdy  : sl;
-
-   -- Tx Checksum Interface
-   signal s_txChkEnable : sl;
-   signal s_txChkValid  : sl;
-   signal s_txChkStrobe : sl;
-   signal s_txChkLength : positive;
-   signal s_txChksum    : slv(15 downto 0);
-
-   -- Rx Checksum Interface
-   signal s_rxChkEnable : sl;
-   signal s_rxChkValid  : sl;
-   signal s_rxChkCheck  : sl;
-   signal s_rxChkStrobe : sl;
-   signal s_rxChkLength : positive;
+   signal s_headerAddr   : slv(7 downto 0);
+   signal s_headerData   : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
+   signal s_headerRdy    : sl;
+   signal s_headerLength : positive;
 
    -- Rx Statuses
    signal s_rxValidSeg : sl;
    signal s_rxDropSeg  : sl;
    signal s_rxFlags    : flagsType;
    signal s_rxAck      : sl;  -- Acknowledge pulse when valid segment with acknowledge flag received
+   signal s_rxBuffBusy : sl;
+
+   -- Rx segment buffer
+   signal s_rxBufferSize : integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_C);
+   signal s_rxWindowSize : integer range 1 to 2 ** (WINDOW_ADDR_SIZE_C);
+
+   -- Tx segment buffer
+   signal s_txBufferSize : integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_C);
+   signal s_txWindowSize : integer range 1 to 2 ** (WINDOW_ADDR_SIZE_C);
 
    -- AXIS Application Interface
    signal s_sAppAxisMaster : AxiStreamMasterType;
@@ -226,7 +222,7 @@ architecture rtl of AxiRssiCore is
    signal s_appRssiParamReg : RssiParamType;
 
    -- AXI-Lite Status/Monitoring Interface
-   signal s_statusReg    : slv(statusReg_o'range);
+   signal s_statusReg    : slv(statusReg'range);
    signal s_dropCntReg   : slv(31 downto 0);
    signal s_validCntReg  : slv(31 downto 0);
    signal s_reconCntReg  : slv(31 downto 0);
@@ -250,11 +246,14 @@ architecture rtl of AxiRssiCore is
 
 begin
 
+   assert (MAX_NUM_OUTS_SEG_C <= 256)
+      report "AxiRssiCore: MAX_NUM_OUTS_SEG_C must be <= 256" severity failure;
+
    statusReg  <= s_statusReg;
    maxSegSize <= s_rxRssiParam.maxSegSize;
 
-   s_axiTxOffset <= (axiOffset+toSlv(AXI_TX_ADDR_OFFSET_C, 64));
-   s_axiRxOffset <= (axiOffset+toSlv(AXI_RX_ADDR_OFFSET_C, 64));
+   s_axiTxOffset <= axiOffset + AXI_TX_ADDR_OFFSET_C;
+   s_axiRxOffset <= axiOffset + AXI_RX_ADDR_OFFSET_C;
 
    ----------------------------------------
    -- AXI Memory Segment MUX'ing and Resize
@@ -294,7 +293,7 @@ begin
          TPD_G               => TPD_G,
          SLAVE_AXI_CONFIG_G  => INT_AXI_CONFIG_C,
          MASTER_AXI_CONFIG_G => AXI_CONFIG_G)
-      port (
+      port map (
          -- Clock and reset
          axiClk          => clk,
          axiRst          => rst,
@@ -356,7 +355,7 @@ begin
          resendCnt_i     => s_resendCntReg,
          reconCnt_i      => s_reconCntReg);
 
-   s_injectFault <= s_injectFaultReg or inject_i;
+   s_injectFault <= s_injectFaultReg or inject;
 
    PACKET_RATE :
    for i in 1 downto 0 generate
@@ -386,14 +385,14 @@ begin
    -----------------------
    -- Parameter assignment
    -----------------------
-   process (closeRq_i, openRq_i, s_appRssiParamReg, s_closeRqReg,
-            s_initSeqNReg, s_intCloseRq, s_modeReg, s_openRqReg) is
+   process (closeRq, openRq, s_appRssiParamReg, s_closeRqReg, s_initSeqNReg,
+            s_intCloseRq, s_modeReg, s_openRqReg) is
    begin
       if (s_modeReg = '0') then
 
          -- Use external requests
-         s_closeRq <= s_closeRqReg or closeRq_i or s_intCloseRq;
-         s_openRq  <= s_openRqReg or openRq_i;
+         s_closeRq <= s_closeRqReg or closeRq or s_intCloseRq;
+         s_openRq  <= s_openRqReg or openRq;
 
          -- Assign application side RSSI parameters from generics
          s_appRssiParam.maxOutsSeg   <= toSlv(MAX_NUM_OUTS_SEG_C, 8);
@@ -531,7 +530,7 @@ begin
          addr_i         => s_headerAddr,
          headerData_o   => s_headerData,
          ready_o        => s_headerRdy,
-         headerLength_o => s_txChkLength);
+         headerLength_o => s_headerLength);
 
    s_sndAck <= s_sndAckCon or s_sndAckMon;
 
@@ -558,19 +557,20 @@ begin
          sAxisMaster => s_monMasters(0),
          sAxisSlave  => s_monSlaves(0),
          -- Master Port
-         mAxisMaster => s_sAppAxisMaster,
-         mAxisSlave  => s_sAppAxisSlave);
+         mAxisMaster => s_mAppAxisMaster,
+         mAxisSlave  => s_mAppAxisSlave);
 
-   s_monMasters(0) <= sAppAxisMaster_i;
-   sAppAxisSlave_o <= s_monSlaves(0);
-   s_rstFifo       <= rst_i or not s_connActive;  -- Application Fifo reset when connection is closed
+   s_monMasters(0) <= sAppAxisMaster;
+   sAppAxisSlave   <= s_monSlaves(0);
+   s_rstFifo       <= rst or not s_connActive;  -- Application Fifo reset when connection is closed
 
    -----------------------------------
    -- Transmitter Finite State Machine
    -----------------------------------
-   U_TxFSM : entity work.RssiTxFsm
+   U_TxFSM : entity work.AxiRssiTxFsm
       generic map (
          TPD_G               => TPD_G,
+         AXI_CONFIG_G        => INT_AXI_CONFIG_C,
          BYP_BUFFER_G        => BYP_TX_BUFFER_G,
          WINDOW_ADDR_SIZE_G  => WINDOW_ADDR_SIZE_C,
          SEGMENT_ADDR_SIZE_G => SEGMENT_ADDR_SIZE_C,
@@ -585,11 +585,11 @@ begin
          mAxiReadMaster_o  => s_axiReadMasters(0),
          mAxiReadSlave_i   => s_axiReadSlaves(0),
          -- Inbound Application Interface
-         appMaster_i       => s_sAppAxisMaster,
-         appSlave_o        => s_sAppAxisSlave,
+         appMaster_i       => s_mAppAxisMaster,
+         appSlave_o        => s_mAppAxisSlave,
          -- Outbound Transport Interface
-         tspSlave_i        => s_mTspAxisMaster,
-         tspMaster_o       => s_mTspAxisSlave,
+         tspMaster_o       => s_sTspAxisMaster,
+         tspSlave_i        => s_sTspAxisSlave,
          -- Connection FSM indicating active connection
          connActive_i      => s_connActive,
          -- Closed state in connFSM (initialize seqN)
@@ -608,13 +608,6 @@ begin
          -- Header read
          rdHeaderAddr_o    => s_headerAddr,
          rdHeaderData_i    => s_headerData,
-         headerRdy_i       => s_headerRdy,
-         headerLength_i    => s_txChkLength,  -- Unconnected for now will be used when EACK  
-         -- Checksum control
-         chksumValid_i     => s_txChkValid,
-         chksumEnable_o    => s_txChkEnable,
-         chksumStrobe_o    => s_txChkStrobe,
-         chksum_i          => s_txChksum,
          -- Initial sequence number
          initSeqN_i        => s_initSeqN,
          -- Tx data (input to header decoder module)
@@ -641,23 +634,6 @@ begin
          -- Segment buffer indicator
          bufferEmpty_o     => s_txBufferEmpty);
 
-   U_TX_XSUM : entity work.RssiChksum
-      generic map (
-         TPD_G        => TPD_G,
-         DATA_WIDTH_G => 64,
-         CSUM_WIDTH_G => 16)
-      port map (
-         clk_i    => clk,
-         rst_i    => rst,
-         enable_i => s_txChkEnable,
-         strobe_i => s_txChkStrobe,
-         init_i   => x"0000",
-         length_i => s_txChkLength,
-         data_i   => endianSwap64(s_mTspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0)),
-         chksum_o => s_txChksum,
-         valid_o  => s_txChkValid,
-         check_o  => open);
-
    ------------------
    -- Transport Layer
    ------------------
@@ -674,8 +650,8 @@ begin
          axisClk     => clk,
          axisRst     => rst,
          -- Slave Port
-         sAxisMaster => s_mTspAxisMaster,
-         sAxisSlave  => s_mTspAxisSlave,
+         sAxisMaster => s_sTspAxisMaster,
+         sAxisSlave  => s_sTspAxisSlave,
          -- Master Port
          mAxisMaster => mTspAxisMaster,
          mAxisSlave  => mTspAxisSlave);
@@ -703,22 +679,23 @@ begin
          sAxisMaster => sTspAxisMaster,
          sAxisSlave  => sTspAxisSlave,
          -- Master Port
-         mAxisMaster => s_sTspAxisMaster,
-         mAxisSlave  => s_sTspAxisSlave);
+         mAxisMaster => s_mTspAxisMaster,
+         mAxisSlave  => s_mTspAxisSlave);
 
    --------------------------------
    -- Receiver Finite State Machine
    --------------------------------
-   U_RxFSM : entity work.RssiRxFsm
+   U_RxFSM : entity work.AxiRssiRxFsm
       generic map (
          TPD_G               => TPD_G,
+         AXI_CONFIG_G        => INT_AXI_CONFIG_C,
          BYP_BUFFER_G        => BYP_RX_BUFFER_G,
          WINDOW_ADDR_SIZE_G  => WINDOW_ADDR_SIZE_C,
          HEADER_CHKSUM_EN_G  => HEADER_CHKSUM_EN_G,
          SEGMENT_ADDR_SIZE_G => SEGMENT_ADDR_SIZE_C)
       port map (
-         clk_i             => clk_i,
-         rst_i             => rst_i,
+         clk_i             => clk,
+         rst_i             => rst,
          -- AXI Segment Buffer Interface
          axiOffset_i       => s_axiRxOffset,
          mAxiWriteMaster_o => s_axiWriteMasters(1),
@@ -726,11 +703,11 @@ begin
          mAxiReadMaster_o  => s_axiReadMasters(1),
          mAxiReadSlave_i   => s_axiReadSlaves(1),
          -- Inbound Transport Interface
-         tspMaster_i       => s_sTspAxisMaster,
-         tspSlave_o        => s_sTspAxisSlave,
+         tspMaster_i       => s_mTspAxisMaster,
+         tspSlave_o        => s_mTspAxisSlave,
          -- Outbound Application Interface
-         appMaster_o       => s_mAppAxisMaster,
-         appSlave_i        => s_mAppAxisSlave,
+         appMaster_o       => s_sAppAxisMaster,
+         appSlave_i        => s_sAppAxisSlave,
          -- RX Buffer Full         
          rxBuffBusy_o      => s_rxBuffBusy,
          -- Connection FSM indicating active connection
@@ -754,30 +731,7 @@ begin
          -- Last segment received flags (active until next segment is received)
          rxFlags_o         => s_rxFlags,
          -- Parameters received from peer SYN packet
-         rxParam_o         => s_rxRssiParam,
-         -- Checksum control
-         chksumValid_i     => s_rxChkValid,
-         chksumOk_i        => s_rxChkCheck,
-         chksumEnable_o    => s_rxChkEnable,
-         chksumStrobe_o    => s_rxChkStrobe,
-         chksumLength_o    => s_rxChkLength);
-
-   U_RX_XSUM : entity work.RssiChksum
-      generic map (
-         TPD_G        => TPD_G,
-         DATA_WIDTH_G => 64,
-         CSUM_WIDTH_G => 16)
-      port map (
-         clk_i    => clk,
-         rst_i    => rst,
-         enable_i => s_rxChkEnable,
-         strobe_i => s_rxChkStrobe,
-         init_i   => x"0000",
-         length_i => s_rxChkLength,
-         data_i   => s_rxWrBuffData,
-         chksum_o => open,
-         valid_o  => s_rxChkValid,
-         check_o  => s_rxChkCheck);
+         rxParam_o         => s_rxRssiParam);
 
    s_rxAck <= s_rxValidSeg and s_rxFlags.ack and s_connActive;  -- Acknowledge valid packet
 
@@ -797,8 +751,8 @@ begin
          axisClk     => clk,
          axisRst     => s_rstFifo,
          -- Slave Port
-         sAxisMaster => s_mAppAxisMaster,
-         sAxisSlave  => s_mAppAxisSlave,
+         sAxisMaster => s_sAppAxisMaster,
+         sAxisSlave  => s_sAppAxisSlave,
          -- Master Port
          mAxisMaster => s_monMasters(1),
          mAxisSlave  => s_monSlaves(1));
