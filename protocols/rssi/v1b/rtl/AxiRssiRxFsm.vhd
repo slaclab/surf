@@ -332,14 +332,12 @@ begin
 
                   -- Syn header received (header is 3 c-c long)
                   if (v.rxF.syn = '1') then
-
-                     if (connActive_i = '0') then
-                        -- Register SYN header word 0 parameters
-                        v.rxParam.version    := headerData(31 downto 28);
-                        v.rxParam.chksumEn   := headerData(26 downto 26);
-                        v.rxParam.maxOutsSeg := headerData(23 downto 16);
-                        v.rxParam.maxSegSize := headerData(15 downto 0);
-                     end if;
+                  
+                     -- Register SYN header word 0 parameters
+                     v.rxParam.version    := headerData(31 downto 28);
+                     v.rxParam.chksumEn   := headerData(26 downto 26);
+                     v.rxParam.maxOutsSeg := headerData(23 downto 16);
+                     v.rxParam.maxSegSize := headerData(15 downto 0);
 
                      -- Next State
                      v.tspState := SYN_WAIT_S;
@@ -373,14 +371,12 @@ begin
                   v.chksumOk,           -- chksumOk
                   v.checksum);          -- checksum               
 
-               if (connActive_i = '0') then
-                  -- Syn parameters              
-                  v.rxParam.retransTout  := headerData(63 downto 48);
-                  v.rxParam.cumulAckTout := headerData(47 downto 32);
-                  v.rxParam.nullSegTout  := headerData(31 downto 16);
-                  v.rxParam.maxRetrans   := headerData(15 downto 8);
-                  v.rxParam.maxCumAck    := headerData(7 downto 0);
-               end if;
+               -- Syn parameters              
+               v.rxParam.retransTout  := headerData(63 downto 48);
+               v.rxParam.cumulAckTout := headerData(47 downto 32);
+               v.rxParam.nullSegTout  := headerData(31 downto 16);
+               v.rxParam.maxRetrans   := headerData(15 downto 8);
+               v.rxParam.maxCumAck    := headerData(7 downto 0);
 
                -- Check for early EOF
                if (tspMaster_i.tLast = '1') then
@@ -414,12 +410,10 @@ begin
                   v.chksumOk,           -- chksumOk
                   v.checksum);          -- checksum 
 
-               if (connActive_i = '0') then
-                  -- Syn parameters
-                  v.rxParam.maxOutofseq               := headerData(63 downto 56);
-                  v.rxParam.timeoutUnit               := headerData(55 downto 48);
-                  v.rxParam.connectionId(31 downto 0) := headerData(47 downto 16);
-               end if;
+               -- Syn parameters
+               v.rxParam.maxOutofseq               := headerData(63 downto 56);
+               v.rxParam.timeoutUnit               := headerData(55 downto 48);
+               v.rxParam.connectionId(31 downto 0) := headerData(47 downto 16);
 
                -- Check the header
                if (
@@ -580,7 +574,7 @@ begin
          when IDLE_S =>
             -- Check if not connected
             if (connActive_i = '0') then
-               -- Update the 
+               -- Reset the index pointers
                v.txBufferAddr := (others => '0');
                v.rxLastSeqN   := r.inOrderSeqN;
             -- Data segment in buffer only one word long take TKEEP and apply EOF

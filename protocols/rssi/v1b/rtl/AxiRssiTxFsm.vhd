@@ -732,6 +732,8 @@ begin
             v.hdrAmrmed    := '0';
             -- Check for RST  
             if (sndRst_i = '1') then
+               -- Set the flags
+               v.rstH         := '1';
                -- Next state
                v.tspState := NSYN_H_S;
             -- Check for DATA

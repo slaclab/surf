@@ -34,6 +34,16 @@ architecture testbed of AxiRssiCoreTb is
    constant CLK_PERIOD_C : time := 10 ns;  -- 1 us makes it easy to count clock cycles in sim GUI
    constant TPD_G        : time := CLK_PERIOD_C/4;
 
+   -- RSSI Timeouts
+   constant CLK_FREQUENCY_C   : real     := 100.0E+6;  -- In units of Hz
+   constant TIMEOUT_UNIT_C    : real     := 1.0E-6;    -- In units of seconds
+   constant ACK_TOUT_C        : positive := 100;  -- unit depends on TIMEOUT_UNIT_G 
+   constant RETRANS_TOUT_C    : positive := 250;  -- unit depends on TIMEOUT_UNIT_G  (Recommended >= MAX_NUM_OUTS_SEG_G*Data segment transmission time)
+   constant NULL_TOUT_C       : positive := 1000;  -- unit depends on TIMEOUT_UNIT_G  (Recommended >= 4*RETRANS_TOUT_G)
+   -- Counters
+   constant MAX_RETRANS_CNT_C : positive := 8;
+   constant MAX_CUM_ACK_CNT_C : positive := 2;
+
    type RegType is record
       packetLength : slv(31 downto 0);
       trig         : sl;
@@ -56,8 +66,15 @@ architecture testbed of AxiRssiCoreTb is
    signal txMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal txSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
 
-   signal tspMasters : AxiStreamMasterArray(1 downto 0);
-   signal tspSlaves  : AxiStreamSlaveArray(1 downto 0);
+   signal ibSrvMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal ibSrvSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+   signal obSrvMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal obSrvSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+
+   signal ibCltMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal ibCltSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+   signal obCltMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal obCltSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
 
    signal axiWriteMasters : AxiWriteMasterArray(3 downto 0);
    signal axiWriteSlaves  : AxiWriteSlaveArray(3 downto 0);
@@ -117,9 +134,18 @@ begin
          TPD_G             => TPD_G,
          SERVER_G          => true,     -- Server
          AXI_CONFIG_G      => RSSI_AXI_CONFIG_C,
+         -- AXIS Configurations
          APP_AXIS_CONFIG_G => (0 => RSSI_AXIS_CONFIG_C),
          TSP_AXIS_CONFIG_G => RSSI_AXIS_CONFIG_C,
-         MAX_CUM_ACK_CNT_G => 1)
+         -- RSSI Timeouts
+         CLK_FREQUENCY_G   => CLK_FREQUENCY_C,
+         TIMEOUT_UNIT_G    => TIMEOUT_UNIT_C,
+         ACK_TOUT_G        => ACK_TOUT_C,
+         RETRANS_TOUT_G    => RETRANS_TOUT_C,
+         NULL_TOUT_G       => NULL_TOUT_C,
+         -- Counters
+         MAX_RETRANS_CNT_G => MAX_RETRANS_CNT_C,
+         MAX_CUM_ACK_CNT_G => MAX_CUM_ACK_CNT_C)
       port map (
          clk                => clk,
          rst                => rst,
@@ -141,10 +167,10 @@ begin
          sAppAxisSlaves(0)  => txSlave,
          mAppAxisSlaves(0)  => AXI_STREAM_SLAVE_FORCE_C,
          -- Transport Layer Interface
-         sTspAxisMaster     => tspMasters(0),
-         sTspAxisSlave      => tspSlaves(0),
-         mTspAxisMaster     => tspMasters(1),
-         mTspAxisSlave      => tspSlaves(1));
+         sTspAxisMaster     => ibSrvMaster,
+         sTspAxisSlave      => ibSrvSlave,
+         mTspAxisMaster     => obSrvMaster,
+         mTspAxisSlave      => obSrvSlave);
 
    --------------
    -- RSSI Client
@@ -154,9 +180,18 @@ begin
          TPD_G             => TPD_G,
          SERVER_G          => false,    -- Client
          AXI_CONFIG_G      => RSSI_AXI_CONFIG_C,
+         -- AXIS Configurations
          APP_AXIS_CONFIG_G => (0 => RSSI_AXIS_CONFIG_C),
          TSP_AXIS_CONFIG_G => RSSI_AXIS_CONFIG_C,
-         MAX_CUM_ACK_CNT_G => 1)
+         -- RSSI Timeouts
+         CLK_FREQUENCY_G   => CLK_FREQUENCY_C,
+         TIMEOUT_UNIT_G    => TIMEOUT_UNIT_C,
+         ACK_TOUT_G        => ACK_TOUT_C,
+         RETRANS_TOUT_G    => RETRANS_TOUT_C,
+         NULL_TOUT_G       => NULL_TOUT_C,
+         -- Counters
+         MAX_RETRANS_CNT_G => MAX_RETRANS_CNT_C,
+         MAX_CUM_ACK_CNT_G => MAX_CUM_ACK_CNT_C)
       port map (
          clk                => clk,
          rst                => rst,
@@ -179,10 +214,10 @@ begin
          mAppAxisMasters(0) => rxMaster,
          mAppAxisSlaves(0)  => rxSlave,
          -- Transport Layer Interface
-         sTspAxisMaster     => tspMasters(1),
-         sTspAxisSlave      => tspSlaves(1),
-         mTspAxisMaster     => tspMasters(0),
-         mTspAxisSlave      => tspSlaves(0));
+         sTspAxisMaster     => ibCltMaster,
+         sTspAxisSlave      => ibCltSlave,
+         mTspAxisMaster     => obCltMaster,
+         mTspAxisSlave      => obCltSlave);
 
    -------------
    -- AXI Memory
@@ -223,7 +258,8 @@ begin
          errorDet       => errorDet,
          busy           => rxBusy);
 
-   comb : process (errorDet, linkUp, r, rst, txBusy) is
+   comb : process (errorDet, ibCltSlave, ibSrvSlave, linkUp, obCltMaster,
+                   obSrvMaster, r, rst, txBusy) is
       variable v : RegType;
    begin
       -- Latch the current value   
@@ -251,6 +287,18 @@ begin
       if r.errorDet = '1' then
          assert false
             report "Simulation Failed!" severity failure;
+      end if;
+      
+      if (r.packetLength < 8192) then
+         ibSrvMaster <= obCltMaster;
+         obCltSlave  <= ibSrvSlave;
+         ibCltMaster <= obSrvMaster;
+         obSrvSlave  <= ibCltSlave;
+      else-- Emulation a cable being disconnected
+         ibSrvMaster <= AXI_STREAM_MASTER_INIT_C;
+         obCltSlave  <= AXI_STREAM_SLAVE_FORCE_C;
+         ibCltMaster <= AXI_STREAM_MASTER_INIT_C;
+         obSrvSlave  <= AXI_STREAM_SLAVE_FORCE_C;
       end if;
 
       -- Register the variable for next clock cycle      

@@ -34,7 +34,7 @@ entity AxiRssiCoreWrapper is
       -- AXIS Configurations
       APP_STREAMS_G        : positive             := 1;
       APP_STREAM_ROUTES_G  : Slv8Array            := (0 => "--------");
-      ILEAVE_ON_NOTVALID_G : boolean              := false;
+      ILEAVE_ON_NOTVALID_G : boolean              := true;
       APP_AXIS_CONFIG_G    : AxiStreamConfigArray := (0 => ssiAxiStreamConfig(8, TKEEP_NORMAL_C));
       TSP_AXIS_CONFIG_G    : AxiStreamConfigType  := ssiAxiStreamConfig(16, TKEEP_NORMAL_C);
       -- RSSI Timeouts
