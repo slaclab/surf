@@ -771,9 +771,9 @@ begin
             if DESC_128_EN_C then
                v.axiWriteMaster.wdata(127)           := '1';
                v.axiWriteMaster.wdata(126 downto 64) := (others => '0');
-               v.axiWriteMaster.wdata(63  downto 32) := dmaWrDescRet(descIndex).buffId;
+               v.axiWriteMaster.wdata(63  downto 32) := dmaRdDescRet(descIndex).buffId;
                v.axiWriteMaster.wdata(31  downto  3) := (others => '0');
-               v.axiWriteMaster.wdata(2   downto  0) := dmaWrDescRet(descIndex).result;
+               v.axiWriteMaster.wdata(2   downto  0) := dmaRdDescRet(descIndex).result;
 
                v.axiWriteMaster.wstrb := resize(x"FFFF", 128);
 
