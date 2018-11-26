@@ -112,7 +112,8 @@ architecture rtl of AxiRssiRxFsm is
 
    type AppStateType is (
       IDLE_S,
-      DATA_S);
+      DATA_S,
+      SENT_S);
 
    type RegType is record
       -- Reception buffer window
@@ -332,7 +333,7 @@ begin
 
                   -- Syn header received (header is 3 c-c long)
                   if (v.rxF.syn = '1') then
-                  
+
                      -- Register SYN header word 0 parameters
                      v.rxParam.version    := headerData(31 downto 28);
                      v.rxParam.chksumEn   := headerData(26 downto 26);
@@ -577,15 +578,21 @@ begin
                -- Reset the index pointers
                v.txBufferAddr := (others => '0');
                v.rxLastSeqN   := r.inOrderSeqN;
-            -- Data segment in buffer only one word long take TKEEP and apply EOF
-            elsif (r.windowArray(txBufIdx).occupied = '1' and
-                   r.windowArray(txBufIdx).segType = "001" and  -- Data segment type
-                   rdAck.idle = '1'     -- DMA IDLE
-                   ) then
-               -- Start the DMA read transaction
-               v.rdReq.request := '1';
-               -- Next State
-               v.appState      := DATA_S;
+            -- Check for occupied buffer
+            elsif (r.windowArray(txBufIdx).occupied = '1') then
+               -- Check for a data segment
+               if (r.windowArray(txBufIdx).segType(0) = '1') then
+                  -- Check if ready to move data
+                  if (rdAck.idle = '1') then
+                     -- Start the DMA read transaction                   
+                     v.rdReq.request := '1';
+                     -- Next State
+                     v.appState      := DATA_S;
+                  end if;
+               else
+                  -- Next State
+                  v.appState := SENT_S;
+               end if;
             end if;
          ----------------------------------------------------------------------
          when DATA_S =>
@@ -593,28 +600,27 @@ begin
             if (rdAck.done = '1') then
                -- Reset the flag
                v.rdReq.request := '0';
-
-               -- Register the sent SeqN (this means that the place has been freed and the SeqN can be Acked)
-               v.rxLastSeqN := r.windowArray(txBufIdx).seqN;
-
-               -- Release buffer
-               v.windowArray(txBufIdx).occupied := '0';
-
-               -- Increment the TX buffer index
-               if r.txBufferAddr < (rxWindowSize_i-1) then
-                  v.txBufferAddr := r.txBufferAddr+1;  -- Increment once
-               else
-                  v.txBufferAddr := (others => '0');
-               end if;
-
-               -- Decrement the pending counter
-               if v.pending /= 0 then
-                  v.pending := v.pending - 1;
-               end if;
-
                -- Next State
-               v.appState := IDLE_S;
+               v.appState      := SENT_S;
             end if;
+         ----------------------------------------------------------------------
+         when SENT_S =>
+            -- Register the sent SeqN (this means that the place has been freed and the SeqN can be Acked)
+            v.rxLastSeqN                     := r.windowArray(txBufIdx).seqN;
+            -- Release buffer
+            v.windowArray(txBufIdx).occupied := '0';
+            -- Increment the TX buffer index
+            if r.txBufferAddr < (rxWindowSize_i-1) then
+               v.txBufferAddr := r.txBufferAddr+1;  -- Increment once
+            else
+               v.txBufferAddr := (others => '0');
+            end if;
+            -- Decrement the pending counter
+            if v.pending /= 0 then
+               v.pending := v.pending - 1;
+            end if;
+            -- Next State
+            v.appState := IDLE_S;
       ----------------------------------------------------------------------
       end case;
 

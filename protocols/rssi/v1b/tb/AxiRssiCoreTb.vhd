@@ -37,11 +37,11 @@ architecture testbed of AxiRssiCoreTb is
    -- RSSI Timeouts
    constant CLK_FREQUENCY_C   : real     := 100.0E+6;  -- In units of Hz
    constant TIMEOUT_UNIT_C    : real     := 1.0E-6;    -- In units of seconds
-   constant ACK_TOUT_C        : positive := 100;  -- unit depends on TIMEOUT_UNIT_G 
-   constant RETRANS_TOUT_C    : positive := 250;  -- unit depends on TIMEOUT_UNIT_G  (Recommended >= MAX_NUM_OUTS_SEG_G*Data segment transmission time)
-   constant NULL_TOUT_C       : positive := 1000;  -- unit depends on TIMEOUT_UNIT_G  (Recommended >= 4*RETRANS_TOUT_G)
+   constant ACK_TOUT_C        : positive := 25;  -- unit depends on TIMEOUT_UNIT_G 
+   constant RETRANS_TOUT_C    : positive := 50;  -- unit depends on TIMEOUT_UNIT_G  (Recommended >= MAX_NUM_OUTS_SEG_G*Data segment transmission time)
+   constant NULL_TOUT_C       : positive := 200;  -- unit depends on TIMEOUT_UNIT_G  (Recommended >= 4*RETRANS_TOUT_G)
    -- Counters
-   constant MAX_RETRANS_CNT_C : positive := 8;
+   constant MAX_RETRANS_CNT_C : positive := 3;
    constant MAX_CUM_ACK_CNT_C : positive := 2;
 
    type RegType is record
@@ -289,7 +289,8 @@ begin
             report "Simulation Failed!" severity failure;
       end if;
       
-      if (r.packetLength < 8192) then
+      -- if (r.packetLength < 8192) then
+      if (r.packetLength < 128) then
          ibSrvMaster <= obCltMaster;
          obCltSlave  <= ibSrvSlave;
          ibCltMaster <= obSrvMaster;
