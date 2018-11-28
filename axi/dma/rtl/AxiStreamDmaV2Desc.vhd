@@ -503,7 +503,7 @@ begin
 
       if DESC_128_EN_C then
          axiSlaveRegister(regCon, x"060", 0, v.fifoDin);
-         axiWrDetect(regCon, x"064", v.rdFifoWr(2));
+         axiWrDetect(regCon, x"060", v.rdFifoWr(2));
 
          axiSlaveRegister(regCon, x"064", 0, v.fifoDin);
          axiWrDetect(regCon, x"064", v.rdFifoWr(3));
