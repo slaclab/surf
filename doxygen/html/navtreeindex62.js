@@ -1,6 +1,5 @@
 var NAVTREEINDEX62 =
 {
-"classOctalPortRam.html#a9f7e0bca2fe0c3e8ce1fc27caa7d1491":[0,0,339,41],
 "classOctalPortRam.html#aa0a293f84036fe9809012174a3321342":[0,0,339,14],
 "classOctalPortRam.html#aa15a7b289c417a934aa707db52c8e30d":[0,0,339,8],
 "classOctalPortRam.html#aa2a55a3a67519e619b1a385427ed4640":[0,0,339,49],
@@ -80,8 +79,8 @@ var NAVTREEINDEX62 =
 "classOutputBufferReg_1_1rtl.html#a00791292c97a9420582d56b2466f745b":[0,0,340,0,3],
 "classOutputBufferReg_1_1rtl.html#a00791292c97a9420582d56b2466f745b":[0,0,340,0,5],
 "classOutputBufferReg_1_1rtl.html#a3866df254a123b03ef652329cc7b1b80":[0,0,340,0,0],
-"classOutputBufferReg_1_1rtl.html#acd951fac39245e19ef7a7411a476e208":[0,0,340,0,4],
 "classOutputBufferReg_1_1rtl.html#acd951fac39245e19ef7a7411a476e208":[0,0,340,0,1],
+"classOutputBufferReg_1_1rtl.html#acd951fac39245e19ef7a7411a476e208":[0,0,340,0,4],
 "classPgp2bAxi.html":[0,0,341],
 "classPgp2bAxi.html#a09910266002a6310c2946822e026cdb4":[0,0,341,10],
 "classPgp2bAxi.html#a0a6af6eef40212dbaf130d57ce711256":[0,0,341,26],
@@ -249,5 +248,6 @@ var NAVTREEINDEX62 =
 "classPgp2bGth7FixedLatWrapper.html#acfd664a5c1f766948967f6431910bc5d":[0,0,343,23],
 "classPgp2bGth7FixedLatWrapper.html#acfdfbe353e108bf8f375707f4f54baf9":[0,0,343,42],
 "classPgp2bGth7FixedLatWrapper.html#ad3b7259d7251617f8e350118ca22103e":[0,0,343,45],
-"classPgp2bGth7FixedLatWrapper.html#ada9f18344d75fd9df399134f1da413eb":[0,0,343,18]
+"classPgp2bGth7FixedLatWrapper.html#ada9f18344d75fd9df399134f1da413eb":[0,0,343,18],
+"classPgp2bGth7FixedLatWrapper.html#adab85ff5bd58789b0082f0d33d5a3620":[0,0,343,48]
 };

@@ -1,6 +1,5 @@
 var NAVTREEINDEX96 =
 {
-"classSyncClockFreq.html#acd03516902501cd1c7296a98e22c6fcb":[0,0,492,18],
 "classSyncClockFreq.html#acf3ce0f65965e74ee2cd8743dad23f61":[0,0,492,14],
 "classSyncClockFreq.html#ad66a6d23811b7b9d6138b972dc394926":[0,0,492,4],
 "classSyncClockFreq.html#ae63ec347149b3486b5459e57fe9512d4":[0,0,492,3],
@@ -249,5 +248,6 @@ var NAVTREEINDEX96 =
 "classSynchronizerFifo.html#a608847e226c256a47ee2713644710553":[0,0,495,14],
 "classSynchronizerFifo.html#a60fe8da922f382deab33a1b14a65ba12":[0,0,495,9],
 "classSynchronizerFifo.html#a679052ea3c06e78e1226fcab1eb05fd6":[0,0,495,6],
-"classSynchronizerFifo.html#a67a837684e4f18c2d236ac1d053b419b":[0,0,495,1]
+"classSynchronizerFifo.html#a67a837684e4f18c2d236ac1d053b419b":[0,0,495,1],
+"classSynchronizerFifo.html#a690564d64aa8e37d3ffa7aa2c377f50e":[0,0,495,7]
 };

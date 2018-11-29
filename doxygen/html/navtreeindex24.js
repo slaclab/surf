@@ -1,6 +1,5 @@
 var NAVTREEINDEX24 =
 {
-"classAxisToJtagCore.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[0,0,78,15],
 "classAxisToJtagCoreTb.html":[0,0,79],
 "classAxisToJtagCoreTb.html#a0a6af6eef40212dbaf130d57ce711256":[0,0,79,1],
 "classAxisToJtagCoreTb.html#a2edc34402b573437d5f25fa90ba4013e":[0,0,79,3],
@@ -249,5 +248,6 @@ var NAVTREEINDEX24 =
 "classClinkCtrl_1_1rtl.html#aebec98a7cea12ad03296695e703eb491":[0,0,137,0,2],
 "classClinkData.html":[0,0,138],
 "classClinkData.html#a0a6af6eef40212dbaf130d57ce711256":[0,0,138,12],
-"classClinkData.html#a0f5ecc6613f63d07f7963a97b1b26095":[0,0,138,14]
+"classClinkData.html#a0f5ecc6613f63d07f7963a97b1b26095":[0,0,138,14],
+"classClinkData.html#a0f6fda8abb02ade1486f15ba729137a3":[0,0,138,4]
 };

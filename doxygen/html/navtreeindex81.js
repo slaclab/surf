@@ -1,6 +1,5 @@
 var NAVTREEINDEX81 =
 {
-"classRoguePgp2bSim.html#afd59ded055d6f5f73ab2e594723ec889":[0,0,407,19],
 "classRoguePgp2bSim_1_1sim.html":[0,0,407,0],
 "classRoguePgp2bSim_1_1sim.html#a1ab7415d034759b710d5b07f8436fbf0":[0,0,407,0,2],
 "classRoguePgp2bSim_1_1sim.html#a273190d5512cdcabe2cef3a55a81f3ad":[0,0,407,0,0],
@@ -249,5 +248,6 @@ var NAVTREEINDEX81 =
 "classRssiConnFsm.html#a048fd08be58be68ba5c51340be505544":[0,0,413,21],
 "classRssiConnFsm.html#a09dbf730b63af614a90f9c3166e63505":[0,0,413,32],
 "classRssiConnFsm.html#a0a6af6eef40212dbaf130d57ce711256":[0,0,413,33],
-"classRssiConnFsm.html#a0c80d19f33d2f04dd0f55f829fb35472":[0,0,413,3]
+"classRssiConnFsm.html#a0c80d19f33d2f04dd0f55f829fb35472":[0,0,413,3],
+"classRssiConnFsm.html#a0f5ecc6613f63d07f7963a97b1b26095":[0,0,413,36]
 };

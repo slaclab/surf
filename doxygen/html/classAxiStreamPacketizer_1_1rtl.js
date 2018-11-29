@@ -20,7 +20,7 @@ var classAxiStreamPacketizer_1_1rtl =
     [ "tUserLast", "classAxiStreamPacketizer_1_1rtl.html#a9528c4cca3c27ac8b7304072243e6e0b", null ],
     [ "inputAxisSlave", "classAxiStreamPacketizer_1_1rtl.html#acb3dd03873d1d3d409f50eedca4872c1", null ],
     [ "outputAxisMaster", "classAxiStreamPacketizer_1_1rtl.html#ac66128fa0e67afb6c7543a727cf3ef01", null ],
-    [ "REG_INIT_C", "classAxiStreamPacketizer_1_1rtl.html#aac5f2e4d3115c68437cd3b6d7be34957", null ],
+    [ "REG_INIT_C", "classAxiStreamPacketizer_1_1rtl.html#a1d03cf37aea038b44373ff4eb810e33a", null ],
     [ "r", "classAxiStreamPacketizer_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3", null ],
     [ "rin", "classAxiStreamPacketizer_1_1rtl.html#a758a8cbb78916a3911d410a62191310d", null ],
     [ "inputAxisMaster", "classAxiStreamPacketizer_1_1rtl.html#a4a45f26e404d9c83317c9a6bf07e827c", null ],

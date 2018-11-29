@@ -32,7 +32,7 @@ var classAxiStreamPacketizer2_1_1rtl =
     [ "tailCrcReady", "classAxiStreamPacketizer2_1_1rtl.html#a93e4c7b6a49388680ca6e9641f038bee", null ],
     [ "inputAxisSlave", "classAxiStreamPacketizer2_1_1rtl.html#acb3dd03873d1d3d409f50eedca4872c1", null ],
     [ "outputAxisMaster", "classAxiStreamPacketizer2_1_1rtl.html#ac66128fa0e67afb6c7543a727cf3ef01", null ],
-    [ "REG_INIT_C", "classAxiStreamPacketizer2_1_1rtl.html#aed47cc88145f75932659ac7906b42252", null ],
+    [ "REG_INIT_C", "classAxiStreamPacketizer2_1_1rtl.html#a773a5a756e7d189361aece5922daef7b", null ],
     [ "r", "classAxiStreamPacketizer2_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3", null ],
     [ "rin", "classAxiStreamPacketizer2_1_1rtl.html#a758a8cbb78916a3911d410a62191310d", null ],
     [ "inputAxisMaster", "classAxiStreamPacketizer2_1_1rtl.html#a4a45f26e404d9c83317c9a6bf07e827c", null ],

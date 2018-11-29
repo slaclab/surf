@@ -1,6 +1,5 @@
 var NAVTREEINDEX61 =
 {
-"classMdioLinkIrqHandlerTb_1_1a.html#a3ca470c1a555b78e3425aaeeca9f019b":[0,0,334,0,43],
 "classMdioLinkIrqHandlerTb_1_1a.html#a402581988d53c2ea11ec454234c0f669":[0,0,334,0,41],
 "classMdioLinkIrqHandlerTb_1_1a.html#a44921f46ab21e92444abeb6c549ea37c":[0,0,334,0,21],
 "classMdioLinkIrqHandlerTb_1_1a.html#a4698dd734b6639766a1b5b9a04925541":[0,0,334,0,11],
@@ -249,5 +248,6 @@ var NAVTREEINDEX61 =
 "classOctalPortRam.html#a90726144fdea03ebb52ed50145a861f0":[0,0,339,15],
 "classOctalPortRam.html#a93df64d96319df0835b0826af14cc148":[0,0,339,33],
 "classOctalPortRam.html#a95c9a77bb38f800613cf64be45cde6d2":[0,0,339,32],
-"classOctalPortRam.html#a9ee67ccb2d08a0cc4a07e63264240c40":[0,0,339,45]
+"classOctalPortRam.html#a9ee67ccb2d08a0cc4a07e63264240c40":[0,0,339,45],
+"classOctalPortRam.html#a9f7e0bca2fe0c3e8ce1fc27caa7d1491":[0,0,339,41]
 };

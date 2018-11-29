@@ -1,6 +1,5 @@
 var NAVTREEINDEX88 =
 {
-"classScrambler.html#a0a6af6eef40212dbaf130d57ce711256":[0,0,443,16],
 "classScrambler.html#a0f34e7f02062bab5ed591b79cc00b5f8":[0,0,443,12],
 "classScrambler.html#a0f5ecc6613f63d07f7963a97b1b26095":[0,0,443,18],
 "classScrambler.html#a11f5dee9aeb2a141484bafa6674b03d5":[0,0,443,3],
@@ -249,5 +248,6 @@ var NAVTREEINDEX88 =
 "classSimpleDualPortRamXpm.html#a42d34e19643bbb7db10c856e39be1f70":[0,0,450,19],
 "classSimpleDualPortRamXpm.html#a598da929e807d58939b47499e8bc9fa8":[0,0,450,24],
 "classSimpleDualPortRamXpm.html#a67a837684e4f18c2d236ac1d053b419b":[0,0,450,1],
-"classSimpleDualPortRamXpm.html#a762b446ddef001083e8cfc52dc38385f":[0,0,450,2]
+"classSimpleDualPortRamXpm.html#a762b446ddef001083e8cfc52dc38385f":[0,0,450,2],
+"classSimpleDualPortRamXpm.html#a8682de78b4aafc9e29d5c7508d3e2059":[0,0,450,8]
 };
