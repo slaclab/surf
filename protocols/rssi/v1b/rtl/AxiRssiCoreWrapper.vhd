@@ -98,12 +98,12 @@ architecture mapping of AxiRssiCoreWrapper is
    constant MAX_SEG_SIZE_C  : positive := ite(JUMBO_G, 8192, 1024);
    constant MAX_SEGS_BITS_C : positive := bitSize(MAX_SEG_SIZE_C);
 
-   signal maxSegs      : slv(MAX_SEGS_BITS_C-1 downto 0);
-   signal maxObSegSize : slv(15 downto 0);
+   signal maxSegs      : slv(MAX_SEGS_BITS_C-1 downto 0) := toSlv(MAX_SEG_SIZE_C, MAX_SEGS_BITS_C);
+   signal maxObSegSize : slv(15 downto 0)                := toSlv(MAX_SEG_SIZE_C, 16);
 
-   signal status           : slv(6 downto 0);
-   signal rssiNotConnected : sl;
-   signal rssiConnected    : sl;
+   signal status           : slv(6 downto 0) := (others => '0');
+   signal rssiNotConnected : sl              := '1';
+   signal rssiConnected    : sl              := '1';
 
    signal rxMasters : AxiStreamMasterArray(APP_STREAMS_G-1 downto 0);
    signal rxSlaves  : AxiStreamSlaveArray(APP_STREAMS_G-1 downto 0);
@@ -119,11 +119,20 @@ architecture mapping of AxiRssiCoreWrapper is
 
 begin
 
-   maxSegs <= ite(unsigned(maxObSegSize) >= MAX_SEG_SIZE_C, slv(to_unsigned(MAX_SEG_SIZE_C, maxSegs'length)), maxObSegSize(maxSegs'range));
-
-   linkUp           <= status(0);
-   rssiConnected    <= status(0);
-   rssiNotConnected <= not(rssiConnected);
+   -- Register to help with timing
+   process(clk)
+   begin
+      if rising_edge(clk) then
+         linkUp           <= status(0)          after TPD_G;
+         rssiConnected    <= status(0)          after TPD_G;
+         rssiNotConnected <= not(rssiConnected) after TPD_G;
+         if (unsigned(maxObSegSize) >= MAX_SEG_SIZE_C) then
+            maxSegs <= slv(to_unsigned(MAX_SEG_SIZE_C, maxSegs'length)) after TPD_G;
+         else
+            maxSegs <= maxObSegSize(maxSegs'range) after TPD_G;
+         end if;
+      end if;
+   end process;
 
    GEN_RX :
    for i in (APP_STREAMS_G-1) downto 0 generate

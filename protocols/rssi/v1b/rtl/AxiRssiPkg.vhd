@@ -28,7 +28,7 @@ package AxiRssiPkg is
       ADDR_WIDTH_C => 13,               -- 2^13 = 8kB buffer
       DATA_BYTES_C => 8,                -- 8 bytes = 64-bits
       ID_BITS_C    => 2,
-      LEN_BITS_C   => 8);               -- Up to 4kB bursting
+      LEN_BITS_C   => 7);               -- Up to 1kB bursting
 
    procedure GetRssiCsum (
       -- Input 
