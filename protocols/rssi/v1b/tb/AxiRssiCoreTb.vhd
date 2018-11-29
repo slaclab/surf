@@ -44,6 +44,13 @@ architecture testbed of AxiRssiCoreTb is
    constant MAX_RETRANS_CNT_C : positive := 3;
    constant MAX_CUM_ACK_CNT_C : positive := 2;
 
+   constant JUMBO_C : boolean := true;
+   constant AXI_CONFIG_C : AxiConfigType := (
+      ADDR_WIDTH_C => ite(JUMBO_C, 16, 13),  -- (true=64kB buffer),(false=8kB buffer)
+      DATA_BYTES_C => 8,                -- 8 bytes = 64-bits
+      ID_BITS_C    => 2,
+      LEN_BITS_C   => ite(JUMBO_C, 8, 7));  -- (true=2kB bursting),(false=1kB bursting)   
+
    type RegType is record
       packetLength : slv(31 downto 0);
       trig         : sl;
@@ -132,8 +139,9 @@ begin
    U_RssiServer : entity work.AxiRssiCoreWrapper
       generic map (
          TPD_G             => TPD_G,
+         JUMBO_G           => JUMBO_C,
          SERVER_G          => true,     -- Server
-         AXI_CONFIG_G      => RSSI_AXI_CONFIG_C,
+         AXI_CONFIG_G      => AXI_CONFIG_C,
          -- AXIS Configurations
          APP_AXIS_CONFIG_G => (0 => RSSI_AXIS_CONFIG_C),
          TSP_AXIS_CONFIG_G => RSSI_AXIS_CONFIG_C,
@@ -178,8 +186,9 @@ begin
    U_RssiClient : entity work.AxiRssiCoreWrapper
       generic map (
          TPD_G             => TPD_G,
+         JUMBO_G           => JUMBO_C,
          SERVER_G          => false,    -- Client
-         AXI_CONFIG_G      => RSSI_AXI_CONFIG_C,
+         AXI_CONFIG_G      => AXI_CONFIG_C,
          -- AXIS Configurations
          APP_AXIS_CONFIG_G => (0 => RSSI_AXIS_CONFIG_C),
          TSP_AXIS_CONFIG_G => RSSI_AXIS_CONFIG_C,
@@ -227,7 +236,7 @@ begin
          generic map (
             TPD_G        => TPD_G,
             SYNTH_MODE_G => "xpm",
-            AXI_CONFIG_G => RSSI_AXI_CONFIG_C)
+            AXI_CONFIG_G => AXI_CONFIG_C)
          port map (
             -- Clock and Reset
             axiClk          => clk,
@@ -288,14 +297,14 @@ begin
          assert false
             report "Simulation Failed!" severity failure;
       end if;
-      
-      -- if (r.packetLength < 8192) then
-      if (r.packetLength < 128) then
+
+      if (r.packetLength < 8192) then
+         -- if (r.packetLength < 128) then
          ibSrvMaster <= obCltMaster;
          obCltSlave  <= ibSrvSlave;
          ibCltMaster <= obSrvMaster;
          obSrvSlave  <= ibCltSlave;
-      else-- Emulation a cable being disconnected
+      else                              -- Emulation a cable being disconnected
          ibSrvMaster <= AXI_STREAM_MASTER_INIT_C;
          obCltSlave  <= AXI_STREAM_SLAVE_FORCE_C;
          ibCltMaster <= AXI_STREAM_MASTER_INIT_C;
