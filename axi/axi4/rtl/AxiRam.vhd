@@ -378,7 +378,7 @@ begin
       if (READ_LATENCY_G = 0) then
          rdEn <= "11";
       else
-         rdEn <= r.rdEn;
+         rdEn <= v.rdEn;
       end if;
 
       --------------------------
