@@ -124,12 +124,16 @@ architecture rtl of AxiRssiTxFsm is
       CONN_S,
       --
       SYN_H_S,
+      SYN_XSUM_S,
       NSYN_H_S,
+      NSYN_XSUM_S,
       DATA_H_S,
+      DATA_XSUM_S,
       DATA_S,
       --
       RESEND_INIT_S,
       RESEND_H_S,
+      RESEND_XSUM_S,
       RESEND_PP_S);
 
    type AppStateType is (
@@ -194,6 +198,7 @@ architecture rtl of AxiRssiTxFsm is
       resend         : sl;
       ackSndData     : sl;
       hdrAmrmed      : sl;
+      simErrorDet    : sl;
       -- Various controls
       buffWe         : sl;
       buffSent       : sl;
@@ -257,6 +262,7 @@ architecture rtl of AxiRssiTxFsm is
       resend         => '0',
       ackSndData     => '0',
       hdrAmrmed      => '0',
+      simErrorDet    => '0',
       --
       buffWe         => '0',
       buffSent       => '0',
@@ -280,6 +286,9 @@ architecture rtl of AxiRssiTxFsm is
 
    signal rdDmaMaster : AxiStreamMasterType;
    signal rdDmaSlave  : AxiStreamSlaveType;
+
+   -- attribute dont_touch      : string;
+   -- attribute dont_touch of r : signal is "TRUE";      
 
 begin
 
@@ -341,7 +350,7 @@ begin
 
    ----------------------------------------------------------------------------------------------- 
    comb : process (ackN_i, ack_i, appMaster_i, axiOffset_i, bufferSize_i,
-                   closed_i, connActive_i, initSeqN_i, injectFault_i, r,
+                   closed_i, connActive_i, initSeqN_i, injectFault_i, r, rdAck,
                    rdDmaMaster, rdHeaderData_i, rst_i, sndAck_i, sndNull_i,
                    sndResend_i, sndRst_i, sndSyn_i, tspSlave_i, windowSize_i,
                    wrAck, wrDmaSlave) is
@@ -661,6 +670,18 @@ begin
       v.rdReq.address := axiOffset_i + toSlv((txBufIdx*maxSegSize), 64);
       v.rdReq.size    := toSlv(r.windowArray(txBufIdx).segSize, 32);
 
+      -- Update the pipeline
+      GetRssiCsum(
+         -- Input 
+         '0',                           -- init
+         (others => '0'),               -- header
+         r.csumAccum,                   -- accumReg
+         -- Results
+         v.csumAccum,                   -- accumVar
+         v.chksumOk,                    -- chksumOk
+         v.checksum);                   -- checksum       
+
+
       case r.tspState is
          ----------------------------------------------------------------------
          when INIT_S =>
@@ -733,7 +754,7 @@ begin
             -- Check for RST  
             if (sndRst_i = '1') then
                -- Set the flags
-               v.rstH         := '1';
+               v.rstH     := '1';
                -- Next state
                v.tspState := NSYN_H_S;
             -- Check for DATA
@@ -805,23 +826,40 @@ begin
                      v.chksumOk,        -- chksumOk
                      v.checksum);       -- checksum                   
                   if (r.txHeaderAddr = 2) then
-                     -- Reset counter
-                     v.txHeaderAddr    := (others => '0');
-                     -- Set EOF flag
-                     v.tspMaster.tLast := '1';
-                     -- Check if header checksum enable generic set
-                     if (HEADER_CHKSUM_EN_G) then
-                        -- Insert the checksum
-                        v.tspMaster.tData(63 downto 56) := v.checksum(7 downto 0);
-                        v.tspMaster.tData(55 downto 48) := v.checksum(15 downto 8);
-                     end if;
-                     -- Increment SEQ number at the end of segment transmission
-                     v.nextSeqN := r.nextSeqN+1;
-                     v.seqN     := r.nextSeqN+1;
+                     -- Keep counter value
+                     v.txHeaderAddr     := r.txHeaderAddr;
+                     -- Hold off write
+                     v.tspMaster.tValid := '0';
+                     -- Reset the flag
+                     v.hdrAmrmed        := '0';
                      -- Next state            
-                     v.tspState := DISS_CONN_S;
+                     v.tspState         := SYN_XSUM_S;
                   end if;
                end if;
+            end if;
+         ----------------------------------------------------------------------
+         when SYN_XSUM_S =>
+            -- Set the flag
+            v.hdrAmrmed := '1';
+            -- Check if ready to move data (r.tspMaster.tValid already '0' from previous state)
+            if (r.hdrAmrmed = '1') then  -- Using registered value to help relax timing
+               -- Reset counter
+               v.txHeaderAddr     := (others => '0');
+               -- Move the data
+               v.tspMaster.tValid := '1';
+               -- Set EOF flag
+               v.tspMaster.tLast  := '1';
+               -- Check if header checksum enable generic set
+               if (HEADER_CHKSUM_EN_G) then
+                  -- Insert the checksum
+                  v.tspMaster.tData(63 downto 56) := r.checksum(7 downto 0);
+                  v.tspMaster.tData(55 downto 48) := r.checksum(15 downto 8);
+               end if;
+               -- Increment SEQ number at the end of segment transmission
+               v.nextSeqN := r.nextSeqN+1;
+               v.seqN     := r.nextSeqN+1;
+               -- Next state            
+               v.tspState := DISS_CONN_S;
             end if;
          ----------------------------------------------------------------------
          when NSYN_H_S =>               -- RST/ACK/NULL messages
@@ -829,11 +867,8 @@ begin
             v.hdrAmrmed := '1';
             -- Check if ready to move data
             if (r.tspMaster.tValid = '0') and (r.hdrAmrmed = '1') then  -- Using registered value to help relax timing
-               -- Move the data
-               v.tspMaster.tValid             := '1';
+               -- Set the data
                v.tspMaster.tData(63 downto 0) := endianSwap64(rdHeaderData_i);
-               -- Set the SOF flag
-               ssiSetUserSof(RSSI_AXIS_CONFIG_C, v.tspMaster, '1');
                -- Calculate the checksum
                GetRssiCsum(
                   -- Input 
@@ -843,14 +878,29 @@ begin
                   -- Results
                   v.csumAccum,          -- accumVar
                   v.chksumOk,           -- chksumOk
-                  v.checksum);          -- checksum       
+                  v.checksum);          -- checksum   
+               -- Reset the flag
+               v.hdrAmrmed := '0';
+               -- Next state            
+               v.tspState  := NSYN_XSUM_S;
+            end if;
+         ----------------------------------------------------------------------
+         when NSYN_XSUM_S =>
+            -- Set the flag
+            v.hdrAmrmed := '1';
+            -- Check if ready to move data (r.tspMaster.tValid already '0' from previous state)
+            if (r.hdrAmrmed = '1') then  -- Using registered value to help relax timing            
+               -- Move the data
+               v.tspMaster.tValid := '1';
+               -- Set the SOF flag
+               ssiSetUserSof(RSSI_AXIS_CONFIG_C, v.tspMaster, '1');
                -- Set EOF flag
-               v.tspMaster.tLast := '1';
+               v.tspMaster.tLast  := '1';
                -- Check if header checksum enable generic set
                if (HEADER_CHKSUM_EN_G) then
                   -- Insert the checksum
-                  v.tspMaster.tData(63 downto 56) := v.checksum(7 downto 0);
-                  v.tspMaster.tData(55 downto 48) := v.checksum(15 downto 8);
+                  v.tspMaster.tData(63 downto 56) := r.checksum(7 downto 0);
+                  v.tspMaster.tData(55 downto 48) := r.checksum(15 downto 8);
                end if;
                -- Check for RST or NULL
                if (r.rstH = '1') or (r.nullH = '1') then
@@ -875,11 +925,8 @@ begin
             v.hdrAmrmed := '1';
             -- Check if ready to move data
             if (r.tspMaster.tValid = '0') and (r.hdrAmrmed = '1') then  -- Using registered value to help relax timing
-               -- Move the data
-               v.tspMaster.tValid             := '1';
+               -- Set the data
                v.tspMaster.tData(63 downto 0) := endianSwap64(rdHeaderData_i);
-               -- Set the SOF flag
-               ssiSetUserSof(RSSI_AXIS_CONFIG_C, v.tspMaster, '1');
                -- Calculate the checksum
                GetRssiCsum(
                   -- Input 
@@ -889,25 +936,40 @@ begin
                   -- Results
                   v.csumAccum,          -- accumVar
                   v.chksumOk,           -- chksumOk
-                  v.checksum);          -- checksum  
+                  v.checksum);          -- checksum   
+               -- Reset the flag
+               v.hdrAmrmed := '0';
+               -- Next state            
+               v.tspState  := DATA_XSUM_S;
+            end if;
+         ----------------------------------------------------------------------
+         when DATA_XSUM_S =>
+            -- Set the flag
+            v.hdrAmrmed := '1';
+            -- Check if ready to move data (r.tspMaster.tValid already '0' from previous state)
+            if (r.hdrAmrmed = '1') then  -- Using registered value to help relax timing   
+               -- Move the data
+               v.tspMaster.tValid := '1';
+               -- Set the SOF flag
+               ssiSetUserSof(RSSI_AXIS_CONFIG_C, v.tspMaster, '1');
                -- Check if header checksum enable generic set
                if (HEADER_CHKSUM_EN_G) then
                   -- Inject fault into checksum
                   if (r.injectFaultReg = '1') then
                      -- Flip bits in checksum! Point of fault injection!
-                     v.tspMaster.tData(63 downto 56) := not(v.checksum(7 downto 0));
-                     v.tspMaster.tData(55 downto 48) := not(v.checksum(15 downto 8));
+                     v.tspMaster.tData(63 downto 56) := not(r.checksum(7 downto 0));
+                     v.tspMaster.tData(55 downto 48) := not(r.checksum(15 downto 8));
                   else
                      -- Insert the checksum
-                     v.tspMaster.tData(63 downto 56) := v.checksum(7 downto 0);
-                     v.tspMaster.tData(55 downto 48) := v.checksum(15 downto 8);
+                     v.tspMaster.tData(63 downto 56) := r.checksum(7 downto 0);
+                     v.tspMaster.tData(55 downto 48) := r.checksum(15 downto 8);
                   end if;
                end if;
                -- Set the fault reg to 0
                v.injectFaultReg := '0';
                -- Update the flags
                v.dataH          := '0';
-               v.dataD          := '1';       -- Send data               
+               v.dataD          := '1';  -- Send data               
                -- Next state   
                v.tspState       := DATA_S;
             end if;
@@ -969,11 +1031,8 @@ begin
             v.hdrAmrmed := '1';
             -- Check if ready to move data
             if (r.tspMaster.tValid = '0') and (r.hdrAmrmed = '1') then  -- Using registered value to help relax timing
-               -- Move the data
-               v.tspMaster.tValid             := '1';
+               -- Set the data
                v.tspMaster.tData(63 downto 0) := endianSwap64(rdHeaderData_i);
-               -- Set the SOF flag
-               ssiSetUserSof(RSSI_AXIS_CONFIG_C, v.tspMaster, '1');
                -- Calculate the checksum
                GetRssiCsum(
                   -- Input 
@@ -983,12 +1042,27 @@ begin
                   -- Results
                   v.csumAccum,          -- accumVar
                   v.chksumOk,           -- chksumOk
-                  v.checksum);          -- checksum  
+                  v.checksum);          -- checksum   
+               -- Reset the flag
+               v.hdrAmrmed := '0';
+               -- Next state            
+               v.tspState  := RESEND_XSUM_S;
+            end if;
+         ----------------------------------------------------------------------
+         when RESEND_XSUM_S =>
+            -- Set the flag
+            v.hdrAmrmed := '1';
+            -- Check if ready to move data (r.tspMaster.tValid already '0' from previous state)
+            if (r.hdrAmrmed = '1') then  -- Using registered value to help relax timing   
+               -- Move the data
+               v.tspMaster.tValid := '1';
+               -- Set the SOF flag
+               ssiSetUserSof(RSSI_AXIS_CONFIG_C, v.tspMaster, '1');
                -- Check if header checksum enable generic set
                if (HEADER_CHKSUM_EN_G) then
                   -- Insert the checksum
-                  v.tspMaster.tData(63 downto 56) := v.checksum(7 downto 0);
-                  v.tspMaster.tData(55 downto 48) := v.checksum(15 downto 8);
+                  v.tspMaster.tData(63 downto 56) := r.checksum(7 downto 0);
+                  v.tspMaster.tData(55 downto 48) := r.checksum(15 downto 8);
                end if;
                -- Check for a Null or Rst packet
                if (r.windowArray(txBufIdx).segType(2) = '1') or (r.windowArray(txBufIdx).segType(1) = '1') then
@@ -1022,6 +1096,12 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
+
+      v.simErrorDet := (wrAck.overflow or wrAck.writeError or rdAck.readError);
+     -- if r.simErrorDet = '1' then
+        -- assert false
+           -- report "Simulation Failed!" severity failure;
+     -- end if;       
 
       ----------------------------------------------------------------------
       --                            Outputs                               --

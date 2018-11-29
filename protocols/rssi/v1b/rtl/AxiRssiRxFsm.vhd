@@ -205,8 +205,8 @@ architecture rtl of AxiRssiRxFsm is
    signal wrDmaMaster : AxiStreamMasterType;
    signal wrDmaSlave  : AxiStreamSlaveType;
 
-   attribute dont_touch      : string;
-   attribute dont_touch of r : signal is "TRUE";    
+   -- attribute dont_touch      : string;
+   -- attribute dont_touch of r : signal is "TRUE";    
 
 begin
 
@@ -310,7 +310,7 @@ begin
          when IDLE_S =>
          
             -- Calculate the checksum
-            GetRssiCsumReg(
+            GetRssiCsum(
                -- Input 
                '1',                     -- init        
                headerData,              -- header
@@ -377,7 +377,7 @@ begin
                v.tspSlave.tReady := '1';
 
                -- Calculate the checksum
-               GetRssiCsumReg(
+               GetRssiCsum(
                   -- Input 
                   '0',                  -- init
                   headerData,           -- header
@@ -416,7 +416,7 @@ begin
                v.tspSlave.tReady := '1';
 
                -- Calculate the checksum
-               GetRssiCsumReg(
+               GetRssiCsum(
                   -- Input 
                   '0',                  -- init
                   headerData,           -- header
@@ -448,7 +448,7 @@ begin
 
             -- Last cycle of pipeline
             v.chksumRdy := '1';
-            GetRssiCsumReg(
+            GetRssiCsum(
                -- Input 
                '0',                     -- init  
                (others => '0'),         -- header
@@ -479,7 +479,7 @@ begin
          when NSYN_CHECK_S =>
             -- Last cycle of pipeline
             v.chksumRdy := '1';
-            GetRssiCsumReg(
+            GetRssiCsum(
                -- Input 
                '0',                     -- init
                (others => '0'),         -- header
@@ -701,10 +701,10 @@ begin
       end case;
 
       v.simErrorDet := (r.segDrop or wrAck.overflow or wrAck.writeError or rdAck.readError);
---      if r.simErrorDet = '1' then
---         assert false
---            report "Simulation Failed!" severity failure;
---      end if;
+     -- if r.simErrorDet = '1' then
+        -- assert false
+           -- report "Simulation Failed!" severity failure;
+     -- end if;
 
       ----------------------------------------------------------------------
       --                            Outputs                               --
