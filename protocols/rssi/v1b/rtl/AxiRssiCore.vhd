@@ -112,12 +112,6 @@ end entity AxiRssiCore;
 
 architecture rtl of AxiRssiCore is
 
-   constant INT_AXI_CONFIG_C : AxiConfigType := axiConfig(
-      ADDR_WIDTH_C => AXI_CONFIG_G.ADDR_WIDTH_C,
-      DATA_BYTES_C => RSSI_WORD_WIDTH_C,
-      ID_BITS_C    => AXI_CONFIG_G.ID_BITS_C,
-      LEN_BITS_C   => AXI_CONFIG_G.LEN_BITS_C);
-
    constant MAX_SEGS_BITS_C     : positive := bitSize(MAX_SEG_SIZE_G-1);
    constant SEGMENT_ADDR_SIZE_C : positive := (MAX_SEGS_BITS_C-3);  --! 2^SEGMENT_ADDR_SIZE_C = Number of 64 bit wide data words
    constant WINDOW_ADDR_SIZE_C  : positive := (AXI_CONFIG_G.ADDR_WIDTH_C-MAX_SEGS_BITS_C);  --! 2^WINDOW_ADDR_SIZE_C  = Max number of segments in buffer
@@ -493,7 +487,7 @@ begin
    U_TxFSM : entity work.AxiRssiTxFsm
       generic map (
          TPD_G               => TPD_G,
-         AXI_CONFIG_G        => INT_AXI_CONFIG_C,
+         AXI_CONFIG_G        => AXI_CONFIG_G,
          BURST_BYTES_G       => AXI_BURST_BYTES_C,
          WINDOW_ADDR_SIZE_G  => WINDOW_ADDR_SIZE_C,
          SEGMENT_ADDR_SIZE_G => SEGMENT_ADDR_SIZE_C,
@@ -611,7 +605,7 @@ begin
    U_RxFSM : entity work.AxiRssiRxFsm
       generic map (
          TPD_G               => TPD_G,
-         AXI_CONFIG_G        => INT_AXI_CONFIG_C,
+         AXI_CONFIG_G        => AXI_CONFIG_G,
          BURST_BYTES_G       => AXI_BURST_BYTES_C,
          WINDOW_ADDR_SIZE_G  => WINDOW_ADDR_SIZE_C,
          HEADER_CHKSUM_EN_G  => HEADER_CHKSUM_EN_G,
