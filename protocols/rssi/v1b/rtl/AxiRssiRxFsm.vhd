@@ -104,7 +104,8 @@ architecture rtl of AxiRssiRxFsm is
 
    type tspStateType is (
       IDLE_S,
-      SYN_WAIT_S,
+      SYN_WAIT0_S,
+      SYN_WAIT1_S,
       SYN_CHECK_S,
       NSYN_CHECK_S,
       DATA_S,
@@ -136,10 +137,12 @@ architecture rtl of AxiRssiRxFsm is
       -- Checksum Calculation
       csumAccum    : slv(20 downto 0);
       chksumOk     : sl;
+      chksumRdy    : sl;
       checksum     : slv(15 downto 0);
       -- Strobing status flags
       segValid     : sl;
       segDrop      : sl;
+      simErrorDet  : sl;
       -- Inbound Transport Interface
       tspSlave     : AxiStreamSlaveType;
       -- State Machine
@@ -174,10 +177,12 @@ architecture rtl of AxiRssiRxFsm is
       -- Checksum Calculation
       csumAccum    => (others => '0'),
       chksumOk     => '0',
+      chksumRdy    => '0',
       checksum     => (others => '0'),
       -- Strobing status flags
       segValid     => '0',
       segDrop      => '0',
+      simErrorDet  => '0',
       -- Inbound Transport Interface 
       tspSlave     => AXI_STREAM_SLAVE_INIT_C,
       -- Transport side state
@@ -199,6 +204,9 @@ architecture rtl of AxiRssiRxFsm is
 
    signal wrDmaMaster : AxiStreamMasterType;
    signal wrDmaSlave  : AxiStreamSlaveType;
+
+   attribute dont_touch      : string;
+   attribute dont_touch of r : signal is "TRUE";    
 
 begin
 
@@ -272,9 +280,10 @@ begin
       v := r;
 
       -- Reset strobes
-      v.tspSlave := AXI_STREAM_SLAVE_INIT_C;
-      v.segValid := '0';
-      v.segDrop  := '0';
+      v.tspSlave  := AXI_STREAM_SLAVE_INIT_C;
+      v.segValid  := '0';
+      v.segDrop   := '0';
+      v.chksumRdy := '0';      
 
       -- Endian swap the header
       headerData := endianSwap64(tspMaster_i.tData(63 downto 0));
@@ -299,11 +308,11 @@ begin
       case r.tspState is
          ----------------------------------------------------------------------
          when IDLE_S =>
-
+         
             -- Calculate the checksum
-            GetRssiCsum(
+            GetRssiCsumReg(
                -- Input 
-               '1',                     -- init
+               '1',                     -- init        
                headerData,              -- header
                r.csumAccum,             -- accumReg
                -- Results
@@ -340,8 +349,14 @@ begin
                      v.rxParam.maxOutsSeg := headerData(23 downto 16);
                      v.rxParam.maxSegSize := headerData(15 downto 0);
 
-                     -- Next State
-                     v.tspState := SYN_WAIT_S;
+                     -- Check for early EOF
+                     if (tspMaster_i.tLast = '1') then
+                        -- Set the flag
+                        v.segDrop := '1';
+                     else
+                        -- Next State
+                        v.tspState := SYN_WAIT0_S;
+                     end if;
 
                   else
                      -- Set the flag
@@ -354,7 +369,7 @@ begin
 
             end if;
          ----------------------------------------------------------------------
-         when SYN_WAIT_S =>
+         when SYN_WAIT0_S =>
             -- Check for data
             if (tspMaster_i.tValid = '1') then
 
@@ -362,7 +377,7 @@ begin
                v.tspSlave.tReady := '1';
 
                -- Calculate the checksum
-               GetRssiCsum(
+               GetRssiCsumReg(
                   -- Input 
                   '0',                  -- init
                   headerData,           -- header
@@ -387,13 +402,13 @@ begin
                   v.tspState := IDLE_S;
                else
                   -- Next State
-                  v.tspState := SYN_CHECK_S;
+                  v.tspState := SYN_WAIT1_S;
                end if;
 
             end if;
 
          ----------------------------------------------------------------------
-         when SYN_CHECK_S =>
+         when SYN_WAIT1_S =>
             -- Check for data
             if (tspMaster_i.tValid = '1') then
 
@@ -401,7 +416,7 @@ begin
                v.tspSlave.tReady := '1';
 
                -- Calculate the checksum
-               GetRssiCsum(
+               GetRssiCsumReg(
                   -- Input 
                   '0',                  -- init
                   headerData,           -- header
@@ -416,47 +431,102 @@ begin
                v.rxParam.timeoutUnit               := headerData(55 downto 48);
                v.rxParam.connectionId(31 downto 0) := headerData(47 downto 16);
 
-               -- Check the header
-               if (
-                  ((HEADER_CHKSUM_EN_G = false) or (v.chksumOk = '1')) and
-                  -- Check length
-                  r.rxHeadLen = toSlv(24, 8)
-                  ) then
-                  -- Next State              
-                  v.tspState := VALID_S;
-               else
+               -- Check for no EOF
+               if (tspMaster_i.tLast = '0') then
                   -- Set the flag
                   v.segDrop  := '1';
                   -- Next State
                   v.tspState := IDLE_S;
+               else
+                  -- Next State
+                  v.tspState := SYN_CHECK_S;
+               end if;
+
+            end if;
+         ----------------------------------------------------------------------
+         when SYN_CHECK_S =>
+
+            -- Last cycle of pipeline
+            v.chksumRdy := '1';
+            GetRssiCsumReg(
+               -- Input 
+               '0',                     -- init  
+               (others => '0'),         -- header
+               r.csumAccum,             -- accumReg
+               -- Results
+               v.csumAccum,             -- accumVar
+               v.chksumOk,              -- chksumOk
+               v.checksum);             -- checksum         
+
+            if (r.chksumRdy = '1') then
+
+               -- Check the header
+               if ((HEADER_CHKSUM_EN_G = false) or (r.chksumOk = '1')) and (r.rxHeadLen = toSlv(24, 8)) then
+                  -- Next State              
+                  v.tspState := VALID_S;
+               else
+
+                  -- Set the flag
+                  v.segDrop := '1';
+
+                  -- Next State
+                  v.tspState := IDLE_S;
+
                end if;
 
             end if;
          ----------------------------------------------------------------------
          when NSYN_CHECK_S =>
-            -- Check the header
-            if (
-               ((HEADER_CHKSUM_EN_G = false) or (r.chksumOk = '1')) and
-               -- Check length
-               r.rxHeadLen = toSlv(8, 8) and
-               -- Check SeqN range
-               (r.rxSeqN - r.inOrderSeqN) <= 1 and
-               -- Check AckN range                  
-               (r.rxAckN - lastAckN_i)    <= txWindowSize_i
-               ) then
+            -- Last cycle of pipeline
+            v.chksumRdy := '1';
+            GetRssiCsumReg(
+               -- Input 
+               '0',                     -- init
+               (others => '0'),         -- header
+               r.csumAccum,             -- accumReg
+               -- Results
+               v.csumAccum,             -- accumVar
+               v.chksumOk,              -- chksumOk
+               v.checksum);             -- checksum         
 
-               -- Valid data segment
-               if (r.rxF.data = '1' and v.rxF.nul = '0' and v.rxF.rst = '0') then
+            if (r.chksumRdy = '1') then
 
-                  -- Wait if the buffer full
-                  -- Note: Deadlock possibility! If the peer is not accepting data!
-                  if (r.windowArray(rxBufIdx).occupied = '0') then
-                     -- Start the DMA write transaction
-                     v.wrReq.request := '1';
-                     -- Next State             
-                     v.tspState      := DATA_S;
+               -- Check the header
+               if (
+                  ((HEADER_CHKSUM_EN_G = false) or (r.chksumOk = '1')) and
+                  -- Check length
+                  r.rxHeadLen = toSlv(8, 8) and
+                  -- Check SeqN range
+                  (r.rxSeqN - r.inOrderSeqN) <= 1 and
+                  -- Check AckN range                  
+                  (r.rxAckN - lastAckN_i)    <= txWindowSize_i
+                  ) then
 
-                  -- Buffer is full -> drop segment
+                  -- Valid data segment
+                  if (r.rxF.data = '1' and v.rxF.nul = '0' and v.rxF.rst = '0') then
+
+                     -- Wait if the buffer full
+                     -- Note: Deadlock possibility! If the peer is not accepting data!
+                     if (r.windowArray(rxBufIdx).occupied = '0') then
+                        -- Start the DMA write transaction
+                        v.wrReq.request := '1';
+                        -- Next State             
+                        v.tspState      := DATA_S;
+
+                     -- Buffer is full -> drop segment
+                     else
+                        -- Set the flag
+                        v.segDrop  := '1';
+                        -- Next State
+                        v.tspState := IDLE_S;
+                     end if;
+
+                  -- Valid non data segment               
+                  elsif (r.rxF.data = '0') then
+                     -- Next State
+                     v.tspState := VALID_S;
+
+                  -- Undefined condition
                   else
                      -- Set the flag
                      v.segDrop  := '1';
@@ -464,12 +534,7 @@ begin
                      v.tspState := IDLE_S;
                   end if;
 
-               -- Valid non data segment               
-               elsif (r.rxF.data = '0') then
-                  -- Next State
-                  v.tspState := VALID_S;
-
-               -- Undefined condition
+               -- Else failed header checking
                else
                   -- Set the flag
                   v.segDrop  := '1';
@@ -477,21 +542,18 @@ begin
                   v.tspState := IDLE_S;
                end if;
 
-            -- Else failed header checking
-            else
-               -- Set the flag
-               v.segDrop  := '1';
-               -- Next State
-               v.tspState := IDLE_S;
             end if;
          ----------------------------------------------------------------------
          when DATA_S =>
             -- Latch the segment size
             v.windowArray(rxBufIdx).segSize := conv_integer(wrAck.size);
+
             -- Check if DMA write completed
             if (wrAck.done = '1') then
+
                -- Reset the flag
                v.wrReq.request := '0';
+
                -- Check for error
                if (wrAck.writeError = '1') or (wrAck.overflow = '1') then
                   -- Set the flag
@@ -502,6 +564,7 @@ begin
                   -- Next State              
                   v.tspState := VALID_S;
                end if;
+
             end if;
          ----------------------------------------------------------------------
          when VALID_S =>
@@ -578,51 +641,70 @@ begin
                -- Reset the index pointers
                v.txBufferAddr := (others => '0');
                v.rxLastSeqN   := r.inOrderSeqN;
+
             -- Check for occupied buffer
             elsif (r.windowArray(txBufIdx).occupied = '1') then
+
                -- Check for a data segment
                if (r.windowArray(txBufIdx).segType(0) = '1') then
+
                   -- Check if ready to move data
                   if (rdAck.idle = '1') then
                      -- Start the DMA read transaction                   
                      v.rdReq.request := '1';
+
                      -- Next State
-                     v.appState      := DATA_S;
+                     v.appState := DATA_S;
                   end if;
+
                else
                   -- Next State
                   v.appState := SENT_S;
                end if;
+
             end if;
          ----------------------------------------------------------------------
          when DATA_S =>
             -- Check if DMA write completed
             if (rdAck.done = '1') then
+
                -- Reset the flag
                v.rdReq.request := '0';
+
                -- Next State
-               v.appState      := SENT_S;
+               v.appState := SENT_S;
+
             end if;
          ----------------------------------------------------------------------
          when SENT_S =>
             -- Register the sent SeqN (this means that the place has been freed and the SeqN can be Acked)
-            v.rxLastSeqN                     := r.windowArray(txBufIdx).seqN;
+            v.rxLastSeqN := r.windowArray(txBufIdx).seqN;
+
             -- Release buffer
             v.windowArray(txBufIdx).occupied := '0';
+
             -- Increment the TX buffer index
             if r.txBufferAddr < (rxWindowSize_i-1) then
                v.txBufferAddr := r.txBufferAddr+1;  -- Increment once
             else
                v.txBufferAddr := (others => '0');
             end if;
+
             -- Decrement the pending counter
             if v.pending /= 0 then
                v.pending := v.pending - 1;
             end if;
+
             -- Next State
             v.appState := IDLE_S;
       ----------------------------------------------------------------------
       end case;
+
+      v.simErrorDet := (r.segDrop or wrAck.overflow or wrAck.writeError or rdAck.readError);
+--      if r.simErrorDet = '1' then
+--         assert false
+--            report "Simulation Failed!" severity failure;
+--      end if;
 
       ----------------------------------------------------------------------
       --                            Outputs                               --
