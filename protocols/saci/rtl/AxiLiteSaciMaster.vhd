@@ -141,7 +141,7 @@ begin
          saciCmd  => saciCmd,           -- [out]
          saciRsp  => saciRsp);          -- [in]
 
-   comb : process (ack, axilReadMaster, axilRst, axilWriteMaster, fail, r, rdData) is
+   comb : process (ack, axilReadMaster, axilRst, axilWriteMaster, fail, r, rdData, saciBusGr) is
       variable v          : RegType;
       variable axilStatus : AxiLiteStatusType;
       variable resp       : slv(1 downto 0);
