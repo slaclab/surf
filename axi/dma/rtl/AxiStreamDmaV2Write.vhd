@@ -116,8 +116,8 @@ architecture rtl of AxiStreamDmaV2Write is
    signal trackDout     : slv(AXI_WRITE_DMA_TRACK_SIZE_C-1 downto 0);
    signal trackData     : AxiWriteDmaTrackType;
 
-   attribute dont_touch      : string;
-   attribute dont_touch of r : signal is "true";
+   --attribute dont_touch      : string;
+   --attribute dont_touch of r : signal is "true";
    
 begin
 
