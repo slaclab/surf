@@ -116,8 +116,8 @@ architecture rtl of AxiStreamDmaV2Write is
    signal trackDout     : slv(AXI_WRITE_DMA_TRACK_SIZE_C-1 downto 0);
    signal trackData     : AxiWriteDmaTrackType;
 
-   -- attribute dont_touch      : string;
-   -- attribute dont_touch of r : signal is "true";
+   attribute dont_touch      : string;
+   attribute dont_touch of r : signal is "true";
    
 begin
 
@@ -210,13 +210,22 @@ begin
          when IDLE_S =>
             if intAxisMaster.tValid = '1' then
                -- Current destination matches incoming frame
-               if r.dmaWrTrack.dest = intAxisMaster.tDest and r.dmaWrTrack.inUse = '1' then
-                  if r.dmaWrTrack.dropEn = '1' then
+               if r.dmaWrTrack.dest = intAxisMaster.tDest then
+
+                  -- Frame is still in progress
+                  if r.dmaWrTrack.inUse = '1' then
+                     if r.dmaWrTrack.dropEn = '1' then
+                           -- Next state
+                        v.state := DUMP_S;
+                     else
                         -- Next state
-                     v.state := DUMP_S;
+                        v.state := ADDR_S;
+                     end if;
+
+                  -- New frame with same destination, new descriptor
                   else
-                     -- Next state
-                     v.state := ADDR_S;
+                     v.dmaWrDescReq.valid := '1';
+                     v.state := REQ_S;
                   end if;
 
                -- Wait for mem selection to match incoming frame
