@@ -31,7 +31,6 @@ entity ClinkTop is
       TPD_G              : time                 := 1 ns;
       CHAN_COUNT_G       : integer range 1 to 2 := 1;
       UART_READY_EN_G    : boolean              := true;
-      CB1_H0_34_FIX_G    : boolean              := false;  -- PC-248-100-22 schematic error
       DATA_AXIS_CONFIG_G : AxiStreamConfigType  := AXI_STREAM_CONFIG_INIT_C;
       UART_AXIS_CONFIG_G : AxiStreamConfigType  := AXI_STREAM_CONFIG_INIT_C);
    port (
@@ -85,8 +84,6 @@ entity ClinkTop is
 end ClinkTop;
 
 architecture rtl of ClinkTop is
-
-   constant NOT_CB1_H0_34_FIX_C : boolean := not CB1_H0_34_FIX_G;
 
    type RegType is record
       chanConfig      : ClChanConfigArray(1 downto 0);
@@ -181,7 +178,6 @@ begin
       U_Cbl1Half0: entity work.ClinkCtrl
          generic map (
             TPD_G              => TPD_G,
-            INV_34_G           => CB1_H0_34_FIX_G,  -- Invert for bad schematic
             UART_READY_EN_G    => UART_READY_EN_G,
             UART_AXIS_CONFIG_G => UART_AXIS_CONFIG_G)
          port map (
@@ -217,7 +213,7 @@ begin
       U_Cbl1Half0: entity work.ClinkData
          generic map ( 
             TPD_G    => TPD_G,
-            INV_34_G => NOT_CB1_H0_34_FIX_C) -- Don't invert for bad schematic
+            INV_34_G => true)
          port map (
             cblHalfP   => cbl1Half0P,
             cblHalfM   => cbl1Half0M,

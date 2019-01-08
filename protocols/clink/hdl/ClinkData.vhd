@@ -82,6 +82,11 @@ architecture rtl of ClinkData is
    signal intData  : slv(27 downto 0);
    signal parClock : slv(6 downto 0);
 
+   attribute MARK_DEBUG : string;
+   attribute MARK_DEBUG of r        : signal is "TRUE";
+   attribute MARK_DEBUG of parClock : signal is "TRUE";
+   attribute MARK_DEBUG of intData  : signal is "TRUE";
+
 begin
 
    -------------------------------
@@ -158,12 +163,18 @@ begin
                   v.state := DONE_S;
 
                -- Check for clock change
-               elsif parClock /= r.lastClk then
+               elsif parClock /= r.lastClk and ( r.lastClk = "1100011" or
+                                                 r.lastClk = "1110001" or
+                                                 r.lastClk = "1111000" or
+                                                 r.lastClk = "0111100" or
+                                                 r.lastClk = "0011110" or
+                                                 r.lastClk = "0001111" or
+                                                 r.lastClk = "1000111" ) then
                   v.state := LOAD_C_S;
 
                -- Shift again
                else
-                  v.state := SHIFT_C_S;
+                  v.state := WAIT_C_S;
                end if;
             end if;
 
