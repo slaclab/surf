@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamShift.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-25
--- Last update: 2016-10-27
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to shift data bytes within an AXI stream. Both left and right shifting
@@ -257,9 +255,9 @@ begin
          end case;
 
          -- Mask off the unused tStrb and tKeep bits
-         if (AXIS_CONFIG_G.TDATA_BYTES_C /= 16) then
-            v.master.tKeep(15 downto AXIS_CONFIG_G.TDATA_BYTES_C) := (others => '0');
-            v.master.tStrb(15 downto AXIS_CONFIG_G.TDATA_BYTES_C) := (others => '0');
+         if (AXIS_CONFIG_G.TDATA_BYTES_C /= AXI_STREAM_MAX_TKEEP_WIDTH_C) then
+            v.master.tKeep(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto AXIS_CONFIG_G.TDATA_BYTES_C) := (others => '0');
+            v.master.tStrb(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto AXIS_CONFIG_G.TDATA_BYTES_C) := (others => '0');
          end if;
          
          -- Combinatorial outputs before the reset

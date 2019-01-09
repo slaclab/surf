@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamDmaV2Read.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-02-02
--- Last update: 2018-03-09
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to transfer a single AXI Stream frame from memory using an AXI
@@ -60,7 +58,7 @@ end AxiStreamDmaV2Read;
 architecture rtl of AxiStreamDmaV2Read is
 
    constant DATA_BYTES_C : positive := AXIS_CONFIG_G.TDATA_BYTES_C;
-   constant ADDR_LSB_C   : natural  := bitSize(DATA_BYTES_C-1);
+   constant ADDR_LSB_C   : natural  := ite((DATA_BYTES_C=1),0,bitSize(DATA_BYTES_C-1));
    constant PEND_LSB_C   : natural  := bitSize(PEND_THRESH_G-1);
 
    type ReqStateType is (
@@ -169,7 +167,7 @@ begin
          v.sMaster.tUser  := (others => '0');
          v.sMaster.tStrb  := (others => '1');
          if (AXIS_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-            v.sMaster.tKeep := toSlv(AXIS_CONFIG_G.TDATA_BYTES_C, 16);
+            v.sMaster.tKeep := toSlv(AXIS_CONFIG_G.TDATA_BYTES_C, AXI_STREAM_MAX_TKEEP_WIDTH_C);
          else
             v.sMaster.tKeep := (others => '1');
          end if;
@@ -218,12 +216,15 @@ begin
             v.dmaRdDescRet.buffId                         := dmaRdDescReq.buffId;
             v.dmaRdDescRet.result                         := (others => '0');
             -- Force address alignment
-            v.dmaRdDescReq.address(ADDR_LSB_C-1 downto 0) := (others => '0');
+            if (DATA_BYTES_C > 1) then
+               v.dmaRdDescReq.address(ADDR_LSB_C-1 downto 0) := (others => '0');
+            end if;
             -- Reset the counters
             v.reqCnt                                      := (others => '0');
             v.ackCnt                                      := (others => '0');
             -- Reset flags
             v.pending                                     := false;
+            v.axiLen.valid                                := "00";
             -- Check for DMA request 
             if dmaRdDescReq.valid = '1' then
                v.dmaRdDescAck  := '1';
@@ -325,11 +326,11 @@ begin
                   -- Terminate the frame
                   v.sMaster.tLast := not r.dmaRdDescReq.continue;
                   if (AXIS_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-                     v.sMaster.tKeep := "00000000000" & r.size(4 downto 0);
+                     v.sMaster.tKeep := resize(r.size(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C)-1 downto 0), AXI_STREAM_MAX_TKEEP_WIDTH_C);
                   else
-                     v.sMaster.tKeep := genTKeep(conv_integer(r.size(4 downto 0)));
+                     v.sMaster.tKeep := genTKeep(conv_integer(r.size(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C)-1 downto 0)));
                   end if;
-                  v.sMaster.tStrb      := genTKeep(conv_integer(r.size(4 downto 0)));
+                  v.sMaster.tStrb      := genTKeep(conv_integer(r.size(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C)-1 downto 0)));
                   -- Set last user field
                   axiStreamSetUserField (AXIS_CONFIG_G, v.sMaster, r.dmaRdDescReq.lastUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0));
                   -- Set the flags

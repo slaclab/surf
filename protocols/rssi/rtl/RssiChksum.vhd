@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : RssiChksum.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-08-09
--- Last update: 2015-08-09
 -------------------------------------------------------------------------------
 -- Description: Calculates and checks the RUDP packet checksum.
 --              Checksum for IP/UDP/TCP/RUDP.

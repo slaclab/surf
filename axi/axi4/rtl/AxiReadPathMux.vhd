@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiReadPathMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-25
--- Last update: 2018-03-11
 -------------------------------------------------------------------------------
 -- Description: Block to connect multiple incoming AXI write path interfaces.
 -------------------------------------------------------------------------------
@@ -114,7 +112,7 @@ begin
          when S_IDLE_C =>
             v.master.arvalid := '0';
 
-            -- Aribrate between requesters
+            -- Arbitrate between requesters
             if r.addrValid = '0' then
                arbitrate(addrRequests, r.addrAckNum, v.addrAckNum, v.addrValid, v.addrAcks);
             end if;
@@ -186,7 +184,7 @@ begin
          mAxiReadMaster <= r.master;
       
          -- Readies are direct
-         -- Assign combinatoral outputs before reset
+         -- Assign combinatorial outputs before reset
          for i in 0 to (NUM_SLAVES_G-1) loop
            sAxiReadSlaves(i).arready <= v.slaves(i).arready;
          end loop;

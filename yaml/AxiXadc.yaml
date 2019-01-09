@@ -24,8 +24,6 @@ AxiXadc: &AxiXadc
       class: IntField
       name: SRR
       mode: WO
-      # CPSW requires all WO variables to be 32-bit size and 32-bit aligned 
-      sizeBits: 32          
       description: Software Reset Register
     #########################################################
     SR:
@@ -50,8 +48,6 @@ AxiXadc: &AxiXadc
       class: IntField
       name: CONVSTR
       mode: WO
-      # CPSW requires all WO variables to be 32-bit size and 32-bit aligned 
-      sizeBits: 32          
       description: CONVST Register
     #########################################################
     SYSMONRR:
@@ -60,8 +56,6 @@ AxiXadc: &AxiXadc
       class: IntField
       name: SYSMONRR
       mode: WO
-      # CPSW requires all WO variables to be 32-bit size and 32-bit aligned 
-      sizeBits: 32          
       description: XADC Hard Macro Reset Register
     #########################################################
     GIER:

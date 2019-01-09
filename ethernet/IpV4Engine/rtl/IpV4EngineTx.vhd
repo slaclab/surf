@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : IpV4EngineTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-08-12
--- Last update: 2016-09-16
 -------------------------------------------------------------------------------
 -- Description: IPv4 TX Engine Module
 -- Note: IPv4 checksum checked in EthMac core
@@ -378,10 +376,10 @@ begin
             -- Check for data
             if (v.txMaster.tValid = '0') then
                -- Move the data
-               v.txMaster.tValid := '1';
-               v.txMaster.tData  := r.tData;
-               v.txMaster.tKeep  := r.tKeep;
-               v.txMaster.tLast  := '1';
+               v.txMaster.tValid              := '1';
+               v.txMaster.tData(127 downto 0) := r.tData;
+               v.txMaster.tKeep(15 downto 0)  := r.tKeep;
+               v.txMaster.tLast               := '1';
                ssiSetUserEofe(EMAC_AXIS_CONFIG_C, v.txMaster, r.eofe);
                -- Next state
                v.state           := IDLE_S;

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamFlushTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-08-25
--- Last update: 2015-08-25
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the AxiStreamFlush module
 -------------------------------------------------------------------------------

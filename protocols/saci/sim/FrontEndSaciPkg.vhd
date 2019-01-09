@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : FrontEndSaciPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2012-05-03
--- Last update: 2012-09-26
 -------------------------------------------------------------------------------
 -- Description: Port types for Generic Front End interface
 -------------------------------------------------------------------------------

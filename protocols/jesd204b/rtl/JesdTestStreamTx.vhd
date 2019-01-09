@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : JesdTestStreamTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-15
--- Last update: 2015-04-15
 -------------------------------------------------------------------------------
 -- Description: Test Data Stream Generator
 --  Outputs a saw, ramp, or square wave test signal data stream for testing

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : RssiRxFsm.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-06-11
--- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: Receiver FSM
 --              Receiver has the following functionality:
@@ -60,6 +58,9 @@ entity RssiRxFsm is
    port (
       clk_i      : in  sl;
       rst_i      : in  sl;
+      
+      -- RX Buffer Full
+      rxBuffBusy_o : out sl;
       
       -- Connection FSM indicating active connection
       connActive_i   : in  sl;
@@ -146,7 +147,8 @@ architecture rtl of RssiRxFsm is
    type RegType is record
       
       -- Resception buffer window
-      windowArray    : WindowTypeArray(0 to 2 ** WINDOW_ADDR_SIZE_G-1);      
+      windowArray  : WindowTypeArray(0 to 2 ** WINDOW_ADDR_SIZE_G-1);      
+      pending      : slv(WINDOW_ADDR_SIZE_G  downto 0);
       
       -- Transport side FSM (Receive and check segments)
       -----------------------------------------------------------
@@ -204,7 +206,8 @@ architecture rtl of RssiRxFsm is
    constant REG_INIT_C : RegType := (
       
       -- Rx buffer window
-      windowArray    => (0 to 2 ** WINDOW_ADDR_SIZE_G-1 => WINDOW_INIT_C),
+      windowArray => (0 to 2 ** WINDOW_ADDR_SIZE_G-1 => WINDOW_INIT_C),
+      pending     => (others => '0'),
       
       -- Transport side FSM (Receive and check segments)
       -----------------------------------------------------------   
@@ -506,7 +509,7 @@ begin
             if (tspSsiMaster_i.eof = '1' and tspSsiMaster_i.valid = '1') then
               
                -- Save tKeep of the last packet
-               v.windowArray(conv_integer(r.rxBufferAddr)).keep   := tspSsiMaster_i.keep;
+               v.windowArray(conv_integer(r.rxBufferAddr)).keep   := tspSsiMaster_i.keep(RSSI_WORD_WIDTH_C-1 downto 0);
                
                -- Save packet length (+1 because it has not incremented for EOF yet)
                v.windowArray(conv_integer(r.rxBufferAddr)).segSize := conv_integer(r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0))+1;     
@@ -543,6 +546,7 @@ begin
                v.inOrderSeqN  := r.rxSeqN;
                v.rxBufferAddr := (others => '0');
                v.windowArray  := REG_INIT_C.windowArray;
+               v.pending      := (others => '0');
                
             -- Check if next valid SEQn is received. If yes:
             -- 1. increment the in order SEQn
@@ -565,6 +569,10 @@ begin
                   v.rxBufferAddr := r.rxBufferAddr +1;
                else
                   v.rxBufferAddr := (others => '0');
+               end if;
+               --               
+               if v.pending < rxWindowSize_i then
+                  v.pending := v.pending + 1;
                end if;
                --               
             else
@@ -633,15 +641,15 @@ begin
                
                if (appSsiSlave_i.pause = '0') then
                
-                  v.appSsiMaster.sof    := '1';
-                  v.appSsiMaster.valid  := '1';
-                  v.appSsiMaster.strb   := (others => '1');
-                  v.appSsiMaster.dest   := (others => '0');
-                  v.appSsiMaster.keep   := r.windowArray(conv_integer(r.txBufferAddr)).keep;
-                  v.appSsiMaster.eof    := '1';
-                  v.appSsiMaster.eofe   := '0';
+                  v.appSsiMaster.sof                                  := '1';
+                  v.appSsiMaster.valid                                := '1';
+                  v.appSsiMaster.strb                                 := (others => '1');
+                  v.appSsiMaster.dest                                 := (others => '0');
+                  v.appSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0)   := r.windowArray(conv_integer(r.txBufferAddr)).keep;
+                  v.appSsiMaster.eof                                  := '1';
+                  v.appSsiMaster.eofe                                 := '0';
                   v.appSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdBuffData_i;
-                  v.txSegmentAddr       := r.txSegmentAddr;
+                  v.txSegmentAddr                                     := r.txSegmentAddr;
 
                   v.appState  := SENT_S;              
                end if;    
@@ -697,11 +705,11 @@ begin
             if  (r.txSegmentAddr >= r.windowArray(conv_integer(r.txBufferAddr)).segSize) then
 
                -- Send EOF at the end of the segment
-               v.appSsiMaster.valid  := '1';               
-               v.appSsiMaster.eof    := '1';
-               v.appSsiMaster.keep   := r.windowArray(conv_integer(r.txBufferAddr)).keep;
-               v.appSsiMaster.eofe   := '0';
-               v.txSegmentAddr       := r.txSegmentAddr;
+               v.appSsiMaster.valid                               := '1';               
+               v.appSsiMaster.eof                                 := '1';
+               v.appSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0)  := r.windowArray(conv_integer(r.txBufferAddr)).keep;
+               v.appSsiMaster.eofe                                := '0';
+               v.txSegmentAddr                                    := r.txSegmentAddr;
                
                v.appState   := SENT_S;
                
@@ -729,6 +737,11 @@ begin
             else
                v.txBufferAddr := (others => '0');
             end if;
+            --               
+            if v.pending /= 0 then
+               v.pending := v.pending - 1;
+            end if;            
+            --               
 
             v.windowArray(conv_integer(r.txBufferAddr)).occupied := '0'; -- Release buffer
             
@@ -779,6 +792,11 @@ begin
       chksumStrobe_o <= r.chkStb;
       chksumLength_o <= r.chkLen;
       rxParam_o      <= r.rxParam;    
+      if (r.pending > 1) then
+         rxBuffBusy_o <= '1';    
+      else
+         rxBuffBusy_o <= '0';    
+      end if;
       
       -- Application side SSI output
       appSsiMaster_o <= r.appSsiMaster;      

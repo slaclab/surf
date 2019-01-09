@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamDmaRingWrite.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-09-29
--- Last update: 2017-02-20
 -------------------------------------------------------------------------------
 -- Description: AXI Stream to DMA Ring Buffer Write Module
 -------------------------------------------------------------------------------
@@ -198,7 +196,8 @@ architecture rtl of AxiStreamDmaRingWrite is
          request       => '0',
          drop          => '0',
          address       => (others => '0'),
-         maxSize       => toSlv(BURST_SIZE_BYTES_G, 32)),
+         maxSize       => toSlv(BURST_SIZE_BYTES_G, 32),
+         prot          => (others=>'0')),
       trigger          => '0',
       softTrigger      => (others => '0'),
       eofe             => '0',

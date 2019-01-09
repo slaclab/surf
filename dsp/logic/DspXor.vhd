@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : DspXor.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-09-19
--- Last update: 2017-09-25
 -------------------------------------------------------------------------------
 -- Description: Generalized DSP inferred XOR, which can be used to help with 
 --              performance when implementing FEC and CRC algorithms
@@ -69,7 +67,7 @@ begin
       a := signed(ain);
 
       -- Process the data
-      v.p := xor(a);
+      v.p := uXor(a);
 
       -- Register the variable for next clock cycle
       rin <= v;

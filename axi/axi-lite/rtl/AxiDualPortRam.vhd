@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiDualPortRam.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-12-17
--- Last update: 2018-03-09
 -------------------------------------------------------------------------------
 -- Description: A wrapper of StdLib DualPortRam that places an AxiLite
 -- interface on the read/write port. 
@@ -252,7 +250,11 @@ begin
       v.axiReadSlave.rdata := (others => '0');
 
       -- Multiplex read data onto axi bus
-      decAddrInt           := conv_integer(axiReadMaster.araddr(AXI_DEC_ADDR_RANGE_C));
+      if (DATA_WIDTH_G <= 32) then
+         decAddrInt := 0;
+      else
+         decAddrInt := conv_integer(axiReadMaster.araddr(AXI_DEC_ADDR_RANGE_C));
+      end if;
       v.axiReadSlave.rdata := axiDout((decAddrInt+1)*32-1 downto decAddrInt*32);
 
       -- Set axiAddr to read address by default
@@ -266,7 +268,11 @@ begin
             if (axiStatus.writeEnable = '1') then
                if (AXI_WR_EN_G) then
                   v.axiAddr  := axiWriteMaster.awaddr(AXI_RAM_ADDR_RANGE_C);
-                  decAddrInt := conv_integer(axiWriteMaster.awaddr(AXI_DEC_ADDR_RANGE_C));
+                  if (DATA_WIDTH_G <= 32) then
+                     decAddrInt := conv_integer(axiWriteMaster.awaddr(AXI_RAM_ADDR_RANGE_C));
+                  else
+                     decAddrInt := conv_integer(axiWriteMaster.awaddr(AXI_DEC_ADDR_RANGE_C));
+                  end if;
                   v.axiWrStrobe((decAddrInt+1)*4-1 downto decAddrInt*4) :=
                      axiWriteMaster.wstrb;
                end if;

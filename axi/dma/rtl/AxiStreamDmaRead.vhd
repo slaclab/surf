@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamDmaRead.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-25
--- Last update: 2018-03-09
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to transfer a single AXI Stream frame from memory using an AXI
@@ -235,6 +233,8 @@ begin
                      v.rMaster.arlen := resize(r.reqSize(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C)-1, 8);
                   end if;
                end if;
+               -- Update the Protection control
+               v.rMaster.arprot := r.dmaReq.prot;               
                -- There is enough room in the FIFO for a burst
                if (pause = '0') then
                   -- Set the flag
@@ -327,8 +327,8 @@ begin
                if (v.size = 0) then
                   -- Terminate the frame
                   v.sMaster.tLast := '1';
-                  v.sMaster.tKeep := genTKeep(conv_integer(r.size(4 downto 0)));
-                  v.sMaster.tStrb := genTKeep(conv_integer(r.size(4 downto 0)));
+                  v.sMaster.tKeep := genTKeep(conv_integer(r.size(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C)-1 downto 0)));
+                  v.sMaster.tStrb := genTKeep(conv_integer(r.size(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C)-1 downto 0)));
                   -- Check for first transfer
                   if (r.first = '1') then
                      -- Compensate the tKeep and tStrb via shift module

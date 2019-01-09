@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : ClinkDataShift.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-11-13
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to de-serialize a block of 28 bits packed into 4 7-bit serial streams.

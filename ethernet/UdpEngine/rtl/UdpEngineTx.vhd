@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : UdpEngineTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-08-20
--- Last update: 2016-09-16
 -------------------------------------------------------------------------------
 -- Description: UDP TX Engine Module
 -- Note: UDP checksum checked in EthMac core
@@ -339,13 +337,13 @@ begin
             -- Check if ready to move data
             if (v.txMaster.tValid = '0') then
                -- Move the data
-               v.txMaster.tValid := '1';
-               v.txMaster.tData  := r.tData;
-               v.txMaster.tKeep  := r.tKeep;
-               v.txMaster.tLast  := '1';
+               v.txMaster.tValid              := '1';
+               v.txMaster.tData(127 downto 0) := r.tData;
+               v.txMaster.tKeep(15 downto 0)  := r.tKeep;
+               v.txMaster.tLast               := '1';
                ssiSetUserEofe(EMAC_AXIS_CONFIG_C, v.txMaster, r.eofe);
                -- Next state
-               v.state           := IDLE_S;
+               v.state                        := IDLE_S;
             end if;
       ----------------------------------------------------------------------
       end case;

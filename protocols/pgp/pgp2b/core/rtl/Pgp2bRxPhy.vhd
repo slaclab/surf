@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Pgp2bRxPhy.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2009-05-27
--- Last update: 2017-03-28
 -------------------------------------------------------------------------------
 -- Description:
 -- Physical interface receive module for the Pretty Good Protocol version 2 core. 

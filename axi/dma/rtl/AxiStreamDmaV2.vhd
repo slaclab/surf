@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamDmaV2.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-02-02
--- Last update: 2018-01-10
 -------------------------------------------------------------------------------
 -- Description:
 -- Generic AXI Stream DMA block for frame at a time transfers.
@@ -139,7 +137,7 @@ begin
             AXI_CONFIG_G      => AXI_DESC_CONFIG_G,
             DESC_AWIDTH_G     => DESC_AWIDTH_G,
             DESC_ARB_G        => DESC_ARB_G,
-            ACK_WAIT_BVALID_G => true)
+            ACK_WAIT_BVALID_G => false)
          port map (
             -- Clock/Reset
             axiClk          => axiClk,
@@ -214,7 +212,7 @@ begin
             AXI_CONFIG_G      => AXI_DMA_CONFIG_G,
             PIPE_STAGES_G     => WR_PIPE_STAGES_G,
             BURST_BYTES_G     => BURST_BYTES_G,
-            ACK_WAIT_BVALID_G => true)
+            ACK_WAIT_BVALID_G => false)
          port map (
             axiClk          => axiClk,
             axiRst          => axiReset(i),

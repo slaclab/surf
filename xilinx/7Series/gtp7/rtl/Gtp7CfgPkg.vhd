@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Gtp7CfgPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-09-02
--- Last update: 2016-11-04
 -------------------------------------------------------------------------------
 -- Description: Provides useful functions for generating GTP7 configurations.
 -------------------------------------------------------------------------------

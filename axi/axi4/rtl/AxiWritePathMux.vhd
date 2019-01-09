@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiWritePathMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-25
--- Last update: 2018-03-11
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to connect multiple incoming AXI write path interfaces.
