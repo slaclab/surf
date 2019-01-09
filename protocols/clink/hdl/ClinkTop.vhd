@@ -134,6 +134,7 @@ begin
    U_Cbl0Half0: entity work.ClinkCtrl
       generic map (
          TPD_G              => TPD_G,
+         INV_34_G           => false,
          UART_READY_EN_G    => UART_READY_EN_G,
          UART_AXIS_CONFIG_G => UART_AXIS_CONFIG_G)
       port map (
@@ -178,6 +179,7 @@ begin
       U_Cbl1Half0: entity work.ClinkCtrl
          generic map (
             TPD_G              => TPD_G,
+            INV_34_G           => true,
             UART_READY_EN_G    => UART_READY_EN_G,
             UART_AXIS_CONFIG_G => UART_AXIS_CONFIG_G)
          port map (
@@ -211,9 +213,7 @@ begin
 
       -- Connector 1, Half 0, Control Base, Data Z for Med, Full, Deca
       U_Cbl1Half0: entity work.ClinkData
-         generic map ( 
-            TPD_G    => TPD_G,
-            INV_34_G => true)
+         generic map ( TPD_G => TPD_G )
          port map (
             cblHalfP   => cbl1Half0P,
             cblHalfM   => cbl1Half0M,

@@ -28,6 +28,7 @@ use unisim.vcomponents.all;
 entity ClinkCtrl is
    generic (
       TPD_G              : time                := 1 ns;
+      INV_34_G           : boolean             := false;
       UART_READY_EN_G    : boolean             := true;
       UART_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
@@ -67,6 +68,8 @@ begin
    -------------------------------
    -- IO Buffers
    -------------------------------
+   cblDirIn <= "00010";
+
    U_CableBuffGen : for i in 0 to 4 generate
       U_CableBuff: IOBUFDS
          port map(
@@ -87,17 +90,25 @@ begin
    -------------------------------
    -- Camera control bits
    -------------------------------
-   cblDirIn(2) <= '0';
-   cblOut(2)   <= camCtrl(0) when chanConfig.swCamCtrlEn(0) = '0' else chanConfig.swCamCtrl(0);
+   process(camCtrl, chanConfig) 
+      variable tmpBits : slv(3 downto 0);
+   begin
+      for i in 0 to 3 loop
+         tmpBits(i) := camCtrl(i) when chanConfig.swCamCtrlEn(i) = '0' else chanConfig.swCamCtrl(i);
+      end loop;
 
-   cblDirIn(3) <= '0';
-   cblOut(3)   <= camCtrl(1) when chanConfig.swCamCtrlEn(1) = '0' else chanConfig.swCamCtrl(1);
+      cblOut(0)   <= tmpBits(2);
+      cblOut(1)   <= '0'; -- Serial RX, unused
+      cblOut(2)   <= tmpBits(0);
 
-   cblDirIn(0) <= '0';
-   cblOut(0)   <= camCtrl(2) when chanConfig.swCamCtrlEn(2) = '0' else chanConfig.swCamCtrl(2);
-
-   cblDirIn(4) <= '0';
-   cblOut(4)   <= camCtrl(3) when chanConfig.swCamCtrlEn(3) = '0' else chanConfig.swCamCtrl(3);
+      if INV_34_G then
+         cblOut(3) <= not tmpBits(1);
+         cblOut(4) <= not tmpBits(3);
+      else
+         cblOut(3) <= tmpBits(1);
+         cblOut(4) <= tmpBits(3);
+      end if;
+   end process;
 
    -------------------------------
    -- UART
@@ -120,9 +131,6 @@ begin
          mUartSlave    => mUartSlave,
          rxIn          => cblIn(1),
          txOut         => cblSerOut);
-
-   cblOut(1)   <= '0';
-   cblDirIn(1) <= '1';
 
 end architecture rtl;
 
