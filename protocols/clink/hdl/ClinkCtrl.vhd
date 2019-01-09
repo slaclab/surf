@@ -93,7 +93,11 @@ begin
       variable tmpBits : slv(3 downto 0);
    begin
       for i in 0 to 3 loop
-         tmpBits(i) := camCtrl(i) when chanConfig.swCamCtrlEn(i) = '0' else chanConfig.swCamCtrl(i);
+         if chanConfig.swCamCtrlEn(i) = '1' then
+            tmpBits(i) := chanConfig.swCamCtrl(i);
+         else
+            tmpBits(i) := camCtrl(i);
+         end if;
       end loop;
 
       cblOut(0)   <= tmpBits(2);
