@@ -110,8 +110,8 @@ architecture rtl of ClinkTop is
    signal intWriteMaster : AxiLiteWriteMasterType;
    signal intWriteSlave  : AxiLiteWriteSlaveType;
 
-   attribute MARK_DEBUG : string;
-   attribute MARK_DEBUG of r : signal is "TRUE";
+   --attribute MARK_DEBUG : string;
+   --attribute MARK_DEBUG of r : signal is "TRUE";
 
    attribute IODELAY_GROUP                 : string;
    attribute IODELAY_GROUP of U_IDelayCtrl : label is "CLINK_CORE";

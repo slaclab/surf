@@ -81,10 +81,10 @@ architecture rtl of ClinkData is
    signal intData  : slv(27 downto 0);
    signal parClock : slv(6 downto 0);
 
-   attribute MARK_DEBUG : string;
-   attribute MARK_DEBUG of r        : signal is "TRUE";
-   attribute MARK_DEBUG of parClock : signal is "TRUE";
-   attribute MARK_DEBUG of intData  : signal is "TRUE";
+   --attribute MARK_DEBUG : string;
+   --attribute MARK_DEBUG of r        : signal is "TRUE";
+   --attribute MARK_DEBUG of parClock : signal is "TRUE";
+   --attribute MARK_DEBUG of intData  : signal is "TRUE";
 
 begin
 
