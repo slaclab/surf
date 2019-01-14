@@ -81,7 +81,8 @@ begin
    begin
       v := r;
 
-      v.count := r.count + conv_integer(baud & x"0"); -- 16x
+      -- 16x (add min of 1 to ensure data moves when baud=0)
+      v.count := r.count + conv_integer(baud & x"1"); 
       v.clkEn := '0';
 
       if r.count >= INT_FREQ_C then
