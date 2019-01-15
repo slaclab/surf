@@ -1010,13 +1010,13 @@ Readin
  syntax error at line: 171 : ,
 /home/travis/build/slaclab/surf/protocols/ssi/rtl/SsiCmdMasterPulser.vhd:40: warning: Internal inconsistency: scope for class SsiCmdMasterPulser::rtl not found!
 
-[AxiDualPortRam.vhd:139:Info: Elaborating entity entity dualportram for hierarchy entity dualportram::AXI_R0_SYS_RW:dualportram_1]
+[AxiDualPortRam.vhd:145:Info: Elaborating entity entity dualportram for hierarchy entity dualportram::AXI_R0_SYS_RW:dualportram_1]
 
-[AxiDualPortRam.vhd:170:Info: Elaborating entity entity dualportram for hierarchy entity dualportram::AXI_RW_SYS_RO:dualportram_1]
+[AxiDualPortRam.vhd:176:Info: Elaborating entity entity dualportram for hierarchy entity dualportram::AXI_RW_SYS_RO:dualportram_1]
 
-[AxiDualPortRam.vhd:203:Info: Elaborating entity entity truedualportram for hierarchy entity truedualportram::AXI_RW_SYS_RW:u_truedualportram_1]
+[AxiDualPortRam.vhd:209:Info: Elaborating entity entity truedualportram for hierarchy entity truedualportram::AXI_RW_SYS_RW:u_truedualportram_1]
 
-[AxiDualPortRam.vhd:226:Info: Elaborating entity entity synchronizerfifo for hierarchy entity synchronizerfifo::u_synchronizerfifo_1]
+[AxiDualPortRam.vhd:232:Info: Elaborating entity entity synchronizerfifo for hierarchy entity synchronizerfifo::u_synchronizerfifo_1]
 
 [AxiLiteAsync.vhd:436:Info: Elaborating entity entity rstsync for hierarchy entity rstsync::GEN_ASYNC:loc_s2m_rstsync]
 
@@ -1336,7 +1336,7 @@ Readin
 
 [AxiStreamDmaV2Write.vhd:138:Info: Elaborating entity entity axistreampipeline for hierarchy entity axistreampipeline::u_pipeline]
 
-[AxiStreamDmaV2Write.vhd:508:Info: Elaborating entity entity dualportram for hierarchy entity dualportram::u_trackram]
+[AxiStreamDmaV2Write.vhd:517:Info: Elaborating entity entity dualportram for hierarchy entity dualportram::u_trackram]
 
 [AxiStreamDmaWrite.vhd:154:Info: Elaborating entity entity axistreamshift for hierarchy entity axistreamshift::u_axistreamshift]
 
@@ -2538,21 +2538,21 @@ Readin
 
 [AxiStreamBatcherEventBuilder.vhd:261:Info: Elaborating entity entity axistreambatcher for hierarchy entity axistreambatcher::u_axistreambatcher]
 
-[ClinkCtrl.vhd:78:Info: Elaborating entity iobufds for hierarchy iobufds::U_CableBuffGen:u_cablebuff]
+[ClinkCtrl.vhd:81:Info: Elaborating entity iobufds for hierarchy iobufds::U_CableBuffGen:u_cablebuff]
 
-[ClinkCtrl.vhd:84:Info: Elaborating entity obufds for hierarchy obufds::u_serout]
+[ClinkCtrl.vhd:87:Info: Elaborating entity obufds for hierarchy obufds::u_serout]
 
-[ClinkCtrl.vhd:121:Info: Elaborating entity entity clinkuart for hierarchy entity clinkuart::u_uart]
+[ClinkCtrl.vhd:136:Info: Elaborating entity entity clinkuart for hierarchy entity clinkuart::u_uart]
 
-[ClinkData.vhd:105:Info: Elaborating entity entity clinkdatashift for hierarchy entity clinkdatashift::u_datashift]
+[ClinkData.vhd:108:Info: Elaborating entity entity clinkdatashift for hierarchy entity clinkdatashift::u_datashift]
 
-[ClinkData.vhd:239:Info: Elaborating entity entity fifo for hierarchy entity fifo::u_datafifo]
+[ClinkData.vhd:248:Info: Elaborating entity entity fifo for hierarchy entity fifo::u_datafifo]
 
-[ClinkData.vhd:247:Info: Elaborating entity entity synchronizer for hierarchy entity synchronizer::u_locked]
+[ClinkData.vhd:256:Info: Elaborating entity entity synchronizer for hierarchy entity synchronizer::u_locked]
 
-[ClinkData.vhd:257:Info: Elaborating entity entity synchronizervector for hierarchy entity synchronizervector::u_delay]
+[ClinkData.vhd:266:Info: Elaborating entity entity synchronizervector for hierarchy entity synchronizervector::u_delay]
 
-[ClinkData.vhd:267:Info: Elaborating entity entity synchronizervector for hierarchy entity synchronizervector::u_shiftcnt]
+[ClinkData.vhd:276:Info: Elaborating entity entity synchronizervector for hierarchy entity synchronizervector::u_shiftcnt]
 
 [ClinkDataClk.vhd:81:Info: Elaborating entity mmcme2_adv for hierarchy mmcme2_adv::u_mmcm]
 
@@ -2588,33 +2588,33 @@ Readin
 
 [ClinkFraming.vhd:440:Info: Elaborating entity entity axistreamfifov2 for hierarchy entity axistreamfifov2::u_datafifo]
 
-[ClinkTop.vhd:127:Info: Elaborating entity idelayctrl for hierarchy idelayctrl::u_idelayctrl]
+[ClinkTop.vhd:130:Info: Elaborating entity idelayctrl for hierarchy idelayctrl::u_idelayctrl]
 
-[ClinkTop.vhd:152:Info: Elaborating entity entity clinkctrl for hierarchy entity clinkctrl::u_cbl0half0]
+[ClinkTop.vhd:156:Info: Elaborating entity entity clinkctrl for hierarchy entity clinkctrl::u_cbl0half0]
 
-[ClinkTop.vhd:168:Info: Elaborating entity entity clinkdata for hierarchy entity clinkdata::u_cbl0half1]
+[ClinkTop.vhd:172:Info: Elaborating entity entity clinkdata for hierarchy entity clinkdata::u_cbl0half1]
 
-[ClinkTop.vhd:203:Info: Elaborating entity entity clinkctrl for hierarchy entity clinkctrl::U_DualCtrlEn:u_cbl1half0]
+[ClinkTop.vhd:208:Info: Elaborating entity entity clinkctrl for hierarchy entity clinkctrl::U_DualCtrlEn:u_cbl1half0]
 
-[ClinkTop.vhd:232:Info: Elaborating entity entity clinkdata for hierarchy entity clinkdata::U_DualCtrlDis:u_cbl1half0]
+[ClinkTop.vhd:235:Info: Elaborating entity entity clinkdata for hierarchy entity clinkdata::U_DualCtrlDis:u_cbl1half0]
 
-[ClinkTop.vhd:232:Info: Elaborating entity obufds for hierarchy obufds::U_DualCtrlDis:u_serout]
+[ClinkTop.vhd:235:Info: Elaborating entity obufds for hierarchy obufds::U_DualCtrlDis:u_serout]
 
-[ClinkTop.vhd:248:Info: Elaborating entity entity clinkdata for hierarchy entity clinkdata::u_cbl1half1]
+[ClinkTop.vhd:251:Info: Elaborating entity entity clinkdata for hierarchy entity clinkdata::u_cbl1half1]
 
-[ClinkTop.vhd:269:Info: Elaborating entity entity clinkframing for hierarchy entity clinkframing::u_framer0]
+[ClinkTop.vhd:272:Info: Elaborating entity entity clinkframing for hierarchy entity clinkframing::u_framer0]
 
-[ClinkTop.vhd:298:Info: Elaborating entity entity clinkframing for hierarchy entity clinkframing::U_DualFrameEn:u_framer1]
+[ClinkTop.vhd:301:Info: Elaborating entity entity clinkframing for hierarchy entity clinkframing::U_DualFrameEn:u_framer1]
 
-[ClinkTop.vhd:325:Info: Elaborating entity entity axiliteasync for hierarchy entity axiliteasync::u_axilasync]
+[ClinkTop.vhd:328:Info: Elaborating entity entity axiliteasync for hierarchy entity axiliteasync::u_axilasync]
 
-[ClinkUart.vhd:126:Info: Elaborating entity entity axistreamfifov2 for hierarchy entity axistreamfifov2::u_txfifo]
+[ClinkUart.vhd:127:Info: Elaborating entity entity axistreamfifov2 for hierarchy entity axistreamfifov2::u_txfifo]
 
-[ClinkUart.vhd:141:Info: Elaborating entity entity uarttx for hierarchy entity uarttx::u_uarttx_1]
+[ClinkUart.vhd:142:Info: Elaborating entity entity uarttx for hierarchy entity uarttx::u_uarttx_1]
 
-[ClinkUart.vhd:156:Info: Elaborating entity entity uartrx for hierarchy entity uartrx::u_uartrx_1]
+[ClinkUart.vhd:157:Info: Elaborating entity entity uartrx for hierarchy entity uartrx::u_uartrx_1]
 
-[ClinkUart.vhd:193:Info: Elaborating entity entity axistreamfifov2 for hierarchy entity axistreamfifov2::u_rxfifo]
+[ClinkUart.vhd:194:Info: Elaborating entity entity axistreamfifov2 for hierarchy entity axistreamfifov2::u_rxfifo]
 
 [ClinkFramerTb.vhd:77:Info: Elaborating entity entity clkrst for hierarchy entity clkrst::u_clkrst]
 
@@ -3754,17 +3754,17 @@ Readin
 
 [SrpV3Axi.vhd:182:Info: Elaborating entity entity axistreamdmaread for hierarchy entity axistreamdmaread::u_axistreamdmaread_1]
 
-[SrpV3AxiLite.vhd:208:Info: Elaborating entity entity ssiframelimiter for hierarchy entity ssiframelimiter::u_limiter]
+[SrpV3AxiLite.vhd:209:Info: Elaborating entity entity ssiframelimiter for hierarchy entity ssiframelimiter::u_limiter]
 
-[SrpV3AxiLite.vhd:245:Info: Elaborating entity entity axistreamfifov2 for hierarchy entity axistreamfifov2::rx_fifo]
+[SrpV3AxiLite.vhd:246:Info: Elaborating entity entity axistreamfifov2 for hierarchy entity axistreamfifov2::rx_fifo]
 
-[SrpV3AxiLite.vhd:280:Info: Elaborating entity entity synchronizervector for hierarchy entity synchronizervector::GEN_ASYNC_SLAVE:sync_ctrl]
+[SrpV3AxiLite.vhd:281:Info: Elaborating entity entity synchronizervector for hierarchy entity synchronizervector::GEN_ASYNC_SLAVE:sync_ctrl]
 
-[SrpV3AxiLite.vhd:280:Info: Elaborating entity entity synchronizeroneshot for hierarchy entity synchronizeroneshot::GEN_ASYNC_SLAVE:sync_overflow]
+[SrpV3AxiLite.vhd:281:Info: Elaborating entity entity synchronizeroneshot for hierarchy entity synchronizeroneshot::GEN_ASYNC_SLAVE:sync_overflow]
 
-[SrpV3AxiLite.vhd:280:Info: Elaborating entity entity rstsync for hierarchy entity rstsync::GEN_ASYNC_SLAVE:sync_rst]
+[SrpV3AxiLite.vhd:281:Info: Elaborating entity entity rstsync for hierarchy entity rstsync::GEN_ASYNC_SLAVE:sync_rst]
 
-[SrpV3AxiLite.vhd:816:Info: Elaborating entity entity axistreamfifov2 for hierarchy entity axistreamfifov2::tx_fifo]
+[SrpV3AxiLite.vhd:818:Info: Elaborating entity entity axistreamfifov2 for hierarchy entity axistreamfifov2::tx_fifo]
 
 [SrpV3AxiLiteFull.vhd:103:Info: Elaborating entity entity srpv3axi for hierarchy entity srpv3axi::u_srpv3axi_1]
 

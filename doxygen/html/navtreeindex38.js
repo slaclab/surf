@@ -1,6 +1,5 @@
 var NAVTREEINDEX38 =
 {
-"classGLinkGtx7Core.html#a4cd4c5523b3946a0f2f0f373324b076a":[0,0,239,141],
 "classGLinkGtx7Core.html#a55007a43dd0d0ba2a07b02201662befe":[0,0,239,11],
 "classGLinkGtx7Core.html#a5516d37bc82d6b04f5370ff55ec67e8e":[0,0,239,118],
 "classGLinkGtx7Core.html#a5670b7860b444324316d80e255570a05":[0,0,239,120],
@@ -155,6 +154,7 @@ var NAVTREEINDEX38 =
 "classGLinkGtx7Core_1_1rtl.html#aa69b4a68c98589222ad0f4b091663be0":[0,0,239,0,13],
 "classGLinkGtx7Core_1_1rtl.html#aaa122e1cea5ba398c7c401c80235ea04":[0,0,239,0,46],
 "classGLinkGtx7Core_1_1rtl.html#aabd3589c325a1f1a5e363606b969decf":[0,0,239,0,87],
+"classGLinkGtx7Core_1_1rtl.html#aac27d552451afdc6a12bfd2ce96e6022":[0,0,239,0,3],
 "classGLinkGtx7Core_1_1rtl.html#aac69d558a77519d40952d3e1a5f23b35":[0,0,239,0,18],
 "classGLinkGtx7Core_1_1rtl.html#aae02c7ab8b752278f389ce359122c496":[0,0,239,0,71],
 "classGLinkGtx7Core_1_1rtl.html#ab1bd2bfb50c9406f3f32d6eec929f4ca":[0,0,239,0,64],
@@ -162,7 +162,6 @@ var NAVTREEINDEX38 =
 "classGLinkGtx7Core_1_1rtl.html#abf37e14732d92dbd2cdea113967f8d1a":[0,0,239,0,36],
 "classGLinkGtx7Core_1_1rtl.html#ac0cc9b23854a09d282d598df47462fe3":[0,0,239,0,83],
 "classGLinkGtx7Core_1_1rtl.html#ac2af7b96ef0d2deb65c748d372bdae3f":[0,0,239,0,67],
-"classGLinkGtx7Core_1_1rtl.html#ac4550f7bfcf6a5c1483fc728e9e49d4b":[0,0,239,0,3],
 "classGLinkGtx7Core_1_1rtl.html#ac514028077313bb8fb19fd4507b109d9":[0,0,239,0,2],
 "classGLinkGtx7Core_1_1rtl.html#aca436ba93f220876a49a97d1072fe331":[0,0,239,0,78],
 "classGLinkGtx7Core_1_1rtl.html#acc6de487496d3558733e5990e775bc58":[0,0,239,0,63],
@@ -249,5 +248,6 @@ var NAVTREEINDEX38 =
 "classGLinkGtx7FixedLat.html#afa7bd5fde3aee86e886acc3ce073c8bf":[0,0,240,52],
 "classGLinkGtx7FixedLatTb.html":[0,0,241],
 "classGLinkGtx7FixedLatTb.html#a0a6af6eef40212dbaf130d57ce711256":[0,0,241,1],
-"classGLinkGtx7FixedLatTb.html#a50f4201a3529a73d8f18c91e49a3cbc9":[0,0,241,4]
+"classGLinkGtx7FixedLatTb.html#a50f4201a3529a73d8f18c91e49a3cbc9":[0,0,241,4],
+"classGLinkGtx7FixedLatTb.html#acd03516902501cd1c7296a98e22c6fcb":[0,0,241,2]
 };

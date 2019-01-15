@@ -1,6 +1,5 @@
 var NAVTREEINDEX28 =
 {
-"classDecoder10b12b_1_1rtl.html#aa5a0f6faaf7fe6da01e4fc8aa3b30755":[0,0,157,0,8],
 "classDecoder10b12b_1_1rtl.html#aaee166be04e0bf9782a7efea718d94d9":[0,0,157,0,7],
 "classDecoder10b12b_1_1rtl.html#ab7f90a6c0a186209d2cefa0d2e6e0f08":[0,0,157,0,5],
 "classDecoder10b12b_1_1rtl.html#adc59c5416d52d43dd197535123427d9f":[0,0,157,0,3],
@@ -230,14 +229,14 @@ var NAVTREEINDEX28 =
 "classDsp48Comparator4x12b.html#acd03516902501cd1c7296a98e22c6fcb":[0,0,167,10],
 "classDsp48Comparator4x12b.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[0,0,167,11],
 "classDsp48Comparator4x12b_1_1mapping.html":[0,0,167,0],
-"classDsp48Comparator4x12b_1_1mapping.html#a03fe6beede0c86a7f393dc0dc10841a5":[0,0,167,0,0],
 "classDsp48Comparator4x12b_1_1mapping.html#a1b8b16eeb5db692e2194b6d02787fe32":[0,0,167,0,8],
-"classDsp48Comparator4x12b_1_1mapping.html#a2f209b214093d62d31fae2b89e4fd867":[0,0,167,0,1],
+"classDsp48Comparator4x12b_1_1mapping.html#a2f209b214093d62d31fae2b89e4fd867":[0,0,167,0,0],
 "classDsp48Comparator4x12b_1_1mapping.html#a35d954cd6285a389db999e64b64f9965":[0,0,167,0,7],
 "classDsp48Comparator4x12b_1_1mapping.html#a3f4acdbb915634b318f03a7e825190d2":[0,0,167,0,3],
 "classDsp48Comparator4x12b_1_1mapping.html#a408b1abfc50cfd3f13061f2d19d0d040":[0,0,167,0,2],
 "classDsp48Comparator4x12b_1_1mapping.html#a4465051140ba9733a41b55d8c64dc720":[0,0,167,0,6],
 "classDsp48Comparator4x12b_1_1mapping.html#a5366e3c89cb0924accb6db8ea91aa749":[0,0,167,0,4],
+"classDsp48Comparator4x12b_1_1mapping.html#a547dbb911ade6cdc5d01fe7606cee980":[0,0,167,0,1],
 "classDsp48Comparator4x12b_1_1mapping.html#ac0122ab1704b6d8ad685cb021caf0912":[0,0,167,0,5],
 "classDsp48Comparator4x12b_1_1mapping.html#aed61e362c7b2be8cf344edcbca92f0ed":[0,0,167,0,9],
 "classDspAddSub.html":[0,0,168],
@@ -249,5 +248,6 @@ var NAVTREEINDEX28 =
 "classDspAddSub.html#a3ff55ddacc7605378274e74b8fb0fd94":[0,0,168,4],
 "classDspAddSub.html#a5f584d85c2958b3bc1ba81e4b0ea9e09":[0,0,168,11],
 "classDspAddSub.html#a64f444b9c1b2c38c6724c0b6487e0f7a":[0,0,168,5],
-"classDspAddSub.html#a67a837684e4f18c2d236ac1d053b419b":[0,0,168,1]
+"classDspAddSub.html#a67a837684e4f18c2d236ac1d053b419b":[0,0,168,1],
+"classDspAddSub.html#a6ac5a4dfdf53e5b0e713728c437634d0":[0,0,168,10]
 };

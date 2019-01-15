@@ -19,8 +19,6 @@ var classClinkTop_1_1rtl =
     [ "intReadSlave", "classClinkTop_1_1rtl.html#a52e6faf67da7a61a5eb1e5973780c7cb", null ],
     [ "intWriteMaster", "classClinkTop_1_1rtl.html#a28ae93d31aa40f23334ae952bacdeaf3", null ],
     [ "intWriteSlave", "classClinkTop_1_1rtl.html#a1ca5cfadef3366c6b19e457cdd19a1e5", null ],
-    [ "MARK_DEBUG", "classClinkTop_1_1rtl.html#a8ae13fc61ef77cf21460cdac937e1904", null ],
-    [ "MARK_DEBUG", "classClinkTop_1_1rtl.html#a53355318881f0154d0b6a18c261b7ed5", null ],
     [ "IODELAY_GROUP", "classClinkTop_1_1rtl.html#a87d638bc06c30868443d82bee7619ba6", null ],
     [ "IODELAY_GROUP", "classClinkTop_1_1rtl.html#a2800b1b353f3550f9f0a2d5eee6ced2b", null ],
     [ "u_idelayctrl", "classClinkTop_1_1rtl.html#a12579ed4466519f23d3c0ce725f9031b", null ],

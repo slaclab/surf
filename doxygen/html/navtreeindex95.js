@@ -1,6 +1,5 @@
 var NAVTREEINDEX95 =
 {
-"classSspDeframer.html#a82be8e1282b83501d34dbf9089146699":[0,0,484,9],
 "classSspDeframer.html#a8562dfa3c7970041e8fb901d9c0e4ecf":[0,0,484,12],
 "classSspDeframer.html#a8b42f2845a834de3b7e77a121a5ebf18":[0,0,484,15],
 "classSspDeframer.html#a9a2abfbc568c21330d5e7b6129e8e9c5":[0,0,484,10],
@@ -249,5 +248,6 @@ var NAVTREEINDEX95 =
 "classSyncClockFreq.html#abac97af82dd353d80aed2b13731e5c12":[0,0,492,10],
 "classSyncClockFreq.html#ac4171903b015d49f213cc19bd668670d":[0,0,492,16],
 "classSyncClockFreq.html#ac427a235061c87c3efa115d649a33eee":[0,0,492,8],
-"classSyncClockFreq.html#acd03516902501cd1c7296a98e22c6fcb":[0,0,492,18]
+"classSyncClockFreq.html#acd03516902501cd1c7296a98e22c6fcb":[0,0,492,18],
+"classSyncClockFreq.html#acf3ce0f65965e74ee2cd8743dad23f61":[0,0,492,14]
 };

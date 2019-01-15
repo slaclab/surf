@@ -18,6 +18,7 @@ var classClinkTop =
     [ "sysClk", "classClinkTop.html#aa8e786917e21f0003ac4b7181c6a4270", null ],
     [ "sysRst", "classClinkTop.html#ad6f88b30c93e1fee7769c9268b934617", null ],
     [ "camCtrl", "classClinkTop.html#ae69d4bcca9526cc68141dd00fd8c1905", null ],
+    [ "camStatus", "classClinkTop.html#a1568080140c03bf3213133e6bc244028", null ],
     [ "dataClk", "classClinkTop.html#a6650e710f37f83c8e635fd723524173a", null ],
     [ "dataRst", "classClinkTop.html#aab4ac294e08e4007ed5104a5ac89da8b", null ],
     [ "dataMasters", "classClinkTop.html#a483d8409edc15e09bc6054abcf964fda", null ],

@@ -1,5 +1,9 @@
 var NAVTREEINDEX22 =
 {
+"classAxiSy56040Core.html#acd03516902501cd1c7296a98e22c6fcb":[0,0,124,12],
+"classAxiSy56040Core.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[0,0,124,13],
+"classAxiSy56040Core.html#af5301f308dc850ff6d3b80315d2e644c":[0,0,124,6],
+"classAxiSy56040Core.html#af98a1f0df20cf0e5f0fdb9f5999ad782":[0,0,124,14],
 "classAxiSy56040Core_1_1mapping.html":[0,0,124,0],
 "classAxiSy56040Core_1_1mapping.html#aa4746d64099fa62d6b8619351221bddf":[0,0,124,0,0],
 "classAxiSy56040Reg.html":[0,0,125],
@@ -245,9 +249,5 @@ var NAVTREEINDEX22 =
 "classAxiWriteEmulate_1_1structure.html#a0498304adc5e9a77df9df664a54ee3d3":[0,0,130,0,10],
 "classAxiWriteEmulate_1_1structure.html#a29ddea0778c5dba9ca0b08e7188a5a57":[0,0,130,0,6],
 "classAxiWriteEmulate_1_1structure.html#a35f0a6888bd1c2e56754f97c77a534b9":[0,0,130,0,3],
-"classAxiWriteEmulate_1_1structure.html#a3b3d44528ad2c5fd2ce920d4c09eb6e3":[0,0,130,0,4],
-"classAxiWriteEmulate_1_1structure.html#a4b51f381ed692642d156f2699e03ab59":[0,0,130,0,12],
-"classAxiWriteEmulate_1_1structure.html#a4d6738ef89fd736d51f09ecfd5136805":[0,0,130,0,13],
-"classAxiWriteEmulate_1_1structure.html#a4f2ee7c17838af0c7bb53fadb65bc5d1":[0,0,130,0,0],
-"classAxiWriteEmulate_1_1structure.html#a550aca37a6e309c0a7fa70f182f405a3":[0,0,130,0,8]
+"classAxiWriteEmulate_1_1structure.html#a3b3d44528ad2c5fd2ce920d4c09eb6e3":[0,0,130,0,4]
 };

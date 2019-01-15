@@ -1,6 +1,5 @@
 var NAVTREEINDEX104 =
 {
-"classWatchDogRst.html#a649d75c27d62e3dc9e3fa8c83d68b341":[0,0,540,2],
 "classWatchDogRst.html#a8562dfa3c7970041e8fb901d9c0e4ecf":[0,0,540,1],
 "classWatchDogRst.html#aa092862be691f96ced3eaff22e6f657d":[0,0,540,3],
 "classWatchDogRst.html#acd03516902501cd1c7296a98e22c6fcb":[0,0,540,5],
@@ -249,5 +248,6 @@ var NAVTREEINDEX104 =
 "classXauiGth7Wrapper.html#a79efed8b9e2d06c9b19dbc3892265fcf":[0,0,544,24],
 "classXauiGth7Wrapper.html#a7ad3a4a257fb19256a258aee4d3bd3e6":[0,0,544,11],
 "classXauiGth7Wrapper.html#a8b63c6d850de876b8ad9872d73b0be97":[0,0,544,6],
-"classXauiGth7Wrapper.html#a92d6bbb12bc1fcd74c44f728f6abafc3":[0,0,544,10]
+"classXauiGth7Wrapper.html#a92d6bbb12bc1fcd74c44f728f6abafc3":[0,0,544,10],
+"classXauiGth7Wrapper.html#a93c92bfbb1b2df08f6dfa9f8261a42f1":[0,0,544,18]
 };

@@ -1,6 +1,5 @@
 var NAVTREEINDEX79 =
 {
-"classPgp3Tx_1_1rtl.html#ad21e62bf8e7a3659b3e2031c25c1804d":[0,0,392,0,10],
 "classPgp3Tx_1_1rtl.html#aeb569548813670bd180e435428a30543":[0,0,392,0,23],
 "classPgp3Tx_1_1rtl.html#aee9b68c5cd722c76c79e659927a83a47":[0,0,392,0,7],
 "classPgpGthCoreWrapper.html":[0,0,395],
@@ -133,8 +132,8 @@ var NAVTREEINDEX79 =
 "classPgpSimModel.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[0,0,397,20],
 "classPgpSimModel_1_1PgpSimModel.html":[0,0,397,0],
 "classPgpSimModel_1_1PgpSimModel.html#a17fd449b4e97f79bbfbc2057e288c99d":[0,0,397,0,8],
-"classPgpSimModel_1_1PgpSimModel.html#a54de5445612f73a53c70b652fa5b2671":[0,0,397,0,0],
 "classPgpSimModel_1_1PgpSimModel.html#a5c5dce0cfddd918cd542b8d975b6c54f":[0,0,397,0,3],
+"classPgpSimModel_1_1PgpSimModel.html#a5cd9aed675ce1c60f404e310e4c788fd":[0,0,397,0,0],
 "classPgpSimModel_1_1PgpSimModel.html#aabafbb3c5f46b55b738150138e31c546":[0,0,397,0,6],
 "classPgpSimModel_1_1PgpSimModel.html#ab773caa47607ff261509debeb2e37773":[0,0,397,0,4],
 "classPgpSimModel_1_1PgpSimModel.html#ab999eab9e661c41cb93a6d1c0fe2dd9d":[0,0,397,0,5],
@@ -249,5 +248,6 @@ var NAVTREEINDEX79 =
 "classRawEthFramer.html#ae9dc7a5e74d726a6054027fe85747414":[0,0,400,10],
 "classRawEthFramer.html#aec6d2672ed2ded3a5dd321fa8e0b9e15":[0,0,400,5],
 "classRawEthFramer.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[0,0,400,20],
-"classRawEthFramerRx.html":[0,0,401]
+"classRawEthFramerRx.html":[0,0,401],
+"classRawEthFramerRx.html#a0a6af6eef40212dbaf130d57ce711256":[0,0,401,12]
 };

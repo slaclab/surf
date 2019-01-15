@@ -18,11 +18,6 @@ var classClinkFraming_1_1rtl =
     [ "rin", "classClinkFraming_1_1rtl.html#a758a8cbb78916a3911d410a62191310d", null ],
     [ "intCtrl", "classClinkFraming_1_1rtl.html#ab651d6237faf6116ffb4f96c2e3aec08", null ],
     [ "packMaster", "classClinkFraming_1_1rtl.html#aca9706fa2f09ca5191d382c98f620459", null ],
-    [ "MARK_DEBUG", "classClinkFraming_1_1rtl.html#a8ae13fc61ef77cf21460cdac937e1904", null ],
-    [ "MARK_DEBUG", "classClinkFraming_1_1rtl.html#a53355318881f0154d0b6a18c261b7ed5", null ],
-    [ "MARK_DEBUG", "classClinkFraming_1_1rtl.html#a6e043d12eb480eb68374cd2378357108", null ],
-    [ "MARK_DEBUG", "classClinkFraming_1_1rtl.html#ad179514392aab431b9f0ef2a999708fd", null ],
-    [ "MARK_DEBUG", "classClinkFraming_1_1rtl.html#aad741a43e3381c29349e8494185d358b", null ],
     [ "u_pack", "classClinkFraming_1_1rtl.html#a727a7c018fecbd571b44fed1c299b4d7", null ],
     [ "u_datafifo", "classClinkFraming_1_1rtl.html#ab88b27eda4077ee376e00b23c6476828", null ]
 ];
