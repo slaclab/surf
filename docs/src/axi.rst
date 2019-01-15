@@ -10,9 +10,9 @@ Welcome to Rogue's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   overview
-   pyrogue
-
+.. doxygenclass:: AxiLiteCrossbar
+   :members:
+   :undoc-members:
 
 
 Indices and tables
@@ -21,6 +21,4 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
-
 
