@@ -137,7 +137,7 @@ begin
             AXI_CONFIG_G      => AXI_DESC_CONFIG_G,
             DESC_AWIDTH_G     => DESC_AWIDTH_G,
             DESC_ARB_G        => DESC_ARB_G,
-            ACK_WAIT_BVALID_G => true)
+            ACK_WAIT_BVALID_G => false)
          port map (
             -- Clock/Reset
             axiClk          => axiClk,
@@ -212,7 +212,7 @@ begin
             AXI_CONFIG_G      => AXI_DMA_CONFIG_G,
             PIPE_STAGES_G     => WR_PIPE_STAGES_G,
             BURST_BYTES_G     => BURST_BYTES_G,
-            ACK_WAIT_BVALID_G => true)
+            ACK_WAIT_BVALID_G => false)
          port map (
             axiClk          => axiClk,
             axiRst          => axiReset(i),

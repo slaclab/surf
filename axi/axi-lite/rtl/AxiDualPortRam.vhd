@@ -64,9 +64,15 @@ end entity AxiDualPortRam;
 architecture rtl of AxiDualPortRam is
 
    -- Number of Axi address bits that need to be manually decoded
-   constant AXI_DEC_BITS_C : integer := ite(DATA_WIDTH_G <= 32, 0, log2((DATA_WIDTH_G-1)/32));
-   subtype AXI_DEC_ADDR_RANGE_C is integer range 1+AXI_DEC_BITS_C downto 2;
-   subtype AXI_RAM_ADDR_RANGE_C is integer range ADDR_WIDTH_G+AXI_DEC_ADDR_RANGE_C'high downto AXI_DEC_ADDR_RANGE_C'high+1;
+   constant AXI_DEC_BITS_C      : integer := ite(DATA_WIDTH_G <= 32, 0, log2((DATA_WIDTH_G-1)/32));
+   
+   constant AXI_DEC_ADDR_HIGH_C : integer := 1+AXI_DEC_BITS_C;
+   constant AXI_DEC_ADDR_LOW_C  : integer := 2;
+   subtype AXI_DEC_ADDR_RANGE_C is integer range AXI_DEC_ADDR_HIGH_C downto AXI_DEC_ADDR_LOW_C;
+   
+   constant AXI_RAM_ADDR_HIGH_C : integer := ADDR_WIDTH_G+AXI_DEC_ADDR_RANGE_C'high;
+   constant AXI_RAM_ADDR_LOW_C  : integer := AXI_DEC_ADDR_RANGE_C'high+1;   
+   subtype AXI_RAM_ADDR_RANGE_C is integer range AXI_RAM_ADDR_HIGH_C downto AXI_RAM_ADDR_LOW_C;
 
    constant ADDR_AXI_WORDS_C : natural := wordCount(DATA_WIDTH_G, 32);
    constant ADDR_AXI_BYTES_C : natural := wordCount(DATA_WIDTH_G, 8);
@@ -258,7 +264,7 @@ begin
       v.axiReadSlave.rdata := axiDout((decAddrInt+1)*32-1 downto decAddrInt*32);
 
       -- Set axiAddr to read address by default
-      v.axiAddr := axiReadMaster.araddr(AXI_RAM_ADDR_RANGE_C);
+      v.axiAddr := axiReadMaster.araddr(AXI_RAM_ADDR_HIGH_C downto AXI_RAM_ADDR_LOW_C);
 
       -- State Machine
       case (r.state) is
@@ -267,20 +273,19 @@ begin
             -- Check for write transaction
             if (axiStatus.writeEnable = '1') then
                if (AXI_WR_EN_G) then
-                  v.axiAddr  := axiWriteMaster.awaddr(AXI_RAM_ADDR_RANGE_C);
+                  v.axiAddr  := axiWriteMaster.awaddr(AXI_RAM_ADDR_HIGH_C downto AXI_RAM_ADDR_LOW_C);
                   if (DATA_WIDTH_G <= 32) then
-                     decAddrInt := conv_integer(axiWriteMaster.awaddr(AXI_RAM_ADDR_RANGE_C));
+                     decAddrInt := conv_integer(axiWriteMaster.awaddr(AXI_RAM_ADDR_LOW_C-1 downto 0));
                   else
                      decAddrInt := conv_integer(axiWriteMaster.awaddr(AXI_DEC_ADDR_RANGE_C));
                   end if;
-                  v.axiWrStrobe((decAddrInt+1)*4-1 downto decAddrInt*4) :=
-                     axiWriteMaster.wstrb;
+                  v.axiWrStrobe((decAddrInt+1)*4-1 downto decAddrInt*4) := axiWriteMaster.wstrb;
                end if;
                axiSlaveWriteResponse(v.axiWriteSlave, ite(AXI_WR_EN_G, AXI_RESP_OK_C, AXI_RESP_SLVERR_C));
             -- Check for read transaction
             elsif (axiStatus.readEnable = '1') then
                -- Set the address bus
-               v.axiAddr := axiReadMaster.araddr(AXI_RAM_ADDR_RANGE_C);
+               v.axiAddr := axiReadMaster.araddr(AXI_RAM_ADDR_HIGH_C downto AXI_RAM_ADDR_LOW_C);
                -- Check for registered BRAM
                if (BRAM_EN_G = true) and (REG_EN_G = true) then
                   v.rdLatecy := 3;      -- read in 3 cycles

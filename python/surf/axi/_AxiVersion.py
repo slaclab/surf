@@ -63,7 +63,7 @@ class AxiVersion(pr.Device):
             bitOffset    = 0x00,
             base         = pr.UInt,
             mode         = 'RW',
-            disp         = '{:#08x}'            
+            disp         = '{:#08x}',
         ))
 
         self.add(pr.RemoteVariable(   
@@ -77,14 +77,16 @@ class AxiVersion(pr.Device):
             mode         = 'RO',
             disp         = '{:d}',
             units        = 'seconds',
-            pollInterval = 1
+            pollInterval = 1,
         ))
 
         self.add(pr.LinkVariable(
-            name = 'UpTime',
-            mode = 'RO',
+            name         = 'UpTime',
+            description  = 'Time since power up or last firmware reload',
+            mode         = 'RO',
             dependencies = [self.UpTimeCnt],
-            linkedGet = lambda: str(datetime.timedelta(seconds=self.UpTimeCnt.value()))
+            linkedGet    = lambda: str(datetime.timedelta(seconds=self.UpTimeCnt.value())),
+            units        = 'HH:MM:SS',
         ))
 
         self.add(pr.RemoteVariable(   
@@ -148,6 +150,7 @@ class AxiVersion(pr.Device):
             bitOffset    = 0x00,
             base         = pr.UInt,
             mode         = 'RO',
+            hidden       = True,
         ))
 
         self.addRemoteVariables(   
@@ -186,11 +189,11 @@ class AxiVersion(pr.Device):
         ))
 
         self.add(pr.LinkVariable(
-            name = 'GitHashShort',
-            variable=self.GitHash,
-            disp = '{:07x}',
-            mode = 'RO',
-            linkedGet = lambda: self.GitHash.value() >> 132
+            name         = 'GitHashShort',
+            mode         = 'RO',
+            dependencies = [self.GitHash],
+            disp         = '{:07x}',
+            linkedGet    = lambda: self.GitHash.value() >> 132,
         ))
 
         self.add(pr.RemoteVariable(   

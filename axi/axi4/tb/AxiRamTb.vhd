@@ -4,11 +4,11 @@
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the AxiRamTb module
 -------------------------------------------------------------------------------
--- This file is part of 'LCLS2 AMC Development'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS2 AMC Development', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
@@ -74,6 +74,11 @@ begin
    U_MEM : entity work.AxiRam
       generic map (
          TPD_G          => TPD_G,
+         ------------------------------
+         -- Select Either XPM or inferred
+         ------------------------------
+         SYNTH_MODE_G   => "inferred",
+         -- SYNTH_MODE_G => "xpm",
          ------------------------------
          -- LUT RAM
          ------------------------------
