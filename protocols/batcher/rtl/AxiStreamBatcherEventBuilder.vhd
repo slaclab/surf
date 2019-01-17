@@ -208,6 +208,8 @@ begin
                   else
                      -- Increment the counter
                      v.index := r.index + 1;
+                     -- Don't send the packet (or Frame?) yet.  Wait until the last packet (Frame?) comes in.
+                     v.txMaster.tLast := '0' ;
                   end if;
                end if;
             end if;
