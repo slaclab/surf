@@ -39,7 +39,7 @@ entity Pgp3Rx is
       -- User Transmit interface
       pgpRxClk     : in  sl;
       pgpRxRst     : in  sl;
-      pgpRxIn      : in  Pgp3RxInType;
+      pgpRxIn      : in  Pgp3RxInType := PGP3_RX_IN_INIT_C;
       pgpRxOut     : out Pgp3RxOutType;
       pgpRxMasters : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
       pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0); -- Unused

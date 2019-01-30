@@ -33,15 +33,12 @@ entity Pgp3TxProtocol is
    generic (
       TPD_G            : time                  := 1 ns;
       NUM_VC_G         : integer range 1 to 16 := 4;
-      STARTUP_HOLD_G   : integer               := 1000;
-      SKP_INTERVAL_G   : integer               := 5000; -- Unused
-      SKP_BURST_SIZE_G : integer               := 8);   -- Unused
-
+      STARTUP_HOLD_G   : integer               := 1000);
    port (
       -- User Transmit interface
       pgpTxClk    : in  sl;
       pgpTxRst    : in  sl;
-      pgpTxIn     : in  Pgp3TxInType;
+      pgpTxIn     : in  Pgp3TxInType := PGP3_TX_IN_INIT_C;
       pgpTxOut    : out Pgp3TxOutType;
       pgpTxMaster : in  AxiStreamMasterType;
       pgpTxSlave  : out AxiStreamSlaveType;

@@ -111,7 +111,7 @@ package Pgp3Pkg is
    constant PGP3_TX_IN_INIT_C : Pgp3TxInType := (
       disable      => '0',
       flowCntlDis  => '0',
-      skpInterval  => x"0000FFF0",
+      skpInterval  => toSlv(5000, 32),
       opCodeEn     => '0',
       opCodeNumber => (others => '0'),
       opCodeData   => (others => '0'));
