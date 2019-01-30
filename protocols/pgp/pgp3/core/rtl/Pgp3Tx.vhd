@@ -33,8 +33,6 @@ entity Pgp3Tx is
       -- PGP configuration
       NUM_VC_G                 : integer range 1 to 16 := 1;
       CELL_WORDS_MAX_G         : integer               := 256;  -- Number of 64-bit words per cell
-      SKP_INTERVAL_G           : integer               := 5000;
-      SKP_BURST_SIZE_G         : integer               := 8;
       -- Mux configuration
       MUX_MODE_G               : string                := "INDEXED";  -- Or "ROUTED"
       MUX_TDEST_ROUTES_G       : Slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
@@ -45,7 +43,7 @@ entity Pgp3Tx is
       -- Transmit interface
       pgpTxClk     : in  sl;
       pgpTxRst     : in  sl;
-      pgpTxIn      : in  Pgp3TxInType;
+      pgpTxIn      : in  Pgp3TxInType := PGP3_TX_IN_INIT_C;
       pgpTxOut     : out Pgp3TxOutType;
       pgpTxMasters : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
       pgpTxSlaves  : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
@@ -204,9 +202,7 @@ begin
    U_Pgp3TxProtocol_1 : entity work.Pgp3TxProtocol
       generic map (
          TPD_G            => TPD_G,
-         NUM_VC_G         => NUM_VC_G,
-         SKP_INTERVAL_G   => SKP_INTERVAL_G,
-         SKP_BURST_SIZE_G => SKP_BURST_SIZE_G)
+         NUM_VC_G         => NUM_VC_G)
       port map (
          pgpTxClk       => pgpTxClk,            -- [in]
          pgpTxRst       => pgpTxRst,            -- [in]
