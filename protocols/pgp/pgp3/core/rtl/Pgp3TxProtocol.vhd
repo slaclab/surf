@@ -89,7 +89,7 @@ architecture rtl of Pgp3TxProtocol is
       overflowDly       => (others => '0'),
       overflowEvent     => (others => '0'),
       overflowEventSent => (others => '0'),
-      skpInterval       => (others => '0'),
+      skpInterval       => PGP3_TX_IN_INIT_C.skpInterval,
       skpCount          => (others => '0'),
       startupCount      => 0,
       pgpTxSlave        => AXI_STREAM_SLAVE_INIT_C,
