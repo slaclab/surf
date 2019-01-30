@@ -31,8 +31,6 @@ entity Pgp3Core is
       RX_ALIGN_SLIP_WAIT_G        : integer               := 32;
       PGP_TX_ENABLE_G             : boolean               := true;
       TX_CELL_WORDS_MAX_G         : integer               := PGP3_DEFAULT_TX_CELL_WORDS_MAX_C;  -- Number of 64-bit words per cell
-      TX_SKP_INTERVAL_G           : integer               := 5000;
-      TX_SKP_BURST_SIZE_G         : integer               := 8;
       TX_MUX_MODE_G               : string                := "INDEXED";  -- Or "ROUTED"
       TX_MUX_TDEST_ROUTES_G       : Slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
       TX_MUX_TDEST_LOW_G          : integer range 0 to 7  := 0;
@@ -44,7 +42,7 @@ entity Pgp3Core is
       -- Tx User interface
       pgpTxClk     : in  sl;
       pgpTxRst     : in  sl;
-      pgpTxIn      : in  Pgp3TxInType;
+      pgpTxIn      : in  Pgp3TxInType := PGP3_TX_IN_INIT_C;
       pgpTxOut     : out Pgp3TxOutType;
       pgpTxMasters : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
       pgpTxSlaves  : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
@@ -60,7 +58,7 @@ entity Pgp3Core is
       -- Rx User interface
       pgpRxClk     : in  sl;
       pgpRxRst     : in  sl;
-      pgpRxIn      : in  Pgp3RxInType;
+      pgpRxIn      : in  Pgp3RxInType := PGP3_RX_IN_INIT_C;
       pgpRxOut     : out Pgp3RxOutType;
       pgpRxMasters : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
       pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
@@ -109,8 +107,6 @@ begin
          TPD_G                    => TPD_G,
          NUM_VC_G                 => NUM_VC_G,
          CELL_WORDS_MAX_G         => TX_CELL_WORDS_MAX_G,
-         SKP_INTERVAL_G           => TX_SKP_INTERVAL_G,
-         SKP_BURST_SIZE_G         => TX_SKP_BURST_SIZE_G,
          MUX_MODE_G               => TX_MUX_MODE_G,
          MUX_TDEST_ROUTES_G       => TX_MUX_TDEST_ROUTES_G,
          MUX_TDEST_LOW_G          => TX_MUX_TDEST_LOW_G,
