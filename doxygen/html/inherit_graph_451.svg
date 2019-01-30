@@ -11,9 +11,9 @@
 <polygon fill="white" stroke="none" points="-4,4 -4,-24 78,-24 78,4 -4,4"/>
 <!-- Node1 -->
 <g id="node1" class="node"><title>Node1</title>
-<g id="a_node1"><a xlink:href="classSrpV3AxiLite.html" target="_top" xlink:title="SrpV3AxiLite">
+<g id="a_node1"><a xlink:href="classSrpV0AxiLite.html" target="_top" xlink:title="SrpV0AxiLite">
 <polygon fill="white" stroke="black" points="0,-0.5 0,-19.5 74,-19.5 74,-0.5 0,-0.5"/>
-<text text-anchor="middle" x="37" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">SrpV3AxiLite</text>
+<text text-anchor="middle" x="37" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">SrpV0AxiLite</text>
 </a>
 </g>
 </g>

@@ -1,6 +1,6 @@
 var classvcs__tb =
 [
-    [ "vcs_tb.vcs_tb", "classvcs__tb_1_1vcs__tb.html", "classvcs__tb_1_1vcs__tb" ],
+    [ "vcs_tb", "classvcs__tb_1_1vcs__tb.html", "classvcs__tb_1_1vcs__tb" ],
     [ "ieee", "classvcs__tb.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ " all ", "classvcs__tb.html#a470a86ce8776f637b0483eabf2d92ad2", null ],
     [ "std_logic_1164", "classvcs__tb.html#acd03516902501cd1c7296a98e22c6fcb", null ],

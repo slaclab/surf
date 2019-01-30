@@ -5,7 +5,7 @@ var classPgp3RxProtocol =
     [ "NUM_VC_G", "classPgp3RxProtocol.html#ad7e58e4c4b9f6ab2d4f638e2a2252673", null ],
     [ "pgpRxClk", "classPgp3RxProtocol.html#a27f8ee661215e1f1df91752465449649", null ],
     [ "pgpRxRst", "classPgp3RxProtocol.html#afadc494c7bf685a7f4abd81f22112a59", null ],
-    [ "pgpRxIn", "classPgp3RxProtocol.html#a5a41538fa3e5ea09bdf8156e81339c57", null ],
+    [ "pgpRxIn", "classPgp3RxProtocol.html#a7d3938b69bf1f47f19d1ede9d5394225", null ],
     [ "pgpRxOut", "classPgp3RxProtocol.html#ae06c4e86a9704312aeb4b7fe94005113", null ],
     [ "pgpRxMaster", "classPgp3RxProtocol.html#abddafa4466a83067e938e45cf155146e", null ],
     [ "pgpRxSlave", "classPgp3RxProtocol.html#a651666b261aa6292c629ee650ad961c8", null ],

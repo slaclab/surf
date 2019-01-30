@@ -8,7 +8,7 @@ var classPgp3Rx =
     [ "ALIGN_SLIP_WAIT_G", "classPgp3Rx.html#ae3fc02f1e36c2dbe99798549b8b41bd4", null ],
     [ "pgpRxClk", "classPgp3Rx.html#a27f8ee661215e1f1df91752465449649", null ],
     [ "pgpRxRst", "classPgp3Rx.html#afadc494c7bf685a7f4abd81f22112a59", null ],
-    [ "pgpRxIn", "classPgp3Rx.html#a5a41538fa3e5ea09bdf8156e81339c57", null ],
+    [ "pgpRxIn", "classPgp3Rx.html#a7d3938b69bf1f47f19d1ede9d5394225", null ],
     [ "pgpRxOut", "classPgp3Rx.html#ae06c4e86a9704312aeb4b7fe94005113", null ],
     [ "pgpRxMasters", "classPgp3Rx.html#a66d1e3762c3ba02f884d457ad4b21e3b", null ],
     [ "pgpRxCtrl", "classPgp3Rx.html#ad8212d59275036ef9bcc89c716c08703", null ],

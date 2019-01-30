@@ -32,7 +32,7 @@ var classPgp3AxiL_1_1rtl =
     [ "autoStatus", "classPgp3AxiL_1_1rtl.html#aab0ac14049487b091f461fa92aa23b83", null ],
     [ "axilWriteSlave", "classPgp3AxiL_1_1rtl.html#a877a7f1c1dae56ed1893b21d49755b47", null ],
     [ "axilReadSlave", "classPgp3AxiL_1_1rtl.html#a461fe0c6eae927e61d8120da155736e1", null ],
-    [ "REG_INIT_C", "classPgp3AxiL_1_1rtl.html#aee01f47e20cc646b6159ede50c77f6b1", null ],
+    [ "REG_INIT_C", "classPgp3AxiL_1_1rtl.html#a272d35a9396095368d085688af825c3f", null ],
     [ "r", "classPgp3AxiL_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3", null ],
     [ "rin", "classPgp3AxiL_1_1rtl.html#a758a8cbb78916a3911d410a62191310d", null ],
     [ "RxStatusType", "classPgp3AxiL_1_1rtl.html#a510911266609212633c38116774940ef", null ],

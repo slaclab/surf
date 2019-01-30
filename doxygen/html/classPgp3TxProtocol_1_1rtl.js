@@ -9,6 +9,7 @@ var classPgp3TxProtocol_1_1rtl =
     [ "overflowDly", "classPgp3TxProtocol_1_1rtl.html#a66bcfdb6a65d3a7b7e2996c738885421", null ],
     [ "overflowEvent", "classPgp3TxProtocol_1_1rtl.html#a881db2413d123078bb87be920d82aa60", null ],
     [ "overflowEventSent", "classPgp3TxProtocol_1_1rtl.html#ab2f2ed2602c2fcf53193bbc4377362be", null ],
+    [ "skpInterval", "classPgp3TxProtocol_1_1rtl.html#a3c00257f79dab4ce0ed4e27fc4d39c38", null ],
     [ "skpCount", "classPgp3TxProtocol_1_1rtl.html#a321190877f8fc987d05f86753bc25bf7", null ],
     [ "startupCount", "classPgp3TxProtocol_1_1rtl.html#a156e34ed2dc946c8f2d8c4932b237658", null ],
     [ "pgpTxSlave", "classPgp3TxProtocol_1_1rtl.html#a6ce616b55797575f39770929c3327527", null ],
@@ -20,7 +21,7 @@ var classPgp3TxProtocol_1_1rtl =
     [ "protTxStart", "classPgp3TxProtocol_1_1rtl.html#a7b319850ec2ae0508f0dff2d249e0f47", null ],
     [ "protTxData", "classPgp3TxProtocol_1_1rtl.html#a4e6a52cc6dfc17fc60c07cd2e8f74042", null ],
     [ "protTxHeader", "classPgp3TxProtocol_1_1rtl.html#a3ea3b898c33e948eb0bc572b99ed2111", null ],
-    [ "REG_INIT_C", "classPgp3TxProtocol_1_1rtl.html#a65392e80a7f0071aeb15f639986f7666", null ],
+    [ "REG_INIT_C", "classPgp3TxProtocol_1_1rtl.html#a6d782298d26d4ca8328fcf60b9946e82", null ],
     [ "r", "classPgp3TxProtocol_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3", null ],
     [ "rin", "classPgp3TxProtocol_1_1rtl.html#a758a8cbb78916a3911d410a62191310d", null ]
 ];

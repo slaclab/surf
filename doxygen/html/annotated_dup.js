@@ -138,6 +138,8 @@ var annotated_dup =
     [ "AxiXadcMinimumCore", "classAxiXadcMinimumCore.html", "classAxiXadcMinimumCore" ],
     [ "AxiXcf128Core", "classAxiXcf128Core.html", "classAxiXcf128Core" ],
     [ "AxiXcf128Reg", "classAxiXcf128Reg.html", "classAxiXcf128Reg" ],
+    [ "BoxcarFilter", "classBoxcarFilter.html", "classBoxcarFilter" ],
+    [ "BoxcarFilterTb", "classBoxcarFilterTb.html", "classBoxcarFilterTb" ],
     [ "chksum_tb", "classchksum__tb.html", "classchksum__tb" ],
     [ "ClinkCtrl", "classClinkCtrl.html", "classClinkCtrl" ],
     [ "ClinkData", "classClinkData.html", "classClinkData" ],
