@@ -3377,23 +3377,23 @@ Computing cla
 
 [Pgp3AxiL.vhd:539:Info: Elaborating entity entity synchronizerfifo for hierarchy entity synchronizerfifo::u_skp_sync]
 
-[Pgp3Core.vhd:131:Info: Elaborating entity entity pgp3tx for hierarchy entity pgp3tx::u_pgp3tx_1]
+[Pgp3Core.vhd:129:Info: Elaborating entity entity pgp3tx for hierarchy entity pgp3tx::u_pgp3tx_1]
 
-[Pgp3Core.vhd:158:Info: Elaborating entity entity pgp3rx for hierarchy entity pgp3rx::u_pgp3rx_1]
+[Pgp3Core.vhd:154:Info: Elaborating entity entity pgp3rx for hierarchy entity pgp3rx::u_pgp3rx_1]
 
-[Pgp3Core.vhd:190:Info: Elaborating entity entity pgp3axil for hierarchy entity pgp3axil::GEN_PGP_MON:u_pgp3axi_1]
+[Pgp3Core.vhd:186:Info: Elaborating entity entity pgp3axil for hierarchy entity pgp3axil::GEN_PGP_MON:u_pgp3axi_1]
 
-[Pgp3Rx.vhd:113:Info: Elaborating entity entity pgp3rxgearboxaligner for hierarchy entity pgp3rxgearboxaligner::u_pgp3rxgearboxaligner_1]
+[Pgp3Rx.vhd:109:Info: Elaborating entity entity pgp3rxgearboxaligner for hierarchy entity pgp3rxgearboxaligner::u_pgp3rxgearboxaligner_1]
 
-[Pgp3Rx.vhd:132:Info: Elaborating entity entity scrambler for hierarchy entity scrambler::u_scrambler_1]
+[Pgp3Rx.vhd:128:Info: Elaborating entity entity scrambler for hierarchy entity scrambler::u_scrambler_1]
 
-[Pgp3Rx.vhd:150:Info: Elaborating entity entity pgp3rxeb for hierarchy entity pgp3rxeb::u_pgp3rxeb_1]
+[Pgp3Rx.vhd:146:Info: Elaborating entity entity pgp3rxeb for hierarchy entity pgp3rxeb::u_pgp3rxeb_1]
 
-[Pgp3Rx.vhd:171:Info: Elaborating entity entity pgp3rxprotocol for hierarchy entity pgp3rxprotocol::u_pgp3rxprotocol_1]
+[Pgp3Rx.vhd:167:Info: Elaborating entity entity pgp3rxprotocol for hierarchy entity pgp3rxprotocol::u_pgp3rxprotocol_1]
 
-[Pgp3Rx.vhd:190:Info: Elaborating entity entity axistreamdepacketizer2 for hierarchy entity axistreamdepacketizer2::u_axistreamdepacketizer2_1]
+[Pgp3Rx.vhd:186:Info: Elaborating entity entity axistreamdepacketizer2 for hierarchy entity axistreamdepacketizer2::u_axistreamdepacketizer2_1]
 
-[Pgp3Rx.vhd:208:Info: Elaborating entity entity axistreamdemux for hierarchy entity axistreamdemux::u_axistreamdemux_1]
+[Pgp3Rx.vhd:204:Info: Elaborating entity entity axistreamdemux for hierarchy entity axistreamdemux::u_axistreamdemux_1]
 
 [Pgp3RxEb.vhd:118:Info: Elaborating entity entity fifoasync for hierarchy entity fifoasync::u_fifoasync_1]
 
@@ -3435,21 +3435,21 @@ Computing cla
 
 [Pgp3Tb2.vhd:146:Info: Elaborating entity entity prbschannels for hierarchy entity prbschannels::u_prbschannels_0]
 
-[Pgp3Tb2.vhd:193:Info: Elaborating entity entity pgp3core for hierarchy entity pgp3core::u_pgp3core_0]
+[Pgp3Tb2.vhd:189:Info: Elaborating entity entity pgp3core for hierarchy entity pgp3core::u_pgp3core_0]
 
-[Pgp3Tb2.vhd:211:Info: Elaborating entity entity prbschannels for hierarchy entity prbschannels::u_prbschannels_1]
+[Pgp3Tb2.vhd:207:Info: Elaborating entity entity prbschannels for hierarchy entity prbschannels::u_prbschannels_1]
 
-[Pgp3Tb2.vhd:259:Info: Elaborating entity entity pgp3core for hierarchy entity pgp3core::u_pgp3core_1]
+[Pgp3Tb2.vhd:251:Info: Elaborating entity entity pgp3core for hierarchy entity pgp3core::u_pgp3core_1]
 
 [RoguePgp3Sim.vhd:91:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::pwruprst_inst]
 
 [RoguePgp3Sim.vhd:113:Info: Elaborating entity entity roguestreamsimwrap for hierarchy entity roguestreamsimwrap::GEN_VEC:u_pgp_vc]
 
-[Pgp3GthUs.vhd:175:Info: Elaborating entity entity axilitecrossbar for hierarchy entity axilitecrossbar::GEN_XBAR:u_xbar]
+[Pgp3GthUs.vhd:171:Info: Elaborating entity entity axilitecrossbar for hierarchy entity axilitecrossbar::GEN_XBAR:u_xbar]
 
-[Pgp3GthUs.vhd:252:Info: Elaborating entity entity pgp3core for hierarchy entity pgp3core::u_pgp3core_1]
+[Pgp3GthUs.vhd:244:Info: Elaborating entity entity pgp3core for hierarchy entity pgp3core::u_pgp3core_1]
 
-[Pgp3GthUs.vhd:303:Info: Elaborating entity entity pgp3gthusipwrapper for hierarchy entity pgp3gthusipwrapper::u_pgp3gthusipwrapper_1]
+[Pgp3GthUs.vhd:295:Info: Elaborating entity entity pgp3gthusipwrapper for hierarchy entity pgp3gthusipwrapper::u_pgp3gthusipwrapper_1]
 
 [Pgp3GthUsIpWrapper.vhd:244:Info: Elaborating entity entity rstsync for hierarchy entity rstsync::u_rstsync_tx]
 
@@ -3465,23 +3465,23 @@ Computing cla
 
 [Pgp3GthUsQpll.vhd:146:Info: Elaborating entity entity gthultrascalequadpll for hierarchy entity gthultrascalequadpll::u_qpll]
 
-[Pgp3GthUsWrapper.vhd:151:Info: Elaborating entity bufg_gt for hierarchy bufg_gt::INT_REFCLK:u_bufg_gt]
+[Pgp3GthUsWrapper.vhd:147:Info: Elaborating entity bufg_gt for hierarchy bufg_gt::INT_REFCLK:u_bufg_gt]
 
-[Pgp3GthUsWrapper.vhd:151:Info: Elaborating entity ibufds_gte3 for hierarchy ibufds_gte3::INT_REFCLK:u_pgprefclk]
+[Pgp3GthUsWrapper.vhd:147:Info: Elaborating entity ibufds_gte3 for hierarchy ibufds_gte3::INT_REFCLK:u_pgprefclk]
 
-[Pgp3GthUsWrapper.vhd:272:Info: Elaborating entity entity axilitecrossbar for hierarchy entity axilitecrossbar::REAL_PGP:u_xbar]
+[Pgp3GthUsWrapper.vhd:264:Info: Elaborating entity entity axilitecrossbar for hierarchy entity axilitecrossbar::REAL_PGP:u_xbar]
 
-[Pgp3GthUsWrapper.vhd:272:Info: Elaborating entity entity pgp3gthusqpll for hierarchy entity pgp3gthusqpll::REAL_PGP:u_qpll]
+[Pgp3GthUsWrapper.vhd:264:Info: Elaborating entity entity pgp3gthusqpll for hierarchy entity pgp3gthusqpll::REAL_PGP:u_qpll]
 
-[Pgp3GthUsWrapper.vhd:272:Info: Elaborating entity entity pgp3gthus for hierarchy entity pgp3gthus::REAL_PGP:GEN_LANE:u_pgp]
+[Pgp3GthUsWrapper.vhd:264:Info: Elaborating entity entity pgp3gthus for hierarchy entity pgp3gthus::REAL_PGP:GEN_LANE:u_pgp]
 
-[Pgp3GthUsWrapper.vhd:311:Info: Elaborating entity entity roguepgp3sim for hierarchy entity roguepgp3sim::SIM_PGP:GEN_LANE:u_rogue]
+[Pgp3GthUsWrapper.vhd:303:Info: Elaborating entity entity roguepgp3sim for hierarchy entity roguepgp3sim::SIM_PGP:GEN_LANE:u_rogue]
 
-[Pgp3Gtp7.vhd:201:Info: Elaborating entity entity axilitecrossbar for hierarchy entity axilitecrossbar::GEN_XBAR:u_xbar]
+[Pgp3Gtp7.vhd:197:Info: Elaborating entity entity axilitecrossbar for hierarchy entity axilitecrossbar::GEN_XBAR:u_xbar]
 
-[Pgp3Gtp7.vhd:277:Info: Elaborating entity entity pgp3core for hierarchy entity pgp3core::u_pgp3core]
+[Pgp3Gtp7.vhd:269:Info: Elaborating entity entity pgp3core for hierarchy entity pgp3core::u_pgp3core]
 
-[Pgp3Gtp7.vhd:345:Info: Elaborating entity entity pgp3gtp7ipwrapper for hierarchy entity pgp3gtp7ipwrapper::u_pgp3gtp7ipwrapper]
+[Pgp3Gtp7.vhd:337:Info: Elaborating entity entity pgp3gtp7ipwrapper for hierarchy entity pgp3gtp7ipwrapper::u_pgp3gtp7ipwrapper]
 
 [Pgp3Gtp7IpWrapper.vhd:349:Info: Elaborating entity bufg for hierarchy bufg::u_bufg]
 
@@ -3513,41 +3513,41 @@ Computing cla
 
 [Pgp3Gtp7TxGearbox.vhd:88:Info: Elaborating entity entity fifoasync for hierarchy entity fifoasync::u_fifoasync]
 
-[Pgp3Gtp7Wrapper.vhd:173:Info: Elaborating entity bufg for hierarchy bufg::INT_REFCLK:u_bufg]
+[Pgp3Gtp7Wrapper.vhd:169:Info: Elaborating entity bufg for hierarchy bufg::INT_REFCLK:u_bufg]
 
-[Pgp3Gtp7Wrapper.vhd:173:Info: Elaborating entity ibufds_gte2 for hierarchy ibufds_gte2::INT_REFCLK:u_pgprefclk]
+[Pgp3Gtp7Wrapper.vhd:169:Info: Elaborating entity ibufds_gte2 for hierarchy ibufds_gte2::INT_REFCLK:u_pgprefclk]
 
-[Pgp3Gtp7Wrapper.vhd:397:Info: Elaborating entity entity axilitecrossbar for hierarchy entity axilitecrossbar::REAL_PGP:u_xbar]
+[Pgp3Gtp7Wrapper.vhd:389:Info: Elaborating entity entity axilitecrossbar for hierarchy entity axilitecrossbar::REAL_PGP:u_xbar]
 
-[Pgp3Gtp7Wrapper.vhd:397:Info: Elaborating entity entity pgp3gtp7qpll for hierarchy entity pgp3gtp7qpll::REAL_PGP:u_qpll]
+[Pgp3Gtp7Wrapper.vhd:389:Info: Elaborating entity entity pgp3gtp7qpll for hierarchy entity pgp3gtp7qpll::REAL_PGP:u_qpll]
 
-[Pgp3Gtp7Wrapper.vhd:397:Info: Elaborating entity entity pgp3gtp7 for hierarchy entity pgp3gtp7::REAL_PGP:GEN_LANE:u_pgp]
+[Pgp3Gtp7Wrapper.vhd:389:Info: Elaborating entity entity pgp3gtp7 for hierarchy entity pgp3gtp7::REAL_PGP:GEN_LANE:u_pgp]
 
-[Pgp3Gtp7Wrapper.vhd:397:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::REAL_PGP:GEN_LANE:SLAVE_LOCK:u_pwruprst]
+[Pgp3Gtp7Wrapper.vhd:389:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::REAL_PGP:GEN_LANE:SLAVE_LOCK:u_pwruprst]
 
-[Pgp3Gtp7Wrapper.vhd:397:Info: Elaborating entity bufh for hierarchy bufh::REAL_PGP:u_bufg]
+[Pgp3Gtp7Wrapper.vhd:389:Info: Elaborating entity bufh for hierarchy bufh::REAL_PGP:u_bufg]
 
-[Pgp3Gtp7Wrapper.vhd:397:Info: Elaborating entity plle2_adv for hierarchy plle2_adv::REAL_PGP:u_tx_pll]
+[Pgp3Gtp7Wrapper.vhd:389:Info: Elaborating entity plle2_adv for hierarchy plle2_adv::REAL_PGP:u_tx_pll]
 
-[Pgp3Gtp7Wrapper.vhd:397:Info: Elaborating entity bufg for hierarchy bufg::REAL_PGP:u_txpllclk0]
+[Pgp3Gtp7Wrapper.vhd:389:Info: Elaborating entity bufg for hierarchy bufg::REAL_PGP:u_txpllclk0]
 
-[Pgp3Gtp7Wrapper.vhd:397:Info: Elaborating entity bufg for hierarchy bufg::REAL_PGP:u_txpllclk1]
+[Pgp3Gtp7Wrapper.vhd:389:Info: Elaborating entity bufg for hierarchy bufg::REAL_PGP:u_txpllclk1]
 
-[Pgp3Gtp7Wrapper.vhd:397:Info: Elaborating entity bufg for hierarchy bufg::REAL_PGP:u_txpllclk2]
+[Pgp3Gtp7Wrapper.vhd:389:Info: Elaborating entity bufg for hierarchy bufg::REAL_PGP:u_txpllclk2]
 
-[Pgp3Gtp7Wrapper.vhd:397:Info: Elaborating entity entity rstsync for hierarchy entity rstsync::REAL_PGP:GEN_RST:u_rstsync]
+[Pgp3Gtp7Wrapper.vhd:389:Info: Elaborating entity entity rstsync for hierarchy entity rstsync::REAL_PGP:GEN_RST:u_rstsync]
 
-[Pgp3Gtp7Wrapper.vhd:436:Info: Elaborating entity entity roguepgp3sim for hierarchy entity roguepgp3sim::SIM_PGP:GEN_LANE:u_rogue]
+[Pgp3Gtp7Wrapper.vhd:428:Info: Elaborating entity entity roguepgp3sim for hierarchy entity roguepgp3sim::SIM_PGP:GEN_LANE:u_rogue]
 
 [Pgp3Gtp7Tb.vhd:69:Info: Elaborating entity entity clkrst for hierarchy entity clkrst::u_clkrst]
 
 [Pgp3Gtp7Tb.vhd:109:Info: Elaborating entity entity pgp3gtp7wrapper for hierarchy entity pgp3gtp7wrapper::u_pgp]
 
-[Pgp3Gtx7.vhd:180:Info: Elaborating entity entity axilitecrossbar for hierarchy entity axilitecrossbar::GEN_XBAR:u_xbar]
+[Pgp3Gtx7.vhd:176:Info: Elaborating entity entity axilitecrossbar for hierarchy entity axilitecrossbar::GEN_XBAR:u_xbar]
 
-[Pgp3Gtx7.vhd:257:Info: Elaborating entity entity pgp3core for hierarchy entity pgp3core::u_pgp3core]
+[Pgp3Gtx7.vhd:249:Info: Elaborating entity entity pgp3core for hierarchy entity pgp3core::u_pgp3core]
 
-[Pgp3Gtx7.vhd:321:Info: Elaborating entity entity pgp3gtx7ipwrapper for hierarchy entity pgp3gtx7ipwrapper::u_pgp3gtx7ipwrapper]
+[Pgp3Gtx7.vhd:313:Info: Elaborating entity entity pgp3gtx7ipwrapper for hierarchy entity pgp3gtx7ipwrapper::u_pgp3gtx7ipwrapper]
 
 [Pgp3Gtx7IpWrapper.vhd:457:Info: Elaborating entity entity clockmanager7 for hierarchy entity clockmanager7::u_rx_pll]
 
@@ -3563,21 +3563,21 @@ Computing cla
 
 [Pgp3Gtx7Qpll.vhd:228:Info: Elaborating entity entity gtx7quadpll for hierarchy entity gtx7quadpll::u_qpll]
 
-[Pgp3Gtx7Wrapper.vhd:155:Info: Elaborating entity bufg for hierarchy bufg::INT_REFCLK:u_bufg]
+[Pgp3Gtx7Wrapper.vhd:151:Info: Elaborating entity bufg for hierarchy bufg::INT_REFCLK:u_bufg]
 
-[Pgp3Gtx7Wrapper.vhd:155:Info: Elaborating entity ibufds_gte2 for hierarchy ibufds_gte2::INT_REFCLK:u_pgprefclk]
+[Pgp3Gtx7Wrapper.vhd:151:Info: Elaborating entity ibufds_gte2 for hierarchy ibufds_gte2::INT_REFCLK:u_pgprefclk]
 
-[Pgp3Gtx7Wrapper.vhd:328:Info: Elaborating entity entity axilitecrossbar for hierarchy entity axilitecrossbar::REAL_PGP:u_xbar]
+[Pgp3Gtx7Wrapper.vhd:320:Info: Elaborating entity entity axilitecrossbar for hierarchy entity axilitecrossbar::REAL_PGP:u_xbar]
 
-[Pgp3Gtx7Wrapper.vhd:328:Info: Elaborating entity entity pgp3gtx7qpll for hierarchy entity pgp3gtx7qpll::REAL_PGP:u_qpll]
+[Pgp3Gtx7Wrapper.vhd:320:Info: Elaborating entity entity pgp3gtx7qpll for hierarchy entity pgp3gtx7qpll::REAL_PGP:u_qpll]
 
-[Pgp3Gtx7Wrapper.vhd:328:Info: Elaborating entity entity pgp3gtx7 for hierarchy entity pgp3gtx7::REAL_PGP:GEN_LANE:u_pgp]
+[Pgp3Gtx7Wrapper.vhd:320:Info: Elaborating entity entity pgp3gtx7 for hierarchy entity pgp3gtx7::REAL_PGP:GEN_LANE:u_pgp]
 
-[Pgp3Gtx7Wrapper.vhd:328:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::REAL_PGP:GEN_LANE:SLAVE_LOCK:u_pwruprst]
+[Pgp3Gtx7Wrapper.vhd:320:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::REAL_PGP:GEN_LANE:SLAVE_LOCK:u_pwruprst]
 
-[Pgp3Gtx7Wrapper.vhd:328:Info: Elaborating entity entity clockmanager7 for hierarchy entity clockmanager7::REAL_PGP:u_tx_pll]
+[Pgp3Gtx7Wrapper.vhd:320:Info: Elaborating entity entity clockmanager7 for hierarchy entity clockmanager7::REAL_PGP:u_tx_pll]
 
-[Pgp3Gtx7Wrapper.vhd:367:Info: Elaborating entity entity roguepgp3sim for hierarchy entity roguepgp3sim::SIM_PGP:GEN_LANE:u_rogue]
+[Pgp3Gtx7Wrapper.vhd:359:Info: Elaborating entity entity roguepgp3sim for hierarchy entity roguepgp3sim::SIM_PGP:GEN_LANE:u_rogue]
 
 [RssiAxiLiteRegItf.vhd:335:Info: Elaborating entity entity synchronizerfifo for hierarchy entity synchronizerfifo::syncfifo_in0]
 

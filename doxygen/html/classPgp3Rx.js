@@ -3,8 +3,6 @@ var classPgp3Rx =
     [ "rtl", "classPgp3Rx_1_1rtl.html", "classPgp3Rx_1_1rtl" ],
     [ "TPD_G", "classPgp3Rx.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "NUM_VC_G", "classPgp3Rx.html#ad7e58e4c4b9f6ab2d4f638e2a2252673", null ],
-    [ "ALIGN_GOOD_COUNT_G", "classPgp3Rx.html#aa3ffdf71d370c32d716f9c98b3e0179c", null ],
-    [ "ALIGN_BAD_COUNT_G", "classPgp3Rx.html#ac6fc8b9e90b8055efdaffdb09056a971", null ],
     [ "ALIGN_SLIP_WAIT_G", "classPgp3Rx.html#ae3fc02f1e36c2dbe99798549b8b41bd4", null ],
     [ "pgpRxClk", "classPgp3Rx.html#a27f8ee661215e1f1df91752465449649", null ],
     [ "pgpRxRst", "classPgp3Rx.html#afadc494c7bf685a7f4abd81f22112a59", null ],

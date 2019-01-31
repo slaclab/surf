@@ -4,8 +4,6 @@ var classPgp3Core =
     [ "TPD_G", "classPgp3Core.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "NUM_VC_G", "classPgp3Core.html#ad7e58e4c4b9f6ab2d4f638e2a2252673", null ],
     [ "PGP_RX_ENABLE_G", "classPgp3Core.html#afa40dbc937a881280a02595513d23d14", null ],
-    [ "RX_ALIGN_GOOD_COUNT_G", "classPgp3Core.html#a74ea92683878c1cd46197e6f452732dd", null ],
-    [ "RX_ALIGN_BAD_COUNT_G", "classPgp3Core.html#a6e9b1565a27cc70223d0ab719737d938", null ],
     [ "RX_ALIGN_SLIP_WAIT_G", "classPgp3Core.html#a642e3d9f05bd02ec75b1464cb8611306", null ],
     [ "PGP_TX_ENABLE_G", "classPgp3Core.html#ab838b32a3158265cda7d85d47062a5b8", null ],
     [ "TX_CELL_WORDS_MAX_G", "classPgp3Core.html#acb23aa94af8e7b16644ad19ac8f17dbd", null ],
