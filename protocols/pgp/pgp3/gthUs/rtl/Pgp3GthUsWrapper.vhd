@@ -40,8 +40,6 @@ entity Pgp3GthUsWrapper is
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
       PGP_RX_ENABLE_G             : boolean                := true;
-      RX_ALIGN_GOOD_COUNT_G       : integer                := 128;
-      RX_ALIGN_BAD_COUNT_G        : integer                := 16;
       RX_ALIGN_SLIP_WAIT_G        : integer                := 32;
       PGP_TX_ENABLE_G             : boolean                := true;
       TX_CELL_WORDS_MAX_G         : integer                := PGP3_DEFAULT_TX_CELL_WORDS_MAX_C;  -- Number of 64-bit words per cell
@@ -209,8 +207,6 @@ begin
                -- PGP Settings
                ----------------------------------------------------------------------------------------------
                PGP_RX_ENABLE_G             => PGP_RX_ENABLE_G,
-               RX_ALIGN_GOOD_COUNT_G       => RX_ALIGN_GOOD_COUNT_G,
-               RX_ALIGN_BAD_COUNT_G        => RX_ALIGN_BAD_COUNT_G,
                RX_ALIGN_SLIP_WAIT_G        => RX_ALIGN_SLIP_WAIT_G,
                PGP_TX_ENABLE_G             => PGP_TX_ENABLE_G,
                NUM_VC_G                    => NUM_VC_G,

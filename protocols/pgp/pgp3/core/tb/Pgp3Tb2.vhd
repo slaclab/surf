@@ -150,8 +150,6 @@ begin
          TPD_G    => TPD_G,
          NUM_VC_G => NUM_VC_G)
 --          PGP_RX_ENABLE_G             => PGP_RX_ENABLE_G,
---          RX_ALIGN_GOOD_COUNT_G       => RX_ALIGN_GOOD_COUNT_G,
---          RX_ALIGN_BAD_COUNT_G        => RX_ALIGN_BAD_COUNT_G,
 --          RX_ALIGN_SLIP_WAIT_G        => RX_ALIGN_SLIP_WAIT_G,
 --          PGP_TX_ENABLE_G             => PGP_TX_ENABLE_G,
 --          TX_CELL_WORDS_MAX_G         => TX_CELL_WORDS_MAX_G,
@@ -214,8 +212,6 @@ begin
          TPD_G    => TPD_G,
          NUM_VC_G => NUM_VC_G)
 --          PGP_RX_ENABLE_G             => PGP_RX_ENABLE_G,
---          RX_ALIGN_GOOD_COUNT_G       => RX_ALIGN_GOOD_COUNT_G,
---          RX_ALIGN_BAD_COUNT_G        => RX_ALIGN_BAD_COUNT_G,
 --          RX_ALIGN_SLIP_WAIT_G        => RX_ALIGN_SLIP_WAIT_G,
 --          PGP_TX_ENABLE_G             => PGP_TX_ENABLE_G,
 --          TX_CELL_WORDS_MAX_G         => TX_CELL_WORDS_MAX_G,

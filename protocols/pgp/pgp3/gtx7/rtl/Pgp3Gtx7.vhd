@@ -35,8 +35,6 @@ entity Pgp3Gtx7 is
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
       PGP_RX_ENABLE_G             : boolean               := true;
-      RX_ALIGN_GOOD_COUNT_G       : integer               := 128;
-      RX_ALIGN_BAD_COUNT_G        : integer               := 16;
       RX_ALIGN_SLIP_WAIT_G        : integer               := 32;
       PGP_TX_ENABLE_G             : boolean               := true;
       NUM_VC_G                    : integer range 1 to 16 := 4;
@@ -199,8 +197,6 @@ begin
          TPD_G                       => TPD_G,
          NUM_VC_G                    => NUM_VC_G,
          PGP_RX_ENABLE_G             => PGP_RX_ENABLE_G,
-         RX_ALIGN_GOOD_COUNT_G       => RX_ALIGN_GOOD_COUNT_G,
-         RX_ALIGN_BAD_COUNT_G        => RX_ALIGN_BAD_COUNT_G,
          RX_ALIGN_SLIP_WAIT_G        => RX_ALIGN_SLIP_WAIT_G,
          PGP_TX_ENABLE_G             => PGP_TX_ENABLE_G,
          TX_CELL_WORDS_MAX_G         => TX_CELL_WORDS_MAX_G,
