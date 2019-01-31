@@ -26,8 +26,6 @@ entity Pgp3Core is
       TPD_G                       : time                  := 1 ns;
       NUM_VC_G                    : integer range 1 to 16 := 4;
       PGP_RX_ENABLE_G             : boolean               := true;
-      RX_ALIGN_GOOD_COUNT_G       : integer               := 128;
-      RX_ALIGN_BAD_COUNT_G        : integer               := 16;
       RX_ALIGN_SLIP_WAIT_G        : integer               := 32;
       PGP_TX_ENABLE_G             : boolean               := true;
       TX_CELL_WORDS_MAX_G         : integer               := PGP3_DEFAULT_TX_CELL_WORDS_MAX_C;  -- Number of 64-bit words per cell
@@ -134,8 +132,6 @@ begin
       generic map (
          TPD_G              => TPD_G,
          NUM_VC_G           => NUM_VC_G,
-         ALIGN_GOOD_COUNT_G => RX_ALIGN_GOOD_COUNT_G,
-         ALIGN_BAD_COUNT_G  => RX_ALIGN_BAD_COUNT_G,
          ALIGN_SLIP_WAIT_G  => RX_ALIGN_SLIP_WAIT_G)
       port map (
          pgpRxClk       => pgpRxClk,        -- [in]
