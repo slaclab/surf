@@ -32,8 +32,6 @@ entity Pgp3Rx is
    generic (
       TPD_G              : time                  := 1 ns;
       NUM_VC_G           : integer range 1 to 16 := 4;
-      ALIGN_GOOD_COUNT_G : integer               := 128;
-      ALIGN_BAD_COUNT_G  : integer               := 16;
       ALIGN_SLIP_WAIT_G  : integer               := 32);
    port (
       -- User Transmit interface
@@ -101,8 +99,6 @@ begin
    U_Pgp3RxGearboxAligner_1 : entity work.Pgp3RxGearboxAligner
       generic map (
          TPD_G        => TPD_G,
-         GOOD_COUNT_G => ALIGN_GOOD_COUNT_G,
-         BAD_COUNT_G  => ALIGN_BAD_COUNT_G,
          SLIP_WAIT_G  => ALIGN_SLIP_WAIT_G)
       port map (
          clk           => phyRxClk,         -- [in]
