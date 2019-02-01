@@ -41,13 +41,9 @@ entity Pgp3Gtp7Wrapper is
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
       PGP_RX_ENABLE_G             : boolean                := true;
-      RX_ALIGN_GOOD_COUNT_G       : integer                := 128;
-      RX_ALIGN_BAD_COUNT_G        : integer                := 16;
       RX_ALIGN_SLIP_WAIT_G        : integer                := 32;
       PGP_TX_ENABLE_G             : boolean                := true;
       TX_CELL_WORDS_MAX_G         : integer                := PGP3_DEFAULT_TX_CELL_WORDS_MAX_C;  -- Number of 64-bit words per cell
-      TX_SKP_INTERVAL_G           : integer                := 5000;
-      TX_SKP_BURST_SIZE_G         : integer                := 8;
       TX_MUX_MODE_G               : string                 := "INDEXED";  -- Or "ROUTED"
       TX_MUX_TDEST_ROUTES_G       : Slv8Array              := (0      => "--------");  -- Only used in ROUTED mode
       TX_MUX_TDEST_LOW_G          : integer range 0 to 7   := 0;
@@ -243,14 +239,10 @@ begin
                -- PGP Settings
                ----------------------------------------------------------------------------------------------
                PGP_RX_ENABLE_G             => PGP_RX_ENABLE_G,
-               RX_ALIGN_GOOD_COUNT_G       => RX_ALIGN_GOOD_COUNT_G,
-               RX_ALIGN_BAD_COUNT_G        => RX_ALIGN_BAD_COUNT_G,
                RX_ALIGN_SLIP_WAIT_G        => RX_ALIGN_SLIP_WAIT_G,
                PGP_TX_ENABLE_G             => PGP_TX_ENABLE_G,
                NUM_VC_G                    => NUM_VC_G,
                TX_CELL_WORDS_MAX_G         => TX_CELL_WORDS_MAX_G,
-               TX_SKP_INTERVAL_G           => TX_SKP_INTERVAL_G,
-               TX_SKP_BURST_SIZE_G         => TX_SKP_BURST_SIZE_G,
                TX_MUX_MODE_G               => TX_MUX_MODE_G,
                TX_MUX_TDEST_ROUTES_G       => TX_MUX_TDEST_ROUTES_G,
                TX_MUX_TDEST_LOW_G          => TX_MUX_TDEST_LOW_G,

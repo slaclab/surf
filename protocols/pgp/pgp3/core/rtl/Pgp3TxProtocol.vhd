@@ -33,15 +33,12 @@ entity Pgp3TxProtocol is
    generic (
       TPD_G            : time                  := 1 ns;
       NUM_VC_G         : integer range 1 to 16 := 4;
-      STARTUP_HOLD_G   : integer               := 1000;
-      SKP_INTERVAL_G   : integer               := 5000;
-      SKP_BURST_SIZE_G : integer               := 8);
-
+      STARTUP_HOLD_G   : integer               := 1000);
    port (
       -- User Transmit interface
       pgpTxClk    : in  sl;
       pgpTxRst    : in  sl;
-      pgpTxIn     : in  Pgp3TxInType;
+      pgpTxIn     : in  Pgp3TxInType := PGP3_TX_IN_INIT_C;
       pgpTxOut    : out Pgp3TxOutType;
       pgpTxMaster : in  AxiStreamMasterType;
       pgpTxSlave  : out AxiStreamSlaveType;
@@ -71,6 +68,7 @@ architecture rtl of Pgp3TxProtocol is
       overflowDly       : slv(NUM_VC_G-1 downto 0);
       overflowEvent     : slv(NUM_VC_G-1 downto 0);
       overflowEventSent : slv(NUM_VC_G-1 downto 0);
+      skpInterval       : slv(31 downto 0);
       skpCount          : slv(31 downto 0);
       startupCount      : integer;
       pgpTxSlave        : AxiStreamSlaveType;
@@ -91,6 +89,7 @@ architecture rtl of Pgp3TxProtocol is
       overflowDly       => (others => '0'),
       overflowEvent     => (others => '0'),
       overflowEventSent => (others => '0'),
+      skpInterval       => PGP3_TX_IN_INIT_C.skpInterval,
       skpCount          => (others => '0'),
       startupCount      => 0,
       pgpTxSlave        => AXI_STREAM_SLAVE_INIT_C,
@@ -147,8 +146,18 @@ begin
       -- Generate the link information message
       linkInfo := pgp3MakeLinkInfo(rxFifoCtrl, locRxLinkReady);
 
-      -- Always increment skpCount
-      v.skpCount := r.skpCount + 1;
+      -- Keep delay copy of skip interval configuration
+      v.skpInterval := pgpTxIn.skpInterval;
+      
+      -- Check for change in configuration
+      if (r.skpInterval /= v.skpInterval) then
+         -- Force a skip
+         v.skpCount := v.skpInterval;
+      -- Check for counter roll over
+      elsif (r.skpCount /= r.skpInterval) then      
+         -- Increment the counter
+         v.skpCount := r.skpCount + 1;
+      end if;
 
       -- Don't accept new frame data by default
       v.pgpTxSlave.tReady := '0';
@@ -244,13 +253,9 @@ begin
             v.protTxData(PGP3_USER_OPCODE_FIELD_C)   := pgpTxIn.opCodeData;
             v.protTxHeader                           := PGP3_K_HEADER_C;
             
-            -- If skip was interrupted, hold it for next cycle
-            if (r.skpCount = SKP_INTERVAL_G-1) then
-               v.skpCount := r.skpCount;
-            end if;
             resetEventMetaData := false;
          -- SKIP codes override data
-         elsif (r.skpCount = pgpTxIn.skpInterval) then
+         elsif (r.skpCount = r.skpInterval) then
             v.skpCount                     := (others => '0');
             v.pgpTxSlave.tReady            := '0';            -- Override any data acceptance.
             v.protTxData                   := (others => '0');

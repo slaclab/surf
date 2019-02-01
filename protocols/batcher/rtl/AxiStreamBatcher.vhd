@@ -193,8 +193,8 @@ begin
             -- Floor the superFrameByteThreshold to nearest word increment
             -- This is done to remove the ">" operator
             v.superFrameByteThreshold(bitSize(AXIS_WORD_SIZE_C)-1 downto 0) := (others => '0');
-            -- Check for zero byte superFrameByteThreshold case
-            if (v.superFrameByteThreshold = 0) then
+            -- Check for zero byte superFrameByteThreshold case and not using a zero value external threshold
+            if (v.superFrameByteThreshold = 0) and (superFrameByteThreshold /= 0) then
                -- Prevent zero case
                v.superFrameByteThreshold := toSlv(AXIS_WORD_SIZE_C, 32);
             end if;
