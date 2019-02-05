@@ -169,8 +169,8 @@ begin
                else
                   -- Check for NULL frame (defined as a single word transaction with EOFE asserted and byte count = 1)
                   if (rxMasters(i).tLast = '1') and  -- TLAST asserted
-                  (ssiGetUserEofe(AXIS_CONFIG_G, rxMasters(i)) = '1') and  -- EOFE flag set
-                  (getTKeep(rxMasters(i).tKeep(AXIS_CONFIG_G.TDATA_BYTES_C-1 downto 0), AXIS_CONFIG_G) = 1) then  -- byte count = 1
+                                    (ssiGetUserEofe(AXIS_CONFIG_G, rxMasters(i)) = '1') and  -- EOFE flag set
+                                    (getTKeep(rxMasters(i).tKeep(AXIS_CONFIG_G.TDATA_BYTES_C-1 downto 0), AXIS_CONFIG_G) = 1) then  -- byte count = 1
                      -- NULL frame detected
                      v.accept(i) := '0';
                   else
@@ -202,9 +202,11 @@ begin
                   -- Check for last channel
                   if (r.index = NUM_SLAVES_G-1) then
                      -- Reset the counter
-                     v.index := 0;
+                     v.index  := 0;
+                     -- Reset the accept field (makes it easier to look at simulation)
+                     v.accept := (others => '0');
                      -- Next state
-                     v.state := IDLE_S;
+                     v.state  := IDLE_S;
                   else
                      -- Increment the counter
                      v.index := r.index + 1;
