@@ -31,25 +31,25 @@ entity RogueMemoryBridge is port (
       rready       : out   std_logic;
 
       -- axiReadSlave
-      arready      : out   std_logic;
-      rdata        : out   std_logic_vector(31 downto 0);
-      rresp        : out   std_logic_vector(1 downto 0);
-      rvalid       : out   std_logic;
+      arready      : in    std_logic;
+      rdata        : in    std_logic_vector(31 downto 0);
+      rresp        : in    std_logic_vector(1 downto 0);
+      rvalid       : in    std_logic;
 
       -- axiWriteMaster
-      awaddr       : std_logic_vector(31 downto 0);
-      awprot       : std_logic_vector(2 downto 0);
-      awvalid      : std_logic;
-      wdata        : std_logic_vector(31 downto 0);
-      wstrb        : std_logic_vector(3 downto 0);
-      wvalid       : std_logic;
-      bready       : std_logic;
+      awaddr       : in    std_logic_vector(31 downto 0);
+      awprot       : in    std_logic_vector(2 downto 0);
+      awvalid      : in    std_logic;
+      wdata        : in    std_logic_vector(31 downto 0);
+      wstrb        : in    std_logic_vector(3 downto 0);
+      wvalid       : in    std_logic;
+      bready       : in    std_logic;
 
       -- axiWriteSlave
-      awready      : std_logic;
-      wready       : std_logic;
-      bresp        : std_logic_vector(1 downto 0);
-      bvalid       : std_logic
+      awready      : out   std_logic;
+      wready       : out   std_logic;
+      bresp        : out   std_logic_vector(1 downto 0);
+      bvalid       : out   std_logic
    );
 end RogueMemoryBridge;
 

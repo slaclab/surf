@@ -8,8 +8,8 @@
 // the terms contained in the LICENSE.txt file.
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef __ROGUE_STREAM_SIM_H__
-#define __ROGUE_STREAM_SIM_H__
+#ifndef __ROGUE_MEMORY_BRIDGE_H__
+#define __ROGUE_MEMORY_BRIDGE_H__
 
 #include <vhpi_user.h>
 #include <stdint.h>
@@ -18,106 +18,107 @@
 // Signals
 #define s_clock        0
 #define s_reset        1
-#define s_dest         2
-#define s_uid          3
+#define s_port         2
 
-#define s_obValid      4
-#define s_obReady      5
-#define s_obDataLow    6
-#define s_obDataHigh   7
-#define s_obUserLow    8
-#define s_obUserHigh   9
-#define s_obKeep       10
-#define s_obLast       11
+#define s_araddr       3
+#define s_arprot       4
+#define s_arvalid      5
+#define s_rready       6
 
-#define s_ibValid      12
-#define s_ibReady      13
-#define s_ibDataLow    14
-#define s_ibDataHigh   15
-#define s_ibUserLow    16
-#define s_ibUserHigh   17
-#define s_ibKeep       18
-#define s_ibLast       19
+#define s_arready      7
+#define s_rdata        8
+#define s_rresp        9
+#define s_rvalid       10
 
-#define s_opCode       20
-#define s_opCodeEn     21
-#define s_remData      22
+#define s_awaddr       11
+#define s_awprot       12
+#define s_awvalid      13
+#define s_wdata        14
+#define s_wstrb        15
+#define s_wvalid       16
+#define s_bready       17
 
-#define MAX_FRAME 2000000
-#define IB_PORT_BASE 5000
-#define OB_PORT_BASE 6000
-#define OC_PORT_BASE 7000
-#define SB_PORT_BASE 8000
+#define s_awready      18
+#define s_wready       19
+#define s_bresp        20
+#define s_bvalid       21
+
+#define PORT_COUNT     22
+
+#define T_READ   0x1
+#define T_WRITE  0x2
+#define T_POST   0x3
+#define T_VERIFY 0x4
+
+#define ST_IDLE  0x0
+#define ST_START 0x1
+#define ST_WADDR 0x2
+#define ST_WDATA 0x3
+#define ST_WRESP 0x4
+#define ST_RADDR 0x5
+#define ST_RDATA 0x6
+#define ST_PAUSE 0x7
+
+#define MAX_DATA 2000000
 
 // Structure to track state
 typedef struct {
 
-   uint8_t   obFuser;
-   uint8_t   obLuser;
-   uint32_t  obSize;
-   uint32_t  obCount;
-   uint8_t   obData[MAX_FRAME];
-   uint32_t  obValid;
+   uint32_t   araddr;
+   uint8_t    arprot;
+   uint8_t    arvalid;
+   uint8_t    rready;
+   
+   uint8_t    arready;
+   uint32_t   rdata;
+   uint8_t    rresp;
+   uint8_t    rvalid;
+   
+   uint32_t   awaddr;
+   uint8_t    awprot;
+   uint8_t    awvalid;
+   uint32_t   wdata;
+   uint8_t    wstrb;
+   uint8_t    wvalid;
+   uint8_t    bready;
+   
+   uint8_t    awready;
+   uint8_t    wready;
+   uint8_t    bresp;
+   uint8_t    bvalid;
 
-   uint8_t   ibFuser;
-   uint8_t   ibLuser;
-   uint32_t  ibSize;
-   uint8_t   ibData[MAX_FRAME];
+   uint16_t   port;
+   uint8_t    state;
+   uint8_t    id;
+   uint64_t   addr;
+   uint8_t    data[MAX_DATA];
+   uint32_t   size;
+   uint32_t   curr;
+   uint32_t   type;
+   uint32_t   result;
 
-   uint32_t  currClk;
-   uint32_t  dest;
-   uint32_t  uid;
-   time_t    ltime;
+   uint8_t    currClk;
+
+   void *     zmqCtx;
+   void *     zmqPull;
+   void *     zmqPush;
   
-   uint32_t  rxCount;
-   uint32_t  txCount;
-   uint32_t  ackCount;
-   uint32_t  errCount;
-   uint32_t  ocCount;
-   uint32_t  sbCount;
-
-   uint32_t  lRxCount;
-   uint32_t  lTxCount;
-   uint32_t  lOcCount;
-   uint32_t  lSbCount;
-   uint32_t  lAckCount;
-   uint32_t  lErrCount; 
-
-   uint8_t   sbData;
-   uint8_t   ocData;
-   uint8_t   ocDataEn;
-
-   void *    zmqCtx;
-   void *    zmqIbSrv;
-   void *    zmqObSrv;
-   void *    zmqSbSrv;
-   void *    zmqOcSrv;
-  
-} RogueStreamSimData;
+} RogueMemoryBridgeData;
 
 // Init function
-void RogueStreamSimInit(vhpiHandleT compInst);
+void RogueMemoryBridgeInit(vhpiHandleT compInst);
 
 // Callback function for updating
-void RogueStreamSimUpdate ( void *userPtr );
+void RogueMemoryBridgeUpdate ( void *userPtr );
 
 // Start/resetart zeromq server
-void zmqRestart(RogueStreamSimData *data, portDataT *portData);
+void zmqRestart(RogueMemoryBridgeData *data, portDataT *portData);
 
 // Send a message
-void zmqSend ( RogueStreamSimData *data, portDataT *portData );
+void zmqSend ( RogueMemoryBridgeData *data, portDataT *portData );
 
 // Receive data if it is available
-int zmqRecvData ( RogueStreamSimData *data, portDataT *portData );
-
-// Ack received data
-void zmqAckData ( RogueStreamSimData *data, portDataT *portData );
-
-// Receive opcode if it is available
-int zmqRecvOcData ( RogueStreamSimData *data, portDataT *portData );
-
-// Receive side data if it is available
-int zmqRecvSbData ( RogueStreamSimData *data, portDataT *portData );
+int zmqRecv ( RogueMemoryBridgeData *data, portDataT *portData );
 
 #endif
 

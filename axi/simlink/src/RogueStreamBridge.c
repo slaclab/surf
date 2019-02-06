@@ -97,6 +97,8 @@ void zmqSend ( RogueStreamBridgeData *data, portDataT *portData ) {
       if ( zmq_sendmsg(this->zmqPush_,&(msg[x]),(x==3)?0:ZMQ_SNDMORE) < 0 )
          vhpi_assert("RogueStreamBridge: Failed to send message",vhpiFatal);
    }
+
+   vhpi_printf("%lu Send data: Size: %i\n", portData->simTime, data->ibSize);
 }
 
 
