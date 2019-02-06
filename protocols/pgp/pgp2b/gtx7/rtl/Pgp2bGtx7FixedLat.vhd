@@ -51,6 +51,7 @@ entity Pgp2bGtx7Fixedlat is
       RXCDR_CFG_G           : bit_vector := x"03000023ff40200020";  -- Set by wizard
       RXDFEXYDEN_G          : sl         := '0';                    -- Set by wizard
       RX_DFE_KL_CFG2_G      : bit_vector := x"3008E56A";            -- Set by wizard
+      RX_EQUALIZER_G        : string     := "DFE";        -- Or "LPM"
       -- Allow TX to run in var lat mode by altering these generics
       TX_BUF_EN_G           : boolean    := false;
       TX_OUTCLK_SRC_G       : string     := "PLLREFCLK";
@@ -281,7 +282,7 @@ begin
          RX_OS_CFG_G           => RX_OS_CFG_G,
          RXCDR_CFG_G           => RXCDR_CFG_G,
          RXDFEXYDEN_G          => RXDFEXYDEN_G,
-         RX_EQUALIZER_G        => "DFE",
+         RX_EQUALIZER_G        => RX_EQUALIZER_G,
 --         ALIGN_COMMA_DOUBLE_G   => ALIGN_COMMA_DOUBLE_G,
 --         ALIGN_COMMA_ENABLE_G   => ALIGN_COMMA_ENABLE_G,
 --         ALIGN_COMMA_WORD_G     => ALIGN_COMMA_WORD_G,
