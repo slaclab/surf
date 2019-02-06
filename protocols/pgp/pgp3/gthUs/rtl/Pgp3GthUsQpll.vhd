@@ -27,14 +27,14 @@ use unisim.vcomponents.all;
 entity Pgp3GthUsQpll is
    generic (
       TPD_G    : time    := 1 ns;
-      RATE_G   : string  := "10.3125Gbps";  -- or "6.25Gbps"    
+      RATE_G   : string  := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps" 
       EN_DRP_G : boolean := true);
    port (
       -- Stable Clock and Reset
       stableClk       : in  sl;         -- GT needs a stable clock to "boot up"
       stableRst       : in  sl;
       -- QPLL Clocking
-      pgpRefClk       : in  sl;
+      pgpRefClk       : in  sl;         -- 156.25 MHz
       qpllLock        : out Slv2Array(3 downto 0);
       qpllClk         : out Slv2Array(3 downto 0);
       qpllRefclk      : out Slv2Array(3 downto 0);
@@ -66,6 +66,10 @@ architecture mapping of Pgp3GthUsQpll is
    signal gtQPllReset   : Slv2Array(3 downto 0);
 
 begin
+
+   assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps"))
+      report "RATE_G: Must be either 3.125Gbps or 6.25Gbps or 10.3125Gbps"
+      severity error;
 
    GEN_VEC :
    for i in 3 downto 0 generate
