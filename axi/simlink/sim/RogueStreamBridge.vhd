@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
--- File       : RogueStreamSim.vhd
+-- File       : RogueStreamBridge.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Rogue Stream Simulation Module
+-- Description: Rogue Stream Bridge Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -19,11 +19,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-entity RogueStreamSim is port (
+entity RogueStreamBridge is port (
       clock        : in    std_logic;
       reset        : in    std_logic;
-      dest         : in    std_logic_vector(7  downto 0);
-      uid          : in    std_logic_vector(5  downto 0);
+      portNum      : in    std_logic_vector(15 downto 0);
+      ssi          : in    std_logic;
 
       obValid      : out   std_logic;
       obReady      : in    std_logic;
@@ -41,18 +41,14 @@ entity RogueStreamSim is port (
       ibUserLow    : in    std_logic_vector(31 downto 0);
       ibUserHigh   : in    std_logic_vector(31 downto 0);
       ibKeep       : in    std_logic_vector(7  downto 0);
-      ibLast       : in    std_logic;
-
-      opCode       : out   std_logic_vector(7 downto 0);
-      opCodeEn     : out   std_logic;
-      remData      : out   std_logic_vector(7 downto 0)
+      ibLast       : in    std_logic
    );
-end RogueStreamSim;
+end RogueStreamBridge;
 
 -- Define architecture
-architecture RogueStreamSim of RogueStreamSim is
-   Attribute FOREIGN of RogueStreamSim: architecture is 
-      "vhpi:AxiSim:VhpiGenericElab:RogueStreamSimInit:RogueStreamSim";
+architecture RogueStreamBridge of RogueStreamBridge is
+   Attribute FOREIGN of RogueStreamBridge: architecture is 
+      "vhpi:AxiSim:VhpiGenericElab:RogueStreamBridgeInit:RogueStreamBridge";
 begin
-end RogueStreamSim;
+end RogueStreamBridge;
 
