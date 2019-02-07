@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : RogueStringBridgeWrap.vhd
+-- File       : RogueStreamBridgeWrap.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Rogue Stream Simulation Module
@@ -20,7 +20,7 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 
-entity RogueStringBridgeWrap is
+entity RogueStreamBridgeWrap is
    generic (
       TPD_G               : time                     := 1 ns;
       PORT_NUM_G          : integer range 0 to 65535 := 1;
@@ -48,10 +48,10 @@ entity RogueStringBridgeWrap is
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType
    );
-end RogueStringBridgeWrap;
+end RogueStreamBridgeWrap;
 
 -- Define architecture
-architecture RogueStringBridgeWrap of RogueStringBridgeWrap is
+architecture RogueStreamBridgeWrap of RogueStreamBridgeWrap is
 
    -- Internal configuration
    constant INT_CONFIG_C : AxiStreamConfigType := (
@@ -70,8 +70,8 @@ architecture RogueStringBridgeWrap of RogueStringBridgeWrap is
    signal ibSlave  : AxiStreamSlaveArray(CHAN_COUNT_G-1 downto 0);
    signal obMaster : AxiStreamMasterArray(CHAN_COUNT_G-1 downto 0);
    signal obSlave  : AxiStreamSlaveArray(CHAN_COUNT_G-1 downto 0);
-   signal mxMaster : AxiStreamMasterType(CHAN_COUNT_G-1 downto 0);
-   signal mxSlave  : AxiStreamSlaveType(CHAN_COUNT_G-1 downto 0);
+   signal mxMaster : AxiStreamMasterArray(CHAN_COUNT_G-1 downto 0);
+   signal mxSlave  : AxiStreamSlaveArray(CHAN_COUNT_G-1 downto 0);
 
 begin
 
@@ -116,7 +116,7 @@ begin
       ------------------------------------
       -- Sim Core
       ------------------------------------
-      U_RogueStringBridge : entity work.RogueStringBridge
+      U_RogueStreamBridge : entity work.RogueStreamBridge
          port map(
             clock      => clk,
             reset      => rst,
@@ -179,9 +179,9 @@ begin
          axisClk      => mAxisClk,
          axisRst      => mAxisRst,
          sAxisMasters => mxMaster,
-         sAxisSlaves  => mxSlave);
+         sAxisSlaves  => mxSlave,
          mAxisMaster  => mAxisMaster,
          mAxisSlave   => mAxisSlave);
 
-end RogueStringBridgeWrap;
+end RogueStreamBridgeWrap;
 

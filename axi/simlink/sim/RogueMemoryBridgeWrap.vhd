@@ -18,6 +18,8 @@ USE work.ALL;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
+use work.StdRtlPkg.all;
+use work.AxiLitePkg.all;
 
 entity RogueMemoryBridgeWrap is 
    generic (
@@ -30,8 +32,7 @@ entity RogueMemoryBridgeWrap is
       axiReadMaster  : out   AxiLiteReadMasterType;
       axiReadSlave   : in    AxiLiteReadSlaveType;
       axiWriteMaster : out   AxiLiteWriteMasterType;
-      axiWriteSlave  : in    AxiLiteWriteSlaveType;
-
+      axiWriteSlave  : in    AxiLiteWriteSlaveType
    );
 end RogueMemoryBridgeWrap;
 
@@ -46,11 +47,11 @@ begin
          clock    => axiClk,
          reset    => axiRst,
          portNum  => toSlv(PORT_NUM_G,16),
-         araddr   => axiReadMapster.araddr,
-         arprot   => axiReadMapster.arprot,
-         arvalid  => axiReadMapster.arvalid,
-         rready   => axiReadMapster.rready,
-         arready  => axiReadMapster.arready,
+         araddr   => axiReadMaster.araddr,
+         arprot   => axiReadMaster.arprot,
+         arvalid  => axiReadMaster.arvalid,
+         rready   => axiReadMaster.rready,
+         arready  => axiReadSlave.arready,
          rdata    => axiReadSlave.rdata,
          rresp    => axiReadSlave.rresp,
          rvalid   => axiReadSlave.rvalid,
