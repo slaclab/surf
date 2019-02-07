@@ -26,6 +26,7 @@
 // Start/resetart zeromq server
 void RogueStreamBridgeRestart(RogueStreamBridgeData *data, portDataT *portData) {
    char buffer[100];
+   uint32_t to;
 
    if ( data->zmqPush != NULL ) zmq_close(data->zmqPush );
    if ( data->zmqPull != NULL ) zmq_close(data->zmqPush );
@@ -38,6 +39,10 @@ void RogueStreamBridgeRestart(RogueStreamBridgeData *data, portDataT *portData) 
    data->zmqCtx = zmq_ctx_new();
    data->zmqPull  = zmq_socket(data->zmqCtx,ZMQ_PULL);
    data->zmqPush  = zmq_socket(data->zmqCtx,ZMQ_PUSH);
+
+   to = 10;
+   zmq_setsockopt (data->zmqPull, ZMQ_RCVTIMEO, &to, sizeof(to));
+   zmq_setsockopt (data->zmqPush, ZMQ_RCVTIMEO, &to, sizeof(to));
 
    vhpi_printf("RogueStreamBridge: Listening on ports %i & %i\n",data->port,data->port+1);
 
@@ -98,7 +103,7 @@ void RogueStreamBridgeSend ( RogueStreamBridgeData *data, portDataT *portData ) 
          vhpi_assert("RogueStreamBridge: Failed to send message",vhpiFatal);
    }
 
-   vhpi_printf("%lu Send data: Size: %i\n", portData->simTime, data->ibSize);
+   vhpi_printf("%lu RogueStreamBridge: Send data: Size: %i\n", portData->simTime, data->ibSize);
 }
 
 
@@ -130,7 +135,7 @@ int RogueStreamBridgeRecv ( RogueStreamBridgeData *data, portDataT *portData ) {
          more = 0;
          moreSize = 8;
          zmq_getsockopt(data->zmqPull, ZMQ_RCVMORE, &more, &moreSize);
-      } else more = 1;
+      } else more = 0;
    } while ( more );
 
    // Proper message received
@@ -163,7 +168,7 @@ int RogueStreamBridgeRecv ( RogueStreamBridgeData *data, portDataT *portData ) {
          if ( err ) data->obLuser |= 0x01;
       }
 
-      vhpi_printf("%lu Recv data: Size: %i\n", portData->simTime, data->obSize);
+      vhpi_printf("%lu RogueStreamBridge: Recv data: Size: %i\n", portData->simTime, data->obSize);
 
    } else size = 0;
 

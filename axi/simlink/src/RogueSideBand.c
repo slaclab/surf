@@ -25,8 +25,8 @@
 
 // Start/resetart zeromq server
 void RogueSideBandRestart(RogueSideBandData *data, portDataT *portData) {
-#if 0
    char buffer[100];
+   uint32_t to;
 
    if ( data->zmqPull != NULL ) zmq_close(data->zmqPull);
    if ( data->zmqCtx  != NULL ) zmq_term(data->zmqCtx);
@@ -37,6 +37,9 @@ void RogueSideBandRestart(RogueSideBandData *data, portDataT *portData) {
    data->zmqCtx = zmq_ctx_new();
    data->zmqPull = zmq_socket(data->zmqCtx,ZMQ_REP);
 
+   to = 10;
+   zmq_setsockopt (data->zmqPull, ZMQ_RCVTIMEO, &to, sizeof(to));
+
    vhpi_printf("RogueSideBand: Listening on port %i\n",data->port);
 
    sprintf(buffer,"tcp://*:%i",data->port);
@@ -44,7 +47,6 @@ void RogueSideBandRestart(RogueSideBandData *data, portDataT *portData) {
       vhpi_assert("RogueSideBand: Failed to bind sideband port",vhpiFatal);
       return;
    }
-#endif
 }
 
 // Receive side data if it is available

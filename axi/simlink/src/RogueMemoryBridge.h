@@ -52,8 +52,6 @@
 
 #define ST_IDLE  0x0
 #define ST_START 0x1
-#define ST_WADDR 0x2
-#define ST_WDATA 0x3
 #define ST_WRESP 0x4
 #define ST_RADDR 0x5
 #define ST_RDATA 0x6
@@ -89,7 +87,7 @@ typedef struct {
 
    uint16_t   port;
    uint8_t    state;
-   uint8_t    id;
+   uint32_t   id;
    uint64_t   addr;
    uint8_t    data[MAX_DATA];
    uint32_t   size;

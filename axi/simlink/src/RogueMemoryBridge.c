@@ -26,6 +26,7 @@
 // Start/resetart zeromq server
 void RogueMemoryBridgeRestart(RogueMemoryBridgeData *data, portDataT *portData) {
    char buffer[100];
+   uint32_t to;
 
    if ( data->zmqPush  != NULL ) zmq_close(data->zmqPull);
    if ( data->zmqPull  != NULL ) zmq_close(data->zmqPush);
@@ -38,6 +39,10 @@ void RogueMemoryBridgeRestart(RogueMemoryBridgeData *data, portDataT *portData) 
    data->zmqCtx = zmq_ctx_new();
    data->zmqPull  = zmq_socket(data->zmqCtx,ZMQ_PULL);
    data->zmqPush  = zmq_socket(data->zmqCtx,ZMQ_PUSH);
+
+   to = 10;
+   zmq_setsockopt (data->zmqPull, ZMQ_RCVTIMEO, &to, sizeof(to));
+   zmq_setsockopt (data->zmqPush, ZMQ_RCVTIMEO, &to, sizeof(to));
 
    vhpi_printf("RogueMemoryBridge: Listening on ports %i & %i\n",data->port,data->port+1);
 
@@ -90,6 +95,9 @@ void RogueMemoryBridgeSend ( RogueMemoryBridgeData *data, portDataT *portData ) 
    }
    data->state = 0;
    data->curr  = 0;
+
+   vhpi_printf("%lu RogueMemoryBridge: Send Tran: Id %i, Addr 0x%x, Size %i, Type %i, Resp 0x%x\n", portData->simTime,data->id,data->addr,data->size,data->type,data->result);
+
 }
 
 // Receive data if it is available
@@ -116,7 +124,7 @@ int RogueMemoryBridgeRecv ( RogueMemoryBridgeData *data, portDataT *portData ) {
          more = 0;
          moreSize = 8;
          zmq_getsockopt(data->zmqPull, ZMQ_RCVMORE, &more, &moreSize);
-      } else more = 1;
+      } else more = 0;
    } while ( more );
 
    // Proper message received
@@ -151,7 +159,7 @@ int RogueMemoryBridgeRecv ( RogueMemoryBridgeData *data, portDataT *portData ) {
       data->curr   = 0;
       data->result = 0;
 
-      vhpi_printf("%lu Got Tran: Addr 0x%x, Size %i, Type %i\n", portData->simTime, data->addr,data->size,data->type);
+      vhpi_printf("%lu RogueMemoryBridge: Got Tran: Id %i, Addr 0x%x, Size %i, Type %i\n", portData->simTime, data->id, data->addr,data->size,data->type);
 
       return(data->size);
    }
@@ -240,12 +248,6 @@ void RogueMemoryBridgeInit(vhpiHandleT compInst) {
 
 // User function to update state based upon a signal change
 void RogueMemoryBridgeUpdate ( void *userPtr ) {
-   //uint32_t x;
-   //uint32_t keep;
-   //uint32_t dLow;
-   //uint32_t dHigh;
-   //uint32_t uLow;
-   //uint32_t uHigh;
    uint32_t data32;
 
    portDataT *portData = (portDataT*) userPtr;
@@ -281,63 +283,45 @@ void RogueMemoryBridgeUpdate ( void *userPtr ) {
                // Idle get new data
                case ST_IDLE:
                   RogueMemoryBridgeRecv(data,portData);
-                  data->curr = 0;
                   break;
 
                // Start, present transaction
                case ST_START:
 
                   // Write
-                  if ( data->type == T_WRITE || T_POST ) {
-                     setInt(s_awaddr,data->addr);
+                  if ( data->type == T_WRITE || data->type == T_POST ) {
+                     setInt(s_awaddr,(data->addr+data->curr));
                      setInt(s_awprot,0);
                      setInt(s_awvalid,1);
-                     setInt(s_wvalid,0);
-                     setInt(s_bready,0);
-                     data->state = ST_WADDR;
-                  }
+                     setInt(s_bready,1);
 
-                  // Read
-                  else {
-                     setInt(s_araddr,data->addr);
-                     setInt(s_arprot,0);
-                     setInt(s_arvalid,1);
-                     setInt(s_arready,0);
-                     data->state = ST_RADDR;
-                  }
-                  data->addr += 4;
-                  break;
-
-               // Write address
-               case ST_WADDR:
-
-                  if ( getInt(s_awready) ) {
                      data32  = data->data[data->curr++]         & 0x000000FF;
                      data32 |= (data->data[data->curr++] <<  8) & 0x0000FF00;
                      data32 |= (data->data[data->curr++] << 16) & 0x00FF0000;
                      data32 |= (data->data[data->curr++] << 24) & 0xFF000000;
 
-                     setInt(s_awvalid,0);
                      setInt(s_wdata,data32);
                      setInt(s_wstrb,0xF);
                      setInt(s_wvalid,1);
-                     setInt(s_bready,0);
                      data->state = ST_WDATA;
                   }
-                  break;
 
-               // Write data
-               case ST_WDATA:
-                  if ( getInt(s_wready) ) {
-                     setInt(s_awvalid,0);
-                     setInt(s_wvalid,0);
-                     setInt(s_bready,1);
-                     data->state = ST_WRESP;
+                  // Read
+                  else {
+                     setInt(s_araddr,(data->addr+data->curr));
+                     setInt(s_arprot,0);
+                     setInt(s_arvalid,1);
+                     setInt(s_arready,0);
+                     data->state = ST_RADDR;
                   }
                   break;
 
                // Write response
                case ST_WRESP:
+
+                  if ( getInt(s_awready) ) setInt(s_awvalid,0);
+                  if ( getInt(s_wready)  ) setInt(s_avalid,0);
+
                   if ( getInt(s_bvalid) ) {
                      setInt(s_bready,0);
                      data->result = getInt(s_bresp);
@@ -369,7 +353,7 @@ void RogueMemoryBridgeUpdate ( void *userPtr ) {
                      data->data[data->curr++] = (data32 >> 16) & 0xFF;
                      data->data[data->curr++] = (data32 >> 24) & 0xFF;
 
-                     setInt(s_rready,1);
+                     setInt(s_rready,0);
 
                      if (data->curr == data->size) {
                         RogueMemoryBridgeSend(data,portData); // state goes to idle
