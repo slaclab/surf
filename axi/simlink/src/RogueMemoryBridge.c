@@ -24,7 +24,7 @@
 #include <time.h>
 
 // Start/resetart zeromq server
-void zmqRestart(RogueMemoryBridgeData *data, portDataT *portData) {
+void RogueMemoryBridgeRestart(RogueMemoryBridgeData *data, portDataT *portData) {
    char buffer[100];
 
    if ( data->zmqPush  != NULL ) zmq_close(data->zmqPull);
@@ -39,15 +39,15 @@ void zmqRestart(RogueMemoryBridgeData *data, portDataT *portData) {
    data->zmqPull  = zmq_socket(data->zmqCtx,ZMQ_PULL);
    data->zmqPush  = zmq_socket(data->zmqCtx,ZMQ_PUSH);
 
-   vhpi_printf("%lu RogueMemoryBridge: Listening on ports %i & %i\n",port,port+1);
+   vhpi_printf("RogueMemoryBridge: Listening on ports %i & %i\n",data->port,data->port+1);
 
-   sprintf(buffer,"tcp://*:%i",port);
+   sprintf(buffer,"tcp://*:%i",data->port);
    if ( zmq_bind(data->zmqPull,buffer) ) {
       vhpi_assert("RogueMemoryBridge: Failed to bind pull port",vhpiFatal);
       return;
    }
 
-   sprintf(buffer,"tcp://*:%i",port+1);
+   sprintf(buffer,"tcp://*:%i",data->port+1);
    if ( zmq_bind(data->zmqPush,buffer) ) {
       vhpi_assert("RogueMemoryBridge: Failed to bind push port",vhpiFatal);
       return;
@@ -56,22 +56,21 @@ void zmqRestart(RogueMemoryBridgeData *data, portDataT *portData) {
 
 
 // Send a message
-void zmqSend ( RogueMemoryBridgeData *data, portDataT *portData ) {
-   uint32_t  msgCnt;
+void RogueMemoryBridgeSend ( RogueMemoryBridgeData *data, portDataT *portData ) {
+   uint32_t  x;
    zmq_msg_t msg[6];
-   uint8_t * data;
 
    if ( (zmq_msg_init_size(&(msg[0]),4) < 0) ||  // ID
         (zmq_msg_init_size(&(msg[1]),8) < 0) ||  // Addr   
         (zmq_msg_init_size(&(msg[2]),4) < 0) ||  // Size 
         (zmq_msg_init_size(&(msg[3]),4) < 0) ||  // type 
         (zmq_msg_init_size(&(msg[5]),4) < 0) ) { // result
-      bridgeLog_->warning("Failed to init message header");
+      vhpi_assert("RogueMemoryBridge: Failed to init message header",vhpiFatal);
       return;
    }
 
    if ( zmq_msg_init_size (&(msg[4]), data->size) < 0 ) {
-      bridgeLog_->warning("Failed to init message with size %i",data->size);
+      vhpi_assert("RogueMemoryBridge: Failed to init message",vhpiFatal);
       return;
    }
 
@@ -82,12 +81,11 @@ void zmqSend ( RogueMemoryBridgeData *data, portDataT *portData ) {
    memcpy(zmq_msg_data(&(msg[5])), &(data->result), 4);
 
    // Copy data
-   data = (uint8_t *)zmq_msg_data(&(msg[4]));
-   memcpy(data,data->data,data->size);
+   memcpy(zmq_msg_data(&(msg[4])),data->data,data->size);
     
    // Send data
    for (x=0; x < 6; x++) {
-      if ( zmq_sendmsg(data->zmqPush_,&(msg[x]),(x==5)?0:ZMQ_SNDMORE) < 0 )
+      if ( zmq_sendmsg(data->zmqPush,&(msg[x]),(x==5)?0:ZMQ_SNDMORE) < 0 )
          vhpi_assert("RogueMemoryBridge: Failed to send message",vhpiFatal);
    }
    data->state = 0;
@@ -95,8 +93,7 @@ void zmqSend ( RogueMemoryBridgeData *data, portDataT *portData ) {
 }
 
 // Receive data if it is available
-int zmqRecv ( RogueMemoryBridgeData *data, portDataT *portData ) {
-   uint8_t * data;
+int RogueMemoryBridgeRecv ( RogueMemoryBridgeData *data, portDataT *portData ) {
    uint64_t  more;
    size_t    moreSize;
    uint32_t  x;
@@ -149,8 +146,7 @@ int zmqRecv ( RogueMemoryBridgeData *data, portDataT *portData ) {
       }
 
       // Data pointer
-      data = (uint8_t *)zmq_msg_data(&(msg[4]));
-      memcpy(data->data,data,data->size);
+      memcpy(data->data, zmq_msg_data(&(msg[4])),data->size);
       data->state  = ST_START;
       data->curr   = 0;
       data->result = 0;
@@ -236,7 +232,6 @@ void RogueMemoryBridgeInit(vhpiHandleT compInst) {
 
    // Init
    memset(data,0, sizeof(RogueMemoryBridgeData));
-   time(&(data->ltime));
 
    // Call generic Init
    VhpiGenericInit(compInst,portData);
@@ -278,14 +273,14 @@ void RogueMemoryBridgeUpdate ( void *userPtr ) {
             // Port not yet assigned
             if ( data->port == 0 ) {
                data->port = getInt(s_port);
-               zmqRestart(data,portData);
+               RogueMemoryBridgeRestart(data,portData);
             }
 
             switch (data->state) {
 
                // Idle get new data
                case ST_IDLE:
-                  zmqRecv(data,portData);
+                  RogueMemoryBridgeRecv(data,portData);
                   data->curr = 0;
                   break;
 
@@ -348,7 +343,7 @@ void RogueMemoryBridgeUpdate ( void *userPtr ) {
                      data->result = getInt(s_bresp);
 
                      if (data->curr == data->size) {
-                        zmqSend(data,portData); // state goes to idle
+                        RogueMemoryBridgeSend(data,portData); // state goes to idle
                      }
                      else data->state = ST_PAUSE;
                   }
@@ -377,7 +372,7 @@ void RogueMemoryBridgeUpdate ( void *userPtr ) {
                      setInt(s_rready,1);
 
                      if (data->curr == data->size) {
-                        zmqSend(data,portData); // state goes to idle
+                        RogueMemoryBridgeSend(data,portData); // state goes to idle
                      }
                      else data->state = ST_PAUSE;
                   }

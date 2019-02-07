@@ -76,13 +76,13 @@ void RogueStreamBridgeInit(vhpiHandleT compInst);
 void RogueStreamBridgeUpdate ( void *userPtr );
 
 // Start/resetart zeromq server
-void zmqRestart(RogueStreamBridgeData *data, portDataT *portData);
+void RogueStreamBridgeRestart(RogueStreamBridgeData *data, portDataT *portData);
 
 // Send a message
-void zmqSend ( RogueStreamBridgeData *data, portDataT *portData );
+void RogueStreamBridgeSend ( RogueStreamBridgeData *data, portDataT *portData );
 
 // Receive data if it is available
-int zmqRecvData ( RogueStreamBridgeData *data, portDataT *portData );
+int RogueStreamBridgeRecv ( RogueStreamBridgeData *data, portDataT *portData );
 
 #endif
 

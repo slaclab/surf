@@ -112,13 +112,13 @@ void RogueMemoryBridgeInit(vhpiHandleT compInst);
 void RogueMemoryBridgeUpdate ( void *userPtr );
 
 // Start/resetart zeromq server
-void zmqRestart(RogueMemoryBridgeData *data, portDataT *portData);
+void RogueMemoryBridgeRestart(RogueMemoryBridgeData *data, portDataT *portData);
 
 // Send a message
-void zmqSend ( RogueMemoryBridgeData *data, portDataT *portData );
+void RogueMemoryBridgeSend ( RogueMemoryBridgeData *data, portDataT *portData );
 
 // Receive data if it is available
-int zmqRecv ( RogueMemoryBridgeData *data, portDataT *portData );
+int RogueMemoryBridgeRecv ( RogueMemoryBridgeData *data, portDataT *portData );
 
 #endif
 

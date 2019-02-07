@@ -31,14 +31,13 @@ typedef struct {
 
    uint32_t  currClk;
    uint16_t  port;
-   time_t    ltime;
   
    uint8_t   remData;
    uint8_t   ocData;
    uint8_t   ocDataEn;
 
    void *    zmqCtx;
-   void *    zmqSbSrv;
+   void *    zmqPull;
   
 } RogueSideBandData;
 
@@ -49,10 +48,10 @@ void RogueSideBandInit(vhpiHandleT compInst);
 void RogueSideBandUpdate ( void *userPtr );
 
 // Restart the zmq link
-void zmqRestart(RogueSideBandData *data, portDataT *portData) {
+void RogueSideBandRestart(RogueSideBandData *data, portDataT *portData);
 
 // Receive data if it is available
-int zmqRecvSbData ( RogueSideBandData *data, portDataT *portData );
+int RogueSideBandRecv ( RogueSideBandData *data, portDataT *portData );
 
 #endif
 
