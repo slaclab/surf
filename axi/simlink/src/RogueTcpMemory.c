@@ -320,7 +320,7 @@ void RogueTcpMemoryUpdate ( void *userPtr ) {
                case ST_WRESP:
 
                   if ( getInt(s_awready) ) setInt(s_awvalid,0);
-                  if ( getInt(s_wready)  ) setInt(s_avalid,0);
+                  if ( getInt(s_wready)  ) setInt(s_wvalid,0);
 
                   if ( getInt(s_bvalid) ) {
                      setInt(s_bready,0);

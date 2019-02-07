@@ -103,6 +103,7 @@ void RogueTcpStreamSend ( RogueTcpStreamData *data, portDataT *portData ) {
          vhpi_assert("RogueTcpStream: Failed to send message",vhpiFatal);
    }
 
+   data->ibSize = 0;
    vhpi_printf("%lu RogueTcpStream: Send data: Size: %i\n", portData->simTime, data->ibSize);
 }
 
@@ -372,7 +373,6 @@ void RogueTcpStreamUpdate ( void *userPtr ) {
                   setInt(s_obLast,1);
                   data->obSize  = 0;
                   data->obCount = 0;
-                  RogueTcpStreamSend(data,portData);
                }
             }
 
