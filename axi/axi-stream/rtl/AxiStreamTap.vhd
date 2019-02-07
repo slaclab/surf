@@ -30,7 +30,7 @@ entity AxiStreamTap is
       -- Slave
       sAxisMaster  : in  AxiStreamMasterType;
       sAxisSlave   : out AxiStreamSlaveType;
-      -- Masters
+      -- Master
       mAxisMaster  : out AxiStreamMasterType;
       mAxisSlave   : in  AxiStreamSlaveType;
       -- Tap 
