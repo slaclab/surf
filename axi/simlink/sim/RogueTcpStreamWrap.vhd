@@ -64,14 +64,14 @@ architecture RogueTcpStreamWrap of RogueTcpStreamWrap is
       TUSER_MODE_C  => TUSER_NORMAL_C);
 
    -- Local Signals
-   signal dmMaster : AxiStreamMasterArray(CHAN_COUNT_G-1 downto 0);
-   signal dmSlave  : AxiStreamSlaveArray(CHAN_COUNT_G-1 downto 0);
-   signal ibMaster : AxiStreamMasterArray(CHAN_COUNT_G-1 downto 0);
-   signal ibSlave  : AxiStreamSlaveArray(CHAN_COUNT_G-1 downto 0);
-   signal obMaster : AxiStreamMasterArray(CHAN_COUNT_G-1 downto 0);
-   signal obSlave  : AxiStreamSlaveArray(CHAN_COUNT_G-1 downto 0);
-   signal mxMaster : AxiStreamMasterArray(CHAN_COUNT_G-1 downto 0);
-   signal mxSlave  : AxiStreamSlaveArray(CHAN_COUNT_G-1 downto 0);
+   signal dmMasters : AxiStreamMasterArray(CHAN_COUNT_G-1 downto 0);
+   signal dmSlaves  : AxiStreamSlaveArray(CHAN_COUNT_G-1 downto 0);
+   signal ibMasters : AxiStreamMasterArray(CHAN_COUNT_G-1 downto 0);
+   signal ibSlaves  : AxiStreamSlaveArray(CHAN_COUNT_G-1 downto 0);
+   signal obMasters : AxiStreamMasterArray(CHAN_COUNT_G-1 downto 0);
+   signal obSlaves  : AxiStreamSlaveArray(CHAN_COUNT_G-1 downto 0);
+   signal mxMasters : AxiStreamMasterArray(CHAN_COUNT_G-1 downto 0);
+   signal mxSlaves  : AxiStreamSlaveArray(CHAN_COUNT_G-1 downto 0);
 
 begin
 
@@ -88,8 +88,8 @@ begin
          axisRst      => sAxisRst,
          sAxisMaster  => sAxisMaster,
          sAxisSlave   => sAxisSlave,
-         mAxisMasters => dmMaster,
-         mAxisSlaves  => dmSlave);
+         mAxisMasters => dmMasters,
+         mAxisSlaves  => dmSlaves);
 
    -- Channels
    U_ChanGen: for i in 0 to CHAN_COUNT_G-1 generate
@@ -106,12 +106,12 @@ begin
          port map (
             sAxisClk    => sAxisClk,
             sAxisRst    => sAxisRst,
-            sAxisMaster => dmMaster(i),
-            sAxisSlave  => dmSlave(i),
+            sAxisMaster => dmMasters(i),
+            sAxisSlave  => dmSlaves(i),
             mAxisClk    => clk,
             mAxisRst    => rst,
-            mAxisMaster => ibMaster(i),
-            mAxisSlave  => ibSlave(i));
+            mAxisMaster => ibMasters(i),
+            mAxisSlave  => ibSlaves(i));
 
       ------------------------------------
       -- Sim Core
@@ -122,30 +122,30 @@ begin
             reset      => rst,
             portNum    => toSlv(PORT_NUM_G + i*2, 16),
             ssi        => toSl(SSI_EN_G),
-            obValid    => obMaster(i).tValid,
-            obReady    => obSlave(i).tReady,
-            obDataLow  => obMaster(i).tData(31 downto 0),
-            obDataHigh => obMaster(i).tData(63 downto 32),
-            obUserLow  => obMaster(i).tUser(31 downto 0),
-            obUserHigh => obMaster(i).tUser(63 downto 32),
-            obKeep     => obMaster(i).tKeep(7 downto 0),
-            obLast     => obMaster(i).tLast,
-            ibValid    => ibMaster(i).tValid,
-            ibReady    => ibSlave(i).tReady,
-            ibDataLow  => ibMaster(i).tData(31 downto 0),
-            ibDataHigh => ibMaster(i).tData(63 downto 32),
-            ibUserLow  => ibMaster(i).tUser(31 downto 0),
-            ibUserHigh => ibMaster(i).tUser(63 downto 32),
-            ibKeep     => ibMaster(i).tKeep(7 downto 0),
-            ibLast     => ibMaster(i).tLast);
+            obValid    => obMasters(i).tValid,
+            obReady    => obSlaves(i).tReady,
+            obDataLow  => obMasters(i).tData(31 downto 0),
+            obDataHigh => obMasters(i).tData(63 downto 32),
+            obUserLow  => obMasters(i).tUser(31 downto 0),
+            obUserHigh => obMasters(i).tUser(63 downto 32),
+            obKeep     => obMasters(i).tKeep(7 downto 0),
+            obLast     => obMasters(i).tLast,
+            ibValid    => ibMasters(i).tValid,
+            ibReady    => ibSlaves(i).tReady,
+            ibDataLow  => ibMasters(i).tData(31 downto 0),
+            ibDataHigh => ibMasters(i).tData(63 downto 32),
+            ibUserLow  => ibMasters(i).tUser(31 downto 0),
+            ibUserHigh => ibMasters(i).tUser(63 downto 32),
+            ibKeep     => ibMasters(i).tKeep(7 downto 0),
+            ibLast     => ibMasters(i).tLast);
 
-      obMaster(i).tStrb <= (others => '1');
-      obMaster(i).tDest <= (others => '0');
-      obMaster(i).tId   <= (others => '0');
+      obMasters(i).tStrb <= (others => '1');
+      obMasters(i).tDest <= (others => '0');
+      obMasters(i).tId   <= (others => '0');
 
-      obMaster(i).tKeep(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 8)  <= (others => '0');
-      obMaster(i).tData(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 64) <= (others => '0');
-      obMaster(i).tUser(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 64) <= (others => '0');
+      obMasters(i).tKeep(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 8)  <= (others => '0');
+      obMasters(i).tData(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 64) <= (others => '0');
+      obMasters(i).tUser(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 64) <= (others => '0');
 
       ------------------------------------
       -- Outbound FIFOs
@@ -159,12 +159,12 @@ begin
          port map (
             sAxisClk    => clk,
             sAxisRst    => rst,
-            sAxisMaster => obMaster(i),
-            sAxisSlave  => obSlave(i),
+            sAxisMaster => obMasters(i),
+            sAxisSlave  => obSlaves(i),
             mAxisClk    => mAxisClk,
             mAxisRst    => mAxisRst,
-            mAxisMaster => mxMaster(i),
-            mAxisSlave  => mxSlave(i));
+            mAxisMaster => mxMasters(i),
+            mAxisSlave  => mxSlaves(i));
 
    end generate;
 
@@ -178,8 +178,8 @@ begin
       ) port map (
          axisClk      => mAxisClk,
          axisRst      => mAxisRst,
-         sAxisMasters => mxMaster,
-         sAxisSlaves  => mxSlave,
+         sAxisMasters => mxMasters,
+         sAxisSlaves  => mxSlaves,
          mAxisMaster  => mAxisMaster,
          mAxisSlave   => mAxisSlave);
 
