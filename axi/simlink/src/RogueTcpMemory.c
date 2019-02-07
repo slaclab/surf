@@ -9,7 +9,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "VhpiGeneric.h"
-#include "RogueMemoryBridge.h"
+#include "RogueTcpMemory.h"
 #include <vhpi_user.h>
 #include <stdlib.h>
 #include <time.h>
@@ -24,7 +24,7 @@
 #include <time.h>
 
 // Start/resetart zeromq server
-void RogueMemoryBridgeRestart(RogueMemoryBridgeData *data, portDataT *portData) {
+void RogueTcpMemoryRestart(RogueTcpMemoryData *data, portDataT *portData) {
    char buffer[100];
    uint32_t to;
 
@@ -44,24 +44,24 @@ void RogueMemoryBridgeRestart(RogueMemoryBridgeData *data, portDataT *portData) 
    zmq_setsockopt (data->zmqPull, ZMQ_RCVTIMEO, &to, sizeof(to));
    zmq_setsockopt (data->zmqPush, ZMQ_RCVTIMEO, &to, sizeof(to));
 
-   vhpi_printf("RogueMemoryBridge: Listening on ports %i & %i\n",data->port,data->port+1);
+   vhpi_printf("RogueTcpMemory: Listening on ports %i & %i\n",data->port,data->port+1);
 
    sprintf(buffer,"tcp://*:%i",data->port);
    if ( zmq_bind(data->zmqPull,buffer) ) {
-      vhpi_assert("RogueMemoryBridge: Failed to bind pull port",vhpiFatal);
+      vhpi_assert("RogueTcpMemory: Failed to bind pull port",vhpiFatal);
       return;
    }
 
    sprintf(buffer,"tcp://*:%i",data->port+1);
    if ( zmq_bind(data->zmqPush,buffer) ) {
-      vhpi_assert("RogueMemoryBridge: Failed to bind push port",vhpiFatal);
+      vhpi_assert("RogueTcpMemory: Failed to bind push port",vhpiFatal);
       return;
    }
 }
 
 
 // Send a message
-void RogueMemoryBridgeSend ( RogueMemoryBridgeData *data, portDataT *portData ) {
+void RogueTcpMemorySend ( RogueTcpMemoryData *data, portDataT *portData ) {
    uint32_t  x;
    zmq_msg_t msg[6];
 
@@ -70,12 +70,12 @@ void RogueMemoryBridgeSend ( RogueMemoryBridgeData *data, portDataT *portData ) 
         (zmq_msg_init_size(&(msg[2]),4) < 0) ||  // Size 
         (zmq_msg_init_size(&(msg[3]),4) < 0) ||  // type 
         (zmq_msg_init_size(&(msg[5]),4) < 0) ) { // result
-      vhpi_assert("RogueMemoryBridge: Failed to init message header",vhpiFatal);
+      vhpi_assert("RogueTcpMemory: Failed to init message header",vhpiFatal);
       return;
    }
 
    if ( zmq_msg_init_size (&(msg[4]), data->size) < 0 ) {
-      vhpi_assert("RogueMemoryBridge: Failed to init message",vhpiFatal);
+      vhpi_assert("RogueTcpMemory: Failed to init message",vhpiFatal);
       return;
    }
 
@@ -91,17 +91,17 @@ void RogueMemoryBridgeSend ( RogueMemoryBridgeData *data, portDataT *portData ) 
    // Send data
    for (x=0; x < 6; x++) {
       if ( zmq_sendmsg(data->zmqPush,&(msg[x]),(x==5)?0:ZMQ_SNDMORE) < 0 )
-         vhpi_assert("RogueMemoryBridge: Failed to send message",vhpiFatal);
+         vhpi_assert("RogueTcpMemory: Failed to send message",vhpiFatal);
    }
    data->state = 0;
    data->curr  = 0;
 
-   vhpi_printf("%lu RogueMemoryBridge: Send Tran: Id %i, Addr 0x%x, Size %i, Type %i, Resp 0x%x\n", portData->simTime,data->id,data->addr,data->size,data->type,data->result);
+   vhpi_printf("%lu RogueTcpMemory: Send Tran: Id %i, Addr 0x%x, Size %i, Type %i, Resp 0x%x\n", portData->simTime,data->id,data->addr,data->size,data->type,data->result);
 
 }
 
 // Receive data if it is available
-int RogueMemoryBridgeRecv ( RogueMemoryBridgeData *data, portDataT *portData ) {
+int RogueTcpMemoryRecv ( RogueTcpMemoryData *data, portDataT *portData ) {
    uint64_t  more;
    size_t    moreSize;
    uint32_t  x;
@@ -133,7 +133,7 @@ int RogueMemoryBridgeRecv ( RogueMemoryBridgeData *data, portDataT *portData ) {
       // Check sizes
       if ( (zmq_msg_size(&(msg[0])) != 4) || (zmq_msg_size(&(msg[1])) != 8) ||
            (zmq_msg_size(&(msg[2])) != 4) || (zmq_msg_size(&(msg[3])) != 4) ) {
-         vhpi_assert("RogueMemoryBridge: Bad message size",vhpiFatal);
+         vhpi_assert("RogueTcpMemory: Bad message size",vhpiFatal);
          for (x=0; x < msgCnt; x++) zmq_msg_close(&(msg[x]));
          return 0;
       }
@@ -147,7 +147,7 @@ int RogueMemoryBridgeRecv ( RogueMemoryBridgeData *data, portDataT *portData ) {
       // Write data is expected
       if ( (data->type == T_WRITE) || (data->type == T_POST) ) {
          if ((msgCnt != 5) || (zmq_msg_size(&(msg[4])) != data->size) ) {
-            vhpi_assert("RogueMemoryBridge: Transaction write data error",vhpiFatal);
+            vhpi_assert("RogueTcpMemory: Transaction write data error",vhpiFatal);
             for (x=0; x < msgCnt; x++) zmq_msg_close(&(msg[x]));
             return 0;
          }
@@ -159,7 +159,7 @@ int RogueMemoryBridgeRecv ( RogueMemoryBridgeData *data, portDataT *portData ) {
       data->curr   = 0;
       data->result = 0;
 
-      vhpi_printf("%lu RogueMemoryBridge: Got Tran: Id %i, Addr 0x%x, Size %i, Type %i\n", portData->simTime, data->id, data->addr,data->size,data->type);
+      vhpi_printf("%lu RogueTcpMemory: Got Tran: Id %i, Addr 0x%x, Size %i, Type %i\n", portData->simTime, data->id, data->addr,data->size,data->type);
 
       return(data->size);
    }
@@ -167,11 +167,11 @@ int RogueMemoryBridgeRecv ( RogueMemoryBridgeData *data, portDataT *portData ) {
 }
 
 // Init function
-void RogueMemoryBridgeInit(vhpiHandleT compInst) { 
+void RogueTcpMemoryInit(vhpiHandleT compInst) { 
 
    // Create new port data structure
    portDataT             *portData  = (portDataT *)             malloc(sizeof(portDataT));
-   RogueMemoryBridgeData *data      = (RogueMemoryBridgeData *) malloc(sizeof(RogueMemoryBridgeData));
+   RogueTcpMemoryData *data      = (RogueTcpMemoryData *) malloc(sizeof(RogueTcpMemoryData));
 
    // Get port count
    portData->portCount = PORT_COUNT;
@@ -236,10 +236,10 @@ void RogueMemoryBridgeInit(vhpiHandleT compInst) {
    portData->stateData = data;
 
    // State update function
-   portData->stateUpdate = *RogueMemoryBridgeUpdate;
+   portData->stateUpdate = *RogueTcpMemoryUpdate;
 
    // Init
-   memset(data,0, sizeof(RogueMemoryBridgeData));
+   memset(data,0, sizeof(RogueTcpMemoryData));
 
    // Call generic Init
    VhpiGenericInit(compInst,portData);
@@ -247,11 +247,11 @@ void RogueMemoryBridgeInit(vhpiHandleT compInst) {
 
 
 // User function to update state based upon a signal change
-void RogueMemoryBridgeUpdate ( void *userPtr ) {
+void RogueTcpMemoryUpdate ( void *userPtr ) {
    uint32_t data32;
 
    portDataT *portData = (portDataT*) userPtr;
-   RogueMemoryBridgeData *data = (RogueMemoryBridgeData*)(portData->stateData);
+   RogueTcpMemoryData *data = (RogueTcpMemoryData*)(portData->stateData);
 
    // Detect clock edge
    if ( data->currClk != getInt(s_clock) ) {
@@ -275,14 +275,14 @@ void RogueMemoryBridgeUpdate ( void *userPtr ) {
             // Port not yet assigned
             if ( data->port == 0 ) {
                data->port = getInt(s_port);
-               RogueMemoryBridgeRestart(data,portData);
+               RogueTcpMemoryRestart(data,portData);
             }
 
             switch (data->state) {
 
                // Idle get new data
                case ST_IDLE:
-                  RogueMemoryBridgeRecv(data,portData);
+                  RogueTcpMemoryRecv(data,portData);
                   break;
 
                // Start, present transaction
@@ -303,7 +303,7 @@ void RogueMemoryBridgeUpdate ( void *userPtr ) {
                      setInt(s_wdata,data32);
                      setInt(s_wstrb,0xF);
                      setInt(s_wvalid,1);
-                     data->state = ST_WDATA;
+                     data->state = ST_WRESP;
                   }
 
                   // Read
@@ -327,7 +327,7 @@ void RogueMemoryBridgeUpdate ( void *userPtr ) {
                      data->result = getInt(s_bresp);
 
                      if (data->curr == data->size) {
-                        RogueMemoryBridgeSend(data,portData); // state goes to idle
+                        RogueTcpMemorySend(data,portData); // state goes to idle
                      }
                      else data->state = ST_PAUSE;
                   }
@@ -356,7 +356,7 @@ void RogueMemoryBridgeUpdate ( void *userPtr ) {
                      setInt(s_rready,0);
 
                      if (data->curr == data->size) {
-                        RogueMemoryBridgeSend(data,portData); // state goes to idle
+                        RogueTcpMemorySend(data,portData); // state goes to idle
                      }
                      else data->state = ST_PAUSE;
                   }

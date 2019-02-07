@@ -9,7 +9,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "VhpiGeneric.h"
-#include "RogueStreamBridge.h"
+#include "RogueTcpStream.h"
 #include <vhpi_user.h>
 #include <stdlib.h>
 #include <time.h>
@@ -24,7 +24,7 @@
 #include <time.h>
 
 // Start/resetart zeromq server
-void RogueStreamBridgeRestart(RogueStreamBridgeData *data, portDataT *portData) {
+void RogueTcpStreamRestart(RogueTcpStreamData *data, portDataT *portData) {
    char buffer[100];
    uint32_t to;
 
@@ -44,24 +44,24 @@ void RogueStreamBridgeRestart(RogueStreamBridgeData *data, portDataT *portData) 
    zmq_setsockopt (data->zmqPull, ZMQ_RCVTIMEO, &to, sizeof(to));
    zmq_setsockopt (data->zmqPush, ZMQ_RCVTIMEO, &to, sizeof(to));
 
-   vhpi_printf("RogueStreamBridge: Listening on ports %i & %i\n",data->port,data->port+1);
+   vhpi_printf("RogueTcpStream: Listening on ports %i & %i\n",data->port,data->port+1);
 
    sprintf(buffer,"tcp://*:%i",data->port);
    if ( zmq_bind(data->zmqPull,buffer) ) {
-      vhpi_assert("RogueStreamBridge: Failed to bind pull port",vhpiFatal);
+      vhpi_assert("RogueTcpStream: Failed to bind pull port",vhpiFatal);
       return;
    }
 
    sprintf(buffer,"tcp://*:%i",data->port+1);
    if ( zmq_bind(data->zmqPush,buffer) ) {
-      vhpi_assert("RogueStreamBridge: Failed to bind push port",vhpiFatal);
+      vhpi_assert("RogueTcpStream: Failed to bind push port",vhpiFatal);
       return;
    }
 }
 
 
 // Send a message
-void RogueStreamBridgeSend ( RogueStreamBridgeData *data, portDataT *portData ) {
+void RogueTcpStreamSend ( RogueTcpStreamData *data, portDataT *portData ) {
    zmq_msg_t msg[4];
    uint16_t  flags;
    uint8_t   chan;
@@ -71,12 +71,12 @@ void RogueStreamBridgeSend ( RogueStreamBridgeData *data, portDataT *portData ) 
    if ( (zmq_msg_init_size(&(msg[0]),2) < 0) ||  // Flags
         (zmq_msg_init_size(&(msg[1]),1) < 0) ||  // Channel
         (zmq_msg_init_size(&(msg[2]),1) < 0) ) { // Error
-      vhpi_assert("RogueStreamBridge: Failed to init message header",vhpiFatal);
+      vhpi_assert("RogueTcpStream: Failed to init message header",vhpiFatal);
       return;
    }
 
    if ( zmq_msg_init_size (&(msg[3]), data->ibSize) < 0 ) {
-      vhpi_assert("RogueStreamBridge: Failed to init message",vhpiFatal);
+      vhpi_assert("RogueTcpStream: Failed to init message",vhpiFatal);
       return;
    }
 
@@ -100,15 +100,15 @@ void RogueStreamBridgeSend ( RogueStreamBridgeData *data, portDataT *portData ) 
    // Send data
    for (x=0; x < 4; x++) {
       if ( zmq_sendmsg(data->zmqPush,&(msg[x]),(x==3)?0:ZMQ_SNDMORE) < 0 )
-         vhpi_assert("RogueStreamBridge: Failed to send message",vhpiFatal);
+         vhpi_assert("RogueTcpStream: Failed to send message",vhpiFatal);
    }
 
-   vhpi_printf("%lu RogueStreamBridge: Send data: Size: %i\n", portData->simTime, data->ibSize);
+   vhpi_printf("%lu RogueTcpStream: Send data: Size: %i\n", portData->simTime, data->ibSize);
 }
 
 
 // Receive data if it is available
-int RogueStreamBridgeRecv ( RogueStreamBridgeData *data, portDataT *portData ) {
+int RogueTcpStreamRecv ( RogueTcpStreamData *data, portDataT *portData ) {
    int64_t   more;
    size_t    moreSize;
    uint32_t  size;
@@ -144,7 +144,7 @@ int RogueStreamBridgeRecv ( RogueStreamBridgeData *data, portDataT *portData ) {
       // Check sizes
       if ( (zmq_msg_size(&(msg[0])) != 2) || (zmq_msg_size(&(msg[1])) != 1) ||
            (zmq_msg_size(&(msg[2])) != 1) ) {
-         vhpi_assert("RogueStreamBridge: Bad message sizes",vhpiFatal);
+         vhpi_assert("RogueTcpStream: Bad message sizes",vhpiFatal);
          for (x=0; x < msgCnt; x++) zmq_msg_close(&(msg[x]));
          return 0;
       }
@@ -168,7 +168,7 @@ int RogueStreamBridgeRecv ( RogueStreamBridgeData *data, portDataT *portData ) {
          if ( err ) data->obLuser |= 0x01;
       }
 
-      vhpi_printf("%lu RogueStreamBridge: Recv data: Size: %i\n", portData->simTime, data->obSize);
+      vhpi_printf("%lu RogueTcpStream: Recv data: Size: %i\n", portData->simTime, data->obSize);
 
    } else size = 0;
 
@@ -179,11 +179,11 @@ int RogueStreamBridgeRecv ( RogueStreamBridgeData *data, portDataT *portData ) {
 
 
 // Init function
-void RogueStreamBridgeInit(vhpiHandleT compInst) { 
+void RogueTcpStreamInit(vhpiHandleT compInst) { 
 
    // Create new port data structure
    portDataT             *portData  = (portDataT *)             malloc(sizeof(portDataT));
-   RogueStreamBridgeData *data      = (RogueStreamBridgeData *) malloc(sizeof(RogueStreamBridgeData));
+   RogueTcpStreamData *data      = (RogueTcpStreamData *) malloc(sizeof(RogueTcpStreamData));
 
    // Get port count
    portData->portCount = PORT_COUNT;
@@ -240,10 +240,10 @@ void RogueStreamBridgeInit(vhpiHandleT compInst) {
    portData->stateData = data;
 
    // State update function
-   portData->stateUpdate = *RogueStreamBridgeUpdate;
+   portData->stateUpdate = *RogueTcpStreamUpdate;
 
    // Init
-   memset(data,0, sizeof(RogueStreamBridgeData));
+   memset(data,0, sizeof(RogueTcpStreamData));
    time(&(data->ltime));
 
    // Call generic Init
@@ -252,7 +252,7 @@ void RogueStreamBridgeInit(vhpiHandleT compInst) {
 
 
 // User function to update state based upon a signal change
-void RogueStreamBridgeUpdate ( void *userPtr ) {
+void RogueTcpStreamUpdate ( void *userPtr ) {
    uint32_t x;
    uint32_t keep;
    uint32_t dLow;
@@ -261,7 +261,7 @@ void RogueStreamBridgeUpdate ( void *userPtr ) {
    uint32_t uHigh;
 
    portDataT *portData = (portDataT*) userPtr;
-   RogueStreamBridgeData *data = (RogueStreamBridgeData*)(portData->stateData);
+   RogueTcpStreamData *data = (RogueTcpStreamData*)(portData->stateData);
 
    // Detect clock edge
    if ( data->currClk != getInt(s_clock) ) {
@@ -293,7 +293,7 @@ void RogueStreamBridgeUpdate ( void *userPtr ) {
             if ( data->port == 0 ) {
                data->port = getInt(s_port);
                data->ssi  = getInt(s_ssi);
-               RogueStreamBridgeRestart(data,portData);
+               RogueTcpStreamRestart(data,portData);
             }
 
             // Inbound
@@ -321,11 +321,11 @@ void RogueStreamBridgeUpdate ( void *userPtr ) {
                }
 
                // Last
-               if ( getInt(s_ibLast) ) RogueStreamBridgeSend(data,portData);
+               if ( getInt(s_ibLast) ) RogueTcpStreamSend(data,portData);
             }
 
             // Not in frame
-            if ( data->obSize == 0 ) RogueStreamBridgeRecv(data,portData);
+            if ( data->obSize == 0 ) RogueTcpStreamRecv(data,portData);
 
             // Data accepted
             if ( getInt(s_obReady) ) {
@@ -372,7 +372,7 @@ void RogueStreamBridgeUpdate ( void *userPtr ) {
                   setInt(s_obLast,1);
                   data->obSize  = 0;
                   data->obCount = 0;
-                  RogueStreamBridgeSend(data,portData);
+                  RogueTcpStreamSend(data,portData);
                }
             }
 

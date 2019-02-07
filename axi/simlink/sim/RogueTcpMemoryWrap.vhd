@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
--- File       : RogueMemoryBridge.vhd
+-- File       : RogueTcpMemoryWrap.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Rogue Stream Bridge Module
+-- Description: Rogue Stream Module Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -21,7 +21,7 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 
-entity RogueMemoryBridgeWrap is 
+entity RogueTcpMemoryWrap is 
    generic (
       TPD_G      : time                     := 1 ns;
       PORT_NUM_G : integer range 0 to 65535 := 1
@@ -34,15 +34,15 @@ entity RogueMemoryBridgeWrap is
       axiWriteMaster : out   AxiLiteWriteMasterType;
       axiWriteSlave  : in    AxiLiteWriteSlaveType
    );
-end RogueMemoryBridgeWrap;
+end RogueTcpMemoryWrap;
 
 -- Define architecture
-architecture RogueMemoryBridgeWrap of RogueMemoryBridgeWrap is
+architecture RogueTcpMemoryWrap of RogueTcpMemoryWrap is
 
 begin
 
    -- Sim Core
-   U_RogueMemoryBridge : entity work.RogueMemoryBridge
+   U_RogueTcpMemory : entity work.RogueTcpMemory
       port map (
          clock    => axiClk,
          reset    => axiRst,
@@ -67,5 +67,5 @@ begin
          bresp    => axiWriteSlave.bresp,
          bvalid   => axiWriteSlave.bvalid);
 
-end RogueMemoryBridgeWrap;
+end RogueTcpMemoryWrap;
 

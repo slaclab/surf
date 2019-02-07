@@ -8,8 +8,8 @@
 // the terms contained in the LICENSE.txt file.
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef __ROGUE_MEMORY_BRIDGE_H__
-#define __ROGUE_MEMORY_BRIDGE_H__
+#ifndef __ROGUE_TCP_MEMORY_H__
+#define __ROGUE_TCP_MEMORY_H__
 
 #include <vhpi_user.h>
 #include <stdint.h>
@@ -101,22 +101,22 @@ typedef struct {
    void *     zmqPull;
    void *     zmqPush;
   
-} RogueMemoryBridgeData;
+} RogueTcpMemoryData;
 
 // Init function
-void RogueMemoryBridgeInit(vhpiHandleT compInst);
+void RogueTcpMemoryInit(vhpiHandleT compInst);
 
 // Callback function for updating
-void RogueMemoryBridgeUpdate ( void *userPtr );
+void RogueTcpMemoryUpdate ( void *userPtr );
 
 // Start/resetart zeromq server
-void RogueMemoryBridgeRestart(RogueMemoryBridgeData *data, portDataT *portData);
+void RogueTcpMemoryRestart(RogueTcpMemoryData *data, portDataT *portData);
 
 // Send a message
-void RogueMemoryBridgeSend ( RogueMemoryBridgeData *data, portDataT *portData );
+void RogueTcpMemorySend ( RogueTcpMemoryData *data, portDataT *portData );
 
 // Receive data if it is available
-int RogueMemoryBridgeRecv ( RogueMemoryBridgeData *data, portDataT *portData );
+int RogueTcpMemoryRecv ( RogueTcpMemoryData *data, portDataT *portData );
 
 #endif
 

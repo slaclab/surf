@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
--- File       : RogueMemoryBridge.vhd
+-- File       : RogueTcpMemory.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Rogue Stream Bridge Module
+-- Description: Rogue Stream Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -19,7 +19,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-entity RogueMemoryBridge is port (
+entity RogueTcpMemory is port (
       clock        : in    std_logic;
       reset        : in    std_logic;
       portNum      : in    std_logic_vector(15 downto 0);
@@ -51,12 +51,12 @@ entity RogueMemoryBridge is port (
       bresp        : in    std_logic_vector(1 downto 0);
       bvalid       : in    std_logic
    );
-end RogueMemoryBridge;
+end RogueTcpMemory;
 
 -- Define architecture
-architecture RogueMemoryBridge of RogueMemoryBridge is
-   Attribute FOREIGN of RogueMemoryBridge: architecture is 
-      "vhpi:AxiSim:VhpiGenericElab:RogueMemoryBridgeInit:RogueMemoryBridge";
+architecture RogueTcpMemory of RogueTcpMemory is
+   Attribute FOREIGN of RogueTcpMemory: architecture is 
+      "vhpi:AxiSim:VhpiGenericElab:RogueTcpMemoryInit:RogueTcpMemory";
 begin
-end RogueMemoryBridge;
+end RogueTcpMemory;
 

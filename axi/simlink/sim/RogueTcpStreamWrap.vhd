@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
--- File       : RogueStreamBridgeWrap.vhd
+-- File       : RogueTcpStreamWrap.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Wrapper for Rogue Stream Simulation Module
+-- Description: Wrapper for Rogue Stream Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -20,7 +20,7 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 
-entity RogueStreamBridgeWrap is
+entity RogueTcpStreamWrap is
    generic (
       TPD_G               : time                     := 1 ns;
       PORT_NUM_G          : integer range 0 to 65535 := 1;
@@ -48,10 +48,10 @@ entity RogueStreamBridgeWrap is
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType
    );
-end RogueStreamBridgeWrap;
+end RogueTcpStreamWrap;
 
 -- Define architecture
-architecture RogueStreamBridgeWrap of RogueStreamBridgeWrap is
+architecture RogueTcpStreamWrap of RogueTcpStreamWrap is
 
    -- Internal configuration
    constant INT_CONFIG_C : AxiStreamConfigType := (
@@ -116,7 +116,7 @@ begin
       ------------------------------------
       -- Sim Core
       ------------------------------------
-      U_RogueStreamBridge : entity work.RogueStreamBridge
+      U_RogueTcpStream : entity work.RogueTcpStream
          port map(
             clock      => clk,
             reset      => rst,
@@ -183,5 +183,5 @@ begin
          mAxisMaster  => mAxisMaster,
          mAxisSlave   => mAxisSlave);
 
-end RogueStreamBridgeWrap;
+end RogueTcpStreamWrap;
 
