@@ -35,7 +35,7 @@ entity Pgp3GthUsWrapper is
       NUM_LANES_G                 : positive range 1 to 4  := 1;
       NUM_VC_G                    : positive range 1 to 16 := 4;
       REFCLK_G                    : boolean                := false;  --  FALSE: pgpRefClkP/N,  TRUE: pgpRefClkIn
-      RATE_G                      : string                 := "10.3125Gbps";  -- or "6.25Gbps" 
+      RATE_G                      : string                 := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps" 
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
@@ -65,9 +65,9 @@ entity Pgp3GthUsWrapper is
       pgpGtRxP          : in  slv(NUM_LANES_G-1 downto 0);
       pgpGtRxN          : in  slv(NUM_LANES_G-1 downto 0);
       -- GT Clocking
-      pgpRefClkP        : in  sl                                                     := '0';
-      pgpRefClkN        : in  sl                                                     := '1';
-      pgpRefClkIn       : in  sl                                                     := '0';
+      pgpRefClkP        : in  sl                                                     := '0'; -- 156.25 MHz
+      pgpRefClkN        : in  sl                                                     := '1'; -- 156.25 MHz
+      pgpRefClkIn       : in  sl                                                     := '0'; -- 156.25 MHz
       pgpRefClkOut      : out sl;
       pgpRefClkDiv2Bufg : out sl;
       -- Clocking
