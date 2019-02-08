@@ -1,5 +1,11 @@
 var NAVTREEINDEX80 =
 {
+"classQuadPortRam_1_1rtl.html#adf307ca4ef6df62383fcc1a66f0b9196":[0,0,401,0,11],
+"classQuadPortRam_1_1rtl.html#ae1e793432d458504a8b9680fad506c38":[0,0,401,0,20],
+"classQuadPortRam_1_1rtl.html#aff464d910c08242a917eeedb5602869a":[0,0,401,0,12],
+"classQuadPortRam_1_1rtl.html#affa524fb18b766b2fa57aeeb90dfd0bb":[0,0,401,0,15],
+"classRawEthFramer.html":[0,0,402],
+"classRawEthFramer.html#a0a6af6eef40212dbaf130d57ce711256":[0,0,402,16],
 "classRawEthFramer.html#a0f5ecc6613f63d07f7963a97b1b26095":[0,0,402,19],
 "classRawEthFramer.html#a17d72004025438f86b5be76e2a59a26a":[0,0,402,4],
 "classRawEthFramer.html#a38a16db6b6abc458307c20fab65c1134":[0,0,402,2],
@@ -243,11 +249,5 @@ var NAVTREEINDEX80 =
 "classRegisterVector_1_1rtl.html#a883db0eed4f8a21f3e9981e88d2af7fe":[0,0,407,0,2],
 "classRegisterVector_1_1rtl.html#ae8896e195ae00ae797895c15b647ba41":[0,0,407,0,1],
 "classRoguePgp2bSim.html":[0,0,409],
-"classRoguePgp2bSim.html#a0a6af6eef40212dbaf130d57ce711256":[0,0,409,20],
-"classRoguePgp2bSim.html#a0f5ecc6613f63d07f7963a97b1b26095":[0,0,409,22],
-"classRoguePgp2bSim.html#a0fa5aa8cc88321e20bc76e6f00e9598f":[0,0,409,11],
-"classRoguePgp2bSim.html#a10881e79843c77e94dad11d10f0b6613":[0,0,409,18],
-"classRoguePgp2bSim.html#a35536ad6059d462192f208e74117cb19":[0,0,409,17],
-"classRoguePgp2bSim.html#a58d9d8b86a54607f7107618ac355de06":[0,0,409,7],
-"classRoguePgp2bSim.html#a598da929e807d58939b47499e8bc9fa8":[0,0,409,23]
+"classRoguePgp2bSim.html#a0a6af6eef40212dbaf130d57ce711256":[0,0,409,20]
 };

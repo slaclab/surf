@@ -17,6 +17,7 @@ var classPgp2bGtx7VarLat =
     [ "RX_OS_CFG_G", "classPgp2bGtx7VarLat.html#a99e6249e341c68f3db98a5311228e662", null ],
     [ "RXCDR_CFG_G", "classPgp2bGtx7VarLat.html#ab9aee73584094418248783ac04120949", null ],
     [ "RXDFEXYDEN_G", "classPgp2bGtx7VarLat.html#adf6249417a057f14215a2e1a1ec57c81", null ],
+    [ "RX_EQUALIZER_G", "classPgp2bGtx7VarLat.html#acebb8cfc9dcbc955ac1dd5a39a1b2a25", null ],
     [ "RX_DFE_KL_CFG2_G", "classPgp2bGtx7VarLat.html#a43337cbbe1c00e1ac7bd11938e614812", null ],
     [ "TX_PLL_G", "classPgp2bGtx7VarLat.html#a6e68d9fe93e578bf50b636adfc7f131e", null ],
     [ "RX_PLL_G", "classPgp2bGtx7VarLat.html#a99d3abec0ec6eb601e83d16ed23df43d", null ],

@@ -2,6 +2,7 @@ var classPgp3GthUsIpWrapper_1_1mapping =
 [
     [ "Pgp3GthUsIp10G", "classPgp3GthUsIpWrapper_1_1mapping.html#a835139858e2a25d29b34d370d13ed824", null ],
     [ "Pgp3GthUsIp6G", "classPgp3GthUsIpWrapper_1_1mapping.html#a407ef4c0d0cf79241b891afa95052f3e", null ],
+    [ "Pgp3GthUsIp3G", "classPgp3GthUsIpWrapper_1_1mapping.html#a3a1333e74d45f556510832d5b7d68f48", null ],
     [ "dummy1", "classPgp3GthUsIpWrapper_1_1mapping.html#a6979c517bc3c76add082af6cd6d1bfc3", null ],
     [ "dummy2", "classPgp3GthUsIpWrapper_1_1mapping.html#a661f3d066daf3d66abebb986a0cc92d1", null ],
     [ "dummy3", "classPgp3GthUsIpWrapper_1_1mapping.html#ac52e6a8ca9ec47bee1fee01fb72a6c4b", null ],
@@ -28,6 +29,7 @@ var classPgp3GthUsIpWrapper_1_1mapping =
     [ "drpRdy", "classPgp3GthUsIpWrapper_1_1mapping.html#a049e44bbf215e36cea1560a83ca89184", null ],
     [ "u_rstsync_tx", "classPgp3GthUsIpWrapper_1_1mapping.html#a3bd3585ceda211d008f16afc7b241382", null ],
     [ "u_rstsync_rx", "classPgp3GthUsIpWrapper_1_1mapping.html#a2562cca9b6ba2681b96b3c6bded5141f", null ],
+    [ "u_pgp3gthusip", "classPgp3GthUsIpWrapper_1_1mapping.html#a7d785a158a1d0aff624703a02bef1755", null ],
     [ "u_pgp3gthusip", "classPgp3GthUsIpWrapper_1_1mapping.html#a7d785a158a1d0aff624703a02bef1755", null ],
     [ "u_pgp3gthusip", "classPgp3GthUsIpWrapper_1_1mapping.html#a7d785a158a1d0aff624703a02bef1755", null ],
     [ "u_axilitetodrp_1", "classPgp3GthUsIpWrapper_1_1mapping.html#a0b6c97d317d1cc99cd32d7dfc025f5d6", null ]

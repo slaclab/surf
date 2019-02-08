@@ -19,6 +19,7 @@ var classPgp2bGtx7Fixedlat =
     [ "RXCDR_CFG_G", "classPgp2bGtx7Fixedlat.html#ab9aee73584094418248783ac04120949", null ],
     [ "RXDFEXYDEN_G", "classPgp2bGtx7Fixedlat.html#adf6249417a057f14215a2e1a1ec57c81", null ],
     [ "RX_DFE_KL_CFG2_G", "classPgp2bGtx7Fixedlat.html#aba72b2b3c6a248ded27ac5288bd41add", null ],
+    [ "RX_EQUALIZER_G", "classPgp2bGtx7Fixedlat.html#acebb8cfc9dcbc955ac1dd5a39a1b2a25", null ],
     [ "TX_BUF_EN_G", "classPgp2bGtx7Fixedlat.html#a8cd8fb5dffa3e97a2fad75568a395ae5", null ],
     [ "TX_OUTCLK_SRC_G", "classPgp2bGtx7Fixedlat.html#a0933883af70146a16cc03eb11a1dc343", null ],
     [ "TX_PHASE_ALIGN_G", "classPgp2bGtx7Fixedlat.html#aa546786ad7d591ebb32e5c701c45358b", null ],

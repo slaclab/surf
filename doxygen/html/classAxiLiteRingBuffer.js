@@ -2,6 +2,7 @@ var classAxiLiteRingBuffer =
 [
     [ "rtl", "classAxiLiteRingBuffer_1_1rtl.html", "classAxiLiteRingBuffer_1_1rtl" ],
     [ "TPD_G", "classAxiLiteRingBuffer.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "EXT_CTRL_ONLY_G", "classAxiLiteRingBuffer.html#a703f6c22200f40792863f55a6a2948df", null ],
     [ "BRAM_EN_G", "classAxiLiteRingBuffer.html#a1c9465c9431492ec79ab48827b02c46f", null ],
     [ "REG_EN_G", "classAxiLiteRingBuffer.html#a0f2247a6a3e8840e30be089433d9a486", null ],
     [ "DATA_WIDTH_G", "classAxiLiteRingBuffer.html#a68de6bb554585e8beea237f42c10ebee", null ],
