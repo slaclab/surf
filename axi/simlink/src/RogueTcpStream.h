@@ -8,8 +8,8 @@
 // the terms contained in the LICENSE.txt file.
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef __ROGUE_STREAM_SIM_H__
-#define __ROGUE_STREAM_SIM_H__
+#ifndef __ROGUE_TCP_STREAM_H__
+#define __ROGUE_TCP_STREAM_H__
 
 #include <vhpi_user.h>
 #include <stdint.h>
@@ -18,8 +18,8 @@
 // Signals
 #define s_clock        0
 #define s_reset        1
-#define s_dest         2
-#define s_uid          3
+#define s_port         2
+#define s_ssi          3
 
 #define s_obValid      4
 #define s_obReady      5
@@ -39,15 +39,9 @@
 #define s_ibKeep       18
 #define s_ibLast       19
 
-#define s_opCode       20
-#define s_opCodeEn     21
-#define s_remData      22
+#define PORT_COUNT     20
 
-#define MAX_FRAME 2000000
-#define IB_PORT_BASE 5000
-#define OB_PORT_BASE 6000
-#define OC_PORT_BASE 7000
-#define SB_PORT_BASE 8000
+#define MAX_FRAME 20000000
 
 // Structure to track state
 typedef struct {
@@ -65,59 +59,30 @@ typedef struct {
    uint8_t   ibData[MAX_FRAME];
 
    uint32_t  currClk;
-   uint32_t  dest;
-   uint32_t  uid;
+   uint16_t  port;
+   uint8_t   ssi;
    time_t    ltime;
   
-   uint32_t  rxCount;
-   uint32_t  txCount;
-   uint32_t  ackCount;
-   uint32_t  errCount;
-   uint32_t  ocCount;
-   uint32_t  sbCount;
-
-   uint32_t  lRxCount;
-   uint32_t  lTxCount;
-   uint32_t  lOcCount;
-   uint32_t  lSbCount;
-   uint32_t  lAckCount;
-   uint32_t  lErrCount; 
-
-   uint8_t   sbData;
-   uint8_t   ocData;
-   uint8_t   ocDataEn;
-
    void *    zmqCtx;
-   void *    zmqIbSrv;
-   void *    zmqObSrv;
-   void *    zmqSbSrv;
-   void *    zmqOcSrv;
+   void *    zmqPush;
+   void *    zmqPull;
   
-} RogueStreamSimData;
+} RogueTcpStreamData;
 
 // Init function
-void RogueStreamSimInit(vhpiHandleT compInst);
+void RogueTcpStreamInit(vhpiHandleT compInst);
 
 // Callback function for updating
-void RogueStreamSimUpdate ( void *userPtr );
+void RogueTcpStreamUpdate ( void *userPtr );
 
 // Start/resetart zeromq server
-void zmqRestart(RogueStreamSimData *data, portDataT *portData);
+void RogueTcpStreamRestart(RogueTcpStreamData *data, portDataT *portData);
 
 // Send a message
-void zmqSend ( RogueStreamSimData *data, portDataT *portData );
+void RogueTcpStreamSend ( RogueTcpStreamData *data, portDataT *portData );
 
 // Receive data if it is available
-int zmqRecvData ( RogueStreamSimData *data, portDataT *portData );
-
-// Ack received data
-void zmqAckData ( RogueStreamSimData *data, portDataT *portData );
-
-// Receive opcode if it is available
-int zmqRecvOcData ( RogueStreamSimData *data, portDataT *portData );
-
-// Receive side data if it is available
-int zmqRecvSbData ( RogueStreamSimData *data, portDataT *portData );
+int RogueTcpStreamRecv ( RogueTcpStreamData *data, portDataT *portData );
 
 #endif
 

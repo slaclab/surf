@@ -30,7 +30,7 @@ use UNISIM.VCOMPONENTS.all;
 entity Pgp3GthUs is
    generic (
       TPD_G                       : time                  := 1 ns;
-      RATE_G                      : string                := "10.3125Gbps";  -- or "6.25Gbps"     
+      RATE_G                      : string                := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"     
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
@@ -140,8 +140,8 @@ architecture rtl of Pgp3GthUs is
 
 begin
 
-   assert ((RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps"))
-      report "RATE_G: Must be either 6.25Gbps or 10.3125Gbps"
+   assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps"))
+      report "RATE_G: Must be either 3.125Gbps or 6.25Gbps or 10.3125Gbps"
       severity error;
 
    pgpClk    <= pgpTxClkInt;
