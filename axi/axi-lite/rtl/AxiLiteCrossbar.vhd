@@ -215,7 +215,7 @@ begin
             -- Transaction in progress
             when S_TXN_S =>
                for m in NUM_MASTER_SLOTS_G-1 downto 0 loop
-                  if (r.slave(s).wrReqNum = m and r.slave(s).wrReqs(m) = '1' and r.master(m).wrAcks(s) = '1') then
+                  if (unsigned(r.slave(s).wrReqNum) = m and r.slave(s).wrReqs(m) = '1' and r.master(m).wrAcks(s) = '1') then
 
                      -- Forward write response
                      v.sAxiWriteSlaves(s).bresp  := mAxiWriteSlaves(m).bresp;
@@ -281,7 +281,7 @@ begin
             -- Transaction in progress
             when S_TXN_S =>
                for m in NUM_MASTER_SLOTS_G-1 downto 0 loop
-                  if (unsigned(r.slave(s).rdReqNum = m) and r.slave(s).rdReqs(m) = '1' and r.master(m).rdAcks(s) = '1') then
+                  if (unsigned(r.slave(s).rdReqNum) = m and r.slave(s).rdReqs(m) = '1' and r.master(m).rdAcks(s) = '1') then
 
                      -- Forward read response
                      v.sAxiReadSlaves(s).rresp  := mAxiReadSlaves(m).rresp;
