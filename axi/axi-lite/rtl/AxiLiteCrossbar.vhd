@@ -15,8 +15,8 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
+
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.ArbiterPkg.all;
@@ -179,7 +179,7 @@ begin
                            MASTERS_CONFIG_G(m).connectivity(s) = '1'))
                      then
                         v.slave(s).wrReqs(m) := '1';
-                        v.slave(s).wrReqNum  := conv_std_logic_vector(m, REQ_NUM_SIZE_C);
+                        v.slave(s).wrReqNum  := slv(to_unsigned(m, REQ_NUM_SIZE_C));
 --                        print("AxiLiteCrossbar: Slave  " & str(s) & " reqd Master " & str(m) & " Write addr " & hstr(sAxiWriteMasters(s).awaddr));
                      end if;
                   end loop;
@@ -247,7 +247,7 @@ begin
                            MASTERS_CONFIG_G(m).connectivity(s) = '1'))
                      then
                         v.slave(s).rdReqs(m) := '1';
-                        v.slave(s).rdReqNum  := conv_std_logic_vector(m, REQ_NUM_SIZE_C);
+                        v.slave(s).rdReqNum  := slv(to_unsigned(m, REQ_NUM_SIZE_C));
                      end if;
                   end loop;
 
@@ -328,7 +328,7 @@ begin
                -- busses to this master's outputs.
                if (r.master(m).wrValid = '1') then
                   v.master(m).wrAcks    := r.master(m).wrAcks;
-                  v.mAxiWriteMasters(m) := sAxiWriteMasters(conv_integer(r.master(m).wrAckNum));
+                  v.mAxiWriteMasters(m) := sAxiWriteMasters(to_integer(unsigned(r.master(m).wrAckNum)));
                   v.master(m).wrState   := M_WAIT_READYS_S;
                end if;
 
@@ -351,7 +351,7 @@ begin
             when M_WAIT_REQ_FALL_S =>
                -- When slave side deasserts request, clear ack and valid and start waiting for next
                -- request
-               if (mWrReqs(conv_integer(r.master(m).wrAckNum)) = '0') then
+               if (mWrReqs(to_integer(unsigned(r.master(m).wrAckNum))) = '0') then
                   v.master(m).wrState := M_WAIT_REQ_S;
                   v.master(m).wrAcks  := (others => '0');
                   v.master(m).wrValid := '0';
@@ -384,7 +384,7 @@ begin
                -- busses to this master's outputs.
                if (r.master(m).rdValid = '1') then
                   v.master(m).rdAcks   := r.master(m).rdAcks;
-                  v.mAxiReadMasters(m) := sAxiReadMasters(conv_integer(r.master(m).rdAckNum));
+                  v.mAxiReadMasters(m) := sAxiReadMasters(to_integer(unsigned(r.master(m).rdAckNum)));
                   v.master(m).rdState  := M_WAIT_READYS_S;
                end if;
 
@@ -404,7 +404,7 @@ begin
             when M_WAIT_REQ_FALL_S =>
                -- When slave side deasserts request, clear ack and valid and start waiting for next
                -- request
-               if (mRdReqs(conv_integer(r.master(m).rdAckNum)) = '0') then
+               if (mRdReqs(to_integer(unsigned(r.master(m).rdAckNum))) = '0') then
                   v.master(m).rdState := M_WAIT_REQ_S;
                   v.master(m).rdAcks  := (others => '0');
                   v.master(m).rdValid := '0';
