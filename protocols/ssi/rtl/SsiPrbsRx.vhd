@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SsiPrbsRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-02
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description:   This module generates 
 --                PseudoRandom Binary Sequence (PRBS) on Virtual Channel Lane.
@@ -29,27 +27,25 @@ use work.SsiPkg.all;
 entity SsiPrbsRx is
    generic (
       -- General Configurations
-      TPD_G                      : time                       := 1 ns;
-      STATUS_CNT_WIDTH_G         : natural range 1 to 32      := 32;
+      TPD_G                      : time                     := 1 ns;
+      STATUS_CNT_WIDTH_G         : natural range 1 to 32    := 32;
       -- FIFO configurations
-      SLAVE_READY_EN_G           : boolean                    := false;
-      BRAM_EN_G                  : boolean                    := true;
-      XIL_DEVICE_G               : string                     := "7SERIES";
-      USE_BUILT_IN_G             : boolean                    := false;
-      GEN_SYNC_FIFO_G            : boolean                    := false;
-      ALTERA_SYN_G               : boolean                    := false;
-      ALTERA_RAM_G               : string                     := "M9K";
-      CASCADE_SIZE_G             : positive                   := 1;
-      FIFO_ADDR_WIDTH_G          : positive                   := 9;
-      FIFO_PAUSE_THRESH_G        : positive                   := 2**8;
+      SLAVE_READY_EN_G           : boolean                  := true;
+      BRAM_EN_G                  : boolean                  := true;
+      XIL_DEVICE_G               : string                   := "7SERIES";
+      USE_BUILT_IN_G             : boolean                  := false;
+      GEN_SYNC_FIFO_G            : boolean                  := false;
+      ALTERA_SYN_G               : boolean                  := false;
+      ALTERA_RAM_G               : string                   := "M9K";
+      CASCADE_SIZE_G             : positive                 := 1;
+      FIFO_ADDR_WIDTH_G          : positive                 := 9;
+      FIFO_PAUSE_THRESH_G        : positive                 := 2**8;
       -- PRBS Config
-      PRBS_SEED_SIZE_G           : positive range 32 to 128   := 32;
-      PRBS_TAPS_G                : NaturalArray               := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
+      PRBS_SEED_SIZE_G           : positive range 32 to 256 := 32;
+      PRBS_TAPS_G                : NaturalArray             := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
       -- AXI Stream IO Config
-      SLAVE_AXI_STREAM_CONFIG_G  : AxiStreamConfigType        := ssiAxiStreamConfig(4);
-      SLAVE_AXI_PIPE_STAGES_G    : natural range 0 to 16      := 0;
-      MASTER_AXI_STREAM_CONFIG_G : AxiStreamConfigType        := ssiAxiStreamConfig(4);
-      MASTER_AXI_PIPE_STAGES_G   : natural range 0 to 16      := 0);
+      SLAVE_AXI_STREAM_CONFIG_G  : AxiStreamConfigType      := ssiAxiStreamConfig(4);
+      SLAVE_AXI_PIPE_STAGES_G    : natural range 0 to 16    := 0);
    port (
       -- Streaming RX Data Interface (sAxisClk domain) 
       sAxisClk        : in  sl;
@@ -57,11 +53,6 @@ entity SsiPrbsRx is
       sAxisMaster     : in  AxiStreamMasterType;
       sAxisSlave      : out AxiStreamSlaveType;
       sAxisCtrl       : out AxiStreamCtrlType;
-      -- Optional: Streaming TX Data Interface (mAxisClk domain)
-      mAxisClk        : in  sl;         -- Note: a clock must always be applied to this port
-      mAxisRst        : in  sl                     := '0';
-      mAxisMaster     : out AxiStreamMasterType;
-      mAxisSlave      : in  AxiStreamSlaveType     := AXI_STREAM_SLAVE_FORCE_C;
       -- Optional: AXI-Lite Register Interface (axiClk domain)
       axiClk          : in  sl                     := '0';
       axiRst          : in  sl                     := '0';
@@ -94,8 +85,7 @@ architecture rtl of SsiPrbsRx is
       IDLE_S,
       LENGTH_S,
       DATA_S,
-      BIT_ERR_S,
-      SEND_RESULT_S);
+      BIT_ERR_S);
 
    type RegType is record
       busy            : sl;
@@ -121,7 +111,6 @@ architecture rtl of SsiPrbsRx is
       startTime       : slv(31 downto 0);
       packetRate      : slv(31 downto 0);
       rxAxisSlave     : AxiStreamSlaveType;
-      txAxisMaster    : AxiStreamMasterType;
       state           : StateType;
    end record;
 
@@ -149,19 +138,15 @@ architecture rtl of SsiPrbsRx is
       startTime       => (others => '1'),
       packetRate      => (others => '1'),
       rxAxisSlave     => AXI_STREAM_SLAVE_INIT_C,
-      txAxisMaster    => AXI_STREAM_MASTER_INIT_C,
       state           => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal txAxisMaster,
-      rxAxisMaster : AxiStreamMasterType;
+   signal rxAxisMaster : AxiStreamMasterType;
+   signal rxAxisSlave : AxiStreamSlaveType;
 
-   signal txAxisSlave,
-      rxAxisSlave : AxiStreamSlaveType;
-
-   signal axisCtrl : AxiStreamCtrlArray(0 to 1);
+   signal axisCtrl : AxiStreamCtrlArray(1 downto 0) := (others => AXI_STREAM_CTRL_UNUSED_C);
 
    constant STATUS_SIZE_C : positive := 10;
 
@@ -213,7 +198,7 @@ architecture rtl of SsiPrbsRx is
 
 begin
 
-  assert ((PRBS_SEED_SIZE_G=32) or (PRBS_SEED_SIZE_G=64) or (PRBS_SEED_SIZE_G=128)) report "PRBS_SEED_SIZE_G must be either [32,64,128]" severity failure;
+   assert ((PRBS_SEED_SIZE_G = 32) or (PRBS_SEED_SIZE_G = 64) or (PRBS_SEED_SIZE_G = 128) or (PRBS_SEED_SIZE_G = 256)) report "PRBS_SEED_SIZE_G must be either [32,64,128,256]" severity failure;
 
    sAxisCtrl <= axisCtrl(0);
 
@@ -251,29 +236,18 @@ begin
          mAxisMaster => rxAxisMaster,
          mAxisSlave  => rxAxisSlave);
 
-
-   comb : process (r, rxAxisMaster, sAxisRst, txAxisSlave) is
+   comb : process (r, rxAxisMaster, sAxisRst) is
       variable i : integer;
       variable v : RegType;
    begin
       -- Latch the current value
       v := r;
 
-      -- Set the AXIS configurations
-      v.txAxisMaster.tKeep := (others => '0');
-      v.txAxisMaster.tStrb := (others => '0');
-      for i in 0 to MASTER_PRBS_SSI_CONFIG_C.TDATA_BYTES_C-1 loop
-         v.txAxisMaster.tKeep(i) := '1';
-         v.txAxisMaster.tStrb(i) := '1';
-      end loop;
-
       -- Reset strobe signals
-      v.updatedResults      := '0';
-      v.txAxisMaster.tValid := '0';
-      v.txAxisMaster.tLast  := '0';
-      v.txAxisMaster.tUser  := (others => '0');
-      v.errWordStrb         := '0';
-      v.errBitStrb          := '0';
+      v.updatedResults     := '0';
+      v.errWordStrb        := '0';
+      v.errBitStrb         := '0';
+      v.rxAxisSlave.tReady := '0';
 
       -- Check for roll over
       if r.stopTime /= r.startTime then
@@ -285,12 +259,12 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Reset the flags
-            v.busy               := '0';
-            v.errorDet           := '0';
-            -- Ready to receive data
-            v.rxAxisSlave.tReady := '1';
+            v.busy     := '0';
+            v.errorDet := '0';
             -- Check for a FIFO read
-            if (rxAxisMaster.tvalid = '1') and (r.rxAxisSlave.tReady = '1') then
+            if (rxAxisMaster.tvalid = '1') then
+               -- Ready to receive data
+               v.rxAxisSlave.tReady := '1';
                -- Calculate the time between this packet and the previous one
                if (r.stopTime = r.startTime) then
                   v.stopTime := r.stopTime + 1;
@@ -315,28 +289,26 @@ begin
                v.eventCnt   := rxAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) + 1;
                -- Latch the SEED for the randomization
                v.randomData := rxAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0);
-               -- Check for a data bus error
---               for i in 4 to AXI_STREAM_CONFIG_G.TDATA_BYTES_C-1 loop
---                  if anyBits(rxAxisMaster.tData(i*8+7 downto i*8), '1') then
---                     v.errDataBus := '1';
---                     v.errorDet   := '1';
---                  end if;
---               end loop;
                -- Set the busy flag
                v.busy       := '1';
                -- Increment the counter
                v.dataCnt    := r.dataCnt + 1;
-               -- Next State
-               v.state      := LENGTH_S;
+               -- Check for start of frame
+               if (ssiGetUserSof(SLAVE_PRBS_SSI_CONFIG_C, rxAxisMaster) = '1') then
+                  -- Next State
+                  v.state := LENGTH_S;
+               end if;
             end if;
          ----------------------------------------------------------------------
          when LENGTH_S =>
             -- Check for a FIFO read
-            if (rxAxisMaster.tvalid = '1') and (r.rxAxisSlave.tReady = '1') then
+            if (rxAxisMaster.tvalid = '1') then
+               -- Ready to receive data
+               v.rxAxisSlave.tReady := '1';
                -- Calculate the next data word
-               v.randomData   := lfsrShift(r.randomData, PRBS_TAPS_G);
+               v.randomData         := lfsrShift(r.randomData, PRBS_TAPS_G);
                -- Latch the packetLength value
-               v.packetLength := rxAxisMaster.tData(31 downto 0);
+               v.packetLength       := rxAxisMaster.tData(31 downto 0);
                -- Check for a data bus error
                for i in 4 to SLAVE_PRBS_SSI_CONFIG_C.TDATA_BYTES_C-1 loop
                   if not allBits(rxAxisMaster.tData(i*8+7 downto i*8), '0') then
@@ -352,16 +324,11 @@ begin
          ----------------------------------------------------------------------
          when DATA_S =>
             -- Check for a FIFO read
-            if (rxAxisMaster.tvalid = '1') and (r.rxAxisSlave.tReady = '1') then
-               -- Check for a data bus error
---               for i in 0 to (AXI_STREAM_CONFIG_G.TDATA_BYTES_C/4)-1 loop
---                  if rxAxisMaster.tData(31 downto 0) /= rxAxisMaster.tData(i*32+31 downto i*32) then
---                     v.errDataBus := '1';
---                     v.errorDet   := '1';
---                  end if;
---               end loop;
+            if (rxAxisMaster.tvalid = '1') then
+               -- Ready to receive data
+               v.rxAxisSlave.tReady := '1';
                -- Calculate the next data word
-               v.randomData := lfsrShift(r.randomData, PRBS_TAPS_G);
+               v.randomData         := lfsrShift(r.randomData, PRBS_TAPS_G);
                -- Check for end of frame
                if rxAxisMaster.tLast = '1' then
                   -- Set the local eof flag
@@ -378,11 +345,11 @@ begin
                      v.errLength := '1';
                   end if;
                   -- Reset the counter
-                  v.dataCnt            := (others => '0');
-                  -- Stop reading the FIFO
-                  v.rxAxisSlave.tReady := '0';
+                  v.dataCnt := (others => '0');
+                  -- Update strobe for the results
+                  v.updatedResults := '1';                  
                   -- Next State
-                  v.state              := SEND_RESULT_S;
+                  v.state   := IDLE_S;
                elsif r.dataCnt /= MAX_CNT_C then
                   -- Increment the counter
                   v.dataCnt := r.dataCnt + 1;
@@ -398,11 +365,9 @@ begin
                      v.errWordCnt  := r.errWordCnt + 1;
                   end if;
                   -- Latch the bits with error
-                  v.errorBits          := (r.randomData xor rxAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0));
-                  -- Stop reading the FIFO
-                  v.rxAxisSlave.tReady := '0';
+                  v.errorBits := (r.randomData xor rxAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0));
                   -- Next State
-                  v.state              := BIT_ERR_S;
+                  v.state     := BIT_ERR_S;
                end if;
             end if;
          ----------------------------------------------------------------------
@@ -426,71 +391,20 @@ begin
                v.bitPntr := (others => '0');
                -- Check if there was an eof flag
                if r.eof = '1' then
+                  -- Update strobe for the results
+                  v.updatedResults := '1';
                   -- Next State
-                  v.state := SEND_RESULT_S;
+                  v.state := IDLE_S;
                else
-                  -- Ready for more data
-                  v.rxAxisSlave.tReady := '1';
                   -- Next State
-                  v.state              := DATA_S;
+                  v.state := DATA_S;
                end if;
-            end if;
-         ----------------------------------------------------------------------
-         when SEND_RESULT_S =>
-            -- Check the upstream buffer status
-            if txAxisSlave.tReady = '1' then
-               -- Sending Data 
-               v.txAxisMaster.tValid := '1';
-               -- Increment the data counter
-               v.txCnt               := r.txCnt + 1;
-               -- Send data w.r.t. the counter
-               case (r.txCnt) is
-                  when x"0" =>
-                     -- Update strobe for the results
-                     v.updatedResults                   := '1';
-                     -- Write the data to the TX virtual channel
-                     v.txAxisMaster.tData(31 downto 16) := x"FFFF";  -- static pattern for software alignment
-                     v.txAxisMaster.tData(15 downto 0)  := (others => '0');
-                  when x"1" =>
-                     v.txAxisMaster.tData(31 downto 0) := r.packetLength;
-                  when x"2" =>
-                     v.txAxisMaster.tData(31 downto 0) := r.packetRate;
-                  when x"3" =>
-                     v.txAxisMaster.tData(31 downto 0) := r.errWordCnt;
-                  when x"4" =>
-                     v.txAxisMaster.tData(31 downto 0) := r.errbitCnt;
-                  when others =>
-                     -- Reset the counter
-                     v.txCnt                           := (others => '0');
-                     -- Send the last word
-                     v.txAxisMaster.tLast              := '1';
-                     v.txAxisMaster.tData(31 downto 4) := (others => '0');
-                     v.txAxisMaster.tData(3)           := r.errDataBus;
-                     v.txAxisMaster.tData(2)           := r.eofe;
-                     v.txAxisMaster.tData(1)           := r.errLength;
-                     v.txAxisMaster.tData(0)           := r.errMissedPacket;
-                     -- Ready to receive data
-                     v.rxAxisSlave.tReady              := '1';
-                     -- Reset the busy flag
-                     v.busy                            := '0';
-                     -- Next State
-                     v.state                           := IDLE_S;
-               end case;
             end if;
       ----------------------------------------------------------------------
       end case;
 
-      -- Reset
-      if (sAxisRst = '1') then
-         v := REG_INIT_C;
-      end if;
-
-      -- Register the variable for next clock cycle
-      rin <= v;
-
       -- Outputs
-      rxAxisSlave     <= r.rxAxisSlave;
-      txAxisMaster    <= r.txAxisMaster;
+      rxAxisSlave     <= v.rxAxisSlave;
       updatedResults  <= r.updatedResults;
       errMissedPacket <= r.errMissedPacket;
       errLength       <= r.errLength;
@@ -503,6 +417,14 @@ begin
       packetLength    <= r.packetLength;
       errorDet        <= r.errorDet;
 
+      -- Reset
+      if (sAxisRst = '1') then
+         v := REG_INIT_C;
+      end if;
+
+      -- Register the variable for next clock cycle
+      rin <= v;
+
    end process comb;
 
    seq : process (sAxisClk) is
@@ -511,39 +433,6 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-
-   AxiStreamFifo_Tx : entity work.AxiStreamFifoV2
-      generic map(
-         -- General Configurations
-         TPD_G               => TPD_G,
-         INT_PIPE_STAGES_G   => MASTER_AXI_PIPE_STAGES_G,
-         PIPE_STAGES_G       => MASTER_AXI_PIPE_STAGES_G,
-         -- FIFO configurations
-         BRAM_EN_G           => BRAM_EN_G,
-         XIL_DEVICE_G        => XIL_DEVICE_G,
-         USE_BUILT_IN_G      => USE_BUILT_IN_G,
-         GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
-         CASCADE_SIZE_G      => CASCADE_SIZE_G,
-         FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
-         FIFO_FIXED_THRESH_G => true,
-         FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
-         -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => MASTER_PRBS_SSI_CONFIG_C,
-         MASTER_AXI_CONFIG_G => MASTER_AXI_STREAM_CONFIG_G)
-      port map (
-         -- Slave Port
-         sAxisClk    => sAxisClk,
-         sAxisRst    => sAxisRst,
-         sAxisMaster => txAxisMaster,
-         sAxisSlave  => txAxisSlave,
-         sAxisCtrl   => axisCtrl(1),
-         -- Master Port
-         mAxisClk    => mAxisClk,
-         mAxisRst    => mAxisRst,
-         mAxisMaster => mAxisMaster,
-         mAxisSlave  => mAxisSlave);
 
    SyncFifo_Inst : entity work.SynchronizerFifo
       generic map (
@@ -615,11 +504,13 @@ begin
    -------------------------------
    -- Configuration Register
    -------------------------------  
-   combAxiLite : process (axiReadMaster, axiRst, axiWriteMaster, errBitStrbCnt, errBitStrbSync,
-                          errDataBusCnt, errDataBusSync, errEofeCnt, errEofeSync, errLengthCnt,
-                          errLengthSync, errMissedPacketCnt, errMissedPacketSync, errWordCntSync,
-                          errWordStrbCnt, errWordStrbSync, errbitCntSync, overflow, overflow0Cnt,
-                          overflow1Cnt, packetLengthSync, packetRateSync, pause, pause0Cnt,
+   combAxiLite : process (axiReadMaster, axiRst, axiWriteMaster, errBitStrbCnt,
+                          errBitStrbSync, errDataBusCnt, errDataBusSync,
+                          errEofeCnt, errEofeSync, errLengthCnt, errLengthSync,
+                          errMissedPacketCnt, errMissedPacketSync,
+                          errWordCntSync, errWordStrbCnt, errWordStrbSync,
+                          errbitCntSync, overflow, overflow0Cnt, overflow1Cnt,
+                          packetLengthSync, packetRateSync, pause, pause0Cnt,
                           pause1Cnt, rAxiLite) is
       variable v            : LocRegType;
       variable axiStatus    : AxiLiteStatusType;

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Pgp2bAxi.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2009-05-27
--- Last update: 2018-01-10
 -------------------------------------------------------------------------------
 -- Description:
 -- AXI-Lite block to manage the PGP3 interface.
@@ -117,9 +115,9 @@ architecture rtl of Pgp3AxiL is
    constant REG_INIT_C : RegType := (
       countReset     => '0',
       loopBack       => (others => '0'),
-      flowCntlDis    => '0',
-      txDisable      => '0',
-      skpInterval    => X"0000FFF0",
+      flowCntlDis    => PGP3_TX_IN_INIT_C.flowCntlDis,
+      txDisable      => PGP3_TX_IN_INIT_C.disable,
+      skpInterval    => PGP3_TX_IN_INIT_C.skpInterval,
       autoStatus     => '0',
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C
@@ -611,7 +609,7 @@ begin
       axiSlaveRegisterR(axilEp, X"034", 56, rxStatusSync.rxOpCodeNumberLast);
 
       for i in 0 to 15 loop
-         axiSlaveRegisterR(axilEp, X"040"+toSlv(i*4, 8), 0, rxStatusSync.remRxOverflowCnt(i));
+         axiSlaveRegisterR(axilEp, X"040"+toSlv(i*4, 12), 0, rxStatusSync.remRxOverflowCnt(i));
       end loop;
 
 
@@ -662,7 +660,7 @@ begin
 
 
       for i in 0 to 15 loop
-         axiSlaveRegisterR(axilEp, X"0B0"+toSlv(i*4, 8), 0, txStatusSync.locOverflowCnt(i));
+         axiSlaveRegisterR(axilEp, X"0B0"+toSlv(i*4, 12), 0, txStatusSync.locOverflowCnt(i));
       end loop;
 
 

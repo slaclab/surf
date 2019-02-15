@@ -17,10 +17,11 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-import pyrogue as pr
-from surf.misc._mcsreader import *
+import pyrogue   as pr
+import surf.misc as misc
 import click
 import time
+import datetime
 
 class AxiMicronN25Q(pr.Device):
     def __init__(self,
@@ -28,9 +29,13 @@ class AxiMicronN25Q(pr.Device):
             description = "AXI-Lite Micron N25Q and Micron MT25Q PROM",
             addrMode    = False, # False = 24-bit Address mode, True = 32-bit Address Mode
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+        super().__init__(
+            name        = name, 
+            description = description, 
+            size        = (0x1 << 10), 
+            **kwargs)
         
-        self._mcs      = McsReader()
+        self._mcs      = misc.McsReader()
         self._addrMode = addrMode
         self._progDone = False
         
@@ -95,56 +100,63 @@ class AxiMicronN25Q(pr.Device):
         self.READ_MASK   = 0x00000000
         self.WRITE_MASK  = 0x80000000
         self.VERIFY_MASK = 0x40000000
+        
+        self.add(pr.LocalCommand(
+            name        = 'LoadMcsFile',
+            function    = self._LoadMcsFile,
+            description = 'Load the .MCS into PROM',
+            value       = '',
+        ))            
             
-        @self.command(value='',description="Load the .MCS into PROM",)
-        def LoadMcsFile(arg):
-            
-            click.secho(('LoadMcsFile: %s' % arg), fg='green')
-            self._progDone = False 
-            
-            # Start time measurement for profiling
-            start = time.time()
-            
-            # Reset the SPI interface
-            self.resetFlash()
-            
-            # Print the status registers
-            print("MicronN25Q Manufacturer ID Code  = {}".format(hex(self.getManufacturerId())))
-            print("MicronN25Q Manufacturer Type     = {}".format(hex(self.getManufacturerType())))
-            print("MicronN25Q Manufacturer Capacity = {}".format(hex(self.getManufacturerCapacity())))
-            print("MicronN25Q Status Register       = {}".format(hex(self.getPromStatusReg())))
-            print("MicronN25Q Volatile Config Reg   = {}".format(hex(self.getPromConfigReg())))
-            
-            # Open the MCS file
-            self._mcs.open(arg)
-            
-            # Erase the PROM
-            self.eraseProm()
-            
-            # Write to the PROM
-            self.writeProm()
-            
-            # Verify the PROM
-            self.verifyProm()
-            
-            # End time measurement for profiling
-            end = time.time()
-            elapsed = end - start
-            click.secho(('LoadMcsFile() took %d seconds' % int(elapsed)), fg='green')
-            
-            # Add a power cycle reminder
-            self._progDone = True
-            click.secho(
-                "\n\n\
-                ***************************************************\n\
-                ***************************************************\n\
-                The MCS data has been written into the PROM.       \n\
-                To reprogram the FPGA with the new PROM data,      \n\
-                a IPROG CMD, reboot, or power cycle is be required.\n\
-                ***************************************************\n\
-                ***************************************************\n\n"\
-                , bg='green',
-            )
+    def _LoadMcsFile(self,arg):
+        # arg = value
+        
+        click.secho(('LoadMcsFile: %s' % arg), fg='green')
+        self._progDone = False 
+        
+        # Start time measurement for profiling
+        start = time.time()
+        
+        # Reset the SPI interface
+        self.resetFlash()
+        
+        # Print the status registers
+        print("MicronN25Q Manufacturer ID Code  = {}".format(hex(self.getManufacturerId())))
+        print("MicronN25Q Manufacturer Type     = {}".format(hex(self.getManufacturerType())))
+        print("MicronN25Q Manufacturer Capacity = {}".format(hex(self.getManufacturerCapacity())))
+        print("MicronN25Q Status Register       = {}".format(hex(self.getPromStatusReg())))
+        print("MicronN25Q Volatile Config Reg   = {}".format(hex(self.getPromConfigReg())))
+        
+        # Open the MCS file
+        self._mcs.open(arg)
+        
+        # Erase the PROM
+        self.eraseProm()
+        
+        # Write to the PROM
+        self.writeProm()
+        
+        # Verify the PROM
+        self.verifyProm()
+        
+        # End time measurement for profiling
+        end = time.time()
+        elapsed = end - start
+        click.secho('LoadMcsFile() took %s to program the PROM' % datetime.timedelta(seconds=int(elapsed)), fg='green')
+        
+        # Add a power cycle reminder
+        self._progDone = True
+        click.secho(
+            "\n\n\
+            ***************************************************\n\
+            ***************************************************\n\
+            The MCS data has been written into the PROM.       \n\
+            To reprogram the FPGA with the new PROM data,      \n\
+            a IPROG CMD or power cycle is be required.\n\
+            ***************************************************\n\
+            ***************************************************\n\n"\
+            , bg='green',
+        )
 
     def eraseProm(self): 
         # Set the starting address index
@@ -162,7 +174,7 @@ class AxiMicronN25Q(pr.Device):
                 # Increment by one block
                 address += ERASE_SIZE
         # Check the corner case
-        if ( address<self._mcs.endAddr ):
+        if ( address<=self._mcs.endAddr ):
             self.eraseCmd(address)
 
     def writeProm(self):
@@ -200,28 +212,28 @@ class AxiMicronN25Q(pr.Device):
                         wordCnt = 0
                         self.setDataReg(dataArray)
                         self.writeCmd(addr)
-            # Check for leftover data
-            if (wordCnt != 0):
-                while(wordCnt != 0):
-                    # Pack the bytes into a 32-bit word
-                    if ( byteCnt==0 ):
-                        wrd = (0xFF) << (8*(3-byteCnt))
-                    else:
-                        wrd |= (0xFF) << (8*(3-byteCnt))
-                    # Increment the counter
-                    byteCnt += 1    
-                    # Check the byte counter
-                    if ( byteCnt==4 ):
-                        byteCnt = 0
-                        dataArray[wordCnt] = wrd
-                        wordCnt += 1
-                        if ( wordCnt==64 ):
-                            wordCnt = 0
-                            self.setDataReg(dataArray)
-                            self.writeCmd(addr)
-                            break
             # Close the status bar
             bar.update(self._mcs.size)
+        
+        # Check for leftover data
+        if ( (wordCnt != 0) or (byteCnt != 0) ):
+            while(wordCnt != 64):
+                # Pack the bytes into a 32-bit word
+                if ( byteCnt==0 ):
+                    wrd = (0xFF) << (8*(3-byteCnt))
+                else:
+                    wrd |= (0xFF) << (8*(3-byteCnt))
+                # Increment the counter
+                byteCnt += 1
+                # Check the byte counter
+                if ( byteCnt==4 ):
+                    byteCnt = 0
+                    dataArray[wordCnt] = wrd
+                    wordCnt += 1
+                    if ( wordCnt==64 ):
+                        self.setDataReg(dataArray)
+                        self.writeCmd(addr)
+                        break
             
     def verifyProm(self): 
         # Wait for last transaction to finish

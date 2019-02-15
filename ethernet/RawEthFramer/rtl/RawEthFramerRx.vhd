@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : RawEthFramerRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-05-23
--- Last update: 2016-05-26
 -------------------------------------------------------------------------------
 -- Description: Raw L2 Ethernet Framer's RX Engine
 -------------------------------------------------------------------------------
@@ -103,7 +101,7 @@ begin
          v.ibAppMaster.tValid := '0';
          v.ibAppMaster.tLast  := '0';
          v.ibAppMaster.tUser  := (others => '0');
-         v.ibAppMaster.tKeep  := x"00FF";
+         v.ibAppMaster.tKeep  := resize(x"00FF",AXI_STREAM_MAX_TKEEP_WIDTH_C);
       end if;
 
       -- State Machine

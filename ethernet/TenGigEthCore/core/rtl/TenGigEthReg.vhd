@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : TenGigEthReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-02-20
--- Last update: 2018-01-22
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite 10GbE Register Interface
 -------------------------------------------------------------------------------
@@ -22,6 +20,7 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
+use work.EthMacPkg.all;
 use work.TenGigEthPkg.all;
 
 entity TenGigEthReg is

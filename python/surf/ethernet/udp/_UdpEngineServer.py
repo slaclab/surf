@@ -18,6 +18,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+from surf.ethernet import udp
 
 class UdpEngineServer(pr.Device):
     def __init__(   self,       
@@ -37,8 +38,17 @@ class UdpEngineServer(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            hidden       = True,
         ))
 
+        self.add(pr.LinkVariable(
+            name         = "ServerRemotePortValue", 
+            description  = "ServerRemotePort (human readable)",
+            mode         = 'RO', 
+            linkedGet    = udp.getPortValue,
+            dependencies = [self.variables["ServerRemotePort"]],
+        ))        
+        
         self.add(pr.RemoteVariable(   
             name         = "ServerRemoteIp",
             description  = "ServerRemoteIp (big-Endian configuration)",
@@ -47,5 +57,13 @@ class UdpEngineServer(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            hidden       = True,
         ))
-
+        
+        self.add(pr.LinkVariable(
+            name         = "ServerRemoteIpValue", 
+            description  = "ServerRemoteIp (human readable)",
+            mode         = 'RO', 
+            linkedGet    = udp.getIpValue,
+            dependencies = [self.variables["ServerRemoteIp"]],
+        ))         

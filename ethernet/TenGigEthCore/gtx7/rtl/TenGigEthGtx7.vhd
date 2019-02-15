@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : TenGigEthGtx7.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-02-12
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: 10GBASE-R Ethernet for Gtx7
 -------------------------------------------------------------------------------
@@ -26,11 +24,13 @@ use work.EthMacPkg.all;
 
 entity TenGigEthGtx7 is
    generic (
-      TPD_G            : time                := 1 ns;
+      TPD_G           : time                := 1 ns;
+      PAUSE_EN_G      : boolean             := true;
+      PAUSE_512BITS_G : positive            := 8;
       -- AXI-Lite Configurations
-      EN_AXI_REG_G     : boolean             := false;
+      EN_AXI_REG_G    : boolean             := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      AXIS_CONFIG_G   : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
@@ -53,10 +53,16 @@ entity TenGigEthGtx7 is
       txFault            : in  sl                     := '0';
       txDisable          : out sl;
       -- Misc. Signals
-      extRst             : in  sl;
+      extRst             : in  sl                     := '0';
       phyClk             : in  sl;
       phyRst             : in  sl;
       phyReady           : out sl;
+      -- Transceiver Debug Interface
+      gtTxPreCursor      : in  slv(4 downto 0)        := "00000";
+      gtTxPostCursor     : in  slv(4 downto 0)        := "00000";
+      gtTxDiffCtrl       : in  slv(3 downto 0)        := "1110";
+      gtRxPolarity       : in  sl                     := '0';
+      gtTxPolarity       : in  sl                     := '0';
       -- Quad PLL Ports
       qplllock           : in  sl;
       qplloutclk         : in  sl;
@@ -66,7 +72,7 @@ entity TenGigEthGtx7 is
       gtTxP              : out sl;
       gtTxN              : out sl;
       gtRxP              : in  sl;
-      gtRxN              : in  sl);  
+      gtRxN              : in  sl);
 end TenGigEthGtx7;
 
 architecture mapping of TenGigEthGtx7 is
@@ -119,7 +125,28 @@ architecture mapping of TenGigEthGtx7 is
          drp_drdy_i           : in  std_logic;
          drp_drpdo_i          : in  std_logic_vector(15 downto 0);
          tx_disable           : out std_logic;
-         pma_pmd_type         : in  std_logic_vector(2 downto 0));
+         pma_pmd_type         : in  std_logic_vector(2 downto 0);
+         gt0_eyescanreset     : in  std_logic;
+         gt0_eyescandataerror : out std_logic;
+         gt0_txbufstatus      : out std_logic_vector(1 downto 0);
+         gt0_rxbufstatus      : out std_logic_vector(2 downto 0);
+         gt0_eyescantrigger   : in  std_logic;
+         gt0_rxcdrhold        : in  std_logic;
+         gt0_txprbsforceerr   : in  std_logic;
+         gt0_txpolarity       : in  std_logic;
+         gt0_rxpolarity       : in  std_logic;
+         gt0_rxprbserr        : out std_logic;
+         gt0_txpmareset       : in  std_logic;
+         gt0_rxpmareset       : in  std_logic;
+         gt0_txresetdone      : out std_logic;
+         gt0_rxresetdone      : out std_logic;
+         gt0_rxdfelpmreset    : in  std_logic;
+         gt0_rxlpmen          : in  std_logic;
+         gt0_dmonitorout      : out std_logic_vector(7 downto 0);
+         gt0_rxrate           : in  std_logic_vector(2 downto 0);
+         gt0_txprecursor      : in  std_logic_vector(4 downto 0);
+         gt0_txpostcursor     : in  std_logic_vector(4 downto 0);
+         gt0_txdiffctrl       : in  std_logic_vector(3 downto 0));
    end component;
 
    signal mAxiReadMaster  : AxiLiteReadMasterType;
@@ -155,7 +182,7 @@ architecture mapping of TenGigEthGtx7 is
    signal macRxAxisCtrl   : AxiStreamCtrlType;
    signal macTxAxisMaster : AxiStreamMasterType;
    signal macTxAxisSlave  : AxiStreamSlaveType;
-   
+
 begin
 
    phyReady        <= status.phyReady;
@@ -182,7 +209,7 @@ begin
          mAxiReadMaster  => mAxiReadMaster,
          mAxiReadSlave   => mAxiReadSlave,
          mAxiWriteMaster => mAxiWriteMaster,
-         mAxiWriteSlave  => mAxiWriteSlave);    
+         mAxiWriteSlave  => mAxiWriteSlave);
 
    txDisable <= status.txDisable;
 
@@ -199,16 +226,18 @@ begin
          -- Output
          dataOut(0) => status.sigDet,
          dataOut(1) => status.txFault,
-         dataOut(2) => status.txUsrRdy);  
+         dataOut(2) => status.txUsrRdy);
 
    --------------------
    -- Ethernet MAC core
    --------------------
    U_MAC : entity work.EthMacTop
       generic map (
-         TPD_G         => TPD_G,
-         PHY_TYPE_G    => "XGMII",
-         PRIM_CONFIG_G => AXIS_CONFIG_G)
+         TPD_G           => TPD_G,
+         PAUSE_EN_G      => PAUSE_EN_G,
+         PAUSE_512BITS_G => PAUSE_512BITS_G,
+         PHY_TYPE_G      => "XGMII",
+         PRIM_CONFIG_G   => AXIS_CONFIG_G)
       port map (
          -- Primary Interface
          primClk         => dmaClk,
@@ -227,7 +256,7 @@ begin
          xgmiiRxd        => phyRxd,
          xgmiiRxc        => phyRxc,
          xgmiiTxd        => phyTxd,
-         xgmiiTxc        => phyTxc);        
+         xgmiiTxc        => phyTxc);
 
    -----------------
    -- 10GBASE-R core
@@ -288,7 +317,29 @@ begin
          drp_daddr_i          => drpAddr,
          drp_di_i             => drpDi,
          drp_drdy_i           => drpRdy,
-         drp_drpdo_i          => drpDo);
+         drp_drpdo_i          => drpDo,
+         -- Transceiver Debug Interface
+         gt0_eyescanreset     => '0',
+         gt0_eyescandataerror => open,
+         gt0_txbufstatus      => open,
+         gt0_rxbufstatus      => open,
+         gt0_eyescantrigger   => '0',
+         gt0_rxcdrhold        => '0',
+         gt0_txprbsforceerr   => '0',
+         gt0_txpolarity       => gtTxPolarity,
+         gt0_rxpolarity       => gtRxPolarity,
+         gt0_rxprbserr        => open,
+         gt0_txpmareset       => '0',
+         gt0_rxpmareset       => '0',
+         gt0_txresetdone      => open,
+         gt0_rxresetdone      => open,
+         gt0_rxdfelpmreset    => '0',
+         gt0_rxlpmen          => '0',
+         gt0_dmonitorout      => open,
+         gt0_rxrate           => (others => '0'),
+         gt0_txprecursor      => gtTxPreCursor,
+         gt0_txpostcursor     => gtTxPostCursor,
+         gt0_txdiffctrl       => gtTxDiffCtrl);
 
    -------------------------------------
    -- 10GBASE-R's Reset Module
@@ -310,7 +361,7 @@ begin
          rstCntDone => status.rstCntDone,
          -- Quad PLL Ports
          qplllock   => status.qplllock,
-         qpllRst    => qpllRst); 
+         qpllRst    => qpllRst);
 
    -------------------------------         
    -- Configuration Vector Mapping
@@ -331,8 +382,8 @@ begin
    --------------------------------     
    U_TenGigEthReg : entity work.TenGigEthReg
       generic map (
-         TPD_G            => TPD_G,
-         EN_AXI_REG_G     => EN_AXI_REG_G)
+         TPD_G        => TPD_G,
+         EN_AXI_REG_G => EN_AXI_REG_G)
       port map (
          -- Local Configurations
          localMac       => localMac,
@@ -346,6 +397,6 @@ begin
          axiWriteSlave  => mAxiWriteSlave,
          -- Configuration and Status Interface
          config         => config,
-         status         => status); 
+         status         => status);
 
 end mapping;

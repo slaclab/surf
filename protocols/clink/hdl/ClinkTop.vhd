@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : ClinkTop.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-11-13
 -------------------------------------------------------------------------------
 -- Description:
 -- CameraLink Top Level
@@ -58,8 +57,9 @@ entity ClinkTop is
       -- System clock and reset, > 100 Mhz
       sysClk          : in  sl;
       sysRst          : in  sl;
-      -- Camera Control Bits, async
+      -- Camera Control Bits & status, async
       camCtrl         : in  Slv4Array(CHAN_COUNT_G-1 downto 0);
+      camStatus       : out ClChanStatusArray(1 downto 0);
       -- Camera data
       dataClk         : in  sl;
       dataRst         : in  sl;
@@ -110,13 +110,15 @@ architecture rtl of ClinkTop is
    signal intWriteMaster : AxiLiteWriteMasterType;
    signal intWriteSlave  : AxiLiteWriteSlaveType;
 
-   attribute MARK_DEBUG : string;
-   attribute MARK_DEBUG of r : signal is "TRUE";
+   --attribute MARK_DEBUG : string;
+   --attribute MARK_DEBUG of r : signal is "TRUE";
 
    attribute IODELAY_GROUP                 : string;
    attribute IODELAY_GROUP of U_IDelayCtrl : label is "CLINK_CORE";
 
 begin
+
+   camStatus <= chanStatus;
 
    ----------------------------------------
    -- IO Modules
@@ -131,6 +133,7 @@ begin
    U_Cbl0Half0: entity work.ClinkCtrl
       generic map (
          TPD_G              => TPD_G,
+         INV_34_G           => false,
          UART_READY_EN_G    => UART_READY_EN_G,
          UART_AXIS_CONFIG_G => UART_AXIS_CONFIG_G)
       port map (
@@ -175,6 +178,7 @@ begin
       U_Cbl1Half0: entity work.ClinkCtrl
          generic map (
             TPD_G              => TPD_G,
+            INV_34_G           => true,
             UART_READY_EN_G    => UART_READY_EN_G,
             UART_AXIS_CONFIG_G => UART_AXIS_CONFIG_G)
          port map (
@@ -208,9 +212,7 @@ begin
 
       -- Connector 1, Half 0, Control Base, Data Z for Med, Full, Deca
       U_Cbl1Half0: entity work.ClinkData
-         generic map ( 
-            TPD_G    => TPD_G,
-            INV_34_G => true)
+         generic map ( TPD_G => TPD_G )
          port map (
             cblHalfP   => cbl1Half0P,
             cblHalfM   => cbl1Half0M,

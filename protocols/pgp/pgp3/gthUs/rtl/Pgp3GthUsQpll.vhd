@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Pgp3GthUsQpll.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-10-26
--- Last update: 2018-01-10
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -28,14 +26,15 @@ use unisim.vcomponents.all;
 
 entity Pgp3GthUsQpll is
    generic (
-      TPD_G             : time            := 1 ns;
-      EN_DRP_G          : boolean         := true);
+      TPD_G    : time    := 1 ns;
+      RATE_G   : string  := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps" 
+      EN_DRP_G : boolean := true);
    port (
       -- Stable Clock and Reset
       stableClk       : in  sl;         -- GT needs a stable clock to "boot up"
       stableRst       : in  sl;
       -- QPLL Clocking
-      pgpRefClk       : in  sl;
+      pgpRefClk       : in  sl;         -- 156.25 MHz
       qpllLock        : out Slv2Array(3 downto 0);
       qpllClk         : out Slv2Array(3 downto 0);
       qpllRefclk      : out Slv2Array(3 downto 0);
@@ -44,12 +43,15 @@ entity Pgp3GthUsQpll is
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
       axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
-      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilReadSlave   : out AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave  : out AxiLiteWriteSlaveType);
+      axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 end Pgp3GthUsQpll;
 
 architecture mapping of Pgp3GthUsQpll is
+
+   constant QPLL_CP_C    : slv(9 downto 0) := ite((RATE_G = "10.3125Gbps"), "0000011111", "0111111111");
+   constant QPLL_FBDIV_C : positive        := ite((RATE_G = "10.3125Gbps"), 66, 80);
 
    signal pllRefClk     : slv(1 downto 0);
    signal pllOutClk     : slv(1 downto 0);
@@ -64,6 +66,10 @@ architecture mapping of Pgp3GthUsQpll is
    signal gtQPllReset   : Slv2Array(3 downto 0);
 
 begin
+
+   assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps"))
+      report "RATE_G: Must be either 3.125Gbps or 6.25Gbps or 10.3125Gbps"
+      severity error;
 
    GEN_VEC :
    for i in 3 downto 0 generate
@@ -111,9 +117,9 @@ begin
          QPLL_CFG2_G3_G     => (others => x"0048"),
          QPLL_CFG3_G        => (others => x"0120"),
          QPLL_CFG4_G        => (others => x"0009"),
-         QPLL_CP_G          => (others => "0000011111"),
+         QPLL_CP_G          => (others => QPLL_CP_C),
          QPLL_CP_G3_G       => (others => "1111111111"),
-         QPLL_FBDIV_G       => (others => 66),
+         QPLL_FBDIV_G       => (others => QPLL_FBDIV_C),
          QPLL_FBDIV_G3_G    => (others => 80),
          QPLL_INIT_CFG0_G   => (others => x"02B2"),
          QPLL_INIT_CFG1_G   => (others => x"00"),

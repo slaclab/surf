@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : XauiPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-07
--- Last update: 2015-04-07
 -------------------------------------------------------------------------------
 -- Description: XAUI Package Files
 -------------------------------------------------------------------------------
@@ -22,9 +20,6 @@ use work.StdRtlPkg.all;
 use work.EthMacPkg.all;
 
 package XauiPkg is
-
-   -- Default MAC is 01:03:00:56:44:00
-   constant MAC_ADDR_INIT_C : slv(47 downto 0) := EMAC_ADDR_INIT_C;
 
    type XauiConfig is record
       softRst      : sl;

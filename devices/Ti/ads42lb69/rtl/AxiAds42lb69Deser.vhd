@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiAds42lb69Deser.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-03-20
--- Last update: 2015-05-19
 -------------------------------------------------------------------------------
 -- Description: ADC DDR Deserializer
 -------------------------------------------------------------------------------
@@ -74,6 +72,10 @@ architecture rtl of AxiAds42lb69Deser is
    signal data      : Slv16Array(1 downto 0);
    
 begin
+
+   assert (XIL_DEVICE_G = "ULTRASCALE" and USE_PLL_G = false) or XIL_DEVICE_G /= "ULTRASCALE"
+      report "ULTRASCALE implementation does not support USE_PLL_G = true"
+      severity failure;
 
    AxiAds42lb69Pll_Inst : entity work.AxiAds42lb69Pll
       generic map(

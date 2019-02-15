@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : GthUltraScaleQuadPll.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-12-15
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Ultrascale GTH QPLL primitive
 -------------------------------------------------------------------------------
@@ -37,7 +35,7 @@ entity GthUltraScaleQuadPll is
       BIAS_CFG2_G        : slv(15 downto 0)         := x"0124";
       BIAS_CFG3_G        : slv(15 downto 0)         := x"0041";
       BIAS_CFG4_G        : slv(15 downto 0)         := x"0010";
-      BIAS_CFG_RSVD_G    : slv(9 downto 0)          := "0000000000";
+      BIAS_CFG_RSVD_G    : slv(15 downto 0)         := X"0000";
       COMMON_CFG0_G      : slv(15 downto 0)         := x"0000";
       COMMON_CFG1_G      : slv(15 downto 0)         := x"0000";
       POR_CFG_G          : slv(15 downto 0)         := x"0000";
@@ -199,10 +197,10 @@ begin
          SDM0INITSEED0_0       => "0000000100010001",
          SDM0INITSEED0_1       => "000010001",
          SDM1INITSEED0_0       => "0000000100010001",
-         SDM1INITSEED0_1       => "000010001",
-         SIM_DEVICE            => SIM_DEVICE_G,
-         SIM_MODE              => SIM_MODE_G,
-         SIM_RESET_SPEEDUP     => SIM_RESET_SPEEDUP_G)
+         SDM1INITSEED0_1       => "000010001")
+--         SIM_DEVICE            => SIM_DEVICE_G,
+--         SIM_MODE              => SIM_MODE_G,
+--         SIM_RESET_SPEEDUP     => SIM_RESET_SPEEDUP_G)
       port map (
          -- DRP Ports
          DRPADDR           => drpAddr,

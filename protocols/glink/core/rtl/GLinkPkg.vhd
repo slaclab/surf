@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : GlinkDecoder.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2012-03-12
--- Last update: 2014-10-24
 -------------------------------------------------------------------------------
 -- Description: A collection of common constants and functions intended for
 -- use encoding/decoding the GLink Protocol.

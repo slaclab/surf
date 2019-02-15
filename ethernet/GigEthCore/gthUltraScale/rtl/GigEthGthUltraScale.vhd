@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : GigEthGthUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-02-07
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: 1000BASE-X Ethernet for Gth7
 -------------------------------------------------------------------------------
@@ -26,11 +24,13 @@ use work.GigEthPkg.all;
 
 entity GigEthGthUltraScale is
    generic (
-      TPD_G            : time                := 1 ns;
+      TPD_G           : time                := 1 ns;
+      PAUSE_EN_G      : boolean             := true;
+      PAUSE_512BITS_G : positive            := 8;
       -- AXI-Lite Configurations
-      EN_AXI_REG_G     : boolean             := false;
+      EN_AXI_REG_G    : boolean             := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      AXIS_CONFIG_G   : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
@@ -64,6 +64,53 @@ end GigEthGthUltraScale;
 
 architecture mapping of GigEthGthUltraScale is
 
+   component GigEthGthUltraScaleCore
+      port (
+         ---------------------
+         -- Transceiver Interface
+         ---------------------
+         gtrefclk               : in  std_logic;  -- Very high quality clock for GT transceiver.
+         txp                    : out std_logic;  -- Differential +ve of serial transmission from PMA to PMD.
+         txn                    : out std_logic;  -- Differential -ve of serial transmission from PMA to PMD.
+         rxp                    : in  std_logic;  -- Differential +ve for serial reception from PMD to PMA.
+         rxn                    : in  std_logic;  -- Differential -ve for serial reception from PMD to PMA.
+         resetdone              : out std_logic;  -- The GT transceiver has completed its reset cycle
+         cplllock               : out std_logic;  -- The GT transceiver has completed its reset cycle
+         mmcm_reset             : out std_logic;
+         txoutclk               : out std_logic;
+         rxoutclk               : out std_logic;
+         userclk                : in  std_logic;
+         userclk2               : in  std_logic;
+         rxuserclk              : in  std_logic;
+         rxuserclk2             : in  std_logic;
+         pma_reset              : in  std_logic;  -- transceiver PMA reset signal
+         mmcm_locked            : in  std_logic;  -- MMCM Locked
+         independent_clock_bufg : in  std_logic;
+         -----------------
+         -- GMII Interface
+         -----------------
+         gmii_txd               : in  std_logic_vector(7 downto 0);  -- Transmit data from client MAC.
+         gmii_tx_en             : in  std_logic;  -- Transmit control signal from client MAC.
+         gmii_tx_er             : in  std_logic;  -- Transmit control signal from client MAC.
+         gmii_rxd               : out std_logic_vector(7 downto 0);  -- Received Data to client MAC.
+         gmii_rx_dv             : out std_logic;  -- Received control signal to client MAC.
+         gmii_rx_er             : out std_logic;  -- Received control signal to client MAC.
+         gmii_isolate           : out std_logic;  -- Tristate control to electrically isolate GMII.
+         --------------------------------------------
+         -- Management: Alternative to MDIO Interface
+         --------------------------------------------
+         configuration_vector   : in  std_logic_vector(4 downto 0);  -- Alternative to MDIO interface.
+         an_interrupt           : out std_logic;  -- Interrupt to processor to signal that Auto-Negotiation has completed
+         an_adv_config_vector   : in  std_logic_vector(15 downto 0);  -- Alternate interface to program REG4 (AN ADV)
+         an_restart_config      : in  std_logic;  -- Alternate signal to modify AN restart bit in REG0
+         ---------------
+         -- General IO's
+         ---------------
+         status_vector          : out std_logic_vector(15 downto 0);  -- Core status.
+         reset                  : in  std_logic;  -- Asynchronous reset for entire core.
+         signal_detect          : in  std_logic);  -- Input from PMD to indicate presence of optical input.
+   end component;
+
    signal config : GigEthConfigType;
    signal status : GigEthStatusType;
 
@@ -84,6 +131,10 @@ architecture mapping of GigEthGthUltraScale is
 
    signal areset  : sl;
    signal coreRst : sl;
+
+   attribute dont_touch           : string;
+   attribute dont_touch of config : signal is "TRUE";
+   attribute dont_touch of status : signal is "TRUE";
 
 begin
 
@@ -125,9 +176,11 @@ begin
    --------------------
    U_MAC : entity work.EthMacTop
       generic map (
-         TPD_G         => TPD_G,
-         PHY_TYPE_G    => "GMII",
-         PRIM_CONFIG_G => AXIS_CONFIG_G)
+         TPD_G           => TPD_G,
+         PAUSE_EN_G      => PAUSE_EN_G,
+         PAUSE_512BITS_G => PAUSE_512BITS_G,
+         PHY_TYPE_G      => "GMII",
+         PRIM_CONFIG_G   => AXIS_CONFIG_G)
       port map (
          -- Primary Interface
          primClk         => dmaClk,
@@ -153,7 +206,7 @@ begin
    ------------------
    -- 1000BASE-X core
    ------------------
-   U_GigEthGthUltraScaleCore : entity work.GigEthGthUltraScaleCore
+   U_GigEthGthUltraScaleCore : GigEthGthUltraScaleCore
       port map (
          -- Clocks and Resets
          gtrefclk               => sysClk125,  -- Used as CPLL clock reference
@@ -184,11 +237,14 @@ begin
          rxp                    => gtRxP,
          rxn                    => gtRxN,
          -- Configuration and Status
+         an_restart_config      => '0',
+         an_adv_config_vector   => GIG_ETH_AN_ADV_CONFIG_INIT_C,
+         an_interrupt           => open,
          configuration_vector   => config.coreConfig,
          status_vector          => status.coreStatus,
          signal_detect          => sigDet);
 
-   status.phyReady <= status.coreStatus(0);
+   status.phyReady <= status.coreStatus(1);
    phyReady        <= status.phyReady;
 
    --------------------------------     
@@ -196,8 +252,8 @@ begin
    --------------------------------     
    U_GigEthReg : entity work.GigEthReg
       generic map (
-         TPD_G            => TPD_G,
-         EN_AXI_REG_G     => EN_AXI_REG_G)
+         TPD_G        => TPD_G,
+         EN_AXI_REG_G => EN_AXI_REG_G)
       port map (
          -- Local Configurations
          localMac       => localMac,

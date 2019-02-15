@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : EthCrc32Parallel.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-05-01
--- Last update: 2017-09-26
 -------------------------------------------------------------------------------
 -- Description: Ethernet CRC32 Ethernet/AAL5 Module
 -- Polynomial: x^32 + x^26 + x^23 + x^22 + x^16 + x^12 + x^11 + x^10 + x^8 + x^7 + x^5 + x^4 + x^2 + x^1 + 1

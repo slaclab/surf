@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : XauiGtx7Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-07
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Gtx7 Wrapper for 10 GigE XAUI
 -------------------------------------------------------------------------------
@@ -21,6 +19,7 @@ use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.AxiLitePkg.all;
+use work.EthMacPkg.all;
 use work.XauiPkg.all;
 
 library unisim;
@@ -28,14 +27,16 @@ use unisim.vcomponents.all;
 
 entity XauiGtx7Wrapper is
    generic (
-      TPD_G            : time                := 1 ns;
+      TPD_G           : time                := 1 ns;
+      PAUSE_EN_G      : boolean             := true;
+      PAUSE_512BITS_G : positive            := 8;
       -- QUAD PLL Configurations
-      USE_GTREFCLK_G   : boolean             := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
-      REFCLK_DIV2_G    : boolean             := false;  --  FALSE: gtClkP/N = 156.25 MHz,  TRUE: gtClkP/N = 312.5 MHz
+      USE_GTREFCLK_G  : boolean             := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
+      REFCLK_DIV2_G   : boolean             := false;  --  FALSE: gtClkP/N = 156.25 MHz,  TRUE: gtClkP/N = 312.5 MHz
       -- AXI-Lite Configurations
-      EN_AXI_REG_G     : boolean             := false;
+      EN_AXI_REG_G    : boolean             := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      AXIS_CONFIG_G   : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
@@ -66,7 +67,7 @@ entity XauiGtx7Wrapper is
       gtTxP              : out slv(3 downto 0);
       gtTxN              : out slv(3 downto 0);
       gtRxP              : in  slv(3 downto 0);
-      gtRxN              : in  slv(3 downto 0));  
+      gtRxN              : in  slv(3 downto 0));
 end XauiGtx7Wrapper;
 
 architecture mapping of XauiGtx7Wrapper is
@@ -84,7 +85,7 @@ begin
          IB    => gtClkN,
          CEB   => '0',
          ODIV2 => refClockDiv2,
-         O     => refClock);  
+         O     => refClock);
 
    refClk <= gtRefClk when (USE_GTREFCLK_G) else refClockDiv2 when(REFCLK_DIV2_G) else refClock;
 
@@ -93,11 +94,13 @@ begin
    ----------------------
    XauiGtx7_Inst : entity work.XauiGtx7
       generic map (
-         TPD_G            => TPD_G,
+         TPD_G           => TPD_G,
+         PAUSE_EN_G      => PAUSE_EN_G,
+         PAUSE_512BITS_G => PAUSE_512BITS_G,
          -- AXI-Lite Configurations
-         EN_AXI_REG_G     => EN_AXI_REG_G,
+         EN_AXI_REG_G    => EN_AXI_REG_G,
          -- AXI Streaming Configurations
-         AXIS_CONFIG_G    => AXIS_CONFIG_G)       
+         AXIS_CONFIG_G   => AXIS_CONFIG_G)
       port map (
          -- Local Configurations
          localMac           => localMac,
@@ -125,6 +128,6 @@ begin
          gtTxP              => gtTxP,
          gtTxN              => gtTxN,
          gtRxP              => gtRxP,
-         gtRxN              => gtRxN);  
+         gtRxN              => gtRxN);
 
 end mapping;

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : ads54j60.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-10-09
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: SPI Master Wrapper that includes a state machine for SPI paging
 -------------------------------------------------------------------------------

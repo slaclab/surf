@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : GigEthGthUltraScaleWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-03-30
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Gth7 Wrapper for 1000BASE-X Ethernet
 -- Note: This module supports up to a MGT QUAD of 1GigE interfaces
@@ -22,6 +20,7 @@ use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.AxiLitePkg.all;
+use work.EthMacPkg.all;
 use work.GigEthPkg.all;
 
 library unisim;
@@ -31,6 +30,8 @@ entity GigEthGthUltraScaleWrapper is
    generic (
       TPD_G              : time                             := 1 ns;
       NUM_LANE_G         : natural range 1 to 4             := 1;
+      PAUSE_EN_G         : boolean                          := true;
+      PAUSE_512BITS_G    : positive                         := 8;
       -- Clocking Configurations
       USE_GTREFCLK_G     : boolean                          := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
       CLKIN_PERIOD_G     : real                             := 8.0;
@@ -72,7 +73,7 @@ entity GigEthGthUltraScaleWrapper is
       gtTxP               : out slv(NUM_LANE_G-1 downto 0);
       gtTxN               : out slv(NUM_LANE_G-1 downto 0);
       gtRxP               : in  slv(NUM_LANE_G-1 downto 0);
-      gtRxN               : in  slv(NUM_LANE_G-1 downto 0));  
+      gtRxN               : in  slv(NUM_LANE_G-1 downto 0));
 end GigEthGthUltraScaleWrapper;
 
 architecture mapping of GigEthGthUltraScaleWrapper is
@@ -94,7 +95,7 @@ begin
    -----------------------------
    -- Select the Reference Clock
    -----------------------------
-   IBUFDS_GTE3_Inst : IBUFDS_GTE4
+   U_IBUFDS : IBUFDS_GTE4
       generic map (
          REFCLK_EN_TX_PATH  => '0',
          REFCLK_HROW_CK_SEL => "00",    -- 2'b00: ODIV2 = O
@@ -104,7 +105,7 @@ begin
          IB    => gtClkN,
          CEB   => '0',
          ODIV2 => gtClk,
-         O     => open);  
+         O     => open);
 
    BUFG_GT_Inst : BUFG_GT
       port map (
@@ -127,7 +128,7 @@ begin
       port map (
          arst   => extRst,
          clk    => refClk,
-         rstOut => refRst);   
+         rstOut => refRst);
 
    ----------------
    -- Clock Manager
@@ -153,21 +154,23 @@ begin
          clkOut(0) => sysClk125,
          clkOut(1) => sysClk62,
          rstOut(0) => sysRst125,
-         rstOut(1) => sysRst62); 
+         rstOut(1) => sysRst62);
 
    --------------
    -- GigE Module 
    --------------
    GEN_LANE :
    for i in 0 to NUM_LANE_G-1 generate
-      
+
       U_GigEthGthUltraScale : entity work.GigEthGthUltraScale
          generic map (
-            TPD_G            => TPD_G,
+            TPD_G           => TPD_G,
+            PAUSE_EN_G      => PAUSE_EN_G,
+            PAUSE_512BITS_G => PAUSE_512BITS_G,
             -- AXI-Lite Configurations
-            EN_AXI_REG_G     => EN_AXI_REG_G,
+            EN_AXI_REG_G    => EN_AXI_REG_G,
             -- AXI Streaming Configurations
-            AXIS_CONFIG_G    => AXIS_CONFIG_G(i))   
+            AXIS_CONFIG_G   => AXIS_CONFIG_G(i))
          port map (
             -- Local Configurations
             localMac           => localMac(i),
@@ -196,7 +199,7 @@ begin
             gtTxP              => gtTxP(i),
             gtTxN              => gtTxN(i),
             gtRxP              => gtRxP(i),
-            gtRxN              => gtRxN(i));  
+            gtRxN              => gtRxN(i));
 
    end generate GEN_LANE;
 

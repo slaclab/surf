@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : CRC32Rtl.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-05-01
--- Last update: 2018-03-01
 -------------------------------------------------------------------------------
 -- Description:
 -- VHDL source file for CRC32 calculation to replace macro of Virtex5 in Virtex6 and Spartan6.
@@ -28,29 +26,31 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
+use work.StdRtlPkg.all;
+
 entity CRC32Rtl is
    generic (
-      CRC_INIT : bit_vector := x"FFFFFFFF");
+      CRC_INIT : slv(31 downto 0) := x"FFFFFFFF");
    port (
-      CRCOUT       : out std_logic_vector(31 downto 0);         -- CRC output
-      CRCCLK       : in  std_logic;     -- system clock
-      CRCCLKEN     : in  std_logic                     := '1';  -- system clock enable
-      CRCDATAVALID : in  std_logic;     -- indicate that new data arrived and CRC can be computed
-      CRCDATAWIDTH : in  std_logic_vector(2 downto 0);  -- indicate width in bytes minus 1, 0 - 1 byte, 1 - 2 bytes
-      CRCIN        : in  std_logic_vector(31 downto 0);         -- input data for CRC calculation
-      CRCINIT      : in  std_logic_vector(31 downto 0) := To_StdLogicVector(CRC_INIT);
-      CRCRESET     : in  std_logic);    -- to set CRC logic to value in crc_cNIT
+      CRCOUT       : out slv(31 downto 0);         -- CRC output
+      CRCCLK       : in  sl;     -- system clock
+      CRCCLKEN     : in  sl                     := '1';  -- system clock enable
+      CRCDATAVALID : in  sl;     -- indicate that new data arrived and CRC can be computed
+      CRCDATAWIDTH : in  slv(2 downto 0);  -- indicate width in bytes minus 1, 0 - 1 byte, 1 - 2 bytes
+      CRCIN        : in  slv(31 downto 0);         -- input data for CRC calculation
+      CRCINIT      : in  slv(31 downto 0) := CRC_INIT;
+      CRCRESET     : in  sl);    -- to set CRC logic to value in crc_cNIT
 end CRC32Rtl;
 
 architecture rtl of CRC32Rtl is
 
    -- Local Signals
-   signal data             : std_logic_vector(31 downto 0);
-   signal crc              : std_logic_vector(31 downto 0);
-   signal CRCDATAVALID_d   : std_logic;
-   signal CRCDATAWIDTH_d   : std_logic_vector(2 downto 0);
-   constant Polyval        : std_logic_vector(31 downto 0) := X"04C11DB7";
-   type fb_array is array (32 downto 0) of std_logic_vector(31 downto 0);
+   signal data             : slv(31 downto 0);
+   signal crc              : slv(31 downto 0);
+   signal CRCDATAVALID_d   : sl;
+   signal CRCDATAWIDTH_d   : slv(2 downto 0);
+   constant Polyval        : slv(31 downto 0) := X"04C11DB7";
+   type fb_array is array (32 downto 0) of slv(31 downto 0);
    signal MSBVect, TempXOR : fb_array;
 
    -- Register delay for simulation
@@ -107,7 +107,7 @@ begin
    begin
       if rising_edge(CRCCLK) then
          if (CRCRESET = '1') then
-            crc <= To_StdLogicVector(CRCINIT);
+            crc <= CRCINIT;
          elsif (CRCDATAVALID_d = '1') and (CRCCLKEN = '1') then
             if (CRCDATAWIDTH_d = "000") then
                crc <= TempXOR(8);

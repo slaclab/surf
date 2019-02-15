@@ -38,7 +38,7 @@ architecture tb of Pgp3Tb2 is
 
    -- component generics
    constant TPD_G               : time    := 1 ns;
-   constant TX_CELL_WORDS_MAX_G : integer := 256;
+   constant TX_CELL_WORDS_MAX_G : integer := PGP3_DEFAULT_TX_CELL_WORDS_MAX_C;
    constant NUM_VC_G            : integer := 4;
    constant SKP_INTERVAL_G      : integer := 5000;
    constant SKP_BURST_SIZE_G    : integer := 8;
@@ -150,13 +150,9 @@ begin
          TPD_G    => TPD_G,
          NUM_VC_G => NUM_VC_G)
 --          PGP_RX_ENABLE_G             => PGP_RX_ENABLE_G,
---          RX_ALIGN_GOOD_COUNT_G       => RX_ALIGN_GOOD_COUNT_G,
---          RX_ALIGN_BAD_COUNT_G        => RX_ALIGN_BAD_COUNT_G,
 --          RX_ALIGN_SLIP_WAIT_G        => RX_ALIGN_SLIP_WAIT_G,
 --          PGP_TX_ENABLE_G             => PGP_TX_ENABLE_G,
 --          TX_CELL_WORDS_MAX_G         => TX_CELL_WORDS_MAX_G,
---          TX_SKP_INTERVAL_G           => TX_SKP_INTERVAL_G,
---          TX_SKP_BURST_SIZE_G         => TX_SKP_BURST_SIZE_G,
 --          TX_MUX_MODE_G               => TX_MUX_MODE_G,
 --          TX_MUX_TDEST_ROUTES_G       => TX_MUX_TDEST_ROUTES_G,
 --          TX_MUX_TDEST_LOW_G          => TX_MUX_TDEST_LOW_G,
@@ -174,7 +170,6 @@ begin
          phyTxActive   => '1',                -- [in]
          phyTxReady    => '1',                -- [in]
          phyTxStart    => open,               -- [out]
-         phyTxSequence => open,               -- [out]
          phyTxData     => phyTxData0,         -- [out]
          phyTxHeader   => phyTxHeader0,       -- [out]
          pgpRxClk      => axisClk,            -- [in]
@@ -217,13 +212,9 @@ begin
          TPD_G    => TPD_G,
          NUM_VC_G => NUM_VC_G)
 --          PGP_RX_ENABLE_G             => PGP_RX_ENABLE_G,
---          RX_ALIGN_GOOD_COUNT_G       => RX_ALIGN_GOOD_COUNT_G,
---          RX_ALIGN_BAD_COUNT_G        => RX_ALIGN_BAD_COUNT_G,
 --          RX_ALIGN_SLIP_WAIT_G        => RX_ALIGN_SLIP_WAIT_G,
 --          PGP_TX_ENABLE_G             => PGP_TX_ENABLE_G,
 --          TX_CELL_WORDS_MAX_G         => TX_CELL_WORDS_MAX_G,
---          TX_SKP_INTERVAL_G           => TX_SKP_INTERVAL_G,
---          TX_SKP_BURST_SIZE_G         => TX_SKP_BURST_SIZE_G,
 --          TX_MUX_MODE_G               => TX_MUX_MODE_G,
 --          TX_MUX_TDEST_ROUTES_G       => TX_MUX_TDEST_ROUTES_G,
 --          TX_MUX_TDEST_LOW_G          => TX_MUX_TDEST_LOW_G,
@@ -241,7 +232,6 @@ begin
          phyTxActive   => '1',                -- [in]
          phyTxReady    => '1',                -- [in]
          phyTxStart    => open,               -- [out]
-         phyTxSequence => open,               -- [out]
          phyTxData     => phyTxData1,         -- [out]
          phyTxHeader   => phyTxHeader1,       -- [out]
          pgpRxClk      => axisClk,            -- [in]

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : UartAxiLiteMaster.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-06-09
--- Last update: 2016-06-29
 -------------------------------------------------------------------------------
 -- Description: Ties together everything needed for a full duplex UART.
 -- This includes Baud Rate Generator, Transmitter, Receiver and FIFOs.
@@ -24,7 +22,6 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.TextUtilPkg.all;
 use work.AxiLitePkg.all;
-use work.AxiLiteMasterPkg.all;
 
 entity UartAxiLiteMaster is
 
@@ -32,6 +29,9 @@ entity UartAxiLiteMaster is
       TPD_G             : time                  := 1 ns;
       AXIL_CLK_FREQ_G   : real                  := 125.0e6;
       BAUD_RATE_G       : integer               := 115200;
+      STOP_BITS_G       : integer range 1 to 2  := 1;
+      PARITY_G          : string                := "NONE";  -- "NONE" "ODD" "EVEN"
+      DATA_WIDTH_G      : integer range 5 to 8  := 8;
       FIFO_BRAM_EN_G    : boolean               := false;
       FIFO_ADDR_WIDTH_G : integer range 4 to 48 := 5);
    port (
@@ -64,7 +64,7 @@ architecture rtl of UartAxiLiteMaster is
    type RegType is record
       state       : StateType;
       count       : slv(2 downto 0);
-      axilReq     : AxiLiteMasterReqType;
+      axilReq     : AxiLiteReqType;
       rdData      : slv(31 downto 0);
       uartTxData  : slv(7 downto 0);
       uartTxValid : sl;
@@ -74,7 +74,7 @@ architecture rtl of UartAxiLiteMaster is
    constant REG_INIT_C : RegType := (
       state       => WAIT_START_S,
       count       => (others => '0'),
-      axilReq     => AXI_LITE_MASTER_REQ_INIT_C,
+      axilReq     => AXI_LITE_REQ_INIT_C,
       rdData      => (others => '0'),
       uartTxData  => (others => '0'),
       uartTxValid => '0',
@@ -83,8 +83,8 @@ architecture rtl of UartAxiLiteMaster is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
---   signal axilReq : AxiLiteMasterReqType;
-   signal axilAck : AxiLiteMasterAckType;
+--   signal axilReq : AxiLiteReqType;
+   signal axilAck : AxiLiteAckType;
 
    signal uartRxData  : slv(7 downto 0);
    signal uartRxValid : sl;
@@ -119,6 +119,9 @@ begin
          TPD_G             => TPD_G,
          CLK_FREQ_G        => AXIL_CLK_FREQ_G,
          BAUD_RATE_G       => BAUD_RATE_G,
+         STOP_BITS_G       => STOP_BITS_G,
+         PARITY_G          => PARITY_G,
+         DATA_WIDTH_G      => DATA_WIDTH_G,
          FIFO_BRAM_EN_G    => FIFO_BRAM_EN_G,
          FIFO_ADDR_WIDTH_G => FIFO_ADDR_WIDTH_G)
       port map (

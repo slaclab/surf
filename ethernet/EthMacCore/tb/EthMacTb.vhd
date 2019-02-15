@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : EthMacTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-09-20
--- Last update: 2016-09-21
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the EthMac module
 -------------------------------------------------------------------------------

@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : ClinkData.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-11-13
 -------------------------------------------------------------------------------
 -- Description:
 -- CameraLink data de-serializer. 
@@ -27,8 +26,8 @@ use unisim.vcomponents.all;
 
 entity ClinkData is
    generic ( 
-      TPD_G    : time    := 1 ns;
-      INV_34_G : boolean := false);
+      TPD_G    : time    := 1 ns
+   );
    port (
       -- Cable Input
       cblHalfP   : inout slv(4 downto 0); --  8, 10, 11, 12,  9
@@ -82,15 +81,18 @@ architecture rtl of ClinkData is
    signal intData  : slv(27 downto 0);
    signal parClock : slv(6 downto 0);
 
+   --attribute MARK_DEBUG : string;
+   --attribute MARK_DEBUG of r        : signal is "TRUE";
+   --attribute MARK_DEBUG of parClock : signal is "TRUE";
+   --attribute MARK_DEBUG of intData  : signal is "TRUE";
+
 begin
 
    -------------------------------
    -- DeSerializer
    -------------------------------
    U_DataShift: entity work.ClinkDataShift
-      generic map ( 
-         TPD_G    => TPD_G,
-         INV_34_G => INV_34_G)
+      generic map ( TPD_G => TPD_G )
       port map (
          cblHalfP    => cblHalfP,
          cblHalfM    => cblHalfM,
@@ -158,12 +160,18 @@ begin
                   v.state := DONE_S;
 
                -- Check for clock change
-               elsif parClock /= r.lastClk then
+               elsif parClock /= r.lastClk and ( r.lastClk = "1100011" or
+                                                 r.lastClk = "1110001" or
+                                                 r.lastClk = "1111000" or
+                                                 r.lastClk = "0111100" or
+                                                 r.lastClk = "0011110" or
+                                                 r.lastClk = "0001111" or
+                                                 r.lastClk = "1000111" ) then
                   v.state := LOAD_C_S;
 
                -- Shift again
                else
-                  v.state := SHIFT_C_S;
+                  v.state := WAIT_C_S;
                end if;
             end if;
 

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : TenGigEthGtx7Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-03-30
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Gtx7 Wrapper for 10GBASE-R Ethernet
 -- Note: This module supports up to a MGT QUAD of 10GigE interfaces
@@ -22,12 +20,15 @@ use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.AxiLitePkg.all;
+use work.EthMacPkg.all;
 use work.TenGigEthPkg.all;
 
 entity TenGigEthGtx7Wrapper is
    generic (
       TPD_G             : time                             := 1 ns;
       NUM_LANE_G        : natural range 1 to 4             := 1;
+      PAUSE_EN_G        : boolean                          := true;
+      PAUSE_512BITS_G   : positive                         := 8;
       -- QUAD PLL Configurations
       USE_GTREFCLK_G    : boolean                          := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
       REFCLK_DIV2_G     : boolean                          := false;  --  FALSE: gtClkP/N = 156.25 MHz,  TRUE: gtClkP/N = 312.5 MHz
@@ -58,10 +59,16 @@ entity TenGigEthGtx7Wrapper is
       txFault             : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '0');
       txDisable           : out slv(NUM_LANE_G-1 downto 0);
       -- Misc. Signals
-      extRst              : in  sl;
+      extRst              : in  sl                                             := '0';
       phyClk              : out sl;
       phyRst              : out sl;
       phyReady            : out slv(NUM_LANE_G-1 downto 0);
+      -- Transceiver Debug Interface
+      gtTxPreCursor       : in  slv(4 downto 0)                                := "00000";
+      gtTxPostCursor      : in  slv(4 downto 0)                                := "00000";
+      gtTxDiffCtrl        : in  slv(3 downto 0)                                := "1110";
+      gtRxPolarity        : in  sl                                             := '0';
+      gtTxPolarity        : in  sl                                             := '0';
       -- MGT Clock Port (156.25 MHz or 312.5 MHz)
       gtRefClk            : in  sl                                             := '0';  -- 156.25 MHz only
       gtClkP              : in  sl                                             := '1';
@@ -71,7 +78,7 @@ entity TenGigEthGtx7Wrapper is
       gtTxP               : out slv(NUM_LANE_G-1 downto 0);
       gtTxN               : out slv(NUM_LANE_G-1 downto 0);
       gtRxP               : in  slv(NUM_LANE_G-1 downto 0);
-      gtRxN               : in  slv(NUM_LANE_G-1 downto 0));  
+      gtRxN               : in  slv(NUM_LANE_G-1 downto 0));
 end TenGigEthGtx7Wrapper;
 
 architecture mapping of TenGigEthGtx7Wrapper is
@@ -99,7 +106,7 @@ begin
          TPD_G             => TPD_G,
          USE_GTREFCLK_G    => USE_GTREFCLK_G,
          REFCLK_DIV2_G     => REFCLK_DIV2_G,
-         QPLL_REFCLK_SEL_G => QPLL_REFCLK_SEL_G)         
+         QPLL_REFCLK_SEL_G => QPLL_REFCLK_SEL_G)
       port map (
          -- Clocks and Resets
          extRst        => extRst,
@@ -114,7 +121,7 @@ begin
          qplllock      => qplllock,
          qplloutclk    => qplloutclk,
          qplloutrefclk => qplloutrefclk,
-         qpllRst       => qpllReset);        
+         qpllRst       => qpllReset);
 
    qpllReset <= uOr(qpllRst) and not(qPllLock);
 
@@ -123,14 +130,16 @@ begin
    ----------------
    GEN_LANE :
    for i in 0 to NUM_LANE_G-1 generate
-      
+
       TenGigEthGtx7_Inst : entity work.TenGigEthGtx7
          generic map (
-            TPD_G            => TPD_G,
+            TPD_G           => TPD_G,
+            PAUSE_EN_G      => PAUSE_EN_G,
+            PAUSE_512BITS_G => PAUSE_512BITS_G,
             -- AXI-Lite Configurations
-            EN_AXI_REG_G     => EN_AXI_REG_G,
+            EN_AXI_REG_G    => EN_AXI_REG_G,
             -- AXI Streaming Configurations
-            AXIS_CONFIG_G    => AXIS_CONFIG_G(i))       
+            AXIS_CONFIG_G   => AXIS_CONFIG_G(i))
          port map (
             -- Local Configurations
             localMac           => localMac(i),
@@ -157,6 +166,12 @@ begin
             phyClk             => phyClock,
             phyRst             => phyReset,
             phyReady           => phyReady(i),
+            -- Transceiver Debug Interface
+            gtTxPreCursor      => gtTxPreCursor,
+            gtTxPostCursor     => gtTxPostCursor,
+            gtTxDiffCtrl       => gtTxDiffCtrl,
+            gtRxPolarity       => gtRxPolarity,
+            gtTxPolarity       => gtTxPolarity,
             -- Quad PLL Ports
             qplllock           => qplllock,
             qplloutclk         => qplloutclk,
@@ -165,7 +180,7 @@ begin
             gtTxP              => gtTxP(i),
             gtTxN              => gtTxN(i),
             gtRxP              => gtRxP(i),
-            gtRxN              => gtRxN(i));  
+            gtRxN              => gtRxN(i));
 
    end generate GEN_LANE;
 

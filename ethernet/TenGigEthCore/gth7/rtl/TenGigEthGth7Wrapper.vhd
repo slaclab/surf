@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : TenGigEthGth7Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-03-30
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Gth7 Wrapper for 10GBASE-R Ethernet
 -- Note: This module supports up to a MGT QUAD of 10GigE interfaces
@@ -22,12 +20,15 @@ use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.AxiLitePkg.all;
+use work.EthMacPkg.all;
 use work.TenGigEthPkg.all;
 
 entity TenGigEthGth7Wrapper is
    generic (
       TPD_G             : time                             := 1 ns;
       NUM_LANE_G        : natural range 1 to 4             := 1;
+      PAUSE_EN_G        : boolean                          := true;
+      PAUSE_512BITS_G   : positive                         := 8;
       -- QUAD PLL Configurations
       USE_GTREFCLK_G    : boolean                          := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
       REFCLK_DIV2_G     : boolean                          := false;  --  FALSE: gtClkP/N = 156.25 MHz,  TRUE: gtClkP/N = 312.5 MHz
@@ -70,7 +71,7 @@ entity TenGigEthGth7Wrapper is
       gtTxP               : out slv(NUM_LANE_G-1 downto 0);
       gtTxN               : out slv(NUM_LANE_G-1 downto 0);
       gtRxP               : in  slv(NUM_LANE_G-1 downto 0);
-      gtRxN               : in  slv(NUM_LANE_G-1 downto 0));  
+      gtRxN               : in  slv(NUM_LANE_G-1 downto 0));
 end TenGigEthGth7Wrapper;
 
 architecture mapping of TenGigEthGth7Wrapper is
@@ -98,7 +99,7 @@ begin
          TPD_G             => TPD_G,
          USE_GTREFCLK_G    => USE_GTREFCLK_G,
          REFCLK_DIV2_G     => REFCLK_DIV2_G,
-         QPLL_REFCLK_SEL_G => QPLL_REFCLK_SEL_G)         
+         QPLL_REFCLK_SEL_G => QPLL_REFCLK_SEL_G)
       port map (
          -- Clocks and Resets
          extRst        => extRst,
@@ -112,7 +113,7 @@ begin
          qplllock      => qplllock,
          qplloutclk    => qplloutclk,
          qplloutrefclk => qplloutrefclk,
-         qpllRst       => qpllReset);        
+         qpllRst       => qpllReset);
 
    qpllReset <= uOr(qpllRst) and not(qPllLock);
 
@@ -121,14 +122,16 @@ begin
    ----------------
    GEN_LANE :
    for i in 0 to NUM_LANE_G-1 generate
-      
+
       TenGigEthGth7_Inst : entity work.TenGigEthGth7
          generic map (
-            TPD_G            => TPD_G,
+            TPD_G           => TPD_G,
+            PAUSE_EN_G      => PAUSE_EN_G,
+            PAUSE_512BITS_G => PAUSE_512BITS_G,
             -- AXI-Lite Configurations
-            EN_AXI_REG_G     => EN_AXI_REG_G,
+            EN_AXI_REG_G    => EN_AXI_REG_G,
             -- AXI Streaming Configurations
-            AXIS_CONFIG_G    => AXIS_CONFIG_G(i))       
+            AXIS_CONFIG_G   => AXIS_CONFIG_G(i))
          port map (
             -- Local Configurations
             localMac           => localMac(i),
@@ -163,7 +166,7 @@ begin
             gtTxP              => gtTxP(i),
             gtTxN              => gtTxN(i),
             gtRxP              => gtRxP(i),
-            gtRxN              => gtRxN(i));  
+            gtRxN              => gtRxN(i));
 
    end generate GEN_LANE;
 

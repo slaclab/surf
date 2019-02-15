@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : XauiReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-07
--- Last update: 2018-01-22
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite XAUI Register Interface
 -------------------------------------------------------------------------------
@@ -22,6 +20,7 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
+use work.EthMacPkg.all;
 use work.XauiPkg.all;
 
 entity XauiReg is

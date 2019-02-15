@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : PwrUpRst.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-07-30
--- Last update: 2013-12-05
 -------------------------------------------------------------------------------
 -- Description: Synchronizes a reset signal and holds it for a parametrized
 -- number of cycles.

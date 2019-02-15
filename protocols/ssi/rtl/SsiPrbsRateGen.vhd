@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SsiPrbsRateGen.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-04-28
 -------------------------------------------------------------------------------
 -- Description:   
 -------------------------------------------------------------------------------
@@ -172,12 +171,9 @@ begin
       axiSlaveRegisterR(axilEp, x"014", 0, frameRate);
       axiSlaveRegisterR(axilEp, x"018", 0, frameRateMax);
       axiSlaveRegisterR(axilEp, x"01C", 0, frameRateMin);
-      axiSlaveRegisterR(axilEp, x"020", 0, bandwidth(31 downto 0));
-      axiSlaveRegisterR(axilEp, x"024", 0, bandwidth(63 downto 32));
-      axiSlaveRegisterR(axilEp, x"028", 0, bandwidthMax(31 downto 0));
-      axiSlaveRegisterR(axilEp, x"02C", 0, bandwidthMax(63 downto 32));
-      axiSlaveRegisterR(axilEp, x"030", 0, bandwidthMin(31 downto 0));
-      axiSlaveRegisterR(axilEp, x"034", 0, bandwidthMin(63 downto 32));
+      axiSlaveRegisterR(axilEp, x"020", 0, bandwidth);
+      axiSlaveRegisterR(axilEp, x"028", 0, bandwidthMax);
+      axiSlaveRegisterR(axilEp, x"030", 0, bandwidthMin);
 
       axiSlaveRegisterR(axilEp, x"040", 0, r.frameCount);
 

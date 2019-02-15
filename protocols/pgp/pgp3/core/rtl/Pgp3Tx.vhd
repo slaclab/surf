@@ -2,19 +2,18 @@
 -- Title      : Pgp3 Transmit
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-03-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
--- This file is part of SURF. It is subject to
--- the license terms in the LICENSE.txt file found in the top-level directory
--- of this distribution and at:
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
--- No part of SURF, including this file, may be
--- copied, modified, propagated, or distributed except according to the terms
--- contained in the LICENSE.txt file.
+-- This file is part of 'SLAC Firmware Standard Library'.
+-- It is subject to the license terms in the LICENSE.txt file found in the 
+-- top-level directory of this distribution and at: 
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
+-- may be copied, modified, propagated, or distributed except according to 
+-- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -34,8 +33,6 @@ entity Pgp3Tx is
       -- PGP configuration
       NUM_VC_G                 : integer range 1 to 16 := 1;
       CELL_WORDS_MAX_G         : integer               := 256;  -- Number of 64-bit words per cell
-      SKP_INTERVAL_G           : integer               := 5000;
-      SKP_BURST_SIZE_G         : integer               := 8;
       -- Mux configuration
       MUX_MODE_G               : string                := "INDEXED";  -- Or "ROUTED"
       MUX_TDEST_ROUTES_G       : Slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
@@ -46,7 +43,7 @@ entity Pgp3Tx is
       -- Transmit interface
       pgpTxClk     : in  sl;
       pgpTxRst     : in  sl;
-      pgpTxIn      : in  Pgp3TxInType;
+      pgpTxIn      : in  Pgp3TxInType := PGP3_TX_IN_INIT_C;
       pgpTxOut     : out Pgp3TxOutType;
       pgpTxMasters : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
       pgpTxSlaves  : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
@@ -60,8 +57,8 @@ entity Pgp3Tx is
       -- PHY interface
       phyTxActive   : in  sl;
       phyTxReady    : in  sl;
+      phyTxValid    : out sl;
       phyTxStart    : out sl;
-      phyTxSequence : out slv(5 downto 0);
       phyTxData     : out slv(63 downto 0);
       phyTxHeader   : out slv(1 downto 0));
 
@@ -83,9 +80,9 @@ architecture rtl of Pgp3Tx is
    signal packetizedTxMaster : AxiStreamMasterType;
    signal packetizedTxSlave  : AxiStreamSlaveType;
 
+   signal phyTxActiveL   : sl;
    signal protTxValid    : sl;
    signal protTxReady    : sl;
-   signal protTxSequence : slv(5 downto 0);
    signal protTxStart    : sl;
    signal protTxData     : slv(63 downto 0);
    signal protTxHeader   : slv(1 downto 0);
@@ -125,17 +122,22 @@ begin
          dataIn  => locRxLinkReady,                        -- [in]
          dataOut => syncLocRxLinkReady);                   -- [out]
    LOC_STATUS_SYNC : for i in NUM_VC_G-1 downto 0 generate
-      U_SynchronizerVector_1 : entity work.SynchronizerVector
+      U_Synchronizer_pause : entity work.Synchronizer
          generic map (
-            TPD_G   => TPD_G,
-            WIDTH_G => 2)
+            TPD_G => TPD_G)
          port map (
-            clk        => pgpTxClk,                        -- [in]
-            rst        => pgpTxRst,                        -- [in]
-            dataIn(0)  => locRxFifoCtrl(i).pause,          -- [in]
-            dataIn(1)  => locRxFifoCtrl(i).overflow,       -- [in]
-            dataOut(0) => syncLocRxFifoCtrl(i).pause,      -- [out]
-            dataOut(1) => syncLocRxFifoCtrl(i).overflow);  -- [out]
+            clk     => pgpTxClk,                              -- [in]
+            rst     => pgpTxRst,                              -- [in]
+            dataIn  => locRxFifoCtrl(i).pause,                -- [in]
+            dataOut => syncLocRxFifoCtrl(i).pause);           -- [out] 
+      U_Synchronizer_overflow : entity work.SynchronizerOneShot
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk     => pgpTxClk,                              -- [in]
+            rst     => pgpTxRst,                              -- [in]
+            dataIn  => locRxFifoCtrl(i).overflow,             -- [in]
+            dataOut => syncLocRxFifoCtrl(i).overflow);        -- [out]
    end generate;
 
    -- Use synchronized remote status to disable channels from mux selection
@@ -148,7 +150,7 @@ begin
          elsif (pgpTxIn.flowCntlDis = '1') then
             disableSel(i) <= '0';
          else
-            disableSel(i) <= syncRemRxFifoCtrl(i).pause or syncRemRxFifoCtrl(i).overflow;
+            disableSel(i) <= syncRemRxFifoCtrl(i).pause;
          end if;
       end loop;
    end process;
@@ -200,9 +202,7 @@ begin
    U_Pgp3TxProtocol_1 : entity work.Pgp3TxProtocol
       generic map (
          TPD_G            => TPD_G,
-         NUM_VC_G         => NUM_VC_G,
-         SKP_INTERVAL_G   => SKP_INTERVAL_G,
-         SKP_BURST_SIZE_G => SKP_BURST_SIZE_G)
+         NUM_VC_G         => NUM_VC_G)
       port map (
          pgpTxClk       => pgpTxClk,            -- [in]
          pgpTxRst       => pgpTxRst,            -- [in]
@@ -217,7 +217,6 @@ begin
          protTxReady    => protTxReady,         -- [in]
          protTxValid    => protTxValid,         -- [out]
          protTxStart    => protTxStart,         -- [out]
-         protTxSequence => protTxSequence,      -- [out]
          protTxData     => protTxData,          -- [out]
          protTxHeader   => protTxHeader);       -- [out]
 
@@ -227,21 +226,24 @@ begin
          TPD_G            => TPD_G,
          DIRECTION_G      => "SCRAMBLER",
          DATA_WIDTH_G     => 64,
-         SIDEBAND_WIDTH_G => 9,
+         SIDEBAND_WIDTH_G => 3,
          TAPS_G           => PGP3_SCRAMBLER_TAPS_C)
       port map (
          clk                        => pgpTxClk,        -- [in]
-         rst                        => pgpTxRst,        -- [in]
+         rst                        => phyTxActiveL,    -- [in]
+         -- Input Interface
          inputValid                 => protTxValid,     -- [in]
          inputReady                 => protTxReady,     -- [out]
          inputData                  => protTxData,      -- [in]
          inputSideband(1 downto 0)  => protTxHeader,    -- [in]
          inputSideband(2)           => protTxStart,     -- [in]
-         inputSideband(8 downto 3)  => protTxSequence,  -- [in]
+         -- Output Interface
+         outputValid                => phyTxValid,      -- [out]
          outputReady                => phyTxReady,      -- [in]
          outputData                 => phyTxData,       -- [out]
          outputSideband(1 downto 0) => phyTxHeader,     -- [out]
-         outputSideband(2)          => phyTxStart,      -- [out]
-         outputSideband(8 downto 3) => phyTxSequence);  -- [out]
+         outputSideband(2)          => phyTxStart);     -- [out]
+
+   phyTxActiveL <= not(phyTxActive);
 
 end architecture rtl;

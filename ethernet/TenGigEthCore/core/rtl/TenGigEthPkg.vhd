@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : TenGigEthPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-02-12
--- Last update: 2015-04-07
 -------------------------------------------------------------------------------
 -- Description: 10GbE Package Files
 -------------------------------------------------------------------------------
@@ -22,9 +20,6 @@ use work.StdRtlPkg.all;
 use work.EthMacPkg.all;
 
 package TenGigEthPkg is
-
-   -- Default MAC is 01:03:00:56:44:00
-   constant MAC_ADDR_INIT_C : slv(47 downto 0) := EMAC_ADDR_INIT_C;
 
    type TenGigEthConfig is record
       softRst      : sl;
