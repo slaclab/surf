@@ -24,7 +24,7 @@ use work.AxiLitePkg.all;
 entity RogueTcpMemoryWrap is 
    generic (
       TPD_G      : time                     := 1 ns;
-      PORT_NUM_G : integer range 0 to 65535 := 1
+      PORT_NUM_G : natural range 0 to 65535 := 1
    );
    port (
       axiClk         : in    sl;
