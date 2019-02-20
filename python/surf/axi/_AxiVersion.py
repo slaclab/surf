@@ -84,7 +84,7 @@ class AxiVersion(pr.Device):
             name         = 'UpTime',
             description  = 'Time since power up or last firmware reload',
             mode         = 'RO',
-            dependencies = [self.UpTimeCnt],
+            variable     = self.UpTimeCnt,
             linkedGet    = lambda read: str(datetime.timedelta(seconds=self.UpTimeCnt.get(read))),
             units        = 'HH:MM:SS',
         ))
@@ -191,7 +191,7 @@ class AxiVersion(pr.Device):
         self.add(pr.LinkVariable(
             name         = 'GitHashShort',
             mode         = 'RO',
-            dependencies = [self.GitHash],
+            variable     = self.GitHash,
             disp         = '{:07x}',
             linkedGet    = lambda read: self.GitHash.get(read) >> 132,
         ))
