@@ -75,8 +75,7 @@ architecture rtl of AxiVersion is
       upTimeCnt      : slv(31 downto 0);
       timer          : natural range 0 to TIMEOUT_1HZ_C;
       scratchPad     : slv(31 downto 0);
-      counter        : natural range 0 to AUTO_RELOAD_TIME_G;
-      counterRst     : sl;
+      reloadTimer    : natural range 0 to AUTO_RELOAD_TIME_G;
       userReset      : sl;
       fpgaReload     : sl;
       haltReload     : sl;
@@ -89,8 +88,7 @@ architecture rtl of AxiVersion is
       upTimeCnt      => (others => '0'),
       timer          => 0,
       scratchPad     => (others => '0'),
-      counter        => 0,
-      counterRst     => '0',
+      reloadTimer    => 0,
       userReset      => '0',
       fpgaReload     => '0',
       haltReload     => '0',
@@ -208,12 +206,12 @@ begin
          -- First Stage Boot Loader (FSBL)
          ---------------------------------
          -- Check if timer enabled
-         if (fpgaEnReload = '1') and (r.counter /= AUTO_RELOAD_TIME_G) then
-            v.counter := r.counter + 1;
+         if (fpgaEnReload = '1') and (r.reloadTimer /= AUTO_RELOAD_TIME_G) then
+            v.reloadTimer := r.reloadTimer + 1;
          end if;
 
          -- Check for reload condition
-         if AUTO_RELOAD_EN_G and (r.counter = AUTO_RELOAD_TIME_G) and (fpgaEnReload = '1') and (r.haltReload = '0') then
+         if AUTO_RELOAD_EN_G and (r.reloadTimer = AUTO_RELOAD_TIME_G) and (fpgaEnReload = '1') and (r.haltReload = '0') then
             v.fpgaReload := '1';
          end if;
 
