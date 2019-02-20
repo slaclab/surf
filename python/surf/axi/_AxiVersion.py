@@ -84,6 +84,7 @@ class AxiVersion(pr.Device):
             name         = 'UpTime',
             description  = 'Time since power up or last firmware reload',
             mode         = 'RO',
+            disp         = '{}',
             variable     = self.UpTimeCnt,
             linkedGet    = lambda read: str(datetime.timedelta(seconds=self.UpTimeCnt.get(read))),
             units        = 'HH:MM:SS',
