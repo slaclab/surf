@@ -28,9 +28,9 @@ use unisim.vcomponents.all;
 
 entity RoguePgp3Sim is
    generic (
-      TPD_G     : time                   := 1 ns;
-      USER_ID_G : integer range 0 to 100 := 1;
-      NUM_VC_G  : integer range 1 to 16  := 4);
+      TPD_G      : time                     := 1 ns;
+      PORT_NUM_G : natural range 0 to 65535 := 1;
+      NUM_VC_G   : integer range 1 to 16    := 4);
    port (
       -- GT Ports
       pgpRefClk       : in  sl;
@@ -91,11 +91,12 @@ begin
          rstOut => rst);
 
    GEN_VEC : for i in NUM_VC_G-1 downto 0 generate
-      U_PGP_VC : entity work.RogueStreamSimWrap
+      U_PGP_VC : entity work.RogueTcpStreamWrap
          generic map (
             TPD_G               => TPD_G,
-            DEST_ID_G           => i,
-            USER_ID_G           => USER_ID_G,
+            PORT_NUM_G          => (PORT_NUM_G + i*2),
+            SSI_EN_G            => true,
+            CHAN_COUNT_G        => 1,
             COMMON_MASTER_CLK_G => true,
             COMMON_SLAVE_CLK_G  => true,
             AXIS_CONFIG_G       => PGP3_AXIS_CONFIG_C)

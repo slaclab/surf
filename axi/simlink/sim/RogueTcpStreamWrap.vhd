@@ -23,9 +23,9 @@ use work.AxiStreamPkg.all;
 entity RogueTcpStreamWrap is
    generic (
       TPD_G               : time                     := 1 ns;
-      PORT_NUM_G          : integer range 0 to 65535 := 1;
+      PORT_NUM_G          : natural range 0 to 65535 := 1;
       SSI_EN_G            : boolean                  := true;
-      CHAN_COUNT_G        : integer range 1 to 32    := 1;
+      CHAN_COUNT_G        : positive range 1 to 256  := 1;
       COMMON_MASTER_CLK_G : boolean                  := false;
       COMMON_SLAVE_CLK_G  : boolean                  := false;
       AXIS_CONFIG_G       : AxiStreamConfigType      := AXI_STREAM_CONFIG_INIT_C
@@ -74,6 +74,9 @@ architecture RogueTcpStreamWrap of RogueTcpStreamWrap is
    signal mxSlaves  : AxiStreamSlaveArray(CHAN_COUNT_G-1 downto 0);
 
 begin
+
+   assert (PORT_NUM_G + 2*(CHAN_COUNT_G-1) <= 65535)
+      report "PORT_NUM_G + 2*(CHAN_COUNT_G-1) must less than or equal to 65535" severity failure;
 
    ------------------------------------
    -- Inbound Demux
