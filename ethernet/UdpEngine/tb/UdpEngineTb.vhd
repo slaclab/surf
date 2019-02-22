@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : EthMacTb.vhd
+-- File       : UdpEngineTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the EthMac module
@@ -26,10 +26,10 @@ use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
 use work.EthMacPkg.all;
 
-entity EthMacTb is
-end EthMacTb;
+entity UdpEngineTb is
+end UdpEngineTb;
 
-architecture testbed of EthMacTb is
+architecture testbed of UdpEngineTb is
 
    constant CLK_PERIOD_C : time := 6.4 ns;
    constant TPD_G        : time := (CLK_PERIOD_C/4);
