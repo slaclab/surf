@@ -34,37 +34,67 @@ architecture testbed of EthMacTb is
    constant CLK_PERIOD_C : time := 6.4 ns;
    constant TPD_G        : time := (CLK_PERIOD_C/4);
 
-   constant MAC_ADDR_C : Slv48Array(1 downto 0) := (0 => x"010300564400", 1 => x"020300564400");
-   constant IP_ADDR_C  : Slv32Array(1 downto 0) := (0 => x"0A02A8C0", 1 => x"0B02A8C0");
+   constant MAC_ADDR_C : Slv48Array(1 downto 0) := (
+      0 => x"010300564400",             --00:44:56:00:03:01
+      1 => x"020300564400");            --00:44:56:00:03:02
 
-   signal clk          : sl                            := '0';
-   signal rst          : sl                            := '0';
-   signal txMaster     : AxiStreamMasterType;
-   signal txSlave      : AxiStreamSlaveType;
-   signal obMacMasters : AxiStreamMasterArray(1 downto 0);
-   signal obMacSlaves  : AxiStreamSlaveArray(1 downto 0);
-   signal ibMacMasters : AxiStreamMasterArray(1 downto 0);
-   signal ibMacSlaves  : AxiStreamSlaveArray(1 downto 0);
-   signal ethConfig    : EthMacConfigArray(1 downto 0) := (others => ETH_MAC_CONFIG_INIT_C);
-   signal phyD         : Slv64Array(1 downto 0);
-   signal phyC         : Slv8Array(1 downto 0);
-   signal rxMaster     : AxiStreamMasterType;
-   signal rxSlave      : AxiStreamSlaveType;
-   signal phyReady     : sl;
-   signal errorDet     : sl;
+   constant IP_ADDR_C : Slv32Array(1 downto 0) := (
+      0 => x"0A02A8C0",                 -- 192.168.2.10
+      1 => x"0B02A8C0");                -- 192.168.2.11
+
+   type RegType is record
+      packetLength : slv(31 downto 0);
+      trig         : sl;
+      txBusy       : sl;
+      errorDet     : sl;
+   end record RegType;
+
+   constant REG_INIT_C : RegType := (
+      packetLength => toSlv(0, 32),
+      trig         => '0',
+      txBusy       => '0',
+      errorDet     => '0');
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
+
+   signal clk : sl := '0';
+   signal rst : sl := '0';
+
+   signal txMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal txSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+
+   signal obMacMasters : AxiStreamMasterArray(1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal obMacSlaves  : AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
+
+   signal ibMacMasters : AxiStreamMasterArray(1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal ibMacSlaves  : AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
+
+   signal ethConfig : EthMacConfigArray(1 downto 0) := (others => ETH_MAC_CONFIG_INIT_C);
+   signal phyD      : Slv64Array(1 downto 0)        := (others => (others => '0'));
+   signal phyC      : Slv8Array(1 downto 0)         := (others => (others => '0'));
+
+   signal rxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal rxSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+
+   signal phyReady       : sl;
+   signal updatedResults : sl;
+   signal errorDet       : sl;
+   signal rxBusy         : sl;
+   signal txBusy         : sl;
 
 begin
 
    ClkRst_Inst : entity work.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
-         RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
-         RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long)
+         RST_START_DELAY_G => 0 ns,
+         RST_HOLD_TIME_G   => 1000 ns)
       port map (
          clkP => clk,
          clkN => open,
          rst  => rst,
-         rstL => phyReady);     
+         rstL => phyReady);
 
    ----------
    -- PRBS TX
@@ -72,38 +102,41 @@ begin
    U_TX : entity work.SsiPrbsTx
       generic map (
          TPD_G                      => TPD_G,
-         CASCADE_SIZE_G             => 1,
-         FIFO_ADDR_WIDTH_G          => 9,
-         FIFO_PAUSE_THRESH_G        => 2**8,
-         PRBS_SEED_SIZE_G           => 32,
-         PRBS_TAPS_G                => (0 => 31, 1 => 6, 2 => 2, 3 => 1),
-         MASTER_AXI_STREAM_CONFIG_G => EMAC_AXIS_CONFIG_C,
-         MASTER_AXI_PIPE_STAGES_G   => 1)
+         AXI_EN_G                   => '0',
+         MASTER_AXI_STREAM_CONFIG_G => EMAC_AXIS_CONFIG_C)
       port map (
+         -- Master Port (mAxisClk)
          mAxisClk     => clk,
          mAxisRst     => rst,
          mAxisMaster  => txMaster,
          mAxisSlave   => txSlave,
+         -- Trigger Signal (locClk domain)
          locClk       => clk,
          locRst       => rst,
-         trig         => '1',
-         packetLength => X"000000ff");    
+         packetLength => r.packetLength,
+         trig         => r.trig,
+         busy         => txBusy);
 
    ----------------------
    -- IPv4/ARP/UDP Engine
    ----------------------
    U_UDP_Client : entity work.UdpEngineWrapper
       generic map (
+         -- Simulation Generics
          TPD_G               => TPD_G,
+         -- UDP Server Generics
          SERVER_EN_G         => false,
+         -- UDP Client Generics
          CLIENT_EN_G         => true,
+         CLIENT_SIZE_G       => 1,
+         CLIENT_PORTS_G      => (0 => 8193),
          CLIENT_EXT_CONFIG_G => true)
       port map (
          -- Local Configurations
          localMac            => MAC_ADDR_C(0),
          localIp             => IP_ADDR_C(0),
          -- Remote Configurations
-         clientRemotePort(0) => x"0020",  -- 0x2000
+         clientRemotePort(0) => x"0020",  -- PORT = 8192 = 0x2000 (0x0020 in big endianness)
          clientRemoteIp(0)   => IP_ADDR_C(1),
          -- Interface to Ethernet Media Access Controller (MAC)
          obMacMaster         => obMacMasters(0),
@@ -117,7 +150,7 @@ begin
          ibClientSlaves(0)   => txSlave,
          -- Clock and Reset
          clk                 => clk,
-         rst                 => rst);     
+         rst                 => rst);
 
    --------------------
    -- Ethernet MAC core
@@ -131,10 +164,10 @@ begin
          -- DMA Interface 
          primClk         => clk,
          primRst         => rst,
-         ibMacPrimMaster => obMacMasters(0),
-         ibMacPrimSlave  => obMacSlaves(0),
-         obMacPrimMaster => ibMacMasters(0),
-         obMacPrimSlave  => ibMacSlaves(0),
+         ibMacPrimMaster => ibMacMasters(0),
+         ibMacPrimSlave  => ibMacSlaves(0),
+         obMacPrimMaster => obMacMasters(0),
+         obMacPrimSlave  => obMacSlaves(0),
          -- Ethernet Interface
          ethClk          => clk,
          ethRst          => rst,
@@ -144,7 +177,7 @@ begin
          xgmiiRxd        => phyD(0),
          xgmiiRxc        => phyC(0),
          xgmiiTxd        => phyD(1),
-         xgmiiTxc        => phyC(1));  
+         xgmiiTxc        => phyC(1));
    ethConfig(0).macAddress <= MAC_ADDR_C(0);
 
    U_MAC1 : entity work.EthMacTop
@@ -156,10 +189,10 @@ begin
          -- DMA Interface 
          primClk         => clk,
          primRst         => rst,
-         ibMacPrimMaster => obMacMasters(1),
-         ibMacPrimSlave  => obMacSlaves(1),
-         obMacPrimMaster => ibMacMasters(1),
-         obMacPrimSlave  => ibMacSlaves(1),
+         ibMacPrimMaster => ibMacMasters(1),
+         ibMacPrimSlave  => ibMacSlaves(1),
+         obMacPrimMaster => obMacMasters(1),
+         obMacPrimSlave  => obMacSlaves(1),
          -- Ethernet Interface
          ethClk          => clk,
          ethRst          => rst,
@@ -169,7 +202,7 @@ begin
          xgmiiRxd        => phyD(1),
          xgmiiRxc        => phyC(1),
          xgmiiTxd        => phyD(0),
-         xgmiiTxc        => phyC(0));  
+         xgmiiTxc        => phyC(0));
    ethConfig(1).macAddress <= MAC_ADDR_C(1);
 
    ----------------------
@@ -177,9 +210,14 @@ begin
    ----------------------
    U_UDP_Server : entity work.UdpEngineWrapper
       generic map (
-         TPD_G       => TPD_G,
-         SERVER_EN_G => true,
-         CLIENT_EN_G => false)
+         -- Simulation Generics
+         TPD_G          => TPD_G,
+         -- UDP Server Generics
+         SERVER_EN_G    => true,
+         SERVER_SIZE_G  => 1,
+         SERVER_PORTS_G => (0 => 8192),
+         -- UDP Client Generics
+         CLIENT_EN_G    => false)
       port map (
          -- Local Configurations
          localMac           => MAC_ADDR_C(1),
@@ -196,7 +234,7 @@ begin
          ibServerSlaves     => open,
          -- Clock and Reset
          clk                => clk,
-         rst                => rst);  
+         rst                => rst);
 
    ----------
    -- PRBS RX
@@ -204,30 +242,63 @@ begin
    U_RX : entity work.SsiPrbsRx
       generic map (
          TPD_G                     => TPD_G,
-         CASCADE_SIZE_G            => 1,
-         FIFO_ADDR_WIDTH_G         => 9,
-         FIFO_PAUSE_THRESH_G       => 2**8,
-         PRBS_SEED_SIZE_G          => 32,
-         PRBS_TAPS_G               => (0 => 31, 1 => 6, 2 => 2, 3 => 1),
-         SLAVE_AXI_STREAM_CONFIG_G => EMAC_AXIS_CONFIG_C,
-         SLAVE_AXI_PIPE_STAGES_G   => 0)
+         SLAVE_AXI_STREAM_CONFIG_G => EMAC_AXIS_CONFIG_C)
       port map (
-         errorDet    => errorDet,
-         sAxisClk    => clk,
-         sAxisRst    => rst,
-         sAxisMaster => rxMaster,
-         sAxisSlave  => rxSlave,
-         mAxisClk    => clk,
-         mAxisRst    => rst,
-         axiClk      => clk,
-         axiRst      => rst);      
+         -- Slave Port (sAxisClk)
+         sAxisClk       => clk,
+         sAxisRst       => rst,
+         sAxisMaster    => rxMaster,
+         sAxisSlave     => rxSlave,
+         -- Error Detection Signals (sAxisClk domain)
+         updatedResults => updatedResults,
+         errorDet       => errorDet,
+         busy           => rxBusy);
 
-   process(errorDet)
+   comb : process (errorDet, r, rst, txBusy) is
+      variable v : RegType;
    begin
-      if errorDet = '1' then
+      -- Latch the current value   
+      v := r;
+
+      -- Keep delay copies
+      v.errorDet := errorDet;
+      v.txBusy   := txBusy;
+      v.trig     := not(r.txBusy);
+
+      -- Check for the packet completion 
+      if (txBusy = '1') and (r.txBusy = '0') then
+         -- Sweeping the packet size size
+         v.packetLength := r.packetLength + 1;
+         -- Check for Jumbo frame roll over
+         if (r.packetLength = (8192/4)-1) then
+            -- Reset the counter
+            v.packetLength := (others => '0');
+         end if;
+      end if;
+
+      -- Reset      
+      if (rst = '1') then
+         v := REG_INIT_C;
+      end if;
+
+      ---------------------------------
+      -- Simulation Error Self-checking
+      ---------------------------------
+      if r.errorDet = '1' then
          assert false
             report "Simulation Failed!" severity failure;
       end if;
-   end process;         
+
+      -- Register the variable for next clock cycle      
+      rin <= v;
+
+   end process comb;
+
+   seq : process (clk) is
+   begin
+      if (rising_edge(clk)) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;
 
 end testbed;
