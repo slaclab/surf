@@ -220,6 +220,14 @@ begin
          mAxisClk    => clk,
          mAxisRst    => rst,
          axiClk      => clk,
-         axiRst      => rst);           
+         axiRst      => rst);      
+
+   process(errorDet)
+   begin
+      if errorDet = '1' then
+         assert false
+            report "Simulation Failed!" severity failure;
+      end if;
+   end process;         
 
 end testbed;
