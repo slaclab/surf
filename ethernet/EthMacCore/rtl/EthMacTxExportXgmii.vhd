@@ -200,15 +200,15 @@ begin
 
             -- Inter frame gap
             if stateCountRst = '1' then
-               stateCount <= (others => '0');
+               stateCount <= (others => '0') after TPD_G;
             else
-               stateCount <= stateCount + 1;
+               stateCount <= stateCount + 1 after TPD_G;
             end if;
 
             if stateCountRst = '1' then
-               exportWordCnt <= (others => '0');
+               exportWordCnt <= (others => '0') after TPD_G;
             elsif intAdvance = '1' and intRunt = '1' then
-               exportWordCnt <= exportWordCnt + 1;
+               exportWordCnt <= exportWordCnt + 1 after TPD_G;
             end if;
             
          end if;
@@ -217,12 +217,24 @@ begin
 
    -- Pad runt frames
    intRunt          <= not exportWordCnt(3);
-   intLastValidByte <= "111" when curState = ST_PAD_C else onesCount(macMaster.tKeep(7 downto 1));
-
+   process (curState, intLastLine, macMaster)
+   begin
+      if (curState = ST_PAD_C) then
+         if intLastLine = '0' then
+            intLastValidByte <= "111";
+         else
+            -- "work around" for a Xilinx IP core bug fix???
+            intLastValidByte <= "000";
+         end if;
+      else
+         intLastValidByte <= onesCount(macMaster.tKeep(7 downto 1));
+      end if;   
+   end process;   
+   
    -- State machine
    process (curState, ethRst, intError, intRunt, macMaster, phyReady, stateCount)
    begin
-
+      
       -- Init
       txCountEn      <= '0';
       txUnderRun     <= '0';
