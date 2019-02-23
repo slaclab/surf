@@ -36,8 +36,7 @@ architecture testbed of EthMacTb is
 
    constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(1);  -- 1 byte wide AXI stream interface
 
-   -- constant PRESET_SIZE_G : slv(7 downto 0) := toSlv(11, 8);
-   constant PRESET_SIZE_G : slv(7 downto 0) := toSlv(50, 8);
+   constant PRESET_SIZE_G : slv(7 downto 0) := toSlv(11, 8);  -- Present up to the SRC MAC + DST MAC
 
    type RegType is record
       txMaster    : AxiStreamMasterType;
@@ -46,7 +45,6 @@ architecture testbed of EthMacTb is
       rxSlave     : AxiStreamSlaveType;
       rxSize      : slv(7 downto 0);
       rxCnt       : slv(7 downto 0);
-      rxDly       : slv(7 downto 0);
       errorDet    : slv(7 downto 0);
       errorDetDly : sl;
    end record RegType;
@@ -58,7 +56,6 @@ architecture testbed of EthMacTb is
       rxSlave     => AXI_STREAM_SLAVE_INIT_C,
       rxSize      => PRESET_SIZE_G,
       rxCnt       => (others => '0'),
-      rxDly       => (PRESET_SIZE_G-1),
       errorDet    => (others => '0'),
       errorDetDly => '0');
 
@@ -75,6 +72,7 @@ architecture testbed of EthMacTb is
    signal rxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal rxSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
 
+   signal ethStatus : EthMacStatusType := ETH_MAC_STATUS_INIT_C;
    signal ethConfig : EthMacConfigType := ETH_MAC_CONFIG_INIT_C;
    signal phyD      : slv(63 downto 0) := (others => '0');
    signal phyC      : slv(7 downto 0)  := (others => '0');
@@ -116,10 +114,10 @@ begin
          ethConfig       => ethConfig,
          phyReady        => phyReady,
          -- XGMII PHY Interface
-         xgmiiRxd        => phyD,
-         xgmiiRxc        => phyC,
-         xgmiiTxd        => phyD,
-         xgmiiTxc        => phyC);
+         xgmiiRxd        => phyD,       -- Loopback
+         xgmiiRxc        => phyC,       -- Loopback
+         xgmiiTxd        => phyD,       -- Loopback
+         xgmiiTxc        => phyC);      -- Loopback
 
    -- For simplicity in error checking, local MAC is a counter sequence
    ethConfig.macAddress <= x"0B_0A_09_08_07_06";
@@ -189,10 +187,10 @@ begin
       v.rxSlave := AXI_STREAM_SLAVE_INIT_C;
 
       -- EthMacTxExportXgmii.vhd enforces a min. payload of 64 bytes
-      if (r.rxSize > 63) then
+      if (r.rxSize > 64) then
          rxEofIdx := r.rxSize;
       else
-         rxEofIdx := toSlv(63, 8);
+         rxEofIdx := toSlv(64, 8);
       end if;
 
       -- Check if ready to move data
@@ -218,20 +216,20 @@ begin
          -- Check if SOF error
          if (r.rxCnt = 0) and (ssiGetUserSof(AXIS_CONFIG_C, rxMaster) /= '1') then
             -- Set the error flag
-            v.errorDet(4) := '1';
+            v.errorDet(2) := '1';
          end if;
 
-         -- -- Check if EOF error
-         -- if ((r.rxCnt = rxEofIdx) and (rxMaster.tLast /= '1')) then
-            -- -- Set the error flag
-            -- v.errorDet(5) := '1';
-         -- end if;
+         -- Check if EOF error
+         if ((r.rxCnt = rxEofIdx) and (rxMaster.tLast /= '1')) then
+            -- Set the error flag
+            v.errorDet(3) := '1';
+         end if;
 
-         -- -- Check if EOF error
-         -- if ((r.rxCnt /= rxEofIdx) and (rxMaster.tLast = '1')) then
-            -- -- Set the error flag
-            -- v.errorDet(6) := '1';
-         -- end if;
+         -- Check if EOF error
+         if ((r.rxCnt /= rxEofIdx) and (rxMaster.tLast = '1')) then
+            -- Set the error flag
+            v.errorDet(3) := '1';
+         end if;
 
          -- Check if EOF event
          if (rxMaster.tLast = '1') then
@@ -247,21 +245,18 @@ begin
                v.rxSize := r.rxSize + 1;
             end if;
 
-            -- Update the delayed copy 
-            v.rxDly := r.rxSize;
-
-            -- Check for skipped count
-            if ((r.rxDly+1) /= r.rxSize) then
-               -- Set the error flag
-               v.errorDet(7) := '1';
-            end if;
-
          else
             -- Increment the counter
             v.rxCnt := r.rxCnt + 1;
          end if;
 
       end if;
+      
+      -- Set the error flags
+      v.errorDet(4) := ethStatus.rxFifoDropCnt;
+      v.errorDet(5) := ethStatus.rxOverFlow;
+      v.errorDet(6) := ethStatus.rxCrcErrorCnt;
+      v.errorDet(7) := ethStatus.txUnderRunCnt;
 
       -- Outputs
       rxSlave  <= v.rxSlave;
