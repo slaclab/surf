@@ -52,6 +52,8 @@ architecture rtl of AxiStreamBatcher is
 
    constant AXIS_WORD_SIZE_C : positive := AXIS_CONFIG_G.TDATA_BYTES_C;  -- Units of bytes
 
+   constant WIDTH_C : slv(3 downto 0) := toSlv(log2(AXIS_WORD_SIZE_C/2), 4);
+
    type StateType is (
       HEADER_S,
       SUB_FRAME_S,
@@ -74,7 +76,6 @@ architecture rtl of AxiStreamBatcher is
       tDest                      : slv(7 downto 0);
       tUserFirst                 : slv(7 downto 0);
       tUserLast                  : slv(7 downto 0);
-      lastByteCnt                : slv(7 downto 0);
       chunkCnt                   : natural range 0 to 3;
       rxSlave                    : AxiStreamSlaveType;
       txMaster                   : AxiStreamMasterType;
@@ -95,7 +96,6 @@ architecture rtl of AxiStreamBatcher is
       tDest                      => (others => '0'),
       tUserFirst                 => (others => '0'),
       tUserLast                  => (others => '0'),
-      lastByteCnt                => (others => '0'),
       chunkCnt                   => 1,
       rxSlave                    => AXI_STREAM_SLAVE_INIT_C,
       txMaster                   => AXI_STREAM_MASTER_INIT_C,
@@ -208,7 +208,7 @@ begin
                -- Send the super-frame header
                v.txMaster.tValid               := '1';
                v.txMaster.tData(3 downto 0)    := x"1";  -- Version = 0x1
-               v.txMaster.tData(7 downto 4)    := toSlv(log2(AXIS_WORD_SIZE_C/2), 4);
+               v.txMaster.tData(7 downto 4)    := WIDTH_C;
                v.txMaster.tData(15 downto 8)   := r.seqCnt;
                v.txMaster.tData(127 downto 16) := (others => '0');
                ssiSetUserSof(AXIS_CONFIG_G, v.txMaster, '1');
@@ -239,8 +239,6 @@ begin
                end if;
                -- Check for last transaction in sub-frame
                if (rxMaster.tLast = '1') then
-                  -- Get the number of valid bytes in the last transaction of the sub-frame
-                  v.lastByteCnt                                      := toSlv(getTKeep(rxMaster.tKeep, AXIS_CONFIG_G), 8);
                   -- Increment the sub-frame byte counter
                   v.subByteCnt                                       := r.subByteCnt + getTKeep(rxMaster.tKeep, AXIS_CONFIG_G);
                   -- Sample the meta data
@@ -265,7 +263,7 @@ begin
                v.txMaster.tData(39 downto 32) := r.tDest;
                v.txMaster.tData(47 downto 40) := r.tUserFirst;
                v.txMaster.tData(55 downto 48) := r.tUserLast;
-               v.txMaster.tData(63 downto 56) := r.lastByteCnt;
+               v.txMaster.tData(59 downto 56) := WIDTH_C;
                -- Reset the counter
                v.subByteCnt                   := (others => '0');
                -- Check the AXIS width
