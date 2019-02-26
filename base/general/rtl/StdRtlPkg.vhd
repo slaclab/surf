@@ -151,7 +151,6 @@ package StdRtlPkg is
   function StdMatch (L, R: unsigned) return boolean;
   function StdMatch (L, R: signed) return boolean;
   function StdMatch (L, R: slv) return boolean;
-  function StdMatch (L, R: std_ulogic_vector) return boolean;
    
    -- Some synthesis tools wont accept unit types
    -- pragma translate_off
@@ -1392,10 +1391,6 @@ package body StdRtlPkg is
       return std_match(L,R);
    end function StdMatch;  
 
-   function StdMatch (L, R: std_ulogic_vector) return boolean is
-   begin
-      return std_match(L,R);
-   end function StdMatch;  
   
    function toBuildInfo (din : slv) return BuildInfoRetType is
       variable ret : BuildInfoRetType;
