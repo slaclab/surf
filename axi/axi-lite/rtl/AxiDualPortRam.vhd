@@ -33,7 +33,8 @@ entity AxiDualPortRam is
       SYS_BYTE_WR_EN_G : boolean                    := false;
       COMMON_CLK_G     : boolean                    := false;
       ADDR_WIDTH_G     : integer range 1 to (2**24) := 5;
-      DATA_WIDTH_G     : integer                    := 32);
+      DATA_WIDTH_G     : integer                    := 32;
+      INIT_G           : slv                        := "0");
    port (
       -- Axi Port
       axiClk         : in  sl;
@@ -171,32 +172,99 @@ begin
    end generate;
 
    GEN_INFERRED : if (SYNTH_MODE_G = "inferred") generate
-      U_RAM : entity work.TrueDualPortRam
-         generic map (
-            TPD_G        => TPD_G,
-            BYTE_WR_EN_G => true,
-            DOA_REG_G    => ite(READ_LATENCY_G = 2, true, false),
-            DOB_REG_G    => ite(READ_LATENCY_G = 2, true, false),
-            DATA_WIDTH_G => DATA_WIDTH_G,
-            BYTE_WIDTH_G => 8,
-            ADDR_WIDTH_G => ADDR_WIDTH_G)
-         port map (
-            -- Port A  
-            clka    => axiClk,
-            ena     => '1',
-            weaByte => r.axiWrStrobe(ADDR_AXI_BYTES_C-1 downto 0),
-            rsta    => '0',
-            addra   => r.axiAddr,
-            dina    => axiWrDataFanout(DATA_WIDTH_G-1 downto 0),
-            douta   => axiDout(DATA_WIDTH_G-1 downto 0),
-            -- Port B
-            clkb    => clk,
-            enb     => en,
-            webByte => weByteMask,
-            rstb    => rst,
-            addrb   => addr,
-            dinb    => din,
-            doutb   => dout);
+   
+      -- AXI read only, sys writable or read only (rom)
+      AXI_R0_SYS_RW : if (not AXI_WR_EN_G and SYS_WR_EN_G) generate
+         DualPortRam_1 : entity work.DualPortRam
+            generic map (
+               TPD_G        => TPD_G,
+               BRAM_EN_G    => ite(MEMORY_TYPE_G = "block", true, false),
+               REG_EN_G     => ite(READ_LATENCY_G >= 1, true, false),
+               DOA_REG_G    => ite(READ_LATENCY_G = 2, true, false),
+               DOB_REG_G    => ite(READ_LATENCY_G = 2, true, false),
+               BYTE_WR_EN_G => SYS_BYTE_WR_EN_G,
+               DATA_WIDTH_G => DATA_WIDTH_G,
+               ADDR_WIDTH_G => ADDR_WIDTH_G,
+               INIT_G       => INIT_G)
+            port map (
+               clka    => clk,
+               ena     => en,
+               wea     => we,
+               weaByte => weByte,
+               rsta    => rst,
+               addra   => addr,
+               dina    => din,
+               douta   => dout,
+
+               clkb  => axiClk,
+               enb   => '1',
+               rstb  => '0',
+               addrb => r.axiAddr,
+               doutb => axiDout(DATA_WIDTH_G-1 downto 0));
+      end generate;
+
+      -- System Read only, Axi writable or read only (ROM)
+      -- Logic disables axi writes if AXI_WR_EN_G=false
+      AXI_RW_SYS_RO : if (not SYS_WR_EN_G) generate
+         DualPortRam_1 : entity work.DualPortRam
+            generic map (
+               TPD_G        => TPD_G,
+               BRAM_EN_G    => ite(MEMORY_TYPE_G = "block", true, false),
+               REG_EN_G     => ite(READ_LATENCY_G >= 1, true, false),
+               DOA_REG_G    => ite(READ_LATENCY_G = 2, true, false),
+               DOB_REG_G    => ite(READ_LATENCY_G = 2, true, false),
+               BYTE_WR_EN_G => true,
+               DATA_WIDTH_G => DATA_WIDTH_G,
+               BYTE_WIDTH_G => 8,
+               ADDR_WIDTH_G => ADDR_WIDTH_G,
+               INIT_G       => INIT_G)
+            port map (
+               clka    => axiClk,
+               ena     => '1',
+               weaByte => r.axiWrStrobe(ADDR_AXI_BYTES_C-1 downto 0),
+               rsta    => '0',
+               addra   => r.axiAddr,
+               dina    => axiWrDataFanout(DATA_WIDTH_G-1 downto 0),
+               douta   => axiDout(DATA_WIDTH_G-1 downto 0),
+               clkb    => clk,
+               enb     => en,
+               rstb    => rst,
+               addrb   => addr,
+               doutb   => dout);
+      end generate;
+
+      -- Both sides writable, true dual port ram
+      AXI_RW_SYS_RW : if (AXI_WR_EN_G and SYS_WR_EN_G) generate
+         U_TrueDualPortRam_1 : entity work.TrueDualPortRam
+            generic map (
+               TPD_G        => TPD_G,
+               BYTE_WR_EN_G => true,
+               DOA_REG_G    => ite(READ_LATENCY_G = 2, true, false),
+               DOB_REG_G    => ite(READ_LATENCY_G = 2, true, false),
+               DATA_WIDTH_G => DATA_WIDTH_G,
+               BYTE_WIDTH_G => 8,
+               ADDR_WIDTH_G => ADDR_WIDTH_G,
+               INIT_G       => INIT_G)
+            port map (
+               clka    => axiClk,                                    -- [in]
+               ena     => '1',                                       -- [in]
+               wea     => '1',
+               weaByte => r.axiWrStrobe(ADDR_AXI_BYTES_C-1 downto 0),
+               rsta    => '0',                                       -- [in]
+               addra   => r.axiAddr,                                 -- [in]
+               dina    => axiWrDataFanout(DATA_WIDTH_G-1 downto 0),  -- [in]
+               douta   => axiDout(DATA_WIDTH_G-1 downto 0),          -- [out]
+               clkb    => clk,                                       -- [in]
+               enb     => en,                                        -- [in]
+               web     => we,                                        -- [in]
+               webByte => weByte,                                    -- [in]
+               rstb    => rst,                                       -- [in]
+               addrb   => addr,                                      -- [in]
+               dinb    => din,                                       -- [in]
+               doutb   => dout);                                     -- [out]
+
+      end generate;   
+   
    end generate;
 
    weByteMask <= (others => '0') when(not SYS_WR_EN_G) else weByte when(SYS_BYTE_WR_EN_G) else (others => we);
