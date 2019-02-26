@@ -85,7 +85,7 @@ begin
          WRITE_DATA_WIDTH_A      => DATA_WIDTH_G,
          WRITE_DATA_WIDTH_B      => DATA_WIDTH_G,
          WRITE_MODE_A            => ite(READ_LATENCY_G = 0, "read_first", ite(MEMORY_TYPE_G="block","no_change","read_first")),  -- Default value = no_change
-         WRITE_MODE_B            => ite(READ_LATENCY_G = 0, "read_first", ite(MEMORY_TYPE_G="block","no_change","read_first")))  -- Default value = no_change
+         WRITE_MODE_B            => ite(READ_LATENCY_G = 0, "read_first", "no_change"))  -- Default value = no_change
       port map (
          -- Port A 
          clka           => clka,
