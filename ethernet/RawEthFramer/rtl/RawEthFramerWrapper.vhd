@@ -88,16 +88,13 @@ begin
    U_RemoteMacLut : entity work.AxiDualPortRam
       generic map (
          TPD_G            => TPD_G,
-         BRAM_EN_G        => true,
-         REG_EN_G         => false,
-         MODE_G           => "read-first",
+         READ_LATENCY_G   => 1,
          AXI_WR_EN_G      => true,
          SYS_WR_EN_G      => false,
          SYS_BYTE_WR_EN_G => false,
          COMMON_CLK_G     => true,
          ADDR_WIDTH_G     => 8,
-         DATA_WIDTH_G     => 48,
-         INIT_G           => "0")
+         DATA_WIDTH_G     => 48)
       port map (
          -- AXI-Lite Interface
          axiClk         => clk,
