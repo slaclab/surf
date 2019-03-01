@@ -40,14 +40,13 @@ class AxiMicronP30(pr.Device):
         ##############################
         # Variables
         ##############################        
-        self.add(pr.RemoteVariable(
-            name         = "Test",
+        self.add(pr.LinkVariable(
+            name         = "Test",                 
             description  = "Scratch Pad tester register",
-            offset       =  0x0C,
-            bitSize      =  32,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
-            mode         = "RW"))
+            mode         = 'RW', 
+            linkedGet    = lambda: self._rawRead(offset=0xC),
+            linkedSet    = lambda value, write: self._rawWrite(offset=0xC,data=value),
+        )) 
             
         @self.command(value='',description="Load the .MCS into PROM",)
         def LoadMcsFile(arg):

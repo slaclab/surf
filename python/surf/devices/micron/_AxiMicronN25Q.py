@@ -38,20 +38,19 @@ class AxiMicronN25Q(pr.Device):
         self._mcs      = misc.McsReader()
         self._addrMode = addrMode
         self._progDone = False
+        self._tryCount = 5
         
         ##############################
         # Variables
         ##############################
-        self.add(pr.RemoteVariable(
-            name         = "Test",
+        self.add(pr.LinkVariable(
+            name         = "Test",                 
             description  = "Scratch Pad tester register",
-            offset       =  0x00,
-            bitSize      =  32,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
-            mode         = "RW",
-        ))              
-        
+            mode         = 'RW', 
+            linkedGet    = lambda: self._rawRead(offset=0x0),
+            linkedSet    = lambda value, write: self._rawWrite(offset=0x0,data=value),
+        ))        
+
         ##############################
         # Constants
         ##############################
@@ -372,21 +371,21 @@ class AxiMicronN25Q(pr.Device):
     
     def setModeReg(self):
         if (self._addrMode):
-            self._rawWrite(0x04,0x1)
+            self._rawWrite(offset=0x04,data=0x1,tryCount=self._tryCount)
         else:
-            self._rawWrite(0x04,0x0)
+            self._rawWrite(offset=0x04,data=0x0,tryCount=self._tryCount)
 
     def setAddrReg(self,value):
-        self._rawWrite(0x08,value)
+        self._rawWrite(offset=0x08,data=value,tryCount=self._tryCount)
 
     def setCmdReg(self,value):
-        self._rawWrite(0x0C,value)
+        self._rawWrite(offset=0x0C,data=value,tryCount=self._tryCount)
 
     def getCmdReg(self):
-        return (self._rawRead(offset=0x0C))
+        return (self._rawRead(offset=0x0C,tryCount=self._tryCount))
 
     def setDataReg(self,values):
-        self._rawWrite(0x200,values)
+        self._rawWrite(offset=0x200,data=values,tryCount=self._tryCount)
 
     def getDataReg(self):
-        return (self._rawRead(offset=0x200,numWords=64))
+        return (self._rawRead(offset=0x200,numWords=64,tryCount=self._tryCount))
