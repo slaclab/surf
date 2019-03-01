@@ -40,13 +40,13 @@ class AxiMicronMt28ew(pr.Device):
         ##############################
         # Variables
         ##############################        
-        self.add(pr.LinkVariable(
+        self.add(pr.LocalVariable(
             name         = "Test",                 
             description  = "Scratch Pad tester register",
             mode         = 'RW', 
             disp         = '{:#08x}',
-            linkedGet    = lambda: self._rawRead(offset=0xC),
-            linkedSet    = lambda value, write: self._rawWrite(offset=0xC,data=value),
+            localGet     = lambda: self._rawRead(offset=0xC),
+            localSet     = lambda value, write: self._rawWrite(offset=0xC,data=value),
         )) 
             
         @self.command(value='',description="Load the .MCS into PROM",)
