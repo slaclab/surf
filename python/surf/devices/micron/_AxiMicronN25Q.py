@@ -47,6 +47,7 @@ class AxiMicronN25Q(pr.Device):
             name         = "Test",                 
             description  = "Scratch Pad tester register",
             mode         = 'RW', 
+            disp         = '{:#08x}',
             linkedGet    = lambda: self._rawRead(offset=0x0),
             linkedSet    = lambda value, write: self._rawWrite(offset=0x0,data=value),
         ))        
