@@ -84,7 +84,7 @@ class AxiMicronP30(pr.Device):
         self.add(pr.RemoteVariable(
             name         = "Addr",                 
             description  = "Address",
-            mode         = 'RW',
+            mode         = 'WO',
             offset       = 0x04,
             hidden = True,
         ))
