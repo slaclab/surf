@@ -43,12 +43,13 @@ class AxiMicronN25Q(pr.Device):
         ##############################
         # Variables
         ##############################
-        self.add(pr.LinkVariable(
+        self.add(pr.LocalVariable(
             name         = "Test",                 
             description  = "Scratch Pad tester register",
             mode         = 'RW', 
-            linkedGet    = lambda: self._rawRead(offset=0x0),
-            linkedSet    = lambda value, write: self._rawWrite(offset=0x0,data=value),
+            disp         = '{:#08x}',
+            localGet     = lambda: self._rawRead(offset=0x0),
+            localSet     = lambda value, write: self._rawWrite(offset=0x0,data=value),
         ))        
 
         ##############################
