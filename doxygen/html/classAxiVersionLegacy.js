@@ -13,7 +13,7 @@ var classAxiVersionLegacy =
     [ "USE_SLOWCLK_G", "classAxiVersionLegacy.html#af7808b7223a689850e4006441faff8be", null ],
     [ "BUFR_CLK_DIV_G", "classAxiVersionLegacy.html#ae87223bb5856606548f341346412f4c7", null ],
     [ "AUTO_RELOAD_EN_G", "classAxiVersionLegacy.html#afb3c86f9268efc3e1a25c0f03516784d", null ],
-    [ "AUTO_RELOAD_TIME_G", "classAxiVersionLegacy.html#a3f5550a2c71cd7f47bfbcc3ed98b61a8", null ],
+    [ "AUTO_RELOAD_TIME_G", "classAxiVersionLegacy.html#a7f216e989818fb53a2278576aa3d1df2", null ],
     [ "AUTO_RELOAD_ADDR_G", "classAxiVersionLegacy.html#a978dee8e4911529f8a1dcc5cc9c040b9", null ],
     [ "axiClk", "classAxiVersionLegacy.html#a7d8781c632c75ab0fdde6e592fd13d60", null ],
     [ "axiRst", "classAxiVersionLegacy.html#a399a775bae9ae4819d5af6838a95e28e", null ],

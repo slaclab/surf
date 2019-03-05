@@ -1,8 +1,8 @@
 var classFifoSync_1_1rtl =
 [
+    [ "PROCESS_44", "classFifoSync_1_1rtl.html#a5d554a63ddd21e4c7b8fa7e96a6cfbd3", null ],
+    [ "PROCESS_45", "classFifoSync_1_1rtl.html#a7f51e79536fb57140a2e387ed4c986ae", null ],
     [ "PROCESS_46", "classFifoSync_1_1rtl.html#abfc08fe7e047f17869099dfcdeb7b57d", null ],
-    [ "PROCESS_47", "classFifoSync_1_1rtl.html#a5b852b8ffd1650e0fb1e09a681cc82b9", null ],
-    [ "PROCESS_48", "classFifoSync_1_1rtl.html#aee25afb33d6f821a0477aac112518342", null ],
     [ "INIT_C", "classFifoSync_1_1rtl.html#a380a125a8744af9cdb19aa550f6ad683", null ],
     [ "RAM_DEPTH_C", "classFifoSync_1_1rtl.html#a92108a43a9ce70b53eede55bef01f5e3", null ],
     [ "RamPortType", "classFifoSync_1_1rtl.html#a9cfd32ab8d87ba9901dbe57894f72027", null ],

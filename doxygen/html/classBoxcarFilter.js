@@ -1,6 +1,6 @@
 var classBoxcarFilter =
 [
-    [ "rtl", "classBoxcarFilter_1_1rtl.html", "classBoxcarFilter_1_1rtl" ],
+    [ "mapping", "classBoxcarFilter_1_1mapping.html", "classBoxcarFilter_1_1mapping" ],
     [ "TPD_G", "classBoxcarFilter.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "DATA_WIDTH_G", "classBoxcarFilter.html#affd59283310705939da4070a8ed00c30", null ],
     [ "ADDR_WIDTH_G", "classBoxcarFilter.html#ad807e71950be92e72dd1f4a030d59581", null ],
@@ -10,6 +10,8 @@ var classBoxcarFilter =
     [ "ibData", "classBoxcarFilter.html#a765b44ff4b42971088c57b93da574557", null ],
     [ "obValid", "classBoxcarFilter.html#a365a47c3571ea3d9bcbb0114552734c9", null ],
     [ "obData", "classBoxcarFilter.html#a059fa5c6f97cbe80327281ec129ac4e9", null ],
+    [ "obFull", "classBoxcarFilter.html#a29661436dfaf943f99085e16f51febad", null ],
+    [ "obPeriod", "classBoxcarFilter.html#a50ddfff878a58c30758f624e768b5371", null ],
     [ "ieee", "classBoxcarFilter.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classBoxcarFilter.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_unsigned", "classBoxcarFilter.html#a598da929e807d58939b47499e8bc9fa8", null ],

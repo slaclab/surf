@@ -1,5 +1,15 @@
 var NAVTREEINDEX90 =
 {
+"classSpiMaster_1_1rtl.html#a542bc66aa7f0471bce2dcfc9cb3683e5":[0,0,459,0,7],
+"classSpiMaster_1_1rtl.html#a6c0d87827144aec7e0091bd42acfb425":[0,0,459,0,9],
+"classSpiMaster_1_1rtl.html#a6dab8ab6d0d840e4e14acc6d8611caea":[0,0,459,0,10],
+"classSpiMaster_1_1rtl.html#a736e7ae43d4367c8d55876104c3ee0d5":[0,0,459,0,0],
+"classSpiMaster_1_1rtl.html#a758a8cbb78916a3911d410a62191310d":[0,0,459,0,17],
+"classSpiMaster_1_1rtl.html#a83e8547d69f5d95dcca5a31d8f47a762":[0,0,459,0,15],
+"classSpiMaster_1_1rtl.html#a889dd6e21bde7f1a4ca6a01d7541b359":[0,0,459,0,8],
+"classSpiMaster_1_1rtl.html#aa741ebd8529d2e5cf71a003963f2b8d3":[0,0,459,0,4],
+"classSpiMaster_1_1rtl.html#ace8fa1cf53b616a23f3ea3b5339482e1":[0,0,459,0,2],
+"classSpiMaster_1_1rtl.html#ae47867ba7180e27f6aa22f1798ef016c":[0,0,459,0,14],
 "classSpiMaster_1_1rtl.html#ae8896e195ae00ae797895c15b647ba41":[0,0,459,0,1],
 "classSpiMaster_1_1rtl.html#aecf2c811b3e7120a96b554411331b284":[0,0,459,0,18],
 "classSpiSlave.html":[0,0,460],
@@ -239,15 +249,5 @@ var NAVTREEINDEX90 =
 "classSrpV3AxiLite_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3":[0,0,463,0,40],
 "classSrpV3AxiLite_1_1rtl.html#a06460b4ce51ac9112518d175f58e43bf":[0,0,463,0,0],
 "classSrpV3AxiLite_1_1rtl.html#a06a21758c3a647a9a72f35250e2b6dd1":[0,0,463,0,12],
-"classSrpV3AxiLite_1_1rtl.html#a0ed37f472d19da749bf6d8d7cc9f8dc7":[0,0,463,0,55],
-"classSrpV3AxiLite_1_1rtl.html#a196cc6d51816cb84e26e49668d52bc1c":[0,0,463,0,13],
-"classSrpV3AxiLite_1_1rtl.html#a219483861efa508e34ca15dfa47ed2d0":[0,0,463,0,18],
-"classSrpV3AxiLite_1_1rtl.html#a29ddea0778c5dba9ca0b08e7188a5a57":[0,0,463,0,38],
-"classSrpV3AxiLite_1_1rtl.html#a2d3497d9531e969ddc1c9bc5cff5397e":[0,0,463,0,56],
-"classSrpV3AxiLite_1_1rtl.html#a2da484c96f587fa70867e312a16205da":[0,0,463,0,3],
-"classSrpV3AxiLite_1_1rtl.html#a2e4035075c94ec87d9578ed55047e781":[0,0,463,0,27],
-"classSrpV3AxiLite_1_1rtl.html#a2eacb13459e454007f932edb8fbfc7db":[0,0,463,0,9],
-"classSrpV3AxiLite_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9":[0,0,463,0,10],
-"classSrpV3AxiLite_1_1rtl.html#a3e28921abb50846a4dc4a2cea1ef629d":[0,0,463,0,17],
-"classSrpV3AxiLite_1_1rtl.html#a3e4b96841c811c0a576425d4635ff2bb":[0,0,463,0,23]
+"classSrpV3AxiLite_1_1rtl.html#a0ed37f472d19da749bf6d8d7cc9f8dc7":[0,0,463,0,55]
 };

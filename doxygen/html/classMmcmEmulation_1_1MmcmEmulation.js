@@ -1,6 +1,5 @@
 var classMmcmEmulation_1_1MmcmEmulation =
 [
-    [ "PROCESS_282", "classMmcmEmulation_1_1MmcmEmulation.html#af9cfcb1693879d4a2a3ce383f45a224f", null ],
     [ "VCO_PERIOD_REAL_C", "classMmcmEmulation_1_1MmcmEmulation.html#ae9d51209108dc09c72578473a8fce5a0", null ],
     [ "CLKOUT_PERIOD_REAL_C", "classMmcmEmulation_1_1MmcmEmulation.html#a8b52a7b1061c54ea4da088426026dd4a", null ],
     [ "CLKOUT_PERIOD_C", "classMmcmEmulation_1_1MmcmEmulation.html#aa0cca58c771b8f72f17b4fa1dabd0535", null ],
@@ -9,5 +8,6 @@ var classMmcmEmulation_1_1MmcmEmulation =
     [ "CLK_LO_CYCLE_C", "classMmcmEmulation_1_1MmcmEmulation.html#abe4449016baef0b83c9ab6f806184382", null ],
     [ "CLKOUT_RST_POLARITY_C", "classMmcmEmulation_1_1MmcmEmulation.html#a8e19e67f1c497ebc7eef6296acc838fe", null ],
     [ "phasedUp", "classMmcmEmulation_1_1MmcmEmulation.html#a6dc0fb3c8347d31901805478f49f523b", null ],
-    [ "clkOut", "classMmcmEmulation_1_1MmcmEmulation.html#a9b9ec49ecc74285b86db23c4cf88901f", null ]
+    [ "clkOut", "classMmcmEmulation_1_1MmcmEmulation.html#a9b9ec49ecc74285b86db23c4cf88901f", null ],
+    [ "u_clkpgp", "classMmcmEmulation_1_1MmcmEmulation.html#a84e29c5a91a0d33eeb4f30beab7df617", null ]
 ];

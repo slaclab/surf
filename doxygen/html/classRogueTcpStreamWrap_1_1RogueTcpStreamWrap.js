@@ -10,8 +10,8 @@ var classRogueTcpStreamWrap_1_1RogueTcpStreamWrap =
     [ "mxMasters", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a170ca241f3757ef742bcd2a254c8eba2", null ],
     [ "mxSlaves", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a8584758ca92c3bdae565e9219f049849", null ],
     [ "u_demux", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#af9491aefceb9df3efb7c1597419a3e52", null ],
-    [ "u_ibfifo", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a5831c8b456eec92791e9f52dbeaeb690", null ],
+    [ "u_ib_resize", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#af07892f11da4973b33848de547c32361", null ],
     [ "u_roguetcpstream", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a27dee7d4e58c77b0f31d6827628e595f", null ],
-    [ "u_obfifo", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a0de4fa73dd147d5eee27270bbb331ec7", null ],
+    [ "u_ob_resize", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a4a0ca86b1352dd173cfd8b1424440b47", null ],
     [ "u_mux", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a29a5692e7db01e6c2586940c38a52da3", null ]
 ];

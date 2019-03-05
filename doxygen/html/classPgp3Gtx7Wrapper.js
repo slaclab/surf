@@ -3,7 +3,7 @@ var classPgp3Gtx7Wrapper =
     [ "rtl", "classPgp3Gtx7Wrapper_1_1rtl.html", "classPgp3Gtx7Wrapper_1_1rtl" ],
     [ "TPD_G", "classPgp3Gtx7Wrapper.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "ROGUE_SIM_EN_G", "classPgp3Gtx7Wrapper.html#a92a72632fb2e2d517a68118ea779b0f8", null ],
-    [ "ROGUE_SIM_USER_ID_G", "classPgp3Gtx7Wrapper.html#ac99ce43b4f7a6f9192f97a86eb0a2b8b", null ],
+    [ "ROGUE_SIM_PORT_NUM_G", "classPgp3Gtx7Wrapper.html#ad2f50e941522d26fa73a4383410462c7", null ],
     [ "NUM_LANES_G", "classPgp3Gtx7Wrapper.html#ad5f8912efaa7b98fc9fcc4697b8bb70e", null ],
     [ "NUM_VC_G", "classPgp3Gtx7Wrapper.html#a379146dc9f4d498c6525646c3c2d3251", null ],
     [ "RATE_G", "classPgp3Gtx7Wrapper.html#a0f1b05ab4c65c103dc102097d352eb63", null ],

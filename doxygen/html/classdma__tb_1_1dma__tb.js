@@ -1,7 +1,7 @@
 var classdma__tb_1_1dma__tb =
 [
-    [ "PROCESS_39", "classdma__tb_1_1dma__tb.html#a08ae6b741e82e0894a85a5acc27e67c3", null ],
-    [ "PROCESS_40", "classdma__tb_1_1dma__tb.html#a63b4ff71b47a3c02a34007b1d45e9b91", null ],
+    [ "PROCESS_37", "classdma__tb_1_1dma__tb.html#af8824f68f34064d01b9126d74a01ab55", null ],
+    [ "PROCESS_38", "classdma__tb_1_1dma__tb.html#ab110adff6f2895d6b36e572a3907fac5", null ],
     [ "axiClk", "classdma__tb_1_1dma__tb.html#aa4f2ada92e2417af78e584e6ba9da002", null ],
     [ "axiClkRst", "classdma__tb_1_1dma__tb.html#a16fae3d6e127a8b50bae25d8a44e317f", null ],
     [ "mstAxiReadMaster", "classdma__tb_1_1dma__tb.html#a404ee20d7264ac50946de5a43f4ebadc", null ],

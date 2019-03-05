@@ -2,7 +2,7 @@ var classRogueSideBandWrap =
 [
     [ "RogueSideBandWrap", "classRogueSideBandWrap_1_1RogueSideBandWrap.html", "classRogueSideBandWrap_1_1RogueSideBandWrap" ],
     [ "TPD_G", "classRogueSideBandWrap.html#a67a837684e4f18c2d236ac1d053b419b", null ],
-    [ "PORT_NUM_G", "classRogueSideBandWrap.html#ae7da850d410d693bf3afafec6669f91a", null ],
+    [ "PORT_NUM_G", "classRogueSideBandWrap.html#a809083c0cc7c8d65edace0a2ddbe5b6a", null ],
     [ "sysClk", "classRogueSideBandWrap.html#aa8e786917e21f0003ac4b7181c6a4270", null ],
     [ "sysRst", "classRogueSideBandWrap.html#ad6f88b30c93e1fee7769c9268b934617", null ],
     [ "opCode", "classRogueSideBandWrap.html#a43782e9e6f4b8819d2e2ac95249f9fa4", null ],

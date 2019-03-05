@@ -1,13 +1,13 @@
 var classQuadPortRam_1_1rtl =
 [
+    [ "PROCESS_74", "classQuadPortRam_1_1rtl.html#a6ae0aeee044734e308ce8eab7813e5aa", null ],
+    [ "PROCESS_75", "classQuadPortRam_1_1rtl.html#adb3f4df9c33c1083f834b4f00a9304af", null ],
     [ "PROCESS_76", "classQuadPortRam_1_1rtl.html#a86f78b79247e2541825c982c9bbc0d4e", null ],
     [ "PROCESS_77", "classQuadPortRam_1_1rtl.html#a827e1de30d4d160ab7a877e2c2b3ddae", null ],
     [ "PROCESS_78", "classQuadPortRam_1_1rtl.html#abe11fb0960be66ac92b7b86dfa027c9f", null ],
-    [ "PROCESS_79", "classQuadPortRam_1_1rtl.html#a0eac179289a9465cb5a6d16886236d03", null ],
-    [ "PROCESS_80", "classQuadPortRam_1_1rtl.html#adbcb343ae18223f5fda920bef07ebff2", null ],
-    [ "PROCESS_81", "classQuadPortRam_1_1rtl.html#a1f77f52bd22ed11fca8e1e03c36636f7", null ],
-    [ "PROCESS_82", "classQuadPortRam_1_1rtl.html#a27ef920380cc6f2d8ee576ee4671eda6", null ],
-    [ "PROCESS_83", "classQuadPortRam_1_1rtl.html#a2366eb7f22e5319fc14dee7c6a092de6", null ],
+    [ "PROCESS_79", "classQuadPortRam_1_1rtl.html#a95e3c8fdf741f8387865db2deeb84e41", null ],
+    [ "PROCESS_80", "classQuadPortRam_1_1rtl.html#a60a5828b32f46dcfd1633568d3e21ac5", null ],
+    [ "PROCESS_81", "classQuadPortRam_1_1rtl.html#aa49318839cbb77729f5dd810a7cbb4c9", null ],
     [ "NUM_BYTES_C", "classQuadPortRam_1_1rtl.html#ac3cfb1e8f1c3515861ed6a6136e14017", null ],
     [ "FULL_DATA_WIDTH_C", "classQuadPortRam_1_1rtl.html#a30d8f9a9e481f6ade973302a992c96f2", null ],
     [ "INIT_C", "classQuadPortRam_1_1rtl.html#a380a125a8744af9cdb19aa550f6ad683", null ],

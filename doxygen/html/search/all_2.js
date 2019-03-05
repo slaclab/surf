@@ -7,5 +7,7 @@ var searchData=
   ['behavioral',['Behavioral',['../classGtp7RxRstSeq_1_1Behavioral.html',1,'Gtp7RxRstSeq']]],
   ['bhv',['Bhv',['../classDescrambleTb_1_1Bhv.html',1,'DescrambleTb']]],
   ['boxcarfilter',['BoxcarFilter',['../classBoxcarFilter.html',1,'']]],
-  ['boxcarfiltertb',['BoxcarFilterTb',['../classBoxcarFilterTb.html',1,'']]]
+  ['boxcarfiltertb',['BoxcarFilterTb',['../classBoxcarFilterTb.html',1,'']]],
+  ['boxcarintegrator',['BoxcarIntegrator',['../classBoxcarIntegrator.html',1,'']]],
+  ['boxcarintegratortb',['BoxcarIntegratorTb',['../classBoxcarIntegratorTb.html',1,'']]]
 ];

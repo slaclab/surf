@@ -1,8 +1,8 @@
 var classPgp2bAxi_1_1structure =
 [
     [ "U_RxErrorIrqEn", "classPgp2bAxi_1_1structure.html#a5808195bcef9d2501c02f463d1d449df", null ],
-    [ "PROCESS_160", "classPgp2bAxi_1_1structure.html#a8b0c89b9062617c8b20f00e4cc1d6191", null ],
-    [ "PROCESS_161", "classPgp2bAxi_1_1structure.html#abb29fa5f8f8d0b33477ee1882b3fc571", null ],
+    [ "PROCESS_161", "classPgp2bAxi_1_1structure.html#ad0f0cbd116eab5d00146e753a998d8f3", null ],
+    [ "PROCESS_162", "classPgp2bAxi_1_1structure.html#ab795c97db363b4fadc373f738f53b749", null ],
     [ "U_StatusWord", "classPgp2bAxi_1_1structure.html#a3cf7d2bc53d57e09fd91c35783231e38", null ],
     [ "STATUS_OUT_TOP_C", "classPgp2bAxi_1_1structure.html#a998fff9859e34f6b42de4d13de2e4cc8", null ],
     [ "rxStatusSend", "classPgp2bAxi_1_1structure.html#a75be2c9e8f212beb1c7325adc48af860", null ],
