@@ -27,6 +27,7 @@ class AxiMicronP30(pr.Device):
     def __init__(self,       
             name        = "AxiMicronP30",
             description = "AXI-Lite Micron P30 PROM",
+            tryCount    = 5,
             **kwargs):
         super().__init__(
             name        = name, 
@@ -36,17 +37,7 @@ class AxiMicronP30(pr.Device):
         
         self._mcs = misc.McsReader()      
         self._progDone = False 
-        
-        ##############################
-        # Variables
-        ##############################        
-        self.add(pr.LinkVariable(
-            name         = "Test",                 
-            description  = "Scratch Pad tester register",
-            mode         = 'RW', 
-            linkedGet    = lambda: self._rawRead(offset=0xC),
-            linkedSet    = lambda value, write: self._rawWrite(offset=0xC,data=value),
-        )) 
+        self._tryCount = tryCount
             
         @self.command(value='',description="Load the .MCS into PROM",)
         def LoadMcsFile(arg):
@@ -141,7 +132,7 @@ class AxiMicronP30(pr.Device):
         # Create a burst data array
         dataArray = [0] * 256
         # Set the block transfer size
-        self._rawWrite(0x80,0xFF)        
+        self._rawWrite(0x80,0xFF,tryCount=self._tryCount)
         # Setup the status bar
         with click.progressbar(
             length   = self._mcs.size,
@@ -166,26 +157,26 @@ class AxiMicronP30(pr.Device):
                     # Check for the last byte
                     if ( cnt == 256 ):
                         # Write burst data
-                        self._rawWrite(offset=0x400, data=dataArray)
+                        self._rawWrite(offset=0x400, data=dataArray,tryCount=self._tryCount)
                         # Start a burst transfer
-                        self._rawWrite(offset=0x84, data=0x7FFFFFFF&addr)                           
+                        self._rawWrite(offset=0x84, data=0x7FFFFFFF&addr,tryCount=self._tryCount)
             # Check for leftover data
             if (cnt != 256):
                 # Fill the rest of the data array with ones
                 for i in range(cnt, 256):
                     dataArray[i] = 0xFFFF
                 # Write burst data
-                self._rawWrite(offset=0x400, data=dataArray)
+                self._rawWrite(offset=0x400, data=dataArray,tryCount=self._tryCount)
                 # Start a burst transfer
-                self._rawWrite(offset=0x84, data=0x7FFFFFFF&addr)                  
+                self._rawWrite(offset=0x84, data=0x7FFFFFFF&addr,tryCount=self._tryCount)
             # Close the status bar
             bar.update(self._mcs.size)  
 
     def verifyProm(self):     
         # Set the data bus 
-        self._rawWrite(offset=0x0, data=0xFFFFFFFF)
+        self._rawWrite(offset=0x0, data=0xFFFFFFFF,tryCount=self._tryCount)
         # Set the block transfer size
-        self._rawWrite(offset=0x80, data=0xFF)
+        self._rawWrite(offset=0x80, data=0xFF,tryCount=self._tryCount)
         # Setup the status bar
         with click.progressbar(
             length  = self._mcs.size,
@@ -201,9 +192,9 @@ class AxiMicronP30(pr.Device):
                         # Throttle down printf rate
                         bar.update(0x1FF)
                         # Start a burst transfer
-                        self._rawWrite(offset=0x84, data=0x80000000|addr)
+                        self._rawWrite(offset=0x84, data=0x80000000|addr,tryCount=self._tryCount)
                         # Get the data
-                        dataArray = self._rawRead(offset=0x400,numWords=256)  
+                        dataArray = self._rawRead(offset=0x400,numWords=256,tryCount=self._tryCount)
                 else:
                     # Get the data for MCS file
                     data |= (int(self._mcs.entry[i][1])  << 8)
@@ -219,15 +210,15 @@ class AxiMicronP30(pr.Device):
     # Generic FLASH write Command 
     def _writeToFlash(self, addr, cmd, data):
         # Set the data bus 
-        self._rawWrite(offset=0x0, data=((cmd&0xFFFF)<< 16) | (data&0xFFFF))
+        self._rawWrite(offset=0x0, data=((cmd&0xFFFF)<< 16) | (data&0xFFFF),tryCount=self._tryCount)
         # Set the address bus and initiate the transfer
-        self._rawWrite(offset=0x4,data=addr&0x7FFFFFFF)   
+        self._rawWrite(offset=0x4,data=addr&0x7FFFFFFF,tryCount=self._tryCount)
         
     # Generic FLASH read Command
     def _readFromFlash(self, addr, cmd):  
         # Set the data bus 
-        self._rawWrite(offset=0x0, data=((cmd&0xFFFF)<< 16) | 0xFF)    
+        self._rawWrite(offset=0x0, data=((cmd&0xFFFF)<< 16) | 0xFF,tryCount=self._tryCount)
         # Set the address
-        self._rawWrite(offset=0x4, data=addr|0x80000000)  
+        self._rawWrite(offset=0x4, data=addr|0x80000000,tryCount=self._tryCount)
         # Get the read data 
-        return (self._rawRead(offset=0x8)&0xFFFF) 
+        return (self._rawRead(offset=0x8,tryCount=self._tryCount)&0xFFFF)

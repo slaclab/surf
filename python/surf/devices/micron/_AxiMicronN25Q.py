@@ -28,6 +28,7 @@ class AxiMicronN25Q(pr.Device):
             name        = "AxiMicronN25Q",
             description = "AXI-Lite Micron N25Q and Micron MT25Q PROM",
             addrMode    = False, # False = 24-bit Address mode, True = 32-bit Address Mode
+            tryCount    = 5,
             **kwargs):
         super().__init__(
             name        = name, 
@@ -38,18 +39,7 @@ class AxiMicronN25Q(pr.Device):
         self._mcs      = misc.McsReader()
         self._addrMode = addrMode
         self._progDone = False
-        self._tryCount = 5
-        
-        ##############################
-        # Variables
-        ##############################
-        self.add(pr.LinkVariable(
-            name         = "Test",                 
-            description  = "Scratch Pad tester register",
-            mode         = 'RW', 
-            linkedGet    = lambda: self._rawRead(offset=0x0),
-            linkedSet    = lambda value, write: self._rawWrite(offset=0x0,data=value),
-        ))        
+        self._tryCount = tryCount
 
         ##############################
         # Constants
