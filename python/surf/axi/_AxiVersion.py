@@ -258,13 +258,13 @@ class AxiVersion(pr.Device):
        
 
     def hardReset(self):
-        print('AxiVersion hard reset called')
+        print('%s hard reset called' % self)
 
     def softReset(self):
-        print('AxiVersion soft reset called')
+        print('%s soft reset called' % self)
 
     def countReset(self):
-        print('AxiVersion count reset called')
+        print('%s count reset called' % self)
         
     def printStatus(self):
         try:
@@ -282,5 +282,5 @@ class AxiVersion(pr.Device):
             print("BuildDate    = {}".format(self.BuildDate.value()))
             print("Builder      = {}".format(self.Builder.value()))
         except Exception as e:
-            print("Failed to get AxiVersion status")
+            print("Failed to get %s status" % self)
 
