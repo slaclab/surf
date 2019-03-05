@@ -26,7 +26,6 @@
 // Start/resetart zeromq server
 void RogueSideBandRestart(RogueSideBandData *data, portDataT *portData) {
    char buffer[100];
-   uint32_t to;
 
    if ( data->zmqPull != NULL ) zmq_close(data->zmqPull);
    if ( data->zmqCtx  != NULL ) zmq_term(data->zmqCtx);
@@ -36,9 +35,6 @@ void RogueSideBandRestart(RogueSideBandData *data, portDataT *portData) {
  
    data->zmqCtx = zmq_ctx_new();
    data->zmqPull = zmq_socket(data->zmqCtx,ZMQ_REP);
-
-   to = 10;
-   zmq_setsockopt (data->zmqPull, ZMQ_RCVTIMEO, &to, sizeof(to));
 
    vhpi_printf("RogueSideBand: Listening on port %i\n",data->port);
 

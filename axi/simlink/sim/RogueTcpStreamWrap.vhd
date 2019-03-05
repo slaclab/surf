@@ -22,32 +22,21 @@ use work.AxiStreamPkg.all;
 
 entity RogueTcpStreamWrap is
    generic (
-      TPD_G               : time                     := 1 ns;
-      PORT_NUM_G          : integer range 0 to 65535 := 1;
-      SSI_EN_G            : boolean                  := true;
-      CHAN_COUNT_G        : integer range 1 to 32    := 1;
-      COMMON_MASTER_CLK_G : boolean                  := false;
-      COMMON_SLAVE_CLK_G  : boolean                  := false;
-      AXIS_CONFIG_G       : AxiStreamConfigType      := AXI_STREAM_CONFIG_INIT_C
-   );
+      TPD_G         : time                     := 1 ns;
+      PORT_NUM_G    : natural range 0 to 65535 := 1;
+      SSI_EN_G      : boolean                  := true;
+      CHAN_COUNT_G  : positive range 1 to 256  := 1;
+      AXIS_CONFIG_G : AxiStreamConfigType      := AXI_STREAM_CONFIG_INIT_C);
    port (
-
-      -- Main Clock and reset used internally
-      clk : in sl;
-      rst : in sl;
-
-      -- Slave
-      sAxisClk    : in  sl;             -- Set COMMON_SLAVE_CLK_G if same as clk input
-      sAxisRst    : in  sl;
+      -- Clock and Reset
+      axisClk     : in  sl;
+      axisRst     : in  sl;
+      -- Slave Port
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
-
-      -- Master
-      mAxisClk    : in  sl;             -- Set COMMON_MASTER_CLK_G if same as clk input
-      mAxisRst    : in  sl;
+      -- Master Port
       mAxisMaster : out AxiStreamMasterType;
-      mAxisSlave  : in  AxiStreamSlaveType
-   );
+      mAxisSlave  : in  AxiStreamSlaveType);
 end RogueTcpStreamWrap;
 
 -- Define architecture
@@ -75,41 +64,46 @@ architecture RogueTcpStreamWrap of RogueTcpStreamWrap is
 
 begin
 
-   ------------------------------------
-   -- Inbound Demux
-   ------------------------------------
-   U_DeMux: entity work.AxiStreamDeMux
+   assert (PORT_NUM_G + 2*(CHAN_COUNT_G-1) <= 65535)
+      report "PORT_NUM_G + 2*(CHAN_COUNT_G-1) must less than or equal to 65535" severity failure;
+
+   ----------------
+   -- Inbound DEMUX
+   ----------------
+   U_DeMux : entity work.AxiStreamDeMux
       generic map (
-         TPD_G          => 1 ns,
-         NUM_MASTERS_G  => CHAN_COUNT_G
-      ) port map (
+         TPD_G         => 1 ns,
+         NUM_MASTERS_G => CHAN_COUNT_G)
+      port map (
          -- Clock and reset
-         axisClk      => sAxisClk,
-         axisRst      => sAxisRst,
+         axisClk      => axisClk,
+         axisRst      => axisRst,
          sAxisMaster  => sAxisMaster,
          sAxisSlave   => sAxisSlave,
          mAxisMasters => dmMasters,
          mAxisSlaves  => dmSlaves);
 
    -- Channels
-   U_ChanGen: for i in 0 to CHAN_COUNT_G-1 generate
+   U_ChanGen : for i in 0 to CHAN_COUNT_G-1 generate
 
-      ------------------------------------
-      -- Inbound FIFOs
-      ------------------------------------
-      U_IbFifo : entity work.AxiStreamFifoV2
+      ------------------
+      -- Inbound Resizer 
+      ------------------
+      U_Ib_Resize : entity work.AxiStreamResize
          generic map (
+            -- General Configurations
             TPD_G               => TPD_G,
-            GEN_SYNC_FIFO_G     => COMMON_SLAVE_CLK_G,
+            -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_G,
             MASTER_AXI_CONFIG_G => INT_CONFIG_C)
          port map (
-            sAxisClk    => sAxisClk,
-            sAxisRst    => sAxisRst,
+            -- Clock and reset
+            axisClk     => axisClk,
+            axisRst     => axisRst,
+            -- Slave Port
             sAxisMaster => dmMasters(i),
             sAxisSlave  => dmSlaves(i),
-            mAxisClk    => clk,
-            mAxisRst    => rst,
+            -- Master Port
             mAxisMaster => ibMasters(i),
             mAxisSlave  => ibSlaves(i));
 
@@ -118,8 +112,8 @@ begin
       ------------------------------------
       U_RogueTcpStream : entity work.RogueTcpStream
          port map(
-            clock      => clk,
-            reset      => rst,
+            clock      => axisClk,
+            reset      => axisRst,
             portNum    => toSlv(PORT_NUM_G + i*2, 16),
             ssi        => toSl(SSI_EN_G),
             obValid    => obMasters(i).tValid,
@@ -147,41 +141,42 @@ begin
       obMasters(i).tData(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 64) <= (others => '0');
       obMasters(i).tUser(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 64) <= (others => '0');
 
-      ------------------------------------
-      -- Outbound FIFOs
-      ------------------------------------
-      U_ObFifo : entity work.AxiStreamFifoV2
+      -------------------
+      -- Outbound Resizer 
+      -------------------
+      U_Ob_Resize : entity work.AxiStreamResize
          generic map (
+            -- General Configurations
             TPD_G               => TPD_G,
-            GEN_SYNC_FIFO_G     => COMMON_MASTER_CLK_G,
+            -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => INT_CONFIG_C,
             MASTER_AXI_CONFIG_G => AXIS_CONFIG_G)
          port map (
-            sAxisClk    => clk,
-            sAxisRst    => rst,
+            -- Clock and reset
+            axisClk     => axisClk,
+            axisRst     => axisRst,
+            -- Slave Port
             sAxisMaster => obMasters(i),
             sAxisSlave  => obSlaves(i),
-            mAxisClk    => mAxisClk,
-            mAxisRst    => mAxisRst,
+            -- Master Port
             mAxisMaster => mxMasters(i),
             mAxisSlave  => mxSlaves(i));
 
    end generate;
 
-   ------------------------------------
-   -- Outbound Mux
-   ------------------------------------
-   U_Mux: entity work.AxiStreamMux
+   ---------------
+   -- Outbound MUX
+   ---------------
+   U_Mux : entity work.AxiStreamMux
       generic map (
          TPD_G        => 1 ns,
-         NUM_SLAVES_G => CHAN_COUNT_G
-      ) port map (
-         axisClk      => mAxisClk,
-         axisRst      => mAxisRst,
+         NUM_SLAVES_G => CHAN_COUNT_G)
+      port map (
+         axisClk      => axisClk,
+         axisRst      => axisRst,
          sAxisMasters => mxMasters,
          sAxisSlaves  => mxSlaves,
          mAxisMaster  => mAxisMaster,
          mAxisSlave   => mAxisSlave);
 
 end RogueTcpStreamWrap;
-
