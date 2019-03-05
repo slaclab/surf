@@ -38,19 +38,7 @@ class AxiMicronN25Q(pr.Device):
         self._mcs      = misc.McsReader()
         self._addrMode = addrMode
         self._progDone = False
-        self._tryCount = 5
-        
-        ##############################
-        # Variables
-        ##############################
-        self.add(pr.LocalVariable(
-            name         = "Test",                 
-            description  = "Scratch Pad tester register",
-            mode         = 'RW', 
-            disp         = '{:#08x}',
-            localGet     = lambda: self._rawRead(offset=0x0),
-            localSet     = lambda value, write: self._rawWrite(offset=0x0,data=value),
-        ))        
+        self._tryCount = 5       
 
         ##############################
         # Constants

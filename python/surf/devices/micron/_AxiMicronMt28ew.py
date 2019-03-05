@@ -36,18 +36,6 @@ class AxiMicronMt28ew(pr.Device):
         
         self._mcs = misc.McsReader()       
         self._progDone = False 
-        
-        ##############################
-        # Variables
-        ##############################        
-        self.add(pr.LocalVariable(
-            name         = "Test",                 
-            description  = "Scratch Pad tester register",
-            mode         = 'RW', 
-            disp         = '{:#08x}',
-            localGet     = lambda: self._rawRead(offset=0xC),
-            localSet     = lambda value, write: self._rawWrite(offset=0xC,data=value),
-        )) 
             
         @self.command(value='',description="Load the .MCS into PROM",)
         def LoadMcsFile(arg):
