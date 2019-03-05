@@ -28,160 +28,137 @@ entity BoxcarIntegrator is
    port (
       clk       : in  sl;
       rst       : in  sl;
-      -- Configuration
+      -- Configuration, intCount
       intCount  : in slv(ADDR_WIDTH_G-1 downto 0);
       -- Inbound Interface
       ibValid   : in  sl := '1';
-      ibReady   : out sl;
       ibData    : in  slv(DATA_WIDTH_G-1 downto 0);
       -- Outbound Interface
       obValid   : out sl;
       obData    : out slv(DATA_WIDTH_G+ADDR_WIDTH_G-1 downto 0);
-      obReady   : in  sl := '1';
+      obFull    : out sl;
       obPeriod  : out sl);
 
 end BoxcarIntegrator;
 
 architecture rtl of BoxcarIntegrator is
 
-   type State is ( INIT_S, READY_S, ADD_S, SUB_S, OUT_S );
+   constant ACCUM_WIDTH_C : positive := (DATA_WIDTH_G+ADDR_WIDTH_G);
 
-   type RegType is record intValue   : slv(SUM_WIDTH_G-1 downto 0);
-      state      : State;
+   type RegType is record
+      obFull     : sl;
+      intCount   : slv(ADDR_WIDTH_G-1 downto 0);
+      rAddr      : slv(ADDR_WIDTH_G-1 downto 0);
+      wAddr      : slv(ADDR_WIDTH_G-1 downto 0);
+      ibValid    : sl;
       ibData     : slv(DATA_WIDTH_G-1 downto 0);
-      obPerCnt   : slv(ADDR_WIDTH_G-1 downto 0);
-      intFull    : sl;
-      intPass    : sl;
-      fifoRead   : sl;
-      fifoWrite  : sl;
-      fifoRst    : sl;
-      obData     : slv(SUM_WIDTH_G-1  downto 0);
       obValid    : sl;
       obPeriod   : sl;
+      obData     : slv(ACCUM_WIDTH_C-1 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state     => INIT_S,
-      ibData    => (others=>'0'),
-      obPerCnt  => (others=>'0'),
-      intFull   => '0',
-      intPass   => '0',
-      fifoRead  => '0',
-      fifoWrite => '0',
-      fifoRst   => '1',
-      obData    => (others=>'0'),
-      obValid   => '0',
-      obPeriod  => '0');
+      obFull     => '0',
+      intCount   => (others=>'0'),
+      rAddr      => (others=>'0'),
+      wAddr      => (others=>'0'),
+      ibValid    => '0',
+      ibData     => (others=>'0'),
+      obValid    => '0',
+      obPeriod   => '0',
+      obData     => (others=>'0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal fifoDout  : slv(DATA_WIDTH_G-1 downto 0);
-   signal fifoCount : slv(ADDR_WIDTH_G-1 downto 0);
-   signal fifoFull  : sl;
+   signal ramDout   : slv(DATA_WIDTH_G-1 downto 0);
 
 begin
 
-   comb : process (r, rst, intCount, ibValid, ibData, obRead, intCount, fifoValid, fifoCount, fifoDout, outAck ) is
+   U_RAM : entity work.SimpleDualPortRam
+      generic map (
+         TPD_G        => TPD_G,
+         BRAM_EN_G    => true,
+         DOB_REG_G    => false,
+         DATA_WIDTH_G => DATA_WIDTH_G,
+         ADDR_WIDTH_G => ADDR_WIDTH_G)
+      port map (
+         -- Port A     
+         clka  => clk,
+         wea   => ibValid,
+         addra => r.wAddr,
+         dina  => r.ibData,
+         -- Port B
+         clkb  => clk,
+         addrb => r.rAddr,
+         doutb => ramDout);
+
+
+   comb : process (ibData, ibValid, r, ramDout, rst, intCount) is
       variable v : RegType;
    begin
-
+      -- Latch the current value
       v := r;
 
-      -- Init
-      v.fifoRead := '0';
-      v.intFull  := '0';
-      v.intPass  := '0';
+      -- Clear period signal
+      v.obPeriod := '0';
 
-      -- Compute pass through
-      if intValue = 0 then
-         v.intPass := '1';
-      elsif fifoCount = intValue then
-         v.intFull := '1';
+      -- Input stage, setup addresses
+      v.ibData  := ibData;
+      v.ibValid := ibValid;
+
+      -- Setup address for next cycle
+      if ibValid = '1' then
+
+         -- Read address
+         if r.rAddr = r.intCount then
+            v.rAddr  := (others=>'0');
+         else
+            v.rAddr  := r.rAddr + 1;
+         end if;
+
+         -- Write lags read
+         v.wAddr := r.rAddr;
+
       end if;
 
-      -- State machine
-      case r.state is
+      -- Check for inbound data
+      if r.ibValid = '1' then
 
-         -- Init
-         when INIT_S =>
-            v.state := WAIT_S;
+         -- Ready after writing last location
+         if r.wAddr = r.intCount then
+            v.obFull   := '1';
+            v.obPeriod := '1';
+         end if;
 
-            if r.fifoRst = '0' and fifoFull = '0' then
-               v.state := READY_S;
-            end if;
+         -- Update the accumulator 
+         v.obData := r.obData + resize(r.ibData, ACCUM_WIDTH_C);
 
-         -- Ready for data
-         when READY_S =>
-            v.ibReady := '1';
-            v.ibValue := ibValue;
-
-            -- Inbound data is valid
-            if ibValid = '1' then
-
-               -- Pass through
-               if r.intPass = '1' then
-                  v.obValue  := ibData;
-                  v.obValid  := '1';
-                  v.obPeriod := '1';
-                  v.state    := OUT_S;
-               else
-                  v.state     := ADD_S;
-                  v.fifoWrite := '1';
-                  v.fifoRead  := r.intFull;
-               end if;
-            end if;
-
-         -- Add
-         when ADD_S =>
-            v.obValue := r.obValue + r.ibValue;
-
-            if r.fifoRead = '1' then
-               v.state := SUB_S;
-            end if;
-               
-         -- Sub
-         when SUB_S =>
-            v.obValue := r.obValue - fifoOut;
-            v.obValid := '1';
-            v.state   := OUT_S;
-
-            if r.obPerCnt = perCount then
-               v.obPeriod := '1';
-               v.obPerCnt := (others=>'0');
-            else
-               v.obPeriod := '0';
-               v.obPerCnt := r.obPerCnt + 1;
-            end if;
-
-         -- Output
-         when OUT_S =>
-            if obReady = '1' then
-               v.obValid  := '0';
-               v.obPeriod := '0';
-               v.state    := READY_S;
-            end if;
-
-         when others =>
-            v.state := INIT_S;
-
-      end case;
-
-      -- Catch situation where FIFO count exceeds current setting
-      -- can occur when configuration changes
-      if rst = '1' or fifoCount > intCount then
-         v := REG_INIT_C;
+         -- Check if full
+         if r.obFull = '1' then
+            v.obData := v.obData - resize(ramDout, ACCUM_WIDTH_C);
+         end if;
       end if;
 
-      -- Outputs
-      ibReady  <= v.ibReady;
+      -- Output registers
+      v.obValid  := r.ibValid;
+
+      -- Outputs              
       obValid  <= r.obValid;
-      obData   <= r.obData;
+      obFull   <= r.obFull;
       obPeriod <= r.obPeriod;
+      obData   <= r.obData;
 
+      -- Reset
+      if rst = '1' or r.intCount /= intCount then
+         v          := REG_INIT_C;
+         v.intCount := intCount;
+      end if;
+
+      -- Register the variable for next clock cycle
       rin <= v;
 
-   end process;
+   end process comb;
 
    seq : process (clk) is
    begin
@@ -189,26 +166,6 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-
-   -- Holding FIFO
-   U_Fifo: entity work.Fifo
-      generic map (
-         TPD_G           => TPD_G,
-         GEN_SYNC_FIFO_G => true,
-         FWFT_EN_G       => false,
-         DATA_WIDTH_G    => DATA_WIDTH_G,
-         ADDR_WIDTH_G    => ADDR_WIDTH_G
-      ) port map (
-         rst           => r.fifoRst,
-         wr_clk        => clk,
-         wr_en         => r.fifoWrite,
-         din           => r.ibData,
-         rd_clk        => clk,
-         rd_en         => r.fifoRead,
-         dout          => fifoDout,
-         rd_data_count => fifoCount,
-         full          => fifoFull
-      );
 
 end rtl;
 

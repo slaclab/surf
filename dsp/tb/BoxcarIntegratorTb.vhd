@@ -29,11 +29,18 @@ architecture testbed of BoxcarIntegratorTb is
    signal clk : sl := '0';
    signal rst : sl := '0';
 
-   signal ibReady  : sl;
-   signal intCount : slv(10 downto 0);
-   signal obValid  : sl;
+   signal intCount : slv(9 downto 0);
    signal obPeriod : sl;
-   signal obData   : slv(15 downto 0);
+   signal obValid  : sl;
+   signal obFull   : sl;
+   signal obData   : slv(25 downto 0);
+   signal validCnt : slv(15 downto 0);
+   signal validEn  : sl;
+   signal dataIn   : slv(15 downto 0);
+   signal expData0 : slv(25 downto 0);
+   signal expData1 : slv(25 downto 0);
+   signal expError : sl;
+   signal spacing  : slv(15 downto 0);
 
 begin
 
@@ -48,13 +55,74 @@ begin
          rst  => rst,
          rstL => open);
 
+   process (clk) begin
+      if rising_edge(clk) then
+         if rst = '1' then
+            validCnt <= (others=>'0') after TPD_G;
+            dataIn   <= (others=>'0') after TPD_G;
+            validEn  <= '0';
+         else
+            if validCnt >= spacing then
+               validCnt <= (others=>'0') after TPD_G;
+               dataIn   <= dataIn + 1 after TPD_G;
+               validEn  <= '1' after TPD_G;
+            else
+               validCnt <= validCnt + 1 after TPD_G;
+               validEn  <= '0' after TPD_G;
+            end if;
+         end if;
+      end if;
+   end process;
+
    process begin
-      intCount = "0000000000";
+      intCount <= toSlv(0,10);
+      spacing  <= toSlv(99,16);
       wait for 100 us;
-      intCount = "0000001000"; -- 8
+      intCount <= toSlv(1,10);
       wait for 100 us;
-      intCount = "0000000100"; -- 4
+      intCount <= toSlv(2,10);
       wait for 100 us;
+      intCount <= toSlv(8,10);
+      wait for 100 us;
+      intCount <= toSlv(4,10);
+      wait for 100 us;
+
+      intCount <= toSlv(0,10);
+      spacing  <= toSlv(0,16);
+      wait for 100 us;
+      intCount <= toSlv(1,10);
+      wait for 100 us;
+      intCount <= toSlv(2,10);
+      wait for 100 us;
+      intCount <= toSlv(8,10);
+      wait for 100 us;
+      intCount <= toSlv(4,10);
+      wait for 100 us;
+
+      intCount <= toSlv(0,10);
+      spacing  <= toSlv(1,16);
+      wait for 100 us;
+      intCount <= toSlv(1,10);
+      wait for 100 us;
+      intCount <= toSlv(2,10);
+      wait for 100 us;
+      intCount <= toSlv(8,10);
+      wait for 100 us;
+      intCount <= toSlv(4,10);
+      wait for 100 us;
+
+      intCount <= toSlv(0,10);
+      spacing  <= toSlv(2,16);
+      wait for 100 us;
+      intCount <= toSlv(1,10);
+      wait for 100 us;
+      intCount <= toSlv(2,10);
+      wait for 100 us;
+      intCount <= toSlv(8,10);
+      wait for 100 us;
+      intCount <= toSlv(4,10);
+      wait for 100 us;
+
    end process;
 
    U_BoxcarIntegrator : entity work.BoxcarIntegrator
@@ -66,12 +134,43 @@ begin
          clk      => clk,
          rst      => rst,
          intCount => intCount,
-         ibValid  => '1',
-         ibReady  => ibReady,
-         ibData   => x"000A",
+         ibValid  => validEn,
+         ibData   => dataIn,
          obValid  => obValid,
          obData   => obData,
-         obReady  => '1',
+         obFull   => obFull,
          obPeriod => obPeriod);
+
+   process (clk) 
+      variable exp : slv(25 downto 0);
+      variable tmp : slv(15 downto 0);
+   begin
+      if rising_edge(clk) then
+         if rst = '1' then
+            expData0 <= (others=>'0') after TPD_G;
+            expData1 <= (others=>'0') after TPD_G;
+            expError <= '0' after TPD_G;
+         else
+            if validEn = '1' then
+               exp := (others=>'0');
+               for i in 0 to conv_integer(intCount) loop
+                  tmp := dataIn - i;
+                  exp := exp + tmp;
+               end loop;
+               expData0 <= exp after TPD_G;
+            end if;
+
+            expData1 <= expData0 after TPD_G;
+
+            if obValid = '1' then
+               if obFull = '0' or expData1 = obData then
+                  expError <= '0' after TPD_G;
+               else
+                  expError <= '1' after TPD_G;
+               end if;
+            end if;
+         end if;
+      end if;
+   end process;
 
 end testbed;
