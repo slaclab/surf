@@ -27,6 +27,7 @@ class AxiMicronMt28ew(pr.Device):
     def __init__(self,       
             name        = "AxiMicronMt28ew",
             description = "AXI-Lite Micron MT28EW PROM",
+            tryCount    = 5,
             **kwargs):
         super().__init__(
             name        = name, 
@@ -36,7 +37,7 @@ class AxiMicronMt28ew(pr.Device):
         
         self._mcs = misc.McsReader()       
         self._progDone = False 
-        self._tryCount = 5
+        self._tryCount = tryCount
             
         @self.command(value='',description="Load the .MCS into PROM",)
         def LoadMcsFile(arg):
