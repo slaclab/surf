@@ -86,6 +86,8 @@ begin
       wait for 100 us;
       intCount <= toSlv(4,10);
       wait for 100 us;
+      intCount <= toSlv(1023,10);
+      wait for 4000 us;
 
       intCount <= toSlv(0,10);
       spacing  <= toSlv(0,16);
@@ -98,6 +100,8 @@ begin
       wait for 100 us;
       intCount <= toSlv(4,10);
       wait for 100 us;
+      intCount <= toSlv(1023,10);
+      wait for 4000 us;
 
       intCount <= toSlv(0,10);
       spacing  <= toSlv(1,16);
@@ -110,6 +114,8 @@ begin
       wait for 100 us;
       intCount <= toSlv(4,10);
       wait for 100 us;
+      intCount <= toSlv(1023,10);
+      wait for 4000 us;
 
       intCount <= toSlv(0,10);
       spacing  <= toSlv(2,16);
@@ -122,6 +128,8 @@ begin
       wait for 100 us;
       intCount <= toSlv(4,10);
       wait for 100 us;
+      intCount <= toSlv(1023,10);
+      wait for 4000 us;
 
    end process;
 

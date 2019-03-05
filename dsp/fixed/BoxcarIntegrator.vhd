@@ -28,7 +28,7 @@ entity BoxcarIntegrator is
    port (
       clk       : in  sl;
       rst       : in  sl;
-      -- Configuration, intCount
+      -- Configuration, intCount is 0 based, 0 = 1, 1 = 2, 1023 = 1024
       intCount  : in slv(ADDR_WIDTH_G-1 downto 0);
       -- Inbound Interface
       ibValid   : in  sl := '1';
