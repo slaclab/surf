@@ -69,11 +69,16 @@ architecture rtl of AxiStreamBatcherEventBuilder is
       MOVE_S);
 
    type RegType is record
+      cntRst         : sl;
       ready          : sl;
       maxSubFrames   : slv(15 downto 0);
       timer          : slv(31 downto 0);
       timeout        : slv(31 downto 0);
+      dataCnt        : Slv32Array(NUM_SLAVES_G-1 downto 0);
+      nullCnt        : Slv32Array(NUM_SLAVES_G-1 downto 0);
+      timeoutDropCnt : Slv32Array(NUM_SLAVES_G-1 downto 0);
       accept         : slv(NUM_SLAVES_G-1 downto 0);
+      nullDet        : slv(NUM_SLAVES_G-1 downto 0);
       index          : natural range 0 to NUM_SLAVES_G-1;
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
@@ -83,11 +88,16 @@ architecture rtl of AxiStreamBatcherEventBuilder is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      cntRst         => '0',
       ready          => '0',
       maxSubFrames   => toSlv(NUM_SLAVES_G, 16),
       timer          => (others => '0'),
       timeout        => (others => '0'),
+      dataCnt        => (others => (others => '0')),
+      nullCnt        => (others => (others => '0')),
+      timeoutDropCnt => (others => (others => '0')),
       accept         => (others => '0'),
+      nullDet        => (others => '0'),
       index          => 0,
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
@@ -163,11 +173,21 @@ begin
       -- Latch the current value
       v := r;
 
+      -- Reset strobes
+      v.cntRst := '0';
+
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
       -- Map the registers
-      axiSlaveRegister(axilEp, x"00", 0, v.timeout);
+      for i in (NUM_SLAVES_G-1) downto 0 loop
+         axiSlaveRegisterR(axilEp, toSlv(4*i + 0, 12), 0, r.dataCnt(i));
+         axiSlaveRegisterR(axilEp, toSlv(4*i + 256, 12), 0, r.nullCnt(i));
+         axiSlaveRegisterR(axilEp, toSlv(4*i + 512, 12), 0, r.timeoutDropCnt(i));
+      end loop;
+      axiSlaveRegister (axilEp, x"FF0", 0, v.timeout);
+      axiSlaveRegisterR(axilEp, x"FF4", 0, toSlv(NUM_SLAVES_G, 8));
+      axiSlaveRegister (axilEp, x"FFC", 0, v.cntRst);
 
       -- Closeout the transaction
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
@@ -205,10 +225,12 @@ begin
                                     (ssiGetUserEofe(AXIS_CONFIG_G, rxMasters(i)) = '1') and  -- EOFE flag set
                                     (getTKeep(rxMasters(i).tKeep(AXIS_CONFIG_G.TDATA_BYTES_C-1 downto 0), AXIS_CONFIG_G) = 1) then  -- byte count = 1
                      -- NULL frame detected
-                     v.accept(i) := '0';
+                     v.accept(i)  := '0';
+                     v.nullDet(i) := '1';
                   else
                      -- Normal frame detected
-                     v.accept(i) := '1';
+                     v.accept(i)  := '1';
+                     v.nullDet(i) := '0';
                   end if;
                end if;
             end loop;
@@ -236,6 +258,28 @@ begin
 
                -- Reset the counter
                v.timer := (others => '0');
+
+               for i in (NUM_SLAVES_G-1) downto 0 loop
+
+                  -- Increment data counter
+                  if (r.accept(i) = '1') then
+                     v.dataCnt(i) := r.dataCnt(i) + 1;
+                  end if;
+
+                  -- Increment null counter
+                  if (r.nullDet(i) = '1') then
+                     v.nullCnt(i) := r.nullCnt(i) + 1;
+                  end if;
+
+                  -- Check if using timer
+                  if (r.timeout /= 0) then
+                     -- Increment counter if channel missing
+                     if (r.accept(i) = '0') and (r.nullDet(i) = '0') then
+                        v.timeoutDropCnt(i) := r.timeoutDropCnt(i) + 1;
+                     end if;
+                  end if;
+
+               end loop;
 
                -- Set the sub-frame count
                v.maxSubFrames := resize(onesCount(r.accept), 16);
@@ -279,6 +323,13 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
+
+      -- Check if reseting counters
+      if (r.cntRst = '1') then
+         v.dataCnt        := (others => (others => '0'));
+         v.nullCnt        := (others => (others => '0'));
+         v.timeoutDropCnt := (others => (others => '0'));
+      end if;
 
       -- Outputs
       rxSlaves       <= v.rxSlaves;
