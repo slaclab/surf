@@ -28,7 +28,7 @@ class AxiStreamScatterGather(pr.Device):
             name = 'RxFrameNumber',
             mode = 'RO',
             offset = 0x0C,
-            bitSize = 31
+            bitSize = 31,
             disp = '{:d}'))
 
         self.add(pr.RemoteVariable(
