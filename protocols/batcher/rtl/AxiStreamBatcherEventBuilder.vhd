@@ -79,6 +79,7 @@ architecture rtl of AxiStreamBatcherEventBuilder is
       timeoutDropCnt : Slv32Array(NUM_SLAVES_G-1 downto 0);
       accept         : slv(NUM_SLAVES_G-1 downto 0);
       nullDet        : slv(NUM_SLAVES_G-1 downto 0);
+      timeoutDet     : slv(NUM_SLAVES_G-1 downto 0);
       index          : natural range 0 to NUM_SLAVES_G-1;
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
@@ -98,6 +99,7 @@ architecture rtl of AxiStreamBatcherEventBuilder is
       timeoutDropCnt => (others => (others => '0')),
       accept         => (others => '0'),
       nullDet        => (others => '0'),
+      timeoutDet     => (others => '0'),
       index          => 0,
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
@@ -213,6 +215,9 @@ begin
             -- Loop through RX channels
             v.ready := '1';
 
+            -- Reset the flag
+            v.timeoutDet := (others => '0');            
+            
             for i in (NUM_SLAVES_G-1) downto 0 loop
 
                -- Check if no data
@@ -220,7 +225,13 @@ begin
                   -- Reset the flag
                   v.ready := '0';
                else
+                  ----------------------------------------------------------------------------------------------------
+                  ----------------------------------------------------------------------------------------------------
+                  ----------------------------------------------------------------------------------------------------
                   -- Check for NULL frame (defined as a single word transaction with EOFE asserted and byte count = 1)
+                  ----------------------------------------------------------------------------------------------------
+                  ----------------------------------------------------------------------------------------------------
+                  ----------------------------------------------------------------------------------------------------
                   if (rxMasters(i).tLast = '1') and  -- TLAST asserted
                                     (ssiGetUserEofe(AXIS_CONFIG_G, rxMasters(i)) = '1') and  -- EOFE flag set
                                     (getTKeep(rxMasters(i).tKeep(AXIS_CONFIG_G.TDATA_BYTES_C-1 downto 0), AXIS_CONFIG_G) = 1) then  -- byte count = 1
@@ -253,8 +264,8 @@ begin
             -- Check if ready to move data
             if (batcherIdle = '1') and (r.ready = '1') then
 
-               -- Reset the flag
-               v.ready := '0';
+               -- Reset the flags
+               v.ready      := '0';
 
                -- Reset the counter
                v.timer := (others => '0');
@@ -273,10 +284,17 @@ begin
 
                   -- Check if using timer
                   if (r.timeout /= 0) then
-                     -- Increment counter if channel missing
+
+                     -- Check for timeout event with respect to a channel
                      if (r.accept(i) = '0') and (r.nullDet(i) = '0') then
+
+                        -- Increment counter
                         v.timeoutDropCnt(i) := r.timeoutDropCnt(i) + 1;
+
+                        -- Set the flag
+                        v.timeoutDet(i) := '1';
                      end if;
+
                   end if;
 
                end loop;
@@ -290,8 +308,27 @@ begin
             end if;
          ----------------------------------------------------------------------
          when MOVE_S =>
+            -- Check for timeout channel
+            if (r.timeoutDet(r.index) = '1') then
+
+               -- Check for last channel
+               if (r.index = NUM_SLAVES_G-1) then
+
+                  -- Reset the counter
+                  v.index := 0;
+
+                  -- Reset the accept field (makes it easier to look at simulation)
+                  v.accept := (others => '0');
+
+                  -- Next state
+                  v.state := IDLE_S;
+               else
+                  -- Increment the counter
+                  v.index := r.index + 1;
+               end if;
+
             -- Check if ready to move data
-            if (rxMasters(r.index).tValid = '1') and (v.txMaster.tValid = '0') then
+            elsif (rxMasters(r.index).tValid = '1') and (v.txMaster.tValid = '0') then
 
                -- Move the data
                v.rxSlaves(r.index).tReady := '1';
