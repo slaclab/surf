@@ -97,18 +97,12 @@ begin
             PORT_NUM_G          => (PORT_NUM_G + i*2),
             SSI_EN_G            => true,
             CHAN_COUNT_G        => 1,
-            COMMON_MASTER_CLK_G => true,
-            COMMON_SLAVE_CLK_G  => true,
             AXIS_CONFIG_G       => PGP3_AXIS_CONFIG_C)
          port map (
-            clk         => clk,              -- [in]
-            rst         => rst,              -- [in]
-            sAxisClk    => clk,              -- [in]
-            sAxisRst    => rst,              -- [in]
+            axisClk     => clk,              -- [in]
+            axisRst     => rst,              -- [in]
             sAxisMaster => pgpTxMasters(i),  -- [in]
             sAxisSlave  => pgpTxSlaves(i),   -- [out]
-            mAxisClk    => clk,              -- [in]
-            mAxisRst    => rst,              -- [in]
             mAxisMaster => pgpRxMasters(i),  -- [out]
             mAxisSlave  => pgpRxSlaves(i));  -- [in]
    end generate GEN_VEC;

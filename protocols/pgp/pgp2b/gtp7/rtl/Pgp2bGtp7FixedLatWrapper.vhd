@@ -272,7 +272,6 @@ begin
             clkIn     => pgpTxClkBase,
             rstIn     => pgpTxMmcmReset,
             clkOut(0) => pgpTxClk,
-            rstOut(0) => open,
             locked    => pgpTxMmcmLocked);
 
       pgpTxReset <= extRst;

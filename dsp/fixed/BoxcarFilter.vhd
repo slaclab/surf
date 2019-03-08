@@ -26,121 +26,43 @@ entity BoxcarFilter is
       DATA_WIDTH_G : positive := 16;
       ADDR_WIDTH_G : positive := 10);
    port (
-      clk     : in  sl;
-      rst     : in  sl;
+      clk      : in  sl;
+      rst      : in  sl;
       -- Inbound Interface
-      ibValid : in  sl := '1';
-      ibData  : in  slv(DATA_WIDTH_G-1 downto 0);
+      ibValid  : in  sl := '1';
+      ibData   : in  slv(DATA_WIDTH_G-1 downto 0);
       -- Outbound Interface
-      obValid : out sl;
-      obData  : out slv(DATA_WIDTH_G-1 downto 0));
+      obValid  : out sl;
+      obData   : out slv(DATA_WIDTH_G-1 downto 0);
+      obFull   : out sl;
+      obPeriod : out sl);
 end BoxcarFilter;
 
-architecture rtl of BoxcarFilter is
+architecture mapping of BoxcarFilter is
 
-   constant ACCUM_WIDTH_C : positive                     := (DATA_WIDTH_G+ADDR_WIDTH_G);
-   constant MAX_CNT_C     : slv(ADDR_WIDTH_G-1 downto 0) := (others => '1');
-
-   type RegType is record
-      init    : sl;
-      accum   : slv(ACCUM_WIDTH_C-1 downto 0);
-      addr    : slv(ADDR_WIDTH_G-1 downto 0);
-      obValid : sl;
-      obData  : slv(DATA_WIDTH_G-1 downto 0);
-   end record RegType;
-   constant REG_INIT_C : RegType := (
-      init    => '0',
-      accum   => (others => '0'),
-      addr    => MAX_CNT_C,
-      obValid => '0',
-      obData  => (others => '0'));
-
-   signal r   : RegType := REG_INIT_C;
-   signal rin : RegType;
-
-   signal waddr   : slv(ADDR_WIDTH_G-1 downto 0);
-   signal raddr   : slv(ADDR_WIDTH_G-1 downto 0);
-   signal ramDout : slv(DATA_WIDTH_G-1 downto 0);
+   signal intData : slv(DATA_WIDTH_G+ADDR_WIDTH_G-1 downto 0);
 
 begin
 
-   U_RAM : entity work.SimpleDualPortRam
+   U_Integrator : entity work.BoxcarIntegrator
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => true,
-         DOB_REG_G    => false,
          DATA_WIDTH_G => DATA_WIDTH_G,
          ADDR_WIDTH_G => ADDR_WIDTH_G)
       port map (
-         -- Port A     
-         clka  => clk,
-         wea   => ibValid,
-         addra => waddr,
-         dina  => ibData,
-         -- Port B
-         clkb  => clk,
-         addrb => raddr,
-         doutb => ramDout);
+         clk      => clk,
+         rst      => rst,
+         -- Configuration, intCount is 0 based, 0 = 1, 1 = 2, 1023 = 1024
+         intCount => (others => '1'),
+         -- Inbound Interface
+         ibValid  => ibValid,
+         ibData   => ibData,
+         -- Outbound Interface
+         obValid  => obValid,
+         obData   => intData,
+         obFull   => obFull,
+         obPeriod => obPeriod);
 
-   comb : process (ibData, ibValid, r, ramDout, rst) is
-      variable v : RegType;
-   begin
-      -- Latch the current value
-      v := r;
+   obData <= intData(DATA_WIDTH_G+ADDR_WIDTH_G-1 downto ADDR_WIDTH_G);  -- Truncate the integrator output (power of 2 divide) 
 
-      -- Reset strobes
-      v.obValid := '0';
-
-      -- Check for inbound data
-      if (ibValid = '1') then
-
-         -- Update the accumulator 
-         v.accum := r.accum + resize(ibData, ACCUM_WIDTH_C);
-
-         -- Check if initialized
-         if (r.init = '1') then
-
-            -- Update the accumulator 
-            v.accum := v.accum - resize(ramDout, ACCUM_WIDTH_C);
-
-            -- Forward the result
-            v.obValid := '1';
-            v.obData  := v.accum(ACCUM_WIDTH_C-1 downto ADDR_WIDTH_G);  -- Truncate the accumulator 
-
-         end if;
-
-         -- Increment the address
-         v.addr := r.addr + 1;
-
-         -- Check if the ram has been initialized
-         if (v.addr = MAX_CNT_C) then
-            -- Set the flag
-            v.init := '1';
-         end if;
-
-      end if;
-
-      -- Outputs              
-      waddr   <= v.addr;
-      raddr   <= v.addr + 1;            -- Look ahead 1 sample
-      obValid <= r.obValid;
-      obData  <= r.obData;
-
-      -- Reset
-      if (rst = '1') then
-         v := REG_INIT_C;
-      end if;
-
-      -- Register the variable for next clock cycle
-      rin <= v;
-
-   end process comb;
-
-   seq : process (clk) is
-   begin
-      if rising_edge(clk) then
-         r <= rin after TPD_G;
-      end if;
-   end process seq;
-
-end rtl;
+end mapping;

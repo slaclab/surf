@@ -124,40 +124,14 @@ begin
 
    GEN_VEC :
    for i in 6 downto 0 generate
-      process is
-      begin
-         while (true) loop
-            ---------------------------------------------
-            -- Reset and Phasing Up Procedure
-            ---------------------------------------------
-            while ((RST = '1') or (phasedUp(i) = '0')) loop
-               clkOut(i) <= CLKOUT_RST_POLARITY_C(i);
-               if (RST = '1') then
-                  phasedUp(i) <= '0';
-               else
-                  wait for 10 us;
-                  wait until ((CLKIN = '0') or (RST = '1'));
-                  wait until ((CLKIN = '1') or (RST = '1'));
-                  wait for PHASE_OFFSET_C(i);
-                  phasedUp(i) <= '1';
-               end if;
-            end loop;
-            ---------------------------------------------
-            -- Clock Procedure
-            --------------------------------------------- 
-            if (CLKOUT_RST_POLARITY_C(i) = '1') then
-               clkOut(i) <= '1';
-               wait for CLK_HI_CYCLE_C(i);
-               clkOut(i) <= '0';
-               wait for CLK_LO_CYCLE_C(i);
-            else
-               clkOut(i) <= '0';
-               wait for CLK_LO_CYCLE_C(i);
-               clkOut(i) <= '1';
-               wait for CLK_HI_CYCLE_C(i);
-            end if;
-         end loop;
-      end process;
+      U_ClkPgp : entity work.ClkRst
+         generic map (
+            CLK_PERIOD_G      => CLKOUT_PERIOD_C(i),
+            RST_START_DELAY_G => 0 ns,
+            RST_HOLD_TIME_G   => 1000 ns)
+         port map (
+            clkP => clkOut(i),
+            rstL => phasedUp(i));
    end generate GEN_VEC;
 
 end MmcmEmulation;
