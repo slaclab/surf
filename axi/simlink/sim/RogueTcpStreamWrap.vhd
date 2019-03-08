@@ -22,11 +22,11 @@ use work.AxiStreamPkg.all;
 
 entity RogueTcpStreamWrap is
    generic (
-      TPD_G         : time                     := 1 ns;
-      PORT_NUM_G    : natural range 0 to 65535 := 1;
-      SSI_EN_G      : boolean                  := true;
-      CHAN_COUNT_G  : positive range 1 to 256  := 1;
-      AXIS_CONFIG_G : AxiStreamConfigType      := AXI_STREAM_CONFIG_INIT_C);
+      TPD_G         : time                        := 1 ns;
+      PORT_NUM_G    : natural range 1024 to 49151 := 9000;
+      SSI_EN_G      : boolean                     := true;
+      CHAN_COUNT_G  : positive range 1 to 256     := 1;
+      AXIS_CONFIG_G : AxiStreamConfigType         := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- Clock and Reset
       axisClk     : in  sl;
