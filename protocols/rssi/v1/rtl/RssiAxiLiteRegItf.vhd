@@ -76,6 +76,7 @@ entity RssiAxiLiteRegItf is
 generic (
    -- General Configurations
    TPD_G                : time            := 1 ns;
+   COMMON_CLK_G         : boolean         := false;  -- true if axiClk_i = devClk_i
    SEGMENT_ADDR_SIZE_G  : positive        := 7;  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
    -- Defaults form generics
    TIMEOUT_UNIT_G   : real     := 1.0E-6;
@@ -325,6 +326,7 @@ begin
    SyncFifo_IN0 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
+      COMMON_CLK_G => COMMON_CLK_G,
       DATA_WIDTH_G => status_i'length
    )
    port map (
@@ -337,6 +339,7 @@ begin
    SyncFifo_IN1 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
+      COMMON_CLK_G => COMMON_CLK_G,
       DATA_WIDTH_G => validCnt_i'length
    )
    port map (
@@ -349,6 +352,7 @@ begin
    SyncFifo_IN2 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
+      COMMON_CLK_G => COMMON_CLK_G,
       DATA_WIDTH_G => dropCnt_i'length
    )
    port map (
@@ -361,6 +365,7 @@ begin
    SyncFifo_IN3 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
+      COMMON_CLK_G => COMMON_CLK_G,
       DATA_WIDTH_G => resendCnt_i'length
    )
    port map (
@@ -373,6 +378,7 @@ begin
    SyncFifo_IN4 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
+      COMMON_CLK_G => COMMON_CLK_G,
       DATA_WIDTH_G => reconCnt_i'length
    )
    port map (
@@ -385,8 +391,8 @@ begin
   -- Output assignment and synchronization
   Sync_OUT0 : entity work.Synchronizer
    generic map (
-      TPD_G        => TPD_G
-   )
+      TPD_G         => TPD_G,
+      BYPASS_SYNC_G => COMMON_CLK_G)
    port map (
       dataIn    => r.control(0),
       clk       => devClk_i,
@@ -395,8 +401,8 @@ begin
    
    Sync_OUT1 : entity work.Synchronizer
    generic map (
-      TPD_G        => TPD_G
-   )
+      TPD_G         => TPD_G,
+      BYPASS_SYNC_G => COMMON_CLK_G)
     port map (
       dataIn    => r.control(1),
       clk       => devClk_i,
@@ -405,8 +411,8 @@ begin
    
    Sync_OUT2 : entity work.Synchronizer
    generic map (
-      TPD_G        => TPD_G
-   )
+      TPD_G         => TPD_G,
+      BYPASS_SYNC_G => COMMON_CLK_G)
     port map (
       dataIn    => r.control(2),
       clk       => devClk_i,
@@ -415,8 +421,8 @@ begin
    
    Sync_OUT3 : entity work.Synchronizer
    generic map (
-      TPD_G        => TPD_G
-   )
+      TPD_G         => TPD_G,
+      BYPASS_SYNC_G => COMMON_CLK_G)
     port map (
       dataIn    => r.control(3),
       clk       => devClk_i,
@@ -425,8 +431,8 @@ begin
    
    Sync_OUT4 : entity work.Synchronizer
    generic map (
-      TPD_G        => TPD_G
-   )
+      TPD_G         => TPD_G,
+      BYPASS_SYNC_G => COMMON_CLK_G)
     port map (
       dataIn    => r.control(4),
       clk       => devClk_i,
@@ -436,6 +442,7 @@ begin
    SyncFifo_OUT5 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
+      COMMON_CLK_G => COMMON_CLK_G,
       DATA_WIDTH_G => 8
    )
    port map (
@@ -448,6 +455,7 @@ begin
    SyncFifo_OUT6 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
+      COMMON_CLK_G => COMMON_CLK_G,
       DATA_WIDTH_G => 4
    )
    port map (
@@ -460,6 +468,7 @@ begin
    SyncFifo_OUT7 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
+      COMMON_CLK_G => COMMON_CLK_G,
       DATA_WIDTH_G => 8
    )
    port map (
@@ -472,6 +481,7 @@ begin
    SyncFifo_OUT8 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
+      COMMON_CLK_G => COMMON_CLK_G,
       DATA_WIDTH_G => 16
    )
    port map (
@@ -484,6 +494,7 @@ begin
    SyncFifo_OUT9 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
+      COMMON_CLK_G => COMMON_CLK_G,
       DATA_WIDTH_G => 16
    )
    port map (
@@ -496,6 +507,7 @@ begin
    SyncFifo_OUT10 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
+      COMMON_CLK_G => COMMON_CLK_G,
       DATA_WIDTH_G => 16
    )
    port map (
@@ -508,6 +520,7 @@ begin
    SyncFifo_OUT11 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
+      COMMON_CLK_G => COMMON_CLK_G,
       DATA_WIDTH_G => 16
    )
    port map (
@@ -520,6 +533,7 @@ begin
    SyncFifo_OUT12 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
+      COMMON_CLK_G => COMMON_CLK_G,
       DATA_WIDTH_G => 8
    )
    port map (
@@ -532,6 +546,7 @@ begin
    SyncFifo_OUT13 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
+      COMMON_CLK_G => COMMON_CLK_G,
       DATA_WIDTH_G => 8
    )
    port map (
@@ -544,6 +559,7 @@ begin
    SyncFifo_OUT14 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
+      COMMON_CLK_G => COMMON_CLK_G,
       DATA_WIDTH_G => 8
    )
    port map (
@@ -556,6 +572,7 @@ begin
    SyncFifo_OUT15 : entity work.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
+      COMMON_CLK_G => COMMON_CLK_G,
       DATA_WIDTH_G => 32
    )
    port map (

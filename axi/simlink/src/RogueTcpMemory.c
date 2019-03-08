@@ -26,7 +26,6 @@
 // Start/resetart zeromq server
 void RogueTcpMemoryRestart(RogueTcpMemoryData *data, portDataT *portData) {
    char buffer[100];
-   uint32_t to;
 
    if ( data->zmqPush  != NULL ) zmq_close(data->zmqPull);
    if ( data->zmqPull  != NULL ) zmq_close(data->zmqPush);
@@ -39,10 +38,6 @@ void RogueTcpMemoryRestart(RogueTcpMemoryData *data, portDataT *portData) {
    data->zmqCtx = zmq_ctx_new();
    data->zmqPull  = zmq_socket(data->zmqCtx,ZMQ_PULL);
    data->zmqPush  = zmq_socket(data->zmqCtx,ZMQ_PUSH);
-
-   to = 10;
-   zmq_setsockopt (data->zmqPull, ZMQ_RCVTIMEO, &to, sizeof(to));
-   zmq_setsockopt (data->zmqPush, ZMQ_RCVTIMEO, &to, sizeof(to));
 
    vhpi_printf("RogueTcpMemory: Listening on ports %i & %i\n",data->port,data->port+1);
 
@@ -116,7 +111,7 @@ int RogueTcpMemoryRecv ( RogueTcpMemoryData *data, portDataT *portData ) {
    do {
 
       // Get the message
-      if ( zmq_recvmsg(data->zmqPull,&(msg[x]),0) > 0 ) {
+      if ( zmq_recvmsg(data->zmqPull,&(msg[x]),ZMQ_DONTWAIT) > 0 ) {
          if ( x != 4 ) x++;
          msgCnt++;
 

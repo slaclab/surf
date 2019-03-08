@@ -13,7 +13,7 @@ if { $::env(VIVADO_VERSION) >= 2016.4 } {
    loadSource -path "$::DIR_PATH/images/SaltUltraScaleTxOnly.dcp"
 
    # Load Simulation
-   loadSource -sim_only -dir "$::DIR_PATH/tb/"
+   loadSource -sim_only -dir "$::DIR_PATH/tb"
    
 } else {
    puts "\n\nWARNING: $::DIR_PATH requires Vivado 2016.4 (or later)\n\n"
