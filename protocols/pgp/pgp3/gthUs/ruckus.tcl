@@ -5,7 +5,7 @@ source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 if { $::env(VIVADO_VERSION) >= 2017.3 } {
 
    # Load Source Code
-   loadSource -dir "$::DIR_PATH/rtl/"
+   loadSource -dir "$::DIR_PATH/rtl"
    
    loadSource   -path "$::DIR_PATH/ip/Pgp3GthUsIp10G/Pgp3GthUsIp10G.dcp"
    # loadIpCore -path "$::DIR_PATH/ip/Pgp3GthUsIp10G/Pgp3GthUsIp10G.xci"
