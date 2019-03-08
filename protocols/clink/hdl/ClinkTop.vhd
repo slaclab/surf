@@ -393,6 +393,14 @@ begin
 
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
+      -- Prevent zero baud rate
+      if (v.chanConfig(0).serBaud = 0) then
+         v.chanConfig(0).serBaud := toSlv(1,24);
+      end if;
+      if (v.chanConfig(1).serBaud = 0) then
+         v.chanConfig(1).serBaud := toSlv(1,24);
+      end if;      
+      
       -------------
       -- Reset
       -------------
