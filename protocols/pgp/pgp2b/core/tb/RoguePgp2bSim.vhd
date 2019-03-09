@@ -21,7 +21,7 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
-use work.Pgp3Pkg.all;
+use work.Pgp2bPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -90,8 +90,8 @@ begin
             TPD_G      => TPD_G,
             PORT_NUM_G => PORT_NUM_G + 8)
          port map (
-            sysClk     => sysClk,              -- [in]
-            sysRst     => sysRst,              -- [in]
+            sysClk     => pgpClk,              -- [in]
+            sysRst     => pgpClkRst,           -- [in]
             txOpCode   => pgpTxIn.opCode,      -- [in]
             txOpCodeEn => pgpTxIn.opCodeEn,    -- [in]
             txRemData  => pgpTxIn.locData,     -- [in]
@@ -105,6 +105,6 @@ begin
 
    rxOut.phyRxReady     <= '1';
    rxOut.linkReady      <= '1';
-   rxOut.remRxLinkReady <= '1';
+   rxOut.remLinkReady <= '1';
 
 end sim;
