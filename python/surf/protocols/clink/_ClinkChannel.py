@@ -95,10 +95,10 @@ class ClinkChannel(pr.Device):
             bitSize      =  24,
             bitOffset    =  0,
             disp         = '{}',
-            base         = pr.UInt,
             mode         = "RW",
+            units        = "bps",
         ))
-
+        
         self.add(pr.RemoteVariable(    
             name         = "SwControlValue",
             description  = "Software camera control bit values",

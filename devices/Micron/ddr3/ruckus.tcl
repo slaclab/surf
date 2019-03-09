@@ -2,7 +2,7 @@
 source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 
 # Load target's source code and constraints
-loadSource -sim_only -dir "$::DIR_PATH/tb/"
+loadSource -sim_only -dir "$::DIR_PATH/tb"
 
 # Vivado Verilog bug fix (https://jira.slac.stanford.edu/browse/ESCORE-261)
 set_property USED_IN {implementation} [get_files {ddr3.v}]
