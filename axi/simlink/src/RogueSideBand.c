@@ -58,19 +58,19 @@ void RogueSideBandRestart(RogueSideBandData *data, portDataT *portData) {
 // Send a message
 void RogueSideBandSend ( RogueSideBandData *data, portDataT *portData ) {
    zmq_msg_t msg;
-   uint8_t  data[4];
+   uint8_t  ba[4];
 
    if ( (zmq_msg_init_size(&msg,4) < 0) ) {  
       vhpi_assert("RogueSideBand: Failed to init message",vhpiFatal);
       return;
    }
 
-   data[0] = data->txOpCodeEn;
-   data[1] = data->txOpCode;
-   data[2] = data->txRemDataChanged;
-   data[3] = data->txRemData;
+   ba[0] = data->txOpCodeEn;
+   ba[1] = data->txOpCode;
+   ba[2] = data->txRemDataChanged;
+   ba[3] = data->txRemData;
 
-   memcpy(zmq_msg_data(&msg), data, 4);
+   memcpy(zmq_msg_data(&msg), ba, 4);
 
    // Send data
    if ( zmq_msg_send(data->zmqPush,&msg,ZMQ_DONTWAIT) < 0 ) {
@@ -174,7 +174,7 @@ void RogueSideBandUpdate ( void *userPtr ) {
 
    portDataT *portData = (portDataT*) userPtr;
    RogueSideBandData *data = (RogueSideBandData*)(portData->stateData);
-   send uint8_t = 0;
+   uint8_t send = 0;
 
    // Detect clock edge
    if ( data->currClk != getInt(s_clock) ) {
