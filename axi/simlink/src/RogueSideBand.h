@@ -20,11 +20,16 @@
 #define s_reset        1
 #define s_port         2
 
-#define s_opCode       3
-#define s_opCodeEn     4
-#define s_remData      5
+#define s_rxOpCode       3
+#define s_rxOpCodeEn     4
+#define s_rxRemData      5
 
-#define PORT_COUNT     6
+#define s_txOpCode       6
+#define s_txOpCodeEn     7
+#define s_txRemData      8
+
+
+#define PORT_COUNT     9
 
 // Structure to track state
 typedef struct {
@@ -32,12 +37,18 @@ typedef struct {
    uint32_t  currClk;
    uint16_t  port;
   
-   uint8_t   remData;
-   uint8_t   ocData;
-   uint8_t   ocDataEn;
+   uint8_t   rxRemData;
+   uint8_t   rxOpCode;
+   uint8_t   rxOpCodeEn;
+
+   uint8_t   txRemData;
+   uint8_t   txRemDataChanged;  
+   uint8_t   txOpCode;
+   uint8_t   txOpCodeEn;
 
    void *    zmqCtx;
    void *    zmqPull;
+   void *    zmqPush;  
   
 } RogueSideBandData;
 
