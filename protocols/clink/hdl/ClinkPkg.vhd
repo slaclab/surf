@@ -96,7 +96,7 @@ package ClinkPkg is
    constant CL_CHAN_CONFIG_INIT_C : ClChanConfigType := (
       swCamCtrl   => (others=>'0'),
       swCamCtrlEn => (others=>'0'),
-      serBaud     => (others=>'0'),
+      serBaud     => toSlv(1,24),
       linkMode    => (others=>'0'),
       dataMode    => (others=>'0'),
       tapCount    => (others=>'0'),

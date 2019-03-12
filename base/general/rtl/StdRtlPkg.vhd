@@ -146,6 +146,12 @@ package StdRtlPkg is
    function resize (vec : slv; newSize : integer; pad : sl := '0') return slv;
    function resize (str : string; newSize : integer; pad : character := nul) return string;
    
+  -- Match Functions 
+  function StdMatch (L, R: std_ulogic) return boolean;
+  function StdMatch (L, R: unsigned) return boolean;
+  function StdMatch (L, R: signed) return boolean;
+  function StdMatch (L, R: slv) return boolean;
+   
    -- Some synthesis tools wont accept unit types
    -- pragma translate_off
    type frequency is range 0 to 2147483647
@@ -1364,6 +1370,28 @@ package body StdRtlPkg is
       return ret;
    end function resize;
    
+   -- Match Functions 
+   function StdMatch (L, R: std_ulogic) return boolean is
+   begin
+      return std_match(L,R);
+   end function StdMatch;  
+
+   function StdMatch (L, R: unsigned) return boolean is
+   begin
+      return std_match(L,R);
+   end function StdMatch;  
+
+   function StdMatch (L, R: signed) return boolean is
+   begin
+      return std_match(L,R);
+   end function StdMatch;  
+
+   function StdMatch (L, R: slv) return boolean is
+   begin
+      return std_match(L,R);
+   end function StdMatch;  
+
+  
    function toBuildInfo (din : slv) return BuildInfoRetType is
       variable ret : BuildInfoRetType;
       variable i   : natural;

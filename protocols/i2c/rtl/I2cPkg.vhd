@@ -195,11 +195,11 @@ package I2cPkg is
          clk_cnt : in std_logic_vector(15 downto 0);  -- 4x SCL
 
          -- input signals
-         start,
-         stop,
-         read,
-         write,
-         ack_in :    std_logic;
+         start  : in std_logic;
+         stop   : in std_logic;
+         read   : in std_logic;
+         write  : in std_logic;
+         ack_in : in std_logic;
          din    : in std_logic_vector(7 downto 0);
          filt   : in std_logic_vector((filter-1)*dynfilt downto 0);
 

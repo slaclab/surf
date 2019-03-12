@@ -37,7 +37,7 @@ entity SrpV3Axi is
       SLAVE_READY_EN_G    : boolean                 := true;
       GEN_SYNC_FIFO_G     : boolean                 := false;
       AXI_CLK_FREQ_G      : real                    := 156.25E+6;  -- units of Hz
-      AXI_CONFIG_G        : AxiConfigType           := (33, 4, 1, 8);
+      AXI_CONFIG_G        : AxiConfigType           := axiConfig(33, 4, 1, 8);
       AXI_BURST_G         : slv(1 downto 0)         := "01";
       AXI_CACHE_G         : slv(3 downto 0)         := "1111";
       ACK_WAIT_BVALID_G   : boolean                 := true;

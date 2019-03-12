@@ -131,7 +131,6 @@ begin
    U_Mem : entity work.AxiDualPortRam
       generic map (
          TPD_G            => TPD_G,
-         REG_EN_G         => true,
          AXI_WR_EN_G      => true,
          SYS_WR_EN_G      => false,
          COMMON_CLK_G     => false,

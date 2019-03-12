@@ -28,11 +28,9 @@ use unisim.vcomponents.all;
 
 entity RoguePgp3Sim is
    generic (
-      TPD_G         : time                  := 1 ns;
-      SYNTH_MODE_G  : string                := "inferred";
-      MEMORY_TYPE_G : string                := "block";
-      USER_ID_G     : integer range 0 to 63 := 1;
-      NUM_VC_G      : integer range 1 to 16 := 4);
+      TPD_G      : time                     := 1 ns;
+      PORT_NUM_G : natural range 0 to 65535 := 1;
+      NUM_VC_G   : integer range 1 to 16    := 4);
    port (
       -- GT Ports
       pgpRefClk       : in  sl;
@@ -93,25 +91,18 @@ begin
          rstOut => rst);
 
    GEN_VEC : for i in NUM_VC_G-1 downto 0 generate
-      U_PGP_VC : entity work.RogueStreamSimWrap
+      U_PGP_VC : entity work.RogueTcpStreamWrap
          generic map (
             TPD_G               => TPD_G,
-            SYNTH_MODE_G        => SYNTH_MODE_G,
-            MEMORY_TYPE_G       => MEMORY_TYPE_G,
-            DEST_ID_G           => i,
-            USER_ID_G           => USER_ID_G,
-            COMMON_MASTER_CLK_G => true,
-            COMMON_SLAVE_CLK_G  => true,
+            PORT_NUM_G          => (PORT_NUM_G + i*2),
+            SSI_EN_G            => true,
+            CHAN_COUNT_G        => 1,
             AXIS_CONFIG_G       => PGP3_AXIS_CONFIG_C)
          port map (
-            clk         => clk,              -- [in]
-            rst         => rst,              -- [in]
-            sAxisClk    => clk,              -- [in]
-            sAxisRst    => rst,              -- [in]
+            axisClk     => clk,              -- [in]
+            axisRst     => rst,              -- [in]
             sAxisMaster => pgpTxMasters(i),  -- [in]
             sAxisSlave  => pgpTxSlaves(i),   -- [out]
-            mAxisClk    => clk,              -- [in]
-            mAxisRst    => rst,              -- [in]
             mAxisMaster => pgpRxMasters(i),  -- [out]
             mAxisSlave  => pgpRxSlaves(i));  -- [in]
    end generate GEN_VEC;

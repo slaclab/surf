@@ -112,7 +112,7 @@ begin
          v.txMaster.tValid := '0';
          v.txMaster.tLast  := '0';
          v.txMaster.tUser  := (others => '0');
-         v.txMaster.tKeep  := x"000F";  -- 32-bit interface
+         v.txMaster.tKeep  := resize(x"000F", AXI_STREAM_MAX_TKEEP_WIDTH_C);  -- 32-bit interface
       end if;
 
       -- Set the error flag

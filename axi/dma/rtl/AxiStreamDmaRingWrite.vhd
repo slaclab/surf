@@ -29,7 +29,6 @@ use work.AxiStreamDmaRingPkg.all;
 entity AxiStreamDmaRingWrite is
    generic (
       TPD_G                : time                     := 1 ns;
-      SYNTH_MODE_G         : string                   := "inferred";
       BUFFERS_G            : natural range 2 to 64    := 64;
       BURST_SIZE_BYTES_G   : natural range 4 to 2**17 := 4096;
       ENABLE_UNALIGN_G     : boolean                  := false;
@@ -197,7 +196,8 @@ architecture rtl of AxiStreamDmaRingWrite is
          request       => '0',
          drop          => '0',
          address       => (others => '0'),
-         maxSize       => toSlv(BURST_SIZE_BYTES_G, 32)),
+         maxSize       => toSlv(BURST_SIZE_BYTES_G, 32),
+         prot          => (others=>'0')),
       trigger          => '0',
       softTrigger      => (others => '0'),
       eofe             => '0',
@@ -257,8 +257,9 @@ begin
    U_AxiDualPortRam_Start : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
+         SYNTH_MODE_G => "inferred",
          MEMORY_TYPE_G=> "distributed",
-         REG_EN_G     => false,
+         READ_LATENCY_G => 0,
          AXI_WR_EN_G  => true,
          SYS_WR_EN_G  => false,
          ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
@@ -279,8 +280,9 @@ begin
    U_AxiDualPortRam_End : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
+         SYNTH_MODE_G => "inferred",
          MEMORY_TYPE_G=> "distributed",
-         REG_EN_G     => false,
+         READ_LATENCY_G => 0, 
          AXI_WR_EN_G  => true,
          SYS_WR_EN_G  => false,
          ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
@@ -302,8 +304,9 @@ begin
    U_AxiDualPortRam_Next : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
+         SYNTH_MODE_G => "inferred",
          MEMORY_TYPE_G=> "distributed",
-         REG_EN_G     => false,
+         READ_LATENCY_G => 0, 
          AXI_WR_EN_G  => false,
          SYS_WR_EN_G  => true,
          ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
@@ -325,8 +328,9 @@ begin
    U_AxiDualPortRam_Trigger : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
+         SYNTH_MODE_G => "inferred",
          MEMORY_TYPE_G=> "distributed",
-         REG_EN_G     => false,
+         READ_LATENCY_G => 0, 
          AXI_WR_EN_G  => false,
          SYS_WR_EN_G  => true,
          ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
@@ -349,8 +353,9 @@ begin
    U_AxiDualPortRam_Mode : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
+         SYNTH_MODE_G => "inferred",
          MEMORY_TYPE_G=> "distributed",
-         REG_EN_G     => false,
+         READ_LATENCY_G => 0, 
          AXI_WR_EN_G  => true,
          SYS_WR_EN_G  => false,
          COMMON_CLK_G => false,
@@ -375,8 +380,9 @@ begin
    U_AxiDualPortRam_Status : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
+         SYNTH_MODE_G => "inferred",
          MEMORY_TYPE_G=> "distributed",
-         REG_EN_G     => false,
+         READ_LATENCY_G => 0, 
          AXI_WR_EN_G  => false,
          SYS_WR_EN_G  => true,
          ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
@@ -426,8 +432,8 @@ begin
          PIPE_STAGES_G       => 1,
          SLAVE_READY_EN_G    => false,
          VALID_THOLD_G       => 1,
-         SYNTH_MODE_G        => SYNTH_MODE_G,
-         MEMORY_TYPE_G       => "distributed",
+         BRAM_EN_G           => false,
+         USE_BUILT_IN_G      => false,
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 4,
          FIFO_FIXED_THRESH_G => true,

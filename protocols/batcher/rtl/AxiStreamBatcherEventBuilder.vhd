@@ -19,6 +19,7 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
+use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
 
@@ -45,13 +46,18 @@ entity AxiStreamBatcherEventBuilder is
       OUTPUT_PIPE_STAGES_G : natural             := 0);
    port (
       -- Clock and Reset
-      axisClk      : in  sl;
-      axisRst      : in  sl;
+      axisClk         : in  sl;
+      axisRst         : in  sl;
+      -- AXI-Lite Interface
+      axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteSlave  : out AxiLiteWriteSlaveType;
       -- AXIS Interfaces
-      sAxisMasters : in  AxiStreamMasterArray(NUM_SLAVES_G-1 downto 0);
-      sAxisSlaves  : out AxiStreamSlaveArray(NUM_SLAVES_G-1 downto 0);
-      mAxisMaster  : out AxiStreamMasterType;
-      mAxisSlave   : in  AxiStreamSlaveType);
+      sAxisMasters    : in  AxiStreamMasterArray(NUM_SLAVES_G-1 downto 0);
+      sAxisSlaves     : out AxiStreamSlaveArray(NUM_SLAVES_G-1 downto 0);
+      mAxisMaster     : out AxiStreamMasterType;
+      mAxisSlave      : in  AxiStreamSlaveType);
 end entity AxiStreamBatcherEventBuilder;
 
 architecture rtl of AxiStreamBatcherEventBuilder is
@@ -63,23 +69,43 @@ architecture rtl of AxiStreamBatcherEventBuilder is
       MOVE_S);
 
    type RegType is record
-      ready        : sl;
-      maxSubFrames : slv(15 downto 0);
-      accept       : slv(NUM_SLAVES_G-1 downto 0);
-      index        : natural range 0 to NUM_SLAVES_G-1;
-      rxSlaves     : AxiStreamSlaveArray(NUM_SLAVES_G-1 downto 0);
-      txMaster     : AxiStreamMasterType;
-      state        : StateType;
+      cntRst         : sl;
+      ready          : sl;
+      maxSubFrames   : slv(15 downto 0);
+      timer          : slv(31 downto 0);
+      timeout        : slv(31 downto 0);
+      dataCnt        : Slv32Array(NUM_SLAVES_G-1 downto 0);
+      nullCnt        : Slv32Array(NUM_SLAVES_G-1 downto 0);
+      timeoutDropCnt : Slv32Array(NUM_SLAVES_G-1 downto 0);
+      accept         : slv(NUM_SLAVES_G-1 downto 0);
+      nullDet        : slv(NUM_SLAVES_G-1 downto 0);
+      timeoutDet     : slv(NUM_SLAVES_G-1 downto 0);
+      index          : natural range 0 to NUM_SLAVES_G-1;
+      axilReadSlave  : AxiLiteReadSlaveType;
+      axilWriteSlave : AxiLiteWriteSlaveType;
+      rxSlaves       : AxiStreamSlaveArray(NUM_SLAVES_G-1 downto 0);
+      txMaster       : AxiStreamMasterType;
+      state          : StateType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      ready        => '0',
-      maxSubFrames => toSlv(NUM_SLAVES_G, 16),
-      accept       => (others => '0'),
-      index        => 0,
-      rxSlaves     => (others => AXI_STREAM_SLAVE_INIT_C),
-      txMaster     => AXI_STREAM_MASTER_INIT_C,
-      state        => IDLE_S);
+      cntRst         => '0',
+      ready          => '0',
+      maxSubFrames   => toSlv(NUM_SLAVES_G, 16),
+      timer          => (others => '0'),
+      timeout        => (others => '0'),
+      dataCnt        => (others => (others => '0')),
+      nullCnt        => (others => (others => '0')),
+      timeoutDropCnt => (others => (others => '0')),
+      accept         => (others => '0'),
+      nullDet        => (others => '0'),
+      timeoutDet     => (others => '0'),
+      index          => 0,
+      axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
+      axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
+      rxSlaves       => (others => AXI_STREAM_SLAVE_INIT_C),
+      txMaster       => AXI_STREAM_MASTER_INIT_C,
+      state          => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -140,12 +166,39 @@ begin
             mAxisSlave  => rxSlaves(i));
    end generate GEN_VEC;
 
-   comb : process (axisRst, batcherIdle, r, rxMasters, txSlave) is
-      variable v : RegType;
-      variable i : natural;
+   comb : process (axilReadMaster, axilWriteMaster, axisRst, batcherIdle, r,
+                   rxMasters, txSlave) is
+      variable v      : RegType;
+      variable axilEp : AxiLiteEndPointType;
+      variable i      : natural;
    begin
       -- Latch the current value
       v := r;
+
+      -- Reset strobes
+      v.cntRst := '0';
+
+      -- Determine the transaction type
+      axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
+
+      -- Map the registers
+      for i in (NUM_SLAVES_G-1) downto 0 loop
+         axiSlaveRegisterR(axilEp, toSlv(4*i + 0, 12), 0, r.dataCnt(i));
+         axiSlaveRegisterR(axilEp, toSlv(4*i + 256, 12), 0, r.nullCnt(i));
+         axiSlaveRegisterR(axilEp, toSlv(4*i + 512, 12), 0, r.timeoutDropCnt(i));
+      end loop;
+      axiSlaveRegister (axilEp, x"FF0", 0, v.timeout);
+      axiSlaveRegisterR(axilEp, x"FF4", 0, toSlv(NUM_SLAVES_G, 8));
+      axiSlaveRegister (axilEp, x"FFC", 0, v.cntRst);
+
+      -- Closeout the transaction
+      axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
+
+      -- Check for change in configuration
+      if (r.timeout /= v.timeout) then
+         -- Reset the timer
+         v.timer := (others => '0');
+      end if;
 
       -- Reset the flow control strobes
       for i in (NUM_SLAVES_G-1) downto 0 loop
@@ -161,62 +214,165 @@ begin
          when IDLE_S =>
             -- Loop through RX channels
             v.ready := '1';
+
+            -- Reset the flag
+            v.timeoutDet := (others => '0');            
+            
             for i in (NUM_SLAVES_G-1) downto 0 loop
+
                -- Check if no data
                if (rxMasters(i).tValid = '0') then
                   -- Reset the flag
                   v.ready := '0';
                else
+                  ----------------------------------------------------------------------------------------------------
+                  ----------------------------------------------------------------------------------------------------
+                  ----------------------------------------------------------------------------------------------------
                   -- Check for NULL frame (defined as a single word transaction with EOFE asserted and byte count = 1)
+                  ----------------------------------------------------------------------------------------------------
+                  ----------------------------------------------------------------------------------------------------
+                  ----------------------------------------------------------------------------------------------------
                   if (rxMasters(i).tLast = '1') and  -- TLAST asserted
-                  (ssiGetUserEofe(AXIS_CONFIG_G, rxMasters(i)) = '1') and  -- EOFE flag set
-                  (getTKeep(rxMasters(i).tKeep(AXIS_CONFIG_G.TDATA_BYTES_C-1 downto 0), AXIS_CONFIG_G) = 1) then  -- byte count = 1
+                                    (ssiGetUserEofe(AXIS_CONFIG_G, rxMasters(i)) = '1') and  -- EOFE flag set
+                                    (getTKeep(rxMasters(i).tKeep(AXIS_CONFIG_G.TDATA_BYTES_C-1 downto 0), AXIS_CONFIG_G) = 1) then  -- byte count = 1
                      -- NULL frame detected
-                     v.accept(i) := '0';
+                     v.accept(i)  := '0';
+                     v.nullDet(i) := '1';
                   else
                      -- Normal frame detected
-                     v.accept(i) := '1';
+                     v.accept(i)  := '1';
+                     v.nullDet(i) := '0';
                   end if;
                end if;
             end loop;
+
+            -- Check if using timer
+            if (r.timeout /= 0) then
+               -- Check if 1 of the channels are ready
+               if (r.accept /= 0) then
+                  -- Check for timeout
+                  if (r.timer = r.timeout) then
+                     -- Set the flag
+                     v.ready := '1';
+                  else
+                     -- Increment the counter
+                     v.timer := r.timer + 1;
+                  end if;
+               end if;
+            end if;
+
             -- Check if ready to move data
             if (batcherIdle = '1') and (r.ready = '1') then
-               -- Reset the flag
-               v.ready        := '0';
+
+               -- Reset the flags
+               v.ready      := '0';
+
+               -- Reset the counter
+               v.timer := (others => '0');
+
+               for i in (NUM_SLAVES_G-1) downto 0 loop
+
+                  -- Increment data counter
+                  if (r.accept(i) = '1') then
+                     v.dataCnt(i) := r.dataCnt(i) + 1;
+                  end if;
+
+                  -- Increment null counter
+                  if (r.nullDet(i) = '1') then
+                     v.nullCnt(i) := r.nullCnt(i) + 1;
+                  end if;
+
+                  -- Check if using timer
+                  if (r.timeout /= 0) then
+
+                     -- Check for timeout event with respect to a channel
+                     if (r.accept(i) = '0') and (r.nullDet(i) = '0') then
+
+                        -- Increment counter
+                        v.timeoutDropCnt(i) := r.timeoutDropCnt(i) + 1;
+
+                        -- Set the flag
+                        v.timeoutDet(i) := '1';
+                     end if;
+
+                  end if;
+
+               end loop;
+
                -- Set the sub-frame count
                v.maxSubFrames := resize(onesCount(r.accept), 16);
+
                -- Next state
-               v.state        := MOVE_S;
+               v.state := MOVE_S;
+
             end if;
          ----------------------------------------------------------------------
          when MOVE_S =>
+            -- Check for timeout channel
+            if (r.timeoutDet(r.index) = '1') then
+
+               -- Check for last channel
+               if (r.index = NUM_SLAVES_G-1) then
+
+                  -- Reset the counter
+                  v.index := 0;
+
+                  -- Reset the accept field (makes it easier to look at simulation)
+                  v.accept := (others => '0');
+
+                  -- Next state
+                  v.state := IDLE_S;
+               else
+                  -- Increment the counter
+                  v.index := r.index + 1;
+               end if;
+
             -- Check if ready to move data
-            if (rxMasters(r.index).tValid = '1') and (v.txMaster.tValid = '0') then
+            elsif (rxMasters(r.index).tValid = '1') and (v.txMaster.tValid = '0') then
+
                -- Move the data
                v.rxSlaves(r.index).tReady := '1';
                v.txMaster                 := rxMasters(r.index);
+
                -- Only forward the non-NULL frames
-               v.txMaster.tValid          := r.accept(r.index);
+               v.txMaster.tValid := r.accept(r.index);
+
                -- Check for the last transfer
                if (rxMasters(r.index).tLast = '1') then
+
                   -- Check for last channel
                   if (r.index = NUM_SLAVES_G-1) then
+
                      -- Reset the counter
                      v.index := 0;
+
+                     -- Reset the accept field (makes it easier to look at simulation)
+                     v.accept := (others => '0');
+
                      -- Next state
                      v.state := IDLE_S;
                   else
                      -- Increment the counter
                      v.index := r.index + 1;
                   end if;
+
                end if;
             end if;
       ----------------------------------------------------------------------
       end case;
 
+      -- Check if reseting counters
+      if (r.cntRst = '1') then
+         v.dataCnt        := (others => (others => '0'));
+         v.nullCnt        := (others => (others => '0'));
+         v.timeoutDropCnt := (others => (others => '0'));
+      end if;
+
       -- Outputs
-      rxSlaves <= v.rxSlaves;
-      txMaster <= r.txMaster;
+      rxSlaves       <= v.rxSlaves;
+      txMaster       <= r.txMaster;
+      axilWriteSlave <= r.axilWriteSlave;
+      axilReadSlave  <= r.axilReadSlave;
 
       -- Reset
       if (axisRst = '1') then

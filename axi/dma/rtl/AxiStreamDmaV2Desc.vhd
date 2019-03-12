@@ -28,9 +28,7 @@ use work.ArbiterPkg.all;
 
 entity AxiStreamDmaV2Desc is
    generic (
-      TPD_G             : time   := 1 ns;
-      SYNTH_MODE_G      : string := "inferred";
-      MEMORY_TYPE_G     : string := "block";  
+      TPD_G             : time := 1 ns;
 
       -- Number of read & write DMA engines to support for each descriptor engine
       CHAN_COUNT_G      : integer range 1 to 16 := 1;
@@ -141,7 +139,6 @@ architecture rtl of AxiStreamDmaV2Desc is
       axiWriteMaster : AxiWriteMasterType;
 
       -- Configuration
-      buffBaseAddr : slv(31 downto 0);   -- For buffer entries
       wrBaseAddr   : slv(63 downto 0);   -- For wr ring buffer
       rdBaseAddr   : slv(63 downto 0);   -- For rd ring buffer
       maxSize      : slv(31 downto 0);
@@ -204,7 +201,6 @@ architecture rtl of AxiStreamDmaV2Desc is
       axilReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C,
       axiWriteMaster  => axiWriteMasterInit(AXI_CONFIG_G, '1', "01", "0000"),
-      buffBaseAddr    => (others => '0'),
       wrBaseAddr      => (others => '0'),
       rdBaseAddr      => (others => '0'),
       maxSize         => (others => '0'),
@@ -321,8 +317,6 @@ begin
       U_DescFifo : entity work.Fifo
          generic map (
             TPD_G           => TPD_G,
-            SYNTH_MODE_G    => SYNTH_MODE_G,
-            MEMORY_TYPE_G   => MEMORY_TYPE_G,
             GEN_SYNC_FIFO_G => true,
             FWFT_EN_G       => true,
             DATA_WIDTH_G    => 32,
@@ -345,8 +339,6 @@ begin
       U_RdFifo : entity work.Fifo
          generic map (
             TPD_G           => TPD_G,
-            SYNTH_MODE_G    => SYNTH_MODE_G,
-            MEMORY_TYPE_G   => MEMORY_TYPE_G,
             GEN_SYNC_FIFO_G => true,
             FWFT_EN_G       => true,
             DATA_WIDTH_G    => 32,
@@ -369,8 +361,6 @@ begin
       U_AddrRam : entity work.AxiDualPortRam
          generic map (
             TPD_G        => TPD_G,
-            REG_EN_G     => true,
-            MEMORY_TYPE_G=> "block",
             COMMON_CLK_G => true,
             ADDR_WIDTH_G => DESC_AWIDTH_G,
             DATA_WIDTH_G => 32)
@@ -478,7 +468,6 @@ begin
       axiSlaveRegister(regCon, x"018", 0, v.rdBaseAddr(31 downto 0));
       axiSlaveRegister(regCon, x"01C", 0, v.rdBaseAddr(63 downto 32));
       axiSlaveRegister(regCon, x"020", 0, v.fifoReset);
-      axiSlaveRegister(regCon, x"024", 0, v.buffBaseAddr);
       axiSlaveRegister(regCon, x"028", 0, v.maxSize);
       axiSlaveRegister(regCon, x"02C", 0, v.online);
       axiSlaveRegister(regCon, x"030", 0, v.acknowledge);
@@ -512,7 +501,7 @@ begin
 
       if DESC_128_EN_C then
          axiSlaveRegister(regCon, x"060", 0, v.fifoDin);
-         axiWrDetect(regCon, x"064", v.rdFifoWr(2));
+         axiWrDetect(regCon, x"060", v.rdFifoWr(2));
 
          axiSlaveRegister(regCon, x"064", 0, v.fifoDin);
          axiWrDetect(regCon, x"064", v.rdFifoWr(3));
@@ -610,11 +599,11 @@ begin
          for i in 0 to CHAN_COUNT_G-1 loop
 
             if DESC_128_EN_C then
-               v.dmaWrDescAck(i).address(63 downto 40) := r.buffBaseAddr(31 downto 8);
+               v.dmaWrDescAck(i).address(63 downto 40) := (others=>'0');
                v.dmaWrDescAck(i).address(39 downto  4) := wrFifoDout(63 downto 28);
                v.dmaWrDescAck(i).address(3  downto  0) := (others=>'0');
             else
-               v.dmaWrDescAck(i).address(63 downto 32) := r.buffBaseAddr;
+               v.dmaWrDescAck(i).address(63 downto 32) := (others=>'0');
                v.dmaWrDescAck(i).address(31 downto  0) := r.wrAddr;
             end if;
 
@@ -780,9 +769,9 @@ begin
             if DESC_128_EN_C then
                v.axiWriteMaster.wdata(127)           := '1';
                v.axiWriteMaster.wdata(126 downto 64) := (others => '0');
-               v.axiWriteMaster.wdata(63  downto 32) := dmaWrDescRet(descIndex).buffId;
+               v.axiWriteMaster.wdata(63  downto 32) := dmaRdDescRet(descIndex).buffId;
                v.axiWriteMaster.wdata(31  downto  3) := (others => '0');
-               v.axiWriteMaster.wdata(2   downto  0) := dmaWrDescRet(descIndex).result;
+               v.axiWriteMaster.wdata(2   downto  0) := dmaRdDescRet(descIndex).result;
 
                v.axiWriteMaster.wstrb := resize(x"FFFF", 128);
 
@@ -882,7 +871,7 @@ begin
 
       -- Format request, 128-bits
       if DESC_128_EN_C then
-         dmaRdReq.address(63 downto 40) := r.buffBaseAddr(31 downto 8);
+         dmaRdReq.address(63 downto 40) := (others=>'0');
          dmaRdReq.address(39 downto  4) := rdFifoDout(127 downto 92);
          dmaRdReq.address(3  downto  0) := (others=>'0');
          dmaRdReq.buffId(27 downto 0)   := rdFifoDout(91 downto 64);
@@ -896,7 +885,7 @@ begin
 
       -- Format request, 64-bits
       else 
-         dmaRdReq.address(63 downto 32) := r.buffBaseAddr;
+         dmaRdReq.address(63 downto 32) := (others=>'0');
          dmaRdReq.address(31 downto  0) := r.rdAddr;
          dmaRdReq.dest                  := rdFifoDout(63 downto 56);
          dmaRdReq.size(23 downto 0)     := rdFifoDout(55 downto 32);

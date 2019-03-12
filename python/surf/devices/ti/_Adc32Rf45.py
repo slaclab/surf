@@ -19,7 +19,7 @@
 
 import pyrogue as pr
 import time
-import surf.devices.ti as ti
+import surf.devices as dev
 
 class Adc32Rf45(pr.Device):
     def __init__( self,       
@@ -52,8 +52,8 @@ class Adc32Rf45(pr.Device):
         #####################
         # Add Device Channels
         #####################
-        self.add(ti.Adc32Rf45Channel(name='CH[0]',description='Channel A',offset=(0x0 << 14),expand=False,verify=verify))
-        self.add(ti.Adc32Rf45Channel(name='CH[1]',description='Channel B',offset=(0x8 << 14),expand=False,verify=verify))      
+        self.add(dev.ti.Adc32Rf45Channel(name='CH[0]',description='Channel A',offset=(0x0 << 14),expand=False,verify=verify))
+        self.add(dev.ti.Adc32Rf45Channel(name='CH[1]',description='Channel B',offset=(0x8 << 14),expand=False,verify=verify))      
         
         ##################
         # General Register
@@ -557,7 +557,7 @@ class Adc32Rf45(pr.Device):
         @self.command(name         = "JESD_DDC_config", description  = "JESD DDC config")
         def JESD_DDC_config():        
             # JESD DIGITAL PAGE
-            channels = self.find(typ=Adc32Rf45Channel)
+            channels = self.find(typ=dev.ti.Adc32Rf45Channel)
             for channel in channels:
                 channel.SCRAMBLE_EN.set(0x1, write=True)           
                 channel.node('12BIT_MODE').set(0x0, write=True)       # need to use node to find variables with leading #

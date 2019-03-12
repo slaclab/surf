@@ -37,6 +37,11 @@ architecture tb of AxiLiteSrpV0Tb is
    constant TPD_G               : time                       := 1 ns;
    constant RESP_THOLD_G        : integer range 0 to (2**24) := 1;
    constant SLAVE_READY_EN_G    : boolean                    := true;
+   constant BRAM_EN_G           : boolean                    := true;
+   constant XIL_DEVICE_G        : string                     := "7SERIES";
+   constant USE_BUILT_IN_G      : boolean                    := false;
+   constant ALTERA_SYN_G        : boolean                    := false;
+   constant ALTERA_RAM_G        : string                     := "M9K";
    constant GEN_SYNC_FIFO_G     : boolean                    := false;
    constant FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
    constant FIFO_PAUSE_THRESH_G : integer range 1 to (2**24) := 2**8;
@@ -96,6 +101,11 @@ begin
          TPD_G               => TPD_G,
          RESP_THOLD_G        => RESP_THOLD_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
+         BRAM_EN_G           => BRAM_EN_G,
+         XIL_DEVICE_G        => XIL_DEVICE_G,
+         USE_BUILT_IN_G      => USE_BUILT_IN_G,
+         ALTERA_SYN_G        => ALTERA_SYN_G,
+         ALTERA_RAM_G        => ALTERA_RAM_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
@@ -127,6 +137,11 @@ begin
          RESP_THOLD_G        => RESP_THOLD_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
          EN_32BIT_ADDR_G     => true,
+         BRAM_EN_G           => true,
+         XIL_DEVICE_G        => XIL_DEVICE_G,
+         USE_BUILT_IN_G      => USE_BUILT_IN_G,
+         ALTERA_SYN_G        => ALTERA_SYN_G,
+         ALTERA_RAM_G        => ALTERA_RAM_G,
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
@@ -154,7 +169,6 @@ begin
    U_AxiDualPortRam_1 : entity work.AxiDualPortRam
       generic map (
          TPD_G            => TPD_G,
-         REG_EN_G         => true,
          AXI_WR_EN_G      => true,
          SYS_WR_EN_G      => false,
          SYS_BYTE_WR_EN_G => false,
