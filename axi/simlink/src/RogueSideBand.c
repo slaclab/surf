@@ -193,6 +193,8 @@ void RogueSideBandUpdate ( void *userPtr ) {
             data->txOpCode   = 0x00;
             data->txOpCodeEn = 0;
             setInt(s_rxOpCodeEn,0);
+            setInt(s_rxOpCode, 0);
+            setInt(s_rxRemData, 0);
          }
 
          // Out of reset

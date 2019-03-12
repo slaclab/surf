@@ -44,12 +44,16 @@ begin
    -- Sim Core
    U_RogueSideBand : entity work.RogueSideBand
       port map(
-         clock    => sysClk,
-         reset    => sysRst,
-         portNum  => toSlv(PORT_NUM_G, 16),
-         opCode   => rxOpCode,
-         opCodeEn => rxOpCodeEn,
-         remData  => rxRemData);
+         clock      => sysClk,
+         reset      => sysRst,
+         portNum    => toSlv(PORT_NUM_G, 16),
+         txOpCode   => txOpCode,
+         txOpCodeEn => txOpCodeEn,
+         txRemData  => txRemData,
+         rxOpCode   => rxOpCode,
+         rxOpCodeEn => rxOpCodeEn,
+         rxRemData  => rxRemData);
+
 
 end RogueSideBandWrap;
 

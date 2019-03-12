@@ -61,8 +61,13 @@ void RogueSideBandUpdate ( void *userPtr );
 // Restart the zmq link
 void RogueSideBandRestart(RogueSideBandData *data, portDataT *portData);
 
+// Send data
+void RogueSideBandSend ( RogueSideBandData *data, portDataT *portData );
+
 // Receive data if it is available
 int RogueSideBandRecv ( RogueSideBandData *data, portDataT *portData );
+
+
 
 #endif
 
