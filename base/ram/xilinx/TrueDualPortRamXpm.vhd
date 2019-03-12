@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : SimpleDualPortRamXpm.vhd
+-- File       : TrueDualPortRamXpm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for XPM True Dual Port RAM
@@ -23,7 +23,7 @@ use work.StdRtlPkg.all;
 library xpm;
 use xpm.vcomponents.all;
 
-entity SimpleDualPortRamXpm is
+entity TrueDualPortRamXpm is
    generic (
       TPD_G          : time                       := 1 ns;
       COMMON_CLK_G   : boolean                    := false;
@@ -39,63 +39,84 @@ entity SimpleDualPortRamXpm is
       clka   : in  sl                                                                          := '0';
       ena    : in  sl                                                                          := '1';
       wea    : in  slv(ite(BYTE_WR_EN_G, wordCount(DATA_WIDTH_G, BYTE_WIDTH_G), 1)-1 downto 0) := (others => '0');
+      regcea : in  sl                                                                          := '1';
+      rsta   : in  sl                                                                          := not(RST_POLARITY_G);
       addra  : in  slv(ADDR_WIDTH_G-1 downto 0)                                                := (others => '0');
       dina   : in  slv(DATA_WIDTH_G-1 downto 0)                                                := (others => '0');
+      douta  : out slv(DATA_WIDTH_G-1 downto 0);
       -- Port B
       clkb   : in  sl                                                                          := '0';
       enb    : in  sl                                                                          := '1';
+      web    : in  slv(ite(BYTE_WR_EN_G, wordCount(DATA_WIDTH_G, BYTE_WIDTH_G), 1)-1 downto 0) := (others => '0');
       regceb : in  sl                                                                          := '1';
       rstb   : in  sl                                                                          := not(RST_POLARITY_G);
       addrb  : in  slv(ADDR_WIDTH_G-1 downto 0)                                                := (others => '0');
-      doutb  : out slv(DATA_WIDTH_G-1 downto 0));
-end SimpleDualPortRamXpm;
+      dinb   : in  slv(DATA_WIDTH_G-1 downto 0)                                                := (others => '0');
+      doutb  : out slv(DATA_WIDTH_G-1 downto 0)                                                := (others => '0'));
+end TrueDualPortRamXpm;
 
-architecture rtl of SimpleDualPortRamXpm is
+architecture rtl of TrueDualPortRamXpm is
 
+   signal resetA : sl;
    signal resetB : sl;
 
 begin
 
-   U_RAM : xpm_memory_sdpram
+   U_RAM : xpm_memory_tdpram
       generic map (
          ADDR_WIDTH_A            => ADDR_WIDTH_G,
          ADDR_WIDTH_B            => ADDR_WIDTH_G,
          AUTO_SLEEP_TIME         => 0,  -- 0 - Disable auto-sleep feature
          BYTE_WRITE_WIDTH_A      => ite(BYTE_WR_EN_G, BYTE_WIDTH_G, DATA_WIDTH_G),
+         BYTE_WRITE_WIDTH_B      => ite(BYTE_WR_EN_G, BYTE_WIDTH_G, DATA_WIDTH_G),
          CLOCKING_MODE           => ite(COMMON_CLK_G, "common_clock", "independent_clock"),
          ECC_MODE                => "no_ecc",         -- Default value = no_ecc
          MEMORY_OPTIMIZATION     => "true",           -- Default value = true
          MEMORY_PRIMITIVE        => MEMORY_TYPE_G,
          MEMORY_SIZE             => (DATA_WIDTH_G*(2**ADDR_WIDTH_G)),
          MESSAGE_CONTROL         => 0,  -- Default value = 0
+         READ_DATA_WIDTH_A       => DATA_WIDTH_G,
          READ_DATA_WIDTH_B       => DATA_WIDTH_G,
+         READ_LATENCY_A          => READ_LATENCY_G,
          READ_LATENCY_B          => READ_LATENCY_G,
          USE_EMBEDDED_CONSTRAINT => 0,  -- Default value = 0
          USE_MEM_INIT            => 1,  -- Default value = 1
          WAKEUP_TIME             => "disable_sleep",  -- "disable_sleep" to disable dynamic power saving option
          WRITE_DATA_WIDTH_A      => DATA_WIDTH_G,
-         WRITE_MODE_B            => ite(READ_LATENCY_G = 0, "read_first", ite(MEMORY_TYPE_G="block","no_change","read_first"))) -- Default value = no_change
+         WRITE_DATA_WIDTH_B      => DATA_WIDTH_G,
+         WRITE_MODE_A            => ite(READ_LATENCY_G = 0, "read_first", "no_change"),  -- Default value = no_change
+         WRITE_MODE_B            => ite(READ_LATENCY_G = 0, "read_first", "no_change"))  -- Default value = no_change
       port map (
-         -- Write Interface
-         ena            => ena,
+         -- Port A 
          clka           => clka,
+         ena            => ena,
+         wea            => wea,
+         regcea         => regcea,
+         rsta           => resetA,
          addra          => addra,
          dina           => dina,
-         wea            => wea,
-         -- Read Interface
-         enb            => enb,
+         douta          => douta,
+         -- Port B
          clkb           => clkb,
-         addrb          => addrb,
-         doutb          => doutb,
+         enb            => enb,
+         web            => web,
          regceb         => regceb,
-         -- Misc.Interface
          rstb           => resetB,
+         addrb          => addrb,
+         dinb           => dinb,
+         doutb          => doutb,
+         -- Misc.Interface
+         dbiterra       => open,
          dbiterrb       => open,
+         sbiterra       => open,
          sbiterrb       => open,
          injectdbiterra => '0',
+         injectdbiterrb => '0',
          injectsbiterra => '0',
+         injectsbiterrb => '0',
          sleep          => '0');
 
+   resetA <= rsta when(RST_POLARITY_G = '1') else not(rsta);
    resetB <= rstb when(RST_POLARITY_G = '1') else not(rstb);
 
 end rtl;

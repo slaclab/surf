@@ -111,8 +111,9 @@ begin
    U_AxiDualPortRam_1 : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         REG_EN_G     => false,
+         SYNTH_MODE_G => "xpm",
+         MEMORY_TYPE_G=> "distributed",
+         READ_LATENCY_G => 0, 
          AXI_WR_EN_G  => true,
          SYS_WR_EN_G  => false,
          COMMON_CLK_G => true,
