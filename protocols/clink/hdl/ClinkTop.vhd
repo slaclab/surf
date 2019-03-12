@@ -348,7 +348,8 @@ begin
 
       -- Common Config
       axiSlaveRegisterR(axilEp, x"000",  0, toSlv(CHAN_COUNT_G,4));
-      axiSlaveRegister (axilEp, x"004",  0, v.linkConfig.reset);
+      axiSlaveRegister (axilEp, x"004",  0, v.linkConfig.rstPll);
+      axiSlaveRegister (axilEp, x"004",  1, v.linkConfig.rstFsm);
 
       -- Common Status
       axiSlaveRegisterR(axilEp, x"010",  0, linkStatus(0).locked);

@@ -55,11 +55,13 @@ package ClinkPkg is
    -- Link Configuration Record
    ------------------------------------
    type ClLinkConfigType is record
-      reset  : sl;
+      rstFsm  : sl;
+      rstPll  : sl;
    end record ClLinkConfigType;
 
    constant CL_LINK_CONFIG_INIT_C : ClLinkConfigType := (
-      reset  => '0');
+      rstFsm  => '0',
+      rstPll  => '0');
 
    type ClLinkConfigArray is array (natural range<>) of ClLinkConfigType;
 

@@ -43,17 +43,24 @@ class ClinkTop(pr.Device):
             mode         = "RO",
         ))
 
-        self.add(pr.RemoteVariable(    
-            name         = "LinkReset",
-            description  = "Camera link channel reset",
+        self.add(pr.RemoteCommand(   
+            name         = "ResetPll",
+            description  = "Camera link channel PLL reset",
             offset       =  0x04,
             bitSize      =  1,
             bitOffset    =  0,
-            base         = pr.Bool,
-            pollInterval = 1,
-            mode         = "RW",
-        ))
+            function     = pr.BaseCommand.toggle,
+        ))   
 
+        self.add(pr.RemoteCommand(   
+            name         = "ResetFsm",
+            description  = "Camera link channel FSM reset",
+            offset       =  0x04,
+            bitSize      =  1,
+            bitOffset    =  1,
+            function     = pr.BaseCommand.toggle,
+        ))           
+        
         self.add(pr.RemoteVariable(    
             name         = "LinkLockedA",
             description  = "Camera link channel locked status",
