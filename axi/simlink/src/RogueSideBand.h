@@ -20,14 +20,13 @@
 #define s_reset        1
 #define s_port         2
 
-#define s_rxOpCode       3
-#define s_rxOpCodeEn     4
-#define s_rxRemData      5
+#define s_txOpCode       3
+#define s_txOpCodeEn     4
+#define s_txRemData      5
 
-#define s_txOpCode       6
-#define s_txOpCodeEn     7
-#define s_txRemData      8
-
+#define s_rxOpCode       6
+#define s_rxOpCodeEn     7
+#define s_rxRemData      8
 
 #define PORT_COUNT     9
 

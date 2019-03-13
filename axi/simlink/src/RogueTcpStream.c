@@ -28,7 +28,7 @@ void RogueTcpStreamRestart(RogueTcpStreamData *data, portDataT *portData) {
    char buffer[100];
 
    if ( data->zmqPush != NULL ) zmq_close(data->zmqPush );
-   if ( data->zmqPull != NULL ) zmq_close(data->zmqPush );
+   if ( data->zmqPull != NULL ) zmq_close(data->zmqPull );
    if ( data->zmqCtx  != NULL ) zmq_term(data->zmqCtx);
 
    data->zmqCtx   = NULL;

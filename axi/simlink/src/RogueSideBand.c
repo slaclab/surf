@@ -41,15 +41,15 @@ void RogueSideBandRestart(RogueSideBandData *data, portDataT *portData) {
 
    vhpi_printf("RogueSideBand: Listening on ports %i & %i\n",data->port, data->port+1);
 
-   sprintf(buffer,"tcp://*:%i",data->port);
+   sprintf(buffer,"tcp://*:%i",data->port+1);
    if ( zmq_bind(data->zmqPull,buffer) ) {
       vhpi_assert("RogueSideBand: Failed to bind sideband port",vhpiFatal);
       return;
    }
 
-   sprintf(buffer,"tcp://*:%i",data->port+1);
+   sprintf(buffer,"tcp://*:%i",data->port);
    if ( zmq_bind(data->zmqPush,buffer) ) {
-      vhpi_assert("RogueTcpStream: Failed to bind push port",vhpiFatal);
+      vhpi_assert("RogueSideBand: Failed to bind push port",vhpiFatal);
       return;
    }
    
@@ -73,7 +73,7 @@ void RogueSideBandSend ( RogueSideBandData *data, portDataT *portData ) {
    memcpy(zmq_msg_data(&msg), ba, 4);
 
    // Send data
-   if ( zmq_msg_send(data->zmqPush,&msg,ZMQ_DONTWAIT) < 0 ) {
+   if ( zmq_msg_send(data->zmqPush,&msg,0) < 0 ) {
          vhpi_assert("RogueSideBand: Failed to send message",vhpiFatal);
    }
 
@@ -111,7 +111,7 @@ int RogueSideBandRecv ( RogueSideBandData *data, portDataT *portData ) {
       // Ack
       zmq_msg_init_size(&tMsg,1);
       ((uint8_t *)zmq_msg_data(&tMsg))[0] = 0xFF;
-      zmq_msg_send(&tMsg,data->zmqPull,0);
+      zmq_msg_send(&tMsg,data->zmqPush,0);
       zmq_msg_close(&tMsg);
    }
    zmq_msg_close(&rMsg);
@@ -133,27 +133,26 @@ void RogueSideBandInit(vhpiHandleT compInst) {
    portData->portDir[s_reset]      = vhpiIn;
    portData->portDir[s_port]       = vhpiIn;
 
-   portData->portDir[s_rxOpCode]     = vhpiOut;
-   portData->portDir[s_rxOpCodeEn]   = vhpiOut;
-   portData->portDir[s_rxRemData]    = vhpiOut;
-
    portData->portDir[s_txOpCode]     = vhpiIn;
    portData->portDir[s_txOpCodeEn]   = vhpiIn;
    portData->portDir[s_txRemData]    = vhpiIn;
 
+   portData->portDir[s_rxOpCode]     = vhpiOut;
+   portData->portDir[s_rxOpCodeEn]   = vhpiOut;
+   portData->portDir[s_rxRemData]    = vhpiOut;
 
    // Set port widths
    portData->portWidth[s_clock]      = 1;
    portData->portWidth[s_reset]      = 1;
    portData->portWidth[s_port]       = 16;
 
-   portData->portWidth[s_rxOpCode]     = 8;
-   portData->portWidth[s_rxOpCodeEn]   = 1;
-   portData->portWidth[s_rxRemData]    = 8;
-
    portData->portWidth[s_txOpCode]     = 8;
    portData->portWidth[s_txOpCodeEn]   = 1;
    portData->portWidth[s_txRemData]    = 8;
+
+   portData->portWidth[s_rxOpCode]     = 8;
+   portData->portWidth[s_rxOpCodeEn]   = 1;
+   portData->portWidth[s_rxRemData]    = 8;
 
    // Create data structure to hold state
    portData->stateData = data;
