@@ -29,6 +29,9 @@ use work.ArbiterPkg.all;
 entity AxiStreamDmaV2Desc is
    generic (
       TPD_G             : time := 1 ns;
+      
+      SYNTH_MODE_G      : string := "inferred";
+      MEMORY_TYPE_G     : string := "block";       
 
       -- Number of read & write DMA engines to support for each descriptor engine
       CHAN_COUNT_G      : integer range 1 to 16 := 1;
@@ -317,6 +320,8 @@ begin
       U_DescFifo : entity work.Fifo
          generic map (
             TPD_G           => TPD_G,
+            SYNTH_MODE_G    => SYNTH_MODE_G,
+            MEMORY_TYPE_G   => MEMORY_TYPE_G,            
             GEN_SYNC_FIFO_G => true,
             FWFT_EN_G       => true,
             DATA_WIDTH_G    => 32,
@@ -339,6 +344,8 @@ begin
       U_RdFifo : entity work.Fifo
          generic map (
             TPD_G           => TPD_G,
+            SYNTH_MODE_G    => SYNTH_MODE_G,
+            MEMORY_TYPE_G   => MEMORY_TYPE_G,   
             GEN_SYNC_FIFO_G => true,
             FWFT_EN_G       => true,
             DATA_WIDTH_G    => 32,
