@@ -67,7 +67,7 @@ architecture rtl of ClinkData is
    constant REG_INIT_C : RegType := (
       state   => RESET_S,
       lastClk => (others => '0'),
-      delay   => "00000",
+      delay   => "00001",
       delayLd => '0',
       bitSlip => '0',
       count   => 99,

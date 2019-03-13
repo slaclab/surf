@@ -92,6 +92,7 @@ package ClinkPkg is
       dataMode    : slv(3 downto 0);
       tapCount    : slv(3 downto 0);
       frameMode   : slv(3 downto 0);
+      blowoff     : sl;
       dataEn      : sl;
    end record ClChanConfigType;
 
@@ -103,6 +104,7 @@ package ClinkPkg is
       dataMode    => (others=>'0'),
       tapCount    => (others=>'0'),
       frameMode   => (others=>'0'),
+      blowoff     => '0',
       dataEn      => '0');
 
    type ClChanConfigArray is array (natural range<>) of ClChanConfigType;

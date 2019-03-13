@@ -87,13 +87,23 @@ class ClinkChannel(pr.Device):
 
         self.add(pr.RemoteVariable(    
             name         = "DataEn",
-            description  = "Data enable",
+            description  = "Data enable.  When 0x0 causes reset on ClinkData\'s FSM module",
             offset       =  0x10,
             bitSize      =  1,
             bitOffset    =  0,
             base         = pr.Bool,
             mode         = "RW",
         ))
+        
+        self.add(pr.RemoteVariable(    
+            name         = "Blowoff",
+            description  = "Blows off the outbound AXIS stream (for debugging)",
+            offset       =  0x10,
+            bitSize      =  1,
+            bitOffset    =  1,
+            base         = pr.Bool,
+            mode         = "RW",
+        ))        
 
         self.add(pr.RemoteVariable(    
             name         = "BaudRate",
