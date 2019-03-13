@@ -94,8 +94,10 @@ void RogueTcpStreamSend ( RogueTcpStreamData *data, portDataT *portData ) {
     
    // Send data
    for (x=0; x < 4; x++) {
-      if ( zmq_sendmsg(data->zmqPush,&(msg[x]),(x==3)?0:ZMQ_SNDMORE) < 0 )
-         vhpi_assert("RogueTcpStream: Failed to send message",vhpiFatal);
+     if ( zmq_sendmsg(data->zmqPush,&(msg[x]),(x==3)?0:ZMQ_SNDMORE) < 0 ) {
+        vhpi_printf("Failed to send message on port %i\n", data->port+1);
+        vhpi_assert("RogueTcpStream: Failed to send message",vhpiFatal);
+     }
    }
 
    data->ibSize = 0;
