@@ -62,10 +62,23 @@ architecture sim of RoguePgp2bSim is
    signal txOut : Pgp2bTxOutType := PGP2B_TX_OUT_INIT_C;
    signal rxOut : Pgp2bRxOutType := PGP2B_RX_OUT_INIT_C;
 
+   signal pgpTxMastersLoc : AxiStreamMasterArray(NUM_VC_G-1 downto 0);
+
 begin
 
    pgpTxOut <= txOut;
    pgpRxOut <= rxOut;
+
+   TDEST_ZERO : process (pgpTxMasters) is
+      variable tmp : AxiStreamMasterArray(NUM_VC_G-1 downto 0);
+   begin
+      tmp := pgpTxMasters;
+      for i in NUM_VC_G-1 downto 0 loop
+         tmp(i).tDest := (others => '0');
+      end loop;
+      pgpTxMastersLoc <= tmp;
+
+   end process TDEST_ZERO;
 
    GEN_VEC : for i in NUM_VC_G-1 downto 0 generate
       U_PGP_VC : entity work.RogueTcpStreamWrap
@@ -76,12 +89,12 @@ begin
             CHAN_COUNT_G  => 1,
             AXIS_CONFIG_G => SSI_PGP2B_CONFIG_C)
          port map (
-            axisClk     => pgpClk,           -- [in]
-            axisRst     => pgpClkRst,        -- [in]
-            sAxisMaster => pgpTxMasters(i),  -- [in]
-            sAxisSlave  => pgpTxSlaves(i),   -- [out]
-            mAxisMaster => pgpRxMasters(i),  -- [out]
-            mAxisSlave  => pgpRxSlaves(i));  -- [in]
+            axisClk     => pgpClk,              -- [in]
+            axisRst     => pgpClkRst,           -- [in]
+            sAxisMaster => pgpTxMastersLoc(i),  -- [in]
+            sAxisSlave  => pgpTxSlaves(i),      -- [out]
+            mAxisMaster => pgpRxMasters(i),     -- [out]
+            mAxisSlave  => pgpRxSlaves(i));     -- [in]
    end generate GEN_VEC;
 
    GEN_SIDEBAND : if (EN_SIDEBAND_G) generate
@@ -103,8 +116,8 @@ begin
    txOut.phyTxReady <= '1';
    txOut.linkReady  <= '1';
 
-   rxOut.phyRxReady     <= '1';
-   rxOut.linkReady      <= '1';
+   rxOut.phyRxReady   <= '1';
+   rxOut.linkReady    <= '1';
    rxOut.remLinkReady <= '1';
 
 end sim;
