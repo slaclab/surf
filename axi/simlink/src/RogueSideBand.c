@@ -73,7 +73,7 @@ void RogueSideBandSend ( RogueSideBandData *data, portDataT *portData ) {
    memcpy(zmq_msg_data(&msg), ba, 4);
 
    // Send data
-   if ( zmq_msg_send(data->zmqPush,&msg,0) < 0 ) {
+   if ( zmq_msg_send(&msg,data->zmqPush,ZMQ_DONTWAIT) < 0 ) {
          vhpi_assert("RogueSideBand: Failed to send message",vhpiFatal);
    }
 
@@ -85,7 +85,6 @@ int RogueSideBandRecv ( RogueSideBandData *data, portDataT *portData ) {
    uint8_t * rd;
    uint32_t  rsize;
    zmq_msg_t rMsg;
-   zmq_msg_t tMsg;
 
    zmq_msg_init(&rMsg);
    if ( zmq_msg_recv(&rMsg,data->zmqPull,ZMQ_DONTWAIT) <= 0 ) {
@@ -108,11 +107,6 @@ int RogueSideBandRecv ( RogueSideBandData *data, portDataT *portData ) {
          vhpi_printf("%lu RogueSideBand: Got data 0x%0.2x\n",portData->simTime,data->rxRemData);
       }
 
-      // Ack
-      zmq_msg_init_size(&tMsg,1);
-      ((uint8_t *)zmq_msg_data(&tMsg))[0] = 0xFF;
-      zmq_msg_send(&tMsg,data->zmqPush,0);
-      zmq_msg_close(&tMsg);
    }
    zmq_msg_close(&rMsg);
    return(rsize);
