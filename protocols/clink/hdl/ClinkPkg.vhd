@@ -55,11 +55,13 @@ package ClinkPkg is
    -- Link Configuration Record
    ------------------------------------
    type ClLinkConfigType is record
-      reset  : sl;
+      rstFsm  : sl;
+      rstPll  : sl;
    end record ClLinkConfigType;
 
    constant CL_LINK_CONFIG_INIT_C : ClLinkConfigType := (
-      reset  => '0');
+      rstFsm  => '0',
+      rstPll  => '0');
 
    type ClLinkConfigArray is array (natural range<>) of ClLinkConfigType;
 
@@ -86,21 +88,25 @@ package ClinkPkg is
       swCamCtrl   : slv(3 downto 0);
       swCamCtrlEn : slv(3 downto 0);
       serBaud     : slv(23 downto 0);
+      serThrottle : slv(15 downto 0);
       linkMode    : slv(3 downto 0);
       dataMode    : slv(3 downto 0);
       tapCount    : slv(3 downto 0);
       frameMode   : slv(3 downto 0);
+      blowoff     : sl;
       dataEn      : sl;
    end record ClChanConfigType;
 
    constant CL_CHAN_CONFIG_INIT_C : ClChanConfigType := (
       swCamCtrl   => (others=>'0'),
       swCamCtrlEn => (others=>'0'),
-      serBaud     => toSlv(1,24),
+      serBaud     => toSlv(57600,24), -- Default of 57600 baud
+      serThrottle => (others=>'0'),
       linkMode    => (others=>'0'),
       dataMode    => (others=>'0'),
       tapCount    => (others=>'0'),
       frameMode   => (others=>'0'),
+      blowoff     => '0',
       dataEn      => '0');
 
    type ClChanConfigArray is array (natural range<>) of ClChanConfigType;

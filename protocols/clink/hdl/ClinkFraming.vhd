@@ -382,17 +382,23 @@ begin
          end if;
       end if;
 
+      -- Check if we need to blow off the streaming data for debugging
+      if (chanConfig.blowoff = '1') then
+         v.master.tValid := '0';
+      end if;
+      
+      -- Outputs 
       parReady   <= v.ready;      
+      chanStatus <= r.status;
 
-      ---------------------------------
-      -- Reset and outputs
-      ---------------------------------
+      -- Reset
       if (sysRst = '1' or chanConfig.dataEn = '0') then
          v := REG_INIT_C;
       end if;
 
-      rin        <= v;
-      chanStatus <= r.status;
+      -- Register the variable for next clock cycle
+      rin <= v;
+      
 
    end process;
 
