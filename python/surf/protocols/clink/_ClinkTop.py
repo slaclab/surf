@@ -162,30 +162,4 @@ class ClinkTop(pr.Device):
 
         self.add(surf.protocols.clink.ClinkChannel( name = "ChannelA", serial=serialA, offset=0x100))
         self.add(surf.protocols.clink.ClinkChannel( name = "ChannelB", serial=serialB, offset=0x200))
-
-
-    def writeBlocks(self, force=False, recurse=True, variable=None, checkEach=False):
-        """
-        Write all of the blocks held by this Device to memory
-        """
-        self._log.debug(f'Calling {self.path}._writeBlocks')
-
-        checkEach = checkEach or self.forceCheckEach
-
-        # Process local blocks.
-        if variable is not None:
-            for b in self._getBlocks(variable):
-                if (force or b.stale):                
-                    b.startTransaction(rim.Write, check=checkEach)
-
-        else:
-            for block in self._blocks:
-                if (force or block.stale) and block.bulkEn:
-                    block.startTransaction(rim.Write, check=checkEach)
-
-            if recurse:
-                for key,value in self.devices.items():
-                    value.writeBlocks(force=force, recurse=True, checkEach=checkEach)
         
-        # Execute FSM reset after loading YAML
-        self.ResetFsm()

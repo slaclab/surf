@@ -202,7 +202,8 @@ begin
                if parClock = "1100011" and r.delay /= 31 then
                   v.status.locked := '1';
                else
-                  v.status.locked := '0';
+                  -- Retry to lock again
+                  v := REG_INIT_C;
                end if;
             end if;
 
