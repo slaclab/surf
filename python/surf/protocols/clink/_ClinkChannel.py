@@ -103,7 +103,17 @@ class ClinkChannel(pr.Device):
             bitOffset    =  1,
             base         = pr.Bool,
             mode         = "RW",
-        ))        
+        ))    
+
+        self.add(pr.RemoteVariable(    
+            name         = "SerThrottle",
+            description  = "Throttles the UART Serial TX byte rate. Used when the camera cannot accept new bytes until the previous command processed",
+            offset       =  0x10,
+            bitSize      =  16,
+            bitOffset    =  16,
+            mode         = "RW",
+            units        = "microsec",
+        ))            
 
         self.add(pr.RemoteVariable(    
             name         = "BaudRate",

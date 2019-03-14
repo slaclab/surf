@@ -88,6 +88,7 @@ package ClinkPkg is
       swCamCtrl   : slv(3 downto 0);
       swCamCtrlEn : slv(3 downto 0);
       serBaud     : slv(23 downto 0);
+      serThrottle : slv(15 downto 0);
       linkMode    : slv(3 downto 0);
       dataMode    : slv(3 downto 0);
       tapCount    : slv(3 downto 0);
@@ -99,7 +100,8 @@ package ClinkPkg is
    constant CL_CHAN_CONFIG_INIT_C : ClChanConfigType := (
       swCamCtrl   => (others=>'0'),
       swCamCtrlEn => (others=>'0'),
-      serBaud     => toSlv(1,24),
+      serBaud     => toSlv(57600,24), -- Default of 57600 baud
+      serThrottle => (others=>'0'),
       linkMode    => (others=>'0'),
       dataMode    => (others=>'0'),
       tapCount    => (others=>'0'),

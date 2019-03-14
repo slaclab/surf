@@ -370,6 +370,7 @@ begin
       axiSlaveRegister (axilEp, x"10C", 0, v.chanConfig(0).tapCount);
       axiSlaveRegister (axilEp, x"110", 0, v.chanConfig(0).dataEn);
       axiSlaveRegister (axilEp, x"110", 1, v.chanConfig(0).blowoff);
+      axiSlaveRegister (axilEp, x"110", 16, v.chanConfig(0).serThrottle);
       axiSlaveRegister (axilEp, x"114", 0, v.chanConfig(0).serBaud);
       axiSlaveRegister (axilEp, x"118", 0, v.chanConfig(0).swCamCtrlEn);
       axiSlaveRegister (axilEp, x"11C", 0, v.chanConfig(0).swCamCtrl);
@@ -386,6 +387,7 @@ begin
       axiSlaveRegister (axilEp, x"20C", 0, v.chanConfig(1).tapCount);
       axiSlaveRegister (axilEp, x"210", 0, v.chanConfig(1).dataEn);
       axiSlaveRegister (axilEp, x"210", 1, v.chanConfig(1).blowoff);
+      axiSlaveRegister (axilEp, x"210", 16, v.chanConfig(1).serThrottle);
       axiSlaveRegister (axilEp, x"214", 0, v.chanConfig(1).serBaud);
       axiSlaveRegister (axilEp, x"218", 0, v.chanConfig(1).swCamCtrlEn);
       axiSlaveRegister (axilEp, x"21C", 0, v.chanConfig(1).swCamCtrl);
@@ -428,5 +430,4 @@ begin
       end if;
    end process seq;
 
-end architecture rtl;
-
+end rtl;
