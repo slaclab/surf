@@ -69,6 +69,8 @@ architecture rtl of AxiStreamBatcherEventBuilder is
       MOVE_S);
 
    type RegType is record
+      blowoff        : sl;
+      timerRst       : sl;
       cntRst         : sl;
       ready          : sl;
       maxSubFrames   : slv(15 downto 0);
@@ -89,6 +91,8 @@ architecture rtl of AxiStreamBatcherEventBuilder is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      blowoff        => '0',
+      timerRst       => '0',
       cntRst         => '0',
       ready          => '0',
       maxSubFrames   => toSlv(NUM_SLAVES_G, 16),
@@ -116,7 +120,8 @@ architecture rtl of AxiStreamBatcherEventBuilder is
    signal txMaster        : AxiStreamMasterType;
    signal txSlave         : AxiStreamSlaveType;
 
-   signal batcherIdle : sl;
+   signal batcherIdle  : sl;
+   signal timeoutEvent : sl;
 
 begin
 
@@ -166,8 +171,18 @@ begin
             mAxisSlave  => rxSlaves(i));
    end generate GEN_VEC;
 
+   U_DspComparator : entity work.DspComparator
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => 32)
+      port map (
+         clk  => axisClk,
+         ain  => r.timer,
+         bin  => r.timeout,
+         gtEq => timeoutEvent);         -- greater than or equal to (a >= b)
+
    comb : process (axilReadMaster, axilWriteMaster, axisRst, batcherIdle, r,
-                   rxMasters, txSlave) is
+                   rxMasters, timeoutEvent, txSlave) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
       variable i      : natural;
@@ -176,7 +191,8 @@ begin
       v := r;
 
       -- Reset strobes
-      v.cntRst := '0';
+      v.cntRst   := '0';
+      v.timerRst := '0';
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
@@ -189,13 +205,15 @@ begin
       end loop;
       axiSlaveRegister (axilEp, x"FF0", 0, v.timeout);
       axiSlaveRegisterR(axilEp, x"FF4", 0, toSlv(NUM_SLAVES_G, 8));
+      axiSlaveRegister (axilEp, x"FF8", 0, v.blowoff);
       axiSlaveRegister (axilEp, x"FFC", 0, v.cntRst);
+      axiSlaveRegister (axilEp, x"FFC", 1, v.timerRst);
 
       -- Closeout the transaction
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
       -- Check for change in configuration
-      if (r.timeout /= v.timeout) then
+      if (r.timeout /= v.timeout) or (r.timerRst = '1') then
          -- Reset the timer
          v.timer := (others => '0');
       end if;
@@ -212,18 +230,18 @@ begin
       case r.state is
          ----------------------------------------------------------------------
          when IDLE_S =>
-            -- Loop through RX channels
+            -- Arm the flag
             v.ready := '1';
 
-            -- Reset the flag
-            v.timeoutDet := (others => '0');            
-            
+            -- Loop through RX channels
             for i in (NUM_SLAVES_G-1) downto 0 loop
 
                -- Check if no data
                if (rxMasters(i).tValid = '0') then
-                  -- Reset the flag
-                  v.ready := '0';
+                  -- Reset the flags
+                  v.ready      := '0';
+                  v.accept(i)  := '0';
+                  v.nullDet(i) := '0';
                else
                   ----------------------------------------------------------------------------------------------------
                   ----------------------------------------------------------------------------------------------------
@@ -251,7 +269,7 @@ begin
                -- Check if 1 of the channels are ready
                if (r.accept /= 0) then
                   -- Check for timeout
-                  if (r.timer = r.timeout) then
+                  if (timeoutEvent = '1') then
                      -- Set the flag
                      v.ready := '1';
                   else
@@ -261,14 +279,8 @@ begin
                end if;
             end if;
 
-            -- Check if ready to move data
-            if (batcherIdle = '1') and (r.ready = '1') then
-
-               -- Reset the flags
-               v.ready      := '0';
-
-               -- Reset the counter
-               v.timer := (others => '0');
+            -- Check if ready to move data and not blowing off the data
+            if (batcherIdle = '1') and (r.ready = '1') and (r.blowoff = '0') then
 
                for i in (NUM_SLAVES_G-1) downto 0 loop
 
@@ -305,6 +317,21 @@ begin
                -- Next state
                v.state := MOVE_S;
 
+            -- Check for blowoff flag 
+            elsif (r.blowoff = '1') then
+
+               -- Blow off the inbound data
+               for i in (NUM_SLAVES_G-1) downto 0 loop
+                  v.rxSlaves(i).tReady := '1';
+               end loop;
+
+               -- Reset the flags
+               v.ready      := '0';
+               v.accept     := (others => '0');
+               v.nullDet    := (others => '0');
+               v.timer      := (others => '0');
+               v.timeoutDet := (others => '0');
+
             end if;
          ----------------------------------------------------------------------
          when MOVE_S =>
@@ -313,13 +340,6 @@ begin
 
                -- Check for last channel
                if (r.index = NUM_SLAVES_G-1) then
-
-                  -- Reset the counter
-                  v.index := 0;
-
-                  -- Reset the accept field (makes it easier to look at simulation)
-                  v.accept := (others => '0');
-
                   -- Next state
                   v.state := IDLE_S;
                else
@@ -339,27 +359,34 @@ begin
 
                -- Check for the last transfer
                if (rxMasters(r.index).tLast = '1') then
-
                   -- Check for last channel
                   if (r.index = NUM_SLAVES_G-1) then
-
-                     -- Reset the counter
-                     v.index := 0;
-
-                     -- Reset the accept field (makes it easier to look at simulation)
-                     v.accept := (others => '0');
-
                      -- Next state
                      v.state := IDLE_S;
                   else
                      -- Increment the counter
                      v.index := r.index + 1;
                   end if;
-
                end if;
+
             end if;
       ----------------------------------------------------------------------
       end case;
+
+      -- Check for state transitioning from MOVE_S to IDLE_S
+      if (r.state = MOVE_S) and (v.state = IDLE_S) then
+
+         -- Reset the index pointer
+         v.index := 0;
+
+         -- Reset the flags
+         v.ready      := '0';
+         v.accept     := (others => '0');
+         v.nullDet    := (others => '0');
+         v.timer      := (others => '0');
+         v.timeoutDet := (others => '0');
+
+      end if;
 
       -- Check if reseting counters
       if (r.cntRst = '1') then
