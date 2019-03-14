@@ -108,6 +108,7 @@ architecture rtl of AxiDualPortRam is
    signal axiSyncOut  : slv(DATA_WIDTH_G + ADDR_WIDTH_G + ADDR_AXI_BYTES_C - 1 downto 0);
 
    signal weByteMask : slv(wordCount(DATA_WIDTH_G, 8)-1 downto 0);
+   signal doutInt    : slv(DATA_WIDTH_G-1 downto 0);
 
 begin
 
@@ -138,7 +139,7 @@ begin
             rstb  => rst,
             addrb => addr,
             dinb  => din,
-            doutb => dout);
+            doutb => doutInt);
    end generate;
 
    GEN_ALTERA : if (SYNTH_MODE_G = "altera_mf") generate
@@ -168,7 +169,7 @@ begin
             rstb  => rst,
             addrb => addr,
             dinb  => din,
-            doutb => dout);
+            doutb => doutb);
    end generate;
 
    GEN_INFERRED : if (SYNTH_MODE_G = "inferred") generate
@@ -180,8 +181,8 @@ begin
                TPD_G        => TPD_G,
                BRAM_EN_G    => ite(MEMORY_TYPE_G = "block", true, false),
                REG_EN_G     => ite(READ_LATENCY_G >= 1, true, false),
-               DOA_REG_G    => ite(READ_LATENCY_G = 2, true, false),
-               DOB_REG_G    => ite(READ_LATENCY_G = 2, true, false),
+               DOA_REG_G    => ite(READ_LATENCY_G >= 2, true, false),
+               DOB_REG_G    => ite(READ_LATENCY_G >= 2, true, false),
                BYTE_WR_EN_G => SYS_BYTE_WR_EN_G,
                DATA_WIDTH_G => DATA_WIDTH_G,
                ADDR_WIDTH_G => ADDR_WIDTH_G,
@@ -194,7 +195,7 @@ begin
                rsta    => rst,
                addra   => addr,
                dina    => din,
-               douta   => dout,
+               douta   => doutInt,
 
                clkb  => axiClk,
                enb   => '1',
@@ -211,8 +212,8 @@ begin
                TPD_G        => TPD_G,
                BRAM_EN_G    => ite(MEMORY_TYPE_G = "block", true, false),
                REG_EN_G     => ite(READ_LATENCY_G >= 1, true, false),
-               DOA_REG_G    => ite(READ_LATENCY_G = 2, true, false),
-               DOB_REG_G    => ite(READ_LATENCY_G = 2, true, false),
+               DOA_REG_G    => ite(READ_LATENCY_G >= 2, true, false),
+               DOB_REG_G    => ite(READ_LATENCY_G >= 2, true, false),
                BYTE_WR_EN_G => true,
                DATA_WIDTH_G => DATA_WIDTH_G,
                BYTE_WIDTH_G => 8,
@@ -230,7 +231,7 @@ begin
                enb     => en,
                rstb    => rst,
                addrb   => addr,
-               doutb   => dout);
+               doutb   => doutInt);
       end generate;
 
       -- Both sides writable, true dual port ram
@@ -239,8 +240,8 @@ begin
             generic map (
                TPD_G        => TPD_G,
                BYTE_WR_EN_G => true,
-               DOA_REG_G    => ite(READ_LATENCY_G = 2, true, false),
-               DOB_REG_G    => ite(READ_LATENCY_G = 2, true, false),
+               DOA_REG_G    => ite(READ_LATENCY_G >= 2, true, false),
+               DOB_REG_G    => ite(READ_LATENCY_G >= 2, true, false),
                DATA_WIDTH_G => DATA_WIDTH_G,
                BYTE_WIDTH_G => 8,
                ADDR_WIDTH_G => ADDR_WIDTH_G,
@@ -261,7 +262,7 @@ begin
                rstb    => rst,                                       -- [in]
                addrb   => addr,                                      -- [in]
                dinb    => din,                                       -- [in]
-               doutb   => dout);                                     -- [out]
+               doutb   => doutInt);                                     -- [out]
 
       end generate;   
    
@@ -384,5 +385,22 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
+
+   OUT_REG : if((READ_LATENCY_G = 2) AND (SYNTH_MODE_G /= "xpm")) generate
+      REG : process (clk) is
+      begin
+         if(rising_edge(clk)) then
+            if (rst = '1') then
+               dout <= (others => '0');
+            else
+               dout <= doutInt;
+            end if;
+         end if;
+      end process REG;
+   end generate OUT_REG;
+
+   NO_OUT_REG : if ((READ_LATENCY_G <= 2) OR (SYNTH_MODE_G = "xpm")) generate
+      dout <= doutInt;
+   end generate NO_OUT_REG;
 
 end architecture rtl;
