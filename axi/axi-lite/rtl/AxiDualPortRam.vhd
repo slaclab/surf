@@ -386,7 +386,7 @@ begin
       end if;
    end process seq;
 
-   OUT_REG : if((READ_LATENCY_G = 2) AND (SYNTH_MODE_G /= "xpm")) generate
+   OUT_REG : if((READ_LATENCY_G = 3) AND (SYNTH_MODE_G /= "xpm")) generate
       REG : process (clk) is
       begin
          if(rising_edge(clk)) then
