@@ -27,7 +27,7 @@ entity AxiDualPortRam is
       TPD_G            : time                       := 1 ns;
       SYNTH_MODE_G     : string                     := "inferred";
       MEMORY_TYPE_G    : string                     := "block";
-      READ_LATENCY_G   : natural range 0 to 2       := 2;
+      READ_LATENCY_G   : natural range 0 to 3       := 2;
       AXI_WR_EN_G      : boolean                    := true;
       SYS_WR_EN_G      : boolean                    := false;
       SYS_BYTE_WR_EN_G : boolean                    := false;
