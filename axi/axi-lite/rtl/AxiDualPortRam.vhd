@@ -169,7 +169,7 @@ begin
             rstb  => rst,
             addrb => addr,
             dinb  => din,
-            doutb => doutb);
+            doutb => doutInt);
    end generate;
 
    GEN_INFERRED : if (SYNTH_MODE_G = "inferred") generate
