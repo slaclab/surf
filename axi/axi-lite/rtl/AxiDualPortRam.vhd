@@ -347,7 +347,7 @@ begin
                -- Set the address bus
                v.axiAddr := axiReadMaster.araddr(AXI_RAM_ADDR_HIGH_C downto AXI_RAM_ADDR_LOW_C);
                -- Arm the wait
-               v.rdLatecy := READ_LATENCY_G+1;
+               v.rdLatecy := 3;
                -- Next state
                v.state := RD_S;
             end if;
