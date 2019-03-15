@@ -69,6 +69,8 @@ architecture rtl of AxiStreamBatcherEventBuilder is
       MOVE_S);
 
    type RegType is record
+      softRst        : sl;
+      hardRst        : sl;
       blowoff        : sl;
       timerRst       : sl;
       cntRst         : sl;
@@ -91,6 +93,8 @@ architecture rtl of AxiStreamBatcherEventBuilder is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      softRst        => '0',
+      hardRst        => '0',
       blowoff        => '0',
       timerRst       => '0',
       cntRst         => '0',
@@ -122,6 +126,7 @@ architecture rtl of AxiStreamBatcherEventBuilder is
 
    signal batcherIdle  : sl;
    signal timeoutEvent : sl;
+   signal axisReset    : sl;
 
 begin
 
@@ -186,13 +191,36 @@ begin
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
       variable i      : natural;
+      variable dbg    : slv(7 downto 0);
    begin
       -- Latch the current value
       v := r;
 
+      -- Update the local variable
+      dbg := x"00";
+      if (v.state = IDLE_S) then
+         dbg(0) := '0';
+      else
+         dbg(0) := '1';
+      end if;
+
       -- Reset strobes
       v.cntRst   := '0';
       v.timerRst := '0';
+      v.hardRst  := '0';
+      v.softRst  := '0';
+
+      -- Check for hard reset or soft reset
+      if (r.hardRst = '1') or (r.softRst = '1') then
+         -- Reset the register
+         v := REG_INIT_C;
+         -- Check for soft reset
+         if (r.softRst = '1') then
+            -- Preserve the resister configurations
+            v.timeout := r.timeout;
+            v.blowoff := r.blowoff;
+         end if;
+      end if;
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
@@ -205,9 +233,12 @@ begin
       end loop;
       axiSlaveRegister (axilEp, x"FF0", 0, v.timeout);
       axiSlaveRegisterR(axilEp, x"FF4", 0, toSlv(NUM_SLAVES_G, 8));
+      axiSlaveRegisterR(axilEp, x"FF4", 8, dbg);
       axiSlaveRegister (axilEp, x"FF8", 0, v.blowoff);
       axiSlaveRegister (axilEp, x"FFC", 0, v.cntRst);
       axiSlaveRegister (axilEp, x"FFC", 1, v.timerRst);
+      axiSlaveRegister (axilEp, x"FFC", 2, v.hardRst);
+      axiSlaveRegister (axilEp, x"FFC", 3, v.softRst);
 
       -- Closeout the transaction
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
@@ -400,6 +431,7 @@ begin
       txMaster       <= r.txMaster;
       axilWriteSlave <= r.axilWriteSlave;
       axilReadSlave  <= r.axilReadSlave;
+      axisReset      <= axisRst or r.hardRst or r.softRst;
 
       -- Reset
       if (axisRst = '1') then
@@ -433,7 +465,7 @@ begin
       port map (
          -- Clock and Reset
          axisClk      => axisClk,
-         axisRst      => axisRst,
+         axisRst      => axisReset,
          -- External Control Interface
          maxSubFrames => r.maxSubFrames,
          idle         => batcherIdle,
