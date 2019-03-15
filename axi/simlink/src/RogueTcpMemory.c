@@ -259,9 +259,9 @@ void RogueTcpMemoryUpdate ( void *userPtr ) {
          if ( getInt(s_reset) == 1 ) {
             data->state = ST_IDLE;
             setInt(s_arvalid,0);
-            setInt(s_rready,0);
+            setInt(s_rready,1);
             setInt(s_awvalid,0);
-            setInt(s_bready,0);
+            setInt(s_bready,1);
          } 
 
          // Data movement
@@ -306,7 +306,7 @@ void RogueTcpMemoryUpdate ( void *userPtr ) {
                      setInt(s_araddr,(data->addr+data->curr));
                      setInt(s_arprot,0);
                      setInt(s_arvalid,1);
-                     setInt(s_arready,0);
+                     setInt(s_rready,1);
                      data->state = ST_RADDR;
                   }
                   break;
@@ -318,7 +318,7 @@ void RogueTcpMemoryUpdate ( void *userPtr ) {
                   if ( getInt(s_wready)  ) setInt(s_wvalid,0);
 
                   if ( getInt(s_bvalid) ) {
-                     setInt(s_bready,0);
+                    //setInt(s_bready,0);
                      data->result = getInt(s_bresp);
 
                      if (data->curr == data->size) {
@@ -348,7 +348,7 @@ void RogueTcpMemoryUpdate ( void *userPtr ) {
                      data->data[data->curr++] = (data32 >> 16) & 0xFF;
                      data->data[data->curr++] = (data32 >> 24) & 0xFF;
 
-                     setInt(s_rready,0);
+                     //setInt(s_rready,0);
 
                      if (data->curr == data->size) {
                         RogueTcpMemorySend(data,portData); // state goes to idle
@@ -357,10 +357,12 @@ void RogueTcpMemoryUpdate ( void *userPtr ) {
                   }
                   break;
 
-               // One clock idle
+               // Wait for RVALID and BVALID to fall
                case ST_PAUSE:
-                  data->state = ST_START;
-                  break;
+                 if ( getInt(s_rvalid) == 0 && getInt(s_bvalid) == 0 ) {
+                   data->state = ST_START;
+                   break;
+                 }
             }
          }
       }
