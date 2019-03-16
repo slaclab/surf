@@ -103,7 +103,16 @@ class ClinkChannel(pr.Device):
             bitOffset    =  1,
             base         = pr.Bool,
             mode         = "RW",
-        ))    
+        )) 
+
+        self.add(pr.RemoteCommand(    
+            name         = "CntRst",
+            description  = "",
+            offset       = 0x10,
+            bitSize      = 1,
+            bitOffset    = 2,
+            function     = pr.BaseCommand.toggle,
+        ))          
 
         self.add(pr.RemoteVariable(    
             name         = "SerThrottle",
@@ -202,3 +211,12 @@ class ClinkChannel(pr.Device):
             if self._tx is not None:
                 self._tx.sendString("gcp")
 
+    def hardReset(self):
+        self.CntRst()
+
+    def softReset(self):
+        self.CntRst()
+
+    def countReset(self):
+        self.CntRst()
+        
