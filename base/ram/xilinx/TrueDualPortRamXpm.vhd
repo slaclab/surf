@@ -29,7 +29,7 @@ entity TrueDualPortRamXpm is
       COMMON_CLK_G   : boolean                    := false;
       RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low       
       MEMORY_TYPE_G  : string                     := "block";
-      READ_LATENCY_G : natural range 0 to 2       := 1;
+      READ_LATENCY_G : natural range 0 to 100     := 1;
       DATA_WIDTH_G   : integer range 1 to (2**24) := 16;
       BYTE_WR_EN_G   : boolean                    := false;
       BYTE_WIDTH_G   : integer range 8 to 9       := 8;  -- If BRAM, should be multiple or 8 or 9
