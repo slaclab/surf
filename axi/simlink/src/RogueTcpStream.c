@@ -22,6 +22,7 @@
 #include <sys/mman.h>
 #include <zmq.h>
 #include <time.h>
+#include <errno.h>
 
 // Start/resetart zeromq server
 void RogueTcpStreamRestart(RogueTcpStreamData *data, portDataT *portData) {
@@ -62,6 +63,7 @@ void RogueTcpStreamSend ( RogueTcpStreamData *data, portDataT *portData ) {
    uint8_t   chan;
    uint8_t   err;
    uint32_t  x;
+   int error;
 
    if ( (zmq_msg_init_size(&(msg[0]),2) < 0) ||  // Flags
         (zmq_msg_init_size(&(msg[1]),1) < 0) ||  // Channel
@@ -94,14 +96,15 @@ void RogueTcpStreamSend ( RogueTcpStreamData *data, portDataT *portData ) {
     
    // Send data
    for (x=0; x < 4; x++) {
-     if ( zmq_sendmsg(data->zmqPush,&(msg[x]),(x==3)?0:ZMQ_SNDMORE) < 0 ) {
-        vhpi_printf("Failed to send message on port %i\n", data->port+1);
-        vhpi_assert("RogueTcpStream: Failed to send message",vhpiFatal);
+     if ( zmq_msg_send(&(msg[x]), data->zmqPush, (x==3)?0:ZMQ_SNDMORE) < 0 ) {
+       error = errno;
+       vhpi_printf("Failed to send message on port %i - x: %i - err: %i\n", data->port+1, x, error);
+       vhpi_printf("Error: %s\n", strerror(error));
+       vhpi_assert("RogueTcpStream: Failed to send message",vhpiFatal);
      }
    }
-
+   vhpi_printf("%lu RogueTcpStream: Send data: Size: %i, flags: %x, chan: %x, err: %x, port: %i\n", portData->simTime, data->ibSize, flags, chan, err, data->port+1);
    data->ibSize = 0;
-   vhpi_printf("%lu RogueTcpStream: Send data: Size: %i\n", portData->simTime, data->ibSize);
 }
 
 
@@ -166,7 +169,7 @@ int RogueTcpStreamRecv ( RogueTcpStreamData *data, portDataT *portData ) {
          if ( err ) data->obLuser |= 0x01;
       }
 
-      vhpi_printf("%lu RogueTcpStream: Recv data: Size: %i\n", portData->simTime, data->obSize);
+      vhpi_printf("%lu RogueTcpStream: Recv data: Size: %i, flags: %x, chan: %i, err: %i, port: %i\n", portData->simTime, data->obSize, flags, chan, err, data->port);
 
    } else size = 0;
 
@@ -348,8 +351,14 @@ void RogueTcpStreamUpdate ( void *userPtr ) {
                for (x=0; x< 8; x++) {
                   if ( x < 4 ) {
                      dLow |= (data->obData[data->obCount] << (x*8));
-                     if ( (data->obCount+1) == data->obSize ) 
+                     if ( (data->obCount+1) == data->obSize ) {
+                       if (data->obCount < 4) {
+                         setInt(s_obUserLow,(data->obLuser << (x*8))|(data->obFuser));
+                       }
+                       else {
                          setInt(s_obUserLow,(data->obLuser << (x*8)));
+                       }
+                     }
                   }
                   else {
                      dHigh |= (data->obData[data->obCount] << ((x-4)*8));
