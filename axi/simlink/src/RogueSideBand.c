@@ -76,8 +76,12 @@ void RogueSideBandSend ( RogueSideBandData *data, portDataT *portData ) {
    if ( zmq_msg_send(&msg,data->zmqPush,ZMQ_DONTWAIT) < 0 ) {
          vhpi_assert("RogueSideBand: Failed to send message",vhpiFatal);
    }
-
-   vhpi_printf("%lu RogueSideBand: Sent Opcode: %x\n", portData->simTime, data->txOpCode);
+   if (data->txOpCodeEn) {
+     vhpi_printf("%lu RogueSideBand: Sent Opcode: %x\n", portData->simTime, data->txOpCode);
+   }
+   if (data->txRemDataChanged) {
+     vhpi_printf("%lu RogueSideBand: Sent remData: %x\n", portData->simTime, data->txRemData);
+   }
 }
 
 // Receive side data if it is available
