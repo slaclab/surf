@@ -46,6 +46,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
+      <li><a href="namespaces.html"><span>Packages</span></a></li>
       <li class="current"><a href="annotated.html"><span>Design&#160;Unit&#160;List</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
@@ -70,6 +71,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       <li><a href="annotated.html"><span>Design&#160;Unit&#160;List</span></a></li>
       <li><a href="classes.html"><span>Design&#160;Units</span></a></li>
       <li><a href="inherits.html"><span>Design&#160;Unit&#160;Hierarchy</span></a></li>
+      <li><a href="functions.html"><span>Design&#160;Unit&#160;Members</span></a></li>
     </ul>
   </div>
 </div><!-- top -->
@@ -121,6 +123,8 @@ Processes</h2></td></tr>
 <a class="el" href="classAxiDualPortRam_1_1rtl.html#a8f04482467ef4bbc24ea2ce426429260">comb</a>&#160;</td><td class="memItemRight" valign="bottom"><b> ( <b><span class="vhdlchar">axiDout</span><span class="vhdlchar"> </span></b> , <b><span class="vhdlchar">axiReadMaster</span><span class="vhdlchar"> </span></b> , <b><span class="vhdlchar">axiRst</span><span class="vhdlchar"> </span></b> , <b><span class="vhdlchar">axiWriteMaster</span><span class="vhdlchar"> </span></b> , <b><span class="vhdlchar">r</span><span class="vhdlchar"> </span></b> )</b></td></tr>
 <tr class="memitem:a5e4948776eaa6ed7ab637ef213d19dd8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5e4948776eaa6ed7ab637ef213d19dd8"></a>
 <a class="el" href="classAxiDualPortRam_1_1rtl.html#a5e4948776eaa6ed7ab637ef213d19dd8">seq</a>&#160;</td><td class="memItemRight" valign="bottom"><b> ( <b><span class="vhdlchar">axiClk</span><span class="vhdlchar"> </span></b> )</b></td></tr>
+<tr class="memitem:a80ff7efedd6037ff3c04ba3b1bd991f4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a80ff7efedd6037ff3c04ba3b1bd991f4"></a>
+<a class="el" href="classAxiDualPortRam_1_1rtl.html#a80ff7efedd6037ff3c04ba3b1bd991f4">REG</a>&#160;</td><td class="memItemRight" valign="bottom"><b> ( <b><span class="vhdlchar">clk</span><span class="vhdlchar"> </span></b> )</b></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="Constants"></a>
 Constants</h2></td></tr>
@@ -173,6 +177,10 @@ Signals</h2></td></tr>
 <a class="el" href="classAxiDualPortRam_1_1rtl.html#a0de0434e5d23352864f8e756f98e13a1">axiSyncIn</a> &#160;</td><td class="memItemRight" valign="bottom"><b><span class="vhdlchar">slv</span><span class="vhdlchar"> </span><span class="vhdlchar">(</span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar">DATA_WIDTH_G</span><span class="vhdlchar">+</span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar">ADDR_WIDTH_G</span><span class="vhdlchar">+</span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar">ADDR_AXI_BYTES_C</span><span class="vhdlchar">-</span><span class="vhdlchar"> </span> <span class="vhdldigit">1</span> <span class="vhdlchar"> </span><span class="keywordflow">downto</span><span class="vhdlchar"> </span><span class="vhdlchar"> </span> <span class="vhdldigit">0</span> <span class="vhdlchar"> </span><span class="vhdlchar">)</span><span class="vhdlchar"> </span></b></td></tr>
 <tr class="memitem:a794b1d31779d52b46a84b739fe1381af"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a794b1d31779d52b46a84b739fe1381af"></a>
 <a class="el" href="classAxiDualPortRam_1_1rtl.html#a794b1d31779d52b46a84b739fe1381af">axiSyncOut</a> &#160;</td><td class="memItemRight" valign="bottom"><b><span class="vhdlchar">slv</span><span class="vhdlchar"> </span><span class="vhdlchar">(</span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar">DATA_WIDTH_G</span><span class="vhdlchar">+</span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar">ADDR_WIDTH_G</span><span class="vhdlchar">+</span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar">ADDR_AXI_BYTES_C</span><span class="vhdlchar">-</span><span class="vhdlchar"> </span> <span class="vhdldigit">1</span> <span class="vhdlchar"> </span><span class="keywordflow">downto</span><span class="vhdlchar"> </span><span class="vhdlchar"> </span> <span class="vhdldigit">0</span> <span class="vhdlchar"> </span><span class="vhdlchar">)</span><span class="vhdlchar"> </span></b></td></tr>
+<tr class="memitem:a1f7ac192e0d1289251e33511c931133b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1f7ac192e0d1289251e33511c931133b"></a>
+<a class="el" href="classAxiDualPortRam_1_1rtl.html#a1f7ac192e0d1289251e33511c931133b">weByteMask</a> &#160;</td><td class="memItemRight" valign="bottom"><b><span class="vhdlchar">slv</span><span class="vhdlchar"> </span><span class="vhdlchar">(</span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar">wordCount</span><span class="vhdlchar"> </span><span class="vhdlchar">(</span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar">DATA_WIDTH_G</span><span class="vhdlchar"> </span><span class="vhdlchar">,</span><span class="vhdlchar"> </span><span class="vhdlchar"> </span> <span class="vhdldigit">8</span> <span class="vhdlchar"> </span><span class="vhdlchar">)</span><span class="vhdlchar"> </span><span class="vhdlchar">-</span><span class="vhdlchar"> </span> <span class="vhdldigit">1</span> <span class="vhdlchar"> </span><span class="keywordflow">downto</span><span class="vhdlchar"> </span><span class="vhdlchar"> </span> <span class="vhdldigit">0</span> <span class="vhdlchar"> </span><span class="vhdlchar">)</span><span class="vhdlchar"> </span></b></td></tr>
+<tr class="memitem:a77d5f397159a52c8ab304c0afbbf84ed"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a77d5f397159a52c8ab304c0afbbf84ed"></a>
+<a class="el" href="classAxiDualPortRam_1_1rtl.html#a77d5f397159a52c8ab304c0afbbf84ed">doutInt</a> &#160;</td><td class="memItemRight" valign="bottom"><b><span class="vhdlchar">slv</span><span class="vhdlchar"> </span><span class="vhdlchar">(</span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar">DATA_WIDTH_G</span><span class="vhdlchar">-</span><span class="vhdlchar"> </span> <span class="vhdldigit">1</span> <span class="vhdlchar"> </span><span class="keywordflow">downto</span><span class="vhdlchar"> </span><span class="vhdlchar"> </span> <span class="vhdldigit">0</span> <span class="vhdlchar"> </span><span class="vhdlchar">)</span><span class="vhdlchar"> </span></b></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="Records"></a>
 Records</h2></td></tr>
@@ -193,7 +201,11 @@ Records</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="Instantiations"></a>
 Instantiations</h2></td></tr>
- <tr class="memitem:a77e670f3010a3ee7b6ce88c9fc57bd2c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a77e670f3010a3ee7b6ce88c9fc57bd2c"></a>
+ <tr class="memitem:af775eb600febaabef2e5c67257c103b2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af775eb600febaabef2e5c67257c103b2"></a>
+<a class="el" href="classAxiDualPortRam_1_1rtl.html#af775eb600febaabef2e5c67257c103b2">u_ram</a>&#160;</td><td class="memItemRight" valign="bottom">  <b>entity truedualportramxpm</b>  </td></tr>
+<tr class="memitem:af775eb600febaabef2e5c67257c103b2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af775eb600febaabef2e5c67257c103b2"></a>
+<a class="el" href="classAxiDualPortRam_1_1rtl.html#af775eb600febaabef2e5c67257c103b2">u_ram</a>&#160;</td><td class="memItemRight" valign="bottom">  <b>entity truedualportramalteramf</b>  </td></tr>
+<tr class="memitem:a77e670f3010a3ee7b6ce88c9fc57bd2c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a77e670f3010a3ee7b6ce88c9fc57bd2c"></a>
 <a class="el" href="classAxiDualPortRam_1_1rtl.html#a77e670f3010a3ee7b6ce88c9fc57bd2c">dualportram_1</a>&#160;</td><td class="memItemRight" valign="bottom">  <b>entity dualportram</b>  </td></tr>
 <tr class="memitem:a77e670f3010a3ee7b6ce88c9fc57bd2c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a77e670f3010a3ee7b6ce88c9fc57bd2c"></a>
 <a class="el" href="classAxiDualPortRam_1_1rtl.html#a77e670f3010a3ee7b6ce88c9fc57bd2c">dualportram_1</a>&#160;</td><td class="memItemRight" valign="bottom">  <b>entity dualportram</b>  </td></tr>

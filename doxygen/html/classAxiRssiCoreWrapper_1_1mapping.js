@@ -1,0 +1,27 @@
+var classAxiRssiCoreWrapper_1_1mapping =
+[
+    [ "PROCESS_203", "classAxiRssiCoreWrapper_1_1mapping.html#aaa3cbfbe4c2453447a8044d4da936a84", null ],
+    [ "PACKETIZER_AXIS_CONFIG_C", "classAxiRssiCoreWrapper_1_1mapping.html#abc1b26740937517b86166d8b546a1302", null ],
+    [ "MAX_SEG_SIZE_C", "classAxiRssiCoreWrapper_1_1mapping.html#ab626194d90605391e8a6e64909042231", null ],
+    [ "MAX_SEGS_BITS_C", "classAxiRssiCoreWrapper_1_1mapping.html#a55f52a0ef78ab0d3cf4f2d2b673e471e", null ],
+    [ "maxSegs", "classAxiRssiCoreWrapper_1_1mapping.html#a6cdc4e8ca01178e6807d6ef3a908e3f2", null ],
+    [ "maxObSegSize", "classAxiRssiCoreWrapper_1_1mapping.html#af85c42c0bd43ab0fbd8f8830183f73b8", null ],
+    [ "status", "classAxiRssiCoreWrapper_1_1mapping.html#a372fb6a00a296e59d06355fe7c1fbf8f", null ],
+    [ "rssiNotConnected", "classAxiRssiCoreWrapper_1_1mapping.html#adc595f06f0a5f667277229e28b1dafa8", null ],
+    [ "rssiConnected", "classAxiRssiCoreWrapper_1_1mapping.html#a0383b7e12eaa3d3de71ae18824219feb", null ],
+    [ "rxMasters", "classAxiRssiCoreWrapper_1_1mapping.html#ac3697ff3e65f08f64240eef6c2860e64", null ],
+    [ "rxSlaves", "classAxiRssiCoreWrapper_1_1mapping.html#a03a9f5bf68f6d63e0a220090060eb323", null ],
+    [ "depacketizerMasters", "classAxiRssiCoreWrapper_1_1mapping.html#a1088cb2b516d59f4b3c48dafcdee1469", null ],
+    [ "depacketizerSlaves", "classAxiRssiCoreWrapper_1_1mapping.html#a892773db7abb009d6f7b30c866de51e2", null ],
+    [ "packetizerMasters", "classAxiRssiCoreWrapper_1_1mapping.html#a452d78f046d5836098bf133baa26a3af", null ],
+    [ "packetizerSlaves", "classAxiRssiCoreWrapper_1_1mapping.html#a7e5c1fd36fe04313177864b91d88d70b", null ],
+    [ "txMasters", "classAxiRssiCoreWrapper_1_1mapping.html#ac69c983568b00bd6abb43e4a63379572", null ],
+    [ "txSlaves", "classAxiRssiCoreWrapper_1_1mapping.html#a347c78e9d7bc9f335d5f7af79b1e39f7", null ],
+    [ "u_rx", "classAxiRssiCoreWrapper_1_1mapping.html#abd0b8310274ce5649e93dea53a1bef28", null ],
+    [ "u_axistreammux", "classAxiRssiCoreWrapper_1_1mapping.html#a754c0f40482e4caa804e164b23d52002", null ],
+    [ "u_packetizer", "classAxiRssiCoreWrapper_1_1mapping.html#a8754419ce8924ef93e8415d62229d7fc", null ],
+    [ "u_rssicore", "classAxiRssiCoreWrapper_1_1mapping.html#a74dd0ed7049a214060db0084a4825a0a", null ],
+    [ "u_depacketizer", "classAxiRssiCoreWrapper_1_1mapping.html#a8c2466b378b19ffaed0143abb3b99171", null ],
+    [ "u_axistreamdemux", "classAxiRssiCoreWrapper_1_1mapping.html#ae40e196c0079d6845f66088aa1d97e92", null ],
+    [ "u_tx", "classAxiRssiCoreWrapper_1_1mapping.html#a55bb269eff3d06364a23f29c12f29b16", null ]
+];

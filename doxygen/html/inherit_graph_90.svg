@@ -11,9 +11,9 @@
 <polygon fill="white" stroke="none" points="-4,4 -4,-24 129,-24 129,4 -4,4"/>
 <!-- Node1 -->
 <g id="node1" class="node"><title>Node1</title>
-<g id="a_node1"><a xlink:href="classAxiStreamDepacketizer2.html" target="_top" xlink:title="AxiStreamDepacketizer2">
+<g id="a_node1"><a xlink:href="classAxiStreamBytePackerTb.html" target="_top" xlink:title="AxiStreamBytePackerTb">
 <polygon fill="white" stroke="black" points="-7.10543e-15,-0.5 -7.10543e-15,-19.5 125,-19.5 125,-0.5 -7.10543e-15,-0.5"/>
-<text text-anchor="middle" x="62.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">AxiStreamDepacketizer2</text>
+<text text-anchor="middle" x="62.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">AxiStreamBytePackerTb</text>
 </a>
 </g>
 </g>

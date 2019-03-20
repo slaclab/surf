@@ -10,6 +10,8 @@ var searchData=
   ['clinkpkg',['ClinkPkg',['../classClinkPkg.html',1,'']]],
   ['clinktop',['ClinkTop',['../classClinkTop.html',1,'']]],
   ['clinkuart',['ClinkUart',['../classClinkUart.html',1,'']]],
+  ['clinkuartthrottle',['ClinkUartThrottle',['../classClinkUartThrottle.html',1,'']]],
+  ['clk_5ffrequency_5fg',['CLK_FREQUENCY_G',['../classAxiRssiCore.html#a1eb89039484c56375f44bd0c9d51e4f8',1,'AxiRssiCore']]],
   ['clkoutbufdiff',['ClkOutBufDiff',['../classClkOutBufDiff.html',1,'']]],
   ['clkoutbufsingle',['ClkOutBufSingle',['../classClkOutBufSingle.html',1,'']]],
   ['clkrst',['ClkRst',['../classClkRst.html',1,'']]],

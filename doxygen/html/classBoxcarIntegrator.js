@@ -10,6 +10,7 @@ var classBoxcarIntegrator =
     [ "ibValid", "classBoxcarIntegrator.html#aea175478e28603d9d34c7aa903cfc70f", null ],
     [ "ibData", "classBoxcarIntegrator.html#a765b44ff4b42971088c57b93da574557", null ],
     [ "obValid", "classBoxcarIntegrator.html#a365a47c3571ea3d9bcbb0114552734c9", null ],
+    [ "obAck", "classBoxcarIntegrator.html#a9be2fa4a737abd0a0c9d73f1a7e05446", null ],
     [ "obData", "classBoxcarIntegrator.html#afb83677df377ec95d1a2d4f535432bf3", null ],
     [ "obFull", "classBoxcarIntegrator.html#a29661436dfaf943f99085e16f51febad", null ],
     [ "obPeriod", "classBoxcarIntegrator.html#a50ddfff878a58c30758f624e768b5371", null ],

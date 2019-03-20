@@ -46,6 +46,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
+      <li><a href="namespaces.html"><span>Packages</span></a></li>
       <li class="current"><a href="annotated.html"><span>Design&#160;Unit&#160;List</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
@@ -70,6 +71,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       <li><a href="annotated.html"><span>Design&#160;Unit&#160;List</span></a></li>
       <li><a href="classes.html"><span>Design&#160;Units</span></a></li>
       <li><a href="inherits.html"><span>Design&#160;Unit&#160;Hierarchy</span></a></li>
+      <li><a href="functions.html"><span>Design&#160;Unit&#160;Members</span></a></li>
     </ul>
   </div>
 </div><!-- top -->
@@ -112,7 +114,7 @@ $(document).ready(function(){initNavTree('classClinkData_1_1rtl.html','');});
   <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>bitSlip</b> (defined in <a class="el" href="classClinkData_1_1rtl.html">rtl</a>)</td><td class="entry"><a class="el" href="classClinkData_1_1rtl.html">rtl</a></td><td class="entry"><span class="mlabel">Record</span></td></tr>
   <tr bgcolor="#f0f0f0"><td class="entry"><b>clinkClk</b> (defined in <a class="el" href="classClinkData_1_1rtl.html">rtl</a>)</td><td class="entry"><a class="el" href="classClinkData_1_1rtl.html">rtl</a></td><td class="entry"><span class="mlabel">Signal</span></td></tr>
   <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>clinkRst</b> (defined in <a class="el" href="classClinkData_1_1rtl.html">rtl</a>)</td><td class="entry"><a class="el" href="classClinkData_1_1rtl.html">rtl</a></td><td class="entry"><span class="mlabel">Signal</span></td></tr>
-  <tr bgcolor="#f0f0f0"><td class="entry"><b>comb</b>clinkRst,r,parClock (defined in <a class="el" href="classClinkData_1_1rtl.html">rtl</a>)</td><td class="entry"><a class="el" href="classClinkData_1_1rtl.html">rtl</a></td><td class="entry"></td></tr>
+  <tr bgcolor="#f0f0f0"><td class="entry"><b>comb</b>clinkRst,parClock,r,rstFsm (defined in <a class="el" href="classClinkData_1_1rtl.html">rtl</a>)</td><td class="entry"><a class="el" href="classClinkData_1_1rtl.html">rtl</a></td><td class="entry"></td></tr>
   <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>count</b> (defined in <a class="el" href="classClinkData_1_1rtl.html">rtl</a>)</td><td class="entry"><a class="el" href="classClinkData_1_1rtl.html">rtl</a></td><td class="entry"><span class="mlabel">Record</span></td></tr>
   <tr bgcolor="#f0f0f0"><td class="entry"><b>delay</b> (defined in <a class="el" href="classClinkData_1_1rtl.html">rtl</a>)</td><td class="entry"><a class="el" href="classClinkData_1_1rtl.html">rtl</a></td><td class="entry"><span class="mlabel">Record</span></td></tr>
   <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>delayLd</b> (defined in <a class="el" href="classClinkData_1_1rtl.html">rtl</a>)</td><td class="entry"><a class="el" href="classClinkData_1_1rtl.html">rtl</a></td><td class="entry"><span class="mlabel">Record</span></td></tr>
@@ -124,9 +126,10 @@ $(document).ready(function(){initNavTree('classClinkData_1_1rtl.html','');});
   <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>REG_INIT_C</b> (defined in <a class="el" href="classClinkData_1_1rtl.html">rtl</a>)</td><td class="entry"><a class="el" href="classClinkData_1_1rtl.html">rtl</a></td><td class="entry"><span class="mlabel">Constant</span></td></tr>
   <tr bgcolor="#f0f0f0"><td class="entry"><b>RegType</b> (defined in <a class="el" href="classClinkData_1_1rtl.html">rtl</a>)</td><td class="entry"><a class="el" href="classClinkData_1_1rtl.html">rtl</a></td><td class="entry"><span class="mlabel">Record</span></td></tr>
   <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>rin</b> (defined in <a class="el" href="classClinkData_1_1rtl.html">rtl</a>)</td><td class="entry"><a class="el" href="classClinkData_1_1rtl.html">rtl</a></td><td class="entry"><span class="mlabel">Signal</span></td></tr>
-  <tr bgcolor="#f0f0f0"><td class="entry"><b>seq</b>clinkClk (defined in <a class="el" href="classClinkData_1_1rtl.html">rtl</a>)</td><td class="entry"><a class="el" href="classClinkData_1_1rtl.html">rtl</a></td><td class="entry"><span class="mlabel">Process</span></td></tr>
-  <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>state</b> (defined in <a class="el" href="classClinkData_1_1rtl.html">rtl</a>)</td><td class="entry"><a class="el" href="classClinkData_1_1rtl.html">rtl</a></td><td class="entry"><span class="mlabel">Record</span></td></tr>
-  <tr bgcolor="#f0f0f0"><td class="entry"><b>status</b> (defined in <a class="el" href="classClinkData_1_1rtl.html">rtl</a>)</td><td class="entry"><a class="el" href="classClinkData_1_1rtl.html">rtl</a></td><td class="entry"><span class="mlabel">Record</span></td></tr>
+  <tr bgcolor="#f0f0f0"><td class="entry"><b>rstFsm</b> (defined in <a class="el" href="classClinkData_1_1rtl.html">rtl</a>)</td><td class="entry"><a class="el" href="classClinkData_1_1rtl.html">rtl</a></td><td class="entry"><span class="mlabel">Signal</span></td></tr>
+  <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>seq</b>clinkClk (defined in <a class="el" href="classClinkData_1_1rtl.html">rtl</a>)</td><td class="entry"><a class="el" href="classClinkData_1_1rtl.html">rtl</a></td><td class="entry"><span class="mlabel">Process</span></td></tr>
+  <tr bgcolor="#f0f0f0"><td class="entry"><b>state</b> (defined in <a class="el" href="classClinkData_1_1rtl.html">rtl</a>)</td><td class="entry"><a class="el" href="classClinkData_1_1rtl.html">rtl</a></td><td class="entry"><span class="mlabel">Record</span></td></tr>
+  <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>status</b> (defined in <a class="el" href="classClinkData_1_1rtl.html">rtl</a>)</td><td class="entry"><a class="el" href="classClinkData_1_1rtl.html">rtl</a></td><td class="entry"><span class="mlabel">Record</span></td></tr>
 </table></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

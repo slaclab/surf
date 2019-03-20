@@ -5,7 +5,7 @@ var classAxiStreamDmaWrite_1_1rtl =
     [ "LOC_AXIS_CONFIG_C", "classAxiStreamDmaWrite_1_1rtl.html#ad6fc529ed1dcff2e67bd72445aa4c7e9", null ],
     [ "DATA_BYTES_C", "classAxiStreamDmaWrite_1_1rtl.html#abb0ce72bc427301511326b1f445c8df7", null ],
     [ "ADDR_LSB_C", "classAxiStreamDmaWrite_1_1rtl.html#ade437699544bcca4192a644bd87985cc", null ],
-    [ "AWLEN_C", "classAxiStreamDmaWrite_1_1rtl.html#ac0a47872e62b8a95a6eb55cdfad9c9e9", null ],
+    [ "AWLEN_C", "classAxiStreamDmaWrite_1_1rtl.html#a3eb695df33b23a9652b76665384dee01", null ],
     [ "FIFO_ADDR_WIDTH_C", "classAxiStreamDmaWrite_1_1rtl.html#a20142293bc43be42da4615898495eed7", null ],
     [ "StateType", "classAxiStreamDmaWrite_1_1rtl.html#a49304dc2c820a029c0ac23e889244356", null ],
     [ "RegType", "classAxiStreamDmaWrite_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],

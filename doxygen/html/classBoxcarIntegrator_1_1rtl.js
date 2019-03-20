@@ -1,6 +1,6 @@
 var classBoxcarIntegrator_1_1rtl =
 [
-    [ "comb", "classBoxcarIntegrator_1_1rtl.html#ac49eb2ccb4027b9e40777c4f90fee29d", null ],
+    [ "comb", "classBoxcarIntegrator_1_1rtl.html#ad1efc4c465025e9823fe0db5485beec7", null ],
     [ "seq", "classBoxcarIntegrator_1_1rtl.html#ae8896e195ae00ae797895c15b647ba41", null ],
     [ "ACCUM_WIDTH_C", "classBoxcarIntegrator_1_1rtl.html#aa14c07b502a937d1f9f8d5b49c93b730", null ],
     [ "RegType", "classBoxcarIntegrator_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],

@@ -4,6 +4,7 @@ var classClinkUart =
     [ "intClk", "classClinkUart.html#a83d081074246b2faf8171d4e7f786a76", null ],
     [ "intRst", "classClinkUart.html#a6396dc1d3525cfce1618a83696bcd0ae", null ],
     [ "baud", "classClinkUart.html#aa1dfbfd50263480ac828254966bc7c79", null ],
+    [ "throttle", "classClinkUart.html#a6f8e32cb6122aa1edc59f403a4a9a4f1", null ],
     [ "uartClk", "classClinkUart.html#a53a6f8610d210fd9324cd32b82b5c09e", null ],
     [ "uartRst", "classClinkUart.html#aebf3e7e2f33218024c41d1797d4b3727", null ],
     [ "sUartMaster", "classClinkUart.html#ad2897a8a71b919e5bc59dead02bce040", null ],

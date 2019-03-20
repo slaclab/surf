@@ -2,9 +2,9 @@ var classAxiDualPortRam =
 [
     [ "rtl", "classAxiDualPortRam_1_1rtl.html", "classAxiDualPortRam_1_1rtl" ],
     [ "TPD_G", "classAxiDualPortRam.html#a67a837684e4f18c2d236ac1d053b419b", null ],
-    [ "BRAM_EN_G", "classAxiDualPortRam.html#af5119c0b605c18019332c4a648fa6880", null ],
-    [ "REG_EN_G", "classAxiDualPortRam.html#a0f2247a6a3e8840e30be089433d9a486", null ],
-    [ "MODE_G", "classAxiDualPortRam.html#a227400c3f7cf936f7cd4cc432537856b", null ],
+    [ "SYNTH_MODE_G", "classAxiDualPortRam.html#a2429d17ce4f9328a982076af9f733ab3", null ],
+    [ "MEMORY_TYPE_G", "classAxiDualPortRam.html#ac19eab973cb6c0196eed65d74fc49dca", null ],
+    [ "READ_LATENCY_G", "classAxiDualPortRam.html#ad6c1974e49c60d756a73f5780d466129", null ],
     [ "AXI_WR_EN_G", "classAxiDualPortRam.html#aa92803d72989301fb3e3f9edc3ae8b13", null ],
     [ "SYS_WR_EN_G", "classAxiDualPortRam.html#ae5bfd145559b9a96ee357fedb2b9323b", null ],
     [ "SYS_BYTE_WR_EN_G", "classAxiDualPortRam.html#a7e1507317d33a48c5e3da12b6b173828", null ],

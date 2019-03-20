@@ -10,6 +10,7 @@ var searchData=
   ['clinkpkg',['ClinkPkg',['../classClinkPkg.html',1,'']]],
   ['clinktop',['ClinkTop',['../classClinkTop.html',1,'']]],
   ['clinkuart',['ClinkUart',['../classClinkUart.html',1,'']]],
+  ['clinkuartthrottle',['ClinkUartThrottle',['../classClinkUartThrottle.html',1,'']]],
   ['clkoutbufdiff',['ClkOutBufDiff',['../classClkOutBufDiff.html',1,'']]],
   ['clkoutbufsingle',['ClkOutBufSingle',['../classClkOutBufSingle.html',1,'']]],
   ['clkrst',['ClkRst',['../classClkRst.html',1,'']]],

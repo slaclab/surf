@@ -12,6 +12,8 @@ var classRssiCore =
     [ "TSP_AXIS_CONFIG_G", "classRssiCore.html#a9bc85320a82827701ee910c596b5aed4", null ],
     [ "BYP_TX_BUFFER_G", "classRssiCore.html#a553a3bd6c2bbb66ffbe09f130859bd19", null ],
     [ "BYP_RX_BUFFER_G", "classRssiCore.html#aa27f0631c117558ec5cf48efec00aa91", null ],
+    [ "SYNTH_MODE_G", "classRssiCore.html#a2429d17ce4f9328a982076af9f733ab3", null ],
+    [ "MEMORY_TYPE_G", "classRssiCore.html#ac19eab973cb6c0196eed65d74fc49dca", null ],
     [ "INIT_SEQ_N_G", "classRssiCore.html#ad73a75a1c26b2749980f2cdbddd4e3ce", null ],
     [ "CONN_ID_G", "classRssiCore.html#a19221acbd9f175c7c36e185a3f6ac55b", null ],
     [ "VERSION_G", "classRssiCore.html#a8e985ccda4b5c69b862841987f386b2e", null ],

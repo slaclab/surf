@@ -2,6 +2,7 @@ var classRssiAxiLiteRegItf =
 [
     [ "rtl", "classRssiAxiLiteRegItf_1_1rtl.html", "classRssiAxiLiteRegItf_1_1rtl" ],
     [ "TPD_G", "classRssiAxiLiteRegItf.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "COMMON_CLK_G", "classRssiAxiLiteRegItf.html#a762b446ddef001083e8cfc52dc38385f", null ],
     [ "SEGMENT_ADDR_SIZE_G", "classRssiAxiLiteRegItf.html#afa66a506748b331399ec202bfc315d00", null ],
     [ "TIMEOUT_UNIT_G", "classRssiAxiLiteRegItf.html#a0c80d19f33d2f04dd0f55f829fb35472", null ],
     [ "INIT_SEQ_N_G", "classRssiAxiLiteRegItf.html#ad73a75a1c26b2749980f2cdbddd4e3ce", null ],

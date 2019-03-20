@@ -15,6 +15,8 @@ var classRssiCoreWrapper =
     [ "APP_ILEAVE_EN_G", "classRssiCoreWrapper.html#a9129f260742e599a6992caff26dd5fe8", null ],
     [ "BYP_TX_BUFFER_G", "classRssiCoreWrapper.html#a553a3bd6c2bbb66ffbe09f130859bd19", null ],
     [ "BYP_RX_BUFFER_G", "classRssiCoreWrapper.html#aa27f0631c117558ec5cf48efec00aa91", null ],
+    [ "SYNTH_MODE_G", "classRssiCoreWrapper.html#a2429d17ce4f9328a982076af9f733ab3", null ],
+    [ "MEMORY_TYPE_G", "classRssiCoreWrapper.html#ac19eab973cb6c0196eed65d74fc49dca", null ],
     [ "ILEAVE_ON_NOTVALID_G", "classRssiCoreWrapper.html#adc86774e39002fce6f3ca2a442b01f6a", null ],
     [ "APP_AXIS_CONFIG_G", "classRssiCoreWrapper.html#a743de33aa9f83c7be4d7d7b3d5f4a888", null ],
     [ "TSP_AXIS_CONFIG_G", "classRssiCoreWrapper.html#a9bc85320a82827701ee910c596b5aed4", null ],

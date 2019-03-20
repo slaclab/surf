@@ -7,6 +7,7 @@ var classAxiStreamDmaWrite =
     [ "AXI_CONFIG_G", "classAxiStreamDmaWrite.html#ac4846a113db5091362e41049a6e0a221", null ],
     [ "AXI_BURST_G", "classAxiStreamDmaWrite.html#a056b407dcdfca6742311295ace4d9dca", null ],
     [ "AXI_CACHE_G", "classAxiStreamDmaWrite.html#a2b41715df1d68ccd8f96916eada55a94", null ],
+    [ "BURST_BYTES_G", "classAxiStreamDmaWrite.html#a7f86f26501606032b52ffad309bfb92d", null ],
     [ "SW_CACHE_EN_G", "classAxiStreamDmaWrite.html#a5e348ce6eb21ec808320fb684bdb152c", null ],
     [ "ACK_WAIT_BVALID_G", "classAxiStreamDmaWrite.html#af4bf4d72c1c3ab9c412efeb27ba8b835", null ],
     [ "PIPE_STAGES_G", "classAxiStreamDmaWrite.html#a91eb8c73b60497fed4baf5855a7b980f", null ],

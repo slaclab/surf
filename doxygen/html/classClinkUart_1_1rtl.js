@@ -1,6 +1,6 @@
 var classClinkUart_1_1rtl =
 [
-    [ "comb", "classClinkUart_1_1rtl.html#a0707097024c0528c6f5ae21d01e8d37e", null ],
+    [ "comb", "classClinkUart_1_1rtl.html#a0e63c718948a63da05f85effe1788e92", null ],
     [ "seq", "classClinkUart_1_1rtl.html#afe44590effe2b221fb17f881d7201a80", null ],
     [ "PROCESS_139", "classClinkUart_1_1rtl.html#a2bac488b4a52d1219ac840691f894bc7", null ],
     [ "INT_FREQ_C", "classClinkUart_1_1rtl.html#a4ec2fbb6e0f3f67426f6d4b042e39222", null ],
@@ -13,10 +13,11 @@ var classClinkUart_1_1rtl =
     [ "rin", "classClinkUart_1_1rtl.html#a551b360bc46f364695401f1907bda680", null ],
     [ "rdData", "classClinkUart_1_1rtl.html#ad9bd29b54be6d1954f6a4bbe86e462e5", null ],
     [ "rdValid", "classClinkUart_1_1rtl.html#a1e27e684a5f8b00494cc203d8211f138", null ],
-    [ "txMaster", "classClinkUart_1_1rtl.html#ab164e6e5de2178c54d7e1b8a8858ffa3", null ],
-    [ "txSlave", "classClinkUart_1_1rtl.html#a9eb5e6bd14c859d83d821923d01f2f7a", null ],
+    [ "txMasters", "classClinkUart_1_1rtl.html#a4060a668f616d288c5338de8c0fa248a", null ],
+    [ "txSlaves", "classClinkUart_1_1rtl.html#a09a3b5ffc367deca4d42d362e2b76ad3", null ],
     [ "rxMaster", "classClinkUart_1_1rtl.html#a9f85b919fd32c8cb6db4414253b33187", null ],
     [ "u_txfifo", "classClinkUart_1_1rtl.html#a254df34640c05f9538df15409cf5eb43", null ],
+    [ "u_txthrottle", "classClinkUart_1_1rtl.html#ac14633987487875d6e68e967f0965ab1", null ],
     [ "u_uarttx_1", "classClinkUart_1_1rtl.html#a1fca51f506612148a750a105d54fdca2", null ],
     [ "u_uartrx_1", "classClinkUart_1_1rtl.html#aa12f6a824ed54346bbd5de39cb17c879", null ],
     [ "u_rxfifo", "classClinkUart_1_1rtl.html#a688693c296d9e77528083d2a18a3bb54", null ]
