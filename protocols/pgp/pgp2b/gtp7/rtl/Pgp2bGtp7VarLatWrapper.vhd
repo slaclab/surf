@@ -161,7 +161,6 @@ begin
          clkIn     => pgpTxRecClk,
          rstIn     => pgpTxMmcmReset,
          clkOut(0) => pgpClock,
-         rstOut(0) => open,
          locked    => pgpTxMmcmLocked);
 
    -- PLL0 Port Mapping

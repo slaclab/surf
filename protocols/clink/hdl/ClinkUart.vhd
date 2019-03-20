@@ -29,60 +29,61 @@ entity ClinkUart is
       UART_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- Clock and reset, 200Mhz
-      intClk          : in  sl;
-      intRst          : in  sl;
-      -- Baud rate
-      baud            : in  slv(23 downto 0);
+      intClk      : in  sl;
+      intRst      : in  sl;
+      -- Configurations
+      baud        : in  slv(23 downto 0);  -- Baud rate (units of bps)
+      throttle    : in  slv(15 downto 0);  -- TX Throttle (units of us)
       -- Data In/Out
-      uartClk         : in  sl;
-      uartRst         : in  sl;
-      sUartMaster     : in  AxiStreamMasterType;
-      sUartSlave      : out AxiStreamSlaveType;
-      sUartCtrl       : out AxiStreamCtrlType;
-      mUartMaster     : out AxiStreamMasterType;
-      mUartSlave      : in  AxiStreamSlaveType;
+      uartClk     : in  sl;
+      uartRst     : in  sl;
+      sUartMaster : in  AxiStreamMasterType;
+      sUartSlave  : out AxiStreamSlaveType;
+      sUartCtrl   : out AxiStreamCtrlType;
+      mUartMaster : out AxiStreamMasterType;
+      mUartSlave  : in  AxiStreamSlaveType;
       -- Serial data
-      rxIn            : in  sl;
-      txOut           : out sl);
+      rxIn        : in  sl;
+      txOut       : out sl);
 end ClinkUart;
 
 architecture rtl of ClinkUart is
 
    constant INT_FREQ_C : integer := 200000000;
 
-   constant INT_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(dataBytes=>4,tDestBits=>0);
+   constant INT_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(dataBytes => 4, tDestBits => 0);
 
-   type RegType is   record
-      count  : integer;
-      clkEn  : sl;
+   type RegType is record
+      count : integer;
+      clkEn : sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      count  => 0,
-      clkEn  => '0');
+      count => 0,
+      clkEn => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : Regtype;
 
-   signal rdData   : slv(7 downto 0);
-   signal rdValid  : sl;
+   signal rdData  : slv(7 downto 0);
+   signal rdValid : sl;
 
-   signal txMaster : AxiStreamMasterType;
-   signal txSlave  : AxiStreamSlaveType;
-   signal rxMaster : AxiStreamMasterType;
+   signal txMasters : AxiStreamMasterArray(1 downto 0);
+   signal txSlaves  : AxiStreamSlaveArray(1 downto 0);
+   signal rxMaster  : AxiStreamMasterType;
 
 begin
 
    -----------------------------------
    -- Baud rate generation
    -----------------------------------
-   comb : process (r, intRst, baud) is
+   comb : process (baud, intRst, r) is
       variable v : RegType;
    begin
       v := r;
 
       -- 16x (add min of 1 to ensure data moves when baud=0)
-      v.count := r.count + conv_integer(baud & x"1"); 
+      v.count := r.count + conv_integer(baud & x"1");
       v.clkEn := '0';
 
       if r.count >= INT_FREQ_C then
@@ -94,11 +95,11 @@ begin
          v := REG_INIT_C;
       end if;
 
-      rin   <= v;
+      rin <= v;
    end process;
 
    seq : process (intClk) is
-   begin  
+   begin
       if (rising_edge(intClk)) then
          r <= rin;
       end if;
@@ -107,7 +108,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Transmit FIFO
    -------------------------------------------------------------------------------------------------
-   U_TxFifo: entity work.AxiStreamFifoV2
+   U_TxFifo : entity work.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          GEN_SYNC_FIFO_G     => false,
@@ -118,13 +119,28 @@ begin
       port map (
          sAxisClk    => uartClk,
          sAxisRst    => uartRst,
-         sAxisMaster => sUartMaster, 
+         sAxisMaster => sUartMaster,
          sAxisSlave  => sUartSlave,
          sAxisCtrl   => sUartCtrl,
          mAxisClk    => intClk,
          mAxisRst    => intRst,
-         mAxisMaster => txMaster,
-         mAxisSlave  => txSlave);
+         mAxisMaster => txMasters(0),
+         mAxisSlave  => txSlaves(0));
+
+   U_TxThrottle : entity work.ClinkUartThrottle
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         -- Clock and reset, 200Mhz
+         intClk      => intClk,
+         intRst      => intRst,
+         -- Throttle Config (units of us)
+         throttle    => throttle,
+         -- Data In/Out
+         sUartMaster => txMasters(0),
+         sUartSlave  => txSlaves(0),
+         mUartMaster => txMasters(1),
+         mUartSlave  => txSlaves(1));
 
    -------------------------------------------------------------------------------------------------
    -- UART transmitter
@@ -133,13 +149,13 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => intClk,                     -- [in]
-         rst     => intRst,                     -- [in]
-         baud16x => r.clkEn,                    -- [in]
-         wrData  => txMaster.tData(7 downto 0), -- [in]
-         wrValid => txMaster.tValid,            -- [in]
-         wrReady => txSlave.tReady,             -- [out]
-         tx      => txOut);                     -- [out]
+         clk     => intClk,                          -- [in]
+         rst     => intRst,                          -- [in]
+         baud16x => r.clkEn,                         -- [in]
+         wrData  => txMasters(1).tData(7 downto 0),  -- [in]
+         wrValid => txMasters(1).tValid,             -- [in]
+         wrReady => txSlaves(1).tReady,              -- [out]
+         tx      => txOut);                          -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- UART Receiver
@@ -148,13 +164,13 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => intClk,         -- [in]
-         rst     => intRst,         -- [in]
-         baud16x => r.clkEn,        -- [in]
-         rdData  => rdData,         -- [out]
-         rdValid => rdValid,        -- [out]
-         rdReady => '1',            -- [in]
-         rx      => rxIn);          -- [in]
+         clk     => intClk,             -- [in]
+         rst     => intRst,             -- [in]
+         baud16x => r.clkEn,            -- [in]
+         rdData  => rdData,             -- [out]
+         rdValid => rdValid,            -- [out]
+         rdReady => '1',                -- [in]
+         rx      => rxIn);              -- [in]
 
    process (rdData, rdValid) is
       variable mst : AxiStreamMasterType;
@@ -176,7 +192,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Receive FIFO
    -------------------------------------------------------------------------------------------------
-   U_RxFifo: entity work.AxiStreamFifoV2
+   U_RxFifo : entity work.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          GEN_SYNC_FIFO_G     => false,

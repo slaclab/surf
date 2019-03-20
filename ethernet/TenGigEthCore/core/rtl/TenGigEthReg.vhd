@@ -104,7 +104,7 @@ begin
             TPD_G          => TPD_G,
             OUT_POLARITY_G => '1',
             CNT_RST_EDGE_G => false,
-            COMMON_CLK_G   => true,
+            COMMON_CLK_G   => false,
             CNT_WIDTH_G    => 32,
             WIDTH_G        => STATUS_SIZE_C)
          port map (

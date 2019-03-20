@@ -26,7 +26,9 @@ class Pgp2bAxi(pr.Device):
                  description = "Configuration and status of a downstream PGP link",
                  writeEn = True,
                  **kwargs):
-        super().__init__(name=name, description=description, **kwargs) 
+        super().__init__(name=name, description=description, **kwargs)
+
+        self.writeEn = writeEn
 
         if writeEn:
             self.add(pr.RemoteVariable(
@@ -324,15 +326,6 @@ class Pgp2bAxi(pr.Device):
                 function    = pr.BaseCommand.toggle,
                 ))
 
-        def softReset(self):
-            if writeEn:
-                self.Flush()
-
-        def hardReset(self):
-            self.ResetTxRx()
-
-        def countReset(self):
-            self.CountReset()
             
         self.add(pr.RemoteVariable(
             name         = "RxClkFreqRaw", 
@@ -375,3 +368,12 @@ class Pgp2bAxi(pr.Device):
             linkedGet    = convtMHz,
         ))
              
+    def softReset(self):
+        if self.writeEn:
+            self.Flush()
+
+    def hardReset(self):
+        self.ResetTxRx()
+
+    def countReset(self):
+        self.CountReset()
