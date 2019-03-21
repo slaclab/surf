@@ -18,7 +18,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.AxiLitePkg.all;
@@ -268,7 +267,7 @@ begin
          U_Rogue : entity work.RoguePgp3Sim
             generic map(
                TPD_G      => TPD_G,
-               PORT_NUM_G => (ROGUE_SIM_PORT_NUM_G+(i*32)),
+               PORT_NUM_G => (ROGUE_SIM_PORT_NUM_G+(i*34)),
                NUM_VC_G   => NUM_VC_G)
             port map(
                -- GT Ports
