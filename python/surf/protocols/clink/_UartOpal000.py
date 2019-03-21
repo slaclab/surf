@@ -20,12 +20,6 @@
 import pyrogue as pr
 
 import surf.protocols.clink as clink
-
-import time
-
-class UartOpal000Tx(clink.ClinkSerialTx):
-    def __init__(self,**kwargs):
-        super().__init__(**kwargs)
         
 class UartOpal000Rx(clink.ClinkSerialRx):
     def __init__(self,**kwargs):
@@ -47,7 +41,7 @@ class UartOpal000Rx(clink.ClinkSerialRx):
             elif ba[i] == 0x25:
                 print("Got NAK Response: {}".format(''.join(self._cur)))
                 self._cur = []
-            elif c != '\r':
+            elif c != '':
                 self._cur.append(c)
 
 class UartOpal000(pr.Device):
@@ -64,7 +58,7 @@ class UartOpal000(pr.Device):
             self._rx = UartOpal000Rx()
             pr.streamConnect(serial,self._rx)
 
-            self._tx = UartOpal000Tx()
+            self._tx = clink.ClinkSerialTx()
             pr.streamConnect(self._tx,serial)
 
             ##############################
@@ -76,7 +70,7 @@ class UartOpal000(pr.Device):
                 description  = 'Selects the exposure control source and event selection',
                 mode         = 'RW', 
                 value        = '',
-                localSet     = lambda value: self._tx.sendString(f'@CCE{self.CCE[0].get()};{self.CCE[1].get()}\r') if (self.CCE[0].get()!='' and self.CCE[1].get()!='') else ''
+                localSet     = lambda value: self._tx.sendString(f'@CCE{self.CCE[0].get()};{self.CCE[1].get()}') if (self.CCE[0].get()!='' and self.CCE[1].get()!='') else ''
             )) 
 
             self.add(pr.LocalVariable(    
@@ -84,7 +78,7 @@ class UartOpal000(pr.Device):
                 description  = 'Selects the exposure control source and event selection',
                 mode         = 'RW', 
                 value        = '',
-                localSet     = lambda value: self._tx.sendString(f'@CCE{self.CCE[0].get()};{self.CCE[1].get()}\r') if (self.CCE[0].get()!='' and self.CCE[1].get()!='') else ''
+                localSet     = lambda value: self._tx.sendString(f'@CCE{self.CCE[0].get()};{self.CCE[1].get()}') if (self.CCE[0].get()!='' and self.CCE[1].get()!='') else ''
             ))          
             
             self.add(pr.LocalVariable(    
@@ -92,7 +86,7 @@ class UartOpal000(pr.Device):
                 description  = 'Selects the frame start control source and event selection',
                 mode         = 'RW', 
                 value        = '',
-                localSet     = lambda value: self._tx.sendString(f'@CCFS{self.CCFS[0].get()};{self.CCFS[1].get()}\r') if (self.CCFS[0].get()!='' and self.CCFS[1].get()!='') else ''
+                localSet     = lambda value: self._tx.sendString(f'@CCFS{self.CCFS[0].get()};{self.CCFS[1].get()}') if (self.CCFS[0].get()!='' and self.CCFS[1].get()!='') else ''
             )) 
 
             self.add(pr.LocalVariable(    
@@ -100,7 +94,7 @@ class UartOpal000(pr.Device):
                 description  = 'Selects the frame start control source and event selection',
                 mode         = 'RW', 
                 value        = '',
-                localSet     = lambda value: self._tx.sendString(f'@CCFS{self.CCFS[0].get()};{self.CCFS[1].get()}\r') if (self.CCFS[0].get()!='' and self.CCFS[1].get()!='') else ''
+                localSet     = lambda value: self._tx.sendString(f'@CCFS{self.CCFS[0].get()};{self.CCFS[1].get()}') if (self.CCFS[0].get()!='' and self.CCFS[1].get()!='') else ''
             ))           
             
             self.add(pr.LocalVariable(    
@@ -108,7 +102,7 @@ class UartOpal000(pr.Device):
                 description  = 'Enables or disables the defect pixel correction.',
                 mode         = 'RW', 
                 value        = '',
-                localSet     = lambda value: self._tx.sendString(f'@DPE{value}\r') if value!='' else ''
+                localSet     = lambda value: self._tx.sendString(f'@DPE{value}') if value!='' else ''
             ))   
 
             self.add(pr.LocalVariable(    
@@ -116,7 +110,7 @@ class UartOpal000(pr.Device):
                 description  = 'Sets the frame period.',
                 mode         = 'RW', 
                 value        = '',
-                localSet     = lambda value: self._tx.sendString(f'@FP{value}\r') if value!='' else ''
+                localSet     = lambda value: self._tx.sendString(f'@FP{value}') if value!='' else ''
             ))           
 
             self.add(pr.LocalVariable(    
@@ -124,7 +118,7 @@ class UartOpal000(pr.Device):
                 description  = 'Selects the FSTROBE output and polarity',
                 mode         = 'RW', 
                 value        = '',
-                localSet     = lambda value: self._tx.sendString(f'@FSM{value}\r') if value!='' else ''
+                localSet     = lambda value: self._tx.sendString(f'@FSM{value}') if value!='' else ''
             ))  
             
             self.add(pr.LocalVariable(    
@@ -132,7 +126,7 @@ class UartOpal000(pr.Device):
                 description  = 'Configures the FSTROBE, step, delay and active',
                 mode         = 'RW', 
                 value        = '',
-                localSet     = lambda value: self._tx.sendString(f'@FST{self.FST[0].get()};{self.FST[1].get()}\r') if (self.FST[0].get()!='' and self.FST[1].get()!='') else ''
+                localSet     = lambda value: self._tx.sendString(f'@FST{self.FST[0].get()};{self.FST[1].get()}') if (self.FST[0].get()!='' and self.FST[1].get()!='') else ''
             )) 
 
             self.add(pr.LocalVariable(    
@@ -140,7 +134,7 @@ class UartOpal000(pr.Device):
                 description  = 'Configures the FSTROBE, step, delay and active',
                 mode         = 'RW', 
                 value        = '',
-                localSet     = lambda value: self._tx.sendString(f'@FST{self.FST[0].get()};{self.FST[1].get()}\r') if (self.FST[0].get()!='' and self.FST[1].get()!='') else ''
+                localSet     = lambda value: self._tx.sendString(f'@FST{self.FST[0].get()};{self.FST[1].get()}') if (self.FST[0].get()!='' and self.FST[1].get()!='') else ''
             ))         
             
             self.add(pr.LocalVariable(    
@@ -148,7 +142,7 @@ class UartOpal000(pr.Device):
                 description  = 'Sets the digital gain of the camera.',
                 mode         = 'RW', 
                 value        = '',
-                localSet     = lambda value: self._tx.sendString(f'@GA{value}\r') if value!='' else ''
+                localSet     = lambda value: self._tx.sendString(f'@GA{value}') if value!='' else ''
             ))          
             
             self.add(pr.LocalVariable(    
@@ -156,7 +150,7 @@ class UartOpal000(pr.Device):
                 description  = 'Sets the integration time.',
                 mode         = 'RW', 
                 value        = '',
-                localSet     = lambda value: self._tx.sendString(f'@IT{value}\r') if value!='' else ''
+                localSet     = lambda value: self._tx.sendString(f'@IT{value}') if value!='' else ''
             ))  
 
             self.add(pr.LocalVariable(    
@@ -164,7 +158,7 @@ class UartOpal000(pr.Device):
                 description  = 'Enables or disables the mirror function.',
                 mode         = 'RW', 
                 value        = '',
-                localSet     = lambda value: self._tx.sendString(f'@MI{value}\r') if value!='' else ''
+                localSet     = lambda value: self._tx.sendString(f'@MI{value}') if value!='' else ''
             ))          
             
             self.add(pr.LocalVariable(    
@@ -172,7 +166,7 @@ class UartOpal000(pr.Device):
                 description  = 'Sets the operating mode of the camera.',
                 mode         = 'RW', 
                 value        = '',
-                localSet     = lambda value: self._tx.sendString(f'@MO{value}\r') if value!='' else ''
+                localSet     = lambda value: self._tx.sendString(f'@MO{value}') if value!='' else ''
             ))
 
             self.add(pr.LocalVariable(    
@@ -180,7 +174,7 @@ class UartOpal000(pr.Device):
                 description  = 'Sets the output offset in GL at 12 bit internal resolution',
                 mode         = 'RW', 
                 value        = '',
-                localSet     = lambda value: self._tx.sendString(f'@OFS{value}\r') if value!='' else ''
+                localSet     = lambda value: self._tx.sendString(f'@OFS{value}') if value!='' else ''
             ))
 
             self.add(pr.LocalVariable(    
@@ -188,7 +182,7 @@ class UartOpal000(pr.Device):
                 description  = 'Sets the output resolution of the camera.',
                 mode         = 'RW', 
                 value        = '',
-                localSet     = lambda value: self._tx.sendString(f'@OR{value}\r') if value!='' else ''
+                localSet     = lambda value: self._tx.sendString(f'@OR{value}') if value!='' else ''
             ))        
             
             self.add(pr.LocalVariable(    
@@ -196,7 +190,7 @@ class UartOpal000(pr.Device):
                 description  = 'Selects display of the test pattern',
                 mode         = 'RW', 
                 value        = '',
-                localSet     = lambda value: self._tx.sendString(f'@TP{value}\r') if value!='' else ''
+                localSet     = lambda value: self._tx.sendString(f'@TP{value}') if value!='' else ''
             )) 
 
             self.add(pr.LocalVariable(    
@@ -204,7 +198,7 @@ class UartOpal000(pr.Device):
                 description  = 'Sets the image output binning',
                 mode         = 'RW', 
                 value        = '',
-                localSet     = lambda value: self._tx.sendString(f'@VBIN{value}\r') if value!='' else ''
+                localSet     = lambda value: self._tx.sendString(f'@VBIN{value}') if value!='' else ''
             ))
             
             self.add(pr.LocalVariable(    
@@ -212,7 +206,7 @@ class UartOpal000(pr.Device):
                 description  = 'Sets the gain for the Red, Green and Blue channel',
                 mode         = 'RW', 
                 value        = '',
-                localSet     = lambda value: self._tx.sendString(f'@WB{self.WB[0].get()};{self.WB[1].get()};{self.WB[2].get()}\r') if (self.WB[0].get()!='' and self.WB[1].get()!='' and self.WB[2].get()!='') else ''
+                localSet     = lambda value: self._tx.sendString(f'@WB{self.WB[0].get()};{self.WB[1].get()};{self.WB[2].get()}') if (self.WB[0].get()!='' and self.WB[1].get()!='' and self.WB[2].get()!='') else ''
             )) 
 
             self.add(pr.LocalVariable(    
@@ -220,7 +214,7 @@ class UartOpal000(pr.Device):
                 description  = 'Sets the gain for the Red, Green and Blue channel',
                 mode         = 'RW', 
                 value        = '',
-                localSet     = lambda value: self._tx.sendString(f'@WB{self.WB[0].get()};{self.WB[1].get()};{self.WB[2].get()}\r') if (self.WB[0].get()!='' and self.WB[1].get()!='' and self.WB[2].get()!='') else ''
+                localSet     = lambda value: self._tx.sendString(f'@WB{self.WB[0].get()};{self.WB[1].get()};{self.WB[2].get()}') if (self.WB[0].get()!='' and self.WB[1].get()!='' and self.WB[2].get()!='') else ''
             ))  
 
             self.add(pr.LocalVariable(    
@@ -228,7 +222,7 @@ class UartOpal000(pr.Device):
                 description  = 'Sets the gain for the Red, Green and Blue channel',
                 mode         = 'RW', 
                 value        = '',
-                localSet     = lambda value: self._tx.sendString(f'@WB{self.WB[0].get()};{self.WB[1].get()};{self.WB[2].get()}\r') if (self.WB[0].get()!='' and self.WB[1].get()!='' and self.WB[2].get()!='') else ''
+                localSet     = lambda value: self._tx.sendString(f'@WB{self.WB[0].get()};{self.WB[1].get()};{self.WB[2].get()}') if (self.WB[0].get()!='' and self.WB[1].get()!='' and self.WB[2].get()!='') else ''
             ))          
             
             self.add(pr.LocalVariable(    
@@ -236,7 +230,7 @@ class UartOpal000(pr.Device):
                 description  = 'Sets the black level.',
                 mode         = 'RW', 
                 value        = '',
-                localSet     = lambda value: self._tx.sendString(f'@BL{value}\r') if value!='' else ''
+                localSet     = lambda value: self._tx.sendString(f'@BL{value}') if value!='' else ''
             ))        
                     
             self.add(pr.LocalVariable(    
@@ -244,7 +238,7 @@ class UartOpal000(pr.Device):
                 description  = 'Enableling and disableling the vertical remap is done by means of the vertical remap command.',
                 mode         = 'RW', 
                 value        = '',
-                localSet     = lambda value: self._tx.sendString(f'@VR{value}\r') if value!='' else ''
+                localSet     = lambda value: self._tx.sendString(f'@VR{value}') if value!='' else ''
             ))    
 
             self.add(pr.LocalVariable(    
@@ -256,7 +250,7 @@ class UartOpal000(pr.Device):
                     ''',            
                 mode         = 'RW', 
                 value        = '', 
-                localSet     = lambda value: self._tx.sendString(f'@FSP{value}\r') if value!='' else ''
+                localSet     = lambda value: self._tx.sendString(f'@FSP{value}') if value!='' else ''
             ))            
             
         else:
