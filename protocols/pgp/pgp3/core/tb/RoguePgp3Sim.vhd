@@ -70,6 +70,8 @@ architecture sim of RoguePgp3Sim is
    signal txOut : Pgp3TxOutType := PGP3_TX_OUT_INIT_C;
    signal rxOut : Pgp3RxOutType := PGP3_RX_OUT_INIT_C;
 
+
+
 begin
 
    pgpClk    <= clk;
@@ -90,14 +92,30 @@ begin
          clk    => clk,
          rstOut => rst);
 
+   U_PGP_SIDEBAND : entity work.RogueSideBandWrap
+      generic map (
+         TPD_G      => TPD_G,
+         PORT_NUM_G => PORT_NUM_G)
+      port map (
+         sysClk     => sysClk,
+         sysRst     => sysRst,
+         -- Outboard Sideband
+         obOpCode   => rxOut.opCodeData(7 downto 0),
+         obOpCodeEn => rxOut.opCodeEn,
+         obRemData  => rxOut.opCodeData(15 downto 8),
+         -- Inbound Sideband
+         ibOpCode   => pgpTxIn.opCodeData(7 downto 0),
+         ibOpCodeEn => pgpTxIn.opCodeEn,
+         ibRemData  => pgpTxIn.opCodeData(15 downto 8));
+
    GEN_VEC : for i in NUM_VC_G-1 downto 0 generate
       U_PGP_VC : entity work.RogueTcpStreamWrap
          generic map (
-            TPD_G               => TPD_G,
-            PORT_NUM_G          => (PORT_NUM_G + i*2),
-            SSI_EN_G            => true,
-            CHAN_COUNT_G        => 1,
-            AXIS_CONFIG_G       => PGP3_AXIS_CONFIG_C)
+            TPD_G         => TPD_G,
+            PORT_NUM_G    => (PORT_NUM_G + i*2 + 2),
+            SSI_EN_G      => true,
+            CHAN_COUNT_G  => 1,
+            AXIS_CONFIG_G => PGP3_AXIS_CONFIG_C)
          port map (
             axisClk     => clk,              -- [in]
             axisRst     => rst,              -- [in]
