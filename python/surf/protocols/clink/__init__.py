@@ -9,10 +9,11 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-from surf.protocols.clink._ClinkTop import *
+from surf.protocols.clink._ClinkTop      import *
 from surf.protocols.clink._ClinkSerialRx import *
 from surf.protocols.clink._ClinkSerialTx import *
-from surf.protocols.clink._ClinkChannel import *
+from surf.protocols.clink._ClinkChannel  import *
 
 # Library of support Camera UART interfaces
-from surf.protocols.clink._UartOpal000 import *
+from surf.protocols.clink._UartOpal000  import *
+from surf.protocols.clink._UartPiranha4 import *
