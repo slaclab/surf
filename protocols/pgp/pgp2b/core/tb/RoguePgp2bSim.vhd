@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
--- File       : RoguePgp3Sim.vhd
+-- File       : RoguePgp2bSim.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Wrapper on RogueStreamSim to simulate a PGPv3
+-- Description: Wrapper on RogueStreamSim to simulate a PGPv2b
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -21,7 +21,7 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
-use work.Pgp3Pkg.all;
+use work.Pgp2bPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -39,14 +39,16 @@ entity RoguePgp3Sim is
       pgpGtTxP        : out sl                     := '0';
       pgpGtTxN        : out sl                     := '1';
       -- PGP Clock and Reset
-      pgpClk          : out sl;
-      pgpClkRst       : out sl;
+      pgpRxClk        : out sl;
+      pgpRxRst        : out sl;
+      pgpTxClk        : out sl;
+      pgpTxRst        : out sl;
       -- Non VC Rx Signals
-      pgpRxIn         : in  Pgp3RxInType;
-      pgpRxOut        : out Pgp3RxOutType;
+      pgpRxIn         : in  Pgp2bRxInType;
+      pgpRxOut        : out Pgp2bRxOutType;
       -- Non VC Tx Signals
-      pgpTxIn         : in  Pgp3TxInType;
-      pgpTxOut        : out Pgp3TxOutType;
+      pgpTxIn         : in  Pgp2bTxInType;
+      pgpTxOut        : out Pgp2bTxOutType;
       -- Frame Transmit Interface
       pgpTxMasters    : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
       pgpTxSlaves     : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
@@ -67,13 +69,16 @@ architecture sim of RoguePgp3Sim is
    signal clk : sl := '0';
    signal rst : sl := '1';
 
-   signal txOut : Pgp3TxOutType := PGP3_TX_OUT_INIT_C;
-   signal rxOut : Pgp3RxOutType := PGP3_RX_OUT_INIT_C;
+   signal txOut : Pgp2bTxOutType := PGP2B_TX_OUT_INIT_C;
+   signal rxOut : Pgp2bRxOutType := PGP2B_RX_OUT_INIT_C;
 
 begin
 
-   pgpClk    <= clk;
-   pgpClkRst <= rst;
+   pgpRxClk <= clk;
+   pgpRxRst <= rst;
+
+   pgpTxClk <= clk;
+   pgpTxRst <= rst;
 
    pgpTxOut <= txOut;
    pgpRxOut <= rxOut;
@@ -98,13 +103,13 @@ begin
          sysClk     => sysClk,
          sysRst     => sysRst,
          -- Outboard Sideband
-         obOpCode   => rxOut.opCodeData(7 downto 0),
+         obOpCode   => rxOut.opCode,
          obOpCodeEn => rxOut.opCodeEn,
-         obRemData  => rxOut.opCodeData(15 downto 8),
+         obRemData  => rxOut.remLinkData,
          -- Inbound Sideband
-         ibOpCode   => pgpTxIn.opCodeData(7 downto 0),
+         ibOpCode   => pgpTxIn.opCode,
          ibOpCodeEn => pgpTxIn.opCodeEn,
-         ibRemData  => pgpTxIn.opCodeData(15 downto 8));
+         ibRemData  => pgpTxIn.locData);
 
    GEN_VEC : for i in NUM_VC_G-1 downto 0 generate
       U_PGP_VC : entity work.RogueTcpStreamWrap
@@ -113,7 +118,7 @@ begin
             PORT_NUM_G    => (PORT_NUM_G + i*2 + 2),
             SSI_EN_G      => true,
             CHAN_COUNT_G  => 1,
-            AXIS_CONFIG_G => PGP3_AXIS_CONFIG_C)
+            AXIS_CONFIG_G => SSI_PGP2B_CONFIG_C)
          port map (
             axisClk     => clk,              -- [in]
             axisRst     => rst,              -- [in]
@@ -123,11 +128,11 @@ begin
             mAxisSlave  => pgpRxSlaves(i));  -- [in]
    end generate GEN_VEC;
 
-   txOut.phyTxActive <= '1';
-   txOut.linkReady   <= '1';
+   txOut.phyTxReady <= '1';
+   txOut.linkReady  <= '1';
 
-   rxOut.phyRxActive    <= '1';
-   rxOut.linkReady      <= '1';
-   rxOut.remRxLinkReady <= '1';
+   rxOut.phyRxReady   <= '1';
+   rxOut.linkReady    <= '1';
+   rxOut.remLinkReady <= '1';
 
 end sim;
