@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : RogueSideBand.vhd
+-- File       : RogueTcpSideBand.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Rogue Side Band Simulation Module
@@ -19,7 +19,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-entity RogueSideBand is port (
+entity RogueTcpSideBand is port (
    clock      : in  std_logic;
    reset      : in  std_logic;
    portNum    : in  std_logic_vector(15 downto 0);
@@ -31,12 +31,12 @@ entity RogueSideBand is port (
    ibOpCode   : in  std_logic_vector(7 downto 0);
    ibOpCodeEn : in  std_logic;
    ibRemData  : in  std_logic_vector(7 downto 0));
-end RogueSideBand;
+end RogueTcpSideBand;
 
 -- Define architecture
-architecture RogueSideBand of RogueSideBand is
-   attribute FOREIGN of RogueSideBand : architecture is
-      "vhpi:AxiSim:VhpiGenericElab:RogueSideBandInit:RogueSideBand";
+architecture RogueTcpSideBand of RogueTcpSideBand is
+   attribute FOREIGN of RogueTcpSideBand : architecture is
+      "vhpi:AxiSim:VhpiGenericElab:RogueTcpSideBandInit:RogueTcpSideBand";
 begin
-end RogueSideBand;
+end RogueTcpSideBand;
 

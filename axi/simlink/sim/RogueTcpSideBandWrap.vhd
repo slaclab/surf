@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : RogueSideBand.vhd
+-- File       : RogueTcpSideBand.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Rogue Sideband Simulation Module
@@ -20,7 +20,7 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 
-entity RogueSideBandWrap is
+entity RogueTcpSideBandWrap is
    generic (
       TPD_G      : time                     := 1 ns;
       PORT_NUM_G : natural range 0 to 65535 := 1
@@ -36,15 +36,15 @@ entity RogueSideBandWrap is
       ibOpCode   : in  std_logic_vector(7 downto 0);
       ibOpCodeEn : in  std_logic;
       ibRemData  : in  std_logic_vector(7 downto 0));
-end RogueSideBandWrap;
+end RogueTcpSideBandWrap;
 
 -- Define architecture
-architecture RogueSideBandWrap of RogueSideBandWrap is
+architecture RogueTcpSideBandWrap of RogueTcpSideBandWrap is
 
 begin
 
    -- Sim Core
-   U_RogueSideBand : entity work.RogueSideBand
+   U_RogueTcpSideBand : entity work.RogueTcpSideBand
       port map(
          clock      => sysClk,
          reset      => sysRst,
@@ -58,5 +58,5 @@ begin
          ibOpCodeEn => ibOpCodeEn,
          ibRemData  => ibRemData);
 
-end RogueSideBandWrap;
+end RogueTcpSideBandWrap;
 

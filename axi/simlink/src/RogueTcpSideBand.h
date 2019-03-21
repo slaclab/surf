@@ -47,22 +47,22 @@ typedef struct {
    void *    zmqCtx;
    void *    zmqPull;
   
-} RogueSideBandData;
+} RogueTcpSideBandData;
 
 // Init function
-void RogueSideBandInit(vhpiHandleT compInst);
+void RogueTcpSideBandInit(vhpiHandleT compInst);
 
 // Callback function for updating
-void RogueSideBandUpdate ( void *userPtr );
+void RogueTcpSideBandUpdate ( void *userPtr );
 
 // Restart the zmq link
-void RogueSideBandRestart(RogueSideBandData *data, portDataT *portData);
+void RogueTcpSideBandRestart(RogueTcpSideBandData *data, portDataT *portData);
 
 // Send a message
-void RogueSideBandSend ( RogueSideBandData *data, portDataT *portData );
+void RogueTcpSideBandSend ( RogueTcpSideBandData *data, portDataT *portData );
 
 // Receive data if it is available
-int RogueSideBandRecv ( RogueSideBandData *data, portDataT *portData );
+int RogueTcpSideBandRecv ( RogueTcpSideBandData *data, portDataT *portData );
 
 #endif
 
