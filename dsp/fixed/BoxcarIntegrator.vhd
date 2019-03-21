@@ -35,6 +35,7 @@ entity BoxcarIntegrator is
       ibData    : in  slv(DATA_WIDTH_G-1 downto 0);
       -- Outbound Interface
       obValid   : out sl;
+      obAck     : in  sl := '1';
       obData    : out slv(DATA_WIDTH_G+ADDR_WIDTH_G-1 downto 0);
       obFull    : out sl;
       obPeriod  : out sl);
@@ -94,14 +95,17 @@ begin
          doutb => ramDout);
 
 
-   comb : process (ibData, ibValid, r, ramDout, rst, intCount) is
+   comb : process (ibData, ibValid, r, ramDout, rst, intCount, obAck) is
       variable v : RegType;
    begin
       -- Latch the current value
       v := r;
 
-      -- Clear period signal
-      v.obPeriod := '0';
+      -- Clear the output valid and period latches
+      if obAck = '1' then
+         v.obValid  := '0';
+         v.obPeriod := '0';
+      end if;
 
       -- Input stage, setup addresses
       v.ibData  := ibData;
@@ -138,10 +142,11 @@ begin
          if r.obFull = '1' then
             v.obData := v.obData - resize(ramDout, ACCUM_WIDTH_C);
          end if;
-      end if;
 
-      -- Output registers
-      v.obValid  := r.ibValid;
+         -- Output valid latch
+         v.obValid := '1';
+
+      end if;
 
       -- Outputs              
       obValid  <= r.obValid;

@@ -257,8 +257,9 @@ begin
    U_AxiDualPortRam_Start : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         REG_EN_G     => false,
+         SYNTH_MODE_G => "inferred",
+         MEMORY_TYPE_G=> "distributed",
+         READ_LATENCY_G => 0,
          AXI_WR_EN_G  => true,
          SYS_WR_EN_G  => false,
          ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
@@ -279,8 +280,9 @@ begin
    U_AxiDualPortRam_End : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         REG_EN_G     => false,
+         SYNTH_MODE_G => "inferred",
+         MEMORY_TYPE_G=> "distributed",
+         READ_LATENCY_G => 0, 
          AXI_WR_EN_G  => true,
          SYS_WR_EN_G  => false,
          ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
@@ -302,8 +304,9 @@ begin
    U_AxiDualPortRam_Next : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         REG_EN_G     => false,
+         SYNTH_MODE_G => "inferred",
+         MEMORY_TYPE_G=> "distributed",
+         READ_LATENCY_G => 0, 
          AXI_WR_EN_G  => false,
          SYS_WR_EN_G  => true,
          ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
@@ -325,8 +328,9 @@ begin
    U_AxiDualPortRam_Trigger : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         REG_EN_G     => false,
+         SYNTH_MODE_G => "inferred",
+         MEMORY_TYPE_G=> "distributed",
+         READ_LATENCY_G => 0, 
          AXI_WR_EN_G  => false,
          SYS_WR_EN_G  => true,
          ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
@@ -349,8 +353,9 @@ begin
    U_AxiDualPortRam_Mode : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         REG_EN_G     => false,
+         SYNTH_MODE_G => "inferred",
+         MEMORY_TYPE_G=> "distributed",
+         READ_LATENCY_G => 0, 
          AXI_WR_EN_G  => true,
          SYS_WR_EN_G  => false,
          COMMON_CLK_G => false,
@@ -375,8 +380,9 @@ begin
    U_AxiDualPortRam_Status : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         REG_EN_G     => false,
+         SYNTH_MODE_G => "inferred",
+         MEMORY_TYPE_G=> "distributed",
+         READ_LATENCY_G => 0, 
          AXI_WR_EN_G  => false,
          SYS_WR_EN_G  => true,
          ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
