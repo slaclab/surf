@@ -27,22 +27,36 @@
 void RogueSideBandRestart(RogueSideBandData *data, portDataT *portData) {
    char buffer[100];
 
-   if ( data->zmqPull != NULL ) zmq_close(data->zmqPull);
+   if ( data->zmqPush != NULL ) zmq_close(data->zmqPush );
+   if ( data->zmqPull != NULL ) zmq_close(data->zmqPush );
    if ( data->zmqCtx  != NULL ) zmq_term(data->zmqCtx);
 
-   data->zmqCtx  = NULL;
-   data->zmqPull = NULL;
+   data->zmqCtx   = NULL;
+   data->zmqPush  = NULL;
+   data->zmqPull  = NULL;
  
    data->zmqCtx = zmq_ctx_new();
-   data->zmqPull = zmq_socket(data->zmqCtx,ZMQ_REP);
+   data->zmqPull  = zmq_socket(data->zmqCtx,ZMQ_PULL);
+   data->zmqPush  = zmq_socket(data->zmqCtx,ZMQ_PUSH);
 
-   vhpi_printf("RogueSideBand: Listening on port %i\n",data->port);
-
+   vhpi_printf("RogueSideBand: Listening on ports %i & %i\n",data->port,data->port+1);   
+   
    sprintf(buffer,"tcp://*:%i",data->port);
    if ( zmq_bind(data->zmqPull,buffer) ) {
-      vhpi_assert("RogueSideBand: Failed to bind sideband port",vhpiFatal);
+      vhpi_assert("RogueTcpStream: Failed to bind pull port",vhpiFatal);
       return;
    }
+
+   sprintf(buffer,"tcp://*:%i",data->port+1);
+   if ( zmq_bind(data->zmqPush,buffer) ) {
+      vhpi_assert("RogueTcpStream: Failed to bind push port",vhpiFatal);
+      return;
+   }   
+}
+
+// Send a message
+void RogueSideBandSend ( RogueTcpStreamData *data, portDataT *portData ) {
+   // Place holder for future code
 }
 
 // Receive side data if it is available
@@ -94,22 +108,30 @@ void RogueSideBandInit(vhpiHandleT compInst) {
    portData->portCount = PORT_COUNT;
 
    // Set port directions
-   portData->portDir[s_clock]      = vhpiIn;
-   portData->portDir[s_reset]      = vhpiIn;
-   portData->portDir[s_port]       = vhpiIn;
+   portData->portDir[s_clock]        = vhpiIn;
+   portData->portDir[s_reset]        = vhpiIn;
+   portData->portDir[s_port]         = vhpiIn;
 
-   portData->portDir[s_opCode]     = vhpiOut;
-   portData->portDir[s_opCodeEn]   = vhpiOut;
-   portData->portDir[s_remData]    = vhpiOut;
+   portData->portDir[s_obOpCode]     = vhpiOut;
+   portData->portDir[s_obOpCodeEn]   = vhpiOut;
+   portData->portDir[s_obRemData]    = vhpiOut;
+   
+   portData->portDir[s_obOpCode]     = vhpiIn;
+   portData->portDir[s_obOpCodeEn]   = vhpiIn;
+   portData->portDir[s_obRemData]    = vhpiIn;   
 
    // Set port widths
    portData->portWidth[s_clock]      = 1;
    portData->portWidth[s_reset]      = 1;
    portData->portWidth[s_port]       = 16;
 
-   portData->portWidth[s_opCode]     = 8;
-   portData->portWidth[s_opCodeEn]   = 1;
-   portData->portWidth[s_remData]    = 8;
+   portData->portWidth[s_obOpCode]   = 8;
+   portData->portWidth[s_obOpCodeEn] = 1;
+   portData->portWidth[s_obRemData]  = 8;
+   
+   portData->portWidth[s_ibOpCode]   = 8;
+   portData->portWidth[s_ibOpCodeEn] = 1;
+   portData->portWidth[s_ibRemData]  = 8;   
 
    // Create data structure to hold state
    portData->stateData = data;
@@ -140,10 +162,10 @@ void RogueSideBandUpdate ( void *userPtr ) {
 
          // Reset is asserted
          if ( getInt(s_reset) == 1 ) {
-            data->remData  = 0x00;
-            data->ocData   = 0x00;
-            data->ocDataEn = 0;
-            setInt(s_opCodeEn,0);
+            data->obRemData  = 0x00;
+            data->obOcData   = 0x00;
+            data->obOcDataEn = 0;
+            setInt(s_obOpCodeEn,0);
          }
 
          // Out of reset
@@ -161,6 +183,7 @@ void RogueSideBandUpdate ( void *userPtr ) {
             setInt(s_opCode,data->ocData);
             setInt(s_opCodeEn,data->ocDataEn);
             data->ocDataEn = 0; // Only for one clock
+            if ( getInt(s_ibOpCodeEn) ) RogueSideBandSend(data,portData);
          }
       }
    }

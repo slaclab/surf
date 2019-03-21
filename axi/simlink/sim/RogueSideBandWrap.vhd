@@ -24,14 +24,18 @@ entity RogueSideBandWrap is
    generic (
       TPD_G      : time                     := 1 ns;
       PORT_NUM_G : natural range 0 to 65535 := 1
-   );
-   port (
-      sysClk      : in sl;
-      sysRst      : in sl;
-      opCode      : out slv(7 downto 0);
-      opCodeEn    : out sl;
-      remData     : out slv(7 downto 0)
       );
+   port (
+      sysClk     : in  sl;
+      sysRst     : in  sl;
+      -- Outboard Sideband
+      obOpCode   : out std_logic_vector(7 downto 0);
+      obOpCodeEn : out std_logic;
+      obRemData  : out std_logic_vector(7 downto 0);
+      -- Inbound Sideband
+      ibOpCode   : in  std_logic_vector(7 downto 0);
+      ibOpCodeEn : in  std_logic;
+      ibRemData  : in  std_logic_vector(7 downto 0));
 end RogueSideBandWrap;
 
 -- Define architecture
@@ -45,9 +49,14 @@ begin
          clock      => sysClk,
          reset      => sysRst,
          portNum    => toSlv(PORT_NUM_G, 16),
-         opCode     => opCode,
-         opCodeEn   => opCodeEn,
-         remData    => remData);
+         -- Outboard Sideband
+         obOpCode   => obOpCode,
+         obOpCodeEn => obOpCodeEn,
+         obRemData  => obRemData,
+         -- Inbound Sideband
+         ibOpCode   => ibOpCode,
+         ibOpCodeEn => ibOpCodeEn,
+         ibRemData  => ibRemData);
 
 end RogueSideBandWrap;
 

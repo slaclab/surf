@@ -16,15 +16,19 @@
 #include <time.h>
 
 // Signals
-#define s_clock        0
-#define s_reset        1
-#define s_port         2
+#define s_clock      0
+#define s_reset      1
+#define s_port       2
 
-#define s_opCode       3
-#define s_opCodeEn     4
-#define s_remData      5
+#define s_obOpCode   3
+#define s_obOpCodeEn 4
+#define s_obRemData  5
 
-#define PORT_COUNT     6
+#define s_ibOpCode   6
+#define s_ibOpCodeEn 7
+#define s_ibRemData  8
+
+#define PORT_COUNT   9
 
 // Structure to track state
 typedef struct {
@@ -32,9 +36,13 @@ typedef struct {
    uint32_t  currClk;
    uint16_t  port;
   
-   uint8_t   remData;
-   uint8_t   ocData;
-   uint8_t   ocDataEn;
+   uint8_t   obRemData;
+   uint8_t   obOcData;
+   uint8_t   obOcDataEn;
+   
+   uint8_t   ibRemData;
+   uint8_t   ibOcData;
+   uint8_t   ibOcDataEn;   
 
    void *    zmqCtx;
    void *    zmqPull;
@@ -49,6 +57,9 @@ void RogueSideBandUpdate ( void *userPtr );
 
 // Restart the zmq link
 void RogueSideBandRestart(RogueSideBandData *data, portDataT *portData);
+
+// Send a message
+void RogueSideBandSend ( RogueSideBandData *data, portDataT *portData );
 
 // Receive data if it is available
 int RogueSideBandRecv ( RogueSideBandData *data, portDataT *portData );

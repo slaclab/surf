@@ -13,26 +13,29 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-LIBRARY ieee;
-USE work.ALL;
+library ieee;
+use work.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 entity RogueSideBand is port (
-      clock        : in    std_logic;
-      reset        : in    std_logic;
-      portNum      : in    std_logic_vector(15 downto 0);
-
-      opCode       : out   std_logic_vector(7 downto 0);
-      opCodeEn     : out   std_logic;
-      remData      : out   std_logic_vector(7 downto 0)
-   );
+   clock      : in  std_logic;
+   reset      : in  std_logic;
+   portNum    : in  std_logic_vector(15 downto 0);
+   -- Outboard Sideband
+   obOpCode   : out std_logic_vector(7 downto 0);
+   obOpCodeEn : out std_logic;
+   obRemData  : out std_logic_vector(7 downto 0);
+   -- Inbound Sideband
+   ibOpCode   : in  std_logic_vector(7 downto 0);
+   ibOpCodeEn : in  std_logic;
+   ibRemData  : in  std_logic_vector(7 downto 0));
 end RogueSideBand;
 
 -- Define architecture
 architecture RogueSideBand of RogueSideBand is
-   Attribute FOREIGN of RogueSideBand: architecture is 
+   attribute FOREIGN of RogueSideBand : architecture is
       "vhpi:AxiSim:VhpiGenericElab:RogueSideBandInit:RogueSideBand";
 begin
 end RogueSideBand;
