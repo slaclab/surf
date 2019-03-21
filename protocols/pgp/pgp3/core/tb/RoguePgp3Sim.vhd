@@ -114,8 +114,8 @@ begin
             TPD_G      => TPD_G,
             PORT_NUM_G => PORT_NUM_G + 32)
          port map (
-            sysClk     => pgpClk,
-            sysRst     => pgpClkRst,
+            sysClk     => clk,
+            sysRst     => rst,
             txOpCode   => pgpTxIn.opCodeData(7 downto 0),
             txOpCodeEn => pgpTxIn.opCodeEn,
             txRemData  => pgpTxIn.opCodeData(15 downto 8),
