@@ -125,6 +125,7 @@ begin
          intClk        => dlyCLk,
          intRst        => dlyRst,
          baud          => chanConfig.serBaud,
+         throttle      => chanConfig.serThrottle,
          uartClk       => uartClk,
          uartRst       => uartRst,
          sUartMaster   => sUartMaster,

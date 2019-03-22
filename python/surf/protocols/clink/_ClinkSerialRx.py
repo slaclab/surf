@@ -36,11 +36,5 @@ class ClinkSerialRx(rogue.interfaces.stream.Slave):
             if c == '\n':
                 print("Got Response: {}".format(''.join(self._cur)))
                 self._cur = []
-            elif ba[i] == 0x6:
-                print("Got ACK Response: {}".format(''.join(self._cur)))
-                self._cur = []
-            elif ba[i] == 0x25:
-                print("Got NAK Response: {}".format(''.join(self._cur)))
-                self._cur = []
             elif c != '\r':
                 self._cur.append(c)

@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : SimpleDualPortRamXpm.vhd
+-- File       : TrueDualPortRamXpmAlteraMfDummy.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for XPM Simple Dual Port RAM
@@ -20,7 +20,7 @@ use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
 
-entity SimpleDualPortRamAlteraMf is
+entity TrueDualPortRamAlteraMf is
    generic (
       TPD_G          : time                       := 1 ns;
       COMMON_CLK_G   : boolean                    := false;
@@ -36,18 +36,23 @@ entity SimpleDualPortRamAlteraMf is
       clka   : in  sl                                                                          := '0';
       ena    : in  sl                                                                          := '1';
       wea    : in  slv(ite(BYTE_WR_EN_G, wordCount(DATA_WIDTH_G, BYTE_WIDTH_G), 1)-1 downto 0) := (others => '0');
+      regcea : in  sl                                                                          := '1';
+      rsta   : in  sl                                                                          := not(RST_POLARITY_G);      
       addra  : in  slv(ADDR_WIDTH_G-1 downto 0)                                                := (others => '0');
       dina   : in  slv(DATA_WIDTH_G-1 downto 0)                                                := (others => '0');
+      douta  : out slv(DATA_WIDTH_G-1 downto 0)                                                := (others => '0');
       -- Port B
       clkb   : in  sl                                                                          := '0';
       enb    : in  sl                                                                          := '1';
+      web    : in  slv(ite(BYTE_WR_EN_G, wordCount(DATA_WIDTH_G, BYTE_WIDTH_G), 1)-1 downto 0) := (others => '0');
       regceb : in  sl                                                                          := '1';
-      rstb   : in  sl                                                                          := not(RST_POLARITY_G);
+      rstb   : in  sl                                                                          := not(RST_POLARITY_G);      
       addrb  : in  slv(ADDR_WIDTH_G-1 downto 0)                                                := (others => '0');
-      doutb  : out slv(DATA_WIDTH_G-1 downto 0)                                                := (others => '0'));
-end SimpleDualPortRamAlteraMf;
+      dinb   : in  slv(DATA_WIDTH_G-1 downto 0)                                                := (others => '0');
+      doutb  : out slv(DATA_WIDTH_G-1 downto 0)                                                := (others => '0'));      
+end TrueDualPortRamAlteraMf;
 
-architecture rtl of SimpleDualPortRamAlteraMf is
+architecture rtl of TrueDualPortRamAlteraMf is
 
 begin
 

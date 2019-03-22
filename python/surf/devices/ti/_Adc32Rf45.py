@@ -557,7 +557,7 @@ class Adc32Rf45(pr.Device):
         @self.command(name         = "JESD_DDC_config", description  = "JESD DDC config")
         def JESD_DDC_config():        
             # JESD DIGITAL PAGE
-            channels = self.find(typ=Adc32Rf45Channel)
+            channels = self.find(typ=dev.ti.Adc32Rf45Channel)
             for channel in channels:
                 channel.SCRAMBLE_EN.set(0x1, write=True)           
                 channel.node('12BIT_MODE').set(0x0, write=True)       # need to use node to find variables with leading #

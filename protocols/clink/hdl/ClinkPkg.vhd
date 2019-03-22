@@ -55,11 +55,15 @@ package ClinkPkg is
    -- Link Configuration Record
    ------------------------------------
    type ClLinkConfigType is record
-      reset  : sl;
+      cntRst : sl;
+      rstFsm : sl;
+      rstPll : sl;
    end record ClLinkConfigType;
 
    constant CL_LINK_CONFIG_INIT_C : ClLinkConfigType := (
-      reset  => '0');
+      cntRst => '0',
+      rstFsm => '0',
+      rstPll => '0');
 
    type ClLinkConfigArray is array (natural range<>) of ClLinkConfigType;
 
@@ -67,15 +71,15 @@ package ClinkPkg is
    -- Link Status Record
    ------------------------------------
    type ClLinkStatusType is record
-      locked      : sl;
-      delay       : slv(4 downto 0);
-      shiftCnt    : slv(2 downto 0);
+      locked   : sl;
+      delay    : slv(4 downto 0);
+      shiftCnt : slv(2 downto 0);
    end record ClLinkStatusType;
 
    constant CL_LINK_STATUS_INIT_C : ClLinkStatusType := (
-      locked      => '0',
-      delay       => (others=>'0'),
-      shiftCnt    => (others=>'0'));
+      locked   => '0',
+      delay    => (others => '0'),
+      shiftCnt => (others => '0'));
 
    type ClLinkStatusArray is array (natural range<>) of ClLinkStatusType;
 
@@ -86,21 +90,27 @@ package ClinkPkg is
       swCamCtrl   : slv(3 downto 0);
       swCamCtrlEn : slv(3 downto 0);
       serBaud     : slv(23 downto 0);
+      serThrottle : slv(15 downto 0);
       linkMode    : slv(3 downto 0);
       dataMode    : slv(3 downto 0);
       tapCount    : slv(3 downto 0);
       frameMode   : slv(3 downto 0);
+      cntRst      : sl;
+      blowoff     : sl;
       dataEn      : sl;
    end record ClChanConfigType;
 
    constant CL_CHAN_CONFIG_INIT_C : ClChanConfigType := (
-      swCamCtrl   => (others=>'0'),
-      swCamCtrlEn => (others=>'0'),
-      serBaud     => toSlv(1,24),
-      linkMode    => (others=>'0'),
-      dataMode    => (others=>'0'),
-      tapCount    => (others=>'0'),
-      frameMode   => (others=>'0'),
+      swCamCtrl   => (others => '0'),
+      swCamCtrlEn => (others => '0'),
+      serBaud     => toSlv(57600, 24),  -- Default of 57600 baud
+      serThrottle => (others => '1'),  -- Default of 65ms per byte throttle rate
+      linkMode    => (others => '0'),
+      dataMode    => (others => '0'),
+      tapCount    => (others => '0'),
+      frameMode   => (others => '0'),
+      cntRst      => '0',
+      blowoff     => '0',
       dataEn      => '0');
 
    type ClChanConfigArray is array (natural range<>) of ClChanConfigType;
@@ -116,8 +126,8 @@ package ClinkPkg is
 
    constant CL_CHAN_STATUS_INIT_C : ClChanStatusType := (
       running    => '0',
-      frameCount => (others=>'0'),
-      dropCount  => (others=>'0'));
+      frameCount => (others => '0'),
+      dropCount  => (others => '0'));
 
    type ClChanStatusArray is array (natural range<>) of ClChanStatusType;
 
@@ -125,19 +135,19 @@ package ClinkPkg is
    -- Data Type
    ------------------------------------
    type ClDataType is record
-      valid  : sl;
-      data   : Slv8Array(9 downto 0);
-      dv     : sl;
-      fv     : sl;
-      lv     : sl;
+      valid : sl;
+      data  : Slv8Array(9 downto 0);
+      dv    : sl;
+      fv    : sl;
+      lv    : sl;
    end record ClDataType;
 
    constant CL_DATA_INIT_C : ClDataType := (
-      valid  => '0',
-      data   => (others=>(others=>'0')),
-      dv     => '0',
-      fv     => '0',
-      lv     => '0');
+      valid => '0',
+      data  => (others => (others => '0')),
+      dv    => '0',
+      fv    => '0',
+      lv    => '0');
 
 end package ClinkPkg;
 

@@ -361,8 +361,6 @@ begin
       U_AddrRam : entity work.AxiDualPortRam
          generic map (
             TPD_G        => TPD_G,
-            REG_EN_G     => true,
-            BRAM_EN_G    => true,
             COMMON_CLK_G => true,
             ADDR_WIDTH_G => DESC_AWIDTH_G,
             DATA_WIDTH_G => 32)

@@ -393,7 +393,7 @@ begin
          U_Rogue : entity work.RoguePgp3Sim
             generic map(
                TPD_G      => TPD_G,
-               PORT_NUM_G => (ROGUE_SIM_PORT_NUM_G+(i*32)),
+               PORT_NUM_G => (ROGUE_SIM_PORT_NUM_G+(i*34)),
                NUM_VC_G   => NUM_VC_G)
             port map(
                -- GT Ports
