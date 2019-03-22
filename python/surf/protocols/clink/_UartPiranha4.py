@@ -239,8 +239,8 @@ class UartPiranha4(pr.Device):
                 description  = 'Set baud rate',
                 mode         = 'RW', 
                 value        = '',
-                localSet     = lambda value: self._tx.sendString(f'sbr {value}') if value!='' else ''
                 units        = 'bps',
+                localSet     = lambda value: self._tx.sendString(f'sbr {value}') if value!='' else ''
             ))
 
             self.add(pr.LocalVariable(    
@@ -269,11 +269,11 @@ class UartPiranha4(pr.Device):
 
             self.add(pr.LocalVariable(    
                 name         = 'SET',
-                description  = 'Set internal exposure time in nanoseconds – 25 ns resolution',
+                description  = 'Set internal exposure time in nanoseconds (25 ns resolution)',
                 mode         = 'RW', 
                 value        = '',
-                localSet     = lambda value: self._tx.sendString(f'set {value}') if value!='' else ''
                 units        = '25ns',
+                localSet     = lambda value: self._tx.sendString(f'set {value}') if value!='' else ''
             ))            
 
             self.add(pr.LocalVariable(    
@@ -294,7 +294,7 @@ class UartPiranha4(pr.Device):
 
             self.add(pr.LocalVariable(    
                 name         = 'SSB',
-                description  = 'Set contrast offset – single value added to all pixels after PRNU/flat field coefficients (before gain).',
+                description  = 'Set contrast offset - single value added to all pixels after PRNU/flat field coefficients (before gain).',
                 mode         = 'RW', 
                 value        = '',
                 localSet     = lambda value: self._tx.sendString(f'ssb {value}') if value!='' else ''
@@ -305,8 +305,8 @@ class UartPiranha4(pr.Device):
                 description  = 'Set internal line rate in Hz',
                 mode         = 'RW', 
                 value        = '',
-                localSet     = lambda value: self._tx.sendString(f'ssf {value}') if value!='' else ''
                 units        = 'Hz',
+                localSet     = lambda value: self._tx.sendString(f'ssf {value}') if value!='' else ''
             ))            
             
             self.add(pr.LocalVariable(    
@@ -370,8 +370,8 @@ class UartPiranha4(pr.Device):
                 description  = 'Display internal temperature in degrees Celsius',
                 mode         = 'RW', 
                 value        = '',
-                localSet     = lambda value: self._tx.sendString('vt') if value!='' else ''
                 units        = 'degC',
+                localSet     = lambda value: self._tx.sendString('vt') if value!='' else ''
             ))
 
             self.add(pr.LocalVariable(    
@@ -379,7 +379,7 @@ class UartPiranha4(pr.Device):
                 description  = 'Display supply voltage',
                 mode         = 'RW', 
                 value        = '',
-                localSet     = lambda value: self._tx.sendString('vv') if value!='' else ''
                 units        = 'V',
+                localSet     = lambda value: self._tx.sendString('vv') if value!='' else ''
             ))            
             
