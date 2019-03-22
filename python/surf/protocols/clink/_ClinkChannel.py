@@ -120,6 +120,7 @@ class ClinkChannel(pr.Device):
             offset       =  0x10,
             bitSize      =  16,
             bitOffset    =  16,
+            disp         = '{}',
             mode         = "RW",
             units        = "microsec",
         ))            

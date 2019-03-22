@@ -18,6 +18,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import rogue.interfaces.stream
 
 import surf.protocols.clink as clink
                
@@ -114,12 +115,10 @@ class UartPiranha4(pr.Device):
                 localSet     = lambda value: self._tx.sendString(f'frs {value}') if value!='' else ''
             ))
 
-            self.add(pr.LocalVariable(    
+            self.add(pr.BaseCommand(    
                 name         = 'GCP',
                 description  = 'Display current value of camera configuration parameters',
-                mode         = 'RW', 
-                value        = '',
-                localSet     = lambda value: self._tx.sendString('gcp') if value!='' else ''
+                function     = lambda cmd: self._tx.sendString('gcp')
             ))            
 
             self.add(pr.LocalVariable(    
@@ -130,12 +129,10 @@ class UartPiranha4(pr.Device):
                 localSet     = lambda value: self._tx.sendString(f'get {value}') if value!='' else ''
             ))            
             
-            self.add(pr.LocalVariable(    
+            self.add(pr.BaseCommand(    
                 name         = 'H',
                 description  = 'Display list of three letter commands',
-                mode         = 'RW', 
-                value        = '',
-                localSet     = lambda value: self._tx.sendString('h') if value!='' else ''
+                function     = lambda cmd: self._tx.sendString('h')
             ))             
             
             self.add(pr.LocalVariable(    
@@ -146,20 +143,10 @@ class UartPiranha4(pr.Device):
                 localSet     = lambda value: self._tx.sendString(f'lpc {value}') if value!='' else ''
             ))            
             
-            self.add(pr.LocalVariable(    
+            self.add(pr.BaseCommand(    
                 name         = 'RC',
                 description  = 'Resets the camera to the saved user default settings. These settings are saved using the usd command.',
-                mode         = 'RW', 
-                value        = '',
-                localSet     = lambda value: self._tx.sendString('rc') if value!='' else ''
-            ))            
-            
-            self.add(pr.LocalVariable(    
-                name         = 'ROI',
-                description  = 'Flat field region of interest',
-                mode         = 'RW', 
-                value        = '',
-                localSet     = lambda value: self._tx.sendString(f'frs {value}') if value!='' else ''
+                function     = lambda cmd: self._tx.sendString('rc')
             ))            
             
             self.add(pr.LocalVariable(    
@@ -178,12 +165,10 @@ class UartPiranha4(pr.Device):
                 localSet     = lambda value: self._tx.sendString(f'roi {self.ROI[0].get()} {self.ROI[1].get()}') if (self.ROI[0].get()!='' and self.ROI[1].get()!='') else ''
             )) 
             
-            self.add(pr.LocalVariable(    
+            self.add(pr.BaseCommand(    
                 name         = 'RPC',
                 description  = 'Reset all user FPN values to zero and all user PRNU coefficients to one',
-                mode         = 'RW', 
-                value        = '',
-                localSet     = lambda value: self._tx.sendString('rpc') if value!='' else ''
+                function     = lambda cmd: self._tx.sendString('rpc')
             ))               
             
             self.add(pr.LocalVariable(    
@@ -365,21 +350,21 @@ class UartPiranha4(pr.Device):
                 localSet     = lambda value: self._tx.sendString(f'uss {value}') if value!='' else ''
             ))  
 
-            self.add(pr.LocalVariable(    
+            self.add(pr.BaseCommand(    
                 name         = 'VT',
                 description  = 'Display internal temperature in degrees Celsius',
-                mode         = 'RW', 
-                value        = '',
-                units        = 'degC',
-                localSet     = lambda value: self._tx.sendString('vt') if value!='' else ''
+                function     = lambda cmd: self._tx.sendString('vt'),
             ))
 
-            self.add(pr.LocalVariable(    
+            self.add(pr.BaseCommand(    
                 name         = 'VV',
                 description  = 'Display supply voltage',
-                mode         = 'RW', 
-                value        = '',
-                units        = 'V',
-                localSet     = lambda value: self._tx.sendString('vv') if value!='' else ''
-            ))            
-            
+                function     = lambda cmd: self._tx.sendString('vv'),
+            ))  
+
+            self.add(pr.BaseCommand(    
+                name         = 'SendEscape',
+                description  = 'Send the Escape Char',
+                function     = lambda cmd: self._tx.sendEscape()
+            ))              
+  
