@@ -85,7 +85,7 @@ architecture rtl of AxiDualPortRam is
       axiReadSlave  : AxiLiteReadSlaveType;
       axiAddr       : slv(ADDR_WIDTH_G-1 downto 0);
       axiWrStrobe   : slv(ADDR_AXI_WORDS_C*4-1 downto 0);
-      rdLatecy      : natural range 0 to 3;
+      rdLatecy      : natural range 0 to 4;
       state         : StateType;
    end record;
 

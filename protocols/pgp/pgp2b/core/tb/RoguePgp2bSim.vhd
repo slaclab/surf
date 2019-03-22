@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : RoguePgp3Sim.vhd
+-- File       : RoguePgp2bSim.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper on RogueStreamSim to simulate a PGPv3
@@ -21,33 +21,27 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
-use work.Pgp3Pkg.all;
+use work.Pgp2bPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
 
-entity RoguePgp3Sim is
+entity RoguePgp2bSim is
    generic (
       TPD_G         : time                        := 1 ns;
       PORT_NUM_G    : natural range 1024 to 49151 := 9000;
       NUM_VC_G      : integer range 1 to 16       := 4;
       EN_SIDEBAND_G : boolean                     := true);
    port (
-      -- GT Ports
-      pgpRefClk       : in  sl;
-      pgpGtRxP        : in  sl;
-      pgpGtRxN        : in  sl;
-      pgpGtTxP        : out sl                     := '0';
-      pgpGtTxN        : out sl                     := '1';
       -- PGP Clock and Reset
-      pgpClk          : out sl;
-      pgpClkRst       : out sl;
+      pgpClk          : in  sl;
+      pgpClkRst       : in  sl;
       -- Non VC Rx Signals
-      pgpRxIn         : in  Pgp3RxInType;
-      pgpRxOut        : out Pgp3RxOutType;
+      pgpRxIn         : in  Pgp2bRxInType;
+      pgpRxOut        : out Pgp2bRxOutType;
       -- Non VC Tx Signals
-      pgpTxIn         : in  Pgp3TxInType;
-      pgpTxOut        : out Pgp3TxOutType;
+      pgpTxIn         : in  Pgp2bTxInType;
+      pgpTxOut        : out Pgp2bTxOutType;
       -- Frame Transmit Interface
       pgpTxMasters    : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
       pgpTxSlaves     : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
@@ -61,35 +55,30 @@ entity RoguePgp3Sim is
       axilReadSlave   : out AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_EMPTY_OK_C;
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
       axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_OK_C);
-end entity RoguePgp3Sim;
+end entity RoguePgp2bSim;
 
-architecture sim of RoguePgp3Sim is
+architecture sim of RoguePgp2bSim is
 
-   signal clk : sl := '0';
-   signal rst : sl := '1';
+   signal txOut : Pgp2bTxOutType := PGP2B_TX_OUT_INIT_C;
+   signal rxOut : Pgp2bRxOutType := PGP2B_RX_OUT_INIT_C;
 
-   signal txOut : Pgp3TxOutType := PGP3_TX_OUT_INIT_C;
-   signal rxOut : Pgp3RxOutType := PGP3_RX_OUT_INIT_C;
+   signal pgpTxMastersLoc : AxiStreamMasterArray(NUM_VC_G-1 downto 0);
 
 begin
-
-   pgpClk    <= clk;
-   pgpClkRst <= rst;
 
    pgpTxOut <= txOut;
    pgpRxOut <= rxOut;
 
-   clk <= pgpRefClk;
+   TDEST_ZERO : process (pgpTxMasters) is
+      variable tmp : AxiStreamMasterArray(NUM_VC_G-1 downto 0);
+   begin
+      tmp := pgpTxMasters;
+      for i in NUM_VC_G-1 downto 0 loop
+         tmp(i).tDest := (others => '0');
+      end loop;
+      pgpTxMastersLoc <= tmp;
 
-   PwrUpRst_Inst : entity work.PwrUpRst
-      generic map (
-         TPD_G          => TPD_G,
-         IN_POLARITY_G  => '1',
-         OUT_POLARITY_G => '1',
-         DURATION_G     => 50)
-      port map (
-         clk    => clk,
-         rstOut => rst);
+   end process TDEST_ZERO;
 
    GEN_VEC : for i in NUM_VC_G-1 downto 0 generate
       U_PGP_VC : entity work.RogueTcpStreamWrap
@@ -98,37 +87,37 @@ begin
             PORT_NUM_G    => (PORT_NUM_G + i*2),
             SSI_EN_G      => true,
             CHAN_COUNT_G  => 1,
-            AXIS_CONFIG_G => PGP3_AXIS_CONFIG_C)
+            AXIS_CONFIG_G => SSI_PGP2B_CONFIG_C)
          port map (
-            axisClk     => clk,              -- [in]
-            axisRst     => rst,              -- [in]
-            sAxisMaster => pgpTxMasters(i),  -- [in]
-            sAxisSlave  => pgpTxSlaves(i),   -- [out]
-            mAxisMaster => pgpRxMasters(i),  -- [out]
-            mAxisSlave  => pgpRxSlaves(i));  -- [in]
+            axisClk     => pgpClk,              -- [in]
+            axisRst     => pgpClkRst,           -- [in]
+            sAxisMaster => pgpTxMastersLoc(i),  -- [in]
+            sAxisSlave  => pgpTxSlaves(i),      -- [out]
+            mAxisMaster => pgpRxMasters(i),     -- [out]
+            mAxisSlave  => pgpRxSlaves(i));     -- [in]
    end generate GEN_VEC;
-   
+
    GEN_SIDEBAND : if (EN_SIDEBAND_G) generate
       U_RogueSideBandWrap_1 : entity work.RogueSideBandWrap
          generic map (
             TPD_G      => TPD_G,
-            PORT_NUM_G => PORT_NUM_G + 32)
+            PORT_NUM_G => PORT_NUM_G + 8)
          port map (
-            sysClk     => clk,
-            sysRst     => rst,
-            txOpCode   => pgpTxIn.opCodeData(7 downto 0),
-            txOpCodeEn => pgpTxIn.opCodeEn,
-            txRemData  => pgpTxIn.opCodeData(15 downto 8),
-            rxOpCode   => rxOut.opCodeData(7 downto 0),
-            rxOpCodeEn => rxOut.opCodeEn,
-            rxRemData  => rxOut.opCodeData(15 downto 8));
-   end generate GEN_SIDEBAND;   
+            sysClk     => pgpClk,              -- [in]
+            sysRst     => pgpClkRst,           -- [in]
+            txOpCode   => pgpTxIn.opCode,      -- [in]
+            txOpCodeEn => pgpTxIn.opCodeEn,    -- [in]
+            txRemData  => pgpTxIn.locData,     -- [in]
+            rxOpCode   => rxOut.opCode,        -- [out]
+            rxOpCodeEn => rxOut.opCodeEn,      -- [out]
+            rxRemData  => rxOut.remLinkData);  -- [out]
+   end generate GEN_SIDEBAND;
 
-   txOut.phyTxActive <= '1';
-   txOut.linkReady   <= '1';
+   txOut.phyTxReady <= '1';
+   txOut.linkReady  <= '1';
 
-   rxOut.phyRxActive    <= '1';
-   rxOut.linkReady      <= '1';
-   rxOut.remRxLinkReady <= '1';
+   rxOut.phyRxReady   <= '1';
+   rxOut.linkReady    <= '1';
+   rxOut.remLinkReady <= '1';
 
 end sim;

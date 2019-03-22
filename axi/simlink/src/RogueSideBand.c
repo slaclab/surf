@@ -27,21 +27,60 @@
 void RogueSideBandRestart(RogueSideBandData *data, portDataT *portData) {
    char buffer[100];
 
+   if ( data->zmqPush != NULL ) zmq_close(data->zmqPush );   
    if ( data->zmqPull != NULL ) zmq_close(data->zmqPull);
    if ( data->zmqCtx  != NULL ) zmq_term(data->zmqCtx);
 
    data->zmqCtx  = NULL;
+   data->zmqPush  = NULL;
    data->zmqPull = NULL;
  
    data->zmqCtx = zmq_ctx_new();
-   data->zmqPull = zmq_socket(data->zmqCtx,ZMQ_REP);
+   data->zmqPull = zmq_socket(data->zmqCtx,ZMQ_PULL);
+   data->zmqPush  = zmq_socket(data->zmqCtx,ZMQ_PUSH);   
 
-   vhpi_printf("RogueSideBand: Listening on port %i\n",data->port);
+   vhpi_printf("RogueSideBand: Listening on ports %i & %i\n",data->port, data->port+1);
 
-   sprintf(buffer,"tcp://*:%i",data->port);
+   sprintf(buffer,"tcp://*:%i",data->port+1);
    if ( zmq_bind(data->zmqPull,buffer) ) {
       vhpi_assert("RogueSideBand: Failed to bind sideband port",vhpiFatal);
       return;
+   }
+
+   sprintf(buffer,"tcp://*:%i",data->port);
+   if ( zmq_bind(data->zmqPush,buffer) ) {
+      vhpi_assert("RogueSideBand: Failed to bind push port",vhpiFatal);
+      return;
+   }
+   
+}
+
+// Send a message
+void RogueSideBandSend ( RogueSideBandData *data, portDataT *portData ) {
+   zmq_msg_t msg;
+   uint8_t  ba[4];
+
+   if ( (zmq_msg_init_size(&msg,4) < 0) ) {  
+      vhpi_assert("RogueSideBand: Failed to init message",vhpiFatal);
+      return;
+   }
+
+   ba[0] = data->txOpCodeEn;
+   ba[1] = data->txOpCode;
+   ba[2] = data->txRemDataChanged;
+   ba[3] = data->txRemData;
+
+   memcpy(zmq_msg_data(&msg), ba, 4);
+
+   // Send data
+   if ( zmq_msg_send(&msg,data->zmqPush,ZMQ_DONTWAIT) < 0 ) {
+         vhpi_assert("RogueSideBand: Failed to send message",vhpiFatal);
+   }
+   if (data->txOpCodeEn) {
+     vhpi_printf("%lu RogueSideBand: Sent Opcode: %x\n", portData->simTime, data->txOpCode);
+   }
+   if (data->txRemDataChanged) {
+     vhpi_printf("%lu RogueSideBand: Sent remData: %x\n", portData->simTime, data->txRemData);
    }
 }
 
@@ -50,7 +89,6 @@ int RogueSideBandRecv ( RogueSideBandData *data, portDataT *portData ) {
    uint8_t * rd;
    uint32_t  rsize;
    zmq_msg_t rMsg;
-   zmq_msg_t tMsg;
 
    zmq_msg_init(&rMsg);
    if ( zmq_msg_recv(&rMsg,data->zmqPull,ZMQ_DONTWAIT) <= 0 ) {
@@ -61,23 +99,18 @@ int RogueSideBandRecv ( RogueSideBandData *data, portDataT *portData ) {
    rd    = zmq_msg_data(&rMsg);
    rsize = zmq_msg_size(&rMsg);
 
-   if ( rsize == 2 ) {
+   if ( rsize == 4 ) {
 
-      if ( rd[0] == 0xAA ) {
-         data->ocData   = rd[1];
-         data->ocDataEn = 1;
-         vhpi_printf("%lu RogueSideBand: Got opcode 0x%0.2x\n",portData->simTime,data->ocData);
+      if ( rd[0] == 0x01 ) {
+         data->rxOpCode   = rd[1];
+         data->rxOpCodeEn = 1;
+         vhpi_printf("%lu RogueSideBand: Got opcode 0x%0.2x\n",portData->simTime,data->rxOpCode);
       }
-      else if ( rd[0] == 0xBB ) {
-         data->remData = rd[1];
-         vhpi_printf("%lu RogueSideBand: Got data 0x%0.2x\n",portData->simTime,data->remData);
+      if ( rd[2] == 0x01 ) {
+         data->rxRemData = rd[3];
+         vhpi_printf("%lu RogueSideBand: Got data 0x%0.2x\n",portData->simTime,data->rxRemData);
       }
 
-      // Ack
-      zmq_msg_init_size(&tMsg,1);
-      ((uint8_t *)zmq_msg_data(&tMsg))[0] = 0xFF;
-      zmq_msg_send(&tMsg,data->zmqPull,0);
-      zmq_msg_close(&tMsg);
    }
    zmq_msg_close(&rMsg);
    return(rsize);
@@ -98,18 +131,26 @@ void RogueSideBandInit(vhpiHandleT compInst) {
    portData->portDir[s_reset]      = vhpiIn;
    portData->portDir[s_port]       = vhpiIn;
 
-   portData->portDir[s_opCode]     = vhpiOut;
-   portData->portDir[s_opCodeEn]   = vhpiOut;
-   portData->portDir[s_remData]    = vhpiOut;
+   portData->portDir[s_txOpCode]     = vhpiIn;
+   portData->portDir[s_txOpCodeEn]   = vhpiIn;
+   portData->portDir[s_txRemData]    = vhpiIn;
+
+   portData->portDir[s_rxOpCode]     = vhpiOut;
+   portData->portDir[s_rxOpCodeEn]   = vhpiOut;
+   portData->portDir[s_rxRemData]    = vhpiOut;
 
    // Set port widths
    portData->portWidth[s_clock]      = 1;
    portData->portWidth[s_reset]      = 1;
    portData->portWidth[s_port]       = 16;
 
-   portData->portWidth[s_opCode]     = 8;
-   portData->portWidth[s_opCodeEn]   = 1;
-   portData->portWidth[s_remData]    = 8;
+   portData->portWidth[s_txOpCode]     = 8;
+   portData->portWidth[s_txOpCodeEn]   = 1;
+   portData->portWidth[s_txRemData]    = 8;
+
+   portData->portWidth[s_rxOpCode]     = 8;
+   portData->portWidth[s_rxOpCodeEn]   = 1;
+   portData->portWidth[s_rxRemData]    = 8;
 
    // Create data structure to hold state
    portData->stateData = data;
@@ -130,6 +171,7 @@ void RogueSideBandUpdate ( void *userPtr ) {
 
    portDataT *portData = (portDataT*) userPtr;
    RogueSideBandData *data = (RogueSideBandData*)(portData->stateData);
+   uint8_t send = 0;
 
    // Detect clock edge
    if ( data->currClk != getInt(s_clock) ) {
@@ -140,10 +182,16 @@ void RogueSideBandUpdate ( void *userPtr ) {
 
          // Reset is asserted
          if ( getInt(s_reset) == 1 ) {
-            data->remData  = 0x00;
-            data->ocData   = 0x00;
-            data->ocDataEn = 0;
-            setInt(s_opCodeEn,0);
+            data->rxRemData  = 0x00;
+            data->rxOpCode   = 0x00;
+            data->rxOpCodeEn = 0;
+            data->txRemData  = 0x00;
+            data->txRemDataChanged  = 0x00;            
+            data->txOpCode   = 0x00;
+            data->txOpCodeEn = 0;
+            setInt(s_rxOpCodeEn,0);
+            setInt(s_rxOpCode, 0);
+            setInt(s_rxRemData, 0);
          }
 
          // Out of reset
@@ -155,12 +203,30 @@ void RogueSideBandUpdate ( void *userPtr ) {
                RogueSideBandRestart(data,portData);
             }
 
-            // Sideband update
+            // TX OpCode
+            if (getInt(s_txOpCodeEn)) {
+              data->txOpCode = getInt(s_txOpCode);
+              data->txOpCodeEn = getInt(s_txOpCodeEn);
+              send = 1;
+            }
+
+            //TX RemData
+            if (getInt(s_txRemData) != data->txRemData) {
+              data->txRemData = getInt(s_txRemData);
+              data->txRemDataChanged = 1;
+              send = 1;
+            }
+
+            if (send) {
+              RogueSideBandSend(data, portData);
+            }
+
+            // Rx Data
             RogueSideBandRecv(data,portData);
-            setInt(s_remData,data->remData);
-            setInt(s_opCode,data->ocData);
-            setInt(s_opCodeEn,data->ocDataEn);
-            data->ocDataEn = 0; // Only for one clock
+            setInt(s_rxRemData,data->rxRemData);
+            setInt(s_rxOpCode,data->rxOpCode);
+            setInt(s_rxOpCodeEn,data->rxOpCodeEn);
+            data->rxOpCodeEn = 0; // Only for one clock
          }
       }
    }
