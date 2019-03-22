@@ -39,21 +39,36 @@ class ClinkTop(pr.Device):
             offset       =  0x00,
             bitSize      =  4,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
         ))
 
-        self.add(pr.RemoteVariable(    
-            name         = "LinkReset",
-            description  = "Camera link channel reset",
+        self.add(pr.RemoteCommand(   
+            name         = "ResetPll",
+            description  = "Camera link channel PLL reset",
             offset       =  0x04,
             bitSize      =  1,
             bitOffset    =  0,
-            base         = pr.Bool,
-            pollInterval = 1,
-            mode         = "RW",
-        ))
+            function     = pr.BaseCommand.toggle,
+        ))   
 
+        self.add(pr.RemoteCommand(   
+            name         = "ResetFsm",
+            description  = "Camera link channel FSM reset",
+            offset       =  0x04,
+            bitSize      =  1,
+            bitOffset    =  1,
+            function     = pr.BaseCommand.toggle,
+        ))           
+        
+        self.add(pr.RemoteCommand(    
+            name         = "CntRst",
+            description  = "",
+            offset       = 0x04,
+            bitSize      = 1,
+            bitOffset    = 2,
+            function     = pr.BaseCommand.toggle,
+        ))         
+     
         self.add(pr.RemoteVariable(    
             name         = "LinkLockedA",
             description  = "Camera link channel locked status",
@@ -86,16 +101,48 @@ class ClinkTop(pr.Device):
             pollInterval = 1,
             mode         = "RO",
         ))
+        
+        self.add(pr.RemoteVariable(    
+            name         = "LinkLockedCntA",
+            description  = "Camera link channel locked status counter",
+            offset       =  0x10,
+            bitSize      =  8,
+            bitOffset    =  8,
+            disp         = '{}',
+            mode         = "RO",
+            pollInterval = 1,
+        ))
 
+        self.add(pr.RemoteVariable(    
+            name         = "LinkLockedCntB",
+            description  = "Camera link channel locked status counter",
+            offset       =  0x10,
+            bitSize      =  8,
+            bitOffset    =  16,
+            disp         = '{}',
+            mode         = "RO",
+            pollInterval = 1,
+        ))  
+
+        self.add(pr.RemoteVariable(    
+            name         = "LinkLockedCntC",
+            description  = "Camera link channel locked status counter",
+            offset       =  0x10,
+            bitSize      =  8,
+            bitOffset    =  24,
+            disp         = '{}',
+            mode         = "RO",
+            pollInterval = 1,
+        ))          
+        
         self.add(pr.RemoteVariable(    
             name         = "ShiftCountA",
             description  = "Shift count for channel",
             offset       =  0x14,
             bitSize      =  3,
             bitOffset    =  0,
-            base         = pr.UInt,
-            pollInterval = 1,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -104,9 +151,8 @@ class ClinkTop(pr.Device):
             offset       =  0x14,
             bitSize      =  3,
             bitOffset    =  8,
-            base         = pr.UInt,
-            pollInterval = 1,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -115,9 +161,8 @@ class ClinkTop(pr.Device):
             offset       =  0x14,
             bitSize      =  3,
             bitOffset    =  16,
-            base         = pr.UInt,
-            pollInterval = 1,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -126,9 +171,8 @@ class ClinkTop(pr.Device):
             offset       =  0x18,
             bitSize      =  5,
             bitOffset    =  0,
-            base         = pr.UInt,
-            pollInterval = 1,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -137,9 +181,8 @@ class ClinkTop(pr.Device):
             offset       =  0x18,
             bitSize      =  5,
             bitOffset    =  8,
-            base         = pr.UInt,
-            pollInterval = 1,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -148,11 +191,18 @@ class ClinkTop(pr.Device):
             offset       =  0x18,
             bitSize      =  5,
             bitOffset    =  16,
-            base         = pr.UInt,
-            pollInterval = 1,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
-        self.add(surf.protocols.clink.ClinkChannel( name = "ChannelA", serial=serialA, offset=0x100))
-        self.add(surf.protocols.clink.ClinkChannel( name = "ChannelB", serial=serialB, offset=0x200))
+        self.add(surf.protocols.clink.ClinkChannel( name = "Channel[0]", serial=serialA, offset=0x100))
+        self.add(surf.protocols.clink.ClinkChannel( name = "Channel[1]", serial=serialB, offset=0x200))
+        
+    def hardReset(self):
+        self.CntRst()
 
+    def softReset(self):
+        self.CntRst()
+
+    def countReset(self):
+        self.CntRst()        

@@ -25,93 +25,95 @@ library unisim;
 use unisim.vcomponents.all;
 
 entity ClinkData is
-   generic ( 
-      TPD_G    : time    := 1 ns
-   );
+   generic (
+      TPD_G : time := 1 ns
+      );
    port (
       -- Cable Input
-      cblHalfP   : inout slv(4 downto 0); --  8, 10, 11, 12,  9
-      cblHalfM   : inout slv(4 downto 0); -- 21, 23, 24, 25, 22
+      cblHalfP   : inout slv(4 downto 0);  --  8, 10, 11, 12,  9
+      cblHalfM   : inout slv(4 downto 0);  -- 21, 23, 24, 25, 22
       -- Delay clock, 200Mhz
-      dlyClk     : in  sl; 
-      dlyRst     : in  sl; 
+      dlyClk     : in    sl;
+      dlyRst     : in    sl;
       -- System clock and reset, must be 100Mhz or greater
-      sysClk     : in  sl;
-      sysRst     : in  sl;
+      sysClk     : in    sl;
+      sysRst     : in    sl;
       -- Status and config
-      linkConfig : in  ClLinkConfigType;
-      linkStatus : out ClLinkStatusType;
+      linkConfig : in    ClLinkConfigType;
+      linkStatus : out   ClLinkStatusType;
       -- Data output
-      parData    : out slv(27 downto 0);
-      parValid   : out sl;
-      parReady   : in  sl);
+      parData    : out   slv(27 downto 0);
+      parValid   : out   sl;
+      parReady   : in    sl);
 end ClinkData;
 
 architecture rtl of ClinkData is
 
    type LinkState is (RESET_S, WAIT_C_S, SHIFT_C_S, CHECK_C_S, LOAD_C_S, SHIFT_D_S, CHECK_D_S, DONE_S);
-  
+
    -- Each delay tap = 1/(32 * 2 * 200Mhz) = 78ps 
    -- Input rate = 85Mhz * 7 = 595Mhz = 1.68nS = 21.55 taps
 
    type RegType is record
-      state    : LinkState;
-      lastClk  : slv(6 downto 0);
-      delay    : slv(4 downto 0);
-      delayLd  : sl;
-      bitSlip  : sl;
-      count    : integer range 0 to 99;
-      status   : ClLinkStatusType;
+      state   : LinkState;
+      lastClk : slv(6 downto 0);
+      delay   : slv(4 downto 0);
+      delayLd : sl;
+      bitSlip : sl;
+      count   : integer range 0 to 99;
+      status  : ClLinkStatusType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state    => RESET_S,
-      lastClk  => (others=>'0'),
-      delay    => "01111", -- 15 taps, > 1/2 cycle
-      delayLd  => '0',
-      bitSlip  => '0',
-      count    => 99,
-      status   => CL_LINK_STATUS_INIT_C);
+      state   => RESET_S,
+      lastClk => (others => '0'),
+      delay   => "00001",
+      delayLd => '0',
+      bitSlip => '0',
+      count   => 99,
+      status  => CL_LINK_STATUS_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   signal rstFsm   : sl;
    signal clinkClk : sl;
    signal clinkRst : sl;
    signal intData  : slv(27 downto 0);
    signal parClock : slv(6 downto 0);
 
-   --attribute MARK_DEBUG : string;
-   --attribute MARK_DEBUG of r        : signal is "TRUE";
-   --attribute MARK_DEBUG of parClock : signal is "TRUE";
-   --attribute MARK_DEBUG of intData  : signal is "TRUE";
+   -- attribute MARK_DEBUG             : string;
+   -- attribute MARK_DEBUG of r        : signal is "TRUE";
+   -- attribute MARK_DEBUG of parClock : signal is "TRUE";
+   -- attribute MARK_DEBUG of intData  : signal is "TRUE";
+   -- attribute MARK_DEBUG of rstFsm   : signal is "TRUE";
 
 begin
 
    -------------------------------
    -- DeSerializer
    -------------------------------
-   U_DataShift: entity work.ClinkDataShift
-      generic map ( TPD_G => TPD_G )
+   U_DataShift : entity work.ClinkDataShift
+      generic map (TPD_G => TPD_G)
       port map (
-         cblHalfP    => cblHalfP,
-         cblHalfM    => cblHalfM,
-         linkRst     => linkConfig.reset,
-         dlyClk      => dlyClk,
-         dlyRst      => dlyRst,
-         clinkClk    => clinkClk,
-         clinkRst    => clinkRst,
-         parData     => intData,
-         parClock    => parClock,
-         delay       => r.delay,
-         delayLd     => r.delayLd,
-         bitSlip     => r.bitSlip);
+         cblHalfP => cblHalfP,
+         cblHalfM => cblHalfM,
+         linkRst  => linkConfig.rstPll,
+         dlyClk   => dlyClk,
+         dlyRst   => dlyRst,
+         clinkClk => clinkClk,
+         clinkRst => clinkRst,
+         parData  => intData,
+         parClock => parClock,
+         delay    => r.delay,
+         delayLd  => r.delayLd,
+         bitSlip  => r.bitSlip);
 
    -------------------------------
    -- State Machine
    -------------------------------
-   comb : process (clinkRst, r, parClock) is
-      variable v  : RegType;
+   comb : process (clinkRst, parClock, r, rstFsm) is
+      variable v : RegType;
    begin
 
       v := r;
@@ -160,13 +162,13 @@ begin
                   v.state := DONE_S;
 
                -- Check for clock change
-               elsif parClock /= r.lastClk and ( r.lastClk = "1100011" or
-                                                 r.lastClk = "1110001" or
-                                                 r.lastClk = "1111000" or
-                                                 r.lastClk = "0111100" or
-                                                 r.lastClk = "0011110" or
-                                                 r.lastClk = "0001111" or
-                                                 r.lastClk = "1000111" ) then
+               elsif parClock /= r.lastClk and (r.lastClk = "1100011" or
+                                                r.lastClk = "1110001" or
+                                                r.lastClk = "1111000" or
+                                                r.lastClk = "0111100" or
+                                                r.lastClk = "0011110" or
+                                                r.lastClk = "0001111" or
+                                                r.lastClk = "1000111") then
                   v.state := LOAD_C_S;
 
                -- Shift again
@@ -177,7 +179,7 @@ begin
 
          -- Load final clock shift
          when LOAD_C_S =>
-            v.delay   := r.delay - "01010"; -- 10 = 1/2 cycle
+            v.delay   := r.delay - "01010";  -- 10 = 1/2 cycle
             v.delayLd := '1';
             v.state   := CHECK_D_S;
 
@@ -191,8 +193,8 @@ begin
             end if;
 
          when SHIFT_D_S =>
-            v.bitSlip := '1';
-            v.state   := CHECK_D_S;
+            v.bitSlip         := '1';
+            v.state           := CHECK_D_S;
             v.status.shiftCnt := r.status.shiftCnt + 1;
 
          when DONE_S =>
@@ -200,7 +202,8 @@ begin
                if parClock = "1100011" and r.delay /= 31 then
                   v.status.locked := '1';
                else
-                  v.status.locked := '0';
+                  -- Retry to lock again
+                  v := REG_INIT_C;
                end if;
             end if;
 
@@ -210,7 +213,7 @@ begin
       v.status.delay := r.delay;
 
       -- Reset
-      if (clinkRst = '1') then
+      if (clinkRst = '1') or (rstFsm = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -227,10 +230,18 @@ begin
       end if;
    end process seq;
 
+   U_RstSync : entity work.RstSync
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk      => clinkClk,
+         asyncRst => linkConfig.rstFsm,
+         syncRst  => rstFsm);
+
    --------------------------------------
    -- Output FIFO and status
    --------------------------------------
-   U_DataFifo: entity work.Fifo
+   U_DataFifo : entity work.Fifo
       generic map (
          TPD_G           => TPD_G,
          MEMORY_TYPE_G   => "distributed",
@@ -238,25 +249,25 @@ begin
          DATA_WIDTH_G    => 28,
          ADDR_WIDTH_G    => 4)
       port map (
-         rst           => clinkRst,
-         wr_clk        => clinkClk,
-         wr_en         => '1',
-         din           => intData,
-         rd_clk        => sysClk,
-         rd_en         => parReady,
-         dout          => parData,
-         valid         => parValid);
+         rst    => clinkRst,
+         wr_clk => clinkClk,
+         wr_en  => '1',
+         din    => intData,
+         rd_clk => sysClk,
+         rd_en  => parReady,
+         dout   => parData,
+         valid  => parValid);
 
-   U_Locked: entity work.Synchronizer
-      generic map ( TPD_G => TPD_G )
+   U_Locked : entity work.Synchronizer
+      generic map (TPD_G => TPD_G)
       port map (
          clk     => sysClk,
          rst     => sysRst,
          dataIn  => r.status.locked,
          dataOut => linkStatus.locked);
 
-   U_Delay: entity work.SynchronizerVector
-      generic map ( 
+   U_Delay : entity work.SynchronizerVector
+      generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 5)
       port map (
@@ -265,8 +276,8 @@ begin
          dataIn  => r.status.delay,
          dataOut => linkStatus.delay);
 
-   U_ShiftCnt: entity work.SynchronizerVector
-      generic map ( 
+   U_ShiftCnt : entity work.SynchronizerVector
+      generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 3)
       port map (

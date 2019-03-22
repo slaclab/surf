@@ -13,27 +13,25 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-LIBRARY ieee;
-USE work.ALL;
+library ieee;
+use work.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 
-entity RogueTcpMemoryWrap is 
+entity RogueTcpMemoryWrap is
    generic (
-      TPD_G      : time                     := 1 ns;
-      PORT_NUM_G : natural range 0 to 65535 := 1
-   );
+      TPD_G      : time                        := 1 ns;
+      PORT_NUM_G : natural range 1024 to 49151 := 9000);
    port (
-      axilClk         : in    sl;
-      axilRst         : in    sl;
-      axilReadMaster  : out   AxiLiteReadMasterType;
-      axilReadSlave   : in    AxiLiteReadSlaveType;
-      axilWriteMaster : out   AxiLiteWriteMasterType;
-      axilWriteSlave  : in    AxiLiteWriteSlaveType
-   );
+      axilClk         : in  sl;
+      axilRst         : in  sl;
+      axilReadMaster  : out AxiLiteReadMasterType;
+      axilReadSlave   : in  AxiLiteReadSlaveType;
+      axilWriteMaster : out AxiLiteWriteMasterType;
+      axilWriteSlave  : in  AxiLiteWriteSlaveType);
 end RogueTcpMemoryWrap;
 
 -- Define architecture
@@ -44,28 +42,28 @@ begin
    -- Sim Core
    U_RogueTcpMemory : entity work.RogueTcpMemory
       port map (
-         clock    => axilClk,
-         reset    => axilRst,
-         portNum  => toSlv(PORT_NUM_G,16),
-         araddr   => axilReadMaster.araddr,
-         arprot   => axilReadMaster.arprot,
-         arvalid  => axilReadMaster.arvalid,
-         rready   => axilReadMaster.rready,
-         arready  => axilReadSlave.arready,
-         rdata    => axilReadSlave.rdata,
-         rresp    => axilReadSlave.rresp,
-         rvalid   => axilReadSlave.rvalid,
-         awaddr   => axilWriteMaster.awaddr,
-         awprot   => axilWriteMaster.awprot,
-         awvalid  => axilWriteMaster.awvalid,
-         wdata    => axilWriteMaster.wdata,
-         wstrb    => axilWriteMaster.wstrb,
-         wvalid   => axilWriteMaster.wvalid,
-         bready   => axilWriteMaster.bready,
-         awready  => axilWriteSlave.awready,
-         wready   => axilWriteSlave.wready,
-         bresp    => axilWriteSlave.bresp,
-         bvalid   => axilWriteSlave.bvalid);
+         clock   => axilClk,
+         reset   => axilRst,
+         portNum => toSlv(PORT_NUM_G, 16),
+         araddr  => axilReadMaster.araddr,
+         arprot  => axilReadMaster.arprot,
+         arvalid => axilReadMaster.arvalid,
+         rready  => axilReadMaster.rready,
+         arready => axilReadSlave.arready,
+         rdata   => axilReadSlave.rdata,
+         rresp   => axilReadSlave.rresp,
+         rvalid  => axilReadSlave.rvalid,
+         awaddr  => axilWriteMaster.awaddr,
+         awprot  => axilWriteMaster.awprot,
+         awvalid => axilWriteMaster.awvalid,
+         wdata   => axilWriteMaster.wdata,
+         wstrb   => axilWriteMaster.wstrb,
+         wvalid  => axilWriteMaster.wvalid,
+         bready  => axilWriteMaster.bready,
+         awready => axilWriteSlave.awready,
+         wready  => axilWriteSlave.wready,
+         bresp   => axilWriteSlave.bresp,
+         bvalid  => axilWriteSlave.bvalid);
 
 end RogueTcpMemoryWrap;
 

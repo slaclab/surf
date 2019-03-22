@@ -18,7 +18,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.AxiLitePkg.all;
@@ -29,34 +28,34 @@ use unisim.vcomponents.all;
 
 entity Pgp3GthUsWrapper is
    generic (
-      TPD_G                       : time                     := 1 ns;
-      ROGUE_SIM_EN_G              : boolean                  := false;
-      ROGUE_SIM_PORT_NUM_G        : natural range 0 to 65535 := 1;
-      SYNTH_MODE_G                : string                 := "inferred";
-      MEMORY_TYPE_G               : string                 := "block";
-      NUM_LANES_G                 : positive range 1 to 4    := 1;
-      NUM_VC_G                    : positive range 1 to 16   := 4;
-      REFCLK_G                    : boolean                  := false;  --  FALSE: pgpRefClkP/N,  TRUE: pgpRefClkIn
-      RATE_G                      : string                   := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps" 
+      TPD_G                       : time                        := 1 ns;
+      ROGUE_SIM_EN_G              : boolean                     := false;
+      ROGUE_SIM_PORT_NUM_G        : natural range 1024 to 49151 := 9000;
+      SYNTH_MODE_G                : string                      := "inferred";
+      MEMORY_TYPE_G               : string                      := "block";
+      NUM_LANES_G                 : positive range 1 to 4       := 1;
+      NUM_VC_G                    : positive range 1 to 16      := 4;
+      REFCLK_G                    : boolean                     := false;  --  FALSE: pgpRefClkP/N,  TRUE: pgpRefClkIn
+      RATE_G                      : string                      := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps" 
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
-      PGP_RX_ENABLE_G             : boolean                  := true;
-      RX_ALIGN_SLIP_WAIT_G        : integer                  := 32;
-      PGP_TX_ENABLE_G             : boolean                  := true;
-      TX_CELL_WORDS_MAX_G         : integer                  := PGP3_DEFAULT_TX_CELL_WORDS_MAX_C;  -- Number of 64-bit words per cell
-      TX_MUX_MODE_G               : string                   := "INDEXED";  -- Or "ROUTED"
-      TX_MUX_TDEST_ROUTES_G       : Slv8Array                := (0      => "--------");  -- Only used in ROUTED mode
-      TX_MUX_TDEST_LOW_G          : integer range 0 to 7     := 0;
-      TX_MUX_ILEAVE_EN_G          : boolean                  := true;
-      TX_MUX_ILEAVE_ON_NOTVALID_G : boolean                  := true;
-      EN_PGP_MON_G                : boolean                  := false;
-      EN_GTH_DRP_G                : boolean                  := false;
-      EN_QPLL_DRP_G               : boolean                  := false;
-      TX_POLARITY_G               : slv(3 downto 0)          := x"0";
-      RX_POLARITY_G               : slv(3 downto 0)          := x"0";
-      AXIL_BASE_ADDR_G            : slv(31 downto 0)         := (others => '0');
-      AXIL_CLK_FREQ_G             : real                     := 125.0E+6);
+      PGP_RX_ENABLE_G             : boolean                     := true;
+      RX_ALIGN_SLIP_WAIT_G        : integer                     := 32;
+      PGP_TX_ENABLE_G             : boolean                     := true;
+      TX_CELL_WORDS_MAX_G         : integer                     := PGP3_DEFAULT_TX_CELL_WORDS_MAX_C;  -- Number of 64-bit words per cell
+      TX_MUX_MODE_G               : string                      := "INDEXED";      -- Or "ROUTED"
+      TX_MUX_TDEST_ROUTES_G       : Slv8Array                   := (0      => "--------");  -- Only used in ROUTED mode
+      TX_MUX_TDEST_LOW_G          : integer range 0 to 7        := 0;
+      TX_MUX_ILEAVE_EN_G          : boolean                     := true;
+      TX_MUX_ILEAVE_ON_NOTVALID_G : boolean                     := true;
+      EN_PGP_MON_G                : boolean                     := false;
+      EN_GTH_DRP_G                : boolean                     := false;
+      EN_QPLL_DRP_G               : boolean                     := false;
+      TX_POLARITY_G               : slv(3 downto 0)             := x"0";
+      RX_POLARITY_G               : slv(3 downto 0)             := x"0";
+      AXIL_BASE_ADDR_G            : slv(31 downto 0)            := (others => '0');
+      AXIL_CLK_FREQ_G             : real                        := 125.0E+6);
    port (
       -- Stable Clock and Reset
       stableClk         : in  sl;       -- GT needs a stable clock to "boot up"
@@ -273,7 +272,7 @@ begin
                TPD_G      => TPD_G,
                SYNTH_MODE_G  => SYNTH_MODE_G,
                MEMORY_TYPE_G => MEMORY_TYPE_G,
-               PORT_NUM_G => (ROGUE_SIM_PORT_NUM_G+(i*32)),
+               PORT_NUM_G => (ROGUE_SIM_PORT_NUM_G+(i*34)),
                NUM_VC_G   => NUM_VC_G)
             port map(
                -- GT Ports

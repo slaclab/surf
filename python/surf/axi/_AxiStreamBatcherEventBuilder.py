@@ -79,19 +79,71 @@ class AxiStreamBatcherEventBuilder(pr.Device):
             disp         = '{:d}',
         ))
         
-        self.add(pr.RemoteVariable(
-            name         = "CntRst",                 
-            description  = "Counter Reset",
-            mode         = 'WO',
+        self.add(pr.RemoteVariable(    
+            name         = "State",
+            description  = "current state of FSM (for debugging)",
+            offset       =  0xFF8,
+            bitSize      =  1,
+            bitOffset    =  8,
+            mode         = "RO",
+            pollInterval = 1,            
+            enum         = {
+                0x0: 'IDLE_S', 
+                0x1: 'MOVE_S', 
+            },    
+        ))         
+        
+        self.add(pr.RemoteVariable(    
+            name         = "Blowoff",
+            description  = "Blows off the inbound AXIS stream (for debugging)",
+            offset       =  0xFF8,
+            bitSize      =  1,
+            bitOffset    =  0,
+            base         = pr.Bool,
+            mode         = "RW",
+        ))          
+        
+        self.add(pr.RemoteCommand(    
+            name         = "CntRst",
+            description  = "",
             offset       = 0xFFC,
-            hidden       = True,
+            bitSize      = 1,
+            bitOffset    = 0,
+            function     = pr.BaseCommand.toggle,
         ))  
+
+        self.add(pr.RemoteCommand(    
+            name         = "TimerRst",
+            description  = "",
+            offset       = 0xFFC,
+            bitSize      = 1,
+            bitOffset    = 1,
+            function     = pr.BaseCommand.toggle,
+        )) 
+
+        self.add(pr.RemoteCommand(    
+            name         = "HardRst",
+            description  = "",
+            offset       = 0xFFC,
+            bitSize      = 1,
+            bitOffset    = 2,
+            function     = pr.BaseCommand.toggle,
+        ))   
+
+        self.add(pr.RemoteCommand(    
+            name         = "SoftRst",
+            description  = "",
+            offset       = 0xFFC,
+            bitSize      = 1,
+            bitOffset    = 3,
+            function     = pr.BaseCommand.toggle,
+        ))           
         
     def hardReset(self):
-        self.CntRst.set(0x1)
+        self.HardRst()
 
     def softReset(self):
-        self.CntRst.set(0x1)
+        self.SoftRst()
 
     def countReset(self):
-        self.CntRst.set(0x1)
+        self.CntRst()
