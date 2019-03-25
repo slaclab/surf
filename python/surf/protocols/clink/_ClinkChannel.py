@@ -208,7 +208,14 @@ class ClinkChannel(pr.Device):
                     name        = 'UartPiranha4', 
                     serial      = serial,
                     expand      = False,
-                ))                 
+                )) 
+            # Check for Uniq UP-900CL-12B camera
+            elif (camType=='UartUp900cl12b'):
+                self.add(cl.UartPiranha4(      
+                    name        = 'UartUp900cl12b', 
+                    serial      = serial,
+                    expand      = False,
+                ))
             # Else generic interface to serial stream
             else:
                 self.add(cl.UartGeneric(      
