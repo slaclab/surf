@@ -219,6 +219,11 @@ class ClinkChannel(pr.Device):
             raise ValueError(f'serial not defined' )                  
         ##############################################################################
 
+        @self.command(value='', name='SendString', description='Send a command string')
+        def sendString(arg):
+            if self._tx is not None:
+                self._tx.sendString(arg)     
+        
     def hardReset(self):
         self.CntRst()
 
