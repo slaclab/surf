@@ -373,7 +373,8 @@ class Pgp2bAxi(pr.Device):
             self.Flush()
 
     def hardReset(self):
-        self.ResetTxRx()
+        self.ResetTx()
+        self.ResetRx()
 
     def countReset(self):
         self.CountReset()
