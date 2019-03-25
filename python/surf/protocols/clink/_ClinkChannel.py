@@ -201,28 +201,22 @@ class ClinkChannel(pr.Device):
                     name   = 'UartOpal000', 
                     serial = serial,
                     expand = False,
-                ))
+                ))              
             # Check for Piranha4 camera
             elif (camType=='Piranha4'):
                 self.add(cl.UartPiranha4(      
                     name        = 'UartPiranha4', 
                     serial      = serial,
                     expand      = False,
-                ))
-            # Else development interface to serial stream
+                ))                 
+            # Else generic interface to serial stream
             else:
-                self._rx = cl.ClinkSerialRx()
-                pr.streamConnect(serial,self._rx)
-                self._tx = cl.ClinkSerialTx()
-                pr.streamConnect(self._tx,serial)
-        else:
-            raise ValueError(f'serial not defined' )                  
+                self.add(cl.UartGeneric(      
+                    name        = 'UartGeneric', 
+                    serial      = serial,
+                    expand      = False,
+                ))               
         ##############################################################################
-
-        @self.command(value='', name='SendString', description='Send a command string')
-        def sendString(arg):
-            if self._tx is not None:
-                self._tx.sendString(arg)     
         
     def hardReset(self):
         self.CntRst()

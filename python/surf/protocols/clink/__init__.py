@@ -15,5 +15,6 @@ from surf.protocols.clink._ClinkSerialTx import *
 from surf.protocols.clink._ClinkChannel  import *
 
 # Library of support Camera UART interfaces
+from surf.protocols.clink._UartGeneric  import *
 from surf.protocols.clink._UartOpal000  import *
 from surf.protocols.clink._UartPiranha4 import *
