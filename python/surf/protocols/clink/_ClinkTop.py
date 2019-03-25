@@ -17,15 +17,15 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-import pyrogue as pr
-import surf.protocols.clink
+import pyrogue              as pr
+import surf.protocols.clink as cl
 
 class ClinkTop(pr.Device):
     def __init__(   self,       
             name        = "ClinkTop",
             description = "CameraLink module",
-            serialA     = None,
-            serialB     = None,
+            serial      = [None,None],
+            camType     = [None,None],
             **kwargs):
         super().__init__(name=name, description=description, **kwargs) 
 
@@ -195,9 +195,16 @@ class ClinkTop(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(surf.protocols.clink.ClinkChannel( name = "Channel[0]", serial=serialA, offset=0x100))
-        self.add(surf.protocols.clink.ClinkChannel( name = "Channel[1]", serial=serialB, offset=0x200))
-        
+        for i in range(2):
+            if serial[i] is not None:
+                self.add(cl.ClinkChannel( 
+                    name    = f'Ch[{i}]', 
+                    offset  = 0x100+(i*0x100),
+                    serial  = serial[i], 
+                    camType = camType[i], 
+                    # expand  = False,
+                ))
+
     def hardReset(self):
         self.CntRst()
 
