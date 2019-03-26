@@ -26,7 +26,7 @@ class AxiStreamBatcherAxil(pr.Device):
             name = 'MaxClkGap',
             offset = 0x08,
             bitOffset = 0,
-            bitSize = 12,
+            bitSize = 32,
             mode = 'RW',
             base = pr.UInt,
             disp = '{:d}'))

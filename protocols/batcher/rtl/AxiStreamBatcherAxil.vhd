@@ -58,7 +58,7 @@ architecture rtl of AxiStreamBatcherAxil is
    type RegType is record
       superFrameByteThreshold : slv(31 downto 0);
       maxSubFrames            : slv(15 downto 0);
-      maxClkGap               : slv(11 downto 0);
+      maxClkGap               : slv(31 downto 0);
       axilReadSlave           : AxiLiteReadSlaveType;
       axilWriteSlave          : AxiLiteWriteSlaveType;
    end record RegType;
@@ -66,7 +66,7 @@ architecture rtl of AxiStreamBatcherAxil is
    constant REG_INIT_C : RegType := (
       superFrameByteThreshold => toSlv(SUPER_FRAME_BYTE_THRESHOLD_G, 32),
       maxSubFrames            => toSlv(MAX_NUMBER_SUB_FRAMES_G, 16),
-      maxClkGap               => toSlv(MAX_CLK_GAP_G, 12),
+      maxClkGap               => toSlv(MAX_CLK_GAP_G, 32),
       axilReadSlave           => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave          => AXI_LITE_WRITE_SLAVE_INIT_C);
 
