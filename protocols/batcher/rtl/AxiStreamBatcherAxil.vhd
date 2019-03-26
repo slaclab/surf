@@ -76,7 +76,7 @@ architecture rtl of AxiStreamBatcherAxil is
    signal syncAxilReadMaster  : AxiLiteReadMasterType;
    signal syncAxilReadSlave   : AxiLiteReadSlaveType;
    signal syncAxilWriteMaster : AxiLiteWriteMasterType;
-   signal syncAxilWriteSlave  : AxiLiteWriteSlaveType);
+   signal syncAxilWriteSlave  : AxiLiteWriteSlaveType;
 
 begin
 
@@ -135,7 +135,7 @@ begin
 
       rin <= v;
 
-      if (v.axisRst) then
+      if (axisRst) then
          v := REG_INIT_C;
       end if;
 
