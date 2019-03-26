@@ -119,7 +119,7 @@ begin
          mAxiWriteMaster => syncAxilWriteMaster,  -- [out]
          mAxiWriteSlave  => r.axilWriteSlave);    -- [in]
 
-   comb : process (r, syncAxilReadMaster, syncAxilWriteMaster) is
+   comb : process (axisRst, r, syncAxilReadMaster, syncAxilWriteMaster) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
