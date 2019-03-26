@@ -216,16 +216,12 @@ begin
       if (r.hardRst = '1') or (r.softRst = '1') then
          -- Reset the register
          v := REG_INIT_C;
-
-         -- -- Check for soft reset (unclear if we want to support a hard reset that also resets the registers.  it might confuse 'novice' users who randomly hitting different resets)
-         -- if (r.softRst = '1') then
-
+         
          -- Preserve the resister configurations
+         v.bypass  := r.bypass;
          v.timeout := r.timeout;
          v.blowoff := r.blowoff;
-
-         -- end if;
-
+         
       end if;
 
       -- Determine the transaction type
