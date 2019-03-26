@@ -71,15 +71,21 @@ package ClinkPkg is
    -- Link Status Record
    ------------------------------------
    type ClLinkStatusType is record
-      locked   : sl;
-      delay    : slv(4 downto 0);
-      shiftCnt : slv(2 downto 0);
+      clkInFreq      : slv(31 downto 0);
+      clinkClkFreq   : slv(31 downto 0);
+      clinkClk7xFreq : slv(31 downto 0);
+      locked         : sl;
+      delay          : slv(4 downto 0);
+      shiftCnt       : slv(2 downto 0);
    end record ClLinkStatusType;
 
    constant CL_LINK_STATUS_INIT_C : ClLinkStatusType := (
-      locked   => '0',
-      delay    => (others => '0'),
-      shiftCnt => (others => '0'));
+      clkInFreq      => (others => '0'),
+      clinkClkFreq   => (others => '0'),
+      clinkClk7xFreq => (others => '0'),
+      locked         => '0',
+      delay          => (others => '0'),
+      shiftCnt       => (others => '0'));
 
    type ClLinkStatusArray is array (natural range<>) of ClLinkStatusType;
 
@@ -103,8 +109,8 @@ package ClinkPkg is
    constant CL_CHAN_CONFIG_INIT_C : ClChanConfigType := (
       swCamCtrl   => (others => '0'),
       swCamCtrlEn => (others => '0'),
-      serBaud     => toSlv(57600, 24),  -- Default of 57600 baud
-      serThrottle => (others => '1'),  -- Default of 65ms per byte throttle rate
+      serBaud     => toSlv(9600, 24),   -- Default of 9600 baud
+      serThrottle => toSlv(10000, 16),  -- Default of 10ms per byte throttle rate
       linkMode    => (others => '0'),
       dataMode    => (others => '0'),
       tapCount    => (others => '0'),

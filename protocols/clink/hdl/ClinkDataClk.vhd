@@ -23,17 +23,25 @@ library unisim;
 use unisim.vcomponents.all;
 
 use work.StdRtlPkg.all;
+use work.AxiLitePkg.all;
 
 entity ClinkDataClk is
-   generic ( 
+   generic (
       TPD_G         : time    := 1 ns;
       REG_BUFF_EN_G : boolean := false);
    port (
-      clkIn      : in  sl;
-      rstIn      : in  sl;
-      clinkClk7x : out sl;
-      clinkClk   : out sl;
-      clinkRst   : out sl);
+      clkIn           : in  sl;
+      rstIn           : in  sl;
+      clinkClk7x      : out sl;
+      clinkClk        : out sl;
+      clinkRst        : out sl;
+      -- AXI-Lite Interface 
+      sysClk          : in  sl;
+      sysRst          : in  sl;
+      axilReadMaster  : in  AxiLiteReadMasterType;
+      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilWriteMaster : in  AxiLiteWriteMasterType;
+      axilWriteSlave  : out AxiLiteWriteSlaveType);
 end entity ClinkDataClk;
 
 architecture rtl of ClinkDataClk is
@@ -46,26 +54,59 @@ architecture rtl of ClinkDataClk is
    signal lockedLoc  : sl;
    signal genReset   : sl;
 
+   signal drpRdy  : sl;
+   signal drpEn   : sl;
+   signal drpWe   : sl;
+   signal drpAddr : slv(6 downto 0);
+   signal drpDi   : slv(15 downto 0);
+   signal drpDo   : slv(15 downto 0);
+
 begin
+
+   U_AxiLiteToDrp : entity work.AxiLiteToDrp
+      generic map (
+         TPD_G            => TPD_G,
+         COMMON_CLK_G     => true,
+         EN_ARBITRATION_G => false,
+         TIMEOUT_G        => 4096,
+         ADDR_WIDTH_G     => 7,
+         DATA_WIDTH_G     => 16)
+      port map (
+         -- AXI-Lite Port
+         axilClk         => sysClk,
+         axilRst         => sysRst,
+         axilReadMaster  => axilReadMaster,
+         axilReadSlave   => axilReadSlave,
+         axilWriteMaster => axilWriteMaster,
+         axilWriteSlave  => axilWriteSlave,
+         -- DRP Interface
+         drpClk          => sysClk,
+         drpRst          => sysRst,
+         drpRdy          => drpRdy,
+         drpEn           => drpEn,
+         drpWe           => drpWe,
+         drpAddr         => drpAddr,
+         drpDi           => drpDi,
+         drpDo           => drpDo);
 
    U_Mmcm : MMCME2_ADV
       generic map (
-         BANDWIDTH          => "OPTIMIZED",
-         CLKOUT4_CASCADE    => false,
-         STARTUP_WAIT       => false,
-         CLKIN1_PERIOD      => 11.764,  -- 85Mhz
-         DIVCLK_DIVIDE      => 1,  
-         CLKFBOUT_MULT_F    => 14.0,  -- 1190Mhz
-         CLKOUT0_DIVIDE_F   => 14.0,  -- 85Mhz
-         CLKOUT1_DIVIDE     => 2)     -- 595Mhz
+         BANDWIDTH        => "OPTIMIZED",
+         CLKOUT4_CASCADE  => false,
+         STARTUP_WAIT     => false,
+         CLKIN1_PERIOD    => 11.764,    -- 85Mhz
+         DIVCLK_DIVIDE    => 1,
+         CLKFBOUT_MULT_F  => 14.0,      -- 1190Mhz
+         CLKOUT0_DIVIDE_F => 14.0,      -- 85Mhz
+         CLKOUT1_DIVIDE   => 2)         -- 595Mhz
       port map (
-         DCLK     => '0',
-         DRDY     => open,
-         DEN      => '0',
-         DWE      => '0',
-         DADDR    => (others=>'0'),
-         DI       => (others=>'0'),
-         DO       => open,
+         DCLK     => sysClk,
+         DRDY     => drpRdy,
+         DEN      => drpEn,
+         DWE      => drpWe,
+         DADDR    => drpAddr,
+         DI       => drpDi,
+         DO       => drpDo,
          PSCLK    => '0',
          PSEN     => '0',
          PSINCDEC => '0',
@@ -80,7 +121,7 @@ begin
          CLKOUT0  => clkOutMmcm(0),
          CLKOUT1  => clkOutMmcm(1));
 
-   U_RegGen: if REG_BUFF_EN_G generate
+   U_RegGen : if REG_BUFF_EN_G generate
 
       U_BufIn : BUFR
          port map (
@@ -105,32 +146,32 @@ begin
 
       U_BufIo : BUFIO
          port map (
-            I   => clkOutMmcm(1),
-            O   => clkOutLoc(1));
+            I => clkOutMmcm(1),
+            O => clkOutLoc(1));
 
    end generate;
 
-   U_GlbGen: if not REG_BUFF_EN_G generate
+   U_GlbGen : if not REG_BUFF_EN_G generate
 
       U_BufIn : BUFG
          port map (
-            I   => clkIn,
-            O   => clkInLoc);
+            I => clkIn,
+            O => clkInLoc);
 
       U_BufFb : BUFG
          port map (
-            I   => clkFbOut,
-            O   => clkFbIn);
+            I => clkFbOut,
+            O => clkFbIn);
 
       U_BufOut : BUFG
          port map (
-            I   => clkOutMmcm(0),
-            O   => clkOutLoc(0));
+            I => clkOutMmcm(0),
+            O => clkOutLoc(0));
 
       U_BufIo : BUFG
          port map (
-            I   => clkOutMmcm(1),
-            O   => clkOutLoc(1));
+            I => clkOutMmcm(1),
+            O => clkOutLoc(1));
 
    end generate;
 
@@ -138,10 +179,10 @@ begin
 
    U_RstSync : entity work.RstSync
       generic map (
-         TPD_G           => TPD_G,
-         IN_POLARITY_G   => '0',
-         OUT_POLARITY_G  => '1',
-         BYPASS_SYNC_G   => false)
+         TPD_G          => TPD_G,
+         IN_POLARITY_G  => '0',
+         OUT_POLARITY_G => '1',
+         BYPASS_SYNC_G  => false)
       port map (
          clk      => clkOutLoc(0),
          asyncRst => genReset,
@@ -150,5 +191,4 @@ begin
    clinkClk   <= clkOutLoc(0);
    clinkClk7x <= clkOutLoc(1);
 
-end architecture rtl;
-
+end rtl;

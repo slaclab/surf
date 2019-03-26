@@ -135,6 +135,7 @@ class ClinkChannel(pr.Device):
             disp         = '{}',
             mode         = "RW",
             units        = "bps",
+            value        = 9600,
         ))
         
         self.add(pr.RemoteVariable(    
@@ -192,37 +193,55 @@ class ClinkChannel(pr.Device):
 
         self._rx = None
         self._tx = None
-
+        
         # Check if serial interface defined
         if serial is not None:
+        
             # Check for OPA1000 camera
-            if (camType=='Opal000'):
+            if (camType is 'Opal000'):
+            
+                # Add the device
                 self.add(cl.UartOpal000(      
                     name   = 'UartOpal000', 
                     serial = serial,
                     expand = False,
-                ))              
+                ))
+                
+                # Override default baud rate
+                self.BaudRate._default = 57600
+                
             # Check for Piranha4 camera
-            elif (camType=='Piranha4'):
+            elif (camType is 'Piranha4'):
+            
+                # Add the device
                 self.add(cl.UartPiranha4(      
                     name        = 'UartPiranha4', 
                     serial      = serial,
                     expand      = False,
-                )) 
+                ))      
+                
             # Check for Uniq UP-900CL-12B camera
-            elif (camType=='UartUp900cl12b'):
+            elif (camType is 'UartUp900cl12b'):
+
+                # Add the device
                 self.add(cl.UartPiranha4(      
                     name        = 'UartUp900cl12b', 
                     serial      = serial,
                     expand      = False,
                 ))
+                
             # Else generic interface to serial stream
-            else:
+            elif camType is None:
+                
+                # Add the device
                 self.add(cl.UartGeneric(      
                     name        = 'UartGeneric', 
                     serial      = serial,
                     expand      = False,
-                ))               
+                ))              
+                
+            else:
+                raise ValueError('Invalid camType (%s)' % (camType) )                
         ##############################################################################
         
     def hardReset(self):

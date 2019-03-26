@@ -19,6 +19,7 @@
 
 import pyrogue              as pr
 import surf.protocols.clink as cl
+import surf.xilinx          as xil
 
 class ClinkTop(pr.Device):
     def __init__(   self,       
@@ -194,6 +195,48 @@ class ClinkTop(pr.Device):
             mode         = "RO",
             pollInterval = 1,
         ))
+        
+        self.addRemoteVariables(   
+            name         = "ClkInFreq",
+            description  = "Clock Input Freq",
+            offset       = 0x01C,
+            bitSize      = 32,
+            bitOffset    = 0,
+            units        = 'Hz',
+            disp         = '{:d}',
+            mode         = "RO",
+            pollInterval = 1,
+            number       = 3,
+            stride       = 4,
+        )   
+
+        self.addRemoteVariables(   
+            name         = "ClinkClkFreq",
+            description  = "CameraLink Clock Freq",
+            offset       = 0x028,
+            bitSize      = 32,
+            bitOffset    = 0,
+            units        = 'Hz',
+            disp         = '{:d}',
+            mode         = "RO",
+            pollInterval = 1,
+            number       = 3,
+            stride       = 4,
+        ) 
+
+        self.addRemoteVariables(   
+            name         = "ClinkClk7xFreq",
+            description  = "CameraLink Clock x 7 Freq",
+            offset       = 0x034,
+            bitSize      = 32,
+            bitOffset    = 0,
+            units        = 'Hz',
+            disp         = '{:d}',
+            mode         = "RO",
+            pollInterval = 1,
+            number       = 3,
+            stride       = 4,
+        )         
 
         for i in range(2):
             if serial[i] is not None:
@@ -204,7 +247,14 @@ class ClinkTop(pr.Device):
                     camType = camType[i], 
                     # expand  = False,
                 ))
-
+        for i in range(3):
+            self.add(xil.ClockManager( 
+                name    = f'Pll[{i}]', 
+                offset  = 0x1000+(i*0x1000),
+                type    = 'MMCME2',
+                expand  = False,
+            ))
+            
     def hardReset(self):
         self.CntRst()
 
