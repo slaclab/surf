@@ -135,7 +135,7 @@ begin
 
       rin <= v;
 
-      if (axisRst) then
+      if (axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
