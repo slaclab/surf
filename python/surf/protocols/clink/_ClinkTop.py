@@ -19,7 +19,6 @@
 
 import pyrogue              as pr
 import surf.protocols.clink as cl
-import surf.xilinx          as xil
 
 class ClinkTop(pr.Device):
     def __init__(   self,       
@@ -42,15 +41,21 @@ class ClinkTop(pr.Device):
             bitOffset    =  0x00,
             mode         = "RO",
         ))
-
-        self.add(pr.RemoteCommand(   
-            name         = "ResetPll",
+        
+        self.add(pr.RemoteVariable(    
+            name         = "RstPll",
             description  = "Camera link channel PLL reset",
             offset       =  0x04,
             bitSize      =  1,
             bitOffset    =  0,
-            function     = pr.BaseCommand.toggle,
-        ))   
+            mode         = "RW",
+            hidden       = True,
+        ))        
+    
+        @self.command(description="toggles Camera link channel PLL reset",)
+        def ResetPll():
+            self.RstPll.set(0x1)
+            self.RstPll.set(0x0)
 
         self.add(pr.RemoteCommand(   
             name         = "ResetFsm",
@@ -234,17 +239,49 @@ class ClinkTop(pr.Device):
                     # expand  = False,
                 ))
         for i in range(3):
-            self.add(xil.ClockManager( 
+            self.add(cl.ClockManager( 
                 name    = f'Pll[{i}]', 
                 offset  = 0x1000+(i*0x1000),
                 type    = 'MMCME2',
                 expand  = False,
             ))
             
+        for i in range(3):
+            self.add(pr.LocalVariable(    
+                name         = f'PllConfig[{i}]', 
+                description  = 'Sets the PLL to a known set of configurations',
+                mode         = 'RW', 
+                value        = '',
+            ))
+            
     def hardReset(self):
+        self.ResetPll()
         self.CntRst()
 
     def softReset(self):
+        # Hold the PLL in reset before configuration
+        self.RstPll.set(0x1)
+        
+        # Loop through the PLL modules
+        for i in range(3):
+            
+            # Check for 85 MHz configuration
+            if (self.PllConfig[i].get() == '85MHz'):
+                self.Pll[i].Config85MHz()
+                
+            # Check for 80 MHz configuration
+            if (self.PllConfig[i].get() == '80MHz'):
+                # Same config as 85 MHz
+                self.Pll[i].Config85MHz()                
+                
+            # Check for 25 MHz configuration
+            if (self.PllConfig[i].get() == '25MHz'):
+                self.Pll[i].Config25MHz()
+                
+        # Release the reset after configuration
+        self.RstPll.set(0x0)
+        
+        # Reset all the counters
         self.CntRst()
 
     def countReset(self):

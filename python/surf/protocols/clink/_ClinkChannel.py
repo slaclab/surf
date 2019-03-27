@@ -124,6 +124,7 @@ class ClinkChannel(pr.Device):
             disp         = '{}',
             mode         = "RW",
             units        = "microsec",
+            value        = 30000, # 30ms/byte
         ))            
 
         self.add(pr.RemoteVariable(    
@@ -199,6 +200,9 @@ class ClinkChannel(pr.Device):
         
             # Check for OPA1000 camera
             if (camType=='Opal000'):
+                
+                # Override defaults
+                self.BaudRate._default    = 57600
             
                 # Add the device
                 self.add(cl.UartOpal000(      
@@ -206,9 +210,6 @@ class ClinkChannel(pr.Device):
                     serial = serial,
                     expand = False,
                 ))
-                
-                # Override default baud rate
-                self.BaudRate._default = 57600
                 
             # Check for Piranha4 camera
             elif (camType=='Piranha4'):
@@ -223,6 +224,9 @@ class ClinkChannel(pr.Device):
             # Check for Uniq UP-900CL-12B camera
             elif (camType=='Up900cl12b'):
 
+                # Override defaults
+                self.SerThrottle._default = 30000
+            
                 # Add the device
                 self.add(cl.UartUp900cl12b(      
                     name        = 'UartUp900cl12b', 

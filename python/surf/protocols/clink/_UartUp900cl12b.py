@@ -121,7 +121,7 @@ class UartUp900cl12b(pr.Device):
         self.add(pr.BaseCommand(    
             name         = 'AM',
             description  = 'Asynchronous mode: Asynchronous reset',
-            function     = lambda cmd: self._tx.sendString('nm')
+            function     = lambda cmd: self._tx.sendString('am')
         ))         
         
         self.add(pr.LocalVariable(    
