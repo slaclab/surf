@@ -39,7 +39,7 @@ entity AxiStreamBatcher is
       -- External Control Interface
       superFrameByteThreshold : in  slv(31 downto 0) := toSlv(SUPER_FRAME_BYTE_THRESHOLD_G, 32);
       maxSubFrames            : in  slv(15 downto 0) := toSlv(MAX_NUMBER_SUB_FRAMES_G, 16);
-      maxClkGap               : in  slv(11 downto 0) := toSlv(MAX_CLK_GAP_G, 12);
+      maxClkGap               : in  slv(31 downto 0) := toSlv(MAX_CLK_GAP_G, 32);
       idle                    : out sl;
       -- AXIS Interfaces
       sAxisMaster             : in  AxiStreamMasterType;
@@ -68,8 +68,8 @@ architecture rtl of AxiStreamBatcher is
       subByteCnt                 : slv(31 downto 0);
       maxSubFrames               : slv(15 downto 0);
       subFrameCnt                : slv(15 downto 0);
-      maxClkGap                  : slv(11 downto 0);
-      clkGapCnt                  : slv(11 downto 0);
+      maxClkGap                  : slv(31 downto 0);
+      clkGapCnt                  : slv(31 downto 0);
       superFrameByteThresholdDet : sl;
       maxSubFramesDet            : sl;
       seqCnt                     : slv(7 downto 0);
@@ -88,7 +88,7 @@ architecture rtl of AxiStreamBatcher is
       subByteCnt                 => (others => '0'),
       maxSubFrames               => toSlv(MAX_NUMBER_SUB_FRAMES_G, 16),
       subFrameCnt                => (others => '0'),
-      maxClkGap                  => toSlv(MAX_CLK_GAP_G, 12),
+      maxClkGap                  => toSlv(MAX_CLK_GAP_G, 32),
       clkGapCnt                  => (others => '0'),
       superFrameByteThresholdDet => '0',
       maxSubFramesDet            => '0',
