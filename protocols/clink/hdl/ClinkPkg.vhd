@@ -73,7 +73,6 @@ package ClinkPkg is
    type ClLinkStatusType is record
       clkInFreq      : slv(31 downto 0);
       clinkClkFreq   : slv(31 downto 0);
-      clinkClk7xFreq : slv(31 downto 0);
       locked         : sl;
       delay          : slv(4 downto 0);
       shiftCnt       : slv(2 downto 0);
@@ -82,7 +81,6 @@ package ClinkPkg is
    constant CL_LINK_STATUS_INIT_C : ClLinkStatusType := (
       clkInFreq      => (others => '0'),
       clinkClkFreq   => (others => '0'),
-      clinkClk7xFreq => (others => '0'),
       locked         => '0',
       delay          => (others => '0'),
       shiftCnt       => (others => '0'));

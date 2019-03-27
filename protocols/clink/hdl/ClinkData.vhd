@@ -120,7 +120,6 @@ begin
          -- Frequency Measurements
          clkInFreq       => linkStatus.clkInFreq,
          clinkClkFreq    => linkStatus.clinkClkFreq,
-         clinkClk7xFreq  => linkStatus.clinkClk7xFreq,
          -- AXI-Lite Interface 
          sysClk          => sysClk,
          sysRst          => sysRst,

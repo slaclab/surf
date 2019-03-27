@@ -132,10 +132,6 @@ begin
       axiSlaveRegisterR(axilEp, x"02C", 0, linkStatus(1).clinkClkFreq);
       axiSlaveRegisterR(axilEp, x"030", 0, linkStatus(2).clinkClkFreq);
 
-      axiSlaveRegisterR(axilEp, x"034", 0, linkStatus(0).clinkClk7xFreq);
-      axiSlaveRegisterR(axilEp, x"038", 0, linkStatus(1).clinkClk7xFreq);
-      axiSlaveRegisterR(axilEp, x"03C", 0, linkStatus(2).clinkClk7xFreq);
-
       -- Channel A Config
       axiSlaveRegister (axilEp, x"100", 0, v.chanConfig(0).linkMode);
       axiSlaveRegister (axilEp, x"104", 0, v.chanConfig(0).dataMode);

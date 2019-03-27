@@ -52,7 +52,6 @@ entity ClinkDataShift is
       -- Frequency Measurements
       clkInFreq       : out   slv(31 downto 0);
       clinkClkFreq    : out   slv(31 downto 0);
-      clinkClk7xFreq  : out   slv(31 downto 0);
       -- AXI-Lite Interface 
       sysClk          : in    sl;
       sysRst          : in    sl;
@@ -105,20 +104,6 @@ begin
          freqOut => clinkClkFreq,
          -- Clocks
          clkIn   => intClk,
-         locClk  => sysClk,
-         refClk  => dlyClk);
-
-   U_clinkClk7xFreq : entity work.SyncClockFreq
-      generic map (
-         TPD_G          => TPD_G,
-         REF_CLK_FREQ_G => 200.0E+6,
-         REFRESH_RATE_G => 1.0,
-         CNT_WIDTH_G    => 32)
-      port map (
-         -- Frequency Measurement (locClk domain)
-         freqOut => clinkClk7xFreq,
-         -- Clocks
-         clkIn   => intClk7x,
          locClk  => sysClk,
          refClk  => dlyClk);
 

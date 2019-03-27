@@ -198,7 +198,7 @@ class ClinkChannel(pr.Device):
         if serial is not None:
         
             # Check for OPA1000 camera
-            if (camType is 'Opal000'):
+            if (camType=='Opal000'):
             
                 # Add the device
                 self.add(cl.UartOpal000(      
@@ -211,7 +211,7 @@ class ClinkChannel(pr.Device):
                 self.BaudRate._default = 57600
                 
             # Check for Piranha4 camera
-            elif (camType is 'Piranha4'):
+            elif (camType=='Piranha4'):
             
                 # Add the device
                 self.add(cl.UartPiranha4(      
@@ -221,7 +221,7 @@ class ClinkChannel(pr.Device):
                 ))      
                 
             # Check for Uniq UP-900CL-12B camera
-            elif (camType is 'UartUp900cl12b'):
+            elif (camType=='Up900cl12b'):
 
                 # Add the device
                 self.add(cl.UartPiranha4(      

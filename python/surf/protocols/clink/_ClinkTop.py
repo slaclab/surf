@@ -223,21 +223,7 @@ class ClinkTop(pr.Device):
             number       = 3,
             stride       = 4,
         ) 
-
-        self.addRemoteVariables(   
-            name         = "ClinkClk7xFreq",
-            description  = "CameraLink Clock x 7 Freq",
-            offset       = 0x034,
-            bitSize      = 32,
-            bitOffset    = 0,
-            units        = 'Hz',
-            disp         = '{:d}',
-            mode         = "RO",
-            pollInterval = 1,
-            number       = 3,
-            stride       = 4,
-        )         
-
+       
         for i in range(2):
             if serial[i] is not None:
                 self.add(cl.ClinkChannel( 
