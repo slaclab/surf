@@ -224,7 +224,7 @@ class ClinkChannel(pr.Device):
             elif (camType=='Up900cl12b'):
 
                 # Add the device
-                self.add(cl.UartPiranha4(      
+                self.add(cl.UartUp900cl12b(      
                     name        = 'UartUp900cl12b', 
                     serial      = serial,
                     expand      = False,

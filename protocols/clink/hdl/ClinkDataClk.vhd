@@ -94,11 +94,16 @@ begin
          BANDWIDTH        => "OPTIMIZED",
          CLKOUT4_CASCADE  => false,
          STARTUP_WAIT     => false,
-         CLKIN1_PERIOD    => 11.764,    -- 85Mhz
+--         CLKIN1_PERIOD    => 40.0,      -- 25 MHz
+--         DIVCLK_DIVIDE    => 1,
+--         CLKFBOUT_MULT_F  => 42.0,      -- VCO = 1050MHz
+--         CLKOUT0_DIVIDE_F => 42.0,      -- 25 MHz
+--         CLKOUT1_DIVIDE   => 6)         -- 175MHz
+         CLKIN1_PERIOD    => 11.764,  -- 85 MHz (CLKIN[min.] = 43 MHz, CLKIN[max] = 102 MHz)
          DIVCLK_DIVIDE    => 1,
-         CLKFBOUT_MULT_F  => 14.0,      -- 1190Mhz
-         CLKOUT0_DIVIDE_F => 14.0,      -- 85Mhz
-         CLKOUT1_DIVIDE   => 2)         -- 595Mhz
+         CLKFBOUT_MULT_F  => 14.0,  -- VCO = 1190MHz (VCO[min] = 600 MHz, VCO[max] = 1440 MHz)
+         CLKOUT0_DIVIDE_F => 14.0,      -- 85 MHz = 1190MHz/14
+         CLKOUT1_DIVIDE   => 2)         -- 595MHz = 1190MHz/2
       port map (
          DCLK     => sysClk,
          DRDY     => drpRdy,

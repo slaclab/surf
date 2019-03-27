@@ -21,17 +21,35 @@ import pyrogue as pr
 import rogue.interfaces.stream
 
 import surf.protocols.clink as clink
+
+class UartUp900cl12bRx(clink.ClinkSerialRx):
+    def __init__(self,**kwargs):
+        super().__init__(**kwargs)        
+
+    def _acceptFrame(self,frame):
+        ba = bytearray(frame.getPayload())
+        frame.read(ba,0)
+
+        for i in range(0,len(ba),4):
+            c = chr(ba[i])
+            # print (ba[i])
+
+            if (c == '\r'):
+                print("Got Response: {}".format(''.join(self._cur)))
+                self._cur = []
+            elif (c != '') and (ba[i] != 1):
+                self._cur.append(c)
                
 class UartUp900cl12b(pr.Device):
     def __init__(   self,       
             name        = 'UartUp900cl12b',
-            description = 'Uart Uniq UP-900CL-12B channel access',
+            description = 'Uart Uniq UP-900CL-12B channel access (http://uniqvision.com/Downloads/UP900CL-12B)',
             serial      = None,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs) 
 
         # Attach the serial devices
-        self._rx = clink.ClinkSerialRx()
+        self._rx = clink.UartUp900cl12bRx()
         pr.streamConnect(serial,self._rx)
 
         self._tx = clink.ClinkSerialTx()
@@ -41,7 +59,7 @@ class UartUp900cl12b(pr.Device):
         def sendString(arg):
             if self._tx is not None:
                 self._tx.sendString(arg)
-
+        
         ##############################
         # Variables
         ##############################        
