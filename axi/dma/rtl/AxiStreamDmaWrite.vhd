@@ -33,6 +33,7 @@ entity AxiStreamDmaWrite is
       AXI_CONFIG_G      : AxiConfigType       := AXI_CONFIG_INIT_C;
       AXI_BURST_G       : slv(1 downto 0)     := "01";
       AXI_CACHE_G       : slv(3 downto 0)     := "1111";
+      BURST_BYTES_G     : positive range 1 to 4096 := 4096;
       SW_CACHE_EN_G     : boolean             := false;
       ACK_WAIT_BVALID_G : boolean             := true;
       PIPE_STAGES_G     : natural             := 1;
@@ -68,7 +69,7 @@ architecture rtl of AxiStreamDmaWrite is
 
    constant DATA_BYTES_C      : integer         := LOC_AXIS_CONFIG_C.TDATA_BYTES_C;
    constant ADDR_LSB_C        : integer         := bitSize(DATA_BYTES_C-1);
-   constant AWLEN_C           : slv(7 downto 0) := getAxiLen(AXI_CONFIG_G, 4096);
+   constant AWLEN_C           : slv(7 downto 0) := getAxiLen(AXI_CONFIG_G, BURST_BYTES_G);
    constant FIFO_ADDR_WIDTH_C : natural         := ite((AXI_CONFIG_G.LEN_BITS_C<3),4,(AXI_CONFIG_G.LEN_BITS_C+1));
 
    type StateType is (

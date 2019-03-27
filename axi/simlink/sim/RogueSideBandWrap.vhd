@@ -22,15 +22,17 @@ use work.AxiStreamPkg.all;
 
 entity RogueSideBandWrap is
    generic (
-      TPD_G      : time                     := 1 ns;
-      PORT_NUM_G : natural range 0 to 65535 := 1
-   );
+      TPD_G      : time                        := 1 ns;
+      PORT_NUM_G : natural range 1024 to 49151 := 9000);
    port (
-      sysClk      : in sl;
-      sysRst      : in sl;
-      opCode      : out slv(7 downto 0);
-      opCodeEn    : out sl;
-      remData     : out slv(7 downto 0)
+      sysClk     : in  sl;
+      sysRst     : in  sl;
+      txOpCode   : in  slv(7 downto 0);
+      txOpCodeEn : in  sl;
+      txRemData  : in  slv(7 downto 0);
+      rxOpCode   : out slv(7 downto 0);
+      rxOpCodeEn : out sl;
+      rxRemData  : out slv(7 downto 0)
       );
 end RogueSideBandWrap;
 
@@ -45,9 +47,13 @@ begin
          clock      => sysClk,
          reset      => sysRst,
          portNum    => toSlv(PORT_NUM_G, 16),
-         opCode     => opCode,
-         opCodeEn   => opCodeEn,
-         remData    => remData);
+         txOpCode   => txOpCode,
+         txOpCodeEn => txOpCodeEn,
+         txRemData  => txRemData,
+         rxOpCode   => rxOpCode,
+         rxOpCodeEn => rxOpCodeEn,
+         rxRemData  => rxRemData);
+
 
 end RogueSideBandWrap;
 

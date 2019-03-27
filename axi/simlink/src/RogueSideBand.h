@@ -20,11 +20,15 @@
 #define s_reset        1
 #define s_port         2
 
-#define s_opCode       3
-#define s_opCodeEn     4
-#define s_remData      5
+#define s_txOpCode       3
+#define s_txOpCodeEn     4
+#define s_txRemData      5
 
-#define PORT_COUNT     6
+#define s_rxOpCode       6
+#define s_rxOpCodeEn     7
+#define s_rxRemData      8
+
+#define PORT_COUNT     9
 
 // Structure to track state
 typedef struct {
@@ -32,12 +36,18 @@ typedef struct {
    uint32_t  currClk;
    uint16_t  port;
   
-   uint8_t   remData;
-   uint8_t   ocData;
-   uint8_t   ocDataEn;
+   uint8_t   rxRemData;
+   uint8_t   rxOpCode;
+   uint8_t   rxOpCodeEn;
+
+   uint8_t   txRemData;
+   uint8_t   txRemDataChanged;  
+   uint8_t   txOpCode;
+   uint8_t   txOpCodeEn;
 
    void *    zmqCtx;
    void *    zmqPull;
+   void *    zmqPush;  
   
 } RogueSideBandData;
 
@@ -50,8 +60,13 @@ void RogueSideBandUpdate ( void *userPtr );
 // Restart the zmq link
 void RogueSideBandRestart(RogueSideBandData *data, portDataT *portData);
 
+// Send data
+void RogueSideBandSend ( RogueSideBandData *data, portDataT *portData );
+
 // Receive data if it is available
 int RogueSideBandRecv ( RogueSideBandData *data, portDataT *portData );
+
+
 
 #endif
 

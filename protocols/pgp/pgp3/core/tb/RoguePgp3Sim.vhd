@@ -28,9 +28,10 @@ use unisim.vcomponents.all;
 
 entity RoguePgp3Sim is
    generic (
-      TPD_G      : time                     := 1 ns;
-      PORT_NUM_G : natural range 0 to 65535 := 1;
-      NUM_VC_G   : integer range 1 to 16    := 4);
+      TPD_G         : time                        := 1 ns;
+      PORT_NUM_G    : natural range 1024 to 49151 := 9000;
+      NUM_VC_G      : integer range 1 to 16       := 4;
+      EN_SIDEBAND_G : boolean                     := true);
    port (
       -- GT Ports
       pgpRefClk       : in  sl;
@@ -93,11 +94,11 @@ begin
    GEN_VEC : for i in NUM_VC_G-1 downto 0 generate
       U_PGP_VC : entity work.RogueTcpStreamWrap
          generic map (
-            TPD_G               => TPD_G,
-            PORT_NUM_G          => (PORT_NUM_G + i*2),
-            SSI_EN_G            => true,
-            CHAN_COUNT_G        => 1,
-            AXIS_CONFIG_G       => PGP3_AXIS_CONFIG_C)
+            TPD_G         => TPD_G,
+            PORT_NUM_G    => (PORT_NUM_G + i*2),
+            SSI_EN_G      => true,
+            CHAN_COUNT_G  => 1,
+            AXIS_CONFIG_G => PGP3_AXIS_CONFIG_C)
          port map (
             axisClk     => clk,              -- [in]
             axisRst     => rst,              -- [in]
@@ -106,6 +107,22 @@ begin
             mAxisMaster => pgpRxMasters(i),  -- [out]
             mAxisSlave  => pgpRxSlaves(i));  -- [in]
    end generate GEN_VEC;
+   
+   GEN_SIDEBAND : if (EN_SIDEBAND_G) generate
+      U_RogueSideBandWrap_1 : entity work.RogueSideBandWrap
+         generic map (
+            TPD_G      => TPD_G,
+            PORT_NUM_G => PORT_NUM_G + 32)
+         port map (
+            sysClk     => clk,
+            sysRst     => rst,
+            txOpCode   => pgpTxIn.opCodeData(7 downto 0),
+            txOpCodeEn => pgpTxIn.opCodeEn,
+            txRemData  => pgpTxIn.opCodeData(15 downto 8),
+            rxOpCode   => rxOut.opCodeData(7 downto 0),
+            rxOpCodeEn => rxOut.opCodeEn,
+            rxRemData  => rxOut.opCodeData(15 downto 8));
+   end generate GEN_SIDEBAND;   
 
    txOut.phyTxActive <= '1';
    txOut.linkReady   <= '1';

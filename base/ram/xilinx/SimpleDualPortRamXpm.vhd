@@ -2,7 +2,7 @@
 -- File       : SimpleDualPortRamXpm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Wrapper for XPM Simple Dual Port RAM
+-- Description: Wrapper for XPM True Dual Port RAM
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -29,7 +29,7 @@ entity SimpleDualPortRamXpm is
       COMMON_CLK_G   : boolean                    := false;
       RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low       
       MEMORY_TYPE_G  : string                     := "block";
-      READ_LATENCY_G : natural range 0 to 2       := 1;
+      READ_LATENCY_G : natural range 0 to 100     := 1;
       DATA_WIDTH_G   : integer range 1 to (2**24) := 16;
       BYTE_WR_EN_G   : boolean                    := false;
       BYTE_WIDTH_G   : integer range 8 to 9       := 8;  -- If BRAM, should be multiple or 8 or 9
@@ -74,7 +74,7 @@ begin
          USE_MEM_INIT            => 1,  -- Default value = 1
          WAKEUP_TIME             => "disable_sleep",  -- "disable_sleep" to disable dynamic power saving option
          WRITE_DATA_WIDTH_A      => DATA_WIDTH_G,
-         WRITE_MODE_B            => ite(READ_LATENCY_G = 0, "read_first", "no_change"))  -- Default value = no_change
+         WRITE_MODE_B            => ite(READ_LATENCY_G = 0, "read_first", ite(MEMORY_TYPE_G="block","no_change","read_first"))) -- Default value = no_change
       port map (
          -- Write Interface
          ena            => ena,
