@@ -206,7 +206,7 @@ class Pgp2bAxi(pr.Device):
             "RxRemOverflow1Count", 
             "RxRemOverflow2Count", 
             "RxRemOverflow3Count",
-            "RxFrameErrorCoumt", 
+            "RxFrameErrorCount", 
             "RxFrameCount",
             "TxLocOverflow0Count",
             "TxLocOverflow1Count",
