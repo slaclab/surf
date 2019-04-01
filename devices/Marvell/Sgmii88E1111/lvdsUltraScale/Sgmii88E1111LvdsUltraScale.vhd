@@ -2,7 +2,7 @@
 -- File       : Sgmii88E1111LvdsUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Controller for the Marvell 88E1111 PHY 
+-- Description: Wrapper for Marvell 88E1111 PHY + GigEthLvdsUltraScaleWrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
