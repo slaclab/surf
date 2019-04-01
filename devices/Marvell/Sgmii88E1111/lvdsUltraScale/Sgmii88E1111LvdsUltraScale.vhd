@@ -30,12 +30,12 @@ entity Sgmii88E1111LvdsUltraScale is
       AXIS_CONFIG_G     : AxiStreamConfigType   := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- clock and reset
-      extRst      : in    sl;
+      extRst      : in    sl; -- Stable clock reference
       stableClk   : in    sl;
       -- Local Configurations
       localMac    : in    slv(47 downto 0);  --  big-Endian configuration   
       -- Interface to Ethernet Media Access Controller (MAC)
-      macClk      : in    sl;                -- Stable clock reference
+      macClk      : in    sl;                
       macRst      : in    sl;
       obMacMaster : out   AxiStreamMasterType;
       obMacSlave  : in    AxiStreamSlaveType;
