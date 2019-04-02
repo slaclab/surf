@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : ClockManager7.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-10-28
--- Last update: 2018-06-21
 -------------------------------------------------------------------------------
 -- Description: A wrapper over MMCM/PLL to avoid coregen use.
 -------------------------------------------------------------------------------
@@ -35,11 +33,11 @@ entity ClockManager7 is
       INPUT_BUFG_G           : boolean                          := true;
       FB_BUFG_G              : boolean                          := true;
       OUTPUT_BUFG_G          : boolean                          := true;
-      RST_IN_POLARITY_G      : sl                               := '1';  -- '0' for active low
+      RST_IN_POLARITY_G      : sl                               := '1';     -- '0' for active low
       NUM_CLOCKS_G           : integer range 1 to 7;
       -- MMCM attributes
       BANDWIDTH_G            : string                           := "OPTIMIZED";
-      CLKIN_PERIOD_G         : real                             := 10.0;  -- Input period in ns );
+      CLKIN_PERIOD_G         : real                             := 10.0;    -- Input period in ns );
       DIVCLK_DIVIDE_G        : integer range 1 to 106           := 1;
       CLKFBOUT_MULT_F_G      : real range 1.0 to 64.0           := 1.0;
       CLKFBOUT_MULT_G        : integer range 2 to 64            := 5;
@@ -381,8 +379,10 @@ begin
    end generate OutBufgGen;
 
    NoOutBufgGen : if (not OUTPUT_BUFG_G) generate
-      clkOutLoc <= clkOutMmcm;
-      clkOut    <= clkOutLoc;
+      ClkOutGen : for i in NUM_CLOCKS_G-1 downto 0 generate
+         clkOutLoc(i) <= clkOutMmcm(i);
+         clkOut(i)    <= clkOutLoc(i);
+      end generate ClkOutGen;
    end generate NoOutBufgGen;
 
    locked <= lockedLoc;

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-25
--- Last update: 2017-12-14
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to connect multiple incoming AXI streams into a single encoded
@@ -28,29 +26,29 @@ use work.AxiStreamPkg.all;
 
 entity AxiStreamMux is
    generic (
-      TPD_G                : time                  := 1 ns;
-      PIPE_STAGES_G        : integer range 0 to 16 := 0;
-      NUM_SLAVES_G         : integer range 1 to 32 := 4;
+      TPD_G                : time                   := 1 ns;
+      PIPE_STAGES_G        : integer range 0 to 16  := 0;
+      NUM_SLAVES_G         : integer range 1 to 256 := 4;
       -- In INDEXED mode, the output TDEST is set based on the selected slave index
       -- In ROUTED mode, TDEST is set accoring to the TDEST_ROUTES_G table
-      MODE_G               : string                := "INDEXED";
+      MODE_G               : string                 := "INDEXED";
       -- In ROUTED mode, an array mapping how TDEST should be assigned for each slave port
       -- Each TDEST bit can be set to '0', '1' or '-' for passthrough from slave TDEST.
-      TDEST_ROUTES_G       : Slv8Array             := (0 => "--------");
+      TDEST_ROUTES_G       : Slv8Array              := (0 => "--------");
       -- In INDEXED mode, assign slave index to TDEST at this bit offset
-      TDEST_LOW_G          : integer range 0 to 7  := 0;
+      TDEST_LOW_G          : integer range 0 to 7   := 0;
       -- Set to true if interleaving dests
-      ILEAVE_EN_G          : boolean               := false;
+      ILEAVE_EN_G          : boolean                := false;
       -- Rearbitrate when tValid drops on selected channel, ignored when ILEAVE_EN_G=false      
-      ILEAVE_ON_NOTVALID_G : boolean               := false;
+      ILEAVE_ON_NOTVALID_G : boolean                := false;
       -- Max number of transactions between arbitrations, 0 = unlimited, ignored when ILEAVE_EN_G=false
-      ILEAVE_REARB_G       : natural               := 0;
+      ILEAVE_REARB_G       : natural                := 0;
       -- One cycle gap in stream between during rearbitration.
       -- Set true for better timing, false for higher throughput.
-      REARB_DELAY_G        : boolean               := true;
+      REARB_DELAY_G        : boolean                := true;
       -- Block selected slave txns arriving on same cycle as rearbitrate or disableSel from going through,
       -- creating 1 cycle gap. This might be needed logically but decreases throughput.
-      FORCED_REARB_HOLD_G  : boolean               := false);
+      FORCED_REARB_HOLD_G  : boolean                := false);
 
    port (
       -- Clock and reset

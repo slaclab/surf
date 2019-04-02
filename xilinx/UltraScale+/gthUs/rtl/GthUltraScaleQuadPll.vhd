@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : GthUltraScaleQuadPll.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-12-15
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Ultrascale GTH QPLL primitive
 -------------------------------------------------------------------------------

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Pgp2bGtp7FixedLatWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-01-29
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Gtp7 Fixed Latency Wrapper
 -------------------------------------------------------------------------------
@@ -33,7 +31,7 @@ entity Pgp2bGtp7FixedLatWrapper is
       TPD_G                   : time                 := 1 ns;
       COMMON_CLK_G            : boolean              := false;-- set true if (stableClk = axilClk)
       SIM_GTRESET_SPEEDUP_G   : boolean              := false;
-      SIM_VERSION_G           : string               := "1.0";
+      SIM_VERSION_G           : string               := "2.0";
       SIMULATION_G            : boolean              := false;
       -- PGP Settings
       VC_INTERLEAVE_G         : integer              := 0;  -- No interleave Frames
@@ -274,7 +272,6 @@ begin
             clkIn     => pgpTxClkBase,
             rstIn     => pgpTxMmcmReset,
             clkOut(0) => pgpTxClk,
-            rstOut(0) => open,
             locked    => pgpTxMmcmLocked);
 
       pgpTxReset <= extRst;

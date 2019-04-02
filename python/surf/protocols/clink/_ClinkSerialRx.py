@@ -38,4 +38,3 @@ class ClinkSerialRx(rogue.interfaces.stream.Slave):
                 self._cur = []
             elif c != '\r':
                 self._cur.append(c)
-

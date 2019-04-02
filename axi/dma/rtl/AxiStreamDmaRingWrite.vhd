@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamDmaRingWrite.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-09-29
--- Last update: 2017-02-20
 -------------------------------------------------------------------------------
 -- Description: AXI Stream to DMA Ring Buffer Write Module
 -------------------------------------------------------------------------------
@@ -198,7 +196,8 @@ architecture rtl of AxiStreamDmaRingWrite is
          request       => '0',
          drop          => '0',
          address       => (others => '0'),
-         maxSize       => toSlv(BURST_SIZE_BYTES_G, 32)),
+         maxSize       => toSlv(BURST_SIZE_BYTES_G, 32),
+         prot          => (others=>'0')),
       trigger          => '0',
       softTrigger      => (others => '0'),
       eofe             => '0',
@@ -258,8 +257,9 @@ begin
    U_AxiDualPortRam_Start : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         REG_EN_G     => false,
+         SYNTH_MODE_G => "inferred",
+         MEMORY_TYPE_G=> "distributed",
+         READ_LATENCY_G => 0,
          AXI_WR_EN_G  => true,
          SYS_WR_EN_G  => false,
          ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
@@ -280,8 +280,9 @@ begin
    U_AxiDualPortRam_End : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         REG_EN_G     => false,
+         SYNTH_MODE_G => "inferred",
+         MEMORY_TYPE_G=> "distributed",
+         READ_LATENCY_G => 0, 
          AXI_WR_EN_G  => true,
          SYS_WR_EN_G  => false,
          ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
@@ -303,8 +304,9 @@ begin
    U_AxiDualPortRam_Next : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         REG_EN_G     => false,
+         SYNTH_MODE_G => "inferred",
+         MEMORY_TYPE_G=> "distributed",
+         READ_LATENCY_G => 0, 
          AXI_WR_EN_G  => false,
          SYS_WR_EN_G  => true,
          ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
@@ -326,8 +328,9 @@ begin
    U_AxiDualPortRam_Trigger : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         REG_EN_G     => false,
+         SYNTH_MODE_G => "inferred",
+         MEMORY_TYPE_G=> "distributed",
+         READ_LATENCY_G => 0, 
          AXI_WR_EN_G  => false,
          SYS_WR_EN_G  => true,
          ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
@@ -350,8 +353,9 @@ begin
    U_AxiDualPortRam_Mode : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         REG_EN_G     => false,
+         SYNTH_MODE_G => "inferred",
+         MEMORY_TYPE_G=> "distributed",
+         READ_LATENCY_G => 0, 
          AXI_WR_EN_G  => true,
          SYS_WR_EN_G  => false,
          COMMON_CLK_G => false,
@@ -376,8 +380,9 @@ begin
    U_AxiDualPortRam_Status : entity work.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         REG_EN_G     => false,
+         SYNTH_MODE_G => "inferred",
+         MEMORY_TYPE_G=> "distributed",
+         READ_LATENCY_G => 0, 
          AXI_WR_EN_G  => false,
          SYS_WR_EN_G  => true,
          ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,

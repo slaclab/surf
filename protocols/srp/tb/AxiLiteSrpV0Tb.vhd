@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiLiteSrpV0Tb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-06-08
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Simulation testbed for AxiLiteSrpV0
 -------------------------------------------------------------------------------
@@ -171,8 +169,6 @@ begin
    U_AxiDualPortRam_1 : entity work.AxiDualPortRam
       generic map (
          TPD_G            => TPD_G,
-         BRAM_EN_G        => true,
-         REG_EN_G         => true,
          AXI_WR_EN_G      => true,
          SYS_WR_EN_G      => false,
          SYS_BYTE_WR_EN_G => false,

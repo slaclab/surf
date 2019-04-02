@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamDmaV2Write.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-02-02
--- Last update: 2017-02-02
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to transfer a single AXI Stream frame into memory using an AXI
@@ -118,8 +116,8 @@ architecture rtl of AxiStreamDmaV2Write is
    signal trackDout     : slv(AXI_WRITE_DMA_TRACK_SIZE_C-1 downto 0);
    signal trackData     : AxiWriteDmaTrackType;
 
-   -- attribute dont_touch      : string;
-   -- attribute dont_touch of r : signal is "true";
+   --attribute dont_touch      : string;
+   --attribute dont_touch of r : signal is "true";
    
 begin
 
@@ -187,9 +185,9 @@ begin
 
       -- Count number of bytes in return data
       if (AXIS_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-         bytes := conv_integer(intAxisMaster.tKeep(4 downto 0));-- Assumes max AXIS.TDATA width of 128-bits
+         bytes := conv_integer(intAxisMaster.tKeep(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C)-1 downto 0));
       else
-         bytes := getTKeep(intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0));
+         bytes := getTKeep(intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0),AXIS_CONFIG_G);
       end if;
       
       -- State machine
@@ -212,11 +210,22 @@ begin
          when IDLE_S =>
             if intAxisMaster.tValid = '1' then
                -- Current destination matches incoming frame
-               if r.dmaWrTrack.dest = intAxisMaster.tDest and r.dmaWrTrack.inUse = '1' then
-                  if r.dmaWrTrack.dropEn = '1' then
-                     v.state := DUMP_S;
+               if r.dmaWrTrack.dest = intAxisMaster.tDest then
+
+                  -- Frame is still in progress
+                  if r.dmaWrTrack.inUse = '1' then
+                     if r.dmaWrTrack.dropEn = '1' then
+                           -- Next state
+                        v.state := DUMP_S;
+                     else
+                        -- Next state
+                        v.state := ADDR_S;
+                     end if;
+
+                  -- New frame with same destination, new descriptor
                   else
-                     v.state := ADDR_S;
+                     v.dmaWrDescReq.valid := '1';
+                     v.state := REQ_S;
                   end if;
 
                -- Wait for mem selection to match incoming frame
@@ -228,13 +237,17 @@ begin
                   -- Is entry valid or do we need a new buffer
                   if trackData.inUse = '1' then
                      if trackData.dropEn = '1' then
+                        -- Next state
                         v.state := DUMP_S;
                      else
+                        -- Next state
                         v.state := ADDR_S;
                      end if;
                   else
-                     v.state := REQ_S;
+                     -- Request a new descriptor
                      v.dmaWrDescReq.valid := '1';
+                     -- Next state
+                     v.state := REQ_S;
                   end if;
                end if;
             end if;
@@ -254,8 +267,10 @@ begin
 
                -- Descriptor return calls for dumping frame?
                if dmaWrDescAck.dropEn = '1' then
+                  -- Next state
                   v.state := DUMP_S;
                else
+                  -- Next state
                   v.state := ADDR_S;
                end if;
             end if;
@@ -317,13 +332,16 @@ begin
                   v.wMaster.wdata((DATA_BYTES_C*8)-1 downto 0) := intAxisMaster.tData((DATA_BYTES_C*8)-1 downto 0);
                   -- Set byte write strobes
                   if (AXIS_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-                     v.wMaster.wstrb(15 downto 0)             := genTKeep(bytes);
+                     v.wMaster.wstrb(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0) := genTKeep(bytes);
                   else
-                     v.wMaster.wstrb(DATA_BYTES_C-1 downto 0) := intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0);
+                     v.wMaster.wstrb(DATA_BYTES_C-1 downto 0)                 := intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0);
                   end if;                  
                   -- Address and size increment
                   v.dmaWrTrack.address := r.dmaWrTrack.address + DATA_BYTES_C;
-                  v.dmaWrTrack.address(ADDR_LSB_C-1 downto 0) := (others => '0');
+                  -- Force address alignment
+                  if (DATA_BYTES_C > 1) then
+                     v.dmaWrTrack.address(ADDR_LSB_C-1 downto 0) := (others => '0');
+                  end if;
                   -- Increment the byte counter
                   v.dmaWrTrack.size    := r.dmaWrTrack.size + bytes;
                   v.dmaWrTrack.maxSize := r.dmaWrTrack.maxSize - bytes;

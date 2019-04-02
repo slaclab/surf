@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : RawEthFramerTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-05-23
--- Last update: 2016-05-26
 -------------------------------------------------------------------------------
 -- Description: Raw L2 Ethernet Framer's TX Engine
 -------------------------------------------------------------------------------
@@ -128,7 +126,7 @@ begin
          v.ibMacMaster.tValid := '0';
          v.ibMacMaster.tLast  := '0';
          v.ibMacMaster.tUser  := (others => '0');
-         v.ibMacMaster.tKeep  := x"00FF";
+         v.ibMacMaster.tKeep  := resize(x"00FF",AXI_STREAM_MAX_TKEEP_WIDTH_C);
       end if;
 
       -- Update variables
@@ -174,7 +172,7 @@ begin
                      end if;
                   end loop;
                   -- Update the min. ETH Byte counter
-                  v.minByteCnt := 16 + getTKeep(tKeep);           -- include header offset
+                  v.minByteCnt := 16 + getTKeep(tKeep,RAW_ETH_CONFIG_INIT_C);           -- include header offset
                   -- Check for tLast
                   if obAppMaster.tLast = '1' then
                      -- Set EOF
@@ -225,7 +223,7 @@ begin
                   end if;
                end loop;
                -- Update the min. ETH Byte counter
-               v.minByteCnt := r.minByteCnt + getTKeep(tKeep);
+               v.minByteCnt := r.minByteCnt + getTKeep(tKeep,RAW_ETH_CONFIG_INIT_C);
                -- Check for tLast
                if obAppMaster.tLast = '1' then
                   -- Set EOF

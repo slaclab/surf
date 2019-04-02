@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : EthMacTxBypass.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-01-04
--- Last update: 2016-09-14
 -------------------------------------------------------------------------------
 -- Description:
 -- Mux stage to allow high priority bypass traffic to override primary path

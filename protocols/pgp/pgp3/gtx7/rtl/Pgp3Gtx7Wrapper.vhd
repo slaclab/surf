@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Pgp3Gtx7Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-10-27
--- Last update: 2018-06-19
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -30,37 +28,33 @@ use unisim.vcomponents.all;
 
 entity Pgp3Gtx7Wrapper is
    generic (
-      TPD_G                       : time                   := 1 ns;
-      ROGUE_SIM_EN_G              : boolean                := false;
-      ROGUE_SIM_USER_ID_G         : integer range 0 to 100 := 1;
-      NUM_LANES_G                 : positive range 1 to 4  := 1;
-      NUM_VC_G                    : positive range 1 to 16 := 4;
-      RATE_G                      : string                 := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
-      REFCLK_TYPE_G               : Pgp3RefClkType         := PGP3_REFCLK_312_C;
-      REFCLK_G                    : boolean                := false;  --  FALSE: use pgpRefClkP/N,  TRUE: use pgpRefClkIn
+      TPD_G                       : time                        := 1 ns;
+      ROGUE_SIM_EN_G              : boolean                     := false;
+      ROGUE_SIM_PORT_NUM_G        : natural range 1024 to 49151 := 9000;
+      NUM_LANES_G                 : positive range 1 to 4       := 1;
+      NUM_VC_G                    : positive range 1 to 16      := 4;
+      RATE_G                      : string                      := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
+      REFCLK_TYPE_G               : Pgp3RefClkType              := PGP3_REFCLK_312_C;
+      REFCLK_G                    : boolean                     := false;  --  FALSE: use pgpRefClkP/N,  TRUE: use pgpRefClkIn
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
-      PGP_RX_ENABLE_G             : boolean                := true;
-      RX_ALIGN_GOOD_COUNT_G       : integer                := 128;
-      RX_ALIGN_BAD_COUNT_G        : integer                := 16;
-      RX_ALIGN_SLIP_WAIT_G        : integer                := 32;
-      PGP_TX_ENABLE_G             : boolean                := true;
-      TX_CELL_WORDS_MAX_G         : integer                := PGP3_DEFAULT_TX_CELL_WORDS_MAX_C;  -- Number of 64-bit words per cell
-      TX_SKP_INTERVAL_G           : integer                := 5000;
-      TX_SKP_BURST_SIZE_G         : integer                := 8;
-      TX_MUX_MODE_G               : string                 := "INDEXED";  -- Or "ROUTED"
-      TX_MUX_TDEST_ROUTES_G       : Slv8Array              := (0      => "--------");  -- Only used in ROUTED mode
-      TX_MUX_TDEST_LOW_G          : integer range 0 to 7   := 0;
-      TX_MUX_ILEAVE_EN_G          : boolean                := true;
-      TX_MUX_ILEAVE_ON_NOTVALID_G : boolean                := true;
-      EN_PGP_MON_G                : boolean                := true;
-      EN_GTH_DRP_G                : boolean                := true;
-      EN_QPLL_DRP_G               : boolean                := true;
-      TX_POLARITY_G               : slv(3 downto 0)        := x"0";
-      RX_POLARITY_G               : slv(3 downto 0)        := x"0";
-      AXIL_BASE_ADDR_G            : slv(31 downto 0)       := (others => '0');
-      AXIL_CLK_FREQ_G             : real                   := 156.25E+6);
+      PGP_RX_ENABLE_G             : boolean                     := true;
+      RX_ALIGN_SLIP_WAIT_G        : integer                     := 32;
+      PGP_TX_ENABLE_G             : boolean                     := true;
+      TX_CELL_WORDS_MAX_G         : integer                     := PGP3_DEFAULT_TX_CELL_WORDS_MAX_C;  -- Number of 64-bit words per cell
+      TX_MUX_MODE_G               : string                      := "INDEXED";      -- Or "ROUTED"
+      TX_MUX_TDEST_ROUTES_G       : Slv8Array                   := (0      => "--------");  -- Only used in ROUTED mode
+      TX_MUX_TDEST_LOW_G          : integer range 0 to 7        := 0;
+      TX_MUX_ILEAVE_EN_G          : boolean                     := true;
+      TX_MUX_ILEAVE_ON_NOTVALID_G : boolean                     := true;
+      EN_PGP_MON_G                : boolean                     := false;
+      EN_GTH_DRP_G                : boolean                     := false;
+      EN_QPLL_DRP_G               : boolean                     := false;
+      TX_POLARITY_G               : slv(3 downto 0)             := x"0";
+      RX_POLARITY_G               : slv(3 downto 0)             := x"0";
+      AXIL_BASE_ADDR_G            : slv(31 downto 0)            := (others => '0');
+      AXIL_CLK_FREQ_G             : real                        := 156.25E+6);
    port (
       -- Stable Clock and Reset
       stableClk         : in  sl;       -- GT needs a stable clock to "boot up"
@@ -90,8 +84,8 @@ entity Pgp3Gtx7Wrapper is
       pgpTxSlaves       : out AxiStreamSlaveArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
       -- Frame Receive Interface
       pgpRxMasters      : out AxiStreamMasterArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
-      pgpRxCtrl         : in  AxiStreamCtrlArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);  -- Unused in implementation only
-      pgpRxSlaves       : in  AxiStreamSlaveArray((NUM_LANES_G*NUM_VC_G)-1 downto 0) := (others => AXI_STREAM_SLAVE_FORCE_C);  -- Unused in simulation only
+      pgpRxCtrl         : in  AxiStreamCtrlArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);  -- Used in implementation only
+      pgpRxSlaves       : in  AxiStreamSlaveArray((NUM_LANES_G*NUM_VC_G)-1 downto 0) := (others => AXI_STREAM_SLAVE_FORCE_C);  -- Used in simulation only
       -- Debug Interface 
       txPreCursor       : in  Slv5Array(NUM_LANES_G-1 downto 0)                      := (others => "00111");
       txPostCursor      : in  Slv5Array(NUM_LANES_G-1 downto 0)                      := (others => "00111");
@@ -220,14 +214,10 @@ begin
                -- PGP Settings
                ----------------------------------------------------------------------------------------------
                PGP_RX_ENABLE_G             => PGP_RX_ENABLE_G,
-               RX_ALIGN_GOOD_COUNT_G       => RX_ALIGN_GOOD_COUNT_G,
-               RX_ALIGN_BAD_COUNT_G        => RX_ALIGN_BAD_COUNT_G,
                RX_ALIGN_SLIP_WAIT_G        => RX_ALIGN_SLIP_WAIT_G,
                PGP_TX_ENABLE_G             => PGP_TX_ENABLE_G,
                NUM_VC_G                    => NUM_VC_G,
                TX_CELL_WORDS_MAX_G         => TX_CELL_WORDS_MAX_G,
-               TX_SKP_INTERVAL_G           => TX_SKP_INTERVAL_G,
-               TX_SKP_BURST_SIZE_G         => TX_SKP_BURST_SIZE_G,
                TX_MUX_MODE_G               => TX_MUX_MODE_G,
                TX_MUX_TDEST_ROUTES_G       => TX_MUX_TDEST_ROUTES_G,
                TX_MUX_TDEST_LOW_G          => TX_MUX_TDEST_LOW_G,
@@ -333,9 +323,9 @@ begin
       GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
          U_Rogue : entity work.RoguePgp3Sim
             generic map(
-               TPD_G     => TPD_G,
-               USER_ID_G => (ROGUE_SIM_USER_ID_G+i),
-               NUM_VC_G  => NUM_VC_G)
+               TPD_G      => TPD_G,
+               PORT_NUM_G => (ROGUE_SIM_PORT_NUM_G+(i*34)),
+               NUM_VC_G   => NUM_VC_G)
             port map(
                -- GT Ports
                pgpRefClk       => pgpRefClk,

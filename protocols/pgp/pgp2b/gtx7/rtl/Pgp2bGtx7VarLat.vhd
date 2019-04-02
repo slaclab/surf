@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Pgp2bGtx7VarLat.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-01-14
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Gtx7 Variable Latency Wrapper
 -------------------------------------------------------------------------------
@@ -49,6 +47,7 @@ entity Pgp2bGtx7VarLat is
       RXDFEXYDEN_G : sl         := '0';                    -- Set by wizard
 
       -- RX Equalizer Attributes
+      RX_EQUALIZER_G   : string     := "DFE";        -- Or "LPM"
       RX_DFE_KL_CFG2_G : bit_vector := x"3010D90C";  -- Set by wizard
       -- Configure PLL sources
       TX_PLL_G         : string     := "QPLL";
@@ -149,6 +148,7 @@ begin
          RXCDR_CFG_G           => RXCDR_CFG_G,
          RXDFEXYDEN_G          => RXDFEXYDEN_G,
          -- RX Equalizer Attributes
+         RX_EQUALIZER_G        => RX_EQUALIZER_G,
          RX_DFE_KL_CFG2_G      => RX_DFE_KL_CFG2_G,
          -- Configure PLL sources
          TX_PLL_G              => TX_PLL_G,

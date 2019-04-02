@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SaciSlaveOld.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2012-07-12
--- Last update: 2016-06-17
 -------------------------------------------------------------------------------
 -- Description: Slave module for SACI interface. Legacy (bloated) version.
 -------------------------------------------------------------------------------

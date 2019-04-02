@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SlvArraytoAxiLite.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-07-21
--- Last update: 2017-10-24
 -------------------------------------------------------------------------------
 -- Description: SLV array to AXI-Lite Master Bridge 
 -------------------------------------------------------------------------------
@@ -22,7 +20,6 @@ use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
-use work.AxiLiteMasterPkg.all;
 
 entity SlvArraytoAxiLite is
    generic (
@@ -54,7 +51,7 @@ architecture rtl of SlvArraytoAxiLite is
       cnt   : natural range 0 to SIZE_G-1;
       valid : slv(SIZE_G-1 downto 0);
       inSlv : Slv32Array(SIZE_G-1 downto 0);
-      req   : AxiLiteMasterReqType;
+      req   : AxiLiteReqType;
       state : StateType;
    end record;
 
@@ -62,14 +59,14 @@ architecture rtl of SlvArraytoAxiLite is
       cnt   => 0,
       valid => (others => '0'),
       inSlv => (others => (others => '0')),
-      req   => AXI_LITE_MASTER_REQ_INIT_C,
+      req   => AXI_LITE_REQ_INIT_C,
       state => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
    signal inSlv : Slv32Array(SIZE_G-1 downto 0);
-   signal ack   : AxiLiteMasterAckType;
+   signal ack   : AxiLiteAckType;
 
    -- attribute dont_touch      : string;
    -- attribute dont_touch of r : signal is "true";
@@ -92,7 +89,7 @@ begin
             dout   => inSlv(i));
    end generate GEN_VEC;
 
-   AxiLiteMaster : entity work.AxiLiteMaster
+   U_AxiLiteMaster : entity work.AxiLiteMaster
       generic map (
          TPD_G => TPD_G)
       port map (

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SsiFrameLimiter.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-05-20
--- Last update: 2018-05-15
 -------------------------------------------------------------------------------
 -- Description: Limits the amount of data being sent across a SSI AXIS bus 
 -------------------------------------------------------------------------------

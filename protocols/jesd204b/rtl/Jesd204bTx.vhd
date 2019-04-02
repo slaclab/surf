@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Jesd204bTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-14
 -------------------------------------------------------------------------------
 -- Description: JESD204b multi-lane transmitter module
 --              Transmitter JESD204b module.

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SrpV3Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-03-22
--- Last update: 2016-11-07
 -------------------------------------------------------------------------------
 -- Description: SLAC Register Protocol Version 3, AXI-Lite Interface
 --
@@ -331,7 +329,8 @@ begin
                      v.txMaster.tDest := rxMaster.tDest;
                      v.srpReq.remVer  := rxMaster.tData(7 downto 0);
                      v.srpReq.opCode  := rxMaster.tData(9 downto 8);
-                     v.srpReq.spare   := rxMaster.tData(23 downto 10);
+                     v.srpReq.spare   := rxMaster.tData(20 downto 10);
+                     v.srpReq.prot    := rxMaster.tData(23 downto 21);
                      v.timeoutSize    := rxMaster.tData(31 downto 24);
                   when X"1" =>
                      v.srpReq.tid(31 downto 0) := rxMaster.tData(31 downto 0);
@@ -387,7 +386,8 @@ begin
                      -- Set data bus
                      v.txMaster.tData(7 downto 0)   := SRP_VERSION_C;
                      v.txMaster.tData(9 downto 8)   := r.srpReq.opCode;
-                     v.txMaster.tData(23 downto 10) := r.srpReq.spare;
+                     v.txMaster.tData(20 downto 10) := r.srpReq.spare;
+                     v.txMaster.tData(23 downto 21) := r.srpReq.prot;
                      v.txMaster.tData(31 downto 24) := r.timeoutSize;
                   when x"1" =>
                      v.txMaster.tData(31 downto 0) := r.srpReq.tid(31 downto 0);

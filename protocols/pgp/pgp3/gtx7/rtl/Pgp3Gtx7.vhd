@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Pgp3Gtx7.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-06-29
--- Last update: 2018-06-11
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -37,21 +35,17 @@ entity Pgp3Gtx7 is
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
       PGP_RX_ENABLE_G             : boolean               := true;
-      RX_ALIGN_GOOD_COUNT_G       : integer               := 128;
-      RX_ALIGN_BAD_COUNT_G        : integer               := 16;
       RX_ALIGN_SLIP_WAIT_G        : integer               := 32;
       PGP_TX_ENABLE_G             : boolean               := true;
       NUM_VC_G                    : integer range 1 to 16 := 4;
       TX_CELL_WORDS_MAX_G         : integer               := PGP3_DEFAULT_TX_CELL_WORDS_MAX_C;  -- Number of 64-bit words per cell
-      TX_SKP_INTERVAL_G           : integer               := 5000;
-      TX_SKP_BURST_SIZE_G         : integer               := 8;
       TX_MUX_MODE_G               : string                := "INDEXED";  -- Or "ROUTED"
       TX_MUX_TDEST_ROUTES_G       : Slv8Array             := (0      => "--------");  -- Only used in ROUTED mode
       TX_MUX_TDEST_LOW_G          : integer range 0 to 7  := 0;
       TX_MUX_ILEAVE_EN_G          : boolean               := true;
       TX_MUX_ILEAVE_ON_NOTVALID_G : boolean               := true;
-      EN_DRP_G                    : boolean               := true;
-      EN_PGP_MON_G                : boolean               := true;
+      EN_DRP_G                    : boolean               := false;
+      EN_PGP_MON_G                : boolean               := false;
       TX_POLARITY_G               : sl                    := '0';
       RX_POLARITY_G               : sl                    := '0';
       AXIL_BASE_ADDR_G            : slv(31 downto 0)      := (others => '0');
@@ -128,7 +122,6 @@ architecture rtl of Pgp3Gtx7 is
    signal phyTxActive   : sl;
    signal phyTxStart    : sl;
    signal phyTxDataRdy  : sl;
-   signal phyTxSequence : slv(5 downto 0);
    signal phyTxData     : slv(63 downto 0);
    signal phyTxHeader   : slv(1 downto 0);
 
@@ -204,13 +197,9 @@ begin
          TPD_G                       => TPD_G,
          NUM_VC_G                    => NUM_VC_G,
          PGP_RX_ENABLE_G             => PGP_RX_ENABLE_G,
-         RX_ALIGN_GOOD_COUNT_G       => RX_ALIGN_GOOD_COUNT_G,
-         RX_ALIGN_BAD_COUNT_G        => RX_ALIGN_BAD_COUNT_G,
          RX_ALIGN_SLIP_WAIT_G        => RX_ALIGN_SLIP_WAIT_G,
          PGP_TX_ENABLE_G             => PGP_TX_ENABLE_G,
          TX_CELL_WORDS_MAX_G         => TX_CELL_WORDS_MAX_G,
-         TX_SKP_INTERVAL_G           => TX_SKP_INTERVAL_G,
-         TX_SKP_BURST_SIZE_G         => TX_SKP_BURST_SIZE_G,
          TX_MUX_MODE_G               => TX_MUX_MODE_G,
          TX_MUX_TDEST_ROUTES_G       => TX_MUX_TDEST_ROUTES_G,
          TX_MUX_TDEST_LOW_G          => TX_MUX_TDEST_LOW_G,
@@ -230,7 +219,6 @@ begin
          phyTxActive     => phyTxActive,                         -- [in]
          phyTxReady      => phyTxDataRdy,                        -- [in]
          phyTxStart      => phyTxStart,                          -- [out]
-         phyTxSequence   => phyTxSequence,                       -- [out]
          phyTxData       => phyTxData,                           -- [out]
          phyTxHeader     => phyTxHeader,                         -- [out]
          -- Rx User interface

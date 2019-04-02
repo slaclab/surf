@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SsiPrbsTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-29
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the VcPrbsTx and VcPrbsRx modules
 -------------------------------------------------------------------------------
@@ -122,6 +120,7 @@ begin
       generic map (
          -- General Configurations
          TPD_G                      => TPD_C,
+         AXI_EN_G                   => '0',
          -- FIFO configurations
          BRAM_EN_G                  => BRAM_EN_C,
          XIL_DEVICE_G               => XIL_DEVICE_C,

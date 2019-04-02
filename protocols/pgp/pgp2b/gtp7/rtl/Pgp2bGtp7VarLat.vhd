@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Pgp2bGtp7VarLat.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-06-29
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Gtp7 Variable Latency Wrapper
 -------------------------------------------------------------------------------
@@ -32,7 +30,7 @@ entity Pgp2bGtp7VarLat is
       ----------------------------------------------------------------------------------------------
       -- Sim Generics
       SIM_GTRESET_SPEEDUP_G : string               := "FALSE";
-      SIM_VERSION_G         : string               := "1.0";
+      SIM_VERSION_G         : string               := "2.0";
       STABLE_CLOCK_PERIOD_G : real                 := 4.0E-9;                    --units of seconds
       -- Configure PLL 
       RXOUT_DIV_G           : integer              := 2;

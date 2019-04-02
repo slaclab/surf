@@ -2,7 +2,6 @@
 -- Title      : PGP3 Support Package
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-03-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -112,7 +111,7 @@ package Pgp3Pkg is
    constant PGP3_TX_IN_INIT_C : Pgp3TxInType := (
       disable      => '0',
       flowCntlDis  => '0',
-      skpInterval  => (others => '0'),
+      skpInterval  => toSlv(5000, 32),
       opCodeEn     => '0',
       opCodeNumber => (others => '0'),
       opCodeData   => (others => '0'));
@@ -123,6 +122,7 @@ package Pgp3Pkg is
       locPause    : slv(15 downto 0);
       phyTxActive : sl;
       linkReady   : sl;
+      opCodeReady : sl;
       frameTx     : sl;                 -- A good frame was transmitted
       frameTxErr  : sl;                 -- An errored frame was transmitted
    end record;
@@ -134,6 +134,7 @@ package Pgp3Pkg is
       locPause    => (others => '0'),
       phyTxActive => '0',
       linkReady   => '0',
+      opCodeReady => '0',
       frameTx     => '0',
       frameTxErr  => '0');
 

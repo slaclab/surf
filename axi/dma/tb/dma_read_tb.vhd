@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : dma_read_tb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-05-02
--- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for DMA read
 -------------------------------------------------------------------------------
@@ -220,7 +218,7 @@ begin
                   v.failed(2) := '1';
                end if;
                -- Increment the byte counter
-               v.byteCnt := r.byteCnt + getTKeep(axisMaster.tKeep);
+               v.byteCnt := r.byteCnt + getTKeep(axisMaster.tKeep,AXIS_CONFIG_C);
                -- Check for EOF
                if (axisMaster.tLast = '1') then
                   -- Check the firstUser
@@ -265,7 +263,7 @@ begin
       ----------------------------------------------------------------------
       end case;
 
-      -- Combinatoral outputs
+      -- Combinatorial outputs
       axisSlave <= v.axisSlave;
       
       -- Reset      

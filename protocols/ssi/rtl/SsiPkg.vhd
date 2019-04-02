@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SsiPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-25
--- Last update: 2016-05-04
 -------------------------------------------------------------------------------
 -- Description: SSI Package File
 -------------------------------------------------------------------------------
@@ -25,13 +23,13 @@ use work.AxiStreamPkg.all;
 
 package SsiPkg is
 
-   constant SSI_EOFE_C : integer := 0;
-   constant SSI_SOF_C  : integer := 1;
+   constant SSI_EOFE_C : natural := 0;
+   constant SSI_SOF_C  : natural := 1;
 
-   constant SSI_TUSER_BITS_C : integer := 2;
-   constant SSI_TDEST_BITS_C : integer := 4;
-   constant SSI_TID_BITS_C   : integer := 0;
-   constant SSI_TSTRB_EN_C   : boolean := false;
+   constant SSI_TUSER_BITS_C : positive := 2;
+   constant SSI_TDEST_BITS_C : positive := 4;
+   constant SSI_TID_BITS_C   : natural  := 0;
+   constant SSI_TSTRB_EN_C   : boolean  := false;
 
    constant SSI_MASTER_FORCE_EOFE_C : AxiStreamMasterType := (
       tValid => '1',                                   -- Force
@@ -41,17 +39,17 @@ package SsiPkg is
       tLast  => '1',                                   -- EOF
       tDest  => (others => '0'),
       tId    => (others => '0'),
-      tUser  => x"01010101010101010101010101010101");  -- EOFE   
+      tUser  => (others => '1'));  -- EOFE   
 
    -------------------------------------------------------------------------------------------------
    -- Build an SSI configuration
    -------------------------------------------------------------------------------------------------
    function ssiAxiStreamConfig (
-      dataBytes : natural;
-      tKeepMode : TKeepModeType        := TKEEP_COMP_C;
-      tUserMode : TUserModeType        := TUSER_FIRST_LAST_C;
-      tDestBits : integer range 0 to 8 := 4;
-      tUserBits : integer range 2 to 8 := 2)
+      dataBytes : positive;
+      tKeepMode : TKeepModeType         := TKEEP_COMP_C;
+      tUserMode : TUserModeType         := TUSER_FIRST_LAST_C;
+      tDestBits : natural range 0 to 8  := 4;
+      tUserBits : positive range 2 to 8 := 2)
       return AxiStreamConfigType;
 
    -- A default SSI config is useful to have
@@ -62,9 +60,9 @@ package SsiPkg is
    -------------------------------------------------------------------------------------------------
    type SsiMasterType is record
       valid  : sl;
-      data   : slv(127 downto 0);
-      strb   : slv(15 downto 0);
-      keep   : slv(15 downto 0);
+      data   : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0);
+      strb   : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
+      keep   : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
       dest   : slv(SSI_TDEST_BITS_C-1 downto 0);
       packed : sl;
       sof    : sl;
@@ -145,11 +143,11 @@ end package SsiPkg;
 package body SsiPkg is
 
    function ssiAxiStreamConfig (
-      dataBytes : natural;
-      tKeepMode : TKeepModeType        := TKEEP_COMP_C;
-      tUserMode : TUserModeType        := TUSER_FIRST_LAST_C;
-      tDestBits : integer range 0 to 8 := 4;
-      tUserBits : integer range 2 to 8 := 2)
+      dataBytes : positive;
+      tKeepMode : TKeepModeType         := TKEEP_COMP_C;
+      tUserMode : TUserModeType         := TUSER_FIRST_LAST_C;
+      tDestBits : natural range 0 to 8  := 4;
+      tUserBits : positive range 2 to 8 := 2)
       return AxiStreamConfigType is
       variable ret : AxiStreamConfigType;
    begin

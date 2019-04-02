@@ -11,99 +11,109 @@
 #once Ad5780.yaml
 
 Ad5780: &Ad5780
-class: MMIODev
-configPrio: 1
-description: Ad5780 Module
-size: 0x200
-children:
-  #########################################################
-  dacRefreshRate:
-    at:
-      offset: 0x400
-    sizeBits: 32
-    lsBit: 0
-    mode: RO
-    description: DAC Rate (in units of Hz
-  #########################################################
-  dacData:
-    at:
-      offset: 0x0C0
-    sizeBits: 18
-    lsBit: 0
-    mode: RO
-    description: DAC Data
-  ######################################################### 
-  debugMux:
-    at:
-      offset: 0x200
-    sizeBits: 1
-    lsBit: 0
-    mode: RW
-    description: debugMux
-  ######################################################### 
-  debugData:
-    at:
-      offset: 0x240
-    sizeBits: 18
-    lsBit: 0
-    mode: RW
-    description: debugData
-  ######################################################### 
-  sdoDisable:
-    at:
-      offset: 0x280
-    sizeBits: 1
-    lsBit: 0
-    mode: RW
-    description: sdoDisable
-  ######################################################### 
-  binaryOffset:
-    at:
-      offset: 0x284
-    sizeBits: 1
-    lsBit: 0
-    mode: RW
-    description: binaryOffset
-  ######################################################### 
-  dacTriState:
-    at:
-      offset: 0x288
-    sizeBits: 1
-    lsBit: 0
-    mode: RW
-    description: dacTriState
-  ######################################################### 
-  opGnd:
-    at:
-      offset: 0x28C
-    sizeBits: 1
-    lsBit: 0
-    mode: RW
-    description: opGnd
-  ######################################################### 
-  rbuf:
-    at:
-      offset: 0x290
-    sizeBits: 1
-    lsBit: 0
-    mode: RW
-    description: rbuf
-  ######################################################### 
-  halfSckPeriod:
-    at:
-      offset: 0x294
-    sizeBits: 32
-    lsBit: 0
-    mode: RW
-    description: halfSckPeriod
-  ######################################################### 
-  hardReset:
-    at:
-      offset: 0x3F8
-    # sizeBits: 1 
-    # CPSW requires all WO variables to be 32-bit size and 32-bit aligned 
-    sizeBits: 32 
-    lsBit: 0
-    mode: WO
-    description: HardReset
-  ######################################################### 
+  class: MMIODev
+  configPrio: 1
+  description: Ad5780 Module
+  size: 0x400
+  children:
+    #########################################################
+    dacRefreshRate:
+      at:
+        offset: 0x40
+      class: IntField
+      sizeBits: 32
+      lsBit: 0
+      mode: RO
+      description: DAC Rate (in units of Hz
+    #########################################################
+    dacData:
+      at:
+        offset: 0x0C0
+      class: IntField
+      sizeBits: 18
+      lsBit: 0
+      mode: RO
+      description: DAC Data
+    ######################################################### 
+    debugMux:
+      at:
+        offset: 0x200
+      class: IntField
+      sizeBits: 1
+      lsBit: 0
+      mode: RW
+      description: debugMux
+    ######################################################### 
+    debugData:
+      at:
+        offset: 0x240
+      class: IntField
+      sizeBits: 18
+      lsBit: 0
+      mode: RW
+      description: debugData
+    ######################################################### 
+    sdoDisable:
+      at:
+        offset: 0x280
+      class: IntField
+      sizeBits: 1
+      lsBit: 0
+      mode: RW
+      description: sdoDisable
+    ######################################################### 
+    binaryOffset:
+      at:
+        offset: 0x284
+      class: IntField
+      sizeBits: 1
+      lsBit: 0
+      mode: RW
+      description: binaryOffset
+    ######################################################### 
+    dacTriState:
+      at:
+        offset: 0x288
+      class: IntField
+      sizeBits: 1
+      lsBit: 0
+      mode: RW
+      description: dacTriState
+    ######################################################### 
+    opGnd:
+      at:
+        offset: 0x28C
+      class: IntField
+      sizeBits: 1
+      lsBit: 0
+      mode: RW
+      description: opGnd
+    ######################################################### 
+    rbuf:
+      at:
+        offset: 0x290
+      class: IntField
+      sizeBits: 1
+      lsBit: 0
+      mode: RW
+      description: rbuf
+    ######################################################### 
+    halfSckPeriod:
+      at:
+        offset: 0x294
+      class: IntField
+      sizeBits: 32
+      lsBit: 0
+      mode: RW
+      description: halfSckPeriod
+    ######################################################### 
+#  CPSW no longer supports WO mode
+#    hardReset:
+#      at:
+#        offset: 0x3F8
+#      class: IntField
+#      sizeBits: 32
+#      lsBit: 0
+#      mode: WO
+#      description: HardReset
+    ######################################################### 

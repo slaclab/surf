@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamDmaRingPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-03-08
--- Last update: 2016-08-02
 -------------------------------------------------------------------------------
 -- Description: AxiStreamDmaRingPkg Support Package
 -------------------------------------------------------------------------------

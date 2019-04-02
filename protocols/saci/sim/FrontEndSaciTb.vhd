@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : FrontEndSaciTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2012-10-02
--- Last update: 2018-05-16
 -------------------------------------------------------------------------------
 -- Description: Simple Saci testbench with Saci Master connected to the
 -- standard Front End Register interface.

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Gtx7RxFixedLatPhaseAligner.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2012-11-06
--- Last update: 2014-01-30
 -------------------------------------------------------------------------------
 -- Description:
 -- Used in conjunction for a Xilinx 7 Series GTX.

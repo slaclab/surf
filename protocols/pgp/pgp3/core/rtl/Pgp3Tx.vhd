@@ -2,7 +2,6 @@
 -- Title      : Pgp3 Transmit
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-03-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -34,8 +33,6 @@ entity Pgp3Tx is
       -- PGP configuration
       NUM_VC_G                 : integer range 1 to 16 := 1;
       CELL_WORDS_MAX_G         : integer               := 256;  -- Number of 64-bit words per cell
-      SKP_INTERVAL_G           : integer               := 5000;
-      SKP_BURST_SIZE_G         : integer               := 8;
       -- Mux configuration
       MUX_MODE_G               : string                := "INDEXED";  -- Or "ROUTED"
       MUX_TDEST_ROUTES_G       : Slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
@@ -46,7 +43,7 @@ entity Pgp3Tx is
       -- Transmit interface
       pgpTxClk     : in  sl;
       pgpTxRst     : in  sl;
-      pgpTxIn      : in  Pgp3TxInType;
+      pgpTxIn      : in  Pgp3TxInType := PGP3_TX_IN_INIT_C;
       pgpTxOut     : out Pgp3TxOutType;
       pgpTxMasters : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
       pgpTxSlaves  : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
@@ -60,8 +57,8 @@ entity Pgp3Tx is
       -- PHY interface
       phyTxActive   : in  sl;
       phyTxReady    : in  sl;
+      phyTxValid    : out sl;
       phyTxStart    : out sl;
-      phyTxSequence : out slv(5 downto 0);
       phyTxData     : out slv(63 downto 0);
       phyTxHeader   : out slv(1 downto 0));
 
@@ -86,7 +83,6 @@ architecture rtl of Pgp3Tx is
    signal phyTxActiveL   : sl;
    signal protTxValid    : sl;
    signal protTxReady    : sl;
-   signal protTxSequence : slv(5 downto 0);
    signal protTxStart    : sl;
    signal protTxData     : slv(63 downto 0);
    signal protTxHeader   : slv(1 downto 0);
@@ -206,9 +202,7 @@ begin
    U_Pgp3TxProtocol_1 : entity work.Pgp3TxProtocol
       generic map (
          TPD_G            => TPD_G,
-         NUM_VC_G         => NUM_VC_G,
-         SKP_INTERVAL_G   => SKP_INTERVAL_G,
-         SKP_BURST_SIZE_G => SKP_BURST_SIZE_G)
+         NUM_VC_G         => NUM_VC_G)
       port map (
          pgpTxClk       => pgpTxClk,            -- [in]
          pgpTxRst       => pgpTxRst,            -- [in]
@@ -223,7 +217,6 @@ begin
          protTxReady    => protTxReady,         -- [in]
          protTxValid    => protTxValid,         -- [out]
          protTxStart    => protTxStart,         -- [out]
-         protTxSequence => protTxSequence,      -- [out]
          protTxData     => protTxData,          -- [out]
          protTxHeader   => protTxHeader);       -- [out]
 
@@ -233,22 +226,23 @@ begin
          TPD_G            => TPD_G,
          DIRECTION_G      => "SCRAMBLER",
          DATA_WIDTH_G     => 64,
-         SIDEBAND_WIDTH_G => 9,
+         SIDEBAND_WIDTH_G => 3,
          TAPS_G           => PGP3_SCRAMBLER_TAPS_C)
       port map (
          clk                        => pgpTxClk,        -- [in]
          rst                        => phyTxActiveL,    -- [in]
+         -- Input Interface
          inputValid                 => protTxValid,     -- [in]
          inputReady                 => protTxReady,     -- [out]
          inputData                  => protTxData,      -- [in]
          inputSideband(1 downto 0)  => protTxHeader,    -- [in]
          inputSideband(2)           => protTxStart,     -- [in]
-         inputSideband(8 downto 3)  => protTxSequence,  -- [in]
+         -- Output Interface
+         outputValid                => phyTxValid,      -- [out]
          outputReady                => phyTxReady,      -- [in]
          outputData                 => phyTxData,       -- [out]
          outputSideband(1 downto 0) => phyTxHeader,     -- [out]
-         outputSideband(2)          => phyTxStart,      -- [out]
-         outputSideband(8 downto 3) => phyTxSequence);  -- [out]
+         outputSideband(2)          => phyTxStart);     -- [out]
 
    phyTxActiveL <= not(phyTxActive);
 

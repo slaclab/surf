@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Pgp2bTxSched.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2009-05-27
--- Last update: 2017-03-28
 -------------------------------------------------------------------------------
 -- Description:
 -- Transmit scheduler interface module for the Pretty Good Protocol core. 

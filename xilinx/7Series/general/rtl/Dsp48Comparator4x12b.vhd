@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Dsp48Comparator4x12b.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-10-02
--- Last update: 2014-10-02
 -------------------------------------------------------------------------------
 -- Description: This module is a quad 12-bit digital comparator using a DSP48
 -------------------------------------------------------------------------------

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiLiteRingBuffer.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-05-02
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Wrapper for simple BRAM based ring buffer with AXI-Lite interface
 -------------------------------------------------------------------------------
@@ -27,6 +25,7 @@ entity AxiLiteRingBuffer is
    generic (
       -- General Configurations
       TPD_G            : time                   := 1 ns;
+      EXT_CTRL_ONLY_G  : boolean                := false;
       BRAM_EN_G        : boolean                := true;
       REG_EN_G         : boolean                := true;
       DATA_WIDTH_G     : positive range 1 to 32 := 32;
@@ -277,7 +276,7 @@ begin
          -- Check for an out of 32 bit aligned address
          axiWriteResp := ite(axilWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          -- Check for first mapped address access (which is the control register)
-         if (axilWriteMaster.awaddr(RAM_ADDR_WIDTH_G+2-1 downto 2) = 0) then
+         if (axilWriteMaster.awaddr(RAM_ADDR_WIDTH_G+2-1 downto 2) = 0)  and (EXT_CTRL_ONLY_G = false) then
             v.bufferEnable := axilWriteMaster.wdata(31);
             v.bufferClear  := axilWriteMaster.wdata(30);
          else
@@ -295,7 +294,7 @@ begin
          -- Check for an out of 32 bit aligned address
          axiReadResp           := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          -- Control register mapped at address 0
-         if (axilReadMaster.araddr(RAM_ADDR_WIDTH_G+2-1 downto 2) = 0) then
+         if (axilReadMaster.araddr(RAM_ADDR_WIDTH_G+2-1 downto 2) = 0) and (EXT_CTRL_ONLY_G = false) then
             v.axilReadSlave.rdata(31)                          := axilR.bufferEnable;
             v.axilReadSlave.rdata(30)                          := axilR.bufferClear;
             v.axilReadSlave.rdata(29)                          := extBufferEnable;

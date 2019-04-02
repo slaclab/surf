@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : IcmpEngine.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-08-16
--- Last update: 2016-09-16
 -------------------------------------------------------------------------------
 -- Description: ICMP Engine (A.K.A. "ping" protocol)
 -------------------------------------------------------------------------------
@@ -148,8 +146,8 @@ begin
                   --       outbound packet.
                   ---------------------------------------------------------
                   -- Send the IPv4 base header
-                  v.obIcmpMaster.tValid   := '1';
-                  v.obIcmpMaster.tData    := r.tData;
+                  v.obIcmpMaster.tValid              := '1';
+                  v.obIcmpMaster.tData(127 downto 0) := r.tData;
                   ssiSetUserSof(EMAC_AXIS_CONFIG_C, v.obIcmpMaster, '1');
                   -- Next state
                   v.state                 := TX_HDR_S;

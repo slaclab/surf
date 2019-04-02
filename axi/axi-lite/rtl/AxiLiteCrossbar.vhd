@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiLiteCrossbar.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-09-24
--- Last update: 2017-11-13
 -------------------------------------------------------------------------------
 -- Description: Wrapper around Xilinx generated Main AXI Crossbar for HPS Front End
 -------------------------------------------------------------------------------
@@ -173,9 +171,13 @@ begin
 
                   for m in MASTERS_CONFIG_G'range loop
                      -- Check for address match
-                     if (sAxiWriteMasters(s).awaddr(31 downto MASTERS_CONFIG_G(m).addrBits) =
-                         MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits) and
-                         MASTERS_CONFIG_G(m).connectivity(s) = '1') then
+                     if (
+                        StdMatch(      -- Use std_match to allow dontcares ('-')
+                           sAxiWriteMasters(s).awaddr(31 downto MASTERS_CONFIG_G(m).addrBits),
+                           MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits))
+                        and (
+                           MASTERS_CONFIG_G(m).connectivity(s) = '1'))
+                     then
                         v.slave(s).wrReqs(m) := '1';
                         v.slave(s).wrReqNum  := conv_std_logic_vector(m, REQ_NUM_SIZE_C);
 --                        print("AxiLiteCrossbar: Slave  " & str(s) & " reqd Master " & str(m) & " Write addr " & hstr(sAxiWriteMasters(s).awaddr));
@@ -237,9 +239,13 @@ begin
                if (sAxiReadMasters(s).arvalid = '1') then
                   for m in MASTERS_CONFIG_G'range loop
                      -- Check for address match
-                     if (sAxiReadMasters(s).araddr(31 downto MASTERS_CONFIG_G(m).addrBits) =
-                         MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits) and
-                         MASTERS_CONFIG_G(m).connectivity(s) = '1') then
+                     if (
+                        StdMatch(      -- Use std_match to allow dontcares ('-')
+                           sAxiReadMasters(s).araddr(31 downto MASTERS_CONFIG_G(m).addrBits),
+                           MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits))
+                        and (
+                           MASTERS_CONFIG_G(m).connectivity(s) = '1'))
+                     then
                         v.slave(s).rdReqs(m) := '1';
                         v.slave(s).rdReqNum  := conv_std_logic_vector(m, REQ_NUM_SIZE_C);
                      end if;

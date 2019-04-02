@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : JesdLmfcGen.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-15
--- Last update: 2017-05-02
 -------------------------------------------------------------------------------
 -- Description: LMFC Generator
 --              Local Multi Frame Clock Generator

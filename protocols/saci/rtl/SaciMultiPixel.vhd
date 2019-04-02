@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : PgpParallelSimModel.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 07/21/2016
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

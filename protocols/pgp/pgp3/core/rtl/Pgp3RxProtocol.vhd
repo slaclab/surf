@@ -2,7 +2,6 @@
 -- Title      : PGP3 Receive Protocol
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-03-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -40,7 +39,7 @@ entity Pgp3RxProtocol is
       -- User Transmit interface
       pgpRxClk    : in  sl;
       pgpRxRst    : in  sl;
-      pgpRxIn     : in  Pgp3RxInType;
+      pgpRxIn     : in  Pgp3RxInType := PGP3_RX_IN_INIT_C;
       pgpRxOut    : out Pgp3RxOutType;
       pgpRxMaster : out AxiStreamMasterType;
       pgpRxSlave  : in  AxiStreamSlaveType;
@@ -189,6 +188,8 @@ begin
                         -- Verify checksun
                         if (protRxData(PGP3_USER_CHECKSUM_FIELD_C) = opCodeChecksum) then
                            v.pgpRxOut.opCodeEn := '1';
+                        else
+                           v.pgpRxOut.linkError := '1';
                         end if;
                      end if;
                   end loop;

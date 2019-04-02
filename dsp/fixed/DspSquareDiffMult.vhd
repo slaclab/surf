@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : DspSquareDiffMult.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-09-08
--- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: Generalized DSP inferred Squarer with pre-adder 
 --              configured as subtractor (based on UG901)

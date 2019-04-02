@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : StreamPatternTester.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 05/27/2016
--- Last update: 05/27/2016
 -------------------------------------------------------------------------------
 -- Description:   Test which compares the data stream to selected pattern
 --                Designed for the automated delay alignment of the fast LVDS lines  

@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : StdRtlPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-05-01
 -------------------------------------------------------------------------------
 -- Description: Standard RTL Package File
 ------------------------------------------------------------------------------
@@ -146,6 +145,12 @@ package StdRtlPkg is
    -- Resize vector types, either by trimming or padding upper indicies
    function resize (vec : slv; newSize : integer; pad : sl := '0') return slv;
    function resize (str : string; newSize : integer; pad : character := nul) return string;
+   
+  -- Match Functions 
+  function StdMatch (L, R: std_ulogic) return boolean;
+  function StdMatch (L, R: unsigned) return boolean;
+  function StdMatch (L, R: signed) return boolean;
+  function StdMatch (L, R: slv) return boolean;
    
    -- Some synthesis tools wont accept unit types
    -- pragma translate_off
@@ -790,7 +795,7 @@ package body StdRtlPkg is
       inp := resize(vector, BYTES_C*8);
       
       for i in BYTES_C-1 downto 0 loop
-         ret(7+(8*i) downto 8*i) := inp(7+(8*(7-i)) downto (8*(7-i)));
+         ret(7+(8*i) downto 8*i) := inp(7+(8*(BYTES_C-1-i)) downto (8*(BYTES_C-1-i)));
       end loop;
       return ret;
    end function;
@@ -1365,6 +1370,28 @@ package body StdRtlPkg is
       return ret;
    end function resize;
    
+   -- Match Functions 
+   function StdMatch (L, R: std_ulogic) return boolean is
+   begin
+      return std_match(L,R);
+   end function StdMatch;  
+
+   function StdMatch (L, R: unsigned) return boolean is
+   begin
+      return std_match(L,R);
+   end function StdMatch;  
+
+   function StdMatch (L, R: signed) return boolean is
+   begin
+      return std_match(L,R);
+   end function StdMatch;  
+
+   function StdMatch (L, R: slv) return boolean is
+   begin
+      return std_match(L,R);
+   end function StdMatch;  
+
+  
    function toBuildInfo (din : slv) return BuildInfoRetType is
       variable ret : BuildInfoRetType;
       variable i   : natural;

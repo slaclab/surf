@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : SaltTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-09-01
--- Last update: 2018-01-11
 -------------------------------------------------------------------------------
 -- Description: SALT TX Engine Module
 -------------------------------------------------------------------------------
@@ -190,7 +188,7 @@ begin
       end if;
 
       -- Update the variable
-      tKeep := x"000" & rxMaster.tKeep(3 downto 0);
+      tKeep(15 downto 0) := x"000" & rxMaster.tKeep(3 downto 0);
 
       -- State Machine
       case r.state is
@@ -235,7 +233,7 @@ begin
                -- Mask off tLast for intergap monitoring
                v.sMaster.tLast  := '0';
                -- Increment the counters
-               v.length         := r.length + getTKeep(tKeep);
+               v.length         := r.length + getTKeep(tKeep,SSI_SALT_CONFIG_C);
                v.size           := r.size + 1;
                -- Check for EOF
                if rxMaster.tLast = '1' then

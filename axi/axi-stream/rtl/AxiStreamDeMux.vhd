@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamDeMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-25
--- Last update: 2017-04-07
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to connect a single incoming AXI stream to multiple outgoing AXI
@@ -26,13 +24,13 @@ use work.AxiStreamPkg.all;
 
 entity AxiStreamDeMux is
    generic (
-      TPD_G          : time                  := 1 ns;
-      NUM_MASTERS_G  : integer range 1 to 32 := 12;
-      MODE_G         : string                := "INDEXED";          -- Or "ROUTED"
-      TDEST_ROUTES_G : slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
-      PIPE_STAGES_G  : integer range 0 to 16 := 0;
-      TDEST_HIGH_G   : integer range 0 to 7  := 7;
-      TDEST_LOW_G    : integer range 0 to 7  := 0);
+      TPD_G          : time                   := 1 ns;
+      NUM_MASTERS_G  : integer range 1 to 256 := 12;
+      MODE_G         : string                 := "INDEXED";          -- Or "ROUTED"
+      TDEST_ROUTES_G : slv8Array              := (0 => "--------");  -- Only used in ROUTED mode
+      PIPE_STAGES_G  : integer range 0 to 16  := 0;
+      TDEST_HIGH_G   : integer range 0 to 7   := 7;
+      TDEST_LOW_G    : integer range 0 to 7   := 0);
    port (
       -- Clock and reset
       axisClk      : in  sl;

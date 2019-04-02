@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamTap.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-25
--- Last update: 2016-09-06
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to extract and re-isnert a destination from an interleaved stream.
@@ -25,17 +23,19 @@ use work.AxiStreamPkg.all;
 
 entity AxiStreamTap is
    generic (
-      TPD_G         : time                   := 1 ns;
-      PIPE_STAGES_G : integer range 0 to 16  := 0;
-      TAP_DEST_G    : integer range 0 to 255 := 0);
+      TPD_G                : time                   := 1 ns;
+      TAP_DEST_G           : natural range 0 to 255 := 0;
+      PIPE_STAGES_G        : natural range 0 to 16  := 0;
+      ILEAVE_ON_NOTVALID_G : boolean                := false;
+      ILEAVE_REARB_G       : natural                := 0);
    port (
-      -- Slave
+      -- Slave Interface
       sAxisMaster  : in  AxiStreamMasterType;
       sAxisSlave   : out AxiStreamSlaveType;
-      -- Masters
+      -- Master Interface
       mAxisMaster  : out AxiStreamMasterType;
       mAxisSlave   : in  AxiStreamSlaveType;
-      -- Tap 
+      -- Tap Interface
       tmAxisMaster : out AxiStreamMasterType;
       tmAxisSlave  : in  AxiStreamSlaveType;
       tsAxisMaster : in  AxiStreamMasterType;
@@ -47,15 +47,15 @@ end AxiStreamTap;
 
 architecture structure of AxiStreamTap is
 
-   constant ROUTES_C : Slv8Array := (0 => "--------", 
-                                     1 => toSlv(TAP_DEST_G,8));
+   constant ROUTES_C : Slv8Array := (0 => "--------",
+                                     1 => toSlv(TAP_DEST_G, 8));
 
-   signal iAxisMaster  : AxiStreamMasterType;
-   signal iAxisSlave   : AxiStreamSlaveType;
+   signal iAxisMaster : AxiStreamMasterType;
+   signal iAxisSlave  : AxiStreamSlaveType;
 
 begin
 
-   U_DeMux: entity work.AxiStreamDeMux
+   U_DeMux : entity work.AxiStreamDeMux
       generic map (
          TPD_G          => TPD_G,
          PIPE_STAGES_G  => PIPE_STAGES_G,
@@ -72,15 +72,16 @@ begin
          axisClk         => axisClk,
          axisRst         => axisRst);
 
-   U_Mux: entity work.AxiStreamMux
+   U_Mux : entity work.AxiStreamMux
       generic map (
-         TPD_G          => TPD_G,
-         PIPE_STAGES_G  => PIPE_STAGES_G,
-         NUM_SLAVES_G   => 2,
-         MODE_G         => "ROUTED",
-         TDEST_ROUTES_G => ROUTES_C,
-         ILEAVE_EN_G    => true,
-         ILEAVE_REARB_G => 0)
+         TPD_G                => TPD_G,
+         PIPE_STAGES_G        => PIPE_STAGES_G,
+         NUM_SLAVES_G         => 2,
+         MODE_G               => "ROUTED",
+         TDEST_ROUTES_G       => ROUTES_C,
+         ILEAVE_EN_G          => true,
+         ILEAVE_ON_NOTVALID_G => ILEAVE_ON_NOTVALID_G,
+         ILEAVE_REARB_G       => ILEAVE_REARB_G)
       port map (
          axisClk         => axisClk,
          axisRst         => axisRst,

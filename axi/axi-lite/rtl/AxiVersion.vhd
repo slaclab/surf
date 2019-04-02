@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiVersion.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-05-20
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Creates AXI accessible registers containing configuration
 -- information.
@@ -26,20 +24,20 @@ use work.AxiLitePkg.all;
 
 entity AxiVersion is
    generic (
-      TPD_G              : time                   := 1 ns;
+      TPD_G              : time             := 1 ns;
       BUILD_INFO_G       : BuildInfoType;
-      SIM_DNA_VALUE_G    : slv                    := X"000000000000000000000000";
-      DEVICE_ID_G        : slv(31 downto 0)       := (others => '0');
-      CLK_PERIOD_G       : real                   := 8.0E-9;  -- units of seconds
-      XIL_DEVICE_G       : string                 := "7SERIES";  -- Either "7SERIES" or "ULTRASCALE"
-      EN_DEVICE_DNA_G    : boolean                := false;
-      EN_DS2411_G        : boolean                := false;
-      EN_ICAP_G          : boolean                := false;
-      USE_SLOWCLK_G      : boolean                := false;
-      BUFR_CLK_DIV_G     : positive               := 8;
-      AUTO_RELOAD_EN_G   : boolean                := false;
-      AUTO_RELOAD_TIME_G : real range 0.0 to 30.0 := 10.0;  -- units of seconds
-      AUTO_RELOAD_ADDR_G : slv(31 downto 0)       := (others => '0'));
+      SIM_DNA_VALUE_G    : slv              := X"000000000000000000000000";
+      DEVICE_ID_G        : slv(31 downto 0) := (others => '0');
+      CLK_PERIOD_G       : real             := 8.0E-9;     -- units of seconds
+      XIL_DEVICE_G       : string           := "7SERIES";  -- Either "7SERIES" or "ULTRASCALE"
+      EN_DEVICE_DNA_G    : boolean          := false;
+      EN_DS2411_G        : boolean          := false;
+      EN_ICAP_G          : boolean          := false;
+      USE_SLOWCLK_G      : boolean          := false;
+      BUFR_CLK_DIV_G     : positive         := 8;
+      AUTO_RELOAD_EN_G   : boolean          := false;
+      AUTO_RELOAD_TIME_G : positive         := 10;         -- units of seconds
+      AUTO_RELOAD_ADDR_G : slv(31 downto 0) := (others => '0'));
    port (
       -- AXI-Lite Interface
       axiClk         : in    sl;
@@ -67,7 +65,6 @@ end AxiVersion;
 
 architecture rtl of AxiVersion is
 
-   constant RELOAD_COUNT_C : integer          := integer(AUTO_RELOAD_TIME_G / CLK_PERIOD_G);
    constant TIMEOUT_1HZ_C  : natural          := (getTimeRatio(1.0, CLK_PERIOD_G) -1);
    constant COUNTER_ZERO_C : slv(31 downto 0) := X"00000000";
 
@@ -78,8 +75,7 @@ architecture rtl of AxiVersion is
       upTimeCnt      : slv(31 downto 0);
       timer          : natural range 0 to TIMEOUT_1HZ_C;
       scratchPad     : slv(31 downto 0);
-      counter        : slv(31 downto 0);
-      counterRst     : sl;
+      reloadTimer    : natural range 0 to AUTO_RELOAD_TIME_G;
       userReset      : sl;
       fpgaReload     : sl;
       haltReload     : sl;
@@ -92,8 +88,7 @@ architecture rtl of AxiVersion is
       upTimeCnt      => (others => '0'),
       timer          => 0,
       scratchPad     => (others => '0'),
-      counter        => (others => '0'),
-      counterRst     => '0',
+      reloadTimer    => 0,
       userReset      => '0',
       fpgaReload     => '0',
       haltReload     => '0',
@@ -104,8 +99,8 @@ architecture rtl of AxiVersion is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal dnaValue     : slv(127 downto 0) := (others => '0');
-   signal fdValue      : slv(63 downto 0)  := (others => '0');
+   signal dnaValue : slv(127 downto 0) := (others => '0');
+   signal fdValue  : slv(63 downto 0)  := (others => '0');
 
    attribute rom_style                         : string;
    attribute rom_style of BUILD_STRING_ROM_C   : constant is "distributed";
@@ -169,19 +164,6 @@ begin
       -- Latch the current value
       v := r;
 
-      ---------------------------------
-      -- First Stage Boot Loader (FSBL)
-      ---------------------------------
-      -- Check if timer enabled
-      if fpgaEnReload = '1' then
-         v.counter := v.counter + 1;
-      end if;
-
-      -- Check for reload condition
-      if AUTO_RELOAD_EN_G and (r.counter = RELOAD_COUNT_C) and (fpgaEnReload = '1') and (r.haltReload = '0') then
-         v.fpgaReload := '1';
-      end if;
-
       ------------------------      
       -- AXI-Lite Transactions
       ------------------------      
@@ -201,25 +183,38 @@ begin
       axiSlaveRegisterR(axilEp, x"300", 0, fdValue);
       axiSlaveRegisterR(axilEp, x"400", userValues);
       axiSlaveRegisterR(axilEp, x"500", 0, DEVICE_ID_G);
-      
-      -- axiSlaveRegisterR(axilEp, x"600", 0, BUILD_INFO_C.gitHash);-- axiSlaveRegisterR() Broken, only first 32-bit show up in software
-      axiSlaveRegisterR(axilEp, x"600", 0, BUILD_INFO_C.gitHash(31 downto 0));
-      axiSlaveRegisterR(axilEp, x"604", 0, BUILD_INFO_C.gitHash(63 downto 32));
-      axiSlaveRegisterR(axilEp, x"608", 0, BUILD_INFO_C.gitHash(95 downto 64));
-      axiSlaveRegisterR(axilEp, x"60C", 0, BUILD_INFO_C.gitHash(127 downto 96));
-      axiSlaveRegisterR(axilEp, x"610", 0, BUILD_INFO_C.gitHash(159 downto 128));
-      
+
+      axiSlaveRegisterR(axilEp, x"600", 0, BUILD_INFO_C.gitHash);
+
       axiSlaveRegisterR(axilEp, x"700", 0, dnaValue);
       axiSlaveRegisterR(axilEp, x"800", BUILD_STRING_ROM_C);
 
+      -- Close the transaction
       axiSlaveDefault(axilEp, v.axiWriteSlave, v.axiReadSlave, AXI_RESP_DECERR_C);
 
       ---------------------------------
       -- Uptime counter
       ---------------------------------      
       if r.timer = TIMEOUT_1HZ_C then
-         v.timer     := 0;
+         -- Reset the counter
+         v.timer := 0;
+
+         -- Increment the Counter
          v.upTimeCnt := r.upTimeCnt + 1;
+
+         ---------------------------------
+         -- First Stage Boot Loader (FSBL)
+         ---------------------------------
+         -- Check if timer enabled
+         if (fpgaEnReload = '1') and (r.reloadTimer /= AUTO_RELOAD_TIME_G) then
+            v.reloadTimer := r.reloadTimer + 1;
+         end if;
+
+         -- Check for reload condition
+         if AUTO_RELOAD_EN_G and (r.reloadTimer = AUTO_RELOAD_TIME_G) and (fpgaEnReload = '1') and (r.haltReload = '0') then
+            v.fpgaReload := '1';
+         end if;
+
       else
          v.timer := r.timer + 1;
       end if;

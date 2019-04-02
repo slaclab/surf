@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : EthMacTxPause.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-09-22
--- Last update: 2016-10-20
 -------------------------------------------------------------------------------
 -- Description:
 -- Generic pause frame generator for Ethernet MACs.  This module as acts as
@@ -220,12 +218,12 @@ begin
                      v.mAxisMaster.tData(127 downto 16) := (others => '0');         -- 14 bytes
                   elsif (r.txCount = 2) then
                      -- Zero Padding
-                     v.mAxisMaster.tData := (others => '0');
-                     v.mAxisMaster.tKeep := x"FFFF";  -- 16 bytes    
+                     v.mAxisMaster.tData(127 downto 0) := (others => '0');
+                     v.mAxisMaster.tKeep(15 downto 0)  := x"FFFF";  -- 16 bytes    
                   else
                      -- Zero Padding
-                     v.mAxisMaster.tData := (others => '0');
-                     v.mAxisMaster.tKeep := x"0FFF";  -- 12 bytes (Fixed frame size = 46 bytes)
+                     v.mAxisMaster.tData(127 downto 0) := (others => '0');
+                     v.mAxisMaster.tKeep(15 downto 0)  := x"0FFF";  -- 12 bytes (Fixed frame size = 46 bytes)
                      -- Set EOF
                      v.mAxisMaster.tLast := '1';
                      -- Latch the Pause time   

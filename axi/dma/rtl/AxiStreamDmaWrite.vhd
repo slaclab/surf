@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamDmaWrite.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-25
--- Last update: 2016-12-02
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to transfer a single AXI Stream frame into memory using an AXI
@@ -35,6 +33,7 @@ entity AxiStreamDmaWrite is
       AXI_CONFIG_G      : AxiConfigType       := AXI_CONFIG_INIT_C;
       AXI_BURST_G       : slv(1 downto 0)     := "01";
       AXI_CACHE_G       : slv(3 downto 0)     := "1111";
+      BURST_BYTES_G     : positive range 1 to 4096 := 4096;
       SW_CACHE_EN_G     : boolean             := false;
       ACK_WAIT_BVALID_G : boolean             := true;
       PIPE_STAGES_G     : natural             := 1;
@@ -70,8 +69,8 @@ architecture rtl of AxiStreamDmaWrite is
 
    constant DATA_BYTES_C      : integer         := LOC_AXIS_CONFIG_C.TDATA_BYTES_C;
    constant ADDR_LSB_C        : integer         := bitSize(DATA_BYTES_C-1);
-   constant AWLEN_C           : slv(7 downto 0) := getAxiLen(AXI_CONFIG_G, 4096);
-   constant FIFO_ADDR_WIDTH_C : natural         := (AXI_CONFIG_G.LEN_BITS_C+1);
+   constant AWLEN_C           : slv(7 downto 0) := getAxiLen(AXI_CONFIG_G, BURST_BYTES_G);
+   constant FIFO_ADDR_WIDTH_C : natural         := ite((AXI_CONFIG_G.LEN_BITS_C<3),4,(AXI_CONFIG_G.LEN_BITS_C+1));
 
    type StateType is (
       IDLE_S,
@@ -261,7 +260,7 @@ begin
       end if;
 
       -- Count number of bytes in return data
-      bytes := getTKeep(intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0));
+      bytes := getTKeep(intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0),LOC_AXIS_CONFIG_C);
 
       -- Check the AXI stream data cache
       if (lastDet = '1') or (cache.pause = '1') then
@@ -321,10 +320,12 @@ begin
                      v.wMaster.awlen := resize(r.dmaReq.maxSize(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C)-1, 8);
                   end if;
                end if;
+               -- Update the Protection control
+               v.wMaster.awprot := r.dmaReq.prot;
                -- Latch AXI awlen value
                v.awlen     := v.wMaster.awlen(AXI_CONFIG_G.LEN_BITS_C-1 downto 0);
                -- Update the threshold
-               v.threshold := '0' & v.awlen;
+               v.threshold := resize(v.awlen, FIFO_ADDR_WIDTH_C);
                v.threshold := v.threshold + 1;
                -- DMA request has dropped. Abort. This is needed to disable engine while it
                -- is still waiting for an inbound frame.
@@ -355,7 +356,7 @@ begin
                -- Latch AXI awlen value
                v.awlen     := v.wMaster.awlen(AXI_CONFIG_G.LEN_BITS_C-1 downto 0);
                -- Update the threshold
-               v.threshold := '0' & v.awlen;
+               v.threshold := resize(v.awlen, FIFO_ADDR_WIDTH_C);
                v.threshold := v.threshold + 1;
                -- DMA request has dropped. Abort. This is needed to disable engine while it
                -- is still waiting for an inbound frame.

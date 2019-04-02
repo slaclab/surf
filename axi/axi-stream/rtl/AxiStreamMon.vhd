@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamMon.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-07-14
--- Last update: 2017-11-16
 -------------------------------------------------------------------------------
 -- Description: AXI Stream Monitor Module
 -------------------------------------------------------------------------------
@@ -55,7 +53,7 @@ architecture rtl of AxiStreamMon is
       armed        : sl;
       frameSent    : sl;
       tValid       : sl;
-      tKeep        : slv(15 downto 0);
+      tKeep        : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
       updated      : sl;
       updateStat   : sl;
       timer        : natural range 0 to TIMEOUT_C;
@@ -177,7 +175,11 @@ begin
       -- Check if last cycle had data moving
       if r.tValid = '1' then
          -- Update the accumulator 
-         v.accum := r.accum + getTKeep(r.tKeep);
+         if (AXIS_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
+            v.accum := r.accum + conv_integer(r.tKeep(bitSize(AXIS_CONFIG_G.TDATA_BYTES_C)-1 downto 0));
+         else
+            v.accum := r.accum + getTKeep(r.tKeep, AXIS_CONFIG_G);
+         end if;
       end if;
 
       -- Increment the timer
@@ -194,7 +196,11 @@ begin
          if r.tValid = '0' then
             v.accum := (others => '0');
          else
-            v.accum := toSlv(getTKeep(r.tKeep), 40);
+            if (AXIS_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
+               v.accum := resize(r.tKeep(bitSize(AXIS_CONFIG_G.TDATA_BYTES_C)-1 downto 0), 40);
+            else
+               v.accum := toSlv(getTKeep(r.tKeep, AXIS_CONFIG_G), 40);
+            end if;
          end if;
       end if;
 

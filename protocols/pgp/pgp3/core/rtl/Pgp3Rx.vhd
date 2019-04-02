@@ -2,8 +2,6 @@
 -- Title      : Pgp3 Receive Block
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-04-07
--- Last update: 2018-03-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -34,14 +32,12 @@ entity Pgp3Rx is
    generic (
       TPD_G              : time                  := 1 ns;
       NUM_VC_G           : integer range 1 to 16 := 4;
-      ALIGN_GOOD_COUNT_G : integer               := 128;
-      ALIGN_BAD_COUNT_G  : integer               := 16;
       ALIGN_SLIP_WAIT_G  : integer               := 32);
    port (
       -- User Transmit interface
       pgpRxClk     : in  sl;
       pgpRxRst     : in  sl;
-      pgpRxIn      : in  Pgp3RxInType;
+      pgpRxIn      : in  Pgp3RxInType := PGP3_RX_IN_INIT_C;
       pgpRxOut     : out Pgp3RxOutType;
       pgpRxMasters : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
       pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0); -- Unused
@@ -103,8 +99,6 @@ begin
    U_Pgp3RxGearboxAligner_1 : entity work.Pgp3RxGearboxAligner
       generic map (
          TPD_G        => TPD_G,
-         GOOD_COUNT_G => ALIGN_GOOD_COUNT_G,
-         BAD_COUNT_G  => ALIGN_BAD_COUNT_G,
          SLIP_WAIT_G  => ALIGN_SLIP_WAIT_G)
       port map (
          clk           => phyRxClk,         -- [in]
