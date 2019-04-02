@@ -30,12 +30,19 @@ entity Sgmii88E1111LvdsUltraScale is
       AXIS_CONFIG_G     : AxiStreamConfigType   := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- clock and reset
-      extRst      : in    sl; -- active high
-      stableClk   : in    sl; -- Stable clock reference
-      -- Local Configurations
+      extRst      : in    sl;                -- active high
+      stableClk   : in    sl;                -- Stable clock reference
+      phyClk      : out   sl;
+      phyRst      : out   sl;
+      -- Local Configurations/status
       localMac    : in    slv(47 downto 0);  --  big-Endian configuration   
+      phyReady    : out   sl;
+      linkUp      : out   sl;
+      speed10     : out   sl;
+      speed100    : out   sl;
+      speed1000   : out   sl;
       -- Interface to Ethernet Media Access Controller (MAC)
-      macClk      : in    sl;                
+      macClk      : in    sl;
       macRst      : in    sl;
       obMacMaster : out   AxiStreamMasterType;
       obMacSlave  : in    AxiStreamSlaveType;
@@ -57,9 +64,8 @@ end entity Sgmii88E1111LvdsUltraScale;
 
 architecture mapping of Sgmii88E1111LvdsUltraScale is
 
-   signal phyClk   : sl;
-   signal phyRst   : sl;
-   signal phyReady : sl;
+   signal phyClock : sl;
+   signal phyReset : sl;
 
    signal phyInitRst : sl;
    signal phyIrq     : sl;
@@ -69,12 +75,18 @@ architecture mapping of Sgmii88E1111LvdsUltraScale is
    signal extPhyRstN  : sl := '0';
    signal extPhyReady : sl := '0';
 
-   signal speed10_100 : sl := '0';
-   signal speed100    : sl := '0';
-   signal linkIsUp    : sl := '0';
-   signal initDone    : sl := '0';
+   signal sp10_100 : sl := '0';
+   signal sp100    : sl := '0';
+   signal initDone : sl := '0';
 
 begin
+
+   phyClk <= phyClock;
+   phyRst <= phyReset;
+
+   speed10   <= sp10_100 and not sp100;
+   speed100  <= sp10_100 and not sp100;
+   speed1000 <= not sp10_100 and not sp100;
 
    -- Tri-state driver for phyMdio
    phyMdio <= 'Z' when phyMdo = '1' else '0';
@@ -117,7 +129,7 @@ begin
          IN_POLARITY_G  => '0',
          OUT_POLARITY_G => '1')
       port map (
-         clk      => phyClk,
+         clk      => phyClock,
          asyncRst => extPhyReady,
          syncRst  => phyInitRst);
 
@@ -134,12 +146,12 @@ begin
          PHY_G => PHY_G,
          DIV_G => 100)
       port map (
-         clk             => phyClk,
+         clk             => phyClock,
          rst             => phyInitRst,
          initDone        => initDone,
-         speed_is_10_100 => speed10_100,
-         speed_is_100    => speed100,
-         linkIsUp        => linkIsUp,
+         speed_is_10_100 => sp10_100,
+         speed_is_100    => sp100,
+         linkIsUp        => linkUp,
          mdi             => phyMdi,
          mdc             => phyMdc,
          mdo             => phyMdo,
@@ -152,7 +164,7 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => phyClk,
+         clk     => phyClock,
          dataIn  => phyMdio,
          dataOut => phyMdi);
 
@@ -162,7 +174,7 @@ begin
          OUT_POLARITY_G => '0',
          INIT_G         => "11")
       port map (
-         clk     => phyClk,
+         clk     => phyClock,
          dataIn  => phyIrqN,
          dataOut => phyIrq);
 
@@ -177,7 +189,7 @@ begin
          DIVCLK_DIVIDE_G   => 2,        -- 312.5 MHz
          CLKFBOUT_MULT_F_G => 2.0,      -- VCO: 625 MHz
          -- AXI Streaming Configurations
-         AXIS_CONFIG_G     =>(others =>  AXIS_CONFIG_G))
+         AXIS_CONFIG_G     => (others => AXIS_CONFIG_G))
       port map (
          -- Local Configurations
          localMac(0)        => localMac,
@@ -190,11 +202,11 @@ begin
          dmaObSlaves(0)     => ibMacSlave,
          -- Misc. Signals
          extRst             => extRst,
-         phyClk             => phyClk,
-         phyRst             => phyRst,
+         phyClk             => phyClock,
+         phyRst             => phyReset,
          phyReady(0)        => phyReady,
-         speed_is_10_100(0) => speed10_100,
-         speed_is_100(0)    => speed100,
+         speed_is_10_100(0) => sp10_100,
+         speed_is_100(0)    => sp100,
          -- MGT Clock Port
          sgmiiClkP          => phyClkP,
          sgmiiClkN          => phyClkN,
