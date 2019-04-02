@@ -28,7 +28,8 @@ entity DS2411Core is
       TPD_G        : time             := 1 ns;
       SIMULATION_G : boolean          := false;
       SIM_OUTPUT_G : slv(63 downto 0) := x"0123456789ABCDEF";
-      CLK_PERIOD_G : real             := 6.4E-9);  --units of seconds
+      CLK_PERIOD_G : real             := 6.4E-9;   --units of seconds
+      SMPL_TIME_G  : real             := 13.1E-6); --move sample time
    port (
       -- Clock & Reset Signals
       clk       : in    sl;
@@ -269,7 +270,7 @@ begin
                   nxtState   <= curState;
 
                -- Sample data at 13.1uS
-               elsif timeCnt = toSlv(getTimeRatio(13.1E-6, CLK_PERIOD_G), 32) then
+               elsif timeCnt = toSlv(getTimeRatio(SMPL_TIME_G, CLK_PERIOD_G), 32) then
                   setOutLow  <= '0';
                   bitCntEn   <= '0';
                   timeCntRst <= '0';
