@@ -136,7 +136,7 @@ begin
             clkb  => clk,
             enb   => en,
             web   => weByteMask,
-            rstb  => rst,
+            rstb  => '0',
             addrb => addr,
             dinb  => din,
             doutb => doutInt);
@@ -166,7 +166,7 @@ begin
             clkb  => clk,
             enb   => en,
             web   => weByteMask,
-            rstb  => rst,
+            rstb  => '0',
             addrb => addr,
             dinb  => din,
             doutb => doutInt);
@@ -192,7 +192,7 @@ begin
                ena     => en,
                wea     => we,
                weaByte => weByte,
-               rsta    => rst,
+               rsta    => '0',
                addra   => addr,
                dina    => din,
                douta   => doutInt,
@@ -229,7 +229,7 @@ begin
                douta   => axiDout(DATA_WIDTH_G-1 downto 0),
                clkb    => clk,
                enb     => en,
-               rstb    => rst,
+               rstb    => '0',
                addrb   => addr,
                doutb   => doutInt);
       end generate;
@@ -259,7 +259,7 @@ begin
                enb     => en,                                        -- [in]
                web     => we,                                        -- [in]
                webByte => weByte,                                    -- [in]
-               rstb    => rst,                                       -- [in]
+               rstb    => '0',                                       -- [in]
                addrb   => addr,                                      -- [in]
                dinb    => din,                                       -- [in]
                doutb   => doutInt);                                     -- [out]
