@@ -27,7 +27,7 @@ entity Sgmii88E1111LvdsUltraScale is
       TPD_G             : time                  := 1 ns;
       STABLE_CLK_FREQ_G : real                  := 156.25E+6;
       PHY_G             : natural range 0 to 31 := 7;
-      AXIS_CONFIG_G     : AxiStreamConfigType   := AXI_STREAM_CONFIG_INIT_C);
+      AXIS_CONFIG_G     : AxiStreamConfigType   := EMAC_AXIS_CONFIG_C);
    port (
       -- clock and reset
       extRst      : in    sl;                -- active high
