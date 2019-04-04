@@ -26,7 +26,7 @@ entity AxiStreamDeMux is
    generic (
       TPD_G          : time                   := 1 ns;
       NUM_MASTERS_G  : integer range 1 to 256 := 12;
-      MODE_G         : string                 := "INDEXED";          -- Or "ROUTED"
+      MODE_G         : string                 := "INDEXED";  -- Or "ROUTED"
       TDEST_ROUTES_G : slv8Array              := (0 => "--------");  -- Only used in ROUTED mode
       PIPE_STAGES_G  : integer range 0 to 16  := 0;
       TDEST_HIGH_G   : integer range 0 to 7   := 7;
@@ -118,9 +118,15 @@ begin
          v.masters(idx) := sAxisMaster;
       end if;
 
-      -- Combinatorial outputs before the reset
-      sAxisSlave <= v.slave;
-      
+      -- Check if routing size = 1 and no remapping
+      if (MODE_G = "ROUTED") and (NUM_MASTERS_G = 1) and (0 = "--------") then
+         sAxisSlave         <= pipeAxisSlaves(0);
+         pipeAxisMasters(0) <= sAxisMaster;
+      else
+         sAxisSlave      <= v.slave;
+         pipeAxisMasters <= r.masters;
+      end if;
+
       -- Reset
       if (axisRst = '1') then
          v := REG_INIT_C;
@@ -129,14 +135,11 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs
-      pipeAxisMasters <= r.masters;
-
    end process comb;
 
    GEN_VEC :
    for i in (NUM_MASTERS_G-1) downto 0 generate
-      
+
       U_Pipeline : entity work.AxiStreamPipeline
          generic map (
             TPD_G         => TPD_G,
@@ -147,7 +150,7 @@ begin
             sAxisMaster => pipeAxisMasters(i),
             sAxisSlave  => pipeAxisSlaves(i),
             mAxisMaster => mAxisMasters(i),
-            mAxisSlave  => mAxisSlaves(i));   
+            mAxisSlave  => mAxisSlaves(i));
 
    end generate GEN_VEC;
 
