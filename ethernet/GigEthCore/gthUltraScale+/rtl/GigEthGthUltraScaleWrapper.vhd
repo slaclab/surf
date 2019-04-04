@@ -87,6 +87,7 @@ architecture mapping of GigEthGthUltraScaleWrapper is
    signal gtClkBufg : sl;
    signal refClk    : sl;
    signal refRst    : sl;
+   signal refReset  : sl;
 
    signal ethClk125 : sl;
    signal ethRst125 : sl;
@@ -141,6 +142,8 @@ begin
          clk    => refClk,
          rstOut => refRst);
 
+   refReset <= '0' when(EXT_PLL_G) else refRst;
+
    ----------------
    -- Clock Manager
    ----------------
@@ -161,7 +164,7 @@ begin
          CLKOUT1_DIVIDE_G   => integer(2.0*CLKOUT0_DIVIDE_F_G))
       port map(
          clkIn     => refClk,
-         rstIn     => refRst,
+         rstIn     => refReset,
          clkOut(0) => ethClk125,
          clkOut(1) => ethClk62,
          rstOut(0) => ethRst125,
