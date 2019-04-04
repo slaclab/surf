@@ -33,6 +33,7 @@ entity GigEthGthUltraScaleWrapper is
       PAUSE_EN_G         : boolean                          := true;
       PAUSE_512BITS_G    : positive                         := 8;
       -- Clocking Configurations
+      EXT_PLL_G          : boolean                          := false;
       USE_GTREFCLK_G     : boolean                          := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
       CLKIN_PERIOD_G     : real                             := 8.0;
       DIVCLK_DIVIDE_G    : positive                         := 1;
@@ -69,6 +70,10 @@ entity GigEthGthUltraScaleWrapper is
       gtRefClk            : in  sl                                             := '0';
       gtClkP              : in  sl                                             := '1';
       gtClkN              : in  sl                                             := '0';
+      extPll125Clk        : in  sl;
+      extPll125Rst        : in  sl;
+      extPll62Clk         : in  sl;
+      extPll62Rst         : in  sl;
       -- MGT Ports
       gtTxP               : out slv(NUM_LANE_G-1 downto 0);
       gtTxN               : out slv(NUM_LANE_G-1 downto 0);
@@ -82,6 +87,12 @@ architecture mapping of GigEthGthUltraScaleWrapper is
    signal gtClkBufg : sl;
    signal refClk    : sl;
    signal refRst    : sl;
+
+   signal ethClk125 : sl;
+   signal ethRst125 : sl;
+   signal ethClk62  : sl;
+   signal ethRst62  : sl;
+
    signal sysClk125 : sl;
    signal sysRst125 : sl;
    signal sysClk62  : sl;
@@ -117,7 +128,7 @@ begin
          DIV     => "000",
          O       => gtClkBufg);
 
-   refClk <= gtClkBufg when(USE_GTREFCLK_G = false) else gtRefClk;
+   refClk <= '0' when(EXT_PLL_G) else gtClkBufg when(USE_GTREFCLK_G = false) else gtRefClk;
 
    -----------------
    -- Power Up Reset
@@ -151,10 +162,15 @@ begin
       port map(
          clkIn     => refClk,
          rstIn     => refRst,
-         clkOut(0) => sysClk125,
-         clkOut(1) => sysClk62,
-         rstOut(0) => sysRst125,
-         rstOut(1) => sysRst62);
+         clkOut(0) => ethClk125,
+         clkOut(1) => ethClk62,
+         rstOut(0) => ethRst125,
+         rstOut(1) => ethRst62);
+
+   sysClk125 <= extPll125Clk when(EXT_PLL_G) else ethClk125;
+   sysRst125 <= extPll125Rst when(EXT_PLL_G) else ethRst125;
+   sysClk62  <= extPll62Clk  when(EXT_PLL_G) else ethClk62;
+   sysRst62  <= extPll62Rst  when(EXT_PLL_G) else ethRst62;
 
    --------------
    -- GigE Module 
@@ -192,7 +208,7 @@ begin
             sysClk62           => sysClk62,
             sysClk125          => sysClk125,
             sysRst125          => sysRst125,
-            extRst             => refRst,
+            extRst             => sysRst125,
             phyReady           => phyReady(i),
             sigDet             => sigDet(i),
             -- MGT Ports
