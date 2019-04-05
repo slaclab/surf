@@ -29,7 +29,8 @@ use unisim.vcomponents.all;
 
 entity ClinkData is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G        : time   := 1 ns;
+      XIL_DEVICE_G : string := "7SERIES");
    port (
       -- Cable Input
       cblHalfP        : inout slv(4 downto 0);  --  8, 10, 11, 12,  9
@@ -101,7 +102,9 @@ begin
    -- DeSerializer
    -------------------------------
    U_DataShift : entity work.ClinkDataShift
-      generic map (TPD_G => TPD_G)
+      generic map (
+         TPD_G        => TPD_G,
+         XIL_DEVICE_G => XIL_DEVICE_G)
       port map (
          cblHalfP        => cblHalfP,
          cblHalfM        => cblHalfM,

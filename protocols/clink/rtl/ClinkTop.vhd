@@ -28,6 +28,7 @@ use unisim.vcomponents.all;
 entity ClinkTop is
    generic (
       TPD_G              : time                 := 1 ns;
+      XIL_DEVICE_G       : string               := "7SERIES";
       CHAN_COUNT_G       : integer range 1 to 2 := 1;
       UART_READY_EN_G    : boolean              := true;
       COMMON_AXIL_CLK_G  : boolean              := false;  -- true if axilClk=sysClk
@@ -126,6 +127,8 @@ begin
    -- IDELAYCTRL Modules
    ---------------------
    U_IdelayCtrl : IDELAYCTRL
+      generic map (
+         SIM_DEVICE => XIL_DEVICE_G)
       port map (
          RDY    => open,                -- 1-bit output: Ready output
          REFCLK => dlyClk,              -- 1-bit input: Reference clock input
@@ -225,7 +228,9 @@ begin
    -- Connector 0, Half 1, Data X for Base,Medium,Full,Deca
    --------------------------------------------------------
    U_Cbl0Half1 : entity work.ClinkData
-      generic map (TPD_G => TPD_G)
+      generic map (
+         TPD_G        => TPD_G,
+         XIL_DEVICE_G => XIL_DEVICE_G)
       port map (
          cblHalfP        => cbl0Half1P,
          cblHalfM        => cbl0Half1M,

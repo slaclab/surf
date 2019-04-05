@@ -28,8 +28,8 @@ use unisim.vcomponents.all;
 
 entity ClinkDataShift is
    generic (
-      TPD_G : time := 1 ns
-      );
+      TPD_G        : time   := 1 ns;
+      XIL_DEVICE_G : string := "7SERIES");
    port (
       -- Input clock and data
       cblHalfP        : inout slv(4 downto 0);
