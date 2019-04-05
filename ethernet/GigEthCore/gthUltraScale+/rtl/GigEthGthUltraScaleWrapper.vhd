@@ -87,7 +87,6 @@ architecture mapping of GigEthGthUltraScaleWrapper is
    signal gtClkBufg : sl;
    signal refClk    : sl;
    signal refRst    : sl;
-   signal refReset  : sl;
 
    signal ethClk125 : sl;
    signal ethRst125 : sl;
@@ -129,46 +128,47 @@ begin
          DIV     => "000",
          O       => gtClkBufg);
 
-   refClk <= '0' when(EXT_PLL_G) else gtClkBufg when(USE_GTREFCLK_G = false) else gtRefClk;
+   refClk <= gtClkBufg when(USE_GTREFCLK_G = false) else gtRefClk;
 
-   -----------------
-   -- Power Up Reset
-   -----------------
-   PwrUpRst_Inst : entity work.PwrUpRst
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         arst   => extRst,
-         clk    => refClk,
-         rstOut => refRst);
+   GEN_INT_PLL : if not (EXT_PLL_G) generate
 
-   refReset <= '0' when(EXT_PLL_G) else refRst;
-
-   ----------------
-   -- Clock Manager
-   ----------------
-   U_MMCM : entity work.ClockManagerUltraScale
-      generic map(
-         TPD_G              => TPD_G,
-         TYPE_G             => "MMCM",
-         INPUT_BUFG_G       => false,
-         FB_BUFG_G          => true,
-         RST_IN_POLARITY_G  => '1',
-         NUM_CLOCKS_G       => 2,
-         -- MMCM attributes
-         BANDWIDTH_G        => "OPTIMIZED",
-         CLKIN_PERIOD_G     => CLKIN_PERIOD_G,
-         DIVCLK_DIVIDE_G    => DIVCLK_DIVIDE_G,
-         CLKFBOUT_MULT_F_G  => CLKFBOUT_MULT_F_G,
-         CLKOUT0_DIVIDE_F_G => CLKOUT0_DIVIDE_F_G,
-         CLKOUT1_DIVIDE_G   => integer(2.0*CLKOUT0_DIVIDE_F_G))
-      port map(
-         clkIn     => refClk,
-         rstIn     => refReset,
-         clkOut(0) => ethClk125,
-         clkOut(1) => ethClk62,
-         rstOut(0) => ethRst125,
-         rstOut(1) => ethRst62);
+      -----------------
+      -- Power Up Reset
+      -----------------
+      PwrUpRst_Inst : entity work.PwrUpRst
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            arst   => extRst,
+            clk    => refClk,
+            rstOut => refRst);   
+   
+       ----------------
+       -- Clock Manager
+       ----------------
+       U_MMCM : entity work.ClockManagerUltraScale
+          generic map(
+             TPD_G              => TPD_G,
+             TYPE_G             => "MMCM",
+             INPUT_BUFG_G       => false,
+             FB_BUFG_G          => true,
+             RST_IN_POLARITY_G  => '1',
+             NUM_CLOCKS_G       => 2,
+             -- MMCM attributes
+             BANDWIDTH_G        => "OPTIMIZED",
+             CLKIN_PERIOD_G     => CLKIN_PERIOD_G,
+             DIVCLK_DIVIDE_G    => DIVCLK_DIVIDE_G,
+             CLKFBOUT_MULT_F_G  => CLKFBOUT_MULT_F_G,
+             CLKOUT0_DIVIDE_F_G => CLKOUT0_DIVIDE_F_G,
+             CLKOUT1_DIVIDE_G   => integer(2.0*CLKOUT0_DIVIDE_F_G))
+          port map(
+             clkIn     => refClk,
+             rstIn     => refRst,
+             clkOut(0) => ethClk125,
+             clkOut(1) => ethClk62,
+             rstOut(0) => ethRst125,
+             rstOut(1) => ethRst62);
+    end generate;
 
    sysClk125 <= extPll125Clk when(EXT_PLL_G) else ethClk125;
    sysRst125 <= extPll125Rst when(EXT_PLL_G) else ethRst125;
