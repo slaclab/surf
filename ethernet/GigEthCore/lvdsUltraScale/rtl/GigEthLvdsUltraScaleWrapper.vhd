@@ -34,8 +34,8 @@ entity GigEthLvdsUltraScaleWrapper is
       -- Clocking Configurations
       USE_REFCLK_G      : boolean                          := false;  --  FALSE: sgmiiClkP/N,  TRUE: sgmiiRefClk
       CLKIN_PERIOD_G    : real                             := 1.6;
-      DIVCLK_DIVIDE_G   : positive                         := 1;
-      CLKFBOUT_MULT_F_G : real                             := 2.0;
+      DIVCLK_DIVIDE_G   : positive                         := 2;
+      CLKFBOUT_MULT_F_G : real                             := 4.0;
       -- AXI-Lite Configurations
       EN_AXI_REG_G      : boolean                          := false;
       -- AXI Streaming Configurations
