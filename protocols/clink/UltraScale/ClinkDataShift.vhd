@@ -125,7 +125,7 @@ begin
          CLKFBOUT_MULT_F_G  => 12.0,    -- VCO = 1200MHz
          CLKOUT0_DIVIDE_F_G => 12.0,    -- 100 MHz (100 MHz x 7   = 600 Mb/s)
          CLKOUT1_DIVIDE_G   => 4,       -- 300 MHz (300 MHz x DDR = 600 Mb/s)
-         CLKOUT2_DIVIDE_G   => 8)       -- 150 MHz (150 MHz x 4   = 600 Mb/s)
+         CLKOUT2_DIVIDE_G   => 16)      --  75 MHz ( 75 MHz x 8   = 600 Mb/s)
       port map(
          clkIn           => rawIn(0),
          rstIn           => clkReset,
@@ -215,7 +215,7 @@ begin
          -- Deserializer
          U_Serdes : ISERDESE3
             generic map (
-               DATA_WIDTH        => 4,  -- Parallel data width (4,8)
+               DATA_WIDTH        => 8,  -- Parallel data width (4,8)
                FIFO_ENABLE       => "FALSE",  -- Enables the use of the FIFO
                FIFO_SYNC_MODE    => "FALSE",  -- Enables the use of internal 2-stage synchronizers on the FIFO
                IS_CLK_B_INVERTED => '1',      -- Optional inversion for CLK_B
@@ -236,7 +236,7 @@ begin
          U_Gearbox : entity work.AsyncGearbox
             generic map (
                TPD_G          => TPD_G,
-               SLAVE_WIDTH_G  => 4,
+               SLAVE_WIDTH_G  => 8,
                MASTER_WIDTH_G => 7)
             port map (
                slip       => bitslip,
