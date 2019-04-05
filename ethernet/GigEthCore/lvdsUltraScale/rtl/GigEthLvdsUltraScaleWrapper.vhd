@@ -221,7 +221,7 @@ begin
          LOCKED   => locked,
          PWRDWN   => '0');
 
-   U_Bufg160 : BUFGCE_DIV
+   U_Bufg_1_25MHz : BUFGCE_DIV
       generic map (
          BUFGCE_DIVIDE => 8)
       port map (
