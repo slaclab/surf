@@ -180,16 +180,9 @@ begin
 
    U_1GigE : entity work.GigEthLvdsUltraScaleWrapper
       generic map (
-         TPD_G             => TPD_G,
-         -- DMA/MAC Configurations
-         NUM_LANE_G        => 1,
-         -- MMCM Configuration
-         USE_REFCLK_G      => false,
-         CLKIN_PERIOD_G    => 1.6,      -- 625.0 MHz
-         DIVCLK_DIVIDE_G   => 2,        -- 312.5 MHz
-         CLKFBOUT_MULT_F_G => 2.0,      -- VCO: 625 MHz
-         -- AXI Streaming Configurations
-         AXIS_CONFIG_G     => (others => AXIS_CONFIG_G))
+         TPD_G         => TPD_G,
+         NUM_LANE_G    => 1,
+         AXIS_CONFIG_G => (others => AXIS_CONFIG_G))
       port map (
          -- Local Configurations
          localMac(0)        => localMac,

@@ -34,7 +34,7 @@ entity GigEthLvdsUltraScaleWrapper is
       -- Clocking Configurations
       USE_REFCLK_G      : boolean                          := false;  --  FALSE: sgmiiClkP/N,  TRUE: sgmiiRefClk
       CLKIN_PERIOD_G    : real                             := 1.6;
-      DIVCLK_DIVIDE_G   : positive                         := 2;
+      DIVCLK_DIVIDE_G   : positive                         := 1;
       CLKFBOUT_MULT_F_G : real                             := 2.0;
       -- AXI-Lite Configurations
       EN_AXI_REG_G      : boolean                          := false;
@@ -96,6 +96,7 @@ architecture mapping of GigEthLvdsUltraScaleWrapper is
    signal sysRst312  : sl;
    signal sysClk625  : sl;
    signal sysRst625  : sl;
+   signal sysClkNB4  : sl;
    signal sysClkNB   : slv(6 downto 0);
    signal sysClkB    : slv(6 downto 0);
    signal sysRst     : slv(6 downto 0);
@@ -197,17 +198,14 @@ begin
    -- the BUFG in the feedback chain.
    U_MMCM : MMCME3_BASE
       generic map(
-         CLKOUT0_DIVIDE_F => 5.0,
-         CLKOUT1_DIVIDE   => 2,
-         CLKOUT2_DIVIDE   => 1,
-         CLKOUT3_DIVIDE   => 50,
-         CLKOUT4_DIVIDE   => 50,
-         CLKOUT4_CASCADE  => "TRUE",
-         CLKOUT6_DIVIDE   => 10,
-         CLKFBOUT_MULT_F  => CLKFBOUT_MULT_F_G,
+         CLKIN1_PERIOD    => CLKIN_PERIOD_G,
          DIVCLK_DIVIDE    => DIVCLK_DIVIDE_G,
-         CLKIN1_PERIOD    => CLKIN_PERIOD_G
-         )
+         CLKFBOUT_MULT_F  => CLKFBOUT_MULT_F_G, -- 1.25GHz
+         CLKOUT0_DIVIDE_F => 10.0, -- 125 MHz
+         CLKOUT1_DIVIDE   => 4,   -- 312.5 MHz
+         CLKOUT2_DIVIDE   => 2,   -- 625 MHz
+         CLKOUT3_DIVIDE   => 100, -- 12.5 MHz
+         CLKOUT4_DIVIDE   => 125) -- 10 MHz
       port map (
          CLKIN1   => refClk,
          RST      => refRst,
@@ -217,30 +215,35 @@ begin
          CLKOUT1  => sysClkNB(1),
          CLKOUT2  => sysClkNB(2),
          CLKOUT3  => sysClkNB(3),
-         CLKOUT4  => sysClkNB(4),
-         CLKOUT5  => sysClkNB(5),
-         CLKOUT6  => sysClkNB(6),
+         CLKOUT4  => sysClkNB4,
+         CLKOUT5  => open,
+         CLKOUT6  => open,
          LOCKED   => locked,
-         PWRDWN   => '0'
-         );
+         PWRDWN   => '0');
 
+   U_Bufg160 : BUFGCE_DIV
+      generic map (
+         BUFGCE_DIVIDE => 8)
+      port map (
+         I   => sysClkNB4,                -- 10 MHz
+         CE  => '1',
+         CLR => '0',
+         O   => sysClkNB(4));               -- 1.25 MHz = 10MHz / 8         
+         
    GEN_BUFG : for i in 0 to NUM_CLOCKS_C - 1 generate
       U_BUFG_125 : BUFG
          port map (
             I => sysClkNB(i),
-            O => sysClkB(i)
-            );
+            O => sysClkB(i));
 
       U_RESET : entity work.RstSync
          generic map (
             TPD_G         => TPD_G,
-            IN_POLARITY_G => '0'
-            )
+            IN_POLARITY_G => '0')
          port map (
             clk      => sysClkB(i),
             asyncRst => locked,
-            syncRst  => sysRst(i)
-            );
+            syncRst  => sysRst(i));
    end generate;
 
    sysClk125 <= sysClkB(0);
