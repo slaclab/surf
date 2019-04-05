@@ -28,7 +28,7 @@ use unisim.vcomponents.all;
 
 entity ClinkDataShift is
    generic (
-      TPD_G        : time   := 1 ns
+      TPD_G        : time   := 1 ns;
       XIL_DEVICE_G : string := "ULTRASCALE");
    port (
       -- Input clock and data
@@ -163,14 +163,6 @@ begin
          rd_clk => dlyClk,
          valid  => intLd,
          dout   => intDelay(8 downto 4));
-
-   -- Input buffer
-   U_InBuff : IBUFDS
-      port map(
-         IO  => cblHalfP(0),
-         IOB => cblHalfM(0));
-   I => '0',
-      O => cblIn(i),
 
       --------------------------------------
       -- Input Chain
