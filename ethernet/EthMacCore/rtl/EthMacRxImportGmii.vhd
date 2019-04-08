@@ -27,6 +27,7 @@ entity EthMacRxImportGmii is
       TPD_G : time := 1 ns);
    port (
       -- Clock and Reset
+      ethClkEn    : in  sl;
       ethClk      : in  sl;
       ethRst      : in  sl;
       -- AXIS Interface   
@@ -114,21 +115,22 @@ begin
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 4,
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => AXI_CONFIG_C,        --  8-bit AXI stream interface  
+         SLAVE_AXI_CONFIG_G  => AXI_CONFIG_C,  --  8-bit AXI stream interface  
          MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)  -- 128-bit AXI stream interface          
       port map (
          -- Slave Port
          sAxisClk    => ethClk,
          sAxisRst    => ethRst,
-         sAxisMaster => macMaster,                   -- 8-bit AXI stream interface  
+         sAxisMaster => macMaster,      -- 8-bit AXI stream interface  
          sAxisSlave  => open,
          -- Master Port
          mAxisClk    => ethClk,
          mAxisRst    => ethRst,
-         mAxisMaster => macIbMaster,                 -- 128-bit AXI stream interface
-         mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);  
+         mAxisMaster => macIbMaster,    -- 128-bit AXI stream interface
+         mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);
 
-   comb : process (crcIn, crcOut, ethRst, gmiiRxDv, gmiiRxEr, gmiiRxd, phyReady, r) is
+   comb : process (crcIn, crcOut, ethClkEn, ethRst, gmiiRxDv, gmiiRxEr,
+                   gmiiRxd, phyReady, r) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -144,69 +146,74 @@ begin
       v.macMaster.tUser  := (others => '0');
       v.macMaster.tKeep  := (others => '1');
 
-      -- Delay data to avoid sending the CRC
-      v.macData(63 downto 0) := r.macData(55 downto 0) & gmiiRxd;
+      -- Check for clock enable
+      if (ethClkEn = '1') then
 
-      -- Delay the GMII valid for start up sequencing
-      v.delRxDvSr := r.delRxDvSr(6 downto 0) & r.delRxDv;
+         -- Delay data to avoid sending the CRC
+         v.macData(63 downto 0) := r.macData(55 downto 0) & gmiiRxd;
 
-      -- Check for CRC reset
-      v.crcReset := r.delRxDvSr(2) or ethRst or (not phyReady);
+         -- Delay the GMII valid for start up sequencing
+         v.delRxDvSr := r.delRxDvSr(6 downto 0) & r.delRxDv;
 
-      -- State Machine
-      case r.state is
-         ----------------------------------------------------------------------
-         when WAIT_SFD_S =>
-            v.sof := '1';
-            if ((gmiiRxd = SFD_C) and (gmiiRxDv = '1') and (gmiiRxEr = '0') and (phyReady = '1')) then
-               v.delRxDv := '1';
-               v.state   := WAIT_DATA_S;
-            end if;
-         ----------------------------------------------------------------------
-         when WAIT_DATA_S =>
-            if (gmiiRxDv = '0') or (gmiiRxEr = '1') or (phyReady = '0') then
-               v.state := WAIT_SFD_S;
-            elsif (r.delRxDvSr(3) = '1') then
-               v.state := GET_DATA_S;
-            end if;
-         ----------------------------------------------------------------------
-         when GET_DATA_S =>
-            if ((gmiiRxEr = '1') and (gmiiRxDv = '1')) or (phyReady = '0') then  -- Error
+         -- Check for CRC reset
+         v.crcReset := r.delRxDvSr(2) or ethRst or (not phyReady);
+
+         -- State Machine
+         case r.state is
+            ----------------------------------------------------------------------
+            when WAIT_SFD_S =>
+               v.sof := '1';
+               if ((gmiiRxd = SFD_C) and (gmiiRxDv = '1') and (gmiiRxEr = '0') and (phyReady = '1')) then
+                  v.delRxDv := '1';
+                  v.state   := WAIT_DATA_S;
+               end if;
+            ----------------------------------------------------------------------
+            when WAIT_DATA_S =>
+               if (gmiiRxDv = '0') or (gmiiRxEr = '1') or (phyReady = '0') then
+                  v.state := WAIT_SFD_S;
+               elsif (r.delRxDvSr(3) = '1') then
+                  v.state := GET_DATA_S;
+               end if;
+            ----------------------------------------------------------------------
+            when GET_DATA_S =>
+               if ((gmiiRxEr = '1') and (gmiiRxDv = '1')) or (phyReady = '0') then  -- Error
+                  v.macMaster.tvalid := '1';
+                  v.macMaster.tlast  := '1';
+                  axiStreamSetUserBit(AXI_CONFIG_C, v.macMaster, EMAC_EOFE_BIT_C, '1', 0);
+                  v.state            := WAIT_SFD_S;
+               else
+                  v.crcDataValid                := '1';
+                  v.macMaster.tvalid            := gmiiRxDv;
+                  v.macMaster.tdata(7 downto 0) := r.macData(39 downto 32);
+                  if (gmiiRxDv = '0') then
+                     v.state := DELAY0_S;
+                  end if;
+                  if (r.sof = '1') then
+                     axiStreamSetUserBit(AXI_CONFIG_C, v.macMaster, EMAC_SOF_BIT_C, '1', 0);
+                     v.sof := '0';
+                  end if;
+               end if;
+            ----------------------------------------------------------------------
+            when DELAY0_S =>
+               v.state := DELAY1_S;
+            ----------------------------------------------------------------------
+            when DELAY1_S =>
+               v.state := CRC_S;
+            ----------------------------------------------------------------------
+            when CRC_S =>
                v.macMaster.tvalid := '1';
                v.macMaster.tlast  := '1';
-               axiStreamSetUserBit(AXI_CONFIG_C, v.macMaster, EMAC_EOFE_BIT_C, '1', 0);
-               v.state            := WAIT_SFD_S;
-            else
-               v.crcDataValid                := '1';
-               v.macMaster.tvalid            := gmiiRxDv;
-               v.macMaster.tdata(7 downto 0) := r.macData(39 downto 32);
-               if (gmiiRxDv = '0') then
-                  v.state := DELAY0_S;
+               if (crcIn /= crcOut) then
+                  v.rxCrcError := '1';
+                  axiStreamSetUserBit(AXI_CONFIG_C, v.macMaster, EMAC_EOFE_BIT_C, '1', 0);
+               else
+                  v.rxCountEn := '1';
                end if;
-               if (r.sof = '1') then
-                  axiStreamSetUserBit(AXI_CONFIG_C, v.macMaster, EMAC_SOF_BIT_C, '1', 0);
-                  v.sof := '0';
-               end if;
-            end if;
+               v.state := WAIT_SFD_S;
          ----------------------------------------------------------------------
-         when DELAY0_S =>
-            v.state := DELAY1_S;
-         ----------------------------------------------------------------------
-         when DELAY1_S =>
-            v.state := CRC_S;
-         ----------------------------------------------------------------------
-         when CRC_S =>
-            v.macMaster.tvalid := '1';
-            v.macMaster.tlast  := '1';
-            if (crcIn /= crcOut) then
-               v.rxCrcError := '1';
-               axiStreamSetUserBit(AXI_CONFIG_C, v.macMaster, EMAC_EOFE_BIT_C, '1', 0);
-            else
-               v.rxCountEn := '1';
-            end if;
-            v.state := WAIT_SFD_S;
-      ----------------------------------------------------------------------
-      end case;
+         end case;
+
+      end if;
 
       -- Reset
       if (ethRst = '1') then
@@ -220,7 +227,7 @@ begin
       macMaster  <= r.macMaster;
       rxCountEn  <= r.rxCountEn;
       rxCrcError <= r.rxCrcError;
-      
+
    end process comb;
 
    seq : process (ethClk) is
@@ -243,6 +250,6 @@ begin
          crcDataValid => r.crcDataValid,
          crcDataWidth => "000",
          crcIn        => r.macData(47 downto 40),
-         crcReset     => r.crcReset); 
+         crcReset     => r.crcReset);
 
 end rtl;
