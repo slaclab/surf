@@ -27,17 +27,17 @@ use unisim.vcomponents.all;
 
 entity GigEthLvdsUltraScaleWrapper is
    generic (
-      TPD_G             : time                             := 1 ns;
-      NUM_LANE_G        : positive                         := 1;
-      PAUSE_EN_G        : boolean                          := true;
-      PAUSE_512BITS_G   : positive                         := 8;
+      TPD_G           : time                             := 1 ns;
+      NUM_LANE_G      : positive                         := 1;
+      PAUSE_EN_G      : boolean                          := true;
+      PAUSE_512BITS_G : positive                         := 8;
       -- Clocking Configurations
-      USE_REFCLK_G      : boolean                          := false;  --  FALSE: sgmiiClkP/N,  TRUE: sgmiiRefClk
-      CLKFBOUT_MULT_G   : positive                         := 10;
+      USE_REFCLK_G    : boolean                          := false;  --  FALSE: sgmiiClkP/N,  TRUE: sgmiiRefClk
+      CLKFBOUT_MULT_G : positive                         := 10;
       -- AXI-Lite Configurations
-      EN_AXI_REG_G      : boolean                          := false;
+      EN_AXI_REG_G    : boolean                          := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G     : AxiStreamConfigArray(3 downto 0) := (others => EMAC_AXIS_CONFIG_C));
+      AXIS_CONFIG_G   : AxiStreamConfigArray(3 downto 0) := (others => EMAC_AXIS_CONFIG_C));
    port (
       -- Local Configurations
       localMac            : in  Slv48Array(NUM_LANE_G-1 downto 0)              := (others => MAC_ADDR_INIT_C);
@@ -65,9 +65,9 @@ entity GigEthLvdsUltraScaleWrapper is
       speed_is_10_100     : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '0');
       speed_is_100        : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '1');
       -- MGT Clock Port
-      sgmiiRefClk         : in  sl                                             := '0'; -- 125 MHz
-      sgmiiClkP           : in  sl                                             := '1'; -- 625 MHz
-      sgmiiClkN           : in  sl                                             := '0'; -- 625 MHz
+      sgmiiRefClk         : in  sl                                             := '0';  -- 125 MHz
+      sgmiiClkP           : in  sl                                             := '1';  -- 625 MHz
+      sgmiiClkN           : in  sl                                             := '0';  -- 625 MHz
       -- MGT Ports
       sgmiiTxP            : out slv(NUM_LANE_G-1 downto 0);
       sgmiiTxN            : out slv(NUM_LANE_G-1 downto 0);
@@ -84,8 +84,8 @@ architecture mapping of GigEthLvdsUltraScaleWrapper is
    signal locked       : sl;
    signal clkFb        : sl;
 
-   signal CLKOUT0     : sl;
-   signal CLKOUT1     : sl;
+   signal CLKOUT0 : sl;
+   signal CLKOUT1 : sl;
 
    signal sysClk625 : sl;
    signal sysClk312 : sl;
@@ -117,7 +117,7 @@ begin
          CLR => '0',
          O   => sgmiiClkBufg);          -- 125 MHz (CLKIN_PERIOD_G*5)
 
-   refClk <= sgmiiClkBufg when(USE_REFCLK_G = false) else sgmiiRefClk; -- 125 MHz
+   refClk <= sgmiiClkBufg when(USE_REFCLK_G = false) else sgmiiRefClk;  -- 125 MHz
 
    U_PwrUpRst : entity work.PwrUpRst
       generic map(
@@ -130,28 +130,44 @@ begin
    ----------------
    -- Clock Manager
    ----------------
-   U_PLL : PLLE3_BASE
+   U_PLL : PLLE3_ADV
       generic map(
-         CLKIN_PERIOD     => 8.0,
-         DIVCLK_DIVIDE    => 1,
-         CLKFBOUT_MULT    => CLKFBOUT_MULT_G,  -- 1.25GHz
-         CLKOUT0_DIVIDE   => 2,                -- 625 MHz
-         CLKOUT1_DIVIDE   => 10)                 -- 125 MHz
+         CLKOUTPHY_MODE => "VCO",
+         COMPENSATION   => "INTERNAL",
+         STARTUP_WAIT   => "FALSE",
+         CLKIN_PERIOD   => 8.0,
+         DIVCLK_DIVIDE  => 1,
+         CLKFBOUT_MULT  => CLKFBOUT_MULT_G,  -- 1.25GHz
+         CLKOUT0_DIVIDE => 2,                -- 625 MHz
+         CLKOUT1_DIVIDE => 4,                -- 312.5 MHz
+         CLKOUT0_PHASE  => 0.0,             
+         CLKOUT1_PHASE  => 90.0)              -- Deskew the clk0/clk1
       port map (
-         CLKIN    => refClk, -- 125 MHz
-         RST      => refRst,
-         PWRDWN   => '0',
-         CLKOUTPHYEN   => '0',
-         CLKFBIN  => clkFb,
-         CLKFBOUT => clkFb,
-         CLKOUT0  => CLKOUT0,
-         CLKOUT1  => CLKOUT1,
-         LOCKED   => locked);
+         DCLK        => '0',
+         DRDY        => open,
+         DEN         => '0',
+         DWE         => '0',
+         DADDR       => (others => '0'),
+         DI          => (others => '0'),
+         DO          => open,
+         PWRDWN      => '0',
+         CLKOUTPHYEN => '0',
+         CLKIN       => refClk,              -- 125 MHz
+         RST         => refRst,
+         CLKFBIN     => clkFb,
+         CLKFBOUT    => clkFb,
+         CLKOUT0     => CLKOUT0,
+         CLKOUT1     => CLKOUT1,
+         LOCKED      => locked);
 
-   U_sysClk125 : BUFG
+   U_sysClk125 : BUFGCE_DIV
+      generic map (
+         BUFGCE_DIVIDE => 5)
       port map (
-         I => CLKOUT1,
-         O => sysClk125);         
+         I   => CLKOUT0,
+         CE  => '1',
+         CLR => '0',
+         O   => sysClk125);
 
    U_sysRst125 : entity work.RstSync
       generic map (
@@ -160,30 +176,26 @@ begin
       port map (
          clk      => sysClk125,
          asyncRst => locked,
-         syncRst  => sysRst125);         
-         
-   ------------------------------------------------------------------------------------------------------
-   -- 312.5 MHz is the ISERDESE3/OSERDESE3's CLKDIV port
-   -- Refer to "Figure 3-49: Sub-Optimal to Optimal Clocking Topologies for OSERDESE3" in UG949 (v2018.2)
-   ------------------------------------------------------------------------------------------------------         
-   U_sysClk312 : BUFGCE_DIV
-      generic map (
-         BUFGCE_DIVIDE => 2)
-      port map (
-         I   => CLKOUT0,                -- 625 MHz (CLKIN_PERIOD_G)
-         CE  => '1',
-         CLR => '0',
-         O   => sysClk312);  -- 312.5 MHz (CLKIN_PERIOD_G*2)           
+         syncRst  => sysRst125);
 
+   ----------------------------------------------------------
+   -- Refer to "Fig: Fabric Clocking With MMCM clock outputs"
+   -- https://www.xilinx.com/support/answers/67885.html
+   ----------------------------------------------------------
    U_sysClk625 : BUFG
       port map (
          I => CLKOUT0,
          O => sysClk625);
 
-   --------------
+   U_sysClk312 : BUFG
+      port map (
+         I => CLKOUT1,
+         O => sysClk312);
+
+   --------------------------------------------------------------------------------------------------------
    -- Ethernet 'lanes' (in case multiple Ethernets can share a common clock -- however, due to tight timing
    --                   they should probably all fit into the same clock region)
-   --------------
+   --------------------------------------------------------------------------------------------------------
    GEN_LANE : for i in 0 to NUM_LANE_G-1 generate
       signal ethClkEn : sl;
    begin
