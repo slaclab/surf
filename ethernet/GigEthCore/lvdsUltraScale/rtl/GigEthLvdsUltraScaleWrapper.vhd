@@ -34,6 +34,7 @@ entity GigEthLvdsUltraScaleWrapper is
       -- Clocking Configurations
       USE_REFCLK_G    : boolean                          := false;  --  FALSE: sgmiiClkP/N,  TRUE: sgmiiRefClk
       CLKFBOUT_MULT_G : positive                         := 10;
+      CLKOUT1_PHASE_G : real                             := 90.0;
       -- AXI-Lite Configurations
       EN_AXI_REG_G    : boolean                          := false;
       -- AXI Streaming Configurations
@@ -140,8 +141,8 @@ begin
          CLKFBOUT_MULT  => CLKFBOUT_MULT_G,  -- 1.25GHz
          CLKOUT0_DIVIDE => 2,                -- 625 MHz
          CLKOUT1_DIVIDE => 4,                -- 312.5 MHz
-         CLKOUT0_PHASE  => 0.0,             
-         CLKOUT1_PHASE  => 90.0)              -- Deskew the clk0/clk1
+         CLKOUT0_PHASE  => 0.0,
+         CLKOUT1_PHASE  => CLKOUT1_PHASE_G)  -- Deskew the clk0/clk1
       port map (
          DCLK        => '0',
          DRDY        => open,
