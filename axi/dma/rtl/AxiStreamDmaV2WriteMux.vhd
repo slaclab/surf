@@ -90,8 +90,6 @@ begin
          v.master.wvalid := '0';
       end if;
 
-
-
       -- Check descriptor channel
       if (sAxiWriteMasters(1).awvalid = '1') and (sAxiWriteMasters(1).wvalid = '1') and (r.armed = '0') then
          -- Set the flag
@@ -128,7 +126,7 @@ begin
                   -- Next state
                   v.state             := DATA_S;
                -- Check descriptor channel
-               elsif (r.armed = '1') (v.master.wvalid = '0') then
+               elsif (r.armed = '1') and (v.master.wvalid = '0') then
                   -- Reset the flag
                   v.armed  := '0';
                   -- Write address channel
@@ -153,7 +151,6 @@ begin
                   v.state := ADDR_S;
                end if;
             end if;
-
       ----------------------------------------------------------------------
       end case;
 
