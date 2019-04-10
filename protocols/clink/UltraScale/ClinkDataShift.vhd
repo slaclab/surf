@@ -188,7 +188,7 @@ begin
          U_Delay : IDELAYE3
             generic map (
                CASCADE          => "NONE",  -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
-               DELAY_FORMAT     => "TIME",  -- Units of the DELAY_VALUE (COUNT, TIME)
+               DELAY_FORMAT     => "COUNT",  -- Units of the DELAY_VALUE (COUNT, TIME)
                DELAY_SRC        => "IDATAIN",  -- Delay input (DATAIN, IDATAIN)
                DELAY_TYPE       => "VAR_LOAD",  -- Set the type of tap delay line (FIXED, VARIABLE, VAR_LOAD)
                DELAY_VALUE      => 0,   -- Input delay value setting
@@ -207,7 +207,7 @@ begin
                CLK         => dlyClk,   -- 1-bit input: Clock input
                CNTVALUEIN  => intDelay,  -- 9-bit input: Counter value input
                DATAIN      => '0',  -- 1-bit input: Data input from the logic
-               EN_VTC      => dlyRstL,  -- 1-bit input: Keep delay constant over VT
+               EN_VTC      => '0',  -- 1-bit input: Keep delay constant over VT
                IDATAIN     => cblIn(i),  -- 1-bit input: Data input from the IOBUF
                INC         => '0',  -- 1-bit input: Increment / Decrement tap delay input
                LOAD        => intLd,    -- 1-bit input: Load DELAY_VALUE input
