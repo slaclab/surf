@@ -47,15 +47,19 @@ architecture rtl of AxiStreamDmaV2WriteMux is
       DATA_S);
 
    type RegType is record
-      slaves : AxiWriteSlaveArray(1 downto 0);
-      master : AxiWriteMasterType;
-      state  : StateType;
+      armed      : sl;
+      slaves     : AxiWriteSlaveArray(1 downto 0);
+      descriptor : AxiWriteMasterType;
+      master     : AxiWriteMasterType;
+      state      : StateType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      slaves => (others => AXI_WRITE_SLAVE_INIT_C),
-      master => AXI_WRITE_MASTER_INIT_C,
-      state  => ADDR_S);
+      armed      => '0',
+      slaves     => (others => AXI_WRITE_SLAVE_INIT_C),
+      descriptor => AXI_WRITE_MASTER_INIT_C,
+      master     => AXI_WRITE_MASTER_INIT_C,
+      state      => ADDR_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -86,6 +90,19 @@ begin
          v.master.wvalid := '0';
       end if;
 
+
+
+      -- Check descriptor channel
+      if (sAxiWriteMasters(1).awvalid = '1') and (sAxiWriteMasters(1).wvalid = '1') and (r.armed = '0') then
+         -- Set the flag
+         v.armed             := '1';
+         -- ACK the valid (
+         v.slaves(1).awready := '1';
+         v.slaves(1).wready  := '1';
+         -- Write address channel
+         v.descriptor        := sAxiWriteMasters(1);
+      end if;
+
       -- State Machine
       case r.state is
          ----------------------------------------------------------------------
@@ -111,12 +128,11 @@ begin
                   -- Next state
                   v.state             := DATA_S;
                -- Check descriptor channel
-               elsif (sAxiWriteMasters(1).awvalid = '1') and (sAxiWriteMasters(1).wvalid = '1') and (v.master.wvalid = '0') then
-                  -- ACK the valid (
-                  v.slaves(1).awready := '1';
-                  v.slaves(1).wready  := '1';
+               elsif (r.armed = '1') (v.master.wvalid = '0') then
+                  -- Reset the flag
+                  v.armed  := '0';
                   -- Write address channel
-                  v.master            := sAxiWriteMasters(1);
+                  v.master := r.descriptor;
                end if;
             end if;
          ----------------------------------------------------------------------
