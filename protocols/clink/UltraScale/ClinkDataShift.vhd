@@ -75,11 +75,14 @@ architecture structure of ClinkDataShift is
    signal serdes    : Slv8Array(4 downto 0);
    signal dataShift : Slv7Array(4 downto 0);
    signal clkReset  : sl;
+   signal dlyRstL   : sl;
 
    attribute IODELAY_GROUP : string;
 
 begin
 
+   dlyRstL <= not(dlyRst);
+   
    U_clkInFreq : entity work.SyncClockFreq
       generic map (
          TPD_G          => TPD_G,
@@ -204,7 +207,7 @@ begin
                CLK         => dlyClk,   -- 1-bit input: Clock input
                CNTVALUEIN  => intDelay,  -- 9-bit input: Counter value input
                DATAIN      => '0',  -- 1-bit input: Data input from the logic
-               EN_VTC      => '1',  -- 1-bit input: Keep delay constant over VT
+               EN_VTC      => dlyRstL,  -- 1-bit input: Keep delay constant over VT
                IDATAIN     => cblIn(i),  -- 1-bit input: Data input from the IOBUF
                INC         => '0',  -- 1-bit input: Increment / Decrement tap delay input
                LOAD        => intLd,    -- 1-bit input: Load DELAY_VALUE input
