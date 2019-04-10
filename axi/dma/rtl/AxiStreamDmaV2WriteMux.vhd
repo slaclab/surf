@@ -24,9 +24,8 @@ use work.AxiPkg.all;
 
 entity AxiStreamDmaV2WriteMux is
    generic (
-      TPD_G             : time    := 1 ns;
-      AXI_READY_EN_G    : boolean := false;
-      ACK_WAIT_BVALID_G : boolean := false);
+      TPD_G          : time    := 1 ns;
+      AXI_READY_EN_G : boolean := false);
    port (
       -- Clock and reset
       axiClk           : in  sl;
@@ -45,18 +44,15 @@ architecture rtl of AxiStreamDmaV2WriteMux is
 
    type StateType is (
       ADDR_S,
-      DATA_S,
-      BRESP_S);
+      DATA_S);
 
    type RegType is record
-      index  : natural range 0 to 1;
       slaves : AxiWriteSlaveArray(1 downto 0);
       master : AxiWriteMasterType;
       state  : StateType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      index  => 0,
       slaves => (others => AXI_WRITE_SLAVE_INIT_C),
       master => AXI_WRITE_MASTER_INIT_C,
       state  => ADDR_S);
@@ -80,10 +76,6 @@ begin
          v.slaves(i).awready := '0';
          v.slaves(i).wready  := '0';
 
-         if (sAxiWriteMasters(i).bready = '1') or (ACK_WAIT_BVALID_G = false) then
-            v.slaves(i).bvalid := '0';
-         end if;
-
       end loop;
 
       if (mAxiWriteSlave.awready = '1') or (AXI_READY_EN_G = false) then
@@ -94,11 +86,7 @@ begin
          v.master.wvalid := '0';
       end if;
 
-      if (ACK_WAIT_BVALID_G) then
-         v.master.bready := '0';
-      else
-         v.master.bready := '1';
-      end if;
+      v.master.bready := '1';
 
       -- State Machine
       case r.state is
@@ -122,14 +110,13 @@ begin
                   v.master.awcache    := sAxiWriteMasters(0).awcache;
                   v.master.awqos      := sAxiWriteMasters(0).awqos;
                   v.master.awregion   := sAxiWriteMasters(0).awregion;
-                  -- Set the index
-                  v.index             := 0;
                   -- Next state
                   v.state             := DATA_S;
                -- Check descriptor channel
-               elsif (sAxiWriteMasters(1).awvalid = '1') then
-                  -- ACK the valid
+               elsif (sAxiWriteMasters(1).awvalid = '1') and (sAxiWriteMasters(1).wvalid = '1') then
+                  -- ACK the valid (
                   v.slaves(1).awready := '1';
+                  v.slaves(1).wready  := '1';
                   -- Write address channel
                   v.master.awvalid    := sAxiWriteMasters(1).awvalid;
                   v.master.awaddr     := sAxiWriteMasters(1).awaddr;
@@ -142,48 +129,33 @@ begin
                   v.master.awcache    := sAxiWriteMasters(1).awcache;
                   v.master.awqos      := sAxiWriteMasters(1).awqos;
                   v.master.awregion   := sAxiWriteMasters(1).awregion;
-                  -- Set the index
-                  v.index             := 1;
-                  -- Next state
-                  v.state             := DATA_S;
+                  -- Write data channel
+                  v.master.wdata      := sAxiWriteMasters(1).wdata;
+                  v.master.wlast      := sAxiWriteMasters(1).wlast;
+                  v.master.wvalid     := sAxiWriteMasters(1).wvalid;
+                  v.master.wid        := sAxiWriteMasters(1).wid;
+                  v.master.wstrb      := sAxiWriteMasters(1).wstrb;
                end if;
             end if;
          ----------------------------------------------------------------------
          when DATA_S =>
             -- Check if ready to move data
-            if (v.master.wvalid = '0') and (sAxiWriteMasters(r.index).wvalid = '1') then
+            if (v.master.wvalid = '0') and (sAxiWriteMasters(0).wvalid = '1') then
                -- ACK the valid
-               v.slaves(r.index).wready := '1';
+               v.slaves(0).wready := '1';
                -- Write data channel
-               v.master.wdata           := sAxiWriteMasters(r.index).wdata;
-               v.master.wlast           := sAxiWriteMasters(r.index).wlast;
-               v.master.wvalid          := sAxiWriteMasters(r.index).wvalid;
-               v.master.wid             := sAxiWriteMasters(r.index).wid;
-               v.master.wstrb           := sAxiWriteMasters(r.index).wstrb;
+               v.master.wdata     := sAxiWriteMasters(0).wdata;
+               v.master.wlast     := sAxiWriteMasters(0).wlast;
+               v.master.wvalid    := sAxiWriteMasters(0).wvalid;
+               v.master.wid       := sAxiWriteMasters(0).wid;
+               v.master.wstrb     := sAxiWriteMasters(0).wstrb;
                -- Check for last transfer
                if (v.master.wlast = '1') then
-                  if (ACK_WAIT_BVALID_G) then
-                     -- Next state
-                     v.state := BRESP_S;
-                  else
-                     -- Next state
-                     v.state := ADDR_S;
-                  end if;
+                  -- Next state
+                  v.state := ADDR_S;
                end if;
             end if;
-         ----------------------------------------------------------------------
-         when BRESP_S =>
-            -- Check if ready to move data
-            if (v.slaves(r.index).bvalid = '0') and (mAxiWriteSlave.bvalid = '1') then
-               -- ACK the valid
-               v.master.bready          := '1';
-               -- Write ack channel
-               v.slaves(r.index).bresp  := mAxiWriteSlave.bresp;
-               v.slaves(r.index).bvalid := mAxiWriteSlave.bvalid;
-               v.slaves(r.index).bid    := mAxiWriteSlave.bid;
-               -- Next state
-               v.state                  := ADDR_S;
-            end if;
+
       ----------------------------------------------------------------------
       end case;
 
