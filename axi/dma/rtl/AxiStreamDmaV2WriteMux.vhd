@@ -86,8 +86,6 @@ begin
          v.master.wvalid := '0';
       end if;
 
-      v.master.bready := '1';
-
       -- State Machine
       case r.state is
          ----------------------------------------------------------------------
@@ -118,23 +116,7 @@ begin
                   v.slaves(1).awready := '1';
                   v.slaves(1).wready  := '1';
                   -- Write address channel
-                  v.master.awvalid    := sAxiWriteMasters(1).awvalid;
-                  v.master.awaddr     := sAxiWriteMasters(1).awaddr;
-                  v.master.awid       := sAxiWriteMasters(1).awid;
-                  v.master.awlen      := sAxiWriteMasters(1).awlen;
-                  v.master.awsize     := sAxiWriteMasters(1).awsize;
-                  v.master.awburst    := sAxiWriteMasters(1).awburst;
-                  v.master.awlock     := sAxiWriteMasters(1).awlock;
-                  v.master.awprot     := sAxiWriteMasters(1).awprot;
-                  v.master.awcache    := sAxiWriteMasters(1).awcache;
-                  v.master.awqos      := sAxiWriteMasters(1).awqos;
-                  v.master.awregion   := sAxiWriteMasters(1).awregion;
-                  -- Write data channel
-                  v.master.wdata      := sAxiWriteMasters(1).wdata;
-                  v.master.wlast      := sAxiWriteMasters(1).wlast;
-                  v.master.wvalid     := sAxiWriteMasters(1).wvalid;
-                  v.master.wid        := sAxiWriteMasters(1).wid;
-                  v.master.wstrb      := sAxiWriteMasters(1).wstrb;
+                  v.master            := sAxiWriteMasters(1);
                end if;
             end if;
          ----------------------------------------------------------------------
@@ -166,7 +148,7 @@ begin
          sAxiWriteSlaves(i).wready  <= v.slaves(i).wready;
       end loop;
       mAxiWriteMaster        <= r.master;
-      mAxiWriteMaster.bready <= v.master.bready;
+      mAxiWriteMaster.bready <= '1';
 
       -- Reset
       if (axiRst = '1') then
