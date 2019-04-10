@@ -111,7 +111,7 @@ begin
                   -- Next state
                   v.state             := DATA_S;
                -- Check descriptor channel
-               elsif (sAxiWriteMasters(1).awvalid = '1') and (sAxiWriteMasters(1).wvalid = '1') then
+               elsif (sAxiWriteMasters(1).awvalid = '1') and (sAxiWriteMasters(1).wvalid = '1') and (v.master.wvalid = '0') then
                   -- ACK the valid (
                   v.slaves(1).awready := '1';
                   v.slaves(1).wready  := '1';
