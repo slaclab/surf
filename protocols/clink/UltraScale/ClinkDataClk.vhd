@@ -89,11 +89,11 @@ begin
          drpDi           => drpDi,
          drpDo           => drpDo);
 
-   U_Mmcm : MMCME2_ADV
+   U_Mmcm : MMCME3_ADV
       generic map (
          BANDWIDTH        => "OPTIMIZED",
-         CLKOUT4_CASCADE  => false,
-         STARTUP_WAIT     => false,
+         CLKOUT4_CASCADE  => "FALSE",
+         STARTUP_WAIT     => "FALSE",
 --         CLKIN1_PERIOD    => 40.0,      -- 25 MHz
 --         DIVCLK_DIVIDE    => 1,
 --         CLKFBOUT_MULT_F  => 42.0,      -- VCO = 1050MHz
@@ -128,28 +128,22 @@ begin
 
    U_RegGen : if REG_BUFF_EN_G generate
 
-      U_BufIn : BUFR
+      U_BufIn : BUFG
          port map (
-            CE  => '0',
-            CLR => '0',
             I   => clkIn,
             O   => clkInLoc);
 
-      U_BufFb : BUFR
+      U_BufFb : BUFG
          port map (
-            CE  => '0',
-            CLR => '0',
             I   => clkFbOut,
             O   => clkFbIn);
 
-      U_BufOut : BUFR
+      U_BufOut : BUFG
          port map (
-            CE  => '0',
-            CLR => '0',
             I   => clkOutMmcm(0),
             O   => clkOutLoc(0));
 
-      U_BufIo : BUFIO
+      U_BufIo : BUFG
          port map (
             I => clkOutMmcm(1),
             O => clkOutLoc(1));
