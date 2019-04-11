@@ -731,10 +731,6 @@ begin
                end if;
             end if;
 
-
-      -- Encode DMA channel in write TID
-      USE_WRITE_TID_G   : boolean := false;
-
             v.axiWriteMaster.awvalid := '1';
             v.axiWriteMaster.wvalid  := '1';
             v.wrIndex                := r.wrIndex + 1;
