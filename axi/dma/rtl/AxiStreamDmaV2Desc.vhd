@@ -414,7 +414,7 @@ begin
    -- Control Logic
    -----------------------------------------
 
-   comb : process (addrRamDout, axiRst, axiWriteSlave, diffCnt, dmaRdDescAck,
+   comb : process (addrRamDout, axiRst, axiWriteSlaves, diffCnt, dmaRdDescAck,
                    dmaRdDescRet, dmaWrDescReq, dmaWrDescRet, intSwAckEn,
                    intReadMasters, intWriteMasters, invalidCount, r,
                    rdFifoDout, rdFifoValid, wrFifoDout, wrFifoValid) is
@@ -927,10 +927,10 @@ begin
       axiWriteMasters <= (others=>r.axiWriteMaster);
 
       -- Only assert one master
-      for i in 0 to CHAN_COUNT_G loop
+      for i in 0 to CHAN_COUNT_G-1 loop
          if descIndex /= i then
-            axiWriteMasters(i).awvalid := '0';
-            axiWriteMasters(i).wvalid  := '0';
+            axiWriteMasters(i).awvalid <= '0';
+            axiWriteMasters(i).wvalid  <= '0';
          end if;
       end loop;
 
