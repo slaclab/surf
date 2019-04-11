@@ -38,7 +38,7 @@ entity AxiStreamDmaV2WriteMux is
       -- DMA Descriptor Write Path
       descWriteMaster : in  AxiWriteMasterType;
       descWriteSlave  : out AxiWriteSlaveType;
-      -- Master
+      -- MUX Write Path
       mAxiWriteMaster : out AxiWriteMasterType;
       mAxiWriteSlave  : in  AxiWriteSlaveType;
       mAxiWriteCtrl   : in  AxiCtrlType);
@@ -72,7 +72,8 @@ architecture rtl of AxiStreamDmaV2WriteMux is
 
 begin
 
-   comb : process (axiRst, dataWriteMaster, mAxiWriteCtrl, mAxiWriteSlave, r) is
+   comb : process (axiRst, dataWriteMaster, descWriteMaster, mAxiWriteCtrl,
+                   mAxiWriteSlave, r) is
       variable v : RegType;
    begin
       -- Latch the current value   

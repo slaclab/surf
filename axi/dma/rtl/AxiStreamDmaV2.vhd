@@ -99,12 +99,12 @@ begin
 
    U_DmaDesc : entity work.AxiStreamDmaV2Desc
       generic map (
-         TPD_G             => TPD_G,
-         CHAN_COUNT_G      => CHAN_COUNT_G,
-         AXIL_BASE_ADDR_G  => AXIL_BASE_ADDR_G,
-         AXI_CONFIG_G      => AXI_DESC_CONFIG_G,
-         DESC_AWIDTH_G     => DESC_AWIDTH_G,
-         DESC_ARB_G        => DESC_ARB_G)
+         TPD_G            => TPD_G,
+         CHAN_COUNT_G     => CHAN_COUNT_G,
+         AXIL_BASE_ADDR_G => AXIL_BASE_ADDR_G,
+         AXI_CONFIG_G     => AXI_DESC_CONFIG_G,
+         DESC_AWIDTH_G    => DESC_AWIDTH_G,
+         DESC_ARB_G       => DESC_ARB_G)
       port map (
          -- Clock/Reset
          axiClk          => axiClk,
@@ -212,7 +212,7 @@ begin
             -- DMA Descriptor Write Path
             descWriteMaster => descWriteMasters(i),
             descWriteSlave  => descWriteSlaves(i),
-            -- Master
+            -- MUX Write Path
             mAxiWriteMaster => axiWriteMasters(i+1),
             mAxiWriteSlave  => axiWriteSlaves(i+1),
             mAxiWriteCtrl   => axiWriteCtrl(i+1));
