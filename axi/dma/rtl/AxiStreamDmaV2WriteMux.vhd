@@ -28,16 +28,19 @@ entity AxiStreamDmaV2WriteMux is
       AXI_READY_EN_G : boolean := false);
    port (
       -- Clock and reset
-      axiClk           : in  sl;
-      axiRst           : in  sl;
-      -- Slaves
-      sAxiWriteMasters : in  AxiWriteMasterArray(1 downto 0);  -- CH0=WRITE, CH1=DESCR
-      sAxiWriteSlaves  : out AxiWriteSlaveArray(1 downto 0);
-      sAxiWriteCtrl    : out AxiCtrlArray(1 downto 0);
+      axiClk          : in  sl;
+      axiRst          : in  sl;
+      -- DMA Data Write Path
+      dataWriteMaster : in  AxiWriteMasterType;
+      dataWriteSlave  : out AxiWriteSlaveType;
+      dataWriteCtrl   : out AxiCtrlType
+      -- DMA Descriptor Write Path
+      descWriteMaster : in  AxiWriteMasterType;
+      descWriteSlave  : out AxiWriteSlaveType;
       -- Master
-      mAxiWriteMaster  : out AxiWriteMasterType;
-      mAxiWriteSlave   : in  AxiWriteSlaveType;
-      mAxiWriteCtrl    : in  AxiCtrlType);
+      mAxiWriteMaster : out AxiWriteMasterType;
+      mAxiWriteSlave  : in  AxiWriteSlaveType;
+      mAxiWriteCtrl   : in  AxiCtrlType);
 end AxiStreamDmaV2WriteMux;
 
 architecture rtl of AxiStreamDmaV2WriteMux is
@@ -48,7 +51,8 @@ architecture rtl of AxiStreamDmaV2WriteMux is
 
    type RegType is record
       armed      : sl;
-      slaves     : AxiWriteSlaveArray(1 downto 0);
+      descSlave  : AxiWriteSlaveType;
+      dataSlave  : AxiWriteSlaveType;
       descriptor : AxiWriteMasterType;
       master     : AxiWriteMasterType;
       state      : StateType;
@@ -56,7 +60,8 @@ architecture rtl of AxiStreamDmaV2WriteMux is
 
    constant REG_INIT_C : RegType := (
       armed      => '0',
-      slaves     => (others => AXI_WRITE_SLAVE_INIT_C),
+      descSlave  => AXI_WRITE_SLAVE_INIT_C,
+      dataSlave  => AXI_WRITE_SLAVE_INIT_C,
       descriptor => AXI_WRITE_MASTER_INIT_C,
       master     => AXI_WRITE_MASTER_INIT_C,
       state      => ADDR_S);
@@ -66,21 +71,18 @@ architecture rtl of AxiStreamDmaV2WriteMux is
 
 begin
 
-   sAxiWriteCtrl <= (others => mAxiWriteCtrl);
-
-   comb : process (axiRst, mAxiWriteSlave, r, sAxiWriteMasters) is
+   comb : process (axiRst, dataWriteMaster, mAxiWriteCtrl, mAxiWriteSlave, r) is
       variable v : RegType;
    begin
       -- Latch the current value   
       v := r;
 
       -- Valid/Ready Handshaking         
-      for i in 1 downto 0 loop
+      v.descSlave.awready := '0';
+      v.descSlave.wready  := '0';
 
-         v.slaves(i).awready := '0';
-         v.slaves(i).wready  := '0';
-
-      end loop;
+      v.dataSlave.awready := '0';
+      v.dataSlave.wready  := '0';
 
       if (mAxiWriteSlave.awready = '1') or (AXI_READY_EN_G = false) then
          v.master.awvalid := '0';
@@ -91,14 +93,14 @@ begin
       end if;
 
       -- Check descriptor channel
-      if (sAxiWriteMasters(1).awvalid = '1') and (sAxiWriteMasters(1).wvalid = '1') and (r.armed = '0') then
+      if (descWriteMaster.awvalid = '1') and (descWriteMaster.wvalid = '1') and (r.armed = '0') then
          -- Set the flag
          v.armed             := '1';
          -- ACK the valid (
-         v.slaves(1).awready := '1';
-         v.slaves(1).wready  := '1';
+         v.descSlave.awready := '1';
+         v.descSlave.wready  := '1';
          -- Write address channel
-         v.descriptor        := sAxiWriteMasters(1);
+         v.descriptor        := descWriteMaster;
       end if;
 
       -- State Machine
@@ -108,21 +110,21 @@ begin
             -- Check if ready to set the address
             if (v.master.awvalid = '0') then
                -- Check DMA channel 
-               if (sAxiWriteMasters(0).awvalid = '1') then
+               if (dataWriteMaster.awvalid = '1') then
                   -- ACK the valid
-                  v.slaves(0).awready := '1';
+                  v.dataSlave.awready := '1';
                   -- Write address channel
-                  v.master.awvalid    := sAxiWriteMasters(0).awvalid;
-                  v.master.awaddr     := sAxiWriteMasters(0).awaddr;
-                  v.master.awid       := sAxiWriteMasters(0).awid;
-                  v.master.awlen      := sAxiWriteMasters(0).awlen;
-                  v.master.awsize     := sAxiWriteMasters(0).awsize;
-                  v.master.awburst    := sAxiWriteMasters(0).awburst;
-                  v.master.awlock     := sAxiWriteMasters(0).awlock;
-                  v.master.awprot     := sAxiWriteMasters(0).awprot;
-                  v.master.awcache    := sAxiWriteMasters(0).awcache;
-                  v.master.awqos      := sAxiWriteMasters(0).awqos;
-                  v.master.awregion   := sAxiWriteMasters(0).awregion;
+                  v.master.awvalid    := dataWriteMaster.awvalid;
+                  v.master.awaddr     := dataWriteMaster.awaddr;
+                  v.master.awid       := dataWriteMaster.awid;
+                  v.master.awlen      := dataWriteMaster.awlen;
+                  v.master.awsize     := dataWriteMaster.awsize;
+                  v.master.awburst    := dataWriteMaster.awburst;
+                  v.master.awlock     := dataWriteMaster.awlock;
+                  v.master.awprot     := dataWriteMaster.awprot;
+                  v.master.awcache    := dataWriteMaster.awcache;
+                  v.master.awqos      := dataWriteMaster.awqos;
+                  v.master.awregion   := dataWriteMaster.awregion;
                   -- Next state
                   v.state             := DATA_S;
                -- Check descriptor channel
@@ -136,15 +138,15 @@ begin
          ----------------------------------------------------------------------
          when DATA_S =>
             -- Check if ready to move data
-            if (v.master.wvalid = '0') and (sAxiWriteMasters(0).wvalid = '1') then
+            if (v.master.wvalid = '0') and (dataWriteMaster.wvalid = '1') then
                -- ACK the valid
-               v.slaves(0).wready := '1';
+               v.dataSlave.wready := '1';
                -- Write data channel
-               v.master.wdata     := sAxiWriteMasters(0).wdata;
-               v.master.wlast     := sAxiWriteMasters(0).wlast;
-               v.master.wvalid    := sAxiWriteMasters(0).wvalid;
-               v.master.wid       := sAxiWriteMasters(0).wid;
-               v.master.wstrb     := sAxiWriteMasters(0).wstrb;
+               v.master.wdata     := dataWriteMaster.wdata;
+               v.master.wlast     := dataWriteMaster.wlast;
+               v.master.wvalid    := dataWriteMaster.wvalid;
+               v.master.wid       := dataWriteMaster.wid;
+               v.master.wstrb     := dataWriteMaster.wstrb;
                -- Check for last transfer
                if (v.master.wlast = '1') then
                   -- Next state
@@ -154,12 +156,16 @@ begin
       ----------------------------------------------------------------------
       end case;
 
-      -- Outputs
-      sAxiWriteSlaves <= r.slaves;
-      for i in 1 downto 0 loop
-         sAxiWriteSlaves(i).awready <= v.slaves(i).awready;
-         sAxiWriteSlaves(i).wready  <= v.slaves(i).wready;
-      end loop;
+      -- Descriptor Outputs
+      descWriteSlave         <= r.descSlave;
+      descWriteSlave.awready <= v.descSlave.awready;
+      descWriteSlave.wready  <= v.descSlave.wready;
+      -- Data Outputs
+      dataWriteSlave         <= r.dataSlave;
+      dataWriteSlave.awready <= v.dataSlave.awready;
+      dataWriteSlave.wready  <= v.dataSlave.wready;
+      dataWriteCtrl          <= mAxiWriteCtrl;
+      -- MUX Outputs
       mAxiWriteMaster        <= r.master;
       mAxiWriteMaster.bready <= '1';
 
