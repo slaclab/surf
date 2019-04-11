@@ -2,8 +2,9 @@
 -- File       : AxiStreamDmaV2WriteMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description:
--- Block to connect multiple incoming AXI write path interfaces.
+-- Description: This MUX is used to make sure that the write descriptor is sent
+--              after the data is sent. Else the descriptor can get to the 
+--              software driver before the data received 
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -33,7 +34,7 @@ entity AxiStreamDmaV2WriteMux is
       -- DMA Data Write Path
       dataWriteMaster : in  AxiWriteMasterType;
       dataWriteSlave  : out AxiWriteSlaveType;
-      dataWriteCtrl   : out AxiCtrlType
+      dataWriteCtrl   : out AxiCtrlType;
       -- DMA Descriptor Write Path
       descWriteMaster : in  AxiWriteMasterType;
       descWriteSlave  : out AxiWriteSlaveType;

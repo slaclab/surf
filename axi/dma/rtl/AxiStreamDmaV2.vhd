@@ -81,7 +81,7 @@ architecture structure of AxiStreamDmaV2 is
    signal dmaRdDescRetAck : slv(CHAN_COUNT_G-1 downto 0);
 
    signal descWriteMasters : AxiWriteMasterArray(CHAN_COUNT_G-1 downto 0);
-   signal descWriteSlaves  : AxiWriteSlaveArray(CHAN_COUNT_G-1 downto 0));
+   signal descWriteSlaves  : AxiWriteSlaveArray(CHAN_COUNT_G-1 downto 0);
 
    signal dataWriteMasters : AxiWriteMasterArray(CHAN_COUNT_G-1 downto 0);
    signal dataWriteSlaves  : AxiWriteSlaveArray(CHAN_COUNT_G-1 downto 0);
@@ -102,11 +102,9 @@ begin
          TPD_G             => TPD_G,
          CHAN_COUNT_G      => CHAN_COUNT_G,
          AXIL_BASE_ADDR_G  => AXIL_BASE_ADDR_G,
-         AXI_READY_EN_G    => AXI_READY_EN_G,
          AXI_CONFIG_G      => AXI_DESC_CONFIG_G,
          DESC_AWIDTH_G     => DESC_AWIDTH_G,
-         DESC_ARB_G        => DESC_ARB_G,
-         ACK_WAIT_BVALID_G => true)
+         DESC_ARB_G        => DESC_ARB_G)
       port map (
          -- Clock/Reset
          axiClk          => axiClk,
@@ -196,6 +194,9 @@ begin
             axiWriteSlave   => dataWriteSlaves(i),
             axiWriteCtrl    => dataWriteCtrl(i));
 
+      ----------------------------------------------------------------------------------------- 
+      -- This MUX is used to make sure that the write descriptor is sent after the data is sent
+      ----------------------------------------------------------------------------------------- 
       U_DmaWriteMux : entity work.AxiStreamDmaV2WriteMux
          generic map (
             TPD_G          => TPD_G,
