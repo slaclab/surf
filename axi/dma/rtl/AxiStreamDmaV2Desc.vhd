@@ -36,10 +36,6 @@ entity AxiStreamDmaV2Desc is
       -- Base address of descriptor registers & FIFOs
       AXIL_BASE_ADDR_G  : slv(31 downto 0) := x"00000000";
 
-      -- Support ready handshaking for output AXI transactions. If false user
-      -- must provide an AXI FIFO at the output with SLAVE_READY_EN_G = False
-      AXI_READY_EN_G    : boolean := false;
-
       -- Configuration of AXI bus, must be 64 bits or 128 bits wide
       AXI_CONFIG_G      : AxiConfigType         := AXI_CONFIG_INIT_C;
 
@@ -47,10 +43,7 @@ entity AxiStreamDmaV2Desc is
       DESC_AWIDTH_G     : integer range 4 to 32 := 12;
 
       -- Choose between one-clock arbitration for return descritors or count and check selection
-      DESC_ARB_G        : boolean := true;
-
-      -- Set to true to wait for bvalid status return before moving on to next descriptor DMA
-      ACK_WAIT_BVALID_G : boolean := true);
+      DESC_ARB_G        : boolean := true);
 
    port (
       -- Clock/Reset
@@ -79,9 +72,8 @@ entity AxiStreamDmaV2Desc is
       axiRdCache      : out slv(3 downto 0);
       axiWrCache      : out slv(3 downto 0);
       -- AXI Interface
-      axiWriteMaster  : out AxiWriteMasterType;
-      axiWriteSlave   : in  AxiWriteSlaveType;
-      axiWriteCtrl    : in  AxiCtrlType := AXI_CTRL_UNUSED_C);
+      axiWriteMasters : out AxiWriteMasterArray(CHAN_COUNT_G-1 downto 0);
+      axiWriteSlaves  : in  AxiWriteSlaveArray(CHAN_COUNT_G-1 downto 0));
 end AxiStreamDmaV2Desc;
 
 architecture rtl of AxiStreamDmaV2Desc is
@@ -250,7 +242,6 @@ architecture rtl of AxiStreamDmaV2Desc is
 
    signal r            : RegType := REG_INIT_C;
    signal rin          : RegType;
-   signal pause        : sl;
    signal rdFifoValid  : slv(RD_FIFO_CNT_C-1 downto 0);
    signal rdFifoDout   : slv(RD_FIFO_BITS_C-1 downto 0);
    signal wrFifoValid  : slv(WR_FIFO_CNT_C-1 downto 0);
@@ -423,12 +414,9 @@ begin
    -- Control Logic
    -----------------------------------------
 
-   -- Choose pause source
-   pause <= '0' when (AXI_READY_EN_G) else axiWriteCtrl.pause;
-
-   comb : process (addrRamDout, axiRst, axiWriteSlave, diffCnt, dmaRdDescAck,
+   comb : process (addrRamDout, axiRst, axiWriteSlaves, diffCnt, dmaRdDescAck,
                    dmaRdDescRet, dmaWrDescReq, dmaWrDescRet, intSwAckEn,
-                   intReadMasters, intWriteMasters, invalidCount, pause, r,
+                   intReadMasters, intWriteMasters, invalidCount, r,
                    rdFifoDout, rdFifoValid, wrFifoDout, wrFifoValid) is
 
       variable v            : RegType;
@@ -624,6 +612,11 @@ begin
       --------------------------------------
       -- Read/Write Descriptor Returns
       --------------------------------------
+      if CHAN_COUNT_G > 1 then
+         descIndex := conv_integer(r.descRetNum(RET_SIZE_C-1 downto 1));
+      else
+         descIndex := 0;
+      end if;
 
       -- Clear acks
       v.dmaWrDescRetAck := (others => '0');
@@ -633,10 +626,10 @@ begin
       v.axiWriteMaster.awcache := r.descWrCache;
 
       -- Reset strobing Signals
-      if (axiWriteSlave.awready = '1') or (AXI_READY_EN_G = false) then
+      if (axiWriteSlaves(descIndex).awready = '1') then
          v.axiWriteMaster.awvalid := '0';
       end if;
-      if (axiWriteSlave.wready = '1') or (AXI_READY_EN_G = false) then
+      if (axiWriteSlaves(descIndex).wready = '1') then
          v.axiWriteMaster.wvalid := '0';
          v.axiWriteMaster.wlast  := '0';
       end if;
@@ -663,7 +656,7 @@ begin
             end loop;
 
             -- Arbitrate between requesters
-            if r.enable = '1' and pause = '0' then
+            if r.enable = '1' then
                if (DESC_ARB_G = true) then
                   arbitrate(v.descRetList, r.descRetNum, v.descRetNum, descRetValid, v.descRetAcks);
                else
@@ -696,11 +689,6 @@ begin
 
          ----------------------------------------------------------------------
          when WRITE_S =>
-            if CHAN_COUNT_G > 1 then
-               descIndex := conv_integer(r.descRetNum(RET_SIZE_C-1 downto 1));
-            else
-               descIndex := 0;
-            end if;
 
             -- Write address channel
             v.axiWriteMaster.awaddr := r.wrMemAddr;
@@ -796,8 +784,7 @@ begin
 
          ----------------------------------------------------------------------
          when WAIT_S =>
-            if v.axiWriteMaster.awvalid = '0' and v.axiWriteMaster.wvalid = '0' and
-               (axiWriteSlave.bvalid = '1' or ACK_WAIT_BVALID_G = false) then
+            if v.axiWriteMaster.awvalid = '0' and v.axiWriteMaster.wvalid = '0' then
                v.intReqEn  := '1';
                v.descState := IDLE_S;
             end if;
@@ -934,9 +921,18 @@ begin
       dmaWrDescRetAck <= r.dmaWrDescRetAck;
       dmaRdDescReq    <= r.dmaRdDescReq;
       dmaRdDescRetAck <= r.dmaRdDescRetAck;
-      axiWriteMaster  <= r.axiWriteMaster;
       axiRdCache      <= r.buffRdCache;
       axiWrCache      <= r.buffWrCache;
+
+      axiWriteMasters <= (others=>r.axiWriteMaster);
+
+      -- Only assert one master
+      for i in 0 to CHAN_COUNT_G-1 loop
+         if descIndex /= i then
+            axiWriteMasters(i).awvalid <= '0';
+            axiWriteMasters(i).wvalid  <= '0';
+         end if;
+      end loop;
 
    end process comb;
 
