@@ -27,6 +27,7 @@ entity EthMacTxExportGmii is
       TPD_G : time := 1 ns);
    port (
       -- Clock and Reset
+      ethClkEn       : in  sl;
       ethClk         : in  sl;
       ethRst         : in  sl;
       -- AXIS Interface   
@@ -138,7 +139,7 @@ begin
          mAxisMaster => macMaster,      -- 8-bit AXI stream interface 
          mAxisSlave  => macSlave);
 
-   comb : process (crcOut, ethRst, macMaster, phyReady, r) is
+   comb : process (crcOut, ethClkEn, ethRst, macMaster, phyReady, r) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -151,117 +152,122 @@ begin
       v.txUnderRun     := '0';
       v.txLinkNotReady := '0';
 
-      -- State Machine
-      case r.state is
-         ----------------------------------------------------------------------      
-         when IDLE_S =>
-            -- Reset the flags
-            v.crcReset := '1';
-            v.txCount  := x"00";
-            v.txData   := x"55";        -- Preset to PREAMBLE CHAR
-            v.gmiiTxd  := x"00";
-            v.gmiiTxEn := '0';
-            v.gmiiTxEr := '0';
-            -- Wait for start flag
-            if ((macMaster.tValid = '1') and (ethRst = '0')) then
-               -- Phy is ready
-               if phyReady = '1' then
-                  v.state := TX_PREAMBLE_S;
-               -- Phy is not ready dump data
-               else
-                  v.txLinkNotReady := '1';
-                  v.state          := DUMP_S;
-               end if;
-            end if;
-         ----------------------------------------------------------------------      
-         when TX_PREAMBLE_S =>
-            v.crcReset := '0';
-            v.gmiiTxEn := '1';
-            v.gmiiTxd  := r.txData;
-            if (r.txCount = x"06") then
-               v.txCount := x"00";
-               v.txData  := x"D5";      -- Set to SFD char
-               v.state   := TX_DATA_S;
-            else
-               v.txCount := r.txCount +1;
-               v.txData  := x"55";      -- Set to PREAMBLE char
-            end if;
-         ----------------------------------------------------------------------      
-         when TX_DATA_S =>
-            v.macSlave.tReady := '1';
-            v.crcDataValid    := '1';
-            v.crcIn           := macMaster.tdata(7 downto 0);
-            v.txData          := macMaster.tdata(7 downto 0);
-            v.gmiiTxd         := r.txData;
-            if (r.txCount < x"3C") then  -- Minimum frame of 60B (= 84B - 8B Preamble - 4B CRC - 12B intergap)
-               v.txCount := r.txCount + 1;
-            end if;
-            if (macMaster.tValid = '1') then
-               if (macMaster.tlast = '1') then
-                  if (v.txCount = x"3C") then
-                     v.state := TX_CRC_S;
+      -- Check for clock enable
+      if (ethClkEn = '1') then
+
+         -- State Machine
+         case r.state is
+            ----------------------------------------------------------------------      
+            when IDLE_S =>
+               -- Reset the flags
+               v.crcReset := '1';
+               v.txCount  := x"00";
+               v.txData   := x"55";     -- Preset to PREAMBLE CHAR
+               v.gmiiTxd  := x"00";
+               v.gmiiTxEn := '0';
+               v.gmiiTxEr := '0';
+               -- Wait for start flag
+               if ((macMaster.tValid = '1') and (ethRst = '0')) then
+                  -- Phy is ready
+                  if phyReady = '1' then
+                     v.state := TX_PREAMBLE_S;
+                  -- Phy is not ready dump data
                   else
-                     v.state := PAD_S;
+                     v.txLinkNotReady := '1';
+                     v.state          := DUMP_S;
                   end if;
                end if;
-            else
-               v.gmiiTxEr   := '1';
-               v.txUnderRun := '1';
-               v.state      := DUMP_S;
-            end if;
+            ----------------------------------------------------------------------      
+            when TX_PREAMBLE_S =>
+               v.crcReset := '0';
+               v.gmiiTxEn := '1';
+               v.gmiiTxd  := r.txData;
+               if (r.txCount = x"06") then
+                  v.txCount := x"00";
+                  v.txData  := x"D5";   -- Set to SFD char
+                  v.state   := TX_DATA_S;
+               else
+                  v.txCount := r.txCount +1;
+                  v.txData  := x"55";   -- Set to PREAMBLE char
+               end if;
+            ----------------------------------------------------------------------      
+            when TX_DATA_S =>
+               v.macSlave.tReady := '1';
+               v.crcDataValid    := '1';
+               v.crcIn           := macMaster.tdata(7 downto 0);
+               v.txData          := macMaster.tdata(7 downto 0);
+               v.gmiiTxd         := r.txData;
+               if (r.txCount < x"3C") then  -- Minimum frame of 60B (= 84B - 8B Preamble - 4B CRC - 12B intergap)
+                  v.txCount := r.txCount + 1;
+               end if;
+               if (macMaster.tValid = '1') then
+                  if (macMaster.tlast = '1') then
+                     if (v.txCount = x"3C") then
+                        v.state := TX_CRC_S;
+                     else
+                        v.state := PAD_S;
+                     end if;
+                  end if;
+               else
+                  v.gmiiTxEr   := '1';
+                  v.txUnderRun := '1';
+                  v.state      := DUMP_S;
+               end if;
+            ----------------------------------------------------------------------      
+            when PAD_S =>
+               v.crcDataValid := '1';
+               v.crcIn        := x"00";
+               v.txData       := x"00";
+               v.gmiiTxd      := r.txData;
+               if (r.txCount < x"3C") then
+                  v.txCount := v.txCount + 1;
+               else
+                  v.state := TX_CRC_S;
+               end if;
+            ----------------------------------------------------------------------      
+            when TX_CRC_S =>
+               v.gmiiTxd := r.txData;
+               v.state   := TX_CRC0_S;
+            ----------------------------------------------------------------------      
+            when TX_CRC0_S =>
+               v.gmiitxd := crcOut(31 downto 24);
+               v.state   := TX_CRC1_S;
+            ----------------------------------------------------------------------      
+            when TX_CRC1_S =>
+               v.gmiitxd := crcOut(23 downto 16);
+               v.state   := TX_CRC2_S;
+            ----------------------------------------------------------------------      
+            when TX_CRC2_S =>
+               v.gmiitxd := crcOut(15 downto 8);
+               v.state   := TX_CRC3_S;
+            ----------------------------------------------------------------------      
+            when TX_CRC3_S =>
+               v.txCountEn := '1';
+               v.gmiitxd   := crcOut(7 downto 0);
+               v.txCount   := x"00";
+               v.state     := INTERGAP_S;
+            ----------------------------------------------------------------------      
+            when DUMP_S =>
+               v.gmiiTxEn        := '0';
+               v.gmiiTxd         := x"00";
+               v.macSlave.tReady := '1';
+               v.txCount         := x"00";
+               if ((macMaster.tValid = '1') and (macMaster.tlast = '1')) then
+                  v.state := INTERGAP_S;
+               end if;
+            ----------------------------------------------------------------------      
+            when INTERGAP_S =>
+               v.gmiiTxEn := '0';
+               v.gmiiTxd  := x"00";
+               v.txCount  := r.txCount +1;
+               if r.txCount = x"0A" then  -- 12 Octels (11 in INTERGAP_S + 1 in IDLE_S)
+                  v.txCount := x"00";
+                  v.state   := IDLE_S;
+               end if;
          ----------------------------------------------------------------------      
-         when PAD_S =>
-            v.crcDataValid := '1';
-            v.crcIn        := x"00";
-            v.txData       := x"00";
-            v.gmiiTxd      := r.txData;
-            if (r.txCount < x"3C") then
-               v.txCount := v.txCount + 1;
-            else
-               v.state := TX_CRC_S;
-            end if;
-         ----------------------------------------------------------------------      
-         when TX_CRC_S =>
-            v.gmiiTxd := r.txData;
-            v.state   := TX_CRC0_S;
-         ----------------------------------------------------------------------      
-         when TX_CRC0_S =>
-            v.gmiitxd := crcOut(31 downto 24);
-            v.state   := TX_CRC1_S;
-         ----------------------------------------------------------------------      
-         when TX_CRC1_S =>
-            v.gmiitxd := crcOut(23 downto 16);
-            v.state   := TX_CRC2_S;
-         ----------------------------------------------------------------------      
-         when TX_CRC2_S =>
-            v.gmiitxd := crcOut(15 downto 8);
-            v.state   := TX_CRC3_S;
-         ----------------------------------------------------------------------      
-         when TX_CRC3_S =>
-            v.txCountEn := '1';
-            v.gmiitxd   := crcOut(7 downto 0);
-            v.txCount   := x"00";
-            v.state     := INTERGAP_S;
-         ----------------------------------------------------------------------      
-         when DUMP_S =>
-            v.gmiiTxEn        := '0';
-            v.gmiiTxd         := x"00";
-            v.macSlave.tReady := '1';
-            v.txCount         := x"00";
-            if ((macMaster.tValid = '1') and (macMaster.tlast = '1')) then
-               v.state := INTERGAP_S;
-            end if;
-         ----------------------------------------------------------------------      
-         when INTERGAP_S =>
-            v.gmiiTxEn := '0';
-            v.gmiiTxd  := x"00";
-            v.txCount  := r.txCount +1;
-            if r.txCount = x"0A" then  -- 12 Octels (11 in INTERGAP_S + 1 in IDLE_S)
-               v.txCount := x"00";
-               v.state   := IDLE_S;
-            end if;
-      ----------------------------------------------------------------------      
-      end case;
+         end case;
+
+      end if;
 
       -- Combinatorial outputs before the reset
       macSlave     <= v.macSlave;
