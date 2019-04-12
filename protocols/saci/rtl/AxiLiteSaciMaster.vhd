@@ -37,6 +37,9 @@ entity AxiLiteSaciMaster is
       saciCmd         : out sl;
       saciSelL        : out slv(SACI_NUM_CHIPS_G-1 downto 0);
       saciRsp         : in  slv(ite(SACI_RSP_BUSSED_G, 0, SACI_NUM_CHIPS_G-1) downto 0);
+      -- Optional SACI bus arbitration
+      saciBusReq      : out sl;
+      saciBusGr       : in  sl := '1';
       -- AXI-Lite Register Interface
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -58,6 +61,7 @@ architecture rtl of AxiLiteSaciMaster is
 
    type RegType is record
       state          : StateType;
+      saciBusReq     : sl;
       saciRst        : sl;
       req            : sl;
       chip           : slv(log2(SACI_NUM_CHIPS_G)-1 downto 0);
@@ -73,6 +77,7 @@ architecture rtl of AxiLiteSaciMaster is
 
    constant REG_INIT_C : RegType := (
       state          => IDLE_S,
+      saciBusReq     => '0',
       saciRst        => '1',
       req            => '0',
       chip           => (others => '0'),
@@ -134,7 +139,7 @@ begin
          saciCmd  => saciCmd,           -- [out]
          saciRsp  => saciRsp);          -- [in]
 
-   comb : process (ack, axilReadMaster, axilRst, axilWriteMaster, fail, r, rdData) is
+   comb : process (ack, axilReadMaster, axilRst, axilWriteMaster, fail, r, rdData, saciBusGr) is
       variable v          : RegType;
       variable axilStatus : AxiLiteStatusType;
       variable resp       : slv(1 downto 0);
@@ -161,34 +166,45 @@ begin
             -- Reset the timer
             v.saciRst := '0';
             v.timer   := 0;
-            -- Check for a write request
-            if (axilStatus.writeEnable = '1') then
-               -- SACI Commands
-               v.req  := '1';
-               v.op   := '1';
-               v.chip := axilWriteMaster.awaddr(22+CHIP_BITS_C-1 downto 22);
-               if (SACI_NUM_CHIPS_G = 1) then
-                  v.chip := "0";
+            v.saciBusReq := '0';
+            if (saciBusGr = '1') then
+               -- Check for a write request
+               if (axilStatus.writeEnable = '1') then
+                  v.saciBusReq := '1';
+                  -- SACI Commands
+                  v.req  := '1';
+                  v.op   := '1';
+                  v.chip := axilWriteMaster.awaddr(22+CHIP_BITS_C-1 downto 22);
+                  if (SACI_NUM_CHIPS_G = 1) then
+                     v.chip := "0";
+                  end if;
+                  v.cmd    := axilWriteMaster.awaddr(20 downto 14);
+                  v.addr   := axilWriteMaster.awaddr(13 downto 2);
+                  v.wrData := axilWriteMaster.wdata;
+                  -- Next state
+                  v.state  := SACI_REQ_S;
+               -- Check for a read request            
+               elsif (axilStatus.readEnable = '1') then
+                  v.saciBusReq := '1';
+                  -- SACI Commands
+                  v.req  := '1';
+                  v.op   := '0';
+                  v.chip := axilReadMaster.araddr(22+CHIP_BITS_C-1 downto 22);
+                  if (SACI_NUM_CHIPS_G = 1) then
+                     v.chip := "0";
+                  end if;
+                  v.cmd    := axilReadMaster.araddr(20 downto 14);
+                  v.addr   := axilReadMaster.araddr(13 downto 2);
+                  v.wrData := (others => '0');
+                  -- Next state
+                  v.state  := SACI_REQ_S;
                end if;
-               v.cmd    := axilWriteMaster.awaddr(20 downto 14);
-               v.addr   := axilWriteMaster.awaddr(13 downto 2);
-               v.wrData := axilWriteMaster.wdata;
-               -- Next state
-               v.state  := SACI_REQ_S;
-            -- Check for a read request            
-            elsif (axilStatus.readEnable = '1') then
-               -- SACI Commands
-               v.req  := '1';
-               v.op   := '0';
-               v.chip := axilReadMaster.araddr(22+CHIP_BITS_C-1 downto 22);
-               if (SACI_NUM_CHIPS_G = 1) then
-                  v.chip := "0";
+            else
+               if (axilStatus.writeEnable = '1') then
+                  axiSlaveWriteResponse(v.axilWriteSlave, AXI_RESP_SLVERR_C);
+               elsif (axilStatus.readEnable = '1') then
+                  axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_SLVERR_C);
                end if;
-               v.cmd    := axilReadMaster.araddr(20 downto 14);
-               v.addr   := axilReadMaster.araddr(13 downto 2);
-               v.wrData := (others => '0');
-               -- Next state
-               v.state  := SACI_REQ_S;
             end if;
          ----------------------------------------------------------------------
          when SACI_REQ_S =>
@@ -238,6 +254,7 @@ begin
       -- Outputs
       axilReadSlave  <= r.axilReadSlave;
       axilWriteSlave <= r.axilWriteSlave;
+      saciBusReq     <= r.saciBusReq;
 
    end process comb;
 

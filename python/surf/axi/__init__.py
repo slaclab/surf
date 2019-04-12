@@ -10,9 +10,10 @@
 ##############################################################################
 from surf.axi._AxiLiteEmpty                 import *
 from surf.axi._AxiMemTester                 import *
-from surf.axi._AxiStreamBatcherEventBuilder import *
 from surf.axi._AxiStreamDmaRingWrite        import *
 from surf.axi._AxiStreamMonitoring          import *
 from surf.axi._AxiVersion                   import *
 from surf.axi._AxiVersionLegacy             import *
 from surf.axi._AxiStreamDmaV2               import *
+from surf.axi._AxiStreamScatterGather       import *
+

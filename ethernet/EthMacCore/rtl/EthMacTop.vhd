@@ -55,6 +55,7 @@ entity EthMacTop is
       VLAN_CONFIG_G       : AxiStreamConfigType      := EMAC_AXIS_CONFIG_C);      
    port (
       -- Core Clock and Reset
+      ethClkEn         : in  sl                                           := '1';
       ethClk           : in  sl;
       ethRst           : in  sl;
       -- Primary Interface
@@ -194,6 +195,7 @@ begin
          VLAN_VID_G      => VLAN_VID_G)
       port map (
          -- Clocks
+         ethClkEn       => ethClkEn,
          ethClk         => ethClk,
          ethRst         => ethRst,
          -- Primary Interface
@@ -268,6 +270,7 @@ begin
          VLAN_VID_G     => VLAN_VID_G)
       port map (
          -- Clock and Reset
+         ethClkEn     => ethClkEn,
          ethClk       => ethClk,
          ethRst       => ethRst,
          -- Primary Interface

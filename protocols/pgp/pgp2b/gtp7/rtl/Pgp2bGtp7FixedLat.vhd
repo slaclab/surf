@@ -33,7 +33,7 @@ entity Pgp2bGtp7FixedLat is
       ----------------------------------------------------------------------------------------------
       -- Sim Generics --
       SIM_GTRESET_SPEEDUP_G : string     := "FALSE";
-      SIM_VERSION_G         : string     := "1.0";
+      SIM_VERSION_G         : string     := "2.0";
       SIMULATION_G          : boolean    := false;
       STABLE_CLOCK_PERIOD_G : real       := 4.0E-9;                    --units of seconds
       REF_CLK_FREQ_G        : real       := 125.0E6;

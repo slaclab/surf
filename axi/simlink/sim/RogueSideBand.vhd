@@ -24,9 +24,12 @@ entity RogueSideBand is port (
       reset        : in    std_logic;
       portNum      : in    std_logic_vector(15 downto 0);
 
-      opCode       : out   std_logic_vector(7 downto 0);
-      opCodeEn     : out   std_logic;
-      remData      : out   std_logic_vector(7 downto 0)
+      txOpCode   : in  std_logic_vector(7 downto 0);
+      txOpCodeEn : in  std_logic;
+      txRemData  : in  std_logic_vector(7 downto 0);
+      rxOpCode   : out std_logic_vector(7 downto 0);
+      rxOpCodeEn : out std_logic;
+      rxRemData  : out std_logic_vector(7 downto 0)
    );
 end RogueSideBand;
 
