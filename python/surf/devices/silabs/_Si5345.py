@@ -80,15 +80,15 @@ class Si5345(pr.Device):
         ##############################
         # Devices
         ##############################
-        self.add(Si5345Page0(offset=0x000,simpleDisplay=simpleDisplay,expand=False))
-        self.add(Si5345Page1(offset=0x100,simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
-        self.add(Si5345Page2(offset=0x200,simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
-        self.add(Si5345Page3(offset=0x300,simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
-        self.add(Si5345Page4(offset=0x400,simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
-        self.add(Si5345Page5(offset=0x500,simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
-        self.add(Si5345Page9(offset=0x900,simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
-        self.add(Si5345PageA(offset=0xA00,simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
-        self.add(Si5345PageB(offset=0xB00,simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
+        self.add(Si5345Page0(offset=(0x000<<2),simpleDisplay=simpleDisplay,expand=False))
+        self.add(Si5345Page1(offset=(0x100<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
+        self.add(Si5345Page2(offset=(0x200<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
+        self.add(Si5345Page3(offset=(0x300<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
+        self.add(Si5345Page4(offset=(0x400<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
+        self.add(Si5345Page5(offset=(0x500<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
+        self.add(Si5345Page9(offset=(0x900<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
+        self.add(Si5345PageA(offset=(0xA00<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
+        self.add(Si5345PageB(offset=(0xB00<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
         
 class Si5345Page0(pr.Device):
     def __init__(self,       
@@ -124,7 +124,7 @@ class Si5345Page0(pr.Device):
             name         = 'GRADE', 
             description  = 'One ASCII character indicating the device speed/synthesis mode.',
             offset       = (0x04 << 2),
-            bitSize      = 8, 
+            bitSize      = 2, 
             mode         = 'RO',
             enum        = {
                 0x0: 'A', 
@@ -139,7 +139,7 @@ class Si5345Page0(pr.Device):
             name         = 'DEVICE_REV', 
             description  = 'One ASCII character indicating the device revision level.',
             offset       = (0x05 << 2),
-            bitSize      = 8, 
+            bitSize      = 2, 
             mode         = 'RO',
             enum        = {
                 0x0: 'A', 
@@ -753,6 +753,9 @@ class Si5345Page0(pr.Device):
                 0x2: 'CLKIN2', 
                 0x3: 'CLKIN3', 
                 0x4: 'XAXB', 
+                0x5: 'UNDEFINED_0x5',
+                0x6: 'UNDEFINED_0x6',
+                0x7: 'UNDEFINED_0x7',  
             },
             overlapEn   = True,
         ))
@@ -1039,6 +1042,11 @@ class Si5345Page0(pr.Device):
                 0x8: '1000 ppm', 
                 0x9: '3000 ppm', 
                 0xA: '10000 ppm', 
+                0xB: 'UNDEFINED_0xB', 
+                0xC: 'UNDEFINED_0xC', 
+                0xD: 'UNDEFINED_0xD', 
+                0xE: 'UNDEFINED_0xE', 
+                0xF: 'UNDEFINED_0xF', 
             },
             overlapEn   = True,
         )) 
@@ -1062,6 +1070,11 @@ class Si5345Page0(pr.Device):
                 0x8: '1000 ppm', 
                 0x9: '3000 ppm', 
                 0xA: '10000 ppm', 
+                0xB: 'UNDEFINED_0xB', 
+                0xC: 'UNDEFINED_0xC', 
+                0xD: 'UNDEFINED_0xD', 
+                0xE: 'UNDEFINED_0xE', 
+                0xF: 'UNDEFINED_0xF',                 
             },
             overlapEn   = True,
         ))         
@@ -1095,12 +1108,12 @@ class Si5345Page0(pr.Device):
             bitSize     = 8,
             bitOffset   = 0,
             mode        = 'RO',
-            enum        = {
-                0x00: 'zero', 
-                0x03: 'one', 
-                0x0F: 'two', 
-                0x3F: 'three', 
-            },
+            # enum        = {
+                # 0x00: 'zero', 
+                # 0x03: 'one', 
+                # 0x0F: 'two', 
+                # 0x3F: 'three', 
+            # },
             overlapEn   = True,
         ))              
 
@@ -1360,16 +1373,18 @@ class Si5345Page1(pr.Device):
                 name        = f'OUT_FORMAT[{i}]',
                 description = 'OUT_FORMAT',
                 offset      = ( ((0x09+(5*i)) << 2) if (i!=9) else ((0x09+(5*i)+5) << 2) ),
-                bitSize     = 2,
+                bitSize     = 3,
                 bitOffset   = 0,
                 mode        = 'RW',
                 enum        = {
                     0x0: 'Undefined', 
                     0x1: 'swing mode (normal swing) differential', 
                     0x2: 'swing mode (high swing) differential', 
+                    0x3: 'UNDEFINED_0x3',
                     0x4: 'LVCMOS single ended', 
                     0x5: 'LVCMOS (+pin only)', 
                     0x6: 'LVCMOS (pin only)', 
+                    0x7: 'UNDEFINED_0x7',
                 },                
                 overlapEn   = True,
             ))
@@ -1395,6 +1410,8 @@ class Si5345Page1(pr.Device):
                 enum        = {
                     0x0: 'Disable low', 
                     0x1: 'Disable high', 
+                    0x2: 'UNDEFINED_0x2',
+                    0x3: 'UNDEFINED_0x3',
                 },                
                 overlapEn   = True,
             ))
@@ -1410,6 +1427,7 @@ class Si5345Page1(pr.Device):
                     0x0: 'CMOS1', 
                     0x1: 'CMOS2', 
                     0x2: 'CMOS3', 
+                    0x3: 'UNDEFINED_0x3',
                 },                
                 overlapEn   = True,
             ))
@@ -1447,6 +1465,9 @@ class Si5345Page1(pr.Device):
                     0x2: 'N2', 
                     0x3: 'N3', 
                     0x4: 'N4', 
+                    0x5: 'UNDEFINED_0x5',
+                    0x6: 'UNDEFINED_0x6',
+                    0x7: 'UNDEFINED_0x7',                    
                 },                
                 overlapEn   = True,
             ))
@@ -1473,6 +1494,7 @@ class Si5345Page1(pr.Device):
                     0x0: '3.3 V', 
                     0x1: '1.8 V', 
                     0x2: '2.5 V', 
+                    0x3: 'UNDEFINED_0x3',                  
                 },                
                 overlapEn   = True,
             ))  
@@ -2294,6 +2316,7 @@ class Si5345Page4(pr.Device):
                 0x0: 'IN0', 
                 0x1: 'IN1', 
                 0x2: 'IN2', 
+                0x3: 'UNDEFINED_0x3',   
             },                
             overlapEn   = True,
         ))         
@@ -2609,6 +2632,7 @@ class Si5345Page5(pr.Device):
                 0x0: 'manual', 
                 0x1: 'automatic_non-revertive', 
                 0x2: 'automatic_revertive', 
+                0x3: 'UNDEFINED_0x3',                
             },                
             overlapEn   = True,
         ))         
@@ -2657,6 +2681,9 @@ class Si5345Page5(pr.Device):
                 0x2: 'priority 2', 
                 0x3: 'priority 3', 
                 0x4: 'priority 4', 
+                0x5: 'UNDEFINED_0x5',
+                0x6: 'UNDEFINED_0x6',
+                0x7: 'UNDEFINED_0x7',                
             },                  
             overlapEn   = True,
         ))
@@ -2674,6 +2701,9 @@ class Si5345Page5(pr.Device):
                 0x2: 'priority 2', 
                 0x3: 'priority 3', 
                 0x4: 'priority 4', 
+                0x5: 'UNDEFINED_0x5',
+                0x6: 'UNDEFINED_0x6',
+                0x7: 'UNDEFINED_0x7',                
             },                  
             overlapEn   = True,
         ))        
@@ -2691,6 +2721,9 @@ class Si5345Page5(pr.Device):
                 0x2: 'priority 2', 
                 0x3: 'priority 3', 
                 0x4: 'priority 4', 
+                0x5: 'UNDEFINED_0x5',
+                0x6: 'UNDEFINED_0x6',
+                0x7: 'UNDEFINED_0x7',                
             },                  
             overlapEn   = True,
         ))
@@ -2708,6 +2741,9 @@ class Si5345Page5(pr.Device):
                 0x2: 'priority 2', 
                 0x3: 'priority 3', 
                 0x4: 'priority 4', 
+                0x5: 'UNDEFINED_0x5',
+                0x6: 'UNDEFINED_0x6',
+                0x7: 'UNDEFINED_0x7',                
             },                  
             overlapEn   = True,
         ))             
@@ -2719,9 +2755,9 @@ class Si5345Page5(pr.Device):
             bitSize     = 2,
             bitOffset   = 0,
             mode        = 'WO',
-            value        = 0x2,
-            hidden       = True,
-            verify       = False,                
+            value       = 0x2,
+            hidden      = True,
+            verify      = False,                
             overlapEn   = True,
         ))  
 
@@ -2732,9 +2768,9 @@ class Si5345Page5(pr.Device):
             bitSize     = 2,
             bitOffset   = 2,
             mode        = 'WO',
-            value        = 0x0,
-            hidden       = True,
-            verify       = False,                
+            value       = 0x0,
+            hidden      = True,
+            verify      = False,                
             overlapEn   = True,
         ))          
 
