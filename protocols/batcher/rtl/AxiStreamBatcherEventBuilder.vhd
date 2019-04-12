@@ -78,6 +78,7 @@ architecture rtl of AxiStreamBatcherEventBuilder is
       maxSubFrames   : slv(15 downto 0);
       timer          : slv(31 downto 0);
       timeout        : slv(31 downto 0);
+      bypass         : slv(NUM_SLAVES_G-1 downto 0);
       dataCnt        : Slv32Array(NUM_SLAVES_G-1 downto 0);
       nullCnt        : Slv32Array(NUM_SLAVES_G-1 downto 0);
       timeoutDropCnt : Slv32Array(NUM_SLAVES_G-1 downto 0);
@@ -102,6 +103,7 @@ architecture rtl of AxiStreamBatcherEventBuilder is
       maxSubFrames   => toSlv(NUM_SLAVES_G, 16),
       timer          => (others => '0'),
       timeout        => (others => '0'),
+      bypass         => (others => '0'),
       dataCnt        => (others => (others => '0')),
       nullCnt        => (others => (others => '0')),
       timeoutDropCnt => (others => (others => '0')),
@@ -215,14 +217,10 @@ begin
          -- Reset the register
          v := REG_INIT_C;
          
-         -- -- Check for soft reset (unclear if we want to support a hard reset that also resets the registers.  it might confuse 'novice' users who randomly hitting different resets)
-         -- if (r.softRst = '1') then
-         
-            -- Preserve the resister configurations
-            v.timeout := r.timeout;
-            v.blowoff := r.blowoff;
-            
-         -- end if;
+         -- Preserve the resister configurations
+         v.bypass  := r.bypass;
+         v.timeout := r.timeout;
+         v.blowoff := r.blowoff;
          
       end if;
 
@@ -235,6 +233,7 @@ begin
          axiSlaveRegisterR(axilEp, toSlv(4*i + 256, 12), 0, r.nullCnt(i));
          axiSlaveRegisterR(axilEp, toSlv(4*i + 512, 12), 0, r.timeoutDropCnt(i));
       end loop;
+      axiSlaveRegister (axilEp, x"FD0", 0, v.bypass);
       axiSlaveRegister (axilEp, x"FF0", 0, v.timeout);
       axiSlaveRegisterR(axilEp, x"FF4", 0, toSlv(NUM_SLAVES_G, 8));
       axiSlaveRegisterR(axilEp, x"FF4", 8, dbg);
@@ -252,10 +251,14 @@ begin
          -- Reset the timer
          v.timer := (others => '0');
       end if;
+      if (r.bypass /= v.bypass) or (r.blowoff /= v.blowoff) then
+         -- Perform a soft-reset
+         v.softRst  := '1';
+      end if;
 
       -- Reset the flow control strobes
       for i in (NUM_SLAVES_G-1) downto 0 loop
-         v.rxSlaves(i).tReady := '0';
+         v.rxSlaves(i).tReady := r.bypass(i);
       end loop;
       if (txSlave.tReady = '1') then
          v.txMaster.tValid := '0';
@@ -271,8 +274,8 @@ begin
             -- Loop through RX channels
             for i in (NUM_SLAVES_G-1) downto 0 loop
 
-               -- Check if no data
-               if (rxMasters(i).tValid = '0') then
+               -- Check if no data and not bypassing 
+               if (rxMasters(i).tValid = '0') and (r.bypass(i) = '0') then
                   -- Reset the flags
                   v.ready      := '0';
                   v.accept(i)  := '0';
@@ -290,10 +293,10 @@ begin
                                     (getTKeep(rxMasters(i).tKeep(AXIS_CONFIG_G.TDATA_BYTES_C-1 downto 0), AXIS_CONFIG_G) = 1) then  -- byte count = 1
                      -- NULL frame detected
                      v.accept(i)  := '0';
-                     v.nullDet(i) := '1';
+                     v.nullDet(i) := not(r.bypass(i));
                   else
                      -- Normal frame detected
-                     v.accept(i)  := '1';
+                     v.accept(i)  := not(r.bypass(i));
                      v.nullDet(i) := '0';
                   end if;
                end if;
@@ -370,8 +373,8 @@ begin
             end if;
          ----------------------------------------------------------------------
          when MOVE_S =>
-            -- Check for timeout channel
-            if (r.timeoutDet(r.index) = '1') then
+            -- Check for timeout or bypass on the channel
+            if (r.timeoutDet(r.index) = '1') or (r.bypass(r.index) = '1') then
 
                -- Check for last channel
                if (r.index = NUM_SLAVES_G-1) then

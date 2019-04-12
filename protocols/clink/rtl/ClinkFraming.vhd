@@ -26,6 +26,7 @@ use work.ClinkPkg.all;
 entity ClinkFraming is
    generic (
       TPD_G              : time                := 1 ns;
+      COMMON_DATA_CLK_G  : boolean             := false;  -- true if dataClk=sysClk
       DATA_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- System clock and reset
@@ -439,7 +440,7 @@ begin
       generic map (
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => false,
-         GEN_SYNC_FIFO_G     => false,
+         GEN_SYNC_FIFO_G     => COMMON_DATA_CLK_G,
          FIFO_ADDR_WIDTH_G   => 9,
          FIFO_PAUSE_THRESH_G => 500,
          SLAVE_AXI_CONFIG_G  => MST_CONFIG_C,

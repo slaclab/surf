@@ -19,32 +19,40 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
+
 use work.StdRtlPkg.all;
+use work.AxiLitePkg.all;
 use work.ClinkPkg.all;
+
 library unisim;
 use unisim.vcomponents.all;
 
 entity ClinkData is
    generic (
-      TPD_G : time := 1 ns
-      );
+      TPD_G        : time   := 1 ns;
+      XIL_DEVICE_G : string := "7SERIES");
    port (
       -- Cable Input
-      cblHalfP   : inout slv(4 downto 0);  --  8, 10, 11, 12,  9
-      cblHalfM   : inout slv(4 downto 0);  -- 21, 23, 24, 25, 22
+      cblHalfP        : inout slv(4 downto 0);  --  8, 10, 11, 12,  9
+      cblHalfM        : inout slv(4 downto 0);  -- 21, 23, 24, 25, 22
       -- Delay clock, 200Mhz
-      dlyClk     : in    sl;
-      dlyRst     : in    sl;
+      dlyClk          : in    sl;
+      dlyRst          : in    sl;
       -- System clock and reset, must be 100Mhz or greater
-      sysClk     : in    sl;
-      sysRst     : in    sl;
+      sysClk          : in    sl;
+      sysRst          : in    sl;
       -- Status and config
-      linkConfig : in    ClLinkConfigType;
-      linkStatus : out   ClLinkStatusType;
+      linkConfig      : in    ClLinkConfigType;
+      linkStatus      : out   ClLinkStatusType;
       -- Data output
-      parData    : out   slv(27 downto 0);
-      parValid   : out   sl;
-      parReady   : in    sl);
+      parData         : out   slv(27 downto 0);
+      parValid        : out   sl;
+      parReady        : in    sl;
+      -- AXI-Lite Interface 
+      axilReadMaster  : in    AxiLiteReadMasterType;
+      axilReadSlave   : out   AxiLiteReadSlaveType;
+      axilWriteMaster : in    AxiLiteWriteMasterType;
+      axilWriteSlave  : out   AxiLiteWriteSlaveType);
 end ClinkData;
 
 architecture rtl of ClinkData is
@@ -94,20 +102,34 @@ begin
    -- DeSerializer
    -------------------------------
    U_DataShift : entity work.ClinkDataShift
-      generic map (TPD_G => TPD_G)
+      generic map (
+         TPD_G        => TPD_G,
+         XIL_DEVICE_G => XIL_DEVICE_G)
       port map (
-         cblHalfP => cblHalfP,
-         cblHalfM => cblHalfM,
-         linkRst  => linkConfig.rstPll,
-         dlyClk   => dlyClk,
-         dlyRst   => dlyRst,
-         clinkClk => clinkClk,
-         clinkRst => clinkRst,
-         parData  => intData,
-         parClock => parClock,
-         delay    => r.delay,
-         delayLd  => r.delayLd,
-         bitSlip  => r.bitSlip);
+         cblHalfP        => cblHalfP,
+         cblHalfM        => cblHalfM,
+         linkRst         => linkConfig.rstPll,
+         dlyClk          => dlyClk,
+         dlyRst          => dlyRst,
+         clinkClk        => clinkClk,
+         clinkRst        => clinkRst,
+         -- Parallel clock and data output (clinkClk)
+         parData         => intData,
+         parClock        => parClock,
+         -- Control inputs
+         delay           => r.delay,
+         delayLd         => r.delayLd,
+         bitSlip         => r.bitSlip,
+         -- Frequency Measurements
+         clkInFreq       => linkStatus.clkInFreq,
+         clinkClkFreq    => linkStatus.clinkClkFreq,
+         -- AXI-Lite Interface 
+         sysClk          => sysClk,
+         sysRst          => sysRst,
+         axilReadMaster  => axilReadMaster,
+         axilReadSlave   => axilReadSlave,
+         axilWriteMaster => axilWriteMaster,
+         axilWriteSlave  => axilWriteSlave);
 
    -------------------------------
    -- State Machine
@@ -201,7 +223,7 @@ begin
             if r.count = 0 then
                if parClock = "1100011" and r.delay /= 31 then
                   v.status.locked := '1';
-               else
+               elsif (r.status.locked = '0') then
                   -- Retry to lock again
                   v := REG_INIT_C;
                end if;
