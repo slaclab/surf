@@ -1,6 +1,7 @@
 var classEthMacTop =
 [
     [ "mapping", "classEthMacTop_1_1mapping.html", "classEthMacTop_1_1mapping" ],
+    [ "ethClkEn", "classEthMacTop.html#affcd5b0659edf45f26385aba73691caa", null ],
     [ "ethClk", "classEthMacTop.html#aa454832f4c517041d344f7bdf52eceec", null ],
     [ "ethRst", "classEthMacTop.html#a6c46ddea5c02f0cc0addd2467357471c", null ],
     [ "primClk", "classEthMacTop.html#ac5b8c295895ec49eca090660e629f065", null ],

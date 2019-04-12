@@ -21,6 +21,5 @@ var searchData=
   ['dsppkg',['DspPkg',['../classDspPkg.html',1,'']]],
   ['dsppresubmult',['DspPreSubMult',['../classDspPreSubMult.html',1,'']]],
   ['dspsquarediffmult',['DspSquareDiffMult',['../classDspSquareDiffMult.html',1,'']]],
-  ['dspxor',['DspXor',['../classDspXor.html',1,'']]],
   ['dualportram',['DualPortRam',['../classDualPortRam.html',1,'']]]
 ];

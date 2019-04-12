@@ -2,8 +2,9 @@ var classRoguePgp3Sim =
 [
     [ "sim", "classRoguePgp3Sim_1_1sim.html", "classRoguePgp3Sim_1_1sim" ],
     [ "TPD_G", "classRoguePgp3Sim.html#a67a837684e4f18c2d236ac1d053b419b", null ],
-    [ "PORT_NUM_G", "classRoguePgp3Sim.html#a809083c0cc7c8d65edace0a2ddbe5b6a", null ],
+    [ "PORT_NUM_G", "classRoguePgp3Sim.html#ab3fde3b7c141dad2ba8ed588ea50a206", null ],
     [ "NUM_VC_G", "classRoguePgp3Sim.html#ad7e58e4c4b9f6ab2d4f638e2a2252673", null ],
+    [ "EN_SIDEBAND_G", "classRoguePgp3Sim.html#a49bbccab2ef51f5d70d9f11ef789ed8d", null ],
     [ "pgpRefClk", "classRoguePgp3Sim.html#a34b0e18b6336f40cdcf5b91464ad07c5", null ],
     [ "pgpGtRxP", "classRoguePgp3Sim.html#ad2009e1bdbcff1a5564096bcd6319470", null ],
     [ "pgpGtRxN", "classRoguePgp3Sim.html#aec389117d18ae1a21c2caac9732358a8", null ],

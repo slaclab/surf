@@ -1,6 +1,7 @@
 var classEthMacRx =
 [
     [ "mapping", "classEthMacRx_1_1mapping.html", "classEthMacRx_1_1mapping" ],
+    [ "ethClkEn", "classEthMacRx.html#a66088ecf8316dc0df29ac8e866985b57", null ],
     [ "ethClk", "classEthMacRx.html#aa454832f4c517041d344f7bdf52eceec", null ],
     [ "ethRst", "classEthMacRx.html#a6c46ddea5c02f0cc0addd2467357471c", null ],
     [ "mPrimMaster", "classEthMacRx.html#a5c04064c49fcaf89e34e2742d9f84d78", null ],

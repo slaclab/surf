@@ -8,6 +8,7 @@ var searchData=
   ['clinkframertb',['ClinkFramerTb',['../classClinkFramerTb.html',1,'']]],
   ['clinkframing',['ClinkFraming',['../classClinkFraming.html',1,'']]],
   ['clinkpkg',['ClinkPkg',['../classClinkPkg.html',1,'']]],
+  ['clinkreg',['ClinkReg',['../classClinkReg.html',1,'']]],
   ['clinktop',['ClinkTop',['../classClinkTop.html',1,'']]],
   ['clinkuart',['ClinkUart',['../classClinkUart.html',1,'']]],
   ['clinkuartthrottle',['ClinkUartThrottle',['../classClinkUartThrottle.html',1,'']]],

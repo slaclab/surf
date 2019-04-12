@@ -4,14 +4,9 @@ var classAd9249ReadoutGroup =
     [ "TPD_G", "classAd9249ReadoutGroup.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "NUM_CHANNELS_G", "classAd9249ReadoutGroup.html#a2b5df47c28540306bf7ad8f08a90577a", null ],
     [ "IODELAY_GROUP_G", "classAd9249ReadoutGroup.html#a8f92d1c38a2d3aef9cea8e1cbcc8999f", null ],
-    [ "D_DELAY_CASCADE_G", "classAd9249ReadoutGroup.html#a8990dde40765b6e681a95bbebfb5bfe3", null ],
-    [ "F_DELAY_CASCADE_G", "classAd9249ReadoutGroup.html#a4c976259118e2959f7ebbe2ee3d96609", null ],
     [ "IDELAYCTRL_FREQ_G", "classAd9249ReadoutGroup.html#a68d19af25f43717cb5eb2fe47c6bc5ea", null ],
-    [ "DELAY_VALUE_G", "classAd9249ReadoutGroup.html#a39f99706292a5ac0ba42e523bdea69ce", null ],
-    [ "DEFAULT_DELAY_G", "classAd9249ReadoutGroup.html#abd65c5998440f174a06bf60447377297", null ],
+    [ "DEFAULT_DELAY_G", "classAd9249ReadoutGroup.html#a64d8e2db86198b020f14bfd2dde1e779", null ],
     [ "ADC_INVERT_CH_G", "classAd9249ReadoutGroup.html#a99b6d01acd33c1bcec46aa4132f36c7e", null ],
-    [ "USE_MMCME_G", "classAd9249ReadoutGroup.html#aeb6c4a722f7aa7b53f5bba1ab912d28d", null ],
-    [ "SIM_SPEEDUP_G", "classAd9249ReadoutGroup.html#af30021898e964025ce5297b609d506ae", null ],
     [ "axilClk", "classAd9249ReadoutGroup.html#a8e1fd4ab848b98a0c700b34cf7c90b36", null ],
     [ "axilRst", "classAd9249ReadoutGroup.html#a4b36ee28c73fadc67fe1a670f1ba11ff", null ],
     [ "axilWriteMaster", "classAd9249ReadoutGroup.html#a8cc88283087926e934bb67651263b053", null ],
@@ -31,5 +26,10 @@ var classAd9249ReadoutGroup =
     [ "StdRtlPkg", "classAd9249ReadoutGroup.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classAd9249ReadoutGroup.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
     [ "AxiStreamPkg", "classAd9249ReadoutGroup.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
-    [ "Ad9249Pkg", "classAd9249ReadoutGroup.html#af6b33265da6fc3ff22ecfea761e52e63", null ]
+    [ "Ad9249Pkg", "classAd9249ReadoutGroup.html#af6b33265da6fc3ff22ecfea761e52e63", null ],
+    [ "D_DELAY_CASCADE_G", "classAd9249ReadoutGroup.html#a8990dde40765b6e681a95bbebfb5bfe3", null ],
+    [ "F_DELAY_CASCADE_G", "classAd9249ReadoutGroup.html#a4c976259118e2959f7ebbe2ee3d96609", null ],
+    [ "DELAY_VALUE_G", "classAd9249ReadoutGroup.html#a39f99706292a5ac0ba42e523bdea69ce", null ],
+    [ "USE_MMCME_G", "classAd9249ReadoutGroup.html#aeb6c4a722f7aa7b53f5bba1ab912d28d", null ],
+    [ "SIM_SPEEDUP_G", "classAd9249ReadoutGroup.html#af30021898e964025ce5297b609d506ae", null ]
 ];

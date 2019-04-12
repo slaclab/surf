@@ -1,6 +1,7 @@
 var classEthMacRxImportGmii =
 [
     [ "rtl", "classEthMacRxImportGmii_1_1rtl.html", "classEthMacRxImportGmii_1_1rtl" ],
+    [ "ethClkEn", "classEthMacRxImportGmii.html#a66088ecf8316dc0df29ac8e866985b57", null ],
     [ "ethClk", "classEthMacRxImportGmii.html#aa454832f4c517041d344f7bdf52eceec", null ],
     [ "ethRst", "classEthMacRxImportGmii.html#a6c46ddea5c02f0cc0addd2467357471c", null ],
     [ "macIbMaster", "classEthMacRxImportGmii.html#a88ff732167c335bbbc2a4aecbfa16519", null ],

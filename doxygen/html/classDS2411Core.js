@@ -5,6 +5,7 @@ var classDS2411Core =
     [ "SIMULATION_G", "classDS2411Core.html#ac6de36aa80aba7f5067e4172962ede27", null ],
     [ "SIM_OUTPUT_G", "classDS2411Core.html#aeb7d50c291806b7df8584f613757c246", null ],
     [ "CLK_PERIOD_G", "classDS2411Core.html#aa1b05411769edd4978c581f756b8b4a4", null ],
+    [ "SMPL_TIME_G", "classDS2411Core.html#a3864e41e76be5158d981ee8bd1e88730", null ],
     [ "clk", "classDS2411Core.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classDS2411Core.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],
     [ "fdSerSdio", "classDS2411Core.html#a4bff9e182ad92064994188baac66e104", null ],

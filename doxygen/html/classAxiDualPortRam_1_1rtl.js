@@ -20,7 +20,7 @@ var classAxiDualPortRam_1_1rtl =
     [ "axiReadSlave", "classAxiDualPortRam_1_1rtl.html#ad35e9ecd741388972b3dc0928cfeeb48", null ],
     [ "axiAddr", "classAxiDualPortRam_1_1rtl.html#ad44b99abe76c271cfd3471482363146b", null ],
     [ "axiWrStrobe", "classAxiDualPortRam_1_1rtl.html#a55da5d4aebe54c998245364479fa42f8", null ],
-    [ "rdLatecy", "classAxiDualPortRam_1_1rtl.html#a441015d885a195a03f98a9aa90417bbe", null ],
+    [ "rdLatecy", "classAxiDualPortRam_1_1rtl.html#aaaab95d65d40ec5e2988b1cca2b7b61f", null ],
     [ "state", "classAxiDualPortRam_1_1rtl.html#a29ddea0778c5dba9ca0b08e7188a5a57", null ],
     [ "REG_INIT_C", "classAxiDualPortRam_1_1rtl.html#ac64688902c122b5ec84a941d0c69042a", null ],
     [ "r", "classAxiDualPortRam_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3", null ],

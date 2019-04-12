@@ -1,17 +1,5 @@
 var NAVTREEINDEX23 =
 {
-"classAxiStreamResize.html#a9b0b70eb40fd99ae471dd823ed5da644":[1,0,123,10],
-"classAxiStreamResize.html#abda656462c1b84e3d42e50514c515085":[1,0,123,4],
-"classAxiStreamResize.html#ac220cc2710ba738744915c3b2a0f43bc":[1,0,123,5],
-"classAxiStreamResize.html#acd03516902501cd1c7296a98e22c6fcb":[1,0,123,12],
-"classAxiStreamResize.html#ae73074eb5d6f5b790fe11394a85d8f05":[1,0,123,3],
-"classAxiStreamResize.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,123,15],
-"classAxiStreamResize.html#afd4f0f4d2e88b311f2a3b3705b317922":[1,0,123,9],
-"classAxiStreamResize_1_1rtl.html":[1,0,123,0],
-"classAxiStreamResize_1_1rtl.html#a010a2c3712b0280cbd5756fdc3844280":[1,0,123,0,3],
-"classAxiStreamResize_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3":[1,0,123,0,12],
-"classAxiStreamResize_1_1rtl.html#a0da9d94e3165aef8be395e94bf023105":[1,0,123,0,10],
-"classAxiStreamResize_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9":[1,0,123,0,7],
 "classAxiStreamResize_1_1rtl.html#a4f8478dbe1d48342d90254eb169fc3b0":[1,0,123,0,4],
 "classAxiStreamResize_1_1rtl.html#a60cf6c6e46dc89a140bc8bff4d98f732":[1,0,123,0,1],
 "classAxiStreamResize_1_1rtl.html#a758a8cbb78916a3911d410a62191310d":[1,0,123,0,13],
@@ -249,5 +237,17 @@ var NAVTREEINDEX23 =
 "classAxiSy56040Reg.html#af5301f308dc850ff6d3b80315d2e644c":[1,0,130,9],
 "classAxiSy56040Reg.html#af98a1f0df20cf0e5f0fdb9f5999ad782":[1,0,130,19],
 "classAxiSy56040Reg_1_1rtl.html":[1,0,130,0],
-"classAxiSy56040Reg_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3":[1,0,130,0,17]
+"classAxiSy56040Reg_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3":[1,0,130,0,17],
+"classAxiSy56040Reg_1_1rtl.html#a0e3ed6d5aaf023cfc70bebb05ceb6717":[1,0,130,0,4],
+"classAxiSy56040Reg_1_1rtl.html#a1e89b5b8ee33c9a6cdc382293aeb82e6":[1,0,130,0,11],
+"classAxiSy56040Reg_1_1rtl.html#a282347d56d6075b724323d1e432b5ca4":[1,0,130,0,9],
+"classAxiSy56040Reg_1_1rtl.html#a29ddea0778c5dba9ca0b08e7188a5a57":[1,0,130,0,15],
+"classAxiSy56040Reg_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9":[1,0,130,0,6],
+"classAxiSy56040Reg_1_1rtl.html#a38eb9e126e4cf6c23d7dae6dd699de2b":[1,0,130,0,2],
+"classAxiSy56040Reg_1_1rtl.html#a398bf83db9817a75506dc58688100968":[1,0,130,0,12],
+"classAxiSy56040Reg_1_1rtl.html#a4fc7fe5760abd8c04e3cb728b8edd6b9":[1,0,130,0,14],
+"classAxiSy56040Reg_1_1rtl.html#a5028558435d8d6537beb16eda3200ea2":[1,0,130,0,8],
+"classAxiSy56040Reg_1_1rtl.html#a53ae4651ece5a8c05efa3755c70da541":[1,0,130,0,3],
+"classAxiSy56040Reg_1_1rtl.html#a5e4948776eaa6ed7ab637ef213d19dd8":[1,0,130,0,1],
+"classAxiSy56040Reg_1_1rtl.html#a758a8cbb78916a3911d410a62191310d":[1,0,130,0,18]
 };

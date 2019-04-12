@@ -4,7 +4,7 @@ var classPgp2bGtp7FixedLat =
     [ "TPD_G", "classPgp2bGtp7FixedLat.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "COMMON_CLK_G", "classPgp2bGtp7FixedLat.html#a762b446ddef001083e8cfc52dc38385f", null ],
     [ "SIM_GTRESET_SPEEDUP_G", "classPgp2bGtp7FixedLat.html#a768d0e7a328f4805db656d82ee7d9b93", null ],
-    [ "SIM_VERSION_G", "classPgp2bGtp7FixedLat.html#a5b35847f45e6cf2c64826667bcd9299d", null ],
+    [ "SIM_VERSION_G", "classPgp2bGtp7FixedLat.html#a5c85ab16069e2586032729f7a3eabf51", null ],
     [ "SIMULATION_G", "classPgp2bGtp7FixedLat.html#ac6de36aa80aba7f5067e4172962ede27", null ],
     [ "STABLE_CLOCK_PERIOD_G", "classPgp2bGtp7FixedLat.html#a830a83b1bb6a1626cd26b80e96799a5e", null ],
     [ "REF_CLK_FREQ_G", "classPgp2bGtp7FixedLat.html#aba157bd9ad9673701dc8bca6401d57d3", null ],

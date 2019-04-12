@@ -5,6 +5,8 @@ var classAxiLiteSaciMaster =
     [ "saciCmd", "classAxiLiteSaciMaster.html#a347e065d30c0e2556b61ff35ed60c059", null ],
     [ "saciSelL", "classAxiLiteSaciMaster.html#ad56769b02e1d9318a136d9fee6fc9886", null ],
     [ "saciRsp", "classAxiLiteSaciMaster.html#aaa5dbafd39595f85c82c3fe89b70a999", null ],
+    [ "saciBusReq", "classAxiLiteSaciMaster.html#a3a45d2c976c36b10bec28f4a7d1f8c3e", null ],
+    [ "saciBusGr", "classAxiLiteSaciMaster.html#ac94764ea704695119576a6c0ff58e14e", null ],
     [ "axilClk", "classAxiLiteSaciMaster.html#a8e1fd4ab848b98a0c700b34cf7c90b36", null ],
     [ "axilRst", "classAxiLiteSaciMaster.html#a4b36ee28c73fadc67fe1a670f1ba11ff", null ],
     [ "axilReadMaster", "classAxiLiteSaciMaster.html#aada3e73ee8db4190524295bfa4dff085", null ],

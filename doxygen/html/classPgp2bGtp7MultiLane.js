@@ -4,7 +4,7 @@ var classPgp2bGtp7MultiLane =
     [ "TPD_G", "classPgp2bGtp7MultiLane.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "COMMON_CLK_G", "classPgp2bGtp7MultiLane.html#a762b446ddef001083e8cfc52dc38385f", null ],
     [ "SIM_GTRESET_SPEEDUP_G", "classPgp2bGtp7MultiLane.html#a768d0e7a328f4805db656d82ee7d9b93", null ],
-    [ "SIM_VERSION_G", "classPgp2bGtp7MultiLane.html#a5b35847f45e6cf2c64826667bcd9299d", null ],
+    [ "SIM_VERSION_G", "classPgp2bGtp7MultiLane.html#a5c85ab16069e2586032729f7a3eabf51", null ],
     [ "STABLE_CLOCK_PERIOD_G", "classPgp2bGtp7MultiLane.html#a830a83b1bb6a1626cd26b80e96799a5e", null ],
     [ "RXOUT_DIV_G", "classPgp2bGtp7MultiLane.html#aa877785e1d7d24a3e6d4d46830e12ecd", null ],
     [ "TXOUT_DIV_G", "classPgp2bGtp7MultiLane.html#a55007a43dd0d0ba2a07b02201662befe", null ],

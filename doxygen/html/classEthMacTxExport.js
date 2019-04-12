@@ -1,6 +1,7 @@
 var classEthMacTxExport =
 [
     [ "mapping", "classEthMacTxExport_1_1mapping.html", "classEthMacTxExport_1_1mapping" ],
+    [ "ethClkEn", "classEthMacTxExport.html#a66088ecf8316dc0df29ac8e866985b57", null ],
     [ "ethClk", "classEthMacTxExport.html#aa454832f4c517041d344f7bdf52eceec", null ],
     [ "ethRst", "classEthMacTxExport.html#a6c46ddea5c02f0cc0addd2467357471c", null ],
     [ "macObMaster", "classEthMacTxExport.html#aef840e7ecf72ee0e4c860324f749080a", null ],

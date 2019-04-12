@@ -4,7 +4,7 @@ var classPgp2bGtp7FixedLatWrapper =
     [ "TPD_G", "classPgp2bGtp7FixedLatWrapper.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "COMMON_CLK_G", "classPgp2bGtp7FixedLatWrapper.html#a762b446ddef001083e8cfc52dc38385f", null ],
     [ "SIM_GTRESET_SPEEDUP_G", "classPgp2bGtp7FixedLatWrapper.html#ab14b6ccb3cc072886470a5f555ca7c77", null ],
-    [ "SIM_VERSION_G", "classPgp2bGtp7FixedLatWrapper.html#a5b35847f45e6cf2c64826667bcd9299d", null ],
+    [ "SIM_VERSION_G", "classPgp2bGtp7FixedLatWrapper.html#a5c85ab16069e2586032729f7a3eabf51", null ],
     [ "SIMULATION_G", "classPgp2bGtp7FixedLatWrapper.html#ac6de36aa80aba7f5067e4172962ede27", null ],
     [ "VC_INTERLEAVE_G", "classPgp2bGtp7FixedLatWrapper.html#a13a5297b5dcdfc588489fca190759b42", null ],
     [ "PAYLOAD_CNT_TOP_G", "classPgp2bGtp7FixedLatWrapper.html#ae2d7374e1bcbdc557cfc4be90215c5fb", null ],

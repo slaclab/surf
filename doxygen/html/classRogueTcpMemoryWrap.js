@@ -2,7 +2,7 @@ var classRogueTcpMemoryWrap =
 [
     [ "RogueTcpMemoryWrap", "classRogueTcpMemoryWrap_1_1RogueTcpMemoryWrap.html", "classRogueTcpMemoryWrap_1_1RogueTcpMemoryWrap" ],
     [ "TPD_G", "classRogueTcpMemoryWrap.html#a67a837684e4f18c2d236ac1d053b419b", null ],
-    [ "PORT_NUM_G", "classRogueTcpMemoryWrap.html#a809083c0cc7c8d65edace0a2ddbe5b6a", null ],
+    [ "PORT_NUM_G", "classRogueTcpMemoryWrap.html#ab3fde3b7c141dad2ba8ed588ea50a206", null ],
     [ "axilClk", "classRogueTcpMemoryWrap.html#a8e1fd4ab848b98a0c700b34cf7c90b36", null ],
     [ "axilRst", "classRogueTcpMemoryWrap.html#a4b36ee28c73fadc67fe1a670f1ba11ff", null ],
     [ "axilReadMaster", "classRogueTcpMemoryWrap.html#ac4860d1e38b433d4d699788bbd2e6996", null ],
