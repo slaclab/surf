@@ -8,14 +8,19 @@ var classAxiStreamDmaV2_1_1structure =
     [ "dmaRdDescAck", "classAxiStreamDmaV2_1_1structure.html#aa86caf812a48f20a9b25aff72efd3f4d", null ],
     [ "dmaRdDescRet", "classAxiStreamDmaV2_1_1structure.html#a4f247e65674f6c0ad7985c90f26ab7d3", null ],
     [ "dmaRdDescRetAck", "classAxiStreamDmaV2_1_1structure.html#a023489b4a7cd33c4f8c0650b31322312", null ],
+    [ "descWriteMasters", "classAxiStreamDmaV2_1_1structure.html#adf6e2623627dbad550181a047ba907c4", null ],
+    [ "descWriteSlaves", "classAxiStreamDmaV2_1_1structure.html#a061054c1cdd1bb6fbe4d321f765a767c", null ],
+    [ "dataWriteMasters", "classAxiStreamDmaV2_1_1structure.html#a5ed46d66c38429458ec0696340e9490a", null ],
+    [ "dataWriteSlaves", "classAxiStreamDmaV2_1_1structure.html#a3a62212aad5acb32782a9fd09f12cbe9", null ],
+    [ "dataWriteCtrl", "classAxiStreamDmaV2_1_1structure.html#a0ba3f54acd3ca7424ea20eebfa5e8e15", null ],
     [ "axiRdCache", "classAxiStreamDmaV2_1_1structure.html#a67d48ee02bf325a59c9e4ad2a5a6076e", null ],
     [ "axiWrCache", "classAxiStreamDmaV2_1_1structure.html#a38133f37ba62c5b03110a040a2551cdd", null ],
     [ "axiReset", "classAxiStreamDmaV2_1_1structure.html#a472364955d9ff73aafadf532223fb726", null ],
     [ "dont_touch", "classAxiStreamDmaV2_1_1structure.html#a01107ea068eda641f9073c07d04ffcb7", null ],
     [ "dont_touch", "classAxiStreamDmaV2_1_1structure.html#abeac12dde12a3d47656720faa03c3a1c", null ],
     [ "u_dmadesc", "classAxiStreamDmaV2_1_1structure.html#a223a783dd7b4f2ac144e86d4e89775a5", null ],
-    [ "u_dmadesc", "classAxiStreamDmaV2_1_1structure.html#a223a783dd7b4f2ac144e86d4e89775a5", null ],
     [ "u_axisrst", "classAxiStreamDmaV2_1_1structure.html#a9e0fecdf6cc6d5080861c39068d0d29b", null ],
     [ "u_dmaread", "classAxiStreamDmaV2_1_1structure.html#a53f4d0a60e3f22aa7a824059a41c5181", null ],
-    [ "u_dmawrite", "classAxiStreamDmaV2_1_1structure.html#a617b2ad5e1779e030732066503cb69c3", null ]
+    [ "u_dmawrite", "classAxiStreamDmaV2_1_1structure.html#a617b2ad5e1779e030732066503cb69c3", null ],
+    [ "u_dmawritemux", "classAxiStreamDmaV2_1_1structure.html#a7f7d5f957804703cae8d9c419226a7d8", null ]
 ];
