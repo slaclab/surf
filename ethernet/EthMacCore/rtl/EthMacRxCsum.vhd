@@ -274,7 +274,7 @@ begin
                      v.tcpDet(0) := '1';
                   end if;
                   -- Check for fragmentation
-                  if (v.ipv4Hdr(6)(7) = '1') or (v.ipv4Hdr(6)(4 downto 0) /= 0) or (v.ipv4Hdr(7) /= 0) then
+                  if (v.ipv4Hdr(6)(5) = '1') or (v.ipv4Hdr(6)(4 downto 0) /= 0) or (v.ipv4Hdr(7) /= 0) then
                      -- Set the flags
                      v.fragDet(0) := '1';
                      v.fragSof    := '1';
@@ -400,9 +400,9 @@ begin
       end case;
 
       -- Check for first TUSER on the output AXIS stream
-      if (axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_SOF_BIT_C, 0) = '1') then
+      if (axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C), EMAC_SOF_BIT_C, 0) = '1') then
          -- Set the fragmentation flag
-         axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_FRAG_BIT_C, r.fragSof, 0);
+         axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C), EMAC_FRAG_BIT_C, r.fragSof, 0);
          -- Reset the flag
          v.fragSof := '0';
       end if;
