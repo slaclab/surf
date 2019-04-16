@@ -226,7 +226,7 @@ begin
       if (SHADOW_EN_G) then
          if (rising_edge(axiClk)) then
             if (memWe = '1') then
-               mem(conv_integer(memAddr)) <= r.wrData;
+               mem(conv_integer(memAddr)) <= r.wrData(DATA_SIZE_G-1 downto 0);
             end if;
             memData <= mem(conv_integer(memAddr));
          end if;
