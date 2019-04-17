@@ -423,8 +423,18 @@ class AxiSysMonUltraScale(pr.Device):
         )
 
         self.add(pr.RemoteVariable( 
-            name         = "OTThresholdEnable",
-            description  = "OT threshold enable reg, set to 0x3 to enable custom OT (defatul 125 degC)",
+            name         = "OTThresholdDisable",
+            description  = "Set 1 to disable OT threshold",
+            offset       =  0x504,
+            bitSize      =  1,
+            bitOffset    =  0x0,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
+
+        self.add(pr.RemoteVariable( 
+            name         = "OTCustomThresholdEnable",
+            description  = "OT custom threshold enable reg, set to 0x3 to enable custom OT (defatul 125 degC)",
             offset       =  0x54C,
             bitSize      =  4,
             bitOffset    =  0x0,
@@ -546,7 +556,7 @@ class AxiSysMonUltraScale(pr.Device):
         # Hide all the variable
         self.hideVariables(hidden=True)
         # Then unhide the most interesting ones
-        vars = ["Temperature", "VccInt", "VccAux", "VccBram", "OTThresholdEnable", "OTThreshold"]
+        vars = ["Temperature", "VccInt", "VccAux", "VccBram"]
         self.hideVariables(hidden=False, variables=vars)
                
         
