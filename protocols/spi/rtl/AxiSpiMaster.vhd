@@ -121,28 +121,6 @@ begin
       case (r.state) is
          when WAIT_AXI_TXN_S =>
 
-            if (axiStatus.writeEnable = '1') then
-               if (MODE_G = "RO") then
-                  axiSlaveWriteResponse(v.axiWriteSlave, AXI_RESP_DECERR_C);
-               else
-                  -- No write bit when mode is write-only
-                  if (MODE_G /= "WO") then
-                     v.wrData(PACKET_SIZE_C-1) := '0';
-                  end if;
-
-                  -- Address (make sure that the assigned AXI address in the crossbar is big enough)
-                  if (ADDRESS_SIZE_G > 0) then
-                     v.wrData(DATA_SIZE_G+ADDRESS_SIZE_G-1 downto DATA_SIZE_G) := axiWriteMaster.awaddr(2+ADDRESS_SIZE_G-1 downto 2);
-                  end if;
-                  -- Data
-                  v.wrData(DATA_SIZE_G-1 downto 0) := axiWriteMaster.wdata(DATA_SIZE_G-1 downto 0);
-                  -- Chip select
-                  v.chipSel                        := axiWriteMaster.awaddr(CHIP_BITS_C+ADDRESS_SIZE_G+1 downto 2+ADDRESS_SIZE_G);
-                  v.wrEn                           := '1';
-                  v.state                          := WAIT_CYCLE_S;
-               end if;
-            end if;
-
             if (axiStatus.readEnable = '1') then
                if (MODE_G = "WO") then
                   axiSlaveReadResponse(v.axiReadSlave, AXI_RESP_DECERR_C);
@@ -170,6 +148,27 @@ begin
                   v.chipSel := axiReadMaster.araddr(CHIP_BITS_C+ADDRESS_SIZE_G+1 downto 2+ADDRESS_SIZE_G);
                   v.wrEn    := '1';
                   v.state   := WAIT_CYCLE_S;
+               end if;
+
+            elsif (axiStatus.writeEnable = '1') then
+               if (MODE_G = "RO") then
+                  axiSlaveWriteResponse(v.axiWriteSlave, AXI_RESP_DECERR_C);
+               else
+                  -- No write bit when mode is write-only
+                  if (MODE_G /= "WO") then
+                     v.wrData(PACKET_SIZE_C-1) := '0';
+                  end if;
+
+                  -- Address (make sure that the assigned AXI address in the crossbar is big enough)
+                  if (ADDRESS_SIZE_G > 0) then
+                     v.wrData(DATA_SIZE_G+ADDRESS_SIZE_G-1 downto DATA_SIZE_G) := axiWriteMaster.awaddr(2+ADDRESS_SIZE_G-1 downto 2);
+                  end if;
+                  -- Data
+                  v.wrData(DATA_SIZE_G-1 downto 0) := axiWriteMaster.wdata(DATA_SIZE_G-1 downto 0);
+                  -- Chip select
+                  v.chipSel                        := axiWriteMaster.awaddr(CHIP_BITS_C+ADDRESS_SIZE_G+1 downto 2+ADDRESS_SIZE_G);
+                  v.wrEn                           := '1';
+                  v.state                          := WAIT_CYCLE_S;
                end if;
             end if;
 
