@@ -54,7 +54,6 @@ architecture rtl of EthMacRxCsum is
 
    type RegType is record
       valid        : slv(1 downto 0);
-      fragSof      : sl;
       fragDet      : slv(EMAC_CSUM_PIPELINE_C+1 downto 0);
       eofeDet      : slv(EMAC_CSUM_PIPELINE_C+1 downto 0);
       ipv4Det      : slv(EMAC_CSUM_PIPELINE_C+1 downto 0);
@@ -75,7 +74,6 @@ architecture rtl of EthMacRxCsum is
    end record RegType;
    constant REG_INIT_C : RegType := (
       valid        => (others => '0'),
-      fragSof      => '0',
       fragDet      => (others => '0'),
       eofeDet      => (others => '0'),
       ipv4Det      => (others => '0'),
@@ -126,21 +124,24 @@ begin
          v.valid(1),
          dummy(1));                     -- Unused in RX CSUM   
 
-      -- Pipeline alignment to GetEthMacCsum()
-      v.mAxisMasters := r.mAxisMasters(EMAC_CSUM_PIPELINE_C downto 0) & r.mAxisMaster;
-      v.fragDet      := r.fragDet(EMAC_CSUM_PIPELINE_C downto 0) & r.fragDet(0);
-      v.eofeDet      := r.eofeDet(EMAC_CSUM_PIPELINE_C downto 0) & r.eofeDet(0);
-      v.ipv4Det      := r.ipv4Det(EMAC_CSUM_PIPELINE_C downto 0) & r.ipv4Det(0);
-      v.udpDet       := r.udpDet(EMAC_CSUM_PIPELINE_C downto 0) & r.udpDet(0);
-      v.tcpDet       := r.tcpDet(EMAC_CSUM_PIPELINE_C downto 0) & r.tcpDet(0);
-      v.ipv4Len      := r.ipv4Len(EMAC_CSUM_PIPELINE_C downto 0) & r.ipv4Len(0);
-      v.protLen      := r.protLen(EMAC_CSUM_PIPELINE_C downto 0) & r.protLen(0);
-      v.protCsum     := r.protCsum(EMAC_CSUM_PIPELINE_C downto 0) & r.protCsum(0);
-
       -- Reset the flags
-      v.tKeep              := (others => '0');
-      v.mAxisMaster.tValid := '0';
-      v.mAxisMaster.tLast  := '0';
+      v.tKeep                                       := (others => '0');
+      v.mAxisMaster.tValid                          := '0';
+      v.mAxisMaster.tLast                           := '0';
+      v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1).tValid := '0';
+
+      -- Check if we need to update the pipeline
+      if (r.mAxisMaster.tValid = '1') or (r.state = IDLE_S) then
+         v.mAxisMasters := r.mAxisMasters(EMAC_CSUM_PIPELINE_C downto 0) & r.mAxisMaster;
+         v.fragDet      := r.fragDet(EMAC_CSUM_PIPELINE_C downto 0) & r.fragDet(0);
+         v.eofeDet      := r.eofeDet(EMAC_CSUM_PIPELINE_C downto 0) & r.eofeDet(0);
+         v.ipv4Det      := r.ipv4Det(EMAC_CSUM_PIPELINE_C downto 0) & r.ipv4Det(0);
+         v.udpDet       := r.udpDet(EMAC_CSUM_PIPELINE_C downto 0) & r.udpDet(0);
+         v.tcpDet       := r.tcpDet(EMAC_CSUM_PIPELINE_C downto 0) & r.tcpDet(0);
+         v.ipv4Len      := r.ipv4Len(EMAC_CSUM_PIPELINE_C downto 0) & r.ipv4Len(0);
+         v.protLen      := r.protLen(EMAC_CSUM_PIPELINE_C downto 0) & r.protLen(0);
+         v.protCsum     := r.protCsum(EMAC_CSUM_PIPELINE_C downto 0) & r.protCsum(0);
+      end if;
 
       -- Check for tLast in pipeline
       if (v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1).tLast = '1') then
@@ -277,7 +278,6 @@ begin
                   if (v.ipv4Hdr(6)(5) = '1') or (v.ipv4Hdr(6)(4 downto 0) /= 0) or (v.ipv4Hdr(7) /= 0) then
                      -- Set the flags
                      v.fragDet(0) := '1';
-                     v.fragSof    := '1';
                   end if;
                   -- Next state
                   v.state := IPV4_HDR1_S;
@@ -309,7 +309,7 @@ begin
                      v.protLen(0)(7 downto 0)   := sAxisMaster.tData(63 downto 56);
                   end if;
                   -- Track the number of bytes (include IPv4 header offset from previous state)
-                  v.byteCnt := getTKeep(sAxisMaster.tKeep,EMAC_AXIS_CONFIG_C) + 18;
+                  v.byteCnt := getTKeep(sAxisMaster.tKeep, EMAC_AXIS_CONFIG_C) + 18;
                else
                   -- Fill in the IPv4 header checksum
                   v.ipv4Hdr(14) := sAxisMaster.tData(7 downto 0);  -- Source IP Address
@@ -330,7 +330,7 @@ begin
                      v.protLen(0)(7 downto 0)   := sAxisMaster.tData(95 downto 88);
                   end if;
                   -- Track the number of bytes (include IPv4 header offset from previous state)
-                  v.byteCnt := getTKeep(sAxisMaster.tKeep,EMAC_AXIS_CONFIG_C) + 14;
+                  v.byteCnt := getTKeep(sAxisMaster.tKeep, EMAC_AXIS_CONFIG_C) + 14;
                end if;
                -- Check for EOF
                if (sAxisMaster.tLast = '1') then
@@ -372,7 +372,7 @@ begin
                   end if;
                end if;
                -- Track the number of bytes 
-               v.byteCnt := r.byteCnt + getTKeep(sAxisMaster.tKeep,EMAC_AXIS_CONFIG_C);
+               v.byteCnt := r.byteCnt + getTKeep(sAxisMaster.tKeep, EMAC_AXIS_CONFIG_C);
                -- Check for EOF
                if (sAxisMaster.tLast = '1') or (v.byteCnt > MAX_FRAME_SIZE_C) then
                   -- Check for overflow condition
@@ -400,11 +400,9 @@ begin
       end case;
 
       -- Check for first TUSER on the output AXIS stream
-      if (axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C), EMAC_SOF_BIT_C, 0) = '1') then
+      if (axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_SOF_BIT_C, 0) = '1') then
          -- Set the fragmentation flag
-         axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C), EMAC_FRAG_BIT_C, r.fragSof, 0);
-         -- Reset the flag
-         v.fragSof := '0';
+         axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_FRAG_BIT_C, v.fragDet(EMAC_CSUM_PIPELINE_C+1), 0);
       end if;
 
       -- Reset
