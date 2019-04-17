@@ -422,6 +422,36 @@ class AxiSysMonUltraScale(pr.Device):
             hidden       =  True,
         )
 
+        self.add(pr.RemoteVariable( 
+            name         = "OTThresholdEnable",
+            description  = "OT threshold enable reg, set to 0x3 to enable custom OT (defatul 125 degC)",
+            offset       =  0x54C,
+            bitSize      =  4,
+            bitOffset    =  0x0,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
+
+        self.add(pr.RemoteVariable( 
+            name         = "OTThresholdRaw",
+            description  = "OT threshold enable reg, set to 0x3 to enable custom OT (default 125 degC)",
+            offset       =  0x54C,
+            bitSize      =  12,
+            bitOffset    =  0x4,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
+
+        self.add(pr.LinkVariable(
+            name         = "OTThreshold", 
+            mode         = 'RW', 
+            units        = 'degC',
+            linkedGet    = self.convTemp,
+            linkedSet    = self.convSetTemp,
+            typeStr      = "Float32",
+            dependencies = [self.variables["OTThresholdRaw"]],
+        ))
+
         self.add(pr.RemoteVariable(    
             name         = "AlarmThresholdReg12",
             description  = "Alarm Threshold Register 12",
@@ -497,6 +527,12 @@ class AxiSysMonUltraScale(pr.Device):
         return round(fpValue,3)
 
     @staticmethod
+    def convSetTemp(dev, var, value):
+        fpValue = (value + 273.6777)*(4096.0/501.3743)
+        intValue = round(fpValue)
+        var.dependencies[0].set(intValue, write=True)
+
+    @staticmethod
     def convCoreVoltage(var):
         value   = var.dependencies[0].value()
         fpValue = value*(732.0E-6)
@@ -510,7 +546,7 @@ class AxiSysMonUltraScale(pr.Device):
         # Hide all the variable
         self.hideVariables(hidden=True)
         # Then unhide the most interesting ones
-        vars = ["Temperature", "VccInt", "VccAux", "VccBram"]
+        vars = ["Temperature", "VccInt", "VccAux", "VccBram", "OTThresholdEnable", "OTThreshold"]
         self.hideVariables(hidden=False, variables=vars)
                
         
