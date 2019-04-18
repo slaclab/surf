@@ -402,7 +402,7 @@ begin
       -- Check for first TUSER on the output AXIS stream
       if (axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_SOF_BIT_C, 0) = '1') then
          -- Set the fragmentation flag
-         axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_FRAG_BIT_C, v.fragDet(0), 0);
+         axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_FRAG_BIT_C, r.fragDet(EMAC_CSUM_PIPELINE_C), 0);
       end if;
 
       -- Reset
