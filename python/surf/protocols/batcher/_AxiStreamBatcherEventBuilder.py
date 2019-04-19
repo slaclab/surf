@@ -62,6 +62,14 @@ class AxiStreamBatcherEventBuilder(pr.Device):
         )           
         
         self.add(pr.RemoteVariable(   
+            name         = 'Bypass',
+            description  = 'Mask to bypass a channel',
+            offset       = 0xFD0,
+            bitSize      = numberSlaves,
+            mode         = 'RW',
+        ))        
+        
+        self.add(pr.RemoteVariable(   
             name         = 'Timeout',
             description  = 'Sets the timer\'s timeout duration.  Setting to 0x0 (default) bypasses the timeout feature',
             offset       = 0xFF0,

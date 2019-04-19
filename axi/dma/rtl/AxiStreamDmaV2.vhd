@@ -57,16 +57,16 @@ entity AxiStreamDmaV2 is
       online          : out slv(CHAN_COUNT_G-1 downto 0);
       acknowledge     : out slv(CHAN_COUNT_G-1 downto 0);
       -- AXI Stream Interface 
-      sAxisMaster     : in  AxiStreamMasterArray(CHAN_COUNT_G-1 downto 0);
-      sAxisSlave      : out AxiStreamSlaveArray(CHAN_COUNT_G-1 downto 0);
-      mAxisMaster     : out AxiStreamMasterArray(CHAN_COUNT_G-1 downto 0);
-      mAxisSlave      : in  AxiStreamSlaveArray(CHAN_COUNT_G-1 downto 0);
+      sAxisMasters    : in  AxiStreamMasterArray(CHAN_COUNT_G-1 downto 0);
+      sAxisSlaves     : out AxiStreamSlaveArray(CHAN_COUNT_G-1 downto 0);
+      mAxisMasters    : out AxiStreamMasterArray(CHAN_COUNT_G-1 downto 0);
+      mAxisSlaves     : in  AxiStreamSlaveArray(CHAN_COUNT_G-1 downto 0);
       mAxisCtrl       : in  AxiStreamCtrlArray(CHAN_COUNT_G-1 downto 0);
       -- AXI Interfaces, 0 = Desc, 1-CHAN_COUNT_G = DMA
-      axiReadMaster   : out AxiReadMasterArray(CHAN_COUNT_G downto 0);
-      axiReadSlave    : in  AxiReadSlaveArray(CHAN_COUNT_G downto 0);
-      axiWriteMaster  : out AxiWriteMasterArray(CHAN_COUNT_G downto 0);
-      axiWriteSlave   : in  AxiWriteSlaveArray(CHAN_COUNT_G downto 0);
+      axiReadMasters  : out AxiReadMasterArray(CHAN_COUNT_G downto 0);
+      axiReadSlaves   : in  AxiReadSlaveArray(CHAN_COUNT_G downto 0);
+      axiWriteMasters : out AxiWriteMasterArray(CHAN_COUNT_G downto 0);
+      axiWriteSlaves  : in  AxiWriteSlaveArray(CHAN_COUNT_G downto 0);
       axiWriteCtrl    : in  AxiCtrlArray(CHAN_COUNT_G downto 0));
 end AxiStreamDmaV2;
 
@@ -82,97 +82,61 @@ architecture structure of AxiStreamDmaV2 is
    signal dmaRdDescRet    : AxiReadDmaDescRetArray(CHAN_COUNT_G-1 downto 0);
    signal dmaRdDescRetAck : slv(CHAN_COUNT_G-1 downto 0);
 
+   signal descWriteMasters : AxiWriteMasterArray(CHAN_COUNT_G-1 downto 0);
+   signal descWriteSlaves  : AxiWriteSlaveArray(CHAN_COUNT_G-1 downto 0);
+
+   signal dataWriteMasters : AxiWriteMasterArray(CHAN_COUNT_G-1 downto 0);
+   signal dataWriteSlaves  : AxiWriteSlaveArray(CHAN_COUNT_G-1 downto 0);
+   signal dataWriteCtrl    : AxiCtrlArray(CHAN_COUNT_G-1 downto 0);
+
    signal axiRdCache : slv(3 downto 0);
    signal axiWrCache : slv(3 downto 0);
 
-   signal axiReset  : slv(CHAN_COUNT_G-1 downto 0);
+   signal axiReset : slv(CHAN_COUNT_G-1 downto 0);
 
    attribute dont_touch             : string;
-   attribute dont_touch of axiReset : signal is "true";   
-   
+   attribute dont_touch of axiReset : signal is "true";
+
 begin
 
-   GEN_Desc : if (SIMULATION_G = false) generate
-      U_DmaDesc : entity work.AxiStreamDmaV2Desc
-         generic map (
-            TPD_G             => TPD_G,
-            SYNTH_MODE_G      => SYNTH_MODE_G,
-            MEMORY_TYPE_G     => MEMORY_TYPE_G,             
-            CHAN_COUNT_G      => CHAN_COUNT_G,
-            AXIL_BASE_ADDR_G  => AXIL_BASE_ADDR_G,
-            AXI_READY_EN_G    => AXI_READY_EN_G,
-            AXI_CONFIG_G      => AXI_DESC_CONFIG_G,
-            DESC_AWIDTH_G     => DESC_AWIDTH_G,
-            DESC_ARB_G        => DESC_ARB_G,
-            ACK_WAIT_BVALID_G => true)
-         port map (
-            -- Clock/Reset
-            axiClk          => axiClk,
-            axiRst          => axiRst,
-            axilReadMaster  => axilReadMaster,
-            axilReadSlave   => axilReadSlave,
-            axilWriteMaster => axilWriteMaster,
-            axilWriteSlave  => axilWriteSlave,
-            interrupt       => interrupt,
-            online          => online,
-            acknowledge     => acknowledge,
-            dmaWrDescReq    => dmaWrDescReq,
-            dmaWrDescAck    => dmaWrDescAck,
-            dmaWrDescRet    => dmaWrDescRet,
-            dmaWrDescRetAck => dmaWrDescRetAck,
-            dmaRdDescReq    => dmaRdDescReq,
-            dmaRdDescAck    => dmaRdDescAck,
-            dmaRdDescRet    => dmaRdDescRet,
-            dmaRdDescRetAck => dmaRdDescRetAck,
-            axiRdCache      => axiRdCache,
-            axiWrCache      => axiWrCache,
-            axiWriteMaster  => axiWriteMaster(0),
-            axiWriteSlave   => axiWriteSlave(0),
-            axiWriteCtrl    => axiWriteCtrl(0));
-   end generate;
-   
-   EMU_Desc : if (SIMULATION_G = true) generate
-      U_DmaDesc : entity work.AxiStreamDmaV2DescEmulate
-         generic map (
-            TPD_G             => TPD_G,
-            CHAN_COUNT_G      => CHAN_COUNT_G,
-            AXIL_BASE_ADDR_G  => AXIL_BASE_ADDR_G,
-            AXI_READY_EN_G    => AXI_READY_EN_G,
-            AXI_CONFIG_G      => AXI_DESC_CONFIG_G,
-            DESC_AWIDTH_G     => DESC_AWIDTH_G,
-            DESC_ARB_G        => DESC_ARB_G,
-            ACK_WAIT_BVALID_G => false)
-         port map (
-            -- Clock/Reset
-            axiClk          => axiClk,
-            axiRst          => axiRst,
-            axilReadMaster  => axilReadMaster,
-            axilReadSlave   => axilReadSlave,
-            axilWriteMaster => axilWriteMaster,
-            axilWriteSlave  => axilWriteSlave,
-            interrupt       => interrupt,
-            online          => online,
-            acknowledge     => acknowledge,
-            dmaWrDescReq    => dmaWrDescReq,
-            dmaWrDescAck    => dmaWrDescAck,
-            dmaWrDescRet    => dmaWrDescRet,
-            dmaWrDescRetAck => dmaWrDescRetAck,
-            dmaRdDescReq    => dmaRdDescReq,
-            dmaRdDescAck    => dmaRdDescAck,
-            dmaRdDescRet    => dmaRdDescRet,
-            dmaRdDescRetAck => dmaRdDescRetAck,
-            axiRdCache      => axiRdCache,
-            axiWrCache      => axiWrCache,
-            axiWriteMaster  => axiWriteMaster(0),
-            axiWriteSlave   => axiWriteSlave(0),
-            axiWriteCtrl    => axiWriteCtrl(0));
-   end generate;   
-   
-   -- Read channel 0 unused.
-   axiReadMaster(0) <= AXI_READ_MASTER_INIT_C;
+   U_DmaDesc : entity work.AxiStreamDmaV2Desc
+      generic map (
+         TPD_G            => TPD_G,
+         CHAN_COUNT_G     => CHAN_COUNT_G,
+         AXIL_BASE_ADDR_G => AXIL_BASE_ADDR_G,
+         AXI_CONFIG_G     => AXI_DESC_CONFIG_G,
+         DESC_AWIDTH_G    => DESC_AWIDTH_G,
+         DESC_ARB_G       => DESC_ARB_G)
+      port map (
+         -- Clock/Reset
+         axiClk          => axiClk,
+         axiRst          => axiRst,
+         axilReadMaster  => axilReadMaster,
+         axilReadSlave   => axilReadSlave,
+         axilWriteMaster => axilWriteMaster,
+         axilWriteSlave  => axilWriteSlave,
+         interrupt       => interrupt,
+         online          => online,
+         acknowledge     => acknowledge,
+         dmaWrDescReq    => dmaWrDescReq,
+         dmaWrDescAck    => dmaWrDescAck,
+         dmaWrDescRet    => dmaWrDescRet,
+         dmaWrDescRetAck => dmaWrDescRetAck,
+         dmaRdDescReq    => dmaRdDescReq,
+         dmaRdDescAck    => dmaRdDescAck,
+         dmaRdDescRet    => dmaRdDescRet,
+         dmaRdDescRetAck => dmaRdDescRetAck,
+         axiRdCache      => axiRdCache,
+         axiWrCache      => axiWrCache,
+         axiWriteMasters => descWriteMasters,
+         axiWriteSlaves  => descWriteSlaves);
+
+   -- Read/Write channel 0 unused.
+   axiReadMasters(0)  <= AXI_READ_MASTER_INIT_C;
+   axiWriteMasters(0) <= AXI_WRITE_MASTER_INIT_C;
 
    U_ChanGen : for i in 0 to CHAN_COUNT_G-1 generate
-   
+
       -- Help with timing
       U_AxisRst : entity work.RstPipeline
          generic map (
@@ -181,7 +145,7 @@ begin
          port map (
             clk    => axiClk,
             rstIn  => axiRst,
-            rstOut => axiReset(i));   
+            rstOut => axiReset(i));
 
       U_DmaRead : entity work.AxiStreamDmaV2Read
          generic map (
@@ -202,11 +166,11 @@ begin
             dmaRdIdle       => open,
             axiCache        => axiRdCache,
             -- Streaming Interface 
-            axisMaster      => mAxisMaster(i),
-            axisSlave       => mAxisSlave(i),
+            axisMaster      => mAxisMasters(i),
+            axisSlave       => mAxisSlaves(i),
             axisCtrl        => mAxisCtrl(i),
-            axiReadMaster   => axiReadMaster(i+1),
-            axiReadSlave    => axiReadSlave(i+1));
+            axiReadMaster   => axiReadMasters(i+1),
+            axiReadSlave    => axiReadSlaves(i+1));
 
       U_DmaWrite : entity work.AxiStreamDmaV2Write
          generic map (
@@ -226,11 +190,35 @@ begin
             dmaWrDescRetAck => dmaWrDescRetAck(i),
             dmaWrIdle       => open,
             axiCache        => axiWrCache,
-            axisMaster      => sAxisMaster(i),
-            axisSlave       => sAxisSlave(i),
-            axiWriteMaster  => axiWriteMaster(i+1),
-            axiWriteSlave   => axiWriteSlave(i+1),
-            axiWriteCtrl    => axiWriteCtrl(i+1));
+            axisMaster      => sAxisMasters(i),
+            axisSlave       => sAxisSlaves(i),
+            axiWriteMaster  => dataWriteMasters(i),
+            axiWriteSlave   => dataWriteSlaves(i),
+            axiWriteCtrl    => dataWriteCtrl(i));
+
+      ----------------------------------------------------------------------------------------- 
+      -- This MUX is used to make sure that the write descriptor is sent after the data is sent
+      ----------------------------------------------------------------------------------------- 
+      U_DmaWriteMux : entity work.AxiStreamDmaV2WriteMux
+         generic map (
+            TPD_G          => TPD_G,
+            AXI_READY_EN_G => AXI_READY_EN_G)
+         port map (
+            -- Clock and reset
+            axiClk          => axiClk,
+            axiRst          => axiReset(i),
+            -- DMA Data Write Path
+            dataWriteMaster => dataWriteMasters(i),
+            dataWriteSlave  => dataWriteSlaves(i),
+            dataWriteCtrl   => dataWriteCtrl(i),
+            -- DMA Descriptor Write Path
+            descWriteMaster => descWriteMasters(i),
+            descWriteSlave  => descWriteSlaves(i),
+            -- MUX Write Path
+            mAxiWriteMaster => axiWriteMasters(i+1),
+            mAxiWriteSlave  => axiWriteSlaves(i+1),
+            mAxiWriteCtrl   => axiWriteCtrl(i+1));
+
    end generate;
 
 end structure;

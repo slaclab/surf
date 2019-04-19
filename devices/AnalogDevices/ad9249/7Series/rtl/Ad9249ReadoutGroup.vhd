@@ -29,7 +29,7 @@ use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.Ad9249Pkg.all;
 
-entity Ad9249ReadoutGroup7S is
+entity Ad9249ReadoutGroup is
    generic (
       TPD_G             : time                 := 1 ns;
       NUM_CHANNELS_G    : natural range 1 to 8 := 8;
@@ -58,10 +58,10 @@ entity Ad9249ReadoutGroup7S is
       adcStreamClk : in  sl;
       adcStreams   : out AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0) :=
       (others => axiStreamMasterInit((false, 2, 8, 0, TKEEP_NORMAL_C, 0, TUSER_NORMAL_C))));
-end Ad9249ReadoutGroup7S;
+end Ad9249ReadoutGroup;
 
 -- Define architecture
-architecture rtl of Ad9249ReadoutGroup7S is
+architecture rtl of Ad9249ReadoutGroup is
 
    -------------------------------------------------------------------------------------------------
    -- AXIL Registers
@@ -76,6 +76,7 @@ architecture rtl of Ad9249ReadoutGroup7S is
       readoutDebug0  : slv16Array(NUM_CHANNELS_G-1 downto 0);
       readoutDebug1  : slv16Array(NUM_CHANNELS_G-1 downto 0);
       lockedCountRst : sl;
+      invert         : sl;
    end record;
 
    constant AXIL_REG_INIT_C : AxilRegType := (
@@ -87,7 +88,9 @@ architecture rtl of Ad9249ReadoutGroup7S is
       freezeDebug    => '0',
       readoutDebug0  => (others => (others => '0')),
       readoutDebug1  => (others => (others => '0')),
-      lockedCountRst => '0');
+      lockedCountRst => '0',
+      invert         => '0'
+   );
 
    signal lockedSync      : sl;
    signal lockedFallCount : slv(15 downto 0);
@@ -140,6 +143,8 @@ architecture rtl of Ad9249ReadoutGroup7S is
    signal debugDataValid : sl;
    signal debugDataOut   : slv(NUM_CHANNELS_G*16-1 downto 0);
    signal debugDataTmp   : slv16Array(NUM_CHANNELS_G-1 downto 0);
+   
+   signal invertSync    : sl;
 
 begin
    -------------------------------------------------------------------------------------------------
@@ -184,6 +189,15 @@ begin
          rst     => axilRst,
          dataIn  => adcFrame,
          dataOut => adcFrameSync);
+   
+   Synchronizer_2 : entity work.Synchronizer
+      generic map (
+         TPD_G    => TPD_G,
+         STAGES_G => 2)
+      port map (
+         clk     => adcBitClkR,
+         dataIn  => axilR.invert,
+         dataOut => invertSync);
 
    -------------------------------------------------------------------------------------------------
    -- AXIL Interface
@@ -230,6 +244,8 @@ begin
       axiSlaveRegisterR(axilEp, X"30", 16, lockedSync);
       axiSlaveRegisterR(axilEp, X"34", 0, adcFrameSync);
       axiSlaveRegister(axilEp, X"38", 0, v.lockedCountRst);
+      
+      axiSlaveRegister(axilEp, X"40", 0, v.invert);
 
       -- Debug registers. Output the last 2 words received
       for i in 0 to NUM_CHANNELS_G-1 loop
@@ -373,7 +389,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- ADC Bit Clocked Logic
    -------------------------------------------------------------------------------------------------
-   adcComb : process (adcData, adcFrame, adcR) is
+   adcComb : process (adcData, adcFrame, adcR, invertSync) is
       variable v : AdcRegType;
    begin
       v := adcR;
@@ -403,7 +419,11 @@ begin
       for i in NUM_CHANNELS_G-1 downto 0 loop
          if (adcR.locked = '1' and adcFrame = "11111110000000") then
             -- Locked, output adc data
-            v.fifoWrData(i) := "00" & adcData(i);
+            if invertSync = '1' then
+               v.fifoWrData(i) := "00" & (x"3FFF" - adcData(i));
+            else
+               v.fifoWrData(i) := "00" & adcData(i);
+            end if;
          else
             -- Not locked
             v.fifoWrData(i) := (others => '1');  --"10" & "00000000000000";

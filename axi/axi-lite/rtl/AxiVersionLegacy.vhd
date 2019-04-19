@@ -75,7 +75,7 @@ architecture rtl of AxiVersionLegacy is
       upTimeCnt      : slv(31 downto 0);
       timer          : natural range 0 to TIMEOUT_1HZ_C;
       scratchPad     : slv(31 downto 0);
-      reloadTimer    : natural range 0 to AUTO_RELOAD_TIME_G;
+      reloadTimer    : slv(31 downto 0);
       userReset      : sl;
       fpgaReload     : sl;
       haltReload     : sl;
@@ -88,7 +88,7 @@ architecture rtl of AxiVersionLegacy is
       upTimeCnt      => (others => '0'),
       timer          => 0,
       scratchPad     => (others => '0'),
-      reloadTimer    => 0,
+      reloadTimer    => (others => '0'),
       userReset      => '1',            -- Asserted on powerup
       fpgaReload     => '0',
       haltReload     => '0',

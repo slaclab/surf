@@ -17,15 +17,15 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-import pyrogue as pr
-import surf.protocols.clink
+import pyrogue              as pr
+import surf.protocols.clink as cl
 
 class ClinkTop(pr.Device):
     def __init__(   self,       
             name        = "ClinkTop",
             description = "CameraLink module",
-            serialA     = None,
-            serialB     = None,
+            serial      = [None,None],
+            camType     = [None,None],
             **kwargs):
         super().__init__(name=name, description=description, **kwargs) 
 
@@ -41,15 +41,21 @@ class ClinkTop(pr.Device):
             bitOffset    =  0x00,
             mode         = "RO",
         ))
-
-        self.add(pr.RemoteCommand(   
-            name         = "ResetPll",
+        
+        self.add(pr.RemoteVariable(    
+            name         = "RstPll",
             description  = "Camera link channel PLL reset",
             offset       =  0x04,
             bitSize      =  1,
             bitOffset    =  0,
-            function     = pr.BaseCommand.toggle,
-        ))   
+            mode         = "RW",
+            hidden       = True,
+        ))        
+    
+        @self.command(description="toggles Camera link channel PLL reset",)
+        def ResetPll():
+            self.RstPll.set(0x1)
+            self.RstPll.set(0x0)
 
         self.add(pr.RemoteCommand(   
             name         = "ResetFsm",
@@ -194,14 +200,88 @@ class ClinkTop(pr.Device):
             mode         = "RO",
             pollInterval = 1,
         ))
-
-        self.add(surf.protocols.clink.ClinkChannel( name = "Channel[0]", serial=serialA, offset=0x100))
-        self.add(surf.protocols.clink.ClinkChannel( name = "Channel[1]", serial=serialB, offset=0x200))
         
+        self.addRemoteVariables(   
+            name         = "ClkInFreq",
+            description  = "Clock Input Freq",
+            offset       = 0x01C,
+            bitSize      = 32,
+            bitOffset    = 0,
+            units        = 'Hz',
+            disp         = '{:d}',
+            mode         = "RO",
+            pollInterval = 1,
+            number       = 3,
+            stride       = 4,
+        )   
+
+        self.addRemoteVariables(   
+            name         = "ClinkClkFreq",
+            description  = "CameraLink Clock Freq",
+            offset       = 0x028,
+            bitSize      = 32,
+            bitOffset    = 0,
+            units        = 'Hz',
+            disp         = '{:d}',
+            mode         = "RO",
+            pollInterval = 1,
+            number       = 3,
+            stride       = 4,
+        ) 
+       
+        for i in range(2):
+            if serial[i] is not None:
+                self.add(cl.ClinkChannel( 
+                    name    = f'Ch[{i}]', 
+                    offset  = 0x100+(i*0x100),
+                    serial  = serial[i], 
+                    camType = camType[i], 
+                    # expand  = False,
+                ))
+        for i in range(3):
+            self.add(cl.ClockManager( 
+                name    = f'Pll[{i}]', 
+                offset  = 0x1000+(i*0x1000),
+                type    = 'MMCME2',
+                expand  = False,
+            ))
+            
+        for i in range(3):
+            self.add(pr.LocalVariable(    
+                name         = f'PllConfig[{i}]', 
+                description  = 'Sets the PLL to a known set of configurations',
+                mode         = 'RW', 
+                value        = '',
+            ))
+            
     def hardReset(self):
+        self.ResetPll()
         self.CntRst()
 
     def softReset(self):
+        # Hold the PLL in reset before configuration
+        self.RstPll.set(0x1)
+        
+        # Loop through the PLL modules
+        for i in range(3):
+            
+            # Check for 85 MHz configuration
+            if (self.PllConfig[i].get() == '85MHz'):
+                self.Pll[i].Config85MHz()
+                
+            # Check for 80 MHz configuration
+            if (self.PllConfig[i].get() == '80MHz'):
+                # Same config as 85 MHz
+                self.Pll[i].Config85MHz()                
+                
+            # Check for 25 MHz configuration
+            if (self.PllConfig[i].get() == '25MHz'):
+                self.Pll[i].Config25MHz()
+                
+        # Release the reset after configuration
+        self.RstPll.set(0x0)
+        
+        # Reset all the counters
         self.CntRst()
 
     def countReset(self):

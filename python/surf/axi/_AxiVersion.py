@@ -192,9 +192,8 @@ class AxiVersion(pr.Device):
         self.add(pr.LinkVariable(
             name         = 'GitHashShort',
             mode         = 'RO',
-            variable     = self.GitHash,
-            disp         = '{:07x}',
-            linkedGet    = lambda read: self.GitHash.get(read) >> 132,
+            dependencies = [self.GitHash],
+            linkedGet    = lambda read: f'{(self.GitHash.get(read) >> 132):x}',
         ))
 
         self.add(pr.RemoteVariable(   

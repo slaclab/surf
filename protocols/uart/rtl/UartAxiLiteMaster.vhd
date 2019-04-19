@@ -194,6 +194,7 @@ begin
          when WAIT_START_S =>
             -- Any characters before 'r' or 'w' are thrown out
             if (uartRxValid = '1') then
+               v.axilReq.address := (others => '0');
                if (uartRxData = toSlv(character'pos('w'), 8) or
                    uartRxData = toSlv(character'pos('W'), 8)) then
                   -- Write op
@@ -237,7 +238,8 @@ begin
                if (isSpace(uartRxData)) then
                   v.axilReq.address := r.axilReq.address;
                   if (r.axilReq.rnw = '0') then
-                     v.state := WR_DATA_S;
+                     v.axilReq.wrData := (others => '0');
+                     v.state          := WR_DATA_S;
                   else
                      v.state := WAIT_EOL_S;
                   end if;

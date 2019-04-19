@@ -206,7 +206,7 @@ class Pgp2bAxi(pr.Device):
             "RxRemOverflow1Count", 
             "RxRemOverflow2Count", 
             "RxRemOverflow3Count",
-            "RxFrameErrorCoumt", 
+            "RxFrameErrorCount", 
             "RxFrameCount",
             "TxLocOverflow0Count",
             "TxLocOverflow1Count",
@@ -373,7 +373,9 @@ class Pgp2bAxi(pr.Device):
             self.Flush()
 
     def hardReset(self):
-        self.ResetTxRx()
+        if self.writeEn:
+            self.ResetTx()
+            self.ResetRx()
 
     def countReset(self):
         self.CountReset()

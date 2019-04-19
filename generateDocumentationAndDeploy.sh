@@ -94,6 +94,7 @@ echo "INPUT = $TRAVIS_BUILD_DIR" >> $DOXYFILE
 # Update the EXCLUDE configuration
 echo "EXCLUDE  = $TRAVIS_BUILD_DIR/protocols/i2c/rtl/orig" >> $DOXYFILE
 echo "EXCLUDE += $TRAVIS_BUILD_DIR/base/vhdl-libs"         >> $DOXYFILE
+echo "EXCLUDE += $TRAVIS_BUILD_DIR/dsp/logic/DspXor.vhd"   >> $DOXYFILE # Doxygen doesn't support VHDL-2008 xor yet
 
 # Updating the warning message configuration
 echo "WARN_IF_UNDOCUMENTED = NO" >> $DOXYFILE
