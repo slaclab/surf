@@ -10,6 +10,7 @@ set family [getFpgaFamily]
 if { ${family} eq {kintexu} ||
      ${family} eq {kintexuplus} ||
      ${family} eq {virtexuplus} ||
-     ${family} eq {zynquplus} } {
+     ${family} eq {zynquplus} ||
+     ${family} eq {zynquplusRFSOC} } {
    loadSource -dir  "$::DIR_PATH/lvdsUltraScale"
 }
