@@ -24,12 +24,12 @@ if { ${family} eq {kintexu} } {
    loadRuckusTcl "$::DIR_PATH/gthUltraScale"
 }
 
-# if { ${family} eq {kintexuplus} ||
-     # ${family} eq {zynquplus} ||
-     # ${family} eq {zynquplusRFSOC} } {
-   # loadRuckusTcl "$::DIR_PATH/gthUltraScale+"
+if { ${family} eq {kintexuplus} ||
+     ${family} eq {zynquplus} ||
+     ${family} eq {zynquplusRFSOC} } {
+   loadRuckusTcl "$::DIR_PATH/gthUltraScale+"
    # loadRuckusTcl "$::DIR_PATH/gtyUltraScale+"
-# }
+}
 
 # if { ${family} eq {virtexuplus} } {
    # loadRuckusTcl "$::DIR_PATH/gtyUltraScale+"
