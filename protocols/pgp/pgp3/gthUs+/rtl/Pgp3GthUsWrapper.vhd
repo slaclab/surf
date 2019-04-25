@@ -233,7 +233,6 @@ begin
                qpllClk         => qpllClk(i),
                qpllRefclk      => qpllRefclk(i),
                qpllRst         => qpllRst(i),
-               refClk          => pgpRefClk,
                -- Gt Serial IO
                pgpGtTxP        => pgpGtTxP(i),
                pgpGtTxN        => pgpGtTxN(i),

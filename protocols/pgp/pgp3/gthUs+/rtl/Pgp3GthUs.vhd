@@ -60,7 +60,6 @@ entity Pgp3GthUs is
       qpllclk      : in  slv(1 downto 0);
       qpllrefclk   : in  slv(1 downto 0);
       qpllRst      : out slv(1 downto 0);
-      gtRefclk     : in sl;
       -- Gt Serial IO
       pgpGtTxP     : out sl;
       pgpGtTxN     : out sl;
@@ -263,7 +262,6 @@ begin
          qpllclk         => qpllclk,                             -- [in]
          qpllrefclk      => qpllrefclk,                          -- [in]
          qpllRst         => qpllRst,                             -- [out]
-         gtRefclk        => gtRefclk,                            -- [in]
          gtRxP           => pgpGtRxP,                            -- [in]
          gtRxN           => pgpGtRxN,                            -- [in]
          gtTxP           => pgpGtTxP,                            -- [out]

@@ -33,7 +33,6 @@ entity Pgp3GthUsIpWrapper is
       qpllclk        : in  slv(1 downto 0);
       qpllrefclk     : in  slv(1 downto 0);
       qpllRst        : out slv(1 downto 0);
-      gtRefclk       : in sl;
       -- GTH FPGA IO
       gtRxP          : in  sl;
       gtRxN          : in  sl;
@@ -78,180 +77,187 @@ architecture mapping of Pgp3GthUsIpWrapper is
 
    component Pgp3GthUsIp10G
       port (
-    gtwiz_userclk_tx_reset_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userclk_tx_srcclk_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userclk_tx_usrclk_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userclk_tx_usrclk2_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userclk_tx_active_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userclk_rx_reset_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userclk_rx_srcclk_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userclk_rx_usrclk_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userclk_rx_usrclk2_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userclk_rx_active_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_clk_freerun_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_all_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_tx_pll_and_datapath_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_tx_datapath_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_rx_pll_and_datapath_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_rx_datapath_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_qpll0lock_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_rx_cdr_stable_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_tx_done_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_rx_done_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_qpll0reset_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userdata_tx_in : IN STD_LOGIC_VECTOR(63 DOWNTO 0);
-    gtwiz_userdata_rx_out : OUT STD_LOGIC_VECTOR(63 DOWNTO 0);
-    drpaddr_in : IN STD_LOGIC_VECTOR(9 DOWNTO 0);
-    drpclk_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    drpdi_in : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
-    drpen_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    drpwe_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gthrxn_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gthrxp_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    loopback_in : IN STD_LOGIC_VECTOR(2 DOWNTO 0);
-    qpll0clk_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    qpll0refclk_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    qpll1clk_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    qpll1refclk_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    rxgearboxslip_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    rxpolarity_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    txdiffctrl_in : IN STD_LOGIC_VECTOR(4 DOWNTO 0);
-    txheader_in : IN STD_LOGIC_VECTOR(5 DOWNTO 0);
-    txpolarity_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    txpostcursor_in : IN STD_LOGIC_VECTOR(4 DOWNTO 0);
-    txprecursor_in : IN STD_LOGIC_VECTOR(4 DOWNTO 0);
-    txsequence_in : IN STD_LOGIC_VECTOR(6 DOWNTO 0);
-    drpdo_out : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
-    drprdy_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gthtxn_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gthtxp_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtpowergood_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    rxdatavalid_out : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
-    rxheader_out : OUT STD_LOGIC_VECTOR(5 DOWNTO 0);
-    rxheadervalid_out : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
-    rxpmaresetdone_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    rxprgdivresetdone_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    rxstartofseq_out : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
-    txpmaresetdone_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    txprgdivresetdone_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0)
-  );
-END COMPONENT;
+         gtwiz_userclk_tx_reset_in          : in  std_logic_vector(0 downto 0);
+         gtwiz_userclk_tx_srcclk_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_tx_usrclk_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_tx_usrclk2_out       : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_tx_active_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_reset_in          : in  std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_srcclk_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_usrclk_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_usrclk2_out       : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_active_out        : out std_logic_vector(0 downto 0);
+         gtwiz_reset_clk_freerun_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_all_in                 : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_tx_pll_and_datapath_in : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_tx_datapath_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_pll_and_datapath_in : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_datapath_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_qpll0lock_in           : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_cdr_stable_out      : out std_logic_vector(0 downto 0);
+         gtwiz_reset_tx_done_out            : out std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_done_out            : out std_logic_vector(0 downto 0);
+         gtwiz_reset_qpll0reset_out         : out std_logic_vector(0 downto 0);
+         gtwiz_userdata_tx_in               : in  std_logic_vector(63 downto 0);
+         gtwiz_userdata_rx_out              : out std_logic_vector(63 downto 0);
+         drpaddr_in                         : in  std_logic_vector(9 downto 0);
+         drpclk_in                          : in  std_logic_vector(0 downto 0);
+         drpdi_in                           : in  std_logic_vector(15 downto 0);
+         drpen_in                           : in  std_logic_vector(0 downto 0);
+         drpwe_in                           : in  std_logic_vector(0 downto 0);
+         gthrxn_in                          : in  std_logic_vector(0 downto 0);
+         gthrxp_in                          : in  std_logic_vector(0 downto 0);
+         loopback_in                        : in  std_logic_vector(2 downto 0);
+         qpll0clk_in                        : in  std_logic_vector(0 downto 0);
+         qpll0refclk_in                     : in  std_logic_vector(0 downto 0);
+         qpll1clk_in                        : in  std_logic_vector(0 downto 0);
+         qpll1refclk_in                     : in  std_logic_vector(0 downto 0);
+         rxgearboxslip_in                   : in  std_logic_vector(0 downto 0);
+         rxpolarity_in                      : in  std_logic_vector(0 downto 0);
+         txdiffctrl_in                      : in  std_logic_vector(4 downto 0);
+         txheader_in                        : in  std_logic_vector(5 downto 0);
+         txpolarity_in                      : in  std_logic_vector(0 downto 0);
+         txpostcursor_in                    : in  std_logic_vector(4 downto 0);
+         txprecursor_in                     : in  std_logic_vector(4 downto 0);
+         txsequence_in                      : in  std_logic_vector(6 downto 0);
+         drpdo_out                          : out std_logic_vector(15 downto 0);
+         drprdy_out                         : out std_logic_vector(0 downto 0);
+         gthtxn_out                         : out std_logic_vector(0 downto 0);
+         gthtxp_out                         : out std_logic_vector(0 downto 0);
+         gtpowergood_out                    : out std_logic_vector(0 downto 0);
+         rxdatavalid_out                    : out std_logic_vector(1 downto 0);
+         rxheader_out                       : out std_logic_vector(5 downto 0);
+         rxheadervalid_out                  : out std_logic_vector(1 downto 0);
+         rxpmaresetdone_out                 : out std_logic_vector(0 downto 0);
+         rxprgdivresetdone_out              : out std_logic_vector(0 downto 0);
+         rxstartofseq_out                   : out std_logic_vector(1 downto 0);
+         txpmaresetdone_out                 : out std_logic_vector(0 downto 0);
+         txprgdivresetdone_out              : out std_logic_vector(0 downto 0)
+         );
+   end component;
 
    component Pgp3GthUsIp6G
       port (
-    gtwiz_userclk_tx_reset_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userclk_tx_srcclk_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userclk_tx_usrclk_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userclk_tx_usrclk2_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userclk_tx_active_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userclk_rx_reset_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userclk_rx_srcclk_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userclk_rx_usrclk_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userclk_rx_usrclk2_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userclk_rx_active_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_clk_freerun_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_all_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_tx_pll_and_datapath_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_tx_datapath_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_rx_pll_and_datapath_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_rx_datapath_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_rx_cdr_stable_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_tx_done_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_rx_done_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userdata_tx_in : IN STD_LOGIC_VECTOR(63 DOWNTO 0);
-    gtwiz_userdata_rx_out : OUT STD_LOGIC_VECTOR(63 DOWNTO 0);
-    gtrefclk00_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    qpll0outclk_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    qpll0outrefclk_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    drpaddr_in : IN STD_LOGIC_VECTOR(9 DOWNTO 0);
-    drpclk_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    drpdi_in : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
-    drpen_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    drpwe_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gthrxn_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gthrxp_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    loopback_in : IN STD_LOGIC_VECTOR(2 DOWNTO 0);
-    rxgearboxslip_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    rxpolarity_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    txdiffctrl_in : IN STD_LOGIC_VECTOR(4 DOWNTO 0);
-    txheader_in : IN STD_LOGIC_VECTOR(5 DOWNTO 0);
-    txpolarity_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    txpostcursor_in : IN STD_LOGIC_VECTOR(4 DOWNTO 0);
-    txprecursor_in : IN STD_LOGIC_VECTOR(4 DOWNTO 0);
-    txsequence_in : IN STD_LOGIC_VECTOR(6 DOWNTO 0);
-    drpdo_out : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
-    drprdy_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gthtxn_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gthtxp_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtpowergood_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    rxdatavalid_out : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
-    rxheader_out : OUT STD_LOGIC_VECTOR(5 DOWNTO 0);
-    rxheadervalid_out : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
-    rxpmaresetdone_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    rxprgdivresetdone_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    rxstartofseq_out : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
-    txpmaresetdone_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    txprgdivresetdone_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0)
-  );
-END COMPONENT;
+         gtwiz_userclk_tx_reset_in          : in  std_logic_vector(0 downto 0);
+         gtwiz_userclk_tx_srcclk_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_tx_usrclk_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_tx_usrclk2_out       : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_tx_active_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_reset_in          : in  std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_srcclk_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_usrclk_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_usrclk2_out       : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_active_out        : out std_logic_vector(0 downto 0);
+         gtwiz_reset_clk_freerun_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_all_in                 : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_tx_pll_and_datapath_in : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_tx_datapath_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_pll_and_datapath_in : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_datapath_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_qpll0lock_in           : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_cdr_stable_out      : out std_logic_vector(0 downto 0);
+         gtwiz_reset_tx_done_out            : out std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_done_out            : out std_logic_vector(0 downto 0);
+         gtwiz_reset_qpll0reset_out         : out std_logic_vector(0 downto 0);
+         gtwiz_userdata_tx_in               : in  std_logic_vector(63 downto 0);
+         gtwiz_userdata_rx_out              : out std_logic_vector(63 downto 0);
+         drpaddr_in                         : in  std_logic_vector(9 downto 0);
+         drpclk_in                          : in  std_logic_vector(0 downto 0);
+         drpdi_in                           : in  std_logic_vector(15 downto 0);
+         drpen_in                           : in  std_logic_vector(0 downto 0);
+         drpwe_in                           : in  std_logic_vector(0 downto 0);
+         gthrxn_in                          : in  std_logic_vector(0 downto 0);
+         gthrxp_in                          : in  std_logic_vector(0 downto 0);
+         loopback_in                        : in  std_logic_vector(2 downto 0);
+         qpll0clk_in                        : in  std_logic_vector(0 downto 0);
+         qpll0refclk_in                     : in  std_logic_vector(0 downto 0);
+         qpll1clk_in                        : in  std_logic_vector(0 downto 0);
+         qpll1refclk_in                     : in  std_logic_vector(0 downto 0);
+         rxgearboxslip_in                   : in  std_logic_vector(0 downto 0);
+         rxpolarity_in                      : in  std_logic_vector(0 downto 0);
+         txdiffctrl_in                      : in  std_logic_vector(4 downto 0);
+         txheader_in                        : in  std_logic_vector(5 downto 0);
+         txpolarity_in                      : in  std_logic_vector(0 downto 0);
+         txpostcursor_in                    : in  std_logic_vector(4 downto 0);
+         txprecursor_in                     : in  std_logic_vector(4 downto 0);
+         txsequence_in                      : in  std_logic_vector(6 downto 0);
+         drpdo_out                          : out std_logic_vector(15 downto 0);
+         drprdy_out                         : out std_logic_vector(0 downto 0);
+         gthtxn_out                         : out std_logic_vector(0 downto 0);
+         gthtxp_out                         : out std_logic_vector(0 downto 0);
+         gtpowergood_out                    : out std_logic_vector(0 downto 0);
+         rxdatavalid_out                    : out std_logic_vector(1 downto 0);
+         rxheader_out                       : out std_logic_vector(5 downto 0);
+         rxheadervalid_out                  : out std_logic_vector(1 downto 0);
+         rxpmaresetdone_out                 : out std_logic_vector(0 downto 0);
+         rxprgdivresetdone_out              : out std_logic_vector(0 downto 0);
+         rxstartofseq_out                   : out std_logic_vector(1 downto 0);
+         txpmaresetdone_out                 : out std_logic_vector(0 downto 0);
+         txprgdivresetdone_out              : out std_logic_vector(0 downto 0)
+         );
+   end component;
 
    component Pgp3GthUsIp3G
-  PORT (
-    gtwiz_userclk_tx_reset_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userclk_tx_srcclk_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userclk_tx_usrclk_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userclk_tx_usrclk2_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userclk_tx_active_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userclk_rx_reset_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userclk_rx_srcclk_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userclk_rx_usrclk_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userclk_rx_usrclk2_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userclk_rx_active_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_clk_freerun_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_all_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_tx_pll_and_datapath_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_tx_datapath_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_rx_pll_and_datapath_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_rx_datapath_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_rx_cdr_stable_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_tx_done_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_reset_rx_done_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtwiz_userdata_tx_in : IN STD_LOGIC_VECTOR(63 DOWNTO 0);
-    gtwiz_userdata_rx_out : OUT STD_LOGIC_VECTOR(63 DOWNTO 0);
-    gtrefclk00_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    qpll0outclk_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    qpll0outrefclk_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    drpaddr_in : IN STD_LOGIC_VECTOR(9 DOWNTO 0);
-    drpclk_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    drpdi_in : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
-    drpen_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    drpwe_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gthrxn_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gthrxp_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    loopback_in : IN STD_LOGIC_VECTOR(2 DOWNTO 0);
-    rxgearboxslip_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    rxpolarity_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    txdiffctrl_in : IN STD_LOGIC_VECTOR(4 DOWNTO 0);
-    txheader_in : IN STD_LOGIC_VECTOR(5 DOWNTO 0);
-    txpolarity_in : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    txpostcursor_in : IN STD_LOGIC_VECTOR(4 DOWNTO 0);
-    txprecursor_in : IN STD_LOGIC_VECTOR(4 DOWNTO 0);
-    txsequence_in : IN STD_LOGIC_VECTOR(6 DOWNTO 0);
-    drpdo_out : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
-    drprdy_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gthtxn_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gthtxp_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    gtpowergood_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    rxdatavalid_out : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
-    rxheader_out : OUT STD_LOGIC_VECTOR(5 DOWNTO 0);
-    rxheadervalid_out : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
-    rxpmaresetdone_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    rxprgdivresetdone_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    rxstartofseq_out : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
-    txpmaresetdone_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-    txprgdivresetdone_out : OUT STD_LOGIC_VECTOR(0 DOWNTO 0)
-  );
-END COMPONENT;
+      port (
+         gtwiz_userclk_tx_reset_in          : in  std_logic_vector(0 downto 0);
+         gtwiz_userclk_tx_srcclk_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_tx_usrclk_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_tx_usrclk2_out       : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_tx_active_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_reset_in          : in  std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_srcclk_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_usrclk_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_usrclk2_out       : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_active_out        : out std_logic_vector(0 downto 0);
+         gtwiz_reset_clk_freerun_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_all_in                 : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_tx_pll_and_datapath_in : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_tx_datapath_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_pll_and_datapath_in : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_datapath_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_qpll0lock_in           : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_cdr_stable_out      : out std_logic_vector(0 downto 0);
+         gtwiz_reset_tx_done_out            : out std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_done_out            : out std_logic_vector(0 downto 0);
+         gtwiz_reset_qpll0reset_out         : out std_logic_vector(0 downto 0);
+         gtwiz_userdata_tx_in               : in  std_logic_vector(63 downto 0);
+         gtwiz_userdata_rx_out              : out std_logic_vector(63 downto 0);
+         drpaddr_in                         : in  std_logic_vector(9 downto 0);
+         drpclk_in                          : in  std_logic_vector(0 downto 0);
+         drpdi_in                           : in  std_logic_vector(15 downto 0);
+         drpen_in                           : in  std_logic_vector(0 downto 0);
+         drpwe_in                           : in  std_logic_vector(0 downto 0);
+         gthrxn_in                          : in  std_logic_vector(0 downto 0);
+         gthrxp_in                          : in  std_logic_vector(0 downto 0);
+         loopback_in                        : in  std_logic_vector(2 downto 0);
+         qpll0clk_in                        : in  std_logic_vector(0 downto 0);
+         qpll0refclk_in                     : in  std_logic_vector(0 downto 0);
+         qpll1clk_in                        : in  std_logic_vector(0 downto 0);
+         qpll1refclk_in                     : in  std_logic_vector(0 downto 0);
+         rxgearboxslip_in                   : in  std_logic_vector(0 downto 0);
+         rxpolarity_in                      : in  std_logic_vector(0 downto 0);
+         txdiffctrl_in                      : in  std_logic_vector(4 downto 0);
+         txheader_in                        : in  std_logic_vector(5 downto 0);
+         txpolarity_in                      : in  std_logic_vector(0 downto 0);
+         txpostcursor_in                    : in  std_logic_vector(4 downto 0);
+         txprecursor_in                     : in  std_logic_vector(4 downto 0);
+         txsequence_in                      : in  std_logic_vector(6 downto 0);
+         drpdo_out                          : out std_logic_vector(15 downto 0);
+         drprdy_out                         : out std_logic_vector(0 downto 0);
+         gthtxn_out                         : out std_logic_vector(0 downto 0);
+         gthtxp_out                         : out std_logic_vector(0 downto 0);
+         gtpowergood_out                    : out std_logic_vector(0 downto 0);
+         rxdatavalid_out                    : out std_logic_vector(1 downto 0);
+         rxheader_out                       : out std_logic_vector(5 downto 0);
+         rxheadervalid_out                  : out std_logic_vector(1 downto 0);
+         rxpmaresetdone_out                 : out std_logic_vector(0 downto 0);
+         rxprgdivresetdone_out              : out std_logic_vector(0 downto 0);
+         rxstartofseq_out                   : out std_logic_vector(1 downto 0);
+         txpmaresetdone_out                 : out std_logic_vector(0 downto 0);
+         txprgdivresetdone_out              : out std_logic_vector(0 downto 0)
+         );
+   end component;
+
    signal dummy1  : sl;
    signal dummy2  : sl;
    signal dummy3  : slv(3 downto 0);
@@ -392,14 +398,13 @@ begin
             gtwiz_reset_tx_datapath_in(0)         => zeroBit,
             gtwiz_reset_rx_pll_and_datapath_in(0) => zeroBit,
             gtwiz_reset_rx_datapath_in(0)         => rxReset,
-            --gtwiz_reset_qpll0lock_in(0)           => qpllLock(0),
+            gtwiz_reset_qpll0lock_in(0)           => qpllLock(0),
             gtwiz_reset_rx_cdr_stable_out(0)      => dummy5,
             gtwiz_reset_tx_done_out(0)            => txResetDone,
             gtwiz_reset_rx_done_out(0)            => rxResetDone,
-            --gtwiz_reset_qpll0reset_out(0)         => qpllRst(0),
+            gtwiz_reset_qpll0reset_out(0)         => qpllRst(0),
             gtwiz_userdata_tx_in                  => txData,
             gtwiz_userdata_rx_out                 => rxData,
-            gtrefclk00_in(0)                      => gtRefclk,
             drpclk_in(0)                          => stableClk,
             drpaddr_in                            => drpAddr,
             drpdi_in                              => drpDi,
@@ -410,10 +415,10 @@ begin
             gthrxn_in(0)                          => gtRxN,
             gthrxp_in(0)                          => gtRxP,
             loopback_in                           => loopback,
-            --qpll0clk_in(0)                        => qpllclk(0),
-            --qpll0refclk_in(0)                     => qpllrefclk(0),
-            --qpll1clk_in(0)                        => qpllclk(1),
-            --qpll1refclk_in(0)                     => qpllrefclk(1),
+            qpll0clk_in(0)                        => qpllclk(0),
+            qpll0refclk_in(0)                     => qpllrefclk(0),
+            qpll1clk_in(0)                        => qpllclk(1),
+            qpll1refclk_in(0)                     => qpllrefclk(1),
             rxgearboxslip_in(0)                   => rxGearboxSlip,
             rxpolarity_in(0)                      => RX_POLARITY_G,
             txdiffctrl_in                         => "11111",
@@ -457,14 +462,13 @@ begin
             gtwiz_reset_tx_datapath_in(0)         => zeroBit,
             gtwiz_reset_rx_pll_and_datapath_in(0) => zeroBit,
             gtwiz_reset_rx_datapath_in(0)         => rxReset,
-            --gtwiz_reset_qpll0lock_in(0)           => qpllLock(0),
+            gtwiz_reset_qpll0lock_in(0)           => qpllLock(0),
             gtwiz_reset_rx_cdr_stable_out(0)      => dummy5,
             gtwiz_reset_tx_done_out(0)            => txResetDone,
             gtwiz_reset_rx_done_out(0)            => rxResetDone,
-           -- gtwiz_reset_qpll0reset_out(0)         => qpllRst(0),
+            gtwiz_reset_qpll0reset_out(0)         => qpllRst(0),
             gtwiz_userdata_tx_in                  => txData,
             gtwiz_userdata_rx_out                 => rxData,
-            gtrefclk00_in(0)                      => gtRefclk,
             drpclk_in(0)                          => stableClk,
             drpaddr_in                            => drpAddr,
             drpdi_in                              => drpDi,
@@ -475,10 +479,10 @@ begin
             gthrxn_in(0)                          => gtRxN,
             gthrxp_in(0)                          => gtRxP,
             loopback_in                           => loopback,
-            --qpll0clk_in(0)                        => qpllclk(0),
-            --qpll0refclk_in(0)                     => qpllrefclk(0),
-            --qpll1clk_in(0)                        => qpllclk(1),
-            --qpll1refclk_in(0)                     => qpllrefclk(1),
+            qpll0clk_in(0)                        => qpllclk(0),
+            qpll0refclk_in(0)                     => qpllrefclk(0),
+            qpll1clk_in(0)                        => qpllclk(1),
+            qpll1refclk_in(0)                     => qpllrefclk(1),
             rxgearboxslip_in(0)                   => rxGearboxSlip,
             rxpolarity_in(0)                      => RX_POLARITY_G,
             txdiffctrl_in                         => "11111",
