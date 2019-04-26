@@ -133,7 +133,7 @@ begin
             DIV     => "000",           -- Divide by 1
             O       => pgpRefClkDiv2Bufg);
 
-      U_pgpRefClk : IBUFDS_GTE3
+      U_pgpRefClk : IBUFDS_GTE4
          generic map (
             REFCLK_EN_TX_PATH  => '0',
             REFCLK_HROW_CK_SEL => "00",  -- 2'b00: ODIV2 = O
