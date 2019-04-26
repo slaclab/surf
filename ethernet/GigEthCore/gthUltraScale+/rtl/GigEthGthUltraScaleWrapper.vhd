@@ -70,10 +70,10 @@ entity GigEthGthUltraScaleWrapper is
       gtRefClk            : in  sl                                             := '0';
       gtClkP              : in  sl                                             := '1';
       gtClkN              : in  sl                                             := '0';
-      extPll125Clk        : in  sl;
-      extPll125Rst        : in  sl;
-      extPll62Clk         : in  sl;
-      extPll62Rst         : in  sl;
+      extPll125Clk        : in  sl := '0';
+      extPll125Rst        : in  sl := '0';
+      extPll62Clk         : in  sl := '0';
+      extPll62Rst         : in  sl := '0';
       -- MGT Ports
       gtTxP               : out slv(NUM_LANE_G-1 downto 0);
       gtTxN               : out slv(NUM_LANE_G-1 downto 0);
