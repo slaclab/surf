@@ -62,8 +62,8 @@ entity GigEthGtp7 is
       qPllRefClkLost     : in  slv(1 downto 0);
       qPllReset          : out slv(1 downto 0);
       -- Switch Polarity of TxN/TxP, RxN/RxP
-      gtTxPolarity       : in  sl := '0';
-      gtRxPolarity       : in  sl := '0';
+      gtTxPolarity       : in  sl                     := '0';
+      gtRxPolarity       : in  sl                     := '0';
       -- MGT Ports
       gtTxP              : out sl;
       gtTxN              : out sl;
