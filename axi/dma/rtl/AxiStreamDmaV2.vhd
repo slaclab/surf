@@ -35,7 +35,6 @@ entity AxiStreamDmaV2 is
       AXI_READY_EN_G    : boolean                  := false;
       AXIS_READY_EN_G   : boolean                  := false;
       AXIS_CONFIG_G     : AxiStreamConfigType      := AXI_STREAM_CONFIG_INIT_C;
-      AXI_DESC_CONFIG_G : AxiConfigType            := AXI_CONFIG_INIT_C;
       AXI_DMA_CONFIG_G  : AxiConfigType            := AXI_CONFIG_INIT_C;
       CHAN_COUNT_G      : positive range 1 to 16   := 1;
       BURST_BYTES_G     : positive range 1 to 4096 := 4096;
@@ -70,6 +69,12 @@ end AxiStreamDmaV2;
 
 architecture structure of AxiStreamDmaV2 is
 
+   constant AXI_DESC_CONFIG_C : AxiConfigType := (
+      ADDR_WIDTH_C => AXI_DMA_CONFIG_G.ADDR_WIDTH_C,
+      DATA_BYTES_C => 16,  -- Force 128b descriptor
+      ID_BITS_C    => AXI_DMA_CONFIG_G.ID_BITS_C,
+      LEN_BITS_C   => AXI_DMA_CONFIG_G.LEN_BITS_C);   
+
    signal dmaWrDescReq    : AxiWriteDmaDescReqArray(CHAN_COUNT_G-1 downto 0);
    signal dmaWrDescAck    : AxiWriteDmaDescAckArray(CHAN_COUNT_G-1 downto 0);
    signal dmaWrDescRet    : AxiWriteDmaDescRetArray(CHAN_COUNT_G-1 downto 0);
@@ -102,7 +107,7 @@ begin
          TPD_G            => TPD_G,
          CHAN_COUNT_G     => CHAN_COUNT_G,
          AXIL_BASE_ADDR_G => AXIL_BASE_ADDR_G,
-         AXI_CONFIG_G     => AXI_DESC_CONFIG_G,
+         AXI_CONFIG_G     => AXI_DESC_CONFIG_C,
          DESC_AWIDTH_G    => DESC_AWIDTH_G,
          DESC_ARB_G       => DESC_ARB_G)
       port map (
@@ -200,6 +205,7 @@ begin
       U_DmaWriteMux : entity work.AxiStreamDmaV2WriteMux
          generic map (
             TPD_G          => TPD_G,
+            AXI_CONFIG_G   => AXI_DMA_CONFIG_G,
             AXI_READY_EN_G => AXI_READY_EN_G)
          port map (
             -- Clock and reset

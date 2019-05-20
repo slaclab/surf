@@ -25,8 +25,9 @@ use work.AxiPkg.all;
 
 entity AxiStreamDmaV2WriteMux is
    generic (
-      TPD_G          : time    := 1 ns;
-      AXI_READY_EN_G : boolean := false);
+      TPD_G          : time          := 1 ns;
+      AXI_CONFIG_G   : AxiConfigType := AXI_CONFIG_INIT_C;
+      AXI_READY_EN_G : boolean       := false);
    port (
       -- Clock and reset
       axiClk          : in  sl;
@@ -48,9 +49,11 @@ architecture rtl of AxiStreamDmaV2WriteMux is
 
    type StateType is (
       ADDR_S,
-      DATA_S);
+      DATA_S,
+      DESC_S);
 
    type RegType is record
+      pause      : sl;
       armed      : sl;
       descSlave  : AxiWriteSlaveType;
       dataSlave  : AxiWriteSlaveType;
@@ -60,6 +63,7 @@ architecture rtl of AxiStreamDmaV2WriteMux is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      pause      => '0',
       armed      => '0',
       descSlave  => AXI_WRITE_SLAVE_INIT_C,
       dataSlave  => AXI_WRITE_SLAVE_INIT_C,
@@ -109,6 +113,8 @@ begin
       case r.state is
          ----------------------------------------------------------------------
          when ADDR_S =>
+            -- Reset the pause flag
+            v.pause := '0';
             -- Check if ready to set the address
             if (v.master.awvalid = '0') then
                -- Check DMA channel 
@@ -135,6 +141,18 @@ begin
                   v.armed  := '0';
                   -- Write address channel
                   v.master := r.descriptor;
+                  -- Check for 64-bit AXI DMA interface
+                  if (AXI_CONFIG_G.DATA_BYTES_C = 8) then
+                     -- Configuration to two 64-bit cycles
+                     v.master.wlast  := '0';  -- Mask off the wlast from single transaction
+                     v.master.awlen  := toSlv(1, 8);  -- Double transaction
+                     v.master.awsize := toSlv(log2(8), 3);  -- Update to 8B size                     
+                     -- Set the pause flag
+                     v.pause         := '1';
+                     -- Next state
+                     v.state         := DESC_S;
+                  end if;
+
                end if;
             end if;
          ----------------------------------------------------------------------
@@ -155,6 +173,17 @@ begin
                   v.state := ADDR_S;
                end if;
             end if;
+         ----------------------------------------------------------------------
+         when DESC_S =>
+            -- Check if ready to move data
+            if (v.master.wvalid = '0') then
+               -- Write data channel
+               v.master.wvalid             := '1';
+               v.master.wlast              := '1';
+               v.master.wdata(63 downto 0) := r.descriptor.wdata(127 downto 64);
+               -- Next state
+               v.state                     := ADDR_S;
+            end if;
       ----------------------------------------------------------------------
       end case;
 
@@ -162,11 +191,14 @@ begin
       descWriteSlave         <= r.descSlave;
       descWriteSlave.awready <= v.descSlave.awready;
       descWriteSlave.wready  <= v.descSlave.wready;
+
       -- Data Outputs
       dataWriteSlave         <= r.dataSlave;
       dataWriteSlave.awready <= v.dataSlave.awready;
       dataWriteSlave.wready  <= v.dataSlave.wready;
       dataWriteCtrl          <= mAxiWriteCtrl;
+      dataWriteCtrl.pause    <= mAxiWriteCtrl.pause or v.pause;
+
       -- MUX Outputs
       mAxiWriteMaster        <= r.master;
       mAxiWriteMaster.bready <= '1';
