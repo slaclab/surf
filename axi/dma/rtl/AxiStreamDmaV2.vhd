@@ -69,12 +69,6 @@ end AxiStreamDmaV2;
 
 architecture structure of AxiStreamDmaV2 is
 
-   constant AXI_DESC_CONFIG_C : AxiConfigType := (
-      ADDR_WIDTH_C => AXI_DMA_CONFIG_G.ADDR_WIDTH_C,
-      DATA_BYTES_C => 16,  -- Force 128b descriptor
-      ID_BITS_C    => AXI_DMA_CONFIG_G.ID_BITS_C,
-      LEN_BITS_C   => AXI_DMA_CONFIG_G.LEN_BITS_C);   
-
    signal dmaWrDescReq    : AxiWriteDmaDescReqArray(CHAN_COUNT_G-1 downto 0);
    signal dmaWrDescAck    : AxiWriteDmaDescAckArray(CHAN_COUNT_G-1 downto 0);
    signal dmaWrDescRet    : AxiWriteDmaDescRetArray(CHAN_COUNT_G-1 downto 0);
@@ -102,12 +96,15 @@ architecture structure of AxiStreamDmaV2 is
 
 begin
 
+   assert (AXI_DMA_CONFIG_G.DATA_BYTES_C >= 8)
+      report "AxiPcieDma: AXI STREAM DMA must have a byte width of >= 8Bytes (64-bits)" severity failure;
+
    U_DmaDesc : entity work.AxiStreamDmaV2Desc
       generic map (
          TPD_G            => TPD_G,
          CHAN_COUNT_G     => CHAN_COUNT_G,
          AXIL_BASE_ADDR_G => AXIL_BASE_ADDR_G,
-         AXI_CONFIG_G     => AXI_DESC_CONFIG_C,
+         AXI_CONFIG_G     => AXI_DMA_CONFIG_G,
          DESC_AWIDTH_G    => DESC_AWIDTH_G,
          DESC_ARB_G       => DESC_ARB_G)
       port map (
