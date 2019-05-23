@@ -26,8 +26,8 @@ use work.AxiLitePkg.all;
 entity RssiCoreWrapper is
    generic (
       TPD_G                : time                 := 1 ns;
-      CLK_FREQUENCY_G      : real                 := 100.0E+6;  -- In units of Hz
-      TIMEOUT_UNIT_G       : real                 := 1.0E-6;  -- In units of seconds
+      CLK_FREQUENCY_G      : real                 := 156.25E+6;  -- In units of Hz
+      TIMEOUT_UNIT_G       : real                 := 1.0E-3;  -- In units of seconds
       SERVER_G             : boolean              := true;  -- Module is server or client 
       RETRANSMIT_ENABLE_G  : boolean              := true;  -- Enable/Disable retransmissions in tx module
       WINDOW_ADDR_SIZE_G   : positive             := 3;  -- 2^WINDOW_ADDR_SIZE_G  = Max number of segments in buffer
