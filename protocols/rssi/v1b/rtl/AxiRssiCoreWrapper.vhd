@@ -164,7 +164,7 @@ begin
          TDEST_ROUTES_G       => APP_STREAM_ROUTES_G,
          ILEAVE_EN_G          => true,
          ILEAVE_ON_NOTVALID_G => ILEAVE_ON_NOTVALID_G,
-         ILEAVE_REARB_G       => (MAX_SEG_SIZE_C/PACKETIZER_AXIS_CONFIG_C.TDATA_BYTES_C),
+         ILEAVE_REARB_G       => (MAX_SEG_SIZE_G/CONV_AXIS_CONFIG_C.TDATA_BYTES_C) - 3, -- AxiStreamPacketizer2.PROTO_WORDS_C=3
          PIPE_STAGES_G        => 1)
       port map (
          -- Clock and reset
