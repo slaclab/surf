@@ -32,7 +32,7 @@ architecture testbed of RssiInterleaveTb is
 
    constant CLK_PERIOD_C     : time     := 10 ns;  -- 1 us makes it easy to count clock cycles in sim GUI
    constant TPD_G            : time     := CLK_PERIOD_C/4;
-   constant PRBS_SEED_SIZE_C : positive := 32;
+   constant PRBS_SEED_SIZE_C : positive := 128;
 
    constant SRV_WINDOW_ADDR_SIZE_C : positive := 4;
    constant SRV_MAX_SEG_SIZE_C     : positive := 8192;
@@ -45,8 +45,8 @@ architecture testbed of RssiInterleaveTb is
    constant APP_STREAMS_C : positive := 2;
 
    constant SRV_AXIS_CONFIG_C : AxiStreamConfigArray(APP_STREAMS_C-1 downto 0) := (
-      0 => ssiAxiStreamConfig(8),
-      1 => ssiAxiStreamConfig(8));
+      0 => ssiAxiStreamConfig(16),
+      1 => ssiAxiStreamConfig(16));
 
    constant CLT_AXIS_CONFIG_C : AxiStreamConfigArray(APP_STREAMS_C-1 downto 0) := (
       0 => ssiAxiStreamConfig(16),
