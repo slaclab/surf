@@ -15,7 +15,8 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
+use ieee.std_logic_unsigned.all;
+use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.RssiPkg.all;
@@ -108,8 +109,6 @@ architecture mapping of RssiCoreWrapper is
    signal rssiNotConnected : sl;
    signal rssiConnected    : sl;
 
-   signal maxObSegSize     : slv(15 downto 0);
-
    -- This should really go in a AxiStreamPacketizerPkg
    constant PACKETIZER_AXIS_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
@@ -123,6 +122,12 @@ architecture mapping of RssiCoreWrapper is
    -- If bypassing chunker, convert directly to RSSI AXIS config
    -- else use Packetizer AXIS format. Packetizer will then convert to RSSI config.
    constant CONV_AXIS_CONFIG_C : AxiStreamConfigType := ite(BYPASS_CHUNKER_G, RSSI_AXIS_CONFIG_C, PACKETIZER_AXIS_CONFIG_C);
+   
+   constant MAX_SEGS_BITS_C : positive := bitSize(MAX_SEG_SIZE_G);
+   
+   signal maxObSegSize : slv(15 downto 0);
+   signal maxSegs      : slv(MAX_SEGS_BITS_C - 1 downto 0);   
+   signal ileaveRearb  : slv(11 downto 0);   
 
 begin
 
@@ -166,19 +171,17 @@ begin
          -- Slaves
          sAxisMasters => rxMasters,
          sAxisSlaves  => rxSlaves,
+         ileaveRearb  => ileaveRearb,
          -- Master
          mAxisMaster  => packetizerMasters(0),
          mAxisSlave   => packetizerSlaves(0));
 
+   ileaveRearb <= resize(maxSegs(MAX_SEGS_BITS_C-1 downto 3),12) - 3; -- # of tValid minus AxiStreamPacketizer2.PROTO_WORDS_C=3
+
+   maxSegs <= toSlv(MAX_SEG_SIZE_G, MAX_SEGS_BITS_C) when(maxObSegSize >= MAX_SEG_SIZE_G) else maxObSegSize(maxSegs'range);
+                  
    GEN_PACKER : if (BYPASS_CHUNKER_G = false) generate
-      constant MAX_SEGS_BITS_C : positive := bitSize(MAX_SEG_SIZE_G);
-      signal   maxSegs         : slv(MAX_SEGS_BITS_C - 1 downto 0);
    begin
-
-      maxSegs <= ite(unsigned(maxObSegSize) >= MAX_SEG_SIZE_G,
-                     slv(to_unsigned(MAX_SEG_SIZE_G, maxSegs'length)),
-                     maxObSegSize(maxSegs'range));
-
       PACKER_V1 : if (APP_ILEAVE_EN_G = false) generate
          U_Packetizer : entity work.AxiStreamPacketizer
             generic map (
