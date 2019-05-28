@@ -41,7 +41,7 @@ entity RssiCoreWrapper is
       BYP_RX_BUFFER_G      : boolean              := false;
       SYNTH_MODE_G         : string               := "inferred";
       MEMORY_TYPE_G        : string               := "block";       
-      ILEAVE_ON_NOTVALID_G : boolean              := false;
+      ILEAVE_ON_NOTVALID_G : boolean              := false; -- Unused (legacy generic)
       -- AXIS Configurations
       APP_AXIS_CONFIG_G    : AxiStreamConfigArray := (0 => ssiAxiStreamConfig(8, TKEEP_NORMAL_C));
       TSP_AXIS_CONFIG_G    : AxiStreamConfigType  := ssiAxiStreamConfig(16, TKEEP_NORMAL_C);
@@ -155,7 +155,8 @@ begin
          MODE_G               => "ROUTED",
          TDEST_ROUTES_G       => APP_STREAM_ROUTES_G,
          ILEAVE_EN_G          => APP_ILEAVE_EN_G,
-         ILEAVE_ON_NOTVALID_G => ILEAVE_ON_NOTVALID_G,
+         -- ILEAVE_ON_NOTVALID_G => ILEAVE_ON_NOTVALID_G,
+         ILEAVE_ON_NOTVALID_G => true, -- Because of ILEAVE_REARB_G value != power of 2, forcing rearb on not(tValid)
          ILEAVE_REARB_G       => (MAX_SEG_SIZE_G/CONV_AXIS_CONFIG_C.TDATA_BYTES_C) - 3, -- AxiStreamPacketizer2.PROTO_WORDS_C=3
          PIPE_STAGES_G        => 1)
       port map (
