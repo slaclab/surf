@@ -78,6 +78,7 @@ entity RssiCoreWrapper is
       openRq_i          : in  sl                     := '0';
       closeRq_i         : in  sl                     := '0';
       inject_i          : in  sl                     := '0';
+      rssiConnected_o   : out sl;
       -- AXI-Lite Register Interface
       axiClk_i          : in  sl                     := '0';
       axiRst_i          : in  sl                     := '0';
@@ -282,6 +283,7 @@ begin
 
    statusReg_o      <= statusReg;
    rssiConnected    <= statusReg(0);
+   rssiConnected_o  <= statusReg(0);
    rssiNotConnected <= not(rssiConnected);
 
    GEN_DEPACKER : if (BYPASS_CHUNKER_G = false) generate
