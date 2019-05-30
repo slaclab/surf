@@ -231,7 +231,7 @@ begin
 
    end generate;
 
-   comb : process (axisRst, inputAxisMaster, linkGood, outputAxisSlave, r,
+   comb : process (inputAxisMaster, linkGood, outputAxisSlave, r,
                    ramCrcRem, ramPacketActiveOut, ramPacketSeqOut, crcOut,
                    ramSentEofeOut) is
       variable v         : RegType;
@@ -548,18 +548,11 @@ begin
          v.state       := TERMINATE_S;
       end if;
 
-      -- Combinatorial outputs before the reset
-      inputAxisSlave <= v.inputAxisSlave;
-
-      -- Reset
-      if (axisRst = '1') then
-         v := REG_INIT_C;
-      end if;
-
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs
+      -- Outputs
+      inputAxisSlave   <= v.inputAxisSlave;
       outputAxisMaster <= r.outputAxisMaster(0);
       debug            <= r.debug;
 
@@ -568,7 +561,11 @@ begin
    seq : process (axisClk) is
    begin
       if (rising_edge(axisClk)) then
-         r <= rin after TPD_G;
+         if (axisRst = '1') then
+            r <= REG_INIT_C after TPD_G;
+         else
+            r <= rin after TPD_G;
+         end if;      
       end if;
    end process seq;
 

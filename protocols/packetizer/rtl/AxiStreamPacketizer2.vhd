@@ -243,7 +243,7 @@ begin
 
    end generate;
 
-   comb : process (axisRst, crcOut, crcRem, inputAxisMaster, outputAxisSlave,
+   comb : process (crcOut, crcRem, inputAxisMaster, outputAxisSlave,
                    r, ramCrcRem, ramPacketActiveOut, ramPacketSeqOut, maxWords) is
       variable v     : RegType;
       variable tdest : slv(7 downto 0);
@@ -452,29 +452,26 @@ begin
                bytes      => r.lastByteCount,
                crc        => crcOut);
       end if;
-
-      -- Combinatorial outputs before the reset
-      inputAxisSlave <= v.inputAxisSlave;
-      crcIn          <= endianSwap(v.crcIn);
-
-      -- Reset
-      if (axisRst = '1') then
-         v := REG_INIT_C;
-      end if;
-
+      
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs
+      -- Outputs
+      inputAxisSlave   <= v.inputAxisSlave;
+      crcIn            <= endianSwap(v.crcIn);
       outputAxisMaster <= r.outputAxisMaster;
       rearbitrate      <= r.rearbitrate;
-
+      
    end process comb;
 
    seq : process (axisClk) is
    begin
       if (rising_edge(axisClk)) then
-         r <= rin after TPD_G;
+         if (axisRst = '1') then
+            r <= REG_INIT_C after TPD_G;
+         else
+            r <= rin after TPD_G;
+         end if;      
       end if;
    end process seq;
 
