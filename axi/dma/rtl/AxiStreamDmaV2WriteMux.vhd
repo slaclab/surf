@@ -180,7 +180,7 @@ begin
                -- Write data channel
                v.master.wvalid             := '1';
                v.master.wlast              := '1';
-               v.master.wdata(63 downto 0) := r.descriptor.wdata(127 downto 64);
+               v.master.wdata(63 downto 0) := r.master.wdata(127 downto 64);
                -- Next state
                v.state                     := ADDR_S;
             end if;
