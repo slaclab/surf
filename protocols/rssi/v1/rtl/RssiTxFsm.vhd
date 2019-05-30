@@ -221,6 +221,7 @@ architecture rtl of RssiTxFsm is
       sndData       : sl;
       lenErr        : sl;
       appBusy       : sl;
+      appDrop       : sl;
 
       appSsiMaster : SsiMasterType;
       appSsiSlave  : SsiSlaveType;
@@ -294,6 +295,7 @@ architecture rtl of RssiTxFsm is
       sndData       => '0',
       lenErr        => '0',
       appBusy       => '0',
+      appDrop       => '0',
 
       appSsiMaster => SSI_MASTER_INIT_C,
       appSsiSlave  => SSI_SLAVE_NOTRDY_C,
@@ -365,6 +367,7 @@ begin
 
       
       v.ackSndData := '0';
+      v.appDrop    := '0';
       
       -- /////////////////////////////////////////////////////////
       ------------------------------------------------------------
@@ -541,7 +544,7 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
 
-            -- SSI
+            -- Not ready for application data
             v.appSsiSlave := SSI_SLAVE_NOTRDY_C;
 
             -- Buffer write ctl
@@ -561,9 +564,9 @@ begin
          ----------------------------------------------------------------------
          when WAIT_SOF_S =>
 
-            -- SSI Ready to receive data from APP
-            v.appSsiSlave := SSI_SLAVE_RDY_C;
-
+            -- Not ready for application data
+            v.appSsiSlave := SSI_SLAVE_NOTRDY_C;
+            
             -- Buffer write ctl
             v.rxSegmentAddr := (others => '0');
             v.rxSegmentWe   := '0';
@@ -585,32 +588,43 @@ begin
                else
                   v.rxBufferAddr := (others => '0');
                end if;
+            
+            -- Check for application data
+            elsif appSsiMaster_i.valid = '1' then
+            
+               -- SSI Ready to receive data from APP
+               v.appSsiSlave := SSI_SLAVE_RDY_C;   
+               
+               -- Wait until receiving the first data            
+               -- SOF and EOF received
+               -- Packet is only one word long go directly to ready!
+               if (appSsiMaster_i.sof = '1' and appSsiMaster_i.eof = '1') then
 
-            -- Wait until receiving the first data            
-            -- SOF and EOF received
-            -- Packet is only one word long go directly to ready!
-            elsif (appSsiMaster_i.sof = '1' and appSsiMaster_i.valid = '1' and appSsiMaster_i.eof = '1') then
+                  -- First data already received at this point
+                  v.rxSegmentAddr := r.rxSegmentAddr;
+                  v.appBusy       := '1';
+                  v.rxSegmentWe   := '1';
 
-               -- First data already received at this point
-               v.rxSegmentAddr := r.rxSegmentAddr;
-               v.appBusy       := '1';
-               v.rxSegmentWe   := '1';
+                  -- Save packet tKeep of last data word
+                  v.windowArray(conv_integer(r.rxBufferAddr)).keep    := appSsiMaster_i.keep(RSSI_WORD_WIDTH_C-1 downto 0);
+                  v.windowArray(conv_integer(r.rxBufferAddr)).segSize := conv_integer(r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0));
 
-               -- Save packet tKeep of last data word
-               v.windowArray(conv_integer(r.rxBufferAddr)).keep    := appSsiMaster_i.keep(RSSI_WORD_WIDTH_C-1 downto 0);
-               v.windowArray(conv_integer(r.rxBufferAddr)).segSize := conv_integer(r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0));
+                  v.appState := SEG_RDY_S;
 
-               v.appState := SEG_RDY_S;
+               -- SOF received            
+               elsif (appSsiMaster_i.sof = '1') then
 
-            -- SOF received            
-            elsif (appSsiMaster_i.sof = '1' and appSsiMaster_i.valid = '1') then
+                  -- First data received
+                  v.rxSegmentAddr := r.rxSegmentAddr;
+                  v.appBusy       := '1';
+                  v.rxSegmentWe   := '1';
 
-               -- First data received
-               v.rxSegmentAddr := r.rxSegmentAddr;
-               v.appBusy       := '1';
-               v.rxSegmentWe   := '1';
-
-               v.appState := SEG_RCV_S;
+                  v.appState := SEG_RCV_S;
+               
+               -- Blowing off the data
+               else
+                  v.appDrop := '1'; -- Used in simulation and chipscope debugging
+               end if;
             end if;
          ----------------------------------------------------------------------
          when SEG_RCV_S =>
