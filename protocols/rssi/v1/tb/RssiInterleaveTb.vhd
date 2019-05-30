@@ -34,23 +34,29 @@ architecture testbed of RssiInterleaveTb is
    constant TPD_G            : time     := CLK_PERIOD_C/4;
    constant PRBS_SEED_SIZE_C : positive := 128;
 
-   constant SRV_WINDOW_ADDR_SIZE_C : positive := 4;
-   constant SRV_MAX_SEG_SIZE_C     : positive := 8192;
+   constant SRV_PKT_LEN_C          : slv(31 downto 0) := x"00000007";  -- PRBS TX packet length
+   constant SRV_WINDOW_ADDR_SIZE_C : positive         := 4;     -- RSSI config
+   constant SRV_MAX_SEG_SIZE_C     : positive         := 8192;  -- RSSI config
 
-   constant CLT_WINDOW_ADDR_SIZE_C : positive := 3;
-   constant CLT_MAX_SEG_SIZE_C     : positive := 1024;
+   constant CLT_PKT_LEN_C          : slv(31 downto 0) := x"00000003";  -- PRBS TX packet length
+   constant CLT_WINDOW_ADDR_SIZE_C : positive         := 3;     -- RSSI config
+   constant CLT_MAX_SEG_SIZE_C     : positive         := 1024;  -- RSSI config
 
-   constant ILEAVE_ON_NOTVALID_C : boolean := true;
-
-   constant APP_STREAMS_C : positive := 2;
+   constant APP_STREAMS_C : positive := 5;
 
    constant SRV_AXIS_CONFIG_C : AxiStreamConfigArray(APP_STREAMS_C-1 downto 0) := (
-      0 => ssiAxiStreamConfig(16),
-      1 => ssiAxiStreamConfig(16));
+      0 => ssiAxiStreamConfig(1),
+      1 => ssiAxiStreamConfig(2),
+      2 => ssiAxiStreamConfig(4),
+      3 => ssiAxiStreamConfig(8),
+      4 => ssiAxiStreamConfig(16));
 
    constant CLT_AXIS_CONFIG_C : AxiStreamConfigArray(APP_STREAMS_C-1 downto 0) := (
       0 => ssiAxiStreamConfig(16),
-      1 => ssiAxiStreamConfig(1));
+      1 => ssiAxiStreamConfig(8),
+      2 => ssiAxiStreamConfig(4),
+      3 => ssiAxiStreamConfig(2),
+      4 => ssiAxiStreamConfig(1));
 
    signal clk        : sl              := '0';
    signal rst        : sl              := '1';
@@ -107,7 +113,7 @@ begin
             locClk       => clk,
             locRst       => rst,
             trig         => linkUp(0),
-            packetLength => x"000007FF");
+            packetLength => SRV_PKT_LEN_C);
 
       U_SsiPrbsRx : entity work.SsiPrbsRx
          generic map (
@@ -132,23 +138,25 @@ begin
    --------------
    U_RssiServer : entity work.RssiCoreWrapper
       generic map (
-         TPD_G                => TPD_G,
-         SERVER_G             => true,                -- Server
-         APP_ILEAVE_EN_G      => true,
-         ILEAVE_ON_NOTVALID_G => ILEAVE_ON_NOTVALID_C,
-         APP_STREAMS_G        => APP_STREAMS_C,
-         APP_STREAM_ROUTES_G  => (
-            0                 => X"00",
-            1                 => X"01"),
-         TIMEOUT_UNIT_G       => 1.0E-6,
-         CLK_FREQUENCY_G      => 100.0E+6,
-         MAX_SEG_SIZE_G       => SRV_MAX_SEG_SIZE_C,  -- Using Jumbo frames
-         SEGMENT_ADDR_SIZE_G  => bitSize(SRV_MAX_SEG_SIZE_C/8),
-         WINDOW_ADDR_SIZE_G   => SRV_WINDOW_ADDR_SIZE_C,
-         MAX_NUM_OUTS_SEG_G   => (2**SRV_WINDOW_ADDR_SIZE_C),
-         MAX_RETRANS_CNT_G    => 16,
-         APP_AXIS_CONFIG_G    => SRV_AXIS_CONFIG_C,
-         TSP_AXIS_CONFIG_G    => RSSI_AXIS_CONFIG_C)
+         TPD_G               => TPD_G,
+         SERVER_G            => true,                -- Server
+         APP_ILEAVE_EN_G     => true,
+         APP_STREAMS_G       => APP_STREAMS_C,
+         APP_STREAM_ROUTES_G => (
+            0                => X"00",
+            1                => X"01",
+            2                => X"02",
+            3                => X"03",
+            4                => X"04"),
+         TIMEOUT_UNIT_G      => 1.0E-6,
+         CLK_FREQUENCY_G     => 100.0E+6,
+         MAX_SEG_SIZE_G      => SRV_MAX_SEG_SIZE_C,  -- Using Jumbo frames
+         SEGMENT_ADDR_SIZE_G => bitSize(SRV_MAX_SEG_SIZE_C/8),
+         WINDOW_ADDR_SIZE_G  => SRV_WINDOW_ADDR_SIZE_C,
+         MAX_NUM_OUTS_SEG_G  => (2**SRV_WINDOW_ADDR_SIZE_C),
+         MAX_RETRANS_CNT_G   => 16,
+         APP_AXIS_CONFIG_G   => SRV_AXIS_CONFIG_C,
+         TSP_AXIS_CONFIG_G   => RSSI_AXIS_CONFIG_C)
       port map (
          clk_i             => clk,
          rst_i             => rst,
@@ -170,23 +178,25 @@ begin
    --------------         
    U_RssiClient : entity work.RssiCoreWrapper
       generic map (
-         TPD_G                => TPD_G,
-         SERVER_G             => false,               -- Client
-         APP_ILEAVE_EN_G      => true,
-         ILEAVE_ON_NOTVALID_G => ILEAVE_ON_NOTVALID_C,
-         APP_STREAMS_G        => APP_STREAMS_C,
-         APP_STREAM_ROUTES_G  => (
-            0                 => X"00",
-            1                 => X"01"),
-         TIMEOUT_UNIT_G       => 1.0E-6,
-         CLK_FREQUENCY_G      => 100.0E+6,
-         MAX_SEG_SIZE_G       => CLT_MAX_SEG_SIZE_C,  -- Using Jumbo frames
-         SEGMENT_ADDR_SIZE_G  => bitSize(CLT_MAX_SEG_SIZE_C/8),
-         WINDOW_ADDR_SIZE_G   => CLT_WINDOW_ADDR_SIZE_C,
-         MAX_NUM_OUTS_SEG_G   => (2**CLT_WINDOW_ADDR_SIZE_C),
-         MAX_RETRANS_CNT_G    => 16,
-         APP_AXIS_CONFIG_G    => CLT_AXIS_CONFIG_C,
-         TSP_AXIS_CONFIG_G    => RSSI_AXIS_CONFIG_C)
+         TPD_G               => TPD_G,
+         SERVER_G            => false,               -- Client
+         APP_ILEAVE_EN_G     => true,
+         APP_STREAMS_G       => APP_STREAMS_C,
+         APP_STREAM_ROUTES_G => (
+            0                => X"00",
+            1                => X"01",
+            2                => X"02",
+            3                => X"03",
+            4                => X"04"),
+         TIMEOUT_UNIT_G      => 1.0E-6,
+         CLK_FREQUENCY_G     => 100.0E+6,
+         MAX_SEG_SIZE_G      => CLT_MAX_SEG_SIZE_C,  -- Using Jumbo frames
+         SEGMENT_ADDR_SIZE_G => bitSize(CLT_MAX_SEG_SIZE_C/8),
+         WINDOW_ADDR_SIZE_G  => CLT_WINDOW_ADDR_SIZE_C,
+         MAX_NUM_OUTS_SEG_G  => (2**CLT_WINDOW_ADDR_SIZE_C),
+         MAX_RETRANS_CNT_G   => 16,
+         APP_AXIS_CONFIG_G   => CLT_AXIS_CONFIG_C,
+         TSP_AXIS_CONFIG_G   => RSSI_AXIS_CONFIG_C)
       port map (
          clk_i             => clk,
          rst_i             => rst,
@@ -220,9 +230,8 @@ begin
             mAxisSlave   => cltIbSlaves(i),
             locClk       => clk,
             locRst       => rst,
-            -- trig         => linkUp(1),
-            trig         => '0',
-            packetLength => x"000007FF");
+            trig         => linkUp(1),
+            packetLength => CLT_PKT_LEN_C);
 
       U_SsiPrbsRx : entity work.SsiPrbsRx
          generic map (
