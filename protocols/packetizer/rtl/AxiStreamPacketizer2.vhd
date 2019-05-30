@@ -380,7 +380,7 @@ begin
                   -- Reset frame state in ram
                   v.packetSeq              := (others => '0');
                   v.packetActive           := '0';
-                  v.tUserLast              := inputAxisMaster.tUser(7 downto 0);
+                  v.tUserLast              := axiStreamGetUserField(PACKETIZER2_TUSER_CFG_C, inputAxisMaster);
                   v.eof                    := '1';
                   v.lastByteCount          := toSlv(getTKeep(inputAxisMaster.tKeep(7 downto 0), PACKETIZER2_AXIS_CFG_C), 4);
                   v.outputAxisMaster.tLast := '0';
