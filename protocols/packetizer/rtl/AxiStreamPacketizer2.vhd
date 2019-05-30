@@ -51,6 +51,14 @@ end entity AxiStreamPacketizer2;
 
 architecture rtl of AxiStreamPacketizer2 is
 
+   constant AXIS_CONFIG_C : AxiStreamConfigType := (
+      TSTRB_EN_C    => false,
+      TDATA_BYTES_C => 8,
+      TDEST_BITS_C  => 8,
+      TID_BITS_C    => 8,
+      TKEEP_MODE_C  => TKEEP_COMP_C,
+      TUSER_BITS_C  => 8,
+      TUSER_MODE_C  => TUSER_FIRST_LAST_C);
 
    constant LD_WORD_SIZE_C : positive := 3;
    constant WORD_SIZE_C    : positive := 2**LD_WORD_SIZE_C;
@@ -380,7 +388,7 @@ begin
                   -- Reset frame state in ram
                   v.packetSeq              := (others => '0');
                   v.packetActive           := '0';
-                  v.tUserLast              := axiStreamGetUserField(PACKETIZER2_TUSER_CFG_C, inputAxisMaster);
+                  v.tUserLast              := axiStreamGetUserField(AXIS_CONFIG_C, inputAxisMaster);
                   v.eof                    := '1';
                   v.lastByteCount          := toSlv(getTKeep(inputAxisMaster.tKeep(7 downto 0), PACKETIZER2_AXIS_CFG_C), 4);
                   v.outputAxisMaster.tLast := '0';

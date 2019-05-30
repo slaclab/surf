@@ -62,15 +62,6 @@ package AxiStreamPacketizer2Pkg is
       TUSER_BITS_C  => 2,
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
 
-   constant PACKETIZER2_TUSER_CFG_C : AxiStreamConfigType := (
-      TSTRB_EN_C    => PACKETIZER2_AXIS_CFG_C.TSTRB_EN_C,
-      TDATA_BYTES_C => PACKETIZER2_AXIS_CFG_C.TDATA_BYTES_C,
-      TDEST_BITS_C  => PACKETIZER2_AXIS_CFG_C.TDEST_BITS_C,
-      TID_BITS_C    => PACKETIZER2_AXIS_CFG_C.TID_BITS_C,
-      TKEEP_MODE_C  => PACKETIZER2_AXIS_CFG_C.TKEEP_MODE_C,
-      TUSER_BITS_C  => 8,               -- Used with axiStreamGetUserField()
-      TUSER_MODE_C  => PACKETIZER2_AXIS_CFG_C.TUSER_MODE_C);
-
    type Packetizer2DebugType is record
       sof         : sl;
       eof         : sl;
