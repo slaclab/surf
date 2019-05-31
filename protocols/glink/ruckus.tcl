@@ -20,5 +20,9 @@ if { ${family} == "kintex7" } {
 }
 
 if { ${family} == "zynq" } {
-   loadRuckusTcl "$::DIR_PATH/gtx7"
+   if { [ regexp "XC7Z(015|012).*" [string toupper "$::env(PRJ_PART)"] ] } {
+      loadRuckusTcl "$::DIR_PATH/gtp7"
+   } else {
+      loadRuckusTcl "$::DIR_PATH/gtx7"
+   }
 }
