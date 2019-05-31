@@ -55,9 +55,6 @@ entity GigEthGthUltraScale is
       extRst             : in  sl;
       phyReady           : out sl;
       sigDet             : in  sl                     := '1';
-      -- Switch Polarity of TxN/TxP, RxN/RxP
-      gtTxPolarity       : in  sl                     := '0';
-      gtRxPolarity       : in  sl                     := '0';
       -- MGT Ports
       gtTxP              : out sl;
       gtTxN              : out sl;
@@ -194,8 +191,6 @@ begin
          an_interrupt           => open,
          configuration_vector   => config.coreConfig,
          status_vector          => status.coreStatus,
-         gt0_txpolarity_in      => gtTxPolarity,
-         gt0_rxpolarity_in      => gtRxPolarity,
          signal_detect          => sigDet);
 
    status.phyReady <= status.coreStatus(1);
