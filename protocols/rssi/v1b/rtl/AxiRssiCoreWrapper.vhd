@@ -127,8 +127,8 @@ begin
          linkUp           <= status(0)          after TPD_G;
          rssiConnected    <= status(0)          after TPD_G;
          rssiNotConnected <= not(rssiConnected) after TPD_G;
-         if (maxObSegSize >= MAX_SEG_SIZE_G) then
-            maxSegs <= toSlv(MAX_SEG_SIZE_G, MAX_SEGS_BITS_C) after TPD_G;
+         if (maxObSegSize >= MAX_SEG_SIZE_C) then
+            maxSegs <= toSlv(MAX_SEG_SIZE_C, MAX_SEGS_BITS_C) after TPD_G;
          else
             maxSegs <= maxObSegSize(maxSegs'range) after TPD_G;
          end if;
@@ -166,7 +166,7 @@ begin
          TDEST_ROUTES_G       => APP_STREAM_ROUTES_G,
          ILEAVE_EN_G          => true,
          ILEAVE_ON_NOTVALID_G => true,  -- Because of ILEAVE_REARB_G value != power of 2, forcing rearb on not(tValid)
-         ILEAVE_REARB_G       => (MAX_SEG_SIZE_G/CONV_AXIS_CONFIG_C.TDATA_BYTES_C) - 3,  -- AxiStreamPacketizer2.PROTO_WORDS_C=3
+         ILEAVE_REARB_G       => (MAX_SEG_SIZE_C/PACKETIZER_AXIS_CONFIG_C.TDATA_BYTES_C) - 3,  -- AxiStreamPacketizer2.PROTO_WORDS_C=3
          PIPE_STAGES_G        => 1)
       port map (
          -- Clock and reset
