@@ -61,9 +61,6 @@ entity GigEthGtp7 is
       qPllLock           : in  slv(1 downto 0);
       qPllRefClkLost     : in  slv(1 downto 0);
       qPllReset          : out slv(1 downto 0);
-      -- Switch Polarity of TxN/TxP, RxN/RxP
-      gtTxPolarity       : in  sl                     := '0';
-      gtRxPolarity       : in  sl                     := '0';
       -- MGT Ports
       gtTxP              : out sl;
       gtTxN              : out sl;
@@ -209,51 +206,7 @@ begin
          an_interrupt           => open,
          configuration_vector   => config.coreConfig,
          status_vector          => status.coreStatus,
-         signal_detect          => sigDet,
-
-         -- Debug and Misc. IO
-
-         gt0_dmonitorout_out       => open ,
-         gt0_drpaddr_in            => (others=>'0'),
-         gt0_drpclk_in             => sysClk125,
-         gt0_drpdi_in              => (others=>'0'),
-         gt0_drpdo_out             => open,
-         gt0_drpen_in              => '0',
-         gt0_drprdy_out            => open,
-         gt0_drpwe_in              => '0',
-         gt0_eyescandataerror_out  => open,
-         gt0_eyescanreset_in       => '0',
-         gt0_eyescantrigger_in     => '0',
-         gt0_loopback_in           => (others=>'0'),
-         gt0_rxbufreset_in         => '0',
-         gt0_rxbufstatus_out       => open,
-         gt0_rxbyteisaligned_out   => open,
-         gt0_rxbyterealign_out     => open,
-         gt0_rxcdrhold_in          => '0',
-         gt0_rxcommadet_out        => open,
-         gt0_rxlpmhfhold_in        => '0',
-         gt0_rxlpmhfoverden_in     => '0' ,
-         gt0_rxlpmlfhold_in        => '0',
-         gt0_rxlpmreset_in         => '0'    ,
-         gt0_rxpcsreset_in         => '0',
-         gt0_rxpmareset_in         => '0',
-         gt0_rxpmaresetdone_out    => open,
-         gt0_rxpolarity_in         => gtRxPolarity,
-         gt0_rxprbscntreset_in     => '0',
-         gt0_rxprbserr_out         => open,
-         gt0_rxprbssel_in          => (others=>'0'),
-         gt0_rxresetdone_out       => open,
-         gt0_txbufstatus_out       => open,
-         gt0_txdiffctrl_in         => "1000",
-         gt0_txinhibit_in          => '0',
-         gt0_txpcsreset_in         => '0',
-         gt0_txpmareset_in         => '0',
-         gt0_txpolarity_in         => gtTxPolarity,
-         gt0_txpostcursor_in       => (others=>'0'),
-         gt0_txprbsforceerr_in     => '0',
-         gt0_txprbssel_in          => (others=>'0'),
-         gt0_txprecursor_in        => (others=>'0'),
-         gt0_txresetdone_out       => open);
+         signal_detect          => sigDet);
 
    status.phyReady <= status.coreStatus(1);
    phyReady        <= status.phyReady;
