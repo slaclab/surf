@@ -41,8 +41,8 @@ entity RssiCoreWrapper is
       BYP_TX_BUFFER_G      : boolean              := false;
       BYP_RX_BUFFER_G      : boolean              := false;
       SYNTH_MODE_G         : string               := "inferred";
-      MEMORY_TYPE_G        : string               := "block";       
-      ILEAVE_ON_NOTVALID_G : boolean              := false; -- Unused (legacy generic)
+      MEMORY_TYPE_G        : string               := "block";
+      ILEAVE_ON_NOTVALID_G : boolean              := false;  -- Unused (legacy generic)
       -- AXIS Configurations
       APP_AXIS_CONFIG_G    : AxiStreamConfigArray := (0 => ssiAxiStreamConfig(8, TKEEP_NORMAL_C));
       TSP_AXIS_CONFIG_G    : AxiStreamConfigType  := ssiAxiStreamConfig(16, TKEEP_NORMAL_C);
@@ -122,14 +122,31 @@ architecture mapping of RssiCoreWrapper is
    -- If bypassing chunker, convert directly to RSSI AXIS config
    -- else use Packetizer AXIS format. Packetizer will then convert to RSSI config.
    constant CONV_AXIS_CONFIG_C : AxiStreamConfigType := ite(BYPASS_CHUNKER_G, RSSI_AXIS_CONFIG_C, PACKETIZER_AXIS_CONFIG_C);
-   
+
    constant MAX_SEGS_BITS_C : positive := bitSize(MAX_SEG_SIZE_G);
-   
+
    signal maxObSegSize : slv(15 downto 0);
-   signal maxSegs      : slv(MAX_SEGS_BITS_C - 1 downto 0);   
-   signal ileaveRearb  : slv(11 downto 0);   
+   signal maxSegs      : slv(MAX_SEGS_BITS_C - 1 downto 0);
+   signal ileaveRearb  : slv(11 downto 0);
 
 begin
+
+   -- Register to help with timing
+   process(clk_i)
+   begin
+      if rising_edge(clk_i) then
+         statusReg_o      <= statusReg          after TPD_G;
+         rssiConnected_o  <= statusReg(0)       after TPD_G;
+         rssiConnected    <= statusReg(0)       after TPD_G;
+         rssiNotConnected <= not(rssiConnected) after TPD_G;
+         if (maxObSegSize >= MAX_SEG_SIZE_G) then
+            maxSegs <= toSlv(MAX_SEG_SIZE_G, MAX_SEGS_BITS_C) after TPD_G;
+         else
+            maxSegs <= maxObSegSize(maxSegs'range) after TPD_G;
+         end if;
+         ileaveRearb <= resize(maxSegs(MAX_SEGS_BITS_C-1 downto 3), 12) - 3 after TPD_G;  -- # of tValid minus AxiStreamPacketizer2.PROTO_WORDS_C=3
+      end if;
+   end process;
 
    GEN_RX :
    for i in (APP_STREAMS_G-1) downto 0 generate
@@ -160,9 +177,8 @@ begin
          MODE_G               => "ROUTED",
          TDEST_ROUTES_G       => APP_STREAM_ROUTES_G,
          ILEAVE_EN_G          => APP_ILEAVE_EN_G,
-         -- ILEAVE_ON_NOTVALID_G => ILEAVE_ON_NOTVALID_G,
-         ILEAVE_ON_NOTVALID_G => true, -- Because of ILEAVE_REARB_G value != power of 2, forcing rearb on not(tValid)
-         ILEAVE_REARB_G       => (MAX_SEG_SIZE_G/CONV_AXIS_CONFIG_C.TDATA_BYTES_C) - 3, -- AxiStreamPacketizer2.PROTO_WORDS_C=3
+         ILEAVE_ON_NOTVALID_G => true,  -- Because of ILEAVE_REARB_G value != power of 2, forcing rearb on not(tValid)
+         ILEAVE_REARB_G       => (MAX_SEG_SIZE_G/CONV_AXIS_CONFIG_C.TDATA_BYTES_C) - 3,  -- AxiStreamPacketizer2.PROTO_WORDS_C=3
          PIPE_STAGES_G        => 1)
       port map (
          -- Clock and reset
@@ -176,10 +192,6 @@ begin
          mAxisMaster  => packetizerMasters(0),
          mAxisSlave   => packetizerSlaves(0));
 
-   ileaveRearb <= resize(maxSegs(MAX_SEGS_BITS_C-1 downto 3),12) - 3; -- # of tValid minus AxiStreamPacketizer2.PROTO_WORDS_C=3
-
-   maxSegs <= toSlv(MAX_SEG_SIZE_G, MAX_SEGS_BITS_C) when(maxObSegSize >= MAX_SEG_SIZE_G) else maxObSegSize(maxSegs'range);
-                  
    GEN_PACKER : if (BYPASS_CHUNKER_G = false) generate
    begin
       PACKER_V1 : if (APP_ILEAVE_EN_G = false) generate
@@ -237,7 +249,7 @@ begin
          BYP_TX_BUFFER_G     => BYP_TX_BUFFER_G,
          BYP_RX_BUFFER_G     => BYP_RX_BUFFER_G,
          SYNTH_MODE_G        => SYNTH_MODE_G,
-         MEMORY_TYPE_G       => MEMORY_TYPE_G,         
+         MEMORY_TYPE_G       => MEMORY_TYPE_G,
          -- AXIS Configurations
          APP_AXIS_CONFIG_G   => CONV_AXIS_CONFIG_C,
          TSP_AXIS_CONFIG_G   => TSP_AXIS_CONFIG_G,
@@ -284,11 +296,6 @@ begin
          -- Internal statuses
          statusReg_o      => statusReg,
          maxSegSize_o     => maxObSegSize);
-
-   statusReg_o      <= statusReg;
-   rssiConnected    <= statusReg(0);
-   rssiConnected_o  <= statusReg(0);
-   rssiNotConnected <= not(rssiConnected);
 
    GEN_DEPACKER : if (BYPASS_CHUNKER_G = false) generate
       DEPACKER_V1 : if (APP_ILEAVE_EN_G = false) generate
