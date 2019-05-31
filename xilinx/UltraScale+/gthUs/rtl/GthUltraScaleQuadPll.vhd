@@ -64,7 +64,8 @@ entity GthUltraScaleQuadPll is
       QPLL_SDM_CFG1_G    : Slv16Array(1 downto 0)   := (others => x"0000");
       QPLL_SDM_CFG2_G    : Slv16Array(1 downto 0)   := (others => x"0000");
       -- Clock Selects
-      QPLL_REFCLK_SEL_G  : Slv3Array(1 downto 0)    := (others => "001"));
+      QPLL_REFCLK_SEL_G   : Slv3Array(1 downto 0)   := (others => "001");
+      EN_DRP_G            : boolean                 := true);
    port (
       qPllRefClk      : in  slv(1 downto 0);
       qPllOutClk      : out slv(1 downto 0);
@@ -94,12 +95,12 @@ architecture mapping of GthUltraScaleQuadPll is
    signal gtSouthRefClk1 : slv(1 downto 0);
    signal gtGRefClk      : slv(1 downto 0);
 
-   signal drpEn   : sl;
-   signal drpWe   : sl;
-   signal drpRdy  : sl;
-   signal drpAddr : slv(15 downto 0);
-   signal drpDi   : slv(15 downto 0);
-   signal drpDo   : slv(15 downto 0);
+   signal drpEn   : sl               := '0';
+   signal drpWe   : sl               := '0';
+   signal drpRdy  : sl               := '0';
+   signal drpAddr : slv(15 downto 0) := (others => '0');
+   signal drpDi   : slv(15 downto 0) := (others => '0');
+   signal drpDo   : slv(15 downto 0) := (others => '0');
 
 begin
 
@@ -292,31 +293,33 @@ begin
          QPLLRSVD3         => (others => '0'),
          QPLLRSVD4         => (others => '0'),
          RCALENB           => '1');
-
-   U_AxiLiteToDrp : entity work.AxiLiteToDrp
-      generic map (
-         TPD_G            => TPD_G,
-         COMMON_CLK_G     => true,
-         EN_ARBITRATION_G => false,
-         TIMEOUT_G        => 4096,
-         ADDR_WIDTH_G     => 16,
-         DATA_WIDTH_G     => 16)
-      port map (
-         -- AXI-Lite Port
-         axilClk         => axilClk,
-         axilRst         => axilRst,
-         axilReadMaster  => axilReadMaster,
-         axilReadSlave   => axilReadSlave,
-         axilWriteMaster => axilWriteMaster,
-         axilWriteSlave  => axilWriteSlave,
-         -- DRP Interface
-         drpClk          => axilClk,
-         drpRst          => axilRst,
-         drpRdy          => drpRdy,
-         drpEn           => drpEn,
-         drpWe           => drpWe,
-         drpAddr         => drpAddr,
-         drpDi           => drpDi,
-         drpDo           => drpDo);
-
+         
+   GEN_DRP : if (EN_DRP_G) generate
+      U_AxiLiteToDrp : entity work.AxiLiteToDrp
+         generic map (
+            TPD_G            => TPD_G,
+            COMMON_CLK_G     => true,
+            EN_ARBITRATION_G => false,
+            TIMEOUT_G        => 4096,
+            ADDR_WIDTH_G     => 16,
+            DATA_WIDTH_G     => 16)
+         port map (
+            -- AXI-Lite Port
+            axilClk         => axilClk,
+            axilRst         => axilRst,
+            axilReadMaster  => axilReadMaster,
+            axilReadSlave   => axilReadSlave,
+            axilWriteMaster => axilWriteMaster,
+            axilWriteSlave  => axilWriteSlave,
+            -- DRP Interface
+            drpClk          => axilClk,
+            drpRst          => axilRst,
+            drpRdy          => drpRdy,
+            drpEn           => drpEn,
+            drpWe           => drpWe,
+            drpAddr         => drpAddr,
+            drpDi           => drpDi,
+            drpDo           => drpDo);
+   end generate GEN_DRP;
+   
 end architecture mapping;
