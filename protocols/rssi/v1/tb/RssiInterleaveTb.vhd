@@ -113,6 +113,7 @@ begin
             locClk       => clk,
             locRst       => rst,
             trig         => linkUp(0),
+            -- trig         => '0',
             packetLength => SRV_PKT_LEN_C);
 
       U_SsiPrbsRx : entity work.SsiPrbsRx
@@ -151,10 +152,12 @@ begin
          TIMEOUT_UNIT_G      => 1.0E-6,
          CLK_FREQUENCY_G     => 100.0E+6,
          MAX_SEG_SIZE_G      => SRV_MAX_SEG_SIZE_C,  -- Using Jumbo frames
-         SEGMENT_ADDR_SIZE_G => bitSize(SRV_MAX_SEG_SIZE_C/8),
          WINDOW_ADDR_SIZE_G  => SRV_WINDOW_ADDR_SIZE_C,
-         MAX_NUM_OUTS_SEG_G  => (2**SRV_WINDOW_ADDR_SIZE_C),
-         MAX_RETRANS_CNT_G   => 16,
+         ACK_TOUT_G          => 25,
+         RETRANS_TOUT_G      => 50,
+         NULL_TOUT_G         => 200,
+         MAX_RETRANS_CNT_G   => 8,
+         MAX_CUM_ACK_CNT_G   => 3,
          APP_AXIS_CONFIG_G   => SRV_AXIS_CONFIG_C,
          TSP_AXIS_CONFIG_G   => RSSI_AXIS_CONFIG_C)
       port map (
@@ -191,10 +194,12 @@ begin
          TIMEOUT_UNIT_G      => 1.0E-6,
          CLK_FREQUENCY_G     => 100.0E+6,
          MAX_SEG_SIZE_G      => CLT_MAX_SEG_SIZE_C,  -- Using Jumbo frames
-         SEGMENT_ADDR_SIZE_G => bitSize(CLT_MAX_SEG_SIZE_C/8),
          WINDOW_ADDR_SIZE_G  => CLT_WINDOW_ADDR_SIZE_C,
-         MAX_NUM_OUTS_SEG_G  => (2**CLT_WINDOW_ADDR_SIZE_C),
+         ACK_TOUT_G          => 5,
+         RETRANS_TOUT_G      => 100,
+         NULL_TOUT_G         => 1000,
          MAX_RETRANS_CNT_G   => 16,
+         MAX_CUM_ACK_CNT_G   => 2,
          APP_AXIS_CONFIG_G   => CLT_AXIS_CONFIG_C,
          TSP_AXIS_CONFIG_G   => RSSI_AXIS_CONFIG_C)
       port map (
@@ -231,6 +236,7 @@ begin
             locClk       => clk,
             locRst       => rst,
             trig         => linkUp(1),
+            -- trig         => '0',
             packetLength => CLT_PKT_LEN_C);
 
       U_SsiPrbsRx : entity work.SsiPrbsRx
