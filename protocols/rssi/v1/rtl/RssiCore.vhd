@@ -142,15 +142,13 @@ architecture rtl of RssiCore is
 
    signal s_sndRst  : sl;
    signal s_sndNull : sl;
-   signal s_sndNullBusy : sl;
 
    -- Header states
    signal s_synHeadSt  : sl;
    signal s_rstHeadSt  : sl;
    signal s_dataHeadSt : sl;
    signal s_nullHeadSt : sl;
-   signal s_ackHeadSt  : sl;
-   signal s_busyHeadSt : sl;   
+   signal s_ackHeadSt  : sl;   
 
    -- Current transmitted or received SeqN and AckN   
    signal s_txSeqN : slv(7 downto 0);
@@ -520,7 +518,6 @@ begin
          sndResend_o     => s_sndResend,
          sndAck_o        => s_sndAckMon,
          sndNull_o       => s_sndNull,
-         sndNullBusy_o   => s_sndNullBusy,
          closeRq_o       => s_intCloseRq,
          statusReg_o     => s_statusReg,
          dropCnt_o       => s_dropCntReg,
@@ -554,7 +551,7 @@ begin
          dataHeadSt_i => s_dataHeadSt,
          nullHeadSt_i => s_nullHeadSt,
          ackHeadSt_i  => s_ackHeadSt,
-         busyHeadSt_i => s_busyHeadSt,
+         busyHeadSt_i => s_rxBuffBusy,
 
          ack_i          => s_txAckF,    -- Connected to ConnectFSM
          txSeqN_i       => s_txSeqN,
@@ -564,8 +561,6 @@ begin
          headerData_o   => s_headerData,
          ready_o        => s_headerRdy,
          headerLength_o => s_txChkLength);
-
-   s_busyHeadSt <= s_sndNullBusy or s_rxBuffBusy;
 
    -- TX FSM
    -----------------------------------------
