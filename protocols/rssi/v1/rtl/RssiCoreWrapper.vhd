@@ -32,7 +32,7 @@ entity RssiCoreWrapper is
       SERVER_G             : boolean              := true;  -- Module is server or client 
       RETRANSMIT_ENABLE_G  : boolean              := true;  -- Enable/Disable retransmissions in tx module
       WINDOW_ADDR_SIZE_G   : positive             := 3;  -- 2^WINDOW_ADDR_SIZE_G  = Max number of segments in buffer
-      SEGMENT_ADDR_SIZE_G  : positive             := 7;  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
+      SEGMENT_ADDR_SIZE_G  : positive             := 7;  -- Unused (legacy generic)
       BYPASS_CHUNKER_G     : boolean              := false;  -- Bypass the AXIS chunker layer
       PIPE_STAGES_G        : natural              := 0;
       APP_STREAMS_G        : positive             := 1;
@@ -52,7 +52,7 @@ entity RssiCoreWrapper is
       VERSION_G            : positive             := 1;
       HEADER_CHKSUM_EN_G   : boolean              := true;
       -- Window parameters of receiver module
-      MAX_NUM_OUTS_SEG_G   : positive             := 8;  --   <=(2**WINDOW_ADDR_SIZE_G)
+      MAX_NUM_OUTS_SEG_G   : positive             := 8;  -- Unused (legacy generic)
       MAX_SEG_SIZE_G       : positive             := 1024;  -- <= (2**SEGMENT_ADDR_SIZE_G)*8 Number of bytes
       -- RSSI Timeouts
       ACK_TOUT_G           : positive             := 25;  -- unit depends on TIMEOUT_UNIT_G 
@@ -245,7 +245,7 @@ begin
          SERVER_G            => SERVER_G,
          RETRANSMIT_ENABLE_G => RETRANSMIT_ENABLE_G,
          WINDOW_ADDR_SIZE_G  => WINDOW_ADDR_SIZE_G,
-         SEGMENT_ADDR_SIZE_G => SEGMENT_ADDR_SIZE_G,
+         SEGMENT_ADDR_SIZE_G => bitSize(MAX_SEG_SIZE_G/RSSI_WORD_WIDTH_C-1),
          BYP_TX_BUFFER_G     => BYP_TX_BUFFER_G,
          BYP_RX_BUFFER_G     => BYP_RX_BUFFER_G,
          SYNTH_MODE_G        => SYNTH_MODE_G,
@@ -259,7 +259,7 @@ begin
          VERSION_G           => VERSION_G,
          HEADER_CHKSUM_EN_G  => HEADER_CHKSUM_EN_G,
          -- Window parameters of receiver module
-         MAX_NUM_OUTS_SEG_G  => MAX_NUM_OUTS_SEG_G,
+         MAX_NUM_OUTS_SEG_G  => (2**WINDOW_ADDR_SIZE_G),
          MAX_SEG_SIZE_G      => MAX_SEG_SIZE_G,
          -- RSSI Timeouts
          RETRANS_TOUT_G      => RETRANS_TOUT_G,
