@@ -131,6 +131,9 @@ architecture mapping of RssiCoreWrapper is
 
 begin
 
+   assert (isPowerOf2(MAX_SEG_SIZE_G) = true)
+      report "MAX_SEG_SIZE_G must be power of 2" severity failure;
+
    -- Register to help with timing
    process(clk_i)
    begin
