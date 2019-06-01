@@ -92,6 +92,7 @@ entity RssiMonitor is
       -- Packet transmission requests
       sndResend_o     : out  sl;
       sndNull_o       : out  sl;
+      sndnullbusy_o   : out  sl;
       sndAck_o        : out  sl;
           
       -- Connection close request
@@ -127,6 +128,7 @@ architecture rtl of RssiMonitor is
       -- Null packet send/timeout
       nullToutCnt : slv(rssiParam_i.nullSegTout'left + bitSize(SAMPLES_PER_TIME_C) downto 0);      
       sndNull     : sl;
+      sndNullBusy : sl;
       nullTout    : sl;
       rxBuffBusy  : sl;
       
@@ -158,6 +160,7 @@ architecture rtl of RssiMonitor is
       -- Null packet send/timeout
       nullToutCnt => (others=>'0'),     
       sndnull     => '0',
+      sndNullBusy => '0',
       nullTout    => '0',
       rxBuffBusy  => '0',
       
@@ -290,10 +293,12 @@ begin
           rstHeadSt_i  = '1' or
           nullHeadSt_i = '1') then
           v.sndNull := '0'; 
+          v.sndNullBusy := '0'; 
       elsif (r.nullToutCnt >= (conv_integer(rssiParam_i.nullSegTout) * SAMPLES_PER_TIME_DIV3_C)  ) then -- send null segments if timeout/2 reached
          v.sndNull := '1';
       elsif (rxBuffBusy_i = '1') and (r.rxBuffBusy = '0') then -- Check for RX buffer full event
          v.sndNull := '1';
+         v.sndNullBusy := '1';
       end if;
       
       -- Timeout not applicable
@@ -327,8 +332,10 @@ begin
           rstHeadSt_i  = '1' or
           nullHeadSt_i = '1') then
           v.sndNull := '0'; 
+          v.sndNullBusy := '0'; 
       elsif (rxBuffBusy_i = '1') and (r.rxBuffBusy = '0') then -- Check for RX buffer full event
          v.sndNull := '1';
+         v.sndNullBusy := '1';
       end if;
       
    end if;
@@ -450,6 +457,7 @@ begin
    ---------------------------------------------------------------------
    sndResend_o <= r.sndResend and not r.retransMax; -- Request retransmission if max retransmissions not reached
    sndNull_o   <= r.sndNull;
+   sndNullBusy_o<= r.sndNullBusy;
    sndAck_o    <= r.sndAck;
    closeRq_o   <= (r.retransMax and r.sndResend and not r.sndResendD1) or -- Close connection when exceeded resend is requested
                   r.nullTout or  -- Close connection when null timeouts
