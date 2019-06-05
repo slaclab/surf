@@ -25,8 +25,6 @@ var classGigEthGtp7 =
     [ "qPllLock", "classGigEthGtp7.html#a65162af29cce207e35efd231ecc853be", null ],
     [ "qPllRefClkLost", "classGigEthGtp7.html#ac9ac61353c2c9f99ae0af1c4b1f35050", null ],
     [ "qPllReset", "classGigEthGtp7.html#a7aa454a8b7f9348b0c9f310d732e5f70", null ],
-    [ "gtTxPolarity", "classGigEthGtp7.html#aa68ea575298561c2d4fbf37192bd7721", null ],
-    [ "gtRxPolarity", "classGigEthGtp7.html#a60b4cce2ae6c77c3f718d3e877500cef", null ],
     [ "gtTxP", "classGigEthGtp7.html#a723076ac451ab1151d81b66560e05579", null ],
     [ "gtTxN", "classGigEthGtp7.html#af626ec9a7b241e92ca18db9d7bf3ee89", null ],
     [ "gtRxP", "classGigEthGtp7.html#adab85ff5bd58789b0082f0d33d5a3620", null ],

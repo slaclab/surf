@@ -2102,127 +2102,127 @@ Reading /home/travis/build/slac/home/travis/build/slaclab/surf/protocols/ssi/rtl
 
 [GigEthReg.vhd:224:Info: Elaborating entity entity syncstatusvector for hierarchy entity syncstatusvector::GEN_REG:syncstatusvec_inst]
 
-[GigEthGth7.vhd:113:Info: Elaborating entity entity axiliteasync for hierarchy entity axiliteasync::u_axiliteasync]
+[GigEthGth7.vhd:110:Info: Elaborating entity entity axiliteasync for hierarchy entity axiliteasync::u_axiliteasync]
 
-[GigEthGth7.vhd:124:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::u_pwruprst]
+[GigEthGth7.vhd:121:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::u_pwruprst]
 
-[GigEthGth7.vhd:156:Info: Elaborating entity entity ethmactop for hierarchy entity ethmactop::u_mac]
+[GigEthGth7.vhd:153:Info: Elaborating entity entity ethmactop for hierarchy entity ethmactop::u_mac]
 
-[GigEthGth7.vhd:203:Info: Elaborating entity entity gigethgth7core for hierarchy entity gigethgth7core::u_gigethgth7core]
+[GigEthGth7.vhd:198:Info: Elaborating entity entity gigethgth7core for hierarchy entity gigethgth7core::u_gigethgth7core]
 
-[GigEthGth7.vhd:228:Info: Elaborating entity entity gigethreg for hierarchy entity gigethreg::u_gigethreg]
+[GigEthGth7.vhd:223:Info: Elaborating entity entity gigethreg for hierarchy entity gigethreg::u_gigethreg]
 
-[GigEthGth7Wrapper.vhd:108:Info: Elaborating entity ibufds_gte2 for hierarchy ibufds_gte2::ibufds_gte2_inst]
+[GigEthGth7Wrapper.vhd:105:Info: Elaborating entity ibufds_gte2 for hierarchy ibufds_gte2::ibufds_gte2_inst]
 
-[GigEthGth7Wrapper.vhd:113:Info: Elaborating entity bufg for hierarchy bufg::bufg_inst]
+[GigEthGth7Wrapper.vhd:110:Info: Elaborating entity bufg for hierarchy bufg::bufg_inst]
 
-[GigEthGth7Wrapper.vhd:126:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::pwruprst_inst]
+[GigEthGth7Wrapper.vhd:123:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::pwruprst_inst]
 
-[GigEthGth7Wrapper.vhd:152:Info: Elaborating entity entity clockmanager7 for hierarchy entity clockmanager7::u_mmcm]
+[GigEthGth7Wrapper.vhd:149:Info: Elaborating entity entity clockmanager7 for hierarchy entity clockmanager7::u_mmcm]
 
-[GigEthGth7Wrapper.vhd:202:Info: Elaborating entity entity gigethgth7 for hierarchy entity gigethgth7::GEN_LANE:u_gigethgth7]
+[GigEthGth7Wrapper.vhd:196:Info: Elaborating entity entity gigethgth7 for hierarchy entity gigethgth7::GEN_LANE:u_gigethgth7]
 
-[GigEthGthUltraScale.vhd:166:Info: Elaborating entity entity axiliteasync for hierarchy entity axiliteasync::u_axiliteasync]
+[GigEthGthUltraScale.vhd:161:Info: Elaborating entity entity axiliteasync for hierarchy entity axiliteasync::u_axiliteasync]
 
-[GigEthGthUltraScale.vhd:177:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::u_pwruprst]
+[GigEthGthUltraScale.vhd:172:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::u_pwruprst]
 
-[GigEthGthUltraScale.vhd:209:Info: Elaborating entity entity ethmactop for hierarchy entity ethmactop::u_mac]
+[GigEthGthUltraScale.vhd:204:Info: Elaborating entity entity ethmactop for hierarchy entity ethmactop::u_mac]
 
-[GigEthGthUltraScale.vhd:252:Info: Elaborating entity gigethgthultrascalecore for hierarchy gigethgthultrascalecore::u_gigethgthultrascalecore]
+[GigEthGthUltraScale.vhd:245:Info: Elaborating entity gigethgthultrascalecore for hierarchy gigethgthultrascalecore::u_gigethgthultrascalecore]
 
-[GigEthGthUltraScale.vhd:277:Info: Elaborating entity entity gigethreg for hierarchy entity gigethreg::u_gigethreg]
+[GigEthGthUltraScale.vhd:270:Info: Elaborating entity entity gigethreg for hierarchy entity gigethreg::u_gigethreg]
 
-[GigEthGthUltraScaleWrapper.vhd:111:Info: Elaborating entity ibufds_gte3 for hierarchy ibufds_gte3::ibufds_gte3_inst]
+[GigEthGthUltraScaleWrapper.vhd:108:Info: Elaborating entity ibufds_gte3 for hierarchy ibufds_gte3::ibufds_gte3_inst]
 
-[GigEthGthUltraScaleWrapper.vhd:121:Info: Elaborating entity bufg_gt for hierarchy bufg_gt::bufg_gt_inst]
+[GigEthGthUltraScaleWrapper.vhd:118:Info: Elaborating entity bufg_gt for hierarchy bufg_gt::bufg_gt_inst]
 
-[GigEthGthUltraScaleWrapper.vhd:134:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::pwruprst_inst]
+[GigEthGthUltraScaleWrapper.vhd:131:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::pwruprst_inst]
 
-[GigEthGthUltraScaleWrapper.vhd:160:Info: Elaborating entity entity clockmanagerultrascale for hierarchy entity clockmanagerultrascale::u_mmcm]
+[GigEthGthUltraScaleWrapper.vhd:157:Info: Elaborating entity entity clockmanagerultrascale for hierarchy entity clockmanagerultrascale::u_mmcm]
 
-[GigEthGthUltraScaleWrapper.vhd:210:Info: Elaborating entity entity gigethgthultrascale for hierarchy entity gigethgthultrascale::GEN_LANE:u_gigethgthultrascale]
+[GigEthGthUltraScaleWrapper.vhd:204:Info: Elaborating entity entity gigethgthultrascale for hierarchy entity gigethgthultrascale::GEN_LANE:u_gigethgthultrascale]
 
-[GigEthGthUltraScale.vhd:113:Info: Elaborating entity entity axiliteasync for hierarchy entity axiliteasync::u_axiliteasync]
+[GigEthGthUltraScale.vhd:110:Info: Elaborating entity entity axiliteasync for hierarchy entity axiliteasync::u_axiliteasync]
 
-[GigEthGthUltraScale.vhd:124:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::u_pwruprst]
+[GigEthGthUltraScale.vhd:121:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::u_pwruprst]
 
-[GigEthGthUltraScale.vhd:156:Info: Elaborating entity entity ethmactop for hierarchy entity ethmactop::u_mac]
+[GigEthGthUltraScale.vhd:153:Info: Elaborating entity entity ethmactop for hierarchy entity ethmactop::u_mac]
 
-[GigEthGthUltraScale.vhd:199:Info: Elaborating entity entity gigethgthultrascalecore for hierarchy entity gigethgthultrascalecore::u_gigethgthultrascalecore]
+[GigEthGthUltraScale.vhd:194:Info: Elaborating entity entity gigethgthultrascalecore for hierarchy entity gigethgthultrascalecore::u_gigethgthultrascalecore]
 
-[GigEthGthUltraScale.vhd:224:Info: Elaborating entity entity gigethreg for hierarchy entity gigethreg::u_gigethreg]
+[GigEthGthUltraScale.vhd:219:Info: Elaborating entity entity gigethreg for hierarchy entity gigethreg::u_gigethreg]
 
-[GigEthGthUltraScaleWrapper.vhd:111:Info: Elaborating entity ibufds_gte4 for hierarchy ibufds_gte4::u_ibufds]
+[GigEthGthUltraScaleWrapper.vhd:108:Info: Elaborating entity ibufds_gte4 for hierarchy ibufds_gte4::u_ibufds]
 
-[GigEthGthUltraScaleWrapper.vhd:121:Info: Elaborating entity bufg_gt for hierarchy bufg_gt::bufg_gt_inst]
+[GigEthGthUltraScaleWrapper.vhd:118:Info: Elaborating entity bufg_gt for hierarchy bufg_gt::bufg_gt_inst]
 
-[GigEthGthUltraScaleWrapper.vhd:134:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::pwruprst_inst]
+[GigEthGthUltraScaleWrapper.vhd:131:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::pwruprst_inst]
 
-[GigEthGthUltraScaleWrapper.vhd:160:Info: Elaborating entity entity clockmanagerultrascale for hierarchy entity clockmanagerultrascale::u_mmcm]
+[GigEthGthUltraScaleWrapper.vhd:157:Info: Elaborating entity entity clockmanagerultrascale for hierarchy entity clockmanagerultrascale::u_mmcm]
 
-[GigEthGthUltraScaleWrapper.vhd:210:Info: Elaborating entity entity gigethgthultrascale for hierarchy entity gigethgthultrascale::GEN_LANE:u_gigethgthultrascale]
+[GigEthGthUltraScaleWrapper.vhd:204:Info: Elaborating entity entity gigethgthultrascale for hierarchy entity gigethgthultrascale::GEN_LANE:u_gigethgthultrascale]
 
-[GigEthGtp7.vhd:119:Info: Elaborating entity entity axiliteasync for hierarchy entity axiliteasync::u_axiliteasync]
+[GigEthGtp7.vhd:116:Info: Elaborating entity entity axiliteasync for hierarchy entity axiliteasync::u_axiliteasync]
 
-[GigEthGtp7.vhd:130:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::u_pwruprst]
+[GigEthGtp7.vhd:127:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::u_pwruprst]
 
-[GigEthGtp7.vhd:162:Info: Elaborating entity entity ethmactop for hierarchy entity ethmactop::u_mac]
+[GigEthGtp7.vhd:159:Info: Elaborating entity entity ethmactop for hierarchy entity ethmactop::u_mac]
 
-[GigEthGtp7.vhd:256:Info: Elaborating entity entity gigethgtp7core for hierarchy entity gigethgtp7core::u_gigethgtp7core]
+[GigEthGtp7.vhd:209:Info: Elaborating entity entity gigethgtp7core for hierarchy entity gigethgtp7core::u_gigethgtp7core]
 
-[GigEthGtp7.vhd:282:Info: Elaborating entity entity gigethreg for hierarchy entity gigethreg::u_gigethreg]
+[GigEthGtp7.vhd:235:Info: Elaborating entity entity gigethreg for hierarchy entity gigethreg::u_gigethreg]
 
-[GigEthGtp7Wrapper.vhd:115:Info: Elaborating entity ibufds_gte2 for hierarchy ibufds_gte2::ibufds_gte2_inst]
+[GigEthGtp7Wrapper.vhd:112:Info: Elaborating entity ibufds_gte2 for hierarchy ibufds_gte2::ibufds_gte2_inst]
 
-[GigEthGtp7Wrapper.vhd:120:Info: Elaborating entity bufg for hierarchy bufg::bufg_inst]
+[GigEthGtp7Wrapper.vhd:117:Info: Elaborating entity bufg for hierarchy bufg::bufg_inst]
 
-[GigEthGtp7Wrapper.vhd:133:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::pwruprst_inst]
+[GigEthGtp7Wrapper.vhd:130:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::pwruprst_inst]
 
-[GigEthGtp7Wrapper.vhd:159:Info: Elaborating entity entity clockmanager7 for hierarchy entity clockmanager7::u_mmcm]
+[GigEthGtp7Wrapper.vhd:156:Info: Elaborating entity entity clockmanager7 for hierarchy entity clockmanager7::u_mmcm]
 
-[GigEthGtp7Wrapper.vhd:185:Info: Elaborating entity entity gtp7quadpll for hierarchy entity gtp7quadpll::u_gtp7quadpll]
+[GigEthGtp7Wrapper.vhd:182:Info: Elaborating entity entity gtp7quadpll for hierarchy entity gtp7quadpll::u_gtp7quadpll]
 
-[GigEthGtp7Wrapper.vhd:247:Info: Elaborating entity entity gigethgtp7 for hierarchy entity gigethgtp7::GEN_LANE:u_gigethgtp7]
+[GigEthGtp7Wrapper.vhd:241:Info: Elaborating entity entity gigethgtp7 for hierarchy entity gigethgtp7::GEN_LANE:u_gigethgtp7]
 
-[GigEthGtx7.vhd:113:Info: Elaborating entity entity axiliteasync for hierarchy entity axiliteasync::u_axiliteasync]
+[GigEthGtx7.vhd:110:Info: Elaborating entity entity axiliteasync for hierarchy entity axiliteasync::u_axiliteasync]
 
-[GigEthGtx7.vhd:124:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::u_pwruprst]
+[GigEthGtx7.vhd:121:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::u_pwruprst]
 
-[GigEthGtx7.vhd:156:Info: Elaborating entity entity ethmactop for hierarchy entity ethmactop::u_mac]
+[GigEthGtx7.vhd:153:Info: Elaborating entity entity ethmactop for hierarchy entity ethmactop::u_mac]
 
-[GigEthGtx7.vhd:203:Info: Elaborating entity entity gigethgtx7core for hierarchy entity gigethgtx7core::u_gigethgtx7core]
+[GigEthGtx7.vhd:198:Info: Elaborating entity entity gigethgtx7core for hierarchy entity gigethgtx7core::u_gigethgtx7core]
 
-[GigEthGtx7.vhd:228:Info: Elaborating entity entity gigethreg for hierarchy entity gigethreg::u_gigethreg]
+[GigEthGtx7.vhd:223:Info: Elaborating entity entity gigethreg for hierarchy entity gigethreg::u_gigethreg]
 
-[GigEthGtx7Wrapper.vhd:108:Info: Elaborating entity ibufds_gte2 for hierarchy ibufds_gte2::ibufds_gte2_inst]
+[GigEthGtx7Wrapper.vhd:105:Info: Elaborating entity ibufds_gte2 for hierarchy ibufds_gte2::ibufds_gte2_inst]
 
-[GigEthGtx7Wrapper.vhd:113:Info: Elaborating entity bufg for hierarchy bufg::bufg_inst]
+[GigEthGtx7Wrapper.vhd:110:Info: Elaborating entity bufg for hierarchy bufg::bufg_inst]
 
-[GigEthGtx7Wrapper.vhd:126:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::pwruprst_inst]
+[GigEthGtx7Wrapper.vhd:123:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::pwruprst_inst]
 
-[GigEthGtx7Wrapper.vhd:152:Info: Elaborating entity entity clockmanager7 for hierarchy entity clockmanager7::u_mmcm]
+[GigEthGtx7Wrapper.vhd:149:Info: Elaborating entity entity clockmanager7 for hierarchy entity clockmanager7::u_mmcm]
 
-[GigEthGtx7Wrapper.vhd:202:Info: Elaborating entity entity gigethgtx7 for hierarchy entity gigethgtx7::GEN_LANE:u_gigethgtx7]
+[GigEthGtx7Wrapper.vhd:196:Info: Elaborating entity entity gigethgtx7 for hierarchy entity gigethgtx7::GEN_LANE:u_gigethgtx7]
 
-[GigEthGtyUltraScale.vhd:113:Info: Elaborating entity entity axiliteasync for hierarchy entity axiliteasync::u_axiliteasync]
+[GigEthGtyUltraScale.vhd:110:Info: Elaborating entity entity axiliteasync for hierarchy entity axiliteasync::u_axiliteasync]
 
-[GigEthGtyUltraScale.vhd:124:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::u_pwruprst]
+[GigEthGtyUltraScale.vhd:121:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::u_pwruprst]
 
-[GigEthGtyUltraScale.vhd:156:Info: Elaborating entity entity ethmactop for hierarchy entity ethmactop::u_mac]
+[GigEthGtyUltraScale.vhd:153:Info: Elaborating entity entity ethmactop for hierarchy entity ethmactop::u_mac]
 
-[GigEthGtyUltraScale.vhd:199:Info: Elaborating entity entity gigethgtyultrascalecore for hierarchy entity gigethgtyultrascalecore::u_gigethgtyultrascalecore]
+[GigEthGtyUltraScale.vhd:194:Info: Elaborating entity entity gigethgtyultrascalecore for hierarchy entity gigethgtyultrascalecore::u_gigethgtyultrascalecore]
 
-[GigEthGtyUltraScale.vhd:224:Info: Elaborating entity entity gigethreg for hierarchy entity gigethreg::u_gigethreg]
+[GigEthGtyUltraScale.vhd:219:Info: Elaborating entity entity gigethreg for hierarchy entity gigethreg::u_gigethreg]
 
-[GigEthGtyUltraScaleWrapper.vhd:111:Info: Elaborating entity ibufds_gte4 for hierarchy ibufds_gte4::u_ibufds]
+[GigEthGtyUltraScaleWrapper.vhd:108:Info: Elaborating entity ibufds_gte4 for hierarchy ibufds_gte4::u_ibufds]
 
-[GigEthGtyUltraScaleWrapper.vhd:121:Info: Elaborating entity bufg_gt for hierarchy bufg_gt::bufg_gt_inst]
+[GigEthGtyUltraScaleWrapper.vhd:118:Info: Elaborating entity bufg_gt for hierarchy bufg_gt::bufg_gt_inst]
 
-[GigEthGtyUltraScaleWrapper.vhd:134:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::pwruprst_inst]
+[GigEthGtyUltraScaleWrapper.vhd:131:Info: Elaborating entity entity pwruprst for hierarchy entity pwruprst::pwruprst_inst]
 
-[GigEthGtyUltraScaleWrapper.vhd:160:Info: Elaborating entity entity clockmanagerultrascale for hierarchy entity clockmanagerultrascale::u_mmcm]
+[GigEthGtyUltraScaleWrapper.vhd:157:Info: Elaborating entity entity clockmanagerultrascale for hierarchy entity clockmanagerultrascale::u_mmcm]
 
-[GigEthGtyUltraScaleWrapper.vhd:210:Info: Elaborating entity entity gigethgtyultrascale for hierarchy entity gigethgtyultrascale::GEN_LANE:u_gigethgtyultrascale]
+[GigEthGtyUltraScaleWrapper.vhd:204:Info: Elaborating entity entity gigethgtyultrascale for hierarchy entity gigethgtyultrascale::GEN_LANE:u_gigethgtyultrascale]
 
 [GigEthLvdsUltraScale.vhd:118:Info: Elaborating entity entity axiliteasync for hierarchy entity axiliteasync::u_axiliteasync]
 
@@ -4863,12 +4863,10 @@ Reading /home/travis/build/slac/home/travis/build/slaclab/surf/protocols/ssi/rtl
 /home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:55: warning: documented symbol `in extRstsl' was not declared or defined.
 /home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:56: warning: documented symbol `out phyReadysl' was not declared or defined.
 /home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:57: warning: member with no name found.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:59: warning: member with no name found.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:60: warning: member with no name found.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:62: warning: documented symbol `out gtTxPsl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:63: warning: documented symbol `out gtTxNsl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:64: warning: documented symbol `in gtRxPsl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:65: warning: documented symbol `in gtRxNsl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:59: warning: documented symbol `out gtTxPsl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:60: warning: documented symbol `out gtTxNsl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:61: warning: documented symbol `in gtRxPsl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:62: warning: documented symbol `in gtRxNsl' was not declared or defined.
 /home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:16: warning: documented symbol `_library_ ieeeieee' was not declared or defined.
 /home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:17: warning: documented symbol `_use_ std_logic_1164std_logic_1164' was not declared or defined.
 /home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:19: warning: documented symbol `_use_ StdRtlPkgStdRtlPkg' was not declared or defined.
@@ -4876,10 +4874,10 @@ Reading /home/travis/build/slac/home/travis/build/slaclab/surf/protocols/ssi/rtl
 /home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:21: warning: documented symbol `_use_ AxiLitePkgAxiLitePkg' was not declared or defined.
 /home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:22: warning: documented symbol `_use_ EthMacPkgEthMacPkg' was not declared or defined.
 /home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:23: warning: documented symbol `_use_ GigEthPkgGigEthPkg' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:79: warning: no matching class member found for 
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:76: warning: no matching class member found for 
   slv()
 
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:84: warning: no matching class member found for 
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:81: warning: no matching class member found for 
   slv()
 
 /home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:47: warning: documented symbol `in localMacSlv48Array' was not declared or defined.
@@ -4900,15 +4898,13 @@ Reading /home/travis/build/slac/home/travis/build/slaclab/surf/protocols/ssi/rtl
 /home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:65: warning: documented symbol `out phyRstsl' was not declared or defined.
 /home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:66: warning: documented symbol `out phyReadyslv' was not declared or defined.
 /home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:67: warning: documented symbol `in sigDetslv' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:69: warning: documented symbol `in gtTxPolarityslv' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:70: warning: documented symbol `in gtRxPolarityslv' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:72: warning: member with no name found.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:73: warning: member with no name found.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:74: warning: member with no name found.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:76: warning: documented symbol `out gtTxPslv' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:77: warning: documented symbol `out gtTxNslv' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:78: warning: documented symbol `in gtRxPslv' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:79: warning: documented symbol `in gtRxNslv' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:69: warning: member with no name found.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:70: warning: member with no name found.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:71: warning: member with no name found.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:73: warning: documented symbol `out gtTxPslv' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:74: warning: documented symbol `out gtTxNslv' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:75: warning: documented symbol `in gtRxPslv' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:76: warning: documented symbol `in gtRxNslv' was not declared or defined.
 /home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:17: warning: documented symbol `_library_ ieeeieee' was not declared or defined.
 /home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:18: warning: documented symbol `_use_ std_logic_1164std_logic_1164' was not declared or defined.
 /home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:20: warning: documented symbol `_use_ StdRtlPkgStdRtlPkg' was not declared or defined.

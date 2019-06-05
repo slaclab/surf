@@ -20,8 +20,6 @@ var classGigEthGtyUltraScale =
     [ "extRst", "classGigEthGtyUltraScale.html#a2370d68d090b7a9d9791a4c31b83778e", null ],
     [ "phyReady", "classGigEthGtyUltraScale.html#aa94f238c8966093f5dc40e5badaed3c1", null ],
     [ "sigDet", "classGigEthGtyUltraScale.html#a649375d173a1a8c776dcdd461a6c0894", null ],
-    [ "gtTxPolarity", "classGigEthGtyUltraScale.html#aa68ea575298561c2d4fbf37192bd7721", null ],
-    [ "gtRxPolarity", "classGigEthGtyUltraScale.html#a60b4cce2ae6c77c3f718d3e877500cef", null ],
     [ "gtTxP", "classGigEthGtyUltraScale.html#a723076ac451ab1151d81b66560e05579", null ],
     [ "gtTxN", "classGigEthGtyUltraScale.html#af626ec9a7b241e92ca18db9d7bf3ee89", null ],
     [ "gtRxP", "classGigEthGtyUltraScale.html#adab85ff5bd58789b0082f0d33d5a3620", null ],
