@@ -22,6 +22,8 @@ var classGigEthGtx7Wrapper =
     [ "gtRefClk", "classGigEthGtx7Wrapper.html#a93c92bfbb1b2df08f6dfa9f8261a42f1", null ],
     [ "gtClkP", "classGigEthGtx7Wrapper.html#aa1b697ca181f933b194d07fac0fb9cd1", null ],
     [ "gtClkN", "classGigEthGtx7Wrapper.html#ae7e49c11aae06f64f309fd7b18bc8d98", null ],
+    [ "gtTxPolarity", "classGigEthGtx7Wrapper.html#a091bdb1a7726479621dbe535c470be1e", null ],
+    [ "gtRxPolarity", "classGigEthGtx7Wrapper.html#a53a5fadd3b50a1fbeded717b1f5ba3ca", null ],
     [ "gtTxP", "classGigEthGtx7Wrapper.html#a5583839a9fc849306ef689d28078cd8e", null ],
     [ "gtTxN", "classGigEthGtx7Wrapper.html#ac40aafb08589d1ac114388e03d61b0d0", null ],
     [ "gtRxP", "classGigEthGtx7Wrapper.html#af387007ec12d6fdef02fe4965d650a6f", null ],
