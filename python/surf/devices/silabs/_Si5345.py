@@ -90,6 +90,14 @@ class Si5345(pr.Device):
         self.add(Si5345PageA(offset=(0xA00<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
         self.add(Si5345PageB(offset=(0xB00<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
         
+        self.add(pr.LinkVariable(
+            name         = 'Locked', 
+            description  = 'Inverse of LOL',
+            mode         = 'RO', 
+            dependencies = [self.Page0.LOL],
+            linkedGet    = lambda: (False if self.Page0.LOL.value() else True)
+        ))        
+        
 class Si5345Page0(pr.Device):
     def __init__(self,       
             name         = "Page0",
@@ -285,7 +293,7 @@ class Si5345Page0(pr.Device):
             mode        = 'RO',
             pollInterval = 1,
             overlapEn   = True,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'HOLD',
