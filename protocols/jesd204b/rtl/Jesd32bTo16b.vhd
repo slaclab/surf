@@ -22,7 +22,8 @@ use work.StdRtlPkg.all;
 
 entity Jesd32bTo16b is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G            : time                 := 1 ns;
+      RELATED_CLOCKS_G : natural range 0 to 1 := 0);
    port (
       -- 32-bit Write Interface
       wrClk     : in  sl;
@@ -74,14 +75,15 @@ begin
 
    U_FIFO : entity work.FifoXpm
       generic map (
-         TPD_G           => TPD_G,
-         ECC_MODE_G      => "en_ecc",
-         MEMORY_TYPE_G   => "block",
-         FWFT_EN_G       => true,
-         GEN_SYNC_FIFO_G => false,
-         SYNC_STAGES_G   => 8,
-         DATA_WIDTH_G    => 64,
-         ADDR_WIDTH_G    => 8)
+         TPD_G            => TPD_G,
+         RELATED_CLOCKS_G => RELATED_CLOCKS_G,
+         ECC_MODE_G       => "en_ecc",
+         MEMORY_TYPE_G    => "block",
+         FWFT_EN_G        => true,
+         GEN_SYNC_FIFO_G  => false,
+         SYNC_STAGES_G    => 8,
+         DATA_WIDTH_G     => 64,
+         ADDR_WIDTH_G     => 8)
       port map (
          -- Asynchronous Reset
          rst                => wrRst,

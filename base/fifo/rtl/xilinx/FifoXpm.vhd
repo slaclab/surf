@@ -2,7 +2,7 @@
 -- File       : FifoXpm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-06-25
--- Last update: 2018-06-29
+-- Last update: 2019-06-07
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Xilinx XPM FIFO module
 -------------------------------------------------------------------------------
@@ -27,18 +27,19 @@ use xpm.vcomponents.all;
 
 entity FifoXpm is
    generic (
-      TPD_G           : time     := 1 ns;
-      RST_POLARITY_G  : sl       := '1';  -- '1' for active high rst, '0' for active low
-      FWFT_EN_G       : boolean  := false;
-      GEN_SYNC_FIFO_G : boolean  := false;
-      ECC_MODE_G      : string   := "no_ecc"; -- Allowed values: no_ecc, en_ecc
-      MEMORY_TYPE_G   : string   := "block";
-      SYNC_STAGES_G   : positive := 3;
-      PIPE_STAGES_G   : natural  := 0;
-      DATA_WIDTH_G    : positive := 18;
-      ADDR_WIDTH_G    : positive := 10;
-      FULL_THRES_G    : positive := 16;
-      EMPTY_THRES_G   : positive := 16);
+      TPD_G            : time                 := 1 ns;
+      RST_POLARITY_G   : sl                   := '1';  -- '1' for active high rst, '0' for active low
+      FWFT_EN_G        : boolean              := false;
+      GEN_SYNC_FIFO_G  : boolean              := false;
+      ECC_MODE_G       : string               := "no_ecc";  -- Allowed values: no_ecc, en_ecc
+      MEMORY_TYPE_G    : string               := "block";
+      RELATED_CLOCKS_G : natural range 0 to 1 := 0;
+      SYNC_STAGES_G    : positive             := 3;
+      PIPE_STAGES_G    : natural              := 0;
+      DATA_WIDTH_G     : positive             := 18;
+      ADDR_WIDTH_G     : positive             := 10;
+      FULL_THRES_G     : positive             := 16;
+      EMPTY_THRES_G    : positive             := 16);
    port (
       -- Asynchronous Reset
       rst           : in  sl;
@@ -112,7 +113,7 @@ begin
          generic map (
             FIFO_MEMORY_TYPE    => MEMORY_TYPE_G,
             ECC_MODE            => ECC_MODE_G,
-            RELATED_CLOCKS      => 0,
+            RELATED_CLOCKS      => RELATED_CLOCKS_G,
             FIFO_WRITE_DEPTH    => (2**ADDR_WIDTH_G),
             WRITE_DATA_WIDTH    => DATA_WIDTH_G,
             WR_DATA_COUNT_WIDTH => ADDR_WIDTH_G,
