@@ -23,6 +23,7 @@ use work.StdRtlPkg.all;
 entity Jesd16bTo32b is
    generic (
       TPD_G            : time                 := 1 ns;
+      SYNC_STAGES_G    : natural range 2 to 8 := 8;
       RELATED_CLOCKS_G : natural range 0 to 1 := 0);
    port (
       -- 16-bit Write Interface
@@ -110,7 +111,7 @@ begin
          MEMORY_TYPE_G    => "block",
          FWFT_EN_G        => true,
          GEN_SYNC_FIFO_G  => false,
-         SYNC_STAGES_G    => 8,
+         SYNC_STAGES_G    => SYNC_STAGES_G,
          DATA_WIDTH_G     => 64,
          ADDR_WIDTH_G     => 8)
       port map (
