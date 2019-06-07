@@ -146,9 +146,9 @@ architecture rtl of RssiRxFsm is
 
    type RegType is record
       
-      -- Resception buffer window
+      -- Reception buffer window
       windowArray  : WindowTypeArray(0 to 2 ** WINDOW_ADDR_SIZE_G-1);      
-      pending      : slv(WINDOW_ADDR_SIZE_G  downto 0);
+      pending      : natural range 0 to 2 ** (WINDOW_ADDR_SIZE_G);
       
       -- Transport side FSM (Receive and check segments)
       -----------------------------------------------------------
@@ -207,7 +207,7 @@ architecture rtl of RssiRxFsm is
       
       -- Rx buffer window
       windowArray => (0 to 2 ** WINDOW_ADDR_SIZE_G-1 => WINDOW_INIT_C),
-      pending     => (others => '0'),
+      pending     => 0,
       
       -- Transport side FSM (Receive and check segments)
       -----------------------------------------------------------   
@@ -278,6 +278,13 @@ begin
 
    begin
       v := r;
+
+      v.pending := 0;
+      for i in 0 to 2 ** WINDOW_ADDR_SIZE_G-1 loop
+         if (r.windowArray(i).occupied = '1') then
+            v.pending := v.pending + 1;
+         end if;
+      end loop;
 
       ------------------------------------------------------------
       -- RX Transport side FSM:
@@ -558,7 +565,6 @@ begin
                v.inOrderSeqN  := r.rxSeqN;
                v.rxBufferAddr := (others => '0');
                v.windowArray  := REG_INIT_C.windowArray;
-               v.pending      := (others => '0');
                
             -- Check if next valid SEQn is received. If yes:
             -- 1. increment the in order SEQn
@@ -581,10 +587,6 @@ begin
                   v.rxBufferAddr := r.rxBufferAddr +1;
                else
                   v.rxBufferAddr := (others => '0');
-               end if;
-               --               
-               if v.pending < rxWindowSize_i then
-                  v.pending := v.pending + 1;
                end if;
                --               
             else
@@ -749,10 +751,6 @@ begin
             else
                v.txBufferAddr := (others => '0');
             end if;
-            --               
-            if v.pending /= 0 then
-               v.pending := v.pending - 1;
-            end if;            
             --               
 
             v.windowArray(conv_integer(r.txBufferAddr)).occupied := '0'; -- Release buffer
