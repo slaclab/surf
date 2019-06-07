@@ -139,7 +139,6 @@ class Pgp2bAxi(pr.Device):
             mode        = "RO", 
             base        = pr.UInt, 
             description = "Rx Link Polarity",
-            pollInterval = 1,
         ))
         
         self.add(pr.RemoteVariable(
@@ -150,7 +149,6 @@ class Pgp2bAxi(pr.Device):
             mode        = "RO", 
             base        = pr.UInt, 
             description = "RX Remote Pause Asserted",
-            pollInterval = 1,
         ))
         
         self.add(pr.RemoteVariable(
@@ -161,7 +159,6 @@ class Pgp2bAxi(pr.Device):
             mode        = "RO", 
             base        = pr.UInt, 
             description = "Tx Local Pause Asserted",
-            pollInterval = 1,
         ))
         
         self.add(pr.RemoteVariable(
@@ -172,7 +169,6 @@ class Pgp2bAxi(pr.Device):
             mode        = "RO", 
             base        = pr.UInt, 
             description = "Received remote overflow flag",
-            pollInterval = 1,
         ))
         
         self.add(pr.RemoteVariable(
@@ -183,7 +179,6 @@ class Pgp2bAxi(pr.Device):
             mode        = "RO", 
             base        = pr.UInt, 
             description = "Received local overflow flag",
-            pollInterval = 1,
         ))
 
 
@@ -195,7 +190,6 @@ class Pgp2bAxi(pr.Device):
             mode        = "RO", 
             base        = pr.UInt, 
             description = "",
-            pollInterval = 1,
         ))
         
         countVars = [
@@ -217,6 +211,10 @@ class Pgp2bAxi(pr.Device):
         ]
 
         for offset, name in enumerate(countVars):
+            pollInterval = 0
+            if name in ['RxLinkErrorCount', 'RxLinkDownCount', 'RxFrameCount', 'RxFrameErrorCount', 'TxFrameCount']:
+                pollInterval = 5
+                
             self.add(pr.RemoteVariable(
                 name        = name, 
                 offset      = ((offset*4)+0x28),
@@ -225,7 +223,7 @@ class Pgp2bAxi(pr.Device):
                 bitOffset   = 0, 
                 mode        = "RO", 
                 base        = pr.UInt,
-                pollInterval = 1,
+                pollInterval = pollInterval,
             ))
 
         self.add(pr.RemoteVariable(
@@ -236,7 +234,6 @@ class Pgp2bAxi(pr.Device):
             mode        = "RO", 
             base        = pr.UInt, 
             description = "",
-            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -247,7 +244,6 @@ class Pgp2bAxi(pr.Device):
             mode        = "RO", 
             base        = pr.UInt, 
             description = "",
-            pollInterval = 1,
         ))
         
         self.add(pr.RemoteVariable(
@@ -259,7 +255,6 @@ class Pgp2bAxi(pr.Device):
             base        = pr.UInt,
             disp        = "{:d}",
             description = "",
-            pollInterval = 1,
         ))
         
         self.add(pr.RemoteVariable(
@@ -271,7 +266,6 @@ class Pgp2bAxi(pr.Device):
             base        = pr.UInt,
             disp        = "{:d}",            
             description = "",
-            pollInterval = 1,
         ))
 
         self.add(pr.RemoteCommand(
