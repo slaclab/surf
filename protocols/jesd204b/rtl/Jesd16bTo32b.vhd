@@ -59,6 +59,8 @@ architecture rtl of Jesd16bTo32b is
    signal rin     : RegType;
    signal s_valid : sl;
 
+   signal dummy : slv(63 downto 34);
+
    -- attribute dont_touch      : string;
    -- attribute dont_touch of r : signal is "TRUE";
 
@@ -99,27 +101,30 @@ begin
 
    end process comb;
 
-   U_FIFO : entity work.FifoAsync
+   U_FIFO : entity work.FifoXpm
       generic map (
-         TPD_G         => TPD_G,
-         BRAM_EN_G     => false,
-         FWFT_EN_G     => true,
-         ALTERA_SYN_G  => false,
-         SYNC_STAGES_G => 3,
-         DATA_WIDTH_G  => 34,
-         ADDR_WIDTH_G  => 5)
+         TPD_G           => TPD_G,
+         ECC_MODE_G      => "en_ecc",
+         MEMORY_TYPE_G   => "block",
+         FWFT_EN_G       => true,
+         GEN_SYNC_FIFO_G => false,
+         SYNC_STAGES_G   => 8,
+         DATA_WIDTH_G    => 64,
+         ADDR_WIDTH_G    => 8)
       port map (
          -- Asynchronous Reset
          rst                => wrRst,
          -- Write Ports (wr_clk domain)
          wr_clk             => wrClk,
          wr_en              => r.wrEn,
+         din(63 downto 34)  => (others => '0'),
          din(33 downto 32)  => r.trig,
          din(31 downto 0)   => r.data,
          overflow           => overflow,
          -- Read Ports (rd_clk domain)
          rd_clk             => rdClk,
          rd_en              => s_valid,
+         dout(63 downto 34) => dummy,
          dout(33 downto 32) => trigOut,
          dout(31 downto 0)  => dataOut,
          underflow          => underflow,
