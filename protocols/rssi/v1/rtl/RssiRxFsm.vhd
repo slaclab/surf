@@ -154,10 +154,8 @@ architecture rtl of RssiRxFsm is
       -----------------------------------------------------------
       
       -- Counters
-      inorderSeqN    : slv(7 downto 0); -- Next expected seqN
       rxHeaderAddr   : slv(7 downto 0); 
       rxSegmentAddr  : slv(SEGMENT_ADDR_SIZE_G downto 0);
-      rxBufferAddr   : slv(WINDOW_ADDR_SIZE_G-1  downto 0);
       --
       segmentWe      : sl;
       
@@ -191,8 +189,9 @@ architecture rtl of RssiRxFsm is
       -- Application side FSM (Send segments when next in order received)
       -----------------------------------------------------------
       txSegmentAddr  : slv(SEGMENT_ADDR_SIZE_G downto 0);
-      txBufferAddr   : slv(WINDOW_ADDR_SIZE_G-1  downto 0);
       rxLastSeqN     : slv(7 downto 0);
+      nextRd         : slv(WINDOW_ADDR_SIZE_G-1 downto 0);
+      rxSeqNDbg      : slv(WINDOW_ADDR_SIZE_G-1 downto 0);
       
       -- SSI      
       appSsiMaster   : SsiMasterType;
@@ -211,10 +210,8 @@ architecture rtl of RssiRxFsm is
       
       -- Transport side FSM (Receive and check segments)
       -----------------------------------------------------------   
-      inorderSeqN    => (others => '0'), -- Next expected seqN
       rxHeaderAddr   => (others => '0'),
       rxSegmentAddr  => (others => '0'),
-      rxBufferAddr   => (others => '0'),
        
       -- 
       segmentWe    => '0',
@@ -248,9 +245,10 @@ architecture rtl of RssiRxFsm is
       
       -- Application side FSM (Send segments when received next in odrer received)
       -----------------------------------------------------------
-      txBufferAddr  => (others => '0'),
       txSegmentAddr => (others => '0'),
       rxLastSeqN => (others => '0'),
+      nextRd => (others => '0'),
+      rxSeqNDbg => (others => '0'),
       
       -- SSI      
       appSsiMaster => SSI_MASTER_INIT_C,
@@ -265,6 +263,10 @@ architecture rtl of RssiRxFsm is
    signal rin : RegType;
    signal s_chksumOk : sl;
    
+   -- attribute dont_touch               : string;
+   -- attribute dont_touch of r          : signal is "TRUE";    
+   -- attribute dont_touch of s_chksumOk : signal is "TRUE";   
+   
 begin
    
   -- Override checksum check if checksum disabled
@@ -275,7 +277,8 @@ begin
                   txWindowSize_i, tspSsiMaster_i, connActive_i, rdBuffData_i, appSsiSlave_i) is
       
       variable v : RegType;
-
+      variable wrIdx   : natural range 0 to 2 ** WINDOW_ADDR_SIZE_G -1;
+      variable rdIdx   : natural range 0 to 2 ** WINDOW_ADDR_SIZE_G -1;
    begin
       v := r;
 
@@ -295,6 +298,8 @@ begin
       -- - check header checksum
       -- - increment in order received SeqN
       ------------------------------------------------------------
+
+      wrIdx := conv_integer(r.rxSeqN(WINDOW_ADDR_SIZE_G-1 downto 0));
       
       -- Pipeline the transport master
       v.tspSsiMaster := tspSsiMaster_i;  
@@ -328,8 +333,8 @@ begin
                -- When SOF has been received dessert ready until package is checked 
                v.tspSsiSlave := SSI_SLAVE_RDY_C;
                
-               -- If the packet is longer than one set the data flag
-               if (tspSsiMaster_i.eof = '1') then
+               -- If the packet is longer than one set the data flag or a SYN
+               if (tspSsiMaster_i.eof = '1') or (v.headerData(63) = '1') then
                   v.rxF.data := '0';
                else
                   v.rxF.data := '1';
@@ -360,6 +365,8 @@ begin
                v.rxHeadLen := r.headerData (55 downto 48);
                v.rxSeqN    := r.headerData (47 downto 40);
                v.rxAckN    := r.headerData (39 downto 32);
+               wrIdx       := conv_integer(v.rxSeqN(WINDOW_ADDR_SIZE_G-1 downto 0));               
+               v.rxSeqNDbg := v.rxSeqN(WINDOW_ADDR_SIZE_G-1 downto 0);
             end if;
             
             -- Checksum commands
@@ -398,7 +405,7 @@ begin
                   -- Check length
                   r.rxHeadLen = toSlv(8, 8)                  and
                   -- Check SeqN range
-                  (r.rxSeqN - r.inOrderSeqN) <= 1            and
+                  (v.rxSeqN - r.rxLastSeqN) <= rxWindowSize_i and
                   -- Check AckN range                  
                   (r.rxAckN - lastAckN_i)  <= txWindowSize_i
                ) then
@@ -406,7 +413,7 @@ begin
                   if (r.rxF.data = '1' and v.rxF.nul = '0' and v.rxF.rst = '0') then
                      -- Wait if the buffer full
                      -- Note: Deadlock possibility! If the peer is not accepting data!
-                     if (r.windowArray(conv_integer(r.rxBufferAddr)).occupied = '0') then
+                     if (r.windowArray(wrIdx).occupied = '0') then
                         -- Go to data segment               
                         v.tspState    := DATA_S;
                      else
@@ -528,10 +535,10 @@ begin
             if (tspSsiMaster_i.eof = '1' and tspSsiMaster_i.valid = '1') then
               
                -- Save tKeep of the last packet
-               v.windowArray(conv_integer(r.rxBufferAddr)).keep   := tspSsiMaster_i.keep(RSSI_WORD_WIDTH_C-1 downto 0);
+               v.windowArray(wrIdx).keep   := tspSsiMaster_i.keep(RSSI_WORD_WIDTH_C-1 downto 0);
                
                -- Save packet length (+1 because it has not incremented for EOF yet)
-               v.windowArray(conv_integer(r.rxBufferAddr)).segSize := conv_integer(r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0))+1;     
+               v.windowArray(wrIdx).segSize := conv_integer(r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0))+1;     
                
                -- Check EOF Error
                if (tspSsiMaster_i.eofe = '0') then
@@ -562,36 +569,19 @@ begin
             -- 3. Initialize window
             if (connActive_i = '0' and  r.rxF.syn = '1') then
                v.rxF.ack  := r.rxF.ack;
-               v.inOrderSeqN  := r.rxSeqN;
-               v.rxBufferAddr := (others => '0');
+               v.rxLastSeqN    := r.rxSeqN;
                v.windowArray  := REG_INIT_C.windowArray;
                
             -- Check if next valid SEQn is received. If yes:
             -- 1. increment the in order SEQn
             -- 2. save seqN, type, and occupied to the current buffer address
             -- 3. increase buffer
-            elsif ( (r.rxF.data = '1' or r.rxF.nul = '1' or r.rxF.rst = '1' ) and
-                     -- Next seqN absolute difference is one
-                     r.rxSeqN - r.inOrderSeqN = 1 
-                  ) then
-               --
-               v.windowArray(conv_integer(r.rxBufferAddr)).seqN       := r.rxSeqN;
-               v.windowArray(conv_integer(r.rxBufferAddr)).segType(0) := r.rxF.data;               
-               v.windowArray(conv_integer(r.rxBufferAddr)).segType(1) := r.rxF.nul;
-               v.windowArray(conv_integer(r.rxBufferAddr)).segType(2) := r.rxF.rst;
-               v.windowArray(conv_integer(r.rxBufferAddr)).occupied   := '1';
-               --
-               v.inOrderSeqN := r.rxSeqN;
-               -- 
-               if r.rxBufferAddr < (rxWindowSize_i-1) then
-                  v.rxBufferAddr := r.rxBufferAddr +1;
-               else
-                  v.rxBufferAddr := (others => '0');
-               end if;
-               --               
-            else
-               v.rxBufferAddr := r.rxBufferAddr;
-               v.inOrderSeqN  := r.inOrderSeqN;
+            elsif (r.rxF.data = '1' or r.rxF.nul = '1' or r.rxF.rst = '1' ) then
+               v.windowArray(wrIdx).seqN       := r.rxSeqN;
+               v.windowArray(wrIdx).segType(0) := r.rxF.data;               
+               v.windowArray(wrIdx).segType(1) := r.rxF.nul;
+               v.windowArray(wrIdx).segType(2) := r.rxF.rst;
+               v.windowArray(wrIdx).occupied   := '1';
             end if;
 
             -- Get ready to receive new packet
@@ -625,6 +615,9 @@ begin
       -- Transmit the segments in correct order
       -- Check the buffer if the next slot is available and send the buffer to APP
       ------------------------------------------------------------
+
+      v.nextRd := r.rxLastSeqN(WINDOW_ADDR_SIZE_G-1 downto 0) + 1;
+      rdIdx    := conv_integer(v.nextRd);
       
       -- Reset flags 
       -- These flags will hold if not overridden
@@ -639,19 +632,16 @@ begin
          
             -- Counters to 0
             v.txSegmentAddr := (others => '0');
-            v.rxLastSeqN    := r.rxLastSeqN;
             
             --
             if connActive_i = '0' then
-               v.txBufferAddr  := (others => '0');
-               v.rxLastSeqN    := r.inOrderSeqN;
+               NULL;
             -- Data segment in buffer only one word long take TKEEP and apply EOF
-            elsif (r.windowArray(conv_integer(r.txBufferAddr)).occupied = '1'   and
-                   r.windowArray(conv_integer(r.txBufferAddr)).segType  = "001" and   -- Data segment type
-                   r.windowArray(conv_integer(r.txBufferAddr)).segSize  = 0
+            elsif (r.windowArray(rdIdx).occupied = '1'   and
+                   r.windowArray(rdIdx).segType  = "001" and   -- Data segment type
+                   r.windowArray(rdIdx).segSize  = 0
             ) then
                --
-               v.txBufferAddr  := r.txBufferAddr;
                
                if (appSsiSlave_i.pause = '0') then
                
@@ -659,7 +649,7 @@ begin
                   v.appSsiMaster.valid                                := '1';
                   v.appSsiMaster.strb                                 := (others => '1');
                   v.appSsiMaster.dest                                 := (others => '0');
-                  v.appSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0)   := r.windowArray(conv_integer(r.txBufferAddr)).keep;
+                  v.appSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0)   := r.windowArray(rdIdx).keep;
                   v.appSsiMaster.eof                                  := '1';
                   v.appSsiMaster.eofe                                 := '0';
                   v.appSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdBuffData_i;
@@ -668,11 +658,10 @@ begin
                   v.appState  := SENT_S;              
                end if;    
             -- Data segment in buffer longer than one word go to DATA_S
-            elsif (r.windowArray(conv_integer(r.txBufferAddr)).occupied = '1' and
-                   r.windowArray(conv_integer(r.txBufferAddr)).segType  = "001"  -- Data segment type          
+            elsif (r.windowArray(rdIdx).occupied = '1' and
+                   r.windowArray(rdIdx).segType  = "001"  -- Data segment type          
             ) then
                --
-               v.txBufferAddr  := r.txBufferAddr;
                
                if (appSsiSlave_i.pause = '0') then
                
@@ -688,14 +677,12 @@ begin
                   v.appState  := DATA_S;              
                end if;
             -- None data segment type  (Go directly to SENT_S) 
-            elsif (r.windowArray(conv_integer(r.txBufferAddr)).occupied = '1') then   
+            elsif (r.windowArray(rdIdx).occupied = '1') then   
                --
-               v.txBufferAddr  := r.txBufferAddr;
                v.appState      := SENT_S;
                --
             else
                --
-               v.txBufferAddr  := r.txBufferAddr;
                v.appSsiMaster.valid  := '0';
                v.appState      := CHECK_BUFFER_S;
             end if;
@@ -703,7 +690,6 @@ begin
          when DATA_S =>
          
             -- Counters 
-            v.txBufferAddr  := r.txBufferAddr;
             v.rxLastSeqN    := r.rxLastSeqN; 
             
             -- SSI parameters
@@ -716,12 +702,12 @@ begin
                       
             -- Next state condition
             -- When segment address reaches segment size then go to SENT_S
-            if  (r.txSegmentAddr >= r.windowArray(conv_integer(r.txBufferAddr)).segSize) then
+            if  (r.txSegmentAddr >= r.windowArray(rdIdx).segSize) then
 
                -- Send EOF at the end of the segment
                v.appSsiMaster.valid                               := '1';               
                v.appSsiMaster.eof                                 := '1';
-               v.appSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0)  := r.windowArray(conv_integer(r.txBufferAddr)).keep;
+               v.appSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0)  := r.windowArray(rdIdx).keep;
                v.appSsiMaster.eofe                                := '0';
                v.txSegmentAddr                                    := r.txSegmentAddr;
                
@@ -743,24 +729,18 @@ begin
          when SENT_S =>
             
             -- Register the sent SeqN (this means that the place has been freed and the SeqN can be Acked)
-            v.rxLastSeqN    := r.windowArray(conv_integer(r.txBufferAddr)).seqN;
-            
-            -- Counters
-            if r.txBufferAddr < (rxWindowSize_i-1) then
-               v.txBufferAddr  := r.txBufferAddr+1; -- Increment once
-            else
-               v.txBufferAddr := (others => '0');
-            end if;
-            --               
+            v.rxLastSeqN    := r.windowArray(rdIdx).seqN;
 
-            v.windowArray(conv_integer(r.txBufferAddr)).occupied := '0'; -- Release buffer
-            
+            -- Release buffer
+            v.windowArray(rdIdx).occupied := '0'; 
             v.txSegmentAddr := (others => '0');
-            
             
             -- SSI parameters
             -- Init the master no SSI communication
             v.appSsiMaster := SSI_MASTER_INIT_C;
+           
+           -- Update index occupied segment when entering CHECK_BUFFER_S state
+           v.nextRd := v.rxLastSeqN(WINDOW_ADDR_SIZE_G-1 downto 0) + 1;
            
             -- Next state immediately
             v.appState   := CHECK_BUFFER_S;
@@ -774,7 +754,7 @@ begin
       end case;
       
       -- Combinatorial outputs before the reset
-      rdBuffAddr_o   <= v.txBufferAddr & v.txSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0);      
+      rdBuffAddr_o   <= v.nextRd & v.txSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0);      
       -- Transport side SSI output
       tspSsiSlave_o <= v.tspSsiSlave;
 
@@ -787,7 +767,7 @@ begin
       
       ---------------------------------------------------------------------
       -- Write and read ports
-      wrBuffAddr_o   <= r.rxBufferAddr & r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0);
+      wrBuffAddr_o   <= v.rxSeqN(WINDOW_ADDR_SIZE_G-1 downto 0) & r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0);
       wrBuffWe_o     <= r.segmentWe;
       wrBuffData_o   <= r.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0);
       
