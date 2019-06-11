@@ -51,7 +51,7 @@ class Si5345(pr.Device):
                 path = self.CsvFilePath.get()  
                 
             # Print the path that was used
-            click.secho( ('Si5345.LoadCsvFile(): %s' % path ), fg='green')    
+            click.secho(('%s.LoadCsvFile(): %s' % (self.path,path) ), fg='green')            
 
             # Power down during the configuration load
             self.Page0.PDN.set(True)
