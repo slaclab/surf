@@ -252,13 +252,25 @@ Dac38J84: &Dac38J84
       mode: RO
       description: "LaneAlarm"
     #########################################################
-    ID:
+    VersionId:
       at:
         offset: 0x1FC
       class: IntField
-      name: ID
+      name: VersionId
+      sizeBits: 3
+      lsBit: 0
       mode: RO
-      description: Serials and IDs
+      description: Version ID
+    #########################################################
+    VendorId:
+      at:
+        offset: 0x1FC
+      class: IntField
+      name: VendorId
+      sizeBits: 2
+      lsBit: 3
+      mode: RO
+      description: Vendor ID
     #########################################################
     EnableTx:
       at:
@@ -270,13 +282,23 @@ Dac38J84: &Dac38J84
       mode: RW
       description: EnableTx
     #########################################################
+    JesdRstN:
+      at:
+        offset: 0x128
+      class: IntField
+      name: JesdRstN
+      sizeBits: 1
+      lsBit: 0
+      mode: RW
+      description: JesdRstN
+    #########################################################
     InitJesd:
       at:
         offset: 0x128
       class: IntField
       name: InitJesd
-      sizeBits: 5
-      lsBit: 0
+      sizeBits: 4
+      lsBit: 1
       mode: RW
       description: InitJesd
     #########################################################
@@ -304,8 +326,10 @@ Dac38J84: &Dac38J84
           value: 0x0
         - entry: DacReg[108]
           value: 0x0
+        - entry: DacReg[109]
+          value: 0x0
     #########################################################
-    InitDac:
+    Init:
       class: SequenceCommand
       at:
         offset: 0x0
@@ -315,13 +339,40 @@ Dac38J84: &Dac38J84
         - entry: EnableTx
           value: 0x0
 
-        # Disable and initialize JESD
-        - entry: InitJesd
-          value: 0x1E
+        # Clear alarms
+        - entry: ClearAlarms
+          value: 0
 
-        # Enable JESD
-        - entry: InitJesd
-          value: 0x01
+        - entry: DacReg[59]
+          value: 0x1800
+        - entry: DacReg[37]
+          value: 0x4000
+        - entry: DacReg[60]
+          value: 0x228
+        - entry: DacReg[60]
+          value: 0x28
+        - entry: DacReg[62]
+          value: 0x108
+        - entry: DacReg[76]
+          value: 0x1F03
+        - entry: DacReg[77]
+          value: 0x300
+        - entry: DacReg[75]
+          value: 0x801
+        - entry: DacReg[77]
+          value: 0x300
+        - entry: DacReg[78]
+          value: 0xF2F
+        - entry: DacReg[0]
+          value: 0x218
+        - entry: DacReg[74]
+          value: 0xF1E
+        - entry: DacReg[74]
+          value: 0xF1E
+        - entry: DacReg[74]
+          value: 0xF1F
+        - entry: DacReg[74]
+          value: 0xF01
 
         # Enable TX
         - entry: EnableTx
