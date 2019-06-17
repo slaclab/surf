@@ -11,7 +11,6 @@
 #once Dac38J84.yaml
 
 Dac38J84: &Dac38J84
-  name: Dac38J84
   description: DAC38J84 Module
   size: 0x200
   class: MMIODev
@@ -26,7 +25,6 @@ Dac38J84: &Dac38J84
         stride: 4
         nelms: 126
       class: IntField
-      name: DacReg
       sizeBits: 16
       mode: RW
       description: "DAC Registers[125:0]"
@@ -35,7 +33,6 @@ Dac38J84: &Dac38J84
       at:
         offset: 0x01C
       class: IntField
-      name: LaneBufferDelay
       sizeBits: 5
       mode: RO
       description: Lane Buffer Delay
@@ -44,7 +41,6 @@ Dac38J84: &Dac38J84
       at:
         offset: 0x01D
       class: IntField
-      name: Temperature
       sizeBits: 8
       mode: RO
       description: Temperature
@@ -55,7 +51,6 @@ Dac38J84: &Dac38J84
         stride: 4
         nelms: *numTxLanes
       class: IntField
-      name: LinkErrCnt
       sizeBits: 16
       mode: RO
       description: "Link Error Count"
@@ -66,7 +61,6 @@ Dac38J84: &Dac38J84
         stride: 4
         nelms: *numTxLanes
       class: IntField
-      name: ReadFifoEmpty
       sizeBits: 1
       lsBit: 0
       mode: RO
@@ -78,7 +72,6 @@ Dac38J84: &Dac38J84
         stride: 4
         nelms: *numTxLanes
       class: IntField
-      name: ReadFifoUnderflow
       sizeBits: 1
       lsBit: 1
       mode: RO
@@ -90,7 +83,6 @@ Dac38J84: &Dac38J84
         stride: 4
         nelms: *numTxLanes
       class: IntField
-      name: ReadFifoFull
       sizeBits: 1
       lsBit: 2
       mode: RO
@@ -102,7 +94,6 @@ Dac38J84: &Dac38J84
         stride: 4
         nelms: *numTxLanes
       class: IntField
-      name: ReadFifoOverflow
       sizeBits: 1
       lsBit: 3
       mode: RO
@@ -114,7 +105,6 @@ Dac38J84: &Dac38J84
         stride: 4
         nelms: *numTxLanes
       class: IntField
-      name: DispErr
       sizeBits: 1
       lsBit: 0
       mode: RO
@@ -126,7 +116,6 @@ Dac38J84: &Dac38J84
         stride: 4
         nelms: *numTxLanes
       class: IntField
-      name: NotitableErr
       sizeBits: 1
       lsBit: 1
       mode: RO
@@ -138,7 +127,6 @@ Dac38J84: &Dac38J84
         stride: 4
         nelms: *numTxLanes
       class: IntField
-      name: CodeSyncErr
       sizeBits: 1
       lsBit: 2
       mode: RO
@@ -150,7 +138,6 @@ Dac38J84: &Dac38J84
         stride: 4
         nelms: *numTxLanes
       class: IntField
-      name: FirstDataMatchErr
       sizeBits: 1
       lsBit: 3
       mode: RO
@@ -162,7 +149,6 @@ Dac38J84: &Dac38J84
         stride: 4
         nelms: *numTxLanes
       class: IntField
-      name: ElasticBuffOverflow
       sizeBits: 1
       lsBit: 4
       mode: RO
@@ -174,7 +160,6 @@ Dac38J84: &Dac38J84
         stride: 4
         nelms: *numTxLanes
       class: IntField
-      name: LinkConfigErr
       sizeBits: 1
       lsBit: 5
       mode: RO
@@ -186,7 +171,6 @@ Dac38J84: &Dac38J84
         stride: 4
         nelms: *numTxLanes
       class: IntField
-      name: FrameAlignErr
       sizeBits: 1
       lsBit: 6
       mode: RO
@@ -198,7 +182,6 @@ Dac38J84: &Dac38J84
         stride: 4
         nelms: *numTxLanes
       class: IntField
-      name: MultiFrameAlignErr
       sizeBits: 1
       lsBit: 7
       mode: RO
@@ -208,7 +191,6 @@ Dac38J84: &Dac38J84
       at:
         offset: 0x1B0
       class: IntField
-      name: Serdes1pllAlarm
       sizeBits: 1
       lsBit: 2
       mode: RO
@@ -218,7 +200,6 @@ Dac38J84: &Dac38J84
       at:
         offset: 0x1B0
       class: IntField
-      name: Serdes0pllAlarm
       sizeBits: 1
       lsBit: 3
       mode: RO
@@ -228,7 +209,6 @@ Dac38J84: &Dac38J84
       at:
         offset: 0x1B1
       class: IntField
-      name: SysRefAlarms
       sizeBits: 4
       lsBit: 4
       mode: RO
@@ -238,7 +218,6 @@ Dac38J84: &Dac38J84
       at:
         offset: 0x1B4
       class: IntField
-      name: LaneLoss
       sizeBits: 8
       mode: RO
       description: "LaneLoss"
@@ -247,7 +226,6 @@ Dac38J84: &Dac38J84
       at:
         offset: 0x1B5
       class: IntField
-      name: LaneAlarm
       sizeBits: 8
       mode: RO
       description: "LaneAlarm"
@@ -256,7 +234,6 @@ Dac38J84: &Dac38J84
       at:
         offset: 0x1FC
       class: IntField
-      name: VersionId
       sizeBits: 3
       lsBit: 0
       mode: RO
@@ -266,7 +243,6 @@ Dac38J84: &Dac38J84
       at:
         offset: 0x1FC
       class: IntField
-      name: VendorId
       sizeBits: 2
       lsBit: 3
       mode: RO
@@ -276,7 +252,6 @@ Dac38J84: &Dac38J84
       at:
         offset: 0xC
       class: IntField
-      name: EnableTx
       sizeBits: 1
       lsBit: 0
       mode: RW
@@ -286,7 +261,6 @@ Dac38J84: &Dac38J84
       at:
         offset: 0x128
       class: IntField
-      name: JesdRstN
       sizeBits: 1
       lsBit: 0
       mode: RW
@@ -296,7 +270,6 @@ Dac38J84: &Dac38J84
       at:
         offset: 0x128
       class: IntField
-      name: InitJesd
       sizeBits: 4
       lsBit: 1
       mode: RW
