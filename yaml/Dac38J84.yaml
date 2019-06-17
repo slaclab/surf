@@ -21,333 +21,333 @@ Dac38J84: &Dac38J84
     #########################################################
     DacReg:
       at:
-        offset: 0x000
-        stride: 4
-        nelms: 126
-      class: IntField
-      sizeBits: 16
-      mode: RW
-      description: "DAC Registers[125:0]"
+        offset:     0x000
+        stride:     4
+        nelms:      126
+      class:        IntField
+      sizeBits:     16
+      mode:         RW
+      description:  DAC Registers[125:0]
     #########################################################
     LaneBufferDelay:
       at:
-        offset: 0x01C
-      class: IntField
-      sizeBits: 5
-      mode: RO
-      description: Lane Buffer Delay
+        offset:     0x01C
+      class:        IntField
+      sizeBits:     5
+      mode:         RO
+      description:  Lane Buffer Delay
     #########################################################
     Temperature:
       at:
-        offset: 0x01D
-      class: IntField
-      sizeBits: 8
-      mode: RO
-      description: Temperature
+        offset:     0x01D
+      class:        IntField
+      sizeBits:     8
+      mode:         RO
+      description:  Temperature
     #########################################################
     LinkErrCnt:
       at:
-        offset: 0x104
-        stride: 4
-        nelms: *numTxLanes
-      class: IntField
-      sizeBits: 16
-      mode: RO
-      description: "Link Error Count"
+        offset:     0x104
+        stride:     4
+        nelms:      *numTxLanes
+      class:        IntField
+      sizeBits:     16
+      mode:         RO
+      description:  Link Error Count
     #########################################################
     ReadFifoEmpty:
       at:
-        offset: 0x190
-        stride: 4
-        nelms: *numTxLanes
-      class: IntField
-      sizeBits: 1
-      lsBit: 0
-      mode: RO
-      description: "ReadFifoEmpty"
+        offset:     0x190
+        stride:     4
+        nelms:      *numTxLanes
+      class:        IntField
+      sizeBits:     1
+      lsBit:        0
+      mode:         RO
+      description:  ReadFifoEmpty
     #########################################################
     ReadFifoUnderflow:
       at:
-        offset: 0x190
-        stride: 4
-        nelms: *numTxLanes
-      class: IntField
-      sizeBits: 1
-      lsBit: 1
-      mode: RO
-      description: "ReadFifoUnderflow"
+        offset:     0x190
+        stride:     4
+        nelms:      *numTxLanes
+      class:        IntField
+      sizeBits:     1
+      lsBit:        1
+      mode:         RO
+      description:  ReadFifoUnderflow
     #########################################################
     ReadFifoFull:
       at:
-        offset: 0x190
-        stride: 4
-        nelms: *numTxLanes
-      class: IntField
-      sizeBits: 1
-      lsBit: 2
-      mode: RO
-      description: "ReadFifoFull"
+        offset:     0x190
+        stride:     4
+        nelms:      *numTxLanes
+      class:        IntField
+      sizeBits:     1
+      lsBit:        2
+      mode:         RO
+      description:  ReadFifoFull
     #########################################################
     ReadFifoOverflow:
       at:
-        offset: 0x190
-        stride: 4
-        nelms: *numTxLanes
-      class: IntField
-      sizeBits: 1
-      lsBit: 3
-      mode: RO
-      description: "ReadFifoOverflow"
+        offset:     0x190
+        stride:     4
+        nelms:      *numTxLanes
+      class:        IntField
+      sizeBits:     1
+      lsBit:        3
+      mode:         RO
+      description:  ReadFifoOverflow
     #########################################################
     DispErr:
       at:
-        offset: 0x191
-        stride: 4
-        nelms: *numTxLanes
-      class: IntField
-      sizeBits: 1
-      lsBit: 0
-      mode: RO
-      description: "DispErr"
+        offset:     0x191
+        stride:     4
+        nelms:      *numTxLanes
+      class:        IntField
+      sizeBits:     1
+      lsBit:        0
+      mode:         RO
+      description:  DispErr
     #########################################################
     NotitableErr:
       at:
-        offset: 0x191
-        stride: 4
-        nelms: *numTxLanes
-      class: IntField
-      sizeBits: 1
-      lsBit: 1
-      mode: RO
-      description: "NotitableErr"
+        offset:     0x191
+        stride:     4
+        nelms:      *numTxLanes
+      class:        IntField
+      sizeBits:     1
+      lsBit:        1
+      mode:         RO
+      description:  NotitableErr
     #########################################################
     CodeSyncErr:
       at:
-        offset: 0x191
-        stride: 4
-        nelms: *numTxLanes
-      class: IntField
-      sizeBits: 1
-      lsBit: 2
-      mode: RO
-      description: "CodeSyncErr"
+        offset:     0x191
+        stride:     4
+        nelms:      *numTxLanes
+      class:        IntField
+      sizeBits:     1
+      lsBit:        2
+      mode:         RO
+      description:  CodeSyncErr
     #########################################################
     FirstDataMatchErr:
       at:
-        offset: 0x191
-        stride: 4
-        nelms: *numTxLanes
-      class: IntField
-      sizeBits: 1
-      lsBit: 3
-      mode: RO
-      description: "FirstDataMatchErr"
+        offset:     0x191
+        stride:     4
+        nelms:      *numTxLanes
+      class:        IntField
+      sizeBits:     1
+      lsBit:        3
+      mode:         RO
+      description:  FirstDataMatchErr
     #########################################################
     ElasticBuffOverflow:
       at:
-        offset: 0x191
-        stride: 4
-        nelms: *numTxLanes
-      class: IntField
-      sizeBits: 1
-      lsBit: 4
-      mode: RO
-      description: "ElasticBuffOverflow"
+        offset:     0x191
+        stride:     4
+        nelms:      *numTxLanes
+      class:        IntField
+      sizeBits:     1
+      lsBit:        4
+      mode:         RO
+      description:  ElasticBuffOverflow
     #########################################################
     LinkConfigErr:
       at:
-        offset: 0x191
-        stride: 4
-        nelms: *numTxLanes
-      class: IntField
-      sizeBits: 1
-      lsBit: 5
-      mode: RO
-      description: "LinkConfigErr"
+        offset:     0x191
+        stride:     4
+        nelms:      *numTxLanes
+      class:        IntField
+      sizeBits:     1
+      lsBit:        5
+      mode:         RO
+      description:  LinkConfigErr
     #########################################################
     FrameAlignErr:
       at:
-        offset: 0x191
-        stride: 4
-        nelms: *numTxLanes
-      class: IntField
-      sizeBits: 1
-      lsBit: 6
-      mode: RO
-      description: "FrameAlignErr"
+        offset:     0x191
+        stride:     4
+        nelms:      *numTxLanes
+      class:        IntField
+      sizeBits:     1
+      lsBit:        6
+      mode:         RO
+      description:  FrameAlignErr
     #########################################################
     MultiFrameAlignErr:
       at:
-        offset: 0x191
-        stride: 4
-        nelms: *numTxLanes
-      class: IntField
-      sizeBits: 1
-      lsBit: 7
-      mode: RO
-      description: "MultiFrameAlignErr"
+        offset:     0x191
+        stride:     4
+        nelms:      *numTxLanes
+      class:        IntField
+      sizeBits:     1
+      lsBit:        7
+      mode:         RO
+      description:  MultiFrameAlignErr
     #########################################################
     Serdes1pllAlarm:
       at:
-        offset: 0x1B0
-      class: IntField
-      sizeBits: 1
-      lsBit: 2
-      mode: RO
-      description: Serdes1pllAlarm
+        offset:     0x1B0
+      class:        IntField
+      sizeBits:     1
+      lsBit:        2
+      mode:         RO
+      description:  Serdes1pllAlarm
     #########################################################
     Serdes0pllAlarm:
       at:
-        offset: 0x1B0
-      class: IntField
-      sizeBits: 1
-      lsBit: 3
-      mode: RO
-      description: Serdes0pllAlarm
+        offset:     0x1B0
+      class:        IntField
+      sizeBits:     1
+      lsBit:        3
+      mode:         RO
+      description:  Serdes0pllAlarm
     #########################################################
     SysRefAlarms:
       at:
-        offset: 0x1B1
-      class: IntField
-      sizeBits: 4
-      lsBit: 4
-      mode: RO
-      description: SysRefAlarms
+        offset:     0x1B1
+      class:        IntField
+      sizeBits:     4
+      lsBit:        4
+      mode:         RO
+      description:  SysRefAlarms
     #########################################################
     LaneLoss:
       at:
-        offset: 0x1B4
-      class: IntField
-      sizeBits: 8
-      mode: RO
-      description: "LaneLoss"
+        offset:     0x1B4
+      class:        IntField
+      sizeBits:     8
+      mode:         RO
+      description:  LaneLoss
     #########################################################
     LaneAlarm:
       at:
-        offset: 0x1B5
-      class: IntField
-      sizeBits: 8
-      mode: RO
-      description: "LaneAlarm"
+        offset:     0x1B5
+      class:        IntField
+      sizeBits:     8
+      mode:         RO
+      description:  LaneAlarm
     #########################################################
     VersionId:
       at:
-        offset: 0x1FC
-      class: IntField
-      sizeBits: 3
-      lsBit: 0
-      mode: RO
-      description: Version ID
+        offset:     0x1FC
+      class:        IntField
+      sizeBits:     3
+      lsBit:        0
+      mode:         RO
+      description:  Version ID
     #########################################################
     VendorId:
       at:
-        offset: 0x1FC
-      class: IntField
-      sizeBits: 2
-      lsBit: 3
-      mode: RO
-      description: Vendor ID
+        offset:     0x1FC
+      class:        IntField
+      sizeBits:     2
+      lsBit:        3
+      mode:         RO
+      description:  Vendor ID
     #########################################################
     EnableTx:
       at:
-        offset: 0xC
-      class: IntField
-      sizeBits: 1
-      lsBit: 0
-      mode: RW
-      description: EnableTx
+        offset:     0xC
+      class:        IntField
+      sizeBits:     1
+      lsBit:        0
+      mode:         RW
+      description:  EnableTx
     #########################################################
     JesdRstN:
       at:
-        offset: 0x128
-      class: IntField
-      sizeBits: 1
-      lsBit: 0
-      mode: RW
-      description: JesdRstN
+        offset:     0x128
+      class:        IntField
+      sizeBits:     1
+      lsBit:        0
+      mode:         RW
+      description:  JesdRstN
     #########################################################
     InitJesd:
       at:
-        offset: 0x128
-      class: IntField
-      sizeBits: 4
-      lsBit: 1
-      mode: RW
-      description: InitJesd
+        offset:     0x128
+      class:        IntField
+      sizeBits:     4
+      lsBit:        1
+      mode:         RW
+      description:  InitJesd
     #########################################################
     ClearAlarms:
-      class: SequenceCommand
+      class:        SequenceCommand
       at:
-        offset: 0x0
-      description: Clear all the DAC alarms
+        offset:     0x0
+      description:  Clear all the DAC alarms
       sequence:
-        - entry: DacReg[100]
-          value: 0x0
-        - entry: DacReg[101]
-          value: 0x0
-        - entry: DacReg[102]
-          value: 0x0
-        - entry: DacReg[103]
-          value: 0x0
-        - entry: DacReg[104]
-          value: 0x0
-        - entry: DacReg[105]
-          value: 0x0
-        - entry: DacReg[106]
-          value: 0x0
-        - entry: DacReg[107]
-          value: 0x0
-        - entry: DacReg[108]
-          value: 0x0
-        - entry: DacReg[109]
-          value: 0x0
+        - entry:    DacReg[100]
+          value:    0x0
+        - entry:    DacReg[101]
+          value:    0x0
+        - entry:    DacReg[102]
+          value:    0x0
+        - entry:    DacReg[103]
+          value:    0x0
+        - entry:    DacReg[104]
+          value:    0x0
+        - entry:    DacReg[105]
+          value:    0x0
+        - entry:    DacReg[106]
+          value:    0x0
+        - entry:    DacReg[107]
+          value:    0x0
+        - entry:    DacReg[108]
+          value:    0x0
+        - entry:    DacReg[109]
+          value:    0x0
     #########################################################
     Init:
-      class: SequenceCommand
+      class:        SequenceCommand
       at:
-        offset: 0x0
-      description: Initialization sequence for the DAC JESD core
+        offset:     0x0
+      description:  Initialization sequence for the DAC JESD core
       sequence:
         # Disable TX
-        - entry: EnableTx
-          value: 0x0
+        - entry:    EnableTx
+          value:    0x0
 
         # Clear alarms
-        - entry: ClearAlarms
-          value: 0
+        - entry:    ClearAlarms
+          value:    0
 
-        - entry: DacReg[59]
-          value: 0x1800
-        - entry: DacReg[37]
-          value: 0x4000
-        - entry: DacReg[60]
-          value: 0x228
-        - entry: DacReg[60]
-          value: 0x28
-        - entry: DacReg[62]
-          value: 0x108
-        - entry: DacReg[76]
-          value: 0x1F03
-        - entry: DacReg[77]
-          value: 0x300
-        - entry: DacReg[75]
-          value: 0x801
-        - entry: DacReg[77]
-          value: 0x300
-        - entry: DacReg[78]
-          value: 0xF2F
-        - entry: DacReg[0]
-          value: 0x218
-        - entry: DacReg[74]
-          value: 0xF1E
-        - entry: DacReg[74]
-          value: 0xF1E
-        - entry: DacReg[74]
-          value: 0xF1F
-        - entry: DacReg[74]
-          value: 0xF01
+        - entry:    DacReg[59]
+          value:    0x1800
+        - entry:    DacReg[37]
+          value:    0x4000
+        - entry:    DacReg[60]
+          value:    0x228
+        - entry:    DacReg[60]
+          value:    0x28
+        - entry:    DacReg[62]
+          value:    0x108
+        - entry:    DacReg[76]
+          value:    0x1F03
+        - entry:    DacReg[77]
+          value:    0x300
+        - entry:    DacReg[75]
+          value:    0x801
+        - entry:    DacReg[77]
+          value:    0x300
+        - entry:    DacReg[78]
+          value:    0xF2F
+        - entry:    DacReg[0]
+          value:    0x218
+        - entry:    DacReg[74]
+          value:    0xF1E
+        - entry:    DacReg[74]
+          value:    0xF1E
+        - entry:    DacReg[74]
+          value:    0xF1F
+        - entry:    DacReg[74]
+          value:    0xF01
 
         # Enable TX
-        - entry: EnableTx
-          value: 0x1
+        - entry:    EnableTx
+          value:    0x1
     #########################################################
