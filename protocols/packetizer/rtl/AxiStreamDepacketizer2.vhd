@@ -85,7 +85,7 @@ architecture rtl of AxiStreamDepacketizer2 is
       crcInit          : slv(31 downto 0);
       crcReset         : sl;
       linkGoodDly      : sl;
-      initDone         : sl;
+      rdLat            : natural range 0 to 2;
       debug            : Packetizer2DebugType;
       inputAxisSlave   : AxiStreamSlaveType;
       outputAxisMaster : AxiStreamMasterArray(1 downto 0);
@@ -104,7 +104,7 @@ architecture rtl of AxiStreamDepacketizer2 is
       crcInit          => (others => '1'),
       crcReset         => '1',
       linkGoodDly      => '0',
-      initDone         => '0',
+      rdLat            => 2,
       debug            => PACKETIZER2_DEBUG_INIT_C,
       inputAxisSlave   => AXI_STREAM_SLAVE_INIT_C,
       outputAxisMaster => (others => axiStreamMasterInit(AXIS_CONFIG_C)));
@@ -285,8 +285,9 @@ begin
       -- Latch the current value
       v := r;
 
-      -- Set default debug value
-      v.debug := PACKETIZER2_DEBUG_INIT_C;
+      -- Reset debug strobes flag
+      v.debug          := PACKETIZER2_DEBUG_INIT_C;
+      v.debug.initDone := r.debug.initDone; --- Don't touch initDone
 
       -- Don't write new packet number by default
       v.ramWe := '0';
@@ -508,7 +509,7 @@ begin
             v.crcReset     := '1';      -- Reset CRC in ram to 0xFFFFFFFF
 
             -- Check for max index
-            if (r.initDone = '1') then
+            if (r.debug.initDone = '1') then
                -- Wait for link to come back up
                if (linkGood = '1') then
                   -- Check for BRAM or REG_EN_G used
@@ -522,7 +523,7 @@ begin
                end if;
             else
                -- Check if ready to move data and RAM output ready
-               if (v.outputAxisMaster(1).tValid = '0') and ((r.ramWe = '0') or ((BRAM_EN_G = false) and (REG_EN_G = false)) ) then
+               if (v.outputAxisMaster(1).tValid = '0') and (r.rdLat = 0) then
                   -- Write to the RAM
                   v.activeTDest                                        := r.activeTDest - 1;
                   -- Increment the index
@@ -537,12 +538,31 @@ begin
                   v.debug.eofe                                         := ramPacketActiveOut;
                   -- Check if initializing the RAM is done
                   if (r.activeTDest = 0) then
-                     v.initDone := '1';
+                     v.debug.initDone := '1';
                   end if;
                end if;
             end if;
       ----------------------------------------------------------------------
       end case;
+      
+      -- Check for read transaction
+      if (r.activeTDest /= v.activeTDest) then
+         -- zero latency
+         if (BRAM_EN_G = false) and (REG_EN_G = false) then
+            v.rdLat := 0;
+         -- 1 cycle latency
+         elsif (BRAM_EN_G = false) and (REG_EN_G = true) then            
+            v.rdLat := 1;
+         -- 1 cycle latency
+         elsif (BRAM_EN_G = true) and (REG_EN_G = false) then            
+            v.rdLat := 1;            
+         -- 2 cycle latency
+         else
+            v.rdLat := 2;
+         end if;
+      elsif (r.rdLat /= 0) then
+         v.rdLat := r.rdLat - 1;
+      end if;
 
       -- Keep a delayed copy
       v.linkGoodDly := linkGood;
@@ -550,13 +570,13 @@ begin
       -- Check for link drop event
       if (r.linkGoodDly = '1') and (linkGood = '0') then
          -- Reset CRC now because crcRem has 1 cycle latency 
-         v.crcReset    := '1';
-         v.crcInit     := (others => '1');
+         v.crcReset       := '1';
+         v.crcInit        := (others => '1');
          -- Reset the index
-         v.activeTDest := (others => '1');
-         v.initDone    := '0';
+         v.activeTDest    := (others => '1');
+         v.debug.initDone := '0';
          -- Next state
-         v.state       := TERMINATE_S;
+         v.state          := TERMINATE_S;
       end if;
 
       -- Combinatorial outputs before the reset
