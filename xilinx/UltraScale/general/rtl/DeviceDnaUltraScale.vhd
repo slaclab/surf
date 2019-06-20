@@ -29,7 +29,7 @@ entity DeviceDnaUltraScale is
       USE_SLOWCLK_G   : boolean := false;
       BUFR_CLK_DIV_G  : natural := 8;
       RST_POLARITY_G  : sl      := '1';
-      SIM_DNA_VALUE_G : slv     := X"000000000000000000000000");
+      SIM_DNA_VALUE_G : slv     := x"000000000000000000000000");
    port (
       clk      : in  sl;
       rst      : in  sl;
@@ -46,11 +46,10 @@ architecture rtl of DeviceDnaUltraScale is
 
    type RegType is record
       state    : StateType;
-      bitCount : natural range 0 to DNA_SHIFT_LENGTH_C-1;
+      bitCount : natural range 0 to DNA_SHIFT_LENGTH_C;
       dnaValue : slv(DNA_SHIFT_LENGTH_C-1 downto 0);
       dnaValid : sl;
       dnaRead  : sl;
-      dnaShift : sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -58,16 +57,16 @@ architecture rtl of DeviceDnaUltraScale is
       bitCount => 0,
       dnaValue => (others => '0'),
       dnaValid => '0',
-      dnaRead  => '0',
-      dnaShift => '0');
+      dnaRead  => '1');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal dnaDout : sl;
-   signal divClk  : sl;
-   signal locClk  : sl;
-   signal locRst  : sl;
+   signal dnaDout  : sl;
+   signal divClk   : sl;
+   signal locClk   : sl;
+   signal locRst   : sl;
+   signal dnaRead  : sl;
 
 begin
 
@@ -99,31 +98,25 @@ begin
 
       -- Reset the strobing signals
       v.dnaRead  := '0';
-      v.dnaShift := '0';
 
       -- State Machine      
       case (r.state) is
          ----------------------------------------------------------------------
          when READ_S =>
-            -- Check the read strobe status
-            if r.dnaRead = '0' then
-               -- Strobe the read of the DNA port
-               v.dnaRead := '1';
-               -- Next State
-               v.state   := SHIFT_S;
-            end if;
+            -- Strobe the read of the DNA port
+            v.dnaRead := '1';
+            -- Next State
+            v.state   := SHIFT_S;
          ----------------------------------------------------------------------
          when SHIFT_S =>
-            -- Shift the data out
-            v.dnaShift := '1';
             -- Check the shift strobe status
-            if r.dnaShift = '1' then
+            if r.dnaRead = '0' then
                -- Shift register
-               v.dnaValue := r.dnaValue(DNA_SHIFT_LENGTH_C-2 downto 0) & dnaDout;
+               v.dnaValue := dnaDout & r.dnaValue(DNA_SHIFT_LENGTH_C-1 downto 1);
                -- Increment the counter
                v.bitCount := r.bitCount + 1;
                -- Check the counter value
-               if (r.bitCount = DNA_SHIFT_LENGTH_C-1) then
+               if (v.bitCount = DNA_SHIFT_LENGTH_C-1) then
                   -- Next State
                   v.state := DONE_S;
                end if;
@@ -132,8 +125,14 @@ begin
          when DONE_S =>
             -- Set the valid bit
             v.dnaValid := '1';
+            -- The two LSBs and two MSBs have fixed values
+            v.dnaValue(1 downto 0)   := "01";
+            v.dnaValue(95 downto 94) := "01";
       ----------------------------------------------------------------------
       end case;
+      
+      -- Outputs
+      dnaRead  <= v.dnaRead;
 
       -- Synchronous Reset
       if locRst = '1' then
@@ -147,7 +146,7 @@ begin
 
    sync : process (locClk) is
    begin
-      if (falling_edge(locClk)) then
+      if (rising_edge(locClk)) then
          r <= rin after TPD_G;
       end if;
    end process sync;
@@ -157,8 +156,8 @@ begin
          SIM_DNA_VALUE => SIM_DNA_VALUE_G)
       port map (
          CLK   => locClk,
-         READ  => r.dnaRead,
-         SHIFT => r.dnaShift,
+         READ  => dnaRead,
+         SHIFT => '1',
          DIN   => '0',
          DOUT  => dnaDout);
          
