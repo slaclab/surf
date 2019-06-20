@@ -227,6 +227,17 @@ class Pgp2bAxi(pr.Device):
             ))
 
         self.add(pr.RemoteVariable(
+            name        = "RxRemLinkReadyCount",
+            offset      = 0x80,
+            disp        = '{:d}',
+            bitSize     = 32, 
+            bitOffset   = 0, 
+            mode        = "RO", 
+            base        = pr.UInt,
+            pollInterval = 5
+        ))
+
+        self.add(pr.RemoteVariable(
             name        = "LastTxOpCode", 
             offset      = 0x70, 
             bitSize     = 8, 
