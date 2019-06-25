@@ -24,7 +24,8 @@ package Jesd204bPkg is
 -- Constant definitions
 --------------------------------------------------------------------------
    -- Number of bytes in MGT word (2 or 4).
-   constant GT_WORD_SIZE_C : positive := 4;
+--   constant GT_WORD_SIZE_C : positive := 4;
+   constant GT_WORD_SIZE_C : positive := 8;
 
    -- 8B10B characters (8-bit values)
    -- K.28.5
@@ -104,10 +105,10 @@ package Jesd204bPkg is
    -- Detect position of first non K character
    function detectPosFunc(data_slv : slv; charisk_slv : slv; bytes_int : positive) return std_logic_vector;
 
-   -- Byte swap slv (bytes int 2 or 4)
+   -- Byte swap slv
    function byteSwapSlv(data_slv : slv; bytes_int : positive) return std_logic_vector;
 
-   -- Swap little and big endians (bytes int 2 or 4)
+   -- 2-Byte word swap
    function endianSwapSlv(data_slv : slv; bytes_int : positive) return std_logic_vector;
 
    -- Align the data within the data buffer according to the position of the byte alignment word
@@ -146,29 +147,13 @@ package body Jesd204bPkg is
    -- Detect K character
    function detKcharFunc(data_slv : slv; charisk_slv : slv; bytes_int : positive) return std_logic is
    begin
-      if(bytes_int = 2) then
-         if(data_slv (7 downto 0) = K_CHAR_C and
-            data_slv (15 downto 8) = K_CHAR_C and
-            charisk_slv = (charisk_slv'range => '1')
-            ) then
-            return '1';
-         else
+      for i in 0 to bytes_int-1 loop
+         if (data_slv(8*i+7 downto 8*i) /= K_CHAR_C or
+             charisk_slv(i) = '0') then
             return '0';
          end if;
-      elsif(bytes_int = 4) then
-         if(data_slv (7 downto 0) = K_CHAR_C and
-            data_slv (15 downto 8) = K_CHAR_C and
-            data_slv (23 downto 16) = K_CHAR_C and
-            data_slv (31 downto 24) = K_CHAR_C and
-            charisk_slv = (charisk_slv'range => '1')
-            ) then
-            return '1';
-         else
-            return '0';
-         end if;
-      else
-         return '0';
-      end if;
+      end loop;
+      return '1';
    end detKcharFunc;
 
    -- Output variable index from SLV (use in variable length shift register) 
@@ -183,134 +168,54 @@ package body Jesd204bPkg is
 
    -- Detect position of first non K character
    function detectPosFunc(data_slv : slv; charisk_slv : slv; bytes_int : positive) return std_logic_vector is
+      variable result : slv(bytes_int-1 downto 0) := (others=>'0');
    begin
-      -- GT word is 2 bytes
-      if(bytes_int = 2) then
-         if(data_slv (7 downto 0) /= K_CHAR_C and
-            data_slv (15 downto 8) /= K_CHAR_C
-            ) then
-            return "01";
-         elsif(data_slv (7 downto 0) /= K_CHAR_C and
-               data_slv (15 downto 8) = K_CHAR_C and
-               charisk_slv(1) = '1'
-               ) then
-            return "10";
-         else
-            return "11";
-         end if;
-      -- GT word is 4 bytes wide
-      elsif(bytes_int = 4) then
-         if(data_slv (7 downto 0) /= K_CHAR_C and
-            data_slv (15 downto 8) /= K_CHAR_C and
-            data_slv (23 downto 16) /= K_CHAR_C and
-            data_slv (31 downto 24) /= K_CHAR_C
-            ) then
-            return "0001";
-         elsif(data_slv (7 downto 0) /= K_CHAR_C and
-               data_slv (15 downto 8) /= K_CHAR_C and
-               data_slv (23 downto 16) /= K_CHAR_C and
-               data_slv (31 downto 24) = K_CHAR_C and
-               charisk_slv(3) = '1'
-               ) then
-            return "0010";
-         elsif(data_slv (7 downto 0) /= K_CHAR_C and
-               data_slv (15 downto 8) /= K_CHAR_C and
-               data_slv (23 downto 16) = K_CHAR_C and
-               data_slv (31 downto 24) = K_CHAR_C and
-               charisk_slv(3 downto 2) = "11"
-               ) then
-            return "0100";
-         elsif(data_slv (7 downto 0) /= K_CHAR_C and
-               data_slv (15 downto 8) = K_CHAR_C and
-               data_slv (23 downto 16) = K_CHAR_C and
-               data_slv (31 downto 24) = K_CHAR_C and
-               charisk_slv(3 downto 1) = "111"
-               ) then
-            return "1000";
-         else
-            return "1111";
-         end if;
-      else
-         return (bytes_int-1 downto 0 => '1');
-      end if;
+      for i in bytes_int-1 downto 0 loop
+         if (data_slv(8*i+7 downto 8*i) /= K_CHAR_C or
+             charisk_slv(i) = '0') then
+            result(bytes_int-1-i) := '1';
+            return result;
+          end if;
+      end loop;
+      result := (others=>'1');
+      return result;
    end detectPosFunc;
 
 
    -- Detect position of first non K character (Swapped bits/bytes)
    function detectPosFuncSwap(data_slv : slv; charisk_slv : slv; bytes_int : positive) return std_logic_vector is
+      variable result : slv(bytes_int-1 downto 0) := (others=>'0');
    begin
-      -- GT word is 2 bytes
-      if(bytes_int = 2) then
-         if(data_slv (7 downto 0) /= K_CHAR_C and
-            data_slv (15 downto 8) /= K_CHAR_C
-            ) then
-            return "01";
-         elsif(data_slv (7 downto 0) = K_CHAR_C and
-               data_slv (15 downto 8) /= K_CHAR_C and
-               charisk_slv(0) = '1'
-               ) then
-            return "10";
-         else
-            return "11";
-         end if;
-      -- GT word is 4 bytes wide
-      elsif(bytes_int = 4) then
-         if(data_slv (7 downto 0) /= K_CHAR_C and
-            data_slv (15 downto 8) /= K_CHAR_C and
-            data_slv (23 downto 16) /= K_CHAR_C and
-            data_slv (31 downto 24) /= K_CHAR_C
-            ) then
-            return "0001";
-         elsif(data_slv (7 downto 0) = K_CHAR_C and
-               data_slv (15 downto 8) /= K_CHAR_C and
-               data_slv (23 downto 16) /= K_CHAR_C and
-               data_slv (31 downto 24) /= K_CHAR_C and
-               charisk_slv(0) = '1'
-               ) then
-            return "0010";
-         elsif(data_slv (7 downto 0) = K_CHAR_C and
-               data_slv (15 downto 8) = K_CHAR_C and
-               data_slv (23 downto 16) /= K_CHAR_C and
-               data_slv (31 downto 24) /= K_CHAR_C and
-               charisk_slv(1 downto 0) = "11"
-               ) then
-            return "0100";
-         elsif(data_slv (7 downto 0) = K_CHAR_C and
-               data_slv (15 downto 8) = K_CHAR_C and
-               data_slv (23 downto 16) = K_CHAR_C and
-               data_slv (31 downto 24) /= K_CHAR_C and
-               charisk_slv(2 downto 0) = "111"
-               ) then
-            return "1000";
-         else
-            return "1111";
-         end if;
-      else
-         return (bytes_int-1 downto 0 => '1');
-      end if;
+      for i in 0 to bytes_int-1 loop
+         if (data_slv(8*i+7 downto 8*i) /= K_CHAR_C or
+             charisk_slv(i) = '0') then
+            result(i) := '1';
+            return result;
+          end if;
+      end loop;
+      result := (others=>'1');
+      return result;
    end detectPosFuncSwap;
 
-   -- Byte swap slv (bytes int 2 or 4)
+   -- Byte swap slv
    function byteSwapSlv(data_slv : slv; bytes_int : positive) return std_logic_vector is
+      variable result : slv(8*bytes_int-1 downto 0);
    begin
-
-      if(bytes_int = 2) then
-         return data_slv(7 downto 0) & data_slv(15 downto 8);
-      elsif(bytes_int = 4) then
-         return data_slv(7 downto 0) & data_slv(15 downto 8) & data_slv(23 downto 16) & data_slv(31 downto 24);
-      else
-         return data_slv;
-      end if;
+      for i in 0 to bytes_int-1 loop
+         result(8*i+7 downto 8*i) := data_slv(8*(bytes_int-i)-1 downto 8*(bytes_int-i)-8);
+      end loop;
+      return result;
    end byteSwapSlv;
 
-   -- Swap little or big endian (bytes int 2 or 4)
+   -- 2-Byte word swap
    function endianSwapSlv(data_slv : slv; bytes_int : positive) return std_logic_vector is
+      variable result : slv(8*bytes_int-1 downto 0);
    begin
-
-      if(bytes_int = 2) then
-         return data_slv;
-      elsif(bytes_int = 4) then
-         return data_slv(15 downto 0) & data_slv(31 downto 16);
+      if bytes_int > 1 then
+         for i in 0 to bytes_int/2-1 loop
+            result(16*i+15 downto 16*i) := data_slv(16*(bytes_int/2-i)-1 downto 16*(bytes_int/2-i)-16);
+         end loop;
+         return result;
       else
          return data_slv;
       end if;
@@ -318,58 +223,30 @@ package body Jesd204bPkg is
 
    -- Align the data within the data buffer according to the position of the byte alignment word
    function JesdDataAlign(data_slv : slv; position_slv : slv; bytes_int : positive) return std_logic_vector is
+      variable tgt : slv(bytes_int-1 downto 0);
    begin
-      if(bytes_int = 2) then
-         if (position_slv(1 downto 0) = "01") then
-            return data_slv (31 downto 16);
-         elsif (position_slv(1 downto 0) = "10") then
-            return data_slv (31-8 downto 16-8);
-         else
-            return data_slv (31 downto 16);
-         end if;
-      elsif(bytes_int = 4) then
-         if (position_slv(3 downto 0) = "0001") then
-            return data_slv(63 downto 32);
-         elsif (position_slv(3 downto 0) = "0010") then
-            return data_slv(63-1*8 downto 32-1*8);
-         elsif (position_slv(3 downto 0) = "0100") then
-            return data_slv(63-2*8 downto 32-2*8);
-         elsif (position_slv(3 downto 0) = "1000") then
-            return data_slv(63-3*8 downto 32-3*8);
-         else
-            return data_slv(63 downto 32);
-         end if;
-      else
-         return data_slv;
-      end if;
+     for i in 0 to bytes_int-1 loop
+       tgt := (others=>'0');
+       tgt(i) := '1';
+       if position_slv(bytes_int-1 downto 0) = tgt then
+         return data_slv(16*bytes_int-1-i*8 downto 8*bytes_int-i*8);
+       end if;
+     end loop;
+     return data_slv(16*bytes_int-1 downto 8*bytes_int);
    end JesdDataAlign;
 
    -- Align the char within the buffer according to the position of the byte alignment word
    function JesdCharAlign(char_slv : slv; position_slv : slv; bytes_int : positive) return std_logic_vector is
+      variable tgt : slv(bytes_int-1 downto 0);
    begin
-      if(bytes_int = 2) then
-         if (position_slv(1 downto 0) = "01") then
-            return char_slv (3 downto 2);
-         elsif (position_slv(1 downto 0) = "10") then
-            return char_slv (3-1 downto 2-1);
-         else
-            return char_slv (3 downto 2);
+      for i in 0 to bytes_int-1 loop
+         tgt := (others=>'0');
+         tgt(i) := '1';
+         if position_slv(bytes_int-1 downto 0) = tgt then
+            return char_slv(2*bytes_int-i-1 downto bytes_int-i);
          end if;
-      elsif(bytes_int = 4) then
-         if (position_slv(3 downto 0) = "0001") then
-            return char_slv(7 downto 4);
-         elsif (position_slv(3 downto 0) = "0010") then
-            return char_slv(7-1 downto 4-1);
-         elsif (position_slv(3 downto 0) = "0100") then
-            return char_slv(7-2 downto 4-2);
-         elsif (position_slv(3 downto 0) = "1000") then
-            return char_slv(7-3 downto 4-3);
-         else
-            return char_slv(7 downto 4);
-         end if;
-      else
-         return char_slv;
-      end if;
+      end loop;
+      return char_slv(2*bytes_int-1 downto bytes_int);
    end JesdCharAlign;
 
    -- Convert standard logic vector to integer

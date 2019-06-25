@@ -93,7 +93,8 @@ entity Jesd204bRx is
 
       -- Debug signals
       pulse_o : out slv(L_G-1 downto 0);
-      leds_o  : out slv(1 downto 0)
+      leds_o  : out slv(1 downto 0);
+      debug_o : out Slv11Array(L_G-1 downto 0)
       );
 end Jesd204bRx;
 
@@ -166,7 +167,7 @@ begin
 
    -- Check JESD generics
    assert (((K_G * F_G) mod GT_WORD_SIZE_C) = 0) report "K_G setting is incorrect" severity failure;
-   assert (F_G = 1 or F_G = 2 or (F_G = 4 and GT_WORD_SIZE_C = 4)) report "F_G setting must be 1,2,or 4*" severity failure;
+--   assert (F_G = 1 or F_G = 2 or (F_G = 4 and GT_WORD_SIZE_C = 4)) report "F_G setting must be 1,2,or 4*" severity failure;
 
    -----------------------------------------------------------
    -- AXI Lite AXI clock domain crossed
@@ -325,25 +326,26 @@ begin
             nSync_o       => s_nSyncVec(i),
             dataValid_o   => s_dataValidVec(i),
             sampleData_o  => s_sampleDataArr(i),
-            subClass_i    => s_subClass
+            subClass_i    => s_subClass,
+            debug_o       => debug_o(i)
             );
    end generate;
 
    -- Test signal generator
-   generatePulserLanes : for i in L_G-1 downto 0 generate
-      Pulser_INST : entity work.JesdTestSigGen
-         generic map (
-            TPD_G => TPD_G,
-            F_G   => F_G)
-         port map (
-            clk            => devClk_i,
-            rst            => devRst_i,
-            enable_i       => s_dataValidVec(i),
-            thresoldLow_i  => s_thresoldLowArr(i),
-            thresoldHigh_i => s_thresoldHighArr(i),
-            sampleData_i   => s_sampleDataArr(i),
-            testSig_o      => pulse_o(i));
-   end generate;
+   --generatePulserLanes : for i in L_G-1 downto 0 generate
+   --   Pulser_INST : entity work.JesdTestSigGen
+   --      generic map (
+   --         TPD_G => TPD_G,
+   --         F_G   => F_G)
+   --      port map (
+   --         clk            => devClk_i,
+   --         rst            => devRst_i,
+   --         enable_i       => s_dataValidVec(i),
+   --         thresoldLow_i  => s_thresoldLowArr(i),
+   --         thresoldHigh_i => s_thresoldHighArr(i),
+   --         sampleData_i   => s_sampleDataArr(i),
+   --         testSig_o      => pulse_o(i));
+   --end generate;
 
    -- Put sync output in 'z' if not enabled
    syncVectEn : for i in L_G-1 downto 0 generate

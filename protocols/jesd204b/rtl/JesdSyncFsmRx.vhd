@@ -92,7 +92,9 @@ entity JesdSyncFsmRx is
       sysref_o       : out   sl;
 
       -- Synchronisation process is complete and data is valid
-      dataValid_o    : out   sl
+      dataValid_o    : out   sl;
+
+      debug_o        : out   slv(10 downto 0)
 
     );
 end JesdSyncFsmRx;
@@ -155,6 +157,16 @@ architecture rtl of JesdSyncFsmRx is
    signal s_kStable   : sl;
 
 begin
+
+  debug_o(2 downto 0) <= "000" when r.state = IDLE_S   else
+                         "001" when r.state = SYSREF_S else
+                         "010" when r.state = SYNC_S   else
+                         "011" when r.state = HOLD_S   else
+                         "100" when r.state = ALIGN_S  else
+                         "101" when r.state = ILA_S    else
+                         "110";
+  debug_o(10 downto 3) <= lmfc_i & subClass_i & sysRef_i & enable_i & nSyncAnyD1_i & gtReady_i & s_kStable & s_kDetected;
+  
 
    s_kDetected <= detKcharFunc(dataRx_i, chariskRx_i, GT_WORD_SIZE_C);
       -- Comma detected if detected in three consecutive clock cycles
