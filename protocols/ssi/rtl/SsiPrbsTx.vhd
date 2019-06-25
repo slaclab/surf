@@ -289,6 +289,7 @@ begin
             if v.txAxisMaster.tvalid = '0' then
                -- Send the upper packetLength value
                v.txAxisMaster.tvalid             := '1';
+               v.txAxisMaster.tData              := (others => '0');
                v.txAxisMaster.tData(31 downto 0) := r.length;
                -- Increment the counter
                v.dataCnt                         := r.dataCnt + 1;

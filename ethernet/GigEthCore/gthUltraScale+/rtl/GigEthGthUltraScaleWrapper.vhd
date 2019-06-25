@@ -66,6 +66,9 @@ entity GigEthGthUltraScaleWrapper is
       phyRst              : out sl;
       phyReady            : out slv(NUM_LANE_G-1 downto 0);
       sigDet              : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '1');
+      -- Switch Polarity of TxN/TxP, RxN/RxP
+      gtTxPolarity        : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '0');
+      gtRxPolarity        : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '0');
       -- MGT Clock Port 
       gtRefClk            : in  sl                                             := '0';
       gtClkP              : in  sl                                             := '1';
@@ -214,6 +217,9 @@ begin
             extRst             => sysRst125,
             phyReady           => phyReady(i),
             sigDet             => sigDet(i),
+            -- Switch Polarity of TxN/TxP, RxN/RxP
+            gtTxPolarity       => gtTxPolarity(i),
+            gtRxPolarity       => gtRxPolarity(i),
             -- MGT Ports
             gtTxP              => gtTxP(i),
             gtTxN              => gtTxN(i),

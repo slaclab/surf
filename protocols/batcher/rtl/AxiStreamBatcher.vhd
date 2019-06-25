@@ -330,6 +330,8 @@ begin
             if (rxMaster.tValid = '1') then
                -- Reset the counter
                v.clkGapCnt := (others => '0');
+               -- Move the data
+               v.txMaster.tValid := '1';
                -- Next state
                v.state     := SUB_FRAME_S;
             -- Check for the clock gap event

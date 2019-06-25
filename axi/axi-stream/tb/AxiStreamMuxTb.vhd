@@ -256,9 +256,7 @@ begin
             PRBS_TAPS_G                => PRBS_TAPS_C,
             -- AXI Stream Configurations
             SLAVE_AXI_STREAM_CONFIG_G  => AXI_STREAM_CONFIG_C,
-            SLAVE_AXI_PIPE_STAGES_G    => AXI_PIPE_STAGES_C,
-            MASTER_AXI_STREAM_CONFIG_G => ssiAxiStreamConfig(4),  -- unused
-            MASTER_AXI_PIPE_STAGES_G   => 0)                      -- unused
+            SLAVE_AXI_PIPE_STAGES_G    => AXI_PIPE_STAGES_C)
          port map (
             -- Streaming RX Data Interface (sAxisClk domain) 
             sAxisClk       => slowClk,
@@ -266,11 +264,6 @@ begin
             sAxisMaster    => ibMasters(i),
             sAxisSlave     => ibSlaves(i),
             sAxisCtrl      => open,
-            -- Optional: Streaming TX Data Interface (mAxisClk domain)
-            mAxisClk       => slowClk,
-            mAxisRst       => slowRst,
-            mAxisMaster    => open,
-            mAxisSlave     => AXI_STREAM_SLAVE_FORCE_C,
             -- Optional: AXI-Lite Register Interface (axiClk domain)
             axiClk         => slowClk,
             axiRst         => slowRst,
