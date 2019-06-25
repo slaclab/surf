@@ -236,7 +236,7 @@ class Pgp2bAxi(pr.Device):
             bitOffset   = 0, 
             mode        = "RO", 
             base        = pr.UInt,
-            pollInterval = 5
+            pollInterval = 1
         ))
 
         self.add(pr.RemoteVariable(
