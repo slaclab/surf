@@ -51,6 +51,14 @@ end entity AxiStreamPacketizer2;
 
 architecture rtl of AxiStreamPacketizer2 is
 
+   constant AXIS_CONFIG_C : AxiStreamConfigType := (
+      TSTRB_EN_C    => false,
+      TDATA_BYTES_C => 8,
+      TDEST_BITS_C  => 8,
+      TID_BITS_C    => 8,
+      TKEEP_MODE_C  => TKEEP_COMP_C,
+      TUSER_BITS_C  => 8,
+      TUSER_MODE_C  => TUSER_FIRST_LAST_C);
 
    constant LD_WORD_SIZE_C : positive := 3;
    constant WORD_SIZE_C    : positive := 2**LD_WORD_SIZE_C;
@@ -243,7 +251,7 @@ begin
 
    end generate;
 
-   comb : process (axisRst, crcOut, crcRem, inputAxisMaster, outputAxisSlave,
+   comb : process (crcOut, crcRem, inputAxisMaster, outputAxisSlave,
                    r, ramCrcRem, ramPacketActiveOut, ramPacketSeqOut, maxWords) is
       variable v     : RegType;
       variable tdest : slv(7 downto 0);
@@ -380,7 +388,7 @@ begin
                   -- Reset frame state in ram
                   v.packetSeq              := (others => '0');
                   v.packetActive           := '0';
-                  v.tUserLast              := inputAxisMaster.tUser(7 downto 0);
+                  v.tUserLast              := axiStreamGetUserField(AXIS_CONFIG_C, inputAxisMaster);
                   v.eof                    := '1';
                   v.lastByteCount          := toSlv(getTKeep(inputAxisMaster.tKeep(7 downto 0), PACKETIZER2_AXIS_CFG_C), 4);
                   v.outputAxisMaster.tLast := '0';
@@ -452,29 +460,26 @@ begin
                bytes      => r.lastByteCount,
                crc        => crcOut);
       end if;
-
-      -- Combinatorial outputs before the reset
-      inputAxisSlave <= v.inputAxisSlave;
-      crcIn          <= endianSwap(v.crcIn);
-
-      -- Reset
-      if (axisRst = '1') then
-         v := REG_INIT_C;
-      end if;
-
+      
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs
+      -- Outputs
+      inputAxisSlave   <= v.inputAxisSlave;
+      crcIn            <= endianSwap(v.crcIn);
       outputAxisMaster <= r.outputAxisMaster;
       rearbitrate      <= r.rearbitrate;
-
+      
    end process comb;
 
    seq : process (axisClk) is
    begin
       if (rising_edge(axisClk)) then
-         r <= rin after TPD_G;
+         if (axisRst = '1') then
+            r <= REG_INIT_C after TPD_G;
+         else
+            r <= rin after TPD_G;
+         end if;      
       end if;
    end process seq;
 

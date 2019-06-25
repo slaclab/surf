@@ -208,7 +208,7 @@ begin
       -- Retransmission Timeout counter
       if (connActive_i = '0' or
           r.sndResend  = '1' or
-          (rxValid_i = '1' and rxFlags_i.busy = '1') or
+          rxFlags_i.busy = '1' or
           dataHeadSt_i = '1' or
           rstHeadSt_i  = '1' or
           nullHeadSt_i = '1' or
@@ -292,8 +292,6 @@ begin
           v.sndNull := '0'; 
       elsif (r.nullToutCnt >= (conv_integer(rssiParam_i.nullSegTout) * SAMPLES_PER_TIME_DIV3_C)  ) then -- send null segments if timeout/2 reached
          v.sndNull := '1';
-      elsif (rxBuffBusy_i = '1') and (r.rxBuffBusy = '0') then -- Check for RX buffer full event
-         v.sndNull := '1';
       end if;
       
       -- Timeout not applicable
@@ -321,18 +319,8 @@ begin
          v.nullTout := '1';
       end if;
       
-      -- Null request SRFF 
-      if (connActive_i = '0' or
-          dataHeadSt_i = '1' or
-          rstHeadSt_i  = '1' or
-          nullHeadSt_i = '1') then
-          v.sndNull := '0'; 
-      elsif (rxBuffBusy_i = '1') and (r.rxBuffBusy = '0') then -- Check for RX buffer full event
-         v.sndNull := '1';
-      end if;
-      
    end if;
-   
+
    -- Check a delayed copy
    v.rxBuffBusy := rxBuffBusy_i;
 
