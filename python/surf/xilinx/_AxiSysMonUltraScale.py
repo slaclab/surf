@@ -33,7 +33,6 @@ class AxiSysMonUltraScale(pr.Device):
                 offset       = offset, 
                 bitSize      = bitSize, 
                 bitOffset    = bitOffset,
-                base         = pr.UInt, 
                 mode         = 'RO', 
                 description  = description,
                 pollInterval = pollInterval,
@@ -67,7 +66,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x04,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             hidden       =  True,
         ))
@@ -78,7 +76,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x08,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             hidden       =  True,
         ))
@@ -89,7 +86,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x0C,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "WO",
             hidden       =  True,
         ))
@@ -100,7 +96,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x10,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "WO",
             hidden       =  True,
         ))
@@ -111,7 +106,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x5C,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             hidden       =  True,
         ))
@@ -122,7 +116,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x60,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             hidden       =  True,
         ))
@@ -133,7 +126,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x68,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             hidden       =  True,
         ))
@@ -355,7 +347,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x4E0,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             hidden       =  True,
         ))
@@ -366,7 +357,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x4FC,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             hidden       =  True,
         ))
@@ -377,7 +367,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x500,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             number       =  4,
             stride       =  4,
@@ -390,7 +379,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x518,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             hidden       =  True,
         ))
@@ -401,7 +389,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x51C,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             hidden       =  True,
         ))
@@ -412,7 +399,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x520,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             number       =  8,
             stride       =  4,
@@ -425,7 +411,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x540,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             number       =  9,
             stride       =  4,
@@ -438,39 +423,55 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x504,
             bitSize      =  1,
             bitOffset    =  0x0,
-            base         = pr.UInt,
             mode         = "RW",
         ))
-
+        
         self.add(pr.RemoteVariable( 
-            name         = "OTCustomThresholdEnable",
-            description  = "OT custom threshold enable reg, set to 0x3 to enable custom OT (defatul 125 degC)",
+            name         = "OTAutomaticShutdown",
+            description  = "OT_AUTOMATIC_SHUTDOWN, set to 0x3 to enable (defatul 125 degC)",
             offset       =  0x54C,
             bitSize      =  4,
             bitOffset    =  0x0,
-            base         = pr.UInt,
             mode         = "RW",
         ))
-
+        
         self.add(pr.RemoteVariable( 
-            name         = "OTThresholdRaw",
-            description  = "OT threshold enable reg, set to 0x3 to enable custom OT (default 125 degC)",
+            name         = "OTUpperThresholdRaw",
+            description  = "UPPER_OT threshold",
             offset       =  0x54C,
             bitSize      =  12,
             bitOffset    =  0x4,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
         self.add(pr.LinkVariable(
-            name         = "OTThreshold", 
+            name         = "OTUpperThreshold", 
             mode         = 'RW', 
             units        = 'degC',
             linkedGet    = self.convTemp,
             linkedSet    = self.convSetTemp,
             typeStr      = "Float32",
-            dependencies = [self.variables["OTThresholdRaw"]],
+            dependencies = [self.variables["OTUpperThresholdRaw"]],
         ))
+         
+        self.add(pr.RemoteVariable( 
+            name         = "OTLowerThresholdRaw",
+            description  = "LOWER_OT threshold",
+            offset       =  0x55C,
+            bitSize      =  12,
+            bitOffset    =  0x4,
+            mode         = "RW",
+        ))
+
+        self.add(pr.LinkVariable(
+            name         = "OTLowerThreshold", 
+            mode         = 'RW', 
+            units        = 'degC',
+            linkedGet    = self.convTemp,
+            linkedSet    = self.convSetTemp,
+            typeStr      = "Float32",
+            dependencies = [self.variables["OTLowerThresholdRaw"]],
+        ))        
 
         self.add(pr.RemoteVariable(    
             name         = "AlarmThresholdReg12",
@@ -478,7 +479,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x570,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             hidden       =  True,
         ))
@@ -489,7 +489,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x580,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             number       =  8,
             stride       =  4,
@@ -502,7 +501,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x600,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             number       =  4,
             stride       =  4,
@@ -515,7 +513,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x680,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             number       =  4,
             stride       =  4,
@@ -528,7 +525,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x6A0,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             number       =  4,
             stride       =  4,
