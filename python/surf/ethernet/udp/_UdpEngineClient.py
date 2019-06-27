@@ -1,13 +1,5 @@
 #!/usr/bin/env python
 #-----------------------------------------------------------------------------
-# Title      : PyRogue UdpEngineClient
-#-----------------------------------------------------------------------------
-# File       : UdpEngineClient.py
-# Created    : 2017-04-12
-#-----------------------------------------------------------------------------
-# Description:
-# PyRogue UdpEngineClient
-#-----------------------------------------------------------------------------
 # This file is part of the rogue software platform. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
 # of this distribution and at:
@@ -36,8 +28,6 @@ class UdpEngineClient(pr.Device):
             description  = "ClientRemotePort (big-Endian configuration)",
             offset       =  0x00,
             bitSize      =  16,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             hidden       = True,            
         ))
@@ -56,8 +46,6 @@ class UdpEngineClient(pr.Device):
             description  = "ClientRemoteIp (big-Endian configuration)",
             offset       =  0x04,
             bitSize      =  32,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             hidden       = True,            
         ))
