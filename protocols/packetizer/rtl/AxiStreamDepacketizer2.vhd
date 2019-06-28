@@ -29,6 +29,7 @@ entity AxiStreamDepacketizer2 is
    generic (
       TPD_G                : time             := 1 ns;
       BRAM_EN_G            : boolean          := false;
+      REG_EN_G             : boolean          := false;
       CRC_MODE_G           : string           := "DATA";  -- or "NONE" or "FULL"
       CRC_POLY_G           : slv(31 downto 0) := x"04C11DB7";
       TDEST_BITS_G         : natural          := 8;
@@ -65,6 +66,7 @@ architecture rtl of AxiStreamDepacketizer2 is
 
    type StateType is (
       IDLE_S,
+      WAIT_S,
       HEADER_S,
       MOVE_S,
       TERMINATE_S,
@@ -83,7 +85,7 @@ architecture rtl of AxiStreamDepacketizer2 is
       crcInit          : slv(31 downto 0);
       crcReset         : sl;
       linkGoodDly      : sl;
-      initDone         : sl;
+      rdLat            : natural range 0 to 2;
       debug            : Packetizer2DebugType;
       inputAxisSlave   : AxiStreamSlaveType;
       outputAxisMaster : AxiStreamMasterArray(1 downto 0);
@@ -102,7 +104,7 @@ architecture rtl of AxiStreamDepacketizer2 is
       crcInit          => (others => '1'),
       crcReset         => '1',
       linkGoodDly      => '0',
-      initDone         => '0',
+      rdLat            => 2,
       debug            => PACKETIZER2_DEBUG_INIT_C,
       inputAxisSlave   => AXI_STREAM_SLAVE_INIT_C,
       outputAxisMaster => (others => axiStreamMasterInit(AXIS_CONFIG_C)));
@@ -167,9 +169,9 @@ begin
       generic map (
          TPD_G        => TPD_G,
          BRAM_EN_G    => BRAM_EN_G,
-         REG_EN_G     => false,
-         DOA_REG_G    => false,
-         DOB_REG_G    => false,
+         REG_EN_G     => REG_EN_G,
+         DOA_REG_G    => REG_EN_G,
+         DOB_REG_G    => REG_EN_G,
          BYTE_WR_EN_G => false,
          DATA_WIDTH_G => 18+32,
          ADDR_WIDTH_G => ADDR_WIDTH_C)
@@ -283,8 +285,9 @@ begin
       -- Latch the current value
       v := r;
 
-      -- Set default debug value
-      v.debug := PACKETIZER2_DEBUG_INIT_C;
+      -- Reset debug strobes flag
+      v.debug          := PACKETIZER2_DEBUG_INIT_C;
+      v.debug.initDone := r.debug.initDone; --- Don't touch initDone
 
       -- Don't write new packet number by default
       v.ramWe := '0';
@@ -320,8 +323,17 @@ begin
 
             -- Check for data
             if (inputAxisMaster.tValid = '1') then
-               v.state := HEADER_S;
+               -- Check for 2 read cycle latency
+               if (BRAM_EN_G) and (REG_EN_G) then
+                  v.state := WAIT_S;
+               -- Else 1 read cycle latency
+               else
+                  v.state := HEADER_S;
+               end if;
             end if;
+         ----------------------------------------------------------------------
+         when WAIT_S =>            
+            v.state := HEADER_S;
          ----------------------------------------------------------------------
          when HEADER_S =>
             -- The header data won't be pushed to the output this cycle, so accept by default
@@ -357,8 +369,8 @@ begin
                -- Calculate CRC on head of enabled to do so
                v.crcDataValid := toSl(CRC_HEAD_TAIL_C);
 
-               -- Check for BRAM configuration
-               if BRAM_EN_G then
+               -- Check for BRAM or REG_EN_G used
+               if (BRAM_EN_G) or (REG_EN_G) then
                   -- Default next state if v.state=MOVE_S not applied later in the combinatorial chain
                   v.state := IDLE_S;
                end if;
@@ -457,8 +469,8 @@ begin
                      -- Can sent tail right now
                      doTail;
                      -- Check for BRAM used
-                     if (BRAM_EN_G) then
-                        -- Next state (1 cycle read latency)
+                     if (BRAM_EN_G) or (REG_EN_G) then
+                        -- Next state (1 or 2 cycle read latency)
                         v.state := IDLE_S;
                      else
                         -- Next state (0 cycle read latency)
@@ -474,8 +486,8 @@ begin
             -- Can sent tail right now
             doTail;
             -- Check for BRAM used
-            if (BRAM_EN_G) then
-               -- Next state (1 cycle read latency)
+            if (BRAM_EN_G) or (REG_EN_G) then
+               -- Next state (1 or 2 cycle read latency)
                v.state := IDLE_S;
             else
                -- Next state (0 cycle read latency)
@@ -497,12 +509,12 @@ begin
             v.crcReset     := '1';      -- Reset CRC in ram to 0xFFFFFFFF
 
             -- Check for max index
-            if (r.initDone = '1') then
+            if (r.debug.initDone = '1') then
                -- Wait for link to come back up
                if (linkGood = '1') then
-                  -- Check for BRAM used
-                  if (BRAM_EN_G) then
-                     -- Next state (1 cycle read latency)
+                  -- Check for BRAM or REG_EN_G used
+                  if (BRAM_EN_G) or (REG_EN_G) then
+                     -- Next state (1 or 2 cycle read latency)
                      v.state := IDLE_S;
                   else
                      -- Next state (0 cycle read latency)
@@ -511,7 +523,7 @@ begin
                end if;
             else
                -- Check if ready to move data and RAM output ready
-               if (v.outputAxisMaster(1).tValid = '0') and ((r.ramWe = '0') or (BRAM_EN_G = false)) then
+               if (v.outputAxisMaster(1).tValid = '0') and (r.rdLat = 0) then
                   -- Write to the RAM
                   v.activeTDest                                        := r.activeTDest - 1;
                   -- Increment the index
@@ -526,12 +538,31 @@ begin
                   v.debug.eofe                                         := ramPacketActiveOut;
                   -- Check if initializing the RAM is done
                   if (r.activeTDest = 0) then
-                     v.initDone := '1';
+                     v.debug.initDone := '1';
                   end if;
                end if;
             end if;
       ----------------------------------------------------------------------
       end case;
+      
+      -- Check for read transaction
+      if (r.activeTDest /= v.activeTDest) then
+         -- zero latency
+         if (BRAM_EN_G = false) and (REG_EN_G = false) then
+            v.rdLat := 0;
+         -- 1 cycle latency
+         elsif (BRAM_EN_G = false) and (REG_EN_G = true) then            
+            v.rdLat := 1;
+         -- 1 cycle latency
+         elsif (BRAM_EN_G = true) and (REG_EN_G = false) then            
+            v.rdLat := 1;            
+         -- 2 cycle latency
+         else
+            v.rdLat := 2;
+         end if;
+      elsif (r.rdLat /= 0) then
+         v.rdLat := r.rdLat - 1;
+      end if;
 
       -- Keep a delayed copy
       v.linkGoodDly := linkGood;
@@ -539,13 +570,13 @@ begin
       -- Check for link drop event
       if (r.linkGoodDly = '1') and (linkGood = '0') then
          -- Reset CRC now because crcRem has 1 cycle latency 
-         v.crcReset    := '1';
-         v.crcInit     := (others => '1');
+         v.crcReset       := '1';
+         v.crcInit        := (others => '1');
          -- Reset the index
-         v.activeTDest := (others => '1');
-         v.initDone    := '0';
+         v.activeTDest    := (others => '1');
+         v.debug.initDone := '0';
          -- Next state
-         v.state       := TERMINATE_S;
+         v.state          := TERMINATE_S;
       end if;
 
       -- Register the variable for next clock cycle
