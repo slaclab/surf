@@ -1,13 +1,5 @@
 #!/usr/bin/env python
 #-----------------------------------------------------------------------------
-# Title      : PyRogue AXI-Lite System Managment for Xilinx Ultra Scale (Refer to PG185 and UG580)
-#-----------------------------------------------------------------------------
-# File       : AxiSysMonUltraScale.py
-# Created    : 2017-04-12
-#-----------------------------------------------------------------------------
-# Description:
-# PyRogue AXI-Lite System Managment for Xilinx Ultra Scale (Refer to PG185 and UG580)
-#-----------------------------------------------------------------------------
 # This file is part of the rogue software platform. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
 # of this distribution and at:
@@ -22,7 +14,7 @@ import pyrogue as pr
 class AxiSysMonUltraScale(pr.Device):
     def __init__(   self,       
             name         = "AxiSysMonUltraScale",
-            description  = "AXI-Lite System Managment for Xilinx Ultra Scale (Refer to PG185 and UG580)",
+            description  = "AXI-Lite System Managment for Xilinx Ultra Scale (Refer to PG185)",
             XIL_DEVICE_G = "ULTRASCALE",
             **kwargs):
         super().__init__(name=name, description=description, **kwargs) 
