@@ -198,6 +198,7 @@ begin
             generic map (
                TPD_G                => TPD_G,
                BRAM_EN_G            => true,
+               REG_EN_G             => true,
                CRC_MODE_G           => "FULL",
                CRC_POLY_G           => x"04C11DB7",
                TDEST_BITS_G         => 8,
@@ -305,6 +306,7 @@ begin
             generic map (
                TPD_G                => TPD_G,
                BRAM_EN_G            => true,
+               REG_EN_G             => true,               
                CRC_MODE_G           => "FULL",
                CRC_POLY_G           => x"04C11DB7",
                TDEST_BITS_G         => 8,
