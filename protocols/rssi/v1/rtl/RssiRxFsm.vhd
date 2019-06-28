@@ -205,7 +205,7 @@ architecture rtl of RssiRxFsm is
    constant REG_INIT_C : RegType := (
       
       -- Rx buffer window
-      windowArray => (0 to 2 ** WINDOW_ADDR_SIZE_G-1 => WINDOW_INIT_C),
+      windowArray => (others => WINDOW_INIT_C),
       pending     => 0,
       
       -- Transport side FSM (Receive and check segments)
@@ -767,7 +767,7 @@ begin
       
       ---------------------------------------------------------------------
       -- Write and read ports
-      wrBuffAddr_o   <= v.rxSeqN(WINDOW_ADDR_SIZE_G-1 downto 0) & r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0);
+      wrBuffAddr_o   <= r.rxSeqN(WINDOW_ADDR_SIZE_G-1 downto 0) & r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0);
       wrBuffWe_o     <= r.segmentWe;
       wrBuffData_o   <= r.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0);
       
