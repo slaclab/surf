@@ -15,3 +15,5 @@ from surf.xilinx._Gthe3Channel        import *
 from surf.xilinx._Gtpe2Channel        import *
 from surf.xilinx._Gtpe2Common         import *
 from surf.xilinx._Xadc                import *
+from surf.xilinx._RfTile              import *
+from surf.xilinx._RfDataConverter     import *
