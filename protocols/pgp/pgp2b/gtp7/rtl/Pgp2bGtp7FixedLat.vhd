@@ -213,8 +213,24 @@ begin
          phyRxLanesOut    => phyRxLanesOut,
          phyRxLanesIn     => phyRxLanesIn,
          phyRxReady       => gtRxResetDone,
-         phyRxInit        => gtRxUserReset   -- Ignore phyRxInit, rx will reset on its own
+         phyRxInit        => phyRxInit       -- Ignore phyRxInit, rx will reset on its own
          );
+
+   -------------------------------------------------------------------------------------------------
+   -- Oneshot the phy init because clock may drop out and leave it stuck high
+   -------------------------------------------------------------------------------------------------
+   U_SynchronizerOneShot_1 : entity work.SynchronizerOneShot
+      generic map (
+         TPD_G          => TPD_G,
+--         RELEASE_DELAY_G => RELEASE_DELAY_G,
+         IN_POLARITY_G  => '1',
+         OUT_POLARITY_G => '1',
+         PULSE_WIDTH_G  => 100)
+      port map (
+         clk     => stableClk,          -- [in]
+--         rst     => rst,                -- [in]
+         dataIn  => phyRxInit,          -- [in]
+         dataOut => gtRxUserReset);     -- [out]
 
    --------------------------------------------------------------------------------------------------
    -- Rx Data Path
@@ -246,13 +262,13 @@ begin
          TPD_G       => TPD_G,
          SLIP_WAIT_G => 1)
       port map (
-         clk           => pgpRxClk,       -- [in]
+         clk           => pgpRxClk,        -- [in]
          rst           => gtRxResetDoneL,  -- [in]
-         rxHeader(0)   => dataValid,      -- [in]
-         rxHeader(1)   => '0',            -- [in]
-         rxHeaderValid => '1',            -- [in]
-         slip          => open,           -- [out]
-         locked        => dataValid);     -- [out]
+         rxHeader(0)   => dataValid,       -- [in]
+         rxHeader(1)   => '0',             -- [in]
+         rxHeaderValid => '1',             -- [in]
+         slip          => open,            -- [out]
+         locked        => dataValid);      -- [out]
 
    pgpRxRecClkRst <= gtRxResetDoneL;
 
@@ -342,7 +358,7 @@ begin
          rxMmcmLockedIn   => pgpRxMmcmLocked,
          rxUserResetIn    => gtRxUserReset,
          rxResetDoneOut   => gtRxResetDone,                -- Use for rxRecClkReset???
-         rxDataValidIn    => '1',   -- From 8b10b
+         rxDataValidIn    => '1',       -- From 8b10b
          rxSlideIn        => '0',       -- Slide is controlled internally
          rxDataOut        => gtRxData,
          rxCharIsKOut     => open,      -- Not using gt rx 8b10b
