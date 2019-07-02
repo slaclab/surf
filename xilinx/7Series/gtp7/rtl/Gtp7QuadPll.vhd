@@ -169,7 +169,7 @@ begin
          BGBYPASSB         => '1',
          BGMONITORENB      => '1',
          BGPDB             => '1',
-         BGRCALOVRD        => "00000",
+         BGRCALOVRD        => "11111",
          PMARSVD           => "00000000",
          RCALENB           => '1');
 

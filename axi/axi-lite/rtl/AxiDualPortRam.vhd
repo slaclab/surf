@@ -258,7 +258,7 @@ begin
                clkb    => clk,                                       -- [in]
                enb     => en,                                        -- [in]
                web     => we,                                        -- [in]
-               webByte => weByte,                                    -- [in]
+               webByte => weByteMask,                                -- [in]
                rstb    => '0',                                       -- [in]
                addrb   => addr,                                      -- [in]
                dinb    => din,                                       -- [in]
