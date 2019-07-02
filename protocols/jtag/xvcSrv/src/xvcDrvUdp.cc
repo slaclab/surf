@@ -200,7 +200,7 @@ int got;
 	iovs_[1].iov_base = rxb;
 	iovs_[1].iov_len  = size;
 
-	got = readv( poll_[0].fd, iovs_, sizeof(iovs_)/sizeof(iovs_[0]) );
+	got = read( poll_[0].fd, iovs_, sizeof(iovs_)/sizeof(iovs_[0]) );
 
 	if ( debug_ > 1 ) {
 		fprintf(stderr, "HSIZE %d, SIZE %d, got %d\n", hsize ,size, got );
