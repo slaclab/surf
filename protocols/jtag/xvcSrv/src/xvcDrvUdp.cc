@@ -24,6 +24,7 @@
 #include <netdb.h>
 #include <string.h>
 #include <netinet/ip.h>
+#include <sys/uio.h>
 
 static const char *DFLT_PORT="2542";
 
@@ -200,7 +201,7 @@ int got;
 	iovs_[1].iov_base = rxb;
 	iovs_[1].iov_len  = size;
 
-	got = read( poll_[0].fd, iovs_, sizeof(iovs_)/sizeof(iovs_[0]) );
+	got = readv( poll_[0].fd, iovs_, sizeof(iovs_)/sizeof(iovs_[0]) );
 
 	if ( debug_ > 1 ) {
 		fprintf(stderr, "HSIZE %d, SIZE %d, got %d\n", hsize ,size, got );
