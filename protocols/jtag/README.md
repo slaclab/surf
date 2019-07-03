@@ -42,6 +42,8 @@ For the Impatient
 
 5) In Vivado connect to the target:
 
+       open_hw
+       connect_hw_server
        open_hw_target -xvc_url <xvc_server_ip>:2542
 
 Design Goals
