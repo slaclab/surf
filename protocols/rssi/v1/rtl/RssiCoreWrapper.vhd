@@ -15,7 +15,8 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
+use ieee.std_logic_unsigned.all;
+use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.RssiPkg.all;
@@ -26,12 +27,12 @@ use work.AxiLitePkg.all;
 entity RssiCoreWrapper is
    generic (
       TPD_G                : time                 := 1 ns;
-      CLK_FREQUENCY_G      : real                 := 100.0E+6;  -- In units of Hz
-      TIMEOUT_UNIT_G       : real                 := 1.0E-6;  -- In units of seconds
+      CLK_FREQUENCY_G      : real                 := 156.25E+6;  -- In units of Hz
+      TIMEOUT_UNIT_G       : real                 := 1.0E-3;  -- In units of seconds
       SERVER_G             : boolean              := true;  -- Module is server or client 
       RETRANSMIT_ENABLE_G  : boolean              := true;  -- Enable/Disable retransmissions in tx module
       WINDOW_ADDR_SIZE_G   : positive             := 3;  -- 2^WINDOW_ADDR_SIZE_G  = Max number of segments in buffer
-      SEGMENT_ADDR_SIZE_G  : positive             := 7;  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
+      SEGMENT_ADDR_SIZE_G  : positive             := 7;  -- Unused (legacy generic)
       BYPASS_CHUNKER_G     : boolean              := false;  -- Bypass the AXIS chunker layer
       PIPE_STAGES_G        : natural              := 0;
       APP_STREAMS_G        : positive             := 1;
@@ -40,8 +41,8 @@ entity RssiCoreWrapper is
       BYP_TX_BUFFER_G      : boolean              := false;
       BYP_RX_BUFFER_G      : boolean              := false;
       SYNTH_MODE_G         : string               := "inferred";
-      MEMORY_TYPE_G        : string               := "block";       
-      ILEAVE_ON_NOTVALID_G : boolean              := false;
+      MEMORY_TYPE_G        : string               := "block";
+      ILEAVE_ON_NOTVALID_G : boolean              := false;  -- Unused (legacy generic)
       -- AXIS Configurations
       APP_AXIS_CONFIG_G    : AxiStreamConfigArray := (0 => ssiAxiStreamConfig(8, TKEEP_NORMAL_C));
       TSP_AXIS_CONFIG_G    : AxiStreamConfigType  := ssiAxiStreamConfig(16, TKEEP_NORMAL_C);
@@ -51,7 +52,7 @@ entity RssiCoreWrapper is
       VERSION_G            : positive             := 1;
       HEADER_CHKSUM_EN_G   : boolean              := true;
       -- Window parameters of receiver module
-      MAX_NUM_OUTS_SEG_G   : positive             := 8;  --   <=(2**WINDOW_ADDR_SIZE_G)
+      MAX_NUM_OUTS_SEG_G   : positive             := 8;  -- Unused (legacy generic)
       MAX_SEG_SIZE_G       : positive             := 1024;  -- <= (2**SEGMENT_ADDR_SIZE_G)*8 Number of bytes
       -- RSSI Timeouts
       ACK_TOUT_G           : positive             := 25;  -- unit depends on TIMEOUT_UNIT_G 
@@ -78,6 +79,7 @@ entity RssiCoreWrapper is
       openRq_i          : in  sl                     := '0';
       closeRq_i         : in  sl                     := '0';
       inject_i          : in  sl                     := '0';
+      rssiConnected_o   : out sl;
       -- AXI-Lite Register Interface
       axiClk_i          : in  sl                     := '0';
       axiRst_i          : in  sl                     := '0';
@@ -107,8 +109,6 @@ architecture mapping of RssiCoreWrapper is
    signal rssiNotConnected : sl;
    signal rssiConnected    : sl;
 
-   signal maxObSegSize     : slv(15 downto 0);
-
    -- This should really go in a AxiStreamPacketizerPkg
    constant PACKETIZER_AXIS_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
@@ -123,7 +123,33 @@ architecture mapping of RssiCoreWrapper is
    -- else use Packetizer AXIS format. Packetizer will then convert to RSSI config.
    constant CONV_AXIS_CONFIG_C : AxiStreamConfigType := ite(BYPASS_CHUNKER_G, RSSI_AXIS_CONFIG_C, PACKETIZER_AXIS_CONFIG_C);
 
+   constant MAX_SEGS_BITS_C : positive := bitSize(MAX_SEG_SIZE_G);
+
+   signal maxObSegSize : slv(15 downto 0);
+   signal maxSegs      : slv(MAX_SEGS_BITS_C - 1 downto 0);
+   signal ileaveRearb  : slv(11 downto 0);
+
 begin
+
+   assert (isPowerOf2(MAX_SEG_SIZE_G) = true)
+      report "MAX_SEG_SIZE_G must be power of 2" severity failure;
+
+   -- Register to help with timing
+   process(clk_i)
+   begin
+      if rising_edge(clk_i) then
+         statusReg_o      <= statusReg          after TPD_G;
+         rssiConnected_o  <= statusReg(0)       after TPD_G;
+         rssiConnected    <= statusReg(0)       after TPD_G;
+         rssiNotConnected <= not(rssiConnected) after TPD_G;
+         if (maxObSegSize >= MAX_SEG_SIZE_G) then
+            maxSegs <= toSlv(MAX_SEG_SIZE_G, MAX_SEGS_BITS_C) after TPD_G;
+         else
+            maxSegs <= maxObSegSize(maxSegs'range) after TPD_G;
+         end if;
+         ileaveRearb <= resize(maxSegs(MAX_SEGS_BITS_C-1 downto 3), 12) - 3 after TPD_G;  -- # of tValid minus AxiStreamPacketizer2.PROTO_WORDS_C=3
+      end if;
+   end process;
 
    GEN_RX :
    for i in (APP_STREAMS_G-1) downto 0 generate
@@ -154,8 +180,8 @@ begin
          MODE_G               => "ROUTED",
          TDEST_ROUTES_G       => APP_STREAM_ROUTES_G,
          ILEAVE_EN_G          => APP_ILEAVE_EN_G,
-         ILEAVE_ON_NOTVALID_G => ILEAVE_ON_NOTVALID_G,
-         ILEAVE_REARB_G       => (MAX_SEG_SIZE_G/CONV_AXIS_CONFIG_C.TDATA_BYTES_C),
+         ILEAVE_ON_NOTVALID_G => true,  -- Because of ILEAVE_REARB_G value != power of 2, forcing rearb on not(tValid)
+         ILEAVE_REARB_G       => (MAX_SEG_SIZE_G/CONV_AXIS_CONFIG_C.TDATA_BYTES_C) - 3,  -- AxiStreamPacketizer2.PROTO_WORDS_C=3
          PIPE_STAGES_G        => 1)
       port map (
          -- Clock and reset
@@ -164,19 +190,13 @@ begin
          -- Slaves
          sAxisMasters => rxMasters,
          sAxisSlaves  => rxSlaves,
+         ileaveRearb  => ileaveRearb,
          -- Master
          mAxisMaster  => packetizerMasters(0),
          mAxisSlave   => packetizerSlaves(0));
 
    GEN_PACKER : if (BYPASS_CHUNKER_G = false) generate
-      constant MAX_SEGS_BITS_C : positive := bitSize(MAX_SEG_SIZE_G);
-      signal   maxSegs         : slv(MAX_SEGS_BITS_C - 1 downto 0);
    begin
-
-      maxSegs <= ite(unsigned(maxObSegSize) >= MAX_SEG_SIZE_G,
-                     slv(to_unsigned(MAX_SEG_SIZE_G, maxSegs'length)),
-                     maxObSegSize(maxSegs'range));
-
       PACKER_V1 : if (APP_ILEAVE_EN_G = false) generate
          U_Packetizer : entity work.AxiStreamPacketizer
             generic map (
@@ -229,11 +249,11 @@ begin
          SERVER_G            => SERVER_G,
          RETRANSMIT_ENABLE_G => RETRANSMIT_ENABLE_G,
          WINDOW_ADDR_SIZE_G  => WINDOW_ADDR_SIZE_G,
-         SEGMENT_ADDR_SIZE_G => SEGMENT_ADDR_SIZE_G,
+         SEGMENT_ADDR_SIZE_G => bitSize(MAX_SEG_SIZE_G/RSSI_WORD_WIDTH_C-1),
          BYP_TX_BUFFER_G     => BYP_TX_BUFFER_G,
          BYP_RX_BUFFER_G     => BYP_RX_BUFFER_G,
          SYNTH_MODE_G        => SYNTH_MODE_G,
-         MEMORY_TYPE_G       => MEMORY_TYPE_G,         
+         MEMORY_TYPE_G       => MEMORY_TYPE_G,
          -- AXIS Configurations
          APP_AXIS_CONFIG_G   => CONV_AXIS_CONFIG_C,
          TSP_AXIS_CONFIG_G   => TSP_AXIS_CONFIG_G,
@@ -243,7 +263,7 @@ begin
          VERSION_G           => VERSION_G,
          HEADER_CHKSUM_EN_G  => HEADER_CHKSUM_EN_G,
          -- Window parameters of receiver module
-         MAX_NUM_OUTS_SEG_G  => MAX_NUM_OUTS_SEG_G,
+         MAX_NUM_OUTS_SEG_G  => (2**WINDOW_ADDR_SIZE_G),
          MAX_SEG_SIZE_G      => MAX_SEG_SIZE_G,
          -- RSSI Timeouts
          RETRANS_TOUT_G      => RETRANS_TOUT_G,
@@ -280,10 +300,6 @@ begin
          -- Internal statuses
          statusReg_o      => statusReg,
          maxSegSize_o     => maxObSegSize);
-
-   statusReg_o      <= statusReg;
-   rssiConnected    <= statusReg(0);
-   rssiNotConnected <= not(rssiConnected);
 
    GEN_DEPACKER : if (BYPASS_CHUNKER_G = false) generate
       DEPACKER_V1 : if (APP_ILEAVE_EN_G = false) generate
