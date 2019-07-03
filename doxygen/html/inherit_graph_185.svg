@@ -11,9 +11,9 @@
 <polygon fill="white" stroke="none" points="-4,4 -4,-24 88,-24 88,4 -4,4"/>
 <!-- Node1 -->
 <g id="node1" class="node"><title>Node1</title>
-<g id="a_node1"><a xlink:href="classEncoder12b14b.html" target="_top" xlink:title="Encoder12b14b">
+<g id="a_node1"><a xlink:href="classEncoder10b12b.html" target="_top" xlink:title="Encoder10b12b">
 <polygon fill="white" stroke="black" points="-7.10543e-15,-0.5 -7.10543e-15,-19.5 84,-19.5 84,-0.5 -7.10543e-15,-0.5"/>
-<text text-anchor="middle" x="42" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">Encoder12b14b</text>
+<text text-anchor="middle" x="42" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">Encoder10b12b</text>
 </a>
 </g>
 </g>

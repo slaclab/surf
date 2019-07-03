@@ -39,6 +39,7 @@ var classGtyUltraScaleQuadPll =
     [ "QPLL_SDM_CFG1_G", "classGtyUltraScaleQuadPll.html#adc2501084d119d3be8e620d91001c062", null ],
     [ "QPLL_SDM_CFG2_G", "classGtyUltraScaleQuadPll.html#a98a1e00ea881fcb3056ae65577c91b30", null ],
     [ "QPLL_REFCLK_SEL_G", "classGtyUltraScaleQuadPll.html#ac21240e7c8861874c42f253c56840403", null ],
+    [ "EN_DRP_G", "classGtyUltraScaleQuadPll.html#adc2d033559dcfd31442b0113a54a5c96", null ],
     [ "qPllRefClk", "classGtyUltraScaleQuadPll.html#aafd0eeab2a1c00fa160a3912f052626e", null ],
     [ "qPllOutClk", "classGtyUltraScaleQuadPll.html#aa61c8cf21ce5fa54e50c4ef9484c7bd3", null ],
     [ "qPllOutRefClk", "classGtyUltraScaleQuadPll.html#a96de0765c324962b4a8e456ecdc88390", null ],

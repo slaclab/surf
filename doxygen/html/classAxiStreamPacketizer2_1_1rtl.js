@@ -1,7 +1,8 @@
 var classAxiStreamPacketizer2_1_1rtl =
 [
-    [ "comb", "classAxiStreamPacketizer2_1_1rtl.html#a9c029d22aff89567bfe6b9344b358a74", null ],
+    [ "comb", "classAxiStreamPacketizer2_1_1rtl.html#a9a807ea2fab73f22998aaa6e70e440fd", null ],
     [ "seq", "classAxiStreamPacketizer2_1_1rtl.html#a60cf6c6e46dc89a140bc8bff4d98f732", null ],
+    [ "AXIS_CONFIG_C", "classAxiStreamPacketizer2_1_1rtl.html#a351c2ef53ab724df471b71d1e6fd6500", null ],
     [ "LD_WORD_SIZE_C", "classAxiStreamPacketizer2_1_1rtl.html#a4fdb67dd5cd1b1fb61c866be367a7303", null ],
     [ "WORD_SIZE_C", "classAxiStreamPacketizer2_1_1rtl.html#aecc5684023b5588856809a4f4a3b511b", null ],
     [ "WordCounterType", "classAxiStreamPacketizer2_1_1rtl.html#a3021925f0c63fd47b492490498d4ccd1", null ],
@@ -10,7 +11,7 @@ var classAxiStreamPacketizer2_1_1rtl =
     [ "CRC_EN_C", "classAxiStreamPacketizer2_1_1rtl.html#a48834d048b80954714266d6a58732615", null ],
     [ "CRC_HEAD_TAIL_C", "classAxiStreamPacketizer2_1_1rtl.html#a65d7a060f68f6fdec8c0bcf3094287f7", null ],
     [ "ADDR_WIDTH_C", "classAxiStreamPacketizer2_1_1rtl.html#a85003d4ec04db1086aa3ce63432bfbd8", null ],
-    [ "StateType", "classAxiStreamPacketizer2_1_1rtl.html#a0e3724b729289cb85f24709c91e9620c", null ],
+    [ "StateType", "classAxiStreamPacketizer2_1_1rtl.html#a73d22e2e6e2f9f163e589b156592a469", null ],
     [ "RegType", "classAxiStreamPacketizer2_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
     [ "state", "classAxiStreamPacketizer2_1_1rtl.html#a29ddea0778c5dba9ca0b08e7188a5a57", null ],
     [ "packetSeq", "classAxiStreamPacketizer2_1_1rtl.html#a2a4054912fbae43b329b664fae6d62b1", null ],

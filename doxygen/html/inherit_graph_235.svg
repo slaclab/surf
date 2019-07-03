@@ -11,9 +11,9 @@
 <polygon fill="white" stroke="none" points="-4,4 -4,-24 72,-24 72,4 -4,4"/>
 <!-- Node1 -->
 <g id="node1" class="node"><title>Node1</title>
-<g id="a_node1"><a xlink:href="classGigEthGtx7.html" target="_top" xlink:title="GigEthGtx7">
+<g id="a_node1"><a xlink:href="classGigEthGtp7.html" target="_top" xlink:title="GigEthGtp7">
 <polygon fill="white" stroke="black" points="0,-0.5 0,-19.5 68,-19.5 68,-0.5 0,-0.5"/>
-<text text-anchor="middle" x="34" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">GigEthGtx7</text>
+<text text-anchor="middle" x="34" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">GigEthGtp7</text>
 </a>
 </g>
 </g>

@@ -11,7 +11,7 @@ var classClinkData_1_1rtl =
     [ "bitSlip", "classClinkData_1_1rtl.html#aa9ba053d0accff2e79762686509b42d9", null ],
     [ "count", "classClinkData_1_1rtl.html#a60a08638a18f220e6120088014c41cc5", null ],
     [ "status", "classClinkData_1_1rtl.html#ad7fc7fc75d5eb426e0da6477bf2c6e1f", null ],
-    [ "REG_INIT_C", "classClinkData_1_1rtl.html#a4a1267a948788ceb8c4d72aa50eb2078", null ],
+    [ "REG_INIT_C", "classClinkData_1_1rtl.html#ac4ab8a800d705234e329bd144ec36b1b", null ],
     [ "r", "classClinkData_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3", null ],
     [ "rin", "classClinkData_1_1rtl.html#a758a8cbb78916a3911d410a62191310d", null ],
     [ "rstFsm", "classClinkData_1_1rtl.html#a8ffb600c3299e6ce5d869c46d9a84ccb", null ],

@@ -61,5 +61,7 @@ var classPgp3GthUsWrapper =
     [ "AxiLitePkg", "classPgp3GthUsWrapper.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
     [ "Pgp3Pkg", "classPgp3GthUsWrapper.html#a8fe78bd162f190ddcf71d39850745a3a", null ],
     [ "unisim", "classPgp3GthUsWrapper.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
-    [ "vcomponents", "classPgp3GthUsWrapper.html#aa1cb22e959d47364391e5eb4ef86927c", null ]
+    [ "vcomponents", "classPgp3GthUsWrapper.html#aa1cb22e959d47364391e5eb4ef86927c", null ],
+    [ "SYNTH_MODE_G", "classPgp3GthUsWrapper.html#a2429d17ce4f9328a982076af9f733ab3", null ],
+    [ "MEMORY_TYPE_G", "classPgp3GthUsWrapper.html#ac19eab973cb6c0196eed65d74fc49dca", null ]
 ];

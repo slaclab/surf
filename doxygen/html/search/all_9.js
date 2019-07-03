@@ -25,5 +25,7 @@ var searchData=
   ['ipv4engineloopback',['IpV4EngineLoopback',['../classIpV4EngineLoopback.html',1,'']]],
   ['ipv4enginerx',['IpV4EngineRx',['../classIpV4EngineRx.html',1,'']]],
   ['ipv4enginetb',['IpV4EngineTb',['../classIpV4EngineTb.html',1,'']]],
-  ['ipv4enginetx',['IpV4EngineTx',['../classIpV4EngineTx.html',1,'']]]
+  ['ipv4enginetx',['IpV4EngineTx',['../classIpV4EngineTx.html',1,'']]],
+  ['iq16bto32b',['iq16bTo32b',['../classiq16bTo32b.html',1,'']]],
+  ['iq32bto16b',['iq32bTo16b',['../classiq32bTo16b.html',1,'']]]
 ];

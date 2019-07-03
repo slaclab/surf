@@ -1,5 +1,6 @@
 var classGigEthGtx7_1_1mapping =
 [
+    [ "GigEthGtx7Core", "classGigEthGtx7_1_1mapping.html#ab69c27428e1fe551b5b9c2c5ceb7e4e6", null ],
     [ "config", "classGigEthGtx7_1_1mapping.html#a4b813a5f837e40b620a620aa8b79d40f", null ],
     [ "status", "classGigEthGtx7_1_1mapping.html#ab4bff6c62f102ba5d91c2c50e89bf998", null ],
     [ "mAxiReadMaster", "classGigEthGtx7_1_1mapping.html#aba1048e5d2c774fa5a192c5f0fadb833", null ],

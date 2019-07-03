@@ -2,8 +2,6 @@ var classRssiCore_1_1rtl =
 [
     [ "combParamAssign", "classRssiCore_1_1rtl.html#ad62baad730a4eebe6f1e616345e00efb", null ],
     [ "BUFFER_ADDR_WIDTH_C", "classRssiCore_1_1rtl.html#a0a49fec88b1923d29e75132c334d53ee", null ],
-    [ "FIFO_ADDR_WIDTH_C", "classRssiCore_1_1rtl.html#af22231bd8a863bf34dae7a3ce6b20703", null ],
-    [ "FIFO_PAUSE_THRESH_C", "classRssiCore_1_1rtl.html#aa1a9dafdc024cda85954809e7304aaa3", null ],
     [ "s_rxBuffBusy", "classRssiCore_1_1rtl.html#a41a63238d02f31afcad803bcf5d00d5a", null ],
     [ "s_appRssiParam", "classRssiCore_1_1rtl.html#a23dc16d1db7a262e1e112aa54060c9fa", null ],
     [ "s_rxRssiParam", "classRssiCore_1_1rtl.html#a2d11132f31ef0bf22407573af5591181", null ],
@@ -22,7 +20,6 @@ var classRssiCore_1_1rtl =
     [ "s_ackHeadSt", "classRssiCore_1_1rtl.html#a5c25d2eb89440b28472fe3d8642d4c9f", null ],
     [ "s_txSeqN", "classRssiCore_1_1rtl.html#a39fcd11a558fa32beca3d59bdb2363f7", null ],
     [ "s_txAckN", "classRssiCore_1_1rtl.html#ad2ebf06f909f8dabab71cfabe13c0527", null ],
-    [ "s_rxSeqN", "classRssiCore_1_1rtl.html#a79fb4e274bbb49aa7866a01c5d34fe85", null ],
     [ "s_rxLastSeqN", "classRssiCore_1_1rtl.html#a1390228fa0124b2241c2a828f3f3cfb1", null ],
     [ "s_rxAckN", "classRssiCore_1_1rtl.html#a21d89100c1f9085d60b30d88ec23c793", null ],
     [ "s_rxLastAckN", "classRssiCore_1_1rtl.html#ad2cf3329d1c127a912fce52a5cda1cbe", null ],

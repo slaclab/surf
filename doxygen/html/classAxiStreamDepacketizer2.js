@@ -3,6 +3,7 @@ var classAxiStreamDepacketizer2 =
     [ "rtl", "classAxiStreamDepacketizer2_1_1rtl.html", "classAxiStreamDepacketizer2_1_1rtl" ],
     [ "TPD_G", "classAxiStreamDepacketizer2.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "BRAM_EN_G", "classAxiStreamDepacketizer2.html#af5119c0b605c18019332c4a648fa6880", null ],
+    [ "REG_EN_G", "classAxiStreamDepacketizer2.html#a791e1247549c1ce442703098b9803bce", null ],
     [ "CRC_MODE_G", "classAxiStreamDepacketizer2.html#a30988c4ee0e8cd2a8fc3874ff635ac75", null ],
     [ "CRC_POLY_G", "classAxiStreamDepacketizer2.html#ae76f8e20fcc699a0da6b82b551d751d6", null ],
     [ "TDEST_BITS_G", "classAxiStreamDepacketizer2.html#a84a8f3200ba47faa2b18ae439918f556", null ],

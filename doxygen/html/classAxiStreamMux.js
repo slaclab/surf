@@ -5,6 +5,7 @@ var classAxiStreamMux =
     [ "axisRst", "classAxiStreamMux.html#a044b1bf79201c595c20474cecf020a5d", null ],
     [ "disableSel", "classAxiStreamMux.html#aeb53ea240cfd78fd1781bf3e0cf4217a", null ],
     [ "rearbitrate", "classAxiStreamMux.html#a1d6482af86cbc7667d74679b00d15417", null ],
+    [ "ileaveRearb", "classAxiStreamMux.html#ac425d9fd8ac2b99da568c374b055eeed", null ],
     [ "sAxisMasters", "classAxiStreamMux.html#a331f505153d2661742e674db74a7be1a", null ],
     [ "sAxisSlaves", "classAxiStreamMux.html#a1961d417e7cb6347ed0575fc04e65b6e", null ],
     [ "mAxisMaster", "classAxiStreamMux.html#afd4f0f4d2e88b311f2a3b3705b317922", null ],

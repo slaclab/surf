@@ -1,5 +1,6 @@
 var classXauiGtyUltraScale_1_1mapping =
 [
+    [ "XauiGtyUltraScale156p25MHz10GigECore", "classXauiGtyUltraScale_1_1mapping.html#a8eeb33b368b43df36aabae621cca95de", null ],
     [ "phyRxd", "classXauiGtyUltraScale_1_1mapping.html#a5a5d0cef7b9aca7f556d5cb4bc638896", null ],
     [ "phyRxc", "classXauiGtyUltraScale_1_1mapping.html#a2df8aacc7dee766a5abc8658aa6386ee", null ],
     [ "phyTxd", "classXauiGtyUltraScale_1_1mapping.html#aa9dba38a5e93b15e4e8b2f16835d3f7a", null ],

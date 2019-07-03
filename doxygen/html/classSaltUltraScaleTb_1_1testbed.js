@@ -1,7 +1,7 @@
 var classSaltUltraScaleTb_1_1testbed =
 [
-    [ "PROCESS_204", "classSaltUltraScaleTb_1_1testbed.html#a6f4b14fddb6deb97fd6e726411a3bc30", null ],
-    [ "PROCESS_205", "classSaltUltraScaleTb_1_1testbed.html#a8b7ba78fb75c8343a09f86ea0e5f57ca", null ],
+    [ "PROCESS_207", "classSaltUltraScaleTb_1_1testbed.html#a79ca585fe6f9bf3aab299ac35bac27ff", null ],
+    [ "PROCESS_208", "classSaltUltraScaleTb_1_1testbed.html#ac00b9e71ffabbec8ef3ead886cd8a021", null ],
     [ "CLK_PERIOD_C", "classSaltUltraScaleTb_1_1testbed.html#ae97c0bce57903c2a85e677b01b475249", null ],
     [ "TPD_C", "classSaltUltraScaleTb_1_1testbed.html#ab737ad1f7df370a5aae2ca6d77958188", null ],
     [ "STATUS_CNT_WIDTH_C", "classSaltUltraScaleTb_1_1testbed.html#a8de76d09163823ed1913dc9cd046344a", null ],

@@ -8,6 +8,7 @@ var searchData=
   ['devicedna',['DeviceDna',['../classDeviceDna.html',1,'']]],
   ['devicedna7series',['DeviceDna7Series',['../classDeviceDna7Series.html',1,'']]],
   ['devicednaultrascale',['DeviceDnaUltraScale',['../classDeviceDnaUltraScale.html',1,'']]],
+  ['devicednaultrascaletb',['DeviceDnaUltraScaleTb',['../classDeviceDnaUltraScaleTb.html',1,'']]],
   ['dma_5fread_5ftb',['dma_read_tb',['../classdma__read__tb.html',1,'']]],
   ['dma_5fread_5ftb',['dma_read_tb',['../classdma__read__tb_1_1dma__read__tb.html',1,'dma_read_tb']]],
   ['dma_5ftb',['dma_tb',['../classdma__tb.html',1,'']]],

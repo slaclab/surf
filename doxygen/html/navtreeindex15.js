@@ -1,5 +1,6 @@
 var NAVTREEINDEX15 =
 {
+"classAxiSpiMaster.html#aa1cb22e959d47364391e5eb4ef86927c":[1,0,80,17],
 "classAxiSpiMaster.html#aaabc1205d85a1e0dfbb414fa8b00ab04":[1,0,80,10],
 "classAxiSpiMaster.html#ab46731b20d8805f77a663f5106851bf0":[1,0,80,11],
 "classAxiSpiMaster.html#ab494f9de512f117c98fe32f8f93e22e7":[1,0,80,9],
@@ -248,6 +249,5 @@ var NAVTREEINDEX15 =
 "classAxiStreamBytePackerTbTx_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3":[1,0,92,0,7],
 "classAxiStreamBytePackerTbTx_1_1rtl.html#a1851acbd0e27543bb6a18f5101661f02":[1,0,92,0,3],
 "classAxiStreamBytePackerTbTx_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9":[1,0,92,0,2],
-"classAxiStreamBytePackerTbTx_1_1rtl.html#a5e4948776eaa6ed7ab637ef213d19dd8":[1,0,92,0,1],
-"classAxiStreamBytePackerTbTx_1_1rtl.html#a7064d98a051fb53ff4ab1b926c5ff848":[1,0,92,0,5]
+"classAxiStreamBytePackerTbTx_1_1rtl.html#a5e4948776eaa6ed7ab637ef213d19dd8":[1,0,92,0,1]
 };

@@ -6,7 +6,6 @@ var classEthMacRxCsum_1_1rtl =
     [ "StateType", "classEthMacRxCsum_1_1rtl.html#a9bbc2751d5c29bf54b8f96b566fea255", null ],
     [ "RegType", "classEthMacRxCsum_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
     [ "valid", "classEthMacRxCsum_1_1rtl.html#ae9ab07b536d7c00b6003e65446b1826b", null ],
-    [ "fragSof", "classEthMacRxCsum_1_1rtl.html#a803a5fb4ac469819b9a04e8f06677402", null ],
     [ "fragDet", "classEthMacRxCsum_1_1rtl.html#a11fb5b8d80dd5f475e4c3a06a5ef35e9", null ],
     [ "eofeDet", "classEthMacRxCsum_1_1rtl.html#a8a1b9dca79c335cd1227a83d266fe89f", null ],
     [ "ipv4Det", "classEthMacRxCsum_1_1rtl.html#adafda9f32b95ca90cf6e1c25f0140c1f", null ],
@@ -24,7 +23,7 @@ var classEthMacRxCsum_1_1rtl =
     [ "mAxisMaster", "classEthMacRxCsum_1_1rtl.html#af307620e9852f9d3bac51d06acb2cd69", null ],
     [ "mAxisMasters", "classEthMacRxCsum_1_1rtl.html#a482531e548a204152174a1694d962f67", null ],
     [ "state", "classEthMacRxCsum_1_1rtl.html#a29ddea0778c5dba9ca0b08e7188a5a57", null ],
-    [ "REG_INIT_C", "classEthMacRxCsum_1_1rtl.html#ae42cc73353941166c649a1682c058b9a", null ],
+    [ "REG_INIT_C", "classEthMacRxCsum_1_1rtl.html#af98d697d51fa8c146b89b80b0e64cbbd", null ],
     [ "r", "classEthMacRxCsum_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3", null ],
     [ "rin", "classEthMacRxCsum_1_1rtl.html#a758a8cbb78916a3911d410a62191310d", null ],
     [ "dbg", "classEthMacRxCsum_1_1rtl.html#a940fa09ed84bd3b00f9a258ba27d5a7c", null ]

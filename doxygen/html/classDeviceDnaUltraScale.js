@@ -5,7 +5,7 @@ var classDeviceDnaUltraScale =
     [ "USE_SLOWCLK_G", "classDeviceDnaUltraScale.html#af7808b7223a689850e4006441faff8be", null ],
     [ "BUFR_CLK_DIV_G", "classDeviceDnaUltraScale.html#ac3a0da11ec50031bc73771f674f9f4cf", null ],
     [ "RST_POLARITY_G", "classDeviceDnaUltraScale.html#a8a9f56ec06b173cf46dc7160fd7c1f30", null ],
-    [ "SIM_DNA_VALUE_G", "classDeviceDnaUltraScale.html#ac2dbe99775169275cd15d81675fd2346", null ],
+    [ "SIM_DNA_VALUE_G", "classDeviceDnaUltraScale.html#a322e73a5c2459ea7a20990814fa974c9", null ],
     [ "clk", "classDeviceDnaUltraScale.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classDeviceDnaUltraScale.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],
     [ "slowClk", "classDeviceDnaUltraScale.html#a320c66a1f5d0c7677159427780e573ab", null ],

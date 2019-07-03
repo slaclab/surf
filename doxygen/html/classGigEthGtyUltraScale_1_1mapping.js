@@ -1,5 +1,6 @@
 var classGigEthGtyUltraScale_1_1mapping =
 [
+    [ "GigEthGtyUltraScaleCore", "classGigEthGtyUltraScale_1_1mapping.html#a87c65b157f4872ff5010aef0e5a53b93", null ],
     [ "config", "classGigEthGtyUltraScale_1_1mapping.html#a4b813a5f837e40b620a620aa8b79d40f", null ],
     [ "status", "classGigEthGtyUltraScale_1_1mapping.html#ab4bff6c62f102ba5d91c2c50e89bf998", null ],
     [ "mAxiReadMaster", "classGigEthGtyUltraScale_1_1mapping.html#aba1048e5d2c774fa5a192c5f0fadb833", null ],

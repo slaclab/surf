@@ -14,5 +14,7 @@ var classPgp3GthUsQpll_1_1mapping =
     [ "lockedStrobe", "classPgp3GthUsQpll_1_1mapping.html#ac3b3bc59c1d103c92c71e277fd4e64f9", null ],
     [ "gtQPllReset", "classPgp3GthUsQpll_1_1mapping.html#a8134235fb4c0dea4c78b10ba33ac9392", null ],
     [ "u_pwruprst", "classPgp3GthUsQpll_1_1mapping.html#afcee726b120d2b0b3e5d15f3f91020eb", null ],
+    [ "u_qpll", "classPgp3GthUsQpll_1_1mapping.html#a1a062bfc11e147c83c092d4a145fa004", null ],
+    [ "u_pwruprst", "classPgp3GthUsQpll_1_1mapping.html#afcee726b120d2b0b3e5d15f3f91020eb", null ],
     [ "u_qpll", "classPgp3GthUsQpll_1_1mapping.html#a1a062bfc11e147c83c092d4a145fa004", null ]
 ];

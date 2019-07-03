@@ -9,7 +9,6 @@ var classAxiStreamDmaV2 =
     [ "AXI_READY_EN_G", "classAxiStreamDmaV2.html#ab590117d70526b60646869f12fc9e8ca", null ],
     [ "AXIS_READY_EN_G", "classAxiStreamDmaV2.html#aed65a1d11111776b238cafeb6b243c0a", null ],
     [ "AXIS_CONFIG_G", "classAxiStreamDmaV2.html#a129eaf71f6056f837f37b4d59ce80a70", null ],
-    [ "AXI_DESC_CONFIG_G", "classAxiStreamDmaV2.html#a20eee69e08e18a56ee949b24c877cde6", null ],
     [ "AXI_DMA_CONFIG_G", "classAxiStreamDmaV2.html#a5fe327a46f97e0414e81385ff343c11a", null ],
     [ "CHAN_COUNT_G", "classAxiStreamDmaV2.html#a7623db06b4cff321db7369f919afc15e", null ],
     [ "BURST_BYTES_G", "classAxiStreamDmaV2.html#a7f86f26501606032b52ffad309bfb92d", null ],

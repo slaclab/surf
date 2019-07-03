@@ -1,5 +1,6 @@
 var classTenGigEthGth7_1_1mapping =
 [
+    [ "TenGigEthGth7Core", "classTenGigEthGth7_1_1mapping.html#a7d91d5fe23567305677d770fe8c2ee91", null ],
     [ "mAxiReadMaster", "classTenGigEthGth7_1_1mapping.html#aba1048e5d2c774fa5a192c5f0fadb833", null ],
     [ "mAxiReadSlave", "classTenGigEthGth7_1_1mapping.html#a29c6f734b91c8da244db7aae52de65d2", null ],
     [ "mAxiWriteMaster", "classTenGigEthGth7_1_1mapping.html#a863b704e452e2131afb2459f1852f1cb", null ],
