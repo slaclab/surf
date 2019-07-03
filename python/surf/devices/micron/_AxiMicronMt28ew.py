@@ -42,7 +42,7 @@ class AxiMicronMt28ew(pr.Device):
         @self.command(value='',description="Load the .MCS into PROM",)
         def LoadMcsFile(arg):
             
-            click.secho(('LoadMcsFile: %s' % arg), fg='green')
+            click.secho(('%s.LoadMcsFile: %s' % (self.path,arg) ), fg='green')
             self._progDone = False 
             
             # Start time measurement for profiling
