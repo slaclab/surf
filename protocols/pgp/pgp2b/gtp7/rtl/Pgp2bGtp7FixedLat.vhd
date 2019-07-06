@@ -222,13 +222,11 @@ begin
    U_SynchronizerOneShot_1 : entity work.SynchronizerOneShot
       generic map (
          TPD_G          => TPD_G,
---         RELEASE_DELAY_G => RELEASE_DELAY_G,
          IN_POLARITY_G  => '1',
          OUT_POLARITY_G => '1',
          PULSE_WIDTH_G  => 100)
       port map (
          clk     => stableClk,          -- [in]
---         rst     => rst,                -- [in]
          dataIn  => phyRxInit,          -- [in]
          dataOut => gtRxUserReset);     -- [out]
 
@@ -255,7 +253,7 @@ begin
 
    -------------------------------------------------------------------------------------------------
    -- Filter on dataValid so that it doesn't drop immediately on errors
-   -- This is a hack way to do it but outght to work
+   -- Not currently hooked up but leaving it in so we can try it someday.
    -------------------------------------------------------------------------------------------------
    U_Pgp3RxGearboxAligner_1 : entity work.Pgp3RxGearboxAligner
       generic map (
@@ -264,7 +262,7 @@ begin
       port map (
          clk           => pgpRxClk,        -- [in]
          rst           => gtRxResetDoneL,  -- [in]
-         rxHeader(0)   => dataValid,       -- [in]
+         rxHeader(0)   => dataValidTmp,    -- [in]
          rxHeader(1)   => '0',             -- [in]
          rxHeaderValid => '1',             -- [in]
          slip          => open,            -- [out]
