@@ -1,13 +1,5 @@
 #!/usr/bin/env python
 #-----------------------------------------------------------------------------
-# Title      : PyRogue UdpEngineServer
-#-----------------------------------------------------------------------------
-# File       : UdpEngineServer.py
-# Created    : 2017-04-12
-#-----------------------------------------------------------------------------
-# Description:
-# PyRogue UdpEngineServer
-#-----------------------------------------------------------------------------
 # This file is part of the rogue software platform. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
 # of this distribution and at:
@@ -35,8 +27,6 @@ class UdpEngineServer(pr.Device):
             description  = "ServerRemotePort (big-Endian configuration)",
             offset       =  0x00,
             bitSize      =  16,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             hidden       = True,
         ))
@@ -54,8 +44,6 @@ class UdpEngineServer(pr.Device):
             description  = "ServerRemoteIp (big-Endian configuration)",
             offset       =  0x04,
             bitSize      =  32,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             hidden       = True,
         ))

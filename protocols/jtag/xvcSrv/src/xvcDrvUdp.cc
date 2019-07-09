@@ -24,6 +24,7 @@
 #include <netdb.h>
 #include <string.h>
 #include <netinet/ip.h>
+#include <sys/uio.h>
 
 static const char *DFLT_PORT="2542";
 
