@@ -289,7 +289,7 @@ begin
             -- Check for data
             if (inputAxisMaster.tValid = '1') then
                -- Check for 2 read cycle latency
-               if (BRAM_EN_G) and (REG_EN_G) then
+               if (MEMORY_TYPE_G/="distributed") and (REG_EN_G) then
                   v.state := WAIT_S;
                -- Else 1 read cycle latency
                else

@@ -130,8 +130,7 @@ begin
       sAxisMastersTmp <= tmp;
    end process;
 
-   comb : process (axisRst, disableSel, pipeAxisSlave, r, rearbitrate,
-                   sAxisMasters, sAxisMastersTmp) is
+   comb : process (axisRst, disableSel, ileaveRearb, pipeAxisSlave, r, rearbitrate, sAxisMastersTmp) is
       variable v        : RegType;
       variable requests : slv(ARB_BITS_C-1 downto 0);
       variable selData  : AxiStreamMasterType;
@@ -213,15 +212,9 @@ begin
          v.arbCnt := (others => '0');
          arbitrate(requests, r.ackNum, v.ackNum, v.valid, v.acks);
       end if;
-
-      -- Check if routing size = 1 and no remapping
-      if (MODE_G = "ROUTED") and (NUM_SLAVES_G = 1) and (0 = "--------") then
-         sAxisSlaves(0) <= pipeAxisSlave;
-         pipeAxisMaster <= sAxisMasters(0);
-      else
-         sAxisSlaves    <= v.slaves;
-         pipeAxisMaster <= r.master;
-      end if;
+      
+      -- Combinatorial outputs before the reset
+      sAxisSlaves <= v.slaves;
 
       -- Reset
       if (axisRst = '1') then
@@ -231,6 +224,9 @@ begin
       -- Assign variable back to signal
       rin <= v;
 
+      -- Registered Outputs
+      pipeAxisMaster <= r.master;
+
    end process comb;
 
    seq : process (axisClk) is
@@ -238,7 +234,7 @@ begin
       if (rising_edge(axisClk)) then
          r <= rin after TPD_G;
       end if;
-   end process seq;
+   end process seq;   
 
    -- Optional output pipeline registers to ease timing
    AxiStreamPipeline_1 : entity work.AxiStreamPipeline

@@ -875,7 +875,7 @@ begin
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => false, -- Using pause
          GEN_SYNC_FIFO_G     => true,
-         BRAM_EN_G           => true,
+         MEMORY_TYPE_G       => "block",
          FIFO_ADDR_WIDTH_G   => SEGMENT_ADDR_SIZE_G+1, -- Enough to store 2 segments
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => (2**SEGMENT_ADDR_SIZE_G) - 16, -- Threshold at 1 segment minus padding
@@ -905,7 +905,7 @@ begin
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => false, -- Using pause
          GEN_SYNC_FIFO_G     => true,
-         BRAM_EN_G           => true,
+         MEMORY_TYPE_G       => "block",
          FIFO_ADDR_WIDTH_G   => SEGMENT_ADDR_SIZE_G+1, -- Enough to store 2 segments
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => (2**SEGMENT_ADDR_SIZE_G) - 16, -- Threshold at 1 segment minus padding
