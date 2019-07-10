@@ -436,16 +436,16 @@ class Sff8472(pr.Device):
             # stride       = 4,
         # )   
 
-        self.addRemoteVariables(   
-            name         = 'ExtCalConstants',
-            description  = 'Diagnostic Calibration Constants for Ext Cal',
-            offset       = ((256+56) << 2),
-            bitSize      = 8,
-            mode         = 'RO',
-            base         = pr.UInt,
-            number       = 36,
-            stride       = 4,
-        )           
+        # self.addRemoteVariables(   
+            # name         = 'ExtCalConstants',
+            # description  = 'Diagnostic Calibration Constants for Ext Cal',
+            # offset       = ((256+56) << 2),
+            # bitSize      = 8,
+            # mode         = 'RO',
+            # base         = pr.UInt,
+            # number       = 36,
+            # stride       = 4,
+        # )           
         
         # self.addRemoteVariables(   
             # name         = 'UnallocatedB',
@@ -458,25 +458,25 @@ class Sff8472(pr.Device):
             # stride       = 4,
         # )           
         
-        self.add(pr.RemoteVariable(
-            name        = 'CcDmi', 
-            description = 'Check Code for Base Diagnostic Fields 0-94',
-            offset      = ((256+95) << 2),
-            bitSize     = 8, 
-            mode        = 'RO',
-            base        = pr.UInt,
-        ))           
+        # self.add(pr.RemoteVariable(
+            # name        = 'CcDmi', 
+            # description = 'Check Code for Base Diagnostic Fields 0-94',
+            # offset      = ((256+95) << 2),
+            # bitSize     = 8, 
+            # mode        = 'RO',
+            # base        = pr.UInt,
+        # ))           
         
-        self.addRemoteVariables(   
-            name         = 'Diagnostics',
-            description  = 'Diagnostic Monitor Data (internal or external)',
-            offset       = ((256+96) << 2),
-            bitSize      = 8,
-            mode         = 'RO',
-            base         = pr.UInt,
-            number       = 10,
-            stride       = 4,
-        )              
+        # self.addRemoteVariables(   
+            # name         = 'Diagnostics',
+            # description  = 'Diagnostic Monitor Data (internal or external)',
+            # offset       = ((256+96) << 2),
+            # bitSize      = 8,
+            # mode         = 'RO',
+            # base         = pr.UInt,
+            # number       = 10,
+            # stride       = 4,
+        # )              
         
         # self.addRemoteVariables(   
             # name         = 'UnallocatedC',
@@ -489,14 +489,14 @@ class Sff8472(pr.Device):
             # stride       = 4,
         # )         
         
-        self.add(pr.RemoteVariable(
-            name        = 'StatusControl', 
-            description = 'Optional Status and Control Bits',
-            offset      = ((256+110) << 2),
-            bitSize     = 8, 
-            mode        = 'RO',
-            base        = pr.UInt,
-        ))  
+        # self.add(pr.RemoteVariable(
+            # name        = 'StatusControl', 
+            # description = 'Optional Status and Control Bits',
+            # offset      = ((256+110) << 2),
+            # bitSize     = 8, 
+            # mode        = 'RO',
+            # base        = pr.UInt,
+        # ))  
 
         # self.add(pr.RemoteVariable(
             # name         = 'ReservedB',
@@ -507,16 +507,16 @@ class Sff8472(pr.Device):
             # base        = pr.UInt,
         # ))          
         
-        self.addRemoteVariables(   
-            name         = 'AlarmFlags',
-            description  = 'Diagnostic Alarm Flags Status Bits',
-            offset       = ((256+112) << 2),
-            bitSize      = 8,
-            mode         = 'RO',
-            base         = pr.UInt,
-            number       = 2,
-            stride       = 4,
-        )     
+        # self.addRemoteVariables(   
+            # name         = 'AlarmFlags',
+            # description  = 'Diagnostic Alarm Flags Status Bits',
+            # offset       = ((256+112) << 2),
+            # bitSize      = 8,
+            # mode         = 'RO',
+            # base         = pr.UInt,
+            # number       = 2,
+            # stride       = 4,
+        # )     
 
         # self.addRemoteVariables(   
             # name         = 'UnallocatedD',
@@ -529,62 +529,62 @@ class Sff8472(pr.Device):
             # stride       = 4,
         # )         
         
-        self.addRemoteVariables(   
-            name         = 'Warning Flags',
-            description  = 'Diagnostic Warning Flag Status Bits',
-            offset       = ((256+116) << 2),
-            bitSize      = 8,
-            mode         = 'RO',
-            base         = pr.UInt,
-            number       = 2,
-            stride       = 4,
-        ) 
+        # self.addRemoteVariables(   
+            # name         = 'Warning Flags',
+            # description  = 'Diagnostic Warning Flag Status Bits',
+            # offset       = ((256+116) << 2),
+            # bitSize      = 8,
+            # mode         = 'RO',
+            # base         = pr.UInt,
+            # number       = 2,
+            # stride       = 4,
+        # ) 
 
-        self.addRemoteVariables(   
-            name         = 'ExtStatusControl',
-            description  = 'Extened Module Control and Status Bits',
-            offset       = ((256+118) << 2),
-            bitSize      = 8,
-            mode         = 'RO',
-            base         = pr.UInt,
-            number       = 2,
-            stride       = 4,
-        )         
+        # self.addRemoteVariables(   
+            # name         = 'ExtStatusControl',
+            # description  = 'Extened Module Control and Status Bits',
+            # offset       = ((256+118) << 2),
+            # bitSize      = 8,
+            # mode         = 'RO',
+            # base         = pr.UInt,
+            # number       = 2,
+            # stride       = 4,
+        # )         
         
         ######################################
         # GENERAL USE FIELDS
         ######################################        
         
-        self.addRemoteVariables(   
-            name         = 'DiagnosticsVendorSpecific',
-            description  = 'Diagnostics: Data Field Vendor Specific EEPROM',
-            offset       = ((256+120) << 2),
-            bitSize      = 8,
-            mode         = 'RO',
-            base         = pr.UInt,
-            number       = 8,
-            stride       = 4,
-        )   
+        # self.addRemoteVariables(   
+            # name         = 'DiagnosticsVendorSpecific',
+            # description  = 'Diagnostics: Data Field Vendor Specific EEPROM',
+            # offset       = ((256+120) << 2),
+            # bitSize      = 8,
+            # mode         = 'RO',
+            # base         = pr.UInt,
+            # number       = 8,
+            # stride       = 4,
+        # )   
 
-        self.addRemoteVariables(   
-            name         = 'UserEeprom',
-            description  = 'User writeable non-volatile memory',
-            offset       = ((256+128) << 2),
-            bitSize      = 8,
-            mode         = 'RW',
-            base         = pr.UInt,
-            number       = 120,
-            stride       = 4,
-            hidden       = True,
-        )           
+        # self.addRemoteVariables(   
+            # name         = 'UserEeprom',
+            # description  = 'User writeable non-volatile memory',
+            # offset       = ((256+128) << 2),
+            # bitSize      = 8,
+            # mode         = 'RW',
+            # base         = pr.UInt,
+            # number       = 120,
+            # stride       = 4,
+            # hidden       = True,
+        # )           
         
-        self.addRemoteVariables(   
-            name         = 'VendorControl',
-            description  = 'Vendor specific control addresses',
-            offset       = ((256+248) << 2),
-            bitSize      = 8,
-            mode         = 'RO',
-            base         = pr.UInt,
-            number       = 8,
-            stride       = 4,
-        )
+        # self.addRemoteVariables(   
+            # name         = 'VendorControl',
+            # description  = 'Vendor specific control addresses',
+            # offset       = ((256+248) << 2),
+            # bitSize      = 8,
+            # mode         = 'RO',
+            # base         = pr.UInt,
+            # number       = 8,
+            # stride       = 4,
+        # )
