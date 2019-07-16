@@ -34,7 +34,7 @@ entity TenGigEthGthUltraScaleWrapper is
       -- AXI-Lite Configurations
       EN_AXI_REG_G      : boolean                          := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G     : AxiStreamConfigArray(3 downto 0) := (others => AXI_STREAM_CONFIG_INIT_C));
+      AXIS_CONFIG_G     : AxiStreamConfigArray(3 downto 0) := (others => EMAC_AXIS_CONFIG_C));
    port (
       -- Local Configurations
       localMac            : in  Slv48Array(NUM_LANE_G-1 downto 0)              := (others => MAC_ADDR_INIT_C);
