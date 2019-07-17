@@ -27,6 +27,7 @@ class Pca9506(pr.Device):
             mode         = 'RO',
             number       = 5,
             stride       = 4,
+            pollInterval = pollInterval,
         )
         
         self.addRemoteVariables(   
