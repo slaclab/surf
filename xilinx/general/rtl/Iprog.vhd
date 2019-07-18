@@ -66,6 +66,9 @@ architecture rtl of Iprog is
 
 begin
 
+   assert (XIL_DEVICE_G ="7SERIES" or XIL_DEVICE_G ="ULTRASCALE" or XIL_DEVICE_G ="ULTRASCALE_PLUS") 
+      report "XIL_DEVICE_G must be either [7SERIES,ULTRASCALE,ULTRASCALE_PLUS]" severity failure;
+
    GEN_7SERIES : if (XIL_DEVICE_G = "7SERIES") generate
       Iprog7Series_Inst : Iprog7Series
          generic map (
