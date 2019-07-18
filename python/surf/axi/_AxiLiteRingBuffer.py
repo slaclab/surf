@@ -95,9 +95,9 @@ class AxiLiteRingBuffer(pr.Device):
 
             buff = []
             for i in range(len_):
-                buff.append( self.data[i].get() & mask
+                buff.append( self.data[i].get() & mask )
 
-            fmt = '{:0'+(self._datawidth/4)+'x} '
+            fmt = '{:0%d'%(self._datawidth/4)+'x} '
             for i in range(len_):
                 print(fmt.format(buff[i])),
                 if (i&0xf)==0xf:
