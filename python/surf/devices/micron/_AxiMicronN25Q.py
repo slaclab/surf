@@ -100,7 +100,7 @@ class AxiMicronN25Q(pr.Device):
     def _LoadMcsFile(self,arg):
         # arg = value
         
-        click.secho(('LoadMcsFile: %s' % arg), fg='green')
+        click.secho(('%s.LoadMcsFile: %s' % (self.path,arg) ), fg='green')
         self._progDone = False 
         
         # Start time measurement for profiling
