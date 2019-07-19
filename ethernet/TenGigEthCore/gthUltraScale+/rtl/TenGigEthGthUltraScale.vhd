@@ -76,10 +76,10 @@ architecture mapping of TenGigEthGthUltraScale is
 
    component TenGigEthGthUltraScale156p25MHzCore
       port (
-         gt_rxp_in_0                         : in  std_logic;
-         gt_rxn_in_0                         : in  std_logic;
-         gt_txp_out_0                        : out std_logic;
-         gt_txn_out_0                        : out std_logic;
+         gt_txp_out                          : out std_logic_vector(0 downto 0);
+         gt_txn_out                          : out std_logic_vector(0 downto 0);
+         gt_rxp_in                           : in  std_logic_vector(0 downto 0);
+         gt_rxn_in                           : in  std_logic_vector(0 downto 0);
          rx_core_clk_0                       : in  std_logic;
          rx_serdes_reset_0                   : in  std_logic;
          txoutclksel_in_0                    : in  std_logic_vector(2 downto 0);
@@ -289,10 +289,10 @@ begin
          gtwiz_reset_qpll1lock_in            => qplllock(1),
          gtwiz_reset_qpll1reset_out          => qpllRst(1),
          -- MGT Ports      
-         gt_txp_out_0                        => gtTxP,
-         gt_txn_out_0                        => gtTxN,
-         gt_rxp_in_0                         => gtRxP,
-         gt_rxn_in_0                         => gtRxN,
+         gt_txp_out(0)                        => gtTxP,
+         gt_txn_out(0)                        => gtTxN,
+         gt_rxp_in(0)                         => gtRxP,
+         gt_rxn_in(0)                         => gtRxN,
          -- PHY Interface      
          tx_mii_d_0                          => phyTxd,
          tx_mii_c_0                          => phyTxc,
