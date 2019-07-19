@@ -30,7 +30,7 @@ entity TenGigEthGth7 is
       -- AXI-Lite Configurations
       EN_AXI_REG_G    : boolean             := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G   : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      AXIS_CONFIG_G   : AxiStreamConfigType := EMAC_AXIS_CONFIG_C);
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
