@@ -137,7 +137,7 @@ class AxiStreamMonitoring(pr.Device):
     def hardReset(self):
         self.CntRst.set(0x1)
 
-    def softReset(self):
+    def initialize(self):
         self.CntRst.set(0x1)
 
     def countReset(self):

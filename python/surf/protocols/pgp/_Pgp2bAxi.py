@@ -379,7 +379,7 @@ class Pgp2bAxi(pr.Device):
             linkedGet    = convtMHz,
         ))
              
-    def softReset(self):
+    def initialize(self):
         if self.writeEn:
             self.Flush()
 

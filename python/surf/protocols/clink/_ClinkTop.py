@@ -258,7 +258,7 @@ class ClinkTop(pr.Device):
         self.ResetPll()
         self.CntRst()
 
-    def softReset(self):
+    def initialize(self):
         # Hold the PLL in reset before configuration
         self.RstPll.set(0x1)
         

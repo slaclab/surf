@@ -259,8 +259,8 @@ class AxiVersion(pr.Device):
     def hardReset(self):
         print(f'{self.path} hard reset called')
 
-    def softReset(self):
-        print(f'{self.path} soft reset called')
+    def initialize(self):
+        print(f'{self.path} initialize called')
 
     def countReset(self):
         print(f'{self.path} count reset called')

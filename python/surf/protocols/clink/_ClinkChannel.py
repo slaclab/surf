@@ -251,7 +251,7 @@ class ClinkChannel(pr.Device):
     def hardReset(self):
         self.CntRst()
 
-    def softReset(self):
+    def initialize(self):
         self.CntRst()
 
     def countReset(self):
