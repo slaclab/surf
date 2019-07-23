@@ -1,6 +1,8 @@
 -------------------------------------------------------------------------------
 -- File       : GigEthGtp7Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2015-03-30
+-- Last update: 2019-07-22
 -------------------------------------------------------------------------------
 -- Description: Gtp7 Wrapper for 1000BASE-X Ethernet
 -- Note: This module supports up to a MGT QUAD of 1GigE interfaces
@@ -28,20 +30,22 @@ use unisim.vcomponents.all;
 
 entity GigEthGtp7Wrapper is
    generic (
-      TPD_G              : time                             := 1 ns;
-      NUM_LANE_G         : natural range 1 to 4             := 1;
-      PAUSE_EN_G         : boolean                          := true;
-      PAUSE_512BITS_G    : positive                         := 8;
+      TPD_G              : time                 := 1 ns;
+      NUM_LANE_G         : natural range 1 to 4 := 1;
+      PAUSE_EN_G         : boolean              := true;
+      PAUSE_512BITS_G    : positive             := 8;
       -- Clocking Configurations
-      USE_GTREFCLK_G     : boolean                          := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
-      CLKIN_PERIOD_G     : real                             := 8.0;
-      DIVCLK_DIVIDE_G    : positive                         := 1;
-      CLKFBOUT_MULT_F_G  : real                             := 8.0;
-      CLKOUT0_DIVIDE_F_G : real                             := 8.0;
+      USE_GTREFCLK_G     : boolean              := false;
+      --  FALSE: gtClkP/N,  TRUE: gtRefClk
+      USE_REFCLK_DIV2_G  : boolean              := false;
+      CLKIN_PERIOD_G     : real                 := 8.0;
+      DIVCLK_DIVIDE_G    : positive             := 1;
+      CLKFBOUT_MULT_F_G  : real                 := 8.0;
+      CLKOUT0_DIVIDE_F_G : real                 := 8.0;
       -- AXI-Lite Configurations
-      EN_AXI_REG_G       : boolean                          := false;
+      EN_AXI_REG_G       : boolean              := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G      : AxiStreamConfigArray(3 downto 0) := (others => AXI_STREAM_CONFIG_INIT_C));
+      AXIS_CONFIG_G      : AxiStreamConfigArray := (0 => AXI_STREAM_CONFIG_INIT_C));
    port (
       -- Local Configurations
       localMac            : in  Slv48Array(NUM_LANE_G-1 downto 0)              := (others => MAC_ADDR_INIT_C);
@@ -61,10 +65,13 @@ entity GigEthGtp7Wrapper is
       axiLiteWriteSlaves  : out AxiLiteWriteSlaveArray(NUM_LANE_G-1 downto 0);
       -- Misc. Signals
       extRst              : in  sl;
-      phyClk              : out sl;
-      phyRst              : out sl;
+      ethClk125           : out sl;
+      ethRst125           : out sl;
+      ethClk62            : out sl;
+      ethRst62            : out sl;
       phyReady            : out slv(NUM_LANE_G-1 downto 0);
       sigDet              : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '1');
+      refClkOut           : out sl;
       -- MGT Clock Port (156.25 MHz or 312.5 MHz)
       gtRefClk            : in  sl                                             := '0';
       gtClkP              : in  sl                                             := '1';
@@ -82,7 +89,10 @@ end GigEthGtp7Wrapper;
 architecture mapping of GigEthGtp7Wrapper is
 
    signal gtClk     : sl;
+   signal gtClkDiv2 : sl;
+   signal selGtClk  : sl;
    signal gtClkBufg : sl;
+
    signal refClk    : sl;
    signal refRst    : sl;
    signal sysClk125 : sl;
@@ -99,8 +109,10 @@ architecture mapping of GigEthGtp7Wrapper is
 
 begin
 
-   phyClk <= sysClk125;
-   phyRst <= sysRst125;
+   ethClk125 <= sysClk125;
+   ethRst125 <= sysRst125;
+   ethClk62  <= sysClk62;
+   ethRst62  <= sysRst62;
 
    -----------------------------
    -- Select the Reference Clock
@@ -111,12 +123,15 @@ begin
          I     => gtClkP,
          IB    => gtClkN,
          CEB   => '0',
-         ODIV2 => open,
+         ODIV2 => gtClkDiv2,
          O     => gtClk);
+
+   selGtClk  <= gtClkDiv2 when USE_REFCLK_DIV2_G else gtClk;
+   refClkOut <= selGtClk;
 
    BUFG_Inst : BUFG
       port map (
-         I => gtClk,
+         I => selGtClk,
          O => gtClkBufg);
 
    refClk <= gtClkBufg when(USE_GTREFCLK_G = false) else gtRefClk;
