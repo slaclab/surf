@@ -11,6 +11,7 @@
 
 from surf.ethernet.udp._UdpEngineClient import *
 from surf.ethernet.udp._UdpEngineServer import *
+from surf.ethernet.udp._UdpEngine       import *
 
 import ipaddress
 

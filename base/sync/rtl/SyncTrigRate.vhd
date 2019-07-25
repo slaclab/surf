@@ -25,11 +25,12 @@ entity SyncTrigRate is
       TPD_G          : time     := 1 ns;  -- Simulation FF output delay
       COMMON_CLK_G   : boolean  := false;  -- true if locClk & refClk are the same clock
       ONE_SHOT_G     : boolean  := false;
-      IN_POLARITY_G  : sl       := '1';  -- 0 for active LOW, 1 for active HIGH
+      IN_POLARITY_G  : sl       := '1';   -- 0 for active LOW, 1 for active HIGH
+      COUNT_EDGES_G  : boolean  := false;  -- Count edges or high time
       REF_CLK_FREQ_G : real     := 200.0E+6;              -- units of Hz
       REFRESH_RATE_G : real     := 1.0E+0;                -- units of Hz
       USE_DSP48_G    : string   := "no";  -- "no" for no DSP48 implementation, "yes" to use DSP48 slices
-      CNT_WIDTH_G    : positive := 32);  -- Counters' width
+      CNT_WIDTH_G    : positive := 32);   -- Counters' width
    port (
       -- Trigger Input (locClk domain)
       trigIn          : in  sl;
@@ -75,6 +76,7 @@ architecture rtl of SyncTrigRate is
    signal rin : RegType;
 
    signal trig        : sl                          := not(IN_POLARITY_G);
+   signal trigLast    : sl                          := not IN_POLARITY_G;
    signal updated     : sl                          := '0';
    signal trigCnt     : slv(CNT_WIDTH_G-1 downto 0) := (others => '0');
    signal trigCntSync : slv(CNT_WIDTH_G-1 downto 0) := (others => '0');
@@ -106,8 +108,10 @@ begin
       if rising_edge(locClk) then
          -- Check the clock enable
          if (locClkEn = '1') or (ONE_SHOT_G = true) then
+            trigLast <= trig after TPD_G;
             -- Check for a trigger
-            if (trig = IN_POLARITY_G) then
+            if (COUNT_EDGES_G = false and trig = IN_POLARITY_G) or
+               (COUNT_EDGES_G and trig = IN_POLARITY_G and trigLast = not (IN_POLARITY_G)) then
                -- Increment the counter
                trigCnt <= trigCnt + 1 after TPD_G;
             end if;
