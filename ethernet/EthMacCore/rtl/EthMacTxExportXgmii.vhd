@@ -47,7 +47,7 @@ end EthMacTxExportXgmii;
 
 architecture rtl of EthMacTxExportXgmii is
 
-   constant INTERGAP_C : slv(3 downto 0) := x"3";
+   constant INTERGAP_C : slv(3 downto 0) := x"F";
 
    constant AXI_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => EMAC_AXIS_CONFIG_C.TSTRB_EN_C,
