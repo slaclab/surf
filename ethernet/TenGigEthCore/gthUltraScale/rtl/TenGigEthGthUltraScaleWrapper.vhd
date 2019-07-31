@@ -29,6 +29,7 @@ entity TenGigEthGthUltraScaleWrapper is
       NUM_LANE_G        : natural range 1 to 4             := 1;
       PAUSE_EN_G        : boolean                          := true;
       -- QUAD PLL Configurations
+      EXT_REF_G         : boolean                          := false;
       QPLL_REFCLK_SEL_G : slv(2 downto 0)                  := "001";
       -- AXI-Lite Configurations
       EN_AXI_REG_G      : boolean                          := false;
@@ -71,6 +72,7 @@ entity TenGigEthGthUltraScaleWrapper is
       gtTxPolarity        : in  sl                                             := '0';
       -- MGT Clock Port (156.25 MHz)
       gtRefClk            : in  sl                                             := '0';
+      gtRefClkBufg        : in  sl                                             := '0';
       gtClkP              : in  sl                                             := '1';
       gtClkN              : in  sl                                             := '0';
       -- MGT Ports
@@ -115,10 +117,12 @@ begin
    TenGigEthGthUltraScaleClk_Inst : entity work.TenGigEthGthUltraScaleClk
       generic map (
          TPD_G             => TPD_G,
+         EXT_REF_G         => EXT_REF_G,
          QPLL_REFCLK_SEL_G => QPLL_REFCLK_SEL_G)
       port map (
          -- MGT Clock Port (156.25 MHz)
          gtRefClk      => gtRefClk,
+         gtRefClkBufg  => gtRefClkBufg,
          gtClkP        => gtClkP,
          gtClkN        => gtClkN,
          coreClk       => coreClock,

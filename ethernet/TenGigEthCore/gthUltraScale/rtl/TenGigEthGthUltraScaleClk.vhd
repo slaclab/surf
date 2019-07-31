@@ -24,10 +24,12 @@ use unisim.vcomponents.all;
 entity TenGigEthGthUltraScaleClk is
    generic (
       TPD_G             : time            := 1 ns;
+      EXT_REF_G         : boolean         := false;
       QPLL_REFCLK_SEL_G : slv(2 downto 0) := "001");
    port (
       -- MGT Clock Port (156.25 MHz)
       gtRefClk      : in  sl := '0';
+      gtRefClkBufg  : in  sl := '0';
       gtClkP        : in  sl := '1';
       gtClkN        : in  sl := '0';
       coreClk       : out sl;
@@ -74,8 +76,8 @@ begin
          DIV     => "000",
          O       => coreClock);
 
-   refClock  <= gtRefClk when(QPLL_REFCLK_SEL_G = "111") else refClk;
-   coreClk   <= gtRefClk when(QPLL_REFCLK_SEL_G = "111") else coreClock;
+   refClock  <= gtRefClk    when(EXT_REF_G) else refClk;
+   coreClk   <= gtRefClkBufg when(EXT_REF_G) else coreClock;
    qpllReset <= qpllRst or coreRst;
 
    GthUltraScaleQuadPll_Inst : entity work.GthUltraScaleQuadPll
