@@ -66,6 +66,7 @@ package EthMacPkg is
       filtEnable  : sl;
       pauseEnable : sl;
       pauseTime   : slv(15 downto 0);
+      pauseThresh : slv(15 downto 0);
       ipCsumEn    : sl;
       tcpCsumEn   : sl;
       udpCsumEn   : sl;
@@ -76,6 +77,7 @@ package EthMacPkg is
       filtEnable  => '1',
       pauseEnable => '1',
       pauseTime   => x"00FF",
+      pauseThresh => toSlv(512, 16),
       ipCsumEn    => '1',
       tcpCsumEn   => '1',
       udpCsumEn   => '1',

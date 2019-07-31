@@ -35,8 +35,7 @@ entity EthMacTop is
       -- RX FIFO Configurations
       INT_PIPE_STAGES_G   : natural                  := 1;
       PIPE_STAGES_G       : natural                  := 1;
-      FIFO_ADDR_WIDTH_G   : positive            := 11;
-      FIFO_PAUSE_THRESH_G : positive            := 128;
+      FIFO_ADDR_WIDTH_G   : positive                 := 11;
       -- Non-VLAN Configurations
       FILT_EN_G           : boolean                  := false;
       PRIM_COMMON_CLK_G   : boolean                  := false;
@@ -309,7 +308,6 @@ begin
          INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
          PIPE_STAGES_G       => PIPE_STAGES_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
-         FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
          PRIM_COMMON_CLK_G   => PRIM_COMMON_CLK_G,
          PRIM_CONFIG_G       => PRIM_CONFIG_G,
          BYP_EN_G            => BYP_EN_G,
@@ -323,9 +321,10 @@ begin
          -- Slave Clock and Reset
          sClk         => ethClk,
          sRst         => ethRst,
-         -- Status (sClk domain)
+         -- Status/Config (sClk domain)
          phyReady     => phyReady,
          rxFifoDrop   => ethStatus.rxFifoDropCnt,
+         pauseThresh  => ethConfig.pauseThresh,
          -- Primary Interface
          mPrimClk     => primClk,
          mPrimRst     => primRst,

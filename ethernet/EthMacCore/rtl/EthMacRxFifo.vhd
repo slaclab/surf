@@ -15,6 +15,8 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
@@ -22,28 +24,28 @@ use work.EthMacPkg.all;
 
 entity EthMacRxFifo is
    generic (
-      TPD_G               : time                := 1 ns;
-      DROP_ERR_PKT_G      : boolean             := true;
-      INT_PIPE_STAGES_G   : natural             := 1;
-      PIPE_STAGES_G       : natural             := 1;
-      FIFO_ADDR_WIDTH_G   : positive            := 11;
-      FIFO_PAUSE_THRESH_G : positive            := 128;
-      PRIM_COMMON_CLK_G   : boolean             := false;
-      PRIM_CONFIG_G       : AxiStreamConfigType := EMAC_AXIS_CONFIG_C;
-      BYP_EN_G            : boolean             := false;
-      BYP_COMMON_CLK_G    : boolean             := false;
-      BYP_CONFIG_G        : AxiStreamConfigType := EMAC_AXIS_CONFIG_C;
-      VLAN_EN_G           : boolean             := false;
-      VLAN_SIZE_G         : positive            := 1;
-      VLAN_COMMON_CLK_G   : boolean             := false;
-      VLAN_CONFIG_G       : AxiStreamConfigType := EMAC_AXIS_CONFIG_C);
+      TPD_G             : time                   := 1 ns;
+      DROP_ERR_PKT_G    : boolean                := true;
+      INT_PIPE_STAGES_G : natural                := 1;
+      PIPE_STAGES_G     : natural                := 1;
+      FIFO_ADDR_WIDTH_G : positive range 9 to 16 := 11;
+      PRIM_COMMON_CLK_G : boolean                := false;
+      PRIM_CONFIG_G     : AxiStreamConfigType    := EMAC_AXIS_CONFIG_C;
+      BYP_EN_G          : boolean                := false;
+      BYP_COMMON_CLK_G  : boolean                := false;
+      BYP_CONFIG_G      : AxiStreamConfigType    := EMAC_AXIS_CONFIG_C;
+      VLAN_EN_G         : boolean                := false;
+      VLAN_SIZE_G       : positive               := 1;
+      VLAN_COMMON_CLK_G : boolean                := false;
+      VLAN_CONFIG_G     : AxiStreamConfigType    := EMAC_AXIS_CONFIG_C);
    port (
       -- Clock and Reset
       sClk         : in  sl;
       sRst         : in  sl;
-      -- Status (sClk domain)
+      -- Status/Config (sClk domain)
       phyReady     : in  sl;
       rxFifoDrop   : out sl;
+      pauseThresh  : in  slv(15 downto 0);
       -- Primary Interface
       mPrimClk     : in  sl;
       mPrimRst     : in  sl;
@@ -69,13 +71,18 @@ end EthMacRxFifo;
 
 architecture rtl of EthMacRxFifo is
 
+   constant MAX_THRESH_SLV_C : slv(FIFO_ADDR_WIDTH_G-1 downto 0) := (others => '1');
+
    constant VALID_THOLD_C : natural := ite(DROP_ERR_PKT_G, 0, 1);
 
    type RegType is record
-      rxFifoDrop : sl;
+      rxFifoDrop      : sl;
+      fifoPauseThresh : slv(FIFO_ADDR_WIDTH_G-1 downto 0);
    end record RegType;
    constant REG_INIT_C : RegType := (
-      rxFifoDrop => '0');
+      rxFifoDrop      => '0',
+      fifoPauseThresh => MAX_THRESH_SLV_C);
+
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
@@ -85,8 +92,7 @@ architecture rtl of EthMacRxFifo is
 
 --   attribute dont_touch      : string;
 --   attribute dont_touch of r : signal is "TRUE";   
-   
-   
+
 begin
 
    U_Fifo : entity work.SsiFifo
@@ -103,20 +109,21 @@ begin
          BRAM_EN_G           => true,
          GEN_SYNC_FIFO_G     => PRIM_COMMON_CLK_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
-         FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
+         FIFO_FIXED_THRESH_G => false,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => PRIM_CONFIG_G)        
+         MASTER_AXI_CONFIG_G => PRIM_CONFIG_G)
       port map (
-         sAxisClk       => sClk,
-         sAxisRst       => sRst,
-         sAxisMaster    => sPrimMaster,
-         sAxisCtrl      => sPrimCtrl,
-         sAxisTermFrame => primDrop,
-         mAxisClk       => mPrimClk,
-         mAxisRst       => mPrimRst,
-         mAxisMaster    => mPrimMaster,
-         mAxisSlave     => mPrimSlave);    
+         sAxisClk        => sClk,
+         sAxisRst        => sRst,
+         sAxisMaster     => sPrimMaster,
+         sAxisCtrl       => sPrimCtrl,
+         sAxisTermFrame  => primDrop,
+         fifoPauseThresh => r.fifoPauseThresh,
+         mAxisClk        => mPrimClk,
+         mAxisRst        => mPrimRst,
+         mAxisMaster     => mPrimMaster,
+         mAxisSlave      => mPrimSlave);
 
    BYP_DISABLED : if (BYP_EN_G = false) generate
       sBypCtrl   <= AXI_STREAM_CTRL_UNUSED_C;
@@ -138,20 +145,21 @@ begin
             BRAM_EN_G           => true,
             GEN_SYNC_FIFO_G     => PRIM_COMMON_CLK_G,
             FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
-            FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
+            FIFO_FIXED_THRESH_G => false,
             -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
-            MASTER_AXI_CONFIG_G => BYP_CONFIG_G)        
+            MASTER_AXI_CONFIG_G => BYP_CONFIG_G)
          port map (
-            sAxisClk       => sClk,
-            sAxisRst       => sRst,
-            sAxisMaster    => sBypMaster,
-            sAxisCtrl      => sBypCtrl,
-            sAxisTermFrame => bypDrop,
-            mAxisClk       => mBypClk,
-            mAxisRst       => mBypRst,
-            mAxisMaster    => mBypMaster,
-            mAxisSlave     => mBypSlave);    
+            sAxisClk        => sClk,
+            sAxisRst        => sRst,
+            sAxisMaster     => sBypMaster,
+            sAxisCtrl       => sBypCtrl,
+            sAxisTermFrame  => bypDrop,
+            fifoPauseThresh => r.fifoPauseThresh,
+            mAxisClk        => mBypClk,
+            mAxisRst        => mBypRst,
+            mAxisMaster     => mBypMaster,
+            mAxisSlave      => mBypSlave);
    end generate;
 
    VLAN_DISABLED : if (VLAN_EN_G = false) generate
@@ -175,24 +183,26 @@ begin
                BRAM_EN_G           => true,
                GEN_SYNC_FIFO_G     => PRIM_COMMON_CLK_G,
                FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
-               FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
+               FIFO_FIXED_THRESH_G => false,
                -- AXI Stream Port Configurations
                SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
                MASTER_AXI_CONFIG_G => VLAN_CONFIG_G)
             port map (
-               sAxisClk       => sClk,
-               sAxisRst       => sRst,
-               sAxisMaster    => sVlanMasters(i),
-               sAxisCtrl      => sVlanCtrl(i),
-               sAxisTermFrame => vlanDrops(i),
-               mAxisClk       => mVlanClk,
-               mAxisRst       => mVlanRst,
-               mAxisMaster    => mVlanMasters(i),
-               mAxisSlave     => mVlanSlaves(i));    
+               sAxisClk        => sClk,
+               sAxisRst        => sRst,
+               sAxisMaster     => sVlanMasters(i),
+               sAxisCtrl       => sVlanCtrl(i),
+               sAxisTermFrame  => vlanDrops(i),
+               fifoPauseThresh => r.fifoPauseThresh,
+               mAxisClk        => mVlanClk,
+               mAxisRst        => mVlanRst,
+               mAxisMaster     => mVlanMasters(i),
+               mAxisSlave      => mVlanSlaves(i));
       end generate GEN_VEC;
    end generate;
 
-   comb : process (bypDrop, phyReady, primDrop, r, sRst, vlanDrops) is
+   comb : process (bypDrop, pauseThresh, phyReady, primDrop, r, sRst,
+                   vlanDrops) is
       variable v    : RegType;
       variable drop : sl;
    begin
@@ -202,6 +212,16 @@ begin
       -- OR-ing drop flags together
       v.rxFifoDrop := primDrop or bypDrop or uOr(vlanDrops);
 
+      -- Check the programmable threshold
+      if pauseThresh >= (2**FIFO_ADDR_WIDTH_G)-1 then
+         v.fifoPauseThresh := MAX_THRESH_SLV_C;
+      else
+         v.fifoPauseThresh := pauseThresh(FIFO_ADDR_WIDTH_G-1 downto 0);
+      end if;
+
+      -- Outputs        
+      rxFifoDrop <= r.rxFifoDrop;
+
       -- Reset
       if (sRst = '1') or (phyReady = '0') then
          v := REG_INIT_C;
@@ -210,9 +230,6 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs        
-      rxFifoDrop <= r.rxFifoDrop;
-      
    end process comb;
 
    seq : process (sClk) is
@@ -221,5 +238,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-   
+
 end rtl;

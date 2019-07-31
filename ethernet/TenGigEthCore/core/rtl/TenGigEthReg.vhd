@@ -186,7 +186,9 @@ begin
          axiSlaveRegister(regCon, x"238", 0, v.config.pma_reset);
          axiSlaveRegister(regCon, x"23C", 0, v.config.pcs_loopback);
          axiSlaveRegister(regCon, x"240", 0, v.config.pcs_reset);
-
+         
+         axiSlaveRegister(regCon, x"800", 0, v.config.macConfig.pauseThresh);
+         
          axiSlaveRegister(regCon, x"F00", 0, v.rollOverEn);
          axiSlaveRegister(regCon, x"FF4", 0, v.cntRst);
          axiSlaveRegister(regCon, x"FF8", 0, v.config.softRst);
