@@ -28,7 +28,7 @@ entity EthMacTop is
       TPD_G               : time                     := 1 ns;
       -- MAC Configurations
       PAUSE_EN_G          : boolean                  := true;
-      PAUSE_512BITS_G     : positive range 1 to 1024 := 8;
+      PAUSE_512BITS_G     : positive range 1 to 1024 := 8; -- For 10GbE: 8 clock cycles for 512 bits = one pause "quanta"
       PHY_TYPE_G          : string                   := "XGMII";  -- "GMII", "XGMII", or "XLGMII"
       DROP_ERR_PKT_G      : boolean                  := true;
       JUMBO_G             : boolean                  := true;

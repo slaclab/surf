@@ -248,7 +248,6 @@ begin
       generic map (
          TPD_G           => TPD_G,
          PAUSE_EN_G      => PAUSE_EN_G,
-         PAUSE_512BITS_G => 8, -- 8 clock cycles for 512 bits = pause "quanta"
          PHY_TYPE_G      => "XGMII",
          PRIM_CONFIG_G   => AXIS_CONFIG_G)
       port map (
