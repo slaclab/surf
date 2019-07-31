@@ -49,7 +49,7 @@ architecture rtl of EthMacRxImportXgmii is
       TID_BITS_C    => EMAC_AXIS_CONFIG_C.TID_BITS_C,
       TKEEP_MODE_C  => EMAC_AXIS_CONFIG_C.TKEEP_MODE_C,
       TUSER_BITS_C  => EMAC_AXIS_CONFIG_C.TUSER_BITS_C,
-      TUSER_MODE_C  => EMAC_AXIS_CONFIG_C.TUSER_MODE_C);   
+      TUSER_MODE_C  => EMAC_AXIS_CONFIG_C.TUSER_MODE_C);
 
    -- Local Signals
    signal macMaster    : AxiStreamMasterType;
@@ -130,33 +130,24 @@ architecture rtl of EthMacRxImportXgmii is
 
 begin
 
-   DATA_MUX : entity work.AxiStreamFifoV2
+   U_Resize : entity work.AxiStreamResize
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
-         PIPE_STAGES_G       => 0,
-         SLAVE_READY_EN_G    => true,
-         VALID_THOLD_G       => 1,
-         -- FIFO configurations
-         BRAM_EN_G           => false,
-         USE_BUILT_IN_G      => false,
-         GEN_SYNC_FIFO_G     => true,
-         CASCADE_SIZE_G      => 1,
-         FIFO_ADDR_WIDTH_G   => 4,
+         READY_EN_G          => false,
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => AXI_CONFIG_C,        --  64-bit AXI stream interface  
-         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)  -- 128-bit AXI stream interface          
+         SLAVE_AXI_CONFIG_G  => AXI_CONFIG_C,  --  64-bit AXI stream interface  
+         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)  -- 128-bit AXI stream interface     
       port map (
+         -- Clock and reset
+         axisClk     => ethClk,
+         axisRst     => ethRst,
          -- Slave Port
-         sAxisClk    => ethClk,
-         sAxisRst    => ethRst,
-         sAxisMaster => macMaster,                   -- 64-bit AXI stream interface  
+         sAxisMaster => macMaster,      -- 64-bit AXI stream interface  
          sAxisSlave  => open,
          -- Master Port
-         mAxisClk    => ethClk,
-         mAxisRst    => ethRst,
-         mAxisMaster => macIbMaster,                 -- 128-bit AXI stream interface
-         mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);  
+         mAxisMaster => macIbMaster,    -- 128-bit AXI stream interface
+         mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);
 
    -- Convert to AXI stream
    process (ethClk) is
@@ -351,7 +342,7 @@ begin
          ADDR_WIDTH_G    => 4,
          INIT_G          => "0",
          FULL_THRES_G    => 1,
-         EMPTY_THRES_G   => 1) 
+         EMPTY_THRES_G   => 1)
       port map (
          rst           => ethRst,
          wr_clk        => ethClk,
@@ -485,13 +476,13 @@ begin
    U_Crc32 : entity work.Crc32Parallel
       generic map (
          TPD_G        => TPD_G,
-         BYTE_WIDTH_G => 8) 
+         BYTE_WIDTH_G => 8)
       port map (
          crcOut       => crcOut,
          crcClk       => ethClk,
          crcDataValid => crcDataValid,
          crcDataWidth => crcDataWidth,
          crcIn        => crcIn,
-         crcReset     => crcReset); 
+         crcReset     => crcReset);
 
 end rtl;
