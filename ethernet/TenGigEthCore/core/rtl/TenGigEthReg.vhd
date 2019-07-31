@@ -167,8 +167,8 @@ begin
          --axiSlaveRegisterR(regCon, x"104", 0, status.macStatus.rxPauseValue);
          axiSlaveRegisterR(regCon, x"108", 0, status.core_status);
 
-         axiSlaveRegister(regCon, x"200", 0, v.config.macConfig.macAddress(31 downto 0));
-         axiSlaveRegister(regCon, x"204", 0, v.config.macConfig.macAddress(47 downto 32));
+         axiSlaveRegisterR(regCon, x"200", 0, r.config.macConfig.macAddress(31 downto 0));
+         axiSlaveRegisterR(regCon, x"204", 0, r.config.macConfig.macAddress(47 downto 32));
          --axiSlaveRegister(regCon, x"208", 0, v.config.macConfig.byteSwap);
 
          --axiSlaveRegister(regCon, x"210", 0, v.config.macConfig.txShift);

@@ -58,7 +58,7 @@ end EthMacTxPause;
 
 architecture rtl of EthMacTxPause is
 
-   constant CNT_BITS_C : integer := bitSize(PAUSE_512BITS_G);
+   constant CNT_BITS_C : integer := bitSize(PAUSE_512BITS_G-1);
    constant SIZE_C     : natural := ite(VLAN_EN_G, (VLAN_SIZE_G+1), 1);
 
    type StateType is (
