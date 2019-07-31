@@ -121,6 +121,13 @@ class TenGigEthReg(pr.Device):
             bitSize      = 1,
             mode         = allowAccess,
         ))
+        
+        self.add(pr.RemoteVariable(   
+            name         = 'PauseFifoThreshold',
+            offset       = 0x800,
+            bitSize      = 16,
+            mode         = allowAccess,
+        ))        
 
         if writeEn:
         
