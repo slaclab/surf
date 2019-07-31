@@ -35,10 +35,8 @@ entity EthMacTop is
       -- RX FIFO Configurations
       INT_PIPE_STAGES_G   : natural                  := 1;
       PIPE_STAGES_G       : natural                  := 1;
-      FIFO_ADDR_WIDTH_G   : positive                 := 10;
-      CASCADE_SIZE_G      : positive                 := 2;
-      FIFO_PAUSE_THRESH_G : positive                 := 1000;
-      CASCADE_PAUSE_SEL_G : natural                  := 0;
+      FIFO_ADDR_WIDTH_G   : positive            := 11;
+      FIFO_PAUSE_THRESH_G : positive            := 128;
       -- Non-VLAN Configurations
       FILT_EN_G           : boolean                  := false;
       PRIM_COMMON_CLK_G   : boolean                  := false;
@@ -311,9 +309,7 @@ begin
          INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
          PIPE_STAGES_G       => PIPE_STAGES_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
-         CASCADE_SIZE_G      => CASCADE_SIZE_G,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
-         CASCADE_PAUSE_SEL_G => CASCADE_PAUSE_SEL_G,
          PRIM_COMMON_CLK_G   => PRIM_COMMON_CLK_G,
          PRIM_CONFIG_G       => PRIM_CONFIG_G,
          BYP_EN_G            => BYP_EN_G,
