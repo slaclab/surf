@@ -25,8 +25,8 @@ class Pgp3AxiL(pr.Device):
                  description = "Configuration and status a PGP 3 link",
                  numVc = 4,
                  writeEn = False,
-                 errorCountBits = 4,
-                 statusCountBits = 32,
+                 errorCountBits = 8,
+                 statusCountBits = 8,
                  **kwargs):
         super().__init__(description=description, **kwargs)
 
