@@ -29,6 +29,7 @@ entity SsiPrbsTx is
       -- General Configurations
       TPD_G                      : time                    := 1 ns;
       AXI_EN_G                   : sl                      := '1';
+      AXI_DEFAULT_PKT_LEN_C      : slv(31 downto 0)        := x"00000FFF";
       -- FIFO Configurations
       VALID_THOLD_G              : natural                 := 1;
       VALID_BURST_MODE_G         : boolean                 := false;
@@ -115,7 +116,7 @@ architecture rtl of SsiPrbsTx is
       busy           => '1',
       overflow       => '0',
       length         => (others => '0'),
-      packetLength   => x"00000FFF",
+      packetLength   => AXI_DEFAULT_PKT_LEN_C,
       dataCnt        => (others => '0'),
       trigDly        => (others => '0'),
       trigDlyCnt     => (others => '0'),
