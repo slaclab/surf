@@ -110,8 +110,8 @@ begin
                if (sAxisMaster.tValid = '1') then
                   -- Check for pause frame
                   if (PAUSE_EN_G = true) and
-                     (sAxisMaster.tData(47 downto 0) = x"010000c28001") and  -- DST MAC (Pause MAC Address)
-                     (sAxisMaster.tData(127 downto 96) = x"01000888") then   -- Mac Type, Mac OpCode
+                     (sAxisMaster.tData(47 downto 0) = x"01_00_00_C2_80_01") and  -- DST MAC (Pause MAC Address)
+                     (sAxisMaster.tData(127 downto 96) = x"01_00_08_88") then   -- Mac Type, Mac OpCode
                      -- Check for no EOF
                      if (sAxisMaster.tLast = '0') then
                         -- Next State
@@ -156,9 +156,9 @@ begin
                end if;
             ----------------------------------------------------------------------
             when PAUSE_S =>
-               ----------------------------------------------------------------------------------------------------------
-               -- Refer to https://www.safaribooksonline.com/library/view/ethernet-the-definitive/1565926609/ch04s02.html
-               ----------------------------------------------------------------------------------------------------------            
+            --------------------------------------------------------------------------------------------------------------------
+            -- Refer to https://hasanmansur1.files.wordpress.com/2012/12/ethernet-flow-control-pause-frame-framing-structure.png
+            --------------------------------------------------------------------------------------------------------------------           
                -- Check for data
                if (sAxisMaster.tValid = '1') then
                   -- Latch the pause data

@@ -176,6 +176,8 @@ begin
          axiSlaveRegister(regCon, x"22C", 0, v.config.macConfig.pauseEnable);
 
          axiSlaveRegister(regCon, x"230", 0, v.config.configVector);
+         
+         axiSlaveRegister(regCon, x"800", 0, v.config.macConfig.pauseThresh);
 
          axiSlaveRegister(regCon, x"F00", 0, v.rollOverEn);
          axiSlaveRegister(regCon, x"FF4", 0, v.cntRst);

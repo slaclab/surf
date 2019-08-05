@@ -6,4 +6,5 @@
 *._*
 *.db
 xvcSrv
+bin/
 doxygen/

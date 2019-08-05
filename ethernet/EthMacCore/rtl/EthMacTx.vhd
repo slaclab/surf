@@ -228,7 +228,6 @@ begin
          gmiiTxEr       => gmiiTxEr,
          gmiiTxd        => gmiiTxd,
          -- Configuration and status
-         macAddress     => ethConfig.macAddress,
          phyReady       => phyReady,
          txCountEn      => txCountEn,
          txUnderRun     => txUnderRun,
