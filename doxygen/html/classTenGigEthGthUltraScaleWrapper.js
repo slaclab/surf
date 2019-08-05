@@ -30,6 +30,7 @@ var classTenGigEthGthUltraScaleWrapper =
     [ "gtRxPolarity", "classTenGigEthGthUltraScaleWrapper.html#a60b4cce2ae6c77c3f718d3e877500cef", null ],
     [ "gtTxPolarity", "classTenGigEthGthUltraScaleWrapper.html#aa68ea575298561c2d4fbf37192bd7721", null ],
     [ "gtRefClk", "classTenGigEthGthUltraScaleWrapper.html#a93c92bfbb1b2df08f6dfa9f8261a42f1", null ],
+    [ "gtRefClkBufg", "classTenGigEthGthUltraScaleWrapper.html#a01985961872b0a9cf600afc39be9ad5e", null ],
     [ "gtClkP", "classTenGigEthGthUltraScaleWrapper.html#aa1b697ca181f933b194d07fac0fb9cd1", null ],
     [ "gtClkN", "classTenGigEthGthUltraScaleWrapper.html#ae7e49c11aae06f64f309fd7b18bc8d98", null ],
     [ "gtTxP", "classTenGigEthGthUltraScaleWrapper.html#a5583839a9fc849306ef689d28078cd8e", null ],

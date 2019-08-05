@@ -17,6 +17,7 @@ var classSyncTrigRate_1_1rtl =
     [ "r", "classSyncTrigRate_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3", null ],
     [ "rin", "classSyncTrigRate_1_1rtl.html#a758a8cbb78916a3911d410a62191310d", null ],
     [ "trig", "classSyncTrigRate_1_1rtl.html#aba58295d7aa425e91ea57375708d123c", null ],
+    [ "trigLast", "classSyncTrigRate_1_1rtl.html#a4d83504fd499ec850220deb292e8d6c2", null ],
     [ "updated", "classSyncTrigRate_1_1rtl.html#aa304b7f0d69252ec5116d353e9f8f7e5", null ],
     [ "trigCnt", "classSyncTrigRate_1_1rtl.html#a2819ad00258ebc14121c916e70ec9311", null ],
     [ "trigCntSync", "classSyncTrigRate_1_1rtl.html#ad99589b45f8be820481b37d4f37000c7", null ],

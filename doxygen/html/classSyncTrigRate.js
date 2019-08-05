@@ -5,6 +5,7 @@ var classSyncTrigRate =
     [ "COMMON_CLK_G", "classSyncTrigRate.html#a762b446ddef001083e8cfc52dc38385f", null ],
     [ "ONE_SHOT_G", "classSyncTrigRate.html#a270acf5182fc6c2ea671c971ca1567ba", null ],
     [ "IN_POLARITY_G", "classSyncTrigRate.html#a9853aeaa6ff0c04943987631b5840ce9", null ],
+    [ "COUNT_EDGES_G", "classSyncTrigRate.html#abfcd358cd894ba24e988b38d11f746fc", null ],
     [ "REF_CLK_FREQ_G", "classSyncTrigRate.html#ae63ec347149b3486b5459e57fe9512d4", null ],
     [ "REFRESH_RATE_G", "classSyncTrigRate.html#a12ba14cb2c0e17aefad9e56902e3d45e", null ],
     [ "USE_DSP48_G", "classSyncTrigRate.html#a7a8db7e7131ac4fe84ceeb9010cb34c7", null ],

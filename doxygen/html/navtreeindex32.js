@@ -1,5 +1,6 @@
 var NAVTREEINDEX32 =
 {
+"classDspComparator.html#a5f584d85c2958b3bc1ba81e4b0ea9e09":[1,0,182,11],
 "classDspComparator.html#a64f444b9c1b2c38c6724c0b6487e0f7a":[1,0,182,4],
 "classDspComparator.html#a67a837684e4f18c2d236ac1d053b419b":[1,0,182,1],
 "classDspComparator.html#a6ac5a4dfdf53e5b0e713728c437634d0":[1,0,182,10],
@@ -248,6 +249,5 @@ var NAVTREEINDEX32 =
 "classEncoder12b14b_1_1rtl.html":[1,0,188,0],
 "classEncoder12b14b_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3":[1,0,188,0,8],
 "classEncoder12b14b_1_1rtl.html#a09bc9415670ceb75bf1f1b332428924c":[1,0,188,0,7],
-"classEncoder12b14b_1_1rtl.html#a353ceee8514faa8147c24fc65db465a1":[1,0,188,0,5],
-"classEncoder12b14b_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9":[1,0,188,0,2]
+"classEncoder12b14b_1_1rtl.html#a353ceee8514faa8147c24fc65db465a1":[1,0,188,0,5]
 };

@@ -6,6 +6,7 @@ var classPgp2bGtp7FixedLat_1_1rtl =
     [ "pgpRxResetInt", "classPgp2bGtp7FixedLat_1_1rtl.html#a631b16fb82f0646ba7c13cca4d34d6d3", null ],
     [ "gtRxData", "classPgp2bGtp7FixedLat_1_1rtl.html#a5eb6d762cad0bb211eba9a516a6aa5db", null ],
     [ "dataValid", "classPgp2bGtp7FixedLat_1_1rtl.html#a997a05bedf8c793a15c0fe38cdfd4280", null ],
+    [ "dataValidTmp", "classPgp2bGtp7FixedLat_1_1rtl.html#a68bc6e9c047e18da6143d30e6eef6118", null ],
     [ "phyRxLanesIn", "classPgp2bGtp7FixedLat_1_1rtl.html#aee67cc77ea5dd9f5f55d8deedd6d9753", null ],
     [ "phyRxLanesOut", "classPgp2bGtp7FixedLat_1_1rtl.html#ab2e9a481945884976ed7235a19ed53d6", null ],
     [ "phyRxReady", "classPgp2bGtp7FixedLat_1_1rtl.html#adcfa0cf92b97112069afc6cfc61d5241", null ],
@@ -23,7 +24,9 @@ var classPgp2bGtp7FixedLat_1_1rtl =
     [ "drpDi", "classPgp2bGtp7FixedLat_1_1rtl.html#a9b53eefff786dabe6182d63c92d2393d", null ],
     [ "drpDo", "classPgp2bGtp7FixedLat_1_1rtl.html#a313794153bae5b90bf1310b7c96f3178", null ],
     [ "u_pgp2blane", "classPgp2bGtp7FixedLat_1_1rtl.html#a5101b94a32f04c856c78375ea18c8cd3", null ],
+    [ "u_synchronizeroneshot_1", "classPgp2bGtp7FixedLat_1_1rtl.html#aa3ce4908ae0f7bffe245c50ce224ddcb", null ],
     [ "decoder8b10b_1", "classPgp2bGtp7FixedLat_1_1rtl.html#af1ee45140131f8a08fd580ba43fef110", null ],
+    [ "u_pgp3rxgearboxaligner_1", "classPgp2bGtp7FixedLat_1_1rtl.html#a60817dc31ec624e44cfb8bc2f38e19f0", null ],
     [ "gtp7core_1", "classPgp2bGtp7FixedLat_1_1rtl.html#ac56abc0241fbbecb39762452ff2feb18", null ],
     [ "u_axilitetodrp", "classPgp2bGtp7FixedLat_1_1rtl.html#acd904b950d70252271db56607e382010", null ],
     [ "u_rstsync", "classPgp2bGtp7FixedLat_1_1rtl.html#a6a6f7fa76563fff872b11b808a48227c", null ]

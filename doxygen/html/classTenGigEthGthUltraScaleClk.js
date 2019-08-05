@@ -2,6 +2,7 @@ var classTenGigEthGthUltraScaleClk =
 [
     [ "TenGigEthGthUltraScaleClk.mapping", "classTenGigEthGthUltraScaleClk_1_1mapping.html", "classTenGigEthGthUltraScaleClk_1_1mapping" ],
     [ "gtRefClk", "classTenGigEthGthUltraScaleClk.html#a93c92bfbb1b2df08f6dfa9f8261a42f1", null ],
+    [ "gtRefClkBufg", "classTenGigEthGthUltraScaleClk.html#a01985961872b0a9cf600afc39be9ad5e", null ],
     [ "gtClkP", "classTenGigEthGthUltraScaleClk.html#aa1b697ca181f933b194d07fac0fb9cd1", null ],
     [ "gtClkN", "classTenGigEthGthUltraScaleClk.html#ae7e49c11aae06f64f309fd7b18bc8d98", null ],
     [ "coreClk", "classTenGigEthGthUltraScaleClk.html#ae06955a8d7e3c3a1620cc67284bf8b78", null ],

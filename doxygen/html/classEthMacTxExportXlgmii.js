@@ -8,7 +8,6 @@ var classEthMacTxExportXlgmii =
     [ "phyTxd", "classEthMacTxExportXlgmii.html#a43ffc1ce253ad593050401ae5f0f0a38", null ],
     [ "phyTxc", "classEthMacTxExportXlgmii.html#ad5ee691911e5f29557eac87e2fcca142", null ],
     [ "phyReady", "classEthMacTxExportXlgmii.html#acd94b4913ea00c1063eb482fe2032b18", null ],
-    [ "macAddress", "classEthMacTxExportXlgmii.html#ae9cd1e595d7ea5753671f56553be3ef8", null ],
     [ "txCountEn", "classEthMacTxExportXlgmii.html#ac9b99e7e34b9fada17a04b84c6330d72", null ],
     [ "txUnderRun", "classEthMacTxExportXlgmii.html#aca4f15355a769ecf8978148067a2a9b8", null ],
     [ "txLinkNotReady", "classEthMacTxExportXlgmii.html#a38da36dadbf9b30dca8f09d2dadd26af", null ],

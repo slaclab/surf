@@ -5,6 +5,7 @@ var classEthMacRxFifo =
     [ "sRst", "classEthMacRxFifo.html#acbf5e0e6fed086169350b348785eb674", null ],
     [ "phyReady", "classEthMacRxFifo.html#acd94b4913ea00c1063eb482fe2032b18", null ],
     [ "rxFifoDrop", "classEthMacRxFifo.html#a6cdd8f1d2dfb8f03ed74fd440eb58fb9", null ],
+    [ "pauseThresh", "classEthMacRxFifo.html#afad4164fee4ca12b4636a04b0238617a", null ],
     [ "mPrimClk", "classEthMacRxFifo.html#a8c07596d8d30eb44f10ba715912be1e4", null ],
     [ "mPrimRst", "classEthMacRxFifo.html#a0700c6fe6d4216b2f6646c02ed7f8ef3", null ],
     [ "sPrimMaster", "classEthMacRxFifo.html#a4cf8c37d323d9aa5ef1acb2c8ae822ec", null ],
@@ -25,6 +26,8 @@ var classEthMacRxFifo =
     [ "mVlanSlaves", "classEthMacRxFifo.html#a23ee3bb469989584529dc0997d539940", null ],
     [ "ieee", "classEthMacRxFifo.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classEthMacRxFifo.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "std_logic_unsigned", "classEthMacRxFifo.html#a598da929e807d58939b47499e8bc9fa8", null ],
+    [ "std_logic_arith", "classEthMacRxFifo.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
     [ "StdRtlPkg", "classEthMacRxFifo.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiStreamPkg", "classEthMacRxFifo.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
     [ "EthMacPkg", "classEthMacRxFifo.html#ac1625414338993fe184c68bfdbb48894", null ]

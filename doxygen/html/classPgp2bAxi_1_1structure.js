@@ -41,6 +41,7 @@ var classPgp2bAxi_1_1structure =
     [ "linkPolarity", "classPgp2bAxi_1_1structure.html#a57fe7056772ded0e040aecf875582df6", null ],
     [ "locLinkReady", "classPgp2bAxi_1_1structure.html#a5b4861cac7419484d4fe553385cc0c59", null ],
     [ "remLinkReady", "classPgp2bAxi_1_1structure.html#a9d3318bda0011ddf368826886fa742e2", null ],
+    [ "remLinkReadyCnt", "classPgp2bAxi_1_1structure.html#a40b672590fbdc22b1acb3042418af06a", null ],
     [ "remLinkData", "classPgp2bAxi_1_1structure.html#a14c896cefdb833902e1a4bff1f0906de", null ],
     [ "cellErrorCount", "classPgp2bAxi_1_1structure.html#a32bbf685ff1fa6e2736aeaf57c28dc08", null ],
     [ "linkDownCount", "classPgp2bAxi_1_1structure.html#a7a4aebf2249189682f66ddc5e193c8ff", null ],

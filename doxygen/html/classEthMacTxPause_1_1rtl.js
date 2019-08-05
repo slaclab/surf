@@ -2,7 +2,7 @@ var classEthMacTxPause_1_1rtl =
 [
     [ "comb", "classEthMacTxPause_1_1rtl.html#aef320741ef4bb596aeeefd192aec6a0e", null ],
     [ "seq", "classEthMacTxPause_1_1rtl.html#abc436b3a546a87e38d5027311a513379", null ],
-    [ "CNT_BITS_C", "classEthMacTxPause_1_1rtl.html#a8d4e3e3c952040ecb27eec9dae13e3f4", null ],
+    [ "CNT_BITS_C", "classEthMacTxPause_1_1rtl.html#abfd0e610b01afe9367e5047f42a0587d", null ],
     [ "SIZE_C", "classEthMacTxPause_1_1rtl.html#a919c832e549bf50068c6cebc6c70506c", null ],
     [ "StateType", "classEthMacTxPause_1_1rtl.html#a88f2be1123854b2f3bdd0c0c391aca0e", null ],
     [ "RegType", "classEthMacTxPause_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
