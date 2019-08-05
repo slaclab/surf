@@ -38,8 +38,6 @@ entity EthMacTxExportGmii is
       gmiiTxEr       : out sl;
       gmiiTxd        : out slv(7 downto 0);
       phyReady       : in  sl;
-      -- Configuration
-      macAddress     : in  slv(47 downto 0);
       -- Status
       txCountEn      : out sl;
       txUnderRun     : out sl;

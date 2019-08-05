@@ -80,25 +80,26 @@ class RssiCore(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
-            name         = "InitSeqN",
-            description  = "Initial sequence number [7:0]",
-            offset       =  0x04,
-            bitSize      =  8,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
-            mode         = "RW",
-        ))
+        # self.add(pr.RemoteVariable(    
+            # name         = "InitSeqN",
+            # description  = "Initial sequence number [7:0]",
+            # offset       =  0x04,
+            # bitSize      =  8,
+            # bitOffset    =  0x00,
+            # base         = pr.UInt,
+            # mode         = "RW",
+        # ))
 
-        self.add(pr.RemoteVariable(    
-            name         = "Version",
-            description  = "Version register [3:0]",
-            offset       =  0x08,
-            bitSize      =  4,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
-            mode         = "RW",
-        ))
+        # self.add(pr.RemoteVariable(    
+            # name         = "Version",
+            # description  = "Version register [3:0]",
+            # offset       =  0x08,
+            # bitSize      =  4,
+            # bitOffset    =  0x00,
+            # base         = pr.UInt,
+            # mode         = "RW",
+            # disp         = '{:d}',
+        # ))
 
         self.add(pr.RemoteVariable(    
             name         = "MaxOutsSeg",
@@ -108,6 +109,7 @@ class RssiCore(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(    
@@ -118,6 +120,7 @@ class RssiCore(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(    
@@ -128,6 +131,7 @@ class RssiCore(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(    
@@ -138,6 +142,7 @@ class RssiCore(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(    
@@ -148,6 +153,7 @@ class RssiCore(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(    
@@ -158,6 +164,7 @@ class RssiCore(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(    
@@ -168,17 +175,19 @@ class RssiCore(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
+            disp         = '{:d}',
         ))
 
-        self.add(pr.RemoteVariable(    
-            name         = "MaxOutOfSeq",
-            description  = "Max out of sequence segments (EACK) [7:0]",
-            offset       =  0x28,
-            bitSize      =  8,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
-            mode         = "RW",
-        ))
+        # self.add(pr.RemoteVariable(    
+            # name         = "MaxOutOfSeq",
+            # description  = "Max out of sequence segments (EACK) [7:0]",
+            # offset       =  0x28,
+            # bitSize      =  8,
+            # bitOffset    =  0x00,
+            # base         = pr.UInt,
+            # mode         = "RW",
+            # disp         = '{:d}',
+        # ))
 
         self.add(pr.RemoteVariable(    
             name         = "ConnectionActive",
@@ -191,71 +200,71 @@ class RssiCore(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
-            name         = "ErrMaxRetrans",
-            description  = "Maximum retransmissions exceeded retransMax.",
-            offset       =  0x40,
-            bitSize      =  1,
-            bitOffset    =  0x01,
-            base         = pr.UInt,
-            mode         = "RO",
-            pollInterval = 1,
-        ))
+        # self.add(pr.RemoteVariable(    
+            # name         = "ErrMaxRetrans",
+            # description  = "Maximum retransmissions exceeded retransMax.",
+            # offset       =  0x40,
+            # bitSize      =  1,
+            # bitOffset    =  0x01,
+            # base         = pr.UInt,
+            # mode         = "RO",
+            # pollInterval = 1,
+        # ))
 
-        self.add(pr.RemoteVariable(    
-            name         = "ErrNullTout",
-            description  = "Null timeout reached (server) nullTout.",
-            offset       =  0x40,
-            bitSize      =  1,
-            bitOffset    =  0x02,
-            base         = pr.UInt,
-            mode         = "RO",
-            pollInterval = 1,
-        ))
+        # self.add(pr.RemoteVariable(    
+            # name         = "ErrNullTout",
+            # description  = "Null timeout reached (server) nullTout.",
+            # offset       =  0x40,
+            # bitSize      =  1,
+            # bitOffset    =  0x02,
+            # base         = pr.UInt,
+            # mode         = "RO",
+            # pollInterval = 1,
+        # ))
 
-        self.add(pr.RemoteVariable(    
-            name         = "ErrAck",
-            description  = "Error in acknowledgment mechanism.",
-            offset       =  0x40,
-            bitSize      =  1,
-            bitOffset    =  0x03,
-            base         = pr.UInt,
-            mode         = "RO",
-            pollInterval = 1,
-        ))
+        # self.add(pr.RemoteVariable(    
+            # name         = "ErrAck",
+            # description  = "Error in acknowledgment mechanism.",
+            # offset       =  0x40,
+            # bitSize      =  1,
+            # bitOffset    =  0x03,
+            # base         = pr.UInt,
+            # mode         = "RO",
+            # pollInterval = 1,
+        # ))
 
-        self.add(pr.RemoteVariable(    
-            name         = "ErrSsiFrameLen",
-            description  = "SSI Frame length too long",
-            offset       =  0x40,
-            bitSize      =  1,
-            bitOffset    =  0x04,
-            base         = pr.UInt,
-            mode         = "RO",
-            pollInterval = 1,
-        ))
+        # self.add(pr.RemoteVariable(    
+            # name         = "ErrSsiFrameLen",
+            # description  = "SSI Frame length too long",
+            # offset       =  0x40,
+            # bitSize      =  1,
+            # bitOffset    =  0x04,
+            # base         = pr.UInt,
+            # mode         = "RO",
+            # pollInterval = 1,
+        # ))
 
-        self.add(pr.RemoteVariable(    
-            name         = "ErrConnTout",
-            description  = "Connection to peer timed out. Timeout defined in generic PEER_CONN_TIMEOUT_G (Default: 1000 ms)",
-            offset       =  0x40,
-            bitSize      =  1,
-            bitOffset    =  0x05,
-            base         = pr.UInt,
-            mode         = "RO",
-            pollInterval = 1,
-        ))
+        # self.add(pr.RemoteVariable(    
+            # name         = "ErrConnTout",
+            # description  = "Connection to peer timed out. Timeout defined in generic PEER_CONN_TIMEOUT_G (Default: 1000 ms)",
+            # offset       =  0x40,
+            # bitSize      =  1,
+            # bitOffset    =  0x05,
+            # base         = pr.UInt,
+            # mode         = "RO",
+            # pollInterval = 1,
+        # ))
 
-        self.add(pr.RemoteVariable(    
-            name         = "ParamRejected",
-            description  = "Client rejected the connection (parameters out of range), Server proposed new parameters (parameters out of range)",
-            offset       =  0x40,
-            bitSize      =  1,
-            bitOffset    =  0x06,
-            base         = pr.UInt,
-            mode         = "RO",
-            pollInterval = 1,
-        ))
+        # self.add(pr.RemoteVariable(    
+            # name         = "ParamRejected",
+            # description  = "Client rejected the connection (parameters out of range), Server proposed new parameters (parameters out of range)",
+            # offset       =  0x40,
+            # bitSize      =  1,
+            # bitOffset    =  0x06,
+            # base         = pr.UInt,
+            # mode         = "RO",
+            # pollInterval = 1,
+        # ))
 
         self.add(pr.RemoteVariable(    
             name         = "ValidCnt",
@@ -352,13 +361,19 @@ class RssiCore(pr.Device):
         ##############################
         @self.command(name="C_OpenConn", description="Open connection request",)
         def C_OpenConn():        
-           self.OpenConn.set(0)
+           self.CloseConn.set(0)
+           self.OpenConn.set(1)
 
         @self.command(name="C_CloseConn", description="Close connection request",)
         def C_CloseConn():                        
+           self.OpenConn.set(0)
            self.CloseConn.set(1)
-           self.CloseConn.set(0)
-                        
+                    
+        @self.command(name="C_RestartConn", description="Restart connection request",)
+        def C_RestartConn():        
+           self.C_CloseConn()
+           self.C_OpenConn()
+           
         @self.command(name="C_InjectFault", description="Inject a single fault(for debug and test purposes only). Corrupts checksum during transmission",)
         def C_InjectFault():                        
            self.InjectFault.set(1)
