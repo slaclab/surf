@@ -22,7 +22,7 @@ use work.TextUtilPkg.all;
 entity DeviceDna is
    generic (
       TPD_G           : time     := 1 ns;
-      XIL_DEVICE_G    : string   := "7SERIES";  -- Either "7SERIES" or "ULTRASCALE"
+      XIL_DEVICE_G   : string   := "7SERIES";  -- Either "7SERIES" or "ULTRASCALE" or "ULTRASCALE_PLUS"
       USE_SLOWCLK_G   : boolean  := false;
       BUFR_CLK_DIV_G  : positive := 8;
       RST_POLARITY_G  : sl       := '1';
@@ -69,6 +69,9 @@ architecture rtl of DeviceDna is
    
 begin
 
+   assert (XIL_DEVICE_G ="7SERIES" or XIL_DEVICE_G ="ULTRASCALE" or XIL_DEVICE_G ="ULTRASCALE_PLUS") 
+      report "XIL_DEVICE_G must be either [7SERIES,ULTRASCALE,ULTRASCALE_PLUS]" severity failure;
+
    GEN_7SERIES : if (XIL_DEVICE_G = "7SERIES") generate
       DeviceDna7Series_Inst : DeviceDna7Series
          generic map (
@@ -86,7 +89,7 @@ begin
       dnaValue(127 downto 56) <= (others=>'0');
    end generate;
 
-   GEN_ULTRA_SCALE : if (XIL_DEVICE_G = "ULTRASCALE") generate
+   GEN_ULTRA_SCALE : if (XIL_DEVICE_G = "ULTRASCALE") or (XIL_DEVICE_G = "ULTRASCALE_PLUS") generate
       DeviceDnaUltraScale_Inst : DeviceDnaUltraScale
          generic map (
             TPD_G           => TPD_G,

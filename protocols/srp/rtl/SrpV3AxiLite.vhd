@@ -36,7 +36,7 @@ entity SrpV3AxiLite is
       INT_PIPE_STAGES_G     : natural range 0 to 16   := 1;
       PIPE_STAGES_G         : natural range 0 to 16   := 1;
       FIFO_PAUSE_THRESH_G   : positive range 1 to 511 := 256;
-      TX_VALID_THOLD_G      : positive range 1 to 511 := 256;   -- >1 = only when frame ready or # entries
+      TX_VALID_THOLD_G      : positive range 1 to 511 := 500;   -- >1 = only when frame ready or # entries
       TX_VALID_BURST_MODE_G : boolean                 := true;  -- only used in VALID_THOLD_G>1
       SLAVE_READY_EN_G      : boolean                 := false;
       SYNTH_MODE_G          : string                  := "inferred";
@@ -794,8 +794,9 @@ begin
          SYNTH_MODE_G        => SYNTH_MODE_G,
          MEMORY_TYPE_G       => MEMORY_TYPE_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
-         CASCADE_SIZE_G      => 1,
-         FIFO_ADDR_WIDTH_G   => 9,
+         INT_WIDTH_SELECT_G  => "CUSTOM",
+         INT_DATA_WIDTH_G    => 16,     -- 128-bit         
+         FIFO_ADDR_WIDTH_G   => 9,      -- 8kB/FIFO = 128-bits x 512 entries         
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_G)

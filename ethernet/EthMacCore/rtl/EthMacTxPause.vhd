@@ -58,7 +58,7 @@ end EthMacTxPause;
 
 architecture rtl of EthMacTxPause is
 
-   constant CNT_BITS_C : integer := bitSize(PAUSE_512BITS_G);
+   constant CNT_BITS_C : integer := bitSize(PAUSE_512BITS_G-1);
    constant SIZE_C     : natural := ite(VLAN_EN_G, (VLAN_SIZE_G+1), 1);
 
    type StateType is (
@@ -189,9 +189,9 @@ begin
                end if;
             ----------------------------------------------------------------------
             when PAUSE_S =>
-               ----------------------------------------------------------------------------------------------------------
-               -- Refer to https://www.safaribooksonline.com/library/view/ethernet-the-definitive/1565926609/ch04s02.html
-               ----------------------------------------------------------------------------------------------------------
+               --------------------------------------------------------------------------------------------------------------------
+               -- Refer to https://hasanmansur1.files.wordpress.com/2012/12/ethernet-flow-control-pause-frame-framing-structure.png
+               --------------------------------------------------------------------------------------------------------------------
                -- Check if ready to move data
                if (v.mAxisMaster.tValid = '0') then
                   -- Reset the bus to defaults
@@ -203,13 +203,13 @@ begin
                   -- Check the flag
                   if (r.txCount = 0) then
                      -- DST MAC (Pause MAC Address)
-                     v.mAxisMaster.tData(47 downto 0)    := x"010000C28001";
-                     -- SRC MAC (local MAC address)
-                     v.mAxisMaster.tData(95 downto 48)   := macAddress;
+                     v.mAxisMaster.tData(47 downto 0)    := x"01_00_00_C2_80_01";
+                     -- SRC MAC (NULL MAC address)
+                     v.mAxisMaster.tData(95 downto 48)   := x"00_00_00_00_00_00";
                      -- MAC Control Type
-                     v.mAxisMaster.tData(111 downto 96)  := x"0888";
+                     v.mAxisMaster.tData(111 downto 96)  := x"08_88";
                      -- Pause Op-code
-                     v.mAxisMaster.tData(127 downto 112) := x"0100";                -- 2 bytes
+                     v.mAxisMaster.tData(127 downto 112) := x"01_00";                -- 2 bytes
                   elsif (r.txCount = 1) then
                      -- Pause length
                      v.mAxisMaster.tData(7 downto 0)    := pauseTime(15 downto 8);  -- 1 bytes

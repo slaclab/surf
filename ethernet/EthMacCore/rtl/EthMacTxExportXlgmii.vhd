@@ -36,8 +36,6 @@ entity EthMacTxExportXlgmii is
       phyTxd         : out slv(127 downto 0);
       phyTxc         : out slv(15 downto 0);
       phyReady       : in  sl;
-      -- Configuration
-      macAddress     : in  slv(47 downto 0);
       -- Errors
       txCountEn      : out sl;
       txUnderRun     : out sl;

@@ -85,8 +85,8 @@ begin
             -- AXIS Interface 
             macIbMaster => macIbMaster,
             -- XGMII PHY Interface
-            phyRxd      => xgmiiRxd,
-            phyRxc      => xgmiiRxc,
+            phyRxdata   => xgmiiRxd,
+            phyRxChar   => xgmiiRxc,
             -- Configuration and status
             phyReady    => phyReady,
             rxCountEn   => rxCountEn,

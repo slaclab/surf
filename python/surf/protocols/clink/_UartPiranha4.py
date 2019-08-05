@@ -25,7 +25,7 @@ import surf.protocols.clink as clink
 class UartPiranha4(pr.Device):
     def __init__(   self,       
             name        = 'UartPiranha4',
-            description = 'Uart Opal000 channel access',
+            description = 'Uart Piranha4 channel access',
             serial      = None,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs) 

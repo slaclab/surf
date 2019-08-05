@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 ##############################################################################
 ## This file is part of 'SLAC Firmware Standard Library'.
 ## It is subject to the license terms in the LICENSE.txt file found in the 
@@ -8,15 +7,12 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+ARCH   := $(shell getconf LONG_BIT)
+CC     := g++
+CFLAGS := -Wall -m$(ARCH) -I$(PWD) -lpthread -lrt -lm
 
-from surf.protocols.clink._ClinkTop      import *
-from surf.protocols.clink._ClinkSerialRx import *
-from surf.protocols.clink._ClinkSerialTx import *
-from surf.protocols.clink._ClinkChannel  import *
-from surf.protocols.clink._ClockManager  import *
+all:
+	$(CC) $(CFLAGS) send_pause.cpp -o bin/send_pause
 
-# Library of support Camera UART interfaces
-from surf.protocols.clink._UartGeneric    import *
-from surf.protocols.clink._UartOpal1000   import *
-from surf.protocols.clink._UartPiranha4   import *
-from surf.protocols.clink._UartUp900cl12b import *
+clean:
+	rm -f send_pause

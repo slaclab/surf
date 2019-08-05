@@ -150,7 +150,7 @@ class AxiStreamBatcherEventBuilder(pr.Device):
     def hardReset(self):
         self.HardRst()
 
-    def softReset(self):
+    def initialize(self):
         self.SoftRst()
 
     def countReset(self):
