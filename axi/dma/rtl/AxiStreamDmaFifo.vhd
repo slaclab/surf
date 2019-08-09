@@ -26,26 +26,27 @@ use work.AxiDmaPkg.all;
 
 entity AxiStreamDmaFifo is
    generic (
-      TPD_G             : time                := 1 ns;
+      TPD_G              : time                := 1 ns;
       -- FIFO Configuration
-      MAX_FRAME_SIZE_G  : positive            := 2**14;  -- Maximum AXI Stream frame size (units of bytes)
-      AXI_BUFFER_SIZE_G : positive            := 2**26;  -- Total AXI Memory for FIFO buffering (units of bytes)
+      MAX_FRAME_WIDTH_G  : positive            := 14;  -- Maximum AXI Stream frame size (units of address bits)
+      AXI_BUFFER_WIDTH_G : positive            := 28;  -- Total AXI Memory for FIFO buffering (units of address bits)
+      DROP_ERR_FRAME_G   : boolean             := false;
       -- AXI Stream Configurations
-      AXIS_CONFIG_G     : AxiStreamConfigType := AXIS_WRITE_DMA_CONFIG_C;
+      AXIS_CONFIG_G      : AxiStreamConfigType := AXIS_WRITE_DMA_CONFIG_C;
       -- AXI4 Configurations
-      AXI_BASE_ADDR_G   : slv(63 downto 0)    := x"0000_0000_0000_0000";  -- Memory Base Address Offset
-      AXI_CONFIG_G      : AxiConfigType       := axiConfig(32,8,4,4);
-      AXI_BURST_G       : slv(1 downto 0)     := "01";
-      AXI_CACHE_G       : slv(3 downto 0)     := "1111");
+      AXI_BASE_ADDR_G    : slv(63 downto 0)    := x"0000_0000_0000_0000";  -- Memory Base Address Offset
+      AXI_CONFIG_G       : AxiConfigType       := axiConfig(32, 8, 4, 4);
+      AXI_BURST_G        : slv(1 downto 0)     := "01";
+      AXI_CACHE_G        : slv(3 downto 0)     := "1111");
    port (
       clk            : in  sl;
       rst            : in  sl;
-      -- AXI Stream Interface (axisClk domain)
+      -- AXI Stream Interface
       sAxisMaster    : in  AxiStreamMasterType;
       sAxisSlave     : out AxiStreamSlaveType;
       mAxisMaster    : out AxiStreamMasterType;
       mAxisSlave     : in  AxiStreamSlaveType;
-      -- AXI4 Interface (axisClk domain)
+      -- AXI4 Interface
       axiReadMaster  : out AxiReadMasterType;
       axiReadSlave   : in  AxiReadSlaveType;
       axiWriteMaster : out AxiWriteMasterType;
@@ -56,11 +57,9 @@ architecture rtl of AxiStreamDmaFifo is
 
    constant BYP_SHIFT_C : boolean := true;  -- APP DMA driver enforces alignment, which means shift not required
 
-   constant NUM_BUFFERS_C : positive := (AXI_BUFFER_SIZE_G/MAX_FRAME_SIZE_G);
-   constant ADDR_WIDTH_C  : positive := bitSize(NUM_BUFFERS_C-1);
-
-   constant MAX_FRAME_WIDTH_C  : positive := bitSize(MAX_FRAME_SIZE_G-1);
-   constant MAX_BUFFER_WIDTH_C : positive := bitSize(AXI_BUFFER_SIZE_G-1);
+   constant BIT_DIFF_C     : positive := AXI_BUFFER_WIDTH_G-MAX_FRAME_WIDTH_G;
+   constant ADDR_WIDTH_C   : positive := ite((BIT_DIFF_C <= 9), BIT_DIFF_C, 9);
+   constant CASCADE_SIZE_C : positive := ite((BIT_DIFF_C <= 9), 1, 2**(BIT_DIFF_C-9));
 
    constant TDEST_BITS_C : positive := ite(AXIS_CONFIG_G.TDEST_BITS_C = 0, 1, AXIS_CONFIG_G.TDEST_BITS_C);
    constant TID_BITS_C   : positive := ite(AXIS_CONFIG_G.TID_BITS_C = 0, 1, AXIS_CONFIG_G.TID_BITS_C);
@@ -70,7 +69,8 @@ architecture rtl of AxiStreamDmaFifo is
       rdQueueReady : sl;
       wrQueueValid : sl;
       wrQueueData  : slv(AXI_READ_DMA_READ_REQ_SIZE_C-1 downto 0);
-      buffId       : slv(ADDR_WIDTH_C-1 downto 0);
+      wrIndex      : slv(BIT_DIFF_C-1 downto 0);
+      rdIndex      : slv(BIT_DIFF_C-1 downto 0);
       wrReq        : AxiWriteDmaReqType;
       rdReq        : AxiReadDmaReqType;
    end record RegType;
@@ -78,7 +78,8 @@ architecture rtl of AxiStreamDmaFifo is
       rdQueueReady => '0',
       wrQueueValid => '0',
       wrQueueData  => (others => '0'),
-      buffId       => (others => '0'),
+      wrIndex      => (others => '0'),
+      rdIndex      => (others => '0'),
       wrReq        => AXI_WRITE_DMA_REQ_INIT_C,
       rdReq        => AXI_READ_DMA_REQ_INIT_C);
 
@@ -95,14 +96,11 @@ architecture rtl of AxiStreamDmaFifo is
 
 begin
 
-   assert (isPowerOf2(MAX_FRAME_SIZE_G) = true)
-      report "MAX_FRAME_SIZE_G must be power of 2" severity failure;
+   assert (MAX_FRAME_WIDTH_G >= 12)     -- 4kB alignment
+      report "MAX_FRAME_WIDTH_G must >= 12" severity failure;
 
-   assert (isPowerOf2(AXI_BUFFER_SIZE_G) = true)
-      report "AXI_BUFFER_SIZE_G must be power of 2" severity failure;
-
-   assert (AXI_BUFFER_SIZE_G > MAX_FRAME_SIZE_G)
-      report "AXI_BUFFER_SIZE_G must greater than MAX_FRAME_SIZE_G" severity failure;
+   assert (AXI_BUFFER_WIDTH_G > MAX_FRAME_WIDTH_G)
+      report "AXI_BUFFER_WIDTH_G must greater than MAX_FRAME_WIDTH_G" severity failure;
 
    ---------------------
    -- Inbound Controller
@@ -157,21 +155,24 @@ begin
    -------------
    -- Read Queue
    -------------
-   U_ReadQueue : entity work.FifoSync
+   U_ReadQueue : entity work.FifoCascade
       generic map (
-         TPD_G        => TPD_G,
-         FWFT_EN_G    => true,
-         BRAM_EN_G    => true,
-         DATA_WIDTH_G => AXI_READ_DMA_READ_REQ_SIZE_C,
-         ADDR_WIDTH_G => ADDR_WIDTH_C)
+         TPD_G           => TPD_G,
+         FWFT_EN_G       => true,
+         GEN_SYNC_FIFO_G => true,
+         BRAM_EN_G       => true,
+         DATA_WIDTH_G    => AXI_READ_DMA_READ_REQ_SIZE_C,
+         CASCADE_SIZE_G  => CASCADE_SIZE_C,
+         ADDR_WIDTH_G    => ADDR_WIDTH_C)
       port map (
-         clk         => clk,
          rst         => rst,
          -- Write Interface
+         wr_clk      => clk,
          wr_en       => r.wrQueueValid,
          almost_full => wrQueueAfull,
          din         => r.wrQueueData,
          -- Read Interface
+         rd_clk      => clk,
          valid       => rdQueueValid,
          rd_en       => rdQueueReady,
          dout        => rdQueueData);
@@ -192,8 +193,15 @@ begin
       v.rdQueueReady := '0';
 
       -- Set base address offset
-      v.wrReq.address := AXI_BASE_ADDR_G;
-      v.rdReq.address := AXI_BASE_ADDR_G;
+      v.wrReq.address  := AXI_BASE_ADDR_G;
+      varRdReq.address := AXI_BASE_ADDR_G;
+
+      -- Update the address with respect to buffer index
+      v.wrReq.address(AXI_BUFFER_WIDTH_G-1 downto MAX_FRAME_WIDTH_G)  := r.wrIndex;
+      varRdReq.address(AXI_BUFFER_WIDTH_G-1 downto MAX_FRAME_WIDTH_G) := r.wrIndex;
+
+      -- Set the max buffer size
+      v.wrReq.maxSize := toSlv(2**MAX_FRAME_WIDTH_G, 32);
 
       --------------------------------------------------------------------------------
 
@@ -201,9 +209,7 @@ begin
       if (wrQueueAfull = '0') and (r.wrReq.request = '0') and (wrAck.done = '0') then
 
          -- Send the DMA Write REQ
-         v.wrReq.request                                                := '1';
-         v.wrReq.address(MAX_BUFFER_WIDTH_C-1 downto MAX_FRAME_WIDTH_C) := r.buffId;
-         v.wrReq.maxSize                                                := toSlv(MAX_FRAME_SIZE_G, 32);
+         v.wrReq.request := '1';
 
       -- Wait for the DMA Write ACK
       elsif (r.wrReq.request = '1') and (wrAck.done = '1') then
@@ -212,7 +218,6 @@ begin
          v.wrReq.request := '0';
 
          -- Generate the DMA READ REQ
-         varRdReq.address                            := r.wrReq.address;
          varRdReq.size                               := wrAck.size;
          varRdReq.firstUser(TUSER_BITS_C-1 downto 0) := wrAck.firstUser(TUSER_BITS_C-1 downto 0);
          varRdReq.lastUser(TUSER_BITS_C-1 downto 0)  := wrAck.lastUser(TUSER_BITS_C-1 downto 0);
@@ -226,8 +231,19 @@ begin
          v.wrQueueValid := '1';
          v.wrQueueData  := toSlv(varRdReq);
 
-         -- Increment the buffer 
-         v.buffId := r.buffId + 1;
+         -- Increment the write index
+         v.wrIndex := r.wrIndex + 1;
+
+         -- Check if we drop error AXI stream frames
+         if DROP_ERR_FRAME_G and (varRdReq.lastUser(0) = '1') then
+
+            -- Prevent the DMA READ REQ from going into the read queue
+            v.wrQueueValid := '0';
+
+            -- Keep the write index
+            v.wrIndex := r.wrIndex;
+
+         end if;
 
       end if;
 
@@ -247,6 +263,9 @@ begin
 
          -- Reset the flag
          v.rdReq.request := '0';
+
+         -- Increment the read index
+         v.rdIndex := r.rdIndex + 1;
 
       end if;
 
