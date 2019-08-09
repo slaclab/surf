@@ -3,7 +3,8 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
--- Generic AXI Stream FIFO DMA block for frame at a time transfers.
+-- Generic AXI Stream FIFO (one frame at a time transfers, no interleaving)
+-- using an AXI4 memory for the buffering of the AXI stream frames
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
