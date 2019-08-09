@@ -3,7 +3,7 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
--- Generic AXI Stream FIFO (one frame at a time transfers, no interleaving)
+-- Generic AXI Stream FIFO (one frame at a time transfers, no TDEST interleaving)
 -- using an AXI4 memory for the buffering of the AXI stream frames
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
