@@ -27,8 +27,9 @@ entity AxiStreamResize is
    generic (
 
       -- General Configurations
-      TPD_G      : time    := 1 ns;
-      READY_EN_G : boolean := true;
+      TPD_G         : time    := 1 ns;
+      READY_EN_G    : boolean := true;
+      PIPE_STAGES_G : natural := 0;      
 
       -- AXI Stream Port Configurations
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
@@ -75,6 +76,9 @@ architecture rtl of AxiStreamResize is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   signal pipeAxisMaster  : AxiStreamMasterType;
+   signal pipeAxisSlave   : AxiStreamSlaveType;
+
 begin
 
    -- Make sure data widths are appropriate. 
@@ -86,7 +90,7 @@ begin
    assert (SLV_BYTES_C <= MST_BYTES_C or READY_EN_G = true)  
       report "READY_EN_G must be true if slave width is great than master" severity failure;
 
-   comb : process (mAxisSlave, sAxisMaster, r) is
+   comb : process (pipeAxisSlave, sAxisMaster, r) is
       variable v       : RegType;
       variable ibM     : AxiStreamMasterType;
       variable idx     : integer; -- index version of counter
@@ -106,7 +110,7 @@ begin
       v.ibSlave.tReady := '0';
 
       -- Choose ready source and clear valid
-      if READY_EN_G = false or mAxisSlave.tReady = '1' then
+      if READY_EN_G = false or pipeAxisSlave.tReady = '1' then
          v.obMaster.tValid := '0';
       end if;
 
@@ -188,19 +192,19 @@ begin
 
       -- Resize disabled
       if SLV_BYTES_C = MST_BYTES_C then
-         sAxisSlave  <= mAxisSlave;
-         mAxisMaster <= sAxisMaster;
+         sAxisSlave     <= pipeAxisSlave;
+         pipeAxisMaster <= sAxisMaster;
          
          -- Check for TKEEP_COUNT_C mode on either side
          if (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) or (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
             
             -- Check for TKEEP_COUNT_C mode on slave side only
             if (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) and (MASTER_AXI_CONFIG_G.TKEEP_MODE_C /= TKEEP_COUNT_C) then
-               mAxisMaster.tkeep <= genTKeep(conv_integer(sAxisMaster.tkeep(bitSize(SLAVE_AXI_CONFIG_G.TDATA_BYTES_C)-1 downto 0)));
+               pipeAxisMaster.tkeep <= genTKeep(conv_integer(sAxisMaster.tkeep(bitSize(SLAVE_AXI_CONFIG_G.TDATA_BYTES_C)-1 downto 0)));
          
             -- Check for TKEEP_COUNT_C mode on master side only
             elsif (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C /= TKEEP_COUNT_C) and (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-               mAxisMaster.tkeep <= toSlv(getTKeep(sAxisMaster.tKeep,SLAVE_AXI_CONFIG_G),AXI_STREAM_MAX_TKEEP_WIDTH_C);
+               pipeAxisMaster.tkeep <= toSlv(getTKeep(sAxisMaster.tKeep,SLAVE_AXI_CONFIG_G),AXI_STREAM_MAX_TKEEP_WIDTH_C);
             
             -- Else both sides are TKEEP_COUNT_C mode
             else
@@ -212,14 +216,14 @@ begin
          sAxisSlave  <= v.ibSlave;
 
          -- Outbound data with proper user bits
-         mAxisMaster       <= r.obMaster;
-         mAxisMaster.tUser <= (others=>'0');
+         pipeAxisMaster       <= r.obMaster;
+         pipeAxisMaster.tUser <= (others=>'0');
          if (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-            mAxisMaster.tKeep <= toSlv(getTKeep(r.obMaster.tKeep,MASTER_AXI_CONFIG_G), AXI_STREAM_MAX_TKEEP_WIDTH_C);
+            pipeAxisMaster.tKeep <= toSlv(getTKeep(r.obMaster.tKeep,MASTER_AXI_CONFIG_G), AXI_STREAM_MAX_TKEEP_WIDTH_C);
          end if;
 
          for i in 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
-            mAxisMaster.tUser((i*MST_USER_C)+(MST_USER_C-1) downto (i*MST_USER_C)) <= r.obMaster.tUser((i*8)+(MST_USER_C-1) downto (i*8));
+            pipeAxisMaster.tUser((i*MST_USER_C)+(MST_USER_C-1) downto (i*MST_USER_C)) <= r.obMaster.tUser((i*8)+(MST_USER_C-1) downto (i*8));
          end loop;
       end if;
 
@@ -237,6 +241,19 @@ begin
          end if;
       end if;
    end process seq;
+
+   -- Optional output pipeline registers to ease timing
+   AxiStreamPipeline_1 : entity work.AxiStreamPipeline
+      generic map (
+         TPD_G         => TPD_G,
+         PIPE_STAGES_G => PIPE_STAGES_G)
+      port map (
+         axisClk     => axisClk,
+         axisRst     => axisRst,
+         sAxisMaster => pipeAxisMaster,
+         sAxisSlave  => pipeAxisSlave,
+         mAxisMaster => mAxisMaster,
+         mAxisSlave  => mAxisSlave);
 
 end rtl;
 
