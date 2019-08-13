@@ -330,7 +330,7 @@ begin
       ----------------------------------------------------------------------
       end case;
 
-      if (r.state = IDLE_S) or (r.state = DONE_S) or (r.state = ERROR_S) or then
+      if (r.state = IDLE_S) or (r.state = DONE_S) or (r.state = ERROR_S) then
          v.busy := '0';
       else
          v.busy := '1';
