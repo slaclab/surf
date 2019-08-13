@@ -25,12 +25,14 @@ use work.AxiStreamPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiPkg.all;
 use work.AxiDmaPkg.all;
+use work.SsiPkg.all;
 
 entity AxiStreamDmaFifo is
    generic (
       TPD_G              : time                := 1 ns;
       START_AFTER_RST_G  : sl                  := '1';  -- '1' still start the DMA REQs after RST; '0' will wait for AXI-Lite to start this
       DROP_ERR_FRAME_G   : sl                  := '1';  -- '1' will drop the AXIS if error detect
+      SOF_INSERT_G       : sl                  := '1';  -- Inserts SsiPkg's SOF bit
       -- FIFO Configuration
       MAX_FRAME_WIDTH_G  : positive            := 14;  -- Maximum AXI Stream frame size (units of address bits)
       AXI_BUFFER_WIDTH_G : positive            := 28;  -- Total AXI Memory for FIFO buffering (units of address bits)
@@ -67,15 +69,66 @@ architecture rtl of AxiStreamDmaFifo is
    constant BYP_SHIFT_C : boolean := true;  -- APP DMA driver enforces alignment, which means shift not required
 
    constant BIT_DIFF_C     : positive := AXI_BUFFER_WIDTH_G-MAX_FRAME_WIDTH_G;
-   constant ADDR_WIDTH_C   : positive := ite((BIT_DIFF_C <= 9), BIT_DIFF_C, 9);
-   constant CASCADE_SIZE_C : positive := ite((BIT_DIFF_C <= 9), 1, 2**(BIT_DIFF_C-9));
+   constant ADDR_WIDTH_C   : positive := ite((BIT_DIFF_C <= 10), BIT_DIFF_C, 10);
+   constant CASCADE_SIZE_C : positive := ite((BIT_DIFF_C <= 10), 1, 2**(BIT_DIFF_C-10));
 
-   constant TDEST_BITS_C : positive := ite(AXIS_CONFIG_G.TDEST_BITS_C = 0, 1, AXIS_CONFIG_G.TDEST_BITS_C);
-   constant TID_BITS_C   : positive := ite(AXIS_CONFIG_G.TID_BITS_C = 0, 1, AXIS_CONFIG_G.TID_BITS_C);
-   constant TUSER_BITS_C : positive := ite(AXIS_CONFIG_G.TUSER_BITS_C = 0, 1, AXIS_CONFIG_G.TUSER_BITS_C);
+   constant LOCAL_AXI_READ_DMA_READ_REQ_SIZE_C : integer := MAX_FRAME_WIDTH_G+(2*AXIS_CONFIG_G.TUSER_BITS_C)+AXIS_CONFIG_G.TDEST_BITS_C+AXIS_CONFIG_G.TID_BITS_C;
+
+   -- Using a local version (instead of AxiDmaPkg generalized functions) that's better logic optimized for this module
+   function localToSlv (r : AxiReadDmaReqType) return slv is
+      variable retValue : slv(LOCAL_AXI_READ_DMA_READ_REQ_SIZE_C-1 downto 0) := (others => '0');
+      variable i        : integer                                            := 0;
+   begin
+      assignSlv(i, retValue, r.size(MAX_FRAME_WIDTH_G-1 downto 0));
+
+      -- Check for none-zero TDEST bits
+      if (AXIS_CONFIG_G.TUSER_BITS_C /= 0) then
+         assignSlv(i, retValue, r.firstUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0));
+         assignSlv(i, retValue, r.lastUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0));
+      end if;
+
+      -- Check for none-zero TDEST bits
+      if (AXIS_CONFIG_G.TDEST_BITS_C /= 0) then
+         assignSlv(i, retValue, r.dest(AXIS_CONFIG_G.TDEST_BITS_C-1 downto 0));
+      end if;
+
+      -- Check for none-zero TID bits
+      if (AXIS_CONFIG_G.TID_BITS_C /= 0) then
+         assignSlv(i, retValue, r.id(AXIS_CONFIG_G.TID_BITS_C-1 downto 0));
+      end if;
+
+      return(retValue);
+   end function;
+
+   function localToAxiReadDmaReq (din : slv; valid : sl) return AxiReadDmaReqType is
+      variable desc : AxiReadDmaReqType := AXI_READ_DMA_REQ_INIT_C;
+      variable i    : integer           := 0;
+   begin
+      desc.request := valid;
+      assignRecord(i, din, desc.size(MAX_FRAME_WIDTH_G-1 downto 0));
+
+      -- Check for none-zero TDEST bits
+      if (AXIS_CONFIG_G.TUSER_BITS_C /= 0) then
+         assignRecord(i, din, desc.firstUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0));
+         assignRecord(i, din, desc.lastUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0));
+      end if;
+
+      -- Check for none-zero TDEST bits
+      if (AXIS_CONFIG_G.TDEST_BITS_C /= 0) then
+         assignRecord(i, din, desc.dest(AXIS_CONFIG_G.TDEST_BITS_C-1 downto 0));
+      end if;
+
+      -- Check for none-zero TID bits
+      if (AXIS_CONFIG_G.TID_BITS_C /= 0) then
+         assignRecord(i, din, desc.id(AXIS_CONFIG_G.TID_BITS_C-1 downto 0));
+      end if;
+
+      return(desc);
+   end function;
 
    type RegType is record
       rstCnt         : sl;
+      insertSof      : sl;
       online         : sl;
       dropOnErr      : sl;
       baseAddr       : slv(63 downto 0);
@@ -84,7 +137,7 @@ architecture rtl of AxiStreamDmaFifo is
       errorCnt       : slv(31 downto 0);
       rdQueueReady   : sl;
       wrQueueValid   : sl;
-      wrQueueData    : slv(AXI_READ_DMA_READ_REQ_SIZE_C-1 downto 0);
+      wrQueueData    : slv(LOCAL_AXI_READ_DMA_READ_REQ_SIZE_C-1 downto 0);
       wrIndex        : slv(BIT_DIFF_C-1 downto 0);
       rdIndex        : slv(BIT_DIFF_C-1 downto 0);
       frameCnt       : slv(BIT_DIFF_C-1 downto 0);
@@ -96,6 +149,7 @@ architecture rtl of AxiStreamDmaFifo is
    end record;
    constant REG_INIT_C : RegType := (
       rstCnt         => '0',
+      insertSof      => SOF_INSERT_G,
       online         => START_AFTER_RST_G,
       dropOnErr      => DROP_ERR_FRAME_G,
       baseAddr       => AXI_BASE_ADDR_G,
@@ -121,10 +175,11 @@ architecture rtl of AxiStreamDmaFifo is
    signal rdAck : AxiReadDmaAckType;
 
    signal wrQueueAfull : sl;
+   signal rdQueueRst   : sl;
    signal rdQueueReset : sl;
    signal rdQueueValid : sl;
    signal rdQueueReady : sl;
-   signal rdQueueData  : slv(AXI_READ_DMA_READ_REQ_SIZE_C-1 downto 0);
+   signal rdQueueData  : slv(LOCAL_AXI_READ_DMA_READ_REQ_SIZE_C-1 downto 0);
 
 begin
 
@@ -193,7 +248,7 @@ begin
          FWFT_EN_G       => true,
          GEN_SYNC_FIFO_G => true,
          BRAM_EN_G       => true,
-         DATA_WIDTH_G    => AXI_READ_DMA_READ_REQ_SIZE_C,
+         DATA_WIDTH_G    => LOCAL_AXI_READ_DMA_READ_REQ_SIZE_C,
          CASCADE_SIZE_G  => CASCADE_SIZE_C,
          ADDR_WIDTH_G    => ADDR_WIDTH_C)
       port map (
@@ -250,24 +305,24 @@ begin
          v.wrReq.request := '0';
 
          -- Generate the DMA READ REQ (rdReq.address set during the queue reader process)
-         varRdReq.size                               := wrAck.size;
-         varRdReq.firstUser(TUSER_BITS_C-1 downto 0) := wrAck.firstUser(TUSER_BITS_C-1 downto 0);
-         varRdReq.lastUser(TUSER_BITS_C-1 downto 0)  := wrAck.lastUser(TUSER_BITS_C-1 downto 0);
-         varRdReq.dest(TDEST_BITS_C-1 downto 0)      := wrAck.dest(TDEST_BITS_C-1 downto 0);
-         varRdReq.id(TID_BITS_C-1 downto 0)          := wrAck.id(TID_BITS_C-1 downto 0);
+         varRdReq.size      := wrAck.size;
+         varRdReq.firstUser := wrAck.firstUser;
+         varRdReq.lastUser  := wrAck.lastUser;
+         varRdReq.dest      := wrAck.dest;
+         varRdReq.id        := wrAck.id;
 
          -- Set EOFE if error detected
-         varRdReq.lastUser(0) := wrAck.overflow or wrAck.writeError;
+         varRdReq.lastUser(SSI_EOFE_C) := wrAck.lastUser(SSI_EOFE_C) or wrAck.overflow or wrAck.writeError;
 
          -- Forward the DMA READ REQ into the read queue
          v.wrQueueValid := '1';
-         v.wrQueueData  := toSlv(varRdReq);
+         v.wrQueueData  := localToSlv(varRdReq);
 
          -- Increment the write index
          v.wrIndex := r.wrIndex + 1;
 
          -- Check if error in WRITE ACK or AXIS EOFE
-         if (varRdReq.lastUser(0) = '1') then
+         if (varRdReq.lastUser(SSI_EOFE_C) = '1') then
 
             -- Increment the counter
             v.errorCnt := r.errorCnt + 1;
@@ -296,11 +351,16 @@ begin
          v.rdQueueReady := r.online;
 
          -- Send the DMA Read REQ         
-         v.rdReq := toAxiReadDmaReq(rdQueueData, r.online);
+         v.rdReq := localToAxiReadDmaReq(rdQueueData, r.online);
 
          -- Overwrite address with rdIndex to help optimize the U_ReadQueue logic 
          v.rdReq.address                                                := r.baseAddr;
          v.rdReq.address(AXI_BUFFER_WIDTH_G-1 downto MAX_FRAME_WIDTH_G) := r.rdIndex;
+
+         -- Check if adding SOF
+         if (r.insertSof = '1') then
+            v.rdReq.firstUser(SSI_SOF_C) := '1';
+         end if;
 
       -- Wait for the DMA READ ACK
       elsif (r.rdReq.request = '1') and (rdAck.done = '1') and (r.online = '1') then
@@ -322,11 +382,13 @@ begin
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
       -- Map the read registers
-      axiSlaveRegisterR(axilEp, x"00", 0, toSlv(1, 8));  -- Version 1
-      axiSlaveRegister (axilEp, x"00", 8, v.online);
-      axiSlaveRegister (axilEp, x"00", 9, v.dropOnErr);
-      axiSlaveRegisterR(axilEp, x"00", 10, START_AFTER_RST_G);
-      axiSlaveRegisterR(axilEp, x"00", 11, DROP_ERR_FRAME_G);
+      axiSlaveRegisterR(axilEp, x"00", 0, toSlv(1, 4));  -- Version 1
+      axiSlaveRegister (axilEp, x"00", 4, v.online);
+      axiSlaveRegister (axilEp, x"00", 5, v.dropOnErr);
+      axiSlaveRegister (axilEp, x"00", 6, v.insertSof);
+      axiSlaveRegisterR(axilEp, x"00", 8, START_AFTER_RST_G);
+      axiSlaveRegisterR(axilEp, x"00", 9, DROP_ERR_FRAME_G);
+      axiSlaveRegisterR(axilEp, x"00", 10, SOF_INSERT_G);
       axiSlaveRegisterR(axilEp, x"00", 12, AXI_CACHE_G);
       axiSlaveRegister (axilEp, x"00", 16, v.swCache);
       axiSlaveRegisterR(axilEp, x"00", 20, AXI_BURST_G);
@@ -395,8 +457,10 @@ begin
       --------------------------------------------------------------------------------
 
       -- Outputs
-      rdQueueReady <= v.rdQueueReady;
-      rdQueueReset <= not(r.online);
+      axilWriteSlave <= r.axilWriteSlave;
+      axilReadSlave  <= r.axilReadSlave;
+      rdQueueReady   <= v.rdQueueReady;
+      rdQueueRst     <= not(r.online);
 
       -- Reset
       if (axiRst = '1') then
@@ -414,5 +478,13 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
+
+   U_rdQueueReset : entity work.RstPipeline
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk    => axiClk,
+         rstIn  => rdQueueRst,
+         rstOut => rdQueueReset);
 
 end rtl;
