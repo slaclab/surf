@@ -199,14 +199,14 @@ class ClinkChannel(pr.Device):
         if serial is not None:
         
             # Check for OPA1000 camera
-            if (camType=='Opal000'):
+            if (camType=='Opal1000'):
                 
                 # Override defaults
                 self.BaudRate._default    = 57600
             
                 # Add the device
-                self.add(cl.UartOpal000(      
-                    name   = 'UartOpal000', 
+                self.add(cl.UartOpal1000(      
+                    name   = 'UartOpal1000', 
                     serial = serial,
                     expand = False,
                 ))
@@ -251,7 +251,7 @@ class ClinkChannel(pr.Device):
     def hardReset(self):
         self.CntRst()
 
-    def softReset(self):
+    def initialize(self):
         self.CntRst()
 
     def countReset(self):

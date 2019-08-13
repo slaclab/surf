@@ -27,13 +27,13 @@ class AxiStreamMonitoring(pr.Device):
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
         
-        self.add(pr.RemoteVariable(
-            name         = "CntRst",                 
+        self.add(pr.RemoteCommand(   
+            name         = 'CntRst',
             description  = "Counter Reset",
-            mode         = 'WO',
             offset       = 0x0,
-            hidden       = True,
-        ))             
+            bitSize      = 1,
+            function     = lambda cmd: cmd.post(1),
+        ))        
         
         def addPair(name,offset,bitSize,units,bitOffset,description,function,pollInterval = 0,):
             self.add(pr.RemoteVariable(  
@@ -135,10 +135,10 @@ class AxiStreamMonitoring(pr.Device):
         return var.dependencies[0].value() * 8e-6
         
     def hardReset(self):
-        self.CntRst.set(0x1)
+        self.CntRst()
 
-    def softReset(self):
-        self.CntRst.set(0x1)
+    def initialize(self):
+        self.CntRst()
 
     def countReset(self):
-        self.CntRst.set(0x1)
+        self.CntRst()

@@ -160,7 +160,7 @@ begin
             COMMON_TX_CLK_G    => false,
             COMMON_RX_CLK_G    => false,
             WRITE_EN_G         => true,
-            STATUS_CNT_WIDTH_G => 32,
+            STATUS_CNT_WIDTH_G => 16,
             ERROR_CNT_WIDTH_G  => 8,
             AXIL_CLK_FREQ_G    => AXIL_CLK_FREQ_G)
          port map (

@@ -32,8 +32,8 @@ entity EthMacRxImportXgmii is
       -- AXIS Interface   
       macIbMaster : out AxiStreamMasterType;
       -- PHY Interface
-      phyRxd      : in  slv(63 downto 0);
-      phyRxc      : in  slv(7 downto 0);
+      phyRxdata   : in  slv(63 downto 0);
+      phyRxChar   : in  slv(7 downto 0);
       -- Configuration and status
       phyReady    : in  sl;
       rxCountEn   : out sl;
@@ -49,7 +49,25 @@ architecture rtl of EthMacRxImportXgmii is
       TID_BITS_C    => EMAC_AXIS_CONFIG_C.TID_BITS_C,
       TKEEP_MODE_C  => EMAC_AXIS_CONFIG_C.TKEEP_MODE_C,
       TUSER_BITS_C  => EMAC_AXIS_CONFIG_C.TUSER_BITS_C,
-      TUSER_MODE_C  => EMAC_AXIS_CONFIG_C.TUSER_MODE_C);   
+      TUSER_MODE_C  => EMAC_AXIS_CONFIG_C.TUSER_MODE_C);
+
+   type RegType is record
+      phyRxd      : slv(63 downto 0);
+      phyRxc      : slv(7 downto 0);
+      phyRxdDly   : slv(63 downto 0);
+      phyRxcDly   : slv(7 downto 0);
+      gapInserted : sl;
+   end record RegType;
+
+   constant REG_INIT_C : RegType := (
+      phyRxd      => x"0707070707070707",
+      phyRxc      => x"FF",
+      phyRxdDly   => x"0707070707070707",
+      phyRxcDly   => x"FF",
+      gapInserted => '0');
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
 
    -- Local Signals
    signal macMaster    : AxiStreamMasterType;
@@ -88,6 +106,9 @@ architecture rtl of EthMacRxImportXgmii is
    signal crcOut       : slv(31 downto 0);
    signal macData      : slv(63 downto 0);
    signal macSize      : slv(2 downto 0);
+   
+   signal phyRxd : slv(63 downto 0);
+   signal phyRxc : slv(7 downto 0);   
 
    -- Debug Signals
    attribute dont_touch : string;
@@ -127,36 +148,89 @@ architecture rtl of EthMacRxImportXgmii is
    attribute dont_touch of crcOut       : signal is "true";
    attribute dont_touch of macData      : signal is "true";
    attribute dont_touch of macSize      : signal is "true";
-
+   attribute dont_touch of phyRxd       : signal is "true";
+   attribute dont_touch of phyRxc       : signal is "true";
+   
 begin
 
-   DATA_MUX : entity work.AxiStreamFifoV2
+   comb : process (phyRxChar, phyRxdata, r) is
+      variable v : RegType;
+   begin
+      -- Latch the current value
+      v := r;
+
+      -- Check delayed copy
+      v.phyRxcDly := phyRxChar;
+      v.phyRxdDly := phyRxdata;
+
+      -- Check if no gap inserted 
+      if r.gapInserted = '0' then
+
+         -- Check for no gap between two frames
+         if (phyRxChar /= x"FF" and phyRxChar /= x"00") and (r.phyRxcDly /= x"FF" and r.phyRxcDly /= x"00") then
+            -- Set the flag
+            v.gapInserted := '1';
+            -- Insert a gap
+            v.phyRxc      := x"FF";
+            v.phyRxd      := x"0707070707070707";
+         else
+            -- Moved the non-delayed copy
+            v.phyRxc := phyRxChar;
+            v.phyRxd := phyRxdata;
+         end if;
+
+      else
+
+         -- Moved the delayed copy
+         phyRxc <= r.phyRxcDly;
+         phyRxd <= r.phyRxdDly;
+
+         -- Check for two gaps in a row
+         if (r.phyRxcDly = x"FF") and (phyRxChar = x"FF") then
+            -- Reset the flag
+            v.gapInserted := '0';
+         end if;
+
+      end if;
+
+      -- Outputs
+      phyRxc <= r.phyRxc;
+      phyRxd <= r.phyRxd;
+
+      -- Register the variable for next clock cycle
+      rin <= v;
+
+   end process comb;
+
+   seq : process (ethClk) is
+   begin
+      if (rising_edge(ethClk)) then
+         if (ethRst = '1') then
+            r <= REG_INIT_C after TPD_G;
+         else
+            r <= rin after TPD_G;
+         end if;
+      end if;
+   end process seq;
+
+   U_Resize : entity work.AxiStreamResize
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
-         PIPE_STAGES_G       => 0,
-         SLAVE_READY_EN_G    => true,
-         VALID_THOLD_G       => 1,
-         -- FIFO configurations
-         BRAM_EN_G           => false,
-         USE_BUILT_IN_G      => false,
-         GEN_SYNC_FIFO_G     => true,
-         CASCADE_SIZE_G      => 1,
-         FIFO_ADDR_WIDTH_G   => 4,
+         READY_EN_G          => false,
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => AXI_CONFIG_C,        --  64-bit AXI stream interface  
-         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)  -- 128-bit AXI stream interface          
+         SLAVE_AXI_CONFIG_G  => AXI_CONFIG_C,  --  64-bit AXI stream interface  
+         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)  -- 128-bit AXI stream interface     
       port map (
+         -- Clock and reset
+         axisClk     => ethClk,
+         axisRst     => ethRst,
          -- Slave Port
-         sAxisClk    => ethClk,
-         sAxisRst    => ethRst,
-         sAxisMaster => macMaster,                   -- 64-bit AXI stream interface  
+         sAxisMaster => macMaster,      -- 64-bit AXI stream interface  
          sAxisSlave  => open,
          -- Master Port
-         mAxisClk    => ethClk,
-         mAxisRst    => ethRst,
-         mAxisMaster => macIbMaster,                 -- 128-bit AXI stream interface
-         mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);  
+         mAxisMaster => macIbMaster,    -- 128-bit AXI stream interface
+         mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);
 
    -- Convert to AXI stream
    process (ethClk) is
@@ -351,7 +425,7 @@ begin
          ADDR_WIDTH_G    => 4,
          INIT_G          => "0",
          FULL_THRES_G    => 1,
-         EMPTY_THRES_G   => 1) 
+         EMPTY_THRES_G   => 1)
       port map (
          rst           => ethRst,
          wr_clk        => ethClk,
@@ -485,13 +559,13 @@ begin
    U_Crc32 : entity work.Crc32Parallel
       generic map (
          TPD_G        => TPD_G,
-         BYTE_WIDTH_G => 8) 
+         BYTE_WIDTH_G => 8)
       port map (
          crcOut       => crcOut,
          crcClk       => ethClk,
          crcDataValid => crcDataValid,
          crcDataWidth => crcDataWidth,
          crcIn        => crcIn,
-         crcReset     => crcReset); 
+         crcReset     => crcReset);
 
 end rtl;

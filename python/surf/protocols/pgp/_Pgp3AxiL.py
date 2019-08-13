@@ -22,11 +22,11 @@ import pyrogue as pr
 
 class Pgp3AxiL(pr.Device):
     def __init__(self, 
-                 description = "Configuration and status a PGP 3 link",
-                 numVc = 4,
-                 writeEn = False,
-                 errorCountBits = 4,
-                 statusCountBits = 32,
+                 description     = "Configuration and status a PGP 3 link",
+                 numVc           = 4,
+                 statusCountBits = 16,
+                 errorCountBits  = 8,
+                 writeEn         = False,
                  **kwargs):
         super().__init__(description=description, **kwargs)
 

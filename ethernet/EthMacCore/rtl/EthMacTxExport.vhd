@@ -44,7 +44,6 @@ entity EthMacTxExport is
       gmiiTxEr       : out sl;
       gmiiTxd        : out slv(7 downto 0);
       -- Configuration and status
-      macAddress     : in  slv(47 downto 0);
       phyReady       : in  sl;
       txCountEn      : out sl;
       txUnderRun     : out sl;
@@ -73,7 +72,6 @@ begin
             phyTxc         => xlgmiiTxc,
             -- Configuration and status
             phyReady       => phyReady,
-            macAddress     => macAddress,
             txCountEn      => txCountEn,
             txUnderRun     => txUnderRun,
             txLinkNotReady => txLinkNotReady);
@@ -101,7 +99,6 @@ begin
             phyTxc         => xgmiiTxc,
             -- Configuration and status
             phyReady       => phyReady,
-            macAddress     => macAddress,
             txCountEn      => txCountEn,
             txUnderRun     => txUnderRun,
             txLinkNotReady => txLinkNotReady);
@@ -131,7 +128,6 @@ begin
             gmiiTxd        => gmiiTxd,
             -- Configuration and status
             phyReady       => phyReady,
-            macAddress     => macAddress,
             txCountEn      => txCountEn,
             txUnderRun     => txUnderRun,
             txLinkNotReady => txLinkNotReady);
