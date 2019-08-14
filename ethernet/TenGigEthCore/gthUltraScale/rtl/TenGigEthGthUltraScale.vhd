@@ -186,8 +186,9 @@ architecture mapping of TenGigEthGthUltraScale is
 
    signal configurationVector : slv(535 downto 0) := (others => '0');
 
-   signal config : TenGigEthConfig;
-   signal status : TenGigEthStatus;
+   signal config    : TenGigEthConfig;
+   signal status    : TenGigEthStatus;
+   signal statusReg : TenGigEthStatus;
 
    signal macRxAxisMaster : AxiStreamMasterType;
    signal macRxAxisCtrl   : AxiStreamCtrlType;
@@ -263,13 +264,21 @@ begin
          ethRst          => phyReset,
          ethConfig       => config.macConfig,
          ethStatus       => status.macStatus,
-         phyReady        => status.phyReady,
+         phyReady        => statusReg.phyReady,
          -- XGMII PHY Interface
          xgmiiRxd        => phyRxd,
          xgmiiRxc        => phyRxc,
          xgmiiTxd        => phyTxd,
          xgmiiTxc        => phyTxc);
 
+   process(phyClock)
+   begin
+      if rising_edge(phyClock) then
+         -- Help with making timing
+         statusReg <= status after TPD_G;
+      end if;
+   end process;
+      
    -----------------
    -- 10GBASE-R core
    -----------------
@@ -415,6 +424,6 @@ begin
          axiWriteSlave  => mAxiWriteSlave,
          -- Configuration and Status Interface
          config         => config,
-         status         => status);
+         status         => statusReg);
 
 end mapping;
