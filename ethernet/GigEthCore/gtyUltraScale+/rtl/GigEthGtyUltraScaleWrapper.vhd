@@ -31,7 +31,6 @@ entity GigEthGtyUltraScaleWrapper is
       TPD_G              : time                             := 1 ns;
       NUM_LANE_G         : natural range 1 to 4             := 1;
       PAUSE_EN_G         : boolean                          := true;
-      PAUSE_512BITS_G    : positive                         := 8;
       -- Clocking Configurations
       USE_GTREFCLK_G     : boolean                          := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
       CLKIN_PERIOD_G     : real                             := 8.0;
@@ -169,7 +168,6 @@ begin
          generic map (
             TPD_G           => TPD_G,
             PAUSE_EN_G      => PAUSE_EN_G,
-            PAUSE_512BITS_G => PAUSE_512BITS_G,
             -- AXI-Lite Configurations
             EN_AXI_REG_G    => EN_AXI_REG_G,
             -- AXI Streaming Configurations

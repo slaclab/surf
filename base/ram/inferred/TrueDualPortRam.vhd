@@ -174,7 +174,7 @@ begin
             if (enb = '1' and webByte = 0 and web = '0') then
                doutBInt <= mem(conv_integer(addrb)) after TPD_G;
             end if;
-            if rstb = RST_POLARITY_G and DOA_REG_G = false then
+            if rstb = RST_POLARITY_G and DOB_REG_G = false then
                doutBInt <= INIT_C after TPD_G;
             end if;
          end if;

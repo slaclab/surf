@@ -155,3 +155,9 @@ class SsiPrbsTx(pr.Device):
             function     = pr.BaseCommand.touchOne
         ))
         
+        self.add(pr.RemoteVariable(    
+            name         = "TrigDly",
+            offset       =  0x1C,
+            bitSize      =  32,
+            mode         = "RW",
+        ))        

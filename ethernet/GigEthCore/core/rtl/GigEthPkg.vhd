@@ -21,7 +21,9 @@ use work.EthMacPkg.all;
 
 package GigEthPkg is
 
-   constant GIG_ETH_AN_ADV_CONFIG_INIT_C : slv(15 downto 0) := x"0021";-- Refer to PG047
+   constant PAUSE_512BITS_C : positive := 64;  -- For 1GbE: 64 clock cycles for 512 bits = one pause "quanta"
+
+   constant GIG_ETH_AN_ADV_CONFIG_INIT_C : slv(15 downto 0) := x"0021";  -- Refer to PG047
 
    type GigEthConfigType is record
       softRst    : sl;
@@ -38,5 +40,5 @@ package GigEthPkg is
       macStatus  : EthMacStatusType;
       coreStatus : slv(15 downto 0);
    end record;
-   
+
 end GigEthPkg;

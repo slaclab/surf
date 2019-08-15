@@ -2,7 +2,7 @@
 #-----------------------------------------------------------------------------
 # Title      : PyRogue CameraLink module
 #-----------------------------------------------------------------------------
-# File       : _UartOpal000.py
+# File       : _UartOpal1000.py
 # Created    : 2017-11-21
 #-----------------------------------------------------------------------------
 # Description:
@@ -22,7 +22,7 @@ import rogue.interfaces.stream
 
 import surf.protocols.clink as clink
         
-class UartOpal000Rx(clink.ClinkSerialRx):
+class UartOpal1000Rx(clink.ClinkSerialRx):
     def __init__(self,**kwargs):
         super().__init__(**kwargs)        
 
@@ -45,16 +45,16 @@ class UartOpal000Rx(clink.ClinkSerialRx):
             elif c != '':
                 self._cur.append(c)
 
-class UartOpal000(pr.Device):
+class UartOpal1000(pr.Device):
     def __init__(   self,       
-            name        = 'UartOpal000',
-            description = 'Uart Opal000 channel access',
+            name        = 'UartOpal1000',
+            description = 'Uart Opal1000 channel access',
             serial      = None,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs) 
         
         # Attach the serial devices
-        self._rx = UartOpal000Rx()
+        self._rx = UartOpal1000Rx()
         pr.streamConnect(serial,self._rx)
 
         self._tx = clink.ClinkSerialTx()

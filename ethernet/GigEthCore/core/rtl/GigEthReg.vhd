@@ -182,6 +182,8 @@ begin
          axiSlaveRegister(regCon, x"228", 0, v.config.macConfig.filtEnable);
          axiSlaveRegister(regCon, x"22C", 0, v.config.macConfig.pauseEnable);
 
+         axiSlaveRegister(regCon, x"800", 0, v.config.macConfig.pauseThresh);
+
          axiSlaveRegister(regCon, x"F00", 0, v.rollOverEn);
          axiSlaveRegister(regCon, x"FF4", 0, v.cntRst);
          axiSlaveRegister(regCon, x"FF8", 0, v.config.softRst);

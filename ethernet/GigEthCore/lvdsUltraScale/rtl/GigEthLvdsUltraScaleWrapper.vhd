@@ -30,7 +30,6 @@ entity GigEthLvdsUltraScaleWrapper is
       TPD_G           : time                             := 1 ns;
       NUM_LANE_G      : positive                         := 1;
       PAUSE_EN_G      : boolean                          := true;
-      PAUSE_512BITS_G : positive                         := 8;
       -- Clocking Configurations
       USE_REFCLK_G    : boolean                          := false;  --  FALSE: sgmiiClkP/N,  TRUE: sgmiiRefClk
       CLKFBOUT_MULT_G : positive                         := 10;
@@ -213,7 +212,6 @@ begin
          generic map (
             TPD_G           => TPD_G,
             PAUSE_EN_G      => PAUSE_EN_G,
-            PAUSE_512BITS_G => PAUSE_512BITS_G,
             -- AXI-Lite Configurations
             EN_AXI_REG_G    => EN_AXI_REG_G,
             -- AXI Streaming Configurations

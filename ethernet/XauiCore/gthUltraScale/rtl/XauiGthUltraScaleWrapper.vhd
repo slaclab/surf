@@ -29,7 +29,6 @@ entity XauiGthUltraScaleWrapper is
    generic (
       TPD_G             : time                := 1 ns;
       PAUSE_EN_G        : boolean             := true;
-      PAUSE_512BITS_G   : positive            := 8;
       EN_WDT_G          : boolean             := false;
       STABLE_CLK_FREQ_G : real                := 156.25E+6;  -- Support 156.25MHz or 312.5MHz
       -- AXI-Lite Configurations
@@ -135,7 +134,6 @@ begin
       generic map (
          TPD_G           => TPD_G,
          PAUSE_EN_G      => PAUSE_EN_G,
-         PAUSE_512BITS_G => PAUSE_512BITS_G,
          -- AXI-Lite Configurations
          EN_AXI_REG_G    => EN_AXI_REG_G,
          -- AXI Streaming Configurations
