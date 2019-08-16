@@ -32,6 +32,7 @@ entity SsiFrameLimiter is
       COMMON_CLK_G        : boolean             := false;  -- True if sAxisClk and mAxisClk are the same clock
       SLAVE_FIFO_G        : boolean             := false;
       MASTER_FIFO_G       : boolean             := false;
+      SLAVE_READY_EN_G    : boolean             := true;
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
       MASTER_AXI_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
    port (
@@ -51,7 +52,7 @@ architecture rtl of SsiFrameLimiter is
 
    constant TIMEOUT_C : natural := getTimeRatio(MAXIS_CLK_FREQ_G * TIMEOUT_G, 1.0);
 
-   constant SLAVE_FIFO_C : boolean := ite ( SLAVE_FIFO_G or (COMMON_CLK_G=false), true, false);
+   constant SLAVE_FIFO_C : boolean := ite ( SLAVE_FIFO_G or (COMMON_CLK_G=false) or (SLAVE_READY_EN_G = false), true, false);
 
    type StateType is (
       IDLE_S,
@@ -92,8 +93,8 @@ begin
             MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G)
          port map (
             -- Clock and reset
-            axisClk     => axilClk,
-            axisRst     => axilRst,
+            axisClk     => mAxisClk,
+            axisRst     => mAxisRst,
             -- Slave Port
             sAxisMaster => sAxisMaster,
             sAxisSlave  => sAxisSlave,
@@ -108,7 +109,7 @@ begin
             -- General Configurations
             TPD_G               => TPD_G,
             PIPE_STAGES_G       => 0,
-            SLAVE_READY_EN_G    => true,
+            SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
             VALID_THOLD_G       => 1,
             -- FIFO configurations
             BRAM_EN_G           => false,
@@ -145,7 +146,7 @@ begin
 
       -- Reset the flags
       v.rxSlave := AXI_STREAM_SLAVE_INIT_C;
-      if (txSlave.tReady = '1') or (SLAVE_READY_EN_G = false) then
+      if (txSlave.tReady = '1') then
          v.txMaster.tValid := '0';
       end if;
 
@@ -227,11 +228,6 @@ begin
                end if;
             end if;
          end if;
-      end if;
-
-      -- Check if using tReady
-      if (SLAVE_READY_EN_G = false) then
-         v.rxSlave.tReady := '1';
       end if;
 
       -- Combinatorial outputs before the reset
