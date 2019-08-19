@@ -110,34 +110,7 @@ class AxiStreamDmaFifo(pr.Device):
             bitOffset = 0,
             mode      ='RW',
         ))
-
-        self.add(pr.RemoteVariable(
-            name         ='FrameCnt',
-            offset       = 0x40,
-            bitSize      = 32,
-            bitOffset    = 0,
-            mode         = 'RO',
-            pollInterval = 1,
-        )) 
-
-        self.add(pr.RemoteVariable(
-            name         ='ErrorCnt',
-            offset       = 0x80,
-            bitSize      = 32,
-            bitOffset    = 0,
-            mode         = 'RO',
-            pollInterval = 1,
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         ='FrameCntMax',
-            offset       = 0x84,
-            bitSize      = 32,
-            bitOffset    = 0,
-            mode         = 'RO',
-            pollInterval = 1,
-        ))        
-        
+             
         self.add(pr.RemoteVariable(
             name      ='AXIS_TDEST_BITS_C',
             offset    = 0xC0,
@@ -227,6 +200,42 @@ class AxiStreamDmaFifo(pr.Device):
             mode      = 'RO',
             disp      = '{:d}',
         )) 
+
+        self.add(pr.LinkVariable(
+            name         = 'NUM_BUFFERS', 
+            description  = 'Number of buffers',
+            mode         = 'RO',
+            disp         = '0x{:0x}',
+            dependencies = [self.AXI_BUFFER_WIDTH_G,self.MAX_FRAME_WIDTH_G],
+            linkedGet    = lambda: 2**( int(self.AXI_BUFFER_WIDTH_G.value()) - int(self.MAX_FRAME_WIDTH_G.value()) )
+        ))   
+        
+        self.add(pr.RemoteVariable(
+            name         ='FrameCnt',
+            offset       = 0x40,
+            bitSize      = 32,
+            bitOffset    = 0,
+            mode         = 'RO',
+            pollInterval = 1,
+        )) 
+
+        self.add(pr.RemoteVariable(
+            name         ='FrameCntMax',
+            offset       = 0x84,
+            bitSize      = 32,
+            bitOffset    = 0,
+            mode         = 'RO',
+            pollInterval = 1,
+        ))  
+
+        self.add(pr.RemoteVariable(
+            name         ='ErrorCnt',
+            offset       = 0x80,
+            bitSize      = 32,
+            bitOffset    = 0,
+            mode         = 'RO',
+            pollInterval = 1,
+        ))
 
         self.add(pr.RemoteCommand(   
             name        = 'CntRst',
