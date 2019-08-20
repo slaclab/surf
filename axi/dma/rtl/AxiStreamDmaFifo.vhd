@@ -33,6 +33,7 @@ entity AxiStreamDmaFifo is
       START_AFTER_RST_G  : sl                  := '1';  -- '1' still start the DMA REQs after RST; '0' will wait for AXI-Lite to start this
       DROP_ERR_FRAME_G   : sl                  := '1';  -- '1' will drop the AXIS if error detect
       SOF_INSERT_G       : sl                  := '1';  -- Inserts SsiPkg's SOF bit
+      PEND_THRESH_G      : natural             := 0;   -- In units of bytes
       -- FIFO Configuration
       MAX_FRAME_WIDTH_G  : positive            := 14;  -- Maximum AXI Stream frame size (units of address bits)
       AXI_BUFFER_WIDTH_G : positive            := 28;  -- Total AXI Memory for FIFO buffering (units of address bits)
@@ -225,7 +226,7 @@ begin
          AXI_BURST_G     => AXI_BURST_G,
          AXI_CACHE_G     => AXI_CACHE_G,
          SW_CACHE_EN_G   => true,
-         PEND_THRESH_G   => 0,
+         PEND_THRESH_G   => PEND_THRESH_G,
          BYP_SHIFT_G     => BYP_SHIFT_C)
       port map (
          axiClk        => axiClk,
