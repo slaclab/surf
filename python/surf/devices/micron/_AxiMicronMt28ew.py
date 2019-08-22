@@ -198,7 +198,7 @@ class AxiMicronMt28ew(pr.Device):
                     # Compare PROM to file
                     if (data != prom):
                         click.secho(("\nAddr = 0x%x: MCS = 0x%x != PROM = 0x%x" % (addr,data,prom)), fg='red')
-                        raise McsException('verifyProm() Failed\n\n')
+                        raise misc.McsException('verifyProm() Failed\n\n')
             # Close the status bar
             bar.update(self._mcs.size)  
         

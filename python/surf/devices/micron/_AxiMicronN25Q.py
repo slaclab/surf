@@ -254,7 +254,7 @@ class AxiMicronN25Q(pr.Device):
                 # Compare PROM to file
                 if (data != prom):
                     click.secho(("\nAddr = 0x%x: MCS = 0x%x != PROM = 0x%x" % (addr,data,prom)), fg='red')
-                    raise McsException('verifyProm() Failed\n\n')
+                    raise misc.McsException('verifyProm() Failed\n\n')
                 # Increment the counter
                 byteCnt += 1    
                 # Check the byte counter
