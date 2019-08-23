@@ -75,12 +75,16 @@ begin
    --     otherwise could use wstrb to pick correct 32 bits
    --
    process(axiWriteMaster)
-      variable i     : integer;
+      variable i     : natural;
+      variable byte  : natural;
       variable wdata : slv(31 downto 0);
    begin
       wdata := (others => '0');
-      for i in 0 to 31 loop
-         wdata := wdata or axiWriteMaster.wdata(32*i+31 downto 32*i);
+      for i in 0 to (1024/8)-1 loop
+         byte := (8*i) mod 32;
+         if axiWriteMaster.wstrb(i) = '1' then
+            wdata(byte+7 downto byte) := wdata(byte+7 downto byte) or axiWriteMaster.wdata(8*i+7 downto 8*i);
+         end if;
       end loop;
       axilWriteMaster.wdata <= wdata;
       axilWriteMaster.wstrb <= x"F";
