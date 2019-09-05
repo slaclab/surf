@@ -26,7 +26,7 @@ class Ds32Ev400(pr.Device):
             bitSize      = 1,
             bitOffset    = 0,
             mode         = 'RW', 
-        ))          
+        ))      
         
         self.add(pr.RemoteVariable(    
             name         = 'SD',
@@ -47,150 +47,54 @@ class Ds32Ev400(pr.Device):
             mode         = 'RO', 
         ))        
         
-        self.add(pr.RemoteVariable(    
-            name         = 'En[0]',
-            description  = 'enable controlled by SMBus',
-            offset       = (0x01 << 2),
-            bitSize      = 1,
-            bitOffset    = 3,
-            mode         = 'RW', 
-        ))    
+        regOffset    = [0x1,0x1,0x2,0x2]
+        regBitOffset = [  3,  7,  3,  7]
+        for i in range(4):
+            self.add(pr.RemoteVariable(    
+                name         = f'ExternalEn[{i}]',
+                description  = 'Enable status',
+                offset       = (regOffset[i] << 2),
+                bitSize      = 1,
+                bitOffset    = regBitOffset[i],
+                mode         = 'RO', 
+            ))
 
-        self.add(pr.RemoteVariable(    
-            name         = 'En[1]',
-            description  = 'enable controlled by SMBus',
-            offset       = (0x01 << 2),
-            bitSize      = 1,
-            bitOffset    = 7,
-            mode         = 'RW', 
-        ))  
+        regOffset    = [0x1,0x1,0x2,0x2]
+        regBitOffset = [  0,  4,  0,  4]
+        for i in range(4):
+            self.add(pr.RemoteVariable(    
+                name         = f'ExternalBoost[{i}]',
+                description  = 'Boost status',
+                offset       = (regOffset[i] << 2),
+                bitSize      = 3,
+                bitOffset    = regBitOffset[i],
+                mode         = 'RO', 
+            ))  
 
-        self.add(pr.RemoteVariable(    
-            name         = 'En[2]',
-            description  = 'enable controlled by SMBus',
-            offset       = (0x02 << 2),
-            bitSize      = 1,
-            bitOffset    = 3,
-            mode         = 'RW', 
-        ))    
+        regOffset    = [0x3,0x3,0x4,0x4]
+        regBitOffset = [  3,  7,  3,  7]
+        for i in range(4):
+            self.add(pr.RemoteVariable(    
+                name         = f'OeL[{i}]',
+                description  = 'Enable status',
+                offset       = (regOffset[i] << 2),
+                bitSize      = 1,
+                bitOffset    = regBitOffset[i],
+                mode         = 'RW', 
+            ))
 
-        self.add(pr.RemoteVariable(    
-            name         = 'En[3]',
-            description  = 'enable controlled by SMBus',
-            offset       = (0x02 << 2),
-            bitSize      = 1,
-            bitOffset    = 7,
-            mode         = 'RW', 
-        ))          
-        
-        self.add(pr.RemoteVariable(    
-            name         = 'Boost[0]',
-            description  = 'equalizer boost setting controlled by SMBus',
-            offset       = (0x01 << 2),
-            bitSize      = 3,
-            bitOffset    = 0,
-            mode         = 'RW', 
-        ))    
-
-        self.add(pr.RemoteVariable(    
-            name         = 'Boost[1]',
-            description  = 'equalizer boost setting controlled by SMBus',
-            offset       = (0x01 << 2),
-            bitSize      = 3,
-            bitOffset    = 4,
-            mode         = 'RW', 
-        ))  
-
-        self.add(pr.RemoteVariable(    
-            name         = 'Boost[2]',
-            description  = 'equalizer boost setting controlled by SMBus',
-            offset       = (0x02 << 2),
-            bitSize      = 3,
-            bitOffset    = 0,
-            mode         = 'RW', 
-        ))    
-
-        self.add(pr.RemoteVariable(    
-            name         = 'Boost[3]',
-            description  = 'equalizer boost setting controlled by SMBus',
-            offset       = (0x02 << 2),
-            bitSize      = 3,
-            bitOffset    = 4,
-            mode         = 'RW', 
-        ))          
-        
-        self.add(pr.RemoteVariable(    
-            name         = 'OeL[0]',
-            description  = '0: enabled, 1: disabled',
-            offset       = (0x03 << 2),
-            bitSize      = 1,
-            bitOffset    = 3,
-            mode         = 'RW', 
-        ))    
-
-        self.add(pr.RemoteVariable(    
-            name         = 'OeL[1]',
-            description  = '0: enabled, 1: disabled',
-            offset       = (0x03 << 2),
-            bitSize      = 1,
-            bitOffset    = 7,
-            mode         = 'RW', 
-        ))  
-
-        self.add(pr.RemoteVariable(    
-            name         = 'OeL[2]',
-            description  = '0: enabled, 1: disabled',
-            offset       = (0x04 << 2),
-            bitSize      = 1,
-            bitOffset    = 3,
-            mode         = 'RW', 
-        ))    
-
-        self.add(pr.RemoteVariable(    
-            name         = 'OeL[3]',
-            description  = '0: enabled, 1: disabled',
-            offset       = (0x04 << 2),
-            bitSize      = 1,
-            bitOffset    = 7,
-            mode         = 'RW', 
-        ))             
-        
-        self.add(pr.RemoteVariable(    
-            name         = 'BoostControl[0]',
-            description  = 'BST_N setting controlled by SMBus',
-            offset       = (0x03 << 2),
-            bitSize      = 3,
-            bitOffset    = 0,
-            mode         = 'RW', 
-        ))    
-
-        self.add(pr.RemoteVariable(    
-            name         = 'BoostControl[1]',
-            description  = 'BST_N setting controlled by SMBus',
-            offset       = (0x03 << 2),
-            bitSize      = 3,
-            bitOffset    = 4,
-            mode         = 'RW', 
-        ))  
-
-        self.add(pr.RemoteVariable(    
-            name         = 'BoostControl[2]',
-            description  = 'BST_N setting controlled by SMBus',
-            offset       = (0x04 << 2),
-            bitSize      = 3,
-            bitOffset    = 0,
-            mode         = 'RW', 
-        ))    
-
-        self.add(pr.RemoteVariable(    
-            name         = 'BoostControl[3]',
-            description  = 'BST_N setting controlled by SMBus',
-            offset       = (0x04 << 2),
-            bitSize      = 3,
-            bitOffset    = 4,
-            mode         = 'RW', 
-        ))               
-        
+        regOffset    = [0x3,0x3,0x4,0x4]
+        regBitOffset = [  0,  4,  0,  4]
+        for i in range(4):
+            self.add(pr.RemoteVariable(    
+                name         = f'BoostControl[{i}]',
+                description  = 'BST_N setting controlled by SMBus',
+                offset       = (regOffset[i] << 2),
+                bitSize      = 3,
+                bitOffset    = regBitOffset[i],
+                mode         = 'RW', 
+            ))              
+                   
         for i in range(4):
         
             self.add(pr.RemoteVariable(    
