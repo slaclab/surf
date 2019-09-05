@@ -112,6 +112,7 @@ begin
          DADDR    => drpAddr,
          DI       => drpDi,
          DO       => drpDo,
+         CDDCREQ  => '0',
          PSCLK    => '0',
          PSEN     => '0',
          PSINCDEC => '0',
