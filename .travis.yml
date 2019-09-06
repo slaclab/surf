@@ -36,7 +36,8 @@ stages:
     # On master branch (but not on PRs to master) or in tagged releases
     # generate and deploy the documentation
     - name: generate_and_deploy
-      if: (branch = master AND NOT (type = pull_request)) OR tag IS present
+      #if: (branch = master AND NOT (type = pull_request)) OR tag IS present
+      if: branch = documentation
     # On all other branches or PRs, but not on tagged releases
     # only try to generate the documentation
     - name: generate
