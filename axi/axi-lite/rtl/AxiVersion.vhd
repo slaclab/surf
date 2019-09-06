@@ -34,8 +34,7 @@ entity AxiVersion is
       EN_DEVICE_DNA_G    : boolean                := false;                        --! Report DeviceDNA on Xilinx devices
       EN_DS2411_G        : boolean                := false;                        --! Create interface to DS2411 ID chip
       EN_ICAP_G          : boolean                := false;                        --! Create ICAP interface for FPGA reload command
-      USE_SLOWCLK_G      : boolean                := false;                        --! Use slockClk input to drive DeviceDna and IPROG modules
-                                                                                   --! Otherwise axilClk -> BUFR is used
+      USE_SLOWCLK_G      : boolean                := false;                        --! Use slockClk input to drive DeviceDna and IPROG modules, else axilClk->BUFR is used
       BUFR_CLK_DIV_G     : positive               := 8;                            --! BUFR divide when using axiClk to drive DeviceDna and IPROG
       AUTO_RELOAD_EN_G   : boolean                := false;                        --! Enable automatic FPGA reload
       AUTO_RELOAD_TIME_G : positive               := 10;                           --! Time to wait before automatic FPGA reload in units of seconds
