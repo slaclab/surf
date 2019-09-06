@@ -1,11 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiVersion.vhd
--- Company    : SLAC National Accelerator Laboratory
--------------------------------------------------------------------------------
---! @brief AXI-Lite accessible registers containing configuration information
---! @details Creates AXI accessible registers containing configuration
---! information.
--------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
@@ -23,6 +16,8 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 
+--! @brief AXI-Lite accessible registers containing configuration information
+--! @details Creates AXI accessible registers containing configuration information.
 entity AxiVersion is
    generic (
       TPD_G              : time                   := 1 ns;                         --! Simulated propagation delay
