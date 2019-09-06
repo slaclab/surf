@@ -1159,11 +1159,11 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/gt/home/travis/build/s
 
 [AxiLiteRingBuffer.vhd:248:Info: Elaborating entity entity synchronizer for hierarchy entity synchronizer::synchronizer_databufferclr]
 
-[AxiVersion.vhd:131:Info: Elaborating entity entity devicedna for hierarchy entity devicedna::GEN_DEVICE_DNA:devicedna_1]
+[AxiVersion.vhd:130:Info: Elaborating entity entity devicedna for hierarchy entity devicedna::GEN_DEVICE_DNA:devicedna_1]
 
-[AxiVersion.vhd:143:Info: Elaborating entity entity ds2411core for hierarchy entity ds2411core::GEN_DS2411:ds2411core_1]
+[AxiVersion.vhd:142:Info: Elaborating entity entity ds2411core for hierarchy entity ds2411core::GEN_DS2411:ds2411core_1]
 
-[AxiVersion.vhd:158:Info: Elaborating entity entity iprog for hierarchy entity iprog::GEN_ICAP:iprog_1]
+[AxiVersion.vhd:157:Info: Elaborating entity entity iprog for hierarchy entity iprog::GEN_ICAP:iprog_1]
 
 [AxiVersionLegacy.vhd:130:Info: Elaborating entity entity devicedna for hierarchy entity devicedna::GEN_DEVICE_DNA:devicedna_1]
 

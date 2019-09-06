@@ -168,8 +168,10 @@ Generics</h2></td></tr>
 <tr class="memdesc:ae2b1e920af646a485aa6d3494103627f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create ICAP interface for FPGA reload command. <br /></td></tr>
 <tr class="memitem:af7808b7223a689850e4006441faff8be"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af7808b7223a689850e4006441faff8be"></a>
 <a class="el" href="classAxiVersion.html#af7808b7223a689850e4006441faff8be">USE_SLOWCLK_G</a> &#160;</td><td class="memItemRight" valign="bottom"><b><b><span class="comment">boolean</span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar">:</span><span class="vhdlchar">=</span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar">false</span><span class="vhdlchar"> </span></b></b></td></tr>
-<tr class="memitem:ae87223bb5856606548f341346412f4c7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classAxiVersion.html#ae87223bb5856606548f341346412f4c7">BUFR_CLK_DIV_G</a> &#160;</td><td class="memItemRight" valign="bottom"><b><b><span class="vhdlchar">positive</span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar">:</span><span class="vhdlchar">=</span><span class="vhdlchar"> </span><span class="vhdlchar"> </span> <span class="vhdldigit">8</span> <span class="vhdlchar"> </span></b></b></td></tr>
-<tr class="memdesc:ae87223bb5856606548f341346412f4c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">BUFR divide when using axiClk to drive <a class="el" href="classDeviceDna.html">DeviceDna</a> and IPROG.  <a href="#ae87223bb5856606548f341346412f4c7"></a><br /></td></tr>
+<tr class="memdesc:af7808b7223a689850e4006441faff8be"><td class="mdescLeft">&#160;</td><td class="mdescRight">Use slockClk input to drive <a class="el" href="classDeviceDna.html">DeviceDna</a> and IPROG modules, else axilClk-&gt;BUFR is used. <br /></td></tr>
+<tr class="memitem:ae87223bb5856606548f341346412f4c7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae87223bb5856606548f341346412f4c7"></a>
+<a class="el" href="classAxiVersion.html#ae87223bb5856606548f341346412f4c7">BUFR_CLK_DIV_G</a> &#160;</td><td class="memItemRight" valign="bottom"><b><b><span class="vhdlchar">positive</span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar">:</span><span class="vhdlchar">=</span><span class="vhdlchar"> </span><span class="vhdlchar"> </span> <span class="vhdldigit">8</span> <span class="vhdlchar"> </span></b></b></td></tr>
+<tr class="memdesc:ae87223bb5856606548f341346412f4c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">BUFR divide when using axiClk to drive <a class="el" href="classDeviceDna.html">DeviceDna</a> and IPROG. <br /></td></tr>
 <tr class="memitem:afb3c86f9268efc3e1a25c0f03516784d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afb3c86f9268efc3e1a25c0f03516784d"></a>
 <a class="el" href="classAxiVersion.html#afb3c86f9268efc3e1a25c0f03516784d">AUTO_RELOAD_EN_G</a> &#160;</td><td class="memItemRight" valign="bottom"><b><b><span class="comment">boolean</span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar">:</span><span class="vhdlchar">=</span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar">false</span><span class="vhdlchar"> </span></b></b></td></tr>
 <tr class="memdesc:afb3c86f9268efc3e1a25c0f03516784d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable automatic FPGA reload. <br /></td></tr>
@@ -232,29 +234,6 @@ Ports</h2></td></tr>
 <tr class="memdesc:ab5636c86dfb484510bf9d91e14cae2cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">DS2411 1-wire interface pin. <br /></td></tr>
 </table>
 <h2 class="groupheader">Member Data Documentation</h2>
-<a class="anchor" id="ae87223bb5856606548f341346412f4c7"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classAxiVersion.html#ae87223bb5856606548f341346412f4c7">BUFR_CLK_DIV_G</a> <b><span class="vhdlchar"> </span></b> <b><span class="vhdlchar">positive</span><span class="vhdlchar"> </span><span class="vhdlchar"> </span><span class="vhdlchar">:</span><span class="vhdlchar">=</span><span class="vhdlchar"> </span><span class="vhdlchar"> </span> <span class="vhdldigit">8</span> <span class="vhdlchar"> </span></b> </td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">Generic</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>BUFR divide when using axiClk to drive <a class="el" href="classDeviceDna.html">DeviceDna</a> and IPROG. </p>
-<p>Use slockClk input to drive <a class="el" href="classDeviceDna.html">DeviceDna</a> and IPROG modules Otherwise axilClk -&gt; BUFR is used </p>
-
-</div>
-</div>
 <a class="anchor" id="a0a6af6eef40212dbaf130d57ce711256"></a>
 <div class="memitem">
 <div class="memproto">
