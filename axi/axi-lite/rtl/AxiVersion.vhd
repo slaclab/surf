@@ -18,6 +18,7 @@ use work.AxiLitePkg.all;
 
 --! @brief AXI-Lite accessible registers containing configuration information
 --! @details Creates AXI accessible registers containing configuration information.
+--! Another line in the entity documentation
 entity AxiVersion is
    generic (
       TPD_G              : time                   := 1 ns;                         --! Simulated propagation delay
@@ -58,6 +59,9 @@ entity AxiVersion is
       fdSerSdio      : inout sl                  := 'Z');                          --! DS2411 1-wire interface pin
 end AxiVersion;
 
+--! @brief Architecture documentation brief
+--! @details Achitecture doc details
+--! Another line of details
 architecture rtl of AxiVersion is
 
    constant TIMEOUT_1HZ_C  : natural          := (getTimeRatio(1.0, CLK_PERIOD_G) -1);
