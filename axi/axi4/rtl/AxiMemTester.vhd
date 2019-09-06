@@ -85,6 +85,7 @@ architecture rtl of AxiMemTester is
       ERROR_S);
 
    type RegType is record
+      busy           : sl;
       done           : sl;
       error          : sl;
       wErrResp       : sl;
@@ -105,6 +106,7 @@ architecture rtl of AxiMemTester is
    end record;
 
    constant REG_INIT_C : RegType := (
+      busy           => '0',
       done           => '0',
       error          => '0',
       wErrResp       => '0',
@@ -126,6 +128,8 @@ architecture rtl of AxiMemTester is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   signal startSync : sl;
+   signal busy   : sl;
    signal done   : sl;
    signal error  : sl;
    signal wTimer : slv(31 downto 0);
@@ -326,6 +330,12 @@ begin
       ----------------------------------------------------------------------
       end case;
 
+      if (r.state = IDLE_S) or (r.state = DONE_S) or (r.state = ERROR_S) then
+         v.busy := '0';
+      else
+         v.busy := '1';
+      end if;
+
       -- Reset
       if axiRst = '1' then
          v := REG_INIT_C;
@@ -370,23 +380,28 @@ begin
       end if;
    end process seq;
 
-   Sync_0 : entity work.Synchronizer
+   U_SyncBits : entity work.SynchronizerVector
       generic map (
-         TPD_G => TPD_G)
+         TPD_G    => TPD_G,
+         WIDTH_G  => 7)
       port map (
-         clk     => axilClk,
-         dataIn  => r.done,
-         dataOut => done);
-
-   Sync_1 : entity work.Synchronizer
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk     => axilClk,
-         dataIn  => r.error,
-         dataOut => error);
-
-   Sync_2 : entity work.SynchronizerFifo
+         clk        => axilClk,
+         dataIn(0)  => r.done,
+         dataIn(1)  => r.error,
+         dataIn(2)  => r.busy,
+         dataIn(3)  => start,
+         dataIn(4)  => r.wErrResp,
+         dataIn(5)  => r.rErrResp,
+         dataIn(6)  => r.rErrData,
+         dataOut(0) => done,
+         dataOut(1) => error,
+         dataOut(2) => busy,
+         dataOut(3) => startSync,
+         dataOut(4) => wErrResp,
+         dataOut(5) => rErrResp,
+         dataOut(6) => rErrData);
+     
+   U_wTimer : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 32)
@@ -398,7 +413,7 @@ begin
          rd_clk => axilClk,
          dout   => wTimer);
 
-   Sync_3 : entity work.SynchronizerFifo
+   U_rTimer : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 32)
@@ -410,32 +425,8 @@ begin
          rd_clk => axilClk,
          dout   => rTimer);
    
-   Sync_4 : entity work.Synchronizer
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk     => axilClk,
-         dataIn  => r.wErrResp,
-         dataOut => wErrResp);
-   
-   Sync_5 : entity work.Synchronizer
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk     => axilClk,
-         dataIn  => r.rErrResp,
-         dataOut => rErrResp);
-   
-   Sync_6 : entity work.Synchronizer
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk     => axilClk,
-         dataIn  => r.rErrData,
-         dataOut => rErrData);
-   
    rDataIn <= r.rData(DATA_SYNC_BITS_C-1 downto 0);
-   Sync_7 : entity work.SynchronizerVector
+   U_rData : entity work.SynchronizerVector
       generic map (
          TPD_G    => TPD_G,
          WIDTH_G  => DATA_SYNC_BITS_C)
@@ -445,7 +436,7 @@ begin
          dataOut => rDataOut(DATA_SYNC_BITS_C-1 downto 0));
    
    rPatternIn <= r.rPattern(DATA_SYNC_BITS_C-1 downto 0);
-   Sync_8 : entity work.SynchronizerVector
+   U_rPattern : entity work.SynchronizerVector
       generic map (
          TPD_G    => TPD_G,
          WIDTH_G  => DATA_SYNC_BITS_C)
@@ -454,7 +445,7 @@ begin
          dataIn  => rPatternIn,
          dataOut => rPatternOut(DATA_SYNC_BITS_C-1 downto 0));
    
-   combLite : process (axilReadMaster, axilRst, axilWriteMaster, done, error,
+   combLite : process (axilReadMaster, axilRst, axilWriteMaster, done, error, busy, startSync,
                        rLite, rTimer, wTimer, wErrResp, rErrResp, rErrData, rDataOut, rPatternOut) is
       variable v      : RegLiteType;
       variable regCon : AxiLiteEndPointType;
@@ -467,6 +458,8 @@ begin
 
       -- Map the registers
       axiSlaveRegisterR(regCon, x"100", 0, rLite.memReady);
+      axiSlaveRegisterR(regCon, x"100", 1, startSync);
+      axiSlaveRegisterR(regCon, x"100", 2, busy);
       axiSlaveRegisterR(regCon, x"104", 0, rLite.memError);
       axiSlaveRegisterR(regCon, x"108", 0, wTimer);
       axiSlaveRegisterR(regCon, x"10C", 0, rTimer);

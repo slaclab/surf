@@ -353,17 +353,17 @@ class AxiSysMonUltraScale(pr.Device):
             hidden       =  True,
         ))
 
-        self.addRemoteVariables( 
-            name         = "Configuration",
-            description  = "Configuration Registers",
-            offset       =  0x500,
-            bitSize      =  32,
-            bitOffset    =  0x00,
-            mode         = "RW",
-            number       =  4,
-            stride       =  4,
-            hidden       =  True,
-        )
+#        self.addRemoteVariables( 
+#            name         = "Configuration",
+#            description  = "Configuration Registers",
+#            offset       =  0x500,
+#            bitSize      =  32,
+#            bitOffset    =  0x00,
+#            mode         = "RW",
+#            number       =  4,
+#            stride       =  4,
+#            hidden       =  True,
+#        )
 
         self.add(pr.RemoteVariable(    
             name         = "SequenceReg8",
@@ -397,17 +397,17 @@ class AxiSysMonUltraScale(pr.Device):
             hidden       =  True,
         )
 
-        self.addRemoteVariables( 
-            name         = "AlarmThresholdReg_8_0",
-            description  = "Alarm Threshold Register [8:0]",
-            offset       =  0x540,
-            bitSize      =  32,
-            bitOffset    =  0x00,
-            mode         = "RW",
-            number       =  9,
-            stride       =  4,
-            hidden       =  True,
-        )
+#        self.addRemoteVariables( 
+#            name         = "AlarmThresholdReg_8_0",
+#            description  = "Alarm Threshold Register [8:0]",
+#            offset       =  0x540,
+#            bitSize      =  32,
+#            bitOffset    =  0x00,
+#            mode         = "RW",
+#            number       =  9,
+#            stride       =  4,
+#            hidden       =  True,
+#       )
 
         self.add(pr.RemoteVariable( 
             name         = "OTThresholdDisable",

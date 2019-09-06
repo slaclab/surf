@@ -62,8 +62,20 @@ begin
    phyClk    <= txClock;
 
    -- Reset Outputs
-   coreRst    <= coreReset;
-   phyRst     <= txReset;
+   U_coreRst : entity work.RstPipeline
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk    => coreClk,
+         rstIn  => coreReset,
+         rstOut => coreRst);  
+   U_phyRst : entity work.RstPipeline
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk    => txClock,
+         rstIn  => txReset,
+         rstOut => phyRst);
    rstCntDone <= rstCnt(15);
    gtTxRst    <= rstPulse(0);
    gtRxRst    <= rstPulse(0);
