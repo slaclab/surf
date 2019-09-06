@@ -1,5 +1,7 @@
 var NAVTREEINDEX6 =
 {
+"classAxiDualPortRam_1_1rtl.html#af775eb600febaabef2e5c67257c103b2":[1,0,33,0,32],
+"classAxiDualPortRam_1_1rtl.html#af775eb600febaabef2e5c67257c103b2":[1,0,33,0,33],
 "classAxiDualPortRam_1_1rtl.html#afd9be728942a4fc6eadf460a4b388c57":[1,0,33,0,3],
 "classAxiI2cEeprom.html":[1,0,34],
 "classAxiI2cEeprom.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,34,16],
@@ -247,7 +249,5 @@ var NAVTREEINDEX6 =
 "classAxiLiteCrossbar_1_1rtl.html#a2e0b7469107099b920f9e5ef47886441":[1,0,39,0,31],
 "classAxiLiteCrossbar_1_1rtl.html#a328d58a7a80b0e6485525a0a9bcf8019":[1,0,39,0,30],
 "classAxiLiteCrossbar_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9":[1,0,39,0,24],
-"classAxiLiteCrossbar_1_1rtl.html#a3aafb8f298bacbde1fae12121be936f7":[1,0,39,0,12],
-"classAxiLiteCrossbar_1_1rtl.html#a48baec1be868e7f9c2ce056c63e56fdc":[1,0,39,0,5],
-"classAxiLiteCrossbar_1_1rtl.html#a4d5d23dcd25ee9af7c27a927130b1a14":[1,0,39,0,34]
+"classAxiLiteCrossbar_1_1rtl.html#a3aafb8f298bacbde1fae12121be936f7":[1,0,39,0,12]
 };

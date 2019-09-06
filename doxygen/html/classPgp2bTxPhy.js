@@ -1,6 +1,6 @@
 var classPgp2bTxPhy =
 [
-    [ "Pgp2bTxPhy", "classPgp2bTxPhy_1_1Pgp2bTxPhy.html", "classPgp2bTxPhy_1_1Pgp2bTxPhy" ],
+    [ "Pgp2bTxPhy.Pgp2bTxPhy", "classPgp2bTxPhy_1_1Pgp2bTxPhy.html", "classPgp2bTxPhy_1_1Pgp2bTxPhy" ],
     [ "TPD_G", "classPgp2bTxPhy.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "TX_LANE_CNT_G", "classPgp2bTxPhy.html#a2fc16708d1929709455f039b60920185", null ],
     [ "pgpTxClkEn", "classPgp2bTxPhy.html#a3847e6a8c0703c9b9061d651ea799812", null ],

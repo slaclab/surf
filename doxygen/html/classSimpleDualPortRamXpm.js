@@ -5,6 +5,8 @@ var classSimpleDualPortRamXpm =
     [ "COMMON_CLK_G", "classSimpleDualPortRamXpm.html#a762b446ddef001083e8cfc52dc38385f", null ],
     [ "RST_POLARITY_G", "classSimpleDualPortRamXpm.html#a8a9f56ec06b173cf46dc7160fd7c1f30", null ],
     [ "MEMORY_TYPE_G", "classSimpleDualPortRamXpm.html#ac19eab973cb6c0196eed65d74fc49dca", null ],
+    [ "MEMORY_INIT_FILE_G", "classSimpleDualPortRamXpm.html#acb08f679e4ba93bb1157583610b6c22f", null ],
+    [ "MEMORY_INIT_PARAM_G", "classSimpleDualPortRamXpm.html#ae8af6b64d6e7bf1437f4089f6037439e", null ],
     [ "READ_LATENCY_G", "classSimpleDualPortRamXpm.html#acb05581c327d80d1e643030e67a027d8", null ],
     [ "DATA_WIDTH_G", "classSimpleDualPortRamXpm.html#a04b2b321f81f02681a52c6c7d92ff12e", null ],
     [ "BYTE_WR_EN_G", "classSimpleDualPortRamXpm.html#a3ccd28c3760c5ddd434a9aabc40b6f19", null ],

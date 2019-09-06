@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['max_5fnum_5fouts_5fseg_5fc',['MAX_NUM_OUTS_SEG_C',['../classAxiRssiCore_1_1rtl.html#a4082ae544218595a672bf053cd4fa44d',1,'AxiRssiCore::rtl']]],
-  ['max_5fseg_5fsize_5fg',['MAX_SEG_SIZE_G',['../classAxiRssiCore.html#a5c4383db8ceb734e0b1cecd729b3b73a',1,'AxiRssiCore']]]
+  ['device_5fid_5fg',['DEVICE_ID_G',['../classAxiVersion.html#ad2c3f833f7594f2395b85400a541511c',1,'AxiVersion']]],
+  ['dnavalueout',['dnaValueOut',['../classAxiVersion.html#a521fd31aade915c363134840c2fd43b3',1,'AxiVersion']]]
 ];

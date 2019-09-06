@@ -1,5 +1,6 @@
 var classTenGigEthGthUltraScale_1_1mapping =
 [
+    [ "PROCESS_128", "classTenGigEthGthUltraScale_1_1mapping.html#af3eb54010a8d3b57f47535ccbeaa3671", null ],
     [ "TenGigEthGthUltraScale156p25MHzCore", "classTenGigEthGthUltraScale_1_1mapping.html#a17501e10a86595b0b2ce58d714482640", null ],
     [ "mAxiReadMaster", "classTenGigEthGthUltraScale_1_1mapping.html#a8d9db6e7acad978d1a87b4cf0f9a9ae5", null ],
     [ "mAxiReadSlave", "classTenGigEthGthUltraScale_1_1mapping.html#a1a8b3b5af5a859ddec65981e11c0ee69", null ],
@@ -9,6 +10,10 @@ var classTenGigEthGthUltraScale_1_1mapping =
     [ "phyRxc", "classTenGigEthGthUltraScale_1_1mapping.html#a2df8aacc7dee766a5abc8658aa6386ee", null ],
     [ "phyTxd", "classTenGigEthGthUltraScale_1_1mapping.html#aa9dba38a5e93b15e4e8b2f16835d3f7a", null ],
     [ "phyTxc", "classTenGigEthGthUltraScale_1_1mapping.html#a2f4ae02c395f4b0baef291983a3dff80", null ],
+    [ "xgmiiRxd", "classTenGigEthGthUltraScale_1_1mapping.html#a425339efa5187a2c38dd0909ee1c69b1", null ],
+    [ "xgmiiRxc", "classTenGigEthGthUltraScale_1_1mapping.html#a72df766b38fa73efcfddc55fc6682bd1", null ],
+    [ "xgmiiTxd", "classTenGigEthGthUltraScale_1_1mapping.html#abaf5911afdbeb417b01b59feda0abd95", null ],
+    [ "xgmiiTxc", "classTenGigEthGthUltraScale_1_1mapping.html#a17a6c25f7fe7bd0702012959be4f49ee", null ],
     [ "areset", "classTenGigEthGthUltraScale_1_1mapping.html#af19b62c4e098382c744274830bb3a2ee", null ],
     [ "coreRst", "classTenGigEthGthUltraScale_1_1mapping.html#a0dc5765b623226b8ee2788ac2dfca301", null ],
     [ "phyClock", "classTenGigEthGthUltraScale_1_1mapping.html#adbea17b103100db4569d9d6274ae59c9", null ],
@@ -28,6 +33,7 @@ var classTenGigEthGthUltraScale_1_1mapping =
     [ "configurationVector", "classTenGigEthGthUltraScale_1_1mapping.html#a5804c190554b7be86165d18dfa1460fc", null ],
     [ "config", "classTenGigEthGthUltraScale_1_1mapping.html#a8d14b18d0cd74ed645b84400a5295530", null ],
     [ "status", "classTenGigEthGthUltraScale_1_1mapping.html#a42173ca2f65f8c5ca8aac1021db5afb1", null ],
+    [ "statusReg", "classTenGigEthGthUltraScale_1_1mapping.html#a6a4232b9ce83bb7dbca0f69aa78d5fa8", null ],
     [ "macRxAxisMaster", "classTenGigEthGthUltraScale_1_1mapping.html#a82d75f2a37111903ea6cf9c0bf5463c0", null ],
     [ "macRxAxisCtrl", "classTenGigEthGthUltraScale_1_1mapping.html#ab77be10f49a1b9f4387beadf2d8af1e4", null ],
     [ "macTxAxisMaster", "classTenGigEthGthUltraScale_1_1mapping.html#a9d2736e861b9455887e65c7cfedaeddc", null ],

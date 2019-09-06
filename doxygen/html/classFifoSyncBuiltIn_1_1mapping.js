@@ -1,10 +1,10 @@
 var classFifoSyncBuiltIn_1_1mapping =
 [
     [ "GetFifoType", "classFifoSyncBuiltIn_1_1mapping.html#a8e437574db294a4ba6c1761e740a42a0", null ],
-    [ "PROCESS_47", "classFifoSyncBuiltIn_1_1mapping.html#a3be6f2124e5a0219ba167437d167961c", null ],
-    [ "PROCESS_48", "classFifoSyncBuiltIn_1_1mapping.html#af2e9e5d3cd844758c39959651d913b70", null ],
-    [ "PROCESS_49", "classFifoSyncBuiltIn_1_1mapping.html#afe44d47e26ec4b6b1678f1af63847ccb", null ],
-    [ "PROCESS_50", "classFifoSyncBuiltIn_1_1mapping.html#abde185d3997a88c275c88522a6a24508", null ],
+    [ "PROCESS_42", "classFifoSyncBuiltIn_1_1mapping.html#a5a7c4bf7b895daa75996d39e1bba6c35", null ],
+    [ "PROCESS_43", "classFifoSyncBuiltIn_1_1mapping.html#a62bfca44bc734f935a4984e2f1649e5f", null ],
+    [ "PROCESS_44", "classFifoSyncBuiltIn_1_1mapping.html#a699cde12d6ee30f48a28869def48f528", null ],
+    [ "PROCESS_45", "classFifoSyncBuiltIn_1_1mapping.html#a4726921f32d88ba135c8e49ad0d35930", null ],
     [ "FIFO_LENGTH_C", "classFifoSyncBuiltIn_1_1mapping.html#a4cadbc7700771ad27f79168efee2a7c3", null ],
     [ "ALMOST_FULL_OFFSET_C", "classFifoSyncBuiltIn_1_1mapping.html#acde17fa304df66ce9bba4f55da8d346d", null ],
     [ "ALMOST_EMPTY_OFFSET_C", "classFifoSyncBuiltIn_1_1mapping.html#acb56b01cba9f2a5927755d1659782741", null ],

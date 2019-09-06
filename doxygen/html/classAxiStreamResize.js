@@ -3,6 +3,7 @@ var classAxiStreamResize =
     [ "rtl", "classAxiStreamResize_1_1rtl.html", "classAxiStreamResize_1_1rtl" ],
     [ "TPD_G", "classAxiStreamResize.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "READY_EN_G", "classAxiStreamResize.html#a00fe9babcd02f516f1e1018d78b9cd37", null ],
+    [ "PIPE_STAGES_G", "classAxiStreamResize.html#aa5b701cabb832036aea0132bf6159d5a", null ],
     [ "SLAVE_AXI_CONFIG_G", "classAxiStreamResize.html#ae73074eb5d6f5b790fe11394a85d8f05", null ],
     [ "MASTER_AXI_CONFIG_G", "classAxiStreamResize.html#abda656462c1b84e3d42e50514c515085", null ],
     [ "axisClk", "classAxiStreamResize.html#ac220cc2710ba738744915c3b2a0f43bc", null ],

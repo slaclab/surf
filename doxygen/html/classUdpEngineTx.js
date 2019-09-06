@@ -3,6 +3,8 @@ var classUdpEngineTx =
     [ "UdpEngineTx.rtl", "classUdpEngineTx_1_1rtl.html", "classUdpEngineTx_1_1rtl" ],
     [ "obUdpMaster", "classUdpEngineTx.html#a10528be7eba887533da48f949c59417e", null ],
     [ "obUdpSlave", "classUdpEngineTx.html#a68267915a27cdad41d6c2743feedd6ba", null ],
+    [ "linkUp", "classUdpEngineTx.html#a3fcb7912deaa224259c84c4d5819b1f2", null ],
+    [ "localMac", "classUdpEngineTx.html#ae02bb35f94a88aa2db811931566e8a02", null ],
     [ "localIp", "classUdpEngineTx.html#afd3fee997440ec256fc9f5740a0e75ce", null ],
     [ "remotePort", "classUdpEngineTx.html#a13ae31100574ae84e5f18584865ad49e", null ],
     [ "remoteIp", "classUdpEngineTx.html#ae460dcd046182824a659c345bda8fafb", null ],

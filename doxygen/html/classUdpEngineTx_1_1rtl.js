@@ -1,10 +1,11 @@
 var classUdpEngineTx_1_1rtl =
 [
-    [ "comb", "classUdpEngineTx_1_1rtl.html#aba8d6d876116a9e29497317555f207ea", null ],
+    [ "comb", "classUdpEngineTx_1_1rtl.html#a64fd3799b6c22435b90d5fbda3e1fe39", null ],
     [ "seq", "classUdpEngineTx_1_1rtl.html#ae8896e195ae00ae797895c15b647ba41", null ],
     [ "PORT_C", "classUdpEngineTx_1_1rtl.html#ad68758bf57e8bd08da8f5262d2c9cc4b", null ],
     [ "StateType", "classUdpEngineTx_1_1rtl.html#ac12b1280e38c019809163e403df19d6a", null ],
     [ "RegType", "classUdpEngineTx_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
+    [ "linkUp", "classUdpEngineTx_1_1rtl.html#ab9c7dcaf72510879af0e7dc0d97c01eb", null ],
     [ "tKeep", "classUdpEngineTx_1_1rtl.html#a72040a2aba74bbb5479d9a7b2beb36e4", null ],
     [ "tData", "classUdpEngineTx_1_1rtl.html#a061146790b497c873864f8a78463bddc", null ],
     [ "tLast", "classUdpEngineTx_1_1rtl.html#a8f2775332aeea755cc452cda84d6ebbc", null ],
@@ -15,7 +16,7 @@ var classUdpEngineTx_1_1rtl =
     [ "ibSlaves", "classUdpEngineTx_1_1rtl.html#aaed550f92f9d6c6707ebfadbb870cfd5", null ],
     [ "txMaster", "classUdpEngineTx_1_1rtl.html#a7a964b03c09c24747235fe40bb21ea35", null ],
     [ "state", "classUdpEngineTx_1_1rtl.html#a29ddea0778c5dba9ca0b08e7188a5a57", null ],
-    [ "REG_INIT_C", "classUdpEngineTx_1_1rtl.html#a636c6d5aa26eb1ea8bf9d1cc1b55fdd4", null ],
+    [ "REG_INIT_C", "classUdpEngineTx_1_1rtl.html#ae8a475dd15b429c5d5ade1955ca3f652", null ],
     [ "r", "classUdpEngineTx_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3", null ],
     [ "rin", "classUdpEngineTx_1_1rtl.html#a758a8cbb78916a3911d410a62191310d", null ],
     [ "txSlave", "classUdpEngineTx_1_1rtl.html#a9eb5e6bd14c859d83d821923d01f2f7a", null ],

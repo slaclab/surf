@@ -1,5 +1,8 @@
 var NAVTREEINDEX15 =
 {
+"classAxiSpiMaster.html#a656e835a0890a162151082bef7ac3400":[1,0,80,7],
+"classAxiSpiMaster.html#a7d8781c632c75ab0fdde6e592fd13d60":[1,0,80,1],
+"classAxiSpiMaster.html#a962f1c6a2adaac3e10a6f7fa3d111e01":[1,0,80,16],
 "classAxiSpiMaster.html#aa1cb22e959d47364391e5eb4ef86927c":[1,0,80,17],
 "classAxiSpiMaster.html#aaabc1205d85a1e0dfbb414fa8b00ab04":[1,0,80,10],
 "classAxiSpiMaster.html#ab46731b20d8805f77a663f5106851bf0":[1,0,80,11],
@@ -246,8 +249,5 @@ var NAVTREEINDEX15 =
 "classAxiStreamBytePackerTbTx.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,92,11],
 "classAxiStreamBytePackerTbTx.html#afd4f0f4d2e88b311f2a3b3705b317922":[1,0,92,6],
 "classAxiStreamBytePackerTbTx_1_1rtl.html":[1,0,92,0],
-"classAxiStreamBytePackerTbTx_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3":[1,0,92,0,7],
-"classAxiStreamBytePackerTbTx_1_1rtl.html#a1851acbd0e27543bb6a18f5101661f02":[1,0,92,0,3],
-"classAxiStreamBytePackerTbTx_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9":[1,0,92,0,2],
-"classAxiStreamBytePackerTbTx_1_1rtl.html#a5e4948776eaa6ed7ab637ef213d19dd8":[1,0,92,0,1]
+"classAxiStreamBytePackerTbTx_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3":[1,0,92,0,7]
 };

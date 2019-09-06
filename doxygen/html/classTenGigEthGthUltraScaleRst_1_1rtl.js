@@ -1,7 +1,7 @@
 var classTenGigEthGthUltraScaleRst_1_1rtl =
 [
-    [ "PROCESS_133", "classTenGigEthGthUltraScaleRst_1_1rtl.html#a1543d9f0513345fae39751da368bc398", null ],
-    [ "PROCESS_134", "classTenGigEthGthUltraScaleRst_1_1rtl.html#adede35c04f4d3a035199f587e2b5b88e", null ],
+    [ "PROCESS_129", "classTenGigEthGthUltraScaleRst_1_1rtl.html#a0284f454bb2247106974b63622337e96", null ],
+    [ "PROCESS_130", "classTenGigEthGthUltraScaleRst_1_1rtl.html#a5dabf5aaf04d9ca9f3bcec25b1024a54", null ],
     [ "coreReset", "classTenGigEthGthUltraScaleRst_1_1rtl.html#a25b04db317f82dfc0e480867fa6b6c2e", null ],
     [ "phyReset", "classTenGigEthGthUltraScaleRst_1_1rtl.html#af42ea83cda8af1d2da4f9dcba8fffe37", null ],
     [ "txClockGt", "classTenGigEthGthUltraScaleRst_1_1rtl.html#ad37bfd71289051ccbbb78d0e4463abab", null ],
@@ -12,6 +12,8 @@ var classTenGigEthGthUltraScaleRst_1_1rtl =
     [ "rstPulse", "classTenGigEthGthUltraScaleRst_1_1rtl.html#a1d7872172c61c68b6122a7d4d816c6e8", null ],
     [ "phyClock", "classTenGigEthGthUltraScaleRst_1_1rtl.html#a91a7e597f7fa3f7a80c0a3540d31b231", null ],
     [ "ready", "classTenGigEthGthUltraScaleRst_1_1rtl.html#a1db698e8c1dfddcbf733f6dcd1e96791", null ],
+    [ "u_corerst", "classTenGigEthGthUltraScaleRst_1_1rtl.html#a35db848b7de4dfe39a8f5c0e258028b5", null ],
+    [ "u_phyrst", "classTenGigEthGthUltraScaleRst_1_1rtl.html#a8724b705816419393a2c7e8ec280b6c7", null ],
     [ "synchronizer_0", "classTenGigEthGthUltraScaleRst_1_1rtl.html#a79b7d76c45bfe5dbfa2dcf93ee849eee", null ],
     [ "clk312_bufg_gt", "classTenGigEthGthUltraScaleRst_1_1rtl.html#aa40367d82cffe0519ec74511c332684e", null ],
     [ "clk156_bufg_gt", "classTenGigEthGthUltraScaleRst_1_1rtl.html#a89e69294a086f5a14f2f33c492b04f2a", null ],

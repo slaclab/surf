@@ -1,6 +1,6 @@
 var classAxiStreamResize_1_1rtl =
 [
-    [ "comb", "classAxiStreamResize_1_1rtl.html#ac5091890ef3330e71bda7a8cafaa5d0d", null ],
+    [ "comb", "classAxiStreamResize_1_1rtl.html#a7e0f4e7ef37c5bb72d61caf1ec7c0d31", null ],
     [ "seq", "classAxiStreamResize_1_1rtl.html#a60cf6c6e46dc89a140bc8bff4d98f732", null ],
     [ "SLV_BYTES_C", "classAxiStreamResize_1_1rtl.html#a7f103ae8f8b5bb5757807cb311072e27", null ],
     [ "MST_BYTES_C", "classAxiStreamResize_1_1rtl.html#a010a2c3712b0280cbd5756fdc3844280", null ],
@@ -13,5 +13,8 @@ var classAxiStreamResize_1_1rtl =
     [ "ibSlave", "classAxiStreamResize_1_1rtl.html#a0da9d94e3165aef8be395e94bf023105", null ],
     [ "REG_INIT_C", "classAxiStreamResize_1_1rtl.html#aa7c80f796a9f417c18d3a032e611e217", null ],
     [ "r", "classAxiStreamResize_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3", null ],
-    [ "rin", "classAxiStreamResize_1_1rtl.html#a758a8cbb78916a3911d410a62191310d", null ]
+    [ "rin", "classAxiStreamResize_1_1rtl.html#a758a8cbb78916a3911d410a62191310d", null ],
+    [ "pipeAxisMaster", "classAxiStreamResize_1_1rtl.html#a9246f299b839ee126ecdf9185bf55832", null ],
+    [ "pipeAxisSlave", "classAxiStreamResize_1_1rtl.html#ad2f4aa7ab8208bd108abfbecbc69ceb5", null ],
+    [ "axistreampipeline_1", "classAxiStreamResize_1_1rtl.html#ae8edc0156a44c2b4c251337348698ca9", null ]
 ];

@@ -4,6 +4,8 @@ var classAxiDualPortRam =
     [ "TPD_G", "classAxiDualPortRam.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "SYNTH_MODE_G", "classAxiDualPortRam.html#a2429d17ce4f9328a982076af9f733ab3", null ],
     [ "MEMORY_TYPE_G", "classAxiDualPortRam.html#ac19eab973cb6c0196eed65d74fc49dca", null ],
+    [ "MEMORY_INIT_FILE_G", "classAxiDualPortRam.html#acb08f679e4ba93bb1157583610b6c22f", null ],
+    [ "MEMORY_INIT_PARAM_G", "classAxiDualPortRam.html#ae8af6b64d6e7bf1437f4089f6037439e", null ],
     [ "READ_LATENCY_G", "classAxiDualPortRam.html#ad6c1974e49c60d756a73f5780d466129", null ],
     [ "AXI_WR_EN_G", "classAxiDualPortRam.html#aa92803d72989301fb3e3f9edc3ae8b13", null ],
     [ "SYS_WR_EN_G", "classAxiDualPortRam.html#ae5bfd145559b9a96ee357fedb2b9323b", null ],

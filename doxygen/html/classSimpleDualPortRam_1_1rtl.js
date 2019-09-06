@@ -1,9 +1,9 @@
 var classSimpleDualPortRam_1_1rtl =
 [
-    [ "PROCESS_82", "classSimpleDualPortRam_1_1rtl.html#a44bc5a0656c527436b1da5a7cb6422cc", null ],
-    [ "PROCESS_83", "classSimpleDualPortRam_1_1rtl.html#a85f8c9d6b17b2a6a43564e88fb856657", null ],
-    [ "PROCESS_84", "classSimpleDualPortRam_1_1rtl.html#a79b56fd4d7b17ad9ea6c80ab8aea8444", null ],
-    [ "PROCESS_85", "classSimpleDualPortRam_1_1rtl.html#a606caafc39ba0c4e3ebc4bf30105d635", null ],
+    [ "PROCESS_77", "classSimpleDualPortRam_1_1rtl.html#a827e1de30d4d160ab7a877e2c2b3ddae", null ],
+    [ "PROCESS_78", "classSimpleDualPortRam_1_1rtl.html#a5f61e001433e40bb457186a18fa6a300", null ],
+    [ "PROCESS_79", "classSimpleDualPortRam_1_1rtl.html#a95e3c8fdf741f8387865db2deeb84e41", null ],
+    [ "PROCESS_80", "classSimpleDualPortRam_1_1rtl.html#a14a954ea10ed446e2011b558dba4422e", null ],
     [ "BYTE_WIDTH_C", "classSimpleDualPortRam_1_1rtl.html#af3be7b850d222fc8035417e77b9d49c4", null ],
     [ "NUM_BYTES_C", "classSimpleDualPortRam_1_1rtl.html#a905ac2c38735862812629186c1507281", null ],
     [ "FULL_DATA_WIDTH_C", "classSimpleDualPortRam_1_1rtl.html#af440a0d0ae6bcad9bbeb43fab9f8f64c", null ],

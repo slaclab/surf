@@ -3,6 +3,7 @@ var classAxiLiteRegs =
     [ "rtl", "classAxiLiteRegs_1_1rtl.html", "classAxiLiteRegs_1_1rtl" ],
     [ "TPD_G", "classAxiLiteRegs.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "NUM_WRITE_REG_G", "classAxiLiteRegs.html#a4c7d83380b735a214a3fce48cc308126", null ],
+    [ "INI_WRITE_REG_G", "classAxiLiteRegs.html#a6300b1cb92bdb8fc39459c176041bd70", null ],
     [ "NUM_READ_REG_G", "classAxiLiteRegs.html#a3c25f8d695fe7b26395d0d69d633e1d9", null ],
     [ "axiClk", "classAxiLiteRegs.html#a7d8781c632c75ab0fdde6e592fd13d60", null ],
     [ "axiClkRst", "classAxiLiteRegs.html#aaa3f2a49ba9c27af6fc938205e371307", null ],
