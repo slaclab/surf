@@ -2,8 +2,9 @@
 -- File       : AxiVersion.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Creates AXI accessible registers containing configuration
--- information.
+--! @brief AXI-Lite accessible registers containing configuration information
+--! @details Creates AXI accessible registers containing configuration
+--! information.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -24,43 +25,43 @@ use work.AxiLitePkg.all;
 
 entity AxiVersion is
    generic (
-      TPD_G              : time             := 1 ns;
-      BUILD_INFO_G       : BuildInfoType;
-      SIM_DNA_VALUE_G    : slv              := X"000000000000000000000000";
-      DEVICE_ID_G        : slv(31 downto 0) := (others => '0');
-      CLK_PERIOD_G       : real             := 8.0E-9;     -- units of seconds
-      XIL_DEVICE_G       : string           := "7SERIES";  -- Either "7SERIES" or "ULTRASCALE"
-      EN_DEVICE_DNA_G    : boolean          := false;
-      EN_DS2411_G        : boolean          := false;
-      EN_ICAP_G          : boolean          := false;
-      USE_SLOWCLK_G      : boolean          := false;
-      BUFR_CLK_DIV_G     : positive         := 8;
-      AUTO_RELOAD_EN_G   : boolean          := false;
-      AUTO_RELOAD_TIME_G : positive         := 10;         -- units of seconds
-      AUTO_RELOAD_ADDR_G : slv(31 downto 0) := (others => '0'));
+      TPD_G              : time                   := 1 ns;                         --! Simulated propagation delay
+      BUILD_INFO_G       : BuildInfoType;                                          --! Build information
+      SIM_DNA_VALUE_G    : slv                    := X"000000000000000000000000";  --! DeviceDna value when running in simulation
+      DEVICE_ID_G        : slv(31 downto 0)       := (others => '0');              --! Value for DeviceId register
+      CLK_PERIOD_G       : real                   := 8.0E-9;                       --! axiClk period in units of seconds
+      XIL_DEVICE_G       : string                 := "7SERIES";                    --! Either "7SERIES" or "ULTRASCALE"
+      EN_DEVICE_DNA_G    : boolean                := false;                        --! Report DeviceDNA on Xilinx devices
+      EN_DS2411_G        : boolean                := false;                        --! Create interface to DS2411 ID chip
+      EN_ICAP_G          : boolean                := false;                        --! Create ICAP interface for FPGA reload command
+      USE_SLOWCLK_G      : boolean                := false;                        --! Use slockClk input to drive DeviceDna and IPROG modules
+                                                                                   --! Otherwise axilClk -> BUFR is used
+      BUFR_CLK_DIV_G     : positive               := 8;                            --! BUFR divide when using axiClk to drive DeviceDna and IPROG
+      AUTO_RELOAD_EN_G   : boolean                := false;                        --! Enable automatic FPGA reload
+      AUTO_RELOAD_TIME_G : positive               := 10;                           --! Time to wait before automatic FPGA reload in units of seconds
+      AUTO_RELOAD_ADDR_G : slv(31 downto 0)       := (others => '0'));             --! PROM address to reload from for automatic reload
    port (
       -- AXI-Lite Interface
-      axiClk         : in    sl;
-      axiRst         : in    sl;
-      axiReadMaster  : in    AxiLiteReadMasterType;
-      axiReadSlave   : out   AxiLiteReadSlaveType;
-      axiWriteMaster : in    AxiLiteWriteMasterType;
-      axiWriteSlave  : out   AxiLiteWriteSlaveType;
-      -- Optional: User Reset
-      userReset      : out   sl;
+      axiClk         : in    sl;                                                   --! AXI-Lite bus clock
+      axiRst         : in    sl;                                                   --! AXI-Lite bus reset
+      axiReadMaster  : in    AxiLiteReadMasterType;                                --! AXIL bus read master
+      axiReadSlave   : out   AxiLiteReadSlaveType;                                 --! AXIL bus read slave
+      axiWriteMaster : in    AxiLiteWriteMasterType;                               --! AXIL bus write master
+      axiWriteSlave  : out   AxiLiteWriteSlaveType;                                --! AXIL bus write slave
+      userReset      : out   sl;                                                   --! Software reset output (optional)
       -- Optional: FPGA Reloading Interface
-      fpgaEnReload   : in    sl                  := '1';
-      fpgaReload     : out   sl;
-      fpgaReloadAddr : out   slv(31 downto 0);
-      upTimeCnt      : out   slv(31 downto 0);
+      fpgaEnReload   : in    sl                  := '1';                           --! Reload the FPGA from attached PROM when using internal IPROG
+      fpgaReload     : out   sl;                                                   --! Software initiated FPGA reload for use with external IPROG
+      fpgaReloadAddr : out   slv(31 downto 0);                                     --! Software FPGA reload address
+      upTimeCnt      : out   slv(31 downto 0);                                     --! Number of seconds since last FPGA reload
       -- Optional: Serial Number outputs
-      slowClk        : in    sl                  := '0';
-      dnaValueOut    : out   slv(127 downto 0);
-      fdValueOut     : out   slv(63 downto 0);
+      slowClk        : in    sl                  := '0';                           --! Clock that drives DeviceDna and IPROG when USE_SLOWCLK_G=true
+      dnaValueOut    : out   slv(127 downto 0);                                    --! DeviceDna value
+      fdValueOut     : out   slv(63 downto 0);                                     --! DS2411 value
       -- Optional: user values
-      userValues     : in    Slv32Array(0 to 63) := (others => X"00000000");
+      userValues     : in    Slv32Array(0 to 63) := (others => X"00000000");       --! Software accessible values from external modules
       -- Optional: DS2411 interface
-      fdSerSdio      : inout sl                  := 'Z');
+      fdSerSdio      : inout sl                  := 'Z');                          --! DS2411 1-wire interface pin
 end AxiVersion;
 
 architecture rtl of AxiVersion is
