@@ -38,7 +38,7 @@ entity AxiVersion is
                                                                                    --! Otherwise axilClk -> BUFR is used
       BUFR_CLK_DIV_G     : positive               := 8;                            --! BUFR divide when using axiClk to drive DeviceDna and IPROG
       AUTO_RELOAD_EN_G   : boolean                := false;                        --! Enable automatic FPGA reload
-      AUTO_RELOAD_TIME_G : real range 0.0 to 30.0 := 10.0;                         --! Time to wait before automatic FPGA reload in units of seconds
+      AUTO_RELOAD_TIME_G : positive               := 10;                           --! Time to wait before automatic FPGA reload in units of seconds
       AUTO_RELOAD_ADDR_G : slv(31 downto 0)       := (others => '0'));             --! PROM address to reload from for automatic reload
    port (
       -- AXI-Lite Interface
@@ -66,7 +66,6 @@ end AxiVersion;
 
 architecture rtl of AxiVersion is
 
-   constant RELOAD_COUNT_C : integer          := integer(AUTO_RELOAD_TIME_G / CLK_PERIOD_G);
    constant TIMEOUT_1HZ_C  : natural          := (getTimeRatio(1.0, CLK_PERIOD_G) -1);
    constant COUNTER_ZERO_C : slv(31 downto 0) := X"00000000";
 
@@ -77,8 +76,7 @@ architecture rtl of AxiVersion is
       upTimeCnt      : slv(31 downto 0);
       timer          : natural range 0 to TIMEOUT_1HZ_C;
       scratchPad     : slv(31 downto 0);
-      counter        : slv(31 downto 0);
-      counterRst     : sl;
+      reloadTimer    : natural range 0 to AUTO_RELOAD_TIME_G;
       userReset      : sl;
       fpgaReload     : sl;
       haltReload     : sl;
@@ -91,8 +89,7 @@ architecture rtl of AxiVersion is
       upTimeCnt      => (others => '0'),
       timer          => 0,
       scratchPad     => (others => '0'),
-      counter        => (others => '0'),
-      counterRst     => '0',
+      reloadTimer    => 0,
       userReset      => '0',
       fpgaReload     => '0',
       haltReload     => '0',
@@ -168,19 +165,6 @@ begin
       -- Latch the current value
       v := r;
 
-      ---------------------------------
-      -- First Stage Boot Loader (FSBL)
-      ---------------------------------
-      -- Check if timer enabled
-      if fpgaEnReload = '1' then
-         v.counter := v.counter + 1;
-      end if;
-
-      -- Check for reload condition
-      if AUTO_RELOAD_EN_G and (r.counter = RELOAD_COUNT_C) and (fpgaEnReload = '1') and (r.haltReload = '0') then
-         v.fpgaReload := '1';
-      end if;
-
       ------------------------      
       -- AXI-Lite Transactions
       ------------------------      
@@ -206,14 +190,32 @@ begin
       axiSlaveRegisterR(axilEp, x"700", 0, dnaValue);
       axiSlaveRegisterR(axilEp, x"800", BUILD_STRING_ROM_C);
 
+      -- Close the transaction
       axiSlaveDefault(axilEp, v.axiWriteSlave, v.axiReadSlave, AXI_RESP_DECERR_C);
 
       ---------------------------------
       -- Uptime counter
       ---------------------------------      
       if r.timer = TIMEOUT_1HZ_C then
-         v.timer     := 0;
+         -- Reset the counter
+         v.timer := 0;
+
+         -- Increment the Counter
          v.upTimeCnt := r.upTimeCnt + 1;
+
+         ---------------------------------
+         -- First Stage Boot Loader (FSBL)
+         ---------------------------------
+         -- Check if timer enabled
+         if (fpgaEnReload = '1') and (r.reloadTimer /= AUTO_RELOAD_TIME_G) then
+            v.reloadTimer := r.reloadTimer + 1;
+         end if;
+
+         -- Check for reload condition
+         if AUTO_RELOAD_EN_G and (r.reloadTimer = AUTO_RELOAD_TIME_G) and (fpgaEnReload = '1') and (r.haltReload = '0') then
+            v.fpgaReload := '1';
+         end if;
+
       else
          v.timer := r.timer + 1;
       end if;

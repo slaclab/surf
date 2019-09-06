@@ -27,6 +27,7 @@ entity EthMacTxExport is
       PHY_TYPE_G : string := "XGMII");
    port (
       -- Clock and Reset
+      ethClkEn       : in  sl;
       ethClk         : in  sl;
       ethRst         : in  sl;
       -- AXIS Interface   
@@ -43,7 +44,6 @@ entity EthMacTxExport is
       gmiiTxEr       : out sl;
       gmiiTxd        : out slv(7 downto 0);
       -- Configuration and status
-      macAddress     : in  slv(47 downto 0);
       phyReady       : in  sl;
       txCountEn      : out sl;
       txUnderRun     : out sl;
@@ -72,7 +72,6 @@ begin
             phyTxc         => xlgmiiTxc,
             -- Configuration and status
             phyReady       => phyReady,
-            macAddress     => macAddress,
             txCountEn      => txCountEn,
             txUnderRun     => txUnderRun,
             txLinkNotReady => txLinkNotReady);
@@ -100,7 +99,6 @@ begin
             phyTxc         => xgmiiTxc,
             -- Configuration and status
             phyReady       => phyReady,
-            macAddress     => macAddress,
             txCountEn      => txCountEn,
             txUnderRun     => txUnderRun,
             txLinkNotReady => txLinkNotReady);
@@ -118,6 +116,7 @@ begin
             TPD_G => TPD_G) 
          port map (
             -- Clock and Reset         
+            ethClkEn       => ethClkEn,
             ethClk         => ethClk,
             ethRst         => ethRst,
             -- AXIS Interface 
@@ -129,7 +128,6 @@ begin
             gmiiTxd        => gmiiTxd,
             -- Configuration and status
             phyReady       => phyReady,
-            macAddress     => macAddress,
             txCountEn      => txCountEn,
             txUnderRun     => txUnderRun,
             txLinkNotReady => txLinkNotReady);

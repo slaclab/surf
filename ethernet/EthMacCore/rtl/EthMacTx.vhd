@@ -40,6 +40,7 @@ entity EthMacTx is
       VLAN_VID_G      : Slv12Array               := (0 => x"001"));
    port (
       -- Clock and Reset
+      ethClkEn       : in  sl;
       ethClk         : in  sl;
       ethRst         : in  sl;
       -- Primary Interface
@@ -210,6 +211,7 @@ begin
          PHY_TYPE_G => PHY_TYPE_G)
       port map (
          -- Clock and reset
+         ethClkEn       => ethClkEn,
          ethClk         => ethClk,
          ethRst         => ethRst,
          -- AXIS Interface   
@@ -226,7 +228,6 @@ begin
          gmiiTxEr       => gmiiTxEr,
          gmiiTxd        => gmiiTxd,
          -- Configuration and status
-         macAddress     => ethConfig.macAddress,
          phyReady       => phyReady,
          txCountEn      => txCountEn,
          txUnderRun     => txUnderRun,

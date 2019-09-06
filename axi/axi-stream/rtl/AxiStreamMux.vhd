@@ -26,29 +26,29 @@ use work.AxiStreamPkg.all;
 
 entity AxiStreamMux is
    generic (
-      TPD_G                : time                  := 1 ns;
-      PIPE_STAGES_G        : integer range 0 to 16 := 0;
-      NUM_SLAVES_G         : integer range 1 to 32 := 4;
+      TPD_G                : time                   := 1 ns;
+      PIPE_STAGES_G        : integer range 0 to 16  := 0;
+      NUM_SLAVES_G         : integer range 1 to 256 := 4;
       -- In INDEXED mode, the output TDEST is set based on the selected slave index
       -- In ROUTED mode, TDEST is set accoring to the TDEST_ROUTES_G table
-      MODE_G               : string                := "INDEXED";
+      MODE_G               : string                 := "INDEXED";
       -- In ROUTED mode, an array mapping how TDEST should be assigned for each slave port
       -- Each TDEST bit can be set to '0', '1' or '-' for passthrough from slave TDEST.
-      TDEST_ROUTES_G       : Slv8Array             := (0 => "--------");
+      TDEST_ROUTES_G       : Slv8Array              := (0 => "--------");
       -- In INDEXED mode, assign slave index to TDEST at this bit offset
-      TDEST_LOW_G          : integer range 0 to 7  := 0;
+      TDEST_LOW_G          : integer range 0 to 7   := 0;
       -- Set to true if interleaving dests
-      ILEAVE_EN_G          : boolean               := false;
+      ILEAVE_EN_G          : boolean                := false;
       -- Rearbitrate when tValid drops on selected channel, ignored when ILEAVE_EN_G=false      
-      ILEAVE_ON_NOTVALID_G : boolean               := false;
+      ILEAVE_ON_NOTVALID_G : boolean                := false;
       -- Max number of transactions between arbitrations, 0 = unlimited, ignored when ILEAVE_EN_G=false
-      ILEAVE_REARB_G       : natural               := 0;
+      ILEAVE_REARB_G      : natural range 0 to 4095 := 0;
       -- One cycle gap in stream between during rearbitration.
       -- Set true for better timing, false for higher throughput.
-      REARB_DELAY_G        : boolean               := true;
+      REARB_DELAY_G        : boolean                := true;
       -- Block selected slave txns arriving on same cycle as rearbitrate or disableSel from going through,
       -- creating 1 cycle gap. This might be needed logically but decreases throughput.
-      FORCED_REARB_HOLD_G  : boolean               := false);
+      FORCED_REARB_HOLD_G  : boolean                := false);
 
    port (
       -- Clock and reset
@@ -57,6 +57,7 @@ entity AxiStreamMux is
       -- Slaves
       disableSel   : in  slv(NUM_SLAVES_G-1 downto 0) := (others => '0');
       rearbitrate  : in  sl                           := '0';
+      ileaveRearb  : in slv(11 downto 0)              := toSlv(ILEAVE_REARB_G,12);
       sAxisMasters : in  AxiStreamMasterArray(NUM_SLAVES_G-1 downto 0);
       sAxisSlaves  : out AxiStreamSlaveArray(NUM_SLAVES_G-1 downto 0);
 
@@ -69,13 +70,12 @@ architecture rtl of AxiStreamMux is
 
    constant DEST_SIZE_C : integer := bitSize(NUM_SLAVES_G-1);
    constant ARB_BITS_C  : integer := 2**DEST_SIZE_C;
-   constant ACNT_SIZE_G : integer := bitSize(ILEAVE_REARB_G);
 
    type RegType is record
       acks   : slv(ARB_BITS_C-1 downto 0);
       ackNum : slv(DEST_SIZE_C-1 downto 0);
       valid  : sl;
-      arbCnt : slv(ACNT_SIZE_G-1 downto 0);
+      arbCnt : slv(11 downto 0);
       slaves : AxiStreamSlaveArray(NUM_SLAVES_G-1 downto 0);
       master : AxiStreamMasterType;
    end record RegType;
@@ -130,7 +130,7 @@ begin
       sAxisMastersTmp <= tmp;
    end process;
 
-   comb : process (axisRst, disableSel, pipeAxisSlave, r, rearbitrate, sAxisMastersTmp) is
+   comb : process (axisRst, disableSel, ileaveRearb, pipeAxisSlave, r, rearbitrate, sAxisMastersTmp) is
       variable v        : RegType;
       variable requests : slv(ARB_BITS_C-1 downto 0);
       variable selData  : AxiStreamMasterType;
@@ -196,7 +196,7 @@ begin
                v.valid := '0';
 
             -- Rearbitrate after ILEAVE_REARB_G txns
-            elsif (ILEAVE_EN_G) and (ILEAVE_REARB_G /= 0) and (r.arbCnt = ILEAVE_REARB_G-1) then
+            elsif (ILEAVE_EN_G) and (ileaveRearb /= 0) and (r.arbCnt = ileaveRearb-1) then
                v.valid := '0';
             end if;
          end if;

@@ -28,17 +28,14 @@ entity EthMacTop is
       TPD_G               : time                     := 1 ns;
       -- MAC Configurations
       PAUSE_EN_G          : boolean                  := true;
-      PAUSE_512BITS_G     : positive range 1 to 1024 := 8;
+      PAUSE_512BITS_G     : positive range 1 to 1024 := 8; -- For 10GbE: 8 clock cycles for 512 bits = one pause "quanta"
       PHY_TYPE_G          : string                   := "XGMII";  -- "GMII", "XGMII", or "XLGMII"
       DROP_ERR_PKT_G      : boolean                  := true;
       JUMBO_G             : boolean                  := true;
       -- RX FIFO Configurations
       INT_PIPE_STAGES_G   : natural                  := 1;
       PIPE_STAGES_G       : natural                  := 1;
-      FIFO_ADDR_WIDTH_G   : positive                 := 10;
-      CASCADE_SIZE_G      : positive                 := 2;
-      FIFO_PAUSE_THRESH_G : positive                 := 1000;
-      CASCADE_PAUSE_SEL_G : natural                  := 0;
+      FIFO_ADDR_WIDTH_G   : positive                 := 11;
       -- Non-VLAN Configurations
       FILT_EN_G           : boolean                  := false;
       PRIM_COMMON_CLK_G   : boolean                  := false;
@@ -55,6 +52,7 @@ entity EthMacTop is
       VLAN_CONFIG_G       : AxiStreamConfigType      := EMAC_AXIS_CONFIG_C);      
    port (
       -- Core Clock and Reset
+      ethClkEn         : in  sl                                           := '1';
       ethClk           : in  sl;
       ethRst           : in  sl;
       -- Primary Interface
@@ -194,6 +192,7 @@ begin
          VLAN_VID_G      => VLAN_VID_G)
       port map (
          -- Clocks
+         ethClkEn       => ethClkEn,
          ethClk         => ethClk,
          ethRst         => ethRst,
          -- Primary Interface
@@ -268,6 +267,7 @@ begin
          VLAN_VID_G     => VLAN_VID_G)
       port map (
          -- Clock and Reset
+         ethClkEn     => ethClkEn,
          ethClk       => ethClk,
          ethRst       => ethRst,
          -- Primary Interface
@@ -308,9 +308,6 @@ begin
          INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
          PIPE_STAGES_G       => PIPE_STAGES_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
-         CASCADE_SIZE_G      => CASCADE_SIZE_G,
-         FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
-         CASCADE_PAUSE_SEL_G => CASCADE_PAUSE_SEL_G,
          PRIM_COMMON_CLK_G   => PRIM_COMMON_CLK_G,
          PRIM_CONFIG_G       => PRIM_CONFIG_G,
          BYP_EN_G            => BYP_EN_G,
@@ -324,9 +321,10 @@ begin
          -- Slave Clock and Reset
          sClk         => ethClk,
          sRst         => ethRst,
-         -- Status (sClk domain)
+         -- Status/Config (sClk domain)
          phyReady     => phyReady,
          rxFifoDrop   => ethStatus.rxFifoDropCnt,
+         pauseThresh  => ethConfig.pauseThresh,
          -- Primary Interface
          mPrimClk     => primClk,
          mPrimRst     => primRst,

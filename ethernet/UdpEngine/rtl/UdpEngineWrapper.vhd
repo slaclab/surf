@@ -37,6 +37,7 @@ entity UdpEngineWrapper is
       CLIENT_PORTS_G      : PositiveArray   := (0 => 8193);
       CLIENT_EXT_CONFIG_G : boolean         := false;
       -- General IPv4/ICMP/ARP/DHCP Generics
+      TX_FLOW_CTRL_G      : boolean         := true; -- True: Blow off the UDP TX data if link down, False: Backpressure until TX link is up
       DHCP_G              : boolean         := false;
       ICMP_G              : boolean         := true;
       ARP_G               : boolean         := true;
@@ -164,6 +165,7 @@ begin
          CLIENT_SIZE_G  => CLIENT_SIZE_G,
          CLIENT_PORTS_G => CLIENT_PORTS_G,
          -- UDP ARP/DHCP Generics
+         TX_FLOW_CTRL_G => TX_FLOW_CTRL_G,
          DHCP_G         => DHCP_G,
          CLK_FREQ_G     => CLK_FREQ_G,
          COMM_TIMEOUT_G => COMM_TIMEOUT_G)

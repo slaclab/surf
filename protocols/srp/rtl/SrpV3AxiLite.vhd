@@ -32,17 +32,18 @@ use ieee.math_real.all;
 
 entity SrpV3AxiLite is
    generic (
-      TPD_G               : time                    := 1 ns;
-      INT_PIPE_STAGES_G   : natural range 0 to 16   := 1;
-      PIPE_STAGES_G       : natural range 0 to 16   := 1;
-      FIFO_PAUSE_THRESH_G : positive range 1 to 511 := 256;
-      TX_VALID_THOLD_G    : positive                := 1;
-      SLAVE_READY_EN_G    : boolean                 := false;
-      GEN_SYNC_FIFO_G     : boolean                 := false;
-      ALTERA_SYN_G        : boolean                 := false;
-      ALTERA_RAM_G        : string                  := "M9K";
-      AXIL_CLK_FREQ_G     : real                    := 156.25E+6;  -- units of Hz    
-      AXI_STREAM_CONFIG_G : AxiStreamConfigType     := ssiAxiStreamConfig(2));
+      TPD_G                 : time                    := 1 ns;
+      INT_PIPE_STAGES_G     : natural range 0 to 16   := 1;
+      PIPE_STAGES_G         : natural range 0 to 16   := 1;
+      FIFO_PAUSE_THRESH_G   : positive range 1 to 511 := 256;
+      TX_VALID_THOLD_G      : positive range 1 to 511 := 500;   -- >1 = only when frame ready or # entries
+      TX_VALID_BURST_MODE_G : boolean                 := true;  -- only used in VALID_THOLD_G>1
+      SLAVE_READY_EN_G      : boolean                 := false;
+      GEN_SYNC_FIFO_G       : boolean                 := false;
+      ALTERA_SYN_G          : boolean                 := false;
+      ALTERA_RAM_G          : string                  := "M9K";
+      AXIL_CLK_FREQ_G       : real                    := 156.25E+6;  -- units of Hz    
+      AXI_STREAM_CONFIG_G   : AxiStreamConfigType     := ssiAxiStreamConfig(2));
    port (
       -- AXIS Slave Interface (sAxisClk domain) 
       sAxisClk         : in  sl;
@@ -791,15 +792,17 @@ begin
          PIPE_STAGES_G       => PIPE_STAGES_G,
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => TX_VALID_THOLD_G,
+         VALID_BURST_MODE_G  => TX_VALID_BURST_MODE_G,
          -- FIFO configurations
          BRAM_EN_G           => true,
          XIL_DEVICE_G        => "7SERIES",
          USE_BUILT_IN_G      => false,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
-         CASCADE_SIZE_G      => 1,
-         FIFO_ADDR_WIDTH_G   => 9,
+         ALTERA_RAM_G        => ALTERA_RAM_G,         
+         INT_WIDTH_SELECT_G  => "CUSTOM",
+         INT_DATA_WIDTH_G    => 16,     -- 128-bit         
+         FIFO_ADDR_WIDTH_G   => 9,      -- 8kB/FIFO = 128-bits x 512 entries         
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_G)

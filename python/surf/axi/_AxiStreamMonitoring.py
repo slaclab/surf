@@ -27,6 +27,14 @@ class AxiStreamMonitoring(pr.Device):
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
         
+        self.add(pr.RemoteCommand(   
+            name         = 'CntRst',
+            description  = "Counter Reset",
+            offset       = 0x0,
+            bitSize      = 1,
+            function     = lambda cmd: cmd.post(1),
+        ))        
+        
         def addPair(name,offset,bitSize,units,bitOffset,description,function,pollInterval = 0,):
             self.add(pr.RemoteVariable(  
                 name         = (name+"Raw"), 
@@ -121,10 +129,16 @@ class AxiStreamMonitoring(pr.Device):
                 units        = 'Mbps', 
                 pollInterval = 1,
             )
-
+            
     @staticmethod
     def convMbps(var):
         return var.dependencies[0].value() * 8e-6
         
+    def hardReset(self):
+        self.CntRst()
+
+    def initialize(self):
+        self.CntRst()
+
     def countReset(self):
-        self._rawWrite(offset=0x0,data=0x1)       
+        self.CntRst()

@@ -26,7 +26,9 @@ class Pgp2bAxi(pr.Device):
                  description = "Configuration and status of a downstream PGP link",
                  writeEn = True,
                  **kwargs):
-        super().__init__(name=name, description=description, **kwargs) 
+        super().__init__(name=name, description=description, **kwargs)
+
+        self.writeEn = writeEn
 
         if writeEn:
             self.add(pr.RemoteVariable(
@@ -204,7 +206,7 @@ class Pgp2bAxi(pr.Device):
             "RxRemOverflow1Count", 
             "RxRemOverflow2Count", 
             "RxRemOverflow3Count",
-            "RxFrameErrorCoumt", 
+            "RxFrameErrorCount", 
             "RxFrameCount",
             "TxLocOverflow0Count",
             "TxLocOverflow1Count",
@@ -225,6 +227,17 @@ class Pgp2bAxi(pr.Device):
                 base        = pr.UInt,
                 pollInterval = 1,
             ))
+
+        self.add(pr.RemoteVariable(
+            name        = "RxRemLinkReadyCount",
+            offset      = 0x80,
+            disp        = '{:d}',
+            bitSize     = 32, 
+            bitOffset   = 0, 
+            mode        = "RO", 
+            base        = pr.UInt,
+            pollInterval = 1
+        ))
 
         self.add(pr.RemoteVariable(
             name        = "LastTxOpCode", 
@@ -324,15 +337,6 @@ class Pgp2bAxi(pr.Device):
                 function    = pr.BaseCommand.toggle,
                 ))
 
-        def softReset(self):
-            if writeEn:
-                self.Flush()
-
-        def hardReset(self):
-            self.ResetTxRx()
-
-        def countReset(self):
-            self.CountReset()
             
         self.add(pr.RemoteVariable(
             name         = "RxClkFreqRaw", 
@@ -375,3 +379,14 @@ class Pgp2bAxi(pr.Device):
             linkedGet    = convtMHz,
         ))
              
+    def initialize(self):
+        if self.writeEn:
+            self.Flush()
+
+    def hardReset(self):
+        if self.writeEn:
+            self.ResetTx()
+            self.ResetRx()
+
+    def countReset(self):
+        self.CountReset()

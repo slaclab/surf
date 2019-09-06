@@ -28,6 +28,7 @@ entity EthMacRxImport is
       PHY_TYPE_G : string := "XGMII");
    port (
       -- Clock and Reset
+      ethClkEn    : in  sl;
       ethClk      : in  sl;
       ethRst      : in  sl;
       -- AXIS Interface   
@@ -84,8 +85,8 @@ begin
             -- AXIS Interface 
             macIbMaster => macIbMaster,
             -- XGMII PHY Interface
-            phyRxd      => xgmiiRxd,
-            phyRxc      => xgmiiRxc,
+            phyRxdata   => xgmiiRxd,
+            phyRxChar   => xgmiiRxc,
             -- Configuration and status
             phyReady    => phyReady,
             rxCountEn   => rxCountEn,
@@ -98,6 +99,7 @@ begin
             TPD_G => TPD_G) 
          port map (
             -- Clock and Reset         
+            ethClkEn    => ethClkEn,
             ethClk      => ethClk,
             ethRst      => ethRst,
             -- AXIS Interface 

@@ -37,8 +37,6 @@ entity EthMacTxExportXgmii is
       phyTxd         : out slv(63 downto 0);
       phyTxc         : out slv(7 downto 0);
       phyReady       : in  sl;
-      -- Configuration
-      macAddress     : in  slv(47 downto 0);
       -- Errors
       txCountEn      : out sl;
       txUnderRun     : out sl;
@@ -63,7 +61,6 @@ architecture rtl of EthMacTxExportXgmii is
    signal macSlave         : AxiStreamSlaveType;
    signal intAdvance       : sl;
    signal intDump          : sl;
-   signal intRunt          : sl;
    signal intPad           : sl;
    signal intLastLine      : sl;
    signal intLastValidByte : slv(2 downto 0);
@@ -78,6 +75,7 @@ architecture rtl of EthMacTxExportXgmii is
    signal intData          : slv(63 downto 0);
    signal stateCount       : slv(3 downto 0);
    signal stateCountRst    : sl;
+   signal wordCountRst     : sl;
    signal exportWordCnt    : slv(3 downto 0);
    signal crcFifoIn        : slv(71 downto 0);
    signal crcFifoOut       : slv(71 downto 0);
@@ -107,7 +105,6 @@ architecture rtl of EthMacTxExportXgmii is
 
    attribute dont_touch of intAdvance       : signal is "true";
    attribute dont_touch of intDump          : signal is "true";
-   attribute dont_touch of intRunt          : signal is "true";
    attribute dont_touch of intPad           : signal is "true";
    attribute dont_touch of intLastLine      : signal is "true";
    attribute dont_touch of intLastValidByte : signal is "true";
@@ -122,6 +119,7 @@ architecture rtl of EthMacTxExportXgmii is
    attribute dont_touch of intData          : signal is "true";
    attribute dont_touch of stateCount       : signal is "true";
    attribute dont_touch of stateCountRst    : signal is "true";
+   attribute dont_touch of wordCountRst     : signal is "true";
    attribute dont_touch of exportWordCnt    : signal is "true";
    attribute dont_touch of crcFifoIn        : signal is "true";
    attribute dont_touch of crcFifoOut       : signal is "true";
@@ -187,7 +185,8 @@ begin
    process (ethClk)
    begin
       if rising_edge(ethClk) then
-         if ethRst = '1' then
+         if (ethRst = '1') or (phyReady = '0') then
+            crcInit       <= '1'             after TPD_G;
             curState      <= ST_IDLE_C       after TPD_G;
             intError      <= '0'             after TPD_G;
             stateCount    <= (others => '0') after TPD_G;
@@ -200,50 +199,68 @@ begin
 
             -- Inter frame gap
             if stateCountRst = '1' then
-               stateCount <= (others => '0');
+               stateCount <= (others => '0') after TPD_G;
             else
-               stateCount <= stateCount + 1;
+               stateCount <= stateCount + 1 after TPD_G;
             end if;
 
-            if stateCountRst = '1' then
-               exportWordCnt <= (others => '0');
-            elsif intAdvance = '1' and intRunt = '1' then
-               exportWordCnt <= exportWordCnt + 1;
+            if wordCountRst = '1' then
+               exportWordCnt <= (others => '0') after TPD_G;
+            elsif intAdvance = '1' and exportWordCnt /= x"F" then
+               exportWordCnt <= exportWordCnt + 1 after TPD_G;
             end if;
             
+            crcInit <= wordCountRst after TPD_G;
+
          end if;
       end if;
    end process;
 
    -- Pad runt frames
-   intRunt          <= not exportWordCnt(3);
-   intLastValidByte <= "111" when curState = ST_PAD_C else onesCount(macMaster.tKeep(7 downto 1));
-
-   -- State machine
-   process (curState, ethRst, intError, intRunt, macMaster, phyReady, stateCount)
+   process (curState, exportWordCnt, intLastLine, macMaster)
    begin
-
+      if (curState = ST_PAD_C) then
+         if intLastLine = '0' then
+            intLastValidByte <= "111";
+         else
+            intLastValidByte <= "011";
+         end if;
+      elsif (curState = ST_READ_C) then
+         if (macMaster.tLast = '1') and (exportWordCnt <= 7) and (macMaster.tKeep(7 downto 4) = x"0") then
+            intLastValidByte <= "011";
+         else
+            intLastValidByte <= onesCount(macMaster.tKeep(7 downto 1));
+         end if;   
+      else
+         intLastValidByte <= onesCount(macMaster.tKeep(7 downto 1));      
+      end if;   
+   end process;   
+   
+   -- State machine
+   process (curState, ethRst, exportWordCnt, intError, macMaster, phyReady, stateCount)
+   begin
+      
       -- Init
       txCountEn      <= '0';
       txUnderRun     <= '0';
       txLinkNotReady <= '0';
       nxtError       <= intError;
-      crcInit        <= '0';
 
       case curState is
 
          -- IDLE, wait for data to be available
          when ST_IDLE_C =>
             stateCountRst <= '1';
+            wordCountRst  <= '0';
             intPad        <= '0';
             intAdvance    <= '0';
             intLastLine   <= '0';
             nxtError      <= '0';
             intDump       <= '0';
-            crcInit       <= '1';
 
             -- Wait for start flag
             if macMaster.tValid = '1' and ethRst = '0' then
+               wordCountRst <= '1';
 
                -- Phy is ready
                if phyReady = '1' then
@@ -262,18 +279,19 @@ begin
          when ST_READ_C =>
             intDump       <= '0';
             stateCountRst <= '0';
+            wordCountRst  <= '0';
             intLastLine   <= '0';
             intPad        <= '0';
             intAdvance    <= '1';
             nxtState      <= curState;
 
             -- Read until we get last
-            if macMaster.tLast = '1' and intRunt = '1' then
+            if macMaster.tLast = '1' and (exportWordCnt < 7) then
                nxtState  <= ST_PAD_C;
                txCountEn <= '1';
                nxtError  <= intError or axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, macMaster, EMAC_EOFE_BIT_C);
 
-            elsif macMaster.tLast = '1' and intRunt = '0' then
+            elsif macMaster.tLast = '1' and (exportWordCnt >= 7) then
                intLastLine   <= '1';
                nxtState      <= ST_WAIT_C;
                txCountEn     <= '1';
@@ -295,6 +313,7 @@ begin
          when ST_DUMP_C =>
             intAdvance    <= '0';
             stateCountRst <= '0';
+            wordCountRst  <= '0';
             intPad        <= '0';
 
             -- Read until we get last
@@ -316,24 +335,26 @@ begin
             intDump       <= '0';
             intAdvance    <= '0';
             stateCountRst <= '0';
+            wordCountRst  <= '0';
             intPad        <= '0';
             intLastLine   <= '0';
 
             -- Wait for gap, min 3 clocks
             if stateCount >= INTERGAP_C and stateCount >= 3 then
-               nxtState <= ST_IDLE_C;
+               nxtState     <= ST_IDLE_C;
             else
-               nxtState <= curState;
+               nxtState     <= curState;
             end if;
 
          -- Padding frame
          when ST_PAD_C =>
             intDump       <= '0';
             stateCountRst <= '0';
+            wordCountRst  <= '0';
             intAdvance    <= '1';
             intPad        <= '1';
 
-            if intRunt = '1' then
+            if (exportWordCnt < 7) then
                intLastLine <= '0';
                nxtState    <= curState;
             else
@@ -347,6 +368,7 @@ begin
             intAdvance    <= '0';
             intDump       <= '0';
             stateCountRst <= '0';
+            wordCountRst  <= '0';
             intPad        <= '0';
             intLastLine   <= '0';
       end case;
@@ -393,21 +415,7 @@ begin
 
             -- CRC Valid
             crcDataValid <= intAdvance after TPD_G;
-
-            -- Word 0, set source mac address
-            if exportWordCnt = 0 then
-               crcIn(63 downto 48) <= macAddress(15 downto 0) after TPD_G;
-               crcIn(47 downto 0)  <= intData(47 downto 0)    after TPD_G;
-
-            -- Word 1, set source mac address
-            elsif exportWordCnt = 1 then
-               crcIn(63 downto 32) <= intData(63 downto 32)    after TPD_G;
-               crcIn(31 downto 0)  <= macAddress(47 downto 16) after TPD_G;
-
-            -- Normal data
-            else
-               crcIn <= intData after TPD_G;
-            end if;
+            crcIn        <= intData after TPD_G;
 
             -- Last line
             if intLastLine = '1' then
@@ -588,7 +596,7 @@ begin
    ------------------------------------------
 
    -- CRC Input
-   crcReset               <= crcInit or ethRst or (not phyReady);
+   crcReset               <= crcInit;
    crcInAdj(63 downto 56) <= crcIn(7 downto 0);
    crcInAdj(55 downto 48) <= crcIn(15 downto 8);
    crcInAdj(47 downto 40) <= crcIn(23 downto 16);

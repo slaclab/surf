@@ -218,6 +218,8 @@ begin
                         v.axiReadSlave.rdata(15 downto 0) := r.dataReg;
                      when x"0C" =>
                         v.axiReadSlave.rdata := r.test;
+                     when x"10" =>
+                        v.axiReadSlave.rdata := MEM_ADDR_MASK_G;
                      -------------------------
                      -- Buffered Interface
                      -------------------------      

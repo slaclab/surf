@@ -6,4 +6,6 @@
 *._*
 *.db
 xvcSrv
+bin/
 doxygen/
+__pycache__*

@@ -84,8 +84,9 @@ class AxiVersion(pr.Device):
             name         = 'UpTime',
             description  = 'Time since power up or last firmware reload',
             mode         = 'RO',
-            dependencies = [self.UpTimeCnt],
-            linkedGet    = lambda: str(datetime.timedelta(seconds=self.UpTimeCnt.value())),
+            disp         = '{}',
+            variable     = self.UpTimeCnt,
+            linkedGet    = lambda read: str(datetime.timedelta(seconds=self.UpTimeCnt.get(read))),
             units        = 'HH:MM:SS',
         ))
 
@@ -192,8 +193,7 @@ class AxiVersion(pr.Device):
             name         = 'GitHashShort',
             mode         = 'RO',
             dependencies = [self.GitHash],
-            disp         = '{:07x}',
-            linkedGet    = lambda: self.GitHash.value() >> 132,
+            linkedGet    = lambda read: f'{(self.GitHash.get(read) >> 132):07x}',
         ))
 
         self.add(pr.RemoteVariable(   
@@ -218,54 +218,57 @@ class AxiVersion(pr.Device):
         ))
 
         
-        def parseBuildStamp(var, value, disp):
-            p = parse.parse("{ImageName}: {BuildEnv}, {BuildServer}, Built {BuildDate} by {Builder}", value.strip())
-            if p is not None:
-                for k,v in p.named.items():
-                    self.node(k).set(v)
+        def parseBuildStamp(var,read):
+            p = parse.parse("{ImageName}: {BuildEnv}, {BuildServer}, Built {BuildDate} by {Builder}", var.dependencies[0].get(read))
+            if p is None:
+                return ''
+            else:
+                return p[var.name]
         
-        self.add(pr.LocalVariable(
+        self.add(pr.LinkVariable(
             name = 'ImageName',
             mode = 'RO',
-            value = ''))
+            linkedGet = parseBuildStamp,
+            variable = self.BuildStamp))
  
-        self.add(pr.LocalVariable(
+        self.add(pr.LinkVariable(
             name = 'BuildEnv',
             mode = 'RO',
-            value = ''))
+            linkedGet = parseBuildStamp,
+            variable = self.BuildStamp))
 
-        self.add(pr.LocalVariable(
+        self.add(pr.LinkVariable(
             name = 'BuildServer',
             mode = 'RO',
-            value = ''))
+            linkedGet = parseBuildStamp,
+            variable = self.BuildStamp))
        
-        self.add(pr.LocalVariable(
+        self.add(pr.LinkVariable(
             name = 'BuildDate',
             mode = 'RO',
-            value = ''))
+            linkedGet = parseBuildStamp,
+            variable = self.BuildStamp))
        
-        self.add(pr.LocalVariable(
+        self.add(pr.LinkVariable(
             name = 'Builder',
             mode = 'RO',
-            value = ''))
-
-        self.BuildStamp.addListener(parseBuildStamp)        
+            linkedGet = parseBuildStamp,
+            variable = self.BuildStamp))
        
 
     def hardReset(self):
-        print('AxiVersion hard reset called')
+        print(f'{self.path} hard reset called')
 
-    def softReset(self):
-        print('AxiVersion soft reset called')
+    def initialize(self):
+        print(f'{self.path} initialize called')
 
     def countReset(self):
-        print('AxiVersion count reset called')
+        print(f'{self.path} count reset called')
         
     def printStatus(self):
         try:
-            self.UpTimeCnt.get()
-            self.BuildStamp.get()
             gitHash = self.GitHash.get()
+            print("Path         = {}".format(self.path))
             print("FwVersion    = {}".format(hex(self.FpgaVersion.get())))
             print("UpTime       = {}".format(self.UpTime.get()))
             if (gitHash != 0):
@@ -273,11 +276,11 @@ class AxiVersion(pr.Device):
             else:
                 print("GitHash      = dirty (uncommitted code)")
             print("XilinxDnaId  = {}".format(hex(self.DeviceDna.get())))
-            print("FwTarget     = {}".format(self.ImageName.get()))
-            print("BuildEnv     = {}".format(self.BuildEnv.get()))
-            print("BuildServer  = {}".format(self.BuildServer.get()))
-            print("BuildDate    = {}".format(self.BuildDate.get()))
-            print("Builder      = {}".format(self.Builder.get()))
+            print("FwTarget     = {}".format(self.ImageName.get()))      # Read buildstamp here
+            print("BuildEnv     = {}".format(self.BuildEnv.value()))
+            print("BuildServer  = {}".format(self.BuildServer.value()))
+            print("BuildDate    = {}".format(self.BuildDate.value()))
+            print("Builder      = {}".format(self.Builder.value()))
         except Exception as e:
-            print("Failed to get AxiVersion status")
+            print("Failed to get %s status" % self)
 

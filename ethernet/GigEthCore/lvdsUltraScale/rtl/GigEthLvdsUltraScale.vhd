@@ -26,11 +26,10 @@ entity GigEthLvdsUltraScale is
    generic (
       TPD_G           : time                := 1 ns;
       PAUSE_EN_G      : boolean             := true;
-      PAUSE_512BITS_G : positive            := 8;
       -- AXI-Lite Configurations
       EN_AXI_REG_G    : boolean             := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G   : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      AXIS_CONFIG_G   : AxiStreamConfigType := EMAC_AXIS_CONFIG_C);
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
@@ -56,8 +55,7 @@ entity GigEthLvdsUltraScale is
       sysClk312          : in  sl;
       sysClk125          : in  sl;
       sysRst125          : in  sl;
-      ethClk             : in  sl;
-      ethRst             : in  sl;
+      ethClkEn           : in  sl;
       extRst             : in  sl;
       phyReady           : out sl;
       sigDet             : in  sl                     := '1';
@@ -136,7 +134,7 @@ begin
       generic map (
          TPD_G           => TPD_G,
          PAUSE_EN_G      => PAUSE_EN_G,
-         PAUSE_512BITS_G => PAUSE_512BITS_G,
+         PAUSE_512BITS_G => PAUSE_512BITS_C,
          PHY_TYPE_G      => "GMII",
          PRIM_CONFIG_G   => AXIS_CONFIG_G)
       port map (
@@ -148,8 +146,9 @@ begin
          obMacPrimMaster => dmaIbMaster,
          obMacPrimSlave  => dmaIbSlave,
          -- Ethernet Interface
-         ethClk          => ethClk,
-         ethRst          => ethRst,
+         ethClkEn        => ethClkEn,
+         ethClk          => sysClk125,
+         ethRst          => sysRst125,
          ethConfig       => config.macConfig,
          ethStatus       => status.macStatus,
          phyReady        => status.phyReady,

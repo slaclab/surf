@@ -39,7 +39,7 @@ entity AxiStreamBatcher is
       -- External Control Interface
       superFrameByteThreshold : in  slv(31 downto 0) := toSlv(SUPER_FRAME_BYTE_THRESHOLD_G, 32);
       maxSubFrames            : in  slv(15 downto 0) := toSlv(MAX_NUMBER_SUB_FRAMES_G, 16);
-      maxClkGap               : in  slv(11 downto 0) := toSlv(MAX_CLK_GAP_G, 12);
+      maxClkGap               : in  slv(31 downto 0) := toSlv(MAX_CLK_GAP_G, 32);
       idle                    : out sl;
       -- AXIS Interfaces
       sAxisMaster             : in  AxiStreamMasterType;
@@ -51,6 +51,8 @@ end entity AxiStreamBatcher;
 architecture rtl of AxiStreamBatcher is
 
    constant AXIS_WORD_SIZE_C : positive := AXIS_CONFIG_G.TDATA_BYTES_C;  -- Units of bytes
+
+   constant WIDTH_C : slv(3 downto 0) := toSlv(log2(AXIS_WORD_SIZE_C/2), 4);
 
    type StateType is (
       HEADER_S,
@@ -66,15 +68,14 @@ architecture rtl of AxiStreamBatcher is
       subByteCnt                 : slv(31 downto 0);
       maxSubFrames               : slv(15 downto 0);
       subFrameCnt                : slv(15 downto 0);
-      maxClkGap                  : slv(11 downto 0);
-      clkGapCnt                  : slv(11 downto 0);
+      maxClkGap                  : slv(31 downto 0);
+      clkGapCnt                  : slv(31 downto 0);
       superFrameByteThresholdDet : sl;
       maxSubFramesDet            : sl;
       seqCnt                     : slv(7 downto 0);
       tDest                      : slv(7 downto 0);
       tUserFirst                 : slv(7 downto 0);
       tUserLast                  : slv(7 downto 0);
-      lastByteCnt                : slv(7 downto 0);
       chunkCnt                   : natural range 0 to 3;
       rxSlave                    : AxiStreamSlaveType;
       txMaster                   : AxiStreamMasterType;
@@ -87,7 +88,7 @@ architecture rtl of AxiStreamBatcher is
       subByteCnt                 => (others => '0'),
       maxSubFrames               => toSlv(MAX_NUMBER_SUB_FRAMES_G, 16),
       subFrameCnt                => (others => '0'),
-      maxClkGap                  => toSlv(MAX_CLK_GAP_G, 12),
+      maxClkGap                  => toSlv(MAX_CLK_GAP_G, 32),
       clkGapCnt                  => (others => '0'),
       superFrameByteThresholdDet => '0',
       maxSubFramesDet            => '0',
@@ -95,7 +96,6 @@ architecture rtl of AxiStreamBatcher is
       tDest                      => (others => '0'),
       tUserFirst                 => (others => '0'),
       tUserLast                  => (others => '0'),
-      lastByteCnt                => (others => '0'),
       chunkCnt                   => 1,
       rxSlave                    => AXI_STREAM_SLAVE_INIT_C,
       txMaster                   => AXI_STREAM_MASTER_INIT_C,
@@ -193,8 +193,8 @@ begin
             -- Floor the superFrameByteThreshold to nearest word increment
             -- This is done to remove the ">" operator
             v.superFrameByteThreshold(bitSize(AXIS_WORD_SIZE_C)-1 downto 0) := (others => '0');
-            -- Check for zero byte superFrameByteThreshold case
-            if (v.superFrameByteThreshold = 0) then
+            -- Check for zero byte superFrameByteThreshold case and not using a zero value external threshold
+            if (v.superFrameByteThreshold = 0) and (superFrameByteThreshold /= 0) then
                -- Prevent zero case
                v.superFrameByteThreshold := toSlv(AXIS_WORD_SIZE_C, 32);
             end if;
@@ -208,7 +208,7 @@ begin
                -- Send the super-frame header
                v.txMaster.tValid               := '1';
                v.txMaster.tData(3 downto 0)    := x"1";  -- Version = 0x1
-               v.txMaster.tData(7 downto 4)    := toSlv(log2(AXIS_WORD_SIZE_C/2), 4);
+               v.txMaster.tData(7 downto 4)    := WIDTH_C;
                v.txMaster.tData(15 downto 8)   := r.seqCnt;
                v.txMaster.tData(127 downto 16) := (others => '0');
                ssiSetUserSof(AXIS_CONFIG_G, v.txMaster, '1');
@@ -239,8 +239,6 @@ begin
                end if;
                -- Check for last transaction in sub-frame
                if (rxMaster.tLast = '1') then
-                  -- Get the number of valid bytes in the last transaction of the sub-frame
-                  v.lastByteCnt                                      := toSlv(getTKeep(rxMaster.tKeep, AXIS_CONFIG_G), 8);
                   -- Increment the sub-frame byte counter
                   v.subByteCnt                                       := r.subByteCnt + getTKeep(rxMaster.tKeep, AXIS_CONFIG_G);
                   -- Sample the meta data
@@ -265,7 +263,7 @@ begin
                v.txMaster.tData(39 downto 32) := r.tDest;
                v.txMaster.tData(47 downto 40) := r.tUserFirst;
                v.txMaster.tData(55 downto 48) := r.tUserLast;
-               v.txMaster.tData(63 downto 56) := r.lastByteCnt;
+               v.txMaster.tData(59 downto 56) := WIDTH_C;
                -- Reset the counter
                v.subByteCnt                   := (others => '0');
                -- Check the AXIS width
@@ -332,6 +330,8 @@ begin
             if (rxMaster.tValid = '1') then
                -- Reset the counter
                v.clkGapCnt := (others => '0');
+               -- Move the data
+               v.txMaster.tValid := '1';
                -- Next state
                v.state     := SUB_FRAME_S;
             -- Check for the clock gap event
