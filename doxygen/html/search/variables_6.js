@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['ieee',['ieee',['../classAxiVersion.html#a0a6af6eef40212dbaf130d57ce711256',1,'AxiVersion']]]
+  ['jumbo_5fg',['JUMBO_G',['../classAxiRssiCoreWrapper.html#acfe997cf69b0f2b8061d7c020cfb34c4',1,'AxiRssiCoreWrapper']]]
 ];

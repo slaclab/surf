@@ -1,6 +1,7 @@
 var searchData=
 [
-  ['retrans_5ftout_5fg',['RETRANS_TOUT_G',['../classAxiRssiCore.html#af9157039ed2f1f90ebd1cf1da792e95b',1,'AxiRssiCore']]],
-  ['retransmit_5fenable_5fg',['RETRANSMIT_ENABLE_G',['../classAxiRssiCore.html#a74b48eeaaeaa78e2c1c19032c7f7b856',1,'AxiRssiCore']]],
-  ['rxaxioffset',['rxAxiOffset',['../classAxiRssiCore.html#aba00ad2c8288b0e5920c940c6b1e6779',1,'AxiRssiCore.rxAxiOffset()'],['../classAxiRssiCoreWrapper.html#aba00ad2c8288b0e5920c940c6b1e6779',1,'AxiRssiCoreWrapper.rxAxiOffset()']]]
+  ['segment_5faddr_5fsize_5fc',['SEGMENT_ADDR_SIZE_C',['../classAxiRssiCore_1_1rtl.html#ab1217d8793769337cecb98a8c96b8f0b',1,'AxiRssiCore::rtl']]],
+  ['server_5fg',['SERVER_G',['../classAxiRssiCore.html#adc6e8401cfd08ef1489b733afebb8b88',1,'AxiRssiCore.SERVER_G()'],['../classAxiRssiCoreWrapper.html#adc6e8401cfd08ef1489b733afebb8b88',1,'AxiRssiCoreWrapper.SERVER_G()']]],
+  ['sim_5fdna_5fvalue_5fg',['SIM_DNA_VALUE_G',['../classAxiVersion.html#ac2dbe99775169275cd15d81675fd2346',1,'AxiVersion']]],
+  ['slowclk',['slowClk',['../classAxiVersion.html#a320c66a1f5d0c7677159427780e573ab',1,'AxiVersion']]]
 ];

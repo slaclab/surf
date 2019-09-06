@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['null_5ftout_5fg',['NULL_TOUT_G',['../classAxiRssiCore.html#afe3dca7363100aac42eca4920a3f2566',1,'AxiRssiCore']]]
+  ['retrans_5ftout_5fg',['RETRANS_TOUT_G',['../classAxiRssiCore.html#af9157039ed2f1f90ebd1cf1da792e95b',1,'AxiRssiCore']]],
+  ['retransmit_5fenable_5fg',['RETRANSMIT_ENABLE_G',['../classAxiRssiCore.html#a74b48eeaaeaa78e2c1c19032c7f7b856',1,'AxiRssiCore']]],
+  ['rxaxioffset',['rxAxiOffset',['../classAxiRssiCore.html#aba00ad2c8288b0e5920c940c6b1e6779',1,'AxiRssiCore.rxAxiOffset()'],['../classAxiRssiCoreWrapper.html#aba00ad2c8288b0e5920c940c6b1e6779',1,'AxiRssiCoreWrapper.rxAxiOffset()']]]
 ];
