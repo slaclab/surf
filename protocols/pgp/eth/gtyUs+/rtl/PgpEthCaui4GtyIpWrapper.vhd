@@ -20,6 +20,7 @@ use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
+use work.PgpEthPkg.all;
 
 entity PgpEthCaui4GtyIpWrapper is
    generic (
@@ -30,22 +31,21 @@ entity PgpEthCaui4GtyIpWrapper is
       stableRst    : in  sl;
       -- PHY Clock and Reset
       phyClk       : out sl;
-      phyRxRst     : out sl;
-      phyTxRst     : out sl;
+      phyRst       : out sl;
       -- Rx PHY Interface
-      rxPhyRdy     : out sl;
-      rxMaster     : out AxiStreamMasterType;
+      phyRxRdy     : out sl;
+      phyRxMaster  : out AxiStreamMasterType;
       -- Tx PHY Interface
-      txPhyRdy     : out sl;
-      txMaster     : in  AxiStreamMasterType;
-      txSlave      : out AxiStreamSlaveType;
+      phyTxRdy     : out sl;
+      phyTxMaster  : in  AxiStreamMasterType;
+      phyTxSlave   : out AxiStreamSlaveType;
       -- Misc Debug Interfaces
       loopback     : in  slv(2 downto 0)       := (others => '0');
-      rxPolarity   : in  slv(3 downto 0)       := (others => '0');
-      txPolarity   : in  slv(3 downto 0)       := (others => '0');
-      txDiffCtrl   : in  Slv5Array(3 downto 0) := (others => "11000");
-      txPreCursor  : in  Slv5Array(3 downto 0) := (others => "00000");
-      txPostCursor : in  Slv5Array(3 downto 0) := (others => "00000");
+      rxPolarity   : in  slv(9 downto 0)       := (others => '0');
+      txPolarity   : in  slv(9 downto 0)       := (others => '0');
+      txDiffCtrl   : in  Slv5Array(9 downto 0) := (others => "11000");
+      txPreCursor  : in  Slv5Array(9 downto 0) := (others => "00000");
+      txPostCursor : in  Slv5Array(9 downto 0) := (others => "00000");
       -- GT FPGA Ports
       gtRefClkP    : in  sl;            -- 161.1328125 MHz
       gtRefClkN    : in  sl;            -- 161.1328125 MHz
@@ -294,19 +294,45 @@ architecture mapping of PgpEthCaui4GtyIpWrapper is
    signal stat_rx_aligned     : sl;
    signal stat_rx_aligned_err : sl;
 
+   signal phyClock : sl;
+   signal phyReset : sl;
+
    signal gtLoopback     : slv(11 downto 0);
    signal gtTxdiffctrl   : slv(19 downto 0);
    signal gtTxPreCursor  : slv(19 downto 0);
    signal gtTxPostCursor : slv(19 downto 0);
 
-   signal rxAxis : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal rxAxis   : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal rxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal txMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal txSlave  : AxiStreamSlaveType;
 
 begin
 
-   phyClk <= txusrclk2;
+   U_phyClk : entity work.ClockManagerUltraScale
+      generic map(
+         TPD_G             => TPD_G,
+         TYPE_G            => "PLL",
+         INPUT_BUFG_G      => false,
+         FB_BUFG_G         => true,
+         RST_IN_POLARITY_G => '1',
+         NUM_CLOCKS_G      => 1,
+         -- MMCM attributes
+         BANDWIDTH_G       => "OPTIMIZED",
+         CLKIN_PERIOD_G    => 3.1,      -- 322.58 MHz
+         CLKFBOUT_MULT_G   => 4,        -- 1.29GHz = 4 x 322.58 MHz
+         CLKOUT0_DIVIDE_G  => 6)        -- 215.05MHz = 1.29GHz/6
+      port map(
+         -- Clock Input
+         clkIn     => txusrclk2,
+         rstIn     => usr_tx_reset,
+         -- Clock Outputs
+         clkOut(0) => phyClock,
+         -- Reset Outputs
+         rstOut(0) => phyReset);
 
-   phyTxRst <= usr_tx_reset;
-   phyRxRst <= usr_rx_reset;
+   phyClk <= phyClock;
+   phyRst <= phyReset;
 
    gtLoopback     <= loopback & loopback & loopback & loopback;
    gtTxdiffctrl   <= txDiffCtrl(3) & txDiffCtrl(2) & txDiffCtrl(1) & txDiffCtrl(0);
@@ -326,6 +352,53 @@ begin
       rxMaster <= master;
    end process;
 
+   U_RX_FIFO : entity work.AxiStreamFifoV2
+      generic map (
+         -- General Configurations
+         TPD_G               => TPD_G,
+         SLAVE_READY_EN_G    => false,
+         -- FIFO configurations
+         BRAM_EN_G           => true,
+         GEN_SYNC_FIFO_G     => false,
+         FIFO_ADDR_WIDTH_G   => 9,
+         -- AXI Stream Port Configurations
+         SLAVE_AXI_CONFIG_G  => PGP_ETH_AXIS_CONFIG_C,
+         MASTER_AXI_CONFIG_G => PGP_ETH_AXIS_CONFIG_C)
+      port map (
+         -- Slave Port
+         sAxisClk    => txusrclk2,
+         sAxisRst    => usr_rx_reset,
+         sAxisMaster => rxMaster,
+         -- Master Port
+         mAxisClk    => phyClock,
+         mAxisRst    => phyReset,
+         mAxisMaster => phyRxMaster,
+         mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);
+
+   U_TX_FIFO : entity work.AxiStreamFifoV2
+      generic map (
+         -- General Configurations
+         TPD_G               => TPD_G,
+         SLAVE_READY_EN_G    => true,
+         -- FIFO configurations
+         BRAM_EN_G           => false,
+         GEN_SYNC_FIFO_G     => false,
+         FIFO_ADDR_WIDTH_G   => 4,
+         -- AXI Stream Port Configurations
+         SLAVE_AXI_CONFIG_G  => PGP_ETH_AXIS_CONFIG_C,
+         MASTER_AXI_CONFIG_G => PGP_ETH_AXIS_CONFIG_C)
+      port map (
+         -- Slave Port
+         sAxisClk    => phyClock,
+         sAxisRst    => phyReset,
+         sAxisMaster => phyTxMaster,
+         sAxisSlave  => phyTxSlave,
+         -- Master Port
+         mAxisClk    => txusrclk2,
+         mAxisRst    => usr_tx_reset,
+         mAxisMaster => txMaster,
+         mAxisSlave  => txSlave);
+
    U_CAUI4 : PgpEthCaui4GtyIpCore
       port map (
          gt_txp_out                     => gtTxP,
@@ -337,10 +410,10 @@ begin
          gt_eyescanreset                => (others => '0'),
          gt_eyescantrigger              => (others => '0'),
          gt_rxcdrhold                   => (others => '0'),
-         gt_rxpolarity                  => rxPolarity,
+         gt_rxpolarity                  => rxPolarity(3 downto 0),
          gt_rxrate                      => (others => '0'),
          gt_txdiffctrl                  => gtTxdiffctrl,
-         gt_txpolarity                  => txPolarity,
+         gt_txpolarity                  => txPolarity(3 downto 0),
          gt_txinhibit                   => (others => '0'),
          gt_txpippmen                   => (others => '0'),
          gt_txpippmsel                  => (others => '1'),  -- Same as PgpEthCaui4_trans_debug example design
@@ -552,7 +625,7 @@ begin
                v.ctl_tx_send_rfi := '0';
                v.ctl_tx_enable   := '1';
                -- Next state: Disabled TX/RX flow control in the Vivado IDE, skip to step 4.
-               v.state           := WAIT_S;
+               v.state           := DONE_S;
             end if;
          ----------------------------------------------------------------------
          when DONE_S =>
@@ -566,10 +639,6 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
-
-      -- Outputs       
-      txPhyRdy <= r.txPhyRdy;
-      rxPhyRdy <= r.rxPhyRdy;
 
       -- Reset
       if (usr_rx_reset = '1') then
@@ -587,5 +656,18 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
+
+   U_SyncBits : entity work.SynchronizerVector
+      generic map(
+         TPD_G   => TPD_G,
+         WIDTH_G => 2)
+      port map (
+         clk        => phyClock,
+         -- Inputs
+         dataIn(0)  => r.txPhyRdy,
+         dataIn(1)  => r.rxPhyRdy,
+         -- Outputs
+         dataOut(0) => phyTxRdy,
+         dataOut(1) => phyRxRdy);
 
 end mapping;

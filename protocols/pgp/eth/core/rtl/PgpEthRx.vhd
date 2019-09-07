@@ -64,6 +64,7 @@ architecture rtl of PgpEthRx is
       locRxLinkReady : sl;
       remRxLinkReady : sl;
       tid            : slv(7 downto 0);
+      tDest          : slv(7 downto 0);
       remoteMac      : slv(47 downto 0);
       pgpRxOut       : PgpEthRxOutType;
       remRxFifoCtrl  : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
@@ -76,6 +77,7 @@ architecture rtl of PgpEthRx is
       locRxLinkReady => '0',
       remRxLinkReady => '0',
       tid            => (others => '0'),
+      tDest          => (others => '0'),
       remoteMac      => (others => '0'),
       pgpRxOut       => PGP_ETH_RX_OUT_INIT_C,
       remRxFifoCtrl  => (others => AXI_STREAM_CTRL_INIT_C),
@@ -91,10 +93,14 @@ begin
 
    comb : process (broadcastMac, etherType, localMac, pgpRst, phyRxMaster,
                    phyRxRdy, r) is
-      variable v : RegType;
+      variable v    : RegType;
+      variable eofe : sl;
    begin
       -- Latch the current value
       v := r;
+
+      -- Update variables
+      eofe := ssiGetUserEofe(PGP_ETH_AXIS_CONFIG_C, phyRxMaster);
 
       -- Update/Reset the flags
       v.pgpRxOut.phyRxActive    := phyRxRdy;
@@ -153,7 +159,7 @@ begin
                   if (phyRxMaster.tData(151 downto 144) /= x"FF") then
 
                      -- BYTE[18] = Virtual Channel Index
-                     v.pgpRxMasters(1).tDest := phyRxMaster.tData(151 downto 144);
+                     v.tDest := phyRxMaster.tData(151 downto 144);
 
                      -- BYTE[19] = SOF 
                      v.sof := phyRxMaster.tData(152);
@@ -201,6 +207,7 @@ begin
                v.pgpRxMasters(1).tLast := '0';
                v.pgpRxMasters(1).tKeep := (others => '1');
                v.pgpRxMasters(1).tUser := (others => '0');
+               v.pgpRxMasters(1).tDest := r.tDest;
                ssiSetUserSof(PGP_ETH_AXIS_CONFIG_C, v.pgpRxMasters(1), r.sof);
 
                -- Reset the flag
@@ -234,13 +241,14 @@ begin
                         v.pgpRxMasters(0).tLast := '1';
 
                         -- Set EOFE
-                        ssiSetUserEofe(PGP_ETH_AXIS_CONFIG_C, v.pgpRxMasters(0), phyRxMaster.tData(9));
+                        eofe := eofe or phyRxMaster.tData(9);
+                        ssiSetUserEofe(PGP_ETH_AXIS_CONFIG_C, v.pgpRxMasters(0), eofe);
 
                         -- Update the last data stream metadata
                         v.pgpRxMasters(0).tKeep := genTKeep(conv_integer(phyRxMaster.tData(7 downto 0)));
 
                         -- Check for EOFE
-                        if (phyRxMaster.tData(9) = '1') then
+                        if (phyRxMaster.tData(9) = '1') or (eofe = '1') then
                            -- Set the flag
                            v.pgpRxOut.frameRxErr := '1';
                         else

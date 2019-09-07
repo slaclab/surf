@@ -52,10 +52,10 @@ entity PgpEthCaui4Gty is
       pgpClk          : out sl;
       pgpRst          : out sl;
       -- Non VC Rx Signals
-      pgpRxIn         : in  PgpEthRxInType;
+      pgpRxIn         : in  PgpEthRxInType                           := PGP_ETH_RX_IN_INIT_C;
       pgpRxOut        : out PgpEthRxOutType;
       -- Non VC Tx Signals
-      pgpTxIn         : in  PgpEthTxInType;
+      pgpTxIn         : in  PgpEthTxInType                           := PGP_ETH_TX_IN_INIT_C;
       pgpTxOut        : out PgpEthTxOutType;
       -- Frame Transmit Interface
       pgpTxMasters    : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
@@ -85,31 +85,66 @@ end PgpEthCaui4Gty;
 
 architecture mapping of PgpEthCaui4Gty is
 
+   constant RX_POLARITY_C : slv(9 downto 0) := ("000000" & RX_POLARITY_G);
+   constant TX_POLARITY_C : slv(9 downto 0) := ("000000" & TX_POLARITY_G);
+   constant TX_DIFF_CTRL_C : Slv5Array(9 downto 0) := (
+      0 => TX_DIFF_CTRL_G(0),
+      1 => TX_DIFF_CTRL_G(1),
+      2 => TX_DIFF_CTRL_G(2),
+      3 => TX_DIFF_CTRL_G(3),
+      4 => "11111",
+      5 => "11111",
+      6 => "11111",
+      7 => "11111",
+      8 => "11111",
+      9 => "11111");
+   constant TX_PRE_CURSOR_C : Slv5Array(9 downto 0) := (
+      0 => TX_PRE_CURSOR_G(0),
+      1 => TX_PRE_CURSOR_G(1),
+      2 => TX_PRE_CURSOR_G(2),
+      3 => TX_PRE_CURSOR_G(3),
+      4 => "11111",
+      5 => "11111",
+      6 => "11111",
+      7 => "11111",
+      8 => "11111",
+      9 => "11111");
+   constant TX_POST_CURSOR_C : Slv5Array(9 downto 0) := (
+      0 => TX_POST_CURSOR_G(0),
+      1 => TX_POST_CURSOR_G(1),
+      2 => TX_POST_CURSOR_G(2),
+      3 => TX_POST_CURSOR_G(3),
+      4 => "11111",
+      5 => "11111",
+      6 => "11111",
+      7 => "11111",
+      8 => "11111",
+      9 => "11111");
+
    signal phyClk    : sl;
+   signal phyRst    : sl;
    signal pgpRefClk : sl;
 
    signal phyRxRdy    : sl;
-   signal phyRxRst    : sl;
    signal phyRxMaster : AxiStreamMasterType;
 
    signal phyTxRdy    : sl;
-   signal phyTxRst    : sl;
    signal phyTxMaster : AxiStreamMasterType;
    signal phyTxSlave  : AxiStreamSlaveType;
 
    signal loopback     : slv(2 downto 0);
-   signal rxPolarity   : slv(3 downto 0);
-   signal txPolarity   : slv(3 downto 0);
-   signal txDiffCtrl   : Slv5Array(3 downto 0);
-   signal txPreCursor  : Slv5Array(3 downto 0);
-   signal txPostCursor : Slv5Array(3 downto 0);
+   signal rxPolarity   : slv(9 downto 0);
+   signal txPolarity   : slv(9 downto 0);
+   signal txDiffCtrl   : Slv5Array(9 downto 0);
+   signal txPreCursor  : Slv5Array(9 downto 0);
+   signal txPostCursor : Slv5Array(9 downto 0);
 
 begin
 
    REAL_PGP : if (not ROGUE_SIM_EN_G) generate
 
       pgpClk <= phyClk;
-      pgpRst <= phyRxRst;
+      pgpRst <= phyRst;
 
       U_Core : entity work.PgpEthCore
          generic map (
@@ -118,11 +153,11 @@ begin
             NUM_VC_G              => NUM_VC_G,
             TX_MAX_PAYLOAD_SIZE_G => TX_MAX_PAYLOAD_SIZE_G,
             -- Misc Debug Settings
-            RX_POLARITY_G         => RX_POLARITY_G,
-            TX_POLARITY_G         => TX_POLARITY_G,
-            TX_DIFF_CTRL_G        => TX_DIFF_CTRL_G,
-            TX_PRE_CURSOR_G       => TX_PRE_CURSOR_G,
-            TX_POST_CURSOR_G      => TX_POST_CURSOR_G,
+            RX_POLARITY_G         => RX_POLARITY_C,
+            TX_POLARITY_G         => TX_POLARITY_C,
+            TX_DIFF_CTRL_G        => TX_DIFF_CTRL_C,
+            TX_PRE_CURSOR_G       => TX_PRE_CURSOR_C,
+            TX_POST_CURSOR_G      => TX_POST_CURSOR_C,
             -- PGP Settings         
             MODE_G                => MODE_G,
             AXIL_WRITE_EN_G       => AXIL_WRITE_EN_G,
@@ -130,8 +165,7 @@ begin
          port map (
             -- Clock and Reset
             pgpClk          => phyClk,
-            pgpTxRst        => phyTxRst,
-            pgpRxRst        => phyRxRst,
+            pgpRst          => phyRst,
             -- Tx User interface
             pgpTxIn         => pgpTxIn,
             pgpTxOut        => pgpTxOut,
@@ -177,15 +211,14 @@ begin
             stableRst    => stableRst,
             -- PHY Clock and Reset
             phyClk       => phyClk,
-            phyRxRst     => phyRxRst,
-            phyTxRst     => phyTxRst,
+            phyRst       => phyRst,
             -- Rx PHY Interface
-            rxPhyRdy     => phyRxRdy,
-            rxMaster     => phyRxMaster,
+            phyRxRdy     => phyRxRdy,
+            phyRxMaster  => phyRxMaster,
             -- Tx PHY Interface
-            txPhyRdy     => phyTxRdy,
-            txMaster     => phyTxMaster,
-            txSlave      => phyTxSlave,
+            phyTxRdy     => phyTxRdy,
+            phyTxMaster  => phyTxMaster,
+            phyTxSlave   => phyTxSlave,
             -- Misc Debug Interfaces
             loopback     => loopback,
             rxPolarity   => rxPolarity,

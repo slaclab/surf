@@ -27,11 +27,11 @@ entity PgpEthCore is
       NUM_VC_G              : positive range 1 to 16 := 4;
       TX_MAX_PAYLOAD_SIZE_G : positive               := 1024;  -- Must be a multiple of 64B (in units of bytes)
       -- Misc Debug Settings
-      RX_POLARITY_G         : slv(3 downto 0)        := (others => '0');
-      TX_POLARITY_G         : slv(3 downto 0)        := (others => '0');
-      TX_DIFF_CTRL_G        : Slv5Array(3 downto 0)  := (others => "11000");
-      TX_PRE_CURSOR_G       : Slv5Array(3 downto 0)  := (others => "00000");
-      TX_POST_CURSOR_G      : Slv5Array(3 downto 0)  := (others => "00000");
+      RX_POLARITY_G         : slv(9 downto 0)        := (others => '0');
+      TX_POLARITY_G         : slv(9 downto 0)        := (others => '0');
+      TX_DIFF_CTRL_G        : Slv5Array(9 downto 0)  := (others => "11000");
+      TX_PRE_CURSOR_G       : Slv5Array(9 downto 0)  := (others => "00000");
+      TX_POST_CURSOR_G      : Slv5Array(9 downto 0)  := (others => "00000");
       -- AXI-Lite Settings
       MODE_G                : sl                     := '0';  -- AXI-Lite Register's default: '1': point-to-point, '0': Network
       AXIL_WRITE_EN_G       : boolean                := false;  -- Set to false when on remote end of a link
@@ -39,8 +39,7 @@ entity PgpEthCore is
    port (
       -- Clock and Reset
       pgpClk          : in  sl;
-      pgpTxRst        : in  sl;
-      pgpRxRst        : in  sl;
+      pgpRst          : in  sl;
       -- Tx User interface
       pgpTxIn         : in  PgpEthTxInType         := PGP_ETH_TX_IN_INIT_C;
       pgpTxOut        : out PgpEthTxOutType;
@@ -61,11 +60,11 @@ entity PgpEthCore is
       -- Misc Debug Interfaces
       localMac        : in  slv(47 downto 0)       := x"01_02_03_56_44_00";  -- 00:44:56:03:02:01
       loopback        : out slv(2 downto 0);
-      rxPolarity      : out slv(3 downto 0);
-      txPolarity      : out slv(3 downto 0);
-      txDiffCtrl      : out Slv5Array(3 downto 0);
-      txPreCursor     : out Slv5Array(3 downto 0);
-      txPostCursor    : out Slv5Array(3 downto 0);
+      rxPolarity      : out slv(9 downto 0);
+      txPolarity      : out slv(9 downto 0);
+      txDiffCtrl      : out Slv5Array(9 downto 0);
+      txPreCursor     : out Slv5Array(9 downto 0);
+      txPostCursor    : out Slv5Array(9 downto 0);
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
@@ -110,7 +109,7 @@ begin
          commMode       => commMode,
          -- Tx User interface
          pgpClk         => pgpClk,
-         pgpRst         => pgpTxRst,
+         pgpRst         => pgpRst,
          pgpTxIn        => pgpTxInInt,
          pgpTxOut       => pgpTxOutInt,
          pgpTxMasters   => pgpTxMasters,
@@ -138,7 +137,7 @@ begin
          commMode       => commMode,
          -- Rx User interface
          pgpClk         => pgpClk,
-         pgpRst         => pgpRxRst,
+         pgpRst         => pgpRst,
          pgpRxIn        => pgpRxInInt,
          pgpRxOut       => pgpRxOutInt,
          pgpRxMasters   => pgpRxMasters,
@@ -164,8 +163,7 @@ begin
       port map (
          -- Clock and Reset
          pgpClk          => pgpClk,
-         pgpTxRst        => pgpTxRst,
-         pgpRxRst        => pgpRxRst,
+         pgpRst          => pgpRst,
          -- Tx User interface
          pgpTxIn         => pgpTxInInt,
          pgpTxOut        => pgpTxOutInt,

@@ -66,8 +66,8 @@ architecture sim of RoguePgpEthSim is
 
 begin
 
-   pgpClk    <= clk;
-   pgpClkRst <= rst;
+   pgpClk <= clk;
+   pgpRst <= rst;
 
    pgpTxOut <= txOut;
    pgpRxOut <= rxOut;
@@ -91,16 +91,16 @@ begin
             PORT_NUM_G    => (PORT_NUM_G + i*2),
             SSI_EN_G      => true,
             CHAN_COUNT_G  => 1,
-            AXIS_CONFIG_G => PGP3_AXIS_CONFIG_C)
+            AXIS_CONFIG_G => PGP_ETH_AXIS_CONFIG_C)
          port map (
-            axisClk     => clk,              -- [in]
-            axisRst     => rst,              -- [in]
-            sAxisMaster => pgpTxMasters(i),  -- [in]
-            sAxisSlave  => pgpTxSlaves(i),   -- [out]
-            mAxisMaster => pgpRxMasters(i),  -- [out]
-            mAxisSlave  => pgpRxSlaves(i));  -- [in]
+            axisClk     => clk,
+            axisRst     => rst,
+            sAxisMaster => pgpTxMasters(i),
+            sAxisSlave  => pgpTxSlaves(i),
+            mAxisMaster => pgpRxMasters(i),
+            mAxisSlave  => pgpRxSlaves(i));
    end generate GEN_VEC;
-   
+
    GEN_SIDEBAND : if (EN_SIDEBAND_G) generate
       U_RogueSideBandWrap_1 : entity work.RogueSideBandWrap
          generic map (
@@ -109,13 +109,13 @@ begin
          port map (
             sysClk     => clk,
             sysRst     => rst,
-            txOpCode   => pgpTxIn.opCodeData(7 downto 0),
+            txOpCode   => pgpTxIn.opCode(7 downto 0),
             txOpCodeEn => pgpTxIn.opCodeEn,
-            txRemData  => pgpTxIn.opCodeData(15 downto 8),
-            rxOpCode   => rxOut.opCodeData(7 downto 0),
+            txRemData  => pgpTxIn.locData(15 downto 8),
+            rxOpCode   => rxOut.opCode(7 downto 0),
             rxOpCodeEn => rxOut.opCodeEn,
-            rxRemData  => rxOut.opCodeData(15 downto 8));
-   end generate GEN_SIDEBAND;   
+            rxRemData  => rxOut.remLinkData(15 downto 8));
+   end generate GEN_SIDEBAND;
 
    txOut.phyTxActive <= '1';
    txOut.linkReady   <= '1';

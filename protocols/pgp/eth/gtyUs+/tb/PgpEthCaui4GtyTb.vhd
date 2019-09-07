@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
--- File       : PgpEthCoreTb.vhd
+-- File       : PgpEthCaui4GtyTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Simulation Testbed for testing the PgpEthCore
+-- Description: Simulation Testbed for testing the PgpEthCaui4Gty
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -24,50 +24,71 @@ use work.AxiLitePkg.all;
 use work.SsiPkg.all;
 use work.PgpEthPkg.all;
 
-entity PgpEthCoreTb is
+entity PgpEthCaui4GtyTb is
 
-end PgpEthCoreTb;
+end PgpEthCaui4GtyTb;
 
-architecture testbed of PgpEthCoreTb is
+architecture testbed of PgpEthCaui4GtyTb is
 
    constant CLK_PERIOD_C          : time     := 10 ns;  -- 1 us makes it easy to count clock cycles in sim GUI
-   constant TPD_G                 : time     := CLK_PERIOD_C/4;
+   constant TPD_G                 : time     := 1 ns;
    constant PRBS_SEED_SIZE_C      : positive := 512;
+   -- constant PRBS_SEED_SIZE_C      : positive := 32;
    constant NUM_VC_C              : positive := 4;
    constant TX_MAX_PAYLOAD_SIZE_C : positive := 1024;
 
-   signal clk : sl := '0';
-   signal rst : sl := '1';
+   signal pgpTxIn  : PgpEthTxInType := PGP_ETH_TX_IN_INIT_C;
+   signal pgpTxOut : PgpEthTxOutType;
 
-   signal phyMaster : AxiStreamMasterType;
+   signal pgpRxIn  : PgpEthRxInType := PGP_ETH_RX_IN_INIT_C;
+   signal pgpRxOut : PgpEthRxOutType;
 
    signal pgpTxMasters : AxiStreamMasterArray(NUM_VC_C-1 downto 0);
    signal pgpTxSlaves  : AxiStreamSlaveArray(NUM_VC_C-1 downto 0);
-
    signal pgpRxMasters : AxiStreamMasterArray(NUM_VC_C-1 downto 0);
    signal pgpRxCtrl    : AxiStreamCtrlArray(NUM_VC_C-1 downto 0);
-
-   signal rxMasters : AxiStreamMasterArray(NUM_VC_C-1 downto 0);
-   signal rxSlaves  : AxiStreamSlaveArray(NUM_VC_C-1 downto 0);
+   signal rxMasters    : AxiStreamMasterArray(NUM_VC_C-1 downto 0);
+   signal rxSlaves     : AxiStreamSlaveArray(NUM_VC_C-1 downto 0);
 
    signal updateDet : slv(NUM_VC_C-1 downto 0);
    signal errorDet  : slv(NUM_VC_C-1 downto 0);
+
+   signal loopbackP : slv(3 downto 0);
+   signal loopbackN : slv(3 downto 0);
+
+   signal stableClk : sl := '0';
+   signal stableRst : sl := '1';
+
+   signal gtRefClkP : sl := '0';
+   signal gtRefClkN : sl := '1';
+
+   signal pgpClk : sl := '0';
+   signal pgpRst : sl := '1';
 
    signal passed : sl := '0';
    signal failed : sl := '0';
 
 begin
 
-   U_ClkRst : entity work.ClkRst
+   U_stableClk : entity work.ClkRst
       generic map (
-         CLK_PERIOD_G      => CLK_PERIOD_C,
+         CLK_PERIOD_G      => 6.4 ns,   -- 156.25 MHz
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 1 us)     -- Hold reset for this long)
       port map (
-         clkP => clk,
-         rst  => rst);
+         clkP => stableClk,
+         rst  => stableRst);
 
-   U_Core : entity work.PgpEthCore
+   U_gtRefClk : entity work.ClkRst
+      generic map (
+         CLK_PERIOD_G      => 6.206 ns,  -- 161.1328125 MHz
+         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
+         RST_HOLD_TIME_G   => 1 us)   -- Hold reset for this long)
+      port map (
+         clkP => gtRefClkP,
+         clkN => gtRefClkN);
+
+   U_Core : entity work.PgpEthCaui4Gty
       generic map (
          TPD_G                 => TPD_G,
          MODE_G                => '1',  -- '1': point-to-point
@@ -75,23 +96,31 @@ begin
          NUM_VC_G              => NUM_VC_C,
          TX_MAX_PAYLOAD_SIZE_G => TX_MAX_PAYLOAD_SIZE_C)
       port map (
-         -- Clock and Reset
-         pgpClk       => clk,
-         pgpTxRst     => rst,
-         pgpRxRst     => rst,
+         -- Stable Clock and Reset
+         stableClk    => stableClk,
+         stableRst    => stableRst,
+         -- PGP Clock and Reset
+         pgpClk       => pgpClk,
+         pgpRst       => pgpRst,
+         -- Non VC Rx Signals
+         pgpRxIn      => pgpRxIn,
+         pgpRxOut     => pgpRxOut,
+         -- Non VC Tx Signals
+         pgpTxIn      => pgpTxIn,
+         pgpTxOut     => pgpTxOut,
          -- Tx User interface
          pgpTxMasters => pgpTxMasters,
          pgpTxSlaves  => pgpTxSlaves,
          -- Rx User interface
          pgpRxMasters => pgpRxMasters,
          pgpRxCtrl    => pgpRxCtrl,
-         -- Tx PHY Interface
-         phyTxRdy     => '1',
-         phyTxMaster  => phyMaster,
-         phyTxSlave   => AXI_STREAM_SLAVE_FORCE_C,
-         -- Rx PHY Interface
-         phyRxRdy     => '1',
-         phyRxMaster  => phyMaster);
+         -- GT Ports
+         gtRefClkP    => gtRefClkP,
+         gtRefClkN    => gtRefClkN,
+         gtRxP        => loopbackP,
+         gtRxN        => loopbackN,
+         gtTxP        => loopbackP,
+         gtTxN        => loopbackN);
 
    GEN_VEC :
    for i in 0 to NUM_VC_C-1 generate
@@ -106,13 +135,13 @@ begin
             PRBS_SEED_SIZE_G           => PRBS_SEED_SIZE_C,
             MASTER_AXI_STREAM_CONFIG_G => PGP_ETH_AXIS_CONFIG_C)
          port map (
-            mAxisClk     => clk,
-            mAxisRst     => rst,
+            mAxisClk     => pgpClk,
+            mAxisRst     => pgpRst,
             mAxisMaster  => pgpTxMasters(i),
             mAxisSlave   => pgpTxSlaves(i),
-            locClk       => clk,
-            locRst       => rst,
-            trig         => '1',
+            locClk       => pgpClk,
+            locRst       => pgpRst,
+            trig         => pgpRxOut.remRxLinkReady,
             packetLength => x"000000FF");
 
       U_BottleNeck : entity work.AxiStreamFifoV2
@@ -128,13 +157,13 @@ begin
             MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(8))  -- Bottleneck the bandwidth
          port map (
             -- Slave Interface
-            sAxisClk    => clk,
-            sAxisRst    => rst,
+            sAxisClk    => pgpClk,
+            sAxisRst    => pgpRst,
             sAxisMaster => pgpRxMasters(i),
             sAxisCtrl   => pgpRxCtrl(i),
             -- Master Interface
-            mAxisClk    => clk,
-            mAxisRst    => rst,
+            mAxisClk    => pgpClk,
+            mAxisRst    => pgpRst,
             mAxisMaster => rxMasters(i),
             mAxisSlave  => rxSlaves(i));
 
@@ -146,20 +175,20 @@ begin
             PRBS_SEED_SIZE_G          => PRBS_SEED_SIZE_C,
             SLAVE_AXI_STREAM_CONFIG_G => ssiAxiStreamConfig(8))  -- Matches U_BottleNeck outbound data stream
          port map (
-            sAxisClk       => clk,
-            sAxisRst       => rst,
+            sAxisClk       => pgpClk,
+            sAxisRst       => pgpRst,
             sAxisMaster    => rxMasters(i),
             sAxisSlave     => rxSlaves(i),
             updatedResults => updateDet(i),
             errorDet       => errorDet(i),
-            axiClk         => clk,
-            axiRst         => rst);
+            axiClk         => pgpClk,
+            axiRst         => pgpRst);
 
    end generate GEN_VEC;
 
-   process(clk)
+   process(pgpClk)
    begin
-      if rising_edge(clk) then
+      if rising_edge(pgpClk) then
          failed <= uOr(errorDet) after TPD_G;
       end if;
    end process;
