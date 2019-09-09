@@ -212,9 +212,7 @@ begin
       axiSlaveRegisterR(axilEp, x"10", 0, freqMeasured);
 
       if (WRITE_EN_G) then
-
-         axiSlaveRegister(axilEp, x"20", 0, v.etherType);
-
+      
          axiSlaveRegister(axilEp, x"30", 0, v.loopback);
          axiSlaveRegister(axilEp, x"34", 0, v.rxPolarity);
          axiSlaveRegister(axilEp, x"38", 0, v.txPolarity);
@@ -225,10 +223,11 @@ begin
             axiSlaveRegister(axilEp, toSlv(64+(4*i), 8), 16, v.txPostCursor(i));
          end loop;
 
+         axiSlaveRegister(axilEp, x"D0", 0, v.broadcastMac);
+         axiSlaveRegister(axilEp, x"D8", 0, v.etherType);
+         
       else
-
-         axiSlaveRegisterR(axilEp, x"20", 0, r.etherType);
-
+      
          axiSlaveRegisterR(axilEp, x"30", 0, r.loopback);
          axiSlaveRegisterR(axilEp, x"34", 0, r.rxPolarity);
          axiSlaveRegisterR(axilEp, x"38", 0, r.txPolarity);
@@ -239,11 +238,13 @@ begin
             axiSlaveRegisterR(axilEp, toSlv(64+(4*i), 8), 16, r.txPostCursor(i));
          end loop;
 
+         axiSlaveRegisterR(axilEp, x"D0", 0, r.broadcastMac);
+         axiSlaveRegisterR(axilEp, x"D8", 0, r.etherType);
+         
       end if;
 
-      axiSlaveRegisterR(axilEp, x"24", 0, localMac);
-      axiSlaveRegisterR(axilEp, x"28", 0, remoteMac);
-      axiSlaveRegister(axilEp, x"2C", 0, v.broadcastMac);
+      axiSlaveRegisterR(axilEp, x"C0", 0, localMac);
+      axiSlaveRegisterR(axilEp, x"C8", 0, remoteMac);
 
       axiSlaveRegister(axilEp, x"F0", 0, v.rollOverEn);
       axiSlaveRegister(axilEp, x"FC", 0, v.cntRst);
