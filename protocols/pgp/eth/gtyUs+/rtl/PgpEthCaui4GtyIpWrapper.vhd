@@ -24,7 +24,8 @@ use work.PgpEthPkg.all;
 
 entity PgpEthCaui4GtyIpWrapper is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G                 : time     := 1 ns;
+      TX_MAX_PAYLOAD_SIZE_G : positive := 1024);
    port (
       -- Stable Clock and Reset Reference
       stableClk    : in  sl;            -- 156.25 MHz
@@ -56,6 +57,8 @@ entity PgpEthCaui4GtyIpWrapper is
 end entity PgpEthCaui4GtyIpWrapper;
 
 architecture mapping of PgpEthCaui4GtyIpWrapper is
+
+   constant TX_FIFO_ADDR_WIDTH_C : positive := log2(TX_MAX_PAYLOAD_SIZE_G/64)+1;
 
    component PgpEthCaui4GtyIpCore
       port (
@@ -357,6 +360,8 @@ begin
          -- General Configurations
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => false,
+         INT_PIPE_STAGES_G   => 0,
+         PIPE_STAGES_G       => 0,
          -- FIFO configurations
          BRAM_EN_G           => true,
          GEN_SYNC_FIFO_G     => false,
@@ -380,10 +385,13 @@ begin
          -- General Configurations
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => true,
+         VALID_THOLD_G       => 0,  -- HOLD until full packet without gaps can be sent
+         INT_PIPE_STAGES_G   => 0,
+         PIPE_STAGES_G       => 0,
          -- FIFO configurations
-         BRAM_EN_G           => false,
+         BRAM_EN_G           => ite((TX_FIFO_ADDR_WIDTH_C > 5), true, false),
          GEN_SYNC_FIFO_G     => false,
-         FIFO_ADDR_WIDTH_G   => 4,
+         FIFO_ADDR_WIDTH_G   => TX_FIFO_ADDR_WIDTH_C,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => PGP_ETH_AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => PGP_ETH_AXIS_CONFIG_C)

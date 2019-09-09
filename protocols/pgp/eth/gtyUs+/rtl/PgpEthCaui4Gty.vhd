@@ -41,7 +41,6 @@ entity PgpEthCaui4Gty is
       TX_PRE_CURSOR_G       : Slv5Array(3 downto 0)       := (others => "00000");
       TX_POST_CURSOR_G      : Slv5Array(3 downto 0)       := (others => "00000");
       -- AXI-Lite Settings
-      MODE_G                : sl                          := '0';  -- AXI-Lite Register's default: '1': point-to-point, '0': Network
       AXIL_WRITE_EN_G       : boolean                     := false;  -- Set to false when on remote end of a link
       AXIL_CLK_FREQ_G       : real                        := 156.25E+6);
    port (
@@ -159,7 +158,6 @@ begin
             TX_PRE_CURSOR_G       => TX_PRE_CURSOR_C,
             TX_POST_CURSOR_G      => TX_POST_CURSOR_C,
             -- PGP Settings         
-            MODE_G                => MODE_G,
             AXIL_WRITE_EN_G       => AXIL_WRITE_EN_G,
             AXIL_CLK_FREQ_G       => AXIL_CLK_FREQ_G)
          port map (
@@ -204,7 +202,8 @@ begin
       --------------------------
       U_IP : entity work.PgpEthCaui4GtyIpWrapper
          generic map (
-            TPD_G => TPD_G)
+            TPD_G                 => TPD_G,
+            TX_MAX_PAYLOAD_SIZE_G => TX_MAX_PAYLOAD_SIZE_G)
          port map (
             -- Stable Clock and Reset Reference
             stableClk    => stableClk,

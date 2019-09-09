@@ -30,12 +30,23 @@ end PgpEthCaui4GtyTb;
 
 architecture testbed of PgpEthCaui4GtyTb is
 
-   constant CLK_PERIOD_C          : time     := 10 ns;  -- 1 us makes it easy to count clock cycles in sim GUI
-   constant TPD_G                 : time     := 1 ns;
-   constant PRBS_SEED_SIZE_C      : positive := 512;
+   -- Note: The IP core's tx_axis-to-rx_axis loopback latency is 287.579ns (93 clock cycles of 322.58 MHz txusrclk2 clock)
+
+   constant TPD_G : time := 1 ns;
+
+   constant PRBS_SEED_SIZE_C : positive := 512;
    -- constant PRBS_SEED_SIZE_C      : positive := 32;
-   constant NUM_VC_C              : positive := 4;
+
+   -- constant NUM_VC_C              : positive := 1;
+   constant NUM_VC_C : positive := 4;
+
    constant TX_MAX_PAYLOAD_SIZE_C : positive := 1024;
+
+   constant CHOKE_AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(8);
+   -- constant CHOKE_AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(64);
+
+   -- constant PKT_LEN_C : slv(31 downto 0) := x"0000000F";
+   constant PKT_LEN_C : slv(31 downto 0) := x"000000FF";
 
    signal pgpTxIn  : PgpEthTxInType := PGP_ETH_TX_IN_INIT_C;
    signal pgpTxOut : PgpEthTxOutType;
@@ -83,7 +94,7 @@ begin
       generic map (
          CLK_PERIOD_G      => 6.206 ns,  -- 161.1328125 MHz
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
-         RST_HOLD_TIME_G   => 1 us)   -- Hold reset for this long)
+         RST_HOLD_TIME_G   => 1 us)     -- Hold reset for this long)
       port map (
          clkP => gtRefClkP,
          clkN => gtRefClkN);
@@ -91,8 +102,6 @@ begin
    U_Core : entity work.PgpEthCaui4Gty
       generic map (
          TPD_G                 => TPD_G,
-         MODE_G                => '1',  -- '1': point-to-point
-         -- MODE_G    => '0', -- '0': Network
          NUM_VC_G              => NUM_VC_C,
          TX_MAX_PAYLOAD_SIZE_G => TX_MAX_PAYLOAD_SIZE_C)
       port map (
@@ -142,19 +151,19 @@ begin
             locClk       => pgpClk,
             locRst       => pgpRst,
             trig         => pgpRxOut.remRxLinkReady,
-            packetLength => x"000000FF");
+            packetLength => PKT_LEN_C);
 
       U_BottleNeck : entity work.AxiStreamFifoV2
          generic map (
             TPD_G               => TPD_G,
-            SLAVE_READY_EN_G    => false,                  -- Using pause
+            SLAVE_READY_EN_G    => false,                -- Using pause
             GEN_SYNC_FIFO_G     => true,
             BRAM_EN_G           => true,
             FIFO_FIXED_THRESH_G => true,
             FIFO_ADDR_WIDTH_G   => 9,
-            FIFO_PAUSE_THRESH_G => 2**8,
+            FIFO_PAUSE_THRESH_G => 2**7,
             SLAVE_AXI_CONFIG_G  => PGP_ETH_AXIS_CONFIG_C,
-            MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(8))  -- Bottleneck the bandwidth
+            MASTER_AXI_CONFIG_G => CHOKE_AXIS_CONFIG_C)  -- Bottleneck the bandwidth
          port map (
             -- Slave Interface
             sAxisClk    => pgpClk,
@@ -173,7 +182,7 @@ begin
             GEN_SYNC_FIFO_G           => true,
             SLAVE_READY_EN_G          => true,
             PRBS_SEED_SIZE_G          => PRBS_SEED_SIZE_C,
-            SLAVE_AXI_STREAM_CONFIG_G => ssiAxiStreamConfig(8))  -- Matches U_BottleNeck outbound data stream
+            SLAVE_AXI_STREAM_CONFIG_G => CHOKE_AXIS_CONFIG_C)  -- Matches U_BottleNeck outbound data stream
          port map (
             sAxisClk       => pgpClk,
             sAxisRst       => pgpRst,

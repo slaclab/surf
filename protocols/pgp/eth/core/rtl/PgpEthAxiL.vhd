@@ -27,7 +27,6 @@ use work.PgpEthPkg.all;
 entity PgpEthAxiL is
    generic (
       TPD_G            : time                  := 1 ns;
-      MODE_G           : sl                    := '0';  -- AXI-Lite Register's default: '1': point-to-point, '0': Network
       WRITE_EN_G       : boolean               := false;  -- Set to false when on remote end of a link
       AXIL_CLK_FREQ_G  : real                  := 156.25E+6;
       RX_POLARITY_G    : slv(9 downto 0)       := (others => '0');
@@ -52,7 +51,6 @@ entity PgpEthAxiL is
       localMac        : in  slv(47 downto 0);
       broadcastMac    : out slv(47 downto 0);
       etherType       : out slv(15 downto 0);
-      commMode        : out sl;         -- '1': point-to-point, '0': Network
       -- Misc Debug Interfaces
       loopback        : out slv(2 downto 0);
       rxPolarity      : out slv(9 downto 0);
@@ -77,7 +75,6 @@ architecture rtl of PgpEthAxiL is
    type RegType is record
       cntRst         : sl;
       rollOverEn     : slv(STATUS_SIZE_C-1 downto 0);
-      commMode       : sl;
       broadcastMac   : slv(47 downto 0);
       etherType      : slv(15 downto 0);
       loopback       : slv(2 downto 0);
@@ -94,7 +91,6 @@ architecture rtl of PgpEthAxiL is
    constant REG_INIT_C : RegType := (
       cntRst         => '0',
       rollOverEn     => x"3FA_FFFF_0000_0000",
-      commMode       => MODE_G,
       broadcastMac   => x"FF_FF_FF_FF_FF_FF",
       etherType      => x"11_01",       -- EtherType = 0x0111 ("Experimental")
       loopBack       => (others => '0'),
@@ -221,8 +217,6 @@ begin
       axiSlaveRegisterR(axilEp, x"208", 0, remoteMac);
       axiSlaveRegister(axilEp, x"20C", 0, v.broadcastMac);
 
-      axiSlaveRegister(axilEp, x"800", 0, v.commMode);
-
       axiSlaveRegister(axilEp, x"FF0", 0, v.rollOverEn);
       axiSlaveRegister(axilEp, x"FFC", 0, v.cntRst);
 
@@ -286,17 +280,15 @@ begin
    U_SyncBits : entity work.SynchronizerVector
       generic map(
          TPD_G   => TPD_G,
-         WIDTH_G => 3)
+         WIDTH_G => 2)
       port map (
          clk        => pgpClk,
          -- Inputs
          dataIn(0)  => r.pgpTxIn.disable,
          dataIn(1)  => r.pgpTxIn.flowCntlDis,
-         dataIn(2)  => r.commMode,
          -- Outputs
          dataOut(0) => syncTxIn.disable,
-         dataOut(1) => syncTxIn.flowCntlDis,
-         dataOut(2) => commMode);
+         dataOut(1) => syncTxIn.flowCntlDis);
 
    pgpTxIn.disable      <= locTxIn.disable or syncTxIn.disable;
    pgpTxIn.flowCntlDis  <= locTxIn.flowCntlDis or syncTxIn.flowCntlDis;

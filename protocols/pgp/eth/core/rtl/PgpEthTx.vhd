@@ -37,7 +37,6 @@ entity PgpEthTx is
       localMac       : in  slv(47 downto 0);
       broadcastMac   : in  slv(47 downto 0);
       etherType      : in  slv(15 downto 0);
-      commMode       : in  sl;          -- '1': point-to-point, '0': Network
       -- User interface
       pgpClk         : in  sl;
       pgpRst         : in  sl;
@@ -152,10 +151,9 @@ begin
          mAxisMaster  => pgpTxMaster,
          mAxisSlave   => pgpTxSlave);
 
-   comb : process (broadcastMac, commMode, etherType, locRxFifoCtrl,
-                   locRxLinkReady, localMac, pgpRst, pgpTxIn, pgpTxMaster,
-                   phyTxRdy, r, remRxFifoCtrl, remRxLinkReady, remoteMac,
-                   txSlave) is
+   comb : process (broadcastMac, etherType, locRxFifoCtrl, locRxLinkReady,
+                   localMac, pgpRst, pgpTxIn, pgpTxMaster, phyTxRdy, r,
+                   remRxFifoCtrl, remRxLinkReady, remoteMac, txSlave) is
       variable v          : RegType;
       variable remoteRdy  : sl;
       variable pauseEvent : sl;
@@ -340,14 +338,7 @@ begin
                   -- Next state
                   v.state := PAYLOAD_S;
 
-               -- Check if point-to-point mode
-               elsif (commMode = '1') then
-                  -- Terminate the frame to make NULL frame
-                  v.txMaster.tLast := '1';
-                  -- Next state
-                  v.state          := HDR_S;
-
-               -- Check no payload and in network mode
+               -- Check no payload
                else
                   -- Terminate the frame to make NULL frame
                   v.txMaster.tLast := '1';
@@ -387,14 +378,8 @@ begin
                   -- Sample the last pause sent
                   v.lastPausSent := v.pause;
 
-                  -- Check if point-to-point
-                  if (commMode = '1') then
-                     -- Next state
-                     v.state := HDR_S;
-                  else
-                     -- Next state
-                     v.state := IDLE_S;
-                  end if;
+                  -- Next state
+                  v.state := IDLE_S;
 
                else
 
@@ -460,14 +445,8 @@ begin
                -- Sample the last pause sent
                v.lastPausSent := v.pause;
 
-               -- Check if point-to-point
-               if (commMode = '1') then
-                  -- Next state
-                  v.state := HDR_S;
-               else
-                  -- Next state
-                  v.state := IDLE_S;
-               end if;
+               -- Next state
+               v.state := IDLE_S;
 
             end if;
       ----------------------------------------------------------------------

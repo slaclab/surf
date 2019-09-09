@@ -33,7 +33,6 @@ entity PgpEthCore is
       TX_PRE_CURSOR_G       : Slv5Array(9 downto 0)  := (others => "00000");
       TX_POST_CURSOR_G      : Slv5Array(9 downto 0)  := (others => "00000");
       -- AXI-Lite Settings
-      MODE_G                : sl                     := '0';  -- AXI-Lite Register's default: '1': point-to-point, '0': Network
       AXIL_WRITE_EN_G       : boolean                := false;  -- Set to false when on remote end of a link
       AXIL_CLK_FREQ_G       : real                   := 156.25E+6);
    port (
@@ -88,7 +87,6 @@ architecture mapping of PgpEthCore is
    signal broadcastMac : slv(47 downto 0);
    signal remoteMac    : slv(47 downto 0);
    signal etherType    : slv(15 downto 0);
-   signal commMode     : sl;
 
 begin
 
@@ -106,7 +104,6 @@ begin
          localMac       => localMac,
          broadcastMac   => broadcastMac,
          etherType      => etherType,
-         commMode       => commMode,
          -- Tx User interface
          pgpClk         => pgpClk,
          pgpRst         => pgpRst,
@@ -134,7 +131,6 @@ begin
          localMac       => localMac,
          broadcastMac   => broadcastMac,
          etherType      => etherType,
-         commMode       => commMode,
          -- Rx User interface
          pgpClk         => pgpClk,
          pgpRst         => pgpRst,
@@ -152,7 +148,6 @@ begin
    U_AxiLite : entity work.PgpEthAxiL
       generic map (
          TPD_G            => TPD_G,
-         MODE_G           => MODE_G,
          WRITE_EN_G       => AXIL_WRITE_EN_G,
          AXIL_CLK_FREQ_G  => AXIL_CLK_FREQ_G,
          RX_POLARITY_G    => RX_POLARITY_G,
@@ -177,7 +172,6 @@ begin
          localMac        => localMac,
          broadcastMac    => broadcastMac,
          etherType       => etherType,
-         commMode        => commMode,
          -- Misc Debug Interfaces
          loopback        => loopback,
          rxPolarity      => rxPolarity,

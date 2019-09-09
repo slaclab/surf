@@ -36,7 +36,6 @@ entity PgpEthRx is
       localMac       : in  slv(47 downto 0);
       broadcastMac   : in  slv(47 downto 0);
       etherType      : in  slv(15 downto 0);
-      commMode       : in  sl;          -- '1': point-to-point, '0': Network
       -- User interface
       pgpClk         : in  sl;
       pgpRst         : in  sl;

@@ -30,16 +30,35 @@ end PgpEthCoreTb;
 
 architecture testbed of PgpEthCoreTb is
 
-   constant CLK_PERIOD_C          : time     := 10 ns;  -- 1 us makes it easy to count clock cycles in sim GUI
-   constant TPD_G                 : time     := CLK_PERIOD_C/4;
-   constant PRBS_SEED_SIZE_C      : positive := 512;
-   constant NUM_VC_C              : positive := 4;
+   constant TPD_G : time := 1 ns;
+
+   constant PRBS_SEED_SIZE_C : positive := 512;
+   -- constant PRBS_SEED_SIZE_C : positive := 32;
+
+   -- constant NUM_VC_C : positive := 1;
+   constant NUM_VC_C : positive := 4;
+
    constant TX_MAX_PAYLOAD_SIZE_C : positive := 1024;
+
+   constant CHOKE_AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(8);
+   -- constant CHOKE_AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(64);
+
+   constant PKT_LEN_C : slv(31 downto 0) := x"000000FF";
+
+   signal txusrclk2 : sl := '0';
 
    signal clk : sl := '0';
    signal rst : sl := '1';
 
-   signal phyMaster : AxiStreamMasterType;
+   signal phyTxMaster : AxiStreamMasterType;
+   signal phyTxSlave  : AxiStreamSlaveType;
+
+   signal txMaster : AxiStreamMasterType;
+   signal txSlave  : AxiStreamSlaveType;
+
+   signal phyMaster   : AxiStreamMasterType;
+   signal rxMaster    : AxiStreamMasterType;
+   signal phyRxMaster : AxiStreamMasterType;
 
    signal pgpTxMasters : AxiStreamMasterArray(NUM_VC_C-1 downto 0);
    signal pgpTxSlaves  : AxiStreamSlaveArray(NUM_VC_C-1 downto 0);
@@ -58,27 +77,32 @@ architecture testbed of PgpEthCoreTb is
 
 begin
 
-   U_ClkRst : entity work.ClkRst
+   U_Clk_0 : entity work.ClkRst
       generic map (
-         CLK_PERIOD_G      => CLK_PERIOD_C,
+         CLK_PERIOD_G      => 4.65 ns,  -- 322.58 MHz x 6 / 4 (slow user clock to help with making timing)
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 1 us)     -- Hold reset for this long)
       port map (
          clkP => clk,
          rst  => rst);
 
+   U_Clk_1 : entity work.ClkRst
+      generic map (
+         CLK_PERIOD_G      => 3.10 ns,  -- 100GbE IP core's 322.58 MHz txusrclk2 clock 
+         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
+         RST_HOLD_TIME_G   => 1 us)     -- Hold reset for this long)
+      port map (
+         clkP => txusrclk2);
+
    U_Core : entity work.PgpEthCore
       generic map (
          TPD_G                 => TPD_G,
-         MODE_G                => '1',  -- '1': point-to-point
-         -- MODE_G    => '0', -- '0': Network
          NUM_VC_G              => NUM_VC_C,
          TX_MAX_PAYLOAD_SIZE_G => TX_MAX_PAYLOAD_SIZE_C)
       port map (
          -- Clock and Reset
          pgpClk       => clk,
-         pgpTxRst     => rst,
-         pgpRxRst     => rst,
+         pgpRst       => rst,
          -- Tx User interface
          pgpTxMasters => pgpTxMasters,
          pgpTxSlaves  => pgpTxSlaves,
@@ -87,11 +111,77 @@ begin
          pgpRxCtrl    => pgpRxCtrl,
          -- Tx PHY Interface
          phyTxRdy     => '1',
-         phyTxMaster  => phyMaster,
-         phyTxSlave   => AXI_STREAM_SLAVE_FORCE_C,
+         phyTxMaster  => phyTxMaster,
+         phyTxSlave   => phyTxSlave,
          -- Rx PHY Interface
          phyRxRdy     => '1',
-         phyRxMaster  => phyMaster);
+         phyRxMaster  => phyRxMaster);
+
+   U_TX_FIFO : entity work.AxiStreamFifoV2
+      generic map (
+         -- General Configurations
+         TPD_G               => TPD_G,
+         SLAVE_READY_EN_G    => true,
+         VALID_THOLD_G       => 0,  -- HOLD until full packet without gaps can be sent
+         INT_PIPE_STAGES_G   => 0,
+         PIPE_STAGES_G       => 0,
+         -- FIFO configurations
+         BRAM_EN_G           => true,
+         GEN_SYNC_FIFO_G     => false,
+         FIFO_ADDR_WIDTH_G   => log2(TX_MAX_PAYLOAD_SIZE_C/64)+1,
+         -- AXI Stream Port Configurations
+         SLAVE_AXI_CONFIG_G  => PGP_ETH_AXIS_CONFIG_C,
+         MASTER_AXI_CONFIG_G => PGP_ETH_AXIS_CONFIG_C)
+      port map (
+         -- Slave Port
+         sAxisClk    => clk,
+         sAxisRst    => rst,
+         sAxisMaster => phyTxMaster,
+         sAxisSlave  => phyTxSlave,
+         -- Master Port
+         mAxisClk    => txusrclk2,
+         mAxisRst    => rst,
+         mAxisMaster => phyMaster,
+         mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);
+
+   U_RX_FIFO : entity work.AxiStreamFifoV2
+      generic map (
+         -- General Configurations
+         TPD_G               => TPD_G,
+         SLAVE_READY_EN_G    => false,
+         INT_PIPE_STAGES_G   => 0,
+         PIPE_STAGES_G       => 0,
+         -- FIFO configurations
+         BRAM_EN_G           => true,
+         GEN_SYNC_FIFO_G     => false,
+         FIFO_ADDR_WIDTH_G   => 9,
+         -- AXI Stream Port Configurations
+         SLAVE_AXI_CONFIG_G  => PGP_ETH_AXIS_CONFIG_C,
+         MASTER_AXI_CONFIG_G => PGP_ETH_AXIS_CONFIG_C)
+      port map (
+         -- Slave Port
+         sAxisClk    => txusrclk2,
+         sAxisRst    => rst,
+         sAxisMaster => phyMaster,
+         -- Master Port
+         mAxisClk    => clk,
+         mAxisRst    => rst,
+         mAxisMaster => rxMaster,
+         mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);
+
+   PHY_AXIS : process (rxMaster) is
+      variable master : AxiStreamMasterType;
+   begin
+      -- Init
+      master := rxMaster;
+
+      -- Remove meta data from PHY layer
+      master.tDest := x"00";
+      master.tUser := (others => '0');
+
+      -- Outputs
+      phyRxMaster <= master;
+   end process;
 
    GEN_VEC :
    for i in 0 to NUM_VC_C-1 generate
@@ -113,19 +203,19 @@ begin
             locClk       => clk,
             locRst       => rst,
             trig         => '1',
-            packetLength => x"000000FF");
+            packetLength => PKT_LEN_C);
 
       U_BottleNeck : entity work.AxiStreamFifoV2
          generic map (
             TPD_G               => TPD_G,
-            SLAVE_READY_EN_G    => false,                  -- Using pause
+            SLAVE_READY_EN_G    => false,                -- Using pause
             GEN_SYNC_FIFO_G     => true,
             BRAM_EN_G           => true,
             FIFO_FIXED_THRESH_G => true,
             FIFO_ADDR_WIDTH_G   => 9,
-            FIFO_PAUSE_THRESH_G => 2**8,
+            FIFO_PAUSE_THRESH_G => 2**7,
             SLAVE_AXI_CONFIG_G  => PGP_ETH_AXIS_CONFIG_C,
-            MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(8))  -- Bottleneck the bandwidth
+            MASTER_AXI_CONFIG_G => CHOKE_AXIS_CONFIG_C)  -- Bottleneck the bandwidth
          port map (
             -- Slave Interface
             sAxisClk    => clk,
@@ -144,7 +234,7 @@ begin
             GEN_SYNC_FIFO_G           => true,
             SLAVE_READY_EN_G          => true,
             PRBS_SEED_SIZE_G          => PRBS_SEED_SIZE_C,
-            SLAVE_AXI_STREAM_CONFIG_G => ssiAxiStreamConfig(8))  -- Matches U_BottleNeck outbound data stream
+            SLAVE_AXI_STREAM_CONFIG_G => CHOKE_AXIS_CONFIG_C)  -- Matches U_BottleNeck outbound data stream
          port map (
             sAxisClk       => clk,
             sAxisRst       => rst,
