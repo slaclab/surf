@@ -34,6 +34,7 @@ entity PgpEthCore is
       TX_POST_CURSOR_G      : Slv5Array(9 downto 0)  := (others => "00000");
       -- AXI-Lite Settings
       AXIL_WRITE_EN_G       : boolean                := false;  -- Set to false when on remote end of a link
+      AXIL_BASE_ADDR_G      : slv(31 downto 0)       := (others => '0');
       AXIL_CLK_FREQ_G       : real                   := 156.25E+6);
    port (
       -- Clock and Reset
@@ -149,6 +150,7 @@ begin
       generic map (
          TPD_G            => TPD_G,
          WRITE_EN_G       => AXIL_WRITE_EN_G,
+         AXIL_BASE_ADDR_G => AXIL_BASE_ADDR_G,
          AXIL_CLK_FREQ_G  => AXIL_CLK_FREQ_G,
          RX_POLARITY_G    => RX_POLARITY_G,
          TX_POLARITY_G    => TX_POLARITY_G,

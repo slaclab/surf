@@ -42,6 +42,7 @@ entity PgpEthCaui4Gty is
       TX_POST_CURSOR_G      : Slv5Array(3 downto 0)       := (others => "00000");
       -- AXI-Lite Settings
       AXIL_WRITE_EN_G       : boolean                     := false;  -- Set to false when on remote end of a link
+      AXIL_BASE_ADDR_G      : slv(31 downto 0)            := (others => '0');
       AXIL_CLK_FREQ_G       : real                        := 156.25E+6);
    port (
       -- Stable Clock and Reset
@@ -159,6 +160,7 @@ begin
             TX_POST_CURSOR_G      => TX_POST_CURSOR_C,
             -- PGP Settings         
             AXIL_WRITE_EN_G       => AXIL_WRITE_EN_G,
+            AXIL_BASE_ADDR_G      => AXIL_BASE_ADDR_G,
             AXIL_CLK_FREQ_G       => AXIL_CLK_FREQ_G)
          port map (
             -- Clock and Reset

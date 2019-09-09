@@ -79,7 +79,7 @@ begin
 
    U_Clk_0 : entity work.ClkRst
       generic map (
-         CLK_PERIOD_G      => 4.65 ns,  -- 322.58 MHz x 6 / 4 (slow user clock to help with making timing)
+         CLK_PERIOD_G      => 5.111 ns,  -- 195.85 MHz (slow user clock to help with making timing)
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 1 us)     -- Hold reset for this long)
       port map (
@@ -88,7 +88,7 @@ begin
 
    U_Clk_1 : entity work.ClkRst
       generic map (
-         CLK_PERIOD_G      => 3.10 ns,  -- 100GbE IP core's 322.58 MHz txusrclk2 clock 
+         CLK_PERIOD_G      => 3.103 ns,  -- 100GbE IP core's 322.58 MHz txusrclk2 clock 
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 1 us)     -- Hold reset for this long)
       port map (

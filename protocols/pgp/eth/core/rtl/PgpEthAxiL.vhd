@@ -28,6 +28,7 @@ entity PgpEthAxiL is
    generic (
       TPD_G            : time                  := 1 ns;
       WRITE_EN_G       : boolean               := false;  -- Set to false when on remote end of a link
+      AXIL_BASE_ADDR_G : slv(31 downto 0)      := (others => '0');
       AXIL_CLK_FREQ_G  : real                  := 156.25E+6;
       RX_POLARITY_G    : slv(9 downto 0)       := (others => '0');
       TX_POLARITY_G    : slv(9 downto 0)       := (others => '0');
@@ -69,6 +70,10 @@ end PgpEthAxiL;
 
 architecture rtl of PgpEthAxiL is
 
+   constant NUM_AXIL_MASTERS_C : positive := 2;
+
+   constant XBAR_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXIL_MASTERS_C, AXIL_BASE_ADDR_G, 10, 8);
+
    constant STATUS_SIZE_C      : positive := 60;
    constant STATUS_CNT_WIDTH_C : positive := 12;
 
@@ -107,28 +112,38 @@ architecture rtl of PgpEthAxiL is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
+
    signal freqMeasured : slv(31 downto 0);
 
    signal statusOut : slv(STATUS_SIZE_C-1 downto 0);
-   signal statusCnt : SlVectorArray(STATUS_SIZE_C-1 downto 0, STATUS_CNT_WIDTH_C-1 downto 0);
 
    signal syncTxIn : PgpEthTxInType;
 
 begin
 
-   U_ClockFreq : entity work.SyncClockFreq
+   U_XBAR : entity work.AxiLiteCrossbar
       generic map (
-         TPD_G          => TPD_G,
-         REF_CLK_FREQ_G => AXIL_CLK_FREQ_G,
-         CNT_WIDTH_G    => 32)
+         TPD_G              => TPD_G,
+         NUM_SLAVE_SLOTS_G  => 1,
+         NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
+         MASTERS_CONFIG_G   => XBAR_CONFIG_C)
       port map (
-         freqOut => freqMeasured,
-         -- Clocks
-         clkIn   => pgpClk,
-         locClk  => axilClk,
-         refClk  => axilClk);
+         axiClk              => axilClk,
+         axiClkRst           => axilRst,
+         sAxiWriteMasters(0) => axilWriteMaster,
+         sAxiWriteSlaves(0)  => axilWriteSlave,
+         sAxiReadMasters(0)  => axilReadMaster,
+         sAxiReadSlaves(0)   => axilReadSlave,
+         mAxiWriteMasters    => axilWriteMasters,
+         mAxiWriteSlaves     => axilWriteSlaves,
+         mAxiReadMasters     => axilReadMasters,
+         mAxiReadSlaves      => axilReadSlaves);
 
-   U_SyncStatusVector : entity work.SyncStatusVector
+   U_SyncStatusVector : entity work.AxiLiteRamSyncStatusVector
       generic map (
          TPD_G          => TPD_G,
          OUT_POLARITY_G => '1',
@@ -137,6 +152,7 @@ begin
          WIDTH_G        => STATUS_SIZE_C)
       port map (
          -- Input Status bit Signals (wrClk domain)
+         wrClk                  => pgpClk,
          statusIn(59)           => pgpRxOut.opCodeEn,
          statusIn(58)           => pgpTxOut.opCodeReady,
          statusIn(57)           => pgpRxOut.remRxLinkReady,
@@ -152,18 +168,32 @@ begin
          statusIn(47 downto 32) => pgpTxOut.locOverflow,
          statusIn(31 downto 16) => pgpTxOut.locPause,
          statusIn(15 downto 0)  => pgpRxOut.remRxPause,
-         -- Output Status bit Signals (rdClk domain)  
+         -- Outbound Status/control Signals (axilClk domain)  
          statusOut              => statusOut,
-         -- Status Bit Counters Signals (rdClk domain) 
          cntRstIn               => r.cntRst,
          rollOverEnIn           => r.rollOverEn,
-         cntOut                 => statusCnt,
-         -- Clocks and Reset Ports
-         wrClk                  => pgpClk,
-         rdClk                  => axilClk);
+         -- AXI-Lite Interface
+         axilClk                => axilClk,
+         axilRst                => axilRst,
+         axilReadMaster         => axilReadMasters(0),
+         axilReadSlave          => axilReadSlaves(0),
+         axilWriteMaster        => axilWriteMasters(0),
+         axilWriteSlave         => axilWriteSlaves(0));
 
-   process (axilReadMaster, axilRst, axilWriteMaster, freqMeasured, localMac,
-            r, remoteMac, statusCnt, statusOut) is
+   U_ClockFreq : entity work.SyncClockFreq
+      generic map (
+         TPD_G          => TPD_G,
+         REF_CLK_FREQ_G => AXIL_CLK_FREQ_G,
+         CNT_WIDTH_G    => 32)
+      port map (
+         freqOut => freqMeasured,
+         -- Clocks
+         clkIn   => pgpClk,
+         locClk  => axilClk,
+         refClk  => axilClk);
+
+   process (axilReadMasters, axilRst, axilWriteMasters, freqMeasured, localMac,
+            r, remoteMac, statusOut) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -174,51 +204,49 @@ begin
       v.cntRst := '0';
 
       -- Determine the transaction type
-      axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
+      axiSlaveWaitTxn(axilEp, axilWriteMasters(1), axilReadMasters(1), v.axilWriteSlave, v.axilReadSlave);
 
       -- Map the read registers
-      for i in STATUS_SIZE_C-1 downto 0 loop
-         axiSlaveRegisterR(axilEp, toSlv((4*i), 8), 0, muxSlVectorArray(statusCnt, i));
-      end loop;
-      axiSlaveRegisterR(axilEp, x"100", 0, statusOut);
-      axiSlaveRegisterR(axilEp, x"180", 0, freqMeasured);
+
+      axiSlaveRegisterR(axilEp, x"00", 0, statusOut);
+      axiSlaveRegisterR(axilEp, x"10", 0, freqMeasured);
 
       if (WRITE_EN_G) then
 
-         axiSlaveRegister(axilEp, x"200", 0, v.etherType);
+         axiSlaveRegister(axilEp, x"20", 0, v.etherType);
 
-         axiSlaveRegister(axilEp, x"300", 0, v.loopback);
-         axiSlaveRegister(axilEp, x"304", 0, v.rxPolarity);
-         axiSlaveRegister(axilEp, x"308", 0, v.txPolarity);
+         axiSlaveRegister(axilEp, x"30", 0, v.loopback);
+         axiSlaveRegister(axilEp, x"34", 0, v.rxPolarity);
+         axiSlaveRegister(axilEp, x"38", 0, v.txPolarity);
 
          for i in 9 downto 0 loop
-            axiSlaveRegister(axilEp, toSlv(1024+(4*i), 8), 0, v.txDiffCtrl(i));
-            axiSlaveRegister(axilEp, toSlv(1024+(4*i), 8), 8, v.txPreCursor(i));
-            axiSlaveRegister(axilEp, toSlv(1024+(4*i), 8), 16, v.txPostCursor(i));
+            axiSlaveRegister(axilEp, toSlv(64+(4*i), 8), 0, v.txDiffCtrl(i));
+            axiSlaveRegister(axilEp, toSlv(64+(4*i), 8), 8, v.txPreCursor(i));
+            axiSlaveRegister(axilEp, toSlv(64+(4*i), 8), 16, v.txPostCursor(i));
          end loop;
 
       else
 
-         axiSlaveRegisterR(axilEp, x"200", 0, r.etherType);
+         axiSlaveRegisterR(axilEp, x"20", 0, r.etherType);
 
-         axiSlaveRegisterR(axilEp, x"300", 0, r.loopback);
-         axiSlaveRegisterR(axilEp, x"304", 0, r.rxPolarity);
-         axiSlaveRegisterR(axilEp, x"308", 0, r.txPolarity);
+         axiSlaveRegisterR(axilEp, x"30", 0, r.loopback);
+         axiSlaveRegisterR(axilEp, x"34", 0, r.rxPolarity);
+         axiSlaveRegisterR(axilEp, x"38", 0, r.txPolarity);
 
          for i in 9 downto 0 loop
-            axiSlaveRegisterR(axilEp, toSlv(1024+(4*i), 8), 0, r.txDiffCtrl(i));
-            axiSlaveRegisterR(axilEp, toSlv(1024+(4*i), 8), 8, r.txPreCursor(i));
-            axiSlaveRegisterR(axilEp, toSlv(1024+(4*i), 8), 16, r.txPostCursor(i));
+            axiSlaveRegisterR(axilEp, toSlv(64+(4*i), 8), 0, r.txDiffCtrl(i));
+            axiSlaveRegisterR(axilEp, toSlv(64+(4*i), 8), 8, r.txPreCursor(i));
+            axiSlaveRegisterR(axilEp, toSlv(64+(4*i), 8), 16, r.txPostCursor(i));
          end loop;
 
       end if;
 
-      axiSlaveRegisterR(axilEp, x"204", 0, localMac);
-      axiSlaveRegisterR(axilEp, x"208", 0, remoteMac);
-      axiSlaveRegister(axilEp, x"20C", 0, v.broadcastMac);
+      axiSlaveRegisterR(axilEp, x"24", 0, localMac);
+      axiSlaveRegisterR(axilEp, x"28", 0, remoteMac);
+      axiSlaveRegister(axilEp, x"2C", 0, v.broadcastMac);
 
-      axiSlaveRegister(axilEp, x"FF0", 0, v.rollOverEn);
-      axiSlaveRegister(axilEp, x"FFC", 0, v.cntRst);
+      axiSlaveRegister(axilEp, x"F0", 0, v.rollOverEn);
+      axiSlaveRegister(axilEp, x"FC", 0, v.cntRst);
 
       -- Close out the AXI-Lite transaction
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
@@ -232,14 +260,14 @@ begin
       rin <= v;
 
       -- Outputs
-      axilReadSlave  <= r.axilReadSlave;
-      axilWriteSlave <= r.axilWriteSlave;
-      loopback       <= r.loopback;
-      rxPolarity     <= r.rxPolarity;
-      txPolarity     <= r.txPolarity;
-      txDiffCtrl     <= r.txDiffCtrl;
-      txPreCursor    <= r.txPreCursor;
-      txPostCursor   <= r.txPostCursor;
+      axilReadSlaves(1)  <= r.axilReadSlave;
+      axilWriteSlaves(1) <= r.axilWriteSlave;
+      loopback           <= r.loopback;
+      rxPolarity         <= r.rxPolarity;
+      txPolarity         <= r.txPolarity;
+      txDiffCtrl         <= r.txDiffCtrl;
+      txPreCursor        <= r.txPreCursor;
+      txPostCursor       <= r.txPostCursor;
 
    end process;
 
