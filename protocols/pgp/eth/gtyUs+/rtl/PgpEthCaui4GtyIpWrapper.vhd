@@ -321,10 +321,10 @@ begin
          RST_IN_POLARITY_G => '1',
          NUM_CLOCKS_G      => 1,
          -- MMCM attributes
-         BANDWIDTH_G       => "OPTIMIZED",
          CLKIN_PERIOD_G    => 3.1,      -- 322.58 MHz
-         CLKFBOUT_MULT_G   => 4,        -- 1.29GHz = 4 x 322.58 MHz
-         CLKOUT0_DIVIDE_G  => 6)        -- 215.05MHz = 1.29GHz/6
+         DIVCLK_DIVIDE_G   => 4,
+         CLKFBOUT_MULT_G   => 17,       -- 1.371 GHz = 17 x 322.58 MHz / 4
+         CLKOUT0_DIVIDE_G  => 7)        -- 195.85 MHz = 1.371 GHz / 7
       port map(
          -- Clock Input
          clkIn     => txusrclk2,
