@@ -18,10 +18,10 @@ def getPMbusLinearDataFormat(var):
     raw = var.dependencies[0].value()
     
     # 11 bit, two's complement mantissa
-    Y  = pr.twosComplement( (raw >> 0)  & 0x7FF), 11)
+    Y  = pr.twosComplement( int(raw >> 0)  & 0x7FF), 11)
     
     # 5 bit, two's complement exponent (scaling factor)
-    N  = pr.twosComplement( (raw >> 11) & 0x1F), 5)
+    N  = pr.twosComplement( int(raw >> 11) & 0x1F), 5)
 
     # X is the 'real world' value
     X = Y*(2**N)
