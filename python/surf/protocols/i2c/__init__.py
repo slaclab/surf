@@ -8,26 +8,21 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+
 from surf.protocols.i2c._PMBus import *
+
+import pyrogue as pr
 
 def getPMbusLinearDataFormat(var):
     # Get the 16-bt RAW value
     raw = var.dependencies[0].value()
     
     # 11 bit, two's complement mantissa
-    Y  = int((raw >> 0)  & 0x3FF)
-    if (raw & 0x400):
-        Y = -1.0*Y            
-    else:
-        Y = 1.0*Y
+    Y  = pr.twosComplement( (raw >> 0)  & 0x7FF), 11)
     
     # 5 bit, two's complement exponent (scaling factor)
-    N  = int((raw >> 11) & 0xF)
-    if (raw & 0x8000):
-        N = -1.0*N
-    else:
-        N = 1.0*N
-        
+    N  = pr.twosComplement( (raw >> 11) & 0x1F), 5)
+
     # X is the 'real world' value
     X = Y*(2**N)
     return X

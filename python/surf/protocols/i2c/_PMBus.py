@@ -967,26 +967,3 @@ class PMBus(pr.Device):
             base         = pr.String, 
             hidden       = True,
         ))          
-
-    @staticmethod
-    def getLinearDataFormat(var):
-        # Get the 16-bt RAW value
-        raw = var.dependencies[0].value()
-        
-        # 11 bit, two's complement mantissa
-        Y  = int((raw >> 0)  & 0x3FF)
-        if (raw & 0x400):
-            Y = -1.0*Y            
-        else:
-            Y = 1.0*Y
-        
-        # 5 bit, two's complement exponent (scaling factor)
-        N  = int((raw >> 11) & 0xF)
-        if (raw & 0x8000):
-            N = -1.0*N
-        else:
-            N = 1.0*N
-            
-        # X is the 'real world' value
-        X = Y*(2**N)
-        return X
