@@ -178,7 +178,7 @@ class PgpEthAxiL(pr.Device):
             mode         = 'RO',
             offset       = 0x100,
             bitSize      = numVc,
-            bitOffset    = (0 + i),
+            bitOffset    = 0,
             pollInterval = 1,
         ))        
     
@@ -188,7 +188,7 @@ class PgpEthAxiL(pr.Device):
             mode         = 'RO',
             offset       = 0x100,
             bitSize      = numVc,
-            bitOffset    = (16 + i),
+            bitOffset    = 16,
             pollInterval = 1,
         ))
                 
@@ -198,7 +198,7 @@ class PgpEthAxiL(pr.Device):
             mode         = 'RO',
             offset       = 0x100,
             bitSize      = 1,
-            bitOffset    = (52 + i),
+            bitOffset    = 52,
             pollInterval = 1,
         ))
         
@@ -208,7 +208,7 @@ class PgpEthAxiL(pr.Device):
             mode         = 'RO',
             offset       = 0x100,
             bitSize      = 1,
-            bitOffset    = (53 + i),
+            bitOffset    = 53,
             pollInterval = 1,
         ))        
         
@@ -218,7 +218,7 @@ class PgpEthAxiL(pr.Device):
             mode         = 'RO',
             offset       = 0x100,
             bitSize      = 1,
-            bitOffset    = (54 + i),
+            bitOffset    = 54,
             pollInterval = 1,
         ))   
         
@@ -228,7 +228,7 @@ class PgpEthAxiL(pr.Device):
             mode         = 'RO',
             offset       = 0x100,
             bitSize      = 1,
-            bitOffset    = (55 + i),
+            bitOffset    = 55,
             pollInterval = 1,
         ))
         
@@ -238,7 +238,7 @@ class PgpEthAxiL(pr.Device):
             mode         = 'RO',
             offset       = 0x100,
             bitSize      = 1,
-            bitOffset    = (57 + i),
+            bitOffset    = 57,
             pollInterval = 1,
         ))  
         

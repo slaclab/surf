@@ -253,10 +253,7 @@ begin
       -- Map the read registers
       -------------------------
       
-      -- axiSlaveRegisterR(axilEp, x"00", 0, statusOut); -- axiSlaveRegisterR might be broken for the 61-bit case???
-      axiSlaveRegisterR(axilEp, x"00", 0, statusOut(31 downto 0));
-      axiSlaveRegisterR(axilEp, x"04", 0, statusOut(STATUS_SIZE_C-1 downto 32));
-      
+      axiSlaveRegisterR(axilEp, x"00", 0, statusOut);     
       axiSlaveRegisterR(axilEp, x"10", 0, freqMeasured);
 
       axiSlaveRegisterR(axilEp, x"14", 0, frameTxMinSize);
