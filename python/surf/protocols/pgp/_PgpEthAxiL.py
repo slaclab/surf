@@ -161,8 +161,16 @@ class PgpEthAxiL(pr.Device):
             offset       = 4*59,
             bitSize      = statusCntSize,
             pollInterval = 1,
-        ))           
+        )) 
 
+        # statusIn(60)           => pgpRst,
+        self.add(pr.RemoteVariable(
+            name         = 'PgpRstCnt',
+            mode         = 'RO',
+            offset       = 4*60,
+            bitSize      = statusCntSize,
+            pollInterval = 1,
+        ))         
 
         # statusIn(15 downto 0)  => pgpRxOut.remRxPause,
         self.add(pr.RemoteVariable(
@@ -233,7 +241,7 @@ class PgpEthAxiL(pr.Device):
             bitOffset    = (57 + i),
             pollInterval = 1,
         ))  
-
+        
         self.add(pr.RemoteVariable(
             name         = 'PgpClkFreq',
             mode         = 'RO',
@@ -242,20 +250,90 @@ class PgpEthAxiL(pr.Device):
             disp         = '{:d}',
             units        = 'Hz',
             pollInterval = 1,
-        ))          
+        ))  
+
+        self.add(pr.RemoteVariable(
+            name         = 'TxMinPayloadSize',
+            mode         = 'RO',
+            offset       = 0x114,
+            bitSize      = 16,
+            bitOffset    = 0,
+            disp         = '{:d}',
+            units        = 'Bytes',
+            pollInterval = 1,
+        ))  
+
+        self.add(pr.RemoteVariable(
+            name         = 'TxMaxPayloadSize',
+            mode         = 'RO',
+            offset       = 0x114,
+            bitSize      = 16,
+            bitOffset    = 16,
+            disp         = '{:d}',
+            units        = 'Bytes',
+            pollInterval = 1,
+        )) 
+
+        self.add(pr.RemoteVariable(
+            name         = 'RxMinPayloadSize',
+            mode         = 'RO',
+            offset       = 0x118,
+            bitSize      = 16,
+            bitOffset    = 0,
+            disp         = '{:d}',
+            units        = 'Bytes',
+            pollInterval = 1,
+        ))  
+
+        self.add(pr.RemoteVariable(
+            name         = 'RxMaxPayloadSize',
+            mode         = 'RO',
+            offset       = 0x118,
+            bitSize      = 16,
+            bitOffset    = 16,
+            disp         = '{:d}',
+            units        = 'Bytes',
+            pollInterval = 1,
+        ))         
         
         self.add(pr.RemoteVariable(
             name         = 'Loopback',
             mode         = writeAccess,
             offset       = 0x130,
             bitSize      = 3,
+            bitOffset    = 0,
         )) 
+        
+        self.add(pr.RemoteVariable(
+            name         = 'TxDisable',
+            mode         = writeAccess,
+            offset       = 0x130,
+            bitSize      = 1,
+            bitOffset    = 8,
+        ))  
+
+        self.add(pr.RemoteVariable(
+            name         = 'TxFlowCntlDis',
+            mode         = writeAccess,
+            offset       = 0x130,
+            bitSize      = 1,
+            bitOffset    = 9,
+        ))   
+
+        self.add(pr.RemoteVariable(
+            name         = 'RxReset',
+            mode         = writeAccess,
+            offset       = 0x130,
+            bitSize      = 1,
+            bitOffset    = 10,
+        ))           
 
         self.add(pr.RemoteVariable(
             name         = 'RxPolarity',
             mode         = writeAccess,
-            offset       = 0x134,
+            offset       = 0x138,
             bitSize      = phyLane,
+            bitOffset    = 0,
         ))  
 
         self.add(pr.RemoteVariable(
@@ -263,7 +341,16 @@ class PgpEthAxiL(pr.Device):
             mode         = writeAccess,
             offset       = 0x138,
             bitSize      = phyLane,
+            bitOffset    = 16,
         ))          
+        
+        self.add(pr.RemoteVariable(
+            name         = 'TxNullInterval',
+            mode         = writeAccess,
+            offset       = 0x13C,
+            bitSize      = 32,
+            disp         = '{:d}',
+        ))         
         
         for i in range(phyLane):
             self.add(pr.RemoteVariable(
@@ -357,7 +444,7 @@ class PgpEthAxiL(pr.Device):
             mode         = 'RW',
             offset       = 0x1F0,
             bitSize      = 60,
-            hidden       = True,
+            # hidden       = True,
         ))   
 
         self.add(pr.RemoteCommand(   

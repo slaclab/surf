@@ -29,12 +29,15 @@ use unisim.vcomponents.all;
 entity PgpEthCaui4Gty is
    generic (
       TPD_G                 : time                        := 1 ns;
+      SIM_SPEEDUP_G         : boolean                     := false;
       ROGUE_SIM_EN_G        : boolean                     := false;
       ROGUE_SIM_PORT_NUM_G  : natural range 1024 to 49151 := 9000;
+      REFCLK_TYPE_G         : boolean                     := true;  -- false = 156.25 MHz, true = 161.1328125 MHz
       -- PGP Settings
       NUM_VC_G              : integer range 1 to 16       := 4;
       TX_MAX_PAYLOAD_SIZE_G : positive                    := 1024;  -- Must be a multiple of 64B (in units of bytes)
       -- Misc Debug Settings
+      LOOPBACK_G            : slv(2 downto 0)             := (others => '0');
       RX_POLARITY_G         : slv(3 downto 0)             := (others => '0');
       TX_POLARITY_G         : slv(3 downto 0)             := (others => '0');
       TX_DIFF_CTRL_G        : Slv5Array(3 downto 0)       := (others => "11000");
@@ -74,8 +77,8 @@ entity PgpEthCaui4Gty is
       -- Ethernet MAC 
       localMac        : in  slv(47 downto 0)                         := x"01_02_03_56_44_00";  -- 00:44:56:03:02:01
       -- GT Ports
-      gtRefClkP       : in  sl;         -- 161.1328125 MHz
-      gtRefClkN       : in  sl;         -- 161.1328125 MHz
+      gtRefClkP       : in  sl;
+      gtRefClkN       : in  sl;
       gtRxP           : in  slv(3 downto 0);
       gtRxN           : in  slv(3 downto 0);
       gtTxP           : out slv(3 downto 0);
@@ -123,12 +126,11 @@ architecture mapping of PgpEthCaui4Gty is
 
    signal phyClk    : sl;
    signal phyRst    : sl;
+   signal phyUsrRst : sl;
    signal pgpRefClk : sl;
 
-   signal phyRxRdy    : sl;
    signal phyRxMaster : AxiStreamMasterType;
 
-   signal phyTxRdy    : sl;
    signal phyTxMaster : AxiStreamMasterType;
    signal phyTxSlave  : AxiStreamSlaveType;
 
@@ -138,6 +140,8 @@ architecture mapping of PgpEthCaui4Gty is
    signal txDiffCtrl   : Slv5Array(9 downto 0);
    signal txPreCursor  : Slv5Array(9 downto 0);
    signal txPostCursor : Slv5Array(9 downto 0);
+   signal stableReset  : sl;
+   signal phyReady     : sl;
 
 begin
 
@@ -146,6 +150,8 @@ begin
       pgpClk <= phyClk;
       pgpRst <= phyRst;
 
+      stableReset <= stableRst or phyUsrRst;
+
       U_Core : entity work.PgpEthCore
          generic map (
             TPD_G                 => TPD_G,
@@ -153,6 +159,7 @@ begin
             NUM_VC_G              => NUM_VC_G,
             TX_MAX_PAYLOAD_SIZE_G => TX_MAX_PAYLOAD_SIZE_G,
             -- Misc Debug Settings
+            LOOPBACK_G            => LOOPBACK_G,
             RX_POLARITY_G         => RX_POLARITY_C,
             TX_POLARITY_G         => TX_POLARITY_C,
             TX_DIFF_CTRL_G        => TX_DIFF_CTRL_C,
@@ -177,11 +184,11 @@ begin
             pgpRxMasters    => pgpRxMasters,
             pgpRxCtrl       => pgpRxCtrl,
             -- Tx PHY Interface
-            phyTxRdy        => phyTxRdy,
+            phyTxRdy        => phyReady,
             phyTxMaster     => phyTxMaster,
             phyTxSlave      => phyTxSlave,
             -- Rx PHY Interface
-            phyRxRdy        => phyRxRdy,
+            phyRxRdy        => phyReady,
             phyRxMaster     => phyRxMaster,
             -- Debug Interface
             localMac        => localMac,
@@ -191,6 +198,7 @@ begin
             txDiffCtrl      => txDiffCtrl,
             txPreCursor     => txPreCursor,
             txPostCursor    => txPostCursor,
+            phyUsrRst       => phyUsrRst,
             -- AXI-Lite Register Interface (axilClk domain)
             axilClk         => axilClk,
             axilRst         => axilRst,
@@ -202,31 +210,32 @@ begin
       --------------------------
       -- Wrapper for GT IP core
       --------------------------
-      U_IP : entity work.PgpEthCaui4GtyIpWrapper
+      U_IP : entity work.Caui4GtyIpWrapper
          generic map (
-            TPD_G                 => TPD_G,
-            TX_MAX_PAYLOAD_SIZE_G => TX_MAX_PAYLOAD_SIZE_G)
+            TPD_G              => TPD_G,
+            REFCLK_TYPE_G      => REFCLK_TYPE_G,
+            MAX_PAYLOAD_SIZE_G => TX_MAX_PAYLOAD_SIZE_G,
+            SIM_SPEEDUP_G      => SIM_SPEEDUP_G)
          port map (
             -- Stable Clock and Reset Reference
             stableClk    => stableClk,
-            stableRst    => stableRst,
+            stableRst    => stableReset,
             -- PHY Clock and Reset
             phyClk       => phyClk,
             phyRst       => phyRst,
             -- Rx PHY Interface
-            phyRxRdy     => phyRxRdy,
             phyRxMaster  => phyRxMaster,
             -- Tx PHY Interface
-            phyTxRdy     => phyTxRdy,
             phyTxMaster  => phyTxMaster,
             phyTxSlave   => phyTxSlave,
             -- Misc Debug Interfaces
+            phyReady     => phyReady,
             loopback     => loopback,
-            rxPolarity   => rxPolarity,
-            txPolarity   => txPolarity,
-            txDiffCtrl   => txDiffCtrl,
-            txPreCursor  => txPreCursor,
-            txPostCursor => txPostCursor,
+            rxPolarity   => rxPolarity(3 downto 0),
+            txPolarity   => txPolarity(3 downto 0),
+            txDiffCtrl   => txDiffCtrl(3 downto 0),
+            txPreCursor  => txPreCursor(3 downto 0),
+            txPostCursor => txPostCursor(3 downto 0),
             -- GT Ports
             gtRefClkP    => gtRefClkP,
             gtRefClkN    => gtRefClkN,

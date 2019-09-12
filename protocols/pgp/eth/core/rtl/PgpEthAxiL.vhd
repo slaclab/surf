@@ -30,6 +30,7 @@ entity PgpEthAxiL is
       WRITE_EN_G       : boolean               := false;  -- Set to false when on remote end of a link
       AXIL_BASE_ADDR_G : slv(31 downto 0)      := (others => '0');
       AXIL_CLK_FREQ_G  : real                  := 156.25E+6;
+      LOOPBACK_G       : slv(2 downto 0)       := (others => '0');
       RX_POLARITY_G    : slv(9 downto 0)       := (others => '0');
       TX_POLARITY_G    : slv(9 downto 0)       := (others => '0');
       TX_DIFF_CTRL_G   : Slv5Array(9 downto 0) := (others => "11000");
@@ -74,12 +75,12 @@ architecture rtl of PgpEthAxiL is
 
    constant XBAR_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXIL_MASTERS_C, AXIL_BASE_ADDR_G, 10, 8);
 
-   constant STATUS_SIZE_C      : positive := 60;
+   constant STATUS_SIZE_C      : positive := 61;
    constant STATUS_CNT_WIDTH_C : positive := 12;
 
    type RegType is record
       cntRst         : sl;
-      rollOverEn     : slv(STATUS_SIZE_C-1 downto 0);
+      rollOverEn     : slv(63 downto 0);
       broadcastMac   : slv(47 downto 0);
       etherType      : slv(15 downto 0);
       loopback       : slv(2 downto 0);
@@ -95,10 +96,10 @@ architecture rtl of PgpEthAxiL is
    end record RegType;
    constant REG_INIT_C : RegType := (
       cntRst         => '0',
-      rollOverEn     => x"3FA_FFFF_0000_0000",
+      rollOverEn     => x"0C05_FFFF_0000_0000",
       broadcastMac   => x"FF_FF_FF_FF_FF_FF",
       etherType      => x"11_01",       -- EtherType = 0x0111 ("Experimental")
-      loopBack       => (others => '0'),
+      loopBack       => LOOPBACK_G,
       rxPolarity     => RX_POLARITY_G,
       txPolarity     => TX_POLARITY_G,
       txDiffCtrl     => TX_DIFF_CTRL_G,
@@ -118,6 +119,12 @@ architecture rtl of PgpEthAxiL is
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
 
    signal freqMeasured : slv(31 downto 0);
+
+   signal frameTxMinSize : slv(15 downto 0);
+   signal frameTxMaxSize : slv(15 downto 0);
+
+   signal frameRxMinSize : slv(15 downto 0);
+   signal frameRxMaxSize : slv(15 downto 0);
 
    signal statusOut : slv(STATUS_SIZE_C-1 downto 0);
 
@@ -153,6 +160,7 @@ begin
       port map (
          -- Input Status bit Signals (wrClk domain)
          wrClk                  => pgpClk,
+         statusIn(60)           => pgpRst,
          statusIn(59)           => pgpRxOut.opCodeEn,
          statusIn(58)           => pgpTxOut.opCodeReady,
          statusIn(57)           => pgpRxOut.remRxLinkReady,
@@ -171,7 +179,7 @@ begin
          -- Outbound Status/control Signals (axilClk domain)  
          statusOut              => statusOut,
          cntRstIn               => r.cntRst,
-         rollOverEnIn           => r.rollOverEn,
+         rollOverEnIn           => r.rollOverEn(STATUS_SIZE_C-1 downto 0),
          -- AXI-Lite Interface
          axilClk                => axilClk,
          axilRst                => axilRst,
@@ -192,8 +200,41 @@ begin
          locClk  => axilClk,
          refClk  => axilClk);
 
-   process (axilReadMasters, axilRst, axilWriteMasters, freqMeasured, localMac,
-            r, remoteMac, statusOut) is
+   U_frameTxSize : entity work.SyncMinMax
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => 16)
+      port map (
+         -- Write Interface (wrClk domain)
+         wrClk   => pgpClk,
+         wrRst   => pgpRst,
+         wrEn    => pgpTxOut.frameTx,
+         dataIn  => pgpTxOut.frameTxSize,
+         -- Read Interface (rdClk domain)
+         rdClk   => axilClk,
+         rstStat => r.cntRst,
+         dataMin => frameTxMinSize,
+         dataMax => frameTxMaxSize);
+
+   U_frameRxSize : entity work.SyncMinMax
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => 16)
+      port map (
+         -- Write Interface (wrClk domain)
+         wrClk   => pgpClk,
+         wrRst   => pgpRst,
+         wrEn    => pgpRxOut.frameRx,
+         dataIn  => pgpRxOut.frameRxSize,
+         -- Read Interface (rdClk domain)
+         rdClk   => axilClk,
+         rstStat => r.cntRst,
+         dataMin => frameRxMinSize,
+         dataMax => frameRxMaxSize);
+
+   process (axilReadMasters, axilRst, axilWriteMasters, frameRxMaxSize,
+            frameRxMinSize, frameTxMaxSize, frameTxMinSize, freqMeasured,
+            localMac, r, remoteMac, statusOut) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -203,19 +244,37 @@ begin
       -- Reset strobes
       v.cntRst := '0';
 
+      ---------------------------------
       -- Determine the transaction type
+      ---------------------------------
       axiSlaveWaitTxn(axilEp, axilWriteMasters(1), axilReadMasters(1), v.axilWriteSlave, v.axilReadSlave);
 
+      -------------------------
       -- Map the read registers
-
-      axiSlaveRegisterR(axilEp, x"00", 0, statusOut);
+      -------------------------
+      
+      -- axiSlaveRegisterR(axilEp, x"00", 0, statusOut); -- axiSlaveRegisterR might be broken for the 61-bit case???
+      axiSlaveRegisterR(axilEp, x"00", 0, statusOut(31 downto 0));
+      axiSlaveRegisterR(axilEp, x"04", 0, statusOut(STATUS_SIZE_C-1 downto 32));
+      
       axiSlaveRegisterR(axilEp, x"10", 0, freqMeasured);
 
+      axiSlaveRegisterR(axilEp, x"14", 0, frameTxMinSize);
+      axiSlaveRegisterR(axilEp, x"14", 16, frameTxMaxSize);
+
+      axiSlaveRegisterR(axilEp, x"18", 0, frameRxMinSize);
+      axiSlaveRegisterR(axilEp, x"18", 16, frameRxMaxSize);
+
       if (WRITE_EN_G) then
-      
+
          axiSlaveRegister(axilEp, x"30", 0, v.loopback);
-         axiSlaveRegister(axilEp, x"34", 0, v.rxPolarity);
-         axiSlaveRegister(axilEp, x"38", 0, v.txPolarity);
+         axiSlaveRegister(axilEp, x"30", 8, v.pgpTxIn.disable);
+         axiSlaveRegister(axilEp, x"30", 9, v.pgpTxIn.flowCntlDis);
+         axiSlaveRegister(axilEp, x"30", 10, v.pgpRxIn.resetRx);
+
+         axiSlaveRegister(axilEp, x"38", 0, v.rxPolarity);
+         axiSlaveRegister(axilEp, x"38", 16, v.txPolarity);
+         axiSlaveRegister(axilEp, x"3C", 0, v.pgpTxIn.nullInterval);
 
          for i in 9 downto 0 loop
             axiSlaveRegister(axilEp, toSlv(64+(4*i), 8), 0, v.txDiffCtrl(i));
@@ -225,12 +284,17 @@ begin
 
          axiSlaveRegister(axilEp, x"D0", 0, v.broadcastMac);
          axiSlaveRegister(axilEp, x"D8", 0, v.etherType);
-         
+
       else
-      
+
          axiSlaveRegisterR(axilEp, x"30", 0, r.loopback);
-         axiSlaveRegisterR(axilEp, x"34", 0, r.rxPolarity);
-         axiSlaveRegisterR(axilEp, x"38", 0, r.txPolarity);
+         axiSlaveRegisterR(axilEp, x"30", 8, r.pgpTxIn.disable);
+         axiSlaveRegisterR(axilEp, x"30", 9, r.pgpTxIn.flowCntlDis);
+         axiSlaveRegisterR(axilEp, x"30", 10, r.pgpRxIn.resetRx);
+
+         axiSlaveRegisterR(axilEp, x"38", 0, r.rxPolarity);
+         axiSlaveRegisterR(axilEp, x"38", 16, r.txPolarity);
+         axiSlaveRegisterR(axilEp, x"3C", 0, r.pgpTxIn.nullInterval);
 
          for i in 9 downto 0 loop
             axiSlaveRegisterR(axilEp, toSlv(64+(4*i), 8), 0, r.txDiffCtrl(i));
@@ -240,7 +304,7 @@ begin
 
          axiSlaveRegisterR(axilEp, x"D0", 0, r.broadcastMac);
          axiSlaveRegisterR(axilEp, x"D8", 0, r.etherType);
-         
+
       end if;
 
       axiSlaveRegisterR(axilEp, x"C0", 0, localMac);
@@ -249,7 +313,9 @@ begin
       axiSlaveRegister(axilEp, x"F0", 0, v.rollOverEn);
       axiSlaveRegister(axilEp, x"FC", 0, v.cntRst);
 
+      -------------------------------------
       -- Close out the AXI-Lite transaction
+      -------------------------------------
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
       -- Reset
@@ -325,6 +391,6 @@ begin
    pgpTxIn.opCodeEn     <= locTxIn.opCodeEn;
    pgpTxIn.opCode       <= locTxIn.opCode;
    pgpTxIn.locData      <= locTxIn.locData;
-   pgpRxIn.resetRx      <= locRxIn.resetRx;
+   pgpRxIn.resetRx      <= locRxIn.resetRx or r.pgpRxIn.resetRx;
 
 end rtl;

@@ -112,6 +112,9 @@ architecture rtl of PgpEthTx is
 
    signal txSlave : AxiStreamSlaveType;
 
+   attribute dont_touch      : string;
+   attribute dont_touch of r : signal is "TRUE";
+
 begin
 
    GEN_VEC :
@@ -170,6 +173,7 @@ begin
       v.pgpTxOut.frameTx     := '0';
       v.pgpTxOut.frameTxErr  := '0';
       v.pgpTxOut.phyTxActive := phyTxRdy;
+      v.pgpTxOut.linkReady   := phyTxRdy;
 
       -- AXI Stream Flow Control
       v.pgpTxSlave.tReady := '0';
@@ -216,21 +220,26 @@ begin
       case r.state is
          ----------------------------------------------------------------------
          when IDLE_S =>
-            -- Check for NULL timeout event
-            if (r.nullCnt = 0) then
-               -- Next state
-               v.state := HDR_S;
+            -- Check if PHY is up
+            if (phyTxRdy = '1') then
 
-            -- Check if remote is ready
-            elsif (remoteRdy = '1') then
-
-               -- Check for send event
-               if (pgpTxMaster.tValid = '1') or  -- payload data
-                  (pgpTxIn.opCodeEn = '1') or    -- OP-Code Event
-                  (pauseEvent = '1') then        -- 0->1 pause event
-
+               -- Check for NULL timeout event
+               if (r.nullCnt = 0) then
                   -- Next state
                   v.state := HDR_S;
+
+               -- Check if remote is ready
+               elsif (remoteRdy = '1') then
+
+                  -- Check for send event
+                  if (pgpTxMaster.tValid = '1') or  -- payload data
+                     (pgpTxIn.opCodeEn = '1') or    -- OP-Code Event
+                     (pauseEvent = '1') then        -- 0->1 pause event
+
+                     -- Next state
+                     v.state := HDR_S;
+
+                  end if;
 
                end if;
 
@@ -335,6 +344,10 @@ begin
                elsif (pgpTxMaster.tValid = '1') then
                   -- Track the current tDest
                   v.tDest := pgpTxMaster.tDest;
+
+                  -- Reset the counter
+                  v.pgpTxOut.frameTxSize := (others => '0');
+
                   -- Next state
                   v.state := PAYLOAD_S;
 
@@ -350,10 +363,10 @@ begin
          ----------------------------------------------------------------------
          when PAYLOAD_S =>
             -- Check if ready to move data
-            if (v.txMaster.tValid = '0') then
+            if (v.txMaster.tValid = '0') and (pgpTxMaster.tValid = '1') then
 
-               -- Check for change in tDEST or a tValid gap
-               if (pgpTxMaster.tDest /= r.tDest) or (pgpTxMaster.tValid = '0') then
+               -- Check for change in tDEST
+               if (pgpTxMaster.tDest /= r.tDest) then
                   -------------------------------------------------------------
                   --                Execute the footer here
                   -------------------------------------------------------------
@@ -394,8 +407,9 @@ begin
                   v.txMaster.tKeep := (others => '1');
                   v.txMaster.tUser := (others => '0');
 
-                  -- Increment the counter
-                  v.wrdCnt := r.wrdCnt + 1;
+                  -- Increment the counters
+                  v.wrdCnt               := r.wrdCnt + 1;
+                  v.pgpTxOut.frameTxSize := r.pgpTxOut.frameTxSize + getTKeep(pgpTxMaster.tKeep, PGP_ETH_AXIS_CONFIG_C);
 
                   -- Check for EOF or max payload size
                   if (pgpTxMaster.tLast = '1') or (r.wrdCnt = MAX_SIZE_C-1) then
@@ -458,7 +472,7 @@ begin
          v.pause := (others => '0');
       end if;
 
-      -- Check if next state is IDLE_S and currently in IDLE_S
+      -- Check if next state is IDLE_S and currently not in IDLE_S
       if (v.state = IDLE_S) and (r.state /= IDLE_S) then
          -- Pre-set the counter
          v.nullCnt := pgpTxIn.nullInterval;
@@ -493,7 +507,7 @@ begin
       pgpTxOut.opCodeReady <= v.pgpTxOut.opCodeReady;
 
       -- Reset
-      if (pgpRst = '1') or (phyTxRdy = '0') then
+      if (pgpRst = '1') then
          v := REG_INIT_C;
       end if;
 

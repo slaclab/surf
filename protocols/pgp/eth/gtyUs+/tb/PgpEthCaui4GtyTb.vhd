@@ -102,6 +102,7 @@ begin
    U_Core : entity work.PgpEthCaui4Gty
       generic map (
          TPD_G                 => TPD_G,
+         SIM_SPEEDUP_G         => true,
          NUM_VC_G              => NUM_VC_C,
          TX_MAX_PAYLOAD_SIZE_G => TX_MAX_PAYLOAD_SIZE_C)
       port map (

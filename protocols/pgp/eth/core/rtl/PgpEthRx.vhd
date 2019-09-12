@@ -88,6 +88,9 @@ architecture rtl of PgpEthRx is
 
    signal pgpRxMaster : AxiStreamMasterType;
 
+   attribute dont_touch      : string;
+   attribute dont_touch of r : signal is "TRUE";
+
 begin
 
    comb : process (broadcastMac, etherType, localMac, pgpRst, phyRxMaster,
@@ -111,10 +114,19 @@ begin
       v.pgpRxOut.remRxLinkReady := r.remRxLinkReady;
       v.pgpRxMasters(0).tValid  := '0';
 
+      -- Check for PHY not ready
+      if (phyRxRdy = '0') then
+         -- Close the connection
+         v.aliveCnt          := (others => '0');
+         v.locRxLinkReady    := '0';
+         v.pgpRxOut.linkDown := r.locRxLinkReady;
+
       -- Check for roll over
-      if (r.aliveCnt = 0) then
+      elsif (r.aliveCnt = 0) then
          -- Set the flag
          v.locRxLinkReady := '0';
+
+      -- Else the link is up
       else
          -- Set the flag
          v.locRxLinkReady := '1';
@@ -133,7 +145,7 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Check if read to move data
-            if (phyRxMaster.tValid = '1') then
+            if (phyRxMaster.tValid = '1') and (phyRxRdy = '1') then
 
                ---------------------------
                -- Check for a valid header
@@ -185,8 +197,13 @@ begin
 
                   -- Check if not NULL marker (BYTE[18] != 0xFF) and not EOF
                   if (phyRxMaster.tData(151 downto 144) /= x"FF") and (phyRxMaster.tLast = '0') then
+
+                     -- Reset the counter
+                     v.pgpRxOut.frameRxSize := (others => '0');
+
                      -- Next state
                      v.state := PAYLOAD_S;
+
                   end if;
 
                end if;
@@ -194,7 +211,7 @@ begin
          ----------------------------------------------------------------------
          when PAYLOAD_S =>
             -- Check if read to move data
-            if (phyRxMaster.tValid = '1') then
+            if (phyRxMaster.tValid = '1') and (phyRxRdy = '1') then
 
                -- Advance the output pipeline
                v.pgpRxMasters(0) := r.pgpRxMasters(1);
@@ -267,13 +284,30 @@ begin
 
                end if;
 
+            elsif (phyRxRdy = '0') then
+
+               -- Next state
+               v.state := IDLE_S;
+
             end if;
       ----------------------------------------------------------------------
       end case;
 
+      -- Map the pause bits into the record type
       for i in NUM_VC_G-1 downto 0 loop
          v.remRxFifoCtrl(i).pause := v.pgpRxOut.remRxPause(i);
       end loop;
+
+      -- Monitor the Payload frame size
+      if (v.pgpRxMasters(1).tValid = '1') then
+         -- Increment the counter
+         v.pgpRxOut.frameRxSize := r.pgpRxOut.frameRxSize + getTKeep(v.pgpRxMasters(1).tKeep, PGP_ETH_AXIS_CONFIG_C);
+      end if;
+
+      -- Reset remote MAC address if link goes down
+      if (r.pgpRxOut.linkDown = '1') then
+         v.remoteMac := (others => '0');
+      end if;
 
       -- Outputs        
       pgpRxMaster    <= r.pgpRxMasters(0);
@@ -284,7 +318,7 @@ begin
       remRxFifoCtrl  <= r.remRxFifoCtrl;
 
       -- Reset
-      if (pgpRst = '1') or (phyRxRdy = '0') then
+      if (pgpRst = '1') then
          v := REG_INIT_C;
       end if;
 

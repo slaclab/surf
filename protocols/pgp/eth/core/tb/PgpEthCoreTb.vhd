@@ -38,7 +38,7 @@ architecture testbed of PgpEthCoreTb is
    -- constant NUM_VC_C : positive := 1;
    constant NUM_VC_C : positive := 4;
 
-   constant TX_MAX_PAYLOAD_SIZE_C : positive := 1024;
+   constant TX_MAX_PAYLOAD_SIZE_C : positive := 2048;
 
    constant CHOKE_AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(8);
    -- constant CHOKE_AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(64);
@@ -49,6 +49,11 @@ architecture testbed of PgpEthCoreTb is
 
    signal clk : sl := '0';
    signal rst : sl := '1';
+
+   signal axilReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+   signal axilReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
+   signal axilWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+   signal axilWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
 
    signal phyTxMaster : AxiStreamMasterType;
    signal phyTxSlave  : AxiStreamSlaveType;
@@ -79,7 +84,7 @@ begin
 
    U_Clk_0 : entity work.ClkRst
       generic map (
-         CLK_PERIOD_G      => 5.111 ns,  -- 195.85 MHz (slow user clock to help with making timing)
+         CLK_PERIOD_G      => 4.654 ns,  -- 214.84 MHz (slow user clock to help with making timing)
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 1 us)     -- Hold reset for this long)
       port map (
@@ -101,21 +106,28 @@ begin
          TX_MAX_PAYLOAD_SIZE_G => TX_MAX_PAYLOAD_SIZE_C)
       port map (
          -- Clock and Reset
-         pgpClk       => clk,
-         pgpRst       => rst,
+         pgpClk          => clk,
+         pgpRst          => rst,
          -- Tx User interface
-         pgpTxMasters => pgpTxMasters,
-         pgpTxSlaves  => pgpTxSlaves,
+         pgpTxMasters    => pgpTxMasters,
+         pgpTxSlaves     => pgpTxSlaves,
          -- Rx User interface
-         pgpRxMasters => pgpRxMasters,
-         pgpRxCtrl    => pgpRxCtrl,
+         pgpRxMasters    => pgpRxMasters,
+         pgpRxCtrl       => pgpRxCtrl,
          -- Tx PHY Interface
-         phyTxRdy     => '1',
-         phyTxMaster  => phyTxMaster,
-         phyTxSlave   => phyTxSlave,
+         phyTxRdy        => '1',
+         phyTxMaster     => phyTxMaster,
+         phyTxSlave      => phyTxSlave,
          -- Rx PHY Interface
-         phyRxRdy     => '1',
-         phyRxMaster  => phyRxMaster);
+         phyRxRdy        => '1',
+         phyRxMaster     => phyRxMaster,
+         -- AXI-Lite Register Interface (axilClk domain)
+         axilClk         => clk,
+         axilRst         => rst,
+         axilReadMaster  => axilReadMaster,
+         axilReadSlave   => axilReadSlave,
+         axilWriteMaster => axilWriteMaster,
+         axilWriteSlave  => axilWriteSlave);
 
    U_TX_FIFO : entity work.AxiStreamFifoV2
       generic map (
@@ -264,5 +276,21 @@ begin
             report "Simulation Failed!" severity failure;
       end if;
    end process;
+
+
+   ---------------------------------
+   -- AXI-Lite Register Transactions
+   ---------------------------------
+   test : process is
+      variable debugData : slv(31 downto 0) := (others => '0');
+   begin
+      wait for 20 us;
+
+      axiLiteBusSimRead (clk, axilReadMaster, axilReadSlave, x"0000_0100", debugData, true);
+      axiLiteBusSimRead (clk, axilReadMaster, axilReadSlave, x"0000_0104", debugData, true);
+      axiLiteBusSimRead (clk, axilReadMaster, axilReadSlave, x"0000_0114", debugData, true);
+      axiLiteBusSimRead (clk, axilReadMaster, axilReadSlave, x"0000_0118", debugData, true);
+
+   end process test;
 
 end testbed;

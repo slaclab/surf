@@ -61,6 +61,7 @@ package PgpEthPkg is
       opCodeReady : sl;
       frameTx     : sl;                 -- A good frame was transmitted
       frameTxErr  : sl;                 -- An error frame was transmitted
+      frameTxSize : slv(15 downto 0);
    end record;
 
    type PgpEthTxOutArray is array (natural range<>) of PgpEthTxOutType;
@@ -72,7 +73,8 @@ package PgpEthPkg is
       linkReady   => '0',
       opCodeReady => '0',
       frameTx     => '0',
-      frameTxErr  => '0');
+      frameTxErr  => '0',
+      frameTxSize => (others => '0'));
 
    type PgpEthRxInType is record
       resetRx : sl;
@@ -88,6 +90,7 @@ package PgpEthPkg is
       linkReady      : sl;                 -- locRxLinkReady
       frameRx        : sl;                 -- A good frame was received
       frameRxErr     : sl;                 -- An error frame was received
+      frameRxSize    : slv(15 downto 0);   -- RX frame size (units of bytes)
       linkDown       : sl;                 -- A link down event has occurred
       opCodeEn       : sl;                 -- Opcode valid
       opCode         : slv(127 downto 0);  -- Opcode data
@@ -103,6 +106,7 @@ package PgpEthPkg is
       linkReady      => '0',
       frameRx        => '0',
       frameRxErr     => '0',
+      frameRxSize    => (others => '0'),
       linkDown       => '0',
       opCodeEn       => '0',
       opCode         => (others => '0'),
