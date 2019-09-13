@@ -35,6 +35,7 @@ entity AxiLiteSequencerRam is
       MEMORY_TYPE_G       : string               := "block";
       MEMORY_INIT_FILE_G  : string               := "none";  -- Used for MEMORY_TYPE_G="XPM only
       MEMORY_INIT_PARAM_G : string               := "0";  -- Used for MEMORY_TYPE_G="XPM only    
+      WAIT_FOR_RESPONSE_G : boolean              := false;  -- false: immediately respond back for address[0], true: wait for the end of the transaction sequences 
       READ_LATENCY_G      : natural range 0 to 3 := 2;
       ADDR_WIDTH_G        : positive             := 8);  -- Number of sequenced AXI-Lite master transactions = 2**ADDR_WIDTH_G - 1
    port (
@@ -64,7 +65,8 @@ architecture rtl of AxiLiteSequencerRam is
       IDLE_S,
       S_AXI_RD_S,
       M_AXI_REQ_S,
-      M_AXI_ACK_S);
+      M_AXI_ACK_S,
+      SEQ_DONE_S);
 
    type RegType is record
       sAxilWriteSlave : AxiLiteWriteSlaveType;
@@ -258,6 +260,19 @@ begin
                      -- Send the error response
                      axiSlaveWriteResponse(v.sAxilWriteSlave, AXI_RESP_DECERR_C);
                   else
+
+                     -- Check if we are not going to wait for end of transaction to send bus responds
+                     if (WAIT_FOR_RESPONSE_G = false) then
+                        -- Clear out debugging cache
+                        v.addr  := (others => '0');
+                        v.din   := (others => '0');
+                        v.wstrb := (others => '1');
+
+                        -- Send the write response
+                        axiSlaveWriteResponse(v.sAxilWriteSlave, AXI_RESP_OK_C);
+
+                     end if;
+
                      -- Next state
                      v.state := M_AXI_REQ_S;
                   end if;
@@ -327,8 +342,11 @@ begin
                   v.din(63 downto 32) := r.req.address(31 downto 2) & ack.resp;
                   v.din(31 downto 0)  := r.req.wrData;
 
-                  -- Send the write response
-                  axiSlaveWriteResponse(v.sAxilWriteSlave, ack.resp);
+                  -- Check if we are going to wait for end of transaction to send bus responds
+                  if (WAIT_FOR_RESPONSE_G = true) then
+                     -- Send the write response
+                     axiSlaveWriteResponse(v.sAxilWriteSlave, ack.resp);
+                  end if;
 
                   -- Next state
                   v.state := IDLE_S;
@@ -350,11 +368,19 @@ begin
                   -- Check for last transaction
                   if (r.cnt = r.size) then
 
-                     -- Send the write response
-                     axiSlaveWriteResponse(v.sAxilWriteSlave, AXI_RESP_OK_C);
+                     -- Check if we are going to wait for end of transaction to send bus responds
+                     if (WAIT_FOR_RESPONSE_G = true) then
 
-                     -- Next state
-                     v.state := IDLE_S;
+                        -- Send the write response
+                        axiSlaveWriteResponse(v.sAxilWriteSlave, AXI_RESP_OK_C);
+
+                        -- Next state
+                        v.state := IDLE_S;
+
+                     else
+                        -- Next state
+                        v.state := SEQ_DONE_S;
+                     end if;
 
                   else
 
@@ -364,6 +390,14 @@ begin
                   end if;
                end if;
             end if;
+         ----------------------------------------------------------------------
+         when SEQ_DONE_S =>
+            -- Set all bits to 1 so SW knowns it done
+            v.addr  := (others => '0');
+            v.din   := (others => '1');
+            v.wstrb := (others => '1');
+            -- Next state
+            v.state := IDLE_S;
       ----------------------------------------------------------------------
       end case;
 
