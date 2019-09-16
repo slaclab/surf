@@ -22,11 +22,11 @@
 -- sAxil.address[0x10] = Ram.Address[0x2].BIT[31:00]: Sequenced mAxil.Data[1][31:00]
 -- sAxil.address[0x14] = Ram.Address[0x2].BIT[63:32]: Sequenced mAxil.Address[1].BIT[31:02] & '0' & RnW
 -- sAxil.address[0x18] = Ram.Address[0x3].BIT[31:00]: Sequenced mAxil.Data[2][31:00]
--- sAxil.address[0x1C] = Ram.Address[0x3].BIT[63:32]: Sequenced mAxil.Address[2][31:00].BIT[31:02] & '0' & RnW
+-- sAxil.address[0x1C] = Ram.Address[0x3].BIT[63:32]: Sequenced mAxil.Address[2].BIT[31:02] & '0' & RnW
 -- .....
 -- .....
 -- sAxil.address[8*r.size+0x0] = Ram.Address[r.size].BIT[31:00]: Sequenced mAxil.Data[r.size-1][31:00]
--- sAxil.address[8*r.size+0x4] = Ram.Address[r.size].BIT[63:32]: Sequenced mAxil.Address[r.size-1][31:00].BIT[31:02] & '0' & RnW
+-- sAxil.address[8*r.size+0x4] = Ram.Address[r.size].BIT[63:32]: Sequenced mAxil.Address[r.size-1].BIT[31:02] & '0' & RnW
 -- 
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
