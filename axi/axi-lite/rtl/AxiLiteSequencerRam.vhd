@@ -12,7 +12,7 @@
 --              is written into address[0] of the RAM for debugging.
 -------------------------------------------------------------------------------
 -- Sequencer's RAM Address mapping:
--- sAxil.address[0x00].BIT[ADDR_WIDTH_G-1:0](write) = Starts transactions and number of transactions to execute (zero exclusive)
+-- sAxil.address[0x00].BIT[ADDR_WIDTH_G-1:0](write) = (r.size) Starts transactions and number of transactions to execute (zero exclusive)
 -- sAxil.address[0x00].BIT[31:ADDR_WIDTH_G](write)  = Unused
 -- sAxil.address[0x04].BIT[31:0](write)             = Unused
 -- sAxil.address[0x00](Read)                        = zero if no error response else mAxil.Data[errorEvent].BIT[31:00]
@@ -25,7 +25,8 @@
 -- sAxil.address[0x1C] = Ram.Address[0x3].BIT[63:32]: Sequenced mAxil.Address[2][31:00].BIT[31:02] & '0' & RnW
 -- .....
 -- .....
--- .....
+-- sAxil.address[8*r.size+0x0] = Ram.Address[r.size].BIT[31:00]: Sequenced mAxil.Data[r.size-1][31:00]
+-- sAxil.address[8*r.size+0x4] = Ram.Address[r.size].BIT[63:32]: Sequenced mAxil.Address[r.size-1][31:00].BIT[31:02] & '0' & RnW
 -- 
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
