@@ -11,6 +11,21 @@
 --              executed.  If there is a bus error, the address/response/data
 --              is written into address[0] of the RAM for debugging.
 -------------------------------------------------------------------------------
+-- Sequencer's RAM Address mapping:
+-- sAxil.address[0x00](Write) = Starts transactions and number of transactions to execute
+-- sAxil.address[0x00](Read)  = zero if no error response else mAxil.Data[errorEvent].BIT[31:00]
+-- sAxil.address[0x04](Read)  = zero if no error response else mAxil.Address[errorEvent].BIT[31:02] & '1' & RnW
+-- sAxil.address[0x08] = Ram.Address[0x1].BIT[31:00]: Sequenced mAxil.Data[0].BIT[31:00]
+-- sAxil.address[0x0C] = Ram.Address[0x1].BIT[63:32]: Sequenced mAxil.Address[0].BIT[31:02] & '0' & RnW
+-- sAxil.address[0x10] = Ram.Address[0x2].BIT[31:00]: Sequenced mAxil.Data[1][31:00]
+-- sAxil.address[0x14] = Ram.Address[0x2].BIT[63:32]: Sequenced mAxil.Address[1].BIT[31:02] & '0' & RnW
+-- sAxil.address[0x18] = Ram.Address[0x3].BIT[31:00]: Sequenced mAxil.Data[2][31:00]
+-- sAxil.address[0x1C] = Ram.Address[0x3].BIT[63:32]: Sequenced mAxil.Address[2][31:00].BIT[31:02] & '0' & RnW
+-- .....
+-- .....
+-- .....
+-- 
+-------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
