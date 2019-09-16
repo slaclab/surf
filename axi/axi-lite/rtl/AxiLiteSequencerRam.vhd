@@ -12,9 +12,11 @@
 --              is written into address[0] of the RAM for debugging.
 -------------------------------------------------------------------------------
 -- Sequencer's RAM Address mapping:
--- sAxil.address[0x00](Write) = Starts transactions and number of transactions to execute
--- sAxil.address[0x00](Read)  = zero if no error response else mAxil.Data[errorEvent].BIT[31:00]
--- sAxil.address[0x04](Read)  = zero if no error response else mAxil.Address[errorEvent].BIT[31:02] & '1' & RnW
+-- sAxil.address[0x00].BIT[ADDR_WIDTH_G-1:0](write) = Starts transactions and number of transactions to execute (zero exclusive)
+-- sAxil.address[0x00].BIT[31:ADDR_WIDTH_G](write)  = Unused
+-- sAxil.address[0x04].BIT[31:0](write)             = Unused
+-- sAxil.address[0x00](Read)                        = zero if no error response else mAxil.Data[errorEvent].BIT[31:00]
+-- sAxil.address[0x04](Read)                        = zero if no error response else mAxil.Address[errorEvent].BIT[31:02] & '1' & RnW
 -- sAxil.address[0x08] = Ram.Address[0x1].BIT[31:00]: Sequenced mAxil.Data[0].BIT[31:00]
 -- sAxil.address[0x0C] = Ram.Address[0x1].BIT[63:32]: Sequenced mAxil.Address[0].BIT[31:02] & '0' & RnW
 -- sAxil.address[0x10] = Ram.Address[0x2].BIT[31:00]: Sequenced mAxil.Data[1][31:00]
