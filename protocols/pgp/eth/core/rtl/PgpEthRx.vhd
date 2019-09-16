@@ -234,8 +234,9 @@ begin
                   -- Stop the footer from getting in user data stream
                   v.pgpRxMasters(1).tValid := '0';
 
-                  -- Check for a non-32-bit footer
-                  if (phyRxMaster.tKeep(63 downto 0) /= x"0000_0000_0000_000F") then
+                  -- Check error checking
+                  if (phyRxMaster.tKeep(63 downto 0) /= x"0000_0000_0000_003F") or  -- non-48-bit footer
+                     (phyRxMaster.tData(47 downto 32) /= r.pgpRxOut.frameRxSize) then  -- footer size doesn't match measured payload size
 
                      -- Terminate the frame with error
                      v.pgpRxMasters(0).tLast := '1';

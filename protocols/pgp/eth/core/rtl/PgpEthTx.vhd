@@ -426,16 +426,19 @@ begin
                -- Move the data
                v.txMaster.tValid             := '1';
                v.txMaster.tLast              := '1';
-               v.txMaster.tKeep              := resize(x"F", AXI_STREAM_MAX_TKEEP_WIDTH_C);  -- 4 byte footer
-               v.txMaster.tData(31 downto 0) := (others => '0');
+               v.txMaster.tKeep              := resize(x"3F", AXI_STREAM_MAX_TKEEP_WIDTH_C);  -- 6 byte footer
+               v.txMaster.tData(47 downto 0) := (others => '0');
 
                -- Forward the lastKeep/eof/eofe
                v.txMaster.tData(7 downto 0) := toSlv(getTKeep(r.lastKeep, PGP_ETH_AXIS_CONFIG_C), 8);
                v.txMaster.tData(8)          := r.eof;
                v.txMaster.tData(9)          := r.eofe;
-               
+
                -- Forward the updated pause
                v.txMaster.tData(31 downto 16) := v.pause;
+
+               -- Forward the payload size
+               v.txMaster.tData(47 downto 32) := r.pgpTxOut.frameTxSize;
 
                -- Update flag
                v.pgpTxOut.frameTx := '1';
