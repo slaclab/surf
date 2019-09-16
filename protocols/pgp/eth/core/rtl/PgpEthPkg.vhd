@@ -1,8 +1,10 @@
 -------------------------------------------------------------------------------
+-- Title      : PgpEth: https://confluence.slac.stanford.edu/x/pQmODw
+-------------------------------------------------------------------------------
 -- File       : PgpEthPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Package for PGP Ethernet
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

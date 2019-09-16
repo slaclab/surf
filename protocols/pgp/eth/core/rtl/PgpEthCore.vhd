@@ -1,8 +1,10 @@
 -------------------------------------------------------------------------------
+-- Title      : PgpEth: https://confluence.slac.stanford.edu/x/pQmODw
+-------------------------------------------------------------------------------
 -- File       : PgpEthCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: PGPv3 Core
+-- Description: PGP Ethernet Core
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

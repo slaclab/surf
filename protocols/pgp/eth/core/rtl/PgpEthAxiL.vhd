@@ -1,10 +1,10 @@
 -------------------------------------------------------------------------------
--- File       : Pgp2bAxi.vhd
+-- Title      : PgpEth: https://confluence.slac.stanford.edu/x/pQmODw
+-------------------------------------------------------------------------------
+-- File       : PgpEthAxiL.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description:
--- AXI-Lite block to manage the PGP_ETH interface.
---
+-- Description: AXI-Lite block to manage the PGP Ethernet interface.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
