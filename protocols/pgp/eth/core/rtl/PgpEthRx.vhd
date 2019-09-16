@@ -250,29 +250,21 @@ begin
 
                   else
 
-                     -- Check for EOF
-                     if (phyRxMaster.tData(8) = '1') then
+                     -- Update the last data stream metadata
+                     v.pgpRxMasters(0).tKeep := genTKeep(conv_integer(phyRxMaster.tData(7 downto 0)));
 
-                        -- Set EOF
-                        v.pgpRxMasters(0).tLast := '1';
+                     -- Set EOF (force EOF if EOFE detected)
+                     v.pgpRxMasters(0).tLast := phyRxMaster.tData(8) or phyRxMaster.tData(9);
 
-                        -- Set EOFE
-                        eofe := eofe or phyRxMaster.tData(9);
-                        ssiSetUserEofe(PGP_ETH_AXIS_CONFIG_C, v.pgpRxMasters(0), eofe);
+                     -- Set EOFE
+                     eofe := eofe or phyRxMaster.tData(9);
+                     ssiSetUserEofe(PGP_ETH_AXIS_CONFIG_C, v.pgpRxMasters(0), eofe);
 
-                        -- Update the last data stream metadata
-                        v.pgpRxMasters(0).tKeep := genTKeep(conv_integer(phyRxMaster.tData(7 downto 0)));
+                     -- Set the flag
+                     v.pgpRxOut.frameRxErr := eofe;
 
-                        -- Check for EOFE
-                        if (phyRxMaster.tData(9) = '1') or (eofe = '1') then
-                           -- Set the flag
-                           v.pgpRxOut.frameRxErr := '1';
-                        else
-                           -- Set the flag
-                           v.pgpRxOut.frameRx := '1';
-                        end if;
-
-                     end if;
+                     -- Set the flag
+                     v.pgpRxOut.frameRx := v.pgpRxMasters(0).tLast and not eofe;
 
                      -- BYTE[3:2] = Virtual Channel Pause
                      v.pgpRxOut.remRxPause := phyRxMaster.tData(31 downto 16);
@@ -304,9 +296,12 @@ begin
          v.pgpRxOut.frameRxSize := r.pgpRxOut.frameRxSize + getTKeep(v.pgpRxMasters(1).tKeep, PGP_ETH_AXIS_CONFIG_C);
       end if;
 
-      -- Reset remote MAC address if link goes down
+      -- Check if link went down down
       if (r.pgpRxOut.linkDown = '1') then
-         v.remoteMac := (others => '0');
+         -- Reset the remote mac
+         v.remoteMac      := (others => '0');
+         -- Reset the status flag
+         v.remRxLinkReady := '0';
       end if;
 
       -- Outputs        

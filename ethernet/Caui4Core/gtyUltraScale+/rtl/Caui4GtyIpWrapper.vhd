@@ -518,6 +518,9 @@ architecture mapping of Caui4GtyIpWrapper is
 
 begin
 
+   assert (isPowerOf2(MAX_PAYLOAD_SIZE_G) = true)
+      report "MAX_PAYLOAD_SIZE_G must be power of 2" severity failure;
+
    U_PwrUpRst : entity work.PwrUpRst
       generic map(
          TPD_G         => TPD_G,
@@ -557,17 +560,23 @@ begin
    gtTxPreCursor  <= txPreCursor(3) & txPreCursor(2) & txPreCursor(1) & txPreCursor(0);
    gtTxPostCursor <= txPostCursor(3) & txPostCursor(2) & txPostCursor(1) & txPostCursor(0);
 
-   RX_AXIS : process (rxAxis) is
+   RX_AXIS : process (txusrclk2) is
       variable master : AxiStreamMasterType;
    begin
-      -- Init
-      master := rxAxis;
-      -- Set the EOFE of all bytes
-      for i in 63 downto 1 loop
-         master.tUser(8*i) := rxAxis.tUser(0);
-      end loop;
-      -- Outputs
-      rxMaster <= master;
+      if rising_edge(txusrclk2) then
+         -- Init
+         master := rxAxis;
+         -- Set the EOFE of all bytes
+         for i in 63 downto 1 loop
+            master.tUser(8*i) := rxAxis.tUser(0);
+         end loop;
+         -- Check if not aligned
+         if (stat_rx_aligned_err = '1') or (stat_rx_aligned = '0') then
+            master.tValid := '0';
+         end if;
+         -- Outputs
+         rxMaster <= master after TPD_G;
+      end if;
    end process;
 
    U_RX_FIFO : entity work.AxiStreamFifoV2

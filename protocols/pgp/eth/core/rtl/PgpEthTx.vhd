@@ -117,6 +117,9 @@ architecture rtl of PgpEthTx is
 
 begin
 
+   assert (isPowerOf2(MAX_PAYLOAD_SIZE_G) = true)
+      report "MAX_PAYLOAD_SIZE_G must be power of 2" severity failure;
+
    GEN_VEC :
    for i in (NUM_VC_G-1) downto 0 generate
 
@@ -367,32 +370,9 @@ begin
 
                -- Check for change in tDEST
                if (pgpTxMaster.tDest /= r.tDest) then
-                  -------------------------------------------------------------
-                  --                Execute the footer here
-                  -------------------------------------------------------------
-
-                  -- Move the data
-                  v.txMaster.tValid             := '1';
-                  v.txMaster.tLast              := '1';
-                  v.txMaster.tKeep              := resize(x"F", AXI_STREAM_MAX_TKEEP_WIDTH_C);  -- 4 byte footer
-                  v.txMaster.tData(31 downto 0) := (others => '0');
-
-                  -- Send the metadata
-                  v.txMaster.tData(7 downto 0) := x"40";  -- tKeep(63:0) = all ones
-                  v.txMaster.tData(8)          := '0';    -- EOF = 0x0
-                  v.txMaster.tData(9)          := '0';    -- EOFE = 0x0
-
-                  -- Forward the updated pause
-                  v.txMaster.tData(31 downto 16) := v.pause;
-
-                  -- Update flag
-                  v.pgpTxOut.frameTx := '1';
-
-                  -- Sample the last pause sent
-                  v.lastPausSent := v.pause;
 
                   -- Next state
-                  v.state := IDLE_S;
+                  v.state := FOOTER_S;
 
                else
 
@@ -401,6 +381,13 @@ begin
 
                   -- Move the data
                   v.txMaster := pgpTxMaster;
+
+                  -- Check the non-tKeep bytes to zero
+                  for i in 63 downto 0 loop
+                     if pgpTxMaster.tKeep(i) = '0' then
+                        v.txMaster.tData(8*i+7 downto 8*i) := x"00";
+                     end if;
+                  end loop;
 
                   -- Update the metadata
                   v.txMaster.tLast := '0';
@@ -411,13 +398,13 @@ begin
                   v.wrdCnt               := r.wrdCnt + 1;
                   v.pgpTxOut.frameTxSize := r.pgpTxOut.frameTxSize + getTKeep(pgpTxMaster.tKeep, PGP_ETH_AXIS_CONFIG_C);
 
+                  -- Sample the metadata
+                  v.eof      := pgpTxMaster.tLast;
+                  v.eofe     := ssiGetUserEofe(PGP_ETH_AXIS_CONFIG_C, pgpTxMaster) and pgpTxMaster.tLast;
+                  v.lastKeep := pgpTxMaster.tKeep(63 downto 0);
+
                   -- Check for EOF or max payload size
                   if (pgpTxMaster.tLast = '1') or (r.wrdCnt = MAX_SIZE_C-1) then
-
-                     -- Sample the metadata
-                     v.eof      := pgpTxMaster.tLast;
-                     v.eofe     := ssiGetUserEofe(PGP_ETH_AXIS_CONFIG_C, pgpTxMaster);
-                     v.lastKeep := pgpTxMaster.tKeep(63 downto 0);
 
                      -- Check if need to arm for SOF
                      if (pgpTxMaster.tLast = '1') then
@@ -443,13 +430,11 @@ begin
                v.txMaster.tKeep              := resize(x"F", AXI_STREAM_MAX_TKEEP_WIDTH_C);  -- 4 byte footer
                v.txMaster.tData(31 downto 0) := (others => '0');
 
-               -- Check for tLast
-               if (r.eof = '1') then
-                  v.txMaster.tData(7 downto 0) := toSlv(getTKeep(r.lastKeep, PGP_ETH_AXIS_CONFIG_C), 8);
-                  v.txMaster.tData(8)          := r.eof;
-                  v.txMaster.tData(9)          := r.eofe;
-               end if;
-
+               -- Forward the lastKeep/eof/eofe
+               v.txMaster.tData(7 downto 0) := toSlv(getTKeep(r.lastKeep, PGP_ETH_AXIS_CONFIG_C), 8);
+               v.txMaster.tData(8)          := r.eof;
+               v.txMaster.tData(9)          := r.eofe;
+               
                -- Forward the updated pause
                v.txMaster.tData(31 downto 16) := v.pause;
 

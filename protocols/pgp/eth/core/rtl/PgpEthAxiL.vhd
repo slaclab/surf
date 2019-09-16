@@ -96,7 +96,7 @@ architecture rtl of PgpEthAxiL is
    end record RegType;
    constant REG_INIT_C : RegType := (
       cntRst         => '0',
-      rollOverEn     => x"0C05_FFFF_0000_0000",
+      rollOverEn     => x"0C05_0000_FFFF_FFFF",
       broadcastMac   => x"FF_FF_FF_FF_FF_FF",
       etherType      => x"11_01",       -- EtherType = 0x0111 ("Experimental")
       loopBack       => LOOPBACK_G,

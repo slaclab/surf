@@ -145,6 +145,9 @@ architecture mapping of PgpEthCaui4Gty is
 
 begin
 
+   assert (isPowerOf2(TX_MAX_PAYLOAD_SIZE_G) = true)
+      report "MAX_PAYLOAD_SIZE_G must be power of 2" severity failure;
+
    REAL_PGP : if (not ROGUE_SIM_EN_G) generate
 
       pgpClk <= phyClk;

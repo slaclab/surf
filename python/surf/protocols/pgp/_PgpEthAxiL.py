@@ -402,6 +402,7 @@ class PgpEthAxiL(pr.Device):
             mode         = 'RO',
             offset       = 0x1C8,
             bitSize      = 48,
+            pollInterval = 1,
             hidden       = True,
         ))          
         
@@ -444,7 +445,7 @@ class PgpEthAxiL(pr.Device):
             mode         = 'RW',
             offset       = 0x1F0,
             bitSize      = 60,
-            # hidden       = True,
+            hidden       = True,
         ))   
 
         self.add(pr.RemoteCommand(   
