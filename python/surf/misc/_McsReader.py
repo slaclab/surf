@@ -38,34 +38,36 @@ class McsReader():
         self.size      = 0
         
     def open(self, filename):   
-        self.entry     = []
         self.startAddr = 0
         self.endAddr   = 0
         self.size      = 0
         baseAddr       = 0
-        dataList       = []
-
+        idx            = 0
+        
         # Check for non-compressed .MCS file
         if fnmatch.fnmatch(filename, '*.mcs'):
             # Set the flag
             gzipEn = False
             # Find the length of the file
-            length = int(subprocess.check_output('wc -l {}'.format(filename), shell=True).split()[0])
+            numLines = int(subprocess.check_output('wc -l {}'.format(filename), shell=True).split()[0])
             
         # Check for Compressed .MCS file
         elif fnmatch.fnmatch(filename, '*.mcs.gz'):
             # Set the flag
             gzipEn = True
             # Find the length of the file
-            length = sum(1 for line in gzip.open(filename, "rb"))
+            numLines = sum(1 for line in gzip.open(filename, "rb"))
             
         else:
             click.secho('\nUnsupported file extension detected', fg='red')
             raise McsException('McsReader.open(): failed')  
+                    
+        # Create an empty numpy array (up to 16B per line)
+        self.entry = np.empty([16*numLines,2],dtype=np.int32)
             
         # Setup the status bar
         with click.progressbar(
-            length = length,
+            length = numLines,
             label  = click.style('Reading .MCS:  ', fg='green'),
         ) as bar:            
             # Open the file
@@ -116,7 +118,8 @@ class McsReader():
                                 # Put the address and data into a list
                                 address = baseAddr + addr + j
                                 data    = hexBytes[j+4]
-                                dataList.append([address, data])
+                                self.entry[idx] = [address, data]
+                                idx = idx + 1
                             
                             # Save the last address
                             self.endAddr = address
@@ -143,11 +146,7 @@ class McsReader():
                             raise McsException('McsReader.open(): failed')    
                             
             # Close the status bar
-            bar.update(length)          
+            bar.update(numLines)          
             
         # Calculate the total size (in units of bytes)                
         self.size = (self.endAddr - self.startAddr) + 1
-        
-        # Convert to numpy array
-        self.entry = np.array(dataList,dtype=np.int32)
-   
