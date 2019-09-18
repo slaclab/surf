@@ -159,12 +159,13 @@ begin
       U_BottleNeck : entity work.AxiStreamFifoV2
          generic map (
             TPD_G               => TPD_G,
-            SLAVE_READY_EN_G    => false,                -- Using pause
+            SLAVE_READY_EN_G    => false,  -- Using pause            
             GEN_SYNC_FIFO_G     => true,
-            BRAM_EN_G           => true,
+            SYNTH_MODE_G        => "xpm",
+            MEMORY_TYPE_G       => "uram",
+            FIFO_ADDR_WIDTH_G   => 12,  -- 4k URAM,
             FIFO_FIXED_THRESH_G => true,
-            FIFO_ADDR_WIDTH_G   => 9,
-            FIFO_PAUSE_THRESH_G => 2**7,
+            FIFO_PAUSE_THRESH_G => 1024,   -- 1/4 of buffer            
             SLAVE_AXI_CONFIG_G  => PGP_ETH_AXIS_CONFIG_C,
             MASTER_AXI_CONFIG_G => CHOKE_AXIS_CONFIG_C)  -- Bottleneck the bandwidth
          port map (

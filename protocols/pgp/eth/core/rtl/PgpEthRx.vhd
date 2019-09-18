@@ -94,14 +94,16 @@ begin
 
    comb : process (broadcastMac, etherType, localMac, pgpRst, phyRxMaster,
                    phyRxRdy, r) is
-      variable v    : RegType;
-      variable eofe : sl;
+      variable v       : RegType;
+      variable eofe    : sl;
+      variable hdrXsum : slv(15 downto 0);
    begin
       -- Latch the current value
       v := r;
 
       -- Update variables
-      eofe := ssiGetUserEofe(PGP_ETH_AXIS_CONFIG_C, phyRxMaster);
+      eofe    := ssiGetUserEofe(PGP_ETH_AXIS_CONFIG_C, phyRxMaster);
+      hdrXsum := (others => '0');
 
       -- Update/Reset the flags
       v.pgpRxOut.phyRxActive    := phyRxRdy;
@@ -146,6 +148,15 @@ begin
             -- Check if read to move data
             if (phyRxMaster.tValid = '1') and (phyRxRdy = '1') then
 
+               -- Calculate the checksum
+               for i in 29 downto 0 loop
+                  hdrXsum := hdrXsum + phyRxMaster.tData(8*i+7 downto 8*i);
+               end loop;
+               for i in 63 downto 32 loop
+                  hdrXsum := hdrXsum + phyRxMaster.tData(8*i+7 downto 8*i);
+               end loop;
+               hdrXsum := not(hdrXsum);  -- one's complement
+
                ---------------------------
                -- Check for a valid header
                ---------------------------
@@ -153,58 +164,73 @@ begin
                   and (phyRxMaster.tData(111 downto 96) = etherType)  -- BYTE[13:12] = EtherType
                   and (phyRxMaster.tData(119 downto 112) = PGP_ETH_VERSION_C) then  -- BYTE[14] = Version
 
-                  -- Remote connection detected
-                  v.aliveCnt := (others => '1');
+                  -- Check for invalid checksum
+                  if (phyRxMaster.tData(255 downto 240) /= hdrXsum) then  -- Valid checksum
 
-                  -- BYTE[11:6] = Source MAC
-                  v.remoteMac := phyRxMaster.tData(95 downto 48);
+                     -- Close the connection
+                     v.aliveCnt          := (others => '0');
+                     v.locRxLinkReady    := '0';
+                     v.pgpRxOut.linkDown := r.locRxLinkReady;
 
-                  -- BYTE[15] = TID
-                  v.tid := phyRxMaster.tData(127 downto 120);
+                     -- Set the flag
+                     v.pgpRxOut.frameRxErr := '1';
 
-                  -- BYTE[17:16] = Virtual Channel Pause
-                  v.pgpRxOut.remRxPause := phyRxMaster.tData(143 downto 128);
+                  -- Else good checksum
+                  else
 
-                  -- Check if not NULL marker (BYTE[18] != 0xFF)
-                  if (phyRxMaster.tData(151 downto 144) /= x"FF") then
+                     -- Remote connection detected
+                     v.aliveCnt := (others => '1');
 
-                     -- BYTE[18] = Virtual Channel Index
-                     v.tDest := phyRxMaster.tData(151 downto 144);
+                     -- BYTE[11:6] = Source MAC
+                     v.remoteMac := phyRxMaster.tData(95 downto 48);
 
-                     -- BYTE[19] = SOF 
-                     v.sof := phyRxMaster.tData(152);
+                     -- BYTE[15] = TID
+                     v.tid := phyRxMaster.tData(127 downto 120);
+
+                     -- BYTE[17:16] = Virtual Channel Pause
+                     v.pgpRxOut.remRxPause := phyRxMaster.tData(143 downto 128);
+
+                     -- Check if not NULL marker (BYTE[18] != 0xFF)
+                     if (phyRxMaster.tData(151 downto 144) /= x"FF") then
+
+                        -- BYTE[18] = Virtual Channel Index
+                        v.tDest := phyRxMaster.tData(151 downto 144);
+
+                        -- BYTE[19] = SOF 
+                        v.sof := phyRxMaster.tData(152);
+
+                     end if;
+
+                     -- Check for BYTE[20] = OP-Code Enable
+                     if (phyRxMaster.tData(160) = '1') then
+
+                        -- BYTE[20] = OP-Code Enable
+                        v.pgpRxOut.opCodeEn := '1';
+
+                        -- BYTE[47:32] = OpCodeData
+                        v.pgpRxOut.opCode := phyRxMaster.tData(383 downto 256);
+
+                     end if;
+
+
+                     -- Check for BYTE[21] = RxLinkReady
+                     v.remRxLinkReady := phyRxMaster.tData(168);
+
+                     -- BYTE[63:48] = LocalData
+                     v.pgpRxOut.remLinkData := phyRxMaster.tData(511 downto 384);
+
+                     -- Check if not NULL marker (BYTE[18] != 0xFF) and not EOF
+                     if (phyRxMaster.tData(151 downto 144) /= x"FF") and (phyRxMaster.tLast = '0') then
+
+                        -- Reset the counter
+                        v.pgpRxOut.frameRxSize := (others => '0');
+
+                        -- Next state
+                        v.state := PAYLOAD_S;
+
+                     end if;
 
                   end if;
-
-                  -- Check for BYTE[20] = OP-Code Enable
-                  if (phyRxMaster.tData(160) = '1') then
-
-                     -- BYTE[20] = OP-Code Enable
-                     v.pgpRxOut.opCodeEn := '1';
-
-                     -- BYTE[47:32] = OpCodeData
-                     v.pgpRxOut.opCode := phyRxMaster.tData(383 downto 256);
-
-                  end if;
-
-
-                  -- Check for BYTE[21] = RxLinkReady
-                  v.remRxLinkReady := phyRxMaster.tData(168);
-
-                  -- BYTE[63:48] = LocalData
-                  v.pgpRxOut.remLinkData := phyRxMaster.tData(511 downto 384);
-
-                  -- Check if not NULL marker (BYTE[18] != 0xFF) and not EOF
-                  if (phyRxMaster.tData(151 downto 144) /= x"FF") and (phyRxMaster.tLast = '0') then
-
-                     -- Reset the counter
-                     v.pgpRxOut.frameRxSize := (others => '0');
-
-                     -- Next state
-                     v.state := PAYLOAD_S;
-
-                  end if;
-
                end if;
             end if;
          ----------------------------------------------------------------------
@@ -228,15 +254,21 @@ begin
                -- Reset the flag
                v.sof := '0';
 
-               -- Check for last word
+               -- Check for last word (footer)
                if (phyRxMaster.tLast = '1') then
 
                   -- Stop the footer from getting in user data stream
                   v.pgpRxMasters(1).tValid := '0';
 
+                  -- Update the last data stream metadata
+                  v.pgpRxMasters(0).tKeep := genTKeep(conv_integer(phyRxMaster.tData(7 downto 0)));
+
+                  -- Increment the counter
+                  v.pgpRxOut.frameRxSize := r.pgpRxOut.frameRxSize + getTKeep(v.pgpRxMasters(0).tKeep, PGP_ETH_AXIS_CONFIG_C);
+
                   -- Check error checking
-                  if (phyRxMaster.tKeep(63 downto 0) /= x"0000_0000_0000_003F") or  -- non-48-bit footer
-                     (phyRxMaster.tData(47 downto 32) /= r.pgpRxOut.frameRxSize) then  -- footer size doesn't match measured payload size
+                  if (phyRxMaster.tKeep(63 downto 0) /= x"0000_0000_0000_003F") or  -- non-64-bit footer
+                     (phyRxMaster.tData(47 downto 32) /= v.pgpRxOut.frameRxSize) then  -- footer size doesn't match measured payload size
 
                      -- Terminate the frame with error
                      v.pgpRxMasters(0).tLast := '1';
@@ -249,9 +281,6 @@ begin
                      v.aliveCnt := (others => '0');
 
                   else
-
-                     -- Update the last data stream metadata
-                     v.pgpRxMasters(0).tKeep := genTKeep(conv_integer(phyRxMaster.tData(7 downto 0)));
 
                      -- Set EOF (force EOF if EOFE detected)
                      v.pgpRxMasters(0).tLast := phyRxMaster.tData(8) or phyRxMaster.tData(9);
@@ -274,6 +303,15 @@ begin
                   -- Next state
                   v.state := IDLE_S;
 
+               -- Else payload data
+               else
+
+                  -- Monitor the Payload frame size
+                  if (v.pgpRxMasters(0).tValid = '1') then
+                     -- Increment the counter
+                     v.pgpRxOut.frameRxSize := r.pgpRxOut.frameRxSize + getTKeep(v.pgpRxMasters(0).tKeep, PGP_ETH_AXIS_CONFIG_C);
+                  end if;
+
                end if;
 
             elsif (phyRxRdy = '0') then
@@ -289,12 +327,6 @@ begin
       for i in NUM_VC_G-1 downto 0 loop
          v.remRxFifoCtrl(i).pause := v.pgpRxOut.remRxPause(i);
       end loop;
-
-      -- Monitor the Payload frame size
-      if (v.pgpRxMasters(1).tValid = '1') then
-         -- Increment the counter
-         v.pgpRxOut.frameRxSize := r.pgpRxOut.frameRxSize + getTKeep(v.pgpRxMasters(1).tKeep, PGP_ETH_AXIS_CONFIG_C);
-      end if;
 
       -- Check if link went down down
       if (r.pgpRxOut.linkDown = '1') then

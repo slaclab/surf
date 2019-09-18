@@ -162,6 +162,7 @@ begin
       variable v          : RegType;
       variable remoteRdy  : sl;
       variable pauseEvent : sl;
+      variable hdrXsum    : slv(15 downto 0);
    begin
       -- Latch the current value
       v := r;
@@ -169,6 +170,7 @@ begin
       -- Update the variable
       pauseEvent := '0';
       remoteRdy  := pgpTxIn.flowCntlDis or remRxLinkReady;
+      hdrXsum    := (others => '0');
 
       -- Update/Reset the flags
       v.pgpTxOut.opCodeReady := '0';
@@ -318,7 +320,12 @@ begin
                -- BYTE[21] = RxLinkReady
                v.txMaster.tData(168) := locRxLinkReady;
 
-               -- BYTE[31:22] = Reserved
+               -- BYTE[29:22] = Reserved
+
+               -- BYTE[31:30] = Header Checksum
+               --------------------------------
+               -- // Processed at the end // -- 
+               --------------------------------
 
                -- BYTE[47:32] = OpCodeData
                v.txMaster.tData(383 downto 256) := pgpTxIn.opCode;
@@ -347,7 +354,7 @@ begin
                   -- Track the current tDest
                   v.tDest := pgpTxMaster.tDest;
 
-                  -- Reset the counter
+                  -- Reset the counters
                   v.pgpTxOut.frameTxSize := (others => '0');
 
                   -- Next state
@@ -360,6 +367,18 @@ begin
                   -- Next state
                   v.state          := IDLE_S;
                end if;
+
+               -- Calculate the checksum 
+               for i in 29 downto 0 loop
+                  hdrXsum := hdrXsum + v.txMaster.tData(8*i+7 downto 8*i);
+               end loop;
+               for i in 63 downto 32 loop
+                  hdrXsum := hdrXsum + v.txMaster.tData(8*i+7 downto 8*i);
+               end loop;
+               hdrXsum := not(hdrXsum);  -- one's complement
+
+               -- BYTE[31:30] = Header Checksum
+               v.txMaster.tData(255 downto 240) := hdrXsum;
 
             end if;
          ----------------------------------------------------------------------
