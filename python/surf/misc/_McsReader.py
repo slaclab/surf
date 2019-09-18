@@ -116,7 +116,7 @@ class McsReader():
                             for j in range(byteCount):
                                 # Put the address and data into a list
                                 address = baseAddr + addr + j
-                                data    = hexBytes[j+4]
+                                data = hexBytes[j+4]
                                 self.entry[idx] = [address, data]
                                 idx = idx + 1
                             
