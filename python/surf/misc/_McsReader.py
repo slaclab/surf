@@ -23,6 +23,7 @@ import functools
 import click 
 import gzip
 import os
+import subprocess
 import fnmatch
 
 class McsException(Exception):
@@ -46,19 +47,22 @@ class McsReader():
 
         # Check for non-compressed .MCS file
         if fnmatch.fnmatch(filename, '*.mcs'):
+            # Set the flag
             gzipEn = False
+            # Find the length of the file
+            length = int(subprocess.check_output('wc -l {}'.format(filename), shell=True).split()[0])
+            
+        # Check for Compressed .MCS file
         elif fnmatch.fnmatch(filename, '*.mcs.gz'):
+            # Set the flag
             gzipEn = True
+            # Find the length of the file
+            length = sum(1 for line in gzip.open(filename, "rb"))
+            
         else:
             click.secho('\nUnsupported file extension detected', fg='red')
             raise McsException('McsReader.open(): failed')  
             
-        # Find the length of the file
-        f = gzip.open(filename, "rb") if (gzipEn) else open(filename, "r")
-        length = 0
-        for line in iter(f):
-            length += 1
-        f.close()  
         # Setup the status bar
         with click.progressbar(
             length = length,
