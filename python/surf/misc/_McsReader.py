@@ -49,14 +49,14 @@ class McsReader():
             # Set the flag
             gzipEn = False
             # Find the length of the file
-            numLines = int(subprocess.check_output('wc -l {}'.format(filename), shell=True).split()[0])
+            numLines = int(subprocess.check_output(f'wc -l {filename}', shell=True).split()[0])
             
         # Check for Compressed .MCS file
         elif fnmatch.fnmatch(filename, '*.mcs.gz'):
             # Set the flag
             gzipEn = True
             # Find the length of the file
-            numLines = sum(1 for line in gzip.open(filename, "rb"))
+            numLines = int(subprocess.check_output(f'zcat {filename} | wc -l', shell=True).split()[0])
             
         else:
             click.secho('\nUnsupported file extension detected', fg='red')
