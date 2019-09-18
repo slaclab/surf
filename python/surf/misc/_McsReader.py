@@ -72,8 +72,7 @@ class McsReader():
                     
                     # Check if GZIP and convert to standard string
                     if (gzipEn):
-                        line = str(line)[2:]
-                        line = str(line)[:-1]
+                        line = str(line)[2:-1]
                     
                     # Throttle down printf rate
                     if ( (i&0xFFF) == 0):
@@ -86,19 +85,19 @@ class McsReader():
                     else:
                     
                         strings = [line[j:j+2] for j in range(1, len(line), 2)]
-                        bytes = [int(s, 16) for s in strings]
+                        hexBytes = [int(s, 16) for s in strings]
 
-                        s = functools.reduce(lambda x,y: x+y, bytes[:-1]) & 0xFF
-                        c = (bytes[-1]*-1) & 0xFF
+                        s = functools.reduce(lambda x,y: x+y, hexBytes[:-1]) & 0xFF
+                        c = (hexBytes[-1]*-1) & 0xFF
                         
                         if s != c:                            
                             click.secho('\nBad checksum on line: {:s}. Sum: {:x}, checksum: {:x}'.format(line, s, c), fg='red')
                             raise McsException('McsReader.open(): failed') 
 
                         # Parse out the bytes
-                        byteCount = bytes[0]
-                        addr = int(bytes[1])<<8 | int(bytes[2])
-                        recordType = bytes[3]
+                        byteCount = hexBytes[0]
+                        addr = int(hexBytes[1])<<8 | int(hexBytes[2])
+                        recordType = hexBytes[3]
                        
                         if byteCount > 16:
                             click.secho('\nInvalid byte count: {:d}'.format(byteCount), fg='red')
@@ -112,7 +111,7 @@ class McsReader():
                             for j in range(byteCount):
                                 # Put the address and data into a list
                                 address = baseAddr + addr + j
-                                data    = bytes[j+4]
+                                data    = hexBytes[j+4]
                                 dataList.append([address, data])
                             
                             # Save the last address
