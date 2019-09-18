@@ -89,9 +89,8 @@ class McsReader():
                         click.secho( ('\nMissing start code. Line[%d]: {:%s}' % (i,line)), fg='red')
                         raise McsException('McsReader.open(): failed')                         
                     else:
-                    
-                        strings = [line[j:j+2] for j in range(1, len(line), 2)]
-                        hexBytes = [int(s, 16) for s in strings]
+
+                        hexBytes = [int(line[j:j+2], 16) for j in range(1, len(line), 2)]
 
                         s = functools.reduce(lambda x,y: x+y, hexBytes[:-1]) & 0xFF
                         c = (hexBytes[-1]*-1) & 0xFF
@@ -137,7 +136,7 @@ class McsReader():
                                 click.secho('\nAddr: {:x} must be 0 for ELA records'.format(addr), fg='red')
                                 raise McsException('McsReader.open(): failed')  
                             # Update the base address 
-                            baseAddr = int(strings[4]+strings[5], 16)* (2**16)
+                            baseAddr = int(line[9:11]+line[11:13], 16)* (2**16)
                             # Check for first address index (which is always the first line)
                             if (i==0):
                                 self.startAddr = baseAddr
