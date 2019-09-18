@@ -26,9 +26,9 @@ entity SgmiiDp83867LvdsUltraScale is
    generic (
       TPD_G             : time                  := 1 ns;
       STABLE_CLK_FREQ_G : real                  := 156.25E+6;
-      CLKOUT1_PHASE_G   : real                  := 90.0;
       USE_BUFG_DIV_G    : boolean               := true;
-      PHY_G             : natural range 0 to 31 := 24;
+      CLKOUT1_PHASE_G   : real                  := 90.0;
+      PHY_G             : natural range 0 to 15 := 3;
       AXIS_CONFIG_G     : AxiStreamConfigType   := EMAC_AXIS_CONFIG_C);
    port (
       -- clock and reset
@@ -74,11 +74,14 @@ architecture mapping of SgmiiDp83867LvdsUltraScale is
    signal phyMdi     : sl;
    signal phyMdo     : sl := '1';
 
-   signal extPhyRstN  : sl := '0';
-   signal extPhyReady : sl := '0';
+   signal extPhyRstN : sl := '0';
 
    signal sp10_100 : sl := '0';
    signal sp100    : sl := '0';
+
+   signal sp10_100_sync : sl := '0';
+   signal sp100_sync    : sl := '0';
+
    signal initDone : sl := '0';
 
 begin
@@ -98,7 +101,7 @@ begin
 
    --------------------------------------------------------------------------
    -- We must hold reset for >10ms and then wait >5ms until we may talk
-   -- to it (we actually wait also >10ms) which is indicated by 'extPhyReady'
+   -- to it (we actually wait also >10ms) which is indicated by 'phyInitRst'
    --------------------------------------------------------------------------
    U_PwrUpRst0 : entity work.PwrUpRst
       generic map(
@@ -115,29 +118,16 @@ begin
       generic map(
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
-         OUT_POLARITY_G => '0',
+         OUT_POLARITY_G => '1',
          DURATION_G     => getTimeRatio(STABLE_CLK_FREQ_G, 100.0))  -- 10 ms reset
       port map (
          arst   => extPhyRstN,
          clk    => stableClk,
-         rstOut => extPhyReady);
-
-   ----------------------------------------------------------------------
-   -- The MDIO controller which talks to the external PHY must be held
-   -- in reset until extPhyReady; it works in a different clock domain...
-   ----------------------------------------------------------------------
-   U_PhyInitRstSync : entity work.RstSync
-      generic map (
-         IN_POLARITY_G  => '0',
-         OUT_POLARITY_G => '1')
-      port map (
-         clk      => phyClock,
-         asyncRst => extPhyReady,
-         syncRst  => phyInitRst);
+         rstOut => phyInitRst);
 
    -----------------------------------------------------------------------
    -- The SaltCore does not support auto-negotiation on the SGMII link
-   -- (mac<->phy) - however, the TIPHY (by default) assumes it does.
+   -- (mac<->phy) - however, the DP83867ISRGZ PHY (by default) assumes it does.
    -- We need to disable auto-negotiation in the PHY on the SGMII side
    -- and handle link changes (aneg still enabled on copper) flagged
    -- by the PHY...
@@ -146,9 +136,9 @@ begin
       generic map (
          TPD_G => TPD_G,
          PHY_G => PHY_G,
-         DIV_G => 100)
+         DIV_G => getTimeRatio(STABLE_CLK_FREQ_G, 2*2.5E+6))  -- phyMdc = 2.5 MHz (nominally)
       port map (
-         clk             => phyClock,
+         clk             => stableClk,
          rst             => phyInitRst,
          initDone        => initDone,
          speed_is_10_100 => sp10_100,
@@ -166,7 +156,7 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => phyClock,
+         clk     => stableClk,
          dataIn  => phyMdio,
          dataOut => phyMdi);
 
@@ -176,15 +166,26 @@ begin
          OUT_POLARITY_G => '0',
          INIT_G         => "11")
       port map (
-         clk     => phyClock,
+         clk     => stableClk,
          dataIn  => phyIrqN,
          dataOut => phyIrq);
+
+   U_sync_speed : entity work.SynchronizerVector
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => 2)
+      port map (
+         clk        => phyClock,
+         dataIn(0)  => sp10_100,
+         dataIn(1)  => sp100,
+         dataOut(0) => sp10_100_sync,
+         dataOut(1) => sp100_sync);
 
    U_1GigE : entity work.GigEthLvdsUltraScaleWrapper
       generic map (
          TPD_G           => TPD_G,
-         CLKOUT1_PHASE_G => CLKOUT1_PHASE_G,
          USE_BUFG_DIV_G  => USE_BUFG_DIV_G,
+         CLKOUT1_PHASE_G => CLKOUT1_PHASE_G,
          AXIS_CONFIG_G   => (others => AXIS_CONFIG_G))
       port map (
          -- Local Configurations
@@ -201,8 +202,8 @@ begin
          phyClk             => phyClock,
          phyRst             => phyReset,
          phyReady(0)        => phyReady,
-         speed_is_10_100(0) => sp10_100,
-         speed_is_100(0)    => sp100,
+         speed_is_10_100(0) => sp10_100_sync,
+         speed_is_100(0)    => sp100_sync,
          -- MGT Clock Port
          sgmiiClkP          => phyClkP,
          sgmiiClkN          => phyClkN,

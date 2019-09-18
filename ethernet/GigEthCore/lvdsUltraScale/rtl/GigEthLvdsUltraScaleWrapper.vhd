@@ -135,7 +135,7 @@ begin
    U_PLL : PLLE3_ADV
       generic map(
          CLKOUTPHY_MODE => "VCO",
-         COMPENSATION   => "INTERNAL",
+         COMPENSATION   => "AUTO",
          STARTUP_WAIT   => "FALSE",
          CLKIN_PERIOD   => 8.0,
          DIVCLK_DIVIDE  => 1,

@@ -25,7 +25,7 @@ entity SgmiiDp83867Mdio is
       TPD_G : time                            := 1 ns;
       -- half-period of MDC in clk cycles
       DIV_G : natural range 1 to natural'high := 1;
-      PHY_G : natural range 0 to 31           := 7);
+      PHY_G : natural range 0 to 15           := 3);
    port (
       -- clock and reset
       clk             : in  sl;
@@ -47,13 +47,14 @@ architecture rtl of SgmiiDp83867Mdio is
 
    -- the initialization sequence (https://www.xilinx.com/support/answers/69494.html):
 
-   constant P_INIT_C : MdioProgramArray :=
-      (
-         mdioWriteInst(PHY_G, 211, x"4000", false),  -- The SGMII clock needs to be enabled, by writing 0x4000 to register 0xD3.
-         mdioWriteInst(PHY_G, 0, x"1140", false),  -- In the Control Register (Register 0), Enable Auto-negotiation and configure link speed and duplex settings.
-         mdioWriteInst(PHY_G, 20, x"29C7", false),  -- In the Configuration Register 2 (CFG2), Address 0x0014, Configure interrupt polarity, enable auto negotiation, Enable Speed Optimization
-         mdioWriteInst(PHY_G, 50, x"0000", false)  -- RGMII must be disabled, by writing 0x0 to register 0x32.
-         );
+   constant P_INIT_C : MdioProgramArray := (
+      mdioWriteInst(PHY_G, 211, x"4000", false),  -- The SGMII clock needs to be enabled, by writing 0x4000 to register 0xD3.
+      mdioWriteInst(PHY_G, 0, x"1140", false),  -- In the Control Register (Register 0), Enable Auto-negotiation and configure link speed and duplex settings.
+      mdioWriteInst(PHY_G, 20, x"29C7", false),  -- In the Configuration Register 2 (CFG2), Address 0x0014, Configure interrupt polarity, enable auto negotiation, Enable Speed Optimization
+      mdioWriteInst(PHY_G, 50, x"0000", false),  -- RGMII must be disabled, by writing 0x0 to register 0x32.
+      mdioWriteInst(PHY_G, 16, x"5868", false),  -- Address 0x0010: Enable SGMII
+      mdioWriteInst(PHY_G, 31, x"4000", true)  -- Set register 0x1F to the value 0x4000 to initiate the soft restart.
+      );
 
    constant REG19_IDX_C : natural := 0;
    constant REG17_IDX_C : natural := 1;
@@ -61,11 +62,10 @@ architecture rtl of SgmiiDp83867Mdio is
    -- IRQ Handler sequence:
    --  1) read back and clear interrupts (reading does clear them)
    --  2) obtain current link status and speed
-   constant P_HDLR_C : MdioProgramArray :=
-      (
-         REG19_IDX_C => mdioReadInst(PHY_G, 19, false),  -- read/ack/clear interrupt
-         REG17_IDX_C => mdioReadInst(PHY_G, 17, true)  -- read current speed and link status
-         );
+   constant P_HDLR_C : MdioProgramArray := (
+      REG19_IDX_C => mdioReadInst(PHY_G, 19, false),  -- read/ack/clear interrupt
+      REG17_IDX_C => mdioReadInst(PHY_G, 17, true)  -- read current speed and link status
+      );
 
    constant NUM_READ_ARGS_C : natural := mdioProgNumReadTransactions(P_HDLR_C);
 
