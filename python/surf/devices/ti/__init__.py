@@ -20,3 +20,4 @@ from surf.devices.ti._Ds32Ev400         import *
 from surf.devices.ti._Lmk04828          import *
 from surf.devices.ti._Lmk61e2           import *
 from surf.devices.ti._Pca9535           import *
+from surf.devices.ti._UCD92xx           import *
