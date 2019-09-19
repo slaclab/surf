@@ -1,10 +1,10 @@
 -------------------------------------------------------------------------------
+-- Title      : SRPv3 Protocol: https://confluence.slac.stanford.edu/x/cRmVD
+-------------------------------------------------------------------------------
 -- File       : SrpV3Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SLAC Register Protocol Version 3, AXI-Lite Interface
---
--- Documentation: https://confluence.slac.stanford.edu/x/cRmVD
 --
 -- Note: This module only supports 32-bit aligned addresses and 32-bit transactions.  
 --       For non 32-bit aligned addresses or non 32-bit transactions, use

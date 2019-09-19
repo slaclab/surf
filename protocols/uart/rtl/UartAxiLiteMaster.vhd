@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+-- Title      : UART Memory Protocol: https://confluence.slac.stanford.edu/x/uSDoDQ
+-------------------------------------------------------------------------------
 -- File       : UartAxiLiteMaster.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
