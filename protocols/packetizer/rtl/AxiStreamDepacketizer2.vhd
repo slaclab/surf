@@ -1,10 +1,12 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamPacketizer2.vhd
+-- Title      : AxiStreamPackerizerV2 Protocol: https://confluence.slac.stanford.edu/x/3nh4DQ
+-------------------------------------------------------------------------------
+-- File       : AxiStreamDepacketizer2.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Formats an AXI-Stream for a transport link.
 -- Sideband fields are placed into the data stream in a header.
--- Long frames are broken into smaller packets.
+-- Smaller packets are combined together to make a long frame
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
