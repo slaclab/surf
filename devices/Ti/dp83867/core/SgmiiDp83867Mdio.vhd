@@ -48,23 +48,36 @@ architecture rtl of SgmiiDp83867Mdio is
    -- the initialization sequence (https://www.xilinx.com/support/answers/69494.html):
 
    constant P_INIT_C : MdioProgramArray := (
-      mdioWriteInst(PHY_G, 211, x"4000", false),  -- The SGMII clock needs to be enabled, by writing 0x4000 to register 0xD3.
-      mdioWriteInst(PHY_G, 0, x"1140", false),  -- In the Control Register (Register 0), Enable Auto-negotiation and configure link speed and duplex settings.
-      mdioWriteInst(PHY_G, 20, x"29C7", false),  -- In the Configuration Register 2 (CFG2), Address 0x0014, Configure interrupt polarity, enable auto negotiation, Enable Speed Optimization
-      mdioWriteInst(PHY_G, 50, x"0000", false),  -- RGMII must be disabled, by writing 0x0 to register 0x32.
-      mdioWriteInst(PHY_G, 16, x"5868", false),  -- Address 0x0010: Enable SGMII
-      mdioWriteInst(PHY_G, 31, x"4000", true)  -- Set register 0x1F to the value 0x4000 to initiate the soft restart.
-      );
 
-   constant REG19_IDX_C : natural := 0;
-   constant REG17_IDX_C : natural := 1;
+      mdioWriteInst(PHY_G, 16#0D#, x"001F", false),  -- Address 0x000D: Setup for extended address
+      mdioWriteInst(PHY_G, 16#0E#, x"00DE", false),  -- Address 0x000E: Set extended address = 0x00D3
+      mdioWriteInst(PHY_G, 16#0D#, x"401F", false),  -- Address 0x000D: Setup for extended data write
+      mdioWriteInst(PHY_G, 16#0E#, x"4000", false),  -- Address 0x000E: Enable SGMII clock  
+
+      -- mdioWriteInst(PHY_G, 16#0D#, x"001F", false),  -- Address 0x000D: Setup for extended address
+      -- mdioWriteInst(PHY_G, 16#0E#, x"0032", false),  -- Address 0x000E: Set extended address = 0x0032
+      -- mdioWriteInst(PHY_G, 16#0D#, x"401F", false),  -- Address 0x000D: Setup for extended data write
+      -- mdioWriteInst(PHY_G, 16#0E#, x"0000", false),  -- Address 0x000E: RGMII must be disabled     
+
+      -- mdioWriteInst(PHY_G, 16#1E#, x"0082", false),  -- Address 0x001E: INTN/PWDNN Pad is an Interrupt Output.
+      -- mdioWriteInst(PHY_G, 16#14#, x"29C7", false),  -- Address 0x0014: Configure interrupt polarity, enable auto negotiation, Enable Speed Optimization
+      -- mdioWriteInst(PHY_G, 16#12#, X"0c00", false),  -- Address 0x0012: Interrupt of link and autoneg changes
+      -- mdioWriteInst(PHY_G, 16#10#, x"5868", false),  -- Address 0x0010: Enable SGMII      
+      -- mdioWriteInst(PHY_G, 16#09#, X"0200", false),  -- Address 0x0009: Advertise 1000   FD only      
+      -- mdioWriteInst(PHY_G, 16#04#, X"0140", false),  -- Address 0x0004: Advertise 10/100 FD only
+      -- mdioWriteInst(PHY_G, 16#00#, x"1340", false),  -- Address 0x0000: Enable autoneg and full duplex
+      
+      mdioWriteInst(PHY_G, 16#1F#, x"4000", true));  -- Address 0x001F: Initiate the soft restart.
+
+   constant REG0x13_IDX_C : natural := 0;
+   constant REG0x11_IDX_C : natural := 1;
 
    -- IRQ Handler sequence:
    --  1) read back and clear interrupts (reading does clear them)
    --  2) obtain current link status and speed
    constant P_HDLR_C : MdioProgramArray := (
-      REG19_IDX_C => mdioReadInst(PHY_G, 19, false),  -- read/ack/clear interrupt
-      REG17_IDX_C => mdioReadInst(PHY_G, 17, true)  -- read current speed and link status
+      REG0x13_IDX_C => mdioReadInst(PHY_G, 16#13#, false),  -- read/ack/clear interrupt
+      REG0x11_IDX_C => mdioReadInst(PHY_G, 16#11#, true)  -- read current speed and link status
       );
 
    constant NUM_READ_ARGS_C : natural := mdioProgNumReadTransactions(P_HDLR_C);
@@ -99,39 +112,33 @@ begin
          DIV_G           => DIV_G,
          PROG_INIT_G     => P_INIT_C,
          PROG_HDLR_G     => P_HDLR_C,
-         NUM_HDLR_ARGS_G => NUM_READ_ARGS_C
-         )
+         NUM_HDLR_ARGS_G => NUM_READ_ARGS_C)
       port map (
-         clk => clk,
-         rst => rst,
-
+         clk      => clk,
+         rst      => rst,
          initDone => initDone,
          hdlrDone => hdlrDone,
          args     => args,
-
-         mdc => mdc,
-         mdi => mdi,
-         mdo => mdo,
-
-         phyIrq => linkIrq
-         );
+         mdc      => mdc,
+         mdi      => mdi,
+         mdo      => mdo, phyIrq => linkIrq);
 
    COMB : process(args, hdlrDone, r)
-      variable v   : RegType;
-      variable r17 : slv(15 downto 0);
+      variable v       : RegType;
+      variable statReg : slv(15 downto 0);
    begin
 
       v := r;
 
       if (hdlrDone /= '0') then
 
-         r17 := args(REG17_IDX_C);
+         statReg := args(REG0x11_IDX_C);
 
-         v.linkIsUp := r17(11);
+         v.linkIsUp := statReg(10);
 
          if (v.linkIsUp /= '0') then
             -- link is good
-            case r17(15 downto 14) is
+            case statReg(15 downto 14) is
                when "10" =>             -- 1000Mbps
                   v.s10_100 := '0';
                   v.s100    := '0';
@@ -142,6 +149,8 @@ begin
                   v.s10_100 := '1';
                   v.s100    := '0';
                when others =>           -- reserved; should not happen
+                  v.s10_100 := '0';
+                  v.s100    := '0';
             end case;
          end if;
 
@@ -163,4 +172,3 @@ begin
    end process SEQ;
 
 end rtl;
-

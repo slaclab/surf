@@ -136,7 +136,7 @@ begin
       generic map (
          TPD_G => TPD_G,
          PHY_G => PHY_G,
-         DIV_G => getTimeRatio(STABLE_CLK_FREQ_G, 2*2.5E+6))  -- phyMdc = 2.5 MHz (nominally)
+         DIV_G => getTimeRatio(STABLE_CLK_FREQ_G, 2*1.0E+6))  -- phyMdc = 1.0 MHz 
       port map (
          clk             => stableClk,
          rst             => phyInitRst,
