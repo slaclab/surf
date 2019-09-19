@@ -1,10 +1,11 @@
 -------------------------------------------------------------------------------
--- Title      : PGP3 Transmit Protocol
+-- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
+-- File       : Pgp3TxProtocol.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
--- Takes pre-packetized AxiStream frames and creates a PGP3 66/64 protocol
+-- Description: PGPv3 Transmit Protocol
+-- Takes pre-packetized AxiStream frames and creates a PGPv3 66/64 protocol
 -- stream (pre-scrambler). Inserts IDLE and SKP codes as needed. Inserts
 -- user K codes on request.
 -------------------------------------------------------------------------------
