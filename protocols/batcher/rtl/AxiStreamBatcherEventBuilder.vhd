@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+-- Title      : AxiStream BatcherV1 Protocol: https://confluence.slac.stanford.edu/x/th1SDg
+-------------------------------------------------------------------------------
 -- File       : AxiStreamBatcherEventBuilder.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
