@@ -58,7 +58,7 @@ entity FifoSync is
       empty        : out sl);
 end FifoSync;
 
-architecture rtl of FifoSync is
+architecture mapping of FifoSync is
 
    signal rdRdy   : sl                           := '0';
    signal rdIndex : slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
@@ -73,6 +73,10 @@ architecture rtl of FifoSync is
    signal doutb  : slv(DATA_WIDTH_G-1 downto 0) := (others => '0');
    signal enb    : sl                           := '0';
    signal regceb : sl                           := '0';
+
+   signal localDout  : slv(DATA_WIDTH_G-1 downto 0) := (others => '0');
+   signal localValid : sl                           := '0';
+   signal localRdEn  : sl                           := '0';
 
 begin
 
@@ -134,10 +138,10 @@ begin
          regceb        => regceb,
          -- FIFO Read Interface
          rd_clk        => clk,
-         rd_en         => rd_en,
-         dout          => dout,
+         rd_en         => localRdEn,
+         dout          => localDout,
          rd_data_count => open,
-         valid         => valid,
+         valid         => localValid,
          underflow     => underflow,
          prog_empty    => prog_empty,
          almost_empty  => almost_empty,
@@ -167,4 +171,34 @@ begin
             regceb => regceb);
    end generate;
 
-end rtl;
+   GEN_PIPE : if (FWFT_EN_G = true) generate
+
+      U_Pipeline : entity work.FifoOutputPipeline
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            DATA_WIDTH_G   => DATA_WIDTH_G,
+            PIPE_STAGES_G  => PIPE_STAGES_G)
+         port map (
+            -- Slave Port
+            sData  => localDout,
+            sValid => localValid,
+            sRdEn  => localRdEn,
+            -- Master Port
+            mData  => dout,
+            mValid => valid,
+            mRdEn  => rd_en,
+            -- Clock and Reset
+            clk    => clk,
+            rst    => rst);
+
+   end generate;
+
+   BYP_PIPE : if (FWFT_EN_G = false) generate
+      dout      <= localDout;
+      valid     <= localValid;
+      localRdEn <= rd_en;
+   end generate;
+
+end mapping;

@@ -230,6 +230,14 @@ begin
       -----------------------------------------
 
       -- RD/WR FSM Outputs
+      if FIFO_ASYNC_G then
+         rdRdy   <= r.rdRdy;
+         rdIndex <= r.rdIndex;
+      else
+         rdRdy   <= v.rdRdy;
+         rdIndex <= v.rdIndex;
+      end if;
+
       rdRdy   <= r.rdRdy;
       rdIndex <= r.rdIndex;
 

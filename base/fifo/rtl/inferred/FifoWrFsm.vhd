@@ -187,8 +187,13 @@ begin
       -----------------------------------------
 
       -- RD/WR FSM Outputs
-      wrRdy   <= r.wrRdy;
-      wrIndex <= r.wrIndex;
+      if FIFO_ASYNC_G then
+         wrRdy   <= r.wrRdy;
+         wrIndex <= r.wrIndex;
+      else
+         wrRdy   <= v.wrRdy;
+         wrIndex <= v.wrIndex;
+      end if;
 
       -- RAM Outputs
       wea   <= v.wr_ack;
