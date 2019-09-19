@@ -77,14 +77,14 @@ class SsiPrbsRx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
-            name         = "BitStrbErrCnt",
-            description  = "Number of bit errors",
-            offset       =  0x14,
-            bitSize      =  32,
-            mode         = "RO",
-            pollInterval = 1,
-        ))
+        # self.add(pr.RemoteVariable(    
+            # name         = "BitStrbErrCnt",
+            # description  = "Number of bit errors",
+            # offset       =  0x14,
+            # bitSize      =  32,
+            # mode         = "RO",
+            # pollInterval = 1,
+        # ))
 
         self.add(pr.RemoteVariable(    
             name         = "RxFifoOverflowCnt",
@@ -185,14 +185,14 @@ class SsiPrbsRx(pr.Device):
             disp = '{:0.1f}',
             linkedGet = lambda: self.WordRate.value() * self.WordSize.value() * 1e-6))
             
-        self.add(pr.RemoteVariable(    
-            name         = "BitErrCnt",
-            description  = "",
-            offset       =  0x1CC,
-            bitSize      =  32,
-            mode         = "RO",
-            pollInterval = 1,
-        ))
+        # self.add(pr.RemoteVariable(    
+            # name         = "BitErrCnt",
+            # description  = "",
+            # offset       =  0x1CC,
+            # bitSize      =  32,
+            # mode         = "RO",
+            # pollInterval = 1,
+        # ))
 
         self.add(pr.RemoteVariable(    
             name         = "WordErrCnt",
