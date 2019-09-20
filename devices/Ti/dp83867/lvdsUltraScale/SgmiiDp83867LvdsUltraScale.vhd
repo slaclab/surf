@@ -43,6 +43,7 @@ entity SgmiiDp83867LvdsUltraScale is
       speed10     : out   sl;
       speed100    : out   sl;
       speed1000   : out   sl;
+      mmcmLocked  : out   sl;
       -- Interface to Ethernet Media Access Controller (MAC)
       macClk      : in    sl;
       macRst      : in    sl;
@@ -201,6 +202,7 @@ begin
          extRst             => extRst,
          phyClk             => phyClock,
          phyRst             => phyReset,
+         mmcmLocked         => mmcmLocked,
          phyReady(0)        => phyReady,
          speed_is_10_100(0) => sp10_100_sync,
          speed_is_100(0)    => sp100_sync,
