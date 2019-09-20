@@ -63,7 +63,7 @@ entity FifoAsync is
       empty         : out sl);
 end FifoAsync;
 
-architecture rtl of FifoAsync is
+architecture mapping of FifoAsync is
 
    constant SYNC_INIT_C : slv(SYNC_STAGES_G-1 downto 0) := (others => '0');
    constant GRAY_INIT_C : slv(ADDR_WIDTH_G-1 downto 0)  := (others => '0');
@@ -89,6 +89,10 @@ architecture rtl of FifoAsync is
    signal doutb  : slv(DATA_WIDTH_G-1 downto 0) := (others => '0');
    signal enb    : sl                           := '0';
    signal regceb : sl                           := '0';
+
+   signal localDout  : slv(DATA_WIDTH_G-1 downto 0) := (others => '0');
+   signal localValid : sl                           := '0';
+   signal localRdEn  : sl                           := '0';
 
 begin
 
@@ -220,10 +224,10 @@ begin
          regceb        => regceb,
          -- FIFO Read Interface
          rd_clk        => rd_clk,
-         rd_en         => rd_en,
-         dout          => dout,
+         rd_en         => localRdEn,
+         dout          => localDout,
          rd_data_count => rd_data_count,
-         valid         => valid,
+         valid         => localValid,
          underflow     => underflow,
          prog_empty    => prog_empty,
          almost_empty  => almost_empty,
@@ -256,4 +260,32 @@ begin
             regceb => regceb);
    end generate;
 
-end architecture rtl;
+   GEN_PIPE : if (FWFT_EN_G = true) generate
+
+      U_Pipeline : entity work.FifoOutputPipeline
+         generic map (
+            TPD_G         => TPD_G,
+            DATA_WIDTH_G  => DATA_WIDTH_G,
+            PIPE_STAGES_G => PIPE_STAGES_G)
+         port map (
+            -- Slave Port
+            sData  => localDout,
+            sValid => localValid,
+            sRdEn  => localRdEn,
+            -- Master Port
+            mData  => dout,
+            mValid => valid,
+            mRdEn  => rd_en,
+            -- Clock and Reset
+            clk    => rd_clk,
+            rst    => rdRst);
+
+   end generate;
+
+   BYP_PIPE : if (FWFT_EN_G = false) generate
+      dout      <= localDout;
+      valid     <= localValid;
+      localRdEn <= rd_en;
+   end generate;
+
+end mapping;

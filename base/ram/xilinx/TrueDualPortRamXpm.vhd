@@ -25,15 +25,17 @@ use xpm.vcomponents.all;
 
 entity TrueDualPortRamXpm is
    generic (
-      TPD_G          : time                       := 1 ns;
-      COMMON_CLK_G   : boolean                    := false;
-      RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low       
-      MEMORY_TYPE_G  : string                     := "block";
-      READ_LATENCY_G : natural range 0 to 100     := 1;
-      DATA_WIDTH_G   : integer range 1 to (2**24) := 16;
-      BYTE_WR_EN_G   : boolean                    := false;
-      BYTE_WIDTH_G   : integer range 8 to 9       := 8;  -- If BRAM, should be multiple or 8 or 9
-      ADDR_WIDTH_G   : integer range 1 to (2**24) := 4);
+      TPD_G               : time                       := 1 ns;
+      COMMON_CLK_G        : boolean                    := false;
+      RST_POLARITY_G      : sl                         := '1';  -- '1' for active high rst, '0' for active low       
+      MEMORY_TYPE_G       : string                     := "block";
+      MEMORY_INIT_FILE_G  : string                     := "none";
+      MEMORY_INIT_PARAM_G : string                     := "0";
+      READ_LATENCY_G      : natural range 0 to 100     := 1;
+      DATA_WIDTH_G        : integer range 1 to (2**24) := 16;
+      BYTE_WR_EN_G        : boolean                    := false;
+      BYTE_WIDTH_G        : integer range 8 to 9       := 8;  -- If BRAM, should be multiple or 8 or 9
+      ADDR_WIDTH_G        : integer range 1 to (2**24) := 4);
    port (
       -- Port A     
       clka   : in  sl                                                                          := '0';
@@ -71,6 +73,8 @@ begin
          BYTE_WRITE_WIDTH_B      => ite(BYTE_WR_EN_G, BYTE_WIDTH_G, DATA_WIDTH_G),
          CLOCKING_MODE           => ite(COMMON_CLK_G, "common_clock", "independent_clock"),
          ECC_MODE                => "no_ecc",         -- Default value = no_ecc
+         MEMORY_INIT_FILE        => MEMORY_INIT_FILE_G,
+         MEMORY_INIT_PARAM       => MEMORY_INIT_PARAM_G,
          MEMORY_OPTIMIZATION     => "true",           -- Default value = true
          MEMORY_PRIMITIVE        => MEMORY_TYPE_G,
          MEMORY_SIZE             => (DATA_WIDTH_G*(2**ADDR_WIDTH_G)),

@@ -121,7 +121,6 @@ architecture rtl of Jesd204bTx is
    -- Test signal control
    signal s_rampStep      : slv(PER_STEP_WIDTH_C-1 downto 0);
    signal s_squarePeriod  : slv(PER_STEP_WIDTH_C-1 downto 0);
-   signal s_enableTestSig : sl;
 
    signal s_posAmplitude : slv(F_G*8-1 downto 0);
    signal s_negAmplitude : slv(F_G*8-1 downto 0);
@@ -147,7 +146,6 @@ architecture rtl of Jesd204bTx is
 
    -- Select output 
    signal s_muxOutSelArr : Slv3Array(L_G-1 downto 0);
-   signal s_testEn       : slv(L_G-1 downto 0);
    signal s_jesdGtTxArr  : jesdGtTxLaneTypeArray(L_G-1 downto 0);
 
 begin
@@ -211,7 +209,6 @@ begin
          negAmplitude_o  => s_negAmplitude,
          rampStep_o      => s_rampStep,
          squarePeriod_o  => s_squarePeriod,
-         enableTestSig_o => s_enableTestSig,
          invertSync_o    => s_invertSync,
          -- TX Configurable Driver Ports
          txDiffCtrl      => txDiffCtrl,
@@ -223,9 +220,6 @@ begin
 
    GEN_TEST : for i in L_G-1 downto 0 generate
 
-      -- Check the test pattern enable bit 
-      s_testEn(i) <= s_dataValid(i) and s_enableTestSig;
-
       U_TestStream : entity work.JesdTestStreamTx
          generic map (
             TPD_G => TPD_G,
@@ -233,7 +227,7 @@ begin
          port map (
             clk            => devClk_i,
             rst            => devRst_i,
-            enable_i       => s_testEn(i),
+            enable_i       => s_dataValid(i),
             rampStep_i     => s_rampStep,
             squarePeriod_i => s_squarePeriod,
             posAmplitude_i => s_posAmplitude,
