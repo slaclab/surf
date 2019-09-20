@@ -52,10 +52,7 @@ class AxiMicronP30(pr.Device):
             self._writeToFlash(0xFD4F,0x60,0x03)            
             
             # Open the MCS file
-            self._mcs.open(arg)                                           
-
-            # print(f' startAddr: {hex(self._mcs.startAddr)}')
-            # print(f' endAddr: {hex(self._mcs.endAddr)}')            
+            self._mcs.open(arg)
             
             # Erase the PROM
             self.eraseProm()

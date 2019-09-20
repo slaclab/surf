@@ -36,11 +36,13 @@ class McsReader():
         self.startAddr = 0
         self.endAddr   = 0
         self.size      = 0
+        self.addrRange = 0
         
-    def open(self, filename):   
+    def open(self, filename, dbg=False):   
         self.startAddr = 0
         self.endAddr   = 0
         self.size      = 0
+        self.addrRange = 0
         baseAddr       = 0
         idx            = 0
         
@@ -147,5 +149,16 @@ class McsReader():
             # Close the status bar
             bar.update(numLines)          
             
+        # Set the size of the entry array
+        self.size = idx
+
         # Calculate the total size (in units of bytes)                
-        self.size = (self.endAddr - self.startAddr) + 1
+        self.addrRange = (self.endAddr - self.startAddr) + 1
+        
+        # Print the MCS metadata
+        if (dbg):
+            print("mcs.size      = {}".format(hex(self.size)))
+            print("mcs.startAddr = {}".format(hex(self.startAddr)))
+            print("mcs.endAddr   = {}".format(hex(self.endAddr)))        
+            print("mcs.addrRange = {}".format(hex(self.addrRange)))          
+            
