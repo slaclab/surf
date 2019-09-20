@@ -50,7 +50,7 @@ package PgpEthPkg is
    constant PGP_ETH_TX_IN_INIT_C : PgpEthTxInType := (
       disable      => '0',
       flowCntlDis  => '0',
-      nullInterval => toSlv(500, 32),
+      nullInterval => toSlv(127, 32),
       opCodeEn     => '0',
       opCode       => (others => '0'),
       locData      => (others => '0'));
