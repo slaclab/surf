@@ -37,7 +37,7 @@ entity PgpEthCaui4Gty is
       REFCLK_TYPE_G         : boolean                     := true;  -- false = 156.25 MHz, true = 161.1328125 MHz
       -- PGP Settings
       NUM_VC_G              : integer range 1 to 16       := 4;
-      TX_MAX_PAYLOAD_SIZE_G : positive                    := 1024;  -- Must be a multiple of 64B (in units of bytes)
+      TX_MAX_PAYLOAD_SIZE_G : positive                    := 8192;  -- Must be a multiple of 64B (in units of bytes)
       -- Misc Debug Settings
       LOOPBACK_G            : slv(2 downto 0)             := (others => '0');
       RX_POLARITY_G         : slv(3 downto 0)             := (others => '0');

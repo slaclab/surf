@@ -29,7 +29,7 @@ entity PgpEthTx is
    generic (
       TPD_G              : time                   := 1 ns;
       NUM_VC_G           : positive range 1 to 16 := 1;
-      MAX_PAYLOAD_SIZE_G : positive               := 1024);  -- Must be a multiple of 64B (in units of bytes)
+      MAX_PAYLOAD_SIZE_G : positive               := 8192);  -- Must be a multiple of 64B (in units of bytes)
    port (
       -- Ethernet Configuration
       remoteMac      : in  slv(47 downto 0);
