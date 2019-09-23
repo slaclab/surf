@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+-- Title      : AxiStreamPackerizerV2 Protocol: https://confluence.slac.stanford.edu/x/3nh4DQ
+-------------------------------------------------------------------------------
 -- File       : AxiStreamPacketizer2.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------

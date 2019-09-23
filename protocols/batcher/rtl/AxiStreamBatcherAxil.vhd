@@ -1,11 +1,10 @@
 -------------------------------------------------------------------------------
--- Title      : AXI-Lite wrapper for AXI-Stream Batcher
+-- Title      : AxiStream BatcherV1 Protocol: https://confluence.slac.stanford.edu/x/th1SDg
 -------------------------------------------------------------------------------
+-- File       : AxiStreamBatcherEventBuilder.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: AXI-Lite wrapper for AXI-Stream Batcher
 -------------------------------------------------------------------------------
 -- This file is part of SURF. It is subject to
 -- the license terms in the LICENSE.txt file found in the top-level directory

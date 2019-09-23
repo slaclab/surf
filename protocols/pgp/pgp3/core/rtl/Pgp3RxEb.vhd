@@ -1,11 +1,10 @@
 -------------------------------------------------------------------------------
--- Title      : 
+-- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
+-- File       : Pgp3RxEb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: Pgp3 Rx Elastic Buffer
+-- Description: PGPv3 Rx Elastic Buffer
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

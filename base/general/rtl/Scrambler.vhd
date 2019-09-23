@@ -1,9 +1,8 @@
 -------------------------------------------------------------------------------
 -- Title      : Source Synchronous Scrambler
 -------------------------------------------------------------------------------
+-- File       : Scrambler.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:
 -- A source synchronous (multiplicative) scrambler with paramatized data width

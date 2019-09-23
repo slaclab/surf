@@ -20,6 +20,9 @@ use ieee.numeric_std.all;
 use work.StdRtlPkg.all;
 
 entity Fifo is
+   -- SYNTH_MODE_G Options: {"inferred", "xpm", "altera_mf"}
+   -- MEMORY_TYPE_G: Xilinx Options: {"auto", "block", "distributed", "ultra"}
+   -- MEMORY_TYPE_G: Altera Options: {"auto", "MLAB", "M20K" and "M144K"}
    generic (
       TPD_G           : time                       := 1 ns;
       RST_POLARITY_G  : sl                         := '1';  -- '1' for active high rst, '0' for active low
@@ -27,6 +30,8 @@ entity Fifo is
       GEN_SYNC_FIFO_G : boolean                    := false;
       BRAM_EN_G       : boolean                    := true;
       FWFT_EN_G       : boolean                    := false;
+      SYNTH_MODE_G    : string                     := "inferred";
+      MEMORY_TYPE_G   : string                     := "block";      
       USE_DSP48_G     : string                     := "no";
       ALTERA_SYN_G    : boolean                    := false;
       ALTERA_RAM_G    : string                     := "M9K";
@@ -75,168 +80,244 @@ begin
    assert (INIT_G = "0" or INIT_G'length = DATA_WIDTH_G) report
       "INIT_G must either be ""0"" or the same length as DATA_WIDTH_G" severity failure;
 
-   NON_BUILT_IN_GEN : if (USE_BUILT_IN_G = false) generate
-      FIFO_ASYNC_Gen : if (GEN_SYNC_FIFO_G = false) generate
-         FifoAsync_Inst : entity work.FifoAsync
-            generic map (
-               TPD_G          => TPD_G,
-               RST_POLARITY_G => RST_POLARITY_G,
-               BRAM_EN_G      => BRAM_EN_G,
-               FWFT_EN_G      => FWFT_EN_G,
-               USE_DSP48_G    => USE_DSP48_G,
-               ALTERA_SYN_G   => ALTERA_SYN_G,
-               ALTERA_RAM_G   => ALTERA_RAM_G,
-               SYNC_STAGES_G  => SYNC_STAGES_G,
-               PIPE_STAGES_G  => PIPE_STAGES_G,
-               DATA_WIDTH_G   => DATA_WIDTH_G,
-               ADDR_WIDTH_G   => ADDR_WIDTH_G,
-               INIT_G         => INIT_C,
-               FULL_THRES_G   => FULL_THRES_G,
-               EMPTY_THRES_G  => EMPTY_THRES_G)
-            port map (
-               rst           => rst,
-               wr_clk        => wr_clk,
-               wr_en         => wr_en,
-               din           => din,
-               wr_data_count => wr_data_count,
-               wr_ack        => wr_ack,
-               overflow      => overflow,
-               prog_full     => prog_full,
-               almost_full   => almost_full,
-               full          => full,
-               not_full      => not_full,
-               rd_clk        => rd_clk,
-               rd_en         => rd_en,
-               dout          => dout,
-               rd_data_count => rd_data_count,
-               valid         => valid,
-               underflow     => underflow,
-               prog_empty    => prog_empty,
-               almost_empty  => almost_empty,
-               empty         => empty);   
-      end generate;
-
-      FIFO_SYNC_Gen : if (GEN_SYNC_FIFO_G = true) generate
-         wr_data_count <= data_count;
-         rd_data_count <= data_count;
-
-         FifoSync_Inst : entity work.FifoSync
-            generic map (
-               TPD_G          => TPD_G,
-               RST_POLARITY_G => RST_POLARITY_G,
-               RST_ASYNC_G    => RST_ASYNC_G,
-               BRAM_EN_G      => BRAM_EN_G,
-               FWFT_EN_G      => FWFT_EN_G,
-               USE_DSP48_G    => USE_DSP48_G,
-               ALTERA_RAM_G   => ALTERA_RAM_G,
-               PIPE_STAGES_G  => PIPE_STAGES_G,
-               DATA_WIDTH_G   => DATA_WIDTH_G,
-               ADDR_WIDTH_G   => ADDR_WIDTH_G,
-               INIT_G         => INIT_C,
-               FULL_THRES_G   => FULL_THRES_G,
-               EMPTY_THRES_G  => EMPTY_THRES_G)
-            port map (
-               rst          => rst,
-               clk          => wr_clk,
-               wr_en        => wr_en,
-               rd_en        => rd_en,
-               din          => din,
-               dout         => dout,
-               data_count   => data_count,
-               wr_ack       => wr_ack,
-               valid        => valid,
-               overflow     => overflow,
-               underflow    => underflow,
-               prog_full    => prog_full,
-               prog_empty   => prog_empty,
-               almost_full  => almost_full,
-               almost_empty => almost_empty,
-               full         => full,
-               not_full     => not_full,
-               empty        => empty);   
-      --NOTE: 
-      --    When mapping the FifoSync, I am assuming that
-      --    wr_clk = rd_clk (both in frequency and in phase)
-      --    and I only pass wr_clk into the FifoSync_Inst
-      end generate;
+   GEN_XPM : if (SYNTH_MODE_G = "xpm") generate
+      U_XPM : entity work.FifoXpm
+         generic map (
+            TPD_G           => TPD_G,
+            RST_POLARITY_G  => RST_POLARITY_G,
+            FWFT_EN_G       => FWFT_EN_G,
+            GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_G,
+            MEMORY_TYPE_G   => MEMORY_TYPE_G,
+            SYNC_STAGES_G   => SYNC_STAGES_G,
+            PIPE_STAGES_G   => PIPE_STAGES_G,
+            DATA_WIDTH_G    => DATA_WIDTH_G,
+            ADDR_WIDTH_G    => ADDR_WIDTH_G,
+            FULL_THRES_G    => FULL_THRES_G,
+            EMPTY_THRES_G   => EMPTY_THRES_G)
+         port map (
+            rst           => rst,
+            wr_clk        => wr_clk,
+            wr_en         => wr_en,
+            din           => din,
+            wr_data_count => wr_data_count,
+            wr_ack        => wr_ack,
+            overflow      => overflow,
+            prog_full     => prog_full,
+            almost_full   => almost_full,
+            full          => full,
+            not_full      => not_full,
+            rd_clk        => rd_clk,
+            rd_en         => rd_en,
+            dout          => dout,
+            rd_data_count => rd_data_count,
+            valid         => valid,
+            underflow     => underflow,
+            prog_empty    => prog_empty,
+            almost_empty  => almost_empty,
+            empty         => empty);
    end generate;
 
-   BUILT_IN_GEN : if (USE_BUILT_IN_G = true) generate
-      FIFO_SYNC_BUILT_IN_GEN : if (GEN_SYNC_FIFO_G = true) generate
-         wr_data_count <= data_count;
-         rd_data_count <= data_count;
+   GEN_ALTERA : if (SYNTH_MODE_G = "altera_mf") generate
+      U_MF : entity work.FifoAlteraMf
+         generic map (
+            TPD_G           => TPD_G,
+            RST_POLARITY_G  => RST_POLARITY_G,
+            FWFT_EN_G       => FWFT_EN_G,
+            GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_G,
+            MEMORY_TYPE_G   => MEMORY_TYPE_G,
+            SYNC_STAGES_G   => SYNC_STAGES_G,
+            PIPE_STAGES_G   => PIPE_STAGES_G,
+            DATA_WIDTH_G    => DATA_WIDTH_G,
+            ADDR_WIDTH_G    => ADDR_WIDTH_G,
+            FULL_THRES_G    => FULL_THRES_G,
+            EMPTY_THRES_G   => EMPTY_THRES_G)
+         port map (
+            rst           => rst,
+            wr_clk        => wr_clk,
+            wr_en         => wr_en,
+            din           => din,
+            wr_data_count => wr_data_count,
+            wr_ack        => wr_ack,
+            overflow      => overflow,
+            prog_full     => prog_full,
+            almost_full   => almost_full,
+            full          => full,
+            not_full      => not_full,
+            rd_clk        => rd_clk,
+            rd_en         => rd_en,
+            dout          => dout,
+            rd_data_count => rd_data_count,
+            valid         => valid,
+            underflow     => underflow,
+            prog_empty    => prog_empty,
+            almost_empty  => almost_empty,
+            empty         => empty);
+   end generate;
 
-         FifoSyncBuiltIn_Inst : entity work.FifoSyncBuiltIn
-            generic map (
-               TPD_G          => TPD_G,
-               RST_POLARITY_G => RST_POLARITY_G,
-               XIL_DEVICE_G   => XIL_DEVICE_G,
-               USE_DSP48_G    => USE_DSP48_G,
-               FWFT_EN_G      => FWFT_EN_G,
-               PIPE_STAGES_G  => PIPE_STAGES_G,
-               DATA_WIDTH_G   => DATA_WIDTH_G,
-               ADDR_WIDTH_G   => ADDR_WIDTH_G,
-               FULL_THRES_G   => FULL_THRES_G,
-               EMPTY_THRES_G  => EMPTY_THRES_G)
-            port map (
-               rst          => rst,
-               clk          => wr_clk,
-               wr_en        => wr_en,
-               rd_en        => rd_en,
-               din          => din,
-               dout         => dout,
-               data_count   => data_count,
-               wr_ack       => wr_ack,
-               valid        => valid,
-               overflow     => overflow,
-               underflow    => underflow,
-               prog_full    => prog_full,
-               prog_empty   => prog_empty,
-               almost_full  => almost_full,
-               almost_empty => almost_empty,
-               full         => full,
-               not_full     => not_full,
-               empty        => empty);   
-      --NOTE: 
-      --    When mapping the FifoSync, I am assuming that
-      --    wr_clk = rd_clk (both in frequency and in phase)
-      --    and I only pass wr_clk into the FifoSyncBuiltIn_Inst
+   GEN_INFERRED : if (SYNTH_MODE_G = "inferred") generate
+      NON_BUILT_IN_GEN : if (USE_BUILT_IN_G = false) generate
+         FIFO_ASYNC_Gen : if (GEN_SYNC_FIFO_G = false) generate
+            FifoAsync_Inst : entity work.FifoAsync
+               generic map (
+                  TPD_G          => TPD_G,
+                  RST_POLARITY_G => RST_POLARITY_G,
+                  BRAM_EN_G      => BRAM_EN_G,
+                  FWFT_EN_G      => FWFT_EN_G,
+                  USE_DSP48_G    => USE_DSP48_G,
+                  ALTERA_SYN_G   => ALTERA_SYN_G,
+                  ALTERA_RAM_G   => ALTERA_RAM_G,
+                  SYNC_STAGES_G  => SYNC_STAGES_G,
+                  PIPE_STAGES_G  => PIPE_STAGES_G,
+                  DATA_WIDTH_G   => DATA_WIDTH_G,
+                  ADDR_WIDTH_G   => ADDR_WIDTH_G,
+                  INIT_G         => INIT_C,
+                  FULL_THRES_G   => FULL_THRES_G,
+                  EMPTY_THRES_G  => EMPTY_THRES_G)
+               port map (
+                  rst           => rst,
+                  wr_clk        => wr_clk,
+                  wr_en         => wr_en,
+                  din           => din,
+                  wr_data_count => wr_data_count,
+                  wr_ack        => wr_ack,
+                  overflow      => overflow,
+                  prog_full     => prog_full,
+                  almost_full   => almost_full,
+                  full          => full,
+                  not_full      => not_full,
+                  rd_clk        => rd_clk,
+                  rd_en         => rd_en,
+                  dout          => dout,
+                  rd_data_count => rd_data_count,
+                  valid         => valid,
+                  underflow     => underflow,
+                  prog_empty    => prog_empty,
+                  almost_empty  => almost_empty,
+                  empty         => empty);   
+         end generate;
+
+         FIFO_SYNC_Gen : if (GEN_SYNC_FIFO_G = true) generate
+            wr_data_count <= data_count;
+            rd_data_count <= data_count;
+
+            FifoSync_Inst : entity work.FifoSync
+               generic map (
+                  TPD_G          => TPD_G,
+                  RST_POLARITY_G => RST_POLARITY_G,
+                  RST_ASYNC_G    => RST_ASYNC_G,
+                  BRAM_EN_G      => BRAM_EN_G,
+                  FWFT_EN_G      => FWFT_EN_G,
+                  USE_DSP48_G    => USE_DSP48_G,
+                  ALTERA_RAM_G   => ALTERA_RAM_G,
+                  PIPE_STAGES_G  => PIPE_STAGES_G,
+                  DATA_WIDTH_G   => DATA_WIDTH_G,
+                  ADDR_WIDTH_G   => ADDR_WIDTH_G,
+                  INIT_G         => INIT_C,
+                  FULL_THRES_G   => FULL_THRES_G,
+                  EMPTY_THRES_G  => EMPTY_THRES_G)
+               port map (
+                  rst          => rst,
+                  clk          => wr_clk,
+                  wr_en        => wr_en,
+                  rd_en        => rd_en,
+                  din          => din,
+                  dout         => dout,
+                  data_count   => data_count,
+                  wr_ack       => wr_ack,
+                  valid        => valid,
+                  overflow     => overflow,
+                  underflow    => underflow,
+                  prog_full    => prog_full,
+                  prog_empty   => prog_empty,
+                  almost_full  => almost_full,
+                  almost_empty => almost_empty,
+                  full         => full,
+                  not_full     => not_full,
+                  empty        => empty);   
+         --NOTE: 
+         --    When mapping the FifoSync, I am assuming that
+         --    wr_clk = rd_clk (both in frequency and in phase)
+         --    and I only pass wr_clk into the FifoSync_Inst
+         end generate;
       end generate;
-      FIFO_ASYNC_BUILT_IN_GEN : if (GEN_SYNC_FIFO_G = false) generate
-         FifoAsyncBuiltIn_Inst : entity work.FifoAsyncBuiltIn
-            generic map (
-               TPD_G          => TPD_G,
-               RST_POLARITY_G => RST_POLARITY_G,
-               FWFT_EN_G      => FWFT_EN_G,
-               USE_DSP48_G    => USE_DSP48_G,
-               XIL_DEVICE_G   => XIL_DEVICE_G,
-               SYNC_STAGES_G  => SYNC_STAGES_G,
-               PIPE_STAGES_G  => PIPE_STAGES_G,
-               DATA_WIDTH_G   => DATA_WIDTH_G,
-               ADDR_WIDTH_G   => ADDR_WIDTH_G,
-               FULL_THRES_G   => FULL_THRES_G,
-               EMPTY_THRES_G  => EMPTY_THRES_G)            
-            port map (
-               rst           => rst,
-               wr_clk        => wr_clk,
-               wr_en         => wr_en,
-               din           => din,
-               wr_data_count => wr_data_count,
-               wr_ack        => wr_ack,
-               overflow      => overflow,
-               prog_full     => prog_full,
-               almost_full   => almost_full,
-               full          => full,
-               not_full      => not_full,
-               rd_clk        => rd_clk,
-               rd_en         => rd_en,
-               dout          => dout,
-               rd_data_count => rd_data_count,
-               valid         => valid,
-               underflow     => underflow,
-               prog_empty    => prog_empty,
-               almost_empty  => almost_empty,
-               empty         => empty);   
+
+      BUILT_IN_GEN : if (USE_BUILT_IN_G = true) generate
+         FIFO_SYNC_BUILT_IN_GEN : if (GEN_SYNC_FIFO_G = true) generate
+            wr_data_count <= data_count;
+            rd_data_count <= data_count;
+
+            FifoSyncBuiltIn_Inst : entity work.FifoSyncBuiltIn
+               generic map (
+                  TPD_G          => TPD_G,
+                  RST_POLARITY_G => RST_POLARITY_G,
+                  XIL_DEVICE_G   => XIL_DEVICE_G,
+                  USE_DSP48_G    => USE_DSP48_G,
+                  FWFT_EN_G      => FWFT_EN_G,
+                  PIPE_STAGES_G  => PIPE_STAGES_G,
+                  DATA_WIDTH_G   => DATA_WIDTH_G,
+                  ADDR_WIDTH_G   => ADDR_WIDTH_G,
+                  FULL_THRES_G   => FULL_THRES_G,
+                  EMPTY_THRES_G  => EMPTY_THRES_G)
+               port map (
+                  rst          => rst,
+                  clk          => wr_clk,
+                  wr_en        => wr_en,
+                  rd_en        => rd_en,
+                  din          => din,
+                  dout         => dout,
+                  data_count   => data_count,
+                  wr_ack       => wr_ack,
+                  valid        => valid,
+                  overflow     => overflow,
+                  underflow    => underflow,
+                  prog_full    => prog_full,
+                  prog_empty   => prog_empty,
+                  almost_full  => almost_full,
+                  almost_empty => almost_empty,
+                  full         => full,
+                  not_full     => not_full,
+                  empty        => empty);   
+         --NOTE: 
+         --    When mapping the FifoSync, I am assuming that
+         --    wr_clk = rd_clk (both in frequency and in phase)
+         --    and I only pass wr_clk into the FifoSyncBuiltIn_Inst
+         end generate;
+         FIFO_ASYNC_BUILT_IN_GEN : if (GEN_SYNC_FIFO_G = false) generate
+            FifoAsyncBuiltIn_Inst : entity work.FifoAsyncBuiltIn
+               generic map (
+                  TPD_G          => TPD_G,
+                  RST_POLARITY_G => RST_POLARITY_G,
+                  FWFT_EN_G      => FWFT_EN_G,
+                  USE_DSP48_G    => USE_DSP48_G,
+                  XIL_DEVICE_G   => XIL_DEVICE_G,
+                  SYNC_STAGES_G  => SYNC_STAGES_G,
+                  PIPE_STAGES_G  => PIPE_STAGES_G,
+                  DATA_WIDTH_G   => DATA_WIDTH_G,
+                  ADDR_WIDTH_G   => ADDR_WIDTH_G,
+                  FULL_THRES_G   => FULL_THRES_G,
+                  EMPTY_THRES_G  => EMPTY_THRES_G)            
+               port map (
+                  rst           => rst,
+                  wr_clk        => wr_clk,
+                  wr_en         => wr_en,
+                  din           => din,
+                  wr_data_count => wr_data_count,
+                  wr_ack        => wr_ack,
+                  overflow      => overflow,
+                  prog_full     => prog_full,
+                  almost_full   => almost_full,
+                  full          => full,
+                  not_full      => not_full,
+                  rd_clk        => rd_clk,
+                  rd_en         => rd_en,
+                  dout          => dout,
+                  rd_data_count => rd_data_count,
+                  valid         => valid,
+                  underflow     => underflow,
+                  prog_empty    => prog_empty,
+                  almost_empty  => almost_empty,
+                  empty         => empty);   
+         end generate;
       end generate;
    end generate;
    

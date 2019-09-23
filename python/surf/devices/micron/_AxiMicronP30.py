@@ -52,10 +52,7 @@ class AxiMicronP30(pr.Device):
             self._writeToFlash(0xFD4F,0x60,0x03)            
             
             # Open the MCS file
-            self._mcs.open(arg)                                           
-
-            # print(f' startAddr: {hex(self._mcs.startAddr)}')
-            # print(f' endAddr: {hex(self._mcs.endAddr)}')            
+            self._mcs.open(arg)
             
             # Erase the PROM
             self.eraseProm()
@@ -203,7 +200,7 @@ class AxiMicronP30(pr.Device):
                     # Compare PROM to file
                     if (data != prom):
                         click.secho(("\nAddr = 0x%x: MCS = 0x%x != PROM = 0x%x" % (addr,data,prom)), fg='red')
-                        raise McsException('verifyProm() Failed\n\n')
+                        raise misc.McsException('verifyProm() Failed\n\n')
             # Close the status bar
             bar.update(self._mcs.size)  
         

@@ -110,15 +110,15 @@ class AxiMicronN25Q(pr.Device):
         self.resetFlash()
         
         # Print the status registers
-        print("MicronN25Q Manufacturer ID Code  = {}".format(hex(self.getManufacturerId())))
-        print("MicronN25Q Manufacturer Type     = {}".format(hex(self.getManufacturerType())))
-        print("MicronN25Q Manufacturer Capacity = {}".format(hex(self.getManufacturerCapacity())))
-        print("MicronN25Q Status Register       = {}".format(hex(self.getPromStatusReg())))
-        print("MicronN25Q Volatile Config Reg   = {}".format(hex(self.getPromConfigReg())))
+        print("PROM Manufacturer ID Code  = {}".format(hex(self.getManufacturerId())))
+        print("PROM Manufacturer Type     = {}".format(hex(self.getManufacturerType())))
+        print("PROM Manufacturer Capacity = {}".format(hex(self.getManufacturerCapacity())))
+        print("PROM Status Register       = {}".format(hex(self.getPromStatusReg())))
+        print("PROM Volatile Config Reg   = {}".format(hex(self.getPromConfigReg())))
         
         # Open the MCS file
         self._mcs.open(arg)
-        
+
         # Erase the PROM
         self.eraseProm()
         
@@ -254,7 +254,7 @@ class AxiMicronN25Q(pr.Device):
                 # Compare PROM to file
                 if (data != prom):
                     click.secho(("\nAddr = 0x%x: MCS = 0x%x != PROM = 0x%x" % (addr,data,prom)), fg='red')
-                    raise McsException('verifyProm() Failed\n\n')
+                    raise misc.McsException('verifyProm() Failed\n\n')
                 # Increment the counter
                 byteCnt += 1    
                 # Check the byte counter

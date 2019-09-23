@@ -1,11 +1,10 @@
 -------------------------------------------------------------------------------
--- Title      : Testbench for design "AxiStreamPacketizer2"
+-- Title      : AxiStreamPackerizerV2 Protocol: https://confluence.slac.stanford.edu/x/3nh4DQ
 -------------------------------------------------------------------------------
+-- File       : AxiStreamPacketizer2Tb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Testbench for design "AxiStreamPacketizer2"
 -------------------------------------------------------------------------------
 -- This file is part of SURF. It is subject to
 -- the license terms in the LICENSE.txt file found in the top-level directory

@@ -8,3 +8,4 @@
 xvcSrv
 bin/
 doxygen/
+__pycache__*

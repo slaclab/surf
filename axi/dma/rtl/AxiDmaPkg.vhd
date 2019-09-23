@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamDmaRead.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:
 -- Package file for AXI DMA Controller
@@ -123,6 +122,11 @@ package AxiDmaPkg is
 
    -- Array
    type AxiReadDmaReqArray is array (natural range<>) of AxiReadDmaReqType;
+   
+   constant AXI_READ_DMA_READ_REQ_SIZE_C : integer := 131;
+
+   function toSlv (r : AxiReadDmaReqType ) return slv;
+   function toAxiReadDmaReq (din : slv; valid : sl) return AxiReadDmaReqType;   
 
    -------------------------------------
    -- Read DMA Acknowledge (AxiStreamDmaRead)
@@ -342,6 +346,35 @@ package AxiDmaPkg is
 end package AxiDmaPkg;
 
 package body AxiDmaPkg is
+
+   function toSlv (r : AxiReadDmaReqType ) return slv is
+      variable retValue : slv(AXI_READ_DMA_READ_REQ_SIZE_C-1 downto 0) := (others => '0');
+      variable i        : integer := 0;
+   begin
+      assignSlv(i, retValue, r.address);
+      assignSlv(i, retValue, r.size);
+      assignSlv(i, retValue, r.firstUser);
+      assignSlv(i, retValue, r.lastUser);
+      assignSlv(i, retValue, r.dest);
+      assignSlv(i, retValue, r.id);
+      assignSlv(i, retValue, r.prot);
+      return(retValue);
+   end function;
+
+   function toAxiReadDmaReq (din : slv; valid : sl) return AxiReadDmaReqType is
+      variable desc : AxiReadDmaReqType := AXI_READ_DMA_REQ_INIT_C;
+      variable i    : integer := 0;
+   begin
+      desc.request := valid;
+      assignRecord(i, din, desc.address);
+      assignRecord(i, din, desc.size);
+      assignRecord(i, din, desc.firstUser);
+      assignRecord(i, din, desc.lastUser);
+      assignRecord(i, din, desc.dest);
+      assignRecord(i, din, desc.id);
+      assignRecord(i, din, desc.prot);
+      return(desc);
+   end function;
 
    function toSlv (r : AxiWriteDmaDescReqType ) return slv is
       variable retValue : slv(AXI_WRITE_DMA_DESC_REQ_SIZE_C-1 downto 0) := (others => '0');
