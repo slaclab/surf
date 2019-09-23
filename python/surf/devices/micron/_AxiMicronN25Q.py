@@ -22,6 +22,7 @@ import surf.misc as misc
 import click
 import time
 import datetime
+import math
 
 class AxiMicronN25Q(pr.Device):
     def __init__(self,
@@ -154,7 +155,7 @@ class AxiMicronN25Q(pr.Device):
         ERASE_SIZE = 0x10000
         # Setup the status bar
         with click.progressbar(
-            iterable = range(int((self._mcs.size)/ERASE_SIZE)),
+            iterable = range(math.ceil(self._mcs.size/ERASE_SIZE)),
             label    = click.style('Erasing PROM:  ', fg='green'),
         ) as bar:
             for i in bar:
