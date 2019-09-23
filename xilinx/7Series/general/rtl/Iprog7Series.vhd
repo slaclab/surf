@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Iprog7Series.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:   Uses the ICAP primitive to internally 
 --                toggle the PROG_B via IPROG command

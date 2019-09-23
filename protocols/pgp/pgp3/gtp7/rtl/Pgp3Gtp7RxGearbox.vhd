@@ -1,8 +1,10 @@
 -------------------------------------------------------------------------------
+-- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
+-------------------------------------------------------------------------------
 -- File       : Pgp3Gtp7RxGearbox.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: PGPv3 GTP7 32B33B to 64B66B RX Gearbox
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

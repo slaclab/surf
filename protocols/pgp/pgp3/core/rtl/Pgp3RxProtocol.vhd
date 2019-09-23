@@ -1,12 +1,11 @@
 -------------------------------------------------------------------------------
--- Title      : PGP3 Receive Protocol
+-- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
+-- File       : Pgp3RxProtocol.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description:
--- Takes pre-packetized AxiStream frames and creates a PGP3 66/64 protocol
+-- Description: PGPv3 Receive Protocol
+-- Takes pre-packetized AxiStream frames and creates a PGPv3 66/64 protocol
 -- stream (pre-scrambler). Inserts IDLE and SKP codes as needed. Inserts
 -- user K codes on request.
 -------------------------------------------------------------------------------

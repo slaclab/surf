@@ -1,13 +1,12 @@
 -------------------------------------------------------------------------------
+-- Title      : SRPv0 Protocol: https://confluence.slac.stanford.edu/x/aRmVD
+-------------------------------------------------------------------------------
 -- File       : AxiLiteSrpV0.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SLAC Register Protocol Version 0, AXI-Lite Interface
 --
--- Documentation: https://confluence.slac.stanford.edu/x/aRmVD
---
 -- Note: This module only supports 32-bit aligned addresses and 32-bit transactions.  
---
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

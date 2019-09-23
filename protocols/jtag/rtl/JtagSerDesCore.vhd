@@ -1,12 +1,9 @@
 -- Title      : JTAG Support
 -------------------------------------------------------------------------------
 -- File       : JtagSerDesCore.vhd
--- Author     : Till Straumann <strauman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: JTAG serializer/deserializer with parallel word interface
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -16,8 +13,6 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
-
--- JTAG serializer/deserializer with parallel word interface
 
 library ieee;
 use ieee.std_logic_1164.all;

@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AxiStreamDmaRead.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:
 -- Package file for AXI DMA Controller

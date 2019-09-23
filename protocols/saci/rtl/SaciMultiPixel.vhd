@@ -1,6 +1,10 @@
 -------------------------------------------------------------------------------
--- File       : PgpParallelSimModel.vhd
+-- Title      : SACI Protocol: https://confluence.slac.stanford.edu/x/YYcRDQ
+-------------------------------------------------------------------------------
+-- File       : SaciMultiPixel.vhd
 -- Company    : SLAC National Accelerator Laboratory
+-------------------------------------------------------------------------------
+-- Description: SACI Multi-pixel Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

@@ -1,6 +1,5 @@
 -------------------------------------------------------------------------------
 -- File       : EthMacTxExportXgmii.vhd
--- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 10GbE Export MAC core with GMII interface

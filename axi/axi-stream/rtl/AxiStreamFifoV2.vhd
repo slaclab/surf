@@ -49,6 +49,8 @@ entity AxiStreamFifoV2 is
       FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
       FIFO_FIXED_THRESH_G : boolean                    := true;
       FIFO_PAUSE_THRESH_G : integer range 1 to (2**24) := 1;
+      SYNTH_MODE_G    : string                         := "inferred";
+      MEMORY_TYPE_G   : string                         := "block";
 
       -- Internal FIFO width select, "WIDE", "NARROW" or "CUSTOM"
       -- WIDE uses wider of slave / master. NARROW  uses narrower.
@@ -241,6 +243,8 @@ begin
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
          BRAM_EN_G          => BRAM_EN_G,
          FWFT_EN_G          => true,
+         SYNTH_MODE_G       => SYNTH_MODE_G,
+         MEMORY_TYPE_G      => MEMORY_TYPE_G,         
          USE_DSP48_G        => "no",
          ALTERA_SYN_G       => ALTERA_SYN_G,
          ALTERA_RAM_G       => ALTERA_RAM_G,

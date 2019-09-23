@@ -98,6 +98,9 @@ begin
 
    assert (AXI_DMA_CONFIG_G.DATA_BYTES_C >= 8)
       report "AxiPcieDma: AXI STREAM DMA must have a byte width of >= 8Bytes (64-bits)" severity failure;
+      
+   assert (isPowerOf2(BURST_BYTES_G) = true)
+      report "BURST_BYTES_G must be power of 2" severity failure;      
 
    U_DmaDesc : entity work.AxiStreamDmaV2Desc
       generic map (
