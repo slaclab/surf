@@ -1,6 +1,11 @@
 var classMdioLinkIrqHandler =
 [
     [ "MdioLinkIrqHandlerImpl", "classMdioLinkIrqHandler_1_1MdioLinkIrqHandlerImpl.html", "classMdioLinkIrqHandler_1_1MdioLinkIrqHandlerImpl" ],
+    [ "TPD_G", "classMdioLinkIrqHandler.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "DIV_G", "classMdioLinkIrqHandler.html#ab1ac37b3898afd179005aad8ab72fc3e", null ],
+    [ "PROG_INIT_G", "classMdioLinkIrqHandler.html#aaf5c48b25953b9cc4d66243a60995eb4", null ],
+    [ "PROG_HDLR_G", "classMdioLinkIrqHandler.html#af123fc542396f4fc7f2444f0250304ac", null ],
+    [ "NUM_HDLR_ARGS_G", "classMdioLinkIrqHandler.html#a9cc8a43a2091400c1ca9a306fa3c0329", null ],
     [ "clk", "classMdioLinkIrqHandler.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classMdioLinkIrqHandler.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],
     [ "initDone", "classMdioLinkIrqHandler.html#a4af69e4c3cc14fc1479dc27dc7ab5936", null ],

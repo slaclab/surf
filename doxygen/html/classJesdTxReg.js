@@ -24,7 +24,6 @@ var classJesdTxReg =
     [ "gtReset_o", "classJesdTxReg.html#ad9549c091a5d66626216c715d117d70c", null ],
     [ "clearErr_o", "classJesdTxReg.html#a0d84e42365a0c16c090ab657b6ce4bf2", null ],
     [ "invertSync_o", "classJesdTxReg.html#a0796c4422bbc4546f07b0741fdf53201", null ],
-    [ "enableTestSig_o", "classJesdTxReg.html#ae68367b2ebefe9acc4c2fc5e62c3cad9", null ],
     [ "posAmplitude_o", "classJesdTxReg.html#a076fd727fa3a39faf9169332ae770cc8", null ],
     [ "negAmplitude_o", "classJesdTxReg.html#ac6fa32425b7a440e488df5885fdde115", null ],
     [ "txDiffCtrl", "classJesdTxReg.html#aab38749b7401c1cfa5d471112f043ed7", null ],

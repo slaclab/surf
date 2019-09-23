@@ -1,11 +1,6 @@
 var classEncoder10b12b =
 [
     [ "rtl", "classEncoder10b12b_1_1rtl.html", "classEncoder10b12b_1_1rtl" ],
-    [ "TPD_G", "classEncoder10b12b.html#a67a837684e4f18c2d236ac1d053b419b", null ],
-    [ "RST_POLARITY_G", "classEncoder10b12b.html#ac2a600fa2248248a52a4ee28f9fc64d5", null ],
-    [ "RST_ASYNC_G", "classEncoder10b12b.html#ad489a8923e293a168027842ed3795a30", null ],
-    [ "USE_CLK_EN_G", "classEncoder10b12b.html#a8e0c514e1fe04f9552cd91c072029969", null ],
-    [ "FLOW_CTRL_EN_G", "classEncoder10b12b.html#aa5bdf0d20c0d09e302fc9ffcd5105ffd", null ],
     [ "clk", "classEncoder10b12b.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "clkEn", "classEncoder10b12b.html#a3eb2826c919e654ccc09a6b5da946883", null ],
     [ "rst", "classEncoder10b12b.html#afd0039e5a6c54f38982fe7c8fc1c0b08", null ],

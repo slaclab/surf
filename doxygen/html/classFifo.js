@@ -7,6 +7,8 @@ var classFifo =
     [ "GEN_SYNC_FIFO_G", "classFifo.html#a74265af003d7cd4b0443ced520ac6722", null ],
     [ "BRAM_EN_G", "classFifo.html#a1c9465c9431492ec79ab48827b02c46f", null ],
     [ "FWFT_EN_G", "classFifo.html#ac9d0fd649bb09079eb97e0431bab5b80", null ],
+    [ "SYNTH_MODE_G", "classFifo.html#a2429d17ce4f9328a982076af9f733ab3", null ],
+    [ "MEMORY_TYPE_G", "classFifo.html#ac19eab973cb6c0196eed65d74fc49dca", null ],
     [ "USE_DSP48_G", "classFifo.html#a7a8db7e7131ac4fe84ceeb9010cb34c7", null ],
     [ "ALTERA_SYN_G", "classFifo.html#a1669478a44dab111adcd8bbceb192b02", null ],
     [ "ALTERA_RAM_G", "classFifo.html#a19f5205f8fd4959c02e7b32fe19bbbc7", null ],

@@ -1,5 +1,6 @@
 var searchData=
 [
+  ['caui4gtyipwrapper',['Caui4GtyIpWrapper',['../classCaui4GtyIpWrapper.html',1,'']]],
   ['chksum_5ftb',['chksum_tb',['../classchksum__tb.html',1,'']]],
   ['clinkctrl',['ClinkCtrl',['../classClinkCtrl.html',1,'']]],
   ['clinkdata',['ClinkData',['../classClinkData.html',1,'']]],
@@ -13,11 +14,10 @@ var searchData=
   ['clinkuart',['ClinkUart',['../classClinkUart.html',1,'']]],
   ['clinkuartthrottle',['ClinkUartThrottle',['../classClinkUartThrottle.html',1,'']]],
   ['clk_5ffrequency_5fg',['CLK_FREQUENCY_G',['../classAxiRssiCore.html#a1eb89039484c56375f44bd0c9d51e4f8',1,'AxiRssiCore']]],
-  ['clk_5fperiod_5fg',['CLK_PERIOD_G',['../classAxiVersion.html#aa09860ebe5d52d0201db8f2f2de3b308',1,'AxiVersion']]],
   ['clkoutbufdiff',['ClkOutBufDiff',['../classClkOutBufDiff.html',1,'']]],
   ['clkoutbufsingle',['ClkOutBufSingle',['../classClkOutBufSingle.html',1,'']]],
-  ['clkrst',['ClkRst',['../classClkRst_1_1ClkRst.html',1,'ClkRst']]],
   ['clkrst',['ClkRst',['../classClkRst.html',1,'']]],
+  ['clkrst',['ClkRst',['../classClkRst_1_1ClkRst.html',1,'ClkRst']]],
   ['clockdivider',['ClockDivider',['../classClockDivider.html',1,'']]],
   ['clockmanager7',['ClockManager7',['../classClockManager7.html',1,'']]],
   ['clockmanager7pkg',['ClockManager7Pkg',['../classClockManager7Pkg.html',1,'']]],

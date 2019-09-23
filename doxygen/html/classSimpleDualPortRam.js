@@ -1,17 +1,6 @@
 var classSimpleDualPortRam =
 [
     [ "SimpleDualPortRam.rtl", "classSimpleDualPortRam_1_1rtl.html", "classSimpleDualPortRam_1_1rtl" ],
-    [ "TPD_G", "classSimpleDualPortRam.html#a67a837684e4f18c2d236ac1d053b419b", null ],
-    [ "RST_POLARITY_G", "classSimpleDualPortRam.html#a8a9f56ec06b173cf46dc7160fd7c1f30", null ],
-    [ "BRAM_EN_G", "classSimpleDualPortRam.html#a1c9465c9431492ec79ab48827b02c46f", null ],
-    [ "DOB_REG_G", "classSimpleDualPortRam.html#a6b0e2c721d28285878a5784dcf093791", null ],
-    [ "ALTERA_SYN_G", "classSimpleDualPortRam.html#a1669478a44dab111adcd8bbceb192b02", null ],
-    [ "ALTERA_RAM_G", "classSimpleDualPortRam.html#a19f5205f8fd4959c02e7b32fe19bbbc7", null ],
-    [ "BYTE_WR_EN_G", "classSimpleDualPortRam.html#a3ccd28c3760c5ddd434a9aabc40b6f19", null ],
-    [ "DATA_WIDTH_G", "classSimpleDualPortRam.html#a04b2b321f81f02681a52c6c7d92ff12e", null ],
-    [ "BYTE_WIDTH_G", "classSimpleDualPortRam.html#a809c163b53508417adf293222615f859", null ],
-    [ "ADDR_WIDTH_G", "classSimpleDualPortRam.html#aa15a7b289c417a934aa707db52c8e30d", null ],
-    [ "INIT_G", "classSimpleDualPortRam.html#ada00bcbb3416fb22f6faca63b14c7204", null ],
     [ "clka", "classSimpleDualPortRam.html#aa4c0f0bdfc190b2ae0db135b72dfd277", null ],
     [ "ena", "classSimpleDualPortRam.html#a0de49fbe6e07a265532ec49da1f5c4bb", null ],
     [ "wea", "classSimpleDualPortRam.html#af8bd8c09eb96186d2a90af084084302f", null ],

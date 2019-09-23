@@ -1,6 +1,6 @@
 var classPgp2bTx_1_1Pgp2bTx =
 [
-    [ "PROCESS_170", "classPgp2bTx_1_1Pgp2bTx.html#a4c9bd728f169dccbde48fcf91c4ad831", null ],
+    [ "PROCESS_180", "classPgp2bTx_1_1Pgp2bTx.html#a1fd1495e2f4d0c22e9a1f8fc8a1b5b0b", null ],
     [ "cellTxSOC", "classPgp2bTx_1_1Pgp2bTx.html#a19bec34f886e09051019bd6abd82c9df", null ],
     [ "cellTxSOF", "classPgp2bTx_1_1Pgp2bTx.html#adc5f7aec48640a1d5a3156c5a14fbde4", null ],
     [ "cellTxEOC", "classPgp2bTx_1_1Pgp2bTx.html#a91eb9236797a51da1c4aff65445b1352", null ],

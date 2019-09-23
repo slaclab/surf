@@ -1,15 +1,6 @@
 var classQuadPortRam =
 [
     [ "rtl", "classQuadPortRam_1_1rtl.html", "classQuadPortRam_1_1rtl" ],
-    [ "TPD_G", "classQuadPortRam.html#a67a837684e4f18c2d236ac1d053b419b", null ],
-    [ "RST_POLARITY_G", "classQuadPortRam.html#a8a9f56ec06b173cf46dc7160fd7c1f30", null ],
-    [ "REG_EN_G", "classQuadPortRam.html#a0f2247a6a3e8840e30be089433d9a486", null ],
-    [ "MODE_G", "classQuadPortRam.html#a227400c3f7cf936f7cd4cc432537856b", null ],
-    [ "BYTE_WR_EN_G", "classQuadPortRam.html#a3ccd28c3760c5ddd434a9aabc40b6f19", null ],
-    [ "DATA_WIDTH_G", "classQuadPortRam.html#a04b2b321f81f02681a52c6c7d92ff12e", null ],
-    [ "BYTE_WIDTH_G", "classQuadPortRam.html#a809c163b53508417adf293222615f859", null ],
-    [ "ADDR_WIDTH_G", "classQuadPortRam.html#aa15a7b289c417a934aa707db52c8e30d", null ],
-    [ "INIT_G", "classQuadPortRam.html#ada00bcbb3416fb22f6faca63b14c7204", null ],
     [ "clka", "classQuadPortRam.html#aa4c0f0bdfc190b2ae0db135b72dfd277", null ],
     [ "en_a", "classQuadPortRam.html#acd4912f845f7bfc53f994917e4eafdc5", null ],
     [ "wea", "classQuadPortRam.html#af8bd8c09eb96186d2a90af084084302f", null ],

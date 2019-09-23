@@ -1,17 +1,6 @@
 var classTrueDualPortRam =
 [
     [ "TrueDualPortRam.rtl", "classTrueDualPortRam_1_1rtl.html", "classTrueDualPortRam_1_1rtl" ],
-    [ "TPD_G", "classTrueDualPortRam.html#a67a837684e4f18c2d236ac1d053b419b", null ],
-    [ "RST_POLARITY_G", "classTrueDualPortRam.html#a8a9f56ec06b173cf46dc7160fd7c1f30", null ],
-    [ "ALTERA_RAM_G", "classTrueDualPortRam.html#a19f5205f8fd4959c02e7b32fe19bbbc7", null ],
-    [ "DOA_REG_G", "classTrueDualPortRam.html#a8de8a468cd0588304c3d942978f7d102", null ],
-    [ "DOB_REG_G", "classTrueDualPortRam.html#a6b0e2c721d28285878a5784dcf093791", null ],
-    [ "MODE_G", "classTrueDualPortRam.html#a227400c3f7cf936f7cd4cc432537856b", null ],
-    [ "BYTE_WR_EN_G", "classTrueDualPortRam.html#a3ccd28c3760c5ddd434a9aabc40b6f19", null ],
-    [ "DATA_WIDTH_G", "classTrueDualPortRam.html#ab78030d5f67d71697714890767d1d6f3", null ],
-    [ "BYTE_WIDTH_G", "classTrueDualPortRam.html#a809c163b53508417adf293222615f859", null ],
-    [ "ADDR_WIDTH_G", "classTrueDualPortRam.html#ad266db92a49146cc82fa178017b61f9a", null ],
-    [ "INIT_G", "classTrueDualPortRam.html#ada00bcbb3416fb22f6faca63b14c7204", null ],
     [ "clka", "classTrueDualPortRam.html#aa4c0f0bdfc190b2ae0db135b72dfd277", null ],
     [ "ena", "classTrueDualPortRam.html#a0de49fbe6e07a265532ec49da1f5c4bb", null ],
     [ "wea", "classTrueDualPortRam.html#af8bd8c09eb96186d2a90af084084302f", null ],

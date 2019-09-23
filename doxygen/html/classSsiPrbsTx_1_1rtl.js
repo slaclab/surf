@@ -26,7 +26,7 @@ var classSsiPrbsTx_1_1rtl =
     [ "tId", "classSsiPrbsTx_1_1rtl.html#aa4ad861f74551b69b5b9330139d008dd", null ],
     [ "axilReadSlave", "classSsiPrbsTx_1_1rtl.html#a461fe0c6eae927e61d8120da155736e1", null ],
     [ "axilWriteSlave", "classSsiPrbsTx_1_1rtl.html#a877a7f1c1dae56ed1893b21d49755b47", null ],
-    [ "REG_INIT_C", "classSsiPrbsTx_1_1rtl.html#a1f8a7980956cf3ed883fb6ce264f553d", null ],
+    [ "REG_INIT_C", "classSsiPrbsTx_1_1rtl.html#a7adaa1fa8d6d06b39a81cb0691a1083e", null ],
     [ "r", "classSsiPrbsTx_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3", null ],
     [ "rin", "classSsiPrbsTx_1_1rtl.html#a758a8cbb78916a3911d410a62191310d", null ],
     [ "txSlave", "classSsiPrbsTx_1_1rtl.html#a9eb5e6bd14c859d83d821923d01f2f7a", null ],

@@ -1,8 +1,6 @@
 var searchData=
 [
-  ['fdsersdio',['fdSerSdio',['../classAxiVersion.html#ab5636c86dfb484510bf9d91e14cae2cb',1,'AxiVersion']]],
-  ['fdvalueout',['fdValueOut',['../classAxiVersion.html#ae1a77ca715156c6f2d613f1157d30a3d',1,'AxiVersion']]],
-  ['fpgaenreload',['fpgaEnReload',['../classAxiVersion.html#aa14a4c173abde97bb9ba3ed72610ee59',1,'AxiVersion']]],
-  ['fpgareload',['fpgaReload',['../classAxiVersion.html#aae4d7ab8f7b96b5108e002bce4865f16',1,'AxiVersion']]],
-  ['fpgareloadaddr',['fpgaReloadAddr',['../classAxiVersion.html#a909c0c589d69b6d43dccb4d34d3ea88f',1,'AxiVersion']]]
+  ['retrans_5ftout_5fg',['RETRANS_TOUT_G',['../classAxiRssiCore.html#af9157039ed2f1f90ebd1cf1da792e95b',1,'AxiRssiCore']]],
+  ['retransmit_5fenable_5fg',['RETRANSMIT_ENABLE_G',['../classAxiRssiCore.html#a74b48eeaaeaa78e2c1c19032c7f7b856',1,'AxiRssiCore']]],
+  ['rxaxioffset',['rxAxiOffset',['../classAxiRssiCore.html#aba00ad2c8288b0e5920c940c6b1e6779',1,'AxiRssiCore.rxAxiOffset()'],['../classAxiRssiCoreWrapper.html#aba00ad2c8288b0e5920c940c6b1e6779',1,'AxiRssiCoreWrapper.rxAxiOffset()']]]
 ];

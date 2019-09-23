@@ -1,14 +1,6 @@
 var classSyncClockFreq =
 [
     [ "SyncClockFreq.rtl", "classSyncClockFreq_1_1rtl.html", "classSyncClockFreq_1_1rtl" ],
-    [ "TPD_G", "classSyncClockFreq.html#a67a837684e4f18c2d236ac1d053b419b", null ],
-    [ "USE_DSP48_G", "classSyncClockFreq.html#a7a8db7e7131ac4fe84ceeb9010cb34c7", null ],
-    [ "REF_CLK_FREQ_G", "classSyncClockFreq.html#ae63ec347149b3486b5459e57fe9512d4", null ],
-    [ "REFRESH_RATE_G", "classSyncClockFreq.html#ad66a6d23811b7b9d6138b972dc394926", null ],
-    [ "CLK_LOWER_LIMIT_G", "classSyncClockFreq.html#a3eeb92e57a30752f7b6d3a259198496d", null ],
-    [ "CLK_UPPER_LIMIT_G", "classSyncClockFreq.html#a6240e49585b9c2f211fa0020a9503b43", null ],
-    [ "COMMON_CLK_G", "classSyncClockFreq.html#a762b446ddef001083e8cfc52dc38385f", null ],
-    [ "CNT_WIDTH_G", "classSyncClockFreq.html#ac427a235061c87c3efa115d649a33eee", null ],
     [ "freqOut", "classSyncClockFreq.html#a1e0364a896ff6d740f877fd185941376", null ],
     [ "freqUpdated", "classSyncClockFreq.html#abac97af82dd353d80aed2b13731e5c12", null ],
     [ "locked", "classSyncClockFreq.html#a70b11b0ba45996843099f091eacf0a86", null ],

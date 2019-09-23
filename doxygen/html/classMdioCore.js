@@ -1,6 +1,8 @@
 var classMdioCore =
 [
     [ "MdioCoreImpl", "classMdioCore_1_1MdioCoreImpl.html", "classMdioCore_1_1MdioCoreImpl" ],
+    [ "TPD_G", "classMdioCore.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "DIV_G", "classMdioCore.html#ab1ac37b3898afd179005aad8ab72fc3e", null ],
     [ "clk", "classMdioCore.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classMdioCore.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],
     [ "trg", "classMdioCore.html#a7a4175e9ac48a2165957fde84f02a5c5", null ],

@@ -3,6 +3,7 @@ var classSgmii88E1111LvdsUltraScale =
     [ "Sgmii88E1111LvdsUltraScale.mapping", "classSgmii88E1111LvdsUltraScale_1_1mapping.html", "classSgmii88E1111LvdsUltraScale_1_1mapping" ],
     [ "TPD_G", "classSgmii88E1111LvdsUltraScale.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "STABLE_CLK_FREQ_G", "classSgmii88E1111LvdsUltraScale.html#a01ebc5cdf215c94ffe4266d54d37c2fc", null ],
+    [ "USE_BUFG_DIV_G", "classSgmii88E1111LvdsUltraScale.html#a45f4bce2114fcfed871d794a61a6aa65", null ],
     [ "CLKOUT1_PHASE_G", "classSgmii88E1111LvdsUltraScale.html#a70745fd92ee607173d218a8768ebffea", null ],
     [ "PHY_G", "classSgmii88E1111LvdsUltraScale.html#a25e2537ae9af18424865783f56e881bf", null ],
     [ "AXIS_CONFIG_G", "classSgmii88E1111LvdsUltraScale.html#a701761914fd09b26dd95a64cd3df8bf6", null ],

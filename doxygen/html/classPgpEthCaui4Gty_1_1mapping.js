@@ -1,0 +1,27 @@
+var classPgpEthCaui4Gty_1_1mapping =
+[
+    [ "RX_POLARITY_C", "classPgpEthCaui4Gty_1_1mapping.html#ab8e451008c18b0d6aec32766ce3d90fa", null ],
+    [ "TX_POLARITY_C", "classPgpEthCaui4Gty_1_1mapping.html#a2ff8266e9fe41936afa8a44fca7800d3", null ],
+    [ "TX_DIFF_CTRL_C", "classPgpEthCaui4Gty_1_1mapping.html#a833449693e6851cc59fb2ceb8afe0ad9", null ],
+    [ "TX_PRE_CURSOR_C", "classPgpEthCaui4Gty_1_1mapping.html#a34e557d9d5463bf6356744dea1337ef2", null ],
+    [ "TX_POST_CURSOR_C", "classPgpEthCaui4Gty_1_1mapping.html#a457aa6de32ff9f25b0e5d02b7a1e8a0b", null ],
+    [ "phyClk", "classPgpEthCaui4Gty_1_1mapping.html#a02226106d41e924b2e45336244987756", null ],
+    [ "phyRst", "classPgpEthCaui4Gty_1_1mapping.html#a425c913a2a79b5c200ec3357c17cf5f9", null ],
+    [ "phyUsrRst", "classPgpEthCaui4Gty_1_1mapping.html#af49b40ddb3056d5dd0e478e4aae5414b", null ],
+    [ "pgpRefClk", "classPgpEthCaui4Gty_1_1mapping.html#abf8a998cce7edd315c5b94b46b000268", null ],
+    [ "phyRxMaster", "classPgpEthCaui4Gty_1_1mapping.html#a0ee029b8207de7b76c8d5260921c9cfb", null ],
+    [ "phyTxMaster", "classPgpEthCaui4Gty_1_1mapping.html#acf761313803c9b7a8a467f74b7f6536e", null ],
+    [ "phyTxSlave", "classPgpEthCaui4Gty_1_1mapping.html#aeb25195683577295941d75c596f678f4", null ],
+    [ "loopback", "classPgpEthCaui4Gty_1_1mapping.html#a693d954566a664dd76094de0b5633797", null ],
+    [ "rxPolarity", "classPgpEthCaui4Gty_1_1mapping.html#af2a89dfc068d168f6ff31e58d2b01b9a", null ],
+    [ "txPolarity", "classPgpEthCaui4Gty_1_1mapping.html#a77ef75c891d030aa4a127e084aafa671", null ],
+    [ "txDiffCtrl", "classPgpEthCaui4Gty_1_1mapping.html#a0a7dccbacdd0c3b916287d0cae00eff6", null ],
+    [ "txPreCursor", "classPgpEthCaui4Gty_1_1mapping.html#a05877d7437563c3c3353c7bd7cad3065", null ],
+    [ "txPostCursor", "classPgpEthCaui4Gty_1_1mapping.html#a5bd897b96667435d1d5b606298bdddf1", null ],
+    [ "stableReset", "classPgpEthCaui4Gty_1_1mapping.html#aac2ba8e77a85058658c64acc3b8e8fe4", null ],
+    [ "phyReady", "classPgpEthCaui4Gty_1_1mapping.html#aa9f45bc430e15fc4a489bb03bac805db", null ],
+    [ "u_core", "classPgpEthCaui4Gty_1_1mapping.html#ace73f881572eb650976a7c6d8462eefc", null ],
+    [ "u_ip", "classPgpEthCaui4Gty_1_1mapping.html#abb7eebdc22291bb65f872916ee4e7ed7", null ],
+    [ "u_rogue", "classPgpEthCaui4Gty_1_1mapping.html#af0ae982792990d58f754cb28a1b06ff4", null ],
+    [ "u_pgprefclk", "classPgpEthCaui4Gty_1_1mapping.html#a0295c726462c2d97c5fe6305a4ae9fa9", null ]
+];

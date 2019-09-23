@@ -1,7 +1,7 @@
 var classDS2411Core_1_1rtl =
 [
-    [ "PROCESS_50", "classDS2411Core_1_1rtl.html#ab8a6b3618cd08b3e60865a17abd55c40", null ],
-    [ "PROCESS_51", "classDS2411Core_1_1rtl.html#a89f102d5a2ffa1cce2b1b897e7ceda3e", null ],
+    [ "PROCESS_106", "classDS2411Core_1_1rtl.html#ac20093636631d07a0315a750322c3ecc", null ],
+    [ "PROCESS_107", "classDS2411Core_1_1rtl.html#abd00671969df2ba48c52e14e17628668", null ],
     [ "StateType", "classDS2411Core_1_1rtl.html#ab500a7834dc5d356981a15c54d1f2f2d", null ],
     [ "curState", "classDS2411Core_1_1rtl.html#a3660df3df40279160401fab443eba542", null ],
     [ "nxtState", "classDS2411Core_1_1rtl.html#ad8bfa2bccea803eaa10f9cf7ca950710", null ],

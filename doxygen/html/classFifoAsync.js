@@ -1,6 +1,6 @@
 var classFifoAsync =
 [
-    [ "rtl", "classFifoAsync_1_1rtl.html", "classFifoAsync_1_1rtl" ],
+    [ "mapping", "classFifoAsync_1_1mapping.html", "classFifoAsync_1_1mapping" ],
     [ "TPD_G", "classFifoAsync.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "RST_POLARITY_G", "classFifoAsync.html#a8a9f56ec06b173cf46dc7160fd7c1f30", null ],
     [ "BRAM_EN_G", "classFifoAsync.html#a1c9465c9431492ec79ab48827b02c46f", null ],

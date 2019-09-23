@@ -1,6 +1,6 @@
 var classPgpSimModel =
 [
-    [ "PgpSimModel.PgpSimModel", "classPgpSimModel_1_1PgpSimModel.html", "classPgpSimModel_1_1PgpSimModel" ],
+    [ "PgpSimModel", "classPgpSimModel_1_1PgpSimModel.html", "classPgpSimModel_1_1PgpSimModel" ],
     [ "TPD_G", "classPgpSimModel.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "LANE_CNT_G", "classPgpSimModel.html#acf5e52a2e40052557367b63ff9e4d677", null ],
     [ "pgpTxClk", "classPgpSimModel.html#adc3581aed6013ad7345d41131725a335", null ],

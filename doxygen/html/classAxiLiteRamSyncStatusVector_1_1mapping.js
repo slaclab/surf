@@ -1,0 +1,17 @@
+var classAxiLiteRamSyncStatusVector_1_1mapping =
+[
+    [ "PROCESS_8", "classAxiLiteRamSyncStatusVector_1_1mapping.html#a607ffdcb299721f5e84eef79d25b0acb", null ],
+    [ "PROCESS_9", "classAxiLiteRamSyncStatusVector_1_1mapping.html#a733262b1bc72be5cc6be7021c3241a0a", null ],
+    [ "ADDR_WIDTH_C", "classAxiLiteRamSyncStatusVector_1_1mapping.html#a647811d6bbaded7e06e8c462ba54c32d", null ],
+    [ "RegType", "classAxiLiteRamSyncStatusVector_1_1mapping.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
+    [ "we", "classAxiLiteRamSyncStatusVector_1_1mapping.html#a17887369a1d075c3b9eedf95b9a70e1f", null ],
+    [ "data", "classAxiLiteRamSyncStatusVector_1_1mapping.html#a784379436a1685580ebee37c9827f38a", null ],
+    [ "addr", "classAxiLiteRamSyncStatusVector_1_1mapping.html#ac25a7af4b0e8a124964c2cb834f3f5e1", null ],
+    [ "cnt", "classAxiLiteRamSyncStatusVector_1_1mapping.html#addf1ca49831c9124c9833d78403a9943", null ],
+    [ "REG_INIT_C", "classAxiLiteRamSyncStatusVector_1_1mapping.html#a49373996218279feb8722a2652810e03", null ],
+    [ "r", "classAxiLiteRamSyncStatusVector_1_1mapping.html#a0498304adc5e9a77df9df664a54ee3d3", null ],
+    [ "rin", "classAxiLiteRamSyncStatusVector_1_1mapping.html#a758a8cbb78916a3911d410a62191310d", null ],
+    [ "statusCnt", "classAxiLiteRamSyncStatusVector_1_1mapping.html#a6619313efc0f2a781596ebc836d6022f", null ],
+    [ "u_axidualportram", "classAxiLiteRamSyncStatusVector_1_1mapping.html#a8c487abcbf868bd225f7cd0996e4e439", null ],
+    [ "u_syncstatusvector", "classAxiLiteRamSyncStatusVector_1_1mapping.html#afb4dc5855902cc862fa2987e4babcdf8", null ]
+];

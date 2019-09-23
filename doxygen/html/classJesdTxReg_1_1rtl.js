@@ -57,8 +57,6 @@ var classJesdTxReg_1_1rtl =
     [ "u_clearerr_pipeline", "classJesdTxReg_1_1rtl.html#a3c2f6de9e7d3678f936dd4343b7c7c4e", null ],
     [ "u_invertsync", "classJesdTxReg_1_1rtl.html#a4f95717fda72801c147286e79b82a8f8", null ],
     [ "u_invertsync_pipeline", "classJesdTxReg_1_1rtl.html#a498423a46d819d38f5e2fde190648766", null ],
-    [ "u_enabletestsig", "classJesdTxReg_1_1rtl.html#a89f911cba451dd463d5f50a34263f2f1", null ],
-    [ "u_enabletestsig_pipeline", "classJesdTxReg_1_1rtl.html#ab119eebb25e90e4fc44cd5227723e359", null ],
     [ "u_screnable", "classJesdTxReg_1_1rtl.html#a90eeb2ec69323400c5067a44c5705bdc", null ],
     [ "u_screnable_pipeline", "classJesdTxReg_1_1rtl.html#a826534bc159c5cf9fdee2f74967e99ec", null ],
     [ "u_rampstep_a", "classJesdTxReg_1_1rtl.html#ad312a98b6f140f7b81912af6dbebfae7", null ],

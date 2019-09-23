@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['null_5ftout_5fg',['NULL_TOUT_G',['../classAxiRssiCore.html#afe3dca7363100aac42eca4920a3f2566',1,'AxiRssiCore']]]
+  ['window_5faddr_5fsize_5fc',['WINDOW_ADDR_SIZE_C',['../classAxiRssiCore_1_1rtl.html#aafafe504e5f1be75343904f82a5772fa',1,'AxiRssiCore::rtl']]]
 ];

@@ -1,6 +1,6 @@
 var classFifoSync =
 [
-    [ "rtl", "classFifoSync_1_1rtl.html", "classFifoSync_1_1rtl" ],
+    [ "mapping", "classFifoSync_1_1mapping.html", "classFifoSync_1_1mapping" ],
     [ "TPD_G", "classFifoSync.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "RST_POLARITY_G", "classFifoSync.html#a8a9f56ec06b173cf46dc7160fd7c1f30", null ],
     [ "RST_ASYNC_G", "classFifoSync.html#a123a3d9a6e9648e763d21c0281ee7ecd", null ],
