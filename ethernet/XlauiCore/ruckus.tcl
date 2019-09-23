@@ -27,6 +27,7 @@ if { ${family} eq {kintexuplus} ||
    # loadRuckusTcl "$::DIR_PATH/gtyUltraScale+"
 }
 
-# if { ${family} eq {virtexuplus} } {
+# if { ${family} eq {virtexuplus} ||
+     # ${family} eq {virtexuplusHBM} } {
    # loadRuckusTcl "$::DIR_PATH/gtyUltraScale+"
 # }
