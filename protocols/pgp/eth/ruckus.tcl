@@ -8,6 +8,7 @@ loadRuckusTcl "$::DIR_PATH/core"
 set family [getFpgaFamily]
 
 if { ${family} eq {kintexuplus} ||
-     ${family} eq {virtexuplus} } {
+     ${family} eq {virtexuplus} ||
+     ${family} eq {virtexuplusHBM} } {
    loadRuckusTcl "$::DIR_PATH/gtyUs+"
 }
