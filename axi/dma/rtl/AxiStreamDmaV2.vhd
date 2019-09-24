@@ -27,20 +27,22 @@ use work.AxiDmaPkg.all;
 
 entity AxiStreamDmaV2 is
    generic (
-      TPD_G             : time                     := 1 ns;
-      SIMULATION_G      : boolean                  := false;
-      DESC_AWIDTH_G     : positive range 4 to 12   := 12;
-      DESC_ARB_G        : boolean                  := true;
-      AXIL_BASE_ADDR_G  : slv(31 downto 0)         := x"00000000";
-      AXI_READY_EN_G    : boolean                  := false;
-      AXIS_READY_EN_G   : boolean                  := false;
-      AXIS_CONFIG_G     : AxiStreamConfigType      := AXI_STREAM_CONFIG_INIT_C;
-      AXI_DMA_CONFIG_G  : AxiConfigType            := AXI_CONFIG_INIT_C;
-      CHAN_COUNT_G      : positive range 1 to 16   := 1;
-      BURST_BYTES_G     : positive range 1 to 4096 := 4096;
-      WR_PIPE_STAGES_G  : natural                  := 1;
-      RD_PIPE_STAGES_G  : natural                  := 1;
-      RD_PEND_THRESH_G  : positive                 := 1);  -- In units of bytes
+      TPD_G              : time                     := 1 ns;
+      SIMULATION_G       : boolean                  := false;
+      DESC_AWIDTH_G      : positive range 4 to 12   := 12;
+      DESC_ARB_G         : boolean                  := true;
+      DESC_SYNTH_MODE_G  : string                   := "inferred";
+      DESC_MEMORY_TYPE_G : string                   := "block";
+      AXIL_BASE_ADDR_G   : slv(31 downto 0)         := x"00000000";
+      AXI_READY_EN_G     : boolean                  := false;
+      AXIS_READY_EN_G    : boolean                  := false;
+      AXIS_CONFIG_G      : AxiStreamConfigType      := AXI_STREAM_CONFIG_INIT_C;
+      AXI_DMA_CONFIG_G   : AxiConfigType            := AXI_CONFIG_INIT_C;
+      CHAN_COUNT_G       : positive range 1 to 16   := 1;
+      BURST_BYTES_G      : positive range 1 to 4096 := 4096;
+      WR_PIPE_STAGES_G   : natural                  := 1;
+      RD_PIPE_STAGES_G   : natural                  := 1;
+      RD_PEND_THRESH_G   : positive                 := 1);  -- In units of bytes
    port (
       -- Clock/Reset
       axiClk          : in  sl;
@@ -98,18 +100,20 @@ begin
 
    assert (AXI_DMA_CONFIG_G.DATA_BYTES_C >= 8)
       report "AxiPcieDma: AXI STREAM DMA must have a byte width of >= 8Bytes (64-bits)" severity failure;
-      
+
    assert (isPowerOf2(BURST_BYTES_G) = true)
-      report "BURST_BYTES_G must be power of 2" severity failure;      
+      report "BURST_BYTES_G must be power of 2" severity failure;
 
    U_DmaDesc : entity work.AxiStreamDmaV2Desc
       generic map (
-         TPD_G            => TPD_G,
-         CHAN_COUNT_G     => CHAN_COUNT_G,
-         AXIL_BASE_ADDR_G => AXIL_BASE_ADDR_G,
-         AXI_CONFIG_G     => AXI_DMA_CONFIG_G,
-         DESC_AWIDTH_G    => DESC_AWIDTH_G,
-         DESC_ARB_G       => DESC_ARB_G)
+         TPD_G              => TPD_G,
+         CHAN_COUNT_G       => CHAN_COUNT_G,
+         AXIL_BASE_ADDR_G   => AXIL_BASE_ADDR_G,
+         AXI_CONFIG_G       => AXI_DMA_CONFIG_G,
+         DESC_AWIDTH_G      => DESC_AWIDTH_G,
+         DESC_ARB_G         => DESC_ARB_G,
+         DESC_SYNTH_MODE_G  => DESC_SYNTH_MODE_G,
+         DESC_MEMORY_TYPE_G => DESC_MEMORY_TYPE_G)
       port map (
          -- Clock/Reset
          axiClk          => axiClk,

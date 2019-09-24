@@ -42,9 +42,14 @@ entity AxiStreamDmaV2Desc is
       -- Number of descriptor entries in write FIFO and return ring buffers 
       DESC_AWIDTH_G : integer range 4 to 32 := 12;
 
-      -- Choose between one-clock arbitration for return descritors or count and check selection
-      DESC_ARB_G : boolean := true);
+      -- Choose between one-clock arbitration for return descriptors or count and check selection
+      DESC_ARB_G : boolean := true;
 
+      -- Choose between infeered or xpm generated descriptor FIFOs
+      DESC_SYNTH_MODE_G : string := "inferred";
+
+      -- Choose the type of resources for the descriptor FIFOs when DESC_SYNTH_MODE_G="xpm"
+      DESC_MEMORY_TYPE_G : string := "block");
    port (
       -- Clock/Reset
       axiClk          : in  sl;
@@ -265,7 +270,9 @@ begin
             GEN_SYNC_FIFO_G => true,
             FWFT_EN_G       => true,
             DATA_WIDTH_G    => 32,
-            ADDR_WIDTH_G    => DESC_AWIDTH_G)
+            ADDR_WIDTH_G    => DESC_AWIDTH_G,
+            SYNTH_MODE_G    => DESC_SYNTH_MODE_G,
+            MEMORY_TYPE_G   => DESC_MEMORY_TYPE_G)
          port map (
             rst    => r.fifoReset,
             wr_clk => axiClk,
@@ -287,7 +294,9 @@ begin
             GEN_SYNC_FIFO_G => true,
             FWFT_EN_G       => true,
             DATA_WIDTH_G    => 32,
-            ADDR_WIDTH_G    => DESC_AWIDTH_G)
+            ADDR_WIDTH_G    => DESC_AWIDTH_G,
+            SYNTH_MODE_G    => DESC_SYNTH_MODE_G,
+            MEMORY_TYPE_G   => DESC_MEMORY_TYPE_G)
          port map (
             rst    => r.fifoReset,
             wr_clk => axiClk,
