@@ -29,7 +29,7 @@ entity AxiStreamResize is
       -- General Configurations
       TPD_G         : time    := 1 ns;
       READY_EN_G    : boolean := true;
-      PIPE_STAGES_G : natural := 0;      
+      PIPE_STAGES_G : natural := 0;
 
       -- AXI Stream Port Configurations
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
@@ -38,8 +38,8 @@ entity AxiStreamResize is
    port (
 
       -- Clock and reset
-      axisClk     : in  sl;
-      axisRst     : in  sl;
+      axisClk : in sl;
+      axisRst : in sl;
 
       -- Slave Port
       sAxisMaster : in  AxiStreamMasterType;
@@ -48,18 +48,18 @@ entity AxiStreamResize is
       -- Master Port
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType
-   );
+      );
 end AxiStreamResize;
 
 architecture rtl of AxiStreamResize is
 
-   constant SLV_BYTES_C : integer := SLAVE_AXI_CONFIG_G.TDATA_BYTES_C;
-   constant MST_BYTES_C : integer := MASTER_AXI_CONFIG_G.TDATA_BYTES_C;
+   constant SLV_BYTES_C : positive := SLAVE_AXI_CONFIG_G.TDATA_BYTES_C;
+   constant MST_BYTES_C : positive := MASTER_AXI_CONFIG_G.TDATA_BYTES_C;
 
-   constant SLV_USER_C : integer := SLAVE_AXI_CONFIG_G.TUSER_BITS_C;
-   constant MST_USER_C : integer := MASTER_AXI_CONFIG_G.TUSER_BITS_C;
+   constant SLV_USER_C : positive := ite(SLAVE_AXI_CONFIG_G.TUSER_BITS_C /= 0, SLAVE_AXI_CONFIG_G.TUSER_BITS_C, 1);
+   constant MST_USER_C : positive := ite(MASTER_AXI_CONFIG_G.TUSER_BITS_C /= 0, MASTER_AXI_CONFIG_G.TUSER_BITS_C, 1);
 
-   constant COUNT_C : integer := ite(SLV_BYTES_C > MST_BYTES_C, SLV_BYTES_C / MST_BYTES_C, MST_BYTES_C / SLV_BYTES_C);
+   constant COUNT_C : positive := ite(SLV_BYTES_C > MST_BYTES_C, SLV_BYTES_C / MST_BYTES_C, MST_BYTES_C / SLV_BYTES_C);
 
    type RegType is record
       count    : slv(bitSize(COUNT_C)-1 downto 0);
@@ -71,13 +71,13 @@ architecture rtl of AxiStreamResize is
       count    => (others => '0'),
       obMaster => axiStreamMasterInit(MASTER_AXI_CONFIG_G),
       ibSlave  => AXI_STREAM_SLAVE_INIT_C
-   );
+      );
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal pipeAxisMaster  : AxiStreamMasterType;
-   signal pipeAxisSlave   : AxiStreamSlaveType;
+   signal pipeAxisMaster : AxiStreamMasterType;
+   signal pipeAxisSlave  : AxiStreamSlaveType;
 
 begin
 
@@ -87,23 +87,29 @@ begin
       report "Data widths must be even number multiples of each other" severity failure;
 
    -- When going from a large bus to a small bus, ready is necessary
-   assert (SLV_BYTES_C <= MST_BYTES_C or READY_EN_G = true)  
+   assert (SLV_BYTES_C <= MST_BYTES_C or READY_EN_G = true)
       report "READY_EN_G must be true if slave width is great than master" severity failure;
 
-   comb : process (pipeAxisSlave, sAxisMaster, r) is
+   -- Cant use tkeep_fixed on master side when resizing or if not on slave side
+   assert (not (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_FIXED_C and
+                SLAVE_AXI_CONFIG_G.TKEEP_MODE_C /= TKEEP_FIXED_C))
+      report "AxiStreamFifoV2: Can't have TKEEP_MODE = TKEEP_FIXED on master side if not on slave side"
+      severity error;
+
+   comb : process (pipeAxisSlave, r, sAxisMaster) is
       variable v       : RegType;
       variable ibM     : AxiStreamMasterType;
-      variable idx     : integer; -- index version of counter
-      variable byteCnt : integer; -- Number of valid bytes in incoming bus
-      variable bytes   : integer; -- byte version of counter
+      variable idx     : integer;       -- index version of counter
+      variable byteCnt : integer;  -- Number of valid bytes in incoming bus
+      variable bytes   : integer;       -- byte version of counter
    begin
-      v       := r;
-      idx     := conv_integer(r.count);
-      bytes   := (idx+1) * MST_BYTES_C;
+      v     := r;
+      idx   := conv_integer(r.count);
+      bytes := (idx+1) * MST_BYTES_C;
       if (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
          byteCnt := conv_integer(sAxisMaster.tKeep(bitSize(SLAVE_AXI_CONFIG_G.TDATA_BYTES_C)-1 downto 0));
       else
-         byteCnt := getTKeep(sAxisMaster.tKeep,SLAVE_AXI_CONFIG_G);
+         byteCnt := getTKeep(sAxisMaster.tKeep, SLAVE_AXI_CONFIG_G);
       end if;
 
       -- Init ready
@@ -116,14 +122,21 @@ begin
 
       -- Inbound data with normalized user bits (8 user bits)
       ibM       := sAxisMaster;
-      ibM.tUser := (others=>'0');
+      ibM.tUser := (others => '0');
       if (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
          ibM.tKeep := genTKeep(byteCnt);
       end if;
 
-      for i in 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
-         ibM.tUser((i*8)+(SLV_USER_C-1) downto (i*8)) := sAxisMaster.tUser((i*SLV_USER_C)+(SLV_USER_C-1) downto (i*SLV_USER_C));
-      end loop;
+      -- Check that both master and slave using tUser
+      if (SLAVE_AXI_CONFIG_G.TUSER_BITS_C /= 0) and
+         (MASTER_AXI_CONFIG_G.TUSER_BITS_C /= 0) and
+         (SLAVE_AXI_CONFIG_G.TUSER_MODE_C /= TUSER_NONE_C) and
+         (MASTER_AXI_CONFIG_G.TUSER_MODE_C /= TUSER_NONE_C) then
+         -- Loop through the tUser bit field
+         for i in 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
+            ibM.tUser((i*8)+(SLV_USER_C-1) downto (i*8)) := sAxisMaster.tUser((i*SLV_USER_C)+(SLV_USER_C-1) downto (i*SLV_USER_C));
+         end loop;
+      end if;
 
       -- Pipeline advance
       if v.obMaster.tValid = '0' then
@@ -134,9 +147,9 @@ begin
 
             -- init when count = 0
             if (r.count = 0) then
-               v.obMaster := axiStreamMasterInit(MASTER_AXI_CONFIG_G);
-               v.obMaster.tKeep := (others=>'0');
-               v.obMaster.tStrb := (others=>'0');
+               v.obMaster       := axiStreamMasterInit(MASTER_AXI_CONFIG_G);
+               v.obMaster.tKeep := (others => '0');
+               v.obMaster.tStrb := (others => '0');
             end if;
 
             v.obMaster.tData((SLV_BYTES_C*8*idx)+((SLV_BYTES_C*8)-1) downto (SLV_BYTES_C*8*idx)) := ibM.tData((SLV_BYTES_C*8)-1 downto 0);
@@ -194,32 +207,42 @@ begin
       if SLV_BYTES_C = MST_BYTES_C then
          sAxisSlave     <= pipeAxisSlave;
          pipeAxisMaster <= sAxisMaster;
-         
+
          -- Check for TKEEP_COUNT_C mode on either side
          if (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) or (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-            
+
             -- Check for TKEEP_COUNT_C mode on slave side only
             if (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) and (MASTER_AXI_CONFIG_G.TKEEP_MODE_C /= TKEEP_COUNT_C) then
                pipeAxisMaster.tkeep <= genTKeep(conv_integer(sAxisMaster.tkeep(bitSize(SLAVE_AXI_CONFIG_G.TDATA_BYTES_C)-1 downto 0)));
-         
+
             -- Check for TKEEP_COUNT_C mode on master side only
             elsif (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C /= TKEEP_COUNT_C) and (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-               pipeAxisMaster.tkeep <= toSlv(getTKeep(sAxisMaster.tKeep,SLAVE_AXI_CONFIG_G),AXI_STREAM_MAX_TKEEP_WIDTH_C);
-            
+               pipeAxisMaster.tkeep <= toSlv(getTKeep(sAxisMaster.tKeep, SLAVE_AXI_CONFIG_G), AXI_STREAM_MAX_TKEEP_WIDTH_C);
+
             -- Else both sides are TKEEP_COUNT_C mode
             else
-               NULL;
+               null;
             end if;
          end if;
-         
+
+         -- Outbound data with proper user bits
+         pipeAxisMaster.tUser <= (others => '0');
+         for i in 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
+            if (SLV_USER_C > MST_USER_C) then
+               pipeAxisMaster.tUser((i*MST_USER_C)+(MST_USER_C-1) downto (i*MST_USER_C)) <= ibM.tUser((i*8)+(MST_USER_C-1) downto (i*8));
+            else
+               pipeAxisMaster.tUser((i*MST_USER_C)+(SLV_USER_C-1) downto (i*MST_USER_C)) <= ibM.tUser((i*8)+(SLV_USER_C-1) downto (i*8));
+            end if;
+         end loop;
+
       else
-         sAxisSlave  <= v.ibSlave;
+         sAxisSlave <= v.ibSlave;
 
          -- Outbound data with proper user bits
          pipeAxisMaster       <= r.obMaster;
-         pipeAxisMaster.tUser <= (others=>'0');
+         pipeAxisMaster.tUser <= (others => '0');
          if (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-            pipeAxisMaster.tKeep <= toSlv(getTKeep(r.obMaster.tKeep,MASTER_AXI_CONFIG_G), AXI_STREAM_MAX_TKEEP_WIDTH_C);
+            pipeAxisMaster.tKeep <= toSlv(getTKeep(r.obMaster.tKeep, MASTER_AXI_CONFIG_G), AXI_STREAM_MAX_TKEEP_WIDTH_C);
          end if;
 
          for i in 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
