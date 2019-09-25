@@ -52,10 +52,10 @@ jobs:
       name: "Generate Documentation"
       before_script:
         - cd $TRAVIS_BUILD_DIR
-        - chmod +x ghdl-travis-install.sh
         - chmod +x generateDocumentationAndDeploy.sh
+        - chmod +x ghdl-travis-install.sh
+        - ./ghdl-travis-install.sh > /dev/null 2>&1; make; rm -rf ghdl-build;
       script:
-        - ./ghdl-travis-install.sh > /dev/null 2>&1; make
         - ./generateDocumentationAndDeploy.sh 0
 
     # Stage to generate and deploy the documentation
@@ -63,5 +63,4 @@ jobs:
       stage: generate_and_deploy
       name: "Generate and Deploy Documentation"
       script: 
-        - ./ghdl-travis-install.sh > /dev/null 2>&1; make
         - ./generateDocumentationAndDeploy.sh 1
