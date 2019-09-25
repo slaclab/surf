@@ -1,0 +1,7 @@
+<map id="GLinkDecoder" name="GLinkDecoder">
+<area shape="rect" id="node3" href="$classGLinkGtp7FixedLat.html" title="GLinkGtp7FixedLat" alt="" coords="5,155,149,181"/>
+<area shape="rect" id="node4" href="$classGLinkGtx7FixedLat.html" title="GLinkGtx7FixedLat" alt="" coords="173,155,317,181"/>
+<area shape="rect" id="node6" href="$classGLinkTxToRx.html" title="GLinkTxToRx" alt="" coords="341,155,448,181"/>
+<area shape="rect" id="node2" href="$classSynchronizer.html" title="Synchronizer" alt="" coords="192,5,299,32"/>
+<area shape="rect" id="node5" href="$classGLinkGtx7FixedLatTb.html" title="GLinkGtx7FixedLatTb" alt="" coords="165,229,325,256"/>
+</map>

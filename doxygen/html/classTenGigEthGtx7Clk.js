@@ -1,6 +1,10 @@
 var classTenGigEthGtx7Clk =
 [
     [ "TenGigEthGtx7Clk.mapping", "classTenGigEthGtx7Clk_1_1mapping.html", "classTenGigEthGtx7Clk_1_1mapping" ],
+    [ "TPD_G", "classTenGigEthGtx7Clk.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "USE_GTREFCLK_G", "classTenGigEthGtx7Clk.html#aabe4aa6c32ea361c8724a5ff2142bd32", null ],
+    [ "REFCLK_DIV2_G", "classTenGigEthGtx7Clk.html#a801845adeff5dc1b781cbe115d94a59d", null ],
+    [ "QPLL_REFCLK_SEL_G", "classTenGigEthGtx7Clk.html#aea5262eebea53d0001c865bf74d8271a", null ],
     [ "extRst", "classTenGigEthGtx7Clk.html#a2370d68d090b7a9d9791a4c31b83778e", null ],
     [ "phyClk", "classTenGigEthGtx7Clk.html#a665c6aebaa02855162dca07a251f8977", null ],
     [ "phyRst", "classTenGigEthGtx7Clk.html#a34ff5ce778cf4cf41fc59ebdf1c8b4ed", null ],

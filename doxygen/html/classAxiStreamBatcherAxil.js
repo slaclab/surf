@@ -1,6 +1,14 @@
 var classAxiStreamBatcherAxil =
 [
     [ "rtl", "classAxiStreamBatcherAxil_1_1rtl.html", "classAxiStreamBatcherAxil_1_1rtl" ],
+    [ "TPD_G", "classAxiStreamBatcherAxil.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "COMMON_CLOCK_G", "classAxiStreamBatcherAxil.html#a90bac9cd3cfef826c18d25ff963addcc", null ],
+    [ "MAX_NUMBER_SUB_FRAMES_G", "classAxiStreamBatcherAxil.html#ab2c43bb53f770f42ffd43fb7ad2d5fcb", null ],
+    [ "SUPER_FRAME_BYTE_THRESHOLD_G", "classAxiStreamBatcherAxil.html#a0aee35b94f0631c3c9bb6e2acf277b3a", null ],
+    [ "MAX_CLK_GAP_G", "classAxiStreamBatcherAxil.html#ae7507b2dc7c0b770e216b9dd2661594c", null ],
+    [ "AXIS_CONFIG_G", "classAxiStreamBatcherAxil.html#a129eaf71f6056f837f37b4d59ce80a70", null ],
+    [ "INPUT_PIPE_STAGES_G", "classAxiStreamBatcherAxil.html#ab97074ce3ef0b6b96d8486e24ad4dc66", null ],
+    [ "OUTPUT_PIPE_STAGES_G", "classAxiStreamBatcherAxil.html#ab92515f9de5f37fe8533ce31793919b3", null ],
     [ "axisClk", "classAxiStreamBatcherAxil.html#ac220cc2710ba738744915c3b2a0f43bc", null ],
     [ "axisRst", "classAxiStreamBatcherAxil.html#a044b1bf79201c595c20474cecf020a5d", null ],
     [ "idle", "classAxiStreamBatcherAxil.html#a79905aaa08d75ef95e3194a779459df6", null ],

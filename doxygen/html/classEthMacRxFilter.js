@@ -1,6 +1,8 @@
 var classEthMacRxFilter =
 [
     [ "rtl", "classEthMacRxFilter_1_1rtl.html", "classEthMacRxFilter_1_1rtl" ],
+    [ "TPD_G", "classEthMacRxFilter.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "FILT_EN_G", "classEthMacRxFilter.html#a173f221e20a4d6a338749c3b6b5f3884", null ],
     [ "ethClk", "classEthMacRxFilter.html#aa454832f4c517041d344f7bdf52eceec", null ],
     [ "ethRst", "classEthMacRxFilter.html#a6c46ddea5c02f0cc0addd2467357471c", null ],
     [ "sAxisMaster", "classEthMacRxFilter.html#a4be737583df4493f37e21b9da4a67377", null ],

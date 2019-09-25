@@ -1,0 +1,4 @@
+<map id="i2cRamSlave" name="i2cRamSlave">
+<area shape="rect" id="node2" href="$classI2cRegSlave.html" title="I2cRegSlave" alt="" coords="8,80,109,107"/>
+<area shape="rect" id="node3" href="$classI2cSlave.html" title="I2cSlave" alt="" coords="20,5,97,32"/>
+</map>

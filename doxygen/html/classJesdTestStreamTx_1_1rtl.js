@@ -6,7 +6,7 @@ var classJesdTestStreamTx_1_1rtl =
     [ "RegType", "classJesdTestStreamTx_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
     [ "typeDly", "classJesdTestStreamTx_1_1rtl.html#a2bf9fd483a2298d7f983433bfcb92502", null ],
     [ "squareCnt", "classJesdTestStreamTx_1_1rtl.html#ab6cf72b2f008251076a5ab4a931e63ee", null ],
-    [ "rampCnt", "classJesdTestStreamTx_1_1rtl.html#a91ce3216321e3daf4bf3a705a4ed902f", null ],
+    [ "rampCnt", "classJesdTestStreamTx_1_1rtl.html#acbc92be78a43deb3759a13da2173cb64", null ],
     [ "testData", "classJesdTestStreamTx_1_1rtl.html#a3c4b027c6d1d22b60ba0f79a735d59cb", null ],
     [ "inc", "classJesdTestStreamTx_1_1rtl.html#a6ab142daa7a3d240e0bb4959b331322a", null ],
     [ "sign", "classJesdTestStreamTx_1_1rtl.html#aa81574bfd0c52b6b2a73872d393239e8", null ],

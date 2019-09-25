@@ -2,7 +2,7 @@ var classSsiFrameLimiter_1_1rtl =
 [
     [ "comb", "classSsiFrameLimiter_1_1rtl.html#afce54503335bc1601017c3eb25d7f840", null ],
     [ "seq", "classSsiFrameLimiter_1_1rtl.html#a308c02b698196700ea6669abeb872e29", null ],
-    [ "TIMEOUT_C", "classSsiFrameLimiter_1_1rtl.html#af3dcab560a11af497d7508a01bb427b6", null ],
+    [ "TIMEOUT_C", "classSsiFrameLimiter_1_1rtl.html#a5264c6be6ae26dd2b1b318be170d145a", null ],
     [ "SLAVE_FIFO_C", "classSsiFrameLimiter_1_1rtl.html#afbfc662247f5bb94dd150019928bd786", null ],
     [ "StateType", "classSsiFrameLimiter_1_1rtl.html#af15413f5e8d84c8a06177c94d3cf0efb", null ],
     [ "RegType", "classSsiFrameLimiter_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],

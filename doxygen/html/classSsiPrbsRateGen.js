@@ -1,6 +1,16 @@
 var classSsiPrbsRateGen =
 [
     [ "SsiPrbsRateGen.rtl", "classSsiPrbsRateGen_1_1rtl.html", "classSsiPrbsRateGen_1_1rtl" ],
+    [ "TPD_G", "classSsiPrbsRateGen.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "VALID_THOLD_G", "classSsiPrbsRateGen.html#a5fd0f8efc7eb2829bee163b66f826346", null ],
+    [ "VALID_BURST_MODE_G", "classSsiPrbsRateGen.html#a51af8500fcee91ee7cb0527506610bdb", null ],
+    [ "BRAM_EN_G", "classSsiPrbsRateGen.html#a1c9465c9431492ec79ab48827b02c46f", null ],
+    [ "XIL_DEVICE_G", "classSsiPrbsRateGen.html#ad73f3e1bc362541946cf886a1bf2c994", null ],
+    [ "USE_BUILT_IN_G", "classSsiPrbsRateGen.html#adb189c82e573abb099bff16ab4b87de8", null ],
+    [ "CASCADE_SIZE_G", "classSsiPrbsRateGen.html#a0020cacf583e8690929de5d04b60851c", null ],
+    [ "FIFO_ADDR_WIDTH_G", "classSsiPrbsRateGen.html#aa6569dec456d16b555ae095a761f9533", null ],
+    [ "AXIS_CLK_FREQ_G", "classSsiPrbsRateGen.html#ad459d012af0700c2b2299cf90a94f09f", null ],
+    [ "AXIS_CONFIG_G", "classSsiPrbsRateGen.html#a129eaf71f6056f837f37b4d59ce80a70", null ],
     [ "mAxisClk", "classSsiPrbsRateGen.html#a0a9437a4574cc033cc1ed972bcd89a90", null ],
     [ "mAxisRst", "classSsiPrbsRateGen.html#a576d9d919155bb8c2a43f3959526a52f", null ],
     [ "mAxisMaster", "classSsiPrbsRateGen.html#afd4f0f4d2e88b311f2a3b3705b317922", null ],

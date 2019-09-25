@@ -3,7 +3,7 @@ var classRssiHeaderReg_1_1rtl =
     [ "comb", "classRssiHeaderReg_1_1rtl.html#af813d78b14433a1039280c0c1e470f17", null ],
     [ "seq", "classRssiHeaderReg_1_1rtl.html#a70e55cf841c2937028848499824b2006", null ],
     [ "RegType", "classRssiHeaderReg_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
-    [ "headerData", "classRssiHeaderReg_1_1rtl.html#ac08872b21c851f2e9c4444613d061d89", null ],
+    [ "headerData", "classRssiHeaderReg_1_1rtl.html#a8550ed5b5ec9ddf52855047221aac0e9", null ],
     [ "rdy", "classRssiHeaderReg_1_1rtl.html#af18934ae3d94fa90fb6a9fb4c95b0f13", null ],
     [ "ack", "classRssiHeaderReg_1_1rtl.html#a6fb5bf3dc82bf6fcb25c9167c39f22fe", null ],
     [ "busy", "classRssiHeaderReg_1_1rtl.html#ab53f10cfe7f1bd11c9d37c4d16759507", null ],

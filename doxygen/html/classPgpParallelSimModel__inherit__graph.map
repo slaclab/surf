@@ -1,0 +1,18 @@
+<map id="PgpParallelSimModel" name="PgpParallelSimModel">
+<area shape="rect" id="node2" href="$classSlvDelay.html" title="SlvDelay(3)" alt="" coords="391,157,490,184"/>
+<area shape="rect" id="node3" href="$classDecoder8b10b.html" title="Decoder8b10b" alt="" coords="383,208,499,235"/>
+<area shape="rect" id="node4" href="$classPgp2bLane.html" title="Pgp2bLane" alt="" coords="394,259,487,285"/>
+<area shape="rect" id="node5" href="$classPgp2bTx.html" title="Pgp2bTx" alt="" coords="228,183,307,209"/>
+<area shape="rect" id="node6" href="$classSynchronizerVector.html" title="SynchronizerVector" alt="" coords="5,107,152,133"/>
+<area shape="rect" id="node7" href="$classSynchronizer.html" title="Synchronizer" alt="" coords="25,157,132,184"/>
+<area shape="rect" id="node8" href="$classPgp2bTxPhy.html" title="Pgp2bTxPhy" alt="" coords="27,208,130,235"/>
+<area shape="rect" id="node9" href="$classPgp2bTxSched.html" title="Pgp2bTxSched" alt="" coords="20,5,137,32"/>
+<area shape="rect" id="node10" href="$classPgp2bTxCell.html" title="Pgp2bTxCell" alt="" coords="27,56,130,83"/>
+<area shape="rect" id="node11" href="$classAxiStreamPipeline.html" title="AxiStreamPipeline" alt="" coords="7,259,150,285"/>
+<area shape="rect" id="node16" href="$classAxiStreamDeMux.html" title="AxiStreamDeMux" alt="" coords="200,259,335,285"/>
+<area shape="rect" id="node12" href="$classCRC32Rtl.html" title="CRC32Rtl" alt="" coords="37,309,120,336"/>
+<area shape="rect" id="node13" href="$classPgp2bRx.html" title="Pgp2bRx" alt="" coords="228,335,307,361"/>
+<area shape="rect" id="node14" href="$classPgp2bRxPhy.html" title="Pgp2bRxPhy" alt="" coords="27,411,130,437"/>
+<area shape="rect" id="node15" href="$classPgp2bRxCell.html" title="Pgp2bRxCell" alt="" coords="27,360,131,387"/>
+<area shape="rect" id="node17" href="$classEncoder8b10b.html" title="Encoder8b10b" alt="" coords="383,309,498,336"/>
+</map>

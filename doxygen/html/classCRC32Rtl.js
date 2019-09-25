@@ -1,6 +1,7 @@
 var classCRC32Rtl =
 [
     [ "rtl", "classCRC32Rtl_1_1rtl.html", "classCRC32Rtl_1_1rtl" ],
+    [ "CRC_INIT", "classCRC32Rtl.html#abab19850a841a5b58578c88bd42e5232", null ],
     [ "CRCOUT", "classCRC32Rtl.html#a338efb891b0b772ef903e37008715bd2", null ],
     [ "CRCCLK", "classCRC32Rtl.html#a3dff251e4663d992f1178beccc153ce6", null ],
     [ "CRCCLKEN", "classCRC32Rtl.html#a9e5df0c7f7d94287b757e0dee7272af1", null ],

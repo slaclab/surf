@@ -1,6 +1,11 @@
 var classSaciPrepRdout =
 [
     [ "SaciPrepRdout.rtl", "classSaciPrepRdout_1_1rtl.html", "classSaciPrepRdout_1_1rtl" ],
+    [ "TPD_G", "classSaciPrepRdout.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "MASK_REG_ADDR_G", "classSaciPrepRdout.html#aec4b716519e75c3d8e4cb28ae825341b", null ],
+    [ "MASK_REG_READ_G", "classSaciPrepRdout.html#a379e65ce6629c83c4c39f85a6ae9fc3d", null ],
+    [ "SACI_BASE_ADDR_G", "classSaciPrepRdout.html#acda9d904914ea6a1daa315112a9545e2", null ],
+    [ "SACI_NUM_CHIPS_G", "classSaciPrepRdout.html#ab66c5bcd074759ee761ded05d4471f85", null ],
     [ "axilClk", "classSaciPrepRdout.html#a8e1fd4ab848b98a0c700b34cf7c90b36", null ],
     [ "axilRst", "classSaciPrepRdout.html#a4b36ee28c73fadc67fe1a670f1ba11ff", null ],
     [ "prepRdoutReq", "classSaciPrepRdout.html#a3d667b172da53a78426c5471637d24b0", null ],

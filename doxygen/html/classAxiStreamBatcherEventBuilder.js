@@ -1,6 +1,14 @@
 var classAxiStreamBatcherEventBuilder =
 [
     [ "rtl", "classAxiStreamBatcherEventBuilder_1_1rtl.html", "classAxiStreamBatcherEventBuilder_1_1rtl" ],
+    [ "TPD_G", "classAxiStreamBatcherEventBuilder.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "NUM_SLAVES_G", "classAxiStreamBatcherEventBuilder.html#a5ad3390285fe8b41eae354a0bf73bcfc", null ],
+    [ "MODE_G", "classAxiStreamBatcherEventBuilder.html#adf33db7c14d9e2c22de126a4f7b466a6", null ],
+    [ "TDEST_ROUTES_G", "classAxiStreamBatcherEventBuilder.html#af451c9319b83428f363d598448ba95bf", null ],
+    [ "TDEST_LOW_G", "classAxiStreamBatcherEventBuilder.html#a1febd9d88664e307ee6cfb0fb28aa863", null ],
+    [ "AXIS_CONFIG_G", "classAxiStreamBatcherEventBuilder.html#a129eaf71f6056f837f37b4d59ce80a70", null ],
+    [ "INPUT_PIPE_STAGES_G", "classAxiStreamBatcherEventBuilder.html#ab97074ce3ef0b6b96d8486e24ad4dc66", null ],
+    [ "OUTPUT_PIPE_STAGES_G", "classAxiStreamBatcherEventBuilder.html#a1e8e27a48bf5c0dd160777ba7ac29436", null ],
     [ "axisClk", "classAxiStreamBatcherEventBuilder.html#ac220cc2710ba738744915c3b2a0f43bc", null ],
     [ "axisRst", "classAxiStreamBatcherEventBuilder.html#a044b1bf79201c595c20474cecf020a5d", null ],
     [ "axilReadMaster", "classAxiStreamBatcherEventBuilder.html#acd3440bbc91f595e14ebb565ef1e05c4", null ],

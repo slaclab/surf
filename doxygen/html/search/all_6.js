@@ -1,8 +1,7 @@
 var searchData=
 [
   ['fifo',['Fifo',['../classFifo.html',1,'']]],
-  ['fifo_5ftb',['fifo_tb',['../classfifo__tb.html',1,'']]],
-  ['fifo_5ftb',['fifo_tb',['../classfifo__tb_1_1fifo__tb.html',1,'fifo_tb']]],
+  ['fifo_5ftb',['fifo_tb',['../classfifo__tb.html',1,'fifo_tb'],['../classfifo__tb_1_1fifo__tb.html',1,'fifo_tb']]],
   ['fifoalteramf',['FifoAlteraMf',['../classFifoAlteraMf.html',1,'']]],
   ['fifoasync',['FifoAsync',['../classFifoAsync.html',1,'']]],
   ['fifoasyncbuiltin',['FifoAsyncBuiltIn',['../classFifoAsyncBuiltIn.html',1,'']]],

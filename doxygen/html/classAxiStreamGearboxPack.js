@@ -1,6 +1,10 @@
 var classAxiStreamGearboxPack =
 [
     [ "rtl", "classAxiStreamGearboxPack_1_1rtl.html", "classAxiStreamGearboxPack_1_1rtl" ],
+    [ "TPD_G", "classAxiStreamGearboxPack.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "AXI_STREAM_CONFIG_G", "classAxiStreamGearboxPack.html#ac3648317c8642074d6fd27a2ecc59b0b", null ],
+    [ "RANGE_HIGH_G", "classAxiStreamGearboxPack.html#a9b0fdd2a025d22171196c4a222f040b4", null ],
+    [ "RANGE_LOW_G", "classAxiStreamGearboxPack.html#aeab3f76eff8700ce5b8d8b3fa332a981", null ],
     [ "axisClk", "classAxiStreamGearboxPack.html#ac220cc2710ba738744915c3b2a0f43bc", null ],
     [ "axisRst", "classAxiStreamGearboxPack.html#a044b1bf79201c595c20474cecf020a5d", null ],
     [ "rawAxisMaster", "classAxiStreamGearboxPack.html#a4db894c74810f3de7a648bc5c3b33b15", null ],

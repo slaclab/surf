@@ -1,6 +1,7 @@
 var classTenGigEthGtyUltraScaleRst =
 [
     [ "TenGigEthGtyUltraScaleRst.rtl", "classTenGigEthGtyUltraScaleRst_1_1rtl.html", "classTenGigEthGtyUltraScaleRst_1_1rtl" ],
+    [ "TPD_G", "classTenGigEthGtyUltraScaleRst.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "coreClk", "classTenGigEthGtyUltraScaleRst.html#a0e27907f8cf3cb2606c6bce24f26039c", null ],
     [ "coreRst", "classTenGigEthGtyUltraScaleRst.html#ab1f642b2ce03a7f0907b4f9073ac7a7f", null ],
     [ "txGtClk", "classTenGigEthGtyUltraScaleRst.html#ac01c0acb6c5afeb89330954c883c55cb", null ],

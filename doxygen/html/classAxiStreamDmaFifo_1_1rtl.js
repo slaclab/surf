@@ -8,7 +8,7 @@ var classAxiStreamDmaFifo_1_1rtl =
     [ "BIT_DIFF_C", "classAxiStreamDmaFifo_1_1rtl.html#a3a322e80f19dc8eeb4df731fb52af605", null ],
     [ "ADDR_WIDTH_C", "classAxiStreamDmaFifo_1_1rtl.html#af941a003b3a0b1dfdf369249dd53ac1a", null ],
     [ "CASCADE_SIZE_C", "classAxiStreamDmaFifo_1_1rtl.html#adfe824750913159a1d21588c959a06ab", null ],
-    [ "LOCAL_AXI_READ_DMA_READ_REQ_SIZE_C", "classAxiStreamDmaFifo_1_1rtl.html#a31d0da1232acc46aa82584f06088ff8e", null ],
+    [ "LOCAL_AXI_READ_DMA_READ_REQ_SIZE_C", "classAxiStreamDmaFifo_1_1rtl.html#ac5bfed284a26add44255de7ff2ae7fc7", null ],
     [ "RegType", "classAxiStreamDmaFifo_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
     [ "rstCnt", "classAxiStreamDmaFifo_1_1rtl.html#a267ee78a40c6ad86c3ec831ff8d5451b", null ],
     [ "insertSof", "classAxiStreamDmaFifo_1_1rtl.html#ae5759777672d672b2739a1178b396e98", null ],

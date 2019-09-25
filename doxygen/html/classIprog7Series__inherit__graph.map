@@ -1,3 +1,12 @@
 <map id="Iprog7Series" name="Iprog7Series">
-<area shape="rect" id="node2" href="$classIprog.html" title="Iprog" alt="" coords="27,80,78,107"/>
+<area shape="rect" id="node7" href="$classIprog.html" title="Iprog" alt="" coords="207,304,261,331"/>
+<area shape="rect" id="node2" href="$classRstSync.html" title="RstSync" alt="" coords="133,155,207,181"/>
+<area shape="rect" id="node3" href="$classSynchronizer.html" title="Synchronizer" alt="" coords="170,5,277,32"/>
+<area shape="rect" id="node6" href="$classSynchronizerEdge.html" title="SynchronizerEdge" alt="" coords="207,80,346,107"/>
+<area shape="rect" id="node4" href="$classIprog7SeriesCore.html" title="Iprog7SeriesCore" alt="" coords="231,155,365,181"/>
+<area shape="rect" id="node5" href="$classSynchronizerVector.html" title="SynchronizerVector" alt="" coords="370,80,517,107"/>
+<area shape="rect" id="node8" href="$classAxiVersion.html" title="AxiVersion" alt="" coords="119,379,210,405"/>
+<area shape="rect" id="node11" href="$classAxiVersionLegacy.html" title="AxiVersionLegacy" alt="" coords="235,379,372,405"/>
+<area shape="rect" id="node9" href="$classAxiLiteIpBusBridgeTb.html" title="AxiLiteIpBusBridgeTb" alt="" coords="5,453,167,480"/>
+<area shape="rect" id="node10" href="$classAxiVersionTb.html" title="AxiVersionTb" alt="" coords="191,453,298,480"/>
 </map>

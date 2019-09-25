@@ -1,6 +1,18 @@
 var classAxiLiteSrpV0 =
 [
     [ "rtl", "classAxiLiteSrpV0_1_1rtl.html", "classAxiLiteSrpV0_1_1rtl" ],
+    [ "TPD_G", "classAxiLiteSrpV0.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "RESP_THOLD_G", "classAxiLiteSrpV0.html#a2589623758c891c5758e860099c431aa", null ],
+    [ "SLAVE_READY_EN_G", "classAxiLiteSrpV0.html#a732db2237e0f6e1568cf997454ee9f4a", null ],
+    [ "BRAM_EN_G", "classAxiLiteSrpV0.html#a1c9465c9431492ec79ab48827b02c46f", null ],
+    [ "XIL_DEVICE_G", "classAxiLiteSrpV0.html#ad73f3e1bc362541946cf886a1bf2c994", null ],
+    [ "USE_BUILT_IN_G", "classAxiLiteSrpV0.html#adb189c82e573abb099bff16ab4b87de8", null ],
+    [ "ALTERA_SYN_G", "classAxiLiteSrpV0.html#a1669478a44dab111adcd8bbceb192b02", null ],
+    [ "ALTERA_RAM_G", "classAxiLiteSrpV0.html#a19f5205f8fd4959c02e7b32fe19bbbc7", null ],
+    [ "GEN_SYNC_FIFO_G", "classAxiLiteSrpV0.html#a74265af003d7cd4b0443ced520ac6722", null ],
+    [ "FIFO_ADDR_WIDTH_G", "classAxiLiteSrpV0.html#a9cb07eca4f1e6525763e4a6c2246ab39", null ],
+    [ "FIFO_PAUSE_THRESH_G", "classAxiLiteSrpV0.html#accf28a9c0bd06e0908d7e925af07f31a", null ],
+    [ "AXI_STREAM_CONFIG_G", "classAxiLiteSrpV0.html#af35a909cb92ebe014b3bd04381223b1f", null ],
     [ "mAxisClk", "classAxiLiteSrpV0.html#a0a9437a4574cc033cc1ed972bcd89a90", null ],
     [ "mAxisRst", "classAxiLiteSrpV0.html#a26000e6c867f4d1aa3c4032b602fdc71", null ],
     [ "mAxisMaster", "classAxiLiteSrpV0.html#afd4f0f4d2e88b311f2a3b3705b317922", null ],

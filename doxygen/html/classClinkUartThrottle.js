@@ -1,6 +1,7 @@
 var classClinkUartThrottle =
 [
     [ "rtl", "classClinkUartThrottle_1_1rtl.html", "classClinkUartThrottle_1_1rtl" ],
+    [ "TPD_G", "classClinkUartThrottle.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "intClk", "classClinkUartThrottle.html#a83d081074246b2faf8171d4e7f786a76", null ],
     [ "intRst", "classClinkUartThrottle.html#a6396dc1d3525cfce1618a83696bcd0ae", null ],
     [ "throttle", "classClinkUartThrottle.html#a6f8e32cb6122aa1edc59f403a4a9a4f1", null ],

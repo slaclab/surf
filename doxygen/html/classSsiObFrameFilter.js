@@ -1,6 +1,10 @@
 var classSsiObFrameFilter =
 [
     [ "SsiObFrameFilter.rtl", "classSsiObFrameFilter_1_1rtl.html", "classSsiObFrameFilter_1_1rtl" ],
+    [ "TPD_G", "classSsiObFrameFilter.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "VALID_THOLD_G", "classSsiObFrameFilter.html#a362ee3f61a25208de75687b2fba5e76e", null ],
+    [ "EN_FRAME_FILTER_G", "classSsiObFrameFilter.html#a84b4ddfe71882eab577b671ed611b70c", null ],
+    [ "AXIS_CONFIG_G", "classSsiObFrameFilter.html#a4f0af0aaab21847c5977132abf7a52bc", null ],
     [ "sAxisMaster", "classSsiObFrameFilter.html#a4be737583df4493f37e21b9da4a67377", null ],
     [ "sTLastTUser", "classSsiObFrameFilter.html#ae870ff86a1b8165e5e0569f03d99c200", null ],
     [ "sAxisSlave", "classSsiObFrameFilter.html#a4e7681b5766a6f51851dfb086a6bf45a", null ],

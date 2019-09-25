@@ -1,6 +1,9 @@
 var classJesdRxLane =
 [
     [ "rtl", "classJesdRxLane_1_1rtl.html", "classJesdRxLane_1_1rtl" ],
+    [ "TPD_G", "classJesdRxLane.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "F_G", "classJesdRxLane.html#ab83f5adebb48f573a8376351697f919a", null ],
+    [ "K_G", "classJesdRxLane.html#a613d1453ef9d3ba197df442a25c0f402", null ],
     [ "devClk_i", "classJesdRxLane.html#ae538849f57901c16c39cd71d1e3237cc", null ],
     [ "devRst_i", "classJesdRxLane.html#a3ee2d52da89c8da81a1fb782f58eb718", null ],
     [ "subClass_i", "classJesdRxLane.html#a3cf2ce1f8629863b3ee2505257fb0d94", null ],

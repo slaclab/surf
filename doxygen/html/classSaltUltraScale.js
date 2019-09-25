@@ -1,6 +1,14 @@
 var classSaltUltraScale =
 [
     [ "SaltUltraScale.mapping", "classSaltUltraScale_1_1mapping.html", "classSaltUltraScale_1_1mapping" ],
+    [ "TPD_G", "classSaltUltraScale.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "SIMULATION_G", "classSaltUltraScale.html#ac6de36aa80aba7f5067e4172962ede27", null ],
+    [ "TX_ENABLE_G", "classSaltUltraScale.html#af98732ca4d35527413497b2a4b52d377", null ],
+    [ "RX_ENABLE_G", "classSaltUltraScale.html#aaaa78a467d674298eb84f2e159debf7b", null ],
+    [ "COMMON_TX_CLK_G", "classSaltUltraScale.html#a1d11edc3131810ae5191fcf3f31bd928", null ],
+    [ "COMMON_RX_CLK_G", "classSaltUltraScale.html#a55a8146a71c1cb6fca3ac0e06d31e1dd", null ],
+    [ "SLAVE_AXI_CONFIG_G", "classSaltUltraScale.html#a39b0b368c7d5d08dad7054f410932f20", null ],
+    [ "MASTER_AXI_CONFIG_G", "classSaltUltraScale.html#a24208a3ba91181542a4a79712efe5a80", null ],
     [ "txP", "classSaltUltraScale.html#a82c520dfeaf62d6d83b33bf055c75abf", null ],
     [ "txN", "classSaltUltraScale.html#aba15dbc65eb484f535c12b56e41ba335", null ],
     [ "rxP", "classSaltUltraScale.html#a913eedfbeec5a3a17e74c5ec8afb5c01", null ],

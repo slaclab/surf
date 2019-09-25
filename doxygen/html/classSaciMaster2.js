@@ -1,6 +1,12 @@
 var classSaciMaster2 =
 [
     [ "SaciMaster2.rtl", "classSaciMaster2_1_1rtl.html", "classSaciMaster2_1_1rtl" ],
+    [ "TPD_G", "classSaciMaster2.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "SYS_CLK_PERIOD_G", "classSaciMaster2.html#a34c89f15d9e12b04a037319d4c935cee", null ],
+    [ "SACI_CLK_PERIOD_G", "classSaciMaster2.html#a866f6e1681acd6a41f2d6bb8a826234c", null ],
+    [ "SACI_CLK_FREERUN_G", "classSaciMaster2.html#a8f4a13ec167ce07a5fa9d533d5a3bc01", null ],
+    [ "SACI_NUM_CHIPS_G", "classSaciMaster2.html#a711e222e6a863f94a039c2a051b33f6c", null ],
+    [ "SACI_RSP_BUSSED_G", "classSaciMaster2.html#ac1b68658b3e2725c3cf3ced9a2523b32", null ],
     [ "sysClk", "classSaciMaster2.html#aa8e786917e21f0003ac4b7181c6a4270", null ],
     [ "sysRst", "classSaciMaster2.html#ad6f88b30c93e1fee7769c9268b934617", null ],
     [ "req", "classSaciMaster2.html#ab046eba3a3240cf9b68603b703fb18b4", null ],

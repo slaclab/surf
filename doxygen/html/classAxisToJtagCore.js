@@ -1,6 +1,12 @@
 var classAxisToJtagCore =
 [
     [ "AxisToJtagCoreImpl", "classAxisToJtagCore_1_1AxisToJtagCoreImpl.html", "classAxisToJtagCore_1_1AxisToJtagCoreImpl" ],
+    [ "TPD_G", "classAxisToJtagCore.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "AXIS_WIDTH_G", "classAxisToJtagCore.html#ab1262814a05eefc67fd327588bef79a7", null ],
+    [ "LEN_POS0_G", "classAxisToJtagCore.html#aa36776758c9568c6465d1a8e92f1a90f", null ],
+    [ "LEN_POSN_G", "classAxisToJtagCore.html#a883d285265b1fb9d77ba58c3e22c63cc", null ],
+    [ "CLK_DIV2_G", "classAxisToJtagCore.html#a97eb7041a82f1dae3925c88c8cca6a23", null ],
+    [ "TLAST_IGNORE_G", "classAxisToJtagCore.html#a83bd62b873ca672d2c9fd4f0d32cf31d", null ],
     [ "axisClk", "classAxisToJtagCore.html#ac220cc2710ba738744915c3b2a0f43bc", null ],
     [ "axisRst", "classAxisToJtagCore.html#a044b1bf79201c595c20474cecf020a5d", null ],
     [ "mAxisTmsTdi", "classAxisToJtagCore.html#aecd11ca24b629a5d03dfff1f25c1f575", null ],

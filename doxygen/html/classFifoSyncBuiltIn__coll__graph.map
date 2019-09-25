@@ -1,0 +1,6 @@
+<map id="FifoSyncBuiltIn" name="FifoSyncBuiltIn">
+<area shape="rect" id="node2" href="$classRstSync.html" title="RstSync(2)" alt="" coords="5,80,97,107"/>
+<area shape="rect" id="node3" href="$classSynchronizer.html" title="Synchronizer" alt="" coords="67,5,174,32"/>
+<area shape="rect" id="node4" href="$classSynchronizerEdge.html" title="SynchronizerEdge" alt="" coords="122,80,261,107"/>
+<area shape="rect" id="node5" href="$classFifoOutputPipeline.html" title="FifoOutputPipeline" alt="" coords="285,80,426,107"/>
+</map>

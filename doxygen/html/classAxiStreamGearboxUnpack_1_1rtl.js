@@ -9,7 +9,7 @@ var classAxiStreamGearboxUnpack_1_1rtl =
     [ "RegType", "classAxiStreamGearboxUnpack_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
     [ "packedSsiSlave", "classAxiStreamGearboxUnpack_1_1rtl.html#a57ae439b37fbc82bf5183cba7bee29bf", null ],
     [ "rawSsiMaster", "classAxiStreamGearboxUnpack_1_1rtl.html#a92337d8088fb66d966bb9f4ae79da334", null ],
-    [ "data", "classAxiStreamGearboxUnpack_1_1rtl.html#ad7a0996659b86b7ac06ea033aa3307ab", null ],
+    [ "data", "classAxiStreamGearboxUnpack_1_1rtl.html#a08fc727b740bd0946943cf61860c0f92", null ],
     [ "splitIndex", "classAxiStreamGearboxUnpack_1_1rtl.html#a9a33c4e90d55d789fdcf9e61f1510203", null ],
     [ "eof", "classAxiStreamGearboxUnpack_1_1rtl.html#a49b29e8b719c32bc39497fa0b79c35d4", null ],
     [ "eofe", "classAxiStreamGearboxUnpack_1_1rtl.html#a65e8eb3f515b16d8a7c6c04750377ba0", null ],

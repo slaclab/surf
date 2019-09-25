@@ -1,6 +1,13 @@
 var classAsyncGearbox =
 [
     [ "mapping", "classAsyncGearbox_1_1mapping.html", "classAsyncGearbox_1_1mapping" ],
+    [ "TPD_G", "classAsyncGearbox.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "SLAVE_WIDTH_G", "classAsyncGearbox.html#a63515746fbc6df0a926a405d85aaa3f7", null ],
+    [ "MASTER_WIDTH_G", "classAsyncGearbox.html#ab6d418a4e07961409a51e4195d6485fa", null ],
+    [ "INPUT_PIPE_STAGES_G", "classAsyncGearbox.html#ab97074ce3ef0b6b96d8486e24ad4dc66", null ],
+    [ "OUTPUT_PIPE_STAGES_G", "classAsyncGearbox.html#a1e8e27a48bf5c0dd160777ba7ac29436", null ],
+    [ "FIFO_BRAM_EN_G", "classAsyncGearbox.html#ad0d463bd4ba95b5eec7e57f06069fbe2", null ],
+    [ "FIFO_ADDR_WIDTH_G", "classAsyncGearbox.html#a73106e222c759e7b0d2342307530bc0b", null ],
     [ "slaveClk", "classAsyncGearbox.html#a79ea05e546f25e58e81f49d297e1542f", null ],
     [ "slaveRst", "classAsyncGearbox.html#ab3ea7871b0bf0fe9efc13830a6125168", null ],
     [ "slaveData", "classAsyncGearbox.html#abc015e3c124e260330bf4b2a9d1c083d", null ],

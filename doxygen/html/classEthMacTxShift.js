@@ -1,6 +1,8 @@
 var classEthMacTxShift =
 [
     [ "mapping", "classEthMacTxShift_1_1mapping.html", "classEthMacTxShift_1_1mapping" ],
+    [ "TPD_G", "classEthMacTxShift.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "SHIFT_EN_G", "classEthMacTxShift.html#a0df80f4b8147d7889291f4976dbf9ede", null ],
     [ "ethClk", "classEthMacTxShift.html#aa454832f4c517041d344f7bdf52eceec", null ],
     [ "ethRst", "classEthMacTxShift.html#a6c46ddea5c02f0cc0addd2467357471c", null ],
     [ "sAxisMaster", "classEthMacTxShift.html#a4be737583df4493f37e21b9da4a67377", null ],

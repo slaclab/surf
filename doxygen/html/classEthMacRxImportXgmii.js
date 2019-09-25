@@ -1,6 +1,7 @@
 var classEthMacRxImportXgmii =
 [
     [ "rtl", "classEthMacRxImportXgmii_1_1rtl.html", "classEthMacRxImportXgmii_1_1rtl" ],
+    [ "TPD_G", "classEthMacRxImportXgmii.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "ethClk", "classEthMacRxImportXgmii.html#aa454832f4c517041d344f7bdf52eceec", null ],
     [ "ethRst", "classEthMacRxImportXgmii.html#a6c46ddea5c02f0cc0addd2467357471c", null ],
     [ "macIbMaster", "classEthMacRxImportXgmii.html#a88ff732167c335bbbc2a4aecbfa16519", null ],

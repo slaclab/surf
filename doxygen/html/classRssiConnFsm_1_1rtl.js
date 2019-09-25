@@ -2,7 +2,7 @@ var classRssiConnFsm_1_1rtl =
 [
     [ "comb", "classRssiConnFsm_1_1rtl.html#a15df47d459e6e406cfb45474c7f4f634", null ],
     [ "seq", "classRssiConnFsm_1_1rtl.html#a70e55cf841c2937028848499824b2006", null ],
-    [ "SAMPLES_PER_TIME_C", "classRssiConnFsm_1_1rtl.html#a1989fcb9a046600ab2ce2adb0fc28b92", null ],
+    [ "SAMPLES_PER_TIME_C", "classRssiConnFsm_1_1rtl.html#a09b0e62aab5d762105e597ef4d044eda", null ],
     [ "StateType", "classRssiConnFsm_1_1rtl.html#a2314ba044f6471b08b75b7ffd3b7f30e", null ],
     [ "RegType", "classRssiConnFsm_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
     [ "connActive", "classRssiConnFsm_1_1rtl.html#a2b59029f9e9fc9ad6158132f1a887d89", null ],

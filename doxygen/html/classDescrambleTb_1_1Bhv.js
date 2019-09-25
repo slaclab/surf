@@ -17,7 +17,7 @@ var classDescrambleTb_1_1Bhv =
     [ "nSyncAnyD1_i", "classDescrambleTb_1_1Bhv.html#a436265946194d9189a3f95b1f65e6459", null ],
     [ "nSync_o", "classDescrambleTb_1_1Bhv.html#ae35ba20764d8d90872d9ff26b3296bd2", null ],
     [ "dataValid_o", "classDescrambleTb_1_1Bhv.html#a09040fcae78c45df05a78bb3d2ef590a", null ],
-    [ "sampleData_o", "classDescrambleTb_1_1Bhv.html#a0baeff8b3cc1adfe42c29c21d7b52f39", null ],
+    [ "sampleData_o", "classDescrambleTb_1_1Bhv.html#ab6520d7df4a2e6ab784d2b803829fe74", null ],
     [ "status_o", "classDescrambleTb_1_1Bhv.html#a5579df800eec5e70948e78c26ccbb315", null ],
     [ "s_sysrefRe", "classDescrambleTb_1_1Bhv.html#af325485c870613889fc8db88c96f3766", null ],
     [ "s_lmfc", "classDescrambleTb_1_1Bhv.html#a4badd753f8aa94b73012a584d6a09bfc", null ],

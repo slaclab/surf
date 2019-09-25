@@ -1,6 +1,11 @@
 var classEthMacTxPause =
 [
     [ "rtl", "classEthMacTxPause_1_1rtl.html", "classEthMacTxPause_1_1rtl" ],
+    [ "TPD_G", "classEthMacTxPause.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "PAUSE_EN_G", "classEthMacTxPause.html#a3523b0b120676ac086f277320024a115", null ],
+    [ "PAUSE_512BITS_G", "classEthMacTxPause.html#aa057e2e7e090c3cfca7493acbbd47220", null ],
+    [ "VLAN_EN_G", "classEthMacTxPause.html#a18de25a8aa2d7b5c459a912874c13dfe", null ],
+    [ "VLAN_SIZE_G", "classEthMacTxPause.html#a581badb2f52346d91f2f9fa882db0467", null ],
     [ "ethClk", "classEthMacTxPause.html#aa454832f4c517041d344f7bdf52eceec", null ],
     [ "ethRst", "classEthMacTxPause.html#a6c46ddea5c02f0cc0addd2467357471c", null ],
     [ "sAxisMaster", "classEthMacTxPause.html#a4be737583df4493f37e21b9da4a67377", null ],

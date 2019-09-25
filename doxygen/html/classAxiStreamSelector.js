@@ -1,6 +1,7 @@
 var classAxiStreamSelector =
 [
     [ "AxiStreamSelectorImpl", "classAxiStreamSelector_1_1AxiStreamSelectorImpl.html", "classAxiStreamSelector_1_1AxiStreamSelectorImpl" ],
+    [ "TPD_G", "classAxiStreamSelector.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "clk", "classAxiStreamSelector.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classAxiStreamSelector.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],
     [ "sel", "classAxiStreamSelector.html#a402955cc19261cdb77ed18435893ebb4", null ],

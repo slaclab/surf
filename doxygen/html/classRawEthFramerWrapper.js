@@ -1,6 +1,8 @@
 var classRawEthFramerWrapper =
 [
     [ "RawEthFramerWrapper.mapping", "classRawEthFramerWrapper_1_1mapping.html", "classRawEthFramerWrapper_1_1mapping" ],
+    [ "TPD_G", "classRawEthFramerWrapper.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "ETH_TYPE_G", "classRawEthFramerWrapper.html#a38a16db6b6abc458307c20fab65c1134", null ],
     [ "localMac", "classRawEthFramerWrapper.html#ae02bb35f94a88aa2db811931566e8a02", null ],
     [ "obMacMaster", "classRawEthFramerWrapper.html#aceaad17a6c6a052944cec178f8a392f7", null ],
     [ "obMacSlave", "classRawEthFramerWrapper.html#a46dee53e161dfd5737edf0cd1af1383d", null ],

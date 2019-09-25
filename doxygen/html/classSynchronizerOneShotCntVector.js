@@ -1,6 +1,18 @@
 var classSynchronizerOneShotCntVector =
 [
     [ "SynchronizerOneShotCntVector.mapping", "classSynchronizerOneShotCntVector_1_1mapping.html", "classSynchronizerOneShotCntVector_1_1mapping" ],
+    [ "TPD_G", "classSynchronizerOneShotCntVector.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "RST_POLARITY_G", "classSynchronizerOneShotCntVector.html#a8a9f56ec06b173cf46dc7160fd7c1f30", null ],
+    [ "RST_ASYNC_G", "classSynchronizerOneShotCntVector.html#a123a3d9a6e9648e763d21c0281ee7ecd", null ],
+    [ "COMMON_CLK_G", "classSynchronizerOneShotCntVector.html#a762b446ddef001083e8cfc52dc38385f", null ],
+    [ "RELEASE_DELAY_G", "classSynchronizerOneShotCntVector.html#ab726fbb299abd7582750cdb5343a55d5", null ],
+    [ "IN_POLARITY_G", "classSynchronizerOneShotCntVector.html#ab564eedd69ac47d3b05b500b5ad936bd", null ],
+    [ "OUT_POLARITY_G", "classSynchronizerOneShotCntVector.html#a0862ed450b363e43963bbec61cc5f9d3", null ],
+    [ "USE_DSP48_G", "classSynchronizerOneShotCntVector.html#a7a8db7e7131ac4fe84ceeb9010cb34c7", null ],
+    [ "SYNTH_CNT_G", "classSynchronizerOneShotCntVector.html#afcb1ad088fa47d7232fcc4951acbe767", null ],
+    [ "CNT_RST_EDGE_G", "classSynchronizerOneShotCntVector.html#a3e647aa6b43472e890d277ba53cf7387", null ],
+    [ "CNT_WIDTH_G", "classSynchronizerOneShotCntVector.html#a5587b06c06b38cb164d2f79a8c706202", null ],
+    [ "WIDTH_G", "classSynchronizerOneShotCntVector.html#a1eea49dac25124171b7f577852354f6e", null ],
     [ "dataIn", "classSynchronizerOneShotCntVector.html#aba9daf4b05eec06ecc1a40b94b8afbfc", null ],
     [ "rollOverEn", "classSynchronizerOneShotCntVector.html#a88fb9a66c7c804bd24a528201164029d", null ],
     [ "cntRst", "classSynchronizerOneShotCntVector.html#a9d919d7cff9e73c15418e262795a2f33", null ],

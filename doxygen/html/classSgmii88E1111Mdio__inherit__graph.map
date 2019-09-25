@@ -1,0 +1,6 @@
+<map id="Sgmii88E1111Mdio" name="Sgmii88E1111Mdio">
+<area shape="rect" id="node5" href="$classSgmii88E1111LvdsUltraScale.html" title="Sgmii88E1111LvdsUltraScale" alt="" coords="5,304,217,331"/>
+<area shape="rect" id="node2" href="$classMdioLinkIrqHandler.html" title="MdioLinkIrqHandler" alt="" coords="37,155,185,181"/>
+<area shape="rect" id="node3" href="$classMdioSeqCore.html" title="MdioSeqCore" alt="" coords="58,80,165,107"/>
+<area shape="rect" id="node4" href="$classMdioCore.html" title="MdioCore" alt="" coords="70,5,153,32"/>
+</map>

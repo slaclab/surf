@@ -1,6 +1,9 @@
 var classEthMacRxCsum =
 [
     [ "rtl", "classEthMacRxCsum_1_1rtl.html", "classEthMacRxCsum_1_1rtl" ],
+    [ "TPD_G", "classEthMacRxCsum.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "JUMBO_G", "classEthMacRxCsum.html#af3c2b3ea37b9a6acb725bb242dbb570a", null ],
+    [ "VLAN_G", "classEthMacRxCsum.html#ad2244ede4b7d5db9cd6c9ee46585439d", null ],
     [ "ethClk", "classEthMacRxCsum.html#aa454832f4c517041d344f7bdf52eceec", null ],
     [ "ethRst", "classEthMacRxCsum.html#a6c46ddea5c02f0cc0addd2467357471c", null ],
     [ "ipCsumEn", "classEthMacRxCsum.html#af4bd185e1af3bccd7de70e16af166f83", null ],

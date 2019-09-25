@@ -1,6 +1,12 @@
 var classAxiLiteToDrp =
 [
     [ "rtl", "classAxiLiteToDrp_1_1rtl.html", "classAxiLiteToDrp_1_1rtl" ],
+    [ "TPD_G", "classAxiLiteToDrp.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "COMMON_CLK_G", "classAxiLiteToDrp.html#a762b446ddef001083e8cfc52dc38385f", null ],
+    [ "EN_ARBITRATION_G", "classAxiLiteToDrp.html#ae70b94447e37fd2eaeac9308bfc0a061", null ],
+    [ "TIMEOUT_G", "classAxiLiteToDrp.html#a3e58d5da6355f2560d494c28bb5d1b34", null ],
+    [ "ADDR_WIDTH_G", "classAxiLiteToDrp.html#a357ac8b2800c5af5a9a37fab441d1860", null ],
+    [ "DATA_WIDTH_G", "classAxiLiteToDrp.html#a17672ec41a9cdbac91bbf00fe1fb4d8b", null ],
     [ "axilClk", "classAxiLiteToDrp.html#a8e1fd4ab848b98a0c700b34cf7c90b36", null ],
     [ "axilRst", "classAxiLiteToDrp.html#a4b36ee28c73fadc67fe1a670f1ba11ff", null ],
     [ "axilReadMaster", "classAxiLiteToDrp.html#aada3e73ee8db4190524295bfa4dff085", null ],

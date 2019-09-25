@@ -1,6 +1,12 @@
 var classXauiGtyUltraScaleWrapper =
 [
     [ "XauiGtyUltraScaleWrapper.mapping", "classXauiGtyUltraScaleWrapper_1_1mapping.html", "classXauiGtyUltraScaleWrapper_1_1mapping" ],
+    [ "TPD_G", "classXauiGtyUltraScaleWrapper.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "EN_WDT_G", "classXauiGtyUltraScaleWrapper.html#aa11e261b0ba971f6e0f30d294dfecae6", null ],
+    [ "STABLE_CLK_FREQ_G", "classXauiGtyUltraScaleWrapper.html#a01ebc5cdf215c94ffe4266d54d37c2fc", null ],
+    [ "PAUSE_EN_G", "classXauiGtyUltraScaleWrapper.html#a3523b0b120676ac086f277320024a115", null ],
+    [ "EN_AXI_REG_G", "classXauiGtyUltraScaleWrapper.html#aaa0b8676b87db73331ef9162511e97fa", null ],
+    [ "AXIS_CONFIG_G", "classXauiGtyUltraScaleWrapper.html#a701761914fd09b26dd95a64cd3df8bf6", null ],
     [ "localMac", "classXauiGtyUltraScaleWrapper.html#a4a79f23d896469af5b3a5c3fb264c2c4", null ],
     [ "dmaClk", "classXauiGtyUltraScaleWrapper.html#ade4f983718168ff97d99e5f9e1010f4f", null ],
     [ "dmaRst", "classXauiGtyUltraScaleWrapper.html#ab6a7bca3a0592d2fe0ac325b68a52b3d", null ],

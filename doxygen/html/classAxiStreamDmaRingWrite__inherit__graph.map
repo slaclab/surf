@@ -1,0 +1,33 @@
+<map id="AxiStreamDmaRingWrite" name="AxiStreamDmaRingWrite">
+<area shape="rect" id="node2" href="$classAxiLiteCrossbar.html" title="AxiLiteCrossbar" alt="" coords="1187,84,1311,111"/>
+<area shape="rect" id="node3" href="$classAxiDualPortRam.html" title="AxiDualPortRam(6)" alt="" coords="797,109,943,136"/>
+<area shape="rect" id="node4" href="$classTrueDualPortRamXpm.html" title="TrueDualPortRamXpm" alt="" coords="569,33,734,60"/>
+<area shape="rect" id="node5" href="$classTrueDualPortRamAlteraMf.html" title="TrueDualPortRamAlteraMf" alt="" coords="556,84,747,111"/>
+<area shape="rect" id="node6" href="$classDualPortRam.html" title="DualPortRam(2)" alt="" coords="588,135,715,161"/>
+<area shape="rect" id="node7" href="$classTrueDualPortRam.html" title="TrueDualPortRam" alt="" coords="373,33,508,60"/>
+<area shape="rect" id="node8" href="$classQuadPortRam.html" title="QuadPortRam" alt="" coords="385,135,497,161"/>
+<area shape="rect" id="node9" href="$classSynchronizerFifo.html" title="SynchronizerFifo" alt="" coords="587,236,716,263"/>
+<area shape="rect" id="node10" href="$classFifoAsync.html" title="FifoAsync" alt="" coords="399,236,483,263"/>
+<area shape="rect" id="node25" href="$classFifo.html" title="Fifo(4)" alt="" coords="620,337,683,364"/>
+<area shape="rect" id="node11" href="$classRstSync.html" title="RstSync(2)" alt="" coords="197,287,289,313"/>
+<area shape="rect" id="node29" href="$classFifoSyncBuiltIn.html" title="FifoSyncBuiltIn" alt="" coords="381,287,500,313"/>
+<area shape="rect" id="node12" href="$classSynchronizer.html" title="Synchronizer" alt="" coords="5,464,112,491"/>
+<area shape="rect" id="node22" href="$classAxiStreamFifoV2.html" title="AxiStreamFifoV2" alt="" coords="993,325,1124,352"/>
+<area shape="rect" id="node30" href="$classSynchronizerEdge.html" title="SynchronizerEdge" alt="" coords="173,439,312,465"/>
+<area shape="rect" id="node32" href="$classRstSync.html" title="RstSync(4)" alt="" coords="197,489,289,516"/>
+<area shape="rect" id="node13" href="$classSynchronizerVector.html" title="SynchronizerVector(2)" alt="" coords="160,388,325,415"/>
+<area shape="rect" id="node31" href="$classFifoAsyncBuiltIn.html" title="FifoAsyncBuiltIn" alt="" coords="377,439,504,465"/>
+<area shape="rect" id="node14" href="$classSynchronizer.html" title="Synchronizer(2)" alt="" coords="181,236,305,263"/>
+<area shape="rect" id="node15" href="$classFifoWrFsm.html" title="FifoWrFsm" alt="" coords="198,135,287,161"/>
+<area shape="rect" id="node28" href="$classFifoSync.html" title="FifoSync" alt="" coords="403,185,479,212"/>
+<area shape="rect" id="node16" href="$classFifoRdFsm.html" title="FifoRdFsm" alt="" coords="198,185,287,212"/>
+<area shape="rect" id="node17" href="$classSimpleDualPortRam.html" title="SimpleDualPortRam" alt="" coords="166,84,319,111"/>
+<area shape="rect" id="node18" href="$classFifoOutputPipeline.html" title="FifoOutputPipeline" alt="" coords="172,337,313,364"/>
+<area shape="rect" id="node26" href="$classFifoXpm.html" title="FifoXpm" alt="" coords="403,337,478,364"/>
+<area shape="rect" id="node27" href="$classFifoAlteraMf.html" title="FifoAlteraMf" alt="" coords="391,388,491,415"/>
+<area shape="rect" id="node19" href="$classAxiStreamDmaWrite.html" title="AxiStreamDmaWrite" alt="" coords="1172,211,1327,237"/>
+<area shape="rect" id="node20" href="$classAxiStreamShift.html" title="AxiStreamShift" alt="" coords="999,236,1119,263"/>
+<area shape="rect" id="node21" href="$classAxiStreamPipeline.html" title="AxiStreamPipeline" alt="" coords="580,287,723,313"/>
+<area shape="rect" id="node23" href="$classAxiStreamResize.html" title="AxiStreamResize(2)" alt="" coords="795,287,945,313"/>
+<area shape="rect" id="node24" href="$classFifoCascade.html" title="FifoCascade(2)" alt="" coords="811,388,929,415"/>
+</map>

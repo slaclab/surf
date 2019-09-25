@@ -1,6 +1,8 @@
 var classJesdTestStreamTx =
 [
     [ "rtl", "classJesdTestStreamTx_1_1rtl.html", "classJesdTestStreamTx_1_1rtl" ],
+    [ "TPD_G", "classJesdTestStreamTx.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "F_G", "classJesdTestStreamTx.html#ab83f5adebb48f573a8376351697f919a", null ],
     [ "clk", "classJesdTestStreamTx.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classJesdTestStreamTx.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],
     [ "enable_i", "classJesdTestStreamTx.html#ac78648a0a2748c4d0e4c127d5b4e6292", null ],

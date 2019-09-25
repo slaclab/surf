@@ -1,0 +1,7 @@
+<map id="AxiStreamBatcherEventBuilder" name="AxiStreamBatcherEventBuilder">
+<area shape="rect" id="node2" href="$classAxiStreamPipeline.html" title="AxiStreamPipeline" alt="" coords="5,80,148,107"/>
+<area shape="rect" id="node3" href="$classDspComparator.html" title="DspComparator" alt="" coords="172,80,296,107"/>
+<area shape="rect" id="node4" href="$classFifoOutputPipeline.html" title="FifoOutputPipeline" alt="" coords="158,5,299,32"/>
+<area shape="rect" id="node5" href="$classAxiStreamBatcher.html" title="AxiStreamBatcher" alt="" coords="324,80,464,107"/>
+<area shape="rect" id="node6" href="$classAxiStreamPipeline.html" title="AxiStreamPipeline(2)" alt="" coords="323,5,483,32"/>
+</map>

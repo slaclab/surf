@@ -1,6 +1,8 @@
 var classClinkDataClk =
 [
     [ "rtl", "classClinkDataClk_1_1rtl.html", "classClinkDataClk_1_1rtl" ],
+    [ "TPD_G", "classClinkDataClk.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "REG_BUFF_EN_G", "classClinkDataClk.html#a39f54c7c91d6dd65e1c25a97d9a4d63e", null ],
     [ "clkIn", "classClinkDataClk.html#acf3ce0f65965e74ee2cd8743dad23f61", null ],
     [ "rstIn", "classClinkDataClk.html#a09a72fce81f617131ceb57ed34c3e191", null ],
     [ "clinkClk7x", "classClinkDataClk.html#a21660e8d31d1f1a0ce89c1354a78b4b8", null ],

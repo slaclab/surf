@@ -1,6 +1,9 @@
 var classClockDivider =
 [
     [ "rtl", "classClockDivider_1_1rtl.html", "classClockDivider_1_1rtl" ],
+    [ "TPD_G", "classClockDivider.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "LEADING_EDGE_G", "classClockDivider.html#a460ff9b19cd6719b8b217ae084454eb0", null ],
+    [ "COUNT_WIDTH_G", "classClockDivider.html#a57dbef62279fa0eb403ae6472d942468", null ],
     [ "clk", "classClockDivider.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classClockDivider.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],
     [ "highCount", "classClockDivider.html#ae5551e9233e8223fc2913a4dca1f9d99", null ],

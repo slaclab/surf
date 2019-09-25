@@ -1,6 +1,10 @@
 var classCrc32Parallel =
 [
     [ "rtl", "classCrc32Parallel_1_1rtl.html", "classCrc32Parallel_1_1rtl" ],
+    [ "TPD_G", "classCrc32Parallel.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "BYTE_WIDTH_G", "classCrc32Parallel.html#ae7b7a0cf0b4b2a8725f04be26fc31a8c", null ],
+    [ "INPUT_REGISTER_G", "classCrc32Parallel.html#a1f1bdc16d91e0f7e33706927990011e8", null ],
+    [ "CRC_INIT_G", "classCrc32Parallel.html#afc5f850f5aabf39cce3d49509bc5bb10", null ],
     [ "crcOut", "classCrc32Parallel.html#a35b4efd1cf9f710ef0c2e59027cd1bb2", null ],
     [ "crcRem", "classCrc32Parallel.html#a5c692acdfe227853ea729842780089b4", null ],
     [ "crcClk", "classCrc32Parallel.html#a370fb83b8e913a0d9595d6d7766db927", null ],

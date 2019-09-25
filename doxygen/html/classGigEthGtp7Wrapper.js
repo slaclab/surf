@@ -1,6 +1,16 @@
 var classGigEthGtp7Wrapper =
 [
     [ "mapping", "classGigEthGtp7Wrapper_1_1mapping.html", "classGigEthGtp7Wrapper_1_1mapping" ],
+    [ "TPD_G", "classGigEthGtp7Wrapper.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "NUM_LANE_G", "classGigEthGtp7Wrapper.html#a29528ef32df8ce5923f00453713b6a92", null ],
+    [ "PAUSE_EN_G", "classGigEthGtp7Wrapper.html#a3523b0b120676ac086f277320024a115", null ],
+    [ "USE_GTREFCLK_G", "classGigEthGtp7Wrapper.html#aabe4aa6c32ea361c8724a5ff2142bd32", null ],
+    [ "CLKIN_PERIOD_G", "classGigEthGtp7Wrapper.html#afb6f243a9556ddfa1f091800c9fe0223", null ],
+    [ "DIVCLK_DIVIDE_G", "classGigEthGtp7Wrapper.html#a4af6421d50ecc756fa860a8a7c2acd18", null ],
+    [ "CLKFBOUT_MULT_F_G", "classGigEthGtp7Wrapper.html#a7574c4fa263c592c5bdf5aeaaaf71476", null ],
+    [ "CLKOUT0_DIVIDE_F_G", "classGigEthGtp7Wrapper.html#a76630559bb4ce4210d2ad022af45532b", null ],
+    [ "EN_AXI_REG_G", "classGigEthGtp7Wrapper.html#aaa0b8676b87db73331ef9162511e97fa", null ],
+    [ "AXIS_CONFIG_G", "classGigEthGtp7Wrapper.html#a9b15cd150b3802d03befa0996d9762eb", null ],
     [ "localMac", "classGigEthGtp7Wrapper.html#a0e1244ef9ab3f7327e5f81bafa7026ea", null ],
     [ "dmaClk", "classGigEthGtp7Wrapper.html#ad47a9a4b7d3c60b1cf6d48ba035cc90e", null ],
     [ "dmaRst", "classGigEthGtp7Wrapper.html#abf54c06afa0d057c30847948e2b3c365", null ],

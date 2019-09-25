@@ -1,6 +1,10 @@
 var classUdpEngineTx =
 [
     [ "UdpEngineTx.rtl", "classUdpEngineTx_1_1rtl.html", "classUdpEngineTx_1_1rtl" ],
+    [ "TPD_G", "classUdpEngineTx.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "SIZE_G", "classUdpEngineTx.html#a7edf3a0cce82503a15b34114a6f5f785", null ],
+    [ "TX_FLOW_CTRL_G", "classUdpEngineTx.html#a4b1e6c2eab4e0f86b6879652f5bc1b21", null ],
+    [ "PORT_G", "classUdpEngineTx.html#ac16baa2a08587423e99adcc3cc05b81f", null ],
     [ "obUdpMaster", "classUdpEngineTx.html#a10528be7eba887533da48f949c59417e", null ],
     [ "obUdpSlave", "classUdpEngineTx.html#a68267915a27cdad41d6c2743feedd6ba", null ],
     [ "linkUp", "classUdpEngineTx.html#a3fcb7912deaa224259c84c4d5819b1f2", null ],

@@ -2,7 +2,7 @@ var classSaciMaster2_1_1rtl =
 [
     [ "comb", "classSaciMaster2_1_1rtl.html#a521c0127fc71656c994278af0d1a7c3a", null ],
     [ "seq", "classSaciMaster2_1_1rtl.html#a8382636467b4f2c0990cfa6070fb7b88", null ],
-    [ "SACI_CLK_HALF_PERIOD_C", "classSaciMaster2_1_1rtl.html#aea1b82cfb53ba1130304aa1cf21f0d55", null ],
+    [ "SACI_CLK_HALF_PERIOD_C", "classSaciMaster2_1_1rtl.html#a95d7fa5df8073e59fe9e39cbdabb75ca", null ],
     [ "SACI_CLK_COUNTER_SIZE_C", "classSaciMaster2_1_1rtl.html#a55b98660658c7a8ce63455c7be5c4677", null ],
     [ "StateType", "classSaciMaster2_1_1rtl.html#ad25011a37895916a3f36908b78f599ca", null ],
     [ "RegType", "classSaciMaster2_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],

@@ -8,7 +8,7 @@ var classAxiSpiMaster_1_1rtl =
     [ "rdData", "classAxiSpiMaster_1_1rtl.html#a58a6fe8e3bba7ab795261dc88c5efae2", null ],
     [ "rdEn", "classAxiSpiMaster_1_1rtl.html#a542bc66aa7f0471bce2dcfc9cb3683e5", null ],
     [ "StateType", "classAxiSpiMaster_1_1rtl.html#a02b854b6c01efd7f8db1bd2925ec2f62", null ],
-    [ "mem_type", "classAxiSpiMaster_1_1rtl.html#ac07223b34171c04a22ad0c13e98e0f0d", null ],
+    [ "mem_type", "classAxiSpiMaster_1_1rtl.html#a183e7bb9aaafd101e0f701b5fa393363", null ],
     [ "mem", "classAxiSpiMaster_1_1rtl.html#a2032259396d014a54721d2bda003c208", null ],
     [ "memData", "classAxiSpiMaster_1_1rtl.html#a4fc5d9c1abd50e86849a36240b1b4328", null ],
     [ "memAddr", "classAxiSpiMaster_1_1rtl.html#aa7704e4cf176788b0017496fc95db65b", null ],

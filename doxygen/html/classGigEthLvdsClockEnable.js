@@ -1,6 +1,7 @@
 var classGigEthLvdsClockEnable =
 [
     [ "rtl", "classGigEthLvdsClockEnable_1_1rtl.html", "classGigEthLvdsClockEnable_1_1rtl" ],
+    [ "TPD_G", "classGigEthLvdsClockEnable.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "sysClk125", "classGigEthLvdsClockEnable.html#ac9a6fece12482f6f3c554019274b16f7", null ],
     [ "sysRst125", "classGigEthLvdsClockEnable.html#acbcfdbdb02b310a612294fc08339e972", null ],
     [ "speed_is_10_100", "classGigEthLvdsClockEnable.html#a99ae0915740dce905930824de5e0aca5", null ],

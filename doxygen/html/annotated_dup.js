@@ -520,6 +520,7 @@ var annotated_dup =
     [ "SsiPrbsTb", "classSsiPrbsTb.html", "classSsiPrbsTb" ],
     [ "SsiPrbsTx", "classSsiPrbsTx.html", "classSsiPrbsTx" ],
     [ "SsiPrbsTxOld", "classSsiPrbsTxOld.html", "classSsiPrbsTxOld" ],
+    [ "SsiResizeFifoEofeTb", "classSsiResizeFifoEofeTb.html", "classSsiResizeFifoEofeTb" ],
     [ "SsiSem", "classSsiSem.html", "classSsiSem" ],
     [ "Ssp10b12bTb", "classSsp10b12bTb.html", "classSsp10b12bTb" ],
     [ "Ssp12b14bTb", "classSsp12b14bTb.html", "classSsp12b14bTb" ],

@@ -1,6 +1,15 @@
 var classAxiStreamPacketizer2 =
 [
     [ "rtl", "classAxiStreamPacketizer2_1_1rtl.html", "classAxiStreamPacketizer2_1_1rtl" ],
+    [ "TPD_G", "classAxiStreamPacketizer2.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "BRAM_EN_G", "classAxiStreamPacketizer2.html#af5119c0b605c18019332c4a648fa6880", null ],
+    [ "REG_EN_G", "classAxiStreamPacketizer2.html#a791e1247549c1ce442703098b9803bce", null ],
+    [ "CRC_MODE_G", "classAxiStreamPacketizer2.html#a30988c4ee0e8cd2a8fc3874ff635ac75", null ],
+    [ "CRC_POLY_G", "classAxiStreamPacketizer2.html#ae76f8e20fcc699a0da6b82b551d751d6", null ],
+    [ "MAX_PACKET_BYTES_G", "classAxiStreamPacketizer2.html#a32a7cd6d64963a3a1fd526773ea15fe1", null ],
+    [ "TDEST_BITS_G", "classAxiStreamPacketizer2.html#a84a8f3200ba47faa2b18ae439918f556", null ],
+    [ "INPUT_PIPE_STAGES_G", "classAxiStreamPacketizer2.html#ab97074ce3ef0b6b96d8486e24ad4dc66", null ],
+    [ "OUTPUT_PIPE_STAGES_G", "classAxiStreamPacketizer2.html#a1e8e27a48bf5c0dd160777ba7ac29436", null ],
     [ "axisClk", "classAxiStreamPacketizer2.html#ac220cc2710ba738744915c3b2a0f43bc", null ],
     [ "axisRst", "classAxiStreamPacketizer2.html#a044b1bf79201c595c20474cecf020a5d", null ],
     [ "rearbitrate", "classAxiStreamPacketizer2.html#ab89f1f1668502c0f8e3c6c601d37e055", null ],

@@ -1,6 +1,16 @@
 var classSrpV3AxiLiteFull =
 [
     [ "SrpV3AxiLiteFull.rtl", "classSrpV3AxiLiteFull_1_1rtl.html", "classSrpV3AxiLiteFull_1_1rtl" ],
+    [ "TPD_G", "classSrpV3AxiLiteFull.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "PIPE_STAGES_G", "classSrpV3AxiLiteFull.html#a690564d64aa8e37d3ffa7aa2c377f50e", null ],
+    [ "FIFO_PAUSE_THRESH_G", "classSrpV3AxiLiteFull.html#abf936752880c1454fdb79e815e27351f", null ],
+    [ "TX_VALID_THOLD_G", "classSrpV3AxiLiteFull.html#af2a8347ee45bcf160823c5a188f08a68", null ],
+    [ "SLAVE_READY_EN_G", "classSrpV3AxiLiteFull.html#a732db2237e0f6e1568cf997454ee9f4a", null ],
+    [ "GEN_SYNC_FIFO_G", "classSrpV3AxiLiteFull.html#a74265af003d7cd4b0443ced520ac6722", null ],
+    [ "ALTERA_SYN_G", "classSrpV3AxiLiteFull.html#a1669478a44dab111adcd8bbceb192b02", null ],
+    [ "ALTERA_RAM_G", "classSrpV3AxiLiteFull.html#a19f5205f8fd4959c02e7b32fe19bbbc7", null ],
+    [ "AXIL_CLK_FREQ_G", "classSrpV3AxiLiteFull.html#a073ff796d69f24757efa7131691bd12f", null ],
+    [ "AXI_STREAM_CONFIG_G", "classSrpV3AxiLiteFull.html#a2e3d6cc9a6d159e177d96df7f1758e66", null ],
     [ "sAxisClk", "classSrpV3AxiLiteFull.html#aa685d94966e12ee1feec1c91fef4c4d0", null ],
     [ "sAxisRst", "classSrpV3AxiLiteFull.html#a7dc2d65783b78f52a8f7bb3df645fc2d", null ],
     [ "sAxisMaster", "classSrpV3AxiLiteFull.html#a4be737583df4493f37e21b9da4a67377", null ],

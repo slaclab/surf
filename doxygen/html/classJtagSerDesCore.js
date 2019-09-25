@@ -1,6 +1,9 @@
 var classJtagSerDesCore =
 [
     [ "JtagSerDesCoreImpl", "classJtagSerDesCore_1_1JtagSerDesCoreImpl.html", "classJtagSerDesCore_1_1JtagSerDesCoreImpl" ],
+    [ "TPD_G", "classJtagSerDesCore.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "WIDTH_G", "classJtagSerDesCore.html#a0fd30c916b177078fee70c36c91fac57", null ],
+    [ "CLK_DIV2_G", "classJtagSerDesCore.html#a97eb7041a82f1dae3925c88c8cca6a23", null ],
     [ "clk", "classJtagSerDesCore.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classJtagSerDesCore.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],
     [ "numBits", "classJtagSerDesCore.html#a89e3b88c87b9ac3c56a0af224a713d02", null ],

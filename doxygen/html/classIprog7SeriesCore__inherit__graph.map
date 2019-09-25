@@ -1,0 +1,14 @@
+<map id="Iprog7SeriesCore" name="Iprog7SeriesCore">
+<area shape="rect" id="node5" href="$classIprog7Series.html" title="Iprog7Series" alt="" coords="183,229,285,256"/>
+<area shape="rect" id="node11" href="$classSemWrapper.html" title="SemWrapper" alt="" coords="309,229,415,256"/>
+<area shape="rect" id="node2" href="$classSynchronizerVector.html" title="SynchronizerVector" alt="" coords="142,80,289,107"/>
+<area shape="rect" id="node3" href="$classSynchronizerEdge.html" title="SynchronizerEdge" alt="" coords="313,80,451,107"/>
+<area shape="rect" id="node4" href="$classSynchronizer.html" title="Synchronizer" alt="" coords="329,5,435,32"/>
+<area shape="rect" id="node6" href="$classIprog.html" title="Iprog" alt="" coords="207,304,261,331"/>
+<area shape="rect" id="node7" href="$classAxiVersion.html" title="AxiVersion" alt="" coords="119,379,210,405"/>
+<area shape="rect" id="node10" href="$classAxiVersionLegacy.html" title="AxiVersionLegacy" alt="" coords="235,379,372,405"/>
+<area shape="rect" id="node8" href="$classAxiLiteIpBusBridgeTb.html" title="AxiLiteIpBusBridgeTb" alt="" coords="5,453,167,480"/>
+<area shape="rect" id="node9" href="$classAxiVersionTb.html" title="AxiVersionTb" alt="" coords="191,453,298,480"/>
+<area shape="rect" id="node12" href="$classSsiSem.html" title="SsiSem" alt="" coords="305,304,376,331"/>
+<area shape="rect" id="node13" href="$classUartSem.html" title="UartSem" alt="" coords="400,304,479,331"/>
+</map>

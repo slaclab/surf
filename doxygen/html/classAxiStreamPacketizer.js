@@ -1,6 +1,12 @@
 var classAxiStreamPacketizer =
 [
     [ "rtl", "classAxiStreamPacketizer_1_1rtl.html", "classAxiStreamPacketizer_1_1rtl" ],
+    [ "TPD_G", "classAxiStreamPacketizer.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "MAX_PACKET_BYTES_G", "classAxiStreamPacketizer.html#a1f4b55034c4f498d8b3ad901dd2c7ce3", null ],
+    [ "MIN_TKEEP_G", "classAxiStreamPacketizer.html#a707612223246b244071a7c1e5f42cf3c", null ],
+    [ "OUTPUT_SSI_G", "classAxiStreamPacketizer.html#a11c5689404ddef4d80bb15d8cd71804b", null ],
+    [ "INPUT_PIPE_STAGES_G", "classAxiStreamPacketizer.html#a4ff1794f842b4a303fbbc4642ff91b43", null ],
+    [ "OUTPUT_PIPE_STAGES_G", "classAxiStreamPacketizer.html#aa844a3ed92362e456995ee824e51218d", null ],
     [ "axisClk", "classAxiStreamPacketizer.html#ac220cc2710ba738744915c3b2a0f43bc", null ],
     [ "axisRst", "classAxiStreamPacketizer.html#a044b1bf79201c595c20474cecf020a5d", null ],
     [ "maxPktBytes", "classAxiStreamPacketizer.html#a57957e17046b63b6c7384a9332ba6ecc", null ],

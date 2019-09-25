@@ -1,6 +1,15 @@
 var classGigEthLvdsUltraScaleWrapper =
 [
     [ "mapping", "classGigEthLvdsUltraScaleWrapper_1_1mapping.html", "classGigEthLvdsUltraScaleWrapper_1_1mapping" ],
+    [ "TPD_G", "classGigEthLvdsUltraScaleWrapper.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "NUM_LANE_G", "classGigEthLvdsUltraScaleWrapper.html#aad6baf03a2a17fd6cbd9553bfb4601f0", null ],
+    [ "PAUSE_EN_G", "classGigEthLvdsUltraScaleWrapper.html#a3523b0b120676ac086f277320024a115", null ],
+    [ "USE_REFCLK_G", "classGigEthLvdsUltraScaleWrapper.html#a778ddd7a3b053537a47991642f8c83f3", null ],
+    [ "CLKFBOUT_MULT_G", "classGigEthLvdsUltraScaleWrapper.html#a351933af54d0503dce7e18945aacca98", null ],
+    [ "CLKOUT1_PHASE_G", "classGigEthLvdsUltraScaleWrapper.html#a70745fd92ee607173d218a8768ebffea", null ],
+    [ "USE_BUFG_DIV_G", "classGigEthLvdsUltraScaleWrapper.html#a45f4bce2114fcfed871d794a61a6aa65", null ],
+    [ "EN_AXI_REG_G", "classGigEthLvdsUltraScaleWrapper.html#aaa0b8676b87db73331ef9162511e97fa", null ],
+    [ "AXIS_CONFIG_G", "classGigEthLvdsUltraScaleWrapper.html#a9b15cd150b3802d03befa0996d9762eb", null ],
     [ "localMac", "classGigEthLvdsUltraScaleWrapper.html#a0e1244ef9ab3f7327e5f81bafa7026ea", null ],
     [ "dmaClk", "classGigEthLvdsUltraScaleWrapper.html#ad47a9a4b7d3c60b1cf6d48ba035cc90e", null ],
     [ "dmaRst", "classGigEthLvdsUltraScaleWrapper.html#abf54c06afa0d057c30847948e2b3c365", null ],

@@ -1,6 +1,11 @@
 var classXauiGtyUltraScale =
 [
     [ "XauiGtyUltraScale.mapping", "classXauiGtyUltraScale_1_1mapping.html", "classXauiGtyUltraScale_1_1mapping" ],
+    [ "TPD_G", "classXauiGtyUltraScale.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "PAUSE_EN_G", "classXauiGtyUltraScale.html#a3523b0b120676ac086f277320024a115", null ],
+    [ "REF_CLK_FREQ_G", "classXauiGtyUltraScale.html#a9ae218acfcc90551ddfffad5c2e21fed", null ],
+    [ "EN_AXI_REG_G", "classXauiGtyUltraScale.html#aaa0b8676b87db73331ef9162511e97fa", null ],
+    [ "AXIS_CONFIG_G", "classXauiGtyUltraScale.html#a701761914fd09b26dd95a64cd3df8bf6", null ],
     [ "localMac", "classXauiGtyUltraScale.html#a4a79f23d896469af5b3a5c3fb264c2c4", null ],
     [ "dmaClk", "classXauiGtyUltraScale.html#ade4f983718168ff97d99e5f9e1010f4f", null ],
     [ "dmaRst", "classXauiGtyUltraScale.html#ab6a7bca3a0592d2fe0ac325b68a52b3d", null ],

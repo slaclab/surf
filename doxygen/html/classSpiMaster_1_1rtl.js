@@ -2,7 +2,7 @@ var classSpiMaster_1_1rtl =
 [
     [ "comb", "classSpiMaster_1_1rtl.html#a736e7ae43d4367c8d55876104c3ee0d5", null ],
     [ "seq", "classSpiMaster_1_1rtl.html#ae8896e195ae00ae797895c15b647ba41", null ],
-    [ "SPI_CLK_PERIOD_DIV2_CYCLES_C", "classSpiMaster_1_1rtl.html#ace8fa1cf53b616a23f3ea3b5339482e1", null ],
+    [ "SPI_CLK_PERIOD_DIV2_CYCLES_C", "classSpiMaster_1_1rtl.html#af99ee27e2d4c1028f7bbae92d7ba439e", null ],
     [ "SCLK_COUNTER_SIZE_C", "classSpiMaster_1_1rtl.html#a0b1ed04e483f1dec3b7d1a8031e40a6e", null ],
     [ "StateType", "classSpiMaster_1_1rtl.html#aa741ebd8529d2e5cf71a003963f2b8d3", null ],
     [ "RegType", "classSpiMaster_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],

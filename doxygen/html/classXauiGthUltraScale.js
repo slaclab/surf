@@ -1,6 +1,10 @@
 var classXauiGthUltraScale =
 [
     [ "XauiGthUltraScale.mapping", "classXauiGthUltraScale_1_1mapping.html", "classXauiGthUltraScale_1_1mapping" ],
+    [ "TPD_G", "classXauiGthUltraScale.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "PAUSE_EN_G", "classXauiGthUltraScale.html#a3523b0b120676ac086f277320024a115", null ],
+    [ "EN_AXI_REG_G", "classXauiGthUltraScale.html#aaa0b8676b87db73331ef9162511e97fa", null ],
+    [ "AXIS_CONFIG_G", "classXauiGthUltraScale.html#a701761914fd09b26dd95a64cd3df8bf6", null ],
     [ "localMac", "classXauiGthUltraScale.html#a4a79f23d896469af5b3a5c3fb264c2c4", null ],
     [ "dmaClk", "classXauiGthUltraScale.html#ade4f983718168ff97d99e5f9e1010f4f", null ],
     [ "dmaRst", "classXauiGthUltraScale.html#ab6a7bca3a0592d2fe0ac325b68a52b3d", null ],
@@ -36,5 +40,6 @@ var classXauiGthUltraScale =
     [ "XauiPkg", "classXauiGthUltraScale.html#a2fc0d738c0dc387c877a3798077312ec", null ],
     [ "EthMacPkg", "classXauiGthUltraScale.html#ac1625414338993fe184c68bfdbb48894", null ],
     [ "unisim", "classXauiGthUltraScale.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
-    [ "vcomponents", "classXauiGthUltraScale.html#aa1cb22e959d47364391e5eb4ef86927c", null ]
+    [ "vcomponents", "classXauiGthUltraScale.html#aa1cb22e959d47364391e5eb4ef86927c", null ],
+    [ "REF_CLK_FREQ_G", "classXauiGthUltraScale.html#a9ae218acfcc90551ddfffad5c2e21fed", null ]
 ];

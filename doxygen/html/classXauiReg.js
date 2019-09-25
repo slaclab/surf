@@ -1,6 +1,8 @@
 var classXauiReg =
 [
     [ "XauiReg.rtl", "classXauiReg_1_1rtl.html", "classXauiReg_1_1rtl" ],
+    [ "TPD_G", "classXauiReg.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "EN_AXI_REG_G", "classXauiReg.html#aaa0b8676b87db73331ef9162511e97fa", null ],
     [ "localMac", "classXauiReg.html#a4a79f23d896469af5b3a5c3fb264c2c4", null ],
     [ "axiClk", "classXauiReg.html#a7d8781c632c75ab0fdde6e592fd13d60", null ],
     [ "axiRst", "classXauiReg.html#a399a775bae9ae4819d5af6838a95e28e", null ],

@@ -1,0 +1,34 @@
+<map id="GigEthReg" name="GigEthReg">
+<area shape="rect" id="node20" href="$classGigEthGth7.html" title="GigEthGth7" alt="" coords="1633,5,1729,32"/>
+<area shape="rect" id="node22" href="$classGigEthGthUltraScale.html" title="GigEthGthUltraScale" alt="" coords="1604,56,1759,83"/>
+<area shape="rect" id="node24" href="$classGigEthGtp7.html" title="GigEthGtp7" alt="" coords="1633,107,1729,133"/>
+<area shape="rect" id="node26" href="$classGigEthGtx7.html" title="GigEthGtx7" alt="" coords="1633,157,1729,184"/>
+<area shape="rect" id="node28" href="$classGigEthGtyUltraScale.html" title="GigEthGtyUltraScale" alt="" coords="1604,208,1759,235"/>
+<area shape="rect" id="node30" href="$classGigEthLvdsUltraScale.html" title="GigEthLvdsUltraScale" alt="" coords="1600,259,1763,285"/>
+<area shape="rect" id="node2" href="$classWatchDogRst.html" title="WatchDogRst" alt="" coords="610,51,719,77"/>
+<area shape="rect" id="node3" href="$classSynchronizer.html" title="Synchronizer" alt="" coords="5,120,112,147"/>
+<area shape="rect" id="node9" href="$classRstSync.html" title="RstSync" alt="" coords="205,95,280,121"/>
+<area shape="rect" id="node10" href="$classSynchronizerEdge.html" title="SynchronizerEdge" alt="" coords="173,145,312,172"/>
+<area shape="rect" id="node13" href="$classRstSync.html" title="RstSync(2)" alt="" coords="197,196,289,223"/>
+<area shape="rect" id="node4" href="$classSynchronizerVector.html" title="SynchronizerVector" alt="" coords="1047,183,1193,209"/>
+<area shape="rect" id="node5" href="$classSyncStatusVector.html" title="SyncStatusVector" alt="" coords="1280,132,1415,159"/>
+<area shape="rect" id="node6" href="$classSynchronizerOneShotCntVector.html" title="SynchronizerOneShotCntVector" alt="" coords="1008,132,1232,159"/>
+<area shape="rect" id="node7" href="$classSynchronizerOneShotCnt.html" title="SynchronizerOneShotCnt" alt="" coords="777,139,960,165"/>
+<area shape="rect" id="node8" href="$classSynchronizerOneShot.html" title="SynchronizerOneShot(2)" alt="" coords="373,139,552,165"/>
+<area shape="rect" id="node11" href="$classSynchronizerFifo.html" title="SynchronizerFifo" alt="" coords="600,247,729,273"/>
+<area shape="rect" id="node12" href="$classFifoAsync.html" title="FifoAsync" alt="" coords="421,323,505,349"/>
+<area shape="rect" id="node14" href="$classSynchronizerVector.html" title="SynchronizerVector(2)" alt="" coords="160,247,325,273"/>
+<area shape="rect" id="node15" href="$classSynchronizer.html" title="Synchronizer(2)" alt="" coords="181,297,305,324"/>
+<area shape="rect" id="node16" href="$classFifoWrFsm.html" title="FifoWrFsm" alt="" coords="198,348,287,375"/>
+<area shape="rect" id="node17" href="$classFifoRdFsm.html" title="FifoRdFsm" alt="" coords="198,399,287,425"/>
+<area shape="rect" id="node18" href="$classSimpleDualPortRam.html" title="SimpleDualPortRam" alt="" coords="166,449,319,476"/>
+<area shape="rect" id="node19" href="$classFifoOutputPipeline.html" title="FifoOutputPipeline" alt="" coords="172,500,313,527"/>
+<area shape="rect" id="node21" href="$classGigEthGth7Wrapper.html" title="GigEthGth7Wrapper" alt="" coords="1843,5,1994,32"/>
+<area shape="rect" id="node23" href="$classGigEthGthUltraScaleWrapper.html" title="GigEthGthUltraScaleWrapper" alt="" coords="1814,56,2023,83"/>
+<area shape="rect" id="node25" href="$classGigEthGtp7Wrapper.html" title="GigEthGtp7Wrapper" alt="" coords="1843,107,1994,133"/>
+<area shape="rect" id="node27" href="$classGigEthGtx7Wrapper.html" title="GigEthGtx7Wrapper" alt="" coords="1843,157,1994,184"/>
+<area shape="rect" id="node29" href="$classGigEthGtyUltraScaleWrapper.html" title="GigEthGtyUltraScaleWrapper" alt="" coords="1814,208,2023,235"/>
+<area shape="rect" id="node31" href="$classGigEthLvdsUltraScaleWrapper.html" title="GigEthLvdsUltraScaleWrapper" alt="" coords="1811,259,2027,285"/>
+<area shape="rect" id="node32" href="$classSgmii88E1111LvdsUltraScale.html" title="Sgmii88E1111LvdsUltraScale" alt="" coords="2076,233,2288,260"/>
+<area shape="rect" id="node33" href="$classSgmiiDp83867LvdsUltraScale.html" title="SgmiiDp83867LvdsUltraScale" alt="" coords="2075,284,2289,311"/>
+</map>

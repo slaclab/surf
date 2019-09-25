@@ -5,6 +5,8 @@ var classAxiStreamDmaV2 =
     [ "SIMULATION_G", "classAxiStreamDmaV2.html#ac6de36aa80aba7f5067e4172962ede27", null ],
     [ "DESC_AWIDTH_G", "classAxiStreamDmaV2.html#a4d2e0f0d07e6e56ca6d55d9bdbc34911", null ],
     [ "DESC_ARB_G", "classAxiStreamDmaV2.html#a9c89b1b13f23316820b651bb7582e5a9", null ],
+    [ "DESC_SYNTH_MODE_G", "classAxiStreamDmaV2.html#acb9f294dbddaee6615999019aaae03f0", null ],
+    [ "DESC_MEMORY_TYPE_G", "classAxiStreamDmaV2.html#ab8e97a3736912912e9aa67d56df28aef", null ],
     [ "AXIL_BASE_ADDR_G", "classAxiStreamDmaV2.html#a7b7fab45bd50d942557843fa52a4a2ee", null ],
     [ "AXI_READY_EN_G", "classAxiStreamDmaV2.html#ab590117d70526b60646869f12fc9e8ca", null ],
     [ "AXIS_READY_EN_G", "classAxiStreamDmaV2.html#aed65a1d11111776b238cafeb6b243c0a", null ],

@@ -1,6 +1,12 @@
 var classJesd204bTx =
 [
     [ "rtl", "classJesd204bTx_1_1rtl.html", "classJesd204bTx_1_1rtl" ],
+    [ "TPD_G", "classJesd204bTx.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "INPUT_REG_G", "classJesd204bTx.html#a8c77a0031ff96ec6aa59e8436a982bf3", null ],
+    [ "OUTPUT_REG_G", "classJesd204bTx.html#aef373dd02f4d97490aa02b7c719ca17f", null ],
+    [ "F_G", "classJesd204bTx.html#ab83f5adebb48f573a8376351697f919a", null ],
+    [ "K_G", "classJesd204bTx.html#a613d1453ef9d3ba197df442a25c0f402", null ],
+    [ "L_G", "classJesd204bTx.html#a7a3cec7776640e216be55bcd80779173", null ],
     [ "axiClk", "classJesd204bTx.html#a7d8781c632c75ab0fdde6e592fd13d60", null ],
     [ "axiRst", "classJesd204bTx.html#a399a775bae9ae4819d5af6838a95e28e", null ],
     [ "axilReadMaster", "classJesd204bTx.html#aada3e73ee8db4190524295bfa4dff085", null ],

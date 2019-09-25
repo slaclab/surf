@@ -1,6 +1,8 @@
 var classSaciMasterSync =
 [
     [ "SaciMasterSync.rtl", "classSaciMasterSync_1_1rtl.html", "classSaciMasterSync_1_1rtl" ],
+    [ "TPD_G", "classSaciMasterSync.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "SYNCHRONIZE_CONTROL_G", "classSaciMasterSync.html#a69022ab98a685f2fc5c2ee174163e553", null ],
     [ "clk", "classSaciMasterSync.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classSaciMasterSync.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],
     [ "saciClk", "classSaciMasterSync.html#ad75b78d83d7bb4b49bdc4ae44d75b263", null ],

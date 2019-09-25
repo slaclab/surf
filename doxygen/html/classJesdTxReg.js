@@ -1,6 +1,9 @@
 var classJesdTxReg =
 [
     [ "rtl", "classJesdTxReg_1_1rtl.html", "classJesdTxReg_1_1rtl" ],
+    [ "TPD_G", "classJesdTxReg.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "L_G", "classJesdTxReg.html#ab8412f226012e67b4bca2cdcc3f27d8a", null ],
+    [ "F_G", "classJesdTxReg.html#ab83f5adebb48f573a8376351697f919a", null ],
     [ "axiClk_i", "classJesdTxReg.html#a211126f9bc6dc26baaffc1eac8dafe08", null ],
     [ "axiRst_i", "classJesdTxReg.html#a5057dbf65d7dcaf192a9f07e4b198214", null ],
     [ "axilReadMaster", "classJesdTxReg.html#acd3440bbc91f595e14ebb565ef1e05c4", null ],

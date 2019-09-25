@@ -1,6 +1,7 @@
 var classSaciSlaveWrapper =
 [
     [ "SaciSlaveWrapper.rtl", "classSaciSlaveWrapper_1_1rtl.html", "classSaciSlaveWrapper_1_1rtl" ],
+    [ "TPD_G", "classSaciSlaveWrapper.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "asicRstL", "classSaciSlaveWrapper.html#a20d7fa8fd8625ebc1c66bc9d2f04c59e", null ],
     [ "saciClk", "classSaciSlaveWrapper.html#a58aa17ce9d07ec337ee8030cd3d3f53c", null ],
     [ "saciSelL", "classSaciSlaveWrapper.html#a2fa64bb9c6d192b64d15a14c1d492495", null ],

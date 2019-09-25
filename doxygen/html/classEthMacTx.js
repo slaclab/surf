@@ -1,6 +1,16 @@
 var classEthMacTx =
 [
     [ "mapping", "classEthMacTx_1_1mapping.html", "classEthMacTx_1_1mapping" ],
+    [ "TPD_G", "classEthMacTx.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "PAUSE_EN_G", "classEthMacTx.html#a3523b0b120676ac086f277320024a115", null ],
+    [ "PAUSE_512BITS_G", "classEthMacTx.html#ab25244a808e1f128a37d18e165ab72f3", null ],
+    [ "PHY_TYPE_G", "classEthMacTx.html#a19dc942c6cdea9502f239c68a1c58b49", null ],
+    [ "DROP_ERR_PKT_G", "classEthMacTx.html#adf5aafc981fce427b9cf8ca378a17602", null ],
+    [ "JUMBO_G", "classEthMacTx.html#af3c2b3ea37b9a6acb725bb242dbb570a", null ],
+    [ "BYP_EN_G", "classEthMacTx.html#abe1127a57e68a4c556cb22d0f8bf5652", null ],
+    [ "VLAN_EN_G", "classEthMacTx.html#a18de25a8aa2d7b5c459a912874c13dfe", null ],
+    [ "VLAN_SIZE_G", "classEthMacTx.html#a581badb2f52346d91f2f9fa882db0467", null ],
+    [ "VLAN_VID_G", "classEthMacTx.html#a06f3bc1ca928ae4c8688766c7b19db5a", null ],
     [ "ethClkEn", "classEthMacTx.html#a66088ecf8316dc0df29ac8e866985b57", null ],
     [ "ethClk", "classEthMacTx.html#aa454832f4c517041d344f7bdf52eceec", null ],
     [ "ethRst", "classEthMacTx.html#a6c46ddea5c02f0cc0addd2467357471c", null ],

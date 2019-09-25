@@ -1,6 +1,10 @@
 var classDecoder10b12b =
 [
     [ "rtl", "classDecoder10b12b_1_1rtl.html", "classDecoder10b12b_1_1rtl" ],
+    [ "TPD_G", "classDecoder10b12b.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "RST_POLARITY_G", "classDecoder10b12b.html#ac2a600fa2248248a52a4ee28f9fc64d5", null ],
+    [ "RST_ASYNC_G", "classDecoder10b12b.html#ad489a8923e293a168027842ed3795a30", null ],
+    [ "USE_CLK_EN_G", "classDecoder10b12b.html#a8e0c514e1fe04f9552cd91c072029969", null ],
     [ "clk", "classDecoder10b12b.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "clkEn", "classDecoder10b12b.html#a3eb2826c919e654ccc09a6b5da946883", null ],
     [ "rst", "classDecoder10b12b.html#afd0039e5a6c54f38982fe7c8fc1c0b08", null ],

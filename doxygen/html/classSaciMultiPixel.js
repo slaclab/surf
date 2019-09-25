@@ -1,6 +1,10 @@
 var classSaciMultiPixel =
 [
     [ "SaciMultiPixel.rtl", "classSaciMultiPixel_1_1rtl.html", "classSaciMultiPixel_1_1rtl" ],
+    [ "TPD_G", "classSaciMultiPixel.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "MASK_REG_ADDR_G", "classSaciMultiPixel.html#aec4b716519e75c3d8e4cb28ae825341b", null ],
+    [ "SACI_BASE_ADDR_G", "classSaciMultiPixel.html#acda9d904914ea6a1daa315112a9545e2", null ],
+    [ "SACI_NUM_CHIPS_G", "classSaciMultiPixel.html#ab66c5bcd074759ee761ded05d4471f85", null ],
     [ "axilClk", "classSaciMultiPixel.html#a8e1fd4ab848b98a0c700b34cf7c90b36", null ],
     [ "axilRst", "classSaciMultiPixel.html#a4b36ee28c73fadc67fe1a670f1ba11ff", null ],
     [ "sAxilWriteMaster", "classSaciMultiPixel.html#ae024408e3fbbbc238aeaf97c8596d6c8", null ],

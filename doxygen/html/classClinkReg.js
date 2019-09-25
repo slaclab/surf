@@ -1,6 +1,8 @@
 var classClinkReg =
 [
     [ "rtl", "classClinkReg_1_1rtl.html", "classClinkReg_1_1rtl" ],
+    [ "TPD_G", "classClinkReg.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "CHAN_COUNT_G", "classClinkReg.html#a4e090772a4666471f747db038280706e", null ],
     [ "chanStatus", "classClinkReg.html#a4d27aa07a7d69a32a8fd2e7523f97dbb", null ],
     [ "linkStatus", "classClinkReg.html#af285fbca03a40c95578f4b582d938631", null ],
     [ "chanConfig", "classClinkReg.html#aef0e46b641403400598ae1d948a73ec1", null ],

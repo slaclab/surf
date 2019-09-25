@@ -1,0 +1,10 @@
+<map id="i2cRegTb" name="i2cRegTb">
+<area shape="rect" id="node2" href="$classClkRst.html" title="ClkRst(2)" alt="" coords="5,229,88,256"/>
+<area shape="rect" id="node3" href="$classI2cRegMaster.html" title="I2cRegMaster" alt="" coords="112,229,221,256"/>
+<area shape="rect" id="node4" href="$classI2cMaster.html" title="I2cMaster" alt="" coords="124,155,209,181"/>
+<area shape="rect" id="node5" href="$classi2c__master__byte__ctrl.html" title="i2c_master_byte_ctrl" alt="" coords="85,80,243,107"/>
+<area shape="rect" id="node6" href="$classi2c__master__bit__ctrl.html" title="i2c_master_bit_ctrl" alt="" coords="91,5,237,32"/>
+<area shape="rect" id="node7" href="$classi2cRamSlave.html" title="i2cRamSlave" alt="" coords="251,229,357,256"/>
+<area shape="rect" id="node8" href="$classI2cRegSlave.html" title="I2cRegSlave" alt="" coords="255,155,356,181"/>
+<area shape="rect" id="node9" href="$classI2cSlave.html" title="I2cSlave" alt="" coords="268,80,345,107"/>
+</map>

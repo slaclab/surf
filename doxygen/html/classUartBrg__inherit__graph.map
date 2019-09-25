@@ -1,0 +1,6 @@
+<map id="UartBrg" name="UartBrg">
+<area shape="rect" id="node2" href="$classUartWrapper.html" title="UartWrapper" alt="" coords="129,80,233,107"/>
+<area shape="rect" id="node3" href="$classUartAxiLiteMaster.html" title="UartAxiLiteMaster" alt="" coords="5,155,144,181"/>
+<area shape="rect" id="node4" href="$classUartAxiLiteMasterTb.html" title="UartAxiLiteMasterTb" alt="" coords="51,229,205,256"/>
+<area shape="rect" id="node5" href="$classUartSem.html" title="UartSem" alt="" coords="219,155,298,181"/>
+</map>

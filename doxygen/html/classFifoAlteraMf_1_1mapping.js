@@ -1,5 +1,6 @@
 var classFifoAlteraMf_1_1mapping =
 [
+    [ "PROCESS_41", "classFifoAlteraMf_1_1mapping.html#abdf87f8ea7cd62e5f8e3d8d2d77f8dd0", null ],
     [ "FWFT_EN_C", "classFifoAlteraMf_1_1mapping.html#a728dafae9b82865500c3107abbc529ec", null ],
     [ "reset", "classFifoAlteraMf_1_1mapping.html#a35d954cd6285a389db999e64b64f9965", null ],
     [ "sRdEn", "classFifoAlteraMf_1_1mapping.html#a366fbe644eb9b3627cac25017531d36a", null ],
@@ -10,5 +11,6 @@ var classFifoAlteraMf_1_1mapping =
     [ "wrCount", "classFifoAlteraMf_1_1mapping.html#a9232d3d2c1123d6960200c7c1b9525b7", null ],
     [ "rdCount", "classFifoAlteraMf_1_1mapping.html#acd36a669a5f4ffa35133b30240435962", null ],
     [ "u_dcfifo", "classFifoAlteraMf_1_1mapping.html#a7bc91e546f9f96f3d8533fb04fe8fc80", null ],
-    [ "u_scfifo", "classFifoAlteraMf_1_1mapping.html#a383e095646c41cf5946f419c7a04dcc3", null ]
+    [ "u_scfifo", "classFifoAlteraMf_1_1mapping.html#a383e095646c41cf5946f419c7a04dcc3", null ],
+    [ "u_pipeline", "classFifoAlteraMf_1_1mapping.html#a53b621cbd03c7fec8ec2d51a635ca31f", null ]
 ];

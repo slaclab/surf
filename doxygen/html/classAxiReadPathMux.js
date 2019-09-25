@@ -1,6 +1,8 @@
 var classAxiReadPathMux =
 [
     [ "structure", "classAxiReadPathMux_1_1structure.html", "classAxiReadPathMux_1_1structure" ],
+    [ "TPD_G", "classAxiReadPathMux.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "NUM_SLAVES_G", "classAxiReadPathMux.html#ae3485c1b27875950a3d8ac70d6188e05", null ],
     [ "axiClk", "classAxiReadPathMux.html#a7d8781c632c75ab0fdde6e592fd13d60", null ],
     [ "axiRst", "classAxiReadPathMux.html#a399a775bae9ae4819d5af6838a95e28e", null ],
     [ "sAxiReadMasters", "classAxiReadPathMux.html#affc6d30ac8c45c512086d6c1e79c04d6", null ],

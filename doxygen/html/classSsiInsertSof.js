@@ -1,6 +1,14 @@
 var classSsiInsertSof =
 [
     [ "SsiInsertSof.rtl", "classSsiInsertSof_1_1rtl.html", "classSsiInsertSof_1_1rtl" ],
+    [ "TPD_G", "classSsiInsertSof.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "TUSER_MASK_G", "classSsiInsertSof.html#a8cf5fa879086b5b2cd0da0cfd6ef1e26", null ],
+    [ "COMMON_CLK_G", "classSsiInsertSof.html#a762b446ddef001083e8cfc52dc38385f", null ],
+    [ "INSERT_USER_HDR_G", "classSsiInsertSof.html#a0ffebe5af425d2dfd2bca4b60c271bc3", null ],
+    [ "SLAVE_FIFO_G", "classSsiInsertSof.html#ae4f566c60c68f2c6f0cbfef056ad968b", null ],
+    [ "MASTER_FIFO_G", "classSsiInsertSof.html#a929264abf147ccf7cb61711b700b5178", null ],
+    [ "SLAVE_AXI_CONFIG_G", "classSsiInsertSof.html#ae73074eb5d6f5b790fe11394a85d8f05", null ],
+    [ "MASTER_AXI_CONFIG_G", "classSsiInsertSof.html#abda656462c1b84e3d42e50514c515085", null ],
     [ "sAxisClk", "classSsiInsertSof.html#aa685d94966e12ee1feec1c91fef4c4d0", null ],
     [ "sAxisRst", "classSsiInsertSof.html#a7dc2d65783b78f52a8f7bb3df645fc2d", null ],
     [ "sAxisMaster", "classSsiInsertSof.html#a4be737583df4493f37e21b9da4a67377", null ],

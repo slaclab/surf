@@ -1,6 +1,7 @@
 var classIpBusToAxiLite =
 [
     [ "rtl", "classIpBusToAxiLite_1_1rtl.html", "classIpBusToAxiLite_1_1rtl" ],
+    [ "TPD_G", "classIpBusToAxiLite.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "clk", "classIpBusToAxiLite.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classIpBusToAxiLite.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],
     [ "ipbAddr", "classIpBusToAxiLite.html#a0be00207f91840145bfd4f6ae885827e", null ],

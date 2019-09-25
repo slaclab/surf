@@ -1,6 +1,11 @@
 var classAxiStreamMonAxiL =
 [
     [ "rtl", "classAxiStreamMonAxiL_1_1rtl.html", "classAxiStreamMonAxiL_1_1rtl" ],
+    [ "TPD_G", "classAxiStreamMonAxiL.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "COMMON_CLK_G", "classAxiStreamMonAxiL.html#a762b446ddef001083e8cfc52dc38385f", null ],
+    [ "AXIS_CLK_FREQ_G", "classAxiStreamMonAxiL.html#ad459d012af0700c2b2299cf90a94f09f", null ],
+    [ "AXIS_NUM_SLOTS_G", "classAxiStreamMonAxiL.html#a41bdffb18952820575253acc24039b06", null ],
+    [ "AXIS_CONFIG_G", "classAxiStreamMonAxiL.html#a129eaf71f6056f837f37b4d59ce80a70", null ],
     [ "axisClk", "classAxiStreamMonAxiL.html#ac220cc2710ba738744915c3b2a0f43bc", null ],
     [ "axisRst", "classAxiStreamMonAxiL.html#a044b1bf79201c595c20474cecf020a5d", null ],
     [ "axisMasters", "classAxiStreamMonAxiL.html#a0a12bb59ea2a411884404ac00af7accf", null ],

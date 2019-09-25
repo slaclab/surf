@@ -1,6 +1,9 @@
 var classSaltTx =
 [
     [ "SaltTx.rtl", "classSaltTx_1_1rtl.html", "classSaltTx_1_1rtl" ],
+    [ "TPD_G", "classSaltTx.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "COMMON_TX_CLK_G", "classSaltTx.html#a1d11edc3131810ae5191fcf3f31bd928", null ],
+    [ "SLAVE_AXI_CONFIG_G", "classSaltTx.html#a39b0b368c7d5d08dad7054f410932f20", null ],
     [ "sAxisClk", "classSaltTx.html#aa685d94966e12ee1feec1c91fef4c4d0", null ],
     [ "sAxisRst", "classSaltTx.html#a7dc2d65783b78f52a8f7bb3df645fc2d", null ],
     [ "sAxisMaster", "classSaltTx.html#a4be737583df4493f37e21b9da4a67377", null ],

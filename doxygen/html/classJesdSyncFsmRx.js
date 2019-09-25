@@ -1,6 +1,10 @@
 var classJesdSyncFsmRx =
 [
     [ "rtl", "classJesdSyncFsmRx_1_1rtl.html", "classJesdSyncFsmRx_1_1rtl" ],
+    [ "TPD_G", "classJesdSyncFsmRx.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "F_G", "classJesdSyncFsmRx.html#ab83f5adebb48f573a8376351697f919a", null ],
+    [ "K_G", "classJesdSyncFsmRx.html#a613d1453ef9d3ba197df442a25c0f402", null ],
+    [ "NUM_ILAS_MF_G", "classJesdSyncFsmRx.html#a0cf553a73e642160cbd852a91dce2262", null ],
     [ "clk", "classJesdSyncFsmRx.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classJesdSyncFsmRx.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],
     [ "enable_i", "classJesdSyncFsmRx.html#ac78648a0a2748c4d0e4c127d5b4e6292", null ],

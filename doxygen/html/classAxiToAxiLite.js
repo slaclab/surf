@@ -1,6 +1,8 @@
 var classAxiToAxiLite =
 [
     [ "mapping", "classAxiToAxiLite_1_1mapping.html", "classAxiToAxiLite_1_1mapping" ],
+    [ "TPD_G", "classAxiToAxiLite.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "EN_SLAVE_RESP_G", "classAxiToAxiLite.html#a0627faddc91fb0b98e5a2077b55186d5", null ],
     [ "axiClk", "classAxiToAxiLite.html#a7d8781c632c75ab0fdde6e592fd13d60", null ],
     [ "axiClkRst", "classAxiToAxiLite.html#aaa3f2a49ba9c27af6fc938205e371307", null ],
     [ "axiReadMaster", "classAxiToAxiLite.html#a27fac8bb805c1c7ac5bb92cd7e5e8886", null ],

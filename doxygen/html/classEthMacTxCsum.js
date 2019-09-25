@@ -1,6 +1,11 @@
 var classEthMacTxCsum =
 [
     [ "rtl", "classEthMacTxCsum_1_1rtl.html", "classEthMacTxCsum_1_1rtl" ],
+    [ "TPD_G", "classEthMacTxCsum.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "DROP_ERR_PKT_G", "classEthMacTxCsum.html#adf5aafc981fce427b9cf8ca378a17602", null ],
+    [ "JUMBO_G", "classEthMacTxCsum.html#af3c2b3ea37b9a6acb725bb242dbb570a", null ],
+    [ "VLAN_G", "classEthMacTxCsum.html#ad2244ede4b7d5db9cd6c9ee46585439d", null ],
+    [ "VID_G", "classEthMacTxCsum.html#a24337c7cf82e01b0be4f9641b37c9d6a", null ],
     [ "ethClk", "classEthMacTxCsum.html#aa454832f4c517041d344f7bdf52eceec", null ],
     [ "ethRst", "classEthMacTxCsum.html#a6c46ddea5c02f0cc0addd2467357471c", null ],
     [ "ipCsumEn", "classEthMacTxCsum.html#af4bd185e1af3bccd7de70e16af166f83", null ],

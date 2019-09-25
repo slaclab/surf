@@ -1,6 +1,8 @@
 var classTenGigEthReg =
 [
     [ "TenGigEthReg.rtl", "classTenGigEthReg_1_1rtl.html", "classTenGigEthReg_1_1rtl" ],
+    [ "TPD_G", "classTenGigEthReg.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "EN_AXI_REG_G", "classTenGigEthReg.html#aaa0b8676b87db73331ef9162511e97fa", null ],
     [ "localMac", "classTenGigEthReg.html#a4a79f23d896469af5b3a5c3fb264c2c4", null ],
     [ "clk", "classTenGigEthReg.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classTenGigEthReg.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],

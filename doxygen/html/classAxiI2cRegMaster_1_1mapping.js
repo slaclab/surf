@@ -2,7 +2,7 @@ var classAxiI2cRegMaster_1_1mapping =
 [
     [ "I2C_SCL_5xFREQ_C", "classAxiI2cRegMaster_1_1mapping.html#aa18f53f789abddb22643a43d7a5d565c", null ],
     [ "PRESCALE_C", "classAxiI2cRegMaster_1_1mapping.html#ad1fcf662c7503b71b3e66570dd78c8ee", null ],
-    [ "FILTER_C", "classAxiI2cRegMaster_1_1mapping.html#a0ea90baa0de8a10f6e24fd274aa000ba", null ],
+    [ "FILTER_C", "classAxiI2cRegMaster_1_1mapping.html#a61bcc4619ed5894e9e6f35ce9c98e394", null ],
     [ "i2cRegMasterIn", "classAxiI2cRegMaster_1_1mapping.html#a5842fefdce2e6634f3b66fd438e47793", null ],
     [ "i2cRegMasterOut", "classAxiI2cRegMaster_1_1mapping.html#add2f17fd060a77cc98d2b51611a4497c", null ],
     [ "i2ci", "classAxiI2cRegMaster_1_1mapping.html#af3901fc785a98c81bf432712c6221496", null ],

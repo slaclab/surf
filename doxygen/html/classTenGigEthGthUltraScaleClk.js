@@ -1,6 +1,9 @@
 var classTenGigEthGthUltraScaleClk =
 [
     [ "TenGigEthGthUltraScaleClk.mapping", "classTenGigEthGthUltraScaleClk_1_1mapping.html", "classTenGigEthGthUltraScaleClk_1_1mapping" ],
+    [ "TPD_G", "classTenGigEthGthUltraScaleClk.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "EXT_REF_G", "classTenGigEthGthUltraScaleClk.html#a27220da9ec41240c4a4ea8ef5bb2ba12", null ],
+    [ "QPLL_REFCLK_SEL_G", "classTenGigEthGthUltraScaleClk.html#a0743d2f53eee4c6a78f44022d39b4a70", null ],
     [ "gtRefClk", "classTenGigEthGthUltraScaleClk.html#a93c92bfbb1b2df08f6dfa9f8261a42f1", null ],
     [ "gtRefClkBufg", "classTenGigEthGthUltraScaleClk.html#a01985961872b0a9cf600afc39be9ad5e", null ],
     [ "gtClkP", "classTenGigEthGthUltraScaleClk.html#aa1b697ca181f933b194d07fac0fb9cd1", null ],
@@ -16,5 +19,6 @@ var classTenGigEthGthUltraScaleClk =
     [ "std_logic_1164", "classTenGigEthGthUltraScaleClk.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "StdRtlPkg", "classTenGigEthGthUltraScaleClk.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "unisim", "classTenGigEthGthUltraScaleClk.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
-    [ "vcomponents", "classTenGigEthGthUltraScaleClk.html#aa1cb22e959d47364391e5eb4ef86927c", null ]
+    [ "vcomponents", "classTenGigEthGthUltraScaleClk.html#aa1cb22e959d47364391e5eb4ef86927c", null ],
+    [ "REF_CLK_FREQ_G", "classTenGigEthGthUltraScaleClk.html#a9ae218acfcc90551ddfffad5c2e21fed", null ]
 ];

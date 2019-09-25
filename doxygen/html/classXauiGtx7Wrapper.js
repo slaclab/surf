@@ -1,6 +1,12 @@
 var classXauiGtx7Wrapper =
 [
     [ "XauiGtx7Wrapper.mapping", "classXauiGtx7Wrapper_1_1mapping.html", "classXauiGtx7Wrapper_1_1mapping" ],
+    [ "TPD_G", "classXauiGtx7Wrapper.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "PAUSE_EN_G", "classXauiGtx7Wrapper.html#a3523b0b120676ac086f277320024a115", null ],
+    [ "USE_GTREFCLK_G", "classXauiGtx7Wrapper.html#aabe4aa6c32ea361c8724a5ff2142bd32", null ],
+    [ "REFCLK_DIV2_G", "classXauiGtx7Wrapper.html#a801845adeff5dc1b781cbe115d94a59d", null ],
+    [ "EN_AXI_REG_G", "classXauiGtx7Wrapper.html#aaa0b8676b87db73331ef9162511e97fa", null ],
+    [ "AXIS_CONFIG_G", "classXauiGtx7Wrapper.html#a701761914fd09b26dd95a64cd3df8bf6", null ],
     [ "localMac", "classXauiGtx7Wrapper.html#a4a79f23d896469af5b3a5c3fb264c2c4", null ],
     [ "dmaClk", "classXauiGtx7Wrapper.html#ade4f983718168ff97d99e5f9e1010f4f", null ],
     [ "dmaRst", "classXauiGtx7Wrapper.html#ab6a7bca3a0592d2fe0ac325b68a52b3d", null ],

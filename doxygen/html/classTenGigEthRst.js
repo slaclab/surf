@@ -1,6 +1,7 @@
 var classTenGigEthRst =
 [
     [ "TenGigEthRst.rtl", "classTenGigEthRst_1_1rtl.html", "classTenGigEthRst_1_1rtl" ],
+    [ "TPD_G", "classTenGigEthRst.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "extRst", "classTenGigEthRst.html#a2370d68d090b7a9d9791a4c31b83778e", null ],
     [ "gtPowerGood", "classTenGigEthRst.html#a8e74b6df8264413a254c007f97b68aa6", null ],
     [ "phyClk", "classTenGigEthRst.html#a6674f9ed275416f1a84986365acad960", null ],

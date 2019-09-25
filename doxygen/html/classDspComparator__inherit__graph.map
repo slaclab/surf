@@ -1,0 +1,9 @@
+<map id="DspComparator" name="DspComparator">
+<area shape="rect" id="node3" href="$classAxiStreamBatcherEventBuilder.html" title="AxiStreamBatcherEventBuilder" alt="" coords="367,5,589,32"/>
+<area shape="rect" id="node4" href="$classAxiStreamDmaV2Desc.html" title="AxiStreamDmaV2Desc" alt="" coords="393,56,563,83"/>
+<area shape="rect" id="node6" href="$classAxiStreamDmaV2Read.html" title="AxiStreamDmaV2Read" alt="" coords="393,107,563,133"/>
+<area shape="rect" id="node7" href="$classAxiStreamPrbsFlowCtrl.html" title="AxiStreamPrbsFlowCtrl" alt="" coords="393,157,563,184"/>
+<area shape="rect" id="node8" href="$classDspComparatorTb.html" title="DspComparatorTb" alt="" coords="408,208,548,235"/>
+<area shape="rect" id="node2" href="$classFifoOutputPipeline.html" title="FifoOutputPipeline" alt="" coords="5,107,147,133"/>
+<area shape="rect" id="node5" href="$classAxiStreamDmaV2.html" title="AxiStreamDmaV2" alt="" coords="637,81,776,108"/>
+</map>

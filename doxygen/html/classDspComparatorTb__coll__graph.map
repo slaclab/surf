@@ -1,0 +1,5 @@
+<map id="DspComparatorTb" name="DspComparatorTb">
+<area shape="rect" id="node2" href="$classClkRst.html" title="ClkRst" alt="" coords="5,80,69,107"/>
+<area shape="rect" id="node3" href="$classDspComparator.html" title="DspComparator" alt="" coords="94,80,218,107"/>
+<area shape="rect" id="node4" href="$classFifoOutputPipeline.html" title="FifoOutputPipeline" alt="" coords="85,5,227,32"/>
+</map>

@@ -1,6 +1,14 @@
 var classTenGigEthGth7Wrapper =
 [
     [ "TenGigEthGth7Wrapper.mapping", "classTenGigEthGth7Wrapper_1_1mapping.html", "classTenGigEthGth7Wrapper_1_1mapping" ],
+    [ "TPD_G", "classTenGigEthGth7Wrapper.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "NUM_LANE_G", "classTenGigEthGth7Wrapper.html#a29528ef32df8ce5923f00453713b6a92", null ],
+    [ "PAUSE_EN_G", "classTenGigEthGth7Wrapper.html#a3523b0b120676ac086f277320024a115", null ],
+    [ "USE_GTREFCLK_G", "classTenGigEthGth7Wrapper.html#aabe4aa6c32ea361c8724a5ff2142bd32", null ],
+    [ "REFCLK_DIV2_G", "classTenGigEthGth7Wrapper.html#a801845adeff5dc1b781cbe115d94a59d", null ],
+    [ "QPLL_REFCLK_SEL_G", "classTenGigEthGth7Wrapper.html#aea5262eebea53d0001c865bf74d8271a", null ],
+    [ "EN_AXI_REG_G", "classTenGigEthGth7Wrapper.html#aaa0b8676b87db73331ef9162511e97fa", null ],
+    [ "AXIS_CONFIG_G", "classTenGigEthGth7Wrapper.html#a9b15cd150b3802d03befa0996d9762eb", null ],
     [ "localMac", "classTenGigEthGth7Wrapper.html#a0e1244ef9ab3f7327e5f81bafa7026ea", null ],
     [ "dmaClk", "classTenGigEthGth7Wrapper.html#ad47a9a4b7d3c60b1cf6d48ba035cc90e", null ],
     [ "dmaRst", "classTenGigEthGth7Wrapper.html#abf54c06afa0d057c30847948e2b3c365", null ],

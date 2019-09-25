@@ -1,6 +1,11 @@
 var classAxiStreamTap =
 [
     [ "structure", "classAxiStreamTap_1_1structure.html", "classAxiStreamTap_1_1structure" ],
+    [ "TPD_G", "classAxiStreamTap.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "TAP_DEST_G", "classAxiStreamTap.html#adff1872657b529e8f6abda0222035977", null ],
+    [ "PIPE_STAGES_G", "classAxiStreamTap.html#a690564d64aa8e37d3ffa7aa2c377f50e", null ],
+    [ "ILEAVE_ON_NOTVALID_G", "classAxiStreamTap.html#adc86774e39002fce6f3ca2a442b01f6a", null ],
+    [ "ILEAVE_REARB_G", "classAxiStreamTap.html#a837791b598ad7ec6969269dcd34db50b", null ],
     [ "sAxisMaster", "classAxiStreamTap.html#a4be737583df4493f37e21b9da4a67377", null ],
     [ "sAxisSlave", "classAxiStreamTap.html#a4e7681b5766a6f51851dfb086a6bf45a", null ],
     [ "mAxisMaster", "classAxiStreamTap.html#afd4f0f4d2e88b311f2a3b3705b317922", null ],

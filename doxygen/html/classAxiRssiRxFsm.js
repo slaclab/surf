@@ -1,6 +1,12 @@
 var classAxiRssiRxFsm =
 [
     [ "rtl", "classAxiRssiRxFsm_1_1rtl.html", "classAxiRssiRxFsm_1_1rtl" ],
+    [ "TPD_G", "classAxiRssiRxFsm.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "AXI_CONFIG_G", "classAxiRssiRxFsm.html#a0881a0b34e152b267cac98a30291af3d", null ],
+    [ "BURST_BYTES_G", "classAxiRssiRxFsm.html#a80a7b17441a8611e94fb4f4d36223d88", null ],
+    [ "WINDOW_ADDR_SIZE_G", "classAxiRssiRxFsm.html#acc6e52a7fa9b0c31ebca48fce1b15812", null ],
+    [ "HEADER_CHKSUM_EN_G", "classAxiRssiRxFsm.html#a53a1e14bed8f05c48e75f236d9defa7e", null ],
+    [ "SEGMENT_ADDR_SIZE_G", "classAxiRssiRxFsm.html#a61e5495589937a3713a54fd63be80bba", null ],
     [ "clk_i", "classAxiRssiRxFsm.html#a48b975d7640534e167c15bb600cd18a2", null ],
     [ "rst_i", "classAxiRssiRxFsm.html#a26b3539d28e70bf3ad6319e4280a3c66", null ],
     [ "axiOffset_i", "classAxiRssiRxFsm.html#a391e654b3af1dd95aa2a6835e107dae3", null ],

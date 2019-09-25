@@ -1,6 +1,10 @@
 var classGLinkEncoder =
 [
     [ "rtl", "classGLinkEncoder_1_1rtl.html", "classGLinkEncoder_1_1rtl" ],
+    [ "TPD_G", "classGLinkEncoder.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "RST_ASYNC_G", "classGLinkEncoder.html#a123a3d9a6e9648e763d21c0281ee7ecd", null ],
+    [ "RST_POLARITY_G", "classGLinkEncoder.html#a8a9f56ec06b173cf46dc7160fd7c1f30", null ],
+    [ "FLAGSEL_G", "classGLinkEncoder.html#a2d29bccc5f0075b738890460cc5fe222", null ],
     [ "en", "classGLinkEncoder.html#a429e582877625d651b6ef2030b9e26bc", null ],
     [ "clk", "classGLinkEncoder.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classGLinkEncoder.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],

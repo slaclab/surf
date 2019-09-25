@@ -1,6 +1,6 @@
 var classRawEthFramerTb_1_1testbed =
 [
-    [ "PROCESS_128", "classRawEthFramerTb_1_1testbed.html#a27ca40cd05c4c520f87ca072f0a09f7e", null ],
+    [ "PROCESS_129", "classRawEthFramerTb_1_1testbed.html#a269affe64a8d4b6a02fcfcdcf747dc5c", null ],
     [ "CLK_PERIOD_C", "classRawEthFramerTb_1_1testbed.html#a1563a30940c1a8ea10862c34799b1b72", null ],
     [ "TPD_G", "classRawEthFramerTb_1_1testbed.html#a06008294194cf59004013a4f948b76a4", null ],
     [ "BYPASS_UDP_C", "classRawEthFramerTb_1_1testbed.html#a4ae493a9499ae0ab10b0656296867f31", null ],
@@ -9,9 +9,9 @@ var classRawEthFramerTb_1_1testbed =
     [ "PKT_LEN_C", "classRawEthFramerTb_1_1testbed.html#ad798c46d4f10ecaaef00c96c2021cbfe", null ],
     [ "PRBS_SEED_SIZE_C", "classRawEthFramerTb_1_1testbed.html#acae3854b94b579f23f41f55b63778260", null ],
     [ "CLIENT_WINDOW_ADDR_SIZE_C", "classRawEthFramerTb_1_1testbed.html#a21ce891cd22d61eb9974b988d60726c5", null ],
-    [ "CLIENT_MAX_NUM_OUTS_SEG_C", "classRawEthFramerTb_1_1testbed.html#a3fbd2404396564bfec16d8df6abb1af0", null ],
+    [ "CLIENT_MAX_NUM_OUTS_SEG_C", "classRawEthFramerTb_1_1testbed.html#af61d038ac6f3985d352c9657036ec7a8", null ],
     [ "SERVER_WINDOW_ADDR_SIZE_C", "classRawEthFramerTb_1_1testbed.html#a7ebf107090c2ab72df633d69b4f4f171", null ],
-    [ "SERVER_MAX_NUM_OUTS_SEG_C", "classRawEthFramerTb_1_1testbed.html#a814eab858405e35948542135a1ae4d0a", null ],
+    [ "SERVER_MAX_NUM_OUTS_SEG_C", "classRawEthFramerTb_1_1testbed.html#acdcdd17e63fcf86bd9da4e27cb5c5499", null ],
     [ "MAC_ADDR_C", "classRawEthFramerTb_1_1testbed.html#aed957e5e2c61b1e02aa87fbf092efa64", null ],
     [ "IP_ADDR_C", "classRawEthFramerTb_1_1testbed.html#a8bce33cd944ce01e4cef5cbf2d909a9e", null ],
     [ "AXIS_CONFIG_C", "classRawEthFramerTb_1_1testbed.html#adce318001bf5e0579ff048f464454534", null ],

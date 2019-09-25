@@ -1,4 +1,11 @@
 <map id="DeviceDna" name="DeviceDna">
-<area shape="rect" id="node2" href="$classDeviceDna7Series.html" title="DeviceDna7Series" alt="" coords="5,5,136,32"/>
-<area shape="rect" id="node3" href="$classDeviceDnaUltraScale.html" title="DeviceDnaUltraScale" alt="" coords="159,5,307,32"/>
+<area shape="rect" id="node7" href="$classAxiVersion.html" title="AxiVersion" alt="" coords="119,304,210,331"/>
+<area shape="rect" id="node10" href="$classAxiVersionLegacy.html" title="AxiVersionLegacy" alt="" coords="235,304,372,331"/>
+<area shape="rect" id="node2" href="$classDeviceDna7Series.html" title="DeviceDna7Series" alt="" coords="77,155,218,181"/>
+<area shape="rect" id="node3" href="$classRstSync.html" title="RstSync" alt="" coords="130,80,205,107"/>
+<area shape="rect" id="node6" href="$classDeviceDnaUltraScale.html" title="DeviceDnaUltraScale" alt="" coords="242,155,402,181"/>
+<area shape="rect" id="node4" href="$classSynchronizer.html" title="Synchronizer" alt="" coords="114,5,221,32"/>
+<area shape="rect" id="node5" href="$classSynchronizerVector.html" title="SynchronizerVector" alt="" coords="238,80,385,107"/>
+<area shape="rect" id="node8" href="$classAxiLiteIpBusBridgeTb.html" title="AxiLiteIpBusBridgeTb" alt="" coords="5,379,167,405"/>
+<area shape="rect" id="node9" href="$classAxiVersionTb.html" title="AxiVersionTb" alt="" coords="191,379,298,405"/>
 </map>

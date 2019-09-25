@@ -1,6 +1,8 @@
 var classClinkData =
 [
     [ "rtl", "classClinkData_1_1rtl.html", "classClinkData_1_1rtl" ],
+    [ "TPD_G", "classClinkData.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "XIL_DEVICE_G", "classClinkData.html#ad73f3e1bc362541946cf886a1bf2c994", null ],
     [ "cblHalfP", "classClinkData.html#a6b77635d6e43d25ca779fcc04afd4b94", null ],
     [ "cblHalfM", "classClinkData.html#a96fee2b4c47d5d79bb70fa491d1a3aea", null ],
     [ "dlyClk", "classClinkData.html#a146ad60a19d6db2e2f4634b6bae0a935", null ],

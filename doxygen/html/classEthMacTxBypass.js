@@ -1,6 +1,8 @@
 var classEthMacTxBypass =
 [
     [ "rtl", "classEthMacTxBypass_1_1rtl.html", "classEthMacTxBypass_1_1rtl" ],
+    [ "TPD_G", "classEthMacTxBypass.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "BYP_EN_G", "classEthMacTxBypass.html#abe1127a57e68a4c556cb22d0f8bf5652", null ],
     [ "ethClk", "classEthMacTxBypass.html#aa454832f4c517041d344f7bdf52eceec", null ],
     [ "ethRst", "classEthMacTxBypass.html#a6c46ddea5c02f0cc0addd2467357471c", null ],
     [ "sPrimMaster", "classEthMacTxBypass.html#a4cf8c37d323d9aa5ef1acb2c8ae822ec", null ],

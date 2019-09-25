@@ -1,6 +1,10 @@
 var classSlvArraytoAxiLite =
 [
     [ "SlvArraytoAxiLite.rtl", "classSlvArraytoAxiLite_1_1rtl.html", "classSlvArraytoAxiLite_1_1rtl" ],
+    [ "TPD_G", "classSlvArraytoAxiLite.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "COMMON_CLK_G", "classSlvArraytoAxiLite.html#a762b446ddef001083e8cfc52dc38385f", null ],
+    [ "SIZE_G", "classSlvArraytoAxiLite.html#a7edf3a0cce82503a15b34114a6f5f785", null ],
+    [ "ADDR_G", "classSlvArraytoAxiLite.html#a97421e7403f38bf96cc20570c8eab144", null ],
     [ "clk", "classSlvArraytoAxiLite.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classSlvArraytoAxiLite.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],
     [ "input", "classSlvArraytoAxiLite.html#a732756e834736e7176759d43814599a5", null ],

@@ -1,6 +1,6 @@
 var classSyncTrigRate_1_1rtl =
 [
-    [ "PROCESS_96", "classSyncTrigRate_1_1rtl.html#a23bd82c96e97228e1038e0f6cfd331a2", null ],
+    [ "PROCESS_97", "classSyncTrigRate_1_1rtl.html#a889c011613e6867e4edcfca1d7169038", null ],
     [ "comb", "classSyncTrigRate_1_1rtl.html#aec9fdfe45bf500955a7847b7fa88dd42", null ],
     [ "seq", "classSyncTrigRate_1_1rtl.html#a5bcdb68999a1393c4ceb18d7d91a8198", null ],
     [ "TIMEOUT_C", "classSyncTrigRate_1_1rtl.html#afd39ca06164c39f66696b6feb8f8e2c7", null ],

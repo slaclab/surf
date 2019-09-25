@@ -1,6 +1,8 @@
 var classAxiWritePathMux =
 [
     [ "structure", "classAxiWritePathMux_1_1structure.html", "classAxiWritePathMux_1_1structure" ],
+    [ "TPD_G", "classAxiWritePathMux.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "NUM_SLAVES_G", "classAxiWritePathMux.html#ae3485c1b27875950a3d8ac70d6188e05", null ],
     [ "axiClk", "classAxiWritePathMux.html#a7d8781c632c75ab0fdde6e592fd13d60", null ],
     [ "axiRst", "classAxiWritePathMux.html#a399a775bae9ae4819d5af6838a95e28e", null ],
     [ "sAxiWriteMasters", "classAxiWritePathMux.html#aedeb4a5606b32a03df6b15487637e806", null ],

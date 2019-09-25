@@ -1,0 +1,7 @@
+<map id="Iprog7Series" name="Iprog7Series">
+<area shape="rect" id="node2" href="$classRstSync.html" title="RstSync" alt="" coords="5,155,80,181"/>
+<area shape="rect" id="node3" href="$classSynchronizer.html" title="Synchronizer" alt="" coords="43,5,149,32"/>
+<area shape="rect" id="node6" href="$classSynchronizerEdge.html" title="SynchronizerEdge" alt="" coords="80,80,219,107"/>
+<area shape="rect" id="node4" href="$classIprog7SeriesCore.html" title="Iprog7SeriesCore" alt="" coords="104,155,237,181"/>
+<area shape="rect" id="node5" href="$classSynchronizerVector.html" title="SynchronizerVector" alt="" coords="243,80,389,107"/>
+</map>

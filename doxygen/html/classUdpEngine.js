@@ -1,6 +1,17 @@
 var classUdpEngine =
 [
     [ "UdpEngine.mapping", "classUdpEngine_1_1mapping.html", "classUdpEngine_1_1mapping" ],
+    [ "TPD_G", "classUdpEngine.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "SERVER_EN_G", "classUdpEngine.html#a9a7c7aaf1ffeee0ac6b3bdb40d4e3fdc", null ],
+    [ "SERVER_SIZE_G", "classUdpEngine.html#aad79f6ed39649f1674359d106dd5bf79", null ],
+    [ "SERVER_PORTS_G", "classUdpEngine.html#a72b945e51d80374db53e09b82aa68c00", null ],
+    [ "CLIENT_EN_G", "classUdpEngine.html#aab24f25b24ecfa138adc220aecae9de7", null ],
+    [ "CLIENT_SIZE_G", "classUdpEngine.html#a61ee0943bb25ab2b953f49fefc9ae92f", null ],
+    [ "CLIENT_PORTS_G", "classUdpEngine.html#a114efae9e266d4c326eb33b2752ae8c6", null ],
+    [ "TX_FLOW_CTRL_G", "classUdpEngine.html#a4b1e6c2eab4e0f86b6879652f5bc1b21", null ],
+    [ "DHCP_G", "classUdpEngine.html#a8156577332414a8d4e467b2f0dade44a", null ],
+    [ "CLK_FREQ_G", "classUdpEngine.html#a2719f79ef8caa5e897f495e33bae81b3", null ],
+    [ "COMM_TIMEOUT_G", "classUdpEngine.html#aee10ff4eb0dadd59d926a88eab1c7052", null ],
     [ "localMac", "classUdpEngine.html#ae02bb35f94a88aa2db811931566e8a02", null ],
     [ "broadcastIp", "classUdpEngine.html#ac2063181cea5b47bca1309a2b5a32f8e", null ],
     [ "localIpIn", "classUdpEngine.html#ab4eca49885a0227b8f02ccd06d8799b9", null ],

@@ -1,6 +1,8 @@
 var classEthMacRxImport =
 [
     [ "mapping", "classEthMacRxImport_1_1mapping.html", "classEthMacRxImport_1_1mapping" ],
+    [ "TPD_G", "classEthMacRxImport.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "PHY_TYPE_G", "classEthMacRxImport.html#a19dc942c6cdea9502f239c68a1c58b49", null ],
     [ "ethClkEn", "classEthMacRxImport.html#a66088ecf8316dc0df29ac8e866985b57", null ],
     [ "ethClk", "classEthMacRxImport.html#aa454832f4c517041d344f7bdf52eceec", null ],
     [ "ethRst", "classEthMacRxImport.html#a6c46ddea5c02f0cc0addd2467357471c", null ],

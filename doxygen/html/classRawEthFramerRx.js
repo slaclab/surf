@@ -1,6 +1,8 @@
 var classRawEthFramerRx =
 [
     [ "rtl", "classRawEthFramerRx_1_1rtl.html", "classRawEthFramerRx_1_1rtl" ],
+    [ "TPD_G", "classRawEthFramerRx.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "ETH_TYPE_G", "classRawEthFramerRx.html#a38a16db6b6abc458307c20fab65c1134", null ],
     [ "localMac", "classRawEthFramerRx.html#ae02bb35f94a88aa2db811931566e8a02", null ],
     [ "remoteMac", "classRawEthFramerRx.html#a17d72004025438f86b5be76e2a59a26a", null ],
     [ "tDest", "classRawEthFramerRx.html#aec6d2672ed2ded3a5dd321fa8e0b9e15", null ],

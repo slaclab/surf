@@ -1,0 +1,6 @@
+<map id="FifoSync" name="FifoSync">
+<area shape="rect" id="node2" href="$classFifoWrFsm.html" title="FifoWrFsm" alt="" coords="5,5,95,32"/>
+<area shape="rect" id="node3" href="$classFifoRdFsm.html" title="FifoRdFsm" alt="" coords="119,5,208,32"/>
+<area shape="rect" id="node4" href="$classSimpleDualPortRam.html" title="SimpleDualPortRam" alt="" coords="232,5,385,32"/>
+<area shape="rect" id="node5" href="$classFifoOutputPipeline.html" title="FifoOutputPipeline" alt="" coords="410,5,551,32"/>
+</map>

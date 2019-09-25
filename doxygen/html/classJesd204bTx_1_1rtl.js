@@ -1,8 +1,8 @@
 var classJesd204bTx_1_1rtl =
 [
-    [ "PROCESS_144", "classJesd204bTx_1_1rtl.html#a2d31dab40c33ff7992205c7ce4132fbc", null ],
     [ "PROCESS_145", "classJesd204bTx_1_1rtl.html#abe85497a257ae2c28657422b5f1ed03c", null ],
     [ "PROCESS_146", "classJesd204bTx_1_1rtl.html#af9abf9775a25dbe6d3fb9bea52ca702e", null ],
+    [ "PROCESS_147", "classJesd204bTx_1_1rtl.html#a4e02d4444cc9db916813765396a25744", null ],
     [ "s_lmfc", "classJesd204bTx_1_1rtl.html#a4badd753f8aa94b73012a584d6a09bfc", null ],
     [ "s_sysrefDlyTx", "classJesd204bTx_1_1rtl.html#afc5c7a5c21dbd197145dabca26cde30c", null ],
     [ "s_enableTx", "classJesd204bTx_1_1rtl.html#a06db712ec21e5f2a2f8ba942532de855", null ],
@@ -17,8 +17,8 @@ var classJesd204bTx_1_1rtl =
     [ "s_sigTypeArr", "classJesd204bTx_1_1rtl.html#a4d58ad7c21ac0dfee470e57efc3eeaad", null ],
     [ "s_rampStep", "classJesd204bTx_1_1rtl.html#a2171e4e7271d7fcc4a0db43ee78b2cf5", null ],
     [ "s_squarePeriod", "classJesd204bTx_1_1rtl.html#a1ef9972f8cde09cfd940c63741fb5b1e", null ],
-    [ "s_posAmplitude", "classJesd204bTx_1_1rtl.html#afbb077e3fa22161bcf0ef240e5e71e00", null ],
-    [ "s_negAmplitude", "classJesd204bTx_1_1rtl.html#abbf40428c7d74bc6d312968989a82217", null ],
+    [ "s_posAmplitude", "classJesd204bTx_1_1rtl.html#a5b55c336f2d62cd2b7cf3bbe9feb27d7", null ],
+    [ "s_negAmplitude", "classJesd204bTx_1_1rtl.html#a75eac5d305404e59a4d03c6448ee72a5", null ],
     [ "s_testDataArr", "classJesd204bTx_1_1rtl.html#a678744db1b1495c8c0080b8ad926d3d4", null ],
     [ "s_extDataArraySwap", "classJesd204bTx_1_1rtl.html#a114765a3e9faf8b863f091274274fb5f", null ],
     [ "s_regSampleDataIn", "classJesd204bTx_1_1rtl.html#a44680fa68ccc6c6d10b6bac5da8ad82b", null ],

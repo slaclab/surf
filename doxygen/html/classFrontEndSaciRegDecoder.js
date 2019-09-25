@@ -1,6 +1,7 @@
 var classFrontEndSaciRegDecoder =
 [
     [ "rtl", "classFrontEndSaciRegDecoder_1_1rtl.html", "classFrontEndSaciRegDecoder_1_1rtl" ],
+    [ "DELAY_G", "classFrontEndSaciRegDecoder.html#a4679b7fff4f1ef282813fa4ad7de19af", null ],
     [ "sysClk", "classFrontEndSaciRegDecoder.html#aa8e786917e21f0003ac4b7181c6a4270", null ],
     [ "sysRst", "classFrontEndSaciRegDecoder.html#ad6f88b30c93e1fee7769c9268b934617", null ],
     [ "frontEndRegCntlOut", "classFrontEndSaciRegDecoder.html#a40b264009225d0377a470d6f083f0687", null ],

@@ -1,6 +1,8 @@
 var classJesdAlignChGen =
 [
     [ "rtl", "classJesdAlignChGen_1_1rtl.html", "classJesdAlignChGen_1_1rtl" ],
+    [ "TPD_G", "classJesdAlignChGen.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "F_G", "classJesdAlignChGen.html#ab83f5adebb48f573a8376351697f919a", null ],
     [ "clk", "classJesdAlignChGen.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classJesdAlignChGen.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],
     [ "enable_i", "classJesdAlignChGen.html#ac78648a0a2748c4d0e4c127d5b4e6292", null ],

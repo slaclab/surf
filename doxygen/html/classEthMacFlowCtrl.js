@@ -1,6 +1,10 @@
 var classEthMacFlowCtrl =
 [
     [ "rtl", "classEthMacFlowCtrl_1_1rtl.html", "classEthMacFlowCtrl_1_1rtl" ],
+    [ "TPD_G", "classEthMacFlowCtrl.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "BYP_EN_G", "classEthMacFlowCtrl.html#abe1127a57e68a4c556cb22d0f8bf5652", null ],
+    [ "VLAN_EN_G", "classEthMacFlowCtrl.html#a18de25a8aa2d7b5c459a912874c13dfe", null ],
+    [ "VLAN_SIZE_G", "classEthMacFlowCtrl.html#a581badb2f52346d91f2f9fa882db0467", null ],
     [ "ethClk", "classEthMacFlowCtrl.html#aa454832f4c517041d344f7bdf52eceec", null ],
     [ "ethRst", "classEthMacFlowCtrl.html#a6c46ddea5c02f0cc0addd2467357471c", null ],
     [ "primCtrl", "classEthMacFlowCtrl.html#aec870a86f4f9a3df144834ca563ffa65", null ],

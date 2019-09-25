@@ -5,7 +5,7 @@ var classEthCrc32Parallel_1_1rtl =
     [ "RegType", "classEthCrc32Parallel_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
     [ "valid", "classEthCrc32Parallel_1_1rtl.html#a51ef4c42d1e4996f073c33c4c6170b0f", null ],
     [ "byteWidth", "classEthCrc32Parallel_1_1rtl.html#ade02786bedade04507a2dcba0cde4b56", null ],
-    [ "data", "classEthCrc32Parallel_1_1rtl.html#acd6c174f1acb49baa9f4cf5fbb2098e6", null ],
+    [ "data", "classEthCrc32Parallel_1_1rtl.html#a02d183bc1bb32eb522abebbf6ee48594", null ],
     [ "crc", "classEthCrc32Parallel_1_1rtl.html#a0a0447f77c224e70e2449cfcd27cbd02", null ],
     [ "REG_INIT_C", "classEthCrc32Parallel_1_1rtl.html#a07172d8627d5253d4fe86e1526f5eb3f", null ],
     [ "r", "classEthCrc32Parallel_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3", null ],

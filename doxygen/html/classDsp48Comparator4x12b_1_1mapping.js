@@ -1,7 +1,7 @@
 var classDsp48Comparator4x12b_1_1mapping =
 [
-    [ "PROCESS_220", "classDsp48Comparator4x12b_1_1mapping.html#ac82acac411ef59100818888896ea7efa", null ],
-    [ "PROCESS_221", "classDsp48Comparator4x12b_1_1mapping.html#ad74aa582c5a017ca734bd62b160df42c", null ],
+    [ "PROCESS_222", "classDsp48Comparator4x12b_1_1mapping.html#af8e97fa7c5718cde8e32cefb3cdbbf57", null ],
+    [ "PROCESS_223", "classDsp48Comparator4x12b_1_1mapping.html#abff9a5bfb0378099f83dcaffff79e051", null ],
     [ "carryOut", "classDsp48Comparator4x12b_1_1mapping.html#a408b1abfc50cfd3f13061f2d19d0d040", null ],
     [ "din", "classDsp48Comparator4x12b_1_1mapping.html#a3f4acdbb915634b318f03a7e825190d2", null ],
     [ "A", "classDsp48Comparator4x12b_1_1mapping.html#a5366e3c89cb0924accb6db8ea91aa749", null ],

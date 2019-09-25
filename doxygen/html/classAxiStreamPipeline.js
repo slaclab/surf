@@ -1,6 +1,8 @@
 var classAxiStreamPipeline =
 [
     [ "rtl", "classAxiStreamPipeline_1_1rtl.html", "classAxiStreamPipeline_1_1rtl" ],
+    [ "TPD_G", "classAxiStreamPipeline.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "PIPE_STAGES_G", "classAxiStreamPipeline.html#a690564d64aa8e37d3ffa7aa2c377f50e", null ],
     [ "axisClk", "classAxiStreamPipeline.html#ac220cc2710ba738744915c3b2a0f43bc", null ],
     [ "axisRst", "classAxiStreamPipeline.html#a044b1bf79201c595c20474cecf020a5d", null ],
     [ "sAxisMaster", "classAxiStreamPipeline.html#a4be737583df4493f37e21b9da4a67377", null ],

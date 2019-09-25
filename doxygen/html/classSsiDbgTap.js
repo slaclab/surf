@@ -1,6 +1,9 @@
 var classSsiDbgTap =
 [
     [ "SsiDbgTap.rtl", "classSsiDbgTap_1_1rtl.html", "classSsiDbgTap_1_1rtl" ],
+    [ "TPD_G", "classSsiDbgTap.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "CNT_WIDTH_G", "classSsiDbgTap.html#a5587b06c06b38cb164d2f79a8c706202", null ],
+    [ "AXI_CONFIG_G", "classSsiDbgTap.html#a09d923485d763e487d97a082377ec5e3", null ],
     [ "axisClk", "classSsiDbgTap.html#ac220cc2710ba738744915c3b2a0f43bc", null ],
     [ "axisRst", "classSsiDbgTap.html#a044b1bf79201c595c20474cecf020a5d", null ],
     [ "axisMaster", "classSsiDbgTap.html#a52188e4a173e93551b2b40d4ce1470e2", null ],

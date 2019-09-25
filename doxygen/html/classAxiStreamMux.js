@@ -1,6 +1,17 @@
 var classAxiStreamMux =
 [
     [ "rtl", "classAxiStreamMux_1_1rtl.html", "classAxiStreamMux_1_1rtl" ],
+    [ "TPD_G", "classAxiStreamMux.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "PIPE_STAGES_G", "classAxiStreamMux.html#ac2baa1c398fae7c51e6f466706e211d6", null ],
+    [ "NUM_SLAVES_G", "classAxiStreamMux.html#a301d73ea23f8d0d3e8bdbc11bdd92b4c", null ],
+    [ "MODE_G", "classAxiStreamMux.html#adf33db7c14d9e2c22de126a4f7b466a6", null ],
+    [ "TDEST_ROUTES_G", "classAxiStreamMux.html#af451c9319b83428f363d598448ba95bf", null ],
+    [ "TDEST_LOW_G", "classAxiStreamMux.html#a1febd9d88664e307ee6cfb0fb28aa863", null ],
+    [ "ILEAVE_EN_G", "classAxiStreamMux.html#ab934362b477b914075b660c907603386", null ],
+    [ "ILEAVE_ON_NOTVALID_G", "classAxiStreamMux.html#adc86774e39002fce6f3ca2a442b01f6a", null ],
+    [ "ILEAVE_REARB_G", "classAxiStreamMux.html#a4d16e0cb8de49ad05d88952f9566fe57", null ],
+    [ "REARB_DELAY_G", "classAxiStreamMux.html#a28cdfe419e45b4cb68543535a0937103", null ],
+    [ "FORCED_REARB_HOLD_G", "classAxiStreamMux.html#af3da74252246d107cbd7361c2e440a99", null ],
     [ "axisClk", "classAxiStreamMux.html#ac220cc2710ba738744915c3b2a0f43bc", null ],
     [ "axisRst", "classAxiStreamMux.html#a044b1bf79201c595c20474cecf020a5d", null ],
     [ "disableSel", "classAxiStreamMux.html#aeb53ea240cfd78fd1781bf3e0cf4217a", null ],

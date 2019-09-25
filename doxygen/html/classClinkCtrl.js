@@ -1,6 +1,10 @@
 var classClinkCtrl =
 [
     [ "rtl", "classClinkCtrl_1_1rtl.html", "classClinkCtrl_1_1rtl" ],
+    [ "TPD_G", "classClinkCtrl.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "INV_34_G", "classClinkCtrl.html#a989d0fd8c55fd7e8a1dfa4865955d8ce", null ],
+    [ "UART_READY_EN_G", "classClinkCtrl.html#a231cab7b8fc5a7dab51b8ea89ca21d2d", null ],
+    [ "UART_AXIS_CONFIG_G", "classClinkCtrl.html#a622b88a3a727917d3df49ca79ace4b07", null ],
     [ "cblHalfP", "classClinkCtrl.html#a6b77635d6e43d25ca779fcc04afd4b94", null ],
     [ "cblHalfM", "classClinkCtrl.html#a96fee2b4c47d5d79bb70fa491d1a3aea", null ],
     [ "cblSerP", "classClinkCtrl.html#ab8bab3437a1024e859f955097fcd0910", null ],

@@ -1,0 +1,29 @@
+<map id="MmcmEmulation" name="MmcmEmulation">
+<area shape="rect" id="node3" href="$classClockManager7.html" title="ClockManager7" alt="" coords="327,259,449,285"/>
+<area shape="rect" id="node19" href="$classClockManagerUltraScale.html" title="ClockManagerUltraScale" alt="" coords="297,588,479,615"/>
+<area shape="rect" id="node2" href="$classClkRst.html" title="ClkRst" alt="" coords="5,436,69,463"/>
+<area shape="rect" id="node4" href="$classAd9249Group.html" title="Ad9249Group" alt="" coords="576,5,687,32"/>
+<area shape="rect" id="node6" href="$classGigEthGth7Wrapper.html" title="GigEthGth7Wrapper" alt="" coords="556,56,707,83"/>
+<area shape="rect" id="node7" href="$classGigEthGtp7Wrapper.html" title="GigEthGtp7Wrapper" alt="" coords="556,107,707,133"/>
+<area shape="rect" id="node8" href="$classGigEthGtx7Wrapper.html" title="GigEthGtx7Wrapper" alt="" coords="556,157,707,184"/>
+<area shape="rect" id="node9" href="$classPgp2bGtp7FixedLatWrapper.html" title="Pgp2bGtp7FixedLatWrapper" alt="" coords="531,208,732,235"/>
+<area shape="rect" id="node10" href="$classPgp2bGtp7VarLatWrapper.html" title="Pgp2bGtp7VarLatWrapper" alt="" coords="537,259,725,285"/>
+<area shape="rect" id="node11" href="$classPgp2bGtx7FixedLatWrapper.html" title="Pgp2bGtx7FixedLatWrapper" alt="" coords="531,309,732,336"/>
+<area shape="rect" id="node14" href="$classPgp2bGtx7VarLatWrapper.html" title="Pgp2bGtx7VarLatWrapper" alt="" coords="537,360,725,387"/>
+<area shape="rect" id="node16" href="$classPgp3Gtx7IpWrapper.html" title="Pgp3Gtx7IpWrapper" alt="" coords="556,411,707,437"/>
+<area shape="rect" id="node18" href="$classPgp3Gtx7Wrapper.html" title="Pgp3Gtx7Wrapper" alt="" coords="1051,436,1190,463"/>
+<area shape="rect" id="node5" href="$classAd9249.html" title="Ad9249" alt="" coords="857,5,928,32"/>
+<area shape="rect" id="node12" href="$classPgp2bGtx7FixedLatTb.html" title="Pgp2bGtx7FixedLatTb" alt="" coords="811,259,974,285"/>
+<area shape="rect" id="node13" href="$classPgp2bGtx7FixedLatWrapperTb.html" title="Pgp2bGtx7FixedLatWrapperTb" alt="" coords="784,309,1001,336"/>
+<area shape="rect" id="node15" href="$classPgp2bGtx7VarLatWrapperTb.html" title="Pgp2bGtx7VarLatWrapperTb" alt="" coords="791,360,995,387"/>
+<area shape="rect" id="node17" href="$classPgp3Gtx7.html" title="Pgp3Gtx7" alt="" coords="850,411,935,437"/>
+<area shape="rect" id="node20" href="$classAd9249ReadoutGroup.html" title="Ad9249ReadoutGroup" alt="" coords="550,512,713,539"/>
+<area shape="rect" id="node21" href="$classCaui4GtyIpWrapper.html" title="Caui4GtyIpWrapper" alt="" coords="557,563,705,589"/>
+<area shape="rect" id="node24" href="$classClinkDataShift.html" title="ClinkDataShift" alt="" coords="573,613,689,640"/>
+<area shape="rect" id="node27" href="$classGigEthGthUltraScaleWrapper.html" title="GigEthGthUltraScaleWrapper" alt="" coords="527,664,736,691"/>
+<area shape="rect" id="node28" href="$classGigEthGtyUltraScaleWrapper.html" title="GigEthGtyUltraScaleWrapper" alt="" coords="527,715,736,741"/>
+<area shape="rect" id="node22" href="$classPgpEthCaui4Gty.html" title="PgpEthCaui4Gty" alt="" coords="829,563,956,589"/>
+<area shape="rect" id="node23" href="$classPgpEthCaui4GtyTb.html" title="PgpEthCaui4GtyTb" alt="" coords="1049,563,1192,589"/>
+<area shape="rect" id="node25" href="$classClinkData.html" title="ClinkData" alt="" coords="849,613,936,640"/>
+<area shape="rect" id="node26" href="$classClinkTop.html" title="ClinkTop" alt="" coords="1082,613,1159,640"/>
+</map>

@@ -1,6 +1,8 @@
 var classJesdSysrefDly =
 [
     [ "rtl", "classJesdSysrefDly_1_1rtl.html", "classJesdSysrefDly_1_1rtl" ],
+    [ "TPD_G", "classJesdSysrefDly.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "DLY_WIDTH_G", "classJesdSysrefDly.html#accf296ace4349edf6458849ae11bbb0b", null ],
     [ "clk", "classJesdSysrefDly.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classJesdSysrefDly.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],
     [ "dly_i", "classJesdSysrefDly.html#ad4e12f20152fc9132bc0385da8fae40e", null ],

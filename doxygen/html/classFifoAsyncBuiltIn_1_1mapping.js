@@ -1,10 +1,10 @@
 var classFifoAsyncBuiltIn_1_1mapping =
 [
     [ "GetFifoType", "classFifoAsyncBuiltIn_1_1mapping.html#a8e437574db294a4ba6c1761e740a42a0", null ],
-    [ "PROCESS_41", "classFifoAsyncBuiltIn_1_1mapping.html#aa5a47a323cb1379c0f449e0278075682", null ],
     [ "PROCESS_42", "classFifoAsyncBuiltIn_1_1mapping.html#a157e47ceeb330b11dfc5376f57555847", null ],
-    [ "PROCESS_43", "classFifoAsyncBuiltIn_1_1mapping.html#aa1c6384337238d15429db0e68f3198a1", null ],
-    [ "FIFO_LENGTH_C", "classFifoAsyncBuiltIn_1_1mapping.html#a4cadbc7700771ad27f79168efee2a7c3", null ],
+    [ "PROCESS_43", "classFifoAsyncBuiltIn_1_1mapping.html#a2e1e8cb03181c123b7b6c1f177786e3a", null ],
+    [ "PROCESS_44", "classFifoAsyncBuiltIn_1_1mapping.html#a8ed6a8ff7bdf210fa4b9db1866481f1b", null ],
+    [ "FIFO_LENGTH_C", "classFifoAsyncBuiltIn_1_1mapping.html#a39c93437955dd5353030e0420247ebfe", null ],
     [ "FIFO_SIZE_C", "classFifoAsyncBuiltIn_1_1mapping.html#acb911acc280f0b8d588dfe33638fd836", null ],
     [ "wrAddrPntr", "classFifoAsyncBuiltIn_1_1mapping.html#a977fefe1d60b4c592ebb3790a82309df", null ],
     [ "rdAddrPntr", "classFifoAsyncBuiltIn_1_1mapping.html#a73f5c13f5b2d1926a7266870e91f087e", null ],

@@ -1,6 +1,8 @@
 var classClinkDataShift =
 [
     [ "structure", "classClinkDataShift_1_1structure.html", "classClinkDataShift_1_1structure" ],
+    [ "TPD_G", "classClinkDataShift.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "XIL_DEVICE_G", "classClinkDataShift.html#a4211cd9195e93f828d369c0150c69bc8", null ],
     [ "cblHalfP", "classClinkDataShift.html#a6b77635d6e43d25ca779fcc04afd4b94", null ],
     [ "cblHalfM", "classClinkDataShift.html#a96fee2b4c47d5d79bb70fa491d1a3aea", null ],
     [ "linkRst", "classClinkDataShift.html#a338f0eba1cff1edec70b021b7c4253e0", null ],

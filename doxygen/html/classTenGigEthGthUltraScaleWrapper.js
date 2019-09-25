@@ -1,6 +1,13 @@
 var classTenGigEthGthUltraScaleWrapper =
 [
     [ "TenGigEthGthUltraScaleWrapper.mapping", "classTenGigEthGthUltraScaleWrapper_1_1mapping.html", "classTenGigEthGthUltraScaleWrapper_1_1mapping" ],
+    [ "TPD_G", "classTenGigEthGthUltraScaleWrapper.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "NUM_LANE_G", "classTenGigEthGthUltraScaleWrapper.html#a29528ef32df8ce5923f00453713b6a92", null ],
+    [ "PAUSE_EN_G", "classTenGigEthGthUltraScaleWrapper.html#a3523b0b120676ac086f277320024a115", null ],
+    [ "EXT_REF_G", "classTenGigEthGthUltraScaleWrapper.html#a27220da9ec41240c4a4ea8ef5bb2ba12", null ],
+    [ "QPLL_REFCLK_SEL_G", "classTenGigEthGthUltraScaleWrapper.html#a0743d2f53eee4c6a78f44022d39b4a70", null ],
+    [ "EN_AXI_REG_G", "classTenGigEthGthUltraScaleWrapper.html#aaa0b8676b87db73331ef9162511e97fa", null ],
+    [ "AXIS_CONFIG_G", "classTenGigEthGthUltraScaleWrapper.html#a9b15cd150b3802d03befa0996d9762eb", null ],
     [ "localMac", "classTenGigEthGthUltraScaleWrapper.html#a0e1244ef9ab3f7327e5f81bafa7026ea", null ],
     [ "dmaClk", "classTenGigEthGthUltraScaleWrapper.html#ad47a9a4b7d3c60b1cf6d48ba035cc90e", null ],
     [ "dmaRst", "classTenGigEthGthUltraScaleWrapper.html#abf54c06afa0d057c30847948e2b3c365", null ],

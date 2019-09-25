@@ -1,6 +1,14 @@
 var classUdpEngineRx =
 [
     [ "UdpEngineRx.rtl", "classUdpEngineRx_1_1rtl.html", "classUdpEngineRx_1_1rtl" ],
+    [ "TPD_G", "classUdpEngineRx.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "DHCP_G", "classUdpEngineRx.html#a8156577332414a8d4e467b2f0dade44a", null ],
+    [ "SERVER_EN_G", "classUdpEngineRx.html#a9a7c7aaf1ffeee0ac6b3bdb40d4e3fdc", null ],
+    [ "SERVER_SIZE_G", "classUdpEngineRx.html#aad79f6ed39649f1674359d106dd5bf79", null ],
+    [ "SERVER_PORTS_G", "classUdpEngineRx.html#a72b945e51d80374db53e09b82aa68c00", null ],
+    [ "CLIENT_EN_G", "classUdpEngineRx.html#aab24f25b24ecfa138adc220aecae9de7", null ],
+    [ "CLIENT_SIZE_G", "classUdpEngineRx.html#a61ee0943bb25ab2b953f49fefc9ae92f", null ],
+    [ "CLIENT_PORTS_G", "classUdpEngineRx.html#a114efae9e266d4c326eb33b2752ae8c6", null ],
     [ "localIp", "classUdpEngineRx.html#afd3fee997440ec256fc9f5740a0e75ce", null ],
     [ "broadcastIp", "classUdpEngineRx.html#ac2063181cea5b47bca1309a2b5a32f8e", null ],
     [ "ibUdpMaster", "classUdpEngineRx.html#a66db59374a7024c373901051eec027b1", null ],

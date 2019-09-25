@@ -1,3 +1,11 @@
 <map id="IprogUltraScale" name="IprogUltraScale">
-<area shape="rect" id="node2" href="$classIprog.html" title="Iprog" alt="" coords="36,80,87,107"/>
+<area shape="rect" id="node6" href="$classIprog.html" title="Iprog" alt="" coords="207,304,261,331"/>
+<area shape="rect" id="node2" href="$classRstSync.html" title="RstSync" alt="" coords="138,80,213,107"/>
+<area shape="rect" id="node4" href="$classSynchronizerOneShot.html" title="SynchronizerOneShot" alt="" coords="213,155,375,181"/>
+<area shape="rect" id="node3" href="$classSynchronizer.html" title="Synchronizer" alt="" coords="187,5,294,32"/>
+<area shape="rect" id="node5" href="$classSynchronizerEdge.html" title="SynchronizerEdge" alt="" coords="237,80,375,107"/>
+<area shape="rect" id="node7" href="$classAxiVersion.html" title="AxiVersion" alt="" coords="119,379,210,405"/>
+<area shape="rect" id="node10" href="$classAxiVersionLegacy.html" title="AxiVersionLegacy" alt="" coords="235,379,372,405"/>
+<area shape="rect" id="node8" href="$classAxiLiteIpBusBridgeTb.html" title="AxiLiteIpBusBridgeTb" alt="" coords="5,453,167,480"/>
+<area shape="rect" id="node9" href="$classAxiVersionTb.html" title="AxiVersionTb" alt="" coords="191,453,298,480"/>
 </map>

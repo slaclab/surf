@@ -1,6 +1,15 @@
 var classClinkTop =
 [
     [ "rtl", "classClinkTop_1_1rtl.html", "classClinkTop_1_1rtl" ],
+    [ "TPD_G", "classClinkTop.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "XIL_DEVICE_G", "classClinkTop.html#ad73f3e1bc362541946cf886a1bf2c994", null ],
+    [ "CHAN_COUNT_G", "classClinkTop.html#a4e090772a4666471f747db038280706e", null ],
+    [ "UART_READY_EN_G", "classClinkTop.html#a231cab7b8fc5a7dab51b8ea89ca21d2d", null ],
+    [ "COMMON_AXIL_CLK_G", "classClinkTop.html#ae78588b28e25d1f74ef5bcb03a0a9cf6", null ],
+    [ "COMMON_DATA_CLK_G", "classClinkTop.html#aa018ec7d5bd70422485d138fd5dae4c3", null ],
+    [ "DATA_AXIS_CONFIG_G", "classClinkTop.html#a1a6a7604c118079a2450ae329671063f", null ],
+    [ "UART_AXIS_CONFIG_G", "classClinkTop.html#a622b88a3a727917d3df49ca79ace4b07", null ],
+    [ "AXIL_BASE_ADDR_G", "classClinkTop.html#a5b2d759c15f57ab7bf071af12bfc1286", null ],
     [ "cbl0Half0P", "classClinkTop.html#a66c46f09f33fb09eba80348a48adbc76", null ],
     [ "cbl0Half0M", "classClinkTop.html#a789ab977d1ed9e5beec7bffc602180f3", null ],
     [ "cbl0Half1P", "classClinkTop.html#ad1cee51b120e1060ae31e7220dea922c", null ],

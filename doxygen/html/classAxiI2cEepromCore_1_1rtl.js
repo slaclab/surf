@@ -4,7 +4,7 @@ var classAxiI2cEepromCore_1_1rtl =
     [ "seq", "classAxiI2cEepromCore_1_1rtl.html#a72bbc70fc4a5d3542ed50c4c98efa103", null ],
     [ "I2C_SCL_5xFREQ_C", "classAxiI2cEepromCore_1_1rtl.html#aa18f53f789abddb22643a43d7a5d565c", null ],
     [ "PRESCALE_C", "classAxiI2cEepromCore_1_1rtl.html#ad1fcf662c7503b71b3e66570dd78c8ee", null ],
-    [ "FILTER_C", "classAxiI2cEepromCore_1_1rtl.html#a0ea90baa0de8a10f6e24fd274aa000ba", null ],
+    [ "FILTER_C", "classAxiI2cEepromCore_1_1rtl.html#a61bcc4619ed5894e9e6f35ce9c98e394", null ],
     [ "ADDR_SIZE_C", "classAxiI2cEepromCore_1_1rtl.html#aa4e44f58c4a83ca2c3cf6fedd81a7ff3", null ],
     [ "DATA_SIZE_C", "classAxiI2cEepromCore_1_1rtl.html#a9a1bae80493dd22dddb068137478997d", null ],
     [ "I2C_ADDR_C", "classAxiI2cEepromCore_1_1rtl.html#a9a606edd0c696d19d04fdeca873bed44", null ],

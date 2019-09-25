@@ -1,6 +1,16 @@
 var classAxiSpiMaster =
 [
     [ "rtl", "classAxiSpiMaster_1_1rtl.html", "classAxiSpiMaster_1_1rtl" ],
+    [ "TPD_G", "classAxiSpiMaster.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "ADDRESS_SIZE_G", "classAxiSpiMaster.html#a9815e6325930a14fac4d0faebe9e58c2", null ],
+    [ "DATA_SIZE_G", "classAxiSpiMaster.html#a7d6f78fec2e0eda2e39203ff261270e8", null ],
+    [ "MODE_G", "classAxiSpiMaster.html#a86b262055c60fbba020bb95065d73f3e", null ],
+    [ "SHADOW_EN_G", "classAxiSpiMaster.html#aa9ac75c200be1a8633ec9650dda9b967", null ],
+    [ "CPHA_G", "classAxiSpiMaster.html#a4acc137fe3c0af607bf1894e83921f14", null ],
+    [ "CPOL_G", "classAxiSpiMaster.html#ac41754daeab6105619a91f34519d4747", null ],
+    [ "CLK_PERIOD_G", "classAxiSpiMaster.html#aa1b05411769edd4978c581f756b8b4a4", null ],
+    [ "SPI_SCLK_PERIOD_G", "classAxiSpiMaster.html#a694a3179e8ee20ca5c12f0da5599e0cd", null ],
+    [ "SPI_NUM_CHIPS_G", "classAxiSpiMaster.html#ac25d3b4b7779cb5cf2caca29253b3a2d", null ],
     [ "axiClk", "classAxiSpiMaster.html#a7d8781c632c75ab0fdde6e592fd13d60", null ],
     [ "axiRst", "classAxiSpiMaster.html#a399a775bae9ae4819d5af6838a95e28e", null ],
     [ "axiReadMaster", "classAxiSpiMaster.html#ac847742920ba32301ddc91cf13d6f5fe", null ],

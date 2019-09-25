@@ -2,8 +2,8 @@ var classRssiMonitor_1_1rtl =
 [
     [ "comb", "classRssiMonitor_1_1rtl.html#a10da9b70907eb9353f3af1b4d8e17c93", null ],
     [ "seq", "classRssiMonitor_1_1rtl.html#a70e55cf841c2937028848499824b2006", null ],
-    [ "SAMPLES_PER_TIME_C", "classRssiMonitor_1_1rtl.html#a1989fcb9a046600ab2ce2adb0fc28b92", null ],
-    [ "SAMPLES_PER_TIME_DIV3_C", "classRssiMonitor_1_1rtl.html#ae1443f3ceb42813c9a826971b13456c4", null ],
+    [ "SAMPLES_PER_TIME_C", "classRssiMonitor_1_1rtl.html#a09b0e62aab5d762105e597ef4d044eda", null ],
+    [ "SAMPLES_PER_TIME_DIV3_C", "classRssiMonitor_1_1rtl.html#aa1b42262828a98e38c56e398f57d33de", null ],
     [ "MAX_TOUT_CNT_C", "classRssiMonitor_1_1rtl.html#ad36ecfdcdb97b23622072d1fde53cfd3", null ],
     [ "MAX_RETRANS_CNT_C", "classRssiMonitor_1_1rtl.html#aabe39319c574432ce7a1bebced570e3e", null ],
     [ "MAX_NULL_CNT_C", "classRssiMonitor_1_1rtl.html#a9f241234f70645247962c8e27ee29fcf", null ],

@@ -1,6 +1,13 @@
 var classSpiMaster =
 [
     [ "SpiMaster.rtl", "classSpiMaster_1_1rtl.html", "classSpiMaster_1_1rtl" ],
+    [ "TPD_G", "classSpiMaster.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "NUM_CHIPS_G", "classSpiMaster.html#a4f35a2f6c39fe1361943d3d9cc70aa0f", null ],
+    [ "DATA_SIZE_G", "classSpiMaster.html#a1d6eeab87e32bee84b754d7f0939e09f", null ],
+    [ "CPHA_G", "classSpiMaster.html#a4acc137fe3c0af607bf1894e83921f14", null ],
+    [ "CPOL_G", "classSpiMaster.html#ac41754daeab6105619a91f34519d4747", null ],
+    [ "CLK_PERIOD_G", "classSpiMaster.html#aa09860ebe5d52d0201db8f2f2de3b308", null ],
+    [ "SPI_SCLK_PERIOD_G", "classSpiMaster.html#aebe5ffca24428c7d9d3dcb45023804dc", null ],
     [ "clk", "classSpiMaster.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "sRst", "classSpiMaster.html#acbf5e0e6fed086169350b348785eb674", null ],
     [ "freeRunClk", "classSpiMaster.html#a375be5a47185cfe931ddf8fdf6436ffb", null ],

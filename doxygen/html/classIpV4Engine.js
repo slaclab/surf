@@ -1,6 +1,15 @@
 var classIpV4Engine =
 [
     [ "mapping", "classIpV4Engine_1_1mapping.html", "classIpV4Engine_1_1mapping" ],
+    [ "TPD_G", "classIpV4Engine.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "PROTOCOL_SIZE_G", "classIpV4Engine.html#a027609e0cc9e2289a39dd833592e2951", null ],
+    [ "PROTOCOL_G", "classIpV4Engine.html#a6e6ef3abfe05bf073d99b9720092f6c1", null ],
+    [ "CLIENT_SIZE_G", "classIpV4Engine.html#a61ee0943bb25ab2b953f49fefc9ae92f", null ],
+    [ "CLK_FREQ_G", "classIpV4Engine.html#a2719f79ef8caa5e897f495e33bae81b3", null ],
+    [ "TTL_G", "classIpV4Engine.html#aae07cb37267cf4cd442e5062688e6e18", null ],
+    [ "ICMP_G", "classIpV4Engine.html#ad94781fba38061b7d9b4f61dc5ca4999", null ],
+    [ "ARP_G", "classIpV4Engine.html#a2c081fd904a6dbdcfdf560c26adc715d", null ],
+    [ "VLAN_G", "classIpV4Engine.html#ad2244ede4b7d5db9cd6c9ee46585439d", null ],
     [ "localMac", "classIpV4Engine.html#ae02bb35f94a88aa2db811931566e8a02", null ],
     [ "localIp", "classIpV4Engine.html#afd3fee997440ec256fc9f5740a0e75ce", null ],
     [ "obMacMaster", "classIpV4Engine.html#aceaad17a6c6a052944cec178f8a392f7", null ],

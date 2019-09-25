@@ -2,7 +2,7 @@ var classHeartbeat_1_1rtl =
 [
     [ "comb", "classHeartbeat_1_1rtl.html#a751793e0e446bb7fc60fdff6c8d6cbec", null ],
     [ "seq", "classHeartbeat_1_1rtl.html#ae8896e195ae00ae797895c15b647ba41", null ],
-    [ "CNT_MAX_C", "classHeartbeat_1_1rtl.html#a01659d963d902b17cfabf50aa7fbaa6f", null ],
+    [ "CNT_MAX_C", "classHeartbeat_1_1rtl.html#ae41f2d5e5ce83d9bc9f65993d71583f7", null ],
     [ "CNT_SIZE_C", "classHeartbeat_1_1rtl.html#a6c5c3d64decbafe42bcddd6d77a7d0fa", null ],
     [ "RegType", "classHeartbeat_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
     [ "cnt", "classHeartbeat_1_1rtl.html#abd5982a4718e2de32be9ed658add3dba", null ],
