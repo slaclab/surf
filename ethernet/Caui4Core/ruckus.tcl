@@ -6,6 +6,7 @@ set family [getFpgaFamily]
 
 if { ${family} eq {kintexuplus} ||
      ${family} eq {virtexuplus} ||
+     ${family} eq {virtexuplusHBM} ||
      ${family} eq {zynquplus} ||
      ${family} eq {zynquplusRFSOC} } {
    loadRuckusTcl "$::DIR_PATH/gtyUltraScale+"
