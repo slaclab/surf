@@ -44,7 +44,7 @@ ENTITY_EXCLUDES = stdlib
 ENTITIES := $(filter-out $(ENTITY_EXCLUDES),$(patsubst %Pkg,,$(patsubst %.vhd,%,$(notdir $(FILES)))))
 MAKEFILES = $(patsubst %,%.mk,$(ENTITIES))
    
-all: dir import syntax
+all: dir import
 
 test:
 	@echo GHDLFLAGS: $(GHDLFLAGS)
@@ -68,7 +68,7 @@ syntax: $(FILES)
 	@echo "============================================================================="
 	@echo Syntax Checking:
 	@echo "============================================================================="
-	ghdl -s $(GHDLFLAGS)
+	$(GHDL) -s $(GHDLFLAGS) $(FILES)
 
 makefiles: $(MAKEFILES)
 
