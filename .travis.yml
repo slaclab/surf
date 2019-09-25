@@ -1,8 +1,8 @@
 # This will run on Travis' 'new' container-based infrastructure
 sudo: true
 
-# Setup for Ubuntu Xenial (Ubuntu 16.04)
-dist: xenial
+# Setup for Ubuntu Bionic (18.04)
+dist: bionic
 
 # Blacklist
 branches:
@@ -31,6 +31,7 @@ addons:
       - doxygen-latex
       - doxygen-gui
       - graphviz
+      # - ghdl
 
 stages:
     # On master branch (but not on PRs to master) or in tagged releases
@@ -51,12 +52,16 @@ jobs:
       name: "Generate Documentation"
       before_script:
         - cd $TRAVIS_BUILD_DIR
+        - chmod +x ghdl-travis-install.sh
         - chmod +x generateDocumentationAndDeploy.sh
-      script: ./generateDocumentationAndDeploy.sh 0
+      script:
+        - ./ghdl-travis-install.sh > /dev/null 2>&1; make
+        - ./generateDocumentationAndDeploy.sh 0
 
     # Stage to generate and deploy the documentation
     - <<: *documentation_stage
       stage: generate_and_deploy
       name: "Generate and Deploy Documentation"
-      script: ./generateDocumentationAndDeploy.sh 1
-
+      script: 
+        - ./ghdl-travis-install.sh > /dev/null 2>&1; make
+        - ./generateDocumentationAndDeploy.sh 1

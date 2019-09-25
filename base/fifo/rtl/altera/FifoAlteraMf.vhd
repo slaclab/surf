@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : FifoAlteraMf.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2018-06-25
--- Last update: 2018-06-25
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Xilinx XPM FIFO module
 -------------------------------------------------------------------------------
@@ -182,7 +180,7 @@ begin
          end if;
       end if;
    --------------------------------------------
-   end if;
+   end process;
 
    empty     <= fifoEmpty;
    underflow <= sRdEn and fifoEmpty;

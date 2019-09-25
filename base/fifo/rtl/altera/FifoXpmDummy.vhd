@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : FifoXpm.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2018-06-25
--- Last update: 2018-06-25
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Xilinx XPM FIFO module
 -------------------------------------------------------------------------------
@@ -54,10 +52,10 @@ entity FifoXpm is
       rd_en         : in  sl;
       dout          : out slv(DATA_WIDTH_G-1 downto 0) := (others => '0');
       rd_data_count : out slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
-      valid         : out sl                           := '0'
-      underflow     : out sl                           := '0'
-      prog_empty    : out sl                           := '0'
-      almost_empty  : out sl                           := '0'
+      valid         : out sl                           := '0';
+      underflow     : out sl                           := '0';
+      prog_empty    : out sl                           := '0';
+      almost_empty  : out sl                           := '0';
       empty         : out sl                           := '0');
 end FifoXpm;
 

@@ -4,75 +4,83 @@
 # ghdl --gen-makefile -v -P/afs/slac/g/reseng/vol20/ghdl/lib/ghdl/vendors/xilinx-vivado/ --workdir=work --ieee=synopsys -fexplicit -frelaxed-rules AxiLiteCrossbar
 
 GHDL=ghdl
-GHDLFLAGS= -P/afs/slac/g/reseng/vol20/ghdl/lib/ghdl/vendors/xilinx-vivado/ --workdir=work --ieee=synopsys -fexplicit -frelaxed-rules
+GHDL_WORKDIR=ghdl
+GHDLFLAGS= --workdir=${GHDL_WORKDIR} --work=work --ieee=synopsys -fexplicit -frelaxed-rules  --warn-no-library
 GHDLRUNFLAGS=
 
-PATHS = base/*/rtl/*.vhd \
-axi/rtl/*.vhd \
-devices/*/*/rtl/*.vhd  devices/*/rtl/*.vhd \
-protocols/*/rtl/*.vhd protocols/*/*/rtl/*.vhd \
-xilinx/*/*/rtl/*.vhd xilinx/*/rtl/*.vhd \
-ethernet/*/*/*/rtl/*.vhd ethernet/*/*/rtl/*.vhd ethernet/*/rtl/*.vhd \
+PATHS = $(shell find -type f -name '*.vhd')
 
-EXCLUDE = $(wildcard protocols/i2c/rtl/orig/*) \
-$(wildcard ethernet/XauiCore/gth7/rtl/*.vhd) \
-$(wildcard ethernet/XauiCore/gtx7/rtl/*.vhd) \
-$(wildcard xilinx/Virtex5/gtp/rtl/*.vhd) \
-$(shell find ethernet/GigEthCore/gth7/ -type f -name '*.vhd') \
-$(shell find ethernet/GigEthCore/gtp7/ -type f -name '*.vhd') \
-$(shell find ethernet/GigEthCore/gtx7/ -type f -name '*.vhd') \
-$(shell find ethernet/GigEthCore/gthUltraScale/ -type f -name '*.vhd') \
-$(shell find ethernet/TenGigEthCore/gth7/ -type f -name '*.vhd') \
-$(shell find ethernet/TenGigEthCore/gtx7/ -type f -name '*.vhd') \
-$(shell find ethernet/TenGigEthCore/gthUltraScale/ -type f -name '*.vhd') \
-$(shell find ethernet/XauiCore/gth7/ -type f -name '*.vhd') \
-$(shell find ethernet/XauiCore/gtx7/ -type f -name '*.vhd') \
-$(shell find ethernet/XauiCore/gthUltraScale/ -type f -name '*.vhd') \
-$(shell find ethernet/XlauiCore/gth7/ -type f -name '*.vhd') \
-$(shell find ethernet/XlauiCore/gtx7/ -type f -name '*.vhd') \
-$(shell find ethernet/XlauiCore/gthUltraScale/ -type f -name '*.vhd') \
-$(shell find xilinx/Virtex5/ -type f -name '*.vhd')
+# Exclude all the VHDL2008 files: /usr/bin/ghdl-mcode:warning: library synopsys does not exists for v08
+# Exclude all exempt modules with same entity name
+EXCLUDE  = $(shell find ./ghdl-build/ -type f -name '*.vhd') \
+$(shell find ./dsp/logic/ -type f -name '*.vhd') \
+$(shell find . -type f -name '*Ad9249Deserializer.vhd') \
+$(shell find . -type f -name '*Ad9249ReadoutGroup.vhd') \
+$(shell find . -type f -name '*GigEthGthUltraScale.vhd') \
+$(shell find . -type f -name '*GigEthGthUltraScaleWrapper.vhd') \
+$(shell find . -type f -name '*TenGigEthGthUltraScale.vhd') \
+$(shell find . -type f -name '*TenGigEthGthUltraScaleClk.vhd') \
+$(shell find . -type f -name '*TenGigEthGthUltraScaleRst.vhd') \
+$(shell find . -type f -name '*TenGigEthGthUltraScaleWrapper.vhd') \
+$(shell find . -type f -name '*XauiGthUltraScale.vhd') \
+$(shell find . -type f -name '*XauiGthUltraScaleWrapper.vhd') \
+$(shell find . -type f -name '*ClinkDataClk.vhd') \
+$(shell find . -type f -name '*ClinkDataShift.vhd') \
+$(shell find . -type f -name '*Pgp2bGthUltra.vhd') \
+$(shell find . -type f -name '*PgpGthCoreWrapper.vhd') \
+$(shell find . -type f -name '*Pgp3GthUs.vhd') \
+$(shell find . -type f -name '*Pgp3GthUsIpWrapper.vhd') \
+$(shell find . -type f -name '*Pgp3GthUsQpll.vhd') \
+$(shell find . -type f -name '*Pgp3GthUsWrapper.vhd') \
+$(shell find . -type f -name '*InputBufferReg.vhd') \
+$(shell find . -type f -name '*OutputBufferReg.vhd') \
+$(shell find . -type f -name '*GthUltraScaleQuadPll.vhd') \
+$(shell find . -type f -name '*MicroblazeBasicCoreWrapper.vhd') \
 
 FILES = $(filter-out $(EXCLUDE),$(wildcard $(PATHS)))
-#FILES = $(shell find . -type f -wholename '*/rtl/*.vhd' -not -wholename '*/orig/*.vhd')
-#PATHS=base/*/rtl/*.vhd axi/rtl/*.vhd ethernet/**/rtl/*.vhd protocols/*/**/rtl/*.vhd
 
 ENTITY_EXCLUDES = stdlib 
 
 ENTITIES := $(filter-out $(ENTITY_EXCLUDES),$(patsubst %Pkg,,$(patsubst %.vhd,%,$(notdir $(FILES)))))
 MAKEFILES = $(patsubst %,%.mk,$(ENTITIES))
+   
+all: dir import syntax
 
-$(info EXCLUDE="$(EXCLUDE)")
-$(info "")
-$(info FILES="$(FILES)")
-$(info "")
-$(info ENTITIES="$(ENTITIES)")
-$(info "")
+test:
+	@echo GHDLFLAGS: $(GHDLFLAGS)
+	@echo FILES: $(FILES)
+	@echo ENTITIES:
+	@echo "\t$(foreach ARG,$(ENTITIES),  $(ARG)\n)"
 
+clean :
+	$(GHDL) --clean $(GHDLFLAGS)
 
-all: elaborate
+dir:
+	test -d $(GHDL_WORKDIR) || mkdir $(GHDL_WORKDIR)
+
+import : $(FILES)
+	@echo "============================================================================="
+	@echo Importing:
+	@echo "============================================================================="
+	$(GHDL) -i $(GHDLFLAGS) $(FILES)
 
 syntax: $(FILES)
-	ghdl -s $(GHDLFLAGS) $(FILES)
+	@echo "============================================================================="
+	@echo Syntax Checking:
+	@echo "============================================================================="
+	ghdl -s $(GHDLFLAGS)
 
 makefiles: $(MAKEFILES)
 
 elaborate: $(ENTITIES)
 
-force:
-
-clean :
-	$(GHDL) --clean $(GHDLFLAGS)
-
-import : $(FILES)
-	$(GHDL) -i $(GHDLFLAGS) $(FILES)
-
-
-$(ENTITIES) : import
-	$(GHDL) -m -b $(GHDLFLAGS) $@
+$(ENTITIES) : import syntax
+	$(GHDL) -e $(GHDLFLAGS) $@
 
 html : $(FILES)
 	$(GHDL) --xref-html $(GHDLFLAGS) $(FILES)
 
 $(MAKEFILES) : import
 	$(GHDL) --gen-makefile $(GHDLFLAGS) $(patsubst %.mk,%,$@) > work/$@
+   
+force:
