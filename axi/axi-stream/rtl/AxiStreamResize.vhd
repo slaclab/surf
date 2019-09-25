@@ -90,6 +90,12 @@ begin
    assert (SLV_BYTES_C <= MST_BYTES_C or READY_EN_G = true)
       report "READY_EN_G must be true if slave width is great than master" severity failure;
 
+   -- Cant use tkeep_fixed on master side when resizing or if not on slave side
+   assert (not (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_FIXED_C and
+                SLAVE_AXI_CONFIG_G.TKEEP_MODE_C /= TKEEP_FIXED_C))
+      report "AxiStreamFifoV2: Can't have TKEEP_MODE = TKEEP_FIXED on master side if not on slave side"
+      severity error;
+
    comb : process (pipeAxisSlave, r, sAxisMaster) is
       variable v       : RegType;
       variable ibM     : AxiStreamMasterType;
@@ -121,9 +127,16 @@ begin
          ibM.tKeep := genTKeep(byteCnt);
       end if;
 
-      for i in 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
-         ibM.tUser((i*8)+(SLV_USER_C-1) downto (i*8)) := sAxisMaster.tUser((i*SLV_USER_C)+(SLV_USER_C-1) downto (i*SLV_USER_C));
-      end loop;
+      -- Check that both master and slave using tUser
+      if (SLAVE_AXI_CONFIG_G.TUSER_BITS_C /= 0) and
+         (MASTER_AXI_CONFIG_G.TUSER_BITS_C /= 0) and
+         (SLAVE_AXI_CONFIG_G.TUSER_MODE_C /= TUSER_NONE_C) and
+         (MASTER_AXI_CONFIG_G.TUSER_MODE_C /= TUSER_NONE_C) then
+         -- Loop through the tUser bit field
+         for i in 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
+            ibM.tUser((i*8)+(SLV_USER_C-1) downto (i*8)) := sAxisMaster.tUser((i*SLV_USER_C)+(SLV_USER_C-1) downto (i*SLV_USER_C));
+         end loop;
+      end if;
 
       -- Pipeline advance
       if v.obMaster.tValid = '0' then
@@ -216,9 +229,9 @@ begin
          pipeAxisMaster.tUser <= (others => '0');
          for i in 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
             if (SLV_USER_C > MST_USER_C) then
-               pipeAxisMaster.tUser((i*MST_USER_C)+(MST_USER_C-1) downto (i*MST_USER_C)) <= sAxisMaster.tUser((i*SLV_USER_C)+(MST_USER_C-1) downto (i*SLV_USER_C));
+               pipeAxisMaster.tUser((i*MST_USER_C)+(MST_USER_C-1) downto (i*MST_USER_C)) <= ibM.tUser((i*8)+(MST_USER_C-1) downto (i*8));
             else
-               pipeAxisMaster.tUser((i*MST_USER_C)+(SLV_USER_C-1) downto (i*MST_USER_C)) <= sAxisMaster.tUser((i*SLV_USER_C)+(SLV_USER_C-1) downto (i*SLV_USER_C));
+               pipeAxisMaster.tUser((i*MST_USER_C)+(SLV_USER_C-1) downto (i*MST_USER_C)) <= ibM.tUser((i*8)+(SLV_USER_C-1) downto (i*8));
             end if;
          end loop;
 
