@@ -49,6 +49,7 @@ architecture rtl of AxiStreamMonAxiL is
    constant ADDR_WIDTH_C : positive := bitSize(AXIS_NUM_SLOTS_G*16-1);
 
    type RegType is record
+      we   : sl;
       data : slv(31 downto 0);
       addr : slv(ADDR_WIDTH_C-1 downto 0);
       ch   : natural range 0 to AXIS_NUM_SLOTS_G-1;
@@ -56,6 +57,7 @@ architecture rtl of AxiStreamMonAxiL is
    end record;
 
    constant REG_INIT_C : RegType := (
+      we   => '0',
       data => (others => '0'),
       addr => (others => '1'),  -- pre-set to all ones so 1st write after reset is address=0x0
       ch   => 0,
@@ -81,7 +83,9 @@ architecture rtl of AxiStreamMonAxiL is
 
 begin
 
-   rstCnt <= sAxilWriteMaster.awvalid when(sAxilWriteMaster.awaddr(ADDR_WIDTH_C+1 downto 0) = 0) else '0';
+   -- Only doing a write address decode of 0x0
+   rstCnt          <= sAxilWriteMaster.awvalid when(sAxilWriteMaster.awaddr(ADDR_WIDTH_C+1 downto 0) = 0) else '0';
+   sAxilWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_OK_C;
 
    localReset <= axisRst or rstCnt;
 
@@ -126,9 +130,9 @@ begin
          SYNTH_MODE_G   => "inferred",
          MEMORY_TYPE_G  => ite(ADDR_WIDTH_C > 5, "block", "distributed"),
          READ_LATENCY_G => 3,
-         AXI_WR_EN_G    => true,
+         AXI_WR_EN_G    => false,
          SYS_WR_EN_G    => true,
-         COMMON_CLK_G   => true,
+         COMMON_CLK_G   => false,
          ADDR_WIDTH_G   => ADDR_WIDTH_C,
          DATA_WIDTH_G   => 32)
       port map (
@@ -137,12 +141,12 @@ begin
          axiRst         => axilRst,
          axiReadMaster  => sAxilReadMaster,
          axiReadSlave   => sAxilReadSlave,
-         axiWriteMaster => sAxilWriteMaster,
-         axiWriteSlave  => sAxilWriteSlave,
+         axiWriteMaster => AXI_LITE_WRITE_MASTER_INIT_C,
+         axiWriteSlave  => open,
          -- Standard Port
          clk            => axisClk,
          rst            => axisRst,
-         we             => '1',
+         we             => r.we,
          addr           => r.addr,
          din            => r.data);
 
@@ -154,6 +158,7 @@ begin
       v := r;
 
       -- Write the status counter to RAM
+      v.we   := '1';
       v.addr := r.addr + 1;
       case (r.wrd) is
          ----------------------------------------------------------------------   
@@ -168,7 +173,7 @@ begin
          when 9      => v.data := bandwidthMax(r.ch)(63 downto 32);  -- i*0x40 + 0x24
          when 10     => v.data := bandwidthMin(r.ch)(31 downto 0);  -- i*0x40 + 0x28
          when 11     => v.data := bandwidthMin(r.ch)(63 downto 32);  -- i*0x40 + 0x2C         
-         when others => null;
+         when others => v.we   := '0';
       ----------------------------------------------------------------------
       end case;
 
