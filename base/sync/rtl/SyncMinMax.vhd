@@ -26,6 +26,8 @@ entity SyncMinMax is
       COMMON_CLK_G : boolean  := false;
       WIDTH_G      : positive := 16);
    port (
+      -- ASYNC statistics reset
+      rstStat : in  sl;
       -- Write Interface (wrClk domain)
       wrClk   : in  sl;
       wrRst   : in  sl := '0';
@@ -34,7 +36,6 @@ entity SyncMinMax is
       -- Read Interface (rdClk domain)
       rdClk   : in  sl;
       rdEn    : in  sl := '1';
-      rstStat : in  sl;
       updated : out sl;
       dataOut : out slv(WIDTH_G-1 downto 0);
       dataMin : out slv(WIDTH_G-1 downto 0);
@@ -44,15 +45,17 @@ end SyncMinMax;
 architecture rtl of SyncMinMax is
 
    type RegType is record
+      armed   : sl;
       update  : sl;
       dataIn  : slv(WIDTH_G-1 downto 0);
       dataMin : slv(WIDTH_G-1 downto 0);
       dataMax : slv(WIDTH_G-1 downto 0);
    end record RegType;
    constant REG_INIT_C : RegType := (
-      update  => '1',
+      armed   => '0',
+      update  => '0',
       dataIn  => (others => '0'),
-      dataMin => (others => '1'),
+      dataMin => (others => '0'),
       dataMax => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
@@ -86,14 +89,28 @@ begin
          -- Set the flag
          v.update := '1';
 
-         -- Check for min value
-         if (dataIn < r.dataMin) then
-            v.dataMin := dataIn;
-         end if;
+         -- Check if first time after reset
+         if (r.armed = '0') then
 
-         -- Check for max value
-         if (dataIn > r.dataMax) then
-            v.dataMax := dataIn;
+            -- Set the flag
+            v.armed := '1';
+
+            -- Pass the current values to the statistics measurements
+            v.dataMin := r.dataIn;
+            v.dataMax := r.dataIn;
+
+         else
+
+            -- Check for min value
+            if (dataIn < r.dataMin) then
+               v.dataMin := dataIn;
+            end if;
+
+            -- Check for max value
+            if (dataIn > r.dataMax) then
+               v.dataMax := dataIn;
+            end if;
+
          end if;
 
       end if;
