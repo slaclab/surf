@@ -75,6 +75,9 @@ architecture rtl of DspComparator is
    signal lsInt   : sl;
    signal lsEqInt : sl;
 
+   signal sData : slv(2*WIDTH_G-1+5 downto 0);
+   signal mData : slv(2*WIDTH_G-1+5 downto 0);
+
    attribute use_dsp48      : string;
    attribute use_dsp48 of r : signal is USE_DSP_G;
 
@@ -148,27 +151,33 @@ begin
          PIPE_STAGES_G  => PIPE_STAGES_G)
       port map (
          -- Slave Port         
-         sData(0)                 => eqInt,
-         sData(1)                 => gtInt,
-         sData(2)                 => gtEqInt,
-         sData(3)                 => lsInt,
-         sData(4)                 => lsEqInt,
-         sData(PIPE_AOUT_RANGE_C) => r.aout,
-         sData(PIPE_BOUT_RANGE_C) => r.bout,
-         sValid                   => r.tValid,
-         sRdEn                    => tReady,
+         sData  => sData,
+         sValid => r.tValid,
+         sRdEn  => tReady,
          -- Master Port
-         mData(0)                 => eq,
-         mData(1)                 => gt,
-         mData(2)                 => gtEq,
-         mData(3)                 => ls,
-         mData(4)                 => lsEq,
-         mData(PIPE_AOUT_RANGE_C) => aout,
-         mData(PIPE_BOUT_RANGE_C) => bout,
-         mValid                   => obValid,
-         mRdEn                    => obReady,
+         mData  => mData,
+         mValid => obValid,
+         mRdEn  => obReady,
          -- Clock and Reset
-         clk                      => clk,
-         rst                      => rst);
+         clk    => clk,
+         rst    => rst);
+
+   -- Slave Port Mapping
+   sData(0)                 <= eqInt;
+   sData(1)                 <= gtInt;
+   sData(2)                 <= gtEqInt;
+   sData(3)                 <= lsInt;
+   sData(4)                 <= lsEqInt;
+   sData(PIPE_AOUT_RANGE_C) <= r.aout;
+   sData(PIPE_BOUT_RANGE_C) <= r.bout;
+
+   -- Master Port Mapping
+   eq   <= mData(0);
+   gt   <= mData(1);
+   gtEq <= mData(2);
+   ls   <= mData(3);
+   lsEq <= mData(4);
+   aout <= mData(PIPE_AOUT_RANGE_C);
+   bout <= mData(PIPE_BOUT_RANGE_C);
 
 end rtl;

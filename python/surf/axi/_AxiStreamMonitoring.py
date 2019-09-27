@@ -63,7 +63,7 @@ class AxiStreamMonitoring(pr.Device):
         for i in range(numberLanes):
         
             self.add(pr.RemoteVariable(
-                name         = 'FrameCnt', 
+                name         = f'FrameCnt[{i}]', 
                 description  = 'Increments every time a tValid + tLast + tReady detected',
                 offset       = (i*0x40 + 0x04), 
                 bitSize      = 64, 
