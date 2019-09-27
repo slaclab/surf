@@ -62,6 +62,13 @@ architecture rtl of SyncMinMax is
    signal rin : RegType;
 
    signal resetStat : sl;
+   signal ls        : sl;
+   signal gt        : sl;
+   signal valid     : sl;
+   signal data      : slv(WIDTH_G-1 downto 0);
+
+   signal dataMinFeadback : slv(WIDTH_G-1 downto 0);
+   signal dataMaxFeadback : slv(WIDTH_G-1 downto 0);
 
 begin
 
@@ -74,7 +81,35 @@ begin
          dataIn  => rstStat,
          dataOut => resetStat);
 
-   process (dataIn, r, resetStat, wrEn, wrRst) is
+   U_LessThan : entity work.DspComparator
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => WIDTH_G)
+      port map (
+         clk     => wrClk,
+         -- Inbound Interface
+         ibValid => wrEn,
+         ain     => dataIn,
+         bin     => dataMinFeadback,
+         -- Outbound Interface
+         ls      => ls);                --  (a <  b)
+
+   U_GreaterThan : entity work.DspComparator
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => WIDTH_G)
+      port map (
+         clk     => wrClk,
+         -- Inbound Interface
+         ibValid => wrEn,
+         ain     => dataIn,
+         bin     => dataMaxFeadback,
+         -- Outbound Interface
+         obValid => valid,
+         aout    => data,
+         gt      => gt);                --  (a >  b)
+
+   process (data, gt, ls, r, resetStat, valid, wrRst) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -84,7 +119,7 @@ begin
       v.update := '0';
 
       -- Check for write clock enable
-      if (wrEn = '1') then
+      if (valid = '1') then
 
          -- Set the flag
          v.update := '1';
@@ -96,24 +131,28 @@ begin
             v.armed := '1';
 
             -- Pass the current values to the statistics measurements
-            v.dataMin := r.dataIn;
-            v.dataMax := r.dataIn;
+            v.dataMin := data;
+            v.dataMax := data;
 
          else
 
             -- Check for min value
-            if (dataIn < r.dataMin) then
-               v.dataMin := dataIn;
+            if (ls = '1') then
+               v.dataMin := data;
             end if;
 
             -- Check for max value
-            if (dataIn > r.dataMax) then
-               v.dataMax := dataIn;
+            if (gt = '1') then
+               v.dataMax := data;
             end if;
 
          end if;
 
       end if;
+
+      -- Outputs
+      dataMinFeadback <= v.dataMin;
+      dataMaxFeadback <= v.dataMax;
 
       -- Reset
       if (wrRst = '1') or (resetStat = '1') then
@@ -140,8 +179,8 @@ begin
       port map (
          -- Write Interface
          wr_clk => wrClk,
-         wr_en  => wrEn,
-         din    => dataIn,
+         wr_en  => valid,
+         din    => data,
          -- Read Interface
          rd_clk => rdClk,
          rd_en  => rdEn,
