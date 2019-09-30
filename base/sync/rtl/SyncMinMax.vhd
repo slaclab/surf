@@ -107,7 +107,8 @@ begin
          -- Outbound Interface
          obValid => valid,
          aout    => data,
-         gt      => gt);                --  (a >  b)
+         -- gt      => gt);                --  (a >  b)
+         gtEq    => gt);  --  Using gtEq because better performance than gt in the DspComparator.vhd, and gtEq give the same result as gt with respect to this module's implementation
 
    process (data, gt, ls, r, resetStat, valid, wrRst) is
       variable v : RegType;
