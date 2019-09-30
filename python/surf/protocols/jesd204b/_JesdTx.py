@@ -113,7 +113,7 @@ class JesdTx(pr.Device):
                 mode         = "RW",
             ))
     
-           self.add(pr.RemoteVariable(    
+            self.add(pr.RemoteVariable(    
                name         = "TestSigEnable",
                # description  = "Enable test signal. Note: Has to be toggled if test signal type is changed to align the lanes (Default '1').",
                description  = "Legacy Signal that is no longer used",
