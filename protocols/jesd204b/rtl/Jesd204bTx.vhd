@@ -38,6 +38,7 @@ use work.Jesd204bPkg.all;
 entity Jesd204bTx is
    generic (
       TPD_G        : time                   := 1 ns;
+      GEN_ASYNC_G  : boolean                := false;  -- default false don't add synchronizer
       -- Register sample data at input and/or output 
       INPUT_REG_G  : boolean                := false;
       OUTPUT_REG_G : boolean                := false;
@@ -113,14 +114,14 @@ architecture rtl of Jesd204bTx is
    signal s_invertData  : slv(L_G-1 downto 0);
 
    -- JESD subclass selection (from AXI lite register)
-   signal s_subClass      : sl;
+   signal s_subClass     : sl;
    -- User reset (from AXI lite register)
-   signal s_gtReset       : sl;
-   signal s_clearErr      : sl;
-   signal s_sigTypeArr    : Slv2Array(L_G-1 downto 0);
+   signal s_gtReset      : sl;
+   signal s_clearErr     : sl;
+   signal s_sigTypeArr   : Slv2Array(L_G-1 downto 0);
    -- Test signal control
-   signal s_rampStep      : slv(PER_STEP_WIDTH_C-1 downto 0);
-   signal s_squarePeriod  : slv(PER_STEP_WIDTH_C-1 downto 0);
+   signal s_rampStep     : slv(PER_STEP_WIDTH_C-1 downto 0);
+   signal s_squarePeriod : slv(PER_STEP_WIDTH_C-1 downto 0);
 
    signal s_posAmplitude : slv(F_G*8-1 downto 0);
    signal s_negAmplitude : slv(F_G*8-1 downto 0);
@@ -266,29 +267,43 @@ begin
    -- SYSREF, SYNC, and LMFC
    -----------------------------------------------------------
 
-   -- Synchronize SYSREF input to devClk_i
-   Synchronizer_sysref_INST : entity work.Synchronizer
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk     => devClk_i,
-         rst     => devRst_i,
-         dataIn  => sysref_i,
-         dataOut => s_sysrefSync);
+   GEN_ASYNC : if (GEN_ASYNC_G = true) generate
+
+      -- Synchronize SYSREF input to devClk_i
+      Synchronizer_sysref_INST : entity work.Synchronizer
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk     => devClk_i,
+            rst     => devRst_i,
+            dataIn  => sysref_i,
+            dataOut => s_sysrefSync);
+
+      -- Synchronize nSync input to devClk_i
+      Synchronizer_nsync_INST : entity work.SynchronizerVector
+         generic map (
+            TPD_G   => TPD_G,
+            WIDTH_G => L_G)
+         port map (
+            clk     => devClk_i,
+            rst     => devRst_i,
+            dataIn  => s_nSync,
+            dataOut => s_nSyncSync);
+
+   end generate;
+
+   GEN_SYNC : if (GEN_ASYNC_G = false) generate
+      process(devClk_i)
+      begin
+         if rising_edge(devClk_i) then
+            s_sysrefSync <= sysref_i after TPD_G;
+            s_nSyncSync  <= s_nSync  after TPD_G;
+         end if;
+      end process;
+   end generate;
 
    -- Invert/or not nSync signal (control from axil) 
    s_nSync <= nSync_i when s_invertSync = '0' else not nSync_i;
-
-   -- Synchronize nSync input to devClk_i
-   Synchronizer_nsync_INST : entity work.SynchronizerVector
-      generic map (
-         TPD_G   => TPD_G,
-         WIDTH_G => L_G)
-      port map (
-         clk     => devClk_i,
-         rst     => devRst_i,
-         dataIn  => s_nSync,
-         dataOut => s_nSyncSync);
 
    -- Delay SYSREF input (for 1 to 32 c-c)
    U_SysrefDly : entity work.JesdSysrefDly
@@ -307,7 +322,7 @@ begin
    -- Transmitter modules (L_G)
    ----------------------------
    GEN_TX : for i in L_G-1 downto 0 generate
-   
+
       -- LMFC period generator aligned to SYSREF input
       U_LmfcGen : entity work.JesdLmfcGen
          generic map (
@@ -319,9 +334,9 @@ begin
             rst        => devRst_i,
             nSync_i    => s_nSyncSync(i),
             sysref_i   => s_sysrefD,
-            sysrefRe_o => s_sysrefRe(i),      -- Rising-edge of SYSREF OUT 
+            sysrefRe_o => s_sysrefRe(i),  -- Rising-edge of SYSREF OUT 
             lmfc_o     => s_lmfc(i));
-   
+
       -- JESD Transmitter modules (one module per Lane)
       U_JesdTxLane : entity work.JesdTxLane
          generic map (
@@ -343,7 +358,7 @@ begin
             status_o     => s_statusTxArr(i),  -- To AXI lite
             sampleData_i => s_sampleDataArr(i),
             r_jesdGtTx   => s_jesdGtTxArr(i));
-            
+
    end generate GEN_TX;
 
    ------------------
