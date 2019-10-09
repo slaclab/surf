@@ -63,10 +63,10 @@ architecture mapping of Caui4GtyIpWrapper is
 
    component Caui4GtyIpCore156MHz
       port (
-    gt_txp_out : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-    gt_txn_out : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-    gt_rxp_in : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-    gt_rxn_in : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+         gt_txp_out                           : out std_logic_vector(3 downto 0);
+         gt_txn_out                           : out std_logic_vector(3 downto 0);
+         gt_rxp_in                            : in  std_logic_vector(3 downto 0);
+         gt_rxn_in                            : in  std_logic_vector(3 downto 0);
          gt_txusrclk2                         : out std_logic;
          gt_loopback_in                       : in  std_logic_vector(11 downto 0);
          gt_eyescanreset                      : in  std_logic_vector(3 downto 0);
@@ -290,10 +290,10 @@ architecture mapping of Caui4GtyIpWrapper is
 
    component Caui4GtyIpCore161MHz
       port (
-    gt_txp_out : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-    gt_txn_out : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-    gt_rxp_in : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-    gt_rxn_in : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+         gt_txp_out                           : out std_logic_vector(3 downto 0);
+         gt_txn_out                           : out std_logic_vector(3 downto 0);
+         gt_rxp_in                            : in  std_logic_vector(3 downto 0);
+         gt_rxn_in                            : in  std_logic_vector(3 downto 0);
          gt_txusrclk2                         : out std_logic;
          gt_loopback_in                       : in  std_logic_vector(11 downto 0);
          gt_eyescanreset                      : in  std_logic_vector(3 downto 0);
@@ -675,11 +675,11 @@ begin
 
    USE_REFCLK156MHz : if (REFCLK_TYPE_G = false) generate
       U_CAUI4 : Caui4GtyIpCore156MHz
-         port map (            
-            gt_txp_out => gtTxP,
-            gt_txn_out => gtTxN,
-            gt_rxp_in => gtRxP,
-            gt_rxn_in => gtRxN,
+         port map (
+            gt_txp_out                           => gtTxP,
+            gt_txn_out                           => gtTxN,
+            gt_rxp_in                            => gtRxP,
+            gt_rxn_in                            => gtRxN,
             gt_txusrclk2                         => txusrclk2,
             gt_loopback_in                       => gtLoopback,
             gt_eyescanreset                      => (others => '0'),
@@ -905,10 +905,10 @@ begin
    USE_REFCLK161MHz : if (REFCLK_TYPE_G = true) generate
       U_CAUI4 : Caui4GtyIpCore161MHz
          port map (
-            gt_txp_out => gtTxP,
-            gt_txn_out => gtTxN,
-            gt_rxp_in => gtRxP,
-            gt_rxn_in => gtRxN,
+            gt_txp_out                           => gtTxP,
+            gt_txn_out                           => gtTxN,
+            gt_rxp_in                            => gtRxP,
+            gt_rxn_in                            => gtRxN,
             gt_txusrclk2                         => txusrclk2,
             gt_loopback_in                       => gtLoopback,
             gt_eyescanreset                      => (others => '0'),
