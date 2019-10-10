@@ -27,6 +27,7 @@ entity AxiAds42lb69Core is
       TPD_G           : time                                    := 1 ns;
       SIM_SPEEDUP_G   : boolean                                 := false;
       USE_PLL_G       : boolean                                 := false;  -- true = phase compensate the ADC data bus
+      USE_FBCLK_G     : boolean                                 := true;
       ADC_CLK_FREQ_G  : real                                    := 250.00E+6;  -- units of Hz
       DMODE_INIT_G    : slv(1 downto 0)                         := "00";
       DELAY_INIT_G    : Slv9VectorArray(1 downto 0, 7 downto 0) := (others => (others => (others => '0')));
@@ -128,6 +129,7 @@ begin
       generic map(
          TPD_G           => TPD_G,
          USE_PLL_G       => USE_PLL_G,
+         USE_FBCLK_G     => USE_FBCLK_G,
          ADC_CLK_FREQ_G  => ADC_CLK_FREQ_G,
          DELAY_INIT_G    => DELAY_INIT_G,
          IODELAY_GROUP_G => IODELAY_GROUP_G,
