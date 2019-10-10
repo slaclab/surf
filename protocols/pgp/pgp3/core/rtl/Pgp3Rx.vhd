@@ -70,6 +70,7 @@ architecture rtl of Pgp3Rx is
    signal unscrambledValid       : sl;
    signal unscrambledData        : slv(63 downto 0);
    signal unscrambledHeader      : slv(1 downto 0);
+   signal remLinkData            : slv(55 downto 0);
    signal ebValid                : sl;
    signal ebData                 : slv(63 downto 0);
    signal ebHeader               : slv(1 downto 0);
@@ -141,6 +142,7 @@ begin
          pgpRxValid  => ebValid,            -- [out]
          pgpRxData   => ebData,             -- [out]
          pgpRxHeader => ebHeader,           -- [out]
+         remLinkData => remLinkData,        -- [out]
          overflow    => ebOverflow,         -- [out]
          status      => ebStatus);          -- [out]
 
@@ -210,6 +212,7 @@ begin
    pgpRxOut.opCodeEn       <= pgpRxOutProtocol.opCodeEn;
    pgpRxOut.opCodeNumber   <= pgpRxOutProtocol.opCodeNumber;
    pgpRxOut.opCodeData     <= pgpRxOutProtocol.opCodeData;
+   pgpRxOut.remLinkData    <= remLinkData;
    pgpRxOut.remRxLinkReady <= remRxLinkReadyInt;
 
    pgpRxOut.phyRxData   <= phyRxData;
