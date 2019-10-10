@@ -28,6 +28,7 @@ entity AxiAds42lb69Deser is
    generic (
       TPD_G           : time                                    := 1 ns;
       USE_PLL_G       : boolean                                 := false;
+      USE_FBCLK_G     : boolean                                 := true;
       ADC_CLK_FREQ_G  : real                                    := 250.0E+6;
       DELAY_INIT_G    : Slv9VectorArray(1 downto 0, 7 downto 0) := (others => (others => (others => '0')));
       IODELAY_GROUP_G : string                                  := "AXI_ADS42LB69_IODELAY_GRP";
@@ -82,6 +83,7 @@ begin
       generic map(
          TPD_G          => TPD_G,
          USE_PLL_G      => USE_PLL_G,
+         USE_FBCLK_G    => USE_FBCLK_G,
          ADC_CLK_FREQ_G => ADC_CLK_FREQ_G,
          XIL_DEVICE_G   => XIL_DEVICE_G)
       port map (
