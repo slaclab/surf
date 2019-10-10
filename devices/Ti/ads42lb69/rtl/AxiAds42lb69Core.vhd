@@ -50,7 +50,8 @@ entity AxiAds42lb69Core is
       axiRst         : in  sl;
       adcClk         : in  sl;
       adcRst         : in  sl;
-      refclk200MHz   : in  sl);
+      refClk200MHz   : in  sl;
+      refRst200MHz   : in  sl := '0');
 end AxiAds42lb69Core;
 
 architecture mapping of AxiAds42lb69Core is
@@ -154,6 +155,7 @@ begin
          adcClk       => adcClk,
          adcRst       => adcRst,
          adcSync      => adcSync,
-         refclk200MHz => refclk200MHz);
+         refClk200MHz => refClk200MHz,
+         refRst200MHz => refRst200MHz);
 
 end mapping;
