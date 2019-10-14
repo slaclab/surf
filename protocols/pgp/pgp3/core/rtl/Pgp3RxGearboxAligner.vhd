@@ -1,9 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : Gearbox Aligner
+-- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
+-- File       : Pgp3RxGearboxAligner.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Aligns a GT RX gearbox.
 -- After reset, require GOOD_COUNT_C consecutive valid headers to lock.

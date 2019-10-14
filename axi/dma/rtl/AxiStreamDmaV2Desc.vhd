@@ -42,9 +42,14 @@ entity AxiStreamDmaV2Desc is
       -- Number of descriptor entries in write FIFO and return ring buffers 
       DESC_AWIDTH_G : integer range 4 to 32 := 12;
 
-      -- Choose between one-clock arbitration for return descritors or count and check selection
-      DESC_ARB_G : boolean := true);
+      -- Choose between one-clock arbitration for return descriptors or count and check selection
+      DESC_ARB_G : boolean := true;
 
+      -- Choose between infeered or xpm generated descriptor FIFOs
+      DESC_SYNTH_MODE_G : string := "inferred";
+
+      -- Choose the type of resources for the descriptor FIFOs when DESC_SYNTH_MODE_G="xpm"
+      DESC_MEMORY_TYPE_G : string := "block");
    port (
       -- Clock/Reset
       axiClk          : in  sl;
@@ -134,6 +139,7 @@ architecture rtl of AxiStreamDmaV2Desc is
       descWrCache : slv(3 downto 0);
       buffRdCache : slv(3 downto 0);
       buffWrCache : slv(3 downto 0);
+      enableCnt   : slv(7 downto 0);
 
       -- FIFOs
       fifoDin        : slv(31 downto 0);
@@ -199,6 +205,7 @@ architecture rtl of AxiStreamDmaV2Desc is
       descWrCache     => (others => '0'),
       buffRdCache     => (others => '0'),
       buffWrCache     => (others => '0'),
+      enableCnt       => (others => '0'),
       -- FIFOs
       fifoDin         => (others => '0'),
       wrFifoWr        => (others => '0'),
@@ -263,7 +270,9 @@ begin
             GEN_SYNC_FIFO_G => true,
             FWFT_EN_G       => true,
             DATA_WIDTH_G    => 32,
-            ADDR_WIDTH_G    => DESC_AWIDTH_G)
+            ADDR_WIDTH_G    => DESC_AWIDTH_G,
+            SYNTH_MODE_G    => DESC_SYNTH_MODE_G,
+            MEMORY_TYPE_G   => DESC_MEMORY_TYPE_G)
          port map (
             rst    => r.fifoReset,
             wr_clk => axiClk,
@@ -285,7 +294,9 @@ begin
             GEN_SYNC_FIFO_G => true,
             FWFT_EN_G       => true,
             DATA_WIDTH_G    => 32,
-            ADDR_WIDTH_G    => DESC_AWIDTH_G)
+            ADDR_WIDTH_G    => DESC_AWIDTH_G,
+            SYNTH_MODE_G    => DESC_SYNTH_MODE_G,
+            MEMORY_TYPE_G   => DESC_MEMORY_TYPE_G)
          port map (
             rst    => r.fifoReset,
             wr_clk => axiClk,
@@ -365,6 +376,7 @@ begin
       axiSlaveWaitTxn(regCon, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
       axiSlaveRegister(regCon, x"000", 0, v.enable);
+      axiSlaveRegisterR(regCon, x"000", 8, r.enableCnt);  -- Count the number of times enable transitions from 0->1
       axiSlaveRegisterR(regCon, x"000", 16, '1');  -- Legacy DESC_128_EN_C constant (always 0x1 now)
       axiSlaveRegisterR(regCon, x"000", 24, toSlv(2, 8));  -- Version 2 = 2, Version1 = 0
       axiSlaveRegister(regCon, x"004", 0, v.intEnable);
@@ -749,6 +761,10 @@ begin
       if r.enable = '0' then
          v.wrIndex := (others => '0');
          v.rdIndex := (others => '0');
+      end if;
+
+      if (r.enable = '0') and (v.enable = '1') and (r.enableCnt /= x"FF") then
+         v.enableCnt := r.enableCnt + 1;
       end if;
 
       ----------------------------------------------------------

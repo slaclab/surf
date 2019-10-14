@@ -27,15 +27,18 @@ use work.EthMacPkg.all;
 entity UdpEngineTx is
    generic (
       -- Simulation Generics
-      TPD_G  : time          := 1 ns;
+      TPD_G          : time          := 1 ns;
       -- UDP General Generic
-      SIZE_G : positive      := 1;
-      PORT_G : PositiveArray := (0 => 8192));
+      SIZE_G         : positive      := 1;
+      TX_FLOW_CTRL_G : boolean       := true; -- True: Blow off the UDP TX data if link down, False: Backpressure until TX link is up
+      PORT_G         : PositiveArray := (0 => 8192));
    port (
       -- Interface to IPV4 Engine  
       obUdpMaster  : out AxiStreamMasterType;
       obUdpSlave   : in  AxiStreamSlaveType;
       -- Interface to User Application
+      linkUp       : out slv(SIZE_G-1 downto 0);
+      localMac     : in  slv(47 downto 0);
       localIp      : in  slv(31 downto 0);
       remotePort   : in  Slv16Array(SIZE_G-1 downto 0);
       remoteIp     : in  Slv32Array(SIZE_G-1 downto 0);
@@ -60,9 +63,10 @@ architecture rtl of UdpEngineTx is
       HDR_S,
       DHCP_BUFFER_S,
       BUFFER_S,
-      LAST_S); 
+      LAST_S);
 
    type RegType is record
+      linkUp      : slv(SIZE_G-1 downto 0);
       tKeep       : slv(15 downto 0);
       tData       : slv(127 downto 0);
       tLast       : sl;
@@ -75,6 +79,7 @@ architecture rtl of UdpEngineTx is
       state       : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
+      linkUp      => (others => '0'),
       tKeep       => (others => '0'),
       tData       => (others => '0'),
       tLast       => '0',
@@ -84,7 +89,7 @@ architecture rtl of UdpEngineTx is
       obDhcpSlave => AXI_STREAM_SLAVE_INIT_C,
       ibSlaves    => (others => AXI_STREAM_SLAVE_INIT_C),
       txMaster    => AXI_STREAM_MASTER_INIT_C,
-      state       => IDLE_S);      
+      state       => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -94,11 +99,11 @@ architecture rtl of UdpEngineTx is
 
    -- attribute dont_touch             : string;
    -- attribute dont_touch of r        : signal is "TRUE";
-   
+
 begin
 
-   comb : process (ibMasters, localIp, obDhcpMaster, r, remoteIp, remoteMac, remotePort, rst,
-                   txSlave) is
+   comb : process (ibMasters, localIp, localMac, obDhcpMaster, r, remoteIp,
+                   remoteMac, remotePort, rst, txSlave) is
       variable v : RegType;
       variable i : natural;
    begin
@@ -114,6 +119,22 @@ begin
          v.txMaster.tUser  := (others => '0');
          v.txMaster.tKeep  := (others => '1');
       end if;
+
+      for i in SIZE_G-1 downto 0 loop
+         -- Check if link is up 
+         if (localMac /= 0)       and  -- Non-zero local MAC address
+            (localIp /= 0)        and  -- Non-zero local IP address
+            (PORT_G(i) /= 0)      and  -- Non-zero local UDP port
+            (remoteMac(i) /= 0)   and  -- Non-zero remote MAC address
+            (remoteIp(i) /= 0)    and  -- Non-zero remote IP address
+            (remotePort(i) /= 0) then  -- Non-zero remote UDP port
+            -- Link Up
+            v.linkUp(i) := '1';
+         else
+            -- Link down
+            v.linkUp(i) := '0';
+         end if;
+      end loop;
 
       -- State Machine
       case r.state is
@@ -134,7 +155,7 @@ begin
                   -- Write the first header
                   v.txMaster.tValid               := '1';
                   v.txMaster.tData(47 downto 0)   := (others => '1');  -- Destination MAC address
-                  v.txMaster.tData(63 downto 48)  := x"0000";          -- All 0s
+                  v.txMaster.tData(63 downto 48)  := x"0000";  -- All 0s
                   v.txMaster.tData(95 downto 64)  := (others => '0');  -- Source IP address
                   v.txMaster.tData(127 downto 96) := (others => '1');  -- Destination IP address               
                   ssiSetUserSof(EMAC_AXIS_CONFIG_C, v.txMaster, '1');
@@ -145,20 +166,27 @@ begin
                   v.obDhcpSlave.tReady := '1';
                end if;
             -- Check for data and remote MAC is non-zero
-            elsif (ibMasters(r.index).tValid = '1') and (v.txMaster.tValid = '0')and (remoteMac(r.index) /= 0) then
+            elsif (ibMasters(r.index).tValid = '1') and (v.txMaster.tValid = '0') then
+               -- Check if link down and blowing off the data 
+               if (r.linkUp(r.index) = '0') and TX_FLOW_CTRL_G then
+                  -- Blow off the data
+                  v.ibSlaves(r.index).tReady := '1';            
                -- Check for SOF
-               if (ssiGetUserSof(EMAC_AXIS_CONFIG_C, ibMasters(r.index)) = '1') then
-                  -- Latch the index
-                  v.chPntr                        := r.index;
-                  -- Write the first header
-                  v.txMaster.tValid               := '1';
-                  v.txMaster.tData(47 downto 0)   := remoteMac(r.index);  -- Destination MAC address
-                  v.txMaster.tData(63 downto 48)  := x"0000";          -- All 0s
-                  v.txMaster.tData(95 downto 64)  := localIp;          -- Source IP address
-                  v.txMaster.tData(127 downto 96) := remoteIp(r.index);  -- Destination IP address               
-                  ssiSetUserSof(EMAC_AXIS_CONFIG_C, v.txMaster, '1');
-                  -- Next state
-                  v.state                         := HDR_S;
+               elsif (ssiGetUserSof(EMAC_AXIS_CONFIG_C, ibMasters(r.index)) = '1') then
+                  -- Check if link up
+                  if (r.linkUp(r.index) = '1') then
+                     -- Latch the index
+                     v.chPntr                        := r.index;
+                     -- Write the first header
+                     v.txMaster.tValid               := '1';
+                     v.txMaster.tData(47 downto 0)   := remoteMac(r.index);  -- Destination MAC address
+                     v.txMaster.tData(63 downto 48)  := x"0000";  -- All 0s
+                     v.txMaster.tData(95 downto 64)  := localIp;  -- Source IP address
+                     v.txMaster.tData(127 downto 96) := remoteIp(r.index);  -- Destination IP address               
+                     ssiSetUserSof(EMAC_AXIS_CONFIG_C, v.txMaster, '1');
+                     -- Next state
+                     v.state                         := HDR_S;
+                  end if;
                else
                   -- Blow off the data
                   v.ibSlaves(r.index).tReady := '1';
@@ -188,11 +216,11 @@ begin
                v.obDhcpSlave.tReady            := '1';
                -- Write the Second header
                v.txMaster.tValid               := '1';
-               v.txMaster.tData(7 downto 0)    := x"00";    -- All 0s
-               v.txMaster.tData(15 downto 8)   := UDP_C;    -- Protocol Type = UDP
+               v.txMaster.tData(7 downto 0)    := x"00";  -- All 0s
+               v.txMaster.tData(15 downto 8)   := UDP_C;  -- Protocol Type = UDP
                v.txMaster.tData(31 downto 16)  := x"0000";  -- IPv4 Pseudo header length = Calculated in EthMac core
-               v.txMaster.tData(47 downto 32)  := DHCP_CPORT;          -- Source port
-               v.txMaster.tData(63 downto 48)  := DHCP_SPORT;          -- Destination port
+               v.txMaster.tData(47 downto 32)  := DHCP_CPORT;  -- Source port
+               v.txMaster.tData(63 downto 48)  := DHCP_SPORT;  -- Destination port
                v.txMaster.tData(79 downto 64)  := x"0000";  -- UDP length = Calculated in EthMac core
                v.txMaster.tData(95 downto 80)  := x"0000";  -- UDP checksum  = Calculated in EthMac core              
                v.txMaster.tData(127 downto 96) := obDhcpMaster.tData(31 downto 0);  -- UDP Datagram     
@@ -231,10 +259,10 @@ begin
                v.ibSlaves(r.chPntr).tReady     := '1';
                -- Write the Second header
                v.txMaster.tValid               := '1';
-               v.txMaster.tData(7 downto 0)    := x"00";    -- All 0s
-               v.txMaster.tData(15 downto 8)   := UDP_C;    -- Protocol Type = UDP
+               v.txMaster.tData(7 downto 0)    := x"00";  -- All 0s
+               v.txMaster.tData(15 downto 8)   := UDP_C;  -- Protocol Type = UDP
                v.txMaster.tData(31 downto 16)  := x"0000";  -- IPv4 Pseudo header length = Calculated in EthMac core
-               v.txMaster.tData(47 downto 32)  := PORT_C(r.chPntr);    -- Source port
+               v.txMaster.tData(47 downto 32)  := PORT_C(r.chPntr);  -- Source port
                v.txMaster.tData(63 downto 48)  := remotePort(r.chPntr);  -- Destination port
                v.txMaster.tData(79 downto 64)  := x"0000";  -- UDP length = Calculated in EthMac core
                v.txMaster.tData(95 downto 80)  := x"0000";  -- UDP checksum  = Calculated in EthMac core              
@@ -347,10 +375,12 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
-      
-      -- Combinatorial outputs before the reset
+
+      -- Outputs   
       ibSlaves    <= v.ibSlaves;
       obDhcpSlave <= v.obDhcpSlave;
+      txMaster    <= r.txMaster;
+      linkUp      <= r.linkUp;
 
       -- Reset
       if (rst = '1') then
@@ -360,9 +390,6 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs   
-      txMaster <= r.txMaster;
-      
    end process comb;
 
    seq : process (clk) is
@@ -382,6 +409,6 @@ begin
          sAxisMaster => txMaster,
          sAxisSlave  => txSlave,
          mAxisMaster => obUdpMaster,
-         mAxisSlave  => obUdpSlave);    
+         mAxisSlave  => obUdpSlave);
 
 end rtl;

@@ -20,6 +20,7 @@ if {  ${family} == "artix7" ||
 if { ${family} eq {kintexu} ||
      ${family} eq {kintexuplus} ||
      ${family} eq {virtexuplus} ||
+     ${family} eq {virtexuplusHBM} ||
      ${family} eq {zynquplus} ||
      ${family} eq {zynquplusRFSOC} } {
    loadSource -dir  "$::DIR_PATH/UltraScale"

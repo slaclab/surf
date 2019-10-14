@@ -32,6 +32,7 @@ entity UdpEngine is
       CLIENT_SIZE_G  : positive      := 1;
       CLIENT_PORTS_G : PositiveArray := (0 => 8193);
       -- General UDP/ARP/DHCP Generics
+      TX_FLOW_CTRL_G : boolean       := true; -- True: Blow off the UDP TX data if link down, False: Backpressure until TX link is up
       DHCP_G         : boolean       := false;
       CLK_FREQ_G     : real          := 156.25E+06;  -- In units of Hz
       COMM_TIMEOUT_G : positive      := 30);  -- In units of seconds, Client's Communication timeout before re-ARPing or DHCP discover/request
@@ -170,14 +171,16 @@ begin
 
       U_UdpEngineTx : entity work.UdpEngineTx
          generic map (
-            TPD_G  => TPD_G,
-            SIZE_G => SERVER_SIZE_G,
-            PORT_G => SERVER_PORTS_G)
+            TPD_G          => TPD_G,
+            SIZE_G         => SERVER_SIZE_G,
+            TX_FLOW_CTRL_G => TX_FLOW_CTRL_G,
+            PORT_G         => SERVER_PORTS_G)
          port map (
             -- Interface to IPV4 Engine  
             obUdpMaster  => obUdpMasters(0),
             obUdpSlave   => obUdpSlaves(0),
             -- Interface to User Application
+            localMac     => localMac,
             localIp      => localIp,
             remotePort   => remotePort,
             remoteIp     => remoteIp,
@@ -219,14 +222,16 @@ begin
 
       U_UdpEngineTx : entity work.UdpEngineTx
          generic map (
-            TPD_G  => TPD_G,
-            SIZE_G => CLIENT_SIZE_G,
-            PORT_G => CLIENT_PORTS_G)
+            TPD_G          => TPD_G,
+            SIZE_G         => CLIENT_SIZE_G,
+            TX_FLOW_CTRL_G => TX_FLOW_CTRL_G,
+            PORT_G         => CLIENT_PORTS_G)
          port map (
             -- Interface to IPV4 Engine  
             obUdpMaster => obUdpMasters(1),
             obUdpSlave  => obUdpSlaves(1),
             -- Interface to User Application
+            localMac    => localMac,
             localIp     => localIp,
             remotePort  => clientRemotePort,
             remoteIp    => clientRemoteIp,

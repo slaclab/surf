@@ -63,9 +63,13 @@ class Si5345Lite(pr.Device):
             self.readBlocks(recurse=True)
             self.checkBlocks(recurse=True)
             
+            # Execute the Page5.BW_UPDATE_PLL command
+            self._rawWrite((0x500<<2)|(0x14 << 2),0x1)
+            self._rawWrite((0x500<<2)|(0x14 << 2),0x0)
+            
             # Power Up after the configuration load
             self.Page0.PDN.set(False)            
-            
+
             # Clear the internal error flags
             self.Page0.ClearIntErrFlag()
         

@@ -40,7 +40,8 @@ if { ${family} eq {kintexuplus} ||
    loadRuckusTcl "$::DIR_PATH/lvdsUltraScale"
 }
 
-if { ${family} eq {virtexuplus} } {
+if { ${family} eq {virtexuplus} ||
+     ${family} eq {virtexuplusHBM} } {
    loadRuckusTcl "$::DIR_PATH/gtyUltraScale+"
    loadRuckusTcl "$::DIR_PATH/lvdsUltraScale"
 }

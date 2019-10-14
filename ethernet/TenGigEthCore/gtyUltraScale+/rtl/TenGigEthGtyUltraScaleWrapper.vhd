@@ -29,7 +29,6 @@ entity TenGigEthGtyUltraScaleWrapper is
       TPD_G             : time                             := 1 ns;
       NUM_LANE_G        : natural range 1 to 4             := 1;
       PAUSE_EN_G        : boolean                          := true;
-      PAUSE_512BITS_G   : positive                         := 8;
       -- QUAD PLL Configurations
       QPLL_REFCLK_SEL_G : slv(2 downto 0)                  := "001";
       -- AXI-Lite Configurations
@@ -141,7 +140,6 @@ begin
          generic map (
             TPD_G           => TPD_G,
             PAUSE_EN_G      => PAUSE_EN_G,
-            PAUSE_512BITS_G => PAUSE_512BITS_G,
             -- AXI-Lite Configurations
             EN_AXI_REG_G    => EN_AXI_REG_G,
             -- AXI Streaming Configurations

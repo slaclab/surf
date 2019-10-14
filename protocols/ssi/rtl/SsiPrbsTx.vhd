@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+-- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
+-------------------------------------------------------------------------------
 -- File       : SsiPrbsTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -29,6 +31,8 @@ entity SsiPrbsTx is
       -- General Configurations
       TPD_G                      : time                    := 1 ns;
       AXI_EN_G                   : sl                      := '1';
+      AXI_DEFAULT_PKT_LEN_G      : slv(31 downto 0)        := x"00000FFF";
+      AXI_DEFAULT_TRIG_DLY_G     : slv(31 downto 0)        := x"00000000";
       -- FIFO Configurations
       VALID_THOLD_G              : natural                 := 1;
       VALID_BURST_MODE_G         : boolean                 := false;
@@ -42,7 +46,7 @@ entity SsiPrbsTx is
       FIFO_ADDR_WIDTH_G          : positive                := 9;
       FIFO_PAUSE_THRESH_G        : positive                := 2**8;
       -- PRBS Configurations
-      PRBS_SEED_SIZE_G           : natural range 32 to 256 := 32;
+      PRBS_SEED_SIZE_G           : natural range 32 to 512 := 32;
       PRBS_TAPS_G                : NaturalArray            := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
       PRBS_INCREMENT_G           : boolean                 := false;  -- Increment mode by default instead of PRBS
       -- AXI Stream Configurations
@@ -94,6 +98,8 @@ architecture rtl of SsiPrbsTx is
       length         : slv(31 downto 0);
       packetLength   : slv(31 downto 0);
       dataCnt        : slv(31 downto 0);
+      trigDly        : slv(31 downto 0);
+      trigDlyCnt     : slv(31 downto 0);
       eventCnt       : slv(PRBS_SEED_SIZE_G-1 downto 0);
       randomData     : slv(PRBS_SEED_SIZE_G-1 downto 0);
       txAxisMaster   : AxiStreamMasterType;
@@ -101,6 +107,7 @@ architecture rtl of SsiPrbsTx is
       axiEn          : sl;
       oneShot        : sl;
       trig           : sl;
+      trigger        : sl;
       cntData        : sl;
       tDest          : slv(7 downto 0);
       tId            : slv(7 downto 0);
@@ -112,8 +119,10 @@ architecture rtl of SsiPrbsTx is
       busy           => '1',
       overflow       => '0',
       length         => (others => '0'),
-      packetLength   => x"00000FFF",
+      packetLength   => AXI_DEFAULT_PKT_LEN_G,
       dataCnt        => (others => '0'),
+      trigDly        => AXI_DEFAULT_TRIG_DLY_G,
+      trigDlyCnt     => (others => '0'),
       eventCnt       => toSlv(1, PRBS_SEED_SIZE_G),
       randomData     => (others => '0'),
       txAxisMaster   => AXI_STREAM_MASTER_INIT_C,
@@ -121,6 +130,7 @@ architecture rtl of SsiPrbsTx is
       axiEn          => AXI_EN_G,
       oneShot        => '0',
       trig           => '0',
+      trigger        => '0',
       cntData        => toSl(PRBS_INCREMENT_G),
       tDest          => X"00",
       tId            => X"00",
@@ -135,7 +145,7 @@ architecture rtl of SsiPrbsTx is
 
 begin
 
-   assert ((PRBS_SEED_SIZE_G = 32) or (PRBS_SEED_SIZE_G = 64) or (PRBS_SEED_SIZE_G = 128) or (PRBS_SEED_SIZE_G = 256)) report "PRBS_SEED_SIZE_G must be either [32,64,128,256]" severity failure;
+   assert ((PRBS_SEED_SIZE_G = 32) or (PRBS_SEED_SIZE_G = 64) or (PRBS_SEED_SIZE_G = 128) or (PRBS_SEED_SIZE_G = 256) or (PRBS_SEED_SIZE_G = 512)) report "PRBS_SEED_SIZE_G must be either [32,64,128,256,512]" severity failure;
 
    comb : process (axilReadMaster, axilWriteMaster, forceEofe, locRst,
                    packetLength, r, tDest, tId, trig, txCtrl, txSlave) is
@@ -146,10 +156,7 @@ begin
    begin
       -- Latch the current value
       v := r;
-
-      -- Reset the one shot
-      v.oneShot := '0';
-
+      
       ----------------------------------------------------------------------------------------------
       -- Axi-Lite interface
       ----------------------------------------------------------------------------------------------
@@ -168,10 +175,12 @@ begin
             when X"04" =>
                v.packetLength := axilWriteMaster.wdata(31 downto 0);
             when X"08" =>
-               v.tDest := axilWriteMaster.wdata(7 downto 0);
-               v.tId   := axilWriteMaster.wdata(15 downto 8);
+               v.tDest   := axilWriteMaster.wdata(7 downto 0);
+               v.tId     := axilWriteMaster.wdata(15 downto 8);
             when X"18" =>
                v.oneShot := axilWriteMaster.wdata(0);
+            when X"1C" =>
+               v.trigDly := axilWriteMaster.wdata(31 downto 0);
             when others =>
                axilWriteResp := AXI_RESP_DECERR_C;
          end case;
@@ -208,15 +217,25 @@ begin
                else
                   v.axilReadSlave.rdata(31 downto 0) := r.randomData(31 downto 0);
                end if;
+            when X"1C" =>
+               v.axilReadSlave.rdata(31 downto 0):= r.trigDly;
             when others =>
                axilReadResp := AXI_RESP_DECERR_C;
          end case;
          axiSlaveReadResponse(v.axilReadSlave);
       end if;
 
+      -- Check for delay between AXI triggers
+      if (r.trigDlyCnt = r.trigDly) or (r.trigDly /= v.trigDly) then
+         v.trigDlyCnt := (others=>'0');
+         v.trigger    := r.trig;
+      elsif (r.trigger = '0') then
+         v.trigDlyCnt := r.trigDlyCnt + 1;
+      end if;
+
       -- Override axi settings if axi not enabled
       if (v.axiEn = '0') then
-         v.trig         := trig;
+         v.trigger      := trig;
          v.packetLength := packetLength;
          v.tDest        := tDest;
          v.tId          := tId;
@@ -243,7 +262,10 @@ begin
             -- Reset the busy flag
             v.busy := '0';
             -- Check for a trigger
-            if (r.trig = '1') or (r.oneShot = '1') then
+            if (r.trigger = '1') or (r.oneShot = '1') then
+               -- Reset the one shot
+               v.oneShot := '0';
+               v.trigger := '0';
                -- Latch the generator seed
                v.randomData         := r.eventCnt;
                -- Set the busy flag

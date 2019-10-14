@@ -2,12 +2,9 @@
 -- Title      : MDIO Support
 -------------------------------------------------------------------------------
 -- File       : MdioCore.vhd
--- Author     : Till Straumann <strauman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Execute a MDIO-read or -write transaction
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -17,8 +14,6 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
-
--- Execute a MDIO-read or -write transaction.
 
 library ieee;
 use ieee.std_logic_1164.all;

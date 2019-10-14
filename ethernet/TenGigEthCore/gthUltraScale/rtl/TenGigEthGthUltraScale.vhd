@@ -26,7 +26,6 @@ entity TenGigEthGthUltraScale is
    generic (
       TPD_G           : time                := 1 ns;
       PAUSE_EN_G      : boolean             := true;
-      PAUSE_512BITS_G : positive            := 8;
       -- AXI-Lite Configurations
       EN_AXI_REG_G    : boolean             := false;
       -- AXI Streaming Configurations
@@ -166,6 +165,11 @@ architecture mapping of TenGigEthGthUltraScale is
    signal phyRxc : slv(7 downto 0);
    signal phyTxd : slv(63 downto 0);
    signal phyTxc : slv(7 downto 0);
+   
+   signal xgmiiRxd : slv(63 downto 0);
+   signal xgmiiRxc : slv(7 downto 0);
+   signal xgmiiTxd : slv(63 downto 0);
+   signal xgmiiTxc : slv(7 downto 0);   
 
    signal areset      : sl;
    signal coreRst     : sl;
@@ -187,8 +191,9 @@ architecture mapping of TenGigEthGthUltraScale is
 
    signal configurationVector : slv(535 downto 0) := (others => '0');
 
-   signal config : TenGigEthConfig;
-   signal status : TenGigEthStatus;
+   signal config    : TenGigEthConfig;
+   signal status    : TenGigEthStatus;
+   signal statusReg : TenGigEthStatus;
 
    signal macRxAxisMaster : AxiStreamMasterType;
    signal macRxAxisCtrl   : AxiStreamCtrlType;
@@ -249,7 +254,6 @@ begin
       generic map (
          TPD_G           => TPD_G,
          PAUSE_EN_G      => PAUSE_EN_G,
-         PAUSE_512BITS_G => PAUSE_512BITS_G,
          PHY_TYPE_G      => "XGMII",
          PRIM_CONFIG_G   => AXIS_CONFIG_G)
       port map (
@@ -265,13 +269,25 @@ begin
          ethRst          => phyReset,
          ethConfig       => config.macConfig,
          ethStatus       => status.macStatus,
-         phyReady        => status.phyReady,
+         phyReady        => statusReg.phyReady,
          -- XGMII PHY Interface
-         xgmiiRxd        => phyRxd,
-         xgmiiRxc        => phyRxc,
-         xgmiiTxd        => phyTxd,
-         xgmiiTxc        => phyTxc);
+         xgmiiRxd        => xgmiiRxd,
+         xgmiiRxc        => xgmiiRxc,
+         xgmiiTxd        => xgmiiTxd,
+         xgmiiTxc        => xgmiiTxc);
 
+   process(phyClock)
+   begin
+      if rising_edge(phyClock) then
+         -- Help with making timing
+         statusReg <= status   after TPD_G;
+         xgmiiRxd  <= phyRxd   after TPD_G;
+         xgmiiRxc  <= phyRxc   after TPD_G;
+         phyTxd    <= xgmiiTxd after TPD_G;
+         phyTxc    <= xgmiiTxc after TPD_G;
+      end if;
+   end process;
+      
    -----------------
    -- 10GBASE-R core
    -----------------
@@ -417,6 +433,6 @@ begin
          axiWriteSlave  => mAxiWriteSlave,
          -- Configuration and Status Interface
          config         => config,
-         status         => status);
+         status         => statusReg);
 
 end mapping;

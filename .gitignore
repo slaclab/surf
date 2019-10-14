@@ -5,5 +5,7 @@
 *.swp
 *._*
 *.db
+*.log
 xvcSrv
 doxygen/
+ghdl/

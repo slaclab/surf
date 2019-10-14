@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+-- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
+-------------------------------------------------------------------------------
 -- File       : SsiFrameLimiter.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -52,6 +54,8 @@ architecture rtl of SsiFrameLimiter is
 
    constant TIMEOUT_C : natural := getTimeRatio(MAXIS_CLK_FREQ_G * TIMEOUT_G, 1.0);
 
+   constant SLAVE_FIFO_C : boolean := ite ( SLAVE_FIFO_G or (COMMON_CLK_G=false) or (SLAVE_READY_EN_G = false), true, false);
+
    type StateType is (
       IDLE_S,
       MOVE_S);
@@ -80,12 +84,28 @@ architecture rtl of SsiFrameLimiter is
 
 begin
 
-   BYPASS_FIFO_RX : if ((SLAVE_FIFO_G = false) and (COMMON_CLK_G = true) and (SLAVE_AXI_CONFIG_G = MASTER_AXI_CONFIG_G)) generate
-      rxMaster   <= sAxisMaster;
-      sAxisSlave <= rxSlave;
+   BYPASS_FIFO_RX : if (SLAVE_FIFO_C = false) generate
+      U_Resize_OB : entity work.AxiStreamResize
+         generic map (
+            -- General Configurations
+            TPD_G               => TPD_G,
+            READY_EN_G          => true,
+            -- AXI Stream Port Configurations
+            SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_G,
+            MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G)
+         port map (
+            -- Clock and reset
+            axisClk     => mAxisClk,
+            axisRst     => mAxisRst,
+            -- Slave Port
+            sAxisMaster => sAxisMaster,
+            sAxisSlave  => sAxisSlave,
+            -- Master Port
+            mAxisMaster => rxMaster,
+            mAxisSlave  => rxSlave);
    end generate;
 
-   GEN_FIFO_RX : if ((SLAVE_FIFO_G = true) or (COMMON_CLK_G = false) or (SLAVE_AXI_CONFIG_G /= MASTER_AXI_CONFIG_G)) generate
+   GEN_FIFO_RX : if (SLAVE_FIFO_C = true) generate
       FIFO_RX : entity work.AxiStreamFifoV2
          generic map (
             -- General Configurations
@@ -128,7 +148,7 @@ begin
 
       -- Reset the flags
       v.rxSlave := AXI_STREAM_SLAVE_INIT_C;
-      if (txSlave.tReady = '1') or (SLAVE_READY_EN_G = false) then
+      if (txSlave.tReady = '1') then
          v.txMaster.tValid := '0';
       end if;
 
@@ -212,11 +232,6 @@ begin
          end if;
       end if;
 
-      -- Check if using tReady
-      if (SLAVE_READY_EN_G = false) then
-         v.rxSlave.tReady := '1';
-      end if;
-
       -- Combinatorial outputs before the reset
       rxSlave <= v.rxSlave;
 
@@ -251,7 +266,7 @@ begin
             -- General Configurations
             TPD_G               => TPD_G,
             PIPE_STAGES_G       => 0,
-            SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
+            SLAVE_READY_EN_G    => true,
             VALID_THOLD_G       => 1,
             -- FIFO configurations
             BRAM_EN_G           => false,

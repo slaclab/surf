@@ -1,11 +1,10 @@
 -------------------------------------------------------------------------------
+-- Title      : SRPv3 Protocol: https://confluence.slac.stanford.edu/x/cRmVD
+-------------------------------------------------------------------------------
 -- File       : SrpV3Axi.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SLAC Register Protocol Version 3, AXI Interface
---
--- Documentation: https://confluence.slac.stanford.edu/x/cRmVD
---
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

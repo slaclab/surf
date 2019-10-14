@@ -23,6 +23,7 @@ import functools
 import click 
 import gzip
 import os
+import subprocess
 import fnmatch
 
 class McsException(Exception):
@@ -35,33 +36,40 @@ class McsReader():
         self.startAddr = 0
         self.endAddr   = 0
         self.size      = 0
+        self.addrRange = 0
         
-    def open(self, filename):   
-        self.entry     = []
+    def open(self, filename, dbg=False):   
         self.startAddr = 0
         self.endAddr   = 0
         self.size      = 0
+        self.addrRange = 0
         baseAddr       = 0
-        dataList       = []
-
+        idx            = 0
+        
         # Check for non-compressed .MCS file
         if fnmatch.fnmatch(filename, '*.mcs'):
+            # Set the flag
             gzipEn = False
+            # Find the length of the file
+            numLines = int(subprocess.check_output(f'wc -l {filename}', shell=True).split()[0])
+            
+        # Check for Compressed .MCS file
         elif fnmatch.fnmatch(filename, '*.mcs.gz'):
+            # Set the flag
             gzipEn = True
+            # Find the length of the file
+            numLines = int(subprocess.check_output(f'zcat {filename} | wc -l', shell=True).split()[0])
+            
         else:
             click.secho('\nUnsupported file extension detected', fg='red')
             raise McsException('McsReader.open(): failed')  
+                    
+        # Create an empty numpy array (up to 16B per line)
+        self.entry = np.empty([16*numLines,2],dtype=np.int32)
             
-        # Find the length of the file
-        f = gzip.open(filename, "rb") if (gzipEn) else open(filename, "r")
-        length = 0
-        for line in iter(f):
-            length += 1
-        f.close()  
         # Setup the status bar
         with click.progressbar(
-            length = length,
+            length = numLines,
             label  = click.style('Reading .MCS:  ', fg='green'),
         ) as bar:            
             # Open the file
@@ -72,8 +80,7 @@ class McsReader():
                     
                     # Check if GZIP and convert to standard string
                     if (gzipEn):
-                        line = str(line)[2:]
-                        line = str(line)[:-1]
+                        line = str(line)[2:-1]
                     
                     # Throttle down printf rate
                     if ( (i&0xFFF) == 0):
@@ -84,21 +91,20 @@ class McsReader():
                         click.secho( ('\nMissing start code. Line[%d]: {:%s}' % (i,line)), fg='red')
                         raise McsException('McsReader.open(): failed')                         
                     else:
-                    
-                        strings = [line[j:j+2] for j in range(1, len(line), 2)]
-                        bytes = [int(s, 16) for s in strings]
 
-                        s = functools.reduce(lambda x,y: x+y, bytes[:-1]) & 0xFF
-                        c = (bytes[-1]*-1) & 0xFF
+                        hexBytes = [int(line[j:j+2], 16) for j in range(1, len(line), 2)]
+
+                        s = functools.reduce(lambda x,y: x+y, hexBytes[:-1]) & 0xFF
+                        c = (hexBytes[-1]*-1) & 0xFF
                         
                         if s != c:                            
                             click.secho('\nBad checksum on line: {:s}. Sum: {:x}, checksum: {:x}'.format(line, s, c), fg='red')
                             raise McsException('McsReader.open(): failed') 
 
                         # Parse out the bytes
-                        byteCount = bytes[0]
-                        addr = int(bytes[1])<<8 | int(bytes[2])
-                        recordType = bytes[3]
+                        byteCount = hexBytes[0]
+                        addr = int(hexBytes[1])<<8 | int(hexBytes[2])
+                        recordType = hexBytes[3]
                        
                         if byteCount > 16:
                             click.secho('\nInvalid byte count: {:d}'.format(byteCount), fg='red')
@@ -112,8 +118,9 @@ class McsReader():
                             for j in range(byteCount):
                                 # Put the address and data into a list
                                 address = baseAddr + addr + j
-                                data    = bytes[j+4]
-                                dataList.append([address, data])
+                                data = hexBytes[j+4]
+                                self.entry[idx] = [address, data]
+                                idx = idx + 1
                             
                             # Save the last address
                             self.endAddr = address
@@ -131,7 +138,7 @@ class McsReader():
                                 click.secho('\nAddr: {:x} must be 0 for ELA records'.format(addr), fg='red')
                                 raise McsException('McsReader.open(): failed')  
                             # Update the base address 
-                            baseAddr = int(strings[4]+strings[5], 16)* (2**16)
+                            baseAddr = int(line[9:11]+line[11:13], 16)* (2**16)
                             # Check for first address index (which is always the first line)
                             if (i==0):
                                 self.startAddr = baseAddr
@@ -140,11 +147,18 @@ class McsReader():
                             raise McsException('McsReader.open(): failed')    
                             
             # Close the status bar
-            bar.update(length)          
+            bar.update(numLines)          
             
+        # Set the size of the entry array
+        self.size = idx
+
         # Calculate the total size (in units of bytes)                
-        self.size = (self.endAddr - self.startAddr) + 1
+        self.addrRange = (self.endAddr - self.startAddr) + 1
         
-        # Convert to numpy array
-        self.entry = np.array(dataList,dtype=np.int32)
-   
+        # Print the MCS metadata
+        if (dbg):
+            print("mcs.size      = {}".format(hex(self.size)))
+            print("mcs.startAddr = {}".format(hex(self.startAddr)))
+            print("mcs.endAddr   = {}".format(hex(self.endAddr)))        
+            print("mcs.addrRange = {}".format(hex(self.addrRange)))          
+            

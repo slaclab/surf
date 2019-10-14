@@ -24,17 +24,19 @@ use work.AxiLitePkg.all;
 
 entity AxiDualPortRam is
    generic (
-      TPD_G            : time                       := 1 ns;
-      SYNTH_MODE_G     : string                     := "inferred";
-      MEMORY_TYPE_G    : string                     := "block";
-      READ_LATENCY_G   : natural range 0 to 3       := 2;
-      AXI_WR_EN_G      : boolean                    := true;
-      SYS_WR_EN_G      : boolean                    := false;
-      SYS_BYTE_WR_EN_G : boolean                    := false;
-      COMMON_CLK_G     : boolean                    := false;
-      ADDR_WIDTH_G     : integer range 1 to (2**24) := 5;
-      DATA_WIDTH_G     : integer                    := 32;
-      INIT_G           : slv                        := "0");
+      TPD_G               : time                       := 1 ns;
+      SYNTH_MODE_G        : string                     := "inferred";
+      MEMORY_TYPE_G       : string                     := "block";
+      MEMORY_INIT_FILE_G  : string                     := "none";  -- Used for MEMORY_TYPE_G="XPM only
+      MEMORY_INIT_PARAM_G : string                     := "0";  -- Used for MEMORY_TYPE_G="XPM only    
+      READ_LATENCY_G      : natural range 0 to 3       := 2;
+      AXI_WR_EN_G         : boolean                    := true;
+      SYS_WR_EN_G         : boolean                    := false;
+      SYS_BYTE_WR_EN_G    : boolean                    := false;
+      COMMON_CLK_G        : boolean                    := false;
+      ADDR_WIDTH_G        : integer range 1 to (2**24) := 5;
+      DATA_WIDTH_G        : integer                    := 32;
+      INIT_G              : slv                        := "0");
    port (
       -- Axi Port
       axiClk         : in  sl;
@@ -115,14 +117,16 @@ begin
    GEN_XPM : if (SYNTH_MODE_G = "xpm") generate
       U_RAM : entity work.TrueDualPortRamXpm
          generic map (
-            TPD_G          => TPD_G,
-            COMMON_CLK_G   => COMMON_CLK_G,
-            MEMORY_TYPE_G  => MEMORY_TYPE_G,
-            READ_LATENCY_G => READ_LATENCY_G,
-            DATA_WIDTH_G   => DATA_WIDTH_G,
-            BYTE_WR_EN_G   => true,
-            BYTE_WIDTH_G   => 8,
-            ADDR_WIDTH_G   => ADDR_WIDTH_G)
+            TPD_G               => TPD_G,
+            COMMON_CLK_G        => COMMON_CLK_G,
+            MEMORY_TYPE_G       => MEMORY_TYPE_G,
+            MEMORY_INIT_FILE_G  => MEMORY_INIT_FILE_G,
+            MEMORY_INIT_PARAM_G => MEMORY_INIT_PARAM_G,
+            READ_LATENCY_G      => READ_LATENCY_G,
+            DATA_WIDTH_G        => DATA_WIDTH_G,
+            BYTE_WR_EN_G        => true,
+            BYTE_WIDTH_G        => 8,
+            ADDR_WIDTH_G        => ADDR_WIDTH_G)
          port map (
             -- Port A  
             clka  => axiClk,
@@ -173,7 +177,7 @@ begin
    end generate;
 
    GEN_INFERRED : if (SYNTH_MODE_G = "inferred") generate
-   
+
       -- AXI read only, sys writable or read only (rom)
       AXI_R0_SYS_RW : if (not AXI_WR_EN_G and SYS_WR_EN_G) generate
          DualPortRam_1 : entity work.DualPortRam
@@ -262,10 +266,10 @@ begin
                rstb    => '0',                                       -- [in]
                addrb   => addr,                                      -- [in]
                dinb    => din,                                       -- [in]
-               doutb   => doutInt);                                     -- [out]
+               doutb   => doutInt);                                  -- [out]
 
-      end generate;   
-   
+      end generate;
+
    end generate;
 
    weByteMask <= (others => '0') when(not SYS_WR_EN_G) else weByte when(SYS_BYTE_WR_EN_G) else (others => we);
@@ -345,11 +349,11 @@ begin
             -- Check for read transaction
             elsif (axiStatus.readEnable = '1') then
                -- Set the address bus
-               v.axiAddr := axiReadMaster.araddr(AXI_RAM_ADDR_HIGH_C downto AXI_RAM_ADDR_LOW_C);
+               v.axiAddr  := axiReadMaster.araddr(AXI_RAM_ADDR_HIGH_C downto AXI_RAM_ADDR_LOW_C);
                -- Arm the wait
                v.rdLatecy := 4;
                -- Next state
-               v.state := RD_S;
+               v.state    := RD_S;
             end if;
          ----------------------------------------------------------------------
          when RD_S =>
@@ -386,7 +390,7 @@ begin
       end if;
    end process seq;
 
-   OUT_REG : if((READ_LATENCY_G = 3) AND (SYNTH_MODE_G /= "xpm")) generate
+   OUT_REG : if((READ_LATENCY_G = 3) and (SYNTH_MODE_G /= "xpm")) generate
       REG : process (clk) is
       begin
          if(rising_edge(clk)) then
@@ -399,7 +403,7 @@ begin
       end process REG;
    end generate OUT_REG;
 
-   NO_OUT_REG : if ((READ_LATENCY_G <= 2) OR (SYNTH_MODE_G = "xpm")) generate
+   NO_OUT_REG : if ((READ_LATENCY_G <= 2) or (SYNTH_MODE_G = "xpm")) generate
       dout <= doutInt;
    end generate NO_OUT_REG;
 

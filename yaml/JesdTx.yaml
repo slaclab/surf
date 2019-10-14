@@ -87,7 +87,8 @@ JesdTx: &JesdTx
       sizeBits: 1
       lsBit: 5
       mode: RW
-      description: "Enable test signal. Note: Has to be toggled if test signal type is changed to align the lanes (Default '1')."
+      # description: "Enable test signal. Note: Has to be toggled if test signal type is changed to align the lanes (Default '1')."
+      description: "Legacy Signal that is no longer used"
     #########################################################    
     ScrambleEnable:
       at:
