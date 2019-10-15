@@ -352,11 +352,11 @@ class Adc32Rf45(pr.Device):
             self._rawWrite(generalAddr + (4*0x0059),0x02) #...
             self._rawWrite(generalAddr + (4*0x005B),0x08) #...
             self._rawWrite(generalAddr + (4*0x005c),0x07) #...
-            self._rawWrite(generalAddr + (4*0x0057),0x10) # Register control for SYSREF --these lines are added in revision SBAA226C.
-            self._rawWrite(generalAddr + (4*0x0057),0x18) # Pulse SYSREF, pull high --these lines are added in revision SBAA226C.
-            self._rawWrite(generalAddr + (4*0x0057),0x10) # Pulse SYSREF, pull back low --these lines are added in revision SBAA226C.
-            self._rawWrite(generalAddr + (4*0x0057),0x18) # Pulse SYSREF, pull high --these lines are added in revision SBAA226C.
-            self._rawWrite(generalAddr + (4*0x0057),0x10) # Pulse SYSREF, pull back low --these lines are added in revision SBAA226C.
+#            self._rawWrite(generalAddr + (4*0x0057),0x10) # Register control for SYSREF --these lines are added in revision SBAA226C.
+#            self._rawWrite(generalAddr + (4*0x0057),0x18) # Pulse SYSREF, pull high --these lines are added in revision SBAA226C.
+#            self._rawWrite(generalAddr + (4*0x0057),0x10) # Pulse SYSREF, pull back low --these lines are added in revision SBAA226C.
+#            self._rawWrite(generalAddr + (4*0x0057),0x18) # Pulse SYSREF, pull high --these lines are added in revision SBAA226C.
+#            self._rawWrite(generalAddr + (4*0x0057),0x10) # Pulse SYSREF, pull back low --these lines are added in revision SBAA226C.
             self._rawWrite(generalAddr + (4*0x0057),0x00) # Give SYSREF control back to device pin --these lines are added in revision SBAA226C.
             self._rawWrite(generalAddr + (4*0x0012),0x00) # Master page disabled
             self._rawWrite(generalAddr + (4*0x0011),0xFF) # Select ADC Page
