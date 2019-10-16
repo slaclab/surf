@@ -22,8 +22,9 @@ use work.StdRtlPkg.all;
 
 entity iq16bTo32b is
    generic (
-      TPD_G            : time                 := 1 ns;
-      SYNC_STAGES_G    : natural range 2 to 8 := 3);
+      TPD_G         : time                 := 1 ns;
+      SYNTH_MODE_G  : string               := "inferred";
+      SYNC_STAGES_G : natural range 2 to 8 := 3);
    port (
       -- 16-bit Write Interface
       wrClk     : in  sl;
@@ -76,10 +77,10 @@ begin
       if validIn = '1' then
          if r.wordSel = '0' then
             -- Set the flags and data bus
-            v.wordSel             := '1';
-            v.dataI(15 downto 0)  := dataInI;
-            v.dataQ(15 downto 0)  := dataInQ;
-            v.wrEn                := '0';
+            v.wordSel            := '1';
+            v.dataI(15 downto 0) := dataInI;
+            v.dataQ(15 downto 0) := dataInQ;
+            v.wrEn               := '0';
          else
             -- Set the flags and data bus
             v.wordSel             := '0';
@@ -103,12 +104,14 @@ begin
 
    U_FIFO : entity work.FifoAsync
       generic map (
-         TPD_G            => TPD_G,
-         BRAM_EN_G        => false,
-         FWFT_EN_G        => true,
-         SYNC_STAGES_G    => SYNC_STAGES_G,
-         DATA_WIDTH_G     => 64,
-         ADDR_WIDTH_G     => 5)
+         TPD_G         => TPD_G,
+         SYNTH_MODE_G  => SYNTH_MODE_G,
+         MEMORY_TYPE_G => "distributed",
+         BRAM_EN_G     => false,
+         FWFT_EN_G     => true,
+         SYNC_STAGES_G => SYNC_STAGES_G,
+         DATA_WIDTH_G  => 64,
+         ADDR_WIDTH_G  => 5)
       port map (
          -- Asynchronous Reset
          rst                => wrRst,
