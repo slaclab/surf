@@ -102,12 +102,11 @@ begin
 
    end process comb;
 
-   U_FIFO : entity work.FifoAsync
+   U_FIFO : entity work.Fifo
       generic map (
          TPD_G         => TPD_G,
          SYNTH_MODE_G  => SYNTH_MODE_G,
          MEMORY_TYPE_G => "distributed",
-         BRAM_EN_G     => false,
          FWFT_EN_G     => true,
          SYNC_STAGES_G => SYNC_STAGES_G,
          DATA_WIDTH_G  => 64,
