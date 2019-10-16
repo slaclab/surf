@@ -372,9 +372,13 @@ class Adc32Rf45(pr.Device):
             self._rawWrite(rawInterface + (4*0x6068),0x22) #...
             self._rawWrite(rawInterface + (4*0x4003),0x01) #...
             self._rawWrite(rawInterface + (4*0x6068),0x22) #...
+            
+            self.SYSREF_DEL_EN.set(self.SYSREF_DEL_EN.value(), write=True)
+            self.SYSREF_DEL_HI.set(self.SYSREF_DEL_HI.value(), write=True)
+            self.SYSREF_DEL_LO.set(self.SYSREF_DEL_LO.value(), write=True)
 
-            self.SYNCB_POL.set(0x1)
-            self.JESD_OUTPUT_SWING.set(0x4)
+            self.SYNCB_POL.set(self.SYNCB_POL.value(), write=True)
+            self.JESD_OUTPUT_SWING.set(self.JESD_OUTPUT_SWING.value(), write=True)
 
 
 
@@ -656,7 +660,7 @@ class Adc32Rf45(pr.Device):
             self._rawWrite(generalAddr + (4*0x0057),0x00) # sysref dis - whether it has to be zero
 #            self._rawWrite(generalAddr + (4*0x0020),0x00)
 #            self._rawWrite(generalAddr + (4*0x0020),0x10) # Pdn sysref
-            self.PDN_SYSREF.set(0x1)
+#            self.PDN_SYSREF.set(0x1) # Do this in AppTop after JESD link is established
             
         @self.command(name= "DigRst", description  = "Digital Reset")        
         def DigRst():               
