@@ -290,18 +290,18 @@ begin
          dataIn  => s_nSync,
          dataOut => s_nSyncSync);
 
-   -- Delay SYSREF input (for 1 to 32 c-c)
-   U_SysrefDly : entity work.JesdSysrefDly
+   -- Delay SYSREF input (for 1 to 256 c-c)
+   U_SysrefDly : entity work.SlvDelay
       generic map (
-         TPD_G       => TPD_G,
-         DLY_WIDTH_G => SYSRF_DLY_WIDTH_C)
+         TPD_G        => TPD_G,
+         REG_OUTPUT_G => true,
+         DELAY_G      => 2**SYSRF_DLY_WIDTH_C)
       port map (
-         clk      => devClk_i,
-         rst      => devRst_i,
-         dly_i    => s_sysrefDlyTx,
-         sysref_i => s_sysrefSync,
-         sysref_o => s_sysrefD
-         );
+         clk     => devClk_i,
+         rst     => devRst_i,
+         delay   => s_sysrefDlyTx,
+         din(0)  => s_sysrefSync,
+         dout(0) => s_sysrefD);        
 
    ----------------------------
    -- Transmitter modules (L_G)
