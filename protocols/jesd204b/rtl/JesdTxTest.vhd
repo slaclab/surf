@@ -93,7 +93,7 @@ begin
    lmfcDly_INST : entity work.SlvDelay
       generic map (
          TPD_G   => TPD_G,
-         DELAY_G => 2*4)
+         DELAY_G => 16)
       port map (
          clk     => devClk_i,
          rst     => devRst_i,
@@ -105,7 +105,7 @@ begin
    nsyncDly_INST : entity work.SlvDelay
       generic map (
          TPD_G    => TPD_G,
-          DELAY_G => 2*4)
+          DELAY_G => 16)
       port map (
          clk     => devClk_i,
          rst     => devRst_i,
