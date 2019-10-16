@@ -92,8 +92,8 @@ begin
    -- Delay lmfc input (for 1 to 16 c-c) to 
    lmfcDly_INST : entity work.SlvDelay
       generic map (
-         TPD_G       => TPD_G,
-         DLY_WIDTH_G => 2*4)
+         TPD_G   => TPD_G,
+         DELAY_G => 2*4)
       port map (
          clk     => devClk_i,
          rst     => devRst_i,
@@ -104,8 +104,8 @@ begin
    -- Delay nsync input (for 1 to 16 c-c) to 
    nsyncDly_INST : entity work.SlvDelay
       generic map (
-         TPD_G       => TPD_G,
-         DLY_WIDTH_G => 2*4)
+         TPD_G    => TPD_G,
+          DELAY_G => 2*4)
       port map (
          clk     => devClk_i,
          rst     => devRst_i,
