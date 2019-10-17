@@ -114,14 +114,15 @@ class JesdTx(pr.Device):
             ))
     
             self.add(pr.RemoteVariable(    
-                name         = "TestSigEnable",
-                description  = "Invert Sync. Sync output has to be inverted in some systems depending on signal polarities on the PCB.",
-                offset       =  0x10,
-                bitSize      =  1,
-                bitOffset    =  0x05,
-                base         = pr.UInt,
-                mode         = "RW",
-            ))
+               name         = "TestSigEnable",
+               # description  = "Enable test signal. Note: Has to be toggled if test signal type is changed to align the lanes (Default '1').",
+               description  = "Legacy Signal that is no longer used",
+               offset       =  0x10,
+               bitSize      =  1,
+               bitOffset    =  0x05,
+               base         = pr.UInt,
+               mode         = "RW",
+           ))
     
             self.add(pr.RemoteVariable(    
                 name         = "ScrambleEnable",

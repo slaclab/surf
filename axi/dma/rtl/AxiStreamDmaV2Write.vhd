@@ -116,8 +116,8 @@ architecture rtl of AxiStreamDmaV2Write is
    signal trackDout     : slv(AXI_WRITE_DMA_TRACK_SIZE_C-1 downto 0);
    signal trackData     : AxiWriteDmaTrackType;
 
-   --attribute dont_touch      : string;
-   --attribute dont_touch of r : signal is "true";
+   -- attribute dont_touch      : string;
+   -- attribute dont_touch of r : signal is "true";
    
 begin
 
@@ -502,6 +502,10 @@ begin
    U_TrackRam: entity work.DualPortRam 
       generic map (
          TPD_G          => TPD_G,
+         BRAM_EN_G      => true,
+         REG_EN_G       => true,
+         DOA_REG_G      => true,
+         DOB_REG_G      => true, -- 2 cycle read latency
          MODE_G         => "write-first",
          DATA_WIDTH_G   => AXI_WRITE_DMA_TRACK_SIZE_C,
          ADDR_WIDTH_G   => 8)

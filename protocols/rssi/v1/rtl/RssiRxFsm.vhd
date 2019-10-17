@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+-- Title      : RSSI Protocol: https://confluence.slac.stanford.edu/x/1IyfD
+-------------------------------------------------------------------------------s
 -- File       : RssiRxFsm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -419,6 +421,12 @@ begin
                end if;
             end if;
             
+            
+            -- Check for drop
+            if (v.tspState = DROP_S) then
+               -- no change
+               v.rxParam := r.rxParam;
+            end if;              
          ----------------------------------------------------------------------
          when SYN_CHECK_S =>
             --
@@ -484,6 +492,12 @@ begin
                   end if;               
                end if;
             end if;
+            
+            -- Check for drop
+            if (v.tspState = DROP_S) then
+               -- no change
+               v.rxParam := r.rxParam;
+            end if;              
          ----------------------------------------------------------------------
          when DATA_S =>         
             --

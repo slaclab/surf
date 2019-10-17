@@ -1,8 +1,10 @@
 -------------------------------------------------------------------------------
+-- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
+-------------------------------------------------------------------------------
 -- File       : SsiPrbsRateGen.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description:   
+-- Description: SsiPrbsTx + AxiStreamMon Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

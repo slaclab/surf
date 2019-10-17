@@ -2,12 +2,9 @@
 -- Title      : JTAG Support
 -------------------------------------------------------------------------------
 -- File       : AxisToJtagCore.vhd
--- Author     : Till Straumann <strauman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Axi Stream to JTAG Interface/Adapter
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -17,8 +14,6 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
-
--- Axi Stream to JTAG Interface/Adapter
 
 library ieee;
 use ieee.std_logic_1164.all;

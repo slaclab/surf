@@ -26,11 +26,10 @@ entity TenGigEthGth7 is
    generic (
       TPD_G           : time                := 1 ns;
       PAUSE_EN_G      : boolean             := true;
-      PAUSE_512BITS_G : positive            := 8;
       -- AXI-Lite Configurations
       EN_AXI_REG_G    : boolean             := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G   : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      AXIS_CONFIG_G   : AxiStreamConfigType := EMAC_AXIS_CONFIG_C);
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
@@ -70,6 +69,58 @@ entity TenGigEthGth7 is
 end TenGigEthGth7;
 
 architecture mapping of TenGigEthGth7 is
+
+   component TenGigEthGth7Core
+      port (
+         dclk                 : in  std_logic;
+         rxrecclk_out         : out std_logic;
+         coreclk              : in  std_logic;
+         txusrclk             : in  std_logic;
+         txusrclk2            : in  std_logic;
+         txoutclk             : out std_logic;
+         areset               : in  std_logic;
+         areset_coreclk       : in  std_logic;
+         gttxreset            : in  std_logic;
+         gtrxreset            : in  std_logic;
+         sim_speedup_control  : in  std_logic;
+         txuserrdy            : in  std_logic;
+         qplllock             : in  std_logic;
+         qplloutclk           : in  std_logic;
+         qplloutrefclk        : in  std_logic;
+         reset_counter_done   : in  std_logic;
+         xgmii_txd            : in  std_logic_vector (63 downto 0);
+         xgmii_txc            : in  std_logic_vector (7 downto 0);
+         xgmii_rxd            : out std_logic_vector (63 downto 0);
+         xgmii_rxc            : out std_logic_vector (7 downto 0);
+         txp                  : out std_logic;
+         txn                  : out std_logic;
+         rxp                  : in  std_logic;
+         rxn                  : in  std_logic;
+         configuration_vector : in  std_logic_vector (535 downto 0);
+         status_vector        : out std_logic_vector (447 downto 0);
+         core_status          : out std_logic_vector (7 downto 0);
+         tx_resetdone         : out std_logic;
+         rx_resetdone         : out std_logic;
+         signal_detect        : in  std_logic;
+         tx_fault             : in  std_logic;
+         drp_req              : out std_logic;
+         drp_gnt              : in  std_logic;
+         drp_den_o            : out std_logic;
+         drp_dwe_o            : out std_logic;
+         drp_daddr_o          : out std_logic_vector (15 downto 0);
+         drp_di_o             : out std_logic_vector (15 downto 0);
+         drp_drdy_i           : in  std_logic;
+         drp_drpdo_i          : in  std_logic_vector (15 downto 0);
+         drp_den_i            : in  std_logic;
+         drp_dwe_i            : in  std_logic;
+         drp_daddr_i          : in  std_logic_vector (15 downto 0);
+         drp_di_i             : in  std_logic_vector (15 downto 0);
+         drp_drdy_o           : out std_logic;
+         drp_drpdo_o          : out std_logic_vector (15 downto 0);
+         pma_pmd_type         : in  std_logic_vector (2 downto 0);
+         tx_disable           : out std_logic
+         );
+   end component;
 
    signal mAxiReadMaster  : AxiLiteReadMasterType;
    signal mAxiReadSlave   : AxiLiteReadSlaveType;
@@ -157,7 +208,6 @@ begin
       generic map (
          TPD_G           => TPD_G,
          PAUSE_EN_G      => PAUSE_EN_G,
-         PAUSE_512BITS_G => PAUSE_512BITS_G,
          PHY_TYPE_G      => "XGMII",
          PRIM_CONFIG_G   => AXIS_CONFIG_G)
       port map (
@@ -183,7 +233,7 @@ begin
    -----------------
    -- 10GBASE-R core
    -----------------
-   U_TenGigEthGth7Core : entity work.TenGigEthGth7Core
+   U_TenGigEthGth7Core : TenGigEthGth7Core
       port map (
          -- Clocks and Resets
          rxrecclk_out         => open,

@@ -193,7 +193,7 @@ class AxiVersion(pr.Device):
             name         = 'GitHashShort',
             mode         = 'RO',
             dependencies = [self.GitHash],
-            linkedGet    = lambda read: f'{(self.GitHash.get(read) >> 132):x}',
+            linkedGet    = lambda read: f'{(self.GitHash.get(read) >> 132):07x}',
         ))
 
         self.add(pr.RemoteVariable(   
@@ -259,8 +259,8 @@ class AxiVersion(pr.Device):
     def hardReset(self):
         print(f'{self.path} hard reset called')
 
-    def softReset(self):
-        print(f'{self.path} soft reset called')
+    def initialize(self):
+        print(f'{self.path} initialize called')
 
     def countReset(self):
         print(f'{self.path} count reset called')
@@ -268,6 +268,7 @@ class AxiVersion(pr.Device):
     def printStatus(self):
         try:
             gitHash = self.GitHash.get()
+            print("Path         = {}".format(self.path))
             print("FwVersion    = {}".format(hex(self.FpgaVersion.get())))
             print("UpTime       = {}".format(self.UpTime.get()))
             if (gitHash != 0):

@@ -38,8 +38,6 @@ entity JesdTestStreamTx is
       rst      : in  sl;
       
       -- Enable signal generation  
-      -- when switching between signal types the module has to be 
-      -- disabled and re-enabled in order to align signals
       enable_i     : in  sl;
       
       -- Signal type
@@ -65,19 +63,21 @@ architecture rtl of JesdTestStreamTx is
    constant SAM_IN_WORD_C    : positive := (GT_WORD_SIZE_C/F_G);
 
    type RegType is record
-      squareCnt    : slv(PER_STEP_WIDTH_C-1 downto 0);
-      rampCnt      : signed(F_G*8-1 downto 0);
-      testData     : slv (sampleData_o'range);
-      inc          : sl;
-      sign         : sl;      
+      typeDly   : slv(1 downto 0);
+      squareCnt : slv(PER_STEP_WIDTH_C-1 downto 0);
+      rampCnt   : signed(F_G*8-1 downto 0);
+      testData  : slv (sampleData_o'range);
+      inc       : sl;
+      sign      : sl;      
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      squareCnt   => (others => '0'),
-      rampCnt     => (others => '0'),
-      testData    => (others => '0'),
-      inc         => '1',
-      sign        => '0'
+      typeDly   => (others => '0'),
+      squareCnt => (others => '0'),
+      rampCnt   => (others => '0'),
+      testData  => (others => '0'),
+      inc       => '1',
+      sign      => '0'
    );
 
    signal r   : RegType := REG_INIT_C;
@@ -157,8 +157,10 @@ begin
          v.inc := '1';
       end if;
       
-      if (enable_i = '0') then
-         v := REG_INIT_C;
+      v.typeDly := type_i;
+      if (enable_i = '0') or (r.typeDly /= type_i)  then
+         v         := REG_INIT_C;
+         v.typeDly := type_i;
       end if;
 
       if (rst = '1') then

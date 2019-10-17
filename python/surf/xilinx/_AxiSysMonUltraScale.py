@@ -1,13 +1,5 @@
 #!/usr/bin/env python
 #-----------------------------------------------------------------------------
-# Title      : PyRogue AXI-Lite System Managment for Xilinx Ultra Scale (Refer to PG185 and UG580)
-#-----------------------------------------------------------------------------
-# File       : AxiSysMonUltraScale.py
-# Created    : 2017-04-12
-#-----------------------------------------------------------------------------
-# Description:
-# PyRogue AXI-Lite System Managment for Xilinx Ultra Scale (Refer to PG185 and UG580)
-#-----------------------------------------------------------------------------
 # This file is part of the rogue software platform. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
 # of this distribution and at:
@@ -21,18 +13,18 @@ import pyrogue as pr
 
 class AxiSysMonUltraScale(pr.Device):
     def __init__(   self,       
-            name        = "AxiSysMonUltraScale",
-            description = "AXI-Lite System Managment for Xilinx Ultra Scale (Refer to PG185 and UG580)",
+            name         = "AxiSysMonUltraScale",
+            description  = "AXI-Lite System Managment for Xilinx Ultra Scale (Refer to PG185)",
+            XIL_DEVICE_G = "ULTRASCALE",
             **kwargs):
         super().__init__(name=name, description=description, **kwargs) 
 
         def addPair(name,offset,bitSize,units,bitOffset,description,function,pollInterval = 0,):
             self.add(pr.RemoteVariable(  
-                name         = (name+"Raw"), 
+                name         = ("Raw"+name), 
                 offset       = offset, 
                 bitSize      = bitSize, 
                 bitOffset    = bitOffset,
-                base         = pr.UInt, 
                 mode         = 'RO', 
                 description  = description,
                 pollInterval = pollInterval,
@@ -44,8 +36,17 @@ class AxiSysMonUltraScale(pr.Device):
                 units        = units,
                 linkedGet    = function,
                 typeStr      = "Float32",
-                dependencies = [self.variables[name+"Raw"]],
+                dependencies = [self.variables["Raw"+name]],
             ))
+
+        if XIL_DEVICE_G == "ULTRASCALE":
+           self.convTemp = self.convTempSYSMONE1
+           self.convSetTemp = self.convSetTempSYSMONE1
+        elif XIL_DEVICE_G == "ULTRASCALE_PLUS":
+           self.convTemp = self.convTempSYSMONE4
+           self.convSetTemp = self.convSetTempSYSMONE4
+        else:
+           raise Exception('AxiSysMonUltraScale: Device {} not supported'.format(XIL_DEVICE_G))
         
         ##############################
         # Variables
@@ -57,7 +58,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x04,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             hidden       =  True,
         ))
@@ -68,7 +68,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x08,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             hidden       =  True,
         ))
@@ -79,7 +78,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x0C,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "WO",
             hidden       =  True,
         ))
@@ -90,7 +88,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x10,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "WO",
             hidden       =  True,
         ))
@@ -101,7 +98,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x5C,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             hidden       =  True,
         ))
@@ -112,7 +108,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x60,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             hidden       =  True,
         ))
@@ -123,7 +118,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x68,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             hidden       =  True,
         ))
@@ -345,7 +339,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x4E0,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             hidden       =  True,
         ))
@@ -356,23 +349,21 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x4FC,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             hidden       =  True,
         ))
 
-        self.addRemoteVariables( 
-            name         = "Configuration",
-            description  = "Configuration Registers",
-            offset       =  0x500,
-            bitSize      =  32,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
-            mode         = "RW",
-            number       =  4,
-            stride       =  4,
-            hidden       =  True,
-        )
+#        self.addRemoteVariables( 
+#            name         = "Configuration",
+#            description  = "Configuration Registers",
+#            offset       =  0x500,
+#            bitSize      =  32,
+#            bitOffset    =  0x00,
+#            mode         = "RW",
+#            number       =  4,
+#            stride       =  4,
+#            hidden       =  True,
+#        )
 
         self.add(pr.RemoteVariable(    
             name         = "SequenceReg8",
@@ -380,7 +371,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x518,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             hidden       =  True,
         ))
@@ -391,7 +381,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x51C,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             hidden       =  True,
         ))
@@ -402,25 +391,79 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x520,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             number       =  8,
             stride       =  4,
             hidden       =  True,
         )
 
-        self.addRemoteVariables( 
-            name         = "AlarmThresholdReg_8_0",
-            description  = "Alarm Threshold Register [8:0]",
-            offset       =  0x540,
-            bitSize      =  32,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
+#        self.addRemoteVariables( 
+#            name         = "AlarmThresholdReg_8_0",
+#            description  = "Alarm Threshold Register [8:0]",
+#            offset       =  0x540,
+#            bitSize      =  32,
+#            bitOffset    =  0x00,
+#            mode         = "RW",
+#            number       =  9,
+#            stride       =  4,
+#            hidden       =  True,
+#       )
+
+        self.add(pr.RemoteVariable( 
+            name         = "OTThresholdDisable",
+            description  = "Set 1 to disable OT threshold",
+            offset       =  0x504,
+            bitSize      =  1,
+            bitOffset    =  0x0,
             mode         = "RW",
-            number       =  9,
-            stride       =  4,
-            hidden       =  True,
-        )
+        ))
+        
+        self.add(pr.RemoteVariable( 
+            name         = "OTAutomaticShutdown",
+            description  = "OT_AUTOMATIC_SHUTDOWN, set to 0x3 to enable (defatul 125 degC)",
+            offset       =  0x54C,
+            bitSize      =  4,
+            bitOffset    =  0x0,
+            mode         = "RW",
+        ))
+        
+        self.add(pr.RemoteVariable( 
+            name         = "OTUpperThresholdRaw",
+            description  = "UPPER_OT threshold",
+            offset       =  0x54C,
+            bitSize      =  12,
+            bitOffset    =  0x4,
+            mode         = "RW",
+        ))
+
+        self.add(pr.LinkVariable(
+            name         = "OTUpperThreshold", 
+            mode         = 'RW', 
+            units        = 'degC',
+            linkedGet    = self.convTemp,
+            linkedSet    = self.convSetTemp,
+            typeStr      = "Float32",
+            dependencies = [self.variables["OTUpperThresholdRaw"]],
+        ))
+         
+        self.add(pr.RemoteVariable( 
+            name         = "OTLowerThresholdRaw",
+            description  = "LOWER_OT threshold",
+            offset       =  0x55C,
+            bitSize      =  12,
+            bitOffset    =  0x4,
+            mode         = "RW",
+        ))
+
+        self.add(pr.LinkVariable(
+            name         = "OTLowerThreshold", 
+            mode         = 'RW', 
+            units        = 'degC',
+            linkedGet    = self.convTemp,
+            linkedSet    = self.convSetTemp,
+            typeStr      = "Float32",
+            dependencies = [self.variables["OTLowerThresholdRaw"]],
+        ))        
 
         self.add(pr.RemoteVariable(    
             name         = "AlarmThresholdReg12",
@@ -428,7 +471,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x570,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             hidden       =  True,
         ))
@@ -439,7 +481,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x580,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             number       =  8,
             stride       =  4,
@@ -452,7 +493,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x600,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             number       =  4,
             stride       =  4,
@@ -465,7 +505,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x680,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             number       =  4,
             stride       =  4,
@@ -478,7 +517,6 @@ class AxiSysMonUltraScale(pr.Device):
             offset       =  0x6A0,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             number       =  4,
             stride       =  4,
@@ -490,11 +528,30 @@ class AxiSysMonUltraScale(pr.Device):
         
 
     @staticmethod
-    def convTemp(dev, var):
+    def convTempSYSMONE1(dev, var):
         value   = var.dependencies[0].get(read=False)
         fpValue = value*(501.3743/4096.0)
         fpValue -= 273.6777
         return round(fpValue,3)
+
+    @staticmethod
+    def convSetTempSYSMONE1(dev, var, value):
+        fpValue = (value + 273.6777)*(4096.0/501.3743)
+        intValue = round(fpValue)
+        var.dependencies[0].set(intValue, write=True)
+
+    @staticmethod
+    def convTempSYSMONE4(dev, var):
+        value   = var.dependencies[0].get(read=False)
+        fpValue = value*(509.3140064/4096.0)
+        fpValue -= 280.23087870
+        return round(fpValue,3)
+
+    @staticmethod
+    def convSetTempSYSMONE4(dev, var, value):
+        fpValue = (value + 280.23087870)*(4096.0/509.3140064)
+        intValue = round(fpValue)
+        var.dependencies[0].set(intValue, write=True)
 
     @staticmethod
     def convCoreVoltage(var):

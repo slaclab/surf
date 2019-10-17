@@ -1,10 +1,10 @@
 -------------------------------------------------------------------------------
+-- Title      : SRPv3 Protocol: https://confluence.slac.stanford.edu/x/cRmVD
+-------------------------------------------------------------------------------
 -- File       : SrpV3AxiLite.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SLAC Register Protocol Version 3, AXI-Lite Interface
---
--- Documentation: https://confluence.slac.stanford.edu/x/cRmVD
 --
 -- Note: This module only supports 32-bit aligned addresses and 32-bit transactions.  
 --       For non 32-bit aligned addresses or non 32-bit transactions, use
@@ -36,7 +36,7 @@ entity SrpV3AxiLite is
       INT_PIPE_STAGES_G     : natural range 0 to 16   := 1;
       PIPE_STAGES_G         : natural range 0 to 16   := 1;
       FIFO_PAUSE_THRESH_G   : positive range 1 to 511 := 256;
-      TX_VALID_THOLD_G      : positive range 1 to 511 := 256;   -- >1 = only when frame ready or # entries
+      TX_VALID_THOLD_G      : positive range 1 to 511 := 500;   -- >1 = only when frame ready or # entries
       TX_VALID_BURST_MODE_G : boolean                 := true;  -- only used in VALID_THOLD_G>1
       SLAVE_READY_EN_G      : boolean                 := false;
       GEN_SYNC_FIFO_G       : boolean                 := false;
@@ -799,9 +799,10 @@ begin
          USE_BUILT_IN_G      => false,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
-         CASCADE_SIZE_G      => 1,
-         FIFO_ADDR_WIDTH_G   => 9,
+         ALTERA_RAM_G        => ALTERA_RAM_G,         
+         INT_WIDTH_SELECT_G  => "CUSTOM",
+         INT_DATA_WIDTH_G    => 16,     -- 128-bit         
+         FIFO_ADDR_WIDTH_G   => 9,      -- 8kB/FIFO = 128-bits x 512 entries         
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_G)

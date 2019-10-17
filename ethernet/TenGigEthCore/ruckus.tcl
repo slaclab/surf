@@ -21,11 +21,13 @@ if { ${family} eq {kintexu} } {
 }
 
 if { ${family} eq {kintexuplus} ||
-     ${family} eq {zynquplus} } {
+     ${family} eq {zynquplus} ||
+     ${family} eq {zynquplusRFSOC} } {
    loadRuckusTcl "$::DIR_PATH/gthUltraScale+"
    loadRuckusTcl "$::DIR_PATH/gtyUltraScale+"
 }
 
-if { ${family} eq {virtexuplus} } {
+if { ${family} eq {virtexuplus} ||
+     ${family} eq {virtexuplusHBM} } {
    loadRuckusTcl "$::DIR_PATH/gtyUltraScale+"
 }

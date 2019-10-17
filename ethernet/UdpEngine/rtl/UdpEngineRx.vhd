@@ -81,6 +81,8 @@ architecture rtl of UdpEngineRx is
       LAST_S);
 
    type RegType is record
+      tDestServer      : slv(7 downto 0);
+      tDestClient      : slv(7 downto 0);
       serverRemotePort : Slv16Array(SERVER_SIZE_G-1 downto 0);
       serverRemoteIp   : Slv32Array(SERVER_SIZE_G-1 downto 0);
       serverRemoteMac  : Slv48Array(SERVER_SIZE_G-1 downto 0);
@@ -97,6 +99,8 @@ architecture rtl of UdpEngineRx is
       state            : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
+      tDestServer      => (others => '0'),
+      tDestClient      => (others => '0'),
       serverRemotePort => (others => (others => '0')),
       serverRemoteIp   => (others => (others => '0')),
       serverRemoteMac  => (others => (others => '0')),
@@ -217,7 +221,7 @@ begin
                         -- Check if port is defined
                         if (v.route = NULL_S) and (rxMaster.tData(63 downto 48) = SERVER_PORTS_C(i)) then
                            v.route               := SERVER_S;
-                           v.serverMaster.tDest  := toSlv(i, 8);
+                           v.tDestServer         := toSlv(i, 8);
                            v.serverRemotePort(i) := rxMaster.tData(47 downto 32);
                            v.serverRemoteIp(i)   := r.tData(95 downto 64);
                            v.serverRemoteMac(i)  := r.tData(47 downto 0);
@@ -230,7 +234,7 @@ begin
                         -- Check if port is defined
                         if (v.route = NULL_S) and (rxMaster.tData(63 downto 48) = CLIENT_PORTS_C(i)) then
                            v.route              := CLIENT_S;
-                           v.clientMaster.tDest := toSlv(i, 8);
+                           v.tDestClient        := toSlv(i, 8);
                            v.clientRemoteDet(i) := '1';
                         end if;
                      end loop;
@@ -282,6 +286,7 @@ begin
                      v.rxSlave.tReady                        := '1';
                      -- Move the data
                      v.serverMaster.tValid                   := '1';
+                     v.serverMaster.tDest                    := r.tDestServer;
                      v.serverMaster.tData(31 downto 0)       := r.tData(31 downto 0);
                      v.serverMaster.tData(127 downto 32)     := rxMaster.tData(95 downto 0);
                      ssiSetUserSof(EMAC_AXIS_CONFIG_C, v.serverMaster, r.sof);
@@ -329,6 +334,7 @@ begin
                      v.rxSlave.tReady                        := '1';
                      -- Move the data
                      v.clientMaster.tValid                   := '1';
+                     v.clientMaster.tDest                    := r.tDestClient;
                      v.clientMaster.tData(31 downto 0)       := r.tData(31 downto 0);
                      v.clientMaster.tData(127 downto 32)     := rxMaster.tData(95 downto 0);
                      ssiSetUserSof(EMAC_AXIS_CONFIG_C, v.clientMaster, r.sof);
@@ -416,6 +422,7 @@ begin
                   if (v.serverMaster.tValid = '0') then
                      -- Move the data
                      v.serverMaster.tValid              := '1';
+                     v.serverMaster.tDest               := r.tDestServer;
                      v.serverMaster.tData(127 downto 0) := r.tData;
                      v.serverMaster.tKeep               := genTKeep(conv_integer(r.byteCnt));
                      v.serverMaster.tLast               := '1';
@@ -429,6 +436,7 @@ begin
                   if (v.clientMaster.tValid = '0') then
                      -- Move the data
                      v.clientMaster.tValid              := '1';
+                     v.clientMaster.tDest               := r.tDestClient;
                      v.clientMaster.tData(127 downto 0) := r.tData;
                      v.clientMaster.tKeep               := genTKeep(conv_integer(r.byteCnt));
                      v.clientMaster.tLast               := '1';

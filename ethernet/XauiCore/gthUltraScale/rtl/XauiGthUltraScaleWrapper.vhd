@@ -29,13 +29,13 @@ entity XauiGthUltraScaleWrapper is
    generic (
       TPD_G             : time                := 1 ns;
       PAUSE_EN_G        : boolean             := true;
-      PAUSE_512BITS_G   : positive            := 8;
       EN_WDT_G          : boolean             := false;
+      EXT_REF_G         : boolean             := false;
       STABLE_CLK_FREQ_G : real                := 156.25E+6;  -- Support 156.25MHz or 312.5MHz
       -- AXI-Lite Configurations
       EN_AXI_REG_G      : boolean             := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G     : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      AXIS_CONFIG_G     : AxiStreamConfigType := EMAC_AXIS_CONFIG_C);
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
@@ -66,8 +66,9 @@ entity XauiGthUltraScaleWrapper is
       gtRxPolarity       : in  slv(3 downto 0)        := x"0";
       gtTxPolarity       : in  slv(3 downto 0)        := x"0";
       -- MGT Clock Port (156.25MHz or 312.5MHz)
-      gtClkP             : in  sl;
-      gtClkN             : in  sl;
+      gtRefClk           : in  sl                     := '0';
+      gtClkP             : in  sl                     := '0';
+      gtClkN             : in  sl                     := '1';
       -- MGT Ports
       gtTxP              : out slv(3 downto 0);
       gtTxN              : out slv(3 downto 0);
@@ -78,6 +79,7 @@ end XauiGthUltraScaleWrapper;
 architecture mapping of XauiGthUltraScaleWrapper is
 
    signal refClk   : sl;
+   signal refClock : sl;
    signal linkUp   : sl;
    signal wdtRst   : sl;
    signal wdtReset : sl;
@@ -94,6 +96,8 @@ begin
          CEB   => '0',
          ODIV2 => open,
          O     => refClk);
+
+   refClock <= gtRefClk when(EXT_REF_G) else refClk;
 
    GEN_WDT : if (EN_WDT_G = true) generate
 
@@ -133,13 +137,12 @@ begin
    ----------------------
    XauiGthUltraScale_Inst : entity work.XauiGthUltraScale
       generic map (
-         TPD_G           => TPD_G,
-         PAUSE_EN_G      => PAUSE_EN_G,
-         PAUSE_512BITS_G => PAUSE_512BITS_G,
+         TPD_G         => TPD_G,
+         PAUSE_EN_G    => PAUSE_EN_G,
          -- AXI-Lite Configurations
-         EN_AXI_REG_G    => EN_AXI_REG_G,
+         EN_AXI_REG_G  => EN_AXI_REG_G,
          -- AXI Streaming Configurations
-         AXIS_CONFIG_G   => AXIS_CONFIG_G)
+         AXIS_CONFIG_G => AXIS_CONFIG_G)
       port map (
          -- Local Configurations
          localMac           => localMac,
@@ -169,7 +172,7 @@ begin
          gtRxPolarity       => gtRxPolarity,
          gtTxPolarity       => gtTxPolarity,
          -- MGT Ports
-         refClk             => refClk,
+         refClk             => refClock,
          gtTxP              => gtTxP,
          gtTxN              => gtTxN,
          gtRxP              => gtRxP,

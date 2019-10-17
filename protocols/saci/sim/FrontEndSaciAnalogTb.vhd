@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+-- Title      : SACI Protocol: https://confluence.slac.stanford.edu/x/YYcRDQ
+-------------------------------------------------------------------------------
 -- File       : FrontEndSaciAnalogTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------

@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+-- Title      : RSSI Protocol: https://confluence.slac.stanford.edu/x/1IyfD
+-------------------------------------------------------------------------------
 -- File       : RssiConnFsm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -468,10 +470,9 @@ begin
    sndRst_o     <= r.sndRst;
    txAckF_o     <= r.txAckF;
    
-   -- Parameters for receiver (have to be correctly set by the app)
-   rxBufferSize_o <= conv_integer(appRssiParam_i.maxSegSize(15 downto 3)); -- Divide by 8
-   rxWindowSize_o <= conv_integer(appRssiParam_i.maxOutsSeg);
    -- Parameters for transmitter are received by the peer and checked by FSM 
+   rxBufferSize_o <= r.txBufferSize;
+   rxWindowSize_o <= r.txWindowSize;
    txBufferSize_o <= r.txBufferSize;
    txWindowSize_o <= r.txWindowSize;
    closed_o <= r.closed;

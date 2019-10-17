@@ -50,7 +50,9 @@ package AxiStreamPkg is
    type AxiStreamMasterVectorArray is array (natural range<>, natural range<>) of AxiStreamMasterType;
    subtype AxiStreamQuadMasterType is AxiStreamMasterArray(3 downto 0);
    type AxiStreamQuadMasterArray is array (natural range <>) of AxiStreamMasterArray(3 downto 0);
-
+   subtype AxiStreamOctalMasterType is AxiStreamMasterArray(7 downto 0);
+   type AxiStreamOctalMasterArray is array (natural range <>) of AxiStreamMasterArray(7 downto 0);  
+                                            
    type AxiStreamSlaveType is record
       tReady : sl;
    end record AxiStreamSlaveType;
@@ -59,7 +61,9 @@ package AxiStreamPkg is
    type AxiStreamSlaveVectorArray is array (natural range<>, natural range<>) of AxiStreamSlaveType;
    subtype AxiStreamQuadSlaveType is AxiStreamSlaveArray(3 downto 0);
    type AxiStreamQuadSlaveArray is array (natural range <>) of AxiStreamSlaveArray(3 downto 0);
-
+   subtype AxiStreamOctalSlaveType is AxiStreamSlaveArray(7 downto 0);
+   type AxiStreamOctalSlaveArray is array (natural range <>) of AxiStreamSlaveArray(7 downto 0);   
+                                           
    constant AXI_STREAM_SLAVE_INIT_C : AxiStreamSlaveType := (
       tReady => '0');
 
@@ -121,7 +125,9 @@ package AxiStreamPkg is
    type AxiStreamCtrlVectorArray is array (natural range<>, natural range<>) of AxiStreamCtrlType;
    subtype AxiStreamQuadCtrlType is AxiStreamCtrlArray(3 downto 0);
    type AxiStreamQuadCtrlArray is array (natural range <>) of AxiStreamCtrlArray(3 downto 0);
-
+   subtype AxiStreamOctalCtrlType is AxiStreamCtrlArray(7 downto 0);
+   type AxiStreamOctalCtrlArray is array (natural range <>) of AxiStreamCtrlArray(7 downto 0);  
+                                          
    -------------------------------------------------------------------------------------------------
    -- Helper function prototypes
    -------------------------------------------------------------------------------------------------
@@ -336,6 +342,7 @@ package body AxiStreamPkg is
    begin
       retVar := (others => '0');
       if bytes /= 0 then
+         -- Assumes TKEEP_MODE_C /= TKEEP_COUNT_C
          retVar(bytes-1 downto 0) := (others => '1');
       end if;
       return retVar;
@@ -343,6 +350,7 @@ package body AxiStreamPkg is
 
    function genTKeep (constant config : AxiStreamConfigType) return slv is
    begin
+      -- Assumes TKEEP_MODE_C /= TKEEP_COUNT_C
       return genTKeep(config.TDATA_BYTES_C);
    end function genTKeep;
 
@@ -351,23 +359,29 @@ package body AxiStreamPkg is
       variable retVar    : natural;
       variable i         : natural;
    begin
+      -- Init
       retVar    := 0;
       tKeepFull := resize(tKeep, AXI_STREAM_MAX_TKEEP_WIDTH_C);
-      for i in 0 to axisConfig.TDATA_BYTES_C-1 loop
-         -- report "AxiStreamPkg::genTKeep( i:" & integer'image(i) & ")" severity warning;
-         ----------------------------------------------------
-         -- Confirmed in simulation the for loop ordering is:
-         ----------------------------------------------------
-         -- Warning: AxiStreamPkg::genTKeep( i:0)
-         -- Warning: AxiStreamPkg::genTKeep( i:1)
-         -- Warning: AxiStreamPkg::genTKeep( i:2)
-         -- .....................................
-         -- .....................................
-         ----------------------------------------------------
-         if (tKeepFull(i) = '1') then
-            retVar := (i+1);
-         end if;
-      end loop;
+      -- Check if TKEEP_MODE_C = TKEEP_COUNT_C
+      if (axisConfig.TKEEP_MODE_C = TKEEP_COUNT_C) then
+         retVar := conv_integer(tKeep(bitSize(axisConfig.TDATA_BYTES_C)-1 downto 0));
+      else
+         for i in 0 to axisConfig.TDATA_BYTES_C-1 loop
+            -- report "AxiStreamPkg::genTKeep( i:" & integer'image(i) & ")" severity warning;
+            ----------------------------------------------------
+            -- Confirmed in simulation the for loop ordering is:
+            ----------------------------------------------------
+            -- Warning: AxiStreamPkg::genTKeep( i:0)
+            -- Warning: AxiStreamPkg::genTKeep( i:1)
+            -- Warning: AxiStreamPkg::genTKeep( i:2)
+            -- .....................................
+            -- .....................................
+            ----------------------------------------------------
+            if (tKeepFull(i) = '1') then
+               retVar := (i+1);
+            end if;
+         end loop;
+      end if;
       return retVar;
    end function getTKeep;
 

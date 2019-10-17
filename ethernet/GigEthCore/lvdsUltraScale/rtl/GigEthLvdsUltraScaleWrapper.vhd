@@ -30,11 +30,11 @@ entity GigEthLvdsUltraScaleWrapper is
       TPD_G           : time                             := 1 ns;
       NUM_LANE_G      : positive                         := 1;
       PAUSE_EN_G      : boolean                          := true;
-      PAUSE_512BITS_G : positive                         := 8;
       -- Clocking Configurations
       USE_REFCLK_G    : boolean                          := false;  --  FALSE: sgmiiClkP/N,  TRUE: sgmiiRefClk
       CLKFBOUT_MULT_G : positive                         := 10;
       CLKOUT1_PHASE_G : real                             := 90.0;
+      USE_BUFG_DIV_G  : boolean                          := false;
       -- AXI-Lite Configurations
       EN_AXI_REG_G    : boolean                          := false;
       -- AXI Streaming Configurations
@@ -83,7 +83,8 @@ architecture mapping of GigEthLvdsUltraScaleWrapper is
    signal refClk       : sl;
    signal refRst       : sl;
    signal locked       : sl;
-   signal clkFb        : sl;
+   signal clkFbIn      : sl;
+   signal clkFbOut     : sl;
 
    signal CLKOUT0 : sl;
    signal CLKOUT1 : sl;
@@ -134,15 +135,15 @@ begin
    U_PLL : PLLE3_ADV
       generic map(
          CLKOUTPHY_MODE => "VCO",
-         COMPENSATION   => "INTERNAL",
+         COMPENSATION   => "AUTO",
          STARTUP_WAIT   => "FALSE",
          CLKIN_PERIOD   => 8.0,
          DIVCLK_DIVIDE  => 1,
-         CLKFBOUT_MULT  => CLKFBOUT_MULT_G,  -- 1.25GHz
-         CLKOUT0_DIVIDE => 2,                -- 625 MHz
-         CLKOUT1_DIVIDE => 4,                -- 312.5 MHz
+         CLKFBOUT_MULT  => CLKFBOUT_MULT_G,             -- 1.25GHz
+         CLKOUT0_DIVIDE => 2,           -- 625 MHz
+         CLKOUT1_DIVIDE => ite(USE_BUFG_DIV_G, 10, 4),  -- true=125MHz, false=312.5MHz
          CLKOUT0_PHASE  => 0.0,
-         CLKOUT1_PHASE  => CLKOUT1_PHASE_G)  -- Deskew the clk0/clk1
+         CLKOUT1_PHASE  => ite(USE_BUFG_DIV_G, 0.0, CLKOUT1_PHASE_G))  -- Deskew the clk0/clk1
       port map (
          DCLK        => '0',
          DRDY        => open,
@@ -153,22 +154,67 @@ begin
          DO          => open,
          PWRDWN      => '0',
          CLKOUTPHYEN => '0',
-         CLKIN       => refClk,              -- 125 MHz
+         CLKIN       => refClk,         -- 125 MHz
          RST         => refRst,
-         CLKFBIN     => clkFb,
-         CLKFBOUT    => clkFb,
+         CLKFBIN     => clkFbIn,
+         CLKFBOUT    => clkFbOut,
          CLKOUT0     => CLKOUT0,
          CLKOUT1     => CLKOUT1,
          LOCKED      => locked);
 
-   U_sysClk125 : BUFGCE_DIV
-      generic map (
-         BUFGCE_DIVIDE => 5)
+   U_Bufg : BUFG
       port map (
-         I   => CLKOUT0,
-         CE  => '1',
-         CLR => '0',
-         O   => sysClk125);
+         I => clkFbOut,
+         O => clkFbIn);
+
+   U_sysClk625 : BUFG
+      port map (
+         I => CLKOUT0,                  -- 625 MHz
+         O => sysClk625);               -- 625 MHz
+
+   GEN_BUFG : if (USE_BUFG_DIV_G = false) generate
+
+      U_sysClk125 : BUFGCE_DIV
+         generic map (
+            BUFGCE_DIVIDE => 5)
+         port map (
+            I   => CLKOUT0,             -- 625 MHz
+            CE  => '1',
+            CLR => '0',
+            O   => sysClk125);          -- 125 MHz
+
+      ----------------------------------------------------------
+      -- Refer to "Fig: Fabric Clocking With MMCM clock outputs"
+      -- https://www.xilinx.com/support/answers/67885.html
+      ----------------------------------------------------------
+      U_sysClk312 : BUFG
+         port map (
+            I => CLKOUT1,               -- 312.5 MHz
+            O => sysClk312);            -- 312.5 MHz
+
+   end generate;
+
+   GEN_BUFG_DIV : if (USE_BUFG_DIV_G = true) generate
+
+      U_sysClk125 : BUFG
+         port map (
+            I => CLKOUT1,               -- 125 MHz
+            O => sysClk125);            -- 125 MHz
+
+      ------------------------------------------------------------------------------------------------------
+      -- 312.5 MHz is the OSERDESE3's CLKDIV port
+      -- Refer to "Figure 3-49: Sub-Optimal to Optimal Clocking Topologies for OSERDESE3" in UG949 (v2018.2)
+      ------------------------------------------------------------------------------------------------------
+      U_sysClk312 : BUFGCE_DIV
+         generic map (
+            BUFGCE_DIVIDE => 2)         -- 312.5 MHz = 625 MHz/2
+         port map (
+            I   => CLKOUT0,             -- 625 MHz
+            CE  => '1',
+            CLR => '0',
+            O   => sysClk312);          -- 312.5 MHz
+
+   end generate;
 
    U_sysRst125 : entity work.RstSync
       generic map (
@@ -178,20 +224,6 @@ begin
          clk      => sysClk125,
          asyncRst => locked,
          syncRst  => sysRst125);
-
-   ----------------------------------------------------------
-   -- Refer to "Fig: Fabric Clocking With MMCM clock outputs"
-   -- https://www.xilinx.com/support/answers/67885.html
-   ----------------------------------------------------------
-   U_sysClk625 : BUFG
-      port map (
-         I => CLKOUT0,
-         O => sysClk625);
-
-   U_sysClk312 : BUFG
-      port map (
-         I => CLKOUT1,
-         O => sysClk312);
 
    --------------------------------------------------------------------------------------------------------
    -- Ethernet 'lanes' (in case multiple Ethernets can share a common clock -- however, due to tight timing
@@ -211,13 +243,12 @@ begin
 
       U_GigEthLvdsUltraScale : entity work.GigEthLvdsUltraScale
          generic map (
-            TPD_G           => TPD_G,
-            PAUSE_EN_G      => PAUSE_EN_G,
-            PAUSE_512BITS_G => PAUSE_512BITS_G,
+            TPD_G         => TPD_G,
+            PAUSE_EN_G    => PAUSE_EN_G,
             -- AXI-Lite Configurations
-            EN_AXI_REG_G    => EN_AXI_REG_G,
+            EN_AXI_REG_G  => EN_AXI_REG_G,
             -- AXI Streaming Configurations
-            AXIS_CONFIG_G   => AXIS_CONFIG_G(i))
+            AXIS_CONFIG_G => AXIS_CONFIG_G(i))
          port map (
             -- Local Configurations
             localMac           => localMac(i),

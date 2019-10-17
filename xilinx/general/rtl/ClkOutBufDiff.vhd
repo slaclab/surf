@@ -23,7 +23,7 @@ use UNISIM.VCOMPONENTS.all;
 entity ClkOutBufDiff is
    generic (
       TPD_G          : time    := 1 ns;
-      XIL_DEVICE_G   : string  := "7SERIES";
+      XIL_DEVICE_G   : string   := "7SERIES";  -- Either "7SERIES" or "ULTRASCALE" or "ULTRASCALE_PLUS"
       RST_POLARITY_G : sl      := '1';
       INVERT_G       : boolean := false);
    port (
@@ -41,6 +41,9 @@ architecture rtl of ClkOutBufDiff is
 
 begin
 
+   assert (XIL_DEVICE_G ="7SERIES" or XIL_DEVICE_G ="ULTRASCALE" or XIL_DEVICE_G ="ULTRASCALE_PLUS") 
+      report "XIL_DEVICE_G must be either [7SERIES,ULTRASCALE,ULTRASCALE_PLUS]" severity failure;
+
    rst <= rstIn when(RST_POLARITY_G = '1') else not(rstIn);
 
    GEN_7SERIES : if (XIL_DEVICE_G = "7SERIES") generate
@@ -55,7 +58,7 @@ begin
             S  => '0');
    end generate;
 
-   GEN_ULTRA_SCALE : if (XIL_DEVICE_G = "ULTRASCALE") generate
+   GEN_ULTRA_SCALE : if (XIL_DEVICE_G = "ULTRASCALE") or (XIL_DEVICE_G = "ULTRASCALE_PLUS") generate
       ODDR_I : ODDRE1
          port map (
             C  => clkIn,

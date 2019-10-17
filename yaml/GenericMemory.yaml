@@ -24,7 +24,7 @@ GenericMemory: &GenericMemory
   children:
     #########################################################
     MemoryArray:
-      <<: MemoryArray
+      <<: *MemoryArray
       at:
         offset: 0x0
         nelms: 1

@@ -22,6 +22,7 @@ import surf.misc as misc
 import click
 import time
 import datetime
+import math
 
 class AxiMicronMt28ew(pr.Device):
     def __init__(self,       
@@ -42,7 +43,7 @@ class AxiMicronMt28ew(pr.Device):
         @self.command(value='',description="Load the .MCS into PROM",)
         def LoadMcsFile(arg):
             
-            click.secho(('LoadMcsFile: %s' % arg), fg='green')
+            click.secho(('%s.LoadMcsFile: %s' % (self.path,arg) ), fg='green')
             self._progDone = False 
             
             # Start time measurement for profiling
@@ -94,7 +95,7 @@ class AxiMicronMt28ew(pr.Device):
         ERASE_SIZE = 0x10000 
         # Setup the status bar
         with click.progressbar(
-            iterable = range(int((self._mcs.size)/ERASE_SIZE)),
+            iterable = range(math.ceil(self._mcs.size/ERASE_SIZE)),
             label    = click.style('Erasing PROM:  ', fg='green'),
         ) as bar:
             for i in bar:
@@ -198,7 +199,7 @@ class AxiMicronMt28ew(pr.Device):
                     # Compare PROM to file
                     if (data != prom):
                         click.secho(("\nAddr = 0x%x: MCS = 0x%x != PROM = 0x%x" % (addr,data,prom)), fg='red')
-                        raise McsException('verifyProm() Failed\n\n')
+                        raise misc.McsException('verifyProm() Failed\n\n')
             # Close the status bar
             bar.update(self._mcs.size)  
         

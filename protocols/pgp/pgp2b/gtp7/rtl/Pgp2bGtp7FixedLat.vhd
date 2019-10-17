@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+-- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
+-------------------------------------------------------------------------------
 -- File       : Pgp2bGtp7FixedLat.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -26,8 +28,8 @@ use UNISIM.VCOMPONENTS.all;
 
 entity Pgp2bGtp7FixedLat is
    generic (
-      TPD_G : time := 1 ns;
-      COMMON_CLK_G          : boolean              := false;-- set true if (stableClk = axilClk)
+      TPD_G                 : time       := 1 ns;
+      COMMON_CLK_G          : boolean    := false;  -- set true if (stableClk = axilClk)
       ----------------------------------------------------------------------------------------------
       -- GT Settings
       ----------------------------------------------------------------------------------------------
@@ -40,20 +42,20 @@ entity Pgp2bGtp7FixedLat is
       -- TX/RX Settings - Defaults to 2.5 Gbps operation 
       RXOUT_DIV_G           : integer    := 2;
       TXOUT_DIV_G           : integer    := 2;
-      RX_CLK25_DIV_G        : integer    := 5;                         -- Set by wizard
-      TX_CLK25_DIV_G        : integer    := 5;                         -- Set by wizard
+      RX_CLK25_DIV_G        : integer    := 5;      -- Set by wizard
+      TX_CLK25_DIV_G        : integer    := 5;      -- Set by wizard
       PMA_RSV_G             : bit_vector := x"00000333";               -- Set by wizard
       RX_OS_CFG_G           : bit_vector := "0001111110000";           -- Set by wizard
       RXCDR_CFG_G           : bit_vector := x"0000107FE206001041010";  -- Set by wizard
-      RXLPM_INCM_CFG_G      : bit        := '1';                       -- Set by wizard
-      RXLPM_IPCM_CFG_G      : bit        := '0';                       -- Set by wizard      
+      RXLPM_INCM_CFG_G      : bit        := '1';    -- Set by wizard
+      RXLPM_IPCM_CFG_G      : bit        := '0';    -- Set by wizard      
 
       -- Allow TX to run in var lat mode by altering these generics
       TX_BUF_EN_G      : boolean := false;
       TX_OUTCLK_SRC_G  : string  := "PLLREFCLK";
       TX_PHASE_ALIGN_G : string  := "MANUAL";
       -- Configure PLL sources
-      DYNAMIC_QPLL_G   : boolean := false; 
+      DYNAMIC_QPLL_G   : boolean := false;
       TX_PLL_G         : string  := "PLL0";
       RX_PLL_G         : string  := "PLL1";
 
@@ -71,7 +73,7 @@ entity Pgp2bGtp7FixedLat is
       -- GT Clocking
       stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
       qPllRxSelect     : in  slv(1 downto 0) := "00";
-      qPllTxSelect     : in  slv(1 downto 0) := "00";      
+      qPllTxSelect     : in  slv(1 downto 0) := "00";
       gtQPllOutRefClk  : in  slv(1 downto 0) := "00";     -- Signals from QPLLs
       gtQPllOutClk     : in  slv(1 downto 0) := "00";
       gtQPllLock       : in  slv(1 downto 0) := "00";
@@ -151,6 +153,7 @@ architecture rtl of Pgp2bGtp7FixedLat is
    -- PgpRx Signals
    signal gtRxData      : slv(19 downto 0);                -- Feed to 8B10B decoder
    signal dataValid     : sl;                              -- no decode or disparity errors
+   signal dataValidTmp  : sl;                              -- no decode or disparity errors   
    signal phyRxLanesIn  : Pgp2bRxPhyLaneInArray(0 to 0);   -- Output from decoder
    signal phyRxLanesOut : Pgp2bRxPhyLaneOutArray(0 to 0);  -- Polarity to GT
    signal phyRxReady    : sl;                              -- To RxRst
@@ -212,8 +215,22 @@ begin
          phyRxLanesOut    => phyRxLanesOut,
          phyRxLanesIn     => phyRxLanesIn,
          phyRxReady       => gtRxResetDone,
-         phyRxInit        => gtRxUserReset   -- Ignore phyRxInit, rx will reset on its own
+         phyRxInit        => phyRxInit       -- Ignore phyRxInit, rx will reset on its own
          );
+
+   -------------------------------------------------------------------------------------------------
+   -- Oneshot the phy init because clock may drop out and leave it stuck high
+   -------------------------------------------------------------------------------------------------
+   U_SynchronizerOneShot_1 : entity work.SynchronizerOneShot
+      generic map (
+         TPD_G          => TPD_G,
+         IN_POLARITY_G  => '1',
+         OUT_POLARITY_G => '1',
+         PULSE_WIDTH_G  => 100)
+      port map (
+         clk     => stableClk,          -- [in]
+         dataIn  => phyRxInit,          -- [in]
+         dataOut => gtRxUserReset);     -- [out]
 
    --------------------------------------------------------------------------------------------------
    -- Rx Data Path
@@ -234,7 +251,24 @@ begin
          codeErr  => phyRxLanesIn(0).decErr,
          dispErr  => phyRxLanesIn(0).dispErr);
 
-   dataValid <= not (uOr(phyRxLanesIn(0).decErr) or uOr(phyRxLanesIn(0).dispErr));
+   dataValidTmp <= not (uOr(phyRxLanesIn(0).decErr) or uOr(phyRxLanesIn(0).dispErr));
+
+   -------------------------------------------------------------------------------------------------
+   -- Filter on dataValid so that it doesn't drop immediately on errors
+   -- Not currently hooked up but leaving it in so we can try it someday.
+   -------------------------------------------------------------------------------------------------
+   U_Pgp3RxGearboxAligner_1 : entity work.Pgp3RxGearboxAligner
+      generic map (
+         TPD_G       => TPD_G,
+         SLIP_WAIT_G => 1)
+      port map (
+         clk           => pgpRxClk,        -- [in]
+         rst           => gtRxResetDoneL,  -- [in]
+         rxHeader(0)   => dataValidTmp,    -- [in]
+         rxHeader(1)   => '0',             -- [in]
+         rxHeaderValid => '1',             -- [in]
+         slip          => open,            -- [out]
+         locked        => dataValid);      -- [out]
 
    pgpRxRecClkRst <= gtRxResetDoneL;
 
@@ -324,7 +358,7 @@ begin
          rxMmcmLockedIn   => pgpRxMmcmLocked,
          rxUserResetIn    => gtRxUserReset,
          rxResetDoneOut   => gtRxResetDone,                -- Use for rxRecClkReset???
-         rxDataValidIn    => dataValid,   -- From 8b10b
+         rxDataValidIn    => '1',       -- From 8b10b
          rxSlideIn        => '0',       -- Slide is controlled internally
          rxDataOut        => gtRxData,
          rxCharIsKOut     => open,      -- Not using gt rx 8b10b
@@ -384,19 +418,19 @@ begin
          drpDi           => drpDi,
          drpDo           => drpDo);
 
-   GEN_RST : if (COMMON_CLK_G = false) generate   
+   GEN_RST : if (COMMON_CLK_G = false) generate
       U_RstSync : entity work.RstSync
          generic map (
-            TPD_G => TPD_G)      
+            TPD_G => TPD_G)
          port map (
             clk      => stableClk,
             asyncRst => axilRst,
-            syncRst  => stableRst);     
+            syncRst  => stableRst);
    end generate;
-   
-   BYP_RST_SYNC : if (COMMON_CLK_G = true) generate   
-      stableRst <= axilRst; 
-   end generate;   
+
+   BYP_RST_SYNC : if (COMMON_CLK_G = true) generate
+      stableRst <= axilRst;
+   end generate;
 
 end rtl;
 

@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+-- Title      : RSSI Protocol: https://confluence.slac.stanford.edu/x/1IyfD
+-------------------------------------------------------------------------------
 -- File       : RssiHeaderReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -78,6 +80,7 @@ architecture rtl of RssiHeaderReg is
       
       -- Registered header parameters (so they don't change during the checksum calculation)
       ack        :  sl;
+      busy        :  sl;
       txSeqN     :  slv(7 downto 0);
       rxAckN     :  slv(7 downto 0);
       
@@ -88,6 +91,7 @@ architecture rtl of RssiHeaderReg is
       rdy         => '0',
       
       ack        => '0',
+      busy        => '0',
       txSeqN     => (others =>'0'),
       rxAckN     => (others =>'0')
    );
@@ -142,7 +146,7 @@ begin
          case addrInt is
              
             when 16#00# =>
-               v.headerData := "00010000" & toSlv(RST_HEADER_SIZE_G, 8) &
+               v.headerData := "0001000" & r.busy & toSlv(RST_HEADER_SIZE_G, 8) &
                               txSeqN_i & r.rxAckN                      &
                               x"00" & x"00"                            &  -- Reserved
                               x"00" & x"00";                              -- Place for checksum
@@ -155,7 +159,7 @@ begin
          headerLength_o  <= DATA_HEADER_SIZE_G/RSSI_WORD_WIDTH_C;
          case addrInt is
             when 16#00# =>
-               v.headerData := "0" & r.ack & "000000" & toSlv(DATA_HEADER_SIZE_G, 8) &
+               v.headerData := "0" & r.ack & "00000" & r.busy & toSlv(DATA_HEADER_SIZE_G, 8) &
                                txSeqN_i & r.rxAckN                       &
                                x"00" & x"00"                             &  -- Reserved
                                x"00" & x"00";                               -- Place for checksum
@@ -168,7 +172,7 @@ begin
          headerLength_o  <= DATA_HEADER_SIZE_G/RSSI_WORD_WIDTH_C;
          case addrInt is
             when 16#00# =>
-               v.headerData := "01000000" & toSlv(DATA_HEADER_SIZE_G, 8) &
+               v.headerData := "0100000" & r.busy & toSlv(DATA_HEADER_SIZE_G, 8) &
                                txSeqN_i & r.rxAckN                       &
                                x"00" & x"00"                             &  -- Reserved
                                x"00" & x"00";                               -- Place for checksum
@@ -183,7 +187,7 @@ begin
          headerLength_o  <= NULL_HEADER_SIZE_G/RSSI_WORD_WIDTH_C; 
          case addrInt is
             when 16#00# =>
-               v.headerData :="0" & r.ack & "001000" & toSlv(NULL_HEADER_SIZE_G, 8) &
+               v.headerData :="0" & r.ack & "00100" & r.busy & toSlv(NULL_HEADER_SIZE_G, 8) &
                               txSeqN_i & r.rxAckN                       &
                               x"00" & x"00"                             &  -- Reserved
                               x"00" & x"00";                               -- Place for checksum
@@ -208,14 +212,12 @@ begin
          v.ack := ack_i;
          v.txSeqN := txSeqN_i;
          v.rxAckN := rxAckN_i;
+         v.busy   := busyHeadSt_i;
          --
          headerLength_o  <= 1;
          v.headerData := (others=> '0');
          v.rdy := '0';
-      end if;
-      
-      -- Update with local busy bit
-      v.headerData(56) := busyHeadSt_i;      
+      end if;   
 
       if (rst_i = '1') then
          v := REG_INIT_C;

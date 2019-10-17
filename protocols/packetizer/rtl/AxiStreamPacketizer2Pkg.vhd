@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+-- Title      : AxiStreamPackerizerV2 Protocol: https://confluence.slac.stanford.edu/x/3nh4DQ
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Support Package for Packetizer Version 2
@@ -63,6 +65,7 @@ package AxiStreamPacketizer2Pkg is
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
 
    type Packetizer2DebugType is record
+      initDone    : sl;
       sof         : sl;
       eof         : sl;
       eofe        : sl;
@@ -70,8 +73,9 @@ package AxiStreamPacketizer2Pkg is
       eop         : sl;
       packetError : sl;
    end record Packetizer2DebugType;
-
+   type Packetizer2DebugArray is array (natural range<>) of Packetizer2DebugType;
    constant PACKETIZER2_DEBUG_INIT_C : Packetizer2DebugType := (
+      initDone    => '0',
       sof         => '0',
       eof         => '0',
       eofe        => '0',

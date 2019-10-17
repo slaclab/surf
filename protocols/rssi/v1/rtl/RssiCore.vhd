@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+-- Title      : RSSI Protocol: https://confluence.slac.stanford.edu/x/1IyfD
+-------------------------------------------------------------------------------
 -- File       : RssiCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -126,9 +128,6 @@ architecture rtl of RssiCore is
 
    constant BUFFER_ADDR_WIDTH_C : positive := (SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G);
 
-   constant FIFO_ADDR_WIDTH_C   : positive := ite((SEGMENT_ADDR_SIZE_G < 7), 9, SEGMENT_ADDR_SIZE_G+2);  -- min. 4 segment buffering
-   constant FIFO_PAUSE_THRESH_C : positive := (2**FIFO_ADDR_WIDTH_C) - (2**(SEGMENT_ADDR_SIZE_G+1));  -- pause threshold = FIFO_FULL - (2 x segment buffers)   
-
    signal s_rxBuffBusy : sl;
 
    -- RSSI Parameters
@@ -151,13 +150,12 @@ architecture rtl of RssiCore is
    signal s_rstHeadSt  : sl;
    signal s_dataHeadSt : sl;
    signal s_nullHeadSt : sl;
-   signal s_ackHeadSt  : sl;
+   signal s_ackHeadSt  : sl;   
 
    -- Current transmitted or received SeqN and AckN   
    signal s_txSeqN : slv(7 downto 0);
    signal s_txAckN : slv(7 downto 0);
 
-   signal s_rxSeqN     : slv(7 downto 0);
    signal s_rxLastSeqN : slv(7 downto 0);
    signal s_rxAckN     : slv(7 downto 0);
    signal s_rxLastAckN : slv(7 downto 0);
@@ -746,7 +744,6 @@ begin
          rxBufferSize_i => s_rxBufferSize,
          txWindowSize_i => s_txWindowSize,
          lastAckN_i     => s_rxLastAckN,  --
-         rxSeqN_o       => s_rxSeqN,
          rxLastSeqN_o   => s_rxLastSeqN,
          rxAckN_o       => s_rxAckN,
          rxValidSeg_o   => s_rxValidSeg,
@@ -878,17 +875,14 @@ begin
    AppFifoOut_INST : entity work.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
-         SLAVE_READY_EN_G    => false,
-         VALID_THOLD_G       => 1,
+         SLAVE_READY_EN_G    => false, -- Using pause
          GEN_SYNC_FIFO_G     => true,
          BRAM_EN_G           => true,
-         INT_PIPE_STAGES_G   => 0,
-         PIPE_STAGES_G       => 1,
-         CASCADE_SIZE_G      => 1,
-         CASCADE_PAUSE_SEL_G => 0,
-         FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
+         FIFO_ADDR_WIDTH_G   => SEGMENT_ADDR_SIZE_G+1, -- Enough to store 2 segments
          FIFO_FIXED_THRESH_G => true,
-         FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_C,
+         FIFO_PAUSE_THRESH_G => (2**SEGMENT_ADDR_SIZE_G) - 16, -- Threshold at 1 segment minus padding
+         INT_WIDTH_SELECT_G  => "CUSTOM",
+         INT_DATA_WIDTH_G    => RSSI_WORD_WIDTH_C,
          SLAVE_AXI_CONFIG_G  => RSSI_AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => APP_AXIS_CONFIG_G)
       port map (
@@ -911,19 +905,16 @@ begin
    TspFifoOut_INST : entity work.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
-         SLAVE_READY_EN_G    => false,
-         VALID_THOLD_G       => 1,
+         SLAVE_READY_EN_G    => false, -- Using pause
          GEN_SYNC_FIFO_G     => true,
          BRAM_EN_G           => true,
-         INT_PIPE_STAGES_G   => 0,
-         PIPE_STAGES_G       => 1,
-         CASCADE_SIZE_G      => 1,
-         CASCADE_PAUSE_SEL_G => 0,
-         FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
+         FIFO_ADDR_WIDTH_G   => SEGMENT_ADDR_SIZE_G+1, -- Enough to store 2 segments
          FIFO_FIXED_THRESH_G => true,
-         FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_C,
+         FIFO_PAUSE_THRESH_G => (2**SEGMENT_ADDR_SIZE_G) - 16, -- Threshold at 1 segment minus padding
+         INT_WIDTH_SELECT_G  => "CUSTOM",
+         INT_DATA_WIDTH_G    => RSSI_WORD_WIDTH_C,
          SLAVE_AXI_CONFIG_G  => RSSI_AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => TSP_AXIS_CONFIG_G)
+         MASTER_AXI_CONFIG_G => TSP_AXIS_CONFIG_G)       
       port map (
          sAxisClk    => clk_i,
          sAxisRst    => rst_i,

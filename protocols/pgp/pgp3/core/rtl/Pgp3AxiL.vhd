@@ -1,10 +1,10 @@
 -------------------------------------------------------------------------------
+-- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
+-------------------------------------------------------------------------------
 -- File       : Pgp2bAxi.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description:
--- AXI-Lite block to manage the PGP3 interface.
---
+-- Description: AXI-Lite block to manage the PGPv3 interface
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -30,9 +30,9 @@ entity Pgp3AxiL is
       COMMON_TX_CLK_G    : boolean               := false;  -- Set to true if axiClk and pgpTxClk are the same clock
       COMMON_RX_CLK_G    : boolean               := false;  -- Set to true if axiClk and pgpRxClk are the same clock
       WRITE_EN_G         : boolean               := false;  -- Set to false when on remote end of a link
-      STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32;
-      ERROR_CNT_WIDTH_G  : natural range 1 to 32 := 4;
-      AXIL_CLK_FREQ_G     : real                  := 125.0E+6);
+      STATUS_CNT_WIDTH_G : natural range 1 to 32 := 16;
+      ERROR_CNT_WIDTH_G  : natural range 1 to 32 := 8;
+      AXIL_CLK_FREQ_G     : real                 := 125.0E+6);
    port (
 
       -- TX PGP Interface (pgpTxClk)
@@ -133,6 +133,7 @@ architecture rtl of Pgp3AxiL is
       cellErrorCount     : ErrorCountSlv;
       linkDownCount      : ErrorCountSlv;
       linkErrorCount     : ErrorCountSlv;
+      remLinkData        : slv(55 downto 0);
       remRxOverflow      : slv(15 downto 0);
       remRxOverflowCnt   : ErrorCountSlvArray(15 downto 0);
       frameErrCount      : ErrorCountSlv;
@@ -390,6 +391,15 @@ begin
 
    rxStatusSync.gearboxAlignCnt <= muxSlVectorArray(gearboxAlignCnt, 0);
 
+   U_remLinkData : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         DATA_WIDTH_G => 56)
+      port map (
+         wr_clk => pgpRxClk,
+         din    => pgpRxOut.remLinkData,
+         rd_clk => axilClk,
+         dout   => rxStatusSync.remLinkData);
 
    ---------------------------------------
    -- Transmit Status
@@ -544,6 +554,7 @@ begin
    pgpTxIn.opCodeEn     <= locTxIn.opCodeEn;
    pgpTxIn.opCodeData   <= locTxIn.opCodeData;
    pgpTxIn.opCodeNumber <= locTxIn.opCodeNumber;
+   pgpTxIn.locData      <= locTxIn.locData;   
    pgpTxIn.flowCntlDis  <= locTxIn.flowCntlDis or syncFlowCntlDis;
    pgpTxIn.skpInterval  <= syncSkpInterval;
 
@@ -628,6 +639,8 @@ begin
       axiSlaveRegisterR(axilEp, X"120", 8, rxStatusSync.gearboxAlignCnt);
 
       axiSlaveRegisterR(axilEp, X"130", 0, rxStatusSync.phyRxInitCnt);
+      
+      axiSlaveRegisterR(axilEp, X"138", 0, rxStatusSync.remLinkData);
 
 
 

@@ -62,6 +62,23 @@ class AxiStreamBatcherEventBuilder(pr.Device):
         )           
         
         self.add(pr.RemoteVariable(   
+            name         = 'TransactionCnt',
+            description  = 'Increments every time a transition frame is received',
+            offset       = 0xFC0,
+            bitSize      = 32,
+            mode         = 'RO',
+            pollInterval = 1,
+        )   
+        
+        self.add(pr.RemoteVariable(   
+            name         = 'TRANS_TDEST_G',
+            description  = 'TRANS_TDEST_G generic value',
+            offset       = 0xFC4,
+            bitSize      = 8,
+            mode         = 'RO',
+        ))        
+        
+        self.add(pr.RemoteVariable(   
             name         = 'Bypass',
             description  = 'Mask to bypass a channel',
             offset       = 0xFD0,
@@ -150,7 +167,7 @@ class AxiStreamBatcherEventBuilder(pr.Device):
     def hardReset(self):
         self.HardRst()
 
-    def softReset(self):
+    def initialize(self):
         self.SoftRst()
 
     def countReset(self):

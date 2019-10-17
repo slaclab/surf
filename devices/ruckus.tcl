@@ -5,6 +5,7 @@ source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 loadRuckusTcl "$::DIR_PATH/AnalogDevices"
 loadRuckusTcl "$::DIR_PATH/Linear"
 loadRuckusTcl "$::DIR_PATH/Marvell"
+loadRuckusTcl "$::DIR_PATH/Maxim"
 loadRuckusTcl "$::DIR_PATH/Microchip"
 loadRuckusTcl "$::DIR_PATH/Micron"
 loadRuckusTcl "$::DIR_PATH/Silabs"

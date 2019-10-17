@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+-- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
+-------------------------------------------------------------------------------
 -- File       : Pgp2bAxi.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -205,10 +207,12 @@ architecture structure of Pgp2bAxi is
       linkPolarity    : slv(1 downto 0);
       locLinkReady    : sl;
       remLinkReady    : sl;
+      remLinkReadyCnt : slv(ERROR_CNT_WIDTH_G-1 downto 0);      
       remLinkData     : slv(7 downto 0);
       cellErrorCount  : slv(ERROR_CNT_WIDTH_G-1 downto 0);
       linkDownCount   : slv(ERROR_CNT_WIDTH_G-1 downto 0);
       linkErrorCount  : slv(ERROR_CNT_WIDTH_G-1 downto 0);
+
       remOverflow     : slv(3 downto 0);
       remOverflow0Cnt : slv(ERROR_CNT_WIDTH_G-1 downto 0);
       remOverflow1Cnt : slv(ERROR_CNT_WIDTH_G-1 downto 0);
@@ -307,7 +311,7 @@ begin
          IN_POLARITY_G   => "1",
          OUT_POLARITY_G  => '1',
          USE_DSP48_G     => "no",
-         SYNTH_CNT_G     => "111110000111100000",
+         SYNTH_CNT_G     => "111110000111110000",
          CNT_RST_EDGE_G  => false,
          CNT_WIDTH_G     => ERROR_CNT_WIDTH_G,
          WIDTH_G         => 18)
@@ -357,6 +361,7 @@ begin
    rxStatusSync.remPause     <= rxErrorOut(12 downto 9);
 
    -- Map counters
+   rxStatusSync.remLinkReadyCnt <= muxSlVectorArray(rxErrorCntOut, 4);
    rxStatusSync.remOverflow0Cnt <= muxSlVectorArray(rxErrorCntOut, 5);
    rxStatusSync.remOverflow1Cnt <= muxSlVectorArray(rxErrorCntOut, 6);
    rxStatusSync.remOverflow2Cnt <= muxSlVectorArray(rxErrorCntOut, 7);
@@ -781,6 +786,8 @@ begin
                v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G-1 downto 0) := txStatusSync.txOpCodeCount;
             when X"7C" =>
                v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G-1 downto 0) := rxStatusSync.rxOpCodeCount;
+            when X"80" =>
+               v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G-1 downto 0) := rxStatusSync.remLinkReadyCnt;
 
             when others => null;
          end case;
