@@ -40,6 +40,7 @@ entity AxiI2cRegMaster is
       axiWriteMaster : in    AxiLiteWriteMasterType;
       axiWriteSlave  : out   AxiLiteWriteSlaveType;
       -- I2C Ports
+      sel            : out   slv(DEVICE_MAP_G'length-1 downto 0);
       scl            : inout sl;
       sda            : inout sl);
 
@@ -69,6 +70,7 @@ begin
          -- I2C Register Interface
          i2cRegMasterIn  => i2cRegMasterIn,
          i2cRegMasterOut => i2cRegMasterOut,
+         i2cSelectOut    => sel,
          -- AXI-Lite Register Interface
          axiReadMaster   => axiReadMaster,
          axiReadSlave    => axiReadSlave,

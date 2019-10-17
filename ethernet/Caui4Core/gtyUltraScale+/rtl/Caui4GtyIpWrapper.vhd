@@ -63,413 +63,455 @@ architecture mapping of Caui4GtyIpWrapper is
 
    component Caui4GtyIpCore156MHz
       port (
-         gt_txp_out                     : out std_logic_vector(3 downto 0);
-         gt_txn_out                     : out std_logic_vector(3 downto 0);
-         gt_rxp_in                      : in  std_logic_vector(3 downto 0);
-         gt_rxn_in                      : in  std_logic_vector(3 downto 0);
-         gt_txusrclk2                   : out std_logic;
-         gt_loopback_in                 : in  std_logic_vector(11 downto 0);
-         gt_eyescanreset                : in  std_logic_vector(3 downto 0);
-         gt_eyescantrigger              : in  std_logic_vector(3 downto 0);
-         gt_rxcdrhold                   : in  std_logic_vector(3 downto 0);
-         gt_rxpolarity                  : in  std_logic_vector(3 downto 0);
-         gt_rxrate                      : in  std_logic_vector(11 downto 0);
-         gt_txdiffctrl                  : in  std_logic_vector(19 downto 0);
-         gt_txpolarity                  : in  std_logic_vector(3 downto 0);
-         gt_txinhibit                   : in  std_logic_vector(3 downto 0);
-         gt_txpippmen                   : in  std_logic_vector(3 downto 0);
-         gt_txpippmsel                  : in  std_logic_vector(3 downto 0);
-         gt_txpostcursor                : in  std_logic_vector(19 downto 0);
-         gt_txprbsforceerr              : in  std_logic_vector(3 downto 0);
-         gt_txprecursor                 : in  std_logic_vector(19 downto 0);
-         gt_eyescandataerror            : out std_logic_vector(3 downto 0);
-         gt_ref_clk_out                 : out std_logic;
-         gt_rxrecclkout                 : out std_logic_vector(3 downto 0);
-         gt_powergoodout                : out std_logic_vector(3 downto 0);
-         gt_txbufstatus                 : out std_logic_vector(7 downto 0);
-         gt_rxdfelpmreset               : in  std_logic_vector(3 downto 0);
-         gt_rxlpmen                     : in  std_logic_vector(3 downto 0);
-         gt_rxprbscntreset              : in  std_logic_vector(3 downto 0);
-         gt_rxprbserr                   : out std_logic_vector(3 downto 0);
-         gt_rxprbssel                   : in  std_logic_vector(15 downto 0);
-         gt_rxresetdone                 : out std_logic_vector(3 downto 0);
-         gt_txprbssel                   : in  std_logic_vector(15 downto 0);
-         gt_txresetdone                 : out std_logic_vector(3 downto 0);
-         gt_rxbufstatus                 : out std_logic_vector(11 downto 0);
-         gtwiz_reset_tx_datapath        : in  std_logic;
-         gtwiz_reset_rx_datapath        : in  std_logic;
-         gt_drpclk                      : in  std_logic;
-         gt0_drpdo                      : out std_logic_vector(15 downto 0);
-         gt0_drprdy                     : out std_logic;
-         gt0_drpen                      : in  std_logic;
-         gt0_drpwe                      : in  std_logic;
-         gt0_drpaddr                    : in  std_logic_vector(9 downto 0);
-         gt0_drpdi                      : in  std_logic_vector(15 downto 0);
-         gt1_drpdo                      : out std_logic_vector(15 downto 0);
-         gt1_drprdy                     : out std_logic;
-         gt1_drpen                      : in  std_logic;
-         gt1_drpwe                      : in  std_logic;
-         gt1_drpaddr                    : in  std_logic_vector(9 downto 0);
-         gt1_drpdi                      : in  std_logic_vector(15 downto 0);
-         gt2_drpdo                      : out std_logic_vector(15 downto 0);
-         gt2_drprdy                     : out std_logic;
-         gt2_drpen                      : in  std_logic;
-         gt2_drpwe                      : in  std_logic;
-         gt2_drpaddr                    : in  std_logic_vector(9 downto 0);
-         gt2_drpdi                      : in  std_logic_vector(15 downto 0);
-         gt3_drpdo                      : out std_logic_vector(15 downto 0);
-         gt3_drprdy                     : out std_logic;
-         gt3_drpen                      : in  std_logic;
-         gt3_drpwe                      : in  std_logic;
-         gt3_drpaddr                    : in  std_logic_vector(9 downto 0);
-         gt3_drpdi                      : in  std_logic_vector(15 downto 0);
-         sys_reset                      : in  std_logic;
-         gt_ref_clk_p                   : in  std_logic;
-         gt_ref_clk_n                   : in  std_logic;
-         init_clk                       : in  std_logic;
-         common0_drpaddr                : in  std_logic_vector(15 downto 0);
-         common0_drpdi                  : in  std_logic_vector(15 downto 0);
-         common0_drpwe                  : in  std_logic;
-         common0_drpen                  : in  std_logic;
-         common0_drprdy                 : out std_logic;
-         common0_drpdo                  : out std_logic_vector(15 downto 0);
-         rx_axis_tvalid                 : out std_logic;
-         rx_axis_tdata                  : out std_logic_vector(511 downto 0);
-         rx_axis_tlast                  : out std_logic;
-         rx_axis_tkeep                  : out std_logic_vector(63 downto 0);
-         rx_axis_tuser                  : out std_logic;
-         rx_otn_bip8_0                  : out std_logic_vector(7 downto 0);
-         rx_otn_bip8_1                  : out std_logic_vector(7 downto 0);
-         rx_otn_bip8_2                  : out std_logic_vector(7 downto 0);
-         rx_otn_bip8_3                  : out std_logic_vector(7 downto 0);
-         rx_otn_bip8_4                  : out std_logic_vector(7 downto 0);
-         rx_otn_data_0                  : out std_logic_vector(65 downto 0);
-         rx_otn_data_1                  : out std_logic_vector(65 downto 0);
-         rx_otn_data_2                  : out std_logic_vector(65 downto 0);
-         rx_otn_data_3                  : out std_logic_vector(65 downto 0);
-         rx_otn_data_4                  : out std_logic_vector(65 downto 0);
-         rx_preambleout                 : out std_logic_vector(55 downto 0);
-         usr_rx_reset                   : out std_logic;
-         gt_rxusrclk2                   : out std_logic;
-         stat_rx_aligned                : out std_logic;
-         stat_rx_aligned_err            : out std_logic;
-         stat_rx_bad_code               : out std_logic_vector(2 downto 0);
-         stat_rx_bad_fcs                : out std_logic_vector(2 downto 0);
-         stat_rx_block_lock             : out std_logic_vector(19 downto 0);
-         stat_rx_fragment               : out std_logic_vector(2 downto 0);
-         stat_rx_framing_err_0          : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_1          : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_10         : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_11         : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_12         : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_13         : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_14         : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_15         : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_16         : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_17         : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_18         : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_19         : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_2          : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_3          : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_4          : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_5          : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_6          : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_7          : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_8          : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_9          : out std_logic_vector(1 downto 0);
-         stat_rx_mf_err                 : out std_logic_vector(19 downto 0);
-         stat_rx_mf_len_err             : out std_logic_vector(19 downto 0);
-         stat_rx_mf_repeat_err          : out std_logic_vector(19 downto 0);
-         stat_rx_packet_small           : out std_logic_vector(2 downto 0);
-         ctl_rx_enable                  : in  std_logic;
-         ctl_rx_force_resync            : in  std_logic;
-         ctl_rx_test_pattern            : in  std_logic;
-         core_rx_reset                  : in  std_logic;
-         rx_clk                         : in  std_logic;
-         stat_rx_stomped_fcs            : out std_logic_vector(2 downto 0);
-         stat_rx_synced                 : out std_logic_vector(19 downto 0);
-         stat_rx_synced_err             : out std_logic_vector(19 downto 0);
-         stat_rx_test_pattern_mismatch  : out std_logic_vector(2 downto 0);
-         stat_rx_total_bytes            : out std_logic_vector(6 downto 0);
-         stat_rx_total_good_bytes       : out std_logic_vector(13 downto 0);
-         stat_rx_total_packets          : out std_logic_vector(2 downto 0);
-         stat_rx_undersize              : out std_logic_vector(2 downto 0);
-         stat_rx_pcsl_demuxed           : out std_logic_vector(19 downto 0);
-         stat_rx_pcsl_number_0          : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_1          : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_10         : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_11         : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_12         : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_13         : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_14         : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_15         : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_16         : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_17         : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_18         : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_19         : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_2          : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_3          : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_4          : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_5          : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_6          : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_7          : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_8          : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_9          : out std_logic_vector(4 downto 0);
-         stat_tx_bad_fcs                : out std_logic;
-         stat_tx_broadcast              : out std_logic;
-         stat_tx_frame_error            : out std_logic;
-         stat_tx_local_fault            : out std_logic;
-         stat_tx_multicast              : out std_logic;
-         stat_tx_packet_1024_1518_bytes : out std_logic;
-         stat_tx_packet_128_255_bytes   : out std_logic;
-         stat_tx_packet_1519_1522_bytes : out std_logic;
-         stat_tx_packet_1523_1548_bytes : out std_logic;
-         stat_tx_packet_1549_2047_bytes : out std_logic;
-         stat_tx_packet_2048_4095_bytes : out std_logic;
-         stat_tx_packet_256_511_bytes   : out std_logic;
-         stat_tx_packet_4096_8191_bytes : out std_logic;
-         stat_tx_packet_512_1023_bytes  : out std_logic;
-         stat_tx_packet_64_bytes        : out std_logic;
-         stat_tx_packet_65_127_bytes    : out std_logic;
-         stat_tx_packet_8192_9215_bytes : out std_logic;
-         stat_tx_packet_large           : out std_logic;
-         stat_tx_packet_small           : out std_logic;
-         stat_tx_total_bytes            : out std_logic_vector(5 downto 0);
-         stat_tx_total_good_bytes       : out std_logic_vector(13 downto 0);
-         stat_tx_total_good_packets     : out std_logic;
-         stat_tx_total_packets          : out std_logic;
-         stat_tx_unicast                : out std_logic;
-         stat_tx_vlan                   : out std_logic;
-         ctl_tx_enable                  : in  std_logic;
-         ctl_tx_send_idle               : in  std_logic;
-         ctl_tx_send_rfi                : in  std_logic;
-         ctl_tx_send_lfi                : in  std_logic;
-         ctl_tx_test_pattern            : in  std_logic;
-         core_tx_reset                  : in  std_logic;
-         tx_axis_tready                 : out std_logic;
-         tx_axis_tvalid                 : in  std_logic;
-         tx_axis_tdata                  : in  std_logic_vector(511 downto 0);
-         tx_axis_tlast                  : in  std_logic;
-         tx_axis_tkeep                  : in  std_logic_vector(63 downto 0);
-         tx_axis_tuser                  : in  std_logic;
-         tx_ovfout                      : out std_logic;
-         tx_unfout                      : out std_logic;
-         tx_preamblein                  : in  std_logic_vector(55 downto 0);
-         usr_tx_reset                   : out std_logic;
-         core_drp_reset                 : in  std_logic;
-         drp_clk                        : in  std_logic;
-         drp_addr                       : in  std_logic_vector(9 downto 0);
-         drp_di                         : in  std_logic_vector(15 downto 0);
-         drp_en                         : in  std_logic;
-         drp_do                         : out std_logic_vector(15 downto 0);
-         drp_rdy                        : out std_logic;
-         drp_we                         : in  std_logic
+         gt_txp_out                           : out std_logic_vector(3 downto 0);
+         gt_txn_out                           : out std_logic_vector(3 downto 0);
+         gt_rxp_in                            : in  std_logic_vector(3 downto 0);
+         gt_rxn_in                            : in  std_logic_vector(3 downto 0);
+         gt_txusrclk2                         : out std_logic;
+         gt_loopback_in                       : in  std_logic_vector(11 downto 0);
+         gt_eyescanreset                      : in  std_logic_vector(3 downto 0);
+         gt_eyescantrigger                    : in  std_logic_vector(3 downto 0);
+         gt_rxcdrhold                         : in  std_logic_vector(3 downto 0);
+         gt_rxpolarity                        : in  std_logic_vector(3 downto 0);
+         gt_rxrate                            : in  std_logic_vector(11 downto 0);
+         gt_txdiffctrl                        : in  std_logic_vector(19 downto 0);
+         gt_txpolarity                        : in  std_logic_vector(3 downto 0);
+         gt_txinhibit                         : in  std_logic_vector(3 downto 0);
+         gt_txpippmen                         : in  std_logic_vector(3 downto 0);
+         gt_txpippmsel                        : in  std_logic_vector(3 downto 0);
+         gt_txpostcursor                      : in  std_logic_vector(19 downto 0);
+         gt_txprbsforceerr                    : in  std_logic_vector(3 downto 0);
+         gt_txprecursor                       : in  std_logic_vector(19 downto 0);
+         gt_eyescandataerror                  : out std_logic_vector(3 downto 0);
+         gt_ref_clk_out                       : out std_logic;
+         gt_rxrecclkout                       : out std_logic_vector(3 downto 0);
+         gt_powergoodout                      : out std_logic_vector(3 downto 0);
+         gt_txbufstatus                       : out std_logic_vector(7 downto 0);
+         gt_rxdfelpmreset                     : in  std_logic_vector(3 downto 0);
+         gt_rxlpmen                           : in  std_logic_vector(3 downto 0);
+         gt_rxprbscntreset                    : in  std_logic_vector(3 downto 0);
+         gt_rxprbserr                         : out std_logic_vector(3 downto 0);
+         gt_rxprbssel                         : in  std_logic_vector(15 downto 0);
+         gt_rxresetdone                       : out std_logic_vector(3 downto 0);
+         gt_txprbssel                         : in  std_logic_vector(15 downto 0);
+         gt_txresetdone                       : out std_logic_vector(3 downto 0);
+         gt_rxbufstatus                       : out std_logic_vector(11 downto 0);
+         gtwiz_reset_tx_datapath              : in  std_logic;
+         gtwiz_reset_rx_datapath              : in  std_logic;
+         gt_drpclk                            : in  std_logic;
+         gt0_drpdo                            : out std_logic_vector(15 downto 0);
+         gt0_drprdy                           : out std_logic;
+         gt0_drpen                            : in  std_logic;
+         gt0_drpwe                            : in  std_logic;
+         gt0_drpaddr                          : in  std_logic_vector(9 downto 0);
+         gt0_drpdi                            : in  std_logic_vector(15 downto 0);
+         gt1_drpdo                            : out std_logic_vector(15 downto 0);
+         gt1_drprdy                           : out std_logic;
+         gt1_drpen                            : in  std_logic;
+         gt1_drpwe                            : in  std_logic;
+         gt1_drpaddr                          : in  std_logic_vector(9 downto 0);
+         gt1_drpdi                            : in  std_logic_vector(15 downto 0);
+         gt2_drpdo                            : out std_logic_vector(15 downto 0);
+         gt2_drprdy                           : out std_logic;
+         gt2_drpen                            : in  std_logic;
+         gt2_drpwe                            : in  std_logic;
+         gt2_drpaddr                          : in  std_logic_vector(9 downto 0);
+         gt2_drpdi                            : in  std_logic_vector(15 downto 0);
+         gt3_drpdo                            : out std_logic_vector(15 downto 0);
+         gt3_drprdy                           : out std_logic;
+         gt3_drpen                            : in  std_logic;
+         gt3_drpwe                            : in  std_logic;
+         gt3_drpaddr                          : in  std_logic_vector(9 downto 0);
+         gt3_drpdi                            : in  std_logic_vector(15 downto 0);
+         ctl_tx_rsfec_enable                  : in  std_logic;
+         ctl_rx_rsfec_enable                  : in  std_logic;
+         ctl_rsfec_ieee_error_indication_mode : in  std_logic;
+         ctl_rx_rsfec_enable_correction       : in  std_logic;
+         ctl_rx_rsfec_enable_indication       : in  std_logic;
+         stat_rx_rsfec_am_lock0               : out std_logic;
+         stat_rx_rsfec_am_lock1               : out std_logic;
+         stat_rx_rsfec_am_lock2               : out std_logic;
+         stat_rx_rsfec_am_lock3               : out std_logic;
+         stat_rx_rsfec_corrected_cw_inc       : out std_logic;
+         stat_rx_rsfec_cw_inc                 : out std_logic;
+         stat_rx_rsfec_err_count0_inc         : out std_logic_vector(2 downto 0);
+         stat_rx_rsfec_err_count1_inc         : out std_logic_vector(2 downto 0);
+         stat_rx_rsfec_err_count2_inc         : out std_logic_vector(2 downto 0);
+         stat_rx_rsfec_err_count3_inc         : out std_logic_vector(2 downto 0);
+         stat_rx_rsfec_hi_ser                 : out std_logic;
+         stat_rx_rsfec_lane_alignment_status  : out std_logic;
+         stat_rx_rsfec_lane_fill_0            : out std_logic_vector(13 downto 0);
+         stat_rx_rsfec_lane_fill_1            : out std_logic_vector(13 downto 0);
+         stat_rx_rsfec_lane_fill_2            : out std_logic_vector(13 downto 0);
+         stat_rx_rsfec_lane_fill_3            : out std_logic_vector(13 downto 0);
+         stat_rx_rsfec_lane_mapping           : out std_logic_vector(7 downto 0);
+         stat_rx_rsfec_uncorrected_cw_inc     : out std_logic;
+         sys_reset                            : in  std_logic;
+         gt_ref_clk_p                         : in  std_logic;
+         gt_ref_clk_n                         : in  std_logic;
+         init_clk                             : in  std_logic;
+         common0_drpaddr                      : in  std_logic_vector(15 downto 0);
+         common0_drpdi                        : in  std_logic_vector(15 downto 0);
+         common0_drpwe                        : in  std_logic;
+         common0_drpen                        : in  std_logic;
+         common0_drprdy                       : out std_logic;
+         common0_drpdo                        : out std_logic_vector(15 downto 0);
+         rx_axis_tvalid                       : out std_logic;
+         rx_axis_tdata                        : out std_logic_vector(511 downto 0);
+         rx_axis_tlast                        : out std_logic;
+         rx_axis_tkeep                        : out std_logic_vector(63 downto 0);
+         rx_axis_tuser                        : out std_logic;
+         rx_otn_bip8_0                        : out std_logic_vector(7 downto 0);
+         rx_otn_bip8_1                        : out std_logic_vector(7 downto 0);
+         rx_otn_bip8_2                        : out std_logic_vector(7 downto 0);
+         rx_otn_bip8_3                        : out std_logic_vector(7 downto 0);
+         rx_otn_bip8_4                        : out std_logic_vector(7 downto 0);
+         rx_otn_data_0                        : out std_logic_vector(65 downto 0);
+         rx_otn_data_1                        : out std_logic_vector(65 downto 0);
+         rx_otn_data_2                        : out std_logic_vector(65 downto 0);
+         rx_otn_data_3                        : out std_logic_vector(65 downto 0);
+         rx_otn_data_4                        : out std_logic_vector(65 downto 0);
+         rx_preambleout                       : out std_logic_vector(55 downto 0);
+         usr_rx_reset                         : out std_logic;
+         gt_rxusrclk2                         : out std_logic;
+         stat_rx_bad_code                     : out std_logic_vector(2 downto 0);
+         stat_rx_bad_fcs                      : out std_logic_vector(2 downto 0);
+         stat_rx_block_lock                   : out std_logic_vector(19 downto 0);
+         stat_rx_fragment                     : out std_logic_vector(2 downto 0);
+         stat_rx_framing_err_0                : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_1                : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_10               : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_11               : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_12               : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_13               : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_14               : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_15               : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_16               : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_17               : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_18               : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_19               : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_2                : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_3                : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_4                : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_5                : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_6                : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_7                : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_8                : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_9                : out std_logic_vector(1 downto 0);
+         stat_rx_mf_err                       : out std_logic_vector(19 downto 0);
+         stat_rx_mf_len_err                   : out std_logic_vector(19 downto 0);
+         stat_rx_mf_repeat_err                : out std_logic_vector(19 downto 0);
+         stat_rx_packet_small                 : out std_logic_vector(2 downto 0);
+         ctl_rx_enable                        : in  std_logic;
+         ctl_rx_force_resync                  : in  std_logic;
+         ctl_rx_test_pattern                  : in  std_logic;
+         core_rx_reset                        : in  std_logic;
+         rx_clk                               : in  std_logic;
+         stat_rx_stomped_fcs                  : out std_logic_vector(2 downto 0);
+         stat_rx_synced                       : out std_logic_vector(19 downto 0);
+         stat_rx_synced_err                   : out std_logic_vector(19 downto 0);
+         stat_rx_test_pattern_mismatch        : out std_logic_vector(2 downto 0);
+         stat_rx_total_bytes                  : out std_logic_vector(6 downto 0);
+         stat_rx_total_good_bytes             : out std_logic_vector(13 downto 0);
+         stat_rx_total_packets                : out std_logic_vector(2 downto 0);
+         stat_rx_undersize                    : out std_logic_vector(2 downto 0);
+         stat_rx_pcsl_demuxed                 : out std_logic_vector(19 downto 0);
+         stat_rx_pcsl_number_0                : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_1                : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_10               : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_11               : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_12               : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_13               : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_14               : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_15               : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_16               : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_17               : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_18               : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_19               : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_2                : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_3                : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_4                : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_5                : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_6                : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_7                : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_8                : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_9                : out std_logic_vector(4 downto 0);
+         stat_tx_bad_fcs                      : out std_logic;
+         stat_tx_broadcast                    : out std_logic;
+         stat_tx_frame_error                  : out std_logic;
+         stat_tx_local_fault                  : out std_logic;
+         stat_tx_multicast                    : out std_logic;
+         stat_tx_packet_1024_1518_bytes       : out std_logic;
+         stat_tx_packet_128_255_bytes         : out std_logic;
+         stat_tx_packet_1519_1522_bytes       : out std_logic;
+         stat_tx_packet_1523_1548_bytes       : out std_logic;
+         stat_tx_packet_1549_2047_bytes       : out std_logic;
+         stat_tx_packet_2048_4095_bytes       : out std_logic;
+         stat_tx_packet_256_511_bytes         : out std_logic;
+         stat_tx_packet_4096_8191_bytes       : out std_logic;
+         stat_tx_packet_512_1023_bytes        : out std_logic;
+         stat_tx_packet_64_bytes              : out std_logic;
+         stat_tx_packet_65_127_bytes          : out std_logic;
+         stat_tx_packet_8192_9215_bytes       : out std_logic;
+         stat_tx_packet_large                 : out std_logic;
+         stat_tx_packet_small                 : out std_logic;
+         stat_tx_total_bytes                  : out std_logic_vector(5 downto 0);
+         stat_tx_total_good_bytes             : out std_logic_vector(13 downto 0);
+         stat_tx_total_good_packets           : out std_logic;
+         stat_tx_total_packets                : out std_logic;
+         stat_tx_unicast                      : out std_logic;
+         stat_tx_vlan                         : out std_logic;
+         ctl_tx_enable                        : in  std_logic;
+         ctl_tx_send_idle                     : in  std_logic;
+         ctl_tx_send_rfi                      : in  std_logic;
+         ctl_tx_send_lfi                      : in  std_logic;
+         ctl_tx_test_pattern                  : in  std_logic;
+         core_tx_reset                        : in  std_logic;
+         tx_axis_tready                       : out std_logic;
+         tx_axis_tvalid                       : in  std_logic;
+         tx_axis_tdata                        : in  std_logic_vector(511 downto 0);
+         tx_axis_tlast                        : in  std_logic;
+         tx_axis_tkeep                        : in  std_logic_vector(63 downto 0);
+         tx_axis_tuser                        : in  std_logic;
+         tx_ovfout                            : out std_logic;
+         tx_unfout                            : out std_logic;
+         tx_preamblein                        : in  std_logic_vector(55 downto 0);
+         usr_tx_reset                         : out std_logic;
+         core_drp_reset                       : in  std_logic;
+         drp_clk                              : in  std_logic;
+         drp_addr                             : in  std_logic_vector(9 downto 0);
+         drp_di                               : in  std_logic_vector(15 downto 0);
+         drp_en                               : in  std_logic;
+         drp_do                               : out std_logic_vector(15 downto 0);
+         drp_rdy                              : out std_logic;
+         drp_we                               : in  std_logic
          );
    end component;
 
    component Caui4GtyIpCore161MHz
       port (
-         gt_txp_out                     : out std_logic_vector(3 downto 0);
-         gt_txn_out                     : out std_logic_vector(3 downto 0);
-         gt_rxp_in                      : in  std_logic_vector(3 downto 0);
-         gt_rxn_in                      : in  std_logic_vector(3 downto 0);
-         gt_txusrclk2                   : out std_logic;
-         gt_loopback_in                 : in  std_logic_vector(11 downto 0);
-         gt_eyescanreset                : in  std_logic_vector(3 downto 0);
-         gt_eyescantrigger              : in  std_logic_vector(3 downto 0);
-         gt_rxcdrhold                   : in  std_logic_vector(3 downto 0);
-         gt_rxpolarity                  : in  std_logic_vector(3 downto 0);
-         gt_rxrate                      : in  std_logic_vector(11 downto 0);
-         gt_txdiffctrl                  : in  std_logic_vector(19 downto 0);
-         gt_txpolarity                  : in  std_logic_vector(3 downto 0);
-         gt_txinhibit                   : in  std_logic_vector(3 downto 0);
-         gt_txpippmen                   : in  std_logic_vector(3 downto 0);
-         gt_txpippmsel                  : in  std_logic_vector(3 downto 0);
-         gt_txpostcursor                : in  std_logic_vector(19 downto 0);
-         gt_txprbsforceerr              : in  std_logic_vector(3 downto 0);
-         gt_txprecursor                 : in  std_logic_vector(19 downto 0);
-         gt_eyescandataerror            : out std_logic_vector(3 downto 0);
-         gt_ref_clk_out                 : out std_logic;
-         gt_rxrecclkout                 : out std_logic_vector(3 downto 0);
-         gt_powergoodout                : out std_logic_vector(3 downto 0);
-         gt_txbufstatus                 : out std_logic_vector(7 downto 0);
-         gt_rxdfelpmreset               : in  std_logic_vector(3 downto 0);
-         gt_rxlpmen                     : in  std_logic_vector(3 downto 0);
-         gt_rxprbscntreset              : in  std_logic_vector(3 downto 0);
-         gt_rxprbserr                   : out std_logic_vector(3 downto 0);
-         gt_rxprbssel                   : in  std_logic_vector(15 downto 0);
-         gt_rxresetdone                 : out std_logic_vector(3 downto 0);
-         gt_txprbssel                   : in  std_logic_vector(15 downto 0);
-         gt_txresetdone                 : out std_logic_vector(3 downto 0);
-         gt_rxbufstatus                 : out std_logic_vector(11 downto 0);
-         gtwiz_reset_tx_datapath        : in  std_logic;
-         gtwiz_reset_rx_datapath        : in  std_logic;
-         gt_drpclk                      : in  std_logic;
-         gt0_drpdo                      : out std_logic_vector(15 downto 0);
-         gt0_drprdy                     : out std_logic;
-         gt0_drpen                      : in  std_logic;
-         gt0_drpwe                      : in  std_logic;
-         gt0_drpaddr                    : in  std_logic_vector(9 downto 0);
-         gt0_drpdi                      : in  std_logic_vector(15 downto 0);
-         gt1_drpdo                      : out std_logic_vector(15 downto 0);
-         gt1_drprdy                     : out std_logic;
-         gt1_drpen                      : in  std_logic;
-         gt1_drpwe                      : in  std_logic;
-         gt1_drpaddr                    : in  std_logic_vector(9 downto 0);
-         gt1_drpdi                      : in  std_logic_vector(15 downto 0);
-         gt2_drpdo                      : out std_logic_vector(15 downto 0);
-         gt2_drprdy                     : out std_logic;
-         gt2_drpen                      : in  std_logic;
-         gt2_drpwe                      : in  std_logic;
-         gt2_drpaddr                    : in  std_logic_vector(9 downto 0);
-         gt2_drpdi                      : in  std_logic_vector(15 downto 0);
-         gt3_drpdo                      : out std_logic_vector(15 downto 0);
-         gt3_drprdy                     : out std_logic;
-         gt3_drpen                      : in  std_logic;
-         gt3_drpwe                      : in  std_logic;
-         gt3_drpaddr                    : in  std_logic_vector(9 downto 0);
-         gt3_drpdi                      : in  std_logic_vector(15 downto 0);
-         sys_reset                      : in  std_logic;
-         gt_ref_clk_p                   : in  std_logic;
-         gt_ref_clk_n                   : in  std_logic;
-         init_clk                       : in  std_logic;
-         common0_drpaddr                : in  std_logic_vector(15 downto 0);
-         common0_drpdi                  : in  std_logic_vector(15 downto 0);
-         common0_drpwe                  : in  std_logic;
-         common0_drpen                  : in  std_logic;
-         common0_drprdy                 : out std_logic;
-         common0_drpdo                  : out std_logic_vector(15 downto 0);
-         rx_axis_tvalid                 : out std_logic;
-         rx_axis_tdata                  : out std_logic_vector(511 downto 0);
-         rx_axis_tlast                  : out std_logic;
-         rx_axis_tkeep                  : out std_logic_vector(63 downto 0);
-         rx_axis_tuser                  : out std_logic;
-         rx_otn_bip8_0                  : out std_logic_vector(7 downto 0);
-         rx_otn_bip8_1                  : out std_logic_vector(7 downto 0);
-         rx_otn_bip8_2                  : out std_logic_vector(7 downto 0);
-         rx_otn_bip8_3                  : out std_logic_vector(7 downto 0);
-         rx_otn_bip8_4                  : out std_logic_vector(7 downto 0);
-         rx_otn_data_0                  : out std_logic_vector(65 downto 0);
-         rx_otn_data_1                  : out std_logic_vector(65 downto 0);
-         rx_otn_data_2                  : out std_logic_vector(65 downto 0);
-         rx_otn_data_3                  : out std_logic_vector(65 downto 0);
-         rx_otn_data_4                  : out std_logic_vector(65 downto 0);
-         rx_preambleout                 : out std_logic_vector(55 downto 0);
-         usr_rx_reset                   : out std_logic;
-         gt_rxusrclk2                   : out std_logic;
-         stat_rx_aligned                : out std_logic;
-         stat_rx_aligned_err            : out std_logic;
-         stat_rx_bad_code               : out std_logic_vector(2 downto 0);
-         stat_rx_bad_fcs                : out std_logic_vector(2 downto 0);
-         stat_rx_block_lock             : out std_logic_vector(19 downto 0);
-         stat_rx_fragment               : out std_logic_vector(2 downto 0);
-         stat_rx_framing_err_0          : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_1          : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_10         : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_11         : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_12         : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_13         : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_14         : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_15         : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_16         : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_17         : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_18         : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_19         : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_2          : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_3          : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_4          : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_5          : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_6          : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_7          : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_8          : out std_logic_vector(1 downto 0);
-         stat_rx_framing_err_9          : out std_logic_vector(1 downto 0);
-         stat_rx_mf_err                 : out std_logic_vector(19 downto 0);
-         stat_rx_mf_len_err             : out std_logic_vector(19 downto 0);
-         stat_rx_mf_repeat_err          : out std_logic_vector(19 downto 0);
-         stat_rx_packet_small           : out std_logic_vector(2 downto 0);
-         ctl_rx_enable                  : in  std_logic;
-         ctl_rx_force_resync            : in  std_logic;
-         ctl_rx_test_pattern            : in  std_logic;
-         core_rx_reset                  : in  std_logic;
-         rx_clk                         : in  std_logic;
-         stat_rx_stomped_fcs            : out std_logic_vector(2 downto 0);
-         stat_rx_synced                 : out std_logic_vector(19 downto 0);
-         stat_rx_synced_err             : out std_logic_vector(19 downto 0);
-         stat_rx_test_pattern_mismatch  : out std_logic_vector(2 downto 0);
-         stat_rx_total_bytes            : out std_logic_vector(6 downto 0);
-         stat_rx_total_good_bytes       : out std_logic_vector(13 downto 0);
-         stat_rx_total_packets          : out std_logic_vector(2 downto 0);
-         stat_rx_undersize              : out std_logic_vector(2 downto 0);
-         stat_rx_pcsl_demuxed           : out std_logic_vector(19 downto 0);
-         stat_rx_pcsl_number_0          : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_1          : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_10         : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_11         : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_12         : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_13         : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_14         : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_15         : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_16         : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_17         : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_18         : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_19         : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_2          : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_3          : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_4          : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_5          : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_6          : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_7          : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_8          : out std_logic_vector(4 downto 0);
-         stat_rx_pcsl_number_9          : out std_logic_vector(4 downto 0);
-         stat_tx_bad_fcs                : out std_logic;
-         stat_tx_broadcast              : out std_logic;
-         stat_tx_frame_error            : out std_logic;
-         stat_tx_local_fault            : out std_logic;
-         stat_tx_multicast              : out std_logic;
-         stat_tx_packet_1024_1518_bytes : out std_logic;
-         stat_tx_packet_128_255_bytes   : out std_logic;
-         stat_tx_packet_1519_1522_bytes : out std_logic;
-         stat_tx_packet_1523_1548_bytes : out std_logic;
-         stat_tx_packet_1549_2047_bytes : out std_logic;
-         stat_tx_packet_2048_4095_bytes : out std_logic;
-         stat_tx_packet_256_511_bytes   : out std_logic;
-         stat_tx_packet_4096_8191_bytes : out std_logic;
-         stat_tx_packet_512_1023_bytes  : out std_logic;
-         stat_tx_packet_64_bytes        : out std_logic;
-         stat_tx_packet_65_127_bytes    : out std_logic;
-         stat_tx_packet_8192_9215_bytes : out std_logic;
-         stat_tx_packet_large           : out std_logic;
-         stat_tx_packet_small           : out std_logic;
-         stat_tx_total_bytes            : out std_logic_vector(5 downto 0);
-         stat_tx_total_good_bytes       : out std_logic_vector(13 downto 0);
-         stat_tx_total_good_packets     : out std_logic;
-         stat_tx_total_packets          : out std_logic;
-         stat_tx_unicast                : out std_logic;
-         stat_tx_vlan                   : out std_logic;
-         ctl_tx_enable                  : in  std_logic;
-         ctl_tx_send_idle               : in  std_logic;
-         ctl_tx_send_rfi                : in  std_logic;
-         ctl_tx_send_lfi                : in  std_logic;
-         ctl_tx_test_pattern            : in  std_logic;
-         core_tx_reset                  : in  std_logic;
-         tx_axis_tready                 : out std_logic;
-         tx_axis_tvalid                 : in  std_logic;
-         tx_axis_tdata                  : in  std_logic_vector(511 downto 0);
-         tx_axis_tlast                  : in  std_logic;
-         tx_axis_tkeep                  : in  std_logic_vector(63 downto 0);
-         tx_axis_tuser                  : in  std_logic;
-         tx_ovfout                      : out std_logic;
-         tx_unfout                      : out std_logic;
-         tx_preamblein                  : in  std_logic_vector(55 downto 0);
-         usr_tx_reset                   : out std_logic;
-         core_drp_reset                 : in  std_logic;
-         drp_clk                        : in  std_logic;
-         drp_addr                       : in  std_logic_vector(9 downto 0);
-         drp_di                         : in  std_logic_vector(15 downto 0);
-         drp_en                         : in  std_logic;
-         drp_do                         : out std_logic_vector(15 downto 0);
-         drp_rdy                        : out std_logic;
-         drp_we                         : in  std_logic
+         gt_txp_out                           : out std_logic_vector(3 downto 0);
+         gt_txn_out                           : out std_logic_vector(3 downto 0);
+         gt_rxp_in                            : in  std_logic_vector(3 downto 0);
+         gt_rxn_in                            : in  std_logic_vector(3 downto 0);
+         gt_txusrclk2                         : out std_logic;
+         gt_loopback_in                       : in  std_logic_vector(11 downto 0);
+         gt_eyescanreset                      : in  std_logic_vector(3 downto 0);
+         gt_eyescantrigger                    : in  std_logic_vector(3 downto 0);
+         gt_rxcdrhold                         : in  std_logic_vector(3 downto 0);
+         gt_rxpolarity                        : in  std_logic_vector(3 downto 0);
+         gt_rxrate                            : in  std_logic_vector(11 downto 0);
+         gt_txdiffctrl                        : in  std_logic_vector(19 downto 0);
+         gt_txpolarity                        : in  std_logic_vector(3 downto 0);
+         gt_txinhibit                         : in  std_logic_vector(3 downto 0);
+         gt_txpippmen                         : in  std_logic_vector(3 downto 0);
+         gt_txpippmsel                        : in  std_logic_vector(3 downto 0);
+         gt_txpostcursor                      : in  std_logic_vector(19 downto 0);
+         gt_txprbsforceerr                    : in  std_logic_vector(3 downto 0);
+         gt_txprecursor                       : in  std_logic_vector(19 downto 0);
+         gt_eyescandataerror                  : out std_logic_vector(3 downto 0);
+         gt_ref_clk_out                       : out std_logic;
+         gt_rxrecclkout                       : out std_logic_vector(3 downto 0);
+         gt_powergoodout                      : out std_logic_vector(3 downto 0);
+         gt_txbufstatus                       : out std_logic_vector(7 downto 0);
+         gt_rxdfelpmreset                     : in  std_logic_vector(3 downto 0);
+         gt_rxlpmen                           : in  std_logic_vector(3 downto 0);
+         gt_rxprbscntreset                    : in  std_logic_vector(3 downto 0);
+         gt_rxprbserr                         : out std_logic_vector(3 downto 0);
+         gt_rxprbssel                         : in  std_logic_vector(15 downto 0);
+         gt_rxresetdone                       : out std_logic_vector(3 downto 0);
+         gt_txprbssel                         : in  std_logic_vector(15 downto 0);
+         gt_txresetdone                       : out std_logic_vector(3 downto 0);
+         gt_rxbufstatus                       : out std_logic_vector(11 downto 0);
+         gtwiz_reset_tx_datapath              : in  std_logic;
+         gtwiz_reset_rx_datapath              : in  std_logic;
+         gt_drpclk                            : in  std_logic;
+         gt0_drpdo                            : out std_logic_vector(15 downto 0);
+         gt0_drprdy                           : out std_logic;
+         gt0_drpen                            : in  std_logic;
+         gt0_drpwe                            : in  std_logic;
+         gt0_drpaddr                          : in  std_logic_vector(9 downto 0);
+         gt0_drpdi                            : in  std_logic_vector(15 downto 0);
+         gt1_drpdo                            : out std_logic_vector(15 downto 0);
+         gt1_drprdy                           : out std_logic;
+         gt1_drpen                            : in  std_logic;
+         gt1_drpwe                            : in  std_logic;
+         gt1_drpaddr                          : in  std_logic_vector(9 downto 0);
+         gt1_drpdi                            : in  std_logic_vector(15 downto 0);
+         gt2_drpdo                            : out std_logic_vector(15 downto 0);
+         gt2_drprdy                           : out std_logic;
+         gt2_drpen                            : in  std_logic;
+         gt2_drpwe                            : in  std_logic;
+         gt2_drpaddr                          : in  std_logic_vector(9 downto 0);
+         gt2_drpdi                            : in  std_logic_vector(15 downto 0);
+         gt3_drpdo                            : out std_logic_vector(15 downto 0);
+         gt3_drprdy                           : out std_logic;
+         gt3_drpen                            : in  std_logic;
+         gt3_drpwe                            : in  std_logic;
+         gt3_drpaddr                          : in  std_logic_vector(9 downto 0);
+         gt3_drpdi                            : in  std_logic_vector(15 downto 0);
+         ctl_tx_rsfec_enable                  : in  std_logic;
+         ctl_rx_rsfec_enable                  : in  std_logic;
+         ctl_rsfec_ieee_error_indication_mode : in  std_logic;
+         ctl_rx_rsfec_enable_correction       : in  std_logic;
+         ctl_rx_rsfec_enable_indication       : in  std_logic;
+         stat_rx_rsfec_am_lock0               : out std_logic;
+         stat_rx_rsfec_am_lock1               : out std_logic;
+         stat_rx_rsfec_am_lock2               : out std_logic;
+         stat_rx_rsfec_am_lock3               : out std_logic;
+         stat_rx_rsfec_corrected_cw_inc       : out std_logic;
+         stat_rx_rsfec_cw_inc                 : out std_logic;
+         stat_rx_rsfec_err_count0_inc         : out std_logic_vector(2 downto 0);
+         stat_rx_rsfec_err_count1_inc         : out std_logic_vector(2 downto 0);
+         stat_rx_rsfec_err_count2_inc         : out std_logic_vector(2 downto 0);
+         stat_rx_rsfec_err_count3_inc         : out std_logic_vector(2 downto 0);
+         stat_rx_rsfec_hi_ser                 : out std_logic;
+         stat_rx_rsfec_lane_alignment_status  : out std_logic;
+         stat_rx_rsfec_lane_fill_0            : out std_logic_vector(13 downto 0);
+         stat_rx_rsfec_lane_fill_1            : out std_logic_vector(13 downto 0);
+         stat_rx_rsfec_lane_fill_2            : out std_logic_vector(13 downto 0);
+         stat_rx_rsfec_lane_fill_3            : out std_logic_vector(13 downto 0);
+         stat_rx_rsfec_lane_mapping           : out std_logic_vector(7 downto 0);
+         stat_rx_rsfec_uncorrected_cw_inc     : out std_logic;
+         sys_reset                            : in  std_logic;
+         gt_ref_clk_p                         : in  std_logic;
+         gt_ref_clk_n                         : in  std_logic;
+         init_clk                             : in  std_logic;
+         common0_drpaddr                      : in  std_logic_vector(15 downto 0);
+         common0_drpdi                        : in  std_logic_vector(15 downto 0);
+         common0_drpwe                        : in  std_logic;
+         common0_drpen                        : in  std_logic;
+         common0_drprdy                       : out std_logic;
+         common0_drpdo                        : out std_logic_vector(15 downto 0);
+         rx_axis_tvalid                       : out std_logic;
+         rx_axis_tdata                        : out std_logic_vector(511 downto 0);
+         rx_axis_tlast                        : out std_logic;
+         rx_axis_tkeep                        : out std_logic_vector(63 downto 0);
+         rx_axis_tuser                        : out std_logic;
+         rx_otn_bip8_0                        : out std_logic_vector(7 downto 0);
+         rx_otn_bip8_1                        : out std_logic_vector(7 downto 0);
+         rx_otn_bip8_2                        : out std_logic_vector(7 downto 0);
+         rx_otn_bip8_3                        : out std_logic_vector(7 downto 0);
+         rx_otn_bip8_4                        : out std_logic_vector(7 downto 0);
+         rx_otn_data_0                        : out std_logic_vector(65 downto 0);
+         rx_otn_data_1                        : out std_logic_vector(65 downto 0);
+         rx_otn_data_2                        : out std_logic_vector(65 downto 0);
+         rx_otn_data_3                        : out std_logic_vector(65 downto 0);
+         rx_otn_data_4                        : out std_logic_vector(65 downto 0);
+         rx_preambleout                       : out std_logic_vector(55 downto 0);
+         usr_rx_reset                         : out std_logic;
+         gt_rxusrclk2                         : out std_logic;
+         stat_rx_bad_code                     : out std_logic_vector(2 downto 0);
+         stat_rx_bad_fcs                      : out std_logic_vector(2 downto 0);
+         stat_rx_block_lock                   : out std_logic_vector(19 downto 0);
+         stat_rx_fragment                     : out std_logic_vector(2 downto 0);
+         stat_rx_framing_err_0                : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_1                : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_10               : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_11               : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_12               : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_13               : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_14               : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_15               : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_16               : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_17               : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_18               : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_19               : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_2                : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_3                : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_4                : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_5                : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_6                : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_7                : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_8                : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_9                : out std_logic_vector(1 downto 0);
+         stat_rx_mf_err                       : out std_logic_vector(19 downto 0);
+         stat_rx_mf_len_err                   : out std_logic_vector(19 downto 0);
+         stat_rx_mf_repeat_err                : out std_logic_vector(19 downto 0);
+         stat_rx_packet_small                 : out std_logic_vector(2 downto 0);
+         ctl_rx_enable                        : in  std_logic;
+         ctl_rx_force_resync                  : in  std_logic;
+         ctl_rx_test_pattern                  : in  std_logic;
+         core_rx_reset                        : in  std_logic;
+         rx_clk                               : in  std_logic;
+         stat_rx_stomped_fcs                  : out std_logic_vector(2 downto 0);
+         stat_rx_synced                       : out std_logic_vector(19 downto 0);
+         stat_rx_synced_err                   : out std_logic_vector(19 downto 0);
+         stat_rx_test_pattern_mismatch        : out std_logic_vector(2 downto 0);
+         stat_rx_total_bytes                  : out std_logic_vector(6 downto 0);
+         stat_rx_total_good_bytes             : out std_logic_vector(13 downto 0);
+         stat_rx_total_packets                : out std_logic_vector(2 downto 0);
+         stat_rx_undersize                    : out std_logic_vector(2 downto 0);
+         stat_rx_pcsl_demuxed                 : out std_logic_vector(19 downto 0);
+         stat_rx_pcsl_number_0                : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_1                : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_10               : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_11               : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_12               : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_13               : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_14               : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_15               : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_16               : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_17               : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_18               : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_19               : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_2                : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_3                : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_4                : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_5                : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_6                : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_7                : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_8                : out std_logic_vector(4 downto 0);
+         stat_rx_pcsl_number_9                : out std_logic_vector(4 downto 0);
+         stat_tx_bad_fcs                      : out std_logic;
+         stat_tx_broadcast                    : out std_logic;
+         stat_tx_frame_error                  : out std_logic;
+         stat_tx_local_fault                  : out std_logic;
+         stat_tx_multicast                    : out std_logic;
+         stat_tx_packet_1024_1518_bytes       : out std_logic;
+         stat_tx_packet_128_255_bytes         : out std_logic;
+         stat_tx_packet_1519_1522_bytes       : out std_logic;
+         stat_tx_packet_1523_1548_bytes       : out std_logic;
+         stat_tx_packet_1549_2047_bytes       : out std_logic;
+         stat_tx_packet_2048_4095_bytes       : out std_logic;
+         stat_tx_packet_256_511_bytes         : out std_logic;
+         stat_tx_packet_4096_8191_bytes       : out std_logic;
+         stat_tx_packet_512_1023_bytes        : out std_logic;
+         stat_tx_packet_64_bytes              : out std_logic;
+         stat_tx_packet_65_127_bytes          : out std_logic;
+         stat_tx_packet_8192_9215_bytes       : out std_logic;
+         stat_tx_packet_large                 : out std_logic;
+         stat_tx_packet_small                 : out std_logic;
+         stat_tx_total_bytes                  : out std_logic_vector(5 downto 0);
+         stat_tx_total_good_bytes             : out std_logic_vector(13 downto 0);
+         stat_tx_total_good_packets           : out std_logic;
+         stat_tx_total_packets                : out std_logic;
+         stat_tx_unicast                      : out std_logic;
+         stat_tx_vlan                         : out std_logic;
+         ctl_tx_enable                        : in  std_logic;
+         ctl_tx_send_idle                     : in  std_logic;
+         ctl_tx_send_rfi                      : in  std_logic;
+         ctl_tx_send_lfi                      : in  std_logic;
+         ctl_tx_test_pattern                  : in  std_logic;
+         core_tx_reset                        : in  std_logic;
+         tx_axis_tready                       : out std_logic;
+         tx_axis_tvalid                       : in  std_logic;
+         tx_axis_tdata                        : in  std_logic_vector(511 downto 0);
+         tx_axis_tlast                        : in  std_logic;
+         tx_axis_tkeep                        : in  std_logic_vector(63 downto 0);
+         tx_axis_tuser                        : in  std_logic;
+         tx_ovfout                            : out std_logic;
+         tx_unfout                            : out std_logic;
+         tx_preamblein                        : in  std_logic_vector(55 downto 0);
+         usr_tx_reset                         : out std_logic;
+         core_drp_reset                       : in  std_logic;
+         drp_clk                              : in  std_logic;
+         drp_addr                             : in  std_logic_vector(9 downto 0);
+         drp_di                               : in  std_logic_vector(15 downto 0);
+         drp_en                               : in  std_logic;
+         drp_do                               : out std_logic_vector(15 downto 0);
+         drp_rdy                              : out std_logic;
+         drp_we                               : in  std_logic
          );
    end component;
 
@@ -634,413 +676,459 @@ begin
    USE_REFCLK156MHz : if (REFCLK_TYPE_G = false) generate
       U_CAUI4 : Caui4GtyIpCore156MHz
          port map (
-            gt_txp_out                     => gtTxP,
-            gt_txn_out                     => gtTxN,
-            gt_rxp_in                      => gtRxP,
-            gt_rxn_in                      => gtRxN,
-            gt_txusrclk2                   => txusrclk2,
-            gt_loopback_in                 => gtLoopback,
-            gt_eyescanreset                => (others => '0'),
-            gt_eyescantrigger              => (others => '0'),
-            gt_rxcdrhold                   => (others => '0'),
-            gt_rxpolarity                  => rxPolarity(3 downto 0),
-            gt_rxrate                      => (others => '0'),
-            gt_txdiffctrl                  => gtTxdiffctrl,
-            gt_txpolarity                  => txPolarity(3 downto 0),
-            gt_txinhibit                   => (others => '0'),
-            gt_txpippmen                   => (others => '0'),
-            gt_txpippmsel                  => (others => '1'),  -- Same as Caui4GtyIpCore_trans_debug example design
-            gt_txpostcursor                => gtTxPostCursor,
-            gt_txprbsforceerr              => (others => '0'),
-            gt_txprecursor                 => gtTxPreCursor,
-            gt_eyescandataerror            => open,
-            gt_ref_clk_out                 => open,
-            gt_rxrecclkout                 => open,
-            gt_powergoodout                => open,
-            gt_txbufstatus                 => open,
-            gt_rxdfelpmreset               => (others => '0'),
-            gt_rxlpmen                     => (others => '1'),  -- Same as Caui4GtyIpCore_trans_debug example design
-            gt_rxprbscntreset              => (others => '0'),
-            gt_rxprbserr                   => open,
-            gt_rxprbssel                   => (others => '0'),
-            gt_rxresetdone                 => open,
-            gt_txprbssel                   => (others => '0'),
-            gt_txresetdone                 => open,
-            gt_rxbufstatus                 => open,
-            gtwiz_reset_tx_datapath        => stableReset,
-            gtwiz_reset_rx_datapath        => stableReset,
-            gt_drpclk                      => stableClk,
-            gt0_drpdo                      => open,
-            gt0_drprdy                     => open,
-            gt0_drpen                      => '0',
-            gt0_drpwe                      => '0',
-            gt0_drpaddr                    => (others => '0'),
-            gt0_drpdi                      => (others => '0'),
-            gt1_drpdo                      => open,
-            gt1_drprdy                     => open,
-            gt1_drpen                      => '0',
-            gt1_drpwe                      => '0',
-            gt1_drpaddr                    => (others => '0'),
-            gt1_drpdi                      => (others => '0'),
-            gt2_drpdo                      => open,
-            gt2_drprdy                     => open,
-            gt2_drpen                      => '0',
-            gt2_drpwe                      => '0',
-            gt2_drpaddr                    => (others => '0'),
-            gt2_drpdi                      => (others => '0'),
-            gt3_drpdo                      => open,
-            gt3_drprdy                     => open,
-            gt3_drpen                      => '0',
-            gt3_drpwe                      => '0',
-            gt3_drpaddr                    => (others => '0'),
-            gt3_drpdi                      => (others => '0'),
-            sys_reset                      => stableReset,
-            gt_ref_clk_p                   => gtRefClkP,
-            gt_ref_clk_n                   => gtRefClkN,
-            init_clk                       => stableClk,
-            common0_drpaddr                => (others => '0'),
-            common0_drpdi                  => (others => '0'),
-            common0_drpwe                  => '0',
-            common0_drpen                  => '0',
-            common0_drprdy                 => open,
-            common0_drpdo                  => open,
-            rx_axis_tvalid                 => rxAxis.tvalid,
-            rx_axis_tdata                  => rxAxis.tdata(511 downto 0),
-            rx_axis_tlast                  => rxAxis.tlast,
-            rx_axis_tkeep                  => rxAxis.tkeep,
-            rx_axis_tuser                  => rxAxis.tuser(0),
-            rx_otn_bip8_0                  => open,
-            rx_otn_bip8_1                  => open,
-            rx_otn_bip8_2                  => open,
-            rx_otn_bip8_3                  => open,
-            rx_otn_bip8_4                  => open,
-            rx_otn_data_0                  => open,
-            rx_otn_data_1                  => open,
-            rx_otn_data_2                  => open,
-            rx_otn_data_3                  => open,
-            rx_otn_data_4                  => open,
-            rx_preambleout                 => open,
-            usr_rx_reset                   => usr_rx_reset,
-            gt_rxusrclk2                   => open,
-            stat_rx_aligned                => stat_rx_aligned,
-            stat_rx_aligned_err            => stat_rx_aligned_err,
-            stat_rx_bad_code               => open,
-            stat_rx_bad_fcs                => open,
-            stat_rx_block_lock             => open,
-            stat_rx_fragment               => open,
-            stat_rx_framing_err_0          => open,
-            stat_rx_framing_err_1          => open,
-            stat_rx_framing_err_10         => open,
-            stat_rx_framing_err_11         => open,
-            stat_rx_framing_err_12         => open,
-            stat_rx_framing_err_13         => open,
-            stat_rx_framing_err_14         => open,
-            stat_rx_framing_err_15         => open,
-            stat_rx_framing_err_16         => open,
-            stat_rx_framing_err_17         => open,
-            stat_rx_framing_err_18         => open,
-            stat_rx_framing_err_19         => open,
-            stat_rx_framing_err_2          => open,
-            stat_rx_framing_err_3          => open,
-            stat_rx_framing_err_4          => open,
-            stat_rx_framing_err_5          => open,
-            stat_rx_framing_err_6          => open,
-            stat_rx_framing_err_7          => open,
-            stat_rx_framing_err_8          => open,
-            stat_rx_framing_err_9          => open,
-            stat_rx_mf_err                 => open,
-            stat_rx_mf_len_err             => open,
-            stat_rx_mf_repeat_err          => open,
-            stat_rx_packet_small           => open,
-            ctl_rx_enable                  => r.ctl_rx_enable,
-            ctl_rx_force_resync            => '0',
-            ctl_rx_test_pattern            => '0',
-            core_rx_reset                  => stableReset,
-            rx_clk                         => txusrclk2,
-            stat_rx_stomped_fcs            => open,
-            stat_rx_synced                 => open,
-            stat_rx_synced_err             => open,
-            stat_rx_test_pattern_mismatch  => open,
-            stat_rx_total_bytes            => open,
-            stat_rx_total_good_bytes       => open,
-            stat_rx_total_packets          => open,
-            stat_rx_undersize              => open,
-            stat_rx_pcsl_demuxed           => open,
-            stat_rx_pcsl_number_0          => open,
-            stat_rx_pcsl_number_1          => open,
-            stat_rx_pcsl_number_10         => open,
-            stat_rx_pcsl_number_11         => open,
-            stat_rx_pcsl_number_12         => open,
-            stat_rx_pcsl_number_13         => open,
-            stat_rx_pcsl_number_14         => open,
-            stat_rx_pcsl_number_15         => open,
-            stat_rx_pcsl_number_16         => open,
-            stat_rx_pcsl_number_17         => open,
-            stat_rx_pcsl_number_18         => open,
-            stat_rx_pcsl_number_19         => open,
-            stat_rx_pcsl_number_2          => open,
-            stat_rx_pcsl_number_3          => open,
-            stat_rx_pcsl_number_4          => open,
-            stat_rx_pcsl_number_5          => open,
-            stat_rx_pcsl_number_6          => open,
-            stat_rx_pcsl_number_7          => open,
-            stat_rx_pcsl_number_8          => open,
-            stat_rx_pcsl_number_9          => open,
-            stat_tx_bad_fcs                => open,
-            stat_tx_broadcast              => open,
-            stat_tx_frame_error            => open,
-            stat_tx_local_fault            => open,
-            stat_tx_multicast              => open,
-            stat_tx_packet_1024_1518_bytes => open,
-            stat_tx_packet_128_255_bytes   => open,
-            stat_tx_packet_1519_1522_bytes => open,
-            stat_tx_packet_1523_1548_bytes => open,
-            stat_tx_packet_1549_2047_bytes => open,
-            stat_tx_packet_2048_4095_bytes => open,
-            stat_tx_packet_256_511_bytes   => open,
-            stat_tx_packet_4096_8191_bytes => open,
-            stat_tx_packet_512_1023_bytes  => open,
-            stat_tx_packet_64_bytes        => open,
-            stat_tx_packet_65_127_bytes    => open,
-            stat_tx_packet_8192_9215_bytes => open,
-            stat_tx_packet_large           => open,
-            stat_tx_packet_small           => open,
-            stat_tx_total_bytes            => open,
-            stat_tx_total_good_bytes       => open,
-            stat_tx_total_good_packets     => open,
-            stat_tx_total_packets          => open,
-            stat_tx_unicast                => open,
-            stat_tx_vlan                   => open,
-            ctl_tx_enable                  => r.ctl_tx_enable,
-            ctl_tx_send_idle               => '0',
-            ctl_tx_send_rfi                => r.ctl_tx_send_rfi,
-            ctl_tx_send_lfi                => '0',
-            ctl_tx_test_pattern            => '0',
-            core_tx_reset                  => stableReset,
-            tx_axis_tready                 => txSlave.tready,
-            tx_axis_tvalid                 => txMaster.tvalid,
-            tx_axis_tdata                  => txMaster.tdata(511 downto 0),
-            tx_axis_tlast                  => txMaster.tlast,
-            tx_axis_tkeep                  => txMaster.tkeep(63 downto 0),
-            tx_axis_tuser                  => '0',  -- Unclear if I want to have the MAC drop EOFE        
-            tx_ovfout                      => open,
-            tx_unfout                      => open,
-            tx_preamblein                  => (others => '0'),  -- tx_preamblein is driven as 0
-            usr_tx_reset                   => usr_tx_reset,
-            core_drp_reset                 => stableReset,
-            drp_clk                        => stableClk,
-            drp_addr                       => (others => '0'),
-            drp_di                         => (others => '0'),
-            drp_en                         => '0',
-            drp_do                         => open,
-            drp_rdy                        => open,
-            drp_we                         => '0');
+            gt_txp_out                           => gtTxP,
+            gt_txn_out                           => gtTxN,
+            gt_rxp_in                            => gtRxP,
+            gt_rxn_in                            => gtRxN,
+            gt_txusrclk2                         => txusrclk2,
+            gt_loopback_in                       => gtLoopback,
+            gt_eyescanreset                      => (others => '0'),
+            gt_eyescantrigger                    => (others => '0'),
+            gt_rxcdrhold                         => (others => '0'),
+            gt_rxpolarity                        => rxPolarity(3 downto 0),
+            gt_rxrate                            => (others => '0'),
+            gt_txdiffctrl                        => gtTxdiffctrl,
+            gt_txpolarity                        => txPolarity(3 downto 0),
+            gt_txinhibit                         => (others => '0'),
+            gt_txpippmen                         => (others => '0'),
+            gt_txpippmsel                        => (others => '1'),  -- Same as Caui4GtyIpCore_trans_debug example design
+            gt_txpostcursor                      => gtTxPostCursor,
+            gt_txprbsforceerr                    => (others => '0'),
+            gt_txprecursor                       => gtTxPreCursor,
+            gt_eyescandataerror                  => open,
+            gt_ref_clk_out                       => open,
+            gt_rxrecclkout                       => open,
+            gt_powergoodout                      => open,
+            gt_txbufstatus                       => open,
+            gt_rxdfelpmreset                     => (others => '0'),
+            gt_rxlpmen                           => (others => '1'),  -- Same as Caui4GtyIpCore_trans_debug example design
+            gt_rxprbscntreset                    => (others => '0'),
+            gt_rxprbserr                         => open,
+            gt_rxprbssel                         => (others => '0'),
+            gt_rxresetdone                       => open,
+            gt_txprbssel                         => (others => '0'),
+            gt_txresetdone                       => open,
+            gt_rxbufstatus                       => open,
+            gtwiz_reset_tx_datapath              => stableReset,
+            gtwiz_reset_rx_datapath              => stableReset,
+            gt_drpclk                            => stableClk,
+            gt0_drpdo                            => open,
+            gt0_drprdy                           => open,
+            gt0_drpen                            => '0',
+            gt0_drpwe                            => '0',
+            gt0_drpaddr                          => (others => '0'),
+            gt0_drpdi                            => (others => '0'),
+            gt1_drpdo                            => open,
+            gt1_drprdy                           => open,
+            gt1_drpen                            => '0',
+            gt1_drpwe                            => '0',
+            gt1_drpaddr                          => (others => '0'),
+            gt1_drpdi                            => (others => '0'),
+            gt2_drpdo                            => open,
+            gt2_drprdy                           => open,
+            gt2_drpen                            => '0',
+            gt2_drpwe                            => '0',
+            gt2_drpaddr                          => (others => '0'),
+            gt2_drpdi                            => (others => '0'),
+            gt3_drpdo                            => open,
+            gt3_drprdy                           => open,
+            gt3_drpen                            => '0',
+            gt3_drpwe                            => '0',
+            gt3_drpaddr                          => (others => '0'),
+            gt3_drpdi                            => (others => '0'),
+            ctl_tx_rsfec_enable                  => '1',
+            ctl_rx_rsfec_enable                  => '1',
+            ctl_rsfec_ieee_error_indication_mode => '1',
+            ctl_rx_rsfec_enable_correction       => '1',
+            ctl_rx_rsfec_enable_indication       => '1',
+            stat_rx_rsfec_am_lock0               => open,
+            stat_rx_rsfec_am_lock1               => open,
+            stat_rx_rsfec_am_lock2               => open,
+            stat_rx_rsfec_am_lock3               => open,
+            stat_rx_rsfec_corrected_cw_inc       => open,
+            stat_rx_rsfec_cw_inc                 => open,
+            stat_rx_rsfec_err_count0_inc         => open,
+            stat_rx_rsfec_err_count1_inc         => open,
+            stat_rx_rsfec_err_count2_inc         => open,
+            stat_rx_rsfec_err_count3_inc         => open,
+            stat_rx_rsfec_hi_ser                 => open,
+            stat_rx_rsfec_lane_alignment_status  => stat_rx_aligned,
+            stat_rx_rsfec_lane_fill_0            => open,
+            stat_rx_rsfec_lane_fill_1            => open,
+            stat_rx_rsfec_lane_fill_2            => open,
+            stat_rx_rsfec_lane_fill_3            => open,
+            stat_rx_rsfec_lane_mapping           => open,
+            stat_rx_rsfec_uncorrected_cw_inc     => stat_rx_aligned_err,
+            sys_reset                            => stableReset,
+            gt_ref_clk_p                         => gtRefClkP,
+            gt_ref_clk_n                         => gtRefClkN,
+            init_clk                             => stableClk,
+            common0_drpaddr                      => (others => '0'),
+            common0_drpdi                        => (others => '0'),
+            common0_drpwe                        => '0',
+            common0_drpen                        => '0',
+            common0_drprdy                       => open,
+            common0_drpdo                        => open,
+            rx_axis_tvalid                       => rxAxis.tvalid,
+            rx_axis_tdata                        => rxAxis.tdata(511 downto 0),
+            rx_axis_tlast                        => rxAxis.tlast,
+            rx_axis_tkeep                        => rxAxis.tkeep,
+            rx_axis_tuser                        => rxAxis.tuser(0),
+            rx_otn_bip8_0                        => open,
+            rx_otn_bip8_1                        => open,
+            rx_otn_bip8_2                        => open,
+            rx_otn_bip8_3                        => open,
+            rx_otn_bip8_4                        => open,
+            rx_otn_data_0                        => open,
+            rx_otn_data_1                        => open,
+            rx_otn_data_2                        => open,
+            rx_otn_data_3                        => open,
+            rx_otn_data_4                        => open,
+            rx_preambleout                       => open,
+            usr_rx_reset                         => usr_rx_reset,
+            gt_rxusrclk2                         => open,
+            -- stat_rx_aligned                      => stat_rx_aligned,
+            -- stat_rx_aligned_err                  => stat_rx_aligned_err,
+            stat_rx_bad_code                     => open,
+            stat_rx_bad_fcs                      => open,
+            stat_rx_block_lock                   => open,
+            stat_rx_fragment                     => open,
+            stat_rx_framing_err_0                => open,
+            stat_rx_framing_err_1                => open,
+            stat_rx_framing_err_10               => open,
+            stat_rx_framing_err_11               => open,
+            stat_rx_framing_err_12               => open,
+            stat_rx_framing_err_13               => open,
+            stat_rx_framing_err_14               => open,
+            stat_rx_framing_err_15               => open,
+            stat_rx_framing_err_16               => open,
+            stat_rx_framing_err_17               => open,
+            stat_rx_framing_err_18               => open,
+            stat_rx_framing_err_19               => open,
+            stat_rx_framing_err_2                => open,
+            stat_rx_framing_err_3                => open,
+            stat_rx_framing_err_4                => open,
+            stat_rx_framing_err_5                => open,
+            stat_rx_framing_err_6                => open,
+            stat_rx_framing_err_7                => open,
+            stat_rx_framing_err_8                => open,
+            stat_rx_framing_err_9                => open,
+            stat_rx_mf_err                       => open,
+            stat_rx_mf_len_err                   => open,
+            stat_rx_mf_repeat_err                => open,
+            stat_rx_packet_small                 => open,
+            ctl_rx_enable                        => r.ctl_rx_enable,
+            ctl_rx_force_resync                  => '0',
+            ctl_rx_test_pattern                  => '0',
+            core_rx_reset                        => stableReset,
+            rx_clk                               => txusrclk2,
+            stat_rx_stomped_fcs                  => open,
+            stat_rx_synced                       => open,
+            stat_rx_synced_err                   => open,
+            stat_rx_test_pattern_mismatch        => open,
+            stat_rx_total_bytes                  => open,
+            stat_rx_total_good_bytes             => open,
+            stat_rx_total_packets                => open,
+            stat_rx_undersize                    => open,
+            stat_rx_pcsl_demuxed                 => open,
+            stat_rx_pcsl_number_0                => open,
+            stat_rx_pcsl_number_1                => open,
+            stat_rx_pcsl_number_10               => open,
+            stat_rx_pcsl_number_11               => open,
+            stat_rx_pcsl_number_12               => open,
+            stat_rx_pcsl_number_13               => open,
+            stat_rx_pcsl_number_14               => open,
+            stat_rx_pcsl_number_15               => open,
+            stat_rx_pcsl_number_16               => open,
+            stat_rx_pcsl_number_17               => open,
+            stat_rx_pcsl_number_18               => open,
+            stat_rx_pcsl_number_19               => open,
+            stat_rx_pcsl_number_2                => open,
+            stat_rx_pcsl_number_3                => open,
+            stat_rx_pcsl_number_4                => open,
+            stat_rx_pcsl_number_5                => open,
+            stat_rx_pcsl_number_6                => open,
+            stat_rx_pcsl_number_7                => open,
+            stat_rx_pcsl_number_8                => open,
+            stat_rx_pcsl_number_9                => open,
+            stat_tx_bad_fcs                      => open,
+            stat_tx_broadcast                    => open,
+            stat_tx_frame_error                  => open,
+            stat_tx_local_fault                  => open,
+            stat_tx_multicast                    => open,
+            stat_tx_packet_1024_1518_bytes       => open,
+            stat_tx_packet_128_255_bytes         => open,
+            stat_tx_packet_1519_1522_bytes       => open,
+            stat_tx_packet_1523_1548_bytes       => open,
+            stat_tx_packet_1549_2047_bytes       => open,
+            stat_tx_packet_2048_4095_bytes       => open,
+            stat_tx_packet_256_511_bytes         => open,
+            stat_tx_packet_4096_8191_bytes       => open,
+            stat_tx_packet_512_1023_bytes        => open,
+            stat_tx_packet_64_bytes              => open,
+            stat_tx_packet_65_127_bytes          => open,
+            stat_tx_packet_8192_9215_bytes       => open,
+            stat_tx_packet_large                 => open,
+            stat_tx_packet_small                 => open,
+            stat_tx_total_bytes                  => open,
+            stat_tx_total_good_bytes             => open,
+            stat_tx_total_good_packets           => open,
+            stat_tx_total_packets                => open,
+            stat_tx_unicast                      => open,
+            stat_tx_vlan                         => open,
+            ctl_tx_enable                        => r.ctl_tx_enable,
+            ctl_tx_send_idle                     => '0',
+            ctl_tx_send_rfi                      => r.ctl_tx_send_rfi,
+            ctl_tx_send_lfi                      => '0',
+            ctl_tx_test_pattern                  => '0',
+            core_tx_reset                        => stableReset,
+            tx_axis_tready                       => txSlave.tready,
+            tx_axis_tvalid                       => txMaster.tvalid,
+            tx_axis_tdata                        => txMaster.tdata(511 downto 0),
+            tx_axis_tlast                        => txMaster.tlast,
+            tx_axis_tkeep                        => txMaster.tkeep(63 downto 0),
+            tx_axis_tuser                        => '0',  -- Unclear if I want to have the MAC drop EOFE        
+            tx_ovfout                            => open,
+            tx_unfout                            => open,
+            tx_preamblein                        => (others => '0'),  -- tx_preamblein is driven as 0
+            usr_tx_reset                         => usr_tx_reset,
+            core_drp_reset                       => stableReset,
+            drp_clk                              => stableClk,
+            drp_addr                             => (others => '0'),
+            drp_di                               => (others => '0'),
+            drp_en                               => '0',
+            drp_do                               => open,
+            drp_rdy                              => open,
+            drp_we                               => '0');
    end generate;
 
    USE_REFCLK161MHz : if (REFCLK_TYPE_G = true) generate
       U_CAUI4 : Caui4GtyIpCore161MHz
          port map (
-            gt_txp_out                     => gtTxP,
-            gt_txn_out                     => gtTxN,
-            gt_rxp_in                      => gtRxP,
-            gt_rxn_in                      => gtRxN,
-            gt_txusrclk2                   => txusrclk2,
-            gt_loopback_in                 => gtLoopback,
-            gt_eyescanreset                => (others => '0'),
-            gt_eyescantrigger              => (others => '0'),
-            gt_rxcdrhold                   => (others => '0'),
-            gt_rxpolarity                  => rxPolarity(3 downto 0),
-            gt_rxrate                      => (others => '0'),
-            gt_txdiffctrl                  => gtTxdiffctrl,
-            gt_txpolarity                  => txPolarity(3 downto 0),
-            gt_txinhibit                   => (others => '0'),
-            gt_txpippmen                   => (others => '0'),
-            gt_txpippmsel                  => (others => '1'),  -- Same as Caui4GtyIpCore_trans_debug example design
-            gt_txpostcursor                => gtTxPostCursor,
-            gt_txprbsforceerr              => (others => '0'),
-            gt_txprecursor                 => gtTxPreCursor,
-            gt_eyescandataerror            => open,
-            gt_ref_clk_out                 => open,
-            gt_rxrecclkout                 => open,
-            gt_powergoodout                => open,
-            gt_txbufstatus                 => open,
-            gt_rxdfelpmreset               => (others => '0'),
-            gt_rxlpmen                     => (others => '1'),  -- Same as Caui4GtyIpCore_trans_debug example design
-            gt_rxprbscntreset              => (others => '0'),
-            gt_rxprbserr                   => open,
-            gt_rxprbssel                   => (others => '0'),
-            gt_rxresetdone                 => open,
-            gt_txprbssel                   => (others => '0'),
-            gt_txresetdone                 => open,
-            gt_rxbufstatus                 => open,
-            gtwiz_reset_tx_datapath        => stableReset,
-            gtwiz_reset_rx_datapath        => stableReset,
-            gt_drpclk                      => stableClk,
-            gt0_drpdo                      => open,
-            gt0_drprdy                     => open,
-            gt0_drpen                      => '0',
-            gt0_drpwe                      => '0',
-            gt0_drpaddr                    => (others => '0'),
-            gt0_drpdi                      => (others => '0'),
-            gt1_drpdo                      => open,
-            gt1_drprdy                     => open,
-            gt1_drpen                      => '0',
-            gt1_drpwe                      => '0',
-            gt1_drpaddr                    => (others => '0'),
-            gt1_drpdi                      => (others => '0'),
-            gt2_drpdo                      => open,
-            gt2_drprdy                     => open,
-            gt2_drpen                      => '0',
-            gt2_drpwe                      => '0',
-            gt2_drpaddr                    => (others => '0'),
-            gt2_drpdi                      => (others => '0'),
-            gt3_drpdo                      => open,
-            gt3_drprdy                     => open,
-            gt3_drpen                      => '0',
-            gt3_drpwe                      => '0',
-            gt3_drpaddr                    => (others => '0'),
-            gt3_drpdi                      => (others => '0'),
-            sys_reset                      => stableReset,
-            gt_ref_clk_p                   => gtRefClkP,
-            gt_ref_clk_n                   => gtRefClkN,
-            init_clk                       => stableClk,
-            common0_drpaddr                => (others => '0'),
-            common0_drpdi                  => (others => '0'),
-            common0_drpwe                  => '0',
-            common0_drpen                  => '0',
-            common0_drprdy                 => open,
-            common0_drpdo                  => open,
-            rx_axis_tvalid                 => rxAxis.tvalid,
-            rx_axis_tdata                  => rxAxis.tdata(511 downto 0),
-            rx_axis_tlast                  => rxAxis.tlast,
-            rx_axis_tkeep                  => rxAxis.tkeep,
-            rx_axis_tuser                  => rxAxis.tuser(0),
-            rx_otn_bip8_0                  => open,
-            rx_otn_bip8_1                  => open,
-            rx_otn_bip8_2                  => open,
-            rx_otn_bip8_3                  => open,
-            rx_otn_bip8_4                  => open,
-            rx_otn_data_0                  => open,
-            rx_otn_data_1                  => open,
-            rx_otn_data_2                  => open,
-            rx_otn_data_3                  => open,
-            rx_otn_data_4                  => open,
-            rx_preambleout                 => open,
-            usr_rx_reset                   => usr_rx_reset,
-            gt_rxusrclk2                   => open,
-            stat_rx_aligned                => stat_rx_aligned,
-            stat_rx_aligned_err            => stat_rx_aligned_err,
-            stat_rx_bad_code               => open,
-            stat_rx_bad_fcs                => open,
-            stat_rx_block_lock             => open,
-            stat_rx_fragment               => open,
-            stat_rx_framing_err_0          => open,
-            stat_rx_framing_err_1          => open,
-            stat_rx_framing_err_10         => open,
-            stat_rx_framing_err_11         => open,
-            stat_rx_framing_err_12         => open,
-            stat_rx_framing_err_13         => open,
-            stat_rx_framing_err_14         => open,
-            stat_rx_framing_err_15         => open,
-            stat_rx_framing_err_16         => open,
-            stat_rx_framing_err_17         => open,
-            stat_rx_framing_err_18         => open,
-            stat_rx_framing_err_19         => open,
-            stat_rx_framing_err_2          => open,
-            stat_rx_framing_err_3          => open,
-            stat_rx_framing_err_4          => open,
-            stat_rx_framing_err_5          => open,
-            stat_rx_framing_err_6          => open,
-            stat_rx_framing_err_7          => open,
-            stat_rx_framing_err_8          => open,
-            stat_rx_framing_err_9          => open,
-            stat_rx_mf_err                 => open,
-            stat_rx_mf_len_err             => open,
-            stat_rx_mf_repeat_err          => open,
-            stat_rx_packet_small           => open,
-            ctl_rx_enable                  => r.ctl_rx_enable,
-            ctl_rx_force_resync            => '0',
-            ctl_rx_test_pattern            => '0',
-            core_rx_reset                  => stableReset,
-            rx_clk                         => txusrclk2,
-            stat_rx_stomped_fcs            => open,
-            stat_rx_synced                 => open,
-            stat_rx_synced_err             => open,
-            stat_rx_test_pattern_mismatch  => open,
-            stat_rx_total_bytes            => open,
-            stat_rx_total_good_bytes       => open,
-            stat_rx_total_packets          => open,
-            stat_rx_undersize              => open,
-            stat_rx_pcsl_demuxed           => open,
-            stat_rx_pcsl_number_0          => open,
-            stat_rx_pcsl_number_1          => open,
-            stat_rx_pcsl_number_10         => open,
-            stat_rx_pcsl_number_11         => open,
-            stat_rx_pcsl_number_12         => open,
-            stat_rx_pcsl_number_13         => open,
-            stat_rx_pcsl_number_14         => open,
-            stat_rx_pcsl_number_15         => open,
-            stat_rx_pcsl_number_16         => open,
-            stat_rx_pcsl_number_17         => open,
-            stat_rx_pcsl_number_18         => open,
-            stat_rx_pcsl_number_19         => open,
-            stat_rx_pcsl_number_2          => open,
-            stat_rx_pcsl_number_3          => open,
-            stat_rx_pcsl_number_4          => open,
-            stat_rx_pcsl_number_5          => open,
-            stat_rx_pcsl_number_6          => open,
-            stat_rx_pcsl_number_7          => open,
-            stat_rx_pcsl_number_8          => open,
-            stat_rx_pcsl_number_9          => open,
-            stat_tx_bad_fcs                => open,
-            stat_tx_broadcast              => open,
-            stat_tx_frame_error            => open,
-            stat_tx_local_fault            => open,
-            stat_tx_multicast              => open,
-            stat_tx_packet_1024_1518_bytes => open,
-            stat_tx_packet_128_255_bytes   => open,
-            stat_tx_packet_1519_1522_bytes => open,
-            stat_tx_packet_1523_1548_bytes => open,
-            stat_tx_packet_1549_2047_bytes => open,
-            stat_tx_packet_2048_4095_bytes => open,
-            stat_tx_packet_256_511_bytes   => open,
-            stat_tx_packet_4096_8191_bytes => open,
-            stat_tx_packet_512_1023_bytes  => open,
-            stat_tx_packet_64_bytes        => open,
-            stat_tx_packet_65_127_bytes    => open,
-            stat_tx_packet_8192_9215_bytes => open,
-            stat_tx_packet_large           => open,
-            stat_tx_packet_small           => open,
-            stat_tx_total_bytes            => open,
-            stat_tx_total_good_bytes       => open,
-            stat_tx_total_good_packets     => open,
-            stat_tx_total_packets          => open,
-            stat_tx_unicast                => open,
-            stat_tx_vlan                   => open,
-            ctl_tx_enable                  => r.ctl_tx_enable,
-            ctl_tx_send_idle               => '0',
-            ctl_tx_send_rfi                => r.ctl_tx_send_rfi,
-            ctl_tx_send_lfi                => '0',
-            ctl_tx_test_pattern            => '0',
-            core_tx_reset                  => stableReset,
-            tx_axis_tready                 => txSlave.tready,
-            tx_axis_tvalid                 => txMaster.tvalid,
-            tx_axis_tdata                  => txMaster.tdata(511 downto 0),
-            tx_axis_tlast                  => txMaster.tlast,
-            tx_axis_tkeep                  => txMaster.tkeep(63 downto 0),
-            tx_axis_tuser                  => '0',  -- Unclear if I want to have the MAC drop EOFE        
-            tx_ovfout                      => open,
-            tx_unfout                      => open,
-            tx_preamblein                  => (others => '0'),  -- tx_preamblein is driven as 0
-            usr_tx_reset                   => usr_tx_reset,
-            core_drp_reset                 => stableReset,
-            drp_clk                        => stableClk,
-            drp_addr                       => (others => '0'),
-            drp_di                         => (others => '0'),
-            drp_en                         => '0',
-            drp_do                         => open,
-            drp_rdy                        => open,
-            drp_we                         => '0');
+            gt_txp_out                           => gtTxP,
+            gt_txn_out                           => gtTxN,
+            gt_rxp_in                            => gtRxP,
+            gt_rxn_in                            => gtRxN,
+            gt_txusrclk2                         => txusrclk2,
+            gt_loopback_in                       => gtLoopback,
+            gt_eyescanreset                      => (others => '0'),
+            gt_eyescantrigger                    => (others => '0'),
+            gt_rxcdrhold                         => (others => '0'),
+            gt_rxpolarity                        => rxPolarity(3 downto 0),
+            gt_rxrate                            => (others => '0'),
+            gt_txdiffctrl                        => gtTxdiffctrl,
+            gt_txpolarity                        => txPolarity(3 downto 0),
+            gt_txinhibit                         => (others => '0'),
+            gt_txpippmen                         => (others => '0'),
+            gt_txpippmsel                        => (others => '1'),  -- Same as Caui4GtyIpCore_trans_debug example design
+            gt_txpostcursor                      => gtTxPostCursor,
+            gt_txprbsforceerr                    => (others => '0'),
+            gt_txprecursor                       => gtTxPreCursor,
+            gt_eyescandataerror                  => open,
+            gt_ref_clk_out                       => open,
+            gt_rxrecclkout                       => open,
+            gt_powergoodout                      => open,
+            gt_txbufstatus                       => open,
+            gt_rxdfelpmreset                     => (others => '0'),
+            gt_rxlpmen                           => (others => '1'),  -- Same as Caui4GtyIpCore_trans_debug example design
+            gt_rxprbscntreset                    => (others => '0'),
+            gt_rxprbserr                         => open,
+            gt_rxprbssel                         => (others => '0'),
+            gt_rxresetdone                       => open,
+            gt_txprbssel                         => (others => '0'),
+            gt_txresetdone                       => open,
+            gt_rxbufstatus                       => open,
+            gtwiz_reset_tx_datapath              => stableReset,
+            gtwiz_reset_rx_datapath              => stableReset,
+            gt_drpclk                            => stableClk,
+            gt0_drpdo                            => open,
+            gt0_drprdy                           => open,
+            gt0_drpen                            => '0',
+            gt0_drpwe                            => '0',
+            gt0_drpaddr                          => (others => '0'),
+            gt0_drpdi                            => (others => '0'),
+            gt1_drpdo                            => open,
+            gt1_drprdy                           => open,
+            gt1_drpen                            => '0',
+            gt1_drpwe                            => '0',
+            gt1_drpaddr                          => (others => '0'),
+            gt1_drpdi                            => (others => '0'),
+            gt2_drpdo                            => open,
+            gt2_drprdy                           => open,
+            gt2_drpen                            => '0',
+            gt2_drpwe                            => '0',
+            gt2_drpaddr                          => (others => '0'),
+            gt2_drpdi                            => (others => '0'),
+            gt3_drpdo                            => open,
+            gt3_drprdy                           => open,
+            gt3_drpen                            => '0',
+            gt3_drpwe                            => '0',
+            gt3_drpaddr                          => (others => '0'),
+            gt3_drpdi                            => (others => '0'),
+            ctl_tx_rsfec_enable                  => '1',
+            ctl_rx_rsfec_enable                  => '1',
+            ctl_rsfec_ieee_error_indication_mode => '1',
+            ctl_rx_rsfec_enable_correction       => '1',
+            ctl_rx_rsfec_enable_indication       => '1',
+            stat_rx_rsfec_am_lock0               => open,
+            stat_rx_rsfec_am_lock1               => open,
+            stat_rx_rsfec_am_lock2               => open,
+            stat_rx_rsfec_am_lock3               => open,
+            stat_rx_rsfec_corrected_cw_inc       => open,
+            stat_rx_rsfec_cw_inc                 => open,
+            stat_rx_rsfec_err_count0_inc         => open,
+            stat_rx_rsfec_err_count1_inc         => open,
+            stat_rx_rsfec_err_count2_inc         => open,
+            stat_rx_rsfec_err_count3_inc         => open,
+            stat_rx_rsfec_hi_ser                 => open,
+            stat_rx_rsfec_lane_alignment_status  => stat_rx_aligned,
+            stat_rx_rsfec_lane_fill_0            => open,
+            stat_rx_rsfec_lane_fill_1            => open,
+            stat_rx_rsfec_lane_fill_2            => open,
+            stat_rx_rsfec_lane_fill_3            => open,
+            stat_rx_rsfec_lane_mapping           => open,
+            stat_rx_rsfec_uncorrected_cw_inc     => stat_rx_aligned_err,
+            sys_reset                            => stableReset,
+            gt_ref_clk_p                         => gtRefClkP,
+            gt_ref_clk_n                         => gtRefClkN,
+            init_clk                             => stableClk,
+            common0_drpaddr                      => (others => '0'),
+            common0_drpdi                        => (others => '0'),
+            common0_drpwe                        => '0',
+            common0_drpen                        => '0',
+            common0_drprdy                       => open,
+            common0_drpdo                        => open,
+            rx_axis_tvalid                       => rxAxis.tvalid,
+            rx_axis_tdata                        => rxAxis.tdata(511 downto 0),
+            rx_axis_tlast                        => rxAxis.tlast,
+            rx_axis_tkeep                        => rxAxis.tkeep,
+            rx_axis_tuser                        => rxAxis.tuser(0),
+            rx_otn_bip8_0                        => open,
+            rx_otn_bip8_1                        => open,
+            rx_otn_bip8_2                        => open,
+            rx_otn_bip8_3                        => open,
+            rx_otn_bip8_4                        => open,
+            rx_otn_data_0                        => open,
+            rx_otn_data_1                        => open,
+            rx_otn_data_2                        => open,
+            rx_otn_data_3                        => open,
+            rx_otn_data_4                        => open,
+            rx_preambleout                       => open,
+            usr_rx_reset                         => usr_rx_reset,
+            gt_rxusrclk2                         => open,
+            -- stat_rx_aligned                      => stat_rx_aligned,
+            -- stat_rx_aligned_err                  => stat_rx_aligned_err,
+            stat_rx_bad_code                     => open,
+            stat_rx_bad_fcs                      => open,
+            stat_rx_block_lock                   => open,
+            stat_rx_fragment                     => open,
+            stat_rx_framing_err_0                => open,
+            stat_rx_framing_err_1                => open,
+            stat_rx_framing_err_10               => open,
+            stat_rx_framing_err_11               => open,
+            stat_rx_framing_err_12               => open,
+            stat_rx_framing_err_13               => open,
+            stat_rx_framing_err_14               => open,
+            stat_rx_framing_err_15               => open,
+            stat_rx_framing_err_16               => open,
+            stat_rx_framing_err_17               => open,
+            stat_rx_framing_err_18               => open,
+            stat_rx_framing_err_19               => open,
+            stat_rx_framing_err_2                => open,
+            stat_rx_framing_err_3                => open,
+            stat_rx_framing_err_4                => open,
+            stat_rx_framing_err_5                => open,
+            stat_rx_framing_err_6                => open,
+            stat_rx_framing_err_7                => open,
+            stat_rx_framing_err_8                => open,
+            stat_rx_framing_err_9                => open,
+            stat_rx_mf_err                       => open,
+            stat_rx_mf_len_err                   => open,
+            stat_rx_mf_repeat_err                => open,
+            stat_rx_packet_small                 => open,
+            ctl_rx_enable                        => r.ctl_rx_enable,
+            ctl_rx_force_resync                  => '0',
+            ctl_rx_test_pattern                  => '0',
+            core_rx_reset                        => stableReset,
+            rx_clk                               => txusrclk2,
+            stat_rx_stomped_fcs                  => open,
+            stat_rx_synced                       => open,
+            stat_rx_synced_err                   => open,
+            stat_rx_test_pattern_mismatch        => open,
+            stat_rx_total_bytes                  => open,
+            stat_rx_total_good_bytes             => open,
+            stat_rx_total_packets                => open,
+            stat_rx_undersize                    => open,
+            stat_rx_pcsl_demuxed                 => open,
+            stat_rx_pcsl_number_0                => open,
+            stat_rx_pcsl_number_1                => open,
+            stat_rx_pcsl_number_10               => open,
+            stat_rx_pcsl_number_11               => open,
+            stat_rx_pcsl_number_12               => open,
+            stat_rx_pcsl_number_13               => open,
+            stat_rx_pcsl_number_14               => open,
+            stat_rx_pcsl_number_15               => open,
+            stat_rx_pcsl_number_16               => open,
+            stat_rx_pcsl_number_17               => open,
+            stat_rx_pcsl_number_18               => open,
+            stat_rx_pcsl_number_19               => open,
+            stat_rx_pcsl_number_2                => open,
+            stat_rx_pcsl_number_3                => open,
+            stat_rx_pcsl_number_4                => open,
+            stat_rx_pcsl_number_5                => open,
+            stat_rx_pcsl_number_6                => open,
+            stat_rx_pcsl_number_7                => open,
+            stat_rx_pcsl_number_8                => open,
+            stat_rx_pcsl_number_9                => open,
+            stat_tx_bad_fcs                      => open,
+            stat_tx_broadcast                    => open,
+            stat_tx_frame_error                  => open,
+            stat_tx_local_fault                  => open,
+            stat_tx_multicast                    => open,
+            stat_tx_packet_1024_1518_bytes       => open,
+            stat_tx_packet_128_255_bytes         => open,
+            stat_tx_packet_1519_1522_bytes       => open,
+            stat_tx_packet_1523_1548_bytes       => open,
+            stat_tx_packet_1549_2047_bytes       => open,
+            stat_tx_packet_2048_4095_bytes       => open,
+            stat_tx_packet_256_511_bytes         => open,
+            stat_tx_packet_4096_8191_bytes       => open,
+            stat_tx_packet_512_1023_bytes        => open,
+            stat_tx_packet_64_bytes              => open,
+            stat_tx_packet_65_127_bytes          => open,
+            stat_tx_packet_8192_9215_bytes       => open,
+            stat_tx_packet_large                 => open,
+            stat_tx_packet_small                 => open,
+            stat_tx_total_bytes                  => open,
+            stat_tx_total_good_bytes             => open,
+            stat_tx_total_good_packets           => open,
+            stat_tx_total_packets                => open,
+            stat_tx_unicast                      => open,
+            stat_tx_vlan                         => open,
+            ctl_tx_enable                        => r.ctl_tx_enable,
+            ctl_tx_send_idle                     => '0',
+            ctl_tx_send_rfi                      => r.ctl_tx_send_rfi,
+            ctl_tx_send_lfi                      => '0',
+            ctl_tx_test_pattern                  => '0',
+            core_tx_reset                        => stableReset,
+            tx_axis_tready                       => txSlave.tready,
+            tx_axis_tvalid                       => txMaster.tvalid,
+            tx_axis_tdata                        => txMaster.tdata(511 downto 0),
+            tx_axis_tlast                        => txMaster.tlast,
+            tx_axis_tkeep                        => txMaster.tkeep(63 downto 0),
+            tx_axis_tuser                        => '0',  -- Unclear if I want to have the MAC drop EOFE        
+            tx_ovfout                            => open,
+            tx_unfout                            => open,
+            tx_preamblein                        => (others => '0'),  -- tx_preamblein is driven as 0
+            usr_tx_reset                         => usr_tx_reset,
+            core_drp_reset                       => stableReset,
+            drp_clk                              => stableClk,
+            drp_addr                             => (others => '0'),
+            drp_di                               => (others => '0'),
+            drp_en                               => '0',
+            drp_do                               => open,
+            drp_rdy                              => open,
+            drp_we                               => '0');
    end generate;
 
    comb : process (r, stat_rx_aligned, stat_rx_aligned_err, usr_rx_reset) is

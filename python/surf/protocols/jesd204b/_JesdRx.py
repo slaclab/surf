@@ -48,7 +48,7 @@ class JesdRx(pr.Device):
                 name         = "SysrefDelay",
                 description  = "Sets the system reference delay in clock cycles. Use if you want to reduce the latency (The latency is indicated by ElBuffLatency status). ",
                 offset       =  0x04,
-                bitSize      =  5,
+                bitSize      =  8,
                 bitOffset    =  0x00,
                 base         = pr.UInt,
                 mode         = "RW",
