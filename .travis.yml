@@ -31,6 +31,7 @@ addons:
       - doxygen-latex
       - doxygen-gui
       - graphviz
+      - python3
       # - ghdl
 
 stages:
@@ -55,6 +56,7 @@ jobs:
         - chmod +x generateDocumentationAndDeploy.sh
         - chmod +x ghdl-travis-install.sh
         - ./ghdl-travis-install.sh > /dev/null 2>&1; make; rm -rf ghdl-build;
+        - python3 -c "import compileall; compileall.compile_dir('python/', force=True)"
       script:
         - ./generateDocumentationAndDeploy.sh 0
 
