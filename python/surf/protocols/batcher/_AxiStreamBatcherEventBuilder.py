@@ -68,7 +68,7 @@ class AxiStreamBatcherEventBuilder(pr.Device):
             bitSize      = 32,
             mode         = 'RO',
             pollInterval = 1,
-        )   
+        ))   
         
         self.add(pr.RemoteVariable(   
             name         = 'TRANS_TDEST_G',
