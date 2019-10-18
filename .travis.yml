@@ -55,7 +55,9 @@ jobs:
         - cd $TRAVIS_BUILD_DIR
         - chmod +x generateDocumentationAndDeploy.sh
         - chmod +x ghdl-travis-install.sh
-        - ./ghdl-travis-install.sh > /dev/null 2>&1; make; rm -rf ghdl-build;
+        - ./ghdl-travis-install.sh > /dev/null 2>&1
+        - make
+        - rm -rf ghdl-build
         - python3 -m compileall -f python/
       script:
         - ./generateDocumentationAndDeploy.sh 0
