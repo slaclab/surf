@@ -16,7 +16,7 @@ var classJesd204bTx =
     [ "devClk_i", "classJesd204bTx.html#ae538849f57901c16c39cd71d1e3237cc", null ],
     [ "devRst_i", "classJesd204bTx.html#a3ee2d52da89c8da81a1fb782f58eb718", null ],
     [ "sysRef_i", "classJesd204bTx.html#a8cf96bf71f4b6baa078919edce276849", null ],
-    [ "nSync_i", "classJesd204bTx.html#a4fa95c1182b66541f5661a85eb71b724", null ],
+    [ "nSync_i", "classJesd204bTx.html#a6adac9578036cbce33e3eac8eabe3fcd", null ],
     [ "extSampleDataArray_i", "classJesd204bTx.html#a64bd08387a25182bce122f399227e7d0", null ],
     [ "gtTxReset_o", "classJesd204bTx.html#ae869e79055ce46e7451b23a721877587", null ],
     [ "gtTxReady_i", "classJesd204bTx.html#a58a00edcde16ca8b0bca2bfb7248f3fb", null ],

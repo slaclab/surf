@@ -9,9 +9,9 @@
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 62)">
 <title>Graphical Class Hierarchy</title>
 <polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-62 231,-62 231,4 -4,4"/>
-<!-- Node552 -->
+<!-- Node551 -->
 <g id="node1" class="node">
-<title>Node552</title>
+<title>Node551</title>
 <g id="a_node1"><a xlink:href="classAxiDac7654Reg.html" target="_top" xlink:title="AxiDac7654Reg">
 <polygon fill="#ffffff" stroke="#000000" points="0,-38.5 0,-57.5 93,-57.5 93,-38.5 0,-38.5"/>
 <text text-anchor="middle" x="46.5" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">AxiDac7654Reg</text>
@@ -27,9 +27,9 @@
 </a>
 </g>
 </g>
-<!-- Node552&#45;&gt;Node1 -->
+<!-- Node551&#45;&gt;Node1 -->
 <g id="edge1" class="edge">
-<title>Node552&#45;&gt;Node1</title>
+<title>Node551&#45;&gt;Node1</title>
 <path fill="none" stroke="#191970" d="M103.3941,-39.7796C111.8371,-38.5597 120.4786,-37.3111 128.7479,-36.1163"/>
 <polygon fill="#191970" stroke="#191970" points="102.6289,-36.3537 93.2322,-41.2478 103.63,-43.2817 102.6289,-36.3537"/>
 </g>

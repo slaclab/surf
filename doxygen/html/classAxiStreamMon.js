@@ -11,6 +11,7 @@ var classAxiStreamMon =
     [ "axisSlave", "classAxiStreamMon.html#a85565e7916a2d50e77d8eb5254a66479", null ],
     [ "statusClk", "classAxiStreamMon.html#a44def0577c43c663d2221fea7d5bdca9", null ],
     [ "statusRst", "classAxiStreamMon.html#ad616d8e0af78abbc148b0795806e645d", null ],
+    [ "frameCnt", "classAxiStreamMon.html#ab59bce669cb41650719c7323cdda5185", null ],
     [ "frameRate", "classAxiStreamMon.html#aa36b88fb9b0c8cb66309d661b365a986", null ],
     [ "frameRateMax", "classAxiStreamMon.html#a4fa515a41358b43ebecd6f79fb43ad19", null ],
     [ "frameRateMin", "classAxiStreamMon.html#aac92ad05c4ff8019ff47422e3ce3494e", null ],

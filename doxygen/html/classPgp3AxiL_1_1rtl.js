@@ -1,8 +1,8 @@
 var classPgp3AxiL_1_1rtl =
 [
     [ "U_RxErrorIrqEn", "classPgp3AxiL_1_1rtl.html#a5808195bcef9d2501c02f463d1d449df", null ],
-    [ "PROCESS_203", "classPgp3AxiL_1_1rtl.html#a1e511d161fb062c79314498fd49c7647", null ],
-    [ "PROCESS_204", "classPgp3AxiL_1_1rtl.html#a775c7e8b97647b64687b161e4383093e", null ],
+    [ "PROCESS_204", "classPgp3AxiL_1_1rtl.html#a34f9289f4985b6427fd386610a3a3972", null ],
+    [ "PROCESS_205", "classPgp3AxiL_1_1rtl.html#af683c8505886f0a06a6a26be6ff9e54b", null ],
     [ "STATUS_OUT_TOP_C", "classPgp3AxiL_1_1rtl.html#a998fff9859e34f6b42de4d13de2e4cc8", null ],
     [ "ErrorCountSlv", "classPgp3AxiL_1_1rtl.html#a6ebfd08add8b75e1cbf9084e943f5e70", null ],
     [ "ErrorCountSlvArray", "classPgp3AxiL_1_1rtl.html#aba27fae06788c29f37693b9f07ada106", null ],
@@ -42,6 +42,7 @@ var classPgp3AxiL_1_1rtl =
     [ "cellErrorCount", "classPgp3AxiL_1_1rtl.html#ad5649da098ae72b6fd641cea82877184", null ],
     [ "linkDownCount", "classPgp3AxiL_1_1rtl.html#a560151b1808b34d61e91b04e9bf3f92f", null ],
     [ "linkErrorCount", "classPgp3AxiL_1_1rtl.html#af615f91eae4e8368cba11541d1d0dfbc", null ],
+    [ "remLinkData", "classPgp3AxiL_1_1rtl.html#a4daafe1114f5ccbf6b6b0e8c485ccfa6", null ],
     [ "remRxOverflow", "classPgp3AxiL_1_1rtl.html#a96ee307452c0a7279a9a944cdf1d53a0", null ],
     [ "remRxOverflowCnt", "classPgp3AxiL_1_1rtl.html#a04a7726bf7b9009916f063fae53338c1", null ],
     [ "frameErrCount", "classPgp3AxiL_1_1rtl.html#ad4b01ba4bbe66d6e060e66c697ef70a7", null ],
@@ -82,6 +83,7 @@ var classPgp3AxiL_1_1rtl =
     [ "u_rxebdatasync", "classPgp3AxiL_1_1rtl.html#a7988cf2f9e41bd98a8aacdce75cbe316", null ],
     [ "u_rxphydatasync", "classPgp3AxiL_1_1rtl.html#af4aa8d9fb4bec95a34754d346ca9cfea", null ],
     [ "u_rxgearboxstatus", "classPgp3AxiL_1_1rtl.html#ace04b2f719b60ccb2484b730757898b3", null ],
+    [ "u_remlinkdata", "classPgp3AxiL_1_1rtl.html#a3d74c984a5d6ac13e3655134dad9bc09", null ],
     [ "u_txopcodesync", "classPgp3AxiL_1_1rtl.html#aa06e09bbe4991d58c014d48a8e4669f2", null ],
     [ "u_txerror", "classPgp3AxiL_1_1rtl.html#a1699ebc6028f4476b5ac19e91cb24623", null ],
     [ "u_txstatus", "classPgp3AxiL_1_1rtl.html#a12da2304aa95c1fed0849a45245531e7", null ],

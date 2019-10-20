@@ -9,6 +9,7 @@ var classI2cRegMasterAxiBridge =
     [ "axiReadSlave", "classI2cRegMasterAxiBridge.html#af5301f308dc850ff6d3b80315d2e644c", null ],
     [ "axiWriteMaster", "classI2cRegMasterAxiBridge.html#abf08eac4311749af56c8ec14b1903091", null ],
     [ "axiWriteSlave", "classI2cRegMasterAxiBridge.html#a0eb32e5fab67488b94fb47c9fe42e97f", null ],
+    [ "i2cSelectOut", "classI2cRegMasterAxiBridge.html#ab785e724ba138386d4824f7bcca95bdf", null ],
     [ "i2cRegMasterIn", "classI2cRegMasterAxiBridge.html#a6f8dc24708feec00e7901a9edaab79a1", null ],
     [ "i2cRegMasterOut", "classI2cRegMasterAxiBridge.html#aadd7f9ac6d1c25ffd3db27a5b28b035a", null ],
     [ "ieee", "classI2cRegMasterAxiBridge.html#a0a6af6eef40212dbaf130d57ce711256", null ],

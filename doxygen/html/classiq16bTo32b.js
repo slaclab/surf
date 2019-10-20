@@ -2,6 +2,7 @@ var classiq16bTo32b =
 [
     [ "rtl", "classiq16bTo32b_1_1rtl.html", "classiq16bTo32b_1_1rtl" ],
     [ "TPD_G", "classiq16bTo32b.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "SYNTH_MODE_G", "classiq16bTo32b.html#a2429d17ce4f9328a982076af9f733ab3", null ],
     [ "SYNC_STAGES_G", "classiq16bTo32b.html#ab3c259fbcfa43748d0f3f32890f0ed4d", null ],
     [ "wrClk", "classiq16bTo32b.html#ad6380c6ea4df20847308b4976c873312", null ],
     [ "wrRst", "classiq16bTo32b.html#a917be5be928e0ed990a19e87b11f7669", null ],

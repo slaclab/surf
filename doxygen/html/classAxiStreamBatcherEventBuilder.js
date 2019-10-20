@@ -6,6 +6,7 @@ var classAxiStreamBatcherEventBuilder =
     [ "MODE_G", "classAxiStreamBatcherEventBuilder.html#adf33db7c14d9e2c22de126a4f7b466a6", null ],
     [ "TDEST_ROUTES_G", "classAxiStreamBatcherEventBuilder.html#af451c9319b83428f363d598448ba95bf", null ],
     [ "TDEST_LOW_G", "classAxiStreamBatcherEventBuilder.html#a1febd9d88664e307ee6cfb0fb28aa863", null ],
+    [ "TRANS_TDEST_G", "classAxiStreamBatcherEventBuilder.html#a91197001cdd1d89aea254f5d9778243d", null ],
     [ "AXIS_CONFIG_G", "classAxiStreamBatcherEventBuilder.html#a129eaf71f6056f837f37b4d59ce80a70", null ],
     [ "INPUT_PIPE_STAGES_G", "classAxiStreamBatcherEventBuilder.html#ab97074ce3ef0b6b96d8486e24ad4dc66", null ],
     [ "OUTPUT_PIPE_STAGES_G", "classAxiStreamBatcherEventBuilder.html#a1e8e27a48bf5c0dd160777ba7ac29436", null ],

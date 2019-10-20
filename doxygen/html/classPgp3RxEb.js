@@ -12,6 +12,7 @@ var classPgp3RxEb =
     [ "pgpRxValid", "classPgp3RxEb.html#a125c793b72fc8ccbf7c96eabfa2363c2", null ],
     [ "pgpRxData", "classPgp3RxEb.html#a6a63ae4ef380317b981de68044037934", null ],
     [ "pgpRxHeader", "classPgp3RxEb.html#a29272a2158f41505e0e6a2206b6ae514", null ],
+    [ "remLinkData", "classPgp3RxEb.html#afca120145a917c33f2be3b31a7ede0db", null ],
     [ "overflow", "classPgp3RxEb.html#a6d911b9f06ce1e3a958bda21558461f2", null ],
     [ "status", "classPgp3RxEb.html#a89892086563d0d1653e8bfcf0e4780ce", null ],
     [ "ieee", "classPgp3RxEb.html#a0a6af6eef40212dbaf130d57ce711256", null ],

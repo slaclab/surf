@@ -6,6 +6,7 @@ var classPgp3Rx_1_1rtl =
     [ "unscrambledValid", "classPgp3Rx_1_1rtl.html#af46760453820ea33a34c8f8e0709acd8", null ],
     [ "unscrambledData", "classPgp3Rx_1_1rtl.html#a02cd92cfff5d1f7b85a97a1bb581c4bf", null ],
     [ "unscrambledHeader", "classPgp3Rx_1_1rtl.html#a8d96693c9197b7b8b5605f813d065ad4", null ],
+    [ "remLinkData", "classPgp3Rx_1_1rtl.html#a4daafe1114f5ccbf6b6b0e8c485ccfa6", null ],
     [ "ebValid", "classPgp3Rx_1_1rtl.html#a708b3d74001b83623d6404412d3da14c", null ],
     [ "ebData", "classPgp3Rx_1_1rtl.html#a38e5f29dbdb3acb5c0c8392f860e8341", null ],
     [ "ebHeader", "classPgp3Rx_1_1rtl.html#a142cccd3cf3e3d8933dacde9e65cf057", null ],

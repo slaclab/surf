@@ -17,7 +17,6 @@ var searchData=
   ['jesdsyncfsmrx',['JesdSyncFsmRx',['../classJesdSyncFsmRx.html',1,'']]],
   ['jesdsyncfsmtx',['JesdSyncFsmTx',['../classJesdSyncFsmTx.html',1,'']]],
   ['jesdsyncfsmtxtest',['JesdSyncFsmTxTest',['../classJesdSyncFsmTxTest.html',1,'']]],
-  ['jesdsysrefdly',['JesdSysrefDly',['../classJesdSysrefDly.html',1,'']]],
   ['jesdsysrefmon',['JesdSysrefMon',['../classJesdSysrefMon.html',1,'']]],
   ['jesdtestsiggen',['JesdTestSigGen',['../classJesdTestSigGen.html',1,'']]],
   ['jesdteststreamtx',['JesdTestStreamTx',['../classJesdTestStreamTx.html',1,'']]],

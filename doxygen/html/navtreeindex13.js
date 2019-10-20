@@ -1,5 +1,6 @@
 var NAVTREEINDEX13 =
 {
+"classAxiMicronP30Reg_1_1rtl.html#ad35e9ecd741388972b3dc0928cfeeb48":[1,0,71,0,29],
 "classAxiMicronP30Reg_1_1rtl.html#ad37e96264df00ecbbb0fedb2ca287c91":[1,0,71,0,19],
 "classAxiMicronP30Reg_1_1rtl.html#aee4bfa01695c776fa8031e87520e3211":[1,0,71,0,16],
 "classAxiMicronP30Reg_1_1rtl.html#aeeeb20e493cca8b2b0f8f93574552e97":[1,0,71,0,35],
@@ -248,6 +249,5 @@ var NAVTREEINDEX13 =
 "classAxiResize.html#a67a837684e4f18c2d236ac1d053b419b":[1,0,78,1],
 "classAxiResize.html#a6cb1b117f647e65d76c8cea1395561d2":[1,0,78,6],
 "classAxiResize.html#a73bf9f9ec24871f16487b14d9ad1078a":[1,0,78,10],
-"classAxiResize.html#a7d8781c632c75ab0fdde6e592fd13d60":[1,0,78,4],
-"classAxiResize.html#a8b8fc260c0366948e28fe36b656f1a74":[1,0,78,8]
+"classAxiResize.html#a7d8781c632c75ab0fdde6e592fd13d60":[1,0,78,4]
 };

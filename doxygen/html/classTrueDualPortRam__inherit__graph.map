@@ -1,14 +1,15 @@
 <map id="TrueDualPortRam" name="TrueDualPortRam">
-<area shape="rect" id="node2" href="$classAxiDualPortRam.html" title="AxiDualPortRam" alt="" coords="206,183,335,209"/>
-<area shape="rect" id="node16" href="$classAxiLiteSequencerRam.html" title="AxiLiteSequencerRam" alt="" coords="188,233,353,260"/>
+<area shape="rect" id="node2" href="$classAxiDualPortRam.html" title="AxiDualPortRam" alt="" coords="206,208,335,235"/>
+<area shape="rect" id="node17" href="$classAxiLiteSequencerRam.html" title="AxiLiteSequencerRam" alt="" coords="188,259,353,285"/>
 <area shape="rect" id="node3" href="$classAxiLiteAsyncTb.html" title="AxiLiteAsyncTb" alt="" coords="445,5,568,32"/>
 <area shape="rect" id="node4" href="$classAxiLiteRamSyncStatusVector.html" title="AxiLiteRamSyncStatusVector" alt="" coords="401,56,612,83"/>
 <area shape="rect" id="node10" href="$classAxiLiteSrpV0Tb.html" title="AxiLiteSrpV0Tb" alt="" coords="446,107,567,133"/>
 <area shape="rect" id="node11" href="$classAxiLiteWriteFilterTb.html" title="AxiLiteWriteFilterTb" alt="" coords="432,157,581,184"/>
 <area shape="rect" id="node12" href="$classAxiStreamDmaRingWrite.html" title="AxiStreamDmaRingWrite" alt="" coords="415,208,599,235"/>
-<area shape="rect" id="node13" href="$classClinkTop.html" title="ClinkTop" alt="" coords="468,259,545,285"/>
-<area shape="rect" id="node14" href="$classRawEthFramerWrapper.html" title="RawEthFramerWrapper" alt="" coords="421,309,592,336"/>
-<area shape="rect" id="node15" href="$classUartAxiLiteMasterTb.html" title="UartAxiLiteMasterTb" alt="" coords="429,360,584,387"/>
+<area shape="rect" id="node13" href="$classAxiStreamMonAxiL.html" title="AxiStreamMonAxiL" alt="" coords="434,259,579,285"/>
+<area shape="rect" id="node14" href="$classClinkTop.html" title="ClinkTop" alt="" coords="468,309,545,336"/>
+<area shape="rect" id="node15" href="$classRawEthFramerWrapper.html" title="RawEthFramerWrapper" alt="" coords="421,360,592,387"/>
+<area shape="rect" id="node16" href="$classUartAxiLiteMasterTb.html" title="UartAxiLiteMasterTb" alt="" coords="429,411,584,437"/>
 <area shape="rect" id="node5" href="$classPgpEthAxiL.html" title="PgpEthAxiL" alt="" coords="660,56,755,83"/>
 <area shape="rect" id="node6" href="$classPgpEthCore.html" title="PgpEthCore" alt="" coords="803,56,900,83"/>
 <area shape="rect" id="node7" href="$classPgpEthCaui4Gty.html" title="PgpEthCaui4Gty" alt="" coords="948,31,1075,57"/>

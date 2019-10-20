@@ -56,7 +56,14 @@ var hierarchy =
       [ "AxiAd5780Reg", "classAxiAd5780Reg.html", [
         [ "SyncTrigRate", "classSyncTrigRate.html", [
           [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ],
-          [ "SynchronizerFifo", "classSynchronizerFifo.html", null ]
+          [ "SynchronizerFifo", "classSynchronizerFifo.html", null ],
+          [ "SyncMinMax", "classSyncMinMax.html", [
+            [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ],
+            [ "DspComparator", "classDspComparator.html", [
+              [ "FifoOutputPipeline", "classFifoOutputPipeline.html", null ]
+            ] ],
+            [ "SynchronizerFifo", "classSynchronizerFifo.html", null ]
+          ] ]
         ] ]
       ] ],
       [ "AxiAd5780Ser", "classAxiAd5780Ser.html", null ],
@@ -263,7 +270,8 @@ var hierarchy =
           ] ],
           [ "AxiStreamMon", "classAxiStreamMon.html", [
             [ "SyncTrigRate", "classSyncTrigRate.html", null ],
-            [ "SynchronizerFifo", "classSynchronizerFifo.html", null ]
+            [ "SynchronizerFifo", "classSynchronizerFifo.html", null ],
+            [ "SyncMinMax", "classSyncMinMax.html", null ]
           ] ],
           [ "RssiConnFsm", "classRssiConnFsm.html", null ],
           [ "RssiMonitor", "classRssiMonitor.html", null ],
@@ -324,9 +332,7 @@ var hierarchy =
       ] ],
       [ "AxiLiteAsync", "classAxiLiteAsync.html", null ],
       [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
-      [ "DspComparator", "classDspComparator.html", [
-        [ "FifoOutputPipeline", "classFifoOutputPipeline.html", null ]
-      ] ],
+      [ "DspComparator", "classDspComparator.html", null ],
       [ "AxiStreamBatcher", "classAxiStreamBatcher.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "AxiStreamBytePackerTbTx", "classAxiStreamBytePackerTbTx.html", null ],
@@ -370,6 +376,7 @@ var hierarchy =
       [ "AxiStreamFlush", "classAxiStreamFlush.html", null ],
       [ "RstSync", "classRstSync.html", null ],
       [ "AxiStreamMon", "classAxiStreamMon.html", null ],
+      [ "AxiDualPortRam", "classAxiDualPortRam.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
       [ "AxiStreamMux", "classAxiStreamMux.html", null ],
@@ -712,9 +719,9 @@ var hierarchy =
       [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
       [ "IpV4EngineLoopback", "classIpV4EngineLoopback.html", null ],
       [ "IpV4EngineCoreTb", "classIpV4EngineCoreTb.html", null ],
-      [ "FifoAsync", "classFifoAsync.html", null ],
-      [ "FifoAsync", "classFifoAsync.html", null ],
-      [ "FifoAsync", "classFifoAsync.html", null ],
+      [ "Fifo", "classFifo.html", null ],
+      [ "Fifo", "classFifo.html", null ],
+      [ "Fifo", "classFifo.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "Jesd204bTx", "classJesd204bTx.html", [
         [ "JesdTxReg", "classJesdTxReg.html", [
@@ -729,7 +736,8 @@ var hierarchy =
         ] ],
         [ "JesdTestStreamTx", "classJesdTestStreamTx.html", null ],
         [ "Synchronizer", "classSynchronizer.html", null ],
-        [ "JesdSysrefDly", "classJesdSysrefDly.html", null ],
+        [ "SynchronizerVector", "classSynchronizerVector.html", null ],
+        [ "SlvDelay", "classSlvDelay.html", null ],
         [ "JesdLmfcGen", "classJesdLmfcGen.html", null ],
         [ "JesdTxLane", "classJesdTxLane.html", [
           [ "JesdSyncFsmTx", "classJesdSyncFsmTx.html", null ],
@@ -744,18 +752,18 @@ var hierarchy =
           [ "RstPipelineVector", "classRstPipelineVector.html", null ]
         ] ],
         [ "JesdTxTest", "classJesdTxTest.html", [
-          [ "JesdSysrefDly", "classJesdSysrefDly.html", null ],
+          [ "SlvDelay", "classSlvDelay.html", null ],
           [ "JesdSyncFsmTxTest", "classJesdSyncFsmTxTest.html", null ]
         ] ],
         [ "Synchronizer", "classSynchronizer.html", null ],
-        [ "JesdSysrefDly", "classJesdSysrefDly.html", null ],
+        [ "SlvDelay", "classSlvDelay.html", null ],
         [ "JesdLmfcGen", "classJesdLmfcGen.html", null ],
         [ "JesdRxLane", "classJesdRxLane.html", null ],
         [ "JesdTestSigGen", "classJesdTestSigGen.html", null ]
       ] ],
-      [ "FifoAsync", "classFifoAsync.html", null ],
-      [ "FifoAsync", "classFifoAsync.html", null ],
-      [ "FifoAsync", "classFifoAsync.html", null ],
+      [ "Fifo", "classFifo.html", null ],
+      [ "Fifo", "classFifo.html", null ],
+      [ "Fifo", "classFifo.html", null ],
       [ "JtagSerDesCore", "classJtagSerDesCore.html", null ],
       [ "MdioLinkIrqHandler", "classMdioLinkIrqHandler.html", [
         [ "MdioSeqCore", "classMdioSeqCore.html", [
@@ -910,7 +918,7 @@ var hierarchy =
             [ "Pgp3RxGearboxAligner", "classPgp3RxGearboxAligner.html", null ],
             [ "Scrambler", "classScrambler.html", null ],
             [ "Pgp3RxEb", "classPgp3RxEb.html", [
-              [ "FifoAsync", "classFifoAsync.html", null ]
+              [ "SynchronizerFifo", "classSynchronizerFifo.html", null ]
             ] ],
             [ "Pgp3RxProtocol", "classPgp3RxProtocol.html", [
               [ "SynchronizerEdge", "classSynchronizerEdge.html", null ]
@@ -1008,10 +1016,7 @@ var hierarchy =
               [ "SyncStatusVector", "classSyncStatusVector.html", null ]
             ] ],
             [ "SyncClockFreq", "classSyncClockFreq.html", null ],
-            [ "SyncMinMax", "classSyncMinMax.html", [
-              [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ],
-              [ "SynchronizerFifo", "classSynchronizerFifo.html", null ]
-            ] ]
+            [ "SyncMinMax", "classSyncMinMax.html", null ]
           ] ]
         ] ],
         [ "Caui4GtyIpWrapper", "classCaui4GtyIpWrapper.html", [

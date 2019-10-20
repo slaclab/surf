@@ -350,7 +350,6 @@ var annotated_dup =
     [ "JesdSyncFsmRx", "classJesdSyncFsmRx.html", "classJesdSyncFsmRx" ],
     [ "JesdSyncFsmTx", "classJesdSyncFsmTx.html", "classJesdSyncFsmTx" ],
     [ "JesdSyncFsmTxTest", "classJesdSyncFsmTxTest.html", "classJesdSyncFsmTxTest" ],
-    [ "JesdSysrefDly", "classJesdSysrefDly.html", "classJesdSysrefDly" ],
     [ "JesdSysrefMon", "classJesdSysrefMon.html", "classJesdSysrefMon" ],
     [ "JesdTestSigGen", "classJesdTestSigGen.html", "classJesdTestSigGen" ],
     [ "JesdTestStreamTx", "classJesdTestStreamTx.html", "classJesdTestStreamTx" ],

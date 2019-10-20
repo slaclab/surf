@@ -1,6 +1,7 @@
 var classXauiGthUltraScaleWrapper_1_1mapping =
 [
     [ "refClk", "classXauiGthUltraScaleWrapper_1_1mapping.html#ada10e816e4564f23c14da77f78a24027", null ],
+    [ "refClock", "classXauiGthUltraScaleWrapper_1_1mapping.html#aa0e1e1ff21cb990ae53dbbbb4292ea75", null ],
     [ "linkUp", "classXauiGthUltraScaleWrapper_1_1mapping.html#a55596098b3d033a35f57db1ad4cc63d3", null ],
     [ "wdtRst", "classXauiGthUltraScaleWrapper_1_1mapping.html#a4918ed462584c431d21d564c843ef6d0", null ],
     [ "wdtReset", "classXauiGthUltraScaleWrapper_1_1mapping.html#adb0c9dd7210c87a754b688b92f5083b9", null ],

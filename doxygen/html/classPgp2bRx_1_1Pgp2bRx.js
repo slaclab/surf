@@ -1,8 +1,8 @@
 var classPgp2bRx_1_1Pgp2bRx =
 [
     [ "wrap", "classPgp2bRx_1_1Pgp2bRx.html#aef956abfe811675be6b859ab8aa8eddf", null ],
-    [ "PROCESS_168", "classPgp2bRx_1_1Pgp2bRx.html#a7f78b09a65443abb13cfe75d44a98d04", null ],
-    [ "PROCESS_169", "classPgp2bRx_1_1Pgp2bRx.html#af14be2ad76607e8350d53a4b403e8f50", null ],
+    [ "PROCESS_169", "classPgp2bRx_1_1Pgp2bRx.html#a70bff1f9a3a11a07ceeb556754c716fd", null ],
+    [ "PROCESS_170", "classPgp2bRx_1_1Pgp2bRx.html#a20a3579e270b9e7bad5ca4624c5ff805", null ],
     [ "cellRxPause", "classPgp2bRx_1_1Pgp2bRx.html#a57929d15952580f26ce7444f3ad81b81", null ],
     [ "cellRxSOC", "classPgp2bRx_1_1Pgp2bRx.html#a1511e1c705d4ce02901c1097b28bf629", null ],
     [ "cellRxSOF", "classPgp2bRx_1_1Pgp2bRx.html#a652885f2d00749023894fdbe624ff020", null ],

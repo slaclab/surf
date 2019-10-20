@@ -1,5 +1,6 @@
 var NAVTREEINDEX9 =
 {
+"classAxiLiteRingBuffer.html#a8e1fd4ab848b98a0c700b34cf7c90b36":[1,0,50,13],
 "classAxiLiteRingBuffer.html#a9522d37a412328754e4dec3afd4e2151":[1,0,50,12],
 "classAxiLiteRingBuffer.html#aada3e73ee8db4190524295bfa4dff085":[1,0,50,15],
 "classAxiLiteRingBuffer.html#ab8fb72a592b21f8245e2a33e885b229c":[1,0,50,10],
@@ -248,6 +249,5 @@ var NAVTREEINDEX9 =
 "classAxiLiteSrpV0.html#a9b0b70eb40fd99ae471dd823ed5da644":[1,0,55,16],
 "classAxiLiteSrpV0.html#a9cb07eca4f1e6525763e4a6c2246ab39":[1,0,55,10],
 "classAxiLiteSrpV0.html#aa08b9be06bca5bd67f8d94dbabdaabdb":[1,0,55,27],
-"classAxiLiteSrpV0.html#aa685d94966e12ee1feec1c91fef4c4d0":[1,0,55,17],
-"classAxiLiteSrpV0.html#accf28a9c0bd06e0908d7e925af07f31a":[1,0,55,11]
+"classAxiLiteSrpV0.html#aa685d94966e12ee1feec1c91fef4c4d0":[1,0,55,17]
 };

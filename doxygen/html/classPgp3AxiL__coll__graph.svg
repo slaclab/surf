@@ -64,9 +64,9 @@ var sectionId = 'dynsection-1';
 <!-- Node31 -->
 <g id="node2" class="node">
 <title>Node31</title>
-<g id="a_node2"><a xlink:href="classSynchronizerFifo.html" target="_top" xlink:title="SynchronizerFifo(5)">
+<g id="a_node2"><a xlink:href="classSynchronizerFifo.html" target="_top" xlink:title="SynchronizerFifo(6)">
 <polygon fill="#ffffff" stroke="#000000" points="971.5,-162.5 971.5,-181.5 1081.5,-181.5 1081.5,-162.5 971.5,-162.5"/>
-<text text-anchor="middle" x="1026.5" y="-169.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">SynchronizerFifo(5)</text>
+<text text-anchor="middle" x="1026.5" y="-169.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">SynchronizerFifo(6)</text>
 </a>
 </g>
 </g>

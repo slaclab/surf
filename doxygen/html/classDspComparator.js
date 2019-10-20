@@ -14,6 +14,8 @@ var classDspComparator =
     [ "bin", "classDspComparator.html#a5f584d85c2958b3bc1ba81e4b0ea9e09", null ],
     [ "obValid", "classDspComparator.html#a365a47c3571ea3d9bcbb0114552734c9", null ],
     [ "obReady", "classDspComparator.html#adfbfb3b2e1ec8190310ede897d98366e", null ],
+    [ "aout", "classDspComparator.html#a8b16cdca7518ffb8c39a3d5be22d07b1", null ],
+    [ "bout", "classDspComparator.html#ad774d442767ec8581cd69d2b935b6d09", null ],
     [ "eq", "classDspComparator.html#ad4fbeb29cdd54ccc71204c09ead36f5c", null ],
     [ "gt", "classDspComparator.html#a060052db6184c8cc657276001f644a80", null ],
     [ "gtEq", "classDspComparator.html#adcc6da10a9df74d06b924d69a9ef63cc", null ],

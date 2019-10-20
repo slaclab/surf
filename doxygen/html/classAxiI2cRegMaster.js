@@ -12,6 +12,7 @@ var classAxiI2cRegMaster =
     [ "axiReadSlave", "classAxiI2cRegMaster.html#af5301f308dc850ff6d3b80315d2e644c", null ],
     [ "axiWriteMaster", "classAxiI2cRegMaster.html#abf08eac4311749af56c8ec14b1903091", null ],
     [ "axiWriteSlave", "classAxiI2cRegMaster.html#a0eb32e5fab67488b94fb47c9fe42e97f", null ],
+    [ "sel", "classAxiI2cRegMaster.html#a39a0949f29c36ae121e2b9d8cd56674b", null ],
     [ "scl", "classAxiI2cRegMaster.html#a9ae4a7e6fabccfbd210c5bc55be6e76a", null ],
     [ "sda", "classAxiI2cRegMaster.html#a41a66323a1658f8a6ef5c62397afa3e3", null ],
     [ "ieee", "classAxiI2cRegMaster.html#a0a6af6eef40212dbaf130d57ce711256", null ],

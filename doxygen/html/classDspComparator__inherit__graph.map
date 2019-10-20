@@ -4,6 +4,24 @@
 <area shape="rect" id="node6" href="$classAxiStreamDmaV2Read.html" title="AxiStreamDmaV2Read" alt="" coords="393,107,563,133"/>
 <area shape="rect" id="node7" href="$classAxiStreamPrbsFlowCtrl.html" title="AxiStreamPrbsFlowCtrl" alt="" coords="393,157,563,184"/>
 <area shape="rect" id="node8" href="$classDspComparatorTb.html" title="DspComparatorTb" alt="" coords="408,208,548,235"/>
-<area shape="rect" id="node2" href="$classFifoOutputPipeline.html" title="FifoOutputPipeline" alt="" coords="5,107,147,133"/>
+<area shape="rect" id="node9" href="$classSyncMinMax.html" title="SyncMinMax" alt="" coords="427,259,529,285"/>
+<area shape="rect" id="node2" href="$classFifoOutputPipeline.html" title="FifoOutputPipeline" alt="" coords="5,132,147,159"/>
 <area shape="rect" id="node5" href="$classAxiStreamDmaV2.html" title="AxiStreamDmaV2" alt="" coords="637,81,776,108"/>
+<area shape="rect" id="node10" href="$classAxiStreamMon.html" title="AxiStreamMon" alt="" coords="648,183,765,209"/>
+<area shape="rect" id="node22" href="$classPgpEthAxiL.html" title="PgpEthAxiL" alt="" coords="659,284,754,311"/>
+<area shape="rect" id="node11" href="$classAxiRssiCore.html" title="AxiRssiCore" alt="" coords="847,56,947,83"/>
+<area shape="rect" id="node14" href="$classAxiStreamMonAxiL.html" title="AxiStreamMonAxiL" alt="" coords="824,132,969,159"/>
+<area shape="rect" id="node15" href="$classRssiCore.html" title="RssiCore" alt="" coords="857,183,936,209"/>
+<area shape="rect" id="node21" href="$classSsiPrbsRateGen.html" title="SsiPrbsRateGen" alt="" coords="834,233,959,260"/>
+<area shape="rect" id="node12" href="$classAxiRssiCoreWrapper.html" title="AxiRssiCoreWrapper" alt="" coords="1017,49,1172,76"/>
+<area shape="rect" id="node13" href="$classAxiRssiCoreTb.html" title="AxiRssiCoreTb" alt="" coords="1233,43,1349,69"/>
+<area shape="rect" id="node16" href="$classRssiCoreWrapper.html" title="RssiCoreWrapper" alt="" coords="1028,183,1161,209"/>
+<area shape="rect" id="node17" href="$classRawEthFramerTb.html" title="RawEthFramerTb" alt="" coords="1225,93,1357,120"/>
+<area shape="rect" id="node18" href="$classRssiCoreTb.html" title="RssiCoreTb" alt="" coords="1244,144,1339,171"/>
+<area shape="rect" id="node19" href="$classRssiInterleaveTb.html" title="RssiInterleaveTb" alt="" coords="1226,195,1357,221"/>
+<area shape="rect" id="node20" href="$classSrpV3AxiLiteTb.html" title="SrpV3AxiLiteTb" alt="" coords="1231,245,1352,272"/>
+<area shape="rect" id="node23" href="$classPgpEthCore.html" title="PgpEthCore" alt="" coords="848,284,945,311"/>
+<area shape="rect" id="node24" href="$classPgpEthCaui4Gty.html" title="PgpEthCaui4Gty" alt="" coords="1031,284,1158,311"/>
+<area shape="rect" id="node26" href="$classPgpEthCoreTb.html" title="PgpEthCoreTb" alt="" coords="1038,335,1151,361"/>
+<area shape="rect" id="node25" href="$classPgpEthCaui4GtyTb.html" title="PgpEthCaui4GtyTb" alt="" coords="1220,296,1363,323"/>
 </map>

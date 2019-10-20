@@ -1,18 +1,21 @@
 <map id="AxiAd5780Core" name="AxiAd5780Core">
-<area shape="rect" id="node2" href="$classAxiAd5780Reg.html" title="AxiAd5780Reg" alt="" coords="932,195,1048,221"/>
-<area shape="rect" id="node3" href="$classSyncTrigRate.html" title="SyncTrigRate" alt="" coords="777,195,884,221"/>
-<area shape="rect" id="node4" href="$classSynchronizerOneShot.html" title="SynchronizerOneShot" alt="" coords="373,56,535,83"/>
-<area shape="rect" id="node5" href="$classRstSync.html" title="RstSync" alt="" coords="205,5,280,32"/>
-<area shape="rect" id="node6" href="$classSynchronizer.html" title="Synchronizer" alt="" coords="5,56,112,83"/>
-<area shape="rect" id="node7" href="$classSynchronizerEdge.html" title="SynchronizerEdge" alt="" coords="173,56,312,83"/>
-<area shape="rect" id="node10" href="$classRstSync.html" title="RstSync(2)" alt="" coords="197,107,289,133"/>
-<area shape="rect" id="node8" href="$classSynchronizerFifo.html" title="SynchronizerFifo(4)" alt="" coords="583,220,729,247"/>
-<area shape="rect" id="node9" href="$classFifoAsync.html" title="FifoAsync" alt="" coords="412,240,496,267"/>
-<area shape="rect" id="node11" href="$classSynchronizerVector.html" title="SynchronizerVector(2)" alt="" coords="160,157,325,184"/>
-<area shape="rect" id="node12" href="$classSynchronizer.html" title="Synchronizer(2)" alt="" coords="181,208,305,235"/>
-<area shape="rect" id="node13" href="$classFifoWrFsm.html" title="FifoWrFsm" alt="" coords="198,259,287,285"/>
-<area shape="rect" id="node14" href="$classFifoRdFsm.html" title="FifoRdFsm" alt="" coords="198,309,287,336"/>
-<area shape="rect" id="node15" href="$classSimpleDualPortRam.html" title="SimpleDualPortRam" alt="" coords="166,360,319,387"/>
-<area shape="rect" id="node16" href="$classFifoOutputPipeline.html" title="FifoOutputPipeline" alt="" coords="172,411,313,437"/>
-<area shape="rect" id="node17" href="$classAxiAd5780Ser.html" title="AxiAd5780Ser" alt="" coords="933,245,1047,272"/>
+<area shape="rect" id="node2" href="$classAxiAd5780Reg.html" title="AxiAd5780Reg" alt="" coords="1105,195,1221,221"/>
+<area shape="rect" id="node3" href="$classSyncTrigRate.html" title="SyncTrigRate" alt="" coords="951,195,1057,221"/>
+<area shape="rect" id="node4" href="$classSynchronizerOneShot.html" title="SynchronizerOneShot" alt="" coords="564,93,725,120"/>
+<area shape="rect" id="node17" href="$classSyncMinMax.html" title="SyncMinMax" alt="" coords="787,245,889,272"/>
+<area shape="rect" id="node5" href="$classRstSync.html" title="RstSync" alt="" coords="407,5,482,32"/>
+<area shape="rect" id="node6" href="$classSynchronizer.html" title="Synchronizer" alt="" coords="5,49,112,76"/>
+<area shape="rect" id="node7" href="$classSynchronizerEdge.html" title="SynchronizerEdge" alt="" coords="375,81,514,108"/>
+<area shape="rect" id="node10" href="$classRstSync.html" title="RstSync(2)" alt="" coords="197,252,289,279"/>
+<area shape="rect" id="node8" href="$classSynchronizerFifo.html" title="SynchronizerFifo" alt="" coords="773,195,903,221"/>
+<area shape="rect" id="node9" href="$classFifoAsync.html" title="FifoAsync" alt="" coords="403,245,487,272"/>
+<area shape="rect" id="node19" href="$classSynchronizerFifo.html" title="SynchronizerFifo(3)" alt="" coords="571,245,718,272"/>
+<area shape="rect" id="node11" href="$classSynchronizerVector.html" title="SynchronizerVector(2)" alt="" coords="160,303,325,329"/>
+<area shape="rect" id="node12" href="$classSynchronizer.html" title="Synchronizer(2)" alt="" coords="181,353,305,380"/>
+<area shape="rect" id="node13" href="$classFifoWrFsm.html" title="FifoWrFsm" alt="" coords="198,100,287,127"/>
+<area shape="rect" id="node14" href="$classFifoRdFsm.html" title="FifoRdFsm" alt="" coords="198,151,287,177"/>
+<area shape="rect" id="node15" href="$classSimpleDualPortRam.html" title="SimpleDualPortRam" alt="" coords="166,201,319,228"/>
+<area shape="rect" id="node16" href="$classFifoOutputPipeline.html" title="FifoOutputPipeline" alt="" coords="172,404,313,431"/>
+<area shape="rect" id="node18" href="$classDspComparator.html" title="DspComparator(2)" alt="" coords="373,347,516,373"/>
+<area shape="rect" id="node20" href="$classAxiAd5780Ser.html" title="AxiAd5780Ser" alt="" coords="1107,245,1220,272"/>
 </map>

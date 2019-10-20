@@ -2,6 +2,8 @@ var classJesd64bTo32b =
 [
     [ "rtl", "classJesd64bTo32b_1_1rtl.html", "classJesd64bTo32b_1_1rtl" ],
     [ "TPD_G", "classJesd64bTo32b.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "SYNTH_MODE_G", "classJesd64bTo32b.html#a2429d17ce4f9328a982076af9f733ab3", null ],
+    [ "SYNC_STAGES_G", "classJesd64bTo32b.html#ab3c259fbcfa43748d0f3f32890f0ed4d", null ],
     [ "wrClk", "classJesd64bTo32b.html#ad6380c6ea4df20847308b4976c873312", null ],
     [ "wrRst", "classJesd64bTo32b.html#a917be5be928e0ed990a19e87b11f7669", null ],
     [ "validIn", "classJesd64bTo32b.html#a04ef7338b1eb98847bf6152b181ce322", null ],
