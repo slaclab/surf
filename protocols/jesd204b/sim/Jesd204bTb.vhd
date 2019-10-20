@@ -32,7 +32,13 @@ architecture tb of Jesd204bTb is
 
    constant EN_SCRAMBLER_C : boolean := true;
 
-   constant BYTE_SHIFT_C : natural range 0 to 3 := 1;
+   --------------------------------------------------------
+   -- BYTE_SHIFT_C=0: JesdRx.JesdAlignChGen.position="0001"
+   -- BYTE_SHIFT_C=1: JesdRx.JesdAlignChGen.position="1000"
+   -- BYTE_SHIFT_C=2: JesdRx.JesdAlignChGen.position="0100"
+   -- BYTE_SHIFT_C=3: JesdRx.JesdAlignChGen.position="0010"
+   --------------------------------------------------------
+   constant BYTE_SHIFT_C : natural range 0 to 3 := 3;
 
    signal clk        : sl := '0';
    signal rst        : sl := '0';
@@ -145,7 +151,7 @@ begin
          devClk_i                => clk,
          devRst_i                => rst,
          sysRef_i                => sysRef,
-         nSync_i                 => nSync,
+         nSync_i(0)              => nSync,
          gtTxReady_i             => (others => configDone),
          r_jesdGtTxArr(0)        => jesdGtTxArr);
 

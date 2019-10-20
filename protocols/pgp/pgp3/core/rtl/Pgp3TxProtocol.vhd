@@ -257,12 +257,12 @@ begin
             resetEventMetaData := false;
          -- SKIP codes override data
          elsif (r.skpCount = r.skpInterval) then
-            v.skpCount                     := (others => '0');
-            v.pgpTxSlave.tReady            := '0';            -- Override any data acceptance.
-            v.protTxData                   := (others => '0');
-            v.protTxData(PGP3_BTF_FIELD_C) := PGP3_SKP_C;
-            v.protTxHeader                 := PGP3_K_HEADER_C;
-            resetEventMetaData             := false;
+            v.skpCount                           := (others => '0');
+            v.pgpTxSlave.tReady                  := '0';            -- Override any data acceptance.
+            v.protTxData(PGP3_SKIP_DATA_FIELD_C) := pgpTxIn.locData;
+            v.protTxData(PGP3_BTF_FIELD_C)       := PGP3_SKP_C;
+            v.protTxHeader                       := PGP3_K_HEADER_C;
+            resetEventMetaData                   := false;
          else
             -- A local rx pause going high causes an IDLE char to be sent mid frame
             -- So that the sending end is notified with minimum latency

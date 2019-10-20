@@ -13,5 +13,5 @@ if { $::env(VIVADO_VERSION) >= 2019.1 } {
    # loadIpCore -path "$::DIR_PATH/ip/Caui4GtyIpCore161MHz.xci"   
 
 } else {
-   puts "\n\nWARNING: $::DIR_PATH requires Vivado 2017.4 (or later)\n\n"
+   puts "\n\nWARNING: $::DIR_PATH requires Vivado 2019.1 (or later)\n\n"
 }   

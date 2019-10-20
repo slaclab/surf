@@ -68,7 +68,7 @@ entity Jesd204bTx is
       sysRef_i : in sl;
 
       -- Synchronization input combined from all receivers 
-      nSync_i : in sl;
+      nSync_i : in slv(L_G-1 downto 0);
 
       -- External sample data input
       extSampleDataArray_i : in sampleDataArray(L_G-1 downto 0);
@@ -100,7 +100,7 @@ architecture rtl of Jesd204bTx is
    -- Internal signals
 
    -- Local Multi Frame Clock 
-   signal s_lmfc : sl;
+   signal s_lmfc : slv(L_G-1 downto 0);
 
    -- Control and status from AxiLite
    ------------------------------------------------------------
@@ -136,13 +136,13 @@ architecture rtl of Jesd204bTx is
 
    -- Sysref conditioning
    signal s_sysrefSync : sl;
-   signal s_sysrefRe   : sl;
+   signal s_sysrefRe   : slv(L_G-1 downto 0);
    signal s_sysrefD    : sl;
 
    -- Sync conditioning
-   signal s_nSync      : sl;
+   signal s_nSync      : slv(L_G-1 downto 0);
    signal s_invertSync : sl;
-   signal s_nSyncSync  : sl;
+   signal s_nSyncSync  : slv(L_G-1 downto 0);
 
    -- Select output 
    signal s_muxOutSelArr : Slv3Array(L_G-1 downto 0);
@@ -193,7 +193,7 @@ begin
          -- DevClk domain
          devClk_i        => devClk_i,
          devRst_i        => devRst_i,
-         sysrefRe_i      => s_sysrefRe,
+         sysrefRe_i      => s_sysrefRe(0),
          statusTxArr_i   => s_statusTxArr,
          muxOutSelArr_o  => s_muxOutSelArr,
          sysrefDlyTx_o   => s_sysrefDlyTx,
@@ -269,13 +269,7 @@ begin
    -- Synchronize SYSREF input to devClk_i
    Synchronizer_sysref_INST : entity work.Synchronizer
       generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => '1',
-         OUT_POLARITY_G => '1',
-         RST_ASYNC_G    => false,
-         STAGES_G       => 2,
-         BYPASS_SYNC_G  => false,
-         INIT_G         => "0")
+         TPD_G => TPD_G)
       port map (
          clk     => devClk_i,
          rst     => devRst_i,
@@ -286,52 +280,48 @@ begin
    s_nSync <= nSync_i when s_invertSync = '0' else not nSync_i;
 
    -- Synchronize nSync input to devClk_i
-   Synchronizer_nsync_INST : entity work.Synchronizer
+   Synchronizer_nsync_INST : entity work.SynchronizerVector
       generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => '1',
-         OUT_POLARITY_G => '1',
-         RST_ASYNC_G    => false,
-         STAGES_G       => 2,
-         BYPASS_SYNC_G  => false,
-         INIT_G         => "0")
+         TPD_G   => TPD_G,
+         WIDTH_G => L_G)
       port map (
          clk     => devClk_i,
          rst     => devRst_i,
          dataIn  => s_nSync,
          dataOut => s_nSyncSync);
 
-   -- Delay SYSREF input (for 1 to 32 c-c)
-   U_SysrefDly : entity work.JesdSysrefDly
+   -- Delay SYSREF input (for 1 to 256 c-c)
+   U_SysrefDly : entity work.SlvDelay
       generic map (
-         TPD_G       => TPD_G,
-         DLY_WIDTH_G => SYSRF_DLY_WIDTH_C)
+         TPD_G        => TPD_G,
+         REG_OUTPUT_G => true,
+         DELAY_G      => 2**SYSRF_DLY_WIDTH_C)
       port map (
-         clk      => devClk_i,
-         rst      => devRst_i,
-         dly_i    => s_sysrefDlyTx,
-         sysref_i => s_sysrefSync,
-         sysref_o => s_sysrefD
-         );
-
-   -- LMFC period generator aligned to SYSREF input
-   U_LmfcGen : entity work.JesdLmfcGen
-      generic map (
-         TPD_G => TPD_G,
-         K_G   => K_G,
-         F_G   => F_G)
-      port map (
-         clk        => devClk_i,
-         rst        => devRst_i,
-         nSync_i    => s_nSyncSync,
-         sysref_i   => s_sysrefD,
-         sysrefRe_o => s_sysrefRe,      -- Rising-edge of SYSREF OUT 
-         lmfc_o     => s_lmfc);
+         clk     => devClk_i,
+         rst     => devRst_i,
+         delay   => s_sysrefDlyTx,
+         din(0)  => s_sysrefSync,
+         dout(0) => s_sysrefD);        
 
    ----------------------------
    -- Transmitter modules (L_G)
    ----------------------------
    GEN_TX : for i in L_G-1 downto 0 generate
+   
+      -- LMFC period generator aligned to SYSREF input
+      U_LmfcGen : entity work.JesdLmfcGen
+         generic map (
+            TPD_G => TPD_G,
+            K_G   => K_G,
+            F_G   => F_G)
+         port map (
+            clk        => devClk_i,
+            rst        => devRst_i,
+            nSync_i    => s_nSyncSync(i),
+            sysref_i   => s_sysrefD,
+            sysrefRe_o => s_sysrefRe(i),      -- Rising-edge of SYSREF OUT 
+            lmfc_o     => s_lmfc(i));
+   
       -- JESD Transmitter modules (one module per Lane)
       U_JesdTxLane : entity work.JesdTxLane
          generic map (
@@ -346,13 +336,14 @@ begin
             replEnable_i => s_replEnable,      -- From AXI lite
             scrEnable_i  => s_scrEnable,       -- From AXI lite
             inv_i        => s_invertData(i),   -- From AXI lite
-            lmfc_i       => s_lmfc,
-            nSync_i      => s_nSyncSync,
+            lmfc_i       => s_lmfc(i),
+            nSync_i      => s_nSyncSync(i),
             gtTxReady_i  => gtTxReady_i(i),
-            sysRef_i     => s_sysrefRe,
+            sysRef_i     => s_sysrefRe(i),
             status_o     => s_statusTxArr(i),  -- To AXI lite
             sampleData_i => s_sampleDataArr(i),
             r_jesdGtTx   => s_jesdGtTxArr(i));
+            
    end generate GEN_TX;
 
    ------------------
@@ -376,6 +367,6 @@ begin
 
    -- Output assignment
    gtTxReset_o <= (others => s_gtReset);
-   leds_o      <= uOr(s_dataValid) & s_nSyncSync;
+   leds_o      <= uOr(s_dataValid) & uAnd(s_nSyncSync);
 
 end rtl;

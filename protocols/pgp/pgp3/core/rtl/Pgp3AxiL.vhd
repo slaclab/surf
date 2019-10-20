@@ -133,6 +133,7 @@ architecture rtl of Pgp3AxiL is
       cellErrorCount     : ErrorCountSlv;
       linkDownCount      : ErrorCountSlv;
       linkErrorCount     : ErrorCountSlv;
+      remLinkData        : slv(55 downto 0);
       remRxOverflow      : slv(15 downto 0);
       remRxOverflowCnt   : ErrorCountSlvArray(15 downto 0);
       frameErrCount      : ErrorCountSlv;
@@ -390,6 +391,15 @@ begin
 
    rxStatusSync.gearboxAlignCnt <= muxSlVectorArray(gearboxAlignCnt, 0);
 
+   U_remLinkData : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         DATA_WIDTH_G => 56)
+      port map (
+         wr_clk => pgpRxClk,
+         din    => pgpRxOut.remLinkData,
+         rd_clk => axilClk,
+         dout   => rxStatusSync.remLinkData);
 
    ---------------------------------------
    -- Transmit Status
@@ -544,6 +554,7 @@ begin
    pgpTxIn.opCodeEn     <= locTxIn.opCodeEn;
    pgpTxIn.opCodeData   <= locTxIn.opCodeData;
    pgpTxIn.opCodeNumber <= locTxIn.opCodeNumber;
+   pgpTxIn.locData      <= locTxIn.locData;   
    pgpTxIn.flowCntlDis  <= locTxIn.flowCntlDis or syncFlowCntlDis;
    pgpTxIn.skpInterval  <= syncSkpInterval;
 
@@ -628,6 +639,8 @@ begin
       axiSlaveRegisterR(axilEp, X"120", 8, rxStatusSync.gearboxAlignCnt);
 
       axiSlaveRegisterR(axilEp, X"130", 0, rxStatusSync.phyRxInitCnt);
+      
+      axiSlaveRegisterR(axilEp, X"138", 0, rxStatusSync.remLinkData);
 
 
 

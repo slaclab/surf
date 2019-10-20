@@ -22,7 +22,9 @@ use work.StdRtlPkg.all;
 
 entity Jesd16bTo32b is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G         : time                 := 1 ns;
+      SYNTH_MODE_G  : string               := "inferred";
+      SYNC_STAGES_G : natural range 2 to 8 := 3);
    port (
       -- 16-bit Write Interface
       wrClk     : in  sl;
@@ -99,13 +101,14 @@ begin
 
    end process comb;
 
-   U_FIFO : entity work.FifoAsync
+   U_FIFO : entity work.Fifo
       generic map (
          TPD_G         => TPD_G,
+         SYNTH_MODE_G  => SYNTH_MODE_G,
+         MEMORY_TYPE_G => "distributed",
          BRAM_EN_G     => false,
          FWFT_EN_G     => true,
-         ALTERA_SYN_G  => false,
-         SYNC_STAGES_G => 3,
+         SYNC_STAGES_G => SYNC_STAGES_G,
          DATA_WIDTH_G  => 34,
          ADDR_WIDTH_G  => 5)
       port map (
