@@ -40,6 +40,8 @@ entity Jesd204bRx is
    generic (
       TPD_G : time := 1 ns;
 
+      GEN_ASYNC_G : boolean := false;   -- default false don't add synchronizer
+
       -- Test tx module instead of GTX
       TEST_G : boolean := false;
 
@@ -248,23 +250,35 @@ begin
 
    -----------------------------------------------------------
    -- SYSREF and LMFC
-   -----------------------------------------------------------     
-   -- Synchronize SYSREF input to devClk_i
-   Synchronizer_INST : entity work.Synchronizer
-      generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => '1',
-         OUT_POLARITY_G => '1',
-         RST_ASYNC_G    => false,
-         STAGES_G       => 2,
-         BYPASS_SYNC_G  => false,
-         INIT_G         => "0")
-      port map (
-         clk     => devClk_i,
-         rst     => devRst_i,
-         dataIn  => sysref_i,
-         dataOut => s_sysrefSync
-         );
+   -----------------------------------------------------------    
+
+   GEN_ASYNC : if (GEN_ASYNC_G = true) generate
+      -- Synchronize SYSREF input to devClk_i
+      Synchronizer_INST : entity work.Synchronizer
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => '1',
+            OUT_POLARITY_G => '1',
+            RST_ASYNC_G    => false,
+            STAGES_G       => 2,
+            BYPASS_SYNC_G  => false,
+            INIT_G         => "0")
+         port map (
+            clk     => devClk_i,
+            rst     => devRst_i,
+            dataIn  => sysref_i,
+            dataOut => s_sysrefSync
+            );
+   end generate;
+
+   GEN_SYNC : if (GEN_ASYNC_G = false) generate
+      process(devClk_i)
+      begin
+         if rising_edge(devClk_i) then
+            s_sysrefSync <= sysref_i after TPD_G;
+         end if;
+      end process;
+   end generate;
 
    -- Delay SYSREF input (for 1 to 256 c-c)
    U_SysrefDly : entity work.SlvDelay

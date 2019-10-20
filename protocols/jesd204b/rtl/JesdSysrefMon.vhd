@@ -37,14 +37,16 @@ end entity JesdSysrefMon;
 architecture rtl of JesdSysrefMon is
 
    type RegType is record
+      armed           : slv(1 downto 0);
       cnt             : slv(15 downto 0);
       sysRefPeriodmin : slv(15 downto 0);
       sysRefPeriodmax : slv(15 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      armed           => "00",
       cnt             => x"0000",
-      sysRefPeriodmin => x"FFFF",
+      sysRefPeriodmin => x"0000",
       sysRefPeriodmax => x"0000");
 
    signal r   : RegType := REG_INIT_C;
@@ -73,25 +75,48 @@ begin
          v.cnt := r.cnt + 1;
       end if;
 
-      -- Wait for sysref edge detection strobe
+      -- Wait for SYSREF edge detection strobe
       if (sysrefEdgeDet_i = '1') then
+
          -- Reset the counter
          v.cnt := (others => '0');
-         -- Check for max. 
-         if (r.cnt > r.sysRefPeriodmax) then
+
+         -- Check for first SYSREF edge after reset
+         if (r.armed = "00") then
+
+            -- Update the flag
+            v.armed := "01";
+
+         -- Check for Second SYSREF edge after reset
+         elsif (r.armed = "01") then
+
+            -- Update the flag
+            v.armed := "11";
+
+            -- Pass the current values to the statistics measurements
             v.sysRefPeriodmax := r.cnt;
-         end if;
-         -- Check for min. 
-         if (r.cnt < r.sysRefPeriodmin) then
             v.sysRefPeriodmin := r.cnt;
+
+         -- Normal mode
+         else
+
+            -- Check for max. 
+            if (r.cnt > r.sysRefPeriodmax) then
+               v.sysRefPeriodmax := r.cnt;
+            end if;
+
+            -- Check for min. 
+            if (r.cnt < r.sysRefPeriodmin) then
+               v.sysRefPeriodmin := r.cnt;
+            end if;
+
          end if;
+
       end if;
 
       -- Check for reseting statistics 
       if (clr = '1') then
-         v     := REG_INIT_C;
-         -- Don't change cnt during middle of measurement
-         v.cnt := r.cnt;
+         v := REG_INIT_C;
       end if;
 
       -- Register the variable for next clock cycle
