@@ -13,8 +13,7 @@
 -- the terms contained in the LICENSE.txt file.
 ------------------------------------------------------------------------------
 
-LIBRARY ieee;
-USE work.ALL;
+library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
