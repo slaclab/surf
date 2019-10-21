@@ -238,9 +238,6 @@ begin
          rdIndex <= v.rdIndex;
       end if;
 
-      rdRdy   <= r.rdRdy;
-      rdIndex <= r.rdIndex;
-
       -- RAM Outputs
       addrb  <= v.rdAddr;
       enb    <= v.enb;
