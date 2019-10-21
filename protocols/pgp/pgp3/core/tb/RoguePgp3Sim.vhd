@@ -25,9 +25,6 @@ use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.Pgp3Pkg.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 entity RoguePgp3Sim is
    generic (
       TPD_G         : time                        := 1 ns;

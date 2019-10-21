@@ -21,9 +21,6 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 entity AxiMicronMt28ewReg is
    generic (
       TPD_G              : time             := 1 ns;

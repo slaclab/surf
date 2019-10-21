@@ -25,9 +25,6 @@ use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.Pgp2bPkg.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 entity RoguePgp2bSim is
    generic (
       TPD_G         : time                        := 1 ns;
