@@ -30,19 +30,22 @@ use unisim.vcomponents.all;
 
 entity GigEthGtp7Wrapper is
    generic (
-      TPD_G              : time                             := 1 ns;
-      NUM_LANE_G         : natural range 1 to 4             := 1;
-      PAUSE_EN_G         : boolean                          := true;
+      TPD_G              : time                 := 1 ns;
+      SIMULATION_G       : boolean              := false;
+      NUM_LANE_G         : natural range 1 to 4 := 1;
+      PAUSE_EN_G         : boolean              := true;
       -- Clocking Configurations
-      USE_GTREFCLK_G     : boolean                          := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
-      CLKIN_PERIOD_G     : real                             := 8.0;
-      DIVCLK_DIVIDE_G    : positive                         := 1;
-      CLKFBOUT_MULT_F_G  : real                             := 8.0;
-      CLKOUT0_DIVIDE_F_G : real                             := 8.0;
+      USE_GTREFCLK_G     : boolean              := false;
+      --  FALSE: gtClkP/N,  TRUE: gtRefClk
+      USE_REFCLK_DIV2_G  : boolean              := false;
+      CLKIN_PERIOD_G     : real                 := 8.0;
+      DIVCLK_DIVIDE_G    : positive             := 1;
+      CLKFBOUT_MULT_F_G  : real                 := 8.0;
+      CLKOUT0_DIVIDE_F_G : real                 := 8.0;
       -- AXI-Lite Configurations
-      EN_AXI_REG_G       : boolean                          := false;
+      EN_AXI_REG_G       : boolean              := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G      : AxiStreamConfigArray(3 downto 0) := (others => EMAC_AXIS_CONFIG_C));
+      AXIS_CONFIG_G      : AxiStreamConfigArray := (0 => AXI_STREAM_CONFIG_INIT_C));
    port (
       -- Local Configurations
       localMac            : in  Slv48Array(NUM_LANE_G-1 downto 0)              := (others => MAC_ADDR_INIT_C);
@@ -62,10 +65,13 @@ entity GigEthGtp7Wrapper is
       axiLiteWriteSlaves  : out AxiLiteWriteSlaveArray(NUM_LANE_G-1 downto 0);
       -- Misc. Signals
       extRst              : in  sl;
-      phyClk              : out sl;
-      phyRst              : out sl;
+      ethClk125           : out sl;
+      ethRst125           : out sl;
+      ethClk62            : out sl;
+      ethRst62            : out sl;
       phyReady            : out slv(NUM_LANE_G-1 downto 0);
       sigDet              : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '1');
+      refClkOut           : out sl;
       -- MGT Clock Port (156.25 MHz or 312.5 MHz)
       gtRefClk            : in  sl                                             := '0';
       gtClkP              : in  sl                                             := '1';
@@ -83,7 +89,10 @@ end GigEthGtp7Wrapper;
 architecture mapping of GigEthGtp7Wrapper is
 
    signal gtClk     : sl;
+   signal gtClkDiv2 : sl;
+   signal selGtClk  : sl;
    signal gtClkBufg : sl;
+
    signal refClk    : sl;
    signal refRst    : sl;
    signal sysClk125 : sl;
@@ -100,8 +109,10 @@ architecture mapping of GigEthGtp7Wrapper is
 
 begin
 
-   phyClk <= sysClk125;
-   phyRst <= sysRst125;
+   ethClk125 <= sysClk125;
+   ethRst125 <= sysRst125;
+   ethClk62  <= sysClk62;
+   ethRst62  <= sysRst62;
 
    -----------------------------
    -- Select the Reference Clock
@@ -112,12 +123,15 @@ begin
          I     => gtClkP,
          IB    => gtClkN,
          CEB   => '0',
-         ODIV2 => open,
+         ODIV2 => gtClkDiv2,
          O     => gtClk);
+
+   selGtClk  <= gtClkDiv2 when USE_REFCLK_DIV2_G else gtClk;
+   refClkOut <= selGtClk;
 
    BUFG_Inst : BUFG
       port map (
-         I => gtClk,
+         I => selGtClk,
          O => gtClkBufg);
 
    refClk <= gtClkBufg when(USE_GTREFCLK_G = false) else gtRefClk;
@@ -159,91 +173,94 @@ begin
          rstOut(0) => sysRst125,
          rstOut(1) => sysRst62);
 
-   -----------
-   -- Quad PLL 
-   -----------
-   U_Gtp7QuadPll : entity surf.Gtp7QuadPll
-      generic map (
-         TPD_G                => TPD_G,
-         PLL0_REFCLK_SEL_G    => "111",
-         PLL0_FBDIV_IN_G      => 4,
-         PLL0_FBDIV_45_IN_G   => 5,
-         PLL0_REFCLK_DIV_IN_G => 1,
-         PLL1_REFCLK_SEL_G    => "111",
-         PLL1_FBDIV_IN_G      => 4,
-         PLL1_FBDIV_45_IN_G   => 5,
-         PLL1_REFCLK_DIV_IN_G => 1)
-      port map (
-         qPllRefClk(0)     => sysClk125,
-         qPllRefClk(1)     => sysClk125,
-         qPllOutClk        => qPllOutClk,
-         qPllOutRefClk     => qPllOutRefClk,
-         qPllLock          => qPllLock,
-         qPllLockDetClk(0) => sysClk125,
-         qPllLockDetClk(1) => sysClk125,
-         qPllRefClkLost    => qPllRefClkLost,
-         qPllPowerDown     => "10",     -- power down PLL1 (unused PLL)
-         qPllReset         => qpllReset);
 
-   -- Once the QPLL is locked, prevent the 
-   -- IP cores from accidentally reseting each other
-   qpllReset(0) <= sysRst125 or (uOr(qpllRst) and not(qPllLock(0)));
-   qPllReset(1) <= '1';                 -- No using QPLL[1]   
+   REAL_ETH_GEN : if (not SIMULATION_G) generate
+      -----------
+      -- Quad PLL 
+      -----------
 
-   --------------
-   -- GigE Module 
-   --------------
-   GEN_LANE :
-   for i in 0 to NUM_LANE_G-1 generate
-
-      U_GigEthGtp7 : entity surf.GigEthGtp7
+      U_Gtp7QuadPll : entity surf.Gtp7QuadPll
          generic map (
-            TPD_G           => TPD_G,
-            PAUSE_EN_G      => PAUSE_EN_G,
-            -- AXI-Lite Configurations
-            EN_AXI_REG_G    => EN_AXI_REG_G,
-            -- AXI Streaming Configurations
-            AXIS_CONFIG_G   => AXIS_CONFIG_G(i))
+            TPD_G                => TPD_G,
+            PLL0_REFCLK_SEL_G    => "111",
+            PLL0_FBDIV_IN_G      => 4,
+            PLL0_FBDIV_45_IN_G   => 5,
+            PLL0_REFCLK_DIV_IN_G => 1,
+            PLL1_REFCLK_SEL_G    => "111",
+            PLL1_FBDIV_IN_G      => 4,
+            PLL1_FBDIV_45_IN_G   => 5,
+            PLL1_REFCLK_DIV_IN_G => 1)
          port map (
-            -- Local Configurations
-            localMac           => localMac(i),
-            -- Streaming DMA Interface 
-            dmaClk             => dmaClk(i),
-            dmaRst             => dmaRst(i),
-            dmaIbMaster        => dmaIbMasters(i),
-            dmaIbSlave         => dmaIbSlaves(i),
-            dmaObMaster        => dmaObMasters(i),
-            dmaObSlave         => dmaObSlaves(i),
-            -- Slave AXI-Lite Interface 
-            axiLiteClk         => axiLiteClk(i),
-            axiLiteRst         => axiLiteRst(i),
-            axiLiteReadMaster  => axiLiteReadMasters(i),
-            axiLiteReadSlave   => axiLiteReadSlaves(i),
-            axiLiteWriteMaster => axiLiteWriteMasters(i),
-            axiLiteWriteSlave  => axiLiteWriteSlaves(i),
-            -- PHY + MAC signals
-            sysClk62           => sysClk62,
-            sysClk125          => sysClk125,
-            sysRst125          => sysRst125,
-            extRst             => refRst,
-            phyReady           => phyReady(i),
-            sigDet             => sigDet(i),
-            -- Quad PLL Interface
-            qPllOutClk         => qPllOutClk,
-            qPllOutRefClk      => qPllOutRefClk,
-            qPllLock           => qPllLock,
-            qPllRefClkLost     => qPllRefClkLost,
-            qPllReset(0)       => qpllRst(i),
-            qPllReset(1)       => open,
-            -- Switch Polarity of TxN/TxP, RxN/RxP
-            gtTxPolarity       => gtTxPolarity(i),
-            gtRxPolarity       => gtRxPolarity(i),
-            -- MGT Ports
-            gtTxP              => gtTxP(i),
-            gtTxN              => gtTxN(i),
-            gtRxP              => gtRxP(i),
-            gtRxN              => gtRxN(i));
+            qPllRefClk(0)     => sysClk125,
+            qPllRefClk(1)     => sysClk125,
+            qPllOutClk        => qPllOutClk,
+            qPllOutRefClk     => qPllOutRefClk,
+            qPllLock          => qPllLock,
+            qPllLockDetClk(0) => sysClk125,
+            qPllLockDetClk(1) => sysClk125,
+            qPllRefClkLost    => qPllRefClkLost,
+            qPllPowerDown     => "10",  -- power down PLL1 (unused PLL)
+            qPllReset         => qpllReset);
 
-   end generate GEN_LANE;
+      -- Once the QPLL is locked, prevent the 
+      -- IP cores from accidentally reseting each other
+      qpllReset(0) <= sysRst125 or (uOr(qpllRst) and not(qPllLock(0)));
+      qPllReset(1) <= '1';              -- No using QPLL[1]   
 
+      --------------
+      -- GigE Module 
+      --------------
+      GEN_LANE :
+      for i in 0 to NUM_LANE_G-1 generate
+
+         U_GigEthGtp7 : entity work.GigEthGtp7
+            generic map (
+               TPD_G           => TPD_G,
+               PAUSE_EN_G      => PAUSE_EN_G,
+               -- AXI-Lite Configurations
+               EN_AXI_REG_G    => EN_AXI_REG_G,
+               -- AXI Streaming Configurations
+               AXIS_CONFIG_G   => AXIS_CONFIG_G(i))
+            port map (
+               -- Local Configurations
+               localMac           => localMac(i),
+               -- Streaming DMA Interface 
+               dmaClk             => dmaClk(i),
+               dmaRst             => dmaRst(i),
+               dmaIbMaster        => dmaIbMasters(i),
+               dmaIbSlave         => dmaIbSlaves(i),
+               dmaObMaster        => dmaObMasters(i),
+               dmaObSlave         => dmaObSlaves(i),
+               -- Slave AXI-Lite Interface 
+               axiLiteClk         => axiLiteClk(i),
+               axiLiteRst         => axiLiteRst(i),
+               axiLiteReadMaster  => axiLiteReadMasters(i),
+               axiLiteReadSlave   => axiLiteReadSlaves(i),
+               axiLiteWriteMaster => axiLiteWriteMasters(i),
+               axiLiteWriteSlave  => axiLiteWriteSlaves(i),
+               -- PHY + MAC signals
+               sysClk62           => sysClk62,
+               sysClk125          => sysClk125,
+               sysRst125          => sysRst125,
+               extRst             => refRst,
+               phyReady           => phyReady(i),
+               sigDet             => sigDet(i),
+               -- Quad PLL Interface
+               qPllOutClk         => qPllOutClk,
+               qPllOutRefClk      => qPllOutRefClk,
+               qPllLock           => qPllLock,
+               qPllRefClkLost     => qPllRefClkLost,
+               qPllReset(0)       => qpllRst(i),
+               qPllReset(1)       => open,
+               -- Switch Polarity of TxN/TxP, RxN/RxP
+               gtTxPolarity       => gtTxPolarity(i),
+               gtRxPolarity       => gtRxPolarity(i),
+               -- MGT Ports
+               gtTxP              => gtTxP(i),
+               gtTxN              => gtTxN(i),
+               gtRxP              => gtRxP(i),
+               gtRxN              => gtRxN(i));
+
+      end generate GEN_LANE;
+   end generate REAL_ETH_GEN;
 end mapping;
