@@ -26,6 +26,7 @@ entity Sgmii88E1111LvdsUltraScale is
    generic (
       TPD_G             : time                  := 1 ns;
       STABLE_CLK_FREQ_G : real                  := 156.25E+6;
+      USE_BUFG_DIV_G    : boolean               := false;
       CLKOUT1_PHASE_G   : real                  := 90.0;
       PHY_G             : natural range 0 to 31 := 7;
       AXIS_CONFIG_G     : AxiStreamConfigType   := EMAC_AXIS_CONFIG_C);
@@ -182,6 +183,7 @@ begin
    U_1GigE : entity work.GigEthLvdsUltraScaleWrapper
       generic map (
          TPD_G           => TPD_G,
+         USE_BUFG_DIV_G  => USE_BUFG_DIV_G,
          CLKOUT1_PHASE_G => CLKOUT1_PHASE_G,
          AXIS_CONFIG_G   => (others => AXIS_CONFIG_G))
       port map (

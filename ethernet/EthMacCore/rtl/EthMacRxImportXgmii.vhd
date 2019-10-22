@@ -317,7 +317,8 @@ begin
    process (ethClk)
    begin
       if rising_edge(ethClk) then
-         if ethRst = '1' then
+         if (ethRst = '1') or (phyReady = '0') then
+            crcInit      <= '1'             after TPD_G;
             frameShift0  <= '0'             after TPD_G;
             frameShift1  <= '0'             after TPD_G;
             frameShift2  <= '0'             after TPD_G;
@@ -333,6 +334,9 @@ begin
             crcFifoIn    <= (others => '0') after TPD_G;
             phyRxcDly    <= (others => '0') after TPD_G;
          else
+         
+            -- Reset the flag
+            crcInit <= '0' after TPD_G;
 
             -- Delayed copy of control signals
             phyRxcDly <= phyRxc after TPD_G;
@@ -348,11 +352,13 @@ begin
             -- normal alignment
             if phyRxC(0) = '1' and phyRxd(7 downto 0) = x"FB" and phyReady = '1' then
                frameShift0 <= '1' after TPD_G;
+               crcInit     <= '1' after TPD_G;
                rxdAlign    <= '0' after TPD_G;
 
             -- shifted aligment
             elsif lastSOF = '1' and phyReady = '1' then
                frameShift0 <= '1' after TPD_G;
+               crcInit     <= '1' after TPD_G;
                rxdAlign    <= '1' after TPD_G;
 
             -- Detect end of frame
@@ -405,8 +411,7 @@ begin
       end if;
    end process;
 
-   -- Generate init
-   crcInit <= frameShift0 and (not frameShift1);
+
 
    -- CRC Delay FIFO
    U_CrcFifo : entity work.Fifo
@@ -545,7 +550,7 @@ begin
    ------------------------------------------
 
    -- CRC Input
-   crcReset            <= crcInit or ethRst or (not phyReady);
+   crcReset            <= crcInit;
    crcIn(63 downto 56) <= crcFifoIn(7 downto 0);
    crcIn(55 downto 48) <= crcFifoIn(15 downto 8);
    crcIn(47 downto 40) <= crcFifoIn(23 downto 16);

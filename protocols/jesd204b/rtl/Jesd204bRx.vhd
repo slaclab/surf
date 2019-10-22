@@ -40,6 +40,8 @@ entity Jesd204bRx is
    generic (
       TPD_G : time := 1 ns;
 
+      GEN_ASYNC_G : boolean := false;   -- default false don't add synchronizer
+
       -- Test tx module instead of GTX
       TEST_G : boolean := false;
 
@@ -248,37 +250,48 @@ begin
 
    -----------------------------------------------------------
    -- SYSREF and LMFC
-   -----------------------------------------------------------     
-   -- Synchronize SYSREF input to devClk_i
-   Synchronizer_INST : entity work.Synchronizer
+   -----------------------------------------------------------    
+
+   GEN_ASYNC : if (GEN_ASYNC_G = true) generate
+      -- Synchronize SYSREF input to devClk_i
+      Synchronizer_INST : entity work.Synchronizer
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => '1',
+            OUT_POLARITY_G => '1',
+            RST_ASYNC_G    => false,
+            STAGES_G       => 2,
+            BYPASS_SYNC_G  => false,
+            INIT_G         => "0")
+         port map (
+            clk     => devClk_i,
+            rst     => devRst_i,
+            dataIn  => sysref_i,
+            dataOut => s_sysrefSync
+            );
+   end generate;
+
+   GEN_SYNC : if (GEN_ASYNC_G = false) generate
+      process(devClk_i)
+      begin
+         if rising_edge(devClk_i) then
+            s_sysrefSync <= sysref_i after TPD_G;
+         end if;
+      end process;
+   end generate;
+
+   -- Delay SYSREF input (for 1 to 256 c-c)
+   U_SysrefDly : entity work.SlvDelay
       generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => '1',
-         OUT_POLARITY_G => '1',
-         RST_ASYNC_G    => false,
-         STAGES_G       => 2,
-         BYPASS_SYNC_G  => false,
-         INIT_G         => "0")
+         TPD_G        => TPD_G,
+         REG_OUTPUT_G => true,
+         DELAY_G      => 2**SYSRF_DLY_WIDTH_C)
       port map (
          clk     => devClk_i,
          rst     => devRst_i,
-         dataIn  => sysref_i,
-         dataOut => s_sysrefSync
-         );
-
-   -- Delay SYSREF input (for 1 to 32 c-c)
-   SysrefDly_INST : entity work.JesdSysrefDly
-      generic map (
-         TPD_G       => TPD_G,
-         DLY_WIDTH_G => SYSRF_DLY_WIDTH_C
-         )
-      port map (
-         clk      => devClk_i,
-         rst      => devRst_i,
-         dly_i    => s_sysrefDlyRx,
-         sysref_i => s_sysrefSync,
-         sysref_o => s_sysrefD
-         );
+         delay   => s_sysrefDlyRx,
+         din(0)  => s_sysrefSync,
+         dout(0) => s_sysrefD);
 
    -- LMFC period generator aligned to SYSREF input
    LmfcGen_INST : entity work.JesdLmfcGen

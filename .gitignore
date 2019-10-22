@@ -5,6 +5,7 @@
 *.swp
 *._*
 *.db
+*.log
 xvcSrv
-bin/
 doxygen/
+ghdl/

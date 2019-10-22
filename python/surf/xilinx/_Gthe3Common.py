@@ -298,7 +298,7 @@ class Gthe3Common(pr.Device):
         self.add(pr.RemoteVariable(
             offset=0x0094 << 2,
             bitSize=8,
-            bitOffset=8
+            bitOffset=8,
             mode='RW',
             name='QPLL1_INIT_CFG1'))
 
@@ -450,7 +450,7 @@ class Gthe3Common(pr.Device):
         
         self.add(pr.RemoteVariable(
             offset=0x00A9 << 2,
-            bitSize=9
+            bitSize=9,
             mode='RW',
             name='SDM1DATA1_1'))
         

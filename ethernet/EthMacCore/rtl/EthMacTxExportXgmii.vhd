@@ -1,6 +1,5 @@
 -------------------------------------------------------------------------------
 -- File       : EthMacTxExportXgmii.vhd
--- Author     : Ryan Herbst <rherbst@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 10GbE Export MAC core with GMII interface
@@ -185,7 +184,8 @@ begin
    process (ethClk)
    begin
       if rising_edge(ethClk) then
-         if ethRst = '1' then
+         if (ethRst = '1') or (phyReady = '0') then
+            crcInit       <= '1'             after TPD_G;
             curState      <= ST_IDLE_C       after TPD_G;
             intError      <= '0'             after TPD_G;
             stateCount    <= (others => '0') after TPD_G;
@@ -209,6 +209,8 @@ begin
                exportWordCnt <= exportWordCnt + 1 after TPD_G;
             end if;
             
+            crcInit <= wordCountRst after TPD_G;
+
          end if;
       end if;
    end process;
@@ -242,7 +244,6 @@ begin
       txUnderRun     <= '0';
       txLinkNotReady <= '0';
       nxtError       <= intError;
-      crcInit        <= '0';
 
       case curState is
 
@@ -255,7 +256,6 @@ begin
             intLastLine   <= '0';
             nxtError      <= '0';
             intDump       <= '0';
-            crcInit       <= '1';
 
             -- Wait for start flag
             if macMaster.tValid = '1' and ethRst = '0' then
@@ -595,7 +595,7 @@ begin
    ------------------------------------------
 
    -- CRC Input
-   crcReset               <= crcInit or ethRst or (not phyReady);
+   crcReset               <= crcInit;
    crcInAdj(63 downto 56) <= crcIn(7 downto 0);
    crcInAdj(55 downto 48) <= crcIn(15 downto 8);
    crcInAdj(47 downto 40) <= crcIn(23 downto 16);

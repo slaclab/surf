@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+-- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
+-------------------------------------------------------------------------------
 -- File       : SsiPrbsRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -40,12 +42,16 @@ entity SsiPrbsRx is
       CASCADE_SIZE_G             : positive                 := 1;
       FIFO_ADDR_WIDTH_G          : positive                 := 9;
       FIFO_PAUSE_THRESH_G        : positive                 := 2**8;
+      SYNTH_MODE_G               : string                   := "inferred";
+      MEMORY_TYPE_G              : string                   := "block";
       -- PRBS Config
-      PRBS_SEED_SIZE_G           : positive range 32 to 256 := 32;
+      PRBS_SEED_SIZE_G           : positive range 32 to 512 := 32;
       PRBS_TAPS_G                : NaturalArray             := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
       -- AXI Stream IO Config
       SLAVE_AXI_STREAM_CONFIG_G  : AxiStreamConfigType      := ssiAxiStreamConfig(4);
-      SLAVE_AXI_PIPE_STAGES_G    : natural range 0 to 16    := 0);
+      SLAVE_AXI_PIPE_STAGES_G    : natural                  := 0;
+      MASTER_AXI_STREAM_CONFIG_G : AxiStreamConfigType      := ssiAxiStreamConfig(4);
+      MASTER_AXI_PIPE_STAGES_G   : natural                  := 0);
    port (
       -- Streaming RX Data Interface (sAxisClk domain) 
       sAxisClk        : in  sl;
@@ -53,6 +59,9 @@ entity SsiPrbsRx is
       sAxisMaster     : in  AxiStreamMasterType;
       sAxisSlave      : out AxiStreamSlaveType;
       sAxisCtrl       : out AxiStreamCtrlType;
+      -- Optional: TX Data Interface with EOFE tagging (sAxisClk domain) 
+      mAxisMaster     : out AxiStreamMasterType;
+      mAxisSlave      : in  AxiStreamSlaveType     := AXI_STREAM_SLAVE_FORCE_C;
       -- Optional: AXI-Lite Register Interface (axiClk domain)
       axiClk          : in  sl                     := '0';
       axiRst          : in  sl                     := '0';
@@ -69,41 +78,42 @@ entity SsiPrbsRx is
       errDataBus      : out sl;
       errEofe         : out sl;
       errWordCnt      : out slv(31 downto 0);
-      errbitCnt       : out slv(31 downto 0);
       packetRate      : out slv(31 downto 0);
       packetLength    : out slv(31 downto 0));
 end SsiPrbsRx;
 
 architecture rtl of SsiPrbsRx is
 
-   constant MAX_CNT_C                : slv(31 downto 0)    := (others => '1');
-   constant PRBS_BYTES_C             : natural             := wordCount(PRBS_SEED_SIZE_G, 8);
-   constant SLAVE_PRBS_SSI_CONFIG_C  : AxiStreamConfigType := ssiAxiStreamConfig(PRBS_BYTES_C, TKEEP_COMP_C);
-   constant MASTER_PRBS_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(PRBS_BYTES_C, TKEEP_COMP_C);
+   constant MAX_CNT_C    : slv(31 downto 0) := (others => '1');
+   constant PRBS_BYTES_C : natural          := wordCount(PRBS_SEED_SIZE_G, 8);
+   constant PRBS_SSI_CONFIG_C : AxiStreamConfigType := (
+      TSTRB_EN_C    => false,
+      TDATA_BYTES_C => PRBS_BYTES_C,
+      TDEST_BITS_C  => 8,
+      TID_BITS_C    => 8,
+      TKEEP_MODE_C  => TKEEP_COMP_C,
+      TUSER_BITS_C  => 8,
+      TUSER_MODE_C  => TUSER_FIRST_LAST_C);
 
    type StateType is (
       IDLE_S,
       LENGTH_S,
-      DATA_S,
-      BIT_ERR_S);
+      DATA_S);
 
    type RegType is record
       busy            : sl;
       packetLength    : slv(31 downto 0);
       errorDet        : sl;
-      eof             : sl;
       eofe            : sl;
       errLength       : sl;
       updatedResults  : sl;
       errMissedPacket : sl;
       errDataBus      : sl;
       errWordStrb     : sl;
-      errBitStrb      : sl;
       txCnt           : slv(3 downto 0);
       bitPntr         : slv(log2(PRBS_SEED_SIZE_G)-1 downto 0);
       errorBits       : slv(PRBS_SEED_SIZE_G-1 downto 0);
       errWordCnt      : slv(31 downto 0);
-      errbitCnt       : slv(31 downto 0);
       eventCnt        : slv(PRBS_SEED_SIZE_G-1 downto 0);
       randomData      : slv(PRBS_SEED_SIZE_G-1 downto 0);
       dataCnt         : slv(31 downto 0);
@@ -111,6 +121,7 @@ architecture rtl of SsiPrbsRx is
       startTime       : slv(31 downto 0);
       packetRate      : slv(31 downto 0);
       rxAxisSlave     : AxiStreamSlaveType;
+      txAxisMaster    : AxiStreamMasterType;
       state           : StateType;
    end record;
 
@@ -118,19 +129,16 @@ architecture rtl of SsiPrbsRx is
       busy            => '1',
       packetLength    => toSlv(2, 32),
       errorDet        => '0',
-      eof             => '0',
       eofe            => '0',
       errLength       => '0',
       updatedResults  => '0',
       errMissedPacket => '0',
       errDataBus      => '0',
       errWordStrb     => '0',
-      errBitStrb      => '0',
       txCnt           => (others => '0'),
       bitPntr         => (others => '0'),
       errorBits       => (others => '0'),
       errWordCnt      => (others => '0'),
-      errbitCnt       => (others => '0'),
       eventCnt        => toSlv(1, PRBS_SEED_SIZE_G),
       randomData      => (others => '0'),
       dataCnt         => (others => '0'),
@@ -138,13 +146,19 @@ architecture rtl of SsiPrbsRx is
       startTime       => (others => '1'),
       packetRate      => (others => '1'),
       rxAxisSlave     => AXI_STREAM_SLAVE_INIT_C,
+      txAxisMaster    => AXI_STREAM_MASTER_INIT_C,
       state           => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
    signal rxAxisMaster : AxiStreamMasterType;
-   signal rxAxisSlave : AxiStreamSlaveType;
+   signal rxAxisSlave  : AxiStreamSlaveType;
+
+   signal txAxisMaster : AxiStreamMasterType;
+   signal txAxisSlave  : AxiStreamSlaveType;
+
+   signal bypCheck : sl;
 
    signal axisCtrl : AxiStreamCtrlArray(1 downto 0) := (others => AXI_STREAM_CTRL_UNUSED_C);
 
@@ -152,6 +166,7 @@ architecture rtl of SsiPrbsRx is
 
    type LocRegType is record
       cntRst        : sl;
+      bypCheck      : sl;
       dummy         : slv(31 downto 0);
       rollOverEn    : slv(STATUS_SIZE_C-1 downto 0);
       axiReadSlave  : AxiLiteReadSlaveType;
@@ -159,46 +174,45 @@ architecture rtl of SsiPrbsRx is
    end record;
 
    constant LOC_REG_INIT_C : LocRegType := (
-      '1',
-      (others => '0'),
-      (others => '0'),
-      AXI_LITE_READ_SLAVE_INIT_C,
-      AXI_LITE_WRITE_SLAVE_INIT_C);
+      cntRst        => '1',
+      bypCheck      => '0',
+      dummy         => (others => '0'),
+      rollOverEn    => (others => '0'),
+      axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
+      axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
    signal rAxiLite   : LocRegType := LOC_REG_INIT_C;
    signal rinAxiLite : LocRegType;
 
-   signal errBitStrbSync,
-      errWordStrbSync,
-      errDataBusSync,
-      errEofeSync,
-      errLengthSync,
-      errMissedPacketSync : sl;
+   signal errBitStrbSync      : sl;
+   signal errWordStrbSync     : sl;
+   signal errDataBusSync      : sl;
+   signal errEofeSync         : sl;
+   signal errLengthSync       : sl;
+   signal errMissedPacketSync : sl;
 
-   signal overflow,
-      pause : slv(1 downto 0);
+   signal overflow : slv(1 downto 0);
+   signal pause    : slv(1 downto 0);
 
    signal cntOut : SlVectorArray(STATUS_SIZE_C-1 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
 
-   signal packetLengthSync,
-      packetRateSync,
-      errbitCntSync,
-      errWordCntSync : slv(31 downto 0);
+   signal packetLengthSync : slv(31 downto 0);
+   signal packetRateSync   : slv(31 downto 0);
+   signal errWordCntSync   : slv(31 downto 0);
 
-   signal pause1Cnt,
-      overflow1Cnt,
-      pause0Cnt,
-      overflow0Cnt,
-      errBitStrbCnt,
-      errWordStrbCnt,
-      errDataBusCnt,
-      errEofeCnt,
-      errLengthCnt,
-      errMissedPacketCnt : slv(STATUS_CNT_WIDTH_G-1 downto 0);
+   signal pause1Cnt          : slv(STATUS_CNT_WIDTH_G-1 downto 0);
+   signal overflow1Cnt       : slv(STATUS_CNT_WIDTH_G-1 downto 0);
+   signal pause0Cnt          : slv(STATUS_CNT_WIDTH_G-1 downto 0);
+   signal overflow0Cnt       : slv(STATUS_CNT_WIDTH_G-1 downto 0);
+   signal errWordStrbCnt     : slv(STATUS_CNT_WIDTH_G-1 downto 0);
+   signal errDataBusCnt      : slv(STATUS_CNT_WIDTH_G-1 downto 0);
+   signal errEofeCnt         : slv(STATUS_CNT_WIDTH_G-1 downto 0);
+   signal errLengthCnt       : slv(STATUS_CNT_WIDTH_G-1 downto 0);
+   signal errMissedPacketCnt : slv(STATUS_CNT_WIDTH_G-1 downto 0);
 
 begin
 
-   assert ((PRBS_SEED_SIZE_G = 32) or (PRBS_SEED_SIZE_G = 64) or (PRBS_SEED_SIZE_G = 128) or (PRBS_SEED_SIZE_G = 256)) report "PRBS_SEED_SIZE_G must be either [32,64,128,256]" severity failure;
+   assert ((PRBS_SEED_SIZE_G = 32) or (PRBS_SEED_SIZE_G = 64) or (PRBS_SEED_SIZE_G = 128) or (PRBS_SEED_SIZE_G = 256) or (PRBS_SEED_SIZE_G = 512)) report "PRBS_SEED_SIZE_G must be either [32,64,128,256,512]" severity failure;
 
    sAxisCtrl <= axisCtrl(0);
 
@@ -220,9 +234,11 @@ begin
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
+         SYNTH_MODE_G        => SYNTH_MODE_G,
+         MEMORY_TYPE_G       => MEMORY_TYPE_G,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => SLAVE_AXI_STREAM_CONFIG_G,
-         MASTER_AXI_CONFIG_G => SLAVE_PRBS_SSI_CONFIG_C)
+         MASTER_AXI_CONFIG_G => PRBS_SSI_CONFIG_C)
       port map (
          -- Slave Port
          sAxisClk    => sAxisClk,
@@ -236,7 +252,34 @@ begin
          mAxisMaster => rxAxisMaster,
          mAxisSlave  => rxAxisSlave);
 
-   comb : process (r, rxAxisMaster, sAxisRst) is
+   U_Tx : entity work.AxiStreamResize
+      generic map (
+         -- General Configurations
+         TPD_G               => TPD_G,
+         PIPE_STAGES_G       => MASTER_AXI_PIPE_STAGES_G,
+         -- AXI Stream Port Configurations
+         SLAVE_AXI_CONFIG_G  => PRBS_SSI_CONFIG_C,
+         MASTER_AXI_CONFIG_G => MASTER_AXI_STREAM_CONFIG_G)
+      port map (
+         -- Clock and reset
+         axisClk     => sAxisClk,
+         axisRst     => sAxisRst,
+         -- Slave Port
+         sAxisMaster => txAxisMaster,
+         sAxisSlave  => txAxisSlave,
+         -- Master Port
+         mAxisMaster => mAxisMaster,
+         mAxisSlave  => mAxisSlave);
+
+   U_bypCheck : entity work.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => sAxisClk,
+         dataIn  => rAxiLite.bypCheck,
+         dataOut => bypCheck);
+
+   comb : process (bypCheck, r, rxAxisMaster, sAxisRst, txAxisSlave) is
       variable i : integer;
       variable v : RegType;
    begin
@@ -244,10 +287,14 @@ begin
       v := r;
 
       -- Reset strobe signals
-      v.updatedResults     := '0';
-      v.errWordStrb        := '0';
-      v.errBitStrb         := '0';
+      v.updatedResults := '0';
+      v.errWordStrb    := '0';
+
+      -- AXI Stream Flow Control
       v.rxAxisSlave.tReady := '0';
+      if (txAxisSlave.tReady = '1') then
+         v.txAxisMaster.tValid := '0';
+      end if;
 
       -- Check for roll over
       if r.stopTime /= r.startTime then
@@ -261,99 +308,141 @@ begin
             -- Reset the flags
             v.busy     := '0';
             v.errorDet := '0';
-            -- Check for a FIFO read
-            if (rxAxisMaster.tvalid = '1') then
+
+            -- Check for a FIFO read and able to move data
+            if (rxAxisMaster.tvalid = '1') and (v.txAxisMaster.tValid = '0') then
+
                -- Ready to receive data
                v.rxAxisSlave.tReady := '1';
-               -- Calculate the time between this packet and the previous one
-               if (r.stopTime = r.startTime) then
-                  v.stopTime := r.stopTime + 1;
-               end if;
-               v.packetRate      := r.stopTime - r.startTime;
-               v.startTime       := r.stopTime;
-               -- Reset the error counters
-               v.errWordCnt      := (others => '0');
-               v.errbitCnt       := (others => '0');
-               v.errMissedPacket := '0';
-               v.errLength       := '0';
-               v.errDataBus      := '0';
-               v.eof             := '0';
-               v.eofe            := '0';
-               -- Check if we have missed a packet 
-               if rxAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) /= r.eventCnt then
-                  -- Set the error flags
-                  v.errMissedPacket := '1';
-                  v.errorDet        := '1';
-               end if;
-               -- Align the event counter to the next packet
-               v.eventCnt   := rxAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) + 1;
-               -- Latch the SEED for the randomization
-               v.randomData := rxAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0);
-               -- Set the busy flag
-               v.busy       := '1';
-               -- Increment the counter
-               v.dataCnt    := r.dataCnt + 1;
+
+               -- Move the data 
+               v.txAxisMaster := rxAxisMaster;
+
                -- Check for start of frame
-               if (ssiGetUserSof(SLAVE_PRBS_SSI_CONFIG_C, rxAxisMaster) = '1') then
-                  -- Next State
-                  v.state := LENGTH_S;
+               if (ssiGetUserSof(PRBS_SSI_CONFIG_C, rxAxisMaster) = '1') and (bypCheck = '0') then
+
+                  -- Check for EOF
+                  if (rxAxisMaster.tLast = '1') then
+
+                     -- Set the error flags
+                     v.errorDet  := '1';
+                     v.errLength := '1';
+
+                     -- Update strobe for the results
+                     v.updatedResults := '1';
+
+                     -- Set the EOFE flag
+                     ssiSetUserEofe(PRBS_SSI_CONFIG_C, v.txAxisMaster, '1');
+
+                  else
+
+                     -- Calculate the time between this packet and the previous one
+                     if (r.stopTime = r.startTime) then
+                        v.stopTime := r.stopTime + 1;
+                     end if;
+                     v.packetRate := r.stopTime - r.startTime;
+                     v.startTime  := r.stopTime;
+
+                     -- Reset the error counters
+                     v.errWordCnt      := (others => '0');
+                     v.errMissedPacket := '0';
+                     v.errLength       := '0';
+                     v.errDataBus      := '0';
+                     v.eofe            := '0';
+
+                     -- Check if we have missed a packet 
+                     if (rxAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) /= r.eventCnt) then
+                        -- Set the error flags
+                        v.errMissedPacket := '1';
+                        v.errorDet        := '1';
+                     end if;
+
+                     -- Align the event counter to the next packet
+                     v.eventCnt := rxAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) + 1;
+
+                     -- Latch the SEED for the randomization
+                     v.randomData := rxAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0);
+
+                     -- Set the busy flag
+                     v.busy := '1';
+
+                     -- Increment the counter
+                     v.dataCnt := r.dataCnt + 1;
+
+                     -- Next State
+                     v.state := LENGTH_S;
+
+                  end if;
+
                end if;
             end if;
          ----------------------------------------------------------------------
          when LENGTH_S =>
-            -- Check for a FIFO read
-            if (rxAxisMaster.tvalid = '1') then
+            -- Check for a FIFO read and able to move data
+            if (rxAxisMaster.tvalid = '1') and (v.txAxisMaster.tValid = '0') then
+
                -- Ready to receive data
                v.rxAxisSlave.tReady := '1';
+
+               -- Move the data 
+               v.txAxisMaster := rxAxisMaster;
+
                -- Calculate the next data word
-               v.randomData         := lfsrShift(r.randomData, PRBS_TAPS_G);
+               v.randomData := lfsrShift(r.randomData, PRBS_TAPS_G);
+
                -- Latch the packetLength value
-               v.packetLength       := rxAxisMaster.tData(31 downto 0);
+               v.packetLength := rxAxisMaster.tData(31 downto 0);
+
                -- Check for a data bus error
-               for i in 4 to SLAVE_PRBS_SSI_CONFIG_C.TDATA_BYTES_C-1 loop
+               for i in 4 to PRBS_SSI_CONFIG_C.TDATA_BYTES_C-1 loop
                   if not allBits(rxAxisMaster.tData(i*8+7 downto i*8), '0') then
                      v.errDataBus := '1';
                      v.errorDet   := '1';
                   end if;
                end loop;
+
                -- Increment the counter
                v.dataCnt := r.dataCnt + 1;
-               -- Next State
-               v.state   := DATA_S;
+
+               -- Check for EOF
+               if (rxAxisMaster.tLast = '1') then
+
+                  -- Set the error flags
+                  v.errorDet  := '1';
+                  v.errLength := '1';
+
+                  -- Set the EOFE flag
+                  ssiSetUserEofe(PRBS_SSI_CONFIG_C, v.txAxisMaster, '1');
+
+                  -- Reset the counter
+                  v.dataCnt := (others => '0');
+
+                  -- Update strobe for the results
+                  v.updatedResults := '1';
+
+                  -- Next State
+                  v.state := IDLE_S;
+
+               else
+                  -- Next State
+                  v.state := DATA_S;
+               end if;
+
             end if;
          ----------------------------------------------------------------------
          when DATA_S =>
-            -- Check for a FIFO read
-            if (rxAxisMaster.tvalid = '1') then
+            -- Check for a FIFO read and able to move data
+            if (rxAxisMaster.tvalid = '1') and (v.txAxisMaster.tValid = '0') then
+
                -- Ready to receive data
                v.rxAxisSlave.tReady := '1';
+
+               -- Move the data 
+               v.txAxisMaster := rxAxisMaster;
+
                -- Calculate the next data word
-               v.randomData         := lfsrShift(r.randomData, PRBS_TAPS_G);
-               -- Check for end of frame
-               if rxAxisMaster.tLast = '1' then
-                  -- Set the local eof flag
-                  v.eof  := '1';
-                  -- Latch the packets eofe flag
-                  v.eofe := ssiGetUserEofe(SLAVE_PRBS_SSI_CONFIG_C, rxAxisMaster);
-                  -- Check for EOFE
-                  if v.eofe = '1' then
-                     v.errorDet := '1';
-                  end if;
-                  -- Check the data packet length
-                  if r.dataCnt /= r.packetLength then
-                     -- Wrong length detected
-                     v.errLength := '1';
-                  end if;
-                  -- Reset the counter
-                  v.dataCnt := (others => '0');
-                  -- Update strobe for the results
-                  v.updatedResults := '1';                  
-                  -- Next State
-                  v.state   := IDLE_S;
-               elsif r.dataCnt /= MAX_CNT_C then
-                  -- Increment the counter
-                  v.dataCnt := r.dataCnt + 1;
-               end if;
+               v.randomData := lfsrShift(r.randomData, PRBS_TAPS_G);
+
                -- Compare the data word to calculated data word
                if r.randomData /= rxAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) then
                   -- Check for roll over
@@ -364,54 +453,57 @@ begin
                      -- Increment the word error counter
                      v.errWordCnt  := r.errWordCnt + 1;
                   end if;
-                  -- Latch the bits with error
-                  v.errorBits := (r.randomData xor rxAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0));
-                  -- Next State
-                  v.state     := BIT_ERR_S;
                end if;
-            end if;
-         ----------------------------------------------------------------------
-         when BIT_ERR_S =>
-            -- Increment the counter
-            v.bitPntr := r.bitPntr + 1;
-            -- Check for an error bit
-            if r.errorBits(conv_integer(r.bitPntr)) = '1' then
-               -- Check for roll over
-               if r.errbitCnt /= MAX_CNT_C then
-                  -- Error strobe
-                  v.errBitStrb := '1';
-                  v.errorDet   := '1';
-                  -- Increment the bit error counter
-                  v.errbitCnt  := r.errbitCnt + 1;
-               end if;
-            end if;
-            -- Check the bit pointer
-            if r.bitPntr = PRBS_SEED_SIZE_G-1 then
-               -- Reset the counter
-               v.bitPntr := (others => '0');
-               -- Check if there was an eof flag
-               if r.eof = '1' then
+
+               -- Check for end of frame
+               if rxAxisMaster.tLast = '1' then
+
+                  -- Latch the packets eofe flag
+                  v.eofe := ssiGetUserEofe(PRBS_SSI_CONFIG_C, rxAxisMaster);
+
+                  -- Check for EOFE
+                  if v.eofe = '1' then
+                     v.errorDet := '1';
+                  end if;
+
+                  -- Check the data packet length
+                  if r.dataCnt /= r.packetLength then
+                     -- Wrong length detected
+                     v.errLength := '1';
+                     v.errorDet  := '1';
+                  end if;
+
+                  -- Set the EOFE flag based on any error detected
+                  ssiSetUserEofe(PRBS_SSI_CONFIG_C, v.txAxisMaster, v.errorDet);
+
+                  -- Reset the counter
+                  v.dataCnt := (others => '0');
+
                   -- Update strobe for the results
                   v.updatedResults := '1';
+
                   -- Next State
                   v.state := IDLE_S;
-               else
-                  -- Next State
-                  v.state := DATA_S;
+
+               -- Increment if not maximum count
+               elsif r.dataCnt /= MAX_CNT_C then
+                  -- Increment the counter
+                  v.dataCnt := r.dataCnt + 1;
                end if;
+
             end if;
       ----------------------------------------------------------------------
       end case;
 
       -- Outputs
       rxAxisSlave     <= v.rxAxisSlave;
+      txAxisMaster    <= r.txAxisMaster;
       updatedResults  <= r.updatedResults;
       errMissedPacket <= r.errMissedPacket;
       errLength       <= r.errLength;
       errDataBus      <= r.errDataBus;
       errEofe         <= r.eofe;
       errWordCnt      <= r.errWordCnt;
-      errbitCnt       <= r.errbitCnt;
       packetRate      <= r.packetRate;
       busy            <= r.busy;
       packetLength    <= r.packetLength;
@@ -437,19 +529,17 @@ begin
    SyncFifo_Inst : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
-         DATA_WIDTH_G => 128)
+         DATA_WIDTH_G => 96)
       port map (
-         wr_en               => r.updatedResults,
-         wr_clk              => sAxisClk,
-         din(31 downto 0)    => r.packetLength,
-         din(63 downto 32)   => r.packetRate,
-         din(95 downto 64)   => r.errbitCnt,
-         din(127 downto 96)  => r.errWordCnt,
-         rd_clk              => axiClk,
-         dout(31 downto 0)   => packetLengthSync,
-         dout(63 downto 32)  => packetRateSync,
-         dout(95 downto 64)  => errbitCntSync,
-         dout(127 downto 96) => errWordCntSync);
+         wr_en              => r.updatedResults,
+         wr_clk             => sAxisClk,
+         din(31 downto 0)   => r.packetLength,
+         din(63 downto 32)  => r.packetRate,
+         din(95 downto 64)  => r.errWordCnt,
+         rd_clk             => axiClk,
+         dout(31 downto 0)  => packetLengthSync,
+         dout(63 downto 32) => packetRateSync,
+         dout(95 downto 64) => errWordCntSync);
 
    SyncStatusVec_Inst : entity work.SyncStatusVector
       generic map (
@@ -465,7 +555,7 @@ begin
          statusIn(8)  => axisCtrl(1).overflow,
          statusIn(7)  => axisCtrl(0).pause,
          statusIn(6)  => axisCtrl(0).overflow,
-         statusIn(5)  => r.errBitStrb,
+         statusIn(5)  => '0',           -- Legacy
          statusIn(4)  => r.errWordStrb,
          statusIn(3)  => r.errDataBus,
          statusIn(2)  => r.eofe,
@@ -494,7 +584,7 @@ begin
    overflow1Cnt       <= muxSlVectorArray(cntOut, 8);
    pause0Cnt          <= muxSlVectorArray(cntOut, 7);
    overflow0Cnt       <= muxSlVectorArray(cntOut, 6);
-   errBitStrbCnt      <= muxSlVectorArray(cntOut, 5);
+   -- errBitStrbCnt      <= muxSlVectorArray(cntOut, 5);
    errWordStrbCnt     <= muxSlVectorArray(cntOut, 4);
    errDataBusCnt      <= muxSlVectorArray(cntOut, 3);
    errEofeCnt         <= muxSlVectorArray(cntOut, 2);
@@ -504,14 +594,13 @@ begin
    -------------------------------
    -- Configuration Register
    -------------------------------  
-   combAxiLite : process (axiReadMaster, axiRst, axiWriteMaster, errBitStrbCnt,
-                          errBitStrbSync, errDataBusCnt, errDataBusSync,
-                          errEofeCnt, errEofeSync, errLengthCnt, errLengthSync,
-                          errMissedPacketCnt, errMissedPacketSync,
-                          errWordCntSync, errWordStrbCnt, errWordStrbSync,
-                          errbitCntSync, overflow, overflow0Cnt, overflow1Cnt,
-                          packetLengthSync, packetRateSync, pause, pause0Cnt,
-                          pause1Cnt, rAxiLite) is
+   combAxiLite : process (axiReadMaster, axiRst, axiWriteMaster, errDataBusCnt,
+                          errDataBusSync, errEofeCnt, errEofeSync,
+                          errLengthCnt, errLengthSync, errMissedPacketCnt,
+                          errMissedPacketSync, errWordCntSync, errWordStrbCnt,
+                          errWordStrbSync, overflow, overflow0Cnt,
+                          overflow1Cnt, packetLengthSync, packetRateSync,
+                          pause, pause0Cnt, pause1Cnt, rAxiLite) is
       variable v            : LocRegType;
       variable axiStatus    : AxiLiteStatusType;
       variable axiWriteResp : slv(1 downto 0);
@@ -535,6 +624,8 @@ begin
                v.dummy := axiWriteMaster.wdata;
             when x"F0" =>
                v.rollOverEn := axiWriteMaster.wdata(STATUS_SIZE_C-1 downto 0);
+            when x"FE" =>
+               v.bypCheck := axiWriteMaster.wdata(0);
             when x"FF" =>
                v.cntRst := '1';
             when others =>
@@ -561,7 +652,7 @@ begin
             when x"04" =>
                v.axiReadSlave.rdata(STATUS_CNT_WIDTH_G-1 downto 0) := errWordStrbCnt;
             when x"05" =>
-               v.axiReadSlave.rdata(STATUS_CNT_WIDTH_G-1 downto 0) := errBitStrbCnt;
+               v.axiReadSlave.rdata(STATUS_CNT_WIDTH_G-1 downto 0) := (others => '0');  -- Legacy errBitStrbCnt
             when x"06" =>
                v.axiReadSlave.rdata(STATUS_CNT_WIDTH_G-1 downto 0) := overflow0Cnt;
             when x"07" =>
@@ -578,7 +669,7 @@ begin
                v.axiReadSlave.rdata(2) := errEofeSync;
                v.axiReadSlave.rdata(3) := errDataBusSync;
                v.axiReadSlave.rdata(4) := errWordStrbSync;
-               v.axiReadSlave.rdata(5) := errBitStrbSync;
+               v.axiReadSlave.rdata(5) := '0';  -- Legacy errBitStrbSync
                v.axiReadSlave.rdata(6) := overflow(0);
                v.axiReadSlave.rdata(7) := pause(0);
                v.axiReadSlave.rdata(8) := overflow(1);
@@ -588,13 +679,15 @@ begin
             when x"72" =>
                v.axiReadSlave.rdata := packetRateSync;
             when x"73" =>
-               v.axiReadSlave.rdata := errbitCntSync;
+               v.axiReadSlave.rdata := (others => '0');  -- Legacy errbitCntSync
             when x"74" =>
                v.axiReadSlave.rdata := errWordCntSync;
             when x"F0" =>
                v.axiReadSlave.rdata(STATUS_SIZE_C-1 downto 0) := rAxiLite.rollOverEn;
             when X"F1" =>
                v.axiReadSlave.rdata := toSlv(PRBS_SEED_SIZE_G, 32);
+            when x"FE" =>
+               v.axiReadSlave.rdata(0) := rAxiLite.bypCheck;
             when others =>
                axiReadResp := AXI_RESP_DECERR_C;
          end case;

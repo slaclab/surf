@@ -1,8 +1,10 @@
 -------------------------------------------------------------------------------
+-- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
+-------------------------------------------------------------------------------
 -- File       : Pgp3GthUs.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: PGPv3 GTH Ultrscale Core Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -31,7 +33,6 @@ entity Pgp3GthUs is
    generic (
       TPD_G                       : time                  := 1 ns;
       RATE_G                      : string                := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"     
-      SYNTH_MODE_G                : string                := "inferred";
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
@@ -191,7 +192,6 @@ begin
    U_Pgp3Core_1 : entity work.Pgp3Core
       generic map (
          TPD_G                       => TPD_G,
-         SYNTH_MODE_G                => SYNTH_MODE_G,
          NUM_VC_G                    => NUM_VC_G,
          PGP_RX_ENABLE_G             => PGP_RX_ENABLE_G,
          RX_ALIGN_SLIP_WAIT_G        => RX_ALIGN_SLIP_WAIT_G,

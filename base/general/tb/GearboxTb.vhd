@@ -1,11 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : Testbench for design "Gearbox"
--------------------------------------------------------------------------------
+-- File       : Scrambler.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Testbench for design "Gearbox"
 -------------------------------------------------------------------------------
 -- This file is part of SURF. It is subject to
 -- the license terms in the LICENSE.txt file found in the top-level directory

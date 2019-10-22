@@ -114,14 +114,15 @@ class JesdTx(pr.Device):
             ))
     
             self.add(pr.RemoteVariable(    
-                name         = "TestSigEnable",
-                description  = "Invert Sync. Sync output has to be inverted in some systems depending on signal polarities on the PCB.",
-                offset       =  0x10,
-                bitSize      =  1,
-                bitOffset    =  0x05,
-                base         = pr.UInt,
-                mode         = "RW",
-            ))
+               name         = "TestSigEnable",
+               # description  = "Enable test signal. Note: Has to be toggled if test signal type is changed to align the lanes (Default '1').",
+               description  = "Legacy Signal that is no longer used",
+               offset       =  0x10,
+               bitSize      =  1,
+               bitOffset    =  0x05,
+               base         = pr.UInt,
+               mode         = "RW",
+           ))
     
             self.add(pr.RemoteVariable(    
                 name         = "ScrambleEnable",
@@ -372,4 +373,10 @@ class JesdTx(pr.Device):
             @self.command(name="CmdResetGTs", description="Toggle the reset of all TX MGTs",)
             def CmdResetGTs(): 
                 self.ResetGTs.set(1)
-                self.ResetGTs.set(0)                            
+                self.ResetGTs.set(0) 
+
+            @self.command(name="CmdForceResync", description="Forces a re-sync",)
+            def CmdForceSync(): 
+                invertSync =  self.InvertSync.get()
+                self.InvertSync.set(invertSync^0x1)
+                self.InvertSync.set(invertSync)                 

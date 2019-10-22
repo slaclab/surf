@@ -20,6 +20,9 @@ use ieee.numeric_std.all;
 use work.StdRtlPkg.all;
 
 entity FifoCascade is
+   -- SYNTH_MODE_G Options: {"inferred", "xpm", "altera_mf"}
+   -- MEMORY_TYPE_G: Xilinx Options: {"auto", "block", "distributed", "ultra"}
+   -- MEMORY_TYPE_G: Altera Options: {"auto", "MLAB", "M20K" and "M144K"}
    generic (
       TPD_G              : time                       := 1 ns;
       CASCADE_SIZE_G     : integer range 1 to (2**24) := 1;  -- Number of FIFOs to cascade (if set to 1, then no FIFO cascading)
@@ -29,6 +32,8 @@ entity FifoCascade is
       GEN_SYNC_FIFO_G    : boolean                    := false;
       BRAM_EN_G          : boolean                    := true;
       FWFT_EN_G          : boolean                    := false;
+      SYNTH_MODE_G       : string                     := "inferred";
+      MEMORY_TYPE_G      : string                     := "block";      
       USE_DSP48_G        : string                     := "no";
       ALTERA_SYN_G       : boolean                    := false;
       ALTERA_RAM_G       : string                     := "M9K";
@@ -104,6 +109,8 @@ begin
             GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_G,
             BRAM_EN_G       => BRAM_EN_G,
             FWFT_EN_G       => FWFT_EN_G,
+            SYNTH_MODE_G    => SYNTH_MODE_G,
+            MEMORY_TYPE_G   => MEMORY_TYPE_G,
             USE_DSP48_G     => USE_DSP48_G,
             ALTERA_SYN_G    => ALTERA_SYN_G,
             ALTERA_RAM_G    => ALTERA_RAM_G,
@@ -160,6 +167,8 @@ begin
             GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_FIRST_C,
             BRAM_EN_G       => BRAM_EN_G,
             FWFT_EN_G       => true,
+            SYNTH_MODE_G    => SYNTH_MODE_G,
+            MEMORY_TYPE_G   => MEMORY_TYPE_G,            
             USE_DSP48_G     => USE_DSP48_G,
             ALTERA_SYN_G    => ALTERA_SYN_G,
             ALTERA_RAM_G    => ALTERA_RAM_G,
@@ -206,6 +215,8 @@ begin
                   GEN_SYNC_FIFO_G => true,
                   BRAM_EN_G       => BRAM_EN_G,
                   FWFT_EN_G       => true,
+                  SYNTH_MODE_G    => SYNTH_MODE_G,
+                  MEMORY_TYPE_G   => MEMORY_TYPE_G,                  
                   USE_DSP48_G     => USE_DSP48_G,
                   ALTERA_SYN_G    => ALTERA_SYN_G,
                   ALTERA_RAM_G    => ALTERA_RAM_G,
@@ -245,6 +256,8 @@ begin
             GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_LAST_C,
             BRAM_EN_G       => BRAM_EN_G,
             FWFT_EN_G       => FWFT_EN_G,
+            SYNTH_MODE_G    => SYNTH_MODE_G,
+            MEMORY_TYPE_G   => MEMORY_TYPE_G,            
             USE_DSP48_G     => USE_DSP48_G,
             ALTERA_SYN_G    => ALTERA_SYN_G,
             ALTERA_RAM_G    => ALTERA_RAM_G,

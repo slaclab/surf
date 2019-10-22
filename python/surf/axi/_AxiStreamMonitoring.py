@@ -37,7 +37,7 @@ class AxiStreamMonitoring(pr.Device):
         
         def addPair(name,offset,bitSize,units,bitOffset,description,function,pollInterval = 0,):
             self.add(pr.RemoteVariable(  
-                name         = (name+"Raw"), 
+                name         = ("Raw"+name), 
                 offset       = offset, 
                 bitSize      = bitSize, 
                 bitOffset    = bitOffset,
@@ -53,7 +53,7 @@ class AxiStreamMonitoring(pr.Device):
                 units        = units,
                 linkedGet    = function,
                 disp         = '{:1.1f}',
-                dependencies = [self.variables[name+"Raw"]],
+                dependencies = [self.variables["Raw"+name]],
             ))        
         
         #############################################
@@ -61,10 +61,20 @@ class AxiStreamMonitoring(pr.Device):
         #############################################
         
         for i in range(numberLanes):
+        
             self.add(pr.RemoteVariable(
-                name         = ('FrameRate[%d]'%i),       
+                name         = f'FrameCnt[{i}]', 
+                description  = 'Increments every time a tValid + tLast + tReady detected',
+                offset       = (i*0x40 + 0x04), 
+                bitSize      = 64, 
+                mode         = 'RO',
+                pollInterval = 1,
+            ))        
+        
+            self.add(pr.RemoteVariable(
+                name         = f'FrameRate[{i}]',       
                 description  = "Current Frame Rate",
-                offset       = (16 + i*48), 
+                offset       = (i*0x40 + 0x0C), 
                 bitSize      = 32, 
                 bitOffset    = 0, 
                 mode         = "RO",
@@ -74,9 +84,9 @@ class AxiStreamMonitoring(pr.Device):
             ))     
 
             self.add(pr.RemoteVariable(
-                name         = ('FrameRateMax[%d]'%i),       
+                name         = f'FrameRateMax[{i}]',       
                 description  = "Max Frame Rate",
-                offset       = (20 + i*48), 
+                offset       = (i*0x40 + 0x10), 
                 bitSize      = 32, 
                 bitOffset    = 0, 
                 mode         = "RO",
@@ -86,9 +96,9 @@ class AxiStreamMonitoring(pr.Device):
             )) 
 
             self.add(pr.RemoteVariable(
-                name         = ('FrameRateMin[%d]'%i),       
+                name         = f'FrameRateMin[{i}]',       
                 description  = "Min Frame Rate",
-                offset       = (24 + i*48), 
+                offset       = (i*0x40 + 0x14), 
                 bitSize      = 32, 
                 bitOffset    = 0, 
                 mode         = "RO",
@@ -98,9 +108,9 @@ class AxiStreamMonitoring(pr.Device):
             ))
             
             addPair(
-                name         = ('Bandwidth[%d]'%i),       
+                name         = f'Bandwidth[{i}]',       
                 description  = "Current Bandwidth",
-                offset       = (28 + i*48), 
+                offset       = (i*0x40 + 0x18), 
                 bitSize      = 64, 
                 bitOffset    = 0, 
                 function     = self.convMbps,
@@ -109,9 +119,9 @@ class AxiStreamMonitoring(pr.Device):
             )
 
             addPair(
-                name         = ('BandwidthMax[%d]'%i),       
+                name         = f'BandwidthMax[{i}]',       
                 description  = "Max Bandwidth",
-                offset       = (36 + i*48), 
+                offset       = (i*0x40 + 0x20), 
                 bitSize      = 64, 
                 bitOffset    = 0, 
                 function     = self.convMbps,
@@ -120,16 +130,16 @@ class AxiStreamMonitoring(pr.Device):
             )
 
             addPair(
-                name         = ('BandwidthMin[%d]'%i),       
+                name         = f'BandwidthMin[{i}]',       
                 description  = "Min Bandwidth",
-                offset       = (44 + i*48), 
+                offset       = (i*0x40 + 0x28), 
                 bitSize      = 64, 
                 bitOffset    = 0, 
                 function     = self.convMbps,
                 units        = 'Mbps', 
                 pollInterval = 1,
             )
-            
+                        
     @staticmethod
     def convMbps(var):
         return var.dependencies[0].value() * 8e-6

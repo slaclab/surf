@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+-- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
+-------------------------------------------------------------------------------
 -- File       : SsiPrbsTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -30,6 +32,7 @@ entity SsiPrbsTx is
       TPD_G                      : time                    := 1 ns;
       AXI_EN_G                   : sl                      := '1';
       AXI_DEFAULT_PKT_LEN_G      : slv(31 downto 0)        := x"00000FFF";
+      AXI_DEFAULT_TRIG_DLY_G     : slv(31 downto 0)        := x"00000000";
       -- FIFO Configurations
       VALID_THOLD_G              : natural                 := 1;
       VALID_BURST_MODE_G         : boolean                 := false;
@@ -43,7 +46,7 @@ entity SsiPrbsTx is
       FIFO_ADDR_WIDTH_G          : positive                := 9;
       FIFO_PAUSE_THRESH_G        : positive                := 2**8;
       -- PRBS Configurations
-      PRBS_SEED_SIZE_G           : natural range 32 to 256 := 32;
+      PRBS_SEED_SIZE_G           : natural range 32 to 512 := 32;
       PRBS_TAPS_G                : NaturalArray            := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
       PRBS_INCREMENT_G           : boolean                 := false;  -- Increment mode by default instead of PRBS
       -- AXI Stream Configurations
@@ -118,7 +121,7 @@ architecture rtl of SsiPrbsTx is
       length         => (others => '0'),
       packetLength   => AXI_DEFAULT_PKT_LEN_G,
       dataCnt        => (others => '0'),
-      trigDly        => (others => '0'),
+      trigDly        => AXI_DEFAULT_TRIG_DLY_G,
       trigDlyCnt     => (others => '0'),
       eventCnt       => toSlv(1, PRBS_SEED_SIZE_G),
       randomData     => (others => '0'),
@@ -142,7 +145,7 @@ architecture rtl of SsiPrbsTx is
 
 begin
 
-   assert ((PRBS_SEED_SIZE_G = 32) or (PRBS_SEED_SIZE_G = 64) or (PRBS_SEED_SIZE_G = 128) or (PRBS_SEED_SIZE_G = 256)) report "PRBS_SEED_SIZE_G must be either [32,64,128,256]" severity failure;
+   assert ((PRBS_SEED_SIZE_G = 32) or (PRBS_SEED_SIZE_G = 64) or (PRBS_SEED_SIZE_G = 128) or (PRBS_SEED_SIZE_G = 256) or (PRBS_SEED_SIZE_G = 512)) report "PRBS_SEED_SIZE_G must be either [32,64,128,256,512]" severity failure;
 
    comb : process (axilReadMaster, axilWriteMaster, forceEofe, locRst,
                    packetLength, r, tDest, tId, trig, txCtrl, txSlave) is

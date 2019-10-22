@@ -203,7 +203,6 @@ begin
          IN_POLARITY_G  => '1',
          REF_CLK_FREQ_G => AXI_CLK_FREQ_G,
          REFRESH_RATE_G => 1.0E+0,
-         USE_DSP48_G    => USE_DSP48_G,
          CNT_WIDTH_G    => STATUS_CNT_WIDTH_G)     
       port map (
          -- Trigger Input (locClk domain)

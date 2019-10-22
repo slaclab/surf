@@ -63,7 +63,6 @@ entity JesdTxReg is
       gtReset_o       : out sl;
       clearErr_o      : out sl;
       invertSync_o    : out sl;
-      enableTestSig_o : out sl;
 
       posAmplitude_o : out slv(F_G*8-1 downto 0);
       negAmplitude_o : out slv(F_G*8-1 downto 0);
@@ -491,24 +490,6 @@ begin
          clk    => devClk_i,
          rstIn  => invertSync,
          rstOut => invertSync_o);
-
-   ------------------------------------------------------------           
-
-   U_enableTestSig : entity work.Synchronizer
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk     => devClk_i,
-         dataIn  => r.commonCtrl(5),
-         dataOut => enableTestSig);
-
-   U_enableTestSig_Pipeline : entity work.RstPipeline
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk    => devClk_i,
-         rstIn  => enableTestSig,
-         rstOut => enableTestSig_o);
 
    ------------------------------------------------------------           
 
