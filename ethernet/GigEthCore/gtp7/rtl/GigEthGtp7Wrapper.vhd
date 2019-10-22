@@ -213,7 +213,7 @@ begin
       GEN_LANE :
       for i in 0 to NUM_LANE_G-1 generate
 
-         U_GigEthGtp7 : entity work.GigEthGtp7
+         U_GigEthGtp7 : entity surf.GigEthGtp7
             generic map (
                TPD_G           => TPD_G,
                PAUSE_EN_G      => PAUSE_EN_G,
