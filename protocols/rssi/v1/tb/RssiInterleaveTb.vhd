@@ -20,11 +20,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.SsiPkg.all;
-use work.RssiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.SsiPkg.all;
+use surf.RssiPkg.all;
 
 entity RssiInterleaveTb is
 
@@ -88,7 +90,7 @@ begin
    ---------------------------
    -- Generate clock and reset
    ---------------------------
-   U_ClkRst : entity work.ClkRst
+   U_ClkRst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
@@ -100,7 +102,7 @@ begin
    GEN_SRV_DEV :
    for i in 0 to APP_STREAMS_C-1 generate
 
-      U_SsiPrbsTx : entity work.SsiPrbsTx
+      U_SsiPrbsTx : entity surf.SsiPrbsTx
          generic map (
             TPD_G                      => TPD_G,
             AXI_EN_G                   => '0',
@@ -118,7 +120,7 @@ begin
             -- trig         => '0',
             packetLength => SRV_PKT_LEN_C);
 
-      U_SsiPrbsRx : entity work.SsiPrbsRx
+      U_SsiPrbsRx : entity surf.SsiPrbsRx
          generic map (
             TPD_G                     => TPD_G,
             GEN_SYNC_FIFO_G           => true,
@@ -139,7 +141,7 @@ begin
    --------------
    -- RSSI Server
    --------------
-   U_RssiServer : entity work.RssiCoreWrapper
+   U_RssiServer : entity surf.RssiCoreWrapper
       generic map (
          TPD_G               => TPD_G,
          SERVER_G            => true,                -- Server
@@ -181,7 +183,7 @@ begin
    --------------
    -- RSSI Client
    --------------         
-   U_RssiClient : entity work.RssiCoreWrapper
+   U_RssiClient : entity surf.RssiCoreWrapper
       generic map (
          TPD_G               => TPD_G,
          SERVER_G            => false,               -- Client
@@ -223,7 +225,7 @@ begin
    GEN_CLT_DEV :
    for i in 0 to APP_STREAMS_C-1 generate
 
-      U_SsiPrbsTx : entity work.SsiPrbsTx
+      U_SsiPrbsTx : entity surf.SsiPrbsTx
          generic map (
             TPD_G                      => TPD_G,
             AXI_EN_G                   => '0',
@@ -241,7 +243,7 @@ begin
             -- trig         => '0',
             packetLength => CLT_PKT_LEN_C);
 
-      U_SsiPrbsRx : entity work.SsiPrbsRx
+      U_SsiPrbsRx : entity surf.SsiPrbsRx
          generic map (
             TPD_G                     => TPD_G,
             GEN_SYNC_FIFO_G           => true,

@@ -18,8 +18,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 
 entity AxiStreamSelectorTb is
 end entity AxiStreamSelectorTb;
@@ -212,7 +214,7 @@ begin
       end if;
    end process P_TST;
 
-   U_DUT : entity work.AxiStreamSelector
+   U_DUT : entity surf.AxiStreamSelector
       generic map (
          TPD_G => TPD_G
       )

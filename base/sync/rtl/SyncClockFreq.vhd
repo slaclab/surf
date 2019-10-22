@@ -19,7 +19,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SyncClockFreq is
    generic (
@@ -97,7 +99,7 @@ begin
    ------------------------------------------------     
    -- Calculate the frequency of the input clock 
    ------------------------------------------------               
-   SynchronizerFifo_In : entity work.SynchronizerFifo
+   SynchronizerFifo_In : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => CNT_WIDTH_G)
@@ -146,7 +148,7 @@ begin
       end if;
    end process;
 
-   U_Sync : entity work.SynchronizerFifo
+   U_Sync : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G,

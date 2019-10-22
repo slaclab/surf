@@ -20,13 +20,15 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.SsiPkg.all;
-use work.AxiRssiPkg.all;
-use work.RssiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.SsiPkg.all;
+use surf.AxiRssiPkg.all;
+use surf.RssiPkg.all;
 
 entity AxiRssiCoreTb is
 end AxiRssiCoreTb;
@@ -104,7 +106,7 @@ begin
    ---------------------------
    -- Generate clock and reset
    ---------------------------
-   U_ClkRst : entity work.ClkRst
+   U_ClkRst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,
@@ -116,7 +118,7 @@ begin
    ----------
    -- PRBS TX
    ----------
-   U_SsiPrbsTx : entity work.SsiPrbsTx
+   U_SsiPrbsTx : entity surf.SsiPrbsTx
       generic map (
          TPD_G                      => TPD_G,
          AXI_EN_G                   => '0',
@@ -138,7 +140,7 @@ begin
    --------------
    -- RSSI Server
    --------------
-   U_RssiServer : entity work.AxiRssiCoreWrapper
+   U_RssiServer : entity surf.AxiRssiCoreWrapper
       generic map (
          TPD_G             => TPD_G,
          JUMBO_G           => JUMBO_C,
@@ -185,7 +187,7 @@ begin
    --------------
    -- RSSI Client
    --------------         
-   U_RssiClient : entity work.AxiRssiCoreWrapper
+   U_RssiClient : entity surf.AxiRssiCoreWrapper
       generic map (
          TPD_G             => TPD_G,
          JUMBO_G           => JUMBO_C,
@@ -234,7 +236,7 @@ begin
    -- AXI Memory
    -------------
    GEN_VEC : for i in 3 downto 0 generate
-      U_MEM : entity work.AxiRam
+      U_MEM : entity surf.AxiRam
          generic map (
             TPD_G        => TPD_G,
             SYNTH_MODE_G => "xpm",
@@ -254,7 +256,7 @@ begin
    ----------
    -- PRBS RX
    ----------
-   U_SsiPrbsRx : entity work.SsiPrbsRx
+   U_SsiPrbsRx : entity surf.SsiPrbsRx
       generic map (
          TPD_G                     => TPD_G,
          SLAVE_AXI_STREAM_CONFIG_G => RSSI_AXIS_CONFIG_C)

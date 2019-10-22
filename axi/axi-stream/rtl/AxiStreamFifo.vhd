@@ -21,8 +21,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 
 entity AxiStreamFifo is
    generic (
@@ -433,7 +435,7 @@ begin
    -- Is ready enabled?
    fifoReady <= (not fifoAFull) when SLAVE_READY_EN_G else '1';
 
-   U_Fifo : entity work.FifoCascade
+   U_Fifo : entity surf.FifoCascade
       generic map (
          TPD_G              => TPD_G,
          CASCADE_SIZE_G     => CASCADE_SIZE_G,
@@ -482,7 +484,7 @@ begin
 
    U_LastFifoEnGen : if VALID_THOLD_G /= 1 generate
 
-      U_LastFifo : entity work.FifoCascade
+      U_LastFifo : entity surf.FifoCascade
          generic map (
             TPD_G              => TPD_G,
             CASCADE_SIZE_G     => CASCADE_SIZE_G,
@@ -635,7 +637,7 @@ begin
 
    -- Synchronize master side tvalid back to slave side ctrl.idle
    -- This is a total hack
-   Synchronizer_1 : entity work.Synchronizer
+   Synchronizer_1 : entity surf.Synchronizer
       generic map (
          TPD_G          => TPD_G,
          OUT_POLARITY_G => '0')         -- invert
@@ -650,7 +652,7 @@ begin
    -- Pipeline Logic
    -------------------------
 
-   U_Pipe : entity work.AxiStreamPipeline
+   U_Pipe : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => PIPE_STAGES_G

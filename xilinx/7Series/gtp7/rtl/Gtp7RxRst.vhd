@@ -233,7 +233,7 @@ begin
    end process;
 
    -- Synchronize PMARESETDONE to STABLE_CLOCK
-   sync2_rxpmaresetdone : entity work.SynchronizerEdge
+   sync2_rxpmaresetdone : entity surf.SynchronizerEdge
       port map (
          clk         => STABLE_CLOCK,
          dataIn      => RXPMARESETDONE,
@@ -337,7 +337,7 @@ begin
 
    -- Clock Domain Crossing
 
-   sync_run_phase_alignment_int : entity work.Synchronizer
+   sync_run_phase_alignment_int : entity surf.Synchronizer
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => 3)
@@ -346,7 +346,7 @@ begin
          dataIn  => run_phase_alignment_int,
          dataOut => run_phase_alignment_int_s3);
 
-   sync_rx_fsm_reset_done_int : entity work.Synchronizer
+   sync_rx_fsm_reset_done_int : entity surf.Synchronizer
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => 3)
@@ -355,7 +355,7 @@ begin
          dataIn  => rx_fsm_reset_done_int,
          dataOut => rx_fsm_reset_done_int_s3);
 
-   Synchronizer_SOFT_RESET : entity work.SynchronizerEdge
+   Synchronizer_SOFT_RESET : entity surf.SynchronizerEdge
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -365,7 +365,7 @@ begin
          risingEdge  => soft_reset_rise,
          fallingEdge => soft_reset_fall);
 
-   sync_RXRESETDONE : entity work.Synchronizer
+   sync_RXRESETDONE : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -373,7 +373,7 @@ begin
          dataIn  => RXRESETDONE,
          dataOut => rxresetdone_s2);
 
-   sync_time_out_wait_bypass : entity work.Synchronizer
+   sync_time_out_wait_bypass : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -381,7 +381,7 @@ begin
          dataIn  => time_out_wait_bypass,
          dataOut => time_out_wait_bypass_s2);
 
-   sync_mmcm_lock_reclocked : entity work.Synchronizer
+   sync_mmcm_lock_reclocked : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -389,7 +389,7 @@ begin
          dataIn  => MMCM_LOCK,
          dataOut => mmcm_lock_i);
 
-   sync_data_valid : entity work.Synchronizer
+   sync_data_valid : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -410,7 +410,7 @@ begin
 
 
 
-   sync_PLL0LOCK : entity work.Synchronizer
+   sync_PLL0LOCK : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -418,7 +418,7 @@ begin
          dataIn  => PLL0LOCK,
          dataOut => pll0lock_sync);
 
-   sync_PLL1LOCK : entity work.Synchronizer
+   sync_PLL1LOCK : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -460,7 +460,7 @@ begin
 
    -- Phase aligner might run on rxusrclk in some cases
    -- Synchronize it just in case
-   Synchronizer_PHALIGNMENT_DONE : entity work.Synchronizer
+   Synchronizer_PHALIGNMENT_DONE : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (

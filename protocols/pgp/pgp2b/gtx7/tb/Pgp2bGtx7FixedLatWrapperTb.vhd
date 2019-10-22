@@ -18,11 +18,13 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.Gtx7CfgPkg.all;
-use work.Pgp2bPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.Gtx7CfgPkg.all;
+use surf.Pgp2bPkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
@@ -113,7 +115,7 @@ begin
    gtRxN <= gtTxN;
 
    -- component instantiation
-   U_Pgp2bGtx7FixedLatWrapper : entity work.Pgp2bGtx7FixedLatWrapper
+   U_Pgp2bGtx7FixedLatWrapper : entity surf.Pgp2bGtx7FixedLatWrapper
       generic map (
          TPD_G                   => TPD_G,
          SIM_GTRESET_SPEEDUP_G   => SIM_GTRESET_SPEEDUP_G,
@@ -185,7 +187,7 @@ begin
          axilWriteSlave   => axilWriteSlave);   -- [out]
 
 
-   U_ClkRst_GT_CLK0 : entity work.ClkRst
+   U_ClkRst_GT_CLK0 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 6.4 ns,
          CLK_DELAY_G       => 0 ns,
@@ -198,7 +200,7 @@ begin
          rst  => extRst,
          rstL => open);
 
-   U_ClkRst_GT_CLK1 : entity work.ClkRst
+   U_ClkRst_GT_CLK1 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 4 ns,
          CLK_DELAY_G       => 1.11231 ns,

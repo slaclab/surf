@@ -19,11 +19,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiDmaPkg.all;
-use work.ArbiterPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiDmaPkg.all;
+use surf.ArbiterPkg.all;
 
 entity AxiStreamDmaV2Desc is
    generic (
@@ -263,7 +265,7 @@ begin
    -- Write Free List FIFOs
    -----------------------------------------
    U_DescGen : for i in 0 to WR_FIFO_CNT_C-1 generate
-      U_DescFifo : entity work.Fifo
+      U_DescFifo : entity surf.Fifo
          generic map (
             TPD_G           => TPD_G,
             GEN_SYNC_FIFO_G => true,
@@ -287,7 +289,7 @@ begin
    -- Read Transaction FIFOs
    -----------------------------------------
    U_RdFifoGen : for i in 0 to RD_FIFO_CNT_C-1 generate
-      U_RdFifo : entity work.Fifo
+      U_RdFifo : entity surf.Fifo
          generic map (
             TPD_G           => TPD_G,
             GEN_SYNC_FIFO_G => true,
@@ -312,7 +314,7 @@ begin
    -----------------------------------------
 
    -- Check for invalid count
-   U_DspComparator : entity work.DspComparator
+   U_DspComparator : entity surf.DspComparator
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 32)
@@ -324,7 +326,7 @@ begin
          obValid => intCompValid,
          ls      => invalidCount);  --  (a <  b) <--> r.intAckCount > r.intReqCount
 
-   U_DspSub : entity work.DspAddSub
+   U_DspSub : entity surf.DspAddSub
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 32)

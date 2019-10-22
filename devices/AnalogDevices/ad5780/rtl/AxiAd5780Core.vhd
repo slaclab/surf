@@ -16,9 +16,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiAd5780Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiAd5780Pkg.all;
 
 entity AxiAd5780Core is
    generic (
@@ -55,7 +57,7 @@ begin
 
    status.dacData <= dacData;
 
-   AxiAd5780Reg_Inst : entity work.AxiAd5780Reg
+   AxiAd5780Reg_Inst : entity surf.AxiAd5780Reg
       generic map(
          TPD_G              => TPD_G,
          STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
@@ -87,7 +89,7 @@ begin
       end if;
    end process;
 
-   AxiAd5780Ser_Inst : entity work.AxiAd5780Ser
+   AxiAd5780Ser_Inst : entity surf.AxiAd5780Ser
       generic map(
          TPD_G          => TPD_G,
          AXI_CLK_FREQ_G => AXI_CLK_FREQ_G)         

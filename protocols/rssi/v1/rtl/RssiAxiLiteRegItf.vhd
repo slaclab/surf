@@ -70,9 +70,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.RssiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.RssiPkg.all;
 
 entity RssiAxiLiteRegItf is
 generic (
@@ -325,7 +327,7 @@ begin
   end process seq; 
 
    -- Input assignment and synchronization
-   SyncFifo_IN0 : entity work.SynchronizerFifo
+   SyncFifo_IN0 : entity surf.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       COMMON_CLK_G => COMMON_CLK_G,
@@ -338,7 +340,7 @@ begin
       dout   => s_status
    );
 
-   SyncFifo_IN1 : entity work.SynchronizerFifo
+   SyncFifo_IN1 : entity surf.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       COMMON_CLK_G => COMMON_CLK_G,
@@ -351,7 +353,7 @@ begin
       dout   => s_validCnt
    );   
    
-   SyncFifo_IN2 : entity work.SynchronizerFifo
+   SyncFifo_IN2 : entity surf.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       COMMON_CLK_G => COMMON_CLK_G,
@@ -364,7 +366,7 @@ begin
       dout   => s_dropCnt
    );
   
-   SyncFifo_IN3 : entity work.SynchronizerFifo
+   SyncFifo_IN3 : entity surf.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       COMMON_CLK_G => COMMON_CLK_G,
@@ -377,7 +379,7 @@ begin
       dout   => s_resendCnt
    );   
    
-   SyncFifo_IN4 : entity work.SynchronizerFifo
+   SyncFifo_IN4 : entity surf.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       COMMON_CLK_G => COMMON_CLK_G,
@@ -391,7 +393,7 @@ begin
    );
 
   -- Output assignment and synchronization
-  Sync_OUT0 : entity work.Synchronizer
+  Sync_OUT0 : entity surf.Synchronizer
    generic map (
       TPD_G         => TPD_G,
       BYPASS_SYNC_G => COMMON_CLK_G)
@@ -401,7 +403,7 @@ begin
       dataOut   => openRq_o
    );
    
-   Sync_OUT1 : entity work.Synchronizer
+   Sync_OUT1 : entity surf.Synchronizer
    generic map (
       TPD_G         => TPD_G,
       BYPASS_SYNC_G => COMMON_CLK_G)
@@ -411,7 +413,7 @@ begin
       dataOut   => closeRq_o
    );
    
-   Sync_OUT2 : entity work.Synchronizer
+   Sync_OUT2 : entity surf.Synchronizer
    generic map (
       TPD_G         => TPD_G,
       BYPASS_SYNC_G => COMMON_CLK_G)
@@ -421,7 +423,7 @@ begin
       dataOut   => mode_o
    );
    
-   Sync_OUT3 : entity work.Synchronizer
+   Sync_OUT3 : entity surf.Synchronizer
    generic map (
       TPD_G         => TPD_G,
       BYPASS_SYNC_G => COMMON_CLK_G)
@@ -431,7 +433,7 @@ begin
       dataOut   => appRssiParam_o.chksumEn(0)
    );
    
-   Sync_OUT4 : entity work.Synchronizer
+   Sync_OUT4 : entity surf.Synchronizer
    generic map (
       TPD_G         => TPD_G,
       BYPASS_SYNC_G => COMMON_CLK_G)
@@ -441,7 +443,7 @@ begin
       dataOut   => injectFault_o
    );
    
-   SyncFifo_OUT5 : entity work.SynchronizerFifo
+   SyncFifo_OUT5 : entity surf.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       COMMON_CLK_G => COMMON_CLK_G,
@@ -454,7 +456,7 @@ begin
       dout   => initSeqN_o
    );
    
-   SyncFifo_OUT6 : entity work.SynchronizerFifo
+   SyncFifo_OUT6 : entity surf.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       COMMON_CLK_G => COMMON_CLK_G,
@@ -467,7 +469,7 @@ begin
       dout   => appRssiParam_o.version
    );
    
-   SyncFifo_OUT7 : entity work.SynchronizerFifo
+   SyncFifo_OUT7 : entity surf.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       COMMON_CLK_G => COMMON_CLK_G,
@@ -480,7 +482,7 @@ begin
       dout   => appRssiParam_o.maxOutsSeg
    );
    
-   SyncFifo_OUT8 : entity work.SynchronizerFifo
+   SyncFifo_OUT8 : entity surf.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       COMMON_CLK_G => COMMON_CLK_G,
@@ -493,7 +495,7 @@ begin
       dout   => appRssiParam_o.maxSegSize
    );
    
-   SyncFifo_OUT9 : entity work.SynchronizerFifo
+   SyncFifo_OUT9 : entity surf.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       COMMON_CLK_G => COMMON_CLK_G,
@@ -506,7 +508,7 @@ begin
       dout   => appRssiParam_o.retransTout
    );
    
-   SyncFifo_OUT10 : entity work.SynchronizerFifo
+   SyncFifo_OUT10 : entity surf.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       COMMON_CLK_G => COMMON_CLK_G,
@@ -519,7 +521,7 @@ begin
       dout   => appRssiParam_o.cumulAckTout
    );
    
-   SyncFifo_OUT11 : entity work.SynchronizerFifo
+   SyncFifo_OUT11 : entity surf.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       COMMON_CLK_G => COMMON_CLK_G,
@@ -532,7 +534,7 @@ begin
       dout   => appRssiParam_o.nullSegTout
    );
    
-   SyncFifo_OUT12 : entity work.SynchronizerFifo
+   SyncFifo_OUT12 : entity surf.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       COMMON_CLK_G => COMMON_CLK_G,
@@ -545,7 +547,7 @@ begin
       dout   => appRssiParam_o.maxRetrans
    );
    
-   SyncFifo_OUT13 : entity work.SynchronizerFifo
+   SyncFifo_OUT13 : entity surf.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       COMMON_CLK_G => COMMON_CLK_G,
@@ -558,7 +560,7 @@ begin
       dout   => appRssiParam_o.maxCumAck
    );
    
-   SyncFifo_OUT14 : entity work.SynchronizerFifo
+   SyncFifo_OUT14 : entity surf.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       COMMON_CLK_G => COMMON_CLK_G,
@@ -571,7 +573,7 @@ begin
       dout   => appRssiParam_o.maxOutofseq
    );
     
-   SyncFifo_OUT15 : entity work.SynchronizerFifo
+   SyncFifo_OUT15 : entity surf.SynchronizerFifo
    generic map (
       TPD_G        => TPD_G,
       COMMON_CLK_G => COMMON_CLK_G,

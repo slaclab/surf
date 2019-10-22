@@ -22,8 +22,10 @@ use ieee.math_real.all;
 library unisim;
 use unisim.vcomponents.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity ClinkDataClk is
    generic (
@@ -63,7 +65,7 @@ architecture rtl of ClinkDataClk is
 
 begin
 
-   U_AxiLiteToDrp : entity work.AxiLiteToDrp
+   U_AxiLiteToDrp : entity surf.AxiLiteToDrp
       generic map (
          TPD_G            => TPD_G,
          COMMON_CLK_G     => true,
@@ -177,7 +179,7 @@ begin
 
    genReset <= lockedLoc and (not rstIn);
 
-   U_RstSync : entity work.RstSync
+   U_RstSync : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',

@@ -19,7 +19,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity AsyncGearbox is
 
@@ -77,7 +79,7 @@ begin
    fastClk <= slaveClk when SLAVE_FASTER_C else masterClk;
    fastRst <= slaveRst when SLAVE_FASTER_C else masterRst;
 
-   U_SynchronizerOneShot_1 : entity work.SynchronizerOneShot
+   U_SynchronizerOneShot_1 : entity surf.SynchronizerOneShot
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -87,7 +89,7 @@ begin
          dataOut => gearboxSlip);       -- [out]
 
    SLAVE_FIFO_GEN : if (not SLAVE_FASTER_C) generate
-      U_FifoAsync_1 : entity work.FifoAsync
+      U_FifoAsync_1 : entity surf.FifoAsync
          generic map (
             TPD_G         => TPD_G,
             FWFT_EN_G     => true,
@@ -111,7 +113,7 @@ begin
    end generate SLAVE_FIFO_GEN;
 
    NO_SLAVE_FIFO_GEN : if (SLAVE_FASTER_C) generate
-      U_Input : entity work.FifoOutputPipeline
+      U_Input : entity surf.FifoOutputPipeline
          generic map (
             TPD_G         => TPD_G,
             DATA_WIDTH_G  => SLAVE_WIDTH_G,
@@ -130,7 +132,7 @@ begin
             mRdEn  => gearboxReadyIn);
    end generate NO_SLAVE_FIFO_GEN;
 
-   U_Gearbox_1 : entity work.Gearbox
+   U_Gearbox_1 : entity surf.Gearbox
       generic map (
          TPD_G          => TPD_G,
          SLAVE_WIDTH_G  => SLAVE_WIDTH_G,
@@ -147,7 +149,7 @@ begin
          slip        => gearboxSlip);     -- [in]
 
    MASTER_FIFO_GEN : if (SLAVE_FASTER_C) generate
-      U_FifoAsync_1 : entity work.FifoAsync
+      U_FifoAsync_1 : entity surf.FifoAsync
          generic map (
             TPD_G         => TPD_G,
             FWFT_EN_G     => true,
@@ -170,7 +172,7 @@ begin
    end generate MASTER_FIFO_GEN;
 
    NO_MASTER_FIFO_GEN : if (not SLAVE_FASTER_C) generate
-      U_Output : entity work.FifoOutputPipeline
+      U_Output : entity surf.FifoOutputPipeline
          generic map (
             TPD_G         => TPD_G,
             DATA_WIDTH_G  => MASTER_WIDTH_G,

@@ -18,9 +18,11 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity ClinkUart is
    generic (
@@ -108,7 +110,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Transmit FIFO
    -------------------------------------------------------------------------------------------------
-   U_TxFifo : entity work.AxiStreamFifoV2
+   U_TxFifo : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          GEN_SYNC_FIFO_G     => false,
@@ -127,7 +129,7 @@ begin
          mAxisMaster => txMasters(0),
          mAxisSlave  => txSlaves(0));
 
-   U_TxThrottle : entity work.ClinkUartThrottle
+   U_TxThrottle : entity surf.ClinkUartThrottle
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -145,7 +147,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- UART transmitter
    -------------------------------------------------------------------------------------------------
-   U_UartTx_1 : entity work.UartTx
+   U_UartTx_1 : entity surf.UartTx
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -160,7 +162,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- UART Receiver
    -------------------------------------------------------------------------------------------------
-   U_UartRx_1 : entity work.UartRx
+   U_UartRx_1 : entity surf.UartRx
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -192,7 +194,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Receive FIFO
    -------------------------------------------------------------------------------------------------
-   U_RxFifo : entity work.AxiStreamFifoV2
+   U_RxFifo : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          GEN_SYNC_FIFO_G     => false,

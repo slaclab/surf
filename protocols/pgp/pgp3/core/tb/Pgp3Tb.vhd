@@ -20,11 +20,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.Pgp3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.Pgp3Pkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
@@ -108,7 +110,7 @@ begin
    end process;
               
 
-   U_ClkRst_1 : entity work.ClkRst
+   U_ClkRst_1 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 10 ns,
          CLK_DELAY_G       => 1 ns,
@@ -120,7 +122,7 @@ begin
          rst  => axisRst);
 
    PRBS_GEN : for i in 0 to NUM_VC_G-1 generate
-      U_SsiPrbsTx_1 : entity work.SsiPrbsTx
+      U_SsiPrbsTx_1 : entity surf.SsiPrbsTx
          generic map (
             TPD_G                      => TPD_G,
             GEN_SYNC_FIFO_G            => true,
@@ -144,7 +146,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- PGP3 Transmit
    -------------------------------------------------------------------------------------------------
-   U_Pgp3Tx_1 : entity work.Pgp3Tx
+   U_Pgp3Tx_1 : entity surf.Pgp3Tx
       generic map (
          TPD_G                        => TPD_G,
          NUM_VC_G                     => NUM_VC_G,
@@ -175,7 +177,7 @@ begin
    phyRxHeader <= phyTxHeader;
    phyRxData   <= phyTxData;
 
-   U_Pgp3Rx_1 : entity work.Pgp3Rx
+   U_Pgp3Rx_1 : entity surf.Pgp3Rx
       generic map (
          TPD_G    => TPD_G,
          NUM_VC_G => NUM_VC_G)
@@ -200,7 +202,7 @@ begin
          phyRxSlip        => open);           -- [out]
 
 
-   U_ClkRst_2 : entity work.ClkRst
+   U_ClkRst_2 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 40 ns,
          CLK_DELAY_G       => 1 ns,
@@ -213,7 +215,7 @@ begin
 
 
    RX_BUFERS : for i in NUM_VC_G-1 downto 0 generate
-      U_AxiStreamFifoV2_1 : entity work.AxiStreamFifoV2
+      U_AxiStreamFifoV2_1 : entity surf.AxiStreamFifoV2
          generic map (
             TPD_G               => TPD_G,
             SLAVE_READY_EN_G    => false,

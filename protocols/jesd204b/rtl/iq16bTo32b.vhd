@@ -18,7 +18,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity iq16bTo32b is
    generic (
@@ -102,7 +104,7 @@ begin
 
    end process comb;
 
-   U_FIFO : entity work.Fifo
+   U_FIFO : entity surf.Fifo
       generic map (
          TPD_G         => TPD_G,
          SYNTH_MODE_G  => SYNTH_MODE_G,

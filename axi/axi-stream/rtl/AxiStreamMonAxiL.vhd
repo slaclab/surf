@@ -18,9 +18,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiStreamMonAxiL is
    generic (
@@ -89,7 +91,7 @@ begin
 
    localReset <= axisRst or rstCnt;
 
-   U_RstSync : entity work.RstSync
+   U_RstSync : entity surf.RstSync
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -99,7 +101,7 @@ begin
 
    GEN_VEC : for i in 0 to (AXIS_NUM_SLOTS_G-1) generate
 
-      U_AxiStreamMon : entity work.AxiStreamMon
+      U_AxiStreamMon : entity surf.AxiStreamMon
          generic map(
             TPD_G           => TPD_G,
             COMMON_CLK_G    => true,             -- true if axisClk = statusClk
@@ -124,7 +126,7 @@ begin
 
    end generate;
 
-   U_AxiDualPortRam : entity work.AxiDualPortRam
+   U_AxiDualPortRam : entity surf.AxiDualPortRam
       generic map (
          TPD_G          => TPD_G,
          SYNTH_MODE_G   => "inferred",

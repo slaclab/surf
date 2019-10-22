@@ -16,8 +16,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.GlinkPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.GlinkPkg.all;
 
 entity GLinkGtx7FixedLatTb is end GLinkGtx7FixedLatTb;
 
@@ -46,7 +48,7 @@ architecture testbed of GLinkGtx7FixedLatTb is
       
 begin
 
-   ClkRst_0 : entity work.ClkRst
+   ClkRst_0 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 16 ns,
          RST_START_DELAY_G => 1 ns,  -- Wait this long into simulation before asserting reset
@@ -57,7 +59,7 @@ begin
          rst  => stableRst,
          rstL => open);
          
-   ClkRst_1 : entity work.ClkRst
+   ClkRst_1 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 6.25 ns,
          RST_START_DELAY_G => 1 ns,  -- Wait this long into simulation before asserting reset
@@ -68,7 +70,7 @@ begin
          rst  => open,
          rstL => open); 
 
-   ClkRst_2 : entity work.ClkRst
+   ClkRst_2 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 25 ns,
          RST_START_DELAY_G => 1 ns,  -- Wait this long into simulation before asserting reset
@@ -88,7 +90,7 @@ begin
    --rxClock       <= rxRecClk;
    rxClock       <= txClock;
 
-   QPllCore_1 : entity work.Gtx7QuadPll
+   QPllCore_1 : entity surf.Gtx7QuadPll
       generic map (
          QPLL_REFCLK_SEL_G  => "111",
          QPLL_FBDIV_G       => "0100100000",-- N = 80
@@ -103,7 +105,7 @@ begin
          qPllRefClkLost => qPllRefClkLost,
          qPllReset      => qPllReset);                    
 
-   GLinkGtx7FixedLat_Inst : entity work.GLinkGtx7FixedLat
+   GLinkGtx7FixedLat_Inst : entity surf.GLinkGtx7FixedLat
       generic map (
          -- Simulation Settings
          SIM_GTRESET_SPEEDUP_G => "TRUE",

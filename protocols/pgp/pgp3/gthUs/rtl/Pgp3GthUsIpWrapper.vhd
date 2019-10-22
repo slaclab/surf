@@ -17,8 +17,10 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity Pgp3GthUsIpWrapper is
    generic (
@@ -295,7 +297,7 @@ begin
    txUsrClk2      <= txUsrClk2Int;
    txUsrClkActive <= txUsrClkActiveInt;
 
-   U_RstSync_TX : entity work.RstSync
+   U_RstSync_TX : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
@@ -306,7 +308,7 @@ begin
          asyncRst => txUsrClkActiveInt,  -- [in]
          syncRst  => txUsrClkRst);       -- [out]
 
-   U_RstSync_RX : entity work.RstSync
+   U_RstSync_RX : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
@@ -517,7 +519,7 @@ begin
    txheader_in(1 downto 0)   <= txHeader;
 
    GEN_DRP : if (EN_DRP_G) generate
-      U_AxiLiteToDrp_1 : entity work.AxiLiteToDrp
+      U_AxiLiteToDrp_1 : entity surf.AxiLiteToDrp
          generic map (
             TPD_G            => TPD_G,
             COMMON_CLK_G     => false,

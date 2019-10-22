@@ -40,11 +40,13 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 use ieee.math_real.all;
 
-use work.StdRtlPkg.all;
-use work.RssiPkg.all;
-use work.SsiPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.RssiPkg.all;
+use surf.SsiPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
 
 entity RssiCore is
    generic (
@@ -293,7 +295,7 @@ begin
    -- Register interface
    ------------------------------------------------------------
    -- /////////////////////////////////////////////////////////
-   AxiLiteRegItf_INST : entity work.RssiAxiLiteRegItf
+   AxiLiteRegItf_INST : entity surf.RssiAxiLiteRegItf
       generic map (
          TPD_G                 => TPD_G,
          TIMEOUT_UNIT_G        => TIMEOUT_UNIT_G,
@@ -392,7 +394,7 @@ begin
    s_rstFifo <= rst_i or not s_connActive;
 
    -- Application side   
-   U_AppIn : entity work.AxiStreamResize
+   U_AppIn : entity surf.AxiStreamResize
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -415,7 +417,7 @@ begin
    sAppAxisSlave_o <= monSlaves(0);      
    
    -- Transport side
-   U_TspIn : entity work.AxiStreamResize
+   U_TspIn : entity surf.AxiStreamResize
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -452,7 +454,7 @@ begin
    ------------------------------------------------------------
    -- Connection and monitoring part
    ------------------------------------------------------------ 
-   ConnFSM_INST : entity work.RssiConnFsm
+   ConnFSM_INST : entity surf.RssiConnFsm
       generic map (
          TPD_G               => TPD_G,
          SERVER_G            => SERVER_G,
@@ -488,7 +490,7 @@ begin
          peerTout_o     => s_peerConnTout,
          paramReject_o  => s_paramReject);
 
-   Monitor_INST : entity work.RssiMonitor
+   Monitor_INST : entity surf.RssiMonitor
       generic map (
          TPD_G               => TPD_G,
          CLK_FREQUENCY_G     => CLK_FREQUENCY_G,
@@ -535,7 +537,7 @@ begin
    -- /////////////////////////////////////////////////////////       
 
    -- Header decoder module
-   HeaderReg_INST : entity work.RssiHeaderReg
+   HeaderReg_INST : entity surf.RssiHeaderReg
       generic map (
          TPD_G => TPD_G,
 
@@ -570,7 +572,7 @@ begin
    s_sndAck <= s_sndAckCon or s_sndAckMon;
 
    --
-   TxFSM_INST : entity work.RssiTxFsm
+   TxFSM_INST : entity surf.RssiTxFsm
       generic map (
          TPD_G               => TPD_G,
          WINDOW_ADDR_SIZE_G  => WINDOW_ADDR_SIZE_G,
@@ -644,7 +646,7 @@ begin
    GEN_TX : if (BYP_TX_BUFFER_G = false) generate  
    
       GEN_XPM : if (SYNTH_MODE_G = "xpm") generate
-         U_RAM : entity work.SimpleDualPortRamXpm
+         U_RAM : entity surf.SimpleDualPortRamXpm
             generic map (
                TPD_G         => TPD_G,
                COMMON_CLK_G  => true,
@@ -665,7 +667,7 @@ begin
       end generate;
 
       GEN_ALTERA : if (SYNTH_MODE_G = "altera_mf") generate
-         U_RAM : entity work.SimpleDualPortRamAlteraMf
+         U_RAM : entity surf.SimpleDualPortRamAlteraMf
             generic map (
                TPD_G         => TPD_G,
                COMMON_CLK_G  => true,
@@ -686,7 +688,7 @@ begin
       end generate;   
       
       GEN_INFERRED : if (SYNTH_MODE_G = "inferred") generate
-         U_RAM : entity work.SimpleDualPortRam
+         U_RAM : entity surf.SimpleDualPortRam
             generic map (
                TPD_G        => TPD_G,
                DATA_WIDTH_G => RSSI_WORD_WIDTH_C*8,
@@ -706,7 +708,7 @@ begin
       
    end generate;
    
-   tx_Chksum_INST : entity work.RssiChksum
+   tx_Chksum_INST : entity surf.RssiChksum
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 64,
@@ -729,7 +731,7 @@ begin
    -- RX part
    ------------------------------------------------------------   
    -- /////////////////////////////////////////////////////////  
-   RxFSM_INST : entity work.RssiRxFsm
+   RxFSM_INST : entity surf.RssiRxFsm
       generic map (
          TPD_G               => TPD_G,
          WINDOW_ADDR_SIZE_G  => WINDOW_ADDR_SIZE_G,
@@ -769,7 +771,7 @@ begin
    GEN_RX : if (BYP_RX_BUFFER_G = false) generate   
 
       GEN_XPM : if (SYNTH_MODE_G = "xpm") generate
-         U_RAM : entity work.SimpleDualPortRamXpm
+         U_RAM : entity surf.SimpleDualPortRamXpm
             generic map (
                TPD_G         => TPD_G,
                COMMON_CLK_G  => true,
@@ -790,7 +792,7 @@ begin
       end generate;
 
       GEN_ALTERA : if (SYNTH_MODE_G = "altera_mf") generate
-         U_RAM : entity work.SimpleDualPortRamAlteraMf
+         U_RAM : entity surf.SimpleDualPortRamAlteraMf
             generic map (
                TPD_G         => TPD_G,
                COMMON_CLK_G  => true,
@@ -811,7 +813,7 @@ begin
       end generate;   
       
       GEN_INFERRED : if (SYNTH_MODE_G = "inferred") generate
-         U_RAM : entity work.SimpleDualPortRam
+         U_RAM : entity surf.SimpleDualPortRam
             generic map (
                TPD_G        => TPD_G,
                DATA_WIDTH_G => RSSI_WORD_WIDTH_C*8,
@@ -834,7 +836,7 @@ begin
    -- Acknowledge valid packet
    s_rxAck <= s_rxValidSeg and s_rxFlags.ack and s_connActive;
 
-   rx_Chksum_INST : entity work.RssiChksum
+   rx_Chksum_INST : entity surf.RssiChksum
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 64,
@@ -872,7 +874,7 @@ begin
    -- /////////////////////////////////////////////////////////
 
    -- Application side   
-   AppFifoOut_INST : entity work.AxiStreamFifoV2
+   AppFifoOut_INST : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => false, -- Using pause
@@ -902,7 +904,7 @@ begin
    monSlaves(1)     <= mAppAxisSlave_i;
 
    -- Transport side
-   TspFifoOut_INST : entity work.AxiStreamFifoV2
+   TspFifoOut_INST : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => false, -- Using pause
@@ -933,7 +935,7 @@ begin
    
    PACKET_RATE :
    for i in 1 downto 0 generate
-      U_AxiStreamMon : entity work.AxiStreamMon
+      U_AxiStreamMon : entity surf.AxiStreamMon
          generic map (
             TPD_G            => TPD_G,   
             AXIS_CLK_FREQ_G => CLK_FREQUENCY_G,

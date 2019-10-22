@@ -20,8 +20,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
---use work.TextUtilPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+--use surf.TextUtilPkg.all;
 
 package Code10b12bPkg is
 

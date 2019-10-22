@@ -19,7 +19,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity JtagSerDesCoreTb is
 end entity JtagSerDesCoreTb;
@@ -218,7 +220,7 @@ begin
    end process;
 
 
-   U_DUT : entity work.JtagSerDesCore
+   U_DUT : entity surf.JtagSerDesCore
       generic map (
          WIDTH_G      => W_C,
          CLK_DIV2_G   => D_C

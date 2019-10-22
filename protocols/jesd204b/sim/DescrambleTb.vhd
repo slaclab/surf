@@ -18,9 +18,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.Jesd204bPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Jesd204bPkg.all;
 
 --------------------------------------------------------------------------------
 entity DescrambleTb is
@@ -897,7 +899,7 @@ architecture Bhv of DescrambleTb is
 begin  -- architecture Bhv
 
    -- Generate clocks and resets
-   DDR_ClkRst_Inst : entity work.ClkRst
+   DDR_ClkRst_Inst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 1 ns,     -- Wait this long into simulation before asserting reset
@@ -911,7 +913,7 @@ begin  -- architecture Bhv
    -----------------------------
    -- component instantiation 
    -----------------------------
-   JesdRxLane_INST : entity work.JesdRxLane
+   JesdRxLane_INST : entity surf.JesdRxLane
       generic map (
          TPD_G => TPD_C)
       port map (

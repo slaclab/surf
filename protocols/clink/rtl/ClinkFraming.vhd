@@ -18,10 +18,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.ClinkPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.ClinkPkg.all;
 
 entity ClinkFraming is
    generic (
@@ -422,7 +424,7 @@ begin
    ---------------------------------
    -- Frame Packing
    ---------------------------------
-   U_Pack : entity work.AxiStreamBytePacker
+   U_Pack : entity surf.AxiStreamBytePacker
       generic map (
          TPD_G           => TPD_G,
          SLAVE_CONFIG_G  => SLV_CONFIG_C,
@@ -436,7 +438,7 @@ begin
    ---------------------------------
    -- Data FIFO
    ---------------------------------
-   U_DataFifo : entity work.AxiStreamFifoV2
+   U_DataFifo : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => false,

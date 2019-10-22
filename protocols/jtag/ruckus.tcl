@@ -11,6 +11,6 @@ if { $::env(VIVADO_VERSION) >= 2016.4 } {
          set_property -dict [list CONFIG.C_DEBUG_MODE {4}] [get_ips DebugBridgeJtag]
    }
 
-   loadSource -dir  "$::DIR_PATH/rtl"
+   loadSource -lib surf -dir  "$::DIR_PATH/rtl"
    
 }
