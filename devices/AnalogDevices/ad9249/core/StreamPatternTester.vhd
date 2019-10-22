@@ -15,8 +15,7 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-LIBRARY ieee;
-use work.all;
+library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 

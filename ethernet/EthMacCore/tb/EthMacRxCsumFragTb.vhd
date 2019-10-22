@@ -25,9 +25,6 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.EthMacPkg.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 entity EthMacRxCsumFragTb is end EthMacRxCsumFragTb;
 
 architecture testbed of EthMacRxCsumFragTb is

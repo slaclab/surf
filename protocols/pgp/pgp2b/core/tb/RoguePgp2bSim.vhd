@@ -27,9 +27,6 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.Pgp2bPkg.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 entity RoguePgp2bSim is
    generic (
       TPD_G         : time                        := 1 ns;

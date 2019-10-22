@@ -23,9 +23,6 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 entity AxiMicronMt28ewReg is
    generic (
       TPD_G              : time             := 1 ns;

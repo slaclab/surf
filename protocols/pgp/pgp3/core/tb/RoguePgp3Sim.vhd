@@ -27,9 +27,6 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.Pgp3Pkg.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 entity RoguePgp3Sim is
    generic (
       TPD_G         : time                        := 1 ns;
