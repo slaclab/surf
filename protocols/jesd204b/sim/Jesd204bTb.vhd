@@ -18,9 +18,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.Jesd204bPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Jesd204bPkg.all;
 
 entity Jesd204bTb is
 end Jesd204bTb;
@@ -78,7 +80,7 @@ begin
    ---------------------------
    -- Generate clock and reset
    ---------------------------
-   U_ClkRst : entity work.ClkRst
+   U_ClkRst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
@@ -134,7 +136,7 @@ begin
    -----------------
    -- JESD TX Module
    -----------------
-   U_Jesd204bTx : entity work.Jesd204bTx
+   U_Jesd204bTx : entity surf.Jesd204bTx
       generic map (
          TPD_G => TPD_G,
          K_G   => 32,
@@ -219,7 +221,7 @@ begin
    -----------------
    -- JESD RX Module
    -----------------            
-   U_Jesd204bRx : entity work.Jesd204bRx
+   U_Jesd204bRx : entity surf.Jesd204bRx
       generic map (
          TPD_G => TPD_G,
          K_G   => 32,

@@ -40,13 +40,15 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 use ieee.math_real.all;
 
-use work.StdRtlPkg.all;
-use work.AxiPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiRssiPkg.all;
-use work.RssiPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiRssiPkg.all;
+use surf.RssiPkg.all;
+use surf.SsiPkg.all;
 
 entity AxiRssiCore is
    generic (
@@ -231,7 +233,7 @@ begin
    ---------------------
    -- Register interface
    ---------------------
-   U_Reg : entity work.RssiAxiLiteRegItf
+   U_Reg : entity surf.RssiAxiLiteRegItf
       generic map (
          TPD_G                 => TPD_G,
          COMMON_CLK_G          => true,
@@ -279,7 +281,7 @@ begin
 
    PACKET_RATE :
    for i in 1 downto 0 generate
-      U_AxiStreamMon : entity work.AxiStreamMon
+      U_AxiStreamMon : entity surf.AxiStreamMon
          generic map (
             TPD_G           => TPD_G,
             COMMON_CLK_G    => true,
@@ -345,7 +347,7 @@ begin
    ----------------------------------
    -- Connection Finite State Machine
    ----------------------------------   
-   U_ConnFSM : entity work.RssiConnFsm
+   U_ConnFSM : entity surf.RssiConnFsm
       generic map (
          TPD_G               => TPD_G,
          SERVER_G            => SERVER_G,
@@ -384,7 +386,7 @@ begin
    -------------------------------
    -- Connection Monitoring Module
    -------------------------------
-   U_Monitor : entity work.RssiMonitor
+   U_Monitor : entity surf.RssiMonitor
       generic map (
          TPD_G               => TPD_G,
          CLK_FREQUENCY_G     => CLK_FREQUENCY_G,
@@ -425,7 +427,7 @@ begin
    ------------------------------------         
    -- Outbound Header Generation Module
    ------------------------------------         
-   U_HeaderReg : entity work.RssiHeaderReg
+   U_HeaderReg : entity surf.RssiHeaderReg
       generic map (
          TPD_G              => TPD_G,
          SYN_HEADER_SIZE_G  => SYN_HEADER_SIZE_C,
@@ -461,7 +463,7 @@ begin
    --------------------
    -- Application Layer   
    --------------------
-   U_AppIn : entity work.AxiStreamResize
+   U_AppIn : entity surf.AxiStreamResize
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -486,7 +488,7 @@ begin
    -----------------------------------
    -- Transmitter Finite State Machine
    -----------------------------------
-   U_TxFSM : entity work.AxiRssiTxFsm
+   U_TxFSM : entity surf.AxiRssiTxFsm
       generic map (
          TPD_G               => TPD_G,
          AXI_CONFIG_G        => AXI_CONFIG_G,
@@ -556,7 +558,7 @@ begin
    ------------------
    -- Transport Layer
    ------------------
-   U_TspOut : entity work.AxiStreamResize
+   U_TspOut : entity surf.AxiStreamResize
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -582,7 +584,7 @@ begin
    ------------------
    -- Transport Layer
    ------------------
-   U_TspIn : entity work.AxiStreamResize
+   U_TspIn : entity surf.AxiStreamResize
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -604,7 +606,7 @@ begin
    --------------------------------
    -- Receiver Finite State Machine
    --------------------------------
-   U_RxFSM : entity work.AxiRssiRxFsm
+   U_RxFSM : entity surf.AxiRssiRxFsm
       generic map (
          TPD_G               => TPD_G,
          AXI_CONFIG_G        => AXI_CONFIG_G,
@@ -657,7 +659,7 @@ begin
    --------------------
    -- Application Layer   
    --------------------
-   U_AppOut : entity work.AxiStreamResize
+   U_AppOut : entity surf.AxiStreamResize
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,

@@ -20,9 +20,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.AxiStreamPkg.all;
-use work.StdRtlPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.AxiStreamPkg.all;
+use surf.StdRtlPkg.all;
+use surf.EthMacPkg.all;
 
 entity EthMacTxPause is
    generic (
@@ -122,7 +124,7 @@ begin
          sAxisSlaves(i) <= rxSlaves(i+1);
       end generate GEN_VEC;
 
-      U_AxiStreamMux : entity work.AxiStreamMux
+      U_AxiStreamMux : entity surf.AxiStreamMux
          generic map (
             TPD_G        => TPD_G,
             NUM_SLAVES_G => SIZE_C)

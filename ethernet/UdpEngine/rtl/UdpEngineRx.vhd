@@ -19,10 +19,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.EthMacPkg.all;
 
 entity UdpEngineRx is
    generic (
@@ -131,7 +133,7 @@ architecture rtl of UdpEngineRx is
 
 begin
 
-   U_RxPipeline : entity work.AxiStreamPipeline
+   U_RxPipeline : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => 0)
@@ -492,7 +494,7 @@ begin
       end if;
    end process seq;
 
-   U_Servers : entity work.AxiStreamDeMux
+   U_Servers : entity surf.AxiStreamDeMux
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => 1,
@@ -508,7 +510,7 @@ begin
          mAxisMasters => obServerMasters,
          mAxisSlaves  => obServerSlaves);
 
-   U_Clients : entity work.AxiStreamDeMux
+   U_Clients : entity surf.AxiStreamDeMux
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => 1,
@@ -524,7 +526,7 @@ begin
          mAxisMasters => obClientMasters,
          mAxisSlaves  => obClientSlaves);
 
-   U_Dhcp : entity work.AxiStreamPipeline
+   U_Dhcp : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => 0)

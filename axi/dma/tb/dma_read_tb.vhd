@@ -21,11 +21,13 @@ use ieee.std_logic_unsigned.all;
 library unisim;
 use unisim.vcomponents.all;
 
-use work.StdRtlPkg.all;
-use work.AxiPkg.all;
-use work.AxiDmaPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiPkg.all;
+use surf.AxiDmaPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
 
 entity dma_read_tb is end dma_read_tb;
 
@@ -98,7 +100,7 @@ begin
    -----------------------------
    -- Generate a Clock and Reset
    -----------------------------
-   U_ClkRst : entity work.ClkRst
+   U_ClkRst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
@@ -112,7 +114,7 @@ begin
    ---------------------------------
    -- Emulate the AXI Read Interface
    ---------------------------------
-   U_AxiReadEmulate : entity work.AxiReadEmulate
+   U_AxiReadEmulate : entity surf.AxiReadEmulate
       generic map (
          TPD_G        => TPD_G,
          AXI_CONFIG_G => AXI_CONFIG_C) 
@@ -125,7 +127,7 @@ begin
    -----------------------------
    -- Module that's being tested
    -----------------------------
-   U_AxiStreamDmaRead : entity work.AxiStreamDmaRead
+   U_AxiStreamDmaRead : entity surf.AxiStreamDmaRead
       generic map (
          TPD_G           => TPD_G,
          AXIS_READY_EN_G => true,

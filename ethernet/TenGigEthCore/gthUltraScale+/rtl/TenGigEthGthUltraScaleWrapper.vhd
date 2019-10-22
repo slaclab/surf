@@ -17,11 +17,13 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.EthMacPkg.all;
-use work.TenGigEthPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.EthMacPkg.all;
+use surf.TenGigEthPkg.all;
 
 entity TenGigEthGthUltraScaleWrapper is
    generic (
@@ -98,7 +100,7 @@ begin
    -----------------
    -- Power Up Reset
    -----------------
-   PwrUpRst_Inst : entity work.PwrUpRst
+   PwrUpRst_Inst : entity surf.PwrUpRst
       generic map (
          TPD_G      => TPD_G,
          DURATION_G => 15625000)        -- 100 ms
@@ -110,7 +112,7 @@ begin
    ----------------------
    -- Common Clock Module 
    ----------------------
-   TenGigEthGthUltraScaleClk_Inst : entity work.TenGigEthGthUltraScaleClk
+   TenGigEthGthUltraScaleClk_Inst : entity surf.TenGigEthGthUltraScaleClk
       generic map (
          TPD_G             => TPD_G,
          EXT_REF_G         => EXT_REF_G,
@@ -139,7 +141,7 @@ begin
    GEN_LANE :
    for i in 0 to NUM_LANE_G-1 generate
 
-      TenGigEthGthUltraScale_Inst : entity work.TenGigEthGthUltraScale
+      TenGigEthGthUltraScale_Inst : entity surf.TenGigEthGthUltraScale
          generic map (
             TPD_G           => TPD_G,
             PAUSE_EN_G      => PAUSE_EN_G,

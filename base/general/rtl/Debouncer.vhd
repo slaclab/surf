@@ -16,7 +16,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity Debouncer is
    
@@ -62,7 +64,7 @@ architecture rtl of Debouncer is
 begin
 
    SynchronizerGen : if (SYNCHRONIZE_G) generate
-      Synchronizer_1 : entity work.Synchronizer
+      Synchronizer_1 : entity surf.Synchronizer
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => RST_POLARITY_G,

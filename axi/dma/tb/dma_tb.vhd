@@ -21,10 +21,12 @@ use ieee.std_logic_unsigned.all;
 Library unisim;
 use unisim.vcomponents.all;
 
-use work.StdRtlPkg.all;
-use work.AxiPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
 
 entity dma_tb is end dma_tb;
 
@@ -102,7 +104,7 @@ begin
          mstAxiWriteSlave   => mstAxiWriteSlave 
       );
 
-   U_AxiToAxiLite : entity work.AxiToAxiLite
+   U_AxiToAxiLite : entity surf.AxiToAxiLite
       generic map (
          TPD_G => 1 ns
       ) port map (
@@ -118,7 +120,7 @@ begin
          axilWriteSlave      => axilWriteSlave
       );
 
-   U_AxiStremDma : entity work.AxiStreamDma
+   U_AxiStremDma : entity surf.AxiStreamDma
       generic map (
          TPD_G            => 1 ns,
          AXIL_COUNT_G     => 1,
@@ -149,7 +151,7 @@ begin
          axiWriteCtrl        => slvAxiWriteCtrl
       );
 
-   U_Fifo : entity work.AxiStreamFifoV2
+   U_Fifo : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => 1 ns,
          BRAM_EN_G           => true,
@@ -178,7 +180,7 @@ begin
       );
 
 
-   U_AxiWritePathFifo: entity work.AxiWritePathFifo 
+   U_AxiWritePathFifo: entity surf.AxiWritePathFifo 
       generic map (
          TPD_G                    => 1 ns,
          XIL_DEVICE_G             => "7SERIES",
@@ -223,7 +225,7 @@ begin
 
 
 
-   U_AxiReadPathFifo: entity work.AxiReadPathFifo 
+   U_AxiReadPathFifo: entity surf.AxiReadPathFifo 
       generic map (
          TPD_G                    => 1 ns,
          XIL_DEVICE_G             => "7SERIES",

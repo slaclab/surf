@@ -19,11 +19,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiPkg.all;
-use work.AxiDmaPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiPkg.all;
+use surf.AxiDmaPkg.all;
 
 entity AxiStreamDma is
    generic (
@@ -218,7 +220,7 @@ begin
    end process;
 
    U_CrossEnGen : if AXIL_COUNT_G = 1 generate
-      U_AxiCrossbar : entity work.AxiLiteCrossbar
+      U_AxiCrossbar : entity surf.AxiLiteCrossbar
          generic map (
             TPD_G              => TPD_G,
             NUM_SLAVE_SLOTS_G  => 1,
@@ -245,7 +247,7 @@ begin
       axilReadSlave   <= intReadSlaves;
    end generate;
 
-   U_SwFifos : entity work.AxiLiteFifoPushPop
+   U_SwFifos : entity surf.AxiLiteFifoPushPop
       generic map (
          TPD_G             => TPD_G,
          POP_FIFO_COUNT_G  => 2,
@@ -394,7 +396,7 @@ begin
    -------------------------------------
    -- Inbound Controller
    -------------------------------------
-   U_IbDma : entity work.AxiStreamDmaWrite
+   U_IbDma : entity surf.AxiStreamDmaWrite
       generic map (
          TPD_G          => TPD_G,
          AXI_READY_EN_G => AXI_READY_EN_G,
@@ -488,7 +490,7 @@ begin
    -------------------------------------
    -- Outbound Controller
    -------------------------------------
-   U_ObDma : entity work.AxiStreamDmaRead
+   U_ObDma : entity surf.AxiStreamDmaRead
       generic map (
          TPD_G           => TPD_G,
          AXIS_READY_EN_G => AXIS_READY_EN_G,

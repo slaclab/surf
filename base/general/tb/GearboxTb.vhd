@@ -17,7 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 ----------------------------------------------------------------------------------------------------
 
 entity GearboxTb is
@@ -64,7 +66,7 @@ architecture sim of GearboxTb is
 
 begin
 
-   U_FifoAsync_1 : entity work.FifoAsync
+   U_FifoAsync_1 : entity surf.FifoAsync
       generic map (
          TPD_G         => TPD_G,
          FWFT_EN_G     => true,
@@ -82,7 +84,7 @@ begin
          valid  => slaveValid_0);       -- [out]
 
 
-   U_Gearbox_0 : entity work.Gearbox
+   U_Gearbox_0 : entity surf.Gearbox
       generic map (
          TPD_G          => TPD_G,
          SLAVE_WIDTH_G  => INPUT_WIDTH_G,
@@ -98,7 +100,7 @@ begin
          masterReady => masterReady_0);  -- [in]
 
    -- component instantiation
-   U_Gearbox_1 : entity work.Gearbox
+   U_Gearbox_1 : entity surf.Gearbox
       generic map (
          TPD_G          => TPD_G,
          SLAVE_WIDTH_G  => OUTPUT_WIDTH_G,
@@ -117,7 +119,7 @@ begin
 
 
 
-   U_ClkRst_1 : entity work.ClkRst
+   U_ClkRst_1 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 30 ns,
          CLK_DELAY_G       => 1 ns,
@@ -128,7 +130,7 @@ begin
          clkP => clk32,
          rst  => rst32);
 
-   U_ClkRst_2 : entity work.ClkRst
+   U_ClkRst_2 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 80 ns,
          CLK_DELAY_G       => 1 ns,

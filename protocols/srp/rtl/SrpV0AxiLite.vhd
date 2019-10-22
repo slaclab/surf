@@ -22,10 +22,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.AxiLitePkg.all;
 
 entity SrpV0AxiLite is
    generic (
@@ -134,7 +136,7 @@ begin
    ----------------------------------
    -- Input FIFO 
    ----------------------------------
-   SlaveAxiStreamFifo : entity work.SsiFifo
+   SlaveAxiStreamFifo : entity surf.SsiFifo
       generic map (
          TPD_G               => TPD_G,
          EN_FRAME_FILTER_G   => true,
@@ -416,7 +418,7 @@ begin
    ----------------------------------
    -- Output FIFO 
    ----------------------------------
-   MasterAxiStreamFifo : entity work.AxiStreamFifoV2
+   MasterAxiStreamFifo : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          INT_PIPE_STAGES_G => 0,

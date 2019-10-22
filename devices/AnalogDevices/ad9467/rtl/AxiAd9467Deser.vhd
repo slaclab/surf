@@ -18,8 +18,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiAd9467Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiAd9467Pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -77,7 +79,7 @@ begin
    GEN_DAT :
    for i in 0 to 7 generate
       
-      AxiAd9467DeserBit_Inst : entity work.AxiAd9467DeserBit
+      AxiAd9467DeserBit_Inst : entity surf.AxiAd9467DeserBit
          generic map(
             TPD_G           => TPD_G,
             DELAY_INIT_G    => DELAY_INIT_G(i),

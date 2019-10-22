@@ -28,9 +28,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.I2cPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.I2cPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -65,7 +67,7 @@ architecture mapping of AxiI2cEeprom is
    
 begin
 
-   U_AxiI2cEepromCore : entity work.AxiI2cEepromCore
+   U_AxiI2cEepromCore : entity surf.AxiI2cEepromCore
       generic map (
          TPD_G            => TPD_G,
          ADDR_WIDTH_G     => ADDR_WIDTH_G,

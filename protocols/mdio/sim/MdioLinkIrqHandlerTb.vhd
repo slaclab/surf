@@ -19,10 +19,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.TextUtilPkg.all;
 
-use work.MdioPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.TextUtilPkg.all;
+
+use surf.MdioPkg.all;
 
 entity MdioLinkIrqHandlerTb is
 end entity MdioLinkIrqHandlerTb;
@@ -169,7 +171,7 @@ begin
 
    mdi <= mdiLoc and mdo;
 
-   U_DUT : entity work.MdioLinkIrqHandler
+   U_DUT : entity surf.MdioLinkIrqHandler
       generic map (
          DIV_G           => 3,
          PROG_INIT_G     => PROG_INIT_C,

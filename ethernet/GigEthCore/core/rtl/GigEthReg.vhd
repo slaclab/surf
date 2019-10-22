@@ -18,10 +18,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.EthMacPkg.all;
-use work.GigEthPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.EthMacPkg.all;
+use surf.GigEthPkg.all;
 
 entity GigEthReg is
    generic (
@@ -74,7 +76,7 @@ architecture rtl of GigEthReg is
 
 begin
 
-   U_WatchDogRst : entity work.WatchDogRst
+   U_WatchDogRst : entity surf.WatchDogRst
       generic map(
          TPD_G      => TPD_G,
          DURATION_G => getTimeRatio(125.0E+6, 0.5))
@@ -88,7 +90,7 @@ begin
       axiReadSlave <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
       axiWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
 
-      Sync_Config : entity work.SynchronizerVector
+      Sync_Config : entity surf.SynchronizerVector
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => 48)
@@ -110,7 +112,7 @@ begin
 
    GEN_REG : if (EN_AXI_REG_G = true) generate
 
-      SyncStatusVec_Inst : entity work.SyncStatusVector
+      SyncStatusVec_Inst : entity surf.SyncStatusVector
          generic map (
             TPD_G          => TPD_G,
             OUT_POLARITY_G => '1',

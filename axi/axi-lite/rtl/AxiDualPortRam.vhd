@@ -19,8 +19,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiDualPortRam is
    generic (
@@ -115,7 +117,7 @@ architecture rtl of AxiDualPortRam is
 begin
 
    GEN_XPM : if (SYNTH_MODE_G = "xpm") generate
-      U_RAM : entity work.TrueDualPortRamXpm
+      U_RAM : entity surf.TrueDualPortRamXpm
          generic map (
             TPD_G               => TPD_G,
             COMMON_CLK_G        => COMMON_CLK_G,
@@ -147,7 +149,7 @@ begin
    end generate;
 
    GEN_ALTERA : if (SYNTH_MODE_G = "altera_mf") generate
-      U_RAM : entity work.TrueDualPortRamAlteraMf
+      U_RAM : entity surf.TrueDualPortRamAlteraMf
          generic map (
             TPD_G          => TPD_G,
             COMMON_CLK_G   => COMMON_CLK_G,
@@ -180,7 +182,7 @@ begin
 
       -- AXI read only, sys writable or read only (rom)
       AXI_R0_SYS_RW : if (not AXI_WR_EN_G and SYS_WR_EN_G) generate
-         DualPortRam_1 : entity work.DualPortRam
+         DualPortRam_1 : entity surf.DualPortRam
             generic map (
                TPD_G        => TPD_G,
                BRAM_EN_G    => ite(MEMORY_TYPE_G = "block", true, false),
@@ -211,7 +213,7 @@ begin
       -- System Read only, Axi writable or read only (ROM)
       -- Logic disables axi writes if AXI_WR_EN_G=false
       AXI_RW_SYS_RO : if (not SYS_WR_EN_G) generate
-         DualPortRam_1 : entity work.DualPortRam
+         DualPortRam_1 : entity surf.DualPortRam
             generic map (
                TPD_G        => TPD_G,
                BRAM_EN_G    => ite(MEMORY_TYPE_G = "block", true, false),
@@ -240,7 +242,7 @@ begin
 
       -- Both sides writable, true dual port ram
       AXI_RW_SYS_RW : if (AXI_WR_EN_G and SYS_WR_EN_G) generate
-         U_TrueDualPortRam_1 : entity work.TrueDualPortRam
+         U_TrueDualPortRam_1 : entity surf.TrueDualPortRam
             generic map (
                TPD_G        => TPD_G,
                BYTE_WR_EN_G => true,
@@ -280,7 +282,7 @@ begin
       <= r.axiWrStrobe(ADDR_AXI_BYTES_C-1 downto 0);
    axiSyncWrEn <= uOr(r.axiWrStrobe(ADDR_AXI_BYTES_C-1 downto 0));
 
-   U_SynchronizerFifo_1 : entity work.SynchronizerFifo
+   U_SynchronizerFifo_1 : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G,

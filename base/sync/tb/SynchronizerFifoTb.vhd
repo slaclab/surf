@@ -18,7 +18,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SynchronizerFifoTb is end SynchronizerFifoTb;
 
@@ -76,7 +78,7 @@ architecture testbed of SynchronizerFifoTb is
    signal reset   : sl := '0';
 begin
 --*********************************************************************************--
-   WR_CLK_Inst : entity work.ClkRst
+   WR_CLK_Inst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => WRITE_CLK_C,
          RST_START_DELAY_G => 1 ns,  -- Wait this long into simulation before asserting reset
@@ -87,7 +89,7 @@ begin
          rst  => reset,
          rstL => open);
 
-   RD_CLK_Inst : entity work.ClkRst
+   RD_CLK_Inst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => READ_CLK_C,
          RST_START_DELAY_G => 1 ns,  -- Wait this long into simulation before asserting reset
@@ -109,7 +111,7 @@ begin
    end process;
 
 --*********************************************************************************--   
-   SynchronizerFifo_Inst : entity work.SynchronizerFifo
+   SynchronizerFifo_Inst : entity surf.SynchronizerFifo
       generic map(
          DATA_WIDTH_G => DATA_WIDTH_C,
          ADDR_WIDTH_G => ADDR_WIDTH_C)

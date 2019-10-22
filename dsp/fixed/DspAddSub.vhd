@@ -18,7 +18,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity DspAddSub is
    generic (
@@ -120,7 +122,7 @@ begin
       end if;
    end process seq;
 
-   U_Pipe : entity work.FifoOutputPipeline
+   U_Pipe : entity surf.FifoOutputPipeline
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,

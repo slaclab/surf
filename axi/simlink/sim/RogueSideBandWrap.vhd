@@ -17,8 +17,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 
 entity RogueSideBandWrap is
    generic (
@@ -42,7 +44,7 @@ architecture RogueSideBandWrap of RogueSideBandWrap is
 begin
 
    -- Sim Core
-   U_RogueSideBand : entity work.RogueSideBand
+   U_RogueSideBand : entity surf.RogueSideBand
       port map(
          clock      => sysClk,
          reset      => sysRst,

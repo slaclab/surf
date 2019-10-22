@@ -18,7 +18,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity DspAddSubTb is end DspAddSubTb;
 
@@ -35,7 +37,7 @@ architecture testbed of DspAddSubTb is
 
 begin
 
-   U_ClkRst : entity work.ClkRst
+   U_ClkRst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 10 ns,
          RST_START_DELAY_G => 1 ns,
@@ -61,7 +63,7 @@ begin
       end if;
    end process;
 
-   U_Add : entity work.DspAddSub
+   U_Add : entity surf.DspAddSub
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 4)
@@ -72,7 +74,7 @@ begin
          add  => '1',
          pOut => add);
 
-   U_Sub : entity work.DspAddSub
+   U_Sub : entity surf.DspAddSub
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 4)

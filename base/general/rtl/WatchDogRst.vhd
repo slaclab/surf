@@ -18,7 +18,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity WatchDogRst is
    generic (
@@ -50,7 +52,7 @@ begin
       report "USE_DSP48_G must be either yes, no, auto, or automax"
       severity failure;
 
-   Synchronizer_Inst : entity work.Synchronizer
+   Synchronizer_Inst : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (

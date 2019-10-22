@@ -20,11 +20,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiPkg.all;
 
 entity SrpV3AxiLiteFull is
    generic (
@@ -68,7 +70,7 @@ architecture rtl of SrpV3AxiLiteFull is
 
 begin
 
-   U_SrpV3Axi_1 : entity work.SrpV3Axi
+   U_SrpV3Axi_1 : entity surf.SrpV3Axi
       generic map (
          TPD_G               => TPD_G,
          PIPE_STAGES_G       => PIPE_STAGES_G,
@@ -101,7 +103,7 @@ begin
          axiReadMaster  => axiReadMaster,   -- [out]
          axiReadSlave   => axiReadSlave);   -- [in]
 
-   U_AxiToAxiLite_1 : entity work.AxiToAxiLite
+   U_AxiToAxiLite_1 : entity surf.AxiToAxiLite
       generic map (
          TPD_G => TPD_G)
       port map (

@@ -16,11 +16,13 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.TenGigEthPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.TenGigEthPkg.all;
+use surf.EthMacPkg.all;
 
 entity TenGigEthGth7 is
    generic (
@@ -165,7 +167,7 @@ begin
    ------------------
    -- Synchronization 
    ------------------
-   U_AxiLiteAsync : entity work.AxiLiteAsync
+   U_AxiLiteAsync : entity surf.AxiLiteAsync
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -186,7 +188,7 @@ begin
 
    txDisable <= status.txDisable;
 
-   U_Sync : entity work.SynchronizerVector
+   U_Sync : entity surf.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 3)
@@ -204,7 +206,7 @@ begin
    --------------------
    -- Ethernet MAC core
    --------------------
-   U_MAC : entity work.EthMacTop
+   U_MAC : entity surf.EthMacTop
       generic map (
          TPD_G           => TPD_G,
          PAUSE_EN_G      => PAUSE_EN_G,
@@ -294,7 +296,7 @@ begin
    -------------------------------------
    -- 10GBASE-R's Reset Module
    -------------------------------------        
-   U_TenGigEthRst : entity work.TenGigEthRst
+   U_TenGigEthRst : entity surf.TenGigEthRst
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -330,7 +332,7 @@ begin
    --------------------------------     
    -- Configuration/Status Register   
    --------------------------------     
-   U_TenGigEthReg : entity work.TenGigEthReg
+   U_TenGigEthReg : entity surf.TenGigEthReg
       generic map (
          TPD_G        => TPD_G,
          EN_AXI_REG_G => EN_AXI_REG_G)

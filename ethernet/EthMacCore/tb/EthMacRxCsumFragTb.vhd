@@ -18,10 +18,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.EthMacPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -51,7 +53,7 @@ architecture testbed of EthMacRxCsumFragTb is
 
 begin
 
-   U_ClkRst : entity work.ClkRst
+   U_ClkRst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
@@ -219,7 +221,7 @@ begin
       end if;
    end process seq;
 
-   U_EthMacRxCsum : entity work.EthMacRxCsum
+   U_EthMacRxCsum : entity surf.EthMacRxCsum
       generic map (
          TPD_G => TPD_G)
       port map (

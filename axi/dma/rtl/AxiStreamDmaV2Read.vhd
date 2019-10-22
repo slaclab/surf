@@ -20,10 +20,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiPkg.all;
-use work.AxiDmaPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiPkg.all;
+use surf.AxiDmaPkg.all;
 
 entity AxiStreamDmaV2Read is
    generic (
@@ -135,7 +137,7 @@ begin
    pause <= '0' when (AXIS_READY_EN_G) else axisCtrl.pause;
 
    -- Check if last transfer completed
-   U_DspComparator : entity work.DspComparator
+   U_DspComparator : entity surf.DspComparator
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 32)
@@ -414,7 +416,7 @@ begin
       end if;
    end process seq;
 
-   U_Pipeline : entity work.AxiStreamPipeline
+   U_Pipeline : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => PIPE_STAGES_G)

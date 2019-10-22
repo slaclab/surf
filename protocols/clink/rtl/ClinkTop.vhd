@@ -18,10 +18,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
-use work.ClinkPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.ClinkPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
@@ -137,7 +139,7 @@ begin
    ----------------------------
    -- AXI-Lite Clock Transition
    ----------------------------
-   U_AxilAsync : entity work.AxiLiteAsync
+   U_AxilAsync : entity surf.AxiLiteAsync
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_AXIL_CLK_G)
@@ -158,7 +160,7 @@ begin
    --------------------------
    -- AXI-Lite: Crossbar Core
    --------------------------  
-   U_XBAR : entity work.AxiLiteCrossbar
+   U_XBAR : entity surf.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
          NUM_SLAVE_SLOTS_G  => 1,
@@ -179,7 +181,7 @@ begin
    ---------------------------
    -- AXI-Lite Register Module
    ---------------------------
-   U_ClinkReg : entity work.ClinkReg
+   U_ClinkReg : entity surf.ClinkReg
       generic map (
          TPD_G        => TPD_G,
          CHAN_COUNT_G => CHAN_COUNT_G)
@@ -199,7 +201,7 @@ begin
    ---------------------------------------------------------
    -- Connector 0, Half 0, Control for Base,Medium,Full,Deca
    ---------------------------------------------------------
-   U_Cbl0Half0 : entity work.ClinkCtrl
+   U_Cbl0Half0 : entity surf.ClinkCtrl
       generic map (
          TPD_G              => TPD_G,
          INV_34_G           => false,
@@ -227,7 +229,7 @@ begin
    --------------------------------------------------------
    -- Connector 0, Half 1, Data X for Base,Medium,Full,Deca
    --------------------------------------------------------
-   U_Cbl0Half1 : entity work.ClinkData
+   U_Cbl0Half1 : entity surf.ClinkData
       generic map (
          TPD_G        => TPD_G,
          XIL_DEVICE_G => XIL_DEVICE_G)
@@ -257,7 +259,7 @@ begin
       ----------------------------------------------------------------
       -- Connector 1, Half 0, Control Base, Data Z for Med, Full, Deca
       ----------------------------------------------------------------
-      U_Cbl1Half0 : entity work.ClinkCtrl
+      U_Cbl1Half0 : entity surf.ClinkCtrl
          generic map (
             TPD_G              => TPD_G,
             INV_34_G           => true,
@@ -288,7 +290,7 @@ begin
       linkStatus(2) <= CL_LINK_STATUS_INIT_C;
       parData(2)    <= (others => '0');
       parValid(2)   <= '0';
-      U_UnusedDrp : entity work.AxiDualPortRam
+      U_UnusedDrp : entity surf.AxiDualPortRam
          generic map (
             TPD_G        => TPD_G,
             ADDR_WIDTH_G => 7,
@@ -312,7 +314,7 @@ begin
       ----------------------------------------------------------------
       -- Connector 1, Half 0, Control Base, Data Z for Med, Full, Deca
       ----------------------------------------------------------------
-      U_Cbl1Half0 : entity work.ClinkData
+      U_Cbl1Half0 : entity surf.ClinkData
          generic map (TPD_G => TPD_G)
          port map (
             cblHalfP        => cbl1Half0P,
@@ -346,7 +348,7 @@ begin
    -------------------------------------------------------------------
    -- Connector 1, Half 1, Data X for Base, Data Y for Med, Full, Deca
    -------------------------------------------------------------------
-   U_Cbl1Half1 : entity work.ClinkData
+   U_Cbl1Half1 : entity surf.ClinkData
       generic map (TPD_G => TPD_G)
       port map (
          cblHalfP        => cbl1Half1P,
@@ -369,7 +371,7 @@ begin
    ------------------
    -- Data Processing
    ------------------
-   U_Framer0 : entity work.ClinkFraming
+   U_Framer0 : entity surf.ClinkFraming
       generic map (
          TPD_G              => TPD_G,
          COMMON_DATA_CLK_G  => COMMON_DATA_CLK_G,
@@ -393,7 +395,7 @@ begin
    ------------------------------
    U_DualFrameEn : if (CHAN_COUNT_G = 2) generate
 
-      U_Framer1 : entity work.ClinkFraming
+      U_Framer1 : entity surf.ClinkFraming
          generic map (
             TPD_G              => TPD_G,
             COMMON_DATA_CLK_G  => COMMON_DATA_CLK_G,

@@ -20,11 +20,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.SsiPkg.all;
-use work.PgpEthPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.SsiPkg.all;
+use surf.PgpEthPkg.all;
 
 entity PgpEthCoreTb is
 
@@ -84,7 +86,7 @@ architecture testbed of PgpEthCoreTb is
 
 begin
 
-   U_Clk_0 : entity work.ClkRst
+   U_Clk_0 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 4.654 ns,  -- 214.84 MHz (slow user clock to help with making timing)
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
@@ -93,7 +95,7 @@ begin
          clkP => clk,
          rst  => rst);
 
-   U_Clk_1 : entity work.ClkRst
+   U_Clk_1 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 3.103 ns,  -- 100GbE IP core's 322.58 MHz txusrclk2 clock 
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
@@ -101,7 +103,7 @@ begin
       port map (
          clkP => txusrclk2);
 
-   U_Core : entity work.PgpEthCore
+   U_Core : entity surf.PgpEthCore
       generic map (
          TPD_G                 => TPD_G,
          NUM_VC_G              => NUM_VC_C,
@@ -131,7 +133,7 @@ begin
          axilWriteMaster => axilWriteMaster,
          axilWriteSlave  => axilWriteSlave);
 
-   U_TX_FIFO : entity work.AxiStreamFifoV2
+   U_TX_FIFO : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -158,7 +160,7 @@ begin
          mAxisMaster => phyMaster,
          mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);
 
-   U_RX_FIFO : entity work.AxiStreamFifoV2
+   U_RX_FIFO : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -200,7 +202,7 @@ begin
    GEN_VEC :
    for i in 0 to NUM_VC_C-1 generate
 
-      U_SsiPrbsTx : entity work.SsiPrbsTx
+      U_SsiPrbsTx : entity surf.SsiPrbsTx
          generic map (
             TPD_G                      => TPD_G,
             VALID_THOLD_G              => (TX_MAX_PAYLOAD_SIZE_C/64),
@@ -219,7 +221,7 @@ begin
             trig         => '1',
             packetLength => PKT_LEN_C);
 
-      U_BottleNeck : entity work.AxiStreamFifoV2
+      U_BottleNeck : entity surf.AxiStreamFifoV2
          generic map (
             TPD_G               => TPD_G,
             SLAVE_READY_EN_G    => false,                -- Using pause
@@ -242,7 +244,7 @@ begin
             mAxisMaster => rxMasters(i),
             mAxisSlave  => rxSlaves(i));
 
-      U_SsiPrbsRx : entity work.SsiPrbsRx
+      U_SsiPrbsRx : entity surf.SsiPrbsRx
          generic map (
             TPD_G                     => TPD_G,
             GEN_SYNC_FIFO_G           => true,

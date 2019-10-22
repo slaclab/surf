@@ -17,10 +17,12 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.PgpEthPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.PgpEthPkg.all;
 
 entity PgpEthCore is
    generic (
@@ -110,7 +112,7 @@ begin
    pgpRxOut  <= pgpRxOutInt;
    pgpTxOut  <= pgpTxOutInt;
 
-   U_Tx : entity work.PgpEthTx
+   U_Tx : entity surf.PgpEthTx
       generic map (
          TPD_G              => TPD_G,
          NUM_VC_G           => NUM_VC_G,
@@ -138,7 +140,7 @@ begin
          phyTxMaster    => phyTxMaster,
          phyTxSlave     => phyTxSlave);
 
-   U_Rx : entity work.PgpEthRx
+   U_Rx : entity surf.PgpEthRx
       generic map (
          TPD_G    => TPD_G,
          NUM_VC_G => NUM_VC_G)
@@ -162,7 +164,7 @@ begin
          phyRxRdy       => phyRxRdy,
          phyRxMaster    => phyRxMaster);
 
-   U_AxiLite : entity work.PgpEthAxiL
+   U_AxiLite : entity surf.PgpEthAxiL
       generic map (
          TPD_G            => TPD_G,
          WRITE_EN_G       => AXIL_WRITE_EN_G,

@@ -21,13 +21,15 @@ use ieee.std_logic_unsigned.all;
 Library unisim;
 use unisim.vcomponents.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.SsiCmdMasterPkg.all;
-use work.Pgp2bPkg.all;
-use work.I2cPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.SsiCmdMasterPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.I2cPkg.all;
 
 entity vcs_tb is end vcs_tb;
 
@@ -99,7 +101,7 @@ begin
    end process;
 
 
-   U_PgpSimMode : entity work.PgpSimModel
+   U_PgpSimMode : entity surf.PgpSimModel
       generic map (
          TPD_G             => 1 ns,
          LANE_CNT_G        => PGP_LANE_CNT_C
@@ -125,7 +127,7 @@ begin
    pgpRxCtrl(3 downto 2)    <= (others=>AXI_STREAM_CTRL_INIT_C);
 
 
-   U_AxiLiteMaster : entity work.SsiAxiLiteMaster 
+   U_AxiLiteMaster : entity surf.SsiAxiLiteMaster 
       generic map (
          TPD_G               => 1 ns,
          XIL_DEVICE_G        => "7SERIES",
@@ -155,7 +157,7 @@ begin
          mAxiLiteReadSlave    => axiReadSlave
       );
 
-   U_AxiLiteEmpty : entity work.AxiLiteRegs
+   U_AxiLiteEmpty : entity surf.AxiLiteRegs
       generic map (
          TPD_G           => 1 ns,
          NUM_WRITE_REG_G => 2,
@@ -175,7 +177,7 @@ begin
       readRegister(1) <= x"44444444";
 
 
---   U_I2c : entity work.I2cRegMasterAxiBridge
+--   U_I2c : entity surf.I2cRegMasterAxiBridge
 --      generic map (
 --         TPD_G               => 1 ns,
 --         I2C_REG_ADDR_SIZE_G => 8,
@@ -194,7 +196,7 @@ begin
 --         i2cRegMasterOut  => i2cRegMasterOut 
 --      );
 --
---   U_I2cMaster : entity work.I2cRegMaster 
+--   U_I2cMaster : entity surf.I2cRegMaster 
 --      generic map (
 --         TPD_G                => 1 ns,
 --         OUTPUT_EN_POLARITY_G => 1,
@@ -212,7 +214,7 @@ begin
    i2ci.scl <= i2co.scl when i2co.scloen = '1' else '1';
    i2ci.sda <= i2co.sda when i2co.sdaoen = '1' else '1';
 
-   U_CmdMaster : entity work.SsiCmdMaster 
+   U_CmdMaster : entity surf.SsiCmdMaster 
       generic map (
          TPD_G               => 1 ns,
          XIL_DEVICE_G        => "7SERIES",

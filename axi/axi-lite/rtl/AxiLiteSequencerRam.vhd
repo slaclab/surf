@@ -43,8 +43,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiLiteSequencerRam is
    generic (
@@ -127,7 +129,7 @@ architecture rtl of AxiLiteSequencerRam is
 
 begin
 
-   U_AxiLiteMaster : entity work.AxiLiteMaster
+   U_AxiLiteMaster : entity surf.AxiLiteMaster
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -141,7 +143,7 @@ begin
          axilReadSlave   => mAxilReadSlave);
 
    GEN_XPM : if (SYNTH_MODE_G = "xpm") generate
-      U_RAM : entity work.TrueDualPortRamXpm
+      U_RAM : entity surf.TrueDualPortRamXpm
          generic map (
             TPD_G               => TPD_G,
             COMMON_CLK_G        => true,
@@ -167,7 +169,7 @@ begin
    end generate;
 
    GEN_ALTERA : if (SYNTH_MODE_G = "altera_mf") generate
-      U_RAM : entity work.TrueDualPortRamAlteraMf
+      U_RAM : entity surf.TrueDualPortRamAlteraMf
          generic map (
             TPD_G          => TPD_G,
             COMMON_CLK_G   => true,
@@ -191,7 +193,7 @@ begin
    end generate;
 
    GEN_INFERRED : if (SYNTH_MODE_G = "inferred") generate
-      U_RAM : entity work.TrueDualPortRam
+      U_RAM : entity surf.TrueDualPortRam
          generic map (
             TPD_G        => TPD_G,
             BYTE_WR_EN_G => true,

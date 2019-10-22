@@ -207,13 +207,13 @@ begin
       end if;
    end process;
 
-   sync_txuserrdy : entity work.Synchronizer
+   sync_txuserrdy : entity surf.Synchronizer
       port map (
          clk     => TXUSERCLK,
          dataIn  => txuserrdy_i,
          dataOut => TXUSERRDY);
 
-   sync_pmaresetdone : entity work.Synchronizer
+   sync_pmaresetdone : entity surf.Synchronizer
       port map (
          clk     => STABLE_CLOCK,
          dataIn  => TXPMARESETDONE,
@@ -267,19 +267,19 @@ begin
 
 
    -- Clock Domain Crossing
-   sync_SOFT_RESET : entity work.Synchronizer
+   sync_SOFT_RESET : entity surf.Synchronizer
       port map (
          clk     => STABLE_CLOCK,
          dataIn  => SOFT_RESET,
          dataOut => soft_reset_sync);
 
-   sync_run_phase_alignment_int : entity work.Synchronizer
+   sync_run_phase_alignment_int : entity surf.Synchronizer
       port map (
          clk     => TXUSERCLK,
          dataIn  => run_phase_alignment_int,
          dataOut => run_phase_alignment_int_s2);
 
-   sync_tx_fsm_reset_done_int : entity work.Synchronizer
+   sync_tx_fsm_reset_done_int : entity surf.Synchronizer
       port map (
          clk     => TXUSERCLK,
          dataIn  => tx_fsm_reset_done_int,
@@ -294,19 +294,19 @@ begin
       end if;
    end process;
 
-   sync_TXRESETDONE : entity work.Synchronizer
+   sync_TXRESETDONE : entity surf.Synchronizer
       port map (
          clk     => STABLE_CLOCK,
          dataIn  => TXRESETDONE,
          dataOut => txresetdone_s2);
 
-   sync_time_out_wait_bypass : entity work.Synchronizer
+   sync_time_out_wait_bypass : entity surf.Synchronizer
       port map (
          clk     => STABLE_CLOCK,
          dataIn  => time_out_wait_bypass,
          dataOut => time_out_wait_bypass_s2);
 
-   sync_mmcm_lock_reclocked : entity work.Synchronizer
+   sync_mmcm_lock_reclocked : entity surf.Synchronizer
       port map (
          clk     => STABLE_CLOCK,
          dataIn  => MMCM_LOCK,
@@ -325,13 +325,13 @@ begin
 
 
 
-   sync_PLL0LOCK : entity work.Synchronizer
+   sync_PLL0LOCK : entity surf.Synchronizer
       port map (
          clk     => STABLE_CLOCK,
          dataIn  => PLL0LOCK,
          dataOut => pll0lock_sync);
 
-   sync_PLL1LOCK : entity work.Synchronizer
+   sync_PLL1LOCK : entity surf.Synchronizer
       port map (
          clk     => STABLE_CLOCK,
          dataIn  => PLL1LOCK,
