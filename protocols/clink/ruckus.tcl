@@ -5,16 +5,16 @@ source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 set family [getFpgaFamily]
 
 # Load Source Code
-loadSource -dir "$::DIR_PATH/rtl"
+loadSource -lib surf -dir "$::DIR_PATH/rtl"
 
 # Load Simulation
-loadSource -sim_only -dir "$::DIR_PATH/tb"
+loadSource -lib surf -sim_only -dir "$::DIR_PATH/tb"
    
 if {  ${family} == "artix7" ||
       ${family} == "kintex7" ||
       ${family} == "virtex7" ||
       ${family} == "zynq" } {
-   loadSource -dir  "$::DIR_PATH/7Series"
+   loadSource -lib surf -dir  "$::DIR_PATH/7Series"
 }
 
 if { ${family} eq {kintexu} ||
@@ -23,5 +23,5 @@ if { ${family} eq {kintexu} ||
      ${family} eq {virtexuplusHBM} ||
      ${family} eq {zynquplus} ||
      ${family} eq {zynquplusRFSOC} } {
-   loadSource -dir  "$::DIR_PATH/UltraScale"
+   loadSource -lib surf -dir  "$::DIR_PATH/UltraScale"
 }

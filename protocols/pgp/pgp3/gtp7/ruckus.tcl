@@ -5,13 +5,13 @@ source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 if { $::env(VIVADO_VERSION) >= 2018.2 } {
 
    # Load Source Code
-   loadSource           -dir "$::DIR_PATH/rtl"
-   loadSource -sim_only -dir "$::DIR_PATH/tb"
+   loadSource -lib surf           -dir "$::DIR_PATH/rtl"
+   loadSource -lib surf -sim_only -dir "$::DIR_PATH/tb"
 
-   loadSource -path "$::DIR_PATH/ip/Pgp3Gtp7Ip6G.dcp"
+   loadSource -lib surf -path "$::DIR_PATH/ip/Pgp3Gtp7Ip6G.dcp"
    # loadIpCore -path "$::DIR_PATH/ip/Pgp3Gtp7Ip6G.xci"
    
-   loadSource -path "$::DIR_PATH/ip/Pgp3Gtp7Ip3G.dcp"
+   loadSource -lib surf -path "$::DIR_PATH/ip/Pgp3Gtp7Ip3G.dcp"
    # loadIpCore -path "$::DIR_PATH/ip/Pgp3Gtp7Ip3G.xci"  
 
    if { [info exists ::env(INCLUDE_PGP3_6G)] != 1 || $::env(INCLUDE_PGP3_6G) == 0 } {

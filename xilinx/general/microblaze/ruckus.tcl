@@ -5,18 +5,18 @@ source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 if { [info exists ::env(SDK_SRC_PATH)] != 1 }  {
    
    # Load a dummy module
-   loadSource -path "$::DIR_PATH/bypass/MicroblazeBasicCoreWrapper.vhd"
+   loadSource -lib surf -path "$::DIR_PATH/bypass/MicroblazeBasicCoreWrapper.vhd"
    
 } else {
 
    # Case on the Vivado Version
    if { $::env(VIVADO_VERSION) < 2016.1 } {
       # Load a dummy module
-      loadSource -path "$::DIR_PATH/bypass/MicroblazeBasicCoreWrapper.vhd"   
+      loadSource -lib surf -path "$::DIR_PATH/bypass/MicroblazeBasicCoreWrapper.vhd"   
    } else {   
    
       # Load the wrapper
-      loadSource -path "$::DIR_PATH/generate/MicroblazeBasicCoreWrapper.vhd"      
+      loadSource -lib surf -path "$::DIR_PATH/generate/MicroblazeBasicCoreWrapper.vhd"      
       
       if { $::env(VIVADO_VERSION) <= 2016.2 } {
          loadBlockDesign -path "$::DIR_PATH/bd/2016.2/MicroblazeBasicCore.bd"
