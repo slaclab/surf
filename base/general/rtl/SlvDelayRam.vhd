@@ -25,7 +25,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
 -- surf
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -66,7 +68,7 @@ architecture rtl of SlvDelayRam is
 
 begin
 
-   U_Ram : entity work.SimpleDualPortRam
+   U_Ram : entity surf.SimpleDualPortRam
       generic map (
          BRAM_EN_G    => BRAM_EN_G,
          DATA_WIDTH_G => VECTOR_WIDTH_G,
