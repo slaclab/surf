@@ -23,9 +23,6 @@ use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
 use work.EthMacPkg.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 entity EthMacRxCsumFragTb is end EthMacRxCsumFragTb;
 
 architecture testbed of EthMacRxCsumFragTb is

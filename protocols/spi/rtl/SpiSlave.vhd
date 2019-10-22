@@ -82,9 +82,9 @@ begin
 
    SEL_SYNCHRONIZER : entity work.Synchronizer
       generic map (
-         TPD_G  => TPD_G,
+         TPD_G    => TPD_G,
          STAGES_G => 3,
-         INIT_G => "111")
+         INIT_G   => "111")
       port map (
          clk     => clk,
          rst     => rst,
@@ -114,7 +114,7 @@ begin
       if (rising_edge(clk)) then
          r <= rin after TPD_G;
       end if;
-      
+
    end process seq;
 
 
@@ -137,6 +137,13 @@ begin
       procedure shift is
       begin
          v.shiftReg := r.shiftReg(WORD_SIZE_G-1 downto 0) & '0';
+
+         if (CPHA_G = '1') then
+            v.shiftCnt := r.shiftCnt + 1;
+            if (r.shiftCnt = MAX_COUNT_C) then
+               v.shiftCnt := (others => '0');
+            end if;
+         end if;
       end procedure;
 
       -- Clock in the current mosi bit and increment counter
@@ -144,12 +151,14 @@ begin
       begin
          v.shiftReg(0) := mosiSync;
 
-         v.shiftCnt := r.shiftCnt + 1;
-         if (r.shiftCnt = MAX_COUNT_C) then
-            v.shiftCnt := (others => '0');
+         if (CPHA_G = '0') then
+            v.shiftCnt := r.shiftCnt + 1;
+            if (r.shiftCnt = MAX_COUNT_C) then
+               v.shiftCnt := (others => '0');
+            end if;
          end if;
       end procedure;
-      
+
    begin
       v := r;
 

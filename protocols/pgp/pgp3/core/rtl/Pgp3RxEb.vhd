@@ -39,6 +39,7 @@ entity Pgp3RxEb is
       pgpRxValid  : out sl;
       pgpRxData   : out slv(63 downto 0);
       pgpRxHeader : out slv(1 downto 0);
+      remLinkData : out slv(55 downto 0);
       overflow    : out sl;
       status      : out slv(8 downto 0));
 
@@ -47,11 +48,17 @@ end entity Pgp3RxEb;
 architecture rtl of Pgp3RxEb is
 
    type RegType is record
-      fifoIn   : slv(65 downto 0);
-      fifoWrEn : sl;
+      remLinkData : slv(55 downto 0);
+      fifoIn      : slv(65 downto 0);
+      fifoWrEn    : sl;
    end record RegType;
 
-   signal r   : RegType := (fifoIn => (others => '0'), fifoWrEn => '0');
+   constant REG_INIT_C : RegType := (
+      remLinkData => (others => '0'),
+      fifoIn      => (others => '0'),
+      fifoWrEn    => '0');
+
+   signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
    signal valid : sl;
@@ -60,20 +67,32 @@ architecture rtl of Pgp3RxEb is
 
 begin
 
-   comb : process (phyRxData, phyRxHeader, phyRxValid, r) is
+   comb : process (phyRxData, phyRxHeader, phyRxRst, phyRxValid, r) is
       variable v : RegType;
    begin
+      -- Latch the current value
       v := r;
 
+      -- Map to FIFO write
       v.fifoIn(63 downto 0)  := phyRxData;
       v.fifoIn(65 downto 64) := phyRxHeader;
       v.fifoWrEn             := phyRxValid;
 
-      -- Don't write SKP words into the FIFO
-      if (phyRxHeader = PGP3_K_HEADER_C and phyRxData(63 downto 56) = PGP3_SKP_C) then
-         v.fifoWrEn := '0';
+      -- Check for SKIP code
+      if (phyRxHeader = PGP3_K_HEADER_C) and (phyRxData(PGP3_BTF_FIELD_C) = PGP3_SKP_C) then
+         -- Don't write SKP words into the FIFO
+         v.fifoWrEn    := '0';
+         -- Save the remote data bus
+         v.remLinkData := phyRxData(PGP3_SKIP_DATA_FIELD_C);
       end if;
 
+      -- Reset  
+      if (phyRxRst = '1') then
+         -- Maintain save behavior before the remLinkData update (not reseting fifoIn or fifoWrEn)
+         v.remLinkData := (others => '0');
+      end if;
+
+      -- Register the variable for next clock cycle   
       rin <= v;
 
    end process comb;
@@ -84,6 +103,17 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
+
+   U_remLinkData : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         DATA_WIDTH_G => 56)
+      port map (
+         rst    => phyRxRst,
+         wr_clk => phyRxClk,
+         din    => r.remLinkData,
+         rd_clk => pgpRxClk,
+         dout   => remLinkData);
 
    U_FifoAsync_1 : entity work.FifoAsync
       generic map (
@@ -100,7 +130,7 @@ begin
          din                => r.fifoIn,     -- [in]
          wr_data_count      => open,         -- [out]
          wr_ack             => open,         -- [out]
-         overflow           => overflowInt,     -- [out]
+         overflow           => overflowInt,  -- [out]
          prog_full          => open,         -- [out]
          almost_full        => open,         -- [out]
          full               => open,         -- [out]
@@ -118,11 +148,11 @@ begin
 
    U_RstSync_1 : entity work.RstSync
       generic map (
-         TPD_G           => TPD_G)
+         TPD_G => TPD_G)
       port map (
          clk      => pgpRxClk,          -- [in]
-         asyncRst => overflowInt,          -- [in]
-         syncRst  => overflow);     -- [out]
+         asyncRst => overflowInt,       -- [in]
+         syncRst  => overflow);         -- [out]
 
    pgpRxValid <= valid;
 

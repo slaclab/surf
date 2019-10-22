@@ -37,7 +37,7 @@ package Jesd204bPkg is
    constant F_CHAR_C : slv(7 downto 0) := x"FC";
 
    -- Register or counter widths
-   constant SYSRF_DLY_WIDTH_C : positive := 5;
+   constant SYSRF_DLY_WIDTH_C : positive := 8;
    constant RX_STAT_WIDTH_C   : positive := 19 + 2*GT_WORD_SIZE_C;
    constant TX_STAT_WIDTH_C   : positive := 6;
 
