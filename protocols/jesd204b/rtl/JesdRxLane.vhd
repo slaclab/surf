@@ -91,7 +91,8 @@ entity JesdRxLane is
       nSync_o       : out sl;
       -- Synchronization process is complete and data is valid
       dataValid_o   : out sl;
-      sampleData_o  : out slv((GT_WORD_SIZE_C*8)-1 downto 0));
+      sampleData_o  : out slv((GT_WORD_SIZE_C*8)-1 downto 0);
+      debug_o       : out slv(10 downto 0) );
 end JesdRxLane;
 
 architecture rtl of JesdRxLane is
@@ -224,7 +225,8 @@ begin
          kDetected_o  => s_kDetected,
          sysref_o     => s_refDetected,
          dataValid_o  => s_dataValid,
-         subClass_i   => subClass_i);
+         subClass_i   => subClass_i,
+         debug_o      => debug_o );
 
    ------------------------------------------------------------------
    -- Align the rx data within the GT word and replace the characters
@@ -314,7 +316,9 @@ begin
       -- Output assignment
       nSync_o      <= s_nSync;
       dataValid_o  <= r.sampleDataValid;
-      sampleData_o <= endianSwapSlv(r.sampleData, GT_WORD_SIZE_C);
+      -- This seems specific to 16-bit ADCs
+      -- sampleData_o <= endianSwapSlv(r.sampleData, GT_WORD_SIZE_C);
+      sampleData_o <= r.sampleData;
       status_o     <= r.jesdGtRx.cdrStable & s_buffLatency & r.errReg(r.errReg'high downto 4) & s_kDetected & s_refDetected & enable_i & r.errReg(2 downto 0) & s_nSync & r.errReg(3) & s_dataValidDly1 & r.jesdGtRx.rstDone;
 
    end process comb;

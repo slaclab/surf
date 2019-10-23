@@ -255,7 +255,7 @@ begin
             when 16#10# to 16#1F# =>
                for i in (L_G-1) downto 0 loop
                   if (axilReadMaster.araddr(5 downto 2) = i) then
-                     v.axilReadSlave.rdata(RX_STAT_WIDTH_C-1 downto 0) := s_statusRxArr(i);
+                     v.axilReadSlave.rdata := s_statusRxArr(i)(31 downto 0);
                   end if;
                end loop;
             when 16#20# to 16#2F# =>
@@ -282,6 +282,12 @@ begin
                for i in (L_G-1) downto 0 loop
                   if (axilReadMaster.araddr(5 downto 2) = i) then
                      v.axilReadSlave.rdata := s_rawData(i);
+                  end if;
+               end loop;
+            when 16#60# to 16#6F# =>
+               for i in (L_G-1) downto 0 loop
+                  if (axilReadMaster.araddr(5 downto 2) = i) then
+                    v.axilReadSlave.rdata := toSlv(0,29) & s_statusRxArr(i)(34 downto 32);
                   end if;
                end loop;
             when others =>
