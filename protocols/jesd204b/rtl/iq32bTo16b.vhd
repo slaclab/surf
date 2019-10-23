@@ -105,30 +105,34 @@ begin
       -- Latch the current value
       v := r;
 
-      -- Reset the strobes
-      v.rdEn  := '0';
+      -- Delay to align with output data
       v.valid := valid;
 
       -- Check if FIFO has data
-      if r.valid = '1' then
+      if valid = '1' then
          -- Check the 16-bit word select flag
          if r.wordSel = '0' then
             -- Set the flags and data bus
             v.wordSel := '1';
             v.dataI   := dataI(15 downto 0);
             v.dataQ   := dataQ(15 downto 0);
+            -- Acknowledge the FIFO read on next cycle
+            v.rdEn    := '1';
          else
             -- Set the flags and data bus
             v.wordSel := '0';
             v.dataI   := dataI(31 downto 16);
             v.dataQ   := dataQ(31 downto 16);
-            -- Acknowledge the FIFO read
-            v.rdEn    := '1';
+            -- Reset the flag
+            v.rdEn    := '0';
          end if;
       end if;
 
-      -- Combinatorial outputs before the reset
-      rdEn <= v.rdEn;
+      -- Outputs
+      rdEn     <= r.rdEn;
+      validOut <= r.valid;
+      dataOutI <= r.dataI;
+      dataOutQ <= r.dataQ;
 
       -- Synchronous Reset
       if (rdRst = '1') then
@@ -137,11 +141,6 @@ begin
 
       -- Register the variable for next clock cycle
       rin <= v;
-
-      -- Outputs
-      validOut <= r.valid;
-      dataOutI <= r.dataI;
-      dataOutQ <= r.dataQ;
 
    end process comb;
 

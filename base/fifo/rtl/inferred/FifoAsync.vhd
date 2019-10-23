@@ -205,6 +205,7 @@ begin
       generic map(
          TPD_G         => TPD_G,
          FIFO_ASYNC_G  => true,         -- ASYNC FIFO
+         BRAM_EN_G     => BRAM_EN_G,
          FWFT_EN_G     => FWFT_EN_G,
          DATA_WIDTH_G  => DATA_WIDTH_G,
          ADDR_WIDTH_G  => ADDR_WIDTH_G,
@@ -240,7 +241,7 @@ begin
       U_RAM : entity work.SimpleDualPortRam
          generic map(
             TPD_G        => TPD_G,
-            DOB_REG_G    => FWFT_EN_G,
+            DOB_REG_G    => ite(BRAM_EN_G, FWFT_EN_G, false),
             BRAM_EN_G    => BRAM_EN_G,
             ALTERA_SYN_G => ALTERA_SYN_G,
             ALTERA_RAM_G => ALTERA_RAM_G,

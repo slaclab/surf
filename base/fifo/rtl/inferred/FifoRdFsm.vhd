@@ -26,6 +26,7 @@ entity FifoRdFsm is
       RST_POLARITY_G : sl       := '1';  -- '1' for active high rst, '0' for active low
       RST_ASYNC_G    : boolean  := false;
       FIFO_ASYNC_G   : boolean  := false;
+      BRAM_EN_G      : boolean  := true;
       FWFT_EN_G      : boolean  := false;
       DATA_WIDTH_G   : positive := 16;
       ADDR_WIDTH_G   : positive := 4;
@@ -134,21 +135,38 @@ begin
                v.tValid(1) := '0';
             end if;
 
-            -- Check if we need to move data from RAM output to RAM REG
-            if (v.tValid(1) = '0') and (r.tValid(0) = '1') then
-               -- Move the data into the RAM REG
-               v.regceb    := '1';
-               v.tValid(1) := '1';
-               v.tValid(0) := '0';
-            end if;
+            -- Check for BRAM_EN_G (2 cycle read latency = DOB_REG_G + Internal REG )
+            if (BRAM_EN_G = true) then
 
-            -- Check if able to move pipeline and FIFO is not empty
-            if (v.tValid(0) = '0') and (r.empty = '0') then
-               -- Move the flag
-               v.enb       := '1';
-               v.tValid(0) := '1';
-               -- Increment the read address
-               v.rdAddr    := r.rdAddr + 1;
+               -- Check if we need to move data from RAM output to RAM REG
+               if (v.tValid(1) = '0') and (r.tValid(0) = '1') then
+                  -- Move the data into the RAM REG
+                  v.regceb    := '1';
+                  v.tValid(1) := '1';
+                  v.tValid(0) := '0';
+               end if;
+
+               -- Check if able to move pipeline and FIFO is not empty
+               if (v.tValid(0) = '0') and (r.empty = '0') then
+                  -- Move the flag
+                  v.enb       := '1';
+                  v.tValid(0) := '1';
+                  -- Increment the read address
+                  v.rdAddr    := r.rdAddr + 1;
+               end if;
+
+            -- Else LUTRAM (1 cycle read latency = Internal REG)
+            else
+
+               -- Check if able to move pipeline and FIFO is not empty
+               if (v.tValid(1) = '0') and (r.empty = '0') then
+                  -- Move the flag
+                  v.enb       := '1';
+                  v.tValid(1) := '1';
+                  -- Increment the read address
+                  v.rdAddr    := r.rdAddr + 1;
+               end if;
+
             end if;
 
          else
@@ -237,9 +255,6 @@ begin
          rdRdy   <= v.rdRdy;
          rdIndex <= v.rdIndex;
       end if;
-
-      rdRdy   <= r.rdRdy;
-      rdIndex <= r.rdIndex;
 
       -- RAM Outputs
       addrb  <= v.rdAddr;
