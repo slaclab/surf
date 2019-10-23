@@ -75,7 +75,7 @@ architecture mapping of AxiLiteMasterProxy is
 
 begin
 
-   process(ack, axiRst, r, sAxiReadMaster, sAxiWriteMaster) is
+   comb : process(ack, axiRst, r, sAxiReadMaster, sAxiWriteMaster) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
       variable newCmd : sl;
