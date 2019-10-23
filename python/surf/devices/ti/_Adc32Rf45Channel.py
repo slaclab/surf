@@ -49,6 +49,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(   
@@ -60,6 +61,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))                        
 
         self.add(pr.RemoteVariable(   
@@ -73,6 +75,7 @@ class Adc32Rf45Channel(pr.Device):
             value        = 0x1,
             hidden       = True,
             verify       = False,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(   
@@ -84,6 +87,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(   
@@ -97,6 +101,7 @@ class Adc32Rf45Channel(pr.Device):
             value        = 0x1,
             hidden       = True,
             verify       = False,
+            overlapEn    = True,
         ))
 
         ###################
@@ -111,6 +116,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",                        
             verify       = verify,
+            overlapEn    = True,
         ))   
 
         ###################
@@ -126,6 +132,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(   
@@ -137,6 +144,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))
 
         ###################
@@ -151,6 +159,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         )) 
 
         self.add(pr.RemoteVariable(   
@@ -162,6 +171,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(   
@@ -173,6 +183,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(   
@@ -184,6 +195,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(   
@@ -195,6 +207,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(   
@@ -206,6 +219,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(   
@@ -217,6 +231,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(   
@@ -228,6 +243,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(   
@@ -239,6 +255,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(   
@@ -250,6 +267,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(   
@@ -261,6 +279,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(   
@@ -272,6 +291,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(   
@@ -283,6 +303,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))  
 
         self.add(pr.RemoteVariable(   
@@ -294,6 +315,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         )) 
 
         self.add(pr.RemoteVariable(   
@@ -305,6 +327,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         )) 
 
         self.add(pr.RemoteVariable(
@@ -316,6 +339,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))     
 
         self.add(pr.RemoteVariable(   
@@ -327,6 +351,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         )) 
 
         self.add(pr.RemoteVariable(   
@@ -338,6 +363,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))  
 
         self.add(pr.RemoteVariable(   
@@ -349,6 +375,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -360,6 +387,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         )) 
 
         self.add(pr.RemoteVariable(   
@@ -371,6 +399,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(   
@@ -382,6 +411,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         )) 
 
         self.add(pr.RemoteVariable(   
@@ -393,6 +423,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         )) 
 
         self.add(pr.RemoteVariable(   
@@ -404,6 +435,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         )) 
 
         self.add(pr.RemoteVariable(   
@@ -415,6 +447,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -426,6 +459,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -437,6 +471,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -448,6 +483,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -459,6 +495,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -470,6 +507,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -481,6 +519,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
                         
         ########################
@@ -495,6 +534,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -506,6 +546,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -517,6 +558,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -528,6 +570,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -539,6 +582,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -550,6 +594,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -561,6 +606,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable( 
@@ -572,6 +618,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -583,6 +630,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
                         
         self.add(pr.RemoteVariable(   
@@ -594,6 +642,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -605,6 +654,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -616,6 +666,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -627,6 +678,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -638,6 +690,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -649,6 +702,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -660,6 +714,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -671,6 +726,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
                         
         self.add(pr.RemoteVariable(   
@@ -682,6 +738,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
                         
         self.add(pr.RemoteVariable(   
@@ -693,6 +750,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
                         
         self.add(pr.RemoteVariable(   
@@ -704,6 +762,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -715,6 +774,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -726,6 +786,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -737,6 +798,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -748,6 +810,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -759,6 +822,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -770,6 +834,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
                         
         self.add(pr.RemoteVariable(   
@@ -781,6 +846,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
                         
         #####################
@@ -795,6 +861,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
                         
         self.add(pr.RemoteVariable(   
@@ -806,6 +873,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -817,6 +885,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -828,6 +897,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -839,6 +909,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -850,6 +921,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -861,6 +933,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -872,6 +945,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
                         
         self.add(pr.RemoteVariable(   
@@ -883,6 +957,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -894,6 +969,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
                         
         self.add(pr.RemoteVariable(   
@@ -905,6 +981,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -916,6 +993,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -927,6 +1005,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -938,6 +1017,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -949,6 +1029,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -960,6 +1041,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
                         
         self.add(pr.RemoteVariable(   
@@ -971,6 +1053,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -982,6 +1065,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -993,6 +1077,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -1004,6 +1089,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -1015,6 +1101,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -1026,6 +1113,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
                         
         self.add(pr.RemoteVariable(   
@@ -1037,6 +1125,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -1048,6 +1137,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
                         
         self.add(pr.RemoteVariable(   
@@ -1059,6 +1149,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
                         
         self.add(pr.RemoteVariable(   
@@ -1070,6 +1161,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
                         
         self.add(pr.RemoteVariable(   
@@ -1081,6 +1173,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -1092,6 +1185,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -1103,6 +1197,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -1114,6 +1209,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
                         
         self.add(pr.RemoteVariable(   
@@ -1125,6 +1221,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -1136,6 +1233,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -1147,6 +1245,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -1158,6 +1257,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -1169,6 +1269,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -1180,6 +1281,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -1191,6 +1293,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
                         
         self.add(pr.RemoteVariable(   
@@ -1202,6 +1305,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -1213,6 +1317,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -1224,6 +1329,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -1235,6 +1341,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -1246,6 +1353,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    = True,
         ))
 
         @self.command(name = "TestPattern", description  = "Set the Digital bank Test Pattern mode")        
