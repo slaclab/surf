@@ -100,7 +100,7 @@ architecture rtl of Pgp3GthUs is
    signal pgpTxRstInt : sl;
 
    -- PgpRx Signals
---   signal gtRxUserReset : sl;
+   signal gtRxUserReset : sl;
    signal phyRxClk      : sl;
    signal phyRxRst      : sl;
    signal phyRxInit     : sl;
@@ -113,7 +113,7 @@ architecture rtl of Pgp3GthUs is
 
 
    -- PgpTx Signals
---   signal gtTxUserReset : sl;
+   signal gtTxUserReset : sl;
    signal phyTxActive   : sl;
    signal phyTxStart    : sl;
    signal phyTxData     : slv(63 downto 0);
@@ -149,8 +149,8 @@ begin
    pgpClk    <= pgpTxClkInt;
    pgpClkRst <= pgpTxRstInt;
 
-   --gtRxUserReset <= phyRxInit or pgpRxIn.resetRx;
-   --gtTxUserReset <= pgpTxRst;
+   gtRxUserReset <= phyRxInit or pgpRxIn.resetRx;
+   gtTxUserReset <= pgpTxIn.resetTx;
 
    GEN_XBAR : if (EN_DRP_G and EN_PGP_MON_G) generate
       U_XBAR : entity work.AxiLiteCrossbar
@@ -266,7 +266,7 @@ begin
          gtRxN           => pgpGtRxN,                            -- [in]
          gtTxP           => pgpGtTxP,                            -- [out]
          gtTxN           => pgpGtTxN,                            -- [out]
-         rxReset         => phyRxInit,                           -- [in]
+         rxReset         => gtRxUserReset,                       -- [in]
          rxUsrClkActive  => open,                                -- [out]
          rxResetDone     => phyRxActive,                         -- [out]
          rxUsrClk        => open,                                -- [out]
@@ -279,7 +279,7 @@ begin
          rxStartOfSeq    => phyRxStartSeq,                       -- [out]
          rxGearboxSlip   => phyRxSlip,                           -- [in]
          rxOutClk        => open,                                -- [out]
-         txReset         => '0',                                 -- [in]
+         txReset         => gtTxUserReset,                       -- [in]
          txUsrClkActive  => open,                                -- [out]
          txResetDone     => phyTxActive,                         -- [out]
          txUsrClk        => open,                                -- [out]
