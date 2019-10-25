@@ -22,7 +22,9 @@ use ieee.numeric_std.all;
 library surf;
 use surf.StdRtlPkg.all;
 use work.SynchronizePkg.all;
-use work.Version.all;
+
+library surf;
+use surf.Version.all;
 use work.FrontEndPkg.all;
 use surf.SaciMasterPkg.all;
 

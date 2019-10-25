@@ -342,7 +342,7 @@ begin
       end if;
    end process seq;
 
-   U_status : entity work.SynchronizerVector
+   U_status : entity surf.SynchronizerVector
       generic map (
          TPD_G         => TPD_G,
          BYPASS_SYNC_G => COMMON_CLK_G,
@@ -352,7 +352,7 @@ begin
          dataIn  => status_i,
          dataOut => s_status);
 
-   U_validCnt : entity work.SynchronizerFifo
+   U_validCnt : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G,
@@ -363,7 +363,7 @@ begin
          rd_clk => axiClk_i,
          dout   => s_validCnt);
 
-   U_dropCnt : entity work.SynchronizerFifo
+   U_dropCnt : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G,
@@ -374,7 +374,7 @@ begin
          rd_clk => axiClk_i,
          dout   => s_dropCnt);
 
-   U_resendCnt : entity work.SynchronizerFifo
+   U_resendCnt : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G,
@@ -385,7 +385,7 @@ begin
          rd_clk => axiClk_i,
          dout   => s_resendCnt);
 
-   U_reconCnt : entity work.SynchronizerFifo
+   U_reconCnt : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G,
@@ -396,7 +396,7 @@ begin
          rd_clk => axiClk_i,
          dout   => s_reconCnt);
 
-   U_SyncVecOut : entity work.SynchronizerVector
+   U_SyncVecOut : entity surf.SynchronizerVector
       generic map (
          TPD_G         => TPD_G,
          BYPASS_SYNC_G => COMMON_CLK_G,
@@ -410,7 +410,7 @@ begin
          dataOut(3) => dummyBit,        -- appRssiParam_o.chksumEn(0)
          dataOut(4) => injectFault_o);
 
-   U_initSeqN : entity work.SynchronizerVector
+   U_initSeqN : entity surf.SynchronizerVector
       generic map (
          TPD_G         => TPD_G,
          BYPASS_SYNC_G => COMMON_CLK_G,
