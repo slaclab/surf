@@ -77,101 +77,99 @@ use surf.AxiLitePkg.all;
 use surf.RssiPkg.all;
 
 entity RssiAxiLiteRegItf is
-generic (
-   -- General Configurations
-   TPD_G                : time            := 1 ns;
-   COMMON_CLK_G         : boolean         := false;  -- true if axiClk_i = devClk_i
-   SEGMENT_ADDR_SIZE_G  : positive        := 7;  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
-   -- Defaults form generics
-   TIMEOUT_UNIT_G   : real     := 1.0E-6;
-   INIT_SEQ_N_G     : natural  := 16#80#;
-   CONN_ID_G   : positive := 16#12345678#;
-   VERSION_G   : positive := 1;
-   HEADER_CHKSUM_EN_G : boolean  := true;
-   MAX_NUM_OUTS_SEG_G  : positive := 8; --   <=(2**WINDOW_ADDR_SIZE_G)
-   MAX_SEG_SIZE_G      : positive := 1024;  -- Number of bytes
-   RETRANS_TOUT_G        : positive := 50;  -- unit depends on TIMEOUT_UNIT_G  
-   ACK_TOUT_G            : positive := 25;  -- unit depends on TIMEOUT_UNIT_G  
-   NULL_TOUT_G           : positive := 200; -- unit depends on TIMEOUT_UNIT_G  
-   MAX_RETRANS_CNT_G     : positive := 2;
-   MAX_CUM_ACK_CNT_G     : positive := 3;
-   MAX_OUT_OF_SEQUENCE_G : natural  := 3);
-      
-port (
-   -- AXI Clk
-   axiClk_i : in sl;
-   axiRst_i : in sl;
+   generic (
+      -- General Configurations
+      TPD_G                 : time     := 1 ns;
+      COMMON_CLK_G          : boolean  := false;  -- true if axiClk_i = devClk_i
+      SEGMENT_ADDR_SIZE_G   : positive := 7;  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
+      -- Defaults form generics
+      TIMEOUT_UNIT_G        : real     := 1.0E-6;
+      INIT_SEQ_N_G          : natural  := 16#80#;
+      CONN_ID_G             : positive := 16#12345678#;
+      VERSION_G             : positive := 1;
+      HEADER_CHKSUM_EN_G    : boolean  := true;
+      MAX_NUM_OUTS_SEG_G    : positive := 8;  --   <=(2**WINDOW_ADDR_SIZE_G)
+      MAX_SEG_SIZE_G        : positive := 1024;   -- Number of bytes
+      RETRANS_TOUT_G        : positive := 50;  -- unit depends on TIMEOUT_UNIT_G  
+      ACK_TOUT_G            : positive := 25;  -- unit depends on TIMEOUT_UNIT_G  
+      NULL_TOUT_G           : positive := 200;  -- unit depends on TIMEOUT_UNIT_G  
+      MAX_RETRANS_CNT_G     : positive := 2;
+      MAX_CUM_ACK_CNT_G     : positive := 3;
+      MAX_OUT_OF_SEQUENCE_G : natural  := 3);
 
-   -- Axi-Lite Register Interface (locClk domain)
-   axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
-   axilReadSlave   : out AxiLiteReadSlaveType;
-   axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-   axilWriteSlave  : out AxiLiteWriteSlaveType;
+   port (
+      -- AXI Clk
+      axiClk_i : in sl;
+      axiRst_i : in sl;
 
-   -- Rssi Clk
-   devClk_i : in sl;
-   devRst_i : in sl;
+      -- Axi-Lite Register Interface (locClk domain)
+      axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteSlave  : out AxiLiteWriteSlaveType;
 
-   -- Registers
-   -- Control (RW)   
-   openRq_o       : out sl;
-   closeRq_o      : out sl;
-   mode_o         : out sl;
-   injectFault_o  : out sl;
-   
-   initSeqN_o     : out slv(7 downto 0);
-   appRssiParam_o : out RssiParamType;
-   
-   -- Status (RO)
-   frameRate_i    : in Slv32Array(1 downto 0);   
-   bandwidth_i    : in Slv64Array(1 downto 0);   
-   status_i       : in slv(6 downto 0);  
-   dropCnt_i      : in slv(31 downto 0);
-   validCnt_i     : in slv(31 downto 0);
-   resendCnt_i    : in slv(31 downto 0);
-   reconCnt_i     : in slv(31 downto 0)
-);   
+      -- Rssi Clk
+      devClk_i : in sl;
+      devRst_i : in sl;
+
+      -- Registers
+      -- Control (RW)   
+      openRq_o      : out sl;
+      closeRq_o     : out sl;
+      mode_o        : out sl;
+      injectFault_o : out sl;
+
+      initSeqN_o     : out slv(7 downto 0);
+      appRssiParam_o : out RssiParamType;
+      negRssiParam_i : in  RssiParamType;
+
+      -- Status (RO)
+      frameRate_i : in Slv32Array(1 downto 0);
+      bandwidth_i : in Slv64Array(1 downto 0);
+      status_i    : in slv(6 downto 0);
+      dropCnt_i   : in slv(31 downto 0);
+      validCnt_i  : in slv(31 downto 0);
+      resendCnt_i : in slv(31 downto 0);
+      reconCnt_i  : in slv(31 downto 0)
+      );
 end RssiAxiLiteRegItf;
 
 architecture rtl of RssiAxiLiteRegItf is
 
-  type RegType is record
-   -- Control (RW)
-   control       : slv(4 downto 0);
-   
-   -- Parameters (RW)  
-   initSeqN      : slv(7 downto 0);
-   version       : slv(3 downto 0);
-   maxOutsSeg    : slv(7 downto 0);       
-   maxSegSize    : slv(15 downto 0);
-   retransTout   : slv(15 downto 0);
-   cumulAckTout  : slv(15 downto 0);
-   nullSegTout   : slv(15 downto 0);      
-   maxRetrans    : slv(7 downto 0);
-   maxCumAck     : slv(7 downto 0);
-   maxOutofseq   : slv(7 downto 0);
-   connectionId  : slv(31 downto 0);
-   
-   -- AXI lite
-   axilReadSlave  : AxiLiteReadSlaveType;
-   axilWriteSlave : AxiLiteWriteSlaveType;
+   type RegType is record
+      -- Control (RW)
+      control : slv(4 downto 0);
+
+      -- Parameters (RW)  
+      initSeqN     : slv(7 downto 0);
+      appRssiParam : RssiParamType;
+
+      -- AXI lite
+      axilReadSlave  : AxiLiteReadSlaveType;
+      axilWriteSlave : AxiLiteWriteSlaveType;
    --
-  end record;
-  
+   end record;
+
    constant REG_INIT_C : RegType := (
-      control     => "01000",
-      initSeqN     => toSlv(INIT_SEQ_N_G, 8),
-      version      => toSlv(VERSION_G, 4),
-      maxOutsSeg   => toSlv(MAX_NUM_OUTS_SEG_G, 8),
-      maxSegSize   => toSlv(MAX_SEG_SIZE_G, 16),
-      retransTout  => toSlv(RETRANS_TOUT_G, 16),
-      cumulAckTout => toSlv(ACK_TOUT_G, 16),
-      nullSegTout  => toSlv(NULL_TOUT_G, 16),
-      maxRetrans   => toSlv(MAX_RETRANS_CNT_G, 8),
-      maxCumAck    => toSlv(MAX_CUM_ACK_CNT_G, 8),
-      maxOutofseq  => toSlv(MAX_OUT_OF_SEQUENCE_G, 8),
-      connectionId => toSlv(CONN_ID_G, 32),
-      
+      -- Control (RW)
+      control => "01000",
+
+      -- Parameters (RW)  
+      initSeqN        => toSlv(INIT_SEQ_N_G, 8),
+      appRssiParam    => (
+         version      => toSlv(VERSION_G, 4),
+         chksumEn     => "1",
+         timeoutUnit  => toSlv(integer(0.0 - (ieee.math_real.log(TIMEOUT_UNIT_G)/ieee.math_real.log(10.0))), 8),
+         maxOutsSeg   => toSlv(MAX_NUM_OUTS_SEG_G, 8),
+         maxSegSize   => toSlv(MAX_SEG_SIZE_G, 16),
+         retransTout  => toSlv(RETRANS_TOUT_G, 16),
+         cumulAckTout => toSlv(ACK_TOUT_G, 16),
+         nullSegTout  => toSlv(NULL_TOUT_G, 16),
+         maxRetrans   => toSlv(MAX_RETRANS_CNT_G, 8),
+         maxCumAck    => toSlv(MAX_CUM_ACK_CNT_G, 8),
+         maxOutofseq  => toSlv(MAX_OUT_OF_SEQUENCE_G, 8),
+         connectionId => toSlv(CONN_ID_G, 32)),
+
       -- AXI lite      
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
@@ -183,409 +181,261 @@ architecture rtl of RssiAxiLiteRegItf is
    signal s_RdAddr : natural := 0;
    signal s_WrAddr : natural := 0;
 
-  -- Synced status signals
-   signal s_status   : slv(status_i'range);  
-   signal s_dropCnt  : slv(31 downto 0);
-   signal s_validCnt : slv(31 downto 0);
-   signal s_reconCnt : slv(31 downto 0);
-   signal s_resendCnt: slv(31 downto 0);
-   
+   -- Synced status signals
+   signal s_status    : slv(status_i'range);
+   signal s_dropCnt   : slv(31 downto 0);
+   signal s_validCnt  : slv(31 downto 0);
+   signal s_reconCnt  : slv(31 downto 0);
+   signal s_resendCnt : slv(31 downto 0);
+
+   signal dummyBit     : sl;
+   signal negRssiParam : RssiParamType;
+
 begin
 
-  -- Convert address to integer (lower two bits of address are always '0')
-  s_RdAddr <= conv_integer(axilReadMaster.araddr(9 downto 2));
-  s_WrAddr <= conv_integer(axilWriteMaster.awaddr(9 downto 2));
+   -- Convert address to integer (lower two bits of address are always '0')
+   s_RdAddr <= conv_integer(axilReadMaster.araddr(9 downto 2));
+   s_WrAddr <= conv_integer(axilWriteMaster.awaddr(9 downto 2));
 
-   comb : process (axiRst_i, axilReadMaster, axilWriteMaster, bandwidth_i, frameRate_i, r, s_RdAddr,
-                   s_WrAddr, s_dropCnt, s_reconCnt, s_resendCnt, s_status, s_validCnt) is
+   comb : process (axiRst_i, axilReadMaster, axilWriteMaster, bandwidth_i,
+                   frameRate_i, negRssiParam, r, s_RdAddr, s_WrAddr, s_dropCnt,
+                   s_reconCnt, s_resendCnt, s_status, s_validCnt) is
       variable v             : RegType;
       variable axilStatus    : AxiLiteStatusType;
       variable axilWriteResp : slv(1 downto 0);
       variable axilReadResp  : slv(1 downto 0);
    begin
-    -- Latch the current value
-    v := r;
+      -- Latch the current value
+      v := r;
 
-    ----------------------------------------------------------------------------------------------
-    -- Axi-Lite interface
-    ----------------------------------------------------------------------------------------------
-    axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
+      ----------------------------------------------------------------------------------------------
+      -- Axi-Lite interface
+      ----------------------------------------------------------------------------------------------
+      axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
 
-    if (axilStatus.writeEnable = '1') then
-      axilWriteResp := ite(axilWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
-      case (s_WrAddr) is
-        when 16#00# =>                  -- ADDR (0)
-          v.control     := axilWriteMaster.wdata(4 downto 0);
-        when 16#01# =>                  -- ADDR (4)
-          v.initSeqN    := axilWriteMaster.wdata(7 downto 0);
-        when 16#02# =>                  -- ADDR (8)
-          v.version     := axilWriteMaster.wdata(3 downto 0);
-        when 16#03# =>                  -- ADDR (12)
-          v.maxOutsSeg  := axilWriteMaster.wdata(7 downto 0);
-        when 16#04# =>                  -- ADDR (16)
-          v.maxSegSize  := axilWriteMaster.wdata(15 downto 0);
-          if (unsigned(v.maxSegSize) < 8) then
-             v.maxSegSize := toSlv( 8, v.maxSegSize'length);
-          elsif (unsigned(v.maxSegSize) > (2**SEGMENT_ADDR_SIZE_G)*8 ) then
-             v.maxSegSize := toSlv( (2**SEGMENT_ADDR_SIZE_G)*8, v.maxSegSize'length );
-          end if;
-        when 16#05# =>                  
-          v.retransTout := axilWriteMaster.wdata(15 downto 0);
-        when 16#06# =>                  
-          v.cumulAckTout:= axilWriteMaster.wdata(15 downto 0);
-        when 16#07# =>                  
-          v.nullSegTout := axilWriteMaster.wdata(15 downto 0);
-        when 16#08# =>                  
-          v.maxRetrans  := axilWriteMaster.wdata(7 downto 0);
-        when 16#09# =>                  
-          v.maxCumAck   := axilWriteMaster.wdata(7 downto 0);
-        when 16#0A# =>                  
-          v.maxOutofseq := axilWriteMaster.wdata(7 downto 0);
-        when 16#0B# =>                  
-          v.connectionId:= axilWriteMaster.wdata(31 downto 0);
-        when others =>
-          axilWriteResp := AXI_RESP_DECERR_C;
-      end case;
-      axiSlaveWriteResponse(v.axilWriteSlave);
-    end if;
+      if (axilStatus.writeEnable = '1') then
+         axilWriteResp := ite(axilWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
+         case (s_WrAddr) is
+            when 16#00# =>              -- ADDR (0)
+               v.control := axilWriteMaster.wdata(4 downto 0);
+            when 16#01# =>              -- ADDR (4)
+               v.initSeqN := axilWriteMaster.wdata(7 downto 0);
+            when 16#02# =>              -- ADDR (8)
+               v.appRssiParam.version := axilWriteMaster.wdata(3 downto 0);
+            when 16#03# =>              -- ADDR (12)
+               v.appRssiParam.maxOutsSeg := axilWriteMaster.wdata(7 downto 0);
+            when 16#04# =>              -- ADDR (16)
+               v.appRssiParam.maxSegSize := axilWriteMaster.wdata(15 downto 0);
+               if (unsigned(v.appRssiParam.maxSegSize) < 8) then
+                  v.appRssiParam.maxSegSize := toSlv(8, v.appRssiParam.maxSegSize'length);
+               elsif (unsigned(v.appRssiParam.maxSegSize) > (2**SEGMENT_ADDR_SIZE_G)*8) then
+                  v.appRssiParam.maxSegSize := toSlv((2**SEGMENT_ADDR_SIZE_G)*8, v.appRssiParam.maxSegSize'length);
+               end if;
+            when 16#05# =>
+               v.appRssiParam.retransTout := axilWriteMaster.wdata(15 downto 0);
+            when 16#06# =>
+               v.appRssiParam.cumulAckTout := axilWriteMaster.wdata(15 downto 0);
+            when 16#07# =>
+               v.appRssiParam.nullSegTout := axilWriteMaster.wdata(15 downto 0);
+            when 16#08# =>
+               v.appRssiParam.maxRetrans := axilWriteMaster.wdata(7 downto 0);
+            when 16#09# =>
+               v.appRssiParam.maxCumAck := axilWriteMaster.wdata(7 downto 0);
+            when 16#0A# =>
+               v.appRssiParam.maxOutofseq := axilWriteMaster.wdata(7 downto 0);
+            when 16#0B# =>
+               v.appRssiParam.connectionId := axilWriteMaster.wdata(31 downto 0);
+            when others =>
+               axilWriteResp := AXI_RESP_DECERR_C;
+         end case;
+         axiSlaveWriteResponse(v.axilWriteSlave);
+      end if;
 
-    if (axilStatus.readEnable = '1') then
-      axilReadResp          := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
-      v.axilReadSlave.rdata := (others => '0');
-      case (s_RdAddr) is
-        when 16#00# =>                  -- ADDR (0)
-          v.axilReadSlave.rdata(4 downto 0) := r.control;
-        when 16#01# =>                  -- ADDR (4)
-          v.axilReadSlave.rdata(7 downto 0) := r.initSeqN;
-        when 16#02# =>                  -- ADDR (8)
-          v.axilReadSlave.rdata(3 downto 0) := r.version;
-        when 16#03# =>                  -- ADDR (12)
-          v.axilReadSlave.rdata(7 downto 0) := r.maxOutsSeg;
-        when 16#04# =>                  -- ADDR (16)
-          v.axilReadSlave.rdata(15 downto 0) := r.maxSegSize;
-        when 16#05# =>                  -- ADDR (20)
-          v.axilReadSlave.rdata(15 downto 0) := r.retransTout;
-        when 16#06# =>                  -- ADDR (24)
-          v.axilReadSlave.rdata(15 downto 0) := r.cumulAckTout;
-        when 16#07# =>                  -- ADDR (28)
-          v.axilReadSlave.rdata(15 downto 0) := r.nullSegTout;
-        when 16#08# =>                  -- ADDR (32)
-          v.axilReadSlave.rdata(7 downto 0) := r.maxRetrans;
-        when 16#09# =>                  -- ADDR (36)
-          v.axilReadSlave.rdata(7 downto 0) := r.maxCumAck;
-        when 16#0A# =>                  -- ADDR (40)
-          v.axilReadSlave.rdata(7 downto 0) := r.maxOutofseq;
-        when 16#0B# =>                  -- ADDR (44)
-          v.axilReadSlave.rdata(31 downto 0) := r.connectionId;
-        when 16#10# =>                  -- ADDR (64)
-          v.axilReadSlave.rdata(status_i'range)  := s_status;
-        when 16#11# =>                  -- ADDR (68)
-          v.axilReadSlave.rdata(31 downto 0) := s_validCnt;          
-        when 16#12# =>                  -- ADDR (72)
-          v.axilReadSlave.rdata(31 downto 0) := s_dropCnt;
-        when 16#13# =>                  -- ADDR (76)
-          v.axilReadSlave.rdata(31 downto 0) := s_resendCnt;          
-        when 16#14# =>                  -- ADDR (80)
-          v.axilReadSlave.rdata(31 downto 0) := s_reconCnt;  
-        when 16#15# =>                  
-          v.axilReadSlave.rdata(31 downto 0) := frameRate_i(0);  
-        when 16#16# =>                  
-          v.axilReadSlave.rdata(31 downto 0) := frameRate_i(1);
-        when 16#17# =>                  
-          v.axilReadSlave.rdata(31 downto 0) := bandwidth_i(0)(31 downto 0);  
-        when 16#18# =>                  
-          v.axilReadSlave.rdata(31 downto 0) := bandwidth_i(0)(63 downto 32);    
-        when 16#19# =>                  
-          v.axilReadSlave.rdata(31 downto 0) := bandwidth_i(1)(31 downto 0);  
-        when 16#20# =>                  
-          v.axilReadSlave.rdata(31 downto 0) := bandwidth_i(1)(63 downto 32);              
-        when others =>
-          axilReadResp := AXI_RESP_DECERR_C;
-      end case;
-      axiSlaveReadResponse(v.axilReadSlave);
-    end if;
+      if (axilStatus.readEnable = '1') then
+         axilReadResp          := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
+         v.axilReadSlave.rdata := (others => '0');
+         case (s_RdAddr) is
+            when 16#00# =>              -- ADDR (0)
+               v.axilReadSlave.rdata(4 downto 0) := r.control;
+            when 16#01# =>              -- ADDR (4)
+               v.axilReadSlave.rdata(7 downto 0) := r.initSeqN;
+            when 16#02# =>              -- ADDR (8)
+               v.axilReadSlave.rdata(3 downto 0)   := r.appRssiParam.version;
+               v.axilReadSlave.rdata(19 downto 16) := negRssiParam.version;
+            when 16#03# =>              -- ADDR (12)
+               v.axilReadSlave.rdata(7 downto 0)   := r.appRssiParam.maxOutsSeg;
+               v.axilReadSlave.rdata(23 downto 16) := negRssiParam.maxOutsSeg;
+            when 16#04# =>              -- ADDR (16)
+               v.axilReadSlave.rdata(15 downto 0)  := r.appRssiParam.maxSegSize;
+               v.axilReadSlave.rdata(31 downto 16) := negRssiParam.maxSegSize;
+            when 16#05# =>              -- ADDR (20)
+               v.axilReadSlave.rdata(15 downto 0)  := r.appRssiParam.retransTout;
+               v.axilReadSlave.rdata(31 downto 16) := negRssiParam.retransTout;
+            when 16#06# =>              -- ADDR (24)
+               v.axilReadSlave.rdata(15 downto 0)  := r.appRssiParam.cumulAckTout;
+               v.axilReadSlave.rdata(31 downto 16) := negRssiParam.cumulAckTout;
+            when 16#07# =>              -- ADDR (28)
+               v.axilReadSlave.rdata(15 downto 0)  := r.appRssiParam.nullSegTout;
+               v.axilReadSlave.rdata(31 downto 16) := negRssiParam.nullSegTout;
+            when 16#08# =>              -- ADDR (32)
+               v.axilReadSlave.rdata(7 downto 0)   := r.appRssiParam.maxRetrans;
+               v.axilReadSlave.rdata(23 downto 16) := negRssiParam.maxRetrans;
+            when 16#09# =>              -- ADDR (36)
+               v.axilReadSlave.rdata(7 downto 0)   := r.appRssiParam.maxCumAck;
+               v.axilReadSlave.rdata(23 downto 16) := negRssiParam.maxCumAck;
+            when 16#0A# =>              -- ADDR (40)
+               v.axilReadSlave.rdata(7 downto 0)   := r.appRssiParam.maxOutofseq;
+               v.axilReadSlave.rdata(23 downto 16) := negRssiParam.maxOutofseq;
+            when 16#0B# =>              -- ADDR (44)
+               v.axilReadSlave.rdata(31 downto 0) := r.appRssiParam.connectionId;
+            when 16#0C# =>              -- ADDR (48)
+               v.axilReadSlave.rdata(31 downto 0) := negRssiParam.connectionId;
+            when 16#10# =>              -- ADDR (64)
+               v.axilReadSlave.rdata(status_i'range) := s_status;
+            when 16#11# =>              -- ADDR (68)
+               v.axilReadSlave.rdata(31 downto 0) := s_validCnt;
+            when 16#12# =>              -- ADDR (72)
+               v.axilReadSlave.rdata(31 downto 0) := s_dropCnt;
+            when 16#13# =>              -- ADDR (76)
+               v.axilReadSlave.rdata(31 downto 0) := s_resendCnt;
+            when 16#14# =>              -- ADDR (80)
+               v.axilReadSlave.rdata(31 downto 0) := s_reconCnt;
+            when 16#15# =>
+               v.axilReadSlave.rdata(31 downto 0) := frameRate_i(0);
+            when 16#16# =>
+               v.axilReadSlave.rdata(31 downto 0) := frameRate_i(1);
+            when 16#17# =>
+               v.axilReadSlave.rdata(31 downto 0) := bandwidth_i(0)(31 downto 0);
+            when 16#18# =>
+               v.axilReadSlave.rdata(31 downto 0) := bandwidth_i(0)(63 downto 32);
+            when 16#19# =>
+               v.axilReadSlave.rdata(31 downto 0) := bandwidth_i(1)(31 downto 0);
+            when 16#20# =>
+               v.axilReadSlave.rdata(31 downto 0) := bandwidth_i(1)(63 downto 32);
+            when others =>
+               axilReadResp := AXI_RESP_DECERR_C;
+         end case;
+         axiSlaveReadResponse(v.axilReadSlave);
+      end if;
 
-    -- Reset
-    if (axiRst_i = '1') then
-      v := REG_INIT_C;
-    end if;
+      -- Map to chksumEn
+      v.appRssiParam.chksumEn(0) := v.control(3);
 
-    -- Register the variable for next clock cycle
-    rin <= v;
+      -- Outputs
+      axilReadSlave  <= r.axilReadSlave;
+      axilWriteSlave <= r.axilWriteSlave;
 
-    -- Outputs
-    axilReadSlave  <= r.axilReadSlave;
-    axilWriteSlave <= r.axilWriteSlave;
-    
-  end process comb;
+      -- Reset
+      if (axiRst_i = '1') then
+         v := REG_INIT_C;
+      end if;
 
-  seq : process (axiClk_i) is
-  begin
-    if rising_edge(axiClk_i) then
-      r <= rin after TPD_G;
-    end if;
-  end process seq; 
+      -- Register the variable for next clock cycle
+      rin <= v;
 
-   -- Input assignment and synchronization
-   SyncFifo_IN0 : entity surf.SynchronizerFifo
-   generic map (
-      TPD_G        => TPD_G,
-      COMMON_CLK_G => COMMON_CLK_G,
-      DATA_WIDTH_G => status_i'length
-   )
-   port map (
-      wr_clk => devClk_i,
-      din    => status_i,
-      rd_clk => axiClk_i,
-      dout   => s_status
-   );
+   end process comb;
 
-   SyncFifo_IN1 : entity surf.SynchronizerFifo
-   generic map (
-      TPD_G        => TPD_G,
-      COMMON_CLK_G => COMMON_CLK_G,
-      DATA_WIDTH_G => validCnt_i'length
-   )
-   port map (
-      wr_clk => devClk_i,
-      din    => validCnt_i,
-      rd_clk => axiClk_i,
-      dout   => s_validCnt
-   );   
-   
-   SyncFifo_IN2 : entity surf.SynchronizerFifo
-   generic map (
-      TPD_G        => TPD_G,
-      COMMON_CLK_G => COMMON_CLK_G,
-      DATA_WIDTH_G => dropCnt_i'length
-   )
-   port map (
-      wr_clk => devClk_i,
-      din    => dropCnt_i,
-      rd_clk => axiClk_i,
-      dout   => s_dropCnt
-   );
-  
-   SyncFifo_IN3 : entity surf.SynchronizerFifo
-   generic map (
-      TPD_G        => TPD_G,
-      COMMON_CLK_G => COMMON_CLK_G,
-      DATA_WIDTH_G => resendCnt_i'length
-   )
-   port map (
-      wr_clk => devClk_i,
-      din    => resendCnt_i,
-      rd_clk => axiClk_i,
-      dout   => s_resendCnt
-   );   
-   
-   SyncFifo_IN4 : entity surf.SynchronizerFifo
-   generic map (
-      TPD_G        => TPD_G,
-      COMMON_CLK_G => COMMON_CLK_G,
-      DATA_WIDTH_G => reconCnt_i'length
-   )
-   port map (
-      wr_clk => devClk_i,
-      din    => reconCnt_i,
-      rd_clk => axiClk_i,
-      dout   => s_reconCnt
-   );
+   seq : process (axiClk_i) is
+   begin
+      if rising_edge(axiClk_i) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;
 
-  -- Output assignment and synchronization
-  Sync_OUT0 : entity surf.Synchronizer
-   generic map (
-      TPD_G         => TPD_G,
-      BYPASS_SYNC_G => COMMON_CLK_G)
-   port map (
-      dataIn    => r.control(0),
-      clk       => devClk_i,
-      dataOut   => openRq_o
-   );
-   
-   Sync_OUT1 : entity surf.Synchronizer
-   generic map (
-      TPD_G         => TPD_G,
-      BYPASS_SYNC_G => COMMON_CLK_G)
-    port map (
-      dataIn    => r.control(1),
-      clk       => devClk_i,
-      dataOut   => closeRq_o
-   );
-   
-   Sync_OUT2 : entity surf.Synchronizer
-   generic map (
-      TPD_G         => TPD_G,
-      BYPASS_SYNC_G => COMMON_CLK_G)
-    port map (
-      dataIn    => r.control(2),
-      clk       => devClk_i,
-      dataOut   => mode_o
-   );
-   
-   Sync_OUT3 : entity surf.Synchronizer
-   generic map (
-      TPD_G         => TPD_G,
-      BYPASS_SYNC_G => COMMON_CLK_G)
-    port map (
-      dataIn    => r.control(3),
-      clk       => devClk_i,
-      dataOut   => appRssiParam_o.chksumEn(0)
-   );
-   
-   Sync_OUT4 : entity surf.Synchronizer
-   generic map (
-      TPD_G         => TPD_G,
-      BYPASS_SYNC_G => COMMON_CLK_G)
-    port map (
-      dataIn    => r.control(4),
-      clk       => devClk_i,
-      dataOut   => injectFault_o
-   );
-   
-   SyncFifo_OUT5 : entity surf.SynchronizerFifo
-   generic map (
-      TPD_G        => TPD_G,
-      COMMON_CLK_G => COMMON_CLK_G,
-      DATA_WIDTH_G => 8
-   )
-   port map (
-      wr_clk => axiClk_i,
-      din    => r.initSeqN,
-      rd_clk => devClk_i,
-      dout   => initSeqN_o
-   );
-   
-   SyncFifo_OUT6 : entity surf.SynchronizerFifo
-   generic map (
-      TPD_G        => TPD_G,
-      COMMON_CLK_G => COMMON_CLK_G,
-      DATA_WIDTH_G => 4
-   )
-   port map (
-      wr_clk => axiClk_i,
-      din    => r.version,
-      rd_clk => devClk_i,
-      dout   => appRssiParam_o.version
-   );
-   
-   SyncFifo_OUT7 : entity surf.SynchronizerFifo
-   generic map (
-      TPD_G        => TPD_G,
-      COMMON_CLK_G => COMMON_CLK_G,
-      DATA_WIDTH_G => 8
-   )
-   port map (
-      wr_clk => axiClk_i,
-      din    => r.maxOutsSeg,
-      rd_clk => devClk_i,
-      dout   => appRssiParam_o.maxOutsSeg
-   );
-   
-   SyncFifo_OUT8 : entity surf.SynchronizerFifo
-   generic map (
-      TPD_G        => TPD_G,
-      COMMON_CLK_G => COMMON_CLK_G,
-      DATA_WIDTH_G => 16
-   )
-   port map (
-      wr_clk => axiClk_i,
-      din    => r.maxSegSize,
-      rd_clk => devClk_i,
-      dout   => appRssiParam_o.maxSegSize
-   );
-   
-   SyncFifo_OUT9 : entity surf.SynchronizerFifo
-   generic map (
-      TPD_G        => TPD_G,
-      COMMON_CLK_G => COMMON_CLK_G,
-      DATA_WIDTH_G => 16
-   )
-   port map (
-      wr_clk => axiClk_i,
-      din    => r.retransTout,
-      rd_clk => devClk_i,
-      dout   => appRssiParam_o.retransTout
-   );
-   
-   SyncFifo_OUT10 : entity surf.SynchronizerFifo
-   generic map (
-      TPD_G        => TPD_G,
-      COMMON_CLK_G => COMMON_CLK_G,
-      DATA_WIDTH_G => 16
-   )
-   port map (
-      wr_clk => axiClk_i,
-      din    => r.cumulAckTout,
-      rd_clk => devClk_i,
-      dout   => appRssiParam_o.cumulAckTout
-   );
-   
-   SyncFifo_OUT11 : entity surf.SynchronizerFifo
-   generic map (
-      TPD_G        => TPD_G,
-      COMMON_CLK_G => COMMON_CLK_G,
-      DATA_WIDTH_G => 16
-   )
-   port map (
-      wr_clk => axiClk_i,
-      din    => r.nullSegTout,
-      rd_clk => devClk_i,
-      dout   => appRssiParam_o.nullSegTout
-   );
-   
-   SyncFifo_OUT12 : entity surf.SynchronizerFifo
-   generic map (
-      TPD_G        => TPD_G,
-      COMMON_CLK_G => COMMON_CLK_G,
-      DATA_WIDTH_G => 8
-   )
-   port map (
-      wr_clk => axiClk_i,
-      din    => r.maxRetrans,
-      rd_clk => devClk_i,
-      dout   => appRssiParam_o.maxRetrans
-   );
-   
-   SyncFifo_OUT13 : entity surf.SynchronizerFifo
-   generic map (
-      TPD_G        => TPD_G,
-      COMMON_CLK_G => COMMON_CLK_G,
-      DATA_WIDTH_G => 8
-   )
-   port map (
-      wr_clk => axiClk_i,
-      din    => r.maxCumAck,
-      rd_clk => devClk_i,
-      dout   => appRssiParam_o.maxCumAck
-   );
-   
-   SyncFifo_OUT14 : entity surf.SynchronizerFifo
-   generic map (
-      TPD_G        => TPD_G,
-      COMMON_CLK_G => COMMON_CLK_G,
-      DATA_WIDTH_G => 8
-   )
-   port map (
-      wr_clk => axiClk_i,
-      din    => r.maxOutofseq,
-      rd_clk => devClk_i,
-      dout   => appRssiParam_o.maxOutofseq
-   );
-    
-   SyncFifo_OUT15 : entity surf.SynchronizerFifo
-   generic map (
-      TPD_G        => TPD_G,
-      COMMON_CLK_G => COMMON_CLK_G,
-      DATA_WIDTH_G => 32
-   )
-   port map (
-      wr_clk => axiClk_i,
-      din    => r.connectionId,
-      rd_clk => devClk_i,
-      dout   => appRssiParam_o.connectionId
-   );
-   
-   appRssiParam_o.timeoutUnit <= toSlv(integer(0.0 - (ieee.math_real.log(TIMEOUT_UNIT_G)/ieee.math_real.log(10.0))), 8); 
----------------------------------------------------------------------
+   U_status : entity work.SynchronizerVector
+      generic map (
+         TPD_G         => TPD_G,
+         BYPASS_SYNC_G => COMMON_CLK_G,
+         WIDTH_G       => status_i'length)
+      port map (
+         clk     => devClk_i,
+         dataIn  => status_i,
+         dataOut => s_status);
+
+   U_validCnt : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         COMMON_CLK_G => COMMON_CLK_G,
+         DATA_WIDTH_G => validCnt_i'length)
+      port map (
+         wr_clk => devClk_i,
+         din    => validCnt_i,
+         rd_clk => axiClk_i,
+         dout   => s_validCnt);
+
+   U_dropCnt : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         COMMON_CLK_G => COMMON_CLK_G,
+         DATA_WIDTH_G => dropCnt_i'length)
+      port map (
+         wr_clk => devClk_i,
+         din    => dropCnt_i,
+         rd_clk => axiClk_i,
+         dout   => s_dropCnt);
+
+   U_resendCnt : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         COMMON_CLK_G => COMMON_CLK_G,
+         DATA_WIDTH_G => resendCnt_i'length)
+      port map (
+         wr_clk => devClk_i,
+         din    => resendCnt_i,
+         rd_clk => axiClk_i,
+         dout   => s_resendCnt);
+
+   U_reconCnt : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         COMMON_CLK_G => COMMON_CLK_G,
+         DATA_WIDTH_G => reconCnt_i'length)
+      port map (
+         wr_clk => devClk_i,
+         din    => reconCnt_i,
+         rd_clk => axiClk_i,
+         dout   => s_reconCnt);
+
+   U_SyncVecOut : entity work.SynchronizerVector
+      generic map (
+         TPD_G         => TPD_G,
+         BYPASS_SYNC_G => COMMON_CLK_G,
+         WIDTH_G       => 5)
+      port map (
+         clk        => devClk_i,
+         dataIn     => r.control,
+         dataOut(0) => openRq_o,
+         dataOut(1) => closeRq_o,
+         dataOut(2) => mode_o,
+         dataOut(3) => dummyBit,        -- appRssiParam_o.chksumEn(0)
+         dataOut(4) => injectFault_o);
+
+   U_initSeqN : entity work.SynchronizerVector
+      generic map (
+         TPD_G         => TPD_G,
+         BYPASS_SYNC_G => COMMON_CLK_G,
+         WIDTH_G       => 8)
+      port map (
+         clk     => devClk_i,
+         dataIn  => r.initSeqN,
+         dataOut => initSeqN_o);
+
+   U_RssiParamSync_In : entity surf.RssiParamSync
+      generic map (
+         TPD_G        => TPD_G,
+         COMMON_CLK_G => COMMON_CLK_G)
+      port map (
+         clk         => devClk_i,
+         rssiParam_i => negRssiParam_i,
+         rssiParam_o => negRssiParam);
+
+   U_RssiParamSync_Out : entity surf.RssiParamSync
+      generic map (
+         TPD_G        => TPD_G,
+         COMMON_CLK_G => COMMON_CLK_G)
+      port map (
+         clk         => devClk_i,
+         rssiParam_i => r.appRssiParam,
+         rssiParam_o => appRssiParam_o);
+
 end rtl;
