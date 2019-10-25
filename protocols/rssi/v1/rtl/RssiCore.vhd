@@ -328,6 +328,7 @@ begin
          mode_o         => s_modeReg,
          initSeqN_o     => s_initSeqNReg,
          appRssiParam_o => s_appRssiParamReg,
+         negRssiParam_i => s_rssiParam,
          injectFault_o  => s_injectFaultReg,
 
          -- Status (RO)
