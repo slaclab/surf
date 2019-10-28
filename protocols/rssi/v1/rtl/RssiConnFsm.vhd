@@ -236,21 +236,28 @@ begin
                   rxRssiParam_i.chksumEn   = appRssiParam_i.chksumEn     and -- Checksum match
                   rxRssiParam_i.timeoutUnit= appRssiParam_i.timeoutUnit      -- Timeout unit match
                ) then
-                  -- Accept the parameters from the server
-                  v.rssiParam := rxRssiParam_i;
-                  v.txBufferSize := conv_integer(rxRssiParam_i.maxSegSize(15 downto 3)); -- Divide by 8
-                  v.txWindowSize := conv_integer(rxRssiParam_i.maxOutsSeg);
                   
-                  -- Check the sizes and saturate to MAX if bigger
-                  if(rxRssiParam_i.maxOutsSeg > (2**WINDOW_ADDR_SIZE_G)) then   -- Number of segments in a window
-                     v.rssiParam.maxOutsSeg  := toSlv((2**WINDOW_ADDR_SIZE_G), v.rssiParam.maxOutsSeg'length);
-                     v.txWindowSize          := (2**WINDOW_ADDR_SIZE_G);                     
+                  -- Accept the parameters from the server
+                  v.rssiParam    := rxRssiParam_i;
+
+                  -- Autoneg the maxOutsSeg
+                  if (rxRssiParam_i.maxOutsSeg > appRssiParam_i.maxOutsSeg) then
+                     v.txWindowSize         := conv_integer(appRssiParam_i.maxOutsSeg);
+                     v.rssiParam.maxOutsSeg := appRssiParam_i.maxOutsSeg;
+                  else
+                     v.txWindowSize         := conv_integer(rxRssiParam_i.maxOutsSeg);
+                     v.rssiParam.maxOutsSeg := rxRssiParam_i.maxOutsSeg;
                   end if;                 
 
-                  if(rxRssiParam_i.maxSegSize > (2**SEGMENT_ADDR_SIZE_G)*8) then -- Number of bytes in a segment
-                     v.rssiParam.maxSegSize  := toSlv((2**SEGMENT_ADDR_SIZE_G)*8, v.rssiParam.maxSegSize'length);
-                     v.txBufferSize := (2**SEGMENT_ADDR_SIZE_G); -- Divide by 8                     
+                  -- Autoneg the maxSegSize
+                  if (rxRssiParam_i.maxSegSize > appRssiParam_i.maxSegSize) then
+                     v.txBufferSize         := conv_integer(appRssiParam_i.maxSegSize(15 downto 3)); -- Divide by 8
+                     v.rssiParam.maxSegSize := appRssiParam_i.maxSegSize;
+                  else
+                     v.txBufferSize         := conv_integer(rxRssiParam_i.maxSegSize(15 downto 3)); -- Divide by 8
+                     v.rssiParam.maxSegSize := rxRssiParam_i.maxSegSize;
                   end if;                  
+                
                   --
                   v.state := SEND_ACK_S;
                else
@@ -310,21 +317,26 @@ begin
             v.timeoutCntr  :=  0;            
             -- 
             if (rxValid_i = '1' and rxFlags_i.syn = '1') then
+
                -- Accept the parameters from the client                
                v.rssiParam    := rxRssiParam_i;
-               v.txWindowSize := conv_integer(rxRssiParam_i.maxOutsSeg);
-               v.txBufferSize := conv_integer(rxRssiParam_i.maxSegSize(15 downto 3)); -- Divide by 8
-               -- Set the receiver side information to be sent
-               v.rssiParam.maxOutsSeg  := appRssiParam_i.maxOutsSeg;
-               v.rssiParam.maxSegSize  := appRssiParam_i.maxSegSize;
 
-               -- Check the sizes and saturate to MAX if bigger
-               if(rxRssiParam_i.maxOutsSeg > (2**WINDOW_ADDR_SIZE_G)) then   -- Number of segments in a window
-                  v.txWindowSize          := (2**WINDOW_ADDR_SIZE_G);                     
+               -- Autoneg the maxOutsSeg
+               if (rxRssiParam_i.maxOutsSeg > appRssiParam_i.maxOutsSeg) then
+                  v.txWindowSize         := conv_integer(appRssiParam_i.maxOutsSeg);
+                  v.rssiParam.maxOutsSeg := appRssiParam_i.maxOutsSeg;
+               else
+                  v.txWindowSize         := conv_integer(rxRssiParam_i.maxOutsSeg);
+                  v.rssiParam.maxOutsSeg := rxRssiParam_i.maxOutsSeg;
                end if;                 
 
-               if(rxRssiParam_i.maxSegSize > (2**SEGMENT_ADDR_SIZE_G)*8) then -- Number of bytes in a segment
-                  v.txBufferSize := (2**SEGMENT_ADDR_SIZE_G); -- Divide by 8                     
+               -- Autoneg the maxSegSize
+               if (rxRssiParam_i.maxSegSize > appRssiParam_i.maxSegSize) then
+                  v.txBufferSize         := conv_integer(appRssiParam_i.maxSegSize(15 downto 3)); -- Divide by 8
+                  v.rssiParam.maxSegSize := appRssiParam_i.maxSegSize;
+               else
+                  v.txBufferSize         := conv_integer(rxRssiParam_i.maxSegSize(15 downto 3)); -- Divide by 8
+                  v.rssiParam.maxSegSize := rxRssiParam_i.maxSegSize;
                end if;
 
                --
