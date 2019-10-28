@@ -27,9 +27,9 @@ entity DualPortRam is
       TPD_G          : time                       := 1 ns;
       RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low      
       BRAM_EN_G      : boolean                    := true;
-      REG_EN_G       : boolean                    := true;
-      DOA_REG_G      : boolean                    := false;
-      DOB_REG_G      : boolean                    := false;
+      REG_EN_G       : boolean                    := true;   -- This generic only with BRAM
+      DOA_REG_G      : boolean                    := false;  -- This generic only with BRAM
+      DOB_REG_G      : boolean                    := false;  -- This generic only with LUTRAM
       MODE_G         : string                     := "read-first";
       BYTE_WR_EN_G   : boolean                    := false;
       DATA_WIDTH_G   : integer range 1 to (2**24) := 16;
