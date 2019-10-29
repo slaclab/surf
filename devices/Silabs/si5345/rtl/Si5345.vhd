@@ -120,6 +120,8 @@ begin
             DATA_WIDTH_G        => 20,
             ADDR_WIDTH_G        => 10)
          port map (
+            -- Port A
+            clka  => axiClk,
             -- Port B
             clkb  => axiClk,
             addrb => r.ramAddr,
