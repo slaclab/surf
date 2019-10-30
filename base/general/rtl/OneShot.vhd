@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : ProgOneShot.vhd
+-- File       : OneShot.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Programmable One-Shot Module
@@ -20,7 +20,7 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 
-entity ProgOneShot is
+entity OneShot is
    generic (
       TPD_G             : time     := 1 ns;  -- Simulation FF output delay
       RST_POLARITY_G    : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
@@ -33,9 +33,9 @@ entity ProgOneShot is
       pulseWidth : in  slv(PULSE_BIT_WIDTH_G-1 downto 0);  -- Pulse width configuration (zero inclusive)
       trigIn     : in  sl;              -- Trigger Input
       pulseOut   : out sl);             -- One-shot pulse Output
-end ProgOneShot;
+end OneShot;
 
-architecture rtl of ProgOneShot is
+architecture rtl of OneShot is
 
    type StateType is (
       IDLE_S,
