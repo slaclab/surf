@@ -23,10 +23,10 @@ parser = argparse.ArgumentParser()
 
 # Add arguments
 parser.add_argument(
-    "--cvsFile", 
+    "--csvFile", 
     type     = str,
     required = True,
-    help     = "path to input ClockBuilder Pro .cvs file",
+    help     = "path to input ClockBuilder Pro .csv file",
 ) 
 
 # Add arguments
@@ -53,7 +53,7 @@ ofd.write('001E' + '01' + ',')
 cnt = cnt + 1
 
 # Open the .CSV file
-with open(args.cvsFile) as csvfile:
+with open(args.csvFile) as csvfile:
     reader = csv.reader(csvfile, delimiter=',', quoting=csv.QUOTE_NONE) 
     
     # Loop through the rows in the CSV file
