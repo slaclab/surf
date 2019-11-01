@@ -71,6 +71,8 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 use IEEE.NUMERIC_STD.all;
 
+library surf;   
+
 entity Gtx7TxRst is
    generic(
       TPD_G                  : time                  := 1 ns;
