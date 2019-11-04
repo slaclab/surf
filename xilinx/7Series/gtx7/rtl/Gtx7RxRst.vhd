@@ -72,6 +72,8 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
+library surf;
+
 entity Gtx7RxRst is
    generic(
       TPD_G                  : time                  := 1 ns;
