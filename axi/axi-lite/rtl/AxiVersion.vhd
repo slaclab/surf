@@ -71,8 +71,8 @@ architecture rtl of AxiVersion is
    constant TIMEOUT_1HZ_C  : natural          := (getTimeRatio(1.0, CLK_PERIOD_G) -1);
    constant COUNTER_ZERO_C : slv(31 downto 0) := X"00000000";
 
-   constant BUILD_INFO_C       : BuildInfoRetType    := toBuildInfo(BUILD_INFO_C);
-   constant BUILD_STRING_ROM_C : Slv32Array(0 to 63) := BUILD_INFO_C.buildString;
+   constant BUILD_FULL_INFO_C  : BuildInfoRetType    := toBuildInfo(BUILD_INFO_C);
+   constant BUILD_STRING_ROM_C : Slv32Array(0 to 63) := BUILD_FULL_INFO_C.buildString;
 
    type RegType is record
       upTimeCnt      : slv(31 downto 0);
@@ -174,7 +174,7 @@ begin
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave);
 
-      axiSlaveRegisterR(axilEp, x"000", 0, BUILD_INFO_C.fwVersion);
+      axiSlaveRegisterR(axilEp, x"000", 0, BUILD_FULL_INFO_C.fwVersion);
       axiSlaveRegister(axilEp, x"004", 0, v.scratchPad);
       axiSlaveRegisterR(axilEp, x"008", 0, r.upTimeCnt);
 
@@ -187,7 +187,7 @@ begin
       axiSlaveRegisterR(axilEp, x"400", userValues);
       axiSlaveRegisterR(axilEp, x"500", 0, DEVICE_ID_G);
 
-      axiSlaveRegisterR(axilEp, x"600", 0, BUILD_INFO_C.gitHash);
+      axiSlaveRegisterR(axilEp, x"600", 0, BUILD_FULL_INFO_C.gitHash);
 
       axiSlaveRegisterR(axilEp, x"700", 0, dnaValue);
       axiSlaveRegisterR(axilEp, x"800", BUILD_STRING_ROM_C);
