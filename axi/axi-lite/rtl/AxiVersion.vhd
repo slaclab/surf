@@ -19,15 +19,16 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
+library ruckus;
+use ruckus.BuildInfoPkg.all;
+
 entity AxiVersion is
    generic (
       TPD_G              : time             := 1 ns;
-      BUILD_INFO_G       : BuildInfoType;
       SIM_DNA_VALUE_G    : slv              := X"000000000000000000000000";
       DEVICE_ID_G        : slv(31 downto 0) := (others => '0');
       CLK_PERIOD_G       : real             := 8.0E-9;     -- units of seconds
@@ -70,7 +71,7 @@ architecture rtl of AxiVersion is
    constant TIMEOUT_1HZ_C  : natural          := (getTimeRatio(1.0, CLK_PERIOD_G) -1);
    constant COUNTER_ZERO_C : slv(31 downto 0) := X"00000000";
 
-   constant BUILD_INFO_C       : BuildInfoRetType    := toBuildInfo(BUILD_INFO_G);
+   constant BUILD_INFO_C       : BuildInfoRetType    := toBuildInfo(BUILD_INFO_C);
    constant BUILD_STRING_ROM_C : Slv32Array(0 to 63) := BUILD_INFO_C.buildString;
 
    type RegType is record
