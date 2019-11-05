@@ -26,7 +26,7 @@ entity FifoAsync is
    generic (
       TPD_G          : time     := 1 ns;
       RST_POLARITY_G : sl       := '1';  -- '1' for active high rst, '0' for active low
-      BRAM_EN_G      : boolean  := true;
+      MEMORY_TYPE_G  : string   := "block";
       BYP_RAM_G      : boolean  := false;
       FWFT_EN_G      : boolean  := false;
       USE_DSP48_G    : string   := "no";
@@ -207,7 +207,7 @@ begin
       generic map(
          TPD_G         => TPD_G,
          FIFO_ASYNC_G  => true,         -- ASYNC FIFO
-         BRAM_EN_G     => BRAM_EN_G,
+         MEMORY_TYPE_G => MEMORY_TYPE_G,
          FWFT_EN_G     => FWFT_EN_G,
          DATA_WIDTH_G  => DATA_WIDTH_G,
          ADDR_WIDTH_G  => ADDR_WIDTH_G,
@@ -242,13 +242,13 @@ begin
    GEN_RAM : if (BYP_RAM_G = false) generate
       U_RAM : entity surf.SimpleDualPortRam
          generic map(
-            TPD_G        => TPD_G,
-            DOB_REG_G    => ite(BRAM_EN_G, FWFT_EN_G, false),
-            BRAM_EN_G    => BRAM_EN_G,
-            ALTERA_SYN_G => ALTERA_SYN_G,
-            ALTERA_RAM_G => ALTERA_RAM_G,
-            DATA_WIDTH_G => DATA_WIDTH_G,
-            ADDR_WIDTH_G => ADDR_WIDTH_G)
+            TPD_G         => TPD_G,
+            DOB_REG_G     => ite(MEMORY_TYPE_G/="distributed", FWFT_EN_G, false),
+            MEMORY_TYPE_G => MEMORY_TYPE_G,
+            ALTERA_SYN_G  => ALTERA_SYN_G,
+            ALTERA_RAM_G  => ALTERA_RAM_G,
+            DATA_WIDTH_G  => DATA_WIDTH_G,
+            ADDR_WIDTH_G  => ADDR_WIDTH_G)
          port map (
             -- Port A
             clka   => wr_clk,

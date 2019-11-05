@@ -32,7 +32,7 @@ entity SsiPrbsTxOld is
       -- General Configurations
       TPD_G                      : time                       := 1 ns;
       -- FIFO Configurations
-      BRAM_EN_G                  : boolean                    := true;
+      MEMORY_TYPE_G              : string                     := "block";
       XIL_DEVICE_G               : string                     := "7SERIES";
       USE_BUILT_IN_G             : boolean                    := false;
       GEN_SYNC_FIFO_G            : boolean                    := false;
@@ -238,7 +238,7 @@ begin
          SLAVE_READY_EN_G    => false,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
-         BRAM_EN_G           => BRAM_EN_G,
+         MEMORY_TYPE_G       => MEMORY_TYPE_G,
          XIL_DEVICE_G        => XIL_DEVICE_G,
          USE_BUILT_IN_G      => USE_BUILT_IN_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,

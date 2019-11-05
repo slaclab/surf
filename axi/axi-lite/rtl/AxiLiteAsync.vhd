@@ -132,7 +132,7 @@ begin
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
-         BRAM_EN_G      => false,       -- Use Dist Ram
+         MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
          FWFT_EN_G      => true,
          USE_DSP48_G    => "no",
          ALTERA_SYN_G   => false,
@@ -198,7 +198,7 @@ begin
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
-         BRAM_EN_G      => false,       -- Use Dist Ram
+         MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
          FWFT_EN_G      => true,
          USE_DSP48_G    => "no",
          ALTERA_SYN_G   => false,
@@ -259,7 +259,7 @@ begin
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
-         BRAM_EN_G      => false,       -- Use Dist Ram
+         MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
          FWFT_EN_G      => true,
          USE_DSP48_G    => "no",
          ALTERA_SYN_G   => false,
@@ -325,7 +325,7 @@ begin
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
-         BRAM_EN_G      => false,       -- Use Dist Ram
+         MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
          FWFT_EN_G      => true,
          USE_DSP48_G    => "no",
          ALTERA_SYN_G   => false,
@@ -386,7 +386,7 @@ begin
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
-         BRAM_EN_G      => false,       -- Use Dist Ram
+         MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
          FWFT_EN_G      => true,
          USE_DSP48_G    => "no",
          ALTERA_SYN_G   => false,

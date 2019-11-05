@@ -80,7 +80,7 @@ begin
             SLAVE_READY_EN_G    => true,
             VALID_THOLD_G       => 1,
             -- FIFO configurations
-            BRAM_EN_G           => false,
+            MEMORY_TYPE_G       => "distributed",
             GEN_SYNC_FIFO_G     => PRIM_COMMON_CLK_G,
             CASCADE_SIZE_G      => 1,
             FIFO_ADDR_WIDTH_G   => 4,
@@ -120,7 +120,7 @@ begin
                SLAVE_READY_EN_G    => true,
                VALID_THOLD_G       => 1,
                -- FIFO configurations
-               BRAM_EN_G           => false,
+               MEMORY_TYPE_G       => "distributed",
                GEN_SYNC_FIFO_G     => BYP_COMMON_CLK_G,
                CASCADE_SIZE_G      => 1,
                FIFO_ADDR_WIDTH_G   => 4,
@@ -162,7 +162,7 @@ begin
                   SLAVE_READY_EN_G    => true,
                   VALID_THOLD_G       => 1,
                   -- FIFO configurations
-                  BRAM_EN_G           => false,
+                  MEMORY_TYPE_G       => "distributed",
                   GEN_SYNC_FIFO_G     => VLAN_COMMON_CLK_G,
                   CASCADE_SIZE_G      => 1,
                   FIFO_ADDR_WIDTH_G   => 4,

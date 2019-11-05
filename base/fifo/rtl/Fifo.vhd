@@ -30,7 +30,6 @@ entity Fifo is
       RST_POLARITY_G  : sl                         := '1';  -- '1' for active high rst, '0' for active low
       RST_ASYNC_G     : boolean                    := false;
       GEN_SYNC_FIFO_G : boolean                    := false;
-      BRAM_EN_G       : boolean                    := true;
       FWFT_EN_G       : boolean                    := false;
       SYNTH_MODE_G    : string                     := "inferred";
       MEMORY_TYPE_G   : string                     := "block";      
@@ -163,7 +162,7 @@ begin
                generic map (
                   TPD_G          => TPD_G,
                   RST_POLARITY_G => RST_POLARITY_G,
-                  BRAM_EN_G      => BRAM_EN_G,
+                  MEMORY_TYPE_G  => MEMORY_TYPE_G,
                   FWFT_EN_G      => FWFT_EN_G,
                   USE_DSP48_G    => USE_DSP48_G,
                   ALTERA_SYN_G   => ALTERA_SYN_G,
@@ -207,7 +206,7 @@ begin
                   TPD_G          => TPD_G,
                   RST_POLARITY_G => RST_POLARITY_G,
                   RST_ASYNC_G    => RST_ASYNC_G,
-                  BRAM_EN_G      => BRAM_EN_G,
+                  MEMORY_TYPE_G  => MEMORY_TYPE_G,
                   FWFT_EN_G      => FWFT_EN_G,
                   USE_DSP48_G    => USE_DSP48_G,
                   ALTERA_RAM_G   => ALTERA_RAM_G,

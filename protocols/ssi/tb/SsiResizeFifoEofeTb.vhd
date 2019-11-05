@@ -571,7 +571,7 @@ begin
             -- General Configurations
             TPD_G               => TPD_G,
             -- FIFO configurations
-            BRAM_EN_G           => false,
+            MEMORY_TYPE_G       => "distributed",
             GEN_SYNC_FIFO_G     => true,
             FIFO_ADDR_WIDTH_G   => 4,
             -- AXI Stream Port Configurations

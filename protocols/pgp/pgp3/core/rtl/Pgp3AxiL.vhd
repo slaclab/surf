@@ -189,10 +189,10 @@ begin
    -- OpCode Capture
    U_RxOpCodeSync : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         DATA_WIDTH_G => 51,
-         ADDR_WIDTH_G => 2)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G  => 51,
+         ADDR_WIDTH_G  => 2)
       port map (
          rst                => r.countReset,
          wr_clk             => pgpRxClk,
@@ -329,10 +329,10 @@ begin
 
    U_RxEbDataSync : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         DATA_WIDTH_G => 67,
-         ADDR_WIDTH_G => 4)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G  => 67,
+         ADDR_WIDTH_G  => 4)
       port map (
          rst                => r.countReset,
          wr_clk             => pgpRxClk,
@@ -348,10 +348,10 @@ begin
 
    U_RxPhyDataSync : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         DATA_WIDTH_G => 67,
-         ADDR_WIDTH_G => 4)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G  => 67,
+         ADDR_WIDTH_G  => 4)
       port map (
          rst                => r.countReset,
          wr_clk             => phyRxClk,
@@ -410,10 +410,10 @@ begin
    -- OpCode Capture
    U_TxOpCodeSync : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         DATA_WIDTH_G => 51,
-         ADDR_WIDTH_G => 2)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G  => 51,
+         ADDR_WIDTH_G  => 2)
       port map (
          rst                => r.countReset,
          wr_clk             => pgpTxClk,
@@ -539,10 +539,10 @@ begin
 
    U_SKP_SYNC : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         DATA_WIDTH_G => 32,
-         ADDR_WIDTH_G => 4)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G  => 32,
+         ADDR_WIDTH_G  => 4)
       port map (
          rst    => '0',
          wr_clk => axilClk,

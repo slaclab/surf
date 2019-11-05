@@ -42,7 +42,7 @@ entity SsiCmdMaster is
 
       -- AXI Stream FIFO Config
       SLAVE_READY_EN_G    : boolean                    := false;
-      BRAM_EN_G           : boolean                    := false;
+      MEMORY_TYPE_G       : string                     := "block";
       XIL_DEVICE_G        : string                     := "7SERIES";  --Xilinx only generic parameter    
       USE_BUILT_IN_G      : boolean                    := false;  --if set to true, this module is only Xilinx compatible only!!!
       GEN_SYNC_FIFO_G     : boolean                    := false;
@@ -103,7 +103,7 @@ begin
       generic map (
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
-         BRAM_EN_G           => BRAM_EN_G,
+         MEMORY_TYPE_G       => MEMORY_TYPE_G,
          XIL_DEVICE_G        => XIL_DEVICE_G,
          USE_BUILT_IN_G      => USE_BUILT_IN_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,

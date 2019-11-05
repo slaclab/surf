@@ -175,7 +175,7 @@ begin
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
          RST_ASYNC_G    => false,
-         BRAM_EN_G      => true,
+         MEMORY_TYPE_G  => "block",
          FWFT_EN_G      => false,
          USE_DSP48_G    => "no",
          ALTERA_SYN_G   => false,

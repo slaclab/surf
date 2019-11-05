@@ -41,7 +41,6 @@ entity AxiStreamFifoV2 is
                                                                   -- >1 = only when frame ready or # entries
       VALID_BURST_MODE_G  : boolean                    := false;  -- only used in VALID_THOLD_G>1
       -- FIFO configurations
-      BRAM_EN_G           : boolean                    := true;
       XIL_DEVICE_G        : string                     := "7SERIES";
       USE_BUILT_IN_G      : boolean                    := false;
       GEN_SYNC_FIFO_G     : boolean                    := false;
@@ -243,7 +242,7 @@ begin
          RST_POLARITY_G     => '1',
          RST_ASYNC_G        => false,
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
-         BRAM_EN_G          => BRAM_EN_G,
+         MEMORY_TYPE_G      => MEMORY_TYPE_G,
          FWFT_EN_G          => true,
          SYNTH_MODE_G       => SYNTH_MODE_G,
          MEMORY_TYPE_G      => MEMORY_TYPE_G,         
@@ -285,7 +284,7 @@ begin
             RST_POLARITY_G     => '1',
             RST_ASYNC_G        => false,
             GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
-            BRAM_EN_G          => false,
+            MEMORY_TYPE_G      => "distributed",
             FWFT_EN_G          => true,
             USE_DSP48_G        => "no",
             ALTERA_SYN_G       => ALTERA_SYN_G,

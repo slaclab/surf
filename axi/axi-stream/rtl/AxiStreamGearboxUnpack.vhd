@@ -225,7 +225,7 @@ begin
 --   AxiStreamFifo_1 : entity surf.AxiStreamFifoV2
 --      generic map (
 --         TPD_G               => TPD_G,
---         BRAM_EN_G           => false,
+--         MEMORY_TYPE_G       => "distributed",
 --         GEN_SYNC_FIFO_G     => true,
 --         FIFO_ADDR_WIDTH_G   => 4,
 --         FIFO_FIXED_THRESH_G => true,

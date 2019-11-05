@@ -29,7 +29,7 @@ entity FifoMux is
       RST_POLARITY_G     : sl                         := '1';  -- '1' for active high rst, '0' for active low
       RST_ASYNC_G        : boolean                    := false;
       GEN_SYNC_FIFO_G    : boolean                    := false;
-      BRAM_EN_G          : boolean                    := true;
+      MEMORY_TYPE_G      : string                     := "block";
       FWFT_EN_G          : boolean                    := true;
       USE_DSP48_G        : string                     := "no";
       ALTERA_SYN_G       : boolean                    := false;
@@ -265,7 +265,7 @@ begin
          RST_POLARITY_G     => RST_POLARITY_G,
          RST_ASYNC_G        => RST_ASYNC_G,
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
-         BRAM_EN_G          => BRAM_EN_G,
+         MEMORY_TYPE_G      => MEMORY_TYPE_G,
          FWFT_EN_G          => FWFT_EN_G,
          USE_DSP48_G        => USE_DSP48_G,
          ALTERA_SYN_G       => ALTERA_SYN_G,

@@ -259,7 +259,7 @@ begin
    U_RxOpCodeSync : entity surf.SynchronizerFifo
       generic map (
          TPD_G         => TPD_G,
-         BRAM_EN_G     => false,
+         MEMORY_TYPE_G => "distributed",
          ALTERA_SYN_G  => false,
          ALTERA_RAM_G  => "M9K",
          SYNC_STAGES_G => 3,
@@ -281,7 +281,7 @@ begin
       U_RxDataSync : entity surf.SynchronizerFifo
          generic map (
             TPD_G         => TPD_G,
-            BRAM_EN_G     => false,
+            MEMORY_TYPE_G => "distributed",
             ALTERA_SYN_G  => false,
             ALTERA_RAM_G  => "M9K",
             SYNC_STAGES_G => 3,
@@ -431,7 +431,7 @@ begin
    U_TxOpCodeSync : entity surf.SynchronizerFifo
       generic map (
          TPD_G         => TPD_G,
-         BRAM_EN_G     => false,
+         MEMORY_TYPE_G => "distributed",
          ALTERA_SYN_G  => false,
          ALTERA_RAM_G  => "M9K",
          SYNC_STAGES_G => 3,
@@ -551,7 +551,7 @@ begin
       U_TxDataSync : entity surf.SynchronizerFifo
          generic map (
             TPD_G         => TPD_G,
-            BRAM_EN_G     => false,
+            MEMORY_TYPE_G => "distributed",
             ALTERA_SYN_G  => false,
             ALTERA_RAM_G  => "M9K",
             SYNC_STAGES_G => 3,

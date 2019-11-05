@@ -422,7 +422,7 @@ begin
          RST_POLARITY_G  => '1',
          RST_ASYNC_G     => false,
          GEN_SYNC_FIFO_G => true,
-         BRAM_EN_G       => false,
+         MEMORY_TYPE_G   => "distributed",
          FWFT_EN_G       => false,
          USE_DSP48_G     => "no",
          USE_BUILT_IN_G  => false,

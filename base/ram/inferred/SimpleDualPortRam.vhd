@@ -26,7 +26,7 @@ entity SimpleDualPortRam is
    generic (
       TPD_G          : time                       := 1 ns;
       RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low      
-      BRAM_EN_G      : boolean                    := true;
+      MEMORY_TYPE_G  : string                     := "block";
       DOB_REG_G      : boolean                    := false;  -- Extra reg on doutb (folded into BRAM)
       ALTERA_SYN_G   : boolean                    := false;
       ALTERA_RAM_G   : string                     := "M9K";
@@ -62,8 +62,8 @@ architecture rtl of SimpleDualPortRam is
 
    constant INIT_C : slv(FULL_DATA_WIDTH_C-1 downto 0) := ite(INIT_G = "0", slvZero(FULL_DATA_WIDTH_C), INIT_G);
 
-   constant XST_BRAM_STYLE_C    : string := ite(BRAM_EN_G, "block", "distributed");
-   constant ALTERA_BRAM_STYLE_C : string := ite(BRAM_EN_G, ALTERA_RAM_G, "MLAB");
+   constant XST_BRAM_STYLE_C    : string := MEMORY_TYPE_G;
+   constant ALTERA_BRAM_STYLE_C : string := ite(MEMORY_TYPE_G="block", ALTERA_RAM_G, "MLAB");
 
    -- Shared memory 
    type mem_type is array ((2**ADDR_WIDTH_G)-1 downto 0) of slv(FULL_DATA_WIDTH_C-1 downto 0);

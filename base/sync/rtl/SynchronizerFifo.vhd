@@ -26,7 +26,7 @@ entity SynchronizerFifo is
    generic (
       TPD_G         : time                       := 1 ns;
       COMMON_CLK_G  : boolean                    := false;  -- Bypass FifoAsync module for synchronous data configuration
-      BRAM_EN_G     : boolean                    := false;
+      MEMORY_TYPE_G : string                     := "distributed";
       ALTERA_SYN_G  : boolean                    := false;
       ALTERA_RAM_G  : string                     := "M9K";
       SYNC_STAGES_G : integer range 3 to (2**24) := 3;
@@ -62,7 +62,7 @@ begin
       FifoAsync_1 : entity surf.FifoAsync
          generic map (
             TPD_G         => TPD_G,
-            BRAM_EN_G     => BRAM_EN_G,
+            MEMORY_TYPE_G => MEMORY_TYPE_G,
             FWFT_EN_G     => true,
             ALTERA_SYN_G  => ALTERA_SYN_G,
             ALTERA_RAM_G  => ALTERA_RAM_G,

@@ -434,7 +434,7 @@ begin
          PIPE_STAGES_G       => 1,
          SLAVE_READY_EN_G    => false,
          VALID_THOLD_G       => 1,
-         BRAM_EN_G           => false,
+         MEMORY_TYPE_G       => "distributed",
          USE_BUILT_IN_G      => false,
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 4,

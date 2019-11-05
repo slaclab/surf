@@ -56,7 +56,7 @@ architecture testbed of SsiPrbsTb is
    constant NUMBER_PACKET_C    : slv(31 downto 0) := x"00000FFF";
 
    -- FIFO configurations
-   constant BRAM_EN_C           : boolean := true;
+   constant MEMORY_TYPE_C       : string  := "block";
    constant XIL_DEVICE_C        : string  := "7SERIES";
    constant USE_BUILT_IN_C      : boolean := false;
    constant GEN_SYNC_FIFO_C     : boolean := false;
@@ -126,7 +126,7 @@ begin
          TPD_G                      => TPD_C,
          AXI_EN_G                   => '0',
          -- FIFO configurations
-         BRAM_EN_G                  => BRAM_EN_C,
+         MEMORY_TYPE_G              => MEMORY_TYPE_C,
          XIL_DEVICE_G               => XIL_DEVICE_C,
          USE_BUILT_IN_G             => USE_BUILT_IN_C,
          GEN_SYNC_FIFO_G            => GEN_SYNC_FIFO_C,
@@ -164,7 +164,7 @@ begin
          TPD_G                      => TPD_C,
          STATUS_CNT_WIDTH_G         => STATUS_CNT_WIDTH_C,
          -- FIFO Configurations
-         BRAM_EN_G                  => BRAM_EN_C,
+         MEMORY_TYPE_G              => MEMORY_TYPE_C,
          XIL_DEVICE_G               => XIL_DEVICE_C,
          USE_BUILT_IN_G             => USE_BUILT_IN_C,
          GEN_SYNC_FIFO_G            => GEN_SYNC_FIFO_C,

@@ -34,7 +34,7 @@ architecture testbed of FifoFwftTb is
 
    type SimConfigType is record
       GEN_SYNC_FIFO_G : boolean;
-      BRAM_EN_G       : boolean;
+      MEMORY_TYPE_G   : string;
       USE_BUILT_IN_G  : boolean;
       PIPE_STAGES_G   : natural;
    end record;
@@ -43,82 +43,82 @@ architecture testbed of FifoFwftTb is
       0                  => (
          PIPE_STAGES_G   => 0,
          GEN_SYNC_FIFO_G => false,
-         BRAM_EN_G       => false,
+         MEMORY_TYPE_G   => "distributed",
          USE_BUILT_IN_G  => false),
       1                  => (
          PIPE_STAGES_G   => 0,
          GEN_SYNC_FIFO_G => false,
-         BRAM_EN_G       => false,
+         MEMORY_TYPE_G   => "distributed",
          USE_BUILT_IN_G  => true),
       2                  => (
          PIPE_STAGES_G   => 0,
          GEN_SYNC_FIFO_G => false,
-         BRAM_EN_G       => true,
+         MEMORY_TYPE_G   => "block",
          USE_BUILT_IN_G  => false),
       3                  => (
          PIPE_STAGES_G   => 0,
          GEN_SYNC_FIFO_G => false,
-         BRAM_EN_G       => true,
+         MEMORY_TYPE_G   => "block",
          USE_BUILT_IN_G  => true),
       4                  => (
          PIPE_STAGES_G   => 0,
          GEN_SYNC_FIFO_G => true,
-         BRAM_EN_G       => false,
+         MEMORY_TYPE_G   => "distributed",
          USE_BUILT_IN_G  => false),
       5                  => (
          PIPE_STAGES_G   => 0,
          GEN_SYNC_FIFO_G => true,
-         BRAM_EN_G       => false,
+         MEMORY_TYPE_G   => "distributed",
          USE_BUILT_IN_G  => true),
       6                  => (
          PIPE_STAGES_G   => 0,
          GEN_SYNC_FIFO_G => true,
-         BRAM_EN_G       => true,
+         MEMORY_TYPE_G   => "block",
          USE_BUILT_IN_G  => false),
       7                  => (
          PIPE_STAGES_G   => 0,
          GEN_SYNC_FIFO_G => true,
-         BRAM_EN_G       => true,
+         MEMORY_TYPE_G   => "block",
          USE_BUILT_IN_G  => true),
       8                  => (
          PIPE_STAGES_G   => 1,
          GEN_SYNC_FIFO_G => false,
-         BRAM_EN_G       => false,
+         MEMORY_TYPE_G   => "distributed",
          USE_BUILT_IN_G  => false),
       9                  => (
          PIPE_STAGES_G   => 1,
          GEN_SYNC_FIFO_G => false,
-         BRAM_EN_G       => false,
+         MEMORY_TYPE_G   => "distributed",
          USE_BUILT_IN_G  => true),
       10                 => (
          PIPE_STAGES_G   => 1,
          GEN_SYNC_FIFO_G => false,
-         BRAM_EN_G       => true,
+         MEMORY_TYPE_G   => "block",
          USE_BUILT_IN_G  => false),
       11                 => (
          PIPE_STAGES_G   => 1,
          GEN_SYNC_FIFO_G => false,
-         BRAM_EN_G       => true,
+         MEMORY_TYPE_G   => "block",
          USE_BUILT_IN_G  => true),
       12                 => (
          PIPE_STAGES_G   => 1,
          GEN_SYNC_FIFO_G => true,
-         BRAM_EN_G       => false,
+         MEMORY_TYPE_G   => "distributed",
          USE_BUILT_IN_G  => false),
       13                 => (
          PIPE_STAGES_G   => 1,
          GEN_SYNC_FIFO_G => true,
-         BRAM_EN_G       => false,
+         MEMORY_TYPE_G   => "distributed",
          USE_BUILT_IN_G  => true),
       14                 => (
          PIPE_STAGES_G   => 1,
          GEN_SYNC_FIFO_G => true,
-         BRAM_EN_G       => true,
+         MEMORY_TYPE_G   => "block",
          USE_BUILT_IN_G  => false),
       15                 => (
          PIPE_STAGES_G   => 1,
          GEN_SYNC_FIFO_G => true,
-         BRAM_EN_G       => true,
+         MEMORY_TYPE_G   => "block",
          USE_BUILT_IN_G  => true));          
 
    -- Signals
@@ -175,7 +175,7 @@ begin
          generic map (
             TPD_G           => TPD_C,
             GEN_SYNC_FIFO_G => SIM_CONFIG_C(i).GEN_SYNC_FIFO_G,
-            BRAM_EN_G       => SIM_CONFIG_C(i).BRAM_EN_G,
+            MEMORY_TYPE_G   => SIM_CONFIG_C(i).MEMORY_TYPE_G,
             USE_BUILT_IN_G  => SIM_CONFIG_C(i).USE_BUILT_IN_G,
             PIPE_STAGES_G   => SIM_CONFIG_C(i).PIPE_STAGES_G)
          port map (

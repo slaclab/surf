@@ -161,7 +161,7 @@ begin
       generic map (
          TPD_G           => TPD_G,
          GEN_SYNC_FIFO_G => true,
-         BRAM_EN_G       => false,
+         MEMORY_TYPE_G   => "distributed",
          FWFT_EN_G       => true,
          USE_BUILT_IN_G  => false,
          DATA_WIDTH_G    => 1,

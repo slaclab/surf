@@ -151,7 +151,7 @@ begin
          PIPE_STAGES_G          => 0,
          SLAVE_READY_EN_G       => true,
          VALID_THOLD_G          => 1,
-         BRAM_EN_G              => true,
+         MEMORY_TYPE_G          => "block",
          XIL_DEVICE_G           => "7SERIES",
          USE_BUILT_IN_G         => false,
          GEN_SYNC_FIFO_G        => true,

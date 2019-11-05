@@ -32,7 +32,6 @@ entity FifoCascade is
       RST_POLARITY_G     : sl                         := '1';  -- '1' for active high rst, '0' for active low
       RST_ASYNC_G        : boolean                    := false;
       GEN_SYNC_FIFO_G    : boolean                    := false;
-      BRAM_EN_G          : boolean                    := true;
       FWFT_EN_G          : boolean                    := false;
       SYNTH_MODE_G       : string                     := "inferred";
       MEMORY_TYPE_G      : string                     := "block";      
@@ -109,7 +108,7 @@ begin
             RST_POLARITY_G  => RST_POLARITY_G,
             RST_ASYNC_G     => RST_ASYNC_G,
             GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_G,
-            BRAM_EN_G       => BRAM_EN_G,
+            MEMORY_TYPE_G   => MEMORY_TYPE_G,
             FWFT_EN_G       => FWFT_EN_G,
             SYNTH_MODE_G    => SYNTH_MODE_G,
             MEMORY_TYPE_G   => MEMORY_TYPE_G,
@@ -167,7 +166,7 @@ begin
             RST_POLARITY_G  => RST_POLARITY_G,
             RST_ASYNC_G     => RST_ASYNC_G,
             GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_FIRST_C,
-            BRAM_EN_G       => BRAM_EN_G,
+            MEMORY_TYPE_G   => MEMORY_TYPE_G,
             FWFT_EN_G       => true,
             SYNTH_MODE_G    => SYNTH_MODE_G,
             MEMORY_TYPE_G   => MEMORY_TYPE_G,            
@@ -215,7 +214,7 @@ begin
                   RST_POLARITY_G  => RST_POLARITY_G,
                   RST_ASYNC_G     => RST_ASYNC_G,
                   GEN_SYNC_FIFO_G => true,
-                  BRAM_EN_G       => BRAM_EN_G,
+                  MEMORY_TYPE_G   => MEMORY_TYPE_G,
                   FWFT_EN_G       => true,
                   SYNTH_MODE_G    => SYNTH_MODE_G,
                   MEMORY_TYPE_G   => MEMORY_TYPE_G,                  
@@ -256,7 +255,7 @@ begin
             RST_POLARITY_G  => RST_POLARITY_G,
             RST_ASYNC_G     => RST_ASYNC_G,
             GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_LAST_C,
-            BRAM_EN_G       => BRAM_EN_G,
+            MEMORY_TYPE_G   => MEMORY_TYPE_G,
             FWFT_EN_G       => FWFT_EN_G,
             SYNTH_MODE_G    => SYNTH_MODE_G,
             MEMORY_TYPE_G   => MEMORY_TYPE_G,            

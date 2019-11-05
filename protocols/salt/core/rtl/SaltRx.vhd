@@ -327,7 +327,7 @@ begin
          VALID_THOLD_G       => 1,
          EN_FRAME_FILTER_G   => true,
          -- FIFO configurations
-         BRAM_EN_G           => true,
+         MEMORY_TYPE_G       => "block",
          USE_BUILT_IN_G      => false,
          GEN_SYNC_FIFO_G     => COMMON_RX_CLK_G,
          CASCADE_SIZE_G      => 1,

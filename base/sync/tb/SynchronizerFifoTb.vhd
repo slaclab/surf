@@ -41,7 +41,7 @@ architecture testbed of SynchronizerFifoTb is
    constant CLK_SEL_C    : integer := 2;  --change this parameter for simulating different clock configurations
    constant WRITE_CLK_C  : time    := WRITE_CLK_ARRAY_C(CLK_SEL_C);
    constant READ_CLK_C   : time    := READ_CLK_ARRAY_C(CLK_SEL_C);
-   constant BRAM_EN_C    : boolean := true;
+   constant MEMORY_TYPE_G: string  := "block";
    constant FWFT_EN_C    : boolean := true;
    constant DATA_WIDTH_C : integer := 8;
    constant ADDR_WIDTH_C : integer := 2;

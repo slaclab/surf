@@ -643,7 +643,7 @@ begin
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
-         BRAM_EN_G           => true,
+         MEMORY_TYPE_G       => "block",
          USE_BUILT_IN_G      => false,
          GEN_SYNC_FIFO_G     => true,
          CASCADE_SIZE_G      => ite(JUMBO_G, 2, 1),
@@ -665,12 +665,12 @@ begin
 
    Fifo_Trans : entity surf.FifoSync
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         FWFT_EN_G    => true,
-         DATA_WIDTH_G => 69,
-         ADDR_WIDTH_G => 4,
-         FULL_THRES_G => 8)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         FWFT_EN_G     => true,
+         DATA_WIDTH_G  => 69,
+         ADDR_WIDTH_G  => 4,
+         FULL_THRES_G  => 8)
       port map (
          clk                => ethClk,
          rst                => ethRst,

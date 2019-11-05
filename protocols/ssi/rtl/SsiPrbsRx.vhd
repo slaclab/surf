@@ -35,7 +35,7 @@ entity SsiPrbsRx is
       STATUS_CNT_WIDTH_G         : natural range 1 to 32    := 32;
       -- FIFO configurations
       SLAVE_READY_EN_G           : boolean                  := true;
-      BRAM_EN_G                  : boolean                  := true;
+      MEMORY_TYPE_G              : string                   := "block";
       XIL_DEVICE_G               : string                   := "7SERIES";
       USE_BUILT_IN_G             : boolean                  := false;
       GEN_SYNC_FIFO_G            : boolean                  := false;
@@ -226,7 +226,7 @@ begin
          PIPE_STAGES_G       => SLAVE_AXI_PIPE_STAGES_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
          -- FIFO configurations
-         BRAM_EN_G           => BRAM_EN_G,
+         MEMORY_TYPE_G       => MEMORY_TYPE_G,
          XIL_DEVICE_G        => XIL_DEVICE_G,
          USE_BUILT_IN_G      => USE_BUILT_IN_G,
          GEN_SYNC_FIFO_G     => true,

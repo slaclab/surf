@@ -165,7 +165,7 @@ begin
          SLAVE_READY_EN_G       => SLAVE_READY_EN_G,
          VALID_THOLD_G          => 0,  -- = 0 = only when frame ready                                                                 
          -- FIFO configurations
-         BRAM_EN_G              => true,
+         MEMORY_TYPE_G          => "block",
          XIL_DEVICE_G           => "7SERIES",
          USE_BUILT_IN_G         => false,
          GEN_SYNC_FIFO_G        => GEN_SYNC_FIFO_G,
@@ -687,7 +687,7 @@ begin
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => TX_VALID_THOLD_G,
          -- FIFO configurations
-         BRAM_EN_G           => true,
+         MEMORY_TYPE_G       => "block",
          XIL_DEVICE_G        => "7SERIES",
          USE_BUILT_IN_G      => false,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,

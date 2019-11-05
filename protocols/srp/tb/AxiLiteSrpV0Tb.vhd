@@ -39,7 +39,7 @@ architecture tb of AxiLiteSrpV0Tb is
    constant TPD_G               : time                       := 1 ns;
    constant RESP_THOLD_G        : integer range 0 to (2**24) := 1;
    constant SLAVE_READY_EN_G    : boolean                    := true;
-   constant BRAM_EN_G           : boolean                    := true;
+   constant MEMORY_TYPE_G       : string                     := "block";
    constant XIL_DEVICE_G        : string                     := "7SERIES";
    constant USE_BUILT_IN_G      : boolean                    := false;
    constant ALTERA_SYN_G        : boolean                    := false;
@@ -103,7 +103,7 @@ begin
          TPD_G               => TPD_G,
          RESP_THOLD_G        => RESP_THOLD_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
-         BRAM_EN_G           => BRAM_EN_G,
+         MEMORY_TYPE_G       => MEMORY_TYPE_G,
          XIL_DEVICE_G        => XIL_DEVICE_G,
          USE_BUILT_IN_G      => USE_BUILT_IN_G,
          ALTERA_SYN_G        => ALTERA_SYN_G,
@@ -139,7 +139,7 @@ begin
          RESP_THOLD_G        => RESP_THOLD_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
          EN_32BIT_ADDR_G     => true,
-         BRAM_EN_G           => true,
+         MEMORY_TYPE_G       => "block",
          XIL_DEVICE_G        => XIL_DEVICE_G,
          USE_BUILT_IN_G      => USE_BUILT_IN_G,
          ALTERA_SYN_G        => ALTERA_SYN_G,
