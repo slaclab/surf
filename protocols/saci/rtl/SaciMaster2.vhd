@@ -68,7 +68,7 @@ architecture rtl of SaciMaster2 is
       shiftCount : slv(5 downto 0);
 
       --Saci clk gen
-      clkCount       : slv(SACI_CLK_COUNTER_SIZE_C-1 downto 0);
+      clkCount       : slv(SACI_CLK_COUNTER_SIZE_C downto 0);
       saciClkRising  : sl;
       saciClkFalling : sl;
 
