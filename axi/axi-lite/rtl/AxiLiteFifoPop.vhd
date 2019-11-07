@@ -47,8 +47,6 @@ entity AxiLiteFifoPop is
       RANGE_LSB_G        : integer range 0 to 31      := 8;
       VALID_POSITION_G   : integer range 0 to 31      := 0;
       VALID_POLARITY_G   : sl                         := '0';
-      ALTERA_SYN_G       : boolean                    := false;
-      ALTERA_RAM_G       : string                     := "M9K";
       USE_BUILT_IN_G     : boolean                    := false;
       XIL_DEVICE_G       : string                     := "7SERIES"
    );
@@ -139,8 +137,6 @@ begin
             MEMORY_TYPE_G      => POP_MEMORY_TYPE_G,
             FWFT_EN_G          => true,
             USE_DSP48_G        => "no",
-            ALTERA_SYN_G       => ALTERA_SYN_G,
-            ALTERA_RAM_G       => ALTERA_RAM_G,
             USE_BUILT_IN_G     => USE_BUILT_IN_G,
             XIL_DEVICE_G       => XIL_DEVICE_G,
             SYNC_STAGES_G      => 3,
@@ -197,8 +193,6 @@ begin
                MEMORY_TYPE_G      => LOOP_MEMORY_TYPE_G,
                FWFT_EN_G          => true,
                USE_DSP48_G        => "no",
-               ALTERA_SYN_G       => ALTERA_SYN_G,
-               ALTERA_RAM_G       => ALTERA_RAM_G,
                USE_BUILT_IN_G     => USE_BUILT_IN_G,
                XIL_DEVICE_G       => XIL_DEVICE_G,
                SYNC_STAGES_G      => 3,

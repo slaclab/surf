@@ -149,8 +149,6 @@ begin
       U_SsiPrbsTx : entity surf.SsiPrbsTx
          generic map (
             TPD_G                      => 1 ns,
-            ALTERA_SYN_G               => false,
-            ALTERA_RAM_G               => "M9K",
             XIL_DEVICE_G               => "7SERIES",  --Xilinx only generic parameter    
             MEMORY_TYPE_G              => "block",
             USE_BUILT_IN_G             => false,  --if set to true, this module is only Xilinx compatible only!!!
@@ -187,8 +185,6 @@ begin
                XIL_DEVICE_G        => "7SERIES",
                USE_BUILT_IN_G      => false,
                GEN_SYNC_FIFO_G     => false,
-               ALTERA_SYN_G        => false,
-               ALTERA_RAM_G        => "M9K",
                CASCADE_SIZE_G      => 1,
                FIFO_ADDR_WIDTH_G   => 9,
                FIFO_FIXED_THRESH_G => true,
@@ -308,8 +304,6 @@ begin
          generic map (
             TPD_G                      => 1 ns,
             STATUS_CNT_WIDTH_G         => 32,
-            ALTERA_SYN_G               => false,
-            ALTERA_RAM_G               => "M9K",
             CASCADE_SIZE_G             => 1,
             XIL_DEVICE_G               => "7SERIES",  --Xilinx only generic parameter    
             MEMORY_TYPE_G              => "block",

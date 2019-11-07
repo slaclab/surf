@@ -42,8 +42,6 @@ entity SrpV3AxiLite is
       TX_VALID_BURST_MODE_G : boolean                 := true;  -- only used in VALID_THOLD_G>1
       SLAVE_READY_EN_G      : boolean                 := false;
       GEN_SYNC_FIFO_G       : boolean                 := false;
-      ALTERA_SYN_G          : boolean                 := false;
-      ALTERA_RAM_G          : string                  := "M9K";
       AXIL_CLK_FREQ_G       : real                    := 156.25E+6;  -- units of Hz    
       AXI_STREAM_CONFIG_G   : AxiStreamConfigType     := ssiAxiStreamConfig(2));
    port (
@@ -223,8 +221,6 @@ begin
          XIL_DEVICE_G        => "7SERIES",
          USE_BUILT_IN_G      => false,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
          INT_WIDTH_SELECT_G  => "CUSTOM",
          INT_DATA_WIDTH_G    => 16,     -- 128-bit         
          FIFO_ADDR_WIDTH_G   => 9,      -- 8kB/FIFO = 128-bits x 512 entries
@@ -800,8 +796,6 @@ begin
          XIL_DEVICE_G        => "7SERIES",
          USE_BUILT_IN_G      => false,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,         
          INT_WIDTH_SELECT_G  => "CUSTOM",
          INT_DATA_WIDTH_G    => 16,     -- 128-bit         
          FIFO_ADDR_WIDTH_G   => 9,      -- 8kB/FIFO = 128-bits x 512 entries         

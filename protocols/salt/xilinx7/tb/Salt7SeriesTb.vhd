@@ -49,8 +49,6 @@ architecture testbed of Salt7SeriesTb is
    constant XIL_DEVICE_C        : string  := "7SERIES";
    constant USE_BUILT_IN_C      : boolean := false;
    constant GEN_SYNC_FIFO_C     : boolean := false;
-   constant ALTERA_SYN_C        : boolean := false;
-   constant ALTERA_RAM_C        : string  := "M9K";
    constant CASCADE_SIZE_C      : natural := 1;
    constant FIFO_ADDR_WIDTH_C   : natural := 9;
    constant FIFO_PAUSE_THRESH_C : natural := 2**8;
@@ -162,8 +160,6 @@ begin
          XIL_DEVICE_G               => XIL_DEVICE_C,
          USE_BUILT_IN_G             => USE_BUILT_IN_C,
          GEN_SYNC_FIFO_G            => GEN_SYNC_FIFO_C,
-         ALTERA_SYN_G               => ALTERA_SYN_C,
-         ALTERA_RAM_G               => ALTERA_RAM_C,
          CASCADE_SIZE_G             => CASCADE_SIZE_C,
          FIFO_ADDR_WIDTH_G          => FIFO_ADDR_WIDTH_C,
          FIFO_PAUSE_THRESH_G        => FIFO_PAUSE_THRESH_C,
@@ -242,8 +238,6 @@ begin
          XIL_DEVICE_G               => XIL_DEVICE_C,
          USE_BUILT_IN_G             => USE_BUILT_IN_C,
          GEN_SYNC_FIFO_G            => GEN_SYNC_FIFO_C,
-         ALTERA_SYN_G               => ALTERA_SYN_C,
-         ALTERA_RAM_G               => ALTERA_RAM_C,
          CASCADE_SIZE_G             => CASCADE_SIZE_C,
          FIFO_ADDR_WIDTH_G          => FIFO_ADDR_WIDTH_C,
          FIFO_PAUSE_THRESH_G        => FIFO_PAUSE_THRESH_C,

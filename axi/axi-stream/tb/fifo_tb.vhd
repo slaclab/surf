@@ -155,8 +155,6 @@ begin
          XIL_DEVICE_G           => "7SERIES",
          USE_BUILT_IN_G         => false,
          GEN_SYNC_FIFO_G        => true,
-         ALTERA_SYN_G           => false,
-         ALTERA_RAM_G           => "M9K",
          CASCADE_SIZE_G         => 1,
          FIFO_ADDR_WIDTH_G      => 9,
          FIFO_FIXED_THRESH_G    => true,

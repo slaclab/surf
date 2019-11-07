@@ -33,8 +33,6 @@ entity AxiReadPathFifo is
       XIL_DEVICE_G             : string                     := "7SERIES";
       USE_BUILT_IN_G           : boolean                    := false;
       GEN_SYNC_FIFO_G          : boolean                    := false;
-      ALTERA_SYN_G             : boolean                    := false;
-      ALTERA_RAM_G             : string                     := "M9K";
 
       -- Bit Optimizations
       ADDR_LSB_G               : natural range 0 to 31 := 0;
@@ -298,8 +296,6 @@ begin
          MEMORY_TYPE_G      => ADDR_MEMORY_TYPE_G,
          FWFT_EN_G          => true,
          USE_DSP48_G        => "no",
-         ALTERA_SYN_G       => ALTERA_SYN_G,
-         ALTERA_RAM_G       => ALTERA_RAM_G,
          USE_BUILT_IN_G     => USE_BUILT_IN_G,
          XIL_DEVICE_G       => XIL_DEVICE_G,
          SYNC_STAGES_G      => 3,
@@ -343,8 +339,6 @@ begin
          MEMORY_TYPE_G      => DATA_MEMORY_TYPE_G,
          FWFT_EN_G          => true,
          USE_DSP48_G        => "no",
-         ALTERA_SYN_G       => ALTERA_SYN_G,
-         ALTERA_RAM_G       => ALTERA_RAM_G,
          USE_BUILT_IN_G     => USE_BUILT_IN_G,
          XIL_DEVICE_G       => XIL_DEVICE_G,
          SYNC_STAGES_G      => 3,

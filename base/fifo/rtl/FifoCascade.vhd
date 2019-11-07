@@ -36,8 +36,6 @@ entity FifoCascade is
       SYNTH_MODE_G       : string                     := "inferred";
       MEMORY_TYPE_G      : string                     := "block";      
       USE_DSP48_G        : string                     := "no";
-      ALTERA_SYN_G       : boolean                    := false;
-      ALTERA_RAM_G       : string                     := "M9K";
       USE_BUILT_IN_G     : boolean                    := false;  -- If set to true, this module is only Xilinx compatible only!!!
       XIL_DEVICE_G       : string                     := "7SERIES";  -- Xilinx only generic parameter    
       SYNC_STAGES_G      : integer range 3 to (2**24) := 3;
@@ -113,8 +111,6 @@ begin
             SYNTH_MODE_G    => SYNTH_MODE_G,
             MEMORY_TYPE_G   => MEMORY_TYPE_G,
             USE_DSP48_G     => USE_DSP48_G,
-            ALTERA_SYN_G    => ALTERA_SYN_G,
-            ALTERA_RAM_G    => ALTERA_RAM_G,
             USE_BUILT_IN_G  => USE_BUILT_IN_G,
             XIL_DEVICE_G    => XIL_DEVICE_G,
             SYNC_STAGES_G   => SYNC_STAGES_G,
@@ -171,8 +167,6 @@ begin
             SYNTH_MODE_G    => SYNTH_MODE_G,
             MEMORY_TYPE_G   => MEMORY_TYPE_G,            
             USE_DSP48_G     => USE_DSP48_G,
-            ALTERA_SYN_G    => ALTERA_SYN_G,
-            ALTERA_RAM_G    => ALTERA_RAM_G,
             USE_BUILT_IN_G  => USE_BUILT_IN_G,
             XIL_DEVICE_G    => XIL_DEVICE_G,
             SYNC_STAGES_G   => SYNC_STAGES_G,
@@ -219,8 +213,6 @@ begin
                   SYNTH_MODE_G    => SYNTH_MODE_G,
                   MEMORY_TYPE_G   => MEMORY_TYPE_G,                  
                   USE_DSP48_G     => USE_DSP48_G,
-                  ALTERA_SYN_G    => ALTERA_SYN_G,
-                  ALTERA_RAM_G    => ALTERA_RAM_G,
                   USE_BUILT_IN_G  => USE_BUILT_IN_G,
                   XIL_DEVICE_G    => XIL_DEVICE_G,
                   SYNC_STAGES_G   => SYNC_STAGES_G,
@@ -260,8 +252,6 @@ begin
             SYNTH_MODE_G    => SYNTH_MODE_G,
             MEMORY_TYPE_G   => MEMORY_TYPE_G,            
             USE_DSP48_G     => USE_DSP48_G,
-            ALTERA_SYN_G    => ALTERA_SYN_G,
-            ALTERA_RAM_G    => ALTERA_RAM_G,
             USE_BUILT_IN_G  => USE_BUILT_IN_G,
             XIL_DEVICE_G    => XIL_DEVICE_G,
             SYNC_STAGES_G   => SYNC_STAGES_G,

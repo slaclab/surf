@@ -43,8 +43,6 @@ entity SsiFifo is
       XIL_DEVICE_G        : string                := "7SERIES";
       USE_BUILT_IN_G      : boolean               := false;
       GEN_SYNC_FIFO_G     : boolean               := false;
-      ALTERA_SYN_G        : boolean               := false;
-      ALTERA_RAM_G        : string                := "M9K";
       CASCADE_SIZE_G      : positive              := 1;
       CASCADE_PAUSE_SEL_G : natural               := 0;
       FIFO_ADDR_WIDTH_G   : integer range 4 to 48 := 9;
@@ -134,8 +132,6 @@ begin
          XIL_DEVICE_G        => XIL_DEVICE_G,
          USE_BUILT_IN_G      => USE_BUILT_IN_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
          CASCADE_SIZE_G      => CASCADE_SIZE_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => FIFO_FIXED_THRESH_G,

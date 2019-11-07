@@ -42,8 +42,6 @@ architecture tb of AxiLiteSrpV0Tb is
    constant MEMORY_TYPE_G       : string                     := "block";
    constant XIL_DEVICE_G        : string                     := "7SERIES";
    constant USE_BUILT_IN_G      : boolean                    := false;
-   constant ALTERA_SYN_G        : boolean                    := false;
-   constant ALTERA_RAM_G        : string                     := "M9K";
    constant GEN_SYNC_FIFO_G     : boolean                    := false;
    constant FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
    constant FIFO_PAUSE_THRESH_G : integer range 1 to (2**24) := 2**8;
@@ -106,8 +104,6 @@ begin
          MEMORY_TYPE_G       => MEMORY_TYPE_G,
          XIL_DEVICE_G        => XIL_DEVICE_G,
          USE_BUILT_IN_G      => USE_BUILT_IN_G,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
@@ -142,8 +138,6 @@ begin
          MEMORY_TYPE_G       => "block",
          XIL_DEVICE_G        => XIL_DEVICE_G,
          USE_BUILT_IN_G      => USE_BUILT_IN_G,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,

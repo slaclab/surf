@@ -266,8 +266,6 @@ begin
          RANGE_LSB_G       => 8,
          VALID_POSITION_G  => 31,
          VALID_POLARITY_G  => '1',
-         ALTERA_SYN_G      => false,
-         ALTERA_RAM_G      => "M9K",
          USE_BUILT_IN_G    => false,
          XIL_DEVICE_G      => "7SERIES") 
       port map (

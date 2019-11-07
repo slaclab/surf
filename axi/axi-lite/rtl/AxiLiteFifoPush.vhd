@@ -32,8 +32,6 @@ entity AxiLiteFifoPush is
       PUSH_SYNC_FIFO_G   : boolean               := false;
       PUSH_MEMORY_TYPE_G : string                := "distributed";
       PUSH_ADDR_WIDTH_G  : integer range 4 to 48 := 4;
-      ALTERA_SYN_G       : boolean               := false;
-      ALTERA_RAM_G       : string                := "M9K";
       USE_BUILT_IN_G     : boolean               := false;
       XIL_DEVICE_G       : string                := "7SERIES"
    );
@@ -103,8 +101,6 @@ begin
             MEMORY_TYPE_G      => PUSH_MEMORY_TYPE_G,
             FWFT_EN_G          => true,
             USE_DSP48_G        => "no",
-            ALTERA_SYN_G       => ALTERA_SYN_G,
-            ALTERA_RAM_G       => ALTERA_RAM_G,
             USE_BUILT_IN_G     => USE_BUILT_IN_G,
             XIL_DEVICE_G       => XIL_DEVICE_G,
             SYNC_STAGES_G      => 3,

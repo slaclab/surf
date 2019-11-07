@@ -31,8 +31,6 @@ entity FifoSync is
       BYP_RAM_G      : boolean  := false;
       FWFT_EN_G      : boolean  := false;
       USE_DSP48_G    : string   := "no";
-      ALTERA_SYN_G   : boolean  := false;
-      ALTERA_RAM_G   : string   := "M9K";
       PIPE_STAGES_G  : natural  := 0;
       DATA_WIDTH_G   : positive := 16;
       ADDR_WIDTH_G   : positive := 4;
@@ -156,8 +154,6 @@ begin
             TPD_G         => TPD_G,
             DOB_REG_G     => ite(MEMORY_TYPE_G/="distributed", FWFT_EN_G, false),
             MEMORY_TYPE_G => MEMORY_TYPE_G,
-            ALTERA_SYN_G  => ALTERA_SYN_G,
-            ALTERA_RAM_G  => ALTERA_RAM_G,
             DATA_WIDTH_G  => DATA_WIDTH_G,
             ADDR_WIDTH_G  => ADDR_WIDTH_G)
          port map (
