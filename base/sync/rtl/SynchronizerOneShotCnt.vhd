@@ -31,7 +31,7 @@ entity SynchronizerOneShotCnt is
       RELEASE_DELAY_G : positive := 3;    -- Delay between deassertion of async and sync resets
       IN_POLARITY_G   : sl       := '1';  -- 0 for active LOW, 1 for active HIGH (dataIn port)
       OUT_POLARITY_G  : sl       := '1';  -- 0 for active LOW, 1 for active HIGH (dataOut port)
-      USE_DSP48_G     : string   := "no"; -- "no" for no DSP48 implementation, "yes" to use DSP48 slices
+      USE_DSP_G       : string   := "no"; -- "no" for no DSP implementation, "yes" to use DSP slices
       SYNTH_CNT_G     : sl       := '1';  -- Set to 1 for synthesising counter RTL, '0' to not synthesis the counter
       CNT_RST_EDGE_G  : boolean  := true; -- true if counter reset should be edge detected, else level detected
       CNT_WIDTH_G     : positive := 16);
@@ -71,8 +71,8 @@ architecture rtl of SynchronizerOneShotCnt is
    signal cntOutSync : slv(CNT_WIDTH_G-1 downto 0);
 
    -- Attribute for XST
-   attribute use_dsp48      : string;
-   attribute use_dsp48 of r : signal is USE_DSP48_G;
+   attribute use_dsp      : string;
+   attribute use_dsp of r : signal is USE_DSP_G;
    
 begin
 
