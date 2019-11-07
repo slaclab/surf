@@ -4,7 +4,13 @@
 -- Created    : 2015-07-08
 -- Last update: 2019-04-23
 -------------------------------------------------------------------------------
--- Description: AXI-Lite I2C Register Master
+-- Description: A Proxy module for sending transactions on an AXI-Lite bus.
+--
+-- Usefull for situations with long transactions times, such as when the
+-- AXI-Lite bus is bridged to I2C. In this case, the AXI-Lite bus Master 
+-- could be locked out for some time while waiting for the I2C transaction to 
+-- complete. This module allows the transaction to be kicked off and then the
+-- response to be polled for later.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
