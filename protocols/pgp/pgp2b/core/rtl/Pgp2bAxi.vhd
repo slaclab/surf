@@ -308,7 +308,6 @@ begin
          RELEASE_DELAY_G => 3,
          IN_POLARITY_G   => "1",
          OUT_POLARITY_G  => '1',
-         USE_DSP48_G     => "no",
          SYNTH_CNT_G     => "111110000111110000",
          CNT_RST_EDGE_G  => false,
          CNT_WIDTH_G     => ERROR_CNT_WIDTH_G,
@@ -379,7 +378,6 @@ begin
          RELEASE_DELAY_G => 3,
          IN_POLARITY_G   => "1",
          OUT_POLARITY_G  => '1',
-         USE_DSP48_G     => "no",
          SYNTH_CNT_G     => "1",
          CNT_RST_EDGE_G  => false,
          CNT_WIDTH_G     => STATUS_CNT_WIDTH_G,
@@ -402,7 +400,6 @@ begin
    U_RxClkFreq : entity surf.SyncClockFreq
       generic map (
          TPD_G             => TPD_G,
-         USE_DSP48_G       => "no",
          REF_CLK_FREQ_G    => AXI_CLK_FREQ_G,
          REFRESH_RATE_G    => 100.0,
          CLK_LOWER_LIMIT_G => 155.0E+6,
@@ -451,7 +448,6 @@ begin
          RELEASE_DELAY_G => 3,
          IN_POLARITY_G   => "1",
          OUT_POLARITY_G  => '1',
-         USE_DSP48_G     => "no",
          SYNTH_CNT_G     => "110000111100",
          CNT_RST_EDGE_G  => false,
          CNT_WIDTH_G     => ERROR_CNT_WIDTH_G,
@@ -497,7 +493,6 @@ begin
          RELEASE_DELAY_G => 3,
          IN_POLARITY_G   => "1",
          OUT_POLARITY_G  => '1',
-         USE_DSP48_G     => "no",
          SYNTH_CNT_G     => "1",
          CNT_RST_EDGE_G  => false,
          CNT_WIDTH_G     => STATUS_CNT_WIDTH_G,
@@ -520,7 +515,6 @@ begin
    U_TxClkFreq : entity surf.SyncClockFreq
       generic map (
          TPD_G             => TPD_G,
-         USE_DSP48_G       => "no",
          REF_CLK_FREQ_G    => AXI_CLK_FREQ_G,
          REFRESH_RATE_G    => 100.0,
          CLK_LOWER_LIMIT_G => 155.0E+6,

@@ -33,7 +33,6 @@ entity FifoAsyncBuiltIn is
       TPD_G          : time                       := 1 ns;
       RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
       FWFT_EN_G      : boolean                    := false;
-      USE_DSP48_G    : string                     := "no";
       XIL_DEVICE_G   : string                     := "7SERIES";  -- Target Device: "VIRTEX5", "VIRTEX6", "7SERIES"   
       SYNC_STAGES_G  : integer range 3 to (2**24) := 3;
       PIPE_STAGES_G  : natural range 0 to 16      := 0;
@@ -121,11 +120,6 @@ architecture mapping of FifoAsyncBuiltIn is
       rstDet : sl := '0';
    
    signal dataOut : slv(DATA_WIDTH_G-1 downto 0);
-
-   -- Attribute for XST
-   attribute use_dsp48         : string;
-   attribute use_dsp48 of wcnt : signal is USE_DSP48_G;
-   attribute use_dsp48 of rcnt : signal is USE_DSP48_G;
    
 begin
 
@@ -161,10 +155,6 @@ begin
    -- EMPTY_THRES_G upper range check
    assert (EMPTY_THRES_G <= ((2**ADDR_WIDTH_G)-2))
       report "EMPTY_THRES_G must be <= ((2**ADDR_WIDTH_G)-2)"
-      severity failure;
-   -- USE_DSP48_G check
-   assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
-      report "USE_DSP48_G must be either yes, no, auto, or automax"
       severity failure;
 
    -------------------------------

@@ -465,7 +465,6 @@ begin
          GEN_SYNC_FIFO_G => true,
          MEMORY_TYPE_G   => "distributed",
          FWFT_EN_G       => false,
-         USE_DSP48_G     => "no",
          USE_BUILT_IN_G  => false,
          XIL_DEVICE_G    => "7SERIES",
          SYNC_STAGES_G   => 3,

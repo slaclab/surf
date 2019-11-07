@@ -33,7 +33,6 @@ entity FifoSyncBuiltIn is
       TPD_G          : time                    := 1 ns;
       RST_POLARITY_G : sl                      := '1';  -- '1' for active high rst, '0' for active low
       FWFT_EN_G      : boolean                 := false;
-      USE_DSP48_G    : string                  := "no";
       XIL_DEVICE_G   : string                  := "7SERIES";  -- Target Device: "VIRTEX5", "VIRTEX6", "7SERIES"  
       PIPE_STAGES_G  : natural range 0 to 16   := 0;
       DATA_WIDTH_G   : integer range 1 to 72   := 18;
@@ -122,10 +121,6 @@ architecture mapping of FifoSyncBuiltIn is
       rstDet : sl := '0';
 
    signal dataOut : slv(DATA_WIDTH_G-1 downto 0);
-
-   -- Attribute for XST
-   attribute use_dsp48        : string;
-   attribute use_dsp48 of cnt : signal is USE_DSP48_G;
    
 begin
 
@@ -161,10 +156,6 @@ begin
    -- EMPTY_THRES_G upper range check
    assert (EMPTY_THRES_G <= ((2**ADDR_WIDTH_G)-2))
       report "EMPTY_THRES_G must be <= ((2**ADDR_WIDTH_G)-2)"
-      severity failure;
-   -- USE_DSP48_G check
-   assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
-      report "USE_DSP48_G must be either yes, no, auto, or automax"
       severity failure;
 
    RstSync_FULL : entity surf.RstSync

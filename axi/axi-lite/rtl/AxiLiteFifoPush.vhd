@@ -100,7 +100,6 @@ begin
             GEN_SYNC_FIFO_G    => PUSH_SYNC_FIFO_G,
             MEMORY_TYPE_G      => PUSH_MEMORY_TYPE_G,
             FWFT_EN_G          => true,
-            USE_DSP48_G        => "no",
             USE_BUILT_IN_G     => USE_BUILT_IN_G,
             XIL_DEVICE_G       => XIL_DEVICE_G,
             SYNC_STAGES_G      => 3,

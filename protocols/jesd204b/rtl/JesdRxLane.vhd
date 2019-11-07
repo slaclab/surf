@@ -177,7 +177,6 @@ begin
          RST_ASYNC_G    => false,
          MEMORY_TYPE_G  => "block",
          FWFT_EN_G      => false,
-         USE_DSP48_G    => "no",
          PIPE_STAGES_G  => 0,
          DATA_WIDTH_G   => (GT_WORD_SIZE_C*8) + GT_WORD_SIZE_C,
          -- ADDR_WIDTH_G   => bitSize((K_G * F_G)/GT_WORD_SIZE_C),

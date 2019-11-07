@@ -29,7 +29,6 @@ entity FifoAsync is
       MEMORY_TYPE_G  : string   := "block";
       BYP_RAM_G      : boolean  := false;
       FWFT_EN_G      : boolean  := false;
-      USE_DSP48_G    : string   := "no";
       SYNC_STAGES_G  : positive := 3;
       PIPE_STAGES_G  : natural  := 0;
       DATA_WIDTH_G   : positive := 16;

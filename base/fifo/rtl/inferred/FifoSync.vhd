@@ -30,7 +30,6 @@ entity FifoSync is
       MEMORY_TYPE_G  : boolean  := true;
       BYP_RAM_G      : boolean  := false;
       FWFT_EN_G      : boolean  := false;
-      USE_DSP48_G    : string   := "no";
       PIPE_STAGES_G  : natural  := 0;
       DATA_WIDTH_G   : positive := 16;
       ADDR_WIDTH_G   : positive := 4;

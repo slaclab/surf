@@ -33,7 +33,6 @@ entity Fifo is
       FWFT_EN_G       : boolean                    := false;
       SYNTH_MODE_G    : string                     := "inferred";
       MEMORY_TYPE_G   : string                     := "block";      
-      USE_DSP48_G     : string                     := "no";
       USE_BUILT_IN_G  : boolean                    := false;  --if set to true, this module is only xilinx compatible only!!!
       XIL_DEVICE_G    : string                     := "7SERIES";  --xilinx only generic parameter    
       SYNC_STAGES_G   : integer range 3 to (2**24) := 3;
@@ -162,7 +161,6 @@ begin
                   RST_POLARITY_G => RST_POLARITY_G,
                   MEMORY_TYPE_G  => MEMORY_TYPE_G,
                   FWFT_EN_G      => FWFT_EN_G,
-                  USE_DSP48_G    => USE_DSP48_G,
                   SYNC_STAGES_G  => SYNC_STAGES_G,
                   PIPE_STAGES_G  => PIPE_STAGES_G,
                   DATA_WIDTH_G   => DATA_WIDTH_G,
@@ -204,7 +202,6 @@ begin
                   RST_ASYNC_G    => RST_ASYNC_G,
                   MEMORY_TYPE_G  => MEMORY_TYPE_G,
                   FWFT_EN_G      => FWFT_EN_G,
-                  USE_DSP48_G    => USE_DSP48_G,
                   PIPE_STAGES_G  => PIPE_STAGES_G,
                   DATA_WIDTH_G   => DATA_WIDTH_G,
                   ADDR_WIDTH_G   => ADDR_WIDTH_G,
@@ -247,7 +244,6 @@ begin
                   TPD_G          => TPD_G,
                   RST_POLARITY_G => RST_POLARITY_G,
                   XIL_DEVICE_G   => XIL_DEVICE_G,
-                  USE_DSP48_G    => USE_DSP48_G,
                   FWFT_EN_G      => FWFT_EN_G,
                   PIPE_STAGES_G  => PIPE_STAGES_G,
                   DATA_WIDTH_G   => DATA_WIDTH_G,
@@ -284,7 +280,6 @@ begin
                   TPD_G          => TPD_G,
                   RST_POLARITY_G => RST_POLARITY_G,
                   FWFT_EN_G      => FWFT_EN_G,
-                  USE_DSP48_G    => USE_DSP48_G,
                   XIL_DEVICE_G   => XIL_DEVICE_G,
                   SYNC_STAGES_G  => SYNC_STAGES_G,
                   PIPE_STAGES_G  => PIPE_STAGES_G,
