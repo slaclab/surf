@@ -96,13 +96,13 @@ begin
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, sAxiWriteMaster, sAxiReadMaster, v.sAxiWriteSlave, v.sAxiReadSlave);
 
-      axiSlaveRegister (axilEp, toSlv( 0, 9), 0, v.rnw);
-      axiSlaveRegisterR(axilEp, toSlv( 4, 9), 0, r.done);
-      axiSlaveRegisterR(axilEp, toSlv( 4, 9), 1, r.resp);
-      axiSlaveRegister (axilEp, toSlv( 8, 9), 0, v.addr);
-      axiSlaveRegister (axilEp, toSlv(12, 9), 0, v.data);
+      axiSlaveRegister (axilEp, X"00", 0, v.rnw);
+      axiSlaveRegisterR(axilEp, X"04", 0, r.done);
+      axiSlaveRegisterR(axilEp,  X"04", 1, r.resp);
+      axiSlaveRegister (axilEp,  X"08", 0, v.addr);
+      axiSlaveRegister (axilEp,  X"0C", 0, v.data);
       newCmd := '0';
-      axiWrDetect     (axilEp, toSlv(0, 9), newcmd);
+      axiWrDetect     (axilEp,  X"00", newcmd);
       
       -- Close out the transaction
       axiSlaveDefault(axilEp, v.sAxiWriteSlave, v.sAxiReadSlave, AXI_RESP_OK_C);
