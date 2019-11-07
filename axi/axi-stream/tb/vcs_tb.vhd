@@ -127,8 +127,6 @@ begin
    U_AxiLiteMaster : entity surf.SsiAxiLiteMaster 
       generic map (
          TPD_G               => 1 ns,
-         XIL_DEVICE_G        => "7SERIES",
-         USE_BUILT_IN_G      => false,
          MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 9,
@@ -212,8 +210,6 @@ begin
    U_CmdMaster : entity surf.SsiCmdMaster 
       generic map (
          TPD_G               => 1 ns,
-         XIL_DEVICE_G        => "7SERIES",
-         USE_BUILT_IN_G      => false,
          MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 9,

@@ -148,7 +148,6 @@ begin
          VALID_THOLD_G       => 1,
          -- FIFO configurations
          MEMORY_TYPE_G       => "distributed",
-         USE_BUILT_IN_G      => false,
          GEN_SYNC_FIFO_G     => true,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 4,
@@ -465,8 +464,6 @@ begin
          GEN_SYNC_FIFO_G => true,
          MEMORY_TYPE_G   => "distributed",
          FWFT_EN_G       => false,
-         USE_BUILT_IN_G  => false,
-         XIL_DEVICE_G    => "7SERIES",
          SYNC_STAGES_G   => 3,
          DATA_WIDTH_G    => 72,
          INIT_G          => "0",

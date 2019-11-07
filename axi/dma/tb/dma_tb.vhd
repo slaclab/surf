@@ -152,8 +152,6 @@ begin
       generic map (
          TPD_G               => 1 ns,
          MEMORY_TYPE_G       => "block",
-         XIL_DEVICE_G        => "7SERIES",
-         USE_BUILT_IN_G      => false,
          GEN_SYNC_FIFO_G     => false,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 9,
@@ -178,8 +176,6 @@ begin
    U_AxiWritePathFifo: entity surf.AxiWritePathFifo 
       generic map (
          TPD_G                    => 1 ns,
-         XIL_DEVICE_G             => "7SERIES",
-         USE_BUILT_IN_G           => false,
          GEN_SYNC_FIFO_G          => false,
          ADDR_LSB_G               => 0,
          ID_FIXED_EN_G            => false,
@@ -221,8 +217,6 @@ begin
    U_AxiReadPathFifo: entity surf.AxiReadPathFifo 
       generic map (
          TPD_G                    => 1 ns,
-         XIL_DEVICE_G             => "7SERIES",
-         USE_BUILT_IN_G           => false,
          GEN_SYNC_FIFO_G          => false,
          ADDR_LSB_G               => 0,
          ID_FIXED_EN_G            => false,

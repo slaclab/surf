@@ -43,9 +43,7 @@ entity AxiLiteFifoPushPop is
       PUSH_ADDR_WIDTH_G  : integer range 4 to 48      := 4;
       RANGE_LSB_G        : integer range 0 to 31      := 8;
       VALID_POSITION_G   : integer range 0 to 31      := 0;
-      VALID_POLARITY_G   : sl                         := '0';
-      USE_BUILT_IN_G     : boolean                    := false;
-      XIL_DEVICE_G       : string                     := "7SERIES"
+      VALID_POLARITY_G   : sl                         := '0'
    );
    port (
 
@@ -156,8 +154,6 @@ begin
             GEN_SYNC_FIFO_G    => POP_SYNC_FIFO_G,
             MEMORY_TYPE_G      => POP_MEMORY_TYPE_G,
             FWFT_EN_G          => true,
-            USE_BUILT_IN_G     => USE_BUILT_IN_G,
-            XIL_DEVICE_G       => XIL_DEVICE_G,
             SYNC_STAGES_G      => 3,
             DATA_WIDTH_G       => 32,
             ADDR_WIDTH_G       => POP_ADDR_WIDTH_G,
@@ -211,8 +207,6 @@ begin
                GEN_SYNC_FIFO_G    => true,
                MEMORY_TYPE_G      => LOOP_MEMORY_TYPE_G,
                FWFT_EN_G          => true,
-               USE_BUILT_IN_G     => USE_BUILT_IN_G,
-               XIL_DEVICE_G       => XIL_DEVICE_G,
                SYNC_STAGES_G      => 3,
                DATA_WIDTH_G       => 32,
                ADDR_WIDTH_G       => LOOP_ADDR_WIDTH_G,
@@ -275,8 +269,6 @@ begin
             GEN_SYNC_FIFO_G    => PUSH_SYNC_FIFO_G,
             MEMORY_TYPE_G      => PUSH_MEMORY_TYPE_G,
             FWFT_EN_G          => true,
-            USE_BUILT_IN_G     => USE_BUILT_IN_G,
-            XIL_DEVICE_G       => XIL_DEVICE_G,
             SYNC_STAGES_G      => 3,
             DATA_WIDTH_G       => 36,
             ADDR_WIDTH_G       => PUSH_ADDR_WIDTH_G,

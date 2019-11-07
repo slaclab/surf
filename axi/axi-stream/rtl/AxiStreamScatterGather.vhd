@@ -163,7 +163,6 @@ begin
          GEN_SYNC_FIFO_G => true,
          MEMORY_TYPE_G   => "distributed",
          FWFT_EN_G       => true,
-         USE_BUILT_IN_G  => false,
          DATA_WIDTH_G    => 1,
          ADDR_WIDTH_G    => 4)
       port map (

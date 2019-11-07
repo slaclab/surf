@@ -41,8 +41,6 @@ entity AxiStreamFifoV2 is
                                                                   -- >1 = only when frame ready or # entries
       VALID_BURST_MODE_G  : boolean                    := false;  -- only used in VALID_THOLD_G>1
       -- FIFO configurations
-      XIL_DEVICE_G        : string                     := "7SERIES";
-      USE_BUILT_IN_G      : boolean                    := false;
       GEN_SYNC_FIFO_G     : boolean                    := false;
       CASCADE_SIZE_G      : integer range 1 to (2**24) := 1;
       FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
@@ -244,8 +242,6 @@ begin
          FWFT_EN_G          => true,
          SYNTH_MODE_G       => SYNTH_MODE_G,
          MEMORY_TYPE_G      => MEMORY_TYPE_G,         
-         USE_BUILT_IN_G     => USE_BUILT_IN_G,
-         XIL_DEVICE_G       => XIL_DEVICE_G,
          SYNC_STAGES_G      => 3,
          DATA_WIDTH_G       => FIFO_BITS_C,
          ADDR_WIDTH_G       => FIFO_ADDR_WIDTH_G,
@@ -281,8 +277,6 @@ begin
             GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
             MEMORY_TYPE_G      => "distributed",
             FWFT_EN_G          => true,
-            USE_BUILT_IN_G     => false,
-            XIL_DEVICE_G       => XIL_DEVICE_G,
             SYNC_STAGES_G      => 3,
             DATA_WIDTH_G       => maximum(FIFO_USER_BITS_C, 1),
             ADDR_WIDTH_G       => LAST_FIFO_ADDR_WIDTH_C,

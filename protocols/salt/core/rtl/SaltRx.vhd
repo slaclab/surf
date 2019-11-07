@@ -328,7 +328,6 @@ begin
          EN_FRAME_FILTER_G   => true,
          -- FIFO configurations
          MEMORY_TYPE_G       => "block",
-         USE_BUILT_IN_G      => false,
          GEN_SYNC_FIFO_G     => COMMON_RX_CLK_G,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 9,

@@ -265,9 +265,7 @@ begin
          PUSH_ADDR_WIDTH_G => PUSH_ADDR_WIDTH_C,
          RANGE_LSB_G       => 8,
          VALID_POSITION_G  => 31,
-         VALID_POLARITY_G  => '1',
-         USE_BUILT_IN_G    => false,
-         XIL_DEVICE_G      => "7SERIES") 
+         VALID_POLARITY_G  => '1') 
       port map (
          axiClk         => axiClk,
          axiClkRst      => axiRst,

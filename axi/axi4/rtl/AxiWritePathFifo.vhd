@@ -31,8 +31,6 @@ entity AxiWritePathFifo is
       TPD_G : time := 1 ns;
 
       -- General FIFO configurations
-      XIL_DEVICE_G             : string  := "7SERIES";
-      USE_BUILT_IN_G           : boolean := false;
       GEN_SYNC_FIFO_G          : boolean := false;
 
       -- Bit Optimizations
@@ -354,8 +352,6 @@ begin
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
          MEMORY_TYPE_G      => ADDR_MEMORY_TYPE_G,
          FWFT_EN_G          => true,
-         USE_BUILT_IN_G     => USE_BUILT_IN_G,
-         XIL_DEVICE_G       => XIL_DEVICE_G,
          SYNC_STAGES_G      => 3,
          DATA_WIDTH_G       => ADDR_FIFO_SIZE_C,
          ADDR_WIDTH_G       => ADDR_FIFO_ADDR_WIDTH_G,
@@ -396,8 +392,6 @@ begin
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
          MEMORY_TYPE_G      => DATA_MEMORY_TYPE_G,
          FWFT_EN_G          => true,
-         USE_BUILT_IN_G     => USE_BUILT_IN_G,
-         XIL_DEVICE_G       => XIL_DEVICE_G,
          SYNC_STAGES_G      => 3,
          DATA_WIDTH_G       => DATA_FIFO_SIZE_C,
          ADDR_WIDTH_G       => DATA_FIFO_ADDR_WIDTH_G,
@@ -438,8 +432,6 @@ begin
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
          MEMORY_TYPE_G      => RESP_MEMORY_TYPE_G,
          FWFT_EN_G          => true,
-         USE_BUILT_IN_G     => USE_BUILT_IN_G,
-         XIL_DEVICE_G       => XIL_DEVICE_G,
          SYNC_STAGES_G      => 3,
          DATA_WIDTH_G       => RESP_FIFO_SIZE_C,
          ADDR_WIDTH_G       => RESP_FIFO_ADDR_WIDTH_G,

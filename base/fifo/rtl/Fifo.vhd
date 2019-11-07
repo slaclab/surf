@@ -153,163 +153,86 @@ begin
    end generate;
 
    GEN_INFERRED : if (SYNTH_MODE_G = "inferred") generate
-      NON_BUILT_IN_GEN : if (USE_BUILT_IN_G = false) generate
-         FIFO_ASYNC_Gen : if (GEN_SYNC_FIFO_G = false) generate
-            FifoAsync_Inst : entity surf.FifoAsync
-               generic map (
-                  TPD_G          => TPD_G,
-                  RST_POLARITY_G => RST_POLARITY_G,
-                  MEMORY_TYPE_G  => MEMORY_TYPE_G,
-                  FWFT_EN_G      => FWFT_EN_G,
-                  SYNC_STAGES_G  => SYNC_STAGES_G,
-                  PIPE_STAGES_G  => PIPE_STAGES_G,
-                  DATA_WIDTH_G   => DATA_WIDTH_G,
-                  ADDR_WIDTH_G   => ADDR_WIDTH_G,
-                  INIT_G         => INIT_C,
-                  FULL_THRES_G   => FULL_THRES_G,
-                  EMPTY_THRES_G  => EMPTY_THRES_G)
-               port map (
-                  rst           => rst,
-                  wr_clk        => wr_clk,
-                  wr_en         => wr_en,
-                  din           => din,
-                  wr_data_count => wr_data_count,
-                  wr_ack        => wr_ack,
-                  overflow      => overflow,
-                  prog_full     => prog_full,
-                  almost_full   => almost_full,
-                  full          => full,
-                  not_full      => not_full,
-                  rd_clk        => rd_clk,
-                  rd_en         => rd_en,
-                  dout          => dout,
-                  rd_data_count => rd_data_count,
-                  valid         => valid,
-                  underflow     => underflow,
-                  prog_empty    => prog_empty,
-                  almost_empty  => almost_empty,
-                  empty         => empty);   
-         end generate;
 
-         FIFO_SYNC_Gen : if (GEN_SYNC_FIFO_G = true) generate
-            wr_data_count <= data_count;
-            rd_data_count <= data_count;
-
-            FifoSync_Inst : entity surf.FifoSync
-               generic map (
-                  TPD_G          => TPD_G,
-                  RST_POLARITY_G => RST_POLARITY_G,
-                  RST_ASYNC_G    => RST_ASYNC_G,
-                  MEMORY_TYPE_G  => MEMORY_TYPE_G,
-                  FWFT_EN_G      => FWFT_EN_G,
-                  PIPE_STAGES_G  => PIPE_STAGES_G,
-                  DATA_WIDTH_G   => DATA_WIDTH_G,
-                  ADDR_WIDTH_G   => ADDR_WIDTH_G,
-                  INIT_G         => INIT_C,
-                  FULL_THRES_G   => FULL_THRES_G,
-                  EMPTY_THRES_G  => EMPTY_THRES_G)
-               port map (
-                  rst          => rst,
-                  clk          => wr_clk,
-                  wr_en        => wr_en,
-                  rd_en        => rd_en,
-                  din          => din,
-                  dout         => dout,
-                  data_count   => data_count,
-                  wr_ack       => wr_ack,
-                  valid        => valid,
-                  overflow     => overflow,
-                  underflow    => underflow,
-                  prog_full    => prog_full,
-                  prog_empty   => prog_empty,
-                  almost_full  => almost_full,
-                  almost_empty => almost_empty,
-                  full         => full,
-                  not_full     => not_full,
-                  empty        => empty);   
-         --NOTE: 
-         --    When mapping the FifoSync, I am assuming that
-         --    wr_clk = rd_clk (both in frequency and in phase)
-         --    and I only pass wr_clk into the FifoSync_Inst
-         end generate;
+      FIFO_ASYNC_Gen : if (GEN_SYNC_FIFO_G = false) generate
+         FifoAsync_Inst : entity surf.FifoAsync
+            generic map (
+               TPD_G          => TPD_G,
+               RST_POLARITY_G => RST_POLARITY_G,
+               MEMORY_TYPE_G  => MEMORY_TYPE_G,
+               FWFT_EN_G      => FWFT_EN_G,
+               SYNC_STAGES_G  => SYNC_STAGES_G,
+               PIPE_STAGES_G  => PIPE_STAGES_G,
+               DATA_WIDTH_G   => DATA_WIDTH_G,
+               ADDR_WIDTH_G   => ADDR_WIDTH_G,
+               INIT_G         => INIT_C,
+               FULL_THRES_G   => FULL_THRES_G,
+               EMPTY_THRES_G  => EMPTY_THRES_G)
+            port map (
+               rst           => rst,
+               wr_clk        => wr_clk,
+               wr_en         => wr_en,
+               din           => din,
+               wr_data_count => wr_data_count,
+               wr_ack        => wr_ack,
+               overflow      => overflow,
+               prog_full     => prog_full,
+               almost_full   => almost_full,
+               full          => full,
+               not_full      => not_full,
+               rd_clk        => rd_clk,
+               rd_en         => rd_en,
+               dout          => dout,
+               rd_data_count => rd_data_count,
+               valid         => valid,
+               underflow     => underflow,
+               prog_empty    => prog_empty,
+               almost_empty  => almost_empty,
+               empty         => empty);   
       end generate;
 
-      BUILT_IN_GEN : if (USE_BUILT_IN_G = true) generate
-         FIFO_SYNC_BUILT_IN_GEN : if (GEN_SYNC_FIFO_G = true) generate
-            wr_data_count <= data_count;
-            rd_data_count <= data_count;
+      FIFO_SYNC_Gen : if (GEN_SYNC_FIFO_G = true) generate
+         wr_data_count <= data_count;
+         rd_data_count <= data_count;
 
-            FifoSyncBuiltIn_Inst : entity surf.FifoSyncBuiltIn
-               generic map (
-                  TPD_G          => TPD_G,
-                  RST_POLARITY_G => RST_POLARITY_G,
-                  XIL_DEVICE_G   => XIL_DEVICE_G,
-                  FWFT_EN_G      => FWFT_EN_G,
-                  PIPE_STAGES_G  => PIPE_STAGES_G,
-                  DATA_WIDTH_G   => DATA_WIDTH_G,
-                  ADDR_WIDTH_G   => ADDR_WIDTH_G,
-                  FULL_THRES_G   => FULL_THRES_G,
-                  EMPTY_THRES_G  => EMPTY_THRES_G)
-               port map (
-                  rst          => rst,
-                  clk          => wr_clk,
-                  wr_en        => wr_en,
-                  rd_en        => rd_en,
-                  din          => din,
-                  dout         => dout,
-                  data_count   => data_count,
-                  wr_ack       => wr_ack,
-                  valid        => valid,
-                  overflow     => overflow,
-                  underflow    => underflow,
-                  prog_full    => prog_full,
-                  prog_empty   => prog_empty,
-                  almost_full  => almost_full,
-                  almost_empty => almost_empty,
-                  full         => full,
-                  not_full     => not_full,
-                  empty        => empty);   
-         --NOTE: 
-         --    When mapping the FifoSync, I am assuming that
-         --    wr_clk = rd_clk (both in frequency and in phase)
-         --    and I only pass wr_clk into the FifoSyncBuiltIn_Inst
-         end generate;
-         FIFO_ASYNC_BUILT_IN_GEN : if (GEN_SYNC_FIFO_G = false) generate
-            FifoAsyncBuiltIn_Inst : entity surf.FifoAsyncBuiltIn
-               generic map (
-                  TPD_G          => TPD_G,
-                  RST_POLARITY_G => RST_POLARITY_G,
-                  FWFT_EN_G      => FWFT_EN_G,
-                  XIL_DEVICE_G   => XIL_DEVICE_G,
-                  SYNC_STAGES_G  => SYNC_STAGES_G,
-                  PIPE_STAGES_G  => PIPE_STAGES_G,
-                  DATA_WIDTH_G   => DATA_WIDTH_G,
-                  ADDR_WIDTH_G   => ADDR_WIDTH_G,
-                  FULL_THRES_G   => FULL_THRES_G,
-                  EMPTY_THRES_G  => EMPTY_THRES_G)            
-               port map (
-                  rst           => rst,
-                  wr_clk        => wr_clk,
-                  wr_en         => wr_en,
-                  din           => din,
-                  wr_data_count => wr_data_count,
-                  wr_ack        => wr_ack,
-                  overflow      => overflow,
-                  prog_full     => prog_full,
-                  almost_full   => almost_full,
-                  full          => full,
-                  not_full      => not_full,
-                  rd_clk        => rd_clk,
-                  rd_en         => rd_en,
-                  dout          => dout,
-                  rd_data_count => rd_data_count,
-                  valid         => valid,
-                  underflow     => underflow,
-                  prog_empty    => prog_empty,
-                  almost_empty  => almost_empty,
-                  empty         => empty);   
-         end generate;
+         FifoSync_Inst : entity surf.FifoSync
+            generic map (
+               TPD_G          => TPD_G,
+               RST_POLARITY_G => RST_POLARITY_G,
+               RST_ASYNC_G    => RST_ASYNC_G,
+               MEMORY_TYPE_G  => MEMORY_TYPE_G,
+               FWFT_EN_G      => FWFT_EN_G,
+               PIPE_STAGES_G  => PIPE_STAGES_G,
+               DATA_WIDTH_G   => DATA_WIDTH_G,
+               ADDR_WIDTH_G   => ADDR_WIDTH_G,
+               INIT_G         => INIT_C,
+               FULL_THRES_G   => FULL_THRES_G,
+               EMPTY_THRES_G  => EMPTY_THRES_G)
+            port map (
+               rst          => rst,
+               clk          => wr_clk,
+               wr_en        => wr_en,
+               rd_en        => rd_en,
+               din          => din,
+               dout         => dout,
+               data_count   => data_count,
+               wr_ack       => wr_ack,
+               valid        => valid,
+               overflow     => overflow,
+               underflow    => underflow,
+               prog_full    => prog_full,
+               prog_empty   => prog_empty,
+               almost_full  => almost_full,
+               almost_empty => almost_empty,
+               full         => full,
+               not_full     => not_full,
+               empty        => empty);   
+      --NOTE: 
+      --    When mapping the FifoSync, I am assuming that
+      --    wr_clk = rd_clk (both in frequency and in phase)
+      --    and I only pass wr_clk into the FifoSync_Inst
       end generate;
+      
    end generate;
    
 end architecture rtl;

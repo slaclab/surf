@@ -164,8 +164,6 @@ begin
          VALID_THOLD_G          => 0,  -- = 0 = only when frame ready                                                                 
          -- FIFO configurations
          MEMORY_TYPE_G          => "block",
-         XIL_DEVICE_G           => "7SERIES",
-         USE_BUILT_IN_G         => false,
          GEN_SYNC_FIFO_G        => GEN_SYNC_FIFO_G,
          FIFO_ADDR_WIDTH_G      => 9,   -- 2kB/FIFO = 32-bits x 512 entries
          CASCADE_SIZE_G         => 3,   -- 6kB = 3 FIFOs x 2 kB/FIFO
@@ -684,8 +682,6 @@ begin
          VALID_THOLD_G       => TX_VALID_THOLD_G,
          -- FIFO configurations
          MEMORY_TYPE_G       => "block",
-         XIL_DEVICE_G        => "7SERIES",
-         USE_BUILT_IN_G      => false,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 9,

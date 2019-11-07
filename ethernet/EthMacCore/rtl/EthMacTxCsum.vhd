@@ -644,7 +644,6 @@ begin
          VALID_THOLD_G       => 1,
          -- FIFO configurations
          MEMORY_TYPE_G       => "block",
-         USE_BUILT_IN_G      => false,
          GEN_SYNC_FIFO_G     => true,
          CASCADE_SIZE_G      => ite(JUMBO_G, 2, 1),
          FIFO_ADDR_WIDTH_G   => 9,      -- 8kB per FIFO

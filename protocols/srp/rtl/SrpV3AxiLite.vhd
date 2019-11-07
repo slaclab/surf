@@ -218,8 +218,6 @@ begin
          VALID_THOLD_G       => 0,  -- = 0 = only when frame ready                                                                 
          -- FIFO configurations
          MEMORY_TYPE_G       => "block",
-         XIL_DEVICE_G        => "7SERIES",
-         USE_BUILT_IN_G      => false,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          INT_WIDTH_SELECT_G  => "CUSTOM",
          INT_DATA_WIDTH_G    => 16,     -- 128-bit         
@@ -793,8 +791,6 @@ begin
          VALID_BURST_MODE_G  => TX_VALID_BURST_MODE_G,
          -- FIFO configurations
          MEMORY_TYPE_G       => "block",
-         XIL_DEVICE_G        => "7SERIES",
-         USE_BUILT_IN_G      => false,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          INT_WIDTH_SELECT_G  => "CUSTOM",
          INT_DATA_WIDTH_G    => 16,     -- 128-bit         

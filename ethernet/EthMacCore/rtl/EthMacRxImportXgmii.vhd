@@ -424,8 +424,6 @@ begin
          GEN_SYNC_FIFO_G => true,
          MEMORY_TYPE_G   => "distributed",
          FWFT_EN_G       => false,
-         USE_BUILT_IN_G  => false,
-         XIL_DEVICE_G    => "7SERIES",
          SYNC_STAGES_G   => 3,
          DATA_WIDTH_G    => 64,
          ADDR_WIDTH_G    => 4,

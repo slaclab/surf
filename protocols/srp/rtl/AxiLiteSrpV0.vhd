@@ -38,8 +38,6 @@ entity AxiLiteSrpV0 is
       RESP_THOLD_G        : integer range 0 to (2**24) := 1;      -- =1 = normal operation
       SLAVE_READY_EN_G    : boolean                    := false;
       MEMORY_TYPE_G       : string                     := "block";
-      XIL_DEVICE_G        : string                     := "7SERIES";  --Xilinx only generic parameter    
-      USE_BUILT_IN_G      : boolean                    := false;  --if set to true, this module is only Xilinx compatible only!!!
       GEN_SYNC_FIFO_G     : boolean                    := false;
       FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
       FIFO_PAUSE_THRESH_G : integer range 1 to (2**24) := 2**8;
@@ -128,8 +126,6 @@ begin
          INT_PIPE_STAGES_G   => 0,
          VALID_THOLD_G       => RESP_THOLD_G,
          MEMORY_TYPE_G       => MEMORY_TYPE_G,
-         XIL_DEVICE_G        => XIL_DEVICE_G,
-         USE_BUILT_IN_G      => USE_BUILT_IN_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
@@ -158,8 +154,6 @@ begin
          INT_PIPE_STAGES_G   => 0,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
          MEMORY_TYPE_G       => MEMORY_TYPE_G,
-         XIL_DEVICE_G        => XIL_DEVICE_G,
-         USE_BUILT_IN_G      => USE_BUILT_IN_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,

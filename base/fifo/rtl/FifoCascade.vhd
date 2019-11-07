@@ -35,8 +35,6 @@ entity FifoCascade is
       FWFT_EN_G          : boolean                    := false;
       SYNTH_MODE_G       : string                     := "inferred";
       MEMORY_TYPE_G      : string                     := "block";      
-      USE_BUILT_IN_G     : boolean                    := false;  -- If set to true, this module is only Xilinx compatible only!!!
-      XIL_DEVICE_G       : string                     := "7SERIES";  -- Xilinx only generic parameter    
       SYNC_STAGES_G      : integer range 3 to (2**24) := 3;
       PIPE_STAGES_G      : natural range 0 to 16      := 0;
       DATA_WIDTH_G       : integer range 1 to (2**24) := 16;
@@ -109,8 +107,6 @@ begin
             FWFT_EN_G       => FWFT_EN_G,
             SYNTH_MODE_G    => SYNTH_MODE_G,
             MEMORY_TYPE_G   => MEMORY_TYPE_G,
-            USE_BUILT_IN_G  => USE_BUILT_IN_G,
-            XIL_DEVICE_G    => XIL_DEVICE_G,
             SYNC_STAGES_G   => SYNC_STAGES_G,
             PIPE_STAGES_G   => PIPE_STAGES_G,
             DATA_WIDTH_G    => DATA_WIDTH_G,
@@ -164,8 +160,6 @@ begin
             FWFT_EN_G       => true,
             SYNTH_MODE_G    => SYNTH_MODE_G,
             MEMORY_TYPE_G   => MEMORY_TYPE_G,            
-            USE_BUILT_IN_G  => USE_BUILT_IN_G,
-            XIL_DEVICE_G    => XIL_DEVICE_G,
             SYNC_STAGES_G   => SYNC_STAGES_G,
             PIPE_STAGES_G   => PIPE_STAGES_G,
             DATA_WIDTH_G    => DATA_WIDTH_G,
@@ -209,8 +203,6 @@ begin
                   FWFT_EN_G       => true,
                   SYNTH_MODE_G    => SYNTH_MODE_G,
                   MEMORY_TYPE_G   => MEMORY_TYPE_G,                  
-                  USE_BUILT_IN_G  => USE_BUILT_IN_G,
-                  XIL_DEVICE_G    => XIL_DEVICE_G,
                   SYNC_STAGES_G   => SYNC_STAGES_G,
                   PIPE_STAGES_G   => PIPE_STAGES_G,
                   DATA_WIDTH_G    => DATA_WIDTH_G,
@@ -247,8 +239,6 @@ begin
             FWFT_EN_G       => FWFT_EN_G,
             SYNTH_MODE_G    => SYNTH_MODE_G,
             MEMORY_TYPE_G   => MEMORY_TYPE_G,            
-            USE_BUILT_IN_G  => USE_BUILT_IN_G,
-            XIL_DEVICE_G    => XIL_DEVICE_G,
             SYNC_STAGES_G   => SYNC_STAGES_G,
             PIPE_STAGES_G   => PIPE_STAGES_G,
             DATA_WIDTH_G    => DATA_WIDTH_G,

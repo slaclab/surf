@@ -40,8 +40,6 @@ architecture testbed of AxiStreamMuxTb is
 
    -- FIFO configurations
    constant MEMORY_TYPE_G       : string  := "block";
-   constant XIL_DEVICE_C        : string  := "7SERIES";
-   constant USE_BUILT_IN_C      : boolean := false;
    constant CASCADE_SIZE_C      : natural := 1;
    constant FIFO_ADDR_WIDTH_C   : natural := 9;
    constant FIFO_PAUSE_THRESH_C : natural := 2**8;
@@ -130,8 +128,6 @@ begin
             TPD_G                      => TPD_C,
             -- FIFO configurations
             MEMORY_TYPE_G              => MEMORY_TYPE_C,
-            XIL_DEVICE_G               => XIL_DEVICE_C,
-            USE_BUILT_IN_G             => USE_BUILT_IN_C,
             GEN_SYNC_FIFO_G            => true,
             CASCADE_SIZE_G             => CASCADE_SIZE_C,
             FIFO_ADDR_WIDTH_G          => FIFO_ADDR_WIDTH_C,
@@ -203,8 +199,6 @@ begin
 --          VALID_THOLD_G       => 1,
 --          -- FIFO configurations
 --          MEMORY_TYPE_G       => MEMORY_TYPE_C,
---          XIL_DEVICE_G        => XIL_DEVICE_C,
---          USE_BUILT_IN_G      => USE_BUILT_IN_C,
 --          GEN_SYNC_FIFO_G     => false,
 --          CASCADE_SIZE_G      => CASCADE_SIZE_C,
 --          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
@@ -284,8 +278,6 @@ begin
             STATUS_CNT_WIDTH_G         => STATUS_CNT_WIDTH_C,
             -- FIFO Configurations
             MEMORY_TYPE_G              => MEMORY_TYPE_C,
-            XIL_DEVICE_G               => XIL_DEVICE_C,
-            USE_BUILT_IN_G             => USE_BUILT_IN_C,
             GEN_SYNC_FIFO_G            => true,
             CASCADE_SIZE_G             => CASCADE_SIZE_C,
             FIFO_ADDR_WIDTH_G          => FIFO_ADDR_WIDTH_C,

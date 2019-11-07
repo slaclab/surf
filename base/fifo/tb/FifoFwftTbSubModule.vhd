@@ -27,7 +27,6 @@ entity FifoTbSubModule is
       TPD_G           : time                  := 1 ns;
       GEN_SYNC_FIFO_G : boolean               := false;
       MEMORY_TYPE_G   : string                := "block";
-      USE_BUILT_IN_G  : boolean               := false;  --if set to true, this module is only xilinx compatible only!!!
       PIPE_STAGES_G   : natural range 0 to 16 := 0);
    port (
       rst    : in  sl;
@@ -79,7 +78,6 @@ begin
          TPD_G           => TPD_G,
          GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_G,
          MEMORY_TYPE_G   => MEMORY_TYPE_G,
-         USE_BUILT_IN_G  => USE_BUILT_IN_G,
          PIPE_STAGES_G   => PIPE_STAGES_G,
          FWFT_EN_G       => true,
          DATA_WIDTH_G    => 16,

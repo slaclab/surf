@@ -435,7 +435,6 @@ begin
          SLAVE_READY_EN_G    => false,
          VALID_THOLD_G       => 1,
          MEMORY_TYPE_G       => "distributed",
-         USE_BUILT_IN_G      => false,
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 4,
          FIFO_FIXED_THRESH_G => true,

@@ -149,9 +149,7 @@ begin
       U_SsiPrbsTx : entity surf.SsiPrbsTx
          generic map (
             TPD_G                      => 1 ns,
-            XIL_DEVICE_G               => "7SERIES",  --Xilinx only generic parameter    
             MEMORY_TYPE_G              => "block",
-            USE_BUILT_IN_G             => false,  --if set to true, this module is only Xilinx compatible only!!!
             GEN_SYNC_FIFO_G            => false,
             CASCADE_SIZE_G             => 1,
             PRBS_SEED_SIZE_G           => 32,
@@ -182,8 +180,6 @@ begin
                SLAVE_READY_EN_G    => true,
                VALID_THOLD_G       => 1,
                MEMORY_TYPE_G       => "block",
-               XIL_DEVICE_G        => "7SERIES",
-               USE_BUILT_IN_G      => false,
                GEN_SYNC_FIFO_G     => false,
                CASCADE_SIZE_G      => 1,
                FIFO_ADDR_WIDTH_G   => 9,
@@ -277,8 +273,6 @@ begin
             PIPE_STAGES_G       => 0,
             -- FIFO configurations
             MEMORY_TYPE_G       => "block",
-            XIL_DEVICE_G        => "7SERIES",
-            USE_BUILT_IN_G      => false,
             GEN_SYNC_FIFO_G     => false,
             CASCADE_SIZE_G      => 1,
             FIFO_ADDR_WIDTH_G   => 11,
@@ -305,9 +299,7 @@ begin
             TPD_G                      => 1 ns,
             STATUS_CNT_WIDTH_G         => 32,
             CASCADE_SIZE_G             => 1,
-            XIL_DEVICE_G               => "7SERIES",  --Xilinx only generic parameter    
             MEMORY_TYPE_G              => "block",
-            USE_BUILT_IN_G             => false,  --if set to true, this module is only Xilinx compatible only!!!
             GEN_SYNC_FIFO_G            => false,
             PRBS_SEED_SIZE_G           => 32,
             PRBS_TAPS_G                => (0 => 16),

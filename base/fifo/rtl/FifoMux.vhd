@@ -31,8 +31,6 @@ entity FifoMux is
       GEN_SYNC_FIFO_G    : boolean                    := false;
       MEMORY_TYPE_G      : string                     := "block";
       FWFT_EN_G          : boolean                    := true;
-      USE_BUILT_IN_G     : boolean                    := false;  -- If set to true, this module is only Xilinx compatible only!!!
-      XIL_DEVICE_G       : string                     := "7SERIES";  -- Xilinx only generic parameter    
       SYNC_STAGES_G      : integer range 3 to (2**24) := 3;
       PIPE_STAGES_G      : natural range 0 to 16      := 0;
       WR_DATA_WIDTH_G    : integer range 1 to (2**24) := 64;
@@ -264,8 +262,6 @@ begin
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
          MEMORY_TYPE_G      => MEMORY_TYPE_G,
          FWFT_EN_G          => FWFT_EN_G,
-         USE_BUILT_IN_G     => USE_BUILT_IN_G,
-         XIL_DEVICE_G       => XIL_DEVICE_G,
          SYNC_STAGES_G      => SYNC_STAGES_G,
          PIPE_STAGES_G      => PIPE_STAGES_G,
          DATA_WIDTH_G       => FIFO_DATA_WIDTH_C,

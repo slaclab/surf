@@ -33,8 +33,6 @@ entity SsiIncrementingTx is
       TPD_G                      : time                       := 1 ns;
       -- FIFO configurations
       MEMORY_TYPE_G              : string                     := "block";
-      XIL_DEVICE_G               : string                     := "7SERIES";
-      USE_BUILT_IN_G             : boolean                    := false;
       GEN_SYNC_FIFO_G            : boolean                    := false;
       CASCADE_SIZE_G             : natural range 1 to (2**24) := 1;
       FIFO_ADDR_WIDTH_G          : natural range 4 to 48      := 9;
@@ -241,8 +239,6 @@ begin
          PIPE_STAGES_G       => MASTER_AXI_PIPE_STAGES_G,
          -- FIFO configurations
          MEMORY_TYPE_G       => MEMORY_TYPE_G,
-         XIL_DEVICE_G        => XIL_DEVICE_G,
-         USE_BUILT_IN_G      => USE_BUILT_IN_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          CASCADE_SIZE_G      => CASCADE_SIZE_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
