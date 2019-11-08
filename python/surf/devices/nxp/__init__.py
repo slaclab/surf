@@ -8,4 +8,5 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+from surf.devices.nxp._Pca9506  import *
 from surf.devices.nxp._Sa56004x import *
