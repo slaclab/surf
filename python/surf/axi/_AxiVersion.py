@@ -225,14 +225,17 @@ class AxiVersion(pr.Device):
             mode         = 'RO',
             hidden       = True,
         ))
-
         
         def parseBuildStamp(var,read):
-            p = parse.parse("{ImageName}: {BuildEnv}, {BuildServer}, Built {BuildDate} by {Builder}", var.dependencies[0].get(read))
-            if p is None:
+            buildStamp = var.dependencies[0].get(read)
+            if buildStamp is None:
                 return ''
-            else:
-                return p[var.name]
+            else: 
+                p = parse.parse("{ImageName}: {BuildEnv}, {BuildServer}, Built {BuildDate} by {Builder}", buildStamp)
+                if p is None:
+                    return ''
+                else:
+                    return p[var.name]
         
         self.add(pr.LinkVariable(
             name = 'ImageName',
