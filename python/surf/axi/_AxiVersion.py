@@ -20,6 +20,7 @@
 # Comment added by rherbst for demonstration purposes.
 import datetime
 import parse
+import click
 import pyrogue as pr
 
 # Another comment added by rherbst for demonstration
@@ -80,13 +81,21 @@ class AxiVersion(pr.Device):
             pollInterval = 1,
         ))
 
+        def parseUpTime(var,read):
+            seconds=var.dependencies[0].get(read)
+            if seconds == 0xFFFFFFFF:
+                click.secho(f'Invalid {var.path} detected', fg='red')
+                return 'Invalid'
+            else:
+                return str(datetime.timedelta(seconds=seconds))
+
         self.add(pr.LinkVariable(
             name         = 'UpTime',
             description  = 'Time since power up or last firmware reload',
             mode         = 'RO',
             disp         = '{}',
             variable     = self.UpTimeCnt,
-            linkedGet    = lambda read: str(datetime.timedelta(seconds=self.UpTimeCnt.get(read))),
+            linkedGet    = parseUpTime,
             units        = 'HH:MM:SS',
         ))
 
