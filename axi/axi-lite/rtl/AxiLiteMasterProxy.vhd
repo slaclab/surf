@@ -1,8 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteMasterProxy.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-07-08
--- Last update: 2019-04-23
 -------------------------------------------------------------------------------
 -- Description: A Proxy module for sending transactions on an AXI-Lite bus.
 --
