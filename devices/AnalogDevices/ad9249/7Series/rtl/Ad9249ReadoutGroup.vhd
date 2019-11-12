@@ -77,6 +77,8 @@ architecture rtl of Ad9249ReadoutGroup is
       readoutDebug1  : slv16Array(NUM_CHANNELS_G-1 downto 0);
       lockedCountRst : sl;
       invert         : sl;
+      curDelayFrame  : slv(4 downto 0);
+      curDelayData   : slv5Array(NUM_CHANNELS_G-1 downto 0);
    end record;
 
    constant AXIL_REG_INIT_C : AxilRegType := (
@@ -89,7 +91,9 @@ architecture rtl of Ad9249ReadoutGroup is
       readoutDebug0  => (others => (others => '0')),
       readoutDebug1  => (others => (others => '0')),
       lockedCountRst => '0',
-      invert         => '0'
+      invert         => '0',
+      curDelayFrame  => (others => '0'),
+      curDelayData   => (others => (others => '0'))
    );
 
    signal lockedSync      : sl;
@@ -211,7 +215,9 @@ begin
 
       v.dataDelaySet        := (others => '0');
       v.frameDelaySet       := '0';
-      v.axilReadSlave.rdata := (others => '0');
+      
+      v.curDelayFrame := curDelayFrame;
+      v.curDelayData  := curDelayData;
 
       -- Store last two samples read from ADC
       if (debugDataValid = '1' and axilR.freezeDebug = '0') then
@@ -234,9 +240,9 @@ begin
 
       -- Override read from r.delay and use curDealy output from delay primative instead
       for i in 0 to NUM_CHANNELS_G-1 loop
-         axiSlaveRegisterR(axilEp, X"00"+toSlv((i*4), 8), 0, curDelayData(i));
+         axiSlaveRegisterR(axilEp, X"00"+toSlv((i*4), 8), 0, axilR.curDelayData(i));
       end loop;
-      axiSlaveRegisterR(axilEp, X"20", 0, curDelayFrame);
+      axiSlaveRegisterR(axilEp, X"20", 0, axilR.curDelayFrame);
 
 
       -- Debug output to see how many times the shift has needed a relock
