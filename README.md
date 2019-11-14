@@ -8,7 +8,7 @@ SLAC Ultimate RTL Framework
 
 Setup for large filesystems on github.  `git-lfs` used for all binary files (example: .dcp)
 
-```
+```sh
 $ git lfs install
 ```
 
