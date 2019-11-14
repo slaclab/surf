@@ -111,7 +111,7 @@ begin
                -- CNTVALUEIN bus before applying the LOAD signal." UG571 (v1.12, page172)
                v.Load  := '1';
                -- Next state
-               v.state := LOAD_S;
+               v.state := WAIT_S;
             ----------------------------------------------------------------------
             when WAIT_S =>
                -- Increment the counter
@@ -119,7 +119,7 @@ begin
                -- "Option for multiple updates: Wait 5 clock cycles." UG571 (v1.12, page181)
                if (r.waitCnt = 4) then
                   -- Next state
-                  v.state := LOAD_S;
+                  v.state := IDLE_S;
                end if;
          ----------------------------------------------------------------------
          end case;
