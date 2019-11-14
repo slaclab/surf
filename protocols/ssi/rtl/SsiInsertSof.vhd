@@ -26,14 +26,19 @@ use work.SsiPkg.all;
 
 entity SsiInsertSof is
    generic (
-      TPD_G               : time                := 1 ns;
-      TUSER_MASK_G        : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0)   := (others => '1');  -- '1' = masked off bit
-      COMMON_CLK_G        : boolean             := false;  -- True if sAxisClk and mAxisClk are the same clock
-      INSERT_USER_HDR_G   : boolean             := false;  -- If True the module adds one user header word (mUserHdr = user header data)
-      SLAVE_FIFO_G        : boolean             := true;
-      MASTER_FIFO_G       : boolean             := true;
-      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      MASTER_AXI_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);       
+      -- General Configurations
+      TPD_G               : time                                         := 1 ns;
+      TUSER_MASK_G        : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := (others => '1');  -- '1' = masked off bit
+      INSERT_USER_HDR_G   : boolean                                      := false;  -- If True the module adds one user header word (mUserHdr = user header data)
+      -- FIFO configurations
+      INT_PIPE_STAGES_G   : natural                                      := 0;
+      PIPE_STAGES_G       : natural                                      := 1;
+      COMMON_CLK_G        : boolean                                      := false;  -- True if sAxisClk and mAxisClk are the same clock
+      SLAVE_FIFO_G        : boolean                                      := true;
+      MASTER_FIFO_G       : boolean                                      := true;
+      -- AXI Stream Port Configurations
+      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType                          := AXI_STREAM_CONFIG_INIT_C;
+      MASTER_AXI_CONFIG_G : AxiStreamConfigType                          := AXI_STREAM_CONFIG_INIT_C);
    port (
       -- Slave Port
       sAxisClk    : in  sl;
@@ -45,14 +50,14 @@ entity SsiInsertSof is
       mAxisRst    : in  sl;
       mUserHdr    : in  slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := (others => '0');
       mAxisMaster : out AxiStreamMasterType;
-      mAxisSlave  : in  AxiStreamSlaveType);      
+      mAxisSlave  : in  AxiStreamSlaveType);
 end SsiInsertSof;
 
 architecture rtl of SsiInsertSof is
 
    type StateType is (
       IDLE_S,
-      MOVE_S); 
+      MOVE_S);
 
    type RegType is record
       rxSlave  : AxiStreamSlaveType;
@@ -62,7 +67,7 @@ architecture rtl of SsiInsertSof is
    constant REG_INIT_C : RegType := (
       rxSlave  => AXI_STREAM_SLAVE_INIT_C,
       txMaster => AXI_STREAM_MASTER_INIT_C,
-      state    => IDLE_S);      
+      state    => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -74,17 +79,18 @@ architecture rtl of SsiInsertSof is
 
 begin
 
-   BYPASS_FIFO_RX : if ( (SLAVE_FIFO_G = false) and (COMMON_CLK_G = true) and (SLAVE_AXI_CONFIG_G = MASTER_AXI_CONFIG_G) ) generate
+   BYPASS_FIFO_RX : if ((SLAVE_FIFO_G = false) and (COMMON_CLK_G = true) and (SLAVE_AXI_CONFIG_G = MASTER_AXI_CONFIG_G)) generate
       rxMaster   <= sAxisMaster;
       sAxisSlave <= rxSlave;
    end generate;
 
-   GEN_FIFO_RX : if ( (SLAVE_FIFO_G = true) or (COMMON_CLK_G = false) or (SLAVE_AXI_CONFIG_G /= MASTER_AXI_CONFIG_G) ) generate
+   GEN_FIFO_RX : if ((SLAVE_FIFO_G = true) or (COMMON_CLK_G = false) or (SLAVE_AXI_CONFIG_G /= MASTER_AXI_CONFIG_G)) generate
       FIFO_RX : entity work.AxiStreamFifoV2
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
-            PIPE_STAGES_G       => 0,
+            INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
+            PIPE_STAGES_G       => PIPE_STAGES_G,
             SLAVE_READY_EN_G    => true,
             VALID_THOLD_G       => 1,
             -- FIFO configurations
@@ -95,7 +101,7 @@ begin
             FIFO_ADDR_WIDTH_G   => 4,
             -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_G,
-            MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G)            
+            MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G)
          port map (
             -- Slave Port
             sAxisClk    => sAxisClk,
@@ -106,7 +112,7 @@ begin
             mAxisClk    => mAxisClk,
             mAxisRst    => mAxisRst,
             mAxisMaster => rxMaster,
-            mAxisSlave  => rxSlave);   
+            mAxisSlave  => rxSlave);
    end generate;
 
 
@@ -183,7 +189,7 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
-      
+
       -- Combinatorial outputs before the reset
       rxSlave <= v.rxSlave;
 
@@ -217,7 +223,8 @@ begin
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
-            PIPE_STAGES_G       => 0,
+            INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
+            PIPE_STAGES_G       => PIPE_STAGES_G,
             SLAVE_READY_EN_G    => true,
             VALID_THOLD_G       => 1,
             -- FIFO configurations
@@ -228,7 +235,7 @@ begin
             FIFO_ADDR_WIDTH_G   => 4,
             -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => MASTER_AXI_CONFIG_G,
-            MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G)            
+            MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G)
          port map (
             -- Slave Port
             sAxisClk    => mAxisClk,
@@ -239,7 +246,7 @@ begin
             mAxisClk    => mAxisClk,
             mAxisRst    => mAxisRst,
             mAxisMaster => mAxisMaster,
-            mAxisSlave  => mAxisSlave);   
+            mAxisSlave  => mAxisSlave);
    end generate;
-   
+
 end rtl;

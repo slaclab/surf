@@ -22,9 +22,6 @@ use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.I2cPkg.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 entity AxiLitePMbusMasterCore is
    generic (
       TPD_G           : time            := 1 ns;

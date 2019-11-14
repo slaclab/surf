@@ -21,9 +21,8 @@
  
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-
-use ieee.numeric_std.all;
 
 use work.StdRtlPkg.all;
 use work.jesd204bpkg.all;
@@ -64,7 +63,7 @@ architecture rtl of JesdTestStreamTx is
 
    type RegType is record
       typeDly   : slv(1 downto 0);
-      squareCnt : slv(PER_STEP_WIDTH_C-1 downto 0);
+      squareCnt : unsigned(PER_STEP_WIDTH_C-1 downto 0);
       rampCnt   : signed(F_G*8-1 downto 0);
       testData  : slv (sampleData_o'range);
       inc       : sl;
@@ -111,7 +110,7 @@ begin
             
             -- Increment samples within the word
             for i in (SAM_IN_WORD_C-1) downto 0 loop
-               v.testData((F_G*8*i)+(F_G*8-1) downto F_G*8*i)     := std_logic_vector(r.rampCnt(F_G*8-1 downto 0)+((SAM_IN_WORD_C-1)-i)*slvToInt(rampStep_i));
+               v.testData((F_G*8*i)+(F_G*8-1) downto F_G*8*i)     := slv(r.rampCnt(F_G*8-1 downto 0)+((SAM_IN_WORD_C-1)-i)*to_integer(unsigned(rampStep_i)));
             end loop;
          else
             -- Decrement sample base         
@@ -119,7 +118,7 @@ begin
             
             -- Decrement samples within the word
             for i in (SAM_IN_WORD_C-1) downto 0 loop
-               v.testData((F_G*8*i)+(F_G*8-1) downto F_G*8*i)     := std_logic_vector(r.rampCnt(F_G*8-1 downto 0)-((SAM_IN_WORD_C-1)-i)*slvToInt(rampStep_i));
+               v.testData((F_G*8*i)+(F_G*8-1) downto F_G*8*i)     := slv(r.rampCnt(F_G*8-1 downto 0)-((SAM_IN_WORD_C-1)-i)*to_integer(unsigned(rampStep_i)));
             end loop;
          end if;
          
@@ -128,7 +127,7 @@ begin
          v.sign  := '0';     
       elsif (type_i = "10") then
          v.squareCnt := r.squareCnt+1;
-         if (r.squareCnt = squarePeriod_i) then
+         if (slv(r.squareCnt) = squarePeriod_i) then
             v.squareCnt := (others=>'0');
             v.sign := not r.sign;
             if (r.sign = '0') then
