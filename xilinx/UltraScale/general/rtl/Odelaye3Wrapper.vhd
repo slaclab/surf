@@ -67,6 +67,7 @@ begin
       generic map (
          TPD_G           => TPD_G,
          DELAY_TYPE      => DELAY_TYPE,
+         DELAY_VALUE     => DELAY_VALUE,
          IS_CLK_INVERTED => IS_CLK_INVERTED,
          IS_RST_INVERTED => IS_RST_INVERTED)
       port map (

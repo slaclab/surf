@@ -26,10 +26,11 @@ use unisim.vcomponents.all;
 
 entity Delaye3PatchFsm is
    generic (
-      TPD_G           : time   := 1 ns;
-      DELAY_TYPE      : string := "FIXED";  -- Set the type of tap delay line (FIXED, VARIABLE, VAR_LOAD)
-      IS_CLK_INVERTED : bit    := '0';  -- Optional inversion for CLK
-      IS_RST_INVERTED : bit    := '0');     -- Optional inversion for RST
+      TPD_G           : time    := 1 ns;
+      DELAY_TYPE      : string  := "FIXED";  -- Set the type of tap delay line (FIXED, VARIABLE, VAR_LOAD)
+      DELAY_VALUE     : integer := 0;   -- Input delay value setting
+      IS_CLK_INVERTED : bit     := '0';     -- Optional inversion for CLK
+      IS_RST_INVERTED : bit     := '0');    -- Optional inversion for RST
    port (
       -- Inputs
       CLK           : in  sl;           -- 1-bit input: Clock input
@@ -60,8 +61,8 @@ architecture rtl of Delaye3PatchFsm is
 
    constant REG_INIT_C : RegType := (
       Load      => '0',
-      dlyValue  => (others => '0'),
-      dlyTarget => (others => '0'),
+      dlyValue  => toSlv(DELAY_VALUE, 9),
+      dlyTarget => toSlv(DELAY_VALUE, 9),
       waitCnt   => (others => '0'),
       state     => IDLE_S);
 
@@ -91,8 +92,6 @@ begin
          case r.state is
             ----------------------------------------------------------------------
             when IDLE_S =>
-               -- Reset the counter
-               v.waitCnt := (others => '0');
                -- Check if load target different from current output
                if (v.dlyTarget /= CNTVALUEOUT) then
                   -- Check if we should increment the value
@@ -118,8 +117,10 @@ begin
                v.waitCnt := r.waitCnt + 1;
                -- "Option for multiple updates: Wait 5 clock cycles." UG571 (v1.12, page181)
                if (r.waitCnt = 4) then
+                  -- Reset the counter
+                  v.waitCnt := (others => '0');
                   -- Next state
-                  v.state := IDLE_S;
+                  v.state   := IDLE_S;
                end if;
          ----------------------------------------------------------------------
          end case;
