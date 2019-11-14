@@ -1,5 +1,18 @@
 # SURF
+
 SLAC Ultimate RTL Framework
+
+<!--- ########################################################################################### -->
+
+# Before you clone the GIT repository
+
+Setup for large filesystems on github.  `git-lfs` used for all binary files (example: .dcp)
+
+```sh
+$ git lfs install
+```
+
+<!--- ########################################################################################### -->
 
 # Documentation
 
@@ -8,3 +21,5 @@ SLAC Ultimate RTL Framework
 [Doxygen Homepage](https://slaclab.github.io/surf/doxygen/html/index.html)
 
 [Support Homepage](https://confluence.slac.stanford.edu/display/ppareg/Build+System%3A+Vivado+Support)
+
+<!--- ########################################################################################### -->
