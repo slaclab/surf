@@ -1,8 +1,10 @@
 <map id="AxisToJtagCore" name="AxisToJtagCore">
-<area shape="rect" id="node3" href="$classAxisToJtag.html" title="AxisToJtag" alt="" coords="117,155,207,181"/>
-<area shape="rect" id="node7" href="$classAxisToJtagCoreTb.html" title="AxisToJtagCoreTb" alt="" coords="231,155,365,181"/>
-<area shape="rect" id="node2" href="$classJtagSerDesCore.html" title="JtagSerDesCore" alt="" coords="169,5,291,32"/>
-<area shape="rect" id="node4" href="$classAxisJtagDebugBridge.html" title="AxisJtagDebugBridge" alt="" coords="5,229,164,256"/>
-<area shape="rect" id="node6" href="$classAxisToJtagTb.html" title="AxisToJtagTb" alt="" coords="188,229,293,256"/>
-<area shape="rect" id="node5" href="$classAxisToJtagStubTb.html" title="AxisToJtagStubTb" alt="" coords="17,304,152,331"/>
+<area shape="rect" id="node3" href="$classAxisToJtag.html" title="AxisToJtag" alt="" coords="184,155,273,181"/>
+<area shape="rect" id="node9" href="$classAxisToJtagCoreTb.html" title="AxisToJtagCoreTb" alt="" coords="297,155,432,181"/>
+<area shape="rect" id="node2" href="$classJtagSerDesCore.html" title="JtagSerDesCore" alt="" coords="235,5,358,32"/>
+<area shape="rect" id="node4" href="$classAxisJtagDebugBridge.html" title="AxisJtagDebugBridge" alt="" coords="72,229,231,256"/>
+<area shape="rect" id="node8" href="$classAxisToJtagTb.html" title="AxisToJtagTb" alt="" coords="255,229,360,256"/>
+<area shape="rect" id="node5" href="$classAxisToJtagStubTb.html" title="AxisToJtagStubTb" alt="" coords="5,304,140,331"/>
+<area shape="rect" id="node6" href="$classUdpDebugBridge.html" title="UdpDebugBridge" alt="" coords="164,304,296,331"/>
+<area shape="rect" id="node7" href="$classUdpDebugBridgeWrapper.html" title="UdpDebugBridgeWrapper" alt="" coords="137,379,323,405"/>
 </map>

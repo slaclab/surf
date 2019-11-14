@@ -20,7 +20,5 @@ var classAxiLitePMbusMasterCore =
     [ "std_logic_arith", "classAxiLitePMbusMasterCore.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
     [ "StdRtlPkg", "classAxiLitePMbusMasterCore.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classAxiLitePMbusMasterCore.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
-    [ "I2cPkg", "classAxiLitePMbusMasterCore.html#a3345a70e845069bf678d5aa1733529b6", null ],
-    [ "unisim", "classAxiLitePMbusMasterCore.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
-    [ "vcomponents", "classAxiLitePMbusMasterCore.html#aa1cb22e959d47364391e5eb4ef86927c", null ]
+    [ "I2cPkg", "classAxiLitePMbusMasterCore.html#a3345a70e845069bf678d5aa1733529b6", null ]
 ];

@@ -5,6 +5,7 @@ var classFifoRdFsm =
     [ "RST_POLARITY_G", "classFifoRdFsm.html#a8a9f56ec06b173cf46dc7160fd7c1f30", null ],
     [ "RST_ASYNC_G", "classFifoRdFsm.html#a123a3d9a6e9648e763d21c0281ee7ecd", null ],
     [ "FIFO_ASYNC_G", "classFifoRdFsm.html#a083b18c2feebc2898d34c57c2a2e28fc", null ],
+    [ "BRAM_EN_G", "classFifoRdFsm.html#a1c9465c9431492ec79ab48827b02c46f", null ],
     [ "FWFT_EN_G", "classFifoRdFsm.html#ac9d0fd649bb09079eb97e0431bab5b80", null ],
     [ "DATA_WIDTH_G", "classFifoRdFsm.html#affd59283310705939da4070a8ed00c30", null ],
     [ "ADDR_WIDTH_G", "classFifoRdFsm.html#a8d3ac6f28bddcb70f4274b04cdcb55a2", null ],

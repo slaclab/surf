@@ -2,6 +2,7 @@ var classSi5345 =
 [
     [ "Si5345.rtl", "classSi5345_1_1rtl.html", "classSi5345_1_1rtl" ],
     [ "TPD_G", "classSi5345.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "MEMORY_INIT_FILE_G", "classSi5345.html#acb08f679e4ba93bb1157583610b6c22f", null ],
     [ "CLK_PERIOD_G", "classSi5345.html#a3f58e22548e92b316dd3fb108f7d1852", null ],
     [ "SPI_SCLK_PERIOD_G", "classSi5345.html#a4fd470bd3a9f44d75c9a57c160ba3504", null ],
     [ "axiClk", "classSi5345.html#a7d8781c632c75ab0fdde6e592fd13d60", null ],

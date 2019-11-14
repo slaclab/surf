@@ -28,7 +28,5 @@ var classRoguePgp2bSim =
     [ "StdRtlPkg", "classRoguePgp2bSim.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classRoguePgp2bSim.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
     [ "AxiStreamPkg", "classRoguePgp2bSim.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
-    [ "Pgp2bPkg", "classRoguePgp2bSim.html#af22dbf60bec6f633c7d35bf9c0940817", null ],
-    [ "unisim", "classRoguePgp2bSim.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
-    [ "vcomponents", "classRoguePgp2bSim.html#aa1cb22e959d47364391e5eb4ef86927c", null ]
+    [ "Pgp2bPkg", "classRoguePgp2bSim.html#af22dbf60bec6f633c7d35bf9c0940817", null ]
 ];

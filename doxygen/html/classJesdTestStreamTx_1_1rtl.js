@@ -5,7 +5,7 @@ var classJesdTestStreamTx_1_1rtl =
     [ "SAM_IN_WORD_C", "classJesdTestStreamTx_1_1rtl.html#a4261fd3a022e57b83186931eb0e03fa4", null ],
     [ "RegType", "classJesdTestStreamTx_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
     [ "typeDly", "classJesdTestStreamTx_1_1rtl.html#a2bf9fd483a2298d7f983433bfcb92502", null ],
-    [ "squareCnt", "classJesdTestStreamTx_1_1rtl.html#ab6cf72b2f008251076a5ab4a931e63ee", null ],
+    [ "squareCnt", "classJesdTestStreamTx_1_1rtl.html#ad4678d6e104013308668ca790073ae32", null ],
     [ "rampCnt", "classJesdTestStreamTx_1_1rtl.html#acbc92be78a43deb3759a13da2173cb64", null ],
     [ "testData", "classJesdTestStreamTx_1_1rtl.html#a3c4b027c6d1d22b60ba0f79a735d59cb", null ],
     [ "inc", "classJesdTestStreamTx_1_1rtl.html#a6ab142daa7a3d240e0bb4959b331322a", null ],

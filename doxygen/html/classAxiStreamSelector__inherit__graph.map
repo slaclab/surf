@@ -1,7 +1,9 @@
 <map id="AxiStreamSelector" name="AxiStreamSelector">
-<area shape="rect" id="node2" href="$classAxisToJtag.html" title="AxisToJtag" alt="" coords="117,80,207,107"/>
-<area shape="rect" id="node6" href="$classAxiStreamSelectorTb.html" title="AxiStreamSelectorTb" alt="" coords="231,80,389,107"/>
-<area shape="rect" id="node3" href="$classAxisJtagDebugBridge.html" title="AxisJtagDebugBridge" alt="" coords="5,155,164,181"/>
-<area shape="rect" id="node5" href="$classAxisToJtagTb.html" title="AxisToJtagTb" alt="" coords="188,155,293,181"/>
-<area shape="rect" id="node4" href="$classAxisToJtagStubTb.html" title="AxisToJtagStubTb" alt="" coords="17,229,152,256"/>
+<area shape="rect" id="node2" href="$classAxisToJtag.html" title="AxisToJtag" alt="" coords="184,80,273,107"/>
+<area shape="rect" id="node8" href="$classAxiStreamSelectorTb.html" title="AxiStreamSelectorTb" alt="" coords="297,80,456,107"/>
+<area shape="rect" id="node3" href="$classAxisJtagDebugBridge.html" title="AxisJtagDebugBridge" alt="" coords="72,155,231,181"/>
+<area shape="rect" id="node7" href="$classAxisToJtagTb.html" title="AxisToJtagTb" alt="" coords="255,155,360,181"/>
+<area shape="rect" id="node4" href="$classAxisToJtagStubTb.html" title="AxisToJtagStubTb" alt="" coords="5,229,140,256"/>
+<area shape="rect" id="node5" href="$classUdpDebugBridge.html" title="UdpDebugBridge" alt="" coords="164,229,296,256"/>
+<area shape="rect" id="node6" href="$classUdpDebugBridgeWrapper.html" title="UdpDebugBridgeWrapper" alt="" coords="137,304,323,331"/>
 </map>

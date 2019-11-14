@@ -31,6 +31,7 @@ var classRssiAxiLiteRegItf =
     [ "injectFault_o", "classRssiAxiLiteRegItf.html#a93719879dd9913a5e5fe0bfbc196ede9", null ],
     [ "initSeqN_o", "classRssiAxiLiteRegItf.html#a1d5cd18d52d8f65fbfdf3fad4b87f71e", null ],
     [ "appRssiParam_o", "classRssiAxiLiteRegItf.html#a2dcf36f90fb1cd8b72f9485ba0ba186e", null ],
+    [ "negRssiParam_i", "classRssiAxiLiteRegItf.html#afd260413d6b43cd515f7ef018c687cec", null ],
     [ "frameRate_i", "classRssiAxiLiteRegItf.html#a9287218116b5c2a337ee1b2c9dddd665", null ],
     [ "bandwidth_i", "classRssiAxiLiteRegItf.html#a002267e5978297b34bf827297088aecf", null ],
     [ "status_i", "classRssiAxiLiteRegItf.html#aba97c409d2d9843672b45dcfb9be2a6c", null ],

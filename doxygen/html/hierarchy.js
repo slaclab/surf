@@ -180,6 +180,7 @@ var hierarchy =
           ] ]
         ] ]
       ] ],
+      [ "AxiLiteMaster", "classAxiLiteMaster.html", null ],
       [ "AxiLitePMbusMasterCore", "classAxiLitePMbusMasterCore.html", [
         [ "I2cRegMaster", "classI2cRegMaster.html", null ]
       ] ],
@@ -266,7 +267,11 @@ var hierarchy =
         ] ],
         [ "AxiRssiCore", "classAxiRssiCore.html", [
           [ "RssiAxiLiteRegItf", "classRssiAxiLiteRegItf.html", [
-            [ "SynchronizerFifo", "classSynchronizerFifo.html", null ]
+            [ "SynchronizerVector", "classSynchronizerVector.html", null ],
+            [ "SynchronizerFifo", "classSynchronizerFifo.html", null ],
+            [ "RssiParamSync", "classRssiParamSync.html", [
+              [ "SynchronizerVector", "classSynchronizerVector.html", null ]
+            ] ]
           ] ],
           [ "AxiStreamMon", "classAxiStreamMon.html", [
             [ "SyncTrigRate", "classSyncTrigRate.html", null ],
@@ -701,6 +706,7 @@ var hierarchy =
           [ "I2cSlave", "classI2cSlave.html", null ]
         ] ]
       ] ],
+      [ "Delaye3PatchFsm", "classDelaye3PatchFsm.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "IpV4Engine", "classIpV4Engine.html", [
         [ "IpV4EngineDeMux", "classIpV4EngineDeMux.html", null ],
@@ -774,6 +780,7 @@ var hierarchy =
       [ "SsiInsertSof", "classSsiInsertSof.html", [
         [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ]
       ] ],
+      [ "Delaye3PatchFsm", "classDelaye3PatchFsm.html", null ],
       [ "SynchronizerFifo", "classSynchronizerFifo.html", null ],
       [ "SyncStatusVector", "classSyncStatusVector.html", null ],
       [ "SyncClockFreq", "classSyncClockFreq.html", null ],
@@ -1168,6 +1175,7 @@ var hierarchy =
       ] ],
       [ "SynchronizerVector", "classSynchronizerVector.html", null ],
       [ "GigEthLvdsUltraScaleWrapper", "classGigEthLvdsUltraScaleWrapper.html", null ],
+      [ "SimpleDualPortRamXpm", "classSimpleDualPortRamXpm.html", null ],
       [ "SpiMaster", "classSpiMaster.html", null ],
       [ "SynchronizerFifo", "classSynchronizerFifo.html", null ],
       [ "AxiLiteMaster", "classAxiLiteMaster.html", null ],
@@ -1307,6 +1315,9 @@ var hierarchy =
       [ "AxiDualPortRam", "classAxiDualPortRam.html", null ],
       [ "SemWrapper", "classSemWrapper.html", null ],
       [ "UartWrapper", "classUartWrapper.html", null ],
+      [ "UdpDebugBridge", "classUdpDebugBridge.html", [
+        [ "AxisJtagDebugBridge", "classAxisJtagDebugBridge.html", null ]
+      ] ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
       [ "UdpEngineWrapper", "classUdpEngineWrapper.html", null ],

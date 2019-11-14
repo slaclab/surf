@@ -4,6 +4,7 @@ var searchData=
   ['decoder10b12b',['Decoder10b12b',['../classDecoder10b12b.html',1,'']]],
   ['decoder12b14b',['Decoder12b14b',['../classDecoder12b14b.html',1,'']]],
   ['decoder8b10b',['Decoder8b10b',['../classDecoder8b10b.html',1,'']]],
+  ['delaye3patchfsm',['Delaye3PatchFsm',['../classDelaye3PatchFsm.html',1,'']]],
   ['descrambletb',['DescrambleTb',['../classDescrambleTb.html',1,'']]],
   ['devicedna',['DeviceDna',['../classDeviceDna.html',1,'']]],
   ['devicedna7series',['DeviceDna7Series',['../classDeviceDna7Series.html',1,'']]],

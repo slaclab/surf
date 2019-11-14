@@ -33,7 +33,6 @@ var classGLinkGtx7RxRst =
     [ "RETRY_COUNTER", "classGLinkGtx7RxRst.html#ae0d0a9a262177a7dbc33431243ae97d2", null ],
     [ "ieee", "classGLinkGtx7RxRst.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classGLinkGtx7RxRst.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "numeric_std", "classGLinkGtx7RxRst.html#a2edc34402b573437d5f25fa90ba4013e", null ],
-    [ "std_logic_unsigned", "classGLinkGtx7RxRst.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classGLinkGtx7RxRst.html#a0f5ecc6613f63d07f7963a97b1b26095", null ]
+    [ "std_logic_arith", "classGLinkGtx7RxRst.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
+    [ "std_logic_unsigned", "classGLinkGtx7RxRst.html#a598da929e807d58939b47499e8bc9fa8", null ]
 ];

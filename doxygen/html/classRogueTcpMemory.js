@@ -1,6 +1,6 @@
 var classRogueTcpMemory =
 [
-    [ "RogueTcpMemory.RogueTcpMemory", "classRogueTcpMemory_1_1RogueTcpMemory.html", "classRogueTcpMemory_1_1RogueTcpMemory" ],
+    [ "RogueTcpMemory", "classRogueTcpMemory_1_1RogueTcpMemory.html", "classRogueTcpMemory_1_1RogueTcpMemory" ],
     [ "clock", "classRogueTcpMemory.html#adfc2d5e995e9c6876b2e55bf6a5c4071", null ],
     [ "reset", "classRogueTcpMemory.html#aad8dc6359d9e23dabcbf342fadf2fa06", null ],
     [ "portNum", "classRogueTcpMemory.html#af08a109672b119b87964de7b3cfda694", null ],
@@ -24,7 +24,6 @@ var classRogueTcpMemory =
     [ "bresp", "classRogueTcpMemory.html#a4db436f8c2a3dfc4186e40aa980d0adf", null ],
     [ "bvalid", "classRogueTcpMemory.html#a764a7b609877972a1cdccbd22abc3c5e", null ],
     [ "ieee", "classRogueTcpMemory.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ " all ", "classRogueTcpMemory.html#a470a86ce8776f637b0483eabf2d92ad2", null ],
     [ "std_logic_1164", "classRogueTcpMemory.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_arith", "classRogueTcpMemory.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
     [ "std_logic_unsigned", "classRogueTcpMemory.html#a598da929e807d58939b47499e8bc9fa8", null ]

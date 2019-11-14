@@ -12,8 +12,8 @@
 <!-- Node0 -->
 <g id="node1" class="node">
 <title>Node0</title>
-<polygon fill="#bfbfbf" stroke="#000000" points="97,-168.5 97,-187.5 234,-187.5 234,-168.5 97,-168.5"/>
-<text text-anchor="middle" x="165.5" y="-175.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">SimpleDualPortRamXpm</text>
+<polygon fill="#bfbfbf" stroke="#000000" points="153,-168.5 153,-187.5 290,-187.5 290,-168.5 153,-168.5"/>
+<text text-anchor="middle" x="221.5" y="-175.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">SimpleDualPortRamXpm</text>
 </g>
 <!-- Node1 -->
 <g id="node2" class="node">
@@ -27,8 +27,8 @@
 <!-- Node0&#45;&gt;Node1 -->
 <g id="edge1" class="edge">
 <title>Node0&#45;&gt;Node1</title>
-<path fill="none" stroke="#191970" d="M153.3624,-159.6296C147.1907,-150.2887 139.9434,-139.3197 134.8711,-131.6427"/>
-<polygon fill="#191970" stroke="#191970" points="150.6223,-161.8316 159.0551,-168.2455 156.4627,-157.9728 150.6223,-161.8316"/>
+<path fill="none" stroke="#191970" d="M196.6665,-163.0465C180.1189,-153.0824 158.8568,-140.2794 144.5137,-131.6427"/>
+<polygon fill="#191970" stroke="#191970" points="194.9283,-166.0854 205.3006,-168.2455 198.5393,-160.0886 194.9283,-166.0854"/>
 </g>
 <!-- Node4 -->
 <g id="node5" class="node">
@@ -42,8 +42,23 @@
 <!-- Node0&#45;&gt;Node4 -->
 <g id="edge4" class="edge">
 <title>Node0&#45;&gt;Node4</title>
-<path fill="none" stroke="#191970" d="M182.4249,-161.0751C192.0598,-151.4402 203.7804,-139.7196 211.8573,-131.6427"/>
-<polygon fill="#191970" stroke="#191970" points="179.8507,-158.6996 175.2545,-168.2455 184.8004,-163.6493 179.8507,-158.6996"/>
+<path fill="none" stroke="#191970" d="M221.5,-158.1575C221.5,-149.155 221.5,-138.9199 221.5,-131.6427"/>
+<polygon fill="#191970" stroke="#191970" points="218.0001,-158.2455 221.5,-168.2455 225.0001,-158.2456 218.0001,-158.2455"/>
+</g>
+<!-- Node10 -->
+<g id="node11" class="node">
+<title>Node10</title>
+<g id="a_node11"><a xlink:href="classSi5345.html" target="_top" xlink:title="Si5345">
+<polygon fill="#ffffff" stroke="#000000" points="269.5,-112.5 269.5,-131.5 319.5,-131.5 319.5,-112.5 269.5,-112.5"/>
+<text text-anchor="middle" x="294.5" y="-119.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">Si5345</text>
+</a>
+</g>
+</g>
+<!-- Node0&#45;&gt;Node10 -->
+<g id="edge10" class="edge">
+<title>Node0&#45;&gt;Node10</title>
+<path fill="none" stroke="#191970" d="M242.451,-161.928C255.2107,-152.1397 271.0885,-139.9595 281.9301,-131.6427"/>
+<polygon fill="#191970" stroke="#191970" points="240.0196,-159.3819 234.2156,-168.2455 244.2803,-164.9359 240.0196,-159.3819"/>
 </g>
 <!-- Node2 -->
 <g id="node3" class="node">

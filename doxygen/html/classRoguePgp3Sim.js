@@ -33,7 +33,5 @@ var classRoguePgp3Sim =
     [ "StdRtlPkg", "classRoguePgp3Sim.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classRoguePgp3Sim.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
     [ "AxiStreamPkg", "classRoguePgp3Sim.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
-    [ "Pgp3Pkg", "classRoguePgp3Sim.html#a8fe78bd162f190ddcf71d39850745a3a", null ],
-    [ "unisim", "classRoguePgp3Sim.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
-    [ "vcomponents", "classRoguePgp3Sim.html#aa1cb22e959d47364391e5eb4ef86927c", null ]
+    [ "Pgp3Pkg", "classRoguePgp3Sim.html#a8fe78bd162f190ddcf71d39850745a3a", null ]
 ];

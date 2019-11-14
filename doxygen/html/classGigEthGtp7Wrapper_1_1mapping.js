@@ -1,6 +1,8 @@
 var classGigEthGtp7Wrapper_1_1mapping =
 [
     [ "gtClk", "classGigEthGtp7Wrapper_1_1mapping.html#add5bd1616f74801726f0a6c0a9f17a48", null ],
+    [ "gtClkDiv2", "classGigEthGtp7Wrapper_1_1mapping.html#ae643a5a5f5c38aeb5020c9fb3c46ee69", null ],
+    [ "selGtClk", "classGigEthGtp7Wrapper_1_1mapping.html#a7ca59cfd47e4ab140b39d9e2d4397e00", null ],
     [ "gtClkBufg", "classGigEthGtp7Wrapper_1_1mapping.html#a4bbeed0f407b82ef0525c89b7cb2f2da", null ],
     [ "refClk", "classGigEthGtp7Wrapper_1_1mapping.html#af5236c7b96cf2e22b35b3dcd07a34855", null ],
     [ "refRst", "classGigEthGtp7Wrapper_1_1mapping.html#a970aa1f655a650e0f10b5f5974347e9f", null ],
