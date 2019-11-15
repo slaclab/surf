@@ -56,7 +56,7 @@ architecture rtl of Gearbox is
    constant MIN_C : integer := minimum(MASTER_WIDTH_G, SLAVE_WIDTH_G);
 
    -- Don't need the +1 if slip is not used.
-   constant SHIFT_WIDTH_C : integer := wordCount(MAX_C, MIN_C) * MIN_C + 1;
+   constant SHIFT_WIDTH_C : integer := wordCount(MAX_C, MIN_C) * MIN_C + MIN_C + 1;
 
    type RegType is record
       masterValid : sl;
@@ -92,7 +92,7 @@ begin
 
       -- Slip input by incrementing the writeIndex
       v.slip := slip;
-      if (slip = '1' and r.slip = '0') then
+      if (slip = '1') and (r.slip = '0') and (rst = '0') then
          v.writeIndex := r.writeIndex - 1;
       end if;
 
