@@ -24,9 +24,11 @@ use work.StdRtlPkg.all;
 entity Gearbox is
 
    generic (
-      TPD_G          : time := 1 ns;
-      SLAVE_WIDTH_G  : positive;
-      MASTER_WIDTH_G : positive);
+      TPD_G                : time := 1 ns;
+      SLAVE_BIT_REVERSE_G  : boolean := false;
+      SLAVE_WIDTH_G        : positive;
+      MASTER_BIT_REVERSE_G : boolean := false;
+      MASTER_WIDTH_G       : positive);
 
    port (
       clk : in sl;
@@ -125,7 +127,11 @@ begin
          v.slaveReady := '1';
 
          -- Assign incomming data at proper location in shift reg
-         v.shiftReg(v.writeIndex+SLAVE_WIDTH_G-1 downto v.writeIndex) := slaveData;
+         if SLAVE_BIT_REVERSE_G then
+            v.shiftReg(v.writeIndex+SLAVE_WIDTH_G-1 downto v.writeIndex) := bitReverse(slaveData);
+         else
+            v.shiftReg(v.writeIndex+SLAVE_WIDTH_G-1 downto v.writeIndex) := slaveData;
+         end if;
 
          -- Increment writeIndex
          v.writeIndex := v.writeIndex + SLAVE_WIDTH_G;
@@ -146,8 +152,11 @@ begin
       rin <= v;
 
       masterValid <= r.masterValid;
-      masterData  <= r.shiftReg(MASTER_WIDTH_G-1 downto 0);
-
+      if MASTER_BIT_REVERSE_G then
+         masterData  <= bitReverse(r.shiftReg(MASTER_WIDTH_G-1 downto 0));
+      else
+         masterData  <= r.shiftReg(MASTER_WIDTH_G-1 downto 0);
+      end if;
 
    end process comb;
 
@@ -158,5 +167,4 @@ begin
       end if;
    end process sync;
 
-
-end architecture rtl;
+end  rtl;

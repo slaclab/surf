@@ -30,6 +30,7 @@ entity Scrambler is
       DIRECTION_G      : string       := "SCRAMBLER";  -- or DESCRAMBLER
       DATA_WIDTH_G     : integer      := 64;
       SIDEBAND_WIDTH_G : integer      := 2;
+      BIT_REVERSE_G    : boolean      := false;
       TAPS_G           : IntegerArray := (0 => 39, 1 => 58));
 
    port (
@@ -109,8 +110,13 @@ begin
 
       rin            <= v;
       outputValid    <= r.outputValid;
-      outputData     <= r.outputData;
-      outputSideband <= r.outputSideband;
+      if BIT_REVERSE_G then
+         outputData     <= bitReverse(r.outputData);
+         outputSideband <= bitReverse(r.outputSideband);
+      else
+         outputData     <= r.outputData;
+         outputSideband <= r.outputSideband;
+      end if;
 
    end process comb;
 
@@ -121,4 +127,4 @@ begin
       end if;
    end process seq;
 
-end architecture rtl;
+end rtl;

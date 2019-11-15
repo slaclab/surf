@@ -26,7 +26,9 @@ entity AsyncGearbox is
    generic (
       TPD_G                : time     := 1 ns;
       SLAVE_WIDTH_G        : positive;
+      SLAVE_BIT_REVERSE_G  : boolean := false;
       MASTER_WIDTH_G       : positive;
+      MASTER_BIT_REVERSE_G : boolean := false;
       -- Pipelining generics
       INPUT_PIPE_STAGES_G  : natural  := 0;
       OUTPUT_PIPE_STAGES_G : natural  := 0;
@@ -132,9 +134,11 @@ begin
 
    U_Gearbox_1 : entity work.Gearbox
       generic map (
-         TPD_G          => TPD_G,
-         SLAVE_WIDTH_G  => SLAVE_WIDTH_G,
-         MASTER_WIDTH_G => MASTER_WIDTH_G)
+         TPD_G                => TPD_G,
+         SLAVE_WIDTH_G        => SLAVE_WIDTH_G,
+         SLAVE_BIT_REVERSE_G  => SLAVE_BIT_REVERSE_G,
+         MASTER_WIDTH_G       => MASTER_WIDTH_G,
+         MASTER_BIT_REVERSE_G => MASTER_BIT_REVERSE_G)
       port map (
          clk         => fastClk,          -- [in]
          rst         => fastRst,          -- [in]
