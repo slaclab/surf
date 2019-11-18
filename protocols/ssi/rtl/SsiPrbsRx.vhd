@@ -35,12 +35,8 @@ entity SsiPrbsRx is
       STATUS_CNT_WIDTH_G         : natural range 1 to 32    := 32;
       -- FIFO configurations
       SLAVE_READY_EN_G           : boolean                  := true;
-      BRAM_EN_G                  : boolean                  := true;
-      XIL_DEVICE_G               : string                   := "7SERIES";
-      USE_BUILT_IN_G             : boolean                  := false;
+      MEMORY_TYPE_G              : string                   := "block";
       GEN_SYNC_FIFO_G            : boolean                  := false;
-      ALTERA_SYN_G               : boolean                  := false;
-      ALTERA_RAM_G               : string                   := "M9K";
       CASCADE_SIZE_G             : positive                 := 1;
       FIFO_ADDR_WIDTH_G          : positive                 := 9;
       FIFO_PAUSE_THRESH_G        : positive                 := 2**8;
@@ -226,12 +222,8 @@ begin
          PIPE_STAGES_G       => SLAVE_AXI_PIPE_STAGES_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
          -- FIFO configurations
-         BRAM_EN_G           => BRAM_EN_G,
-         XIL_DEVICE_G        => XIL_DEVICE_G,
-         USE_BUILT_IN_G      => USE_BUILT_IN_G,
+         MEMORY_TYPE_G       => MEMORY_TYPE_G,
          GEN_SYNC_FIFO_G     => true,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
          CASCADE_SIZE_G      => CASCADE_SIZE_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => true,

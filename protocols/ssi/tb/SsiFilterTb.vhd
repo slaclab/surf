@@ -159,7 +159,7 @@ begin
          EN_FRAME_FILTER_G   => true,
          VALID_THOLD_G       => 0,
          -- FIFO configurations
-         BRAM_EN_G           => true,
+         MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => false,
          CASCADE_SIZE_G      => 4,
          CASCADE_PAUSE_SEL_G => 1,

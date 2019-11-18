@@ -149,11 +149,7 @@ begin
       U_SsiPrbsTx : entity surf.SsiPrbsTx
          generic map (
             TPD_G                      => 1 ns,
-            ALTERA_SYN_G               => false,
-            ALTERA_RAM_G               => "M9K",
-            XIL_DEVICE_G               => "7SERIES",  --Xilinx only generic parameter    
-            BRAM_EN_G                  => true,
-            USE_BUILT_IN_G             => false,  --if set to true, this module is only Xilinx compatible only!!!
+            MEMORY_TYPE_G              => "block",
             GEN_SYNC_FIFO_G            => false,
             CASCADE_SIZE_G             => 1,
             PRBS_SEED_SIZE_G           => 32,
@@ -183,12 +179,8 @@ begin
                PIPE_STAGES_G       => 1,
                SLAVE_READY_EN_G    => true,
                VALID_THOLD_G       => 1,
-               BRAM_EN_G           => true,
-               XIL_DEVICE_G        => "7SERIES",
-               USE_BUILT_IN_G      => false,
+               MEMORY_TYPE_G       => "block",
                GEN_SYNC_FIFO_G     => false,
-               ALTERA_SYN_G        => false,
-               ALTERA_RAM_G        => "M9K",
                CASCADE_SIZE_G      => 1,
                FIFO_ADDR_WIDTH_G   => 9,
                FIFO_FIXED_THRESH_G => true,
@@ -280,9 +272,7 @@ begin
             TPD_G               => 1 ns,
             PIPE_STAGES_G       => 0,
             -- FIFO configurations
-            BRAM_EN_G           => true,
-            XIL_DEVICE_G        => "7SERIES",
-            USE_BUILT_IN_G      => false,
+            MEMORY_TYPE_G       => "block",
             GEN_SYNC_FIFO_G     => false,
             CASCADE_SIZE_G      => 1,
             FIFO_ADDR_WIDTH_G   => 11,
@@ -308,12 +298,8 @@ begin
          generic map (
             TPD_G                      => 1 ns,
             STATUS_CNT_WIDTH_G         => 32,
-            ALTERA_SYN_G               => false,
-            ALTERA_RAM_G               => "M9K",
             CASCADE_SIZE_G             => 1,
-            XIL_DEVICE_G               => "7SERIES",  --Xilinx only generic parameter    
-            BRAM_EN_G                  => true,
-            USE_BUILT_IN_G             => false,  --if set to true, this module is only Xilinx compatible only!!!
+            MEMORY_TYPE_G              => "block",
             GEN_SYNC_FIFO_G            => false,
             PRBS_SEED_SIZE_G           => 32,
             PRBS_TAPS_G                => (0 => 16),

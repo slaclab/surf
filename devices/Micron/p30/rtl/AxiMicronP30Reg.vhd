@@ -542,9 +542,10 @@ begin
 
    U_Ram : entity surf.SimpleDualPortRam
       generic map(
-         BRAM_EN_G    => true,
-         DATA_WIDTH_G => 16,
-         ADDR_WIDTH_G => 8)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "block",
+         DATA_WIDTH_G  => 16,
+         ADDR_WIDTH_G  => 8)
       port map (
          -- Port A
          clka  => axiClk,

@@ -116,10 +116,8 @@ begin
             SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
             VALID_THOLD_G       => 1,
             -- FIFO configurations
-            BRAM_EN_G           => false,
-            USE_BUILT_IN_G      => false,
+            MEMORY_TYPE_G       => "distributed",
             GEN_SYNC_FIFO_G     => COMMON_CLK_G,
-            CASCADE_SIZE_G      => 1,
             FIFO_ADDR_WIDTH_G   => 4,
             -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_G,
@@ -271,10 +269,8 @@ begin
             SLAVE_READY_EN_G    => true,
             VALID_THOLD_G       => 1,
             -- FIFO configurations
-            BRAM_EN_G           => false,
-            USE_BUILT_IN_G      => false,
+            MEMORY_TYPE_G       => "distributed",
             GEN_SYNC_FIFO_G     => true,
-            CASCADE_SIZE_G      => 1,
             FIFO_ADDR_WIDTH_G   => 4,
             -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => MASTER_AXI_CONFIG_G,

@@ -25,7 +25,7 @@ use surf.StdRtlPkg.all;
 entity Heartbeat is
    generic (
       TPD_G        : time   := 1 ns;
-      USE_DSP48_G  : string := "no";
+      USE_DSP_G    : string := "no";
       PERIOD_IN_G  : real   := 6.4E-9;   --units of seconds
       PERIOD_OUT_G : real   := 1.0E-0);  --units of seconds
    port (
@@ -52,16 +52,10 @@ architecture rtl of Heartbeat is
    signal rin : RegType;
 
    -- Attribute for XST
-   attribute use_dsp48      : string;
-   attribute use_dsp48 of r : signal is USE_DSP48_G;
+   attribute use_dsp      : string;
+   attribute use_dsp of r : signal is USE_DSP_G;
    
 begin
-
-   -- USE_DSP48_G check
-   assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
-      report "USE_DSP48_G must be either yes, no, auto, or automax"
-      severity failure;
-
 
    comb : process (r, rst) is
       variable v : RegType;

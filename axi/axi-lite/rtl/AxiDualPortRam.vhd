@@ -184,15 +184,15 @@ begin
       AXI_R0_SYS_RW : if (not AXI_WR_EN_G and SYS_WR_EN_G) generate
          DualPortRam_1 : entity surf.DualPortRam
             generic map (
-               TPD_G        => TPD_G,
-               BRAM_EN_G    => ite(MEMORY_TYPE_G = "block", true, false),
-               REG_EN_G     => ite(READ_LATENCY_G >= 1, true, false),
-               DOA_REG_G    => ite(READ_LATENCY_G >= 2, true, false),
-               DOB_REG_G    => ite(READ_LATENCY_G >= 2, true, false),
-               BYTE_WR_EN_G => SYS_BYTE_WR_EN_G,
-               DATA_WIDTH_G => DATA_WIDTH_G,
-               ADDR_WIDTH_G => ADDR_WIDTH_G,
-               INIT_G       => INIT_G)
+               TPD_G         => TPD_G,
+               MEMORY_TYPE_G => MEMORY_TYPE_G,
+               REG_EN_G      => ite(READ_LATENCY_G >= 1, true, false),
+               DOA_REG_G     => ite(READ_LATENCY_G >= 2, true, false),
+               DOB_REG_G     => ite(READ_LATENCY_G >= 2, true, false),
+               BYTE_WR_EN_G  => SYS_BYTE_WR_EN_G,
+               DATA_WIDTH_G  => DATA_WIDTH_G,
+               ADDR_WIDTH_G  => ADDR_WIDTH_G,
+               INIT_G        => INIT_G)
             port map (
                clka    => clk,
                ena     => en,
@@ -215,16 +215,16 @@ begin
       AXI_RW_SYS_RO : if (not SYS_WR_EN_G) generate
          DualPortRam_1 : entity surf.DualPortRam
             generic map (
-               TPD_G        => TPD_G,
-               BRAM_EN_G    => ite(MEMORY_TYPE_G = "block", true, false),
-               REG_EN_G     => ite(READ_LATENCY_G >= 1, true, false),
-               DOA_REG_G    => ite(READ_LATENCY_G >= 2, true, false),
-               DOB_REG_G    => ite(READ_LATENCY_G >= 2, true, false),
-               BYTE_WR_EN_G => true,
-               DATA_WIDTH_G => DATA_WIDTH_G,
-               BYTE_WIDTH_G => 8,
-               ADDR_WIDTH_G => ADDR_WIDTH_G,
-               INIT_G       => INIT_G)
+               TPD_G         => TPD_G,
+               MEMORY_TYPE_G => MEMORY_TYPE_G,
+               REG_EN_G      => ite(READ_LATENCY_G >= 1, true, false),
+               DOA_REG_G     => ite(READ_LATENCY_G >= 2, true, false),
+               DOB_REG_G     => ite(READ_LATENCY_G >= 2, true, false),
+               BYTE_WR_EN_G  => true,
+               DATA_WIDTH_G  => DATA_WIDTH_G,
+               BYTE_WIDTH_G  => 8,
+               ADDR_WIDTH_G  => ADDR_WIDTH_G,
+               INIT_G        => INIT_G)
             port map (
                clka    => axiClk,
                ena     => '1',
@@ -284,10 +284,10 @@ begin
 
    U_SynchronizerFifo_1 : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         COMMON_CLK_G => COMMON_CLK_G,
-         BRAM_EN_G    => false,
-         DATA_WIDTH_G => ADDR_WIDTH_G+DATA_WIDTH_G+ADDR_AXI_BYTES_C)
+         TPD_G         => TPD_G,
+         COMMON_CLK_G  => COMMON_CLK_G,
+         MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G  => ADDR_WIDTH_G+DATA_WIDTH_G+ADDR_AXI_BYTES_C)
       port map (
          rst    => rst,                 -- [in]
          wr_clk => axiClk,              -- [in]

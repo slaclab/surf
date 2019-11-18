@@ -28,7 +28,6 @@ entity AxiAd5780Reg is
    generic (
       TPD_G              : time                  := 1 ns;
       STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32;
-      USE_DSP48_G        : string                := "no";  -- "no" for no DSP48 implementation, "yes" to use DSP48 slices      
       AXI_CLK_FREQ_G     : real                  := 200.0E+6;  -- units of Hz
       SPI_CLK_FREQ_G     : real                  := 25.0E+6);   -- units of Hz      
    port (

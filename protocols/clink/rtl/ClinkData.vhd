@@ -267,11 +267,11 @@ begin
    --------------------------------------
    U_DataFifo : entity surf.Fifo
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         FWFT_EN_G    => true,
-         DATA_WIDTH_G => 28,
-         ADDR_WIDTH_G => 4)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         FWFT_EN_G     => true,
+         DATA_WIDTH_G  => 28,
+         ADDR_WIDTH_G  => 4)
       port map (
          rst    => clinkRst,
          wr_clk => clinkClk,
