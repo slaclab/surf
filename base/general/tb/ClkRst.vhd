@@ -29,13 +29,16 @@ entity ClkRst is
    port (
       hold : in  sl := '0';
       clkP : out sl := '0';
-      clkN : out sl := '1';                 -- Inverted clock
+      clkN : out sl := '1';             -- Inverted clock
       rst  : out sl := '1';
       rstL : out sl := '0');
 
 end entity ClkRst;
 
 architecture ClkRst of ClkRst is
+
+   constant CLK_HIGH_C : time := CLK_PERIOD_G/2.0;
+   constant CLK_LOW_C  : time := CLK_PERIOD_G-CLK_HIGH_C;
 
    signal clkFb : sl := '0';
    signal rstFb : sl := '0';
@@ -51,7 +54,11 @@ begin
          else
             clkFb <= not clkFb;
          end if;
-         wait for CLK_PERIOD_G/2.0;
+         if (clkFb = '0') then
+            wait for CLK_LOW_C;
+         else
+            wait for CLK_HIGH_C;
+         end if;
       end loop;
    end process;
 
