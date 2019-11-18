@@ -20,10 +20,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.Pgp3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Pgp3Pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -156,7 +158,7 @@ begin
 
    REAL_PGP : if (not ROGUE_SIM_EN_G) generate
 
-      U_XBAR : entity work.AxiLiteCrossbar
+      U_XBAR : entity surf.AxiLiteCrossbar
          generic map (
             TPD_G              => TPD_G,
             NUM_SLAVE_SLOTS_G  => 1,
@@ -174,7 +176,7 @@ begin
             mAxiReadMasters     => axilReadMasters,
             mAxiReadSlaves      => axilReadSlaves);
 
-      U_QPLL : entity work.Pgp3GthUsQpll
+      U_QPLL : entity surf.Pgp3GthUsQpll
          generic map (
             TPD_G    => TPD_G,
             RATE_G   => RATE_G,
@@ -200,7 +202,7 @@ begin
       -- PGP Core
       -----------
       GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
-         U_Pgp : entity work.Pgp3GthUs
+         U_Pgp : entity surf.Pgp3GthUs
             generic map (
                TPD_G                       => TPD_G,
                RATE_G                      => RATE_G,
@@ -266,7 +268,7 @@ begin
 
    SIM_PGP : if (ROGUE_SIM_EN_G) generate
       GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
-         U_Rogue : entity work.RoguePgp3Sim
+         U_Rogue : entity surf.RoguePgp3Sim
             generic map(
                TPD_G      => TPD_G,
                PORT_NUM_G => (ROGUE_SIM_PORT_NUM_G+(i*34)),

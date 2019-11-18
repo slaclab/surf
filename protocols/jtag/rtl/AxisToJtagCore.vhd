@@ -19,8 +19,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 
 
 -- Convert an AXI Stream into JTAG and return the TDO reply as an AXI Stream.
@@ -189,7 +191,7 @@ begin
 
    tdoReady <= not r.tdoValid or ( sAxisTdo.tReady and r.tdoPass );
 
-   U_Jtag : entity work.JtagSerDesCore
+   U_Jtag : entity surf.JtagSerDesCore
       generic map (
          TPD_G         => TPD_G,
          WIDTH_G       => AXIS_BW_C,

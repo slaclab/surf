@@ -19,8 +19,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiVersion is
    generic (
@@ -115,7 +117,7 @@ begin
    fdValueOut  <= fdValue;
 
    GEN_DEVICE_DNA : if (EN_DEVICE_DNA_G) generate
-      DeviceDna_1 : entity work.DeviceDna
+      DeviceDna_1 : entity surf.DeviceDna
          generic map (
             TPD_G           => TPD_G,
             USE_SLOWCLK_G   => USE_SLOWCLK_G,
@@ -130,7 +132,7 @@ begin
    end generate GEN_DEVICE_DNA;
 
    GEN_DS2411 : if (EN_DS2411_G) generate
-      DS2411Core_1 : entity work.DS2411Core
+      DS2411Core_1 : entity surf.DS2411Core
          generic map (
             TPD_G        => TPD_G,
             CLK_PERIOD_G => CLK_PERIOD_G)
@@ -142,7 +144,7 @@ begin
    end generate GEN_DS2411;
 
    GEN_ICAP : if (EN_ICAP_G) generate
-      Iprog_1 : entity work.Iprog
+      Iprog_1 : entity surf.Iprog
          generic map (
             TPD_G          => TPD_G,
             USE_SLOWCLK_G  => USE_SLOWCLK_G,

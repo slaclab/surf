@@ -17,9 +17,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.NUMERIC_STD.all;
-use work.StdRtlPkg.all;
-use work.ArbiterPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.ArbiterPkg.all;
+use surf.AxiStreamPkg.all;
 
 entity AxiStreamTap is
    generic (
@@ -55,7 +57,7 @@ architecture structure of AxiStreamTap is
 
 begin
 
-   U_DeMux : entity work.AxiStreamDeMux
+   U_DeMux : entity surf.AxiStreamDeMux
       generic map (
          TPD_G          => TPD_G,
          PIPE_STAGES_G  => PIPE_STAGES_G,
@@ -72,7 +74,7 @@ begin
          axisClk         => axisClk,
          axisRst         => axisRst);
 
-   U_Mux : entity work.AxiStreamMux
+   U_Mux : entity surf.AxiStreamMux
       generic map (
          TPD_G                => TPD_G,
          PIPE_STAGES_G        => PIPE_STAGES_G,

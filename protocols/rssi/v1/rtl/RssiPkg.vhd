@@ -18,9 +18,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.SsiPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.SsiPkg.all;
+use surf.AxiStreamPkg.all;
 
 package RssiPkg is
 

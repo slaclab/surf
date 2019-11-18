@@ -18,9 +18,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.AxiStreamPkg.all;
-use work.StdRtlPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.AxiStreamPkg.all;
+use surf.StdRtlPkg.all;
+use surf.EthMacPkg.all;
 
 entity EthMacTxShift is
    generic (
@@ -49,7 +51,7 @@ begin
       -- of the packet. These were added by software
       -- to create a software friendly alignment of 
       -- outbound data.
-      U_TxShift : entity work.AxiStreamShift
+      U_TxShift : entity surf.AxiStreamShift
          generic map (
             TPD_G         => TPD_G,
             AXIS_CONFIG_G => EMAC_AXIS_CONFIG_C) 

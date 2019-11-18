@@ -20,9 +20,11 @@ use ieee.std_logic_1164.all;
 use IEEE.STD_LOGIC_ARITH.all;
 use IEEE.STD_LOGIC_UNSIGNED.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.Pgp3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Pgp3Pkg.all;
 
 entity Pgp3AxiL is
    generic (
@@ -185,7 +187,7 @@ begin
    ---------------------------------------
 
    -- OpCode Capture
-   U_RxOpCodeSync : entity work.SynchronizerFifo
+   U_RxOpCodeSync : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          BRAM_EN_G    => false,
@@ -202,7 +204,7 @@ begin
          dout(50 downto 48) => rxStatusSync.rxOpCodeNumberLast);
 
    -- Errror counters and non counted values
-   U_RxError : entity work.SyncStatusVector
+   U_RxError : entity surf.SyncStatusVector
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => '1',
@@ -279,7 +281,7 @@ begin
    rxStatusSync.ebOverflowCnt <= muxSlVectorArray(rxErrorCntOut, 41);
 
    -- Status counters
-   U_RxStatus : entity work.SyncStatusVector
+   U_RxStatus : entity surf.SyncStatusVector
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => '1',
@@ -308,7 +310,7 @@ begin
 
    rxStatusSync.frameCount <= muxSlVectorArray(rxStatusCntOut, 0);
 
-   U_RxClkFreq : entity work.SyncClockFreq
+   U_RxClkFreq : entity surf.SyncClockFreq
       generic map (
          TPD_G          => TPD_G,
          USE_DSP48_G    => "no",
@@ -325,7 +327,7 @@ begin
          refClk      => axilClk
          );
 
-   U_RxEbDataSync : entity work.SynchronizerFifo
+   U_RxEbDataSync : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          BRAM_EN_G    => false,
@@ -344,7 +346,7 @@ begin
          dout(66 downto 65) => rxStatusSync.ebHeader);
 
 
-   U_RxPhyDataSync : entity work.SynchronizerFifo
+   U_RxPhyDataSync : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          BRAM_EN_G    => false,
@@ -362,7 +364,7 @@ begin
          dout(64 downto 1)  => rxStatusSync.phyData,
          dout(66 downto 65) => rxStatusSync.phyHeader);
 
-   U_RxGearboxStatus : entity work.SyncStatusVector
+   U_RxGearboxStatus : entity surf.SyncStatusVector
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => '1',
@@ -391,7 +393,7 @@ begin
 
    rxStatusSync.gearboxAlignCnt <= muxSlVectorArray(gearboxAlignCnt, 0);
 
-   U_remLinkData : entity work.SynchronizerFifo
+   U_remLinkData : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 56)
@@ -406,7 +408,7 @@ begin
    ---------------------------------------
 
    -- OpCode Capture
-   U_TxOpCodeSync : entity work.SynchronizerFifo
+   U_TxOpCodeSync : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          BRAM_EN_G    => false,
@@ -423,7 +425,7 @@ begin
          dout(50 downto 48) => txStatusSync.txOpCodeNumberLast);
 
    -- Errror counters and non counted values
-   U_TxError : entity work.SyncStatusVector
+   U_TxError : entity surf.SyncStatusVector
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => '1',
@@ -469,7 +471,7 @@ begin
    end generate LOC_OVERFLOW_CNT;
 
    -- Status counters
-   U_TxStatus : entity work.SyncStatusVector
+   U_TxStatus : entity surf.SyncStatusVector
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => '1',
@@ -498,7 +500,7 @@ begin
 
    txStatusSync.frameCount <= muxSlVectorArray(txStatusCntOut, 0);
 
-   U_TxClkFreq : entity work.SyncClockFreq
+   U_TxClkFreq : entity surf.SyncClockFreq
       generic map (
          TPD_G          => TPD_G,
          USE_DSP48_G    => "no",
@@ -520,7 +522,7 @@ begin
    -------------------------------------
 
    -- Sync flow cntl disable
-   U_FlowCntlDis : entity work.Synchronizer
+   U_FlowCntlDis : entity surf.Synchronizer
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
@@ -535,7 +537,7 @@ begin
          dataOut => syncFlowCntlDis
          );
 
-   U_SKP_SYNC : entity work.SynchronizerFifo
+   U_SKP_SYNC : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          BRAM_EN_G    => false,

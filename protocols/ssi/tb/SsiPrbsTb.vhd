@@ -20,10 +20,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity SsiPrbsTb is end SsiPrbsTb;
 
@@ -95,7 +97,7 @@ architecture testbed of SsiPrbsTb is
 begin
 
    -- Generate fast clocks and fast resets
-   ClkRst_Fast : entity work.ClkRst
+   ClkRst_Fast : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => FAST_CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
@@ -106,7 +108,7 @@ begin
          rst  => fastRst,
          rstL => open); 
 
-   ClkRst_Slow : entity work.ClkRst
+   ClkRst_Slow : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => SLOW_CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
@@ -118,7 +120,7 @@ begin
          rstL => open);          
 
    -- VcPrbsTx (VHDL module to be tested)
-   SsiPrbsTx_Inst : entity work.SsiPrbsTx
+   SsiPrbsTx_Inst : entity surf.SsiPrbsTx
       generic map (
          -- General Configurations
          TPD_G                      => TPD_C,
@@ -156,7 +158,7 @@ begin
          tId          => (others => '0'));     
 
    -- VcPrbsRx (VHDL module to be tested)
-   SsiPrbsRx_Inst : entity work.SsiPrbsRx
+   SsiPrbsRx_Inst : entity surf.SsiPrbsRx
       generic map (
          -- General Configurations
          TPD_G                      => TPD_C,

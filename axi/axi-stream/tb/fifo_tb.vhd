@@ -18,8 +18,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 
 entity fifo_tb is end fifo_tb;
 
@@ -84,7 +86,7 @@ begin
    end process;
 
    GEN_SRC: for i in 0 to EP_COUNT_C-1 generate
-      PrbsTx : entity work.SsiPrbsTx
+      PrbsTx : entity surf.SsiPrbsTx
          generic map (
             TPD_G                      => TPD_C,
             GEN_SYNC_FIFO_G            => true,
@@ -106,7 +108,7 @@ begin
             tId          => (others => '0')
          );     
 
-      U_AxiStreamFifo: entity work.AxiStreamFifoV2
+      U_AxiStreamFifo: entity surf.AxiStreamFifoV2
          generic map (
             TPD_G                  => TPD_C,
             FIFO_ADDR_WIDTH_G      => 9,
@@ -127,7 +129,7 @@ begin
          );
    end generate GEN_SRC;
 
-   U_Mux: entity work.AxiStreamMux 
+   U_Mux: entity surf.AxiStreamMux 
       generic map (
          TPD_G          => TPD_C,
          NUM_SLAVES_G   => EP_COUNT_C,
@@ -142,7 +144,7 @@ begin
          axisRst      => axiClkRst
       );
 
-   U_AxiStreamFifo: entity work.AxiStreamFifoV2
+   U_AxiStreamFifo: entity surf.AxiStreamFifoV2
       generic map (
          TPD_G                  => TPD_C,
          INT_PIPE_STAGES_G      => 1,
@@ -175,7 +177,7 @@ begin
          mAxisSlave  => fifoSlave
       );
 
-   U_DeMux: entity work.AxiStreamDeMux 
+   U_DeMux: entity surf.AxiStreamDeMux 
       generic map (
          TPD_G         => TPD_C,
          NUM_MASTERS_G => EP_COUNT_C,
@@ -190,7 +192,7 @@ begin
       );
 
    GEN_DST: for i in 0 to EP_COUNT_C-1 generate
-      SsiPrbsRx_Inst : entity work.SsiPrbsRx
+      SsiPrbsRx_Inst : entity surf.SsiPrbsRx
          generic map (
             -- General Configurations
             TPD_G                      => TPD_C,

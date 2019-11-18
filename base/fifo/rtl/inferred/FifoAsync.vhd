@@ -18,7 +18,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity FifoAsync is
    generic (
@@ -100,7 +102,7 @@ begin
    --       wr_clk clock domain
    -----------------------------------------   
 
-   U_wrRst : entity work.RstSync
+   U_wrRst : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          IN_POLARITY_G   => RST_POLARITY_G,
@@ -110,7 +112,7 @@ begin
          asyncRst => rst,
          syncRst  => wrRst);
 
-   U_rdIndex : entity work.SynchronizerVector
+   U_rdIndex : entity surf.SynchronizerVector
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => SYNC_STAGES_G,
@@ -122,7 +124,7 @@ begin
          dataIn  => rdIndex,
          dataOut => rdIndexSync);
 
-   U_rdRdy : entity work.Synchronizer
+   U_rdRdy : entity surf.Synchronizer
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => SYNC_STAGES_G,
@@ -133,7 +135,7 @@ begin
          dataIn  => rdRdy,
          dataOut => rdRdySync);
 
-   U_WR_FSM : entity work.FifoWrFsm
+   U_WR_FSM : entity surf.FifoWrFsm
       generic map(
          TPD_G        => TPD_G,
          FIFO_ASYNC_G => true,          -- ASYNC FIFO
@@ -168,7 +170,7 @@ begin
    --       rd_clk clock domain
    -----------------------------------------   
 
-   U_rdRst : entity work.RstSync
+   U_rdRst : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          IN_POLARITY_G   => RST_POLARITY_G,
@@ -178,7 +180,7 @@ begin
          asyncRst => rst,
          syncRst  => rdRst);
 
-   U_wrIndex : entity work.SynchronizerVector
+   U_wrIndex : entity surf.SynchronizerVector
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => SYNC_STAGES_G,
@@ -190,7 +192,7 @@ begin
          dataIn  => wrIndex,
          dataOut => wrIndexSync);
 
-   U_wrRdy : entity work.Synchronizer
+   U_wrRdy : entity surf.Synchronizer
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => SYNC_STAGES_G,
@@ -201,7 +203,7 @@ begin
          dataIn  => wrRdy,
          dataOut => wrRdySync);
 
-   U_RD_FSM : entity work.FifoRdFsm
+   U_RD_FSM : entity surf.FifoRdFsm
       generic map(
          TPD_G         => TPD_G,
          FIFO_ASYNC_G  => true,         -- ASYNC FIFO
@@ -238,7 +240,7 @@ begin
    --             RAM Module
    ----------------------------------------- 
    GEN_RAM : if (BYP_RAM_G = false) generate
-      U_RAM : entity work.SimpleDualPortRam
+      U_RAM : entity surf.SimpleDualPortRam
          generic map(
             TPD_G        => TPD_G,
             DOB_REG_G    => ite(BRAM_EN_G, FWFT_EN_G, false),
@@ -263,7 +265,7 @@ begin
 
    GEN_PIPE : if (FWFT_EN_G = true) generate
 
-      U_Pipeline : entity work.FifoOutputPipeline
+      U_Pipeline : entity surf.FifoOutputPipeline
          generic map (
             TPD_G         => TPD_G,
             DATA_WIDTH_G  => DATA_WIDTH_G,

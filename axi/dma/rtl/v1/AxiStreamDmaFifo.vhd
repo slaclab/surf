@@ -20,12 +20,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiPkg.all;
-use work.AxiDmaPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiPkg.all;
+use surf.AxiDmaPkg.all;
+use surf.SsiPkg.all;
 
 entity AxiStreamDmaFifo is
    generic (
@@ -193,7 +195,7 @@ begin
    ---------------------
    -- Inbound Controller
    ---------------------
-   U_IbDma : entity work.AxiStreamDmaWrite
+   U_IbDma : entity surf.AxiStreamDmaWrite
       generic map (
          TPD_G          => TPD_G,
          AXI_READY_EN_G => true,
@@ -217,7 +219,7 @@ begin
    ----------------------
    -- Outbound Controller
    ----------------------
-   U_ObDma : entity work.AxiStreamDmaRead
+   U_ObDma : entity surf.AxiStreamDmaRead
       generic map (
          TPD_G           => TPD_G,
          AXIS_READY_EN_G => true,
@@ -243,7 +245,7 @@ begin
    -------------
    -- Read Queue
    -------------
-   U_ReadQueue : entity work.FifoCascade
+   U_ReadQueue : entity surf.FifoCascade
       generic map (
          TPD_G           => TPD_G,
          FWFT_EN_G       => true,
@@ -480,7 +482,7 @@ begin
       end if;
    end process seq;
 
-   U_rdQueueReset : entity work.RstPipeline
+   U_rdQueueReset : entity surf.RstPipeline
       generic map (
          TPD_G => TPD_G)
       port map (

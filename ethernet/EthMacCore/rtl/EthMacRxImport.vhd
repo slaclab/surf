@@ -18,9 +18,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.AxiStreamPkg.all;
-use work.StdRtlPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.AxiStreamPkg.all;
+use surf.StdRtlPkg.all;
+use surf.EthMacPkg.all;
 
 entity EthMacRxImport is
    generic (
@@ -56,7 +58,7 @@ begin
    assert ((PHY_TYPE_G = "XLGMII") or (PHY_TYPE_G = "XGMII") or (PHY_TYPE_G = "GMII")) report "EthMacRxImport: PHY_TYPE_G must be either GMII, XGMII, XLGMII" severity failure;
 
    U_40G : if (PHY_TYPE_G = "XLGMII") generate
-      U_XLGMII : entity work.EthMacRxImportXlgmii
+      U_XLGMII : entity surf.EthMacRxImportXlgmii
          generic map (
             TPD_G => TPD_G) 
          port map (
@@ -75,7 +77,7 @@ begin
    end generate;
 
    U_10G : if (PHY_TYPE_G = "XGMII") generate
-      U_XGMII : entity work.EthMacRxImportXgmii
+      U_XGMII : entity surf.EthMacRxImportXgmii
          generic map (
             TPD_G => TPD_G) 
          port map (
@@ -94,7 +96,7 @@ begin
    end generate;
 
    U_1G : if (PHY_TYPE_G = "GMII") generate
-      U_GMII : entity work.EthMacRxImportGmii
+      U_GMII : entity surf.EthMacRxImportGmii
          generic map (
             TPD_G => TPD_G) 
          port map (

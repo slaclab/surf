@@ -17,7 +17,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity UartRx is
    generic (
@@ -72,7 +74,7 @@ architecture rtl of UartRx is
 
 begin
 
-   U_SynchronizerEdge_1 : entity work.SynchronizerEdge
+   U_SynchronizerEdge_1 : entity surf.SynchronizerEdge
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => 3,

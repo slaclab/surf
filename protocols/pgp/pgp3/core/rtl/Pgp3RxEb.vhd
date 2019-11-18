@@ -19,8 +19,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.Pgp3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Pgp3Pkg.all;
 
 entity Pgp3RxEb is
 
@@ -104,7 +106,7 @@ begin
       end if;
    end process seq;
 
-   U_remLinkData : entity work.SynchronizerFifo
+   U_remLinkData : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 56)
@@ -115,7 +117,7 @@ begin
          rd_clk => pgpRxClk,
          dout   => remLinkData);
 
-   U_FifoAsync_1 : entity work.FifoAsync
+   U_FifoAsync_1 : entity surf.FifoAsync
       generic map (
          TPD_G         => TPD_G,
          BRAM_EN_G     => true,
@@ -146,7 +148,7 @@ begin
          almost_empty       => open,         -- [out]
          empty              => open);        -- [out]
 
-   U_RstSync_1 : entity work.RstSync
+   U_RstSync_1 : entity surf.RstSync
       generic map (
          TPD_G => TPD_G)
       port map (

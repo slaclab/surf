@@ -18,9 +18,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiAd9467Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiAd9467Pkg.all;
 
 entity AxiAd9467Reg is
    generic (
@@ -336,7 +338,7 @@ begin
    -------------------------------
    config.spi <= r.config.spi;
 
-   SyncIn_delay_dmux : entity work.Synchronizer
+   SyncIn_delay_dmux : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -344,7 +346,7 @@ begin
          dataIn  => r.config.delay.dmux,
          dataOut => config.delay.dmux);    
 
-   SyncOut_delayIn_load : entity work.RstSync
+   SyncOut_delayIn_load : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          RELEASE_DELAY_G => 32)   
@@ -353,7 +355,7 @@ begin
          asyncRst => r.config.delay.load,
          syncRst  => config.delay.load); 
 
-   SyncOut_delayIn_rst : entity work.RstSync
+   SyncOut_delayIn_rst : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          RELEASE_DELAY_G => 16)   
@@ -364,7 +366,7 @@ begin
 
    GEN_DAT_CONFIG :
    for i in 0 to 7 generate
-      SyncOut_delayIn_data : entity work.SynchronizerFifo
+      SyncOut_delayIn_data : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
             DATA_WIDTH_G => 5)
@@ -380,7 +382,7 @@ begin
    -------------------------------
    syncIn.spi <= status.spi;
 
-   SyncIn_pllLocked : entity work.Synchronizer
+   SyncIn_pllLocked : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -390,7 +392,7 @@ begin
 
    GEN_ADC_MON :
    for i in 0 to 15 generate
-      SyncIn_adcDataMon : entity work.SynchronizerFifo
+      SyncIn_adcDataMon : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
             DATA_WIDTH_G => 16)
@@ -401,7 +403,7 @@ begin
             dout   => syncIn.adcDataMon(i));       
    end generate GEN_ADC_MON;
 
-   SyncIn_delayOut_rdy : entity work.Synchronizer
+   SyncIn_delayOut_rdy : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -411,7 +413,7 @@ begin
 
    GEN_DAT_STATUS :
    for i in 0 to 7 generate
-      SyncIn_delayOut_data : entity work.SynchronizerFifo
+      SyncIn_delayOut_data : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
             DATA_WIDTH_G => 5)

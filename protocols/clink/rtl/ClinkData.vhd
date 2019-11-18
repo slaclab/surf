@@ -20,9 +20,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.ClinkPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.ClinkPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -101,7 +103,7 @@ begin
    -------------------------------
    -- DeSerializer
    -------------------------------
-   U_DataShift : entity work.ClinkDataShift
+   U_DataShift : entity surf.ClinkDataShift
       generic map (
          TPD_G        => TPD_G,
          XIL_DEVICE_G => XIL_DEVICE_G)
@@ -252,7 +254,7 @@ begin
       end if;
    end process seq;
 
-   U_RstSync : entity work.RstSync
+   U_RstSync : entity surf.RstSync
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -263,7 +265,7 @@ begin
    --------------------------------------
    -- Output FIFO and status
    --------------------------------------
-   U_DataFifo : entity work.Fifo
+   U_DataFifo : entity surf.Fifo
       generic map (
          TPD_G        => TPD_G,
          BRAM_EN_G    => false,
@@ -280,7 +282,7 @@ begin
          dout   => parData,
          valid  => parValid);
 
-   U_Locked : entity work.Synchronizer
+   U_Locked : entity surf.Synchronizer
       generic map (TPD_G => TPD_G)
       port map (
          clk     => sysClk,
@@ -288,7 +290,7 @@ begin
          dataIn  => r.status.locked,
          dataOut => linkStatus.locked);
 
-   U_Delay : entity work.SynchronizerVector
+   U_Delay : entity surf.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 5)
@@ -298,7 +300,7 @@ begin
          dataIn  => r.status.delay,
          dataOut => linkStatus.delay);
 
-   U_ShiftCnt : entity work.SynchronizerVector
+   U_ShiftCnt : entity surf.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 3)

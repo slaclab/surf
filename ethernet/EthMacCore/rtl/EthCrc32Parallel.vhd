@@ -19,8 +19,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.EthCrc32Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.EthCrc32Pkg.all;
 
 entity EthCrc32Parallel is
    generic (
@@ -73,7 +75,7 @@ begin
 
          GEN_A : if (BYTE_WIDTH_G < 9) generate
 
-            U_Xor : entity work.DspXor
+            U_Xor : entity surf.DspXor
                generic map (
                   TPD_G   => TPD_G,
                   INIT_G  => CRC_INIT_G(i),
@@ -88,7 +90,7 @@ begin
 
          GEN_B : if (BYTE_WIDTH_G >= 9) generate
 
-            U_Xor : entity work.DspXor
+            U_Xor : entity surf.DspXor
                generic map (
                   TPD_G   => TPD_G,
                   INIT_G  => CRC_INIT_G(i),

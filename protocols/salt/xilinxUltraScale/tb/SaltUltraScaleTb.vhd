@@ -18,10 +18,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity SaltUltraScaleTb is end SaltUltraScaleTb;
 
@@ -94,7 +96,7 @@ begin
    -----------------------------
    -- Generate clocks and resets
    -----------------------------
-   ClkRst_1x : entity work.ClkRst
+   ClkRst_1x : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
@@ -105,7 +107,7 @@ begin
          rst  => rst,
          rstL => open);
 
-   ClkRst_2p5x : entity work.ClkRst
+   ClkRst_2p5x : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => (CLK_PERIOD_C/2.5),
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
@@ -116,7 +118,7 @@ begin
          rst  => open,
          rstL => open);
 
-   ClkRst_5x : entity work.ClkRst
+   ClkRst_5x : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => (CLK_PERIOD_C/5.0),
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
@@ -127,7 +129,7 @@ begin
          rst  => clk5xRst,
          rstL => open);
 
-   SaltDelayCtrl_Inst : entity work.SaltDelayCtrl
+   SaltDelayCtrl_Inst : entity surf.SaltDelayCtrl
       generic map (
          TPD_G           => TPD_C,
          IODELAY_GROUP_G => "SALT_IODELAY_GRP")
@@ -139,7 +141,7 @@ begin
    -----------------
    -- Data Generator
    -----------------
-   SsiPrbsTx_Inst : entity work.SsiPrbsTx
+   SsiPrbsTx_Inst : entity surf.SsiPrbsTx
       generic map (
          -- General Configurations
          TPD_G                      => TPD_C,
@@ -180,7 +182,7 @@ begin
    ----------------------         
    -- Module to be tested
    ----------------------   
-   SaltUltraScale_Inst : entity work.SaltUltraScale
+   SaltUltraScale_Inst : entity surf.SaltUltraScale
       generic map (
          TPD_G               => TPD_C,
          TX_ENABLE_G         => true,
@@ -219,7 +221,7 @@ begin
    ---------------
    -- Data Checker
    ---------------
-   SsiPrbsRx_Inst : entity work.SsiPrbsRx
+   SsiPrbsRx_Inst : entity surf.SsiPrbsRx
       generic map (
          -- General Configurations
          TPD_G                      => TPD_C,

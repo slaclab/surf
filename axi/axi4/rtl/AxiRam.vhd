@@ -18,8 +18,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiPkg.all;
 
 entity AxiRam is
    generic (
@@ -114,7 +116,7 @@ begin
       report "AxiRam: Inferred SimpleDualPortRam does not support zero latency reads" severity failure;
 
    GEN_XPM : if (SYNTH_MODE_G = "xpm") generate
-      U_RAM : entity work.SimpleDualPortRamXpm
+      U_RAM : entity surf.SimpleDualPortRamXpm
          generic map (
             TPD_G          => TPD_G,
             COMMON_CLK_G   => true,
@@ -140,7 +142,7 @@ begin
    end generate;
 
    GEN_ALTERA : if (SYNTH_MODE_G = "altera_mf") generate
-      U_RAM : entity work.SimpleDualPortRamAlteraMf
+      U_RAM : entity surf.SimpleDualPortRamAlteraMf
          generic map (
             TPD_G          => TPD_G,
             COMMON_CLK_G   => true,
@@ -166,7 +168,7 @@ begin
    end generate;
 
    GEN_INFERRED : if (SYNTH_MODE_G = "inferred") generate
-      U_RAM : entity work.SimpleDualPortRam
+      U_RAM : entity surf.SimpleDualPortRam
          generic map (
             TPD_G        => TPD_G,
             BRAM_EN_G    => ite(READ_LATENCY_G = 0, false, true),

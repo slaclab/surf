@@ -16,7 +16,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
@@ -454,7 +456,7 @@ begin
    -- 9. Wait DATA_VALID (aligned) - 100 us
    --10. Wait 1 us, Set rxFsmResetDone. 
    --------------------------------------------------------------------------------------------------
-   Gtx7RxRst_Inst : entity work.GLinkGtx7RxRst
+   Gtx7RxRst_Inst : entity surf.GLinkGtx7RxRst
       generic map (
          TPD_G                  => TPD_G,
          EXAMPLE_SIMULATION     => 0,
@@ -491,7 +493,7 @@ begin
    --------------------------------------------------------------------------------------------------
    -- Synchronize rxFsmResetDone to rxUsrClk to use as reset for external logic.
    --------------------------------------------------------------------------------------------------
-   RstSync_RxResetDone : entity work.RstSync
+   RstSync_RxResetDone : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
@@ -510,7 +512,7 @@ begin
          O => rxOutClkBufg);
 
    GTX7_RX_REC_CLK_MONITOR_GEN : if (RX_BUF_EN_G = false) generate
-      Gtx7RecClkMonitor_Inst : entity work.Gtx7RecClkMonitor
+      Gtx7RecClkMonitor_Inst : entity surf.Gtx7RecClkMonitor
          generic map (
             COUNTER_UPPER_VALUE      => 15,
             GCLK_COUNTER_UPPER_VALUE => 15,
@@ -552,7 +554,7 @@ begin
    -- Use special fixed latency aligner when RX_BUF_EN_G=false and RX_ALIGN_FIXED_LAT_G=true
    -------------------------------------------------------------------------------------------------
    RX_AUTO_ALIGN_GEN : if (RX_BUF_EN_G = false and RX_ALIGN_MODE_G = "GT") generate
-      Gtx7AutoPhaseAligner_Rx : entity work.Gtx7AutoPhaseAligner
+      Gtx7AutoPhaseAligner_Rx : entity surf.Gtx7AutoPhaseAligner
          generic map (
             GT_TYPE => "GTX")
          port map (
@@ -567,7 +569,7 @@ begin
    end generate;
 
    RX_FIX_LAT_ALIGN_GEN : if (RX_BUF_EN_G = false and RX_ALIGN_MODE_G = "FIXED_LAT") generate
-      Gtx7RxFixedLatPhaseAligner_Inst : entity work.Gtx7RxFixedLatPhaseAligner
+      Gtx7RxFixedLatPhaseAligner_Inst : entity surf.Gtx7RxFixedLatPhaseAligner
          generic map (
             TPD_G       => TPD_G,
             WORD_SIZE_G => RX_EXT_DATA_WIDTH_G,
@@ -631,7 +633,7 @@ begin
    --------------------------------------------------------------------------------------------------
    -- Tx Reset Module
    --------------------------------------------------------------------------------------------------
-   Gtx7TxRst_Inst : entity work.Gtx7TxRst
+   Gtx7TxRst_Inst : entity surf.Gtx7TxRst
       generic map (
          TPD_G                  => TPD_G,
          GT_TYPE                => "GTX",
@@ -658,7 +660,7 @@ begin
    --------------------------------------------------------------------------------------------------
    -- Synchronize rxFsmResetDone to rxUsrClk to use as reset for external logic.
    --------------------------------------------------------------------------------------------------
-   RstSync_Tx : entity work.RstSync
+   RstSync_Tx : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
@@ -674,7 +676,7 @@ begin
    -------------------------------------------------------------------------------------------------
    TxAutoPhaseAlignGen : if (TX_BUF_EN_G = false and TX_PHASE_ALIGN_G = "AUTO") generate
       
-      PhaseAlign_Tx : entity work.Gtx7AutoPhaseAligner
+      PhaseAlign_Tx : entity surf.Gtx7AutoPhaseAligner
          generic map (
             GT_TYPE => "GTX")
          port map (
@@ -692,7 +694,7 @@ begin
    end generate TxAutoPhaseAlignGen;
 
    TxManualPhaseAlignGen : if (TX_BUF_EN_G = false and TX_PHASE_ALIGN_G = "MANUAL") generate
-      Gtx7TxManualPhaseAligner_1 : entity work.Gtx7TxManualPhaseAligner
+      Gtx7TxManualPhaseAligner_1 : entity surf.Gtx7TxManualPhaseAligner
          generic map (
             TPD_G => TPD_G)
          port map (

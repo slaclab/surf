@@ -20,13 +20,15 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiRssiPkg.all;
-use work.RssiPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiRssiPkg.all;
+use surf.RssiPkg.all;
+use surf.SsiPkg.all;
 
 entity AxiRssiCoreWrapper is
    generic (
@@ -140,7 +142,7 @@ begin
 
    GEN_RX :
    for i in (APP_STREAMS_G-1) downto 0 generate
-      U_Rx : entity work.AxiStreamResize
+      U_Rx : entity surf.AxiStreamResize
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
@@ -160,7 +162,7 @@ begin
             mAxisSlave  => rxSlaves(i));
    end generate GEN_RX;
 
-   U_AxiStreamMux : entity work.AxiStreamMux
+   U_AxiStreamMux : entity surf.AxiStreamMux
       generic map (
          TPD_G                => TPD_G,
          NUM_SLAVES_G         => APP_STREAMS_G,
@@ -182,7 +184,7 @@ begin
          mAxisMaster  => packetizerMasters(0),
          mAxisSlave   => packetizerSlaves(0));
 
-   U_Packetizer : entity work.AxiStreamPacketizer2
+   U_Packetizer : entity surf.AxiStreamPacketizer2
       generic map (
          TPD_G                => TPD_G,
          BRAM_EN_G            => true,
@@ -202,7 +204,7 @@ begin
          mAxisMaster => packetizerMasters(1),
          mAxisSlave  => packetizerSlaves(1));
 
-   U_RssiCore : entity work.AxiRssiCore
+   U_RssiCore : entity surf.AxiRssiCore
       generic map (
          TPD_G             => TPD_G,
          SERVER_G          => SERVER_G,
@@ -260,7 +262,7 @@ begin
          statusReg        => status,
          maxSegSize       => maxObSegSize);
 
-   U_Depacketizer : entity work.AxiStreamDepacketizer2
+   U_Depacketizer : entity surf.AxiStreamDepacketizer2
       generic map (
          TPD_G                => TPD_G,
          BRAM_EN_G            => true,
@@ -279,7 +281,7 @@ begin
          mAxisMaster => depacketizerMasters(0),
          mAxisSlave  => depacketizerSlaves(0));
 
-   U_AxiStreamDeMux : entity work.AxiStreamDeMux
+   U_AxiStreamDeMux : entity surf.AxiStreamDeMux
       generic map (
          TPD_G          => TPD_G,
          PIPE_STAGES_G  => 1,
@@ -299,7 +301,7 @@ begin
 
    GEN_TX :
    for i in (APP_STREAMS_G-1) downto 0 generate
-      U_Tx : entity work.AxiStreamResize
+      U_Tx : entity surf.AxiStreamResize
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,

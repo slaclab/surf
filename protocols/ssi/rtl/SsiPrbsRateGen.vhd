@@ -20,10 +20,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity SsiPrbsRateGen is
    generic (
@@ -99,7 +101,7 @@ begin
    mAxisMaster <= iAxisMaster;
    iAxisSlave  <= mAxisSlave;
 
-   U_PrbsTx: entity work.SsiPrbsTx 
+   U_PrbsTx: entity surf.SsiPrbsTx 
       generic map (
          TPD_G                      => TPD_G,
          VALID_THOLD_G              => VALID_THOLD_G,
@@ -122,7 +124,7 @@ begin
          busy            => busy,
          packetLength    => r.packetLength);
 
-   U_Monitor: entity work.AxiStreamMon
+   U_Monitor: entity surf.AxiStreamMon
       generic map (
          TPD_G           => TPD_G,
          COMMON_CLK_G    => true,

@@ -17,7 +17,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity DualPortRam is
    -- MODE_G = {"no-change","read-first","write-first"}
@@ -61,7 +63,7 @@ architecture mapping of DualPortRam is
 begin
 
    GEN_BRAM : if (BRAM_EN_G = true) generate
-      TrueDualPortRam_Inst : entity work.TrueDualPortRam
+      TrueDualPortRam_Inst : entity surf.TrueDualPortRam
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => RST_POLARITY_G,
@@ -96,7 +98,7 @@ begin
    end generate;
 
    GEN_LUTRAM : if (BRAM_EN_G = false) generate
-      QuadPortRam_Inst : entity work.QuadPortRam
+      QuadPortRam_Inst : entity surf.QuadPortRam
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => RST_POLARITY_G,
