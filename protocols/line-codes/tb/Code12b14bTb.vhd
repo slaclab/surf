@@ -18,9 +18,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.Code12b14bPkg.all;
-use work.TextUtilPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Code12b14bPkg.all;
+use surf.TextUtilPkg.all;
 
 
 ----------------------------------------------------------------------------------------------------
@@ -81,7 +83,7 @@ begin
    encDataInString <= toString(encDataIn, encDataKIn);
 
    -- component instantiation
-   U_Encoder12b14b : entity work.Encoder12b14b
+   U_Encoder12b14b : entity surf.Encoder12b14b
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
@@ -99,7 +101,7 @@ begin
 --          invalidK => invalidK);         -- [out]
 
 
-   U_ClkRst_1 : entity work.ClkRst
+   U_ClkRst_1 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 4 ns,
          CLK_DELAY_G       => 1 ns,
@@ -258,7 +260,7 @@ begin
    -- Decoder
    -------------------------------------------------------------------------------------------------
    decDataIn <= encDataOut;
-   U_Decoder12b14b_1 : entity work.Decoder12b14b
+   U_Decoder12b14b_1 : entity surf.Decoder12b14b
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
@@ -279,7 +281,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Delay encDataIn in parallel to compare against output of decoder
    -------------------------------------------------------------------------------------------------
-   U_SynchronizerVector_1 : entity work.SynchronizerVector
+   U_SynchronizerVector_1 : entity surf.SynchronizerVector
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,

@@ -24,10 +24,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.AxiLitePkg.all;
 use ieee.math_real.all;
 
 entity SrpV3AxiLite is
@@ -185,7 +187,7 @@ begin
    sAxisCtrl <= sCtrl;
    sRst      <= rst or sAxisRst;
 
-   U_Limiter : entity work.SsiFrameLimiter
+   U_Limiter : entity surf.SsiFrameLimiter
       generic map (
          TPD_G               => TPD_G,
          EN_TIMEOUT_G        => false,
@@ -208,7 +210,7 @@ begin
          mAxisMaster => axisMaster,
          mAxisSlave  => axisSlave);
 
-   RX_FIFO : entity work.AxiStreamFifoV2
+   RX_FIFO : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -251,7 +253,7 @@ begin
    end generate;
 
    GEN_ASYNC_SLAVE : if (GEN_SYNC_FIFO_G = false) generate
-      Sync_Ctrl : entity work.SynchronizerVector
+      Sync_Ctrl : entity surf.SynchronizerVector
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => 2,
@@ -263,7 +265,7 @@ begin
             dataIn(1)  => sCtrl.idle,
             dataOut(0) => rxCtrl.pause,
             dataOut(1) => rxCtrl.idle);
-      Sync_Overflow : entity work.SynchronizerOneShot
+      Sync_Overflow : entity surf.SynchronizerOneShot
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -271,7 +273,7 @@ begin
             rst     => axilRst,
             dataIn  => sCtrl.overflow,
             dataOut => rxCtrl.overflow);
-      Sync_Rst : entity work.RstSync
+      Sync_Rst : entity surf.RstSync
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -784,7 +786,7 @@ begin
       end if;
    end process seq;
 
-   TX_FIFO : entity work.AxiStreamFifoV2
+   TX_FIFO : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,

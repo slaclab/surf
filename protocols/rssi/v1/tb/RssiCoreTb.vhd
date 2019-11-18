@@ -20,11 +20,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.SsiPkg.all;
-use work.RssiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.SsiPkg.all;
+use surf.RssiPkg.all;
 
 entity RssiCoreTb is
 
@@ -103,7 +105,7 @@ begin
    ---------------------------
    -- Generate clock and reset
    ---------------------------
-   U_ClkRst : entity work.ClkRst
+   U_ClkRst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
@@ -117,7 +119,7 @@ begin
    ---------------------------
    GEN_VEC :
    for i in (NUM_XBAR_C-2) downto 0 generate
-      U_XBAR : entity work.AxiLiteCrossbar
+      U_XBAR : entity surf.AxiLiteCrossbar
          generic map (
             TPD_G              => TPD_G,
             NUM_SLAVE_SLOTS_G  => 1,
@@ -139,7 +141,7 @@ begin
    ------------------
    -- SRPv3 End Point
    ------------------
-   U_SRPv3 : entity work.SrpV3AxiLite
+   U_SRPv3 : entity surf.SrpV3AxiLite
       generic map (
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => true,
@@ -167,7 +169,7 @@ begin
    --------------
    -- RSSI Server
    --------------
-   U_RssiServer : entity work.RssiCoreWrapper
+   U_RssiServer : entity surf.RssiCoreWrapper
       generic map (
          TPD_G             => TPD_G,
          SERVER_G          => true,     -- Server
@@ -192,7 +194,7 @@ begin
    --------------
    -- RSSI Client
    --------------         
-   U_RssiClient : entity work.RssiCoreWrapper
+   U_RssiClient : entity surf.RssiCoreWrapper
       generic map (
          TPD_G             => TPD_G,
          SERVER_G          => false,    -- Client

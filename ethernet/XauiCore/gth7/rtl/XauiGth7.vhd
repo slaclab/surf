@@ -16,11 +16,13 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.XauiPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.XauiPkg.all;
+use surf.EthMacPkg.all;
 
 entity XauiGth7 is
    generic (
@@ -88,7 +90,7 @@ begin
    --------------------
    -- Ethernet MAC core
    --------------------
-   U_MAC : entity work.EthMacTop
+   U_MAC : entity surf.EthMacTop
       generic map (
          TPD_G           => TPD_G,
          PAUSE_EN_G      => PAUSE_EN_G,
@@ -117,7 +119,7 @@ begin
    --------------------
    -- 10 GigE XAUI Core
    --------------------
-   U_XauiGth7Core : entity work.XauiGth7Core
+   U_XauiGth7Core : entity surf.XauiGth7Core
       port map (
          -- Clocks and Resets
          dclk                 => gtRefClk,
@@ -160,7 +162,7 @@ begin
    --------------------------
    status.areset <= config.softRst or extRst;
 
-   RstSync_0 : entity work.RstSync
+   RstSync_0 : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          IN_POLARITY_G   => '1',
@@ -171,7 +173,7 @@ begin
          asyncRst => status.areset,
          syncRst  => areset);
 
-   RstSync_1 : entity work.RstSync
+   RstSync_1 : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          IN_POLARITY_G   => '0',
@@ -185,7 +187,7 @@ begin
    --------------------------------     
    -- Configuration/Status Register   
    --------------------------------     
-   U_XauiReg : entity work.XauiReg
+   U_XauiReg : entity surf.XauiReg
       generic map (
          TPD_G        => TPD_G,
          EN_AXI_REG_G => EN_AXI_REG_G)

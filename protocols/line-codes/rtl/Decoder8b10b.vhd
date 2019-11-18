@@ -17,8 +17,10 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use work.StdRtlPkg.all;
-use work.Code8b10bPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Code8b10bPkg.all;
 
 entity Decoder8b10b is
 

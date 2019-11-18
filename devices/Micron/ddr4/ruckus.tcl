@@ -2,7 +2,7 @@
 source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 
 # Load target's source code and constraints
-loadSource -sim_only -dir "$::DIR_PATH/tb"
+loadSource -lib surf -sim_only -dir "$::DIR_PATH/tb"
 
 # Set the top-level DDR module as Verilog
 set_property FILE_TYPE {Verilog Header} [get_files {arch_defines.v}]

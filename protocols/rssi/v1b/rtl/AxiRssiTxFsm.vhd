@@ -43,13 +43,15 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiPkg.all;
-use work.AxiDmaPkg.all;
-use work.AxiRssiPkg.all;
-use work.RssiPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiPkg.all;
+use surf.AxiDmaPkg.all;
+use surf.AxiRssiPkg.all;
+use surf.RssiPkg.all;
+use surf.SsiPkg.all;
 
 entity AxiRssiTxFsm is
    generic (
@@ -294,7 +296,7 @@ architecture rtl of AxiRssiTxFsm is
 
 begin
 
-   U_DmaWrite : entity work.AxiStreamDmaWrite
+   U_DmaWrite : entity surf.AxiStreamDmaWrite
       generic map (
          TPD_G             => TPD_G,
          AXI_READY_EN_G    => true,
@@ -322,7 +324,7 @@ begin
          axiWriteMaster => mAxiWriteMaster_o,
          axiWriteSlave  => mAxiWriteSlave_i);
 
-   U_DmaRead : entity work.AxiStreamDmaRead
+   U_DmaRead : entity surf.AxiStreamDmaRead
       generic map (
          TPD_G           => TPD_G,
          AXIS_READY_EN_G => true,

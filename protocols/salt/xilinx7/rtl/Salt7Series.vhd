@@ -16,9 +16,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity Salt7Series is
    generic (
@@ -169,7 +171,7 @@ begin
          signal_detect        => '1');
 
    TX_ENABLE : if (TX_ENABLE_G = true) generate
-      SaltTx_Inst : entity work.SaltTx
+      SaltTx_Inst : entity surf.SaltTx
          generic map(
             TPD_G              => TPD_G,
             SLAVE_AXI_CONFIG_G => SLAVE_AXI_CONFIG_G,
@@ -200,7 +202,7 @@ begin
    end generate;
 
    RX_ENABLE : if (RX_ENABLE_G = true) generate
-      SaltRx_Inst : entity work.SaltRx
+      SaltRx_Inst : entity surf.SaltRx
          generic map(
             TPD_G               => TPD_G,
             MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G,

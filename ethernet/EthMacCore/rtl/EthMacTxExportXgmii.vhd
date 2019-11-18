@@ -18,9 +18,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.AxiStreamPkg.all;
-use work.StdRtlPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.AxiStreamPkg.all;
+use surf.StdRtlPkg.all;
+use surf.EthMacPkg.all;
 
 entity EthMacTxExportXgmii is
    generic (
@@ -136,7 +138,7 @@ architecture rtl of EthMacTxExportXgmii is
 
 begin
 
-   DATA_MUX : entity work.AxiStreamFifoV2
+   DATA_MUX : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -455,7 +457,7 @@ begin
    crcFifoIn(63 downto 0)  <= crcIn;
 
    -- CRC Delay FIFO
-   U_CrcFifo : entity work.Fifo
+   U_CrcFifo : entity surf.Fifo
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => '1',
@@ -606,7 +608,7 @@ begin
    crcInAdj(7 downto 0)   <= crcIn(63 downto 56);
 
    -- CRC
-   U_Crc32 : entity work.Crc32Parallel
+   U_Crc32 : entity surf.Crc32Parallel
       generic map (
          BYTE_WIDTH_G => 8
          ) port map (

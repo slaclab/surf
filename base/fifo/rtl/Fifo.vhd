@@ -17,7 +17,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity Fifo is
    -- SYNTH_MODE_G Options: {"inferred", "xpm", "altera_mf"}
@@ -81,7 +83,7 @@ begin
       "INIT_G must either be ""0"" or the same length as DATA_WIDTH_G" severity failure;
 
    GEN_XPM : if (SYNTH_MODE_G = "xpm") generate
-      U_XPM : entity work.FifoXpm
+      U_XPM : entity surf.FifoXpm
          generic map (
             TPD_G           => TPD_G,
             RST_POLARITY_G  => RST_POLARITY_G,
@@ -118,7 +120,7 @@ begin
    end generate;
 
    GEN_ALTERA : if (SYNTH_MODE_G = "altera_mf") generate
-      U_MF : entity work.FifoAlteraMf
+      U_MF : entity surf.FifoAlteraMf
          generic map (
             TPD_G           => TPD_G,
             RST_POLARITY_G  => RST_POLARITY_G,
@@ -157,7 +159,7 @@ begin
    GEN_INFERRED : if (SYNTH_MODE_G = "inferred") generate
       NON_BUILT_IN_GEN : if (USE_BUILT_IN_G = false) generate
          FIFO_ASYNC_Gen : if (GEN_SYNC_FIFO_G = false) generate
-            FifoAsync_Inst : entity work.FifoAsync
+            FifoAsync_Inst : entity surf.FifoAsync
                generic map (
                   TPD_G          => TPD_G,
                   RST_POLARITY_G => RST_POLARITY_G,
@@ -200,7 +202,7 @@ begin
             wr_data_count <= data_count;
             rd_data_count <= data_count;
 
-            FifoSync_Inst : entity work.FifoSync
+            FifoSync_Inst : entity surf.FifoSync
                generic map (
                   TPD_G          => TPD_G,
                   RST_POLARITY_G => RST_POLARITY_G,
@@ -246,7 +248,7 @@ begin
             wr_data_count <= data_count;
             rd_data_count <= data_count;
 
-            FifoSyncBuiltIn_Inst : entity work.FifoSyncBuiltIn
+            FifoSyncBuiltIn_Inst : entity surf.FifoSyncBuiltIn
                generic map (
                   TPD_G          => TPD_G,
                   RST_POLARITY_G => RST_POLARITY_G,
@@ -283,7 +285,7 @@ begin
          --    and I only pass wr_clk into the FifoSyncBuiltIn_Inst
          end generate;
          FIFO_ASYNC_BUILT_IN_GEN : if (GEN_SYNC_FIFO_G = false) generate
-            FifoAsyncBuiltIn_Inst : entity work.FifoAsyncBuiltIn
+            FifoAsyncBuiltIn_Inst : entity surf.FifoAsyncBuiltIn
                generic map (
                   TPD_G          => TPD_G,
                   RST_POLARITY_G => RST_POLARITY_G,

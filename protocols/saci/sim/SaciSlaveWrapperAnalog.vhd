@@ -17,7 +17,9 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SaciSlaveWrapperAnalog is
   generic (
@@ -144,7 +146,7 @@ begin
       rdData_31 => rdData(31));
 
 
-  SaciSlaveRam_1 : entity work.SaciSlaveRam
+  SaciSlaveRam_1 : entity surf.SaciSlaveRam
     port map (
       saciClkOut => saciClk,
       exec       => exec,

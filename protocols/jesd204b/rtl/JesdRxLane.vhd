@@ -51,8 +51,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.Jesd204bPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Jesd204bPkg.all;
 
 entity JesdRxLane is
    generic (
@@ -168,7 +170,7 @@ begin
    -----------------------------------------------------------------------
    -- Buffer samples between first data and LMFC Min size one LMFC period
    -----------------------------------------------------------------------
-   RX_buffer_fifo_INST : entity work.FifoSync
+   RX_buffer_fifo_INST : entity surf.FifoSync
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
@@ -200,7 +202,7 @@ begin
    ----------------------
    -- Synchronization FSM
    ----------------------
-   syncFSM_INST : entity work.JesdSyncFsmRx
+   syncFSM_INST : entity surf.JesdSyncFsmRx
       generic map (
          TPD_G => TPD_G,
          F_G   => F_G,
@@ -229,7 +231,7 @@ begin
    ------------------------------------------------------------------
    -- Align the rx data within the GT word and replace the characters
    ------------------------------------------------------------------
-   alignFrRepCh_INST : entity work.JesdAlignFrRepCh
+   alignFrRepCh_INST : entity surf.JesdAlignFrRepCh
       generic map (
          TPD_G => TPD_G,
          F_G   => F_G)

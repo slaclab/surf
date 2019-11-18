@@ -18,9 +18,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity Caui4GtyIpWrapper is
    generic (
@@ -563,7 +565,7 @@ begin
    assert (isPowerOf2(MAX_PAYLOAD_SIZE_G) = true)
       report "MAX_PAYLOAD_SIZE_G must be power of 2" severity failure;
 
-   U_PwrUpRst : entity work.PwrUpRst
+   U_PwrUpRst : entity surf.PwrUpRst
       generic map(
          TPD_G         => TPD_G,
          SIM_SPEEDUP_G => SIM_SPEEDUP_G)
@@ -572,7 +574,7 @@ begin
          clk    => stableClk,
          rstOut => stableReset);
 
-   U_phyClk : entity work.ClockManagerUltraScale
+   U_phyClk : entity surf.ClockManagerUltraScale
       generic map(
          TPD_G             => TPD_G,
          TYPE_G            => "PLL",
@@ -621,7 +623,7 @@ begin
       end if;
    end process;
 
-   U_RX_FIFO : entity work.AxiStreamFifoV2
+   U_RX_FIFO : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -646,7 +648,7 @@ begin
          mAxisMaster => phyRxMaster,
          mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);
 
-   U_TX_FIFO : entity work.AxiStreamFifoV2
+   U_TX_FIFO : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -1184,7 +1186,7 @@ begin
       end if;
    end process seq;
 
-   U_SyncBits : entity work.Synchronizer
+   U_SyncBits : entity surf.Synchronizer
       generic map(
          TPD_G => TPD_G)
       port map (

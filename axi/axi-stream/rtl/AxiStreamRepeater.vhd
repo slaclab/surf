@@ -20,8 +20,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 
 entity AxiStreamRepeater is
    generic (
@@ -68,7 +70,7 @@ begin
    -----------------
    -- Input pipeline
    -----------------
-   U_Input : entity work.AxiStreamPipeline
+   U_Input : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => INPUT_PIPE_STAGES_G)
@@ -163,7 +165,7 @@ begin
    GEN_VEC :
    for i in (NUM_MASTERS_G-1) downto 0 generate
 
-      U_Output : entity work.AxiStreamPipeline
+      U_Output : entity surf.AxiStreamPipeline
          generic map (
             TPD_G         => TPD_G,
             PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)

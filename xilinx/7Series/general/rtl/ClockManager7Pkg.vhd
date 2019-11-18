@@ -22,7 +22,9 @@ use ieee.math_real.all;
 library unisim;
 use unisim.vcomponents.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 package ClockManager7Pkg is
    type ClockManager7CfgType is record

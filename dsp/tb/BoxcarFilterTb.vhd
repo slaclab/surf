@@ -18,7 +18,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity BoxcarFilterTb is end BoxcarFilterTb;
 
@@ -45,7 +47,7 @@ architecture testbed of BoxcarFilterTb is
 
 begin
 
-   U_ClkRst : entity work.ClkRst
+   U_ClkRst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 10 ns,
          RST_START_DELAY_G => 1 ns,
@@ -90,7 +92,7 @@ begin
       end if;
    end process seq;
 
-   U_BoxcarFilter : entity work.BoxcarFilter
+   U_BoxcarFilter : entity surf.BoxcarFilter
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 16,

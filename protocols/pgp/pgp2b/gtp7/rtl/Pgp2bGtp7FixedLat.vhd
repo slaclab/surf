@@ -18,10 +18,12 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.Pgp2bPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
 
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
@@ -187,7 +189,7 @@ begin
    -- PGP Core
    --------------------------------------------------------------------------------------------------
 
-   U_Pgp2bLane : entity work.Pgp2bLane
+   U_Pgp2bLane : entity surf.Pgp2bLane
       generic map (
          TPD_G             => TPD_G,
          LANE_CNT_G        => 1,
@@ -221,7 +223,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Oneshot the phy init because clock may drop out and leave it stuck high
    -------------------------------------------------------------------------------------------------
-   U_SynchronizerOneShot_1 : entity work.SynchronizerOneShot
+   U_SynchronizerOneShot_1 : entity surf.SynchronizerOneShot
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '1',
@@ -237,7 +239,7 @@ begin
    -- Hold Decoder and PgpRx in reset until GtRxResetDone.
    --------------------------------------------------------------------------------------------------
    gtRxResetDoneL <= not gtRxResetDone;
-   Decoder8b10b_1 : entity work.Decoder8b10b
+   Decoder8b10b_1 : entity surf.Decoder8b10b
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '0',         --active low polarity
@@ -257,7 +259,7 @@ begin
    -- Filter on dataValid so that it doesn't drop immediately on errors
    -- Not currently hooked up but leaving it in so we can try it someday.
    -------------------------------------------------------------------------------------------------
-   U_Pgp3RxGearboxAligner_1 : entity work.Pgp3RxGearboxAligner
+   U_Pgp3RxGearboxAligner_1 : entity surf.Pgp3RxGearboxAligner
       generic map (
          TPD_G       => TPD_G,
          SLIP_WAIT_G => 1)
@@ -280,7 +282,7 @@ begin
    --------------------------------------------------------------------------------------------------
    -- GTP 7 Core in Fixed Latency mode
    --------------------------------------------------------------------------------------------------
-   Gtp7Core_1 : entity work.Gtp7Core
+   Gtp7Core_1 : entity surf.Gtp7Core
       generic map (
          TPD_G                 => TPD_G,
          SIM_GTRESET_SPEEDUP_G => SIM_GTRESET_SPEEDUP_G,
@@ -391,7 +393,7 @@ begin
          drpDi            => drpDi,
          drpDo            => drpDo);
 
-   U_AxiLiteToDrp : entity work.AxiLiteToDrp
+   U_AxiLiteToDrp : entity surf.AxiLiteToDrp
       generic map (
          TPD_G            => TPD_G,
          COMMON_CLK_G     => COMMON_CLK_G,
@@ -419,7 +421,7 @@ begin
          drpDo           => drpDo);
 
    GEN_RST : if (COMMON_CLK_G = false) generate
-      U_RstSync : entity work.RstSync
+      U_RstSync : entity surf.RstSync
          generic map (
             TPD_G => TPD_G)
          port map (

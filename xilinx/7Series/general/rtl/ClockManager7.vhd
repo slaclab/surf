@@ -22,8 +22,10 @@ use ieee.math_real.all;
 library unisim;
 use unisim.vcomponents.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity ClockManager7 is
    generic (
@@ -133,7 +135,7 @@ begin
 
    rstInLoc <= '1' when rstIn = RST_IN_POLARITY_G else '0';
 
-   U_AxiLiteToDrp : entity work.AxiLiteToDrp
+   U_AxiLiteToDrp : entity surf.AxiLiteToDrp
       generic map (
          TPD_G            => TPD_G,
          COMMON_CLK_G     => true,
@@ -218,7 +220,7 @@ begin
    end generate MmcmGen;
 
    MmcmEmu : if (TYPE_G = "MMCM") and (SIMULATION_G = true) generate
-      U_Mmcm : entity work.MmcmEmulation
+      U_Mmcm : entity surf.MmcmEmulation
          generic map (
             CLKIN_PERIOD_G       => CLKIN_PERIOD_G,
             DIVCLK_DIVIDE_G      => DIVCLK_DIVIDE_G,
@@ -309,7 +311,7 @@ begin
    end generate;
 
    PllEmu : if (TYPE_G = "PLL") and (SIMULATION_G = true) generate
-      U_Pll : entity work.MmcmEmulation
+      U_Pll : entity surf.MmcmEmulation
          generic map (
             CLKIN_PERIOD_G       => CLKIN_PERIOD_G,
             DIVCLK_DIVIDE_G      => DIVCLK_DIVIDE_G,
@@ -388,7 +390,7 @@ begin
    locked <= lockedLoc;
 
    RstOutGen : for i in NUM_CLOCKS_G-1 downto 0 generate
-      RstSync_1 : entity work.RstSync
+      RstSync_1 : entity surf.RstSync
          generic map (
             TPD_G           => TPD_G,
             IN_POLARITY_G   => '0',

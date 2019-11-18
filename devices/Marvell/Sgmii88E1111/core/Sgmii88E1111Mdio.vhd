@@ -17,8 +17,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.MdioPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.MdioPkg.all;
 
 entity Sgmii88E1111Mdio is
    generic (
@@ -104,7 +106,7 @@ begin
    speed_is_100    <= r.s100;
    linkIsUp        <= r.linkIsUp;
 
-   U_MdioLinkIrqHandler : entity work.MdioLinkIrqHandler
+   U_MdioLinkIrqHandler : entity surf.MdioLinkIrqHandler
       generic map (
          TPD_G           => TPD_G,
          DIV_G           => DIV_G,

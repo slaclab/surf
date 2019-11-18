@@ -18,8 +18,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
@@ -87,7 +89,7 @@ begin
          axilWriteSlave  => axilWriteSlave);  -- [out]
 
    SLAVE_GEN : for i in 0 to SACI_NUM_CHIPS_G-1 generate
-      U_SaciSlave2_1 : entity work.SaciSlave2
+      U_SaciSlave2_1 : entity surf.SaciSlave2
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -106,7 +108,7 @@ begin
             wrData   => wrData(i),      -- [out]
             rdData   => rdData(i));     -- [in]
 
-      U_DualPortRam_1 : entity work.DualPortRam
+      U_DualPortRam_1 : entity surf.DualPortRam
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => '1',
@@ -141,7 +143,7 @@ begin
       end process;
    end generate SLAVE_GEN;
 
-   U_ClkRst_1 : entity work.ClkRst
+   U_ClkRst_1 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 8 ns,
          CLK_DELAY_G       => 1 ns,

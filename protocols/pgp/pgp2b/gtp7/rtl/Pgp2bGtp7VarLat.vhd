@@ -18,10 +18,12 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.Pgp2bPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
 
 entity Pgp2bGtp7VarLat is
    generic (
@@ -121,7 +123,7 @@ architecture mapping of Pgp2bGtp7VarLat is
 
 begin
 
-   MuliLane_Inst : entity work.Pgp2bGtp7MultiLane
+   MuliLane_Inst : entity surf.Pgp2bGtp7MultiLane
       generic map (
          TPD_G                 => TPD_G,
          COMMON_CLK_G          => COMMON_CLK_G,
