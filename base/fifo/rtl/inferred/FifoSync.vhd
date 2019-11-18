@@ -27,7 +27,7 @@ entity FifoSync is
       TPD_G          : time     := 1 ns;
       RST_POLARITY_G : sl       := '1';  -- '1' for active high rst, '0' for active low
       RST_ASYNC_G    : boolean  := false;
-      MEMORY_TYPE_G  : boolean  := true;
+      MEMORY_TYPE_G  : string   := "block";
       BYP_RAM_G      : boolean  := false;
       FWFT_EN_G      : boolean  := false;
       PIPE_STAGES_G  : natural  := 0;
