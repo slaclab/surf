@@ -631,7 +631,7 @@ begin
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 0,
          -- FIFO configurations
-         BRAM_EN_G           => true,
+         MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 9,
          -- AXI Stream Port Configurations
@@ -657,7 +657,7 @@ begin
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 1,      -- Help with making timing
          -- FIFO configurations
-         BRAM_EN_G           => ite((TX_FIFO_ADDR_WIDTH_C > 5), true, false),
+         MEMORY_TYPE_G       => ite((TX_FIFO_ADDR_WIDTH_C > 5), "block", "distributed"),
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => TX_FIFO_ADDR_WIDTH_C,
          -- AXI Stream Port Configurations

@@ -63,8 +63,8 @@ architecture rtl of DspAddSub is
 
    signal p : slv(WIDTH_G-1 downto 0);
 
-   attribute use_dsp48      : string;
-   attribute use_dsp48 of r : signal is USE_DSP_G;
+   attribute use_dsp      : string;
+   attribute use_dsp of r : signal is USE_DSP_G;
 
 begin
 

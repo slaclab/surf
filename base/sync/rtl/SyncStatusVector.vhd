@@ -31,7 +31,7 @@ entity SyncStatusVector is
       RELEASE_DELAY_G : positive := 3;    -- Delay between deassertion of async and sync resets
       IN_POLARITY_G   : slv      := "1";  -- 0 for active LOW, 1 for active HIGH (for statusIn port)
       OUT_POLARITY_G  : sl       := '1';  -- 0 for active LOW, 1 for active HIGH (for irqOut port)
-      USE_DSP48_G     : string   := "no"; -- "no" for no DSP48 implementation, "yes" to use DSP48 slices
+      USE_DSP_G       : string   := "no"; -- "no" for no DSP implementation, "yes" to use DSP slices
       SYNTH_CNT_G     : slv      := "1";  -- Set to 1 for synthesising counter RTL, '0' to not synthesis the counter
       CNT_RST_EDGE_G  : boolean  := true; -- true if counter reset should be edge detected, else level detected
       CNT_WIDTH_G     : positive := 32;   -- Counters' width
@@ -131,7 +131,7 @@ begin
          RELEASE_DELAY_G => RELEASE_DELAY_G,
          IN_POLARITY_G   => IN_POLARITY_G,
          OUT_POLARITY_G  => "1",
-         USE_DSP48_G     => USE_DSP48_G,
+         USE_DSP_G       => USE_DSP_G,
          SYNTH_CNT_G     => SYNTH_CNT_G,
          CNT_RST_EDGE_G  => CNT_RST_EDGE_G,
          CNT_WIDTH_G     => CNT_WIDTH_G,

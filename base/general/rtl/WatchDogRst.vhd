@@ -27,7 +27,7 @@ entity WatchDogRst is
       TPD_G          : time    := 1 ns;
       IN_POLARITY_G  : sl      := '1';
       OUT_POLARITY_G : sl      := '1';
-      USE_DSP48_G    : string  := "no";
+      USE_DSP_G      : string  := "no";
       DURATION_G     : natural := 156250000);
    port (
       clk    : in  sl;
@@ -42,15 +42,10 @@ architecture rtl of WatchDogRst is
 
    signal cnt : natural range 0 to DURATION_G := 0;
 
-   attribute use_dsp48        : string;
-   attribute use_dsp48 of cnt : signal is USE_DSP48_G;
+   attribute use_dsp        : string;
+   attribute use_dsp of cnt : signal is USE_DSP_G;
 
 begin
-
-   -- USE_DSP48_G check
-   assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
-      report "USE_DSP48_G must be either yes, no, auto, or automax"
-      severity failure;
 
    Synchronizer_Inst : entity surf.Synchronizer
       generic map (

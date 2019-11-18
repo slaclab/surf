@@ -108,7 +108,6 @@ begin
          TPD_G         => TPD_G,
          SYNTH_MODE_G  => SYNTH_MODE_G,
          MEMORY_TYPE_G => "distributed",
-         BRAM_EN_G     => false,
          FWFT_EN_G     => true,
          SYNC_STAGES_G => SYNC_STAGES_G,
          DATA_WIDTH_G  => 66,

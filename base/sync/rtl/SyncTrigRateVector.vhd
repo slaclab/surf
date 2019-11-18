@@ -28,7 +28,6 @@ entity SyncTrigRateVector is
       IN_POLARITY_G  : slv      := "1";   -- 0 for active LOW, 1 for active HIGH
       REF_CLK_FREQ_G : real     := 200.0E+6;  -- units of Hz
       REFRESH_RATE_G : real     := 1.0E+0;    -- units of Hz
-      USE_DSP48_G    : string   := "no";  -- "no" for no DSP48 implementation, "yes" to use DSP48 slices
       CNT_WIDTH_G    : positive := 32;  -- Counters' width 
       WIDTH_G        : positive := 16);
    port (

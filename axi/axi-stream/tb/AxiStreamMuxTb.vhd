@@ -39,11 +39,7 @@ architecture testbed of AxiStreamMuxTb is
    constant MUX_SIZE_C         : natural          := 4;
 
    -- FIFO configurations
-   constant BRAM_EN_C           : boolean := true;
-   constant XIL_DEVICE_C        : string  := "7SERIES";
-   constant USE_BUILT_IN_C      : boolean := false;
-   constant ALTERA_SYN_C        : boolean := false;
-   constant ALTERA_RAM_C        : string  := "M9K";
+   constant MEMORY_TYPE_G       : string  := "block";
    constant CASCADE_SIZE_C      : natural := 1;
    constant FIFO_ADDR_WIDTH_C   : natural := 9;
    constant FIFO_PAUSE_THRESH_C : natural := 2**8;
@@ -131,12 +127,8 @@ begin
             -- General Configurations
             TPD_G                      => TPD_C,
             -- FIFO configurations
-            BRAM_EN_G                  => BRAM_EN_C,
-            XIL_DEVICE_G               => XIL_DEVICE_C,
-            USE_BUILT_IN_G             => USE_BUILT_IN_C,
+            MEMORY_TYPE_G              => MEMORY_TYPE_C,
             GEN_SYNC_FIFO_G            => true,
-            ALTERA_SYN_G               => ALTERA_SYN_C,
-            ALTERA_RAM_G               => ALTERA_RAM_C,
             CASCADE_SIZE_G             => CASCADE_SIZE_C,
             FIFO_ADDR_WIDTH_G          => FIFO_ADDR_WIDTH_C,
             FIFO_PAUSE_THRESH_G        => FIFO_PAUSE_THRESH_C,
@@ -206,12 +198,8 @@ begin
 --          EN_FRAME_FILTER_G   => true,
 --          VALID_THOLD_G       => 1,
 --          -- FIFO configurations
---          BRAM_EN_G           => BRAM_EN_C,
---          XIL_DEVICE_G        => XIL_DEVICE_C,
---          USE_BUILT_IN_G      => USE_BUILT_IN_C,
+--          MEMORY_TYPE_G       => MEMORY_TYPE_C,
 --          GEN_SYNC_FIFO_G     => false,
---          ALTERA_SYN_G        => ALTERA_SYN_C,
---          ALTERA_RAM_G        => ALTERA_RAM_C,
 --          CASCADE_SIZE_G      => CASCADE_SIZE_C,
 --          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
 --          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_C,
@@ -289,12 +277,8 @@ begin
             TPD_G                      => TPD_C,
             STATUS_CNT_WIDTH_G         => STATUS_CNT_WIDTH_C,
             -- FIFO Configurations
-            BRAM_EN_G                  => BRAM_EN_C,
-            XIL_DEVICE_G               => XIL_DEVICE_C,
-            USE_BUILT_IN_G             => USE_BUILT_IN_C,
+            MEMORY_TYPE_G              => MEMORY_TYPE_C,
             GEN_SYNC_FIFO_G            => true,
-            ALTERA_SYN_G               => ALTERA_SYN_C,
-            ALTERA_RAM_G               => ALTERA_RAM_C,
             CASCADE_SIZE_G             => CASCADE_SIZE_C,
             FIFO_ADDR_WIDTH_G          => FIFO_ADDR_WIDTH_C,
             FIFO_PAUSE_THRESH_G        => FIFO_PAUSE_THRESH_C,

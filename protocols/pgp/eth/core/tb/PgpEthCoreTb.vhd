@@ -142,7 +142,7 @@ begin
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 0,
          -- FIFO configurations
-         BRAM_EN_G           => true,
+         MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => log2(TX_MAX_PAYLOAD_SIZE_C/64)+1,
          -- AXI Stream Port Configurations
@@ -168,7 +168,7 @@ begin
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 0,
          -- FIFO configurations
-         BRAM_EN_G           => true,
+         MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 9,
          -- AXI Stream Port Configurations
@@ -226,7 +226,7 @@ begin
             TPD_G               => TPD_G,
             SLAVE_READY_EN_G    => false,                -- Using pause
             GEN_SYNC_FIFO_G     => true,
-            BRAM_EN_G           => true,
+            MEMORY_TYPE_G       => "block",
             FIFO_FIXED_THRESH_G => true,
             FIFO_ADDR_WIDTH_G   => 9,
             FIFO_PAUSE_THRESH_G => 2**7,

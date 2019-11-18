@@ -40,8 +40,6 @@ entity SrpV3Core is
       TX_VALID_THOLD_G    : positive                := 1;
       SLAVE_READY_EN_G    : boolean                 := false;
       GEN_SYNC_FIFO_G     : boolean                 := false;
-      ALTERA_SYN_G        : boolean                 := false;
-      ALTERA_RAM_G        : string                  := "M9K";
       SRP_CLK_FREQ_G      : real                    := 156.25E+6;  -- units of Hz
       AXI_STREAM_CONFIG_G : AxiStreamConfigType     := ssiAxiStreamConfig(2);
       UNALIGNED_ACCESS_G  : boolean                 := false;
@@ -165,12 +163,8 @@ begin
          SLAVE_READY_EN_G       => SLAVE_READY_EN_G,
          VALID_THOLD_G          => 0,  -- = 0 = only when frame ready                                                                 
          -- FIFO configurations
-         BRAM_EN_G              => true,
-         XIL_DEVICE_G           => "7SERIES",
-         USE_BUILT_IN_G         => false,
+         MEMORY_TYPE_G          => "block",
          GEN_SYNC_FIFO_G        => GEN_SYNC_FIFO_G,
-         ALTERA_SYN_G           => ALTERA_SYN_G,
-         ALTERA_RAM_G           => ALTERA_RAM_G,
          FIFO_ADDR_WIDTH_G      => 9,   -- 2kB/FIFO = 32-bits x 512 entries
          CASCADE_SIZE_G         => 3,   -- 6kB = 3 FIFOs x 2 kB/FIFO
          CASCADE_PAUSE_SEL_G    => 2,   -- Set pause select on top FIFO
@@ -687,12 +681,8 @@ begin
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => TX_VALID_THOLD_G,
          -- FIFO configurations
-         BRAM_EN_G           => true,
-         XIL_DEVICE_G        => "7SERIES",
-         USE_BUILT_IN_G      => false,
+         MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 9,
          -- AXI Stream Port Configurations
