@@ -18,7 +18,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -68,7 +70,7 @@ begin
          I => txClk322,
          O => txClock);
 
-   Synchronizer_1 : entity work.Synchronizer
+   Synchronizer_1 : entity surf.Synchronizer
       generic map(
          TPD_G          => TPD_G,
          RST_ASYNC_G    => true,
@@ -81,7 +83,7 @@ begin
          dataIn  => '1',
          dataOut => txReady);           
 
-   Synchronizer_2 : entity work.Synchronizer
+   Synchronizer_2 : entity surf.Synchronizer
       generic map(
          TPD_G          => TPD_G,
          RST_ASYNC_G    => true,

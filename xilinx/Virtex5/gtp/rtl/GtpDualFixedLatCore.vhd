@@ -17,7 +17,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity GtpDualFixedLatCore is
    generic (
@@ -186,7 +188,7 @@ begin
             S  => rxUsrClk2Sel(i),
             O  => gtpRxUsrClk2Int(i));
 
-      RstSync_1 : entity work.RstSync
+      RstSync_1 : entity surf.RstSync
          generic map (
             TPD_G           => TPD_G,
             IN_POLARITY_G   => '0',
@@ -206,7 +208,7 @@ begin
       gtpRxCdrResetFinal(i) <= gtpRxCdrReset(i) or rxCommaAlignReset(i);
 
       -- Manual comma aligner
-      GtpRxCommaAligner_1 : entity work.GtpRxCommaAligner
+      GtpRxCommaAligner_1 : entity surf.GtpRxCommaAligner
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -220,7 +222,7 @@ begin
             gtpRxCdrReset   => rxCommaAlignReset(i),
             aligned         => gtpRxAligned(i));
 
-      Decoder8b10b_1 : entity work.Decoder8b10b
+      Decoder8b10b_1 : entity surf.Decoder8b10b
          generic map (
             TPD_G          => TPD_G,
             NUM_BYTES_G    => 2,
@@ -244,7 +246,7 @@ begin
    --------------------------------------------------------------------------------------------------
    -- Tx Data Path
    --------------------------------------------------------------------------------------------------
-   GtpTxPhaseAligner_1 : entity work.GtpTxPhaseAligner
+   GtpTxPhaseAligner_1 : entity surf.GtpTxPhaseAligner
       generic map (
          TPD_G => TPD_G)
       port map (

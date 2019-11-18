@@ -16,7 +16,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SyncTrigRateVector is
    generic (
@@ -74,7 +76,7 @@ begin
    GEN_VEC :
    for i in (WIDTH_G-1) downto 0 generate
       
-      SyncTrigRate_Inst : entity work.SyncTrigRate
+      SyncTrigRate_Inst : entity surf.SyncTrigRate
          generic map (
             TPD_G          => TPD_G,
             COMMON_CLK_G   => COMMON_CLK_G,

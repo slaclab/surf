@@ -16,7 +16,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -40,7 +42,7 @@ architecture mapping of Gtpe2ChannelDummy is
 
 begin
 
-   U_Gtp7QuadPll : entity work.Gtp7QuadPll
+   U_Gtp7QuadPll : entity surf.Gtp7QuadPll
       generic map (
          TPD_G             => TPD_G,
          PLL0_REFCLK_SEL_G => "111",

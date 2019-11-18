@@ -18,9 +18,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.AxiStreamPkg.all;
-use work.StdRtlPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.AxiStreamPkg.all;
+use surf.StdRtlPkg.all;
+use surf.EthMacPkg.all;
 
 entity EthMacRxShift is
    generic (
@@ -44,7 +46,7 @@ begin
    U_RxShiftEnGen : if (SHIFT_EN_G = true) generate
       -- Shift inbound data n bytes to the left.
       -- This adds bytes of data at start of the packet. 
-      U_RxShift : entity work.AxiStreamShift
+      U_RxShift : entity surf.AxiStreamShift
          generic map (
             TPD_G          => TPD_G,
             AXIS_CONFIG_G  => EMAC_AXIS_CONFIG_C,

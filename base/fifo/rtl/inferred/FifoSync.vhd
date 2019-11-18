@@ -18,7 +18,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity FifoSync is
    generic (
@@ -80,7 +82,7 @@ architecture mapping of FifoSync is
 
 begin
 
-   U_WR_FSM : entity work.FifoWrFsm
+   U_WR_FSM : entity surf.FifoWrFsm
       generic map(
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
@@ -113,7 +115,7 @@ begin
          full          => full,
          not_full      => not_full);
 
-   U_RD_FSM : entity work.FifoRdFsm
+   U_RD_FSM : entity surf.FifoRdFsm
       generic map(
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
@@ -149,7 +151,7 @@ begin
          empty         => empty);
 
    GEN_RAM : if (BYP_RAM_G = false) generate
-      U_RAM : entity work.SimpleDualPortRam
+      U_RAM : entity surf.SimpleDualPortRam
          generic map(
             TPD_G        => TPD_G,
             DOB_REG_G    => ite(BRAM_EN_G, FWFT_EN_G, false),
@@ -174,7 +176,7 @@ begin
 
    GEN_PIPE : if (FWFT_EN_G = true) generate
 
-      U_Pipeline : entity work.FifoOutputPipeline
+      U_Pipeline : entity surf.FifoOutputPipeline
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => RST_POLARITY_G,

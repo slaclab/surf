@@ -17,10 +17,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity AxiStreamCombiner is
    generic (

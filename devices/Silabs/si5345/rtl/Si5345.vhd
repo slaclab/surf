@@ -18,8 +18,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+
+library surf; 
 
 entity Si5345 is
    generic (
@@ -109,7 +113,7 @@ architecture rtl of Si5345 is
 begin
 
    GEN_BOOT_ROM : if BOOT_ROM_C generate
-      U_ROM : entity work.SimpleDualPortRamXpm
+      U_ROM : entity surf.SimpleDualPortRamXpm
          generic map (
             TPD_G               => TPD_G,
             COMMON_CLK_G        => true,
@@ -305,7 +309,7 @@ begin
       end if;
    end process seq;
 
-   U_SpiMaster : entity work.SpiMaster
+   U_SpiMaster : entity surf.SpiMaster
       generic map (
          TPD_G             => TPD_G,
          NUM_CHIPS_G       => 1,

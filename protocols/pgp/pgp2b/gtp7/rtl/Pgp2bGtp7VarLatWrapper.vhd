@@ -20,10 +20,12 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.Pgp2bPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.AxiLitePkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -145,7 +147,7 @@ begin
          O => stableClock);
 
 
-   ClockManager7_Inst : entity work.ClockManager7
+   ClockManager7_Inst : entity surf.ClockManager7
       generic map(
          TPD_G              => TPD_G,
          TYPE_G             => "MMCM",
@@ -175,7 +177,7 @@ begin
    pllLockDetClk(1) <= stableClock;
    qPllReset(1)     <= pgpReset or gtQPllReset(1);
 
-   Quad_Pll_Inst : entity work.Gtp7QuadPll
+   Quad_Pll_Inst : entity surf.Gtp7QuadPll
       generic map (
          TPD_G                => TPD_G,
          SIM_RESET_SPEEDUP_G  => ite(SIMULATION_G, "TRUE", "FALSE"),
@@ -196,7 +198,7 @@ begin
          qPllRefClkLost => gtQPllRefClkLost,
          qPllReset      => qPllReset);
 
-   Pgp2bGtp7VarLat_Inst : entity work.Pgp2bGtp7VarLat
+   Pgp2bGtp7VarLat_Inst : entity surf.Pgp2bGtp7VarLat
       generic map (
          TPD_G                 => TPD_G,
          COMMON_CLK_G          => COMMON_CLK_G,

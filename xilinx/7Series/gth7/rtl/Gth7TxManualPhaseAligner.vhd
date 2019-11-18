@@ -15,7 +15,9 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity Gth7TxManualPhaseAligner is
    generic (
@@ -81,7 +83,7 @@ architecture rtl of Gth7TxManualPhaseAligner is
    
 begin
 
-   TX_DLY_S_RESET_DONE_SYNC : entity work.Synchronizer
+   TX_DLY_S_RESET_DONE_SYNC : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -89,7 +91,7 @@ begin
          dataIn  => gtTxDlySResetDone,
          dataOut => gtTxDlySResetDoneSync);
 
-   TX_PH_INIT_DONE_SYNC : entity work.Synchronizer
+   TX_PH_INIT_DONE_SYNC : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -97,7 +99,7 @@ begin
          dataIn  => gtTxPhInitDone,
          dataOut => gtTxPhInitDoneSync);
 
-   TX_PH_ALIGN_DONE_SYNC : entity work.SynchronizerEdge
+   TX_PH_ALIGN_DONE_SYNC : entity surf.SynchronizerEdge
       generic map (
          TPD_G => TPD_G)
       port map (

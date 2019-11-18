@@ -20,10 +20,12 @@ LIBRARY ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
-use work.Pgp2bPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity Pgp2bTx is 
    generic (
@@ -110,7 +112,7 @@ begin
 
    -- Sync flow control & buffer status
    U_VcFlowGen: for i in 0 to 3 generate
-      U_Sync: entity work.SynchronizerVector
+      U_Sync: entity surf.SynchronizerVector
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => '1',
@@ -132,7 +134,7 @@ begin
    end generate;
 
 
-   U_LinkReady: entity work.Synchronizer
+   U_LinkReady: entity surf.Synchronizer
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
@@ -179,7 +181,7 @@ begin
    end process;
 
    -- Physical Interface
-   U_Pgp2bTxPhy: entity work.Pgp2bTxPhy 
+   U_Pgp2bTxPhy: entity surf.Pgp2bTxPhy 
       generic map (
          TPD_G             => TPD_G,
          TX_LANE_CNT_G     => TX_LANE_CNT_G
@@ -205,7 +207,7 @@ begin
 
 
    -- Scheduler
-   U_Pgp2bTxSched: entity work.Pgp2bTxSched 
+   U_Pgp2bTxSched: entity surf.Pgp2bTxSched 
       generic map (
          TPD_G             => TPD_G,
          VC_INTERLEAVE_G   => VC_INTERLEAVE_G,
@@ -235,7 +237,7 @@ begin
 
 
    -- Cell Transmitter
-   U_Pgp2bTxCell: entity work.Pgp2bTxCell 
+   U_Pgp2bTxCell: entity surf.Pgp2bTxCell 
       generic map (
          TPD_G             => TPD_G,
          TX_LANE_CNT_G     => TX_LANE_CNT_G
@@ -304,7 +306,7 @@ begin
    U_Vc_Gen: for i in 0 to 3 generate
 
       -- Add pipeline stages to ensure ready stays asserted
-      U_InputPipe: entity work.AxiStreamPipeline 
+      U_InputPipe: entity surf.AxiStreamPipeline 
          generic map (
             TPD_G         => TPD_G,
             PIPE_STAGES_G => 0
@@ -341,7 +343,7 @@ begin
       crcTxInAdjust(7 downto 0)  <= crcTxIn(31 downto 24);
    end generate CRC_TX_2xLANE;
 
-   Tx_CRC : entity work.CRC32Rtl
+   Tx_CRC : entity surf.CRC32Rtl
       generic map(
          CRC_INIT => x"FFFFFFFF")
       port map(

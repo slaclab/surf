@@ -18,13 +18,15 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.SsiCmdMasterPkg.all;
-use work.Pgp2bPkg.all;
-use work.I2cPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.SsiCmdMasterPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.I2cPkg.all;
 
 entity stream_tb is end stream_tb;
 

@@ -18,10 +18,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity AxiStreamScatterGather is
    
@@ -155,7 +157,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Use fifo to indicate to TX side that a new frame is ready
    -------------------------------------------------------------------------------------------------
-   StatusFifo : entity work.Fifo
+   StatusFifo : entity surf.Fifo
       generic map (
          TPD_G           => TPD_G,
          GEN_SYNC_FIFO_G => true,

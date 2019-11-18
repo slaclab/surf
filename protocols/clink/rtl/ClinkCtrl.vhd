@@ -18,9 +18,11 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
-use work.ClinkPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.ClinkPkg.all;
+use surf.AxiStreamPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
@@ -116,7 +118,7 @@ begin
    -------------------------------
    -- UART
    -------------------------------
-   U_Uart: entity work.ClinkUart
+   U_Uart: entity surf.ClinkUart
       generic map (
          TPD_G              => TPD_G,
          UART_READY_EN_G    => UART_READY_EN_G,

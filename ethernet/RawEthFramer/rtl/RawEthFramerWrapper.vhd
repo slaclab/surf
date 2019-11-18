@@ -18,9 +18,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
 
 entity RawEthFramerWrapper is
    generic (
@@ -59,7 +61,7 @@ begin
    -----------------------------
    -- Raw Ethernet Framer Engine
    -----------------------------
-   U_Core : entity work.RawEthFramer
+   U_Core : entity surf.RawEthFramer
       generic map (
          TPD_G      => TPD_G,
          ETH_TYPE_G => ETH_TYPE_G) 
@@ -85,7 +87,7 @@ begin
    -----------------
    -- Remote MAC LUT
    -----------------
-   U_RemoteMacLut : entity work.AxiDualPortRam
+   U_RemoteMacLut : entity surf.AxiDualPortRam
       generic map (
          TPD_G            => TPD_G,
          READ_LATENCY_G   => 1,

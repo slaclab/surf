@@ -88,7 +88,7 @@ architecture tb of Pgp2bGtx7VarLatWrapperTb is
 begin
 
    -- component instantiation
-   U_Pgp2bGtx7VarLatWrapper: entity work.Pgp2bGtx7VarLatWrapper
+   U_Pgp2bGtx7VarLatWrapper: entity surf.Pgp2bGtx7VarLatWrapper
       generic map (
          TPD_G              => TPD_G,
          CLKIN_PERIOD_G     => CLKIN_PERIOD_G,

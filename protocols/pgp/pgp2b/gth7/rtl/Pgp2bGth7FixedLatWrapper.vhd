@@ -19,10 +19,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.Pgp2bPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.AxiLitePkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -162,7 +164,7 @@ begin
          O => stableClock);
 
    -- Power Up Reset      
-   PwrUpRst_Inst : entity work.PwrUpRst
+   PwrUpRst_Inst : entity surf.PwrUpRst
       port map (
          arst   => extRst,
          clk    => stableClock,
@@ -254,7 +256,7 @@ begin
    qPllReset     <= stableRst or gtQPllReset;
    rxClock       <= rxRecClk when(RX_CLK_SEL_G = true)                          else txClock;
 
-   QPllCore_1 : entity work.Gth7QuadPll
+   QPllCore_1 : entity surf.Gth7QuadPll
       generic map (
          QPLL_REFCLK_SEL_G  => "111",
          QPLL_FBDIV_G       => QPLL_FBDIV_G,
@@ -269,7 +271,7 @@ begin
          qPllRefClkLost => qPllRefClkLost,
          qPllReset      => qPllReset);                    
 
-   Pgp2bGth7Fixedlat_Inst : entity work.Pgp2bGth7Fixedlat
+   Pgp2bGth7Fixedlat_Inst : entity surf.Pgp2bGth7Fixedlat
       generic map (
          VC_INTERLEAVE_G       => VC_INTERLEAVE_G,
          PAYLOAD_CNT_TOP_G     => PAYLOAD_CNT_TOP_G,

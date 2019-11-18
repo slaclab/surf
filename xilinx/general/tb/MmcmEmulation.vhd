@@ -16,7 +16,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity MmcmEmulation is
    generic (
@@ -124,7 +126,7 @@ begin
 
    GEN_VEC :
    for i in 6 downto 0 generate
-      U_ClkPgp : entity work.ClkRst
+      U_ClkPgp : entity surf.ClkRst
          generic map (
             CLK_PERIOD_G      => CLKOUT_PERIOD_C(i),
             RST_START_DELAY_G => 0 ns,

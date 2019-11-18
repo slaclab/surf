@@ -18,7 +18,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity BoxcarIntegrator is
    generic (
@@ -76,7 +78,7 @@ architecture rtl of BoxcarIntegrator is
 
 begin
 
-   U_RAM : entity work.SimpleDualPortRam
+   U_RAM : entity surf.SimpleDualPortRam
       generic map (
          TPD_G        => TPD_G,
          BRAM_EN_G    => true,

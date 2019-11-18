@@ -19,9 +19,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiStreamBatcherAxil is
 
@@ -79,7 +81,7 @@ architecture rtl of AxiStreamBatcherAxil is
 
 begin
 
-   U_AxiStreamBatcher_1 : entity work.AxiStreamBatcher
+   U_AxiStreamBatcher_1 : entity surf.AxiStreamBatcher
       generic map (
          TPD_G                        => TPD_G,
          MAX_NUMBER_SUB_FRAMES_G      => MAX_NUMBER_SUB_FRAMES_G,
@@ -100,7 +102,7 @@ begin
          mAxisMaster             => mAxisMaster,                -- [out]
          mAxisSlave              => mAxisSlave);                -- [in]
 
-   U_AxiLiteAsync_1 : entity work.AxiLiteAsync
+   U_AxiLiteAsync_1 : entity surf.AxiLiteAsync
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLOCK_G)

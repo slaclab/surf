@@ -20,9 +20,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity SsiInsertSof is
    generic (
@@ -85,7 +87,7 @@ begin
    end generate;
 
    GEN_FIFO_RX : if ((SLAVE_FIFO_G = true) or (COMMON_CLK_G = false) or (SLAVE_AXI_CONFIG_G /= MASTER_AXI_CONFIG_G)) generate
-      FIFO_RX : entity work.AxiStreamFifoV2
+      FIFO_RX : entity surf.AxiStreamFifoV2
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
@@ -219,7 +221,7 @@ begin
    end generate;
 
    GEN_FIFO_TX : if (MASTER_FIFO_G = true) generate
-      FIFO_TX : entity work.AxiStreamFifoV2
+      FIFO_TX : entity surf.AxiStreamFifoV2
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,

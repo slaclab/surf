@@ -20,8 +20,10 @@ use ieee.std_logic_1164.all;
 use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiLiteFifoPush is
    generic (
@@ -90,7 +92,7 @@ begin
    -- FIFOs
    -----------------------------------------
    U_GenFifo : for i in 0 to PUSH_FIFO_COUNT_G-1 generate
-      U_FIfo : entity work.FifoCascade 
+      U_FIfo : entity surf.FifoCascade 
          generic map (
             TPD_G              => TPD_G,
             CASCADE_SIZE_G     => 1,

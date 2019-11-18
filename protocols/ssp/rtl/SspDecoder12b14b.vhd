@@ -20,8 +20,10 @@ use ieee.std_logic_1164.all;
 use IEEE.STD_LOGIC_UNSIGNED.all;
 use IEEE.STD_LOGIC_ARITH.all;
 
-use work.StdRtlPkg.all;
-use work.Code12b14bPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Code12b14bPkg.all;
 
 entity SspDecoder12b14b is
 
@@ -54,7 +56,7 @@ architecture rtl of SspDecoder12b14b is
 
 begin
 
-   Decoder12b14b_1 : entity work.Decoder12b14b
+   Decoder12b14b_1 : entity surf.Decoder12b14b
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
@@ -71,7 +73,7 @@ begin
          codeError => codeError,
          dispError => dispError);
 
-   SspDeframer_1 : entity work.SspDeframer
+   SspDeframer_1 : entity surf.SspDeframer
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => RST_POLARITY_G,

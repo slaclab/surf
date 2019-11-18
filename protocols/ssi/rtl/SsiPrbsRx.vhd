@@ -21,10 +21,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity SsiPrbsRx is
    generic (
@@ -216,7 +218,7 @@ begin
 
    sAxisCtrl <= axisCtrl(0);
 
-   AxiStreamFifo_Rx : entity work.AxiStreamFifoV2
+   AxiStreamFifo_Rx : entity surf.AxiStreamFifoV2
       generic map(
          -- General Configurations
          TPD_G               => TPD_G,
@@ -252,7 +254,7 @@ begin
          mAxisMaster => rxAxisMaster,
          mAxisSlave  => rxAxisSlave);
 
-   U_Tx : entity work.AxiStreamResize
+   U_Tx : entity surf.AxiStreamResize
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -271,7 +273,7 @@ begin
          mAxisMaster => mAxisMaster,
          mAxisSlave  => mAxisSlave);
 
-   U_bypCheck : entity work.Synchronizer
+   U_bypCheck : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -526,7 +528,7 @@ begin
       end if;
    end process seq;
 
-   SyncFifo_Inst : entity work.SynchronizerFifo
+   SyncFifo_Inst : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 96)
@@ -541,7 +543,7 @@ begin
          dout(63 downto 32) => packetRateSync,
          dout(95 downto 64) => errWordCntSync);
 
-   SyncStatusVec_Inst : entity work.SyncStatusVector
+   SyncStatusVec_Inst : entity surf.SyncStatusVector
       generic map (
          TPD_G          => TPD_G,
          OUT_POLARITY_G => '1',

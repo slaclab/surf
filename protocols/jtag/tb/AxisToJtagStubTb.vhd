@@ -19,9 +19,11 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxisToJtagPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxisToJtagPkg.all;
 
 entity AxisToJtagStubTb is
 end entity AxisToJtagStubTb;
@@ -155,7 +157,7 @@ begin
       end if;
    end process U_RX;
 
-   U_dut : entity work.AxisJtagDebugBridge(AxisJtagDebugBridgeStub)
+   U_dut : entity surf.AxisJtagDebugBridge(AxisJtagDebugBridgeStub)
       port map (
          axisClk  => clk,
          axisRst  => rst,

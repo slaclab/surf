@@ -18,10 +18,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.EthMacPkg.all;
-use work.XauiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.EthMacPkg.all;
+use surf.XauiPkg.all;
 
 entity XauiReg is
    generic (
@@ -79,7 +81,7 @@ begin
       axiReadSlave <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
       axiWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
       
-      Sync_Config : entity work.SynchronizerVector
+      Sync_Config : entity surf.SynchronizerVector
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => 48)
@@ -100,7 +102,7 @@ begin
 
    GEN_REG : if (EN_AXI_REG_G = true) generate
 
-      SyncStatusVec_Inst : entity work.SyncStatusVector
+      SyncStatusVec_Inst : entity surf.SyncStatusVector
          generic map (
             TPD_G          => TPD_G,
             OUT_POLARITY_G => '1',
@@ -220,7 +222,7 @@ begin
       -- There is a Synchronizer one layer up for software reset
       config.softRst <= r.config.softRst;
 
-      SyncIn_macAddress : entity work.SynchronizerFifo
+      SyncIn_macAddress : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
             DATA_WIDTH_G => 48)
@@ -230,7 +232,7 @@ begin
             rd_clk => phyClk,
             dout   => config.macConfig.macAddress);
 
-      SyncIn_pauseTime : entity work.SynchronizerFifo
+      SyncIn_pauseTime : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
             DATA_WIDTH_G => 16)
@@ -240,7 +242,7 @@ begin
             rd_clk => phyClk,
             dout   => config.macConfig.pauseTime);
 
-      SyncIn_macConfig : entity work.SynchronizerVector
+      SyncIn_macConfig : entity surf.SynchronizerVector
          generic map (
             TPD_G    => TPD_G,
             STAGES_G => 2,
@@ -260,7 +262,7 @@ begin
             dataOut(3) => config.macConfig.tcpCsumEn,
             dataOut(4) => config.macConfig.udpCsumEn);
 
-      SyncIn_configVector : entity work.SynchronizerFifo
+      SyncIn_configVector : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
             DATA_WIDTH_G => 7)

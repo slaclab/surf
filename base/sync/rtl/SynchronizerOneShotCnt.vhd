@@ -18,7 +18,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SynchronizerOneShotCnt is
    generic (
@@ -74,7 +76,7 @@ architecture rtl of SynchronizerOneShotCnt is
    
 begin
 
-   SyncOneShot_0 : entity work.SynchronizerOneShot
+   SyncOneShot_0 : entity surf.SynchronizerOneShot
       generic map (
          TPD_G             => TPD_G,
          RST_POLARITY_G    => RST_POLARITY_G,
@@ -91,7 +93,7 @@ begin
 
    CNT_RST_EDGE : if (CNT_RST_EDGE_G = true) generate
       
-      SyncOneShot_1 : entity work.SynchronizerOneShot
+      SyncOneShot_1 : entity surf.SynchronizerOneShot
          generic map (
             TPD_G             => TPD_G,
             RST_POLARITY_G    => RST_POLARITY_G,
@@ -110,7 +112,7 @@ begin
 
    CNT_RST_LEVEL : if (CNT_RST_EDGE_G = false) generate
       
-      Synchronizer_0 : entity work.Synchronizer
+      Synchronizer_0 : entity surf.Synchronizer
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => RST_POLARITY_G,
@@ -126,7 +128,7 @@ begin
 
    end generate;
 
-   Synchronizer_1 : entity work.Synchronizer
+   Synchronizer_1 : entity surf.Synchronizer
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
@@ -210,7 +212,7 @@ begin
          end if;
       end process seq;
 
-      SyncFifo_Inst : entity work.SynchronizerFifo
+      SyncFifo_Inst : entity surf.SynchronizerFifo
          generic map (
             TPD_G         => TPD_G,
             COMMON_CLK_G  => COMMON_CLK_G,

@@ -18,10 +18,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.EthMacPkg.all;
 
 entity RawEthFramerTb is end RawEthFramerTb;
 
@@ -85,7 +87,7 @@ architecture testbed of RawEthFramerTb is
    
 begin
 
-   ClkRst_Inst : entity work.ClkRst
+   ClkRst_Inst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
@@ -107,7 +109,7 @@ begin
       -------------------------
       -- IPv4/ARP/UDP Engine[0]
       -------------------------
-      U_Server : entity work.UdpEngineWrapper
+      U_Server : entity surf.UdpEngineWrapper
          generic map (
             -- Simulation Generics
             TPD_G              => TPD_G,
@@ -145,7 +147,7 @@ begin
       -------------------------
       -- IPv4/ARP/UDP Engine[1]
       -------------------------
-      U_Client : entity work.UdpEngineWrapper
+      U_Client : entity surf.UdpEngineWrapper
          generic map (
             -- Simulation Generics
             TPD_G               => TPD_G,
@@ -192,7 +194,7 @@ begin
       --------------------
       -- RAW ETH Engine[0]
       --------------------
-      U_Server : entity work.RawEthFramer
+      U_Server : entity surf.RawEthFramer
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -216,7 +218,7 @@ begin
       --------------------
       -- RAW ETH Engine[1]
       --------------------
-      U_Client : entity work.RawEthFramer
+      U_Client : entity surf.RawEthFramer
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -244,7 +246,7 @@ begin
       -------------------------------
       -- RSSI Server Interface @ 4369
       -------------------------------
-      U_RssiServer : entity work.RssiCoreWrapper
+      U_RssiServer : entity surf.RssiCoreWrapper
          generic map (
             TPD_G                    => TPD_G,
             APP_STREAMS_G            => 2,
@@ -286,7 +288,7 @@ begin
       -------------------------------
       -- RSSI Client Interface @ 8738
       -------------------------------
-      U_RssiClient : entity work.RssiCoreWrapper
+      U_RssiClient : entity surf.RssiCoreWrapper
          generic map (
             TPD_G                    => TPD_G,
             APP_STREAMS_G            => 2,
@@ -345,7 +347,7 @@ begin
    ----------------------------------------
    -- 192.168.2.10@4369@TDEST[0] = PRBS TX
    ----------------------------------------   
-   U_TX_4369_tdest0 : entity work.SsiPrbsTx
+   U_TX_4369_tdest0 : entity surf.SsiPrbsTx
       generic map (
          TPD_G                      => TPD_G,
          CASCADE_SIZE_G             => 1,
@@ -370,7 +372,7 @@ begin
    ----------------------------------------
    -- 192.168.2.10@8738@TDEST[0] = PRBS RX
    ----------------------------------------   
-   U_RX_8738_tdest0 : entity work.SsiPrbsRx
+   U_RX_8738_tdest0 : entity surf.SsiPrbsRx
       generic map (
          TPD_G                     => TPD_G,
          CASCADE_SIZE_G            => 1,
@@ -418,7 +420,7 @@ begin
    GEN_VEC :
    for i in 1 downto 0 generate
       trig(i) <= ibClientMasters(i).tValid and ibClientMasters(i).tLast and ibClientSlaves(i).tReady;
-      U_TrigRate : entity work.SyncTrigRate
+      U_TrigRate : entity surf.SyncTrigRate
          generic map (
             TPD_G          => TPD_G,
             COMMON_CLK_G   => true,
@@ -437,7 +439,7 @@ begin
             refClk      => clk);     
    end generate GEN_VEC;
 
-   U_SyncStatusVector : entity work.SyncStatusVector
+   U_SyncStatusVector : entity surf.SyncStatusVector
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => true,

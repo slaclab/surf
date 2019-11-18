@@ -18,7 +18,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SyncMinMax is
    generic (
@@ -72,7 +74,7 @@ architecture rtl of SyncMinMax is
 
 begin
 
-   U_rstStat : entity work.SynchronizerOneShot
+   U_rstStat : entity surf.SynchronizerOneShot
       generic map (
          TPD_G         => TPD_G,
          BYPASS_SYNC_G => COMMON_CLK_G)
@@ -81,7 +83,7 @@ begin
          dataIn  => rstStat,
          dataOut => resetStat);
 
-   U_LessThan : entity work.DspComparator
+   U_LessThan : entity surf.DspComparator
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => WIDTH_G)
@@ -94,7 +96,7 @@ begin
          -- Outbound Interface
          ls      => ls);                --  (a <  b)
 
-   U_GreaterThan : entity work.DspComparator
+   U_GreaterThan : entity surf.DspComparator
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => WIDTH_G)
@@ -172,7 +174,7 @@ begin
       end if;
    end process;
 
-   U_dataOut : entity work.SynchronizerFifo
+   U_dataOut : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G,
@@ -187,7 +189,7 @@ begin
          rd_en  => rdEn,
          dout   => dataOut);
 
-   U_dataMin : entity work.SynchronizerFifo
+   U_dataMin : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G,
@@ -202,7 +204,7 @@ begin
          rd_en  => rdEn,
          dout   => dataMin);
 
-   U_dataMax : entity work.SynchronizerFifo
+   U_dataMax : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G,

@@ -20,10 +20,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiPkg.all;
-use work.AxiDmaPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiPkg.all;
+use surf.AxiDmaPkg.all;
 
 entity AxiStreamDmaRead is
    generic (
@@ -421,7 +423,7 @@ begin
       end if;
    end process seq;
 
-   U_Pipeline : entity work.AxiStreamPipeline
+   U_Pipeline : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => PIPE_STAGES_G)
@@ -433,7 +435,7 @@ begin
          mAxisMaster => pipeMaster,
          mAxisSlave  => pipeSlave);
 
-   U_AxiStreamShift : entity work.AxiStreamShift
+   U_AxiStreamShift : entity surf.AxiStreamShift
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => PIPE_STAGES_G,
