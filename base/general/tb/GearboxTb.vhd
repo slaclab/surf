@@ -20,6 +20,8 @@ use ieee.std_logic_arith.all;
 
 library surf;
 use surf.StdRtlPkg.all;
+
+library surf; 
 ----------------------------------------------------------------------------------------------------
 
 entity GearboxTb is
@@ -189,7 +191,7 @@ begin
 
    end process;
 
-   U_Gearbox_Test : entity work.Gearbox
+   U_Gearbox_Test : entity surf.Gearbox
       generic map (
          SLAVE_WIDTH_G  => 32,
          MASTER_WIDTH_G => 32)
