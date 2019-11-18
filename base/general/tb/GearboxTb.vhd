@@ -20,6 +20,8 @@ use ieee.std_logic_arith.all;
 
 library surf;
 use surf.StdRtlPkg.all;
+
+library surf; 
 ----------------------------------------------------------------------------------------------------
 
 entity GearboxTb is
@@ -46,11 +48,11 @@ architecture sim of GearboxTb is
 
 
    signal slaveData_0   : slv(INPUT_WIDTH_G-1 downto 0)  := (others => '0');  -- [in]
-   signal slaveValid_0  : sl                             := '0';              -- [in]
-   signal slaveReady_0  : sl                             := '0';              -- [out]
+   signal slaveValid_0  : sl                             := '0';  -- [in]
+   signal slaveReady_0  : sl                             := '0';  -- [out]
    signal masterData_0  : slv(OUTPUT_WIDTH_G-1 downto 0) := (others => '0');  -- [out]
-   signal masterValid_0 : sl                             := '0';              -- [out]
-   signal masterReady_0 : sl                             := '0';              -- [in]
+   signal masterValid_0 : sl                             := '0';  -- [out]
+   signal masterReady_0 : sl                             := '0';  -- [in]
    signal slip_0        : sl                             := '0';
    signal startOfSeq_0  : sl                             := '0';
 
@@ -58,11 +60,13 @@ architecture sim of GearboxTb is
 --    signal slaveValid_1    : sl                            := '0';    -- [in]
 --    signal slaveReady_1    : sl;                                      -- [out]
    signal masterData_1  : slv(INPUT_WIDTH_G-1 downto 0) := (others => '0');  -- [out]
-   signal masterValid_1 : sl                            := '0';              -- [out]
-   signal masterReady_1 : sl                            := '1';              -- [in]
+   signal masterValid_1 : sl                            := '0';  -- [out]
+   signal masterReady_1 : sl                            := '1';  -- [in]
    signal slip_1        : sl                            := '0';
    signal startOfSeq_1  : sl                            := '0';
-                                                                             -- 
+                                        -- 
+   signal slip          : sl                            := '0';
+   signal slipCnt       : slv(6 downto 0)               := (others => '0');
 
 begin
 
@@ -187,6 +191,30 @@ begin
 
    end process;
 
+   U_Gearbox_Test : entity surf.Gearbox
+      generic map (
+         SLAVE_WIDTH_G  => 32,
+         MASTER_WIDTH_G => 32)
+      port map (
+         clk        => clk32,
+         rst        => rst32,
+         slip       => slip,
+         -- Slave Interface
+         slaveData  => x"137F_137F",
+         -- Master Interface
+         masterData => open);
+
+   process(clk32)
+   begin
+      if rising_edge(clk32) then
+         if slipCnt = 31 then
+            slip <= '1' after TPD_G;
+         else
+            slip <= '0' after TPD_G;
+         end if;
+         slipCnt <= slipCnt + 1 after TPD_G;
+      end if;
+   end process;
 
 end architecture sim;
 
