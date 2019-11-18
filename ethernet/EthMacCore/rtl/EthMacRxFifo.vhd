@@ -108,7 +108,7 @@ begin
          OR_DROP_FLAGS_G     => true,
          VALID_THOLD_G       => VALID_THOLD_C,
          -- FIFO configurations
-         BRAM_EN_G           => true,
+         MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => PRIM_COMMON_CLK_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => false,
@@ -144,7 +144,7 @@ begin
             OR_DROP_FLAGS_G     => true,
             VALID_THOLD_G       => VALID_THOLD_C,
             -- FIFO configurations
-            BRAM_EN_G           => true,
+            MEMORY_TYPE_G       => "block",
             GEN_SYNC_FIFO_G     => PRIM_COMMON_CLK_G,
             FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
             FIFO_FIXED_THRESH_G => false,
@@ -182,7 +182,7 @@ begin
                OR_DROP_FLAGS_G     => true,
                VALID_THOLD_G       => VALID_THOLD_C,
                -- FIFO configurations
-               BRAM_EN_G           => true,
+               MEMORY_TYPE_G       => "block",
                GEN_SYNC_FIFO_G     => PRIM_COMMON_CLK_G,
                FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
                FIFO_FIXED_THRESH_G => false,

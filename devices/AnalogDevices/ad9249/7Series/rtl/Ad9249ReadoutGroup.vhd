@@ -460,11 +460,11 @@ begin
    -- Single fifo to synchronize adc data to the Stream clock
    U_DataFifo : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         DATA_WIDTH_G => NUM_CHANNELS_G*16,
-         ADDR_WIDTH_G => 4,
-         INIT_G       => "0")
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G  => NUM_CHANNELS_G*16,
+         ADDR_WIDTH_G  => 4,
+         INIT_G        => "0")
       port map (
          rst    => adcBitRst,
          wr_clk => adcBitClkR,
@@ -477,11 +477,11 @@ begin
 
    U_DataFifoDebug : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         DATA_WIDTH_G => NUM_CHANNELS_G*16,
-         ADDR_WIDTH_G => 4,
-         INIT_G       => "0")
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G  => NUM_CHANNELS_G*16,
+         ADDR_WIDTH_G  => 4,
+         INIT_G        => "0")
       port map (
          rst    => adcBitRst,
          wr_clk => adcBitClkR,

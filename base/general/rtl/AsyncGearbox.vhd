@@ -33,7 +33,7 @@ entity AsyncGearbox is
       INPUT_PIPE_STAGES_G  : natural  := 0;
       OUTPUT_PIPE_STAGES_G : natural  := 0;
       -- Async FIFO generics
-      FIFO_BRAM_EN_G       : boolean  := false;
+      FIFO_MEMORY_TYPE_G   : string   := "distributed";
       FIFO_ADDR_WIDTH_G    : positive := 4);
    port (
       slaveClk : in sl;
@@ -94,7 +94,7 @@ begin
             TPD_G         => TPD_G,
             FWFT_EN_G     => true,
             DATA_WIDTH_G  => SLAVE_WIDTH_G,
-            BRAM_EN_G     => FIFO_BRAM_EN_G,
+            MEMORY_TYPE_G => FIFO_MEMORY_TYPE_G,
             PIPE_STAGES_G => INPUT_PIPE_STAGES_G,
             ADDR_WIDTH_G  => FIFO_ADDR_WIDTH_G
             )
@@ -154,7 +154,7 @@ begin
             TPD_G         => TPD_G,
             FWFT_EN_G     => true,
             DATA_WIDTH_G  => MASTER_WIDTH_G,
-            BRAM_EN_G     => FIFO_BRAM_EN_G,
+            MEMORY_TYPE_G => FIFO_MEMORY_TYPE_G,
             PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G,
             ADDR_WIDTH_G  => FIFO_ADDR_WIDTH_G)
          port map (

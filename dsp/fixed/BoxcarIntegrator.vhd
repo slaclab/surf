@@ -80,11 +80,11 @@ begin
 
    U_RAM : entity surf.SimpleDualPortRam
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => true,
-         DOB_REG_G    => false,
-         DATA_WIDTH_G => DATA_WIDTH_G,
-         ADDR_WIDTH_G => ADDR_WIDTH_G)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "block",
+         DOB_REG_G     => false,
+         DATA_WIDTH_G  => DATA_WIDTH_G,
+         ADDR_WIDTH_G  => ADDR_WIDTH_G)
       port map (
          -- Port A     
          clka  => clk,

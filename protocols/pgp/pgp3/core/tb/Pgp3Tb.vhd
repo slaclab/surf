@@ -221,7 +221,7 @@ begin
             SLAVE_READY_EN_G    => false,
 --            VALID_THOLD_G          => VALID_THOLD_G,
 --            VALID_BURST_MODE_G     => VALID_BURST_MODE_G,
-            BRAM_EN_G           => false,
+            MEMORY_TYPE_G       => "distributed",
             GEN_SYNC_FIFO_G     => false,
             FIFO_ADDR_WIDTH_G   => 5,
 --            FIFO_FIXED_THRESH_G    => FIFO_FIXED_THRESH_G,

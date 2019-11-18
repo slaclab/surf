@@ -30,11 +30,7 @@ entity AxiReadPathFifo is
       TPD_G : time := 1 ns;
 
       -- General FIFO configurations
-      XIL_DEVICE_G             : string                     := "7SERIES";
-      USE_BUILT_IN_G           : boolean                    := false;
       GEN_SYNC_FIFO_G          : boolean                    := false;
-      ALTERA_SYN_G             : boolean                    := false;
-      ALTERA_RAM_G             : string                     := "M9K";
 
       -- Bit Optimizations
       ADDR_LSB_G               : natural range 0 to 31 := 0;
@@ -47,12 +43,12 @@ entity AxiReadPathFifo is
       CACHE_FIXED_EN_G         : boolean := false;
 
       -- Address FIFO Config
-      ADDR_BRAM_EN_G           : boolean                    := true;
+      ADDR_MEMORY_TYPE_G       : string                     := "block";
       ADDR_CASCADE_SIZE_G      : integer range 1 to (2**24) := 1;
       ADDR_FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
 
       -- Data FIFO Config
-      DATA_BRAM_EN_G           : boolean                    := true;
+      DATA_MEMORY_TYPE_G       : string                     := "block";
       DATA_CASCADE_SIZE_G      : integer range 1 to (2**24) := 1;
       DATA_FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
 
@@ -295,13 +291,8 @@ begin
          RST_POLARITY_G     => '1',
          RST_ASYNC_G        => false,
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
-         BRAM_EN_G          => ADDR_BRAM_EN_G,
+         MEMORY_TYPE_G      => ADDR_MEMORY_TYPE_G,
          FWFT_EN_G          => true,
-         USE_DSP48_G        => "no",
-         ALTERA_SYN_G       => ALTERA_SYN_G,
-         ALTERA_RAM_G       => ALTERA_RAM_G,
-         USE_BUILT_IN_G     => USE_BUILT_IN_G,
-         XIL_DEVICE_G       => XIL_DEVICE_G,
          SYNC_STAGES_G      => 3,
          DATA_WIDTH_G       => ADDR_FIFO_SIZE_C,
          ADDR_WIDTH_G       => ADDR_FIFO_ADDR_WIDTH_G,
@@ -340,13 +331,8 @@ begin
          RST_POLARITY_G     => '1',
          RST_ASYNC_G        => false,
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
-         BRAM_EN_G          => DATA_BRAM_EN_G,
+         MEMORY_TYPE_G      => DATA_MEMORY_TYPE_G,
          FWFT_EN_G          => true,
-         USE_DSP48_G        => "no",
-         ALTERA_SYN_G       => ALTERA_SYN_G,
-         ALTERA_RAM_G       => ALTERA_RAM_G,
-         USE_BUILT_IN_G     => USE_BUILT_IN_G,
-         XIL_DEVICE_G       => XIL_DEVICE_G,
          SYNC_STAGES_G      => 3,
          DATA_WIDTH_G       => DATA_FIFO_SIZE_C,
          ADDR_WIDTH_G       => DATA_FIFO_ADDR_WIDTH_G,

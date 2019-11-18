@@ -70,7 +70,7 @@ begin
       generic map (
          TPD_G         => TPD_G,
          FWFT_EN_G     => true,
-         BRAM_EN_G     => true,
+         MEMORY_TYPE_G => "block",
          DATA_WIDTH_G  => INPUT_WIDTH_G,
          PIPE_STAGES_G => 0)
       port map (

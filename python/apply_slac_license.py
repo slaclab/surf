@@ -82,13 +82,13 @@ def updateFile(path,module,comment,log,script):
    idx = 0
    print ("\n" * 10)
    for line in new.splitlines(True):
-      print line,
+      print (line),
       idx += 1
 
       if idx > 40:
          break
 
-   print "\n\nFile: %s\n" % (path)
+   print ( "\n\nFile: %s\n" % (path) )
    resp = str(raw_input("Update File (y/n): "))
 
    if resp == "y":
@@ -101,7 +101,7 @@ def updateFile(path,module,comment,log,script):
 
 # Check args
 if len(sys.argv) < 3:
-   print "Usage: apply_license.py root_dir module_name"
+   print ("Usage: apply_license.py root_dir module_name")
    exit()
 
 module = sys.argv[2]
