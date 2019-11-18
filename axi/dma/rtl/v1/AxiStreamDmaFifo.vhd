@@ -250,7 +250,7 @@ begin
          TPD_G           => TPD_G,
          FWFT_EN_G       => true,
          GEN_SYNC_FIFO_G => true,
-         BRAM_EN_G       => true,
+         MEMORY_TYPE_G   => "block",
          DATA_WIDTH_G    => LOCAL_AXI_READ_DMA_READ_REQ_SIZE_C,
          CASCADE_SIZE_G  => CASCADE_SIZE_C,
          ADDR_WIDTH_G    => ADDR_WIDTH_C)

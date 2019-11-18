@@ -23,6 +23,8 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
+library surf; 
+
 entity Si5345 is
    generic (
       TPD_G              : time   := 1 ns;
@@ -111,7 +113,7 @@ architecture rtl of Si5345 is
 begin
 
    GEN_BOOT_ROM : if BOOT_ROM_C generate
-      U_ROM : entity work.SimpleDualPortRamXpm
+      U_ROM : entity surf.SimpleDualPortRamXpm
          generic map (
             TPD_G               => TPD_G,
             COMMON_CLK_G        => true,

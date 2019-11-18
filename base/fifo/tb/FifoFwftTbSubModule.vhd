@@ -26,8 +26,7 @@ entity FifoTbSubModule is
    generic (
       TPD_G           : time                  := 1 ns;
       GEN_SYNC_FIFO_G : boolean               := false;
-      BRAM_EN_G       : boolean               := true;
-      USE_BUILT_IN_G  : boolean               := false;  --if set to true, this module is only xilinx compatible only!!!
+      MEMORY_TYPE_G   : string                := "block";
       PIPE_STAGES_G   : natural range 0 to 16 := 0);
    port (
       rst    : in  sl;
@@ -78,8 +77,7 @@ begin
       generic map (
          TPD_G           => TPD_G,
          GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_G,
-         BRAM_EN_G       => BRAM_EN_G,
-         USE_BUILT_IN_G  => USE_BUILT_IN_G,
+         MEMORY_TYPE_G   => MEMORY_TYPE_G,
          PIPE_STAGES_G   => PIPE_STAGES_G,
          FWFT_EN_G       => true,
          DATA_WIDTH_G    => 16,

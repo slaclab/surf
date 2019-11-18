@@ -34,9 +34,7 @@ entity SsiPrbsRateGen is
       -- PRBS TX FIFO Configurations
       VALID_THOLD_G              : integer range 0 to (2**24) := 1;
       VALID_BURST_MODE_G         : boolean                    := false;
-      BRAM_EN_G                  : boolean                    := true;
-      XIL_DEVICE_G               : string                     := "7SERIES";
-      USE_BUILT_IN_G             : boolean                    := false;
+      MEMORY_TYPE_G              : string                     := "block";
       CASCADE_SIZE_G             : natural range 1 to (2**24) := 1;
       FIFO_ADDR_WIDTH_G          : natural range 4 to 48      := 9;
       -- AXI Stream Configurations
@@ -106,9 +104,7 @@ begin
          TPD_G                      => TPD_G,
          VALID_THOLD_G              => VALID_THOLD_G,
          VALID_BURST_MODE_G         => VALID_BURST_MODE_G,
-         BRAM_EN_G                  => BRAM_EN_G,
-         XIL_DEVICE_G               => XIL_DEVICE_G,
-         USE_BUILT_IN_G             => USE_BUILT_IN_G,
+         MEMORY_TYPE_G              => MEMORY_TYPE_G,
          GEN_SYNC_FIFO_G            => true,
          CASCADE_SIZE_G             => CASCADE_SIZE_G,
          FIFO_ADDR_WIDTH_G          => FIFO_ADDR_WIDTH_G,

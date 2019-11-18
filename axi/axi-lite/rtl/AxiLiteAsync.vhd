@@ -132,11 +132,8 @@ begin
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
-         BRAM_EN_G      => false,       -- Use Dist Ram
+         MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
          FWFT_EN_G      => true,
-         USE_DSP48_G    => "no",
-         ALTERA_SYN_G   => false,
-         ALTERA_RAM_G   => "M9K",
          SYNC_STAGES_G  => 3,
          PIPE_STAGES_G  => PIPE_STAGES_G,
          DATA_WIDTH_G   => NUM_ADDR_BITS_G+3,
@@ -198,11 +195,8 @@ begin
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
-         BRAM_EN_G      => false,       -- Use Dist Ram
+         MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
          FWFT_EN_G      => true,
-         USE_DSP48_G    => "no",
-         ALTERA_SYN_G   => false,
-         ALTERA_RAM_G   => "M9K",
          SYNC_STAGES_G  => 3,
          PIPE_STAGES_G  => PIPE_STAGES_G,
          DATA_WIDTH_G   => 34,
@@ -259,11 +253,8 @@ begin
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
-         BRAM_EN_G      => false,       -- Use Dist Ram
+         MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
          FWFT_EN_G      => true,
-         USE_DSP48_G    => "no",
-         ALTERA_SYN_G   => false,
-         ALTERA_RAM_G   => "M9K",
          SYNC_STAGES_G  => 3,
          PIPE_STAGES_G  => PIPE_STAGES_G,
          DATA_WIDTH_G   => NUM_ADDR_BITS_G+3,
@@ -325,11 +316,8 @@ begin
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
-         BRAM_EN_G      => false,       -- Use Dist Ram
+         MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
          FWFT_EN_G      => true,
-         USE_DSP48_G    => "no",
-         ALTERA_SYN_G   => false,
-         ALTERA_RAM_G   => "M9K",
          SYNC_STAGES_G  => 3,
          PIPE_STAGES_G  => PIPE_STAGES_G,
          DATA_WIDTH_G   => 36,
@@ -386,11 +374,8 @@ begin
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
-         BRAM_EN_G      => false,       -- Use Dist Ram
+         MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
          FWFT_EN_G      => true,
-         USE_DSP48_G    => "no",
-         ALTERA_SYN_G   => false,
-         ALTERA_RAM_G   => "M9K",
          SYNC_STAGES_G  => 3,
          PIPE_STAGES_G  => PIPE_STAGES_G,
          DATA_WIDTH_G   => 2,

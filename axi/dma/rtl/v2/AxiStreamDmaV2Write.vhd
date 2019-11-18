@@ -504,7 +504,7 @@ begin
    U_TrackRam: entity surf.DualPortRam 
       generic map (
          TPD_G          => TPD_G,
-         BRAM_EN_G      => true,
+         MEMORY_TYPE_G  => "block",
          REG_EN_G       => true,
          DOA_REG_G      => true,
          DOB_REG_G      => true, -- 2 cycle read latency
