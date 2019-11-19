@@ -48,7 +48,7 @@ architecture ClkRst of ClkRst is
 begin
    
    assert CLK_HIGH_C = CLK_LOW_C report
-      "ClkRst: CLK_HIGH_C (" & str(CLK_HIGH_C) & ") does not match CLK_LOW_C (" & str(CLK_LOW_C) & "). " &
+      "ClkRst: CLK_HIGH_C (" & str(CLK_HIGH_C) & ") does not match CLK_LOW_C (" & str(CLK_LOW_C) & "). \n\
       "If you need 50% duty cycle for this clock, you will need to increase the simulator time resolution."
       severity warning;
 
