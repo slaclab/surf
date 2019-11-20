@@ -936,7 +936,7 @@ begin  -- architecture Bhv
 
 
    -- LMFC period generator aligned to SYSREF input
-   LmfcGen_INST : entity surf.LmfcGen
+   LmfcGen_INST : entity surf.JesdLmfcGen
       generic map (
          TPD_G => TPD_C)
       port map (
