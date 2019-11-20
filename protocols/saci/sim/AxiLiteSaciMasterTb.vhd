@@ -67,7 +67,7 @@ architecture sim of AxiLiteSaciMasterTb is
 begin
 
    -- component instantiation
-   U_AxiLiteSaciMaster2 : entity surf.AxiLiteSaciMaster2
+   U_AxiLiteSaciMaster2 : entity surf.AxiLiteSaciMaster
       generic map (
          TPD_G              => TPD_G,
          AXIL_CLK_PERIOD_G  => AXIL_CLK_PERIOD_G,
