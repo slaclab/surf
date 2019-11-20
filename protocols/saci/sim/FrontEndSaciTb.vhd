@@ -111,7 +111,7 @@ begin
   --------------------------------------------------------------------------------------------------
 
   -- Front End register interface
-  Pgp2FrontEnd_1: entity work.Pgp2FrontEnd
+  Pgp2FrontEnd_1: entity surf.Pgp2FrontEnd
     port map (
       pgpRefClk    => gtpClk,
       pgpRefClkOut => pgpClk,

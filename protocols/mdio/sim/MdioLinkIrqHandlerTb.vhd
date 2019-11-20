@@ -152,7 +152,7 @@ begin
       end if;
    end process P_REGS;
 
-   U_SLV : entity work.MdioSlv
+   U_SLV : entity surf.MdioSlv
       port map (
          mdc => mdc,
          mdi => mdiLoc,

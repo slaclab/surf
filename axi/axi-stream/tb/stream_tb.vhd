@@ -56,7 +56,7 @@ begin
       wait;
    end process;
 
-   U_AxiStreamSim : entity work.AxiStreamSim 
+   U_AxiStreamSim : entity surf.AxiStreamSim 
       generic map (
          TPD_G            => 1 ns,
          AXIS_CONFIG_G    => AXIS_CONFIG_C,

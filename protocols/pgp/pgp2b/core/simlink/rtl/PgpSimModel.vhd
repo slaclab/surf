@@ -95,7 +95,7 @@ begin
       );
 
    -- Simulation link
-   U_Sim : entity work.AxiStreamSim
+   U_Sim : entity surf.AxiStreamSim
       generic map (
          TPD_G            => TPD_G,
          AXIS_CONFIG_G    => SSI_PGP2B_CONFIG_C,

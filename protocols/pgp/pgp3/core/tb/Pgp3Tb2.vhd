@@ -130,7 +130,7 @@ begin
          clkP => axisClk,
          rst  => axisRst);
 
-   U_PrbsChannels_0 : entity work.PrbsChannels
+   U_PrbsChannels_0 : entity surf.PrbsChannels
       generic map (
          TPD_G      => TPD_G,
          CHANNELS_G => NUM_VC_G)
@@ -191,7 +191,7 @@ begin
          phyRxSlip     => open);              -- [out]
 
 
-   U_PrbsChannels_1 : entity work.PrbsChannels
+   U_PrbsChannels_1 : entity surf.PrbsChannels
       generic map (
          TPD_G      => TPD_G,
          CHANNELS_G => NUM_VC_G)

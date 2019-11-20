@@ -21,11 +21,11 @@ use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
-use work.SynchronizePkg.all;
+use surf.SynchronizePkg.all;
 
 library surf;
 use surf.Version.all;
-use work.FrontEndPkg.all;
+use surf.FrontEndPkg.all;
 use surf.SaciMasterPkg.all;
 
 entity FrontEndSaciRegDecoder is

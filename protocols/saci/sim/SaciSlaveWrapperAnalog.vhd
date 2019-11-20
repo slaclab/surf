@@ -49,7 +49,7 @@ begin
 
   saciRsp <= saciRspInt when saciSelL = '0' else 'Z';
 
-  SaciSlave_i : entity work.SaciSlaveAnalog
+  SaciSlave_i : entity surf.SaciSlaveAnalog
     port map (
       rstL      => asicRstL,
       CLK       => saciClk,
