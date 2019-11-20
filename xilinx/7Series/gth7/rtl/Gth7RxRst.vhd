@@ -73,6 +73,7 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 library surf;
+use surf.StdRtlPkg.all;
 
 entity Gth7RxRst is
    generic(
@@ -218,7 +219,7 @@ architecture RTL of Gth7RxRst is
 begin
 
    --Alias section, signals used within this module mapped to output ports:
-   RETRY_COUNTER     <= std_logic_vector(TO_UNSIGNED(retry_counter_int, RETRY_COUNTER_BITWIDTH));
+   RETRY_COUNTER     <= toSlv(retry_counter_int, RETRY_COUNTER_BITWIDTH);
    RUN_PHALIGNMENT   <= run_phase_alignment_int;
    RX_FSM_RESET_DONE <= rx_fsm_reset_done_int;
 
