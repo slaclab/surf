@@ -22,13 +22,13 @@ use surf.StdRtlPkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
-entity SspEncoderTb is
+entity SspEncoder8b10bTb is
 
-end entity SspEncoderTb;
+end entity SspEncoder8b10bTb;
 
 ----------------------------------------------------------------------------------------------------
 
-architecture sim of SspEncoderTb is
+architecture sim of SspEncoder8b10bTb is
 
    -- component generics
    constant TPD_G          : time    := 1 ns;
