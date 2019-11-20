@@ -22,6 +22,7 @@ struct ssi_printf_type {
    uint16_t buffSize;
    uint16_t buffPtr;
    uint16_t buffTot;
+   uint32_t buffWord;
 };
 
 void ssi_putc ( void* p, const char c);
