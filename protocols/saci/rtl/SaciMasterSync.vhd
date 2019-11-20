@@ -21,7 +21,6 @@ use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
--- use surf.SynchronizePkg.all;
 use surf.SaciMasterPkg.all;
 
 entity SaciMasterSync is
