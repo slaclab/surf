@@ -27,11 +27,11 @@ use surf.StdRtlPkg.all;
 entity SlvDelayFifo is
    generic (
       -- General Configurations
-      TPD_G             : time                        := 1 ns;
-      DATA_WIDTH_G      : positive                    := 1;
-      DELAY_BITS_G      : positive                    := 64;
-      FIFO_ADDR_WIDTH_G : positive range 1 to (2**24) := 7;
-      FIFO_BRAM_EN_G    : boolean                     := true);
+      TPD_G              : time                        := 1 ns;
+      DATA_WIDTH_G       : positive                    := 1;
+      DELAY_BITS_G       : positive                    := 64;
+      FIFO_ADDR_WIDTH_G  : positive range 1 to (2**24) := 7;
+      FIFO_MEMORY_TYPE_G : string                      := "block");
 
    port (
       -- Timing Msg interface
@@ -75,10 +75,8 @@ begin
       generic map (
          TPD_G           => TPD_G,
          GEN_SYNC_FIFO_G => false,
-         BRAM_EN_G       => FIFO_BRAM_EN_G,
+         MEMORY_TYPE_G   => FIFO_MEMORY_TYPE_G,
          FWFT_EN_G       => true,
-         USE_DSP48_G     => "no",
-         USE_BUILT_IN_G  => false,
          DATA_WIDTH_G    => DELAY_BITS_G,
          ADDR_WIDTH_G    => 9)
       port map (
@@ -95,10 +93,8 @@ begin
       generic map (
          TPD_G           => TPD_G,
          GEN_SYNC_FIFO_G => false,
-         BRAM_EN_G       => FIFO_BRAM_EN_G,
+         MEMORY_TYPE_G   => FIFO_MEMORY_TYPE_G,
          FWFT_EN_G       => true,
-         USE_DSP48_G     => "no",
-         USE_BUILT_IN_G  => false,
          DATA_WIDTH_G    => DATA_WIDTH_G,
          ADDR_WIDTH_G    => 9)
       port map (

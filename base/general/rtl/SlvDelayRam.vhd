@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-07-10
--- Last update: 2019-09-18
+-- Last update: 2019-11-18
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -38,7 +38,7 @@ entity SlvDelayRam is
       VECTOR_WIDTH_G   : integer := 1;
       BASE_DELAY_G     : integer := 100;
       RAM_ADDR_WIDTH_G : integer := 7;
-      BRAM_EN_G        : boolean := true);
+      MEMORY_TYPE_G    : string := "block");
    port (
       rst          : in  sl;
       clk          : in  sl;
@@ -70,9 +70,9 @@ begin
 
    U_Ram : entity surf.SimpleDualPortRam
       generic map (
-         BRAM_EN_G    => BRAM_EN_G,
-         DATA_WIDTH_G => VECTOR_WIDTH_G,
-         ADDR_WIDTH_G => RAM_ADDR_WIDTH_G)
+         MEMORY_TYPE_G => MEMORY_TYPE_G,
+         DATA_WIDTH_G  => VECTOR_WIDTH_G,
+         ADDR_WIDTH_G  => RAM_ADDR_WIDTH_G)
       port map (
          clka  => clk,
          ena   => '1',
