@@ -51,7 +51,7 @@ architecture sim of SspEncoderTb is
 begin
 
    -- component instantiation
-   Encoder : entity surf.SspEncoder
+   Encoder : entity surf.SspEncoder8b10b
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
@@ -63,7 +63,7 @@ begin
          dataIn  => dataIn,
          dataOut => encData);
 
-   Decoder : entity surf.SspDecoder
+   Decoder : entity surf.SspDecoder8b10b
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
