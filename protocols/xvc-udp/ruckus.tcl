@@ -5,7 +5,7 @@ source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 if { [VersionCheck 2018.3] < 0 } {exit -1}
 
 # Load the wrapper source code
-loadSource -dir "$::DIR_PATH/rtl"
+loadSource -lib surf -dir "$::DIR_PATH/rtl"
 
 # Get the family type
 set family [getFpgaFamily]
@@ -25,7 +25,7 @@ if { ${family} eq {kintexu} ||
 }
 
 if { [info exists ::env(USE_XVC_DEBUG)] != 1 || $::env(USE_XVC_DEBUG) == 0 } {
-	loadSource -path "$::DIR_PATH/dcp/${dirType}/Stub/images/UdpDebugBridge.dcp"
+	loadSource -lib surf -path "$::DIR_PATH/dcp/${dirType}/Stub/images/UdpDebugBridge.dcp"
    set_property IS_GLOBAL_INCLUDE {1} [get_files UdpDebugBridge.dcp]
     
 } elseif { $::env(USE_XVC_DEBUG) == -1 } {
@@ -35,6 +35,6 @@ if { [info exists ::env(USE_XVC_DEBUG)] != 1 || $::env(USE_XVC_DEBUG) == 0 } {
    puts "to define a suitable implementation."
    
 } else {
-	loadSource -path "$::DIR_PATH/dcp/${dirType}/Impl/images/UdpDebugBridge.dcp"
+	loadSource -lib surf -path "$::DIR_PATH/dcp/${dirType}/Impl/images/UdpDebugBridge.dcp"
     set_property IS_GLOBAL_INCLUDE {1} [get_files UdpDebugBridge.dcp]
 }
