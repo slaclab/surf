@@ -20,7 +20,7 @@ use ieee.numeric_std.all;
 library surf;
 use surf.StdRtlPkg.all;
 use surf.i2cPkg.all;
-use work.txt_util_p.all;
+use surf.TextUtilPkg.all;
 
 package i2cRegMasterPkg is
 

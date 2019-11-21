@@ -22,7 +22,9 @@ use ieee.std_logic_arith.all;
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
-use work.BuildInfoPkg.all;
+
+library ruckus;
+use ruckus.BuildInfoPkg.all;
 
 entity AxiLiteIpBusBridgeTb is end AxiLiteIpBusBridgeTb;
 
