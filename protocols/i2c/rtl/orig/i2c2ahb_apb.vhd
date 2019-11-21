@@ -18,6 +18,7 @@
 --  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
 -------------------------------------------------------------------------------
 -- Entity:      i2c2ahb_apb
+-- File:        i2c2ahb_apb.vhd
 -- Author:      Jan Andersson - Aeroflex Gaisler AB
 -- Contact:     support@gaisler.com
 -- Description: Simple I2C-slave providing a bridge to AMBA AHB
