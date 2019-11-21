@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamDmaV2WriteMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: This MUX is used to make sure that the write descriptor is sent

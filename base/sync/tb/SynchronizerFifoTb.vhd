@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SynchronizerFifoTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for the SynchronizerFifo module

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : ClkOutBuf.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Special buffer for outputting a clock on Xilinx FPGA pins.

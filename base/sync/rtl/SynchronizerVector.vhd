@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SynchronizerVector.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for multiple SynchronizerVector modules

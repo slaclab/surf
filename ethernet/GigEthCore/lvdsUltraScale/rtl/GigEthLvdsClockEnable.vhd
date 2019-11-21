@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GigEthLvdsClockEnable.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SGMII/LVDS Ethernet's clock enabling for 10/100 speeds

@@ -18,7 +18,6 @@
 --  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
 -------------------------------------------------------------------------------
 -- Entity:      i2cmst_gen
--- File:        i2cmst_gen.vhd
 -- Author:      Jan Andersson - Aeroflex Gaisler
 -- Contact:     support@gaisler.com
 -- Description: Generic I2CMST, see i2cmst.vhd

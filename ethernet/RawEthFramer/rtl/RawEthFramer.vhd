@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : RawEthFramer.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Top-level Raw L2 Ethernet Framer

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : RogueSideBand.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Rogue Side Band Simulation Module

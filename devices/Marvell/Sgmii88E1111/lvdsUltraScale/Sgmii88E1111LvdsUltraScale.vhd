@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Sgmii88E1111LvdsUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Marvell 88E1111 PHY + GigEthLvdsUltraScaleWrapper

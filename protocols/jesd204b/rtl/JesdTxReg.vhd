@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : JesdTxReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface for register access  

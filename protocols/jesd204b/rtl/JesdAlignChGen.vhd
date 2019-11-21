@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : JesdAlignChGen.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:  Alignment character generator

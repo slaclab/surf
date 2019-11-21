@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteMaster.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite Master module controlled via REQ/ACK interface

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Jesd204bTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation testbed for Jesd204b

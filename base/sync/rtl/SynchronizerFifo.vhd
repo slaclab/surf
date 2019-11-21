@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SynchronizerFifo.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Synchronizing FIFO wrapper

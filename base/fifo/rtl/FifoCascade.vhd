@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : FifoCascade.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for cascading FWFT FIFOs together

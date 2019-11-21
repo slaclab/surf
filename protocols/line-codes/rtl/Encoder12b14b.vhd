@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : Line Code 12B14B: https://confluence.slac.stanford.edu/x/6AJODQ
 -------------------------------------------------------------------------------
--- File       : Encode12b14b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 12B14B Encoder Module

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : EthMacTop.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Top-level for 1GbE/10GbE/40GbE ETH MAC Module

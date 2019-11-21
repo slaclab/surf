@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : TrueDualPortRamXpmAlteraMfDummy.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for XPM Simple Dual Port RAM

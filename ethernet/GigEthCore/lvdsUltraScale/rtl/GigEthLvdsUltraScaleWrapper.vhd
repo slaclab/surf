@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GigEthLvdsUltraScaleWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for SGMII/LVDS Ethernet

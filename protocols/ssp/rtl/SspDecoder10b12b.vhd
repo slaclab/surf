@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SspDecoder10b12b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SimpleStreamingProtocol - A simple protocol layer for inserting

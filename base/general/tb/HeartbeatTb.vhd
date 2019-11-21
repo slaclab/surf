@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : HeartbeatTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for the Heartbeat module

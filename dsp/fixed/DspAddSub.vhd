@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : DspAddSub.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Generalized DSP inferred DSP inferred add/sub 

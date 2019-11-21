@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : DS2411Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Controller for DS2411 64-bit serial ID PROM

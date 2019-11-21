@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Gtx7RxFixedLatPhaseAligner.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:

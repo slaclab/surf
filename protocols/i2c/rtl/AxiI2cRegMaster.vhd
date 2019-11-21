@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiI2cRegMaster.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite I2C Register Master

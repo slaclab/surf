@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : SRPv0 Protocol: https://confluence.slac.stanford.edu/x/aRmVD
 -------------------------------------------------------------------------------
--- File       : SrpV0AxiLite.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SLAC Register Protocol Version 0, AXI-Lite Interface

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : RogueTcpStreamWrap.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Rogue Stream Module

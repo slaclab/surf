@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Gtp7TxManualPhaseAligner.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: GTP7 TX manual phase aligner

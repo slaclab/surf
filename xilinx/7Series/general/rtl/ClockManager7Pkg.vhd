@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : ClockManager7.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: A wrapper over MMCM/PLL to avoid coregen use.

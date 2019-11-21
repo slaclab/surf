@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteToDrp.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite to Xilinx DRP Bridge 

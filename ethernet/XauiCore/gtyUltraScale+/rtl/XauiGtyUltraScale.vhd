@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : XauiGtyUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 10 GigE XAUI for GTH Ultra Scale

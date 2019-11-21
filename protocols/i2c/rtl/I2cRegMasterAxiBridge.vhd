@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : I2cRegMasterAxiBridge.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Maps a number of I2C devices on an I2C bus onto an AXI Bus.

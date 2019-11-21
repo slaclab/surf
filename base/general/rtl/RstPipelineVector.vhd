@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : RstPipelineVector.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for multiple RstPipeline modules

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : EthMacTxExport.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Mapping for 1GbE/10GbE/40GbE ETH MAC TX path

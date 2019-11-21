@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GLinkGtp7FixedLat.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: G-Link wrapper for GTP7 transceiver

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiDac7654Reg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite Register Access Module

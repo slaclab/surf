@@ -18,7 +18,6 @@
 --  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
 -------------------------------------------------------------------------------
 -- Entity: i2cslv
--- File:   i2cslv.vhd
 -- Author: Jan Andersson - Gaisler Research
 --         jan@gaisler.com
 --

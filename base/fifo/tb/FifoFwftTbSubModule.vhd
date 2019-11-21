@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : FifoTbSubModule.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation sub module for testing the FifoFwft modules

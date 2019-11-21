@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiLitePkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite Package File

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SaltTxResize.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SALT TX Engine Resizer Module

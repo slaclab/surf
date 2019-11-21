@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : DeviceDna.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for the DNA_PORT

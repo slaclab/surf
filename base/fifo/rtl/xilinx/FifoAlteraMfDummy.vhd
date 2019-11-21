@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : FifoAlteraMf.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Xilinx XPM FIFO module

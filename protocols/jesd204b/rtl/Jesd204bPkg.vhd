@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Jesd204bPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: JESD204B Package File

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : UartBrg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: UART Baud Rate Generator

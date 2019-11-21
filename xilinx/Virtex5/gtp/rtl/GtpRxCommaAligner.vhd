@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GtpPgpWordAligner.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Pgp2 Gtp Word aligner

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : StreamPatternTester.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:   Test which compares the data stream to selected pattern

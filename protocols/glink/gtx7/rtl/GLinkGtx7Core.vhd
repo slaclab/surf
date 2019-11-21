@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Gtx7Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: G-Link wrapper for GTX7 primitive

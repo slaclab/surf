@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : DeviceDnaUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for the UltraScale DNA_PORT

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiDac7654Spi.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SPI Interface Module

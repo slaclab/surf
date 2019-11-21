@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : EthMacRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Ethernet MAC RX Wrapper

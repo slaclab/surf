@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : CrcPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: This package defines a few functions that are useful for 

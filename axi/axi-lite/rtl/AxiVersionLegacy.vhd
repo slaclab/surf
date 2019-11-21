@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiVersionLegacy.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Creates AXI accessible registers containing configuration

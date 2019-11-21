@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GigEthGtp7.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 1000BASE-X Ethernet for Gtp7

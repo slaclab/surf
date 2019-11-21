@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Synchronizer.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: A simple multi Flip FLop synchronization module.

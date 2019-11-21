@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Idelaye3Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper on IDELAYE3 that patches the silicon's issue of increments > 8

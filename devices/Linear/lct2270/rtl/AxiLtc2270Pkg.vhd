@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiLtc2270Pkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AxiLtc2270 Package File

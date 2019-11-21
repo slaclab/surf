@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Arbiter.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Example Arbiter Module

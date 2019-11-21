@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiResize.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Block to resize AXI. Re-sizing is always little endian. 

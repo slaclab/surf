@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : TextUtilPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Provides functions for handling text.

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : UartSem.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: UART wrapper for 7-series SEM module

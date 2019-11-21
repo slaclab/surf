@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : AxiStream BatcherV1 Protocol: https://confluence.slac.stanford.edu/x/th1SDg
 -------------------------------------------------------------------------------
--- File       : AxiStreamBatcher.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: The firmware batcher combines sub-frames into a larger super-frame

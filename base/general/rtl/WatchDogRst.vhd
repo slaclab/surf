@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : WatchDogRst.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Watch Dog Reset module

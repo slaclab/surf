@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiXcf128Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to XCF128 FLASH IC

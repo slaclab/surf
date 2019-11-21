@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SpiMaster.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Generic SPI Master Module

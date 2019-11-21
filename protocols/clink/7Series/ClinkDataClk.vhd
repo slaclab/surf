@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : ClinkDataClk.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: A wrapper over MMCM

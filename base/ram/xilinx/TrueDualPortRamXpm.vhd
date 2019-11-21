@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : TrueDualPortRamXpm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for XPM True Dual Port RAM

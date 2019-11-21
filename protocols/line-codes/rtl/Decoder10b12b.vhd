@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : Line Code 10B12B: https://confluence.slac.stanford.edu/x/QndODQ
 -------------------------------------------------------------------------------
--- File       : Decoder10b12b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 10B12B Decoder Module

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : DspXor.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Generalized DSP inferred XOR, which can be used to help with 

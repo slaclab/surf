@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : iq16bTo32b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Converts the 16-bit I/Q data to 32-bit I/Q data

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiAd5780Reg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to AD5780 DAC IC

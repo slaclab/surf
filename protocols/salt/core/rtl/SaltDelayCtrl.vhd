@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SaltDelayCtrl.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for IDELAYCTRL

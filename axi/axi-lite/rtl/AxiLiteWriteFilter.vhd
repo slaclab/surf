@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteWriteFilter.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Module for filtering write access

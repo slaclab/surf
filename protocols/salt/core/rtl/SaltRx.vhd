@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SaltRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SALT RX Engine Module

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamBytePacker.vhd.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:

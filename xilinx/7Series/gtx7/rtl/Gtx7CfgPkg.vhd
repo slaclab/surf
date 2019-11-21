@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Gtx7CfgPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Provides useful functions for generating GTX7 configurations.

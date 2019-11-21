@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : i2cRamSlave.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation testbed for i2cRamSlave

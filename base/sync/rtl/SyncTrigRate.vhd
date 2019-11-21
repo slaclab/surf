@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SyncTrigRate.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: This module measures the trigger rate of a trigger

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiLtc2270Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to LTC2270 ADC IC

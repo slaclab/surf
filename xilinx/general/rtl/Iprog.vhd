@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Iprog.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for the ICAP Module to issue IPROG command

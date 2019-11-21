@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : SRPv3 Protocol: https://confluence.slac.stanford.edu/x/cRmVD
 -------------------------------------------------------------------------------
--- File       : SrpV3Pkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SRPv3 Package File

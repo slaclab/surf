@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : JesdTxLane.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: JesdTx transmit single lane module

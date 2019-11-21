@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiMicronN25QCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to N25Q FLASH Memory IC

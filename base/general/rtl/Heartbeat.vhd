@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Heartbeat.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Heartbeat LED output

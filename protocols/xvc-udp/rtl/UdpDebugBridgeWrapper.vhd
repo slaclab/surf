@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : UdpDebugBridgeWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for UDP 'XVC' Server

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamGearboxPack
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI stream Packer Module 

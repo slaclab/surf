@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : PrbsPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: PseudoRandom Binary Sequence (PRBS) Package

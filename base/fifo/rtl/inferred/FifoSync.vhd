@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : FifoSync.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SYNC FIFO module

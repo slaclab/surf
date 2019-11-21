@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SspDecoder8b10bTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Testbench for design "SspDecoder8b10b"

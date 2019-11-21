@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : RegisterVector.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 1 c-c register delay 

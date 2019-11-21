@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : EthMacTxCsum.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: TX Checksum Hardware Offloading Engine

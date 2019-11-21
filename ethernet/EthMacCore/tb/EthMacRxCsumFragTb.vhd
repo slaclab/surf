@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : EthMacRxCsumFragTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: EthMacRxCsum for Frag SOF Simulation Testbed

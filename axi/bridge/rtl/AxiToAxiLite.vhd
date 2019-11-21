@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiToAxiLite.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI4-to-AXI-Lite bridge
