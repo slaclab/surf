@@ -17,6 +17,7 @@ var classAxiI2cRegMaster =
     [ "sda", "classAxiI2cRegMaster.html#a41a66323a1658f8a6ef5c62397afa3e3", null ],
     [ "ieee", "classAxiI2cRegMaster.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classAxiI2cRegMaster.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classAxiI2cRegMaster.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classAxiI2cRegMaster.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classAxiI2cRegMaster.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
     [ "I2cPkg", "classAxiI2cRegMaster.html#a3345a70e845069bf678d5aa1733529b6", null ],

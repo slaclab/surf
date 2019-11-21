@@ -13,6 +13,7 @@ var classAxiWriteEmulate =
     [ "std_logic_1164", "classAxiWriteEmulate.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_arith", "classAxiWriteEmulate.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
     [ "std_logic_unsigned", "classAxiWriteEmulate.html#a598da929e807d58939b47499e8bc9fa8", null ],
+    [ "surf", "classAxiWriteEmulate.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "TextUtilPkg", "classAxiWriteEmulate.html#aa9c868aa3ebeb0772295885509c0d4f2", null ],
     [ "StdRtlPkg", "classAxiWriteEmulate.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiPkg", "classAxiWriteEmulate.html#a2265afb78be50b98531f22e9da258a54", null ]

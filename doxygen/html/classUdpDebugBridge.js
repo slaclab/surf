@@ -31,6 +31,7 @@ var classUdpDebugBridge =
     [ "ieee", "classUdpDebugBridge.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classUdpDebugBridge.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "numeric_std", "classUdpDebugBridge.html#a2edc34402b573437d5f25fa90ba4013e", null ],
+    [ "surf", "classUdpDebugBridge.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classUdpDebugBridge.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiStreamPkg", "classUdpDebugBridge.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
     [ "UdpDebugBridgePkg", "classUdpDebugBridge.html#a6ae6a6f42741ba0c134e7775159c5f37", null ]

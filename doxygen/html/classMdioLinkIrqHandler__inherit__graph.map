@@ -1,9 +1,8 @@
 <map id="MdioLinkIrqHandler" name="MdioLinkIrqHandler">
-<area shape="rect" id="node4" href="$classMdioLinkIrqHandlerTb.html" title="MdioLinkIrqHandlerTb" alt="" coords="5,229,169,256"/>
-<area shape="rect" id="node5" href="$classSgmii88E1111Mdio.html" title="Sgmii88E1111Mdio" alt="" coords="194,229,341,256"/>
-<area shape="rect" id="node7" href="$classSgmiiDp83867Mdio.html" title="SgmiiDp83867Mdio" alt="" coords="397,229,545,256"/>
-<area shape="rect" id="node2" href="$classMdioSeqCore.html" title="MdioSeqCore" alt="" coords="214,80,321,107"/>
-<area shape="rect" id="node3" href="$classMdioCore.html" title="MdioCore" alt="" coords="226,5,309,32"/>
-<area shape="rect" id="node6" href="$classSgmii88E1111LvdsUltraScale.html" title="Sgmii88E1111LvdsUltraScale" alt="" coords="145,304,357,331"/>
-<area shape="rect" id="node8" href="$classSgmiiDp83867LvdsUltraScale.html" title="SgmiiDp83867LvdsUltraScale" alt="" coords="381,304,596,331"/>
+<area shape="rect" id="node4" href="$classSgmii88E1111Mdio.html" title="Sgmii88E1111Mdio" alt="" coords="70,229,217,256"/>
+<area shape="rect" id="node6" href="$classSgmiiDp83867Mdio.html" title="SgmiiDp83867Mdio" alt="" coords="257,229,405,256"/>
+<area shape="rect" id="node2" href="$classMdioSeqCore.html" title="MdioSeqCore" alt="" coords="175,80,282,107"/>
+<area shape="rect" id="node3" href="$classMdioCore.html" title="MdioCore" alt="" coords="187,5,270,32"/>
+<area shape="rect" id="node5" href="$classSgmii88E1111LvdsUltraScale.html" title="Sgmii88E1111LvdsUltraScale" alt="" coords="5,304,217,331"/>
+<area shape="rect" id="node7" href="$classSgmiiDp83867LvdsUltraScale.html" title="SgmiiDp83867LvdsUltraScale" alt="" coords="241,304,456,331"/>
 </map>

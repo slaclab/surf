@@ -17,5 +17,6 @@ var classGtp7RxRstSeq =
     [ "DRP_OP_DONE", "classGtp7RxRstSeq.html#a201c1da68a2a1360b6282049b3e25aad", null ],
     [ "ieee", "classGtp7RxRstSeq.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classGtp7RxRstSeq.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "numeric_std", "classGtp7RxRstSeq.html#a2edc34402b573437d5f25fa90ba4013e", null ]
+    [ "numeric_std", "classGtp7RxRstSeq.html#a2edc34402b573437d5f25fa90ba4013e", null ],
+    [ "surf", "classGtp7RxRstSeq.html#acabf3ea45bb9ea54f778c194fc238b6d", null ]
 ];

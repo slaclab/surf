@@ -3,7 +3,6 @@ var classAxiAd5780Core =
     [ "rtl", "classAxiAd5780Core_1_1rtl.html", "classAxiAd5780Core_1_1rtl" ],
     [ "TPD_G", "classAxiAd5780Core.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "STATUS_CNT_WIDTH_G", "classAxiAd5780Core.html#a88ffac2ab61bb803af9237ba80978c17", null ],
-    [ "USE_DSP48_G", "classAxiAd5780Core.html#a7a8db7e7131ac4fe84ceeb9010cb34c7", null ],
     [ "AXI_CLK_FREQ_G", "classAxiAd5780Core.html#a82571368c463a52e90b4676481bb0826", null ],
     [ "SPI_CLK_FREQ_G", "classAxiAd5780Core.html#a86d8df2f785854df97f17242a39a6b48", null ],
     [ "dacIn", "classAxiAd5780Core.html#a5aca79f01656f1aa9c21f13e367b0ccd", null ],
@@ -17,6 +16,7 @@ var classAxiAd5780Core =
     [ "axiRst", "classAxiAd5780Core.html#a399a775bae9ae4819d5af6838a95e28e", null ],
     [ "ieee", "classAxiAd5780Core.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classAxiAd5780Core.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classAxiAd5780Core.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classAxiAd5780Core.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classAxiAd5780Core.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
     [ "AxiAd5780Pkg", "classAxiAd5780Core.html#ad91391f52fcf32e35973b88a753499cd", null ]

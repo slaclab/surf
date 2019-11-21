@@ -7,13 +7,8 @@ var classFifoMux =
     [ "RST_POLARITY_G", "classFifoMux.html#a8a9f56ec06b173cf46dc7160fd7c1f30", null ],
     [ "RST_ASYNC_G", "classFifoMux.html#a123a3d9a6e9648e763d21c0281ee7ecd", null ],
     [ "GEN_SYNC_FIFO_G", "classFifoMux.html#a74265af003d7cd4b0443ced520ac6722", null ],
-    [ "BRAM_EN_G", "classFifoMux.html#a1c9465c9431492ec79ab48827b02c46f", null ],
+    [ "MEMORY_TYPE_G", "classFifoMux.html#ac19eab973cb6c0196eed65d74fc49dca", null ],
     [ "FWFT_EN_G", "classFifoMux.html#a1ed184adaec9154e94358792a90e0618", null ],
-    [ "USE_DSP48_G", "classFifoMux.html#a7a8db7e7131ac4fe84ceeb9010cb34c7", null ],
-    [ "ALTERA_SYN_G", "classFifoMux.html#a1669478a44dab111adcd8bbceb192b02", null ],
-    [ "ALTERA_RAM_G", "classFifoMux.html#a19f5205f8fd4959c02e7b32fe19bbbc7", null ],
-    [ "USE_BUILT_IN_G", "classFifoMux.html#adb189c82e573abb099bff16ab4b87de8", null ],
-    [ "XIL_DEVICE_G", "classFifoMux.html#ad73f3e1bc362541946cf886a1bf2c994", null ],
     [ "SYNC_STAGES_G", "classFifoMux.html#a679052ea3c06e78e1226fcab1eb05fd6", null ],
     [ "PIPE_STAGES_G", "classFifoMux.html#a690564d64aa8e37d3ffa7aa2c377f50e", null ],
     [ "WR_DATA_WIDTH_G", "classFifoMux.html#a6b70cfc38d51766ca4894a6e06572540", null ],
@@ -46,5 +41,6 @@ var classFifoMux =
     [ "ieee", "classFifoMux.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classFifoMux.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "numeric_std", "classFifoMux.html#a2edc34402b573437d5f25fa90ba4013e", null ],
+    [ "surf", "classFifoMux.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classFifoMux.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

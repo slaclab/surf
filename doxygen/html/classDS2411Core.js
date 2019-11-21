@@ -17,5 +17,6 @@ var classDS2411Core =
     [ "std_logic_unsigned", "classDS2411Core.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "UNISIM", "classDS2411Core.html#afd13b50585152f6756d196bf3f1c52ac", null ],
     [ "VCOMPONENTS", "classDS2411Core.html#af7dabcc6b22cfac21d9188de6b952c14", null ],
+    [ "surf", "classDS2411Core.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classDS2411Core.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

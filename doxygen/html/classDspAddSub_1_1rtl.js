@@ -11,7 +11,7 @@ var classDspAddSub_1_1rtl =
     [ "rin", "classDspAddSub_1_1rtl.html#a758a8cbb78916a3911d410a62191310d", null ],
     [ "tReady", "classDspAddSub_1_1rtl.html#a2d1121d053b4c15778d16d25c4e0b10a", null ],
     [ "p", "classDspAddSub_1_1rtl.html#a0576bb65375a3e0868f40338a8db69f0", null ],
-    [ "use_dsp48", "classDspAddSub_1_1rtl.html#a073a21d3f84f2260308186db63c60acd", null ],
-    [ "use_dsp48", "classDspAddSub_1_1rtl.html#ad655f0d3e2c2360333df8f7d3986812f", null ],
+    [ "use_dsp", "classDspAddSub_1_1rtl.html#a7b6aa911f6ca7c7d45cc714960b45f30", null ],
+    [ "use_dsp", "classDspAddSub_1_1rtl.html#a9f61bfa9a9757c85beff4e1805e90f66", null ],
     [ "u_pipe", "classDspAddSub_1_1rtl.html#a5b07930e2c90a4bca6f2b39abc6c9051", null ]
 ];

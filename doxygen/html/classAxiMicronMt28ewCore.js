@@ -16,6 +16,7 @@ var classAxiMicronMt28ewCore =
     [ "axiRst", "classAxiMicronMt28ewCore.html#a399a775bae9ae4819d5af6838a95e28e", null ],
     [ "ieee", "classAxiMicronMt28ewCore.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classAxiMicronMt28ewCore.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classAxiMicronMt28ewCore.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classAxiMicronMt28ewCore.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classAxiMicronMt28ewCore.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
     [ "AxiMicronMt28ewPkg", "classAxiMicronMt28ewCore.html#adce6f9bc63f8a834a5ae8766f55aea8a", null ],

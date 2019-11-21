@@ -161,6 +161,7 @@ var classGtx7Core =
     [ "ieee", "classGtx7Core.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classGtx7Core.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "math_real", "classGtx7Core.html#acb415f2e3abd505b8338da5b5bf9e2fb", null ],
+    [ "surf", "classGtx7Core.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classGtx7Core.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "UNISIM", "classGtx7Core.html#afd13b50585152f6756d196bf3f1c52ac", null ],
     [ "VCOMPONENTS", "classGtx7Core.html#af7dabcc6b22cfac21d9188de6b952c14", null ]

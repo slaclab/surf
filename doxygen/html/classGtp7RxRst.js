@@ -43,5 +43,6 @@ var classGtp7RxRst =
     [ "ieee", "classGtp7RxRst.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classGtp7RxRst.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_arith", "classGtp7RxRst.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classGtp7RxRst.html#a598da929e807d58939b47499e8bc9fa8", null ]
+    [ "std_logic_unsigned", "classGtp7RxRst.html#a598da929e807d58939b47499e8bc9fa8", null ],
+    [ "surf", "classGtp7RxRst.html#acabf3ea45bb9ea54f778c194fc238b6d", null ]
 ];

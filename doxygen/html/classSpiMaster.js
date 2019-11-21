@@ -27,5 +27,6 @@ var classSpiMaster =
     [ "std_logic_unsigned", "classSpiMaster.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "std_logic_arith", "classSpiMaster.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
     [ "math_real", "classSpiMaster.html#acb415f2e3abd505b8338da5b5bf9e2fb", null ],
+    [ "surf", "classSpiMaster.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classSpiMaster.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

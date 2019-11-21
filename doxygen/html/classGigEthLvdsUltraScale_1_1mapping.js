@@ -1,5 +1,6 @@
 var classGigEthLvdsUltraScale_1_1mapping =
 [
+    [ "SaltUltraScaleCore", "classGigEthLvdsUltraScale_1_1mapping.html#a89897e5e63ee3132c0502cee9724304f", null ],
     [ "config", "classGigEthLvdsUltraScale_1_1mapping.html#a4b813a5f837e40b620a620aa8b79d40f", null ],
     [ "status", "classGigEthLvdsUltraScale_1_1mapping.html#ab4bff6c62f102ba5d91c2c50e89bf998", null ],
     [ "mAxiReadMaster", "classGigEthLvdsUltraScale_1_1mapping.html#aba1048e5d2c774fa5a192c5f0fadb833", null ],

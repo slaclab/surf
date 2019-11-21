@@ -60,6 +60,7 @@ var classPgp2bGtp7VarLatWrapper =
     [ "axilWriteSlave", "classPgp2bGtp7VarLatWrapper.html#a80e5574c28ce6fd06510648d63787843", null ],
     [ "ieee", "classPgp2bGtp7VarLatWrapper.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classPgp2bGtp7VarLatWrapper.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classPgp2bGtp7VarLatWrapper.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classPgp2bGtp7VarLatWrapper.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiStreamPkg", "classPgp2bGtp7VarLatWrapper.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
     [ "Pgp2bPkg", "classPgp2bGtp7VarLatWrapper.html#af22dbf60bec6f633c7d35bf9c0940817", null ],

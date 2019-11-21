@@ -21,6 +21,7 @@ var classAd9249Config =
     [ "std_logic_unsigned", "classAd9249Config.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "UNISIM", "classAd9249Config.html#afd13b50585152f6756d196bf3f1c52ac", null ],
     [ "VCOMPONENTS", "classAd9249Config.html#af7dabcc6b22cfac21d9188de6b952c14", null ],
+    [ "surf", "classAd9249Config.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classAd9249Config.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classAd9249Config.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ]
 ];

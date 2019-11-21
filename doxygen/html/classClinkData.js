@@ -22,6 +22,7 @@ var classClinkData =
     [ "std_logic_1164", "classClinkData.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_arith", "classClinkData.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
     [ "std_logic_unsigned", "classClinkData.html#a598da929e807d58939b47499e8bc9fa8", null ],
+    [ "surf", "classClinkData.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classClinkData.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classClinkData.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
     [ "ClinkPkg", "classClinkData.html#a2106e5227371675511e345dc63cbe3ef", null ],

@@ -12,5 +12,6 @@ var classRstPipelineVector =
     [ "rstOut", "classRstPipelineVector.html#a5f48d029d2f7b2a1b53b8765cddfa1a6", null ],
     [ "ieee", "classRstPipelineVector.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classRstPipelineVector.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classRstPipelineVector.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classRstPipelineVector.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

@@ -58,6 +58,7 @@ var classRssiTxFsm =
     [ "std_logic_1164", "classRssiTxFsm.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_unsigned", "classRssiTxFsm.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "std_logic_arith", "classRssiTxFsm.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
+    [ "surf", "classRssiTxFsm.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classRssiTxFsm.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "RssiPkg", "classRssiTxFsm.html#ab9163ff57f3de727a3283790a46df5d3", null ],
     [ "SsiPkg", "classRssiTxFsm.html#a8b54e22b2a07048034b61d5e4ba396e3", null ],

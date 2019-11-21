@@ -19,6 +19,7 @@ var classAxiAds42lb69DeserBit =
     [ "std_logic_1164", "classAxiAds42lb69DeserBit.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_unsigned", "classAxiAds42lb69DeserBit.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "std_logic_arith", "classAxiAds42lb69DeserBit.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
+    [ "surf", "classAxiAds42lb69DeserBit.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classAxiAds42lb69DeserBit.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiAds42lb69Pkg", "classAxiAds42lb69DeserBit.html#a070455d30f0e3f1b8ae6b2811ce175b1", null ],
     [ "unisim", "classAxiAds42lb69DeserBit.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],

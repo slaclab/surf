@@ -14,5 +14,6 @@ var classSynchronizer =
     [ "dataOut", "classSynchronizer.html#a71b57d553fb90c1c5e1fc1d6cc47ebbe", null ],
     [ "ieee", "classSynchronizer.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classSynchronizer.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classSynchronizer.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classSynchronizer.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

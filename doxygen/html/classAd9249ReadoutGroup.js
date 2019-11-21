@@ -23,6 +23,7 @@ var classAd9249ReadoutGroup =
     [ "std_logic_unsigned", "classAd9249ReadoutGroup.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "UNISIM", "classAd9249ReadoutGroup.html#afd13b50585152f6756d196bf3f1c52ac", null ],
     [ "vcomponents", "classAd9249ReadoutGroup.html#aa1cb22e959d47364391e5eb4ef86927c", null ],
+    [ "surf", "classAd9249ReadoutGroup.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classAd9249ReadoutGroup.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classAd9249ReadoutGroup.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
     [ "AxiStreamPkg", "classAd9249ReadoutGroup.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],

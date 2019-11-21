@@ -8,7 +8,7 @@ var classSyncStatusVector =
     [ "RELEASE_DELAY_G", "classSyncStatusVector.html#ab726fbb299abd7582750cdb5343a55d5", null ],
     [ "IN_POLARITY_G", "classSyncStatusVector.html#ab564eedd69ac47d3b05b500b5ad936bd", null ],
     [ "OUT_POLARITY_G", "classSyncStatusVector.html#a6f5184f05b7d36459251e1194e5c6120", null ],
-    [ "USE_DSP48_G", "classSyncStatusVector.html#a7a8db7e7131ac4fe84ceeb9010cb34c7", null ],
+    [ "USE_DSP_G", "classSyncStatusVector.html#ac724dc2108bd111c20e5b364a4da4534", null ],
     [ "SYNTH_CNT_G", "classSyncStatusVector.html#afcb1ad088fa47d7232fcc4951acbe767", null ],
     [ "CNT_RST_EDGE_G", "classSyncStatusVector.html#a3e647aa6b43472e890d277ba53cf7387", null ],
     [ "CNT_WIDTH_G", "classSyncStatusVector.html#ac427a235061c87c3efa115d649a33eee", null ],
@@ -28,5 +28,6 @@ var classSyncStatusVector =
     [ "std_logic_1164", "classSyncStatusVector.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_unsigned", "classSyncStatusVector.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "std_logic_arith", "classSyncStatusVector.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
+    [ "surf", "classSyncStatusVector.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classSyncStatusVector.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

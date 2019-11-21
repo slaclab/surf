@@ -36,6 +36,7 @@ var classFifoXpm =
     [ "std_logic_1164", "classFifoXpm.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_unsigned", "classFifoXpm.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "std_logic_arith", "classFifoXpm.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
+    [ "surf", "classFifoXpm.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classFifoXpm.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "ECC_MODE_G", "classFifoXpm.html#a47eec221c17fa6b13d1fa84efb8382c1", null ],
     [ "RELATED_CLOCKS_G", "classFifoXpm.html#ac4054f5f251b24de78db680de5d3ebe9", null ],

@@ -1,10 +1,10 @@
 var classWatchDogRst_1_1rtl =
 [
-    [ "PROCESS_54", "classWatchDogRst_1_1rtl.html#a19ca095db3c3ec340c4dbe446803e2d6", null ],
+    [ "PROCESS_47", "classWatchDogRst_1_1rtl.html#a3be6f2124e5a0219ba167437d167961c", null ],
     [ "rst", "classWatchDogRst_1_1rtl.html#a6d182ea5e982528ec3c05f4df5e0211e", null ],
     [ "monInput", "classWatchDogRst_1_1rtl.html#a2a05d7e1ac9538f792f0020581ee95f2", null ],
     [ "cnt", "classWatchDogRst_1_1rtl.html#aa03e96719dbe12164e251d65426965e9", null ],
-    [ "use_dsp48", "classWatchDogRst_1_1rtl.html#a073a21d3f84f2260308186db63c60acd", null ],
-    [ "use_dsp48", "classWatchDogRst_1_1rtl.html#ad16af0f98c79c55a1ca389ca06c58763", null ],
+    [ "use_dsp", "classWatchDogRst_1_1rtl.html#a7b6aa911f6ca7c7d45cc714960b45f30", null ],
+    [ "use_dsp", "classWatchDogRst_1_1rtl.html#a4d37b7fbd05b6de2e1199fd7b5e13e16", null ],
     [ "synchronizer_inst", "classWatchDogRst_1_1rtl.html#a96fcde2cda9091c31deef41b00baa3ed", null ]
 ];

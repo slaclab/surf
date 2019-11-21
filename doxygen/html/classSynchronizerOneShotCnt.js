@@ -8,7 +8,7 @@ var classSynchronizerOneShotCnt =
     [ "RELEASE_DELAY_G", "classSynchronizerOneShotCnt.html#ab726fbb299abd7582750cdb5343a55d5", null ],
     [ "IN_POLARITY_G", "classSynchronizerOneShotCnt.html#a9853aeaa6ff0c04943987631b5840ce9", null ],
     [ "OUT_POLARITY_G", "classSynchronizerOneShotCnt.html#a6f5184f05b7d36459251e1194e5c6120", null ],
-    [ "USE_DSP48_G", "classSynchronizerOneShotCnt.html#a7a8db7e7131ac4fe84ceeb9010cb34c7", null ],
+    [ "USE_DSP_G", "classSynchronizerOneShotCnt.html#ac724dc2108bd111c20e5b364a4da4534", null ],
     [ "SYNTH_CNT_G", "classSynchronizerOneShotCnt.html#a2fd4fda7bb6c1d33b15317f7df8a2c7b", null ],
     [ "CNT_RST_EDGE_G", "classSynchronizerOneShotCnt.html#a3e647aa6b43472e890d277ba53cf7387", null ],
     [ "CNT_WIDTH_G", "classSynchronizerOneShotCnt.html#a5587b06c06b38cb164d2f79a8c706202", null ],
@@ -25,5 +25,6 @@ var classSynchronizerOneShotCnt =
     [ "std_logic_1164", "classSynchronizerOneShotCnt.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_arith", "classSynchronizerOneShotCnt.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
     [ "std_logic_unsigned", "classSynchronizerOneShotCnt.html#a598da929e807d58939b47499e8bc9fa8", null ],
+    [ "surf", "classSynchronizerOneShotCnt.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classSynchronizerOneShotCnt.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

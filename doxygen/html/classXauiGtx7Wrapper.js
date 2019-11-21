@@ -33,6 +33,7 @@ var classXauiGtx7Wrapper =
     [ "gtRxN", "classXauiGtx7Wrapper.html#a79efed8b9e2d06c9b19dbc3892265fcf", null ],
     [ "ieee", "classXauiGtx7Wrapper.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classXauiGtx7Wrapper.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classXauiGtx7Wrapper.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classXauiGtx7Wrapper.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiStreamPkg", "classXauiGtx7Wrapper.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
     [ "AxiLitePkg", "classXauiGtx7Wrapper.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],

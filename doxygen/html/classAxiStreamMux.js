@@ -25,6 +25,7 @@ var classAxiStreamMux =
     [ "std_logic_1164", "classAxiStreamMux.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_arith", "classAxiStreamMux.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
     [ "std_logic_unsigned", "classAxiStreamMux.html#a598da929e807d58939b47499e8bc9fa8", null ],
+    [ "surf", "classAxiStreamMux.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classAxiStreamMux.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "ArbiterPkg", "classAxiStreamMux.html#a9a2f725569a035bfe26ecc2121149741", null ],
     [ "AxiStreamPkg", "classAxiStreamMux.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ]

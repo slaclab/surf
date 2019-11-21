@@ -13,7 +13,7 @@ var classDspSquareDiffMult_1_1rtl =
     [ "rin", "classDspSquareDiffMult_1_1rtl.html#a758a8cbb78916a3911d410a62191310d", null ],
     [ "tReady", "classDspSquareDiffMult_1_1rtl.html#ae8b1f303aaacad5e12e189cac4e61df7", null ],
     [ "p", "classDspSquareDiffMult_1_1rtl.html#a6a48686e9c172fd61b8c239ad4f0cd72", null ],
-    [ "use_dsp48", "classDspSquareDiffMult_1_1rtl.html#a073a21d3f84f2260308186db63c60acd", null ],
-    [ "use_dsp48", "classDspSquareDiffMult_1_1rtl.html#ad655f0d3e2c2360333df8f7d3986812f", null ],
+    [ "use_dsp", "classDspSquareDiffMult_1_1rtl.html#a7b6aa911f6ca7c7d45cc714960b45f30", null ],
+    [ "use_dsp", "classDspSquareDiffMult_1_1rtl.html#a9f61bfa9a9757c85beff4e1805e90f66", null ],
     [ "u_pipe", "classDspSquareDiffMult_1_1rtl.html#a5b07930e2c90a4bca6f2b39abc6c9051", null ]
 ];

@@ -7,7 +7,7 @@ var classUartAxiLiteMaster =
     [ "STOP_BITS_G", "classUartAxiLiteMaster.html#a9514500e01393fbac186287ad8769e0d", null ],
     [ "PARITY_G", "classUartAxiLiteMaster.html#a19a9c324062b5aa85a24b857051a369d", null ],
     [ "DATA_WIDTH_G", "classUartAxiLiteMaster.html#a97c53e9f5aa69b46f4c6b6b017d6c8c6", null ],
-    [ "FIFO_BRAM_EN_G", "classUartAxiLiteMaster.html#ad0d463bd4ba95b5eec7e57f06069fbe2", null ],
+    [ "MEMORY_TYPE_G", "classUartAxiLiteMaster.html#a2ac0d7ff1e94706cbbbe35f33f5acdca", null ],
     [ "FIFO_ADDR_WIDTH_G", "classUartAxiLiteMaster.html#a49162f58da3af2b369df54c004d9aff7", null ],
     [ "axilClk", "classUartAxiLiteMaster.html#a8e1fd4ab848b98a0c700b34cf7c90b36", null ],
     [ "axilRst", "classUartAxiLiteMaster.html#a4b36ee28c73fadc67fe1a670f1ba11ff", null ],
@@ -21,6 +21,7 @@ var classUartAxiLiteMaster =
     [ "std_logic_1164", "classUartAxiLiteMaster.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_arith", "classUartAxiLiteMaster.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
     [ "std_logic_unsigned", "classUartAxiLiteMaster.html#a598da929e807d58939b47499e8bc9fa8", null ],
+    [ "surf", "classUartAxiLiteMaster.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classUartAxiLiteMaster.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "TextUtilPkg", "classUartAxiLiteMaster.html#aa9c868aa3ebeb0772295885509c0d4f2", null ],
     [ "AxiLitePkg", "classUartAxiLiteMaster.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ]

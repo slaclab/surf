@@ -2,7 +2,9 @@ var classGearbox =
 [
     [ "rtl", "classGearbox_1_1rtl.html", "classGearbox_1_1rtl" ],
     [ "TPD_G", "classGearbox.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "SLAVE_BIT_REVERSE_G", "classGearbox.html#a42109a93eada830d976d4f8edd90b0ba", null ],
     [ "SLAVE_WIDTH_G", "classGearbox.html#a63515746fbc6df0a926a405d85aaa3f7", null ],
+    [ "MASTER_BIT_REVERSE_G", "classGearbox.html#ac07b6873b01fb29dd06f9b8d5e99389e", null ],
     [ "MASTER_WIDTH_G", "classGearbox.html#ab6d418a4e07961409a51e4195d6485fa", null ],
     [ "clk", "classGearbox.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classGearbox.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],
@@ -18,5 +20,6 @@ var classGearbox =
     [ "std_logic_1164", "classGearbox.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_arith", "classGearbox.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
     [ "std_logic_unsigned", "classGearbox.html#a598da929e807d58939b47499e8bc9fa8", null ],
+    [ "surf", "classGearbox.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classGearbox.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

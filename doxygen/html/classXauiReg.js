@@ -18,6 +18,7 @@ var classXauiReg =
     [ "std_logic_1164", "classXauiReg.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_unsigned", "classXauiReg.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "std_logic_arith", "classXauiReg.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
+    [ "surf", "classXauiReg.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classXauiReg.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classXauiReg.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
     [ "EthMacPkg", "classXauiReg.html#ac1625414338993fe184c68bfdbb48894", null ],

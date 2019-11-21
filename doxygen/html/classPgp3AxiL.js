@@ -31,6 +31,7 @@ var classPgp3AxiL =
     [ "std_logic_1164", "classPgp3AxiL.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "STD_LOGIC_ARITH", "classPgp3AxiL.html#a5d8c1f7c620a51582be96d2a58d40293", null ],
     [ "STD_LOGIC_UNSIGNED", "classPgp3AxiL.html#a241c3e72dd8024cc8ae831b1b2aed7db", null ],
+    [ "surf", "classPgp3AxiL.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classPgp3AxiL.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classPgp3AxiL.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
     [ "Pgp3Pkg", "classPgp3AxiL.html#a8fe78bd162f190ddcf71d39850745a3a", null ]

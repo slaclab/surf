@@ -15,6 +15,7 @@ var classAxiDac7654Reg =
     [ "std_logic_1164", "classAxiDac7654Reg.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_unsigned", "classAxiDac7654Reg.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "std_logic_arith", "classAxiDac7654Reg.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
+    [ "surf", "classAxiDac7654Reg.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classAxiDac7654Reg.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classAxiDac7654Reg.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
     [ "AxiDac7654Pkg", "classAxiDac7654Reg.html#a8c13c6027f80d0716c80d43ba075abee", null ]

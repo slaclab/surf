@@ -18,6 +18,7 @@ var classEncoder8b10b =
     [ "dataOut", "classEncoder8b10b.html#a042c6774df41bd45d473ad6433dce4b8", null ],
     [ "ieee", "classEncoder8b10b.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classEncoder8b10b.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classEncoder8b10b.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classEncoder8b10b.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "Code8b10bPkg", "classEncoder8b10b.html#a5bfd0b058753e03e50aee432e4c32909", null ]
 ];

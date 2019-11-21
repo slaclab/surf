@@ -9,5 +9,6 @@ var classUartBrg =
     [ "clkEn", "classUartBrg.html#a673d68e78dee922e2b3d76b3d60bd2b7", null ],
     [ "ieee", "classUartBrg.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classUartBrg.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classUartBrg.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classUartBrg.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

@@ -53,6 +53,7 @@ var classPgp3Gtx7IpWrapper =
     [ "axilWriteSlave", "classPgp3Gtx7IpWrapper.html#a745fe963b807b068ea5755f895b6d0fa", null ],
     [ "ieee", "classPgp3Gtx7IpWrapper.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classPgp3Gtx7IpWrapper.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classPgp3Gtx7IpWrapper.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classPgp3Gtx7IpWrapper.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classPgp3Gtx7IpWrapper.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
     [ "unisim", "classPgp3Gtx7IpWrapper.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],

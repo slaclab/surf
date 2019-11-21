@@ -25,6 +25,7 @@ var classAxiLtc2270Deser =
     [ "std_logic_1164", "classAxiLtc2270Deser.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_unsigned", "classAxiLtc2270Deser.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "std_logic_arith", "classAxiLtc2270Deser.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
+    [ "surf", "classAxiLtc2270Deser.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classAxiLtc2270Deser.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLtc2270Pkg", "classAxiLtc2270Deser.html#a8bd24b8e72ad7880e41098e9d905fa40", null ],
     [ "unisim", "classAxiLtc2270Deser.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],

@@ -52,7 +52,6 @@ var searchData=
   ['pgp3rxgearboxaligner',['Pgp3RxGearboxAligner',['../classPgp3RxGearboxAligner.html',1,'']]],
   ['pgp3rxprotocol',['Pgp3RxProtocol',['../classPgp3RxProtocol.html',1,'']]],
   ['pgp3tb',['Pgp3Tb',['../classPgp3Tb.html',1,'']]],
-  ['pgp3tb2',['Pgp3Tb2',['../classPgp3Tb2.html',1,'']]],
   ['pgp3tx',['Pgp3Tx',['../classPgp3Tx.html',1,'']]],
   ['pgp3txprotocol',['Pgp3TxProtocol',['../classPgp3TxProtocol.html',1,'']]],
   ['pgp_5ftest',['pgp_test',['../classpgp__test.html',1,'pgp_test'],['../classpgp__test_1_1pgp__test.html',1,'pgp_test']]],

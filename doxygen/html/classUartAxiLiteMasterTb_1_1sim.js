@@ -9,7 +9,7 @@ var classUartAxiLiteMasterTb_1_1sim =
     [ "TPD_G", "classUartAxiLiteMasterTb_1_1sim.html#ae1b9083af233edd49d7c57de1ce468f7", null ],
     [ "CLK_FREQ_G", "classUartAxiLiteMasterTb_1_1sim.html#ac6be5eaa7ffc0e980d2c03a7218c31a0", null ],
     [ "BAUD_RATE_G", "classUartAxiLiteMasterTb_1_1sim.html#ac2e91417a249e8350b96ec447c269484", null ],
-    [ "FIFO_BRAM_EN_G", "classUartAxiLiteMasterTb_1_1sim.html#a959af21dc9d6d7e8fcb7312aa4aea8f9", null ],
+    [ "MEMORY_TYPE_G", "classUartAxiLiteMasterTb_1_1sim.html#a6197d326c27eb92f750bbc01bc560bd2", null ],
     [ "FIFO_ADDR_WIDTH_G", "classUartAxiLiteMasterTb_1_1sim.html#a79f5527b9b5aa005fcf7b5711b56f343", null ],
     [ "axilWriteMaster", "classUartAxiLiteMasterTb_1_1sim.html#a10c8cb517dc302cc99017fad06341aad", null ],
     [ "axilWriteSlave", "classUartAxiLiteMasterTb_1_1sim.html#a877a7f1c1dae56ed1893b21d49755b47", null ],

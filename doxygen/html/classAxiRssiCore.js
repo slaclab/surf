@@ -53,6 +53,7 @@ var classAxiRssiCore =
     [ "std_logic_unsigned", "classAxiRssiCore.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "std_logic_arith", "classAxiRssiCore.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
     [ "math_real", "classAxiRssiCore.html#acb415f2e3abd505b8338da5b5bf9e2fb", null ],
+    [ "surf", "classAxiRssiCore.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classAxiRssiCore.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiPkg", "classAxiRssiCore.html#a2265afb78be50b98531f22e9da258a54", null ],
     [ "AxiStreamPkg", "classAxiRssiCore.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],

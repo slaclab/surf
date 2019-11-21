@@ -23,6 +23,7 @@ var classAxiAd9467Core =
     [ "axiWriteSlave", "classAxiAd9467Core.html#a0eb32e5fab67488b94fb47c9fe42e97f", null ],
     [ "ieee", "classAxiAd9467Core.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classAxiAd9467Core.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classAxiAd9467Core.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classAxiAd9467Core.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classAxiAd9467Core.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
     [ "AxiAd9467Pkg", "classAxiAd9467Core.html#ac781ddb975155a24a80c03af77271170", null ]

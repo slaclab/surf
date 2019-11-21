@@ -15,6 +15,7 @@ var classAxiXcf128Reg =
     [ "std_logic_1164", "classAxiXcf128Reg.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_unsigned", "classAxiXcf128Reg.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "std_logic_arith", "classAxiXcf128Reg.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
+    [ "surf", "classAxiXcf128Reg.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classAxiXcf128Reg.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classAxiXcf128Reg.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
     [ "AxiXcf128Pkg", "classAxiXcf128Reg.html#a580c2c9876129b7b2035d56acbac70b6", null ]

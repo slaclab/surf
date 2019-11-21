@@ -17,6 +17,7 @@ var classAxiStreamDeMux =
     [ "ieee", "classAxiStreamDeMux.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classAxiStreamDeMux.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "NUMERIC_STD", "classAxiStreamDeMux.html#ae00f3f04545af57582ff10609eee23e2", null ],
+    [ "surf", "classAxiStreamDeMux.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classAxiStreamDeMux.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "ArbiterPkg", "classAxiStreamDeMux.html#a9a2f725569a035bfe26ecc2121149741", null ],
     [ "AxiStreamPkg", "classAxiStreamDeMux.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ]

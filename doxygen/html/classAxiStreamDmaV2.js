@@ -40,6 +40,7 @@ var classAxiStreamDmaV2 =
     [ "std_logic_1164", "classAxiStreamDmaV2.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_arith", "classAxiStreamDmaV2.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
     [ "std_logic_unsigned", "classAxiStreamDmaV2.html#a598da929e807d58939b47499e8bc9fa8", null ],
+    [ "surf", "classAxiStreamDmaV2.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classAxiStreamDmaV2.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiStreamPkg", "classAxiStreamDmaV2.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
     [ "AxiLitePkg", "classAxiStreamDmaV2.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],

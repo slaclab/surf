@@ -15,6 +15,7 @@ var classI2cMaster =
     [ "ieee", "classI2cMaster.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classI2cMaster.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "numeric_std", "classI2cMaster.html#a2edc34402b573437d5f25fa90ba4013e", null ],
+    [ "surf", "classI2cMaster.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classI2cMaster.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "I2cPkg", "classI2cMaster.html#a3345a70e845069bf678d5aa1733529b6", null ]
 ];

@@ -26,6 +26,7 @@ var classIpV4EngineCoreTb =
     [ "std_logic_1164", "classIpV4EngineCoreTb.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_unsigned", "classIpV4EngineCoreTb.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "std_logic_arith", "classIpV4EngineCoreTb.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
+    [ "surf", "classIpV4EngineCoreTb.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classIpV4EngineCoreTb.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiStreamPkg", "classIpV4EngineCoreTb.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
     [ "SsiPkg", "classIpV4EngineCoreTb.html#a8b54e22b2a07048034b61d5e4ba396e3", null ],

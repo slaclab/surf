@@ -68,6 +68,7 @@ var classClockManager7 =
     [ "math_real", "classClockManager7.html#acb415f2e3abd505b8338da5b5bf9e2fb", null ],
     [ "unisim", "classClockManager7.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
     [ "vcomponents", "classClockManager7.html#aa1cb22e959d47364391e5eb4ef86927c", null ],
+    [ "surf", "classClockManager7.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classClockManager7.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classClockManager7.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ]
 ];

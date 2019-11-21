@@ -35,6 +35,7 @@ var classGigEthLvdsUltraScale =
     [ "sgmiiRxN", "classGigEthLvdsUltraScale.html#a77560a004a3260721bccf9a619cd5923", null ],
     [ "ieee", "classGigEthLvdsUltraScale.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classGigEthLvdsUltraScale.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classGigEthLvdsUltraScale.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classGigEthLvdsUltraScale.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiStreamPkg", "classGigEthLvdsUltraScale.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
     [ "AxiLitePkg", "classGigEthLvdsUltraScale.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],

@@ -12,6 +12,7 @@ var classClkOutBufDiff =
     [ "clkOutN", "classClkOutBufDiff.html#a6483bdd0135ffc36b2303a3092fe1b50", null ],
     [ "IEEE", "classClkOutBufDiff.html#ae4f03c286607f3181e16b9aa12d0c6d4", null ],
     [ "STD_LOGIC_1164", "classClkOutBufDiff.html#aa4b2b25246a821511120e3149b003563", null ],
+    [ "surf", "classClkOutBufDiff.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classClkOutBufDiff.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "UNISIM", "classClkOutBufDiff.html#afd13b50585152f6756d196bf3f1c52ac", null ],
     [ "VCOMPONENTS", "classClkOutBufDiff.html#af7dabcc6b22cfac21d9188de6b952c14", null ]

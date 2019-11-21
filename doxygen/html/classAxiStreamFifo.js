@@ -6,12 +6,8 @@ var classAxiStreamFifo =
     [ "PIPE_STAGES_G", "classAxiStreamFifo.html#a716ea08f0c8926dadc51439113a0fd3b", null ],
     [ "SLAVE_READY_EN_G", "classAxiStreamFifo.html#a6ae93f6a92e450756c421bbb436b2a06", null ],
     [ "VALID_THOLD_G", "classAxiStreamFifo.html#a5fd0f8efc7eb2829bee163b66f826346", null ],
-    [ "BRAM_EN_G", "classAxiStreamFifo.html#a1c9465c9431492ec79ab48827b02c46f", null ],
-    [ "XIL_DEVICE_G", "classAxiStreamFifo.html#ad73f3e1bc362541946cf886a1bf2c994", null ],
-    [ "USE_BUILT_IN_G", "classAxiStreamFifo.html#adb189c82e573abb099bff16ab4b87de8", null ],
+    [ "MEMORY_TYPE_G", "classAxiStreamFifo.html#ac19eab973cb6c0196eed65d74fc49dca", null ],
     [ "GEN_SYNC_FIFO_G", "classAxiStreamFifo.html#a74265af003d7cd4b0443ced520ac6722", null ],
-    [ "ALTERA_SYN_G", "classAxiStreamFifo.html#a1669478a44dab111adcd8bbceb192b02", null ],
-    [ "ALTERA_RAM_G", "classAxiStreamFifo.html#a19f5205f8fd4959c02e7b32fe19bbbc7", null ],
     [ "CASCADE_SIZE_G", "classAxiStreamFifo.html#a24fa51d1acdad2c64854f911eb24df97", null ],
     [ "FIFO_ADDR_WIDTH_G", "classAxiStreamFifo.html#a9cb07eca4f1e6525763e4a6c2246ab39", null ],
     [ "FIFO_FIXED_THRESH_G", "classAxiStreamFifo.html#a2d4a178da434d7b5edb5651f7acaefdc", null ],
@@ -35,6 +31,7 @@ var classAxiStreamFifo =
     [ "std_logic_1164", "classAxiStreamFifo.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_unsigned", "classAxiStreamFifo.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "std_logic_arith", "classAxiStreamFifo.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
+    [ "surf", "classAxiStreamFifo.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classAxiStreamFifo.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiStreamPkg", "classAxiStreamFifo.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ]
 ];

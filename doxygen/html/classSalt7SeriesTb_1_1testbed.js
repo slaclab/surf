@@ -1,7 +1,7 @@
 var classSalt7SeriesTb_1_1testbed =
 [
-    [ "PROCESS_213", "classSalt7SeriesTb_1_1testbed.html#a58a7daacaf9928d98a27fc12234c8554", null ],
-    [ "PROCESS_214", "classSalt7SeriesTb_1_1testbed.html#a7168c5a827b409a6de23dc3fab232393", null ],
+    [ "PROCESS_204", "classSalt7SeriesTb_1_1testbed.html#a6f4b14fddb6deb97fd6e726411a3bc30", null ],
+    [ "PROCESS_205", "classSalt7SeriesTb_1_1testbed.html#a8b7ba78fb75c8343a09f86ea0e5f57ca", null ],
     [ "CLK_PERIOD_C", "classSalt7SeriesTb_1_1testbed.html#ae97c0bce57903c2a85e677b01b475249", null ],
     [ "CLK625_PERIOD_C", "classSalt7SeriesTb_1_1testbed.html#ab96c887da98809f117037217a18736a9", null ],
     [ "CLK208_PERIOD_C", "classSalt7SeriesTb_1_1testbed.html#ac774737cf49c51253b3a797d06f1785e", null ],
@@ -13,12 +13,8 @@ var classSalt7SeriesTb_1_1testbed =
     [ "PRBS_SEED_SIZE_C", "classSalt7SeriesTb_1_1testbed.html#a0af0048e848ece3be24c34599d9bea09", null ],
     [ "PRBS_TAPS_C", "classSalt7SeriesTb_1_1testbed.html#a43d05a659827131c0d456ccf042cfec9", null ],
     [ "FORCE_EOFE_C", "classSalt7SeriesTb_1_1testbed.html#abf6aba7efaa6526feee448b59d038c8d", null ],
-    [ "BRAM_EN_C", "classSalt7SeriesTb_1_1testbed.html#a7f80ae4823ff24230080ead271d99ace", null ],
-    [ "XIL_DEVICE_C", "classSalt7SeriesTb_1_1testbed.html#a1a84c0ae213c9e1a68077a07e952d22e", null ],
-    [ "USE_BUILT_IN_C", "classSalt7SeriesTb_1_1testbed.html#a8991e0cea4a44a3cd600c4c7c062a80c", null ],
+    [ "MEMORY_TYPE_C", "classSalt7SeriesTb_1_1testbed.html#a5f1d7319f0cdec78165ec56d5e0e2e49", null ],
     [ "GEN_SYNC_FIFO_C", "classSalt7SeriesTb_1_1testbed.html#a8a0fffbf3c4532847b1ea346493f884f", null ],
-    [ "ALTERA_SYN_C", "classSalt7SeriesTb_1_1testbed.html#a6030aa7145e4dc21c871f66a40c0c4f3", null ],
-    [ "ALTERA_RAM_C", "classSalt7SeriesTb_1_1testbed.html#a0fa0d90c871224163ff271945b0d8818", null ],
     [ "CASCADE_SIZE_C", "classSalt7SeriesTb_1_1testbed.html#a5df30795a3d08531d9b2ebda91bab544", null ],
     [ "FIFO_ADDR_WIDTH_C", "classSalt7SeriesTb_1_1testbed.html#a9602c197fdf7c9cf03b067d89ace8763", null ],
     [ "FIFO_PAUSE_THRESH_C", "classSalt7SeriesTb_1_1testbed.html#a3240f9af7b5b8dc33c46b7a205b62bfc", null ],

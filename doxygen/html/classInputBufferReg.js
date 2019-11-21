@@ -19,6 +19,7 @@ var classInputBufferReg =
     [ "std_logic_1164", "classInputBufferReg.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_unsigned", "classInputBufferReg.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "std_logic_arith", "classInputBufferReg.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
+    [ "surf", "classInputBufferReg.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classInputBufferReg.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "unisim", "classInputBufferReg.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
     [ "vcomponents", "classInputBufferReg.html#aa1cb22e959d47364391e5eb4ef86927c", null ]

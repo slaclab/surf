@@ -20,6 +20,7 @@ var classAxiAd5780Ser =
     [ "std_logic_1164", "classAxiAd5780Ser.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_unsigned", "classAxiAd5780Ser.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "std_logic_arith", "classAxiAd5780Ser.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
+    [ "surf", "classAxiAd5780Ser.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classAxiAd5780Ser.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiAd5780Pkg", "classAxiAd5780Ser.html#ad91391f52fcf32e35973b88a753499cd", null ]
 ];

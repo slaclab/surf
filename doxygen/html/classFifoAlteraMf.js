@@ -36,6 +36,7 @@ var classFifoAlteraMf =
     [ "std_logic_1164", "classFifoAlteraMf.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_unsigned", "classFifoAlteraMf.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "std_logic_arith", "classFifoAlteraMf.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
+    [ "surf", "classFifoAlteraMf.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classFifoAlteraMf.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "altera_mf", "classFifoAlteraMf.html#ad57cd8d31a38ff87ac163fb47757ffbf", null ],
     [ " all ", "classFifoAlteraMf.html#a470a86ce8776f637b0483eabf2d92ad2", null ]

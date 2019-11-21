@@ -11,13 +11,12 @@
 <area shape="rect" id="node10" href="$classSimpleDualPortRam.html" title="SimpleDualPortRam" alt="" coords="166,259,319,285"/>
 <area shape="rect" id="node11" href="$classFifoOutputPipeline.html" title="FifoOutputPipeline" alt="" coords="172,309,313,336"/>
 <area shape="rect" id="node13" href="$classPgp3Core.html" title="Pgp3Core" alt="" coords="936,132,1020,159"/>
-<area shape="rect" id="node22" href="$classPgp3Tb.html" title="Pgp3Tb" alt="" coords="943,183,1013,209"/>
-<area shape="rect" id="node14" href="$classPgp3GthUs.html" title="Pgp3GthUs" alt="" coords="1068,56,1163,83"/>
-<area shape="rect" id="node16" href="$classPgp3Gtp7.html" title="Pgp3Gtp7" alt="" coords="1073,107,1158,133"/>
-<area shape="rect" id="node19" href="$classPgp3Gtx7.html" title="Pgp3Gtx7" alt="" coords="1073,157,1158,184"/>
-<area shape="rect" id="node21" href="$classPgp3Tb2.html" title="Pgp3Tb2" alt="" coords="1076,208,1155,235"/>
-<area shape="rect" id="node15" href="$classPgp3GthUsWrapper.html" title="Pgp3GthUsWrapper" alt="" coords="1211,56,1359,83"/>
-<area shape="rect" id="node17" href="$classPgp3Gtp7Wrapper.html" title="Pgp3Gtp7Wrapper" alt="" coords="1215,107,1354,133"/>
-<area shape="rect" id="node18" href="$classPgp3Gtp7Tb.html" title="Pgp3Gtp7Tb" alt="" coords="1407,107,1508,133"/>
-<area shape="rect" id="node20" href="$classPgp3Gtx7Wrapper.html" title="Pgp3Gtx7Wrapper" alt="" coords="1215,157,1354,184"/>
+<area shape="rect" id="node21" href="$classPgp3Tb.html" title="Pgp3Tb" alt="" coords="943,183,1013,209"/>
+<area shape="rect" id="node14" href="$classPgp3GthUs.html" title="Pgp3GthUs" alt="" coords="1068,81,1163,108"/>
+<area shape="rect" id="node16" href="$classPgp3Gtp7.html" title="Pgp3Gtp7" alt="" coords="1073,132,1158,159"/>
+<area shape="rect" id="node19" href="$classPgp3Gtx7.html" title="Pgp3Gtx7" alt="" coords="1073,183,1158,209"/>
+<area shape="rect" id="node15" href="$classPgp3GthUsWrapper.html" title="Pgp3GthUsWrapper" alt="" coords="1211,81,1359,108"/>
+<area shape="rect" id="node17" href="$classPgp3Gtp7Wrapper.html" title="Pgp3Gtp7Wrapper" alt="" coords="1215,132,1354,159"/>
+<area shape="rect" id="node18" href="$classPgp3Gtp7Tb.html" title="Pgp3Gtp7Tb" alt="" coords="1407,132,1508,159"/>
+<area shape="rect" id="node20" href="$classPgp3Gtx7Wrapper.html" title="Pgp3Gtx7Wrapper" alt="" coords="1215,183,1354,209"/>
 </map>

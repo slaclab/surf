@@ -17,6 +17,7 @@ var classDecoder8b10b =
     [ "dispErr", "classDecoder8b10b.html#a9a2f8db7c884702ae0f84396c475fccb", null ],
     [ "ieee", "classDecoder8b10b.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classDecoder8b10b.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classDecoder8b10b.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classDecoder8b10b.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "Code8b10bPkg", "classDecoder8b10b.html#a5bfd0b058753e03e50aee432e4c32909", null ]
 ];

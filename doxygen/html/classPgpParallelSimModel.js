@@ -26,6 +26,7 @@ var classPgpParallelSimModel =
     [ "pgpOut", "classPgpParallelSimModel.html#ae8f311342ee6df5e630017b59c065ea0", null ],
     [ "ieee", "classPgpParallelSimModel.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classPgpParallelSimModel.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classPgpParallelSimModel.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classPgpParallelSimModel.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "Pgp2bPkg", "classPgpParallelSimModel.html#af22dbf60bec6f633c7d35bf9c0940817", null ],
     [ "AxiStreamPkg", "classPgpParallelSimModel.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ]

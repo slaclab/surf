@@ -32,6 +32,7 @@ var classGigEthGth7 =
     [ "gtRxN", "classGigEthGth7.html#afa7bd5fde3aee86e886acc3ce073c8bf", null ],
     [ "ieee", "classGigEthGth7.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classGigEthGth7.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classGigEthGth7.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classGigEthGth7.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiStreamPkg", "classGigEthGth7.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
     [ "AxiLitePkg", "classGigEthGth7.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],

@@ -155,6 +155,7 @@ var classGtp7Core =
     [ "drpDo", "classGtp7Core.html#a35d29709213ff1bf8d7c959f49a97d87", null ],
     [ "ieee", "classGtp7Core.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classGtp7Core.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classGtp7Core.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classGtp7Core.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "UNISIM", "classGtp7Core.html#afd13b50585152f6756d196bf3f1c52ac", null ],
     [ "VCOMPONENTS", "classGtp7Core.html#af7dabcc6b22cfac21d9188de6b952c14", null ]

@@ -2,12 +2,8 @@ var classSsiIncrementingTx =
 [
     [ "SsiIncrementingTx.rtl", "classSsiIncrementingTx_1_1rtl.html", "classSsiIncrementingTx_1_1rtl" ],
     [ "TPD_G", "classSsiIncrementingTx.html#a67a837684e4f18c2d236ac1d053b419b", null ],
-    [ "BRAM_EN_G", "classSsiIncrementingTx.html#a1c9465c9431492ec79ab48827b02c46f", null ],
-    [ "XIL_DEVICE_G", "classSsiIncrementingTx.html#ad73f3e1bc362541946cf886a1bf2c994", null ],
-    [ "USE_BUILT_IN_G", "classSsiIncrementingTx.html#adb189c82e573abb099bff16ab4b87de8", null ],
+    [ "MEMORY_TYPE_G", "classSsiIncrementingTx.html#ac19eab973cb6c0196eed65d74fc49dca", null ],
     [ "GEN_SYNC_FIFO_G", "classSsiIncrementingTx.html#a74265af003d7cd4b0443ced520ac6722", null ],
-    [ "ALTERA_SYN_G", "classSsiIncrementingTx.html#a2afbf8a03cda51334c3961300c26d234", null ],
-    [ "ALTERA_RAM_G", "classSsiIncrementingTx.html#a19f5205f8fd4959c02e7b32fe19bbbc7", null ],
     [ "CASCADE_SIZE_G", "classSsiIncrementingTx.html#a0020cacf583e8690929de5d04b60851c", null ],
     [ "FIFO_ADDR_WIDTH_G", "classSsiIncrementingTx.html#aa6569dec456d16b555ae095a761f9533", null ],
     [ "FIFO_PAUSE_THRESH_G", "classSsiIncrementingTx.html#af34a1d4134c8125deb726275810eddf1", null ],
@@ -30,6 +26,7 @@ var classSsiIncrementingTx =
     [ "std_logic_1164", "classSsiIncrementingTx.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_unsigned", "classSsiIncrementingTx.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "std_logic_arith", "classSsiIncrementingTx.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
+    [ "surf", "classSsiIncrementingTx.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classSsiIncrementingTx.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiStreamPkg", "classSsiIncrementingTx.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
     [ "SsiPkg", "classSsiIncrementingTx.html#a8b54e22b2a07048034b61d5e4ba396e3", null ]

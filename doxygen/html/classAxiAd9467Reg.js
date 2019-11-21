@@ -20,6 +20,7 @@ var classAxiAd9467Reg =
     [ "std_logic_1164", "classAxiAd9467Reg.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_unsigned", "classAxiAd9467Reg.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "std_logic_arith", "classAxiAd9467Reg.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
+    [ "surf", "classAxiAd9467Reg.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classAxiAd9467Reg.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classAxiAd9467Reg.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
     [ "AxiAd9467Pkg", "classAxiAd9467Reg.html#ac781ddb975155a24a80c03af77271170", null ]

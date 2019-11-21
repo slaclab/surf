@@ -24,6 +24,7 @@ var classAxiMicronMt28ewReg =
     [ "std_logic_1164", "classAxiMicronMt28ewReg.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_unsigned", "classAxiMicronMt28ewReg.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "std_logic_arith", "classAxiMicronMt28ewReg.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
+    [ "surf", "classAxiMicronMt28ewReg.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classAxiMicronMt28ewReg.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classAxiMicronMt28ewReg.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ]
 ];

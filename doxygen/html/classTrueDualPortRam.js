@@ -3,7 +3,6 @@ var classTrueDualPortRam =
     [ "TrueDualPortRam.rtl", "classTrueDualPortRam_1_1rtl.html", "classTrueDualPortRam_1_1rtl" ],
     [ "TPD_G", "classTrueDualPortRam.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "RST_POLARITY_G", "classTrueDualPortRam.html#a8a9f56ec06b173cf46dc7160fd7c1f30", null ],
-    [ "ALTERA_RAM_G", "classTrueDualPortRam.html#a19f5205f8fd4959c02e7b32fe19bbbc7", null ],
     [ "DOA_REG_G", "classTrueDualPortRam.html#a8de8a468cd0588304c3d942978f7d102", null ],
     [ "DOB_REG_G", "classTrueDualPortRam.html#a6b0e2c721d28285878a5784dcf093791", null ],
     [ "MODE_G", "classTrueDualPortRam.html#a227400c3f7cf936f7cd4cc432537856b", null ],
@@ -33,5 +32,6 @@ var classTrueDualPortRam =
     [ "ieee", "classTrueDualPortRam.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classTrueDualPortRam.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_unsigned", "classTrueDualPortRam.html#a598da929e807d58939b47499e8bc9fa8", null ],
+    [ "surf", "classTrueDualPortRam.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classTrueDualPortRam.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

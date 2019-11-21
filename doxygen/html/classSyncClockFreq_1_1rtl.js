@@ -1,8 +1,8 @@
 var classSyncClockFreq_1_1rtl =
 [
-    [ "PROCESS_92", "classSyncClockFreq_1_1rtl.html#a43194b1435cec004c302aded47993fd0", null ],
-    [ "PROCESS_93", "classSyncClockFreq_1_1rtl.html#a9f69ee8e0cf12eb2e1f16c03e8b26fa2", null ],
-    [ "PROCESS_94", "classSyncClockFreq_1_1rtl.html#aad8fe29c82f5cae81eab223b10bd1135", null ],
+    [ "PROCESS_85", "classSyncClockFreq_1_1rtl.html#af05169e94cb8e3efa94c702c42794d24", null ],
+    [ "PROCESS_86", "classSyncClockFreq_1_1rtl.html#a5556159910444baeebce9114bd1fdc0a", null ],
+    [ "PROCESS_87", "classSyncClockFreq_1_1rtl.html#abd62c8a01668586f57f081cf6205351a", null ],
     [ "REFRESH_MAX_CNT_C", "classSyncClockFreq_1_1rtl.html#a039258d9388461c7b445255495b2a94d", null ],
     [ "CLK_LOWER_LIMIT_C", "classSyncClockFreq_1_1rtl.html#ada576bdb013301e3c51b431bd8279509", null ],
     [ "CLK_UPPER_LIMIT_C", "classSyncClockFreq_1_1rtl.html#a75e47619b99a2711e55e80777e024a8e", null ],
@@ -20,13 +20,13 @@ var classSyncClockFreq_1_1rtl =
     [ "accum", "classSyncClockFreq_1_1rtl.html#ad92a4e3ae9bddb331ec41369343dd00c", null ],
     [ "cntOutDly", "classSyncClockFreq_1_1rtl.html#a70efdfb9694fff7bc4f82cc4312aea8b", null ],
     [ "diffCnt", "classSyncClockFreq_1_1rtl.html#a74032e6243d787e7ce30f1411f8f5483", null ],
-    [ "use_dsp48", "classSyncClockFreq_1_1rtl.html#a073a21d3f84f2260308186db63c60acd", null ],
-    [ "use_dsp48", "classSyncClockFreq_1_1rtl.html#a5ed30df90cbe9ba2dd215c4aed6298c0", null ],
-    [ "use_dsp48", "classSyncClockFreq_1_1rtl.html#aa7518fb4c9e4d6d24e30085c22315d81", null ],
-    [ "use_dsp48", "classSyncClockFreq_1_1rtl.html#abf402e3f07ed4a66e3f2cb578feabb5e", null ],
-    [ "use_dsp48", "classSyncClockFreq_1_1rtl.html#a472efd2655150b7787f5e4d25e58f63c", null ],
-    [ "use_dsp48", "classSyncClockFreq_1_1rtl.html#a5caccf3deca8994ef6038a1f0fb16922", null ],
-    [ "use_dsp48", "classSyncClockFreq_1_1rtl.html#a98247a29d1bed746f3e985ff3e80bb4f", null ],
+    [ "use_dsp", "classSyncClockFreq_1_1rtl.html#a7b6aa911f6ca7c7d45cc714960b45f30", null ],
+    [ "use_dsp", "classSyncClockFreq_1_1rtl.html#a82127d6b8c8904cabca39b4879c1feca", null ],
+    [ "use_dsp", "classSyncClockFreq_1_1rtl.html#aeb173e7d2297ee655c815139d42d267c", null ],
+    [ "use_dsp", "classSyncClockFreq_1_1rtl.html#a1d2423b0e1baea19ae9a6ff06236db94", null ],
+    [ "use_dsp", "classSyncClockFreq_1_1rtl.html#a1fe38f40aa020a0be0c9b61768a6ea71", null ],
+    [ "use_dsp", "classSyncClockFreq_1_1rtl.html#a7eac131343519e94e2bd494e26ba5fe1", null ],
+    [ "use_dsp", "classSyncClockFreq_1_1rtl.html#aec8bbe422d72a47bea1f4234ec1b27e5", null ],
     [ "synchronizerfifo_in", "classSyncClockFreq_1_1rtl.html#a9dc524bb5a423f8969102624f4a3033f", null ],
     [ "u_sync", "classSyncClockFreq_1_1rtl.html#a5bd74059dbf3302fdda74019c80c4458", null ]
 ];

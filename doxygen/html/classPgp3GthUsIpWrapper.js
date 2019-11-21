@@ -47,6 +47,7 @@ var classPgp3GthUsIpWrapper =
     [ "axilWriteSlave", "classPgp3GthUsIpWrapper.html#a745fe963b807b068ea5755f895b6d0fa", null ],
     [ "ieee", "classPgp3GthUsIpWrapper.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classPgp3GthUsIpWrapper.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classPgp3GthUsIpWrapper.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classPgp3GthUsIpWrapper.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classPgp3GthUsIpWrapper.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ]
 ];

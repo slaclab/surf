@@ -3,12 +3,9 @@ var classFifoAsync =
     [ "mapping", "classFifoAsync_1_1mapping.html", "classFifoAsync_1_1mapping" ],
     [ "TPD_G", "classFifoAsync.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "RST_POLARITY_G", "classFifoAsync.html#a8a9f56ec06b173cf46dc7160fd7c1f30", null ],
-    [ "BRAM_EN_G", "classFifoAsync.html#a1c9465c9431492ec79ab48827b02c46f", null ],
+    [ "MEMORY_TYPE_G", "classFifoAsync.html#ac19eab973cb6c0196eed65d74fc49dca", null ],
     [ "BYP_RAM_G", "classFifoAsync.html#a8977203ddc2debf324097e3fd9ab1381", null ],
     [ "FWFT_EN_G", "classFifoAsync.html#ac9d0fd649bb09079eb97e0431bab5b80", null ],
-    [ "USE_DSP48_G", "classFifoAsync.html#a7a8db7e7131ac4fe84ceeb9010cb34c7", null ],
-    [ "ALTERA_SYN_G", "classFifoAsync.html#a1669478a44dab111adcd8bbceb192b02", null ],
-    [ "ALTERA_RAM_G", "classFifoAsync.html#a19f5205f8fd4959c02e7b32fe19bbbc7", null ],
     [ "SYNC_STAGES_G", "classFifoAsync.html#ad31992c24dd9f068b58c35ba788996cb", null ],
     [ "PIPE_STAGES_G", "classFifoAsync.html#aa5b701cabb832036aea0132bf6159d5a", null ],
     [ "DATA_WIDTH_G", "classFifoAsync.html#affd59283310705939da4070a8ed00c30", null ],
@@ -40,5 +37,6 @@ var classFifoAsync =
     [ "std_logic_1164", "classFifoAsync.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_arith", "classFifoAsync.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
     [ "std_logic_unsigned", "classFifoAsync.html#a598da929e807d58939b47499e8bc9fa8", null ],
+    [ "surf", "classFifoAsync.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classFifoAsync.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

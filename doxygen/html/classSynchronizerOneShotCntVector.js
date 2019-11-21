@@ -8,7 +8,7 @@ var classSynchronizerOneShotCntVector =
     [ "RELEASE_DELAY_G", "classSynchronizerOneShotCntVector.html#ab726fbb299abd7582750cdb5343a55d5", null ],
     [ "IN_POLARITY_G", "classSynchronizerOneShotCntVector.html#ab564eedd69ac47d3b05b500b5ad936bd", null ],
     [ "OUT_POLARITY_G", "classSynchronizerOneShotCntVector.html#a0862ed450b363e43963bbec61cc5f9d3", null ],
-    [ "USE_DSP48_G", "classSynchronizerOneShotCntVector.html#a7a8db7e7131ac4fe84ceeb9010cb34c7", null ],
+    [ "USE_DSP_G", "classSynchronizerOneShotCntVector.html#ac724dc2108bd111c20e5b364a4da4534", null ],
     [ "SYNTH_CNT_G", "classSynchronizerOneShotCntVector.html#afcb1ad088fa47d7232fcc4951acbe767", null ],
     [ "CNT_RST_EDGE_G", "classSynchronizerOneShotCntVector.html#a3e647aa6b43472e890d277ba53cf7387", null ],
     [ "CNT_WIDTH_G", "classSynchronizerOneShotCntVector.html#a5587b06c06b38cb164d2f79a8c706202", null ],
@@ -24,5 +24,6 @@ var classSynchronizerOneShotCntVector =
     [ "rdRst", "classSynchronizerOneShotCntVector.html#a1fa4849f8fb95c5edc8775d18b20d4e2", null ],
     [ "ieee", "classSynchronizerOneShotCntVector.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classSynchronizerOneShotCntVector.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classSynchronizerOneShotCntVector.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classSynchronizerOneShotCntVector.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

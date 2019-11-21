@@ -10,6 +10,6 @@ var classHeartbeat_1_1rtl =
     [ "REG_INIT_C", "classHeartbeat_1_1rtl.html#a0910b7930be011c323af39f242334703", null ],
     [ "r", "classHeartbeat_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3", null ],
     [ "rin", "classHeartbeat_1_1rtl.html#a758a8cbb78916a3911d410a62191310d", null ],
-    [ "use_dsp48", "classHeartbeat_1_1rtl.html#a073a21d3f84f2260308186db63c60acd", null ],
-    [ "use_dsp48", "classHeartbeat_1_1rtl.html#af227ada10f4a6440579eb917ac11743a", null ]
+    [ "use_dsp", "classHeartbeat_1_1rtl.html#a7b6aa911f6ca7c7d45cc714960b45f30", null ],
+    [ "use_dsp", "classHeartbeat_1_1rtl.html#a9f61bfa9a9757c85beff4e1805e90f66", null ]
 ];

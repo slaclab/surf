@@ -23,5 +23,6 @@ var classAd9249 =
     [ "std_logic_1164", "classAd9249.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "UNISIM", "classAd9249.html#afd13b50585152f6756d196bf3f1c52ac", null ],
     [ "vcomponents", "classAd9249.html#aa1cb22e959d47364391e5eb4ef86927c", null ],
+    [ "surf", "classAd9249.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classAd9249.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

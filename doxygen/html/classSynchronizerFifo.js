@@ -3,9 +3,7 @@ var classSynchronizerFifo =
     [ "SynchronizerFifo.rtl", "classSynchronizerFifo_1_1rtl.html", "classSynchronizerFifo_1_1rtl" ],
     [ "TPD_G", "classSynchronizerFifo.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "COMMON_CLK_G", "classSynchronizerFifo.html#a762b446ddef001083e8cfc52dc38385f", null ],
-    [ "BRAM_EN_G", "classSynchronizerFifo.html#af5119c0b605c18019332c4a648fa6880", null ],
-    [ "ALTERA_SYN_G", "classSynchronizerFifo.html#a1669478a44dab111adcd8bbceb192b02", null ],
-    [ "ALTERA_RAM_G", "classSynchronizerFifo.html#a19f5205f8fd4959c02e7b32fe19bbbc7", null ],
+    [ "MEMORY_TYPE_G", "classSynchronizerFifo.html#a2ac0d7ff1e94706cbbbe35f33f5acdca", null ],
     [ "SYNC_STAGES_G", "classSynchronizerFifo.html#a679052ea3c06e78e1226fcab1eb05fd6", null ],
     [ "PIPE_STAGES_G", "classSynchronizerFifo.html#a690564d64aa8e37d3ffa7aa2c377f50e", null ],
     [ "DATA_WIDTH_G", "classSynchronizerFifo.html#a04b2b321f81f02681a52c6c7d92ff12e", null ],
@@ -23,5 +21,6 @@ var classSynchronizerFifo =
     [ "std_logic_1164", "classSynchronizerFifo.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_arith", "classSynchronizerFifo.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
     [ "std_logic_unsigned", "classSynchronizerFifo.html#a598da929e807d58939b47499e8bc9fa8", null ],
+    [ "surf", "classSynchronizerFifo.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classSynchronizerFifo.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

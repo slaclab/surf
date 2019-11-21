@@ -1,13 +1,12 @@
 <map id="Pgp3RxProtocol" name="Pgp3RxProtocol">
-<area shape="rect" id="node4" href="$classPgp3Rx.html" title="Pgp3Rx" alt="" coords="317,229,388,256"/>
-<area shape="rect" id="node2" href="$classSynchronizerEdge.html" title="SynchronizerEdge" alt="" coords="283,80,422,107"/>
-<area shape="rect" id="node3" href="$classSynchronizer.html" title="Synchronizer" alt="" coords="299,5,406,32"/>
-<area shape="rect" id="node5" href="$classPgp3Core.html" title="Pgp3Core" alt="" coords="260,304,344,331"/>
-<area shape="rect" id="node14" href="$classPgp3Tb.html" title="Pgp3Tb" alt="" coords="368,304,439,331"/>
+<area shape="rect" id="node4" href="$classPgp3Rx.html" title="Pgp3Rx" alt="" coords="263,229,333,256"/>
+<area shape="rect" id="node2" href="$classSynchronizerEdge.html" title="SynchronizerEdge" alt="" coords="229,80,367,107"/>
+<area shape="rect" id="node3" href="$classSynchronizer.html" title="Synchronizer" alt="" coords="245,5,351,32"/>
+<area shape="rect" id="node5" href="$classPgp3Core.html" title="Pgp3Core" alt="" coords="205,304,289,331"/>
+<area shape="rect" id="node13" href="$classPgp3Tb.html" title="Pgp3Tb" alt="" coords="313,304,384,331"/>
 <area shape="rect" id="node6" href="$classPgp3GthUs.html" title="Pgp3GthUs" alt="" coords="59,379,153,405"/>
 <area shape="rect" id="node8" href="$classPgp3Gtp7.html" title="Pgp3Gtp7" alt="" coords="205,379,290,405"/>
-<area shape="rect" id="node11" href="$classPgp3Gtx7.html" title="Pgp3Gtx7" alt="" coords="314,379,399,405"/>
-<area shape="rect" id="node13" href="$classPgp3Tb2.html" title="Pgp3Tb2" alt="" coords="424,379,503,405"/>
+<area shape="rect" id="node11" href="$classPgp3Gtx7.html" title="Pgp3Gtx7" alt="" coords="341,379,426,405"/>
 <area shape="rect" id="node7" href="$classPgp3GthUsWrapper.html" title="Pgp3GthUsWrapper" alt="" coords="5,453,153,480"/>
 <area shape="rect" id="node9" href="$classPgp3Gtp7Wrapper.html" title="Pgp3Gtp7Wrapper" alt="" coords="178,453,317,480"/>
 <area shape="rect" id="node10" href="$classPgp3Gtp7Tb.html" title="Pgp3Gtp7Tb" alt="" coords="197,528,298,555"/>

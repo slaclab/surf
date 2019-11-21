@@ -10,6 +10,7 @@ var classGthe3ChannelDummy =
     [ "gtTxN", "classGthe3ChannelDummy.html#aa59fab5da444d6c499cd70dd1c84d65d", null ],
     [ "ieee", "classGthe3ChannelDummy.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classGthe3ChannelDummy.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classGthe3ChannelDummy.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classGthe3ChannelDummy.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "unisim", "classGthe3ChannelDummy.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
     [ "vcomponents", "classGthe3ChannelDummy.html#aa1cb22e959d47364391e5eb4ef86927c", null ]

@@ -13,6 +13,7 @@ var classIprog =
     [ "bootAddress", "classIprog.html#a128699ea3a247271662a0872d9c9a5a1", null ],
     [ "ieee", "classIprog.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classIprog.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classIprog.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classIprog.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "TextUtilPkg", "classIprog.html#aa9c868aa3ebeb0772295885509c0d4f2", null ]
 ];

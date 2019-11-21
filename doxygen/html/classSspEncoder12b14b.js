@@ -20,6 +20,7 @@ var classSspEncoder12b14b =
     [ "std_logic_1164", "classSspEncoder12b14b.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "STD_LOGIC_UNSIGNED", "classSspEncoder12b14b.html#a241c3e72dd8024cc8ae831b1b2aed7db", null ],
     [ "STD_LOGIC_ARITH", "classSspEncoder12b14b.html#a5d8c1f7c620a51582be96d2a58d40293", null ],
+    [ "surf", "classSspEncoder12b14b.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classSspEncoder12b14b.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "Code12b14bPkg", "classSspEncoder12b14b.html#a0018217e3290ee7b5068acba73d48d26", null ]
 ];

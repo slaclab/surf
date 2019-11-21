@@ -19,5 +19,6 @@ var classSaciSlave2 =
     [ "IEEE", "classSaciSlave2.html#ae4f03c286607f3181e16b9aa12d0c6d4", null ],
     [ "std_logic_1164", "classSaciSlave2.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "numeric_std", "classSaciSlave2.html#a2edc34402b573437d5f25fa90ba4013e", null ],
+    [ "surf", "classSaciSlave2.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classSaciSlave2.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

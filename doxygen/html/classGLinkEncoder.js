@@ -13,6 +13,7 @@ var classGLinkEncoder =
     [ "ieee", "classGLinkEncoder.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classGLinkEncoder.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "NUMERIC_STD", "classGLinkEncoder.html#ae00f3f04545af57582ff10609eee23e2", null ],
+    [ "surf", "classGLinkEncoder.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classGLinkEncoder.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "GLinkPkg", "classGLinkEncoder.html#a0be6964de78778639952181ef34db518", null ]
 ];

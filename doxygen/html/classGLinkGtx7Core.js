@@ -149,6 +149,7 @@ var classGLinkGtx7Core =
     [ "loopbackIn", "classGLinkGtx7Core.html#a8b34c34a7b13b37f497096ddee3eca51", null ],
     [ "ieee", "classGLinkGtx7Core.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classGLinkGtx7Core.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classGLinkGtx7Core.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classGLinkGtx7Core.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "UNISIM", "classGLinkGtx7Core.html#afd13b50585152f6756d196bf3f1c52ac", null ],
     [ "VCOMPONENTS", "classGLinkGtx7Core.html#af7dabcc6b22cfac21d9188de6b952c14", null ]

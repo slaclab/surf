@@ -42,5 +42,6 @@ var classGtp16FixedLatCore =
     [ "std_logic_1164", "classGtp16FixedLatCore.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "UNISIM", "classGtp16FixedLatCore.html#afd13b50585152f6756d196bf3f1c52ac", null ],
     [ "VCOMPONENTS", "classGtp16FixedLatCore.html#af7dabcc6b22cfac21d9188de6b952c14", null ],
+    [ "surf", "classGtp16FixedLatCore.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classGtp16FixedLatCore.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

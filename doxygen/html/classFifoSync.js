@@ -4,12 +4,9 @@ var classFifoSync =
     [ "TPD_G", "classFifoSync.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "RST_POLARITY_G", "classFifoSync.html#a8a9f56ec06b173cf46dc7160fd7c1f30", null ],
     [ "RST_ASYNC_G", "classFifoSync.html#a123a3d9a6e9648e763d21c0281ee7ecd", null ],
-    [ "BRAM_EN_G", "classFifoSync.html#a1c9465c9431492ec79ab48827b02c46f", null ],
+    [ "MEMORY_TYPE_G", "classFifoSync.html#ac19eab973cb6c0196eed65d74fc49dca", null ],
     [ "BYP_RAM_G", "classFifoSync.html#a8977203ddc2debf324097e3fd9ab1381", null ],
     [ "FWFT_EN_G", "classFifoSync.html#ac9d0fd649bb09079eb97e0431bab5b80", null ],
-    [ "USE_DSP48_G", "classFifoSync.html#a7a8db7e7131ac4fe84ceeb9010cb34c7", null ],
-    [ "ALTERA_SYN_G", "classFifoSync.html#a1669478a44dab111adcd8bbceb192b02", null ],
-    [ "ALTERA_RAM_G", "classFifoSync.html#a19f5205f8fd4959c02e7b32fe19bbbc7", null ],
     [ "PIPE_STAGES_G", "classFifoSync.html#aa5b701cabb832036aea0132bf6159d5a", null ],
     [ "DATA_WIDTH_G", "classFifoSync.html#affd59283310705939da4070a8ed00c30", null ],
     [ "ADDR_WIDTH_G", "classFifoSync.html#a8d3ac6f28bddcb70f4274b04cdcb55a2", null ],
@@ -38,5 +35,6 @@ var classFifoSync =
     [ "std_logic_1164", "classFifoSync.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_arith", "classFifoSync.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
     [ "std_logic_unsigned", "classFifoSync.html#a598da929e807d58939b47499e8bc9fa8", null ],
+    [ "surf", "classFifoSync.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classFifoSync.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

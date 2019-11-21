@@ -51,6 +51,7 @@ var classRssiCore =
     [ "std_logic_unsigned", "classRssiCore.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "std_logic_arith", "classRssiCore.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
     [ "math_real", "classRssiCore.html#acb415f2e3abd505b8338da5b5bf9e2fb", null ],
+    [ "surf", "classRssiCore.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classRssiCore.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "RssiPkg", "classRssiCore.html#ab9163ff57f3de727a3283790a46df5d3", null ],
     [ "SsiPkg", "classRssiCore.html#a8b54e22b2a07048034b61d5e4ba396e3", null ],

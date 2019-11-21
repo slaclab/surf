@@ -1,15 +1,15 @@
 var classTrueDualPortRam_1_1rtl =
 [
-    [ "PROCESS_82", "classTrueDualPortRam_1_1rtl.html#a44bc5a0656c527436b1da5a7cb6422cc", null ],
+    [ "PROCESS_75", "classTrueDualPortRam_1_1rtl.html#adb3f4df9c33c1083f834b4f00a9304af", null ],
+    [ "PROCESS_76", "classTrueDualPortRam_1_1rtl.html#a86f78b79247e2541825c982c9bbc0d4e", null ],
+    [ "PROCESS_77", "classTrueDualPortRam_1_1rtl.html#a56f6fe4dc50d8a00893fa764a1c67b75", null ],
+    [ "PROCESS_78", "classTrueDualPortRam_1_1rtl.html#a5f61e001433e40bb457186a18fa6a300", null ],
+    [ "PROCESS_79", "classTrueDualPortRam_1_1rtl.html#a0eac179289a9465cb5a6d16886236d03", null ],
+    [ "PROCESS_80", "classTrueDualPortRam_1_1rtl.html#a14a954ea10ed446e2011b558dba4422e", null ],
+    [ "PROCESS_81", "classTrueDualPortRam_1_1rtl.html#a2e8610642229b93df015e4f8db5fde24", null ],
+    [ "PROCESS_82", "classTrueDualPortRam_1_1rtl.html#ae39d9ecb956b43c47690ca501473e6ae", null ],
     [ "PROCESS_83", "classTrueDualPortRam_1_1rtl.html#a6a1df452c7d7cdd30764f0566367d16e", null ],
     [ "PROCESS_84", "classTrueDualPortRam_1_1rtl.html#a79b56fd4d7b17ad9ea6c80ab8aea8444", null ],
-    [ "PROCESS_85", "classTrueDualPortRam_1_1rtl.html#a606caafc39ba0c4e3ebc4bf30105d635", null ],
-    [ "PROCESS_86", "classTrueDualPortRam_1_1rtl.html#a7a2091022b07f9d87ea9ac969f25a9ad", null ],
-    [ "PROCESS_87", "classTrueDualPortRam_1_1rtl.html#ad51f7f582b3bc62d9db18ac4d7634f1b", null ],
-    [ "PROCESS_88", "classTrueDualPortRam_1_1rtl.html#a6a808648b64b0650723a669793d04cd8", null ],
-    [ "PROCESS_89", "classTrueDualPortRam_1_1rtl.html#ad0933fdddee222c8938d76fa6f0b96b5", null ],
-    [ "PROCESS_90", "classTrueDualPortRam_1_1rtl.html#a8acdfe575b6a10c0a0b1f1a38895b55b", null ],
-    [ "PROCESS_91", "classTrueDualPortRam_1_1rtl.html#ab198f938a55420ec0588ebeaf0e30b16", null ],
     [ "BYTE_WIDTH_C", "classTrueDualPortRam_1_1rtl.html#af3be7b850d222fc8035417e77b9d49c4", null ],
     [ "NUM_BYTES_C", "classTrueDualPortRam_1_1rtl.html#a905ac2c38735862812629186c1507281", null ],
     [ "FULL_DATA_WIDTH_C", "classTrueDualPortRam_1_1rtl.html#af440a0d0ae6bcad9bbeb43fab9f8f64c", null ],
@@ -29,7 +29,5 @@ var classTrueDualPortRam_1_1rtl =
     [ "syn_ramstyle", "classTrueDualPortRam_1_1rtl.html#a1440e400ee512d39b0e6e02fb4579cb9", null ],
     [ "syn_ramstyle", "classTrueDualPortRam_1_1rtl.html#ae25bd1c26e22412fb359ed0e6eea2323", null ],
     [ "syn_keep", "classTrueDualPortRam_1_1rtl.html#ae1e793432d458504a8b9680fad506c38", null ],
-    [ "syn_keep", "classTrueDualPortRam_1_1rtl.html#a67019486f30c001282362e115378b6e5", null ],
-    [ "ramstyle", "classTrueDualPortRam_1_1rtl.html#a90c7c609fb2f005b1f71e5b8c3d246f1", null ],
-    [ "ramstyle", "classTrueDualPortRam_1_1rtl.html#a5d6366831d17e4759822a7e5dcba68b2", null ]
+    [ "syn_keep", "classTrueDualPortRam_1_1rtl.html#a67019486f30c001282362e115378b6e5", null ]
 ];

@@ -5,7 +5,7 @@ var classFifoRdFsm =
     [ "RST_POLARITY_G", "classFifoRdFsm.html#a8a9f56ec06b173cf46dc7160fd7c1f30", null ],
     [ "RST_ASYNC_G", "classFifoRdFsm.html#a123a3d9a6e9648e763d21c0281ee7ecd", null ],
     [ "FIFO_ASYNC_G", "classFifoRdFsm.html#a083b18c2feebc2898d34c57c2a2e28fc", null ],
-    [ "BRAM_EN_G", "classFifoRdFsm.html#a1c9465c9431492ec79ab48827b02c46f", null ],
+    [ "MEMORY_TYPE_G", "classFifoRdFsm.html#ac19eab973cb6c0196eed65d74fc49dca", null ],
     [ "FWFT_EN_G", "classFifoRdFsm.html#ac9d0fd649bb09079eb97e0431bab5b80", null ],
     [ "DATA_WIDTH_G", "classFifoRdFsm.html#affd59283310705939da4070a8ed00c30", null ],
     [ "ADDR_WIDTH_G", "classFifoRdFsm.html#a8d3ac6f28bddcb70f4274b04cdcb55a2", null ],
@@ -32,5 +32,6 @@ var classFifoRdFsm =
     [ "std_logic_1164", "classFifoRdFsm.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_arith", "classFifoRdFsm.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
     [ "std_logic_unsigned", "classFifoRdFsm.html#a598da929e807d58939b47499e8bc9fa8", null ],
+    [ "surf", "classFifoRdFsm.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classFifoRdFsm.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

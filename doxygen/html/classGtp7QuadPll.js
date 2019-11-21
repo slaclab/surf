@@ -30,6 +30,7 @@ var classGtp7QuadPll =
     [ "ieee", "classGtp7QuadPll.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classGtp7QuadPll.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "numeric_std", "classGtp7QuadPll.html#a2edc34402b573437d5f25fa90ba4013e", null ],
+    [ "surf", "classGtp7QuadPll.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classGtp7QuadPll.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classGtp7QuadPll.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
     [ "unisim", "classGtp7QuadPll.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],

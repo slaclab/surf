@@ -1,6 +1,3 @@
 <map id="SaciSlaveRam" name="SaciSlaveRam">
-<area shape="rect" id="node2" href="$classSaciSlaveWrapper.html" title="SaciSlaveWrapper" alt="" coords="103,80,242,107"/>
-<area shape="rect" id="node5" href="$classSaciSlaveWrapperAnalog.html" title="SaciSlaveWrapperAnalog" alt="" coords="266,80,450,107"/>
-<area shape="rect" id="node3" href="$classFrontEndSaciAnalogTb.html" title="FrontEndSaciAnalogTb" alt="" coords="5,155,172,181"/>
-<area shape="rect" id="node4" href="$classFrontEndSaciTb.html" title="FrontEndSaciTb" alt="" coords="196,155,317,181"/>
+<area shape="rect" id="node2" href="$classSaciSlaveWrapper.html" title="SaciSlaveWrapper" alt="" coords="5,80,144,107"/>
 </map>

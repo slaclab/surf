@@ -1,7 +1,7 @@
 var classPgpEthAxiL_1_1rtl =
 [
-    [ "PROCESS_161", "classPgpEthAxiL_1_1rtl.html#a9e7cea6051a05158cc926b82bdde4ce6", null ],
-    [ "PROCESS_162", "classPgpEthAxiL_1_1rtl.html#a483f61e0cac5bf9c2795b6316124306f", null ],
+    [ "PROCESS_152", "classPgpEthAxiL_1_1rtl.html#a4e33ff8cad03eb81bf928622c3964687", null ],
+    [ "PROCESS_153", "classPgpEthAxiL_1_1rtl.html#acdfc4f177c9910078f021d59cc89136b", null ],
     [ "NUM_AXIL_MASTERS_C", "classPgpEthAxiL_1_1rtl.html#a6675d4fc2905fd152d91211f1b197609", null ],
     [ "XBAR_CONFIG_C", "classPgpEthAxiL_1_1rtl.html#aed9eae6209139024401864ff67ab32d0", null ],
     [ "STATUS_SIZE_C", "classPgpEthAxiL_1_1rtl.html#a311ac7cc2e6239f1fb1ad31db42bde76", null ],

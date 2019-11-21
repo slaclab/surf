@@ -2,7 +2,7 @@ var classSyncClockFreq =
 [
     [ "SyncClockFreq.rtl", "classSyncClockFreq_1_1rtl.html", "classSyncClockFreq_1_1rtl" ],
     [ "TPD_G", "classSyncClockFreq.html#a67a837684e4f18c2d236ac1d053b419b", null ],
-    [ "USE_DSP48_G", "classSyncClockFreq.html#a7a8db7e7131ac4fe84ceeb9010cb34c7", null ],
+    [ "USE_DSP_G", "classSyncClockFreq.html#ac724dc2108bd111c20e5b364a4da4534", null ],
     [ "REF_CLK_FREQ_G", "classSyncClockFreq.html#ae63ec347149b3486b5459e57fe9512d4", null ],
     [ "REFRESH_RATE_G", "classSyncClockFreq.html#ad66a6d23811b7b9d6138b972dc394926", null ],
     [ "CLK_LOWER_LIMIT_G", "classSyncClockFreq.html#a3eeb92e57a30752f7b6d3a259198496d", null ],
@@ -21,5 +21,6 @@ var classSyncClockFreq =
     [ "std_logic_1164", "classSyncClockFreq.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_unsigned", "classSyncClockFreq.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "std_logic_arith", "classSyncClockFreq.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
+    [ "surf", "classSyncClockFreq.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classSyncClockFreq.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

@@ -23,5 +23,6 @@ var classGtx7TxRst =
     [ "RETRY_COUNTER", "classGtx7TxRst.html#ae0d0a9a262177a7dbc33431243ae97d2", null ],
     [ "IEEE", "classGtx7TxRst.html#ae4f03c286607f3181e16b9aa12d0c6d4", null ],
     [ "STD_LOGIC_1164", "classGtx7TxRst.html#aa4b2b25246a821511120e3149b003563", null ],
-    [ "NUMERIC_STD", "classGtx7TxRst.html#ae00f3f04545af57582ff10609eee23e2", null ]
+    [ "NUMERIC_STD", "classGtx7TxRst.html#ae00f3f04545af57582ff10609eee23e2", null ],
+    [ "surf", "classGtx7TxRst.html#acabf3ea45bb9ea54f778c194fc238b6d", null ]
 ];

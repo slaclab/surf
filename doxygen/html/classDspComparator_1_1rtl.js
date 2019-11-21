@@ -21,7 +21,7 @@ var classDspComparator_1_1rtl =
     [ "lsEqInt", "classDspComparator_1_1rtl.html#a3f83596e9623e752f3b2ef7b061fe6f5", null ],
     [ "sData", "classDspComparator_1_1rtl.html#a9dd3308c8eddda365df1a2c3da6bc8c1", null ],
     [ "mData", "classDspComparator_1_1rtl.html#a7e05ae3fba50f9ec324eec359685930f", null ],
-    [ "use_dsp48", "classDspComparator_1_1rtl.html#a073a21d3f84f2260308186db63c60acd", null ],
-    [ "use_dsp48", "classDspComparator_1_1rtl.html#ad655f0d3e2c2360333df8f7d3986812f", null ],
+    [ "use_dsp", "classDspComparator_1_1rtl.html#a7b6aa911f6ca7c7d45cc714960b45f30", null ],
+    [ "use_dsp", "classDspComparator_1_1rtl.html#a9f61bfa9a9757c85beff4e1805e90f66", null ],
     [ "u_pipe", "classDspComparator_1_1rtl.html#a5b07930e2c90a4bca6f2b39abc6c9051", null ]
 ];

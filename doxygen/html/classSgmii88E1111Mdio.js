@@ -17,6 +17,7 @@ var classSgmii88E1111Mdio =
     [ "ieee", "classSgmii88E1111Mdio.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classSgmii88E1111Mdio.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "numeric_std", "classSgmii88E1111Mdio.html#a2edc34402b573437d5f25fa90ba4013e", null ],
+    [ "surf", "classSgmii88E1111Mdio.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classSgmii88E1111Mdio.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "MdioPkg", "classSgmii88E1111Mdio.html#af319406b37a0e68ee5acd093b9d93c27", null ]
 ];

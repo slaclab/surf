@@ -15,6 +15,7 @@ var classSaciMasterSync =
     [ "IEEE", "classSaciMasterSync.html#ae4f03c286607f3181e16b9aa12d0c6d4", null ],
     [ "std_logic_1164", "classSaciMasterSync.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "numeric_std", "classSaciMasterSync.html#a2edc34402b573437d5f25fa90ba4013e", null ],
+    [ "surf", "classSaciMasterSync.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classSaciMasterSync.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "SaciMasterPkg", "classSaciMasterSync.html#ab2b935daa6349909236e789cbbc1e0ed", null ]
 ];

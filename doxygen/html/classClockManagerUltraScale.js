@@ -66,6 +66,7 @@ var classClockManagerUltraScale =
     [ "std_logic_arith", "classClockManagerUltraScale.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
     [ "unisim", "classClockManagerUltraScale.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
     [ "vcomponents", "classClockManagerUltraScale.html#aa1cb22e959d47364391e5eb4ef86927c", null ],
+    [ "surf", "classClockManagerUltraScale.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classClockManagerUltraScale.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classClockManagerUltraScale.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ]
 ];

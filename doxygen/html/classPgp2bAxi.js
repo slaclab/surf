@@ -30,6 +30,7 @@ var classPgp2bAxi =
     [ "std_logic_1164", "classPgp2bAxi.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "STD_LOGIC_ARITH", "classPgp2bAxi.html#a5d8c1f7c620a51582be96d2a58d40293", null ],
     [ "STD_LOGIC_UNSIGNED", "classPgp2bAxi.html#a241c3e72dd8024cc8ae831b1b2aed7db", null ],
+    [ "surf", "classPgp2bAxi.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classPgp2bAxi.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classPgp2bAxi.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
     [ "Pgp2bPkg", "classPgp2bAxi.html#af22dbf60bec6f633c7d35bf9c0940817", null ]

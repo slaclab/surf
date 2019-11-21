@@ -13,6 +13,7 @@ var classAxiWritePathMux =
     [ "std_logic_1164", "classAxiWritePathMux.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_arith", "classAxiWritePathMux.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
     [ "std_logic_unsigned", "classAxiWritePathMux.html#a598da929e807d58939b47499e8bc9fa8", null ],
+    [ "surf", "classAxiWritePathMux.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classAxiWritePathMux.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "ArbiterPkg", "classAxiWritePathMux.html#a9a2f725569a035bfe26ecc2121149741", null ],
     [ "AxiPkg", "classAxiWritePathMux.html#a2265afb78be50b98531f22e9da258a54", null ]

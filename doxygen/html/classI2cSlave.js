@@ -18,6 +18,7 @@ var classI2cSlave =
     [ "ieee", "classI2cSlave.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classI2cSlave.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "numeric_std", "classI2cSlave.html#a2edc34402b573437d5f25fa90ba4013e", null ],
+    [ "surf", "classI2cSlave.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classI2cSlave.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "I2cPkg", "classI2cSlave.html#a3345a70e845069bf678d5aa1733529b6", null ],
     [ "stdlib", "classI2cSlave.html#aa82ea1c9566ae673f45256e23997589a", null ]

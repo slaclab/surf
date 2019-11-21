@@ -18,6 +18,7 @@ var classTenGigEthGtx7Clk =
     [ "qpllRst", "classTenGigEthGtx7Clk.html#a094f57df7a2d64631e5b17f6c3bdf3f4", null ],
     [ "ieee", "classTenGigEthGtx7Clk.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classTenGigEthGtx7Clk.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classTenGigEthGtx7Clk.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classTenGigEthGtx7Clk.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "unisim", "classTenGigEthGtx7Clk.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
     [ "vcomponents", "classTenGigEthGtx7Clk.html#aa1cb22e959d47364391e5eb4ef86927c", null ]

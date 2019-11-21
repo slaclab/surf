@@ -4,7 +4,7 @@ var classGearbox_1_1rtl =
     [ "sync", "classGearbox_1_1rtl.html#a6dc554f24ff3c674022897440bab1477", null ],
     [ "MAX_C", "classGearbox_1_1rtl.html#af249406327a2e0e8cd226fbc74af634c", null ],
     [ "MIN_C", "classGearbox_1_1rtl.html#aaaf8e52d7199c720f5a0c1c0e9c43258", null ],
-    [ "SHIFT_WIDTH_C", "classGearbox_1_1rtl.html#adb479db2f26003c98faffc69dd911642", null ],
+    [ "SHIFT_WIDTH_C", "classGearbox_1_1rtl.html#a46d8c41fb95f0965423964cbf337cd24", null ],
     [ "RegType", "classGearbox_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
     [ "masterValid", "classGearbox_1_1rtl.html#a13b28c35f118821f543696eb54d74618", null ],
     [ "shiftReg", "classGearbox_1_1rtl.html#a66efed893e602bda63afc35c0704631d", null ],

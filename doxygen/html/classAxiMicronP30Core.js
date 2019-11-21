@@ -17,6 +17,7 @@ var classAxiMicronP30Core =
     [ "axiRst", "classAxiMicronP30Core.html#a399a775bae9ae4819d5af6838a95e28e", null ],
     [ "ieee", "classAxiMicronP30Core.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classAxiMicronP30Core.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classAxiMicronP30Core.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classAxiMicronP30Core.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classAxiMicronP30Core.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
     [ "AxiMicronP30Pkg", "classAxiMicronP30Core.html#a3d17415484e08cf3844ad92fdbedd66a", null ],

@@ -15,5 +15,6 @@ var classGtx7TxManualPhaseAligner =
     [ "gtTxDlyEn", "classGtx7TxManualPhaseAligner.html#a42b36fcf08284a22e1b8d133c18e2935", null ],
     [ "IEEE", "classGtx7TxManualPhaseAligner.html#ae4f03c286607f3181e16b9aa12d0c6d4", null ],
     [ "STD_LOGIC_1164", "classGtx7TxManualPhaseAligner.html#aa4b2b25246a821511120e3149b003563", null ],
+    [ "surf", "classGtx7TxManualPhaseAligner.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classGtx7TxManualPhaseAligner.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

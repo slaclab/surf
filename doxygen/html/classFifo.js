@@ -5,15 +5,9 @@ var classFifo =
     [ "RST_POLARITY_G", "classFifo.html#a8a9f56ec06b173cf46dc7160fd7c1f30", null ],
     [ "RST_ASYNC_G", "classFifo.html#a123a3d9a6e9648e763d21c0281ee7ecd", null ],
     [ "GEN_SYNC_FIFO_G", "classFifo.html#a74265af003d7cd4b0443ced520ac6722", null ],
-    [ "BRAM_EN_G", "classFifo.html#a1c9465c9431492ec79ab48827b02c46f", null ],
     [ "FWFT_EN_G", "classFifo.html#ac9d0fd649bb09079eb97e0431bab5b80", null ],
     [ "SYNTH_MODE_G", "classFifo.html#a2429d17ce4f9328a982076af9f733ab3", null ],
     [ "MEMORY_TYPE_G", "classFifo.html#ac19eab973cb6c0196eed65d74fc49dca", null ],
-    [ "USE_DSP48_G", "classFifo.html#a7a8db7e7131ac4fe84ceeb9010cb34c7", null ],
-    [ "ALTERA_SYN_G", "classFifo.html#a1669478a44dab111adcd8bbceb192b02", null ],
-    [ "ALTERA_RAM_G", "classFifo.html#a19f5205f8fd4959c02e7b32fe19bbbc7", null ],
-    [ "USE_BUILT_IN_G", "classFifo.html#adb189c82e573abb099bff16ab4b87de8", null ],
-    [ "XIL_DEVICE_G", "classFifo.html#ad73f3e1bc362541946cf886a1bf2c994", null ],
     [ "SYNC_STAGES_G", "classFifo.html#a679052ea3c06e78e1226fcab1eb05fd6", null ],
     [ "PIPE_STAGES_G", "classFifo.html#a690564d64aa8e37d3ffa7aa2c377f50e", null ],
     [ "DATA_WIDTH_G", "classFifo.html#a04b2b321f81f02681a52c6c7d92ff12e", null ],
@@ -44,5 +38,6 @@ var classFifo =
     [ "ieee", "classFifo.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classFifo.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "numeric_std", "classFifo.html#a2edc34402b573437d5f25fa90ba4013e", null ],
+    [ "surf", "classFifo.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classFifo.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

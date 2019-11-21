@@ -1,6 +1,7 @@
 var classGearboxTb_1_1sim =
 [
     [ "tb", "classGearboxTb_1_1sim.html#af98961406919697b473f02efd3507d11", null ],
+    [ "PROCESS_50", "classGearboxTb_1_1sim.html#aaa0fc3eae40d194241fcea787e5fbfee", null ],
     [ "TPD_G", "classGearboxTb_1_1sim.html#ae1b9083af233edd49d7c57de1ce468f7", null ],
     [ "INPUT_WIDTH_G", "classGearboxTb_1_1sim.html#a5b7d0c37594bcd55f4d8f7894a734558", null ],
     [ "OUTPUT_WIDTH_G", "classGearboxTb_1_1sim.html#aba69764ba57c4b2de6647a257199c22b", null ],
@@ -22,9 +23,12 @@ var classGearboxTb_1_1sim =
     [ "masterReady_1", "classGearboxTb_1_1sim.html#aa1dbd3ae4d77419d275b0443c43a7e25", null ],
     [ "slip_1", "classGearboxTb_1_1sim.html#a4808d860ff4d8d19ed4b5312b5fec8d4", null ],
     [ "startOfSeq_1", "classGearboxTb_1_1sim.html#a3b865ae8e4ed73b981afb327c33c30dd", null ],
+    [ "slip", "classGearboxTb_1_1sim.html#a6994ab54660dbe0330092e56ca7a1bf0", null ],
+    [ "slipCnt", "classGearboxTb_1_1sim.html#a7548456d0de06046798fc9f641a176c7", null ],
     [ "u_fifoasync_1", "classGearboxTb_1_1sim.html#a46c06114ebda07bdf4d678c2e8b63cb8", null ],
     [ "u_gearbox_0", "classGearboxTb_1_1sim.html#a8c91378b3810cfc569c03c74523073bc", null ],
     [ "u_gearbox_1", "classGearboxTb_1_1sim.html#a9c8c14fe9f6a335204136e4e5feb4409", null ],
     [ "u_clkrst_1", "classGearboxTb_1_1sim.html#aac18670a73b9fc2a2a4ec0cb9a339244", null ],
-    [ "u_clkrst_2", "classGearboxTb_1_1sim.html#ad132420c35c6e3be12cd5a85a1fc8f7d", null ]
+    [ "u_clkrst_2", "classGearboxTb_1_1sim.html#ad132420c35c6e3be12cd5a85a1fc8f7d", null ],
+    [ "u_gearbox_test", "classGearboxTb_1_1sim.html#af0da8d31493d64cf7a20a28bdbcbae0d", null ]
 ];

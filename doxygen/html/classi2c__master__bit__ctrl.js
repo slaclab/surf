@@ -23,5 +23,6 @@ var classi2c__master__bit__ctrl =
     [ "sda_oen", "classi2c__master__bit__ctrl.html#a0b4b49b4b0e9738cf00141b163cf43bb", null ],
     [ "ieee", "classi2c__master__bit__ctrl.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classi2c__master__bit__ctrl.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classi2c__master__bit__ctrl.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "stdlib", "classi2c__master__bit__ctrl.html#aa82ea1c9566ae673f45256e23997589a", null ]
 ];

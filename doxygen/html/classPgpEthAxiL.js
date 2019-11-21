@@ -39,6 +39,7 @@ var classPgpEthAxiL =
     [ "std_logic_1164", "classPgpEthAxiL.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "STD_LOGIC_ARITH", "classPgpEthAxiL.html#a5d8c1f7c620a51582be96d2a58d40293", null ],
     [ "STD_LOGIC_UNSIGNED", "classPgpEthAxiL.html#a241c3e72dd8024cc8ae831b1b2aed7db", null ],
+    [ "surf", "classPgpEthAxiL.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classPgpEthAxiL.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classPgpEthAxiL.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
     [ "PgpEthPkg", "classPgpEthAxiL.html#a6925d16dcaaa22ab8e7664de202dcefb", null ]

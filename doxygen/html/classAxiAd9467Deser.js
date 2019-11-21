@@ -18,6 +18,7 @@ var classAxiAd9467Deser =
     [ "std_logic_1164", "classAxiAd9467Deser.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_unsigned", "classAxiAd9467Deser.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "std_logic_arith", "classAxiAd9467Deser.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
+    [ "surf", "classAxiAd9467Deser.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classAxiAd9467Deser.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiAd9467Pkg", "classAxiAd9467Deser.html#ac781ddb975155a24a80c03af77271170", null ],
     [ "unisim", "classAxiAd9467Deser.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],

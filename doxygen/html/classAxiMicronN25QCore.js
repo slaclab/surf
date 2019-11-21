@@ -21,6 +21,7 @@ var classAxiMicronN25QCore =
     [ "axiRst", "classAxiMicronN25QCore.html#a399a775bae9ae4819d5af6838a95e28e", null ],
     [ "ieee", "classAxiMicronN25QCore.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classAxiMicronN25QCore.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classAxiMicronN25QCore.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classAxiMicronN25QCore.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classAxiMicronN25QCore.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
     [ "unisim", "classAxiMicronN25QCore.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],

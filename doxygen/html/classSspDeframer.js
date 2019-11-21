@@ -27,5 +27,6 @@ var classSspDeframer =
     [ "std_logic_1164", "classSspDeframer.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "STD_LOGIC_UNSIGNED", "classSspDeframer.html#a241c3e72dd8024cc8ae831b1b2aed7db", null ],
     [ "STD_LOGIC_ARITH", "classSspDeframer.html#a5d8c1f7c620a51582be96d2a58d40293", null ],
+    [ "surf", "classSspDeframer.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classSspDeframer.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

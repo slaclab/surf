@@ -1,7 +1,7 @@
 var classSyncMinMax_1_1rtl =
 [
-    [ "PROCESS_95", "classSyncMinMax_1_1rtl.html#a212c0f68e076616429c89be158534c0f", null ],
-    [ "PROCESS_96", "classSyncMinMax_1_1rtl.html#a4dd6c407e25e539b74554b4175fbf134", null ],
+    [ "PROCESS_88", "classSyncMinMax_1_1rtl.html#a2a48adb5a4fa922a25c2dc96ba862728", null ],
+    [ "PROCESS_89", "classSyncMinMax_1_1rtl.html#a38c1af3f2fc7789f3fad2e2123ea0459", null ],
     [ "RegType", "classSyncMinMax_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
     [ "armed", "classSyncMinMax_1_1rtl.html#aafbfa85be354b957acec00f0cbbdc6ff", null ],
     [ "update", "classSyncMinMax_1_1rtl.html#ab00d61426876ccabe203798b56b033f5", null ],

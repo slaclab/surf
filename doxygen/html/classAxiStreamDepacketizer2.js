@@ -2,7 +2,7 @@ var classAxiStreamDepacketizer2 =
 [
     [ "rtl", "classAxiStreamDepacketizer2_1_1rtl.html", "classAxiStreamDepacketizer2_1_1rtl" ],
     [ "TPD_G", "classAxiStreamDepacketizer2.html#a67a837684e4f18c2d236ac1d053b419b", null ],
-    [ "BRAM_EN_G", "classAxiStreamDepacketizer2.html#af5119c0b605c18019332c4a648fa6880", null ],
+    [ "MEMORY_TYPE_G", "classAxiStreamDepacketizer2.html#a2ac0d7ff1e94706cbbbe35f33f5acdca", null ],
     [ "REG_EN_G", "classAxiStreamDepacketizer2.html#a791e1247549c1ce442703098b9803bce", null ],
     [ "CRC_MODE_G", "classAxiStreamDepacketizer2.html#a30988c4ee0e8cd2a8fc3874ff635ac75", null ],
     [ "CRC_POLY_G", "classAxiStreamDepacketizer2.html#ae76f8e20fcc699a0da6b82b551d751d6", null ],
@@ -21,6 +21,7 @@ var classAxiStreamDepacketizer2 =
     [ "std_logic_1164", "classAxiStreamDepacketizer2.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_unsigned", "classAxiStreamDepacketizer2.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "std_logic_arith", "classAxiStreamDepacketizer2.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
+    [ "surf", "classAxiStreamDepacketizer2.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classAxiStreamDepacketizer2.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiStreamPkg", "classAxiStreamDepacketizer2.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
     [ "SsiPkg", "classAxiStreamDepacketizer2.html#a8b54e22b2a07048034b61d5e4ba396e3", null ],

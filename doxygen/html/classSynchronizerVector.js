@@ -15,5 +15,6 @@ var classSynchronizerVector =
     [ "dataOut", "classSynchronizerVector.html#a6d3d313b093967716088bebbdd4f88a9", null ],
     [ "ieee", "classSynchronizerVector.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classSynchronizerVector.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classSynchronizerVector.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classSynchronizerVector.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

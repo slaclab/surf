@@ -18,6 +18,7 @@ var classAxiI2cEeprom =
     [ "axilRst", "classAxiI2cEeprom.html#a4b36ee28c73fadc67fe1a670f1ba11ff", null ],
     [ "ieee", "classAxiI2cEeprom.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classAxiI2cEeprom.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classAxiI2cEeprom.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classAxiI2cEeprom.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classAxiI2cEeprom.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
     [ "I2cPkg", "classAxiI2cEeprom.html#a3345a70e845069bf678d5aa1733529b6", null ],

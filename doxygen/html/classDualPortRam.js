@@ -3,7 +3,7 @@ var classDualPortRam =
     [ "mapping", "classDualPortRam_1_1mapping.html", "classDualPortRam_1_1mapping" ],
     [ "TPD_G", "classDualPortRam.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "RST_POLARITY_G", "classDualPortRam.html#a8a9f56ec06b173cf46dc7160fd7c1f30", null ],
-    [ "BRAM_EN_G", "classDualPortRam.html#a1c9465c9431492ec79ab48827b02c46f", null ],
+    [ "MEMORY_TYPE_G", "classDualPortRam.html#ac19eab973cb6c0196eed65d74fc49dca", null ],
     [ "REG_EN_G", "classDualPortRam.html#a0f2247a6a3e8840e30be089433d9a486", null ],
     [ "DOA_REG_G", "classDualPortRam.html#a8de8a468cd0588304c3d942978f7d102", null ],
     [ "DOB_REG_G", "classDualPortRam.html#a6b0e2c721d28285878a5784dcf093791", null ],
@@ -31,5 +31,6 @@ var classDualPortRam =
     [ "ieee", "classDualPortRam.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classDualPortRam.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_unsigned", "classDualPortRam.html#a598da929e807d58939b47499e8bc9fa8", null ],
+    [ "surf", "classDualPortRam.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classDualPortRam.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

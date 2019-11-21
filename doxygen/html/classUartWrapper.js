@@ -7,7 +7,7 @@ var classUartWrapper =
     [ "STOP_BITS_G", "classUartWrapper.html#a9514500e01393fbac186287ad8769e0d", null ],
     [ "PARITY_G", "classUartWrapper.html#a19a9c324062b5aa85a24b857051a369d", null ],
     [ "DATA_WIDTH_G", "classUartWrapper.html#a97c53e9f5aa69b46f4c6b6b017d6c8c6", null ],
-    [ "FIFO_BRAM_EN_G", "classUartWrapper.html#ad0d463bd4ba95b5eec7e57f06069fbe2", null ],
+    [ "MEMORY_TYPE_G", "classUartWrapper.html#a2ac0d7ff1e94706cbbbe35f33f5acdca", null ],
     [ "FIFO_ADDR_WIDTH_G", "classUartWrapper.html#a4c5c956fb460c9796b96afba1d4362d6", null ],
     [ "clk", "classUartWrapper.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classUartWrapper.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],
@@ -23,5 +23,6 @@ var classUartWrapper =
     [ "std_logic_1164", "classUartWrapper.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_arith", "classUartWrapper.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
     [ "std_logic_unsigned", "classUartWrapper.html#a598da929e807d58939b47499e8bc9fa8", null ],
+    [ "surf", "classUartWrapper.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classUartWrapper.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

@@ -21,6 +21,7 @@ var classClinkDataClk =
     [ "math_real", "classClinkDataClk.html#acb415f2e3abd505b8338da5b5bf9e2fb", null ],
     [ "unisim", "classClinkDataClk.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
     [ "vcomponents", "classClinkDataClk.html#aa1cb22e959d47364391e5eb4ef86927c", null ],
+    [ "surf", "classClinkDataClk.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classClinkDataClk.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classClinkDataClk.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ]
 ];

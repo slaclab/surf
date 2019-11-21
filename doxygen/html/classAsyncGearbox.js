@@ -3,10 +3,12 @@ var classAsyncGearbox =
     [ "mapping", "classAsyncGearbox_1_1mapping.html", "classAsyncGearbox_1_1mapping" ],
     [ "TPD_G", "classAsyncGearbox.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "SLAVE_WIDTH_G", "classAsyncGearbox.html#a63515746fbc6df0a926a405d85aaa3f7", null ],
+    [ "SLAVE_BIT_REVERSE_G", "classAsyncGearbox.html#a42109a93eada830d976d4f8edd90b0ba", null ],
     [ "MASTER_WIDTH_G", "classAsyncGearbox.html#ab6d418a4e07961409a51e4195d6485fa", null ],
+    [ "MASTER_BIT_REVERSE_G", "classAsyncGearbox.html#ac07b6873b01fb29dd06f9b8d5e99389e", null ],
     [ "INPUT_PIPE_STAGES_G", "classAsyncGearbox.html#ab97074ce3ef0b6b96d8486e24ad4dc66", null ],
     [ "OUTPUT_PIPE_STAGES_G", "classAsyncGearbox.html#a1e8e27a48bf5c0dd160777ba7ac29436", null ],
-    [ "FIFO_BRAM_EN_G", "classAsyncGearbox.html#ad0d463bd4ba95b5eec7e57f06069fbe2", null ],
+    [ "FIFO_MEMORY_TYPE_G", "classAsyncGearbox.html#ad7fa25fcbee4e5bfd5dbf724b5bc281a", null ],
     [ "FIFO_ADDR_WIDTH_G", "classAsyncGearbox.html#a73106e222c759e7b0d2342307530bc0b", null ],
     [ "slaveClk", "classAsyncGearbox.html#a79ea05e546f25e58e81f49d297e1542f", null ],
     [ "slaveRst", "classAsyncGearbox.html#ab3ea7871b0bf0fe9efc13830a6125168", null ],
@@ -23,5 +25,6 @@ var classAsyncGearbox =
     [ "std_logic_1164", "classAsyncGearbox.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_arith", "classAsyncGearbox.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
     [ "std_logic_unsigned", "classAsyncGearbox.html#a598da929e807d58939b47499e8bc9fa8", null ],
+    [ "surf", "classAsyncGearbox.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classAsyncGearbox.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

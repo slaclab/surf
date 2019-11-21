@@ -15,18 +15,18 @@
 <polygon fill="#bfbfbf" stroke="#000000" points="1227,-266.5 1227,-285.5 1322,-285.5 1322,-266.5 1227,-266.5"/>
 <text text-anchor="middle" x="1274.5" y="-273.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">PgpEthCaui4Gty</text>
 </g>
-<!-- Node63 -->
+<!-- Node60 -->
 <g id="node49" class="node">
-<title>Node63</title>
+<title>Node60</title>
 <g id="a_node49"><a xlink:href="classPgpEthCaui4GtyTb.html" target="_top" xlink:title="PgpEthCaui4GtyTb">
 <polygon fill="#ffffff" stroke="#000000" points="1358,-266.5 1358,-285.5 1465,-285.5 1465,-266.5 1358,-266.5"/>
 <text text-anchor="middle" x="1411.5" y="-273.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">PgpEthCaui4GtyTb</text>
 </a>
 </g>
 </g>
-<!-- Node0&#45;&gt;Node63 -->
+<!-- Node0&#45;&gt;Node60 -->
 <g id="edge65" class="edge">
-<title>Node0&#45;&gt;Node63</title>
+<title>Node0&#45;&gt;Node60</title>
 <path fill="none" stroke="#191970" d="M1332.27,-276C1340.786,-276 1349.5288,-276 1357.9544,-276"/>
 <polygon fill="#191970" stroke="#191970" points="1332.0315,-272.5001 1322.0315,-276 1332.0314,-279.5001 1332.0315,-272.5001"/>
 </g>
@@ -90,18 +90,18 @@
 <path fill="none" stroke="#191970" d="M726.9939,-399.0582C732.1902,-401.6187 737.0032,-404.872 741,-409 787.7887,-457.3245 729.3386,-508.5359 777,-556 789.4942,-568.4425 808.6221,-573.2641 824.9266,-574.9405"/>
 <polygon fill="#191970" stroke="#191970" points="727.9035,-395.6512 717.3201,-395.1582 725.2861,-402.1435 727.9035,-395.6512"/>
 </g>
-<!-- Node59 -->
+<!-- Node56 -->
 <g id="node45" class="node">
-<title>Node59</title>
+<title>Node56</title>
 <g id="a_node45"><a xlink:href="classRogueTcpStreamWrap.html" target="_top" xlink:title="RogueTcpStreamWrap">
 <polygon fill="#ffffff" stroke="#000000" points="795,-304.5 795,-323.5 917,-323.5 917,-304.5 795,-304.5"/>
 <text text-anchor="middle" x="856" y="-311.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">RogueTcpStreamWrap</text>
 </a>
 </g>
 </g>
-<!-- Node4&#45;&gt;Node59 -->
+<!-- Node4&#45;&gt;Node56 -->
 <g id="edge62" class="edge">
-<title>Node4&#45;&gt;Node59</title>
+<title>Node4&#45;&gt;Node56</title>
 <path fill="none" stroke="#191970" d="M721.5023,-377.6552C728.1184,-375.6215 734.7717,-373.3893 741,-371 777.2003,-357.1126 817.318,-335.7708 839.3042,-323.5235"/>
 <polygon fill="#191970" stroke="#191970" points="720.492,-374.3041 711.8893,-380.4882 722.4708,-381.0186 720.492,-374.3041"/>
 </g>
@@ -186,9 +186,9 @@
 <path fill="none" stroke="#191970" d="M733.9914,-360.9719C809.7653,-372.1182 936.207,-390.7179 994.8474,-399.3439"/>
 <polygon fill="#191970" stroke="#191970" points="734.0509,-357.443 723.6479,-359.4503 733.0321,-364.3685 734.0509,-357.443"/>
 </g>
-<!-- Node7&#45;&gt;Node59 -->
+<!-- Node7&#45;&gt;Node56 -->
 <g id="edge59" class="edge">
-<title>Node7&#45;&gt;Node59</title>
+<title>Node7&#45;&gt;Node56</title>
 <path fill="none" stroke="#191970" d="M729.2532,-340.319C755.205,-334.9301 785.6223,-328.6139 810.1534,-323.5201"/>
 <polygon fill="#191970" stroke="#191970" points="728.2581,-336.9509 719.1786,-342.411 729.6814,-343.8047 728.2581,-336.9509"/>
 </g>
@@ -427,7 +427,7 @@
 <g id="node20" class="node">
 <title>Node20</title>
 <g id="a_node20"><a xlink:href="classSynchronizer.html" target="_top" xlink:title="Synchronizer">
-<polygon fill="#ffffff" stroke="#ff0000" points="0,-214.5 0,-233.5 80,-233.5 80,-214.5 0,-214.5"/>
+<polygon fill="#ffffff" stroke="#000000" points="0,-214.5 0,-233.5 80,-233.5 80,-214.5 0,-214.5"/>
 <text text-anchor="middle" x="40" y="-221.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">Synchronizer</text>
 </a>
 </g>
@@ -660,18 +660,18 @@
 <path fill="none" stroke="#191970" d="M898.0633,-195.3126C919.99,-192.8692 947.0963,-189.8485 970.7475,-187.2129"/>
 <polygon fill="#191970" stroke="#191970" points="897.6206,-191.8402 888.0697,-196.4262 898.3959,-198.7971 897.6206,-191.8402"/>
 </g>
-<!-- Node58 -->
+<!-- Node55 -->
 <g id="node44" class="node">
-<title>Node58</title>
+<title>Node55</title>
 <g id="a_node44"><a xlink:href="classRoguePgpEthSim.html" target="_top" xlink:title="RoguePgpEthSim">
 <polygon fill="#ffffff" stroke="#000000" points="977,-266.5 977,-285.5 1076,-285.5 1076,-266.5 977,-266.5"/>
 <text text-anchor="middle" x="1026.5" y="-273.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">RoguePgpEthSim</text>
 </a>
 </g>
 </g>
-<!-- Node41&#45;&gt;Node58 -->
+<!-- Node41&#45;&gt;Node55 -->
 <g id="edge57" class="edge">
-<title>Node41&#45;&gt;Node58</title>
+<title>Node41&#45;&gt;Node55</title>
 <path fill="none" stroke="#191970" d="M887.0983,-213.862C921.2943,-229.1048 975.3266,-253.1896 1005.0814,-266.4527"/>
 <polygon fill="#191970" stroke="#191970" points="888.1526,-210.5 877.5939,-209.6255 885.3027,-216.8936 888.1526,-210.5"/>
 </g>
@@ -753,9 +753,9 @@
 <path fill="none" stroke="#191970" d="M696.1906,-222.9452C716.716,-210.2017 747.8535,-192.2611 777,-181 786.6056,-177.2887 797.1569,-174.1491 807.3333,-171.5568"/>
 <polygon fill="#191970" stroke="#191970" points="694.1443,-220.0977 687.5521,-228.3919 697.8778,-226.019 694.1443,-220.0977"/>
 </g>
-<!-- Node49&#45;&gt;Node59 -->
+<!-- Node49&#45;&gt;Node56 -->
 <g id="edge60" class="edge">
-<title>Node49&#45;&gt;Node59</title>
+<title>Node49&#45;&gt;Node56</title>
 <path fill="none" stroke="#191970" d="M729.5588,-251.1829C733.5397,-252.8983 737.3978,-254.8288 741,-257 760.9249,-269.0098 756.8596,-283.3552 777,-295 783.7166,-298.8834 791.1937,-301.9752 798.7944,-304.4362"/>
 <polygon fill="#191970" stroke="#191970" points="730.7006,-247.8723 720.1104,-247.559 728.1938,-254.408 730.7006,-247.8723"/>
 </g>
@@ -780,60 +780,60 @@
 <path fill="none" stroke="#191970" d="M518.9764,-139.5662C549.5567,-136.4757 594.7068,-131.9126 628.2249,-128.5251"/>
 <polygon fill="#191970" stroke="#191970" points="518.4077,-136.1058 508.8103,-140.5936 519.1116,-143.0703 518.4077,-136.1058"/>
 </g>
-<!-- Node58&#45;&gt;Node0 -->
+<!-- Node55&#45;&gt;Node0 -->
 <g id="edge56" class="edge">
-<title>Node58&#45;&gt;Node0</title>
+<title>Node55&#45;&gt;Node0</title>
 <path fill="none" stroke="#191970" d="M1086.1559,-276C1129.2232,-276 1186.6142,-276 1226.6808,-276"/>
 <polygon fill="#191970" stroke="#191970" points="1086.0905,-272.5001 1076.0905,-276 1086.0904,-279.5001 1086.0905,-272.5001"/>
 </g>
-<!-- Node59&#45;&gt;Node58 -->
+<!-- Node56&#45;&gt;Node55 -->
 <g id="edge58" class="edge">
-<title>Node59&#45;&gt;Node58</title>
+<title>Node56&#45;&gt;Node55</title>
 <path fill="none" stroke="#191970" d="M909.0536,-302.1757C933.0911,-296.8184 961.1318,-290.5689 983.785,-285.5201"/>
 <polygon fill="#191970" stroke="#191970" points="908.0235,-298.8194 899.0243,-304.411 909.5463,-305.6517 908.0235,-298.8194"/>
 </g>
-<!-- Node60 -->
+<!-- Node57 -->
 <g id="node46" class="node">
-<title>Node60</title>
+<title>Node57</title>
 <g id="a_node46"><a xlink:href="classRogueTcpStream.html" target="_top" xlink:title="RogueTcpStream">
 <polygon fill="#ffffff" stroke="#000000" points="624,-304.5 624,-323.5 722,-323.5 722,-304.5 624,-304.5"/>
 <text text-anchor="middle" x="673" y="-311.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">RogueTcpStream</text>
 </a>
 </g>
 </g>
-<!-- Node60&#45;&gt;Node59 -->
+<!-- Node57&#45;&gt;Node56 -->
 <g id="edge61" class="edge">
-<title>Node60&#45;&gt;Node59</title>
+<title>Node57&#45;&gt;Node56</title>
 <path fill="none" stroke="#191970" d="M732.2512,-314C752.2329,-314 774.5675,-314 794.7038,-314"/>
 <polygon fill="#191970" stroke="#191970" points="732.0407,-310.5001 722.0406,-314 732.0406,-317.5001 732.0407,-310.5001"/>
 </g>
-<!-- Node61 -->
+<!-- Node58 -->
 <g id="node47" class="node">
-<title>Node61</title>
+<title>Node58</title>
 <g id="a_node47"><a xlink:href="classRogueSideBandWrap.html" target="_top" xlink:title="RogueSideBandWrap">
 <polygon fill="#ffffff" stroke="#000000" points="797.5,-266.5 797.5,-285.5 914.5,-285.5 914.5,-266.5 797.5,-266.5"/>
 <text text-anchor="middle" x="856" y="-273.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">RogueSideBandWrap</text>
 </a>
 </g>
 </g>
-<!-- Node61&#45;&gt;Node58 -->
+<!-- Node58&#45;&gt;Node55 -->
 <g id="edge63" class="edge">
-<title>Node61&#45;&gt;Node58</title>
+<title>Node58&#45;&gt;Node55</title>
 <path fill="none" stroke="#191970" d="M924.7888,-276C942.1896,-276 960.5416,-276 976.7941,-276"/>
 <polygon fill="#191970" stroke="#191970" points="924.6765,-272.5001 914.6764,-276 924.6764,-279.5001 924.6765,-272.5001"/>
 </g>
-<!-- Node62 -->
+<!-- Node59 -->
 <g id="node48" class="node">
-<title>Node62</title>
+<title>Node59</title>
 <g id="a_node48"><a xlink:href="classRogueSideBand.html" target="_top" xlink:title="RogueSideBand">
 <polygon fill="#ffffff" stroke="#000000" points="627,-266.5 627,-285.5 719,-285.5 719,-266.5 627,-266.5"/>
 <text text-anchor="middle" x="673" y="-273.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">RogueSideBand</text>
 </a>
 </g>
 </g>
-<!-- Node62&#45;&gt;Node61 -->
+<!-- Node59&#45;&gt;Node58 -->
 <g id="edge64" class="edge">
-<title>Node62&#45;&gt;Node61</title>
+<title>Node59&#45;&gt;Node58</title>
 <path fill="none" stroke="#191970" d="M729.1877,-276C750.7959,-276 775.5077,-276 797.3426,-276"/>
 <polygon fill="#191970" stroke="#191970" points="729.1787,-272.5001 719.1786,-276 729.1786,-279.5001 729.1787,-272.5001"/>
 </g>

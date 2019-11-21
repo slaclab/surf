@@ -4,12 +4,8 @@ var classAxiLiteFifoPush =
     [ "TPD_G", "classAxiLiteFifoPush.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "PUSH_FIFO_COUNT_G", "classAxiLiteFifoPush.html#aacf8fde3a1d707236370cd6ecd582223", null ],
     [ "PUSH_SYNC_FIFO_G", "classAxiLiteFifoPush.html#a6a31886d3714fdf00b9e42ffc715850c", null ],
-    [ "PUSH_BRAM_EN_G", "classAxiLiteFifoPush.html#adb6e44f18040a30188503a60def77983", null ],
+    [ "PUSH_MEMORY_TYPE_G", "classAxiLiteFifoPush.html#a8acd39b9c71b574b8fc27910e7173406", null ],
     [ "PUSH_ADDR_WIDTH_G", "classAxiLiteFifoPush.html#ab78af1be002f484d7b08a17b48160d46", null ],
-    [ "ALTERA_SYN_G", "classAxiLiteFifoPush.html#a1669478a44dab111adcd8bbceb192b02", null ],
-    [ "ALTERA_RAM_G", "classAxiLiteFifoPush.html#a19f5205f8fd4959c02e7b32fe19bbbc7", null ],
-    [ "USE_BUILT_IN_G", "classAxiLiteFifoPush.html#adb189c82e573abb099bff16ab4b87de8", null ],
-    [ "XIL_DEVICE_G", "classAxiLiteFifoPush.html#ad73f3e1bc362541946cf886a1bf2c994", null ],
     [ "axiClk", "classAxiLiteFifoPush.html#a7d8781c632c75ab0fdde6e592fd13d60", null ],
     [ "axiClkRst", "classAxiLiteFifoPush.html#aaa3f2a49ba9c27af6fc938205e371307", null ],
     [ "axiReadMaster", "classAxiLiteFifoPush.html#a85dc7a54e5e244967a1717c65f442073", null ],
@@ -26,6 +22,7 @@ var classAxiLiteFifoPush =
     [ "std_logic_1164", "classAxiLiteFifoPush.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "STD_LOGIC_ARITH", "classAxiLiteFifoPush.html#a5d8c1f7c620a51582be96d2a58d40293", null ],
     [ "STD_LOGIC_UNSIGNED", "classAxiLiteFifoPush.html#a241c3e72dd8024cc8ae831b1b2aed7db", null ],
+    [ "surf", "classAxiLiteFifoPush.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classAxiLiteFifoPush.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classAxiLiteFifoPush.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ]
 ];

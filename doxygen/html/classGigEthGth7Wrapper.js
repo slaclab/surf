@@ -40,6 +40,7 @@ var classGigEthGth7Wrapper =
     [ "gtRxN", "classGigEthGth7Wrapper.html#a75df574445147ccd20932e444ce27351", null ],
     [ "ieee", "classGigEthGth7Wrapper.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classGigEthGth7Wrapper.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classGigEthGth7Wrapper.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classGigEthGth7Wrapper.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiStreamPkg", "classGigEthGth7Wrapper.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
     [ "AxiLitePkg", "classGigEthGth7Wrapper.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],

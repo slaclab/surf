@@ -1,6 +1,6 @@
 var classSynchronizerFifoTb_1_1testbed =
 [
-    [ "PROCESS_98", "classSynchronizerFifoTb_1_1testbed.html#ae9505d72fbac51456634a2eeff886324", null ],
+    [ "PROCESS_91", "classSynchronizerFifoTb_1_1testbed.html#afbab2dfbcba1bcb8f15894bddb154e92", null ],
     [ "WRITE_PATTERN", "classSynchronizerFifoTb_1_1testbed.html#a4275320445b632a6468eff3c1c4223c1", null ],
     [ "READ_PATTERN", "classSynchronizerFifoTb_1_1testbed.html#a87c8f2d0eab6e0db6cccd516563dbce9", null ],
     [ "TestClkType", "classSynchronizerFifoTb_1_1testbed.html#a158829953bddfa25cb449ee6a24a20c5", null ],
@@ -9,7 +9,7 @@ var classSynchronizerFifoTb_1_1testbed =
     [ "CLK_SEL_C", "classSynchronizerFifoTb_1_1testbed.html#ae4ca667cb60dfaf928a2182917c4a20e", null ],
     [ "WRITE_CLK_C", "classSynchronizerFifoTb_1_1testbed.html#a2977753c37ffd51e8c090ff2761d89c3", null ],
     [ "READ_CLK_C", "classSynchronizerFifoTb_1_1testbed.html#ac2811d46b02053c77c3f69fb23b41244", null ],
-    [ "BRAM_EN_C", "classSynchronizerFifoTb_1_1testbed.html#a7f80ae4823ff24230080ead271d99ace", null ],
+    [ "MEMORY_TYPE_G", "classSynchronizerFifoTb_1_1testbed.html#a8e58e94501db6d03760bee9ae5f7c820", null ],
     [ "FWFT_EN_C", "classSynchronizerFifoTb_1_1testbed.html#a653e4eccdca42e36503062cc146988fd", null ],
     [ "DATA_WIDTH_C", "classSynchronizerFifoTb_1_1testbed.html#a96a1531e16a5cb91a5f881be9aff48f5", null ],
     [ "ADDR_WIDTH_C", "classSynchronizerFifoTb_1_1testbed.html#a01e0ee53d0bd5068950234c30f9edb06", null ],

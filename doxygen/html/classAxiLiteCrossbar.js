@@ -21,6 +21,7 @@ var classAxiLiteCrossbar =
     [ "std_logic_1164", "classAxiLiteCrossbar.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_arith", "classAxiLiteCrossbar.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
     [ "std_logic_unsigned", "classAxiLiteCrossbar.html#a598da929e807d58939b47499e8bc9fa8", null ],
+    [ "surf", "classAxiLiteCrossbar.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classAxiLiteCrossbar.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classAxiLiteCrossbar.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
     [ "ArbiterPkg", "classAxiLiteCrossbar.html#a9a2f725569a035bfe26ecc2121149741", null ],

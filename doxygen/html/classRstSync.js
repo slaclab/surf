@@ -12,5 +12,6 @@ var classRstSync =
     [ "syncRst", "classRstSync.html#a37b285ea08f8e21fa5048c3d21416f02", null ],
     [ "IEEE", "classRstSync.html#ae4f03c286607f3181e16b9aa12d0c6d4", null ],
     [ "STD_LOGIC_1164", "classRstSync.html#aa4b2b25246a821511120e3149b003563", null ],
+    [ "surf", "classRstSync.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classRstSync.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

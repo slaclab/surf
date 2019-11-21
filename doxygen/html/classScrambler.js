@@ -5,6 +5,8 @@ var classScrambler =
     [ "DIRECTION_G", "classScrambler.html#a4ca08d3033a135c3916733bd76426219", null ],
     [ "DATA_WIDTH_G", "classScrambler.html#a11f5dee9aeb2a141484bafa6674b03d5", null ],
     [ "SIDEBAND_WIDTH_G", "classScrambler.html#a95438d17532ebf7ec0b74b61f14bd3ca", null ],
+    [ "BIT_REVERSE_IN_G", "classScrambler.html#a4df13c366e01c8456ffcf817eb5e9be4", null ],
+    [ "BIT_REVERSE_OUT_G", "classScrambler.html#afb5b76445b84c32fcbdf11d31a697391", null ],
     [ "TAPS_G", "classScrambler.html#a34bbd5942cee4aabbad705961913d91f", null ],
     [ "clk", "classScrambler.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classScrambler.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],
@@ -20,5 +22,6 @@ var classScrambler =
     [ "std_logic_1164", "classScrambler.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_arith", "classScrambler.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
     [ "std_logic_unsigned", "classScrambler.html#a598da929e807d58939b47499e8bc9fa8", null ],
+    [ "surf", "classScrambler.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classScrambler.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];
