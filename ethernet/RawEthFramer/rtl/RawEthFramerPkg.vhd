@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : RawEthFramerPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Raw L2 Ethernet Framer Package File

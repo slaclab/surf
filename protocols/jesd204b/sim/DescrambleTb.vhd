@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : DescrambleTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation testbed for JESD Descrambling

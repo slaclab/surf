@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Iprog7SeriesCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Xilinx 7-Series IPROG CMD

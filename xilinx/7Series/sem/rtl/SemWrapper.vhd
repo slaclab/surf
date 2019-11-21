@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SemWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for 7-series SEM module

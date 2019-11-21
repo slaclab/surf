@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SaltUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SLAC Asynchronous Logic Transceiver (SALT) UltraScale Core

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : I2cRegMasterMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Multiplexes access to a single I2cRegMaster module

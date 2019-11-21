@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiWriteEmulate.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI4 Write Emulation Module

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiDac7654Pkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AxiDac7654 Package File

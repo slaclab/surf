@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : EthCrc32Parallel.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Ethernet CRC32 Ethernet/AAL5 Module

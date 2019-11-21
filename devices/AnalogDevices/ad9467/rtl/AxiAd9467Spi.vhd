@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiAd9467Spi.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AD9467 SPI Interface Module

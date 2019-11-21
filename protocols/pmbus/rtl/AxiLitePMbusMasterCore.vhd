@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiLitePMbusMasterCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: http://pmbus.org/Assets/PDFS/Public/PMBus_Specification_Part_II_Rev_1-1_20070205.pdf

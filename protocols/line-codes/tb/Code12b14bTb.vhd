@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Encoder12b14bTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Testbench for design "Encoder12b14b"

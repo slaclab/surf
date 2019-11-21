@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SsiSem.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SSI wrapper for 7-series SEM module

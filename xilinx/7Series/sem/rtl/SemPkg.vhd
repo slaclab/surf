@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SemPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 7-series SEM module Package File

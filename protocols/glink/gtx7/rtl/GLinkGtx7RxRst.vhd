@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GLinkGtx7RxRst.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: G-Link GTX7 Reset module

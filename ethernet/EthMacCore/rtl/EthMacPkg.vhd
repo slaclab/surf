@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : EthMacPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Ethernet MAC Package File

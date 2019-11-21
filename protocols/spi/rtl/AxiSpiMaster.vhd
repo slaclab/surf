@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiSpiMaster.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Axi lite interface for a single chip "generic SPI master"

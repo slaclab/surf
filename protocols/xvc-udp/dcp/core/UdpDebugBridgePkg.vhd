@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : XVC Debug Bridge Support
 -------------------------------------------------------------------------------
--- File       : UdpDebugBridgePkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: VHDL Package for UDP Debug Bridge

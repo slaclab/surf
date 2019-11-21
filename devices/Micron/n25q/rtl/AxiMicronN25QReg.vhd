@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiMicronN25QReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: MicronN25Q AXI-Lite Register Access

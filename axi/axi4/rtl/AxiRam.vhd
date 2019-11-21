@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiRam.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: General AXI RAM Module

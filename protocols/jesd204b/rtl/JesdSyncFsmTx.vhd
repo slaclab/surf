@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : JesdSyncFsmTx.vhd 
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Synchronizer TX Finite state machine

@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : AxiStreamPackerizerV0 Protocol: https://confluence.slac.stanford.edu/x/1oyfD
 -------------------------------------------------------------------------------
--- File       : AxiStreamDepacketizer
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI stream DePacketerizer Module (non-interleave only)

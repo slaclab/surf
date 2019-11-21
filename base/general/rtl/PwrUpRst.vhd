@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : PwrUpRst.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Synchronizes a reset signal and holds it for a parametrized

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : RawEthFramerWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for RawEthFramer Module

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Salt7Series.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SLAC Asynchronous Logic Transceiver (SALT) 7-series Core

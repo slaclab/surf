@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : ClinkUartThrottle.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: CameraLink UART TX Throttle 

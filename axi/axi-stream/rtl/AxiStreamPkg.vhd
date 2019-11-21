@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI Stream Package File

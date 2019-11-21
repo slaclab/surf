@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamPipeline.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:   This module is used to sync a AxiStream bus 

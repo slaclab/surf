@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiMicronP30Reg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: This controller is designed around the Micron PC28F FLASH IC.

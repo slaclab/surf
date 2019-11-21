@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GigEthGtyUltraScaleWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Gty Wrapper for 1000BASE-X Ethernet

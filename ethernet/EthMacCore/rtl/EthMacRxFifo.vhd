@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : EthMacRxFifo.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Outbound FIFO buffers

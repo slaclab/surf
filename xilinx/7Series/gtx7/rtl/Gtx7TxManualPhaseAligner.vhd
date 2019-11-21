@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Gtx7TxManualPhaseAligner.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: GTX7 TX manual phase aligner

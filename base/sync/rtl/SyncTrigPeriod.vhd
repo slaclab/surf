@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SyncTrigPeriod.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: This module measures the trigger period between triggers

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : BoxcarIntegrator.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simple boxcar integrator

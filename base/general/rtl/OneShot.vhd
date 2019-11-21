@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : OneShot.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Programmable One-Shot Module

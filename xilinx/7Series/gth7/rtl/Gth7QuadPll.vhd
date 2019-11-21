@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Gth7QuadPll.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Xilinx 7-series GTH's QPLL

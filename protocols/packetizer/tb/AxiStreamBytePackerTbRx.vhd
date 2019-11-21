@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamBytePackerTbRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:

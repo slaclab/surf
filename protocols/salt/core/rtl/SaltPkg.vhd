@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SaltPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SLAC Asynchronous Logic Transceiver (SALT) Package File

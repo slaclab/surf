@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamMuxTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the SsiFifo module

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiMicronP30Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to FLASH Memory

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamDmaRingPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AxiStreamDmaRingPkg Support Package

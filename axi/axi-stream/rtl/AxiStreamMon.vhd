@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamMon.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI Stream Monitor Module

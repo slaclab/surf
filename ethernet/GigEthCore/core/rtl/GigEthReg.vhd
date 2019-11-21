@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GigEthReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite 1GbE Register Interface

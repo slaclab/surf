@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GigEthPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 1GbE Package Files

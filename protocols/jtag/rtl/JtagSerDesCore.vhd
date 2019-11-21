@@ -1,6 +1,5 @@
 -- Title      : JTAG Support
 -------------------------------------------------------------------------------
--- File       : JtagSerDesCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: JTAG serializer/deserializer with parallel word interface

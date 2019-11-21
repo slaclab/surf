@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : EthMacFlowCtrl.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: ETH MAC Flow Control Module

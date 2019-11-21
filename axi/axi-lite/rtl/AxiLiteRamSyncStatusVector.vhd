@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteRamSyncStatusVector.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: A wrapper of AxiDualPortRam & SyncStatusVector

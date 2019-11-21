@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SyncClockFreq.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:   This module measures the frequency of an input clock

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GLinkGtx7FixedLatTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation testbed for GLinkGtx7FixedLat

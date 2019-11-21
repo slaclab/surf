@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteCrossbar.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper around Xilinx generated Main AXI Crossbar for HPS Front End

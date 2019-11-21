@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiLitePMbusMaster.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for AxiLitePMbusMasterCore

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Gtx7Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Xilinx 7-series GTX primitive

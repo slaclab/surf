@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : RstSync.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Synchronizes the trailing edge of an asynchronous reset to a

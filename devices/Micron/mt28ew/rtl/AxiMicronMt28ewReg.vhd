@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiMicronMt28ewReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: This controller is designed around the Micron MT28EW FLASH IC.

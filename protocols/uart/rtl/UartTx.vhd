@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : UartTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Uart Transmitter

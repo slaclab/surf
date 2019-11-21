@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : DualPortRam.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: This module infers either Block RAM or distributed RAM

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : IcmpEngine.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: ICMP Engine (A.K.A. "ping" protocol)

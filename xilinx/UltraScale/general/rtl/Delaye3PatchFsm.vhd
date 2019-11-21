@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Delaye3PatchFsm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: FSM that patches the silicon's issue of increments > 8

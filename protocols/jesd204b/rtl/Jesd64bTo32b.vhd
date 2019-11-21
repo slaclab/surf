@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Jesd64bTo32b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Converts the 64-bit JESD interface to 32-bit interface

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : RawEthFramerTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Raw L2 Ethernet Framer's TX Engine

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GLinkEncoder.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Encodes 16 bit data raw words into 20 bit GLink words.

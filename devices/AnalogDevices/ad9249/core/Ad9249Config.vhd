@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Ad9249Config.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AD9249 Configuration/Status Module

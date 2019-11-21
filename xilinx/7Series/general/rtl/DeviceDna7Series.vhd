@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : DeviceDna7Series.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for the 7 Series DNA_PORT

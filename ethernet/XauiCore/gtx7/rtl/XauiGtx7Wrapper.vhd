@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : XauiGtx7Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Gtx7 Wrapper for 10 GigE XAUI

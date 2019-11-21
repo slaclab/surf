@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : UdpEngine.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Top-Level UDP/DHCP Module

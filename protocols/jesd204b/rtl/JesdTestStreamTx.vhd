@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : JesdTestStreamTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Test Data Stream Generator

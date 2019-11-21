@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : JesdIlasGen.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Initial lane alignment sequence Generator

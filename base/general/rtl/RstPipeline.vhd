@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : RstPipeline.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:   Reset pipeline register stages

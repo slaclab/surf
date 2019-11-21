@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteSequencerRam.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: The slave AXI-Lite interface used to load a sequence of master 

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : EthMacRxFilter.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Ethernet MAC's RX frame filter

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteSlave.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite Slave module controlled via REQ/ACK interface

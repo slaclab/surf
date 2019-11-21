@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : IpV4EngineTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: IPv4 TX Engine Module

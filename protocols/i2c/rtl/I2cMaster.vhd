@@ -18,7 +18,6 @@
 --  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
 -------------------------------------------------------------------------------
 -- Entity:      I2cMaster
--- File:        I2cMaster.vhd
 -- Author:      Jan Andersson - Gaisler Research
 -- Contact:     support@gaisler.com
 -- Description:

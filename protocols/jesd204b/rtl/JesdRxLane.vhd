@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : JesdRxLane.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: JesdRx single lane module

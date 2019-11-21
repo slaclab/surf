@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GtpTxPhaseAligner.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: GTH7 TX phase aligner

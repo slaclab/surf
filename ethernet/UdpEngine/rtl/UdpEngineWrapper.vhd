@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : UdpEngineWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for UdpEngine

@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : MDIO Support
 -------------------------------------------------------------------------------
--- File       : MdioCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Execute a MDIO-read or -write transaction
