@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : SRPv3 Protocol: https://confluence.slac.stanford.edu/x/cRmVD
 -------------------------------------------------------------------------------
--- File       : SrpV3AxiLite.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SLAC Register Protocol Version 3, AXI-Lite Interface
@@ -24,10 +23,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.AxiLitePkg.all;
 use ieee.math_real.all;
 
 entity SrpV3AxiLite is
@@ -40,8 +41,6 @@ entity SrpV3AxiLite is
       TX_VALID_BURST_MODE_G : boolean                 := true;  -- only used in VALID_THOLD_G>1
       SLAVE_READY_EN_G      : boolean                 := false;
       GEN_SYNC_FIFO_G       : boolean                 := false;
-      ALTERA_SYN_G          : boolean                 := false;
-      ALTERA_RAM_G          : string                  := "M9K";
       AXIL_CLK_FREQ_G       : real                    := 156.25E+6;  -- units of Hz    
       AXI_STREAM_CONFIG_G   : AxiStreamConfigType     := ssiAxiStreamConfig(2));
    port (
@@ -185,7 +184,7 @@ begin
    sAxisCtrl <= sCtrl;
    sRst      <= rst or sAxisRst;
 
-   U_Limiter : entity work.SsiFrameLimiter
+   U_Limiter : entity surf.SsiFrameLimiter
       generic map (
          TPD_G               => TPD_G,
          EN_TIMEOUT_G        => false,
@@ -208,7 +207,7 @@ begin
          mAxisMaster => axisMaster,
          mAxisSlave  => axisSlave);
 
-   RX_FIFO : entity work.AxiStreamFifoV2
+   RX_FIFO : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -217,12 +216,8 @@ begin
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
          VALID_THOLD_G       => 0,  -- = 0 = only when frame ready                                                                 
          -- FIFO configurations
-         BRAM_EN_G           => true,
-         XIL_DEVICE_G        => "7SERIES",
-         USE_BUILT_IN_G      => false,
+         MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
          INT_WIDTH_SELECT_G  => "CUSTOM",
          INT_DATA_WIDTH_G    => 16,     -- 128-bit         
          FIFO_ADDR_WIDTH_G   => 9,      -- 8kB/FIFO = 128-bits x 512 entries
@@ -251,7 +246,7 @@ begin
    end generate;
 
    GEN_ASYNC_SLAVE : if (GEN_SYNC_FIFO_G = false) generate
-      Sync_Ctrl : entity work.SynchronizerVector
+      Sync_Ctrl : entity surf.SynchronizerVector
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => 2,
@@ -263,7 +258,7 @@ begin
             dataIn(1)  => sCtrl.idle,
             dataOut(0) => rxCtrl.pause,
             dataOut(1) => rxCtrl.idle);
-      Sync_Overflow : entity work.SynchronizerOneShot
+      Sync_Overflow : entity surf.SynchronizerOneShot
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -271,7 +266,7 @@ begin
             rst     => axilRst,
             dataIn  => sCtrl.overflow,
             dataOut => rxCtrl.overflow);
-      Sync_Rst : entity work.RstSync
+      Sync_Rst : entity surf.RstSync
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -784,7 +779,7 @@ begin
       end if;
    end process seq;
 
-   TX_FIFO : entity work.AxiStreamFifoV2
+   TX_FIFO : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -794,12 +789,8 @@ begin
          VALID_THOLD_G       => TX_VALID_THOLD_G,
          VALID_BURST_MODE_G  => TX_VALID_BURST_MODE_G,
          -- FIFO configurations
-         BRAM_EN_G           => true,
-         XIL_DEVICE_G        => "7SERIES",
-         USE_BUILT_IN_G      => false,
+         MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,         
          INT_WIDTH_SELECT_G  => "CUSTOM",
          INT_DATA_WIDTH_G    => 16,     -- 128-bit         
          FIFO_ADDR_WIDTH_G   => 9,      -- 8kB/FIFO = 128-bits x 512 entries         

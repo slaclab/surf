@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : SACI Protocol: https://confluence.slac.stanford.edu/x/YYcRDQ
 -------------------------------------------------------------------------------
--- File       : SaciMaster2.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: New and improved version of the SaciMaster.
@@ -20,7 +19,9 @@ use IEEE.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SaciMaster2 is
 
@@ -108,7 +109,7 @@ begin
    -- Synchronize saciRsp to sysClk
    -------------------------------------------------------------------------------------------------
    RSP_SYNC : for i in saciRsp'range generate
-      U_Synchronizer_1 : entity work.Synchronizer
+      U_Synchronizer_1 : entity surf.Synchronizer
          generic map (
             TPD_G => TPD_G)
          port map (

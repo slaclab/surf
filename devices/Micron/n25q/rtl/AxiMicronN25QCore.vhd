@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiMicronN25QCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to N25Q FLASH Memory IC
@@ -18,8 +17,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -64,7 +65,7 @@ begin
       report "AXI_CLK_FREQ_G must be >= 2*SPI_CLK_FREQ_G"
       severity failure;
 
-   AxiMicronN25QReg_Inst : entity work.AxiMicronN25QReg
+   AxiMicronN25QReg_Inst : entity surf.AxiMicronN25QReg
       generic map(
          TPD_G              => TPD_G,
          EN_PASSWORD_LOCK_G => EN_PASSWORD_LOCK_G,

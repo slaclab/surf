@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : StdRtlPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Standard RTL Package File

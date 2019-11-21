@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : OneShot.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Programmable One-Shot Module
@@ -18,7 +17,8 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity OneShot is
    generic (

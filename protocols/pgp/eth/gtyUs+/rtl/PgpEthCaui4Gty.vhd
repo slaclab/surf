@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PgpEth: https://confluence.slac.stanford.edu/x/pQmODw
 -------------------------------------------------------------------------------
--- File       : PgpEthCaui4Gty.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for PGP Ethernet with GTY-based CAUI4 PHY
@@ -20,10 +19,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.PgpEthPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.PgpEthPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -157,7 +158,7 @@ begin
 
       stableReset <= stableRst or phyUsrRst;
 
-      U_Core : entity work.PgpEthCore
+      U_Core : entity surf.PgpEthCore
          generic map (
             TPD_G                 => TPD_G,
             -- PGP Settings
@@ -215,7 +216,7 @@ begin
       --------------------------
       -- Wrapper for GT IP core
       --------------------------
-      U_IP : entity work.Caui4GtyIpWrapper
+      U_IP : entity surf.Caui4GtyIpWrapper
          generic map (
             TPD_G              => TPD_G,
             REFCLK_TYPE_G      => REFCLK_TYPE_G,
@@ -253,7 +254,7 @@ begin
 
    SIM_PGP : if (ROGUE_SIM_EN_G) generate
 
-      U_Rogue : entity work.RoguePgpEthSim
+      U_Rogue : entity surf.RoguePgpEthSim
          generic map(
             TPD_G      => TPD_G,
             PORT_NUM_G => ROGUE_SIM_PORT_NUM_G,

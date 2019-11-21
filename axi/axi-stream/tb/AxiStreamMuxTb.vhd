@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamMuxTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the SsiFifo module
@@ -18,10 +17,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity AxiStreamMuxTb is end AxiStreamMuxTb;
 
@@ -37,11 +38,7 @@ architecture testbed of AxiStreamMuxTb is
    constant MUX_SIZE_C         : natural          := 4;
 
    -- FIFO configurations
-   constant BRAM_EN_C           : boolean := true;
-   constant XIL_DEVICE_C        : string  := "7SERIES";
-   constant USE_BUILT_IN_C      : boolean := false;
-   constant ALTERA_SYN_C        : boolean := false;
-   constant ALTERA_RAM_C        : string  := "M9K";
+   constant MEMORY_TYPE_G       : string  := "block";
    constant CASCADE_SIZE_C      : natural := 1;
    constant FIFO_ADDR_WIDTH_C   : natural := 9;
    constant FIFO_PAUSE_THRESH_C : natural := 2**8;
@@ -97,7 +94,7 @@ begin
    ---------------------------------------
    -- Generate fast clocks and fast resets
    ---------------------------------------
-   ClkRst_Fast : entity work.ClkRst
+   ClkRst_Fast : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => FAST_CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
@@ -108,7 +105,7 @@ begin
          rst  => fastRst,
          rstL => open);
 
-   ClkRst_Slow : entity work.ClkRst
+   ClkRst_Slow : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => SLOW_CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
@@ -124,17 +121,13 @@ begin
    --------------
    GEN_SRC :
    for i in (MUX_SIZE_C-1) downto 0 generate
-      SsiPrbsTx_Inst : entity work.SsiPrbsTx
+      SsiPrbsTx_Inst : entity surf.SsiPrbsTx
          generic map (
             -- General Configurations
             TPD_G                      => TPD_C,
             -- FIFO configurations
-            BRAM_EN_G                  => BRAM_EN_C,
-            XIL_DEVICE_G               => XIL_DEVICE_C,
-            USE_BUILT_IN_G             => USE_BUILT_IN_C,
+            MEMORY_TYPE_G              => MEMORY_TYPE_C,
             GEN_SYNC_FIFO_G            => true,
-            ALTERA_SYN_G               => ALTERA_SYN_C,
-            ALTERA_RAM_G               => ALTERA_RAM_C,
             CASCADE_SIZE_G             => CASCADE_SIZE_C,
             FIFO_ADDR_WIDTH_G          => FIFO_ADDR_WIDTH_C,
             FIFO_PAUSE_THRESH_G        => FIFO_PAUSE_THRESH_C,
@@ -177,7 +170,7 @@ begin
    end process rearb_proc;
 
    -- Module to be tested
-   U_AxiStreamMux : entity work.AxiStreamMux
+   U_AxiStreamMux : entity surf.AxiStreamMux
       generic map (
          TPD_G                => TPD_C,
          NUM_SLAVES_G         => MUX_SIZE_C,
@@ -196,7 +189,7 @@ begin
          mAxisMaster  => obMaster,
          mAxisSlave   => obSlave);
 
---    SsiFifo_Inst : entity work.SsiFifo
+--    SsiFifo_Inst : entity surf.SsiFifo
 --       generic map (
 --          -- General Configurations
 --          TPD_G               => TPD_C,
@@ -204,12 +197,8 @@ begin
 --          EN_FRAME_FILTER_G   => true,
 --          VALID_THOLD_G       => 1,
 --          -- FIFO configurations
---          BRAM_EN_G           => BRAM_EN_C,
---          XIL_DEVICE_G        => XIL_DEVICE_C,
---          USE_BUILT_IN_G      => USE_BUILT_IN_C,
+--          MEMORY_TYPE_G       => MEMORY_TYPE_C,
 --          GEN_SYNC_FIFO_G     => false,
---          ALTERA_SYN_G        => ALTERA_SYN_C,
---          ALTERA_RAM_G        => ALTERA_RAM_C,
 --          CASCADE_SIZE_G      => CASCADE_SIZE_C,
 --          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
 --          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_C,
@@ -261,7 +250,7 @@ begin
       end if;
    end process;
 
-   U_AxiStreamDeMux : entity work.AxiStreamDeMux
+   U_AxiStreamDeMux : entity surf.AxiStreamDeMux
       generic map (
          TPD_G         => TPD_C,
          NUM_MASTERS_G => MUX_SIZE_C)
@@ -281,18 +270,14 @@ begin
    ------------
    GEN_SINK :
    for i in (MUX_SIZE_C-1) downto 0 generate
-      SsiPrbsRx_Inst : entity work.SsiPrbsRx
+      SsiPrbsRx_Inst : entity surf.SsiPrbsRx
          generic map (
             -- General Configurations
             TPD_G                      => TPD_C,
             STATUS_CNT_WIDTH_G         => STATUS_CNT_WIDTH_C,
             -- FIFO Configurations
-            BRAM_EN_G                  => BRAM_EN_C,
-            XIL_DEVICE_G               => XIL_DEVICE_C,
-            USE_BUILT_IN_G             => USE_BUILT_IN_C,
+            MEMORY_TYPE_G              => MEMORY_TYPE_C,
             GEN_SYNC_FIFO_G            => true,
-            ALTERA_SYN_G               => ALTERA_SYN_C,
-            ALTERA_RAM_G               => ALTERA_RAM_C,
             CASCADE_SIZE_G             => CASCADE_SIZE_C,
             FIFO_ADDR_WIDTH_G          => FIFO_ADDR_WIDTH_C,
             FIFO_PAUSE_THRESH_G        => FIFO_PAUSE_THRESH_C,

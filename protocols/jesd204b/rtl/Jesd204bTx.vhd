@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Jesd204bTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: JESD204b multi-lane transmitter module
@@ -31,9 +30,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.Jesd204bPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Jesd204bPkg.all;
 
 entity Jesd204bTx is
    generic (
@@ -178,7 +179,7 @@ begin
    ---------------------
    -- AXI-Lite registers
    ---------------------
-   U_Reg : entity work.JesdTxReg
+   U_Reg : entity surf.JesdTxReg
       generic map (
          TPD_G => TPD_G,
          L_G   => L_G,
@@ -220,7 +221,7 @@ begin
 
    GEN_TEST : for i in L_G-1 downto 0 generate
 
-      U_TestStream : entity work.JesdTestStreamTx
+      U_TestStream : entity surf.JesdTestStreamTx
          generic map (
             TPD_G => TPD_G,
             F_G   => F_G)
@@ -267,7 +268,7 @@ begin
    -----------------------------------------------------------
 
    -- Synchronize SYSREF input to devClk_i
-   Synchronizer_sysref_INST : entity work.Synchronizer
+   Synchronizer_sysref_INST : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -280,7 +281,7 @@ begin
    s_nSync <= nSync_i when s_invertSync = '0' else not nSync_i;
 
    -- Synchronize nSync input to devClk_i
-   Synchronizer_nsync_INST : entity work.SynchronizerVector
+   Synchronizer_nsync_INST : entity surf.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => L_G)
@@ -291,7 +292,7 @@ begin
          dataOut => s_nSyncSync);
 
    -- Delay SYSREF input (for 1 to 256 c-c)
-   U_SysrefDly : entity work.SlvDelay
+   U_SysrefDly : entity surf.SlvDelay
       generic map (
          TPD_G        => TPD_G,
          REG_OUTPUT_G => true,
@@ -309,7 +310,7 @@ begin
    GEN_TX : for i in L_G-1 downto 0 generate
    
       -- LMFC period generator aligned to SYSREF input
-      U_LmfcGen : entity work.JesdLmfcGen
+      U_LmfcGen : entity surf.JesdLmfcGen
          generic map (
             TPD_G => TPD_G,
             K_G   => K_G,
@@ -323,7 +324,7 @@ begin
             lmfc_o     => s_lmfc(i));
    
       -- JESD Transmitter modules (one module per Lane)
-      U_JesdTxLane : entity work.JesdTxLane
+      U_JesdTxLane : entity surf.JesdTxLane
          generic map (
             TPD_G => TPD_G,
             F_G   => F_G,

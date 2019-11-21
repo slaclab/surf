@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : JesdTxTest.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: JesdTx simple module for testing RX
@@ -20,8 +19,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.Jesd204bPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Jesd204bPkg.all;
 
 entity JesdTxTest is
    generic (
@@ -90,7 +91,7 @@ architecture rtl of JesdTxTest is
 begin
 
    -- Delay lmfc input (for 1 to 16 c-c) to 
-   lmfcDly_INST : entity work.SlvDelay
+   lmfcDly_INST : entity surf.SlvDelay
       generic map (
          TPD_G   => TPD_G,
          DELAY_G => 16)
@@ -102,7 +103,7 @@ begin
          dout(0) => s_lmfc_dly);
 
    -- Delay nsync input (for 1 to 16 c-c) to 
-   nsyncDly_INST : entity work.SlvDelay
+   nsyncDly_INST : entity surf.SlvDelay
       generic map (
          TPD_G    => TPD_G,
           DELAY_G => 16)
@@ -114,7 +115,7 @@ begin
          dout(0) => s_nsync_dly);
 
    -- Synchronization FSM
-   syncFSM_INST : entity work.JesdSyncFsmTxTest
+   syncFSM_INST : entity surf.JesdSyncFsmTxTest
       generic map (
          TPD_G => TPD_G)
       port map (

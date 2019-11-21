@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : RogueTcpMemoryWrap.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Rogue Stream Module Wrapper
@@ -18,8 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity RogueTcpMemoryWrap is
    generic (
@@ -40,7 +40,7 @@ architecture RogueTcpMemoryWrap of RogueTcpMemoryWrap is
 begin
 
    -- Sim Core
-   U_RogueTcpMemory : entity work.RogueTcpMemory
+   U_RogueTcpMemory : entity surf.RogueTcpMemory
       port map (
          clock   => axilClk,
          reset   => axilRst,

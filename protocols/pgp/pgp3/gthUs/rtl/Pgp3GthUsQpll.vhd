@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
--- File       : Pgp3GthUsQpll.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: PGPv3 GTH Ultrascale QPLL Wrapper
@@ -20,8 +19,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -85,7 +86,7 @@ begin
          ----------------------------------------------------------------------------
          -- Prevent the gtQPllRst of this lane disrupting the other lanes in the QUAD
          ----------------------------------------------------------------------------
-         U_PwrUpRst : entity work.PwrUpRst
+         U_PwrUpRst : entity surf.PwrUpRst
             generic map (
                TPD_G      => TPD_G,
                DURATION_G => 12500)
@@ -105,7 +106,7 @@ begin
    pllRefClk     <= pgpRefClk & pgpRefClk;
    pllLockDetClk <= stableClk & stableClk;
 
-   U_QPLL : entity work.GthUltraScaleQuadPll
+   U_QPLL : entity surf.GthUltraScaleQuadPll
       generic map (
          -- Simulation Parameters
          TPD_G              => TPD_G,

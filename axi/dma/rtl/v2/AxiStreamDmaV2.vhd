@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamDmaV2.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
@@ -19,11 +18,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiPkg.all;
-use work.AxiDmaPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiPkg.all;
+use surf.AxiDmaPkg.all;
 
 entity AxiStreamDmaV2 is
    generic (
@@ -104,7 +105,7 @@ begin
    assert (isPowerOf2(BURST_BYTES_G) = true)
       report "BURST_BYTES_G must be power of 2" severity failure;
 
-   U_DmaDesc : entity work.AxiStreamDmaV2Desc
+   U_DmaDesc : entity surf.AxiStreamDmaV2Desc
       generic map (
          TPD_G              => TPD_G,
          CHAN_COUNT_G       => CHAN_COUNT_G,
@@ -145,7 +146,7 @@ begin
    U_ChanGen : for i in 0 to CHAN_COUNT_G-1 generate
 
       -- Help with timing
-      U_AxisRst : entity work.RstPipeline
+      U_AxisRst : entity surf.RstPipeline
          generic map (
             TPD_G     => TPD_G,
             INV_RST_G => false)
@@ -154,7 +155,7 @@ begin
             rstIn  => axiRst,
             rstOut => axiReset(i));
 
-      U_DmaRead : entity work.AxiStreamDmaV2Read
+      U_DmaRead : entity surf.AxiStreamDmaV2Read
          generic map (
             TPD_G           => TPD_G,
             AXIS_READY_EN_G => AXIS_READY_EN_G,
@@ -179,7 +180,7 @@ begin
             axiReadMaster   => axiReadMasters(i+1),
             axiReadSlave    => axiReadSlaves(i+1));
 
-      U_DmaWrite : entity work.AxiStreamDmaV2Write
+      U_DmaWrite : entity surf.AxiStreamDmaV2Write
          generic map (
             TPD_G             => TPD_G,
             AXI_READY_EN_G    => AXI_READY_EN_G,
@@ -206,7 +207,7 @@ begin
       ----------------------------------------------------------------------------------------- 
       -- This MUX is used to make sure that the write descriptor is sent after the data is sent
       ----------------------------------------------------------------------------------------- 
-      U_DmaWriteMux : entity work.AxiStreamDmaV2WriteMux
+      U_DmaWriteMux : entity surf.AxiStreamDmaV2WriteMux
          generic map (
             TPD_G          => TPD_G,
             AXI_CONFIG_G   => AXI_DMA_CONFIG_G,

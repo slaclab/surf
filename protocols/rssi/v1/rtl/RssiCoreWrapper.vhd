@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : RSSI Protocol: https://confluence.slac.stanford.edu/x/1IyfD
 -------------------------------------------------------------------------------
--- File       : RssiCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for RSSI + AXIS packetizer 
@@ -20,11 +19,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.RssiPkg.all;
-use work.SsiPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.RssiPkg.all;
+use surf.SsiPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
 
 entity RssiCoreWrapper is
    generic (
@@ -155,7 +156,7 @@ begin
 
    GEN_RX :
    for i in (APP_STREAMS_G-1) downto 0 generate
-      U_Rx : entity work.AxiStreamResize
+      U_Rx : entity surf.AxiStreamResize
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
@@ -175,7 +176,7 @@ begin
             mAxisSlave  => rxSlaves(i));
    end generate GEN_RX;
 
-   U_AxiStreamMux : entity work.AxiStreamMux
+   U_AxiStreamMux : entity surf.AxiStreamMux
       generic map (
          TPD_G                => TPD_G,
          NUM_SLAVES_G         => APP_STREAMS_G,
@@ -200,7 +201,7 @@ begin
    GEN_PACKER : if (BYPASS_CHUNKER_G = false) generate
    begin
       PACKER_V1 : if (APP_ILEAVE_EN_G = false) generate
-         U_Packetizer : entity work.AxiStreamPacketizer
+         U_Packetizer : entity surf.AxiStreamPacketizer
             generic map (
                TPD_G                => TPD_G,
                MAX_PACKET_BYTES_G   => MAX_SEG_SIZE_G,
@@ -216,10 +217,10 @@ begin
                mAxisSlave  => packetizerSlaves(1));
       end generate;
       PACKER_V2 : if (APP_ILEAVE_EN_G = true) generate
-         U_Packetizer : entity work.AxiStreamPacketizer2
+         U_Packetizer : entity surf.AxiStreamPacketizer2
             generic map (
                TPD_G                => TPD_G,
-               BRAM_EN_G            => true,
+               MEMORY_TYPE_G        => "block",
                REG_EN_G             => true,
                CRC_MODE_G           => "FULL",
                CRC_POLY_G           => x"04C11DB7",
@@ -243,7 +244,7 @@ begin
       packetizerSlaves(0)  <= packetizerSlaves(1);
    end generate;
 
-   U_RssiCore : entity work.RssiCore
+   U_RssiCore : entity surf.RssiCore
       generic map (
          TPD_G               => TPD_G,
          CLK_FREQUENCY_G     => CLK_FREQUENCY_G,
@@ -305,7 +306,7 @@ begin
 
    GEN_DEPACKER : if (BYPASS_CHUNKER_G = false) generate
       DEPACKER_V1 : if (APP_ILEAVE_EN_G = false) generate
-         U_Depacketizer : entity work.AxiStreamDepacketizer
+         U_Depacketizer : entity surf.AxiStreamDepacketizer
             generic map (
                TPD_G                => TPD_G,
                INPUT_PIPE_STAGES_G  => 0,  -- No need for input stage, RSSI output is already pipelined
@@ -320,10 +321,10 @@ begin
                mAxisSlave  => depacketizerSlaves(0));
       end generate;
       DEPACKER_V2 : if (APP_ILEAVE_EN_G = true) generate
-         U_Depacketizer : entity work.AxiStreamDepacketizer2
+         U_Depacketizer : entity surf.AxiStreamDepacketizer2
             generic map (
                TPD_G                => TPD_G,
-               BRAM_EN_G            => true,
+               MEMORY_TYPE_G        => "block",
                REG_EN_G             => true,               
                CRC_MODE_G           => "FULL",
                CRC_POLY_G           => x"04C11DB7",
@@ -346,7 +347,7 @@ begin
       depacketizerSlaves(1)  <= depacketizerSlaves(0);
    end generate;
 
-   U_AxiStreamDeMux : entity work.AxiStreamDeMux
+   U_AxiStreamDeMux : entity surf.AxiStreamDeMux
       generic map (
          TPD_G          => TPD_G,
          PIPE_STAGES_G  => 1,
@@ -366,7 +367,7 @@ begin
 
    GEN_TX :
    for i in (APP_STREAMS_G-1) downto 0 generate
-      U_Tx : entity work.AxiStreamResize
+      U_Tx : entity surf.AxiStreamResize
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
@@ -20,9 +19,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.ArbiterPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.ArbiterPkg.all;
+use surf.AxiStreamPkg.all;
 
 entity AxiStreamMux is
    generic (
@@ -237,7 +238,7 @@ begin
    end process seq;   
 
    -- Optional output pipeline registers to ease timing
-   AxiStreamPipeline_1 : entity work.AxiStreamPipeline
+   AxiStreamPipeline_1 : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => PIPE_STAGES_G)

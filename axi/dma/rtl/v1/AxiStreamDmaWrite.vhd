@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamDmaWrite.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
@@ -20,10 +19,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiPkg.all;
-use work.AxiDmaPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiPkg.all;
+use surf.AxiDmaPkg.all;
 
 entity AxiStreamDmaWrite is
    generic (
@@ -137,7 +138,7 @@ begin
 
    pause <= '0' when (AXI_READY_EN_G) else axiWriteCtrl.pause;
 
-   U_AxiStreamShift : entity work.AxiStreamShift
+   U_AxiStreamShift : entity surf.AxiStreamShift
       generic map (
          TPD_G             => TPD_G,
          PIPE_STAGES_G     => PIPE_STAGES_G,
@@ -156,14 +157,14 @@ begin
 
    GEN_CACHE : if (BYP_CACHE_G = false) generate
       
-      U_Cache : entity work.AxiStreamFifoV2
+      U_Cache : entity surf.AxiStreamFifoV2
          generic map (
             TPD_G               => TPD_G,
             INT_PIPE_STAGES_G   => PIPE_STAGES_G,
             PIPE_STAGES_G       => PIPE_STAGES_G,
             SLAVE_READY_EN_G    => true,
             VALID_THOLD_G       => 1,
-            BRAM_EN_G           => true,
+            MEMORY_TYPE_G       => "block",
             GEN_SYNC_FIFO_G     => true,
             CASCADE_SIZE_G      => 1,
             FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
@@ -188,7 +189,7 @@ begin
       wrEn <= shiftMaster.tValid and shiftMaster.tLast and shiftSlave.tReady;
       rdEn <= intAxisMaster.tValid and intAxisMaster.tLast and intAxisSlave.tReady;
 
-      U_Last : entity work.FifoSync
+      U_Last : entity surf.FifoSync
          generic map (
             TPD_G        => TPD_G,
             BYP_RAM_G    => true,

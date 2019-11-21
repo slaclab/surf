@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiReadEmulate.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI4 Read Emulation Module
@@ -18,9 +17,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.TextUtilPkg.all;
-use work.StdRtlPkg.all;
-use work.AxiPkg.all;
+
+library surf;
+use surf.TextUtilPkg.all;
+use surf.StdRtlPkg.all;
+use surf.AxiPkg.all;
 
 entity AxiReadEmulate is
    generic (
@@ -66,7 +67,7 @@ architecture structure of AxiReadEmulate is
 
 begin
 
-   U_AxiReadPathFifo : entity work.AxiReadPathFifo
+   U_AxiReadPathFifo : entity surf.AxiReadPathFifo
       generic map (
          TPD_G        => TPD_G,
          AXI_CONFIG_G => AXI_CONFIG_G) 

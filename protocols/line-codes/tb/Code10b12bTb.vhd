@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Encoder10b12bTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Testbench for design "Encoder10b12b"
@@ -18,9 +17,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.Code10b12bPkg.all;
-use work.TextUtilPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Code10b12bPkg.all;
+use surf.TextUtilPkg.all;
 
 
 ----------------------------------------------------------------------------------------------------

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : BoxcarIntegratorTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for the BoxcarIntegrator module
@@ -18,7 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity BoxcarIntegratorTb is end BoxcarIntegratorTb;
 
@@ -44,7 +45,7 @@ architecture testbed of BoxcarIntegratorTb is
 
 begin
 
-   U_ClkRst : entity work.ClkRst
+   U_ClkRst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 10 ns,
          RST_START_DELAY_G => 1 ns,
@@ -133,7 +134,7 @@ begin
 
    end process;
 
-   U_BoxcarIntegrator : entity work.BoxcarIntegrator
+   U_BoxcarIntegrator : entity surf.BoxcarIntegrator
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 16,

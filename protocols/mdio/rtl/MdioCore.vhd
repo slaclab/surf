@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : MDIO Support
 -------------------------------------------------------------------------------
--- File       : MdioCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Execute a MDIO-read or -write transaction
@@ -19,8 +18,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.MdioPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.MdioPkg.all;
 
 entity MdioCore is
    generic (

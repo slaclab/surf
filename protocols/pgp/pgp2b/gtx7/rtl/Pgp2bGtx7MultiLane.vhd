@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
 -------------------------------------------------------------------------------
--- File       : Pgp2bGtx7MultiLane.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Gtx7 Variable Latency, multi-lane Module
@@ -19,10 +18,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.Pgp2bPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.AxiLitePkg.all;
 
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
@@ -190,7 +191,7 @@ begin
    gtRxUserResetIn <= gtRxUserReset or pgpRxReset or pgpRxIn.resetRx;
    gtTxUserResetIn <= pgpTxReset;
 
-   U_Pgp2bLane : entity work.Pgp2bLane
+   U_Pgp2bLane : entity surf.Pgp2bLane
       generic map (
          TPD_G             => TPD_G,
          LANE_CNT_G        => 1,
@@ -234,7 +235,7 @@ begin
          rxChBondIn(i) <= rxChBondOut(i-1);
       end generate Bond_Slaves;
 
-      Gtx7Core_Inst : entity work.Gtx7Core
+      Gtx7Core_Inst : entity surf.Gtx7Core
          generic map (
             TPD_G                    => TPD_G,
             SIM_GTRESET_SPEEDUP_G    => SIM_GTRESET_SPEEDUP_G,
@@ -383,7 +384,7 @@ begin
             drpDi            => drpDi(i),
             drpDo            => drpDo(i));            
 
-      U_AxiLiteToDrp : entity work.AxiLiteToDrp
+      U_AxiLiteToDrp : entity surf.AxiLiteToDrp
          generic map (
             TPD_G            => TPD_G,
             COMMON_CLK_G     => true,

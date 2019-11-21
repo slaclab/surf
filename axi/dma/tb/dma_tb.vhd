@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : dma_tb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for DMA engine
@@ -18,10 +17,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
 
 entity dma_tb is end dma_tb;
 
@@ -99,7 +100,7 @@ begin
          mstAxiWriteSlave   => mstAxiWriteSlave 
       );
 
-   U_AxiToAxiLite : entity work.AxiToAxiLite
+   U_AxiToAxiLite : entity surf.AxiToAxiLite
       generic map (
          TPD_G => 1 ns
       ) port map (
@@ -115,7 +116,7 @@ begin
          axilWriteSlave      => axilWriteSlave
       );
 
-   U_AxiStremDma : entity work.AxiStreamDma
+   U_AxiStremDma : entity surf.AxiStreamDma
       generic map (
          TPD_G            => 1 ns,
          AXIL_COUNT_G     => 1,
@@ -146,15 +147,11 @@ begin
          axiWriteCtrl        => slvAxiWriteCtrl
       );
 
-   U_Fifo : entity work.AxiStreamFifoV2
+   U_Fifo : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => 1 ns,
-         BRAM_EN_G           => true,
-         XIL_DEVICE_G        => "7SERIES",
-         USE_BUILT_IN_G      => false,
+         MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => false,
-         ALTERA_SYN_G        => false,
-         ALTERA_RAM_G        => "M9K",
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 9,
          FIFO_FIXED_THRESH_G => true,
@@ -175,14 +172,10 @@ begin
       );
 
 
-   U_AxiWritePathFifo: entity work.AxiWritePathFifo 
+   U_AxiWritePathFifo: entity surf.AxiWritePathFifo 
       generic map (
          TPD_G                    => 1 ns,
-         XIL_DEVICE_G             => "7SERIES",
-         USE_BUILT_IN_G           => false,
          GEN_SYNC_FIFO_G          => false,
-         ALTERA_SYN_G             => false,
-         ALTERA_RAM_G             => "M9K",
          ADDR_LSB_G               => 0,
          ID_FIXED_EN_G            => false,
          SIZE_FIXED_EN_G          => false,
@@ -191,14 +184,14 @@ begin
          LOCK_FIXED_EN_G          => false,
          PROT_FIXED_EN_G          => false,
          CACHE_FIXED_EN_G         => false,
-         ADDR_BRAM_EN_G           => true,
+         ADDR_MEMORY_TYPE_G       => "block",
          ADDR_CASCADE_SIZE_G      => 1,
          ADDR_FIFO_ADDR_WIDTH_G   => 9,
-         DATA_BRAM_EN_G           => true,
+         DATA_MEMORY_TYPE_G       => "block",
          DATA_CASCADE_SIZE_G      => 1,
          DATA_FIFO_ADDR_WIDTH_G   => 9,
          DATA_FIFO_PAUSE_THRESH_G => 400,
-         RESP_BRAM_EN_G           =>true,
+         RESP_MEMORY_TYPE_G       =>"block",
          RESP_CASCADE_SIZE_G      => 1,
          RESP_FIFO_ADDR_WIDTH_G   => 9,
          AXI_CONFIG_G             => AXI_CONFIG_C
@@ -220,14 +213,10 @@ begin
 
 
 
-   U_AxiReadPathFifo: entity work.AxiReadPathFifo 
+   U_AxiReadPathFifo: entity surf.AxiReadPathFifo 
       generic map (
          TPD_G                    => 1 ns,
-         XIL_DEVICE_G             => "7SERIES",
-         USE_BUILT_IN_G           => false,
          GEN_SYNC_FIFO_G          => false,
-         ALTERA_SYN_G             => false,
-         ALTERA_RAM_G             => "M9K",
          ADDR_LSB_G               => 0,
          ID_FIXED_EN_G            => false,
          SIZE_FIXED_EN_G          => false,
@@ -236,10 +225,10 @@ begin
          LOCK_FIXED_EN_G          => false,
          PROT_FIXED_EN_G          => false,
          CACHE_FIXED_EN_G         => false,
-         ADDR_BRAM_EN_G           => true,
+         ADDR_MEMORY_TYPE_G       => "block",
          ADDR_CASCADE_SIZE_G      => 1,
          ADDR_FIFO_ADDR_WIDTH_G   => 9,
-         DATA_BRAM_EN_G           => true,
+         DATA_MEMORY_TYPE_G       => "block",
          DATA_CASCADE_SIZE_G      => 1,
          DATA_FIFO_ADDR_WIDTH_G   => 9,
          AXI_CONFIG_G             => AXI_CONFIG_C

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : DualPortRam.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: This module infers either Block RAM or distributed RAM
@@ -17,14 +16,16 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity DualPortRam is
    -- MODE_G = {"no-change","read-first","write-first"}
    generic (
       TPD_G          : time                       := 1 ns;
       RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low      
-      BRAM_EN_G      : boolean                    := true;
+      MEMORY_TYPE_G  : string                     := "block";
       REG_EN_G       : boolean                    := true;   -- This generic only with BRAM
       DOA_REG_G      : boolean                    := false;  -- This generic only with BRAM
       DOB_REG_G      : boolean                    := false;  -- This generic only with LUTRAM
@@ -60,8 +61,8 @@ architecture mapping of DualPortRam is
 
 begin
 
-   GEN_BRAM : if (BRAM_EN_G = true) generate
-      TrueDualPortRam_Inst : entity work.TrueDualPortRam
+   GEN_BRAM : if (MEMORY_TYPE_G/="distributed") generate
+      TrueDualPortRam_Inst : entity surf.TrueDualPortRam
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => RST_POLARITY_G,
@@ -95,8 +96,8 @@ begin
             regceb  => regceb);
    end generate;
 
-   GEN_LUTRAM : if (BRAM_EN_G = false) generate
-      QuadPortRam_Inst : entity work.QuadPortRam
+   GEN_LUTRAM : if (MEMORY_TYPE_G="distributed") generate
+      QuadPortRam_Inst : entity surf.QuadPortRam
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => RST_POLARITY_G,

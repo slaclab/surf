@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Idelaye3Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper on IDELAYE3 that patches the silicon's issue of increments > 8
@@ -19,7 +18,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -65,7 +66,7 @@ begin
 
    CNTVALUEOUT <= currentCntValue;
 
-   U_patch : entity work.Delaye3PatchFsm
+   U_patch : entity surf.Delaye3PatchFsm
       generic map (
          TPD_G           => TPD_G,
          DELAY_TYPE      => DELAY_TYPE,

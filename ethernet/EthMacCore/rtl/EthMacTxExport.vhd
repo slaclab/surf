@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : EthMacTxExport.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Mapping for 1GbE/10GbE/40GbE ETH MAC TX path
@@ -18,8 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.AxiStreamPkg.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.AxiStreamPkg.all;
+use surf.StdRtlPkg.all;
 
 entity EthMacTxExport is
    generic (
@@ -57,7 +58,7 @@ begin
    assert ((PHY_TYPE_G = "XLGMII") or (PHY_TYPE_G = "XGMII") or (PHY_TYPE_G = "GMII")) report "EthMacTxExport: PHY_TYPE_G must be either GMII, XGMII, XLGMII" severity failure;
 
    U_40G : if (PHY_TYPE_G = "XLGMII") generate
-      U_XLGMII : entity work.EthMacTxExportXlgmii
+      U_XLGMII : entity surf.EthMacTxExportXlgmii
          generic map (
             TPD_G => TPD_G) 
          port map (
@@ -84,7 +85,7 @@ begin
    end generate;
 
    U_10G : if (PHY_TYPE_G = "XGMII") generate
-      U_XGMII : entity work.EthMacTxExportXgmii
+      U_XGMII : entity surf.EthMacTxExportXgmii
          generic map (
             TPD_G => TPD_G) 
          port map (
@@ -111,7 +112,7 @@ begin
    end generate;
 
    U_1G : if (PHY_TYPE_G = "GMII") generate
-      U_GMII : entity work.EthMacTxExportGmii
+      U_GMII : entity surf.EthMacTxExportGmii
          generic map (
             TPD_G => TPD_G) 
          port map (

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GlinkDecoder.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: A collection of common constants and functions intended for
@@ -18,7 +17,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 package GLinkPkg is
 

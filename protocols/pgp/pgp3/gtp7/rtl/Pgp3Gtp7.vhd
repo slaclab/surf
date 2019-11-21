@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
--- File       : Pgp3Gtp7.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: PGPv3 GTP7 Core Module
@@ -20,10 +19,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.Pgp3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Pgp3Pkg.all;
 
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
@@ -179,7 +180,7 @@ begin
    pgpRxOut  <= locRxOut;
 
    GEN_XBAR : if (EN_DRP_G and EN_PGP_MON_G) generate
-      U_XBAR : entity work.AxiLiteCrossbar
+      U_XBAR : entity surf.AxiLiteCrossbar
          generic map (
             TPD_G              => TPD_G,
             NUM_SLAVE_SLOTS_G  => 1,
@@ -214,7 +215,7 @@ begin
       axilReadMasters(PGP_AXIL_INDEX_C)  <= axilReadMaster;
    end generate GEN_PGP_MON_ONLY;
 
-   U_Pgp3Core : entity work.Pgp3Core
+   U_Pgp3Core : entity surf.Pgp3Core
       generic map (
          TPD_G                       => TPD_G,
          NUM_VC_G                    => NUM_VC_G,
@@ -273,7 +274,7 @@ begin
    --------------------------
    -- Wrapper for GTH IP core
    --------------------------
-   U_Pgp3Gtp7IpWrapper : entity work.Pgp3Gtp7IpWrapper
+   U_Pgp3Gtp7IpWrapper : entity surf.Pgp3Gtp7IpWrapper
       generic map (
          TPD_G            => TPD_G,
          CLKIN_PERIOD_G   => CLKIN_PERIOD_G,

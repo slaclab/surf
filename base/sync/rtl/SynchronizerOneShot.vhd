@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SynchronizerOneShot.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: One-Shot Pulser that has to cross clock domains
@@ -16,7 +15,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SynchronizerOneShot is
    generic (
@@ -63,7 +64,7 @@ architecture rtl of SynchronizerOneShot is
 
 begin
 
-   RstSync_Inst : entity work.RstSync
+   RstSync_Inst : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          RELEASE_DELAY_G => RELEASE_DELAY_G,
@@ -75,7 +76,7 @@ begin
          asyncRst => dataIn,
          syncRst  => pulseRst);
 
-   Sync_Pulse : entity work.SynchronizerEdge
+   Sync_Pulse : entity surf.SynchronizerEdge
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,

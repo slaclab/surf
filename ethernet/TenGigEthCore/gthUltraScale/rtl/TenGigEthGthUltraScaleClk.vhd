@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : TenGigEthGthUltraScaleClk.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 10GBASE-R Ethernet's Clock Module
@@ -16,7 +15,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -80,7 +81,7 @@ begin
    coreClk   <= gtRefClkBufg when(EXT_REF_G) else coreClock;
    qpllReset <= qpllRst or coreRst;
 
-   GthUltraScaleQuadPll_Inst : entity work.GthUltraScaleQuadPll
+   GthUltraScaleQuadPll_Inst : entity surf.GthUltraScaleQuadPll
       generic map (
          -- Simulation Parameters
          TPD_G               => TPD_G,

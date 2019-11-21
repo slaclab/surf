@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : UartSem.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: UART wrapper for 7-series SEM module
@@ -18,15 +17,17 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.SemPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.SemPkg.all;
 
 entity UartSem is
    generic (
       TPD_G             : time     := 1 ns;
       CLK_FREQ_G        : real     := 100.0E+6;
       BAUD_RATE_G       : positive := 115200;
-      FIFO_BRAM_EN_G    : boolean  := false;
+      MEMORY_TYPE_G     : string   := "block";
       FIFO_ADDR_WIDTH_G : positive := 5);
    port (
       -- Clock and Reset
@@ -60,7 +61,7 @@ begin
    ------------------------------   
    --  Soft Error Mitigation Core
    ------------------------------   
-   U_Sem : entity work.SemWrapper
+   U_Sem : entity surf.SemWrapper
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -80,12 +81,12 @@ begin
    --------------------
    --  UART Serdes Core
    --------------------
-   U_Uart : entity work.UartWrapper
+   U_Uart : entity surf.UartWrapper
       generic map (
          TPD_G             => TPD_G,
          CLK_FREQ_G        => CLK_FREQ_G,
          BAUD_RATE_G       => BAUD_RATE_G,
-         FIFO_BRAM_EN_G    => FIFO_BRAM_EN_G,
+         MEMORY_TYPE_G     => MEMORY_TYPE_G,
          FIFO_ADDR_WIDTH_G => FIFO_ADDR_WIDTH_G)
       port map (
          -- Clock and Reset

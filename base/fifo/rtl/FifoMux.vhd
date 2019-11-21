@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : FifoMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Resizing FIFO module
@@ -17,7 +16,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity FifoMux is
    generic (
@@ -27,13 +28,8 @@ entity FifoMux is
       RST_POLARITY_G     : sl                         := '1';  -- '1' for active high rst, '0' for active low
       RST_ASYNC_G        : boolean                    := false;
       GEN_SYNC_FIFO_G    : boolean                    := false;
-      BRAM_EN_G          : boolean                    := true;
+      MEMORY_TYPE_G      : string                     := "block";
       FWFT_EN_G          : boolean                    := true;
-      USE_DSP48_G        : string                     := "no";
-      ALTERA_SYN_G       : boolean                    := false;
-      ALTERA_RAM_G       : string                     := "M9K";
-      USE_BUILT_IN_G     : boolean                    := false;  -- If set to true, this module is only Xilinx compatible only!!!
-      XIL_DEVICE_G       : string                     := "7SERIES";  -- Xilinx only generic parameter    
       SYNC_STAGES_G      : integer range 3 to (2**24) := 3;
       PIPE_STAGES_G      : natural range 0 to 16      := 0;
       WR_DATA_WIDTH_G    : integer range 1 to (2**24) := 64;
@@ -187,7 +183,7 @@ begin
    -------------
    -- Module reset should be driven by wr_clk
    -- Must synchronize it over to the rd_clk
-   RstSync_RdRst : entity work.RstSync
+   RstSync_RdRst : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => RST_POLARITY_G,
@@ -255,7 +251,7 @@ begin
    --------
    -- Fifo
    --------
-   FifoCascade_Inst : entity work.FifoCascade
+   FifoCascade_Inst : entity surf.FifoCascade
       generic map (
          TPD_G              => TPD_G,
          CASCADE_SIZE_G     => CASCADE_SIZE_G,
@@ -263,13 +259,8 @@ begin
          RST_POLARITY_G     => RST_POLARITY_G,
          RST_ASYNC_G        => RST_ASYNC_G,
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
-         BRAM_EN_G          => BRAM_EN_G,
+         MEMORY_TYPE_G      => MEMORY_TYPE_G,
          FWFT_EN_G          => FWFT_EN_G,
-         USE_DSP48_G        => USE_DSP48_G,
-         ALTERA_SYN_G       => ALTERA_SYN_G,
-         ALTERA_RAM_G       => ALTERA_RAM_G,
-         USE_BUILT_IN_G     => USE_BUILT_IN_G,
-         XIL_DEVICE_G       => XIL_DEVICE_G,
          SYNC_STAGES_G      => SYNC_STAGES_G,
          PIPE_STAGES_G      => PIPE_STAGES_G,
          DATA_WIDTH_G       => FIFO_DATA_WIDTH_C,

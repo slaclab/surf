@@ -18,7 +18,6 @@
 --  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
 -------------------------------------------------------------------------------
 -- Entity:      I2cMaster
--- File:        I2cMaster.vhd
 -- Author:      Jan Andersson - Gaisler Research
 -- Contact:     support@gaisler.com
 -- Description:
@@ -40,8 +39,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.StdRtlPkg.all;
-use work.I2cPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.I2cPkg.all;
 
 entity I2cMaster is
    generic (

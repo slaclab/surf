@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : MDIO Support
 -------------------------------------------------------------------------------
--- File       : MdioLinkIrqHandler.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 
@@ -22,8 +21,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.MdioPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.MdioPkg.all;
 
 -- This module processes two simple sequences of MDIO commands:
 --
@@ -118,7 +119,7 @@ begin
    hdlrDone        <= r.hdlrDone;
    args            <= r.mdioData;
 
-   U_MdioCtrl : entity work.MdioSeqCore
+   U_MdioCtrl : entity surf.MdioSeqCore
       generic map (
          TPD_G       => TPD_G,
          DIV_G       => DIV_G,

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : PwrUpRst.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Synchronizes a reset signal and holds it for a parametrized
@@ -19,7 +18,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity PwrUpRst is
    generic (
@@ -27,7 +28,7 @@ entity PwrUpRst is
       SIM_SPEEDUP_G  : boolean                        := false;
       IN_POLARITY_G  : sl                             := '1';
       OUT_POLARITY_G : sl                             := '1';
-      USE_DSP48_G    : string                         := "no";
+      USE_DSP_G      : string                         := "no";
       DURATION_G     : natural range 0 to ((2**30)-1) := 156250000);
    port (
       arst   : in  sl := not IN_POLARITY_G;
@@ -43,17 +44,12 @@ architecture rtl of PwrUpRst is
    signal cnt : natural range 0 to DURATION_G := 0;
 
    -- Attribute for XST
-   attribute use_dsp48        : string;
-   attribute use_dsp48 of cnt : signal is USE_DSP48_G;
+   attribute use_dsp        : string;
+   attribute use_dsp of cnt : signal is USE_DSP_G;
    
 begin
 
-   -- USE_DSP48_G check
-   assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
-      report "USE_DSP48_G must be either yes, no, auto, or automax"
-      severity failure;
-
-   RstSync_Inst : entity work.RstSync
+   RstSync_Inst : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => IN_POLARITY_G,

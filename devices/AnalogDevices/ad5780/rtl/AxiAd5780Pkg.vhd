@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiAd5780Pkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AD5780 Package File
@@ -16,7 +15,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 package AxiAd5780Pkg is
    

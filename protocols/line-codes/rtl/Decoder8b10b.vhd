@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : Line Code 8B10B: https://en.wikipedia.org/wiki/8b/10b_encoding
 -------------------------------------------------------------------------------
--- File       : Decoder8b10b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 8B10B Decoder Module
@@ -17,8 +16,10 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use work.StdRtlPkg.all;
-use work.Code8b10bPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Code8b10bPkg.all;
 
 entity Decoder8b10b is
 

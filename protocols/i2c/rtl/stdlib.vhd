@@ -18,7 +18,6 @@
 --  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
 -----------------------------------------------------------------------------
 -- Package: 	stdlib
--- File:	stdlib.vhd
 -- Author:	Jiri Gaisler - Gaisler Research
 -- Description:	Package for common VHDL functions
 ------------------------------------------------------------------------------

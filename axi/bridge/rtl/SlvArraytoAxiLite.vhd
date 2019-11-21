@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SlvArraytoAxiLite.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SLV array to AXI-Lite Master Bridge 
@@ -18,8 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity SlvArraytoAxiLite is
    generic (
@@ -75,7 +76,7 @@ begin
 
    GEN_VEC :
    for i in (SIZE_G-1) downto 0 generate
-      SyncFifo : entity work.SynchronizerFifo
+      SyncFifo : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
             COMMON_CLK_G => COMMON_CLK_G,
@@ -89,7 +90,7 @@ begin
             dout   => inSlv(i));
    end generate GEN_VEC;
 
-   U_AxiLiteMaster : entity work.AxiLiteMaster
+   U_AxiLiteMaster : entity surf.AxiLiteMaster
       generic map (
          TPD_G => TPD_G)
       port map (

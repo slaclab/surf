@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : XVC Debug Bridge Support
 -------------------------------------------------------------------------------
--- File       : UdpDebugBridge.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: UDP Debug Bridge
@@ -19,9 +18,11 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.UdpDebugBridgePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.UdpDebugBridgePkg.all;
 
 entity UdpDebugBridge is
    port (
@@ -39,7 +40,7 @@ end entity UdpDebugBridge;
 architecture UdpDebugBridgeImpl of UdpDebugBridge is
 begin
 
-   U_AxisJtagDebugBridge : entity work.AxisJtagDebugBridge(AxisJtagDebugBridgeImpl)
+   U_AxisJtagDebugBridge : entity surf.AxisJtagDebugBridge(AxisJtagDebugBridgeImpl)
       generic map (
          AXIS_FREQ_G         => XVC_ACLK_FREQ_C,
          CLK_DIV2_G          => XVC_TCLK_DIV2_C,

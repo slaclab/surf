@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PgpEth: https://confluence.slac.stanford.edu/x/pQmODw
 -------------------------------------------------------------------------------
--- File       : PgpEthAxiL.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite block to manage the PGP Ethernet interface.
@@ -20,9 +19,11 @@ use ieee.std_logic_1164.all;
 use IEEE.STD_LOGIC_ARITH.all;
 use IEEE.STD_LOGIC_UNSIGNED.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.PgpEthPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.PgpEthPkg.all;
 
 entity PgpEthAxiL is
    generic (
@@ -132,7 +133,7 @@ architecture rtl of PgpEthAxiL is
 
 begin
 
-   U_XBAR : entity work.AxiLiteCrossbar
+   U_XBAR : entity surf.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
          NUM_SLAVE_SLOTS_G  => 1,
@@ -150,7 +151,7 @@ begin
          mAxiReadMasters     => axilReadMasters,
          mAxiReadSlaves      => axilReadSlaves);
 
-   U_SyncStatusVector : entity work.AxiLiteRamSyncStatusVector
+   U_SyncStatusVector : entity surf.AxiLiteRamSyncStatusVector
       generic map (
          TPD_G          => TPD_G,
          OUT_POLARITY_G => '1',
@@ -188,7 +189,7 @@ begin
          axilWriteMaster        => axilWriteMasters(0),
          axilWriteSlave         => axilWriteSlaves(0));
 
-   U_ClockFreq : entity work.SyncClockFreq
+   U_ClockFreq : entity surf.SyncClockFreq
       generic map (
          TPD_G          => TPD_G,
          REF_CLK_FREQ_G => AXIL_CLK_FREQ_G,
@@ -200,7 +201,7 @@ begin
          locClk  => axilClk,
          refClk  => axilClk);
 
-   U_frameTxSize : entity work.SyncMinMax
+   U_frameTxSize : entity surf.SyncMinMax
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 16)
@@ -216,7 +217,7 @@ begin
          dataMin => frameTxMinSize,
          dataMax => frameTxMaxSize);
 
-   U_frameRxSize : entity work.SyncMinMax
+   U_frameRxSize : entity surf.SyncMinMax
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 16)
@@ -342,7 +343,7 @@ begin
       end if;
    end process;
 
-   U_etherType : entity work.SynchronizerVector
+   U_etherType : entity surf.SynchronizerVector
       generic map(
          TPD_G   => TPD_G,
          WIDTH_G => 16)
@@ -351,7 +352,7 @@ begin
          dataIn  => r.etherType,
          dataOut => etherType);
 
-   U_broadcastMac : entity work.SynchronizerVector
+   U_broadcastMac : entity surf.SynchronizerVector
       generic map(
          TPD_G   => TPD_G,
          WIDTH_G => 48)
@@ -360,7 +361,7 @@ begin
          dataIn  => r.broadcastMac,
          dataOut => broadcastMac);
 
-   U_nullInterval : entity work.SynchronizerVector
+   U_nullInterval : entity surf.SynchronizerVector
       generic map(
          TPD_G   => TPD_G,
          WIDTH_G => 32)
@@ -369,7 +370,7 @@ begin
          dataIn  => r.pgpTxIn.nullInterval,
          dataOut => syncTxIn.nullInterval);
 
-   U_SyncBits : entity work.SynchronizerVector
+   U_SyncBits : entity surf.SynchronizerVector
       generic map(
          TPD_G   => TPD_G,
          WIDTH_G => 2)

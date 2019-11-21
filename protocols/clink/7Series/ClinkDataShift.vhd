@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : ClinkDataShift.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
@@ -19,9 +18,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.ClinkPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.ClinkPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -79,7 +80,7 @@ architecture structure of ClinkDataShift is
 
 begin
 
-   U_clkInFreq : entity work.SyncClockFreq
+   U_clkInFreq : entity surf.SyncClockFreq
       generic map (
          TPD_G          => TPD_G,
          REF_CLK_FREQ_G => 200.0E+6,
@@ -93,7 +94,7 @@ begin
          locClk  => sysClk,
          refClk  => dlyClk);
 
-   U_clinkClkFreq : entity work.SyncClockFreq
+   U_clinkClkFreq : entity surf.SyncClockFreq
       generic map (
          TPD_G          => TPD_G,
          REF_CLK_FREQ_G => 200.0E+6,
@@ -110,7 +111,7 @@ begin
    --------------------------------------
    -- Clock Generation
    --------------------------------------
-   U_ClkGen : entity work.ClinkDataClk
+   U_ClkGen : entity surf.ClinkDataClk
       generic map (TPD_G => TPD_G)
       port map (
          clkIn           => rawIn(0),
@@ -135,7 +136,7 @@ begin
    --------------------------------------
    -- Sync delay inputs
    --------------------------------------
-   U_SyncDelay : entity work.SynchronizerFifo
+   U_SyncDelay : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 5)

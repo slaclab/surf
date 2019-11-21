@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : UdpEngine.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Top-Level UDP/DHCP Module
@@ -16,8 +15,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 
 entity UdpEngine is
    generic (
@@ -100,7 +101,7 @@ begin
    serverRemoteIp   <= remoteIp;        -- Debug Only
    dhcpIpOut        <= localIp;
 
-   U_UdpEngineRx : entity work.UdpEngineRx
+   U_UdpEngineRx : entity surf.UdpEngineRx
       generic map (
          TPD_G          => TPD_G,
          DHCP_G         => DHCP_G,
@@ -136,7 +137,7 @@ begin
 
    GEN_DHCP : if (DHCP_G = true) generate
 
-      U_UdpEngineDhcp : entity work.UdpEngineDhcp
+      U_UdpEngineDhcp : entity surf.UdpEngineDhcp
          generic map (
             -- Simulation Generics
             TPD_G          => TPD_G,
@@ -169,7 +170,7 @@ begin
 
    GEN_SERVER : if (SERVER_EN_G = true) generate
 
-      U_UdpEngineTx : entity work.UdpEngineTx
+      U_UdpEngineTx : entity surf.UdpEngineTx
          generic map (
             TPD_G          => TPD_G,
             SIZE_G         => SERVER_SIZE_G,
@@ -198,7 +199,7 @@ begin
 
    GEN_CLIENT : if (CLIENT_EN_G = true) generate
 
-      U_UdpEngineArp : entity work.UdpEngineArp
+      U_UdpEngineArp : entity surf.UdpEngineArp
          generic map (
             TPD_G          => TPD_G,
             CLIENT_SIZE_G  => CLIENT_SIZE_G,
@@ -220,7 +221,7 @@ begin
             clk             => clk,
             rst             => rst);
 
-      U_UdpEngineTx : entity work.UdpEngineTx
+      U_UdpEngineTx : entity surf.UdpEngineTx
          generic map (
             TPD_G          => TPD_G,
             SIZE_G         => CLIENT_SIZE_G,
@@ -246,7 +247,7 @@ begin
 
    GEN_MUX : if ((SERVER_EN_G = true) and (CLIENT_EN_G = true)) generate
 
-      U_AxiStreamMux : entity work.AxiStreamMux
+      U_AxiStreamMux : entity surf.AxiStreamMux
          generic map (
             TPD_G        => TPD_G,
             NUM_SLAVES_G => 2)

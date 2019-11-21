@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : FifoRdFsm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: FIFO Read FSM
@@ -18,7 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity FifoRdFsm is
    generic (
@@ -26,7 +27,7 @@ entity FifoRdFsm is
       RST_POLARITY_G : sl       := '1';  -- '1' for active high rst, '0' for active low
       RST_ASYNC_G    : boolean  := false;
       FIFO_ASYNC_G   : boolean  := false;
-      BRAM_EN_G      : boolean  := true;
+      MEMORY_TYPE_G  : string   := "block";
       FWFT_EN_G      : boolean  := false;
       DATA_WIDTH_G   : positive := 16;
       ADDR_WIDTH_G   : positive := 4;
@@ -135,8 +136,8 @@ begin
                v.tValid(1) := '0';
             end if;
 
-            -- Check for BRAM_EN_G (2 cycle read latency = DOB_REG_G + Internal REG )
-            if (BRAM_EN_G = true) then
+            -- Check for BRAM (2 cycle read latency = DOB_REG_G + Internal REG )
+            if (MEMORY_TYPE_G/="distributed") then
 
                -- Check if we need to move data from RAM output to RAM REG
                if (v.tValid(1) = '0') and (r.tValid(0) = '1') then

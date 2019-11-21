@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GLinkGtx7RxRst.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: G-Link GTX7 Reset module
@@ -273,7 +272,7 @@ begin
 
 
    -- Clock Domain Crossing
-   Synchronizer_run_phase_alignment : entity work.Synchronizer
+   Synchronizer_run_phase_alignment : entity surf.Synchronizer
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => 3,
@@ -283,7 +282,7 @@ begin
          dataIn  => run_phase_alignment_int,
          dataOut => run_phase_alignment_int_s3);
 
-   Synchronizer_fsm_reset_done : entity work.Synchronizer
+   Synchronizer_fsm_reset_done : entity surf.Synchronizer
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => 3,
@@ -293,7 +292,7 @@ begin
          dataIn  => rx_fsm_reset_done_int,
          dataOut => rx_fsm_reset_done_int_s3);
 
-   Synchronizer_SOFT_RESET : entity work.SynchronizerEdge
+   Synchronizer_SOFT_RESET : entity surf.SynchronizerEdge
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -303,7 +302,7 @@ begin
          risingEdge => soft_reset_rise,
          fallingEdge => soft_reset_fall);
 
-   Synchronizer_RXRESETDONE : entity work.Synchronizer
+   Synchronizer_RXRESETDONE : entity surf.Synchronizer
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => 3,
@@ -313,7 +312,7 @@ begin
          dataIn  => RXRESETDONE,
          dataOut => rxresetdone_s3);
 
-   Synchronizer_time_out_wait_bypass : entity work.Synchronizer
+   Synchronizer_time_out_wait_bypass : entity surf.Synchronizer
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => 3,
@@ -323,7 +322,7 @@ begin
          dataIn  => time_out_wait_bypass,
          dataOut => time_out_wait_bypass_s3);
 
-   Synchronizer_mmcm_lock_reclocked : entity work.Synchronizer
+   Synchronizer_mmcm_lock_reclocked : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -331,7 +330,7 @@ begin
          dataIn  => mmcm_lock_int,
          dataOut => mmcm_lock_reclocked(0));
 
-   Synchronizer_data_valid : entity work.Synchronizer
+   Synchronizer_data_valid : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -340,7 +339,7 @@ begin
          dataOut => data_valid_sync);
 
 
-   Synchronizer_PLLLOCK : entity work.Synchronizer
+   Synchronizer_PLLLOCK : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -350,7 +349,7 @@ begin
 
    -- Phase aligner might run on rxusrclk in some cases
    -- Synchronizer it just in case
-   Synchronizer_PHALIGNMENT_DONE : entity work.Synchronizer
+   Synchronizer_PHALIGNMENT_DONE : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (

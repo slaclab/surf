@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : MDIO Support
 -------------------------------------------------------------------------------
--- File       : MdioSeqCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 
@@ -49,8 +48,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.MdioPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.MdioPkg.all;
 
 entity MdioSeqCore is
    generic (
@@ -107,7 +108,7 @@ begin
    don    <= oneDone and r.inst.lst;
    rs     <= oneDone and r.inst.cmd.rdNotWr;
 
-   U_MdioCore : entity work.MdioCore
+   U_MdioCore : entity surf.MdioCore
       generic map (
          TPD_G      => TPD_G,
          DIV_G      => DIV_G

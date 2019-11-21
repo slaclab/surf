@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SynchronizerOneShotCntVector.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for multiple SynchronizerOneShotCnt modules
@@ -16,7 +15,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SynchronizerOneShotCntVector is
    generic (
@@ -27,7 +28,7 @@ entity SynchronizerOneShotCntVector is
       RELEASE_DELAY_G : positive := 3;  -- Delay between deassertion of async and sync resets
       IN_POLARITY_G   : slv      := "1";  -- 0 for active LOW, 1 for active HIGH (dataIn port)
       OUT_POLARITY_G  : slv      := "1";  -- 0 for active LOW, 1 for active HIGH (dataOut port)
-      USE_DSP48_G     : string   := "no";  -- "no" for no DSP48 implementation, "yes" to use DSP48 slices
+      USE_DSP_G       : string   := "no";  -- "no" for no DSP implementation, "yes" to use DSP slices
       SYNTH_CNT_G     : slv      := "1";  -- Set to 1 for synthesising counter RTL, '0' to not synthesis the counter
       CNT_RST_EDGE_G  : boolean  := true;  -- true if counter reset should be edge detected, else level detected
       CNT_WIDTH_G     : positive := 16;
@@ -68,7 +69,7 @@ begin
    GEN_VEC :
    for i in (WIDTH_G-1) downto 0 generate
       
-      SyncOneShotCnt_Inst : entity work.SynchronizerOneShotCnt
+      SyncOneShotCnt_Inst : entity surf.SynchronizerOneShotCnt
          generic map (
             TPD_G           => TPD_G,
             RST_POLARITY_G  => RST_POLARITY_G,
@@ -77,7 +78,7 @@ begin
             RELEASE_DELAY_G => RELEASE_DELAY_G,
             IN_POLARITY_G   => IN_POLARITY_C(i),
             OUT_POLARITY_G  => OUT_POLARITY_C(i),
-            USE_DSP48_G     => USE_DSP48_G,
+            USE_DSP_G       => USE_DSP_G,
             SYNTH_CNT_G     => SYNTH_CNT_C(i),
             CNT_RST_EDGE_G  => CNT_RST_EDGE_G,
             CNT_WIDTH_G     => CNT_WIDTH_G)           

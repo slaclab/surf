@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamMon.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI Stream Monitor Module
@@ -18,8 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 
 entity AxiStreamMon is
    generic (
@@ -88,7 +89,7 @@ architecture rtl of AxiStreamMon is
 
 begin
 
-   U_packetRate : entity work.SyncTrigRate
+   U_packetRate : entity surf.SyncTrigRate
       generic map (
          TPD_G          => TPD_G,
          COMMON_CLK_G   => true,
@@ -109,7 +110,7 @@ begin
          refClk          => axisClk,
          refRst          => axisRst);
 
-   SyncOut_frameRate : entity work.SynchronizerFifo
+   SyncOut_frameRate : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G,
@@ -121,7 +122,7 @@ begin
          rd_clk => statusClk,
          dout   => frameRate);
 
-   SyncOut_frameRateMax : entity work.SynchronizerFifo
+   SyncOut_frameRateMax : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G,
@@ -133,7 +134,7 @@ begin
          rd_clk => statusClk,
          dout   => frameRateMax);
 
-   SyncOut_frameRateMin : entity work.SynchronizerFifo
+   SyncOut_frameRateMin : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G,
@@ -145,7 +146,7 @@ begin
          rd_clk => statusClk,
          dout   => frameRateMin);
 
-   SyncOut_frameCnt : entity work.SynchronizerFifo
+   SyncOut_frameCnt : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G,
@@ -231,7 +232,7 @@ begin
       end if;
    end process seq;
 
-   Sync_bandwidth : entity work.SyncMinMax
+   Sync_bandwidth : entity surf.SyncMinMax
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G,

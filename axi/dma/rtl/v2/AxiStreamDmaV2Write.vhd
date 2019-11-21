@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamDmaV2Write.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
@@ -20,10 +19,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiPkg.all;
-use work.AxiDmaPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiPkg.all;
+use surf.AxiDmaPkg.all;
 
 entity AxiStreamDmaV2Write is
    generic (
@@ -125,7 +126,7 @@ begin
       report "AXIS (" & integer'image(AXIS_CONFIG_G.TDATA_BYTES_C) & ") and AXI ("
       & integer'image(AXI_CONFIG_G.DATA_BYTES_C) & ") must have equal data widths" severity failure;
 
-   U_Pipeline : entity work.AxiStreamPipeline
+   U_Pipeline : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => PIPE_STAGES_G)
@@ -499,10 +500,10 @@ begin
    --------------------------
    -- Tracking RAM
    --------------------------
-   U_TrackRam: entity work.DualPortRam 
+   U_TrackRam: entity surf.DualPortRam 
       generic map (
          TPD_G          => TPD_G,
-         BRAM_EN_G      => true,
+         MEMORY_TYPE_G  => "block",
          REG_EN_G       => true,
          DOA_REG_G      => true,
          DOB_REG_G      => true, -- 2 cycle read latency

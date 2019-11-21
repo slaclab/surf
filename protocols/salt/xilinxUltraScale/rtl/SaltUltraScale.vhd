@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SaltUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SLAC Asynchronous Logic Transceiver (SALT) UltraScale Core
@@ -16,9 +15,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -333,7 +334,7 @@ begin
    end generate;
 
    TX_ENABLE : if (TX_ENABLE_G = true) generate
-      SaltTx_Inst : entity work.SaltTx
+      SaltTx_Inst : entity surf.SaltTx
          generic map(
             TPD_G              => TPD_G,
             SLAVE_AXI_CONFIG_G => SLAVE_AXI_CONFIG_G,
@@ -364,7 +365,7 @@ begin
    end generate;
 
    RX_ENABLE : if (RX_ENABLE_G = true) generate
-      SaltRx_Inst : entity work.SaltRx
+      SaltRx_Inst : entity surf.SaltRx
          generic map(
             TPD_G               => TPD_G,
             MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G,

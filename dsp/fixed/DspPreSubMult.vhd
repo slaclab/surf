@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : DspPreSubMult.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Generalized DSP inferred multiplier with pre-adder 
@@ -19,7 +18,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity DspPreSubMult is
    generic (
@@ -70,8 +71,8 @@ architecture rtl of DspPreSubMult is
 
    signal p : slv(B_WIDTH_G + C_WIDTH_G downto 0);
 
-   attribute use_dsp48      : string;
-   attribute use_dsp48 of r : signal is USE_DSP_G;
+   attribute use_dsp      : string;
+   attribute use_dsp of r : signal is USE_DSP_G;
 
 begin
 
@@ -151,7 +152,7 @@ begin
       end if;
    end process seq;
 
-   U_Pipe : entity work.FifoOutputPipeline
+   U_Pipe : entity surf.FifoOutputPipeline
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,

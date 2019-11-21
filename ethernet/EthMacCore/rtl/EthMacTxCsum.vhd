@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : EthMacTxCsum.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: TX Checksum Hardware Offloading Engine
@@ -19,9 +18,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.EthMacPkg.all;
 
 entity EthMacTxCsum is
    generic (
@@ -149,7 +150,7 @@ architecture rtl of EthMacTxCsum is
 
 begin
 
-   U_RxPipeline : entity work.AxiStreamPipeline
+   U_RxPipeline : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => 0)
@@ -632,7 +633,7 @@ begin
       end if;
    end process seq;
 
-   Fifo_Cache : entity work.AxiStreamFifoV2
+   Fifo_Cache : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -641,8 +642,7 @@ begin
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
-         BRAM_EN_G           => true,
-         USE_BUILT_IN_G      => false,
+         MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => true,
          CASCADE_SIZE_G      => ite(JUMBO_G, 2, 1),
          FIFO_ADDR_WIDTH_G   => 9,      -- 8kB per FIFO
@@ -661,14 +661,14 @@ begin
          mAxisMaster => mMaster,
          mAxisSlave  => mSlave);
 
-   Fifo_Trans : entity work.FifoSync
+   Fifo_Trans : entity surf.FifoSync
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         FWFT_EN_G    => true,
-         DATA_WIDTH_G => 69,
-         ADDR_WIDTH_G => 4,
-         FULL_THRES_G => 8)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         FWFT_EN_G     => true,
+         DATA_WIDTH_G  => 69,
+         ADDR_WIDTH_G  => 4,
+         FULL_THRES_G  => 8)
       port map (
          clk                => ethClk,
          rst                => ethRst,
@@ -697,7 +697,7 @@ begin
          dout(15 downto 0)  => protCsum,
          valid              => tranValid);
 
-   U_TxPipeline : entity work.AxiStreamPipeline
+   U_TxPipeline : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => 1)

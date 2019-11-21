@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : JesdRxLane.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: JesdRx single lane module
@@ -51,8 +50,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.Jesd204bPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Jesd204bPkg.all;
 
 entity JesdRxLane is
    generic (
@@ -168,16 +169,13 @@ begin
    -----------------------------------------------------------------------
    -- Buffer samples between first data and LMFC Min size one LMFC period
    -----------------------------------------------------------------------
-   RX_buffer_fifo_INST : entity work.FifoSync
+   RX_buffer_fifo_INST : entity surf.FifoSync
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
          RST_ASYNC_G    => false,
-         BRAM_EN_G      => true,
+         MEMORY_TYPE_G  => "block",
          FWFT_EN_G      => false,
-         USE_DSP48_G    => "no",
-         ALTERA_SYN_G   => false,
-         ALTERA_RAM_G   => "M9K",
          PIPE_STAGES_G  => 0,
          DATA_WIDTH_G   => (GT_WORD_SIZE_C*8) + GT_WORD_SIZE_C,
          -- ADDR_WIDTH_G   => bitSize((K_G * F_G)/GT_WORD_SIZE_C),
@@ -200,7 +198,7 @@ begin
    ----------------------
    -- Synchronization FSM
    ----------------------
-   syncFSM_INST : entity work.JesdSyncFsmRx
+   syncFSM_INST : entity surf.JesdSyncFsmRx
       generic map (
          TPD_G => TPD_G,
          F_G   => F_G,
@@ -229,7 +227,7 @@ begin
    ------------------------------------------------------------------
    -- Align the rx data within the GT word and replace the characters
    ------------------------------------------------------------------
-   alignFrRepCh_INST : entity work.JesdAlignFrRepCh
+   alignFrRepCh_INST : entity surf.JesdAlignFrRepCh
       generic map (
          TPD_G => TPD_G,
          F_G   => F_G)

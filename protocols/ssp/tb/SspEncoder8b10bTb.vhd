@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SspEncoderTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Testbench for design "SspEncoder"
@@ -16,17 +15,19 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
-entity SspEncoderTb is
+entity SspEncoder8b10bTb is
 
-end entity SspEncoderTb;
+end entity SspEncoder8b10bTb;
 
 ----------------------------------------------------------------------------------------------------
 
-architecture sim of SspEncoderTb is
+architecture sim of SspEncoder8b10bTb is
 
    -- component generics
    constant TPD_G          : time    := 1 ns;
@@ -49,7 +50,7 @@ architecture sim of SspEncoderTb is
 begin
 
    -- component instantiation
-   Encoder : entity work.SspEncoder
+   Encoder : entity surf.SspEncoder8b10b
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
@@ -61,7 +62,7 @@ begin
          dataIn  => dataIn,
          dataOut => encData);
 
-   Decoder : entity work.SspDecoder
+   Decoder : entity surf.SspDecoder8b10b
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,

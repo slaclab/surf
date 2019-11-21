@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteRamSyncStatusVector.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: A wrapper of AxiDualPortRam & SyncStatusVector
@@ -18,8 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiLiteRamSyncStatusVector is
    generic (
@@ -90,7 +91,7 @@ architecture mapping of AxiLiteRamSyncStatusVector is
 
 begin
 
-   U_AxiDualPortRam : entity work.AxiDualPortRam
+   U_AxiDualPortRam : entity surf.AxiDualPortRam
       generic map (
          TPD_G          => TPD_G,
          SYNTH_MODE_G   => SYNTH_MODE_G,
@@ -116,7 +117,7 @@ begin
          addr           => r.addr,
          din            => r.data);
 
-   U_SyncStatusVector : entity work.SyncStatusVector
+   U_SyncStatusVector : entity surf.SyncStatusVector
       generic map (
          TPD_G          => TPD_G,
          OUT_POLARITY_G => '1',

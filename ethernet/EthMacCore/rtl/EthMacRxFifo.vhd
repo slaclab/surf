@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : EthMacRxFifo.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Outbound FIFO buffers
@@ -18,9 +17,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.EthMacPkg.all;
 
 entity EthMacRxFifo is
    generic (
@@ -95,7 +96,7 @@ architecture rtl of EthMacRxFifo is
 
 begin
 
-   U_Fifo : entity work.SsiFifo
+   U_Fifo : entity surf.SsiFifo
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -106,7 +107,7 @@ begin
          OR_DROP_FLAGS_G     => true,
          VALID_THOLD_G       => VALID_THOLD_C,
          -- FIFO configurations
-         BRAM_EN_G           => true,
+         MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => PRIM_COMMON_CLK_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => false,
@@ -131,7 +132,7 @@ begin
    end generate;
 
    BYP_ENABLED : if (BYP_EN_G = true) generate
-      U_Fifo : entity work.SsiFifo
+      U_Fifo : entity surf.SsiFifo
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
@@ -142,7 +143,7 @@ begin
             OR_DROP_FLAGS_G     => true,
             VALID_THOLD_G       => VALID_THOLD_C,
             -- FIFO configurations
-            BRAM_EN_G           => true,
+            MEMORY_TYPE_G       => "block",
             GEN_SYNC_FIFO_G     => PRIM_COMMON_CLK_G,
             FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
             FIFO_FIXED_THRESH_G => false,
@@ -169,7 +170,7 @@ begin
 
    VLAN_ENABLED : if (VLAN_EN_G = true) generate
       GEN_VEC : for i in (VLAN_SIZE_G-1) downto 0 generate
-         U_Fifo : entity work.SsiFifo
+         U_Fifo : entity surf.SsiFifo
             generic map (
                -- General Configurations
                TPD_G               => TPD_G,
@@ -180,7 +181,7 @@ begin
                OR_DROP_FLAGS_G     => true,
                VALID_THOLD_G       => VALID_THOLD_C,
                -- FIFO configurations
-               BRAM_EN_G           => true,
+               MEMORY_TYPE_G       => "block",
                GEN_SYNC_FIFO_G     => PRIM_COMMON_CLK_G,
                FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
                FIFO_FIXED_THRESH_G => false,

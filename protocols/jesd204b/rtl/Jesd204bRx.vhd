@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Jesd204bRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: JESD204b multi-lane receiver module
@@ -32,9 +31,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.Jesd204bPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Jesd204bPkg.all;
 
 entity Jesd204bRx is
    generic (
@@ -179,7 +180,7 @@ begin
    end generate GEN_rawData;
 
    -- axiLite register interface
-   U_Reg : entity work.JesdRxReg
+   U_Reg : entity surf.JesdRxReg
       generic map (
          TPD_G => TPD_G,
          L_G   => L_G)
@@ -223,7 +224,7 @@ begin
    TEST_GEN : if TEST_G = true generate
       -----------------------------------------
       TX_LANES_GEN : for i in L_G-1 downto 0 generate
-         JesdTxTest_INST : entity work.JesdTxTest
+         JesdTxTest_INST : entity surf.JesdTxTest
             generic map (
                TPD_G => TPD_G)
             port map (
@@ -254,7 +255,7 @@ begin
 
    GEN_ASYNC : if (GEN_ASYNC_G = true) generate
       -- Synchronize SYSREF input to devClk_i
-      Synchronizer_INST : entity work.Synchronizer
+      Synchronizer_INST : entity surf.Synchronizer
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => '1',
@@ -281,7 +282,7 @@ begin
    end generate;
 
    -- Delay SYSREF input (for 1 to 256 c-c)
-   U_SysrefDly : entity work.SlvDelay
+   U_SysrefDly : entity surf.SlvDelay
       generic map (
          TPD_G        => TPD_G,
          REG_OUTPUT_G => true,
@@ -294,7 +295,7 @@ begin
          dout(0) => s_sysrefD);
 
    -- LMFC period generator aligned to SYSREF input
-   LmfcGen_INST : entity work.JesdLmfcGen
+   LmfcGen_INST : entity surf.JesdLmfcGen
       generic map (
          TPD_G => TPD_G,
          K_G   => K_G,
@@ -315,7 +316,7 @@ begin
 
    -- JESD Receiver modules (one module per Lane)
    generateRxLanes : for i in L_G-1 downto 0 generate
-      JesdRx_INST : entity work.JesdRxLane
+      JesdRx_INST : entity surf.JesdRxLane
          generic map (
             TPD_G => TPD_G,
             F_G   => F_G,
@@ -344,7 +345,7 @@ begin
 
    -- Test signal generator
    generatePulserLanes : for i in L_G-1 downto 0 generate
-      Pulser_INST : entity work.JesdTestSigGen
+      Pulser_INST : entity surf.JesdTestSigGen
          generic map (
             TPD_G => TPD_G,
             F_G   => F_G)

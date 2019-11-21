@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
--- File       : Pgp3Gtx7Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: PGPv3 GTX7 Wrapper
@@ -20,10 +19,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.Pgp3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Pgp3Pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -162,7 +163,7 @@ begin
    REAL_PGP : if (not ROGUE_SIM_EN_G) generate
 
 
-      U_XBAR : entity work.AxiLiteCrossbar
+      U_XBAR : entity surf.AxiLiteCrossbar
          generic map (
             TPD_G              => TPD_G,
             NUM_SLAVE_SLOTS_G  => 1,
@@ -180,7 +181,7 @@ begin
             mAxiReadMasters     => axilReadMasters,
             mAxiReadSlaves      => axilReadSlaves);
 
-      U_QPLL : entity work.Pgp3Gtx7Qpll
+      U_QPLL : entity surf.Pgp3Gtx7Qpll
          generic map (
             TPD_G         => TPD_G,
             EN_DRP_G      => EN_QPLL_DRP_G,
@@ -208,7 +209,7 @@ begin
       -- PGP Core
       -----------
       GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
-         U_Pgp : entity work.Pgp3Gtx7
+         U_Pgp : entity surf.Pgp3Gtx7
             generic map (
                TPD_G                       => TPD_G,
                RATE_G                      => RATE_G,
@@ -285,7 +286,7 @@ begin
 
          SLAVE_LOCK : if (i /= 0) generate
             -- Prevent the gtTxPllRst of this lane disrupting the other lanes in the QUAD
-            U_PwrUpRst : entity work.PwrUpRst
+            U_PwrUpRst : entity surf.PwrUpRst
                generic map (
                   TPD_G      => TPD_G,
                   DURATION_G => 125)
@@ -299,7 +300,7 @@ begin
 
       end generate GEN_LANE;
 
-      U_TX_PLL : entity work.ClockManager7
+      U_TX_PLL : entity surf.ClockManager7
          generic map(
             TPD_G            => TPD_G,
             TYPE_G           => "PLL",
@@ -323,7 +324,7 @@ begin
 
    SIM_PGP : if (ROGUE_SIM_EN_G) generate
       GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
-         U_Rogue : entity work.RoguePgp3Sim
+         U_Rogue : entity surf.RoguePgp3Sim
             generic map(
                TPD_G      => TPD_G,
                PORT_NUM_G => (ROGUE_SIM_PORT_NUM_G+(i*34)),

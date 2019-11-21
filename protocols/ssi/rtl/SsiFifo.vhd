@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
 -------------------------------------------------------------------------------
--- File       : SsiFifo.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:   This module is the AXIS FIFO with a frame filter
@@ -21,9 +20,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity SsiFifo is
    generic (
@@ -37,12 +38,8 @@ entity SsiFifo is
       VALID_THOLD_G       : natural               := 1;
       VALID_BURST_MODE_G  : boolean               := false;
       -- FIFO configurations
-      BRAM_EN_G           : boolean               := true;
-      XIL_DEVICE_G        : string                := "7SERIES";
-      USE_BUILT_IN_G      : boolean               := false;
+      MEMORY_TYPE_G       : string                := "block";
       GEN_SYNC_FIFO_G     : boolean               := false;
-      ALTERA_SYN_G        : boolean               := false;
-      ALTERA_RAM_G        : string                := "M9K";
       CASCADE_SIZE_G      : positive              := 1;
       CASCADE_PAUSE_SEL_G : natural               := 0;
       FIFO_ADDR_WIDTH_G   : integer range 4 to 48 := 9;
@@ -97,7 +94,7 @@ begin
    assert (SLAVE_AXI_CONFIG_G.TUSER_BITS_C >= 2) report "SsiFifo:  SLAVE_AXI_CONFIG_G.TUSER_BITS_C must be >= 2" severity failure;
    assert (MASTER_AXI_CONFIG_G.TUSER_BITS_C >= 2) report "SsiFifo:  MASTER_AXI_CONFIG_G.TUSER_BITS_C must be >= 2" severity failure;
 
-   U_IbFilter : entity work.SsiIbFrameFilter
+   U_IbFilter : entity surf.SsiIbFrameFilter
       generic map (
          TPD_G             => TPD_G,
          SLAVE_READY_EN_G  => SLAVE_READY_EN_G,
@@ -118,7 +115,7 @@ begin
          axisClk        => sAxisClk,
          axisRst        => sAxisReset);  
 
-   U_Fifo : entity work.AxiStreamFifoV2
+   U_Fifo : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -128,12 +125,8 @@ begin
          VALID_THOLD_G       => VALID_THOLD_G,
          VALID_BURST_MODE_G  => VALID_BURST_MODE_G,
          -- FIFO configurations
-         BRAM_EN_G           => BRAM_EN_G,
-         XIL_DEVICE_G        => XIL_DEVICE_G,
-         USE_BUILT_IN_G      => USE_BUILT_IN_G,
+         MEMORY_TYPE_G       => MEMORY_TYPE_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
          CASCADE_SIZE_G      => CASCADE_SIZE_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => FIFO_FIXED_THRESH_G,
@@ -165,7 +158,7 @@ begin
    end generate;
 
    GEN_ASYNC_SLAVE : if (GEN_SYNC_FIFO_G = false) generate
-      Sync_Overflow : entity work.SynchronizerOneShot
+      Sync_Overflow : entity surf.SynchronizerOneShot
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -175,7 +168,7 @@ begin
             dataOut => overflow);             
    end generate;
 
-   U_ObFilter : entity work.SsiObFrameFilter
+   U_ObFilter : entity surf.SsiObFrameFilter
       generic map (
          TPD_G             => TPD_G,
          VALID_THOLD_G     => VALID_THOLD_G,
@@ -213,7 +206,7 @@ begin
          mAxisDropWrite <= sDropWriteSync or mDropWrite;
          mAxisTermFrame <= sTermFrameSync or mTermFrame;
 
-         Sync_0 : entity work.SynchronizerOneShot
+         Sync_0 : entity surf.SynchronizerOneShot
             generic map (
                TPD_G => TPD_G)
             port map (
@@ -221,7 +214,7 @@ begin
                dataIn  => mDropWrite,
                dataOut => mDropWriteSync);  
 
-         Sync_1 : entity work.SynchronizerOneShot
+         Sync_1 : entity surf.SynchronizerOneShot
             generic map (
                TPD_G => TPD_G)
             port map (
@@ -229,7 +222,7 @@ begin
                dataIn  => mTermFrame,
                dataOut => mTermFrameSync);   
 
-         Sync_2 : entity work.SynchronizerOneShot
+         Sync_2 : entity surf.SynchronizerOneShot
             generic map (
                TPD_G => TPD_G)
             port map (
@@ -237,7 +230,7 @@ begin
                dataIn  => sDropWrite,
                dataOut => sDropWriteSync);  
 
-         Sync_3 : entity work.SynchronizerOneShot
+         Sync_3 : entity surf.SynchronizerOneShot
             generic map (
                TPD_G => TPD_G)
             port map (

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : TenGigEthGtyUltraScaleRst.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 10GBASE-R Ethernet Reset Module
@@ -18,7 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -47,7 +48,7 @@ begin
    phyClk   <= phyClock;
    phyClock <= txGtClk;
 
-   U_RstSync : entity work.RstSync
+   U_RstSync : entity surf.RstSync
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -57,7 +58,7 @@ begin
 
    ready <= txRstdone and rxRstdone;
 
-   U_Sync : entity work.Synchronizer
+   U_Sync : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : JesdTestStreamTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Test Data Stream Generator
@@ -21,11 +20,11 @@
  
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.jesd204bpkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.jesd204bpkg.all;
 
 entity JesdTestStreamTx is
    generic (

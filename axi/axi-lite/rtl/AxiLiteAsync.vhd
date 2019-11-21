@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteAsync.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
@@ -20,8 +19,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiLiteAsync is
    generic (
@@ -101,7 +102,7 @@ begin
    GEN_ASYNC : if (COMMON_CLK_G = false) generate   
    
    -- Synchronize each reset across to the other clock domain
-   LOC_S2M_RstSync : entity work.RstSync
+   LOC_S2M_RstSync : entity surf.RstSync
       generic map (
          TPD_G         => TPD_G,
          OUT_REG_RST_G => false)
@@ -110,7 +111,7 @@ begin
          asyncRst => sAxiClkRst,
          syncRst  => s2mRst);
 
-   LOC_M2S_RstSync : entity work.RstSync
+   LOC_M2S_RstSync : entity surf.RstSync
       generic map (
          TPD_G         => TPD_G,
          OUT_REG_RST_G => false)
@@ -126,15 +127,12 @@ begin
    ------------------------------------
 
    -- Read Slave To Master FIFO
-   U_ReadSlaveToMastFifo : entity work.FifoASync
+   U_ReadSlaveToMastFifo : entity surf.FifoASync
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
-         BRAM_EN_G      => false,       -- Use Dist Ram
+         MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
          FWFT_EN_G      => true,
-         USE_DSP48_G    => "no",
-         ALTERA_SYN_G   => false,
-         ALTERA_RAM_G   => "M9K",
          SYNC_STAGES_G  => 3,
          PIPE_STAGES_G  => PIPE_STAGES_G,
          DATA_WIDTH_G   => NUM_ADDR_BITS_G+3,
@@ -192,15 +190,12 @@ begin
    ------------------------------------
 
    -- Read Master To Slave FIFO
-   U_ReadMastToSlaveFifo : entity work.FifoASync
+   U_ReadMastToSlaveFifo : entity surf.FifoASync
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
-         BRAM_EN_G      => false,       -- Use Dist Ram
+         MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
          FWFT_EN_G      => true,
-         USE_DSP48_G    => "no",
-         ALTERA_SYN_G   => false,
-         ALTERA_RAM_G   => "M9K",
          SYNC_STAGES_G  => 3,
          PIPE_STAGES_G  => PIPE_STAGES_G,
          DATA_WIDTH_G   => 34,
@@ -253,15 +248,12 @@ begin
    ------------------------------------
 
    -- Write Addr Master To Slave FIFO
-   U_WriteAddrSlaveToMastFifo : entity work.FifoASync
+   U_WriteAddrSlaveToMastFifo : entity surf.FifoASync
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
-         BRAM_EN_G      => false,       -- Use Dist Ram
+         MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
          FWFT_EN_G      => true,
-         USE_DSP48_G    => "no",
-         ALTERA_SYN_G   => false,
-         ALTERA_RAM_G   => "M9K",
          SYNC_STAGES_G  => 3,
          PIPE_STAGES_G  => PIPE_STAGES_G,
          DATA_WIDTH_G   => NUM_ADDR_BITS_G+3,
@@ -319,15 +311,12 @@ begin
    ------------------------------------
 
    -- Write Data Slave To Master FIFO
-   U_WriteDataSlaveToMastFifo : entity work.FifoASync
+   U_WriteDataSlaveToMastFifo : entity surf.FifoASync
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
-         BRAM_EN_G      => false,       -- Use Dist Ram
+         MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
          FWFT_EN_G      => true,
-         USE_DSP48_G    => "no",
-         ALTERA_SYN_G   => false,
-         ALTERA_RAM_G   => "M9K",
          SYNC_STAGES_G  => 3,
          PIPE_STAGES_G  => PIPE_STAGES_G,
          DATA_WIDTH_G   => 36,
@@ -380,15 +369,12 @@ begin
    ------------------------------------
 
    -- Write Status Master To Slave FIFO
-   U_WriteMastToSlaveFifo : entity work.FifoASync
+   U_WriteMastToSlaveFifo : entity surf.FifoASync
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
-         BRAM_EN_G      => false,       -- Use Dist Ram
+         MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
          FWFT_EN_G      => true,
-         USE_DSP48_G    => "no",
-         ALTERA_SYN_G   => false,
-         ALTERA_RAM_G   => "M9K",
          SYNC_STAGES_G  => 3,
          PIPE_STAGES_G  => PIPE_STAGES_G,
          DATA_WIDTH_G   => 2,

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : EthMacRxImportXgmii.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 10GbE Import MAC core with GMII interface
@@ -18,9 +17,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.AxiStreamPkg.all;
-use work.StdRtlPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.AxiStreamPkg.all;
+use surf.StdRtlPkg.all;
+use surf.EthMacPkg.all;
 
 entity EthMacRxImportXgmii is
    generic (
@@ -213,7 +214,7 @@ begin
       end if;
    end process seq;
 
-   U_Resize : entity work.AxiStreamResize
+   U_Resize : entity surf.AxiStreamResize
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -414,17 +415,14 @@ begin
 
 
    -- CRC Delay FIFO
-   U_CrcFifo : entity work.Fifo
+   U_CrcFifo : entity surf.Fifo
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => '1',
          RST_ASYNC_G     => false,
          GEN_SYNC_FIFO_G => true,
-         BRAM_EN_G       => false,
+         MEMORY_TYPE_G   => "distributed",
          FWFT_EN_G       => false,
-         USE_DSP48_G     => "no",
-         USE_BUILT_IN_G  => false,
-         XIL_DEVICE_G    => "7SERIES",
          SYNC_STAGES_G   => 3,
          DATA_WIDTH_G    => 64,
          ADDR_WIDTH_G    => 4,
@@ -561,7 +559,7 @@ begin
    crcIn(7 downto 0)   <= crcFifoIn(63 downto 56);
 
    -- CRC
-   U_Crc32 : entity work.Crc32Parallel
+   U_Crc32 : entity surf.Crc32Parallel
       generic map (
          TPD_G        => TPD_G,
          BYTE_WIDTH_G => 8)

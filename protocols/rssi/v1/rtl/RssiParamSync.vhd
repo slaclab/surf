@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : RSSI Protocol: https://confluence.slac.stanford.edu/x/1IyfD
 -------------------------------------------------------------------------------
--- File       : RssiParamSync.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:  Sync the RSSI parameter across clock doamins
@@ -20,9 +19,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.RssiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.RssiPkg.all;
 
 entity RssiParamSync is
    generic (
@@ -42,7 +43,7 @@ begin
 
    rssiParam_o <= rssiParam;
 
-   U_version : entity work.SynchronizerVector
+   U_version : entity surf.SynchronizerVector
       generic map (
          TPD_G         => TPD_G,
          BYPASS_SYNC_G => COMMON_CLK_G,
@@ -52,7 +53,7 @@ begin
          dataIn  => rssiParam_i.version,
          dataOut => rssiParam.version);
 
-   U_chksumEn : entity work.SynchronizerVector
+   U_chksumEn : entity surf.SynchronizerVector
       generic map (
          TPD_G         => TPD_G,
          BYPASS_SYNC_G => COMMON_CLK_G,
@@ -62,7 +63,7 @@ begin
          dataIn  => rssiParam_i.chksumEn,
          dataOut => rssiParam.chksumEn);
 
-   U_timeoutUnit : entity work.SynchronizerVector
+   U_timeoutUnit : entity surf.SynchronizerVector
       generic map (
          TPD_G         => TPD_G,
          BYPASS_SYNC_G => COMMON_CLK_G,
@@ -72,7 +73,7 @@ begin
          dataIn  => rssiParam_i.timeoutUnit,
          dataOut => rssiParam.timeoutUnit);
 
-   U_maxOutsSeg : entity work.SynchronizerVector
+   U_maxOutsSeg : entity surf.SynchronizerVector
       generic map (
          TPD_G         => TPD_G,
          BYPASS_SYNC_G => COMMON_CLK_G,
@@ -82,7 +83,7 @@ begin
          dataIn  => rssiParam_i.maxOutsSeg,
          dataOut => rssiParam.maxOutsSeg);
 
-   U_maxSegSize : entity work.SynchronizerVector
+   U_maxSegSize : entity surf.SynchronizerVector
       generic map (
          TPD_G         => TPD_G,
          BYPASS_SYNC_G => COMMON_CLK_G,
@@ -92,7 +93,7 @@ begin
          dataIn  => rssiParam_i.maxSegSize,
          dataOut => rssiParam.maxSegSize);
 
-   U_retransTout : entity work.SynchronizerVector
+   U_retransTout : entity surf.SynchronizerVector
       generic map (
          TPD_G         => TPD_G,
          BYPASS_SYNC_G => COMMON_CLK_G,
@@ -102,7 +103,7 @@ begin
          dataIn  => rssiParam_i.retransTout,
          dataOut => rssiParam.retransTout);
 
-   U_cumulAckTout : entity work.SynchronizerVector
+   U_cumulAckTout : entity surf.SynchronizerVector
       generic map (
          TPD_G         => TPD_G,
          BYPASS_SYNC_G => COMMON_CLK_G,
@@ -112,7 +113,7 @@ begin
          dataIn  => rssiParam_i.cumulAckTout,
          dataOut => rssiParam.cumulAckTout);
 
-   U_nullSegTout : entity work.SynchronizerVector
+   U_nullSegTout : entity surf.SynchronizerVector
       generic map (
          TPD_G         => TPD_G,
          BYPASS_SYNC_G => COMMON_CLK_G,
@@ -122,7 +123,7 @@ begin
          dataIn  => rssiParam_i.nullSegTout,
          dataOut => rssiParam.nullSegTout);
 
-   U_maxRetrans : entity work.SynchronizerVector
+   U_maxRetrans : entity surf.SynchronizerVector
       generic map (
          TPD_G         => TPD_G,
          BYPASS_SYNC_G => COMMON_CLK_G,
@@ -132,7 +133,7 @@ begin
          dataIn  => rssiParam_i.maxRetrans,
          dataOut => rssiParam.maxRetrans);
 
-   U_maxCumAck : entity work.SynchronizerVector
+   U_maxCumAck : entity surf.SynchronizerVector
       generic map (
          TPD_G         => TPD_G,
          BYPASS_SYNC_G => COMMON_CLK_G,
@@ -142,7 +143,7 @@ begin
          dataIn  => rssiParam_i.maxCumAck,
          dataOut => rssiParam.maxCumAck);
 
-   U_maxOutofseq : entity work.SynchronizerVector
+   U_maxOutofseq : entity surf.SynchronizerVector
       generic map (
          TPD_G         => TPD_G,
          BYPASS_SYNC_G => COMMON_CLK_G,
@@ -152,7 +153,7 @@ begin
          dataIn  => rssiParam_i.maxOutofseq,
          dataOut => rssiParam.maxOutofseq);
 
-   U_connectionId : entity work.SynchronizerVector
+   U_connectionId : entity surf.SynchronizerVector
       generic map (
          TPD_G         => TPD_G,
          BYPASS_SYNC_G => COMMON_CLK_G,

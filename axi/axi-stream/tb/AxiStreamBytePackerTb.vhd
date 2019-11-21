@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamBytePackerTb.vhd
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for AxiStreamBytePacker
 -------------------------------------------------------------------------------
@@ -17,8 +16,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 
 entity AxiStreamBytePackerTb is end AxiStreamBytePackerTb;
 
@@ -58,7 +59,7 @@ begin
    -----------------------------
    -- Generate a Clock and Reset
    -----------------------------
-   U_ClkRst : entity work.ClkRst
+   U_ClkRst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
@@ -71,7 +72,7 @@ begin
 
    U_TestGen : for i in 0 to 15 generate
 
-      U_PackTx : entity work.AxiStreamBytePackerTbTx
+      U_PackTx : entity surf.AxiStreamBytePackerTbTx
          generic map (
             TPD_G         => TPD_G,
             BYTE_SIZE_C   => i+1,
@@ -81,7 +82,7 @@ begin
             axiRst      => axiRst,
             mAxisMaster => testInMaster(i));
 
-      U_Pack: entity work.AxiStreamBytePacker
+      U_Pack: entity surf.AxiStreamBytePacker
          generic map (
             TPD_G           => TPD_G,
             SLAVE_CONFIG_G  => SRC_CONFIG_C,
@@ -92,7 +93,7 @@ begin
             sAxisMaster  => testInMaster(i),
             mAxisMaster  => testOutMaster(i));
 
-      U_PackRx : entity work.AxiStreamBytePackerTbRx
+      U_PackRx : entity surf.AxiStreamBytePackerTbRx
          generic map (
             TPD_G         => TPD_G,
             BYTE_SIZE_C   => i+1,

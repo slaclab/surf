@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
--- File       : Pgp2bAxi.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite block to manage the PGPv3 interface
@@ -20,9 +19,11 @@ use ieee.std_logic_1164.all;
 use IEEE.STD_LOGIC_ARITH.all;
 use IEEE.STD_LOGIC_UNSIGNED.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.Pgp3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Pgp3Pkg.all;
 
 entity Pgp3AxiL is
    generic (
@@ -185,12 +186,12 @@ begin
    ---------------------------------------
 
    -- OpCode Capture
-   U_RxOpCodeSync : entity work.SynchronizerFifo
+   U_RxOpCodeSync : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         DATA_WIDTH_G => 51,
-         ADDR_WIDTH_G => 2)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G  => 51,
+         ADDR_WIDTH_G  => 2)
       port map (
          rst                => r.countReset,
          wr_clk             => pgpRxClk,
@@ -202,7 +203,7 @@ begin
          dout(50 downto 48) => rxStatusSync.rxOpCodeNumberLast);
 
    -- Errror counters and non counted values
-   U_RxError : entity work.SyncStatusVector
+   U_RxError : entity surf.SyncStatusVector
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => '1',
@@ -210,7 +211,6 @@ begin
          RELEASE_DELAY_G => 3,
          IN_POLARITY_G   => "1",
          OUT_POLARITY_G  => '1',
-         USE_DSP48_G     => "no",
          SYNTH_CNT_G     => X"0030000FFFF7C",
          CNT_RST_EDGE_G  => false,
          CNT_WIDTH_G     => ERROR_CNT_WIDTH_G,
@@ -279,7 +279,7 @@ begin
    rxStatusSync.ebOverflowCnt <= muxSlVectorArray(rxErrorCntOut, 41);
 
    -- Status counters
-   U_RxStatus : entity work.SyncStatusVector
+   U_RxStatus : entity surf.SyncStatusVector
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => '1',
@@ -287,7 +287,6 @@ begin
          RELEASE_DELAY_G => 3,
          IN_POLARITY_G   => "1",
          OUT_POLARITY_G  => '1',
-         USE_DSP48_G     => "no",
          SYNTH_CNT_G     => "1",
          CNT_RST_EDGE_G  => false,
          CNT_WIDTH_G     => STATUS_CNT_WIDTH_G,
@@ -308,10 +307,9 @@ begin
 
    rxStatusSync.frameCount <= muxSlVectorArray(rxStatusCntOut, 0);
 
-   U_RxClkFreq : entity work.SyncClockFreq
+   U_RxClkFreq : entity surf.SyncClockFreq
       generic map (
          TPD_G          => TPD_G,
-         USE_DSP48_G    => "no",
          REF_CLK_FREQ_G => AXIL_CLK_FREQ_G,
          CNT_WIDTH_G    => 32)
       port map (
@@ -325,12 +323,12 @@ begin
          refClk      => axilClk
          );
 
-   U_RxEbDataSync : entity work.SynchronizerFifo
+   U_RxEbDataSync : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         DATA_WIDTH_G => 67,
-         ADDR_WIDTH_G => 4)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G  => 67,
+         ADDR_WIDTH_G  => 4)
       port map (
          rst                => r.countReset,
          wr_clk             => pgpRxClk,
@@ -344,12 +342,12 @@ begin
          dout(66 downto 65) => rxStatusSync.ebHeader);
 
 
-   U_RxPhyDataSync : entity work.SynchronizerFifo
+   U_RxPhyDataSync : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         DATA_WIDTH_G => 67,
-         ADDR_WIDTH_G => 4)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G  => 67,
+         ADDR_WIDTH_G  => 4)
       port map (
          rst                => r.countReset,
          wr_clk             => phyRxClk,
@@ -362,7 +360,7 @@ begin
          dout(64 downto 1)  => rxStatusSync.phyData,
          dout(66 downto 65) => rxStatusSync.phyHeader);
 
-   U_RxGearboxStatus : entity work.SyncStatusVector
+   U_RxGearboxStatus : entity surf.SyncStatusVector
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => '1',
@@ -370,7 +368,6 @@ begin
          RELEASE_DELAY_G => 3,
          IN_POLARITY_G   => "1",
          OUT_POLARITY_G  => '1',
-         USE_DSP48_G     => "no",
          SYNTH_CNT_G     => "1",
          CNT_RST_EDGE_G  => false,
          CNT_WIDTH_G     => 8,
@@ -391,7 +388,7 @@ begin
 
    rxStatusSync.gearboxAlignCnt <= muxSlVectorArray(gearboxAlignCnt, 0);
 
-   U_remLinkData : entity work.SynchronizerFifo
+   U_remLinkData : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 56)
@@ -406,12 +403,12 @@ begin
    ---------------------------------------
 
    -- OpCode Capture
-   U_TxOpCodeSync : entity work.SynchronizerFifo
+   U_TxOpCodeSync : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         DATA_WIDTH_G => 51,
-         ADDR_WIDTH_G => 2)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G  => 51,
+         ADDR_WIDTH_G  => 2)
       port map (
          rst                => r.countReset,
          wr_clk             => pgpTxClk,
@@ -423,7 +420,7 @@ begin
          dout(50 downto 48) => txStatusSync.txOpCodeNumberLast);
 
    -- Errror counters and non counted values
-   U_TxError : entity work.SyncStatusVector
+   U_TxError : entity surf.SyncStatusVector
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => '1',
@@ -431,7 +428,6 @@ begin
          RELEASE_DELAY_G => 3,
          IN_POLARITY_G   => "1",
          OUT_POLARITY_G  => '1',
-         USE_DSP48_G     => "no",
          SYNTH_CNT_G     => X"0000FFFFE",
          CNT_RST_EDGE_G  => false,
          CNT_WIDTH_G     => ERROR_CNT_WIDTH_G,
@@ -469,7 +465,7 @@ begin
    end generate LOC_OVERFLOW_CNT;
 
    -- Status counters
-   U_TxStatus : entity work.SyncStatusVector
+   U_TxStatus : entity surf.SyncStatusVector
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => '1',
@@ -477,7 +473,6 @@ begin
          RELEASE_DELAY_G => 3,
          IN_POLARITY_G   => "1",
          OUT_POLARITY_G  => '1',
-         USE_DSP48_G     => "no",
          SYNTH_CNT_G     => "1",
          CNT_RST_EDGE_G  => false,
          CNT_WIDTH_G     => STATUS_CNT_WIDTH_G,
@@ -498,10 +493,9 @@ begin
 
    txStatusSync.frameCount <= muxSlVectorArray(txStatusCntOut, 0);
 
-   U_TxClkFreq : entity work.SyncClockFreq
+   U_TxClkFreq : entity surf.SyncClockFreq
       generic map (
          TPD_G          => TPD_G,
-         USE_DSP48_G    => "no",
          REF_CLK_FREQ_G => AXIL_CLK_FREQ_G,
          CNT_WIDTH_G    => 32)
       port map (
@@ -520,7 +514,7 @@ begin
    -------------------------------------
 
    -- Sync flow cntl disable
-   U_FlowCntlDis : entity work.Synchronizer
+   U_FlowCntlDis : entity surf.Synchronizer
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
@@ -535,12 +529,12 @@ begin
          dataOut => syncFlowCntlDis
          );
 
-   U_SKP_SYNC : entity work.SynchronizerFifo
+   U_SKP_SYNC : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         DATA_WIDTH_G => 32,
-         ADDR_WIDTH_G => 4)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G  => 32,
+         ADDR_WIDTH_G  => 4)
       port map (
          rst    => '0',
          wr_clk => axilClk,

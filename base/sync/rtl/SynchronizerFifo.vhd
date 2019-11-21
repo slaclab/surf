@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SynchronizerFifo.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Synchronizing FIFO wrapper
@@ -18,15 +17,15 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SynchronizerFifo is
    generic (
       TPD_G         : time                       := 1 ns;
       COMMON_CLK_G  : boolean                    := false;  -- Bypass FifoAsync module for synchronous data configuration
-      BRAM_EN_G     : boolean                    := false;
-      ALTERA_SYN_G  : boolean                    := false;
-      ALTERA_RAM_G  : string                     := "M9K";
+      MEMORY_TYPE_G : string                     := "distributed";
       SYNC_STAGES_G : integer range 3 to (2**24) := 3;
       PIPE_STAGES_G : natural range 0 to 16      := 0;
       DATA_WIDTH_G  : integer range 1 to (2**24) := 16;
@@ -57,13 +56,11 @@ begin
 
    GEN_ASYNC : if (COMMON_CLK_G = false) generate
 
-      FifoAsync_1 : entity work.FifoAsync
+      FifoAsync_1 : entity surf.FifoAsync
          generic map (
             TPD_G         => TPD_G,
-            BRAM_EN_G     => BRAM_EN_G,
+            MEMORY_TYPE_G => MEMORY_TYPE_G,
             FWFT_EN_G     => true,
-            ALTERA_SYN_G  => ALTERA_SYN_G,
-            ALTERA_RAM_G  => ALTERA_RAM_G,
             SYNC_STAGES_G => SYNC_STAGES_G,
             PIPE_STAGES_G => PIPE_STAGES_G,
             DATA_WIDTH_G  => DATA_WIDTH_G,

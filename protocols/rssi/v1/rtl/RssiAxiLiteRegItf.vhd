@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : RSSI Protocol: https://confluence.slac.stanford.edu/x/1IyfD
 -------------------------------------------------------------------------------
--- File       : RssiAxiLiteRegItf.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:  Register decoding for RSSI core
@@ -70,9 +69,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.RssiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.RssiPkg.all;
 
 entity RssiAxiLiteRegItf is
    generic (
@@ -340,7 +341,7 @@ begin
       end if;
    end process seq;
 
-   U_status : entity work.SynchronizerVector
+   U_status : entity surf.SynchronizerVector
       generic map (
          TPD_G         => TPD_G,
          BYPASS_SYNC_G => COMMON_CLK_G,
@@ -350,7 +351,7 @@ begin
          dataIn  => status_i,
          dataOut => s_status);
 
-   U_validCnt : entity work.SynchronizerFifo
+   U_validCnt : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G,
@@ -361,7 +362,7 @@ begin
          rd_clk => axiClk_i,
          dout   => s_validCnt);
 
-   U_dropCnt : entity work.SynchronizerFifo
+   U_dropCnt : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G,
@@ -372,7 +373,7 @@ begin
          rd_clk => axiClk_i,
          dout   => s_dropCnt);
 
-   U_resendCnt : entity work.SynchronizerFifo
+   U_resendCnt : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G,
@@ -383,7 +384,7 @@ begin
          rd_clk => axiClk_i,
          dout   => s_resendCnt);
 
-   U_reconCnt : entity work.SynchronizerFifo
+   U_reconCnt : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G,
@@ -394,7 +395,7 @@ begin
          rd_clk => axiClk_i,
          dout   => s_reconCnt);
 
-   U_SyncVecOut : entity work.SynchronizerVector
+   U_SyncVecOut : entity surf.SynchronizerVector
       generic map (
          TPD_G         => TPD_G,
          BYPASS_SYNC_G => COMMON_CLK_G,
@@ -408,7 +409,7 @@ begin
          dataOut(3) => dummyBit,        -- appRssiParam_o.chksumEn(0)
          dataOut(4) => injectFault_o);
 
-   U_initSeqN : entity work.SynchronizerVector
+   U_initSeqN : entity surf.SynchronizerVector
       generic map (
          TPD_G         => TPD_G,
          BYPASS_SYNC_G => COMMON_CLK_G,
@@ -418,7 +419,7 @@ begin
          dataIn  => r.initSeqN,
          dataOut => initSeqN_o);
 
-   U_RssiParamSync_In : entity work.RssiParamSync
+   U_RssiParamSync_In : entity surf.RssiParamSync
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G)
@@ -427,7 +428,7 @@ begin
          rssiParam_i => negRssiParam_i,
          rssiParam_o => negRssiParam);
 
-   U_RssiParamSync_Out : entity work.RssiParamSync
+   U_RssiParamSync_Out : entity surf.RssiParamSync
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G)

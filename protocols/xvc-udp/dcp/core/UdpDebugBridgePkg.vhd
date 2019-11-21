@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : XVC Debug Bridge Support
 -------------------------------------------------------------------------------
--- File       : UdpDebugBridgePkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: VHDL Package for UDP Debug Bridge
@@ -19,8 +18,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.EthMacPkg.all;
 
 -- Configuration constants (used for generics) for AxisJtagDebugBridge
 

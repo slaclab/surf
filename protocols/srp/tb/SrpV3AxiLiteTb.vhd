@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SrpV3AxiLiteTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation testbed for AxiLiteSrpV0
@@ -18,11 +17,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.EthMacPkg.all;
 entity SrpV3AxiLiteTb is
 
 end entity SrpV3AxiLiteTb;
@@ -99,7 +100,7 @@ begin
    -----------------------------
    -- Generate clocks and resets
    -----------------------------
-   U_ClkRst0 : entity work.ClkRst
+   U_ClkRst0 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
@@ -109,7 +110,7 @@ begin
          rst  => rst);
 
 
-   U_SRPv3 : entity work.SrpV3AxiLite
+   U_SRPv3 : entity surf.SrpV3AxiLite
       generic map (
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => true,
@@ -134,7 +135,7 @@ begin
          mAxilWriteMaster => axilWriteMaster,
          mAxilWriteSlave  => axilWriteSlave);
 
-   U_RssiServer : entity work.RssiCoreWrapper
+   U_RssiServer : entity surf.RssiCoreWrapper
       generic map (
          TPD_G               => TPD_G,
          APP_STREAMS_G       => 1,
@@ -172,7 +173,7 @@ begin
          axiClk_i             => clk,
          axiRst_i             => rst);
 
-   U_RssiClient : entity work.RssiCoreWrapper
+   U_RssiClient : entity surf.RssiCoreWrapper
       generic map (
          TPD_G               => TPD_G,
          APP_STREAMS_G       => 1,

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : XauiGthUltraScaleWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: GTH UltraScale+ Wrapper for 10 GigE XAUI
@@ -16,11 +15,13 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.EthMacPkg.all;
-use work.XauiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.EthMacPkg.all;
+use surf.XauiPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -104,7 +105,7 @@ begin
       -----------------------
       -- 10 Second LinkUp WDT
       -----------------------
-      U_Rst : entity work.PwrUpRst
+      U_Rst : entity surf.PwrUpRst
          generic map(
             TPD_G      => TPD_G,
             DURATION_G => getTimeRatio(STABLE_CLK_FREQ_G, 1.0))  -- 1 s reset
@@ -113,7 +114,7 @@ begin
             clk    => stableClk,
             rstOut => extReset);
 
-      U_WTD : entity work.WatchDogRst
+      U_WTD : entity surf.WatchDogRst
          generic map(
             TPD_G      => TPD_G,
             DURATION_G => getTimeRatio(STABLE_CLK_FREQ_G, 0.1))  -- 10 s timeout
@@ -135,7 +136,7 @@ begin
    ----------------------
    -- 10 GigE XAUI Module
    ----------------------
-   XauiGthUltraScale_Inst : entity work.XauiGthUltraScale
+   XauiGthUltraScale_Inst : entity surf.XauiGthUltraScale
       generic map (
          TPD_G         => TPD_G,
          PAUSE_EN_G    => PAUSE_EN_G,

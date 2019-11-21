@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteSrpV0Tb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation testbed for AxiLiteSrpV0
@@ -18,10 +17,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
@@ -37,11 +38,7 @@ architecture tb of AxiLiteSrpV0Tb is
    constant TPD_G               : time                       := 1 ns;
    constant RESP_THOLD_G        : integer range 0 to (2**24) := 1;
    constant SLAVE_READY_EN_G    : boolean                    := true;
-   constant BRAM_EN_G           : boolean                    := true;
-   constant XIL_DEVICE_G        : string                     := "7SERIES";
-   constant USE_BUILT_IN_G      : boolean                    := false;
-   constant ALTERA_SYN_G        : boolean                    := false;
-   constant ALTERA_RAM_G        : string                     := "M9K";
+   constant MEMORY_TYPE_G       : string                     := "block";
    constant GEN_SYNC_FIFO_G     : boolean                    := false;
    constant FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
    constant FIFO_PAUSE_THRESH_G : integer range 1 to (2**24) := 2**8;
@@ -71,7 +68,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Create clocks
    -------------------------------------------------------------------------------------------------
-   U_ClkRst_AXIS : entity work.ClkRst
+   U_ClkRst_AXIS : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 6.4 ns,
          CLK_DELAY_G       => 1 ns,
@@ -82,7 +79,7 @@ begin
          clkP => axisClk,
          rst  => axisRst);
 
-   U_ClkRst_AXIL : entity work.ClkRst
+   U_ClkRst_AXIL : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 8.0 ns,
          CLK_DELAY_G       => 1 ns,
@@ -96,16 +93,12 @@ begin
    ----------------------------------------------------------------------------------------------
    -- Instantiate UUT
    ----------------------------------------------------------------------------------------------
-   U_AxiLiteSrpV0 : entity work.AxiLiteSrpV0
+   U_AxiLiteSrpV0 : entity surf.AxiLiteSrpV0
       generic map (
          TPD_G               => TPD_G,
          RESP_THOLD_G        => RESP_THOLD_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
-         BRAM_EN_G           => BRAM_EN_G,
-         XIL_DEVICE_G        => XIL_DEVICE_G,
-         USE_BUILT_IN_G      => USE_BUILT_IN_G,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
+         MEMORY_TYPE_G       => MEMORY_TYPE_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
@@ -131,17 +124,13 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Connect to SrpV0AxiLite
    -------------------------------------------------------------------------------------------------
-   U_SrpV0AxiLite_1 : entity work.SrpV0AxiLite
+   U_SrpV0AxiLite_1 : entity surf.SrpV0AxiLite
       generic map (
          TPD_G               => TPD_G,
          RESP_THOLD_G        => RESP_THOLD_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
          EN_32BIT_ADDR_G     => true,
-         BRAM_EN_G           => true,
-         XIL_DEVICE_G        => XIL_DEVICE_G,
-         USE_BUILT_IN_G      => USE_BUILT_IN_G,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
+         MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
@@ -166,7 +155,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Connect SrpV0AxiLite to a RAM
    -------------------------------------------------------------------------------------------------
-   U_AxiDualPortRam_1 : entity work.AxiDualPortRam
+   U_AxiDualPortRam_1 : entity surf.AxiDualPortRam
       generic map (
          TPD_G            => TPD_G,
          AXI_WR_EN_G      => true,

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiLitePMbusMaster.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for AxiLitePMbusMasterCore
@@ -16,9 +15,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.I2cPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.I2cPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -51,7 +52,7 @@ architecture mapping of AxiLitePMbusMaster is
    
 begin
 
-   U_Core : entity work.AxiLitePMbusMasterCore
+   U_Core : entity surf.AxiLitePMbusMasterCore
       generic map (
          TPD_G            => TPD_G,
          I2C_ADDR_G       => I2C_ADDR_G,

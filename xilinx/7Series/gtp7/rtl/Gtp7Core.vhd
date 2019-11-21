@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Gtp7Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Xilinx 7-series GTP primitive
@@ -16,7 +15,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
@@ -427,7 +428,7 @@ begin
    -- 9. Wait DATA_VALID (aligned) - 100 us
    --10. Wait 1 us, Set rxFsmResetDone. 
    --------------------------------------------------------------------------------------------------
-   Gtp7RxRst_Inst : entity work.Gtp7RxRst
+   Gtp7RxRst_Inst : entity surf.Gtp7RxRst
       generic map (
          TPD_G                  => TPD_G,
          DYNAMIC_QPLL_G         => DYNAMIC_QPLL_G,
@@ -472,7 +473,7 @@ begin
    --------------------------------------------------------------------------------------------------
    -- Synchronize rxFsmResetDone to rxUsrClk to use as reset for external logic.
    --------------------------------------------------------------------------------------------------
-   RstSync_RxResetDone : entity work.RstSync
+   RstSync_RxResetDone : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
@@ -491,7 +492,7 @@ begin
          O => rxOutClkBufg);
 
 --   GTX7_RX_REC_CLK_MONITOR_GEN : if (RX_BUF_EN_G = false) generate
---      SyncClockFreq_1 : entity work.SyncClockFreq
+--      SyncClockFreq_1 : entity surf.SyncClockFreq
 --         generic map (
 --            TPD_G             => TPD_G,
 --            REF_CLK_FREQ_G    => REF_CLK_FREQ_G,
@@ -537,7 +538,7 @@ begin
    -- Use special fixed latency aligner when RX_BUF_EN_G=false and RX_ALIGN_FIXED_LAT_G=true
    -------------------------------------------------------------------------------------------------
    RX_AUTO_ALIGN_GEN : if (RX_BUF_EN_G = false and RX_ALIGN_MODE_G = "GT") generate
-      Gtp7AutoPhaseAligner_Rx : entity work.Gtp7AutoPhaseAligner
+      Gtp7AutoPhaseAligner_Rx : entity surf.Gtp7AutoPhaseAligner
          generic map (
             GT_TYPE => GT_TYPE_C)
          port map (
@@ -553,7 +554,7 @@ begin
    end generate;
 
    RX_FIX_LAT_ALIGN_GEN : if (RX_BUF_EN_G = false and RX_ALIGN_MODE_G = "FIXED_LAT") generate
-      Gtp7RxFixedLatPhaseAligner_Inst : entity work.Gtp7RxFixedLatPhaseAligner
+      Gtp7RxFixedLatPhaseAligner_Inst : entity surf.Gtp7RxFixedLatPhaseAligner
          generic map (
             TPD_G       => TPD_G,
             WORD_SIZE_G => RX_EXT_DATA_WIDTH_G,
@@ -612,7 +613,7 @@ begin
    --------------------------------------------------------------------------------------------------
    -- Tx Reset Module
    --------------------------------------------------------------------------------------------------
-   Gtp7TxRst_Inst : entity work.Gtp7TxRst
+   Gtp7TxRst_Inst : entity surf.Gtp7TxRst
       generic map (
          TPD_G                  => TPD_G,
          DYNAMIC_QPLL_G         => DYNAMIC_QPLL_G,
@@ -646,7 +647,7 @@ begin
    --------------------------------------------------------------------------------------------------
    -- Synchronize rxFsmResetDone to rxUsrClk to use as reset for external logic.
    --------------------------------------------------------------------------------------------------
-   RstSync_Tx : entity work.RstSync
+   RstSync_Tx : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
@@ -662,7 +663,7 @@ begin
    -------------------------------------------------------------------------------------------------
    TxAutoPhaseAlignGen : if (TX_BUF_EN_G = false and TX_PHASE_ALIGN_G = "AUTO") generate
 
-      PhaseAlign_Tx : entity work.Gtp7AutoPhaseAligner
+      PhaseAlign_Tx : entity surf.Gtp7AutoPhaseAligner
          generic map (
             GT_TYPE => GT_TYPE_C)
          port map (
@@ -680,7 +681,7 @@ begin
    end generate TxAutoPhaseAlignGen;
 
    TxManualPhaseAlignGen : if (TX_BUF_EN_G = false and TX_PHASE_ALIGN_G = "MANUAL") generate
-      Gtx7TxManualPhaseAligner_1 : entity work.Gtp7TxManualPhaseAligner
+      Gtx7TxManualPhaseAligner_1 : entity surf.Gtp7TxManualPhaseAligner
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -1280,7 +1281,7 @@ begin
    ------------------------- Soft Fix for Production Silicon----------------------
 
    GEN_RST_SEQ : if (SIMULATION_G = false) generate
-      Gtp7RxRstSeq_Inst : entity work.Gtp7RxRstSeq
+      Gtp7RxRstSeq_Inst : entity surf.Gtp7RxRstSeq
          port map(
             DRP_OVERRIDE   => drpOverride,
             RST_IN         => rxUserResetIn,

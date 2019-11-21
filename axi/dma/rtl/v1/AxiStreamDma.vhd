@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamDma.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
@@ -19,11 +18,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiPkg.all;
-use work.AxiDmaPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiPkg.all;
+use surf.AxiDmaPkg.all;
 
 entity AxiStreamDma is
    generic (
@@ -218,7 +219,7 @@ begin
    end process;
 
    U_CrossEnGen : if AXIL_COUNT_G = 1 generate
-      U_AxiCrossbar : entity work.AxiLiteCrossbar
+      U_AxiCrossbar : entity surf.AxiLiteCrossbar
          generic map (
             TPD_G              => TPD_G,
             NUM_SLAVE_SLOTS_G  => 1,
@@ -245,29 +246,25 @@ begin
       axilReadSlave   <= intReadSlaves;
    end generate;
 
-   U_SwFifos : entity work.AxiLiteFifoPushPop
+   U_SwFifos : entity surf.AxiLiteFifoPushPop
       generic map (
          TPD_G             => TPD_G,
          POP_FIFO_COUNT_G  => 2,
          POP_SYNC_FIFO_G   => true,
-         POP_BRAM_EN_G     => true,
+         POP_MEMORY_TYPE_G => "block",
          POP_ADDR_WIDTH_G  => POP_ADDR_WIDTH_C,
          POP_FULL_THRES_G  => POP_FIFO_PFULL_C,
          LOOP_FIFO_EN_G    => false,
          LOOP_FIFO_COUNT_G => 1,
-         LOOP_BRAM_EN_G    => false,
+         LOOP_MEMORY_TYPE_G=> "distributed",
          LOOP_ADDR_WIDTH_G => 9,
          PUSH_FIFO_COUNT_G => 2,
          PUSH_SYNC_FIFO_G  => true,
-         PUSH_BRAM_EN_G    => true,
+         PUSH_MEMORY_TYPE_G=> "block",
          PUSH_ADDR_WIDTH_G => PUSH_ADDR_WIDTH_C,
          RANGE_LSB_G       => 8,
          VALID_POSITION_G  => 31,
-         VALID_POLARITY_G  => '1',
-         ALTERA_SYN_G      => false,
-         ALTERA_RAM_G      => "M9K",
-         USE_BUILT_IN_G    => false,
-         XIL_DEVICE_G      => "7SERIES") 
+         VALID_POLARITY_G  => '1') 
       port map (
          axiClk         => axiClk,
          axiClkRst      => axiRst,
@@ -394,7 +391,7 @@ begin
    -------------------------------------
    -- Inbound Controller
    -------------------------------------
-   U_IbDma : entity work.AxiStreamDmaWrite
+   U_IbDma : entity surf.AxiStreamDmaWrite
       generic map (
          TPD_G          => TPD_G,
          AXI_READY_EN_G => AXI_READY_EN_G,
@@ -488,7 +485,7 @@ begin
    -------------------------------------
    -- Outbound Controller
    -------------------------------------
-   U_ObDma : entity work.AxiStreamDmaRead
+   U_ObDma : entity surf.AxiStreamDmaRead
       generic map (
          TPD_G           => TPD_G,
          AXIS_READY_EN_G => AXIS_READY_EN_G,

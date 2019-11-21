@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiMicronP30Reg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: This controller is designed around the Micron PC28F FLASH IC.
@@ -18,8 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiMicronP30Reg is
    generic (
@@ -538,11 +539,12 @@ begin
       end if;
    end process seq;
 
-   U_Ram : entity work.SimpleDualPortRam
+   U_Ram : entity surf.SimpleDualPortRam
       generic map(
-         BRAM_EN_G    => true,
-         DATA_WIDTH_G => 16,
-         ADDR_WIDTH_G => 8)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "block",
+         DATA_WIDTH_G  => 16,
+         ADDR_WIDTH_G  => 8)
       port map (
          -- Port A
          clka  => axiClk,

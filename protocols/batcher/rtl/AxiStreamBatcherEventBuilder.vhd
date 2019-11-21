@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : AxiStream BatcherV1 Protocol: https://confluence.slac.stanford.edu/x/th1SDg
 -------------------------------------------------------------------------------
--- File       : AxiStreamBatcherEventBuilder.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper on AxiStreamBatcher for multi-AXI stream event building 
@@ -20,10 +19,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity AxiStreamBatcherEventBuilder is
    generic (
@@ -174,7 +175,7 @@ begin
    -----------------
    GEN_VEC :
    for i in (NUM_SLAVES_G-1) downto 0 generate
-      U_Input : entity work.AxiStreamPipeline
+      U_Input : entity surf.AxiStreamPipeline
          generic map (
             TPD_G         => TPD_G,
             PIPE_STAGES_G => INPUT_PIPE_STAGES_G)
@@ -187,7 +188,7 @@ begin
             mAxisSlave  => rxSlaves(i));
    end generate GEN_VEC;
 
-   U_DspComparator : entity work.DspComparator
+   U_DspComparator : entity surf.DspComparator
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 32)
@@ -511,7 +512,7 @@ begin
    ------------------
    -- AxiStreamBatcher
    ------------------
-   U_AxiStreamBatcher : entity work.AxiStreamBatcher
+   U_AxiStreamBatcher : entity surf.AxiStreamBatcher
       generic map (
          TPD_G                        => TPD_G,
          MAX_NUMBER_SUB_FRAMES_G      => NUM_SLAVES_G,

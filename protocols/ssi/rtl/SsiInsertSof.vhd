@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
 -------------------------------------------------------------------------------
--- File       : SsiInsertSof.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Inserts the SOF for converting a generic AXIS into a SSI bus
@@ -20,9 +19,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity SsiInsertSof is
    generic (
@@ -85,7 +86,7 @@ begin
    end generate;
 
    GEN_FIFO_RX : if ((SLAVE_FIFO_G = true) or (COMMON_CLK_G = false) or (SLAVE_AXI_CONFIG_G /= MASTER_AXI_CONFIG_G)) generate
-      FIFO_RX : entity work.AxiStreamFifoV2
+      FIFO_RX : entity surf.AxiStreamFifoV2
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
@@ -94,10 +95,8 @@ begin
             SLAVE_READY_EN_G    => true,
             VALID_THOLD_G       => 1,
             -- FIFO configurations
-            BRAM_EN_G           => false,
-            USE_BUILT_IN_G      => false,
+            MEMORY_TYPE_G       => "distributed",
             GEN_SYNC_FIFO_G     => COMMON_CLK_G,
-            CASCADE_SIZE_G      => 1,
             FIFO_ADDR_WIDTH_G   => 4,
             -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_G,
@@ -219,7 +218,7 @@ begin
    end generate;
 
    GEN_FIFO_TX : if (MASTER_FIFO_G = true) generate
-      FIFO_TX : entity work.AxiStreamFifoV2
+      FIFO_TX : entity surf.AxiStreamFifoV2
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
@@ -228,10 +227,8 @@ begin
             SLAVE_READY_EN_G    => true,
             VALID_THOLD_G       => 1,
             -- FIFO configurations
-            BRAM_EN_G           => false,
-            USE_BUILT_IN_G      => false,
+            MEMORY_TYPE_G       => "distributed",
             GEN_SYNC_FIFO_G     => true,
-            CASCADE_SIZE_G      => 1,
             FIFO_ADDR_WIDTH_G   => 4,
             -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => MASTER_AXI_CONFIG_G,

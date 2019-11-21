@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : iq32bTo16b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Converts the 32-bit JESD interface to 16-bit interface
@@ -18,7 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity iq32bTo16b is
    generic (
@@ -72,12 +73,11 @@ architecture rtl of iq32bTo16b is
 
 begin
 
-   U_FIFO : entity work.Fifo
+   U_FIFO : entity surf.Fifo
       generic map (
          TPD_G         => TPD_G,
          SYNTH_MODE_G  => SYNTH_MODE_G,
          MEMORY_TYPE_G => "distributed",
-         BRAM_EN_G     => false,
          FWFT_EN_G     => true,
          SYNC_STAGES_G => SYNC_STAGES_G,
          DATA_WIDTH_G  => 64,

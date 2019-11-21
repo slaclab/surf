@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : TenGigEthGth7Clk.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 10GBASE-R Ethernet's Clock Module
@@ -16,7 +15,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -62,7 +63,7 @@ begin
 
    qpllReset <= qpllRst or pwrUpRst;
 
-   PwrUpRst_Inst : entity work.PwrUpRst
+   PwrUpRst_Inst : entity surf.PwrUpRst
       generic map (
          TPD_G      => TPD_G,
          DURATION_G => 15625000)        -- 100 ms
@@ -71,7 +72,7 @@ begin
          clk    => phyClock,
          rstOut => pwrUpRst);  
 
-   Synchronizer_0 : entity work.Synchronizer
+   Synchronizer_0 : entity surf.Synchronizer
       generic map(
          TPD_G          => TPD_G,
          RST_ASYNC_G    => true,
@@ -101,7 +102,7 @@ begin
          I => refClk,
          O => phyClock);        
 
-   Gth7QuadPll_Inst : entity work.Gth7QuadPll
+   Gth7QuadPll_Inst : entity surf.Gth7QuadPll
       generic map (
          TPD_G               => TPD_G,
          SIM_RESET_SPEEDUP_G => "FALSE",       --Does not affect hardware
