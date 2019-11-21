@@ -33,7 +33,6 @@ entity Fifo is
       FWFT_EN_G       : boolean                    := false;
       SYNTH_MODE_G    : string                     := "inferred";
       MEMORY_TYPE_G   : string                     := "block";      
-      XIL_DEVICE_G    : string                     := "7SERIES";  --xilinx only generic parameter    
       SYNC_STAGES_G   : integer range 3 to (2**24) := 3;
       PIPE_STAGES_G   : natural range 0 to 16      := 0;
       DATA_WIDTH_G    : integer range 1 to (2**24) := 16;
