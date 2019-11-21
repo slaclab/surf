@@ -89,7 +89,7 @@ begin
       wait;
    end process;
 
-   U_AxiMasterSim: entity surf.AxiSimMasterWrap 
+   U_AxiMasterSim: entity work.AxiSimMasterWrap 
       generic map (
          TPD_G       => 1 ns,
          MASTER_ID_G => 1
