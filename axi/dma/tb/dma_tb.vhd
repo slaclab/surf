@@ -244,7 +244,7 @@ begin
          mAxiReadSlave  => simAxiReadSlave
       );
 
-   U_AxiSlaveSim: entity surf.AxiSimSlaveWrap 
+   U_AxiSlaveSim: entity work.AxiSimSlaveWrap 
       generic map (
          TPD_G      => 1 ns,
          SLAVE_ID_G => 2
