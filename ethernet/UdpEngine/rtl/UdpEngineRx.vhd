@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : UdpEngineRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: UDP RX Engine Module

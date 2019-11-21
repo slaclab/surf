@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : DspComparator.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Generalized DSP inferred comparator

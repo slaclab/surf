@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : EthMacRxCsum.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: RX Checksum Hardware Offloading Engine

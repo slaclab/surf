@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SyncTrigRateVector.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for multiple SyncTrigRate modules

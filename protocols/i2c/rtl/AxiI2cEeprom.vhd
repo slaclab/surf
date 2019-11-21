@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiI2cEeprom.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for AxiI2cEepromCore

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SynchronizerOneShotCnt.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for SynchronizerOneShot with counter output

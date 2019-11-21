@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GigEthGthUltraScaleWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Gth7 Wrapper for 1000BASE-X Ethernet

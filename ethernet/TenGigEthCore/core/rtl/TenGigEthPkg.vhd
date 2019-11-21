@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : TenGigEthPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 10GbE Package Files

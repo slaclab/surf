@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiDac7654Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to DAC7654 DAC IC

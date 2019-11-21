@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiReadPathMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Block to connect multiple incoming AXI write path interfaces.

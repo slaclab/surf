@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiAd9467DeserBit.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AD9467 Deserializer Bit Module

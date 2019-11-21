@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiMicronMt28ewCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to Micron MT28EW FLASH IC

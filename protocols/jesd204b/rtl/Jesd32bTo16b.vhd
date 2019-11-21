@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Jesd32bTo16b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Converts the 32-bit JESD interface to 16-bit interface

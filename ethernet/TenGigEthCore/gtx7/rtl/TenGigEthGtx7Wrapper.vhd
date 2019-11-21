@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : TenGigEthGtx7Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Gtx7 Wrapper for 10GBASE-R Ethernet

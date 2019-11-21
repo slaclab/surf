@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
 -------------------------------------------------------------------------------
--- File       : SsiFrameLimiter.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Limits the amount of data being sent across a SSI AXIS bus 

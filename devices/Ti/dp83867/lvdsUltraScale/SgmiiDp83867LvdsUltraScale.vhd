@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SgmiiDp83867LvdsUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for TI DP83867DP83867 PHY  + GigEthLvdsUltraScaleWrapper

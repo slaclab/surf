@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : EthMacRxImportXlgmii.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 40GbE Import MAC core with XLGMII interface

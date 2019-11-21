@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : UdpEngineDhcp.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: DHCP Engine

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SyncMinMax.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: General Purpose Max/Min monitor and synchronizer

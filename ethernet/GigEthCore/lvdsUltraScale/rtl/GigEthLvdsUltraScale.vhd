@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GigEthLvdsUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SGMII Ethernet over LVDS

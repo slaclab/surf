@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Debouncer.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Debouncer for pushbutton switches

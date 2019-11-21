@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : UartAxiLiteMaster.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Ties together everything needed for a full duplex UART.

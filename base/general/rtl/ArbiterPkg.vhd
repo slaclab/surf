@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : ArbiterPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Arbiter Package File

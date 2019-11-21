@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SpiSlave.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Generic SPI Slave Module

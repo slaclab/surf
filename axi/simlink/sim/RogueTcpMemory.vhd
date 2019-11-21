@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : RogueTcpMemory.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Rogue Stream Module

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : XauiReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite XAUI Register Interface

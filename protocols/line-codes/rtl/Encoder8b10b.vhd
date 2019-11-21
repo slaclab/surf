@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : Line Code 8B10B: https://en.wikipedia.org/wiki/8b/10b_encoding
 -------------------------------------------------------------------------------
--- File       : Encoder8b10b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 8B10B Encoder Module

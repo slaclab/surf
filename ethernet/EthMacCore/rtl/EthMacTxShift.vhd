@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : EthMacTxShift.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Ethernet MAC's TX byte Shifting Module

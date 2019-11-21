@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : TenGigEthGtx7.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 10GBASE-R Ethernet for Gtx7

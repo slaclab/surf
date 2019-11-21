@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : TrueDualPortRam.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: This will infer this module as Block RAM only

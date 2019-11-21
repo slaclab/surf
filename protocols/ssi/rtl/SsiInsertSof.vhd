@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
 -------------------------------------------------------------------------------
--- File       : SsiInsertSof.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Inserts the SOF for converting a generic AXIS into a SSI bus

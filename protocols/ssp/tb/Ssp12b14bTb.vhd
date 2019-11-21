@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Ssp12b14bTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation testbed for Ssp12b14b

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : IpV4EngineRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: IPv4 RX Engine Module

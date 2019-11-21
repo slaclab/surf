@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiXcf128Reg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite Register Access

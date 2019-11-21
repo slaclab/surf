@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : IpV4EngineDeMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: IPv4 AXIS DEMUX module

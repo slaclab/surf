@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : FifoWrFsm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: FIFO Write FSM

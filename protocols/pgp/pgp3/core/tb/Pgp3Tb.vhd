@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
--- File       : Pgp3Tb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation PGPv3 Testbed 

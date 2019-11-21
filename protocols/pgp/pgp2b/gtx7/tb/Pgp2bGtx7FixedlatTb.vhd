@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
 -------------------------------------------------------------------------------
--- File       : Pgp2bGtx7FixedLatTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for Pgp2bGtx7FixedLat

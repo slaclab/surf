@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
 -------------------------------------------------------------------------------
--- File       : Pgp2bGth7FixedLatWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Gth7 Fixed Latency Wrapper

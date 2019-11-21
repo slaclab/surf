@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : JesdLmfcGen.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: LMFC Generator

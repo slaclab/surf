@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
 -------------------------------------------------------------------------------
--- File       : Pgp2bGtp7VarLatWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Example PGP2b front end wrapper

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiAd9467Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to AD9467 ADC IC

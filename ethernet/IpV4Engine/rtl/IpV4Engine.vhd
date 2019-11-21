@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : IpV4Engine.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: IPv4 Top-level Module for IPv4/ARP/ICMP

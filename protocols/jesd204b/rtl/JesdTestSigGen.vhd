@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : JesdTestSigGen.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Outputs a digital signal depending on thresholds

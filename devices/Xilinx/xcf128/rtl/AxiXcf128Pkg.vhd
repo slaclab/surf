@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiXcf128Pkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AxiXcf128 Package File

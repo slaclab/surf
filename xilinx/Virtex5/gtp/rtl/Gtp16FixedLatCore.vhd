@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Pgp2Gtp16FixedLatCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Pgp2 Gtp Low Latency Core

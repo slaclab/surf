@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteRespTimer.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Writing to this module sets a timer for a deleyed write response

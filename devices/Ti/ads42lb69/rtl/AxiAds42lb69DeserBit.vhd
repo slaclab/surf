@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiAds42lb69DeserBit.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: ADC DDR Deserializer

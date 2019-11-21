@@ -1,5 +1,4 @@
 ------------------------------------------------------------------------------
--- File       : AxiStreamCombiner.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Combines multiple "narrower" buses into a "wide" AXI stream bus

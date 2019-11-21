@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SaltTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SALT TX Engine Module

@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : RSSI Protocol: https://confluence.slac.stanford.edu/x/1IyfD
 -------------------------------------------------------------------------------
--- File       : AxiRssiRxFsm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Receiver FSM

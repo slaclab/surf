@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : JTAG Support
 -------------------------------------------------------------------------------
--- File       : AxisToJtagCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Axi Stream to JTAG Interface/Adapter

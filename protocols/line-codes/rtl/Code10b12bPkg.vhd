@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : Line Code 10B12B: https://confluence.slac.stanford.edu/x/QndODQ
 -------------------------------------------------------------------------------
--- File       : Code10b12bPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 10B12B Package File

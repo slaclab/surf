@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : i2cRegTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation testbed for i2cReg

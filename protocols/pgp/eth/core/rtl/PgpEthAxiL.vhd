@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PgpEth: https://confluence.slac.stanford.edu/x/pQmODw
 -------------------------------------------------------------------------------
--- File       : PgpEthAxiL.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite block to manage the PGP Ethernet interface.

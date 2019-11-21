@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SynchronizerOneShot.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: One-Shot Pulser that has to cross clock domains

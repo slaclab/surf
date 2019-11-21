@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SgmiiDp83867Mdio.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Controller for the TI DP83867DP83867 ETH PHY 

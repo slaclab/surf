@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : TenGigEthGth7Clk.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 10GBASE-R Ethernet's Clock Module

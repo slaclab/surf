@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : XauiPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: XAUI Package Files

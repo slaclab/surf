@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamDmaRingRead.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI Stream to DMA Ring Buffer Read Module

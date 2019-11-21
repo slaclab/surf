@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SlvArraytoAxiLite.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SLV array to AXI-Lite Master Bridge 

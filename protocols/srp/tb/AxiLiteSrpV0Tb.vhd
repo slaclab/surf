@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteSrpV0Tb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation testbed for AxiLiteSrpV0

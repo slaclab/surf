@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : UdpEngineArp.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: UDP Client's ARP Messaging Module

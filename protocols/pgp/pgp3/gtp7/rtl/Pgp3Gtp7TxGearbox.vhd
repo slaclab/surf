@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
--- File       : Pgp3Gtp7TxGearbox.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: PGPv3 GTP7 64B66B to 32B33B TX Gearbox

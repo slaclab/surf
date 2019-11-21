@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GthUltraScaleQuadPll.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Ultrascale GTH QPLL primitive

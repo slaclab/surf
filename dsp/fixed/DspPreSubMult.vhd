@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : DspPreSubMult.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Generalized DSP inferred multiplier with pre-adder 

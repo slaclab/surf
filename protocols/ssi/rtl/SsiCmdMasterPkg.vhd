@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
 -------------------------------------------------------------------------------
--- File       : SsiCmdMasterPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SSI Command Master Pulser Module Package File

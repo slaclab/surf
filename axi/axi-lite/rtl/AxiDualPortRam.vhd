@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiDualPortRam.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: A wrapper of StdLib DualPortRam that places an AxiLite

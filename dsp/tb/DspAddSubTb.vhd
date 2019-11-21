@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : DspAddSubTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for the DspAddSub module

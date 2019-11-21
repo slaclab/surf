@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GigEthGtp7Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Gtp7 Wrapper for 1000BASE-X Ethernet

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiAd5780Ser.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AD5780 DAC Module's serializer

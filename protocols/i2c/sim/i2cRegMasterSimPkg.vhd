@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : i2cRegMasterSimPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Package file for i2cRegMasterPkg

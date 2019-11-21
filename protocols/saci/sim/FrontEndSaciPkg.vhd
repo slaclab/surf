@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : SACI Protocol: https://confluence.slac.stanford.edu/x/YYcRDQ
 -------------------------------------------------------------------------------
--- File       : FrontEndSaciPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Port types for Generic Front End interface

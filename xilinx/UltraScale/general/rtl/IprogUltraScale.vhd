@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : IprogUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:   Uses the ICAP primitive to internally 

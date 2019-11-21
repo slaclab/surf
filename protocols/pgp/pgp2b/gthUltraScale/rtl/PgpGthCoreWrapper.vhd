@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
 -------------------------------------------------------------------------------
--- File       : PgpGthCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: PGPv2b GTH Ultrascale IP Core Wrapper

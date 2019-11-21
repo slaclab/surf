@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiSy56040Reg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: This controller is designed around the Micrel SY56040AR.

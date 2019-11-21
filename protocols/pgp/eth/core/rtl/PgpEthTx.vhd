@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PgpEth: https://confluence.slac.stanford.edu/x/pQmODw
 -------------------------------------------------------------------------------
--- File       : PgpEthTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: PGP Ethernet Transmitter 

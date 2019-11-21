@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : JTAG Support
 -------------------------------------------------------------------------------
--- File       : AxiStreamSelector.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Select between two input streams under control of a binary signal

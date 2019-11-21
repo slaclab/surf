@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : RSSI Protocol: https://confluence.slac.stanford.edu/x/1IyfD
 -------------------------------------------------------------------------------
--- File       : RssiCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for RSSI + AXIS packetizer 

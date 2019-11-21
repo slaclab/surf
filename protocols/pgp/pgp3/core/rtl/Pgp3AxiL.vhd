@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
--- File       : Pgp2bAxi.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite block to manage the PGPv3 interface

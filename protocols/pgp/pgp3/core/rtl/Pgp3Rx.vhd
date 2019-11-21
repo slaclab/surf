@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
--- File       : Pgp3Rx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: PGPv3 Receive Block

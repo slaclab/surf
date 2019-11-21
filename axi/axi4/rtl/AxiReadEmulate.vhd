@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiReadEmulate.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI4 Read Emulation Module

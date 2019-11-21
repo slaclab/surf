@@ -1,5 +1,4 @@
 ------------------------------------------------------------------------------
--- File       : AxiStreamSplitter.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: splits a "wide" AXI stream bus into multiple "narrower" buses

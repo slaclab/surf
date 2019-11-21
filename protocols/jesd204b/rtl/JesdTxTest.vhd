@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : JesdTxTest.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: JesdTx simple module for testing RX

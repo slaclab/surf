@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : FifoMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Resizing FIFO module

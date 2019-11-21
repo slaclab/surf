@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : IpV4EngineLoopback.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the IpV4Engine in Loopback

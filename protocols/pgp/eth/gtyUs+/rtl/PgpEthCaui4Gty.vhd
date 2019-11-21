@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PgpEth: https://confluence.slac.stanford.edu/x/pQmODw
 -------------------------------------------------------------------------------
--- File       : PgpEthCaui4Gty.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for PGP Ethernet with GTY-based CAUI4 PHY

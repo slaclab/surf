@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AdiConfigSlave.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: An implementation of the common SPI configuration interface

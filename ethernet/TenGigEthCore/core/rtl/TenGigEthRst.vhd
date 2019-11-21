@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : TenGigEthRst.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 10GbE Reset Module

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GlinkDecoder.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: A collection of common constants and functions intended for

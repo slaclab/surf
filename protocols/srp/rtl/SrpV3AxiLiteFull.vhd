@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : SRPv3 Protocol: https://confluence.slac.stanford.edu/x/cRmVD
 -------------------------------------------------------------------------------
--- File       : SrpV3AxiLiteFull.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SLAC Register Protocol Version 3, AXI-Lite Interface

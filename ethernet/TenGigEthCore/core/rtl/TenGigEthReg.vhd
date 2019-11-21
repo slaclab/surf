@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : TenGigEthReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite 10GbE Register Interface

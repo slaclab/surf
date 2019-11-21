@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiMemTester.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: General Purpose AXI4 memory tester

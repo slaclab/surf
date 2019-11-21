@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : OutputBufferReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Output Registers

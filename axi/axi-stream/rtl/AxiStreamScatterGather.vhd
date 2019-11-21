@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamScatterGather.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Takes 6 APV bursts with 128 channels of data each and

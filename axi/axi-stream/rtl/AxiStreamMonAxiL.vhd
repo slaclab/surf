@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamMonAxiL.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite Wrapper on AXI Stream Monitor Module

@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : SACI Protocol: https://confluence.slac.stanford.edu/x/YYcRDQ
 -------------------------------------------------------------------------------
--- File       : SaciMultiPixelPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SaciMultiPixel Package File

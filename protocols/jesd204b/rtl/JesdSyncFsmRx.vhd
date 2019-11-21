@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : JesdSyncFsmRx.vhd 
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Synchronizer Finite state machine

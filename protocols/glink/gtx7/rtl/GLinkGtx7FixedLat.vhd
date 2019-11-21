@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GLinkGtx7FixedLat.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: G-Link wrapper for GTX7 Fixed Latency transceiver

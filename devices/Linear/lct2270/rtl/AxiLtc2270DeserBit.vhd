@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiLtc2270DeserBit.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: ADC DDR Deserializer

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiMicronP30Pkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AxiMicronP30 Package File

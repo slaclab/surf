@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteToIpBus.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite to IP Bus Bridge

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : UdpEngineTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: UDP TX Engine Module

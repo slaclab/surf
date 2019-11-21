@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamPrbsFlowCtrl.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Generates pseudo-random back pressure

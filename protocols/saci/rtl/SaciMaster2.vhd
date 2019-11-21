@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : SACI Protocol: https://confluence.slac.stanford.edu/x/YYcRDQ
 -------------------------------------------------------------------------------
--- File       : SaciMaster2.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: New and improved version of the SaciMaster.

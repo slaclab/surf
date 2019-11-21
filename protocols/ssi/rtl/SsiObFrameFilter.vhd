@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
 -------------------------------------------------------------------------------
--- File       : SsiObFrameFilter.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:   This module is used to filter out bad SSI frames.

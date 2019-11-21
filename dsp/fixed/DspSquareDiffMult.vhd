@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : DspSquareDiffMult.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Generalized DSP inferred Squarer with pre-adder 

@@ -1,5 +1,4 @@
 ------------------------------------------------------------------------------- 
--- File       : FifoAsync.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: ASYNC FIFO module

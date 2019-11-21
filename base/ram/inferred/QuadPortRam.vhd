@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : QuadPortRam.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:   This module infers a Quad Port RAM as distributed RAM

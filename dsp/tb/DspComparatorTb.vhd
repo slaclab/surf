@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : DspComparatorTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for the DspComparator module

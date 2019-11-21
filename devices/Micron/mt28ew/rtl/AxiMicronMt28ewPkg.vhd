@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiMicronMt28ewPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AxiMicronMt28ew Package File

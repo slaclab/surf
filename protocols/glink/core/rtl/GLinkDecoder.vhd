@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GlinkDecoder.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Decoder for the Condition Inversion Master Transition coding

@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : JTAG Support
 -------------------------------------------------------------------------------
--- File       : AxisToJtagTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Test bench for AxisToJtag

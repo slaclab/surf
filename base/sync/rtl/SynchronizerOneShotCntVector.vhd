@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SynchronizerOneShotCntVector.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for multiple SynchronizerOneShotCnt modules

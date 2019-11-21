@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiSy56040Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to Clock Crossbar

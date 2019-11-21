@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Gtx7QuadPll.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Xilinx 7-series GTX's QPLL

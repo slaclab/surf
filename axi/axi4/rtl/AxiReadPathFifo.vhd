@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiReadPathFifo.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: FIFO for AXI write path transactions.

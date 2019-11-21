@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Sff8472.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Optical Module SFF-8472 Wrapper (I2C for SFP, QSFP, etc)

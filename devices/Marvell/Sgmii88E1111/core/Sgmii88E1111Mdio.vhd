@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Sgmii88E1111Mdio.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Controller for the Marvell 88E1111 PHY 

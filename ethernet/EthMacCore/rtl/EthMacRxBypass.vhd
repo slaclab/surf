@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : EthMacRxBypass.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: RX bypass frame extractor.
