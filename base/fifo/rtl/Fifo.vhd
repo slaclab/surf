@@ -33,7 +33,6 @@ entity Fifo is
       FWFT_EN_G       : boolean                    := false;
       SYNTH_MODE_G    : string                     := "inferred";
       MEMORY_TYPE_G   : string                     := "block";      
-      USE_BUILT_IN_G  : boolean                    := false;  --if set to true, this module is only xilinx compatible only!!!
       XIL_DEVICE_G    : string                     := "7SERIES";  --xilinx only generic parameter    
       SYNC_STAGES_G   : integer range 3 to (2**24) := 3;
       PIPE_STAGES_G   : natural range 0 to 16      := 0;
