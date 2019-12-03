@@ -200,7 +200,7 @@ begin
       signal masterCntValue   : slv(9 downto 0);
    begin
       
-      U_ODELAYE3_0 : ODELAYE3
+      U_ODELAYE3_0 : surf.Odelaye3Wrapper
          generic map (
             CASCADE => "SLAVE_END",    -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
             DELAY_FORMAT => "COUNT",   -- Units of the DELAY_VALUE (COUNT, TIME)
