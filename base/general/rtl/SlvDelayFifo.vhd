@@ -74,7 +74,7 @@ begin
    Fifo_Time : entity surf.Fifo
       generic map (
          TPD_G           => TPD_G,
-         GEN_SYNC_FIFO_G => false,
+         GEN_SYNC_FIFO_G => true,
          MEMORY_TYPE_G   => FIFO_MEMORY_TYPE_G,
          FWFT_EN_G       => true,
          DATA_WIDTH_G    => DELAY_BITS_G,
@@ -92,7 +92,7 @@ begin
    Fifo_Data : entity surf.Fifo
       generic map (
          TPD_G           => TPD_G,
-         GEN_SYNC_FIFO_G => false,
+         GEN_SYNC_FIFO_G => true,
          MEMORY_TYPE_G   => FIFO_MEMORY_TYPE_G,
          FWFT_EN_G       => true,
          DATA_WIDTH_G    => DATA_WIDTH_G,
@@ -120,7 +120,7 @@ begin
       v.outputData  := fifoReadoutData;
 
       if (fifoValid = '1' and r.fifoRdEn = '0') then
-         if (fifoReadoutTime = r.timeNow) then
+         if (fifoReadoutTime <= r.timeNow) then
             v.fifoRdEn    := '1';
             v.outputValid := '1';
          end if;
