@@ -164,7 +164,7 @@ begin
    ----------------------------------------------------------------------------
    -- idelay3 
    ----------------------------------------------------------------------------
-   U_IDELAYE3_0 : IDELAYE3
+   U_IDELAYE3_0 : surf.Idelaye3Wrapper
       generic map (
          CASCADE          => CASCADE_C,    -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
          DELAY_FORMAT     => "COUNT",   -- Units of the DELAY_VALUE (COUNT, TIME)
