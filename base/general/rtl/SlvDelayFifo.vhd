@@ -1,16 +1,20 @@
 -------------------------------------------------------------------------------
--- Title      : 
+-- Title      : FIFO-Based Delay Block
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
+-- Description: Delays a logic vector by writing entries into a FIFO, and
+-- reading them some number of cycles later. The delay is determined by the
+-- delay input.
 --
+-- Note that the underlying FIFO has a minimum delay of 4 cycles, so a delay
+-- of less than 4 is not possible.
 -------------------------------------------------------------------------------
--- This file is part of 'SURF".
+-- This file is part of 'SLAC Firmware Standard Library".
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SURF', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
@@ -78,7 +82,7 @@ begin
          MEMORY_TYPE_G   => FIFO_MEMORY_TYPE_G,
          FWFT_EN_G       => true,
          DATA_WIDTH_G    => DELAY_BITS_G,
-         ADDR_WIDTH_G    => 9)
+         ADDR_WIDTH_G    => FIFO_ADDR_WIDTH_G)
       port map (
          rst    => rst,
          wr_clk => clk,
@@ -96,7 +100,7 @@ begin
          MEMORY_TYPE_G   => FIFO_MEMORY_TYPE_G,
          FWFT_EN_G       => true,
          DATA_WIDTH_G    => DATA_WIDTH_G,
-         ADDR_WIDTH_G    => 9)
+         ADDR_WIDTH_G    => FIFO_ADDR_WIDTH_G)
       port map (
          rst    => rst,
          wr_clk => clk,

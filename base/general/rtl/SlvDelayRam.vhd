@@ -1,21 +1,16 @@
 -------------------------------------------------------------------------------
--- Title      : 
+-- Title      : RAM-Based Delay Block
 -------------------------------------------------------------------------------
--- File       : UserRealign.vhd
--- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-07-10
--- Last update: 2019-11-18
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- This module produces a realigned timing header and expt bus.
+-- Description: Delays a logic vector using a RAM with offset read and write
+-- pointers. Total delay is given by: BASE_DELAY_G - delay (input).
 -------------------------------------------------------------------------------
--- This file is part of 'LCLS2 DAQ Software'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS2 DAQ Software', including this file, 
+-- No part of 'SLAC Firmware Standard Library', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
@@ -23,8 +18,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
-
--- surf
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -38,7 +31,7 @@ entity SlvDelayRam is
       VECTOR_WIDTH_G   : integer := 1;
       BASE_DELAY_G     : integer := 100;
       RAM_ADDR_WIDTH_G : integer := 7;
-      MEMORY_TYPE_G    : string := "block");
+      MEMORY_TYPE_G    : string  := "block");
    port (
       rst          : in  sl;
       clk          : in  sl;
@@ -54,7 +47,7 @@ architecture rtl of SlvDelayRam is
 
    type RegType is record
       rden        : sl;
-      rdaddr      : slv(6 downto 0);
+      rdaddr      : slv(RAM_ADDR_WIDTH_G-1 downto 0);
       outputValid : slv(3 downto 0);
    end record;
 
@@ -70,6 +63,7 @@ begin
 
    U_Ram : entity surf.SimpleDualPortRam
       generic map (
+         TPD_G         => TPD_G,
          MEMORY_TYPE_G => MEMORY_TYPE_G,
          DATA_WIDTH_G  => VECTOR_WIDTH_G,
          ADDR_WIDTH_G  => RAM_ADDR_WIDTH_G)
