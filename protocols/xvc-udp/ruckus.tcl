@@ -2,7 +2,7 @@
 source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 
 # Check for version 2018.3 of Vivado (or later)
-if { [VersionCheck 2018.3] < 0 } {
+if { $::env(VIVADO_VERSION) >= 2018.3 } {
 
    # Load the wrapper source code
    loadSource -lib surf -dir "$::DIR_PATH/rtl"
