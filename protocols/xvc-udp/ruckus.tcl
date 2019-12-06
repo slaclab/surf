@@ -21,7 +21,8 @@ if { $::env(VIVADO_VERSION) >= 2018.3 } {
         ${family} eq {kintexuplus} ||
         ${family} eq {virtexuplus} ||
         ${family} eq {virtexuplusHBM} ||
-        ${family} eq {zynquplus} } {
+        ${family} eq {zynquplus} ||
+        ${family} eq {zynquplusRFSOC} } {
       set dirType "UltraScale"
    }
 
