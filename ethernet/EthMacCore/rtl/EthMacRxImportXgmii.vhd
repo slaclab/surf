@@ -160,43 +160,47 @@ begin
       -- Latch the current value
       v := r;
 
-      -- Check delayed copy
-      v.phyRxcDly := phyRxChar;
-      v.phyRxdDly := phyRxdata;
+--    -- Check delayed copy
+--    v.phyRxcDly := phyRxChar;
+--    v.phyRxdDly := phyRxdata;
+--
+--    -- Check if no gap inserted 
+--    if r.gapInserted = '0' then
+--
+--       -- Check for no gap between two frames
+--       if (phyRxChar /= x"FF" and phyRxChar /= x"00") and (r.phyRxcDly /= x"FF" and r.phyRxcDly /= x"00") then
+--          -- Set the flag
+--          v.gapInserted := '1';
+--          -- Insert a gap
+--          v.phyRxc      := x"FF";
+--          v.phyRxd      := x"0707070707070707";
+--       else
+--          -- Moved the non-delayed copy
+--          v.phyRxc := phyRxChar;
+--          v.phyRxd := phyRxdata;
+--       end if;
+--
+--    else
+--
+--       -- Moved the delayed copy
+--       phyRxc <= r.phyRxcDly;
+--       phyRxd <= r.phyRxdDly;
+--
+--       -- Check for two gaps in a row
+--       if (r.phyRxcDly = x"FF") and (phyRxChar = x"FF") then
+--          -- Reset the flag
+--          v.gapInserted := '0';
+--       end if;
+--
+--    end if;
 
-      -- Check if no gap inserted 
-      if r.gapInserted = '0' then
-
-         -- Check for no gap between two frames
-         if (phyRxChar /= x"FF" and phyRxChar /= x"00") and (r.phyRxcDly /= x"FF" and r.phyRxcDly /= x"00") then
-            -- Set the flag
-            v.gapInserted := '1';
-            -- Insert a gap
-            v.phyRxc      := x"FF";
-            v.phyRxd      := x"0707070707070707";
-         else
-            -- Moved the non-delayed copy
-            v.phyRxc := phyRxChar;
-            v.phyRxd := phyRxdata;
-         end if;
-
-      else
-
-         -- Moved the delayed copy
-         phyRxc <= r.phyRxcDly;
-         phyRxd <= r.phyRxdDly;
-
-         -- Check for two gaps in a row
-         if (r.phyRxcDly = x"FF") and (phyRxChar = x"FF") then
-            -- Reset the flag
-            v.gapInserted := '0';
-         end if;
-
-      end if;
-
-      -- Outputs
-      phyRxc <= r.phyRxc;
-      phyRxd <= r.phyRxd;
+      -- -- Outputs
+      -- phyRxc <= r.phyRxc;
+      -- phyRxd <= r.phyRxd;
+      
+      -- Bypass workaround
+      phyRxc <= phyRxChar;
+      phyRxd <= phyRxdata;      
 
       -- Register the variable for next clock cycle
       rin <= v;
