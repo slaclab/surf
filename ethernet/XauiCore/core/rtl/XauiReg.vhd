@@ -77,9 +77,9 @@ begin
 
    GEN_BYPASS : if (EN_AXI_REG_G = false) generate
 
-      axiReadSlave <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
+      axiReadSlave  <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
       axiWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
-      
+
       Sync_Config : entity surf.SynchronizerVector
          generic map (
             TPD_G   => TPD_G,
@@ -177,7 +177,7 @@ begin
          axiSlaveRegister(regCon, x"22C", 0, v.config.macConfig.pauseEnable);
 
          axiSlaveRegister(regCon, x"230", 0, v.config.configVector);
-         
+
          axiSlaveRegister(regCon, x"800", 0, v.config.macConfig.pauseThresh);
 
          axiSlaveRegister(regCon, x"F00", 0, v.rollOverEn);
@@ -245,7 +245,7 @@ begin
          generic map (
             TPD_G    => TPD_G,
             STAGES_G => 2,
-            WIDTH_G  => 5)
+            WIDTH_G  => 6)
          port map (
             clk        => phyClk,
             -- Input Data
@@ -254,12 +254,14 @@ begin
             dataIn(2)  => r.config.macConfig.ipCsumEn,
             dataIn(3)  => r.config.macConfig.tcpCsumEn,
             dataIn(4)  => r.config.macConfig.udpCsumEn,
+            dataIn(5)  => r.config.macConfig.dropOnPause,
             -- Output Data
             dataOut(0) => config.macConfig.filtEnable,
             dataOut(1) => config.macConfig.pauseEnable,
             dataOut(2) => config.macConfig.ipCsumEn,
             dataOut(3) => config.macConfig.tcpCsumEn,
-            dataOut(4) => config.macConfig.udpCsumEn);
+            dataOut(4) => config.macConfig.udpCsumEn,
+            dataOut(5) => config.macConfig.dropOnPause);
 
       SyncIn_configVector : entity surf.SynchronizerFifo
          generic map (
@@ -270,6 +272,16 @@ begin
             din    => r.config.configVector,
             rd_clk => phyClk,
             dout   => config.configVector);
+
+      SyncIn_pauseThresh : entity surf.SynchronizerFifo
+         generic map (
+            TPD_G        => TPD_G,
+            DATA_WIDTH_G => 16)
+         port map (
+            wr_clk => axiClk,
+            din    => r.config.macConfig.pauseThresh,
+            rd_clk => phyClk,
+            dout   => config.macConfig.pauseThresh);
 
    end generate;
 
