@@ -7,10 +7,6 @@ var classstream__tb =
     [ "std_logic_unsigned", "classstream__tb.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "surf", "classstream__tb.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classstream__tb.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classstream__tb.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
     [ "AxiStreamPkg", "classstream__tb.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
-    [ "SsiPkg", "classstream__tb.html#a8b54e22b2a07048034b61d5e4ba396e3", null ],
-    [ "SsiCmdMasterPkg", "classstream__tb.html#a18dc1d62ff093745f12807b0b3a3cf77", null ],
-    [ "Pgp2bPkg", "classstream__tb.html#af22dbf60bec6f633c7d35bf9c0940817", null ],
-    [ "I2cPkg", "classstream__tb.html#a3345a70e845069bf678d5aa1733529b6", null ]
+    [ "SsiPkg", "classstream__tb.html#a8b54e22b2a07048034b61d5e4ba396e3", null ]
 ];

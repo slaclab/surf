@@ -46,7 +46,7 @@ if (edges && edges.length) {
         </defs>
 
 <script type="text/javascript">
-var viewWidth = 991;
+var viewWidth = 907;
 var viewHeight = 292;
 var sectionId = 'dynsection-0';
 </script>
@@ -54,27 +54,12 @@ var sectionId = 'dynsection-0';
 <svg id="graph" class="graph">
 <g id="viewport">
 <title>SsiCmdMaster</title>
-<polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-287.7111 987,-287.7111 987,4 -4,4"/>
+<polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-287.7111 903,-287.7111 903,4 -4,4"/>
 <!-- Node0 -->
 <g id="node1" class="node">
 <title>Node0</title>
 <polygon fill="#bfbfbf" stroke="#000000" points="813,-74.2111 813,-93.2111 899,-93.2111 899,-74.2111 813,-74.2111"/>
 <text text-anchor="middle" x="856" y="-81.2111" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">SsiCmdMaster</text>
-</g>
-<!-- Node18 -->
-<g id="node19" class="node">
-<title>Node18</title>
-<g id="a_node19"><a xlink:href="classvcs__tb.html" target="_top" xlink:title="vcs_tb">
-<polygon fill="#ffffff" stroke="#000000" points="935,-74.2111 935,-93.2111 983,-93.2111 983,-74.2111 935,-74.2111"/>
-<text text-anchor="middle" x="959" y="-81.2111" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">vcs_tb</text>
-</a>
-</g>
-</g>
-<!-- Node0&#45;&gt;Node18 -->
-<g id="edge26" class="edge">
-<title>Node0&#45;&gt;Node18</title>
-<path fill="none" stroke="#191970" d="M909.2111,-83.7111C918.206,-83.7111 927.1313,-83.7111 934.8877,-83.7111"/>
-<polygon fill="#191970" stroke="#191970" points="909.0845,-80.2112 899.0845,-83.7111 909.0844,-87.2112 909.0845,-80.2112"/>
 </g>
 <!-- Node1 -->
 <g id="node2" class="node">

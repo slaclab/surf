@@ -1,5 +1,4 @@
 <map id="SsiAxiLiteMaster" name="SsiAxiLiteMaster">
-<area shape="rect" id="node19" href="$classvcs__tb.html" title="vcs_tb" alt="" coords="1285,259,1349,285"/>
 <area shape="rect" id="node2" href="$classAxiStreamFifoV2.html" title="AxiStreamFifoV2(2)" alt="" coords="911,259,1059,285"/>
 <area shape="rect" id="node3" href="$classAxiStreamResize.html" title="AxiStreamResize(2)" alt="" coords="712,183,863,209"/>
 <area shape="rect" id="node4" href="$classAxiStreamPipeline.html" title="AxiStreamPipeline" alt="" coords="521,196,664,223"/>

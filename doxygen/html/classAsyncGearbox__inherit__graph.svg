@@ -46,7 +46,7 @@ if (edges && edges.length) {
         </defs>
 
 <script type="text/javascript">
-var viewWidth = 846;
+var viewWidth = 528;
 var viewHeight = 332;
 var sectionId = 'dynsection-0';
 </script>
@@ -54,27 +54,12 @@ var sectionId = 'dynsection-0';
 <svg id="graph" class="graph">
 <g id="viewport">
 <title>AsyncGearbox</title>
-<polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-328 842,-328 842,4 -4,4"/>
+<polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-328 524,-328 524,4 -4,4"/>
 <!-- Node0 -->
 <g id="node1" class="node">
 <title>Node0</title>
 <polygon fill="#bfbfbf" stroke="#000000" points="433,-133.5 433,-152.5 520,-152.5 520,-133.5 433,-133.5"/>
 <text text-anchor="middle" x="476.5" y="-140.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">AsyncGearbox</text>
-</g>
-<!-- Node14 -->
-<g id="node15" class="node">
-<title>Node14</title>
-<g id="a_node15"><a xlink:href="classClinkDataShift.html" target="_top" xlink:title="ClinkDataShift">
-<polygon fill="#ffffff" stroke="#000000" points="556,-133.5 556,-152.5 643,-152.5 643,-133.5 556,-133.5"/>
-<text text-anchor="middle" x="599.5" y="-140.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">ClinkDataShift</text>
-</a>
-</g>
-</g>
-<!-- Node0&#45;&gt;Node14 -->
-<g id="edge16" class="edge">
-<title>Node0&#45;&gt;Node14</title>
-<path fill="none" stroke="#191970" d="M530.4581,-143C538.9748,-143 547.6874,-143 555.9292,-143"/>
-<polygon fill="#191970" stroke="#191970" points="530.2116,-139.5001 520.2115,-143 530.2115,-146.5001 530.2116,-139.5001"/>
 </g>
 <!-- Node1 -->
 <g id="node2" class="node">
@@ -282,36 +267,6 @@ var sectionId = 'dynsection-0';
 <title>Node13&#45;&gt;Node0</title>
 <path fill="none" stroke="#191970" d="M375.2533,-115.5187C395.9411,-121.134 421.2104,-127.9928 441.3288,-133.4535"/>
 <polygon fill="#191970" stroke="#191970" points="376.0758,-112.1154 365.5081,-112.8736 374.2421,-118.871 376.0758,-112.1154"/>
-</g>
-<!-- Node15 -->
-<g id="node16" class="node">
-<title>Node15</title>
-<g id="a_node16"><a xlink:href="classClinkData.html" target="_top" xlink:title="ClinkData">
-<polygon fill="#ffffff" stroke="#000000" points="679,-133.5 679,-152.5 744,-152.5 744,-133.5 679,-133.5"/>
-<text text-anchor="middle" x="711.5" y="-140.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">ClinkData</text>
-</a>
-</g>
-</g>
-<!-- Node14&#45;&gt;Node15 -->
-<g id="edge17" class="edge">
-<title>Node14&#45;&gt;Node15</title>
-<path fill="none" stroke="#191970" d="M653.3122,-143C662.0636,-143 670.8864,-143 678.9239,-143"/>
-<polygon fill="#191970" stroke="#191970" points="653.1229,-139.5001 643.1228,-143 653.1228,-146.5001 653.1229,-139.5001"/>
-</g>
-<!-- Node16 -->
-<g id="node17" class="node">
-<title>Node16</title>
-<g id="a_node17"><a xlink:href="classClinkTop.html" target="_top" xlink:title="ClinkTop">
-<polygon fill="#ffffff" stroke="#000000" points="780,-133.5 780,-152.5 838,-152.5 838,-133.5 780,-133.5"/>
-<text text-anchor="middle" x="809" y="-140.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">ClinkTop</text>
-</a>
-</g>
-</g>
-<!-- Node15&#45;&gt;Node16 -->
-<g id="edge18" class="edge">
-<title>Node15&#45;&gt;Node16</title>
-<path fill="none" stroke="#191970" d="M754.4795,-143C763.0331,-143 771.8271,-143 779.7881,-143"/>
-<polygon fill="#191970" stroke="#191970" points="754.2374,-139.5001 744.2373,-143 754.2373,-146.5001 754.2374,-139.5001"/>
 </g>
 </g>
 </svg>

@@ -2,9 +2,9 @@
 <area shape="rect" id="node20" href="$classAxiRssiRxFsm.html" title="AxiRssiRxFsm" alt="" coords="1327,5,1441,32"/>
 <area shape="rect" id="node24" href="$classAxiRssiTxFsm.html" title="AxiRssiTxFsm" alt="" coords="1327,56,1441,83"/>
 <area shape="rect" id="node25" href="$classAxiStreamDma.html" title="AxiStreamDma" alt="" coords="1323,107,1445,133"/>
-<area shape="rect" id="node27" href="$classAxiStreamDmaFifo.html" title="AxiStreamDmaFifo" alt="" coords="1312,157,1456,184"/>
-<area shape="rect" id="node28" href="$classAxiStreamDmaRingWrite.html" title="AxiStreamDmaRingWrite" alt="" coords="1292,208,1476,235"/>
-<area shape="rect" id="node29" href="$classSrpV3Axi.html" title="SrpV3Axi" alt="" coords="1343,259,1425,285"/>
+<area shape="rect" id="node26" href="$classAxiStreamDmaFifo.html" title="AxiStreamDmaFifo" alt="" coords="1312,157,1456,184"/>
+<area shape="rect" id="node27" href="$classAxiStreamDmaRingWrite.html" title="AxiStreamDmaRingWrite" alt="" coords="1292,208,1476,235"/>
+<area shape="rect" id="node28" href="$classSrpV3Axi.html" title="SrpV3Axi" alt="" coords="1343,259,1425,285"/>
 <area shape="rect" id="node2" href="$classAxiStreamShift.html" title="AxiStreamShift" alt="" coords="916,132,1036,159"/>
 <area shape="rect" id="node3" href="$classAxiStreamPipeline.html" title="AxiStreamPipeline" alt="" coords="521,157,664,184"/>
 <area shape="rect" id="node4" href="$classAxiStreamFifoV2.html" title="AxiStreamFifoV2" alt="" coords="911,233,1041,260"/>
@@ -26,6 +26,5 @@
 <area shape="rect" id="node21" href="$classAxiRssiCore.html" title="AxiRssiCore" alt="" coords="1537,31,1637,57"/>
 <area shape="rect" id="node22" href="$classAxiRssiCoreWrapper.html" title="AxiRssiCoreWrapper" alt="" coords="1699,31,1853,57"/>
 <area shape="rect" id="node23" href="$classAxiRssiCoreTb.html" title="AxiRssiCoreTb" alt="" coords="1901,31,2017,57"/>
-<area shape="rect" id="node26" href="$classdma__tb.html" title="dma_tb" alt="" coords="1552,107,1623,133"/>
-<area shape="rect" id="node30" href="$classSrpV3AxiLiteFull.html" title="SrpV3AxiLiteFull" alt="" coords="1524,259,1651,285"/>
+<area shape="rect" id="node29" href="$classSrpV3AxiLiteFull.html" title="SrpV3AxiLiteFull" alt="" coords="1524,259,1651,285"/>
 </map>

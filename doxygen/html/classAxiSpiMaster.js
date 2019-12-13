@@ -17,6 +17,8 @@ var classAxiSpiMaster =
     [ "axiReadSlave", "classAxiSpiMaster.html#af5301f308dc850ff6d3b80315d2e644c", null ],
     [ "axiWriteMaster", "classAxiSpiMaster.html#abf08eac4311749af56c8ec14b1903091", null ],
     [ "axiWriteSlave", "classAxiSpiMaster.html#a0eb32e5fab67488b94fb47c9fe42e97f", null ],
+    [ "shadowAddr", "classAxiSpiMaster.html#a6ec8569fda8549879b13221ba159b9fe", null ],
+    [ "shadowData", "classAxiSpiMaster.html#a5178e8aba0e950524830e1745a0ba275", null ],
     [ "coreSclk", "classAxiSpiMaster.html#a656e835a0890a162151082bef7ac3400", null ],
     [ "coreSDin", "classAxiSpiMaster.html#a235365c8c85be8348cd9dcfd86cf53d8", null ],
     [ "coreSDout", "classAxiSpiMaster.html#ab494f9de512f117c98fe32f8f93e22e7", null ],

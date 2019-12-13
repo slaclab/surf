@@ -1,6 +1,16 @@
 var searchData=
 [
-  ['watchdogrst',['WatchDogRst',['../classWatchDogRst.html',1,'']]],
-  ['window_5faddr_5fsize_5fc',['WINDOW_ADDR_SIZE_C',['../classAxiRssiCore_1_1rtl.html#aafafe504e5f1be75343904f82a5772fa',1,'AxiRssiCore::rtl']]],
-  ['wrapper',['wrapper',['../classXauiGth7Core_1_1wrapper.html',1,'wrapper'],['../classXauiGtx7Core_1_1wrapper.html',1,'wrapper']]]
+  ['xadcsimplecore',['XadcSimpleCore',['../classXadcSimpleCore.html',1,'']]],
+  ['xauigth7',['XauiGth7',['../classXauiGth7.html',1,'']]],
+  ['xauigth7core',['XauiGth7Core',['../classXauiGth7Core.html',1,'']]],
+  ['xauigth7wrapper',['XauiGth7Wrapper',['../classXauiGth7Wrapper.html',1,'']]],
+  ['xauigthultrascale',['XauiGthUltraScale',['../classXauiGthUltraScale.html',1,'']]],
+  ['xauigthultrascalewrapper',['XauiGthUltraScaleWrapper',['../classXauiGthUltraScaleWrapper.html',1,'']]],
+  ['xauigtx7',['XauiGtx7',['../classXauiGtx7.html',1,'']]],
+  ['xauigtx7core',['XauiGtx7Core',['../classXauiGtx7Core.html',1,'']]],
+  ['xauigtx7wrapper',['XauiGtx7Wrapper',['../classXauiGtx7Wrapper.html',1,'']]],
+  ['xauigtyultrascale',['XauiGtyUltraScale',['../classXauiGtyUltraScale.html',1,'']]],
+  ['xauigtyultrascalewrapper',['XauiGtyUltraScaleWrapper',['../classXauiGtyUltraScaleWrapper.html',1,'']]],
+  ['xauipkg',['XauiPkg',['../classXauiPkg.html',1,'']]],
+  ['xauireg',['XauiReg',['../classXauiReg.html',1,'']]]
 ];

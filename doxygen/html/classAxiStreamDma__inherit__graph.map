@@ -1,5 +1,4 @@
 <map id="AxiStreamDma" name="AxiStreamDma">
-<area shape="rect" id="node25" href="$classdma__tb.html" title="dma_tb" alt="" coords="1484,341,1555,368"/>
 <area shape="rect" id="node2" href="$classAxiLiteCrossbar.html" title="AxiLiteCrossbar" alt="" coords="1127,265,1251,292"/>
 <area shape="rect" id="node3" href="$classAxiLiteFifoPushPop.html" title="AxiLiteFifoPushPop" alt="" coords="1117,316,1262,343"/>
 <area shape="rect" id="node4" href="$classFifoCascade.html" title="FifoCascade(3)" alt="" coords="928,228,1047,255"/>

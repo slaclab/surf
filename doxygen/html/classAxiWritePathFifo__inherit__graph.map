@@ -1,6 +1,5 @@
 <map id="AxiWritePathFifo" name="AxiWritePathFifo">
-<area shape="rect" id="node16" href="$classAxiWriteEmulate.html" title="AxiWriteEmulate" alt="" coords="975,81,1105,108"/>
-<area shape="rect" id="node17" href="$classdma__tb.html" title="dma_tb" alt="" coords="1005,132,1075,159"/>
+<area shape="rect" id="node16" href="$classAxiWriteEmulate.html" title="AxiWriteEmulate" alt="" coords="975,107,1105,133"/>
 <area shape="rect" id="node2" href="$classFifoCascade.html" title="FifoCascade(3)" alt="" coords="632,107,751,133"/>
 <area shape="rect" id="node3" href="$classFifo.html" title="Fifo(4)" alt="" coords="521,107,584,133"/>
 <area shape="rect" id="node4" href="$classFifoXpm.html" title="FifoXpm" alt="" coords="386,12,461,39"/>

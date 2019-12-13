@@ -9,96 +9,96 @@
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 136)">
 <title>RogueTcpStreamWrap</title>
 <polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-136 458.5,-136 458.5,4 -4,4"/>
-<!-- Node15 -->
+<!-- Node16 -->
 <g id="node1" class="node">
-<title>Node15</title>
+<title>Node16</title>
 <polygon fill="#bfbfbf" stroke="#000000" points="173.5,-.5 173.5,-19.5 295.5,-19.5 295.5,-.5 173.5,-.5"/>
 <text text-anchor="middle" x="234.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">RogueTcpStreamWrap</text>
 </g>
-<!-- Node16 -->
+<!-- Node17 -->
 <g id="node2" class="node">
-<title>Node16</title>
+<title>Node17</title>
 <g id="a_node2"><a xlink:href="classAxiStreamDeMux.html" target="_top" xlink:title="AxiStreamDeMux">
 <polygon fill="#ffffff" stroke="#000000" points="0,-56.5 0,-75.5 101,-75.5 101,-56.5 0,-56.5"/>
 <text text-anchor="middle" x="50.5" y="-63.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">AxiStreamDeMux</text>
 </a>
 </g>
 </g>
-<!-- Node16&#45;&gt;Node15 -->
+<!-- Node17&#45;&gt;Node16 -->
 <g id="edge1" class="edge">
-<title>Node16&#45;&gt;Node15</title>
+<title>Node17&#45;&gt;Node16</title>
 <path fill="none" stroke="#191970" d="M91.7157,-53.4561C125.4916,-43.1765 172.5663,-28.8494 203.282,-19.5011"/>
 <polygon fill="#191970" stroke="#191970" points="90.6784,-50.1132 82.1307,-56.3733 92.7166,-56.8099 90.6784,-50.1132"/>
 </g>
-<!-- Node17 -->
+<!-- Node18 -->
 <g id="node3" class="node">
-<title>Node17</title>
+<title>Node18</title>
 <g id="a_node3"><a xlink:href="classAxiStreamPipeline.html" target="_top" xlink:title="AxiStreamPipeline">
 <polygon fill="#ffffff" stroke="#000000" points="122,-112.5 122,-131.5 229,-131.5 229,-112.5 122,-112.5"/>
 <text text-anchor="middle" x="175.5" y="-119.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">AxiStreamPipeline</text>
 </a>
 </g>
 </g>
-<!-- Node17&#45;&gt;Node16 -->
+<!-- Node18&#45;&gt;Node17 -->
 <g id="edge2" class="edge">
-<title>Node17&#45;&gt;Node16</title>
+<title>Node18&#45;&gt;Node17</title>
 <path fill="none" stroke="#191970" d="M144.802,-108.2473C122.1007,-98.0771 91.7685,-84.4883 71.7079,-75.5011"/>
 <polygon fill="#191970" stroke="#191970" points="143.4547,-111.4789 154.0117,-112.3733 146.3167,-105.0906 143.4547,-111.4789"/>
 </g>
-<!-- Node18 -->
+<!-- Node19 -->
 <g id="node4" class="node">
-<title>Node18</title>
+<title>Node19</title>
 <g id="a_node4"><a xlink:href="classAxiStreamResize.html" target="_top" xlink:title="AxiStreamResize(2)">
 <polygon fill="#ffffff" stroke="#000000" points="119,-56.5 119,-75.5 232,-75.5 232,-56.5 119,-56.5"/>
 <text text-anchor="middle" x="175.5" y="-63.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">AxiStreamResize(2)</text>
 </a>
 </g>
 </g>
-<!-- Node17&#45;&gt;Node18 -->
+<!-- Node18&#45;&gt;Node19 -->
 <g id="edge4" class="edge">
-<title>Node17&#45;&gt;Node18</title>
+<title>Node18&#45;&gt;Node19</title>
 <path fill="none" stroke="#191970" d="M175.5,-102.1575C175.5,-93.155 175.5,-82.9199 175.5,-75.6427"/>
 <polygon fill="#191970" stroke="#191970" points="172.0001,-102.2455 175.5,-112.2455 179.0001,-102.2456 172.0001,-102.2455"/>
 </g>
-<!-- Node20 -->
+<!-- Node21 -->
 <g id="node6" class="node">
-<title>Node20</title>
+<title>Node21</title>
 <g id="a_node6"><a xlink:href="classAxiStreamMux.html" target="_top" xlink:title="AxiStreamMux">
 <polygon fill="#ffffff" stroke="#000000" points="250.5,-56.5 250.5,-75.5 338.5,-75.5 338.5,-56.5 250.5,-56.5"/>
 <text text-anchor="middle" x="294.5" y="-63.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">AxiStreamMux</text>
 </a>
 </g>
 </g>
-<!-- Node17&#45;&gt;Node20 -->
+<!-- Node18&#45;&gt;Node21 -->
 <g id="edge7" class="edge">
-<title>Node17&#45;&gt;Node20</title>
+<title>Node18&#45;&gt;Node21</title>
 <path fill="none" stroke="#191970" d="M205.0144,-108.1109C226.5938,-97.9559 255.2976,-84.4482 274.3101,-75.5011"/>
 <polygon fill="#191970" stroke="#191970" points="203.5147,-104.9484 195.9568,-112.3733 206.4953,-111.2821 203.5147,-104.9484"/>
 </g>
-<!-- Node18&#45;&gt;Node15 -->
+<!-- Node19&#45;&gt;Node16 -->
 <g id="edge3" class="edge">
-<title>Node18&#45;&gt;Node15</title>
+<title>Node19&#45;&gt;Node16</title>
 <path fill="none" stroke="#191970" d="M193.0307,-49.3607C203.2377,-39.6727 215.7469,-27.7995 224.3408,-19.6427"/>
 <polygon fill="#191970" stroke="#191970" points="190.6206,-46.8227 185.777,-56.2455 195.4396,-51.8998 190.6206,-46.8227"/>
 </g>
-<!-- Node19 -->
+<!-- Node20 -->
 <g id="node5" class="node">
-<title>Node19</title>
+<title>Node20</title>
 <g id="a_node5"><a xlink:href="classRogueTcpStream.html" target="_top" xlink:title="RogueTcpStream">
 <polygon fill="#ffffff" stroke="#000000" points="356.5,-56.5 356.5,-75.5 454.5,-75.5 454.5,-56.5 356.5,-56.5"/>
 <text text-anchor="middle" x="405.5" y="-63.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">RogueTcpStream</text>
 </a>
 </g>
 </g>
-<!-- Node19&#45;&gt;Node15 -->
+<!-- Node20&#45;&gt;Node16 -->
 <g id="edge5" class="edge">
-<title>Node19&#45;&gt;Node15</title>
+<title>Node20&#45;&gt;Node16</title>
 <path fill="none" stroke="#191970" d="M366.3852,-53.1905C335.0568,-42.9309 291.8129,-28.7691 263.5124,-19.5011"/>
 <polygon fill="#191970" stroke="#191970" points="365.5114,-56.5872 376.1041,-56.3733 367.69,-49.9348 365.5114,-56.5872"/>
 </g>
-<!-- Node20&#45;&gt;Node15 -->
+<!-- Node21&#45;&gt;Node16 -->
 <g id="edge6" class="edge">
-<title>Node20&#45;&gt;Node15</title>
+<title>Node21&#45;&gt;Node16</title>
 <path fill="none" stroke="#191970" d="M276.6722,-49.3607C266.2922,-39.6727 253.5709,-27.7995 244.8314,-19.6427"/>
 <polygon fill="#191970" stroke="#191970" points="274.3501,-51.981 284.0488,-56.2455 279.1263,-46.8636 274.3501,-51.981"/>
 </g>

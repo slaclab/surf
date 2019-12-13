@@ -1,7 +1,4 @@
 <map id="Gearbox" name="Gearbox">
 <area shape="rect" id="node2" href="$classAsyncGearbox.html" title="AsyncGearbox" alt="" coords="5,80,121,107"/>
-<area shape="rect" id="node6" href="$classGearboxTb.html" title="GearboxTb" alt="" coords="146,80,239,107"/>
-<area shape="rect" id="node3" href="$classClinkDataShift.html" title="ClinkDataShift" alt="" coords="5,155,121,181"/>
-<area shape="rect" id="node4" href="$classClinkData.html" title="ClinkData" alt="" coords="20,229,107,256"/>
-<area shape="rect" id="node5" href="$classClinkTop.html" title="ClinkTop" alt="" coords="25,304,102,331"/>
+<area shape="rect" id="node3" href="$classGearboxTb.html" title="GearboxTb" alt="" coords="146,80,239,107"/>
 </map>

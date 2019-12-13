@@ -1,6 +1,6 @@
 var classXauiReg_1_1rtl =
 [
-    [ "PROCESS_129", "classXauiReg_1_1rtl.html#a0714466b0b1e1906adc98877fdef271c", null ],
+    [ "PROCESS_121", "classXauiReg_1_1rtl.html#a21642a1e1f29f40c27371de34fe3163e", null ],
     [ "comb", "classXauiReg_1_1rtl.html#a9bab80c6a2ee5b0297cc45b7e15e8e1a", null ],
     [ "seq", "classXauiReg_1_1rtl.html#a5e4948776eaa6ed7ab637ef213d19dd8", null ],
     [ "STATUS_SIZE_C", "classXauiReg_1_1rtl.html#a46ac540b54d995d477c3c656d31a5ba9", null ],
@@ -22,5 +22,6 @@ var classXauiReg_1_1rtl =
     [ "syncin_macaddress", "classXauiReg_1_1rtl.html#a011291bd99f30adb26567b83cbd9026a", null ],
     [ "syncin_pausetime", "classXauiReg_1_1rtl.html#a3a63a2f9348079aa02225693b03d3f0c", null ],
     [ "syncin_macconfig", "classXauiReg_1_1rtl.html#aa4630c7712460eb52ed50e3bd8ffc5e2", null ],
-    [ "syncin_configvector", "classXauiReg_1_1rtl.html#aeb7ac0eae242dcb01d5c2eafd0e7520d", null ]
+    [ "syncin_configvector", "classXauiReg_1_1rtl.html#aeb7ac0eae242dcb01d5c2eafd0e7520d", null ],
+    [ "syncin_pausethresh", "classXauiReg_1_1rtl.html#a5def7595592ebed6cc310896277ed5f1", null ]
 ];
