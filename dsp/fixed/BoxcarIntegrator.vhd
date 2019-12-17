@@ -87,7 +87,7 @@ begin
       port map (
          -- Port A     
          clka  => clk,
-         wea   => ibValid,
+         wea   => r.ibValid,
          addra => r.wAddr,
          dina  => r.ibData,
          -- Port B
