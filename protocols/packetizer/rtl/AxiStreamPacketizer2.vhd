@@ -187,31 +187,52 @@ begin
    -------------------------------------------------------------------------------
    -- Packet Count ram
    -- track current frame number, packet count and physical channel for each tDest
+   -- If TDEST_BITS_G = 0, we can use a simple register to track the
+   -- packet sequence number and CRC, rather than a RAM
    -------------------------------------------------------------------------------
-   U_DualPortRam_1 : entity surf.DualPortRam
-      generic map (
-         TPD_G         => TPD_G,
-         MEMORY_TYPE_G => MEMORY_TYPE_G,
-         REG_EN_G      => REG_EN_G,
-         DOA_REG_G     => REG_EN_G,
-         DOB_REG_G     => REG_EN_G,
-         BYTE_WR_EN_G  => false,
-         DATA_WIDTH_G  => 17+32,
-         ADDR_WIDTH_G  => ADDR_WIDTH_C)
-      port map (
-         clka                => axisClk,
-         rsta                => axisRst,
-         wea                 => rin.ramWe,
-         addra               => rin.activeTDest,
-         dina(15 downto 0)   => rin.packetSeq,
-         dina(16)            => rin.packetActive,
-         dina(48 downto 17)  => rin.crcRem,
-         clkb                => axisClk,
-         rstb                => axisRst,
-         addrb               => ramAddrr,
-         doutb(15 downto 0)  => ramPacketSeqOut,
-         doutb(16)           => ramPacketActiveOut,
-         doutb(48 downto 17) => ramCrcRem);
+   GEN_SEQ_REG : if (TDEST_BITS_G = 0) generate
+      U_RegisterVector_1 : entity work.RegisterVector
+         generic map (
+            TPD_G   => TPD_G,
+            WIDTH_G => 17+32)
+         port map (
+            clk                 => axisClk,             -- [in]
+            rst                 => axisRst,             -- [in]
+            en                  => rin.ramWe,           -- [in]
+            sig_i(15 downto 0)  => rin.packetSeq,       -- [in]
+            sig_i(16)           => rin.packetActive,    -- [in]
+            sig_i(47 downto 17) => rin.crcRem           -- [in]
+            reg_o(15 downto 0)  => ramPacketSeqOut,     -- [out]
+            reg_o(16)           => ramPacketActiveOut,  -- [out]
+            reg_o(48 downto 17) => ramCrcRem);          -- [out]
+   end generate GEN_SEQ_REG;
+   GEN_SEQ_RAM : if (TDEST_BITS_G > 0) generate
+      U_DualPortRam_1 : entity surf.DualPortRam
+         generic map (
+            TPD_G         => TPD_G,
+            MEMORY_TYPE_G => MEMORY_TYPE_G,
+            REG_EN_G      => REG_EN_G,
+            DOA_REG_G     => REG_EN_G,
+            DOB_REG_G     => REG_EN_G,
+            BYTE_WR_EN_G  => false,
+            DATA_WIDTH_G  => 17+32,
+            ADDR_WIDTH_G  => ADDR_WIDTH_C)
+         port map (
+            clka                => axisClk,
+            rsta                => axisRst,
+            wea                 => rin.ramWe,
+            addra               => rin.activeTDest,
+            dina(15 downto 0)   => rin.packetSeq,
+            dina(16)            => rin.packetActive,
+            dina(48 downto 17)  => rin.crcRem,
+            clkb                => axisClk,
+            rstb                => axisRst,
+            addrb               => ramAddrr,
+            doutb(15 downto 0)  => ramPacketSeqOut,
+            doutb(16)           => ramPacketActiveOut,
+            doutb(48 downto 17) => ramCrcRem);
+
+   end generate GEN_SEQ_RAM;
 
    ramAddrr <= inputAxisMaster.tDest(ADDR_WIDTH_C-1 downto 0) when (TDEST_BITS_G > 0) else (others => '0');
 
@@ -292,7 +313,7 @@ begin
             -- Check for data
             if (inputAxisMaster.tValid = '1') then
                -- Check for 2 read cycle latency
-               if (MEMORY_TYPE_G /= "distributed") and (REG_EN_G) then
+               if (MEMORY_TYPE_G /= "distributed") and (REG_EN_G) and TDEST_BITS_G > 0 then
                   v.state := WAIT_S;
                -- Else 1 read cycle latency
                else
@@ -300,7 +321,7 @@ begin
                end if;
             end if;
          ----------------------------------------------------------------------
-         when WAIT_S =>            
+         when WAIT_S =>
             v.state := HEADER_S;
          ----------------------------------------------------------------------
          when HEADER_S =>
@@ -447,7 +468,7 @@ begin
                   v.eof       := '0';
                   v.tUserLast := (others => '0');
                   -- Check for BRAM or REG_EN_G used
-                  if (MEMORY_TYPE_G /= "distributed") or (REG_EN_G) then
+                  if TDEST_BITS_G > 0 and ((MEMORY_TYPE_G /= "distributed") or (REG_EN_G))  then
                      -- Next state (1 or 2 cycle read latency)
                      v.state := IDLE_S;
                   else
@@ -474,7 +495,7 @@ begin
                bytes      => r.lastByteCount,
                crc        => crcOut);
       end if;
-      
+
       -- Register the variable for next clock cycle
       rin <= v;
 
@@ -483,7 +504,7 @@ begin
       crcIn            <= endianSwap(v.crcIn);
       outputAxisMaster <= r.outputAxisMaster;
       rearbitrate      <= r.rearbitrate;
-      
+
    end process comb;
 
    seq : process (axisClk) is
@@ -493,7 +514,7 @@ begin
             r <= REG_INIT_C after TPD_G;
          else
             r <= rin after TPD_G;
-         end if;      
+         end if;
       end if;
    end process seq;
 

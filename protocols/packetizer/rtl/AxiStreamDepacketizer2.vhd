@@ -167,31 +167,53 @@ begin
    -------------------------------------------------------------------------------
    -- Packet Count ram
    -- track current frame number, packet count and physical channel for each tDest
+   -- In the special case where there are no TDEST bits, use a simple register
+   -- rather than a RAM
    -------------------------------------------------------------------------------
-   U_DualPortRam_1 : entity surf.DualPortRam
-      generic map (
-         TPD_G         => TPD_G,
-         MEMORY_TYPE_G => MEMORY_TYPE_G,
-         REG_EN_G      => REG_EN_G,
-         DOA_REG_G     => REG_EN_G,
-         DOB_REG_G     => REG_EN_G,
-         BYTE_WR_EN_G  => false,
-         DATA_WIDTH_G  => 18+32,
-         ADDR_WIDTH_G  => ADDR_WIDTH_C)
-      port map (
-         clka                => axisClk,
-         rsta                => axisRst,
-         wea                 => rin.ramWe,
-         addra               => ramAddrr,
-         dina(15 downto 0)   => rin.packetSeq,
-         dina(16)            => rin.packetActive,
-         dina(17)            => rin.sentEofe,
-         dina(49 downto 18)  => crcRem,
-         douta(15 downto 0)  => ramPacketSeqOut,
-         douta(16)           => ramPacketActiveOut,
-         douta(17)           => ramSentEofeOut,
-         douta(49 downto 18) => ramCrcRem);
-
+   GEN_SEQ_REG : if (TDEST_BITS_G = 0) generate
+      U_RegisterVector_1 : entity surf.RegisterVector
+         generic map (
+            TPD_G   => TPD_G,
+            WIDTH_G => 18+32)
+         port map (
+            clk                 => axisClk,
+            rst                 => axisRst,
+            en                  => rin.ramWe,
+            sig_i(15 downto 0)  => rin.packetSeq,
+            sig_i(16)           => rin.packetActive,
+            sig_i(17)           => rin.sentEofe,
+            sig_i(49 downto 18) => crcRem,
+            reg_o(15 downto 0)  => ramPacketSeqOut,
+            reg_o(16)           => ramPacketActiveOut,
+            reg_o(17)           => ramSentEofeOut,
+            reg_o(49 downto 18) => ramCrcRem);
+   end generate GEN_SEQ_REG;
+   
+   GEN_SEQ_RAM : if (TDEST_BITS_G > 0) generate
+      U_DualPortRam_1 : entity surf.DualPortRam
+         generic map (
+            TPD_G         => TPD_G,
+            MEMORY_TYPE_G => MEMORY_TYPE_G,
+            REG_EN_G      => REG_EN_G,
+            DOA_REG_G     => REG_EN_G,
+            DOB_REG_G     => REG_EN_G,
+            BYTE_WR_EN_G  => false,
+            DATA_WIDTH_G  => 18+32,
+            ADDR_WIDTH_G  => ADDR_WIDTH_C)
+         port map (
+            clka                => axisClk,
+            rsta                => axisRst,
+            wea                 => rin.ramWe,
+            addra               => ramAddrr,
+            dina(15 downto 0)   => rin.packetSeq,
+            dina(16)            => rin.packetActive,
+            dina(17)            => rin.sentEofe,
+            dina(49 downto 18)  => crcRem,
+            douta(15 downto 0)  => ramPacketSeqOut,
+            douta(16)           => ramPacketActiveOut,
+            douta(17)           => ramSentEofeOut,
+            douta(49 downto 18) => ramCrcRem);
+   end generate GEN_SEQ_RAM;
    ramAddrr <= rin.activeTDest when (TDEST_BITS_G > 0) else (others => '0');
    crcIn    <= endianSwap(inputAxisMaster.tData(63 downto 0));
 
@@ -271,7 +293,7 @@ begin
             v.packetSeq    := (others => '0');
             v.sentEofe     := '0';
             v.crcInit      := (others => '1');
-            v.crcReset     := '1';      -- Reset CRC in ram to 0xFFFFFFFF
+            v.crcReset     := '1';               -- Reset CRC in ram to 0xFFFFFFFF
             v.ramWe        := '1';
             v.debug.eof    := '1';
             v.debug.eop    := '1';
@@ -290,7 +312,7 @@ begin
 
       -- Reset debug strobes flag
       v.debug          := PACKETIZER2_DEBUG_INIT_C;
-      v.debug.initDone := r.debug.initDone; --- Don't touch initDone
+      v.debug.initDone := r.debug.initDone;  --- Don't touch initDone
 
       -- Don't write new packet number by default
       v.ramWe := '0';
@@ -299,10 +321,10 @@ begin
       v.crcDataValid := '0';
       v.crcReset     := '0';
       v.crcDataWidth := "111";          -- 64-bit transfer  
-      
+
       -- Reset tready by default
       v.inputAxisSlave.tready := '0';
-      
+
       -- Check if data accepted
       if (outputAxisSlave.tReady = '1') then
          v.outputAxisMaster(1).tValid := '0';
@@ -327,7 +349,7 @@ begin
             -- Check for data
             if (inputAxisMaster.tValid = '1') then
                -- Check for 2 read cycle latency
-               if (MEMORY_TYPE_G/="distributed") and (REG_EN_G) then
+               if (MEMORY_TYPE_G /= "distributed") and (REG_EN_G) then
                   v.state := WAIT_S;
                -- Else 1 read cycle latency
                else
@@ -335,7 +357,7 @@ begin
                end if;
             end if;
          ----------------------------------------------------------------------
-         when WAIT_S =>            
+         when WAIT_S =>
             v.state := HEADER_S;
          ----------------------------------------------------------------------
          when HEADER_S =>
@@ -373,7 +395,7 @@ begin
                v.crcDataValid := toSl(CRC_HEAD_TAIL_C);
 
                -- Check for BRAM or REG_EN_G used
-               if (MEMORY_TYPE_G/="distributed") or (REG_EN_G) then
+               if (MEMORY_TYPE_G /= "distributed") or (REG_EN_G) then
                   -- Default next state if v.state=MOVE_S not applied later in the combinatorial chain
                   v.state := IDLE_S;
                end if;
@@ -404,7 +426,7 @@ begin
                      -- Set packetActive in ram for this tdest
                      -- v.packetSeq is already correct
                      v.packetActive := '1';
-                     v.sentEofe     := '0';  -- Clear any frame error
+                     v.sentEofe     := '0';                   -- Clear any frame error
                      v.ramWe        := '1';
                      v.debug.sop    := '1';
                      v.debug.sof    := sof;
@@ -472,7 +494,7 @@ begin
                      -- Can sent tail right now
                      doTail;
                      -- Check for BRAM used
-                     if (MEMORY_TYPE_G/="distributed") or (REG_EN_G) then
+                     if (MEMORY_TYPE_G /= "distributed") or (REG_EN_G) then
                         -- Next state (1 or 2 cycle read latency)
                         v.state := IDLE_S;
                      else
@@ -489,7 +511,7 @@ begin
             -- Can sent tail right now
             doTail;
             -- Check for BRAM used
-            if (MEMORY_TYPE_G/="distributed") or (REG_EN_G) then
+            if (MEMORY_TYPE_G /= "distributed") or (REG_EN_G) then
                -- Next state (1 or 2 cycle read latency)
                v.state := IDLE_S;
             else
@@ -516,7 +538,7 @@ begin
                -- Wait for link to come back up
                if (linkGood = '1') then
                   -- Check for BRAM or REG_EN_G used
-                  if (MEMORY_TYPE_G/="distributed") or (REG_EN_G) then
+                  if (MEMORY_TYPE_G /= "distributed") or (REG_EN_G) then
                      -- Next state (1 or 2 cycle read latency)
                      v.state := IDLE_S;
                   else
@@ -547,18 +569,18 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
-      
+
       -- Check for read transaction
       if (r.activeTDest /= v.activeTDest) then
          -- zero latency
-         if (MEMORY_TYPE_G="distributed") and (REG_EN_G = false) then
+         if (MEMORY_TYPE_G = "distributed") and (REG_EN_G = false) then
             v.rdLat := 0;
          -- 1 cycle latency
-         elsif (MEMORY_TYPE_G="distributed") and (REG_EN_G = true) then
+         elsif (MEMORY_TYPE_G = "distributed") and (REG_EN_G = true) then
             v.rdLat := 1;
          -- 1 cycle latency
-         elsif (MEMORY_TYPE_G/="distributed") and (REG_EN_G = false) then
-            v.rdLat := 1;            
+         elsif (MEMORY_TYPE_G /= "distributed") and (REG_EN_G = false) then
+            v.rdLat := 1;
          -- 2 cycle latency
          else
             v.rdLat := 2;
@@ -599,7 +621,7 @@ begin
             r <= REG_INIT_C after TPD_G;
          else
             r <= rin after TPD_G;
-         end if;      
+         end if;
       end if;
    end process seq;
 
