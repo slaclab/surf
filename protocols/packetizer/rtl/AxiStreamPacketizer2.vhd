@@ -441,14 +441,16 @@ begin
          ----------------------------------------------------------------------
          when TAIL_S =>
             -- Assign the crc block inputs
-            -- Don't do CRC if CRC_HEAD_TAIL_G is false
-            v.crcDataValid := not(r.tailCrcReady);
-            v.crcDataWidth := "011";    -- 32-bit transfer
+            -- Don't do CRC if CRC_HEAD_TAIL_C is false
+            -- Don't change crcDataWidth from default ("111") unless CRC_HEAD_TAIL_C is true
+            -- This allows for much better logic optimization in the CRC module
+            v.crcDataValid := toSl(CRC_HEAD_TAIL_C);
+            v.crcDataWidth := ite(CRC_HEAD_TAIL_C, "011", "111");  -- 32-bit transfer
 
-            -- It CRC_HEAD_TAIL_G = true, tailCrcReady will be '0' coming in to this state
+            -- It CRC_HEAD_TAIL_C = true, tailCrcReady will be '0' coming in to this state
             -- This delays the output txn by 1 cycle to allow the CRC to be
             -- calculated on the tail data
-            -- If CRC_HEAD_TAIL_G = false, tailCrcReady will be '1' coming in to this state
+            -- If CRC_HEAD_TAIL_C = false, tailCrcReady will be '1' coming in to this state
             -- Can send the tail txn right away as we have the CRC,
             v.tailCrcReady := '1';
             if (r.tailCrcReady = '1') then
