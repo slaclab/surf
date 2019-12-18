@@ -3,12 +3,16 @@
 -------------------------------------------------------------------------------
 -- Description:
 -- This is an implementation of a generic N-byte input CRC32 calculation.
+--
 -- The polynomial and CRC register initialization are generic configurable, but 
 -- default to the commonly used 0x04C11DB7 and 0xFFFFFFFF, respectively.
 -- This implementation is direct, so no bytes need to be appended to the data.
--- Bytes are reversed on input before being used for the CRC calculation, 
--- and the CRC register is reversed on output just before a final XOR with 
--- 0xFFFFFFFF. 
+--
+-- The bits of each byte of the input word are reversed before being used for
+-- the CRC calculation, with the most-significant byte first.
+--
+-- The bits of each byte of the CRC register are reversed on output just
+-- before a final XOR with 0xFFFFFFFF. 
 --
 -- With a data input size of 4 bytes, this module is compatible with the
 -- previous CRC32Rtl.vhdl module in the StdLib.
