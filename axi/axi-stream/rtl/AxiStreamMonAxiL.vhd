@@ -71,10 +71,16 @@ architecture rtl of AxiStreamMonAxiL is
    signal localReset : sl;
    signal axisReset  : sl;
 
-   signal frameCnt     : Slv64Array(AXIS_NUM_SLOTS_G-1 downto 0);
+   signal frameCnt : Slv64Array(AXIS_NUM_SLOTS_G-1 downto 0);
+
+   signal frameSize    : Slv32Array(AXIS_NUM_SLOTS_G-1 downto 0);
+   signal frameSizeMax : Slv32Array(AXIS_NUM_SLOTS_G-1 downto 0);
+   signal frameSizeMin : Slv32Array(AXIS_NUM_SLOTS_G-1 downto 0);
+
    signal frameRate    : Slv32Array(AXIS_NUM_SLOTS_G-1 downto 0);
    signal frameRateMax : Slv32Array(AXIS_NUM_SLOTS_G-1 downto 0);
    signal frameRateMin : Slv32Array(AXIS_NUM_SLOTS_G-1 downto 0);
+
    signal bandwidth    : Slv64Array(AXIS_NUM_SLOTS_G-1 downto 0);
    signal bandwidthMax : Slv64Array(AXIS_NUM_SLOTS_G-1 downto 0);
    signal bandwidthMin : Slv64Array(AXIS_NUM_SLOTS_G-1 downto 0);
@@ -112,13 +118,20 @@ begin
             axisRst      => axisReset,
             axisMaster   => axisMasters(i),
             axisSlave    => axisSlaves(i),
-            -- Status Interface
+            -- Status Clock and reset
             statusClk    => axisClk,
             statusRst    => axisReset,
+            -- Status: Total number of frame received since statusRst
             frameCnt     => frameCnt(i),
+            -- Status: Frame Size (units of Byte)
+            frameSize    => frameSize(i),
+            frameSizeMax => frameSizeMax(i),
+            frameSizeMin => frameSizeMin(i),
+            -- Status: Frame rate (units of Hz)
             frameRate    => frameRate(i),
             frameRateMax => frameRateMax(i),
             frameRateMin => frameRateMin(i),
+            -- Status: Bandwidth (units of Byte/s)
             bandwidth    => bandwidth(i),
             bandwidthMax => bandwidthMax(i),
             bandwidthMin => bandwidthMin(i));
@@ -152,7 +165,8 @@ begin
          din            => r.data);
 
    comb : process (axisRst, bandwidth, bandwidthMax, bandwidthMin, frameCnt,
-                   frameRate, frameRateMax, frameRateMin, r) is
+                   frameRate, frameRateMax, frameRateMin, frameSize,
+                   frameSizeMax, frameSizeMin, r) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -162,19 +176,23 @@ begin
       v.we   := '1';
       v.addr := r.addr + 1;
       case (r.wrd) is
-         ----------------------------------------------------------------------   
-         when 1      => v.data := frameCnt(r.ch)(31 downto 0);  -- i*0x40 + 0x04
-         when 2      => v.data := frameCnt(r.ch)(63 downto 32);  -- i*0x40 + 0x08
-         when 3      => v.data := frameRate(r.ch);     -- i*0x40 + 0x0C
-         when 4      => v.data := frameRateMax(r.ch);  -- i*0x40 + 0x10
-         when 5      => v.data := frameRateMin(r.ch);  -- i*0x40 + 0x14
-         when 6      => v.data := bandwidth(r.ch)(31 downto 0);  -- i*0x40 + 0x18
-         when 7      => v.data := bandwidth(r.ch)(63 downto 32);  -- i*0x40 + 0x1C
-         when 8      => v.data := bandwidthMax(r.ch)(31 downto 0);  -- i*0x40 + 0x20
-         when 9      => v.data := bandwidthMax(r.ch)(63 downto 32);  -- i*0x40 + 0x24
-         when 10     => v.data := bandwidthMin(r.ch)(31 downto 0);  -- i*0x40 + 0x28
-         when 11     => v.data := bandwidthMin(r.ch)(63 downto 32);  -- i*0x40 + 0x2C         
-         when others => v.we   := '0';
+         ----------------------------------------------------------------------
+         when 0  => v.we   := '0';  -- i*0x40 + 0x00: dedicated for counter reset
+         when 1  => v.data := frameCnt(r.ch)(31 downto 0);    -- i*0x40 + 0x04
+         when 2  => v.data := frameCnt(r.ch)(63 downto 32);   -- i*0x40 + 0x08
+         when 3  => v.data := frameRate(r.ch);                -- i*0x40 + 0x0C
+         when 4  => v.data := frameRateMax(r.ch);             -- i*0x40 + 0x10
+         when 5  => v.data := frameRateMin(r.ch);             -- i*0x40 + 0x14
+         when 6  => v.data := bandwidth(r.ch)(31 downto 0);   -- i*0x40 + 0x18
+         when 7  => v.data := bandwidth(r.ch)(63 downto 32);  -- i*0x40 + 0x1C
+         when 8  => v.data := bandwidthMax(r.ch)(31 downto 0);  -- i*0x40 + 0x20
+         when 9  => v.data := bandwidthMax(r.ch)(63 downto 32);  -- i*0x40 + 0x24
+         when 10 => v.data := bandwidthMin(r.ch)(31 downto 0);  -- i*0x40 + 0x28
+         when 11 => v.data := bandwidthMin(r.ch)(63 downto 32);  -- i*0x40 + 0x2C
+         when 12 => v.data := frameSize(r.ch);                -- i*0x40 + 0x30
+         when 13 => v.data := frameSizeMax(r.ch);             -- i*0x40 + 0x34
+         when 14 => v.data := frameSizeMin(r.ch);             -- i*0x40 + 0x38
+         when 15 => v.we   := '0';      -- i*0x40 + 0x3C: Spare
       ----------------------------------------------------------------------
       end case;
 

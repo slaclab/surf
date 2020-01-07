@@ -139,7 +139,43 @@ class AxiStreamMonitoring(pr.Device):
                 units        = 'Mbps', 
                 pollInterval = 1,
             )
-                        
+
+            self.add(pr.RemoteVariable(
+                name         = f'FrameSize[{i}]',
+                description  = 'Current Frame Size. Note: Only valid for non-interleaved AXI stream frames',
+                offset       = (i*0x40 + 0x30),
+                bitSize      = 32,
+                bitOffset    = 0,
+                mode         = 'RO',
+                base         = pr.Int,
+                units        = 'Byte',
+                pollInterval = 1,
+            ))
+
+            self.add(pr.RemoteVariable(
+                name         = f'FrameSizeMax[{i}]',
+                description  = 'Max Frame Size. Note: Only valid for non-interleaved AXI stream frames',
+                offset       = (i*0x40 + 0x34),
+                bitSize      = 32,
+                bitOffset    = 0,
+                mode         = 'RO',
+                base         = pr.Int,
+                units        = 'Byte',
+                pollInterval = 1,
+            ))
+
+            self.add(pr.RemoteVariable(
+                name         = f'FrameSizeMin[{i}]',
+                description  = 'Min Frame Size. Note: Only valid for non-interleaved AXI stream frames',
+                offset       = (i*0x40 + 0x38),
+                bitSize      = 32,
+                bitOffset    = 0,
+                mode         = 'RO',
+                base         = pr.Int,
+                units        = 'Byte',
+                pollInterval = 1,
+            ))
+
     @staticmethod
     def convMbps(var):
         return var.dependencies[0].value() * 8e-6
