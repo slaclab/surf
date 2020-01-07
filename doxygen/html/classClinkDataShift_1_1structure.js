@@ -11,7 +11,7 @@ var classClinkDataShift_1_1structure =
     [ "rawIn", "classClinkDataShift_1_1structure.html#adac31bc74706a7778a5d7a9045984e8e", null ],
     [ "dataShift", "classClinkDataShift_1_1structure.html#a27cd4a78621644d23be7e295b4f7a868", null ],
     [ "clkReset", "classClinkDataShift_1_1structure.html#a9b27b9ff613430c36903ba4280665455", null ],
-    [ "IODELAY_GROUP", "classClinkDataShift_1_1structure.html#a87d638bc06c30868443d82bee7619ba6", null ],
+    [ "IODELAY_GROUP", "classClinkDataShift_1_1structure.html#ac085726c4b982c5b12fe48bad636a540", null ],
     [ "IODELAY_GROUP", "classClinkDataShift_1_1structure.html#ad382befd9342fc1c8b1649433f70188a", null ],
     [ "intClk4x", "classClinkDataShift_1_1structure.html#a889d10e1d355df36b6a40bfd4312325d", null ],
     [ "intClk1x", "classClinkDataShift_1_1structure.html#afb2920757be3a5ac323d2cd545ae2551", null ],
@@ -28,5 +28,9 @@ var classClinkDataShift_1_1structure =
     [ "u_clkinfreq", "classClinkDataShift_1_1structure.html#a156602d04fa537e295a563dc2ef8c611", null ],
     [ "u_clinkclkfreq", "classClinkDataShift_1_1structure.html#a625cdc7e9a41e145796cbc8c63816559", null ],
     [ "u_mmcm", "classClinkDataShift_1_1structure.html#ae9d87ed6cfd5002c0e15957b97058ff4", null ],
-    [ "u_syncdelay", "classClinkDataShift_1_1structure.html#a761654cb8b53f739bb409d9a3598a131", null ]
+    [ "u_syncdelay", "classClinkDataShift_1_1structure.html#a761654cb8b53f739bb409d9a3598a131", null ],
+    [ "u_inbuff", "classClinkDataShift_1_1structure.html#a468a02b743debf6959d2067025f19f5a", null ],
+    [ "u_delay", "classClinkDataShift_1_1structure.html#a873762eaf8f5907d2fd7b189c66167ab", null ],
+    [ "u_serdes", "classClinkDataShift_1_1structure.html#aeb33032e76daea1c8b7e76c5b1e2de26", null ],
+    [ "u_gearbox", "classClinkDataShift_1_1structure.html#af896d0c8c8edc2ddd0c8991e8b8b386f", null ]
 ];

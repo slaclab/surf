@@ -1,4 +1,5 @@
 <map id="AsyncGearbox" name="AsyncGearbox">
+<area shape="rect" id="node15" href="$classClinkDataShift.html" title="ClinkDataShift" alt="" coords="747,233,863,260"/>
 <area shape="rect" id="node2" href="$classSynchronizerOneShot.html" title="SynchronizerOneShot" alt="" coords="373,56,535,83"/>
 <area shape="rect" id="node3" href="$classRstSync.html" title="RstSync" alt="" coords="205,5,280,32"/>
 <area shape="rect" id="node4" href="$classSynchronizer.html" title="Synchronizer" alt="" coords="5,56,112,83"/>
@@ -12,4 +13,6 @@
 <area shape="rect" id="node12" href="$classSimpleDualPortRam.html" title="SimpleDualPortRam" alt="" coords="166,360,319,387"/>
 <area shape="rect" id="node13" href="$classFifoOutputPipeline.html" title="FifoOutputPipeline" alt="" coords="172,411,313,437"/>
 <area shape="rect" id="node14" href="$classGearbox.html" title="Gearbox" alt="" coords="415,284,493,311"/>
+<area shape="rect" id="node16" href="$classClinkData.html" title="ClinkData" alt="" coords="911,233,997,260"/>
+<area shape="rect" id="node17" href="$classClinkTop.html" title="ClinkTop" alt="" coords="1045,233,1123,260"/>
 </map>

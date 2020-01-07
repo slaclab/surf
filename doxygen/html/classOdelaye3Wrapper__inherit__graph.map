@@ -1,3 +1,8 @@
 <map id="Odelaye3Wrapper" name="Odelaye3Wrapper">
-<area shape="rect" id="node2" href="$classDelaye3PatchFsm.html" title="Delaye3PatchFsm" alt="" coords="5,5,144,32"/>
+<area shape="rect" id="node3" href="$classAd9249Deserializer.html" title="Ad9249Deserializer" alt="" coords="12,155,161,181"/>
+<area shape="rect" id="node5" href="$classAxiAds42lb69DeserBit.html" title="AxiAds42lb69DeserBit" alt="" coords="186,155,353,181"/>
+<area shape="rect" id="node2" href="$classDelaye3PatchFsm.html" title="Delaye3PatchFsm" alt="" coords="108,5,247,32"/>
+<area shape="rect" id="node4" href="$classAd9249ReadoutGroup.html" title="Ad9249ReadoutGroup" alt="" coords="5,229,168,256"/>
+<area shape="rect" id="node6" href="$classAxiAds42lb69Deser.html" title="AxiAds42lb69Deser" alt="" coords="195,229,344,256"/>
+<area shape="rect" id="node7" href="$classAxiAds42lb69Core.html" title="AxiAds42lb69Core" alt="" coords="199,304,340,331"/>
 </map>

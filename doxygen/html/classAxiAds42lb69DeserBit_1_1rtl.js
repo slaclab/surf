@@ -11,5 +11,9 @@ var classAxiAds42lb69DeserBit_1_1rtl =
     [ "IODELAY_GROUP", "classAxiAds42lb69DeserBit_1_1rtl.html#a30af8f6d4627ef52a9a314175fdf3056", null ],
     [ "ibufds_inst", "classAxiAds42lb69DeserBit_1_1rtl.html#ac4cb19b0be16e4f33385670fb3ccfabd", null ],
     [ "idelaye2_inst", "classAxiAds42lb69DeserBit_1_1rtl.html#ac5360a6e69d74ed668909bd57454845c", null ],
+    [ "iddr_inst", "classAxiAds42lb69DeserBit_1_1rtl.html#ac874f112f21883cdb3e24fdc62aec10b", null ],
+    [ "ibufds_inst", "classAxiAds42lb69DeserBit_1_1rtl.html#ac4cb19b0be16e4f33385670fb3ccfabd", null ],
+    [ "idelaye3_inst", "classAxiAds42lb69DeserBit_1_1rtl.html#a01e80bbe399cb2072e8fc0b6bb38f54c", null ],
+    [ "odelaye3_inst", "classAxiAds42lb69DeserBit_1_1rtl.html#a65d53772530e26b5573cc4c2631510ab", null ],
     [ "iddr_inst", "classAxiAds42lb69DeserBit_1_1rtl.html#ac874f112f21883cdb3e24fdc62aec10b", null ]
 ];
