@@ -70,6 +70,7 @@ architecture rtl of AxiStreamDmaV2Write is
       ADDR_S,
       MOVE_S,
       PAD_S,
+      META_S,
       RETURN_S,
       DUMP_S);
 
@@ -256,15 +257,17 @@ begin
          when REQ_S =>
             -- Wait for response and latch fields
             if dmaWrDescAck.valid = '1' then
-               v.dmaWrTrack.inUse     := '1';
-               v.dmaWrTrack.address   := dmaWrDescAck.address;
-               v.dmaWrTrack.maxSize   := dmaWrDescAck.maxSize;
-               v.dmaWrTrack.size      := (others=>'0');
-               v.dmaWrTrack.firstUser := (others=>'0');
-               v.dmaWrTrack.contEn    := dmaWrDescAck.contEn;
-               v.dmaWrTrack.dropEn    := dmaWrDescAck.dropEn;
-               v.dmaWrTrack.buffId    := dmaWrDescAck.buffId;
-               v.dmaWrTrack.overflow  := '0';
+               v.dmaWrTrack.inUse      := '1';
+               v.dmaWrTrack.size       := (others=>'0');
+               v.dmaWrTrack.firstUser  := (others=>'0');
+               v.dmaWrTrack.contEn     := dmaWrDescAck.contEn;
+               v.dmaWrTrack.dropEn     := dmaWrDescAck.dropEn;
+               v.dmaWrTrack.buffId     := dmaWrDescAck.buffId;
+               v.dmaWrTrack.overflow   := '0';
+               v.dmaWrTrack.metaEnable := dmaWrDescAck.metaEnable;
+               v.dmaWrTrack.metaAddr   := dmaWrDescAck.metaAddr;
+               v.dmaWrTrack.address    := dmaWrDescAck.address;
+               v.dmaWrTrack.maxSize    := dmaWrDescAck.maxSize;
 
                -- Descriptor return calls for dumping frame?
                if dmaWrDescAck.dropEn = '1' then
@@ -361,7 +364,11 @@ begin
                      v.dmaWrTrack.inUse := '0';
                      -- Pad write if transaction is not done, return will following PAD because inUse = 0
                      if r.awlen = 0 then
-                        v.state := RETURN_S;
+                        if r.dmaWrTrack.metaEnable = '1' then
+                           v.state := META_S;
+                        else
+                           v.state := RETURN_S;
+                        end if;
                      else
                         v.state := PAD_S;
                      end if;
@@ -398,7 +405,11 @@ begin
                   v.wMaster.wlast := '1';
                   -- Frame is done. Go to return. Otherwise go to idle.
                   if r.dmaWrTrack.inUse = '0' then
-                     v.state := RETURN_S;
+                     if r.dmaWrTrack.metaEnable = '1' then
+                        v.state := META_S;
+                     else
+                        v.state := RETURN_S;
+                     end if;
                   else
                      v.state := IDLE_S;
                   end if;
@@ -406,6 +417,37 @@ begin
                   -- Decrement the counter
                   v.awlen := r.awlen - 1;
                end if;
+            end if;
+         ----------------------------------------------------------------------
+         when META_S =>
+
+            -- Wair for existing transactions to complete
+            if v.wMaster.wvalid = '0' and v.wMaster.awvalid = '0' then
+
+               -- Init
+               v.wMaster := axiWriteMasterInit(AXI_CONFIG_G, '1', "01", "0000");
+
+               -- Write address channel
+               v.wMaster.awaddr := r.dmaWrTrack.metaAddr;
+               v.wMaster.awlen  := x"00";  -- Single transaction
+
+               -- Write data channel
+               v.wMaster.wlast := '1';
+
+               -- Descriptor data, 64-bits
+               v.wMaster.wdata(63 downto 32)   := r.dmaWrTrack.size;
+               v.wMaster.wdata(31 downto 24)   := r.dmaWrTrack.firstUser;
+               v.wMaster.wdata(23 downto 16)   := r.lastUser;
+               v.wMaster.wdata(15 downto 4)    := (others => '0');
+               v.wMaster.wdata(3)              := r.continue;
+               v.wMaster.wdata(2)              := '0';
+               v.wMaster.wdata(1 downto 0)     := r.result;
+
+               v.wMaster.wstrb := resize(x"FF", 128);
+
+               v.wMaster.awvalid := '1';
+               v.wMaster.wvalid  := '1';
+               v.state           := RETURN_S;
             end if;
          ----------------------------------------------------------------------
          when RETURN_S =>
