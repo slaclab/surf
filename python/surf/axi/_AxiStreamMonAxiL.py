@@ -167,8 +167,8 @@ class AxiStreamMonChannel(pr.Device):
         
 class AxiStreamMonAxiL(pr.Device):
     def __init__(self,       
-            name        = "AxiStreamMonitoring",
-            description = "AxiStreamMonitoring Container",
+            name        = "AxiStreamMonAxiL",
+            description = "AxiStreamMonAxiL Container",
             numberLanes = 1,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
