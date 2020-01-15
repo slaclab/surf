@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -38,6 +37,9 @@ entity AxiStreamMon is
       statusClk    : in  sl;
       statusRst    : in  sl;
       frameCnt     : out slv(63 downto 0);             -- units of frames
+      frameSize    : out slv(31 downto 0);             -- units of Byte
+      frameSizeMax : out slv(31 downto 0);             -- units of Byte
+      frameSizeMin : out slv(31 downto 0);             -- units of Byte
       frameRate    : out slv(31 downto 0);             -- units of Hz
       frameRateMax : out slv(31 downto 0);             -- units of Hz
       frameRateMin : out slv(31 downto 0);             -- units of Hz
@@ -52,25 +54,33 @@ architecture rtl of AxiStreamMon is
    constant TIMEOUT_C : natural := getTimeRatio(AXIS_CLK_FREQ_G, 1.0)-1;
 
    type RegType is record
-      frameSent : sl;
-      tValid    : sl;
-      tKeep     : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
-      updated   : sl;
-      timer     : natural range 0 to TIMEOUT_C;
-      accum     : slv(39 downto 0);
-      bandwidth : slv(39 downto 0);
-      frameCnt  : slv(63 downto 0);
+      frameSent  : sl;
+      sizeValid  : sl;
+      armed      : sl;
+      tValid     : sl;
+      tKeep      : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
+      updated    : sl;
+      timer      : natural range 0 to TIMEOUT_C;
+      accum      : slv(39 downto 0);
+      bandwidth  : slv(39 downto 0);
+      frameAccum : slv(31 downto 0);
+      frameSize  : slv(31 downto 0);
+      frameCnt   : slv(63 downto 0);
    end record;
 
    constant REG_INIT_C : RegType := (
-      frameSent => '0',
-      tValid    => '0',
-      tKeep     => (others => '0'),
-      updated   => '0',
-      timer     => 0,
-      accum     => (others => '0'),
-      bandwidth => (others => '0'),
-      frameCnt  => (others => '0'));
+      frameSent  => '0',
+      sizeValid  => '0',
+      armed      => '0',
+      tValid     => '0',
+      tKeep      => (others => '0'),
+      updated    => '0',
+      timer      => 0,
+      accum      => (others => '0'),
+      bandwidth  => (others => '0'),
+      frameAccum => (others => '0'),
+      frameSize  => (others => '0'),
+      frameCnt   => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -164,8 +174,9 @@ begin
       v := r;
 
       -- Reset strobing signals
-      v.tValid     := '0';
-      v.updated    := '0';
+      v.tValid    := '0';
+      v.updated   := '0';
+      v.sizeValid := '0';
 
       -- Check for end of frame
       v.frameSent := axisMaster.tValid and axisMaster.tLast and axisSlave.tReady;
@@ -184,13 +195,28 @@ begin
       end if;
 
       -- Check if last cycle had data moving
-      if r.tValid = '1' then
+      if (r.tValid = '1') then
+
          -- Update the accumulator 
          if (AXIS_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-            v.accum := r.accum + conv_integer(r.tKeep(bitSize(AXIS_CONFIG_G.TDATA_BYTES_C)-1 downto 0));
+            v.accum      := r.accum + conv_integer(r.tKeep(bitSize(AXIS_CONFIG_G.TDATA_BYTES_C)-1 downto 0));
+            v.frameAccum := r.frameAccum + conv_integer(r.tKeep(bitSize(AXIS_CONFIG_G.TDATA_BYTES_C)-1 downto 0));
          else
-            v.accum := r.accum + getTKeep(r.tKeep, AXIS_CONFIG_G);
+            v.accum      := r.accum + getTKeep(r.tKeep, AXIS_CONFIG_G);
+            v.frameAccum := r.frameAccum + getTKeep(r.tKeep, AXIS_CONFIG_G);
          end if;
+
+         -- Check for end of frame
+         if (r.frameSent = '1') then
+            -- Set the flag
+            v.sizeValid  := r.armed;
+            v.frameSize  := v.frameAccum;
+            -- Reset the accumulator
+            v.frameAccum := (others => '0');
+            -- Confirmed that not in the middle of a frame since reset
+            v.armed      := '1';
+         end if;
+
       end if;
 
       -- Increment the timer
@@ -231,6 +257,24 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
+
+   Sync_frameSize : entity surf.SyncMinMax
+      generic map (
+         TPD_G        => TPD_G,
+         COMMON_CLK_G => COMMON_CLK_G,
+         WIDTH_G      => 32)
+      port map (
+         -- ASYNC statistics reset    
+         rstStat => axisRst,
+         -- Write Interface (wrClk domain)
+         wrClk   => axisClk,
+         wrEn    => r.sizeValid,
+         dataIn  => r.frameSize,
+         -- Read Interface (rdClk domain)
+         rdClk   => statusClk,
+         dataOut => frameSize,
+         dataMin => frameSizeMin,
+         dataMax => frameSizeMax);
 
    Sync_bandwidth : entity surf.SyncMinMax
       generic map (
