@@ -1,5 +1,17 @@
 var NAVTREEINDEX115 =
 {
+"classTrueDualPortRamXpm.html#ae10218b9280bd97ed982c1aa2644c6d7":[1,0,564,18],
+"classTrueDualPortRamXpm.html#ae8af6b64d6e7bf1437f4089f6037439e":[1,0,564,6],
+"classTrueDualPortRamXpm.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,564,33],
+"classTrueDualPortRamXpm_1_1rtl.html":[1,0,564,0],
+"classTrueDualPortRamXpm_1_1rtl.html#a729dffbbc4095f5226b09b05b869377f":[1,0,564,0,0],
+"classTrueDualPortRamXpm_1_1rtl.html#adf848d983c5fbc37c77be2c43347f5ed":[1,0,564,0,1],
+"classTrueDualPortRamXpm_1_1rtl.html#af775eb600febaabef2e5c67257c103b2":[1,0,564,0,2],
+"classTrueDualPortRam_1_1rtl.html":[1,0,562,0],
+"classTrueDualPortRam_1_1rtl.html#a072fbeb563e233daa574b842dc317190":[1,0,562,0,0],
+"classTrueDualPortRam_1_1rtl.html#a1440e400ee512d39b0e6e02fb4579cb9":[1,0,562,0,26],
+"classTrueDualPortRam_1_1rtl.html#a1e1c502e4c8edb68da87f31761d879ab":[1,0,562,0,15],
+"classTrueDualPortRam_1_1rtl.html#a230075a56145a2eb6ace12df1829ca6f":[1,0,562,0,17],
 "classTrueDualPortRam_1_1rtl.html#a406aec68e352f3336eff3f92b5bbf3d4":[1,0,562,0,9],
 "classTrueDualPortRam_1_1rtl.html#a4b99b77b7f81912befb995daaf1a9cea":[1,0,562,0,19],
 "classTrueDualPortRam_1_1rtl.html#a53a5fd6931ab8097e6321a6b44517f0f":[1,0,562,0,13],
@@ -237,17 +249,5 @@ var NAVTREEINDEX115 =
 "classUartTx_1_1RTL.html#a564bcf4eaf9f96c42cf5db7751b547e8":[1,0,570,0,4],
 "classUartTx_1_1RTL.html#a758a8cbb78916a3911d410a62191310d":[1,0,570,0,16],
 "classUartTx_1_1RTL.html#a90d3f80dd6cc96486180ee95119e41d5":[1,0,570,0,2],
-"classUartTx_1_1RTL.html#a96e70979da2aebeb3558831071132b31":[1,0,570,0,9],
-"classUartTx_1_1RTL.html#aa0cab27fecbd8f0679b048f50e7a9e2e":[1,0,570,0,14],
-"classUartTx_1_1RTL.html#aa5e5d44551b7947db3a018798283f69d":[1,0,570,0,5],
-"classUartTx_1_1RTL.html#ab27ea218d4543f0067023d809da09650":[1,0,570,0,3],
-"classUartTx_1_1RTL.html#abe955bb02ac9d4e364cc5aa52689d715":[1,0,570,0,12],
-"classUartTx_1_1RTL.html#ae8896e195ae00ae797895c15b647ba41":[1,0,570,0,1],
-"classUartTx_1_1RTL.html#afd145007611606cb6bf114160b0ad97e":[1,0,570,0,10],
-"classUartWrapper.html":[1,0,571],
-"classUartWrapper.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,571,19],
-"classUartWrapper.html#a0f5ecc6613f63d07f7963a97b1b26095":[1,0,571,21],
-"classUartWrapper.html#a19a9c324062b5aa85a24b857051a369d":[1,0,571,5],
-"classUartWrapper.html#a2180ac6eb1ae85993cb4845b553aaf0e":[1,0,571,12],
-"classUartWrapper.html#a21e7e6b6df6f1be5173872e353ea185c":[1,0,571,18]
+"classUartTx_1_1RTL.html#a96e70979da2aebeb3558831071132b31":[1,0,570,0,9]
 };

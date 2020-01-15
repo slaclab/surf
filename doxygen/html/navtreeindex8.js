@@ -1,5 +1,6 @@
 var NAVTREEINDEX8 =
 {
+"classAxiLiteFifoPush_1_1structure.html#a2c74641b7c72370ec4e97081e7bcbaff":[1,0,41,0,2],
 "classAxiLiteFifoPush_1_1structure.html#a35f0a6888bd1c2e56754f97c77a534b9":[1,0,41,0,8],
 "classAxiLiteFifoPush_1_1structure.html#a3a7ad1ca88bc5f8143658252a2284800":[1,0,41,0,5],
 "classAxiLiteFifoPush_1_1structure.html#a3c6dbb56b6fa3264120eec72e60685be":[1,0,41,0,10],
@@ -248,6 +249,5 @@ var NAVTREEINDEX8 =
 "classAxiLiteRamSyncStatusVector_1_1mapping.html#addf1ca49831c9124c9833d78403a9943":[1,0,48,0,7],
 "classAxiLiteRamSyncStatusVector_1_1mapping.html#afb4dc5855902cc862fa2987e4babcdf8":[1,0,48,0,13],
 "classAxiLiteRegs.html":[1,0,49],
-"classAxiLiteRegs.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,49,13],
-"classAxiLiteRegs.html#a0eb32e5fab67488b94fb47c9fe42e97f":[1,0,49,10]
+"classAxiLiteRegs.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,49,13]
 };

@@ -9,7 +9,7 @@ var classSaciMaster2_1_1rtl =
     [ "state", "classSaciMaster2_1_1rtl.html#a29ddea0778c5dba9ca0b08e7188a5a57", null ],
     [ "shiftReg", "classSaciMaster2_1_1rtl.html#a174fbd3ab5d6ba24ec0b54df5440fa8e", null ],
     [ "shiftCount", "classSaciMaster2_1_1rtl.html#acd20fed023622494f5ba28398a8f35df", null ],
-    [ "clkCount", "classSaciMaster2_1_1rtl.html#a32bf58e295b0b4659b001d3ce17147e3", null ],
+    [ "clkCount", "classSaciMaster2_1_1rtl.html#a7fd6a2091170441fc10b2a017ca90f18", null ],
     [ "saciClkRising", "classSaciMaster2_1_1rtl.html#aea622779bbd345c54b4dd1c7293f0c89", null ],
     [ "saciClkFalling", "classSaciMaster2_1_1rtl.html#afbd97d8400b7fad75bf10a2a946474d0", null ],
     [ "ack", "classSaciMaster2_1_1rtl.html#a6fb5bf3dc82bf6fcb25c9167c39f22fe", null ],

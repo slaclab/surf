@@ -368,7 +368,6 @@ Searching for files in directory /home/travis/build/slaclab/surf/protocols/xvc-u
 Searching for files in directory /home/travis/build/slaclab/surf/protocols/xvc-udp/dcp/UltraScale/vivado
 Searching for files in directory /home/travis/build/slaclab/surf/protocols/xvc-udp/rtl
 Searching for files in directory /home/travis/build/slaclab/surf/python
-Searching for files in directory /home/travis/build/slaclab/surf/python/__pycache__
 Searching for files in directory /home/travis/build/slaclab/surf/python/surf
 Searching for files in directory /home/travis/build/slaclab/surf/python/surf/__pycache__
 Searching for files in directory /home/travis/build/slaclab/surf/python/surf/axi
@@ -799,11 +798,11 @@ Reading /home/travis/build/slaclab/surf/ethernet/XauiCore/gtx7/rtl/XauiGtx7.vhd.
 Reading /home/travis/build/slaclab/surf/ethernet/XauiCore/gtx7/rtl/XauiGtx7Core.vhd...
 Reading /home/travis/build/slaclab/surf/ethernet/XauiCore/gtx7/rtl/XauiGtx7Wrapper.vhd...
 Reading /home/travis/build/slaclab/surf/ethernet/XauiCore/gtyUltraScale+/rtl/XauiGtyUltraScale.vhd...
-Reading /home/travis/build/slaclab/surf/ethernet/XauiCore/gtyUltraScale+/rtl/Xau
+Reading /home/travis/build/slaclab/surf/ethernet/XauiCore/gtyUltraScale+/rtl/XauiGtyUltraScaleWrapper.vhd...
+Reading /home/travis/build/slaclab/surf/protocols/batch
 
  syntax error at line: 143 : ,
-iGtyUltraScaleWrapper.vhd...
-Reading /home/travis/build/slaclab/surf/protocols/batcher/rtl/AxiStreamBatcher.vhd...
+er/rtl/AxiStreamBatcher.vhd...
 Reading /home/travis/build/slaclab/surf/protocols/batcher/rtl/AxiStreamBatcherAxil.vhd...
 Reading /home/travis/build/slaclab/surf/protocols/batcher/rtl/AxiStreamBatcherEventBuilder.vhd...
 Reading /home/travis/build/slaclab/surf/protocols/clink/7Series/ClinkDataClk.vhd...
@@ -901,7 +900,8 @@ Reading /home/travis/build/slaclab/surf/protocols/mdio/rtl/MdioSeqCore.vhd...
 Reading /home/travis/build/slaclab/surf/protocols/packetizer/rtl/AxiStreamBytePacker.vhd...
 Reading /home/travis/build/slaclab/surf/protocols/packetizer/rtl/AxiStreamDepacketizer.vhd...
 Reading /home/travis/build/slaclab/surf/protocols/packetizer/rtl/AxiStreamDepacketizer2.vhd...
-Reading /home/travis/build/slaclab/surf/proto
+Reading /home/travis/build/slaclab/surf/protocols/packetizer/rtl/AxiStreamPacketizer.vhd...
+Reading /home/travis/build/slaclab/su
 
  syntax error at line: 93 : ,
 
@@ -910,8 +910,7 @@ Reading /home/travis/build/slaclab/surf/proto
 
 
  syntax error at line: 138 : ,
-cols/packetizer/rtl/AxiStreamPacketizer.vhd...
-Reading /home/travis/build/slaclab/surf/protocols/packetizer/rtl/AxiStreamPacketizer2.vhd...
+rf/protocols/packetizer/rtl/AxiStreamPacketizer2.vhd...
 Reading /home/travis/build/slaclab/surf/protocols/packetizer/rtl/AxiStreamPacketizer2Pkg.vhd...
 Reading /home/travis/build/slaclab/surf/protocols/packetizer/tb/AxiStreamBytePackerTbRx.vhd...
 Reading /home/travis/build/slaclab/surf/protocols/packetizer/tb/AxiStreamBytePackerTbTx.vhd...
@@ -1001,7 +1000,8 @@ Reading /home/travis/build/slaclab/surf/protocols/rssi/v1/rtl/RssiHeaderReg.vhd.
 Reading /home/travis/build/slaclab/surf/protocols/rssi/v1/rtl/RssiMonitor.vhd...
 Reading /home/travis/build/slaclab/surf/protocols/rssi/v1/rtl/RssiParamSync.vhd...
 Reading /home/travis/build/slaclab/surf/protocols/rssi/v1/rtl/RssiPkg.vhd...
-Reading /home/travis/build/slaclab/surf/protocols
+Reading /home/travis/build/slaclab/surf/protocols/rssi/v1/rtl/RssiRxFsm.vhd...
+Reading /home/travis/build/slaclab/surf/protocols/rssi
 
  syntax error at line: 142 : .
 
@@ -1010,8 +1010,7 @@ Reading /home/travis/build/slaclab/surf/protocols
 
 
  syntax error at line: 32 : record
-/rssi/v1/rtl/RssiRxFsm.vhd...
-Reading /home/travis/build/slaclab/surf/protocols/rssi/v1/rtl/RssiTxFsm.vhd...
+/v1/rtl/RssiTxFsm.vhd...
 Reading /home/travis/build/slaclab/surf/protocols/rssi/v1/tb/Chksum_tb.vhd...
 Reading /home/travis/build/slaclab/surf/protocols/rssi/v1/tb/RssiCoreTb.vhd...
 Reading /home/travis/build/slaclab/surf/protocols/rssi/v1/tb/RssiInterleaveTb.vhd...
@@ -1109,7 +1108,8 @@ Reading /home/travis/build/slaclab/surf/xilinx/7Series/general/rtl/DeviceDna7Ser
 Reading /home/travis/build/slaclab/surf/xilinx/7Series/general/rtl/Dsp48Comparator4x12b.vhd...
 Reading /home/travis/build/slaclab/surf/xilinx/7Series/general/rtl/InputBufferReg.vhd...
 Reading /home/travis/build/slaclab/surf/xilinx/7Series/general/rtl/Iprog7Series.vhd...
-Reading /home/travis/build/slaclab/surf/xilinx/7Series/general/rtl/Iprog7Ser
+Reading /home/travis/build/slaclab/surf/xilinx/7Series/general/rtl/Iprog7SeriesCore.vhd...
+Reading /home/travis/build/slaclab/surf/xilinx/7Series/general/rtl/Ou
 
  syntax error at line: 124 : ,
 
@@ -1133,8 +1133,7 @@ Reading /home/travis/build/slaclab/surf/xilinx/7Series/general/rtl/Iprog7Ser
 
 
  syntax error at line: 173 : ,
-iesCore.vhd...
-Reading /home/travis/build/slaclab/surf/xilinx/7Series/general/rtl/OutputBufferReg.vhd...
+tputBufferReg.vhd...
 Reading /home/travis/build/slaclab/surf/xilinx/7Series/gth7/rtl/Gth7AutoPhaseAligner.vhd...
 Reading /home/travis/build/slaclab/surf/xilinx/7Series/gth7/rtl/Gth7Core.vhd...
 Reading /home/travis/build/slaclab/surf/xilinx/7Series/gth7/rtl/Gth7QuadPll.vhd...
@@ -1180,7 +1179,8 @@ Reading /home/travis/build/slaclab/surf/xilinx/general/rtl/Iprog.vhd...
 Reading /home/travis/build/slaclab/surf/xilinx/general/tb/MmcmEmulation.vhd...
 Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/ClockManagerUltraScale.vhd...
 Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/Delaye3PatchFsm.vhd...
-Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/DeviceDnaUltraScale.vhd./home/travis/build/slaclab/surf/protocols/ssi/rtl/SsiCmdMasterPulser.vhd:43: warning: Internal inconsistency: scope for class SsiCmdMasterPulser::rtl not found!
+Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/DeviceDnaUltraScale.vhd...
+Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/Idelaye3Wra/home/travis/build/slaclab/surf/protocols/ssi/rtl/SsiCmdMasterPulser.vhd:43: warning: Internal inconsistency: scope for class SsiCmdMasterPulser::rtl not found!
 
 [AxiDualPortRam.vhd:148:Info: Elaborating entity TrueDualPortRamXpm for hierarchy truedualportramxpm::GEN_XPM:u_ram]
 
@@ -1302,23 +1302,25 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/DeviceDnaU
 
 [AxiStreamFifoV2.vhd:417:Info: Elaborating entity AxiStreamPipeline for hierarchy axistreampipeline::u_pipe]
 
-[AxiStreamMon.vhd:111:Info: Elaborating entity SyncTrigRate for hierarchy synctrigrate::u_packetrate]
+[AxiStreamMon.vhd:121:Info: Elaborating entity SyncTrigRate for hierarchy synctrigrate::u_packetrate]
 
-[AxiStreamMon.vhd:123:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::syncout_framerate]
+[AxiStreamMon.vhd:133:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::syncout_framerate]
 
-[AxiStreamMon.vhd:135:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::syncout_frameratemax]
+[AxiStreamMon.vhd:145:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::syncout_frameratemax]
 
-[AxiStreamMon.vhd:147:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::syncout_frameratemin]
+[AxiStreamMon.vhd:157:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::syncout_frameratemin]
 
-[AxiStreamMon.vhd:158:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::syncout_framecnt]
+[AxiStreamMon.vhd:168:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::syncout_framecnt]
 
-[AxiStreamMon.vhd:251:Info: Elaborating entity SyncMinMax for hierarchy syncminmax::sync_bandwidth]
+[AxiStreamMon.vhd:277:Info: Elaborating entity SyncMinMax for hierarchy syncminmax::sync_framesize]
 
-[AxiStreamMonAxiL.vhd:99:Info: Elaborating entity RstSync for hierarchy rstsync::u_rstsync]
+[AxiStreamMon.vhd:295:Info: Elaborating entity SyncMinMax for hierarchy syncminmax::sync_bandwidth]
 
-[AxiStreamMonAxiL.vhd:126:Info: Elaborating entity AxiStreamMon for hierarchy axistreammon::GEN_VEC:u_axistreammon]
+[AxiStreamMonAxiL.vhd:117:Info: Elaborating entity RstSync for hierarchy rstsync::u_rstsync]
 
-[AxiStreamMonAxiL.vhd:152:Info: Elaborating entity AxiDualPortRam for hierarchy axidualportram::u_axidualportram]
+[AxiStreamMonAxiL.vhd:151:Info: Elaborating entity AxiStreamMon for hierarchy axistreammon::GEN_VEC:u_axistreammon]
+
+[AxiStreamMonAxiL.vhd:177:Info: Elaborating entity AxiDualPortRam for hierarchy axidualportram::u_axidualportram]
 
 [AxiStreamMux.vhd:251:Info: Elaborating entity AxiStreamPipeline for hierarchy axistreampipeline::axistreampipeline_1]
 
@@ -1742,33 +1744,33 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/DeviceDnaU
 
 [Ad9249Deserializer.vhd:166:Info: Elaborating entity iserdese2 for hierarchy iserdese2::u_iserdes_slave]
 
-[Ad9249ReadoutGroup.vhd:171:Info: Elaborating entity SynchronizerOneShotCnt for hierarchy synchronizeroneshotcnt::synchronizeroneshotcnt_1]
+[Ad9249ReadoutGroup.vhd:175:Info: Elaborating entity SynchronizerOneShotCnt for hierarchy synchronizeroneshotcnt::synchronizeroneshotcnt_1]
 
-[Ad9249ReadoutGroup.vhd:181:Info: Elaborating entity Synchronizer for hierarchy synchronizer::synchronizer_1]
+[Ad9249ReadoutGroup.vhd:185:Info: Elaborating entity Synchronizer for hierarchy synchronizer::synchronizer_1]
 
-[Ad9249ReadoutGroup.vhd:192:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::synchronizervec_1]
+[Ad9249ReadoutGroup.vhd:196:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::synchronizervec_1]
 
-[Ad9249ReadoutGroup.vhd:201:Info: Elaborating entity Synchronizer for hierarchy synchronizer::synchronizer_2]
+[Ad9249ReadoutGroup.vhd:205:Info: Elaborating entity Synchronizer for hierarchy synchronizer::synchronizer_2]
 
-[Ad9249ReadoutGroup.vhd:291:Info: Elaborating entity ibufds for hierarchy ibufds::adcclk_i_ibufds]
+[Ad9249ReadoutGroup.vhd:297:Info: Elaborating entity ibufds for hierarchy ibufds::adcclk_i_ibufds]
 
-[Ad9249ReadoutGroup.vhd:297:Info: Elaborating entity bufio for hierarchy bufio::u_bufio]
+[Ad9249ReadoutGroup.vhd:303:Info: Elaborating entity bufio for hierarchy bufio::u_bufio]
 
-[Ad9249ReadoutGroup.vhd:310:Info: Elaborating entity bufr for hierarchy bufr::u_adcbitclkr]
+[Ad9249ReadoutGroup.vhd:316:Info: Elaborating entity bufr for hierarchy bufr::u_adcbitclkr]
 
-[Ad9249ReadoutGroup.vhd:320:Info: Elaborating entity RstSync for hierarchy rstsync::adc_bitclk_rst_sync]
+[Ad9249ReadoutGroup.vhd:326:Info: Elaborating entity RstSync for hierarchy rstsync::adc_bitclk_rst_sync]
 
-[Ad9249ReadoutGroup.vhd:334:Info: Elaborating entity ibufds for hierarchy ibufds::u_framein]
+[Ad9249ReadoutGroup.vhd:340:Info: Elaborating entity ibufds for hierarchy ibufds::u_framein]
 
-[Ad9249ReadoutGroup.vhd:352:Info: Elaborating entity Ad9249Deserializer for hierarchy ad9249deserializer::u_frame_deserializer]
+[Ad9249ReadoutGroup.vhd:358:Info: Elaborating entity Ad9249Deserializer for hierarchy ad9249deserializer::u_frame_deserializer]
 
-[Ad9249ReadoutGroup.vhd:388:Info: Elaborating entity ibufds for hierarchy ibufds::GenData:u_datain]
+[Ad9249ReadoutGroup.vhd:394:Info: Elaborating entity ibufds for hierarchy ibufds::GenData:u_datain]
 
-[Ad9249ReadoutGroup.vhd:388:Info: Elaborating entity Ad9249Deserializer for hierarchy ad9249deserializer::GenData:u_data_deserializer]
+[Ad9249ReadoutGroup.vhd:394:Info: Elaborating entity Ad9249Deserializer for hierarchy ad9249deserializer::GenData:u_data_deserializer]
 
-[Ad9249ReadoutGroup.vhd:475:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_datafifo]
+[Ad9249ReadoutGroup.vhd:481:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_datafifo]
 
-[Ad9249ReadoutGroup.vhd:492:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_datafifodebug]
+[Ad9249ReadoutGroup.vhd:498:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_datafifodebug]
 
 [Ad9249Config.vhd:211:Info: Elaborating entity SpiMaster for hierarchy spimaster::spimaster_1]
 
@@ -5062,6 +5064,10 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/DeviceDnaU
 /home/travis/build/slaclab/surf/base/fifo/rtl/xilinx/FifoXpm.vhd:21: warning: documented symbol `_library_ surfsurf' was not declared or defined.
 /home/travis/build/slaclab/surf/base/fifo/rtl/xilinx/FifoXpm.vhd:22: warning: documented symbol `_use_ StdRtlPkgStdRtlPkg' was not declared or defined.
 /home/travis/build/slaclab/surf/base/general/tb/GearboxTb.vhd:23: warning: documented symbol `_library_ surfsurf' was not declared or defined.
+/home/travis/build/slaclab/surf/devices/AnalogDevices/ad9249/7Series/rtl/Ad9249ReadoutGroup.vhd:140: warning: no matching class member found for 
+  slv()
+
+/home/travis/build/slaclab/surf/devices/AnalogDevices/ad9249/7Series/rtl/Ad9249ReadoutGroup.vhd:141: warning: documented symbol `slv5Array' was not declared or defined.
 /home/travis/build/slaclab/surf/devices/AnalogDevices/ad9249/UltraScale/rtl/Ad9249Deserializer.vhd:18: warning: documented symbol `_library_ ieeeieee' was not declared or defined.
 /home/travis/build/slaclab/surf/devices/AnalogDevices/ad9249/UltraScale/rtl/Ad9249Deserializer.vhd:19: warning: documented symbol `_use_ std_logic_1164std_logic_1164' was not declared or defined.
 /home/travis/build/slaclab/surf/devices/AnalogDevices/ad9249/UltraScale/rtl/Ad9249Deserializer.vhd:23: warning: documented symbol `_library_ UNISIMUNISIM' was not declared or defined.
@@ -5109,7 +5115,6 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/DeviceDnaU
 
 /home/travis/build/slaclab/surf/devices/AnalogDevices/ad9249/UltraScale/rtl/Ad9249ReadoutGroup.vhd:86: warning: documented symbol `slv16Array' was not declared or defined.
 /home/travis/build/slaclab/surf/devices/AnalogDevices/ad9249/UltraScale/rtl/Ad9249ReadoutGroup.vhd:87: warning: documented symbol `slv16Array' was not declared or defined.
-/home/travis/build/slaclab/surf/devices/AnalogDevices/ad9249/UltraScale/rtl/Ad9249ReadoutGroup.vhd:92: warning: documented symbol `AxilRegType  :' was not declared or defined.
 /home/travis/build/slaclab/surf/devices/AnalogDevices/ad9249/UltraScale/rtl/Ad9249ReadoutGroup.vhd:106: warning: no matching class member found for 
   slv()
 
@@ -6167,8 +6172,7 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/DeviceDnaU
 /home/travis/build/slaclab/surf/xilinx/UltraScale+/gthUs/rtl/GthUltraScaleQuadPll.vhd:104: warning: no matching class member found for 
   slv()
 
-..
-Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/Idelaye3Wrapper.vhd...
+pper.vhd...
 Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/InputBufferReg.vhd...
 Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/IprogUltraScale.vhd...
 Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/Odelaye3Wrapper.vhd...

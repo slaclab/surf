@@ -1,5 +1,6 @@
 var NAVTREEINDEX7 =
 {
+"classAxiLiteAsync_1_1STRUCTURE.html#ac7791efc8898d5549800931924e930b8":[1,0,37,0,11],
 "classAxiLiteAsync_1_1STRUCTURE.html#acdff2e7739648c69056cf2b96c1ff777":[1,0,37,0,32],
 "classAxiLiteAsync_1_1STRUCTURE.html#ad0bb2e5ae02d45ed6880065c407f9f42":[1,0,37,0,29],
 "classAxiLiteAsync_1_1STRUCTURE.html#ad4c58a4b79c2553dbd931f7c4b5af7d9":[1,0,37,0,9],
@@ -248,6 +249,5 @@ var NAVTREEINDEX7 =
 "classAxiLiteFifoPushPop_1_1structure.html#af09ea93f9bc38824e4c02802c41f0f6b":[1,0,42,0,11],
 "classAxiLiteFifoPushPop_1_1structure.html#af29d0376e1f663fb894d9cda1ee11791":[1,0,42,0,21],
 "classAxiLiteFifoPush_1_1structure.html":[1,0,41,0],
-"classAxiLiteFifoPush_1_1structure.html#a0498304adc5e9a77df9df664a54ee3d3":[1,0,41,0,14],
-"classAxiLiteFifoPush_1_1structure.html#a2c74641b7c72370ec4e97081e7bcbaff":[1,0,41,0,2]
+"classAxiLiteFifoPush_1_1structure.html#a0498304adc5e9a77df9df664a54ee3d3":[1,0,41,0,14]
 };
