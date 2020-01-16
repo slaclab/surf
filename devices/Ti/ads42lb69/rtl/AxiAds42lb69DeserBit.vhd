@@ -124,7 +124,7 @@ begin
             IB => dataN,
             O  => data);                 
 
-      IDELAYE3_inst : surf.Idelaye3Wrapper
+      IDELAYE3_inst : entity surf.Idelaye3Wrapper
          generic map (
             CASCADE => "MASTER",       -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
             DELAY_FORMAT => "COUNT",   -- Units of the DELAY_VALUE (COUNT, TIME)
@@ -151,7 +151,7 @@ begin
             CNTVALUEIN  => delayInData,      -- 9-bit input: Counter value input 
             CNTVALUEOUT => delayOutData1);   -- 9-bit output: Counter value output 
       
-      ODELAYE3_inst : surf.Odelaye3Wrapper
+      ODELAYE3_inst : entity surf.Odelaye3Wrapper
          generic map (
             CASCADE => "SLAVE_END",    -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
             DELAY_FORMAT => "COUNT",   -- Units of the DELAY_VALUE (COUNT, TIME)

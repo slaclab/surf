@@ -186,7 +186,7 @@ begin
 
          -- Each delay tap = 1/(32 * 2 * 200Mhz) = 78ps 
          -- Input rate = 85Mhz * 7 = 595Mhz = 1.68nS = 21.55 taps
-         U_Delay : surf.Idelaye3Wrapper
+         U_Delay : entity surf.Idelaye3Wrapper
             generic map (
                CASCADE          => "NONE",  -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
                DELAY_FORMAT     => "COUNT",  -- Units of the DELAY_VALUE (COUNT, TIME)
