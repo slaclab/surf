@@ -74,7 +74,7 @@ entity AxiStreamFifoV2 is
       sAxisRst    : in  sl;
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
-      sAxisCtrl   : out AxiStreamCtrlType;
+      sAxisCtrl   : out AxiStreamCtrlType := AXI_STREAM_CTRL_INIT_C;
 
       -- FIFO status & config , synchronous to sAxisClk, be carefull when using with
       -- output pipeline stages
