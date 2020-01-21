@@ -492,6 +492,7 @@ var annotated_dup =
     [ "SimpleDualPortRamXpm", "classSimpleDualPortRamXpm.html", "classSimpleDualPortRamXpm" ],
     [ "SlvArraytoAxiLite", "classSlvArraytoAxiLite.html", "classSlvArraytoAxiLite" ],
     [ "SlvDelay", "classSlvDelay.html", "classSlvDelay" ],
+    [ "SlvDelayFifo", "classSlvDelayFifo.html", "classSlvDelayFifo" ],
     [ "SpiMaster", "classSpiMaster.html", "classSpiMaster" ],
     [ "SpiSlave", "classSpiSlave.html", "classSpiSlave" ],
     [ "SrpV0AxiLite", "classSrpV0AxiLite.html", "classSrpV0AxiLite" ],

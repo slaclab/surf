@@ -24,7 +24,7 @@ var classAxiStreamFifoV2 =
     [ "sAxisRst", "classAxiStreamFifoV2.html#a7dc2d65783b78f52a8f7bb3df645fc2d", null ],
     [ "sAxisMaster", "classAxiStreamFifoV2.html#a4be737583df4493f37e21b9da4a67377", null ],
     [ "sAxisSlave", "classAxiStreamFifoV2.html#a4e7681b5766a6f51851dfb086a6bf45a", null ],
-    [ "sAxisCtrl", "classAxiStreamFifoV2.html#af813b442d76eb79e8526d664bd943106", null ],
+    [ "sAxisCtrl", "classAxiStreamFifoV2.html#aac876681e698e070436bf47e40e3f044", null ],
     [ "fifoPauseThresh", "classAxiStreamFifoV2.html#a4c0c45dcbdbae3ab865f10317ab009b9", null ],
     [ "fifoWrCnt", "classAxiStreamFifoV2.html#aeacadd9391bf273e4a6ef2ca4d9eb4e0", null ],
     [ "mAxisClk", "classAxiStreamFifoV2.html#a0a9437a4574cc033cc1ed972bcd89a90", null ],

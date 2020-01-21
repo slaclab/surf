@@ -1,5 +1,15 @@
 var NAVTREEINDEX70 =
 {
+"classOctalPortRam.html#a88c3a4179e5cc45575d80705ee13c15d":[1,0,360,34],
+"classOctalPortRam.html#a8a9f56ec06b173cf46dc7160fd7c1f30":[1,0,360,2],
+"classOctalPortRam.html#a90726144fdea03ebb52ed50145a861f0":[1,0,360,15],
+"classOctalPortRam.html#a93df64d96319df0835b0826af14cc148":[1,0,360,33],
+"classOctalPortRam.html#a95c9a77bb38f800613cf64be45cde6d2":[1,0,360,32],
+"classOctalPortRam.html#a9ee67ccb2d08a0cc4a07e63264240c40":[1,0,360,45],
+"classOctalPortRam.html#a9f7e0bca2fe0c3e8ce1fc27caa7d1491":[1,0,360,41],
+"classOctalPortRam.html#aa0a293f84036fe9809012174a3321342":[1,0,360,14],
+"classOctalPortRam.html#aa15a7b289c417a934aa707db52c8e30d":[1,0,360,8],
+"classOctalPortRam.html#aa2a55a3a67519e619b1a385427ed4640":[1,0,360,49],
 "classOctalPortRam.html#aa3161313272afa4030958b1360d6f9f3":[1,0,360,26],
 "classOctalPortRam.html#aa4c0f0bdfc190b2ae0db135b72dfd277":[1,0,360,10],
 "classOctalPortRam.html#aaac2e2a939dc18f21393e86159dae78c":[1,0,360,46],
@@ -145,8 +155,8 @@ var NAVTREEINDEX70 =
 "classOutputBufferReg_1_1rtl.html#a00791292c97a9420582d56b2466f745b":[1,0,363,0,5],
 "classOutputBufferReg_1_1rtl.html#a00791292c97a9420582d56b2466f745b":[1,0,363,0,6],
 "classOutputBufferReg_1_1rtl.html#a3866df254a123b03ef652329cc7b1b80":[1,0,363,0,0],
-"classOutputBufferReg_1_1rtl.html#acd951fac39245e19ef7a7411a476e208":[1,0,363,0,1],
 "classOutputBufferReg_1_1rtl.html#acd951fac39245e19ef7a7411a476e208":[1,0,363,0,4],
+"classOutputBufferReg_1_1rtl.html#acd951fac39245e19ef7a7411a476e208":[1,0,363,0,1],
 "classPgp2bAxi.html":[1,0,364],
 "classPgp2bAxi.html#a09910266002a6310c2946822e026cdb4":[1,0,364,10],
 "classPgp2bAxi.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,364,26],
@@ -239,15 +249,5 @@ var NAVTREEINDEX70 =
 "classPgp2bAxi_1_1structure.html#a972ae8909d333f530712dbb80ea0f09c":[1,0,364,0,60],
 "classPgp2bAxi_1_1structure.html#a9768a0ec7bf68cb10585bfc0a0b4d38d":[1,0,364,0,2],
 "classPgp2bAxi_1_1structure.html#a998fff9859e34f6b42de4d13de2e4cc8":[1,0,364,0,4],
-"classPgp2bAxi_1_1structure.html#a9d3318bda0011ddf368826886fa742e2":[1,0,364,0,40],
-"classPgp2bAxi_1_1structure.html#aa06e09bbe4991d58c014d48a8e4669f2":[1,0,364,0,76],
-"classPgp2bAxi_1_1structure.html#aa6f819f21989f2b6c09c0ba3979e1043":[1,0,364,0,16],
-"classPgp2bAxi_1_1structure.html#aa6fea3706587ccfc5bdb4d8df8dccf99":[1,0,364,0,71],
-"classPgp2bAxi_1_1structure.html#aa8d62beec820331143746639f73864c7":[1,0,364,0,13],
-"classPgp2bAxi_1_1structure.html#aab0ac14049487b091f461fa92aa23b83":[1,0,364,0,28],
-"classPgp2bAxi_1_1structure.html#aac4f3b34849164bb9843520e31b967ea":[1,0,364,0,7],
-"classPgp2bAxi_1_1structure.html#ab1ecfd287e2466150d06e96c06f73f41":[1,0,364,0,22],
-"classPgp2bAxi_1_1structure.html#abc11818aa591faa5be8e19397f5e84b7":[1,0,364,0,14],
-"classPgp2bAxi_1_1structure.html#abdd50d1e224c219b2d98caa2e142d210":[1,0,364,0,70],
-"classPgp2bAxi_1_1structure.html#ac0370992844cd89c8c1b727d162f2c31":[1,0,364,0,19]
+"classPgp2bAxi_1_1structure.html#a9d3318bda0011ddf368826886fa742e2":[1,0,364,0,40]
 };

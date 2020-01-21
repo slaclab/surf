@@ -7,6 +7,7 @@ var classFifoMux =
     [ "RST_POLARITY_G", "classFifoMux.html#a8a9f56ec06b173cf46dc7160fd7c1f30", null ],
     [ "RST_ASYNC_G", "classFifoMux.html#a123a3d9a6e9648e763d21c0281ee7ecd", null ],
     [ "GEN_SYNC_FIFO_G", "classFifoMux.html#a74265af003d7cd4b0443ced520ac6722", null ],
+    [ "SYNTH_MODE_G", "classFifoMux.html#a2429d17ce4f9328a982076af9f733ab3", null ],
     [ "MEMORY_TYPE_G", "classFifoMux.html#ac19eab973cb6c0196eed65d74fc49dca", null ],
     [ "FWFT_EN_G", "classFifoMux.html#a1ed184adaec9154e94358792a90e0618", null ],
     [ "SYNC_STAGES_G", "classFifoMux.html#a679052ea3c06e78e1226fcab1eb05fd6", null ],

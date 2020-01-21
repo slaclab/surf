@@ -9,7 +9,7 @@ var classAxiStreamSplitter_1_1rtl =
     [ "tSeq", "classAxiStreamSplitter_1_1rtl.html#a9c8c97b9ecad143616adaee71d96430b", null ],
     [ "first", "classAxiStreamSplitter_1_1rtl.html#aa73f26ed9851a7e16439b84841f680af", null ],
     [ "slave", "classAxiStreamSplitter_1_1rtl.html#af3c414ab44d116e47af03478e1a03973", null ],
-    [ "REG_INIT_C", "classAxiStreamSplitter_1_1rtl.html#a05dd8eb786e11c8d5a874170ca1e8d32", null ],
+    [ "REG_INIT_C", "classAxiStreamSplitter_1_1rtl.html#a1d37cf941b55e97107676f450adfba5b", null ],
     [ "r", "classAxiStreamSplitter_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3", null ],
     [ "rin", "classAxiStreamSplitter_1_1rtl.html#a758a8cbb78916a3911d410a62191310d", null ]
 ];
