@@ -45,10 +45,10 @@ architecture rtl of AxiStreamPipeline is
       sAxisSlave  : AxiStreamSlaveType;
       mAxisMaster : AxiStreamMasterArray(0 to PIPE_STAGES_C);
    end record RegType;
-   
+
    constant REG_INIT_C : RegType := (
-      AXI_STREAM_SLAVE_INIT_C,
-      (others => AXI_STREAM_MASTER_INIT_C));
+      sAxisSlave  => AXI_STREAM_SLAVE_INIT_C,
+      mAxisMaster => (others => AXI_STREAM_MASTER_INIT_C));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -59,11 +59,11 @@ begin
 
       mAxisMaster <= sAxisMaster;
       sAxisSlave  <= mAxisSlave;
-      
+
    end generate;
 
    PIPE_REG : if (PIPE_STAGES_G > 0) generate
-      
+
       comb : process (axisRst, mAxisSlave, r, sAxisMaster) is
          variable v : RegType;
          variable i : natural;
@@ -139,7 +139,7 @@ begin
          -- Outputs
          sAxisSlave  <= r.sAxisSlave;
          mAxisMaster <= r.mAxisMaster(PIPE_STAGES_C);
-         
+
       end process comb;
 
       seq : process (axisClk) is
@@ -148,7 +148,7 @@ begin
             r <= rin after TPD_G;
          end if;
       end process seq;
-      
+
    end generate;
-   
+
 end rtl;

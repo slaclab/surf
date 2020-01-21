@@ -66,9 +66,6 @@ entity GigEthGthUltraScaleWrapper is
       phyRst              : out sl;
       phyReady            : out slv(NUM_LANE_G-1 downto 0);
       sigDet              : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '1');
-      -- Switch Polarity of TxN/TxP, RxN/RxP
-      gtTxPolarity        : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '0');
-      gtRxPolarity        : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '0');
       -- MGT Clock Port 
       gtRefClk            : in  sl                                             := '0';
       gtClkP              : in  sl                                             := '1';
@@ -77,6 +74,12 @@ entity GigEthGthUltraScaleWrapper is
       extPll125Rst        : in  sl                                             := '0';
       extPll62Clk         : in  sl                                             := '0';
       extPll62Rst         : in  sl                                             := '0';
+      -- Copy of internal MMCM reference clock and Reset
+      refClkOut           : out sl;
+      refRstOut           : out sl;      
+      -- Switch Polarity of TxN/TxP, RxN/RxP
+      gtTxPolarity        : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '0');
+      gtRxPolarity        : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '0');
       -- MGT Ports
       gtTxP               : out slv(NUM_LANE_G-1 downto 0);
       gtTxN               : out slv(NUM_LANE_G-1 downto 0);
@@ -105,6 +108,9 @@ begin
 
    phyClk <= sysClk125;
    phyRst <= sysRst125;
+   
+   refClkOut <= refClk;
+   refRstOut <= refRst;
 
    -----------------------------
    -- Select the Reference Clock
