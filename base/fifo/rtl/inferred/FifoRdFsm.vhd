@@ -137,7 +137,7 @@ begin
             end if;
 
             -- Check for BRAM (2 cycle read latency = DOB_REG_G + Internal REG )
-            if (MEMORY_TYPE_G/="distributed") then
+            if (MEMORY_TYPE_G /= "distributed") then
 
                -- Check if we need to move data from RAM output to RAM REG
                if (v.tValid(1) = '0') and (r.tValid(0) = '1') then
