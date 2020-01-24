@@ -44,7 +44,7 @@ entity SsiCmdMaster is
       MEMORY_TYPE_G       : string                     := "distributed";
       GEN_SYNC_FIFO_G     : boolean                    := false;
       CASCADE_SIZE_G      : integer range 1 to (2**24) := 1;
-      FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 4;
+      FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 5;
       FIFO_FIXED_THRESH_G : boolean                    := true;
       FIFO_PAUSE_THRESH_G : integer range 1 to (2**24) := 8;
 
