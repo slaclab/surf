@@ -41,7 +41,7 @@ entity SsiCmdMaster is
 
       -- AXI Stream FIFO Config
       SLAVE_READY_EN_G    : boolean                    := false;
-      MEMORY_TYPE_G       : string                     := "block";
+      MEMORY_TYPE_G       : string                     := "distributed";
       GEN_SYNC_FIFO_G     : boolean                    := false;
       CASCADE_SIZE_G      : integer range 1 to (2**24) := 1;
       FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 4;
