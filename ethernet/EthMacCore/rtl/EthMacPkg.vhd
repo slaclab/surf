@@ -53,13 +53,14 @@ package EthMacPkg is
 
    -- Ethernet AXI Stream Configuration
    constant EMAC_AXIS_CONFIG_C : AxiStreamConfigType := (
-      TSTRB_EN_C    => false,
-      TDATA_BYTES_C => 16,
-      TDEST_BITS_C  => 8,
-      TID_BITS_C    => 0,
-      TKEEP_MODE_C  => TKEEP_COMP_C,
-      TUSER_BITS_C  => 4,
-      TUSER_MODE_C  => TUSER_FIRST_LAST_C);   
+      -- TDEST_INTERLEAVE_C => false,
+      TSTRB_EN_C         => false,
+      TDATA_BYTES_C      => 16,
+      TDEST_BITS_C       => 8,
+      TID_BITS_C         => 0,
+      TKEEP_MODE_C       => TKEEP_COMP_C,
+      TUSER_BITS_C       => 4,
+      TUSER_MODE_C       => TUSER_FIRST_LAST_C);   
 
    -- Generic XMAC Configuration
    type EthMacConfigType is record
