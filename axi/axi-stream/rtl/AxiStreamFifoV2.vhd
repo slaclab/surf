@@ -76,7 +76,7 @@ entity AxiStreamFifoV2 is
       sAxisSlave  : out AxiStreamSlaveType;
       sAxisCtrl   : out AxiStreamCtrlType := AXI_STREAM_CTRL_INIT_C;
 
-      -- FIFO status & config , synchronous to sAxisClk, be carefull when using with
+      -- FIFO status & config , synchronous to sAxisClk, be careful when using with
       -- output pipeline stages
       fifoPauseThresh : in  slv(FIFO_ADDR_WIDTH_G-1 downto 0) := (others => '1');
       fifoWrCnt       : out slv(FIFO_ADDR_WIDTH_G-1 downto 0);
