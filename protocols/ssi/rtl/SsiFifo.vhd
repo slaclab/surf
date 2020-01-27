@@ -30,6 +30,7 @@ entity SsiFifo is
    generic (
       -- General Configurations
       TPD_G               : time                := 1 ns;
+      INT_PIPE_STAGES_G   : natural             := 0;  -- Internal FIFO setting
       PIPE_STAGES_G       : natural             := 1;
       SLAVE_READY_EN_G    : boolean             := true;
       VALID_THOLD_G       : natural             := 1;
@@ -112,8 +113,8 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
-         INT_PIPE_STAGES_G   => 0,
-         PIPE_STAGES_G       => 0, -- zero latency between mAxisMaster & txTLastTUser
+         INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
+         PIPE_STAGES_G       => 0,  -- zero latency between mAxisMaster & txTLastTUser
          SLAVE_READY_EN_G    => true,  -- Using TREADY between FIFO and IbFilter
          VALID_THOLD_G       => VALID_THOLD_G,
          VALID_BURST_MODE_G  => VALID_BURST_MODE_G,

@@ -211,8 +211,8 @@ begin
 --          sAxisMaster    => obMaster,
 --          sAxisSlave     => obSlave,
 --          sAxisCtrl      => open,
---          sAxisDropWrite => dropWrite,
---          sAxisTermFrame => dropFrame,
+--          sAxisDropWord  => dropWrite,
+--          sAxisDropFrame => dropFrame,
 --          -- Master Port
 --          mAxisClk       => slowClk,
 --          mAxisRst       => slowRst,

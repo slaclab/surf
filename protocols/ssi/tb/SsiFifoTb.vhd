@@ -151,6 +151,8 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_C,
+         INT_PIPE_STAGES_G   => 1,
+         PIPE_STAGES_G       => 1,
          SLAVE_READY_EN_G    => false,
          VALID_THOLD_G       => 0,
          -- FIFO configurations
