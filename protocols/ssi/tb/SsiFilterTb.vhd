@@ -155,7 +155,6 @@ begin
          INT_PIPE_STAGES_G   => 1,
          PIPE_STAGES_G       => 1,
          SLAVE_READY_EN_G    => false,
-         EN_FRAME_FILTER_G   => true,
          VALID_THOLD_G       => 0,
          -- FIFO configurations
          MEMORY_TYPE_G       => "block",

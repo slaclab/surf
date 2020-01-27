@@ -26,6 +26,8 @@ use surf.EthMacPkg.all;
 entity EthMacRxFifo is
    generic (
       TPD_G             : time                   := 1 ns;
+      SYNTH_MODE_G      : string                 := "inferred";
+      MEMORY_TYPE_G     : string                 := "block";
       DROP_ERR_PKT_G    : boolean                := true;
       INT_PIPE_STAGES_G : natural                := 1;
       PIPE_STAGES_G     : natural                := 1;
@@ -103,11 +105,10 @@ begin
          INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
          PIPE_STAGES_G       => PIPE_STAGES_G,
          SLAVE_READY_EN_G    => false,
-         EN_FRAME_FILTER_G   => true,
-         OR_DROP_FLAGS_G     => true,
          VALID_THOLD_G       => VALID_THOLD_C,
          -- FIFO configurations
-         MEMORY_TYPE_G       => "block",
+         SYNTH_MODE_G        => SYNTH_MODE_G,
+         MEMORY_TYPE_G       => MEMORY_TYPE_G,
          GEN_SYNC_FIFO_G     => PRIM_COMMON_CLK_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => false,
@@ -139,11 +140,10 @@ begin
             INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
             PIPE_STAGES_G       => PIPE_STAGES_G,
             SLAVE_READY_EN_G    => false,
-            EN_FRAME_FILTER_G   => true,
-            OR_DROP_FLAGS_G     => true,
             VALID_THOLD_G       => VALID_THOLD_C,
             -- FIFO configurations
-            MEMORY_TYPE_G       => "block",
+            SYNTH_MODE_G        => SYNTH_MODE_G,
+            MEMORY_TYPE_G       => MEMORY_TYPE_G,
             GEN_SYNC_FIFO_G     => PRIM_COMMON_CLK_G,
             FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
             FIFO_FIXED_THRESH_G => false,
@@ -177,11 +177,10 @@ begin
                INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
                PIPE_STAGES_G       => PIPE_STAGES_G,
                SLAVE_READY_EN_G    => false,
-               EN_FRAME_FILTER_G   => true,
-               OR_DROP_FLAGS_G     => true,
                VALID_THOLD_G       => VALID_THOLD_C,
                -- FIFO configurations
-               MEMORY_TYPE_G       => "block",
+               SYNTH_MODE_G        => SYNTH_MODE_G,
+               MEMORY_TYPE_G       => MEMORY_TYPE_G,
                GEN_SYNC_FIFO_G     => PRIM_COMMON_CLK_G,
                FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
                FIFO_FIXED_THRESH_G => false,

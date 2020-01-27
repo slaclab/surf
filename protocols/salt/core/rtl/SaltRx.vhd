@@ -324,7 +324,6 @@ begin
          TPD_G               => TPD_G,
          PIPE_STAGES_G       => 0,
          VALID_THOLD_G       => 1,
-         EN_FRAME_FILTER_G   => true,
          -- FIFO configurations
          MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => COMMON_RX_CLK_G,

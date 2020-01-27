@@ -194,7 +194,6 @@ begin
 --          -- General Configurations
 --          TPD_G               => TPD_C,
 --          PIPE_STAGES_G       => AXI_PIPE_STAGES_C,
---          EN_FRAME_FILTER_G   => true,
 --          VALID_THOLD_G       => 1,
 --          -- FIFO configurations
 --          MEMORY_TYPE_G       => MEMORY_TYPE_C,
