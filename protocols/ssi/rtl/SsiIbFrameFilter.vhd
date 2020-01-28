@@ -120,11 +120,11 @@ begin
             -- Check for new inbound data
             if (sAxisMaster.tValid = '1') then
 
-               -- Accept the data
-               v.slave.tReady := '1';
-
                -- Check for overflow
-               if (v.master.tValid = '1') then
+               if (v.master.tValid = '1') and not(SLAVE_READY_EN_G) then
+
+                  -- Accept the data
+                  v.slave.tReady := '1';
 
                   -- Set the flag
                   v.overflow := '1';
@@ -134,7 +134,10 @@ begin
                   v.frameDropped := sAxisMaster.tLast;
 
                -- Else ready to accept new data
-               else
+               elsif (v.master.tValid = '0') then
+
+                  -- Accept the data
+                  v.slave.tReady := '1';
 
                   -- Check for SOF
                   if (sof = '1') then
@@ -187,11 +190,11 @@ begin
             -- Check for new inbound data
             if (sAxisMaster.tValid = '1') then
 
-               -- Accept the data
-               v.slave.tReady := '1';
-
                -- Check for overflow
-               if (v.master.tValid = '1') then
+               if (v.master.tValid = '1') and not(SLAVE_READY_EN_G) then
+
+                  -- Accept the data
+                  v.slave.tReady := '1';
 
                   -- Set the flag
                   v.overflow := '1';
@@ -204,7 +207,10 @@ begin
                   v.state := INSERT_EOFE_S;
 
                -- Else ready to accept new data
-               else
+               elsif (v.master.tValid = '0') then
+
+                  -- Accept the data
+                  v.slave.tReady := '1';
 
                   -- Move the data bus
                   v.master := sAxisMaster;
@@ -277,7 +283,7 @@ begin
       -- Slave Outputs
       sAxisSlave         <= v.slave;
       sAxisCtrl          <= mAxisCtrl;
-      sAxisCtrl.overflow <= r.overflow;
+      sAxisCtrl.overflow <= r.overflow or mAxisCtrl.overflow;
       sAxisDropWord      <= r.wordDropped;
       sAxisDropFrame     <= r.frameDropped;
 

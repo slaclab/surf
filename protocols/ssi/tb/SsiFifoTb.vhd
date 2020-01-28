@@ -35,7 +35,9 @@ architecture testbed of SsiFifoTb is
 
    constant PRBS_SEED_SIZE_C : natural      := 32;
    constant PRBS_TAPS_C      : NaturalArray := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
-   constant PRBS_FLOW_CTRL_C : boolean      := false;
+   constant PRBS_FLOW_CTRL_C : boolean      := true;
+
+   constant NOT_PAUSE_FLOW_CONTROL_C : boolean := false;  -- false for pause flow control
 
    constant AXI_STREAM_CONFIG_C : AxiStreamConfigType := (
       -- TDEST_INTERLEAVE_C => true,
@@ -47,8 +49,9 @@ architecture testbed of SsiFifoTb is
       TUSER_BITS_C  => 4,
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
 
-   signal txClk : sl := '0';
-   signal txRst : sl := '1';
+   signal txClk  : sl := '0';
+   signal txRst  : sl := '1';
+   signal txRstL : sl := '0';
 
    signal txTrig      : sl := '0';
    signal txForceEofe : sl := '0';
@@ -68,6 +71,7 @@ architecture testbed of SsiFifoTb is
    signal prbsFlowCtrlSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
 
    signal updated      : sl               := '0';
+   signal errorDet     : sl               := '0';
    signal errLength    : sl               := '0';
    signal errDataBus   : sl               := '0';
    signal errEofe      : sl               := '0';
@@ -75,9 +79,7 @@ architecture testbed of SsiFifoTb is
    signal packetLength : slv(31 downto 0) := (others => '0');
    signal cnt          : slv(31 downto 0) := (others => '0');
    signal trigCnt      : slv(31 downto 0) := (others => '0');
-
-   signal passedVec : slv(4 downto 0) := (others => '0');
-   signal failedVec : slv(4 downto 0) := (others => '0');
+   signal failedVec    : slv(6 downto 0)  := (others => '0');
 
    signal passed : sl := '0';
    signal failed : sl := '0';
@@ -94,11 +96,13 @@ begin
          RST_HOLD_TIME_G   => 1 us)
       port map (
          clkP => txClk,
-         rst  => txRst);
+         rst  => txRst,
+         rstL => txRstL);
 
    U_Slow : entity surf.ClkRst
       generic map (
-         CLK_PERIOD_G      => (2*CLK_PERIOD_C),
+         -- CLK_PERIOD_G      => (2*CLK_PERIOD_C),
+         CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,
          RST_HOLD_TIME_G   => 1 us)
       port map (
@@ -129,7 +133,8 @@ begin
          -- Trigger Signal (locClk domain)
          locClk       => txClk,
          locRst       => txRst,
-         trig         => txTrig,
+         -- trig         => txTrig,
+         trig         => txRstL,
          packetLength => TX_PACKET_LENGTH_C,
          forceEofe    => txForceEofe,
          busy         => txBusy);
@@ -138,7 +143,7 @@ begin
    begin
       if rising_edge(txClk) then
          -- Select the trigger pre-scaler
-         txTrig  <= trigCnt(9)  after TPD_C;
+         txTrig  <= trigCnt(8)  after TPD_C;
          -- Increment the counter
          trigCnt <= trigCnt + 1 after TPD_C;
       end if;
@@ -153,7 +158,7 @@ begin
          TPD_G               => TPD_C,
          INT_PIPE_STAGES_G   => 1,
          PIPE_STAGES_G       => 1,
-         SLAVE_READY_EN_G    => false,
+         SLAVE_READY_EN_G    => NOT_PAUSE_FLOW_CONTROL_C,
          VALID_THOLD_G       => 0,
          -- FIFO configurations
          GEN_SYNC_FIFO_G     => false,
@@ -202,6 +207,7 @@ begin
          mAxisSlave     => prbsFlowCtrlSlave,
          -- Error Detection Signals (sAxisClk domain)
          updatedResults => updated,
+         errorDet       => errorDet,
          packetLength   => packetLength,
          errLength      => errLength,
          errDataBus     => errDataBus,
@@ -253,6 +259,12 @@ begin
                failedVec(4) <= '1' after TPD_C;
             else
                failedVec(4) <= '0' after TPD_C;
+            end if;
+
+            -- Check for non-pause flow control and error detected
+            if (NOT_PAUSE_FLOW_CONTROL_C) then
+               failedVec(5) <= errorDet        after TPD_C;
+               failedVec(6) <= txCtrl.overflow after TPD_C;
             end if;
 
             -- Increment the counter

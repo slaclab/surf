@@ -29,24 +29,39 @@ use surf.SsiPkg.all;
 entity SsiFifo is
    generic (
       -- General Configurations
-      TPD_G               : time                := 1 ns;
-      INT_PIPE_STAGES_G   : natural             := 0;  -- Internal FIFO setting
-      PIPE_STAGES_G       : natural             := 1;
-      SLAVE_READY_EN_G    : boolean             := true;
-      VALID_THOLD_G       : natural             := 1;
-      VALID_BURST_MODE_G  : boolean             := false;  -- only used in VALID_THOLD_G>1
+      TPD_G                  : time                := 1 ns;
+      INT_PIPE_STAGES_G      : natural             := 0;  -- Internal FIFO setting
+      PIPE_STAGES_G          : natural             := 1;
+      SLAVE_READY_EN_G       : boolean             := true;
+      -- Valid threshold should always be 1 when using interleaved TDEST
+      --       =1 = normal operation
+      --       =0 = only when frame ready
+      --       >1 = only when frame ready or # entries      
+      VALID_THOLD_G          : natural             := 1;
+      VALID_BURST_MODE_G     : boolean             := false;  -- only used in VALID_THOLD_G>1
       -- FIFO configurations
-      SYNTH_MODE_G        : string              := "inferred";
-      MEMORY_TYPE_G       : string              := "block";
-      GEN_SYNC_FIFO_G     : boolean             := false;
-      CASCADE_SIZE_G      : positive            := 1;
-      CASCADE_PAUSE_SEL_G : natural             := 0;
-      FIFO_ADDR_WIDTH_G   : positive            := 9;
-      FIFO_FIXED_THRESH_G : boolean             := true;
-      FIFO_PAUSE_THRESH_G : positive            := 1;
+      GEN_SYNC_FIFO_G        : boolean             := false;
+      FIFO_ADDR_WIDTH_G      : positive            := 9;
+      FIFO_FIXED_THRESH_G    : boolean             := true;
+      FIFO_PAUSE_THRESH_G    : positive            := 1;
+      SYNTH_MODE_G           : string              := "inferred";
+      MEMORY_TYPE_G          : string              := "block";
+      -- Internal FIFO width select, "WIDE", "NARROW" or "CUSTOM"
+      -- WIDE uses wider of slave / master. NARROW  uses narrower.
+      -- CUSOTM uses passed FIFO_DATA_WIDTH_G
+      INT_WIDTH_SELECT_G     : string              := "WIDE";
+      INT_DATA_WIDTH_G       : positive            := 16;
+      -- If VALID_THOLD_G /=1, FIFO that stores on tLast transaction can be smaller.
+      --       Set to 0 for same size as primary FIFO (default)
+      --       Set >4 for custom size.
+      --       Use at own risk. Overflow of tLast FIFO is not checked      
+      LAST_FIFO_ADDR_WIDTH_G : natural             := 0;
+      -- Index = 0 is output, index = n is input
+      CASCADE_PAUSE_SEL_G    : natural             := 0;
+      CASCADE_SIZE_G         : positive            := 1;
       -- AXI Stream Port Configurations
-      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := SSI_CONFIG_INIT_C;
-      MASTER_AXI_CONFIG_G : AxiStreamConfigType := SSI_CONFIG_INIT_C);
+      SLAVE_AXI_CONFIG_G     : AxiStreamConfigType := SSI_CONFIG_INIT_C;
+      MASTER_AXI_CONFIG_G    : AxiStreamConfigType := SSI_CONFIG_INIT_C);
    port (
       -- Slave Interface (sAxisClk domain)
       sAxisClk        : in  sl;
@@ -112,24 +127,25 @@ begin
    U_Fifo : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
-         TPD_G               => TPD_G,
-         INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
-         PIPE_STAGES_G       => 0,  -- zero latency between mAxisMaster & txTLastTUser
-         SLAVE_READY_EN_G    => true,  -- Using TREADY between FIFO and IbFilter
-         VALID_THOLD_G       => VALID_THOLD_G,
-         VALID_BURST_MODE_G  => VALID_BURST_MODE_G,
-         -- FIFO configurations
-         SYNTH_MODE_G        => SYNTH_MODE_G,
-         MEMORY_TYPE_G       => MEMORY_TYPE_G,
-         GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
-         CASCADE_SIZE_G      => CASCADE_SIZE_G,
-         FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
-         FIFO_FIXED_THRESH_G => FIFO_FIXED_THRESH_G,
-         FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
-         CASCADE_PAUSE_SEL_G => CASCADE_PAUSE_SEL_G,
-         -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_G,
-         MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G)
+         TPD_G                  => TPD_G,
+         INT_PIPE_STAGES_G      => INT_PIPE_STAGES_G,
+         PIPE_STAGES_G          => PIPE_STAGES_G,
+         SLAVE_READY_EN_G       => true,  -- Using TREADY between FIFO and IbFilter
+         VALID_THOLD_G          => VALID_THOLD_G,
+         VALID_BURST_MODE_G     => VALID_BURST_MODE_G,
+         GEN_SYNC_FIFO_G        => GEN_SYNC_FIFO_G,
+         FIFO_ADDR_WIDTH_G      => FIFO_ADDR_WIDTH_G,
+         FIFO_FIXED_THRESH_G    => FIFO_FIXED_THRESH_G,
+         FIFO_PAUSE_THRESH_G    => FIFO_PAUSE_THRESH_G,
+         SYNTH_MODE_G           => SYNTH_MODE_G,
+         MEMORY_TYPE_G          => MEMORY_TYPE_G,
+         INT_WIDTH_SELECT_G     => INT_WIDTH_SELECT_G,
+         INT_DATA_WIDTH_G       => INT_DATA_WIDTH_G,
+         LAST_FIFO_ADDR_WIDTH_G => LAST_FIFO_ADDR_WIDTH_G,
+         CASCADE_PAUSE_SEL_G    => CASCADE_PAUSE_SEL_G,
+         CASCADE_SIZE_G         => CASCADE_SIZE_G,
+         SLAVE_AXI_CONFIG_G     => SLAVE_AXI_CONFIG_G,
+         MASTER_AXI_CONFIG_G    => MASTER_AXI_CONFIG_G)
       port map (
          -- Slave Interface (sAxisClk domain)
          sAxisClk        => sAxisClk,
