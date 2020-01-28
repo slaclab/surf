@@ -28,9 +28,10 @@ entity AxiStreamResize is
    generic (
 
       -- General Configurations
-      TPD_G         : time    := 1 ns;
-      READY_EN_G    : boolean := true;
-      PIPE_STAGES_G : natural := 0;
+      TPD_G             : time    := 1 ns;
+      READY_EN_G        : boolean := true;
+      PIPE_STAGES_G     : natural := 0;
+      SIDE_BAND_WIDTH_G : positive := 1;  -- General purpose sideband
 
       -- AXI Stream Port Configurations
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
@@ -44,12 +45,13 @@ entity AxiStreamResize is
 
       -- Slave Port
       sAxisMaster : in  AxiStreamMasterType;
+      sSideBand   : in  slv(SIDE_BAND_WIDTH_G-1 downto 0) := (others => '0');
       sAxisSlave  : out AxiStreamSlaveType;
 
       -- Master Port
       mAxisMaster : out AxiStreamMasterType;
-      mAxisSlave  : in  AxiStreamSlaveType
-      );
+      mSideBand   : out slv(SIDE_BAND_WIDTH_G-1 downto 0);
+      mAxisSlave  : in  AxiStreamSlaveType);
 end AxiStreamResize;
 
 architecture rtl of AxiStreamResize is
@@ -65,12 +67,14 @@ architecture rtl of AxiStreamResize is
    type RegType is record
       count    : slv(bitSize(COUNT_C)-1 downto 0);
       obMaster : AxiStreamMasterType;
+      sideBand : slv(SIDE_BAND_WIDTH_G-1 downto 0);
       ibSlave  : AxiStreamSlaveType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       count    => (others => '0'),
       obMaster => axiStreamMasterInit(MASTER_AXI_CONFIG_G),
+      sideBand => (others => '0'),
       ibSlave  => AXI_STREAM_SLAVE_INIT_C
       );
 
@@ -78,6 +82,7 @@ architecture rtl of AxiStreamResize is
    signal rin : RegType;
 
    signal pipeAxisMaster : AxiStreamMasterType;
+   signal pipeSideBand   : slv(SIDE_BAND_WIDTH_G-1 downto 0);
    signal pipeAxisSlave  : AxiStreamSlaveType;
 
 begin
@@ -100,6 +105,7 @@ begin
    comb : process (pipeAxisSlave, r, sAxisMaster) is
       variable v       : RegType;
       variable ibM     : AxiStreamMasterType;
+      variable ibSide  : slv(SIDE_BAND_WIDTH_G-1 downto 0);
       variable idx     : integer;       -- index version of counter
       variable byteCnt : integer;  -- Number of valid bytes in incoming bus
       variable bytes   : integer;       -- byte version of counter
@@ -123,6 +129,7 @@ begin
 
       -- Inbound data with normalized user bits (8 user bits)
       ibM       := sAxisMaster;
+      ibSide    := sSideBand;
       ibM.tUser := (others => '0');
       if (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
          ibM.tKeep := genTKeep(byteCnt);
@@ -161,6 +168,7 @@ begin
             v.obMaster.tId   := ibM.tId;
             v.obMaster.tDest := ibM.tDest;
             v.obMaster.tLast := ibM.tLast;
+            v.sideBand       := ibSide;
 
             -- Determine if we move data
             if ibM.tValid = '1' then
@@ -184,6 +192,7 @@ begin
 
             v.obMaster.tId   := ibM.tId;
             v.obMaster.tDest := ibM.tDest;
+            v.sideBand       := ibSide;
 
             -- Determine if we move data
             if ibM.tValid = '1' then
@@ -208,6 +217,7 @@ begin
       if SLV_BYTES_C = MST_BYTES_C then
          sAxisSlave     <= pipeAxisSlave;
          pipeAxisMaster <= sAxisMaster;
+         pipeSideBand   <= sSideBand;
 
          -- Check for TKEEP_COUNT_C mode on either side
          if (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) or (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
@@ -241,6 +251,7 @@ begin
 
          -- Outbound data with proper user bits
          pipeAxisMaster       <= r.obMaster;
+         pipeSideBand         <= r.sideBand;
          pipeAxisMaster.tUser <= (others => '0');
          if (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
             pipeAxisMaster.tKeep <= toSlv(getTKeep(r.obMaster.tKeep, MASTER_AXI_CONFIG_G), AXI_STREAM_MAX_TKEEP_WIDTH_C);
@@ -269,14 +280,17 @@ begin
    -- Optional output pipeline registers to ease timing
    AxiStreamPipeline_1 : entity surf.AxiStreamPipeline
       generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => PIPE_STAGES_G)
+         TPD_G             => TPD_G,
+         SIDE_BAND_WIDTH_G => SIDE_BAND_WIDTH_G,
+         PIPE_STAGES_G     => PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,
          axisRst     => axisRst,
          sAxisMaster => pipeAxisMaster,
+         sSideBand   => pipeSideBand,
          sAxisSlave  => pipeAxisSlave,
          mAxisMaster => mAxisMaster,
+         mSideBand   => mSideBand,
          mAxisSlave  => mAxisSlave);
 
 end rtl;
