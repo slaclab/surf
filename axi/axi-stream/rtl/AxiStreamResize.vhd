@@ -28,9 +28,9 @@ entity AxiStreamResize is
    generic (
 
       -- General Configurations
-      TPD_G             : time    := 1 ns;
-      READY_EN_G        : boolean := true;
-      PIPE_STAGES_G     : natural := 0;
+      TPD_G             : time     := 1 ns;
+      READY_EN_G        : boolean  := true;
+      PIPE_STAGES_G     : natural  := 0;
       SIDE_BAND_WIDTH_G : positive := 1;  -- General purpose sideband
 
       -- AXI Stream Port Configurations
@@ -102,7 +102,7 @@ begin
       report "AxiStreamFifoV2: Can't have TKEEP_MODE = TKEEP_FIXED on master side if not on slave side"
       severity error;
 
-   comb : process (pipeAxisSlave, r, sAxisMaster) is
+   comb : process (pipeAxisSlave, r, sAxisMaster, sSideBand) is
       variable v       : RegType;
       variable ibM     : AxiStreamMasterType;
       variable ibSide  : slv(SIDE_BAND_WIDTH_G-1 downto 0);
