@@ -131,8 +131,8 @@ begin
             -- Clocks and Reset Ports
             wrClk      => wrClk,
             wrRst      => wrRst,
-            rdClk      => rdClk,
-            rdRst      => rdRst);
+            rdClk      => wrClk,  -- status counter bus synchronization done outside
+            rdRst      => wrRst);
 
       GEN_MAP :
       for j in (CNT_WIDTH_G-1) downto 0 generate
