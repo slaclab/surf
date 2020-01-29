@@ -17,12 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
-
-library surf; 
 
 entity Si5345 is
    generic (
@@ -39,6 +36,8 @@ entity Si5345 is
       axiReadSlave   : out AxiLiteReadSlaveType;
       axiWriteMaster : in  AxiLiteWriteMasterType;
       axiWriteSlave  : out AxiLiteWriteSlaveType;
+      -- Status Interface
+      booting        : out sl;
       -- SPI Interface
       coreRst        : out sl;
       coreSclk       : out sl;
@@ -280,6 +279,7 @@ begin
       axiWriteSlave <= r.axiWriteSlave;
       axiReadSlave  <= r.axiReadSlave;
       coreRst       <= axiRst;
+      booting       <= r.booting;
       if (r.state = IDLE_S) or (r.state = BOOT_ROM_S) then
          freeRunClk <= '0';
       else
