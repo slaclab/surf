@@ -41,7 +41,6 @@ entity AxiStreamFifoV2 is
       VALID_BURST_MODE_G  : boolean                    := false;  -- only used in VALID_THOLD_G>1
       -- FIFO configurations
       GEN_SYNC_FIFO_G     : boolean                    := false;
-      CASCADE_SIZE_G      : integer range 1 to (2**24) := 1;
       FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
       FIFO_FIXED_THRESH_G : boolean                    := true;
       FIFO_PAUSE_THRESH_G : integer range 1 to (2**24) := 1;
@@ -62,6 +61,7 @@ entity AxiStreamFifoV2 is
 
       -- Index = 0 is output, index = n is input
       CASCADE_PAUSE_SEL_G : integer range 0 to (2**24) := 0;
+      CASCADE_SIZE_G      : integer range 1 to (2**24) := 1;
 
       -- AXI Stream Port Configurations
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
@@ -76,7 +76,7 @@ entity AxiStreamFifoV2 is
       sAxisSlave  : out AxiStreamSlaveType;
       sAxisCtrl   : out AxiStreamCtrlType := AXI_STREAM_CTRL_INIT_C;
 
-      -- FIFO status & config , synchronous to sAxisClk, be carefull when using with
+      -- FIFO status & config , synchronous to sAxisClk, be careful when using with
       -- output pipeline stages
       fifoPauseThresh : in  slv(FIFO_ADDR_WIDTH_G-1 downto 0) := (others => '1');
       fifoWrCnt       : out slv(FIFO_ADDR_WIDTH_G-1 downto 0);
