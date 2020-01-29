@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -31,7 +30,7 @@ entity SyncStatusVector is
       IN_POLARITY_G   : slv      := "1";  -- 0 for active LOW, 1 for active HIGH (for statusIn port)
       OUT_POLARITY_G  : sl       := '1';  -- 0 for active LOW, 1 for active HIGH (for irqOut port)
       USE_DSP_G       : string   := "no"; -- "no" for no DSP implementation, "yes" to use DSP slices
-      SYNTH_CNT_G     : slv      := "1";  -- Set to 1 for synthesising counter RTL, '0' to not synthesis the counter
+      SYNTH_CNT_G     : slv      := "1";  -- Set to 1 for synthesizing counter RTL, '0' to not synthesis the counter
       CNT_RST_EDGE_G  : boolean  := true; -- true if counter reset should be edge detected, else level detected
       CNT_WIDTH_G     : positive := 32;   -- Counters' width
       WIDTH_G         : positive := 16);  -- Status vector width
