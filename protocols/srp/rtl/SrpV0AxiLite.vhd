@@ -134,7 +134,6 @@ begin
    SlaveAxiStreamFifo : entity surf.SsiFifo
       generic map (
          TPD_G               => TPD_G,
-         EN_FRAME_FILTER_G   => true,
          PIPE_STAGES_G       => 0,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
          MEMORY_TYPE_G       => MEMORY_TYPE_G,
