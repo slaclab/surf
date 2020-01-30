@@ -4,9 +4,9 @@
 -- Description:
 -- Byte packer for AXI-Stream. 
 -- Accepts an incoming stream and packs data into the outbound stream. 
--- Similiar to AxiStreamResize, but allows an input and output width to have 
+-- Similar to AxiStreamResize, but allows an input and output width to have 
 -- non multiples and for the input size to be dynamic. 
--- This module does not downsize and creates more complex combinitorial logic 
+-- This module does not downsize and creates more complex combinatorial logic 
 -- than in AxiStreamResize.
 -- Ready handshaking is not supported.
 -------------------------------------------------------------------------------
