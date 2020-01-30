@@ -41,7 +41,6 @@ entity AxiStreamFifoV2 is
       VALID_BURST_MODE_G  : boolean                    := false;  -- only used in VALID_THOLD_G>1
       -- FIFO configurations
       GEN_SYNC_FIFO_G     : boolean                    := false;
-      CASCADE_SIZE_G      : integer range 1 to (2**24) := 1;
       FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
       FIFO_FIXED_THRESH_G : boolean                    := true;
       FIFO_PAUSE_THRESH_G : integer range 1 to (2**24) := 1;
@@ -62,6 +61,7 @@ entity AxiStreamFifoV2 is
 
       -- Index = 0 is output, index = n is input
       CASCADE_PAUSE_SEL_G : integer range 0 to (2**24) := 0;
+      CASCADE_SIZE_G      : integer range 1 to (2**24) := 1;
 
       -- AXI Stream Port Configurations
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
@@ -76,7 +76,7 @@ entity AxiStreamFifoV2 is
       sAxisSlave  : out AxiStreamSlaveType;
       sAxisCtrl   : out AxiStreamCtrlType := AXI_STREAM_CTRL_INIT_C;
 
-      -- FIFO status & config , synchronous to sAxisClk, be carefull when using with
+      -- FIFO status & config , synchronous to sAxisClk, be careful when using with
       -- output pipeline stages
       fifoPauseThresh : in  slv(FIFO_ADDR_WIDTH_G-1 downto 0) := (others => '1');
       fifoWrCnt       : out slv(FIFO_ADDR_WIDTH_G-1 downto 0);
@@ -162,6 +162,8 @@ architecture rtl of AxiStreamFifoV2 is
    signal burstEn   : sl;
    signal burstLast : sl;
    signal burstCnt  : natural range 0 to VALID_THOLD_G := 0;
+
+   signal sideBand : Slv8Array(1 downto 0);
 
    ---------------
    -- Sync Signals
@@ -357,7 +359,7 @@ begin
       fifoValid     <= fifoValidInt;
    end generate;
 
-   mTLastTUser <= resize(fifoReadUser, 8);
+   sideBand(0) <= resize(fifoReadUser, 8); -- mTLastTUser
 
    -- Map output Signals
    fifoReadMaster <= toAxiStreamMaster (fifoDout, fifoValid, FIFO_CONFIG_C);
@@ -372,15 +374,18 @@ begin
       generic map (
          TPD_G               => TPD_G,
          READY_EN_G          => true,
+         SIDE_BAND_WIDTH_G   => 8,
          SLAVE_AXI_CONFIG_G  => FIFO_CONFIG_C,
          MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G) 
       port map (
-            axisClk     => mAxisClk,
-            axisRst     => mAxisRst,
-            sAxisMaster => fifoReadMaster,
-            sAxisSlave  => fifoReadSlave,
-            mAxisMaster => axisMaster,
-            mAxisSlave  => axisSlave);
+         axisClk     => mAxisClk,
+         axisRst     => mAxisRst,
+         sAxisMaster => fifoReadMaster,
+         sSideBand   => sideBand(0),
+         sAxisSlave  => fifoReadSlave,
+         mAxisMaster => axisMaster,
+         mSideBand   => sideBand(1),
+         mAxisSlave  => axisSlave);
 
    -------------------------
    -- Idle Generation
@@ -403,18 +408,20 @@ begin
 
    U_Pipe : entity surf.AxiStreamPipeline
       generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => PIPE_STAGES_G)
+         TPD_G             => TPD_G,
+         SIDE_BAND_WIDTH_G => 8,
+         PIPE_STAGES_G     => PIPE_STAGES_G)
       port map (
          -- Clock and Reset
          axisClk     => mAxisClk,
          axisRst     => mAxisRst,
          -- Slave Port
          sAxisMaster => axisMaster,
+         sSideBand   => sideBand(1),
          sAxisSlave  => axisSlave,
          -- Master Port
          mAxisMaster => mAxisMaster,
+         mSideBand   => mTLastTUser,
          mAxisSlave  => mAxisSlave);
 
 end rtl;
-
