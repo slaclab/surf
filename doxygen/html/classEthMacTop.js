@@ -10,6 +10,8 @@ var classEthMacTop =
     [ "INT_PIPE_STAGES_G", "classEthMacTop.html#a6fd7d952829a6fe922f0fbcf940fe472", null ],
     [ "PIPE_STAGES_G", "classEthMacTop.html#a91eb8c73b60497fed4baf5855a7b980f", null ],
     [ "FIFO_ADDR_WIDTH_G", "classEthMacTop.html#a98dad8f8eec34c90225c1d40dd99b6b7", null ],
+    [ "SYNTH_MODE_G", "classEthMacTop.html#a2429d17ce4f9328a982076af9f733ab3", null ],
+    [ "MEMORY_TYPE_G", "classEthMacTop.html#ac19eab973cb6c0196eed65d74fc49dca", null ],
     [ "FILT_EN_G", "classEthMacTop.html#a173f221e20a4d6a338749c3b6b5f3884", null ],
     [ "PRIM_COMMON_CLK_G", "classEthMacTop.html#a6183506ca5c6fe6ab1b85a8bcc930197", null ],
     [ "PRIM_CONFIG_G", "classEthMacTop.html#a3ce9fdc8b948728c6f27c331df080d09", null ],

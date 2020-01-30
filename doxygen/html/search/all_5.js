@@ -7,6 +7,7 @@ var searchData=
   ['ethcrc32parallel',['EthCrc32Parallel',['../classEthCrc32Parallel.html',1,'']]],
   ['ethcrc32pkg',['EthCrc32Pkg',['../classEthCrc32Pkg.html',1,'']]],
   ['ethmacflowctrl',['EthMacFlowCtrl',['../classEthMacFlowCtrl.html',1,'']]],
+  ['ethmacpausetb',['EthMacPauseTb',['../classEthMacPauseTb.html',1,'']]],
   ['ethmacpkg',['EthMacPkg',['../classEthMacPkg.html',1,'']]],
   ['ethmacrx',['EthMacRx',['../classEthMacRx.html',1,'']]],
   ['ethmacrxbypass',['EthMacRxBypass',['../classEthMacRxBypass.html',1,'']]],

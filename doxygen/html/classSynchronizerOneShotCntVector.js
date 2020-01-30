@@ -1,6 +1,6 @@
 var classSynchronizerOneShotCntVector =
 [
-    [ "SynchronizerOneShotCntVector.mapping", "classSynchronizerOneShotCntVector_1_1mapping.html", "classSynchronizerOneShotCntVector_1_1mapping" ],
+    [ "SynchronizerOneShotCntVector.rtl", "classSynchronizerOneShotCntVector_1_1rtl.html", "classSynchronizerOneShotCntVector_1_1rtl" ],
     [ "TPD_G", "classSynchronizerOneShotCntVector.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "RST_POLARITY_G", "classSynchronizerOneShotCntVector.html#a8a9f56ec06b173cf46dc7160fd7c1f30", null ],
     [ "RST_ASYNC_G", "classSynchronizerOneShotCntVector.html#a123a3d9a6e9648e763d21c0281ee7ecd", null ],
@@ -24,6 +24,8 @@ var classSynchronizerOneShotCntVector =
     [ "rdRst", "classSynchronizerOneShotCntVector.html#a1fa4849f8fb95c5edc8775d18b20d4e2", null ],
     [ "ieee", "classSynchronizerOneShotCntVector.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classSynchronizerOneShotCntVector.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "std_logic_arith", "classSynchronizerOneShotCntVector.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
+    [ "std_logic_unsigned", "classSynchronizerOneShotCntVector.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "surf", "classSynchronizerOneShotCntVector.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classSynchronizerOneShotCntVector.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

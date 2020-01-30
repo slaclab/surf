@@ -1,6 +1,7 @@
 var classAxiLiteMasterProxy =
 [
     [ "mapping", "classAxiLiteMasterProxy_1_1mapping.html", "classAxiLiteMasterProxy_1_1mapping" ],
+    [ "TPD_G", "classAxiLiteMasterProxy.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "axiClk", "classAxiLiteMasterProxy.html#a7d8781c632c75ab0fdde6e592fd13d60", null ],
     [ "axiRst", "classAxiLiteMasterProxy.html#a399a775bae9ae4819d5af6838a95e28e", null ],
     [ "sAxiReadMaster", "classAxiLiteMasterProxy.html#a4a6927771c818cbf1cdc6bdabaf4b3ad", null ],

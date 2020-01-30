@@ -1,6 +1,6 @@
 var classAxiAd5780Core_1_1rtl =
 [
-    [ "PROCESS_84", "classAxiAd5780Core_1_1rtl.html#a3655cee91360768772d5f65e58321394", null ],
+    [ "PROCESS_87", "classAxiAd5780Core_1_1rtl.html#a8283094dd9fbefb85c7248d16c53671b", null ],
     [ "status", "classAxiAd5780Core_1_1rtl.html#afa392cda88ee631fee03e6b414c679bf", null ],
     [ "config", "classAxiAd5780Core_1_1rtl.html#aaeafe33d512750147842611354c296a1", null ],
     [ "dacRst", "classAxiAd5780Core_1_1rtl.html#a20b6173220ffc32d9e2f41fe1acdb96d", null ],

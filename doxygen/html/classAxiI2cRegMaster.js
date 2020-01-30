@@ -2,6 +2,7 @@ var classAxiI2cRegMaster =
 [
     [ "mapping", "classAxiI2cRegMaster_1_1mapping.html", "classAxiI2cRegMaster_1_1mapping" ],
     [ "TPD_G", "classAxiI2cRegMaster.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "AXIL_PROXY_G", "classAxiI2cRegMaster.html#ae0001f7f6d0663bc3042f8f5eeb6c715", null ],
     [ "DEVICE_MAP_G", "classAxiI2cRegMaster.html#ae608c60095f847676a3b9aa5d883287c", null ],
     [ "I2C_SCL_FREQ_G", "classAxiI2cRegMaster.html#a67315ea2dece0a3d7cbdd3b307f1647d", null ],
     [ "I2C_MIN_PULSE_G", "classAxiI2cRegMaster.html#aa93dd372e172883312e7aba72e530921", null ],

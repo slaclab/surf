@@ -1,7 +1,6 @@
 <map id="AxiStreamPacketizer" name="AxiStreamPacketizer">
 <area shape="rect" id="node3" href="$classRssiCoreWrapper.html" title="RssiCoreWrapper" alt="" coords="210,155,343,181"/>
-<area shape="rect" id="node8" href="$classSsiFifoTb.html" title="SsiFifoTb" alt="" coords="367,155,447,181"/>
-<area shape="rect" id="node2" href="$classAxiStreamPipeline.html" title="AxiStreamPipeline(2)" alt="" coords="262,5,422,32"/>
+<area shape="rect" id="node2" href="$classAxiStreamPipeline.html" title="AxiStreamPipeline(2)" alt="" coords="197,5,357,32"/>
 <area shape="rect" id="node4" href="$classRawEthFramerTb.html" title="RawEthFramerTb" alt="" coords="5,229,137,256"/>
 <area shape="rect" id="node5" href="$classRssiCoreTb.html" title="RssiCoreTb" alt="" coords="161,229,256,256"/>
 <area shape="rect" id="node6" href="$classRssiInterleaveTb.html" title="RssiInterleaveTb" alt="" coords="281,229,411,256"/>

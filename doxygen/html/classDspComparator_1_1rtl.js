@@ -9,7 +9,7 @@ var classDspComparator_1_1rtl =
     [ "tValid", "classDspComparator_1_1rtl.html#ac2dcaf6b2d4c2301b70d0b09c14fbde8", null ],
     [ "aout", "classDspComparator_1_1rtl.html#adaec6ea6c8447a6ba4b336b8fc90e0ec", null ],
     [ "bout", "classDspComparator_1_1rtl.html#a343aa3dce41baf5bdd8ccd91969a104c", null ],
-    [ "diff", "classDspComparator_1_1rtl.html#af0eb32037f2d6eba7f11b51708cb4833", null ],
+    [ "diff", "classDspComparator_1_1rtl.html#ab5f753e4321a6a1479dc4bb1425f3534", null ],
     [ "REG_INIT_C", "classDspComparator_1_1rtl.html#ad786019b477738acf1a0a1b7c7bbd116", null ],
     [ "r", "classDspComparator_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3", null ],
     [ "rin", "classDspComparator_1_1rtl.html#a758a8cbb78916a3911d410a62191310d", null ],

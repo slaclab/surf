@@ -2,6 +2,7 @@ var classAxiI2cEeprom =
 [
     [ "mapping", "classAxiI2cEeprom_1_1mapping.html", "classAxiI2cEeprom_1_1mapping" ],
     [ "TPD_G", "classAxiI2cEeprom.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "AXIL_PROXY_G", "classAxiI2cEeprom.html#ae0001f7f6d0663bc3042f8f5eeb6c715", null ],
     [ "ADDR_WIDTH_G", "classAxiI2cEeprom.html#a318aee66fca9cc246e7100155089fd61", null ],
     [ "POLL_TIMEOUT_G", "classAxiI2cEeprom.html#a2a322da3fa6739371fc44d8490d0772a", null ],
     [ "I2C_ADDR_G", "classAxiI2cEeprom.html#a17950e90cb655bd95ba31099c9b73b2f", null ],

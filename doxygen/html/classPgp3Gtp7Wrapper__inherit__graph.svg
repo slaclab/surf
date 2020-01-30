@@ -170,7 +170,7 @@ var sectionId = 'dynsection-0';
 <g id="node17" class="node">
 <title>Node22</title>
 <g id="a_node17"><a xlink:href="classSynchronizerOneShot.html" target="_top" xlink:title="SynchronizerOneShot">
-<polygon fill="#ffffff" stroke="#000000" points="498.5,-646.5 498.5,-665.5 619.5,-665.5 619.5,-646.5 498.5,-646.5"/>
+<polygon fill="#ffffff" stroke="#ff0000" points="498.5,-646.5 498.5,-665.5 619.5,-665.5 619.5,-646.5 498.5,-646.5"/>
 <text text-anchor="middle" x="559" y="-653.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">SynchronizerOneShot</text>
 </a>
 </g>

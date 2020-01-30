@@ -1,8 +1,8 @@
 var classSyncClockFreq_1_1rtl =
 [
-    [ "PROCESS_77", "classSyncClockFreq_1_1rtl.html#a9fd0e1f32267c2ab78726d2729c35880", null ],
-    [ "PROCESS_78", "classSyncClockFreq_1_1rtl.html#a3ae094f254744eff9862ca6944a2d0a8", null ],
-    [ "PROCESS_79", "classSyncClockFreq_1_1rtl.html#a5ee156dd5a6b17b2ac56ad9e3f5446d1", null ],
+    [ "PROCESS_79", "classSyncClockFreq_1_1rtl.html#a254648c076a97631d57a2ac8ae3f651d", null ],
+    [ "PROCESS_80", "classSyncClockFreq_1_1rtl.html#a8703cf169a18c686d16b524c14e5cc00", null ],
+    [ "PROCESS_81", "classSyncClockFreq_1_1rtl.html#ab010254bf11676661396d1e6f1e945f3", null ],
     [ "REFRESH_MAX_CNT_C", "classSyncClockFreq_1_1rtl.html#a039258d9388461c7b445255495b2a94d", null ],
     [ "CLK_LOWER_LIMIT_C", "classSyncClockFreq_1_1rtl.html#ada576bdb013301e3c51b431bd8279509", null ],
     [ "CLK_UPPER_LIMIT_C", "classSyncClockFreq_1_1rtl.html#a75e47619b99a2711e55e80777e024a8e", null ],

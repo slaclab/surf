@@ -7,6 +7,7 @@ var classSsiPrbsTx =
     [ "AXI_DEFAULT_TRIG_DLY_G", "classSsiPrbsTx.html#aeb7b700dd50fbbc2f431898de46dd169", null ],
     [ "VALID_THOLD_G", "classSsiPrbsTx.html#a362ee3f61a25208de75687b2fba5e76e", null ],
     [ "VALID_BURST_MODE_G", "classSsiPrbsTx.html#a51af8500fcee91ee7cb0527506610bdb", null ],
+    [ "SYNTH_MODE_G", "classSsiPrbsTx.html#a2429d17ce4f9328a982076af9f733ab3", null ],
     [ "MEMORY_TYPE_G", "classSsiPrbsTx.html#ac19eab973cb6c0196eed65d74fc49dca", null ],
     [ "GEN_SYNC_FIFO_G", "classSsiPrbsTx.html#a74265af003d7cd4b0443ced520ac6722", null ],
     [ "CASCADE_SIZE_G", "classSsiPrbsTx.html#acaad3239d6ac206e087136445ad56292", null ],

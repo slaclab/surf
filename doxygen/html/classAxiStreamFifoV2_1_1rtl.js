@@ -32,6 +32,7 @@ var classAxiStreamFifoV2_1_1rtl =
     [ "burstEn", "classAxiStreamFifoV2_1_1rtl.html#ac209cd6352877515ed44f09a53ab4269", null ],
     [ "burstLast", "classAxiStreamFifoV2_1_1rtl.html#a623065f02a85464bd63b310817a121d5", null ],
     [ "burstCnt", "classAxiStreamFifoV2_1_1rtl.html#a35dfb46666275a288d9a7674d936b0c2", null ],
+    [ "sideBand", "classAxiStreamFifoV2_1_1rtl.html#a7c188be9c3b77ea63235596303a3a8cd", null ],
     [ "axisMaster", "classAxiStreamFifoV2_1_1rtl.html#aaecff731483baf09272209a2f9dd9d3f", null ],
     [ "axisSlave", "classAxiStreamFifoV2_1_1rtl.html#acba67d9a594fff9b063addf12b3759ea", null ],
     [ "u_slaveresize", "classAxiStreamFifoV2_1_1rtl.html#ae698c73e7c1f3941064cb1696c88063d", null ],

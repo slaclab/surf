@@ -24,6 +24,7 @@
 <area shape="rect" id="node20" href="$classFifoRdFsm.html" title="FifoRdFsm" alt="" coords="198,233,287,260"/>
 <area shape="rect" id="node21" href="$classSimpleDualPortRam.html" title="SimpleDualPortRam" alt="" coords="166,284,319,311"/>
 <area shape="rect" id="node24" href="$classUdpEngineArp.html" title="UdpEngineArp" alt="" coords="1121,208,1236,235"/>
-<area shape="rect" id="node27" href="$classRawEthFramerTb.html" title="RawEthFramerTb" alt="" coords="1624,132,1756,159"/>
-<area shape="rect" id="node28" href="$classUdpEngineTb.html" title="UdpEngineTb" alt="" coords="1636,183,1744,209"/>
+<area shape="rect" id="node27" href="$classEthMacPauseTb.html" title="EthMacPauseTb" alt="" coords="1629,107,1751,133"/>
+<area shape="rect" id="node28" href="$classRawEthFramerTb.html" title="RawEthFramerTb" alt="" coords="1624,157,1756,184"/>
+<area shape="rect" id="node29" href="$classUdpEngineTb.html" title="UdpEngineTb" alt="" coords="1636,208,1744,235"/>
 </map>

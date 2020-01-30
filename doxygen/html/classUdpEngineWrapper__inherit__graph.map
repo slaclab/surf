@@ -1,6 +1,7 @@
 <map id="UdpEngineWrapper" name="UdpEngineWrapper">
-<area shape="rect" id="node34" href="$classRawEthFramerTb.html" title="RawEthFramerTb" alt="" coords="1625,335,1757,361"/>
-<area shape="rect" id="node35" href="$classUdpEngineTb.html" title="UdpEngineTb" alt="" coords="1637,385,1745,412"/>
+<area shape="rect" id="node34" href="$classEthMacPauseTb.html" title="EthMacPauseTb" alt="" coords="1630,309,1753,336"/>
+<area shape="rect" id="node35" href="$classRawEthFramerTb.html" title="RawEthFramerTb" alt="" coords="1625,360,1757,387"/>
+<area shape="rect" id="node36" href="$classUdpEngineTb.html" title="UdpEngineTb" alt="" coords="1637,411,1745,437"/>
 <area shape="rect" id="node2" href="$classIpV4Engine.html" title="IpV4Engine" alt="" coords="1132,157,1227,184"/>
 <area shape="rect" id="node3" href="$classIpV4EngineDeMux.html" title="IpV4EngineDeMux" alt="" coords="924,208,1064,235"/>
 <area shape="rect" id="node4" href="$classAxiStreamMux.html" title="AxiStreamMux" alt="" coords="733,259,851,285"/>

@@ -3,6 +3,7 @@ var classFifoRdFsm_1_1rtl =
     [ "comb", "classFifoRdFsm_1_1rtl.html#ad03706538cb954203271b1098512114c", null ],
     [ "seq", "classFifoRdFsm_1_1rtl.html#aa92013d4f761a618464f347c1fb8fad9", null ],
     [ "seq", "classFifoRdFsm_1_1rtl.html#acdd049927b45426f6555c178cedb280d", null ],
+    [ "MAX_CNT_C", "classFifoRdFsm_1_1rtl.html#a4471077f2398e5135f98653ec9cb2c58", null ],
     [ "RegType", "classFifoRdFsm_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
     [ "rdRdy", "classFifoRdFsm_1_1rtl.html#a1f62920dc11f6ce4e77a13c20512771e", null ],
     [ "tValid", "classFifoRdFsm_1_1rtl.html#ab9de2c8a9506d175edc84cd1e6b7a5e6", null ],

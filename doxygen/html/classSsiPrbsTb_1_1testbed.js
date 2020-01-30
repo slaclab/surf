@@ -1,8 +1,8 @@
 var classSsiPrbsTb_1_1testbed =
 [
     [ "PrbsAxiStreamConfig", "classSsiPrbsTb_1_1testbed.html#ace2dd5a036d384b4c60d210263ca71ee", null ],
-    [ "PROCESS_202", "classSsiPrbsTb_1_1testbed.html#af490ac5274cc34eed96a9efcd57401a7", null ],
-    [ "PROCESS_203", "classSsiPrbsTb_1_1testbed.html#ac8dd6877f8109f9d470f4280b13676ba", null ],
+    [ "PROCESS_207", "classSsiPrbsTb_1_1testbed.html#aa87cd5778be707e8080504eeae6e1ad3", null ],
+    [ "PROCESS_208", "classSsiPrbsTb_1_1testbed.html#aa2f573c1eeed3ad79d1682eb28565de3", null ],
     [ "SLOW_CLK_PERIOD_C", "classSsiPrbsTb_1_1testbed.html#a460a704dd487b7a3b8351937bc05eee3", null ],
     [ "FAST_CLK_PERIOD_C", "classSsiPrbsTb_1_1testbed.html#aa408b97e44d2398b2cb93c18c402250f", null ],
     [ "TPD_C", "classSsiPrbsTb_1_1testbed.html#abbf6ac70f7039f92108934a309e161f7", null ],

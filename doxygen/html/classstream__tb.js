@@ -1,6 +1,6 @@
 var classstream__tb =
 [
-    [ "stream_tb", "classstream__tb_1_1stream__tb.html", "classstream__tb_1_1stream__tb" ],
+    [ "stream_tb.stream_tb", "classstream__tb_1_1stream__tb.html", "classstream__tb_1_1stream__tb" ],
     [ "ieee", "classstream__tb.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classstream__tb.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_arith", "classstream__tb.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],

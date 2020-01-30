@@ -2,6 +2,8 @@ var classEthMacRxFifo =
 [
     [ "rtl", "classEthMacRxFifo_1_1rtl.html", "classEthMacRxFifo_1_1rtl" ],
     [ "TPD_G", "classEthMacRxFifo.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "SYNTH_MODE_G", "classEthMacRxFifo.html#a2429d17ce4f9328a982076af9f733ab3", null ],
+    [ "MEMORY_TYPE_G", "classEthMacRxFifo.html#ac19eab973cb6c0196eed65d74fc49dca", null ],
     [ "DROP_ERR_PKT_G", "classEthMacRxFifo.html#adf5aafc981fce427b9cf8ca378a17602", null ],
     [ "INT_PIPE_STAGES_G", "classEthMacRxFifo.html#a6fd7d952829a6fe922f0fbcf940fe472", null ],
     [ "PIPE_STAGES_G", "classEthMacRxFifo.html#a91eb8c73b60497fed4baf5855a7b980f", null ],

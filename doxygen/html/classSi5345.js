@@ -11,6 +11,7 @@ var classSi5345 =
     [ "axiReadSlave", "classSi5345.html#af5301f308dc850ff6d3b80315d2e644c", null ],
     [ "axiWriteMaster", "classSi5345.html#abf08eac4311749af56c8ec14b1903091", null ],
     [ "axiWriteSlave", "classSi5345.html#a0eb32e5fab67488b94fb47c9fe42e97f", null ],
+    [ "booting", "classSi5345.html#a783dc340c2fd56c9ea0ed4d6952f9698", null ],
     [ "coreRst", "classSi5345.html#a1595d8506b38ed37c57a898de800b108", null ],
     [ "coreSclk", "classSi5345.html#a656e835a0890a162151082bef7ac3400", null ],
     [ "coreSDin", "classSi5345.html#a235365c8c85be8348cd9dcfd86cf53d8", null ],
