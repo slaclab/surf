@@ -22,13 +22,13 @@ use surf.StdRtlPkg.all;
 entity SynchronizerOneShot is
    generic (
       TPD_G           : time     := 1 ns;   -- Simulation FF output delay
-      RST_POLARITY_G  : sl       := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_POLARITY_G  : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G     : boolean  := false;  -- Reset is asynchronous
       BYPASS_SYNC_G   : boolean  := false;  -- Bypass RstSync module for synchronous data configuration
       RELEASE_DELAY_G : positive := 3;  -- Delay between deassertion of async and sync resets
-      IN_POLARITY_G   : sl       := '1';    -- 0 for active LOW, 1 for active HIGH
-      OUT_POLARITY_G  : sl       := '1';    -- 0 for active LOW, 1 for active HIGH
-      PULSE_WIDTH_G   : positive := 1);     -- one-shot pulse width duration (units of clk cycles)
+      IN_POLARITY_G   : sl       := '1';  -- 0 for active LOW, 1 for active HIGH
+      OUT_POLARITY_G  : sl       := '1';  -- 0 for active LOW, 1 for active HIGH
+      PULSE_WIDTH_G   : positive := 1);  -- one-shot pulse width duration (units of clk cycles)
    port (
       clk     : in  sl;                 -- Clock to be SYNC'd to
       rst     : in  sl := not RST_POLARITY_G;  -- Optional reset
@@ -64,17 +64,22 @@ architecture rtl of SynchronizerOneShot is
 
 begin
 
-   RstSync_Inst : entity surf.RstSync
-      generic map (
-         TPD_G           => TPD_G,
-         RELEASE_DELAY_G => RELEASE_DELAY_G,
-         BYPASS_SYNC_G   => BYPASS_SYNC_G,
-         IN_POLARITY_G   => IN_POLARITY_G,
-         OUT_POLARITY_G  => '1')
-      port map (
-         clk      => clk,
-         asyncRst => dataIn,
-         syncRst  => pulseRst);
+   GEN_SYNC : if (BYPASS_SYNC_G = true) generate
+      pulseRst <= dataIn when(IN_POLARITY_G = '1') else not(dataIn);
+   end generate;
+
+   GEN_ASYNC : if (BYPASS_SYNC_G = false) generate
+      RstSync_Inst : entity surf.RstSync
+         generic map (
+            TPD_G           => TPD_G,
+            RELEASE_DELAY_G => RELEASE_DELAY_G,
+            IN_POLARITY_G   => IN_POLARITY_G,
+            OUT_POLARITY_G  => '1')
+         port map (
+            clk      => clk,
+            asyncRst => dataIn,
+            syncRst  => pulseRst);
+   end generate;
 
    Sync_Pulse : entity surf.SynchronizerEdge
       generic map (
@@ -93,7 +98,7 @@ begin
    end generate;
 
    U_PulseStretcher : if (PULSE_WIDTH_G > 1) generate
-      
+
       comb : process (edgeDet, r, rst) is
          variable v : RegType;
       begin
@@ -129,7 +134,7 @@ begin
          end case;
 
          -- Combinatorial outputs before the reset
-         dataOut <= v.dataOut;         
+         dataOut <= v.dataOut;
 
          -- Reset
          if (rst = RST_POLARITY_G) then
@@ -147,7 +152,7 @@ begin
             r <= rin after TPD_G;
          end if;
       end process seq;
-      
+
    end generate;
 
 end architecture rtl;
