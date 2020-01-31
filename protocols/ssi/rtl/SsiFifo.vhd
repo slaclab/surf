@@ -69,18 +69,18 @@ entity SsiFifo is
       sAxisMaster     : in  AxiStreamMasterType;
       sAxisSlave      : out AxiStreamSlaveType;
       sAxisCtrl       : out AxiStreamCtrlType;
-      sAxisDropWord   : out sl;
-      sAxisDropFrame  : out sl;
       -- FIFO status & config (sAxisClk domain)
       fifoPauseThresh : in  slv(FIFO_ADDR_WIDTH_G-1 downto 0) := (others => '1');
       fifoWrCnt       : out slv(FIFO_ADDR_WIDTH_G-1 downto 0);
+      sAxisDropWord   : out sl;
+      sAxisDropFrame  : out sl;
+      mAxisDropWord   : out sl;
+      mAxisDropFrame  : out sl;
       -- Master Interface (mAxisClk domain)
       mAxisClk        : in  sl;
       mAxisRst        : in  sl;
       mAxisMaster     : out AxiStreamMasterType;
-      mAxisSlave      : in  AxiStreamSlaveType;
-      mAxisDropWord   : out sl;
-      mAxisDropFrame  : out sl);
+      mAxisSlave      : in  AxiStreamSlaveType);
 end SsiFifo;
 
 architecture mapping of SsiFifo is
@@ -92,6 +92,9 @@ architecture mapping of SsiFifo is
    signal txMaster     : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal txSlave      : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
    signal txTLastTUser : slv(7 downto 0)     := x"00";
+
+   signal obAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal obAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
 
 begin
 
@@ -133,7 +136,7 @@ begin
          SLAVE_READY_EN_G       => true,  -- Using TREADY between FIFO and IbFilter
          VALID_THOLD_G          => VALID_THOLD_G,
          VALID_BURST_MODE_G     => VALID_BURST_MODE_G,
-         GEN_SYNC_FIFO_G        => GEN_SYNC_FIFO_G,
+         GEN_SYNC_FIFO_G        => true,  -- Using external U_ASYNC_FIFO instead
          FIFO_ADDR_WIDTH_G      => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G    => FIFO_FIXED_THRESH_G,
          FIFO_PAUSE_THRESH_G    => FIFO_PAUSE_THRESH_G,
@@ -157,8 +160,8 @@ begin
          fifoPauseThresh => fifoPauseThresh,
          fifoWrCnt       => fifoWrCnt,
          -- Master Interface (sAxisClk domain)
-         mAxisClk        => mAxisClk,
-         mAxisRst        => mAxisRst,
+         mAxisClk        => sAxisClk,
+         mAxisRst        => sAxisRst,
          mAxisMaster     => txMaster,
          mAxisSlave      => txSlave,
          mTLastTUser     => txTLastTUser);
@@ -175,12 +178,45 @@ begin
          sAxisSlave     => txSlave,
          sTLastTUser    => txTLastTUser,
          -- Master Interface
-         mAxisMaster    => mAxisMaster,
-         mAxisSlave     => mAxisSlave,
+         mAxisMaster    => obAxisMaster,
+         mAxisSlave     => obAxisSlave,
          mAxisDropWord  => mAxisDropWord,
          mAxisDropFrame => mAxisDropFrame,
          -- Clock and Reset
-         axisClk        => mAxisClk,
-         axisRst        => mAxisRst);
+         axisClk        => sAxisClk,
+         axisRst        => sAxisRst);
+
+   GEN_ASYNC : if (GEN_SYNC_FIFO_G = false) generate
+      U_ASYNC_FIFO : entity surf.AxiStreamFifoV2
+         generic map (
+            -- General Configurations
+            TPD_G               => TPD_G,
+            INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
+            PIPE_STAGES_G       => PIPE_STAGES_G,
+            -- FIFO configurations
+            SYNTH_MODE_G        => SYNTH_MODE_G,
+            MEMORY_TYPE_G       => "distributed",
+            GEN_SYNC_FIFO_G     => false,
+            FIFO_ADDR_WIDTH_G   => 5,
+            -- AXI Stream Port Configurations
+            SLAVE_AXI_CONFIG_G  => MASTER_AXI_CONFIG_G,
+            MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G)
+         port map (
+            -- Slave Port
+            sAxisClk    => sAxisClk,
+            sAxisRst    => sAxisRst,
+            sAxisMaster => obAxisMaster,
+            sAxisSlave  => obAxisSlave,
+            -- Master Port
+            mAxisClk    => mAxisClk,
+            mAxisRst    => mAxisRst,
+            mAxisMaster => mAxisMaster,
+            mAxisSlave  => mAxisSlave);
+   end generate;
+
+   GEN_SYNC : if (GEN_SYNC_FIFO_G = true) generate
+      mAxisMaster <= obAxisMaster;
+      obAxisSlave <= mAxisSlave;
+   end generate;
 
 end mapping;
