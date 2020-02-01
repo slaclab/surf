@@ -80,6 +80,7 @@ entity AxiStreamFifoV2 is
       -- output pipeline stages
       fifoPauseThresh : in  slv(FIFO_ADDR_WIDTH_G-1 downto 0) := (others => '1');
       fifoWrCnt       : out slv(FIFO_ADDR_WIDTH_G-1 downto 0);
+      fifoFull        : out sl;
 
       -- Master Port
       mAxisClk    : in  sl;
@@ -258,6 +259,7 @@ begin
          prog_full     => fifoPFull,
          progFullVec   => fifoPFullVec,
          almost_full   => fifoAFull,
+         full          => fifoFull,
          rd_clk        => mAxisClk,
          rd_en         => fifoRead,
          dout          => fifoDout,
