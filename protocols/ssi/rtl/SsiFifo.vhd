@@ -20,6 +20,8 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -76,6 +78,7 @@ entity SsiFifo is
       sAxisDropFrame  : out sl;
       mAxisDropWord   : out sl;
       mAxisDropFrame  : out sl;
+      lockupRstEvent  : out sl;
       -- Master Interface (mAxisClk domain)
       mAxisClk        : in  sl;
       mAxisRst        : in  sl;
@@ -83,7 +86,25 @@ entity SsiFifo is
       mAxisSlave      : in  AxiStreamSlaveType);
 end SsiFifo;
 
-architecture mapping of SsiFifo is
+architecture rtl of SsiFifo is
+
+   type StateType is (
+      WAIT_S,
+      MON_S);
+
+   type RegType is record
+      fifoRst : sl;
+      cnt     : slv(3 downto 0);
+      state   : StateType;
+   end record RegType;
+
+   constant REG_INIT_C : RegType := (
+      fifoRst => '0',
+      cnt     => x"0",
+      state   => WAIT_S);
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
 
    signal rxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal rxSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
@@ -96,6 +117,9 @@ architecture mapping of SsiFifo is
    signal obAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal obAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
 
+   signal fifoFull : sl := '0';
+   signal fifoRst  : sl := '0';
+
 begin
 
 --   assert (SLAVE_AXI_CONFIG_G.TDEST_INTERLEAVE_C = false) 
@@ -107,6 +131,9 @@ begin
    assert (MASTER_AXI_CONFIG_G.TUSER_BITS_C >= 2)
       report "SsiFifo:  MASTER_AXI_CONFIG_G.TUSER_BITS_C must be >= 2" severity failure;
 
+   ----------------------
+   -- Inbound FIFO Filter
+   ----------------------
    U_IbFilter : entity surf.SsiIbFrameFilter
       generic map (
          TPD_G            => TPD_G,
@@ -127,6 +154,9 @@ begin
          axisClk        => sAxisClk,
          axisRst        => sAxisRst);
 
+   ------------------
+   -- AXI Stream FIFO
+   ------------------
    U_Fifo : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
@@ -152,20 +182,92 @@ begin
       port map (
          -- Slave Interface (sAxisClk domain)
          sAxisClk        => sAxisClk,
-         sAxisRst        => sAxisRst,
+         sAxisRst        => fifoRst,
          sAxisMaster     => rxMaster,
          sAxisSlave      => rxSlave,
          sAxisCtrl       => rxCtrl,
          -- FIFO status & config (sAxisClk domain)
          fifoPauseThresh => fifoPauseThresh,
          fifoWrCnt       => fifoWrCnt,
+         fifoFull        => fifoFull,
          -- Master Interface (sAxisClk domain)
          mAxisClk        => sAxisClk,
-         mAxisRst        => sAxisRst,
+         mAxisRst        => fifoRst,
          mAxisMaster     => txMaster,
          mAxisSlave      => txSlave,
          mTLastTUser     => txTLastTUser);
 
+   --------------
+   -- Normal Mode
+   --------------
+   NOT_CACHED : if (VALID_THOLD_G = 1) generate
+      fifoRst        <= sAxisRst;
+      lockupRstEvent <= '0';
+   end generate;
+
+   ---------------------------------------------
+   -- Prevent locking up when VALID_THOLD_G /= 1
+   ---------------------------------------------
+   PREVENT_LOCKUP : if (VALID_THOLD_G /= 1) generate
+
+      comb : process (fifoFull, r, sAxisRst, txMaster) is
+         variable v : RegType;
+      begin
+         -- Latch the current value
+         v := r;
+
+         -- Reset strobe Signals
+         v.fifoRst := '0';
+
+         -- State Machine
+         case (r.state) is
+            ----------------------------------------------------------------------
+            when WAIT_S =>
+               -- Increment the counter
+               v.cnt := r.cnt + 1;
+               -- Check for roll over (allowing FIFO to settle after rst)
+               if (v.cnt = 0) then
+                  -- Next state
+                  v.state := MON_S;
+               end if;
+            ----------------------------------------------------------------------
+            when MON_S =>
+               -- Check for lock up condition
+               if (fifoFull = '1') and (txMaster.tValid = '0') then
+                  -- Reset the FIFO to get out of lockup state
+                  v.fifoRst := '1';
+                  -- Next state
+                  v.state   := WAIT_S;
+               end if;
+         ----------------------------------------------------------------------
+         end case;
+
+         -- Outputs
+         lockupRstEvent <= r.fifoRst;
+         fifoRst        <= r.fifoRst or sAxisRst;
+
+         -- Synchronous Reset
+         if (sAxisRst = '1') then
+            v := REG_INIT_C;
+         end if;
+
+         -- Register the variable for next clock cycle
+         rin <= v;
+
+      end process comb;
+
+      seq : process (sAxisClk) is
+      begin
+         if rising_edge(sAxisClk) then
+            r <= rin after TPD_G;
+         end if;
+      end process seq;
+
+   end generate;
+
+   -----------------------
+   -- Outbound FIFO Filter
+   -----------------------
    U_ObFilter : entity surf.SsiObFrameFilter
       generic map (
          TPD_G         => TPD_G,
@@ -186,6 +288,9 @@ begin
          axisClk        => sAxisClk,
          axisRst        => sAxisRst);
 
+   -----------------------
+   -- sAxisClk /= mAxisClk
+   -----------------------
    GEN_ASYNC : if (GEN_SYNC_FIFO_G = false) generate
       U_ASYNC_FIFO : entity surf.AxiStreamFifoV2
          generic map (
@@ -214,9 +319,12 @@ begin
             mAxisSlave  => mAxisSlave);
    end generate;
 
+   ----------------------
+   -- sAxisClk = mAxisClk
+   ----------------------
    GEN_SYNC : if (GEN_SYNC_FIFO_G = true) generate
       mAxisMaster <= obAxisMaster;
       obAxisSlave <= mAxisSlave;
    end generate;
 
-end mapping;
+end rtl;
