@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SyncMinMax.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: General Purpose Max/Min monitor and synchronizer
@@ -18,7 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SyncMinMax is
    generic (
@@ -26,6 +27,8 @@ entity SyncMinMax is
       COMMON_CLK_G : boolean  := false;
       WIDTH_G      : positive := 16);
    port (
+      -- ASYNC statistics reset
+      rstStat : in  sl;
       -- Write Interface (wrClk domain)
       wrClk   : in  sl;
       wrRst   : in  sl := '0';
@@ -34,7 +37,6 @@ entity SyncMinMax is
       -- Read Interface (rdClk domain)
       rdClk   : in  sl;
       rdEn    : in  sl := '1';
-      rstStat : in  sl;
       updated : out sl;
       dataOut : out slv(WIDTH_G-1 downto 0);
       dataMin : out slv(WIDTH_G-1 downto 0);
@@ -44,25 +46,34 @@ end SyncMinMax;
 architecture rtl of SyncMinMax is
 
    type RegType is record
+      armed   : sl;
       update  : sl;
       dataIn  : slv(WIDTH_G-1 downto 0);
       dataMin : slv(WIDTH_G-1 downto 0);
       dataMax : slv(WIDTH_G-1 downto 0);
    end record RegType;
    constant REG_INIT_C : RegType := (
-      update  => '1',
+      armed   => '0',
+      update  => '0',
       dataIn  => (others => '0'),
-      dataMin => (others => '1'),
+      dataMin => (others => '0'),
       dataMax => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
    signal resetStat : sl;
+   signal ls        : sl;
+   signal gt        : sl;
+   signal valid     : sl;
+   signal data      : slv(WIDTH_G-1 downto 0);
+
+   signal dataMinFeadback : slv(WIDTH_G-1 downto 0);
+   signal dataMaxFeadback : slv(WIDTH_G-1 downto 0);
 
 begin
 
-   U_rstStat : entity work.SynchronizerOneShot
+   U_rstStat : entity surf.SynchronizerOneShot
       generic map (
          TPD_G         => TPD_G,
          BYPASS_SYNC_G => COMMON_CLK_G)
@@ -71,7 +82,36 @@ begin
          dataIn  => rstStat,
          dataOut => resetStat);
 
-   process (dataIn, r, resetStat, wrEn, wrRst) is
+   U_LessThan : entity surf.DspComparator
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => WIDTH_G)
+      port map (
+         clk     => wrClk,
+         -- Inbound Interface
+         ibValid => wrEn,
+         ain     => dataIn,
+         bin     => dataMinFeadback,
+         -- Outbound Interface
+         ls      => ls);                --  (a <  b)
+
+   U_GreaterThan : entity surf.DspComparator
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => WIDTH_G)
+      port map (
+         clk     => wrClk,
+         -- Inbound Interface
+         ibValid => wrEn,
+         ain     => dataIn,
+         bin     => dataMaxFeadback,
+         -- Outbound Interface
+         obValid => valid,
+         aout    => data,
+         -- gt      => gt);                --  (a >  b)
+         gtEq    => gt);  --  Using gtEq because better performance than gt in the DspComparator.vhd, and gtEq give the same result as gt with respect to this module's implementation
+
+   process (data, gt, ls, r, resetStat, valid, wrRst) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -81,22 +121,40 @@ begin
       v.update := '0';
 
       -- Check for write clock enable
-      if (wrEn = '1') then
+      if (valid = '1') then
 
          -- Set the flag
          v.update := '1';
 
-         -- Check for min value
-         if (dataIn < r.dataMin) then
-            v.dataMin := dataIn;
-         end if;
+         -- Check if first time after reset
+         if (r.armed = '0') then
 
-         -- Check for max value
-         if (dataIn > r.dataMax) then
-            v.dataMax := dataIn;
+            -- Set the flag
+            v.armed := '1';
+
+            -- Pass the current values to the statistics measurements
+            v.dataMin := data;
+            v.dataMax := data;
+
+         else
+
+            -- Check for min value
+            if (ls = '1') then
+               v.dataMin := data;
+            end if;
+
+            -- Check for max value
+            if (gt = '1') then
+               v.dataMax := data;
+            end if;
+
          end if;
 
       end if;
+
+      -- Outputs
+      dataMinFeadback <= v.dataMin;
+      dataMaxFeadback <= v.dataMax;
 
       -- Reset
       if (wrRst = '1') or (resetStat = '1') then
@@ -115,7 +173,7 @@ begin
       end if;
    end process;
 
-   U_dataOut : entity work.SynchronizerFifo
+   U_dataOut : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G,
@@ -123,14 +181,14 @@ begin
       port map (
          -- Write Interface
          wr_clk => wrClk,
-         wr_en  => wrEn,
-         din    => dataIn,
+         wr_en  => valid,
+         din    => data,
          -- Read Interface
          rd_clk => rdClk,
          rd_en  => rdEn,
          dout   => dataOut);
 
-   U_dataMin : entity work.SynchronizerFifo
+   U_dataMin : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G,
@@ -145,7 +203,7 @@ begin
          rd_en  => rdEn,
          dout   => dataMin);
 
-   U_dataMax : entity work.SynchronizerFifo
+   U_dataMax : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G,

@@ -33,7 +33,7 @@ class Xadc(pr.Device):
             
         def addPair(name,offset,bitSize,units,bitOffset,description,function,pollInterval = 0,):
             self.add(pr.RemoteVariable(  
-                name         = (name+"Raw"), 
+                name         = ("Raw"+name), 
                 offset       = offset, 
                 bitSize      = bitSize, 
                 bitOffset    = bitOffset,
@@ -49,7 +49,7 @@ class Xadc(pr.Device):
                 units        = units,
                 linkedGet    = function,
                 disp         = '{:1.3f}',
-                dependencies = [self.variables[name+"Raw"]],
+                dependencies = [self.variables["Raw"+name]],
             ))
             
         addPair(

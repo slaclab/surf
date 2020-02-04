@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : RogueTcpStreamWrap.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Rogue Stream Module
@@ -17,8 +16,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 
 entity RogueTcpStreamWrap is
    generic (
@@ -70,7 +71,7 @@ begin
    ----------------
    -- Inbound DEMUX
    ----------------
-   U_DeMux : entity work.AxiStreamDeMux
+   U_DeMux : entity surf.AxiStreamDeMux
       generic map (
          TPD_G         => 1 ns,
          NUM_MASTERS_G => CHAN_COUNT_G)
@@ -89,7 +90,7 @@ begin
       ------------------
       -- Inbound Resizer 
       ------------------
-      U_Ib_Resize : entity work.AxiStreamResize
+      U_Ib_Resize : entity surf.AxiStreamResize
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
@@ -110,7 +111,7 @@ begin
       ------------------------------------
       -- Sim Core
       ------------------------------------
-      U_RogueTcpStream : entity work.RogueTcpStream
+      U_RogueTcpStream : entity surf.RogueTcpStream
          port map(
             clock      => axisClk,
             reset      => axisRst,
@@ -144,7 +145,7 @@ begin
       -------------------
       -- Outbound Resizer 
       -------------------
-      U_Ob_Resize : entity work.AxiStreamResize
+      U_Ob_Resize : entity surf.AxiStreamResize
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
@@ -167,7 +168,7 @@ begin
    ---------------
    -- Outbound MUX
    ---------------
-   U_Mux : entity work.AxiStreamMux
+   U_Mux : entity surf.AxiStreamMux
       generic map (
          TPD_G        => 1 ns,
          NUM_SLAVES_G => CHAN_COUNT_G)

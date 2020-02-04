@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteIpBusBridgeTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the AxiLiteIpBusBridgeTb module
@@ -18,9 +17,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.BuildInfoPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+
+library ruckus;
+use ruckus.BuildInfoPkg.all;
 
 entity AxiLiteIpBusBridgeTb is end AxiLiteIpBusBridgeTb;
 
@@ -62,7 +65,7 @@ begin
    --------------------
    -- Clocks and Resets
    --------------------
-   U_axilClk : entity work.ClkRst
+   U_axilClk : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_G,
          RST_START_DELAY_G => 0 ns,
@@ -115,7 +118,7 @@ begin
    ----------------------------
    -- Axi-Lite to IP bus Bridge
    ----------------------------
-   U_AxiLiteToIpBus : entity work.AxiLiteToIpBus
+   U_AxiLiteToIpBus : entity surf.AxiLiteToIpBus
       generic map (
          TPD_G        => TPD_G)
       port map (
@@ -139,7 +142,7 @@ begin
    ----------------------------
    -- IP Bus to Axi-Lite Bridge
    ----------------------------        
-   U_IpBusToAxiLite : entity work.IpBusToAxiLite
+   U_IpBusToAxiLite : entity surf.IpBusToAxiLite
       generic map (
          TPD_G        => TPD_G)
       port map (   
@@ -163,7 +166,7 @@ begin
    --------------------------
    -- Example Register Module
    --------------------------
-   U_Version : entity work.AxiVersion
+   U_Version : entity surf.AxiVersion
       generic map (
          TPD_G        => TPD_G,
          BUILD_INFO_G => SIM_BUILD_INFO_C)

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiMicronMt28ewPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AxiMicronMt28ew Package File
@@ -16,7 +15,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 package AxiMicronMt28ewPkg is
 

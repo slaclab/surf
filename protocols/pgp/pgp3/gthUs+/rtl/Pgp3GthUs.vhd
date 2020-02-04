@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
--- File       : Pgp3GthUs.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: PGPv3 GTH Ultrscale Core Module
@@ -21,10 +20,12 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.Pgp3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Pgp3Pkg.all;
 
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
@@ -154,7 +155,7 @@ begin
    --gtTxUserReset <= pgpTxRst;
 
    GEN_XBAR : if (EN_DRP_G and EN_PGP_MON_G) generate
-      U_XBAR : entity work.AxiLiteCrossbar
+      U_XBAR : entity surf.AxiLiteCrossbar
          generic map (
             TPD_G              => TPD_G,
             NUM_SLAVE_SLOTS_G  => 1,
@@ -190,10 +191,9 @@ begin
    end generate GEN_PGP_MON_ONLY;
 
 
-   U_Pgp3Core_1 : entity work.Pgp3Core
+   U_Pgp3Core_1 : entity surf.Pgp3Core
       generic map (
          TPD_G                       => TPD_G,
-         SYNTH_MODE_G                => SYNTH_MODE_G,
          NUM_VC_G                    => NUM_VC_G,
          PGP_RX_ENABLE_G             => PGP_RX_ENABLE_G,
          RX_ALIGN_SLIP_WAIT_G        => RX_ALIGN_SLIP_WAIT_G,
@@ -250,7 +250,7 @@ begin
    --------------------------
    -- Wrapper for GTH IP core
    --------------------------
-   U_Pgp3GthUsIpWrapper_1 : entity work.Pgp3GthUsIpWrapper
+   U_Pgp3GthUsIpWrapper_1 : entity surf.Pgp3GthUsIpWrapper
       generic map (
          TPD_G         => TPD_G,
          TX_POLARITY_G => TX_POLARITY_G,

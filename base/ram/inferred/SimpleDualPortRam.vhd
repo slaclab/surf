@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SimpleDualPortRam.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: This will infer this module as either Block RAM or distributed RAM
@@ -18,16 +17,16 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SimpleDualPortRam is
    generic (
       TPD_G          : time                       := 1 ns;
       RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low      
-      BRAM_EN_G      : boolean                    := true;
+      MEMORY_TYPE_G  : string                     := "block";
       DOB_REG_G      : boolean                    := false;  -- Extra reg on doutb (folded into BRAM)
-      ALTERA_SYN_G   : boolean                    := false;
-      ALTERA_RAM_G   : string                     := "M9K";
       BYTE_WR_EN_G   : boolean                    := false;
       DATA_WIDTH_G   : integer range 1 to (2**24) := 16;
       BYTE_WIDTH_G   : integer                    := 8;  -- If BRAM, should be multiple or 8 or 9
@@ -60,8 +59,7 @@ architecture rtl of SimpleDualPortRam is
 
    constant INIT_C : slv(FULL_DATA_WIDTH_C-1 downto 0) := ite(INIT_G = "0", slvZero(FULL_DATA_WIDTH_C), INIT_G);
 
-   constant XST_BRAM_STYLE_C    : string := ite(BRAM_EN_G, "block", "distributed");
-   constant ALTERA_BRAM_STYLE_C : string := ite(BRAM_EN_G, ALTERA_RAM_G, "MLAB");
+   constant XST_BRAM_STYLE_C    : string := MEMORY_TYPE_G;
 
    -- Shared memory 
    type mem_type is array ((2**ADDR_WIDTH_G)-1 downto 0) of slv(FULL_DATA_WIDTH_C-1 downto 0);
@@ -85,22 +83,7 @@ architecture rtl of SimpleDualPortRam is
    attribute syn_keep        : string;
    attribute syn_keep of mem : variable is "TRUE";
 
-   -- Attribute for Altera Synthesizer
-   attribute ramstyle        : string;
-   attribute ramstyle of mem : variable is ALTERA_BRAM_STYLE_C;
-
 begin
-
-   -- ALTERA_RAM_G check
-   assert ((ALTERA_RAM_G = "M512")
-           or (ALTERA_RAM_G = "M4K")
-           or (ALTERA_RAM_G = "M9K")
-           or (ALTERA_RAM_G = "M10K")
-           or (ALTERA_RAM_G = "M20K")
-           or (ALTERA_RAM_G = "M144K")
-           or (ALTERA_RAM_G = "M-RAM"))
-      report "Invalid ALTERA_RAM_G string"
-      severity failure;
 
    weaByteInt <= weaByte when BYTE_WR_EN_G else (others => wea);
 
@@ -119,47 +102,31 @@ begin
       end if;
    end process;
 
+   -- Port B
+   process(clkb)
+   begin
+      if rising_edge(clkb) then
+         if rstb = RST_POLARITY_G then
+            doutbInt <= INIT_C after TPD_G;
+         elsif enb = '1' then
+            doutBInt <= mem(conv_integer(addrb)) after TPD_G;
+         end if;
+      end if;
+   end process;
 
-   XILINX_BUILD : if (ALTERA_SYN_G = false) generate
-      -- Port B
-      process(clkb)
+   NO_REG : if (not DOB_REG_G) generate
+      doutb <= doutBInt(DATA_WIDTH_G-1 downto 0);
+   end generate NO_REG;
+
+   REG : if (DOB_REG_G) generate
+      process (clkb)
       begin
-         if rising_edge(clkb) then
-            if rstb = RST_POLARITY_G then
-               doutbInt <= INIT_C after TPD_G;
-            elsif enb = '1' then
-               doutBInt <= mem(conv_integer(addrb)) after TPD_G;
+         if (rising_edge(clkb)) then
+            if regceb = '1' then
+               doutb <= doutBInt(DATA_WIDTH_G-1 downto 0) after TPD_G;
             end if;
          end if;
       end process;
-
-      NO_REG : if (not DOB_REG_G) generate
-         doutb <= doutBInt(DATA_WIDTH_G-1 downto 0);
-      end generate NO_REG;
-
-      REG : if (DOB_REG_G) generate
-         process (clkb)
-         begin
-            if (rising_edge(clkb)) then
-               if regceb = '1' then
-                  doutb <= doutBInt(DATA_WIDTH_G-1 downto 0) after TPD_G;
-               end if;
-            end if;
-         end process;
-      end generate REG;
-   end generate;
-
-   ---------------------------------------------------------------
-   --NOTE: rstb and enb not supported in Altera when inferring RAM
-   ---------------------------------------------------------------
-   ALTERA_BUILD : if (ALTERA_SYN_G = true) generate
-      -- Port B
-      process(clkb)
-      begin
-         if rising_edge(clkb) then
-            doutb <= mem(conv_integer(addrb))(DATA_WIDTH_G-1 downto 0) after TPD_G;
-         end if;
-      end process;
-   end generate;
+   end generate REG;
 
 end rtl;

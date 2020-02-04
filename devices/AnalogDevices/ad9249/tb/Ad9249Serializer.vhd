@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Ad9249Serializer.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 14 bit DDR deserializer using 7 series IDELAYE2 and ISERDESE2.
@@ -15,7 +14,9 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 library UNISIM;
 use UNISIM.vcomponents.all;
 

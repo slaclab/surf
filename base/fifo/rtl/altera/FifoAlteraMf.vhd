@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : FifoAlteraMf.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Xilinx XPM FIFO module
@@ -18,7 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 library altera_mf;
 use altera_mf_altera_mf_components.all;
@@ -196,7 +197,7 @@ begin
 
    GEN_PIPE : if ((FWFT_EN_G = true) and (PIPE_STAGES_G /= 0)) generate
 
-      U_Pipeline : entity work.FifoOutputPipeline
+      U_Pipeline : entity surf.FifoOutputPipeline
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => RST_POLARITY_G,

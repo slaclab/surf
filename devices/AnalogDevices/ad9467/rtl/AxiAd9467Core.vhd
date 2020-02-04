@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiAd9467Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to AD9467 ADC IC
@@ -16,9 +15,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiAd9467Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiAd9467Pkg.all;
 
 entity AxiAd9467Core is
    generic (
@@ -58,7 +59,7 @@ begin
 
    adcData <= status.adcData;
 
-   AxiAd9467Reg_Inst : entity work.AxiAd9467Reg
+   AxiAd9467Reg_Inst : entity surf.AxiAd9467Reg
       generic map(
          TPD_G              => TPD_G,
          DEMUX_INIT_G       => DEMUX_INIT_G,
@@ -80,7 +81,7 @@ begin
          adcRst         => adcRst,
          refClk200Mhz   => refClk200Mhz);
 
-   AxiAd9467Spi_Inst : entity work.AxiAd9467Spi
+   AxiAd9467Spi_Inst : entity surf.AxiAd9467Spi
       generic map(
          TPD_G          => TPD_G,
          AXI_CLK_FREQ_G => AXI_CLK_FREQ_G)
@@ -95,7 +96,7 @@ begin
          adcSpiIn  => config.spi,
          adcSpiOut => status.spi);
 
-   AxiAd9467Pll_Inst : entity work.AxiAd9467Pll
+   AxiAd9467Pll_Inst : entity surf.AxiAd9467Pll
       generic map(
          TPD_G          => TPD_G,
          ADC_CLK_FREQ_G => ADC_CLK_FREQ_G)
@@ -111,7 +112,7 @@ begin
          adcClk     => adcClk,
          adcRst     => adcRst);  
 
-   AxiAd9467Deser_Inst : entity work.AxiAd9467Deser
+   AxiAd9467Deser_Inst : entity surf.AxiAd9467Deser
       generic map(
          TPD_G           => TPD_G,
          DELAY_INIT_G    => DELAY_INIT_G,
@@ -131,7 +132,7 @@ begin
          delayin      => config.delay,
          delayOut     => status.delay); 
 
-   AxiAd9467Mon_Inst : entity work.AxiAd9467Mon
+   AxiAd9467Mon_Inst : entity surf.AxiAd9467Mon
       generic map (
          TPD_G          => TPD_G,
          ADC_CLK_FREQ_G => ADC_CLK_FREQ_G)

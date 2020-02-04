@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : Line Code 12B14B: https://confluence.slac.stanford.edu/x/6AJODQ
 -------------------------------------------------------------------------------
--- File       : Encode12b14b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 12B14B Encoder Module
@@ -17,8 +16,10 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use work.StdRtlPkg.all;
-use work.Code12b14bPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Code12b14bPkg.all;
 
 entity Encoder12b14b is
 

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : ClinkReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
@@ -18,10 +17,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
-use work.ClinkPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.ClinkPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 

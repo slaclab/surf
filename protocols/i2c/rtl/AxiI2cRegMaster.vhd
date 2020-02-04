@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiI2cRegMaster.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite I2C Register Master
@@ -16,9 +15,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.I2cPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.I2cPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -26,6 +27,7 @@ use unisim.vcomponents.all;
 entity AxiI2cRegMaster is
    generic (
       TPD_G           : time               := 1 ns;
+      AXIL_PROXY_G    : boolean            := false;
       DEVICE_MAP_G    : I2cAxiLiteDevArray := I2C_AXIL_DEV_ARRAY_DEFAULT_C;
       I2C_SCL_FREQ_G  : real               := 100.0E+3;    -- units of Hz
       I2C_MIN_PULSE_G : real               := 100.0E-9;    -- units of seconds
@@ -40,6 +42,7 @@ entity AxiI2cRegMaster is
       axiWriteMaster : in    AxiLiteWriteMasterType;
       axiWriteSlave  : out   AxiLiteWriteSlaveType;
       -- I2C Ports
+      sel            : out   slv(DEVICE_MAP_G'length-1 downto 0);
       scl            : inout sl;
       sda            : inout sl);
 
@@ -59,9 +62,41 @@ architecture mapping of AxiI2cRegMaster is
    signal i2ci : i2c_in_type;
    signal i2co : i2c_out_type;
 
+   signal proxyReadMaster  : AxiLiteReadMasterType;
+   signal proxyReadSlave   : AxiLiteReadSlaveType;
+   signal proxyWriteMaster : AxiLiteWriteMasterType;
+   signal proxyWriteSlave  : AxiLiteWriteSlaveType;
+
 begin
 
-   I2cRegMasterAxiBridge_Inst : entity work.I2cRegMasterAxiBridge
+   BYP_PROXY : if (AXIL_PROXY_G = false) generate
+      proxyReadMaster  <= axiReadMaster;
+      axiReadSlave     <= proxyReadSlave;
+      proxyWriteMaster <= axiWriteMaster;
+      axiWriteSlave    <= proxyWriteSlave;
+   end generate BYP_PROXY;
+
+   GEN_PROXY : if (AXIL_PROXY_G = true) generate
+      U_AxiLiteMasterProxy : entity surf.AxiLiteMasterProxy
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            -- Clocks and Resets
+            axiClk          => axiClk,
+            axiRst          => axiRst,
+            -- AXI-Lite Register Interface
+            sAxiReadMaster  => axiReadMaster,
+            sAxiReadSlave   => axiReadSlave,
+            sAxiWriteMaster => axiWriteMaster,
+            sAxiWriteSlave  => axiWriteSlave,
+            -- AXI-Lite Register Interface
+            mAxiReadMaster  => proxyReadMaster,
+            mAxiReadSlave   => proxyReadSlave,
+            mAxiWriteMaster => proxyWriteMaster,
+            mAxiWriteSlave  => proxyWriteSlave);
+   end generate GEN_PROXY;
+
+   U_I2cRegMasterAxiBridge : entity surf.I2cRegMasterAxiBridge
       generic map (
          TPD_G        => TPD_G,
          DEVICE_MAP_G => DEVICE_MAP_G)
@@ -69,16 +104,17 @@ begin
          -- I2C Register Interface
          i2cRegMasterIn  => i2cRegMasterIn,
          i2cRegMasterOut => i2cRegMasterOut,
+         i2cSelectOut    => sel,
          -- AXI-Lite Register Interface
-         axiReadMaster   => axiReadMaster,
-         axiReadSlave    => axiReadSlave,
-         axiWriteMaster  => axiWriteMaster,
-         axiWriteSlave   => axiWriteSlave,
+         axiReadMaster   => proxyReadMaster,
+         axiReadSlave    => proxyReadSlave,
+         axiWriteMaster  => proxyWriteMaster,
+         axiWriteSlave   => proxyWriteSlave,
          -- Clocks and Resets
          axiClk          => axiClk,
          axiRst          => axiRst);
 
-   I2cRegMaster_Inst : entity work.I2cRegMaster
+   U_I2cRegMaster : entity surf.I2cRegMaster
       generic map(
          TPD_G                => TPD_G,
          OUTPUT_EN_POLARITY_G => 0,
@@ -98,15 +134,15 @@ begin
    IOBUF_SCL : IOBUF
       port map (
          O  => i2ci.scl,                -- Buffer output
-         IO => scl,                     -- Buffer inout port (connect directly to top-level port)
+         IO => scl,  -- Buffer inout port (connect directly to top-level port)
          I  => i2co.scl,                -- Buffer input
-         T  => i2co.scloen);            -- 3-state enable input, high=input, low=output  
+         T  => i2co.scloen);  -- 3-state enable input, high=input, low=output  
 
    IOBUF_SDA : IOBUF
       port map (
          O  => i2ci.sda,                -- Buffer output
-         IO => sda,                     -- Buffer inout port (connect directly to top-level port)
+         IO => sda,  -- Buffer inout port (connect directly to top-level port)
          I  => i2co.sda,                -- Buffer input
-         T  => i2co.sdaoen);            -- 3-state enable input, high=input, low=output  
+         T  => i2co.sdaoen);  -- 3-state enable input, high=input, low=output  
 
 end mapping;

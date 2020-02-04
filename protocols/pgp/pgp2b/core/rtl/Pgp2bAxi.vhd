@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
 -------------------------------------------------------------------------------
--- File       : Pgp2bAxi.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
@@ -102,9 +101,11 @@ use ieee.std_logic_1164.all;
 use IEEE.STD_LOGIC_ARITH.all;
 use IEEE.STD_LOGIC_UNSIGNED.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.Pgp2bPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Pgp2bPkg.all;
 
 entity Pgp2bAxi is
    generic (
@@ -254,12 +255,10 @@ begin
    ---------------------------------------
 
    -- OpCode Capture
-   U_RxOpCodeSync : entity work.SynchronizerFifo
+   U_RxOpCodeSync : entity surf.SynchronizerFifo
       generic map (
          TPD_G         => TPD_G,
-         BRAM_EN_G     => false,
-         ALTERA_SYN_G  => false,
-         ALTERA_RAM_G  => "M9K",
+         MEMORY_TYPE_G => "distributed",
          SYNC_STAGES_G => 3,
          DATA_WIDTH_G  => 8,
          ADDR_WIDTH_G  => 2,
@@ -276,12 +275,10 @@ begin
 
    -- Sync remote data
    U_RxDataSyncEn : if COMMON_RX_CLK_G = false generate
-      U_RxDataSync : entity work.SynchronizerFifo
+      U_RxDataSync : entity surf.SynchronizerFifo
          generic map (
             TPD_G         => TPD_G,
-            BRAM_EN_G     => false,
-            ALTERA_SYN_G  => false,
-            ALTERA_RAM_G  => "M9K",
+            MEMORY_TYPE_G => "distributed",
             SYNC_STAGES_G => 3,
             DATA_WIDTH_G  => 8,
             ADDR_WIDTH_G  => 2,
@@ -302,7 +299,7 @@ begin
    end generate;
 
    -- Errror counters and non counted values
-   U_RxError : entity work.SyncStatusVector
+   U_RxError : entity surf.SyncStatusVector
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => '1',
@@ -310,7 +307,6 @@ begin
          RELEASE_DELAY_G => 3,
          IN_POLARITY_G   => "1",
          OUT_POLARITY_G  => '1',
-         USE_DSP48_G     => "no",
          SYNTH_CNT_G     => "111110000111110000",
          CNT_RST_EDGE_G  => false,
          CNT_WIDTH_G     => ERROR_CNT_WIDTH_G,
@@ -373,7 +369,7 @@ begin
    rxStatusSync.rxOpCodeCount   <= muxSlVectorArray(rxErrorCntOut, 17);
 
    -- Status counters
-   U_RxStatus : entity work.SyncStatusVector
+   U_RxStatus : entity surf.SyncStatusVector
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => '1',
@@ -381,7 +377,6 @@ begin
          RELEASE_DELAY_G => 3,
          IN_POLARITY_G   => "1",
          OUT_POLARITY_G  => '1',
-         USE_DSP48_G     => "no",
          SYNTH_CNT_G     => "1",
          CNT_RST_EDGE_G  => false,
          CNT_WIDTH_G     => STATUS_CNT_WIDTH_G,
@@ -401,10 +396,9 @@ begin
 
    rxStatusSync.frameCount <= muxSlVectorArray(rxStatusCntOut, 0);
 
-   U_RxClkFreq : entity work.SyncClockFreq
+   U_RxClkFreq : entity surf.SyncClockFreq
       generic map (
          TPD_G             => TPD_G,
-         USE_DSP48_G       => "no",
          REF_CLK_FREQ_G    => AXI_CLK_FREQ_G,
          REFRESH_RATE_G    => 100.0,
          CLK_LOWER_LIMIT_G => 155.0E+6,
@@ -426,12 +420,10 @@ begin
    ---------------------------------------
 
    -- OpCode Capture
-   U_TxOpCodeSync : entity work.SynchronizerFifo
+   U_TxOpCodeSync : entity surf.SynchronizerFifo
       generic map (
          TPD_G         => TPD_G,
-         BRAM_EN_G     => false,
-         ALTERA_SYN_G  => false,
-         ALTERA_RAM_G  => "M9K",
+         MEMORY_TYPE_G => "distributed",
          SYNC_STAGES_G => 3,
          DATA_WIDTH_G  => 8,
          ADDR_WIDTH_G  => 2,
@@ -447,7 +439,7 @@ begin
          dout   => txStatusSync.txOpCodeLast);
 
    -- Errror counters and non counted values
-   U_TxError : entity work.SyncStatusVector
+   U_TxError : entity surf.SyncStatusVector
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => '1',
@@ -455,7 +447,6 @@ begin
          RELEASE_DELAY_G => 3,
          IN_POLARITY_G   => "1",
          OUT_POLARITY_G  => '1',
-         USE_DSP48_G     => "no",
          SYNTH_CNT_G     => "110000111100",
          CNT_RST_EDGE_G  => false,
          CNT_WIDTH_G     => ERROR_CNT_WIDTH_G,
@@ -493,7 +484,7 @@ begin
    txStatusSync.txOpCodeCount   <= muxSlVectorArray(txErrorCntOut, 11);
 
    -- Status counters
-   U_TxStatus : entity work.SyncStatusVector
+   U_TxStatus : entity surf.SyncStatusVector
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => '1',
@@ -501,7 +492,6 @@ begin
          RELEASE_DELAY_G => 3,
          IN_POLARITY_G   => "1",
          OUT_POLARITY_G  => '1',
-         USE_DSP48_G     => "no",
          SYNTH_CNT_G     => "1",
          CNT_RST_EDGE_G  => false,
          CNT_WIDTH_G     => STATUS_CNT_WIDTH_G,
@@ -521,10 +511,9 @@ begin
 
    txStatusSync.frameCount <= muxSlVectorArray(txStatusCntOut, 0);
 
-   U_TxClkFreq : entity work.SyncClockFreq
+   U_TxClkFreq : entity surf.SyncClockFreq
       generic map (
          TPD_G             => TPD_G,
-         USE_DSP48_G       => "no",
          REF_CLK_FREQ_G    => AXI_CLK_FREQ_G,
          REFRESH_RATE_G    => 100.0,
          CLK_LOWER_LIMIT_G => 155.0E+6,
@@ -546,12 +535,10 @@ begin
 
    -- Sync Tx Control
    U_TxDataSyncEn : if COMMON_RX_CLK_G = false generate
-      U_TxDataSync : entity work.SynchronizerFifo
+      U_TxDataSync : entity surf.SynchronizerFifo
          generic map (
             TPD_G         => TPD_G,
-            BRAM_EN_G     => false,
-            ALTERA_SYN_G  => false,
-            ALTERA_RAM_G  => "M9K",
+            MEMORY_TYPE_G => "distributed",
             SYNC_STAGES_G => 3,
             DATA_WIDTH_G  => 9,
             ADDR_WIDTH_G  => 2,
@@ -570,7 +557,7 @@ begin
    end generate;
 
    -- Sync flow cntl disable
-   U_FlowCntlDis : entity work.Synchronizer
+   U_FlowCntlDis : entity surf.Synchronizer
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
@@ -591,7 +578,7 @@ begin
    end generate;
 
    -- Flush Sync
---    U_TxFlushSync : entity work.SynchronizerOneShot
+--    U_TxFlushSync : entity surf.SynchronizerOneShot
 --       generic map (
 --          TPD_G         => TPD_G,
 --          PULSE_WIDTH_G => 10)
@@ -602,7 +589,7 @@ begin
    txFlush <= r.flush;
 
    -- Flush Sync
---    U_TxResetSync : entity work.SynchronizerOneShot
+--    U_TxResetSync : entity surf.SynchronizerOneShot
 --       generic map (
 --          TPD_G         => TPD_G,
 --          PULSE_WIDTH_G => 10)
@@ -628,7 +615,7 @@ begin
    -------------------------------------
 
    -- Flush Sync
---    U_RxFlushSync : entity work.SynchronizerOneShot
+--    U_RxFlushSync : entity surf.SynchronizerOneShot
 --       generic map (
 --          TPD_G         => TPD_G,
 --          PULSE_WIDTH_G => 10)
@@ -640,7 +627,7 @@ begin
    rxFlush <= r.flush;
 
    -- Reset Rx Sync
---    U_ResetRxSync : entity work.SynchronizerOneShot
+--    U_ResetRxSync : entity surf.SynchronizerOneShot
 --       generic map (
 --          TPD_G         => TPD_G,
 --          PULSE_WIDTH_G => 10)

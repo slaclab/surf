@@ -1,5 +1,4 @@
  -------------------------------------------------------------------------------
--- File       : EthCrc32Pkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Ethernet CRC32 Ethernet/AAL5 Package File
@@ -19,7 +18,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 package EthCrc32Pkg is
 

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiAds42lb69DeserBit.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: ADC DDR Deserializer
@@ -18,8 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiAds42lb69Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiAds42lb69Pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -123,7 +124,7 @@ begin
             IB => dataN,
             O  => data);                 
 
-      IDELAYE3_inst : IDELAYE3
+      IDELAYE3_inst : entity surf.Idelaye3Wrapper
          generic map (
             CASCADE => "MASTER",       -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
             DELAY_FORMAT => "COUNT",   -- Units of the DELAY_VALUE (COUNT, TIME)
@@ -150,7 +151,7 @@ begin
             CNTVALUEIN  => delayInData,      -- 9-bit input: Counter value input 
             CNTVALUEOUT => delayOutData1);   -- 9-bit output: Counter value output 
       
-      ODELAYE3_inst : ODELAYE3
+      ODELAYE3_inst : entity surf.Odelaye3Wrapper
          generic map (
             CASCADE => "SLAVE_END",    -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
             DELAY_FORMAT => "COUNT",   -- Units of the DELAY_VALUE (COUNT, TIME)

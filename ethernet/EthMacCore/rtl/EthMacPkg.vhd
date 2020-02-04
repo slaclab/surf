@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : EthMacPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Ethernet MAC Package File
@@ -18,8 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 
 package EthMacPkg is
 
@@ -41,9 +42,9 @@ package EthMacPkg is
    constant DHCP_SPORT : slv(15 downto 0) := x"4300";  -- Port = 67 = 0x0043   
 
    -- First TUSER Bits
-   constant EMAC_FRAG_BIT_C   : integer := 0;
-   constant EMAC_SOF_BIT_C    : integer := 1;
-   
+   constant EMAC_FRAG_BIT_C : integer := 0;
+   constant EMAC_SOF_BIT_C  : integer := 1;
+
    -- Last TUSER Bits
    constant EMAC_EOFE_BIT_C   : integer := 0;
    constant EMAC_IPERR_BIT_C  : integer := 1;
@@ -52,13 +53,14 @@ package EthMacPkg is
 
    -- Ethernet AXI Stream Configuration
    constant EMAC_AXIS_CONFIG_C : AxiStreamConfigType := (
+      -- TDEST_INTERLEAVE_C => false,
       TSTRB_EN_C    => false,
       TDATA_BYTES_C => 16,
       TDEST_BITS_C  => 8,
       TID_BITS_C    => 0,
       TKEEP_MODE_C  => TKEEP_COMP_C,
       TUSER_BITS_C  => 4,
-      TUSER_MODE_C  => TUSER_FIRST_LAST_C);   
+      TUSER_MODE_C  => TUSER_FIRST_LAST_C);
 
    -- Generic XMAC Configuration
    type EthMacConfigType is record
@@ -77,7 +79,7 @@ package EthMacPkg is
       filtEnable  => '1',
       pauseEnable => '1',
       pauseTime   => x"00FF",
-      pauseThresh => toSlv(1024, 16),
+      pauseThresh => toSlv((9000/16), 16),  -- 9000B jumbo frame in cache
       ipCsumEn    => '1',
       tcpCsumEn   => '1',
       udpCsumEn   => '1',
@@ -123,7 +125,7 @@ package EthMacPkg is
    type EthMacCsumAccumArray is array (natural range<>) of EthMacCsumAccumType;
 
    function EthPortArrayBigEndian (portNum : PositiveArray; portSize : positive) return Slv16Array;
-   
+
    procedure GetEthMacCsum (
       -- Input 
       udpDet  : in    sl;
@@ -140,7 +142,7 @@ package EthMacPkg is
       ipValid : inout sl;
       ipCsum  : inout slv(15 downto 0);
       valid   : inout sl;
-      csum    : inout slv(15 downto 0));  
+      csum    : inout slv(15 downto 0));
 
 end package EthMacPkg;
 
@@ -160,7 +162,7 @@ package body EthMacPkg is
       end loop;
       return retVar;
    end function;
-   
+
    procedure GetEthMacCsum (
       -- Input 
       udpDet  : in    sl;
@@ -177,7 +179,7 @@ package body EthMacPkg is
       ipValid : inout sl;
       ipCsum  : inout slv(15 downto 0);
       valid   : inout sl;
-      csum    : inout slv(15 downto 0)) is   
+      csum    : inout slv(15 downto 0)) is
       variable i       : natural;
       variable header  : Slv32Array(9 downto 0);
       variable data    : Slv32Array(7 downto 0);
@@ -273,13 +275,13 @@ package body EthMacPkg is
       v(1).step(3) := r(1).step(2);
       ipCsum       := not(r(0).sum5);
       csum         := not(r(1).sum5);
-      
+
       -- UDP checksum is calculated using one's complement arithmetic (RFC 793).
       -- UDP has a special case where 0x0000 is reserved for "no checksum computed". 
       -- Thus 0x0000 is illegal and when calculated following the standard 
       -- algorithm, replaced with 0xFFFF.
       if (udpDet = '1') and (csum = x"0000") then
-         csum := x"FFFF";         
+         csum := x"FFFF";
       end if;
 
       -- Check for valid inbound checksum

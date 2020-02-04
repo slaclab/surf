@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiAds42lb69Deser.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: ADC DDR Deserializer
@@ -18,8 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiAds42lb69Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiAds42lb69Pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -79,7 +80,7 @@ begin
       report "ULTRASCALE implementation does not support USE_PLL_G = true"
       severity failure;
 
-   AxiAds42lb69Pll_Inst : entity work.AxiAds42lb69Pll
+   AxiAds42lb69Pll_Inst : entity surf.AxiAds42lb69Pll
       generic map(
          TPD_G          => TPD_G,
          USE_PLL_G      => USE_PLL_G,
@@ -100,7 +101,7 @@ begin
          adcRst    => adcRst,
          adcClock  => adcClock);         
 
-   SynchVector_Inst : entity work.SynchronizerVector
+   SynchVector_Inst : entity surf.SynchronizerVector
       generic map(
          TPD_G   => TPD_G,
          WIDTH_G => 2)
@@ -126,7 +127,7 @@ begin
       GEN_DAT :
       for i in 7 downto 0 generate
          
-         AxiAds42lb69DeserBit_Inst : entity work.AxiAds42lb69DeserBit
+         AxiAds42lb69DeserBit_Inst : entity surf.AxiAds42lb69DeserBit
             generic map(
                TPD_G           => TPD_G,
                DELAY_INIT_G    => DELAY_INIT_G(ch, i),
@@ -170,7 +171,7 @@ begin
          end if;
       end process;
 
-      SyncFifo_Inst : entity work.SynchronizerFifo
+      SyncFifo_Inst : entity surf.SynchronizerFifo
          generic map(
             TPD_G        => TPD_G,
             COMMON_CLK_G => USE_PLL_G,

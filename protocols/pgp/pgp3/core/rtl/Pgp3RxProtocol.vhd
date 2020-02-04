@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
--- File       : Pgp3RxProtocol.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: PGPv3 Receive Protocol
@@ -23,11 +22,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiStreamPacketizer2Pkg.all;
-use work.SsiPkg.all;
-use work.Pgp3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiStreamPacketizer2Pkg.all;
+use surf.SsiPkg.all;
+use surf.Pgp3Pkg.all;
 
 entity Pgp3RxProtocol is
 
@@ -90,7 +91,7 @@ architecture rtl of Pgp3RxProtocol is
 
 begin
 
-   U_SynchronizerEdge_1 : entity work.SynchronizerEdge
+   U_SynchronizerEdge_1 : entity surf.SynchronizerEdge
       generic map (
          TPD_G => TPD_G)
       port map (

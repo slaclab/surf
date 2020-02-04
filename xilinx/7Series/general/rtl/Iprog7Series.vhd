@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Iprog7Series.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:   Uses the ICAP primitive to internally 
@@ -19,7 +18,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -63,7 +64,7 @@ begin
    end generate DIVCLK_GEN;
 
    -- Synchronize reset to icapClk
-   RstSync_Inst : entity work.RstSync
+   RstSync_Inst : entity surf.RstSync
       generic map (
          TPD_G         => TPD_G,
          OUT_REG_RST_G => false)
@@ -74,7 +75,7 @@ begin
 
 
    -- IPROG logic
-   Iprog7SeriesCore_1 : entity work.Iprog7SeriesCore
+   Iprog7SeriesCore_1 : entity surf.Iprog7SeriesCore
       generic map (
          TPD_G         => TPD_G,
          SYNC_RELOAD_G => true)

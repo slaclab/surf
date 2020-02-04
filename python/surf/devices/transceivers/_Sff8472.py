@@ -530,7 +530,7 @@ class Sff8472(pr.Device):
         # )         
         
         self.addRemoteVariables(   
-            name         = 'Warning Flags',
+            name         = 'WarningFlags',
             description  = 'Diagnostic Warning Flag Status Bits',
             offset       = ((256+116) << 2),
             bitSize      = 8,

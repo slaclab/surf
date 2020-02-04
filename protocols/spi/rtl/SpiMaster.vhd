@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SpiMaster.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Generic SPI Master Module
@@ -18,7 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 use ieee.math_real.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SpiMaster is
    generic (

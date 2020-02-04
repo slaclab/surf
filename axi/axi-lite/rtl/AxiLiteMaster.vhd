@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteMaster.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite Master module controlled via REQ/ACK interface
@@ -18,8 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiLiteMaster is
    generic (

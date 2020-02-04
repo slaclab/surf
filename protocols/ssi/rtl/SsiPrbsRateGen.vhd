@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
 -------------------------------------------------------------------------------
--- File       : SsiPrbsRateGen.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SsiPrbsTx + AxiStreamMon Wrapper
@@ -20,10 +19,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity SsiPrbsRateGen is
    generic (
@@ -32,9 +33,7 @@ entity SsiPrbsRateGen is
       -- PRBS TX FIFO Configurations
       VALID_THOLD_G              : integer range 0 to (2**24) := 1;
       VALID_BURST_MODE_G         : boolean                    := false;
-      BRAM_EN_G                  : boolean                    := true;
-      XIL_DEVICE_G               : string                     := "7SERIES";
-      USE_BUILT_IN_G             : boolean                    := false;
+      MEMORY_TYPE_G              : string                     := "block";
       CASCADE_SIZE_G             : natural range 1 to (2**24) := 1;
       FIFO_ADDR_WIDTH_G          : natural range 4 to 48      := 9;
       -- AXI Stream Configurations
@@ -99,14 +98,12 @@ begin
    mAxisMaster <= iAxisMaster;
    iAxisSlave  <= mAxisSlave;
 
-   U_PrbsTx: entity work.SsiPrbsTx 
+   U_PrbsTx: entity surf.SsiPrbsTx 
       generic map (
          TPD_G                      => TPD_G,
          VALID_THOLD_G              => VALID_THOLD_G,
          VALID_BURST_MODE_G         => VALID_BURST_MODE_G,
-         BRAM_EN_G                  => BRAM_EN_G,
-         XIL_DEVICE_G               => XIL_DEVICE_G,
-         USE_BUILT_IN_G             => USE_BUILT_IN_G,
+         MEMORY_TYPE_G              => MEMORY_TYPE_G,
          GEN_SYNC_FIFO_G            => true,
          CASCADE_SIZE_G             => CASCADE_SIZE_G,
          FIFO_ADDR_WIDTH_G          => FIFO_ADDR_WIDTH_G,
@@ -122,7 +119,7 @@ begin
          busy            => busy,
          packetLength    => r.packetLength);
 
-   U_Monitor: entity work.AxiStreamMon
+   U_Monitor: entity surf.AxiStreamMon
       generic map (
          TPD_G           => TPD_G,
          COMMON_CLK_G    => true,

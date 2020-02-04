@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GLinkEncoder.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Encodes 16 bit data raw words into 20 bit GLink words.
@@ -17,8 +16,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.NUMERIC_STD.all;
 
-use work.StdRtlPkg.all;
-use work.GLinkPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.GLinkPkg.all;
 
 entity GLinkEncoder is
    generic (

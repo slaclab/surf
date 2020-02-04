@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GigEthLvdsUltraScaleWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for SGMII/LVDS Ethernet
@@ -16,11 +15,13 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.EthMacPkg.all;
-use work.GigEthPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.EthMacPkg.all;
+use surf.GigEthPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -121,7 +122,7 @@ begin
 
    refClk <= sgmiiClkBufg when(USE_REFCLK_G = false) else sgmiiRefClk;  -- 125 MHz
 
-   U_PwrUpRst : entity work.PwrUpRst
+   U_PwrUpRst : entity surf.PwrUpRst
       generic map(
          TPD_G => TPD_G)
       port map (
@@ -216,7 +217,7 @@ begin
 
    end generate;
 
-   U_sysRst125 : entity work.RstSync
+   U_sysRst125 : entity surf.RstSync
       generic map (
          TPD_G         => TPD_G,
          IN_POLARITY_G => '0')
@@ -233,7 +234,7 @@ begin
       signal ethClkEn : sl;
    begin
 
-      U_ethClkEn : entity work.GigEthLvdsClockEnable
+      U_ethClkEn : entity surf.GigEthLvdsClockEnable
          port map (
             sysClk125       => sysClk125,
             sysRst125       => sysRst125,
@@ -241,7 +242,7 @@ begin
             speed_is_100    => speed_is_100(i),
             ethClkEn        => ethClkEn);
 
-      U_GigEthLvdsUltraScale : entity work.GigEthLvdsUltraScale
+      U_GigEthLvdsUltraScale : entity surf.GigEthLvdsUltraScale
          generic map (
             TPD_G         => TPD_G,
             PAUSE_EN_G    => PAUSE_EN_G,

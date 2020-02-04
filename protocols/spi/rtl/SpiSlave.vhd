@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SpiSlave.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Generic SPI Slave Module
@@ -17,7 +16,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SpiSlave is
    generic (
@@ -80,18 +81,18 @@ architecture rtl of SpiSlave is
 
 begin
 
-   SEL_SYNCHRONIZER : entity work.Synchronizer
+   SEL_SYNCHRONIZER : entity surf.Synchronizer
       generic map (
-         TPD_G  => TPD_G,
+         TPD_G    => TPD_G,
          STAGES_G => 3,
-         INIT_G => "111")
+         INIT_G   => "111")
       port map (
          clk     => clk,
          rst     => rst,
          dataIn  => selL,
          dataOut => selLSync);
 
-   SCLK_SYNCHRONIZER : entity work.Synchronizer
+   SCLK_SYNCHRONIZER : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -100,7 +101,7 @@ begin
          dataIn  => sclk,
          dataOut => sclkSync);
 
-   MOSI_SYNCHRONIZER : entity work.Synchronizer
+   MOSI_SYNCHRONIZER : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -114,7 +115,7 @@ begin
       if (rising_edge(clk)) then
          r <= rin after TPD_G;
       end if;
-      
+
    end process seq;
 
 
@@ -137,6 +138,13 @@ begin
       procedure shift is
       begin
          v.shiftReg := r.shiftReg(WORD_SIZE_G-1 downto 0) & '0';
+
+         if (CPHA_G = '1') then
+            v.shiftCnt := r.shiftCnt + 1;
+            if (r.shiftCnt = MAX_COUNT_C) then
+               v.shiftCnt := (others => '0');
+            end if;
+         end if;
       end procedure;
 
       -- Clock in the current mosi bit and increment counter
@@ -144,12 +152,14 @@ begin
       begin
          v.shiftReg(0) := mosiSync;
 
-         v.shiftCnt := r.shiftCnt + 1;
-         if (r.shiftCnt = MAX_COUNT_C) then
-            v.shiftCnt := (others => '0');
+         if (CPHA_G = '0') then
+            v.shiftCnt := r.shiftCnt + 1;
+            if (r.shiftCnt = MAX_COUNT_C) then
+               v.shiftCnt := (others => '0');
+            end if;
          end if;
       end procedure;
-      
+
    begin
       v := r;
 

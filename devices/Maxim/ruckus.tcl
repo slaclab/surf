@@ -2,4 +2,4 @@
 source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 
 # Load the source code
-loadSource -dir "$::DIR_PATH/rtl"
+loadSource -lib surf -dir "$::DIR_PATH/rtl"

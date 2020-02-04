@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : UART Memory Protocol: https://confluence.slac.stanford.edu/x/uSDoDQ
 -------------------------------------------------------------------------------
--- File       : UartAxiLiteMaster.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Ties together everything needed for a full duplex UART.
@@ -21,9 +20,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.TextUtilPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.TextUtilPkg.all;
+use surf.AxiLitePkg.all;
 
 entity UartAxiLiteMaster is
 
@@ -34,7 +35,7 @@ entity UartAxiLiteMaster is
       STOP_BITS_G       : integer range 1 to 2  := 1;
       PARITY_G          : string                := "NONE";  -- "NONE" "ODD" "EVEN"
       DATA_WIDTH_G      : integer range 5 to 8  := 8;
-      FIFO_BRAM_EN_G    : boolean               := false;
+      MEMORY_TYPE_G     : string                := "distributed";
       FIFO_ADDR_WIDTH_G : integer range 4 to 48 := 5);
    port (
       axilClk          : in  sl;
@@ -116,7 +117,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Instantiate UART
    -------------------------------------------------------------------------------------------------
-   U_UartWrapper_1 : entity work.UartWrapper
+   U_UartWrapper_1 : entity surf.UartWrapper
       generic map (
          TPD_G             => TPD_G,
          CLK_FREQ_G        => AXIL_CLK_FREQ_G,
@@ -124,7 +125,7 @@ begin
          STOP_BITS_G       => STOP_BITS_G,
          PARITY_G          => PARITY_G,
          DATA_WIDTH_G      => DATA_WIDTH_G,
-         FIFO_BRAM_EN_G    => FIFO_BRAM_EN_G,
+         MEMORY_TYPE_G     => MEMORY_TYPE_G,
          FIFO_ADDR_WIDTH_G => FIFO_ADDR_WIDTH_G)
       port map (
          clk     => axilClk,            -- [in]
@@ -138,7 +139,7 @@ begin
          tx      => tx,                 -- [out]
          rx      => rx);                -- [in]
 
-   U_AxiLiteMaster_1 : entity work.AxiLiteMaster
+   U_AxiLiteMaster_1 : entity surf.AxiLiteMaster
       generic map (
          TPD_G => TPD_G)
       port map (

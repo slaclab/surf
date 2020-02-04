@@ -65,6 +65,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+library surf;
 
 entity Gtp7RxRstSeq is
    generic(
@@ -122,7 +123,7 @@ architecture Behavioral of Gtp7RxRstSeq is
 
 begin
 
-   sync_RXPMARESETDONE : entity work.Synchronizer
+   sync_RXPMARESETDONE : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -130,7 +131,7 @@ begin
          dataIn  => RXPMARESETDONE,
          dataOut => rxpmaresetdone_ss);
 
-   sync_RST : entity work.RstSync
+   sync_RST : entity surf.RstSync
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -138,7 +139,7 @@ begin
          asyncRst => RST_IN,
          syncRst  => RST);         
 
-   sync_GTRXRESET : entity work.RstSync
+   sync_GTRXRESET : entity surf.RstSync
       generic map (
          TPD_G => TPD_G)
       port map (

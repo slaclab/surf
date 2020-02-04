@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Gtx7QuadPll.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Xilinx 7-series GTX's QPLL
@@ -17,8 +16,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -150,7 +151,7 @@ begin
          RCALENB          => '1');
 
    GEN_DRP : if (EN_DRP_G) generate
-      U_AxiLiteToDrp : entity work.AxiLiteToDrp
+      U_AxiLiteToDrp : entity surf.AxiLiteToDrp
          generic map (
             TPD_G            => TPD_G,
             COMMON_CLK_G     => true,

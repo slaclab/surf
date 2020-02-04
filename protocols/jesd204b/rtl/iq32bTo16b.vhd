@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : iq32bTo16b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Converts the 32-bit JESD interface to 16-bit interface
@@ -18,12 +17,15 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity iq32bTo16b is
    generic (
-      TPD_G            : time                 := 1 ns;
-      SYNC_STAGES_G    : natural range 2 to 8 := 3);
+      TPD_G         : time                 := 1 ns;
+      SYNTH_MODE_G  : string               := "inferred";
+      SYNC_STAGES_G : natural range 2 to 8 := 3);
    port (
       -- 32-bit Write Interface
       wrClk     : in  sl;
@@ -71,14 +73,15 @@ architecture rtl of iq32bTo16b is
 
 begin
 
-   U_FIFO : entity work.FifoAsync
+   U_FIFO : entity surf.Fifo
       generic map (
-         TPD_G            => TPD_G,
-         BRAM_EN_G        => false,
-         FWFT_EN_G        => true,
-         SYNC_STAGES_G    => SYNC_STAGES_G,
-         DATA_WIDTH_G     => 64,
-         ADDR_WIDTH_G     => 5)
+         TPD_G         => TPD_G,
+         SYNTH_MODE_G  => SYNTH_MODE_G,
+         MEMORY_TYPE_G => "distributed",
+         FWFT_EN_G     => true,
+         SYNC_STAGES_G => SYNC_STAGES_G,
+         DATA_WIDTH_G  => 64,
+         ADDR_WIDTH_G  => 5)
       port map (
          -- Asynchronous Reset
          rst                => wrRst,
@@ -102,30 +105,34 @@ begin
       -- Latch the current value
       v := r;
 
-      -- Reset the strobes
-      v.rdEn  := '0';
+      -- Delay to align with output data
       v.valid := valid;
 
       -- Check if FIFO has data
-      if r.valid = '1' then
+      if valid = '1' then
          -- Check the 16-bit word select flag
          if r.wordSel = '0' then
             -- Set the flags and data bus
             v.wordSel := '1';
             v.dataI   := dataI(15 downto 0);
             v.dataQ   := dataQ(15 downto 0);
+            -- Acknowledge the FIFO read on next cycle
+            v.rdEn    := '1';
          else
             -- Set the flags and data bus
             v.wordSel := '0';
             v.dataI   := dataI(31 downto 16);
             v.dataQ   := dataQ(31 downto 16);
-            -- Acknowledge the FIFO read
-            v.rdEn    := '1';
+            -- Reset the flag
+            v.rdEn    := '0';
          end if;
       end if;
 
-      -- Combinatorial outputs before the reset
-      rdEn <= v.rdEn;
+      -- Outputs
+      rdEn     <= r.rdEn;
+      validOut <= r.valid;
+      dataOutI <= r.dataI;
+      dataOutQ <= r.dataQ;
 
       -- Synchronous Reset
       if (rdRst = '1') then
@@ -134,11 +141,6 @@ begin
 
       -- Register the variable for next clock cycle
       rin <= v;
-
-      -- Outputs
-      validOut <= r.valid;
-      dataOutI <= r.dataI;
-      dataOutQ <= r.dataQ;
 
    end process comb;
 

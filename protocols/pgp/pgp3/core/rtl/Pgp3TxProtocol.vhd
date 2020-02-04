@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
--- File       : Pgp3TxProtocol.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: PGPv3 Transmit Protocol
@@ -23,11 +22,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiStreamPacketizer2Pkg.all;
-use work.SsiPkg.all;
-use work.Pgp3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiStreamPacketizer2Pkg.all;
+use surf.SsiPkg.all;
+use surf.Pgp3Pkg.all;
 
 entity Pgp3TxProtocol is
 
@@ -257,12 +258,12 @@ begin
             resetEventMetaData := false;
          -- SKIP codes override data
          elsif (r.skpCount = r.skpInterval) then
-            v.skpCount                     := (others => '0');
-            v.pgpTxSlave.tReady            := '0';            -- Override any data acceptance.
-            v.protTxData                   := (others => '0');
-            v.protTxData(PGP3_BTF_FIELD_C) := PGP3_SKP_C;
-            v.protTxHeader                 := PGP3_K_HEADER_C;
-            resetEventMetaData             := false;
+            v.skpCount                           := (others => '0');
+            v.pgpTxSlave.tReady                  := '0';            -- Override any data acceptance.
+            v.protTxData(PGP3_SKIP_DATA_FIELD_C) := pgpTxIn.locData;
+            v.protTxData(PGP3_BTF_FIELD_C)       := PGP3_SKP_C;
+            v.protTxHeader                       := PGP3_K_HEADER_C;
+            resetEventMetaData                   := false;
          else
             -- A local rx pause going high causes an IDLE char to be sent mid frame
             -- So that the sending end is notified with minimum latency

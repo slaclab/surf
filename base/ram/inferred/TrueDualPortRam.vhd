@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : TrueDualPortRam.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: This will infer this module as Block RAM only
@@ -19,14 +18,15 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity TrueDualPortRam is
    -- MODE_G = {"no-change","read-first","write-first"}
    generic (
       TPD_G          : time                       := 1 ns;
       RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
-      ALTERA_RAM_G   : string                     := "M9K";
       DOA_REG_G      : boolean                    := false;  -- Extra output register on doutA.
       DOB_REG_G      : boolean                    := false;  -- Extra output register on doutB.
       MODE_G         : string                     := "read-first";
@@ -95,30 +95,15 @@ architecture rtl of TrueDualPortRam is
    attribute syn_keep        : string;
    attribute syn_keep of mem : variable is "TRUE";
 
-   -- Attribute for Altera Synthesizer
-   attribute ramstyle        : string;
-   attribute ramstyle of mem : variable is ALTERA_RAM_G;
-
 begin
 
    -- MODE_G check
    assert (MODE_G = "no-change") or (MODE_G = "read-first") or (MODE_G = "write-first")
       report "MODE_G must be either no-change, read-first, or write-first"
       severity failure;
-   -- ALTERA_RAM_G check
-   assert ((ALTERA_RAM_G = "M512")
-           or (ALTERA_RAM_G = "M4K")
-           or (ALTERA_RAM_G = "M9K")
-           or (ALTERA_RAM_G = "M10K")
-           or (ALTERA_RAM_G = "M20K")
-           or (ALTERA_RAM_G = "M144K")
-           or (ALTERA_RAM_G = "M-RAM"))
-      report "Invalid ALTERA_RAM_G string"
-      severity failure;
 
    weaByteInt <= weaByte when BYTE_WR_EN_G else (others => wea);
-   webByteInt <= webByte when BYTE_WR_EN_G else (others => web);
-   
+   webByteInt <= webByte when BYTE_WR_EN_G else (others => web);   
 
    -------------------------------------------------------------------------------------------------
    -- No Change Mode

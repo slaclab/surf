@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiAd9467Pkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 --------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Description: AD9467 Package File
@@ -16,7 +15,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 package AxiAd9467Pkg is
    

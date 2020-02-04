@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : SRPv3 Protocol: https://confluence.slac.stanford.edu/x/cRmVD
 -------------------------------------------------------------------------------
--- File       : SrpV3Pkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SRPv3 Package File
@@ -18,9 +17,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 package SrpV3Pkg is
 

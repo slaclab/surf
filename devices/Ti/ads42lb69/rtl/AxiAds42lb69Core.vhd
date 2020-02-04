@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiAds42lb69Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to ADS42LB69 ADC IC
@@ -18,9 +17,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiAds42lb69Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiAds42lb69Pkg.all;
 
 entity AxiAds42lb69Core is
    generic (
@@ -65,7 +66,7 @@ architecture mapping of AxiAds42lb69Core is
 
 begin
 
-   SynchVector0_Inst : entity work.SynchronizerVector
+   SynchVector0_Inst : entity surf.SynchronizerVector
       generic map(
          TPD_G   => TPD_G,
          WIDTH_G => 2)
@@ -74,7 +75,7 @@ begin
          dataIn  => config.convert,
          dataOut => convert);
 
-   SynchVector1_Inst : entity work.SynchronizerVector
+   SynchVector1_Inst : entity surf.SynchronizerVector
       generic map(
          TPD_G   => TPD_G,
          WIDTH_G => 2)
@@ -104,7 +105,7 @@ begin
       end process;
    end generate;
 
-   AxiAds42lb69Reg_Inst : entity work.AxiAds42lb69Reg
+   AxiAds42lb69Reg_Inst : entity surf.AxiAds42lb69Reg
       generic map(
          TPD_G          => TPD_G,
          SIM_SPEEDUP_G  => SIM_SPEEDUP_G,
@@ -125,7 +126,7 @@ begin
          axiClk         => axiClk,
          axiRst         => axiRst);
 
-   AxiAds42lb69Deser_Inst : entity work.AxiAds42lb69Deser
+   AxiAds42lb69Deser_Inst : entity surf.AxiAds42lb69Deser
       generic map(
          TPD_G           => TPD_G,
          USE_PLL_G       => USE_PLL_G,

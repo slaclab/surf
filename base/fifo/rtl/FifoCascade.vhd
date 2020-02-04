@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : FifoCascade.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for cascading FWFT FIFOs together
@@ -17,7 +16,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity FifoCascade is
    -- SYNTH_MODE_G Options: {"inferred", "xpm", "altera_mf"}
@@ -30,15 +31,9 @@ entity FifoCascade is
       RST_POLARITY_G     : sl                         := '1';  -- '1' for active high rst, '0' for active low
       RST_ASYNC_G        : boolean                    := false;
       GEN_SYNC_FIFO_G    : boolean                    := false;
-      BRAM_EN_G          : boolean                    := true;
       FWFT_EN_G          : boolean                    := false;
       SYNTH_MODE_G       : string                     := "inferred";
       MEMORY_TYPE_G      : string                     := "block";      
-      USE_DSP48_G        : string                     := "no";
-      ALTERA_SYN_G       : boolean                    := false;
-      ALTERA_RAM_G       : string                     := "M9K";
-      USE_BUILT_IN_G     : boolean                    := false;  -- If set to true, this module is only Xilinx compatible only!!!
-      XIL_DEVICE_G       : string                     := "7SERIES";  -- Xilinx only generic parameter    
       SYNC_STAGES_G      : integer range 3 to (2**24) := 3;
       PIPE_STAGES_G      : natural range 0 to 16      := 0;
       DATA_WIDTH_G       : integer range 1 to (2**24) := 16;
@@ -101,21 +96,15 @@ begin
       prog_full      <= progFull;
       progFullVec(0) <= progFull;
 
-      Fifo_1xStage : entity work.Fifo
+      Fifo_1xStage : entity surf.Fifo
          generic map (
             TPD_G           => TPD_G,
             RST_POLARITY_G  => RST_POLARITY_G,
             RST_ASYNC_G     => RST_ASYNC_G,
             GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_G,
-            BRAM_EN_G       => BRAM_EN_G,
             FWFT_EN_G       => FWFT_EN_G,
             SYNTH_MODE_G    => SYNTH_MODE_G,
             MEMORY_TYPE_G   => MEMORY_TYPE_G,
-            USE_DSP48_G     => USE_DSP48_G,
-            ALTERA_SYN_G    => ALTERA_SYN_G,
-            ALTERA_RAM_G    => ALTERA_RAM_G,
-            USE_BUILT_IN_G  => USE_BUILT_IN_G,
-            XIL_DEVICE_G    => XIL_DEVICE_G,
             SYNC_STAGES_G   => SYNC_STAGES_G,
             PIPE_STAGES_G   => PIPE_STAGES_G,
             DATA_WIDTH_G    => DATA_WIDTH_G,
@@ -159,21 +148,15 @@ begin
       prog_full                     <= progFull;
       progFullVec(CASCADE_SIZE_G-1) <= progFull;
 
-      Fifo_First_Stage : entity work.Fifo
+      Fifo_First_Stage : entity surf.Fifo
          generic map (
             TPD_G           => TPD_G,
             RST_POLARITY_G  => RST_POLARITY_G,
             RST_ASYNC_G     => RST_ASYNC_G,
             GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_FIRST_C,
-            BRAM_EN_G       => BRAM_EN_G,
             FWFT_EN_G       => true,
             SYNTH_MODE_G    => SYNTH_MODE_G,
             MEMORY_TYPE_G   => MEMORY_TYPE_G,            
-            USE_DSP48_G     => USE_DSP48_G,
-            ALTERA_SYN_G    => ALTERA_SYN_G,
-            ALTERA_RAM_G    => ALTERA_RAM_G,
-            USE_BUILT_IN_G  => USE_BUILT_IN_G,
-            XIL_DEVICE_G    => XIL_DEVICE_G,
             SYNC_STAGES_G   => SYNC_STAGES_G,
             PIPE_STAGES_G   => PIPE_STAGES_G,
             DATA_WIDTH_G    => DATA_WIDTH_G,
@@ -207,21 +190,15 @@ begin
          GEN_MULTI_STAGE :
          for i in (CASCADE_SIZE_G-2) downto 1 generate
             
-            Fifo_Middle_Stage : entity work.Fifo
+            Fifo_Middle_Stage : entity surf.Fifo
                generic map (
                   TPD_G           => TPD_G,
                   RST_POLARITY_G  => RST_POLARITY_G,
                   RST_ASYNC_G     => RST_ASYNC_G,
                   GEN_SYNC_FIFO_G => true,
-                  BRAM_EN_G       => BRAM_EN_G,
                   FWFT_EN_G       => true,
                   SYNTH_MODE_G    => SYNTH_MODE_G,
                   MEMORY_TYPE_G   => MEMORY_TYPE_G,                  
-                  USE_DSP48_G     => USE_DSP48_G,
-                  ALTERA_SYN_G    => ALTERA_SYN_G,
-                  ALTERA_RAM_G    => ALTERA_RAM_G,
-                  USE_BUILT_IN_G  => USE_BUILT_IN_G,
-                  XIL_DEVICE_G    => XIL_DEVICE_G,
                   SYNC_STAGES_G   => SYNC_STAGES_G,
                   PIPE_STAGES_G   => PIPE_STAGES_G,
                   DATA_WIDTH_G    => DATA_WIDTH_G,
@@ -248,21 +225,15 @@ begin
          end generate GEN_MULTI_STAGE;
       end generate;
 
-      Fifo_Last_Stage : entity work.Fifo
+      Fifo_Last_Stage : entity surf.Fifo
          generic map (
             TPD_G           => TPD_G,
             RST_POLARITY_G  => RST_POLARITY_G,
             RST_ASYNC_G     => RST_ASYNC_G,
             GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_LAST_C,
-            BRAM_EN_G       => BRAM_EN_G,
             FWFT_EN_G       => FWFT_EN_G,
             SYNTH_MODE_G    => SYNTH_MODE_G,
             MEMORY_TYPE_G   => MEMORY_TYPE_G,            
-            USE_DSP48_G     => USE_DSP48_G,
-            ALTERA_SYN_G    => ALTERA_SYN_G,
-            ALTERA_RAM_G    => ALTERA_RAM_G,
-            USE_BUILT_IN_G  => USE_BUILT_IN_G,
-            XIL_DEVICE_G    => XIL_DEVICE_G,
             SYNC_STAGES_G   => SYNC_STAGES_G,
             PIPE_STAGES_G   => PIPE_STAGES_G,
             DATA_WIDTH_G    => DATA_WIDTH_G,

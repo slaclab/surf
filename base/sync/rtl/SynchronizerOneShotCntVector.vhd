@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SynchronizerOneShotCntVector.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for multiple SynchronizerOneShotCnt modules
@@ -15,8 +14,11 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SynchronizerOneShotCntVector is
    generic (
@@ -27,27 +29,27 @@ entity SynchronizerOneShotCntVector is
       RELEASE_DELAY_G : positive := 3;  -- Delay between deassertion of async and sync resets
       IN_POLARITY_G   : slv      := "1";  -- 0 for active LOW, 1 for active HIGH (dataIn port)
       OUT_POLARITY_G  : slv      := "1";  -- 0 for active LOW, 1 for active HIGH (dataOut port)
-      USE_DSP48_G     : string   := "no";  -- "no" for no DSP48 implementation, "yes" to use DSP48 slices
+      USE_DSP_G       : string   := "no";  -- "no" for no DSP implementation, "yes" to use DSP slices
       SYNTH_CNT_G     : slv      := "1";  -- Set to 1 for synthesising counter RTL, '0' to not synthesis the counter
       CNT_RST_EDGE_G  : boolean  := true;  -- true if counter reset should be edge detected, else level detected
       CNT_WIDTH_G     : positive := 16;
       WIDTH_G         : positive := 16);
    port (
       -- Write Ports (wrClk domain)    
-      dataIn     : in  slv(WIDTH_G-1 downto 0);   -- Data to be 'synced'
+      dataIn     : in  slv(WIDTH_G-1 downto 0);  -- Data to be 'synced'
       -- Read Ports (rdClk domain)    
-      rollOverEn : in  slv(WIDTH_G-1 downto 0);   -- '1' allows roll over of the counter
+      rollOverEn : in  slv(WIDTH_G-1 downto 0);  -- '1' allows roll over of the counter
       cntRst     : in  sl := not RST_POLARITY_G;  -- Optional counter reset
-      dataOut    : out slv(WIDTH_G-1 downto 0);   -- Synced data
+      dataOut    : out slv(WIDTH_G-1 downto 0);  -- Synced data
       cntOut     : out SlVectorArray(WIDTH_G-1 downto 0, CNT_WIDTH_G-1 downto 0);  -- Synced counter
       -- Clocks and Reset Ports
       wrClk      : in  sl;
       wrRst      : in  sl := not RST_POLARITY_G;
       rdClk      : in  sl;              -- clock to be SYNC'd to
-      rdRst      : in  sl := not RST_POLARITY_G);      
+      rdRst      : in  sl := not RST_POLARITY_G);
 end SynchronizerOneShotCntVector;
 
-architecture mapping of SynchronizerOneShotCntVector is
+architecture rtl of SynchronizerOneShotCntVector is
 
    function fillVectorArray (INPUT : slv) return slv is
    begin
@@ -61,45 +63,170 @@ architecture mapping of SynchronizerOneShotCntVector is
    constant SYNTH_CNT_C    : slv(WIDTH_G-1 downto 0) := fillVectorArray(SYNTH_CNT_G);
 
    type MySlvArray is array (WIDTH_G-1 downto 0) of slv(CNT_WIDTH_G-1 downto 0);
-   signal cnt : MySlvArray;
-   
+   signal cntWrDomain : MySlvArray;
+   signal cntRdDomain : MySlvArray;
+
+   constant FIFO_WIDTH_C : positive := CNT_WIDTH_G + bitSize(WIDTH_G-1);
+
+   type RegType is record
+      tValid : sl;
+      tData  : slv(FIFO_WIDTH_C-1 downto 0);
+      index  : natural range 0 to WIDTH_G-1;
+   end record;
+
+   constant REG_INIT_C : RegType := (
+      tValid => '0',
+      tData  => (others => '0'),
+      index  => 0);
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
+
+   signal tReady     : sl;
+   signal almostFull : sl;
+   signal rdValid    : sl;
+   signal rdData     : slv(FIFO_WIDTH_C-1 downto 0);
+
 begin
 
    GEN_VEC :
    for i in (WIDTH_G-1) downto 0 generate
-      
-      SyncOneShotCnt_Inst : entity work.SynchronizerOneShotCnt
+
+      U_SyncOneShot : entity surf.SynchronizerOneShot
          generic map (
             TPD_G           => TPD_G,
             RST_POLARITY_G  => RST_POLARITY_G,
             RST_ASYNC_G     => RST_ASYNC_G,
-            COMMON_CLK_G    => COMMON_CLK_G,
+            BYPASS_SYNC_G   => COMMON_CLK_G,
+            RELEASE_DELAY_G => RELEASE_DELAY_G,
+            IN_POLARITY_G   => IN_POLARITY_C(i),
+            OUT_POLARITY_G  => OUT_POLARITY_C(i))
+         port map (
+            clk     => rdClk,
+            rst     => rdRst,
+            dataIn  => dataIn(i),
+            dataOut => dataOut(i));
+
+      SyncOneShotCnt_Inst : entity surf.SynchronizerOneShotCnt
+         generic map (
+            TPD_G           => TPD_G,
+            RST_POLARITY_G  => RST_POLARITY_G,
+            RST_ASYNC_G     => RST_ASYNC_G,
+            COMMON_CLK_G    => true,  -- status counter bus synchronization done outside
             RELEASE_DELAY_G => RELEASE_DELAY_G,
             IN_POLARITY_G   => IN_POLARITY_C(i),
             OUT_POLARITY_G  => OUT_POLARITY_C(i),
-            USE_DSP48_G     => USE_DSP48_G,
+            USE_DSP_G       => USE_DSP_G,
             SYNTH_CNT_G     => SYNTH_CNT_C(i),
             CNT_RST_EDGE_G  => CNT_RST_EDGE_G,
-            CNT_WIDTH_G     => CNT_WIDTH_G)           
+            CNT_WIDTH_G     => CNT_WIDTH_G)
          port map (
             -- Write Ports (wrClk domain)    
             dataIn     => dataIn(i),
             -- Read Ports (rdClk domain)    
             rollOverEn => rollOverEn(i),
             cntRst     => cntRst,
-            dataOut    => dataOut(i),
-            cntOut     => cnt(i),
+            dataOut    => open,
+            cntOut     => cntWrDomain(i),
             -- Clocks and Reset Ports
             wrClk      => wrClk,
             wrRst      => wrRst,
-            rdClk      => rdClk,
-            rdRst      => rdRst);            
+            rdClk      => wrClk,  -- status counter bus synchronization done outside
+            rdRst      => wrRst);
 
       GEN_MAP :
       for j in (CNT_WIDTH_G-1) downto 0 generate
-         cntOut(i, j) <= cnt(i)(j);
+         cntOut(i, j) <= cntRdDomain(i)(j);
       end generate GEN_MAP;
-      
+
    end generate GEN_VEC;
-   
-end architecture mapping;
+
+   GEN_SYNC : if (COMMON_CLK_G = true) generate
+      cntRdDomain <= cntWrDomain;
+   end generate;
+
+   GEN_ASYNC : if (COMMON_CLK_G = false) generate
+
+      comb : process (cntWrDomain, r, tReady, wrRst) is
+         variable v : RegType;
+      begin
+         -- Latch the current value
+         v := r;
+
+         -- Flow control
+         if tReady = '1' then
+            v.tValid := '0';
+         end if;
+
+         -- Check if ready to move data
+         if (v.tValid = '0') then
+
+            -- Write the DATA to the FIFO
+            v.tValid                                   := '1';
+            v.tData(CNT_WIDTH_G-1 downto 0)            := cntWrDomain(r.index);
+            v.tData(FIFO_WIDTH_C-1 downto CNT_WIDTH_G) := toSlv(r.index, bitSize(WIDTH_G-1));
+
+            -- Check for last word
+            if (r.index = WIDTH_G-1) then
+               -- Reset the counters
+               v.index := 0;
+            else
+               -- Increment the counters
+               v.index := r.index + 1;
+            end if;
+
+         end if;
+
+         -- Synchronous Reset
+         if (wrRst = '1') then
+            v := REG_INIT_C;
+         end if;
+
+         -- Register the variable for next clock cycle
+         rin <= v;
+
+      end process comb;
+
+      seq : process (wrClk) is
+      begin
+         if (rising_edge(wrClk)) then
+            r <= rin after TPD_G;
+         end if;
+      end process seq;
+
+      U_FIFO : entity surf.FifoAsync
+         generic map (
+            TPD_G         => TPD_G,
+            MEMORY_TYPE_G => "distributed",
+            FWFT_EN_G     => true,
+            DATA_WIDTH_G  => FIFO_WIDTH_C,
+            ADDR_WIDTH_G  => 4)
+         port map (
+            rst         => '0',
+            -- Write Interface
+            wr_clk      => wrClk,
+            wr_en       => r.tValid,
+            din         => r.tData,
+            almost_full => almostFull,
+            -- Read Interface
+            rd_clk      => rdClk,
+            rd_en       => '1',
+            dout        => rdData,
+            valid       => rdValid);
+
+      tReady <= not(almostFull);
+
+      process(rdClk)
+      begin
+         if rising_edge(rdClk) then
+            if (rdRst = '1') then
+               cntRdDomain <= (others => (others => '0')) after TPD_G;
+            elsif (rdValid = '1') then
+               cntRdDomain(conv_integer(rdData(FIFO_WIDTH_C-1 downto CNT_WIDTH_G))) <= rdData(CNT_WIDTH_G-1 downto 0) after TPD_G;
+            end if;
+         end if;
+      end process;
+
+   end generate;
+
+end rtl;

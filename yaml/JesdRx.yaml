@@ -33,7 +33,7 @@ JesdRx: &JesdRx
         offset: 0x04
       class: IntField
       name: SysrefDelay
-      sizeBits: 5
+      sizeBits: 8
       mode: RW
       description: "Sets the system reference delay in clock cycles. Use if you want to reduce the latency (The latency is indicated by ElBuffLatency status). "
     #########################################################    

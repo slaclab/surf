@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : FifoRdFsm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: FIFO Read FSM
@@ -18,7 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity FifoRdFsm is
    generic (
@@ -26,6 +27,7 @@ entity FifoRdFsm is
       RST_POLARITY_G : sl       := '1';  -- '1' for active high rst, '0' for active low
       RST_ASYNC_G    : boolean  := false;
       FIFO_ASYNC_G   : boolean  := false;
+      MEMORY_TYPE_G  : string   := "block";
       FWFT_EN_G      : boolean  := false;
       DATA_WIDTH_G   : positive := 16;
       ADDR_WIDTH_G   : positive := 4;
@@ -56,6 +58,8 @@ entity FifoRdFsm is
 end FifoRdFsm;
 
 architecture rtl of FifoRdFsm is
+
+   constant MAX_CNT_C : slv(ADDR_WIDTH_G-1 downto 0) := (others => '1');
 
    type RegType is record
       rdRdy        : sl;
@@ -134,21 +138,38 @@ begin
                v.tValid(1) := '0';
             end if;
 
-            -- Check if we need to move data from RAM output to RAM REG
-            if (v.tValid(1) = '0') and (r.tValid(0) = '1') then
-               -- Move the data into the RAM REG
-               v.regceb    := '1';
-               v.tValid(1) := '1';
-               v.tValid(0) := '0';
-            end if;
+            -- Check for BRAM (2 cycle read latency = DOB_REG_G + Internal REG )
+            if (MEMORY_TYPE_G /= "distributed") then
 
-            -- Check if able to move pipeline and FIFO is not empty
-            if (v.tValid(0) = '0') and (r.empty = '0') then
-               -- Move the flag
-               v.enb       := '1';
-               v.tValid(0) := '1';
-               -- Increment the read address
-               v.rdAddr    := r.rdAddr + 1;
+               -- Check if we need to move data from RAM output to RAM REG
+               if (v.tValid(1) = '0') and (r.tValid(0) = '1') then
+                  -- Move the data into the RAM REG
+                  v.regceb    := '1';
+                  v.tValid(1) := '1';
+                  v.tValid(0) := '0';
+               end if;
+
+               -- Check if able to move pipeline and FIFO is not empty
+               if (v.tValid(0) = '0') and (r.empty = '0') then
+                  -- Move the flag
+                  v.enb       := '1';
+                  v.tValid(0) := '1';
+                  -- Increment the read address
+                  v.rdAddr    := r.rdAddr + 1;
+               end if;
+
+            -- Else LUTRAM (1 cycle read latency = Internal REG)
+            else
+
+               -- Check if able to move pipeline and FIFO is not empty
+               if (v.tValid(1) = '0') and (r.empty = '0') then
+                  -- Move the flag
+                  v.enb       := '1';
+                  v.tValid(1) := '1';
+                  -- Increment the read address
+                  v.rdAddr    := r.rdAddr + 1;
+               end if;
+
             end if;
 
          else
@@ -215,11 +236,21 @@ begin
          v.prog_empty := '0';
       end if;
 
-      -- Check for ASYNC FIFO config
-      if FIFO_ASYNC_G then
-         v.rdIndex := grayEncode(v.rdAddr);
+      -- Check for sample in FIFO reg
+      if (v.tValid(0) = '1') then
+         -- Check for ASYNC FIFO config
+         if FIFO_ASYNC_G then
+            v.rdIndex := grayEncode(v.rdAddr-1);
+         else
+            v.rdIndex := v.rdAddr-1;
+         end if;
       else
-         v.rdIndex := v.rdAddr;
+         -- Check for ASYNC FIFO config
+         if FIFO_ASYNC_G then
+            v.rdIndex := grayEncode(v.rdAddr);
+         else
+            v.rdIndex := v.rdAddr;
+         end if;
       end if;
 
       -- Register the variable for next clock cycle
@@ -238,25 +269,29 @@ begin
          rdIndex <= v.rdIndex;
       end if;
 
-      rdRdy   <= r.rdRdy;
-      rdIndex <= r.rdIndex;
-
       -- RAM Outputs
       addrb  <= v.rdAddr;
       enb    <= v.enb;
       regceb <= v.regceb;
 
       -- Read Outputs
-      dout          <= doutb;
-      rd_data_count <= r.count;
-      underflow     <= r.underflow;
-      prog_empty    <= r.prog_empty;
-      almost_empty  <= r.almost_empty;
-      empty         <= r.empty;
+      dout         <= doutb;
+      underflow    <= r.underflow;
+      prog_empty   <= r.prog_empty;
+      almost_empty <= r.almost_empty;
+      empty        <= r.empty;
+
       if (FWFT_EN_G) then
          valid <= r.tValid(1);
+         -- Check for sample in FIFO reg
+         if (r.tValid(0) = '1') and (r.count /= MAX_CNT_C) then
+            rd_data_count <= r.count + 1;
+         else
+            rd_data_count <= r.count;
+         end if;
       else
-         valid <= v.valid;
+         valid         <= v.valid;
+         rd_data_count <= r.count;
       end if;
 
    end process comb;

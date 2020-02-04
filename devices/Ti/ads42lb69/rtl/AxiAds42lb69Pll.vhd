@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiAds42lb69Pll.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: PLL Module
@@ -16,7 +15,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -123,13 +124,13 @@ begin
             I => clkFeedBack,
             O => clkFeedBackOut);     
 
-      ClkOutBufDiff_0 : entity work.ClkOutBufDiff
+      ClkOutBufDiff_0 : entity surf.ClkOutBufDiff
          port map (
             clkIn   => clkFeedBackOut,
             clkOutP => adcClkP,
             clkOutN => adcClkN);
 
-      SynchronizerOneShot_0 : entity work.SynchronizerOneShot
+      SynchronizerOneShot_0 : entity surf.SynchronizerOneShot
          generic map (
             TPD_G         => TPD_G,
             BYPASS_SYNC_G => false)
@@ -164,14 +165,14 @@ begin
 
    GEN_NO_PLL : if (USE_PLL_G = false and XIL_DEVICE_G = "7SERIES") generate
       
-      ClkOutBufDiff_1 : entity work.ClkOutBufDiff
+      ClkOutBufDiff_1 : entity surf.ClkOutBufDiff
          port map (
             clkIn   => adcClk,
             rstIn   => adcRst,
             clkOutP => adcClkP,
             clkOutN => adcClkN);   
 
-      SynchronizerOneShot_1 : entity work.SynchronizerOneShot
+      SynchronizerOneShot_1 : entity surf.SynchronizerOneShot
          generic map (
             TPD_G         => TPD_G,
             BYPASS_SYNC_G => true)
@@ -223,7 +224,7 @@ begin
    
    GEN_ULTRASCALE_NO_PLL : if (XIL_DEVICE_G = "ULTRASCALE") generate
       
-      ClkOutBufDiff_1 : entity work.ClkOutBufDiff
+      ClkOutBufDiff_1 : entity surf.ClkOutBufDiff
          generic map (
             XIL_DEVICE_G => XIL_DEVICE_G)
          port map (
@@ -232,7 +233,7 @@ begin
             clkOutP => adcClkP,
             clkOutN => adcClkN);   
 
-      SynchronizerOneShot_1 : entity work.SynchronizerOneShot
+      SynchronizerOneShot_1 : entity surf.SynchronizerOneShot
          generic map (
             TPD_G         => TPD_G,
             BYPASS_SYNC_G => true)

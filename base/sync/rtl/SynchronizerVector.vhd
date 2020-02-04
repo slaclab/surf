@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SynchronizerVector.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for multiple SynchronizerVector modules
@@ -16,7 +15,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SynchronizerVector is
    generic (

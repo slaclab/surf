@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GLinkTxToRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for GLinkEncoder/GLinkDecoder loopback testing
@@ -16,8 +15,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.GlinkPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.GlinkPkg.all;
 
 entity GLinkTxToRx is
    generic (
@@ -46,7 +47,7 @@ architecture mapping of GLinkTxToRx is
    
 begin
    
-   GLinkEncoder_Inst : entity work.GLinkEncoder
+   GLinkEncoder_Inst : entity surf.GLinkEncoder
       generic map(
          TPD_G          => TPD_G,
          RST_ASYNC_G    => RST_ASYNC_G,
@@ -59,7 +60,7 @@ begin
          gLinkTx     => gLinkTx,
          encodedData => encodedData); 
 
-   GLinkDecoder_Inst : entity work.GLinkDecoder
+   GLinkDecoder_Inst : entity surf.GLinkDecoder
       generic map(
          TPD_G          => TPD_G,
          RST_ASYNC_G    => RST_ASYNC_G,

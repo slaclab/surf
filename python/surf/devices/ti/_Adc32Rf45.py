@@ -68,7 +68,8 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             # mode         = "WO",
             hidden       =  True,
-            function     = pr.BaseCommand.createTouch(0x81)
+            function     = pr.BaseCommand.createTouch(0x81),
+            overlapEn    =  True,
         ))
 
         self.add(pr.RemoteVariable(   
@@ -80,6 +81,7 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             hidden       =  True,
+            overlapEn    =  True,
         ))
                         
         #############
@@ -94,6 +96,7 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    =  True,
         ))
                         
         self.add(pr.RemoteVariable(   
@@ -105,6 +108,7 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    =  True,
         ))                          
                         
         self.add(pr.RemoteVariable(   
@@ -116,6 +120,7 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    =  True,
         ))  
 
         self.add(pr.RemoteVariable(   
@@ -127,6 +132,7 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    =  True,
         ))                          
                         
         self.add(pr.RemoteVariable(   
@@ -138,8 +144,9 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "WO",
             value        = 0x1,
-           hidden       = True,
+            hidden       = True,
             verify       = False,
+            overlapEn    =  True,
         ))
                         
         self.add(pr.RemoteVariable(   
@@ -153,6 +160,7 @@ class Adc32Rf45(pr.Device):
             value        = 0x1,
             hidden       = True,
             verify       = False,
+            overlapEn    =  True,
         ))                             
 
         self.add(pr.RemoteVariable(   
@@ -164,6 +172,7 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    =  True,
         ))                             
 
         self.add(pr.RemoteVariable(   
@@ -175,6 +184,7 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    =  True,
         ))
 
         self.add(pr.RemoteVariable(   
@@ -186,6 +196,7 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    =  True,
         ))    
 
         self.add(pr.RemoteVariable(   
@@ -197,6 +208,7 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    =  True,
         ))
 
         self.add(pr.RemoteVariable(   
@@ -208,6 +220,7 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    =  True,
         )) 
 
         self.add(pr.RemoteVariable(   
@@ -219,6 +232,7 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    =  True,
         ))
 
         self.add(pr.RemoteVariable(   
@@ -230,6 +244,7 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    =  True,
         ))  
                         
         self.add(pr.RemoteVariable(   
@@ -241,6 +256,7 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    =  True,
         ))  
                         
         self.add(pr.RemoteVariable(   
@@ -252,6 +268,7 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    =  True,
         ))  
                        
         # ##########
@@ -266,6 +283,7 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    =  True,
         ))
                         
         self.add(pr.RemoteVariable(   
@@ -277,6 +295,7 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    =  True,
         ))
                         
 
@@ -352,11 +371,11 @@ class Adc32Rf45(pr.Device):
             self._rawWrite(generalAddr + (4*0x0059),0x02) #...
             self._rawWrite(generalAddr + (4*0x005B),0x08) #...
             self._rawWrite(generalAddr + (4*0x005c),0x07) #...
-            self._rawWrite(generalAddr + (4*0x0057),0x10) # Register control for SYSREF --these lines are added in revision SBAA226C.
-            self._rawWrite(generalAddr + (4*0x0057),0x18) # Pulse SYSREF, pull high --these lines are added in revision SBAA226C.
-            self._rawWrite(generalAddr + (4*0x0057),0x10) # Pulse SYSREF, pull back low --these lines are added in revision SBAA226C.
-            self._rawWrite(generalAddr + (4*0x0057),0x18) # Pulse SYSREF, pull high --these lines are added in revision SBAA226C.
-            self._rawWrite(generalAddr + (4*0x0057),0x10) # Pulse SYSREF, pull back low --these lines are added in revision SBAA226C.
+#            self._rawWrite(generalAddr + (4*0x0057),0x10) # Register control for SYSREF --these lines are added in revision SBAA226C.
+#            self._rawWrite(generalAddr + (4*0x0057),0x18) # Pulse SYSREF, pull high --these lines are added in revision SBAA226C.
+#            self._rawWrite(generalAddr + (4*0x0057),0x10) # Pulse SYSREF, pull back low --these lines are added in revision SBAA226C.
+#            self._rawWrite(generalAddr + (4*0x0057),0x18) # Pulse SYSREF, pull high --these lines are added in revision SBAA226C.
+#            self._rawWrite(generalAddr + (4*0x0057),0x10) # Pulse SYSREF, pull back low --these lines are added in revision SBAA226C.
             self._rawWrite(generalAddr + (4*0x0057),0x00) # Give SYSREF control back to device pin --these lines are added in revision SBAA226C.
             self._rawWrite(generalAddr + (4*0x0012),0x00) # Master page disabled
             self._rawWrite(generalAddr + (4*0x0011),0xFF) # Select ADC Page
@@ -372,9 +391,13 @@ class Adc32Rf45(pr.Device):
             self._rawWrite(rawInterface + (4*0x6068),0x22) #...
             self._rawWrite(rawInterface + (4*0x4003),0x01) #...
             self._rawWrite(rawInterface + (4*0x6068),0x22) #...
+            
+            self.SYSREF_DEL_EN.set(self.SYSREF_DEL_EN.value(), write=True)
+            self.SYSREF_DEL_HI.set(self.SYSREF_DEL_HI.value(), write=True)
+            self.SYSREF_DEL_LO.set(self.SYSREF_DEL_LO.value(), write=True)
 
-            self.SYNCB_POL.set(0x1)
-            self.JESD_OUTPUT_SWING.set(0x4)
+            self.SYNCB_POL.set(self.SYNCB_POL.value(), write=True)
+            self.JESD_OUTPUT_SWING.set(self.JESD_OUTPUT_SWING.value(), write=True)
 
 
 
@@ -656,7 +679,7 @@ class Adc32Rf45(pr.Device):
             self._rawWrite(generalAddr + (4*0x0057),0x00) # sysref dis - whether it has to be zero
 #            self._rawWrite(generalAddr + (4*0x0020),0x00)
 #            self._rawWrite(generalAddr + (4*0x0020),0x10) # Pdn sysref
-            self.PDN_SYSREF.set(0x1)
+#            self.PDN_SYSREF.set(0x1) # Do this in AppTop after JESD link is established
             
         @self.command(name= "DigRst", description  = "Digital Reset")        
         def DigRst():               

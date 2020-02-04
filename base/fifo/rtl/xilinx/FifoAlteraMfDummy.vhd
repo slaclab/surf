@@ -1,8 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : FifoAlteraMf.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2018-06-25
--- Last update: 2018-06-25
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Xilinx XPM FIFO module
 -------------------------------------------------------------------------------
@@ -20,7 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity FifoAlteraMf is
    generic (

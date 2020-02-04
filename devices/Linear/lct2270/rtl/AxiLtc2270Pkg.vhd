@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiLtc2270Pkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AxiLtc2270 Package File
@@ -15,7 +14,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 package AxiLtc2270Pkg is
 

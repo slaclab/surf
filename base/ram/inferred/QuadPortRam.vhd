@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : QuadPortRam.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:   This module infers a Quad Port RAM as distributed RAM
@@ -18,7 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity QuadPortRam is
    generic (

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SspDecoder8b10bTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Testbench for design "SspDecoder8b10b"
@@ -16,7 +15,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
@@ -54,7 +55,7 @@ begin
    -- component instantiation
 
    -- encoded data gen
-   Stimuli : entity work.SspEncoder8b10b
+   Stimuli : entity surf.SspEncoder8b10b
       generic map (
          RST_POLARITY_G => '1'
          )
@@ -67,7 +68,7 @@ begin
          );
 
    -- async fifo for validIn simulation
-   Fifo : entity work.FifoCascade
+   Fifo : entity surf.FifoCascade
       generic map (
          GEN_SYNC_FIFO_G => false,
          FWFT_EN_G       => true,
@@ -87,7 +88,7 @@ begin
          );
 
    -- unit under test
-   UUT : entity work.SspDecoder8b10b
+   UUT : entity surf.SspDecoder8b10b
       generic map (
          RST_POLARITY_G => '1'
          )

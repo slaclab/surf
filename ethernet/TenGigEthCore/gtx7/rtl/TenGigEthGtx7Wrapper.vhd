@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : TenGigEthGtx7Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Gtx7 Wrapper for 10GBASE-R Ethernet
@@ -17,11 +16,13 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.EthMacPkg.all;
-use work.TenGigEthPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.EthMacPkg.all;
+use surf.TenGigEthPkg.all;
 
 entity TenGigEthGtx7Wrapper is
    generic (
@@ -100,7 +101,7 @@ begin
    ----------------------
    -- Common Clock Module 
    ----------------------
-   TenGigEthGtx7Clk_Inst : entity work.TenGigEthGtx7Clk
+   TenGigEthGtx7Clk_Inst : entity surf.TenGigEthGtx7Clk
       generic map (
          TPD_G             => TPD_G,
          USE_GTREFCLK_G    => USE_GTREFCLK_G,
@@ -130,7 +131,7 @@ begin
    GEN_LANE :
    for i in 0 to NUM_LANE_G-1 generate
 
-      TenGigEthGtx7_Inst : entity work.TenGigEthGtx7
+      TenGigEthGtx7_Inst : entity surf.TenGigEthGtx7
          generic map (
             TPD_G           => TPD_G,
             PAUSE_EN_G      => PAUSE_EN_G,

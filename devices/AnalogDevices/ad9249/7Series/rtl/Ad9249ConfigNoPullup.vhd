@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Ad9249ConfigNoPullup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AD9249 Configuration/Status Module (no pullup version)
@@ -19,8 +18,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity Ad9249ConfigNoPullup is
    generic (

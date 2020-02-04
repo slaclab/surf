@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SyncTrigRateVector.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for multiple SyncTrigRate modules
@@ -16,7 +15,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SyncTrigRateVector is
    generic (
@@ -26,7 +27,6 @@ entity SyncTrigRateVector is
       IN_POLARITY_G  : slv      := "1";   -- 0 for active LOW, 1 for active HIGH
       REF_CLK_FREQ_G : real     := 200.0E+6;  -- units of Hz
       REFRESH_RATE_G : real     := 1.0E+0;    -- units of Hz
-      USE_DSP48_G    : string   := "no";  -- "no" for no DSP48 implementation, "yes" to use DSP48 slices
       CNT_WIDTH_G    : positive := 32;  -- Counters' width 
       WIDTH_G        : positive := 16);
    port (
@@ -74,7 +74,7 @@ begin
    GEN_VEC :
    for i in (WIDTH_G-1) downto 0 generate
       
-      SyncTrigRate_Inst : entity work.SyncTrigRate
+      SyncTrigRate_Inst : entity surf.SyncTrigRate
          generic map (
             TPD_G          => TPD_G,
             COMMON_CLK_G   => COMMON_CLK_G,
@@ -82,7 +82,6 @@ begin
             IN_POLARITY_G  => IN_POLARITY_C(i),
             REF_CLK_FREQ_G => REF_CLK_FREQ_G,
             REFRESH_RATE_G => REFRESH_RATE_G,
-            USE_DSP48_G    => USE_DSP48_G,
             CNT_WIDTH_G    => CNT_WIDTH_G)           
          port map (
             -- Trigger Input (locClk domain)

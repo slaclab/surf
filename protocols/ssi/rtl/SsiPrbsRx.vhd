@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
 -------------------------------------------------------------------------------
--- File       : SsiPrbsRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:   This module generates 
@@ -21,10 +20,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity SsiPrbsRx is
    generic (
@@ -33,12 +34,7 @@ entity SsiPrbsRx is
       STATUS_CNT_WIDTH_G         : natural range 1 to 32    := 32;
       -- FIFO configurations
       SLAVE_READY_EN_G           : boolean                  := true;
-      BRAM_EN_G                  : boolean                  := true;
-      XIL_DEVICE_G               : string                   := "7SERIES";
-      USE_BUILT_IN_G             : boolean                  := false;
       GEN_SYNC_FIFO_G            : boolean                  := false;
-      ALTERA_SYN_G               : boolean                  := false;
-      ALTERA_RAM_G               : string                   := "M9K";
       CASCADE_SIZE_G             : positive                 := 1;
       FIFO_ADDR_WIDTH_G          : positive                 := 9;
       FIFO_PAUSE_THRESH_G        : positive                 := 2**8;
@@ -216,7 +212,7 @@ begin
 
    sAxisCtrl <= axisCtrl(0);
 
-   AxiStreamFifo_Rx : entity work.AxiStreamFifoV2
+   AxiStreamFifo_Rx : entity surf.AxiStreamFifoV2
       generic map(
          -- General Configurations
          TPD_G               => TPD_G,
@@ -224,12 +220,7 @@ begin
          PIPE_STAGES_G       => SLAVE_AXI_PIPE_STAGES_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
          -- FIFO configurations
-         BRAM_EN_G           => BRAM_EN_G,
-         XIL_DEVICE_G        => XIL_DEVICE_G,
-         USE_BUILT_IN_G      => USE_BUILT_IN_G,
          GEN_SYNC_FIFO_G     => true,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
          CASCADE_SIZE_G      => CASCADE_SIZE_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => true,
@@ -252,7 +243,7 @@ begin
          mAxisMaster => rxAxisMaster,
          mAxisSlave  => rxAxisSlave);
 
-   U_Tx : entity work.AxiStreamResize
+   U_Tx : entity surf.AxiStreamResize
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -271,7 +262,7 @@ begin
          mAxisMaster => mAxisMaster,
          mAxisSlave  => mAxisSlave);
 
-   U_bypCheck : entity work.Synchronizer
+   U_bypCheck : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -526,7 +517,7 @@ begin
       end if;
    end process seq;
 
-   SyncFifo_Inst : entity work.SynchronizerFifo
+   SyncFifo_Inst : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 96)
@@ -541,7 +532,7 @@ begin
          dout(63 downto 32) => packetRateSync,
          dout(95 downto 64) => errWordCntSync);
 
-   SyncStatusVec_Inst : entity work.SyncStatusVector
+   SyncStatusVec_Inst : entity surf.SyncStatusVector
       generic map (
          TPD_G          => TPD_G,
          OUT_POLARITY_G => '1',

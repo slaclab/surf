@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamScatterGather.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Takes 6 APV bursts with 128 channels of data each and
@@ -18,10 +17,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity AxiStreamScatterGather is
    
@@ -155,13 +156,12 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Use fifo to indicate to TX side that a new frame is ready
    -------------------------------------------------------------------------------------------------
-   StatusFifo : entity work.Fifo
+   StatusFifo : entity surf.Fifo
       generic map (
          TPD_G           => TPD_G,
          GEN_SYNC_FIFO_G => true,
-         BRAM_EN_G       => false,
+         MEMORY_TYPE_G   => "distributed",
          FWFT_EN_G       => true,
-         USE_BUILT_IN_G  => false,
          DATA_WIDTH_G    => 1,
          ADDR_WIDTH_G    => 4)
       port map (

@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : SACI Protocol: https://confluence.slac.stanford.edu/x/YYcRDQ
 -------------------------------------------------------------------------------
--- File       : SaciSlaveOld.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Slave module for SACI interface. Legacy (bloated) version.
@@ -18,7 +17,9 @@
 library IEEE;
 use IEEE.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SaciSlaveOld is
   

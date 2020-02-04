@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
 -------------------------------------------------------------------------------
--- File       : SsiCmdMasterPulser.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SSI Command Master Pulser Module
@@ -19,8 +18,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.SsiCmdMasterPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.SsiCmdMasterPkg.all;
 
 entity SsiCmdMasterPulser is
    generic (

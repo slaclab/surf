@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Sff8472.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Optical Module SFF-8472 Wrapper (I2C for SFP, QSFP, etc)
@@ -18,9 +17,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.I2cPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.I2cPkg.all;
 
 entity Sff8472 is
    generic (
@@ -60,7 +61,7 @@ architecture mapping of Sff8472 is
 
 begin
 
-   U_AxiI2C : entity work.AxiI2cRegMaster
+   U_AxiI2C : entity surf.AxiI2cRegMaster
       generic map (
          TPD_G           => TPD_G,
          DEVICE_MAP_G    => DEVICE_MAP_C,

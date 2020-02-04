@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
 -------------------------------------------------------------------------------
--- File       : Pgp2bLane.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
@@ -21,10 +20,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.Pgp2bPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity Pgp2bLane is 
    generic (
@@ -106,7 +107,7 @@ begin
    U_TxEnGen: if TX_ENABLE_G = true generate
 
       -- Transmit
-      U_Pgp2bTx: entity work.Pgp2bTx 
+      U_Pgp2bTx: entity surf.Pgp2bTx 
          generic map (
             TPD_G              => TPD_G,
             TX_LANE_CNT_G      => LANE_CNT_G,
@@ -143,7 +144,7 @@ begin
    U_RxEnGen: if RX_ENABLE_G = true generate
 
       -- Receive
-      U_Pgp2bRx: entity work.Pgp2bRx 
+      U_Pgp2bRx: entity surf.Pgp2bRx 
          generic map (
             TPD_G              => TPD_G,
             RX_LANE_CNT_G      => LANE_CNT_G,
@@ -163,7 +164,7 @@ begin
          );
 
       -- Demux
-      U_RxDeMux : entity work.AxiStreamDeMux
+      U_RxDeMux : entity surf.AxiStreamDeMux
          generic map (
             TPD_G         => TPD_G,
             NUM_MASTERS_G => 4

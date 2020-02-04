@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiMemTester.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: General Purpose AXI4 memory tester
@@ -18,9 +17,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiPkg.all;
 
 entity AxiMemTester is
    generic (
@@ -380,7 +381,7 @@ begin
       end if;
    end process seq;
 
-   U_SyncBits : entity work.SynchronizerVector
+   U_SyncBits : entity surf.SynchronizerVector
       generic map (
          TPD_G    => TPD_G,
          WIDTH_G  => 7)
@@ -401,7 +402,7 @@ begin
          dataOut(5) => rErrResp,
          dataOut(6) => rErrData);
      
-   U_wTimer : entity work.SynchronizerFifo
+   U_wTimer : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 32)
@@ -413,7 +414,7 @@ begin
          rd_clk => axilClk,
          dout   => wTimer);
 
-   U_rTimer : entity work.SynchronizerFifo
+   U_rTimer : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 32)
@@ -426,7 +427,7 @@ begin
          dout   => rTimer);
    
    rDataIn <= r.rData(DATA_SYNC_BITS_C-1 downto 0);
-   U_rData : entity work.SynchronizerVector
+   U_rData : entity surf.SynchronizerVector
       generic map (
          TPD_G    => TPD_G,
          WIDTH_G  => DATA_SYNC_BITS_C)
@@ -436,7 +437,7 @@ begin
          dataOut => rDataOut(DATA_SYNC_BITS_C-1 downto 0));
    
    rPatternIn <= r.rPattern(DATA_SYNC_BITS_C-1 downto 0);
-   U_rPattern : entity work.SynchronizerVector
+   U_rPattern : entity surf.SynchronizerVector
       generic map (
          TPD_G    => TPD_G,
          WIDTH_G  => DATA_SYNC_BITS_C)

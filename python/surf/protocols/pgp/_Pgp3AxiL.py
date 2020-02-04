@@ -334,6 +334,14 @@ class Pgp3AxiL(pr.Device):
             pollInterval = 1,
         ))
         
+        self.add(pr.RemoteVariable(
+            name         = 'RemLinkData',
+            mode         = 'RO',            
+            offset       = 0x138,
+            bitSize      = 56,
+            pollInterval = 1,
+        ))        
+        
         ################
         # TX
         ################

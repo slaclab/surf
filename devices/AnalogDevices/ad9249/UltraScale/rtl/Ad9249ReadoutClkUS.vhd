@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Ad9249ReadoutClkUS.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
@@ -21,16 +20,15 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use ieee.std_logic_arith.all;
-use ieee.numeric_std.all;
-
 library UNISIM;
 use UNISIM.vcomponents.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.Ad9249Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.Ad9249Pkg.all;
 
 entity Ad9249ReadoutClkUS is
    generic (
@@ -265,7 +263,7 @@ begin
    ----------------------------------------------------------------------------
    -- idelay3 
    ----------------------------------------------------------------------------
-   U_IDELAYE3_0 : IDELAYE3
+   U_IDELAYE3_0 : entity surf.Idelaye3Wrapper
       generic map (
          CASCADE          => "NONE",    -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
          DELAY_FORMAT     => "TIME",    -- Units of the DELAY_VALUE (COUNT, TIME)
@@ -297,7 +295,7 @@ begin
          RST         => axilRst         -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
          );
 
-   U_IDELAYE3_1 : IDELAYE3
+   U_IDELAYE3_1 : entity surf.Idelaye3Wrapper
       generic map (
          CASCADE          => "NONE",
          DELAY_FORMAT     => "TIME",

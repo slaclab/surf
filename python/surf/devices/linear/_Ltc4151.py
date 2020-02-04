@@ -134,7 +134,7 @@ class Ltc4151(pr.Device):
         ))          
         
         self.add(pr.LinkVariable(
-            name         = 'ADC Input', 
+            name         = 'AdcInput', 
             description  = 'ADC Voltage Measurement',
             mode         = 'RO', 
             units        = 'V',

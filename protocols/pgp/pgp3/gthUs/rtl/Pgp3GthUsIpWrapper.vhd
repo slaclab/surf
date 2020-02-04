@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
--- File       : Pgp3GthUsIpWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: PGPv3 GTH Ultrascale IP core Wrapper
@@ -17,8 +16,10 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity Pgp3GthUsIpWrapper is
    generic (
@@ -295,7 +296,7 @@ begin
    txUsrClk2      <= txUsrClk2Int;
    txUsrClkActive <= txUsrClkActiveInt;
 
-   U_RstSync_TX : entity work.RstSync
+   U_RstSync_TX : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
@@ -306,7 +307,7 @@ begin
          asyncRst => txUsrClkActiveInt,  -- [in]
          syncRst  => txUsrClkRst);       -- [out]
 
-   U_RstSync_RX : entity work.RstSync
+   U_RstSync_RX : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
@@ -333,7 +334,7 @@ begin
             gtwiz_reset_clk_freerun_in(0)         => stableClk,
             gtwiz_reset_all_in(0)                 => stableRst,
             gtwiz_reset_tx_pll_and_datapath_in(0) => zeroBit,
-            gtwiz_reset_tx_datapath_in(0)         => zeroBit,
+            gtwiz_reset_tx_datapath_in(0)         => txReset,
             gtwiz_reset_rx_pll_and_datapath_in(0) => zeroBit,
             gtwiz_reset_rx_datapath_in(0)         => rxReset,
             gtwiz_reset_qpll0lock_in(0)           => qpllLock(0),
@@ -397,7 +398,7 @@ begin
             gtwiz_reset_clk_freerun_in(0)         => stableClk,
             gtwiz_reset_all_in(0)                 => stableRst,
             gtwiz_reset_tx_pll_and_datapath_in(0) => zeroBit,
-            gtwiz_reset_tx_datapath_in(0)         => zeroBit,
+            gtwiz_reset_tx_datapath_in(0)         => txReset,
             gtwiz_reset_rx_pll_and_datapath_in(0) => zeroBit,
             gtwiz_reset_rx_datapath_in(0)         => rxReset,
             gtwiz_reset_qpll0lock_in(0)           => qpllLock(0),
@@ -461,7 +462,7 @@ begin
             gtwiz_reset_clk_freerun_in(0)         => stableClk,
             gtwiz_reset_all_in(0)                 => stableRst,
             gtwiz_reset_tx_pll_and_datapath_in(0) => zeroBit,
-            gtwiz_reset_tx_datapath_in(0)         => zeroBit,
+            gtwiz_reset_tx_datapath_in(0)         => txReset,
             gtwiz_reset_rx_pll_and_datapath_in(0) => zeroBit,
             gtwiz_reset_rx_datapath_in(0)         => rxReset,
             gtwiz_reset_qpll0lock_in(0)           => qpllLock(0),
@@ -517,7 +518,7 @@ begin
    txheader_in(1 downto 0)   <= txHeader;
 
    GEN_DRP : if (EN_DRP_G) generate
-      U_AxiLiteToDrp_1 : entity work.AxiLiteToDrp
+      U_AxiLiteToDrp_1 : entity surf.AxiLiteToDrp
          generic map (
             TPD_G            => TPD_G,
             COMMON_CLK_G     => false,

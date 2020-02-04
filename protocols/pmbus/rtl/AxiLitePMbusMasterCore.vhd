@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiLitePMbusMasterCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: http://pmbus.org/Assets/PDFS/Public/PMBus_Specification_Part_II_Rev_1-1_20070205.pdf
@@ -18,12 +17,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.I2cPkg.all;
 
-library unisim;
-use unisim.vcomponents.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.I2cPkg.all;
 
 entity AxiLitePMbusMasterCore is
    generic (
@@ -158,7 +156,7 @@ architecture rtl of AxiLitePMbusMasterCore is
 
 begin
 
-   U_I2cRegMaster : entity work.I2cRegMaster
+   U_I2cRegMaster : entity surf.I2cRegMaster
       generic map(
          TPD_G                => TPD_G,
          OUTPUT_EN_POLARITY_G => 0,

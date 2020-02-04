@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : CrcPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: This package defines a few functions that are useful for 
@@ -25,7 +24,9 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 package CrcPkg is 
 

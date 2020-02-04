@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GigEthGth7Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Gth7 Wrapper for 1000BASE-X Ethernet
@@ -17,11 +16,13 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.EthMacPkg.all;
-use work.GigEthPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.EthMacPkg.all;
+use surf.GigEthPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -68,6 +69,9 @@ entity GigEthGth7Wrapper is
       gtRefClk            : in  sl                                             := '0';
       gtClkP              : in  sl                                             := '1';
       gtClkN              : in  sl                                             := '0';
+      -- Copy of internal MMCM reference clock and Reset
+      refClkOut           : out sl;
+      refRstOut           : out sl;
       -- Switch Polarity of TxN/TxP, RxN/RxP
       gtTxPolarity        : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '0');
       gtRxPolarity        : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '0');
@@ -93,6 +97,9 @@ begin
 
    phyClk <= sysClk125;
    phyRst <= sysRst125;
+   
+   refClkOut <= refClk;
+   refRstOut <= refRst;
 
    -----------------------------
    -- Select the Reference Clock
@@ -116,7 +123,7 @@ begin
    -----------------
    -- Power Up Reset
    -----------------
-   PwrUpRst_Inst : entity work.PwrUpRst
+   PwrUpRst_Inst : entity surf.PwrUpRst
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -127,7 +134,7 @@ begin
    ----------------
    -- Clock Manager
    ----------------
-   U_MMCM : entity work.ClockManager7
+   U_MMCM : entity surf.ClockManager7
       generic map(
          TPD_G              => TPD_G,
          TYPE_G             => "MMCM",
@@ -156,7 +163,7 @@ begin
    GEN_LANE :
    for i in 0 to NUM_LANE_G-1 generate
 
-      U_GigEthGth7 : entity work.GigEthGth7
+      U_GigEthGth7 : entity surf.GigEthGth7
          generic map (
             TPD_G           => TPD_G,
             PAUSE_EN_G      => PAUSE_EN_G,

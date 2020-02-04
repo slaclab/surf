@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SaltTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SALT TX Engine Module
@@ -18,10 +17,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.SaltPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.SaltPkg.all;
 
 entity SaltTx is
    generic (
@@ -108,7 +109,7 @@ architecture rtl of SaltTx is
 
 begin
 
-   FIFO_RX : entity work.AxiStreamFifoV2
+   FIFO_RX : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -116,8 +117,7 @@ begin
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
-         BRAM_EN_G           => false,
-         USE_BUILT_IN_G      => false,
+         MEMORY_TYPE_G       => "distributed",
          GEN_SYNC_FIFO_G     => COMMON_TX_CLK_G,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 4,
@@ -137,7 +137,7 @@ begin
          mAxisMaster => rxMaster,
          mAxisSlave  => rxSlave);
 
-   DATAGRAM_BUFFER : entity work.AxiStreamFifoV2
+   DATAGRAM_BUFFER : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -145,8 +145,7 @@ begin
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
-         BRAM_EN_G           => true,
-         USE_BUILT_IN_G      => false,
+         MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => true,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 9,
@@ -378,7 +377,7 @@ begin
       end if;
    end process seq;
 
-   U_TxResize : entity work.SaltTxResize
+   U_TxResize : entity surf.SaltTxResize
       generic map (
          TPD_G => TPD_G)
       port map (

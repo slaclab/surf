@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GlinkDecoder.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Decoder for the Condition Inversion Master Transition coding
@@ -18,8 +17,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.GlinkPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.GlinkPkg.all;
 
 entity GLinkDecoder is
    generic (
@@ -59,7 +60,7 @@ architecture rtl of GLinkDecoder is
    
 begin
 
-   Synchronizer_Inst : entity work.Synchronizer
+   Synchronizer_Inst : entity surf.Synchronizer
       generic map (
          TPD_G          => TPD_G,
          RST_ASYNC_G    => RST_ASYNC_G,

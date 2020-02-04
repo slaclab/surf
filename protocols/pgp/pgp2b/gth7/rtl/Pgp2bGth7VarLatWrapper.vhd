@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
 -------------------------------------------------------------------------------
--- File       : Pgp2bGth7VarLatWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Example PGP 3.125 Gbps front end wrapper
@@ -20,10 +19,12 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.Pgp2bPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.AxiLitePkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -89,7 +90,7 @@ architecture mapping of Pgp2bGth7VarLatWrapper is
 
 begin
    
-   Pgp2bGth7VarLat_Inst : entity work.Pgp2bGth7VarLat
+   Pgp2bGth7VarLat_Inst : entity surf.Pgp2bGth7VarLat
       generic map (
          TPD_G             => TPD_G,
          -- CPLL Configurations

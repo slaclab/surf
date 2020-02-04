@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : DspAddSub.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Generalized DSP inferred DSP inferred add/sub 
@@ -18,7 +17,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity DspAddSub is
    generic (
@@ -61,8 +62,8 @@ architecture rtl of DspAddSub is
 
    signal p : slv(WIDTH_G-1 downto 0);
 
-   attribute use_dsp48      : string;
-   attribute use_dsp48 of r : signal is USE_DSP_G;
+   attribute use_dsp      : string;
+   attribute use_dsp of r : signal is USE_DSP_G;
 
 begin
 
@@ -120,7 +121,7 @@ begin
       end if;
    end process seq;
 
-   U_Pipe : entity work.FifoOutputPipeline
+   U_Pipe : entity surf.FifoOutputPipeline
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : UartAxiLiteMasterTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Testbench for design "UartAxiLiteMaster"
@@ -18,9 +17,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.TextUtilPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.TextUtilPkg.all;
+use surf.AxiLitePkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
@@ -36,7 +37,7 @@ architecture sim of UartAxiLiteMasterTb is
    constant TPD_G             : time                  := 1 ns;
    constant CLK_FREQ_G        : real                  := 125.0e6;
    constant BAUD_RATE_G       : integer               := 115200;
-   constant FIFO_BRAM_EN_G    : boolean               := false;
+   constant MEMORY_TYPE_G     : string                := "distributed";
    constant FIFO_ADDR_WIDTH_G : integer range 4 to 48 := 5;
 
    -- component ports
@@ -58,7 +59,7 @@ architecture sim of UartAxiLiteMasterTb is
 
 begin
 
-   U_ClkRst_1 : entity work.ClkRst
+   U_ClkRst_1 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => (1.0/CLK_FREQ_G)* 1 sec,
          CLK_DELAY_G       => 1 ns,
@@ -70,12 +71,12 @@ begin
          rst  => rst);
 
 
-   U_UartWrapper_1 : entity work.UartWrapper
+   U_UartWrapper_1 : entity surf.UartWrapper
       generic map (
          TPD_G             => TPD_G,
          CLK_FREQ_G        => CLK_FREQ_G,
          BAUD_RATE_G       => BAUD_RATE_G,
-         FIFO_BRAM_EN_G    => FIFO_BRAM_EN_G,
+         MEMORY_TYPE_G     => MEMORY_TYPE_G,
          FIFO_ADDR_WIDTH_G => FIFO_ADDR_WIDTH_G)
       port map (
          clk     => clk,                -- [in]
@@ -90,12 +91,12 @@ begin
          rx      => rx);                -- [in]  
 
    -- component instantiation
-   U_UartAxiLiteMaster : entity work.UartAxiLiteMaster
+   U_UartAxiLiteMaster : entity surf.UartAxiLiteMaster
       generic map (
          TPD_G             => TPD_G,
          AXIL_CLK_FREQ_G   => CLK_FREQ_G,
          BAUD_RATE_G       => BAUD_RATE_G,
-         FIFO_BRAM_EN_G    => FIFO_BRAM_EN_G,
+         MEMORY_TYPE_G     => MEMORY_TYPE_G,
          FIFO_ADDR_WIDTH_G => FIFO_ADDR_WIDTH_G)
       port map (
          axilClk          => clk,              -- [in]
@@ -108,7 +109,7 @@ begin
          rx               => tx);              -- [in]
 
 
-   U_AxiDualPortRam_1 : entity work.AxiDualPortRam
+   U_AxiDualPortRam_1 : entity surf.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
          SYNTH_MODE_G => "xpm",

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Ad9249.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AD9249 Module
@@ -19,7 +18,9 @@ use ieee.std_logic_1164.all;
 library UNISIM;
 use UNISIM.vcomponents.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity Ad9249 is
 
@@ -61,7 +62,7 @@ begin
 
 
 
-   U_Ad9249Group_0 : entity work.Ad9249Group
+   U_Ad9249Group_0 : entity surf.Ad9249Group
       generic map (
          TPD_G            => TPD_G,
          CLK_PERIOD_G     => CLK_PERIOD_G,
@@ -82,7 +83,7 @@ begin
          sdio => sdio,                  -- [inout]
          csb  => csb(0));               -- [in]
 
-   U_Ad9249Group_1 : entity work.Ad9249Group
+   U_Ad9249Group_1 : entity surf.Ad9249Group
       generic map (
          TPD_G            => TPD_G,
          CLK_PERIOD_G     => CLK_PERIOD_G,
