@@ -90,9 +90,9 @@ begin
             DATAIN      => '0',            -- 1-bit input: Internal delay data input
             IDATAIN     => data,           -- 1-bit input: Data input from the I/O
             INC         => '0',            -- 1-bit input: Increment / Decrement tap delay input
-            LD          => '1',            -- 1-bit input: Load IDELAY_VALUE input
+            LD          => delayInLoad,    -- 1-bit input: Load IDELAY_VALUE input
             LDPIPEEN    => '0',            -- 1-bit input: Enable PIPELINE register to load data input
-            REGRST      => delayInLoad);   -- 1-bit input: Active-high reset tap-delay input
+            REGRST      => '0');           -- 1-bit input: Active-high reset tap-delay input
 
       IDDR_Inst : IDDR
          generic map (
