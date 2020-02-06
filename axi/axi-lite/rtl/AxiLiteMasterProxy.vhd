@@ -31,6 +31,8 @@ library unisim;
 use unisim.vcomponents.all;
 
 entity AxiLiteMasterProxy is
+   generic (
+      TPD_G : time := 1 ns);
    port (
       -- Clocks and Resets
       axiClk          : in    sl;
@@ -150,7 +152,7 @@ begin
    seq : process (axiClk) is
    begin
       if rising_edge(axiClk) then
-         r <= rin;
+         r <= rin after TPD_G;
       end if;
    end process seq;
 

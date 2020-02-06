@@ -37,6 +37,7 @@ entity SsiPrbsTx is
       -- FIFO Configurations
       VALID_THOLD_G              : natural                 := 1;
       VALID_BURST_MODE_G         : boolean                 := false;
+      SYNTH_MODE_G               : string                  := "inferred";
       MEMORY_TYPE_G              : string                  := "block";
       GEN_SYNC_FIFO_G            : boolean                 := false;
       CASCADE_SIZE_G             : positive                := 1;
@@ -388,6 +389,7 @@ begin
          VALID_THOLD_G       => VALID_THOLD_G,
          VALID_BURST_MODE_G  => VALID_BURST_MODE_G,
          -- FIFO configurations
+         SYNTH_MODE_G        => SYNTH_MODE_G,
          MEMORY_TYPE_G       => MEMORY_TYPE_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          CASCADE_SIZE_G      => CASCADE_SIZE_G,

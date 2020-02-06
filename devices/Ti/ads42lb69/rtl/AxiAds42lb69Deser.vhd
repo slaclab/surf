@@ -29,6 +29,7 @@ entity AxiAds42lb69Deser is
    generic (
       TPD_G           : time                                    := 1 ns;
       USE_PLL_G       : boolean                                 := false;
+      USE_FBCLK_G     : boolean                                 := true;
       ADC_CLK_FREQ_G  : real                                    := 250.0E+6;
       DELAY_INIT_G    : Slv9VectorArray(1 downto 0, 7 downto 0) := (others => (others => (others => '0')));
       IODELAY_GROUP_G : string                                  := "AXI_ADS42LB69_IODELAY_GRP";
@@ -56,7 +57,8 @@ entity AxiAds42lb69Deser is
       adcClk       : in  sl;
       adcRst       : in  sl;
       adcSync      : in  sl;
-      refClk200MHz : in  sl);
+      refClk200MHz : in  sl;
+      refRst200MHz : in  sl);
 end AxiAds42lb69Deser;
 
 architecture rtl of AxiAds42lb69Deser is
@@ -82,6 +84,7 @@ begin
       generic map(
          TPD_G          => TPD_G,
          USE_PLL_G      => USE_PLL_G,
+         USE_FBCLK_G    => USE_FBCLK_G,
          ADC_CLK_FREQ_G => ADC_CLK_FREQ_G,
          XIL_DEVICE_G   => XIL_DEVICE_G)
       port map (
@@ -110,22 +113,12 @@ begin
    GEN_7SERIES : if (XIL_DEVICE_G = "7SERIES") generate
       attribute IODELAY_GROUP                    : string;
       attribute IODELAY_GROUP of IDELAYCTRL_Inst : label is IODELAY_GROUP_G;
-      signal rstSync : sl;
    begin
       IDELAYCTRL_Inst : IDELAYCTRL
          port map (
             RDY    => delayOut.rdy,        -- 1-bit output: Ready output
             REFCLK => refClk200MHz,        -- 1-bit input: Reference clock input
-            RST    => rstSync);            -- 1-bit input: Active high reset input
-      
-      Sync_delayIn_rst : entity surf.RstSync
-         generic map (
-            TPD_G           => TPD_G,
-            RELEASE_DELAY_G => 16)   
-         port map (
-            clk      => refClk200MHz,
-            asyncRst => delayIn.rst,
-            syncRst  => rstSync);   
+            RST    => refRst200MHz);       -- 1-bit input: Active high reset input
          
    end generate;
 
