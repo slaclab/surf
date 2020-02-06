@@ -82,6 +82,7 @@ architecture rtl of SynchronizerOneShotCntVector is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   signal wrEn       : sl;
    signal tReady     : sl;
    signal almostFull : sl;
    signal rdValid    : sl;
@@ -177,6 +178,9 @@ begin
 
          end if;
 
+         -- Outputs
+         wrEn <= r.tValid and tReady;
+
          -- Synchronous Reset
          if (wrRst = '1') then
             v := REG_INIT_C;
@@ -205,7 +209,7 @@ begin
             rst         => '0',
             -- Write Interface
             wr_clk      => wrClk,
-            wr_en       => r.tValid,
+            wr_en       => wrEn,
             din         => r.tData,
             almost_full => almostFull,
             -- Read Interface
