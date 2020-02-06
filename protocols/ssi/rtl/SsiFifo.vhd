@@ -178,7 +178,7 @@ begin
          CASCADE_PAUSE_SEL_G    => CASCADE_PAUSE_SEL_G,
          CASCADE_SIZE_G         => CASCADE_SIZE_G,
          SLAVE_AXI_CONFIG_G     => SLAVE_AXI_CONFIG_G,
-         MASTER_AXI_CONFIG_G    => MASTER_AXI_CONFIG_G)
+         MASTER_AXI_CONFIG_G    => SLAVE_AXI_CONFIG_G)
       port map (
          -- Slave Interface (sAxisClk domain)
          sAxisClk        => sAxisClk,
@@ -281,7 +281,7 @@ begin
          TPD_G         => TPD_G,
          VALID_THOLD_G => VALID_THOLD_G,
          PIPE_STAGES_G => PIPE_STAGES_G,
-         AXIS_CONFIG_G => MASTER_AXI_CONFIG_G)
+         AXIS_CONFIG_G => SLAVE_AXI_CONFIG_G)
       port map (
          -- Slave Interface (sAxisClk domain)
          sAxisMaster    => txMaster,
@@ -310,9 +310,9 @@ begin
             SYNTH_MODE_G        => SYNTH_MODE_G,
             MEMORY_TYPE_G       => "distributed",
             GEN_SYNC_FIFO_G     => false,
-            FIFO_ADDR_WIDTH_G   => 5,
+            FIFO_ADDR_WIDTH_G   => 4,
             -- AXI Stream Port Configurations
-            SLAVE_AXI_CONFIG_G  => MASTER_AXI_CONFIG_G,
+            SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_G,
             MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G)
          port map (
             -- Slave Port
