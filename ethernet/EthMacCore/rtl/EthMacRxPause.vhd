@@ -168,7 +168,7 @@ begin
                   -- Check for a EOF
                   if (sAxisMaster.tLast = '1') then
                      -- Set the pause
-                     v.pauseEn := not axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, sAxisMaster, EMAC_EOFE_BIT_C);
+                     v.pauseEn := not axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, sAxisMaster, EMAC_EOFE_BIT_C);
                      -- Next State
                      v.state   := IDLE_S;
                   else
@@ -181,7 +181,7 @@ begin
                -- Check for a valid EOF
                if (sAxisMaster.tValid = '1') and (sAxisMaster.tLast = '1') then
                   -- Set the pause
-                  v.pauseEn := not axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, sAxisMaster, EMAC_EOFE_BIT_C);
+                  v.pauseEn := not axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, sAxisMaster, EMAC_EOFE_BIT_C);
                   -- Next State
                   v.state   := IDLE_S;
                end if;

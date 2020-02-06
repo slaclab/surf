@@ -26,6 +26,7 @@ entity AxiAds42lb69Pll is
    generic (
       TPD_G          : time    := 1 ns;
       USE_PLL_G      : boolean := true;
+      USE_FBCLK_G    : boolean := true;
       ADC_CLK_FREQ_G : real    := 250.0E+6;
       XIL_DEVICE_G   : string  := "7SERIES");
    port (
@@ -199,18 +200,25 @@ begin
             I  => syncOut,
             O  => adcSyncP,
             OB => adcSyncN);         
+      
+      GEN_FBCLK : if (USE_FBCLK_G = true) generate
+      
+         IBUFGDS_1 : IBUFGDS
+            port map (
+               I  => adcClkFbP,
+               IB => adcClkFbN,
+               O  => adcInClk);
 
-      IBUFGDS_1 : IBUFGDS
-         port map (
-            I  => adcClkFbP,
-            IB => adcClkFbN,
-            O  => adcInClk);
-
-      BUFG_1 : BUFG
-         port map (
-            I => adcInClk,
-            O => adcClock); 
-
+         BUFG_1 : BUFG
+            port map (
+               I => adcInClk,
+               O => adcClock); 
+               
+      end generate;
+      GEN_NO_FBCLK : if (USE_FBCLK_G = false) generate
+         adcClock <= adcClk;
+      end generate;
+      
    end generate;
    
    
@@ -247,17 +255,22 @@ begin
             I  => syncOut,
             O  => adcSyncP,
             OB => adcSyncN);         
+      
+      GEN_FBCLK : if (USE_FBCLK_G = true) generate
+         IBUFGDS_1 : IBUFGDS
+            port map (
+               I  => adcClkFbP,
+               IB => adcClkFbN,
+               O  => adcInClk);
 
-      IBUFGDS_1 : IBUFGDS
-         port map (
-            I  => adcClkFbP,
-            IB => adcClkFbN,
-            O  => adcInClk);
-
-      BUFG_1 : BUFG
-         port map (
-            I => adcInClk,
-            O => adcClock); 
+         BUFG_1 : BUFG
+            port map (
+               I => adcInClk,
+               O => adcClock); 
+      end generate;
+      GEN_NO_FBCLK : if (USE_FBCLK_G = false) generate
+         adcClock <= adcClk;
+      end generate;
 
       
    end generate;
