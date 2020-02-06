@@ -6,7 +6,7 @@ var classEthMacRxImportXgmii_1_1rtl =
     [ "PROCESS_106", "classEthMacRxImportXgmii_1_1rtl.html#a4504d7c21a4d6e6b28b812dbd209e73d", null ],
     [ "PROCESS_107", "classEthMacRxImportXgmii_1_1rtl.html#afd5fd0da382660f957395b295aca90f0", null ],
     [ "PROCESS_108", "classEthMacRxImportXgmii_1_1rtl.html#a56c2fe76fa3d2ccb0b7adadf7e954efd", null ],
-    [ "AXI_CONFIG_C", "classEthMacRxImportXgmii_1_1rtl.html#a58c7878dcc69054a0b92baebc85c61a8", null ],
+    [ "AXI_CONFIG_C", "classEthMacRxImportXgmii_1_1rtl.html#adcc7ed95cc781d74e3371cbee4073f89", null ],
     [ "RegType", "classEthMacRxImportXgmii_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
     [ "phyRxd", "classEthMacRxImportXgmii_1_1rtl.html#a5a5d0cef7b9aca7f556d5cb4bc638896", null ],
     [ "phyRxc", "classEthMacRxImportXgmii_1_1rtl.html#a2df8aacc7dee766a5abc8658aa6386ee", null ],

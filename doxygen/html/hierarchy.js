@@ -98,7 +98,6 @@ var hierarchy =
           [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ]
         ] ],
         [ "SynchronizerVector", "classSynchronizerVector.html", null ],
-        [ "RstSync", "classRstSync.html", null ],
         [ "AxiAds42lb69DeserBit", "classAxiAds42lb69DeserBit.html", [
           [ "Idelaye3Wrapper", "classIdelaye3Wrapper.html", null ],
           [ "Odelaye3Wrapper", "classOdelaye3Wrapper.html", null ]

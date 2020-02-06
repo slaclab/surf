@@ -13,11 +13,9 @@ var classAxiAds42lb69Deser_1_1rtl =
     [ "data", "classAxiAds42lb69Deser_1_1rtl.html#a3ac5505142dd8268fab5f2d1f49b8b0f", null ],
     [ "IODELAY_GROUP", "classAxiAds42lb69Deser_1_1rtl.html#a87d638bc06c30868443d82bee7619ba6", null ],
     [ "IODELAY_GROUP", "classAxiAds42lb69Deser_1_1rtl.html#a0c3b0f843a665316d98f5a1630556e25", null ],
-    [ "rstSync", "classAxiAds42lb69Deser_1_1rtl.html#ad2f416cdd6aa0ff337762a00542fe5bb", null ],
     [ "axiads42lb69pll_inst", "classAxiAds42lb69Deser_1_1rtl.html#aabf64d28f6bd65606f492ab4dedf4661", null ],
     [ "synchvector_inst", "classAxiAds42lb69Deser_1_1rtl.html#a61603e3b9e39b5a07c65bd9cbb34be2a", null ],
     [ "idelayctrl_inst", "classAxiAds42lb69Deser_1_1rtl.html#aa8d2dba9338794610184679a1b3b89c0", null ],
-    [ "sync_delayin_rst", "classAxiAds42lb69Deser_1_1rtl.html#a4561d95628dfae7a9ca9a9f21bcbc07d", null ],
     [ "axiads42lb69deserbit_inst", "classAxiAds42lb69Deser_1_1rtl.html#af8fa81feafadaa7ab1f6f5e09f509592", null ],
     [ "syncfifo_inst", "classAxiAds42lb69Deser_1_1rtl.html#afc51cee9076045ce493b811005ce5915", null ]
 ];

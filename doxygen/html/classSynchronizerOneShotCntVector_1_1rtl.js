@@ -18,6 +18,7 @@ var classSynchronizerOneShotCntVector_1_1rtl =
     [ "REG_INIT_C", "classSynchronizerOneShotCntVector_1_1rtl.html#a8514a9246733ffe0e7a8f6a743dccbf9", null ],
     [ "r", "classSynchronizerOneShotCntVector_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3", null ],
     [ "rin", "classSynchronizerOneShotCntVector_1_1rtl.html#a758a8cbb78916a3911d410a62191310d", null ],
+    [ "wrEn", "classSynchronizerOneShotCntVector_1_1rtl.html#ad679b99ea634fb912bb2c98921270321", null ],
     [ "tReady", "classSynchronizerOneShotCntVector_1_1rtl.html#a2d1121d053b4c15778d16d25c4e0b10a", null ],
     [ "almostFull", "classSynchronizerOneShotCntVector_1_1rtl.html#a3fcad192bb05e1bcae75147ba1c71ad6", null ],
     [ "rdValid", "classSynchronizerOneShotCntVector_1_1rtl.html#a1e27e684a5f8b00494cc203d8211f138", null ],

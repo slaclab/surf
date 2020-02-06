@@ -3,6 +3,7 @@ var classAxiAds42lb69Pll =
     [ "mapping", "classAxiAds42lb69Pll_1_1mapping.html", "classAxiAds42lb69Pll_1_1mapping" ],
     [ "TPD_G", "classAxiAds42lb69Pll.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "USE_PLL_G", "classAxiAds42lb69Pll.html#abf393626eeecc7d6b03982434995a9cf", null ],
+    [ "USE_FBCLK_G", "classAxiAds42lb69Pll.html#ab2c209c8e4851aaa5296b88ebee65229", null ],
     [ "ADC_CLK_FREQ_G", "classAxiAds42lb69Pll.html#a32856a8caa5557f3b267be667b1c90da", null ],
     [ "XIL_DEVICE_G", "classAxiAds42lb69Pll.html#ad73f3e1bc362541946cf886a1bf2c994", null ],
     [ "adcClkP", "classAxiAds42lb69Pll.html#a3ca3594b39e0e22d3d8c18f80267a535", null ],

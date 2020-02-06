@@ -1,5 +1,10 @@
 var NAVTREEINDEX17 =
 {
+"classAxiStreamBatcherAxil_1_1rtl.html#aa4f593c6826d552f957b08e5aae50dad":[1,0,93,0,12],
+"classAxiStreamBatcherAxil_1_1rtl.html#ad4be949ae84cb093a0bdb15264af8b35":[1,0,93,0,14],
+"classAxiStreamBatcherEventBuilder.html":[1,0,94],
+"classAxiStreamBatcherEventBuilder.html#a044b1bf79201c595c20474cecf020a5d":[1,0,94,11],
+"classAxiStreamBatcherEventBuilder.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,94,20],
 "classAxiStreamBatcherEventBuilder.html#a0f5ecc6613f63d07f7963a97b1b26095":[1,0,94,23],
 "classAxiStreamBatcherEventBuilder.html#a129eaf71f6056f837f37b4d59ce80a70":[1,0,94,7],
 "classAxiStreamBatcherEventBuilder.html#a1961d417e7cb6347ed0575fc04e65b6e":[1,0,94,17],
@@ -244,10 +249,5 @@ var NAVTREEINDEX17 =
 "classAxiStreamDeMux.html#a4be737583df4493f37e21b9da4a67377":[1,0,100,10],
 "classAxiStreamDeMux.html#a4e7681b5766a6f51851dfb086a6bf45a":[1,0,100,11],
 "classAxiStreamDeMux.html#a67a837684e4f18c2d236ac1d053b419b":[1,0,100,1],
-"classAxiStreamDeMux.html#a73b7071163a43a5ee6eca4680880bf96":[1,0,100,6],
-"classAxiStreamDeMux.html#a776f7d1c3e4102d6af8db8ec00c215ce":[1,0,100,20],
-"classAxiStreamDeMux.html#a9a2f725569a035bfe26ecc2121149741":[1,0,100,19],
-"classAxiStreamDeMux.html#ac220cc2710ba738744915c3b2a0f43bc":[1,0,100,8],
-"classAxiStreamDeMux.html#ac2baa1c398fae7c51e6f466706e211d6":[1,0,100,5],
-"classAxiStreamDeMux.html#ac7b404db7810ed12868d1e23cdafc8ba":[1,0,100,2]
+"classAxiStreamDeMux.html#a73b7071163a43a5ee6eca4680880bf96":[1,0,100,6]
 };

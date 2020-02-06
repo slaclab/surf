@@ -1,5 +1,10 @@
 var NAVTREEINDEX6 =
 {
+"classAxiDualPortRam.html#ad6c1974e49c60d756a73f5780d466129":[1,0,33,6],
+"classAxiDualPortRam.html#ada00bcbb3416fb22f6faca63b14c7204":[1,0,33,13],
+"classAxiDualPortRam.html#ae5bfd145559b9a96ee357fedb2b9323b":[1,0,33,8],
+"classAxiDualPortRam.html#ae6e34146e5554eb4fc69be116a127bfb":[1,0,33,11],
+"classAxiDualPortRam.html#ae88051a2dcc1758b0573b3f07c74761a":[1,0,33,26],
 "classAxiDualPortRam.html#ae8af6b64d6e7bf1437f4089f6037439e":[1,0,33,5],
 "classAxiDualPortRam.html#aeb5a85572d93ce02389f9cda2614d8d3":[1,0,33,23],
 "classAxiDualPortRam.html#aed1aa6c9be5ac997e7fc050e1a4aeb4d":[1,0,33,30],
@@ -244,10 +249,5 @@ var NAVTREEINDEX6 =
 "classAxiLiteAsync_1_1STRUCTURE.html#a59595908b8103cb7570a5bdc26139592":[1,0,37,0,17],
 "classAxiLiteAsync_1_1STRUCTURE.html#a63589d492a8908ff498e15f5d364e3e0":[1,0,37,0,36],
 "classAxiLiteAsync_1_1STRUCTURE.html#a770ce1c1e67e3da00efba22db466f0fa":[1,0,37,0,22],
-"classAxiLiteAsync_1_1STRUCTURE.html#a81ee8015cb2253b4528e24efd9b883ae":[1,0,37,0,40],
-"classAxiLiteAsync_1_1STRUCTURE.html#a87500980f6a683bc3be31e8319175581":[1,0,37,0,2],
-"classAxiLiteAsync_1_1STRUCTURE.html#a9080753aeffc22a8efbcb4e656591afd":[1,0,37,0,0],
-"classAxiLiteAsync_1_1STRUCTURE.html#a9172a3abafec99768b57a9de8068a005":[1,0,37,0,23],
-"classAxiLiteAsync_1_1STRUCTURE.html#a96fdc4bca5eb518e54f3fb4f0b81f136":[1,0,37,0,4],
-"classAxiLiteAsync_1_1STRUCTURE.html#a992627971fb8b1757e9310e4e029b111":[1,0,37,0,38]
+"classAxiLiteAsync_1_1STRUCTURE.html#a81ee8015cb2253b4528e24efd9b883ae":[1,0,37,0,40]
 };

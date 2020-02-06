@@ -1,5 +1,10 @@
 var NAVTREEINDEX8 =
 {
+"classAxiLiteFifoPushPop_1_1structure.html#aac02b828a163ea7cc6a40563949f17d6":[1,0,42,0,10],
+"classAxiLiteFifoPushPop_1_1structure.html#aaf907fa7b6732231b2dfd9969ef98240":[1,0,42,0,23],
+"classAxiLiteFifoPushPop_1_1structure.html#ab0c1671ef4fbad7543007be79984596b":[1,0,42,0,24],
+"classAxiLiteFifoPushPop_1_1structure.html#abc58572579c3748acee7d745360d1399":[1,0,42,0,13],
+"classAxiLiteFifoPushPop_1_1structure.html#ac5189200c2b48ae52cbeb0250daa7689":[1,0,42,0,18],
 "classAxiLiteFifoPushPop_1_1structure.html#ace9613f3d90688b6b05ef47f514d0840":[1,0,42,0,2],
 "classAxiLiteFifoPushPop_1_1structure.html#ad1cb4c9610cd16e748033a52884ecb31":[1,0,42,0,7],
 "classAxiLiteFifoPushPop_1_1structure.html#ad35e9ecd741388972b3dc0928cfeeb48":[1,0,42,0,27],
@@ -244,10 +249,5 @@ var NAVTREEINDEX8 =
 "classAxiLiteRamSyncStatusVector.html#acd03516902501cd1c7296a98e22c6fcb":[1,0,48,28],
 "classAxiLiteRamSyncStatusVector.html#ad6380c6ea4df20847308b4976c873312":[1,0,48,15],
 "classAxiLiteRamSyncStatusVector.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,48,32],
-"classAxiLiteRamSyncStatusVector.html#af98a1f0df20cf0e5f0fdb9f5999ad782":[1,0,48,33],
-"classAxiLiteRamSyncStatusVector.html#afcb1ad088fa47d7232fcc4951acbe767":[1,0,48,11],
-"classAxiLiteRamSyncStatusVector_1_1mapping.html":[1,0,48,0],
-"classAxiLiteRamSyncStatusVector_1_1mapping.html#a0498304adc5e9a77df9df664a54ee3d3":[1,0,48,0,9],
-"classAxiLiteRamSyncStatusVector_1_1mapping.html#a17887369a1d075c3b9eedf95b9a70e1f":[1,0,48,0,4],
-"classAxiLiteRamSyncStatusVector_1_1mapping.html#a35f0a6888bd1c2e56754f97c77a534b9":[1,0,48,0,3]
+"classAxiLiteRamSyncStatusVector.html#af98a1f0df20cf0e5f0fdb9f5999ad782":[1,0,48,33]
 };

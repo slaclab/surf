@@ -3,7 +3,7 @@ var classEthMacRxImportGmii_1_1rtl =
     [ "comb", "classEthMacRxImportGmii_1_1rtl.html#af07c8b8ef0903d8dedded35663535b09", null ],
     [ "seq", "classEthMacRxImportGmii_1_1rtl.html#abc436b3a546a87e38d5027311a513379", null ],
     [ "SFD_C", "classEthMacRxImportGmii_1_1rtl.html#a06c2acc6a1bc812ccfd5dbe8f6a29df9", null ],
-    [ "AXI_CONFIG_C", "classEthMacRxImportGmii_1_1rtl.html#aa2776719bc76e824f67becbac0ef19aa", null ],
+    [ "AXI_CONFIG_C", "classEthMacRxImportGmii_1_1rtl.html#aef9f8c8fb4a79274f8c5030951e42cab", null ],
     [ "StateType", "classEthMacRxImportGmii_1_1rtl.html#a01d4a9107b1e66b52890a3325a396935", null ],
     [ "RegType", "classEthMacRxImportGmii_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
     [ "rxCountEn", "classEthMacRxImportGmii_1_1rtl.html#a8765266e12ad807697f1b300851ad5e5", null ],

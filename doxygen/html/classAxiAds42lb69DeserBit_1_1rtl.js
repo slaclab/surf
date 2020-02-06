@@ -1,5 +1,7 @@
 var classAxiAds42lb69DeserBit_1_1rtl =
 [
+    [ "Idelaye3Wrapper", "classAxiAds42lb69DeserBit_1_1rtl.html#afa521fec36c4376ba327d1c296744a01", null ],
+    [ "Odelaye3Wrapper", "classAxiAds42lb69DeserBit_1_1rtl.html#abb8938039a4094304d12152f8327a9b8", null ],
     [ "data", "classAxiAds42lb69DeserBit_1_1rtl.html#abb362c6fce996ad72b19c6439f3c29b2", null ],
     [ "dataDly", "classAxiAds42lb69DeserBit_1_1rtl.html#a603d14aad24dfc03e73a54672fc0b070", null ],
     [ "clkb", "classAxiAds42lb69DeserBit_1_1rtl.html#abec0b542cfb0a0e3f3e807d849e0ec7e", null ],

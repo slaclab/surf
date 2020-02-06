@@ -1291,17 +1291,17 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScal/home/travis/build/slacl
 
 [AxiStreamFifo.vhd:654:Info: Elaborating entity AxiStreamPipeline for hierarchy axistreampipeline::u_pipe]
 
-[AxiStreamFifoV2.vhd:197:Info: Elaborating entity AxiStreamResize for hierarchy axistreamresize::u_slaveresize]
+[AxiStreamFifoV2.vhd:198:Info: Elaborating entity AxiStreamResize for hierarchy axistreamresize::u_slaveresize]
 
-[AxiStreamFifoV2.vhd:265:Info: Elaborating entity FifoCascade for hierarchy fifocascade::u_fifo]
+[AxiStreamFifoV2.vhd:267:Info: Elaborating entity FifoCascade for hierarchy fifocascade::u_fifo]
 
-[AxiStreamFifoV2.vhd:353:Info: Elaborating entity FifoCascade for hierarchy fifocascade::U_LastFifoEnGen:u_lastfifo]
+[AxiStreamFifoV2.vhd:355:Info: Elaborating entity FifoCascade for hierarchy fifocascade::U_LastFifoEnGen:u_lastfifo]
 
-[AxiStreamFifoV2.vhd:388:Info: Elaborating entity AxiStreamResize for hierarchy axistreamresize::u_masterresize]
+[AxiStreamFifoV2.vhd:390:Info: Elaborating entity AxiStreamResize for hierarchy axistreamresize::u_masterresize]
 
-[AxiStreamFifoV2.vhd:403:Info: Elaborating entity Synchronizer for hierarchy synchronizer::synchronizer_1]
+[AxiStreamFifoV2.vhd:405:Info: Elaborating entity Synchronizer for hierarchy synchronizer::synchronizer_1]
 
-[AxiStreamFifoV2.vhd:425:Info: Elaborating entity AxiStreamPipeline for hierarchy axistreampipeline::u_pipe]
+[AxiStreamFifoV2.vhd:427:Info: Elaborating entity AxiStreamPipeline for hierarchy axistreampipeline::u_pipe]
 
 [AxiStreamMon.vhd:121:Info: Elaborating entity SyncTrigRate for hierarchy synctrigrate::u_packetrate]
 
@@ -1701,11 +1701,11 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScal/home/travis/build/slacl
 
 [SynchronizerOneShotCnt.vhd:230:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GEN_CNT:syncfifo_inst]
 
-[SynchronizerOneShotCntVector.vhd:142:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::GEN_VEC:u_synconeshot]
+[SynchronizerOneShotCntVector.vhd:143:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::GEN_VEC:u_synconeshot]
 
-[SynchronizerOneShotCntVector.vhd:142:Info: Elaborating entity SynchronizerOneShotCnt for hierarchy synchronizeroneshotcnt::GEN_VEC:synconeshotcnt_inst]
+[SynchronizerOneShotCntVector.vhd:143:Info: Elaborating entity SynchronizerOneShotCnt for hierarchy synchronizeroneshotcnt::GEN_VEC:synconeshotcnt_inst]
 
-[SynchronizerOneShotCntVector.vhd:230:Info: Elaborating entity FifoAsync for hierarchy fifoasync::GEN_ASYNC:u_fifo]
+[SynchronizerOneShotCntVector.vhd:234:Info: Elaborating entity FifoAsync for hierarchy fifoasync::GEN_ASYNC:u_fifo]
 
 [SynchronizerOneShotVector.vhd:82:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::GEN_VEC:synconeshot_inst]
 
@@ -2011,77 +2011,75 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScal/home/travis/build/slacl
 
 [adc32rf45.vhd:372:Info: Elaborating entity SpiMaster for hierarchy spimaster::u_spimaster]
 
-[AxiAds42lb69Core.vhd:74:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::synchvector0_inst]
+[AxiAds42lb69Core.vhd:76:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::synchvector0_inst]
 
-[AxiAds42lb69Core.vhd:83:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::synchvector1_inst]
+[AxiAds42lb69Core.vhd:85:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::synchvector1_inst]
 
-[AxiAds42lb69Core.vhd:125:Info: Elaborating entity AxiAds42lb69Reg for hierarchy axiads42lb69reg::axiads42lb69reg_inst]
+[AxiAds42lb69Core.vhd:127:Info: Elaborating entity AxiAds42lb69Reg for hierarchy axiads42lb69reg::axiads42lb69reg_inst]
 
-[AxiAds42lb69Core.vhd:158:Info: Elaborating entity AxiAds42lb69Deser for hierarchy axiads42lb69deser::axiads42lb69deser_inst]
+[AxiAds42lb69Core.vhd:162:Info: Elaborating entity AxiAds42lb69Deser for hierarchy axiads42lb69deser::axiads42lb69deser_inst]
 
-[AxiAds42lb69Deser.vhd:99:Info: Elaborating entity AxiAds42lb69Pll for hierarchy axiads42lb69pll::axiads42lb69pll_inst]
+[AxiAds42lb69Deser.vhd:102:Info: Elaborating entity AxiAds42lb69Pll for hierarchy axiads42lb69pll::axiads42lb69pll_inst]
 
-[AxiAds42lb69Deser.vhd:108:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::synchvector_inst]
+[AxiAds42lb69Deser.vhd:111:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::synchvector_inst]
 
-[AxiAds42lb69Deser.vhd:130:Info: Elaborating entity idelayctrl for hierarchy idelayctrl::GEN_7SERIES:idelayctrl_inst]
+[AxiAds42lb69Deser.vhd:123:Info: Elaborating entity idelayctrl for hierarchy idelayctrl::GEN_7SERIES:idelayctrl_inst]
 
-[AxiAds42lb69Deser.vhd:130:Info: Elaborating entity RstSync for hierarchy rstsync::GEN_7SERIES:sync_delayin_rst]
+[AxiAds42lb69Deser.vhd:189:Info: Elaborating entity AxiAds42lb69DeserBit for hierarchy axiads42lb69deserbit::GEN_CH:GEN_DAT:axiads42lb69deserbit_inst]
 
-[AxiAds42lb69Deser.vhd:196:Info: Elaborating entity AxiAds42lb69DeserBit for hierarchy axiads42lb69deserbit::GEN_CH:GEN_DAT:axiads42lb69deserbit_inst]
+[AxiAds42lb69Deser.vhd:189:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GEN_CH:syncfifo_inst]
 
-[AxiAds42lb69Deser.vhd:196:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GEN_CH:syncfifo_inst]
+[AxiAds42lb69DeserBit.vhd:171:Info: Elaborating entity ibufds for hierarchy ibufds::GEN_7SERIES:ibufds_inst]
 
-[AxiAds42lb69DeserBit.vhd:112:Info: Elaborating entity ibufds for hierarchy ibufds::GEN_7SERIES:ibufds_inst]
+[AxiAds42lb69DeserBit.vhd:171:Info: Elaborating entity idelaye2 for hierarchy idelaye2::GEN_7SERIES:idelaye2_inst]
 
-[AxiAds42lb69DeserBit.vhd:112:Info: Elaborating entity idelaye2 for hierarchy idelaye2::GEN_7SERIES:idelaye2_inst]
+[AxiAds42lb69DeserBit.vhd:171:Info: Elaborating entity iddr for hierarchy iddr::GEN_7SERIES:iddr_inst]
 
-[AxiAds42lb69DeserBit.vhd:112:Info: Elaborating entity iddr for hierarchy iddr::GEN_7SERIES:iddr_inst]
+[AxiAds42lb69DeserBit.vhd:254:Info: Elaborating entity ibufds for hierarchy ibufds::GEN_ULTRASCALE:ibufds_inst]
 
-[AxiAds42lb69DeserBit.vhd:195:Info: Elaborating entity ibufds for hierarchy ibufds::GEN_ULTRASCALE:ibufds_inst]
+[AxiAds42lb69DeserBit.vhd:254:Info: Elaborating entity Idelaye3Wrapper for hierarchy idelaye3wrapper::GEN_ULTRASCALE:idelaye3_inst]
 
-[AxiAds42lb69DeserBit.vhd:195:Info: Elaborating entity Idelaye3Wrapper for hierarchy idelaye3wrapper::GEN_ULTRASCALE:idelaye3_inst]
+[AxiAds42lb69DeserBit.vhd:254:Info: Elaborating entity Odelaye3Wrapper for hierarchy odelaye3wrapper::GEN_ULTRASCALE:odelaye3_inst]
 
-[AxiAds42lb69DeserBit.vhd:195:Info: Elaborating entity Odelaye3Wrapper for hierarchy odelaye3wrapper::GEN_ULTRASCALE:odelaye3_inst]
+[AxiAds42lb69DeserBit.vhd:254:Info: Elaborating entity iddre1 for hierarchy iddre1::GEN_ULTRASCALE:iddr_inst]
 
-[AxiAds42lb69DeserBit.vhd:195:Info: Elaborating entity iddre1 for hierarchy iddre1::GEN_ULTRASCALE:iddr_inst]
+[AxiAds42lb69Pll.vhd:164:Info: Elaborating entity ibufgds for hierarchy ibufgds::GEN_PLL:ibufgds_0]
 
-[AxiAds42lb69Pll.vhd:163:Info: Elaborating entity ibufgds for hierarchy ibufgds::GEN_PLL:ibufgds_0]
+[AxiAds42lb69Pll.vhd:164:Info: Elaborating entity mmcme2_adv for hierarchy mmcme2_adv::GEN_PLL:mmcme2_adv_0]
 
-[AxiAds42lb69Pll.vhd:163:Info: Elaborating entity mmcme2_adv for hierarchy mmcme2_adv::GEN_PLL:mmcme2_adv_0]
+[AxiAds42lb69Pll.vhd:164:Info: Elaborating entity bufh for hierarchy bufh::GEN_PLL:bufh_0]
 
-[AxiAds42lb69Pll.vhd:163:Info: Elaborating entity bufh for hierarchy bufh::GEN_PLL:bufh_0]
+[AxiAds42lb69Pll.vhd:164:Info: Elaborating entity ClkOutBufDiff for hierarchy clkoutbufdiff::GEN_PLL:clkoutbufdiff_0]
 
-[AxiAds42lb69Pll.vhd:163:Info: Elaborating entity ClkOutBufDiff for hierarchy clkoutbufdiff::GEN_PLL:clkoutbufdiff_0]
+[AxiAds42lb69Pll.vhd:164:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::GEN_PLL:synchronizeroneshot_0]
 
-[AxiAds42lb69Pll.vhd:163:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::GEN_PLL:synchronizeroneshot_0]
+[AxiAds42lb69Pll.vhd:164:Info: Elaborating entity oddr for hierarchy oddr::GEN_PLL:oddr_0]
 
-[AxiAds42lb69Pll.vhd:163:Info: Elaborating entity oddr for hierarchy oddr::GEN_PLL:oddr_0]
+[AxiAds42lb69Pll.vhd:164:Info: Elaborating entity obufds for hierarchy obufds::GEN_PLL:obufds_0]
 
-[AxiAds42lb69Pll.vhd:163:Info: Elaborating entity obufds for hierarchy obufds::GEN_PLL:obufds_0]
+[AxiAds42lb69Pll.vhd:222:Info: Elaborating entity ClkOutBufDiff for hierarchy clkoutbufdiff::GEN_NO_PLL:clkoutbufdiff_1]
 
-[AxiAds42lb69Pll.vhd:214:Info: Elaborating entity ClkOutBufDiff for hierarchy clkoutbufdiff::GEN_NO_PLL:clkoutbufdiff_1]
+[AxiAds42lb69Pll.vhd:222:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::GEN_NO_PLL:synchronizeroneshot_1]
 
-[AxiAds42lb69Pll.vhd:214:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::GEN_NO_PLL:synchronizeroneshot_1]
+[AxiAds42lb69Pll.vhd:222:Info: Elaborating entity oddr for hierarchy oddr::GEN_NO_PLL:oddr_1]
 
-[AxiAds42lb69Pll.vhd:214:Info: Elaborating entity oddr for hierarchy oddr::GEN_NO_PLL:oddr_1]
+[AxiAds42lb69Pll.vhd:222:Info: Elaborating entity obufds for hierarchy obufds::GEN_NO_PLL:obufds_1]
 
-[AxiAds42lb69Pll.vhd:214:Info: Elaborating entity obufds for hierarchy obufds::GEN_NO_PLL:obufds_1]
+[AxiAds42lb69Pll.vhd:222:Info: Elaborating entity ibufgds for hierarchy ibufgds::GEN_NO_PLL:GEN_FBCLK:ibufgds_1]
 
-[AxiAds42lb69Pll.vhd:214:Info: Elaborating entity ibufgds for hierarchy ibufgds::GEN_NO_PLL:ibufgds_1]
+[AxiAds42lb69Pll.vhd:222:Info: Elaborating entity bufg for hierarchy bufg::GEN_NO_PLL:GEN_FBCLK:bufg_1]
 
-[AxiAds42lb69Pll.vhd:214:Info: Elaborating entity bufg for hierarchy bufg::GEN_NO_PLL:bufg_1]
+[AxiAds42lb69Pll.vhd:276:Info: Elaborating entity ClkOutBufDiff for hierarchy clkoutbufdiff::GEN_ULTRASCALE_NO_PLL:clkoutbufdiff_1]
 
-[AxiAds42lb69Pll.vhd:263:Info: Elaborating entity ClkOutBufDiff for hierarchy clkoutbufdiff::GEN_ULTRASCALE_NO_PLL:clkoutbufdiff_1]
+[AxiAds42lb69Pll.vhd:276:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::GEN_ULTRASCALE_NO_PLL:synchronizeroneshot_1]
 
-[AxiAds42lb69Pll.vhd:263:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::GEN_ULTRASCALE_NO_PLL:synchronizeroneshot_1]
+[AxiAds42lb69Pll.vhd:276:Info: Elaborating entity oddre1 for hierarchy oddre1::GEN_ULTRASCALE_NO_PLL:oddre1_1]
 
-[AxiAds42lb69Pll.vhd:263:Info: Elaborating entity oddre1 for hierarchy oddre1::GEN_ULTRASCALE_NO_PLL:oddre1_1]
+[AxiAds42lb69Pll.vhd:276:Info: Elaborating entity obufds for hierarchy obufds::GEN_ULTRASCALE_NO_PLL:obufds_1]
 
-[AxiAds42lb69Pll.vhd:263:Info: Elaborating entity obufds for hierarchy obufds::GEN_ULTRASCALE_NO_PLL:obufds_1]
+[AxiAds42lb69Pll.vhd:276:Info: Elaborating entity ibufgds for hierarchy ibufgds::GEN_ULTRASCALE_NO_PLL:GEN_FBCLK:ibufgds_1]
 
-[AxiAds42lb69Pll.vhd:263:Info: Elaborating entity ibufgds for hierarchy ibufgds::GEN_ULTRASCALE_NO_PLL:ibufgds_1]
-
-[AxiAds42lb69Pll.vhd:263:Info: Elaborating entity bufg for hierarchy bufg::GEN_ULTRASCALE_NO_PLL:bufg_1]
+[AxiAds42lb69Pll.vhd:276:Info: Elaborating entity bufg for hierarchy bufg::GEN_ULTRASCALE_NO_PLL:GEN_FBCLK:bufg_1]
 
 [AxiAds42lb69Reg.vhd:361:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GEN_ADC_SMPL:syncout_delayin_data]
 
@@ -2321,15 +2319,15 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScal/home/travis/build/slacl
 
 [GigEthGthUltraScaleWrapper.vhd:234:Info: Elaborating entity GigEthGthUltraScale for hierarchy gigethgthultrascale::GEN_LANE:u_gigethgthultrascale]
 
-[GigEthGthUltraScale.vhd:152:Info: Elaborating entity AxiLiteAsync for hierarchy axiliteasync::u_axiliteasync]
+[GigEthGthUltraScale.vhd:151:Info: Elaborating entity AxiLiteAsync for hierarchy axiliteasync::u_axiliteasync]
 
-[GigEthGthUltraScale.vhd:163:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::u_pwruprst]
+[GigEthGthUltraScale.vhd:162:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::u_pwruprst]
 
-[GigEthGthUltraScale.vhd:195:Info: Elaborating entity EthMacTop for hierarchy ethmactop::u_mac]
+[GigEthGthUltraScale.vhd:197:Info: Elaborating entity EthMacTop for hierarchy ethmactop::u_mac]
 
-[GigEthGthUltraScale.vhd:238:Info: Elaborating entity gigethgthultrascalecore for hierarchy gigethgthultrascalecore::u_gigethgthultrascalecore]
+[GigEthGthUltraScale.vhd:240:Info: Elaborating entity gigethgthultrascalecore for hierarchy gigethgthultrascalecore::u_gigethgthultrascalecore]
 
-[GigEthGthUltraScale.vhd:263:Info: Elaborating entity GigEthReg for hierarchy gigethreg::u_gigethreg]
+[GigEthGthUltraScale.vhd:265:Info: Elaborating entity GigEthReg for hierarchy gigethreg::u_gigethreg]
 
 [GigEthGthUltraScaleWrapper.vhd:128:Info: Elaborating entity ibufds_gte4 for hierarchy ibufds_gte4::u_ibufds]
 
@@ -2383,15 +2381,15 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScal/home/travis/build/slacl
 
 [GigEthGtx7Wrapper.vhd:207:Info: Elaborating entity GigEthGtx7 for hierarchy gigethgtx7::GEN_LANE:u_gigethgtx7]
 
-[GigEthGtyUltraScale.vhd:152:Info: Elaborating entity AxiLiteAsync for hierarchy axiliteasync::u_axiliteasync]
+[GigEthGtyUltraScale.vhd:151:Info: Elaborating entity AxiLiteAsync for hierarchy axiliteasync::u_axiliteasync]
 
-[GigEthGtyUltraScale.vhd:163:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::u_pwruprst]
+[GigEthGtyUltraScale.vhd:162:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::u_pwruprst]
 
-[GigEthGtyUltraScale.vhd:195:Info: Elaborating entity EthMacTop for hierarchy ethmactop::u_mac]
+[GigEthGtyUltraScale.vhd:197:Info: Elaborating entity EthMacTop for hierarchy ethmactop::u_mac]
 
-[GigEthGtyUltraScale.vhd:238:Info: Elaborating entity gigethgtyultrascalecore for hierarchy gigethgtyultrascalecore::u_gigethgtyultrascalecore]
+[GigEthGtyUltraScale.vhd:240:Info: Elaborating entity gigethgtyultrascalecore for hierarchy gigethgtyultrascalecore::u_gigethgtyultrascalecore]
 
-[GigEthGtyUltraScale.vhd:263:Info: Elaborating entity GigEthReg for hierarchy gigethreg::u_gigethreg]
+[GigEthGtyUltraScale.vhd:265:Info: Elaborating entity GigEthReg for hierarchy gigethreg::u_gigethreg]
 
 [GigEthGtyUltraScaleWrapper.vhd:117:Info: Elaborating entity ibufds_gte4 for hierarchy ibufds_gte4::u_ibufds]
 
@@ -2583,15 +2581,15 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScal/home/travis/build/slacl
 
 [TenGigEthGthUltraScaleWrapper.vhd:197:Info: Elaborating entity TenGigEthGthUltraScale for hierarchy tengigethgthultrascale::GEN_LANE:tengigethgthultrascale_inst]
 
-[TenGigEthGthUltraScale.vhd:230:Info: Elaborating entity AxiLiteAsync for hierarchy axiliteasync::u_axiliteasync]
+[TenGigEthGthUltraScale.vhd:229:Info: Elaborating entity AxiLiteAsync for hierarchy axiliteasync::u_axiliteasync]
 
-[TenGigEthGthUltraScale.vhd:259:Info: Elaborating entity EthMacTop for hierarchy ethmactop::u_mac]
+[TenGigEthGthUltraScale.vhd:261:Info: Elaborating entity EthMacTop for hierarchy ethmactop::u_mac]
 
-[TenGigEthGthUltraScale.vhd:372:Info: Elaborating entity tengigethgthultrascale156p25mhzcore for hierarchy tengigethgthultrascale156p25mhzcore::u_tengigethgthultrascalecore]
+[TenGigEthGthUltraScale.vhd:374:Info: Elaborating entity tengigethgthultrascale156p25mhzcore for hierarchy tengigethgthultrascale156p25mhzcore::u_tengigethgthultrascalecore]
 
-[TenGigEthGthUltraScale.vhd:388:Info: Elaborating entity TenGigEthGthUltraScaleRst for hierarchy tengigethgthultrascalerst::u_tengigethrst]
+[TenGigEthGthUltraScale.vhd:390:Info: Elaborating entity TenGigEthGthUltraScaleRst for hierarchy tengigethgthultrascalerst::u_tengigethrst]
 
-[TenGigEthGthUltraScale.vhd:410:Info: Elaborating entity TenGigEthReg for hierarchy tengigethreg::u_tengigethreg]
+[TenGigEthGthUltraScale.vhd:412:Info: Elaborating entity TenGigEthReg for hierarchy tengigethreg::u_tengigethreg]
 
 [TenGigEthGthUltraScaleClk.vhd:69:Info: Elaborating entity ibufds_gte4 for hierarchy ibufds_gte4::ibufds_gte3_inst]
 
@@ -2635,15 +2633,15 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScal/home/travis/build/slacl
 
 [TenGigEthGtx7Wrapper.vhd:184:Info: Elaborating entity TenGigEthGtx7 for hierarchy tengigethgtx7::GEN_LANE:tengigethgtx7_inst]
 
-[TenGigEthGtyUltraScale.vhd:230:Info: Elaborating entity AxiLiteAsync for hierarchy axiliteasync::u_axiliteasync]
+[TenGigEthGtyUltraScale.vhd:229:Info: Elaborating entity AxiLiteAsync for hierarchy axiliteasync::u_axiliteasync]
 
-[TenGigEthGtyUltraScale.vhd:259:Info: Elaborating entity EthMacTop for hierarchy ethmactop::u_mac]
+[TenGigEthGtyUltraScale.vhd:261:Info: Elaborating entity EthMacTop for hierarchy ethmactop::u_mac]
 
-[TenGigEthGtyUltraScale.vhd:372:Info: Elaborating entity tengigethgtyultrascale156p25mhzcore for hierarchy tengigethgtyultrascale156p25mhzcore::u_tengigethgtyultrascalecore]
+[TenGigEthGtyUltraScale.vhd:374:Info: Elaborating entity tengigethgtyultrascale156p25mhzcore for hierarchy tengigethgtyultrascale156p25mhzcore::u_tengigethgtyultrascalecore]
 
-[TenGigEthGtyUltraScale.vhd:388:Info: Elaborating entity TenGigEthGtyUltraScaleRst for hierarchy tengigethgtyultrascalerst::u_tengigethrst]
+[TenGigEthGtyUltraScale.vhd:390:Info: Elaborating entity TenGigEthGtyUltraScaleRst for hierarchy tengigethgtyultrascalerst::u_tengigethrst]
 
-[TenGigEthGtyUltraScale.vhd:410:Info: Elaborating entity TenGigEthReg for hierarchy tengigethreg::u_tengigethreg]
+[TenGigEthGtyUltraScale.vhd:412:Info: Elaborating entity TenGigEthReg for hierarchy tengigethreg::u_tengigethreg]
 
 [TenGigEthGtyUltraScaleClk.vhd:67:Info: Elaborating entity ibufds_gte4 for hierarchy ibufds_gte4::ibufds_gte3_inst]
 
@@ -2751,13 +2749,13 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScal/home/travis/build/slacl
 
 [XauiGthUltraScaleWrapper.vhd:180:Info: Elaborating entity XauiGthUltraScale for hierarchy xauigthultrascale::xauigthultrascale_inst]
 
-[XauiGthUltraScale.vhd:227:Info: Elaborating entity EthMacTop for hierarchy ethmactop::u_mac]
+[XauiGthUltraScale.vhd:229:Info: Elaborating entity EthMacTop for hierarchy ethmactop::u_mac]
 
-[XauiGthUltraScale.vhd:341:Info: Elaborating entity xauigthultrascale156p25mhz10gigecore for hierarchy xauigthultrascale156p25mhz10gigecore::u_xauigthultrascalecore]
+[XauiGthUltraScale.vhd:343:Info: Elaborating entity xauigthultrascale156p25mhz10gigecore for hierarchy xauigthultrascale156p25mhz10gigecore::u_xauigthultrascalecore]
 
-[XauiGthUltraScale.vhd:359:Info: Elaborating entity RstSync for hierarchy rstsync::rstsync_inst]
+[XauiGthUltraScale.vhd:361:Info: Elaborating entity RstSync for hierarchy rstsync::rstsync_inst]
 
-[XauiGthUltraScale.vhd:382:Info: Elaborating entity XauiReg for hierarchy xauireg::u_xauireg]
+[XauiGthUltraScale.vhd:384:Info: Elaborating entity XauiReg for hierarchy xauireg::u_xauireg]
 
 [XauiGthUltraScaleWrapper.vhd:99:Info: Elaborating entity ibufds_gte4 for hierarchy ibufds_gte4::u_refclk]
 
@@ -2783,13 +2781,13 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScal/home/travis/build/slacl
 
 [XauiGtx7Wrapper.vhd:130:Info: Elaborating entity XauiGtx7 for hierarchy xauigtx7::xauigtx7_inst]
 
-[XauiGtyUltraScale.vhd:227:Info: Elaborating entity EthMacTop for hierarchy ethmactop::u_mac]
+[XauiGtyUltraScale.vhd:229:Info: Elaborating entity EthMacTop for hierarchy ethmactop::u_mac]
 
-[XauiGtyUltraScale.vhd:341:Info: Elaborating entity xauigtyultrascale156p25mhz10gigecore for hierarchy xauigtyultrascale156p25mhz10gigecore::u_xauigtyultrascalecore]
+[XauiGtyUltraScale.vhd:343:Info: Elaborating entity xauigtyultrascale156p25mhz10gigecore for hierarchy xauigtyultrascale156p25mhz10gigecore::u_xauigtyultrascalecore]
 
-[XauiGtyUltraScale.vhd:359:Info: Elaborating entity RstSync for hierarchy rstsync::rstsync_inst]
+[XauiGtyUltraScale.vhd:361:Info: Elaborating entity RstSync for hierarchy rstsync::rstsync_inst]
 
-[XauiGtyUltraScale.vhd:382:Info: Elaborating entity XauiReg for hierarchy xauireg::u_xauireg]
+[XauiGtyUltraScale.vhd:384:Info: Elaborating entity XauiReg for hierarchy xauireg::u_xauireg]
 
 [XauiGtyUltraScaleWrapper.vhd:96:Info: Elaborating entity ibufds_gte4 for hierarchy ibufds_gte4::u_refclk]
 
@@ -4299,11 +4297,13 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScal/home/travis/build/slacl
 
 [SsiCmdMaster.vhd:118:Info: Elaborating entity AxiStreamFifoV2 for hierarchy axistreamfifov2::slaveaxistreamfifo]
 
-[SsiFifo.vhd:125:Info: Elaborating entity SsiIbFrameFilter for hierarchy ssiibframefilter::u_ibfilter]
+[SsiFifo.vhd:155:Info: Elaborating entity SsiIbFrameFilter for hierarchy ssiibframefilter::u_ibfilter]
 
-[SsiFifo.vhd:164:Info: Elaborating entity AxiStreamFifoV2 for hierarchy axistreamfifov2::u_fifo]
+[SsiFifo.vhd:198:Info: Elaborating entity AxiStreamFifoV2 for hierarchy axistreamfifov2::u_fifo]
 
-[SsiFifo.vhd:184:Info: Elaborating entity SsiObFrameFilter for hierarchy ssiobframefilter::u_obfilter]
+[SsiFifo.vhd:297:Info: Elaborating entity SsiObFrameFilter for hierarchy ssiobframefilter::u_obfilter]
+
+[SsiFifo.vhd:328:Info: Elaborating entity AxiStreamFifoV2 for hierarchy axistreamfifov2::GEN_ASYNC:u_async_fifo]
 
 [SsiFrameLimiter.vhd:107:Info: Elaborating entity AxiStreamResize for hierarchy axistreamresize::BYPASS_FIFO_RX:u_resize_ob]
 
@@ -4317,7 +4317,7 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScal/home/travis/build/slacl
 
 [SsiInsertSof.vhd:247:Info: Elaborating entity AxiStreamFifoV2 for hierarchy axistreamfifov2::GEN_FIFO_TX:fifo_tx]
 
-[SsiObFrameFilter.vhd:253:Info: Elaborating entity AxiStreamPipeline for hierarchy axistreampipeline::u_pipe]
+[SsiObFrameFilter.vhd:252:Info: Elaborating entity AxiStreamPipeline for hierarchy axistreampipeline::u_pipe]
 
 [SsiPrbsRateGen.vhd:120:Info: Elaborating entity SsiPrbsTx for hierarchy ssiprbstx::u_prbstx]
 
@@ -5218,47 +5218,47 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScal/home/travis/build/slacl
 /home/travis/build/slaclab/surf/ethernet/EthMacCore/rtl/EthMacTxExportGmii.vhd:110: warning: no matching class member found for 
   slv()
 
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:36: warning: documented symbol `in localMacslv' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:38: warning: documented symbol `in dmaClksl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:39: warning: documented symbol `in dmaRstsl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:40: warning: documented symbol `out dmaIbMasterAxiStreamMasterType' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:41: warning: documented symbol `in dmaIbSlaveAxiStreamSlaveType' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:42: warning: documented symbol `in dmaObMasterAxiStreamMasterType' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:43: warning: documented symbol `out dmaObSlaveAxiStreamSlaveType' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:35: warning: documented symbol `in localMacslv' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:37: warning: documented symbol `in dmaClksl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:38: warning: documented symbol `in dmaRstsl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:39: warning: documented symbol `out dmaIbMasterAxiStreamMasterType' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:40: warning: documented symbol `in dmaIbSlaveAxiStreamSlaveType' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:41: warning: documented symbol `in dmaObMasterAxiStreamMasterType' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:42: warning: documented symbol `out dmaObSlaveAxiStreamSlaveType' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:44: warning: member with no name found.
 /home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:45: warning: member with no name found.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:46: warning: member with no name found.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:47: warning: no matching class member found for 
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:46: warning: no matching class member found for 
   in axiLiteReadMasterAxiLiteReadMasterType  : AXI_LITE_READ_MASTER_INIT_C()
 
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:48: warning: documented symbol `out axiLiteReadSlaveAxiLiteReadSlaveType' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:49: warning: no matching class member found for 
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:47: warning: documented symbol `out axiLiteReadSlaveAxiLiteReadSlaveType' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:48: warning: no matching class member found for 
   in axiLiteWriteMasterAxiLiteWriteMasterType  : AXI_LITE_WRITE_MASTER_INIT_C()
 
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:50: warning: documented symbol `out axiLiteWriteSlaveAxiLiteWriteSlaveType' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:52: warning: documented symbol `in sysClk62sl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:53: warning: documented symbol `in sysClk125sl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:54: warning: documented symbol `in sysRst125sl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:55: warning: documented symbol `in extRstsl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:56: warning: documented symbol `out phyReadysl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:57: warning: member with no name found.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:49: warning: documented symbol `out axiLiteWriteSlaveAxiLiteWriteSlaveType' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:51: warning: documented symbol `in sysClk62sl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:52: warning: documented symbol `in sysClk125sl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:53: warning: documented symbol `in sysRst125sl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:54: warning: documented symbol `in extRstsl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:55: warning: documented symbol `out phyReadysl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:56: warning: member with no name found.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:58: warning: member with no name found.
 /home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:59: warning: member with no name found.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:60: warning: member with no name found.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:62: warning: documented symbol `out gtTxPsl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:63: warning: documented symbol `out gtTxNsl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:64: warning: documented symbol `in gtRxPsl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:65: warning: documented symbol `in gtRxNsl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:61: warning: documented symbol `out gtTxPsl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:62: warning: documented symbol `out gtTxNsl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:63: warning: documented symbol `in gtRxPsl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:64: warning: documented symbol `in gtRxNsl' was not declared or defined.
 /home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:15: warning: documented symbol `_library_ ieeeieee' was not declared or defined.
 /home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:16: warning: documented symbol `_use_ std_logic_1164std_logic_1164' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:19: warning: documented symbol `_library_ surfsurf' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:20: warning: documented symbol `_use_ StdRtlPkgStdRtlPkg' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:21: warning: documented symbol `_use_ AxiStreamPkgAxiStreamPkg' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:22: warning: documented symbol `_use_ AxiLitePkgAxiLitePkg' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:23: warning: documented symbol `_use_ EthMacPkgEthMacPkg' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:24: warning: documented symbol `_use_ GigEthPkgGigEthPkg' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:118: warning: no matching class member found for 
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:18: warning: documented symbol `_library_ surfsurf' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:19: warning: documented symbol `_use_ StdRtlPkgStdRtlPkg' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:20: warning: documented symbol `_use_ AxiStreamPkgAxiStreamPkg' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:21: warning: documented symbol `_use_ AxiLitePkgAxiLitePkg' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:22: warning: documented symbol `_use_ EthMacPkgEthMacPkg' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:23: warning: documented symbol `_use_ GigEthPkgGigEthPkg' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:117: warning: no matching class member found for 
   slv()
 
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:123: warning: no matching class member found for 
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd:122: warning: no matching class member found for 
   slv()
 
 /home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:48: warning: documented symbol `in localMacSlv48Array' was not declared or defined.
@@ -5311,48 +5311,51 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScal/home/travis/build/slacl
 /home/travis/build/slaclab/surf/ethernet/RawEthFramer/rtl/RawEthFramer.vhd:84: warning: no matching class member found for 
   slv()
 
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:36: warning: documented symbol `in localMacslv' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:38: warning: documented symbol `in dmaClksl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:39: warning: documented symbol `in dmaRstsl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:40: warning: documented symbol `out dmaIbMasterAxiStreamMasterType' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:41: warning: documented symbol `in dmaIbSlaveAxiStreamSlaveType' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:42: warning: documented symbol `in dmaObMasterAxiStreamMasterType' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:43: warning: documented symbol `out dmaObSlaveAxiStreamSlaveType' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:35: warning: documented symbol `in localMacslv' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:37: warning: documented symbol `in dmaClksl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:38: warning: documented symbol `in dmaRstsl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:39: warning: documented symbol `out dmaIbMasterAxiStreamMasterType' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:40: warning: documented symbol `in dmaIbSlaveAxiStreamSlaveType' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:41: warning: documented symbol `in dmaObMasterAxiStreamMasterType' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:42: warning: documented symbol `out dmaObSlaveAxiStreamSlaveType' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:44: warning: member with no name found.
 /home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:45: warning: member with no name found.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:46: warning: member with no name found.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:47: warning: no matching class member found for 
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:46: warning: no matching class member found for 
   in axiLiteReadMasterAxiLiteReadMasterType  : AXI_LITE_READ_MASTER_INIT_C()
 
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:48: warning: documented symbol `out axiLiteReadSlaveAxiLiteReadSlaveType' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:49: warning: no matching class member found for 
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:47: warning: documented symbol `out axiLiteReadSlaveAxiLiteReadSlaveType' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:48: warning: no matching class member found for 
   in axiLiteWriteMasterAxiLiteWriteMasterType  : AXI_LITE_WRITE_MASTER_INIT_C()
 
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:50: warning: documented symbol `out axiLiteWriteSlaveAxiLiteWriteSlaveType' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:52: warning: documented symbol `in coreClksl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:54: warning: documented symbol `out phyClksl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:55: warning: documented symbol `out phyRstsl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:56: warning: documented symbol `out phyReadysl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:58: warning: documented symbol `in gtTxPreCursorslv' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:59: warning: documented symbol `in gtTxPostCursorslv' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:60: warning: documented symbol `in gtTxDiffCtrlslv' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:49: warning: documented symbol `out axiLiteWriteSlaveAxiLiteWriteSlaveType' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:51: warning: documented symbol `in coreClksl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:53: warning: documented symbol `out phyClksl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:54: warning: documented symbol `out phyRstsl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:55: warning: documented symbol `out phyReadysl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:57: warning: documented symbol `in gtTxPreCursorslv' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:58: warning: documented symbol `in gtTxPostCursorslv' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:59: warning: documented symbol `in gtTxDiffCtrlslv' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:60: warning: member with no name found.
 /home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:61: warning: member with no name found.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:62: warning: member with no name found.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:64: warning: documented symbol `in qplllockslv' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:65: warning: documented symbol `in qplloutclkslv' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:66: warning: documented symbol `in qplloutrefclkslv' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:67: warning: documented symbol `out qpllRstslv' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:69: warning: documented symbol `out gtTxPsl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:70: warning: documented symbol `out gtTxNsl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:71: warning: documented symbol `in gtRxPsl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:72: warning: documented symbol `in gtRxNsl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:63: warning: documented symbol `in qplllockslv' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:64: warning: documented symbol `in qplloutclkslv' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:65: warning: documented symbol `in qplloutrefclkslv' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:66: warning: documented symbol `out qpllRstslv' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:68: warning: documented symbol `out gtTxPsl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:69: warning: documented symbol `out gtTxNsl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:70: warning: documented symbol `in gtRxPsl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:71: warning: documented symbol `in gtRxNsl' was not declared or defined.
 /home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:15: warning: documented symbol `_library_ ieeeieee' was not declared or defined.
 /home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:16: warning: documented symbol `_use_ std_logic_1164std_logic_1164' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:19: warning: documented symbol `_library_ surfsurf' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:20: warning: documented symbol `_use_ StdRtlPkgStdRtlPkg' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:21: warning: documented symbol `_use_ AxiStreamPkgAxiStreamPkg' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:22: warning: documented symbol `_use_ AxiLitePkgAxiLitePkg' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:23: warning: documented symbol `_use_ TenGigEthPkgTenGigEthPkg' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:24: warning: documented symbol `_use_ EthMacPkgEthMacPkg' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:18: warning: documented symbol `_library_ surfsurf' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:19: warning: documented symbol `_use_ StdRtlPkgStdRtlPkg' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:20: warning: documented symbol `_use_ AxiStreamPkgAxiStreamPkg' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:21: warning: documented symbol `_use_ AxiLitePkgAxiLitePkg' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:22: warning: documented symbol `_use_ TenGigEthPkgTenGigEthPkg' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:23: warning: documented symbol `_use_ EthMacPkgEthMacPkg' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:185: warning: no matching class member found for 
+  slv()
+
 /home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:186: warning: no matching class member found for 
   slv()
 
@@ -5360,9 +5363,6 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScal/home/travis/build/slacl
   slv()
 
 /home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:188: warning: no matching class member found for 
-  slv()
-
-/home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd:189: warning: no matching class member found for 
   slv()
 
 /home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScaleClk.vhd:33: warning: member with no name found.
@@ -5435,47 +5435,50 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScal/home/travis/build/slacl
 /home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScaleWrapper.vhd:24: warning: documented symbol `_use_ EthMacPkgEthMacPkg' was not declared or defined.
 /home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScaleWrapper.vhd:25: warning: documented symbol `_use_ TenGigEthPkgTenGigEthPkg' was not declared or defined.
 /home/travis/build/slaclab/surf/ethernet/TenGigEthCore/gtyUltraScale+/rtl/TenGigEthGtyUltraScaleWrapper.vhd:25: warning: documented symbol `_use_ EthMacPkgEthMacPkg' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:41: warning: documented symbol `in localMacslv' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:43: warning: documented symbol `in dmaClksl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:44: warning: documented symbol `in dmaRstsl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:45: warning: documented symbol `out dmaIbMasterAxiStreamMasterType' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:46: warning: documented symbol `in dmaIbSlaveAxiStreamSlaveType' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:47: warning: documented symbol `in dmaObMasterAxiStreamMasterType' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:48: warning: documented symbol `out dmaObSlaveAxiStreamSlaveType' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:40: warning: documented symbol `in localMacslv' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:42: warning: documented symbol `in dmaClksl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:43: warning: documented symbol `in dmaRstsl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:44: warning: documented symbol `out dmaIbMasterAxiStreamMasterType' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:45: warning: documented symbol `in dmaIbSlaveAxiStreamSlaveType' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:46: warning: documented symbol `in dmaObMasterAxiStreamMasterType' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:47: warning: documented symbol `out dmaObSlaveAxiStreamSlaveType' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:49: warning: member with no name found.
 /home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:50: warning: member with no name found.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:51: warning: member with no name found.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:52: warning: no matching class member found for 
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:51: warning: no matching class member found for 
   in axiLiteReadMasterAxiLiteReadMasterType  : AXI_LITE_READ_MASTER_INIT_C()
 
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:53: warning: documented symbol `out axiLiteReadSlaveAxiLiteReadSlaveType' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:54: warning: no matching class member found for 
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:52: warning: documented symbol `out axiLiteReadSlaveAxiLiteReadSlaveType' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:53: warning: no matching class member found for 
   in axiLiteWriteMasterAxiLiteWriteMasterType  : AXI_LITE_WRITE_MASTER_INIT_C()
 
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:55: warning: documented symbol `out axiLiteWriteSlaveAxiLiteWriteSlaveType' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:57: warning: documented symbol `in extRstsl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:58: warning: documented symbol `out phyClksl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:59: warning: documented symbol `out phyRstsl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:60: warning: documented symbol `out phyReadysl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:62: warning: documented symbol `in gtTxPreCursorslv' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:63: warning: documented symbol `in gtTxPostCursorslv' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:64: warning: documented symbol `in gtTxDiffCtrlslv' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:65: warning: documented symbol `in gtRxPolarityslv' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:66: warning: documented symbol `in gtTxPolarityslv' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:68: warning: documented symbol `in refClksl' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:69: warning: documented symbol `out gtTxPslv' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:70: warning: documented symbol `out gtTxNslv' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:71: warning: documented symbol `in gtRxPslv' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:72: warning: documented symbol `in gtRxNslv' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:54: warning: documented symbol `out axiLiteWriteSlaveAxiLiteWriteSlaveType' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:56: warning: documented symbol `in extRstsl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:57: warning: documented symbol `out phyClksl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:58: warning: documented symbol `out phyRstsl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:59: warning: documented symbol `out phyReadysl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:61: warning: documented symbol `in gtTxPreCursorslv' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:62: warning: documented symbol `in gtTxPostCursorslv' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:63: warning: documented symbol `in gtTxDiffCtrlslv' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:64: warning: documented symbol `in gtRxPolarityslv' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:65: warning: documented symbol `in gtTxPolarityslv' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:67: warning: documented symbol `in refClksl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:68: warning: documented symbol `out gtTxPslv' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:69: warning: documented symbol `out gtTxNslv' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:70: warning: documented symbol `in gtRxPslv' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:71: warning: documented symbol `in gtRxNslv' was not declared or defined.
 /home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:15: warning: documented symbol `_library_ ieeeieee' was not declared or defined.
 /home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:16: warning: documented symbol `_use_ std_logic_1164std_logic_1164' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:19: warning: documented symbol `_library_ surfsurf' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:20: warning: documented symbol `_use_ StdRtlPkgStdRtlPkg' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:21: warning: documented symbol `_use_ AxiStreamPkgAxiStreamPkg' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:22: warning: documented symbol `_use_ AxiLitePkgAxiLitePkg' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:23: warning: documented symbol `_use_ XauiPkgXauiPkg' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:24: warning: documented symbol `_use_ EthMacPkgEthMacPkg' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:26: warning: documented symbol `_library_ unisimunisim' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:27: warning: documented symbol `_use_ vcomponentsvcomponents' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:18: warning: documented symbol `_library_ surfsurf' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:19: warning: documented symbol `_use_ StdRtlPkgStdRtlPkg' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:20: warning: documented symbol `_use_ AxiStreamPkgAxiStreamPkg' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:21: warning: documented symbol `_use_ AxiLitePkgAxiLitePkg' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:22: warning: documented symbol `_use_ XauiPkgXauiPkg' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:23: warning: documented symbol `_use_ EthMacPkgEthMacPkg' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:25: warning: documented symbol `_library_ unisimunisim' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:26: warning: documented symbol `_use_ vcomponentsvcomponents' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:176: warning: no matching class member found for 
+  slv()
+
 /home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:177: warning: no matching class member found for 
   slv()
 
@@ -5483,9 +5486,6 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScal/home/travis/build/slacl
   slv()
 
 /home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:179: warning: no matching class member found for 
-  slv()
-
-/home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd:180: warning: no matching class member found for 
   slv()
 
 /home/travis/build/slaclab/surf/ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScaleWrapper.vhd:42: warning: documented symbol `in localMacslv' was not declared or defined.
@@ -8055,7 +8055,7 @@ Generating docs for nested compound SsiCmdMaster::rtl...
 Generating docs for compound SsiDbgTap...
 Generating docs for nested compound SsiDbgTap::rtl...
 Generating docs for compound SsiFifo...
-Generating docs for nested compound SsiFifo::mapping...
+Generating docs for nested compound SsiFifo::rtl...
 Generating docs for compound SsiFifoTb...
 Generating docs for nested compound SsiFifoTb::testbed...
 Generating docs for compound SsiFilterTb...

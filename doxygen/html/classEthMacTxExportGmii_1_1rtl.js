@@ -2,7 +2,7 @@ var classEthMacTxExportGmii_1_1rtl =
 [
     [ "comb", "classEthMacTxExportGmii_1_1rtl.html#a615fdf03e8cab3ade0b86295bdf48f8f", null ],
     [ "seq", "classEthMacTxExportGmii_1_1rtl.html#abc436b3a546a87e38d5027311a513379", null ],
-    [ "AXI_CONFIG_C", "classEthMacTxExportGmii_1_1rtl.html#aa2776719bc76e824f67becbac0ef19aa", null ],
+    [ "AXI_CONFIG_C", "classEthMacTxExportGmii_1_1rtl.html#aef9f8c8fb4a79274f8c5030951e42cab", null ],
     [ "StateType", "classEthMacTxExportGmii_1_1rtl.html#ac5d792b6ee77892d9610c66f7daa197a", null ],
     [ "RegType", "classEthMacTxExportGmii_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
     [ "gmiiTxEn", "classEthMacTxExportGmii_1_1rtl.html#ab156c44b2ec81eeed572f37ae431004a", null ],

@@ -7,7 +7,7 @@ var classEthMacTxExportXgmii_1_1rtl =
     [ "PROCESS_113", "classEthMacTxExportXgmii_1_1rtl.html#a042790ea8ea1c1b92fbdb856d2ee69ab", null ],
     [ "PROCESS_114", "classEthMacTxExportXgmii_1_1rtl.html#a4adda84e5807502df16f089f96c7b344", null ],
     [ "INTERGAP_C", "classEthMacTxExportXgmii_1_1rtl.html#a59b993d8ba43ef124869a0b7ffbf8ea9", null ],
-    [ "AXI_CONFIG_C", "classEthMacTxExportXgmii_1_1rtl.html#a58c7878dcc69054a0b92baebc85c61a8", null ],
+    [ "AXI_CONFIG_C", "classEthMacTxExportXgmii_1_1rtl.html#adcc7ed95cc781d74e3371cbee4073f89", null ],
     [ "macMaster", "classEthMacTxExportXgmii_1_1rtl.html#aa92ed16091988bb8631a27fe1c64ac18", null ],
     [ "macSlave", "classEthMacTxExportXgmii_1_1rtl.html#af65c2a37a864f5739b643c02e85bb7ca", null ],
     [ "intAdvance", "classEthMacTxExportXgmii_1_1rtl.html#afedfde265c3dc9fac8ed939a9d30796c", null ],

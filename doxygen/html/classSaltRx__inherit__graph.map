@@ -1,12 +1,12 @@
 <map id="SaltRx" name="SaltRx">
-<area shape="rect" id="node22" href="$classSalt7Series.html" title="Salt7Series" alt="" coords="1323,245,1418,272"/>
-<area shape="rect" id="node24" href="$classSaltUltraScale.html" title="SaltUltraScale" alt="" coords="1313,296,1428,323"/>
-<area shape="rect" id="node2" href="$classSsiFifo.html" title="SsiFifo" alt="" coords="1089,271,1153,297"/>
-<area shape="rect" id="node3" href="$classSsiIbFrameFilter.html" title="SsiIbFrameFilter" alt="" coords="913,220,1039,247"/>
-<area shape="rect" id="node4" href="$classAxiStreamFifoV2.html" title="AxiStreamFifoV2" alt="" coords="911,271,1041,297"/>
+<area shape="rect" id="node22" href="$classSalt7Series.html" title="Salt7Series" alt="" coords="1341,245,1435,272"/>
+<area shape="rect" id="node24" href="$classSaltUltraScale.html" title="SaltUltraScale" alt="" coords="1331,296,1445,323"/>
+<area shape="rect" id="node2" href="$classSsiFifo.html" title="SsiFifo" alt="" coords="1107,271,1171,297"/>
+<area shape="rect" id="node3" href="$classSsiIbFrameFilter.html" title="SsiIbFrameFilter" alt="" coords="922,220,1047,247"/>
+<area shape="rect" id="node4" href="$classAxiStreamFifoV2.html" title="AxiStreamFifoV2(2)" alt="" coords="911,271,1059,297"/>
 <area shape="rect" id="node5" href="$classAxiStreamResize.html" title="AxiStreamResize(2)" alt="" coords="712,271,863,297"/>
 <area shape="rect" id="node6" href="$classAxiStreamPipeline.html" title="AxiStreamPipeline" alt="" coords="521,321,664,348"/>
-<area shape="rect" id="node21" href="$classSsiObFrameFilter.html" title="SsiObFrameFilter" alt="" coords="911,347,1041,373"/>
+<area shape="rect" id="node21" href="$classSsiObFrameFilter.html" title="SsiObFrameFilter" alt="" coords="919,347,1050,373"/>
 <area shape="rect" id="node7" href="$classFifoCascade.html" title="FifoCascade(2)" alt="" coords="728,220,847,247"/>
 <area shape="rect" id="node8" href="$classFifo.html" title="Fifo(4)" alt="" coords="561,245,624,272"/>
 <area shape="rect" id="node9" href="$classFifoXpm.html" title="FifoXpm" alt="" coords="386,347,461,373"/>
@@ -21,6 +21,6 @@
 <area shape="rect" id="node17" href="$classFifoWrFsm.html" title="FifoWrFsm" alt="" coords="198,245,287,272"/>
 <area shape="rect" id="node18" href="$classFifoRdFsm.html" title="FifoRdFsm" alt="" coords="198,296,287,323"/>
 <area shape="rect" id="node19" href="$classSimpleDualPortRam.html" title="SimpleDualPortRam" alt="" coords="166,195,319,221"/>
-<area shape="rect" id="node23" href="$classSalt7SeriesTb.html" title="Salt7SeriesTb" alt="" coords="1486,245,1597,272"/>
-<area shape="rect" id="node25" href="$classSaltUltraScaleTb.html" title="SaltUltraScaleTb" alt="" coords="1476,296,1607,323"/>
+<area shape="rect" id="node23" href="$classSalt7SeriesTb.html" title="Salt7SeriesTb" alt="" coords="1503,245,1614,272"/>
+<area shape="rect" id="node25" href="$classSaltUltraScaleTb.html" title="SaltUltraScaleTb" alt="" coords="1493,296,1624,323"/>
 </map>
