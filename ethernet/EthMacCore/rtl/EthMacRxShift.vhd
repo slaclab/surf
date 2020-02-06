@@ -48,7 +48,7 @@ begin
       U_RxShift : entity surf.AxiStreamShift
          generic map (
             TPD_G          => TPD_G,
-            AXIS_CONFIG_G  => EMAC_AXIS_CONFIG_C,
+            AXIS_CONFIG_G  => INT_EMAC_AXIS_CONFIG_C,
             ADD_VALID_EN_G => true) 
          port map (
             axisClk     => ethClk,
