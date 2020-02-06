@@ -234,10 +234,18 @@ begin
             when MON_S =>
                -- Check for lock up condition
                if (fifoFull = '1') and (txMaster.tValid = '0') then
-                  -- Reset the FIFO to get out of lockup state
-                  v.fifoRst := '1';
-                  -- Next state
-                  v.state   := WAIT_S;
+                  -- Increment the counter
+                  v.cnt := r.cnt + 1;
+                  -- Check for roll over (effectively a timeout)
+                  if (v.cnt = 0) then
+                     -- Reset the FIFO to get out of lockup state
+                     v.fifoRst := '1';
+                     -- Next state
+                     v.state   := WAIT_S;
+                  end if;
+               else
+                  -- Reset the counter
+                  v.cnt := x"0";
                end if;
          ----------------------------------------------------------------------
          end case;
