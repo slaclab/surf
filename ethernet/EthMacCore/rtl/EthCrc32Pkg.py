@@ -1,10 +1,3 @@
-#!/usr/bin/env python3
-#-----------------------------------------------------------------------------
-# File       : EthCrc32Pkg.py
-# Created    : 2017-09-25
-# Last update: 2017-09-25
-#-----------------------------------------------------------------------------
-# Description:
 #-----------------------------------------------------------------------------
 # This file is part of the 'SLAC Firmware Standard Library'. It is subject to 
 # the license terms in the LICENSE.txt file found in the top-level directory 

@@ -1,10 +1,5 @@
-#!/usr/bin/env python
 #-----------------------------------------------------------------------------
 # Title      : PyRogue _Sa56004x Module
-#-----------------------------------------------------------------------------
-# File       : _Sa56004x.py
-# Created    : 2017-01-17
-# Last update: 2017-01-17
 #-----------------------------------------------------------------------------
 # Description: PyRogue _Sa56004x Module
 # Note: This implementation doesn't use LSB and rounds all variables to 1 degC
