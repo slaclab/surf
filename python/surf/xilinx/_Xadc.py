@@ -1,10 +1,6 @@
 #-----------------------------------------------------------------------------
 # Title      : PyRogue Device AxiXadc
 #-----------------------------------------------------------------------------
-# File       : AxiXadc.py
-# Created    : 2016-12-01
-# Last update: 2016-12-01
-#-----------------------------------------------------------------------------
 # Description:
 # Device creator for AxiXadc
 # Auto created from ../surf/xilinx/7Series/xadc/yaml/AxiXadc.yaml
