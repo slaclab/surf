@@ -388,3 +388,6 @@ class JesdRx(pr.Device):
                 self.ResetGTs.set(1)
                 self.ResetGTs.set(0)                    
                 
+    def countReset(self):
+        self.CmdClearErrors()
+        
