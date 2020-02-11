@@ -116,7 +116,7 @@ jobs:
 
       script:
         # Build conda package
-        - travis_wait 60 conda build --debug conda-recipe --output-folder bld-dir -c tidair-packages -c tidair-tag -c conda-forge
+        - travis_wait 60 conda build --debug conda-recipe --output-folder bld-dir -c tidair-tag -c conda-forge
 
       after_success:
         # Upload conda package
