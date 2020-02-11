@@ -1,98 +1,130 @@
+# This will run on Travis' 'new' container-based infrastructure
 sudo: true
+
+# Setup for Ubuntu Bionic (18.04)
 dist: bionic
+
+# Blacklist
 branches:
   except:
-  - gh-pages
+    - gh-pages
+
 language:
-- python
+  - python
+
 python:
-- 3.6
+  - 3.6
+
+# Environment variables
 env:
   global:
-  - GH_REPO_NAME: surf
-  - DOXYFILE: "$TRAVIS_BUILD_DIR/Doxyfile"
-  - GH_REPO_REF: github.com/slaclab/surf.git
-  - secure: b1soosI3QjV46Ha7gf8mpKF2hvfrFsP3p18LFy5hNTLyGJIDLHKgkriletmID04YQ2y9KXqm2wrE1hOEEb0Vwbl9R6rfHERAIwhYnx3t1UnZ8+/I1Ji6p2ZIGRCQPaTyOFOKGgSftLrGmIuY5kb6dzcVFw8JFkcQbVVG3IK+9QkLYHeRV/pkl+vT3SFeFgDOhf5BHhD5yEfbx4EicQTlUJcWxXeH5UK5p9oFv55VCMrDdFZ6lVbwOrIEwsUP1UhCCbWX82UlfDtONAshrsKbf/PkVwgOMcOcFmEbblDyK9Lb71ZuwHGePJcfJmqg5bWtTf7i847i/imF9RxF2uYIwxcfE+h3uENpcbXGQmv2a+iEbirEbf9bLej29JH1+v/p2vr+/raKreefC/+iWdUfDRMzN88kx7wrGd7+RsY/hmN3yHisSEhS5KxD/SfYjTTRsOo3qp01D/WD6J9bTe1FGZKnB7gWBZM6alwdVHuHbrtffMOE7Cy1l6kvjRHA9cP0jn+1NruDzgs2b1aV61KIG3n7F310Kx2ThgJveeO7HUMVFlaKJqBXmy+y2Wo+WGJAjfvRPh0g8x3bfDqAwcGNVA/fXt96dqTJsBD8EMXL5Tp8ZAI3rEyUgb+k1kiwmDgDJuyTZVVTIxb7f3c/J84LHrfC85WjqAF/muhxBfY+xvM=
+    - GH_REPO_NAME: surf
+    - DOXYFILE: $TRAVIS_BUILD_DIR/Doxyfile
+    - GH_REPO_REF: github.com/slaclab/surf.git
+    - secure: "dGGuxindIvA2oDIHPZ8xxO1sGjGMuL9DsGecbzMAUmd9A9Q0rj7rbuuhWEFRiGKnHKGEBrgb8Vh2SDsIDF1b98IqGflAHt++DN7BHyUh78pfONXsD7lhczK7LA/WWpd08gLwlTIIfNByviW7zH4eyMYH3qEdrEOKnRno6xqumL6w5wn2omGqosqr0kl3TcvAkc27Pf4qlqtVkVZkoG22l+OI9DAgZi+fwKbIQWSwyoO0YppUltumfBFqwaNSCQL5yrxywFJ7rbaSJaeQsYtBh+SDI3WMTgKiXEyenOUIguqhN7My8dyNyXoexKudwa2b3Liw2KxGxcwkL63gCEWhInY3ZgzeXotlyH/XKAidlhPH4DezH+NGQzGHfGCI9U7NB9C8O4duSWNSV33pfMycFIktWFg8fzyUDuHS5KV+yUWyBjHt5lrw8UgDNatxEK458Grnf4UvDuzn8FcO+JmhgJa0EYqoBu7LUSXfk9KGL5L9iLVJBQKibDEhNS9bV0tSzMgz67JDIjgwXK9MgMgh26+lwBLDQvY3AtJk+Zmtg6GXu5nota4mHDSVSnuy0ZzufZOO/LQq2FPLO/yT0EYnhg7/NCLfR62hPFBHVIv1uxfejfztB+gwXBRRunz6v3oRebzX2Y326WJhGWSIFkmxhtRxrj9H3IHBmczVhK7WlcY="
+
+# Install dependencies
 addons:
   apt:
     packages:
-    - doxygen
-    - doxygen-doc
-    - doxygen-latex
-    - doxygen-gui
-    - graphviz
-    - python3
+      - doxygen
+      - doxygen-doc
+      - doxygen-latex
+      - doxygen-gui
+      - graphviz
+      - python3
+      # - ghdl
+
 stages:
-- name: generate_and_deploy
-  if: "(branch = master AND NOT (type = pull_request)) OR tag IS present"
-- name: generate
-  if: "(branch != master OR (type == pull_request)) AND tag IS blank"
-- name: deploy_dev
-  if: branch = pre-release AND tag IS blank AND NOT (type = pull_request)
-- name: deploy_tag
-  if: tag IS present
+    # On master branch (but not on PRs to master) or in tagged releases
+    # generate and deploy the documentation
+    - name: generate_and_deploy
+      if: (branch = master AND NOT (type = pull_request)) OR tag IS present
+    # On all other branches or PRs, but not on tagged releases
+    # only try to generate the documentation
+    - name: generate
+      if: (branch != master OR (type == pull_request)) AND tag IS blank
+    - name: deploy_dev
+      if: branch = conda_release AND tag IS blank AND NOT (type = pull_request)
+      #if: branch = pre-release AND tag IS blank AND NOT (type = pull_request)
+    - name: deploy_tag
+      if: tag IS present
+
+# Generate and deploy documentation
 jobs:
   include:
-  - stage: generate
-    name: Generate Documentation
-    before_script: &1
-    - cd $TRAVIS_BUILD_DIR
-    - chmod +x scripts/generateDocumentationAndDeploy.sh
-    - chmod +x scripts/ghdl-travis-install.sh
-    - "./scripts/ghdl-travis-install.sh > /dev/null 2>&1"
-    - make
-    - rm -rf ghdl-build
-    - python3 -m compileall -f python/
-    script:
-    - "./scripts/generateDocumentationAndDeploy.sh 0"
-  - stage: generate_and_deploy
-    name: Generate and Deploy Documentation
-    before_script: *1
-    script:
-    - "./scripts/generateDocumentationAndDeploy.sh 1"
-  - stage: deploy_dev
-    name: Deploy Conda
-    env: CONDA_TOKEN=$CONDA_UPLOAD_TOKEN_DEV
-    before_install: &2
-    - mkdir -p $MINICONDA_DIR
-    - git pull --unshallow
-    - git pull
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then git clone https://github.com/phracker/MacOSX-SDKs;
-      sudo mv MacOSX-SDKs/MacOSX10.9.sdk /opt/; export CONDA_BUILD_SYSROOT=/opt/MacOSX10.9.sdk;
-      export CONDA_BUILD=1; fi
-    install: &3
-    - cd $MINICONDA_DIR
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh;
-      else wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh;
-      fi
-    - bash miniconda.sh -b -p $HOME/miniconda
-    - export PATH="$HOME/miniconda/bin:$PATH"
-    - hash -r
-    - conda config --set always_yes yes
-    - conda install conda-build anaconda-client conda-verify
-    - conda update -q conda conda-build
-    before_script: &4
-    - cd $TRAVIS_BUILD_DIR
-    script: &5
-    - travis_wait 60 conda build --debug conda-recipe --output-folder bld-dir -c tidair-packages
-      -c tidair-tag -c conda-forge
-    after_success: &6
-    - anaconda -t $CONDA_TOKEN upload bld-dir/`echo $TRAVIS_OS_NAME`-64/*.tar.bz2
-  - stage: deploy_dev
-    name: Deploy Conda
-    env: CONDA_TOKEN=$CONDA_UPLOAD_TOKEN_DEV
-    before_install: *2
-    install: *3
-    before_script: *4
-    script: *5
-    after_success: *6
-    os: osx
-    language: ruby
-  - stage: deploy_tag
-    name: Deploy Conda
-    env: CONDA_TOKEN=$CONDA_UPLOAD_TOKEN_TAG
-    before_install: *2
-    install: *3
-    before_script: *4
-    script: *5
-    after_success: *6
+    # Stage to only generate the documentation
+    - &documentation_stage
+      stage: generate
+      name: "Generate Documentation"
+      before_script:
+        - cd $TRAVIS_BUILD_DIR
+        - chmod +x scripts/generateDocumentationAndDeploy.sh
+        - chmod +x scripts/ghdl-travis-install.sh
+        - ./scripts/ghdl-travis-install.sh > /dev/null 2>&1
+        - make
+        - rm -rf ghdl-build
+        - python3 -m compileall -f python/
+      script:
+        - ./scripts/generateDocumentationAndDeploy.sh 0
+
+    # Stage to generate and deploy the documentation
+    - <<: *documentation_stage
+      stage: generate_and_deploy
+      name: "Generate and Deploy Documentation"
+      script: 
+        - ./scripts/generateDocumentationAndDeploy.sh 1
+
+    - &deploy-conda-stage       # Conda for linux
+      stage: deploy_dev
+      name: "Deploy Conda"
+      env: CONDA_TOKEN=$CONDA_UPLOAD_TOKEN_DEV
+      before_install:
+        # Prepare folders
+        - mkdir -p $MINICONDA_DIR
+        # Bring all the tags
+        - git pull --unshallow
+        - git pull
+        # on OSX rogue needs an older version of the MacOS SDK
+        - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+            git clone https://github.com/phracker/MacOSX-SDKs;
+            sudo mv MacOSX-SDKs/MacOSX10.9.sdk /opt/;
+            export CONDA_BUILD_SYSROOT=/opt/MacOSX10.9.sdk;
+            export CONDA_BUILD=1;
+          fi
+
+      install:
+        # Install Anaconda for the right architecture (linux or osx)
+        - cd $MINICONDA_DIR
+        - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+            wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh;
+          else
+            wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh;
+          fi
+        - bash miniconda.sh -b -p $HOME/miniconda
+        - export PATH="$HOME/miniconda/bin:$PATH"
+        - hash -r
+        - conda config --set always_yes yes
+        - conda install conda-build anaconda-client conda-verify
+        - conda update -q conda conda-build
+
+      before_script:
+        # Go back to top directory
+        - cd $TRAVIS_BUILD_DIR
+
+      script:
+        # Build conda package
+        - travis_wait 60 conda build --debug conda-recipe --output-folder bld-dir -c tidair-packages -c tidair-tag -c conda-forge
+
+      after_success:
+        # Upload conda package
+        - anaconda -t $CONDA_TOKEN upload bld-dir/`echo $TRAVIS_OS_NAME`-64/*.tar.bz2
+
+    - <<: *deploy-conda-stage   # Conda for MacOS
+      os: osx
+      language: ruby  # osx does not support language=python
+
+    - <<: *deploy-conda-stage   # Conda for Linux
+      stage: deploy_tag
+      env: CONDA_TOKEN=$CONDA_UPLOAD_TOKEN_TAG
+
