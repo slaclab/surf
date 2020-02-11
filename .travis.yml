@@ -21,6 +21,7 @@ env:
     - GH_REPO_NAME: surf
     - DOXYFILE: $TRAVIS_BUILD_DIR/Doxyfile
     - GH_REPO_REF: github.com/slaclab/surf.git
+    - secure: "mAihaScn+WBYUb+SPZUO3g6qbsFXOaiLHWtcO3uY3KBYO1FLWQ9y9PHGDNfh+ZUp874Gws+q923PrJikRR+43zy4hmC/hSt6zgCd2GqgysqB/Mhpdenz1tUwknA1JLVfGYc4K/AUncNoA5/V6ZdEQZxnetduGyuJkL0ysswQcu4Vlaels2gWC8uKS1kkYerCbwVhRu5j3cPTj2/kk244/NdlejK2u+XMOyybJ+Q4eKqWPxCIoo36ofJvD1g3ZI/fLats1t6F+cK2pXGkDUh38KHE36+cg90jNVo35BN4NlNZHbPJN77ibSQaL2bV4RHmooTlwkXr9F8dlNyy83xQ2LgNZHfo/XeQFIWjQg3MfJ3YzBHBL8hYRhmiHePjKxLa7JTqcTvtxIdAcihnfOzpvfV0thC16RUvURX/a7k9BD7/75lD9zyDc/LXhNB0ZmkZpf1N4JPOJCZNj/UC1KHjAb9NrfYRFHYf8o/YrEWqNjXi81RrBRCmcUNHucJ07MeTXQ9hOZfL7KSpVUAzhVKU3xB/BCDY4bTcZcLsMZQY+cVh4DS9xWQYCNBGscp0ipgeJ7Wh/VRi2zvsZ3F9N7W0ntOPkqSouPIy9O2W0ASWzYpt3kG073xNhDDUsNSGLh4vqkOxKHqQ1WgfpVw9WT0kWq0hNX3mln71V4uVAWdJb0o="
 
 # Install dependencies
 addons:
@@ -43,6 +44,10 @@ stages:
     # only try to generate the documentation
     - name: generate
       if: (branch != master OR (type == pull_request)) AND tag IS blank
+    - name: deploy_dev
+      if: branch = pre-release AND tag IS blank AND NOT (type = pull_request)
+    - name: deploy_tag
+      if: tag IS present
 
 # Generate and deploy documentation
 jobs:
@@ -68,3 +73,57 @@ jobs:
       name: "Generate and Deploy Documentation"
       script: 
         - ./scripts/generateDocumentationAndDeploy.sh 1
+
+    - &deploy-conda-stage       # Conda for linux
+      stage: deploy_dev
+      name: "Deploy Conda"
+      env: CONDA_TOKEN=$CONDA_UPLOAD_TOKEN_DEV
+      before_install:
+        # Prepare folders
+        - mkdir -p $MINICONDA_DIR
+        # Bring all the tags
+        - git pull --unshallow
+        - git pull
+        # on OSX rogue needs an older version of the MacOS SDK
+        - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+            git clone https://github.com/phracker/MacOSX-SDKs;
+            sudo mv MacOSX-SDKs/MacOSX10.9.sdk /opt/;
+            export CONDA_BUILD_SYSROOT=/opt/MacOSX10.9.sdk;
+            export CONDA_BUILD=1;
+          fi
+
+      install:
+        # Install Anaconda for the right architecture (linux or osx)
+        - cd $MINICONDA_DIR
+        - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+            wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh;
+          else
+            wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh;
+          fi
+        - bash miniconda.sh -b -p $HOME/miniconda
+        - export PATH="$HOME/miniconda/bin:$PATH"
+        - hash -r
+        - conda config --set always_yes yes
+        - conda install conda-build anaconda-client conda-verify
+        - conda update -q conda conda-build
+
+      before_script:
+        # Go back to top directory
+        - cd $TRAVIS_BUILD_DIR
+
+      script:
+        # Build conda package
+        - travis_wait 60 conda build --debug conda-recipe --output-folder bld-dir -c tidair-packages -c tidair-tag -c conda-forge
+
+      after_success:
+        # Upload conda package
+        - anaconda -t $CONDA_TOKEN upload bld-dir/`echo $TRAVIS_OS_NAME`-64/*.tar.bz2
+
+    - <<: *deploy-conda-stage   # Conda for MacOS
+      os: osx
+      language: ruby  # osx does not support language=python
+
+    - <<: *deploy-conda-stage   # Conda for Linux
+      stage: deploy_tag
+      env: CONDA_TOKEN=$CONDA_UPLOAD_TOKEN_TAG
+
