@@ -18,9 +18,11 @@ python:
 # Environment variables
 env:
   global:
+    - PACKAGE_DIR: $HOME/packages
     - GH_REPO_NAME: surf
     - DOXYFILE: $TRAVIS_BUILD_DIR/Doxyfile
     - GH_REPO_REF: github.com/slaclab/surf.git
+    - MINICONDA_DIR: $PACKAGE_DIR/miniconda
     - secure: "dGGuxindIvA2oDIHPZ8xxO1sGjGMuL9DsGecbzMAUmd9A9Q0rj7rbuuhWEFRiGKnHKGEBrgb8Vh2SDsIDF1b98IqGflAHt++DN7BHyUh78pfONXsD7lhczK7LA/WWpd08gLwlTIIfNByviW7zH4eyMYH3qEdrEOKnRno6xqumL6w5wn2omGqosqr0kl3TcvAkc27Pf4qlqtVkVZkoG22l+OI9DAgZi+fwKbIQWSwyoO0YppUltumfBFqwaNSCQL5yrxywFJ7rbaSJaeQsYtBh+SDI3WMTgKiXEyenOUIguqhN7My8dyNyXoexKudwa2b3Liw2KxGxcwkL63gCEWhInY3ZgzeXotlyH/XKAidlhPH4DezH+NGQzGHfGCI9U7NB9C8O4duSWNSV33pfMycFIktWFg8fzyUDuHS5KV+yUWyBjHt5lrw8UgDNatxEK458Grnf4UvDuzn8FcO+JmhgJa0EYqoBu7LUSXfk9KGL5L9iLVJBQKibDEhNS9bV0tSzMgz67JDIjgwXK9MgMgh26+lwBLDQvY3AtJk+Zmtg6GXu5nota4mHDSVSnuy0ZzufZOO/LQq2FPLO/yT0EYnhg7/NCLfR62hPFBHVIv1uxfejfztB+gwXBRRunz6v3oRebzX2Y326WJhGWSIFkmxhtRxrj9H3IHBmczVhK7WlcY="
 
 # Install dependencies
