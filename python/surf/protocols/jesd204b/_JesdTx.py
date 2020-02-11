@@ -379,3 +379,7 @@ class JesdTx(pr.Device):
                 invertSync =  self.InvertSync.get()
                 self.InvertSync.set(invertSync^0x1)
                 self.InvertSync.set(invertSync)                 
+    
+    def countReset(self):
+        self.CmdClearErrors()
+        
