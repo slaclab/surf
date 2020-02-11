@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #-----------------------------------------------------------------------------
 # This function converters the ClockBuilder Pro .cvs 
 # into a .MEM file that can be loaded into a BRAM in FW

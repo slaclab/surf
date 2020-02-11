@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #-----------------------------------------------------------------------------
 # Title      : PyRogue CameraLink module
 #-----------------------------------------------------------------------------
@@ -34,14 +33,16 @@ class UartOpal1000Rx(clink.ClinkSerialRx):
             c = chr(ba[i])
 
             if c == '\n':
-                print("Got Response: {}".format(''.join(self._cur)))
+                print("Got NL Response" )
                 self._cur = []
             elif ba[i] == 0x6:
-                print("Got ACK Response: {}".format(''.join(self._cur)))
+                print("Got ACK Response" )
                 self._cur = []
             elif ba[i] == 0x25:
-                print("Got NAK Response: {}".format(''.join(self._cur)))
+                print("Got NAK Response" )
                 self._cur = []
+            elif c == '\r':
+                print("recvString: {}".format(''.join(self._cur)))
             elif c != '':
                 self._cur.append(c)
 

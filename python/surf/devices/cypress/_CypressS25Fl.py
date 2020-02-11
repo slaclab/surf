@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #-----------------------------------------------------------------------------
 # Description: PyRogue Cypress S25FL PROM Series
 # 
