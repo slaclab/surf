@@ -47,8 +47,7 @@ stages:
     - name: generate
       if: (branch != master OR (type == pull_request)) AND tag IS blank
     - name: deploy_dev
-      if: branch = conda_release AND tag IS blank AND NOT (type = pull_request)
-      #if: branch = pre-release AND tag IS blank AND NOT (type = pull_request)
+      if: branch = pre-release AND tag IS blank AND NOT (type = pull_request)
     - name: deploy_tag
       if: tag IS present
 
