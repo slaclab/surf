@@ -12,7 +12,7 @@ with open('python/surf/__init__.py','a') as vf:
     vf.write(f'\n__version__="{ver}"\n')
 
 setup (
-   name='Surf',
+   name='surf',
    version=ver,
    packages=['surf',
              'surf/axi',
