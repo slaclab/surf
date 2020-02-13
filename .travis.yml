@@ -121,17 +121,17 @@ jobs:
         # Upload conda package
         - anaconda -t $CONDA_TOKEN upload bld-dir/`echo $TRAVIS_OS_NAME`-64/*.tar.bz2
 
-    - <<: *deploy-conda-stage   # Conda for MacOS
-      os: osx
-      language: ruby  # osx does not support language=python
+          #- <<: *deploy-conda-stage   # Conda for MacOS
+          #os: osx
+          #language: ruby  # osx does not support language=python
 
     - <<: *deploy-conda-stage   # Conda for Linux
       stage: deploy_tag
       env: CONDA_TOKEN=$CONDA_UPLOAD_TOKEN_TAG
 
-    - <<: *deploy-conda-stage   # Conda for macOS
-      stage: deploy_tag
-      os: osx
-      language: ruby  # osx does not support language=python
-      env: CONDA_TOKEN=$CONDA_UPLOAD_TOKEN_TAG
+      #- <<: *deploy-conda-stage   # Conda for macOS
+      #stage: deploy_tag
+      #os: osx
+      #language: ruby  # osx does not support language=python
+      #env: CONDA_TOKEN=$CONDA_UPLOAD_TOKEN_TAG
 
