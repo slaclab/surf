@@ -14,7 +14,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-import surf.protocols.clink 
+import surf.protocols.clink
 
 class ClinkTop(pr.Device):
     def __init__(
