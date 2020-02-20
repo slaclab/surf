@@ -2896,4 +2896,3 @@ class Gthe3Channel(pr.Device):
             bitOffset    =  1,
             mode         = "RW",
         ))
-

@@ -291,4 +291,3 @@ class AxiVersion(pr.Device):
             print("Builder      = {}".format(self.Builder.value()))
         except Exception:
             print("Failed to get %s status" % self)
-

@@ -17,7 +17,6 @@ import numpy as np
 import functools
 import click
 import gzip
-import os
 import subprocess
 import fnmatch
 

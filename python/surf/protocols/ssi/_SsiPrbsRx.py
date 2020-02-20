@@ -223,4 +223,3 @@ class SsiPrbsRx(pr.Device):
 
     def countReset(self):
         self.CountReset()
-

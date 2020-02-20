@@ -692,4 +692,3 @@ class Adc32Rf45(pr.Device):
             self._rawWrite(mainDigital + chB + (4*0x000),0x01) # CHB digital reset
             self._rawWrite(mainDigital + chA + (4*0x000),0x00) # clear reset
             self._rawWrite(mainDigital + chB + (4*0x000),0x00) # clear reset
-

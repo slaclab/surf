@@ -301,4 +301,3 @@ class AxiStreamMonitoring(AxiStreamMonAxiL):
             **kwargs
         )
         print( f'{self.path}: AxiStreamMonitoring device is now deprecated. Please use AxiStreamMonAxiL instead' )
-

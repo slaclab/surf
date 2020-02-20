@@ -13,7 +13,6 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-import pyrogue as pr
 import rogue.interfaces.stream
 
 import pdb
@@ -45,4 +44,3 @@ class ClinkSerialTx(rogue.interfaces.stream.Master):
         frame = self._reqFrame(len(ba),True)
         frame.write(ba,0)
         self._sendFrame(frame)
-

@@ -271,4 +271,3 @@ class AxiStreamDmaRingWrite(pr.Device):
             for i in range(self._numBuffers):
                 self.SoftTrigger[i].set(1)
                 self.SoftTrigger[i].set(0)
-

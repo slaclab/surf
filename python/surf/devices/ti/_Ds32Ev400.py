@@ -122,4 +122,3 @@ class Ds32Ev400(pr.Device):
             bitOffset    = 2,
             mode         = 'RW',
         ))
-

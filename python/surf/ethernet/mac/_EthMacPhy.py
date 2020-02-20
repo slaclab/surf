@@ -127,4 +127,3 @@ class EthMacPhy(pr.Device):
             base         = pr.UInt,
             mode         = "WO",
         ))
-

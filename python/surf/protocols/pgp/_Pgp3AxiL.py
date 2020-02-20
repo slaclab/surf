@@ -526,9 +526,3 @@ class Pgp3GthUsWrapper(pr.Device):
             enMon = enMon,
             enDrp = enGtDrp
         )
-
-#         if enQpllDrp:
-#             self.add(xil.Gthe3Qpll(
-#                 offset = lanes * 0x2000))
-
-

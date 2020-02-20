@@ -14,7 +14,6 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-import rogue.interfaces.stream
 
 import surf.protocols.clink as clink
 
@@ -254,6 +253,3 @@ class UartOpal1000(pr.Device):
             value        = '',
             localSet     = lambda value: self._tx.sendString(f'@FSP{value}') if value!='' else ''
         ))
-
-
-

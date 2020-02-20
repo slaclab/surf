@@ -137,4 +137,3 @@ class GigEthReg(pr.Device):
             base         = pr.UInt,
             mode         = "WO",
         ))
-

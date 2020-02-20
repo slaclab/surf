@@ -11,7 +11,6 @@
 # the terms contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-import sys
 import csv
 import argparse
 
@@ -83,5 +82,3 @@ for i in range(1024-cnt):
 
 # Close the file
 ofd.close()
-
-#################################################################

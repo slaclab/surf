@@ -13,7 +13,6 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-import pyrogue as pr
 import rogue.interfaces.stream
 
 class ClinkSerialRx(rogue.interfaces.stream.Slave):

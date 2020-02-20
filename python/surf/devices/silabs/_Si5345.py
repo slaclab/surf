@@ -8,7 +8,6 @@
 # the terms contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-import pyrogue as pr
 import surf.devices.silabs as silabs
 
 class Si5345(silabs.Si5345Lite):

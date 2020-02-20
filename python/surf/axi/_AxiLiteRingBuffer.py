@@ -13,8 +13,6 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-import datetime
-import parse
 import pyrogue as pr
 
 class AxiLiteRingBuffer(pr.Device):
@@ -97,4 +95,3 @@ class AxiLiteRingBuffer(pr.Device):
                 print(fmt.format(buff[i])),
                 if (i&0xf)==0xf:
                     print()
-

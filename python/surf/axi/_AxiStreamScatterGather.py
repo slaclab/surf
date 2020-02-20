@@ -89,4 +89,3 @@ class AxiStreamScatterGather(pr.Device):
             mode = 'RO',
             offset = 0x28,
             disp = '{:d}'))
-

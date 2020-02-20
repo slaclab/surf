@@ -8,7 +8,6 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-import pyrogue     as pr
 import surf.xilinx as xil
 
 class ClockManager(xil.ClockManager):

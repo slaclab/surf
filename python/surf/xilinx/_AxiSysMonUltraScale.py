@@ -568,5 +568,3 @@ class AxiSysMonUltraScale(pr.Device):
         # Then unhide the most interesting ones
         vars = ["Temperature", "VccInt", "VccAux", "VccBram"]
         self.hideVariables(hidden=False, variables=vars)
-
-

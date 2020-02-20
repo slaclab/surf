@@ -37,4 +37,3 @@ class AxiSy56040(pr.Device):
             number       =  4,
             stride       =  4,
         )
-

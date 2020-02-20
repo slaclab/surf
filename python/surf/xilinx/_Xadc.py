@@ -606,11 +606,9 @@ class Xadc(pr.Device):
     def convAuxVoltage(var):
         return var.dependencies[0].value() * 244e-6
 
-
     def simpleView(self):
         # Hide all the variable
         self.hideVariables(hidden=True)
         # Then unhide the most interesting ones
         vars = ["enable", "Temperature", "VccInt", "VccAux", "VccBram"]
         self.hideVariables(hidden=False, variables=vars)
-

@@ -13,9 +13,7 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-import pyrogue             as pr
 import surf.devices.micron as micron
-import surf.misc           as misc
 import click
 import time
 import datetime

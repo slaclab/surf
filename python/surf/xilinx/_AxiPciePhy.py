@@ -306,4 +306,3 @@ class AxiPciePhy(pr.Device):
             dependencies = [self.LinkWidth16,self.LinkWidth],
             units        = '# of lanes',
         ))
-

@@ -12,7 +12,6 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-import rogue
 
 class SsiPrbsRateGen(pr.Device):
     def __init__(   self,
@@ -164,4 +163,3 @@ class SsiPrbsRateGen(pr.Device):
             pollInterval = 1,
             mode         = "RO",
         ))
-

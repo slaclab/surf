@@ -91,4 +91,3 @@ class AxiCdcm6208(pr.Device):
             base         = pr.UInt,
             mode         = "RO",
         ))
-

@@ -1356,4 +1356,3 @@ class Adc32Rf45Channel(pr.Device):
             self.TEST_PATTERN_SEL.set(int(arg))
             self.TEST_PAT_RES.set(0x1)
             self.TEST_PAT_RES.set(0x0)
-

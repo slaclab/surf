@@ -228,5 +228,3 @@ class AxiVersionLegacy(pr.Device):
             stride       =  4,
             hidden       = True,
         )
-
-

@@ -14,7 +14,6 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-import time
 
 class Ads42Lbx9Config(pr.Device):
     def __init__(   self,
