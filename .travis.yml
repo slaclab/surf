@@ -35,6 +35,7 @@ addons:
       - doxygen-gui
       - graphviz
       - python3
+      - flake8
       # - ghdl
 
 stages:
