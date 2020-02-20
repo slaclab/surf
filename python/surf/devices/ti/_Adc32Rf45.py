@@ -13,7 +13,7 @@
 
 import pyrogue as pr
 import time
-import surf.devices as dev
+import surf.devices.ti
 
 class Adc32Rf45(pr.Device):
     def __init__( self, verify=False, **kwargs):
@@ -41,8 +41,8 @@ class Adc32Rf45(pr.Device):
         #####################
         # Add Device Channels
         #####################
-        self.add(dev.ti.Adc32Rf45Channel(name='CH[0]',description='Channel A',offset=(0x0 << 14),expand=False,verify=verify))
-        self.add(dev.ti.Adc32Rf45Channel(name='CH[1]',description='Channel B',offset=(0x8 << 14),expand=False,verify=verify))
+        self.add(surf.devices.ti.Adc32Rf45Channel(name='CH[0]',description='Channel A',offset=(0x0 << 14),expand=False,verify=verify))
+        self.add(surf.devices.ti.Adc32Rf45Channel(name='CH[1]',description='Channel B',offset=(0x8 << 14),expand=False,verify=verify))
 
         ##################
         # General Register
@@ -291,7 +291,7 @@ class Adc32Rf45(pr.Device):
         ##############################
         # Commands
         ##############################
-        @self.command(name = "Init", description  = "Device Initiation")
+        @self.command(description  = "Device Initiation")
         def Init():
             self.Powerup_AnalogConfig()
 
@@ -314,7 +314,7 @@ class Adc32Rf45(pr.Device):
             self._rawWrite(offsetCorrector + chA + (4*0x068),0xA2) #... freeze offset estimation
             self._rawWrite(offsetCorrector + chB + (4*0x068),0xA2) #... freeze offset estimation
 
-        @self.command(name         = "Powerup_AnalogConfig", description  = "Powerup Analog Config")
+        @self.command()
         def Powerup_AnalogConfig():
             self._rawWrite(generalAddr + (4*0x0000),0x81) # Global software reset. Remember the sequence of programming the config files is Powerup_Analog_Config-->IL_Config_Nyqx_chA-->IL_Config_Nyqx_chB-->NL_Config_Nyqx_chA-->NL_Config_Nyqx_chB-->JESD_Config
             self._rawWrite(generalAddr + (4*0x0011),0xFF) # Select ADC page.
@@ -390,7 +390,7 @@ class Adc32Rf45(pr.Device):
 
 
 
-        @self.command(name         = "IL_Config_Nyq1_ChA", description  = "Set IL ChA")
+        @self.command(description = "Set IL ChA")
         def IL_Config_Nyq1_ChA():
             self._rawWrite(mainDigital + chA + (4*0x044),0x01) # Program global settings for Interleaving Corrector
             self._rawWrite(mainDigital + chA + (4*0x068),0x04) #
@@ -432,7 +432,7 @@ class Adc32Rf45(pr.Device):
             self._rawWrite(mainDigital + chA + (4*0x000),0x01) #...
             self._rawWrite(mainDigital + chA + (4*0x000),0x00) #...
 
-        @self.command(name         = "IL_Config_Nyq1_ChB", description  = "Set IL ChB")
+        @self.command()
         def IL_Config_Nyq1_ChB():
             self._rawWrite(mainDigital + chB + (4*0x049),0x80) # Special setting for chB
             self._rawWrite(mainDigital + chB + (4*0x042),0x20) # Special setting for chB
@@ -442,7 +442,7 @@ class Adc32Rf45(pr.Device):
             self._rawWrite(mainDigital + chB + (4*0x000),0x01) #...
             self._rawWrite(mainDigital + chB + (4*0x000),0x00) #...
 
-        @self.command(name         = "SetNLTrim", description  = "Set nonlinear trims")
+        @self.command(description  = "Set nonlinear trims")
         def SetNLTrim():
             # Nonlinearity trims
             self._rawWrite(rawInterface + (4*0x4003),0x00) #chA Non Linearity Trims for Nyq1. Remember the sequence of programming the config files is Powerup_Analog_Config-->IL_Config_Nyqx_chA-->IL_Config_Nyqx_chB-->NL_Config_Nyqx_chA-->NL_Config_Nyqx_chB-->JESD_Config
@@ -566,10 +566,10 @@ class Adc32Rf45(pr.Device):
             self._rawWrite(rawInterface + (4*0x005c),0x87) #...
             self._rawWrite(rawInterface + (4*0x0012),0x00) #...
 
-        @self.command(name         = "JESD_DDC_config", description  = "JESD DDC config")
+        @self.command()
         def JESD_DDC_config():
             # JESD DIGITAL PAGE
-            channels = self.find(typ=dev.ti.Adc32Rf45Channel)
+            channels = self.find(typ=surf.devices.ti.Adc32Rf45Channel)
             for channel in channels:
                 channel.SCRAMBLE_EN.set(0x1, write=True)
                 channel.node('12BIT_MODE').set(0x0, write=True)       # need to use node to find variables with leading #
@@ -670,7 +670,7 @@ class Adc32Rf45(pr.Device):
 #            self._rawWrite(generalAddr + (4*0x0020),0x10) # Pdn sysref
 #            self.PDN_SYSREF.set(0x1) # Do this in AppTop after JESD link is established
 
-        @self.command(name= "DigRst", description  = "Digital Reset")
+        @self.command(description  = "Digital Reset")
         def DigRst():
             time.sleep(0.050)   # Wait for 50 ms for the device to estimate the interleaving errors
             self._rawWrite(jesdDigital + chA + (4*0x000),0x00) # clear reset

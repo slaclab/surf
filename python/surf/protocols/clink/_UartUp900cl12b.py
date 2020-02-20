@@ -14,10 +14,9 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import surf.protocols.clink
 
-import surf.protocols.clink as clink
-
-class UartUp900cl12bRx(clink.ClinkSerialRx):
+class UartUp900cl12bRx(surf.protocols.clink.ClinkSerialRx):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -40,10 +39,10 @@ class UartUp900cl12b(pr.Device):
         super().__init__(**kwargs)
 
         # Attach the serial devices
-        self._rx = clink.UartUp900cl12bRx()
+        self._rx = surf.protocols.clink.UartUp900cl12bRx()
         pr.streamConnect(serial,self._rx)
 
-        self._tx = clink.ClinkSerialTx()
+        self._tx = surf.protocols.clink.ClinkSerialTx()
         pr.streamConnect(self._tx,serial)
 
         @self.command(value='', name='SendString', description='Send a command string')

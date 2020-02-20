@@ -14,7 +14,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue   as pr
-import surf.misc as misc
+import surf.misc
 import click
 import time
 import datetime
@@ -31,7 +31,7 @@ class AxiMicronMt28ew(pr.Device):
             size        = (0x1 << 12),
             **kwargs)
 
-        self._mcs = misc.McsReader()
+        self._mcs = surf.misc.McsReader()
         self._progDone = False
         self._tryCount = tryCount
 
@@ -194,7 +194,7 @@ class AxiMicronMt28ew(pr.Device):
                     # Compare PROM to file
                     if (data != prom):
                         click.secho(("\nAddr = 0x%x: MCS = 0x%x != PROM = 0x%x" % (addr,data,prom)), fg='red')
-                        raise misc.McsException('verifyProm() Failed\n\n')
+                        raise surf.misc.McsException('verifyProm() Failed\n\n')
             # Close the status bar
             bar.update(self._mcs.size)
 

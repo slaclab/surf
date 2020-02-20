@@ -10,9 +10,9 @@
 
 import pyrogue as pr
 
-import surf.protocols.i2c  as i2c
+import surf.protocols.i2c
 
-class UCD92xx(i2c.PMBus):
+class UCD92xx(surf.protocols.i2c.PMBus):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -39,7 +39,7 @@ class UCD92xx(i2c.PMBus):
             mode         = 'RO',
             units        = 'V',
             disp         = '{:1.3f}',
-            linkedGet    = i2c.getPMbusLinearDataFormat,
+            linkedGet    = surf.protocols.i2c.getPMbusLinearDataFormat,
             dependencies = [self.READ_VIN],
         ))
 

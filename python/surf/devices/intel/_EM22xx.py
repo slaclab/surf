@@ -10,18 +10,20 @@
 
 import pyrogue as pr
 
-import surf.protocols.i2c  as i2c
+import surf.protocols.i2c
 
-class EM22xx(i2c.PMBus):
+class EM22xx(surf.protocols.i2c.PMBus):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+        linearDataFormat = surf.protocols.i2c.getPMbusLinearDataFormat
 
         self.add(pr.LinkVariable(
             name         = 'VIN',
             mode         = 'RO',
             units        = 'V',
             disp         = '{:1.3f}',
-            linkedGet    = i2c.getPMbusLinearDataFormat,
+            linkedGet    = linearDataFormat,
             dependencies = [self.READ_VIN],
         ))
 
@@ -30,7 +32,7 @@ class EM22xx(i2c.PMBus):
             mode         = 'RO',
             units        = 'V',
             disp         = '{:1.3f}',
-            linkedGet    = i2c.getPMbusLinearDataFormat,
+            linkedGet    = linearDataFormat,
             dependencies = [self.READ_VOUT],
         ))
 
@@ -39,7 +41,7 @@ class EM22xx(i2c.PMBus):
             mode         = 'RO',
             units        = 'A',
             disp         = '{:1.3f}',
-            linkedGet    = i2c.getPMbusLinearDataFormat,
+            linkedGet    = linearDataFormat,
             dependencies = [self.READ_IOUT],
         ))
 
@@ -48,7 +50,7 @@ class EM22xx(i2c.PMBus):
             mode         = 'RO',
             units        = 'degC',
             disp         = '{:1.3f}',
-            linkedGet    = i2c.getPMbusLinearDataFormat,
+            linkedGet    = linearDataFormat,
             dependencies = [self.READ_TEMPERATURE_1],
         ))
 
@@ -57,7 +59,7 @@ class EM22xx(i2c.PMBus):
             mode         = 'RO',
             units        = 'degC',
             disp         = '{:1.3f}',
-            linkedGet    = i2c.getPMbusLinearDataFormat,
+            linkedGet    = linearDataFormat,
             dependencies = [self.READ_TEMPERATURE_2],
         ))
 
@@ -66,7 +68,7 @@ class EM22xx(i2c.PMBus):
             mode         = 'RO',
             units        = 'kHz',
             disp         = '{:1.3f}',
-            linkedGet    = i2c.getPMbusLinearDataFormat,
+            linkedGet    = linearDataFormat,
             dependencies = [self.READ_DUTY_CYCLE],
         ))
 
@@ -75,7 +77,7 @@ class EM22xx(i2c.PMBus):
             mode         = 'RO',
             units        = 'kHz',
             disp         = '{:1.3f}',
-            linkedGet    = i2c.getPMbusLinearDataFormat,
+            linkedGet    = linearDataFormat,
             dependencies = [self.READ_FREQUENCY],
         ))
 
@@ -84,6 +86,6 @@ class EM22xx(i2c.PMBus):
             mode         = 'RO',
             units        = 'W',
             disp         = '{:1.3f}',
-            linkedGet    = i2c.getPMbusLinearDataFormat,
+            linkedGet    = linearDataFormat,
             dependencies = [self.READ_POUT],
         ))

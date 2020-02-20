@@ -13,8 +13,8 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-import pyrogue              as pr
-import surf.protocols.clink as cl
+import pyrogue as pr
+import surf.protocols.clink 
 
 class ClinkTop(pr.Device):
     def __init__(
@@ -226,7 +226,7 @@ class ClinkTop(pr.Device):
 
         for i in range(2):
             if serial[i] is not None:
-                self.add(cl.ClinkChannel(
+                self.add(surf.protocols.clink.ClinkChannel(
                     name    = f'Ch[{i}]',
                     offset  = 0x100+(i*0x100),
                     serial  = serial[i],
@@ -234,7 +234,7 @@ class ClinkTop(pr.Device):
                     # expand  = False,
                 ))
         for i in range(3):
-            self.add(cl.ClockManager(
+            self.add(surf.protocols.clink.ClockManager(
                 name    = f'Pll[{i}]',
                 offset  = 0x1000+(i*0x1000),
                 type    = 'MMCME2',

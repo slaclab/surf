@@ -8,9 +8,9 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-import surf.xilinx as xil
+import surf.xilinx
 
-class ClockManager(xil.ClockManager):
+class ClockManager(surf.xilinx.ClockManager):
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
 

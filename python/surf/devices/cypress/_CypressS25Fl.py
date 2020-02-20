@@ -13,20 +13,18 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-import surf.devices.micron as micron
+import surf.devices.micron
 import click
 import time
 import datetime
 
-class CypressS25Fl(micron.AxiMicronN25Q):
+class CypressS25Fl(surf.devices.micron.AxiMicronN25Q):
     def __init__(self,
                  description = "Container for Cypress S25FL PROM device",
                  addrMode    = False, # False = 24-bit Address mode, True = 32-bit Address Mode
                  **kwargs):
 
-        super().__init__(
-            description = description,
-            **kwargs)
+        super().__init__(description = description, **kwargs)
 
         ########################################
         # Overwrite with Cypress S25FL Constants

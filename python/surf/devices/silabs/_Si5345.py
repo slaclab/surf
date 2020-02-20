@@ -8,10 +8,11 @@
 # the terms contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-import surf.devices.silabs as silabs
+import surf.devices.silabs
 
-class Si5345(silabs.Si5345Lite):
-    def __init__(self,
+class Si5345(surf.devices.silabs.Si5345Lite):
+    def __init__(
+            self,
             simpleDisplay = True,
             advanceUser   = False,
             **kwargs):
@@ -20,11 +21,11 @@ class Si5345(silabs.Si5345Lite):
         ##############################
         # Devices
         ##############################
-        self.add(silabs.Si5345Page1(offset=(0x100<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
-        self.add(silabs.Si5345Page2(offset=(0x200<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
-        self.add(silabs.Si5345Page3(offset=(0x300<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
-        self.add(silabs.Si5345Page4(offset=(0x400<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
-        self.add(silabs.Si5345Page5(offset=(0x500<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
-        self.add(silabs.Si5345Page9(offset=(0x900<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
-        self.add(silabs.Si5345PageA(offset=(0xA00<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
-        self.add(silabs.Si5345PageB(offset=(0xB00<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
+        self.add(surf.devices.silabs.Si5345Page1(offset=(0x100<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
+        self.add(surf.devices.silabs.Si5345Page2(offset=(0x200<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
+        self.add(surf.devices.silabs.Si5345Page3(offset=(0x300<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
+        self.add(surf.devices.silabs.Si5345Page4(offset=(0x400<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
+        self.add(surf.devices.silabs.Si5345Page5(offset=(0x500<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
+        self.add(surf.devices.silabs.Si5345Page9(offset=(0x900<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
+        self.add(surf.devices.silabs.Si5345PageA(offset=(0xA00<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
+        self.add(surf.devices.silabs.Si5345PageB(offset=(0xB00<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))

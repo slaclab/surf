@@ -14,7 +14,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-import surf.xilinx as xil
+import surf.xilinx
 
 class Pgp3AxiL(pr.Device):
     def __init__(self,
@@ -502,7 +502,7 @@ class Pgp3GthUs(pr.Device):
             ))
 
         if enDrp:
-            self.add(xil.Gthe3Channel(
+            self.add(surf.xilinx.Gthe3Channel(
                 offset = 0x1000,
                 expand = False,
             ))

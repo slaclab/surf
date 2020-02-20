@@ -15,7 +15,7 @@
 
 import pyrogue as pr
 
-import surf.ethernet.udp as udp
+from surf.ethernet import udp
 
 class TenGigEthReg(pr.Device):
     def __init__(self, writeEn=False, **kwargs):

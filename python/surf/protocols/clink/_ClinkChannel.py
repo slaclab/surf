@@ -13,8 +13,8 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-import pyrogue              as pr
-import surf.protocols.clink as cl
+import pyrogue as pr
+import surf.protocols.clink
 
 class ClinkChannel(pr.Device):
     def __init__(
@@ -201,7 +201,7 @@ class ClinkChannel(pr.Device):
                 self.BaudRate._default    = 57600
 
                 # Add the device
-                self.add(cl.UartOpal1000(
+                self.add(surf.protocols.clink.UartOpal1000(
                     name   = 'UartOpal1000',
                     serial = serial,
                     expand = False,
@@ -211,7 +211,7 @@ class ClinkChannel(pr.Device):
             elif (camType=='Piranha4'):
 
                 # Add the device
-                self.add(cl.UartPiranha4(
+                self.add(surf.protocols.clink.UartPiranha4(
                     name        = 'UartPiranha4',
                     serial      = serial,
                     expand      = False,
@@ -224,7 +224,7 @@ class ClinkChannel(pr.Device):
                 self.SerThrottle._default = 30000
 
                 # Add the device
-                self.add(cl.UartUp900cl12b(
+                self.add(surf.protocols.clink.UartUp900cl12b(
                     name        = 'UartUp900cl12b',
                     serial      = serial,
                     expand      = False,
@@ -234,7 +234,7 @@ class ClinkChannel(pr.Device):
             elif camType is None:
 
                 # Add the device
-                self.add(cl.UartGeneric(
+                self.add(surf.protocols.clink.UartGeneric(
                     name        = 'UartGeneric',
                     serial      = serial,
                     expand      = False,

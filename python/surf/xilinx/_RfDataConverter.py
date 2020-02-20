@@ -14,7 +14,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-import surf.xilinx as xil
+import surf.xilinx
 
 class RfDataConverter(pr.Device):
     def __init__(self, **kwargs):
@@ -104,14 +104,14 @@ class RfDataConverter(pr.Device):
         ))
 
         for i in range(4):
-            self.add(xil.RfTile(
+            self.add(surf.xilinx.RfTile(
                 name    = f'dacTile[{i}]',
                 offset  = 0x04000 + 0x4000*i,
                 expand  = False,
             ))
 
         for i in range(4):
-            self.add(xil.RfTile(
+            self.add(surf.xilinx.RfTile(
                 name    = f'adcTile[{i}]',
                 offset  = 0x14000 + 0x4000*i,
                 expand  = False,
