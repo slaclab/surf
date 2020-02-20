@@ -19,7 +19,7 @@ class AxiStreamMonChannel(pr.Device):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        def addPair(name,offset,bitSize,units,bitOffset,description,function,pollInterval = 0,):
+        def addPair(name, offset, bitSize, units, bitOffset, description, function, pollInterval=0):
             self.add(pr.RemoteVariable(
                 name         = ("Raw"+name),
                 offset       = offset,

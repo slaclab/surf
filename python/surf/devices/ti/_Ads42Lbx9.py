@@ -207,12 +207,8 @@ class Ads42Lbx9Config(pr.Device):
         ))
 
 class Ads42Lbx9Readout(pr.Device):
-    def __init__(   self,
-            name        = "Ads42Lbx9Readout",
-            description = "ADS42LBx9 Readout Module",
-            **kwargs):
-
-        super().__init__(name=name,description=description,**kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         ##############################
         # Variables
