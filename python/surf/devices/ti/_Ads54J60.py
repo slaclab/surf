@@ -16,14 +16,8 @@ import time
 import surf.devices as dev
 
 class Ads54J60(pr.Device):
-    def __init__( self,
-            name        = "Ads54J60",
-            description = "Ads54J60 Module",
-            verify      = False,
-            **kwargs):
+    def __init__(self, verify=False, **kwargs):
         super().__init__(
-            name        = name,
-            description = description,
             size        = (0x1 << 18),
             **kwargs)
 

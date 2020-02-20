@@ -13,11 +13,8 @@ import pyrogue as pr
 import surf.protocols.i2c  as i2c
 
 class EM22xx(i2c.PMBus):
-    def __init__(   self,
-            name        = 'EM22xx',
-            description = 'EM22xx Container',
-            **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         self.add(pr.LinkVariable(
             name         = 'VIN',

@@ -19,11 +19,10 @@ import math
 
 class Ad9249ConfigGroup(pr.Device):
     def __init__(self,
-            name        = 'Ad9249ConfigGroup',
-            description = 'Configure one side of an AD9249 ADC',
-            **kwargs):
+                 description = 'Configure one side of an AD9249 ADC',
+                 **kwargs):
 
-        super().__init__(name=name, description=description, **kwargs)
+        super().__init__(description=description, **kwargs)
 
         # AD9249 bank configuration registers
         self.add(pr.RemoteVariable(

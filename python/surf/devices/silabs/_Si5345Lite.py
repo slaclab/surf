@@ -15,12 +15,10 @@ import click
 
 class Si5345Lite(pr.Device):
     def __init__(self,
-            name          = "Si5345Lite",
-            description   = "Si5345Lite",
             simpleDisplay = True,
             advanceUser   = False,
             **kwargs):
-        super().__init__(name=name, description=description, size=(0x1000<<2), **kwargs)
+        super().__init__(size=(0x1000<<2), **kwargs)
 
         self.add(pr.LocalVariable(
             name         = "CsvFilePath",

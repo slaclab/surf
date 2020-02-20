@@ -22,12 +22,11 @@ import math
 
 class AxiMicronP30(pr.Device):
     def __init__(self,
-            name        = "AxiMicronP30",
             description = "AXI-Lite Micron P30 PROM",
             tryCount    = 5,
             **kwargs):
+        
         super().__init__(
-            name        = name,
             description = description,
             size        = (0x1 << 12),
             **kwargs)

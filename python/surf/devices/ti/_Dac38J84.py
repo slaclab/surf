@@ -16,14 +16,12 @@
 import pyrogue as pr
 
 class Dac38J84(pr.Device):
-    def __init__(   self,
-            name        = 'Dac38J84',
-            description = 'Dac38J84 Module',
-            numTxLanes  =  2,
-            debug       =  True,
-            **kwargs):
+    def __init__(self,
+                 numTxLanes  =  2,
+                 debug       =  True,
+                 **kwargs):
 
-        super().__init__(name=name,description=description,**kwargs)
+        super().__init__(**kwargs)
 
         ##############################
         # Variables

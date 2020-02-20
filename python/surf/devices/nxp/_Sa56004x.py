@@ -17,11 +17,9 @@ import pyrogue as pr
 
 class Sa56004x(pr.Device):
     def __init__(self,
-            name        = "Sa56004x",
-            description = "Sa56004x",
             pollInterval = 1,
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+        super().__init__(**kwargs)
 
         ############################################################################
 

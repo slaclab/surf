@@ -20,16 +20,13 @@ import datetime
 
 class CypressS25Fl(micron.AxiMicronN25Q):
     def __init__(self,
-            name        = "CypressS25Fl",
-            description = "Container for Cypress S25FL PROM device",
-            addrMode    = False, # False = 24-bit Address mode, True = 32-bit Address Mode
-            **kwargs):
+                 description = "Container for Cypress S25FL PROM device",
+                 addrMode    = False, # False = 24-bit Address mode, True = 32-bit Address Mode
+                 **kwargs):
 
         super().__init__(
-            name        = name,
             description = description,
-            **kwargs
-        )
+            **kwargs)
 
         ########################################
         # Overwrite with Cypress S25FL Constants

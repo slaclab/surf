@@ -16,12 +16,8 @@
 import pyrogue as pr
 
 class AxiCdcm6208(pr.Device):
-    def __init__(   self,
-            name        = 'AxiCdcm6208',
-            description = 'AxiCdcm6208 Module',
-            **kwargs):
-
-        super().__init__(name=name,description=description,**kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         ##############################
         # Variables

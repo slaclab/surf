@@ -16,11 +16,8 @@
 import pyrogue as pr
 
 class Ltc2945(pr.Device):
-    def __init__(self,
-            name        = "Ltc2945",
-            description = "Ltc2945",
-            **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         self.add(pr.RemoteVariable(
             name        = 'Control',

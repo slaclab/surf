@@ -16,12 +16,8 @@
 import pyrogue as pr
 
 class Lmk61e2(pr.Device):
-    def __init__(   self,
-            name        = "Lmk61e2",
-            description = "Lmk61e2 Module",
-            **kwargs):
-
-        super().__init__(name=name,description=description,**kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         self.add(pr.RemoteVariable(
             name         = 'VNDRID_BY[1]',

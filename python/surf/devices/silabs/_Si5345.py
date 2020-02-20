@@ -12,12 +12,10 @@ import surf.devices.silabs as silabs
 
 class Si5345(silabs.Si5345Lite):
     def __init__(self,
-            name          = "Si5345",
-            description   = "Si5345",
             simpleDisplay = True,
             advanceUser   = False,
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+        super().__init__(**kwargs)
 
         ##############################
         # Devices

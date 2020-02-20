@@ -16,15 +16,9 @@ import time
 import surf.devices as dev
 
 class Adc32Rf45(pr.Device):
-    def __init__( self,
-            name        = "Adc32Rf45",
-            description = "Adc32Rf45 Module",
-            verify      =  False,
-            **kwargs):
+    def __init__( self, verify=False, **kwargs):
 
         super().__init__(
-            name        = name,
-            description = description,
             size        = (0x1 << 19),
             **kwargs)
 

@@ -17,10 +17,10 @@ import pyrogue as pr
 
 class AxiSy56040(pr.Device):
     def __init__(self,
-            name        = "AxiSy56040",
-            description = "AXI-Lite Microchip SY56040 and Microchip SY58040",
-            **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+                 description = "AXI-Lite Microchip SY56040 and Microchip SY58040",
+                 **kwargs):
+        
+        super().__init__(description=description, **kwargs)
 
         ##############################
         # Variables

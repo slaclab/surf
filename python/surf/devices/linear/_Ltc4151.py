@@ -17,12 +17,11 @@ import pyrogue as pr
 
 class Ltc4151(pr.Device):
     def __init__(self,
-            name         = "Ltc4151",
-            description  = "Container for Ltc4151",
-            pollInterval = 1,
-            senseRes     = 20.E-3, # Units of Ohms
-            **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+                 pollInterval = 1,
+                 senseRes     = 20.E-3, # Units of Ohms
+                 **kwargs):
+        
+        super().__init__(**kwargs)
 
         self.senseRes = senseRes
 

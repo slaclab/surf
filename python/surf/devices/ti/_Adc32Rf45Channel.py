@@ -14,13 +14,9 @@
 import pyrogue as pr
 
 class Adc32Rf45Channel(pr.Device):
-    def __init__( self,
-            name        = "Adc32Rf45Channel",
-            description = "Adc32Rf45Channel Module",
-            verify      =  False,
-            **kwargs):
+    def __init__( self, verify=False, **kwargs):
 
-        super().__init__(name=name,description=description, **kwargs)
+        super().__init__(**kwargs)
 
         #######################
         # Paging base addresses

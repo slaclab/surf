@@ -12,11 +12,10 @@ import pyrogue as pr
 
 class Pca9506(pr.Device):
     def __init__(self,
-            name        = "Pca9506",
             description = "Container for Pca9505/Pca9506",
             pollInterval = 1,
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+        super().__init__(description=description, **kwargs)
 
         self.addRemoteVariables(
             name         = 'IP',

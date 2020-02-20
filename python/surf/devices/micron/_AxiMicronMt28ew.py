@@ -22,13 +22,11 @@ import math
 
 class AxiMicronMt28ew(pr.Device):
     def __init__(self,
-            name        = "AxiMicronMt28ew",
-            description = "AXI-Lite Micron MT28EW PROM",
-            tryCount    = 5,
-            **kwargs):
+                 description = "AXI-Lite Micron MT28EW PROM",
+                 tryCount    = 5,
+                 **kwargs):
 
         super().__init__(
-            name        = name,
             description = description,
             size        = (0x1 << 12),
             **kwargs)

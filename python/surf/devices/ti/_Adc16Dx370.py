@@ -17,13 +17,9 @@ import pyrogue as pr
 import time
 
 class Adc16Dx370(pr.Device):
-    def __init__( self,
-            name        = "Adc16Dx370",
-            description = "ADC16Dx370 Module",
-            verify      =  False,
-            **kwargs):
+    def __init__( self, verify=False, **kwargs):
 
-        super().__init__(name=name,description=description, **kwargs)
+        super().__init__(**kwargs)
 
         ##############################
         # Variables

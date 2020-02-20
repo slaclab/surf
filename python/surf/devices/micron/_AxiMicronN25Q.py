@@ -22,13 +22,12 @@ import math
 
 class AxiMicronN25Q(pr.Device):
     def __init__(self,
-            name        = "AxiMicronN25Q",
             description = "AXI-Lite Micron N25Q and Micron MT25Q PROM",
             addrMode    = False, # False = 24-bit Address mode, True = 32-bit Address Mode
             tryCount    = 5,
             **kwargs):
+        
         super().__init__(
-            name        = name,
             description = description,
             size        = (0x1 << 10),
             **kwargs)

@@ -17,12 +17,11 @@ import pyrogue as pr
 
 class Axi24LC64FT(pr.Device):
     def __init__(self,
-            name        = "Axi24LC64FT",
-            description = "Axi24LC64FT",
-            nelms       =  0x800,
-            instantiate =  True,
-            **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+                 nelms       = 0x800,
+                 instantiate = True,
+                 **kwargs):
+        
+        super().__init__(**kwargs)
 
         ##############################
         # Variables

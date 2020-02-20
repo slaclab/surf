@@ -16,11 +16,8 @@
 import pyrogue as pr
 
 class Ltc2270(pr.Device):
-    def __init__(self,
-            name        = "Ltc2270",
-            description = "Ltc2270",
-            **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         self.add(pr.RemoteVariable(
             name        = 'DacReset',

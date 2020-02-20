@@ -18,12 +18,8 @@ import re
 import ast
 
 class Lmk04828(pr.Device):
-    def __init__(   self,
-            name        = 'Lmk04828',
-            description = 'LMK04828 Module',
-            **kwargs):
-
-        super().__init__(name=name,description=description,**kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         self.sysrefMode = 2 # 2 pulse sysref mode, 3 continuous sysref mode
 

@@ -17,12 +17,11 @@ import pyrogue as pr
 
 class DdrSpd(pr.Device):
     def __init__(   self,
-            name        = "DdrSpd",
             description = "Lookup tool at www.micron.com/spd",
             nelms       =  0x100,
             instantiate =  True,
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+        super().__init__(description=description, **kwargs)
 
         ##############################
         # Variables
