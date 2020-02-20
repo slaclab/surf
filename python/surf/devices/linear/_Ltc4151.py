@@ -20,7 +20,7 @@ class Ltc4151(pr.Device):
                  pollInterval = 1,
                  senseRes     = 20.E-3, # Units of Ohms
                  **kwargs):
-        
+
         super().__init__(**kwargs)
 
         self.senseRes = senseRes

@@ -19,7 +19,7 @@ class AxiSy56040(pr.Device):
     def __init__(self,
                  description = "AXI-Lite Microchip SY56040 and Microchip SY58040",
                  **kwargs):
-        
+
         super().__init__(description=description, **kwargs)
 
         ##############################

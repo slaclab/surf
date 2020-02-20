@@ -20,7 +20,7 @@ class Axi24LC64FT(pr.Device):
                  nelms       = 0x800,
                  instantiate = True,
                  **kwargs):
-        
+
         super().__init__(**kwargs)
 
         ##############################

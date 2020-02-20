@@ -25,7 +25,7 @@ class AxiMicronP30(pr.Device):
             description = "AXI-Lite Micron P30 PROM",
             tryCount    = 5,
             **kwargs):
-        
+
         super().__init__(
             description = description,
             size        = (0x1 << 12),

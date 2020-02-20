@@ -26,7 +26,7 @@ class AxiMicronN25Q(pr.Device):
             addrMode    = False, # False = 24-bit Address mode, True = 32-bit Address Mode
             tryCount    = 5,
             **kwargs):
-        
+
         super().__init__(
             description = description,
             size        = (0x1 << 10),
