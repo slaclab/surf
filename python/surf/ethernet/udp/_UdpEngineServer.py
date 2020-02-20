@@ -12,11 +12,8 @@ import pyrogue as pr
 from surf.ethernet import udp
 
 class UdpEngineServer(pr.Device):
-    def __init__(   self,
-            name        = "UdpEngineServer",
-            description = "UdpEngineServer",
-            **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         ##############################
         # Variables
         ##############################

@@ -16,11 +16,8 @@
 import pyrogue as pr
 
 class EthMacPhy(pr.Device):
-    def __init__(   self,
-            name        = "EthMacPhy",
-            description = "EthMacPhy",
-            **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         ##############################
         # Variables

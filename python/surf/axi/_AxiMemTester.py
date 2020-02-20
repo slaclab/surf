@@ -16,11 +16,10 @@
 import pyrogue as pr
 
 class AxiMemTester(pr.Device):
-    def __init__(   self,
-            name        = 'AxiMemTester',
-            description = 'AXI4 Memory Tester Module',
-            **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+    def __init__(self,
+                 description = 'AXI4 Memory Tester Module',
+                 **kwargs):
+        super().__init__(description=description, **kwargs)
 
         ##############################
         # Variables

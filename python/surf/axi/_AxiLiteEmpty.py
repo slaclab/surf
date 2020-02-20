@@ -16,8 +16,7 @@
 import pyrogue as pr
 
 class AxiLiteEmpty(pr.Device):
-    def __init__(   self,
-            name        = "AxiEmpty",
-            description = "AxiEmpty Module as a placeholder for future module",
-            **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+    def __init__(self,
+                 description = "AxiEmpty Module as a placeholder for future module",
+                 **kwargs):
+        super().__init__(**kwargs)

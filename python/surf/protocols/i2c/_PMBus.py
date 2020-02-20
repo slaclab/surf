@@ -11,11 +11,8 @@
 import pyrogue as pr
 
 class PMBus(pr.Device):
-    def __init__(   self,
-            name        = 'PMBus',
-            description = 'PMBus Protocol Container',
-            **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         self.add(pr.RemoteVariable(
             name         = 'i2cAddr',

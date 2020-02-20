@@ -14,11 +14,8 @@
 import pyrogue as pr
 
 class SsiPrbsTx(pr.Device):
-    def __init__(   self,
-            name        = "SsiPrbsTx",
-            description = "SsiPrbsTx",
-            **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         ##############################
         # Variables

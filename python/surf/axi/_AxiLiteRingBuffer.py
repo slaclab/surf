@@ -18,16 +18,8 @@ import pyrogue as pr
 class AxiLiteRingBuffer(pr.Device):
 
     # Last comment added by rherbst for demonstration.
-    def __init__(self,
-            name             = 'AxiLiteRingBuffer',
-            description      = 'AXI-Lite Ring Buffer Module',
-            datawidth        = 32,
-            **kwargs):
-
-        super().__init__(
-            name        = name,
-            description = description,
-            **kwargs)
+    def __init__(self, datawidth=32, **kwargs):
+        super().__init__(**kwargs)
 
         self._datawidth = datawidth
 

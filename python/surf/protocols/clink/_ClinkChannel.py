@@ -17,13 +17,13 @@ import pyrogue              as pr
 import surf.protocols.clink as cl
 
 class ClinkChannel(pr.Device):
-    def __init__(   self,
-            name        = "ClinkChannel",
-            description = "CameraLink channel",
+    def __init__(
+            self,
             serial      = None,
             camType     = None,
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+        
+        super().__init__(**kwargs)
 
         ##############################
         # Variables

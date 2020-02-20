@@ -18,7 +18,7 @@ import pyrogue as pr
 import surf.protocols.clink as clink
 
 class UartUp900cl12bRx(clink.ClinkSerialRx):
-    def __init__(self,**kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     def _acceptFrame(self,frame):
@@ -36,12 +36,8 @@ class UartUp900cl12bRx(clink.ClinkSerialRx):
                 self._cur.append(c)
 
 class UartUp900cl12b(pr.Device):
-    def __init__(   self,
-            name        = 'UartUp900cl12b',
-            description = 'Uart Uniq UP-900CL-12B channel access (http://uniqvision.com/Downloads/UP900CL-12B)',
-            serial      = None,
-            **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+    def __init__(self, serial=None, **kwargs):
+        super().__init__(**kwargs)
 
         # Attach the serial devices
         self._rx = clink.UartUp900cl12bRx()

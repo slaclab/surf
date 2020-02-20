@@ -18,12 +18,8 @@ import pyrogue as pr
 import surf.ethernet.udp as udp
 
 class TenGigEthReg(pr.Device):
-    def __init__(   self,
-            name        = 'TenGigEthReg',
-            description = 'TenGigEthReg',
-            writeEn     = False,
-            **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+    def __init__(self, writeEn=False, **kwargs):
+        super().__init__(**kwargs)
 
         ##############################
         # Variables

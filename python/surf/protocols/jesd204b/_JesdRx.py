@@ -16,14 +16,13 @@
 import pyrogue as pr
 
 class JesdRx(pr.Device):
-    def __init__(   self,
-            name        = "JesdRx",
-            description = "JESD RX Module",
+    def __init__(
+            self,
             numRxLanes  =  6,
             instantiate =  True,
             debug       =  False,
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+        super().__init__(**kwargs)
 
         ##############################
         # Variables

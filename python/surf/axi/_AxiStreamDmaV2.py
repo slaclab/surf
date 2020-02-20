@@ -11,7 +11,7 @@ import pyrogue as pr
 
 class AxiStreamDmaV2Desc(pr.Device):
     def __init__(self, **kwargs):
-        super().__init__(description='', **kwargs)
+        super().__init__(**kwargs)
 
 
         self.add(pr.RemoteVariable(

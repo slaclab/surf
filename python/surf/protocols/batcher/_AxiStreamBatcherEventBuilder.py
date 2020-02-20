@@ -16,13 +16,12 @@
 import pyrogue as pr
 
 class AxiStreamBatcherEventBuilder(pr.Device):
-    def __init__(self,
-            name         = "AxiStreamBatcherEventBuilder",
-            description  = "AxiStreamBatcherEventBuilder Container",
+    def __init__(
+            self,
             numberSlaves = 1,
             tickUnit     = 'TBD',
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+        super().__init__(**kwargs)
 
         self.addRemoteVariables(
             name         = 'DataCnt',

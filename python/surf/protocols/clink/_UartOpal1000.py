@@ -18,7 +18,7 @@ import pyrogue as pr
 import surf.protocols.clink as clink
 
 class UartOpal1000Rx(clink.ClinkSerialRx):
-    def __init__(self,**kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     def _acceptFrame(self,frame):

@@ -17,13 +17,12 @@ import pyrogue              as pr
 import surf.protocols.clink as cl
 
 class ClinkTop(pr.Device):
-    def __init__(   self,
-            name        = "ClinkTop",
-            description = "CameraLink module",
+    def __init__(
+            self,
             serial      = [None,None],
             camType     = [None,None],
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+        super().__init__(**kwargs)
 
         ##############################
         # Variables

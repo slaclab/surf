@@ -16,12 +16,8 @@
 import pyrogue as pr
 
 class AxiStreamDmaRingWrite(pr.Device):
-    def __init__(   self,
-            name        = "AxiStreamDmaRingWrite",
-            description = "DMA Ring Buffer Manager",
-            numBuffers  =  4,
-            **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+    def __init__(self, numBuffers=4, **kwargs):
+        super().__init__(**kwargs)
 
         self._numBuffers = numBuffers
 

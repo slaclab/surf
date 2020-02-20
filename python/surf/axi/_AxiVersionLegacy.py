@@ -27,8 +27,6 @@ class AxiVersionLegacy(pr.Device):
     # Last comment added by rherbst for demonstration.
     def __init__(
             self, *,
-            name        = 'AxiVersion',
-            description = 'AXI-Lite Version Module',
             numUserConstants = 0,
             hasUpTimeCnt=True,
             hasFpgaReloadHalt=True,
@@ -37,10 +35,7 @@ class AxiVersionLegacy(pr.Device):
             dnaBigEndian=False,
             **kwargs):
 
-        super().__init__(
-            name        = name,
-            description = description,
-            **kwargs)
+        super().__init__(**kwargs)
 
         ##############################
         # Variables

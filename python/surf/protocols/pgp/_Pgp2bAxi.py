@@ -17,11 +17,11 @@ import pyrogue as pr
 
 class Pgp2bAxi(pr.Device):
     def __init__(self,
-                 name        = "Pgp2bAxi",
-                 description = "Configuration and status of a downstream PGP link",
+                 description = "Configuration and status of a PGP link",
                  writeEn = True,
                  **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+        
+        super().__init__(description=description, **kwargs)
 
         self.writeEn = writeEn
 

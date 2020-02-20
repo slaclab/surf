@@ -14,13 +14,12 @@
 import pyrogue as pr
 
 class JesdTx(pr.Device):
-    def __init__(   self,
-            name        = "JesdTx",
-            description = "JESD TX Module",
+    def __init__(
+            self,
             numTxLanes  =  2,
             instantiate =  True,
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+        super().__init__(**kwargs)
 
         ##############################
         # Variables

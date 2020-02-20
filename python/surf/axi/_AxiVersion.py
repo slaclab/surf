@@ -25,17 +25,8 @@ import pyrogue as pr
 class AxiVersion(pr.Device):
 
     # Last comment added by rherbst for demonstration.
-    def __init__(
-            self,
-            name             = 'AxiVersion',
-            description      = 'AXI-Lite Version Module',
-            numUserConstants = 0,
-            **kwargs):
-
-        super().__init__(
-            name        = name,
-            description = description,
-            **kwargs)
+    def __init__(self, numUserConstants = 0, **kwargs):
+        super().__init__(**kwargs)
 
         ##############################
         # Variables

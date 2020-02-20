@@ -18,12 +18,8 @@ import pyrogue as pr
 import surf.protocols.clink as clink
 
 class UartGeneric(pr.Device):
-    def __init__(   self,
-            name        = 'UartGeneric',
-            description = 'Uart Generic channel access',
-            serial      = None,
-            **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+    def __init__(self, serial=None, **kwargs):
+        super().__init__(**kwargs)
 
         if serial is not None:
 

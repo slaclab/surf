@@ -14,11 +14,8 @@
 import pyrogue as pr
 
 class SsiPrbsRateGen(pr.Device):
-    def __init__(   self,
-            name        = "SsiPrbsRateGen",
-            description = "SsiPrbsRateGen",
-            **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         ##############################
         # Variables

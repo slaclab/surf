@@ -15,12 +15,10 @@ import pyrogue as pr
 
 class SsiPrbsRx(pr.Device):
     def __init__(self,
-                 name        = "SsiPrbsRx",
-                 description = "SsiPrbsRx",
                  rxClkPeriod = 6.4e-9,
                  seedBits = 32,
                  **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+        super().__init__(**kwargs)
 
         ##############################
         # Variables

@@ -16,12 +16,8 @@
 import pyrogue as pr
 
 class AxiStreamMonChannel(pr.Device):
-    def __init__(self,
-            name        = "AxiStreamMonChannel",
-            description = "AxiStreamMonChannel Container",
-            **kwargs):
-
-        super().__init__(name=name, description=description, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         def addPair(name,offset,bitSize,units,bitOffset,description,function,pollInterval = 0,):
             self.add(pr.RemoteVariable(
@@ -163,13 +159,8 @@ class AxiStreamMonChannel(pr.Device):
         return var.dependencies[0].value() * 8e-6
 
 class AxiStreamMonAxiL(pr.Device):
-    def __init__(self,
-            name        = "AxiStreamMonAxiL",
-            description = "AxiStreamMonAxiL Container",
-            numberLanes = 1,
-            **kwargs):
-
-        super().__init__(name=name, description=description, **kwargs)
+    def __init__(self, numberLanes=1, **kwargs):
+        super().__init__(**kwargs)
 
         self.add(pr.RemoteCommand(
             name         = 'CntRst',
@@ -288,16 +279,10 @@ class AxiStreamMonAxiL(pr.Device):
         self.CntRst()
 
 class AxiStreamMonitoring(AxiStreamMonAxiL):
-    def __init__(self,
-            name        = "AxiStreamMonitoring",
-            description = "AxiStreamMonitoring Container",
-            numberLanes = 1,
-            **kwargs):
+    def __init__(self, numberLanes=1, **kwargs):
 
         super().__init__(
-            name        = name,
-            description = description,
             numberLanes = numberLanes,
-            **kwargs
-        )
+            **kwargs)
+        
         print( f'{self.path}: AxiStreamMonitoring device is now deprecated. Please use AxiStreamMonAxiL instead' )
