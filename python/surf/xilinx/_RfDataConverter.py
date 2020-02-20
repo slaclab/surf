@@ -17,11 +17,8 @@ import pyrogue as pr
 import surf.xilinx as xil
 
 class RfDataConverter(pr.Device):
-    def __init__(   self,
-            name        = "RfDataConverter",
-            description = "RFSoC data converter registers",
-            **kwargs):
-        super().__init__(name=name, description=description, size=0x40000, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(size=0x40000, **kwargs)
 
         ##############################
         # Variables

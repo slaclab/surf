@@ -14,11 +14,8 @@
 import pyrogue as pr
 
 class Gtpe2Common(pr.Device):
-    def __init__(   self,
-            name        = "Gtpe2Common",
-            description = "Gtpe2Common",
-            **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         ##############################
         # Variables

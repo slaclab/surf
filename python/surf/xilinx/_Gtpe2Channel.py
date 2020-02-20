@@ -14,11 +14,8 @@
 import pyrogue as pr
 
 class Gtpe2Channel(pr.Device):
-    def __init__(   self,
-            name        = "Gtpe2Channel",
-            description = "Gtpe2Channel",
-            **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         ##############################
         # Variables

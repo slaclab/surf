@@ -11,12 +11,12 @@
 import pyrogue as pr
 
 class ClockManager(pr.Device):
-    def __init__(   self,
-            name        = "ClockManager",
+    def __init__(
+            self,
             description = "MMCM and PLL Dynamic Reconfiguration (refer to XAPP888: https://www.xilinx.com/support/documentation/application_notes/xapp888_7Series_DynamicRecon.pdf)",
             type        = None, # [MMCME2,PLLE2,MMCME3,PLLE3,MMCME4,PLLE4]
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+        super().__init__(description=description, **kwargs)
 
         # Determine the number of clkout
         if (type is 'PLLE3') or (type is 'PLLE4'):

@@ -11,12 +11,12 @@
 import pyrogue as pr
 
 class AxiSysMonUltraScale(pr.Device):
-    def __init__(   self,
-            name         = "AxiSysMonUltraScale",
+    def __init__(
+            self,
             description  = "AXI-Lite System Managment for Xilinx Ultra Scale (Refer to PG185)",
             XIL_DEVICE_G = "ULTRASCALE",
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+        super().__init__(description=description, **kwargs)
 
         def addPair(name,offset,bitSize,units,bitOffset,description,function,pollInterval = 0,):
             self.add(pr.RemoteVariable(

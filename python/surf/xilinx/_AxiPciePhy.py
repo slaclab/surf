@@ -16,11 +16,11 @@
 import pyrogue as pr
 
 class AxiPciePhy(pr.Device):
-    def __init__(   self,
-            name        = 'AxiPciePhy',
+    def __init__(
+            self,
             description = 'AXI-Lite monitoring for AXI Bridge for PCI Express (Refer to PG055 and PG194)',
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+        super().__init__(description=description, **kwargs)
 
         ##############################
         # Variables

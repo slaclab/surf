@@ -26,11 +26,8 @@ DIV_ENU = {
     16: '1'}
 
 class Gthe3Channel(pr.Device):
-    def __init__(   self,
-            name        = "Gthe3Channel",
-            description = "Gthe3Channel",
-            **kwargs):
-        super().__init__(name=name, description=description, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         ##############################
         # Variables

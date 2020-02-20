@@ -16,11 +16,11 @@
 import pyrogue as pr
 
 class RfTile(pr.Device):
-    def __init__(   self,
-            name        = "RfTile",
+    def __init__(
+            self,
             description = "RFSoC data converter tile registers",
             **kwargs):
-        super().__init__(name=name, description=description, size=0x2000, **kwargs)
+        super().__init__(description=description, size=0x2000, **kwargs)
 
         ##############################
         # Variables
