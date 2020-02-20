@@ -215,16 +215,16 @@ class Ad9249ConfigGroup(pr.Device):
         ))
 
 class Ad9249ChipConfig(pr.Device):
-    def __init__(self,       
+    def __init__(self,
             name        = 'Ad9249ChipConfig',
             description = 'Configure one side of an AD9249 ADC',
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs)   
-        self.add(Ad9249ConfigGroup('BankConfig[0]', 0x0000));
-        self.add(Ad9249ConfigGroup('BankConfig[1]', 0x0200));        
-        
+        super().__init__(name=name, description=description, **kwargs)
+        self.add(Ad9249ConfigGroup('BankConfig[0]', 0x0000))
+        self.add(Ad9249ConfigGroup('BankConfig[1]', 0x0200))
+
 class Ad9249Config(pr.Device):
-    def __init__(self,       
+    def __init__(self,
             name        = 'Ad9249Config',
             description = 'Configuration of Ad9249 AD',
             chips       = 1,
@@ -244,8 +244,8 @@ class Ad9249Config(pr.Device):
                 base        = pr.Bool,
                 mode        = 'RW',
             ))
-            self.add(Ad9249ConfigGroup(name='BankConfig[0]', offset=0x0000));
-            self.add(Ad9249ConfigGroup(name='BankConfig[1]', offset=0x0800));
+            self.add(Ad9249ConfigGroup(name='BankConfig[0]', offset=0x0000))
+            self.add(Ad9249ConfigGroup(name='BankConfig[1]', offset=0x0800))
         else:
             for i in range(chips):
                 self.add(pr.RemoteVariable(
@@ -257,8 +257,8 @@ class Ad9249Config(pr.Device):
                     base        = pr.Bool,
                     mode        = 'RW',
                 ))
-                self.add(Ad9249ConfigGroup(name=f'Ad9249Chip[{i}].BankConfig[0]', offset=i*0x1000));
-                self.add(Ad9249ConfigGroup(name=f'Ad9249Chip[{i}].BankConfig[1]', offset=i*0x1000+0x0800));
+                self.add(Ad9249ConfigGroup(name=f'Ad9249Chip[{i}].BankConfig[0]', offset=i*0x1000))
+                self.add(Ad9249ConfigGroup(name=f'Ad9249Chip[{i}].BankConfig[1]', offset=i*0x1000+0x0800))
 
 class Ad9249ReadoutGroup(pr.Device):
     def __init__(self,
