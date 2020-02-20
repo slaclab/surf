@@ -39,13 +39,13 @@ class AxiSysMonUltraScale(pr.Device):
             ))
 
         if XIL_DEVICE_G == "ULTRASCALE":
-           self.convTemp = self.convTempSYSMONE1
-           self.convSetTemp = self.convSetTempSYSMONE1
+            self.convTemp = self.convTempSYSMONE1
+            self.convSetTemp = self.convSetTempSYSMONE1
         elif XIL_DEVICE_G == "ULTRASCALE_PLUS":
-           self.convTemp = self.convTempSYSMONE4
-           self.convSetTemp = self.convSetTempSYSMONE4
+            self.convTemp = self.convTempSYSMONE4
+            self.convSetTemp = self.convSetTempSYSMONE4
         else:
-           raise Exception('AxiSysMonUltraScale: Device {} not supported'.format(XIL_DEVICE_G))
+            raise Exception('AxiSysMonUltraScale: Device {} not supported'.format(XIL_DEVICE_G))
         
         ##############################
         # Variables

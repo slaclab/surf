@@ -1,9 +1,6 @@
 #-----------------------------------------------------------------------------
 # Title      : PyRogue DMA Ring Buffer Manager
 #-----------------------------------------------------------------------------
-# File       : AxiStreamDmaRingWrite.py
-# Created    : 2017-04-12
-#-----------------------------------------------------------------------------
 # Description:
 # PyRogue DMA Ring Buffer Manager
 #-----------------------------------------------------------------------------
@@ -19,7 +16,7 @@
 import pyrogue as pr
 
 class AxiStreamDmaRingWrite(pr.Device):
-    def __init__(   self,       
+    def __init__(   self,
             name        = "AxiStreamDmaRingWrite",
             description = "DMA Ring Buffer Manager",
             numBuffers  =  4,
@@ -94,18 +91,18 @@ class AxiStreamDmaRingWrite(pr.Device):
  
         self.addRemoteVariables(   
             name         = "Mode",
-                description  = "",
-                offset       =  0x800,
-                bitSize      =  1,
-                bitOffset    =  0x01,
-                mode         = "RW",
-                number       =  numBuffers,
-                stride       =  4,
-                enum         = {
-                    0 : "Wrap",
-                    1 : "DoneWhenFull",
-                },
-            )
+            description  = "",
+            offset       =  0x800,
+            bitSize      =  1,
+            bitOffset    =  0x01,
+            mode         = "RW",
+            number       =  numBuffers,
+            stride       =  4,
+            enum         = {
+                0 : "Wrap",
+                1 : "DoneWhenFull",
+            },
+        )
 
         self.addRemoteVariables(   
             name         = "Init",

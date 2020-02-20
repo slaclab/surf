@@ -1,9 +1,6 @@
 #-----------------------------------------------------------------------------
 # Title      : PyRogue LMK04828 Module
 #-----------------------------------------------------------------------------
-# File       : Lmk04828.py
-# Created    : 2017-04-12
-#-----------------------------------------------------------------------------
 # Description:
 # PyRogue LMK04828 Module
 #-----------------------------------------------------------------------------
@@ -24,24 +21,14 @@ import re
 import ast
 
 class Lmk04828(pr.Device):
-    def __init__( self,
-        name        = 'Lmk04828',
-        description = 'LMK04828 Module',
-        memBase     = None,
-        offset      = 0x00,
-        hidden      = False,
-        expand      = True,
-    ):
-        super().__init__(
-            name        = name,
-            description = description,
-            memBase     = memBase,
-            offset      = offset,
-            hidden      = hidden,
-            expand      = expand,
-        )
-        
-        self.sysrefMode = 2 # 2 pulse sysref mode, 3 continuouse sysref mode
+    def __init__(   self,
+            name        = 'Lmk04828',
+            description = 'LMK04828 Module',
+            **kwargs):
+
+        super().__init__(name=name,description=description,**kwargs)
+
+        self.sysrefMode = 2 # 2 pulse sysref mode, 3 continuous sysref mode
 
         ##############################
         # Variables
@@ -1151,9 +1138,10 @@ class Lmk04828(pr.Device):
         ##############################
         @self.command(description='Load the CodeLoader .MAC file',value='',)
         def LoadCodeLoaderMacFile(arg):
+            addr = 0
             # Open the input file
             with open(arg, 'r') as ifd:
-                 for i, line in enumerate(ifd):
+                for i, line in enumerate(ifd):
                     line = line.strip()
                     if (i<18):
                         if (i==0) and ( line != '[SETUP]'):

@@ -1,9 +1,6 @@
 #-----------------------------------------------------------------------------
 # Title      : PyRogue AXI-Lite Version Module
 #-----------------------------------------------------------------------------
-# File       : AxiVersion.py
-# Created    : 2017-04-12
-#-----------------------------------------------------------------------------
 # Description:
 # PyRogue AXI-Lite Version Module
 #-----------------------------------------------------------------------------
@@ -23,11 +20,12 @@ class AxiStreamMonChannel(pr.Device):
             name        = "AxiStreamMonChannel",
             description = "AxiStreamMonChannel Container",
             **kwargs):
+
         super().__init__(name=name, description=description, **kwargs)
 
         def addPair(name,offset,bitSize,units,bitOffset,description,function,pollInterval = 0,):
-            self.add(pr.RemoteVariable(  
-                name         = ("Raw"+name), 
+            self.add(pr.RemoteVariable(
+                name         = ("Raw"+name),
                 offset       = offset, 
                 bitSize      = bitSize, 
                 bitOffset    = bitOffset,
@@ -170,8 +168,9 @@ class AxiStreamMonAxiL(pr.Device):
             description = "AxiStreamMonAxiL Container",
             numberLanes = 1,
             **kwargs):
+
         super().__init__(name=name, description=description, **kwargs)
-        
+
         self.add(pr.RemoteCommand(   
             name         = 'CntRst',
             description  = "Counter Reset",
@@ -293,8 +292,8 @@ class AxiStreamMonitoring(AxiStreamMonAxiL):
             name        = "AxiStreamMonitoring",
             description = "AxiStreamMonitoring Container",
             numberLanes = 1,
-            **kwargs
-        ):
+            **kwargs):
+
         super().__init__(
             name        = name, 
             description = description, 
@@ -302,4 +301,4 @@ class AxiStreamMonitoring(AxiStreamMonAxiL):
             **kwargs
         )
         print( f'{self.path}: AxiStreamMonitoring device is now deprecated. Please use AxiStreamMonAxiL instead' )
-        
+

@@ -1,9 +1,4 @@
 #-----------------------------------------------------------------------------
-# Title      : PyRogue AmcCarrier BSI Module
-#-----------------------------------------------------------------------------
-# File       : Adc32Rf45.py
-# Created    : 2017-04-04
-#-----------------------------------------------------------------------------
 # Description:
 # PyRogue Adc32Rf45 Module
 #-----------------------------------------------------------------------------
@@ -21,27 +16,28 @@ import time
 import surf.devices as dev
 
 class Adc32Rf45(pr.Device):
-    def __init__( self,       
+    def __init__( self,
             name        = "Adc32Rf45",
             description = "Adc32Rf45 Module",
             verify      =  False,
             **kwargs):
+
         super().__init__(
             name        = name, 
-            description = description, 
-            size        = (0x1 << 19), 
+            description = description,
+            size        = (0x1 << 19),
             **kwargs)
-        
+
         ################
         # Base addresses
         ################
         generalAddr     = (0x0 << 14)
-        offsetCorrector = (0x1 << 14) # With respect to CH  
-        digitalGain     = (0x2 << 14) # With respect to CH  
-        mainDigital     = (0x3 << 14) # With respect to CH  
-        jesdDigital     = (0x4 << 14) # With respect to CH  
-        decFilter       = (0x5 << 14) # With respect to CH  
-        pwrDet          = (0x6 << 14) # With respect to CH        
+        offsetCorrector = (0x1 << 14) # With respect to CH
+        # digitalGain     = (0x2 << 14) # With respect to CH
+        mainDigital     = (0x3 << 14) # With respect to CH
+        jesdDigital     = (0x4 << 14) # With respect to CH
+        # decFilter       = (0x5 << 14) # With respect to CH
+        # pwrDet          = (0x6 << 14) # With respect to CH
         masterPage      = (0x7 << 14)
         analogPage      = (0x8 << 14)
         chA             = (0x0 << 14)
@@ -301,28 +297,28 @@ class Adc32Rf45(pr.Device):
         ##############################
         # Commands
         ##############################
-        @self.command(name         = "Init", description  = "Device Initiation")        
+        @self.command(name = "Init", description  = "Device Initiation")
         def Init():
-           self.Powerup_AnalogConfig()
-    
-           # Wait for 50 ms for the device to estimate the interleaving errors
-           time.sleep(0.050)
-    
-           self.IL_Config_Nyq1_ChA()
-           self.IL_Config_Nyq1_ChB()
-    
-           time.sleep(0.050)
-    
-           self.SetNLTrim()
-    
-           time.sleep(0.050)
-    
-           self.JESD_DDC_config()
-    
-           time.sleep(0.050)
-    
-           self._rawWrite(offsetCorrector + chA + (4*0x068),0xA2) #... freeze offset estimation
-           self._rawWrite(offsetCorrector + chB + (4*0x068),0xA2) #... freeze offset estimation
+            self.Powerup_AnalogConfig()
+
+            # Wait for 50 ms for the device to estimate the interleaving errors
+            time.sleep(0.050)
+
+            self.IL_Config_Nyq1_ChA()
+            self.IL_Config_Nyq1_ChB()
+
+            time.sleep(0.050)
+
+            self.SetNLTrim()
+
+            time.sleep(0.050)
+
+            self.JESD_DDC_config()
+
+            time.sleep(0.050)
+
+            self._rawWrite(offsetCorrector + chA + (4*0x068),0xA2) #... freeze offset estimation
+            self._rawWrite(offsetCorrector + chB + (4*0x068),0xA2) #... freeze offset estimation
 
         @self.command(name         = "Powerup_AnalogConfig", description  = "Powerup Analog Config")
         def Powerup_AnalogConfig():

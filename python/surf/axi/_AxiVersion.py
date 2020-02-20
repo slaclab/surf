@@ -1,9 +1,6 @@
 #-----------------------------------------------------------------------------
 # Title      : PyRogue AXI-Lite Version Module
 #-----------------------------------------------------------------------------
-# File       : AxiVersion.py
-# Created    : 2017-04-12
-#-----------------------------------------------------------------------------
 # Description:
 # PyRogue AXI-Lite Version Module
 #-----------------------------------------------------------------------------
@@ -292,6 +289,6 @@ class AxiVersion(pr.Device):
             print("BuildServer  = {}".format(self.BuildServer.value()))
             print("BuildDate    = {}".format(self.BuildDate.value()))
             print("Builder      = {}".format(self.Builder.value()))
-        except Exception as e:
+        except Exception:
             print("Failed to get %s status" % self)
 

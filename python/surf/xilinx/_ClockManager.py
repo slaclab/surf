@@ -8,7 +8,6 @@
 # the terms contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-import rogue
 import pyrogue as pr
     
 class ClockManager(pr.Device):

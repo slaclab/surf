@@ -1,9 +1,6 @@
 #-----------------------------------------------------------------------------
 # Title      : PyRogue ADC16Dx370 Module
 #-----------------------------------------------------------------------------
-# File       : Adc16Dx370.py
-# Created    : 2017-04-12
-#-----------------------------------------------------------------------------
 # Description:
 # PyRogue ADC16Dx370 Module
 #-----------------------------------------------------------------------------
@@ -21,21 +18,12 @@ import time
 
 class Adc16Dx370(pr.Device):
     def __init__( self,       
-        name        = "Adc16Dx370",
-        description = "ADC16Dx370 Module",
-        memBase     =  None,
-        offset      =  0x00,
-        hidden      =  False,
-        expand      =  True,
-    ):
-        super().__init__(
-            name        = name,
-            description = description,
-            memBase     = memBase,
-            offset      = offset,
-            hidden      = hidden,
-            expand      = expand,
-        )
+            name        = "Adc16Dx370",
+            description = "ADC16Dx370 Module",
+            verify      =  False,
+            **kwargs):
+
+        super().__init__(name=name,description=description, **kwargs) 
 
         ##############################
         # Variables

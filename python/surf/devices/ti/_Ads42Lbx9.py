@@ -1,9 +1,6 @@
 #-----------------------------------------------------------------------------
 # Title      : PyRogue Ads42Lbx9 Module
 #-----------------------------------------------------------------------------
-# File       : ADS42LBx9.py
-# Created    : 2017-06-23
-#-----------------------------------------------------------------------------
 # Description:
 # PyRogue Ads42Lbx9 Module
 #-----------------------------------------------------------------------------
@@ -20,24 +17,12 @@ import pyrogue as pr
 import time
 
 class Ads42Lbx9Config(pr.Device):
-    def __init__( self,       
-        name        = "Ads42Lbx9Config",
-        description = "ADS42LBx9 Config Module",
-        memBase     =  None,
-        offset      =  0x00,
-        hidden      =  False,
-        expand      =  True,
-        enabled     =  True,
-    ):
-        super().__init__(
-            name        = name,
-            description = description,
-            memBase     = memBase,
-            offset      = offset,
-            hidden      = hidden,
-            expand      = expand,
-            enabled     = enabled,
-        )
+    def __init__(   self,
+            name        = "Ads42Lbx9Config",
+            description = "ADS42LBx9 Config Module",
+            **kwargs):
+
+        super().__init__(name=name,description=description,**kwargs)
 
         ##############################
         # Variables
@@ -227,24 +212,12 @@ class Ads42Lbx9Config(pr.Device):
         ))
 
 class Ads42Lbx9Readout(pr.Device):
-    def __init__( self,       
-        name        = "Ads42Lbx9Readout",
-        description = "ADS42LBx9 Readout Module",
-        memBase     =  None,
-        offset      =  0x00,
-        hidden      =  False,
-        expand      =  True,
-        enabled     =  True,
-    ):
-        super().__init__(
-            name        = name,
-            description = description,
-            memBase     = memBase,
-            offset      = offset,
-            hidden      = hidden,
-            expand      = expand,
-            enabled     = enabled,
-        )
+    def __init__(   self,
+            name        = "Ads42Lbx9Readout",
+            description = "ADS42LBx9 Readout Module",
+            **kwargs):
+
+        super().__init__(name=name,description=description,**kwargs)
 
         ##############################
         # Variables

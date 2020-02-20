@@ -1,9 +1,4 @@
 #-----------------------------------------------------------------------------
-# Title      : PyRogue AmcCarrier BSI Module
-#-----------------------------------------------------------------------------
-# File       : Adc32Rf45Channel.py
-# Created    : 2017-04-04
-#-----------------------------------------------------------------------------
 # Description:
 # PyRogue Adc32Rf45Channel Module
 #-----------------------------------------------------------------------------
@@ -20,12 +15,13 @@ import pyrogue as pr
 
 class Adc32Rf45Channel(pr.Device):
     def __init__( self,       
-        name        = "Adc32Rf45Channel",
-        description = "Adc32Rf45Channel Module",
-        verify      =  False,
-        **kwargs):
+            name        = "Adc32Rf45Channel",
+            description = "Adc32Rf45Channel Module",
+            verify      =  False,
+            **kwargs):
+
         super().__init__(name=name,description=description, **kwargs) 
-        
+
         #######################
         # Paging base addresses
         #######################

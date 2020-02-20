@@ -1,9 +1,4 @@
 #-----------------------------------------------------------------------------
-# Title      : PyRogue AmcCarrier BSI Module
-#-----------------------------------------------------------------------------
-# File       : Ads54J60Channel.py
-# Created    : 2017-04-04
-#-----------------------------------------------------------------------------
 # Description:
 # PyRogue Ads54J60Channel Module
 #-----------------------------------------------------------------------------
@@ -19,13 +14,14 @@
 import pyrogue as pr
 
 class Ads54J60Channel(pr.Device):
-    def __init__( self,       
-        name        = "Ads54J60Channel",
-        description = "Ads54J60Channel Module",
-        verify      =  False,
-        **kwargs):
-        super().__init__(name=name,description=description, **kwargs)         
-        
+    def __init__( self,
+            name        = "Ads54J60Channel",
+            description = "Ads54J60Channel Module",
+            verify      =  False,
+            **kwargs):
+
+        super().__init__(name=name,description=description, **kwargs)
+
         #######################
         # Paging base addresses
         #######################

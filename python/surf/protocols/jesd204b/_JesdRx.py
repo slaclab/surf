@@ -1,9 +1,6 @@
 #-----------------------------------------------------------------------------
 # Title      : PyRogue JESD RX Module
 #-----------------------------------------------------------------------------
-# File       : JesdRx.py
-# Created    : 2017-04-12
-#-----------------------------------------------------------------------------
 # Description:
 # PyRogue JESD RX Module
 #-----------------------------------------------------------------------------
@@ -19,12 +16,12 @@
 import pyrogue as pr
 
 class JesdRx(pr.Device):
-    def __init__(   self,       
+    def __init__(   self,
             name        = "JesdRx",
             description = "JESD RX Module",
             numRxLanes  =  6,
             instantiate =  True,
-            debug	    =  False,
+            debug       =  False,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs) 
 

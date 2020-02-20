@@ -1,9 +1,6 @@
 #-----------------------------------------------------------------------------
 # Title      : PyRogue Pca9535 Module
 #-----------------------------------------------------------------------------
-# File       : Pca9535.py
-# Created    : 2017-04-12
-#-----------------------------------------------------------------------------
 # Description:
 # PyRogue Pca9535 Module
 #-----------------------------------------------------------------------------
@@ -20,9 +17,9 @@ import pyrogue as pr
 
 class Pca9535(pr.Device):
     def __init__(   self,       
-        name        = "Pca9535",
-        description = "Pca9535 Module",
-        **kwargs):
+            name        = "Pca9535",
+            description = "Pca9535 Module",
+            **kwargs):
         
         super().__init__(name=name,description=description,**kwargs)
 

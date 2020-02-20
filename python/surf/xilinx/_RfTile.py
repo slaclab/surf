@@ -1,11 +1,8 @@
 #-----------------------------------------------------------------------------
-# Title      : Xilinx RFSoC RF data convter tile
-#-----------------------------------------------------------------------------
-# File       : RfTile.py
-# Created    : 2019-05-10
+# Title      : Xilinx RFSoC RF data converter tile
 #-----------------------------------------------------------------------------
 # Description:
-# Xilinx RFSoC RF data convterter tile 
+# Xilinx RFSoC RF data converter tile 
 #-----------------------------------------------------------------------------
 # This file is part of the rogue software platform. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory

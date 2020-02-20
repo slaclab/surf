@@ -1,9 +1,6 @@
 #-----------------------------------------------------------------------------
 # Title      : PyRogue Lmk61e2 Module
 #-----------------------------------------------------------------------------
-# File       : Lmk61e2.py
-# Created    : 2017-04-12
-#-----------------------------------------------------------------------------
 # Description:
 # PyRogue Lmk61e2 Module
 #-----------------------------------------------------------------------------
@@ -19,10 +16,10 @@
 import pyrogue as pr
 
 class Lmk61e2(pr.Device):
-    def __init__(   self,       
-        name        = "Lmk61e2",
-        description = "Lmk61e2 Module",
-        **kwargs):
+    def __init__(   self,
+            name        = "Lmk61e2",
+            description = "Lmk61e2 Module",
+            **kwargs):
         
         super().__init__(name=name,description=description,**kwargs)
 

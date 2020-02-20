@@ -342,20 +342,20 @@ class RssiCore(pr.Device):
         ##############################
         @self.command(name='C_OpenConn', description='Open connection request',)
         def C_OpenConn():        
-           self.CloseConn.set(0)
-           self.OpenConn.set(1)
+            self.CloseConn.set(0)
+            self.OpenConn.set(1)
 
         @self.command(name='C_CloseConn', description='Close connection request',)
         def C_CloseConn():                        
-           self.OpenConn.set(0)
-           self.CloseConn.set(1)
+            self.OpenConn.set(0)
+            self.CloseConn.set(1)
                     
         @self.command(name='C_RestartConn', description='Restart connection request',)
         def C_RestartConn():        
-           self.C_CloseConn()
-           self.C_OpenConn()
+            self.C_CloseConn()
+            self.C_OpenConn()
            
         @self.command(name='C_InjectFault', description='Inject a single fault(for debug and test purposes only). Corrupts checksum during transmission',)
         def C_InjectFault():                        
-           self.InjectFault.set(1)
-           self.InjectFault.set(0)
+            self.InjectFault.set(1)
+            self.InjectFault.set(0)

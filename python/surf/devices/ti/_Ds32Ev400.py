@@ -12,10 +12,10 @@ import pyrogue as pr
 
 class Ds32Ev400(pr.Device):
     def __init__(   self,       
-        name        = 'Ds32Ev400',
-        description = 'Ds32Ev400 Module',
-        **kwargs):
-        
+            name        = 'Ds32Ev400',
+            description = 'Ds32Ev400 Module',
+            **kwargs):
+
         super().__init__(name=name,description=description,**kwargs)
 
         self.add(pr.RemoteVariable(    

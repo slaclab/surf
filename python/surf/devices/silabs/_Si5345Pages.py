@@ -11,17 +11,18 @@
 import pyrogue as pr
  
 class Si5345Page0(pr.Device):
-    def __init__(self,       
+    def __init__(self,
             name         = "Page0",
             description  = "Alarms, interrupts, reset, other configuration",
             simpleDisplay = True,
             **kwargs):
+
         super().__init__(name=name, description=description, **kwargs)       
-        
+
         ##############################
         # 15.1 Page 0 Registers Si5345
         ##############################
-                                             
+
         self.add(pr.RemoteVariable(
             name        = 'PN_BASE_LO',
             description = 'Four-digit base part number, one nibble per digit.',
@@ -2005,7 +2006,7 @@ class Si5345Page3(pr.Device):
             # hidden       = True,
             function     = pr.BaseCommand.toggle,
             overlapEn   = True,
-            )) 
+        ))
         
         for i in range(6):
             self.add(pr.RemoteVariable(

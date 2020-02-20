@@ -1,9 +1,6 @@
 #-----------------------------------------------------------------------------
 # Title      : PyRogue AXI-Lite Ring Buffer Module
 #-----------------------------------------------------------------------------
-# File       : AxiLiteRingBuffer.py
-# Created    : 2019-06-24
-#-----------------------------------------------------------------------------
 # Description:
 # PyRogue AXI-Lite Ring Buffer Module
 #-----------------------------------------------------------------------------
@@ -23,13 +20,12 @@ import pyrogue as pr
 class AxiLiteRingBuffer(pr.Device):
 
     # Last comment added by rherbst for demonstration.
-    def __init__(
-            self,       
-            datawidth        = 32,
+    def __init__(self,
             name             = 'AxiLiteRingBuffer',
             description      = 'AXI-Lite Ring Buffer Module',
+            datawidth        = 32,
             **kwargs):
-        
+
         super().__init__(
             name        = name,
             description = description,
@@ -87,7 +83,7 @@ class AxiLiteRingBuffer(pr.Device):
         @self.command()
         def Dump():
             mask  = (1<<self._datawidth)-1
-            cmask = (self._datawidth+3)/4
+            # cmask = (self._datawidth+3)/4
             len_  = self.blen.get()
             if len_ > 512: 
                 len_ = 256

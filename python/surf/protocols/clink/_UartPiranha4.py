@@ -1,9 +1,6 @@
 #-----------------------------------------------------------------------------
 # Title      : PyRogue CameraLink module
 #-----------------------------------------------------------------------------
-# File       : _UartPiranha4.py
-# Created    : 2017-11-21
-#-----------------------------------------------------------------------------
 # Description:
 # PyRogue CameraLink module
 #-----------------------------------------------------------------------------
@@ -77,9 +74,9 @@ class UartPiranha4(pr.Device):
             localSet     = lambda value: self._tx.sendString(f'cpa {self.CPA[0].get()} {self.CPA[1].get()} {self.CPA[2].get()}') if (self.CPA[0].get()!='' and self.CPA[1].get()!='' and self.CPA[2].get()!='') else ''
         ))          
         
-        self.add(pr.LocalVariable(    
+        self.add(pr.LocalVariable(
             name         = 'CPA[1]',
-            description  = 'Calibrate user PRNU flat field coefficients: \# of lines to average Argument',
+            description  = 'Calibrate user PRNU flat field coefficients: number of lines to average Argument',
             mode         = 'RW', 
             value        = '',
             localSet     = lambda value: self._tx.sendString(f'cpa {self.CPA[0].get()} {self.CPA[1].get()} {self.CPA[2].get()}') if (self.CPA[0].get()!='' and self.CPA[1].get()!='' and self.CPA[2].get()!='') else ''

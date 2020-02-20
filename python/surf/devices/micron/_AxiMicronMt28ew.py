@@ -1,9 +1,6 @@
 #-----------------------------------------------------------------------------
 # Title      : PyRogue AXI-Lite Micron MT28EW PROM
 #-----------------------------------------------------------------------------
-# File       : AxiMicronMt28ew.py
-# Created    : 2017-04-12
-#-----------------------------------------------------------------------------
 # Description:
 # PyRogue AXI-Lite Micron MT28EW PROM
 #-----------------------------------------------------------------------------
@@ -24,11 +21,12 @@ import datetime
 import math
 
 class AxiMicronMt28ew(pr.Device):
-    def __init__(self,       
+    def __init__(self,
             name        = "AxiMicronMt28ew",
             description = "AXI-Lite Micron MT28EW PROM",
             tryCount    = 5,
             **kwargs):
+
         super().__init__(
             name        = name, 
             description = description, 
@@ -75,7 +73,7 @@ class AxiMicronMt28ew(pr.Device):
                 To reprogram the FPGA with the new PROM data,      \n\
                 a IPROG CMD or power cycle is be required.\n\
                 ***************************************************\n\
-                ***************************************************\n\n"\
+                ***************************************************\n\n"
                 , bg='green',
             )
             
@@ -104,7 +102,7 @@ class AxiMicronMt28ew(pr.Device):
                 address += ERASE_SIZE
         # Check the corner case
         if ( address< (self._mcs.endAddr>>1) ): 
-            self._eraseCmd(address)         
+            self._eraseCmd(address)
 
     # Erase Command
     def _eraseCmd(self, address):
@@ -115,7 +113,7 @@ class AxiMicronMt28ew(pr.Device):
         self._writeToFlash(0x2AA,0x55)
         self._writeToFlash(address,0x30)
         while True:
-            status = self._readFromFlash(address)               
+            status = self._readFromFlash(address)
             if( (status&0x80) != 0 ):
                 break
         

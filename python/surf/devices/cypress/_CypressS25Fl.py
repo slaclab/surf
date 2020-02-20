@@ -25,8 +25,8 @@ class CypressS25Fl(micron.AxiMicronN25Q):
             name        = "CypressS25Fl",
             description = "Container for Cypress S25FL PROM device",
             addrMode    = False, # False = 24-bit Address mode, True = 32-bit Address Mode
-            **kwargs
-        ):
+            **kwargs):
+
         super().__init__(
             name        = name, 
             description = description, 
@@ -39,7 +39,7 @@ class CypressS25Fl(micron.AxiMicronN25Q):
         self.FLAG_STATUS_REG = (0x05 << 16)
         self.FLAG_STATUS_RDY = (0x01)
         self.BRAC_CMD        = (0xB9 << 16)
-        
+
     def _LoadMcsFile(self,arg):
         
         click.secho(('LoadMcsFile: %s' % arg), fg='green')
@@ -84,7 +84,7 @@ class CypressS25Fl(micron.AxiMicronN25Q):
             To reprogram the FPGA with the new PROM data,      \n\
             a IPROG CMD or power cycle is be required.\n\
             ***************************************************\n\
-            ***************************************************\n\n"\
+            ***************************************************\n\n"
             , bg='green',
         )        
 

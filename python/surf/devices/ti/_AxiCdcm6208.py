@@ -1,9 +1,6 @@
 #-----------------------------------------------------------------------------
 # Title      : PyRogue AxiCdcm6208 Module
 #-----------------------------------------------------------------------------
-# File       : AxiCdcm6208.py
-# Created    : 2017-04-12
-#-----------------------------------------------------------------------------
 # Description:
 # PyRogue AxiCdcm6208 Module
 #-----------------------------------------------------------------------------
@@ -19,22 +16,12 @@
 import pyrogue as pr
 
 class AxiCdcm6208(pr.Device):
-    def __init__(   self,       
-        name        = "AxiCdcm6208",
-        description = "AxiCdcm6208 Module",
-        memBase     =  None,
-        offset      =  0x00,
-        hidden      =  False,
-        expand      =  True,
-    ):
-        super().__init__(
-            name        = name,
-            description = description,
-            memBase     = memBase,
-            offset      = offset,
-            hidden      = hidden,
-            expand      = expand,
-        )
+    def __init__(   self,
+            name        = 'AxiCdcm6208',
+            description = 'AxiCdcm6208 Module',
+            **kwargs):
+
+        super().__init__(name=name,description=description,**kwargs)
 
         ##############################
         # Variables

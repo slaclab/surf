@@ -1,9 +1,4 @@
 #-----------------------------------------------------------------------------
-# Title      : PyRogue AmcCarrier BSI Module
-#-----------------------------------------------------------------------------
-# File       : Ads54J60.py
-# Created    : 2017-04-04
-#-----------------------------------------------------------------------------
 # Description:
 # PyRogue Ads54J60 Module
 #-----------------------------------------------------------------------------
@@ -36,20 +31,20 @@ class Ads54J60(pr.Device):
         # Base addresses
         ################
         generalAddr = (0x0 << 14)
-        mainDigital = (0x1 << 14) # With respect to CH  
-        jesdDigital = (0x2 << 14) # With respect to CH  
-        jesdAnalog  = (0x3 << 14) # With respect to CH  
+        mainDigital = (0x1 << 14) # With respect to CH
+        # jesdDigital = (0x2 << 14) # With respect to CH
+        # jesdAnalog  = (0x3 << 14) # With respect to CH
         masterPage  = (0x7 << 14)
         analogPage  = (0x8 << 14)
         unusedPages = (0xE << 14)
         chA         = (0x0 << 14)
-        chB         = (0x8 << 14)        
+        chB         = (0x8 << 14)
         
         #####################
         # Add Device Channels
         #####################
         self.add(dev.ti.Ads54J60Channel(name='CH[0]',description='Channel A',offset=chA,expand=False,verify=verify,))
-        self.add(dev.ti.Ads54J60Channel(name='CH[1]',description='Channel B',offset=chB,expand=False,verify=verify,))      
+        self.add(dev.ti.Ads54J60Channel(name='CH[1]',description='Channel B',offset=chB,expand=False,verify=verify,))
         
         ##################
         # General Register

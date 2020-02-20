@@ -1,9 +1,6 @@
 #-----------------------------------------------------------------------------
 # Title      : PyRogue DAC38J84 Module
 #-----------------------------------------------------------------------------
-# File       : Dac38J84.py
-# Created    : 2017-04-12
-#-----------------------------------------------------------------------------
 # Description:
 # PyRogue DAC38J84 Module
 #-----------------------------------------------------------------------------
@@ -19,24 +16,14 @@
 import pyrogue as pr
 
 class Dac38J84(pr.Device):
-    def __init__( self,       
-        name        = "Dac38J84",
-        description = "DAC38J84 Module",
-        memBase     =  None,
-        offset      =  0x00,
-        hidden      =  False,
-        debug       =  True,
-        numTxLanes  =  2,
-        expand      =  True,
-    ):
-        super().__init__(
-            name        = name,
-            description = description,
-            memBase     = memBase,
-            offset      = offset,
-            hidden      = hidden,
-            expand      = expand,
-        )
+    def __init__(   self,
+            name        = 'Dac38J84',
+            description = 'Dac38J84 Module',
+            numTxLanes  =  2,
+            debug       =  True,
+            **kwargs):
+
+        super().__init__(name=name,description=description,**kwargs)
 
         ##############################
         # Variables

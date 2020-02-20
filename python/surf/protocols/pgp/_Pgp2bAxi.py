@@ -330,7 +330,7 @@ class Pgp2bAxi(pr.Device):
                 bitSize     = 1, 
                 bitOffset   = 0, 
                 function    = pr.BaseCommand.toggle,
-                ))
+            ))
 
             
         self.add(pr.RemoteVariable(
