@@ -13,7 +13,7 @@ import pyrogue as pr
 class AxiStreamDmaFifo(pr.Device):
     def __init__(self, **kwargs):
         super().__init__(description='', **kwargs)
-        
+
         self.add(pr.RemoteVariable(
             name      ='Version',
             offset    = 0x00,
@@ -21,14 +21,14 @@ class AxiStreamDmaFifo(pr.Device):
             bitOffset = 0,
             mode      = 'RO',
         ))
-        
+
         self.add(pr.RemoteVariable(
             name      ='Online',
             offset    = 0x00,
             bitSize   = 1,
             bitOffset = 4,
             mode      ='RW',
-        ))  
+        ))
 
         self.add(pr.RemoteVariable(
             name      ='DropOnErr',
@@ -36,7 +36,7 @@ class AxiStreamDmaFifo(pr.Device):
             bitSize   = 1,
             bitOffset = 5,
             mode      ='RW',
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name      ='InsertSof',
@@ -44,7 +44,7 @@ class AxiStreamDmaFifo(pr.Device):
             bitSize   = 1,
             bitOffset = 6,
             mode      ='RW',
-        ))      
+        ))
 
         self.add(pr.RemoteVariable(
             name      ='START_AFTER_RST_G',
@@ -52,7 +52,7 @@ class AxiStreamDmaFifo(pr.Device):
             bitSize   = 1,
             bitOffset = 8,
             mode      = 'RO',
-        ))  
+        ))
 
         self.add(pr.RemoteVariable(
             name      ='DROP_ERR_FRAME_G',
@@ -60,7 +60,7 @@ class AxiStreamDmaFifo(pr.Device):
             bitSize   = 1,
             bitOffset = 9,
             mode      = 'RO',
-        ))    
+        ))
 
         self.add(pr.RemoteVariable(
             name      ='SOF_INSERT_G',
@@ -68,7 +68,7 @@ class AxiStreamDmaFifo(pr.Device):
             bitSize   = 1,
             bitOffset = 10,
             mode      = 'RO',
-        ))   
+        ))
 
         self.add(pr.RemoteVariable(
             name      ='AXI_CACHE_G',
@@ -76,23 +76,23 @@ class AxiStreamDmaFifo(pr.Device):
             bitSize   = 4,
             bitOffset = 12,
             mode      = 'RO',
-        ))           
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name      ='SwCache',
             offset    = 0x00,
             bitSize   = 4,
             bitOffset = 16,
             mode      ='RW',
-        ))        
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name      ='AXI_BURST_G',
             offset    = 0x00,
             bitSize   = 2,
             bitOffset = 20,
             mode      = 'RO',
-        ))    
+        ))
 
         self.add(pr.RemoteVariable(
             name      ='MaxSize',
@@ -100,7 +100,7 @@ class AxiStreamDmaFifo(pr.Device):
             bitSize   = 32,
             bitOffset = 0,
             mode      ='RW',
-        ))  
+        ))
 
         self.add(pr.RemoteVariable(
             name      ='BaseAddr',
@@ -109,7 +109,7 @@ class AxiStreamDmaFifo(pr.Device):
             bitOffset = 0,
             mode      ='RW',
         ))
-             
+
         self.add(pr.RemoteVariable(
             name      ='AXIS_TDEST_BITS_C',
             offset    = 0xC0,
@@ -117,7 +117,7 @@ class AxiStreamDmaFifo(pr.Device):
             bitOffset = 0,
             mode      = 'RO',
             disp      = '{:d}',
-        ))   
+        ))
 
         self.add(pr.RemoteVariable(
             name      ='AXIS_TID_BITS_C',
@@ -126,7 +126,7 @@ class AxiStreamDmaFifo(pr.Device):
             bitOffset = 8,
             mode      = 'RO',
             disp      = '{:d}',
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name      ='AXIS_TUSER_BITS_C',
@@ -135,7 +135,7 @@ class AxiStreamDmaFifo(pr.Device):
             bitOffset = 16,
             mode      = 'RO',
             disp      = '{:d}',
-        ))   
+        ))
 
         self.add(pr.RemoteVariable(
             name      ='AXIS_TDATA_BYTES_C',
@@ -144,7 +144,7 @@ class AxiStreamDmaFifo(pr.Device):
             bitOffset = 24,
             mode      = 'RO',
             disp      = '{:d}',
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name      ='AXI_LEN_BITS_C',
@@ -153,7 +153,7 @@ class AxiStreamDmaFifo(pr.Device):
             bitOffset = 0,
             mode      = 'RO',
             disp      = '{:d}',
-        ))   
+        ))
 
         self.add(pr.RemoteVariable(
             name      ='AXI_ID_BITS_C',
@@ -162,7 +162,7 @@ class AxiStreamDmaFifo(pr.Device):
             bitOffset = 8,
             mode      = 'RO',
             disp      = '{:d}',
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name      ='AXI_DATA_BYTES_C',
@@ -171,7 +171,7 @@ class AxiStreamDmaFifo(pr.Device):
             bitOffset = 16,
             mode      = 'RO',
             disp      = '{:d}',
-        ))   
+        ))
 
         self.add(pr.RemoteVariable(
             name      ='AXI_ADDR_WIDTH_C',
@@ -180,7 +180,7 @@ class AxiStreamDmaFifo(pr.Device):
             bitOffset = 24,
             mode      = 'RO',
             disp      = '{:d}',
-        ))         
+        ))
 
         self.add(pr.RemoteVariable(
             name      ='MAX_FRAME_WIDTH_G',
@@ -189,7 +189,7 @@ class AxiStreamDmaFifo(pr.Device):
             bitOffset = 0,
             mode      = 'RO',
             disp      = '{:d}',
-        ))   
+        ))
 
         self.add(pr.RemoteVariable(
             name      ='AXI_BUFFER_WIDTH_G',
@@ -198,17 +198,17 @@ class AxiStreamDmaFifo(pr.Device):
             bitOffset = 8,
             mode      = 'RO',
             disp      = '{:d}',
-        )) 
+        ))
 
         self.add(pr.LinkVariable(
-            name         = 'NUM_BUFFERS', 
+            name         = 'NUM_BUFFERS',
             description  = 'Number of buffers',
             mode         = 'RO',
             disp         = '0x{:0x}',
             dependencies = [self.AXI_BUFFER_WIDTH_G,self.MAX_FRAME_WIDTH_G],
             linkedGet    = lambda: 2**( int(self.AXI_BUFFER_WIDTH_G.value()) - int(self.MAX_FRAME_WIDTH_G.value()) )
-        ))   
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name         ='FrameCnt',
             offset       = 0x40,
@@ -216,7 +216,7 @@ class AxiStreamDmaFifo(pr.Device):
             bitOffset    = 0,
             mode         = 'RO',
             pollInterval = 1,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name         ='FrameCntMax',
@@ -225,7 +225,7 @@ class AxiStreamDmaFifo(pr.Device):
             bitOffset    = 0,
             mode         = 'RO',
             pollInterval = 1,
-        ))  
+        ))
 
         self.add(pr.RemoteVariable(
             name         ='ErrorCnt',
@@ -236,14 +236,14 @@ class AxiStreamDmaFifo(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteCommand(   
+        self.add(pr.RemoteCommand(
             name        = 'CntRst',
             description = "Counter Reset",
             offset      = 0xFC,
             bitSize     = 1,
             function    = lambda cmd: cmd.post(1),
-        ))  
-        
+        ))
+
     def hardReset(self):
         self.CntRst()
 
@@ -252,4 +252,3 @@ class AxiStreamDmaFifo(pr.Device):
 
     def countReset(self):
         self.CntRst()
-        

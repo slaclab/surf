@@ -47,7 +47,7 @@ class AxiLiteRingBuffer(pr.Device):
             mode         = 'RW'
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = 'clear',
             description  = 'Clear buffer',
             offset       = 0x03,
@@ -57,7 +57,7 @@ class AxiLiteRingBuffer(pr.Device):
             mode         = 'RW',
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = 'enable',
             description  = 'Enable buffer',
             offset       = 0x03,
@@ -67,7 +67,7 @@ class AxiLiteRingBuffer(pr.Device):
             mode         = 'RW',
         ))
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = 'data',
             description  = 'Buffer values',
             offset       = 0x4,
@@ -85,7 +85,7 @@ class AxiLiteRingBuffer(pr.Device):
             mask  = (1<<self._datawidth)-1
             # cmask = (self._datawidth+3)/4
             len_  = self.blen.get()
-            if len_ > 512: 
+            if len_ > 512:
                 len_ = 256
 
             buff = []

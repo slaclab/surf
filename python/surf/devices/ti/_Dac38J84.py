@@ -28,8 +28,8 @@ class Dac38J84(pr.Device):
         ##############################
         # Variables
         ##############################
-        
-        self.addRemoteVariables(   
+
+        self.addRemoteVariables(
             name         = "DacReg",
             description  = "DAC Registers[125:0]",
             offset       = 0x00,
@@ -39,12 +39,12 @@ class Dac38J84(pr.Device):
             mode         = "RW",
             number       = 126,
             stride       = 4,
-            hidden       = not(debug),   
-            verify       = False,   
+            hidden       = not(debug),
+            verify       = False,
             overlapEn    = True,
         )
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "LaneBufferDelay",
             description  = "Lane Buffer Delay",
             offset       =  0x1C,
@@ -52,10 +52,10 @@ class Dac38J84(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
-            overlapEn    = True,        
+            overlapEn    = True,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "Temperature",
             description  = "Temperature",
             offset       =  0x1C,
@@ -63,10 +63,10 @@ class Dac38J84(pr.Device):
             bitOffset    =  8,
             base         = pr.UInt,
             mode         = "RO",
-            overlapEn    = True,        
+            overlapEn    = True,
         ))
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "LinkErrCnt",
             description  = "Link Error Count",
             offset       =  0x104,
@@ -76,10 +76,10 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
-            overlapEn    = True,             
+            overlapEn    = True,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "ReadFifoEmpty",
             description  = "ReadFifoEmpty",
             offset       =  0x190,
@@ -89,10 +89,10 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
-            overlapEn    = True,             
+            overlapEn    = True,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "ReadFifoUnderflow",
             description  = "ReadFifoUnderflow",
             offset       =  0x190,
@@ -102,10 +102,10 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
-            overlapEn    = True,             
+            overlapEn    = True,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "ReadFifoFull",
             description  = "ReadFifoFull",
             offset       =  0x190,
@@ -115,10 +115,10 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
-            overlapEn    = True,             
+            overlapEn    = True,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "ReadFifoOverflow",
             description  = "ReadFifoOverflow",
             offset       =  0x190,
@@ -128,10 +128,10 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
-            overlapEn    = True,             
+            overlapEn    = True,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "DispErr",
             description  = "DispErr",
             offset       =  0x190,
@@ -141,10 +141,10 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
-            overlapEn    = True,             
+            overlapEn    = True,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "NotitableErr",
             description  = "NotitableErr",
             offset       =  0x190,
@@ -154,10 +154,10 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
-            overlapEn    = True,             
+            overlapEn    = True,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "CodeSyncErr",
             description  = "CodeSyncErr",
             offset       =  0x190,
@@ -167,10 +167,10 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
-            overlapEn    = True,             
+            overlapEn    = True,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "FirstDataMatchErr",
             description  = "FirstDataMatchErr",
             offset       =  0x190,
@@ -180,10 +180,10 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
-            overlapEn    = True,             
+            overlapEn    = True,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "ElasticBuffOverflow",
             description  = "ElasticBuffOverflow",
             offset       =  0x190,
@@ -193,10 +193,10 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
-            overlapEn    = True,             
+            overlapEn    = True,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "LinkConfigErr",
             description  = "LinkConfigErr",
             offset       =  0x190,
@@ -206,10 +206,10 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
-            overlapEn    = True,             
+            overlapEn    = True,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "FrameAlignErr",
             description  = "FrameAlignErr",
             offset       =  0x190,
@@ -219,10 +219,10 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
-            overlapEn    = True,             
+            overlapEn    = True,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "MultiFrameAlignErr",
             description  = "MultiFrameAlignErr",
             offset       =  0x190,
@@ -232,10 +232,10 @@ class Dac38J84(pr.Device):
             mode         = "RO",
             number       =  numTxLanes,
             stride       =  4,
-            overlapEn    = True,             
+            overlapEn    = True,
         )
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "Serdes1pllAlarm",
             description  = "Serdes1pllAlarm",
             offset       =  0x1B0,
@@ -243,10 +243,10 @@ class Dac38J84(pr.Device):
             bitOffset    =  0x02,
             base         = pr.UInt,
             mode         = "RO",
-            overlapEn    = True,             
+            overlapEn    = True,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "Serdes0pllAlarm",
             description  = "Serdes0pllAlarm",
             offset       =  0x1B0,
@@ -254,10 +254,10 @@ class Dac38J84(pr.Device):
             bitOffset    =  0x03,
             base         = pr.UInt,
             mode         = "RO",
-            overlapEn    = True,        
+            overlapEn    = True,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "SysRefAlarms",
             description  = "SysRefAlarms",
             offset       =  0x1B0,
@@ -265,10 +265,10 @@ class Dac38J84(pr.Device):
             bitOffset    =  12,
             base         = pr.UInt,
             mode         = "RO",
-            overlapEn    = True,        
+            overlapEn    = True,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "LaneLoss",
             description  = "LaneLoss",
             offset       =  0x1B4,
@@ -276,10 +276,10 @@ class Dac38J84(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
-            overlapEn    = True,        
+            overlapEn    = True,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "LaneAlarm",
             description  = "LaneAlarm",
             offset       =  0x1B4,
@@ -287,10 +287,10 @@ class Dac38J84(pr.Device):
             bitOffset    =  8,
             base         = pr.UInt,
             mode         = "RO",
-            overlapEn    = True,        
+            overlapEn    = True,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "VendorId",
             description  = "Vendor ID",
             offset       =  0x1FC,
@@ -298,10 +298,10 @@ class Dac38J84(pr.Device):
             bitOffset    =  3,
             base         = pr.UInt,
             mode         = "RO",
-            overlapEn    = True,        
+            overlapEn    = True,
         ))
-                        
-        self.add(pr.RemoteVariable(    
+
+        self.add(pr.RemoteVariable(
             name         = "VersionId",
             description  = "Version ID",
             offset       =  0x1FC,
@@ -309,10 +309,10 @@ class Dac38J84(pr.Device):
             bitOffset    =  0,
             base         = pr.UInt,
             mode         = "RO",
-            overlapEn    = True,        
-        ))                        
+            overlapEn    = True,
+        ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "EnableTx",
             description  = "EnableTx",
             offset       =  0x0C,
@@ -320,10 +320,10 @@ class Dac38J84(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RW",
-            overlapEn    = True,        
+            overlapEn    = True,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "InitJesd",
             description  = "InitJesd",
             offset       =  0x128,
@@ -349,7 +349,7 @@ class Dac38J84(pr.Device):
         # Commands
         ##############################
         @self.command(name="ClearAlarms", description="Clear all the DAC alarms",)
-        def ClearAlarms(): 
+        def ClearAlarms():
             self.DacReg[100].set(0)
             self.DacReg[101].set(0)
             self.DacReg[102].set(0)
@@ -362,7 +362,7 @@ class Dac38J84(pr.Device):
             self.DacReg[109].set(0)
 
         @self.command(name="Init", description="Initialization sequence for the DAC JESD core",)
-        def Init():       
+        def Init():
             self.writeBlocks(force=True)
             self.EnableTx.set(0)
             self.ClearAlarms()

@@ -21,15 +21,15 @@ class AxiStreamDmaRingWrite(pr.Device):
             description = "DMA Ring Buffer Manager",
             numBuffers  =  4,
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs)  
+        super().__init__(name=name, description=description, **kwargs)
 
         self._numBuffers = numBuffers
-        
+
         ##############################
         # Variables
         ##############################
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "StartAddr",
             description  = "",
             offset       =  0x00,
@@ -41,7 +41,7 @@ class AxiStreamDmaRingWrite(pr.Device):
             stride       =  8,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "EndAddr",
             description  = "",
             offset       =  0x200,
@@ -53,7 +53,7 @@ class AxiStreamDmaRingWrite(pr.Device):
             stride       =  8,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "WrAddr",
             description  = "",
             offset       =  0x400,
@@ -65,7 +65,7 @@ class AxiStreamDmaRingWrite(pr.Device):
             stride       =  8,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "TriggerAddr",
             description  = "",
             offset       =  0x600,
@@ -77,7 +77,7 @@ class AxiStreamDmaRingWrite(pr.Device):
             stride       =  8,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "Enabled",
             description  = "",
             offset       =  0x800,
@@ -88,8 +88,8 @@ class AxiStreamDmaRingWrite(pr.Device):
             number       =  numBuffers,
             stride       =  4,
         )
- 
-        self.addRemoteVariables(   
+
+        self.addRemoteVariables(
             name         = "Mode",
             description  = "",
             offset       =  0x800,
@@ -104,7 +104,7 @@ class AxiStreamDmaRingWrite(pr.Device):
             },
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "Init",
             description  = "",
             offset       =  0x800,
@@ -116,7 +116,7 @@ class AxiStreamDmaRingWrite(pr.Device):
             stride       =  4,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "SoftTrigger",
             description  = "",
             offset       =  0x800,
@@ -128,7 +128,7 @@ class AxiStreamDmaRingWrite(pr.Device):
             stride       =  4,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "MsgDest",
             description  = "",
             offset       =  0x800,
@@ -143,7 +143,7 @@ class AxiStreamDmaRingWrite(pr.Device):
             },
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "FramesAfterTrigger",
             description  = "",
             offset       =  0x800,
@@ -155,7 +155,7 @@ class AxiStreamDmaRingWrite(pr.Device):
             stride       =  4,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "Status",
             description  = "Include all of the status bits in one access",
             offset       =  0xA00,
@@ -168,7 +168,7 @@ class AxiStreamDmaRingWrite(pr.Device):
             overlapEn    = True,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "Empty",
             description  = "",
             offset       =  0xA00,
@@ -181,7 +181,7 @@ class AxiStreamDmaRingWrite(pr.Device):
             overlapEn    = True,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "Full",
             description  = "",
             offset       =  0xA00,
@@ -194,7 +194,7 @@ class AxiStreamDmaRingWrite(pr.Device):
             overlapEn    = True,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "Done",
             description  = "",
             offset       =  0xA00,
@@ -207,7 +207,7 @@ class AxiStreamDmaRingWrite(pr.Device):
             overlapEn    = True,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "Triggered",
             description  = "",
             offset       =  0xA00,
@@ -220,7 +220,7 @@ class AxiStreamDmaRingWrite(pr.Device):
             overlapEn    = True,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "Error",
             description  = "",
             offset       =  0xA00,
@@ -233,7 +233,7 @@ class AxiStreamDmaRingWrite(pr.Device):
             overlapEn    = True,
         )
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "BurstSize",
             description  = "",
             offset       =  0xA00,
@@ -244,7 +244,7 @@ class AxiStreamDmaRingWrite(pr.Device):
             overlapEn    = True,
         ))
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "FramesSinceTrigger",
             description  = "",
             offset       =  0xA00,
@@ -264,11 +264,11 @@ class AxiStreamDmaRingWrite(pr.Device):
         def Initialize():
             for i in range(self._numBuffers):
                 self.Init[i].set(1)
-                self.Init[i].set(0)       
+                self.Init[i].set(0)
 
         @self.command(name="SoftTriggerAll", description="Send a trigger to the buffer",)
         def SoftTriggerAll():
             for i in range(self._numBuffers):
                 self.SoftTrigger[i].set(1)
-                self.SoftTrigger[i].set(0)                       
-                
+                self.SoftTrigger[i].set(0)
+

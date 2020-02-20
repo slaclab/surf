@@ -16,7 +16,7 @@
 import pyrogue as pr
 
 class AxiStreamMonChannel(pr.Device):
-    def __init__(self,       
+    def __init__(self,
             name        = "AxiStreamMonChannel",
             description = "AxiStreamMonChannel Container",
             **kwargs):
@@ -26,99 +26,99 @@ class AxiStreamMonChannel(pr.Device):
         def addPair(name,offset,bitSize,units,bitOffset,description,function,pollInterval = 0,):
             self.add(pr.RemoteVariable(
                 name         = ("Raw"+name),
-                offset       = offset, 
-                bitSize      = bitSize, 
+                offset       = offset,
+                bitSize      = bitSize,
                 bitOffset    = bitOffset,
-                base         = pr.UInt, 
-                mode         = 'RO', 
+                base         = pr.UInt,
+                mode         = 'RO',
                 description  = description,
                 pollInterval = pollInterval,
                 hidden       = True,
             ))
             self.add(pr.LinkVariable(
-                name         = name, 
-                mode         = 'RO', 
+                name         = name,
+                mode         = 'RO',
                 units        = units,
                 linkedGet    = function,
                 disp         = '{:1.1f}',
                 dependencies = [self.variables["Raw"+name]],
-            ))        
-    
+            ))
+
         self.add(pr.RemoteVariable(
-            name         = 'FrameCnt', 
+            name         = 'FrameCnt',
             description  = 'Increments every time a tValid + tLast + tReady detected',
-            offset       = 0x04, 
-            bitSize      = 64, 
+            offset       = 0x04,
+            bitSize      = 64,
             mode         = 'RO',
             pollInterval = 1,
-        ))        
-    
+        ))
+
         self.add(pr.RemoteVariable(
-            name         = 'FrameRate',       
+            name         = 'FrameRate',
             description  = "Current Frame Rate",
-            offset       = 0x0C, 
-            bitSize      = 32, 
-            bitOffset    = 0, 
+            offset       = 0x0C,
+            bitSize      = 32,
+            bitOffset    = 0,
             mode         = "RO",
-            base         = pr.Int, 
-            units        = 'Hz', 
-            pollInterval = 1,
-        ))     
-
-        self.add(pr.RemoteVariable(
-            name         = 'FrameRateMax',       
-            description  = "Max Frame Rate",
-            offset       = 0x10, 
-            bitSize      = 32, 
-            bitOffset    = 0, 
-            mode         = "RO",
-            base         = pr.Int, 
-            units        = 'Hz', 
-            pollInterval = 1,
-        )) 
-
-        self.add(pr.RemoteVariable(
-            name         = 'FrameRateMin',       
-            description  = "Min Frame Rate",
-            offset       = 0x14, 
-            bitSize      = 32, 
-            bitOffset    = 0, 
-            mode         = "RO",
-            base         = pr.Int, 
-            units        = 'Hz', 
+            base         = pr.Int,
+            units        = 'Hz',
             pollInterval = 1,
         ))
-        
+
+        self.add(pr.RemoteVariable(
+            name         = 'FrameRateMax',
+            description  = "Max Frame Rate",
+            offset       = 0x10,
+            bitSize      = 32,
+            bitOffset    = 0,
+            mode         = "RO",
+            base         = pr.Int,
+            units        = 'Hz',
+            pollInterval = 1,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'FrameRateMin',
+            description  = "Min Frame Rate",
+            offset       = 0x14,
+            bitSize      = 32,
+            bitOffset    = 0,
+            mode         = "RO",
+            base         = pr.Int,
+            units        = 'Hz',
+            pollInterval = 1,
+        ))
+
         addPair(
-            name         = 'Bandwidth',       
+            name         = 'Bandwidth',
             description  = "Current Bandwidth",
-            offset       = 0x18, 
-            bitSize      = 64, 
-            bitOffset    = 0, 
+            offset       = 0x18,
+            bitSize      = 64,
+            bitOffset    = 0,
             function     = self.convMbps,
-            units        = 'Mbps', 
+            units        = 'Mbps',
             pollInterval = 1,
         )
 
         addPair(
-            name         = 'BandwidthMax',       
+            name         = 'BandwidthMax',
             description  = "Max Bandwidth",
-            offset       = 0x20, 
-            bitSize      = 64, 
-            bitOffset    = 0, 
+            offset       = 0x20,
+            bitSize      = 64,
+            bitOffset    = 0,
             function     = self.convMbps,
-            units        = 'Mbps', 
+            units        = 'Mbps',
             pollInterval = 1,
         )
 
         addPair(
-            name         = 'BandwidthMin',       
+            name         = 'BandwidthMin',
             description  = "Min Bandwidth",
-            offset       = 0x28, 
-            bitSize      = 64, 
-            bitOffset    = 0, 
+            offset       = 0x28,
+            bitSize      = 64,
+            bitOffset    = 0,
             function     = self.convMbps,
-            units        = 'Mbps', 
+            units        = 'Mbps',
             pollInterval = 1,
         )
 
@@ -160,10 +160,10 @@ class AxiStreamMonChannel(pr.Device):
 
     @staticmethod
     def convMbps(var):
-        return var.dependencies[0].value() * 8e-6        
-        
+        return var.dependencies[0].value() * 8e-6
+
 class AxiStreamMonAxiL(pr.Device):
-    def __init__(self,       
+    def __init__(self,
             name        = "AxiStreamMonAxiL",
             description = "AxiStreamMonAxiL Container",
             numberLanes = 1,
@@ -171,15 +171,15 @@ class AxiStreamMonAxiL(pr.Device):
 
         super().__init__(name=name, description=description, **kwargs)
 
-        self.add(pr.RemoteCommand(   
+        self.add(pr.RemoteCommand(
             name         = 'CntRst',
             description  = "Counter Reset",
             offset       = 0x0,
             bitSize      = 1,
             function     = lambda cmd: cmd.post(1),
             overlapEn    = True,
-        ))        
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name         = 'AXIS_CONFIG_G_TDATA_BYTES_C',
             offset       = 0x0,
@@ -188,7 +188,7 @@ class AxiStreamMonAxiL(pr.Device):
             mode         = 'RO',
             disp         = '{:d}',
             overlapEn    = True,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name         = 'AXIS_CONFIG_G_TDEST_BITS_C',
@@ -198,7 +198,7 @@ class AxiStreamMonAxiL(pr.Device):
             mode         = 'RO',
             disp         = '{:d}',
             overlapEn    = True,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name         = 'AXIS_CONFIG_G_TUSER_BITS_C',
@@ -208,7 +208,7 @@ class AxiStreamMonAxiL(pr.Device):
             mode         = 'RO',
             disp         = '{:d}',
             overlapEn    = True,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name         = 'AXIS_CONFIG_G_TID_BITS_C',
@@ -218,7 +218,7 @@ class AxiStreamMonAxiL(pr.Device):
             mode         = 'RO',
             overlapEn    = True,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name         = 'AXIS_CONFIG_G_TKEEP_MODE_C',
             offset       = 0x0,
@@ -226,14 +226,14 @@ class AxiStreamMonAxiL(pr.Device):
             bitOffset    = 8,
             mode         = 'RO',
             enum        = {
-                0x0: 'TKEEP_NORMAL_C', 
-                0x1: 'TKEEP_COMP_C', 
-                0x2: 'TKEEP_FIXED_C', 
-                0x3: 'TKEEP_COUNT_C', 
-                0xF: 'UNDEFINED', 
-            },               
+                0x0: 'TKEEP_NORMAL_C',
+                0x1: 'TKEEP_COMP_C',
+                0x2: 'TKEEP_FIXED_C',
+                0x3: 'TKEEP_COUNT_C',
+                0xF: 'UNDEFINED',
+            },
             overlapEn    = True,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name         = 'AXIS_CONFIG_G_TUSER_MODE_C',
@@ -242,14 +242,14 @@ class AxiStreamMonAxiL(pr.Device):
             bitOffset    = 4,
             mode         = 'RO',
             enum        = {
-                0x0: 'TUSER_NORMAL_C', 
-                0x1: 'TUSER_FIRST_LAST_C', 
-                0x2: 'TUSER_LAST_C', 
-                0x3: 'TUSER_NONE_C', 
-                0xF: 'UNDEFINED', 
-            },               
+                0x0: 'TUSER_NORMAL_C',
+                0x1: 'TUSER_FIRST_LAST_C',
+                0x2: 'TUSER_LAST_C',
+                0x3: 'TUSER_NONE_C',
+                0xF: 'UNDEFINED',
+            },
             overlapEn    = True,
-        ))  
+        ))
 
         self.add(pr.RemoteVariable(
             name         = 'AXIS_CONFIG_G_TSTRB_EN_C',
@@ -257,9 +257,9 @@ class AxiStreamMonAxiL(pr.Device):
             bitSize      = 1,
             bitOffset    = 1,
             mode         = 'RO',
-            base         = pr.Bool,            
+            base         = pr.Bool,
             overlapEn    = True,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name         = 'COMMON_CLK_G',
@@ -269,15 +269,15 @@ class AxiStreamMonAxiL(pr.Device):
             mode         = 'RO',
             base         = pr.Bool,
             overlapEn    = True,
-        ))         
-        
+        ))
+
         for i in range(numberLanes):
             self.add(AxiStreamMonChannel(
                 name        = f'Ch[{i}]',
                 offset      = (i*0x40),
                 expand      = True,
-            ))        
-        
+            ))
+
     def hardReset(self):
         self.CntRst()
 
@@ -295,9 +295,9 @@ class AxiStreamMonitoring(AxiStreamMonAxiL):
             **kwargs):
 
         super().__init__(
-            name        = name, 
-            description = description, 
-            numberLanes = numberLanes, 
+            name        = name,
+            description = description,
+            numberLanes = numberLanes,
             **kwargs
         )
         print( f'{self.path}: AxiStreamMonitoring device is now deprecated. Please use AxiStreamMonAxiL instead' )

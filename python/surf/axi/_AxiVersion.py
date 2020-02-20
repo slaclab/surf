@@ -26,12 +26,12 @@ class AxiVersion(pr.Device):
 
     # Last comment added by rherbst for demonstration.
     def __init__(
-            self,       
+            self,
             name             = 'AxiVersion',
             description      = 'AXI-Lite Version Module',
             numUserConstants = 0,
             **kwargs):
-        
+
         super().__init__(
             name        = name,
             description = description,
@@ -52,7 +52,7 @@ class AxiVersion(pr.Device):
             disp         = '{:#08x}',
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = 'ScratchPad',
             description  = 'Register to test reads and writes',
             offset       = 0x04,
@@ -63,7 +63,7 @@ class AxiVersion(pr.Device):
             disp         = '{:#08x}',
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = 'UpTimeCnt',
             description  = 'Number of seconds since last reset',
             hidden       = True,
@@ -95,7 +95,7 @@ class AxiVersion(pr.Device):
             units        = 'HH:MM:SS',
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = 'FpgaReloadHalt',
             description  = 'Used to halt automatic reloads via AxiVersion',
             offset       = 0x100,
@@ -106,7 +106,7 @@ class AxiVersion(pr.Device):
             hidden       = True,
         ))
 
-        self.add(pr.RemoteCommand(   
+        self.add(pr.RemoteCommand(
             name         = 'FpgaReload',
             description  = 'Optional Reload the FPGA from the attached PROM',
             offset       = 0x104,
@@ -117,7 +117,7 @@ class AxiVersion(pr.Device):
             hidden       = False,
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = 'FpgaReloadAddress',
             description  = 'Reload start address',
             offset       = 0x108,
@@ -133,7 +133,7 @@ class AxiVersion(pr.Device):
             self.FpgaReloadAddress.set(arg)
             self.FpgaReload()
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = 'UserReset',
             description  = 'Optional User Reset',
             offset       = 0x10C,
@@ -142,13 +142,13 @@ class AxiVersion(pr.Device):
             base         = pr.UInt,
             mode         = 'RW',
         ))
-        
+
         @self.command(description  = 'Toggle UserReset')
         def UserRst():
             self.UserReset.set(1)
             self.UserReset.set(0)
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = 'FdSerial',
             description  = 'Board ID value read from DS2411 chip',
             offset       = 0x300,
@@ -159,7 +159,7 @@ class AxiVersion(pr.Device):
             hidden       = True,
         ))
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = 'UserConstants',
             description  = 'Optional user input values',
             offset       = 0x400,
@@ -173,7 +173,7 @@ class AxiVersion(pr.Device):
         )
 
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = 'DeviceId',
             description  = 'Device Identification  (configued by generic)',
             offset       = 0x500,
@@ -183,7 +183,7 @@ class AxiVersion(pr.Device):
             mode         = 'RO',
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = 'GitHash',
             description  = 'GIT SHA-1 Hash',
             offset       = 0x600,
@@ -201,7 +201,7 @@ class AxiVersion(pr.Device):
             linkedGet    = lambda read: f'{(self.GitHash.get(read) >> 132):07x}',
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = 'DeviceDna',
             description  = 'Xilinx Device DNA value burned into FPGA',
             offset       = 0x700,
@@ -211,7 +211,7 @@ class AxiVersion(pr.Device):
             mode         = 'RO',
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = 'BuildStamp',
             description  = 'Firmware Build String',
             offset       = 0x800,
@@ -221,24 +221,24 @@ class AxiVersion(pr.Device):
             mode         = 'RO',
             hidden       = True,
         ))
-        
+
         def parseBuildStamp(var,read):
             buildStamp = var.dependencies[0].get(read)
             if buildStamp is None:
                 return ''
-            else: 
+            else:
                 p = parse.parse("{ImageName}: {BuildEnv}, {BuildServer}, Built {BuildDate} by {Builder}", buildStamp)
                 if p is None:
                     return ''
                 else:
                     return p[var.name]
-        
+
         self.add(pr.LinkVariable(
             name = 'ImageName',
             mode = 'RO',
             linkedGet = parseBuildStamp,
             variable = self.BuildStamp))
- 
+
         self.add(pr.LinkVariable(
             name = 'BuildEnv',
             mode = 'RO',
@@ -250,19 +250,19 @@ class AxiVersion(pr.Device):
             mode = 'RO',
             linkedGet = parseBuildStamp,
             variable = self.BuildStamp))
-       
+
         self.add(pr.LinkVariable(
             name = 'BuildDate',
             mode = 'RO',
             linkedGet = parseBuildStamp,
             variable = self.BuildStamp))
-       
+
         self.add(pr.LinkVariable(
             name = 'Builder',
             mode = 'RO',
             linkedGet = parseBuildStamp,
             variable = self.BuildStamp))
-       
+
 
     def hardReset(self):
         print(f'{self.path} hard reset called')
@@ -272,7 +272,7 @@ class AxiVersion(pr.Device):
 
     def countReset(self):
         print(f'{self.path} count reset called')
-        
+
     def printStatus(self):
         try:
             gitHash = self.GitHash.get()

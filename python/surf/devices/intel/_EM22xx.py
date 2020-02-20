@@ -13,80 +13,80 @@ import pyrogue as pr
 import surf.protocols.i2c  as i2c
 
 class EM22xx(i2c.PMBus):
-    def __init__(   self,       
+    def __init__(   self,
             name        = 'EM22xx',
             description = 'EM22xx Container',
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs) 
+        super().__init__(name=name, description=description, **kwargs)
 
         self.add(pr.LinkVariable(
-            name         = 'VIN', 
-            mode         = 'RO', 
+            name         = 'VIN',
+            mode         = 'RO',
             units        = 'V',
             disp         = '{:1.3f}',
             linkedGet    = i2c.getPMbusLinearDataFormat,
             dependencies = [self.READ_VIN],
         ))
-        
+
         self.add(pr.LinkVariable(
-            name         = 'VOUT', 
-            mode         = 'RO', 
+            name         = 'VOUT',
+            mode         = 'RO',
             units        = 'V',
             disp         = '{:1.3f}',
             linkedGet    = i2c.getPMbusLinearDataFormat,
             dependencies = [self.READ_VOUT],
-        ))        
-        
+        ))
+
         self.add(pr.LinkVariable(
-            name         = 'IOUT', 
-            mode         = 'RO', 
+            name         = 'IOUT',
+            mode         = 'RO',
             units        = 'A',
             disp         = '{:1.3f}',
             linkedGet    = i2c.getPMbusLinearDataFormat,
             dependencies = [self.READ_IOUT],
-        ))   
-        
+        ))
+
         self.add(pr.LinkVariable(
-            name         = 'TEMPERATURE[1]', 
-            mode         = 'RO', 
+            name         = 'TEMPERATURE[1]',
+            mode         = 'RO',
             units        = 'degC',
             disp         = '{:1.3f}',
             linkedGet    = i2c.getPMbusLinearDataFormat,
             dependencies = [self.READ_TEMPERATURE_1],
-        ))   
-        
+        ))
+
         self.add(pr.LinkVariable(
-            name         = 'TEMPERATURE[2]', 
-            mode         = 'RO', 
+            name         = 'TEMPERATURE[2]',
+            mode         = 'RO',
             units        = 'degC',
             disp         = '{:1.3f}',
             linkedGet    = i2c.getPMbusLinearDataFormat,
             dependencies = [self.READ_TEMPERATURE_2],
-        )) 
-        
+        ))
+
         self.add(pr.LinkVariable(
-            name         = 'DUTY_CYCLE', 
-            mode         = 'RO', 
+            name         = 'DUTY_CYCLE',
+            mode         = 'RO',
             units        = 'kHz',
             disp         = '{:1.3f}',
             linkedGet    = i2c.getPMbusLinearDataFormat,
             dependencies = [self.READ_DUTY_CYCLE],
-        )) 
+        ))
 
         self.add(pr.LinkVariable(
-            name         = 'FREQUENCY', 
-            mode         = 'RO', 
+            name         = 'FREQUENCY',
+            mode         = 'RO',
             units        = 'kHz',
             disp         = '{:1.3f}',
             linkedGet    = i2c.getPMbusLinearDataFormat,
             dependencies = [self.READ_FREQUENCY],
-        ))         
-        
+        ))
+
         self.add(pr.LinkVariable(
-            name         = 'POUT', 
-            mode         = 'RO', 
+            name         = 'POUT',
+            mode         = 'RO',
             units        = 'W',
             disp         = '{:1.3f}',
             linkedGet    = i2c.getPMbusLinearDataFormat,
             dependencies = [self.READ_POUT],
-        ))   
+        ))

@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# Title      : Xilinx RFSoC data converter module 
+# Title      : Xilinx RFSoC data converter module
 #-----------------------------------------------------------------------------
 # Description:
 # Xilinx RFSoC data converter module
@@ -17,9 +17,9 @@ import pyrogue as pr
 import surf.xilinx as xil
 
 class RfDataConverter(pr.Device):
-    def __init__(   self, 
-            name        = "RfDataConverter", 
-            description = "RFSoC data converter registers", 
+    def __init__(   self,
+            name        = "RfDataConverter",
+            description = "RFSoC data converter registers",
             **kwargs):
         super().__init__(name=name, description=description, size=0x40000, **kwargs)
 

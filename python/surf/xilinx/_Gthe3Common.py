@@ -24,43 +24,43 @@ class Gthe3Common(pr.Device):
             bitSize=16,
             mode='RW',
             name='QPLL0_CFG0'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x0009 << 2,
             bitSize=16,
             mode='RW',
             name='COMMON_CFG0'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x000B << 2,
             bitSize=16,
             mode='RW',
             name='RSVD_ATTR0'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x0010 << 2,
             bitSize=16,
             mode='RW',
             name='QPLL0_CFG1'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x0011 << 2,
             bitSize=16,
             mode='RW',
             name='QPLL0_CFG2'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x0012 << 2,
             bitSize=16,
             mode='RW',
             name='QPLL0_LOCK_CFG'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x0013 << 2,
             bitSize=16,
             mode='RW',
             name='QPLL0_INIT_CFG0'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x0014 << 2,
             bitSize=8,
@@ -338,124 +338,124 @@ class Gthe3Common(pr.Device):
             enum = __REFCLK_DIV_ENUM,
             mode='RW',
             name='QPLL1_REFCLK_DIV'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x0099 << 2,
             bitSize=10,
             mode='RW',
             name='QPLL1_LPF'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x009A << 2,
             bitSize=16,
             mode='RW',
             name='QPLL1_CFG1_G3'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x009B << 2,
             bitSize=16,
             mode='RW',
             name='QPLL1_CFG2_G3'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x009C << 2,
             bitSize=10,
             mode='RW',
             name='QPLL1_LPF_G3'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x009D << 2,
             bitSize=16,
             mode='RW',
             name='QPLL1_LOCK_CFG_G3'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x009E << 2,
             bitSize=16,
             mode='RW',
             name='RSVD_ATTR2'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x009F << 2,
             bitSize=8,
             bitOffset=8,
             mode='RW',
             name='QPLL1_FBDIV_G3'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x009F << 2,
             bitSize=2,
             mode='RW',
             name='RXRECCLKOUT1_SEL'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x00A0 << 2,
             bitSize=16,
             mode='RW',
             name='QPLL1_SDM_CFG0'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x00A1 << 2,
             bitSize=16,
             mode='RW',
             name='QPLL1_SDM_CFG1'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x00A2 << 2,
             bitSize=16,
             mode='RW',
             name='SDM1INITSEED0_0'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x00A3 << 2,
             bitSize=9,
             mode='RW',
             name='SDM1INITSEED0_1'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x00A4 << 2,
             bitSize=16,
             mode='RW',
             name='QPLL1_SDM_CFG2'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x00A5 << 2,
             bitSize=10,
             mode='RW',
             name='QPLL1_CP_G3'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x00A8 << 2,
             bitSize=16,
             mode='RW',
             name='SDM1DATA1_0'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x00A9 << 2,
             bitSize=1,
             bitOffset=10,
             mode='RW',
             name='SDM1_WIDTH_PIN_SEL'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x00A9 << 2,
             bitSize=1,
             bitOffset=9,
             mode='RW',
             name='SDM1_DATA_PIN_SEL'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x00A9 << 2,
             bitSize=9,
             mode='RW',
             name='SDM1DATA1_1'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x00AD << 2,
             bitSize=16,
             mode='RW',
             name='RSVD_ATTR3'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x00B0 << 2,
             bitSize=16,

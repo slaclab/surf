@@ -30,4 +30,4 @@ class AxiStreamBatcherAxil(pr.Device):
             mode = 'RW',
             base = pr.UInt,
             disp = '{:d}'))
-        
+

@@ -13,7 +13,7 @@ import surf.xilinx as xil
 
 class ClockManager(xil.ClockManager):
     def __init__(self,**kwargs):
-        super().__init__(**kwargs)    
+        super().__init__(**kwargs)
 
         @self.command(description="Sets the 85 MHz configuration",)
         def Config85MHz():
@@ -93,9 +93,9 @@ class ClockManager(xil.ClockManager):
             self.LockReg[2].set(0xffe9)
             self.FiltReg[0].set(0x9908)
             self.FiltReg[1].set(0x8100)
-            
+
         @self.command(description="Sets the 25 MHz configuration",)
-        def Config25MHz():            
+        def Config25MHz():
             self.POWER.set(0xffff)
             self.PHASE_MUX[0].set(0x0)
             self.HIGH_TIME[0].set(0x15)

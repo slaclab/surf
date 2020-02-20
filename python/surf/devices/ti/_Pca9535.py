@@ -16,55 +16,54 @@
 import pyrogue as pr
 
 class Pca9535(pr.Device):
-    def __init__(   self,       
+    def __init__(   self,
             name        = "Pca9535",
             description = "Pca9535 Module",
             **kwargs):
-        
+
         super().__init__(name=name,description=description,**kwargs)
 
-        self.addRemoteVariables(       
-            name        = 'Input', 
+        self.addRemoteVariables(
+            name        = 'Input',
             description = 'Input Port',
-            offset      = (0x00 << 2), 
-            number      =  2, 
-            bitSize     =  8, 
-            bitOffset   =  0, 
+            offset      = (0x00 << 2),
+            number      =  2,
+            bitSize     =  8,
+            bitOffset   =  0,
             stride      =  4,
-            mode        = "RO", 
+            mode        = "RO",
             pollInterval = 1,
-        ) 
-
-        self.addRemoteVariables(       
-            name        = 'Output', 
-            description = 'Output Port',
-            offset      = (0x02 << 2), 
-            number      =  2, 
-            bitSize     =  8, 
-            bitOffset   =  0, 
-            stride      =  4,
-            mode        = "RW", 
-        )      
-
-        self.addRemoteVariables(       
-            name        = 'Polarity', 
-            description = 'Polarity Inversion Port',
-            offset      = (0x04 << 2), 
-            number      =  2, 
-            bitSize     =  8, 
-            bitOffset   =  0, 
-            stride      =  4,
-            mode        = "RW", 
-        )  
-
-        self.addRemoteVariables(       
-            name        = 'Config', 
-            description = 'Configuration Port',
-            offset      = (0x06 << 2), 
-            number      =  2, 
-            bitSize     =  8, 
-            bitOffset   =  0, 
-            stride      =  4,
-            mode        = "RW", 
         )
-        
+
+        self.addRemoteVariables(
+            name        = 'Output',
+            description = 'Output Port',
+            offset      = (0x02 << 2),
+            number      =  2,
+            bitSize     =  8,
+            bitOffset   =  0,
+            stride      =  4,
+            mode        = "RW",
+        )
+
+        self.addRemoteVariables(
+            name        = 'Polarity',
+            description = 'Polarity Inversion Port',
+            offset      = (0x04 << 2),
+            number      =  2,
+            bitSize     =  8,
+            bitOffset   =  0,
+            stride      =  4,
+            mode        = "RW",
+        )
+
+        self.addRemoteVariables(
+            name        = 'Config',
+            description = 'Configuration Port',
+            offset      = (0x06 << 2),
+            number      =  2,
+            bitSize     =  8,
+            bitOffset   =  0,
+            stride      =  4,
+            mode        = "RW",
+        )

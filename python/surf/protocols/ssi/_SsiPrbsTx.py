@@ -14,17 +14,17 @@
 import pyrogue as pr
 
 class SsiPrbsTx(pr.Device):
-    def __init__(   self,       
+    def __init__(   self,
             name        = "SsiPrbsTx",
             description = "SsiPrbsTx",
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs) 
+        super().__init__(name=name, description=description, **kwargs)
 
         ##############################
         # Variables
         ##############################
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AxiEn",
             description  = "",
             offset       =  0x00,
@@ -34,7 +34,7 @@ class SsiPrbsTx(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "TxEn",
             description  = "",
             offset       =  0x00,
@@ -44,7 +44,7 @@ class SsiPrbsTx(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "Busy",
             description  = "",
             offset       =  0x00,
@@ -55,7 +55,7 @@ class SsiPrbsTx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "Overflow",
             description  = "",
             offset       =  0x00,
@@ -66,7 +66,7 @@ class SsiPrbsTx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "FwCnt",
             description  = "",
             offset       =  0x00,
@@ -76,7 +76,7 @@ class SsiPrbsTx(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "PacketLength",
             description  = "",
             offset       =  0x04,
@@ -86,7 +86,7 @@ class SsiPrbsTx(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "tDest",
             description  = "",
             offset       =  0x08,
@@ -96,7 +96,7 @@ class SsiPrbsTx(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "tId",
             description  = "",
             offset       =  0x08,
@@ -106,7 +106,7 @@ class SsiPrbsTx(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "DataCount",
             description  = "",
             offset       =  0x0C,
@@ -117,7 +117,7 @@ class SsiPrbsTx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "EventCount",
             description  = "",
             offset       =  0x10,
@@ -128,7 +128,7 @@ class SsiPrbsTx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "RandomData",
             description  = "",
             offset       =  0x14,
@@ -139,7 +139,7 @@ class SsiPrbsTx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteCommand(    
+        self.add(pr.RemoteCommand(
             name         = "OneShot",
             description  = "",
             offset       =  0x18,
@@ -148,10 +148,10 @@ class SsiPrbsTx(pr.Device):
             base         = pr.UInt,
             function     = pr.BaseCommand.touchOne
         ))
-        
-        self.add(pr.RemoteVariable(    
+
+        self.add(pr.RemoteVariable(
             name         = "TrigDly",
             offset       =  0x1C,
             bitSize      =  32,
             mode         = "RW",
-        ))        
+        ))

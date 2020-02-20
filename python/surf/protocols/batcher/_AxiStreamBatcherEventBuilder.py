@@ -16,7 +16,7 @@
 import pyrogue as pr
 
 class AxiStreamBatcherEventBuilder(pr.Device):
-    def __init__(self,       
+    def __init__(self,
             name         = "AxiStreamBatcherEventBuilder",
             description  = "AxiStreamBatcherEventBuilder Container",
             numberSlaves = 1,
@@ -24,7 +24,7 @@ class AxiStreamBatcherEventBuilder(pr.Device):
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = 'DataCnt',
             description  = 'Increments every time a data frame is received',
             offset       = 0x000,
@@ -33,9 +33,9 @@ class AxiStreamBatcherEventBuilder(pr.Device):
             number       = numberSlaves,
             stride       = 4,
             pollInterval = 1,
-        ) 
+        )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = 'NullCnt',
             description  = 'Increments every time a null frame is received',
             offset       = 0x100,
@@ -44,9 +44,9 @@ class AxiStreamBatcherEventBuilder(pr.Device):
             number       = numberSlaves,
             stride       = 4,
             pollInterval = 1,
-        )   
+        )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = 'TimeoutDropCnt',
             description  = 'Increments every time a timeout slave channel drop event happens',
             offset       = 0x200,
@@ -55,34 +55,34 @@ class AxiStreamBatcherEventBuilder(pr.Device):
             number       = numberSlaves,
             stride       = 4,
             pollInterval = 1,
-        )           
-        
-        self.add(pr.RemoteVariable(   
+        )
+
+        self.add(pr.RemoteVariable(
             name         = 'TransactionCnt',
             description  = 'Increments every time a transition frame is received',
             offset       = 0xFC0,
             bitSize      = 32,
             mode         = 'RO',
             pollInterval = 1,
-        ))   
-        
-        self.add(pr.RemoteVariable(   
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = 'TRANS_TDEST_G',
             description  = 'TRANS_TDEST_G generic value',
             offset       = 0xFC4,
             bitSize      = 8,
             mode         = 'RO',
-        ))        
-        
-        self.add(pr.RemoteVariable(   
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = 'Bypass',
             description  = 'Mask to bypass a channel',
             offset       = 0xFD0,
             bitSize      = numberSlaves,
             mode         = 'RW',
-        ))        
-        
-        self.add(pr.RemoteVariable(   
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = 'Timeout',
             description  = 'Sets the timer\'s timeout duration.  Setting to 0x0 (default) bypasses the timeout feature',
             offset       = 0xFF0,
@@ -90,8 +90,8 @@ class AxiStreamBatcherEventBuilder(pr.Device):
             mode         = 'RW',
             units        = tickUnit,
         ))
-        
-        self.add(pr.RemoteVariable(   
+
+        self.add(pr.RemoteVariable(
             name         = 'NUM_SLAVES_G',
             description  = 'NUM_SLAVES_G generic value',
             offset       = 0xFF4,
@@ -99,22 +99,22 @@ class AxiStreamBatcherEventBuilder(pr.Device):
             mode         = 'RO',
             disp         = '{:d}',
         ))
-        
-        self.add(pr.RemoteVariable(    
+
+        self.add(pr.RemoteVariable(
             name         = "State",
             description  = "current state of FSM (for debugging)",
             offset       =  0xFF8,
             bitSize      =  1,
             bitOffset    =  8,
             mode         = "RO",
-            pollInterval = 1,            
+            pollInterval = 1,
             enum         = {
-                0x0: 'IDLE_S', 
-                0x1: 'MOVE_S', 
-            },    
-        ))         
-        
-        self.add(pr.RemoteVariable(    
+                0x0: 'IDLE_S',
+                0x1: 'MOVE_S',
+            },
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = "Blowoff",
             description  = "Blows off the inbound AXIS stream (for debugging)",
             offset       =  0xFF8,
@@ -122,44 +122,44 @@ class AxiStreamBatcherEventBuilder(pr.Device):
             bitOffset    =  0,
             base         = pr.Bool,
             mode         = "RW",
-        ))          
-        
-        self.add(pr.RemoteCommand(    
+        ))
+
+        self.add(pr.RemoteCommand(
             name         = "CntRst",
             description  = "",
             offset       = 0xFFC,
             bitSize      = 1,
             bitOffset    = 0,
             function     = pr.BaseCommand.toggle,
-        ))  
+        ))
 
-        self.add(pr.RemoteCommand(    
+        self.add(pr.RemoteCommand(
             name         = "TimerRst",
             description  = "",
             offset       = 0xFFC,
             bitSize      = 1,
             bitOffset    = 1,
             function     = pr.BaseCommand.toggle,
-        )) 
+        ))
 
-        self.add(pr.RemoteCommand(    
+        self.add(pr.RemoteCommand(
             name         = "HardRst",
             description  = "",
             offset       = 0xFFC,
             bitSize      = 1,
             bitOffset    = 2,
             function     = pr.BaseCommand.toggle,
-        ))   
+        ))
 
-        self.add(pr.RemoteCommand(    
+        self.add(pr.RemoteCommand(
             name         = "SoftRst",
             description  = "",
             offset       = 0xFFC,
             bitSize      = 1,
             bitOffset    = 3,
             function     = pr.BaseCommand.toggle,
-        ))           
-        
+        ))
+
     def hardReset(self):
         self.HardRst()
 

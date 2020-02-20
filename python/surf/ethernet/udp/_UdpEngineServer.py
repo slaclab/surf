@@ -12,16 +12,16 @@ import pyrogue as pr
 from surf.ethernet import udp
 
 class UdpEngineServer(pr.Device):
-    def __init__(   self,       
+    def __init__(   self,
             name        = "UdpEngineServer",
             description = "UdpEngineServer",
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs) 
+        super().__init__(name=name, description=description, **kwargs)
         ##############################
         # Variables
         ##############################
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = "ServerRemotePort",
             description  = "ServerRemotePort (big-Endian configuration)",
             offset       =  0x00,
@@ -31,14 +31,14 @@ class UdpEngineServer(pr.Device):
         ))
 
         self.add(pr.LinkVariable(
-            name         = "ServerRemotePortValue", 
+            name         = "ServerRemotePortValue",
             description  = "ServerRemotePort (human readable)",
-            mode         = 'RO', 
+            mode         = 'RO',
             linkedGet    = udp.getPortValue,
             dependencies = [self.variables["ServerRemotePort"]],
-        ))        
-        
-        self.add(pr.RemoteVariable(   
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = "ServerRemoteIp",
             description  = "ServerRemoteIp (big-Endian configuration)",
             offset       =  0x04,
@@ -46,11 +46,11 @@ class UdpEngineServer(pr.Device):
             mode         = "RO",
             hidden       = True,
         ))
-        
+
         self.add(pr.LinkVariable(
-            name         = "ServerRemoteIpValue", 
+            name         = "ServerRemoteIpValue",
             description  = "ServerRemoteIp (human readable)",
-            mode         = 'RO', 
+            mode         = 'RO',
             linkedGet    = udp.getIpValue,
             dependencies = [self.variables["ServerRemoteIp"]],
-        ))         
+        ))

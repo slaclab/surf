@@ -20,19 +20,19 @@ class AxiStreamScatterGather(pr.Device):
             mode = 'RO',
             offset = 0x00,
             disp = '{:#08x}'))
-        
+
         self.add(pr.RemoteVariable(
             name = 'RxSofAddr',
             mode = 'RO',
             offset = 0x04,
             disp = '{:#08x}'))
-        
+
         self.add(pr.RemoteVariable(
             name = 'RxWordCount',
             mode = 'RO',
             offset = 0x08,
             disp = '{:d}'))
-        
+
         self.add(pr.RemoteVariable(
             name = 'RxFrameNumber',
             mode = 'RO',
@@ -47,7 +47,7 @@ class AxiStreamScatterGather(pr.Device):
             bitSize = 1,
             bitOffset = 31,
             base = pr.Bool))
-        
+
         self.add(pr.RemoteVariable(
             name = 'TxRamRdAddr',
             mode = 'RO',
@@ -83,10 +83,10 @@ class AxiStreamScatterGather(pr.Device):
             mode = 'RO',
             offset = 0x24,
             disp = '{:d}'))
-        
+
         self.add(pr.RemoteVariable(
             name = 'BadWordCount',
             mode = 'RO',
             offset = 0x28,
             disp = '{:d}'))
-        
+

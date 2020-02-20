@@ -36,7 +36,7 @@ class AxiVersionLegacy(pr.Device):
             hasGitHash=True,
             dnaBigEndian=False,
             **kwargs):
-        
+
         super().__init__(
             name        = name,
             description = description,
@@ -59,7 +59,7 @@ class AxiVersionLegacy(pr.Device):
             disp         = '{:#08x}',
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = 'ScratchPad',
             description  = 'Register to test reads and writes',
             offset       = 0x04,
@@ -67,11 +67,11 @@ class AxiVersionLegacy(pr.Device):
             bitOffset    = 0x00,
             base         = pr.UInt,
             mode         = 'RW',
-            disp         = '{:#08x}',            
+            disp         = '{:#08x}',
         ))
 
         if hasUpTimeCnt:
-            self.add(pr.RemoteVariable(   
+            self.add(pr.RemoteVariable(
                 name         = 'UpTimeCnt',
                 description  = 'Number of seconds since last reset',
                 hidden       = True,
@@ -91,9 +91,9 @@ class AxiVersionLegacy(pr.Device):
                 linkedGet = lambda: str(datetime.timedelta(seconds=self.UpTimeCnt.value()))
             ))
 
-        
+
         if hasFpgaReloadHalt:
-            self.add(pr.RemoteVariable(   
+            self.add(pr.RemoteVariable(
                 name         = 'FpgaReloadHalt',
                 description  = 'Used to halt automatic reloads via AxiVersion',
                 offset       = 0x28,
@@ -104,7 +104,7 @@ class AxiVersionLegacy(pr.Device):
                 hidden       = True,
             ))
 
-        self.add(pr.RemoteCommand(   
+        self.add(pr.RemoteCommand(
             name         = 'FpgaReload',
             description  = 'Optional Reload the FPGA from the attached PROM',
             offset       = 0x1C,
@@ -114,7 +114,7 @@ class AxiVersionLegacy(pr.Device):
             function     = pr.RemoteCommand.postedTouchOne
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = 'FpgaReloadAddress',
             description  = 'Reload start address',
             offset       = 0x020,
@@ -124,7 +124,7 @@ class AxiVersionLegacy(pr.Device):
             mode         = 'RW',
         ))
 
-#         self.add(pr.RemoteVariable(   
+#         self.add(pr.RemoteVariable(
 #             name         = 'UserReset',
 #             description  = 'Optional User Reset',
 #             offset       = 0x018,
@@ -141,7 +141,7 @@ class AxiVersionLegacy(pr.Device):
             else:
                 return base
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = 'FdSerialRaw',
             description  = 'Board ID value read from DS2411 chip',
             offset       =  0x10,
@@ -155,11 +155,11 @@ class AxiVersionLegacy(pr.Device):
 
         self.add(pr.LinkVariable(
             name = 'FdSerial',
-            disp = '{:#08x}',            
+            disp = '{:#08x}',
             dependencies = [self.FdSerialRaw],
             linkedGet = endianSwap))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = 'DeviceDnaRaw',
             description  = 'Xilinx Device DNA value burned into FPGA',
             offset       = 0x8,
@@ -175,9 +175,9 @@ class AxiVersionLegacy(pr.Device):
             disp = '{:#08x}',
             dependencies = [self.DeviceDnaRaw],
             linkedGet = endianSwap))
-        
+
         if hasDeviceId:
-            self.add(pr.RemoteVariable(   
+            self.add(pr.RemoteVariable(
                 name         = 'DeviceId',
                 description  = 'Device Identification  (configued by generic)',
                 offset       = 0x030,
@@ -188,7 +188,7 @@ class AxiVersionLegacy(pr.Device):
             ))
 
         if hasGitHash:
-            self.add(pr.RemoteVariable(   
+            self.add(pr.RemoteVariable(
                 name         = 'GitHash',
                 description  = 'GIT SHA-1 Hash',
                 offset       = 0x100,
@@ -206,7 +206,7 @@ class AxiVersionLegacy(pr.Device):
                 linkedGet = lambda: self.GitHash.value() >> 132
             ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = 'BuildStamp',
             description  = 'Firmware Build String',
             offset       = 0x800,
@@ -216,7 +216,7 @@ class AxiVersionLegacy(pr.Device):
             mode         = 'RO',
         ))
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = 'UserConstants',
             description  = 'Optional user input values',
             offset       = 0x400,
@@ -228,5 +228,5 @@ class AxiVersionLegacy(pr.Device):
             stride       =  4,
             hidden       = True,
         )
-        
+
 

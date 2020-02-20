@@ -17,19 +17,19 @@ import pyrogue              as pr
 import surf.protocols.clink as cl
 
 class ClinkChannel(pr.Device):
-    def __init__(   self,       
+    def __init__(   self,
             name        = "ClinkChannel",
             description = "CameraLink channel",
             serial      = None,
             camType     = None,
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs) 
+        super().__init__(name=name, description=description, **kwargs)
 
         ##############################
         # Variables
         ##############################
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "LinkMode",
             offset       =  0x00,
             bitSize      =  3,
@@ -46,18 +46,18 @@ class ClinkChannel(pr.Device):
                 """,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "DataMode",
             description  = "Data mode",
             offset       =  0x04,
             bitSize      =  4,
             bitOffset    =  0,
             mode         = "RW",
-            enum         = { 0 : 'None',  1 : '8Bit',  2 : '10Bit', 3 : '12Bit', 4 : '14Bit', 
+            enum         = { 0 : 'None',  1 : '8Bit',  2 : '10Bit', 3 : '12Bit', 4 : '14Bit',
                              5 : '16Bit', 6 : '24Bit', 7 : '30Bit', 8 : '36Bit'},
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "FrameMode",
             offset       =  0x08,
             bitSize      =  2,
@@ -68,10 +68,10 @@ class ClinkChannel(pr.Device):
                 None: Disables output
                 Line: 1D camera
                 Frame" 2D pixel array
-                """,            
+                """,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "TapCount",
             description  = "# of video output taps on the Camera Link Interface (# of individual data value channels)",
             offset       =  0x0C,
@@ -82,7 +82,7 @@ class ClinkChannel(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "DataEn",
             description  = "Data enable.  When 0x0 causes reset on ClinkData\'s FSM module",
             offset       =  0x10,
@@ -91,8 +91,8 @@ class ClinkChannel(pr.Device):
             base         = pr.Bool,
             mode         = "RW",
         ))
-        
-        self.add(pr.RemoteVariable(    
+
+        self.add(pr.RemoteVariable(
             name         = "Blowoff",
             description  = "Blows off the outbound AXIS stream (for debugging)",
             offset       =  0x10,
@@ -100,18 +100,18 @@ class ClinkChannel(pr.Device):
             bitOffset    =  1,
             base         = pr.Bool,
             mode         = "RW",
-        )) 
+        ))
 
-        self.add(pr.RemoteCommand(    
+        self.add(pr.RemoteCommand(
             name         = "CntRst",
             description  = "",
             offset       = 0x10,
             bitSize      = 1,
             bitOffset    = 2,
             function     = pr.BaseCommand.toggle,
-        ))          
+        ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "SerThrottle",
             description  = "Throttles the UART Serial TX byte rate. Used when the camera cannot accept new bytes until the previous command processed",
             offset       =  0x10,
@@ -121,9 +121,9 @@ class ClinkChannel(pr.Device):
             mode         = "RW",
             units        = "microsec",
             value        = 30000, # 30ms/byte
-        ))            
+        ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "BaudRate",
             description  = "Baud rate",
             offset       =  0x14,
@@ -134,8 +134,8 @@ class ClinkChannel(pr.Device):
             units        = "bps",
             value        = 9600,
         ))
-        
-        self.add(pr.RemoteVariable(    
+
+        self.add(pr.RemoteVariable(
             name         = "SwControlValue",
             description  = "Software camera control bit values",
             offset       =  0x18,
@@ -144,7 +144,7 @@ class ClinkChannel(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "SwControlEn",
             description  = "Software camera control bit enable mask for lane A",
             offset       =  0x1C,
@@ -153,7 +153,7 @@ class ClinkChannel(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "Running",
             description  = "Camera link lane running status",
             offset       =  0x20,
@@ -164,7 +164,7 @@ class ClinkChannel(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "FrameCount",
             description  = "Frame counter",
             offset       =  0x24,
@@ -175,7 +175,7 @@ class ClinkChannel(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "DropCount",
             description  = "Drop counter",
             offset       =  0x28,
@@ -185,65 +185,65 @@ class ClinkChannel(pr.Device):
             mode         = "RO",
             pollInterval = 1,
         ))
-        
+
         ##############################################################################
 
         self._rx = None
         self._tx = None
-        
+
         # Check if serial interface defined
         if serial is not None:
-        
+
             # Check for OPA1000 camera
             if (camType=='Opal1000'):
-                
+
                 # Override defaults
                 self.BaudRate._default    = 57600
-            
+
                 # Add the device
-                self.add(cl.UartOpal1000(      
-                    name   = 'UartOpal1000', 
+                self.add(cl.UartOpal1000(
+                    name   = 'UartOpal1000',
                     serial = serial,
                     expand = False,
                 ))
-                
+
             # Check for Piranha4 camera
             elif (camType=='Piranha4'):
-            
+
                 # Add the device
-                self.add(cl.UartPiranha4(      
-                    name        = 'UartPiranha4', 
+                self.add(cl.UartPiranha4(
+                    name        = 'UartPiranha4',
                     serial      = serial,
                     expand      = False,
-                ))      
-                
+                ))
+
             # Check for Uniq UP-900CL-12B camera
             elif (camType=='Up900cl12b'):
 
                 # Override defaults
                 self.SerThrottle._default = 30000
-            
+
                 # Add the device
-                self.add(cl.UartUp900cl12b(      
-                    name        = 'UartUp900cl12b', 
+                self.add(cl.UartUp900cl12b(
+                    name        = 'UartUp900cl12b',
                     serial      = serial,
                     expand      = False,
                 ))
-                
+
             # Else generic interface to serial stream
             elif camType is None:
-                
+
                 # Add the device
-                self.add(cl.UartGeneric(      
-                    name        = 'UartGeneric', 
+                self.add(cl.UartGeneric(
+                    name        = 'UartGeneric',
                     serial      = serial,
                     expand      = False,
-                ))              
-                
+                ))
+
             else:
-                raise ValueError('Invalid camType (%s)' % (camType) )                
+                raise ValueError('Invalid camType (%s)' % (camType) )
         ##############################################################################
-        
+
     def hardReset(self):
         self.CntRst()
 
@@ -252,4 +252,3 @@ class ClinkChannel(pr.Device):
 
     def countReset(self):
         self.CntRst()
-        

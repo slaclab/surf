@@ -30,7 +30,7 @@ class AxiCdcm6208(pr.Device):
         ####################################################################################
         ## Commented out because causes a "Segmentation fault" when "ReadAll()" is performed
         ####################################################################################
-#        self.addRemoteVariables(   
+#        self.addRemoteVariables(
 #            name         = "Cdcm6208",
 #            description  = "Cdcm6208 Control Registers",
 #            offset       =  0x00,
@@ -42,7 +42,7 @@ class AxiCdcm6208(pr.Device):
 #            stride       =  4,
 #        )
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "SEL_REF",
             description  = "Indicates Reference Selected for PLL:0 SEL_REF 0 => Primary 1 => Secondary",
             offset       =  0x54,
@@ -52,7 +52,7 @@ class AxiCdcm6208(pr.Device):
             mode         = "RO",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "LOS_REF",
             description  = "Loss of reference input: 0 => Reference input present 1 => Loss of reference input.",
             offset       =  0x54,
@@ -62,7 +62,7 @@ class AxiCdcm6208(pr.Device):
             mode         = "RO",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "PLL_UNLOCK",
             description  = "Indicates unlock status for PLL (digital):0 => PLL locked 1 => PLL unlocked",
             offset       =  0x54,
@@ -72,7 +72,7 @@ class AxiCdcm6208(pr.Device):
             mode         = "RO",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "DIE_REVISION",
             description  = "Indicates the silicon die revision (Read only): 2:0 DIE_REVISION 00X --> Engineering Prototypes 010 --> Production Materia",
             offset       =  0xA0,
@@ -82,7 +82,7 @@ class AxiCdcm6208(pr.Device):
             mode         = "RO",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "VCO_VERSION",
             description  = "Indicates the device version (Read only):5:3 VCO_VERSION 000 => CDCM6208V1 001 => CDCM6208V2",
             offset       =  0xA0,

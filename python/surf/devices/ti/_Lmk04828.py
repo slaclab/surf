@@ -559,7 +559,7 @@ class Lmk04828(pr.Device):
             mode         = 'WO',
             value        = 0x02,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x0146',
             description  = 'CLKin2_EN, CLKin1_EN, CLKin0_EN, CLKin2_TYPE, CLKin1_TYPE, CLKin0_TYPE',
@@ -823,7 +823,7 @@ class Lmk04828(pr.Device):
             bitSize      = 8,
             mode         = 'RW',
         ))
-        
+
         self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x0167',
             description  = 'PLL2_N[15:8]',
@@ -863,7 +863,7 @@ class Lmk04828(pr.Device):
             bitSize      = 8,
             mode         = 'RW',
         ))
-        
+
         self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x016C',
             description  = 'PLL2_LF_R4, PLL2_LF_R3',
@@ -871,22 +871,22 @@ class Lmk04828(pr.Device):
             bitSize      = 8,
             mode         = 'RW',
         ))
-        
+
         self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x016D',
             description  = 'PLL2_LF_C4, PLL2_LF_C3',
             offset       = (0x016D << 2),
             bitSize      = 8,
             mode         = 'RW',
-        ))        
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x016E',
             description  = 'PLL2_LD_MUX, PLL2_LD_TYPE',
             offset       = (0x016E << 2),
             bitSize      = 8,
             mode         = 'RW',
-        ))        
+        ))
 
         self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x0173',
@@ -894,23 +894,23 @@ class Lmk04828(pr.Device):
             offset       = (0x0173 << 2),
             bitSize      = 8,
             mode         = 'RW',
-        ))        
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x0174',
             description  = 'VCO1_DIV (LMK04821 only)',
             offset       = (0x0174 << 2),
             bitSize      = 8,
             mode         = 'RW',
-        ))        
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x017C',
             description  = 'OPT_REG_1: 21: LMK04821, 24: LMK04826, 21: LMK04828',
             offset       = (0x017C << 2),
             bitSize      = 8,
             mode         = 'RW',
-        ))        
+        ))
 
         self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x017D',
@@ -918,71 +918,71 @@ class Lmk04828(pr.Device):
             offset       = (0x017D << 2),
             bitSize      = 8,
             mode         = 'RW',
-        ))        
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x0182',
             description  = 'RB_PLL1_LD_LOST, RB_PLL1_LD, CLR_PLL1_LD_LOST',
             offset       = (0x0182 << 2),
             bitSize      = 8,
             mode         = 'RO',
-        ))          
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x0183',
             description  = 'RB_PLL2_LD_LOST, RB_PLL2_LD, CLR_PLL2_LD_LOST',
             offset       = (0x0183 << 2),
             bitSize      = 8,
             mode         = 'RO',
-        ))            
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x0184',
             description  = 'RB_DAC_VALUE[9:8], RB_CLKinX_SEL, RB_CLKinX_LOS',
             offset       = (0x0184 << 2),
             bitSize      = 8,
             mode         = 'RO',
-        ))         
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x0185',
             description  = 'RB_DAC_VALUE[7:0]',
             offset       = (0x0185 << 2),
             bitSize      = 8,
             mode         = 'RO',
-        ))         
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x0188',
             description  = 'RB_HOLDOVER',
             offset       = (0x0188 << 2),
             bitSize      = 8,
             mode         = 'RO',
-        ))        
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x1FFD',
             description  = 'SPI_LOCK[23:16]',
             offset       = (0x1FFD << 2),
             bitSize      = 8,
             mode         = 'WO',
-        ))         
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x1FFE',
             description  = 'SPI_LOCK[15:8]',
             offset       = (0x1FFE << 2),
             bitSize      = 8,
             mode         = 'WO',
-        ))            
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x1FFF',
             description  = 'SPI_LOCK[7:0]',
             offset       = (0x1FFF << 2),
             bitSize      = 8,
             mode         = 'WO',
-        ))        
+        ))
 
         ######################################
         #        Aliased Registers
@@ -1132,7 +1132,7 @@ class Lmk04828(pr.Device):
             bitSize      = 1,
             mode         = 'RW',
         ))
-        
+
         ##############################
         # Commands
         ##############################
@@ -1211,7 +1211,7 @@ class Lmk04828(pr.Device):
             self.LmkReg_0x0143.set(0x12)
             self.LmkReg_0x0143.set(0x32)
             self.LmkReg_0x0143.set(0x12)
-            
+
             # Fixed Register:
             self.LmkReg_0x0145.set(0x7F) # Always program this register to value 127 (0x7F)
             self.LmkReg_0x0171.set(0xAA) # Always program to 170 (0xAA)

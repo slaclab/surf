@@ -17,19 +17,19 @@ import pyrogue as pr
 import time
 
 class Adc16Dx370(pr.Device):
-    def __init__( self,       
+    def __init__( self,
             name        = "Adc16Dx370",
             description = "ADC16Dx370 Module",
             verify      =  False,
             **kwargs):
 
-        super().__init__(name=name,description=description, **kwargs) 
+        super().__init__(name=name,description=description, **kwargs)
 
         ##############################
         # Variables
         ##############################
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0000",
             description  = "ADC Control Registers",
             offset       =  0x00,
@@ -39,7 +39,7 @@ class Adc16Dx370(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0002",
             description  = "ADC Control Registers",
             offset       =  0x08,
@@ -49,7 +49,7 @@ class Adc16Dx370(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0003",
             description  = "ADC Control Registers",
             offset       =  0x0C,
@@ -60,7 +60,7 @@ class Adc16Dx370(pr.Device):
             overlapEn    = True,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0004",
             description  = "ADC Control Registers",
             offset       =  0x0F,
@@ -70,7 +70,7 @@ class Adc16Dx370(pr.Device):
             mode         = "RO",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0005",
             description  = "ADC Control Registers",
             offset       =  0x14,
@@ -81,7 +81,7 @@ class Adc16Dx370(pr.Device):
             overlapEn    = True,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0006",
             description  = "ADC Control Registers",
             offset       =  0x18,
@@ -92,7 +92,7 @@ class Adc16Dx370(pr.Device):
             overlapEn    = True,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x000C",
             description  = "ADC Control Registers",
             offset       =  0x30,
@@ -103,7 +103,7 @@ class Adc16Dx370(pr.Device):
             overlapEn    = True,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x000D",
             description  = "ADC Control Registers",
             offset       =  0x34,
@@ -114,7 +114,7 @@ class Adc16Dx370(pr.Device):
             overlapEn    = True,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0010",
             description  = "ADC Control Registers",
             offset       =  0x40,
@@ -124,7 +124,7 @@ class Adc16Dx370(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0012",
             description  = "ADC Control Registers",
             offset       =  0x48,
@@ -134,7 +134,7 @@ class Adc16Dx370(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0013",
             description  = "ADC Control Registers",
             offset       =  0x4C,
@@ -144,7 +144,7 @@ class Adc16Dx370(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0014",
             description  = "ADC Control Registers",
             offset       =  0x50,
@@ -154,7 +154,7 @@ class Adc16Dx370(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0015",
             description  = "ADC Control Registers",
             offset       =  0x54,
@@ -164,7 +164,7 @@ class Adc16Dx370(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0019",
             description  = "ADC Control Registers",
             offset       =  0x64,
@@ -174,7 +174,7 @@ class Adc16Dx370(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(     
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x003B",
             description  = "ADC Control Registers",
             offset       =  0xEC,
@@ -184,7 +184,7 @@ class Adc16Dx370(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x003C",
             description  = "ADC Control Registers",
             offset       =  0xF0,
@@ -194,7 +194,7 @@ class Adc16Dx370(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x003D",
             description  = "ADC Control Registers",
             offset       =  0xF4,
@@ -204,7 +204,7 @@ class Adc16Dx370(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0047",
             description  = "ADC Control Registers",
             offset       =  0x11C,
@@ -214,7 +214,7 @@ class Adc16Dx370(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0060",
             description  = "ADC Control Registers",
             offset       =  0x180,
@@ -224,7 +224,7 @@ class Adc16Dx370(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0061",
             description  = "ADC Control Registers",
             offset       =  0x184,
@@ -234,7 +234,7 @@ class Adc16Dx370(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0062",
             description  = "ADC Control Registers",
             offset       =  0x188,
@@ -244,7 +244,7 @@ class Adc16Dx370(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0063",
             description  = "ADC Control Registers",
             offset       =  0x18C,
@@ -254,7 +254,7 @@ class Adc16Dx370(pr.Device):
             mode         = "RO",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0070",
             description  = "ADC Control Registers",
             offset       =  0x1C0,
@@ -264,7 +264,7 @@ class Adc16Dx370(pr.Device):
             mode         = "RO",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "ID_DEVICE_TYPE",
             description  = "ID_DEVICE_TYPE",
             offset       =  0x0C,
@@ -275,7 +275,7 @@ class Adc16Dx370(pr.Device):
             overlapEn    = True,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "ID_PROD_UPPER",
             description  = "ID_PROD_UPPER",
             offset       =  0x10,
@@ -286,7 +286,7 @@ class Adc16Dx370(pr.Device):
             overlapEn    = True,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "ID_PROD_LOWER",
             description  = "ID_PROD_LOWER",
             offset       =  0x14,
@@ -297,7 +297,7 @@ class Adc16Dx370(pr.Device):
             overlapEn    = True,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "ID_MASKREV",
             description  = "ID_MASKREV",
             offset       =  0x18,
@@ -308,7 +308,7 @@ class Adc16Dx370(pr.Device):
             overlapEn    = True,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "ID_VNDR_UPPER",
             description  = "ID_VNDR_UPPER",
             offset       =  0x30,
@@ -319,7 +319,7 @@ class Adc16Dx370(pr.Device):
             overlapEn    = True,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "ID_VNDR_LOWER",
             description  = "ID_VNDR_LOWER",
             offset       =  0x34,
@@ -330,7 +330,7 @@ class Adc16Dx370(pr.Device):
             overlapEn    = True,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "Clock_ready",
             description  = "Clock_ready",
             offset       =  0x1B0,
@@ -341,7 +341,7 @@ class Adc16Dx370(pr.Device):
             overlapEn    = True,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "Calibration_done",
             description  = "Calibration_done",
             offset       =  0x1B0,
@@ -352,7 +352,7 @@ class Adc16Dx370(pr.Device):
             overlapEn    = True,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "PLL_lock",
             description  = "PLL_lock",
             offset       =  0x1B0,
@@ -363,7 +363,7 @@ class Adc16Dx370(pr.Device):
             overlapEn    = True,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "Aligned_to_sysref",
             description  = "Aligned_to_sysref",
             offset       =  0x1B0,
@@ -374,7 +374,7 @@ class Adc16Dx370(pr.Device):
             overlapEn    = True,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "Realigned_to_sysref",
             description  = "Realigned_to_sysref",
             offset       =  0x1B0,
@@ -385,7 +385,7 @@ class Adc16Dx370(pr.Device):
             overlapEn    = True,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "Sync_form_FPGA",
             description  = "Sync_form_FPGA",
             offset       =  0x1B0,
@@ -396,7 +396,7 @@ class Adc16Dx370(pr.Device):
             overlapEn    = True,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "Link_active",
             description  = "Link_active",
             offset       =  0x1B0,
@@ -412,15 +412,15 @@ class Adc16Dx370(pr.Device):
         ##############################
 
         @self.command(description="PowerDown",)
-        def PowerDown():         
+        def PowerDown():
             self.AdcReg_0x0002.set(3)
-            
+
         @self.command(description="PowerUp",)
-        def PowerUp():         
-            self.AdcReg_0x0002.set(0)  
+        def PowerUp():
+            self.AdcReg_0x0002.set(0)
 
         @self.command(description="CalibrateAdc",)
-        def CalibrateAdc():         
-            self.PowerDown.set(1)    
+        def CalibrateAdc():
+            self.PowerDown.set(1)
             time.sleep(1.0)
-            self.PowerUp.set(1)   
+            self.PowerUp.set(1)

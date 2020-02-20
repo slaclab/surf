@@ -14,19 +14,19 @@
 import pyrogue as pr
 
 class SsiPrbsRx(pr.Device):
-    def __init__(self,       
+    def __init__(self,
                  name        = "SsiPrbsRx",
                  description = "SsiPrbsRx",
                  rxClkPeriod = 6.4e-9,
                  seedBits = 32,
                  **kwargs):
-        super().__init__(name=name, description=description, **kwargs) 
+        super().__init__(name=name, description=description, **kwargs)
 
         ##############################
         # Variables
         ##############################
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "MissedPacketCnt",
             description  = "Number of missed packets",
             offset       =  0x00,
@@ -35,7 +35,7 @@ class SsiPrbsRx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "LengthErrCnt",
             description  = "Number of packets that were the wrong length",
             offset       =  0x04,
@@ -44,7 +44,7 @@ class SsiPrbsRx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "EofeErrCnt",
             description  = "Number of EOFE errors",
             offset       =  0x08,
@@ -53,7 +53,7 @@ class SsiPrbsRx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "DataBusErrCnt",
             description  = "Number of data bus errors",
             offset       =  0x0C,
@@ -62,7 +62,7 @@ class SsiPrbsRx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "WordStrbErrCnt",
             description  = "Number of word errors",
             offset       =  0x10,
@@ -71,7 +71,7 @@ class SsiPrbsRx(pr.Device):
             pollInterval = 1,
         ))
 
-        # self.add(pr.RemoteVariable(    
+        # self.add(pr.RemoteVariable(
             # name         = "BitStrbErrCnt",
             # description  = "Number of bit errors",
             # offset       =  0x14,
@@ -80,7 +80,7 @@ class SsiPrbsRx(pr.Device):
             # pollInterval = 1,
         # ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "RxFifoOverflowCnt",
             description  = "",
             offset       =  0x18,
@@ -89,7 +89,7 @@ class SsiPrbsRx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "RxFifoPauseCnt",
             description  = "",
             offset       =  0x1C,
@@ -98,7 +98,7 @@ class SsiPrbsRx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "TxFifoOverflowCnt",
             description  = "",
             offset       =  0x20,
@@ -107,7 +107,7 @@ class SsiPrbsRx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "TxFifoPauseCnt",
             description  = "",
             offset       =  0x24,
@@ -116,7 +116,7 @@ class SsiPrbsRx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "Dummy",
             description  = "",
             offset       =  0x28,
@@ -124,7 +124,7 @@ class SsiPrbsRx(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "Status",
             description  = "",
             offset       =  0x1C0,
@@ -133,7 +133,7 @@ class SsiPrbsRx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "PacketLength",
             description  = "",
             offset       =  0x1C4,
@@ -149,7 +149,7 @@ class SsiPrbsRx(pr.Device):
             disp = '{:d}',
             hidden = False))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "PacketRateRaw",
             description  = "",
             offset       =  0x1C8,
@@ -178,8 +178,8 @@ class SsiPrbsRx(pr.Device):
             units = 'MBits/sec',
             disp = '{:0.1f}',
             linkedGet = lambda: self.WordRate.value() * self.WordSize.value() * 1e-6))
-            
-        # self.add(pr.RemoteVariable(    
+
+        # self.add(pr.RemoteVariable(
             # name         = "BitErrCnt",
             # description  = "",
             # offset       =  0x1CC,
@@ -188,7 +188,7 @@ class SsiPrbsRx(pr.Device):
             # pollInterval = 1,
         # ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "WordErrCnt",
             description  = "",
             offset       =  0x1D0,
@@ -197,23 +197,23 @@ class SsiPrbsRx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "RolloverEnable",
             description  = "",
             offset       =  0x3C0,
             bitSize      =  32,
             mode         = "RW",
         ))
-        
-        self.add(pr.RemoteVariable(    
+
+        self.add(pr.RemoteVariable(
             name         = "BypassErrorChecking",
             description  = "Used to bypass the error checking",
             offset       =  0x3F8,
             bitSize      =  1,
             mode         = "RW",
-        ))        
+        ))
 
-        self.add(pr.RemoteCommand(    
+        self.add(pr.RemoteCommand(
             name         = "CountReset",
             description  = "Status counter reset",
             offset       =  0x3FC,

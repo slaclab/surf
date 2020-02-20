@@ -12,48 +12,48 @@ import pyrogue as pr
 from surf.ethernet import udp
 
 class UdpEngineClient(pr.Device):
-    def __init__(   self,       
+    def __init__(   self,
             name        = "UdpEngineClient",
             description = "UdpEngineClient",
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs) 
-        
+        super().__init__(name=name, description=description, **kwargs)
+
         ##############################
         # Variables
         ##############################
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = "ClientRemotePortRaw",
             description  = "ClientRemotePort (big-Endian configuration)",
             offset       =  0x00,
             bitSize      =  16,
             mode         = "RW",
-            hidden       = True,            
+            hidden       = True,
         ))
 
         self.add(pr.LinkVariable(
-            name         = "ClientRemotePort", 
+            name         = "ClientRemotePort",
             description  = "ClientRemotePort (human readable & little-Endian configuration)",
-            mode         = 'RW', 
+            mode         = 'RW',
             linkedGet    = udp.getPortValue,
             linkedSet    = udp.setPortValue,
             dependencies = [self.variables["ClientRemotePortRaw"]],
-        ))         
-        
-        self.add(pr.RemoteVariable(   
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = "ClientRemoteIpRaw",
             description  = "ClientRemoteIp (big-Endian configuration)",
             offset       =  0x04,
             bitSize      =  32,
             mode         = "RW",
-            hidden       = True,            
+            hidden       = True,
         ))
-        
+
         self.add(pr.LinkVariable(
-            name         = "ClientRemoteIp", 
+            name         = "ClientRemoteIp",
             description  = "ClientRemoteIp (human readable string)",
-            mode         = 'RW', 
+            mode         = 'RW',
             linkedGet    = udp.getIpValue,
             linkedSet    = udp.setIpValue,
             dependencies = [self.variables["ClientRemoteIpRaw"]],
-        ))         
+        ))

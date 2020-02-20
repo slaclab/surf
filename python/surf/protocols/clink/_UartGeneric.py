@@ -17,24 +17,24 @@ import pyrogue as pr
 import rogue.interfaces.stream
 
 import surf.protocols.clink as clink
-               
+
 class UartGeneric(pr.Device):
-    def __init__(   self,       
+    def __init__(   self,
             name        = 'UartGeneric',
             description = 'Uart Generic channel access',
             serial      = None,
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs) 
+        super().__init__(name=name, description=description, **kwargs)
 
         if serial is not None:
-        
+
             # Attach the serial devices
             self._rx = clink.ClinkSerialRx()
             pr.streamConnect(serial,self._rx)
 
             self._tx = clink.ClinkSerialTx()
             pr.streamConnect(self._tx,serial)
-            
+
             @self.command(value='', name='SendString', description='Send a command string')
             def sendString(arg):
                 if self._tx is not None:

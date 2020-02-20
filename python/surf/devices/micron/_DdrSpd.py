@@ -16,13 +16,13 @@
 import pyrogue as pr
 
 class DdrSpd(pr.Device):
-    def __init__(   self, 
-            name        = "DdrSpd", 
-            description = "Lookup tool at www.micron.com/spd", 
-            nelms       =  0x100, 
+    def __init__(   self,
+            name        = "DdrSpd",
+            description = "Lookup tool at www.micron.com/spd",
+            nelms       =  0x100,
             instantiate =  True,
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs)         
+        super().__init__(name=name, description=description, **kwargs)
 
         ##############################
         # Variables
@@ -30,10 +30,10 @@ class DdrSpd(pr.Device):
         if (instantiate):
             pr.MemoryDevice(
                 name        = "Mem",
-                description = "Memory Array",        
+                description = "Memory Array",
                 size        = (4*nelms),
                 # nelms     = nelms,
                 # mode      = "RO",
                 wordBitSize = 8,
                 # bitSize   = 8,
-            )        
+            )
