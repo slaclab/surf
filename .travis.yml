@@ -67,6 +67,7 @@ jobs:
         - make
         - rm -rf ghdl-build
         - python3 -m compileall -f python/
+        - flake8 --count python/
       script:
         - ./scripts/generateDocumentationAndDeploy.sh 0
 
