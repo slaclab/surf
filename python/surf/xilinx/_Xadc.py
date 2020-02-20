@@ -578,7 +578,7 @@ class Xadc(pr.Device):
     @staticmethod
     def getTemp(var):
         if hasattr(rogue,'Version') and rogue.Version.greaterThanEqual('2.0.0'):
-            value = var.depdendencies[0].get(read)
+            value = var.depdendencies[0].get(read=False)
         else:
             value = var._block.getUInt(var.bitOffset, var.bitSize)
 
@@ -592,7 +592,7 @@ class Xadc(pr.Device):
         print( 'Setting Temp thresh to {:x}'.format(ivalue) )
 
         if hasattr(rogue,'Version') and rogue.Version.greaterThanEqual('2.0.0'):
-            var.depdendencies[0].set(ivalue,write)
+            var.depdendencies[0].set(ivalue)
         else:
             var._block.setUInt(var.bitOffset, var.bitSize, ivalue)
 
