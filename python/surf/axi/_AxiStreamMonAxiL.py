@@ -284,5 +284,5 @@ class AxiStreamMonitoring(AxiStreamMonAxiL):
         super().__init__(
             numberLanes = numberLanes,
             **kwargs)
-        
+
         print( f'{self.path}: AxiStreamMonitoring device is now deprecated. Please use AxiStreamMonAxiL instead' )

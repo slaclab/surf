@@ -22,7 +22,7 @@ class ClinkChannel(pr.Device):
             serial      = None,
             camType     = None,
             **kwargs):
-        
+
         super().__init__(**kwargs)
 
         ##############################

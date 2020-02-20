@@ -20,7 +20,7 @@ class Pgp2bAxi(pr.Device):
                  description = "Configuration and status of a PGP link",
                  writeEn = True,
                  **kwargs):
-        
+
         super().__init__(description=description, **kwargs)
 
         self.writeEn = writeEn
