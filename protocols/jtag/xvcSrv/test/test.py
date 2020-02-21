@@ -125,9 +125,9 @@ def playfile(f):
 if __name__ == "__main__":
   (opts, args) = getopt.getopt(sys.argv[1:], "k")
   dokill = False
-  for (o, a) in opts: 
+  for (o, a) in opts:
     if o == '-k':
-      dokill = True; 
+      dokill = True;
   try:
     playfile('testData.txt')
   except:

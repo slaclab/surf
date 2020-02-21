@@ -1,17 +1,12 @@
 #-----------------------------------------------------------------------------
-# Title      : PyRogue SsiPrbsTx
-#-----------------------------------------------------------------------------
-# File       : SsiPrbsTx.py
-# Created    : 2017-04-12
-#-----------------------------------------------------------------------------
 # Description:
 # PyRogue SsiPrbsTx
 #-----------------------------------------------------------------------------
-# This file is part of the rogue software platform. It is subject to
+# This file is part of the 'SLAC Firmware Standard Library'. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
 # of this distribution and at:
 #    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
-# No part of the rogue software platform, including this file, may be
+# No part of the 'SLAC Firmware Standard Library', including this file, may be
 # copied, modified, propagated, or distributed except according to the terms
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
@@ -19,17 +14,14 @@
 import pyrogue as pr
 
 class SsiPrbsTx(pr.Device):
-    def __init__(   self,       
-            name        = "SsiPrbsTx",
-            description = "SsiPrbsTx",
-            **kwargs):
-        super().__init__(name=name, description=description, **kwargs) 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         ##############################
         # Variables
         ##############################
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AxiEn",
             description  = "",
             offset       =  0x00,
@@ -39,7 +31,7 @@ class SsiPrbsTx(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "TxEn",
             description  = "",
             offset       =  0x00,
@@ -49,7 +41,7 @@ class SsiPrbsTx(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "Busy",
             description  = "",
             offset       =  0x00,
@@ -60,7 +52,7 @@ class SsiPrbsTx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "Overflow",
             description  = "",
             offset       =  0x00,
@@ -71,7 +63,7 @@ class SsiPrbsTx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "FwCnt",
             description  = "",
             offset       =  0x00,
@@ -81,7 +73,7 @@ class SsiPrbsTx(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "PacketLength",
             description  = "",
             offset       =  0x04,
@@ -91,7 +83,7 @@ class SsiPrbsTx(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "tDest",
             description  = "",
             offset       =  0x08,
@@ -101,7 +93,7 @@ class SsiPrbsTx(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "tId",
             description  = "",
             offset       =  0x08,
@@ -111,7 +103,7 @@ class SsiPrbsTx(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "DataCount",
             description  = "",
             offset       =  0x0C,
@@ -122,7 +114,7 @@ class SsiPrbsTx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "EventCount",
             description  = "",
             offset       =  0x10,
@@ -133,7 +125,7 @@ class SsiPrbsTx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "RandomData",
             description  = "",
             offset       =  0x14,
@@ -144,7 +136,7 @@ class SsiPrbsTx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteCommand(    
+        self.add(pr.RemoteCommand(
             name         = "OneShot",
             description  = "",
             offset       =  0x18,
@@ -153,10 +145,10 @@ class SsiPrbsTx(pr.Device):
             base         = pr.UInt,
             function     = pr.BaseCommand.touchOne
         ))
-        
-        self.add(pr.RemoteVariable(    
+
+        self.add(pr.RemoteVariable(
             name         = "TrigDly",
             offset       =  0x1C,
             bitSize      =  32,
             mode         = "RW",
-        ))        
+        ))
