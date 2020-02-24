@@ -110,7 +110,8 @@ begin
 
    SynchronizerOneShot_1 : entity surf.SynchronizerOneShot
       generic map (
-         TPD_G => TPD_G)
+         TPD_G   => TPD_G,
+         DELAY_G => 3) -- delay by more than bootAddressSync STAGES_G
       port map (
          clk     => icape2Clk,
          rst     => icape2Rst,
@@ -119,8 +120,9 @@ begin
 
    SynchronizerVector_1 : entity work.SynchronizerVector
       generic map (
-         TPD_G   => TPD_G,
-         WIDTH_G => 32)
+         TPD_G    => TPD_G,
+         STAGES_G => 2,
+         WIDTH_G  => 32)
       port map (
          clk     => icape2Clk,
          dataIn  => bootAddress,

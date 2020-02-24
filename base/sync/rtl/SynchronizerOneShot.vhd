@@ -28,7 +28,8 @@ entity SynchronizerOneShot is
       RELEASE_DELAY_G : positive := 3;  -- Delay between deassertion of async and sync resets
       IN_POLARITY_G   : sl       := '1';  -- 0 for active LOW, 1 for active HIGH
       OUT_POLARITY_G  : sl       := '1';  -- 0 for active LOW, 1 for active HIGH
-      PULSE_WIDTH_G   : positive := 1);  -- one-shot pulse width duration (units of clk cycles)
+      PULSE_WIDTH_G   : positive := 1;  -- one-shot pulse width duration (units of clk cycles)
+      DELAY_G         : natural  := 0);
    port (
       clk     : in  sl;                 -- Clock to be SYNC'd to
       rst     : in  sl := not RST_POLARITY_G;  -- Optional reset
@@ -58,6 +59,8 @@ architecture rtl of SynchronizerOneShot is
 
    signal pulseRst : sl;
    signal edgeDet  : sl;
+
+   signal dataOutS : sl;
 
    -- attribute dont_touch      : string;
    -- attribute dont_touch of r : signal is "true";      
@@ -94,8 +97,22 @@ begin
          risingEdge => edgeDet);
 
    U_OnlyCyclePulse : if (PULSE_WIDTH_G = 1) generate
-      dataOut <= edgeDet;
+      dataOutS <= edgeDet;
    end generate;
+
+   -- optionally delay the output pulse
+   U_Delay : entity surf.SlvDelay
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         DELAY_G        => DELAY_G,
+         REG_OUTPUT_G   => false,
+         WIDTH_G        => 1)
+      port map (
+         clk     => clk, 
+         rst     => rst,
+         din(0)  => dataOutS,
+         dout(0) => dataOut);
 
    U_PulseStretcher : if (PULSE_WIDTH_G > 1) generate
 
@@ -134,7 +151,7 @@ begin
          end case;
 
          -- Combinatorial outputs before the reset
-         dataOut <= v.dataOut;
+         dataOutS <= v.dataOut;
 
          -- Reset
          if (rst = RST_POLARITY_G) then
