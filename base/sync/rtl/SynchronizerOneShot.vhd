@@ -57,6 +57,8 @@ architecture rtl of SynchronizerOneShot is
 
 begin
 
+   assert (OUT_DELAY_G >= 3) report "SynchronizerOneShot: OUT_DELAY_G must be >= 3" severity failure;
+
    GEN_SYNC : if (BYPASS_SYNC_G = true) generate
       pulseRst <= dataIn when(IN_POLARITY_G = '1') else not(dataIn);
    end generate;
