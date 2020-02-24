@@ -1,3 +1,8 @@
+| branch      | status
+|-------------|--------
+| master      |[![Build Status](https://travis-ci.org/slaclab/surf.svg?branch=master)](https://travis-ci.org/slaclab/surf) [![Anaconda-Server Badge](https://anaconda.org/tidair-tag/surf/badges/version.svg)](https://anaconda.org/tidair-tag/surf)
+| pre-release |[![Build Status](https://travis-ci.org/slaclab/surf.svg?branch=pre-release)](https://travis-ci.org/slaclab/surf) [![Anaconda-Server Badge](https://anaconda.org/tidair-dev/surf/badges/version.svg)](https://anaconda.org/tidair-dev/surf)
+
 # SURF
 
 SLAC Ultimate RTL Framework

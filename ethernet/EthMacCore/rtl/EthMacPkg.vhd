@@ -61,6 +61,17 @@ package EthMacPkg is
       TKEEP_MODE_C  => TKEEP_COMP_C,
       TUSER_BITS_C  => 4,
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
+      
+   -- Ethernet AXI Stream Configuration that's optimized for 141-bit FIFO interface (2 x 72b input BRAMs)
+   constant INT_EMAC_AXIS_CONFIG_C : AxiStreamConfigType := (
+      -- TDEST_INTERLEAVE_C => EMAC_AXIS_CONFIG_C.TDEST_INTERLEAVE_C,
+      TSTRB_EN_C    => EMAC_AXIS_CONFIG_C.TSTRB_EN_C,
+      TDATA_BYTES_C => EMAC_AXIS_CONFIG_C.TDATA_BYTES_C,
+      TDEST_BITS_C  => 0, -- TDEST not used internally of EthMacTop.vhd
+      TID_BITS_C    => EMAC_AXIS_CONFIG_C.TID_BITS_C,
+      TKEEP_MODE_C  => EMAC_AXIS_CONFIG_C.TKEEP_MODE_C,
+      TUSER_BITS_C  => EMAC_AXIS_CONFIG_C.TUSER_BITS_C,
+      TUSER_MODE_C  => EMAC_AXIS_CONFIG_C.TUSER_MODE_C);      
 
    -- Generic XMAC Configuration
    type EthMacConfigType is record

@@ -33,14 +33,14 @@ entity EthMacRxFifo is
       PIPE_STAGES_G     : natural                := 1;
       FIFO_ADDR_WIDTH_G : positive range 9 to 16 := 11;
       PRIM_COMMON_CLK_G : boolean                := false;
-      PRIM_CONFIG_G     : AxiStreamConfigType    := EMAC_AXIS_CONFIG_C;
+      PRIM_CONFIG_G     : AxiStreamConfigType    := INT_EMAC_AXIS_CONFIG_C;
       BYP_EN_G          : boolean                := false;
       BYP_COMMON_CLK_G  : boolean                := false;
-      BYP_CONFIG_G      : AxiStreamConfigType    := EMAC_AXIS_CONFIG_C;
+      BYP_CONFIG_G      : AxiStreamConfigType    := INT_EMAC_AXIS_CONFIG_C;
       VLAN_EN_G         : boolean                := false;
       VLAN_SIZE_G       : positive               := 1;
       VLAN_COMMON_CLK_G : boolean                := false;
-      VLAN_CONFIG_G     : AxiStreamConfigType    := EMAC_AXIS_CONFIG_C);
+      VLAN_CONFIG_G     : AxiStreamConfigType    := INT_EMAC_AXIS_CONFIG_C);
    port (
       -- Clock and Reset
       sClk         : in  sl;
@@ -113,7 +113,7 @@ begin
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => false,
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
+         SLAVE_AXI_CONFIG_G  => INT_EMAC_AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => PRIM_CONFIG_G)
       port map (
          sAxisClk        => sClk,
@@ -148,7 +148,7 @@ begin
             FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
             FIFO_FIXED_THRESH_G => false,
             -- AXI Stream Port Configurations
-            SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
+            SLAVE_AXI_CONFIG_G  => INT_EMAC_AXIS_CONFIG_C,
             MASTER_AXI_CONFIG_G => BYP_CONFIG_G)
          port map (
             sAxisClk        => sClk,
@@ -185,7 +185,7 @@ begin
                FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
                FIFO_FIXED_THRESH_G => false,
                -- AXI Stream Port Configurations
-               SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
+               SLAVE_AXI_CONFIG_G  => INT_EMAC_AXIS_CONFIG_C,
                MASTER_AXI_CONFIG_G => VLAN_CONFIG_G)
             port map (
                sAxisClk        => sClk,

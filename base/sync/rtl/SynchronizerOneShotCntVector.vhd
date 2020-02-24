@@ -85,6 +85,7 @@ architecture rtl of SynchronizerOneShotCntVector is
    signal cntRstSync     : sl;
    signal rollOverEnSync : slv(WIDTH_G-1 downto 0);
 
+   signal wrEn       : sl;
    signal tReady     : sl;
    signal almostFull : sl;
    signal rdValid    : sl;
@@ -168,7 +169,6 @@ begin
             RST_POLARITY_G  => RST_POLARITY_G,
             RST_ASYNC_G     => RST_ASYNC_G,
             COMMON_CLK_G    => true,  -- status counter bus synchronization done outside
-            -- FIXME clkRst and rollOverEn not properly sync'd
             RELEASE_DELAY_G => RELEASE_DELAY_G,
             IN_POLARITY_G   => IN_POLARITY_C(i),
             OUT_POLARITY_G  => OUT_POLARITY_C(i),
@@ -233,6 +233,9 @@ begin
 
          end if;
 
+         -- Outputs
+         wrEn <= r.tValid and tReady;
+
          -- Synchronous Reset
          if (wrRst = '1') then
             v := REG_INIT_C;
@@ -261,7 +264,7 @@ begin
             rst         => '0',
             -- Write Interface
             wr_clk      => wrClk,
-            wr_en       => r.tValid,
+            wr_en       => wrEn,
             din         => r.tData,
             almost_full => almostFull,
             -- Read Interface

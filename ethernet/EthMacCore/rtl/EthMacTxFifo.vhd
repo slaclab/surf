@@ -25,14 +25,14 @@ entity EthMacTxFifo is
    generic (
       TPD_G             : time                := 1 ns;
       PRIM_COMMON_CLK_G : boolean             := false;
-      PRIM_CONFIG_G     : AxiStreamConfigType := EMAC_AXIS_CONFIG_C;
+      PRIM_CONFIG_G     : AxiStreamConfigType := INT_EMAC_AXIS_CONFIG_C;
       BYP_EN_G          : boolean             := false;
       BYP_COMMON_CLK_G  : boolean             := false;
-      BYP_CONFIG_G      : AxiStreamConfigType := EMAC_AXIS_CONFIG_C;
+      BYP_CONFIG_G      : AxiStreamConfigType := INT_EMAC_AXIS_CONFIG_C;
       VLAN_EN_G         : boolean             := false;
       VLAN_SIZE_G       : positive            := 1;
       VLAN_COMMON_CLK_G : boolean             := false;
-      VLAN_CONFIG_G     : AxiStreamConfigType := EMAC_AXIS_CONFIG_C);
+      VLAN_CONFIG_G     : AxiStreamConfigType := INT_EMAC_AXIS_CONFIG_C);
    port (
       -- Master Clock and Reset
       mClk         : in  sl;
@@ -64,12 +64,12 @@ architecture mapping of EthMacTxFifo is
 
 begin
 
-   PRIM_FIFO_BYPASS : if ((PRIM_COMMON_CLK_G = true) and (PRIM_CONFIG_G = EMAC_AXIS_CONFIG_C)) generate
+   PRIM_FIFO_BYPASS : if ((PRIM_COMMON_CLK_G = true) and (PRIM_CONFIG_G = INT_EMAC_AXIS_CONFIG_C)) generate
       mPrimMaster <= sPrimMaster;
       sPrimSlave  <= mPrimSlave;
    end generate;
 
-   PRIM_FIFO : if ((PRIM_COMMON_CLK_G = false) or (PRIM_CONFIG_G /= EMAC_AXIS_CONFIG_C)) generate
+   PRIM_FIFO : if ((PRIM_COMMON_CLK_G = false) or (PRIM_CONFIG_G /= INT_EMAC_AXIS_CONFIG_C)) generate
       U_Fifo : entity surf.AxiStreamFifoV2
          generic map (
             -- General Configurations
@@ -85,7 +85,7 @@ begin
             FIFO_ADDR_WIDTH_G   => 4,
             -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => PRIM_CONFIG_G,
-            MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)        
+            MASTER_AXI_CONFIG_G => INT_EMAC_AXIS_CONFIG_C)        
          port map (
             sAxisClk    => sPrimClk,
             sAxisRst    => sPrimRst,
@@ -104,12 +104,12 @@ begin
 
    BYP_ENABLED : if (BYP_EN_G = true) generate
       
-      BYP_FIFO_BYPASS : if ((BYP_COMMON_CLK_G = true) and (BYP_CONFIG_G = EMAC_AXIS_CONFIG_C)) generate
+      BYP_FIFO_BYPASS : if ((BYP_COMMON_CLK_G = true) and (BYP_CONFIG_G = INT_EMAC_AXIS_CONFIG_C)) generate
          mBypMaster <= sBypMaster;
          sBypSlave  <= mBypSlave;
       end generate;
 
-      BYP_FIFO : if ((BYP_COMMON_CLK_G = false) or (BYP_CONFIG_G /= EMAC_AXIS_CONFIG_C)) generate
+      BYP_FIFO : if ((BYP_COMMON_CLK_G = false) or (BYP_CONFIG_G /= INT_EMAC_AXIS_CONFIG_C)) generate
          U_Fifo : entity surf.AxiStreamFifoV2
             generic map (
                -- General Configurations
@@ -125,7 +125,7 @@ begin
                FIFO_ADDR_WIDTH_G   => 4,
                -- AXI Stream Port Configurations
                SLAVE_AXI_CONFIG_G  => BYP_CONFIG_G,
-               MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)        
+               MASTER_AXI_CONFIG_G => INT_EMAC_AXIS_CONFIG_C)        
             port map (
                sAxisClk    => sBypClk,
                sAxisRst    => sBypRst,
@@ -145,12 +145,12 @@ begin
    end generate;
 
    VLAN_ENABLED : if (VLAN_EN_G = true) generate
-      VLAN_FIFO_BYPASS : if ((VLAN_COMMON_CLK_G = true) and (VLAN_CONFIG_G = EMAC_AXIS_CONFIG_C)) generate
+      VLAN_FIFO_BYPASS : if ((VLAN_COMMON_CLK_G = true) and (VLAN_CONFIG_G = INT_EMAC_AXIS_CONFIG_C)) generate
          mVlanMasters <= sVlanMasters;
          sVlanSlaves  <= mVlanSlaves;
       end generate;
 
-      VLAN_FIFO : if ((VLAN_COMMON_CLK_G = false) or (VLAN_CONFIG_G /= EMAC_AXIS_CONFIG_C)) generate
+      VLAN_FIFO : if ((VLAN_COMMON_CLK_G = false) or (VLAN_CONFIG_G /= INT_EMAC_AXIS_CONFIG_C)) generate
          GEN_VEC : for i in (VLAN_SIZE_G-1) downto 0 generate
             U_Fifo : entity surf.AxiStreamFifoV2
                generic map (
@@ -167,7 +167,7 @@ begin
                   FIFO_ADDR_WIDTH_G   => 4,
                   -- AXI Stream Port Configurations
                   SLAVE_AXI_CONFIG_G  => VLAN_CONFIG_G,
-                  MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)        
+                  MASTER_AXI_CONFIG_G => INT_EMAC_AXIS_CONFIG_C)        
                port map (
                   sAxisClk    => sVlanClk,
                   sAxisRst    => sVlanRst,

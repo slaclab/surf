@@ -1,18 +1,14 @@
-#!/usr/bin/env python
 #-----------------------------------------------------------------------------
-# Title      : Xilinx RFSoC RF data convter tile
-#-----------------------------------------------------------------------------
-# File       : RfTile.py
-# Created    : 2019-05-10
+# Title      : Xilinx RFSoC RF data converter tile
 #-----------------------------------------------------------------------------
 # Description:
-# Xilinx RFSoC RF data convterter tile 
+# Xilinx RFSoC RF data converter tile
 #-----------------------------------------------------------------------------
-# This file is part of the rogue software platform. It is subject to
+# This file is part of the 'SLAC Firmware Standard Library'. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
 # of this distribution and at:
 #    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
-# No part of the rogue software platform, including this file, may be
+# No part of the 'SLAC Firmware Standard Library', including this file, may be
 # copied, modified, propagated, or distributed except according to the terms
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
@@ -20,11 +16,11 @@
 import pyrogue as pr
 
 class RfTile(pr.Device):
-    def __init__(   self, 
-            name        = "RfTile", 
-            description = "RFSoC data converter tile registers", 
+    def __init__(
+            self,
+            description = "RFSoC data converter tile registers",
             **kwargs):
-        super().__init__(name=name, description=description, size=0x2000, **kwargs)
+        super().__init__(description=description, size=0x2000, **kwargs)
 
         ##############################
         # Variables
@@ -166,4 +162,3 @@ class RfTile(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
         ))
-

@@ -147,7 +147,7 @@ begin
                   v.axiRd      := '0';
                   -- Save the data/address
                   v.size       := 1;
-                  v.wrArray(0) := ('0' & axiWriteMaster.awaddr(17 downto 2) & axiWriteMaster.wdata(7 downto 0));
+                  v.wrArray(0) := ('0' & axiWriteMaster.awaddr(16 downto 2) & axiWriteMaster.wdata(7 downto 0));
                   -- Reset the counter
                   v.cnt        := 0;
                   -- Next State
@@ -158,7 +158,7 @@ begin
                   v.axiRd      := '1';
                   -- Save the data/address
                   v.size       := 1;
-                  v.wrArray(0) := ('1' & axiReadMaster.araddr(17 downto 2) & x"FF");
+                  v.wrArray(0) := ('1' & axiReadMaster.araddr(16 downto 2) & x"FF");
                   -- Reset the counter
                   v.cnt        := 0;
                   -- Next State
