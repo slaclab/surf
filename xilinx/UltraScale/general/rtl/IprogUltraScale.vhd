@@ -84,6 +84,8 @@ architecture rtl of IprogUltraScale is
    signal startEdge : sl;
    signal rdy       : sl;
 
+   signal bootAddressSync : slv(31 downto 0);
+
 begin
    
    icape2Clk <= slowClk when(USE_SLOWCLK_G) else divClk;
@@ -115,6 +117,15 @@ begin
          dataIn  => start,
          dataOut => startEdge);
 
+   SynchronizerVector_1 : entity work.SynchronizerVector
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => 32)
+      port map (
+         clk     => icape2Clk,
+         dataIn  => bootAddress,
+         dataOut => bootAddressSync);
+
    ICAPE3_Inst : ICAPE3
       generic map (
          DEVICE_ID         => X"03628093",  -- Specifies the pre-programmed Device ID value to be used for simulation purposes
@@ -130,7 +141,7 @@ begin
          I       => r.configData,       -- 32-bit input: Configuration data input bus
          RDWRB   => r.rnw);             -- 1-bit input: Read/Write Select input
 
-   comb : process (bootAddress, icape2Rst, r, rdy, startEdge) is
+   comb : process (bootAddressSync, icape2Rst, r, rdy, startEdge) is
       variable v : RegType;
    begin
       v := r;
@@ -142,7 +153,7 @@ begin
             v.csl         := '1';
             v.rnw         := '1';
             v.cnt         := (others => '0');
-            v.bootAddress := bootAddress;
+            v.bootAddress := bootAddressSync;
             if (startEdge = '1') then
                v.state := PROG_S;
             end if;
