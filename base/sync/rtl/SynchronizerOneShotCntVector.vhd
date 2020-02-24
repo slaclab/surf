@@ -180,7 +180,7 @@ begin
             -- Write Ports (wrClk domain)    
             dataIn     => dataIn(i),
             -- Read Ports (rdClk domain)    
-            rollOverEn => rollOverEn(i),
+            rollOverEn => rollOverEnSync(i),
             cntRst     => cntRstSync,
             dataOut    => open,
             cntOut     => cntWrDomain(i),
