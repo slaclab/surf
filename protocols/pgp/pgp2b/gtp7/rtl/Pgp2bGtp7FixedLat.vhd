@@ -222,7 +222,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Oneshot the phy init because clock may drop out and leave it stuck high
    -------------------------------------------------------------------------------------------------
-   U_SynchronizerOneShot_1 : entity surf.PwrUpRst
+   U_PwrUpRst : entity surf.PwrUpRst
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '1',
