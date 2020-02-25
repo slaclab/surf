@@ -110,8 +110,7 @@ begin
 
    SynchronizerOneShot_1 : entity surf.SynchronizerOneShot
       generic map (
-         TPD_G   => TPD_G,
-         DELAY_G => 3) -- delay by more than bootAddressSync STAGES_G
+         TPD_G   => TPD_G)
       port map (
          clk     => icape2Clk,
          rst     => icape2Rst,
