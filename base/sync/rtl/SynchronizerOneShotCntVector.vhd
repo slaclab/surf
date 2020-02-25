@@ -35,18 +35,18 @@ entity SynchronizerOneShotCntVector is
       CNT_WIDTH_G     : positive := 16;
       WIDTH_G         : positive := 16);
    port (
-      -- Write Ports (wrClk domain)    
-      dataIn     : in  slv(WIDTH_G-1 downto 0);  -- Data to be 'synced'
-      -- Read Ports (rdClk domain)    
-      rollOverEn : in  slv(WIDTH_G-1 downto 0);  -- '1' allows roll over of the counter
-      cntRst     : in  sl := not RST_POLARITY_G;  -- Optional counter reset
-      dataOut    : out slv(WIDTH_G-1 downto 0);  -- Synced data
-      cntOut     : out SlVectorArray(WIDTH_G-1 downto 0, CNT_WIDTH_G-1 downto 0);  -- Synced counter
-      -- Clocks and Reset Ports
+
+      -- Write Ports (wrClk domain)          
       wrClk      : in  sl;
       wrRst      : in  sl := not RST_POLARITY_G;
+      dataIn     : in  slv(WIDTH_G-1 downto 0);   -- Data to be 'synced'
+      -- Read Ports (rdClk domain)
       rdClk      : in  sl;              -- clock to be SYNC'd to
-      rdRst      : in  sl := not RST_POLARITY_G);
+      rdRst      : in  sl := not RST_POLARITY_G;
+      rollOverEn : in  slv(WIDTH_G-1 downto 0);   -- '1' allows roll over of the counter
+      cntRst     : in  sl := not RST_POLARITY_G;  -- Optional counter reset
+      dataOut    : out slv(WIDTH_G-1 downto 0);   -- Synced data
+      cntOut     : out SlVectorArray(WIDTH_G-1 downto 0, CNT_WIDTH_G-1 downto 0));  -- Synced counter
 end SynchronizerOneShotCntVector;
 
 architecture rtl of SynchronizerOneShotCntVector is
@@ -99,7 +99,6 @@ begin
             RST_POLARITY_G  => RST_POLARITY_G,
             RST_ASYNC_G     => RST_ASYNC_G,
             BYPASS_SYNC_G   => COMMON_CLK_G,
-            RELEASE_DELAY_G => RELEASE_DELAY_G,
             IN_POLARITY_G   => IN_POLARITY_C(i),
             OUT_POLARITY_G  => OUT_POLARITY_C(i))
          port map (
@@ -113,7 +112,7 @@ begin
             TPD_G           => TPD_G,
             RST_POLARITY_G  => RST_POLARITY_G,
             RST_ASYNC_G     => RST_ASYNC_G,
-            COMMON_CLK_G    => true,  -- status counter bus synchronization done outside
+            COMMON_CLK_G    => true,    -- status counter bus synchronization done outside
             RELEASE_DELAY_G => RELEASE_DELAY_G,
             IN_POLARITY_G   => IN_POLARITY_C(i),
             OUT_POLARITY_G  => OUT_POLARITY_C(i),
@@ -132,7 +131,7 @@ begin
             -- Clocks and Reset Ports
             wrClk      => wrClk,
             wrRst      => wrRst,
-            rdClk      => wrClk,  -- status counter bus synchronization done outside
+            rdClk      => wrClk,        -- status counter bus synchronization done outside
             rdRst      => wrRst);
 
       GEN_MAP :
