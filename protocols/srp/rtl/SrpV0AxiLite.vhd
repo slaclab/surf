@@ -72,33 +72,32 @@ end SrpV0AxiLite;
 
 architecture rtl of SrpV0AxiLite is
 
-   constant SLAVE_FIFO_SSI_CONFIG_C  : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_COMP_C);
-   constant MASTER_FIFO_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_COMP_C);
+   constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4);
 
-   signal sFifoAxisMaster : AxiStreamMasterType;
-   signal sFifoAxisSlave  : AxiStreamSlaveType;
-   signal mFifoAxisMaster : AxiStreamMasterType;
-   signal mFifoAxisSlave  : AxiStreamSlaveType;
-   signal mFifoAxisCtrl   : AxiStreamCtrlType;
-
-   type StateType is (S_IDLE_C, S_ADDR_C, S_WRITE_C, S_WRITE_AXI_C, S_READ_SIZE_C,
-                      S_READ_C, S_READ_AXI_C, S_STATUS_C, S_DUMP_C);
+   type StateType is (
+      S_IDLE_C,
+      S_ADDR_C,
+      S_WRITE_C,
+      S_WRITE_AXI_C,
+      S_READ_SIZE_C,
+      S_READ_C,
+      S_READ_AXI_C,
+      S_STATUS_C,
+      S_DUMP_C);
 
    type RegType is record
-      echo    : slv(31 downto 0);
-      address : slv(31 downto 0);
-      rdSize  : slv(8 downto 0);
-      rdCount : slv(8 downto 0);
-      timer   : slv(23 downto 0);
-      state   : StateType;
-      timeout : sl;
-      fail    : sl;
-
+      echo                : slv(31 downto 0);
+      address             : slv(31 downto 0);
+      rdSize              : slv(8 downto 0);
+      rdCount             : slv(8 downto 0);
+      timer               : slv(23 downto 0);
+      state               : StateType;
+      timeout             : sl;
+      fail                : sl;
       mAxiLiteWriteMaster : AxiLiteWriteMasterType;
       mAxiLiteReadMaster  : AxiLiteReadMasterType;
       sFifoAxisSlave      : AxiStreamSlaveType;
       mFifoAxisMaster     : AxiStreamMasterType;
-
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -118,6 +117,12 @@ architecture rtl of SrpV0AxiLite is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   signal sFifoAxisMaster : AxiStreamMasterType;
+   signal sFifoAxisSlave  : AxiStreamSlaveType;
+   signal mFifoAxisMaster : AxiStreamMasterType;
+   signal mFifoAxisSlave  : AxiStreamSlaveType;
+   signal mFifoAxisCtrl   : AxiStreamCtrlType;
+
    -- attribute dont_touch                    : string;
    -- attribute dont_touch of r               : signal is "TRUE";
    -- attribute dont_touch of sFifoAxisMaster : signal is "TRUE";
@@ -128,10 +133,10 @@ architecture rtl of SrpV0AxiLite is
 
 begin
 
-   ----------------------------------
-   -- Input FIFO 
-   ----------------------------------
-   SlaveAxiStreamFifo : entity surf.SsiFifo
+   -------------
+   -- Input FIFO
+   -------------
+   SlaveAxiStreamFifo : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          PIPE_STAGES_G       => 0,
@@ -143,7 +148,7 @@ begin
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
          SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_G,
-         MASTER_AXI_CONFIG_G => SLAVE_FIFO_SSI_CONFIG_C)
+         MASTER_AXI_CONFIG_G => AXIS_CONFIG_C)
       port map (
          sAxisClk    => sAxisClk,
          sAxisRst    => sAxisRst,
@@ -153,13 +158,10 @@ begin
          mAxisClk    => axiLiteClk,
          mAxisRst    => axiLiteRst,
          mAxisMaster => sFifoAxisMaster,
-         mAxisSlave  => sFifoAxisSlave);     
-         
-   -------------------------------------
-   -- Master State Machine
-   -------------------------------------
+         mAxisSlave  => sFifoAxisSlave);
 
-   comb : process (axiLiteRst, mAxiLiteReadSlave, mAxiLiteWriteSlave, mFifoAxisCtrl, r, sFifoAxisMaster) is
+   comb : process (axiLiteRst, mAxiLiteReadSlave, mAxiLiteWriteSlave,
+                   mFifoAxisCtrl, r, sFifoAxisMaster) is
       variable v : RegType;
    begin
       v := r;
@@ -170,14 +172,16 @@ begin
       v.mFifoAxisMaster.tKeep  := (others => '1');
       v.mFifoAxisMaster.tValid := '0';
       v.mFifoAxisMaster.tLast  := '0';
+      v.sFifoAxisSlave.tReady  := '0';
 
-      v.sFifoAxisSlave.tReady := '0';
-
-
-      -- State machine
+      ----------------
+      -- State Machine
+      ----------------
       case r.state is
 
+         ----------------------------------------------------------------------
          -- Idle
+         ----------------------------------------------------------------------
          when S_IDLE_C =>
             v.mAxiLiteWriteMaster := AXI_LITE_WRITE_MASTER_INIT_C;
             v.mAxiLiteReadMaster  := AXI_LITE_READ_MASTER_INIT_C;
@@ -200,7 +204,9 @@ begin
                end if;
             end if;
 
+         ----------------------------------------------------------------------
          -- Address Field
+         ----------------------------------------------------------------------
          when S_ADDR_C =>
             v.sFifoAxisSlave.tReady := '1';
 
@@ -233,7 +239,9 @@ begin
                end if;
             end if;
 
+         ----------------------------------------------------------------------
          -- Prepare Write Transaction
+         ----------------------------------------------------------------------
          when S_WRITE_C =>
             v.mAxiLiteWriteMaster.awaddr := r.address;
             v.mAxiLiteWriteMaster.awprot := (others => '0');
@@ -245,7 +253,7 @@ begin
             if sFifoAxisMaster.tValid = '1' then
                if sFifoAxisMaster.tLast = '1' then
                   -- check tkeep here
-                  if (not axiStreamPacked(SLAVE_FIFO_SSI_CONFIG_C, sFifoAxisMaster)) then
+                  if (not axiStreamPacked(AXIS_CONFIG_C, sFifoAxisMaster)) then
                      v.fail := '1';
                   end if;
                   v.state := S_STATUS_C;
@@ -258,7 +266,9 @@ begin
                end if;
             end if;
 
+         ----------------------------------------------------------------------
          -- Write Transaction, AXI
+         ----------------------------------------------------------------------
          when S_WRITE_AXI_C =>
             v.timer := r.timer - 1;
 
@@ -294,7 +304,9 @@ begin
                v.state   := S_WRITE_C;
             end if;
 
+         ----------------------------------------------------------------------
          -- Read size 
+         ----------------------------------------------------------------------
          when S_READ_SIZE_C =>
             v.rdCount := (others => '0');
             v.rdSize  := sFifoAxisMaster.tData(8 downto 0);
@@ -316,7 +328,9 @@ begin
             v.mAxiLiteReadMaster.rready  := '1';
             v.state                      := S_READ_AXI_C;
 
+         ----------------------------------------------------------------------
          -- Read AXI
+         ----------------------------------------------------------------------
          when S_READ_AXI_C =>
             v.timer := r.timer - 1;
 
@@ -353,19 +367,23 @@ begin
                end if;
             end if;
 
+         ----------------------------------------------------------------------
          -- Dump until EOF
+         ----------------------------------------------------------------------
          when S_DUMP_C =>
             v.sFifoAxisSlave.tReady := '1';
 
             if sFifoAxisMaster.tValid = '1' and sFifoAxisMaster.tLast = '1' then
                -- Check tKeep here
-               if (not axiStreamPacked(SLAVE_FIFO_SSI_CONFIG_C, sFifoAxisMaster)) then
+               if (not axiStreamPacked(AXIS_CONFIG_C, sFifoAxisMaster)) then
                   v.fail := '1';
                end if;
                v.state := S_STATUS_C;
             end if;
 
+         ----------------------------------------------------------------------
          -- Send Status
+         ----------------------------------------------------------------------
          when S_STATUS_C =>
             v.mFifoAxisMaster.tValid             := '1';
             v.mFifoAxisMaster.tLast              := '1';
@@ -374,13 +392,18 @@ begin
             v.mFifoAxisMaster.tData(16)          := r.fail;
             v.state                              := S_IDLE_C;
 
+         ----------------------------------------------------------------------
          when others =>
             v.state := S_IDLE_C;
 
+      ----------------------------------------------------------------------
       end case;
-      
-      -- Combinatorial outputs before the reset
-      sFifoAxisSlave <= v.sFifoAxisSlave;
+
+      -- Outputs
+      sFifoAxisSlave      <= v.sFifoAxisSlave;
+      mAxiLiteWriteMaster <= r.mAxiLiteWriteMaster;
+      mAxiLiteReadMaster  <= r.mAxiLiteReadMaster;
+      mFifoAxisMaster     <= r.mFifoAxisMaster;
 
       -- Reset
       if (axiLiteRst = '1') then
@@ -389,11 +412,6 @@ begin
 
       -- Register the variable for next clock cycle
       rin <= v;
-
-      -- Registered Outputs
-      mAxiLiteWriteMaster <= r.mAxiLiteWriteMaster;
-      mAxiLiteReadMaster  <= r.mAxiLiteReadMaster;
-      mFifoAxisMaster     <= r.mFifoAxisMaster;
 
    end process comb;
 
@@ -404,14 +422,13 @@ begin
       end if;
    end process seq;
 
-
-   ----------------------------------
+   --------------
    -- Output FIFO 
-   ----------------------------------
+   --------------
    MasterAxiStreamFifo : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
-         INT_PIPE_STAGES_G => 0,
+         INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 1,
          VALID_THOLD_G       => RESP_THOLD_G,
          MEMORY_TYPE_G       => MEMORY_TYPE_G,
@@ -420,7 +437,7 @@ begin
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
-         SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(4, TKEEP_COMP_C),
+         SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_G)
       port map (
          sAxisClk    => axiLiteClk,
@@ -434,4 +451,3 @@ begin
          mAxisSlave  => mAxisSlave);
 
 end rtl;
-
