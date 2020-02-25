@@ -22,6 +22,7 @@ use surf.StdRtlPkg.all;
 entity SynchronizerOneShot is
    generic (
       TPD_G          : time     := 1 ns;   -- Simulation FF output delay
+      RST_ASYNC_G    : boolean  := false;
       RST_POLARITY_G : sl       := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
       BYPASS_SYNC_G  : boolean  := false;  -- Bypass RstSync module for synchronous data configuration
       IN_POLARITY_G  : sl       := '1';    -- 0 for active LOW, 1 for active HIGH
@@ -80,6 +81,7 @@ begin
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
          OUT_POLARITY_G => OUT_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          STAGES_G       => OUT_DELAY_G,
          BYPASS_SYNC_G  => BYPASS_SYNC_G)
       port map (
@@ -119,7 +121,7 @@ begin
             v.counter := 0;
          end if;
 
-         if (rst = RST_POLARITY_G) then
+         if (RST_ASYNC_G and rst = RST_POLARITY_G) then
             v := REG_INIT_C;
          end if;
 
@@ -129,10 +131,14 @@ begin
 
       end process comb;
 
-      seq : process (clk) is
+      seq : process (clk, rst) is
       begin
          if (rising_edge(clk)) then
             r <= rin after TPD_G;
+         end if;
+
+         if (RST_ASYNC_G and rst = RST_POLARITY_G) then
+            r <= REG_INIT_C after TPD_G;
          end if;
       end process seq;
 
