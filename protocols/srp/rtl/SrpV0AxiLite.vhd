@@ -136,7 +136,7 @@ begin
    -------------
    -- Input FIFO
    -------------
-   SlaveAxiStreamFifo : entity surf.AxiStreamFifoV2
+   SlaveAxiStreamFifo : entity surf.SsiFifo
       generic map (
          TPD_G               => TPD_G,
          PIPE_STAGES_G       => 0,
