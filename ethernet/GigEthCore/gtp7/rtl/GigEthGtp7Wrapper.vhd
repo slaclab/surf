@@ -16,7 +16,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -108,6 +107,7 @@ architecture mapping of GigEthGtp7Wrapper is
    signal qPllRefClkLost : slv(1 downto 0);
    signal qpllRst        : slv(NUM_LANE_G-1 downto 0);
    signal qpllReset      : slv(1 downto 0);
+   signal dummySig       : slv(1 downto 0);
 
 begin
 
@@ -210,7 +210,7 @@ begin
       -- Once the QPLL is locked, prevent the 
       -- IP cores from accidentally reseting each other
       qpllReset(0) <= sysRst125 or (uOr(qpllRst) and not(qPllLock(0)));
-      qPllReset(1) <= '1';              -- No using QPLL[1]   
+      qPllReset(1) <= '1';              -- Not using QPLL[1]   
 
       --------------
       -- GigE Module 
@@ -256,7 +256,7 @@ begin
                qPllLock           => qPllLock,
                qPllRefClkLost     => qPllRefClkLost,
                qPllReset(0)       => qpllRst(i),
-               qPllReset(1)       => open,
+               qPllReset(1)       => dummySig(i),
                -- Switch Polarity of TxN/TxP, RxN/RxP
                gtTxPolarity       => gtTxPolarity(i),
                gtRxPolarity       => gtRxPolarity(i),
