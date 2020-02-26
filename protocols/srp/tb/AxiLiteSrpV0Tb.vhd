@@ -186,10 +186,10 @@ begin
       for i in 0 to 256 loop
 
          -- Write AXI-Lite Transaction
-         axiLiteBusSimWrite (axilClk, uutAxilWriteMaster, uutAxilWriteSlave, toSlv(i, 32), toSlv(i, 32), true);
+         axiLiteBusSimWrite (axilClk, uutAxilWriteMaster, uutAxilWriteSlave, toSlv(4*i, 32), toSlv(i, 32), true);
 
          -- Read AXI-Lite Transaction
-         axiLiteBusSimRead (axilClk, uutAxilReadMaster, uutAxilReadSlave, toSlv(i, 32), data, true);
+         axiLiteBusSimRead (axilClk, uutAxilReadMaster, uutAxilReadSlave, toSlv(4*i, 32), data, true);
 
          -- Check for failure
          if (data /= i) then
