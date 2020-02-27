@@ -101,6 +101,15 @@ begin
 
    GEN_REG : if (EN_AXI_REG_G = true) generate
 
+      Sync_Config : entity surf.SynchronizerVector
+         generic map (
+            TPD_G   => TPD_G,
+            WIDTH_G => 48)
+         port map (
+            clk     => axiClk,
+            dataIn  => localMac,
+            dataOut => localMacSync);
+
       SyncStatusVec_Inst : entity surf.SyncStatusVector
          generic map (
             TPD_G          => TPD_G,
@@ -138,8 +147,8 @@ begin
       -------------------------------
       -- Configuration Register
       -------------------------------  
-      comb : process (axiReadMaster, axiRst, axiWriteMaster, cntOut, localMac,
-                      r, statusOut) is
+      comb : process (axiReadMaster, axiRst, axiWriteMaster, cntOut,
+                      localMacSync, r, statusOut) is
          variable v      : RegType;
          variable regCon : AxiLiteEndPointType;
          variable i      : natural;
@@ -200,7 +209,7 @@ begin
          end if;
 
          -- Update the MAC address
-         v.config.macConfig.macAddress := localMac;
+         v.config.macConfig.macAddress := localMacSync;
 
          -- Register the variable for next clock cycle
          rin <= v;
