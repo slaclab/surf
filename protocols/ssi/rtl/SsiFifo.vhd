@@ -331,8 +331,24 @@ begin
    -- sAxisClk = mAxisClk
    ----------------------
    GEN_SYNC : if (GEN_SYNC_FIFO_G = true) generate
-      mAxisMaster <= obAxisMaster;
-      obAxisSlave <= mAxisSlave;
+      U_Resize : entity surf.AxiStreamResize
+         generic map (
+            -- General Configurations
+            TPD_G               => TPD_G,
+            READY_EN_G          => SLAVE_READY_EN_G,
+            -- AXI Stream Port Configurations
+            SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_G,
+            MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G)
+         port map (
+            -- Clock and reset
+            axisClk     => sAxisClk,
+            axisRst     => sAxisRst,
+            -- Slave Port
+            sAxisMaster => obAxisMaster,
+            sAxisSlave  => obAxisSlave,
+            -- Master Port
+            mAxisMaster => mAxisMaster,
+            mAxisSlave  => mAxisSlave);
    end generate;
 
 end rtl;
