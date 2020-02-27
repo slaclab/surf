@@ -85,7 +85,7 @@ begin
             TPD_G   => TPD_G,
             WIDTH_G => 48)
          port map (
-            clk     => syncClk,
+            clk     => phyClk,
             dataIn  => localMac,
             dataOut => localMacSync);
 
