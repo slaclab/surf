@@ -74,19 +74,19 @@ architecture rtl of TenGigEthReg is
 
 begin
 
+   Sync_Config : entity surf.SynchronizerVector
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => 48)
+      port map (
+         clk     => clk,
+         dataIn  => localMac,
+         dataOut => localMacSync);
+
    GEN_BYPASS : if (EN_AXI_REG_G = false) generate
 
-      axiReadSlave <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
+      axiReadSlave  <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
       axiWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
-      
-      Sync_Config : entity surf.SynchronizerVector
-         generic map (
-            TPD_G   => TPD_G,
-            WIDTH_G => 48)
-         port map (
-            clk     => clk,
-            dataIn  => localMac,
-            dataOut => localMacSync);
 
       process (localMacSync) is
          variable retVar : TenGigEthConfig;
@@ -143,8 +143,8 @@ begin
       -------------------------------
       -- Configuration Register
       -------------------------------  
-      comb : process (axiReadMaster, axiWriteMaster, cntOut, localMacSync, r, rst,
-                      status, statusOut) is
+      comb : process (axiReadMaster, axiWriteMaster, cntOut, localMacSync, r,
+                      rst, status, statusOut) is
          variable v      : RegType;
          variable regCon : AxiLiteEndPointType;
          variable i      : natural;
@@ -187,9 +187,9 @@ begin
          axiSlaveRegister(regCon, x"238", 0, v.config.pma_reset);
          axiSlaveRegister(regCon, x"23C", 0, v.config.pcs_loopback);
          axiSlaveRegister(regCon, x"240", 0, v.config.pcs_reset);
-         
+
          axiSlaveRegister(regCon, x"800", 0, v.config.macConfig.pauseThresh);
-         
+
          axiSlaveRegister(regCon, x"F00", 0, v.rollOverEn);
          axiSlaveRegister(regCon, x"FF4", 0, v.cntRst);
          axiSlaveRegister(regCon, x"FF8", 0, v.config.softRst);
