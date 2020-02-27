@@ -27,7 +27,6 @@ entity SynchronizerOneShotCnt is
       RST_POLARITY_G  : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G     : boolean  := false;  -- true if reset is asynchronous, false if reset is synchronous
       COMMON_CLK_G    : boolean  := false;  -- True if wrClk and rdClk are the same clock
-      RELEASE_DELAY_G : positive := 3;  -- Delay between deassertion of async and sync resets
       IN_POLARITY_G   : sl       := '1';  -- 0 for active LOW, 1 for active HIGH (dataIn port)
       OUT_POLARITY_G  : sl       := '1';  -- 0 for active LOW, 1 for active HIGH (dataOut port)
       USE_DSP_G       : string   := "no";  -- "no" for no DSP implementation, "yes" to use DSP slices
@@ -116,8 +115,7 @@ begin
             RST_POLARITY_G => RST_POLARITY_G,
             OUT_POLARITY_G => '1',
             RST_ASYNC_G    => RST_ASYNC_G,
-            BYPASS_SYNC_G  => COMMON_CLK_G,
-            STAGES_G       => (RELEASE_DELAY_G-1))
+            BYPASS_SYNC_G  => COMMON_CLK_G)
          port map (
             clk     => wrClk,
             rst     => wrRst,
@@ -132,8 +130,7 @@ begin
          RST_POLARITY_G => RST_POLARITY_G,
          OUT_POLARITY_G => '1',
          RST_ASYNC_G    => RST_ASYNC_G,
-         BYPASS_SYNC_G  => COMMON_CLK_G,
-         STAGES_G       => (RELEASE_DELAY_G-1))
+         BYPASS_SYNC_G  => COMMON_CLK_G)
       port map (
          clk     => wrClk,
          rst     => wrRst,
@@ -214,7 +211,6 @@ begin
          generic map (
             TPD_G         => TPD_G,
             COMMON_CLK_G  => COMMON_CLK_G,
-            SYNC_STAGES_G => RELEASE_DELAY_G,
             DATA_WIDTH_G  => CNT_WIDTH_G)
          port map (
             -- Asynchronous Reset
