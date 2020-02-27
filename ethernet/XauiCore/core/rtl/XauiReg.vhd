@@ -75,19 +75,19 @@ architecture rtl of XauiReg is
 
 begin
 
-   Sync_Config : entity surf.SynchronizerVector
-      generic map (
-         TPD_G   => TPD_G,
-         WIDTH_G => 48)
-      port map (
-         clk     => phyClk,
-         dataIn  => localMac,
-         dataOut => localMacSync);
-
    GEN_BYPASS : if (EN_AXI_REG_G = false) generate
 
       axiReadSlave  <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
       axiWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
+
+      Sync_Config : entity surf.SynchronizerVector
+         generic map (
+            TPD_G   => TPD_G,
+            WIDTH_G => 48)
+         port map (
+            clk     => syncClk,
+            dataIn  => localMac,
+            dataOut => localMacSync);
 
       process (localMacSync) is
          variable retVar : XauiConfig;
@@ -100,6 +100,15 @@ begin
    end generate;
 
    GEN_REG : if (EN_AXI_REG_G = true) generate
+
+      Sync_Config : entity surf.SynchronizerVector
+         generic map (
+            TPD_G   => TPD_G,
+            WIDTH_G => 48)
+         port map (
+            clk     => axiClk,
+            dataIn  => localMac,
+            dataOut => localMacSync);
 
       SyncStatusVec_Inst : entity surf.SyncStatusVector
          generic map (
