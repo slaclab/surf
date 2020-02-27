@@ -101,7 +101,7 @@ begin
             RST_POLARITY_G    => RST_POLARITY_G,
             RST_ASYNC_G       => RST_ASYNC_G,
             BYPASS_SYNC_G     => COMMON_CLK_G,
-            RELEASE_DELAY_G   => RELEASE_DELAY_G,
+            OUT_DELAY_G       => RELEASE_DELAY_G,
             IN_POLARITY_G     => RST_POLARITY_G,
             OUT_POLARITY_G    => RST_POLARITY_G)      
          port map (

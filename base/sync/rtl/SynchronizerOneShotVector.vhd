@@ -69,7 +69,7 @@ begin
             RST_POLARITY_G  => RST_POLARITY_G,
             RST_ASYNC_G     => RST_ASYNC_G,
             BYPASS_SYNC_G   => BYPASS_SYNC_G,
-            RELEASE_DELAY_G => RELEASE_DELAY_G,
+            OUT_DELAY_G     => RELEASE_DELAY_G,
             IN_POLARITY_G   => IN_POLARITY_C(i),
             OUT_POLARITY_G  => OUT_POLARITY_C(i),
             PULSE_WIDTH_G   => PULSE_WIDTH_G)      
