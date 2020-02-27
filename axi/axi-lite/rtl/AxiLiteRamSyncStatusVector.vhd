@@ -37,7 +37,6 @@ entity AxiLiteRamSyncStatusVector is
       RST_POLARITY_G  : sl                     := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G     : boolean                := false;  -- true if reset is asynchronous, false if reset is synchronous
       COMMON_CLK_G    : boolean                := false;  -- True if wrClk and rdClk are the same clock
-      RELEASE_DELAY_G : positive               := 3;  -- Delay between deassertion of async and sync resets
       IN_POLARITY_G   : slv                    := "1";  -- 0 for active LOW, 1 for active HIGH (for statusIn port)
       OUT_POLARITY_G  : sl                     := '1';  -- 0 for active LOW, 1 for active HIGH (for irqOut port)
       SYNTH_CNT_G     : slv                    := "1";  -- Set to 1 for synthesising counter RTL, '0' to not synthesis the counter
