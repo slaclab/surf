@@ -577,26 +577,7 @@ begin
       locTxData   <= r.locData;
    end generate;
 
-   -- Flush Sync
---    U_TxFlushSync : entity surf.SynchronizerOneShot
---       generic map (
---          TPD_G         => TPD_G,
---          PULSE_WIDTH_G => 10)
---       port map (
---          clk     => pgpTxClk,
---          dataIn  => r.flush,
---          dataOut => txFlush);
    txFlush <= r.flush;
-
-   -- Flush Sync
---    U_TxResetSync : entity surf.SynchronizerOneShot
---       generic map (
---          TPD_G         => TPD_G,
---          PULSE_WIDTH_G => 10)
---       port map (
---          clk     => pgpTxClk,
---          dataIn  => r.resetTx,
---          dataout => txReset);
    txReset <= r.resetTx;
 
 
@@ -613,29 +594,7 @@ begin
    -------------------------------------
    -- Rx Control Sync
    -------------------------------------
-
-   -- Flush Sync
---    U_RxFlushSync : entity surf.SynchronizerOneShot
---       generic map (
---          TPD_G         => TPD_G,
---          PULSE_WIDTH_G => 10)
---       port map (
---          clk     => pgpRxClk,
---          dataIn  => r.flush,
---          dataOut => rxFlush);
-
    rxFlush <= r.flush;
-
-   -- Reset Rx Sync
---    U_ResetRxSync : entity surf.SynchronizerOneShot
---       generic map (
---          TPD_G         => TPD_G,
---          PULSE_WIDTH_G => 10)
---       port map (
---          clk     => pgpRxClk,
---          dataIn  => r.resetRx,
---          dataOut => rxReset);
-
    rxReset <= r.resetRx;
 
    -- Set rx input

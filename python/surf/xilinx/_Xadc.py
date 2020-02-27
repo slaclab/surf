@@ -25,7 +25,7 @@ class Xadc(pr.Device):
                  **kwargs):
         super().__init__(description=description, **kwargs)
 
-        def addPair(name, offset, bitSize, units, bitOffset, description, function, pollInterval):
+        def addPair(name, offset, bitSize, units, bitOffset, description, function, pollInterval=0):
             self.add(pr.RemoteVariable(
                 name         = ("Raw"+name),
                 offset       = offset,
