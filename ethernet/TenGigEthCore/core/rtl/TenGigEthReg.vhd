@@ -143,7 +143,7 @@ begin
       -------------------------------
       -- Configuration Register
       -------------------------------  
-      comb : process (axiReadMaster, axiWriteMaster, cntOut, localMac, r, rst,
+      comb : process (axiReadMaster, axiWriteMaster, cntOut, localMacSync, r, rst,
                       status, statusOut) is
          variable v      : RegType;
          variable regCon : AxiLiteEndPointType;
@@ -210,7 +210,7 @@ begin
          end if;
 
          -- Update the MAC address
-         v.config.macConfig.macAddress := localMac;
+         v.config.macConfig.macAddress := localMacSync;
 
          -- Register the variable for next clock cycle
          rin <= v;
