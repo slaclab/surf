@@ -82,6 +82,9 @@ architecture rtl of SynchronizerOneShotCntVector is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   signal cntRstSync     : sl;
+   signal rollOverEnSync : slv(WIDTH_G-1 downto 0);
+
    signal wrEn       : sl;
    signal tReady     : sl;
    signal almostFull : sl;
@@ -90,8 +93,60 @@ architecture rtl of SynchronizerOneShotCntVector is
 
 begin
 
+   CNT_RST_EDGE : if (CNT_RST_EDGE_G = true) generate
+      
+      SyncOneShot_1 : entity surf.SynchronizerOneShot
+         generic map (
+            TPD_G             => TPD_G,
+            RST_POLARITY_G    => RST_POLARITY_G,
+            RST_ASYNC_G       => RST_ASYNC_G,
+            BYPASS_SYNC_G     => COMMON_CLK_G,
+            RELEASE_DELAY_G   => RELEASE_DELAY_G,
+            IN_POLARITY_G     => RST_POLARITY_G,
+            OUT_POLARITY_G    => RST_POLARITY_G)      
+         port map (
+            clk     => wrClk,
+            rst     => wrRst,
+            dataIn  => cntRst,
+            dataOut => cntRstSync);
+
+   end generate;
+
+   CNT_RST_LEVEL : if (CNT_RST_EDGE_G = false) generate
+      
+      Synchronizer_0 : entity surf.Synchronizer
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            OUT_POLARITY_G => '1',
+            RST_ASYNC_G    => RST_ASYNC_G,
+            BYPASS_SYNC_G  => COMMON_CLK_G,
+            STAGES_G       => (RELEASE_DELAY_G-1))      
+         port map (
+            clk     => wrClk,
+            rst     => wrRst,
+            dataIn  => cntRst,
+            dataOut => cntRstSync);       
+
+   end generate;
+
+
    GEN_VEC :
    for i in (WIDTH_G-1) downto 0 generate
+
+      Synchronizer_1 : entity surf.Synchronizer
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            OUT_POLARITY_G => '1',
+            RST_ASYNC_G    => RST_ASYNC_G,
+            BYPASS_SYNC_G  => COMMON_CLK_G,         
+            STAGES_G       => (RELEASE_DELAY_G-1))      
+         port map (
+            clk     => wrClk,
+            rst     => wrRst,
+            dataIn  => rollOverEn(i),
+            dataOut => rollOverEnSync(i));   
 
       U_SyncOneShot : entity surf.SynchronizerOneShot
          generic map (
@@ -124,8 +179,8 @@ begin
             -- Write Ports (wrClk domain)    
             dataIn     => dataIn(i),
             -- Read Ports (rdClk domain)    
-            rollOverEn => rollOverEn(i),
-            cntRst     => cntRst,
+            rollOverEn => rollOverEnSync(i),
+            cntRst     => cntRstSync,
             dataOut    => open,
             cntOut     => cntWrDomain(i),
             -- Clocks and Reset Ports
