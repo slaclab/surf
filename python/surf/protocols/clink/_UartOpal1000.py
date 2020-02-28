@@ -14,9 +14,9 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-import surf.protocols.clink
+import surf.protocols.clink as clink
 
-class UartOpal1000Rx(surf.protocols.clink.ClinkSerialRx):
+class UartOpal1000Rx(clink.ClinkSerialRx):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -53,7 +53,7 @@ class UartOpal1000(pr.Device):
         self._rx = UartOpal1000Rx()
         pr.streamConnect(serial,self._rx)
 
-        self._tx = surf.protocols.clink.ClinkSerialTx()
+        self._tx = clink.ClinkSerialTx()
         pr.streamConnect(self._tx,serial)
 
         @self.command(value='', name='SendString', description='Send a command string')

@@ -14,17 +14,17 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-import surf.protocols.clink
+import surf.protocols.clink as clink
 
 class UartPiranha4(pr.Device):
     def __init__(self, serial=None, **kwargs):
         super().__init__(**kwargs)
 
         # Attach the serial devices
-        self._rx = surf.protocols.clink.ClinkSerialRx()
+        self._rx = clink.ClinkSerialRx()
         pr.streamConnect(serial,self._rx)
 
-        self._tx = surf.protocols.clink.ClinkSerialTx()
+        self._tx = clink.ClinkSerialTx()
         pr.streamConnect(self._tx,serial)
 
         @self.command(value='', name='SendString', description='Send a command string')
