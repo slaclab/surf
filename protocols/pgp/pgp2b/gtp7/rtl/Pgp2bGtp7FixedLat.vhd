@@ -222,16 +222,16 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Oneshot the phy init because clock may drop out and leave it stuck high
    -------------------------------------------------------------------------------------------------
-   U_PwrUpRst : entity surf.PwrUpRst
+   U_gtRxUserReset : entity surf.SynchronizerOneShot
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '1',
          OUT_POLARITY_G => '1',
-         DURATION_G     => 100)
+         PULSE_WIDTH_G  => 100)
       port map (
-         arst   => phyRxInit,           -- [in]
-         clk    => stableClk,           -- [in]
-         rstOut => gtRxUserReset);      -- [out]
+         clk     => stableClk,           -- [in]
+         dataIn  => phyRxInit,           -- [in]
+         dataOut => gtRxUserReset);      -- [out]
 
    --------------------------------------------------------------------------------------------------
    -- Rx Data Path
