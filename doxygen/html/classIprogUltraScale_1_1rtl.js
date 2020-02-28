@@ -1,7 +1,7 @@
 var classIprogUltraScale_1_1rtl =
 [
     [ "selectMapBitSwapping", "classIprogUltraScale_1_1rtl.html#ae43998165d3e2e89adc4813f7e40f459", null ],
-    [ "comb", "classIprogUltraScale_1_1rtl.html#a393d4f932018826f3946b9956b2eb0f7", null ],
+    [ "comb", "classIprogUltraScale_1_1rtl.html#a85553c5d607c3415af186bf6453a0818", null ],
     [ "seq", "classIprogUltraScale_1_1rtl.html#a7c4f74f93f724f5942acb00182942c1a", null ],
     [ "StateType", "classIprogUltraScale_1_1rtl.html#a0d165bf04afb9542d2cbbb091627fb96", null ],
     [ "RegType", "classIprogUltraScale_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
@@ -19,8 +19,10 @@ var classIprogUltraScale_1_1rtl =
     [ "icape2Clk", "classIprogUltraScale_1_1rtl.html#aa893d31a5c733042ef0d92734601c6a1", null ],
     [ "icape2Rst", "classIprogUltraScale_1_1rtl.html#af5d37dba995696e0e1fb9b5d3c50de26", null ],
     [ "startEdge", "classIprogUltraScale_1_1rtl.html#ac7b1b1c59043bdf1a8bd9c08879a9a87", null ],
+    [ "bootAddressSync", "classIprogUltraScale_1_1rtl.html#a141fd6b97a12e66fdd6ee0ffdd7c0212", null ],
     [ "bufgce_div_inst", "classIprogUltraScale_1_1rtl.html#ac2d49d77c3e4d07d146fffde5bfb02b5", null ],
     [ "rstsync_inst", "classIprogUltraScale_1_1rtl.html#af4a835156ce113254b33c7b2dae76a6b", null ],
     [ "synchronizeroneshot_1", "classIprogUltraScale_1_1rtl.html#a26e284b0aceb39731f58863f853a39d1", null ],
+    [ "synchronizervector_1", "classIprogUltraScale_1_1rtl.html#aaa175f583288da93509764362a404834", null ],
     [ "icape3_inst", "classIprogUltraScale_1_1rtl.html#adeef0bafceae7baae8c721cf8dea53b5", null ]
 ];

@@ -23,5 +23,6 @@ var classSsiFifo_1_1rtl =
     [ "u_ibfilter", "classSsiFifo_1_1rtl.html#a52b19572f0e1830f5eaa0a86dd5654a0", null ],
     [ "u_fifo", "classSsiFifo_1_1rtl.html#ae73b6dbad70cfa71621ba63334c4eaca", null ],
     [ "u_obfilter", "classSsiFifo_1_1rtl.html#a02f600b954251ab09f9928cba597a7a7", null ],
-    [ "u_async_fifo", "classSsiFifo_1_1rtl.html#aa4af296366381923504691362e4146cc", null ]
+    [ "u_async_fifo", "classSsiFifo_1_1rtl.html#aa4af296366381923504691362e4146cc", null ],
+    [ "u_resize", "classSsiFifo_1_1rtl.html#a3a921a2f1d704c8e6c8a18caa038a7d9", null ]
 ];

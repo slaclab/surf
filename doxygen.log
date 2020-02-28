@@ -1124,7 +1124,7 @@ Reading /home/travis/build/slaclab/surf/xil
  syntax error at line: 173 : ,
 
 
- syntax error at line: 124 : ,
+ syntax error at line: 126 : ,
 
 
  syntax error at line: 199 : ,
@@ -1223,9 +1223,9 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/ClockMan/h
 
 [AxiLiteMasterProxy.vhd:168:Info: Elaborating entity AxiLiteMaster for hierarchy axilitemaster::u_axilitemaster]
 
-[AxiLiteRamSyncStatusVector.vhd:118:Info: Elaborating entity AxiDualPortRam for hierarchy axidualportram::u_axidualportram]
+[AxiLiteRamSyncStatusVector.vhd:117:Info: Elaborating entity AxiDualPortRam for hierarchy axidualportram::u_axidualportram]
 
-[AxiLiteRamSyncStatusVector.vhd:138:Info: Elaborating entity SyncStatusVector for hierarchy syncstatusvector::u_syncstatusvector]
+[AxiLiteRamSyncStatusVector.vhd:137:Info: Elaborating entity SyncStatusVector for hierarchy syncstatusvector::u_syncstatusvector]
 
 [AxiLiteRingBuffer.vhd:133:Info: Elaborating entity DualPortRam for hierarchy dualportram::dualportram_1]
 
@@ -1365,9 +1365,9 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/ClockMan/h
 
 [AxiStreamMuxTb.vhd:190:Info: Elaborating entity AxiStreamMux for hierarchy axistreammux::u_axistreammux]
 
-[AxiStreamMuxTb.vhd:265:Info: Elaborating entity AxiStreamDeMux for hierarchy axistreamdemux::u_axistreamdemux]
+[AxiStreamMuxTb.vhd:235:Info: Elaborating entity AxiStreamDeMux for hierarchy axistreamdemux::u_axistreamdemux]
 
-[AxiStreamMuxTb.vhd:306:Info: Elaborating entity SsiPrbsRx for hierarchy ssiprbsrx::GEN_SINK:ssiprbsrx_inst]
+[AxiStreamMuxTb.vhd:276:Info: Elaborating entity SsiPrbsRx for hierarchy ssiprbsrx::GEN_SINK:ssiprbsrx_inst]
 
 [AxiStreamPipelineTb.vhd:93:Info: Elaborating entity ClkRst for hierarchy clkrst::clkrst_inst]
 
@@ -1687,25 +1687,31 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/ClockMan/h
 
 [SynchronizerFifo.vhd:89:Info: Elaborating entity FifoAsync for hierarchy fifoasync::GEN_ASYNC:fifoasync_1]
 
-[SynchronizerOneShot.vhd:82:Info: Elaborating entity RstSync for hierarchy rstsync::GEN_ASYNC:rstsync_inst]
+[SynchronizerOneShot.vhd:77:Info: Elaborating entity RstSync for hierarchy rstsync::GEN_ASYNC:rstsync_inst]
 
-[SynchronizerOneShot.vhd:94:Info: Elaborating entity SynchronizerEdge for hierarchy synchronizeredge::sync_pulse]
+[SynchronizerOneShot.vhd:91:Info: Elaborating entity SynchronizerEdge for hierarchy synchronizeredge::sync_pulse]
 
-[SynchronizerOneShotCnt.vhd:91:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::synconeshot_0]
+[SynchronizerOneShotCnt.vhd:90:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::synconeshot_0]
 
-[SynchronizerOneShotCnt.vhd:110:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::CNT_RST_EDGE:synconeshot_1]
+[SynchronizerOneShotCnt.vhd:108:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::CNT_RST_EDGE:synconeshot_1]
 
-[SynchronizerOneShotCnt.vhd:128:Info: Elaborating entity Synchronizer for hierarchy synchronizer::CNT_RST_LEVEL:synchronizer_0]
+[SynchronizerOneShotCnt.vhd:125:Info: Elaborating entity Synchronizer for hierarchy synchronizer::CNT_RST_LEVEL:synchronizer_0]
 
-[SynchronizerOneShotCnt.vhd:142:Info: Elaborating entity Synchronizer for hierarchy synchronizer::synchronizer_1]
+[SynchronizerOneShotCnt.vhd:138:Info: Elaborating entity Synchronizer for hierarchy synchronizer::synchronizer_1]
 
-[SynchronizerOneShotCnt.vhd:230:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GEN_CNT:syncfifo_inst]
+[SynchronizerOneShotCnt.vhd:225:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GEN_CNT:syncfifo_inst]
 
-[SynchronizerOneShotCntVector.vhd:143:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::GEN_VEC:u_synconeshot]
+[SynchronizerOneShotCntVector.vhd:111:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::CNT_RST_EDGE:synconeshot_1]
 
-[SynchronizerOneShotCntVector.vhd:143:Info: Elaborating entity SynchronizerOneShotCnt for hierarchy synchronizeroneshotcnt::GEN_VEC:synconeshotcnt_inst]
+[SynchronizerOneShotCntVector.vhd:128:Info: Elaborating entity Synchronizer for hierarchy synchronizer::CNT_RST_LEVEL:synchronizer_0]
 
-[SynchronizerOneShotCntVector.vhd:234:Info: Elaborating entity FifoAsync for hierarchy fifoasync::GEN_ASYNC:u_fifo]
+[SynchronizerOneShotCntVector.vhd:192:Info: Elaborating entity Synchronizer for hierarchy synchronizer::GEN_VEC:synchronizer_1]
+
+[SynchronizerOneShotCntVector.vhd:192:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::GEN_VEC:u_synconeshot]
+
+[SynchronizerOneShotCntVector.vhd:192:Info: Elaborating entity SynchronizerOneShotCnt for hierarchy synchronizeroneshotcnt::GEN_VEC:synconeshotcnt_inst]
+
+[SynchronizerOneShotCntVector.vhd:283:Info: Elaborating entity FifoAsync for hierarchy fifoasync::GEN_ASYNC:u_fifo]
 
 [SynchronizerOneShotVector.vhd:82:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::GEN_VEC:synconeshot_inst]
 
@@ -1723,7 +1729,7 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/ClockMan/h
 
 [SyncStatusVector.vhd:122:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::syncvec_inst]
 
-[SyncStatusVector.vhd:150:Info: Elaborating entity SynchronizerOneShotCntVector for hierarchy synchronizeroneshotcntvector::synconeshotcntvec_inst]
+[SyncStatusVector.vhd:148:Info: Elaborating entity SynchronizerOneShotCntVector for hierarchy synchronizeroneshotcntvector::synconeshotcntvec_inst]
 
 [SyncTrigPeriod.vhd:79:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::u_oneshot]
 
@@ -2275,7 +2281,7 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/ClockMan/h
 
 [GigEthReg.vhd:85:Info: Elaborating entity WatchDogRst for hierarchy watchdogrst::u_watchdogrst]
 
-[GigEthReg.vhd:110:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::GEN_BYPASS:sync_config]
+[GigEthReg.vhd:94:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::sync_config]
 
 [GigEthReg.vhd:227:Info: Elaborating entity SyncStatusVector for hierarchy syncstatusvector::GEN_REG:syncstatusvec_inst]
 
@@ -2505,7 +2511,7 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/ClockMan/h
 
 [RawEthFramerTb.vhd:454:Info: Elaborating entity SyncStatusVector for hierarchy syncstatusvector::u_syncstatusvector]
 
-[TenGigEthReg.vhd:99:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::GEN_BYPASS:sync_config]
+[TenGigEthReg.vhd:84:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::sync_config]
 
 [TenGigEthReg.vhd:232:Info: Elaborating entity SyncStatusVector for hierarchy syncstatusvector::GEN_REG:syncstatusvec_inst]
 
@@ -2705,17 +2711,19 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/ClockMan/h
 
 [XauiReg.vhd:100:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::GEN_BYPASS:sync_config]
 
-[XauiReg.vhd:286:Info: Elaborating entity SyncStatusVector for hierarchy syncstatusvector::GEN_REG:syncstatusvec_inst]
+[XauiReg.vhd:295:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::GEN_REG:sync_config]
 
-[XauiReg.vhd:286:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GEN_REG:syncin_macaddress]
+[XauiReg.vhd:295:Info: Elaborating entity SyncStatusVector for hierarchy syncstatusvector::GEN_REG:syncstatusvec_inst]
 
-[XauiReg.vhd:286:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GEN_REG:syncin_pausetime]
+[XauiReg.vhd:295:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GEN_REG:syncin_macaddress]
 
-[XauiReg.vhd:286:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::GEN_REG:syncin_macconfig]
+[XauiReg.vhd:295:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GEN_REG:syncin_pausetime]
 
-[XauiReg.vhd:286:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GEN_REG:syncin_configvector]
+[XauiReg.vhd:295:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::GEN_REG:syncin_macconfig]
 
-[XauiReg.vhd:286:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GEN_REG:syncin_pausethresh]
+[XauiReg.vhd:295:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GEN_REG:syncin_configvector]
+
+[XauiReg.vhd:295:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GEN_REG:syncin_pausethresh]
 
 [XauiGth7.vhd:116:Info: Elaborating entity EthMacTop for hierarchy ethmactop::u_mac]
 
@@ -3549,13 +3557,13 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/ClockMan/h
 
 [Pgp2bGth7VarLatWrapper.vhd:168:Info: Elaborating entity Pgp2bGth7VarLat for hierarchy pgp2bgth7varlat::pgp2bgth7varlat_inst]
 
-[Pgp2bGthUltra.vhd:120:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::u_rstsync_1]
+[Pgp2bGthUltra.vhd:120:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::u_rstsync_1]
 
-[Pgp2bGthUltra.vhd:131:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::u_rstsync_4]
+[Pgp2bGthUltra.vhd:131:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::u_rstsync_4]
 
-[Pgp2bGthUltra.vhd:142:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::u_rstsync_2]
+[Pgp2bGthUltra.vhd:142:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::u_rstsync_2]
 
-[Pgp2bGthUltra.vhd:153:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::u_rstsync_3]
+[Pgp2bGthUltra.vhd:153:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::u_rstsync_3]
 
 [Pgp2bGthUltra.vhd:182:Info: Elaborating entity Pgp2bLane for hierarchy pgp2blane::u_pgp2blane]
 
@@ -3565,13 +3573,13 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/ClockMan/h
 
 [PgpGthCoreWrapper.vhd:234:Info: Elaborating entity AxiLiteToDrp for hierarchy axilitetodrp::u_axilitetodrp_1]
 
-[Pgp2bGthUltra.vhd:120:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::u_rstsync_1]
+[Pgp2bGthUltra.vhd:120:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::u_rstsync_1]
 
-[Pgp2bGthUltra.vhd:131:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::u_rstsync_4]
+[Pgp2bGthUltra.vhd:131:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::u_rstsync_4]
 
-[Pgp2bGthUltra.vhd:142:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::u_rstsync_2]
+[Pgp2bGthUltra.vhd:142:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::u_rstsync_2]
 
-[Pgp2bGthUltra.vhd:153:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::u_rstsync_3]
+[Pgp2bGthUltra.vhd:153:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::u_rstsync_3]
 
 [Pgp2bGthUltra.vhd:182:Info: Elaborating entity Pgp2bLane for hierarchy pgp2blane::u_pgp2blane]
 
@@ -3583,7 +3591,7 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/ClockMan/h
 
 [Pgp2bGtp7FixedLat.vhd:220:Info: Elaborating entity Pgp2bLane for hierarchy pgp2blane::u_pgp2blane]
 
-[Pgp2bGtp7FixedLat.vhd:234:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::u_synchronizeroneshot_1]
+[Pgp2bGtp7FixedLat.vhd:234:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::u_pwruprst]
 
 [Pgp2bGtp7FixedLat.vhd:253:Info: Elaborating entity Decoder8b10b for hierarchy decoder8b10b::decoder8b10b_1]
 
@@ -3809,21 +3817,21 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/ClockMan/h
 
 [Pgp3GthUsIpWrapper.vhd:545:Info: Elaborating entity AxiLiteToDrp for hierarchy axilitetodrp::GEN_DRP:u_axilitetodrp_1]
 
-[Pgp3GthUsQpll.vhd:101:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::GEN_VEC:GEN_CH:u_pwruprst]
+[Pgp3GthUsQpll.vhd:194:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::GEN_VEC:GEN_CH:u_pwruprst]
 
-[Pgp3GthUsQpll.vhd:153:Info: Elaborating entity GthUltraScaleQuadPll for hierarchy gthultrascalequadpll::u_qpll]
+[Pgp3GthUsQpll.vhd:246:Info: Elaborating entity GthUltraScaleQuadPll for hierarchy gthultrascalequadpll::u_qpll]
 
-[Pgp3GthUsWrapper.vhd:149:Info: Elaborating entity bufg_gt for hierarchy bufg_gt::INT_REFCLK:u_bufg_gt]
+[Pgp3GthUsWrapper.vhd:151:Info: Elaborating entity bufg_gt for hierarchy bufg_gt::INT_REFCLK:u_bufg_gt]
 
-[Pgp3GthUsWrapper.vhd:149:Info: Elaborating entity ibufds_gte3 for hierarchy ibufds_gte3::INT_REFCLK:u_pgprefclk]
+[Pgp3GthUsWrapper.vhd:151:Info: Elaborating entity ibufds_gte3 for hierarchy ibufds_gte3::INT_REFCLK:u_pgprefclk]
 
-[Pgp3GthUsWrapper.vhd:266:Info: Elaborating entity AxiLiteCrossbar for hierarchy axilitecrossbar::REAL_PGP:u_xbar]
+[Pgp3GthUsWrapper.vhd:270:Info: Elaborating entity AxiLiteCrossbar for hierarchy axilitecrossbar::REAL_PGP:u_xbar]
 
-[Pgp3GthUsWrapper.vhd:266:Info: Elaborating entity Pgp3GthUsQpll for hierarchy pgp3gthusqpll::REAL_PGP:u_qpll]
+[Pgp3GthUsWrapper.vhd:270:Info: Elaborating entity Pgp3GthUsQpll for hierarchy pgp3gthusqpll::REAL_PGP:u_qpll]
 
-[Pgp3GthUsWrapper.vhd:266:Info: Elaborating entity Pgp3GthUs for hierarchy pgp3gthus::REAL_PGP:GEN_LANE:u_pgp]
+[Pgp3GthUsWrapper.vhd:270:Info: Elaborating entity Pgp3GthUs for hierarchy pgp3gthus::REAL_PGP:GEN_LANE:u_pgp]
 
-[Pgp3GthUsWrapper.vhd:305:Info: Elaborating entity RoguePgp3Sim for hierarchy roguepgp3sim::SIM_PGP:GEN_LANE:u_rogue]
+[Pgp3GthUsWrapper.vhd:309:Info: Elaborating entity RoguePgp3Sim for hierarchy roguepgp3sim::SIM_PGP:GEN_LANE:u_rogue]
 
 [Pgp3GthUs.vhd:175:Info: Elaborating entity AxiLiteCrossbar for hierarchy axilitecrossbar::GEN_XBAR:u_xbar]
 
@@ -4235,9 +4243,9 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/ClockMan/h
 
 [AxiLiteSrpV0.vhd:172:Info: Elaborating entity AxiStreamFifoV2 for hierarchy axistreamfifov2::rxaxistreamfifo]
 
-[SrpV0AxiLite.vhd:156:Info: Elaborating entity SsiFifo for hierarchy ssififo::slaveaxistreamfifo]
+[SrpV0AxiLite.vhd:161:Info: Elaborating entity SsiFifo for hierarchy ssififo::slaveaxistreamfifo]
 
-[SrpV0AxiLite.vhd:434:Info: Elaborating entity AxiStreamFifoV2 for hierarchy axistreamfifov2::masteraxistreamfifo]
+[SrpV0AxiLite.vhd:451:Info: Elaborating entity AxiStreamFifoV2 for hierarchy axistreamfifov2::masteraxistreamfifo]
 
 [SrpV3Axi.vhd:139:Info: Elaborating entity SrpV3Core for hierarchy srpv3core::u_srpv3core_1]
 
@@ -4273,15 +4281,15 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/ClockMan/h
 
 [SrpV3Core.vhd:724:Info: Elaborating entity AxiStreamPipeline for hierarchy axistreampipeline::u_axistreampipeline_wrdata]
 
-[AxiLiteSrpV0Tb.vhd:80:Info: Elaborating entity ClkRst for hierarchy clkrst::u_clkrst_axis]
+[AxiLiteSrpV0Tb.vhd:81:Info: Elaborating entity ClkRst for hierarchy clkrst::u_clkrst_axis]
 
-[AxiLiteSrpV0Tb.vhd:91:Info: Elaborating entity ClkRst for hierarchy clkrst::u_clkrst_axil]
+[AxiLiteSrpV0Tb.vhd:92:Info: Elaborating entity ClkRst for hierarchy clkrst::u_clkrst_axil]
 
-[AxiLiteSrpV0Tb.vhd:121:Info: Elaborating entity AxiLiteSrpV0 for hierarchy axilitesrpv0::u_axilitesrpv0]
+[AxiLiteSrpV0Tb.vhd:122:Info: Elaborating entity AxiLiteSrpV0 for hierarchy axilitesrpv0::u_axilitesrpv0]
 
-[AxiLiteSrpV0Tb.vhd:153:Info: Elaborating entity SrpV0AxiLite for hierarchy srpv0axilite::u_srpv0axilite_1]
+[AxiLiteSrpV0Tb.vhd:154:Info: Elaborating entity SrpV0AxiLite for hierarchy srpv0axilite::u_srpv0axilite_1]
 
-[AxiLiteSrpV0Tb.vhd:173:Info: Elaborating entity AxiDualPortRam for hierarchy axidualportram::u_axidualportram_1]
+[AxiLiteSrpV0Tb.vhd:174:Info: Elaborating entity AxiDualPortRam for hierarchy axidualportram::u_axidualportram_1]
 
 [SrpV3AxiLiteTb.vhd:110:Info: Elaborating entity ClkRst for hierarchy clkrst::u_clkrst0]
 
@@ -4304,6 +4312,8 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/ClockMan/h
 [SsiFifo.vhd:297:Info: Elaborating entity SsiObFrameFilter for hierarchy ssiobframefilter::u_obfilter]
 
 [SsiFifo.vhd:328:Info: Elaborating entity AxiStreamFifoV2 for hierarchy axistreamfifov2::GEN_ASYNC:u_async_fifo]
+
+[SsiFifo.vhd:352:Info: Elaborating entity AxiStreamResize for hierarchy axistreamresize::GEN_SYNC:u_resize]
 
 [SsiFrameLimiter.vhd:107:Info: Elaborating entity AxiStreamResize for hierarchy axistreamresize::BYPASS_FIFO_RX:u_resize_ob]
 
@@ -4667,9 +4677,9 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/ClockMan/h
 
 [Gtpe2ChannelDummy.vhd:288:Info: Elaborating entity gtpe2_channel for hierarchy gtpe2_channel::GEN_VEC:u_gtp]
 
-[Gtx7AutoPhaseAligner.vhd:135:Info: Elaborating entity Synchronizer for hierarchy synchronizer::sync_phaligndone]
+[Gtx7AutoPhaseAligner.vhd:137:Info: Elaborating entity Synchronizer for hierarchy synchronizer::sync_phaligndone]
 
-[Gtx7AutoPhaseAligner.vhd:143:Info: Elaborating entity Synchronizer for hierarchy synchronizer::sync_dlysresetdone]
+[Gtx7AutoPhaseAligner.vhd:145:Info: Elaborating entity Synchronizer for hierarchy synchronizer::sync_dlysresetdone]
 
 [Gtx7Core.vhd:503:Info: Elaborating entity Gtx7RxRst for hierarchy gtx7rxrst::gtx7rxrst_inst]
 
@@ -4829,13 +4839,15 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/ClockMan/h
 
 [InputBufferReg.vhd:73:Info: Elaborating entity iddre1 for hierarchy iddre1::u_iddr]
 
-[IprogUltraScale.vhd:98:Info: Elaborating entity bufgce_div for hierarchy bufgce_div::bufgce_div_inst]
+[IprogUltraScale.vhd:100:Info: Elaborating entity bufgce_div for hierarchy bufgce_div::bufgce_div_inst]
 
-[IprogUltraScale.vhd:107:Info: Elaborating entity RstSync for hierarchy rstsync::rstsync_inst]
+[IprogUltraScale.vhd:109:Info: Elaborating entity RstSync for hierarchy rstsync::rstsync_inst]
 
-[IprogUltraScale.vhd:116:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::synchronizeroneshot_1]
+[IprogUltraScale.vhd:118:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::synchronizeroneshot_1]
 
-[IprogUltraScale.vhd:131:Info: Elaborating entity icape3 for hierarchy icape3::icape3_inst]
+[IprogUltraScale.vhd:128:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::synchronizervector_1]
+
+[IprogUltraScale.vhd:143:Info: Elaborating entity icape3 for hierarchy icape3::icape3_inst]
 
 [Odelaye3Wrapper.vhd:84:Info: Elaborating entity Delaye3PatchFsm for hierarchy delaye3patchfsm::u_patch]
 
@@ -5304,7 +5316,7 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/ClockMan/h
 /home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:25: warning: documented symbol `_use_ GigEthPkgGigEthPkg' was not declared or defined.
 /home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:27: warning: documented symbol `_library_ unisimunisim' was not declared or defined.
 /home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:28: warning: documented symbol `_use_ vcomponentsvcomponents' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gtp7/rtl/GigEthGtp7Wrapper.vhd:79: warning: documented symbol `out refClkOutsl' was not declared or defined.
+/home/travis/build/slaclab/surf/ethernet/GigEthCore/gtp7/rtl/GigEthGtp7Wrapper.vhd:78: warning: documented symbol `out refClkOutsl' was not declared or defined.
 /home/travis/build/slaclab/surf/ethernet/RawEthFramer/rtl/RawEthFramer.vhd:83: warning: no matching class member found for 
   slv()
 
@@ -5953,12 +5965,6 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/ClockMan/h
 /home/travis/build/slaclab/surf/protocols/pgp/pgp3/gthUs+/rtl/Pgp3GthUsQpll.vhd:25: warning: documented symbol `_use_ AxiLitePkgAxiLitePkg' was not declared or defined.
 /home/travis/build/slaclab/surf/protocols/pgp/pgp3/gthUs+/rtl/Pgp3GthUsQpll.vhd:27: warning: documented symbol `_library_ unisimunisim' was not declared or defined.
 /home/travis/build/slaclab/surf/protocols/pgp/pgp3/gthUs+/rtl/Pgp3GthUsQpll.vhd:28: warning: documented symbol `_use_ vcomponentsvcomponents' was not declared or defined.
-/home/travis/build/slaclab/surf/protocols/pgp/pgp3/gthUs+/rtl/Pgp3GthUsQpll.vhd:56: warning: no matching class member found for 
-  slv()
-
-/home/travis/build/slaclab/surf/protocols/pgp/pgp3/gthUs+/rtl/Pgp3GthUsQpll.vhd:57: warning: no uniquely matching class member found for 
-  positive  : ite()
-
 /home/travis/build/slaclab/surf/protocols/pgp/pgp3/gthUs+/rtl/Pgp3GthUsQpll.vhd:59: warning: no matching class member found for 
   slv()
 

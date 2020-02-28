@@ -2,7 +2,9 @@ var classPgp3GthUsQpll =
 [
     [ "Pgp3GthUsQpll.mapping", "classPgp3GthUsQpll_1_1mapping.html", "classPgp3GthUsQpll_1_1mapping" ],
     [ "TPD_G", "classPgp3GthUsQpll.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "REFCLK_TYPE_G", "classPgp3GthUsQpll.html#a604236fc754ecc08ff368af6e575b01d", null ],
     [ "RATE_G", "classPgp3GthUsQpll.html#a0f1b05ab4c65c103dc102097d352eb63", null ],
+    [ "QPLL_REFCLK_SEL_G", "classPgp3GthUsQpll.html#a0743d2f53eee4c6a78f44022d39b4a70", null ],
     [ "EN_DRP_G", "classPgp3GthUsQpll.html#adc2d033559dcfd31442b0113a54a5c96", null ],
     [ "stableClk", "classPgp3GthUsQpll.html#a99bde91ce6737f250f72c51ea41e8bc4", null ],
     [ "stableRst", "classPgp3GthUsQpll.html#a4ded3206a751966927a343f794356ff1", null ],
@@ -24,6 +26,7 @@ var classPgp3GthUsQpll =
     [ "surf", "classPgp3GthUsQpll.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classPgp3GthUsQpll.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiLitePkg", "classPgp3GthUsQpll.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
+    [ "Pgp3Pkg", "classPgp3GthUsQpll.html#a8fe78bd162f190ddcf71d39850745a3a", null ],
     [ "unisim", "classPgp3GthUsQpll.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
     [ "vcomponents", "classPgp3GthUsQpll.html#aa1cb22e959d47364391e5eb4ef86927c", null ]
 ];

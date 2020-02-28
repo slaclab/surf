@@ -16,6 +16,7 @@ var classGigEthGtp7Wrapper_1_1mapping =
     [ "qPllRefClkLost", "classGigEthGtp7Wrapper_1_1mapping.html#a9ecad72c5390db2671cc4e5e74dbb44a", null ],
     [ "qpllRst", "classGigEthGtp7Wrapper_1_1mapping.html#a348cd80a51d75e968f94540bde59ed37", null ],
     [ "qpllReset", "classGigEthGtp7Wrapper_1_1mapping.html#a0b2d861179c7b5c4838e7039f5515485", null ],
+    [ "dummySig", "classGigEthGtp7Wrapper_1_1mapping.html#ac980f18e34e08b1d00ebeda1729063fa", null ],
     [ "ibufds_gte2_inst", "classGigEthGtp7Wrapper_1_1mapping.html#a8dc7a570a5c733f85e4c1dca5c1f0972", null ],
     [ "bufg_inst", "classGigEthGtp7Wrapper_1_1mapping.html#a4eae75b3393d576fb43b9aa9ae017d34", null ],
     [ "pwruprst_inst", "classGigEthGtp7Wrapper_1_1mapping.html#a43c85f60045fec26ee620f5fe61b92dc", null ],

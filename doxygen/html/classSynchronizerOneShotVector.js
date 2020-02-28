@@ -5,7 +5,7 @@ var classSynchronizerOneShotVector =
     [ "RST_POLARITY_G", "classSynchronizerOneShotVector.html#a8a9f56ec06b173cf46dc7160fd7c1f30", null ],
     [ "RST_ASYNC_G", "classSynchronizerOneShotVector.html#a123a3d9a6e9648e763d21c0281ee7ecd", null ],
     [ "BYPASS_SYNC_G", "classSynchronizerOneShotVector.html#afebdccf6c61e1f63e67b03dbe34d6d6f", null ],
-    [ "RELEASE_DELAY_G", "classSynchronizerOneShotVector.html#ab726fbb299abd7582750cdb5343a55d5", null ],
+    [ "OUT_DELAY_G", "classSynchronizerOneShotVector.html#acbaa1facc6bcaa7d5a3625d82564a48e", null ],
     [ "IN_POLARITY_G", "classSynchronizerOneShotVector.html#ab564eedd69ac47d3b05b500b5ad936bd", null ],
     [ "OUT_POLARITY_G", "classSynchronizerOneShotVector.html#a0862ed450b363e43963bbec61cc5f9d3", null ],
     [ "PULSE_WIDTH_G", "classSynchronizerOneShotVector.html#ae6f8438656e4452937da3ce756d15d8d", null ],

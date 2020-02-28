@@ -13,8 +13,8 @@
 <area shape="rect" id="node7" href="$classFifoCascade.html" title="FifoCascade(2)" alt="" coords="212,335,331,361"/>
 <area shape="rect" id="node8" href="$classFifo.html" title="Fifo(4)" alt="" coords="45,335,108,361"/>
 <area shape="rect" id="node9" href="$classSynchronizer.html" title="Synchronizer" alt="" coords="218,385,325,412"/>
-<area shape="rect" id="node45" href="$classRstSync.html" title="RstSync" alt="" coords="437,613,512,640"/>
-<area shape="rect" id="node46" href="$classSynchronizerEdge.html" title="SynchronizerEdge" alt="" coords="405,563,544,589"/>
+<area shape="rect" id="node45" href="$classRstSync.html" title="RstSync" alt="" coords="437,512,512,539"/>
+<area shape="rect" id="node46" href="$classSynchronizerEdge.html" title="SynchronizerEdge" alt="" coords="405,613,544,640"/>
 <area shape="rect" id="node10" href="$classEthMacTx.html" title="EthMacTx" alt="" coords="1129,233,1215,260"/>
 <area shape="rect" id="node11" href="$classEthMacTxBypass.html" title="EthMacTxBypass" alt="" coords="855,132,987,159"/>
 <area shape="rect" id="node12" href="$classEthMacTxCsum.html" title="EthMacTxCsum(2)" alt="" coords="622,436,762,463"/>
@@ -40,11 +40,11 @@
 <area shape="rect" id="node35" href="$classSsiFifo.html" title="SsiFifo(3)" alt="" coords="651,31,733,57"/>
 <area shape="rect" id="node36" href="$classSsiIbFrameFilter.html" title="SsiIbFrameFilter" alt="" coords="412,31,537,57"/>
 <area shape="rect" id="node39" href="$classXauiReg.html" title="XauiReg" alt="" coords="1545,423,1620,449"/>
-<area shape="rect" id="node40" href="$classSynchronizerVector.html" title="SynchronizerVector(2)" alt="" coords="1332,423,1497,449"/>
+<area shape="rect" id="node40" href="$classSynchronizerVector.html" title="SynchronizerVector(3)" alt="" coords="1332,423,1497,449"/>
 <area shape="rect" id="node41" href="$classSyncStatusVector.html" title="SyncStatusVector" alt="" coords="1347,499,1482,525"/>
 <area shape="rect" id="node42" href="$classSynchronizerVector.html" title="SynchronizerVector" alt="" coords="1099,499,1245,525"/>
 <area shape="rect" id="node43" href="$classSynchronizerOneShotCntVector.html" title="SynchronizerOneShotCntVector" alt="" coords="1060,588,1284,615"/>
-<area shape="rect" id="node44" href="$classSynchronizerOneShot.html" title="SynchronizerOneShot" alt="" coords="611,639,773,665"/>
-<area shape="rect" id="node48" href="$classSynchronizerOneShot.html" title="SynchronizerOneShot(2)" alt="" coords="603,588,781,615"/>
+<area shape="rect" id="node44" href="$classSynchronizerOneShot.html" title="SynchronizerOneShot(2)" alt="" coords="603,639,781,665"/>
 <area shape="rect" id="node47" href="$classSynchronizerOneShotCnt.html" title="SynchronizerOneShotCnt" alt="" coords="829,588,1012,615"/>
+<area shape="rect" id="node48" href="$classSynchronizerFifo.html" title="SynchronizerFifo" alt="" coords="627,588,757,615"/>
 </map>

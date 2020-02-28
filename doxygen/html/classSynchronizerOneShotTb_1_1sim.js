@@ -4,7 +4,7 @@ var classSynchronizerOneShotTb_1_1sim =
     [ "RST_POLARITY_G", "classSynchronizerOneShotTb_1_1sim.html#aef0294fe31c0313179170b2998ff450b", null ],
     [ "RST_ASYNC_G", "classSynchronizerOneShotTb_1_1sim.html#a303ff37bd0c8871db3f6cc10dae41641", null ],
     [ "BYPASS_SYNC_G", "classSynchronizerOneShotTb_1_1sim.html#a829285f6577d766cf54f5a4ea8a30c1c", null ],
-    [ "RELEASE_DELAY_G", "classSynchronizerOneShotTb_1_1sim.html#a8c6e48872c258f4b90259b4b33da4284", null ],
+    [ "OUT_DELAY_G", "classSynchronizerOneShotTb_1_1sim.html#a2d480499e7236f6f9e7846e0904bb053", null ],
     [ "IN_POLARITY_G", "classSynchronizerOneShotTb_1_1sim.html#a8796ec2e6b68a535991dc2d4630eed23", null ],
     [ "OUT_POLARITY_G", "classSynchronizerOneShotTb_1_1sim.html#a015243067b18e0b0b80865aac8b4e10d", null ],
     [ "clk", "classSynchronizerOneShotTb_1_1sim.html#a9cbc248beab9f258cf3f9fd30afa6531", null ],

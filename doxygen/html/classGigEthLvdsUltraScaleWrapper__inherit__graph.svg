@@ -61,33 +61,33 @@ var sectionId = 'dynsection-0';
 <polygon fill="#bfbfbf" stroke="#000000" points="1212,-494.5 1212,-513.5 1374,-513.5 1374,-494.5 1212,-494.5"/>
 <text text-anchor="middle" x="1293" y="-501.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">GigEthLvdsUltraScaleWrapper</text>
 </g>
-<!-- Node65 -->
+<!-- Node64 -->
 <g id="node48" class="node">
-<title>Node65</title>
+<title>Node64</title>
 <g id="a_node48"><a xlink:href="classSgmii88E1111LvdsUltraScale.html" target="_top" xlink:title="Sgmii88E1111LvdsUltraScale">
 <polygon fill="#ffffff" stroke="#000000" points="1411,-513.5 1411,-532.5 1570,-532.5 1570,-513.5 1411,-513.5"/>
 <text text-anchor="middle" x="1490.5" y="-520.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">Sgmii88E1111LvdsUltraScale</text>
 </a>
 </g>
 </g>
-<!-- Node0&#45;&gt;Node65 -->
+<!-- Node0&#45;&gt;Node64 -->
 <g id="edge60" class="edge">
-<title>Node0&#45;&gt;Node65</title>
+<title>Node0&#45;&gt;Node64</title>
 <path fill="none" stroke="#191970" d="M1384.2015,-512.7738C1393.1175,-513.6316 1402.116,-514.4972 1410.904,-515.3427"/>
 <polygon fill="#191970" stroke="#191970" points="1384.475,-509.2841 1374.1858,-511.8103 1383.8046,-516.2519 1384.475,-509.2841"/>
 </g>
-<!-- Node66 -->
+<!-- Node65 -->
 <g id="node49" class="node">
-<title>Node66</title>
+<title>Node65</title>
 <g id="a_node49"><a xlink:href="classSgmiiDp83867LvdsUltraScale.html" target="_top" xlink:title="SgmiiDp83867LvdsUltraScale">
 <polygon fill="#ffffff" stroke="#000000" points="1410,-475.5 1410,-494.5 1571,-494.5 1571,-475.5 1410,-475.5"/>
 <text text-anchor="middle" x="1490.5" y="-482.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">SgmiiDp83867LvdsUltraScale</text>
 </a>
 </g>
 </g>
-<!-- Node0&#45;&gt;Node66 -->
+<!-- Node0&#45;&gt;Node65 -->
 <g id="edge61" class="edge">
-<title>Node0&#45;&gt;Node66</title>
+<title>Node0&#45;&gt;Node65</title>
 <path fill="none" stroke="#191970" d="M1384.2167,-495.2247C1392.8047,-494.3985 1401.4692,-493.565 1409.9483,-492.7493"/>
 <polygon fill="#191970" stroke="#191970" points="1383.8046,-491.7481 1374.1858,-496.1897 1384.475,-498.7159 1383.8046,-491.7481"/>
 </g>

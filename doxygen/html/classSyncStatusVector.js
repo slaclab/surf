@@ -5,7 +5,7 @@ var classSyncStatusVector =
     [ "RST_POLARITY_G", "classSyncStatusVector.html#a8a9f56ec06b173cf46dc7160fd7c1f30", null ],
     [ "RST_ASYNC_G", "classSyncStatusVector.html#a123a3d9a6e9648e763d21c0281ee7ecd", null ],
     [ "COMMON_CLK_G", "classSyncStatusVector.html#a762b446ddef001083e8cfc52dc38385f", null ],
-    [ "RELEASE_DELAY_G", "classSyncStatusVector.html#ab726fbb299abd7582750cdb5343a55d5", null ],
+    [ "SYNC_STAGES_G", "classSyncStatusVector.html#ad31992c24dd9f068b58c35ba788996cb", null ],
     [ "IN_POLARITY_G", "classSyncStatusVector.html#ab564eedd69ac47d3b05b500b5ad936bd", null ],
     [ "OUT_POLARITY_G", "classSyncStatusVector.html#a6f5184f05b7d36459251e1194e5c6120", null ],
     [ "USE_DSP_G", "classSyncStatusVector.html#ac724dc2108bd111c20e5b364a4da4534", null ],

@@ -1,10 +1,10 @@
 <map id="Iprog" name="Iprog">
-<area shape="rect" id="node2" href="$classIprog7Series.html" title="Iprog7Series" alt="" coords="149,229,251,256"/>
-<area shape="rect" id="node3" href="$classRstSync.html" title="RstSync" alt="" coords="339,80,413,107"/>
-<area shape="rect" id="node8" href="$classIprogUltraScale.html" title="IprogUltraScale" alt="" coords="276,229,399,256"/>
-<area shape="rect" id="node9" href="$classSynchronizerOneShot.html" title="SynchronizerOneShot" alt="" coords="173,155,334,181"/>
-<area shape="rect" id="node4" href="$classSynchronizer.html" title="Synchronizer" alt="" coords="257,5,364,32"/>
-<area shape="rect" id="node7" href="$classSynchronizerEdge.html" title="SynchronizerEdge" alt="" coords="176,80,315,107"/>
-<area shape="rect" id="node5" href="$classIprog7SeriesCore.html" title="Iprog7SeriesCore" alt="" coords="15,155,148,181"/>
-<area shape="rect" id="node6" href="$classSynchronizerVector.html" title="SynchronizerVector" alt="" coords="5,80,152,107"/>
+<area shape="rect" id="node2" href="$classIprog7Series.html" title="Iprog7Series" alt="" coords="5,229,108,256"/>
+<area shape="rect" id="node3" href="$classRstSync.html" title="RstSync" alt="" coords="38,80,113,107"/>
+<area shape="rect" id="node8" href="$classIprogUltraScale.html" title="IprogUltraScale" alt="" coords="133,229,255,256"/>
+<area shape="rect" id="node9" href="$classSynchronizerOneShot.html" title="SynchronizerOneShot" alt="" coords="113,155,275,181"/>
+<area shape="rect" id="node4" href="$classSynchronizer.html" title="Synchronizer" alt="" coords="87,5,194,32"/>
+<area shape="rect" id="node7" href="$classSynchronizerEdge.html" title="SynchronizerEdge" alt="" coords="137,80,275,107"/>
+<area shape="rect" id="node5" href="$classIprog7SeriesCore.html" title="Iprog7SeriesCore" alt="" coords="299,155,433,181"/>
+<area shape="rect" id="node6" href="$classSynchronizerVector.html" title="SynchronizerVector" alt="" coords="347,80,494,107"/>
 </map>

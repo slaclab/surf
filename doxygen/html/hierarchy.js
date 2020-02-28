@@ -178,7 +178,8 @@ var hierarchy =
           ] ],
           [ "IprogUltraScale", "classIprogUltraScale.html", [
             [ "RstSync", "classRstSync.html", null ],
-            [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ]
+            [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ],
+            [ "SynchronizerVector", "classSynchronizerVector.html", null ]
           ] ]
         ] ]
       ] ],
@@ -850,7 +851,7 @@ var hierarchy =
           [ "AxiLiteToDrp", "classAxiLiteToDrp.html", null ]
         ] ]
       ] ],
-      [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ],
+      [ "PwrUpRst", "classPwrUpRst.html", null ],
       [ "Pgp2bLane", "classPgp2bLane.html", null ],
       [ "PgpGthCoreWrapper", "classPgpGthCoreWrapper.html", [
         [ "AxiLiteToDrp", "classAxiLiteToDrp.html", null ]
@@ -860,7 +861,7 @@ var hierarchy =
       [ "Gtp7QuadPll", "classGtp7QuadPll.html", null ],
       [ "Pgp2bGtp7FixedLat", "classPgp2bGtp7FixedLat.html", [
         [ "Pgp2bLane", "classPgp2bLane.html", null ],
-        [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ],
+        [ "PwrUpRst", "classPwrUpRst.html", null ],
         [ "Decoder8b10b", "classDecoder8b10b.html", null ],
         [ "Pgp3RxGearboxAligner", "classPgp3RxGearboxAligner.html", null ],
         [ "Gtp7Core", "classGtp7Core.html", null ],

@@ -8,7 +8,6 @@ var classAxiLiteRamSyncStatusVector =
     [ "RST_POLARITY_G", "classAxiLiteRamSyncStatusVector.html#a8a9f56ec06b173cf46dc7160fd7c1f30", null ],
     [ "RST_ASYNC_G", "classAxiLiteRamSyncStatusVector.html#a123a3d9a6e9648e763d21c0281ee7ecd", null ],
     [ "COMMON_CLK_G", "classAxiLiteRamSyncStatusVector.html#a762b446ddef001083e8cfc52dc38385f", null ],
-    [ "RELEASE_DELAY_G", "classAxiLiteRamSyncStatusVector.html#ab726fbb299abd7582750cdb5343a55d5", null ],
     [ "IN_POLARITY_G", "classAxiLiteRamSyncStatusVector.html#ab564eedd69ac47d3b05b500b5ad936bd", null ],
     [ "OUT_POLARITY_G", "classAxiLiteRamSyncStatusVector.html#a6f5184f05b7d36459251e1194e5c6120", null ],
     [ "SYNTH_CNT_G", "classAxiLiteRamSyncStatusVector.html#afcb1ad088fa47d7232fcc4951acbe767", null ],

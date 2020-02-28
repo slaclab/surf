@@ -99,8 +99,8 @@ Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="Processes"></a>
 Processes</h2></td></tr>
- <tr class="memitem:a393d4f932018826f3946b9956b2eb0f7"><td class="memItemLeft" align="right" valign="top"><a id="a393d4f932018826f3946b9956b2eb0f7"></a>
-<a class="el" href="classIprogUltraScale_1_1rtl.html#a393d4f932018826f3946b9956b2eb0f7">comb</a>&#160;</td><td class="memItemRight" valign="bottom"><b> ( <b><span class="vhdlchar">bootAddress</span><span class="vhdlchar"> </span></b> , <b><span class="vhdlchar">icape2Rst</span><span class="vhdlchar"> </span></b> , <b><span class="vhdlchar">r</span><span class="vhdlchar"> </span></b> , <b><span class="vhdlchar">rdy</span><span class="vhdlchar"> </span></b> , <b><span class="vhdlchar">startEdge</span><span class="vhdlchar"> </span></b> )</b></td></tr>
+ <tr class="memitem:a85553c5d607c3415af186bf6453a0818"><td class="memItemLeft" align="right" valign="top"><a id="a85553c5d607c3415af186bf6453a0818"></a>
+<a class="el" href="classIprogUltraScale_1_1rtl.html#a85553c5d607c3415af186bf6453a0818">comb</a>&#160;</td><td class="memItemRight" valign="bottom"><b> ( <b><span class="vhdlchar">bootAddressSync</span><span class="vhdlchar"> </span></b> , <b><span class="vhdlchar">icape2Rst</span><span class="vhdlchar"> </span></b> , <b><span class="vhdlchar">r</span><span class="vhdlchar"> </span></b> , <b><span class="vhdlchar">rdy</span><span class="vhdlchar"> </span></b> , <b><span class="vhdlchar">startEdge</span><span class="vhdlchar"> </span></b> )</b></td></tr>
 <tr class="memitem:a7c4f74f93f724f5942acb00182942c1a"><td class="memItemLeft" align="right" valign="top"><a id="a7c4f74f93f724f5942acb00182942c1a"></a>
 <a class="el" href="classIprogUltraScale_1_1rtl.html#a7c4f74f93f724f5942acb00182942c1a">seq</a>&#160;</td><td class="memItemRight" valign="bottom"><b> ( <b><span class="vhdlchar">icape2Clk</span><span class="vhdlchar"> </span></b> )</b></td></tr>
 </table><table class="memberdecls">
@@ -133,6 +133,8 @@ Signals</h2></td></tr>
 <a class="el" href="classIprogUltraScale_1_1rtl.html#af5d37dba995696e0e1fb9b5d3c50de26">icape2Rst</a> &#160;</td><td class="memItemRight" valign="bottom"><b><span class="vhdlchar">sl</span><span class="vhdlchar"> </span></b></td></tr>
 <tr class="memitem:ac7b1b1c59043bdf1a8bd9c08879a9a87"><td class="memItemLeft" align="right" valign="top"><a id="ac7b1b1c59043bdf1a8bd9c08879a9a87"></a>
 <a class="el" href="classIprogUltraScale_1_1rtl.html#ac7b1b1c59043bdf1a8bd9c08879a9a87">startEdge</a> &#160;</td><td class="memItemRight" valign="bottom"><b><span class="vhdlchar">sl</span><span class="vhdlchar"> </span></b></td></tr>
+<tr class="memitem:a141fd6b97a12e66fdd6ee0ffdd7c0212"><td class="memItemLeft" align="right" valign="top"><a id="a141fd6b97a12e66fdd6ee0ffdd7c0212"></a>
+<a class="el" href="classIprogUltraScale_1_1rtl.html#a141fd6b97a12e66fdd6ee0ffdd7c0212">bootAddressSync</a> &#160;</td><td class="memItemRight" valign="bottom"><b><span class="vhdlchar">slv</span><span class="vhdlchar"> </span><span class="vhdlchar">(</span><span class="vhdlchar"> </span><span class="vhdlchar"> </span> <span class="vhdldigit">31</span> <span class="vhdlchar"> </span><span class="keywordflow">downto</span><span class="vhdlchar"> </span><span class="vhdlchar"> </span> <span class="vhdldigit">0</span> <span class="vhdlchar"> </span><span class="vhdlchar">)</span><span class="vhdlchar"> </span></b></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="Records"></a>
 Records</h2></td></tr>
@@ -159,6 +161,8 @@ Instantiations</h2></td></tr>
 <a class="el" href="classIprogUltraScale_1_1rtl.html#af4a835156ce113254b33c7b2dae76a6b">rstsync_inst</a>&#160;</td><td class="memItemRight" valign="bottom">  <b>RstSync</b>  <em><a class="el" href="classRstSync.html">&lt;Entity RstSync&gt;</a></em></td></tr>
 <tr class="memitem:a26e284b0aceb39731f58863f853a39d1"><td class="memItemLeft" align="right" valign="top"><a id="a26e284b0aceb39731f58863f853a39d1"></a>
 <a class="el" href="classIprogUltraScale_1_1rtl.html#a26e284b0aceb39731f58863f853a39d1">synchronizeroneshot_1</a>&#160;</td><td class="memItemRight" valign="bottom">  <b>SynchronizerOneShot</b>  <em><a class="el" href="classSynchronizerOneShot.html">&lt;Entity SynchronizerOneShot&gt;</a></em></td></tr>
+<tr class="memitem:aaa175f583288da93509764362a404834"><td class="memItemLeft" align="right" valign="top"><a id="aaa175f583288da93509764362a404834"></a>
+<a class="el" href="classIprogUltraScale_1_1rtl.html#aaa175f583288da93509764362a404834">synchronizervector_1</a>&#160;</td><td class="memItemRight" valign="bottom">  <b>SynchronizerVector</b>  <em><a class="el" href="classSynchronizerVector.html">&lt;Entity SynchronizerVector&gt;</a></em></td></tr>
 <tr class="memitem:adeef0bafceae7baae8c721cf8dea53b5"><td class="memItemLeft" align="right" valign="top"><a id="adeef0bafceae7baae8c721cf8dea53b5"></a>
 <a class="el" href="classIprogUltraScale_1_1rtl.html#adeef0bafceae7baae8c721cf8dea53b5">icape3_inst</a>&#160;</td><td class="memItemRight" valign="bottom">  <b>icape3</b>  </td></tr>
 </table>
