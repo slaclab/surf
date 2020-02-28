@@ -38,6 +38,8 @@ entity Pgp3GthUsWrapper is
       NUM_VC_G                    : positive range 1 to 16      := 4;
       REFCLK_G                    : boolean                     := false;  --  FALSE: pgpRefClkP/N,  TRUE: pgpRefClkIn
       RATE_G                      : string                      := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps" 
+      REFCLK_TYPE_G               : Pgp3RefClkType              := PGP3_REFCLK_156_C;
+      QPLL_REFCLK_SEL_G           : slv(2 downto 0)             := "001";
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
@@ -45,7 +47,7 @@ entity Pgp3GthUsWrapper is
       RX_ALIGN_SLIP_WAIT_G        : integer                     := 32;
       PGP_TX_ENABLE_G             : boolean                     := true;
       TX_CELL_WORDS_MAX_G         : integer                     := PGP3_DEFAULT_TX_CELL_WORDS_MAX_C;  -- Number of 64-bit words per cell
-      TX_MUX_MODE_G               : string                      := "INDEXED";      -- Or "ROUTED"
+      TX_MUX_MODE_G               : string                      := "INDEXED";  -- Or "ROUTED"
       TX_MUX_TDEST_ROUTES_G       : Slv8Array                   := (0      => "--------");  -- Only used in ROUTED mode
       TX_MUX_TDEST_LOW_G          : integer range 0 to 7        := 0;
       TX_MUX_ILEAVE_EN_G          : boolean                     := true;
@@ -67,9 +69,9 @@ entity Pgp3GthUsWrapper is
       pgpGtRxP          : in  slv(NUM_LANES_G-1 downto 0);
       pgpGtRxN          : in  slv(NUM_LANES_G-1 downto 0);
       -- GT Clocking
-      pgpRefClkP        : in  sl                                                     := '0';  -- 156.25 MHz
-      pgpRefClkN        : in  sl                                                     := '1';  -- 156.25 MHz
-      pgpRefClkIn       : in  sl                                                     := '0';  -- 156.25 MHz
+      pgpRefClkP        : in  sl                                                     := '0';  -- REFCLK_TYPE_G
+      pgpRefClkN        : in  sl                                                     := '1';  -- REFCLK_TYPE_G
+      pgpRefClkIn       : in  sl                                                     := '0';  -- REFCLK_TYPE_G
       pgpRefClkOut      : out sl;
       pgpRefClkDiv2Bufg : out sl;
       -- Clocking
@@ -177,9 +179,11 @@ begin
 
       U_QPLL : entity surf.Pgp3GthUsQpll
          generic map (
-            TPD_G    => TPD_G,
-            RATE_G   => RATE_G,
-            EN_DRP_G => EN_QPLL_DRP_G)
+            TPD_G             => TPD_G,
+            RATE_G            => RATE_G,
+            REFCLK_TYPE_G     => REFCLK_TYPE_G,
+            QPLL_REFCLK_SEL_G => QPLL_REFCLK_SEL_G,
+            EN_DRP_G          => EN_QPLL_DRP_G)
          port map (
             -- Stable Clock and Reset
             stableClk       => stableClk,                            -- [in]

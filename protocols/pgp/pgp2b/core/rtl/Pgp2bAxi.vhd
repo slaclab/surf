@@ -208,7 +208,7 @@ architecture structure of Pgp2bAxi is
       linkPolarity    : slv(1 downto 0);
       locLinkReady    : sl;
       remLinkReady    : sl;
-      remLinkReadyCnt : slv(ERROR_CNT_WIDTH_G-1 downto 0);      
+      remLinkReadyCnt : slv(ERROR_CNT_WIDTH_G-1 downto 0);
       remLinkData     : slv(7 downto 0);
       cellErrorCount  : slv(ERROR_CNT_WIDTH_G-1 downto 0);
       linkDownCount   : slv(ERROR_CNT_WIDTH_G-1 downto 0);
@@ -301,16 +301,16 @@ begin
    -- Errror counters and non counted values
    U_RxError : entity surf.SyncStatusVector
       generic map (
-         TPD_G           => TPD_G,
-         RST_POLARITY_G  => '1',
-         COMMON_CLK_G    => COMMON_RX_CLK_G,
-         RELEASE_DELAY_G => 3,
-         IN_POLARITY_G   => "1",
-         OUT_POLARITY_G  => '1',
-         SYNTH_CNT_G     => "111110000111110000",
-         CNT_RST_EDGE_G  => false,
-         CNT_WIDTH_G     => ERROR_CNT_WIDTH_G,
-         WIDTH_G         => 18)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => '1',
+         COMMON_CLK_G   => COMMON_RX_CLK_G,
+         SYNC_STAGES_G  => 3,
+         IN_POLARITY_G  => "1",
+         OUT_POLARITY_G => '1',
+         SYNTH_CNT_G    => "111110000111110000",
+         CNT_RST_EDGE_G => false,
+         CNT_WIDTH_G    => ERROR_CNT_WIDTH_G,
+         WIDTH_G        => 18)
       port map (
          statusIn(0)           => pgpRxOut.phyRxReady,
          statusIn(1)           => pgpRxOut.linkReady,
@@ -371,16 +371,16 @@ begin
    -- Status counters
    U_RxStatus : entity surf.SyncStatusVector
       generic map (
-         TPD_G           => TPD_G,
-         RST_POLARITY_G  => '1',
-         COMMON_CLK_G    => COMMON_RX_CLK_G,
-         RELEASE_DELAY_G => 3,
-         IN_POLARITY_G   => "1",
-         OUT_POLARITY_G  => '1',
-         SYNTH_CNT_G     => "1",
-         CNT_RST_EDGE_G  => false,
-         CNT_WIDTH_G     => STATUS_CNT_WIDTH_G,
-         WIDTH_G         => 1)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => '1',
+         COMMON_CLK_G   => COMMON_RX_CLK_G,
+         SYNC_STAGES_G  => 3,
+         IN_POLARITY_G  => "1",
+         OUT_POLARITY_G => '1',
+         SYNTH_CNT_G    => "1",
+         CNT_RST_EDGE_G => false,
+         CNT_WIDTH_G    => STATUS_CNT_WIDTH_G,
+         WIDTH_G        => 1)
       port map (
          statusIn(0)  => pgpRxOut.frameRx,
          statusOut    => open,
@@ -441,16 +441,16 @@ begin
    -- Errror counters and non counted values
    U_TxError : entity surf.SyncStatusVector
       generic map (
-         TPD_G           => TPD_G,
-         RST_POLARITY_G  => '1',
-         COMMON_CLK_G    => COMMON_TX_CLK_G,
-         RELEASE_DELAY_G => 3,
-         IN_POLARITY_G   => "1",
-         OUT_POLARITY_G  => '1',
-         SYNTH_CNT_G     => "110000111100",
-         CNT_RST_EDGE_G  => false,
-         CNT_WIDTH_G     => ERROR_CNT_WIDTH_G,
-         WIDTH_G         => 12)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => '1',
+         COMMON_CLK_G   => COMMON_TX_CLK_G,
+         SYNC_STAGES_G  => 3,
+         IN_POLARITY_G  => "1",
+         OUT_POLARITY_G => '1',
+         SYNTH_CNT_G    => "110000111100",
+         CNT_RST_EDGE_G => false,
+         CNT_WIDTH_G    => ERROR_CNT_WIDTH_G,
+         WIDTH_G        => 12)
       port map (
          statusIn(0)          => pgpTxOut.phyTxReady,
          statusIn(1)          => pgpTxOut.linkReady,
@@ -486,16 +486,16 @@ begin
    -- Status counters
    U_TxStatus : entity surf.SyncStatusVector
       generic map (
-         TPD_G           => TPD_G,
-         RST_POLARITY_G  => '1',
-         COMMON_CLK_G    => COMMON_TX_CLK_G,
-         RELEASE_DELAY_G => 3,
-         IN_POLARITY_G   => "1",
-         OUT_POLARITY_G  => '1',
-         SYNTH_CNT_G     => "1",
-         CNT_RST_EDGE_G  => false,
-         CNT_WIDTH_G     => STATUS_CNT_WIDTH_G,
-         WIDTH_G         => 1)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => '1',
+         COMMON_CLK_G   => COMMON_TX_CLK_G,
+         SYNC_STAGES_G  => 3,
+         IN_POLARITY_G  => "1",
+         OUT_POLARITY_G => '1',
+         SYNTH_CNT_G    => "1",
+         CNT_RST_EDGE_G => false,
+         CNT_WIDTH_G    => STATUS_CNT_WIDTH_G,
+         WIDTH_G        => 1)
       port map (
          statusIn(0)  => pgpTxOut.frameTx,
          statusOut    => open,
@@ -577,26 +577,7 @@ begin
       locTxData   <= r.locData;
    end generate;
 
-   -- Flush Sync
---    U_TxFlushSync : entity surf.SynchronizerOneShot
---       generic map (
---          TPD_G         => TPD_G,
---          PULSE_WIDTH_G => 10)
---       port map (
---          clk     => pgpTxClk,
---          dataIn  => r.flush,
---          dataOut => txFlush);
    txFlush <= r.flush;
-
-   -- Flush Sync
---    U_TxResetSync : entity surf.SynchronizerOneShot
---       generic map (
---          TPD_G         => TPD_G,
---          PULSE_WIDTH_G => 10)
---       port map (
---          clk     => pgpTxClk,
---          dataIn  => r.resetTx,
---          dataout => txReset);
    txReset <= r.resetTx;
 
 
@@ -613,29 +594,7 @@ begin
    -------------------------------------
    -- Rx Control Sync
    -------------------------------------
-
-   -- Flush Sync
---    U_RxFlushSync : entity surf.SynchronizerOneShot
---       generic map (
---          TPD_G         => TPD_G,
---          PULSE_WIDTH_G => 10)
---       port map (
---          clk     => pgpRxClk,
---          dataIn  => r.flush,
---          dataOut => rxFlush);
-
    rxFlush <= r.flush;
-
-   -- Reset Rx Sync
---    U_ResetRxSync : entity surf.SynchronizerOneShot
---       generic map (
---          TPD_G         => TPD_G,
---          PULSE_WIDTH_G => 10)
---       port map (
---          clk     => pgpRxClk,
---          dataIn  => r.resetRx,
---          dataOut => rxReset);
-
    rxReset <= r.resetRx;
 
    -- Set rx input

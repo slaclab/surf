@@ -22,31 +22,30 @@ use surf.StdRtlPkg.all;
 
 entity SynchronizerOneShotCntVector is
    generic (
-      TPD_G           : time     := 1 ns;  -- Simulation FF output delay
-      RST_POLARITY_G  : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
-      RST_ASYNC_G     : boolean  := false;  -- true if reset is asynchronous, false if reset is synchronous
-      COMMON_CLK_G    : boolean  := false;  -- True if wrClk and rdClk are the same clock
-      RELEASE_DELAY_G : positive := 3;  -- Delay between deassertion of async and sync resets
-      IN_POLARITY_G   : slv      := "1";  -- 0 for active LOW, 1 for active HIGH (dataIn port)
-      OUT_POLARITY_G  : slv      := "1";  -- 0 for active LOW, 1 for active HIGH (dataOut port)
-      USE_DSP_G       : string   := "no";  -- "no" for no DSP implementation, "yes" to use DSP slices
-      SYNTH_CNT_G     : slv      := "1";  -- Set to 1 for synthesising counter RTL, '0' to not synthesis the counter
-      CNT_RST_EDGE_G  : boolean  := true;  -- true if counter reset should be edge detected, else level detected
-      CNT_WIDTH_G     : positive := 16;
-      WIDTH_G         : positive := 16);
+      TPD_G          : time     := 1 ns;  -- Simulation FF output delay
+      RST_POLARITY_G : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean  := false;  -- true if reset is asynchronous, false if reset is synchronous
+      COMMON_CLK_G   : boolean  := false;  -- True if wrClk and rdClk are the same clock
+      IN_POLARITY_G  : slv      := "1";  -- 0 for active LOW, 1 for active HIGH (dataIn port)
+      OUT_POLARITY_G : slv      := "1";  -- 0 for active LOW, 1 for active HIGH (dataOut port)
+      USE_DSP_G      : string   := "no";  -- "no" for no DSP implementation, "yes" to use DSP slices
+      SYNTH_CNT_G    : slv      := "1";  -- Set to 1 for synthesising counter RTL, '0' to not synthesis the counter
+      CNT_RST_EDGE_G : boolean  := true;  -- true if counter reset should be edge detected, else level detected
+      CNT_WIDTH_G    : positive := 16;
+      WIDTH_G        : positive := 16);
    port (
-      -- Write Ports (wrClk domain)    
-      dataIn     : in  slv(WIDTH_G-1 downto 0);  -- Data to be 'synced'
-      -- Read Ports (rdClk domain)    
-      rollOverEn : in  slv(WIDTH_G-1 downto 0);  -- '1' allows roll over of the counter
-      cntRst     : in  sl := not RST_POLARITY_G;  -- Optional counter reset
-      dataOut    : out slv(WIDTH_G-1 downto 0);  -- Synced data
-      cntOut     : out SlVectorArray(WIDTH_G-1 downto 0, CNT_WIDTH_G-1 downto 0);  -- Synced counter
-      -- Clocks and Reset Ports
+
+      -- Write Ports (wrClk domain)          
       wrClk      : in  sl;
       wrRst      : in  sl := not RST_POLARITY_G;
+      dataIn     : in  slv(WIDTH_G-1 downto 0);   -- Data to be 'synced'
+      -- Read Ports (rdClk domain)
       rdClk      : in  sl;              -- clock to be SYNC'd to
-      rdRst      : in  sl := not RST_POLARITY_G);
+      rdRst      : in  sl := not RST_POLARITY_G;
+      rollOverEn : in  slv(WIDTH_G-1 downto 0);   -- '1' allows roll over of the counter
+      cntRst     : in  sl := not RST_POLARITY_G;  -- Optional counter reset
+      dataOut    : out slv(WIDTH_G-1 downto 0);   -- Synced data
+      cntOut     : out SlVectorArray(WIDTH_G-1 downto 0, CNT_WIDTH_G-1 downto 0));  -- Synced counter
 end SynchronizerOneShotCntVector;
 
 architecture rtl of SynchronizerOneShotCntVector is
@@ -82,6 +81,9 @@ architecture rtl of SynchronizerOneShotCntVector is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   signal cntRstSync     : sl;
+   signal rollOverEnSync : slv(WIDTH_G-1 downto 0);
+
    signal wrEn       : sl;
    signal tReady     : sl;
    signal almostFull : sl;
@@ -90,18 +92,66 @@ architecture rtl of SynchronizerOneShotCntVector is
 
 begin
 
+   CNT_RST_EDGE : if (CNT_RST_EDGE_G = true) generate
+
+      SyncOneShot_1 : entity surf.SynchronizerOneShot
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            BYPASS_SYNC_G  => COMMON_CLK_G,
+            IN_POLARITY_G  => RST_POLARITY_G,
+            OUT_POLARITY_G => RST_POLARITY_G)
+         port map (
+            clk     => wrClk,
+            rst     => wrRst,
+            dataIn  => cntRst,
+            dataOut => cntRstSync);
+
+   end generate;
+
+   CNT_RST_LEVEL : if (CNT_RST_EDGE_G = false) generate
+
+      Synchronizer_0 : entity surf.Synchronizer
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            OUT_POLARITY_G => '1',
+            RST_ASYNC_G    => RST_ASYNC_G,
+            BYPASS_SYNC_G  => COMMON_CLK_G)
+         port map (
+            clk     => wrClk,
+            rst     => wrRst,
+            dataIn  => cntRst,
+            dataOut => cntRstSync);
+
+   end generate;
+
+
    GEN_VEC :
    for i in (WIDTH_G-1) downto 0 generate
 
+      Synchronizer_1 : entity surf.Synchronizer
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            OUT_POLARITY_G => '1',
+            RST_ASYNC_G    => RST_ASYNC_G,
+            BYPASS_SYNC_G  => COMMON_CLK_G)
+         port map (
+            clk     => wrClk,
+            rst     => wrRst,
+            dataIn  => rollOverEn(i),
+            dataOut => rollOverEnSync(i));
+
       U_SyncOneShot : entity surf.SynchronizerOneShot
          generic map (
-            TPD_G           => TPD_G,
-            RST_POLARITY_G  => RST_POLARITY_G,
-            RST_ASYNC_G     => RST_ASYNC_G,
-            BYPASS_SYNC_G   => COMMON_CLK_G,
-            RELEASE_DELAY_G => RELEASE_DELAY_G,
-            IN_POLARITY_G   => IN_POLARITY_C(i),
-            OUT_POLARITY_G  => OUT_POLARITY_C(i))
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            BYPASS_SYNC_G  => COMMON_CLK_G,
+            IN_POLARITY_G  => IN_POLARITY_C(i),
+            OUT_POLARITY_G => OUT_POLARITY_C(i))
          port map (
             clk     => rdClk,
             rst     => rdRst,
@@ -110,30 +160,29 @@ begin
 
       SyncOneShotCnt_Inst : entity surf.SynchronizerOneShotCnt
          generic map (
-            TPD_G           => TPD_G,
-            RST_POLARITY_G  => RST_POLARITY_G,
-            RST_ASYNC_G     => RST_ASYNC_G,
-            COMMON_CLK_G    => true,  -- status counter bus synchronization done outside
-            RELEASE_DELAY_G => RELEASE_DELAY_G,
-            IN_POLARITY_G   => IN_POLARITY_C(i),
-            OUT_POLARITY_G  => OUT_POLARITY_C(i),
-            USE_DSP_G       => USE_DSP_G,
-            SYNTH_CNT_G     => SYNTH_CNT_C(i),
-            CNT_RST_EDGE_G  => CNT_RST_EDGE_G,
-            CNT_WIDTH_G     => CNT_WIDTH_G)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            COMMON_CLK_G   => true,     -- status counter bus synchronization done outside
+            IN_POLARITY_G  => IN_POLARITY_C(i),
+            OUT_POLARITY_G => OUT_POLARITY_C(i),
+            USE_DSP_G      => USE_DSP_G,
+            SYNTH_CNT_G    => SYNTH_CNT_C(i),
+            CNT_RST_EDGE_G => CNT_RST_EDGE_G,
+            CNT_WIDTH_G    => CNT_WIDTH_G)
          port map (
-            -- Write Ports (wrClk domain)    
-            dataIn     => dataIn(i),
-            -- Read Ports (rdClk domain)    
-            rollOverEn => rollOverEn(i),
-            cntRst     => cntRst,
-            dataOut    => open,
-            cntOut     => cntWrDomain(i),
-            -- Clocks and Reset Ports
+            -- Write Ports (wrClk domain)
             wrClk      => wrClk,
             wrRst      => wrRst,
-            rdClk      => wrClk,  -- status counter bus synchronization done outside
-            rdRst      => wrRst);
+            dataIn     => dataIn(i),
+            -- Read Ports (rdClk domain)
+            rdClk      => wrClk,        -- status counter bus synchronization done outside
+            rdRst      => wrRst,
+            rollOverEn => rollOverEnSync(i),
+            cntRst     => cntRstSync,
+            dataOut    => open,
+            cntOut     => cntWrDomain(i));
+
 
       GEN_MAP :
       for j in (CNT_WIDTH_G-1) downto 0 generate
