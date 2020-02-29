@@ -3559,15 +3559,15 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/ClockMan/h
 
 [Pgp2bGthUltra.vhd:120:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::u_rstsync_1]
 
-[Pgp2bGthUltra.vhd:131:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::u_rstsync_4]
+[Pgp2bGthUltra.vhd:131:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::u_rstsync_4]
 
-[Pgp2bGthUltra.vhd:142:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::u_rstsync_2]
+[Pgp2bGthUltra.vhd:141:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::u_rstsync_2]
 
-[Pgp2bGthUltra.vhd:153:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::u_rstsync_3]
+[Pgp2bGthUltra.vhd:152:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::u_rstsync_3]
 
-[Pgp2bGthUltra.vhd:182:Info: Elaborating entity Pgp2bLane for hierarchy pgp2blane::u_pgp2blane]
+[Pgp2bGthUltra.vhd:181:Info: Elaborating entity Pgp2bLane for hierarchy pgp2blane::u_pgp2blane]
 
-[Pgp2bGthUltra.vhd:222:Info: Elaborating entity PgpGthCoreWrapper for hierarchy pgpgthcorewrapper::pgpgthcorewrapper_1]
+[Pgp2bGthUltra.vhd:221:Info: Elaborating entity PgpGthCoreWrapper for hierarchy pgpgthcorewrapper::pgpgthcorewrapper_1]
 
 [PgpGthCoreWrapper.vhd:207:Info: Elaborating entity pgpgthcore for hierarchy pgpgthcore::u_pgpgthcore]
 
@@ -3575,15 +3575,15 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/ClockMan/h
 
 [Pgp2bGthUltra.vhd:120:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::u_rstsync_1]
 
-[Pgp2bGthUltra.vhd:131:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::u_rstsync_4]
+[Pgp2bGthUltra.vhd:131:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::u_rstsync_4]
 
-[Pgp2bGthUltra.vhd:142:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::u_rstsync_2]
+[Pgp2bGthUltra.vhd:141:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::u_rstsync_2]
 
-[Pgp2bGthUltra.vhd:153:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::u_rstsync_3]
+[Pgp2bGthUltra.vhd:152:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::u_rstsync_3]
 
-[Pgp2bGthUltra.vhd:182:Info: Elaborating entity Pgp2bLane for hierarchy pgp2blane::u_pgp2blane]
+[Pgp2bGthUltra.vhd:181:Info: Elaborating entity Pgp2bLane for hierarchy pgp2blane::u_pgp2blane]
 
-[Pgp2bGthUltra.vhd:222:Info: Elaborating entity PgpGthCoreWrapper for hierarchy pgpgthcorewrapper::pgpgthcorewrapper_1]
+[Pgp2bGthUltra.vhd:221:Info: Elaborating entity PgpGthCoreWrapper for hierarchy pgpgthcorewrapper::pgpgthcorewrapper_1]
 
 [PgpGthCoreWrapper.vhd:209:Info: Elaborating entity pgpgthcore for hierarchy pgpgthcore::u_pgpgthcore]
 
@@ -3591,7 +3591,7 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/ClockMan/h
 
 [Pgp2bGtp7FixedLat.vhd:220:Info: Elaborating entity Pgp2bLane for hierarchy pgp2blane::u_pgp2blane]
 
-[Pgp2bGtp7FixedLat.vhd:234:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::u_pwruprst]
+[Pgp2bGtp7FixedLat.vhd:234:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::u_gtrxuserreset]
 
 [Pgp2bGtp7FixedLat.vhd:253:Info: Elaborating entity Decoder8b10b for hierarchy decoder8b10b::decoder8b10b_1]
 
