@@ -9,7 +9,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-import surf.devices.silabs
+import surf.devices.silabs as silabs
 import csv
 import click
 
@@ -73,7 +73,7 @@ class Si5345Lite(pr.Device):
         ##############################
         # Devices
         ##############################
-        self.add(surf.devices.silabs.Si5345Page0(offset=(0x000<<2),simpleDisplay=simpleDisplay,expand=False))
+        self.add(silabs.Si5345Page0(offset=(0x000<<2),simpleDisplay=simpleDisplay,expand=False))
 
         self.add(pr.LinkVariable(
             name         = 'Locked',
