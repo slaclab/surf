@@ -5,11 +5,11 @@
 -- CameraLink UART RX/TX
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -152,7 +152,7 @@ begin
       port map (
          clk     => intClk,                          -- [in]
          rst     => intRst,                          -- [in]
-         baud16x => r.clkEn,                         -- [in]
+         clkEn   => r.clkEn,                         -- [in]
          wrData  => txMasters(1).tData(7 downto 0),  -- [in]
          wrValid => txMasters(1).tValid,             -- [in]
          wrReady => txSlaves(1).tReady,              -- [out]
@@ -167,7 +167,7 @@ begin
       port map (
          clk     => intClk,             -- [in]
          rst     => intRst,             -- [in]
-         baud16x => r.clkEn,            -- [in]
+         clkEn   => r.clkEn,            -- [in]
          rdData  => rdData,             -- [out]
          rdValid => rdValid,            -- [out]
          rdReady => '1',                -- [in]
