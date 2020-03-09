@@ -16,14 +16,15 @@ class EM22xx(surf.protocols.i2c.PMBus):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        linearDataFormat = surf.protocols.i2c.getPMbusLinearDataFormat
+        literalDataFormat = surf.protocols.i2c.getPMbusLiteralDataFormat
+        linearDataFormat  = surf.protocols.i2c.getPMbusLinearDataFormat
 
         self.add(pr.LinkVariable(
             name         = 'VIN',
             mode         = 'RO',
             units        = 'V',
             disp         = '{:1.3f}',
-            linkedGet    = linearDataFormat,
+            linkedGet    = literalDataFormat,
             dependencies = [self.READ_VIN],
         ))
 
@@ -33,15 +34,16 @@ class EM22xx(surf.protocols.i2c.PMBus):
             units        = 'V',
             disp         = '{:1.3f}',
             linkedGet    = linearDataFormat,
-            dependencies = [self.READ_VOUT],
+            dependencies = [self.VOUT_MODE,self.READ_VOUT],
         ))
+        self.VOUT_MODE._default = 0x13
 
         self.add(pr.LinkVariable(
             name         = 'IOUT',
             mode         = 'RO',
             units        = 'A',
             disp         = '{:1.3f}',
-            linkedGet    = linearDataFormat,
+            linkedGet    = literalDataFormat,
             dependencies = [self.READ_IOUT],
         ))
 
@@ -50,7 +52,7 @@ class EM22xx(surf.protocols.i2c.PMBus):
             mode         = 'RO',
             units        = 'degC',
             disp         = '{:1.3f}',
-            linkedGet    = linearDataFormat,
+            linkedGet    = literalDataFormat,
             dependencies = [self.READ_TEMPERATURE_1],
         ))
 
@@ -59,7 +61,7 @@ class EM22xx(surf.protocols.i2c.PMBus):
             mode         = 'RO',
             units        = 'degC',
             disp         = '{:1.3f}',
-            linkedGet    = linearDataFormat,
+            linkedGet    = literalDataFormat,
             dependencies = [self.READ_TEMPERATURE_2],
         ))
 
@@ -68,7 +70,7 @@ class EM22xx(surf.protocols.i2c.PMBus):
             mode         = 'RO',
             units        = 'kHz',
             disp         = '{:1.3f}',
-            linkedGet    = linearDataFormat,
+            linkedGet    = literalDataFormat,
             dependencies = [self.READ_DUTY_CYCLE],
         ))
 
@@ -77,7 +79,7 @@ class EM22xx(surf.protocols.i2c.PMBus):
             mode         = 'RO',
             units        = 'kHz',
             disp         = '{:1.3f}',
-            linkedGet    = linearDataFormat,
+            linkedGet    = literalDataFormat,
             dependencies = [self.READ_FREQUENCY],
         ))
 
@@ -86,6 +88,6 @@ class EM22xx(surf.protocols.i2c.PMBus):
             mode         = 'RO',
             units        = 'W',
             disp         = '{:1.3f}',
-            linkedGet    = linearDataFormat,
+            linkedGet    = literalDataFormat,
             dependencies = [self.READ_POUT],
         ))
