@@ -75,8 +75,8 @@ entity GigEthGtp7Wrapper is
       gtClkP              : in  sl                                             := '1';
       gtClkN              : in  sl                                             := '0';
       -- Copy of internal MMCM reference clock and Reset
-      refClkOut           : out sl;
-      refRstOut           : out sl;      
+      mmcmRefClkOut       : out sl;
+      mmcmRefRstOut       : out sl;      
       -- Switch Polarity of TxN/TxP, RxN/RxP
       gtTxPolarity        : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '0');
       gtRxPolarity        : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '0');
@@ -116,8 +116,8 @@ begin
    ethClk62  <= sysClk62;
    ethRst62  <= sysRst62;
    
-   refClkOut <= refClk;
-   refRstOut <= refRst;   
+   mmcmRefClkOut <= refClk;
+   mmcmRefRstOut <= refRst;   
 
    -----------------------------
    -- Select the Reference Clock
