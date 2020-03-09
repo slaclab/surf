@@ -1,5 +1,6 @@
 var NAVTREEINDEX87 =
 {
+"classPgp3Rx.html#a8b54e22b2a07048034b61d5e4ba396e3":[1,0,412,29],
 "classPgp3Rx.html#a8fe78bd162f190ddcf71d39850745a3a":[1,0,412,30],
 "classPgp3Rx.html#a9a3517affec708a0e84aaa7cadf147e5":[1,0,412,13],
 "classPgp3Rx.html#aa0fd9ea3ca0a698f2ee0065b939b5ed0":[1,0,412,11],
@@ -248,6 +249,5 @@ var NAVTREEINDEX87 =
 "classPgp3Tx.html#afb2d7eeea261d099073aead267c27155":[1,0,417,23],
 "classPgp3TxProtocol.html":[1,0,418],
 "classPgp3TxProtocol.html#a06d2435c619cb02c01e8d8854085a816":[1,0,418,17],
-"classPgp3TxProtocol.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,418,19],
-"classPgp3TxProtocol.html#a0f5ecc6613f63d07f7963a97b1b26095":[1,0,418,22]
+"classPgp3TxProtocol.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,418,19]
 };

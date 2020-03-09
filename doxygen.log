@@ -4427,17 +4427,17 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/ClockMan/h
 
 [UartAxiLiteMaster.vhd:153:Info: Elaborating entity AxiLiteMaster for hierarchy axilitemaster::u_axilitemaster_1]
 
-[UartRx.vhd:87:Info: Elaborating entity SynchronizerEdge for hierarchy synchronizeredge::u_synchronizeredge_1]
+[UartRx.vhd:88:Info: Elaborating entity SynchronizerEdge for hierarchy synchronizeredge::u_synchronizeredge_1]
 
-[UartWrapper.vhd:94:Info: Elaborating entity UartBrg for hierarchy uartbrg::u_uartbrg_1]
+[UartWrapper.vhd:95:Info: Elaborating entity UartBrg for hierarchy uartbrg::u_uartbrg_1]
 
-[UartWrapper.vhd:112:Info: Elaborating entity UartTx for hierarchy uarttx::u_uarttx_1]
+[UartWrapper.vhd:114:Info: Elaborating entity UartTx for hierarchy uarttx::u_uarttx_1]
 
-[UartWrapper.vhd:139:Info: Elaborating entity Fifo for hierarchy fifo::u_fifo_tx]
+[UartWrapper.vhd:141:Info: Elaborating entity Fifo for hierarchy fifo::u_fifo_tx]
 
-[UartWrapper.vhd:156:Info: Elaborating entity UartRx for hierarchy uartrx::u_uartrx_1]
+[UartWrapper.vhd:159:Info: Elaborating entity UartRx for hierarchy uartrx::u_uartrx_1]
 
-[UartWrapper.vhd:186:Info: Elaborating entity Fifo for hierarchy fifo::u_fifo_rx]
+[UartWrapper.vhd:189:Info: Elaborating entity Fifo for hierarchy fifo::u_fifo_rx]
 
 [UartAxiLiteMasterTb.vhd:71:Info: Elaborating entity ClkRst for hierarchy clkrst::u_clkrst_1]
 
@@ -5316,7 +5316,6 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/ClockMan/h
 /home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:25: warning: documented symbol `_use_ GigEthPkgGigEthPkg' was not declared or defined.
 /home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:27: warning: documented symbol `_library_ unisimunisim' was not declared or defined.
 /home/travis/build/slaclab/surf/ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd:28: warning: documented symbol `_use_ vcomponentsvcomponents' was not declared or defined.
-/home/travis/build/slaclab/surf/ethernet/GigEthCore/gtp7/rtl/GigEthGtp7Wrapper.vhd:78: warning: documented symbol `out refClkOutsl' was not declared or defined.
 /home/travis/build/slaclab/surf/ethernet/RawEthFramer/rtl/RawEthFramer.vhd:83: warning: no matching class member found for 
   slv()
 
