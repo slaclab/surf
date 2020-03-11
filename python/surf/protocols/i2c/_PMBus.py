@@ -11,7 +11,7 @@
 import pyrogue as pr
 
 class PMBus(pr.Device):
-    def __init__(self, **kwargs):
+    def __init__(self, simpleDisplay = True, **kwargs):
         super().__init__(**kwargs)
 
         self.add(pr.RemoteVariable(
@@ -36,7 +36,7 @@ class PMBus(pr.Device):
             bitSize      =  1,
             bitOffset    =  11,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -51,7 +51,7 @@ class PMBus(pr.Device):
             offset       = (4*0x01),
             bitSize      = 8,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -59,7 +59,7 @@ class PMBus(pr.Device):
             offset       = (4*0x02),
             bitSize      = 8,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteCommand(
@@ -67,7 +67,7 @@ class PMBus(pr.Device):
             offset       = (4*0x03),
             bitSize      = 1,
             function     = lambda cmd: cmd.post(1),
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -75,7 +75,7 @@ class PMBus(pr.Device):
             offset       = (4*0x04),
             bitSize      = 8,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -83,7 +83,7 @@ class PMBus(pr.Device):
             offset       = (4*0x10),
             bitSize      = 8,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteCommand(
@@ -91,7 +91,7 @@ class PMBus(pr.Device):
             offset       = (4*0x11),
             bitSize      = 1,
             function     = lambda cmd: cmd.post(1),
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteCommand(
@@ -99,7 +99,7 @@ class PMBus(pr.Device):
             offset       = (4*0x12),
             bitSize      = 1,
             function     = lambda cmd: cmd.post(1),
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -107,7 +107,7 @@ class PMBus(pr.Device):
             offset       = (4*0x13),
             bitSize      = 8,
             mode         = 'WO',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -115,7 +115,7 @@ class PMBus(pr.Device):
             offset       = (4*0x14),
             bitSize      = 8,
             mode         = 'WO',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteCommand(
@@ -123,7 +123,7 @@ class PMBus(pr.Device):
             offset       = (4*0x15),
             bitSize      = 1,
             function     = lambda cmd: cmd.post(1),
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteCommand(
@@ -131,7 +131,7 @@ class PMBus(pr.Device):
             offset       = (4*0x16),
             bitSize      = 1,
             function     = lambda cmd: cmd.post(1),
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -139,7 +139,7 @@ class PMBus(pr.Device):
             offset       = (4*0x17),
             bitSize      = 8,
             mode         = 'WO',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -147,7 +147,7 @@ class PMBus(pr.Device):
             offset       = (4*0x18),
             bitSize      = 8,
             mode         = 'WO',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -155,7 +155,7 @@ class PMBus(pr.Device):
             offset       = (4*0x19),
             bitSize      = 8,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -163,7 +163,7 @@ class PMBus(pr.Device):
             offset       = (4*0x20),
             bitSize      = 8,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -171,7 +171,7 @@ class PMBus(pr.Device):
             offset       = (4*0x21),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -179,7 +179,7 @@ class PMBus(pr.Device):
             offset       = (4*0x22),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -187,7 +187,7 @@ class PMBus(pr.Device):
             offset       = (4*0x23),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -195,7 +195,7 @@ class PMBus(pr.Device):
             offset       = (4*0x24),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -203,7 +203,7 @@ class PMBus(pr.Device):
             offset       = (4*0x25),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -211,7 +211,7 @@ class PMBus(pr.Device):
             offset       = (4*0x26),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -219,7 +219,7 @@ class PMBus(pr.Device):
             offset       = (4*0x27),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -227,7 +227,7 @@ class PMBus(pr.Device):
             offset       = (4*0x28),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -235,7 +235,7 @@ class PMBus(pr.Device):
             offset       = (4*0x29),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -243,7 +243,7 @@ class PMBus(pr.Device):
             offset       = (4*0x2A),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -251,7 +251,7 @@ class PMBus(pr.Device):
             offset       = (4*0x31),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -259,7 +259,7 @@ class PMBus(pr.Device):
             offset       = (4*0x32),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -267,7 +267,7 @@ class PMBus(pr.Device):
             offset       = (4*0x33),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -275,7 +275,7 @@ class PMBus(pr.Device):
             offset       = (4*0x35),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -283,7 +283,7 @@ class PMBus(pr.Device):
             offset       = (4*0x36),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -291,7 +291,7 @@ class PMBus(pr.Device):
             offset       = (4*0x37),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -299,7 +299,7 @@ class PMBus(pr.Device):
             offset       = (4*0x38),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -307,7 +307,7 @@ class PMBus(pr.Device):
             offset       = (4*0x39),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -315,7 +315,7 @@ class PMBus(pr.Device):
             offset       = (4*0x3A),
             bitSize      = 8,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -323,7 +323,7 @@ class PMBus(pr.Device):
             offset       = (4*0x3B),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -331,7 +331,7 @@ class PMBus(pr.Device):
             offset       = (4*0x3C),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -339,7 +339,7 @@ class PMBus(pr.Device):
             offset       = (4*0x3D),
             bitSize      = 8,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -347,7 +347,7 @@ class PMBus(pr.Device):
             offset       = (4*0x3E),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -355,7 +355,7 @@ class PMBus(pr.Device):
             offset       = (4*0x3F),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -363,7 +363,7 @@ class PMBus(pr.Device):
             offset       = (4*0x40),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -371,7 +371,7 @@ class PMBus(pr.Device):
             offset       = (4*0x41),
             bitSize      = 8,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -379,7 +379,7 @@ class PMBus(pr.Device):
             offset       = (4*0x42),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -387,7 +387,7 @@ class PMBus(pr.Device):
             offset       = (4*0x43),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -395,7 +395,7 @@ class PMBus(pr.Device):
             offset       = (4*0x44),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -403,7 +403,7 @@ class PMBus(pr.Device):
             offset       = (4*0x45),
             bitSize      = 8,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -411,7 +411,7 @@ class PMBus(pr.Device):
             offset       = (4*0x46),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -419,7 +419,7 @@ class PMBus(pr.Device):
             offset       = (4*0x47),
             bitSize      = 8,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -427,7 +427,7 @@ class PMBus(pr.Device):
             offset       = (4*0x48),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -435,7 +435,7 @@ class PMBus(pr.Device):
             offset       = (4*0x49),
             bitSize      = 8,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -443,7 +443,7 @@ class PMBus(pr.Device):
             offset       = (4*0x4A),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -451,7 +451,7 @@ class PMBus(pr.Device):
             offset       = (4*0x4B),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -459,7 +459,7 @@ class PMBus(pr.Device):
             offset       = (4*0x4C),
             bitSize      = 8,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -467,7 +467,7 @@ class PMBus(pr.Device):
             offset       = (4*0x4F),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -475,7 +475,7 @@ class PMBus(pr.Device):
             offset       = (4*0x50),
             bitSize      = 8,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -483,7 +483,7 @@ class PMBus(pr.Device):
             offset       = (4*0x51),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -491,7 +491,7 @@ class PMBus(pr.Device):
             offset       = (4*0x52),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -499,7 +499,7 @@ class PMBus(pr.Device):
             offset       = (4*0x53),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -507,7 +507,7 @@ class PMBus(pr.Device):
             offset       = (4*0x54),
             bitSize      = 8,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -515,7 +515,7 @@ class PMBus(pr.Device):
             offset       = (4*0x55),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -523,7 +523,7 @@ class PMBus(pr.Device):
             offset       = (4*0x56),
             bitSize      = 8,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -531,7 +531,7 @@ class PMBus(pr.Device):
             offset       = (4*0x57),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -539,7 +539,7 @@ class PMBus(pr.Device):
             offset       = (4*0x58),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -547,7 +547,7 @@ class PMBus(pr.Device):
             offset       = (4*0x59),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -555,7 +555,7 @@ class PMBus(pr.Device):
             offset       = (4*0x5A),
             bitSize      = 8,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -563,7 +563,7 @@ class PMBus(pr.Device):
             offset       = (4*0x5B),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -571,7 +571,7 @@ class PMBus(pr.Device):
             offset       = (4*0x5C),
             bitSize      = 8,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -579,7 +579,7 @@ class PMBus(pr.Device):
             offset       = (4*0x5D),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -587,7 +587,7 @@ class PMBus(pr.Device):
             offset       = (4*0x5E),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -595,7 +595,7 @@ class PMBus(pr.Device):
             offset       = (4*0x5F),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -603,7 +603,7 @@ class PMBus(pr.Device):
             offset       = (4*0x60),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -611,7 +611,7 @@ class PMBus(pr.Device):
             offset       = (4*0x61),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -619,7 +619,7 @@ class PMBus(pr.Device):
             offset       = (4*0x62),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -627,7 +627,7 @@ class PMBus(pr.Device):
             offset       = (4*0x63),
             bitSize      = 8,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -635,7 +635,7 @@ class PMBus(pr.Device):
             offset       = (4*0x64),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -643,7 +643,7 @@ class PMBus(pr.Device):
             offset       = (4*0x65),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -651,7 +651,7 @@ class PMBus(pr.Device):
             offset       = (4*0x66),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -659,7 +659,7 @@ class PMBus(pr.Device):
             offset       = (4*0x68),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -667,7 +667,7 @@ class PMBus(pr.Device):
             offset       = (4*0x69),
             bitSize      = 8,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -675,7 +675,7 @@ class PMBus(pr.Device):
             offset       = (4*0x6A),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -683,7 +683,7 @@ class PMBus(pr.Device):
             offset       = (4*0x6B),
             bitSize      = 16,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -691,7 +691,8 @@ class PMBus(pr.Device):
             offset       = (4*0x78),
             bitSize      = 8,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -699,7 +700,8 @@ class PMBus(pr.Device):
             offset       = (4*0x79),
             bitSize      = 16,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -707,7 +709,8 @@ class PMBus(pr.Device):
             offset       = (4*0x7A),
             bitSize      = 8,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -715,7 +718,8 @@ class PMBus(pr.Device):
             offset       = (4*0x7B),
             bitSize      = 8,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -723,7 +727,8 @@ class PMBus(pr.Device):
             offset       = (4*0x7C),
             bitSize      = 8,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -731,7 +736,8 @@ class PMBus(pr.Device):
             offset       = (4*0x7D),
             bitSize      = 8,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -739,7 +745,8 @@ class PMBus(pr.Device):
             offset       = (4*0x7E),
             bitSize      = 8,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -747,7 +754,8 @@ class PMBus(pr.Device):
             offset       = (4*0x7F),
             bitSize      = 8,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -755,7 +763,8 @@ class PMBus(pr.Device):
             offset       = (4*0x80),
             bitSize      = 8,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -763,7 +772,8 @@ class PMBus(pr.Device):
             offset       = (4*0x81),
             bitSize      = 8,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -771,7 +781,8 @@ class PMBus(pr.Device):
             offset       = (4*0x82),
             bitSize      = 8,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -779,7 +790,8 @@ class PMBus(pr.Device):
             offset       = (4*0x88),
             bitSize      = 16,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -787,7 +799,8 @@ class PMBus(pr.Device):
             offset       = (4*0x89),
             bitSize      = 16,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -795,7 +808,8 @@ class PMBus(pr.Device):
             offset       = (4*0x8A),
             bitSize      = 16,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -803,7 +817,8 @@ class PMBus(pr.Device):
             offset       = (4*0x8B),
             bitSize      = 16,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -811,7 +826,8 @@ class PMBus(pr.Device):
             offset       = (4*0x8C),
             bitSize      = 16,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -819,7 +835,8 @@ class PMBus(pr.Device):
             offset       = (4*0x8D),
             bitSize      = 16,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -827,7 +844,8 @@ class PMBus(pr.Device):
             offset       = (4*0x8E),
             bitSize      = 16,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -835,7 +853,8 @@ class PMBus(pr.Device):
             offset       = (4*0x8F),
             bitSize      = 16,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -843,7 +862,8 @@ class PMBus(pr.Device):
             offset       = (4*0x90),
             bitSize      = 16,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -851,7 +871,8 @@ class PMBus(pr.Device):
             offset       = (4*0x91),
             bitSize      = 16,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -859,7 +880,8 @@ class PMBus(pr.Device):
             offset       = (4*0x92),
             bitSize      = 16,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -867,7 +889,8 @@ class PMBus(pr.Device):
             offset       = (4*0x93),
             bitSize      = 16,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -875,7 +898,8 @@ class PMBus(pr.Device):
             offset       = (4*0x94),
             bitSize      = 16,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -883,7 +907,8 @@ class PMBus(pr.Device):
             offset       = (4*0x95),
             bitSize      = 16,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -891,7 +916,8 @@ class PMBus(pr.Device):
             offset       = (4*0x96),
             bitSize      = 16,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -899,7 +925,8 @@ class PMBus(pr.Device):
             offset       = (4*0x97),
             bitSize      = 16,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -907,7 +934,7 @@ class PMBus(pr.Device):
             offset       = (4*0x98),
             bitSize      = 8,
             mode         = 'RO',
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -915,8 +942,7 @@ class PMBus(pr.Device):
             offset       = (4*0x99),
             bitSize      = 32,
             mode         = 'RO',
-            base         = pr.String,
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -924,8 +950,7 @@ class PMBus(pr.Device):
             offset       = (4*0x9A),
             bitSize      = 32,
             mode         = 'RO',
-            base         = pr.String,
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -933,8 +958,7 @@ class PMBus(pr.Device):
             offset       = (4*0x9B),
             bitSize      = 32,
             mode         = 'RO',
-            base         = pr.String,
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -942,8 +966,7 @@ class PMBus(pr.Device):
             offset       = (4*0x9C),
             bitSize      = 32,
             mode         = 'RO',
-            base         = pr.String,
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -951,8 +974,7 @@ class PMBus(pr.Device):
             offset       = (4*0x9D),
             bitSize      = 32,
             mode         = 'RO',
-            base         = pr.String,
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -960,6 +982,5 @@ class PMBus(pr.Device):
             offset       = (4*0x9E),
             bitSize      = 32,
             mode         = 'RO',
-            base         = pr.String,
-            hidden       = True,
+            hidden       = simpleDisplay,
         ))
