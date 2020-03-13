@@ -40,8 +40,8 @@ entity AxiAds42lb69Pll is
       -- ADC Reference Signals
       adcSync   : in  sl;
       adcClk    : in  sl;
-      adcRst    : in  sl;              
-      adcClock  : out  sl);                
+      adcRst    : in  sl;
+      adcClock  : out sl);
 end AxiAds42lb69Pll;
 
 architecture mapping of AxiAds42lb69Pll is
@@ -122,7 +122,7 @@ begin
       BUFH_0 : BUFH
          port map (
             I => clkFeedBack,
-            O => clkFeedBackOut);     
+            O => clkFeedBackOut);
 
       ClkOutBufDiff_0 : entity surf.ClkOutBufDiff
          port map (
@@ -142,35 +142,35 @@ begin
       ODDR_0 : ODDR
          generic map(
             DDR_CLK_EDGE => "OPPOSITE_EDGE",  -- "OPPOSITE_EDGE" or "SAME_EDGE" 
-            INIT         => '0',              -- Initial value for Q port ('1' or '0')
-            SRTYPE       => "SYNC")           -- Reset Type ("ASYNC" or "SYNC")
+            INIT         => '0',  -- Initial value for Q port ('1' or '0')
+            SRTYPE       => "SYNC")     -- Reset Type ("ASYNC" or "SYNC")
          port map (
-            D1 => sync,                       -- 1-bit data input (positive edge)
-            D2 => sync,                       -- 1-bit data input (negative edge)
-            Q  => syncOut,                    -- 1-bit DDR output
-            C  => clkFeedBackOut,             -- 1-bit clock input
-            CE => '1',                        -- 1-bit clock enable input
-            R  => '0',                        -- 1-bit reset
-            S  => '0');                       -- 1-bit set
+            D1 => sync,                 -- 1-bit data input (positive edge)
+            D2 => sync,                 -- 1-bit data input (negative edge)
+            Q  => syncOut,              -- 1-bit DDR output
+            C  => clkFeedBackOut,       -- 1-bit clock input
+            CE => '1',                  -- 1-bit clock enable input
+            R  => '0',                  -- 1-bit reset
+            S  => '0');                 -- 1-bit set
 
       OBUFDS_0 : OBUFDS
          port map(
             I  => syncOut,
             O  => adcSyncP,
-            OB => adcSyncN);  
+            OB => adcSyncN);
 
       adcClock <= adcClk;
 
    end generate;
 
    GEN_NO_PLL : if (USE_PLL_G = false and XIL_DEVICE_G = "7SERIES") generate
-      
+
       ClkOutBufDiff_1 : entity surf.ClkOutBufDiff
          port map (
             clkIn   => adcClk,
             rstIn   => adcRst,
             clkOutP => adcClkP,
-            clkOutN => adcClkN);   
+            clkOutN => adcClkN);
 
       SynchronizerOneShot_1 : entity surf.SynchronizerOneShot
          generic map (
@@ -184,25 +184,25 @@ begin
       ODDR_1 : ODDR
          generic map(
             DDR_CLK_EDGE => "OPPOSITE_EDGE",  -- "OPPOSITE_EDGE" or "SAME_EDGE" 
-            INIT         => '0',              -- Initial value for Q port ('1' or '0')
-            SRTYPE       => "SYNC")           -- Reset Type ("ASYNC" or "SYNC")
+            INIT         => '0',  -- Initial value for Q port ('1' or '0')
+            SRTYPE       => "SYNC")     -- Reset Type ("ASYNC" or "SYNC")
          port map (
-            D1 => sync,                       -- 1-bit data input (positive edge)
-            D2 => sync,                       -- 1-bit data input (negative edge)
-            Q  => syncOut,                    -- 1-bit DDR output
-            C  => adcClk,                     -- 1-bit clock input
-            CE => '1',                        -- 1-bit clock enable input
-            R  => '0',                        -- 1-bit reset
-            S  => '0');                       -- 1-bit set
+            D1 => sync,                 -- 1-bit data input (positive edge)
+            D2 => sync,                 -- 1-bit data input (negative edge)
+            Q  => syncOut,              -- 1-bit DDR output
+            C  => adcClk,               -- 1-bit clock input
+            CE => '1',                  -- 1-bit clock enable input
+            R  => '0',                  -- 1-bit reset
+            S  => '0');                 -- 1-bit set
 
       OBUFDS_1 : OBUFDS
          port map(
             I  => syncOut,
             O  => adcSyncP,
-            OB => adcSyncN);         
-      
+            OB => adcSyncN);
+
       GEN_FBCLK : if (USE_FBCLK_G = true) generate
-      
+
          IBUFGDS_1 : IBUFGDS
             port map (
                I  => adcClkFbP,
@@ -212,18 +212,25 @@ begin
          BUFG_1 : BUFG
             port map (
                I => adcInClk,
-               O => adcClock); 
-               
+               O => adcClock);
+
       end generate;
       GEN_NO_FBCLK : if (USE_FBCLK_G = false) generate
+
+         IBUFGDS_1 : IBUFGDS
+            port map (
+               I  => adcClkFbP,
+               IB => adcClkFbN,
+               O  => open);
+
          adcClock <= adcClk;
       end generate;
-      
+
    end generate;
-   
-   
+
+
    GEN_ULTRASCALE_NO_PLL : if (XIL_DEVICE_G = "ULTRASCALE") generate
-      
+
       ClkOutBufDiff_1 : entity surf.ClkOutBufDiff
          generic map (
             XIL_DEVICE_G => XIL_DEVICE_G)
@@ -231,7 +238,7 @@ begin
             clkIn   => adcClk,
             rstIn   => adcRst,
             clkOutP => adcClkP,
-            clkOutN => adcClkN);   
+            clkOutN => adcClkN);
 
       SynchronizerOneShot_1 : entity surf.SynchronizerOneShot
          generic map (
@@ -244,18 +251,18 @@ begin
 
       ODDRE1_1 : ODDRE1
          port map (
-            D1 => sync,                       -- 1-bit data input (positive edge)
-            D2 => sync,                       -- 1-bit data input (negative edge)
-            Q  => syncOut,                    -- 1-bit DDR output
-            C  => adcClk,                     -- 1-bit clock input
-            SR  => '0');
-      
+            D1 => sync,                 -- 1-bit data input (positive edge)
+            D2 => sync,                 -- 1-bit data input (negative edge)
+            Q  => syncOut,              -- 1-bit DDR output
+            C  => adcClk,               -- 1-bit clock input
+            SR => '0');
+
       OBUFDS_1 : OBUFDS
          port map(
             I  => syncOut,
             O  => adcSyncP,
-            OB => adcSyncN);         
-      
+            OB => adcSyncN);
+
       GEN_FBCLK : if (USE_FBCLK_G = true) generate
          IBUFGDS_1 : IBUFGDS
             port map (
@@ -266,13 +273,20 @@ begin
          BUFG_1 : BUFG
             port map (
                I => adcInClk,
-               O => adcClock); 
+               O => adcClock);
       end generate;
       GEN_NO_FBCLK : if (USE_FBCLK_G = false) generate
+
+         IBUFGDS_1 : IBUFGDS
+            port map (
+               I  => adcClkFbP,
+               IB => adcClkFbN,
+               O  => open);
+
          adcClock <= adcClk;
       end generate;
 
-      
+
    end generate;
-   
+
 end mapping;
