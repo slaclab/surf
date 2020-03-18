@@ -14,7 +14,6 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-
 import surf.protocols.clink as clink
 
 class UartGeneric(pr.Device):
