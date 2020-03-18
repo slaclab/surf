@@ -1,5 +1,7 @@
 var NAVTREEINDEX124 =
 {
+"classi2c__master__byte__ctrl_1_1structural.html#ace6aadcf7af6dd8765a6c9db0311075f":[1,0,308,0,5],
+"classi2c__master__byte__ctrl_1_1structural.html#ad27457870eaf54bf8566d4d92a060a0e":[1,0,308,0,13],
 "classi2c__master__byte__ctrl_1_1structural.html#ae1ab31d7be414a44d1ce9305207d7e5a":[1,0,308,0,3],
 "classi2c__master__byte__ctrl_1_1structural.html#ae83a0f9face5ce32c978f779954774f9":[1,0,308,0,23],
 "classi2c__master__byte__ctrl_1_1structural.html#afa7517789c80d7381d89b43e8610dc93":[1,0,308,0,10],

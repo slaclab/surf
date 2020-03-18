@@ -1,5 +1,7 @@
 var NAVTREEINDEX13 =
 {
+"classAxiMicronN25QReg_1_1rtl.html#aa703cabd055940d76f34a7e7b8f6280d":[1,0,70,0,37],
+"classAxiMicronN25QReg_1_1rtl.html#aac14d7bf4d53f2b369438004e4dd549c":[1,0,70,0,22],
 "classAxiMicronN25QReg_1_1rtl.html#ab53f10cfe7f1bd11c9d37c4d16759507":[1,0,70,0,25],
 "classAxiMicronN25QReg_1_1rtl.html#ab6d42a6f652704e620b4fc9562887f62":[1,0,70,0,13],
 "classAxiMicronN25QReg_1_1rtl.html#ac5901d985420a925a648c2a9e22d1fb8":[1,0,70,0,3],
@@ -247,7 +249,5 @@ var NAVTREEINDEX13 =
 "classAxiReadPathFifo.html#a0c63b1b6d3a6002c0e383057c9bafd7e":[1,0,77,18],
 "classAxiReadPathFifo.html#a0f5ecc6613f63d07f7963a97b1b26095":[1,0,77,29],
 "classAxiReadPathFifo.html#a1a4a2cdec7f397d95e0aa608ae9b8db5":[1,0,77,3],
-"classAxiReadPathFifo.html#a1caea251a602ae404aa41de9eb095474":[1,0,77,23],
-"classAxiReadPathFifo.html#a2265afb78be50b98531f22e9da258a54":[1,0,77,32],
-"classAxiReadPathFifo.html#a2e23bacee50b052a05c62292a67a6223":[1,0,77,19]
+"classAxiReadPathFifo.html#a1caea251a602ae404aa41de9eb095474":[1,0,77,23]
 };

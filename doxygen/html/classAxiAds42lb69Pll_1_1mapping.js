@@ -20,10 +20,12 @@ var classAxiAds42lb69Pll_1_1mapping =
     [ "obufds_1", "classAxiAds42lb69Pll_1_1mapping.html#a039b22526eeb1fdca4a3b0d6b1f66ffd", null ],
     [ "ibufgds_1", "classAxiAds42lb69Pll_1_1mapping.html#a13d3258c1a5b5d2f2f1a1613678de197", null ],
     [ "bufg_1", "classAxiAds42lb69Pll_1_1mapping.html#af5ea9e6934e8764dd6ec79f8a37d7753", null ],
+    [ "ibufgds_1", "classAxiAds42lb69Pll_1_1mapping.html#a13d3258c1a5b5d2f2f1a1613678de197", null ],
     [ "clkoutbufdiff_1", "classAxiAds42lb69Pll_1_1mapping.html#af7f931c1d0a6c235de20b9a41f76e81d", null ],
     [ "synchronizeroneshot_1", "classAxiAds42lb69Pll_1_1mapping.html#a26e284b0aceb39731f58863f853a39d1", null ],
     [ "oddre1_1", "classAxiAds42lb69Pll_1_1mapping.html#a09c3cff88b6ee03d0e1273562219f12c", null ],
     [ "obufds_1", "classAxiAds42lb69Pll_1_1mapping.html#a039b22526eeb1fdca4a3b0d6b1f66ffd", null ],
     [ "ibufgds_1", "classAxiAds42lb69Pll_1_1mapping.html#a13d3258c1a5b5d2f2f1a1613678de197", null ],
-    [ "bufg_1", "classAxiAds42lb69Pll_1_1mapping.html#af5ea9e6934e8764dd6ec79f8a37d7753", null ]
+    [ "bufg_1", "classAxiAds42lb69Pll_1_1mapping.html#af5ea9e6934e8764dd6ec79f8a37d7753", null ],
+    [ "ibufgds_1", "classAxiAds42lb69Pll_1_1mapping.html#a13d3258c1a5b5d2f2f1a1613678de197", null ]
 ];

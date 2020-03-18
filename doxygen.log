@@ -2063,29 +2063,33 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/ClockMan/h
 
 [AxiAds42lb69Pll.vhd:164:Info: Elaborating entity obufds for hierarchy obufds::GEN_PLL:obufds_0]
 
-[AxiAds42lb69Pll.vhd:222:Info: Elaborating entity ClkOutBufDiff for hierarchy clkoutbufdiff::GEN_NO_PLL:clkoutbufdiff_1]
+[AxiAds42lb69Pll.vhd:229:Info: Elaborating entity ClkOutBufDiff for hierarchy clkoutbufdiff::GEN_NO_PLL:clkoutbufdiff_1]
 
-[AxiAds42lb69Pll.vhd:222:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::GEN_NO_PLL:synchronizeroneshot_1]
+[AxiAds42lb69Pll.vhd:229:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::GEN_NO_PLL:synchronizeroneshot_1]
 
-[AxiAds42lb69Pll.vhd:222:Info: Elaborating entity oddr for hierarchy oddr::GEN_NO_PLL:oddr_1]
+[AxiAds42lb69Pll.vhd:229:Info: Elaborating entity oddr for hierarchy oddr::GEN_NO_PLL:oddr_1]
 
-[AxiAds42lb69Pll.vhd:222:Info: Elaborating entity obufds for hierarchy obufds::GEN_NO_PLL:obufds_1]
+[AxiAds42lb69Pll.vhd:229:Info: Elaborating entity obufds for hierarchy obufds::GEN_NO_PLL:obufds_1]
 
-[AxiAds42lb69Pll.vhd:222:Info: Elaborating entity ibufgds for hierarchy ibufgds::GEN_NO_PLL:GEN_FBCLK:ibufgds_1]
+[AxiAds42lb69Pll.vhd:229:Info: Elaborating entity ibufgds for hierarchy ibufgds::GEN_NO_PLL:GEN_FBCLK:ibufgds_1]
 
-[AxiAds42lb69Pll.vhd:222:Info: Elaborating entity bufg for hierarchy bufg::GEN_NO_PLL:GEN_FBCLK:bufg_1]
+[AxiAds42lb69Pll.vhd:229:Info: Elaborating entity bufg for hierarchy bufg::GEN_NO_PLL:GEN_FBCLK:bufg_1]
 
-[AxiAds42lb69Pll.vhd:276:Info: Elaborating entity ClkOutBufDiff for hierarchy clkoutbufdiff::GEN_ULTRASCALE_NO_PLL:clkoutbufdiff_1]
+[AxiAds42lb69Pll.vhd:229:Info: Elaborating entity ibufgds for hierarchy ibufgds::GEN_NO_PLL:GEN_NO_FBCLK:ibufgds_1]
 
-[AxiAds42lb69Pll.vhd:276:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::GEN_ULTRASCALE_NO_PLL:synchronizeroneshot_1]
+[AxiAds42lb69Pll.vhd:290:Info: Elaborating entity ClkOutBufDiff for hierarchy clkoutbufdiff::GEN_ULTRASCALE_NO_PLL:clkoutbufdiff_1]
 
-[AxiAds42lb69Pll.vhd:276:Info: Elaborating entity oddre1 for hierarchy oddre1::GEN_ULTRASCALE_NO_PLL:oddre1_1]
+[AxiAds42lb69Pll.vhd:290:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::GEN_ULTRASCALE_NO_PLL:synchronizeroneshot_1]
 
-[AxiAds42lb69Pll.vhd:276:Info: Elaborating entity obufds for hierarchy obufds::GEN_ULTRASCALE_NO_PLL:obufds_1]
+[AxiAds42lb69Pll.vhd:290:Info: Elaborating entity oddre1 for hierarchy oddre1::GEN_ULTRASCALE_NO_PLL:oddre1_1]
 
-[AxiAds42lb69Pll.vhd:276:Info: Elaborating entity ibufgds for hierarchy ibufgds::GEN_ULTRASCALE_NO_PLL:GEN_FBCLK:ibufgds_1]
+[AxiAds42lb69Pll.vhd:290:Info: Elaborating entity obufds for hierarchy obufds::GEN_ULTRASCALE_NO_PLL:obufds_1]
 
-[AxiAds42lb69Pll.vhd:276:Info: Elaborating entity bufg for hierarchy bufg::GEN_ULTRASCALE_NO_PLL:GEN_FBCLK:bufg_1]
+[AxiAds42lb69Pll.vhd:290:Info: Elaborating entity ibufgds for hierarchy ibufgds::GEN_ULTRASCALE_NO_PLL:GEN_FBCLK:ibufgds_1]
+
+[AxiAds42lb69Pll.vhd:290:Info: Elaborating entity bufg for hierarchy bufg::GEN_ULTRASCALE_NO_PLL:GEN_FBCLK:bufg_1]
+
+[AxiAds42lb69Pll.vhd:290:Info: Elaborating entity ibufgds for hierarchy ibufgds::GEN_ULTRASCALE_NO_PLL:GEN_NO_FBCLK:ibufgds_1]
 
 [AxiAds42lb69Reg.vhd:361:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GEN_ADC_SMPL:syncout_delayin_data]
 
