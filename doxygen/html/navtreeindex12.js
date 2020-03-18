@@ -1,7 +1,5 @@
 var NAVTREEINDEX12 =
 {
-"classAxiMemTester.html#a399a775bae9ae4819d5af6838a95e28e":[1,0,66,15],
-"classAxiMemTester.html#a3d3e1793aef8029cd12018aa9c0f8f6c":[1,0,66,16],
 "classAxiMemTester.html#a3f021b6dfd3a7a2c1fb40760e2fddbad":[1,0,66,17],
 "classAxiMemTester.html#a4b36ee28c73fadc67fe1a670f1ba11ff":[1,0,66,7],
 "classAxiMemTester.html#a598da929e807d58939b47499e8bc9fa8":[1,0,66,24],
@@ -249,5 +247,7 @@ var NAVTREEINDEX12 =
 "classAxiMicronN25QReg_1_1rtl.html#a809e8de6029cd24166ee72beb458e309":[1,0,70,0,14],
 "classAxiMicronN25QReg_1_1rtl.html#a8683aaa9d2aaa5e83622806a6c648d8d":[1,0,70,0,23],
 "classAxiMicronN25QReg_1_1rtl.html#a8a2e0f1389f1cd35861bec6ec8f5be15":[1,0,70,0,8],
-"classAxiMicronN25QReg_1_1rtl.html#a927889bfc3155ea0235dd80e5faf3fcb":[1,0,70,0,5]
+"classAxiMicronN25QReg_1_1rtl.html#a927889bfc3155ea0235dd80e5faf3fcb":[1,0,70,0,5],
+"classAxiMicronN25QReg_1_1rtl.html#aa703cabd055940d76f34a7e7b8f6280d":[1,0,70,0,37],
+"classAxiMicronN25QReg_1_1rtl.html#aac14d7bf4d53f2b369438004e4dd549c":[1,0,70,0,22]
 };

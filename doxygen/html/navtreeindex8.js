@@ -1,7 +1,5 @@
 var NAVTREEINDEX8 =
 {
-"classAxiLiteFifoPushPop_1_1structure.html#aa14a6666e3b290f1af8234169a6bf7f6":[1,0,42,0,8],
-"classAxiLiteFifoPushPop_1_1structure.html#aa68822e351d5e443b5b4aa37c008a4ff":[1,0,42,0,29],
 "classAxiLiteFifoPushPop_1_1structure.html#aac02b828a163ea7cc6a40563949f17d6":[1,0,42,0,10],
 "classAxiLiteFifoPushPop_1_1structure.html#aaf907fa7b6732231b2dfd9969ef98240":[1,0,42,0,23],
 "classAxiLiteFifoPushPop_1_1structure.html#ab0c1671ef4fbad7543007be79984596b":[1,0,42,0,24],
@@ -249,5 +247,7 @@ var NAVTREEINDEX8 =
 "classAxiLiteRamSyncStatusVector.html#acabf3ea45bb9ea54f778c194fc238b6d":[1,0,48,30],
 "classAxiLiteRamSyncStatusVector.html#acd03516902501cd1c7296a98e22c6fcb":[1,0,48,27],
 "classAxiLiteRamSyncStatusVector.html#ad6380c6ea4df20847308b4976c873312":[1,0,48,14],
-"classAxiLiteRamSyncStatusVector.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,48,31]
+"classAxiLiteRamSyncStatusVector.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,48,31],
+"classAxiLiteRamSyncStatusVector.html#af98a1f0df20cf0e5f0fdb9f5999ad782":[1,0,48,32],
+"classAxiLiteRamSyncStatusVector.html#afcb1ad088fa47d7232fcc4951acbe767":[1,0,48,10]
 };

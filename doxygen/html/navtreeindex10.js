@@ -1,7 +1,5 @@
 var NAVTREEINDEX10 =
 {
-"classAxiLiteSequencerRam.html#acd03516902501cd1c7296a98e22c6fcb":[1,0,54,20],
-"classAxiLiteSequencerRam.html#ad6c1974e49c60d756a73f5780d466129":[1,0,54,7],
 "classAxiLiteSequencerRam.html#ae024408e3fbbbc238aeaf97c8596d6c8":[1,0,54,13],
 "classAxiLiteSequencerRam.html#ae8af6b64d6e7bf1437f4089f6037439e":[1,0,54,5],
 "classAxiLiteSequencerRam.html#aee20f647dd5efd9502aa65ed9027ef90":[1,0,54,8],
@@ -249,5 +247,7 @@ var NAVTREEINDEX10 =
 "classAxiLiteToIpBus_1_1rtl.html#a2bab74318b6c0530247ba4f4cdf40094":[1,0,59,0,0],
 "classAxiLiteToIpBus_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9":[1,0,59,0,3],
 "classAxiLiteToIpBus_1_1rtl.html#a758a8cbb78916a3911d410a62191310d":[1,0,59,0,12],
-"classAxiLiteToIpBus_1_1rtl.html#a75a61b296175ca202baa9f4650b9e351":[1,0,59,0,13]
+"classAxiLiteToIpBus_1_1rtl.html#a75a61b296175ca202baa9f4650b9e351":[1,0,59,0,13],
+"classAxiLiteToIpBus_1_1rtl.html#a798b0219fb2ee5d4d2bebfbe2d3b44bc":[1,0,59,0,6],
+"classAxiLiteToIpBus_1_1rtl.html#a888d66c27edca7cd4d3fb7ac7cb05edc":[1,0,59,0,8]
 };

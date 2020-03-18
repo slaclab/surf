@@ -1,7 +1,5 @@
 var NAVTREEINDEX28 =
 {
-"classAxiWritePathFifo_1_1rtl.html#af3e5ac180a44bc7b65e52e215539e559":[1,0,145,0,22],
-"classAxiWritePathFifo_1_1rtl.html#afcee91f333c566e56f1d43a94b550b1f":[1,0,145,0,26],
 "classAxiWritePathFifo_1_1rtl.html#affd3fee042a97de202d56aa675d4665d":[1,0,145,0,29],
 "classAxiWritePathMux.html":[1,0,146],
 "classAxiWritePathMux.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,146,9],
@@ -249,5 +247,7 @@ var NAVTREEINDEX28 =
 "classAxisToJtagCoreTb_1_1AxisToJtagCoreTbImpl.html#ae3e9c5712b48baf11c9e602f24d62a9f":[1,0,89,0,14],
 "classAxisToJtagCoreTb_1_1AxisToJtagCoreTbImpl.html#af0e2fcd2d7cd7d7a8701afb5ee79319d":[1,0,89,0,26],
 "classAxisToJtagCoreTb_1_1AxisToJtagCoreTbImpl.html#af859174c4d95e9211be420490cc79742":[1,0,89,0,22],
-"classAxisToJtagCoreTb_1_1AxisToJtagCoreTbImpl.html#afdf34599ebc9759e7ac577385d747f58":[1,0,89,0,10]
+"classAxisToJtagCoreTb_1_1AxisToJtagCoreTbImpl.html#afdf34599ebc9759e7ac577385d747f58":[1,0,89,0,10],
+"classAxisToJtagCore_1_1AxisToJtagCoreImpl.html":[1,0,88,0],
+"classAxisToJtagCore_1_1AxisToJtagCoreImpl.html#a00111ef4ad16fdcdb4bc20e298da2d7e":[1,0,88,0,15]
 };

@@ -1,7 +1,5 @@
 var NAVTREEINDEX6 =
 {
-"classAxiDualPortRam.html#acb08f679e4ba93bb1157583610b6c22f":[1,0,33,4],
-"classAxiDualPortRam.html#acd03516902501cd1c7296a98e22c6fcb":[1,0,33,33],
 "classAxiDualPortRam.html#ad6c1974e49c60d756a73f5780d466129":[1,0,33,6],
 "classAxiDualPortRam.html#ada00bcbb3416fb22f6faca63b14c7204":[1,0,33,13],
 "classAxiDualPortRam.html#ae5bfd145559b9a96ee357fedb2b9323b":[1,0,33,8],
@@ -249,5 +247,7 @@ var NAVTREEINDEX6 =
 "classAxiLiteAsync_1_1STRUCTURE.html#a4fedf8e94441de0653ead9e963f61462":[1,0,37,0,21],
 "classAxiLiteAsync_1_1STRUCTURE.html#a545a4c3fb520740c1830bdd412311254":[1,0,37,0,33],
 "classAxiLiteAsync_1_1STRUCTURE.html#a59595908b8103cb7570a5bdc26139592":[1,0,37,0,17],
-"classAxiLiteAsync_1_1STRUCTURE.html#a63589d492a8908ff498e15f5d364e3e0":[1,0,37,0,36]
+"classAxiLiteAsync_1_1STRUCTURE.html#a63589d492a8908ff498e15f5d364e3e0":[1,0,37,0,36],
+"classAxiLiteAsync_1_1STRUCTURE.html#a770ce1c1e67e3da00efba22db466f0fa":[1,0,37,0,22],
+"classAxiLiteAsync_1_1STRUCTURE.html#a81ee8015cb2253b4528e24efd9b883ae":[1,0,37,0,40]
 };
