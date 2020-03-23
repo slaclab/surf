@@ -122,7 +122,7 @@ class AxiStreamBatcherEventBuilder(pr.Device):
             base         = pr.Bool,
             mode         = "RW",
         ))
-        
+
         self.add(pr.RemoteVariable(
             name         = "BlowoffExt",
             description  = "Status of external blowoff input",
