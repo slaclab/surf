@@ -80,6 +80,7 @@ architecture rtl of AxiStreamBatcherEventBuilder is
       softRst        : sl;
       hardRst        : sl;
       blowoffReg     : sl;
+      blowoff        : sl;
       timerRst       : sl;
       cntRst         : sl;
       ready          : sl;
@@ -107,6 +108,7 @@ architecture rtl of AxiStreamBatcherEventBuilder is
       softRst        => '0',
       hardRst        => '0',
       blowoffReg     => '0',
+      blowoff        => '0',
       timerRst       => '0',
       cntRst         => '0',
       ready          => '0',
@@ -263,14 +265,14 @@ begin
       -- Closeout the transaction
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
-      v.blowoffReg := v.blowoffReg or blowoffExt;
+      v.blowoff := v.blowoffReg or blowoffExt;
 
       -- Check for change in configuration
       if (r.timeout /= v.timeout) or (r.timerRst = '1') then
          -- Reset the timer
          v.timer := (others => '0');
       end if;
-      if (r.bypass /= v.bypass) or (r.blowoffReg /= v.blowoffReg) then
+      if (r.bypass /= v.bypass) or (r.blowoff /= v.blowoff) then
          -- Perform a soft-reset
          v.softRst := '1';
       end if;
@@ -357,7 +359,7 @@ begin
             end if;
 
             -- Check if ready to move data and not blowing off the data
-            if (batcherIdle = '1') and (r.ready = '1') and (r.blowoffReg = '0') then
+            if (batcherIdle = '1') and (r.ready = '1') and (r.blowoff = '0') then
 
                -- Check for transition
                if (r.transDet /= 0) then
@@ -412,7 +414,7 @@ begin
                v.state := MOVE_S;
 
             -- Check for blowoff flag 
-            elsif (r.blowoffReg = '1') then
+            elsif (r.blowoff = '1') then
 
                -- Blow off the inbound data
                for i in (NUM_SLAVES_G-1) downto 0 loop
