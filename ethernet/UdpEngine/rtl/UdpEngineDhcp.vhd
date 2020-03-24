@@ -68,6 +68,7 @@ architecture rtl of UdpEngineDhcp is
       DATA_S);
 
    type RegType is record
+      localMac   : slv(47 downto 0);
       heartbeat  : sl;
       cnt        : natural range 0 to 127;
       timer      : natural range 0 to (TIMER_1_SEC_C-1);
@@ -95,6 +96,7 @@ architecture rtl of UdpEngineDhcp is
       state      : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
+      localMac   => (others => '0'),
       heartbeat  => '0',
       cnt        => 0,
       timer      => 0,
@@ -296,10 +298,10 @@ begin
                      end if;
                   -- CHADDR[31:0]
                   when 7 =>
-                     v.txMaster.tData(31 downto 0) := localMac(31 downto 0);
+                     v.txMaster.tData(31 downto 0) := r.localMac(31 downto 0);
                   -- CHADDR[47:32]
                   when 8 =>
-                     v.txMaster.tData(15 downto 0) := localMac(47 downto 32);
+                     v.txMaster.tData(15 downto 0) := r.localMac(47 downto 32);
                   -- Magic cookie
                   when 59 =>
                      v.txMaster.tData(31 downto 0) := MAGIC_COOKIE_C;
@@ -340,7 +342,7 @@ begin
                   when 64 =>
                      v.txMaster.tData(15 downto 0) := r.siaddr(31 downto 16);  -- SIADDR[31:16] 
                   when 65 =>
-                     v.txMaster.tData(7 downto 0)  := x"FF";    -- Endmark
+                     v.txMaster.tData(7 downto 0)  := x"FF";   -- Endmark
                      v.txMaster.tKeep(15 downto 0) := x"0001";
                      v.txMaster.tLast              := '1';
                      -- Start the communication timer
@@ -382,14 +384,14 @@ begin
                   -- CHADDR[31:0]
                   when 7 =>
                      -- Check if CHADDR[31:0] doesn't match
-                     if rxMaster.tData(31 downto 0) /= localMac(31 downto 0) then
+                     if rxMaster.tData(31 downto 0) /= r.localMac(31 downto 0) then
                         -- Next state
                         v.state := IDLE_S;
                      end if;
                   -- CHADDR[47:32]
                   when 8 =>
                      -- Check if CHADDR[47:32] doesn't match
-                     if rxMaster.tData(15 downto 0) /= localMac(47 downto 32) then
+                     if rxMaster.tData(15 downto 0) /= r.localMac(47 downto 32) then
                         -- Next state
                         v.state := IDLE_S;
                      end if;
@@ -495,7 +497,7 @@ begin
                   v.index := r.index + 1;
                end if;
                -- Check for last transfer
-               if (rxMaster.tLast = '1') and (getTKeep(tKeep,DHCP_CONFIG_C) = (r.index+1)) then
+               if (rxMaster.tLast = '1') and (getTKeep(tKeep, DHCP_CONFIG_C) = (r.index+1)) then
                   -- Check for no EOFE
                   if ssiGetUserEofe(DHCP_CONFIG_C, rxMaster) = '0' then
                      -- Next state
@@ -534,12 +536,18 @@ begin
       ----------------------------------------------------------------------
       end case;
 
+      -- Keep delayed copy of the local MAC
+      v.localMac := localMac;
+
       -- Combinatorial outputs before the reset
       rxSlave <= v.rxSlave;
 
       -- Reset
-      if (rst = '1') then
-         v := REG_INIT_C;
+      if (rst = '1') or (r.localMac /= v.localMac) then
+         -- Reset the DHCP FSM
+         v          := REG_INIT_C;
+         -- Don't touch the delayed copy of local MAC
+         v.localMac := localMac;
       end if;
 
       -- Register the variable for next clock cycle
