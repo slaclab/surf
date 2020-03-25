@@ -364,38 +364,38 @@ class Dac38J84(pr.Device):
         def Init():
             self.writeBlocks(force=True)
             self.EnableTx.set(0)
-            time.sleep(0.001) # TODO: Optimize this timeout
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.ClearAlarms()
-            time.sleep(0.001) # TODO: Optimize this timeout
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[59].set( self.DacReg[59].value() )
-            time.sleep(0.001) # TODO: Optimize this timeout
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[37].set( self.DacReg[37].value() )
-            time.sleep(0.001) # TODO: Optimize this timeout
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[60].set( self.DacReg[60].value() | 0x0200 )
-            time.sleep(0.001) # TODO: Optimize this timeout
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[60].set( self.DacReg[60].value() & 0xFDFF )
-            time.sleep(0.001) # TODO: Optimize this timeout
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[62].set( self.DacReg[62].value() )
-            time.sleep(0.001) # TODO: Optimize this timeout
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[76].set( self.DacReg[76].value() )
-            time.sleep(0.001) # TODO: Optimize this timeout
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[77].set( self.DacReg[77].value() )
-            time.sleep(0.001) # TODO: Optimize this timeout
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[75].set( self.DacReg[75].value() )
-            time.sleep(0.001) # TODO: Optimize this timeout
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[77].set( self.DacReg[77].value() )
-            time.sleep(0.001) # TODO: Optimize this timeout
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[78].set( self.DacReg[78].value() )
-            time.sleep(0.001) # TODO: Optimize this timeout
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[0].set(  self.DacReg[0].value()  )
-            time.sleep(0.001) # TODO: Optimize this timeout
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[74].set( (self.DacReg[74].value() & 0xFFE0) | 0x1E )
-            time.sleep(0.001) # TODO: Optimize this timeout
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[74].set( (self.DacReg[74].value() & 0xFFE0) | 0x1E )
-            time.sleep(0.001) # TODO: Optimize this timeout
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[74].set( (self.DacReg[74].value() & 0xFFE0) | 0x1F )
-            time.sleep(0.001) # TODO: Optimize this timeout
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[74].set( (self.DacReg[74].value() & 0xFFE0) | 0x01 )
-            time.sleep(0.001) # TODO: Optimize this timeout
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.EnableTx.set(1)
-            time.sleep(0.001) # TODO: Optimize this timeout
+            time.sleep(0.010) # TODO: Optimize this timeout

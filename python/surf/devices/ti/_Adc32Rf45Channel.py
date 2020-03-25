@@ -1351,8 +1351,8 @@ class Adc32Rf45Channel(pr.Device):
         @self.command(name = "TestPattern", description  = "Set the Digital bank Test Pattern mode")
         def TestPattern(arg):
             self.TEST_PATTERN_SEL.set(int(arg))
-            time.sleep(0.001) # TODO: Optimize this timeout
+            time.sleep(0.100) # TODO: Optimize this timeout
             self.TEST_PAT_RES.set(0x1)
-            time.sleep(0.001) # TODO: Optimize this timeout
+            time.sleep(0.100) # TODO: Optimize this timeout
             self.TEST_PAT_RES.set(0x0)
-            time.sleep(0.001) # TODO: Optimize this timeout
+            time.sleep(0.100) # TODO: Optimize this timeout

@@ -296,20 +296,20 @@ class Adc32Rf45(pr.Device):
             self.Powerup_AnalogConfig()
 
             # Wait for 50 ms for the device to estimate the interleaving errors
-            time.sleep(0.050) # TODO: Optimize this timeout
+            time.sleep(0.100) # TODO: Optimize this timeout
 
             self.IL_Config_Nyq1_ChA()
             self.IL_Config_Nyq1_ChB()
 
-            time.sleep(0.050) # TODO: Optimize this timeout
+            time.sleep(0.100) # TODO: Optimize this timeout
 
             self.SetNLTrim()
 
-            time.sleep(0.050) # TODO: Optimize this timeout
+            time.sleep(0.100) # TODO: Optimize this timeout
 
             self.JESD_DDC_config()
 
-            time.sleep(0.050) # TODO: Optimize this timeout
+            time.sleep(0.100) # TODO: Optimize this timeout
 
             self._rawWrite(offsetCorrector + chA + (4*0x068),0xA2) #... freeze offset estimation
             self._rawWrite(offsetCorrector + chB + (4*0x068),0xA2) #... freeze offset estimation
@@ -673,16 +673,16 @@ class Adc32Rf45(pr.Device):
         @self.command(description  = "Digital Reset")
         def DigRst():
             # Wait for 50 ms for the device to estimate the interleaving errors
-            time.sleep(0.050) # TODO: Optimize this timeout
+            time.sleep(0.100) # TODO: Optimize this timeout
             self._rawWrite(jesdDigital + chA + (4*0x000),0x00) # clear reset
             self._rawWrite(jesdDigital + chB + (4*0x000),0x00) # clear reset
             self._rawWrite(jesdDigital + chA + (4*0x000),0x01) # CHA digital reset
             self._rawWrite(jesdDigital + chB + (4*0x000),0x01) # CHB digital reset
             self._rawWrite(jesdDigital + chA + (4*0x000),0x00) # clear reset
             self._rawWrite(jesdDigital + chB + (4*0x000),0x00) # clear reset
-            
+
             # Wait for 50 ms for the device to estimate the interleaving errors
-            time.sleep(0.050) # TODO: Optimize this timeout
+            time.sleep(0.100) # TODO: Optimize this timeout
             self._rawWrite(mainDigital + chA + (4*0x000),0x00) # clear reset
             self._rawWrite(mainDigital + chB + (4*0x000),0x00) # clear reset
             self._rawWrite(mainDigital + chA + (4*0x000),0x01) # CHA digital reset
@@ -690,4 +690,4 @@ class Adc32Rf45(pr.Device):
             self._rawWrite(mainDigital + chA + (4*0x000),0x00) # clear reset
             self._rawWrite(mainDigital + chB + (4*0x000),0x00) # clear reset
 
-            time.sleep(0.001) # TODO: Optimize this timeout
+            time.sleep(0.100) # TODO: Optimize this timeout
