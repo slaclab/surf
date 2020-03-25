@@ -680,7 +680,7 @@ class Adc32Rf45(pr.Device):
             self._rawWrite(jesdDigital + chB + (4*0x000),0x01) # CHB digital reset
             self._rawWrite(jesdDigital + chA + (4*0x000),0x00) # clear reset
             self._rawWrite(jesdDigital + chB + (4*0x000),0x00) # clear reset
-            
+
             # Wait for 50 ms for the device to estimate the interleaving errors
             time.sleep(0.050) # TODO: Optimize this timeout
             self._rawWrite(mainDigital + chA + (4*0x000),0x00) # clear reset
