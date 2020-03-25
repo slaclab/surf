@@ -131,6 +131,7 @@ class AxiStreamBatcherEventBuilder(pr.Device):
             bitOffset    =  1,
             base         = pr.Bool,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteCommand(
