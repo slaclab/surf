@@ -543,11 +543,13 @@ begin
       rxSlave <= v.rxSlave;
 
       -- Reset
-      if (rst = '1') or (r.localMac /= v.localMac) then
+      if (rst = '1') or (r.localMac /= v.localMac) or (r.localMac = 0) then
          -- Reset the DHCP FSM
-         v          := REG_INIT_C;
+         v                := REG_INIT_C;
          -- Don't touch the delayed copy of local MAC
-         v.localMac := localMac;
+         v.localMac       := localMac;
+         -- Prevent locking up the ETH stack
+         v.rxSlave.tReady := '1';
       end if;
 
       -- Register the variable for next clock cycle
