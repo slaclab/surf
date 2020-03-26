@@ -255,8 +255,8 @@ begin
       axiSlaveRegister (axilEp, x"FF0", 0, v.timeout);
       axiSlaveRegisterR(axilEp, x"FF4", 0, toSlv(NUM_SLAVES_G, 8));
       axiSlaveRegisterR(axilEp, x"FF4", 8, dbg);
+      axiSlaveRegisterR(axilEp, X"FF4", 16, blowoffExt);
       axiSlaveRegister (axilEp, x"FF8", 0, v.blowoffReg);
-      axiSlaveRegisterR(axilEp, X"FF8", 1, blowoffExt);
       axiSlaveRegister (axilEp, x"FFC", 0, v.cntRst);
       axiSlaveRegister (axilEp, x"FFC", 1, v.timerRst);
       axiSlaveRegister (axilEp, x"FFC", 2, v.hardRst);
