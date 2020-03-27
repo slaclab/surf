@@ -54,6 +54,8 @@ entity AxiStreamBatcherEventBuilder is
       -- Clock and Reset
       axisClk         : in  sl;
       axisRst         : in  sl;
+      -- Misc
+      blowoffExt      : in  sl                     := '0';
       -- AXI-Lite Interface
       axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
       axilReadSlave   : out AxiLiteReadSlaveType;
@@ -77,6 +79,7 @@ architecture rtl of AxiStreamBatcherEventBuilder is
    type RegType is record
       softRst        : sl;
       hardRst        : sl;
+      blowoffReg     : sl;
       blowoff        : sl;
       timerRst       : sl;
       cntRst         : sl;
@@ -104,6 +107,7 @@ architecture rtl of AxiStreamBatcherEventBuilder is
    constant REG_INIT_C : RegType := (
       softRst        => '0',
       hardRst        => '0',
+      blowoffReg     => '0',
       blowoff        => '0',
       timerRst       => '0',
       cntRst         => '0',
@@ -198,8 +202,8 @@ begin
          bin  => r.timeout,
          gtEq => timeoutEvent);         -- greater than or equal to (a >= b)
 
-   comb : process (axilReadMaster, axilWriteMaster, axisRst, batcherIdle, r,
-                   rxMasters, timeoutEvent, txSlave) is
+   comb : process (axilReadMaster, axilWriteMaster, axisRst, batcherIdle, blowoffExt, r, rxMasters,
+                   timeoutEvent, txSlave) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
       variable i      : natural;
@@ -228,11 +232,13 @@ begin
          v := REG_INIT_C;
 
          -- Preserve the resister configurations
-         v.bypass  := r.bypass;
-         v.timeout := r.timeout;
-         v.blowoff := r.blowoff;
+         v.bypass     := r.bypass;
+         v.timeout    := r.timeout;
+         v.blowoffReg := r.blowoffReg;
 
       end if;
+
+
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
@@ -249,7 +255,8 @@ begin
       axiSlaveRegister (axilEp, x"FF0", 0, v.timeout);
       axiSlaveRegisterR(axilEp, x"FF4", 0, toSlv(NUM_SLAVES_G, 8));
       axiSlaveRegisterR(axilEp, x"FF4", 8, dbg);
-      axiSlaveRegister (axilEp, x"FF8", 0, v.blowoff);
+      axiSlaveRegisterR(axilEp, X"FF4", 16, blowoffExt);
+      axiSlaveRegister (axilEp, x"FF8", 0, v.blowoffReg);
       axiSlaveRegister (axilEp, x"FFC", 0, v.cntRst);
       axiSlaveRegister (axilEp, x"FFC", 1, v.timerRst);
       axiSlaveRegister (axilEp, x"FFC", 2, v.hardRst);
@@ -257,6 +264,8 @@ begin
 
       -- Closeout the transaction
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
+
+      v.blowoff := v.blowoffReg or blowoffExt;
 
       -- Check for change in configuration
       if (r.timeout /= v.timeout) or (r.timerRst = '1') then
