@@ -140,4 +140,3 @@ class Ad5541(pr.Device):
 
     def hardReset(self):
         self.hrdRst.set(1)
-
