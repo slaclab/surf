@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : Line Code 10B12B: https://confluence.slac.stanford.edu/x/QndODQ
 -------------------------------------------------------------------------------
--- File       : Code10b12bPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 10B12B Package File
@@ -20,8 +19,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
---use work.TextUtilPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+--use surf.TextUtilPkg.all;
 
 package Code10b12bPkg is
 

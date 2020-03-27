@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : glbl.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: GLBL module for mixed Verilog/VHDL simulation support

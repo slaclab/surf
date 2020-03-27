@@ -77,6 +77,8 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
+library surf;
+
 entity Gtx7AutoPhaseAligner is     
   Generic( 
            GT_TYPE                  : string  := "GTX"
@@ -126,7 +128,7 @@ architecture RTL of Gtx7AutoPhaseAligner is
    
 begin
 
- sync_PHALIGNDONE : entity work.Synchronizer
+ sync_PHALIGNDONE : entity surf.Synchronizer
   port map
          (
             clk             =>  STABLE_CLOCK,
@@ -134,7 +136,7 @@ begin
             dataOut        =>  phaligndone_sync 
          );
 
-  sync_DLYSRESETDONE : entity work.Synchronizer
+  sync_DLYSRESETDONE : entity surf.Synchronizer
   port map
          (
             clk             =>  STABLE_CLOCK,

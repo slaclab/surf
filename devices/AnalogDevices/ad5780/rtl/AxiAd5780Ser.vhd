@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiAd5780Ser.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AD5780 DAC Module's serializer
@@ -18,8 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiAd5780Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiAd5780Pkg.all;
 
 entity AxiAd5780Ser is
    generic (

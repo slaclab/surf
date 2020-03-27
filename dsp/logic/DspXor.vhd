@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : DspXor.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Generalized DSP inferred XOR, which can be used to help with 
@@ -19,7 +18,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity DspXor is
    generic (
@@ -48,8 +49,8 @@ architecture rtl of DspXor is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   attribute use_dsp48      : string;
-   attribute use_dsp48 of r : signal is USE_DSP_G;
+   attribute use_dsp      : string;
+   attribute use_dsp of r : signal is USE_DSP_G;
 
    attribute dont_touch        : string;
    attribute dont_touch of rtl : architecture is "true";  -- prevent optimization from DSP to RTL

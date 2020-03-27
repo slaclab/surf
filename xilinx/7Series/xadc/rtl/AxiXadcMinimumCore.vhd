@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiXadcMinimumCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Example of a simple XADC IP core w/ AXI-Lite
@@ -16,8 +15,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiXadcMinimumCore is
    generic (

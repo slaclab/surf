@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : RstSync.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Synchronizes the trailing edge of an asynchronous reset to a
@@ -16,7 +15,9 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity RstSync is
    generic (
@@ -41,7 +42,7 @@ begin
 --   assert (RELEASE_DELAY_G >= 3) report "RELEASE_DELAY_G must be >= 3" severity failure;
 
    -- Reuse synchronizer that turns off shift reg extraction and register balancing for you
-   Synchronizer_1 : entity work.Synchronizer
+   Synchronizer_1 : entity surf.Synchronizer
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => IN_POLARITY_G,

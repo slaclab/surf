@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : MDIO Support
 -------------------------------------------------------------------------------
--- File       : MdioPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: VHDL Package for MDIO Protocol
@@ -19,7 +18,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 package MdioPkg is
 

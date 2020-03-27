@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : SRPv3 Protocol: https://confluence.slac.stanford.edu/x/cRmVD
 -------------------------------------------------------------------------------
--- File       : SrpV3Axi.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SLAC Register Protocol Version 3, AXI Interface
@@ -20,12 +19,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.AxiPkg.all;
-use work.AxiDmaPkg.all;
-use work.SrpV3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.AxiPkg.all;
+use surf.AxiDmaPkg.all;
+use surf.SrpV3Pkg.all;
 
 entity SrpV3Axi is
    generic (
@@ -35,8 +36,6 @@ entity SrpV3Axi is
       TX_VALID_THOLD_G    : positive                := 1;
       SLAVE_READY_EN_G    : boolean                 := true;
       GEN_SYNC_FIFO_G     : boolean                 := false;
-      ALTERA_SYN_G        : boolean                 := false;
-      ALTERA_RAM_G        : string                  := "M9K";
       AXI_CLK_FREQ_G      : real                    := 156.25E+6;  -- units of Hz
       AXI_CONFIG_G        : AxiConfigType           := axiConfig(33, 4, 1, 8);
       AXI_BURST_G         : slv(1 downto 0)         := "01";
@@ -106,7 +105,7 @@ architecture rtl of SrpV3Axi is
 
 begin
 
-   U_SrpV3Core_1 : entity work.SrpV3Core
+   U_SrpV3Core_1 : entity surf.SrpV3Core
       generic map (
          TPD_G               => TPD_G,
          PIPE_STAGES_G       => PIPE_STAGES_G,
@@ -114,8 +113,6 @@ begin
          TX_VALID_THOLD_G    => TX_VALID_THOLD_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
          SRP_CLK_FREQ_G      => AXI_CLK_FREQ_G,
          AXI_STREAM_CONFIG_G => AXI_STREAM_CONFIG_G,
          UNALIGNED_ACCESS_G  => UNALIGNED_ACCESS_G,
@@ -141,7 +138,7 @@ begin
          srpRdMaster => srpRdMaster,    -- [in]
          srpRdSlave  => srpRdSlave);    -- [out]
 
-   U_AxiStreamDmaWrite_1 : entity work.AxiStreamDmaWrite
+   U_AxiStreamDmaWrite_1 : entity surf.AxiStreamDmaWrite
       generic map (
          TPD_G             => TPD_G,
          AXI_READY_EN_G    => true,
@@ -161,7 +158,7 @@ begin
          axiWriteSlave  => axiWriteSlave,       -- [in]
          axiWriteCtrl   => AXI_CTRL_UNUSED_C);  -- [in]
 
-   U_AxiStreamDmaRead_1 : entity work.AxiStreamDmaRead
+   U_AxiStreamDmaRead_1 : entity surf.AxiStreamDmaRead
       generic map (
          TPD_G           => TPD_G,
          AXIS_READY_EN_G => true,

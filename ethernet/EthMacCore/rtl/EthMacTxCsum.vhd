@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : EthMacTxCsum.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: TX Checksum Hardware Offloading Engine
@@ -19,9 +18,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.EthMacPkg.all;
 
 entity EthMacTxCsum is
    generic (
@@ -149,7 +150,7 @@ architecture rtl of EthMacTxCsum is
 
 begin
 
-   U_RxPipeline : entity work.AxiStreamPipeline
+   U_RxPipeline : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => 0)
@@ -239,11 +240,11 @@ begin
                -- Move data
                v.sMaster        := rxMaster;
                -- Set the flag
-               v.fragDet(0)     := axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, rxMaster, EMAC_FRAG_BIT_C, 0);
+               v.fragDet(0)     := axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, rxMaster, EMAC_FRAG_BIT_C, 0);
                -- Check for EOF
                if (rxMaster.tLast = '1') then
                   -- Save the EOFE value
-                  v.eofeDet(0) := axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, rxMaster, EMAC_EOFE_BIT_C);
+                  v.eofeDet(0) := axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, rxMaster, EMAC_EOFE_BIT_C);
                   -- Write the transaction data
                   v.tranWr     := '1';
                else
@@ -283,7 +284,7 @@ begin
                      v.eofeDet(0) := '1';
                   else
                      -- Save the EOFE value
-                     v.eofeDet(0) := axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, rxMaster, EMAC_EOFE_BIT_C);
+                     v.eofeDet(0) := axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, rxMaster, EMAC_EOFE_BIT_C);
                   end if;
                   -- Write the transaction data
                   v.tranWr := '1';
@@ -363,8 +364,8 @@ begin
                      v.tData := rxMaster.tData(127 downto 80) & x"00000000" & rxMaster.tData(47 downto 0);
                   end if;
                   -- Track the number of bytes 
-                  v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep,EMAC_AXIS_CONFIG_C) - 2;
-                  v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep,EMAC_AXIS_CONFIG_C) - 2;
+                  v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep,INT_EMAC_AXIS_CONFIG_C) - 2;
+                  v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep,INT_EMAC_AXIS_CONFIG_C) - 2;
                else
                   -- Fill in the IPv4 header checksum
                   v.ipv4Hdr(14) := rxMaster.tData(7 downto 0);  -- Source IP Address
@@ -379,13 +380,13 @@ begin
                      v.tData := rxMaster.tData(127 downto 112) & x"00000000" & rxMaster.tData(79 downto 0);
                   end if;
                   -- Track the number of bytes 
-                  v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep,EMAC_AXIS_CONFIG_C) - 6;
-                  v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep,EMAC_AXIS_CONFIG_C) - 6;
+                  v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep,INT_EMAC_AXIS_CONFIG_C) - 6;
+                  v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep,INT_EMAC_AXIS_CONFIG_C) - 6;
                end if;
                -- Check for EOF
                if (rxMaster.tLast = '1') then
                   -- Save the EOFE value
-                  v.eofeDet(0) := axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, rxMaster, EMAC_EOFE_BIT_C);
+                  v.eofeDet(0) := axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, rxMaster, EMAC_EOFE_BIT_C);
                   -- Write the transaction data
                   v.tranWr     := '1';
                   -- Next state
@@ -420,12 +421,12 @@ begin
                   end if;
                end if;
                -- Track the number of bytes 
-               v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep,EMAC_AXIS_CONFIG_C);
-               v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep,EMAC_AXIS_CONFIG_C);
+               v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep,INT_EMAC_AXIS_CONFIG_C);
+               v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep,INT_EMAC_AXIS_CONFIG_C);
                -- Check for EOF
                if (rxMaster.tLast = '1') or (v.ipv4Len(0) > MAX_FRAME_SIZE_C) then
                   -- Save the EOFE value
-                  v.eofeDet(0) := axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, rxMaster, EMAC_EOFE_BIT_C);
+                  v.eofeDet(0) := axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, rxMaster, EMAC_EOFE_BIT_C);
                   -- Check for overflow
                   if (rxMaster.tLast = '0') then
                      -- Error detect
@@ -599,7 +600,7 @@ begin
                -- Reset the counter
                v.mvCnt  := 0;
                -- Forward the EOFE               
-               axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v.txMaster, EMAC_EOFE_BIT_C, eofeDet);
+               axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v.txMaster, EMAC_EOFE_BIT_C, eofeDet);
                v.dbg(5) := eofeDet;
                -- Accept the data
                v.tranRd := '1';
@@ -632,7 +633,7 @@ begin
       end if;
    end process seq;
 
-   Fifo_Cache : entity work.AxiStreamFifoV2
+   Fifo_Cache : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -641,14 +642,13 @@ begin
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
-         BRAM_EN_G           => true,
-         USE_BUILT_IN_G      => false,
+         MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => true,
          CASCADE_SIZE_G      => ite(JUMBO_G, 2, 1),
          FIFO_ADDR_WIDTH_G   => 9,      -- 8kB per FIFO
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)
+         SLAVE_AXI_CONFIG_G  => INT_EMAC_AXIS_CONFIG_C,
+         MASTER_AXI_CONFIG_G => INT_EMAC_AXIS_CONFIG_C)
       port map (
          -- Slave Port
          sAxisClk    => ethClk,
@@ -661,14 +661,14 @@ begin
          mAxisMaster => mMaster,
          mAxisSlave  => mSlave);
 
-   Fifo_Trans : entity work.FifoSync
+   Fifo_Trans : entity surf.FifoSync
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         FWFT_EN_G    => true,
-         DATA_WIDTH_G => 69,
-         ADDR_WIDTH_G => 4,
-         FULL_THRES_G => 8)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         FWFT_EN_G     => true,
+         DATA_WIDTH_G  => 69,
+         ADDR_WIDTH_G  => 4,
+         FULL_THRES_G  => 8)
       port map (
          clk                => ethClk,
          rst                => ethRst,
@@ -697,7 +697,7 @@ begin
          dout(15 downto 0)  => protCsum,
          valid              => tranValid);
 
-   U_TxPipeline : entity work.AxiStreamPipeline
+   U_TxPipeline : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => 1)

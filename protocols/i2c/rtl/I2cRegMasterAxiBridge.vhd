@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : I2cRegMasterAxiBridge.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Maps a number of I2C devices on an I2C bus onto an AXI Bus.
@@ -18,9 +17,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.I2cPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.I2cPkg.all;
 
 entity I2cRegMasterAxiBridge is
 

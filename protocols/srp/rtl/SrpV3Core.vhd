@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : SRPv3 Protocol: https://confluence.slac.stanford.edu/x/cRmVD
 -------------------------------------------------------------------------------
--- File       : SrpV3Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SLAC Register Protocol Version 3, AXI-Lite Interface
@@ -24,11 +23,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.AxiLitePkg.all;
-use work.SrpV3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.AxiLitePkg.all;
+use surf.SrpV3Pkg.all;
 
 entity SrpV3Core is
    generic (
@@ -38,8 +39,6 @@ entity SrpV3Core is
       TX_VALID_THOLD_G    : positive                := 1;
       SLAVE_READY_EN_G    : boolean                 := false;
       GEN_SYNC_FIFO_G     : boolean                 := false;
-      ALTERA_SYN_G        : boolean                 := false;
-      ALTERA_RAM_G        : string                  := "M9K";
       SRP_CLK_FREQ_G      : real                    := 156.25E+6;  -- units of Hz
       AXI_STREAM_CONFIG_G : AxiStreamConfigType     := ssiAxiStreamConfig(2);
       UNALIGNED_ACCESS_G  : boolean                 := false;
@@ -154,21 +153,16 @@ begin
 
    sAxisCtrl <= sCtrl;
 
-   RX_FIFO : entity work.SsiFifo
+   RX_FIFO : entity surf.SsiFifo
       generic map (
          -- General Configurations
          TPD_G                  => TPD_G,
-         EN_FRAME_FILTER_G      => true,
          PIPE_STAGES_G          => PIPE_STAGES_G,
          SLAVE_READY_EN_G       => SLAVE_READY_EN_G,
          VALID_THOLD_G          => 0,  -- = 0 = only when frame ready                                                                 
          -- FIFO configurations
-         BRAM_EN_G              => true,
-         XIL_DEVICE_G           => "7SERIES",
-         USE_BUILT_IN_G         => false,
+         MEMORY_TYPE_G          => "block",
          GEN_SYNC_FIFO_G        => GEN_SYNC_FIFO_G,
-         ALTERA_SYN_G           => ALTERA_SYN_G,
-         ALTERA_RAM_G           => ALTERA_RAM_G,
          FIFO_ADDR_WIDTH_G      => 9,   -- 2kB/FIFO = 32-bits x 512 entries
          CASCADE_SIZE_G         => 3,   -- 6kB = 3 FIFOs x 2 kB/FIFO
          CASCADE_PAUSE_SEL_G    => 2,   -- Set pause select on top FIFO
@@ -195,7 +189,7 @@ begin
    end generate;
 
    GEN_ASYNC_SLAVE : if (GEN_SYNC_FIFO_G = false) generate
-      Sync_Ctrl : entity work.SynchronizerVector
+      Sync_Ctrl : entity surf.SynchronizerVector
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => 2,
@@ -207,7 +201,7 @@ begin
             dataIn(1)  => sCtrl.idle,
             dataOut(0) => rxCtrl.pause,
             dataOut(1) => rxCtrl.idle);
-      Sync_Overflow : entity work.SynchronizerOneShot
+      Sync_Overflow : entity surf.SynchronizerOneShot
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -677,7 +671,7 @@ begin
       end if;
    end process seq;
 
-   TX_FIFO : entity work.AxiStreamFifoV2
+   TX_FIFO : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -685,12 +679,8 @@ begin
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => TX_VALID_THOLD_G,
          -- FIFO configurations
-         BRAM_EN_G           => true,
-         XIL_DEVICE_G        => "7SERIES",
-         USE_BUILT_IN_G      => false,
+         MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 9,
          -- AXI Stream Port Configurations
@@ -709,7 +699,7 @@ begin
          mAxisSlave  => mAxisSlave);
 
    -- Pipeline the rdData and wrData streams
-   U_AxiStreamPipeline_rdData : entity work.AxiStreamPipeline
+   U_AxiStreamPipeline_rdData : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => 0)
@@ -721,7 +711,7 @@ begin
          mAxisMaster => srpRdMasterInt,  -- [out]
          mAxisSlave  => srpRdSlaveInt);  -- [in]
 
-   U_AxiStreamPipeline_wrData : entity work.AxiStreamPipeline
+   U_AxiStreamPipeline_wrData : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => 0)

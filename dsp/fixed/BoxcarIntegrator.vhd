@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : BoxcarIntegrator.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simple boxcar integrator
@@ -18,7 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity BoxcarIntegrator is
    generic (
@@ -76,17 +77,17 @@ architecture rtl of BoxcarIntegrator is
 
 begin
 
-   U_RAM : entity work.SimpleDualPortRam
+   U_RAM : entity surf.SimpleDualPortRam
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => true,
-         DOB_REG_G    => false,
-         DATA_WIDTH_G => DATA_WIDTH_G,
-         ADDR_WIDTH_G => ADDR_WIDTH_G)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "block",
+         DOB_REG_G     => false,
+         DATA_WIDTH_G  => DATA_WIDTH_G,
+         ADDR_WIDTH_G  => ADDR_WIDTH_G)
       port map (
          -- Port A     
          clka  => clk,
-         wea   => ibValid,
+         wea   => r.ibValid,
          addra => r.wAddr,
          dina  => r.ibData,
          -- Port B

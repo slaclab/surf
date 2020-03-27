@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : MicroblazeBasicCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Microblaze Basic Core for "90% case"
@@ -16,10 +15,12 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.SsiPkg.all;
 
 entity MicroblazeBasicCoreWrapper is
    generic (
@@ -154,7 +155,7 @@ begin
          dcm_locked          => pllLock,
          reset               => rst);
 
-   U_InsertSOF : entity work.SsiInsertSof
+   U_InsertSOF : entity surf.SsiInsertSof
       generic map (
          TPD_G               => TPD_G,
          COMMON_CLK_G        => true,

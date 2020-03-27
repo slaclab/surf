@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
 -------------------------------------------------------------------------------
--- File       : SsiPrbsTxOld.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:   This module generates 
@@ -21,21 +20,19 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity SsiPrbsTxOld is
    generic (
       -- General Configurations
       TPD_G                      : time                       := 1 ns;
       -- FIFO Configurations
-      BRAM_EN_G                  : boolean                    := true;
-      XIL_DEVICE_G               : string                     := "7SERIES";
-      USE_BUILT_IN_G             : boolean                    := false;
+      MEMORY_TYPE_G              : string                     := "block";
       GEN_SYNC_FIFO_G            : boolean                    := false;
-      ALTERA_SYN_G               : boolean                    := false;
-      ALTERA_RAM_G               : string                     := "M9K";
       CASCADE_SIZE_G             : natural range 1 to (2**24) := 1;
       FIFO_ADDR_WIDTH_G          : natural range 4 to 48      := 9;
       FIFO_PAUSE_THRESH_G        : natural range 1 to (2**24) := 2**8;
@@ -228,7 +225,7 @@ begin
       end if;
    end process seq;
 
-   AxiStreamFifo_Inst : entity work.AxiStreamFifoV2
+   AxiStreamFifo_Inst : entity surf.AxiStreamFifoV2
       generic map(
          -- General Configurations
          TPD_G               => TPD_G,
@@ -236,12 +233,8 @@ begin
          SLAVE_READY_EN_G    => false,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
-         BRAM_EN_G           => BRAM_EN_G,
-         XIL_DEVICE_G        => XIL_DEVICE_G,
-         USE_BUILT_IN_G      => USE_BUILT_IN_G,
+         MEMORY_TYPE_G       => MEMORY_TYPE_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
          CASCADE_SIZE_G      => CASCADE_SIZE_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => true,

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiAd9467Spi.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AD9467 SPI Interface Module
@@ -18,8 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiAd9467Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiAd9467Pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;

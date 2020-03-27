@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PgpEth: https://confluence.slac.stanford.edu/x/pQmODw
 -------------------------------------------------------------------------------
--- File       : RoguePgpEthSim.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper on RogueStreamSim to simulate a PGP-ETH
@@ -20,10 +19,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.PgpEthPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.PgpEthPkg.all;
 
 entity RoguePgpEthSim is
    generic (
@@ -76,7 +77,7 @@ begin
 
    clk <= pgpRefClk;
 
-   PwrUpRst_Inst : entity work.PwrUpRst
+   PwrUpRst_Inst : entity surf.PwrUpRst
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '1',
@@ -87,7 +88,7 @@ begin
          rstOut => rst);
 
    GEN_VEC : for i in NUM_VC_G-1 downto 0 generate
-      U_PGP_VC : entity work.RogueTcpStreamWrap
+      U_PGP_VC : entity surf.RogueTcpStreamWrap
          generic map (
             TPD_G         => TPD_G,
             PORT_NUM_G    => (PORT_NUM_G + i*2),
@@ -104,7 +105,7 @@ begin
    end generate GEN_VEC;
 
    GEN_SIDEBAND : if (EN_SIDEBAND_G) generate
-      U_RogueSideBandWrap_1 : entity work.RogueSideBandWrap
+      U_RogueSideBandWrap_1 : entity surf.RogueSideBandWrap
          generic map (
             TPD_G      => TPD_G,
             PORT_NUM_G => PORT_NUM_G + 32)

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : TenGigEthGthUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 10GBASE-R Ethernet for GTH Ultra Scale
@@ -16,20 +15,21 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.TenGigEthPkg.all;
-use work.EthMacPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.TenGigEthPkg.all;
+use surf.EthMacPkg.all;
 
 entity TenGigEthGthUltraScale is
    generic (
-      TPD_G           : time                := 1 ns;
-      PAUSE_EN_G      : boolean             := true;
+      TPD_G         : time                := 1 ns;
+      PAUSE_EN_G    : boolean             := true;
       -- AXI-Lite Configurations
-      EN_AXI_REG_G    : boolean             := false;
+      EN_AXI_REG_G  : boolean             := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G   : AxiStreamConfigType := EMAC_AXIS_CONFIG_C);
+      AXIS_CONFIG_G : AxiStreamConfigType := EMAC_AXIS_CONFIG_C);
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
@@ -209,7 +209,7 @@ begin
    ------------------
    -- Synchronization 
    ------------------
-   U_AxiLiteAsync : entity work.AxiLiteAsync
+   U_AxiLiteAsync : entity surf.AxiLiteAsync
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -231,12 +231,15 @@ begin
    --------------------
    -- Ethernet MAC core
    --------------------
-   U_MAC : entity work.EthMacTop
+   U_MAC : entity surf.EthMacTop
       generic map (
-         TPD_G           => TPD_G,
-         PAUSE_EN_G      => PAUSE_EN_G,
-         PHY_TYPE_G      => "XGMII",
-         PRIM_CONFIG_G   => AXIS_CONFIG_G)
+         TPD_G             => TPD_G,
+         PAUSE_EN_G        => PAUSE_EN_G,
+         FIFO_ADDR_WIDTH_G => 12,       -- single 4K UltraRAM
+         SYNTH_MODE_G      => "xpm",
+         MEMORY_TYPE_G     => "ultra",
+         PHY_TYPE_G        => "XGMII",
+         PRIM_CONFIG_G     => AXIS_CONFIG_G)
       port map (
          -- Primary Interface
          primClk         => dmaClk,
@@ -287,10 +290,10 @@ begin
          gtwiz_reset_qpll1lock_in            => qplllock(1),
          gtwiz_reset_qpll1reset_out          => qpllRst(1),
          -- MGT Ports      
-         gt_txp_out(0)                        => gtTxP,
-         gt_txn_out(0)                        => gtTxN,
-         gt_rxp_in(0)                         => gtRxP,
-         gt_rxn_in(0)                         => gtRxN,
+         gt_txp_out(0)                       => gtTxP,
+         gt_txn_out(0)                       => gtTxN,
+         gt_rxp_in(0)                        => gtRxP,
+         gt_rxn_in(0)                        => gtRxN,
          -- PHY Interface      
          tx_mii_d_0                          => phyTxd,
          tx_mii_c_0                          => phyTxc,
@@ -373,7 +376,7 @@ begin
    ---------------------------
    -- 10GBASE-R's Reset Module
    ---------------------------
-   U_TenGigEthRst : entity work.TenGigEthGthUltraScaleRst
+   U_TenGigEthRst : entity surf.TenGigEthGthUltraScaleRst
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -389,7 +392,7 @@ begin
    --------------------------------     
    -- Configuration/Status Register   
    --------------------------------     
-   U_TenGigEthReg : entity work.TenGigEthReg
+   U_TenGigEthReg : entity surf.TenGigEthReg
       generic map (
          TPD_G        => TPD_G,
          EN_AXI_REG_G => EN_AXI_REG_G)

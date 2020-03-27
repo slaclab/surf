@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SspDecoder10b12b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SimpleStreamingProtocol - A simple protocol layer for inserting
@@ -20,8 +19,10 @@ use ieee.std_logic_1164.all;
 use IEEE.STD_LOGIC_UNSIGNED.all;
 use IEEE.STD_LOGIC_ARITH.all;
 
-use work.StdRtlPkg.all;
-use work.Code10b12bPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Code10b12bPkg.all;
 
 entity SspDecoder10b12b is
 
@@ -54,7 +55,7 @@ architecture rtl of SspDecoder10b12b is
 
 begin
 
-   Decoder10b12b_1 : entity work.Decoder10b12b
+   Decoder10b12b_1 : entity surf.Decoder10b12b
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
@@ -73,7 +74,7 @@ begin
 
    codeError <= codeErrorInt;
 
-   SspDeframer_1 : entity work.SspDeframer
+   SspDeframer_1 : entity surf.SspDeframer
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => RST_POLARITY_G,

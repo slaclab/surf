@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiResize.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Block to resize AXI. Re-sizing is always little endian. 
@@ -22,8 +21,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiPkg.all;
 
 entity AxiResize is
    generic (

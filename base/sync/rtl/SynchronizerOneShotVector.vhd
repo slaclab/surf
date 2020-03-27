@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SynchronizerOneShotVector.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for multiple SynchronizerOneShot modules
@@ -16,19 +15,21 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SynchronizerOneShotVector is
    generic (
-      TPD_G           : time     := 1 ns;   -- Simulation FF output delay
-      RST_POLARITY_G  : sl       := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
-      RST_ASYNC_G     : boolean  := false;  -- Reset is asynchronous
-      BYPASS_SYNC_G   : boolean  := false;  -- Bypass RstSync module for synchronous data configuration
-      RELEASE_DELAY_G : positive := 3;  -- Delay between deassertion of async and sync resets
-      IN_POLARITY_G   : slv      := "1";    -- 0 for active LOW, 1 for active HIGH
-      OUT_POLARITY_G  : slv      := "1";    -- 0 for active LOW, 1 for active HIGH
-      PULSE_WIDTH_G   : positive := 1;  -- one-shot pulse width duration (units of clk cycles)
-      WIDTH_G         : positive := 16);
+      TPD_G          : time     := 1 ns;   -- Simulation FF output delay
+      RST_POLARITY_G : sl       := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean  := false;  -- Reset is asynchronous
+      BYPASS_SYNC_G  : boolean  := false;  -- Bypass RstSync module for synchronous data configuration
+      OUT_DELAY_G    : positive := 3;   -- Delay between deassertion of async and sync resets
+      IN_POLARITY_G  : slv      := "1";    -- 0 for active LOW, 1 for active HIGH
+      OUT_POLARITY_G : slv      := "1";    -- 0 for active LOW, 1 for active HIGH
+      PULSE_WIDTH_G  : positive := 1;   -- one-shot pulse width duration (units of clk cycles)
+      WIDTH_G        : positive := 16);
    port (
       clk     : in  sl;                 -- Clock to be SYNC'd to
       rst     : in  sl := not RST_POLARITY_G;  -- Optional reset
@@ -56,28 +57,28 @@ architecture mapping of SynchronizerOneShotVector is
 
    constant IN_POLARITY_C  : PolarityVectorArray := FillVectorArray(IN_POLARITY_G);
    constant OUT_POLARITY_C : PolarityVectorArray := FillVectorArray(OUT_POLARITY_G);
-   
+
 begin
 
    GEN_VEC :
    for i in (WIDTH_G-1) downto 0 generate
-      
-      SyncOneShot_Inst : entity work.SynchronizerOneShot
+
+      SyncOneShot_Inst : entity surf.SynchronizerOneShot
          generic map (
-            TPD_G           => TPD_G,
-            RST_POLARITY_G  => RST_POLARITY_G,
-            RST_ASYNC_G     => RST_ASYNC_G,
-            BYPASS_SYNC_G   => BYPASS_SYNC_G,
-            RELEASE_DELAY_G => RELEASE_DELAY_G,
-            IN_POLARITY_G   => IN_POLARITY_C(i),
-            OUT_POLARITY_G  => OUT_POLARITY_C(i),
-            PULSE_WIDTH_G   => PULSE_WIDTH_G)      
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            BYPASS_SYNC_G  => BYPASS_SYNC_G,
+            OUT_DELAY_G    => OUT_DELAY_G,
+            IN_POLARITY_G  => IN_POLARITY_C(i),
+            OUT_POLARITY_G => OUT_POLARITY_C(i),
+            PULSE_WIDTH_G  => PULSE_WIDTH_G)
          port map (
             clk     => clk,
             rst     => rst,
             dataIn  => dataIn(i),
-            dataOut => dataOut(i)); 
+            dataOut => dataOut(i));
 
    end generate GEN_VEC;
-   
+
 end architecture mapping;

@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
 -------------------------------------------------------------------------------
--- File       : SsiResizeFifoEofeTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the AxiStreamFifo + EOFE module
@@ -20,11 +19,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.EthMacPkg.all;
 
 entity SsiResizeFifoEofeTb is end SsiResizeFifoEofeTb;
 
@@ -553,7 +554,7 @@ architecture testbed of SsiResizeFifoEofeTb is
 
 begin
 
-   U_ClkRst : entity work.ClkRst
+   U_ClkRst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 10 ns,
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
@@ -564,12 +565,12 @@ begin
 
    GEN_VEC :
    for i in SIZE_C-1 downto 0 generate
-      U_AxiStreamFifoV2 : entity work.AxiStreamFifoV2
+      U_AxiStreamFifoV2 : entity surf.AxiStreamFifoV2
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
             -- FIFO configurations
-            BRAM_EN_G           => false,
+            MEMORY_TYPE_G       => "distributed",
             GEN_SYNC_FIFO_G     => true,
             FIFO_ADDR_WIDTH_G   => 4,
             -- AXI Stream Port Configurations

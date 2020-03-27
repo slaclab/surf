@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiAds42lb69DeserBit.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: ADC DDR Deserializer
@@ -18,8 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiAds42lb69Pkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiAds42lb69Pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -47,6 +47,66 @@ entity AxiAds42lb69DeserBit is
 end AxiAds42lb69DeserBit;
 
 architecture rtl of AxiAds42lb69DeserBit is
+
+   component Idelaye3Wrapper
+      generic (
+         TPD_G            : time    := 1 ns;
+         CASCADE          : string  := "NONE";  -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
+         DELAY_FORMAT     : string  := "TIME";  -- Units of the DELAY_VALUE (COUNT, TIME)
+         DELAY_SRC        : string  := "IDATAIN";  -- Delay input (DATAIN, IDATAIN)
+         DELAY_TYPE       : string  := "FIXED";  -- Set the type of tap delay line (FIXED, VARIABLE, VAR_LOAD)
+         DELAY_VALUE      : integer := 0;  -- Input delay value setting
+         IS_CLK_INVERTED  : bit     := '0';  -- Optional inversion for CLK
+         IS_RST_INVERTED  : bit     := '0';  -- Optional inversion for RST
+         REFCLK_FREQUENCY : real    := 300.0;  -- IDELAYCTRL clock input frequency in MHz (200.0-2667.0)
+         SIM_DEVICE       : string  := "ULTRASCALE";  -- Set the device version (ULTRASCALE, ULTRASCALE_PLUS)
+         UPDATE_MODE      : string  := "ASYNC");  -- Determines when updates to the delay will take effect (ASYNC, MANUAL, SYNC)
+      port (
+         BUSY        : out sl;             -- 1-bit output: Patch module is busy
+         CASC_OUT    : out sl;  -- 1-bit output: Cascade delay output to ODELAY input cascade
+         CNTVALUEOUT : out slv(8 downto 0);  -- 9-bit output: Counter value output
+         DATAOUT     : out sl;             -- 1-bit output: Delayed data output
+         CASC_IN     : in  sl;  -- 1-bit input: Cascade delay input from slave ODELAY CASCADE_OUT
+         CASC_RETURN : in  sl;  -- 1-bit input: Cascade delay returning from slave ODELAY DATAOUT
+         CE          : in  sl;  -- 1-bit input: Active high enable increment/decrement input
+         CLK         : in  sl;             -- 1-bit input: Clock input
+         CNTVALUEIN  : in  slv(8 downto 0);  -- 9-bit input: Counter value input
+         DATAIN      : in  sl;  -- 1-bit input: Data input from the logic
+         EN_VTC      : in  sl;  -- 1-bit input: Keep delay constant over VT
+         IDATAIN     : in  sl;  -- 1-bit input: Data input from the IOBUF
+         INC         : in  sl;  -- 1-bit input: Increment / Decrement tap delay input
+         LOAD        : in  sl;             -- 1-bit input: Load DELAY_VALUE input
+         RST         : in  sl);  -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
+   end component;
+   
+   component Odelaye3Wrapper
+      generic (
+         TPD_G            : time    := 1 ns;
+         CASCADE          : string  := "NONE";  -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
+         DELAY_FORMAT     : string  := "TIME";  -- (COUNT, TIME)
+         DELAY_TYPE       : string  := "FIXED";  -- Set the type of tap delay line (FIXED, VARIABLE, VAR_LOAD)
+         DELAY_VALUE      : integer := 0;  -- Output delay tap setting
+         IS_CLK_INVERTED  : bit     := '0';  -- Optional inversion for CLK
+         IS_RST_INVERTED  : bit     := '0';  -- Optional inversion for RST
+         REFCLK_FREQUENCY : real    := 300.0;  -- IDELAYCTRL clock input frequency in MHz (200.0-2667.0).
+         SIM_DEVICE       : string  := "ULTRASCALE";  -- Set the device version (ULTRASCALE, ULTRASCALE_PLUS)
+         UPDATE_MODE      : string  := "ASYNC");  -- Determines when updates to the delay will take effect (ASYNC, MANUAL, SYNC)
+      port (
+         BUSY        : out sl;  -- 1-bit output: Patch module is busy   
+         CASC_OUT    : out sl;  -- 1-bit output: Cascade delay output to IDELAY input cascade
+         CNTVALUEOUT : out slv(8 downto 0);  -- 9-bit output: Counter value output
+         DATAOUT     : out sl;  -- 1-bit output: Delayed data from ODATAIN input port
+         CASC_IN     : in  sl;  -- 1-bit input: Cascade delay input from slave IDELAY CASCADE_OUT
+         CASC_RETURN : in  sl;  -- 1-bit input: Cascade delay returning from slave IDELAY DATAOUT
+         CE          : in  sl;  -- 1-bit input: Active high enable increment/decrement input
+         CLK         : in  sl;             -- 1-bit input: Clock input
+         CNTVALUEIN  : in  slv(8 downto 0);  -- 9-bit input: Counter value input
+         EN_VTC      : in  sl;  -- 1-bit input: Keep delay constant over VT
+         INC         : in  sl;  -- 1-bit input: Increment/Decrement tap delay input
+         LOAD        : in  sl;             -- 1-bit input: Load DELAY_VALUE input
+         ODATAIN     : in  sl;             -- 1-bit input: Data input
+         RST         : in  sl);  -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
+   end component;   
    
    signal data       : sl;
    signal dataDly    : sl;
@@ -89,9 +149,9 @@ begin
             DATAIN      => '0',            -- 1-bit input: Internal delay data input
             IDATAIN     => data,           -- 1-bit input: Data input from the I/O
             INC         => '0',            -- 1-bit input: Increment / Decrement tap delay input
-            LD          => '1',            -- 1-bit input: Load IDELAY_VALUE input
+            LD          => delayInLoad,    -- 1-bit input: Load IDELAY_VALUE input
             LDPIPEEN    => '0',            -- 1-bit input: Enable PIPELINE register to load data input
-            REGRST      => delayInLoad);   -- 1-bit input: Active-high reset tap-delay input
+            REGRST      => '0');           -- 1-bit input: Active-high reset tap-delay input
 
       IDDR_Inst : IDDR
          generic map (
@@ -123,7 +183,7 @@ begin
             IB => dataN,
             O  => data);                 
 
-      IDELAYE3_inst : IDELAYE3
+      IDELAYE3_inst : Idelaye3Wrapper
          generic map (
             CASCADE => "MASTER",       -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
             DELAY_FORMAT => "COUNT",   -- Units of the DELAY_VALUE (COUNT, TIME)
@@ -150,7 +210,7 @@ begin
             CNTVALUEIN  => delayInData,      -- 9-bit input: Counter value input 
             CNTVALUEOUT => delayOutData1);   -- 9-bit output: Counter value output 
       
-      ODELAYE3_inst : ODELAYE3
+      ODELAYE3_inst : Odelaye3Wrapper
          generic map (
             CASCADE => "SLAVE_END",    -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
             DELAY_FORMAT => "COUNT",   -- Units of the DELAY_VALUE (COUNT, TIME)

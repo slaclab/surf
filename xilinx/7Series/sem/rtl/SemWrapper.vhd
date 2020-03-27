@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SemWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for 7-series SEM module
@@ -18,8 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.SemPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.SemPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -129,7 +130,7 @@ begin
          I     => icap_i,
          RDWRB => icap_rdwrb);
 
-   U_IPROG : entity work.Iprog7SeriesCore
+   U_IPROG : entity surf.Iprog7SeriesCore
       generic map (
          TPD_G         => TPD_G,
          SYNC_RELOAD_G => true)

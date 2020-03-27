@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : TextUtilPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Provides functions for handling text.
@@ -16,7 +15,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use std.textio.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 package TextUtilPkg is
 

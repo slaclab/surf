@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
--- File       : Pgp3GthUs.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: PGPv3 GTH Ultrascale Core Module
@@ -21,10 +20,12 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.Pgp3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Pgp3Pkg.all;
 
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
@@ -100,7 +101,7 @@ architecture rtl of Pgp3GthUs is
    signal pgpTxRstInt : sl;
 
    -- PgpRx Signals
---   signal gtRxUserReset : sl;
+   signal gtRxUserReset : sl;
    signal phyRxClk      : sl;
    signal phyRxRst      : sl;
    signal phyRxInit     : sl;
@@ -113,7 +114,7 @@ architecture rtl of Pgp3GthUs is
 
 
    -- PgpTx Signals
---   signal gtTxUserReset : sl;
+   signal gtTxUserReset : sl;
    signal phyTxActive   : sl;
    signal phyTxStart    : sl;
    signal phyTxData     : slv(63 downto 0);
@@ -149,11 +150,11 @@ begin
    pgpClk    <= pgpTxClkInt;
    pgpClkRst <= pgpTxRstInt;
 
-   --gtRxUserReset <= phyRxInit or pgpRxIn.resetRx;
-   --gtTxUserReset <= pgpTxRst;
+   gtRxUserReset <= phyRxInit or pgpRxIn.resetRx;
+   gtTxUserReset <= pgpTxIn.resetTx;
 
    GEN_XBAR : if (EN_DRP_G and EN_PGP_MON_G) generate
-      U_XBAR : entity work.AxiLiteCrossbar
+      U_XBAR : entity surf.AxiLiteCrossbar
          generic map (
             TPD_G              => TPD_G,
             NUM_SLAVE_SLOTS_G  => 1,
@@ -189,7 +190,7 @@ begin
    end generate GEN_PGP_MON_ONLY;
 
 
-   U_Pgp3Core_1 : entity work.Pgp3Core
+   U_Pgp3Core_1 : entity surf.Pgp3Core
       generic map (
          TPD_G                       => TPD_G,
          NUM_VC_G                    => NUM_VC_G,
@@ -248,7 +249,7 @@ begin
    --------------------------
    -- Wrapper for GTH IP core
    --------------------------
-   U_Pgp3GthUsIpWrapper_1 : entity work.Pgp3GthUsIpWrapper
+   U_Pgp3GthUsIpWrapper_1 : entity surf.Pgp3GthUsIpWrapper
       generic map (
          TPD_G         => TPD_G,
          TX_POLARITY_G => TX_POLARITY_G,
@@ -266,7 +267,7 @@ begin
          gtRxN           => pgpGtRxN,                            -- [in]
          gtTxP           => pgpGtTxP,                            -- [out]
          gtTxN           => pgpGtTxN,                            -- [out]
-         rxReset         => phyRxInit,                           -- [in]
+         rxReset         => gtRxUserReset,                       -- [in]
          rxUsrClkActive  => open,                                -- [out]
          rxResetDone     => phyRxActive,                         -- [out]
          rxUsrClk        => open,                                -- [out]
@@ -279,7 +280,7 @@ begin
          rxStartOfSeq    => phyRxStartSeq,                       -- [out]
          rxGearboxSlip   => phyRxSlip,                           -- [in]
          rxOutClk        => open,                                -- [out]
-         txReset         => '0',                                 -- [in]
+         txReset         => gtTxUserReset,                       -- [in]
          txUsrClkActive  => open,                                -- [out]
          txResetDone     => phyTxActive,                         -- [out]
          txUsrClk        => open,                                -- [out]

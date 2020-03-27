@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Gtx7CfgPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Provides useful functions for generating GTX7 configurations.
@@ -20,7 +19,9 @@ use IEEE.STD_LOGIC_UNSIGNED.all;
 use IEEE.STD_LOGIC_ARITH.all;
 use IEEE.math_real.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 package Gtx7CfgPkg is
 

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : XauiGtx7Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Gtx7 Wrapper for 10 GigE XAUI
@@ -16,11 +15,13 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.EthMacPkg.all;
-use work.XauiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.EthMacPkg.all;
+use surf.XauiPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -91,7 +92,7 @@ begin
    ----------------------
    -- 10 GigE XAUI Module
    ----------------------
-   XauiGtx7_Inst : entity work.XauiGtx7
+   XauiGtx7_Inst : entity surf.XauiGtx7
       generic map (
          TPD_G           => TPD_G,
          PAUSE_EN_G      => PAUSE_EN_G,

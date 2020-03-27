@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
--- File       : Pgp3Gtp7IpWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: PGPv3 GTP7 IP Core Wrapper
@@ -18,8 +17,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -390,7 +391,7 @@ begin
          O => rxPllClk(2));
 
    GEN_RST : for i in 2 downto 1 generate
-      U_RstSync : entity work.RstSync
+      U_RstSync : entity surf.RstSync
          generic map (
             TPD_G          => TPD_G,
             IN_POLARITY_G  => '0',
@@ -407,7 +408,7 @@ begin
    txUsrClkInt  <= txPllClk(1);
    txUsrClk2Int <= txPllClk(2);
 
-   U_TxGearbox : entity work.Pgp3Gtp7TxGearbox
+   U_TxGearbox : entity surf.Pgp3Gtp7TxGearbox
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -425,7 +426,7 @@ begin
          txData       => txDataGearbox,
          txSequence   => txSequenceGearbox);
 
-   U_RxGearbox : entity work.Pgp3Gtp7RxGearbox
+   U_RxGearbox : entity surf.Pgp3Gtp7RxGearbox
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -443,7 +444,7 @@ begin
          phyRxHeader   => rxHeader,
          phyRxData     => rxData);
 
-   U_RxSlip : entity work.SynchronizerOneShot
+   U_RxSlip : entity surf.SynchronizerOneShot
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -678,7 +679,7 @@ begin
    end generate;
 
    GEN_DRP : if (EN_DRP_G) generate
-      U_AxiLiteToDrp_1 : entity work.AxiLiteToDrp
+      U_AxiLiteToDrp_1 : entity surf.AxiLiteToDrp
          generic map (
             TPD_G            => TPD_G,
             COMMON_CLK_G     => false,

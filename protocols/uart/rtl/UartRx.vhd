@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : UartRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: UART Receiver
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -17,17 +16,20 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity UartRx is
    generic (
-      TPD_G        : time                 := 1 ns;
-      PARITY_G     : string               := "NONE";  -- "NONE" "ODD" "EVEN"
-      DATA_WIDTH_G : integer range 5 to 8 := 8);
+      TPD_G        : time                  := 1 ns;
+      PARITY_G     : string                := "NONE";  -- "NONE" "ODD" "EVEN"
+      BAUD_MULT_G  : integer range 1 to 16 := 16;
+      DATA_WIDTH_G : integer range 5 to 8  := 8);
    port (
       clk         : in  sl;
       rst         : in  sl;
-      baud16x     : in  sl;
+      clkEn       : in  sl;
       rdData      : out slv(DATA_WIDTH_G-1 downto 0);
       rdValid     : out sl;
       parityError : out sl;
@@ -37,7 +39,7 @@ end entity UartRx;
 
 architecture rtl of UartRx is
 
-   type StateType is (WAIT_START_BIT_S, WAIT_8_S, WAIT_16_S, SAMPLE_RX_S, PARITY_S, WAIT_STOP_S, WRITE_OUT_S);
+   type StateType is (WAIT_START_BIT_S, WAIT_HALF_S, WAIT_FULL_S, SAMPLE_RX_S, PARITY_S, WAIT_STOP_S, WRITE_OUT_S);
 
    type RegType is
    record
@@ -47,7 +49,7 @@ architecture rtl of UartRx is
       waitState    : StateType;
       rxShiftReg   : slv(DATA_WIDTH_G-1 downto 0);
       rxShiftCount : slv(3 downto 0);
-      baud16xCount : slv(3 downto 0);
+      clkEnCount   : slv(3 downto 0);
       parity       : sl;
       parityError  : sl;
    end record regType;
@@ -59,7 +61,7 @@ architecture rtl of UartRx is
       waitState    => SAMPLE_RX_S,
       rxShiftReg   => (others => '0'),
       rxShiftCount => (others => '0'),
-      baud16xCount => (others => '0'),
+      clkEnCount   => (others => '0'),
       parity       => '0',
       parityError  => '0');
 
@@ -72,7 +74,7 @@ architecture rtl of UartRx is
 
 begin
 
-   U_SynchronizerEdge_1 : entity work.SynchronizerEdge
+   U_SynchronizerEdge_1 : entity surf.SynchronizerEdge
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => 3,
@@ -85,7 +87,7 @@ begin
          risingEdge  => open,           -- [out]
          fallingEdge => rxFall);        -- [out]
 
-   comb : process (baud16x, r, rdReady, rst, rxFall, rxSync) is
+   comb : process (clkEn, r, rdReady, rst, rxFall, rxSync) is
       variable v : RegType;
    begin
       v := r;
@@ -108,28 +110,29 @@ begin
          -- Wait for RX to drop to indicate start bit
          when WAIT_START_BIT_S =>
             if (rxFall = '1') then
-               v.rxState      := WAIT_8_S;
-               v.baud16xCount := "0000";
+               v.rxState      := WAIT_HALF_S;
+               v.clkEnCount   := "0000";
                v.rxShiftCount := "0000";
             end if;
 
-         -- Wait 8 baud16x counts to find center of start bit
-         -- Every rx bit is 16 baud16x pulses apart
-         when WAIT_8_S =>
-            if (baud16x = '1') then
-               v.baud16xCount := r.baud16xCount + 1;
-               if (r.baud16xCount = "0111") then
-                  v.baud16xCount := "0000";
-                  v.rxState      := WAIT_16_S;
+         -- Wait BAUD_MULT_G/2 clkEn counts to find center of start bit
+         -- Every rx bit is BAUD_MULT_G clkEn pulses apart
+         when WAIT_HALF_S =>
+            if (clkEn = '1') then
+               v.clkEnCount := r.clkEnCount + 1;
+               if (r.clkEnCount = (BAUD_MULT_G/2-1)) then
+                  v.clkEnCount := "0000";
+                  v.rxState    := WAIT_FULL_S;
                end if;
             end if;
 
-         -- Wait 16 baud16x counts (center of next bit)
-         when WAIT_16_S =>
-            if (baud16x = '1') then
-               v.baud16xCount := r.baud16xCount + 1;
-               if (r.baud16xCount = "1111") then
-                  v.rxState := r.waitState;
+         -- Wait BAUD_MULT_G clkEn counts (center of next bit)
+         when WAIT_FULL_S =>
+            if (clkEn = '1') then
+               v.clkEnCount := r.clkEnCount + 1;
+               if (r.clkEnCount = (BAUD_MULT_G-1)) then
+                  v.clkEnCount := "0000";
+                  v.rxState    := r.waitState;
                end if;
             end if;
 
@@ -138,7 +141,7 @@ begin
          when SAMPLE_RX_S =>
             v.rxShiftReg   := rxSync & r.rxShiftReg(DATA_WIDTH_G-1 downto 1);
             v.rxShiftCount := r.rxShiftCount + 1;
-            v.rxState      := WAIT_16_S;
+            v.rxState      := WAIT_FULL_S;
             v.waitState    := SAMPLE_RX_S;
             if (r.rxShiftCount = DATA_WIDTH_G-1) then
                if(PARITY_G /= "NONE") then
@@ -149,9 +152,9 @@ begin
             end if;
 
          -- Samples parity bit on rx line and compare it to the calculated parity
-         -- raises a parityError flag if it does not match          
+         -- raises a parityError flag if it does not match
          when PARITY_S =>
-            v.rxState     := WAIT_16_S;
+            v.rxState     := WAIT_FULL_S;
             v.waitState   := WAIT_STOP_S;
             v.parityError := toSl(r.parity = rxSync);
 

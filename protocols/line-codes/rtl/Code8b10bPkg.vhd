@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : Line Code 8B10B: https://en.wikipedia.org/wiki/8b/10b_encoding
 -------------------------------------------------------------------------------
--- File       : Code8b10bPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 8B10B Package File
@@ -18,7 +17,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 package Code8b10bPkg is
 

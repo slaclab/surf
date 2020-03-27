@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
 -------------------------------------------------------------------------------
--- File       : PgpGthCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: PGPv2b GTH Ultrascale IP Core Wrapper
@@ -17,8 +16,10 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity PgpGthCoreWrapper is
 
@@ -207,7 +208,7 @@ begin
 
    txctrl2 <= "000000" & txDataK;
 
-   U_AxiLiteToDrp_1 : entity work.AxiLiteToDrp
+   U_AxiLiteToDrp_1 : entity surf.AxiLiteToDrp
       generic map (
          TPD_G            => TPD_G,
          COMMON_CLK_G     => false,

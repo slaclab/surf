@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AdiConfigSlave.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: An implementation of the common SPI configuration interface
@@ -18,7 +17,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity AdiConfigSlave is
    
@@ -103,7 +104,7 @@ begin
    sclkRes <= to_x01z(sclk);
    csbRes <= to_x01z(csb);
 
-   SynchronizerEdge_SDIO : entity work.SynchronizerEdge
+   SynchronizerEdge_SDIO : entity surf.SynchronizerEdge
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -114,7 +115,7 @@ begin
          risingEdge  => sdioRise,
          fallingEdge => sdioFall);
 
-   SynchronizerEdge_SCLK : entity work.SynchronizerEdge
+   SynchronizerEdge_SCLK : entity surf.SynchronizerEdge
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -125,7 +126,7 @@ begin
          risingEdge  => sclkRise,
          fallingEdge => sclkFall);
 
-   SynchronizerEdge_CSB : entity work.SynchronizerEdge
+   SynchronizerEdge_CSB : entity surf.SynchronizerEdge
       generic map (
          TPD_G => TPD_G)
       port map (

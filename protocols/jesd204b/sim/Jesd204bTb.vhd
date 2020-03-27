@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Jesd204bTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation testbed for Jesd204b
@@ -18,9 +17,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.Jesd204bPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Jesd204bPkg.all;
 
 entity Jesd204bTb is
 end Jesd204bTb;
@@ -32,7 +33,13 @@ architecture tb of Jesd204bTb is
 
    constant EN_SCRAMBLER_C : boolean := true;
 
-   constant BYTE_SHIFT_C : natural range 0 to 3 := 1;
+   --------------------------------------------------------
+   -- BYTE_SHIFT_C=0: JesdRx.JesdAlignChGen.position="0001"
+   -- BYTE_SHIFT_C=1: JesdRx.JesdAlignChGen.position="1000"
+   -- BYTE_SHIFT_C=2: JesdRx.JesdAlignChGen.position="0100"
+   -- BYTE_SHIFT_C=3: JesdRx.JesdAlignChGen.position="0010"
+   --------------------------------------------------------
+   constant BYTE_SHIFT_C : natural range 0 to 3 := 3;
 
    signal clk        : sl := '0';
    signal rst        : sl := '0';
@@ -72,7 +79,7 @@ begin
    ---------------------------
    -- Generate clock and reset
    ---------------------------
-   U_ClkRst : entity work.ClkRst
+   U_ClkRst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
@@ -128,7 +135,7 @@ begin
    -----------------
    -- JESD TX Module
    -----------------
-   U_Jesd204bTx : entity work.Jesd204bTx
+   U_Jesd204bTx : entity surf.Jesd204bTx
       generic map (
          TPD_G => TPD_G,
          K_G   => 32,
@@ -145,7 +152,7 @@ begin
          devClk_i                => clk,
          devRst_i                => rst,
          sysRef_i                => sysRef,
-         nSync_i                 => nSync,
+         nSync_i(0)              => nSync,
          gtTxReady_i             => (others => configDone),
          r_jesdGtTxArr(0)        => jesdGtTxArr);
 
@@ -213,7 +220,7 @@ begin
    -----------------
    -- JESD RX Module
    -----------------            
-   U_Jesd204bRx : entity work.Jesd204bRx
+   U_Jesd204bRx : entity surf.Jesd204bRx
       generic map (
          TPD_G => TPD_G,
          K_G   => 32,

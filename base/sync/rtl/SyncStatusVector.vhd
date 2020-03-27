@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SyncStatusVector.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: General Purpose Status Vector and Status Counter module
@@ -18,31 +17,33 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SyncStatusVector is
    generic (
-      TPD_G           : time     := 1 ns; -- Simulation FF output delay
-      RST_POLARITY_G  : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
-      RST_ASYNC_G     : boolean  := false;-- true if reset is asynchronous, false if reset is synchronous
-      COMMON_CLK_G    : boolean  := false;-- True if wrClk and rdClk are the same clock
-      RELEASE_DELAY_G : positive := 3;    -- Delay between deassertion of async and sync resets
-      IN_POLARITY_G   : slv      := "1";  -- 0 for active LOW, 1 for active HIGH (for statusIn port)
-      OUT_POLARITY_G  : sl       := '1';  -- 0 for active LOW, 1 for active HIGH (for irqOut port)
-      USE_DSP48_G     : string   := "no"; -- "no" for no DSP48 implementation, "yes" to use DSP48 slices
-      SYNTH_CNT_G     : slv      := "1";  -- Set to 1 for synthesising counter RTL, '0' to not synthesis the counter
-      CNT_RST_EDGE_G  : boolean  := true; -- true if counter reset should be edge detected, else level detected
-      CNT_WIDTH_G     : positive := 32;   -- Counters' width
-      WIDTH_G         : positive := 16);  -- Status vector width
+      TPD_G          : time     := 1 ns;  -- Simulation FF output delay
+      RST_POLARITY_G : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean  := false;  -- true if reset is asynchronous, false if reset is synchronous
+      COMMON_CLK_G   : boolean  := false;  -- True if wrClk and rdClk are the same clock
+      SYNC_STAGES_G  : positive := 3;   -- Synchronization stages between statusIn and statusOut
+      IN_POLARITY_G  : slv      := "1";  -- 0 for active LOW, 1 for active HIGH (for statusIn port)
+      OUT_POLARITY_G : sl       := '1';  -- 0 for active LOW, 1 for active HIGH (for irqOut port)
+      USE_DSP_G      : string   := "no";  -- "no" for no DSP implementation, "yes" to use DSP slices
+      SYNTH_CNT_G    : slv      := "1";  -- Set to 1 for synthesising counter RTL, '0' to not synthesis the counter
+      CNT_RST_EDGE_G : boolean  := true;  -- true if counter reset should be edge detected, else level detected
+      CNT_WIDTH_G    : positive := 32;  -- Counters' width
+      WIDTH_G        : positive := 16);  -- Status vector width
    port (
       ---------------------------------------------
       -- Input Status bit Signals (wrClk domain)      
       ---------------------------------------------
-      statusIn     : in  slv(WIDTH_G-1 downto 0);-- Data to be 'synced'
+      statusIn     : in  slv(WIDTH_G-1 downto 0);                     -- Data to be 'synced'
       ---------------------------------------------
       -- Output Status bit Signals (rdClk domain)      
       ---------------------------------------------
-      statusOut    : out slv(WIDTH_G-1 downto 0);-- Synced data
+      statusOut    : out slv(WIDTH_G-1 downto 0);                     -- Synced data
       ---------------------------------------------
       -- Status Bit Counters Signals (rdClk domain)      
       ---------------------------------------------
@@ -86,9 +87,9 @@ entity SyncStatusVector is
       -- Clocks and Reset Ports
       ---------------------------------------------
       wrClk        : in  sl;
-      wrRst        : in  sl := '0';
+      wrRst        : in  sl                      := '0';
       rdClk        : in  sl;
-      rdRst        : in  sl := '0');
+      rdRst        : in  sl                      := '0');
 end SyncStatusVector;
 
 architecture rtl of SyncStatusVector is
@@ -97,7 +98,7 @@ architecture rtl of SyncStatusVector is
       irqOut    : sl;
       hitVector : slv(WIDTH_G-1 downto 0);
    end record RegType;
-   
+
    constant REG_INIT_C : RegType := (
       not(OUT_POLARITY_G),
       (others => '0'));
@@ -106,47 +107,45 @@ architecture rtl of SyncStatusVector is
    signal rin : RegType;
 
    signal statusStrobe : slv(WIDTH_G-1 downto 0);
-   
+
 begin
 
-   SyncVec_Inst : entity work.SynchronizerVector
+   SyncVec_Inst : entity surf.SynchronizerVector
       generic map (
          TPD_G         => TPD_G,
          BYPASS_SYNC_G => COMMON_CLK_G,
-         STAGES_G      => RELEASE_DELAY_G,
+         STAGES_G      => SYNC_STAGES_G,
          WIDTH_G       => WIDTH_G)
       port map (
          clk     => rdClk,
          dataIn  => statusIn,
          dataOut => statusOut);
 
-   SyncOneShotCntVec_Inst : entity work.SynchronizerOneShotCntVector
+   SyncOneShotCntVec_Inst : entity surf.SynchronizerOneShotCntVector
       generic map (
-         TPD_G           => TPD_G,
-         RST_POLARITY_G  => RST_POLARITY_G,
-         RST_ASYNC_G     => RST_ASYNC_G,
-         COMMON_CLK_G    => COMMON_CLK_G,
-         RELEASE_DELAY_G => RELEASE_DELAY_G,
-         IN_POLARITY_G   => IN_POLARITY_G,
-         OUT_POLARITY_G  => "1",
-         USE_DSP48_G     => USE_DSP48_G,
-         SYNTH_CNT_G     => SYNTH_CNT_G,
-         CNT_RST_EDGE_G  => CNT_RST_EDGE_G,
-         CNT_WIDTH_G     => CNT_WIDTH_G,
-         WIDTH_G         => WIDTH_G)      
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         COMMON_CLK_G   => COMMON_CLK_G,
+         IN_POLARITY_G  => IN_POLARITY_G,
+         OUT_POLARITY_G => "1",
+         USE_DSP_G      => USE_DSP_G,
+         SYNTH_CNT_G    => SYNTH_CNT_G,
+         CNT_RST_EDGE_G => CNT_RST_EDGE_G,
+         CNT_WIDTH_G    => CNT_WIDTH_G,
+         WIDTH_G        => WIDTH_G)
       port map (
-         -- Write Ports (wrClk domain)    
+         -- Write Ports (wrClk domain)
+         wrClk      => wrClk,
+         wrRst      => wrRst,
          dataIn     => statusIn,
          -- Read Ports (rdClk domain)    
+         rdClk      => rdClk,
+         rdRst      => rdRst,
          rollOverEn => rollOverEnIn,
          cntRst     => cntRstIn,
          dataOut    => statusStrobe,
-         cntOut     => cntOut,
-         -- Clocks and Reset Ports
-         wrClk      => wrClk,
-         wrRst      => wrRst,
-         rdClk      => rdClk,
-         rdRst      => rdRst);           
+         cntOut     => cntOut);
 
    comb : process (irqEnIn, r, rdRst, statusStrobe) is
       variable i : integer;
@@ -177,7 +176,7 @@ begin
 
       -- Outputs
       irqOut <= r.irqOut;
-      
+
    end process comb;
 
    seq : process (rdClk, rdRst) is

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteWriteFilterTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Testbench for design "AxiLiteAsync"
@@ -15,9 +14,11 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use work.StdRtlPkg.all;
-use work.TextUtilPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.TextUtilPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiLiteWriteFilterTb is
 end entity AxiLiteWriteFilterTb;
@@ -40,7 +41,7 @@ architecture tb of AxiLiteWriteFilterTb is
 
 begin
 
-   U_axilClk : entity work.ClkRst
+   U_axilClk : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
@@ -110,7 +111,7 @@ begin
 
    end process test;
 
-   U_Filter : entity work.AxiLiteWriteFilter
+   U_Filter : entity surf.AxiLiteWriteFilter
       generic map (
          TPD_G            => TPD_G,
          FILTER_SIZE_G    => 1,
@@ -128,7 +129,7 @@ begin
          mAxilWriteMaster => filterWriteMaster,
          mAxilWriteSlave  => filterWriteSlave);
 
-   U_Mem : entity work.AxiDualPortRam
+   U_Mem : entity surf.AxiDualPortRam
       generic map (
          TPD_G            => TPD_G,
          AXI_WR_EN_G      => true,

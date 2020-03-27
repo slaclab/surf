@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteRamSyncStatusVector.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: A wrapper of AxiDualPortRam & SyncStatusVector
@@ -18,8 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiLiteRamSyncStatusVector is
    generic (
@@ -36,7 +37,6 @@ entity AxiLiteRamSyncStatusVector is
       RST_POLARITY_G  : sl                     := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G     : boolean                := false;  -- true if reset is asynchronous, false if reset is synchronous
       COMMON_CLK_G    : boolean                := false;  -- True if wrClk and rdClk are the same clock
-      RELEASE_DELAY_G : positive               := 3;  -- Delay between deassertion of async and sync resets
       IN_POLARITY_G   : slv                    := "1";  -- 0 for active LOW, 1 for active HIGH (for statusIn port)
       OUT_POLARITY_G  : sl                     := '1';  -- 0 for active LOW, 1 for active HIGH (for irqOut port)
       SYNTH_CNT_G     : slv                    := "1";  -- Set to 1 for synthesising counter RTL, '0' to not synthesis the counter
@@ -90,7 +90,7 @@ architecture mapping of AxiLiteRamSyncStatusVector is
 
 begin
 
-   U_AxiDualPortRam : entity work.AxiDualPortRam
+   U_AxiDualPortRam : entity surf.AxiDualPortRam
       generic map (
          TPD_G          => TPD_G,
          SYNTH_MODE_G   => SYNTH_MODE_G,
@@ -116,7 +116,7 @@ begin
          addr           => r.addr,
          din            => r.data);
 
-   U_SyncStatusVector : entity work.SyncStatusVector
+   U_SyncStatusVector : entity surf.SyncStatusVector
       generic map (
          TPD_G          => TPD_G,
          OUT_POLARITY_G => '1',

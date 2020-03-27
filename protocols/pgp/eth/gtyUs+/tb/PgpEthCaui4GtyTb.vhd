@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PgpEth: https://confluence.slac.stanford.edu/x/pQmODw
 -------------------------------------------------------------------------------
--- File       : PgpEthCaui4GtyTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the PgpEthCaui4Gty
@@ -20,11 +19,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.SsiPkg.all;
-use work.PgpEthPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.SsiPkg.all;
+use surf.PgpEthPkg.all;
 
 entity PgpEthCaui4GtyTb is
 
@@ -83,7 +84,7 @@ architecture testbed of PgpEthCaui4GtyTb is
 
 begin
 
-   U_stableClk : entity work.ClkRst
+   U_stableClk : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 6.4 ns,   -- 156.25 MHz
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
@@ -92,7 +93,7 @@ begin
          clkP => stableClk,
          rst  => stableRst);
 
-   U_gtRefClk : entity work.ClkRst
+   U_gtRefClk : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 6.206 ns,  -- 161.1328125 MHz
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
@@ -101,7 +102,7 @@ begin
          clkP => gtRefClkP,
          clkN => gtRefClkN);
 
-   U_Core : entity work.PgpEthCaui4Gty
+   U_Core : entity surf.PgpEthCaui4Gty
       generic map (
          TPD_G                 => TPD_G,
          SIM_SPEEDUP_G         => true,
@@ -137,7 +138,7 @@ begin
    GEN_VEC :
    for i in 0 to NUM_VC_C-1 generate
 
-      U_SsiPrbsTx : entity work.SsiPrbsTx
+      U_SsiPrbsTx : entity surf.SsiPrbsTx
          generic map (
             TPD_G                      => TPD_G,
             VALID_THOLD_G              => (TX_MAX_PAYLOAD_SIZE_C/64),
@@ -156,7 +157,7 @@ begin
             trig         => pgpRxOut.remRxLinkReady,
             packetLength => PKT_LEN_C);
 
-      U_BottleNeck : entity work.AxiStreamFifoV2
+      U_BottleNeck : entity surf.AxiStreamFifoV2
          generic map (
             TPD_G               => TPD_G,
             SLAVE_READY_EN_G    => false,  -- Using pause            
@@ -180,7 +181,7 @@ begin
             mAxisMaster => rxMasters(i),
             mAxisSlave  => rxSlaves(i));
 
-      U_SsiPrbsRx : entity work.SsiPrbsRx
+      U_SsiPrbsRx : entity surf.SsiPrbsRx
          generic map (
             TPD_G                     => TPD_G,
             GEN_SYNC_FIFO_G           => true,

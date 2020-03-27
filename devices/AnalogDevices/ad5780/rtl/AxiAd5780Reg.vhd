@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiAd5780Reg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to AD5780 DAC IC
@@ -18,15 +17,16 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiAd5780Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiAd5780Pkg.all;
 
 entity AxiAd5780Reg is
    generic (
       TPD_G              : time                  := 1 ns;
       STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32;
-      USE_DSP48_G        : string                := "no";  -- "no" for no DSP48 implementation, "yes" to use DSP48 slices      
       AXI_CLK_FREQ_G     : real                  := 200.0E+6;  -- units of Hz
       SPI_CLK_FREQ_G     : real                  := 25.0E+6);   -- units of Hz      
    port (
@@ -196,14 +196,13 @@ begin
    ------------------------------- 
    regIn.dacData <= status.dacData;
 
-   SyncTrigRate_Inst : entity work.SyncTrigRate
+   SyncTrigRate_Inst : entity surf.SyncTrigRate
       generic map (
          TPD_G          => TPD_G,
          COMMON_CLK_G   => true,
          IN_POLARITY_G  => '1',
          REF_CLK_FREQ_G => AXI_CLK_FREQ_G,
          REFRESH_RATE_G => 1.0E+0,
-         USE_DSP48_G    => USE_DSP48_G,
          CNT_WIDTH_G    => STATUS_CNT_WIDTH_G)     
       port map (
          -- Trigger Input (locClk domain)

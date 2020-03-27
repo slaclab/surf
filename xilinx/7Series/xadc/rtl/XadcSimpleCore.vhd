@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : XadcSimpleCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: This core only measures internal voltages and temperature
@@ -17,8 +16,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -339,7 +340,7 @@ begin
       drpRst <= xadcRst;
    end generate;
 
-   U_AxiLiteToDrp_1 : entity work.AxiLiteToDrp
+   U_AxiLiteToDrp_1 : entity surf.AxiLiteToDrp
       generic map (
          TPD_G            => TPD_G,
          COMMON_CLK_G     => COMMON_CLK_G,

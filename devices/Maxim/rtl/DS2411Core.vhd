@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : DS2411Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Controller for DS2411 64-bit serial ID PROM
@@ -21,7 +20,9 @@ use ieee.std_logic_unsigned.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity DS2411Core is
    generic (

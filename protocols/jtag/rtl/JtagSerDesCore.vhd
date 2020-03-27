@@ -1,6 +1,5 @@
 -- Title      : JTAG Support
 -------------------------------------------------------------------------------
--- File       : JtagSerDesCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: JTAG serializer/deserializer with parallel word interface
@@ -17,7 +16,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 -- Serialize a TMS/TDI word pair into JTAG signals and deserialize
 -- TDO into a paralle output word.

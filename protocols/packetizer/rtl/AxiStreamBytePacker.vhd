@@ -1,13 +1,12 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamBytePacker.vhd.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
 -- Byte packer for AXI-Stream. 
 -- Accepts an incoming stream and packs data into the outbound stream. 
--- Similiar to AxiStreamResize, but allows an input and output width to have 
+-- Similar to AxiStreamResize, but allows an input and output width to have 
 -- non multiples and for the input size to be dynamic. 
--- This module does not downsize and creates more complex combinitorial logic 
+-- This module does not downsize and creates more complex combinatorial logic 
 -- than in AxiStreamResize.
 -- Ready handshaking is not supported.
 -------------------------------------------------------------------------------
@@ -24,8 +23,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 
 entity AxiStreamBytePacker is
    generic (
@@ -85,20 +86,7 @@ begin
       -- Pending output from current
       if r.curMaster.tValid = '1' then
          v.outMaster := r.curMaster;
-
-         -- Shift next to current only if nxt is not full
-         if r.nxtMaster.tValid = '0' then
-            v.curMaster := r.nxtMaster;
-            v.nxtMaster := AXI_STREAM_MASTER_INIT_C;
-            v.nxtMaster.tKeep := (others=>'0');
-         else
-            v.curMaster := AXI_STREAM_MASTER_INIT_C;
-            v.curMaster.tKeep := (others=>'0');
-         end if;
-
-      -- Next is full, send to out
-      elsif r.nxtMaster.tValid = '1' then
-         v.outMaster := r.nxtMaster;
+         v.curMaster := r.nxtMaster;
          v.nxtMaster := AXI_STREAM_MASTER_INIT_C;
          v.nxtMaster.tKeep := (others=>'0');
       else

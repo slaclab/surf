@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : JesdTxLane.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: JesdTx transmit single lane module
@@ -39,8 +38,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.Jesd204bPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Jesd204bPkg.all;
 
 entity JesdTxLane is
    generic (
@@ -109,7 +110,7 @@ architecture rtl of JesdTxLane is
 begin
      
    -- Synchronization FSM
-   syncFSM_INST : entity work.JesdSyncFsmTx
+   syncFSM_INST : entity surf.JesdSyncFsmTx
       generic map (
       TPD_G         => TPD_G,
       NUM_ILAS_MF_G => 4)
@@ -136,7 +137,7 @@ begin
    
    ----------------------------------------------------     
    -- Initial Synchronization Data Sequence (ILAS)
-   ilasGen_INST: entity work.JesdIlasGen
+   ilasGen_INST: entity surf.JesdIlasGen
       generic map (
          TPD_G => TPD_G,
          F_G   => F_G)
@@ -151,7 +152,7 @@ begin
       
    ----------------------------------------------------     
    -- Sample data with added synchronization characters TODO
-   AlignChGen_INST: entity work.JesdAlignChGen
+   AlignChGen_INST: entity surf.JesdAlignChGen
       generic map (
          TPD_G => TPD_G,
          F_G   => F_G)

@@ -1,65 +1,54 @@
-#!/usr/bin/env python
-#-----------------------------------------------------------------------------
-# Title      : PyRogue AmcCarrier BSI Module
-#-----------------------------------------------------------------------------
-# File       : Adc32Rf45.py
-# Created    : 2017-04-04
 #-----------------------------------------------------------------------------
 # Description:
 # PyRogue Adc32Rf45 Module
 #-----------------------------------------------------------------------------
-# This file is part of the rogue software platform. It is subject to
+# This file is part of the 'SLAC Firmware Standard Library'. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
 # of this distribution and at:
 #    https:#confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
-# No part of the rogue software platform, including this file, may be
+# No part of the 'SLAC Firmware Standard Library', including this file, may be
 # copied, modified, propagated, or distributed except according to the terms
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
 import time
-import surf.devices as dev
+import surf.devices.ti
 
 class Adc32Rf45(pr.Device):
-    def __init__( self,       
-            name        = "Adc32Rf45",
-            description = "Adc32Rf45 Module",
-            verify      =  False,
-            **kwargs):
+    def __init__( self, verify=False, **kwargs):
+
         super().__init__(
-            name        = name, 
-            description = description, 
-            size        = (0x1 << 19), 
+            size        = (0x1 << 19),
             **kwargs)
-        
+
         ################
         # Base addresses
         ################
         generalAddr     = (0x0 << 14)
-        offsetCorrector = (0x1 << 14) # With respect to CH  
-        digitalGain     = (0x2 << 14) # With respect to CH  
-        mainDigital     = (0x3 << 14) # With respect to CH  
-        jesdDigital     = (0x4 << 14) # With respect to CH  
-        decFilter       = (0x5 << 14) # With respect to CH  
-        pwrDet          = (0x6 << 14) # With respect to CH        
+        offsetCorrector = (0x1 << 14) # With respect to CH
+        # digitalGain     = (0x2 << 14) # With respect to CH
+        mainDigital     = (0x3 << 14) # With respect to CH
+        jesdDigital     = (0x4 << 14) # With respect to CH
+        # decFilter       = (0x5 << 14) # With respect to CH
+        # pwrDet          = (0x6 << 14) # With respect to CH
         masterPage      = (0x7 << 14)
         analogPage      = (0x8 << 14)
         chA             = (0x0 << 14)
-        chB             = (0x8 << 14)        
-        rawInterface    = (0x1 << 18)        
-        
+        chB             = (0x8 << 14)
+        rawInterface    = (0x1 << 18)
+
         #####################
         # Add Device Channels
         #####################
-        self.add(dev.ti.Adc32Rf45Channel(name='CH[0]',description='Channel A',offset=(0x0 << 14),expand=False,verify=verify))
-        self.add(dev.ti.Adc32Rf45Channel(name='CH[1]',description='Channel B',offset=(0x8 << 14),expand=False,verify=verify))      
-        
+        self.add(surf.devices.ti.Adc32Rf45Channel(name='CH[0]',description='Channel A',offset=(0x0 << 14),expand=False,verify=verify))
+        self.add(surf.devices.ti.Adc32Rf45Channel(name='CH[1]',description='Channel B',offset=(0x8 << 14),expand=False,verify=verify))
+
         ##################
         # General Register
         ##################
 
-        self.add(pr.RemoteCommand(  
+        self.add(pr.RemoteCommand(
             name         = "RESET",
             description  = "Send 0x81 value to reset the device",
             offset       =  (generalAddr + (4*0x000)),
@@ -68,10 +57,11 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             # mode         = "WO",
             hidden       =  True,
-            function     = pr.BaseCommand.createTouch(0x81)
+            function     = pr.BaseCommand.createTouch(0x81),
+            overlapEn    =  True,
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = "HW_RST",
             description  = "Hardware Reset",
             offset       =  (0xF << 14),
@@ -80,12 +70,13 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             hidden       =  True,
+            overlapEn    =  True,
         ))
-                        
+
         #############
-        # Master Page 
+        # Master Page
         #############
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = "PDN_SYSREF",
             description  = "0 = Normal operation, 1 = SYSREF input capture buffer is powered down and further SYSREF input pulses are ignored",
             offset       =  (masterPage + (4*0x020)),
@@ -94,9 +85,10 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    =  True,
         ))
-                        
-        self.add(pr.RemoteVariable(   
+
+        self.add(pr.RemoteVariable(
             name         = "PDN_CHB",
             description  = "0 = Normal operation, 1 = Channel B is powered down",
             offset       =  (masterPage + (4*0x020)),
@@ -105,9 +97,10 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
-        ))                          
-                        
-        self.add(pr.RemoteVariable(   
+            overlapEn    =  True,
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = "GLOBAL_PDN",
             description  = "0 = Normal operation, 1 = Global power-down enabled",
             offset       =  (masterPage + (4*0x020)),
@@ -116,9 +109,10 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
-        ))  
+            overlapEn    =  True,
+        ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = "INCR_CM_IMPEDANCE",
             description  = "0 = VCM buffer directly drives the common point of biasing resistors, 1 = VCM buffer drives the common point of biasing resistors with > 5 kOhm",
             offset       =  (masterPage + (4*0x032)),
@@ -127,9 +121,10 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
-        ))                          
-                        
-        self.add(pr.RemoteVariable(   
+            overlapEn    =  True,
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = "AlwaysWrite0x1_A",
             description  = "Always set this bit to 1",
             offset       =  (masterPage + (4*0x039)),
@@ -138,11 +133,12 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "WO",
             value        = 0x1,
-           hidden       = True,
+            hidden       = True,
             verify       = False,
+            overlapEn    =  True,
         ))
-                        
-        self.add(pr.RemoteVariable(   
+
+        self.add(pr.RemoteVariable(
             name         = "AlwaysWrite0x1_B",
             description  = "Always set this bit to 1",
             offset       =  (masterPage + (4*0x039)),
@@ -153,9 +149,10 @@ class Adc32Rf45(pr.Device):
             value        = 0x1,
             hidden       = True,
             verify       = False,
-        ))                             
+            overlapEn    =  True,
+        ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = "PDN_CHB_EN",
             description  = "This bit enables the power-down control of channel B through the SPI in register 20h: 0 = PDN control disabled, 1 = PDN control enabled",
             offset       =  (masterPage + (4*0x039)),
@@ -164,9 +161,10 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
-        ))                             
+            overlapEn    =  True,
+        ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = "SYNC_TERM_DIS",
             description  = "0 = On-chip, 100-Ohm termination enabled, 1 = On-chip, 100-Ohm termination disabled",
             offset       =  (masterPage + (4*0x039)),
@@ -175,9 +173,10 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    =  True,
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = "SYSREF_DEL_EN",
             description  = "0 = SYSREF delay disabled, 1 = SYSREF delay enabled through register settings [3Ch (bits 1-0), 5Ah (bits 7-5)]",
             offset       =  (masterPage + (4*0x03C)),
@@ -186,9 +185,10 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
-        ))    
+            overlapEn    =  True,
+        ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = "SYSREF_DEL_HI",
             description  = "When the SYSREF delay feature is enabled (3Ch, bit 6) the delay can be adjusted in 25-ps steps; the first step is 175 ps. The PVT variation of each 25-ps step is +/-10 ps. The 175-ps step is +/-50 ps",
             offset       =  (masterPage + (4*0x03C)),
@@ -197,9 +197,10 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    =  True,
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = "JESD_OUTPUT_SWING",
             description  = "These bits select the output amplitude (VOD) of the JESD transmitter for all lanes.",
             offset       =  (masterPage + (4*0x3D)),
@@ -208,9 +209,10 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
-        )) 
+            overlapEn    =  True,
+        ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = "SYSREF_DEL_LO",
             description  = "When the SYSREF delay feature is enabled (3Ch, bit 6) the delay can be adjusted in 25-ps steps; the first step is 175 ps. The PVT variation of each 25-ps step is +/-10 ps. The 175-ps step is +/-50 ps",
             offset       =  (masterPage + (4*0x05A)),
@@ -219,9 +221,10 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    =  True,
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = "SEL_SYSREF_REG",
             description  = "0 = SYSREF is logic low, 1 = SYSREF is logic high",
             offset       =  (masterPage + (4*0x057)),
@@ -230,9 +233,10 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
-        ))  
-                        
-        self.add(pr.RemoteVariable(   
+            overlapEn    =  True,
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = "ASSERT_SYSREF_REG",
             description  = "0 = SYSREF is asserted by device pins, 1 = SYSREF can be asserted by the ASSERT SYSREF REG register bit",
             offset       =  (masterPage + (4*0x057)),
@@ -241,9 +245,10 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
-        ))  
-                        
-        self.add(pr.RemoteVariable(   
+            overlapEn    =  True,
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = "SYNCB_POL",
             description  = "0 = Polarity is not inverted, 1 = Polarity is inverted",
             offset       =  (masterPage + (4*0x058)),
@@ -252,12 +257,13 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
-        ))  
-                       
+            overlapEn    =  True,
+        ))
+
         # ##########
-        # # ADC PAGE 
+        # # ADC PAGE
         # ##########
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = "SLOW_SP_EN1",
             description  = "0 = ADC sampling rates are faster than 2.5 GSPS, 1 = ADC sampling rates are slower than 2.5 GSPS",
             offset       =  (analogPage + (4*0x03F)),
@@ -266,9 +272,10 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    =  True,
         ))
-                        
-        self.add(pr.RemoteVariable(   
+
+        self.add(pr.RemoteVariable(
             name         = "SLOW_SP_EN2",
             description  = "0 = ADC sampling rates are faster than 2.5 GSPS, 1 = ADC sampling rates are slower than 2.5 GSPS",
             offset       =  (analogPage + (4*0x042)),
@@ -277,36 +284,37 @@ class Adc32Rf45(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
+            overlapEn    =  True,
         ))
-                        
+
 
         ##############################
         # Commands
         ##############################
-        @self.command(name         = "Init", description  = "Device Initiation")        
+        @self.command(description  = "Device Initiation")
         def Init():
-           self.Powerup_AnalogConfig()
-    
-           # Wait for 50 ms for the device to estimate the interleaving errors
-           time.sleep(0.050)
-    
-           self.IL_Config_Nyq1_ChA()
-           self.IL_Config_Nyq1_ChB()
-    
-           time.sleep(0.050)
-    
-           self.SetNLTrim()
-    
-           time.sleep(0.050)
-    
-           self.JESD_DDC_config()
-    
-           time.sleep(0.050)
-    
-           self._rawWrite(offsetCorrector + chA + (4*0x068),0xA2) #... freeze offset estimation
-           self._rawWrite(offsetCorrector + chB + (4*0x068),0xA2) #... freeze offset estimation
+            self.Powerup_AnalogConfig()
 
-        @self.command(name         = "Powerup_AnalogConfig", description  = "Powerup Analog Config")
+            # Wait for 50 ms for the device to estimate the interleaving errors
+            time.sleep(0.050)
+
+            self.IL_Config_Nyq1_ChA()
+            self.IL_Config_Nyq1_ChB()
+
+            time.sleep(0.050)
+
+            self.SetNLTrim()
+
+            time.sleep(0.050)
+
+            self.JESD_DDC_config()
+
+            time.sleep(0.050)
+
+            self._rawWrite(offsetCorrector + chA + (4*0x068),0xA2) #... freeze offset estimation
+            self._rawWrite(offsetCorrector + chB + (4*0x068),0xA2) #... freeze offset estimation
+
+        @self.command()
         def Powerup_AnalogConfig():
             self._rawWrite(generalAddr + (4*0x0000),0x81) # Global software reset. Remember the sequence of programming the config files is Powerup_Analog_Config-->IL_Config_Nyqx_chA-->IL_Config_Nyqx_chB-->NL_Config_Nyqx_chA-->NL_Config_Nyqx_chB-->JESD_Config
             self._rawWrite(generalAddr + (4*0x0011),0xFF) # Select ADC page.
@@ -328,7 +336,7 @@ class Adc32Rf45(pr.Device):
             self._rawWrite(generalAddr + (4*0x00F1),0xBF) # Analog trims ended here.
             self._rawWrite(generalAddr + (4*0x0011),0x00) # Disable ADC Page
             self._rawWrite(generalAddr + (4*0x0012),0x04) # Select Master Page
-            self._rawWrite(generalAddr + (4*0x0025),0x01) # Global Analog Trims start here.              
+            self._rawWrite(generalAddr + (4*0x0025),0x01) # Global Analog Trims start here.
             self._rawWrite(generalAddr + (4*0x0026),0x40) #...
             self._rawWrite(generalAddr + (4*0x0027),0x80) #...
             self._rawWrite(generalAddr + (4*0x0029),0x40) #...
@@ -340,7 +348,7 @@ class Adc32Rf45(pr.Device):
             self._rawWrite(generalAddr + (4*0x003F),0x01) #...
             self._rawWrite(generalAddr + (4*0x0039),0x50) #...
             self._rawWrite(generalAddr + (4*0x003B),0x28) #...
-            self._rawWrite(generalAddr + (4*0x0040),0x80) #...       
+            self._rawWrite(generalAddr + (4*0x0040),0x80) #...
             self._rawWrite(generalAddr + (4*0x0042),0x40) #...
             self._rawWrite(generalAddr + (4*0x0043),0x80) #...
             self._rawWrite(generalAddr + (4*0x0045),0x40) #...
@@ -352,11 +360,11 @@ class Adc32Rf45(pr.Device):
             self._rawWrite(generalAddr + (4*0x0059),0x02) #...
             self._rawWrite(generalAddr + (4*0x005B),0x08) #...
             self._rawWrite(generalAddr + (4*0x005c),0x07) #...
-            self._rawWrite(generalAddr + (4*0x0057),0x10) # Register control for SYSREF --these lines are added in revision SBAA226C.
-            self._rawWrite(generalAddr + (4*0x0057),0x18) # Pulse SYSREF, pull high --these lines are added in revision SBAA226C.
-            self._rawWrite(generalAddr + (4*0x0057),0x10) # Pulse SYSREF, pull back low --these lines are added in revision SBAA226C.
-            self._rawWrite(generalAddr + (4*0x0057),0x18) # Pulse SYSREF, pull high --these lines are added in revision SBAA226C.
-            self._rawWrite(generalAddr + (4*0x0057),0x10) # Pulse SYSREF, pull back low --these lines are added in revision SBAA226C.
+#            self._rawWrite(generalAddr + (4*0x0057),0x10) # Register control for SYSREF --these lines are added in revision SBAA226C.
+#            self._rawWrite(generalAddr + (4*0x0057),0x18) # Pulse SYSREF, pull high --these lines are added in revision SBAA226C.
+#            self._rawWrite(generalAddr + (4*0x0057),0x10) # Pulse SYSREF, pull back low --these lines are added in revision SBAA226C.
+#            self._rawWrite(generalAddr + (4*0x0057),0x18) # Pulse SYSREF, pull high --these lines are added in revision SBAA226C.
+#            self._rawWrite(generalAddr + (4*0x0057),0x10) # Pulse SYSREF, pull back low --these lines are added in revision SBAA226C.
             self._rawWrite(generalAddr + (4*0x0057),0x00) # Give SYSREF control back to device pin --these lines are added in revision SBAA226C.
             self._rawWrite(generalAddr + (4*0x0012),0x00) # Master page disabled
             self._rawWrite(generalAddr + (4*0x0011),0xFF) # Select ADC Page
@@ -373,17 +381,21 @@ class Adc32Rf45(pr.Device):
             self._rawWrite(rawInterface + (4*0x4003),0x01) #...
             self._rawWrite(rawInterface + (4*0x6068),0x22) #...
 
-            self.SYNCB_POL.set(0x1)
-            self.JESD_OUTPUT_SWING.set(0x4)
+            self.SYSREF_DEL_EN.set(self.SYSREF_DEL_EN.value(), write=True)
+            self.SYSREF_DEL_HI.set(self.SYSREF_DEL_HI.value(), write=True)
+            self.SYSREF_DEL_LO.set(self.SYSREF_DEL_LO.value(), write=True)
+
+            self.SYNCB_POL.set(self.SYNCB_POL.value(), write=True)
+            self.JESD_OUTPUT_SWING.set(self.JESD_OUTPUT_SWING.value(), write=True)
 
 
 
-        @self.command(name         = "IL_Config_Nyq1_ChA", description  = "Set IL ChA")
+        @self.command(description = "Set IL ChA")
         def IL_Config_Nyq1_ChA():
-            self._rawWrite(mainDigital + chA + (4*0x044),0x01) # Program global settings for Interleaving Corrector 
+            self._rawWrite(mainDigital + chA + (4*0x044),0x01) # Program global settings for Interleaving Corrector
             self._rawWrite(mainDigital + chA + (4*0x068),0x04) #
             self._rawWrite(mainDigital + chA + (4*0x0FF),0xC0) #...
-            self._rawWrite(mainDigital + chA + (4*0x0A2),0x08) # Progam nyquist zone 1 for chA, nyquist zone = 1 : 0x08, nyquist zone = 2 : 0x09, nyquist zone = 3 : 0x0A 
+            self._rawWrite(mainDigital + chA + (4*0x0A2),0x08) # Progam nyquist zone 1 for chA, nyquist zone = 1 : 0x08, nyquist zone = 2 : 0x09, nyquist zone = 3 : 0x0A
             self._rawWrite(mainDigital + chA + (4*0x0A9),0x03) #...
             self._rawWrite(mainDigital + chA + (4*0x0AB),0x77) #...
             self._rawWrite(mainDigital + chA + (4*0x0AC),0x01) #...
@@ -415,23 +427,23 @@ class Adc32Rf45(pr.Device):
             self._rawWrite(mainDigital + chA + (4*0x069),0x00) #...
             self._rawWrite(mainDigital + chA + (4*0x045),0x10) #...
             self._rawWrite(mainDigital + chA + (4*0x08D),0x64) #...
-            self._rawWrite(mainDigital + chA + (4*0x08B),0x20) #... 
+            self._rawWrite(mainDigital + chA + (4*0x08B),0x20) #...
             self._rawWrite(mainDigital + chA + (4*0x000),0x00) # Dig Core reset
             self._rawWrite(mainDigital + chA + (4*0x000),0x01) #...
             self._rawWrite(mainDigital + chA + (4*0x000),0x00) #...
 
-        @self.command(name         = "IL_Config_Nyq1_ChB", description  = "Set IL ChB")
+        @self.command()
         def IL_Config_Nyq1_ChB():
             self._rawWrite(mainDigital + chB + (4*0x049),0x80) # Special setting for chB
             self._rawWrite(mainDigital + chB + (4*0x042),0x20) # Special setting for chB
-            self._rawWrite(mainDigital + chB + (4*0x0A2),0x08) # Progam nyquist zone 1 for chB, nyquist zone = 1 : 0x08, nyquist zone = 2 : 0x09, nyquist zone = 3 : 0x0A 
+            self._rawWrite(mainDigital + chB + (4*0x0A2),0x08) # Progam nyquist zone 1 for chB, nyquist zone = 1 : 0x08, nyquist zone = 2 : 0x09, nyquist zone = 3 : 0x0A
             self._rawWrite(mainDigital + chB + (4*0x003),0x00) # Main digital page selected for chA
             self._rawWrite(mainDigital + chB + (4*0x000),0x00) #...
             self._rawWrite(mainDigital + chB + (4*0x000),0x01) #...
             self._rawWrite(mainDigital + chB + (4*0x000),0x00) #...
 
-        @self.command(name         = "SetNLTrim", description  = "Set nonlinear trims")        
-        def SetNLTrim():        
+        @self.command(description  = "Set nonlinear trims")
+        def SetNLTrim():
             # Nonlinearity trims
             self._rawWrite(rawInterface + (4*0x4003),0x00) #chA Non Linearity Trims for Nyq1. Remember the sequence of programming the config files is Powerup_Analog_Config-->IL_Config_Nyqx_chA-->IL_Config_Nyqx_chB-->NL_Config_Nyqx_chA-->NL_Config_Nyqx_chB-->JESD_Config
             self._rawWrite(rawInterface + (4*0x4004),0x20) #...
@@ -554,35 +566,35 @@ class Adc32Rf45(pr.Device):
             self._rawWrite(rawInterface + (4*0x005c),0x87) #...
             self._rawWrite(rawInterface + (4*0x0012),0x00) #...
 
-        @self.command(name         = "JESD_DDC_config", description  = "JESD DDC config")
-        def JESD_DDC_config():        
+        @self.command()
+        def JESD_DDC_config():
             # JESD DIGITAL PAGE
-            channels = self.find(typ=dev.ti.Adc32Rf45Channel)
+            channels = self.find(typ=surf.devices.ti.Adc32Rf45Channel)
             for channel in channels:
-                channel.SCRAMBLE_EN.set(0x1, write=True)           
+                channel.SCRAMBLE_EN.set(0x1, write=True)
                 channel.node('12BIT_MODE').set(0x0, write=True)       # need to use node to find variables with leading #
-                channel.SYNC_REG_EN.set(0x0, write=True)           
-                channel.SYNC_REG.set(0x0, write=True)           
-                channel.RAMP_12BIT.set(0x0, write=True)           
-                channel.JESD_MODE0.set(0x0, write=True)           
-                channel.JESD_MODE1.set(0x0, write=True)           
-                channel.JESD_MODE2.set(0x1, write=True)           
-                channel.LMFC_MASK_RESET.set(0x0, write=True)           
-                channel.LINK_LAY_RPAT.set(0x0, write=True)           
-                channel.LINK_LAYER_TESTMODE.set(0x0, write=True)           
-                channel.node('40X_MODE').set(0x7, write=True)          # need to use node to find variables with leading 3 
-                channel.PLL_MODE.set(0x2, write=True)           
-                channel.SEL_EMP_LANE0.set(0x03, write=True)           
-                channel.SEL_EMP_LANE1.set(0x3F, write=True)  # unused lane      
-                channel.SEL_EMP_LANE2.set(0x03, write=True)           
+                channel.SYNC_REG_EN.set(0x0, write=True)
+                channel.SYNC_REG.set(0x0, write=True)
+                channel.RAMP_12BIT.set(0x0, write=True)
+                channel.JESD_MODE0.set(0x0, write=True)
+                channel.JESD_MODE1.set(0x0, write=True)
+                channel.JESD_MODE2.set(0x1, write=True)
+                channel.LMFC_MASK_RESET.set(0x0, write=True)
+                channel.LINK_LAY_RPAT.set(0x0, write=True)
+                channel.LINK_LAYER_TESTMODE.set(0x0, write=True)
+                channel.node('40X_MODE').set(0x7, write=True)          # need to use node to find variables with leading 3
+                channel.PLL_MODE.set(0x2, write=True)
+                channel.SEL_EMP_LANE0.set(0x03, write=True)
+                channel.SEL_EMP_LANE1.set(0x3F, write=True)  # unused lane
+                channel.SEL_EMP_LANE2.set(0x03, write=True)
                 channel.SEL_EMP_LANE3.set(0x3F, write=True)  # unused lane
-                channel.TX_LINK_DIS.set(0x0, write=True)           
-                channel.FRAME_ALIGN.set(0x1, write=True)           
-                channel.LANE_ALIGN.set(0x1, write=True)           
-                channel.TESTMODE_EN.set(0x0, write=True)           
-                channel.CTRL_K.set(0x1, write=True)           
-                channel.FRAMES_PER_MULTIFRAME.set(0x1F, write=True)           
-    
+                channel.TX_LINK_DIS.set(0x0, write=True)
+                channel.FRAME_ALIGN.set(0x1, write=True)
+                channel.LANE_ALIGN.set(0x1, write=True)
+                channel.TESTMODE_EN.set(0x0, write=True)
+                channel.CTRL_K.set(0x1, write=True)
+                channel.FRAMES_PER_MULTIFRAME.set(0x1F, write=True)
+
                 # Decimation filter page
                 channel.DDC_EN.set(0x1,write=True)
                 channel.DECIM_FACTOR.set(0x0,write=True)
@@ -608,7 +620,7 @@ class Adc32Rf45(pr.Device):
                 channel.TEST_PATTERN_SEL.set(0x00,write=True)
                 channel.TEST_PAT_RES.set(0x00,write=True)
                 channel.TP_RES_EN.set(0x00,write=True)
-    
+
 #            self._rawWrite(jesdDigital + chB + (4*0x002),0x01) # enable 20x mode
 #            self._rawWrite(jesdDigital + chA + (4*0x002),0x01) # enable 20x mode
 #            self._rawWrite(jesdDigital + chB + (4*0x037),0x02) # PLL DIV mode to 10 0x00
@@ -636,7 +648,7 @@ class Adc32Rf45(pr.Device):
 #
 #            self._rawWrite(decFilter + chB + (4*0x00),0x01) # DDC enable CHB
 #            self._rawWrite(decFilter + chB + (4*0x01),0x00) # DDC by 4 CHB
-#            self._rawWrite(decFilter + chB + (4*0x02),0x00) # Dual DDC disable CHB 
+#            self._rawWrite(decFilter + chB + (4*0x02),0x00) # Dual DDC disable CHB
 #            self._rawWrite(decFilter + chB + (4*0x05),0x00) # Complex output enable
 #            self._rawWrite(decFilter + chB + (4*0x07),0x00) # LSB NCO1 at 800 Mhz CHB
 #            self._rawWrite(decFilter + chB + (4*0x08),0x4e) # MSB NCO1 at 800 Mhz
@@ -656,22 +668,21 @@ class Adc32Rf45(pr.Device):
             self._rawWrite(generalAddr + (4*0x0057),0x00) # sysref dis - whether it has to be zero
 #            self._rawWrite(generalAddr + (4*0x0020),0x00)
 #            self._rawWrite(generalAddr + (4*0x0020),0x10) # Pdn sysref
-            self.PDN_SYSREF.set(0x1)
-            
-        @self.command(name= "DigRst", description  = "Digital Reset")        
-        def DigRst():               
-            time.sleep(0.050)   # Wait for 50 ms for the device to estimate the interleaving errors          
+#            self.PDN_SYSREF.set(0x1) # Do this in AppTop after JESD link is established
+
+        @self.command(description  = "Digital Reset")
+        def DigRst():
+            time.sleep(0.050)   # Wait for 50 ms for the device to estimate the interleaving errors
             self._rawWrite(jesdDigital + chA + (4*0x000),0x00) # clear reset
             self._rawWrite(jesdDigital + chB + (4*0x000),0x00) # clear reset
             self._rawWrite(jesdDigital + chA + (4*0x000),0x01) # CHA digital reset
-            self._rawWrite(jesdDigital + chB + (4*0x000),0x01) # CHB digital reset 
+            self._rawWrite(jesdDigital + chB + (4*0x000),0x01) # CHB digital reset
             self._rawWrite(jesdDigital + chA + (4*0x000),0x00) # clear reset
-            self._rawWrite(jesdDigital + chB + (4*0x000),0x00) # clear reset        
-            time.sleep(0.050)   # Wait for 50 ms for the device to estimate the interleaving errors          
+            self._rawWrite(jesdDigital + chB + (4*0x000),0x00) # clear reset
+            time.sleep(0.050)   # Wait for 50 ms for the device to estimate the interleaving errors
             self._rawWrite(mainDigital + chA + (4*0x000),0x00) # clear reset
             self._rawWrite(mainDigital + chB + (4*0x000),0x00) # clear reset
             self._rawWrite(mainDigital + chA + (4*0x000),0x01) # CHA digital reset
-            self._rawWrite(mainDigital + chB + (4*0x000),0x01) # CHB digital reset 
+            self._rawWrite(mainDigital + chB + (4*0x000),0x01) # CHB digital reset
             self._rawWrite(mainDigital + chA + (4*0x000),0x00) # clear reset
-            self._rawWrite(mainDigital + chB + (4*0x000),0x00) # clear reset   
-
+            self._rawWrite(mainDigital + chB + (4*0x000),0x00) # clear reset

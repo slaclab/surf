@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Synchronizer.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: A simple multi Flip FLop synchronization module.
@@ -17,7 +16,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity Synchronizer is
    generic (

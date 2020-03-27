@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : EthMacRxImportXgmii.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 10GbE Import MAC core with GMII interface
@@ -18,9 +17,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.AxiStreamPkg.all;
-use work.StdRtlPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.AxiStreamPkg.all;
+use surf.StdRtlPkg.all;
+use surf.EthMacPkg.all;
 
 entity EthMacRxImportXgmii is
    generic (
@@ -43,13 +44,13 @@ end EthMacRxImportXgmii;
 architecture rtl of EthMacRxImportXgmii is
 
    constant AXI_CONFIG_C : AxiStreamConfigType := (
-      TSTRB_EN_C    => EMAC_AXIS_CONFIG_C.TSTRB_EN_C,
+      TSTRB_EN_C    => INT_EMAC_AXIS_CONFIG_C.TSTRB_EN_C,
       TDATA_BYTES_C => 8,               -- 64-bit AXI stream interface
-      TDEST_BITS_C  => EMAC_AXIS_CONFIG_C.TDEST_BITS_C,
-      TID_BITS_C    => EMAC_AXIS_CONFIG_C.TID_BITS_C,
-      TKEEP_MODE_C  => EMAC_AXIS_CONFIG_C.TKEEP_MODE_C,
-      TUSER_BITS_C  => EMAC_AXIS_CONFIG_C.TUSER_BITS_C,
-      TUSER_MODE_C  => EMAC_AXIS_CONFIG_C.TUSER_MODE_C);
+      TDEST_BITS_C  => INT_EMAC_AXIS_CONFIG_C.TDEST_BITS_C,
+      TID_BITS_C    => INT_EMAC_AXIS_CONFIG_C.TID_BITS_C,
+      TKEEP_MODE_C  => INT_EMAC_AXIS_CONFIG_C.TKEEP_MODE_C,
+      TUSER_BITS_C  => INT_EMAC_AXIS_CONFIG_C.TUSER_BITS_C,
+      TUSER_MODE_C  => INT_EMAC_AXIS_CONFIG_C.TUSER_MODE_C);
 
    type RegType is record
       phyRxd      : slv(63 downto 0);
@@ -159,43 +160,47 @@ begin
       -- Latch the current value
       v := r;
 
-      -- Check delayed copy
-      v.phyRxcDly := phyRxChar;
-      v.phyRxdDly := phyRxdata;
+--    -- Check delayed copy
+--    v.phyRxcDly := phyRxChar;
+--    v.phyRxdDly := phyRxdata;
+--
+--    -- Check if no gap inserted 
+--    if r.gapInserted = '0' then
+--
+--       -- Check for no gap between two frames
+--       if (phyRxChar /= x"FF" and phyRxChar /= x"00") and (r.phyRxcDly /= x"FF" and r.phyRxcDly /= x"00") then
+--          -- Set the flag
+--          v.gapInserted := '1';
+--          -- Insert a gap
+--          v.phyRxc      := x"FF";
+--          v.phyRxd      := x"0707070707070707";
+--       else
+--          -- Moved the non-delayed copy
+--          v.phyRxc := phyRxChar;
+--          v.phyRxd := phyRxdata;
+--       end if;
+--
+--    else
+--
+--       -- Moved the delayed copy
+--       phyRxc <= r.phyRxcDly;
+--       phyRxd <= r.phyRxdDly;
+--
+--       -- Check for two gaps in a row
+--       if (r.phyRxcDly = x"FF") and (phyRxChar = x"FF") then
+--          -- Reset the flag
+--          v.gapInserted := '0';
+--       end if;
+--
+--    end if;
 
-      -- Check if no gap inserted 
-      if r.gapInserted = '0' then
-
-         -- Check for no gap between two frames
-         if (phyRxChar /= x"FF" and phyRxChar /= x"00") and (r.phyRxcDly /= x"FF" and r.phyRxcDly /= x"00") then
-            -- Set the flag
-            v.gapInserted := '1';
-            -- Insert a gap
-            v.phyRxc      := x"FF";
-            v.phyRxd      := x"0707070707070707";
-         else
-            -- Moved the non-delayed copy
-            v.phyRxc := phyRxChar;
-            v.phyRxd := phyRxdata;
-         end if;
-
-      else
-
-         -- Moved the delayed copy
-         phyRxc <= r.phyRxcDly;
-         phyRxd <= r.phyRxdDly;
-
-         -- Check for two gaps in a row
-         if (r.phyRxcDly = x"FF") and (phyRxChar = x"FF") then
-            -- Reset the flag
-            v.gapInserted := '0';
-         end if;
-
-      end if;
-
-      -- Outputs
-      phyRxc <= r.phyRxc;
-      phyRxd <= r.phyRxd;
+      -- -- Outputs
+      -- phyRxc <= r.phyRxc;
+      -- phyRxd <= r.phyRxd;
+      
+      -- Bypass workaround
+      phyRxc <= phyRxChar;
+      phyRxd <= phyRxdata;      
 
       -- Register the variable for next clock cycle
       rin <= v;
@@ -213,14 +218,14 @@ begin
       end if;
    end process seq;
 
-   U_Resize : entity work.AxiStreamResize
+   U_Resize : entity surf.AxiStreamResize
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
          READY_EN_G          => false,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => AXI_CONFIG_C,  --  64-bit AXI stream interface  
-         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)  -- 128-bit AXI stream interface     
+         MASTER_AXI_CONFIG_G => INT_EMAC_AXIS_CONFIG_C)  -- 128-bit AXI stream interface     
       port map (
          -- Clock and reset
          axisClk     => ethClk,
@@ -414,17 +419,14 @@ begin
 
 
    -- CRC Delay FIFO
-   U_CrcFifo : entity work.Fifo
+   U_CrcFifo : entity surf.Fifo
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => '1',
          RST_ASYNC_G     => false,
          GEN_SYNC_FIFO_G => true,
-         BRAM_EN_G       => false,
+         MEMORY_TYPE_G   => "distributed",
          FWFT_EN_G       => false,
-         USE_DSP48_G     => "no",
-         USE_BUILT_IN_G  => false,
-         XIL_DEVICE_G    => "7SERIES",
          SYNC_STAGES_G   => 3,
          DATA_WIDTH_G    => 64,
          ADDR_WIDTH_G    => 4,
@@ -561,7 +563,7 @@ begin
    crcIn(7 downto 0)   <= crcFifoIn(63 downto 56);
 
    -- CRC
-   U_Crc32 : entity work.Crc32Parallel
+   U_Crc32 : entity surf.Crc32Parallel
       generic map (
          TPD_G        => TPD_G,
          BYTE_WIDTH_G => 8)

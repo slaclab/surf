@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Ad9249ReadoutClk.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
@@ -24,10 +23,12 @@ use ieee.std_logic_unsigned.all;
 library UNISIM;
 use UNISIM.vcomponents.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.Ad9249Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.Ad9249Pkg.all;
 
 entity Ad9249Deserializer is
    generic (
@@ -163,7 +164,7 @@ begin
    ----------------------------------------------------------------------------
    -- idelay3 
    ----------------------------------------------------------------------------
-   U_IDELAYE3_0 : IDELAYE3
+   U_IDELAYE3_0 : entity surf.Idelaye3Wrapper
       generic map (
          CASCADE          => CASCADE_C,    -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
          DELAY_FORMAT     => "COUNT",   -- Units of the DELAY_VALUE (COUNT, TIME)
@@ -199,7 +200,7 @@ begin
       signal masterCntValue   : slv(9 downto 0);
    begin
       
-      U_ODELAYE3_0 : ODELAYE3
+      U_ODELAYE3_0 : entity surf.Odelaye3Wrapper
          generic map (
             CASCADE => "SLAVE_END",    -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
             DELAY_FORMAT => "COUNT",   -- Units of the DELAY_VALUE (COUNT, TIME)

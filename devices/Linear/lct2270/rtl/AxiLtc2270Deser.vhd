@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiLtc2270Deser.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: ADC DDR Deserializer
@@ -18,8 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLtc2270Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLtc2270Pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -73,7 +74,7 @@ architecture rtl of AxiLtc2270Deser is
    
 begin
 
-   ClkOutBufDiff_0 : entity work.ClkOutBufDiff
+   ClkOutBufDiff_0 : entity surf.ClkOutBufDiff
       port map (
          clkIn   => adcClk,
          clkOutP => clkOutP,
@@ -98,7 +99,7 @@ begin
          I => adcInClk,
          O => adcClock);         
 
-   SynchVector_Inst : entity work.SynchronizerVector
+   SynchVector_Inst : entity surf.SynchronizerVector
       generic map(
          WIDTH_G => 2)
       port map(
@@ -117,7 +118,7 @@ begin
       GEN_DAT :
       for i in 0 to 7 generate
          
-         AxiLtc2270DeserBit_Inst : entity work.AxiLtc2270DeserBit
+         AxiLtc2270DeserBit_Inst : entity surf.AxiLtc2270DeserBit
             generic map(
                TPD_G           => TPD_G,
                DELAY_INIT_G    => DELAY_INIT_G(ch, i),
@@ -159,7 +160,7 @@ begin
          end if;
       end process;
 
-      SyncFifo_Inst : entity work.SynchronizerFifo
+      SyncFifo_Inst : entity surf.SynchronizerFifo
          generic map(
             DATA_WIDTH_G => 16)
          port map(

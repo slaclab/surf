@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : TenGigEthReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite 10GbE Register Interface
@@ -18,10 +17,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.EthMacPkg.all;
-use work.TenGigEthPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.EthMacPkg.all;
+use surf.TenGigEthPkg.all;
 
 entity TenGigEthReg is
    generic (
@@ -73,19 +74,19 @@ architecture rtl of TenGigEthReg is
 
 begin
 
+   Sync_Config : entity surf.SynchronizerVector
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => 48)
+      port map (
+         clk     => clk,
+         dataIn  => localMac,
+         dataOut => localMacSync);
+
    GEN_BYPASS : if (EN_AXI_REG_G = false) generate
 
-      axiReadSlave <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
+      axiReadSlave  <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
       axiWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
-      
-      Sync_Config : entity work.SynchronizerVector
-         generic map (
-            TPD_G   => TPD_G,
-            WIDTH_G => 48)
-         port map (
-            clk     => clk,
-            dataIn  => localMac,
-            dataOut => localMacSync);
 
       process (localMacSync) is
          variable retVar : TenGigEthConfig;
@@ -99,7 +100,7 @@ begin
 
    GEN_REG : if (EN_AXI_REG_G = true) generate
 
-      SyncStatusVec_Inst : entity work.SyncStatusVector
+      SyncStatusVec_Inst : entity surf.SyncStatusVector
          generic map (
             TPD_G          => TPD_G,
             OUT_POLARITY_G => '1',
@@ -142,8 +143,8 @@ begin
       -------------------------------
       -- Configuration Register
       -------------------------------  
-      comb : process (axiReadMaster, axiWriteMaster, cntOut, localMac, r, rst,
-                      status, statusOut) is
+      comb : process (axiReadMaster, axiWriteMaster, cntOut, localMacSync, r,
+                      rst, status, statusOut) is
          variable v      : RegType;
          variable regCon : AxiLiteEndPointType;
          variable i      : natural;
@@ -186,9 +187,9 @@ begin
          axiSlaveRegister(regCon, x"238", 0, v.config.pma_reset);
          axiSlaveRegister(regCon, x"23C", 0, v.config.pcs_loopback);
          axiSlaveRegister(regCon, x"240", 0, v.config.pcs_reset);
-         
+
          axiSlaveRegister(regCon, x"800", 0, v.config.macConfig.pauseThresh);
-         
+
          axiSlaveRegister(regCon, x"F00", 0, v.rollOverEn);
          axiSlaveRegister(regCon, x"FF4", 0, v.cntRst);
          axiSlaveRegister(regCon, x"FF8", 0, v.config.softRst);
@@ -209,7 +210,7 @@ begin
          end if;
 
          -- Update the MAC address
-         v.config.macConfig.macAddress := localMac;
+         v.config.macConfig.macAddress := localMacSync;
 
          -- Register the variable for next clock cycle
          rin <= v;

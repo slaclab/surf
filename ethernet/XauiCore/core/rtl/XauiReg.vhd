@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : XauiReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite XAUI Register Interface
@@ -18,10 +17,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.EthMacPkg.all;
-use work.XauiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.EthMacPkg.all;
+use surf.XauiPkg.all;
 
 entity XauiReg is
    generic (
@@ -76,10 +77,10 @@ begin
 
    GEN_BYPASS : if (EN_AXI_REG_G = false) generate
 
-      axiReadSlave <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
+      axiReadSlave  <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
       axiWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
-      
-      Sync_Config : entity work.SynchronizerVector
+
+      Sync_Config : entity surf.SynchronizerVector
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => 48)
@@ -100,7 +101,16 @@ begin
 
    GEN_REG : if (EN_AXI_REG_G = true) generate
 
-      SyncStatusVec_Inst : entity work.SyncStatusVector
+      Sync_Config : entity surf.SynchronizerVector
+         generic map (
+            TPD_G   => TPD_G,
+            WIDTH_G => 48)
+         port map (
+            clk     => axiClk,
+            dataIn  => localMac,
+            dataOut => localMacSync);
+
+      SyncStatusVec_Inst : entity surf.SyncStatusVector
          generic map (
             TPD_G          => TPD_G,
             OUT_POLARITY_G => '1',
@@ -137,8 +147,8 @@ begin
       -------------------------------
       -- Configuration Register
       -------------------------------  
-      comb : process (axiReadMaster, axiRst, axiWriteMaster, cntOut, localMac,
-                      r, statusOut) is
+      comb : process (axiReadMaster, axiRst, axiWriteMaster, cntOut,
+                      localMacSync, r, statusOut) is
          variable v      : RegType;
          variable regCon : AxiLiteEndPointType;
          variable i      : natural;
@@ -176,7 +186,7 @@ begin
          axiSlaveRegister(regCon, x"22C", 0, v.config.macConfig.pauseEnable);
 
          axiSlaveRegister(regCon, x"230", 0, v.config.configVector);
-         
+
          axiSlaveRegister(regCon, x"800", 0, v.config.macConfig.pauseThresh);
 
          axiSlaveRegister(regCon, x"F00", 0, v.rollOverEn);
@@ -199,7 +209,7 @@ begin
          end if;
 
          -- Update the MAC address
-         v.config.macConfig.macAddress := localMac;
+         v.config.macConfig.macAddress := localMacSync;
 
          -- Register the variable for next clock cycle
          rin <= v;
@@ -220,7 +230,7 @@ begin
       -- There is a Synchronizer one layer up for software reset
       config.softRst <= r.config.softRst;
 
-      SyncIn_macAddress : entity work.SynchronizerFifo
+      SyncIn_macAddress : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
             DATA_WIDTH_G => 48)
@@ -230,7 +240,7 @@ begin
             rd_clk => phyClk,
             dout   => config.macConfig.macAddress);
 
-      SyncIn_pauseTime : entity work.SynchronizerFifo
+      SyncIn_pauseTime : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
             DATA_WIDTH_G => 16)
@@ -240,11 +250,11 @@ begin
             rd_clk => phyClk,
             dout   => config.macConfig.pauseTime);
 
-      SyncIn_macConfig : entity work.SynchronizerVector
+      SyncIn_macConfig : entity surf.SynchronizerVector
          generic map (
             TPD_G    => TPD_G,
             STAGES_G => 2,
-            WIDTH_G  => 5)
+            WIDTH_G  => 6)
          port map (
             clk        => phyClk,
             -- Input Data
@@ -253,14 +263,16 @@ begin
             dataIn(2)  => r.config.macConfig.ipCsumEn,
             dataIn(3)  => r.config.macConfig.tcpCsumEn,
             dataIn(4)  => r.config.macConfig.udpCsumEn,
+            dataIn(5)  => r.config.macConfig.dropOnPause,
             -- Output Data
             dataOut(0) => config.macConfig.filtEnable,
             dataOut(1) => config.macConfig.pauseEnable,
             dataOut(2) => config.macConfig.ipCsumEn,
             dataOut(3) => config.macConfig.tcpCsumEn,
-            dataOut(4) => config.macConfig.udpCsumEn);
+            dataOut(4) => config.macConfig.udpCsumEn,
+            dataOut(5) => config.macConfig.dropOnPause);
 
-      SyncIn_configVector : entity work.SynchronizerFifo
+      SyncIn_configVector : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
             DATA_WIDTH_G => 7)
@@ -269,6 +281,16 @@ begin
             din    => r.config.configVector,
             rd_clk => phyClk,
             dout   => config.configVector);
+
+      SyncIn_pauseThresh : entity surf.SynchronizerFifo
+         generic map (
+            TPD_G        => TPD_G,
+            DATA_WIDTH_G => 16)
+         port map (
+            wr_clk => axiClk,
+            din    => r.config.macConfig.pauseThresh,
+            rd_clk => phyClk,
+            dout   => config.macConfig.pauseThresh);
 
    end generate;
 

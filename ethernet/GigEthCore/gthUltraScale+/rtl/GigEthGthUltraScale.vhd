@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GigEthGthUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 1000BASE-X Ethernet for Gth7
@@ -16,20 +15,21 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.EthMacPkg.all;
-use work.GigEthPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.EthMacPkg.all;
+use surf.GigEthPkg.all;
 
 entity GigEthGthUltraScale is
    generic (
-      TPD_G           : time                := 1 ns;
-      PAUSE_EN_G      : boolean             := true;
+      TPD_G         : time                := 1 ns;
+      PAUSE_EN_G    : boolean             := true;
       -- AXI-Lite Configurations
-      EN_AXI_REG_G    : boolean             := false;
+      EN_AXI_REG_G  : boolean             := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G   : AxiStreamConfigType := EMAC_AXIS_CONFIG_C);
+      AXIS_CONFIG_G : AxiStreamConfigType := EMAC_AXIS_CONFIG_C);
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
@@ -131,7 +131,7 @@ begin
    ------------------
    -- Synchronization 
    ------------------
-   U_AxiLiteAsync : entity work.AxiLiteAsync
+   U_AxiLiteAsync : entity surf.AxiLiteAsync
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -152,7 +152,7 @@ begin
 
    areset <= extRst or config.softRst or sysRst125;
 
-   U_PwrUpRst : entity work.PwrUpRst
+   U_PwrUpRst : entity surf.PwrUpRst
       generic map (
          TPD_G      => TPD_G,
          DURATION_G => 1000)
@@ -164,13 +164,16 @@ begin
    --------------------
    -- Ethernet MAC core
    --------------------
-   U_MAC : entity work.EthMacTop
+   U_MAC : entity surf.EthMacTop
       generic map (
-         TPD_G           => TPD_G,
-         PAUSE_EN_G      => PAUSE_EN_G,
-         PAUSE_512BITS_G => PAUSE_512BITS_C,
-         PHY_TYPE_G      => "GMII",
-         PRIM_CONFIG_G   => AXIS_CONFIG_G)
+         TPD_G             => TPD_G,
+         PAUSE_EN_G        => PAUSE_EN_G,
+         PAUSE_512BITS_G   => PAUSE_512BITS_C,
+         FIFO_ADDR_WIDTH_G => 12,       -- single 4K UltraRAM
+         SYNTH_MODE_G      => "xpm",
+         MEMORY_TYPE_G     => "ultra",
+         PHY_TYPE_G        => "GMII",
+         PRIM_CONFIG_G     => AXIS_CONFIG_G)
       port map (
          -- Primary Interface
          primClk         => dmaClk,
@@ -242,7 +245,7 @@ begin
    --------------------------------     
    -- Configuration/Status Register   
    --------------------------------     
-   U_GigEthReg : entity work.GigEthReg
+   U_GigEthReg : entity surf.GigEthReg
       generic map (
          TPD_G        => TPD_G,
          EN_AXI_REG_G => EN_AXI_REG_G)

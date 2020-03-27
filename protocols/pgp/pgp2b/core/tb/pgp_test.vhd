@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
 -------------------------------------------------------------------------------
--- File       : pgp_test.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for PGP
@@ -15,19 +14,18 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-LIBRARY ieee;
-USE work.ALL;
+library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-Library unisim;
-use unisim.vcomponents.all;
 
-use work.StdRtlPkg.all;
-use work.Pgp2bPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.SsiPkg.all;
 
 entity pgp_test is end pgp_test;
 
@@ -147,14 +145,10 @@ begin
          end if;
       end process;
 
-      U_SsiPrbsTx : entity work.SsiPrbsTx
+      U_SsiPrbsTx : entity surf.SsiPrbsTx
          generic map (
             TPD_G                      => 1 ns,
-            ALTERA_SYN_G               => false,
-            ALTERA_RAM_G               => "M9K",
-            XIL_DEVICE_G               => "7SERIES",  --Xilinx only generic parameter    
-            BRAM_EN_G                  => true,
-            USE_BUILT_IN_G             => false,  --if set to true, this module is only Xilinx compatible only!!!
+            MEMORY_TYPE_G              => "block",
             GEN_SYNC_FIFO_G            => false,
             CASCADE_SIZE_G             => 1,
             PRBS_SEED_SIZE_G           => 32,
@@ -178,18 +172,14 @@ begin
             tId          => (others=>'0')
          );
 
-         U_TxFifo : entity work.AxiStreamFifoV2
+         U_TxFifo : entity surf.AxiStreamFifoV2
             generic map (
                TPD_G               => 1 ns,
                PIPE_STAGES_G       => 1,
                SLAVE_READY_EN_G    => true,
                VALID_THOLD_G       => 1,
-               BRAM_EN_G           => true,
-               XIL_DEVICE_G        => "7SERIES",
-               USE_BUILT_IN_G      => false,
+               MEMORY_TYPE_G       => "block",
                GEN_SYNC_FIFO_G     => false,
-               ALTERA_SYN_G        => false,
-               ALTERA_RAM_G        => "M9K",
                CASCADE_SIZE_G      => 1,
                FIFO_ADDR_WIDTH_G   => 9,
                FIFO_FIXED_THRESH_G => true,
@@ -212,7 +202,7 @@ begin
 
    --prbsTxMasters(3 downto 1) <= (others=>AXI_STREAM_MASTER_INIT_C);
 
-   U_PgpTxMux : entity work.AxiStreamDeMux 
+   U_PgpTxMux : entity surf.AxiStreamDeMux 
       generic map (
          TPD_G         => 1 ns,
          NUM_MASTERS_G => 4
@@ -226,7 +216,7 @@ begin
       );
 
 
-   U_Pgp: entity work.Pgp2bLane 
+   U_Pgp: entity surf.Pgp2bLane 
       generic map (
          TPD_G             => 1 ns,
          LANE_CNT_G        => 1,
@@ -275,15 +265,13 @@ begin
    -- PRBS receiver
    U_RxGen: for i in 0 to 0 generate 
 
-      AxiStreamFifo_Rx : entity work.AxiStreamFifoV2
+      AxiStreamFifo_Rx : entity surf.AxiStreamFifoV2
          generic map(
             -- General Configurations
             TPD_G               => 1 ns,
             PIPE_STAGES_G       => 0,
             -- FIFO configurations
-            BRAM_EN_G           => true,
-            XIL_DEVICE_G        => "7SERIES",
-            USE_BUILT_IN_G      => false,
+            MEMORY_TYPE_G       => "block",
             GEN_SYNC_FIFO_G     => false,
             CASCADE_SIZE_G      => 1,
             FIFO_ADDR_WIDTH_G   => 11,
@@ -305,16 +293,12 @@ begin
             mAxisMaster => iprbsRxMasters(i),
             mAxisSlave  => iprbsRxSlaves(i));
 
-      U_SsiPrbsRx: entity work.SsiPrbsRx 
+      U_SsiPrbsRx: entity surf.SsiPrbsRx 
          generic map (
             TPD_G                      => 1 ns,
             STATUS_CNT_WIDTH_G         => 32,
-            ALTERA_SYN_G               => false,
-            ALTERA_RAM_G               => "M9K",
             CASCADE_SIZE_G             => 1,
-            XIL_DEVICE_G               => "7SERIES",  --Xilinx only generic parameter    
-            BRAM_EN_G                  => true,
-            USE_BUILT_IN_G             => false,  --if set to true, this module is only Xilinx compatible only!!!
+            MEMORY_TYPE_G              => "block",
             GEN_SYNC_FIFO_G            => false,
             PRBS_SEED_SIZE_G           => 32,
             PRBS_TAPS_G                => (0 => 16),

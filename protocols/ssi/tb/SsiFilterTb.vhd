@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
 -------------------------------------------------------------------------------
--- File       : SsiFilterTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the SsiFifo module
@@ -20,9 +19,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity SsiFilterTb is end SsiFilterTb;
 
@@ -70,7 +71,7 @@ begin
    ---------------------------------------
    -- Generate fast clocks and fast resets
    ---------------------------------------
-   ClkRst_Fast : entity work.ClkRst
+   ClkRst_Fast : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => FAST_CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
@@ -81,7 +82,7 @@ begin
          rst  => fastRst,
          rstL => open); 
 
-   ClkRst_Slow : entity work.ClkRst
+   ClkRst_Slow : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => SLOW_CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
@@ -147,17 +148,16 @@ begin
       end if;
    end process seq;
 
-   U_Fifo : entity work.SsiFifo
+   U_Fifo : entity surf.SsiFifo
       generic map (
          -- General Configurations
          TPD_G               => TPD_C,
          INT_PIPE_STAGES_G   => 1,
          PIPE_STAGES_G       => 1,
          SLAVE_READY_EN_G    => false,
-         EN_FRAME_FILTER_G   => true,
          VALID_THOLD_G       => 0,
          -- FIFO configurations
-         BRAM_EN_G           => true,
+         MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => false,
          CASCADE_SIZE_G      => 4,
          CASCADE_PAUSE_SEL_G => 1,

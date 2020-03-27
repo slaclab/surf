@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
--- File       : Pgp3Gtx7Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: PGPv3 Support Package
@@ -20,9 +19,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 package Pgp3Pkg is
 
@@ -100,6 +101,7 @@ package Pgp3Pkg is
    type Pgp3TxInType is record
       disable      : sl;
       flowCntlDis  : sl;
+      resetTx      : sl;
       skpInterval  : slv(31 downto 0);
       opCodeEn     : sl;
       opCodeNumber : slv(2 downto 0);
@@ -112,6 +114,7 @@ package Pgp3Pkg is
    constant PGP3_TX_IN_INIT_C : Pgp3TxInType := (
       disable      => '0',
       flowCntlDis  => '0',
+      resetTx      => '0',
       skpInterval  => toSlv(5000, 32),
       opCodeEn     => '0',
       opCodeNumber => (others => '0'),
@@ -213,8 +216,10 @@ package Pgp3Pkg is
    type Pgp3RefClkType is (
       PGP3_REFCLK_125_C,                -- Used in 6.25Gbps only
       PGP3_REFCLK_156_C,                -- Used in 10.3125Gbps & 6.25Gbps
+      PGP3_REFCLK_186_C,                -- Used in 10.3125Gbps
       PGP3_REFCLK_250_C,                -- Used in 6.25Gbps only
-      PGP3_REFCLK_312_C);               -- Used in 10.3125Gbps & 6.25Gbps
+      PGP3_REFCLK_312_C,                -- Used in 10.3125Gbps & 6.25Gbps
+      PGP3_REFCLK_371_C);               -- Used in 10.3125Gbps
 
 end package Pgp3Pkg;
 

@@ -19,19 +19,23 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity AsyncGearbox is
 
    generic (
       TPD_G                : time     := 1 ns;
       SLAVE_WIDTH_G        : positive;
+      SLAVE_BIT_REVERSE_G  : boolean := false;
       MASTER_WIDTH_G       : positive;
+      MASTER_BIT_REVERSE_G : boolean := false;
       -- Pipelining generics
       INPUT_PIPE_STAGES_G  : natural  := 0;
       OUTPUT_PIPE_STAGES_G : natural  := 0;
       -- Async FIFO generics
-      FIFO_BRAM_EN_G       : boolean  := false;
+      FIFO_MEMORY_TYPE_G   : string   := "distributed";
       FIFO_ADDR_WIDTH_G    : positive := 4);
    port (
       slaveClk : in sl;
@@ -77,7 +81,7 @@ begin
    fastClk <= slaveClk when SLAVE_FASTER_C else masterClk;
    fastRst <= slaveRst when SLAVE_FASTER_C else masterRst;
 
-   U_SynchronizerOneShot_1 : entity work.SynchronizerOneShot
+   U_SynchronizerOneShot_1 : entity surf.SynchronizerOneShot
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -87,12 +91,12 @@ begin
          dataOut => gearboxSlip);       -- [out]
 
    SLAVE_FIFO_GEN : if (not SLAVE_FASTER_C) generate
-      U_FifoAsync_1 : entity work.FifoAsync
+      U_FifoAsync_1 : entity surf.FifoAsync
          generic map (
             TPD_G         => TPD_G,
             FWFT_EN_G     => true,
             DATA_WIDTH_G  => SLAVE_WIDTH_G,
-            BRAM_EN_G     => FIFO_BRAM_EN_G,
+            MEMORY_TYPE_G => FIFO_MEMORY_TYPE_G,
             PIPE_STAGES_G => INPUT_PIPE_STAGES_G,
             ADDR_WIDTH_G  => FIFO_ADDR_WIDTH_G
             )
@@ -111,7 +115,7 @@ begin
    end generate SLAVE_FIFO_GEN;
 
    NO_SLAVE_FIFO_GEN : if (SLAVE_FASTER_C) generate
-      U_Input : entity work.FifoOutputPipeline
+      U_Input : entity surf.FifoOutputPipeline
          generic map (
             TPD_G         => TPD_G,
             DATA_WIDTH_G  => SLAVE_WIDTH_G,
@@ -130,11 +134,13 @@ begin
             mRdEn  => gearboxReadyIn);
    end generate NO_SLAVE_FIFO_GEN;
 
-   U_Gearbox_1 : entity work.Gearbox
+   U_Gearbox_1 : entity surf.Gearbox
       generic map (
-         TPD_G          => TPD_G,
-         SLAVE_WIDTH_G  => SLAVE_WIDTH_G,
-         MASTER_WIDTH_G => MASTER_WIDTH_G)
+         TPD_G                => TPD_G,
+         SLAVE_WIDTH_G        => SLAVE_WIDTH_G,
+         SLAVE_BIT_REVERSE_G  => SLAVE_BIT_REVERSE_G,
+         MASTER_WIDTH_G       => MASTER_WIDTH_G,
+         MASTER_BIT_REVERSE_G => MASTER_BIT_REVERSE_G)
       port map (
          clk         => fastClk,          -- [in]
          rst         => fastRst,          -- [in]
@@ -147,12 +153,12 @@ begin
          slip        => gearboxSlip);     -- [in]
 
    MASTER_FIFO_GEN : if (SLAVE_FASTER_C) generate
-      U_FifoAsync_1 : entity work.FifoAsync
+      U_FifoAsync_1 : entity surf.FifoAsync
          generic map (
             TPD_G         => TPD_G,
             FWFT_EN_G     => true,
             DATA_WIDTH_G  => MASTER_WIDTH_G,
-            BRAM_EN_G     => FIFO_BRAM_EN_G,
+            MEMORY_TYPE_G => FIFO_MEMORY_TYPE_G,
             PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G,
             ADDR_WIDTH_G  => FIFO_ADDR_WIDTH_G)
          port map (
@@ -170,7 +176,7 @@ begin
    end generate MASTER_FIFO_GEN;
 
    NO_MASTER_FIFO_GEN : if (not SLAVE_FASTER_C) generate
-      U_Output : entity work.FifoOutputPipeline
+      U_Output : entity surf.FifoOutputPipeline
          generic map (
             TPD_G         => TPD_G,
             DATA_WIDTH_G  => MASTER_WIDTH_G,

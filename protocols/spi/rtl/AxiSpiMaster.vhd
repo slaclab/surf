@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiSpiMaster.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Axi lite interface for a single chip "generic SPI master"
@@ -30,37 +29,39 @@ use ieee.std_logic_unsigned.all;
 library unisim;
 use unisim.vcomponents.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiSpiMaster is
    generic (
-      TPD_G             : time            := 1 ns;
-      ADDRESS_SIZE_G    : natural         := 15;
-      DATA_SIZE_G       : natural         := 8;
-      MODE_G            : string          := "RW";  -- Or "WO" (write only),  "RO" (read only)
-      SHADOW_EN_G       : boolean         := false;
-      CPHA_G            : sl              := '0';
-      CPOL_G            : sl              := '0';
-      CLK_PERIOD_G      : real            := 6.4E-9;
-      SPI_SCLK_PERIOD_G : real            := 100.0E-6;
-      SPI_NUM_CHIPS_G   : positive        := 1
-      );
+      TPD_G             : time     := 1 ns;
+      ADDRESS_SIZE_G    : natural  := 15;
+      DATA_SIZE_G       : natural  := 8;
+      MODE_G            : string   := "RW";  -- Or "WO" (write only),  "RO" (read only)
+      SHADOW_EN_G       : boolean  := false;
+      CPHA_G            : sl       := '0';
+      CPOL_G            : sl       := '0';
+      CLK_PERIOD_G      : real     := 6.4E-9;
+      SPI_SCLK_PERIOD_G : real     := 100.0E-6;
+      SPI_NUM_CHIPS_G   : positive := 1);
    port (
-      axiClk : in sl;
-      axiRst : in sl;
-
+      -- AXI-Lite Interface
+      axiClk         : in  sl;
+      axiRst         : in  sl;
       axiReadMaster  : in  AxiLiteReadMasterType;
       axiReadSlave   : out AxiLiteReadSlaveType;
       axiWriteMaster : in  AxiLiteWriteMasterType;
       axiWriteSlave  : out AxiLiteWriteSlaveType;
-
-      coreSclk  : out sl;
-      coreSDin  : in  sl;
-      coreSDout : out sl;
-      coreCsb   : out sl;  -- coreCsb is for legacy firmware without SPI_NUM_CHIPS_G generic
-      coreMCsb  : out slv(SPI_NUM_CHIPS_G-1 downto 0)
-      );
+      -- Copy of the shadow memory (SHADOW_EN_G=true)
+      shadowAddr     : in  slv(ADDRESS_SIZE_G-1 downto 0) := (others => '0');
+      shadowData     : out slv(DATA_SIZE_G-1 downto 0)    := (others => '0');
+      -- SPI Interface
+      coreSclk       : out sl;
+      coreSDin       : in  sl;
+      coreSDout      : out sl;
+      coreCsb        : out sl;  -- coreCsb is for legacy firmware without SPI_NUM_CHIPS_G generic
+      coreMCsb       : out slv(SPI_NUM_CHIPS_G-1 downto 0));
 end entity AxiSpiMaster;
 
 architecture rtl of AxiSpiMaster is
@@ -227,7 +228,8 @@ begin
             if (memWe = '1') then
                mem(conv_integer(memAddr)) <= r.wrData(DATA_SIZE_G-1 downto 0);
             end if;
-            memData <= mem(conv_integer(memAddr));
+            memData    <= mem(conv_integer(memAddr))    after TPD_G;
+            shadowData <= mem(conv_integer(shadowAddr)) after TPD_G;
          end if;
       end if;
    end process shadow_mem;
@@ -239,7 +241,7 @@ begin
       end if;
    end process seq;
 
-   SpiMaster_1 : entity work.SpiMaster
+   SpiMaster_1 : entity surf.SpiMaster
       generic map (
          TPD_G             => TPD_G,
          NUM_CHIPS_G       => SPI_NUM_CHIPS_G,

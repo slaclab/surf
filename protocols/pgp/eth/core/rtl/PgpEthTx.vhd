@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PgpEth: https://confluence.slac.stanford.edu/x/pQmODw
 -------------------------------------------------------------------------------
--- File       : PgpEthTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: PGP Ethernet Transmitter 
@@ -20,10 +19,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.PgpEthPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.PgpEthPkg.all;
 
 entity PgpEthTx is
    generic (
@@ -122,7 +123,7 @@ begin
    GEN_VEC :
    for i in (NUM_VC_G-1) downto 0 generate
 
-      U_Pipeline : entity work.AxiStreamPipeline
+      U_Pipeline : entity surf.AxiStreamPipeline
          generic map (
             TPD_G         => TPD_G,
             PIPE_STAGES_G => 1)
@@ -139,7 +140,7 @@ begin
    ------------------------------------------------------
    -- Multiplex the incoming TX streams with interleaving
    ------------------------------------------------------
-   U_Mux : entity work.AxiStreamMux
+   U_Mux : entity surf.AxiStreamMux
       generic map (
          TPD_G                => TPD_G,
          NUM_SLAVES_G         => NUM_VC_G,
@@ -529,7 +530,7 @@ begin
       end if;
    end process seq;
 
-   U_Pipeline : entity work.AxiStreamPipeline
+   U_Pipeline : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => 1)

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI Stream Package File
@@ -18,8 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
--- use work.TextUtilPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+-- use surf.TextUtilPkg.all;
 
 package AxiStreamPkg is
 
@@ -75,23 +76,25 @@ package AxiStreamPkg is
    type TKeepModeType is (TKEEP_NORMAL_C, TKEEP_COMP_C, TKEEP_FIXED_C, TKEEP_COUNT_C);
 
    type AxiStreamConfigType is record
-      TSTRB_EN_C    : boolean;
-      TDATA_BYTES_C : natural range 1 to AXI_STREAM_MAX_TKEEP_WIDTH_C;
-      TDEST_BITS_C  : natural range 0 to 8;
-      TID_BITS_C    : natural range 0 to 8;
-      TKEEP_MODE_C  : TkeepModeType;
-      TUSER_BITS_C  : natural range 0 to 8;
-      TUSER_MODE_C  : TUserModeType;
+      -- TDEST_INTERLEAVE_C : boolean;
+      TSTRB_EN_C         : boolean;
+      TDATA_BYTES_C      : natural range 1 to AXI_STREAM_MAX_TKEEP_WIDTH_C;
+      TDEST_BITS_C       : natural range 0 to 8;
+      TID_BITS_C         : natural range 0 to 8;
+      TKEEP_MODE_C       : TkeepModeType;
+      TUSER_BITS_C       : natural range 0 to 8;
+      TUSER_MODE_C       : TUserModeType;
    end record AxiStreamConfigType;
 
    constant AXI_STREAM_CONFIG_INIT_C : AxiStreamConfigType := (
-      TSTRB_EN_C    => false,
-      TDATA_BYTES_C => 16,
-      TDEST_BITS_C  => 4,
-      TID_BITS_C    => 0,
-      TKEEP_MODE_C  => TKEEP_NORMAL_C,
-      TUSER_BITS_C  => 4,
-      TUSER_MODE_C  => TUSER_NORMAL_C);
+      -- TDEST_INTERLEAVE_C => true,
+      TSTRB_EN_C         => false,
+      TDATA_BYTES_C      => 16,
+      TDEST_BITS_C       => 4,
+      TID_BITS_C         => 0,
+      TKEEP_MODE_C       => TKEEP_NORMAL_C,
+      TUSER_BITS_C       => 4,
+      TUSER_MODE_C       => TUSER_NORMAL_C);
 
    type AxiStreamConfigArray is array (natural range<>) of AxiStreamConfigType;
    type AxiStreamConfigVectorArray is array (natural range<>, natural range<>) of AxiStreamConfigType;

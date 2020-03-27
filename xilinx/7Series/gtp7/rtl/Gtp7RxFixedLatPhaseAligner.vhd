@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Gtp7RxFixedLatPhaseAligner.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
@@ -27,7 +26,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity Gtp7RxFixedLatPhaseAligner is
 
@@ -81,7 +82,7 @@ architecture rtl of Gtp7RxFixedLatPhaseAligner is
 begin
 
    -- Must use async resets since rxUsrClk can drop out
-   RstSync_1 : entity work.RstSync
+   RstSync_1 : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',

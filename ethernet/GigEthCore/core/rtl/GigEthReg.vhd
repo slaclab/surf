@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GigEthReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite 1GbE Register Interface
@@ -18,10 +17,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.EthMacPkg.all;
-use work.GigEthPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.EthMacPkg.all;
+use surf.GigEthPkg.all;
 
 entity GigEthReg is
    generic (
@@ -74,7 +75,7 @@ architecture rtl of GigEthReg is
 
 begin
 
-   U_WatchDogRst : entity work.WatchDogRst
+   U_WatchDogRst : entity surf.WatchDogRst
       generic map(
          TPD_G      => TPD_G,
          DURATION_G => getTimeRatio(125.0E+6, 0.5))
@@ -83,19 +84,19 @@ begin
          monIn  => status.phyReady,
          rstOut => wdtRst);
 
+   Sync_Config : entity surf.SynchronizerVector
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => 48)
+      port map (
+         clk     => clk,
+         dataIn  => localMac,
+         dataOut => localMacSync);
+
    GEN_BYPASS : if (EN_AXI_REG_G = false) generate
 
-      axiReadSlave <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
+      axiReadSlave  <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
       axiWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
-
-      Sync_Config : entity work.SynchronizerVector
-         generic map (
-            TPD_G   => TPD_G,
-            WIDTH_G => 48)
-         port map (
-            clk     => clk,
-            dataIn  => localMac,
-            dataOut => localMacSync);
 
       process (localMacSync, wdtRst) is
          variable retVar : GigEthConfigType;
@@ -110,7 +111,7 @@ begin
 
    GEN_REG : if (EN_AXI_REG_G = true) generate
 
-      SyncStatusVec_Inst : entity work.SyncStatusVector
+      SyncStatusVec_Inst : entity surf.SyncStatusVector
          generic map (
             TPD_G          => TPD_G,
             OUT_POLARITY_G => '1',
@@ -143,8 +144,8 @@ begin
       -------------------------------
       -- Configuration Register
       -------------------------------  
-      comb : process (axiReadMaster, axiWriteMaster, cntOut, localMac, r, rst,
-                      status, statusOut, wdtRst) is
+      comb : process (axiReadMaster, axiWriteMaster, cntOut, localMacSync, r,
+                      rst, status, statusOut, wdtRst) is
          variable v      : RegType;
          variable regCon : AxiLiteEndPointType;
          variable i      : natural;
@@ -204,7 +205,7 @@ begin
          end if;
 
          -- Update the MAC address
-         v.config.macConfig.macAddress := localMac;
+         v.config.macConfig.macAddress := localMacSync;
 
          -- Register the variable for next clock cycle
          rin <= v;

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : EthMacRxPause.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
@@ -20,9 +19,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.AxiStreamPkg.all;
-use work.StdRtlPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.AxiStreamPkg.all;
+use surf.StdRtlPkg.all;
+use surf.EthMacPkg.all;
 
 entity EthMacRxPause is
    generic (
@@ -167,7 +168,7 @@ begin
                   -- Check for a EOF
                   if (sAxisMaster.tLast = '1') then
                      -- Set the pause
-                     v.pauseEn := not axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, sAxisMaster, EMAC_EOFE_BIT_C);
+                     v.pauseEn := not axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, sAxisMaster, EMAC_EOFE_BIT_C);
                      -- Next State
                      v.state   := IDLE_S;
                   else
@@ -180,7 +181,7 @@ begin
                -- Check for a valid EOF
                if (sAxisMaster.tValid = '1') and (sAxisMaster.tLast = '1') then
                   -- Set the pause
-                  v.pauseEn := not axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, sAxisMaster, EMAC_EOFE_BIT_C);
+                  v.pauseEn := not axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, sAxisMaster, EMAC_EOFE_BIT_C);
                   -- Next State
                   v.state   := IDLE_S;
                end if;

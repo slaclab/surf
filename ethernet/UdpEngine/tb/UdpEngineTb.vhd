@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : UdpEngineTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the EthMac module
@@ -18,13 +17,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.EthMacPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.EthMacPkg.all;
 
 entity UdpEngineTb is
 end UdpEngineTb;
@@ -85,7 +82,7 @@ architecture testbed of UdpEngineTb is
 
 begin
 
-   ClkRst_Inst : entity work.ClkRst
+   ClkRst_Inst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,
@@ -99,7 +96,7 @@ begin
    ----------
    -- PRBS TX
    ----------
-   U_TX : entity work.SsiPrbsTx
+   U_TX : entity surf.SsiPrbsTx
       generic map (
          TPD_G                      => TPD_G,
          AXI_EN_G                   => '0',
@@ -120,7 +117,7 @@ begin
    ----------------------
    -- IPv4/ARP/UDP Engine
    ----------------------
-   U_UDP_Client : entity work.UdpEngineWrapper
+   U_UDP_Client : entity surf.UdpEngineWrapper
       generic map (
          -- Simulation Generics
          TPD_G               => TPD_G,
@@ -155,7 +152,7 @@ begin
    --------------------
    -- Ethernet MAC core
    --------------------
-   U_MAC0 : entity work.EthMacTop
+   U_MAC0 : entity surf.EthMacTop
       generic map (
          TPD_G         => TPD_G,
          PHY_TYPE_G    => "XGMII",
@@ -180,7 +177,7 @@ begin
          xgmiiTxc        => phyC(1));
    ethConfig(0).macAddress <= MAC_ADDR_C(0);
 
-   U_MAC1 : entity work.EthMacTop
+   U_MAC1 : entity surf.EthMacTop
       generic map (
          TPD_G         => TPD_G,
          PHY_TYPE_G    => "XGMII",
@@ -208,7 +205,7 @@ begin
    ----------------------
    -- IPv4/ARP/UDP Engine
    ----------------------
-   U_UDP_Server : entity work.UdpEngineWrapper
+   U_UDP_Server : entity surf.UdpEngineWrapper
       generic map (
          -- Simulation Generics
          TPD_G          => TPD_G,
@@ -239,7 +236,7 @@ begin
    ----------
    -- PRBS RX
    ----------
-   U_RX : entity work.SsiPrbsRx
+   U_RX : entity surf.SsiPrbsRx
       generic map (
          TPD_G                     => TPD_G,
          SLAVE_AXI_STREAM_CONFIG_G => EMAC_AXIS_CONFIG_C)

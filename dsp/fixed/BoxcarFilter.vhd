@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : BoxcarFilter.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simple boxcar filter 
@@ -18,7 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity BoxcarFilter is
    generic (
@@ -44,7 +45,7 @@ architecture mapping of BoxcarFilter is
 
 begin
 
-   U_Integrator : entity work.BoxcarIntegrator
+   U_Integrator : entity surf.BoxcarIntegrator
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => DATA_WIDTH_G,

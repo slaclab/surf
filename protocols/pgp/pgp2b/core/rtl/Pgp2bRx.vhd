@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
 -------------------------------------------------------------------------------
--- File       : Pgp2bRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
@@ -20,10 +19,12 @@ LIBRARY ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
-use work.Pgp2bPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity Pgp2bRx is 
    generic (
@@ -116,7 +117,7 @@ begin
 
 
    -- PHY Logic
-   U_Pgp2bRxPhy: entity work.Pgp2bRxPhy 
+   U_Pgp2bRxPhy: entity surf.Pgp2bRxPhy 
       generic map ( 
          TPD_G            => TPD_G,
          RX_LANE_CNT_G    => RX_LANE_CNT_G
@@ -149,7 +150,7 @@ begin
 
 
    -- Cell Receiver
-   U_Pgp2bRxCell: entity work.Pgp2bRxCell 
+   U_Pgp2bRxCell: entity surf.Pgp2bRxCell 
       generic map ( 
          TPD_G                => TPD_G,
          RX_LANE_CNT_G        => RX_LANE_CNT_G, 
@@ -272,7 +273,7 @@ begin
       crcRxInAdjust(7 downto 0)  <= crcRxIn(31 downto 24);
    end generate CRC_RX_2xLANE;
 
-   Rx_CRC : entity work.CRC32Rtl
+   Rx_CRC : entity surf.CRC32Rtl
       generic map(
          CRC_INIT => x"FFFFFFFF")
       port map(

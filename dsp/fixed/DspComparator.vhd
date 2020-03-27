@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : DspComparator.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Generalized DSP inferred comparator
@@ -17,7 +16,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity DspComparator is
    generic (
@@ -56,7 +57,7 @@ architecture rtl of DspComparator is
       tValid  : sl;
       aout    : slv(WIDTH_G-1 downto 0);
       bout    : slv(WIDTH_G-1 downto 0);
-      diff    : signed(WIDTH_G - 1 downto 0);
+      diff    : signed(WIDTH_G downto 0);
    end record RegType;
    constant REG_INIT_C : RegType := (
       ibReady => '0',
@@ -78,22 +79,22 @@ architecture rtl of DspComparator is
    signal sData : slv(2*WIDTH_G-1+5 downto 0);
    signal mData : slv(2*WIDTH_G-1+5 downto 0);
 
-   attribute use_dsp48      : string;
-   attribute use_dsp48 of r : signal is USE_DSP_G;
+   attribute use_dsp      : string;
+   attribute use_dsp of r : signal is USE_DSP_G;
 
 begin
 
    comb : process (ain, bin, ibValid, r, rst, tReady) is
       variable v : RegType;
-      variable a : signed(WIDTH_G - 1 downto 0);
-      variable b : signed(WIDTH_G - 1 downto 0);
+      variable a : signed(WIDTH_G downto 0);
+      variable b : signed(WIDTH_G downto 0);
    begin
       -- Latch the current value
       v := r;
 
       -- typecast from slv to signed
-      a := signed(ain);
-      b := signed(bin);
+      a := signed(resize(ain,WIDTH_G+1));
+      b := signed(resize(bin,WIDTH_G+1));
 
       -- Flow Control
       v.ibReady := '0';
@@ -137,13 +138,13 @@ begin
       end if;
    end process seq;
 
-   eqInt   <= '1' when (r.diff(WIDTH_G-1 downto 0) = 0)                              else '0';
-   gtInt   <= '1' when (r.diff(WIDTH_G-1) = '0' and r.diff(WIDTH_G-2 downto 0) /= 0) else '0';
-   gtEqInt <= '1' when (r.diff(WIDTH_G-1) = '0')                                     else '0';
-   lsInt   <= '1' when (r.diff(WIDTH_G-1) = '1')                                     else '0';
-   lsEqInt <= '1' when (r.diff(WIDTH_G-1) = '1' or r.diff(WIDTH_G-1 downto 0) = 0)   else '0';
+   eqInt   <= '1' when (r.diff(WIDTH_G downto 0) = 0)                              else '0';
+   gtInt   <= '1' when (r.diff(WIDTH_G) = '0' and r.diff(WIDTH_G-1 downto 0) /= 0) else '0';
+   gtEqInt <= '1' when (r.diff(WIDTH_G) = '0')                                     else '0';
+   lsInt   <= '1' when (r.diff(WIDTH_G) = '1')                                     else '0';
+   lsEqInt <= '1' when (r.diff(WIDTH_G) = '1' or r.diff(WIDTH_G downto 0) = 0)     else '0';
 
-   U_Pipe : entity work.FifoOutputPipeline
+   U_Pipe : entity surf.FifoOutputPipeline
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,

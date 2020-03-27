@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : XauiGtyUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 10 GigE XAUI for GTH Ultra Scale
@@ -16,25 +15,26 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.XauiPkg.all;
-use work.EthMacPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.XauiPkg.all;
+use surf.EthMacPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
 
 entity XauiGtyUltraScale is
    generic (
-      TPD_G           : time                := 1 ns;
-      PAUSE_EN_G      : boolean             := true;
+      TPD_G          : time                := 1 ns;
+      PAUSE_EN_G     : boolean             := true;
       -- XAUI Configurations
-      REF_CLK_FREQ_G  : real                := 156.25E+6;  -- Support 156.25MHz or 312.5MHz
+      REF_CLK_FREQ_G : real                := 156.25E+6;  -- Support 156.25MHz or 312.5MHz
       -- AXI-Lite Configurations
-      EN_AXI_REG_G    : boolean             := false;
+      EN_AXI_REG_G   : boolean             := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G   : AxiStreamConfigType := EMAC_AXIS_CONFIG_C);
+      AXIS_CONFIG_G  : AxiStreamConfigType := EMAC_AXIS_CONFIG_C);
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
@@ -199,12 +199,15 @@ begin
    --------------------
    -- Ethernet MAC core
    --------------------
-   U_MAC : entity work.EthMacTop
+   U_MAC : entity surf.EthMacTop
       generic map (
-         TPD_G           => TPD_G,
-         PAUSE_EN_G      => PAUSE_EN_G,
-         PHY_TYPE_G      => "XGMII",
-         PRIM_CONFIG_G   => AXIS_CONFIG_G)
+         TPD_G             => TPD_G,
+         PAUSE_EN_G        => PAUSE_EN_G,
+         FIFO_ADDR_WIDTH_G => 12,       -- single 4K UltraRAM
+         SYNTH_MODE_G      => "xpm",
+         MEMORY_TYPE_G     => "ultra",
+         PHY_TYPE_G        => "XGMII",
+         PRIM_CONFIG_G     => AXIS_CONFIG_G)
       port map (
          -- Primary Interface
          primClk         => dmaClk,
@@ -346,7 +349,7 @@ begin
    --------------------------
    status.areset <= config.softRst or extRst;
 
-   RstSync_Inst : entity work.RstSync
+   RstSync_Inst : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          IN_POLARITY_G   => '0',
@@ -360,7 +363,7 @@ begin
    --------------------------------     
    -- Configuration/Status Register   
    --------------------------------     
-   U_XauiReg : entity work.XauiReg
+   U_XauiReg : entity surf.XauiReg
       generic map (
          TPD_G        => TPD_G,
          EN_AXI_REG_G => EN_AXI_REG_G)

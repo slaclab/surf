@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SynchronizerEdge.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: A simple multi Flip FLop synchronization module.
@@ -16,7 +15,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SynchronizerEdge is
    generic (
@@ -59,7 +60,7 @@ begin
 
    assert (STAGES_G >= 3) report "STAGES_G must be >= 3" severity failure;
 
-   Synchronizer_Inst : entity work.Synchronizer
+   Synchronizer_Inst : entity surf.Synchronizer
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,

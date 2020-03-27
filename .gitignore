@@ -6,6 +6,7 @@
 *._*
 *.db
 *.log
+*.vho
 xvcSrv
 doxygen/
 ghdl/
