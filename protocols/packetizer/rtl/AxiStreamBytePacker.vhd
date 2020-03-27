@@ -86,20 +86,7 @@ begin
       -- Pending output from current
       if r.curMaster.tValid = '1' then
          v.outMaster := r.curMaster;
-
-         -- Shift next to current only if nxt is not full
-         if r.nxtMaster.tValid = '0' then
-            v.curMaster := r.nxtMaster;
-            v.nxtMaster := AXI_STREAM_MASTER_INIT_C;
-            v.nxtMaster.tKeep := (others=>'0');
-         else
-            v.curMaster := AXI_STREAM_MASTER_INIT_C;
-            v.curMaster.tKeep := (others=>'0');
-         end if;
-
-      -- Next is full, send to out
-      elsif r.nxtMaster.tValid = '1' then
-         v.outMaster := r.nxtMaster;
+         v.curMaster := r.nxtMaster;
          v.nxtMaster := AXI_STREAM_MASTER_INIT_C;
          v.nxtMaster.tKeep := (others=>'0');
       else
