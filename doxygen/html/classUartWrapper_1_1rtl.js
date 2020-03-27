@@ -15,7 +15,7 @@ var classUartWrapper_1_1rtl =
     [ "fifoRxValid", "classUartWrapper_1_1rtl.html#a50291ac701ec5ed03c8dde2567dd8970", null ],
     [ "fifoRxReady", "classUartWrapper_1_1rtl.html#ae6975d65fe7435f4505d59b180d5d136", null ],
     [ "fifoRxRdEn", "classUartWrapper_1_1rtl.html#a0ae1dfc70605ffee56b2ca12e4f61287", null ],
-    [ "baud16x", "classUartWrapper_1_1rtl.html#a6537b1ba765622bab593c2ff229dfef6", null ],
+    [ "clkEn", "classUartWrapper_1_1rtl.html#a7745e78ccdd101bbc06656b21faceb12", null ],
     [ "u_uartbrg_1", "classUartWrapper_1_1rtl.html#ade765565141690f210fe02af5a7f8c94", null ],
     [ "u_uarttx_1", "classUartWrapper_1_1rtl.html#a1fca51f506612148a750a105d54fdca2", null ],
     [ "u_fifo_tx", "classUartWrapper_1_1rtl.html#a59bd2e25fa7a041a6c1ab23e4a463fbe", null ],

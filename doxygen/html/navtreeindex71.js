@@ -1,5 +1,10 @@
 var NAVTREEINDEX71 =
 {
+"classOctalPortRam_1_1rtl.html#a4ceffb189a32ccdecc28a2fb6396aa67":[1,0,363,0,8],
+"classOctalPortRam_1_1rtl.html#a5f34b281f82abe3153f0b3f23f8e304b":[1,0,363,0,1],
+"classOctalPortRam_1_1rtl.html#a7f538afb0b4e3a7279cf0443910a70f6":[1,0,363,0,6],
+"classOctalPortRam_1_1rtl.html#a816f3bf01908436a0e33f5de1ece0dc9":[1,0,363,0,11],
+"classOctalPortRam_1_1rtl.html#a8333af5eaec82974c77e8a011f49fd70":[1,0,363,0,17],
 "classOctalPortRam_1_1rtl.html#a8339d1a0494c46c9bd380b53417ba1c7":[1,0,363,0,23],
 "classOctalPortRam_1_1rtl.html#a85e7413243ede97aae10f5465ce14df5":[1,0,363,0,20],
 "classOctalPortRam_1_1rtl.html#a9b828736fb9cc17561124a80aad63e47":[1,0,363,0,7],
@@ -110,8 +115,8 @@ var NAVTREEINDEX71 =
 "classOutputBufferReg_1_1rtl.html#a00791292c97a9420582d56b2466f745b":[1,0,366,0,5],
 "classOutputBufferReg_1_1rtl.html#a00791292c97a9420582d56b2466f745b":[1,0,366,0,6],
 "classOutputBufferReg_1_1rtl.html#a3866df254a123b03ef652329cc7b1b80":[1,0,366,0,0],
-"classOutputBufferReg_1_1rtl.html#acd951fac39245e19ef7a7411a476e208":[1,0,366,0,1],
 "classOutputBufferReg_1_1rtl.html#acd951fac39245e19ef7a7411a476e208":[1,0,366,0,4],
+"classOutputBufferReg_1_1rtl.html#acd951fac39245e19ef7a7411a476e208":[1,0,366,0,1],
 "classPgp2bAxi.html":[1,0,367],
 "classPgp2bAxi.html#a09910266002a6310c2946822e026cdb4":[1,0,367,10],
 "classPgp2bAxi.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,367,26],
@@ -244,10 +249,5 @@ var NAVTREEINDEX71 =
 "classPgp2bGth7FixedLatWrapper.html#a2645d73dc4d296d05ba94614624a29cf":[1,0,369,22],
 "classPgp2bGth7FixedLatWrapper.html#a2edc34402b573437d5f25fa90ba4013e":[1,0,369,61],
 "classPgp2bGth7FixedLatWrapper.html#a307dc86f4f11604a18d5b58f734895d1":[1,0,369,37],
-"classPgp2bGth7FixedLatWrapper.html#a35536ad6059d462192f208e74117cb19":[1,0,369,36],
-"classPgp2bGth7FixedLatWrapper.html#a42484f7845fe381036155c94e5867eb1":[1,0,369,39],
-"classPgp2bGth7FixedLatWrapper.html#a45deac62e0be5497ab35b3f2a33f7991":[1,0,369,51],
-"classPgp2bGth7FixedLatWrapper.html#a4dea038ce2f3a924c050271655ab6e0c":[1,0,369,44],
-"classPgp2bGth7FixedLatWrapper.html#a4f31e22aa35913fc2751e74ef6e6e521":[1,0,369,1],
-"classPgp2bGth7FixedLatWrapper.html#a5302417895eebedd57a2b66f02ff54e3":[1,0,369,15]
+"classPgp2bGth7FixedLatWrapper.html#a35536ad6059d462192f208e74117cb19":[1,0,369,36]
 };

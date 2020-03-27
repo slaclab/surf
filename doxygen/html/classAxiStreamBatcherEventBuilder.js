@@ -12,6 +12,7 @@ var classAxiStreamBatcherEventBuilder =
     [ "OUTPUT_PIPE_STAGES_G", "classAxiStreamBatcherEventBuilder.html#a1e8e27a48bf5c0dd160777ba7ac29436", null ],
     [ "axisClk", "classAxiStreamBatcherEventBuilder.html#ac220cc2710ba738744915c3b2a0f43bc", null ],
     [ "axisRst", "classAxiStreamBatcherEventBuilder.html#a044b1bf79201c595c20474cecf020a5d", null ],
+    [ "blowoffExt", "classAxiStreamBatcherEventBuilder.html#a171373e6aeb29a9e9954eadb0e9cb379", null ],
     [ "axilReadMaster", "classAxiStreamBatcherEventBuilder.html#acd3440bbc91f595e14ebb565ef1e05c4", null ],
     [ "axilReadSlave", "classAxiStreamBatcherEventBuilder.html#a22f8db74a5a4c77e7e2767279ca36e7f", null ],
     [ "axilWriteMaster", "classAxiStreamBatcherEventBuilder.html#a86f0292469878d2c30a2994fabb3cee4", null ],

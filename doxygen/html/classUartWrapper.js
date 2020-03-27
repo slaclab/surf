@@ -4,6 +4,7 @@ var classUartWrapper =
     [ "TPD_G", "classUartWrapper.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "CLK_FREQ_G", "classUartWrapper.html#af346a3cf9d6e922bb4b4c63169fd41f6", null ],
     [ "BAUD_RATE_G", "classUartWrapper.html#a6fb9acc08addf261d2960ca437aefae9", null ],
+    [ "BAUD_MULT_G", "classUartWrapper.html#a6e945024ea8e037424fd8597091b7fc6", null ],
     [ "STOP_BITS_G", "classUartWrapper.html#a9514500e01393fbac186287ad8769e0d", null ],
     [ "PARITY_G", "classUartWrapper.html#a19a9c324062b5aa85a24b857051a369d", null ],
     [ "DATA_WIDTH_G", "classUartWrapper.html#a97c53e9f5aa69b46f4c6b6b017d6c8c6", null ],

@@ -852,6 +852,7 @@ var hierarchy =
         ] ]
       ] ],
       [ "PwrUpRst", "classPwrUpRst.html", null ],
+      [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ],
       [ "Pgp2bLane", "classPgp2bLane.html", null ],
       [ "PgpGthCoreWrapper", "classPgpGthCoreWrapper.html", [
         [ "AxiLiteToDrp", "classAxiLiteToDrp.html", null ]
@@ -861,7 +862,7 @@ var hierarchy =
       [ "Gtp7QuadPll", "classGtp7QuadPll.html", null ],
       [ "Pgp2bGtp7FixedLat", "classPgp2bGtp7FixedLat.html", [
         [ "Pgp2bLane", "classPgp2bLane.html", null ],
-        [ "PwrUpRst", "classPwrUpRst.html", null ],
+        [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ],
         [ "Decoder8b10b", "classDecoder8b10b.html", null ],
         [ "Pgp3RxGearboxAligner", "classPgp3RxGearboxAligner.html", null ],
         [ "Gtp7Core", "classGtp7Core.html", null ],
