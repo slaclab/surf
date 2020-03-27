@@ -13,11 +13,11 @@ from surf.protocols.i2c._PMBus import *
 import pyrogue as pr
 
 ##############################################################################
-# PMBus Power System Mgt Protocol Specification – Part II – Revision 1.0: 
+# PMBus Power System Mgt Protocol Specification – Part II – Revision 1.0:
 ##############################################################################
 # 7.1. LITERAL Data Format:
 #
-# The Literal Data Format is typically used for commanding and reporting the 
+# The Literal Data Format is typically used for commanding and reporting the
 # parameters such as the following:
 #       Output Current,
 #       Input Voltage,
@@ -26,7 +26,7 @@ import pyrogue as pr
 #       Time (durations)
 #       Energy Storage Capacitor Voltage.
 #
-# The Literal Data Format is a two byte value with:       
+# The Literal Data Format is a two byte value with:
 #       An 11 bit, two’s complement mantissa
 #       A 5 bit, two’s complement exponent (scaling factor)
 ##############################################################################
@@ -45,7 +45,7 @@ def getPMbusLiteralDataFormat(var):
     return X
 
 ##############################################################################
-# PMBus Power System Mgt Protocol Specification – Part II – Revision 1.0: 
+# PMBus Power System Mgt Protocol Specification – Part II – Revision 1.0:
 ##############################################################################
 # 8.3.1. Linear Mode:
 # The data bytes for the VOUT_MODE and VOUT_COMMAND when using the Linear

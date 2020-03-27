@@ -10,23 +10,23 @@
 # PyRogue _ad5541 Module
 #-----------------------------------------------------------------------------
 # This file is part of 'SLAC Firmware Standard Library'.
-# It is subject to the license terms in the LICENSE.txt file found in the 
-# top-level directory of this distribution and at: 
-#    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-# No part of 'SLAC Firmware Standard Library', including this file, 
-# may be copied, modified, propagated, or distributed except according to 
+# It is subject to the license terms in the LICENSE.txt file found in the
+# top-level directory of this distribution and at:
+#    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+# No part of 'SLAC Firmware Standard Library', including this file,
+# may be copied, modified, propagated, or distributed except according to
 # the terms contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
 
 class Ad5541(pr.Device):
-    def __init__(self,       
+    def __init__(self,
             name        = "Ad5541",
             description = "Ad5541",
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
-                                             
+
         self.add(pr.RemoteVariable(
             name        = 'dacRefreshRate',
             description = 'DAC Rate (in units of Hz)',
@@ -45,7 +45,7 @@ class Ad5541(pr.Device):
             bitOffset   = 0,
             base        = pr.UInt,
             mode        = 'RO',
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'debugMux',
@@ -56,7 +56,7 @@ class Ad5541(pr.Device):
             base        = pr.Bool,
             mode        = 'RW',
         ))
-        
+
         self.add(pr.RemoteVariable(
             name        = 'debugData',
             description = 'debugData',
@@ -65,8 +65,8 @@ class Ad5541(pr.Device):
             bitOffset   = 0,
             base        = pr.UInt,
             mode        = 'RW',
-        ))                 
-                
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'sdoDisable',
             description = 'sdoDisable',
@@ -75,8 +75,8 @@ class Ad5541(pr.Device):
             bitOffset   = 0,
             base        = pr.Bool,
             mode        = 'RW',
-        )) 
-                
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'binaryOffset',
             description = 'binaryOffset',
@@ -85,8 +85,8 @@ class Ad5541(pr.Device):
             bitOffset   = 0,
             base        = pr.Bool,
             mode        = 'RW',
-        ))  
-                
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'dacTriState',
             description = 'dacTriState',
@@ -95,8 +95,8 @@ class Ad5541(pr.Device):
             bitOffset   = 0,
             base        = pr.Bool,
             mode        = 'RW',
-        )) 
-                
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'opGnd',
             description = 'opGnd',
@@ -105,8 +105,8 @@ class Ad5541(pr.Device):
             bitOffset   = 0,
             base        = pr.Bool,
             mode        = 'RW',
-        ))   
-                
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'rbuf',
             description = 'rbuf',
@@ -115,8 +115,8 @@ class Ad5541(pr.Device):
             bitOffset   = 0,
             base        = pr.Bool,
             mode        = 'RW',
-        ))                   
-                
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'halfSckPeriod',
             description = 'halfSckPeriod',
@@ -125,8 +125,8 @@ class Ad5541(pr.Device):
             bitOffset   = 0,
             base        = pr.UInt,
             mode        = 'RW',
-        ))                
-                
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'hrdRst',
             description = 'hrdRst',
@@ -136,8 +136,8 @@ class Ad5541(pr.Device):
             base        = pr.UInt,
             mode        = 'WO',
             hidden      = False,
-        )) 
-        
+        ))
+
     def hardReset(self):
         self.hrdRst.set(1)
-        
+
