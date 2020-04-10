@@ -5,11 +5,11 @@
 -- Generic AXI Stream DMA block for frame at a time transfers.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -52,7 +52,7 @@ entity AxiStreamDma is
       interrupt       : out sl;
       online          : out sl;
       acknowledge     : out sl;
-      -- AXI Stream Interface 
+      -- AXI Stream Interface
       sAxisMaster     : in  AxiStreamMasterType;
       sAxisSlave      : out AxiStreamSlaveType;
       mAxisMaster     : out AxiStreamMasterType;
@@ -206,7 +206,7 @@ architecture structure of AxiStreamDma is
    -- attribute dont_touch of ib    : signal is "true";
    -- attribute dont_touch of ibAck : signal is "true";
    -- attribute dont_touch of ibReq : signal is "true";
-   
+
 begin
 
    process (axiClk) is
@@ -225,7 +225,7 @@ begin
             NUM_SLAVE_SLOTS_G  => 1,
             NUM_MASTER_SLOTS_G => 2,
             DEC_ERROR_RESP_G   => AXI_RESP_OK_C,
-            MASTERS_CONFIG_G   => AXI_CROSSBAR_MASTERS_CONFIG_C) 
+            MASTERS_CONFIG_G   => AXI_CROSSBAR_MASTERS_CONFIG_C)
          port map (
             axiClk           => axiClk,
             axiClkRst        => axiRst,
@@ -264,7 +264,7 @@ begin
          PUSH_ADDR_WIDTH_G => PUSH_ADDR_WIDTH_C,
          RANGE_LSB_G       => 8,
          VALID_POSITION_G  => 31,
-         VALID_POLARITY_G  => '1') 
+         VALID_POLARITY_G  => '1')
       port map (
          axiClk         => axiClk,
          axiClkRst      => axiRst,
@@ -385,7 +385,7 @@ begin
       online            <= r.online;
       intReadSlaves(0)  <= r.axiReadSlave;
       intWriteSlaves(0) <= r.axiWriteSlave;
-      
+
    end process;
 
    -------------------------------------
@@ -400,7 +400,7 @@ begin
          AXI_BURST_G    => AXI_BURST_G,
          AXI_CACHE_G    => AXI_CACHE_G,
          SW_CACHE_EN_G  => true,
-         BYP_SHIFT_G    => BYP_SHIFT_G) 
+         BYP_SHIFT_G    => BYP_SHIFT_G)
       port map (
          axiClk         => axiClk,
          axiRst         => axiRst,
@@ -495,7 +495,7 @@ begin
          AXI_CACHE_G     => AXI_CACHE_G,
          SW_CACHE_EN_G   => true,
          PEND_THRESH_G   => PEND_THRESH_G,
-         BYP_SHIFT_G     => BYP_SHIFT_G) 
+         BYP_SHIFT_G     => BYP_SHIFT_G)
       port map (
          axiClk        => axiClk,
          axiRst        => axiRst,
@@ -581,7 +581,7 @@ begin
 
       -- Combinatorial outputs before the reset
       pushFifoRead(OB_FIFO_C) <= v.pushFifoRead;
-      
+
       -- Reset
       if axiRst = '1' or r.txEnable = '0' then
          v := OB_INIT_C;
@@ -596,5 +596,5 @@ begin
       popFifoDin(OB_FIFO_C)   <= ob.popFifoDin;
 
    end process;
-   
+
 end structure;

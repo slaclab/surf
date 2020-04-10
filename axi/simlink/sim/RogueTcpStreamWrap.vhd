@@ -4,11 +4,11 @@
 -- Description: Wrapper for Rogue Stream Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -88,7 +88,7 @@ begin
    U_ChanGen : for i in 0 to CHAN_COUNT_G-1 generate
 
       ------------------
-      -- Inbound Resizer 
+      -- Inbound Resizer
       ------------------
       U_Ib_Resize : entity surf.AxiStreamResize
          generic map (
@@ -143,7 +143,7 @@ begin
       obMasters(i).tUser(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 64) <= (others => '0');
 
       -------------------
-      -- Outbound Resizer 
+      -- Outbound Resizer
       -------------------
       U_Ob_Resize : entity surf.AxiStreamResize
          generic map (

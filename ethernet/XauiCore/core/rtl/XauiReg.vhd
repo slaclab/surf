@@ -4,11 +4,11 @@
 -- Description: AXI-Lite XAUI Register Interface
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -134,9 +134,9 @@ begin
             statusIn(18 downto 11) => status.statusVector,
             statusIn(24 downto 19) => status.debugVector,
             statusIn(31 downto 25) => (others => '0'),
-            -- Output Status bit Signals (rdClk domain)           
+            -- Output Status bit Signals (rdClk domain)
             statusOut              => statusOut,
-            -- Status Bit Counters Signals (rdClk domain) 
+            -- Status Bit Counters Signals (rdClk domain)
             cntRstIn               => r.cntRst,
             rollOverEnIn           => r.rollOverEn,
             cntOut                 => cntOut,
@@ -146,7 +146,7 @@ begin
 
       -------------------------------
       -- Configuration Register
-      -------------------------------  
+      -------------------------------
       comb : process (axiReadMaster, axiRst, axiWriteMaster, cntOut,
                       localMacSync, r, statusOut) is
          variable v      : RegType;

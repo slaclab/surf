@@ -4,11 +4,11 @@
 -- Description: Simulation sub module for testing the FwftCntTb
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -162,7 +162,7 @@ begin
             v.din := r.din + 1;
             -- Check for counter roll over
             if (v.din = 0) then
-               -- Check for FIFO count error 
+               -- Check for FIFO count error
                if (wr_data_count /= 2**ADDR_WIDTH_C-1) or (rd_data_count /= 2**ADDR_WIDTH_C-1) then
                   -- Next state
                   v.state := FAILED_S;
@@ -195,7 +195,7 @@ begin
             v.din := r.din + 1;
             -- Check for counter roll over
             if (v.din = 0) then
-               -- Check for FIFO count error 
+               -- Check for FIFO count error
                if (wr_data_count /= 0) or (rd_data_count /= 0) then
                   -- Next state
                   v.state := FAILED_S;

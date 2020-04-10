@@ -4,11 +4,11 @@
 -- Description: Simulation Testbed for testing the AxiStreamMux module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -257,7 +257,7 @@ begin
             SLAVE_AXI_STREAM_CONFIG_G  => AXI_STREAM_CONFIG_C,
             SLAVE_AXI_PIPE_STAGES_G    => AXI_PIPE_STAGES_C)
          port map (
-            -- Streaming RX Data Interface (sAxisClk domain) 
+            -- Streaming RX Data Interface (sAxisClk domain)
             sAxisClk       => slowClk,
             sAxisRst       => slowRst,
             sAxisMaster    => ibMasters(i),

@@ -8,11 +8,11 @@
 -- Long frames are broken into smaller packets.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -300,7 +300,7 @@ begin
                end if;
             end if;
          ----------------------------------------------------------------------
-         when WAIT_S =>            
+         when WAIT_S =>
             v.state := HEADER_S;
          ----------------------------------------------------------------------
          when HEADER_S =>
@@ -308,7 +308,7 @@ begin
             v.wordCount     := (others => '0');
             -- Set default tlast.tkeep (8 Bytes)
             v.lastByteCount := slv(to_unsigned(WORD_SIZE_C, bitSize(WORD_SIZE_C)));
-            -- Pre-load the CRC with the interim remainder 
+            -- Pre-load the CRC with the interim remainder
             v.crcInit       := ramCrcRem;
             -- Reset the CRC (which pre-loads it with crcInit)
             v.crcReset      := '1';
@@ -474,7 +474,7 @@ begin
                bytes      => r.lastByteCount,
                crc        => crcOut);
       end if;
-      
+
       -- Register the variable for next clock cycle
       rin <= v;
 
@@ -483,7 +483,7 @@ begin
       crcIn            <= endianSwap(v.crcIn);
       outputAxisMaster <= r.outputAxisMaster;
       rearbitrate      <= r.rearbitrate;
-      
+
    end process comb;
 
    seq : process (axisClk) is
@@ -493,7 +493,7 @@ begin
             r <= REG_INIT_C after TPD_G;
          else
             r <= rin after TPD_G;
-         end if;      
+         end if;
       end if;
    end process seq;
 

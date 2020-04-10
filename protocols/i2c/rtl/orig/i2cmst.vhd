@@ -15,7 +15,7 @@
 --
 --  You should have received a copy of the GNU General Public License
 --  along with this program; if not, write to the Free Software
---  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+--  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -------------------------------------------------------------------------------
 -- Entity:      i2cmst
 -- File:        i2cmst.vhd
@@ -25,7 +25,7 @@
 --
 --         APB interface to OpenCores I2C-master. This is an GRLIB AMBA wrapper
 --         that instantiates the byte- and bit-controller of the OpenCores I2C
---         master (OC core developed by Richard Herveille, richard@asics.ws). 
+--         master (OC core developed by Richard Herveille, richard@asics.ws).
 --         The OC byte- and bit-controller are located under lib/opencores/i2c
 --
 --         The original master had a WISHBONE interface with registers
@@ -82,7 +82,7 @@ entity i2cmst is
   port (
     rstn  : in std_ulogic;
     clk   : in std_ulogic;
-    
+
     -- APB signals
     apbi  : in  apb_slv_in_type;
     apbo  : out apb_slv_out_type;
@@ -99,7 +99,7 @@ architecture rtl of i2cmst is
   -----------------------------------------------------------------------------
 
   constant I2CMST_REV : integer := 3;
-  
+
   constant PCONFIG : apb_config_type := (
   0 => ahb_device_reg(VENDOR_GAISLER, GAISLER_I2CMST, 0, I2CMST_REV, pirq),
   1 => apb_iobar(paddr, pmask));
@@ -113,11 +113,11 @@ architecture rtl of i2cmst is
   constant FR_addr   : std_logic_vector(7 downto 2) := "000100";
 
   -----------------------------------------------------------------------------
-  -- 
+  --
   -----------------------------------------------------------------------------
-  
+
   -----------------------------------------------------------------------------
-  -- Types 
+  -- Types
   -----------------------------------------------------------------------------
   -- Register interface
   type ctrl_reg_type is record          -- Control register
@@ -138,9 +138,9 @@ architecture rtl of i2cmst is
       busy  : std_ulogic;
       al    : std_ulogic;
       tip   : std_ulogic;
-      ifl   : std_ulogic;     
+      ifl   : std_ulogic;
   end record;
-  
+
   -- Core registers
   type i2c_reg_type is record
        -- i2c registers
@@ -163,7 +163,7 @@ architecture rtl of i2cmst is
   signal irst      : std_ulogic;        -- Internal, negated reset signal
   signal iscloen   : std_ulogic;        -- Internal SCL output enable
   signal isdaoen   : std_ulogic;        -- Internal SDA output enable
-  
+
   -- Register interface
   signal r, rin : i2c_reg_type;
   signal vcc : std_logic;
@@ -205,17 +205,17 @@ begin
   irst <= not rstn;
 
   i2co.enable <= r.ctrl.en;
-  
+
   -- Fix output enable polarity
   soepol0: if oepol = 0 generate
-    i2co.scloen <= iscloen; 
+    i2co.scloen <= iscloen;
     i2co.sdaoen <= isdaoen;
   end generate soepol0;
   soepol1: if oepol /= 0 generate
     i2co.scloen <= not iscloen;
     i2co.sdaoen <= not isdaoen;
   end generate soepol1;
-  
+
   comb: process (r, rstn, rxr, rxack, busy, al, done, apbi)
     variable v : i2c_reg_type;
     variable irq : std_logic_vector((NAHBIRQ-1) downto 0);
@@ -224,7 +224,7 @@ begin
   begin  -- process comb
     v := r;  v.irq := '0'; irq := (others=>'0'); irq(pirq) := r.irq;
     apbaddr := apbi.paddr(7 downto 2); apbout := (others => '0');
-    
+
     -- Command done or arbitration lost, clear command register
     if (done or al) = '1' then
       v.cmd := ('0', '0', '0', '0', '0');
@@ -237,7 +237,7 @@ begin
               tip   => r.cmd.rd or r.cmd.wr or r.cmd.sto,
               ifl   => done or al or r.sts.ifl);
     v.irq := (done or al) and r.ctrl.ien;
-   
+
     -- read registers
     if (apbi.psel(pindex) and apbi.penable and (not apbi.pwrite)) = '1' then
       case apbaddr is
@@ -275,7 +275,7 @@ begin
           end if;
           -- Bit 0 of CR is interrupt acknowledge. The core will only pulse one
           -- interrupt per irq event. Software does not have to clear the
-          -- interrupt flag... 
+          -- interrupt flag...
           if apbi.pwdata(0) = '1' then
             v.sts.ifl := '0';
           end if;
@@ -284,7 +284,7 @@ begin
         when others => null;
       end case;
     end if;
-    
+
     if rstn = '0' then
       v.prer := (others => '1');
       v.ctrl := ('0', '0');
@@ -295,7 +295,7 @@ begin
     end if;
 
     if dynfilt = 0 then v.filt := (others => '0'); end if;
-    
+
     -- Update registers
     rin <= v;
 
@@ -304,7 +304,7 @@ begin
     apbo.pirq <= irq;
     apbo.pconfig <= PCONFIG;
     apbo.pindex <= pindex;
-    
+
   end process comb;
 
   reg: process (clk)
@@ -316,10 +316,10 @@ begin
 
   -- Boot message
   -- pragma translate_off
-  bootmsg : report_version 
+  bootmsg : report_version
     generic map (
       "i2cmst" & tost(pindex) & ": AMBA Wrapper for OC I2C-master rev " &
       tost(I2CMST_REV) & ", irq " & tost(pirq));
   -- pragma translate_on
-  
+
 end architecture rtl;

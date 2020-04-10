@@ -9,11 +9,11 @@
 --    Long frames are broken into smaller packets.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -36,7 +36,7 @@ entity AxiStreamDepacketizer is
       OUTPUT_PIPE_STAGES_G : integer := 0);
 
    port (
-      -- AXI-Lite Interface for local registers 
+      -- AXI-Lite Interface for local registers
       axisClk : in sl;
       axisRst : in sl;
 
@@ -198,18 +198,18 @@ begin
                   v.packetNumber := (others => '0');
                   -- Check for errors
                   if ((r.startup = '0' and inputAxisMaster.tData(15 downto 4) /= r.frameNumber+1) or  -- not first value after startup and misalignment in frame number
-                      inputAxisMaster.tData(39 downto 16) /= 0) then  -- packet number != 0 
+                      inputAxisMaster.tData(39 downto 16) /= 0) then  -- packet number != 0
                      -- Next state
                      v.state := BLEED_S;  -- Error - Missing frames
                   end if;
-               -- Else this is a continuation 
+               -- Else this is a continuation
                else
                   -- Update local copy of packet number
                   v.packetNumber := inputAxisMaster.tData(39 downto 16);
                   -- Check for errors
                   if (inputAxisMaster.tData(15 downto 4) /= r.frameNumber or  -- new frame number != local copy of frame number
                       inputAxisMaster.tData(39 downto 16) /= r.packetNumber+1) then  -- packet number increment by 1 with respect to local copy of packet number
-                     -- Terminate the packet 
+                     -- Terminate the packet
                      v.outputAxisMaster(1).tvalid := '1';
                      v.outputAxisMaster(1).tlast  := '1';
                      -- Set the EOFE flag

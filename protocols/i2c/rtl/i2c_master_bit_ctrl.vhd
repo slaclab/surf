@@ -98,7 +98,7 @@
 --                repeated START condition.
 --              * Modified synchronization of SCL and SDA. START and STOP detection
 --                is now performed after a two stage synchronizer and is also
---                filtered. 
+--                filtered.
 --              * Changed evaluation order of 'slave_wait', 'en' and 'cnt' in
 --                generation of clk_en signal to prevent clk_en assertion when
 --                slave_wait is asserted.
@@ -127,7 +127,7 @@
 --                core's APB interface.
 --                Reorganized parts of the code, moving signals into blocks.
 --                Core revision increased to 3.
--- 
+--
 -------------------------------------
 -- Bit controller section
 ------------------------------------
@@ -209,7 +209,7 @@ architecture structural of i2c_master_bit_ctrl is
 	constant I2C_CMD_STOP   : std_logic_vector(3 downto 0) := "0010";
 	constant I2C_CMD_READ   : std_logic_vector(3 downto 0) := "0100";
 	constant I2C_CMD_WRITE  : std_logic_vector(3 downto 0) := "1000";
-        
+
 	type states is (idle, start_a, start_b, start_c, start_d, start_e, start_f, start_g,
 	                stop_a, stop_b, stop_c, stop_d, rd_a, rd_b, rd_c, rd_d, wr_a, wr_b, wr_c, wr_d);
 	signal c_state, s_state : states;
@@ -221,8 +221,8 @@ architecture structural of i2c_master_bit_ctrl is
 	signal ial                : std_logic;          -- internal arbitration lost signal
 	signal cnt                : std_logic_vector(15 downto 0); -- clock divider counter
         signal csync              : std_logic;          -- Need to synchronize clock with other master
-        
-begin   
+
+begin
 	-- generate clk enable signal
 	gen_clken: process(clk, nReset)
 	begin
@@ -264,7 +264,7 @@ begin
             sfblock : block
               constant FR : integer := filter;  -- Filter range MSb
               constant DR : integer := filter + 1;  -- Delayed SCL/SDA range MSb
-              
+
               signal sSCL, sSDA : std_logic_vector(FR downto 0); -- synchronized SCL and SDA inputs
               signal discl_oen  : std_logic_vector(DR downto 0); -- delayed scl_oen signal
               signal disda_oen  : std_logic_vector(DR downto 0); -- delayed isda_oen
@@ -272,13 +272,13 @@ begin
               -- synchronize SCL and SDA inputs
               synch_scl_sda: process(clk, nReset)
               begin
-	        if (nReset = '0') then                  
+	        if (nReset = '0') then
 	          sSCL <= (others => '1');
 	          sSDA <= (others => '1');
                   fSCL <= (others => '1');
                   fSDA <= (others => '1');
 	        elsif (clk'event and clk = '1') then
-	          if (rst = '1') then                    
+	          if (rst = '1') then
                     sSCL <= (others => '1');
                     sSDA <= (others => '1');
                     fSCL <= (others => '1');
@@ -321,7 +321,7 @@ begin
                     slvw_dis <= (slvw_dis or csync) and discl_oen(0);
                   end if;
                 end if;
-              end process;        
+              end process;
               -- SCL forced low after master tried to assert, slave is stretching clock
               slave_wait <= andv(discl_oen(DR downto 1)) and not fSCL(0) and not (slvw_dis or fSCL(1));
               -- SCL HIGH time cut short, master clock synchronization
@@ -352,7 +352,7 @@ begin
                     end if;
 
                     if (c_state = idle) then
-                      ial <= (sda_chk and not fSDA(0) and disda_oen(DR)); 
+                      ial <= (sda_chk and not fSDA(0) and disda_oen(DR));
                     else
                       ial <= (sda_chk and not fSDA(0) and disda_oen(DR)) or
                              (sto_condition and not cmd_stop);
@@ -361,7 +361,7 @@ begin
                   disda_oen <= disda_oen(DR-1 downto 0) & isda_oen;
                 end if;
               end process gen_al;
-            end block sfblock;            
+            end block sfblock;
           end generate staticfilt;
 
           -- Dynamic filter
@@ -383,14 +383,14 @@ begin
               begin
                 scl_chg := fSCL_chg; sda_chg := fSDA_chg;
                 iscl_oen_chg := fiscl_oen_chg; isda_oen_chg := fisda_oen_chg;
-	        if (nReset = '0') then                  
+	        if (nReset = '0') then
                   filtcnt <= (others => '0');
                   fSCL <= (others => '1'); fSDA <= (others => '1');
                   fSCL_chg <= '0'; fSDA_chg <= '0';
                   fiscl_oen <= (others => '1'); fiscl_oen_chg <= '0';
                   fisda_oen <= '1'; fisda_oen_chg <= '0';
 	        elsif (clk'event and clk = '1') then
-	          if (rst = '1') or (ena = '0') then                    
+	          if (rst = '1') or (ena = '0') then
                     filtcnt <= (others => '0');
                     fSCL <= (others => '1'); fSDA <= (others => '1');
                     fSCL_chg <= '0'; fSDA_chg <= '0';
@@ -441,7 +441,7 @@ begin
                     slvw_dis <= (slvw_dis or csync) and discl_oen;
                   end if;
                 end if;
-              end process;        
+              end process;
               -- SCL forced low after master tried to assert, slave is stretching clock
               slave_wait <= andv(fiscl_oen) and not fSCL(0) and not (slvw_dis or fSCL(1));
               -- SCL HIGH time cut short, master clock synchronization
@@ -471,7 +471,7 @@ begin
                       end if;
                     end if;
                     if (c_state = idle) then
-                      ial <= (sda_chk and not fSDA(0) and fisda_oen); 
+                      ial <= (sda_chk and not fSDA(0) and fisda_oen);
                     else
                       ial <= (sda_chk and not fSDA(0) and fisda_oen) or
                              (sto_condition and not cmd_stop);
@@ -482,9 +482,9 @@ begin
               end process gen_ald;
             end block dfblock;
           end generate dynamicfilt;
-          
+
           al <= ial;
-          
+
           -- detect start condition => detect falling edge on SDA while SCL is high
           -- detect stop condition  => detect rising edge on SDA while SCL is high
           detect_sta_sto: process(clk, nReset)
@@ -558,12 +558,12 @@ begin
              elsif csync = '1' then
                c_state <= s_state;
              else
-  
+
                cmd_ack <= '0'; -- default no acknowledge
 
                -- csync is always '0' here, but including it in the expression
                -- appears to let some compilers optimize the design more...
-               if (clk_en or csync) = '1' then  
+               if (clk_en or csync) = '1' then
 
 	          case (c_state) is
 	             -- idle
@@ -603,7 +603,7 @@ begin
 	                iscl_oen <= '1'; -- set SCL high
 	                isda_oen <= '1'; -- keep SDA high
 	                sda_chk  <= '0'; -- don't check SDA
-                        
+
 	             when start_d =>
 	                c_state  <= start_e;
 	                iscl_oen <= '1'; -- set SCL high

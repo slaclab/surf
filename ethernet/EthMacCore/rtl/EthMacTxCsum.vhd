@@ -5,11 +5,11 @@
 -- https://docs.google.com/spreadsheets/d/1_1M1keasfq8RLmRYHkO0IlRhMq5YZTgJ7OGrWvkib8I/edit?usp=sharing
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -257,7 +257,7 @@ begin
                      end if;
                      -- Fill in the IPv4 header checksum
                      v.ipv4Hdr(0) := rxMaster.tData(119 downto 112);  -- IPVersion + Header length
-                     v.ipv4Hdr(1) := rxMaster.tData(127 downto 120);  -- DSCP and ECN     
+                     v.ipv4Hdr(1) := rxMaster.tData(127 downto 120);  -- DSCP and ECN
                   else
                      -- Add the IEEE 802.1Q header
                      v.sMaster.tData(111 downto 96)  := VLAN_TYPE_C;
@@ -278,7 +278,7 @@ begin
                v.sMaster        := rxMaster;
                -- Check for EOF
                if (rxMaster.tLast = '1') then
-                  -- if IPv4 detected, ETH frame too short 
+                  -- if IPv4 detected, ETH frame too short
                   if (r.ipv4Det(0) = '1') then
                      -- Set the error flag
                      v.eofeDet(0) := '1';
@@ -305,7 +305,7 @@ begin
                      v.ipv4Hdr(14)        := rxMaster.tData(103 downto 96);  -- Source IP Address
                      v.ipv4Hdr(15)        := rxMaster.tData(111 downto 104);  -- Source IP Address
                      v.ipv4Hdr(16)        := rxMaster.tData(119 downto 112);  -- Destination IP Address
-                     v.ipv4Hdr(17)        := rxMaster.tData(127 downto 120);  -- Destination IP Address    
+                     v.ipv4Hdr(17)        := rxMaster.tData(127 downto 120);  -- Destination IP Address
                      -- Fill in the TCP/UDP checksum
                      v.tData(63 downto 0) := rxMaster.tData(127 downto 80) & rxMaster.tData(63 downto 56) & x"00";
                      v.tKeep(7 downto 0)  := (others => '1');
@@ -325,7 +325,7 @@ begin
                      v.ipv4Hdr(8)         := rxMaster.tData(87 downto 80);  -- Time-To-Live
                      v.ipv4Hdr(9)         := rxMaster.tData(95 downto 88);  -- Protocol
                      v.ipv4Hdr(12)        := rxMaster.tData(119 downto 112);  -- Source IP Address
-                     v.ipv4Hdr(13)        := rxMaster.tData(127 downto 120);  -- Source IP Address      
+                     v.ipv4Hdr(13)        := rxMaster.tData(127 downto 120);  -- Source IP Address
                      -- Fill in the TCP/UDP checksum
                      v.tData(31 downto 0) := rxMaster.tData(127 downto 112) & rxMaster.tData(95 downto 88) & x"00";
                      v.tKeep(3 downto 0)  := (others => '1');
@@ -357,13 +357,13 @@ begin
                if (VLAN_G = false) then
                   -- Fill in the IPv4 header checksum
                   v.ipv4Hdr(18) := rxMaster.tData(7 downto 0);  -- Destination IP Address
-                  v.ipv4Hdr(19) := rxMaster.tData(15 downto 8);  -- Destination IP Address   
+                  v.ipv4Hdr(19) := rxMaster.tData(15 downto 8);  -- Destination IP Address
                   -- Check for UDP data with inbound length/checksum
                   if (r.ipv4Det(0) = '1') and (r.udpDet(0) = '1') then
                      -- Mask off inbound UDP length/checksum
                      v.tData := rxMaster.tData(127 downto 80) & x"00000000" & rxMaster.tData(47 downto 0);
                   end if;
-                  -- Track the number of bytes 
+                  -- Track the number of bytes
                   v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep,INT_EMAC_AXIS_CONFIG_C) - 2;
                   v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep,INT_EMAC_AXIS_CONFIG_C) - 2;
                else
@@ -371,15 +371,15 @@ begin
                   v.ipv4Hdr(14) := rxMaster.tData(7 downto 0);  -- Source IP Address
                   v.ipv4Hdr(15) := rxMaster.tData(15 downto 8);  -- Source IP Address
                   v.ipv4Hdr(16) := rxMaster.tData(23 downto 16);  -- Destination IP Address
-                  v.ipv4Hdr(17) := rxMaster.tData(31 downto 24);  -- Destination IP Address               
+                  v.ipv4Hdr(17) := rxMaster.tData(31 downto 24);  -- Destination IP Address
                   v.ipv4Hdr(18) := rxMaster.tData(39 downto 32);  -- Destination IP Address
-                  v.ipv4Hdr(19) := rxMaster.tData(47 downto 40);  -- Destination IP Address   
+                  v.ipv4Hdr(19) := rxMaster.tData(47 downto 40);  -- Destination IP Address
                   -- Check for UDP data with inbound length/checksum
                   if (r.ipv4Det(0) = '1') and (r.udpDet(0) = '1') then
                      -- Mask off inbound UDP length/checksum
                      v.tData := rxMaster.tData(127 downto 112) & x"00000000" & rxMaster.tData(79 downto 0);
                   end if;
-                  -- Track the number of bytes 
+                  -- Track the number of bytes
                   v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep,INT_EMAC_AXIS_CONFIG_C) - 6;
                   v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep,INT_EMAC_AXIS_CONFIG_C) - 6;
                end if;
@@ -405,7 +405,7 @@ begin
                -- Move data
                v.sMaster        := rxMaster;
                -- Fill in the TCP/UDP checksum
-               v.tData          := rxMaster.tData(127 downto 0); 
+               v.tData          := rxMaster.tData(127 downto 0);
                v.tKeep          := rxMaster.tKeep(15 downto 0);
                -- Check for TCP data with inbound checksum
                if (r.ipv4Det(0) = '1') and (r.tcpDet(0) = '1') and (r.tcpFlag = '0') then
@@ -420,7 +420,7 @@ begin
                      v.tData := rxMaster.tData(127 downto 64) & x"0000" & rxMaster.tData(47 downto 0);
                   end if;
                end if;
-               -- Track the number of bytes 
+               -- Track the number of bytes
                v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep,INT_EMAC_AXIS_CONFIG_C);
                v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep,INT_EMAC_AXIS_CONFIG_C);
                -- Check for EOF
@@ -460,9 +460,9 @@ begin
 
       -- Fill in the IPv4 header
       v.ipv4Hdr(2) := v.ipv4Len(0)(15 downto 8);  -- IPV4_Length(15 downto 8)
-      v.ipv4Hdr(3) := v.ipv4Len(0)(7 downto 0);  -- IPV4_Length(7 downto 0)        
+      v.ipv4Hdr(3) := v.ipv4Len(0)(7 downto 0);  -- IPV4_Length(7 downto 0)
 
-      -- Wait for the transaction data 
+      -- Wait for the transaction data
       if (tranValid = '1') and (r.tranRd = '0') then
          -- Check for data
          if (mMaster.tValid = '1') and (v.txMaster.tValid = '0') then
@@ -480,7 +480,7 @@ begin
                -- Increment the counter
                v.mvCnt := r.mvCnt + 1;
             end if;
-            -- Check for IPv4 checksum/length insertion 
+            -- Check for IPv4 checksum/length insertion
             if (ipv4Det = '1') and (r.mvCnt = 1) then
                -- Check if NON-VLAN
                if (VLAN_G = false) then
@@ -599,7 +599,7 @@ begin
             if (mMaster.tLast = '1') then
                -- Reset the counter
                v.mvCnt  := 0;
-               -- Forward the EOFE               
+               -- Forward the EOFE
                axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v.txMaster, EMAC_EOFE_BIT_C, eofeDet);
                v.dbg(5) := eofeDet;
                -- Accept the data
@@ -607,7 +607,7 @@ begin
             end if;
          end if;
       end if;
-      
+
       -- Combinatorial outputs before the reset
       rxSlave <= v.rxSlave;
       mSlave  <= v.mSlave;
@@ -620,7 +620,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs       
+      -- Registered Outputs
       sMaster  <= r.sMaster;
       txMaster <= r.txMaster;
 

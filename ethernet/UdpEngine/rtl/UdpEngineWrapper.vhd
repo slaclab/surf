@@ -4,11 +4,11 @@
 -- Description: Wrapper for UdpEngine
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -45,7 +45,7 @@ entity UdpEngineWrapper is
       CLK_FREQ_G          : real            := 156.25E+06;  -- In units of Hz
       COMM_TIMEOUT_G      : positive        := 30;  -- In units of seconds, Client's Communication timeout before re-ARPing or DHCP discover/request
       TTL_G               : slv(7 downto 0) := x"20";  -- IPv4's Time-To-Live (TTL)
-      VLAN_G              : boolean         := false);  -- true = VLAN support       
+      VLAN_G              : boolean         := false);  -- true = VLAN support
    port (
       -- Local Configurations
       localMac         : in  slv(47 downto 0);  --  big-Endian configuration
@@ -136,7 +136,7 @@ begin
          obMacSlave           => obMacSlave,
          ibMacMaster          => ibMacMaster,
          ibMacSlave           => ibMacSlave,
-         -- Interface to Protocol Engine(s)  
+         -- Interface to Protocol Engine(s)
          obProtocolMasters(0) => obUdpMaster,
          obProtocolSlaves(0)  => obUdpSlave,
          ibProtocolMasters(0) => ibUdpMaster,
@@ -176,7 +176,7 @@ begin
          broadcastIp      => r.broadcastIp,
          localIpIn        => localIp,
          dhcpIpOut        => dhcpIp,
-         -- Interface to IPV4 Engine  
+         -- Interface to IPV4 Engine
          obUdpMaster      => obUdpMaster,
          obUdpSlave       => obUdpSlave,
          ibUdpMaster      => ibUdpMaster,

@@ -4,11 +4,11 @@
 -- Description: Outbound FIFO buffers
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -94,7 +94,7 @@ architecture rtl of EthMacRxFifo is
    signal vlanDrops : slv(VLAN_SIZE_G-1 downto 0) := (others => '0');
 
 --   attribute dont_touch      : string;
---   attribute dont_touch of r : signal is "TRUE";   
+--   attribute dont_touch of r : signal is "TRUE";
 
 begin
 
@@ -219,7 +219,7 @@ begin
          v.fifoPauseThresh := pauseThresh(FIFO_ADDR_WIDTH_G-1 downto 0);
       end if;
 
-      -- Outputs        
+      -- Outputs
       rxFifoDrop <= r.rxFifoDrop;
 
       -- Reset

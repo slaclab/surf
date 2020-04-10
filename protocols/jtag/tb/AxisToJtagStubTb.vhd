@@ -6,11 +6,11 @@
 -- Description: Simulation Test bench for AxisToJtagStub
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -73,7 +73,7 @@ begin
                if ( sAxisReq.tReady = '0' ) then
                   stage := ini;
                else
-                  mAxisReq.tValid <= '0'; 
+                  mAxisReq.tValid <= '0';
                end if; when 8             => when 9             =>
                mAxisReq.tData(31 downto 0) <= (others => '1');
                mAxisReq.tValid             <= '1';

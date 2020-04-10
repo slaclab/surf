@@ -5,11 +5,11 @@
 -- Package file for AXI DMA Controller
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -49,7 +49,7 @@ package AxiDmaPkg is
    end record;
 
    -- Initialization constants
-   constant AXI_WRITE_DMA_REQ_INIT_C : AxiWriteDmaReqType := ( 
+   constant AXI_WRITE_DMA_REQ_INIT_C : AxiWriteDmaReqType := (
       request => '0',
       drop    => '0',
       address => (others=>'0'),
@@ -78,7 +78,7 @@ package AxiDmaPkg is
    end record;
 
    -- Initialization constants
-   constant AXI_WRITE_DMA_ACK_INIT_C : AxiWriteDmaAckType := ( 
+   constant AXI_WRITE_DMA_ACK_INIT_C : AxiWriteDmaAckType := (
       idle       => '1',
       done       => '0',
       size       => (others=>'0'),
@@ -111,7 +111,7 @@ package AxiDmaPkg is
    end record;
 
    -- Initialization constants
-   constant AXI_READ_DMA_REQ_INIT_C : AxiReadDmaReqType := ( 
+   constant AXI_READ_DMA_REQ_INIT_C : AxiReadDmaReqType := (
       request   => '0',
       address   => (others=>'0'),
       size      => (others=>'0'),
@@ -123,11 +123,11 @@ package AxiDmaPkg is
 
    -- Array
    type AxiReadDmaReqArray is array (natural range<>) of AxiReadDmaReqType;
-   
+
    constant AXI_READ_DMA_READ_REQ_SIZE_C : integer := 131;
 
    function toSlv (r : AxiReadDmaReqType ) return slv;
-   function toAxiReadDmaReq (din : slv; valid : sl) return AxiReadDmaReqType;   
+   function toAxiReadDmaReq (din : slv; valid : sl) return AxiReadDmaReqType;
 
    -------------------------------------
    -- Read DMA Acknowledge (AxiStreamDmaRead)
@@ -142,7 +142,7 @@ package AxiDmaPkg is
    end record;
 
    -- Initialization constants
-   constant AXI_READ_DMA_ACK_INIT_C : AxiReadDmaAckType := ( 
+   constant AXI_READ_DMA_ACK_INIT_C : AxiReadDmaAckType := (
       idle       => '1',
       done       => '0',
       readError  => '0',
@@ -155,7 +155,7 @@ package AxiDmaPkg is
 
    -------------------------------------
    -- DMA Write Descriptor Request (AxiStreamDmaV2)
-   -- Issued from dma write engine to request a free 
+   -- Issued from dma write engine to request a free
    -- descriptor from the pool.
    -------------------------------------
 
@@ -164,7 +164,7 @@ package AxiDmaPkg is
       dest       : slv(7 downto 0);
    end record;
 
-   constant AXI_WRITE_DMA_DESC_REQ_INIT_C : AxiWriteDmaDescReqType := ( 
+   constant AXI_WRITE_DMA_DESC_REQ_INIT_C : AxiWriteDmaDescReqType := (
       valid      => '0',
       dest       => (others=>'0')
    );
@@ -188,13 +188,13 @@ package AxiDmaPkg is
       address    : slv(63 downto 0);
       metaEnable : sl;
       metaAddr   : slv(63 downto 0);
-      dropEn     : sl;              
+      dropEn     : sl;
       maxSize    : slv(31 downto 0);
-      contEn     : sl;              
+      contEn     : sl;
       buffId     : slv(31 downto 0);
    end record;
 
-   constant AXI_WRITE_DMA_DESC_ACK_INIT_C : AxiWriteDmaDescAckType := ( 
+   constant AXI_WRITE_DMA_DESC_ACK_INIT_C : AxiWriteDmaDescAckType := (
       valid      => '0',
       address    => (others=>'0'),
       metaEnable => '0',
@@ -219,7 +219,7 @@ package AxiDmaPkg is
 
    type AxiWriteDmaDescRetType is record
       valid      : sl;
-      buffId     : slv(31 downto 0); 
+      buffId     : slv(31 downto 0);
       firstUser  : slv(7  downto 0);
       lastUser   : slv(7  downto 0);
       size       : slv(31 downto 0);
@@ -229,7 +229,7 @@ package AxiDmaPkg is
       id         : slv(7  downto 0); -- TID
    end record;
 
-   constant AXI_WRITE_DMA_DESC_RET_INIT_C : AxiWriteDmaDescRetType := ( 
+   constant AXI_WRITE_DMA_DESC_RET_INIT_C : AxiWriteDmaDescRetType := (
       valid      => '0',
       buffId     => (others=>'0'),
       firstUser  => (others=>'0'),
@@ -261,7 +261,7 @@ package AxiDmaPkg is
       metaAddr   : slv(63 downto 0);
       maxSize    : slv(31 downto 0);
       size       : slv(31 downto 0);
-      firstUser  : slv(7 downto 0);  
+      firstUser  : slv(7 downto 0);
       contEn     : sl;
       dropEn     : sl;
       id         : slv(7  downto 0); -- TID
@@ -269,7 +269,7 @@ package AxiDmaPkg is
       overflow   : sl;
    end record;
 
-   constant AXI_WRITE_DMA_TRACK_INIT_C : AxiWriteDmaTrackType := ( 
+   constant AXI_WRITE_DMA_TRACK_INIT_C : AxiWriteDmaTrackType := (
       dest       => (others=>'0'),
       inUse      => '0',
       address    => (others=>'0'),
@@ -300,7 +300,7 @@ package AxiDmaPkg is
    type AxiReadDmaDescReqType is record
       valid      : sl;
       address    : slv(63 downto 0);
-      buffId     : slv(31 downto 0); 
+      buffId     : slv(31 downto 0);
       firstUser  : slv(7  downto 0);
       lastUser   : slv(7  downto 0);
       size       : slv(31 downto 0);
@@ -309,7 +309,7 @@ package AxiDmaPkg is
       dest       : slv(7  downto 0);
    end record;
 
-   constant AXI_READ_DMA_DESC_REQ_INIT_C : AxiReadDmaDescReqType := ( 
+   constant AXI_READ_DMA_DESC_REQ_INIT_C : AxiReadDmaDescReqType := (
       valid      => '0',
       address    => (others=>'0'),
       buffId     => (others=>'0'),
@@ -335,11 +335,11 @@ package AxiDmaPkg is
 
    type AxiReadDmaDescRetType is record
       valid      : sl;
-      buffId     : slv(31 downto 0); 
+      buffId     : slv(31 downto 0);
       result     : slv(2  downto 0);
    end record;
 
-   constant AXI_READ_DMA_DESC_RET_INIT_C : AxiReadDmaDescRetType := ( 
+   constant AXI_READ_DMA_DESC_RET_INIT_C : AxiReadDmaDescRetType := (
       valid      => '0',
       buffId     => (others=>'0'),
       result     => (others=>'0')

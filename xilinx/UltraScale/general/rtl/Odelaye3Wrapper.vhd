@@ -5,11 +5,11 @@
 -- https://forums.xilinx.com/t5/Versal-and-UltraScale/IDELAY-ODELAY-Usage/td-p/812362
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -38,7 +38,7 @@ entity Odelaye3Wrapper is
       SIM_DEVICE       : string  := "ULTRASCALE";  -- Set the device version (ULTRASCALE, ULTRASCALE_PLUS)
       UPDATE_MODE      : string  := "ASYNC");  -- Determines when updates to the delay will take effect (ASYNC, MANUAL, SYNC)
    port (
-      BUSY        : out sl;  -- 1-bit output: Patch module is busy   
+      BUSY        : out sl;  -- 1-bit output: Patch module is busy
       CASC_OUT    : out sl;  -- 1-bit output: Cascade delay output to IDELAY input cascade
       CNTVALUEOUT : out slv(8 downto 0);  -- 9-bit output: Counter value output
       DATAOUT     : out sl;  -- 1-bit output: Delayed data from ODATAIN input port

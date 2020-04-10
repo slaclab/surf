@@ -4,11 +4,11 @@
 -- Description: Wrapper for multiple SynchronizerOneShotCnt modules
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -35,7 +35,7 @@ entity SynchronizerOneShotCntVector is
       WIDTH_G        : positive := 16);
    port (
 
-      -- Write Ports (wrClk domain)          
+      -- Write Ports (wrClk domain)
       wrClk      : in  sl;
       wrRst      : in  sl := not RST_POLARITY_G;
       dataIn     : in  slv(WIDTH_G-1 downto 0);   -- Data to be 'synced'

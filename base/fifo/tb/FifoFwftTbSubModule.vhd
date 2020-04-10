@@ -4,11 +4,11 @@
 -- Description: Simulation sub module for testing the FifoFwft modules
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -32,7 +32,7 @@ entity FifoTbSubModule is
       wrClk  : in  sl;
       rdClk  : in  sl;
       passed : out sl := '0';
-      failed : out sl := '0');   
+      failed : out sl := '0');
 end FifoTbSubModule;
 
 architecture mapping of FifoTbSubModule is
@@ -49,7 +49,7 @@ architecture mapping of FifoTbSubModule is
    signal din,
       dout,
       check : slv(15 downto 0) := (others => '0');
-   
+
 begin
 
    process(wrClk)
@@ -60,7 +60,7 @@ begin
             din        <= (others => '1') after TPD_G;
             writeDelay <= (others => '0') after TPD_G;
          else
-            
+
             writeDelay    <= writeDelay + 1 after TPD_G;
             if writeDelay <= 3 then
                if aFull = '0' then
@@ -80,7 +80,7 @@ begin
          PIPE_STAGES_G   => PIPE_STAGES_G,
          FWFT_EN_G       => true,
          DATA_WIDTH_G    => 16,
-         ADDR_WIDTH_G    => 10)        
+         ADDR_WIDTH_G    => 10)
       port map (
          -- Resets
          rst         => rst,
@@ -93,7 +93,7 @@ begin
          rd_clk      => rdClk,
          rd_en       => rdEn,
          dout        => dout,
-         valid       => valid); 
+         valid       => valid);
 
    rdEn <= valid and ready;
 

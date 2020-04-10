@@ -4,11 +4,11 @@
 -- Description: Simulation Testbed for testing the IpV4Engine in Loopback
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -53,7 +53,7 @@ architecture rtl of IpV4EngineLoopback is
    type StateType is (
       IDLE_S,
       ARP_S,
-      DONE_S); 
+      DONE_S);
 
    type RegType is record
       ibProtocolSlave  : AxiStreamSlaveType;
@@ -73,14 +73,14 @@ architecture rtl of IpV4EngineLoopback is
       done             => '0',
       remoteMac        => (others => '0'),
       cnt              => (others => '0'),
-      state            => IDLE_S);  
+      state            => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
    -- attribute dont_touch      : string;
    -- attribute dont_touch of r : signal is "true";
-   
+
 begin
 
    comb : process (arpAckMaster, arpReqSlave, ibProtocolMaster, obProtocolSlave, r, remoteIp, rst,
@@ -112,7 +112,7 @@ begin
          v.obProtocolMaster := ibProtocolMaster;
          -- Check if SOF
          if (ssiGetUserSof(EMAC_AXIS_CONFIG_C, ibProtocolMaster) = '1') then
-            -- Swap the source and destination IP addresses in the IPv4 Pseudo Header 
+            -- Swap the source and destination IP addresses in the IPv4 Pseudo Header
             v.obProtocolMaster.tData(95 downto 64)  := ibProtocolMaster.tData(127 downto 96);
             v.obProtocolMaster.tData(127 downto 96) := ibProtocolMaster.tData(95 downto 64);
             -- Preset the counter
@@ -120,7 +120,7 @@ begin
          end if;
          -- Check if we need to swap the UDP ports
          if (PROTOCOL_G = UDP_C) and (r.cnt = 1) then
-            -- Swap the source and destination UDP ports in the datagram 
+            -- Swap the source and destination UDP ports in the datagram
             v.obProtocolMaster.tData(47 downto 32) := ibProtocolMaster.tData(63 downto 48);
             v.obProtocolMaster.tData(63 downto 48) := ibProtocolMaster.tData(47 downto 32);
          end if;
@@ -153,7 +153,7 @@ begin
             v.done := '1';
       ----------------------------------------------------------------------
       end case;
-      
+
       -- Combinatorial outputs before the reset
       ibProtocolSlave <= v.ibProtocolSlave;
       arpAckSlave     <= v.arpAckSlave;
@@ -166,7 +166,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs         
+      -- Registered Outputs
       obProtocolMaster <= r.obProtocolMaster;
       arpReqMaster     <= r.arpReqMaster;
       done             <= r.done;
@@ -180,5 +180,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-   
+
 end rtl;

@@ -6,11 +6,11 @@
 -- Description: SsiPrbsTx + AxiStreamMon Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -98,7 +98,7 @@ begin
    mAxisMaster <= iAxisMaster;
    iAxisSlave  <= mAxisSlave;
 
-   U_PrbsTx: entity surf.SsiPrbsTx 
+   U_PrbsTx: entity surf.SsiPrbsTx
       generic map (
          TPD_G                      => TPD_G,
          VALID_THOLD_G              => VALID_THOLD_G,
@@ -181,7 +181,7 @@ begin
 
       -- Frame generation
       if r.genEnable = '0' then
-         v.genCount := (others=>'0'); 
+         v.genCount := (others=>'0');
          v.trig     := '0';
       else
          v.genCount := r.genCount + 1;
@@ -206,15 +206,15 @@ begin
          v.genMissed := (others=>'0');
       end if;
 
-      -- Reset      
+      -- Reset
       if (mAxisRst = '1') then
          v := REG_INIT_C;
       end if;
 
-      -- Register the variable for next clock cycle      
+      -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs   
+      -- Outputs
       axilWriteSlave <= r.axilWriteSlave;
       axilReadSlave  <= r.axilReadSlave;
 

@@ -39,7 +39,7 @@ package i2coc is
      nReset : in std_logic;   -- asynchornous active low reset
                               -- (not used in GRLIB)
      ena    : in std_logic; -- core enable signal
-     
+
      clk_cnt : in std_logic_vector(15 downto 0);	-- 4x SCL
 
      -- input signals

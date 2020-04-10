@@ -4,11 +4,11 @@
 -- Description: 10GBASE-R Ethernet for GTH Ultra Scale
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -33,14 +33,14 @@ entity TenGigEthGtyUltraScale is
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
-      -- Streaming DMA Interface 
+      -- Streaming DMA Interface
       dmaClk             : in  sl;
       dmaRst             : in  sl;
       dmaIbMaster        : out AxiStreamMasterType;
       dmaIbSlave         : in  AxiStreamSlaveType;
       dmaObMaster        : in  AxiStreamMasterType;
       dmaObSlave         : out AxiStreamSlaveType;
-      -- Slave AXI-Lite Interface 
+      -- Slave AXI-Lite Interface
       axiLiteClk         : in  sl                     := '0';
       axiLiteRst         : in  sl                     := '0';
       axiLiteReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
@@ -207,7 +207,7 @@ begin
    status.qplllock <= qplllock(0) and qplllock(1);
 
    ------------------
-   -- Synchronization 
+   -- Synchronization
    ------------------
    U_AxiLiteAsync : entity surf.AxiLiteAsync
       generic map (
@@ -265,14 +265,14 @@ begin
    -----------------
    U_TenGigEthGtyUltraScaleCore : TenGigEthGtyUltraScale156p25MHzCore
       port map (
-         -- Clocks      
+         -- Clocks
          dclk                                => coreClk,
          gt_drpclk_0                         => coreClk,
          rx_core_clk_0                       => phyClock,
          tx_mii_clk_0                        => txGtClk,
          rx_clk_out_0                        => open,
          rxrecclkout_0                       => open,
-         -- Resets     
+         -- Resets
          gt_reset_all_in_0                   => coreRst,
          gt_tx_reset_in_0                    => coreRst,
          gt_rx_reset_in_0                    => coreRst,
@@ -280,7 +280,7 @@ begin
          rx_reset_0                          => coreRst,
          rx_serdes_reset_0                   => coreRst,
          sys_reset                           => coreRst,
-         -- Quad PLL Interface      
+         -- Quad PLL Interface
          qpll0clk_in(0)                      => qplloutclk(0),
          qpll0refclk_in(0)                   => qplloutrefclk(0),
          qpll1clk_in(0)                      => qplloutclk(1),
@@ -289,17 +289,17 @@ begin
          gtwiz_reset_qpll0reset_out          => qpllRst(0),
          gtwiz_reset_qpll1lock_in            => qplllock(1),
          gtwiz_reset_qpll1reset_out          => qpllRst(1),
-         -- MGT Ports      
+         -- MGT Ports
          gt_txp_out(0)                       => gtTxP,
          gt_txn_out(0)                       => gtTxN,
          gt_rxp_in(0)                        => gtRxP,
          gt_rxn_in(0)                        => gtRxN,
-         -- PHY Interface      
+         -- PHY Interface
          tx_mii_d_0                          => phyTxd,
          tx_mii_c_0                          => phyTxc,
          rx_mii_d_0                          => phyRxd,
          rx_mii_c_0                          => phyRxc,
-         -- Configuration and Status      
+         -- Configuration and Status
          txoutclksel_in_0                    => "101",
          rxoutclksel_in_0                    => "101",
          gt_loopback_in_0                    => (others => '0'),
@@ -337,7 +337,7 @@ begin
          gt_drpwe_0                          => '0',
          gt_drpaddr_0                        => (others => '0'),
          gt_drpdi_0                          => (others => '0'),
-         -- Transceiver Debug Interface        
+         -- Transceiver Debug Interface
          gt_dmonitorout_0                    => open,
          gt_eyescandataerror_0               => open,
          gt_eyescanreset_0                   => '0',
@@ -375,7 +375,7 @@ begin
 
    ---------------------------
    -- 10GBASE-R's Reset Module
-   ---------------------------     
+   ---------------------------
    U_TenGigEthRst : entity surf.TenGigEthGtyUltraScaleRst
       generic map (
          TPD_G => TPD_G)
@@ -389,9 +389,9 @@ begin
          phyRst    => phyReset,
          phyReady  => status.phyReady);
 
-   --------------------------------     
-   -- Configuration/Status Register   
-   --------------------------------     
+   --------------------------------
+   -- Configuration/Status Register
+   --------------------------------
    U_TenGigEthReg : entity surf.TenGigEthReg
       generic map (
          TPD_G        => TPD_G,

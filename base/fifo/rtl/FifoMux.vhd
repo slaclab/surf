@@ -4,11 +4,11 @@
 -- Description: Resizing FIFO module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -232,7 +232,7 @@ begin
          valid      <= fifo_valid;
          empty      <= fifo_empty;
       end if;
-      
+
    end process rdComb;
 
    -- If fifo is asynchronous, must use async reset on rd side.
@@ -261,7 +261,7 @@ begin
          RST_ASYNC_G        => RST_ASYNC_G,
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
          SYNTH_MODE_G       => SYNTH_MODE_G,
-         MEMORY_TYPE_G      => MEMORY_TYPE_G,         
+         MEMORY_TYPE_G      => MEMORY_TYPE_G,
          FWFT_EN_G          => FWFT_EN_G,
          SYNC_STAGES_G      => SYNC_STAGES_G,
          PIPE_STAGES_G      => PIPE_STAGES_G,
