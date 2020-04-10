@@ -94,6 +94,7 @@ begin
    U_BoxcarFilter : entity surf.BoxcarFilter
       generic map (
          TPD_G        => TPD_G,
+         SIGNED_G     => false,
          DATA_WIDTH_G => 16,
          ADDR_WIDTH_G => 10)
       port map (
