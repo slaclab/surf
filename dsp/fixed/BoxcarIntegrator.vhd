@@ -22,6 +22,7 @@ use surf.StdRtlPkg.all;
 entity BoxcarIntegrator is
    generic (
       TPD_G        : time     := 1 ns;
+	  SIGNED_G     : boolean  := false;  -- Treat data as unsigned by default
       DATA_WIDTH_G : positive := 16;
       ADDR_WIDTH_G : positive := 10);
    port (
@@ -72,11 +73,23 @@ architecture rtl of BoxcarIntegrator is
    signal rin : RegType;
 
    signal ramDout   : slv(DATA_WIDTH_G-1 downto 0);
+   signal ramDoutE  : signed(DATA_WIDTH_G downto 0);
+   signal ibDataE   : signed(DATA_WIDTH_G downto 0);
    signal rAddr     : slv(ADDR_WIDTH_G-1 downto 0);
    signal wAddr     : slv(ADDR_WIDTH_G-1 downto 0);
 
 begin
    
+    UNSIGNED_DATA : if (SIGNED_G = false) generate
+      ramDoutE <= signed('0' & ramDout);
+	  ibDataE  <= signed('0' & r.ibData);
+    end generate;
+	
+    SIGNED_DATA : if (SIGNED_G = true) generate
+      ramDoutE <= signed(ramDout(DATA_WIDTH_G-1) & ramDout);
+	  ibDataE  <= signed(ibDataE(DATA_WIDTH_G-1)& r.ibData);
+    end generate;
+	
    U_RAM : entity surf.SimpleDualPortRam
       generic map (
          TPD_G         => TPD_G,
@@ -95,7 +108,8 @@ begin
          addrb => rAddr,
          doutb => ramDout);
 
-   comb : process (ibData, ibValid, r, ramDout, rst, intCount, obAck) is
+   comb : process (ibData, ibValid, r, ramDout, rst, intCount, obAck, 
+                    ibDataE, ramDoutE) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -136,11 +150,11 @@ begin
          end if;
 
          -- Update the accumulator 
-         v.obData := r.obData + signed(r.ibData);
+         v.obData := r.obData + ibDataE;
 		 
          -- Check if full
          if r.obFull = '1' then
-            v.obData := v.obData - signed(ramDout);
+            v.obData := v.obData - ramDoutE;
          end if;
 
          -- Output valid latch
