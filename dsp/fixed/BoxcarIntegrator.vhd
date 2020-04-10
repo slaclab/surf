@@ -14,9 +14,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
-use ieee.std_logic_arith.all;
-
+use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -49,14 +47,14 @@ architecture rtl of BoxcarIntegrator is
 
    type RegType is record
       obFull     : sl;
-      intCount   : slv(ADDR_WIDTH_G-1 downto 0);
-      rAddr      : slv(ADDR_WIDTH_G-1 downto 0);
-      wAddr      : slv(ADDR_WIDTH_G-1 downto 0);
+      intCount   : unsigned(ADDR_WIDTH_G-1 downto 0);
+      rAddr      : unsigned(ADDR_WIDTH_G-1 downto 0);
+      wAddr      : unsigned(ADDR_WIDTH_G-1 downto 0);
       ibValid    : sl;
       ibData     : slv(DATA_WIDTH_G-1 downto 0);
       obValid    : sl;
       obPeriod   : sl;
-      obData     : slv(ACCUM_WIDTH_C-1 downto 0);
+      obData     : signed(ACCUM_WIDTH_C-1 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -74,9 +72,11 @@ architecture rtl of BoxcarIntegrator is
    signal rin : RegType;
 
    signal ramDout   : slv(DATA_WIDTH_G-1 downto 0);
+   signal rAddr     : slv(ADDR_WIDTH_G-1 downto 0);
+   signal wAddr     : slv(ADDR_WIDTH_G-1 downto 0);
 
 begin
-
+   
    U_RAM : entity surf.SimpleDualPortRam
       generic map (
          TPD_G         => TPD_G,
@@ -88,13 +88,12 @@ begin
          -- Port A     
          clka  => clk,
          wea   => r.ibValid,
-         addra => r.wAddr,
+         addra => wAddr,
          dina  => r.ibData,
          -- Port B
          clkb  => clk,
-         addrb => r.rAddr,
+         addrb => rAddr,
          doutb => ramDout);
-
 
    comb : process (ibData, ibValid, r, ramDout, rst, intCount, obAck) is
       variable v : RegType;
@@ -119,7 +118,7 @@ begin
          if r.rAddr = r.intCount then
             v.rAddr  := (others=>'0');
          else
-            v.rAddr  := r.rAddr + 1;
+            v.rAddr  := r.rAddr + '1';
          end if;
 
          -- Write lags read
@@ -137,11 +136,11 @@ begin
          end if;
 
          -- Update the accumulator 
-         v.obData := r.obData + resize(r.ibData, ACCUM_WIDTH_C);
-
+         v.obData := r.obData + signed(r.ibData);
+		 
          -- Check if full
          if r.obFull = '1' then
-            v.obData := v.obData - resize(ramDout, ACCUM_WIDTH_C);
+            v.obData := v.obData - signed(ramDout);
          end if;
 
          -- Output valid latch
@@ -153,12 +152,14 @@ begin
       obValid  <= r.obValid;
       obFull   <= r.obFull;
       obPeriod <= r.obPeriod;
-      obData   <= r.obData;
+      obData   <= std_logic_vector(r.obData);
+	  rAddr    <= std_logic_vector(r.rAddr);
+      wAddr    <= std_logic_vector(r.wAddr);
 
       -- Reset
-      if rst = '1' or r.intCount /= intCount then
+      if rst = '1' or r.intCount /= unsigned(intCount) then
          v          := REG_INIT_C;
-         v.intCount := intCount;
+         v.intCount := unsigned(intCount);
       end if;
 
       -- Register the variable for next clock cycle
