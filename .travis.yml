@@ -75,7 +75,7 @@ jobs:
     - <<: *documentation_stage
       stage: generate_and_deploy
       name: "Generate and Deploy Documentation"
-      script: 
+      script:
         - ./scripts/generateDocumentationAndDeploy.sh 1
 
     - &deploy-conda-stage       # Conda for linux
