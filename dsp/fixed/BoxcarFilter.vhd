@@ -24,6 +24,7 @@ use surf.StdRtlPkg.all;
 entity BoxcarFilter is
    generic (
       TPD_G        : time     := 1 ns;
+      SIGNED_G     : boolean  := false;  -- Treat data as unsigned by default
       DATA_WIDTH_G : positive := 16;
       ADDR_WIDTH_G : positive := 10);
    port (
@@ -48,6 +49,7 @@ begin
    U_Integrator : entity surf.BoxcarIntegrator
       generic map (
          TPD_G        => TPD_G,
+         SIGNED_G     => SIGNED_G,
          DATA_WIDTH_G => DATA_WIDTH_G,
          ADDR_WIDTH_G => ADDR_WIDTH_G)
       port map (
