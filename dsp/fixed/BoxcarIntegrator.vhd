@@ -22,23 +22,23 @@ use surf.StdRtlPkg.all;
 entity BoxcarIntegrator is
    generic (
       TPD_G        : time     := 1 ns;
-	  SIGNED_G     : boolean  := false;  -- Treat data as unsigned by default
+      SIGNED_G     : boolean  := false;  -- Treat data as unsigned by default
       DATA_WIDTH_G : positive := 16;
       ADDR_WIDTH_G : positive := 10);
    port (
-      clk       : in  sl;
-      rst       : in  sl;
+      clk      : in  sl;
+      rst      : in  sl;
       -- Configuration, intCount is 0 based, 0 = 1, 1 = 2, 1023 = 1024
-      intCount  : in slv(ADDR_WIDTH_G-1 downto 0);
+      intCount : in  slv(ADDR_WIDTH_G-1 downto 0);
       -- Inbound Interface
-      ibValid   : in  sl := '1';
-      ibData    : in  slv(DATA_WIDTH_G-1 downto 0);
+      ibValid  : in  sl := '1';
+      ibData   : in  slv(DATA_WIDTH_G-1 downto 0);
       -- Outbound Interface
-      obValid   : out sl;
-      obAck     : in  sl := '1';
-      obData    : out slv(DATA_WIDTH_G+ADDR_WIDTH_G-1 downto 0);
-      obFull    : out sl;
-      obPeriod  : out sl);
+      obValid  : out sl;
+      obAck    : in  sl := '1';
+      obData   : out slv(DATA_WIDTH_G+ADDR_WIDTH_G-1 downto 0);
+      obFull   : out sl;
+      obPeriod : out sl);
 
 end BoxcarIntegrator;
 
@@ -47,49 +47,49 @@ architecture rtl of BoxcarIntegrator is
    constant ACCUM_WIDTH_C : positive := (DATA_WIDTH_G+ADDR_WIDTH_G);
 
    type RegType is record
-      obFull     : sl;
-      intCount   : unsigned(ADDR_WIDTH_G-1 downto 0);
-      rAddr      : unsigned(ADDR_WIDTH_G-1 downto 0);
-      wAddr      : unsigned(ADDR_WIDTH_G-1 downto 0);
-      ibValid    : sl;
-      ibData     : slv(DATA_WIDTH_G-1 downto 0);
-      obValid    : sl;
-      obPeriod   : sl;
-      obData     : signed(ACCUM_WIDTH_C-1 downto 0);
+      obFull   : sl;
+      intCount : unsigned(ADDR_WIDTH_G-1 downto 0);
+      rAddr    : unsigned(ADDR_WIDTH_G-1 downto 0);
+      wAddr    : unsigned(ADDR_WIDTH_G-1 downto 0);
+      ibValid  : sl;
+      ibData   : slv(DATA_WIDTH_G-1 downto 0);
+      obValid  : sl;
+      obPeriod : sl;
+      obData   : signed(ACCUM_WIDTH_C-1 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      obFull     => '0',
-      intCount   => (others=>'0'),
-      rAddr      => (others=>'0'),
-      wAddr      => (others=>'0'),
-      ibValid    => '0',
-      ibData     => (others=>'0'),
-      obValid    => '0',
-      obPeriod   => '0',
-      obData     => (others=>'0'));
+      obFull   => '0',
+      intCount => (others => '0'),
+      rAddr    => (others => '0'),
+      wAddr    => (others => '0'),
+      ibValid  => '0',
+      ibData   => (others => '0'),
+      obValid  => '0',
+      obPeriod => '0',
+      obData   => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal ramDout   : slv(DATA_WIDTH_G-1 downto 0);
-   signal ramDoutE  : signed(DATA_WIDTH_G downto 0);
-   signal ibDataE   : signed(DATA_WIDTH_G downto 0);
-   signal rAddr     : slv(ADDR_WIDTH_G-1 downto 0);
-   signal wAddr     : slv(ADDR_WIDTH_G-1 downto 0);
+   signal ramDout  : slv(DATA_WIDTH_G-1 downto 0);
+   signal ramDoutE : signed(DATA_WIDTH_G downto 0);
+   signal ibDataE  : signed(DATA_WIDTH_G downto 0);
+   signal rAddr    : slv(ADDR_WIDTH_G-1 downto 0);
+   signal wAddr    : slv(ADDR_WIDTH_G-1 downto 0);
 
 begin
-   
-    UNSIGNED_DATA : if (SIGNED_G = false) generate
+
+   UNSIGNED_DATA : if (SIGNED_G = false) generate
       ramDoutE <= signed('0' & ramDout);
-	  ibDataE  <= signed('0' & r.ibData);
-    end generate;
-	
-    SIGNED_DATA : if (SIGNED_G = true) generate
+      ibDataE  <= signed('0' & r.ibData);
+   end generate;
+
+   SIGNED_DATA : if (SIGNED_G = true) generate
       ramDoutE <= signed(ramDout(DATA_WIDTH_G-1) & ramDout);
-	  ibDataE  <= signed(ibDataE(DATA_WIDTH_G-1)& r.ibData);
-    end generate;
-	
+      ibDataE  <= signed(ibDataE(DATA_WIDTH_G-1)& r.ibData);
+   end generate;
+
    U_RAM : entity surf.SimpleDualPortRam
       generic map (
          TPD_G         => TPD_G,
@@ -108,8 +108,7 @@ begin
          addrb => rAddr,
          doutb => ramDout);
 
-   comb : process (ibData, ibValid, r, ramDout, rst, intCount, obAck, 
-                    ibDataE, ramDoutE) is
+   comb : process (ibData, ibDataE, ibValid, intCount, obAck, r, ramDoutE, rst) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -130,9 +129,9 @@ begin
 
          -- Read address
          if r.rAddr = r.intCount then
-            v.rAddr  := (others=>'0');
+            v.rAddr := (others => '0');
          else
-            v.rAddr  := r.rAddr + '1';
+            v.rAddr := r.rAddr + '1';
          end if;
 
          -- Write lags read
@@ -151,7 +150,7 @@ begin
 
          -- Update the accumulator 
          v.obData := r.obData + ibDataE;
-		 
+
          -- Check if full
          if r.obFull = '1' then
             v.obData := v.obData - ramDoutE;
@@ -167,7 +166,7 @@ begin
       obFull   <= r.obFull;
       obPeriod <= r.obPeriod;
       obData   <= std_logic_vector(r.obData);
-	  rAddr    <= std_logic_vector(r.rAddr);
+      rAddr    <= std_logic_vector(r.rAddr);
       wAddr    <= std_logic_vector(r.wAddr);
 
       -- Reset
