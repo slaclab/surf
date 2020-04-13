@@ -4,11 +4,11 @@
 -- Description: Simple boxcar integrator
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -85,7 +85,7 @@ begin
          DATA_WIDTH_G  => DATA_WIDTH_G,
          ADDR_WIDTH_G  => ADDR_WIDTH_G)
       port map (
-         -- Port A     
+         -- Port A
          clka  => clk,
          wea   => r.ibValid,
          addra => r.wAddr,
@@ -136,7 +136,7 @@ begin
             v.obPeriod := '1';
          end if;
 
-         -- Update the accumulator 
+         -- Update the accumulator
          v.obData := r.obData + resize(r.ibData, ACCUM_WIDTH_C);
 
          -- Check if full
@@ -149,7 +149,7 @@ begin
 
       end if;
 
-      -- Outputs              
+      -- Outputs
       obValid  <= r.obValid;
       obFull   <= r.obFull;
       obPeriod <= r.obPeriod;

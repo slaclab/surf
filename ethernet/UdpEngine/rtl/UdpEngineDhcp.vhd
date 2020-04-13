@@ -4,11 +4,11 @@
 -- Description: DHCP Engine
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -34,9 +34,9 @@ entity UdpEngineDhcp is
    port (
       -- Local Configurations
       localMac     : in  slv(47 downto 0);  --  big-Endian configuration
-      localIp      : in  slv(31 downto 0);  --  big-Endian configuration 
-      dhcpIp       : out slv(31 downto 0);  --  big-Endian configuration       
-      -- Interface to DHCP Engine  
+      localIp      : in  slv(31 downto 0);  --  big-Endian configuration
+      dhcpIp       : out slv(31 downto 0);  --  big-Endian configuration
+      -- Interface to DHCP Engine
       ibDhcpMaster : in  AxiStreamMasterType;
       ibDhcpSlave  : out AxiStreamSlaveType;
       obDhcpMaster : out AxiStreamMasterType;
@@ -323,7 +323,7 @@ begin
                      else
                         v.txMaster.tData(7 downto 0)   := toSlv(53, 8);  -- code = DHCP Message Type
                         v.txMaster.tData(15 downto 8)  := x"01";  -- len = 1 byte
-                        v.txMaster.tData(23 downto 16) := x"03";  -- DHCP request = 0x3                    
+                        v.txMaster.tData(23 downto 16) := x"03";  -- DHCP request = 0x3
                      end if;
                   -- Requested IP address[15:0]
                   when 61 =>
@@ -332,7 +332,7 @@ begin
                      v.txMaster.tData(31 downto 16) := r.yiaddr(15 downto 0);  -- YIADDR[15:0]
                   -- Requested IP address[32:16]
                   when 62 =>
-                     v.txMaster.tData(15 downto 0) := r.yiaddr(31 downto 16);  -- YIADDR[31:16] 
+                     v.txMaster.tData(15 downto 0) := r.yiaddr(31 downto 16);  -- YIADDR[31:16]
                   -- Server Identifier[15:0]
                   when 63 =>
                      v.txMaster.tData(7 downto 0)   := toSlv(54, 8);  -- code = Server Identifier
@@ -340,7 +340,7 @@ begin
                      v.txMaster.tData(31 downto 16) := r.siaddr(15 downto 0);  -- SIADDR[15:0]
                   -- Server Identifier[32:16]
                   when 64 =>
-                     v.txMaster.tData(15 downto 0) := r.siaddr(31 downto 16);  -- SIADDR[31:16] 
+                     v.txMaster.tData(15 downto 0) := r.siaddr(31 downto 16);  -- SIADDR[31:16]
                   when 65 =>
                      v.txMaster.tData(7 downto 0)  := x"FF";   -- Endmark
                      v.txMaster.tKeep(15 downto 0) := x"0001";
@@ -397,7 +397,7 @@ begin
                      end if;
                   -- Magic cookie
                   when 59 =>
-                     -- Check if Magic cookie doesn't match                  
+                     -- Check if Magic cookie doesn't match
                      if rxMaster.tData(31 downto 0) /= MAGIC_COOKIE_C then
                         -- Next state
                         v.state := IDLE_S;
@@ -519,13 +519,13 @@ begin
                if (r.dhcpReq = '0') and (r.msgType = 2) then
                   -- Set the flag
                   v.dhcpReq := '1';
-                  -- Reset counter to immediately start the "DHCP request"  
+                  -- Reset counter to immediately start the "DHCP request"
                   v.commCnt := 0;
                -- Check for "DHCP request" request and "DHCP ACK" reply
                elsif (r.dhcpReq = '1') and (r.msgType = 5) then
-                  -- Set the DHCP address 
+                  -- Set the DHCP address
                   v.dhcpIp   := r.yiaddrTemp;
-                  -- Clients begin to attempt to renew their leases 
+                  -- Clients begin to attempt to renew their leases
                   -- once half the lease interval has expired.
                   v.renewCnt := r.leaseTime(31 downto 1);
                   v.leaseCnt := r.leaseTime;
@@ -555,7 +555,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs       
+      -- Registered Outputs
       txMaster <= r.txMaster;
       dhcpIp   <= r.dhcpIp;
 

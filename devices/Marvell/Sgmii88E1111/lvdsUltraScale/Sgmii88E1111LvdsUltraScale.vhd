@@ -4,11 +4,11 @@
 -- Description: Wrapper for Marvell 88E1111 PHY + GigEthLvdsUltraScaleWrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -38,7 +38,7 @@ entity Sgmii88E1111LvdsUltraScale is
       phyClk      : out   sl;
       phyRst      : out   sl;
       -- Local Configurations/status
-      localMac    : in    slv(47 downto 0);  --  big-Endian configuration   
+      localMac    : in    slv(47 downto 0);  --  big-Endian configuration
       phyReady    : out   sl;
       linkUp      : out   sl;
       speed10     : out   sl;
@@ -57,7 +57,7 @@ entity Sgmii88E1111LvdsUltraScale is
       phyMdc      : out   sl;
       phyMdio     : inout sl;
       phyRstN     : out   sl;                -- active low
-      phyIrqN     : in    sl;                -- active low      
+      phyIrqN     : in    sl;                -- active low
       -- LVDS SGMII Ports
       sgmiiRxP    : in    sl;
       sgmiiRxN    : in    sl;

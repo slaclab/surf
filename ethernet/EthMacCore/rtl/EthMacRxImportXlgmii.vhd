@@ -4,11 +4,11 @@
 -- Description: 40GbE Import MAC core with XLGMII interface
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -30,7 +30,7 @@ entity EthMacRxImportXlgmii is
       -- Clock and Reset
       ethClk      : in  sl;
       ethRst      : in  sl;
-      -- AXIS Interface   
+      -- AXIS Interface
       macIbMaster : out AxiStreamMasterType;
       -- XLGMII PHY Interface
       phyRxd      : in  slv(127 downto 0);

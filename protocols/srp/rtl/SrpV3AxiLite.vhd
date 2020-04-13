@@ -5,16 +5,16 @@
 -------------------------------------------------------------------------------
 -- Description: SLAC Register Protocol Version 3, AXI-Lite Interface
 --
--- Note: This module only supports 32-bit aligned addresses and 32-bit transactions.  
+-- Note: This module only supports 32-bit aligned addresses and 32-bit transactions.
 --       For non 32-bit aligned addresses or non 32-bit transactions, use
 --       the SrpV3Axi.vhd module with the AxiToAxiLite.vhd bridge
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -41,16 +41,16 @@ entity SrpV3AxiLite is
       TX_VALID_BURST_MODE_G : boolean                 := true;  -- only used in VALID_THOLD_G>1
       SLAVE_READY_EN_G      : boolean                 := false;
       GEN_SYNC_FIFO_G       : boolean                 := false;
-      AXIL_CLK_FREQ_G       : real                    := 156.25E+6;  -- units of Hz    
+      AXIL_CLK_FREQ_G       : real                    := 156.25E+6;  -- units of Hz
       AXI_STREAM_CONFIG_G   : AxiStreamConfigType     := ssiAxiStreamConfig(2));
    port (
-      -- AXIS Slave Interface (sAxisClk domain) 
+      -- AXIS Slave Interface (sAxisClk domain)
       sAxisClk         : in  sl;
       sAxisRst         : in  sl;
       sAxisMaster      : in  AxiStreamMasterType;
       sAxisSlave       : out AxiStreamSlaveType;
       sAxisCtrl        : out AxiStreamCtrlType;
-      -- AXIS Master Interface (mAxisClk domain) 
+      -- AXIS Master Interface (mAxisClk domain)
       mAxisClk         : in  sl;
       mAxisRst         : in  sl;
       mAxisMaster      : out AxiStreamMasterType;
@@ -214,12 +214,12 @@ begin
          INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
          PIPE_STAGES_G       => PIPE_STAGES_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
-         VALID_THOLD_G       => 0,  -- = 0 = only when frame ready                                                                 
+         VALID_THOLD_G       => 0,  -- = 0 = only when frame ready
          -- FIFO configurations
          MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          INT_WIDTH_SELECT_G  => "CUSTOM",
-         INT_DATA_WIDTH_G    => 16,     -- 128-bit         
+         INT_DATA_WIDTH_G    => 16,     -- 128-bit
          FIFO_ADDR_WIDTH_G   => 9,      -- 8kB/FIFO = 128-bits x 512 entries
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
@@ -282,7 +282,7 @@ begin
       -- Latch the current value
       v := r;
 
-      -- Reset the flags    
+      -- Reset the flags
       v.rxRst   := '0';
       v.skip    := '0';
       v.rxSlave := AXI_STREAM_SLAVE_INIT_C;
@@ -574,7 +574,7 @@ begin
                v.mAxilReadMaster.arvalid := '1';
                v.mAxilReadMaster.rready  := '1';
                -- Update the Protection control
-               v.mAxilReadMaster.arprot  := r.prot;                
+               v.mAxilReadMaster.arprot  := r.prot;
                -- Reset the timer
                v.timer                   := 0;
                v.timeoutCnt              := (others => '0');
@@ -611,7 +611,7 @@ begin
                end if;
                -- Check if transaction is done
                if (v.mAxilReadMaster.arvalid = '0') and (v.mAxilReadMaster.rready = '0') then
-                  -- Check for memory bus error 
+                  -- Check for memory bus error
                   if v.memResp /= 0 then
                      -- Next State
                      v.state := FOOTER_S;
@@ -681,7 +681,7 @@ begin
                   v.mAxilWriteMaster.wvalid     := '1';
                   v.mAxilWriteMaster.bready     := '1';
                   -- Update the Protection control
-                  v.mAxilWriteMaster.awprot     := r.prot;                   
+                  v.mAxilWriteMaster.awprot     := r.prot;
                   -- Reset the timer
                   v.timer                       := 0;
                   v.timeoutCnt                  := (others => '0');
@@ -712,7 +712,7 @@ begin
             end if;
             -- Check if transaction is done
             if (v.mAxilWriteMaster.awvalid = '0') and(v.mAxilWriteMaster.wvalid = '0') and (v.mAxilWriteMaster.bready = '0') then
-               -- Check for memory bus error 
+               -- Check for memory bus error
                if v.memResp /= 0 then
                   -- Next State
                   v.state := FOOTER_S;
@@ -792,8 +792,8 @@ begin
          MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          INT_WIDTH_SELECT_G  => "CUSTOM",
-         INT_DATA_WIDTH_G    => 16,     -- 128-bit         
-         FIFO_ADDR_WIDTH_G   => 9,      -- 8kB/FIFO = 128-bits x 512 entries         
+         INT_DATA_WIDTH_G    => 16,     -- 128-bit
+         FIFO_ADDR_WIDTH_G   => 9,      -- 8kB/FIFO = 128-bits x 512 entries
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_G)

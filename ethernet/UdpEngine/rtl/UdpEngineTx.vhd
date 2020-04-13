@@ -5,11 +5,11 @@
 -- Note: UDP checksum checked in EthMac core
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -34,7 +34,7 @@ entity UdpEngineTx is
       TX_FLOW_CTRL_G : boolean       := true; -- True: Blow off the UDP TX data if link down, False: Backpressure until TX link is up
       PORT_G         : PositiveArray := (0 => 8192));
    port (
-      -- Interface to IPV4 Engine  
+      -- Interface to IPV4 Engine
       obUdpMaster  : out AxiStreamMasterType;
       obUdpSlave   : in  AxiStreamSlaveType;
       -- Interface to User Application
@@ -122,7 +122,7 @@ begin
       end if;
 
       for i in SIZE_G-1 downto 0 loop
-         -- Check if link is up 
+         -- Check if link is up
          if (localMac /= 0)       and  -- Non-zero local MAC address
             (localIp /= 0)        and  -- Non-zero local IP address
             (PORT_G(i) /= 0)      and  -- Non-zero local UDP port
@@ -158,7 +158,7 @@ begin
                   v.txMaster.tData(47 downto 0)   := (others => '1');  -- Destination MAC address
                   v.txMaster.tData(63 downto 48)  := x"0000";  -- All 0s
                   v.txMaster.tData(95 downto 64)  := (others => '0');  -- Source IP address
-                  v.txMaster.tData(127 downto 96) := (others => '1');  -- Destination IP address               
+                  v.txMaster.tData(127 downto 96) := (others => '1');  -- Destination IP address
                   ssiSetUserSof(EMAC_AXIS_CONFIG_C, v.txMaster, '1');
                   -- Next state
                   v.state                         := DHCP_HDR_S;
@@ -168,10 +168,10 @@ begin
                end if;
             -- Check for data and remote MAC is non-zero
             elsif (ibMasters(r.index).tValid = '1') and (v.txMaster.tValid = '0') then
-               -- Check if link down and blowing off the data 
+               -- Check if link down and blowing off the data
                if (r.linkUp(r.index) = '0') and TX_FLOW_CTRL_G then
                   -- Blow off the data
-                  v.ibSlaves(r.index).tReady := '1';            
+                  v.ibSlaves(r.index).tReady := '1';
                -- Check for SOF
                elsif (ssiGetUserSof(EMAC_AXIS_CONFIG_C, ibMasters(r.index)) = '1') then
                   -- Check if link up
@@ -183,7 +183,7 @@ begin
                      v.txMaster.tData(47 downto 0)   := remoteMac(r.index);  -- Destination MAC address
                      v.txMaster.tData(63 downto 48)  := x"0000";  -- All 0s
                      v.txMaster.tData(95 downto 64)  := localIp;  -- Source IP address
-                     v.txMaster.tData(127 downto 96) := remoteIp(r.index);  -- Destination IP address               
+                     v.txMaster.tData(127 downto 96) := remoteIp(r.index);  -- Destination IP address
                      ssiSetUserSof(EMAC_AXIS_CONFIG_C, v.txMaster, '1');
                      -- Next state
                      v.state                         := HDR_S;
@@ -198,7 +198,7 @@ begin
          ------------------------------------------------
          -- tData[0][47:0]   = DST MAC Address
          -- tData[0][63:48]  = zeros
-         -- tData[0][95:64]  = SRC IP Address 
+         -- tData[0][95:64]  = SRC IP Address
          -- tData[0][127:96] = DST IP address
          -- tData[1][7:0]    = zeros
          -- tData[1][15:8]   = Protocol Type = UDP
@@ -206,9 +206,9 @@ begin
          -- tData[1][47:32]  = SRC Port
          -- tData[1][63:48]  = DST Port
          -- tData[1][79:64]  = UDP Length
-         -- tData[1][95:80]  = UDP Checksum 
-         -- tData[1][127:96] = UDP Datagram 
-         ------------------------------------------------            
+         -- tData[1][95:80]  = UDP Checksum
+         -- tData[1][127:96] = UDP Datagram
+         ------------------------------------------------
          ----------------------------------------------------------------------
          when DHCP_HDR_S =>
             -- Check if ready to move data
@@ -223,10 +223,10 @@ begin
                v.txMaster.tData(47 downto 32)  := DHCP_CPORT;  -- Source port
                v.txMaster.tData(63 downto 48)  := DHCP_SPORT;  -- Destination port
                v.txMaster.tData(79 downto 64)  := x"0000";  -- UDP length = Calculated in EthMac core
-               v.txMaster.tData(95 downto 80)  := x"0000";  -- UDP checksum  = Calculated in EthMac core              
-               v.txMaster.tData(127 downto 96) := obDhcpMaster.tData(31 downto 0);  -- UDP Datagram     
+               v.txMaster.tData(95 downto 80)  := x"0000";  -- UDP checksum  = Calculated in EthMac core
+               v.txMaster.tData(127 downto 96) := obDhcpMaster.tData(31 downto 0);  -- UDP Datagram
                v.txMaster.tKeep(11 downto 0)   := x"FFF";
-               v.txMaster.tKeep(15 downto 12)  := obDhcpMaster.tKeep(3 downto 0);  -- UDP Datagram  
+               v.txMaster.tKeep(15 downto 12)  := obDhcpMaster.tKeep(3 downto 0);  -- UDP Datagram
                -- Track the leftovers
                v.tData(95 downto 0)            := obDhcpMaster.tData(127 downto 32);
                v.tData(127 downto 96)          := (others => '0');
@@ -266,10 +266,10 @@ begin
                v.txMaster.tData(47 downto 32)  := PORT_C(r.chPntr);  -- Source port
                v.txMaster.tData(63 downto 48)  := remotePort(r.chPntr);  -- Destination port
                v.txMaster.tData(79 downto 64)  := x"0000";  -- UDP length = Calculated in EthMac core
-               v.txMaster.tData(95 downto 80)  := x"0000";  -- UDP checksum  = Calculated in EthMac core              
-               v.txMaster.tData(127 downto 96) := ibMasters(r.chPntr).tData(31 downto 0);  -- UDP Datagram     
+               v.txMaster.tData(95 downto 80)  := x"0000";  -- UDP checksum  = Calculated in EthMac core
+               v.txMaster.tData(127 downto 96) := ibMasters(r.chPntr).tData(31 downto 0);  -- UDP Datagram
                v.txMaster.tKeep(11 downto 0)   := x"FFF";
-               v.txMaster.tKeep(15 downto 12)  := ibMasters(r.chPntr).tKeep(3 downto 0);  -- UDP Datagram  
+               v.txMaster.tKeep(15 downto 12)  := ibMasters(r.chPntr).tKeep(3 downto 0);  -- UDP Datagram
                -- Track the leftovers
                v.tData(95 downto 0)            := ibMasters(r.chPntr).tData(127 downto 32);
                v.tData(127 downto 96)          := (others => '0');
@@ -308,7 +308,7 @@ begin
                v.txMaster.tData(127 downto 96) := obDhcpMaster.tData(31 downto 0);
                v.txMaster.tKeep(11 downto 0)   := r.tKeep(11 downto 0);
                v.txMaster.tKeep(15 downto 12)  := obDhcpMaster.tKeep(3 downto 0);
-               -- Track the leftovers                                 
+               -- Track the leftovers
                v.tData(95 downto 0)            := obDhcpMaster.tData(127 downto 32);
                v.tKeep(11 downto 0)            := obDhcpMaster.tKeep(15 downto 4);
                v.tLast                         := obDhcpMaster.tLast;
@@ -341,7 +341,7 @@ begin
                v.txMaster.tData(127 downto 96) := ibMasters(r.chPntr).tData(31 downto 0);
                v.txMaster.tKeep(11 downto 0)   := r.tKeep(11 downto 0);
                v.txMaster.tKeep(15 downto 12)  := ibMasters(r.chPntr).tKeep(3 downto 0);
-               -- Track the leftovers                                 
+               -- Track the leftovers
                v.tData(95 downto 0)            := ibMasters(r.chPntr).tData(127 downto 32);
                v.tKeep(11 downto 0)            := ibMasters(r.chPntr).tKeep(15 downto 4);
                v.tLast                         := ibMasters(r.chPntr).tLast;
@@ -377,7 +377,7 @@ begin
       ----------------------------------------------------------------------
       end case;
 
-      -- Outputs   
+      -- Outputs
       ibSlaves    <= v.ibSlaves;
       obDhcpSlave <= v.obDhcpSlave;
       txMaster    <= r.txMaster;

@@ -6,11 +6,11 @@
 -- Description: PGPv3 GTH Ultrascale QPLL Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -31,7 +31,7 @@ entity Pgp3GthUsQpll is
    generic (
       TPD_G             : time            := 1 ns;
       REFCLK_TYPE_G     : Pgp3RefClkType  := PGP3_REFCLK_156_C;
-      RATE_G            : string          := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps" 
+      RATE_G            : string          := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
       QPLL_REFCLK_SEL_G : slv(2 downto 0) := "001";
       EN_DRP_G          : boolean         := true);
    port (

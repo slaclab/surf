@@ -4,11 +4,11 @@
 -- Description: AXI Stream to DMA Ring Buffer Write Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -41,7 +41,7 @@ entity AxiStreamDmaRingWrite is
       BYP_SHIFT_G          : boolean                  := true;  -- Bypass both because we do not want them to back-pressure
       BYP_CACHE_G          : boolean                  := true); -- Bypass both because we do not want them to back-pressure
    port (
-      -- AXI-Lite Interface for local registers 
+      -- AXI-Lite Interface for local registers
       axilClk         : in  sl;
       axilRst         : in  sl;
       axilReadMaster  : in  AxiLiteReadMasterType;
@@ -58,7 +58,7 @@ entity AxiStreamDmaRingWrite is
       -- AXI (DDR) clock domain
       axiClk          : in  sl;
       axiRst          : in  sl;
-      -- Axi Stream data to be buffered      
+      -- Axi Stream data to be buffered
       axisDataMaster  : in  AxiStreamMasterType;
       axisDataSlave   : out AxiStreamSlaveType;
       -- Low level buffer control
@@ -283,7 +283,7 @@ begin
          TPD_G        => TPD_G,
          SYNTH_MODE_G => "inferred",
          MEMORY_TYPE_G=> "distributed",
-         READ_LATENCY_G => 0, 
+         READ_LATENCY_G => 0,
          AXI_WR_EN_G  => true,
          SYS_WR_EN_G  => false,
          ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
@@ -307,7 +307,7 @@ begin
          TPD_G        => TPD_G,
          SYNTH_MODE_G => "inferred",
          MEMORY_TYPE_G=> "distributed",
-         READ_LATENCY_G => 0, 
+         READ_LATENCY_G => 0,
          AXI_WR_EN_G  => false,
          SYS_WR_EN_G  => true,
          ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
@@ -331,7 +331,7 @@ begin
          TPD_G        => TPD_G,
          SYNTH_MODE_G => "inferred",
          MEMORY_TYPE_G=> "distributed",
-         READ_LATENCY_G => 0, 
+         READ_LATENCY_G => 0,
          AXI_WR_EN_G  => false,
          SYS_WR_EN_G  => true,
          ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
@@ -356,7 +356,7 @@ begin
          TPD_G        => TPD_G,
          SYNTH_MODE_G => "inferred",
          MEMORY_TYPE_G=> "distributed",
-         READ_LATENCY_G => 0, 
+         READ_LATENCY_G => 0,
          AXI_WR_EN_G  => true,
          SYS_WR_EN_G  => false,
          COMMON_CLK_G => false,
@@ -383,7 +383,7 @@ begin
          TPD_G        => TPD_G,
          SYNTH_MODE_G => "inferred",
          MEMORY_TYPE_G=> "distributed",
-         READ_LATENCY_G => 0, 
+         READ_LATENCY_G => 0,
          AXI_WR_EN_G  => false,
          SYS_WR_EN_G  => true,
          ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
@@ -414,7 +414,7 @@ begin
          AXI_CACHE_G       => "0011",       -- Cacheable
          ACK_WAIT_BVALID_G => false,
          BYP_SHIFT_G       => BYP_SHIFT_G,  -- Bypass both because we do not want them to back-pressure
-         BYP_CACHE_G       => BYP_CACHE_G)  -- Bypass both because we do not want them to back-pressure                
+         BYP_CACHE_G       => BYP_CACHE_G)  -- Bypass both because we do not want them to back-pressure
       port map (
          axiClk         => axiClk,          -- [in]
          axiRst         => axiRst,          -- [in]

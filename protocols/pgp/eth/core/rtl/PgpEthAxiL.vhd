@@ -6,11 +6,11 @@
 -- Description: AXI-Lite block to manage the PGP Ethernet interface.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -177,7 +177,7 @@ begin
          statusIn(47 downto 32) => pgpTxOut.locOverflow,
          statusIn(31 downto 16) => pgpTxOut.locPause,
          statusIn(15 downto 0)  => pgpRxOut.remRxPause,
-         -- Outbound Status/control Signals (axilClk domain)  
+         -- Outbound Status/control Signals (axilClk domain)
          statusOut              => statusOut,
          cntRstIn               => r.cntRst,
          rollOverEnIn           => r.rollOverEn(STATUS_SIZE_C-1 downto 0),
@@ -253,8 +253,8 @@ begin
       -------------------------
       -- Map the read registers
       -------------------------
-      
-      axiSlaveRegisterR(axilEp, x"00", 0, statusOut);     
+
+      axiSlaveRegisterR(axilEp, x"00", 0, statusOut);
       axiSlaveRegisterR(axilEp, x"10", 0, freqMeasured);
 
       axiSlaveRegisterR(axilEp, x"14", 0, frameTxMinSize);

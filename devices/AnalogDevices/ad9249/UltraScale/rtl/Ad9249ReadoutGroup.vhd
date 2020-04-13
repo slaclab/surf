@@ -7,11 +7,11 @@
 -- Designed specifically for Xilinx Ultrascale series FPGAs
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -161,10 +161,10 @@ architecture rtl of Ad9249ReadoutGroup is
    signal debugDataValid : sl;
    signal debugDataOut   : slv(NUM_CHANNELS_G*16-1 downto 0);
    signal debugDataTmp   : slv16Array(NUM_CHANNELS_G-1 downto 0);
-   
+
    signal frameDelay    : slv(8 downto 0);
    signal frameDelaySet : sl;
-   
+
    signal invertSync    : sl;
 
    attribute keep of adcBitClkRD4 : signal is "true";
@@ -215,7 +215,7 @@ begin
          rst     => axilRst,
          dataIn  => adcFrame,
          dataOut => adcFrameSync);
-   
+
    Synchronizer_2 : entity surf.Synchronizer
       generic map (
          TPD_G    => TPD_G,
@@ -271,7 +271,7 @@ begin
       axiSlaveRegisterR(axilEp, X"30", 16, lockedSync);
       axiSlaveRegisterR(axilEp, X"34", 0, adcFrameSync);
       axiSlaveRegister(axilEp, X"38", 0, v.lockedCountRst);
-      
+
       axiSlaveRegister(axilEp, X"40", 0, v.invert);
 
       -- Debug registers. Output the last 2 words received
@@ -283,7 +283,7 @@ begin
       axiSlaveRegister(axilEp, X"A0", 0, v.freezeDebug);
 
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
-      
+
       if adcClkRst = '1' then
          v.lockedCountRst := '1';
       end if;
@@ -352,23 +352,23 @@ begin
             rstOut(0) => adcBitIoRst,
             locked    => open
          );
-      
+
       U_bitClkBufG : BUFG
          port map (
             O => adcBitClkIo,
             I => tmpAdcClk);
-      
+
    end generate G_MMCM;
-   
+
    G_NO_MMCM : if USE_MMCME_G = false generate
-      
+
       tmpAdcClk <= adcBitClkIoIn;
-      
+
       U_bitClkBufG : BUFG
          port map (
             O => adcBitClkIo,
             I => tmpAdcClk);
-      
+
       U_PwrUpRst : entity surf.PwrUpRst
          generic map (
             TPD_G          => TPD_G,
@@ -380,10 +380,10 @@ begin
             clk    => adcBitClkIo,
             arst   => adcClkRst,
             rstOut => adcBitIoRst);
-      
+
    end generate G_NO_MMCM;
 
-   
+
 
    -- Regional clock
    U_AdcBitClkR : BUFGCE_DIV
@@ -451,7 +451,7 @@ begin
          gearboxOffset => adcR.gearboxOffset,
          adcData       => adcFrame
          );
-   
+
    U_FrmDlyFifo : entity surf.SynchronizerFifo
       generic map (
          TPD_G         => TPD_G,
@@ -468,7 +468,7 @@ begin
          rd_en  => '1',
          valid  => frameDelaySet,
          dout   => frameDelay);
-   
+
    --------------------------------
    -- Data Input, 8 channels
    --------------------------------
@@ -500,8 +500,8 @@ begin
             gearboxOffset => adcR.gearboxOffset,
             adcData       => adcData(i)
             );
-      
-      
+
+
       U_DataDlyFifo : entity surf.SynchronizerFifo
          generic map (
             TPD_G         => TPD_G,
@@ -518,7 +518,7 @@ begin
             rd_en  => '1',
             valid  => dataDelaySet(i),
             dout   => dataDelay(i));
-      
+
    end generate;
 
    -------------------------------------------------------------------------------------------------

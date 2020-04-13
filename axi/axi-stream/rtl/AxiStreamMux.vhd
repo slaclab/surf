@@ -6,11 +6,11 @@
 -- outbound stream. The destination field is updated accordingly.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -40,7 +40,7 @@ entity AxiStreamMux is
       TDEST_LOW_G          : integer range 0 to 7   := 0;
       -- Set to true if interleaving dests
       ILEAVE_EN_G          : boolean                := false;
-      -- Rearbitrate when tValid drops on selected channel, ignored when ILEAVE_EN_G=false      
+      -- Rearbitrate when tValid drops on selected channel, ignored when ILEAVE_EN_G=false
       ILEAVE_ON_NOTVALID_G : boolean                := false;
       -- Max number of transactions between arbitrations, 0 = unlimited, ignored when ILEAVE_EN_G=false
       ILEAVE_REARB_G      : natural range 0 to 4095 := 0;
@@ -137,7 +137,7 @@ begin
       variable selData  : AxiStreamMasterType;
       variable i        : natural;
    begin
-      -- Latch the current value   
+      -- Latch the current value
       v := r;
 
       -- Reset the flags
@@ -208,12 +208,12 @@ begin
          v.arbCnt := (others => '0');
       end if;
 
-      -- Arbitrate between requesters      
+      -- Arbitrate between requesters
       if ((v.valid = '0' and REARB_DELAY_G = false) or r.valid = '0') then
          v.arbCnt := (others => '0');
          arbitrate(requests, r.ackNum, v.ackNum, v.valid, v.acks);
       end if;
-      
+
       -- Combinatorial outputs before the reset
       sAxisSlaves <= v.slaves;
 
@@ -235,7 +235,7 @@ begin
       if (rising_edge(axisClk)) then
          r <= rin after TPD_G;
       end if;
-   end process seq;   
+   end process seq;
 
    -- Optional output pipeline registers to ease timing
    AxiStreamPipeline_1 : entity surf.AxiStreamPipeline

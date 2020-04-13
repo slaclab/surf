@@ -6,11 +6,11 @@
 -- Description: Gth7 Fixed Latency Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -61,7 +61,7 @@ entity Pgp2bGth7FixedLatWrapper is
       TX_CLK25_DIV_G       : integer              := 5;     -- Set by wizard
       RX_OS_CFG_G          : bit_vector           := "0000010000000";           -- Set by wizard
       RXCDR_CFG_G          : bit_vector           := x"0002007FE1000C2200018";  -- Set by wizard
-      RXDFEXYDEN_G         : sl                   := '0';   -- Set by wizard      
+      RXDFEXYDEN_G         : sl                   := '0';   -- Set by wizard
       TX_PLL_G             : string               := "QPLL";
       RX_PLL_G             : string               := "CPLL");
    port (
@@ -93,17 +93,17 @@ entity Pgp2bGth7FixedLatWrapper is
       gtTxN            : out sl;
       gtRxP            : in  sl;
       gtRxN            : in  sl;
-      -- Debug Interface 
+      -- Debug Interface
       txPreCursor      : in  slv(4 downto 0)        := (others => '0');
       txPostCursor     : in  slv(4 downto 0)        := (others => '0');
       txDiffCtrl       : in  slv(3 downto 0)        := "1000";
-      -- AXI-Lite Interface 
+      -- AXI-Lite Interface
       axilClk          : in  sl                     := '0';
       axilRst          : in  sl                     := '0';
       axilReadMaster   : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
       axilReadSlave    : out AxiLiteReadSlaveType;
       axilWriteMaster  : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave   : out AxiLiteWriteSlaveType); 
+      axilWriteSlave   : out AxiLiteWriteSlaveType);
 end Pgp2bGth7FixedLatWrapper;
 
 architecture rtl of Pgp2bGth7FixedLatWrapper is
@@ -132,13 +132,13 @@ architecture rtl of Pgp2bGth7FixedLatWrapper is
       qPllRefClkLost,
       qPllReset,
       gtQPllReset : sl := '0';
-   
+
    attribute KEEP_HIERARCHY : string;
    attribute KEEP_HIERARCHY of
       PwrUpRst_Inst,
       QPllCore_1,
       Pgp2bGth7Fixedlat_Inst : label is "TRUE";
-   
+
 begin
 
    -- Set the status outputs
@@ -162,7 +162,7 @@ begin
          I => gtClkDiv2,
          O => stableClock);
 
-   -- Power Up Reset      
+   -- Power Up Reset
    PwrUpRst_Inst : entity surf.PwrUpRst
       port map (
          arst   => extRst,
@@ -235,17 +235,17 @@ begin
    BUFH_1 : BUFH
       port map (
          I => clkFbOut,
-         O => clkFbIn); 
+         O => clkFbIn);
 
    BUFG_2 : BUFG
       port map (
          I => clkOut0,
-         O => gtClk); 
+         O => gtClk);
 
    BUFG_3 : BUFG
       port map (
          I => clkOut1,
-         O => txClock);  
+         O => txClock);
 
    txRst <= stableRst;
 
@@ -268,7 +268,7 @@ begin
          qPllLock       => qPllLock,
          qPllLockDetClk => pllLockDetClk,
          qPllRefClkLost => qPllRefClkLost,
-         qPllReset      => qPllReset);                    
+         qPllReset      => qPllReset);
 
    Pgp2bGth7Fixedlat_Inst : entity surf.Pgp2bGth7Fixedlat
       generic map (
@@ -279,7 +279,7 @@ begin
          RX_POLARITY_G         => RX_POLARITY_G,
          TX_ENABLE_G           => TX_ENABLE_G,
          RX_ENABLE_G           => RX_ENABLE_G,
-         STABLE_CLOCK_PERIOD_G => 4.0E-9,  --set for longest timeout 
+         STABLE_CLOCK_PERIOD_G => 4.0E-9,  --set for longest timeout
          -- CPLL Settings -
          CPLL_REFCLK_SEL_G     => "111",
          CPLL_FBDIV_G          => CPLL_FBDIV_G,
@@ -334,15 +334,15 @@ begin
          pgpRxMasters     => pgpRxMasters,
          pgpRxMasterMuxed => pgpRxMasterMuxed,
          pgpRxCtrl        => pgpRxCtrl,
-         -- Debug Interface 
+         -- Debug Interface
          txPreCursor      => txPreCursor,
          txPostCursor     => txPostCursor,
          txDiffCtrl       => txDiffCtrl,
-         -- AXI-Lite Interface 
+         -- AXI-Lite Interface
          axilClk          => axilClk,
          axilRst          => axilRst,
          axilReadMaster   => axilReadMaster,
          axilReadSlave    => axilReadSlave,
          axilWriteMaster  => axilWriteMaster,
-         axilWriteSlave   => axilWriteSlave);    
+         axilWriteSlave   => axilWriteSlave);
 end rtl;

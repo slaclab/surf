@@ -140,7 +140,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs 
+      -- Registered Outputs
       outputValid <= r.outputValid;
       if BIT_REVERSE_OUT_G then
          outputData     <= bitReverse(r.outputData);

@@ -4,11 +4,11 @@
 -- Description: AXI Stream Monitor Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -95,7 +95,7 @@ architecture rtl of AxiStreamMon is
    signal frameRateMinSync : slv(31 downto 0);
 
    -- attribute dont_touch          : string;
-   -- attribute dont_touch of r     : signal is "true";   
+   -- attribute dont_touch of r     : signal is "true";
 
 begin
 
@@ -197,7 +197,7 @@ begin
       -- Check if last cycle had data moving
       if (r.tValid = '1') then
 
-         -- Update the accumulator 
+         -- Update the accumulator
          if (AXIS_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
             v.accum      := r.accum + conv_integer(r.tKeep(bitSize(AXIS_CONFIG_G.TDATA_BYTES_C)-1 downto 0));
             v.frameAccum := r.frameAccum + conv_integer(r.tKeep(bitSize(AXIS_CONFIG_G.TDATA_BYTES_C)-1 downto 0));
@@ -222,7 +222,7 @@ begin
       -- Increment the timer
       v.timer := r.timer + 1;
 
-      -- Check for timeout 
+      -- Check for timeout
       if r.timer = TIMEOUT_C then
          -- Reset the timer
          v.timer     := 0;
@@ -264,7 +264,7 @@ begin
          COMMON_CLK_G => COMMON_CLK_G,
          WIDTH_G      => 32)
       port map (
-         -- ASYNC statistics reset    
+         -- ASYNC statistics reset
          rstStat => axisRst,
          -- Write Interface (wrClk domain)
          wrClk   => axisClk,
@@ -282,7 +282,7 @@ begin
          COMMON_CLK_G => COMMON_CLK_G,
          WIDTH_G      => 40)
       port map (
-         -- ASYNC statistics reset    
+         -- ASYNC statistics reset
          rstStat => axisRst,
          -- Write Interface (wrClk domain)
          wrClk   => axisClk,
