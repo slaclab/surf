@@ -39,6 +39,8 @@ addons:
       # - ghdl
 
 stages:
+    - name: gen_release
+      if: tag IS present
     # On master branch (but not on PRs to master) or in tagged releases
     # generate and deploy the documentation
     - name: generate_and_deploy
@@ -136,4 +138,12 @@ jobs:
       #os: osx
       #language: ruby  # osx does not support language=python
       #env: CONDA_TOKEN=$CONDA_UPLOAD_TOKEN_TAG
+
+    - stage: gen_release
+      name: "Generate Release"
+      install:
+         - git clone https://github.com/slaclab/ruckus.git -b new_release
+         - pip install -r ruckus/scripts/pip_requirements.txt
+      script:
+         - python ruckus/scripts/releaseGen.py
 
