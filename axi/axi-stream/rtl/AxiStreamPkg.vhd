@@ -49,6 +49,8 @@ package AxiStreamPkg is
       tUser  => (others => '0'));
    type AxiStreamMasterArray is array (natural range<>) of AxiStreamMasterType;
    type AxiStreamMasterVectorArray is array (natural range<>, natural range<>) of AxiStreamMasterType;
+   subtype AxiStreamDualMasterType is AxiStreamMasterArray(1 downto 0);
+   type AxiStreamDualMasterArray is array (natural range <>) of AxiStreamMasterArray(1 downto 0);
    subtype AxiStreamQuadMasterType is AxiStreamMasterArray(3 downto 0);
    type AxiStreamQuadMasterArray is array (natural range <>) of AxiStreamMasterArray(3 downto 0);
    subtype AxiStreamOctalMasterType is AxiStreamMasterArray(7 downto 0);
@@ -60,6 +62,8 @@ package AxiStreamPkg is
 
    type AxiStreamSlaveArray is array (natural range<>) of AxiStreamSlaveType;
    type AxiStreamSlaveVectorArray is array (natural range<>, natural range<>) of AxiStreamSlaveType;
+   subtype AxiStreamDualSlaveType is AxiStreamSlaveArray(1 downto 0);
+   type AxiStreamDualSlaveArray is array (natural range <>) of AxiStreamSlaveArray(1 downto 0);
    subtype AxiStreamQuadSlaveType is AxiStreamSlaveArray(3 downto 0);
    type AxiStreamQuadSlaveArray is array (natural range <>) of AxiStreamSlaveArray(3 downto 0);
    subtype AxiStreamOctalSlaveType is AxiStreamSlaveArray(7 downto 0);
@@ -126,6 +130,8 @@ package AxiStreamPkg is
 
    type AxiStreamCtrlArray is array (natural range<>) of AxiStreamCtrlType;
    type AxiStreamCtrlVectorArray is array (natural range<>, natural range<>) of AxiStreamCtrlType;
+   subtype AxiStreamDualCtrlType is AxiStreamCtrlArray(1 downto 0);
+   type AxiStreamDualCtrlArray is array (natural range <>) of AxiStreamCtrlArray(1 downto 0);
    subtype AxiStreamQuadCtrlType is AxiStreamCtrlArray(3 downto 0);
    type AxiStreamQuadCtrlArray is array (natural range <>) of AxiStreamCtrlArray(3 downto 0);
    subtype AxiStreamOctalCtrlType is AxiStreamCtrlArray(7 downto 0);
