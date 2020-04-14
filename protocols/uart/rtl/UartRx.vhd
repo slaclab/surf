@@ -24,7 +24,7 @@ entity UartRx is
    generic (
       TPD_G        : time                  := 1 ns;
       PARITY_G     : string                := "NONE";  -- "NONE" "ODD" "EVEN"
-      BAUD_MULT_G  : integer range 1 to 16 := 16;
+      BAUD_MULT_G  : integer range 2 to 16 := 16;
       DATA_WIDTH_G : integer range 5 to 8  := 8);
    port (
       clk         : in  sl;
@@ -111,8 +111,8 @@ begin
          when WAIT_START_BIT_S =>
             if (rxFall = '1') then
                v.rxState      := WAIT_HALF_S;
-               v.clkEnCount   := "0000";
-               v.rxShiftCount := "0000";
+               v.clkEnCount   := (others=>'0');
+               v.rxShiftCount := (others=>'0');
             end if;
 
          -- Wait BAUD_MULT_G/2 clkEn counts to find center of start bit
@@ -121,7 +121,7 @@ begin
             if (clkEn = '1') then
                v.clkEnCount := r.clkEnCount + 1;
                if (r.clkEnCount = (BAUD_MULT_G/2-1)) then
-                  v.clkEnCount := "0000";
+                  v.clkEnCount := (others=>'0');
                   v.rxState    := WAIT_FULL_S;
                end if;
             end if;
@@ -130,8 +130,8 @@ begin
          when WAIT_FULL_S =>
             if (clkEn = '1') then
                v.clkEnCount := r.clkEnCount + 1;
-               if (r.clkEnCount = (BAUD_MULT_G-1)) then
-                  v.clkEnCount := "0000";
+               if (r.clkEnCount = (BAUD_MULT_G-2)) then
+                  v.clkEnCount := (others=>'0');
                   v.rxState    := r.waitState;
                end if;
             end if;
