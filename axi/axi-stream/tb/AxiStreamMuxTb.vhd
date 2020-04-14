@@ -1,14 +1,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Simulation Testbed for testing the SsiFifo module
+-- Description: Simulation Testbed for testing the AxiStreamMux module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -189,37 +189,6 @@ begin
          mAxisMaster  => obMaster,
          mAxisSlave   => obSlave);
 
---    SsiFifo_Inst : entity surf.SsiFifo
---       generic map (
---          -- General Configurations
---          TPD_G               => TPD_C,
---          PIPE_STAGES_G       => AXI_PIPE_STAGES_C,
---          EN_FRAME_FILTER_G   => true,
---          VALID_THOLD_G       => 1,
---          -- FIFO configurations
---          MEMORY_TYPE_G       => MEMORY_TYPE_C,
---          GEN_SYNC_FIFO_G     => false,
---          CASCADE_SIZE_G      => CASCADE_SIZE_C,
---          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
---          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_C,
---          -- AXI Stream Port Configurations
---          SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_C,
---          MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_C)
---       port map (
---          -- Slave Port
---          sAxisClk       => fastClk,
---          sAxisRst       => fastRst,
---          sAxisMaster    => obMaster,
---          sAxisSlave     => obSlave,
---          sAxisCtrl      => open,
---          sAxisDropWrite => dropWrite,
---          sAxisTermFrame => dropFrame,
---          -- Master Port
---          mAxisClk       => slowClk,
---          mAxisRst       => slowRst,
---          mAxisMaster    => ibMaster,
---          mAxisSlave     => ibSlave);
-
    process(fastClk)
    begin
       if rising_edge(fastClk) then
@@ -288,7 +257,7 @@ begin
             SLAVE_AXI_STREAM_CONFIG_G  => AXI_STREAM_CONFIG_C,
             SLAVE_AXI_PIPE_STAGES_G    => AXI_PIPE_STAGES_C)
          port map (
-            -- Streaming RX Data Interface (sAxisClk domain) 
+            -- Streaming RX Data Interface (sAxisClk domain)
             sAxisClk       => slowClk,
             sAxisRst       => slowRst,
             sAxisMaster    => ibMasters(i),

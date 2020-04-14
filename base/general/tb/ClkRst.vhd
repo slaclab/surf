@@ -5,11 +5,11 @@
 --              Assumes active high reset.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -48,7 +48,7 @@ begin
 
    assert (CLK_HIGH_C = CLK_LOW_C)
       -- report "ClkRst: CLK_HIGH_C (" & str(CLK_HIGH_C) & ") does not match CLK_LOW_C (" & str(CLK_LOW_C) & "). \n\
-      report "ClkRst: CLK_HIGH_C does not match CLK_LOW_C. \n if you need 50 percent duty cycle for this clock, you will need to increase the simulator time resolution." 
+      report "ClkRst: CLK_HIGH_C does not match CLK_LOW_C. \n if you need 50 percent duty cycle for this clock, you will need to increase the simulator time resolution."
       severity warning;
 
    process is

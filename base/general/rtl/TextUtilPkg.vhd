@@ -4,11 +4,11 @@
 -- Description: Provides functions for handling text.
 ------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 ------------------------------------------------------------------------------
 
@@ -46,7 +46,7 @@ package TextUtilPkg is
 
    -- Converts a character into an integer
    function int(c : character) return integer;
-   
+
    -- converts integer into string using specified base
    function str(int : integer; base : integer) return string;
 
@@ -87,12 +87,12 @@ package TextUtilPkg is
    -- return first nonwhitespace substring (JFF)
    function firstString(s : string) return string;
 
-   -- finds the first non-whitespace substring in a string and (JFF)  
-   -- returns both the substring and the original with the substring removed 
+   -- finds the first non-whitespace substring in a string and (JFF)
+   -- returns both the substring and the original with the substring removed
    procedure chomp(variable s : inout string; variable shead : out string);
 
 
-   -------------------------------------------------- 
+   --------------------------------------------------
    -- functions to convert strings into other formats
    --------------------------------------------------
 
@@ -384,7 +384,7 @@ package body TextUtilPkg is
             when others => hex(hexlen -I) := '?';
          end case;
       end loop;
---      print("HSTR Out: " & hex(1 to hexlen));      
+--      print("HSTR Out: " & hex(1 to hexlen));
       return hex(1 to hexlen);
    end hstr;
 
@@ -636,7 +636,7 @@ package body TextUtilPkg is
    end toSlv;
 
    ---------------------------------------------------------------------------------------------------------------------
-   -- file I/O  -- 
+   -- file I/O  --
    ---------------------------------------------------------------------------------------------------------------------
 
    -- read variable length string from input file
@@ -651,7 +651,7 @@ package body TextUtilPkg is
       for i in res_string'range loop
          res_string(i) := ' ';
       end loop;
-      -- read all characters of the line, up to the length  
+      -- read all characters of the line, up to the length
       -- of the results string
       for i in res_string'range loop
          read(l, c, is_string);

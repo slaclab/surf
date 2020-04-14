@@ -4,14 +4,14 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
--- Cell Transmit interface module for the Pretty Good Protocol core. 
+-- Cell Transmit interface module for the Pretty Good Protocol core.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -24,13 +24,13 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.Pgp2bPkg.all;
 
-entity Pgp2bTxCell is 
+entity Pgp2bTxCell is
    generic (
       TPD_G             : time                 := 1 ns;
       TX_LANE_CNT_G     : integer range 1 to 2 := 1; -- Number of bonded lanes, 1-2
       PAYLOAD_CNT_TOP_G : integer              := 7  -- Top bit for payload counter
    );
-   port ( 
+   port (
 
       -- System clock, reset & control
       pgpTxClkEn        : in  sl := '1';                        -- Master clock Enable
@@ -367,7 +367,7 @@ begin
    process ( curState, schTxIdle, schTxReq, intTimeout, cellCnt, eocWord, socWord, curTypeLast,
             muxFrameTxValid, muxFrameTxSOF, muxFrameTxEOF, muxFrameTxEOFE, muxFrameTxData,
             muxRemAlmostFull ) begin
-      case curState is 
+      case curState is
 
          -- Idle
          when ST_IDLE_C =>
@@ -468,7 +468,7 @@ begin
                   nxtTypeLast     <= TX_EOFE_C;
                   nxtState        <= ST_CRCA_C;
                   nxtFrameTxReady <= '0';
-              
+
                -- EOF is asserted
                elsif muxFrameTxEOF = '1' then
                   nxtTypeLast     <= TX_EOF_C;
@@ -637,7 +637,7 @@ begin
             cellTxData   <= (others=>'0') after TPD_G;
          elsif pgpTxClkEn = '1' then
             -- Which data type
-            case dly2Type is 
+            case dly2Type is
                when TX_DATA_C =>
                   cellTxSOC    <= '0'           after TPD_G;
                   cellTxSOF    <= '0'           after TPD_G;

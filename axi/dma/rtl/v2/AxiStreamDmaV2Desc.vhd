@@ -5,11 +5,11 @@
 -- Descriptor manager for AXI DMA read and write engines.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -39,7 +39,7 @@ entity AxiStreamDmaV2Desc is
       -- Configuration of AXI bus, must be 64 bits (or wider)
       AXI_CONFIG_G : AxiConfigType := AXI_CONFIG_INIT_C;
 
-      -- Number of descriptor entries in write FIFO and return ring buffers 
+      -- Number of descriptor entries in write FIFO and return ring buffers
       DESC_AWIDTH_G : integer range 4 to 32 := 12;
 
       -- Choose between one-clock arbitration for return descriptors or count and check selection
@@ -494,7 +494,7 @@ begin
                   v.wrReqCnt := r.wrReqCnt + 1;
                end if;
 
-               -- Check for valid 
+               -- Check for valid
                if (wrReqList(r.wrReqCnt) = '1') then
                   v.wrReqValid := '1';
                   v.wrReqNum   := toSlv(r.wrReqCnt, CHAN_SIZE_C);
@@ -590,7 +590,7 @@ begin
                      v.descRetCnt := r.descRetCnt + 1;
                   end if;
 
-                  -- Check for valid 
+                  -- Check for valid
                   if (v.descRetList(r.descRetCnt) = '1') then
                      descRetValid := '1';
                      v.descRetNum := toSlv(r.descRetCnt, RET_SIZE_C);
@@ -768,7 +768,7 @@ begin
       end if;
 
       ----------------------------------------------------------
-      -- Outputs   
+      -- Outputs
       ----------------------------------------------------------
 
       axilReadSlave  <= r.axilReadSlave;
@@ -794,12 +794,12 @@ begin
          end if;
       end loop;
 
-      -- Reset      
+      -- Reset
       if (axiRst = '1') then
          v := REG_INIT_C;
       end if;
 
-      -- Register the variable for next clock cycle      
+      -- Register the variable for next clock cycle
       rin <= v;
 
    end process comb;

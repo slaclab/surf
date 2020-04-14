@@ -6,11 +6,11 @@
 -- streams based upon the incoming tDest value.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -121,7 +121,7 @@ begin
 
       -- Combinatorial outputs before the reset
       sAxisSlave <= v.slave;
-      
+
       -- Reset
       if (axisRst = '1') then
          v := REG_INIT_C;
@@ -137,7 +137,7 @@ begin
 
    GEN_VEC :
    for i in (NUM_MASTERS_G-1) downto 0 generate
-      
+
       U_Pipeline : entity surf.AxiStreamPipeline
          generic map (
             TPD_G         => TPD_G,
@@ -148,7 +148,7 @@ begin
             sAxisMaster => pipeAxisMasters(i),
             sAxisSlave  => pipeAxisSlaves(i),
             mAxisMaster => mAxisMasters(i),
-            mAxisSlave  => mAxisSlaves(i));   
+            mAxisSlave  => mAxisSlaves(i));
 
    end generate GEN_VEC;
 

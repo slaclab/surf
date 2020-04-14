@@ -4,11 +4,11 @@
 -- Description: AXI-Lite interface to LTC2270 ADC IC
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -37,7 +37,7 @@ entity AxiLtc2270Core is
       adcInOut       : inout AxiLtc2270InOutType;
       -- ADC signals (axiClk domain)
       adcValid       : out   slv(0 to 1);
-      adcData        : out   Slv16Array(0 to 1);                         --2's complement      
+      adcData        : out   Slv16Array(0 to 1);                         --2's complement
       -- AXI-Lite Register Interface (axiClk domain)
       axiReadMaster  : in    AxiLiteReadMasterType;
       axiReadSlave   : out   AxiLiteReadSlaveType;
@@ -51,10 +51,10 @@ entity AxiLtc2270Core is
 end AxiLtc2270Core;
 
 architecture mapping of AxiLtc2270Core is
-   
+
    signal status : AxiLtc2270StatusType;
    signal config : AxiLtc2270ConfigType;
-   
+
 begin
 
    adcValid <= status.adcValid;
@@ -74,7 +74,7 @@ begin
          adcSdi         => adcOut.sdi,
          adcSdo         => adcInOut.sdo,
          adcPar         => adcOut.par,
-         -- AXI-Lite Register Interface    
+         -- AXI-Lite Register Interface
          axiReadMaster  => axiReadMaster,
          axiReadSlave   => axiReadSlave,
          axiWriteMaster => axiWriteMaster,
@@ -85,7 +85,7 @@ begin
          -- Clocks and Resets
          axiClk         => axiClk,
          axiRst         => axiRst,
-         refclk200MHz   => refclk200MHz);   
+         refclk200MHz   => refclk200MHz);
 
    AxiLtc2270Deser_Inst : entity surf.AxiLtc2270Deser
       generic map(
@@ -93,7 +93,7 @@ begin
          DELAY_INIT_G    => DELAY_INIT_G,
          IODELAY_GROUP_G => IODELAY_GROUP_G)
       port map (
-         -- ADC Ports  
+         -- ADC Ports
          clkInP       => adcIn.clkP,
          clkInN       => adcIn.clkN,
          clkOutP      => adcOut.clkP,
@@ -114,6 +114,6 @@ begin
          axiClk       => axiClk,
          axiRst       => axiRst,
          adcClk       => adcClk,
-         refclk200MHz => refclk200MHz);  
+         refclk200MHz => refclk200MHz);
 
 end mapping;

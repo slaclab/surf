@@ -6,11 +6,11 @@
 -- traffic.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -71,9 +71,9 @@ architecture rtl of EthMacTxBypass is
    -- attribute dont_touch of r : signal is "true";
 
 begin
-   
+
    U_BypTxEnGen : if (BYP_EN_G = true) generate
-      
+
       comb : process (ethRst, mAxisSlave, r, sBypMaster, sPrimMaster) is
          variable v : RegType;
       begin
@@ -91,7 +91,7 @@ begin
 
          -- State Machine
          case r.state is
-            ----------------------------------------------------------------------   
+            ----------------------------------------------------------------------
             when IDLE_S =>
                -- Check if ready to move data
                if v.mAxisMaster.tValid = '0' then
@@ -119,7 +119,7 @@ begin
                      end if;
                   end if;
                end if;
-            ----------------------------------------------------------------------   
+            ----------------------------------------------------------------------
             when PRIM_S =>
                -- Check if ready to move data
                if (v.mAxisMaster.tValid = '0') and (sPrimMaster.tValid = '1') then
@@ -133,7 +133,7 @@ begin
                      v.state := IDLE_S;
                   end if;
                end if;
-            ----------------------------------------------------------------------   
+            ----------------------------------------------------------------------
             when BYP_S =>
                -- Check if ready to move data
                if (v.mAxisMaster.tValid = '0') and (sBypMaster.tValid = '1') then
@@ -147,9 +147,9 @@ begin
                      v.state := IDLE_S;
                   end if;
                end if;
-         ----------------------------------------------------------------------   
+         ----------------------------------------------------------------------
          end case;
-         
+
          -- Combinatorial outputs before the reset
          sPrimSlave <= v.sPrimSlave;
          sBypSlave  <= v.sBypSlave;
@@ -173,7 +173,7 @@ begin
             r <= rin after TPD_G;
          end if;
       end process seq;
-      
+
    end generate;
 
    U_BypTxDisGen : if (BYP_EN_G = false) generate
@@ -181,5 +181,5 @@ begin
       sPrimSlave  <= mAxisSlave;
       sBypSlave   <= AXI_STREAM_SLAVE_FORCE_C;
    end generate;
-   
+
 end rtl;

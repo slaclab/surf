@@ -6,11 +6,11 @@
 -- from the incoming data stream.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -31,14 +31,14 @@ entity EthMacRxPause is
       PAUSE_EN_G  : boolean               := true;
       VLAN_EN_G   : boolean               := false;
       VLAN_SIZE_G : positive range 1 to 8 := 1;
-      VLAN_VID_G  : Slv12Array            := (0 => x"001"));         
+      VLAN_VID_G  : Slv12Array            := (0 => x"001"));
    port (
       -- Clock and Reset
       ethClk       : in  sl;
       ethRst       : in  sl;
       -- Incoming data from MAC
       sAxisMaster  : in  AxiStreamMasterType;
-      -- Outgoing data 
+      -- Outgoing data
       mAxisMaster  : out AxiStreamMasterType;
       mAxisMasters : out AxiStreamMasterArray(VLAN_SIZE_G-1 downto 0);
       -- Pause Values
@@ -76,7 +76,7 @@ architecture rtl of EthMacRxPause is
    signal rin : RegType;
 
    -- attribute dont_touch      : string;
-   -- attribute dont_touch of r : signal is "true";   
+   -- attribute dont_touch of r : signal is "true";
 
 begin
 
@@ -159,7 +159,7 @@ begin
             when PAUSE_S =>
             --------------------------------------------------------------------------------------------------------------------
             -- Refer to https://hasanmansur1.files.wordpress.com/2012/12/ethernet-flow-control-pause-frame-framing-structure.png
-            --------------------------------------------------------------------------------------------------------------------           
+            --------------------------------------------------------------------------------------------------------------------
                -- Check for data
                if (sAxisMaster.tValid = '1') then
                   -- Latch the pause data
@@ -168,7 +168,7 @@ begin
                   -- Check for a EOF
                   if (sAxisMaster.tLast = '1') then
                      -- Set the pause
-                     v.pauseEn := not axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, sAxisMaster, EMAC_EOFE_BIT_C);
+                     v.pauseEn := not axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, sAxisMaster, EMAC_EOFE_BIT_C);
                      -- Next State
                      v.state   := IDLE_S;
                   else
@@ -181,7 +181,7 @@ begin
                -- Check for a valid EOF
                if (sAxisMaster.tValid = '1') and (sAxisMaster.tLast = '1') then
                   -- Set the pause
-                  v.pauseEn := not axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, sAxisMaster, EMAC_EOFE_BIT_C);
+                  v.pauseEn := not axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, sAxisMaster, EMAC_EOFE_BIT_C);
                   -- Next State
                   v.state   := IDLE_S;
                end if;
@@ -228,7 +228,7 @@ begin
             r <= rin after TPD_G;
          end if;
       end process seq;
-      
+
    end generate;
 
    U_BypRxPause : if ((PAUSE_EN_G = false) and (VLAN_EN_G = false)) generate
@@ -237,5 +237,5 @@ begin
       rxPauseReq   <= '0';
       rxPauseValue <= (others => '0');
    end generate;
-   
+
 end rtl;

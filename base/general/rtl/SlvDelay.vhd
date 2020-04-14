@@ -4,11 +4,11 @@
 -- Description: Shift Register Delay module for std_logic_vectors
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -97,7 +97,7 @@ begin
          -- Register the variable for next clock cycle
          rin <= v;
 
-         -- Outputs        
+         -- Outputs
          iDout <= r.shift(iDelay);
 
       end process comb;
@@ -116,7 +116,7 @@ begin
                if (rst = '1') then
                   dout <= INIT_C;
                else
-                  dout <= iDout;                  
+                  dout <= iDout;
                end if;
             end if;
          end process REG;
@@ -125,7 +125,7 @@ begin
       NO_OUT_REG: if (not REG_OUTPUT_G) generate
          dout <= iDout;
       end generate NO_OUT_REG;
-      
+
    end generate YES_DELAY;
-   
+
 end rtl;

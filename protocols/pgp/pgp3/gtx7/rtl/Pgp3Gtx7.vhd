@@ -3,14 +3,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: PGPv3 GTX7 Core Module 
+-- Description: PGPv3 GTX7 Core Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -89,7 +89,7 @@ entity Pgp3Gtx7 is
       -- Frame Receive Interface
       pgpRxMasters    : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
       pgpRxCtrl       : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
-      -- Debug Interface 
+      -- Debug Interface
       txPreCursor     : in  slv(4 downto 0)        := "00111";
       txPostCursor    : in  slv(4 downto 0)        := "00111";
       txDiffCtrl      : in  slv(3 downto 0)        := "1111";
@@ -179,7 +179,7 @@ begin
    end generate GEN_XBAR;
 
    -- If DRP or PGP_MON not enabled, no crossbar needed
-   -- If neither enabled, default values will auto-terminate the bus      
+   -- If neither enabled, default values will auto-terminate the bus
    GEN_DRP_ONLY : if (EN_DRP_G and not EN_PGP_MON_G) generate
       axilWriteSlave                     <= axilWriteSlaves(DRP_AXIL_INDEX_C);
       axilWriteMasters(DRP_AXIL_INDEX_C) <= axilWriteMaster;
@@ -302,7 +302,7 @@ begin
          txData          => phyTxData,                           -- [in]
          txHeader        => phyTxHeader,                         -- [in]
          txStart         => phyTxStart,                          -- [in]
-         -- Debug Interface 
+         -- Debug Interface
          loopback        => loopback,                            -- [in]
          txPreCursor     => txPreCursor,                         -- [in]
          txPostCursor    => txPostCursor,                        -- [in]

@@ -5,11 +5,11 @@
 -- transforms them into 128 "MultiSamples" with 6 samples each.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -25,7 +25,7 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
 entity AxiStreamScatterGather is
-   
+
    generic (
       TPD_G                   : time                := 1 ns;
       AXIS_SLAVE_FRAME_SIZE_G : integer             := 129;
@@ -238,7 +238,7 @@ begin
             end if;
          end if;
       end if;
-      
+
       if (r.rxFifoWrEn = '1') then
          -- Reset rx error after each write.
          -- Need to check timing on this.
@@ -285,9 +285,9 @@ begin
                   v.txSof           := '1';
                end if;
             end if;
-            
+
          end if;
-         
+
       end if;
 
 
@@ -337,14 +337,14 @@ begin
                v.axilReadSlave.rdata(r.badWords'range) := r.badWords;
             when X"28" =>
                v.axilReadSlave.rdata(r.badWordCount'range) := r.badWordCount;
-               
+
             when others => null;
          end case;
          axiSlaveReadResponse(v.axilReadSlave);
       end if;
 
       ----------------------------------------------------------------------------------------------
-      -- Reset 
+      -- Reset
       ----------------------------------------------------------------------------------------------
 --      if (axiRst = '1') then
 --         v := REG_INIT_C;

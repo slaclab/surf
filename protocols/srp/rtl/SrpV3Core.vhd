@@ -5,16 +5,16 @@
 -------------------------------------------------------------------------------
 -- Description: SLAC Register Protocol Version 3, AXI-Lite Interface
 --
--- Note: This module only supports 32-bit aligned addresses and 32-bit transactions.  
+-- Note: This module only supports 32-bit aligned addresses and 32-bit transactions.
 --       For non 32-bit aligned addresses or non 32-bit transactions, use
 --       the SrpV3Axi.vhd module with the AxiToAxiLite.vhd bridge
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -47,13 +47,13 @@ entity SrpV3Core is
       READ_EN_G           : boolean                 := true        -- Read ops enabled
       );
    port (
-      -- AXIS Slave Interface (sAxisClk domain) 
+      -- AXIS Slave Interface (sAxisClk domain)
       sAxisClk    : in  sl;
       sAxisRst    : in  sl;
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
       sAxisCtrl   : out AxiStreamCtrlType;
-      -- AXIS Master Interface (mAxisClk domain) 
+      -- AXIS Master Interface (mAxisClk domain)
       mAxisClk    : in  sl;
       mAxisRst    : in  sl;
       mAxisMaster : out AxiStreamMasterType;
@@ -157,10 +157,9 @@ begin
       generic map (
          -- General Configurations
          TPD_G                  => TPD_G,
-         EN_FRAME_FILTER_G      => true,
          PIPE_STAGES_G          => PIPE_STAGES_G,
          SLAVE_READY_EN_G       => SLAVE_READY_EN_G,
-         VALID_THOLD_G          => 0,  -- = 0 = only when frame ready                                                                 
+         VALID_THOLD_G          => 0,  -- = 0 = only when frame ready
          -- FIFO configurations
          MEMORY_TYPE_G          => "block",
          GEN_SYNC_FIFO_G        => GEN_SYNC_FIFO_G,
@@ -429,7 +428,7 @@ begin
                            v.state    := FOOTER_S;
                         end if;
 
-                        -- Check for non 32-bit address alignment                     
+                        -- Check for non 32-bit address alignment
                         if BYTE_ACCESS_G = false and UNALIGNED_ACCESS_G = false and r.srpReq.addr(1 downto 0) /= 0 then
                            v.reqError := '1';
                            v.state    := FOOTER_S;
@@ -646,7 +645,7 @@ begin
       if (rxMaster.tLast = '1') and (v.rxSlave.tReady = '1') then
          v.eofe := ssiGetUserEofe(SRP_AXIS_CONFIG_C, rxMaster);
       end if;
-      
+
       -- Combinatorial outputs before the reset
       rxSlave       <= v.rxSlave;
       srpRdSlaveInt <= v.srpRdSlave;

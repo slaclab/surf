@@ -6,11 +6,11 @@
 -- Description: Simulation Testbed for testing the SsiFifo module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -19,339 +19,285 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
-use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
-use surf.EthMacPkg.all;
 
 entity SsiFifoTb is end SsiFifoTb;
 
 architecture testbed of SsiFifoTb is
 
-   -- Constants
-   constant SLOW_CLK_PERIOD_C  : time             := 3.2 ns;
-   constant FAST_CLK_PERIOD_C  : time             := 3.2 ns; --SLOW_CLK_PERIOD_C/3.14;
-   constant TPD_C              : time             := 0.5 ns;--FAST_CLK_PERIOD_C/4;
-   constant STATUS_CNT_WIDTH_C : natural          := 32;
-   constant TX_PACKET_LENGTH_C : slv(31 downto 0) := toSlv(100, 32);
-   constant NUMBER_PACKET_C    : slv(31 downto 0) := toSlv(4096, 32);
+   constant CLK_PERIOD_C : time := 10 ns;
+   constant TPD_C        : time := CLK_PERIOD_C/4;
 
-   -- FIFO configurations
-   constant MEMORY_TYPE_C       : string  := "block";
-   constant CASCADE_SIZE_C      : natural := 1;
-   constant FIFO_ADDR_WIDTH_C   : natural := 9;
-   constant FIFO_PAUSE_THRESH_C : natural := 2**8;
+   constant TX_PACKET_LENGTH_C : slv(31 downto 0) := x"0000_000F";
 
-   -- PRBS Configuration
    constant PRBS_SEED_SIZE_C : natural      := 32;
    constant PRBS_TAPS_C      : NaturalArray := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
-   constant FORCE_EOFE_C     : sl           := '0';  -- Forces an error (testing tUser field MUX-ing)
+   constant PRBS_FLOW_CTRL_C : boolean      := true;
 
-   -- AXI Stream Configurations
+   constant NOT_PAUSE_FLOW_CONTROL_C : boolean := false;  -- false for pause flow control
+
    constant AXI_STREAM_CONFIG_C : AxiStreamConfigType := (
+      -- TDEST_INTERLEAVE_C => true,
       TSTRB_EN_C    => false,
-      TDATA_BYTES_C => 8,
+      TDATA_BYTES_C => 4,
       TDEST_BITS_C  => 8,
-      TID_BITS_C    => 8,
+      TID_BITS_C    => 0,
       TKEEP_MODE_C  => TKEEP_COMP_C,
-      TUSER_BITS_C  => 2,
+      TUSER_BITS_C  => 4,
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
-   
-   constant AXI_PIPE_STAGES_C   : natural             := 0;
 
-   -- Signals
-   signal fastClk : sl := '0';
-   signal fastRst : sl := '1';
+   signal txClk  : sl := '0';
+   signal txRst  : sl := '1';
+   signal txRstL : sl := '0';
 
-   signal slowClk : sl := '0';
-   signal slowRst : sl := '1';
+   signal txTrig      : sl := '0';
+   signal txForceEofe : sl := '0';
+   signal txBusy      : sl := '0';
 
-   signal dropWrite  : sl := '0';
-   signal dropFrame  : sl := '0';
-   signal passedSlow : sl := '0';
-   signal failedSlow : sl := '0';
-   signal failedFast : sl := '0';
+   signal txMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal txSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+   signal txCtrl   : AxiStreamCtrlType   := AXI_STREAM_CTRL_INIT_C;
 
-   signal updated         : sl := '0';
-   signal errMissedPacket : sl := '0';
-   signal errLength       : sl := '0';
-   signal errDataBus      : sl := '0';
-   signal errEofe         : sl := '0';
+   signal rxClk : sl := '0';
+   signal rxRst : sl := '1';
 
-   signal errWordCnt : slv(31 downto 0) := (others => '0');
-   signal errbitCnt  : slv(31 downto 0) := (others => '0');
-   signal cnt        : slv(31 downto 0) := (others => '0');
+   signal rxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal rxSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
 
-   signal ibMaster : AxiStreamMasterType;
-   signal ibSlave  : AxiStreamSlaveType;
-   signal ssiFifoMaster : AxiStreamMasterType;
-   signal ssiFifoSlave : AxiStreamSlaveType;
-   signal obMaster : AxiStreamMasterType;
-   signal obSlave  : AxiStreamSlaveType;
+   signal prbsFlowCtrlMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal prbsFlowCtrlSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+
+   signal updated      : sl               := '0';
+   signal errorDet     : sl               := '0';
+   signal errLength    : sl               := '0';
+   signal errDataBus   : sl               := '0';
+   signal errEofe      : sl               := '0';
+   signal errWordCnt   : slv(31 downto 0) := (others => '0');
+   signal packetLength : slv(31 downto 0) := (others => '0');
+   signal cnt          : slv(31 downto 0) := (others => '0');
+   signal trigCnt      : slv(31 downto 0) := (others => '0');
+   signal failedVec    : slv(6 downto 0)  := (others => '0');
+
+   signal passed : sl := '0';
+   signal failed : sl := '0';
 
 begin
 
-   ---------------------------------------
-   -- Generate fast clocks and fast resets
-   ---------------------------------------
-   ClkRst_Fast : entity surf.ClkRst
+   -----------------------------
+   -- Generate clocks and resets
+   -----------------------------
+   U_Fast : entity surf.ClkRst
       generic map (
-         CLK_PERIOD_G      => FAST_CLK_PERIOD_C,
-         RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
-         RST_HOLD_TIME_G   => 200 ns)   -- Hold reset for this long)
+         CLK_PERIOD_G      => CLK_PERIOD_C,
+         RST_START_DELAY_G => 0 ns,
+         RST_HOLD_TIME_G   => 1 us)
       port map (
-         clkP => fastClk,
-         clkN => open,
-         rst  => fastRst,
-         rstL => open); 
+         clkP => txClk,
+         rst  => txRst,
+         rstL => txRstL);
 
-   ClkRst_Slow : entity surf.ClkRst
+   U_Slow : entity surf.ClkRst
       generic map (
-         CLK_PERIOD_G      => SLOW_CLK_PERIOD_C,
-         RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
-         RST_HOLD_TIME_G   => 200 ns)   -- Hold reset for this long)
+         -- CLK_PERIOD_G      => (2*CLK_PERIOD_C),
+         CLK_PERIOD_G      => CLK_PERIOD_C,
+         RST_START_DELAY_G => 0 ns,
+         RST_HOLD_TIME_G   => 1 us)
       port map (
-         clkP => slowClk,
-         clkN => open,
-         rst  => slowRst,
-         rstL => open);          
+         clkP => rxClk,
+         rst  => rxRst);
 
    --------------
    -- Data Source
    --------------
-   SsiPrbsTx_Inst : entity surf.SsiPrbsTx
+   U_Tx : entity surf.SsiPrbsTx
       generic map (
          -- General Configurations
          TPD_G                      => TPD_C,
+         AXI_EN_G                   => '0',
          -- FIFO configurations
-         MEMORY_TYPE_G              => MEMORY_TYPE_C,
          GEN_SYNC_FIFO_G            => true,
-         CASCADE_SIZE_G             => CASCADE_SIZE_C,
-         FIFO_ADDR_WIDTH_G          => FIFO_ADDR_WIDTH_C,
-         FIFO_PAUSE_THRESH_G        => FIFO_PAUSE_THRESH_C,
          -- PRBS Configurations
          PRBS_SEED_SIZE_G           => PRBS_SEED_SIZE_C,
          PRBS_TAPS_G                => PRBS_TAPS_C,
          -- AXI Stream Configurations
-         MASTER_AXI_STREAM_CONFIG_G => AXI_STREAM_CONFIG_C,
-         MASTER_AXI_PIPE_STAGES_G   => AXI_PIPE_STAGES_C)        
+         MASTER_AXI_STREAM_CONFIG_G => AXI_STREAM_CONFIG_C)
       port map (
          -- Master Port (mAxisClk)
-         mAxisClk     => fastClk,
-         mAxisRst     => fastRst,
-         mAxisMaster  => obMaster,
-         mAxisSlave   => obSlave,
+         mAxisClk     => txClk,
+         mAxisRst     => txRst,
+         mAxisMaster  => txMaster,
+         mAxisSlave   => txSlave,
          -- Trigger Signal (locClk domain)
-         locClk       => fastClk,
-         locRst       => fastRst,
-         trig         => '1',
+         locClk       => txClk,
+         locRst       => txRst,
+         -- trig         => txTrig,
+         trig         => txRstL,
          packetLength => TX_PACKET_LENGTH_C,
-         forceEofe    => FORCE_EOFE_C,
-         busy         => open,
-         tDest        => X"12",
-         tId          => X"34");
+         forceEofe    => txForceEofe,
+         busy         => txBusy);
 
-   U_AxiStreamPacketizer_1 : entity surf.AxiStreamPacketizer
-      generic map (
-         TPD_G                => TPD_C,
-         MAX_PACKET_BYTES_C   => 1400,
-         INPUT_PIPE_STAGES_G  => 1,
-         OUTPUT_PIPE_STAGES_G => 1)
-      port map (
-         axisClk     => fastClk,                 -- [in]
-         axisRst     => fastRst,                 -- [in]
-         sAxisMaster => obMaster,      -- [in]
-         sAxisSlave  => obSlave,       -- [out]
-         mAxisMaster => ssiFifoMaster,  -- [out]
-         mAxisSlave  => ssiFifoSlave);  -- [in]
-   ----------------------------   
-   -- Data Filter (Test Module)
-   ----------------------------
-   U_AxiStreamFifo_PacketOut : entity surf.AxiStreamFifoV2
+   trig : process (txClk) is
+   begin
+      if rising_edge(txClk) then
+         -- Select the trigger pre-scaler
+         txTrig  <= trigCnt(8)  after TPD_C;
+         -- Increment the counter
+         trigCnt <= trigCnt + 1 after TPD_C;
+      end if;
+   end process trig;
+
+   ----------------------
+   -- Module to be tested
+   ----------------------
+   U_SsiFifo : entity surf.SsiFifo
       generic map (
          -- General Configurations
          TPD_G               => TPD_C,
-         PIPE_STAGES_G       => 0,
-         SLAVE_READY_EN_G    => true,
-         VALID_THOLD_G       => 1,
+         INT_PIPE_STAGES_G   => 1,
+         PIPE_STAGES_G       => 1,
+         SLAVE_READY_EN_G    => NOT_PAUSE_FLOW_CONTROL_C,
+         VALID_THOLD_G       => 0,
          -- FIFO configurations
-         MEMORY_TYPE_G       => "distributed",
-         GEN_SYNC_FIFO_G     => true,
-         CASCADE_SIZE_G      => 1,
-         FIFO_ADDR_WIDTH_G   => 4,
+         GEN_SYNC_FIFO_G     => false,
+         FIFO_ADDR_WIDTH_G   => 8,
+         FIFO_FIXED_THRESH_G => false,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_C,
-         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)
+         MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_C)
       port map (
          -- Slave Port
-         sAxisClk    => fastClk,
-         sAxisRst    => fastRst,
-         sAxisMaster => ssiFifoMaster,
-         sAxisSlave  => ssiFifoSlave,
+         sAxisClk        => txClk,
+         sAxisRst        => txRst,
+         sAxisMaster     => txMaster,
+         sAxisSlave      => txSlave,
+         sAxisCtrl       => txCtrl,
+         fifoPauseThresh => x"80",
          -- Master Port
-         mAxisClk    => fastRst,
-         mAxisRst    => fastRst,
-         mAxisMaster => ibMaster,
-         mAxisSlave  => ibSlave); 
-
---    SsiFifo_Inst : entity surf.SsiFifo
---       generic map (
---          -- General Configurations
---          TPD_G               => TPD_C,
---          PIPE_STAGES_G       => AXI_PIPE_STAGES_C,
---          EN_FRAME_FILTER_G   => true,
---          VALID_THOLD_G       => 1,
---          -- FIFO configurations
---          MEMORY_TYPE_G       => MEMORY_TYPE_C,
---          GEN_SYNC_FIFO_G     => false,
---          CASCADE_SIZE_G      => CASCADE_SIZE_C,
---          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
---          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_C,
---          -- AXI Stream Port Configurations
---          SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_C,
---          MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_C)
---       port map (
---          -- Slave Port
---          sAxisClk       => fastClk,
---          sAxisRst       => fastRst,
---          sAxisMaster    => ssiFifoMaster,
---          sAxisSlave     => ssiFifoSlave,
---          sAxisCtrl      => open,
---          sAxisDropWrite => dropWrite,
---          sAxisTermFrame => dropFrame,
---          -- Master Port
---          mAxisClk       => slowClk,
---          mAxisRst       => slowRst,
---          mAxisMaster    => ibMaster,
---          mAxisSlave     => ibSlave);
-
-   ibSlave <= AXI_STREAM_SLAVE_FORCE_C;
-
---    process(fastClk)
---    begin
---       if rising_edge(fastClk) then
---          if fastRst = '1' then
---             failedFast <= '0' after TPD_C;
---          else
---             -- Check for dropped word error
---             if dropWrite = '1' then
---                failedFast <= '1' after TPD_C;
---             end if;
---             -- Check for dropped frame error
---             if dropFrame = '1' then
---                failedFast <= '1' after TPD_C;
---             end if;
---          end if;
---       end if;
---    end process;
-
---    process(failedFast, failedSlow, passedSlow)
---    begin
---       if (failedFast = '1') or (failedSlow = '1') then
---          assert false
---             report "Simulation Failed!" severity failure;
---       end if;
---       if passedSlow = '1' then
---          assert false
---             report "Simulation Passed!" severity failure;
---       end if;
---    end process;
+         mAxisClk        => rxClk,
+         mAxisRst        => rxRst,
+         mAxisMaster     => rxMaster,
+         mAxisSlave      => rxSlave);
 
    ------------
    -- Data Sink
    ------------
---    SsiPrbsRx_Inst : entity surf.SsiPrbsRx
---       generic map (
---          -- General Configurations
---          TPD_G                      => TPD_C,
---          STATUS_CNT_WIDTH_G         => STATUS_CNT_WIDTH_C,
---          -- FIFO Configurations
---          MEMORY_TYPE_G              => MEMORY_TYPE_C,
---          GEN_SYNC_FIFO_G            => true,
---          CASCADE_SIZE_G             => CASCADE_SIZE_C,
---          FIFO_ADDR_WIDTH_G          => FIFO_ADDR_WIDTH_C,
---          FIFO_PAUSE_THRESH_G        => FIFO_PAUSE_THRESH_C,
---          -- PRBS Configurations
---          PRBS_SEED_SIZE_G           => PRBS_SEED_SIZE_C,
---          PRBS_TAPS_G                => PRBS_TAPS_C,
---          -- AXI Stream Configurations
---          SLAVE_AXI_STREAM_CONFIG_G  => AXI_STREAM_CONFIG_C,
---          SLAVE_AXI_PIPE_STAGES_G    => AXI_PIPE_STAGES_C,
---          MASTER_AXI_STREAM_CONFIG_G => ssiAxiStreamConfig(4),  -- unused
---          MASTER_AXI_PIPE_STAGES_G   => 0)                      -- unused
---       port map (
---          -- Streaming RX Data Interface (sAxisClk domain) 
---          sAxisClk        => slowClk,
---          sAxisRst        => slowRst,
---          sAxisMaster     => ibMaster,
---          sAxisSlave      => ibSlave,
---          sAxisCtrl       => open,
---          -- Optional: Streaming TX Data Interface (mAxisClk domain)
---          mAxisClk        => slowClk,
---          mAxisRst        => slowRst,
---          mAxisMaster     => open,
---          mAxisSlave      => AXI_STREAM_SLAVE_FORCE_C,
---          -- Optional: AXI-Lite Register Interface (axiClk domain)
---          axiClk          => slowClk,
---          axiRst          => slowRst,
---          axiReadMaster   => AXI_LITE_READ_MASTER_INIT_C,
---          axiReadSlave    => open,
---          axiWriteMaster  => AXI_LITE_WRITE_MASTER_INIT_C,
---          -- Error Detection Signals (sAxisClk domain)
---          updatedResults  => updated,
---          busy            => open,
---          errMissedPacket => errMissedPacket,
---          errLength       => errLength,
---          errDataBus      => errDataBus,
---          errEofe         => errEofe,
---          errWordCnt      => errWordCnt,
---          errbitCnt       => errbitCnt,
---          packetRate      => open,
---          packetLength    => open);     
+   U_Rx : entity surf.SsiPrbsRx
+      generic map (
+         -- General Configurations
+         TPD_G                      => TPD_C,
+         -- FIFO Configurations
+         GEN_SYNC_FIFO_G            => true,
+         -- PRBS Configurations
+         PRBS_SEED_SIZE_G           => PRBS_SEED_SIZE_C,
+         PRBS_TAPS_G                => PRBS_TAPS_C,
+         -- AXI Stream Configurations
+         SLAVE_AXI_STREAM_CONFIG_G  => AXI_STREAM_CONFIG_C,
+         MASTER_AXI_STREAM_CONFIG_G => AXI_STREAM_CONFIG_C)
+      port map (
+         -- Streaming RX Data Interface (sAxisClk domain)
+         sAxisClk       => rxClk,
+         sAxisRst       => rxRst,
+         sAxisMaster    => rxMaster,
+         sAxisSlave     => rxSlave,
+         -- Optional: TX Data Interface with EOFE tagging (sAxisClk domain)
+         mAxisMaster    => prbsFlowCtrlMaster,
+         mAxisSlave     => prbsFlowCtrlSlave,
+         -- Error Detection Signals (sAxisClk domain)
+         updatedResults => updated,
+         errorDet       => errorDet,
+         packetLength   => packetLength,
+         errLength      => errLength,
+         errDataBus     => errDataBus,
+         errEofe        => errEofe,
+         errWordCnt     => errWordCnt);
 
---    process(slowClk)
---    begin
---       if rising_edge(slowClk) then
---          if slowRst = '1' then
---             failedSlow <= '0' after TPD_C;
---             passedSlow <= '0' after TPD_C;
---          elsif updated = '1' then
---             -- Check for missed packet error
---             if errMissedPacket = '1' then
---                failedSlow <= '1' after TPD_C;
---             end if;
---             -- Check for packet length error
---             if errLength = '1' then
---                failedSlow <= '1' after TPD_C;
---             end if;
---             -- Check for packet data bus error
---             if errDataBus = '1' then
---                failedSlow <= '1' after TPD_C;
---             end if;
---             -- Check for EOFE error
---             if errEofe = '1' then
---                failedSlow <= '1' after TPD_C;
---             end if;
---             -- Check for word error
---             if errWordCnt /= 0 then
---                failedSlow <= '1' after TPD_C;
---             end if;
---             -- Check for bit error
---             if errbitCnt /= 0 then
---                failedSlow <= '1' after TPD_C;
---             end if;
---             -- Check the counter
---             if cnt = NUMBER_PACKET_C then
---                passedSlow <= '1' after TPD_C;
---             else
---                -- Increment the counter
---                cnt <= cnt + 1 after TPD_C;
---             end if;
---          end if;
---       end if;
---    end process;
+   ------------------------------------
+   -- Assert PseudoRandom back pressure
+   ------------------------------------
+   GEN_PRBS_FLOW_CTRL : if (PRBS_FLOW_CTRL_C) generate
+      U_PrbsFlowCtrl : entity surf.AxiStreamPrbsFlowCtrl
+         generic map (
+            TPD_G => TPD_C)
+         port map (
+            clk         => rxClk,
+            rst         => rxRst,
+            threshold   => x"8000_0000",
+            -- Slave Port
+            sAxisMaster => prbsFlowCtrlMaster,
+            sAxisSlave  => prbsFlowCtrlSlave,
+            -- Master Port
+            mAxisMaster => open,
+            mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);
+   end generate;
+
+   -----------------
+   -- Error Checking
+   -----------------
+   error_checking : process(rxClk)
+   begin
+      if rising_edge(rxClk) then
+         -- Check for RX PRBS update
+         if updated = '1' then
+
+            -- Map the error flag to the failed test vector
+            failedVec(0) <= errLength  after TPD_C;
+            failedVec(1) <= errDataBus after TPD_C;
+            failedVec(2) <= errEofe    after TPD_C;
+
+            -- Check for non-zero error word counts
+            if errWordCnt /= 0 then
+               failedVec(3) <= '1' after TPD_C;
+            else
+               failedVec(3) <= '0' after TPD_C;
+            end if;
+
+            -- Check for mismatch in expect length
+            if packetLength /= TX_PACKET_LENGTH_C then
+               failedVec(4) <= '1' after TPD_C;
+            else
+               failedVec(4) <= '0' after TPD_C;
+            end if;
+
+            -- Check for non-pause flow control and error detected
+            if (NOT_PAUSE_FLOW_CONTROL_C) then
+               failedVec(5) <= errorDet        after TPD_C;
+               failedVec(6) <= txCtrl.overflow after TPD_C;
+            end if;
+
+            -- Increment the counter
+            cnt <= cnt + 1 after TPD_C;
+
+         end if;
+      end if;
+   end process error_checking;
+
+   results : process (rxClk) is
+   begin
+      if rising_edge(rxClk) then
+
+         -- OR Failed bits together
+         failed <= uOR(failedVec) after TPD_C;
+
+         -- Check for counter
+         if (cnt = x"0001_0000") then
+            passed <= '1' after TPD_C;
+         end if;
+
+      end if;
+   end process results;
+
+   process(failed, passed)
+   begin
+      if passed = '1' then
+         assert false
+            report "Simulation Passed!" severity failure;
+      elsif failed = '1' then
+         assert false
+            report "Simulation Failed!" severity failure;
+      end if;
+   end process;
 
 end testbed;

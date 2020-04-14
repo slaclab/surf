@@ -6,11 +6,11 @@
 -- Description: Gth7 Variable Latency Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -110,17 +110,17 @@ entity Pgp2bGth7VarLat is
       pgpRxMasters     : out AxiStreamMasterArray(3 downto 0);
       pgpRxMasterMuxed : out AxiStreamMasterType;
       pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0);
-      -- Debug Interface 
+      -- Debug Interface
       txPreCursor      : in  slv(4 downto 0)                  := (others => '0');
       txPostCursor     : in  slv(4 downto 0)                  := (others => '0');
       txDiffCtrl       : in  slv(3 downto 0)                  := "1000";
-      -- AXI-Lite Interface 
+      -- AXI-Lite Interface
       axilClk          : in  sl                               := '0';
       axilRst          : in  sl                               := '0';
       axilReadMaster   : in  AxiLiteReadMasterType            := AXI_LITE_READ_MASTER_INIT_C;
       axilReadSlave    : out AxiLiteReadSlaveType;
       axilWriteMaster  : in  AxiLiteWriteMasterType           := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave   : out AxiLiteWriteSlaveType);   
+      axilWriteSlave   : out AxiLiteWriteSlaveType);
 end Pgp2bGth7VarLat;
 
 architecture mapping of Pgp2bGth7VarLat is
@@ -206,16 +206,16 @@ begin
          pgpRxMasters        => pgpRxMasters,
          pgpRxMasterMuxed    => pgpRxMasterMuxed,
          pgpRxCtrl           => pgpRxCtrl,
-         -- Debug Interface 
+         -- Debug Interface
          txPreCursor         => txPreCursor,
          txPostCursor        => txPostCursor,
          txDiffCtrl          => txDiffCtrl,
-         -- AXI-Lite Interface 
+         -- AXI-Lite Interface
          axilClk             => axilClk,
          axilRst             => axilRst,
          axilReadMasters(0)  => axilReadMaster,
          axilReadSlaves(0)   => axilReadSlave,
          axilWriteMasters(0) => axilWriteMaster,
-         axilWriteSlaves(0)  => axilWriteSlave);                 
+         axilWriteSlaves(0)  => axilWriteSlave);
 
 end mapping;

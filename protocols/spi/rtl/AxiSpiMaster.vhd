@@ -6,18 +6,18 @@
 --                to multiple AXI crossbar slaves and use Chip select outputs
 --                (coreCsb) to multiplex select the addressed outputs (coreSDout and
 --                coreSclk).
---                The coreCsb is active low. And active only if the corresponding 
+--                The coreCsb is active low. And active only if the corresponding
 --                Axi Crossbar Slave is addressed.
 --                DATA_SIZE_G - Corresponds to total read or write command size (not just data size).
 --                              Example: DATA_SIZE_G = 24
 --                                       1-bit command, 15-bit address word and 8-bit data
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -126,7 +126,7 @@ begin
                if (MODE_G = "WO") then
                   axiSlaveReadResponse(v.axiReadSlave, AXI_RESP_DECERR_C);
                elsif (SHADOW_EN_G) then
-                  v.state                   := WAIT_CYCLE_SHADOW_S; -- just go to wait a cycle for memData to update 
+                  v.state                   := WAIT_CYCLE_SHADOW_S; -- just go to wait a cycle for memData to update
                   v.wrData(PACKET_SIZE_C-1) := '1';                 -- indicate axi lite read in WAIT_SPI_TXN_DONE_S checking
                   if (ADDRESS_SIZE_G > 0) then
                      v.wrData(DATA_SIZE_G+ADDRESS_SIZE_G-1 downto DATA_SIZE_G) := axiReadMaster.araddr(2+ADDRESS_SIZE_G-1 downto 2); -- setup memAddr
@@ -136,7 +136,7 @@ begin
                   if (MODE_G /= "RO") then
                      v.wrData(PACKET_SIZE_C-1) := '1';
                   end if;
-   
+
                   -- Address
                   if (ADDRESS_SIZE_G > 0) then
                      v.wrData(DATA_SIZE_G+ADDRESS_SIZE_G-1 downto DATA_SIZE_G) := axiReadMaster.araddr(2+ADDRESS_SIZE_G-1 downto 2);
@@ -144,7 +144,7 @@ begin
                      -- in shared sdio configurations
                      v.wrData(DATA_SIZE_G-1 downto 0)                          := (others => '1');
                   end if;
-   
+
                   -- If there are no address bits, readback will reuse the last wrData when shifting
                   v.chipSel := axiReadMaster.araddr(CHIP_BITS_C+ADDRESS_SIZE_G+1 downto 2+ADDRESS_SIZE_G);
                   v.wrEn    := '1';
@@ -188,7 +188,7 @@ begin
 
             if (rdEn = '1') then
                v.state := WAIT_AXI_TXN_S;
-               
+
                if (MODE_G = "WO" or (MODE_G = "RW" and r.wrData(PACKET_SIZE_C-1) = '0')) then
                   axiSlaveWriteResponse(v.axiWriteSlave);
                elsif (SHADOW_EN_G) then

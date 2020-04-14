@@ -6,11 +6,11 @@
 -- Description: PGPv3 Rx Elastic Buffer
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 library ieee;
@@ -87,13 +87,13 @@ begin
          v.remLinkData := phyRxData(PGP3_SKIP_DATA_FIELD_C);
       end if;
 
-      -- Reset  
+      -- Reset
       if (phyRxRst = '1') then
          -- Maintain save behavior before the remLinkData update (not reseting fifoIn or fifoWrEn)
          v.remLinkData := (others => '0');
       end if;
 
-      -- Register the variable for next clock cycle   
+      -- Register the variable for next clock cycle
       rin <= v;
 
    end process comb;

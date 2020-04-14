@@ -2,15 +2,15 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
--- Asynchronous bridge for AXI Lite bus. Allows AXI transactions to cross 
+-- Asynchronous bridge for AXI Lite bus. Allows AXI transactions to cross
 -- a clock boundary.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -28,7 +28,7 @@ entity AxiLiteAsync is
    generic (
       TPD_G            : time                  := 1 ns;
       AXI_ERROR_RESP_G : slv(1 downto 0)       := AXI_RESP_SLVERR_C;
-      COMMON_CLK_G    : boolean               := false;    
+      COMMON_CLK_G    : boolean               := false;
       NUM_ADDR_BITS_G : natural               := 32;
       PIPE_STAGES_G   : integer range 0 to 16 := 0);
    port (
@@ -96,11 +96,11 @@ begin
       sAxiReadSlave   <= mAxiReadSlave;
       mAxiWriteMaster <= sAxiWriteMaster;
       sAxiWriteSlave  <= mAxiWriteSlave;
-      
+
    end generate;
-   
-   GEN_ASYNC : if (COMMON_CLK_G = false) generate   
-   
+
+   GEN_ASYNC : if (COMMON_CLK_G = false) generate
+
    -- Synchronize each reset across to the other clock domain
    LOC_S2M_RstSync : entity surf.RstSync
       generic map (
@@ -418,7 +418,7 @@ begin
    -- Read control and valid
    sAxiWriteSlave.bvalid <= ite(m2sRst = '0', writeMastToSlaveValid, '1');
    writeMastToSlaveRead  <= sAxiWriteMaster.bready;
-   
+
    end generate;
-   
+
 end architecture STRUCTURE;

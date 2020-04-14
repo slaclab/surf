@@ -4,11 +4,11 @@
 -- Description: Simulation Testbed for the Heartbeat module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -58,7 +58,7 @@ begin
          clkP => clkIn(2),
          clkN => open,
          rst  => open,
-         rstL => open);       
+         rstL => open);
 
    Heartbeat_0 : entity surf.Heartbeat
       generic map(
@@ -66,7 +66,7 @@ begin
          PERIOD_OUT_G => 1.0E-3)
       port map (
          clk => clkIn(0),
-         o   => clkOut(0));  
+         o   => clkOut(0));
 
    Heartbeat_1 : entity surf.Heartbeat
       generic map(
@@ -74,7 +74,7 @@ begin
          PERIOD_OUT_G => 1.0E-3)
       port map (
          clk => clkIn(1),
-         o   => clkOut(1));  
+         o   => clkOut(1));
 
    Heartbeat_2 : entity surf.Heartbeat
       generic map(
@@ -82,6 +82,6 @@ begin
          PERIOD_OUT_G => 1.0E-3)
       port map (
          clk => clkIn(2),
-         o   => clkOut(2));         
+         o   => clkOut(2));
 
 end testbed;

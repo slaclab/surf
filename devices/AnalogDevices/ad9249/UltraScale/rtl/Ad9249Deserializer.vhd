@@ -7,11 +7,11 @@
 -- Designed specifically for Xilinx 7 series FPGAs
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -65,7 +65,7 @@ architecture rtl of Ad9249Deserializer is
    -------------------------------------------------------------------------------------------------
    -- ADC Readout Clocked Registers
    -------------------------------------------------------------------------------------------------
-   
+
    constant CASCADE_C : string := ite(IDELAY_CASCADE_G, "MASTER", "NONE");
 
    type AdcClkDiv4RegType is record
@@ -138,7 +138,7 @@ architecture rtl of Ad9249Deserializer is
    attribute keep of sData_i       : signal is "true";
 
 begin
-   
+
    adcData     <= bitReverse(adcDv7R.masterAdcData(6 downto 0)) & bitReverse(adcDv7R.masterAdcData(13 downto 7)) when BIT_REV_G = '1'
               else adcDv7R.masterAdcData;
 
@@ -162,9 +162,9 @@ begin
    -- Optionally invert the pad input
    sData_i <= sDataPadP when ADC_INVERT_CH_G = '0' else sDataPadN;
    ----------------------------------------------------------------------------
-   -- idelay3 
+   -- idelay3
    ----------------------------------------------------------------------------
-   U_IDELAYE3_0 : surf.Idelaye3Wrapper
+   U_IDELAYE3_0 : entity surf.Idelaye3Wrapper
       generic map (
          CASCADE          => CASCADE_C,    -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
          DELAY_FORMAT     => "COUNT",   -- Units of the DELAY_VALUE (COUNT, TIME)
@@ -195,12 +195,12 @@ begin
          LOAD        => loadDelay,  -- 1-bit input: Load DELAY_VALUE input
          RST         => '0'       -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
          );
-   
+
    G_IdelayCascade: if IDELAY_CASCADE_G = true generate
       signal masterCntValue   : slv(9 downto 0);
    begin
-      
-      U_ODELAYE3_0 : surf.Odelaye3Wrapper
+
+      U_ODELAYE3_0 : entity surf.Odelaye3Wrapper
          generic map (
             CASCADE => "SLAVE_END",    -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
             DELAY_FORMAT => "COUNT",   -- Units of the DELAY_VALUE (COUNT, TIME)
@@ -212,29 +212,29 @@ begin
             UPDATE_MODE => "ASYNC")    -- Determines when updates to the delay will take effect (ASYNC, MANUAL, SYNC)
          port map (
             CASC_IN     => cascOut,       -- 1-bit input: Cascade delay input from slave IDELAY CASCADE_OUT
-            CASC_OUT    => open,          -- 1-bit output: Cascade delay output to IDELAY input cascade 
-            CASC_RETURN => '0',           -- 1-bit input: Cascade delay returning from slave IDELAY DATAOUT 
+            CASC_OUT    => open,          -- 1-bit output: Cascade delay output to IDELAY input cascade
+            CASC_RETURN => '0',           -- 1-bit input: Cascade delay returning from slave IDELAY DATAOUT
             ODATAIN     => '0',           -- 1-bit input: Data input
-            DATAOUT     => cascRet,       -- 1-bit output: Delayed data from ODATAIN input port 
-            CLK         => dClkDiv4,           -- 1-bit input: Clock input 
-            EN_VTC      => '0',           -- 1-bit input: Keep delay constant over VT 
+            DATAOUT     => cascRet,       -- 1-bit output: Delayed data from ODATAIN input port
+            CLK         => dClkDiv4,           -- 1-bit input: Clock input
+            EN_VTC      => '0',           -- 1-bit input: Keep delay constant over VT
             INC         => '0',           -- 1-bit input: Increment / Decrement tap delay input
-            CE          => '0',           -- 1-bit input: Active high enable increment/decrement input 
-            LOAD        => loadDelay,   -- 1-bit input: Load DELAY_VALUE input 
-            RST         => '0',      -- 1-bit input: Asynchronous Reset to the DELAY_VALUE 
+            CE          => '0',           -- 1-bit input: Active high enable increment/decrement input
+            LOAD        => loadDelay,   -- 1-bit input: Load DELAY_VALUE input
+            RST         => '0',      -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
             CNTVALUEIN  => delay,      -- 9-bit input: Counter value input
-            CNTVALUEOUT => masterCntValue2);   -- 9-bit output: Counter value output 
-      
+            CNTVALUEOUT => masterCntValue2);   -- 9-bit output: Counter value output
+
       masterCntValue <= resize(masterCntValue1, 10, '0') + masterCntValue2;
       delayValueOut <= masterCntValue(9 downto 1);
-         
+
    end generate;
    G_IdelayNoCascade: if IDELAY_CASCADE_G = false generate
       delayValueOut     <= masterCntValue1;
       masterCntValue2   <= (others=>'0');
       cascRet           <= '0';
    end generate;
-   
+
    ----------------------------------------------------------------------------
    -- iserdes3
    ----------------------------------------------------------------------------

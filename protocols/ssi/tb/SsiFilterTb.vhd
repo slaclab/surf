@@ -6,11 +6,11 @@
 -- Description: Simulation Testbed for testing the SsiFifo module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -80,7 +80,7 @@ begin
          clkP => fastClk,
          clkN => open,
          rst  => fastRst,
-         rstL => open); 
+         rstL => open);
 
    ClkRst_Slow : entity surf.ClkRst
       generic map (
@@ -91,7 +91,7 @@ begin
          clkP => slowClk,
          clkN => open,
          rst  => slowRst,
-         rstL => open);          
+         rstL => open);
 
    comb : process (r, slowRst) is
       variable v : RegType;
@@ -155,7 +155,6 @@ begin
          INT_PIPE_STAGES_G   => 1,
          PIPE_STAGES_G       => 1,
          SLAVE_READY_EN_G    => false,
-         EN_FRAME_FILTER_G   => true,
          VALID_THOLD_G       => 0,
          -- FIFO configurations
          MEMORY_TYPE_G       => "block",
@@ -166,7 +165,7 @@ begin
          FIFO_PAUSE_THRESH_G => 500,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_C,
-         MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_C)        
+         MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_C)
       port map (
          sAxisClk    => slowClk,
          sAxisRst    => slowRst,
@@ -174,7 +173,7 @@ begin
          mAxisClk    => fastClk,
          mAxisRst    => fastRst,
          mAxisMaster => mAxisMaster,
-         mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);           
+         mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);
 
    process (fastClk) is
    begin
@@ -203,5 +202,5 @@ begin
             report "Simulation Passed!" severity failure;
       end if;
    end process;
-   
+
 end testbed;

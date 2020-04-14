@@ -1,18 +1,14 @@
-#!/usr/bin/env python
 #-----------------------------------------------------------------------------
 # Title      : PyRogue GigEthReg
-#-----------------------------------------------------------------------------
-# File       : GigEthReg.py
-# Created    : 2017-04-12
 #-----------------------------------------------------------------------------
 # Description:
 # PyRogue GigEthReg
 #-----------------------------------------------------------------------------
-# This file is part of the rogue software platform. It is subject to
+# This file is part of the 'SLAC Firmware Standard Library'. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
 # of this distribution and at:
 #    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
-# No part of the rogue software platform, including this file, may be
+# No part of the 'SLAC Firmware Standard Library', including this file, may be
 # copied, modified, propagated, or distributed except according to the terms
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
@@ -20,17 +16,14 @@
 import pyrogue as pr
 
 class GigEthReg(pr.Device):
-    def __init__(   self,       
-            name        = "GigEthReg",
-            description = "GigEthReg",
-            **kwargs):
-        super().__init__(name=name, description=description, **kwargs) 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         ##############################
         # Variables
         ##############################
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "StatusCounters",
             description  = "Status Counters",
             offset       =  0x00,
@@ -42,7 +35,7 @@ class GigEthReg(pr.Device):
             stride       =  4,
         )
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = "StatusVector",
             description  = "Status Vector",
             offset       =  0x100,
@@ -52,7 +45,7 @@ class GigEthReg(pr.Device):
             mode         = "RO",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = "PhyStatus",
             description  = "PhyStatus",
             offset       =  0x108,
@@ -62,7 +55,7 @@ class GigEthReg(pr.Device):
             mode         = "RO",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = "MacAddress",
             description  = "MAC Address (big-Endian)",
             offset       =  0x200,
@@ -72,7 +65,7 @@ class GigEthReg(pr.Device):
             mode         = "RO",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = "PauseTime",
             description  = "PauseTime",
             offset       =  0x21C,
@@ -82,7 +75,7 @@ class GigEthReg(pr.Device):
             mode         = "RO",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = "FilterEnable",
             description  = "FilterEnable",
             offset       =  0x228,
@@ -92,7 +85,7 @@ class GigEthReg(pr.Device):
             mode         = "RO",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = "PauseEnable",
             description  = "PauseEnable",
             offset       =  0x22C,
@@ -102,7 +95,7 @@ class GigEthReg(pr.Device):
             mode         = "RO",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = "RollOverEn",
             description  = "RollOverEn",
             offset       =  0xF00,
@@ -112,7 +105,7 @@ class GigEthReg(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = "CounterReset",
             description  = "CounterReset",
             offset       =  0xFF4,
@@ -122,7 +115,7 @@ class GigEthReg(pr.Device):
             mode         = "WO",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = "SoftReset",
             description  = "SoftReset",
             offset       =  0xFF8,
@@ -132,7 +125,7 @@ class GigEthReg(pr.Device):
             mode         = "WO",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = "HardReset",
             description  = "HardReset",
             offset       =  0xFFC,
@@ -141,4 +134,3 @@ class GigEthReg(pr.Device):
             base         = pr.UInt,
             mode         = "WO",
         ))
-

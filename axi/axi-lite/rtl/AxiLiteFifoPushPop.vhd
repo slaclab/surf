@@ -6,11 +6,11 @@
 -- One address location per FIFO.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -143,7 +143,7 @@ begin
    -- pop FIFOs
    -----------------------------------------
    U_PopFifo : for i in 0 to POP_FIFO_COUNT_G-1 generate
-      U_FIfo : entity surf.FifoCascade 
+      U_FIfo : entity surf.FifoCascade
          generic map (
             TPD_G              => TPD_G,
             CASCADE_SIZE_G     => 1,
@@ -196,7 +196,7 @@ begin
    -----------------------------------------
    U_LoopFifoEn : if LOOP_FIFO_EN_G generate
       U_LoopFifo : for i in 0 to LOOP_FIFO_COUNT_G-1 generate
-         U_FIfo : entity surf.FifoCascade 
+         U_FIfo : entity surf.FifoCascade
             generic map (
                TPD_G              => TPD_G,
                CASCADE_SIZE_G     => 1,
@@ -258,7 +258,7 @@ begin
    -- push FIFOs
    -----------------------------------------
    U_PushFifo : for i in 0 to PUSH_FIFO_COUNT_G-1 generate
-      U_FIfo : entity surf.FifoCascade 
+      U_FIfo : entity surf.FifoCascade
          generic map (
             TPD_G              => TPD_G,
             CASCADE_SIZE_G     => 1,
@@ -321,7 +321,7 @@ begin
    end process;
 
    -- Async
-   process (r, axiClkRst, axiReadMaster, axiWriteMaster, ipopFifoDout, ipopFifoValid, 
+   process (r, axiClkRst, axiReadMaster, axiWriteMaster, ipopFifoDout, ipopFifoValid,
             iloopFifoDout, iloopFifoValid, ipushFifoFull, ipushFifoAFull ) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
@@ -360,7 +360,7 @@ begin
          if axiReadMaster.araddr(RANGE_LSB_G+1 downto RANGE_LSB_G) = 0 then
             v.axiReadSlave.rdata := ipopFifoDout(conv_integer(axiReadMaster.araddr(POP_SIZE_C+1 downto 2)));
 
-            v.axiReadSlave.rdata(VALID_POSITION_G) := 
+            v.axiReadSlave.rdata(VALID_POSITION_G) :=
                VALID_POLARITY_G xor (not ipopFifoValid(conv_integer(axiReadMaster.araddr(POP_SIZE_C+1 downto 2))));
 
             v.popFifoRead(conv_integer(axiReadMaster.araddr(POP_SIZE_C+1 downto 2))) :=
@@ -370,10 +370,10 @@ begin
          elsif axiReadMaster.araddr(RANGE_LSB_G+1 downto RANGE_LSB_G) = 1 then
             v.axiReadSlave.rdata := iloopFifoDout(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2)));
 
-            v.axiReadSlave.rdata(VALID_POSITION_G) := 
+            v.axiReadSlave.rdata(VALID_POSITION_G) :=
                VALID_POLARITY_G xor (not iloopFifoValid(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2))));
 
-            v.loopFifoRead(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2))) := 
+            v.loopFifoRead(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2))) :=
                iloopFifoValid(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2)));
 
          -- Write FIFO Space
@@ -406,7 +406,7 @@ begin
       iloopFifoWrite <= r.loopFifoWrite;
       ipushFifoDin   <= r.pushFifoDin;
       ipushFifoWrite <= r.pushFifoWrite;
-      
+
    end process;
 
 end architecture structure;

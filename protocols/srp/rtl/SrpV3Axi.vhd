@@ -6,11 +6,11 @@
 -- Description: SLAC Register Protocol Version 3, AXI Interface
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -47,18 +47,18 @@ entity SrpV3Axi is
       WRITE_EN_G          : boolean                 := true;       -- Write ops enabled
       READ_EN_G           : boolean                 := true);      -- Read ops enabled
    port (
-      -- AXIS Slave Interface (sAxisClk domain) 
+      -- AXIS Slave Interface (sAxisClk domain)
       sAxisClk       : in  sl;
       sAxisRst       : in  sl;
       sAxisMaster    : in  AxiStreamMasterType;
       sAxisSlave     : out AxiStreamSlaveType;
       sAxisCtrl      : out AxiStreamCtrlType;
-      -- AXIS Master Interface (mAxisClk domain) 
+      -- AXIS Master Interface (mAxisClk domain)
       mAxisClk       : in  sl;
       mAxisRst       : in  sl;
       mAxisMaster    : out AxiStreamMasterType;
       mAxisSlave     : in  AxiStreamSlaveType;
-      -- Master AXI Interface  (mAxiClk domain) 
+      -- Master AXI Interface  (mAxiClk domain)
       axiClk         : in  sl;
       axiRst         : in  sl;
       axiWriteMaster : out AxiWriteMasterType;
@@ -75,7 +75,7 @@ architecture rtl of SrpV3Axi is
       TDEST_BITS_C  => 0,
       TID_BITS_C    => 0,
       TKEEP_MODE_C  => TKEEP_NORMAL_C,
-      TUSER_BITS_C  => 0,              
+      TUSER_BITS_C  => 0,
       TUSER_MODE_C  => TUSER_NONE_C);
 
    type RegType is record
@@ -232,7 +232,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-   -- Outputs    
+   -- Outputs
    end process comb;
 
    seq : process (axiClk) is

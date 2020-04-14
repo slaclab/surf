@@ -6,11 +6,11 @@
 -- Description: Simulation Testbed for PGP
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -37,7 +37,7 @@ entity PgpParallelSimModel is
       PAYLOAD_CNT_TOP_G     : integer              := 7;    -- Top bit for payload counter
       NUM_VC_EN_G           : integer range 1 to 4 := 4;
       TX_ENABLE_G           : boolean              := true;        -- Enable TX direction
-      RX_ENABLE_G           : boolean              := true);       -- Enable RX direction      
+      RX_ENABLE_G           : boolean              := true);       -- Enable RX direction
    port (
       -- System Signals
       clk          : in  sl;
@@ -56,7 +56,7 @@ entity PgpParallelSimModel is
       pgpTxOut     : out Pgp2bTxOutType;
       -- PGP 8B/10B Encoded
       pgpIn        : in  slv(19 downto 0);
-      pgpOut       : out slv(19 downto 0));       
+      pgpOut       : out slv(19 downto 0));
 end PgpParallelSimModel;
 
 architecture mapping of PgpParallelSimModel is
@@ -78,7 +78,7 @@ architecture mapping of PgpParallelSimModel is
 
    signal phyTxLanesOut : Pgp2bTxPhyLaneOutArray(0 to 0);
    signal phyRxLanesIn  : Pgp2bRxPhyLaneInArray(0 to 0);
-   
+
 begin
 
    U_CableDelay : entity surf.SlvDelay
@@ -89,7 +89,7 @@ begin
       port map (
          clk  => clk,
          din  => pgpIn,
-         dout => pgpInDly); 
+         dout => pgpInDly);
 
    U_RxSerDelay : entity surf.SlvDelay
       generic map (
@@ -99,7 +99,7 @@ begin
       port map (
          clk  => clk,
          din  => pgpInDly,
-         dout => dataIn);                 
+         dout => dataIn);
 
    U_Decoder8b10b : entity surf.Decoder8b10b
       generic map (
@@ -112,7 +112,7 @@ begin
          dataOut  => phyRxLanesIn(0).data,
          dataKOut => phyRxLanesIn(0).dataK,
          codeErr  => phyRxLanesIn(0).decErr,
-         dispErr  => phyRxLanesIn(0).dispErr);      
+         dispErr  => phyRxLanesIn(0).dispErr);
 
    phyTxReady <= not(rst);
    phyRxReady <= not(rst);
@@ -125,7 +125,7 @@ begin
          PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G,
          NUM_VC_EN_G       => NUM_VC_EN_G,
          TX_ENABLE_G       => TX_ENABLE_G,
-         RX_ENABLE_G       => RX_ENABLE_G)         
+         RX_ENABLE_G       => RX_ENABLE_G)
       port map (
          pgpTxClk         => clk,
          pgpTxClkRst      => rst,
@@ -166,6 +166,6 @@ begin
       port map (
          clk  => clk,
          din  => dataOut,
-         dout => pgpOut);        
+         dout => pgpOut);
 
 end mapping;

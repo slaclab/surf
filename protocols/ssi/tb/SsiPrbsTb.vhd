@@ -6,11 +6,11 @@
 -- Description: Simulation Testbed for testing the VcPrbsTx and VcPrbsRx modules
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -32,7 +32,7 @@ architecture testbed of SsiPrbsTb is
 
    function PrbsAxiStreamConfig (
       dataBytes : natural;
-      tKeepMode : TKeepModeType := TKEEP_COMP_C) 
+      tKeepMode : TKeepModeType := TKEEP_COMP_C)
       return AxiStreamConfigType is
       variable ret : AxiStreamConfigType;
    begin
@@ -40,7 +40,7 @@ architecture testbed of SsiPrbsTb is
       ret.TUSER_BITS_C  := 4;
       ret.TDEST_BITS_C  := SSI_TDEST_BITS_C;    -- 4 TDEST bits for VC
       ret.TID_BITS_C    := SSI_TID_BITS_C;      -- TID not used
-      ret.TKEEP_MODE_C  := tKeepMode;           -- 
+      ret.TKEEP_MODE_C  := tKeepMode;           --
       ret.TSTRB_EN_C    := SSI_TSTRB_EN_C;      -- No TSTRB support in SSI
       ret.TUSER_MODE_C  := TUSER_FIRST_LAST_C;  -- User field valid on last only
       return ret;
@@ -85,7 +85,7 @@ architecture testbed of SsiPrbsTb is
    signal errWordCnt,
       errbitCnt,
       cnt : slv(31 downto 0);
-   
+
    signal axisMaster : AxiStreamMasterType;
    signal axisSlave  : AxiStreamSlaveType;
 
@@ -101,7 +101,7 @@ begin
          clkP => fastClk,
          clkN => open,
          rst  => fastRst,
-         rstL => open); 
+         rstL => open);
 
    ClkRst_Slow : entity surf.ClkRst
       generic map (
@@ -112,7 +112,7 @@ begin
          clkP => slowClk,
          clkN => open,
          rst  => slowRst,
-         rstL => open);          
+         rstL => open);
 
    -- VcPrbsTx (VHDL module to be tested)
    SsiPrbsTx_Inst : entity surf.SsiPrbsTx
@@ -131,7 +131,7 @@ begin
          PRBS_TAPS_G                => PRBS_TAPS_C,
          -- AXI Stream Configurations
          MASTER_AXI_STREAM_CONFIG_G => AXI_STREAM_CONFIG_C,
-         MASTER_AXI_PIPE_STAGES_G   => AXI_PIPE_STAGES_C)        
+         MASTER_AXI_PIPE_STAGES_G   => AXI_PIPE_STAGES_C)
       port map (
          -- Master Port (mAxisClk)
          mAxisClk     => slowClk,
@@ -146,7 +146,7 @@ begin
          forceEofe    => FORCE_EOFE_C,
          busy         => open,
          tDest        => (others => '0'),
-         tId          => (others => '0'));     
+         tId          => (others => '0'));
 
    -- VcPrbsRx (VHDL module to be tested)
    SsiPrbsRx_Inst : entity surf.SsiPrbsRx
@@ -167,7 +167,7 @@ begin
          SLAVE_AXI_STREAM_CONFIG_G  => AXI_STREAM_CONFIG_C,
          SLAVE_AXI_PIPE_STAGES_G    => AXI_PIPE_STAGES_C)
       port map (
-         -- Streaming RX Data Interface (sAxisClk domain) 
+         -- Streaming RX Data Interface (sAxisClk domain)
          sAxisClk        => slowClk,
          sAxisRst        => slowRst,
          sAxisMaster     => axisMaster,
@@ -189,7 +189,7 @@ begin
          errWordCnt      => errWordCnt,
          errbitCnt       => errbitCnt,
          packetRate      => open,
-         packetLength    => open);     
+         packetLength    => open);
 
    process(slowClk)
    begin

@@ -4,11 +4,11 @@
 -- Description: G-Link wrapper for GTX7 Fixed Latency transceiver
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -43,13 +43,13 @@ entity GLinkGtx7FixedLat is
       RX_CLK25_DIV_G        : integer    := 5;                      -- Set by wizard
       TX_CLK25_DIV_G        : integer    := 5;                      -- Set by wizard
       RX_OS_CFG_G           : bit_vector := "0000010000000";        -- Set by wizard
-      RXCDR_CFG_G           : bit_vector := x"03000023ff40200020";  -- Set by wizard      
+      RXCDR_CFG_G           : bit_vector := x"03000023ff40200020";  -- Set by wizard
       -- RX Equalizer Attributes
       RX_DFE_KL_CFG2_G      : bit_vector := x"3008E56A";            -- Set by wizard
       RX_CM_TRIM_G          : bit_vector := "010";
       RX_DFE_LPM_CFG_G      : bit_vector := x"0954";
       RXDFELFOVRDEN_G       : sl         := '1';
-      RXDFEXYDEN_G          : sl         := '1';                     -- This should always be 1      
+      RXDFEXYDEN_G          : sl         := '1';                     -- This should always be 1
       -- Configure PLL sources
       TX_PLL_G              : string     := "QPLL";
       RX_PLL_G              : string     := "CPLL");
@@ -91,7 +91,7 @@ entity GLinkGtx7FixedLat is
 end GLinkGtx7FixedLat;
 
 architecture rtl of GLinkGtx7FixedLat is
-   
+
    constant FIXED_ALIGN_COMMA_0_C : slv(19 downto 0) := bitReverse((GLINK_VALID_IDLE_WORDS_C(0) & GLINK_CONTROL_WORD_C));  -- FF0
    constant FIXED_ALIGN_COMMA_1_C : slv(19 downto 0) := bitReverse((GLINK_VALID_IDLE_WORDS_C(1) & GLINK_CONTROL_WORD_C));  -- FF1A
    constant FIXED_ALIGN_COMMA_2_C : slv(19 downto 0) := bitReverse((GLINK_VALID_IDLE_WORDS_C(2) & GLINK_CONTROL_WORD_C));  -- FF1B
@@ -123,7 +123,7 @@ begin
    rxClkDebug <= rxClk;
 
    SYNTH_TX : if (SYNTH_TX_G = true) generate
-      
+
       txClk <= gLinkTxRefClk;
 
       Synchronizer_0 : entity surf.Synchronizer
@@ -132,7 +132,7 @@ begin
          port map (
             clk     => gLinkTxClk,
             dataIn  => gtTxRstDone,
-            dataOut => txReady);  
+            dataOut => txReady);
 
       SyncFifo_TX : entity surf.SynchronizerFifo
          generic map (
@@ -147,7 +147,7 @@ begin
             --Read Ports (rd_clk domain)
             rd_clk => txClk,
             valid  => txFifoValid,
-            dout   => txFifoDout); 
+            dout   => txFifoDout);
 
       gLinkTxSync <= toGLinkTx(txFifoDout) when(txFifoValid = '1') else GLINK_TX_UNUSED_C;
 
@@ -157,27 +157,27 @@ begin
          generic map (
             TPD_G          => TPD_G,
             FLAGSEL_G      => FLAGSEL_G,
-            RST_POLARITY_G => '1')  
+            RST_POLARITY_G => '1')
          port map (
             clk         => txClk,
             rst         => gtTxRst,
             gLinkTx     => gLinkTxSync,
-            encodedData => gtTxData);      
+            encodedData => gtTxData);
 
    end generate;
 
    DISABLE_SYNTH_TX : if (SYNTH_TX_G = false) generate
-      
+
       txClk       <= '0';
       txReady     <= '1';
       gLinkTxSync <= GLINK_TX_UNUSED_C;
       gtTxRst     <= '0';
       gtTxData    <= (GLINK_IDLE_WORD_FF0_C & GLINK_CONTROL_WORD_C);
-      
+
    end generate;
 
    SYNTH_RX : if (SYNTH_RX_G = true) generate
-      
+
       rxClk <= rxRecClk;
 
       Synchronizer_1 : entity surf.Synchronizer
@@ -186,7 +186,7 @@ begin
          port map (
             clk     => gLinkRxClk,
             dataIn  => gtRxRstDone,
-            dataOut => rxReady); 
+            dataOut => rxReady);
 
       SyncFifo_RX : entity surf.SynchronizerFifo
          generic map (
@@ -204,7 +204,7 @@ begin
             rd_clk => gLinkRxClk,
             rd_en  => gLinkRxClkEn,
             valid  => rxFifoValid,
-            dout   => rxFifoDout); 
+            dout   => rxFifoDout);
 
       gLinkRx <= toGLinkRx(rxFifoDout);
 
@@ -215,7 +215,7 @@ begin
          generic map (
             TPD_G          => TPD_G,
             FLAGSEL_G      => FLAGSEL_G,
-            RST_POLARITY_G => '1')  
+            RST_POLARITY_G => '1')
          port map (
             clk           => rxClk,
             rst           => gtRxRst,
@@ -223,19 +223,19 @@ begin
             rxReady       => gtRxRstDone,
             txReady       => gtTxRstDone,
             gLinkRx       => gLinkRxSync,
-            decoderErrorL => dataValid);   
+            decoderErrorL => dataValid);
 
    end generate;
 
    DISABLE_SYNTH_RX : if (SYNTH_RX_G = false) generate
-      
+
       rxClk     <= '0';
       rxReady   <= '1';
       gLinkRx   <= GLINK_RX_INIT_C;
       rxRst     <= '0';
       gtRxRst   <= '0';
       dataValid <= '1';
-      
+
    end generate;
 
    gtTxDataReversed <= bitReverse(gtTxData);
@@ -342,5 +342,5 @@ begin
          txPowerDown(1)   => txPowerDown,
          rxPowerDown(0)   => rxPowerDown,
          rxPowerDown(1)   => rxPowerDown,
-         loopbackIn       => loopback);         
+         loopbackIn       => loopback);
 end rtl;

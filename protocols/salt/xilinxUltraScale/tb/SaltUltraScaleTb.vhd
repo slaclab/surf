@@ -4,11 +4,11 @@
 -- Description: Simulation Testbed for testing the SaltUltraScale
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -38,7 +38,7 @@ architecture testbed of SaltUltraScaleTb is
    -- PRBS Configuration
    constant PRBS_SEED_SIZE_C : natural      := 32;
    constant PRBS_TAPS_C      : NaturalArray := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
-   constant FORCE_EOFE_C     : sl           := '0';  -- Forces an error (testing tUser field MUX-ing)   
+   constant FORCE_EOFE_C     : sl           := '0';  -- Forces an error (testing tUser field MUX-ing)
 
    -- FIFO configurations
    constant MEMORY_TYPE_C       : string  := "block";
@@ -170,16 +170,16 @@ begin
 
    linkUpL <= not(linkUp);
 
-   ----------------------         
+   ----------------------
    -- Module to be tested
-   ----------------------   
+   ----------------------
    SaltUltraScale_Inst : entity surf.SaltUltraScale
       generic map (
          TPD_G               => TPD_C,
          TX_ENABLE_G         => true,
          RX_ENABLE_G         => true,
          COMMON_TX_CLK_G     => true,  -- Set to true if sAxisClk and clk are the same clock
-         COMMON_RX_CLK_G     => true,  -- Set to true if mAxisClk and clk are the same clock      
+         COMMON_RX_CLK_G     => true,  -- Set to true if mAxisClk and clk are the same clock
          SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(4),
          MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(4))
       port map (
@@ -232,7 +232,7 @@ begin
          MASTER_AXI_STREAM_CONFIG_G => ssiAxiStreamConfig(4),  -- unused
          MASTER_AXI_PIPE_STAGES_G   => 0)                      -- unused
       port map (
-         -- Streaming RX Data Interface (sAxisClk domain) 
+         -- Streaming RX Data Interface (sAxisClk domain)
          sAxisClk        => clk,
          sAxisRst        => rst,
          sAxisMaster     => obSaltMaster,

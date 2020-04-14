@@ -3,15 +3,15 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description:   This module generates 
+-- Description:   This module generates
 --                PseudoRandom Binary Sequence (PRBS) on Virtual Channel Lane.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -37,6 +37,7 @@ entity SsiPrbsTx is
       -- FIFO Configurations
       VALID_THOLD_G              : natural                 := 1;
       VALID_BURST_MODE_G         : boolean                 := false;
+      SYNTH_MODE_G               : string                  := "inferred";
       MEMORY_TYPE_G              : string                  := "block";
       GEN_SYNC_FIFO_G            : boolean                 := false;
       CASCADE_SIZE_G             : positive                := 1;
@@ -153,7 +154,7 @@ begin
    begin
       -- Latch the current value
       v := r;
-      
+
       ----------------------------------------------------------------------------------------------
       -- Axi-Lite interface
       ----------------------------------------------------------------------------------------------
@@ -193,7 +194,7 @@ begin
                v.axilReadSlave.rdata(1) := r.trig;
                v.axilReadSlave.rdata(2) := r.busy;
                v.axilReadSlave.rdata(3) := r.overflow;
-               -- BIT4 reserved 
+               -- BIT4 reserved
                v.axilReadSlave.rdata(5) := r.cntData;
             when X"04" =>
                v.axilReadSlave.rdata(31 downto 0) := r.packetLength;
@@ -343,7 +344,7 @@ begin
                if r.dataCnt = r.length then
                   -- Reset the counter
                   v.dataCnt            := (others => '0');
-                  -- Set the EOF bit                
+                  -- Set the EOF bit
                   v.txAxisMaster.tLast := '1';
                   -- Set the EOFE bit
                   ssiSetUserEofe(PRBS_SSI_CONFIG_C, v.txAxisMaster, r.overflow);
@@ -388,6 +389,7 @@ begin
          VALID_THOLD_G       => VALID_THOLD_G,
          VALID_BURST_MODE_G  => VALID_BURST_MODE_G,
          -- FIFO configurations
+         SYNTH_MODE_G        => SYNTH_MODE_G,
          MEMORY_TYPE_G       => MEMORY_TYPE_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          CASCADE_SIZE_G      => CASCADE_SIZE_G,

@@ -5,11 +5,11 @@
 -- CameraLink framing module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -62,6 +62,7 @@ architecture rtl of ClinkFraming is
       dump     : sl;
       status   : ClChanStatusType;
       master   : AxiStreamMasterType;
+      pipeline : AxiStreamMasterArray(1 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -72,7 +73,8 @@ architecture rtl of ClinkFraming is
       inFrame  => '0',
       dump     => '0',
       status   => CL_CHAN_STATUS_INIT_C,
-      master   => AXI_STREAM_MASTER_INIT_C);
+      master   => AXI_STREAM_MASTER_INIT_C,
+      pipeline => (others => AXI_STREAM_MASTER_INIT_C));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -80,7 +82,7 @@ architecture rtl of ClinkFraming is
    signal intCtrl    : AxiStreamCtrlType;
    signal packMaster : AxiStreamMasterType;
 
-   -- attribute MARK_DEBUG : string;
+   -- attribute MARK_DEBUG               : string;
    -- attribute MARK_DEBUG of r          : signal is "TRUE";
    -- attribute MARK_DEBUG of parData    : signal is "TRUE";
    -- attribute MARK_DEBUG of parValid   : signal is "TRUE";
@@ -382,6 +384,11 @@ begin
             v.master.tValid := r.inFrame;
             v.master.tLast  := '1';
 
+            -- Check for no data at end of frame
+            if (r.byteData.lv = '0') then
+               v.master.tKeep := (others => '0');
+            end if;
+
             v.inFrame := '0';
             v.dump    := '0';
          end if;
@@ -398,7 +405,43 @@ begin
          v.status.dropCount  := (others => '0');
       end if;
 
-      -- Outputs 
+      ----------------------------------
+      -- Handle the tKeep=0 @ tLast Case
+      ----------------------------------
+
+      -- Clear the tValid of pipeline output stage
+      v.pipeline(1).tValid := '0';
+      v.pipeline(1).tLast  := '0';
+
+      -- Check for new data for the pipeline input stage
+      if (r.master.tValid = '1') or (r.pipeline(0).tLast = '1') then
+
+         -- Check for empty tLast
+         if (r.master.tValid = '1') and (r.master.tLast = '1') and (r.master.tKeep = 0) then
+
+            -- Clear the first stage pipeline
+            v.pipeline(0).tValid := '0';
+
+            -- Only pop register first stage to the output
+            v.pipeline(1) := r.pipeline(0);
+
+            -- Terminate the frame
+            v.pipeline(1).tLast := '1';
+
+            -- Pass the meta data as well (e.g. EOFE)
+            v.pipeline(1).tUser := r.master.tUser;
+
+         else
+
+            -- Update the pipeline
+            v.pipeline(0) := r.master;
+            v.pipeline(1) := r.pipeline(0);
+
+         end if;
+
+      end if;
+
+      -- Outputs
       parReady   <= v.ready;
       chanStatus <= r.status;
 
@@ -409,7 +452,6 @@ begin
 
       -- Register the variable for next clock cycle
       rin <= v;
-
 
    end process;
 
@@ -431,7 +473,7 @@ begin
       port map (
          axiClk      => sysClk,
          axiRst      => sysRst,
-         sAxisMaster => r.master,
+         sAxisMaster => r.pipeline(1),
          mAxisMaster => packMaster);
 
    ---------------------------------

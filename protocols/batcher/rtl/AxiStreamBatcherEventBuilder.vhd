@@ -3,14 +3,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Wrapper on AxiStreamBatcher for multi-AXI stream event building 
+-- Description: Wrapper on AxiStreamBatcher for multi-AXI stream event building
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -44,7 +44,7 @@ entity AxiStreamBatcherEventBuilder is
       -- In INDEXED mode, assign slave index to TDEST at this bit offset
       TDEST_LOW_G : integer range 0 to 7 := 0;
 
-      -- Set the TDEST to detect for transition frame 
+      -- Set the TDEST to detect for transition frame
       TRANS_TDEST_G : slv(7 downto 0) := x"FF";
 
       AXIS_CONFIG_G        : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
@@ -54,6 +54,8 @@ entity AxiStreamBatcherEventBuilder is
       -- Clock and Reset
       axisClk         : in  sl;
       axisRst         : in  sl;
+      -- Misc
+      blowoffExt      : in  sl                     := '0';
       -- AXI-Lite Interface
       axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
       axilReadSlave   : out AxiLiteReadSlaveType;
@@ -77,6 +79,7 @@ architecture rtl of AxiStreamBatcherEventBuilder is
    type RegType is record
       softRst        : sl;
       hardRst        : sl;
+      blowoffReg     : sl;
       blowoff        : sl;
       timerRst       : sl;
       cntRst         : sl;
@@ -104,6 +107,7 @@ architecture rtl of AxiStreamBatcherEventBuilder is
    constant REG_INIT_C : RegType := (
       softRst        => '0',
       hardRst        => '0',
+      blowoffReg     => '0',
       blowoff        => '0',
       timerRst       => '0',
       cntRst         => '0',
@@ -198,8 +202,8 @@ begin
          bin  => r.timeout,
          gtEq => timeoutEvent);         -- greater than or equal to (a >= b)
 
-   comb : process (axilReadMaster, axilWriteMaster, axisRst, batcherIdle, r,
-                   rxMasters, timeoutEvent, txSlave) is
+   comb : process (axilReadMaster, axilWriteMaster, axisRst, batcherIdle, blowoffExt, r, rxMasters,
+                   timeoutEvent, txSlave) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
       variable i      : natural;
@@ -228,11 +232,13 @@ begin
          v := REG_INIT_C;
 
          -- Preserve the resister configurations
-         v.bypass  := r.bypass;
-         v.timeout := r.timeout;
-         v.blowoff := r.blowoff;
+         v.bypass     := r.bypass;
+         v.timeout    := r.timeout;
+         v.blowoffReg := r.blowoffReg;
 
       end if;
+
+
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
@@ -249,7 +255,8 @@ begin
       axiSlaveRegister (axilEp, x"FF0", 0, v.timeout);
       axiSlaveRegisterR(axilEp, x"FF4", 0, toSlv(NUM_SLAVES_G, 8));
       axiSlaveRegisterR(axilEp, x"FF4", 8, dbg);
-      axiSlaveRegister (axilEp, x"FF8", 0, v.blowoff);
+      axiSlaveRegisterR(axilEp, X"FF4", 16, blowoffExt);
+      axiSlaveRegister (axilEp, x"FF8", 0, v.blowoffReg);
       axiSlaveRegister (axilEp, x"FFC", 0, v.cntRst);
       axiSlaveRegister (axilEp, x"FFC", 1, v.timerRst);
       axiSlaveRegister (axilEp, x"FFC", 2, v.hardRst);
@@ -257,6 +264,8 @@ begin
 
       -- Closeout the transaction
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
+
+      v.blowoff := v.blowoffReg or blowoffExt;
 
       -- Check for change in configuration
       if (r.timeout /= v.timeout) or (r.timerRst = '1') then
@@ -286,7 +295,7 @@ begin
             -- Loop through RX channels
             for i in (NUM_SLAVES_G-1) downto 0 loop
 
-               -- Check if no data and not bypassing 
+               -- Check if no data and not bypassing
                if (rxMasters(i).tValid = '0') and (r.bypass(i) = '0') then
                   -- Reset the flags
                   v.ready       := '0';
@@ -404,7 +413,7 @@ begin
                -- Next state
                v.state := MOVE_S;
 
-            -- Check for blowoff flag 
+            -- Check for blowoff flag
             elsif (r.blowoff = '1') then
 
                -- Blow off the inbound data
@@ -517,7 +526,7 @@ begin
          TPD_G                        => TPD_G,
          MAX_NUMBER_SUB_FRAMES_G      => NUM_SLAVES_G,
          SUPER_FRAME_BYTE_THRESHOLD_G => 0,  -- 0 = bypass super threshold check
-         MAX_CLK_GAP_G                => 0,  -- 0 = bypass MAX clock GAP 
+         MAX_CLK_GAP_G                => 0,  -- 0 = bypass MAX clock GAP
          AXIS_CONFIG_G                => AXIS_CONFIG_G,
          INPUT_PIPE_STAGES_G          => 1,  -- Break apart the long combinatorial tReady chain
          OUTPUT_PIPE_STAGES_G         => OUTPUT_PIPE_STAGES_G)
