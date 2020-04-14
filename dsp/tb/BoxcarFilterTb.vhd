@@ -67,11 +67,18 @@ begin
 
       v.ibData := r.ibData + 1;
 
+      -- Uncomment to test ramping value
       if (v.ibData = 1025) then
          v.ibData := toSlv(1, 16);
       end if;
 
-      -- Uncomment to test max accumulator value
+      -- -- Uncomment to test min accumulator value
+      -- v.ibData := (others => '0');
+
+      -- -- Uncomment to test midpoint accumulator value
+      -- v.ibData := x"8000";
+
+      -- -- Uncomment to test max accumulator value
       -- v.ibData := (others => '1');
 
       -- Reset
@@ -94,6 +101,7 @@ begin
    U_BoxcarFilter : entity surf.BoxcarFilter
       generic map (
          TPD_G        => TPD_G,
+         SIGNED_G     => false,
          DATA_WIDTH_G => 16,
          ADDR_WIDTH_G => 10)
       port map (
