@@ -43,6 +43,9 @@ architecture testbed of BoxcarIntegratorTb is
    signal expError : sl;
    signal spacing  : slv(15 downto 0);
 
+   signal passed : sl := '0';
+   signal failed : sl := '0';
+
 begin
 
    U_ClkRst : entity surf.ClkRst
@@ -78,6 +81,7 @@ begin
 
    process
    begin
+      passed   <= '0';
       intCount <= toSlv(0, 10);
       spacing  <= toSlv(99, 16);
       wait for 100 us;
@@ -133,6 +137,7 @@ begin
       wait for 100 us;
       intCount <= toSlv(1023, 10);
       wait for 4000 us;
+      passed   <= '1';
 
    end process;
 
@@ -181,7 +186,21 @@ begin
                   expError <= '1' after TPD_G;
                end if;
             end if;
+
+            failed <= expError after TPD_G;
+
          end if;
+      end if;
+   end process;
+
+   process(failed, passed)
+   begin
+      if passed = '1' then
+         assert false
+            report "Simulation Passed!" severity failure;
+      elsif failed = '1' then
+         assert false
+            report "Simulation Failed!" severity failure;
       end if;
    end process;
 
