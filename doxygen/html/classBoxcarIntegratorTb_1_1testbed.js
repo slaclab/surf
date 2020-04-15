@@ -3,6 +3,7 @@ var classBoxcarIntegratorTb_1_1testbed =
     [ "PROCESS_100", "classBoxcarIntegratorTb_1_1testbed.html#a3e46d2aba1f6628cb389d970288f1d1a", null ],
     [ "PROCESS_101", "classBoxcarIntegratorTb_1_1testbed.html#ac267d40944d4d89fe59eff9b056b90f8", null ],
     [ "PROCESS_102", "classBoxcarIntegratorTb_1_1testbed.html#ab11bde2099f487076131024eefd39b52", null ],
+    [ "PROCESS_103", "classBoxcarIntegratorTb_1_1testbed.html#afd61166c8d056fecdcc3cf508093f16e", null ],
     [ "TPD_G", "classBoxcarIntegratorTb_1_1testbed.html#a8b8943513009f6f037ce23f48b6bbdbd", null ],
     [ "clk", "classBoxcarIntegratorTb_1_1testbed.html#a348a7d6266870ee9391f97f338128aff", null ],
     [ "rst", "classBoxcarIntegratorTb_1_1testbed.html#add1e3edd67c8a9636f236d9d46e2bbd5", null ],
@@ -18,6 +19,8 @@ var classBoxcarIntegratorTb_1_1testbed =
     [ "expData1", "classBoxcarIntegratorTb_1_1testbed.html#af0e174c7808fd056698976505906e958", null ],
     [ "expError", "classBoxcarIntegratorTb_1_1testbed.html#a188c654be7203ae48b2cdc818818fa16", null ],
     [ "spacing", "classBoxcarIntegratorTb_1_1testbed.html#acef8d0f643a435f2025d8665c17f7935", null ],
+    [ "passed", "classBoxcarIntegratorTb_1_1testbed.html#ade9ac7a4a90abfddfdd585ea2b9862c2", null ],
+    [ "failed", "classBoxcarIntegratorTb_1_1testbed.html#a32156e4744c43f04845bee4686b0ac62", null ],
     [ "u_clkrst", "classBoxcarIntegratorTb_1_1testbed.html#a22e67b8689e53a2e698445f134037394", null ],
     [ "u_boxcarintegrator", "classBoxcarIntegratorTb_1_1testbed.html#a1e44e9a0bfee3a79876b6dd1191a4a8f", null ]
 ];

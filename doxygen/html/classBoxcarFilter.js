@@ -2,6 +2,7 @@ var classBoxcarFilter =
 [
     [ "mapping", "classBoxcarFilter_1_1mapping.html", "classBoxcarFilter_1_1mapping" ],
     [ "TPD_G", "classBoxcarFilter.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "SIGNED_G", "classBoxcarFilter.html#aa0fd7a0e6c7b82ee7160db8319383d49", null ],
     [ "DATA_WIDTH_G", "classBoxcarFilter.html#affd59283310705939da4070a8ed00c30", null ],
     [ "ADDR_WIDTH_G", "classBoxcarFilter.html#ad807e71950be92e72dd1f4a030d59581", null ],
     [ "clk", "classBoxcarFilter.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],

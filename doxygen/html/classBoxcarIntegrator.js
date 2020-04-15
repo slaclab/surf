@@ -2,6 +2,7 @@ var classBoxcarIntegrator =
 [
     [ "rtl", "classBoxcarIntegrator_1_1rtl.html", "classBoxcarIntegrator_1_1rtl" ],
     [ "TPD_G", "classBoxcarIntegrator.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "SIGNED_G", "classBoxcarIntegrator.html#aa0fd7a0e6c7b82ee7160db8319383d49", null ],
     [ "DATA_WIDTH_G", "classBoxcarIntegrator.html#affd59283310705939da4070a8ed00c30", null ],
     [ "ADDR_WIDTH_G", "classBoxcarIntegrator.html#ad807e71950be92e72dd1f4a030d59581", null ],
     [ "clk", "classBoxcarIntegrator.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
@@ -16,8 +17,7 @@ var classBoxcarIntegrator =
     [ "obPeriod", "classBoxcarIntegrator.html#a50ddfff878a58c30758f624e768b5371", null ],
     [ "ieee", "classBoxcarIntegrator.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classBoxcarIntegrator.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classBoxcarIntegrator.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classBoxcarIntegrator.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
+    [ "numeric_std", "classBoxcarIntegrator.html#a2edc34402b573437d5f25fa90ba4013e", null ],
     [ "surf", "classBoxcarIntegrator.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classBoxcarIntegrator.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

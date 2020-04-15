@@ -3,7 +3,7 @@ var classUartRx =
     [ "UartRx.rtl", "classUartRx_1_1rtl.html", "classUartRx_1_1rtl" ],
     [ "TPD_G", "classUartRx.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "PARITY_G", "classUartRx.html#a19a9c324062b5aa85a24b857051a369d", null ],
-    [ "BAUD_MULT_G", "classUartRx.html#a6e945024ea8e037424fd8597091b7fc6", null ],
+    [ "BAUD_MULT_G", "classUartRx.html#aa00f17ce84ebe3a80f6522d41cb16c00", null ],
     [ "DATA_WIDTH_G", "classUartRx.html#a97c53e9f5aa69b46f4c6b6b017d6c8c6", null ],
     [ "clk", "classUartRx.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classUartRx.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],

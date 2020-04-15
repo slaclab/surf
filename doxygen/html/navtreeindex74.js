@@ -1,5 +1,14 @@
 var NAVTREEINDEX74 =
 {
+"classPgp2bGthUltra_1_1mapping.html#a15bd5a4733fba604a28e3ddaeba133d2":[1,0,373,0,4],
+"classPgp2bGthUltra_1_1mapping.html#a2b4e6755a0ca3ae98e40510074fb103e":[1,0,373,0,8],
+"classPgp2bGthUltra_1_1mapping.html#a49a26d831a3f0c2cf22755b9b7880a82":[1,0,373,0,2],
+"classPgp2bGthUltra_1_1mapping.html#a5101b94a32f04c856c78375ea18c8cd3":[1,0,373,0,16],
+"classPgp2bGthUltra_1_1mapping.html#a5101b94a32f04c856c78375ea18c8cd3":[1,0,373,0,22],
+"classPgp2bGthUltra_1_1mapping.html#a5324ae938427f111ccb79219c13235be":[1,0,373,0,6],
+"classPgp2bGthUltra_1_1mapping.html#a778388601e7573611a54eca68f51ff8d":[1,0,373,0,1],
+"classPgp2bGthUltra_1_1mapping.html#a8578c0bee87b2715ebbde1f636f1ae47":[1,0,373,0,11],
+"classPgp2bGthUltra_1_1mapping.html#a917ff32c1bc06f99f0ecd7953a0e9e7a":[1,0,373,0,7],
 "classPgp2bGthUltra_1_1mapping.html#aa25702a4c34392eedb783d3981740ca3":[1,0,373,0,9],
 "classPgp2bGthUltra_1_1mapping.html#ab6205b43ab496ef88426336cebc081e1":[1,0,373,0,10],
 "classPgp2bGthUltra_1_1mapping.html#ac779f8602cde14ad7bc79e24909e4480":[1,0,373,0,5],
@@ -240,14 +249,5 @@ var NAVTREEINDEX74 =
 "classPgp2bGtp7FixedLat_1_1rtl.html":[1,0,374,0],
 "classPgp2bGtp7FixedLat_1_1rtl.html#a0565fd90fa389c3fd33ed14764a19296":[1,0,374,0,17],
 "classPgp2bGtp7FixedLat_1_1rtl.html#a0904919312aac694acf1a35b67b50ad8":[1,0,374,0,2],
-"classPgp2bGtp7FixedLat_1_1rtl.html#a0956869a71917b42bdf2ecbf645e54c4":[1,0,374,0,1],
-"classPgp2bGtp7FixedLat_1_1rtl.html#a0d071e06b8d5f2f93f0e9abab1cdd508":[1,0,374,0,24],
-"classPgp2bGtp7FixedLat_1_1rtl.html#a1f30a8e143c00c30d71b21c866fb4240":[1,0,374,0,12],
-"classPgp2bGtp7FixedLat_1_1rtl.html#a313794153bae5b90bf1310b7c96f3178":[1,0,374,0,22],
-"classPgp2bGtp7FixedLat_1_1rtl.html#a4df90c56d67877bfa96b343bb9f61eec":[1,0,374,0,16],
-"classPgp2bGtp7FixedLat_1_1rtl.html#a5101b94a32f04c856c78375ea18c8cd3":[1,0,374,0,23],
-"classPgp2bGtp7FixedLat_1_1rtl.html#a5eb6d762cad0bb211eba9a516a6aa5db":[1,0,374,0,4],
-"classPgp2bGtp7FixedLat_1_1rtl.html#a60817dc31ec624e44cfb8bc2f38e19f0":[1,0,374,0,26],
-"classPgp2bGtp7FixedLat_1_1rtl.html#a631b16fb82f0646ba7c13cca4d34d6d3":[1,0,374,0,3],
-"classPgp2bGtp7FixedLat_1_1rtl.html#a68bc6e9c047e18da6143d30e6eef6118":[1,0,374,0,6]
+"classPgp2bGtp7FixedLat_1_1rtl.html#a0956869a71917b42bdf2ecbf645e54c4":[1,0,374,0,1]
 };

@@ -2121,9 +2121,9 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/ClockMan/h
 
 [AxiXcf128Core.vhd:84:Info: Elaborating entity AxiXcf128Reg for hierarchy axixcf128reg::axixcf128reg_inst]
 
-[BoxcarFilter.vhd:65:Info: Elaborating entity BoxcarIntegrator for hierarchy boxcarintegrator::u_integrator]
+[BoxcarFilter.vhd:67:Info: Elaborating entity BoxcarIntegrator for hierarchy boxcarintegrator::u_integrator]
 
-[BoxcarIntegrator.vhd:96:Info: Elaborating entity SimpleDualPortRam for hierarchy simpledualportram::u_ram]
+[BoxcarIntegrator.vhd:109:Info: Elaborating entity SimpleDualPortRam for hierarchy simpledualportram::u_ram]
 
 [DspAddSub.vhd:141:Info: Elaborating entity FifoOutputPipeline for hierarchy fifooutputpipeline::u_pipe]
 
@@ -2135,11 +2135,11 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/ClockMan/h
 
 [BoxcarFilterTb.vhd:58:Info: Elaborating entity ClkRst for hierarchy clkrst::u_clkrst]
 
-[BoxcarFilterTb.vhd:107:Info: Elaborating entity BoxcarFilter for hierarchy boxcarfilter::u_boxcarfilter]
+[BoxcarFilterTb.vhd:115:Info: Elaborating entity BoxcarFilter for hierarchy boxcarfilter::u_boxcarfilter]
 
-[BoxcarIntegratorTb.vhd:57:Info: Elaborating entity ClkRst for hierarchy clkrst::u_clkrst]
+[BoxcarIntegratorTb.vhd:60:Info: Elaborating entity ClkRst for hierarchy clkrst::u_clkrst]
 
-[BoxcarIntegratorTb.vhd:151:Info: Elaborating entity BoxcarIntegrator for hierarchy boxcarintegrator::u_boxcarintegrator]
+[BoxcarIntegratorTb.vhd:159:Info: Elaborating entity BoxcarIntegrator for hierarchy boxcarintegrator::u_boxcarintegrator]
 
 [DspAddSubTb.vhd:48:Info: Elaborating entity ClkRst for hierarchy clkrst::u_clkrst]
 
@@ -4591,9 +4591,9 @@ Reading /home/travis/build/slaclab/surf/xilinx/UltraScale/general/rtl/ClockMan/h
 
 [Gth7TxRst.vhd:312:Info: Elaborating entity Synchronizer for hierarchy synchronizer::synchronizer_plllock]
 
-[Gtp7AutoPhaseAligner.vhd:130:Info: Elaborating entity Synchronizer for hierarchy synchronizer::sync_phaligndone]
+[Gtp7AutoPhaseAligner.vhd:132:Info: Elaborating entity Synchronizer for hierarchy synchronizer::sync_phaligndone]
 
-[Gtp7AutoPhaseAligner.vhd:138:Info: Elaborating entity Synchronizer for hierarchy synchronizer::sync_dlysresetdone]
+[Gtp7AutoPhaseAligner.vhd:140:Info: Elaborating entity Synchronizer for hierarchy synchronizer::sync_dlysresetdone]
 
 [Gtp7Core.vhd:471:Info: Elaborating entity Gtp7RxRst for hierarchy gtp7rxrst::gtp7rxrst_inst]
 

@@ -11,5 +11,6 @@ var classGtp7AutoPhaseAligner =
     [ "RECCLKSTABLE", "classGtp7AutoPhaseAligner.html#a091838db43097a298431817b06dc35f2", null ],
     [ "IEEE", "classGtp7AutoPhaseAligner.html#ae4f03c286607f3181e16b9aa12d0c6d4", null ],
     [ "STD_LOGIC_1164", "classGtp7AutoPhaseAligner.html#aa4b2b25246a821511120e3149b003563", null ],
-    [ "NUMERIC_STD", "classGtp7AutoPhaseAligner.html#ae00f3f04545af57582ff10609eee23e2", null ]
+    [ "NUMERIC_STD", "classGtp7AutoPhaseAligner.html#ae00f3f04545af57582ff10609eee23e2", null ],
+    [ "surf", "classGtp7AutoPhaseAligner.html#acabf3ea45bb9ea54f778c194fc238b6d", null ]
 ];
